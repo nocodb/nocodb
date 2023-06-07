@@ -21222,7 +21222,6 @@
             "description": "The license key",
             "example": "1234567890",
             "maxLength": 255,
-            "minLength": 10,
             "type": "string"
           }
         },
@@ -22463,6 +22462,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "fk_workspace_id": {
+            "description": "Workspace ID",
+            "type": "string"
           }
         },
         "required": [

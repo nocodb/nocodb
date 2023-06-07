@@ -4,7 +4,7 @@ import setup from '../../setup';
 import { knex } from 'knex';
 import { Api, UITypes } from 'nocodb-sdk';
 import { ProjectsPage } from '../../pages/ProjectsPage';
-import { isMysql, isPg, isSqlite } from '../../setup/db';
+import { isHub, isMysql, isPg, isSqlite } from '../../setup/db';
 import { getKnexConfig } from '../utils/config';
 import { getBrowserTimezoneOffset } from '../utils/general';
 let api: Api<any>, records: any[];
@@ -46,7 +46,14 @@ async function timezoneSuite(token?: string, skipTableCreate?: boolean) {
     }
   }
 
-  const project = await api.project.create({ title: 'xcdb' });
+  // get current workspace information if in hub
+  let workspaceId = '';
+  if (isHub()) {
+    const workspaces = await api.workspace.list();
+    workspaceId = workspaces.list[0].id;
+  }
+
+  const project = await api.project.create({ title: 'xcdb', fk_workspace_id: workspaceId });
   if (skipTableCreate) return { project };
   const table = await api.base.tableCreate(project.id, project.bases?.[0].id, {
     table_name: 'dateTimeTable',
@@ -106,7 +113,7 @@ test.describe('Timezone-XCDB : Japan/Tokyo', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
-    if (!isSqlite(context)) return;
+    if (!isSqlite(context) && !isHub()) return;
 
     try {
       const { project, table } = await timezoneSuite(context.token);
@@ -139,17 +146,27 @@ test.describe('Timezone-XCDB : Japan/Tokyo', () => {
    *  Display value is converted to Asia/Tokyo
    */
   test('API insert, verify display value', async () => {
-    if (!isSqlite(context)) return;
+    if (!isSqlite(context) && !isHub()) return;
 
-    await dashboard.clickHome();
-    const projectsPage = new ProjectsPage(dashboard.rootPage);
-    await projectsPage.openProject({ title: 'xcdb', withoutPrefix: true });
-
+    if (isHub()) {
+      await dashboard.treeView.openBase({ title: 'xcdb' });
+    } else {
+      await dashboard.clickHome();
+      const projectsPage = new ProjectsPage(dashboard.rootPage);
+      await projectsPage.openProject({ title: 'xcdb', withoutPrefix: true });
+    }
     await dashboard.treeView.openTable({ title: 'dateTimeTable' });
 
-    // DateTime inserted using API without timezone is converted to UTC
+    // DateTime inserted using API without timezone is converted to db-timezone (server timezone in case of sqlite)
     // Display value is converted to Asia/Tokyo
-    await dashboard.grid.cell.verifyDateCell({ index: 0, columnHeader: 'DateTime', value: '2021-01-01 09:00' });
+    const dateInserted = new Date(`2021-01-01 00:00:00${getBrowserTimezoneOffset()}`);
+    // convert dateInserted to Japan/Tokyo timezone in YYYY-MM-DD HH:mm format
+    const dateInsertedInJapan = new Date(dateInserted.getTime() + 9 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 16)
+      .replace('T', ' ');
+
+    await dashboard.grid.cell.verifyDateCell({ index: 0, columnHeader: 'DateTime', value: dateInsertedInJapan });
 
     // DateTime inserted using API with timezone is converted to UTC
     // Display value is converted to Asia/Tokyo
@@ -171,10 +188,18 @@ test.describe('Timezone-XCDB : Japan/Tokyo', () => {
    */
 
   test('API Insert, verify API read response', async () => {
-    if (!isSqlite(context)) return;
+    if (!isSqlite(context) && !isHub()) return;
+
+    const dateInserted = new Date(`2021-01-01 00:00:00${getBrowserTimezoneOffset()}`);
+    // translate dateInserted to UTC in YYYY-MM-DD HH:mm format
+    const dateInsertedInUTC = dateInserted.toISOString().replace('T', ' ').replace('Z', '');
 
     // UTC expected response
-    const dateUTC = ['2021-01-01 00:00:00+00:00', '2021-01-01 00:00:00+00:00', '2021-01-01 00:00:00+00:00'];
+    const dateUTC = [
+      `${dateInsertedInUTC.slice(0, 19)}+00:00`,
+      '2021-01-01 00:00:00+00:00',
+      '2021-01-01 00:00:00+00:00',
+    ];
 
     const readDate = records.list.map(record => record.DateTime);
 
@@ -223,15 +248,30 @@ test.describe('Timezone-XCDB : Asia/Hong-kong', () => {
    *   Display value is converted to Asia/Hong-Kong
    */
   test('API insert, verify display value', async () => {
-    await dashboard.clickHome();
-    const projectsPage = new ProjectsPage(dashboard.rootPage);
-    await projectsPage.openProject({ title: 'xcdb', withoutPrefix: true });
+    if (isHub()) {
+      await dashboard.treeView.openBase({ title: 'xcdb' });
+    } else {
+      await dashboard.clickHome();
+      const projectsPage = new ProjectsPage(dashboard.rootPage);
+      await projectsPage.openProject({ title: 'xcdb', withoutPrefix: true });
+    }
 
     await dashboard.treeView.openTable({ title: 'dateTimeTable' });
 
     // DateTime inserted using API without timezone is converted to UTC
     // Display value is converted to Asia/Hong_Kong
-    await dashboard.grid.cell.verifyDateCell({ index: 0, columnHeader: 'DateTime', value: '2021-01-01 08:00' });
+    const dateInserted = new Date(`2021-01-01 00:00:00${getBrowserTimezoneOffset()}`);
+    // convert dateInserted to Asia/Hong-kong timezone using offset
+    const dateInsertedInHK = new Date(dateInserted.getTime() + 8 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 16)
+      .replace('T', ' ');
+
+    await dashboard.grid.cell.verifyDateCell({
+      index: 0,
+      columnHeader: 'DateTime',
+      value: dateInsertedInHK,
+    });
 
     // DateTime inserted using API with timezone is converted to UTC
     // Display value is converted to Asia/Hong_Kong
@@ -264,9 +304,13 @@ test.describe('Timezone-XCDB : Asia/Hong-kong', () => {
     // Kludge: Using API for test preparation was not working
     // Hence switched over to UI based table creation
 
-    await dashboard.clickHome();
-    const projectsPage = new ProjectsPage(dashboard.rootPage);
-    await projectsPage.openProject({ title: 'xcdb', withoutPrefix: true });
+    if (isHub()) {
+      await dashboard.treeView.openBase({ title: 'xcdb' });
+    } else {
+      await dashboard.clickHome();
+      const projectsPage = new ProjectsPage(dashboard.rootPage);
+      await projectsPage.openProject({ title: 'xcdb', withoutPrefix: true });
+    }
 
     await dashboard.treeView.createTable({ title: 'dateTimeTable', mode: 'Xcdb' });
     await dashboard.grid.column.create({
@@ -509,6 +553,11 @@ function getDateTimeInUTCTimeZone(dateString: string) {
 }
 
 test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same as server timezone', async () => {
+  if (isHub()) {
+    // Hub not to have extDB support
+    test.skip();
+  }
+
   let dashboard: DashboardPage;
   let context: any;
 
@@ -862,6 +911,11 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
 });
 
 test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to HKT', async () => {
+  if (isHub()) {
+    // Hub not to have extDB support
+    test.skip();
+  }
+
   let dashboard: DashboardPage;
   let context: any;
 
@@ -998,6 +1052,11 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
 });
 
 test.describe.serial('Timezone- ExtDB (MySQL Only) : DB Timezone configured as HKT', () => {
+  if (isHub()) {
+    // Hub not to have extDB support
+    test.skip();
+  }
+
   let dashboard: DashboardPage;
   let context: any;
 

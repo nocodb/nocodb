@@ -12,10 +12,12 @@ import {
   GalleryViewColumn,
   GridViewColumn,
   Hook,
+  Layout,
   Model,
   Project,
   Sort,
   View,
+  Widget,
 } from '../../models';
 import extractRolesObj from '../../utils/extractRolesObj';
 import projectAcl from '../../utils/projectAcl';
@@ -49,6 +51,8 @@ export class ExtractProjectAndWorkspaceIdMiddleware
         req.ncProjectId = params.projectId;
       } else if (req.query.project_id) {
         req.ncProjectId = req.query.project_id;
+      } else if (params.dashboardId) {
+        req.ncProjectId = params.dashboardId;
       } else if (
         params.tableId ||
         req.query.fk_model_id ||
@@ -108,6 +112,13 @@ export class ExtractProjectAndWorkspaceIdMiddleware
       } else if (params.sortId) {
         const sort = await Sort.get(params.sortId);
         req.ncProjectId = sort?.project_id;
+      } else if (params.layoutId) {
+        const layout = await Layout.get(params.layoutId);
+        req.ncProjectId = layout?.project_id;
+      } else if (params.widgetId) {
+        const widget = await Widget.get(params.widgetId);
+        const layout = await Layout.get(widget.layout_id);
+        req.ncProjectId = layout?.project_id;
       }
 
       // todo:  verify all scenarios

@@ -129,18 +129,30 @@ export class WidgetDataService {
         case WidgetTypeType.ScatterPlot: {
           const chartWidget = widget as ChartWidget;
           const { projectId, tableId, viewId } = data_source;
-          const { xAxisColId, yAxisColId, aggregateFunction } =
-            chartWidget.data_config;
+          const {
+            xAxisColId,
+            recordCountOrFieldSummary,
+            xAxisOrderBy,
+            xAxisOrderDirection,
+          } = chartWidget.data_config;
 
           const view = await View.get(viewId);
           await view.getColumns();
-          const aggregateColumnId = yAxisColId;
 
-          const aggregateColumn = await Column.get({
-            colId: aggregateColumnId,
-          });
+          let aggregateColumnName, aggregateFunction;
+          if (recordCountOrFieldSummary === 'field_summary') {
+            const aggregateColumnId = chartWidget.data_config.yAxisColId;
 
-          const aggregateColumnName = aggregateColumn?.column_name;
+            const aggregateColumn = await Column.get({
+              colId: aggregateColumnId,
+            });
+
+            aggregateFunction = chartWidget.data_config.aggregateFunction;
+            aggregateColumnName = aggregateColumn?.column_name;
+          } else {
+            aggregateFunction = 'count';
+            aggregateColumnName = '*';
+          }
 
           const groupByColumnId = xAxisColId;
 
@@ -150,6 +162,12 @@ export class WidgetDataService {
             })
           ).column_name;
 
+          const sortByColName =
+            xAxisOrderBy === 'x_val'
+              ? groupByColumnName
+              : `${aggregateFunction}__${aggregateColumnName}`;
+          const sort = `${sortByColName} ${xAxisOrderDirection}`;
+
           const widgetData = await this.dataGroupAndAggregateBy({
             widget,
             query: undefined,
@@ -157,12 +175,20 @@ export class WidgetDataService {
             tableName: tableId,
             viewName: viewId,
             aggregateColumnName,
-            aggregateFunction,
+            aggregateFunction: aggregateFunction,
             groupByColumnName,
+            ...(sortByColName
+              ? {
+                  sort: {
+                    column_name: sortByColName,
+                    direction: xAxisOrderDirection,
+                  },
+                }
+              : {}),
           });
 
           return {
-            aggregateFunction,
+            aggregateFunction: aggregateFunction,
             xColumnName: groupByColumnName,
             yColumnName: aggregateColumnName,
             values: widgetData.list,
@@ -184,6 +210,10 @@ export class WidgetDataService {
       aggregateColumnName: string;
       aggregateFunction: string;
       ignoreFilters?: boolean;
+      sort?: {
+        column_name: string;
+        direction: 'asc' | 'desc';
+      };
     },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
@@ -203,6 +233,10 @@ export class WidgetDataService {
     aggregateFunction: string;
     groupByColumnName?: string;
     ignoreFilters?: boolean;
+    sort?: {
+      column_name: string;
+      direction: 'asc' | 'desc';
+    };
   }) {
     const { model, view, query = {} } = param;
 
@@ -223,7 +257,12 @@ export class WidgetDataService {
     const data = await baseModel.groupByAndAggregate(
       param.aggregateColumnName,
       param.aggregateFunction,
-      { groupByColumnName: param.groupByColumnName, widgetFilterArr, ...query },
+      {
+        groupByColumnName: param.groupByColumnName,
+        widgetFilterArr,
+        sortBy: param.sort,
+        ...query,
+      },
     );
 
     return new PagedResponseImpl(data, {

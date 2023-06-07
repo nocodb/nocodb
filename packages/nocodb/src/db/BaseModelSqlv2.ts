@@ -425,7 +425,10 @@ class BaseModelSqlv2 {
       where?: string;
       limit?;
       offset?;
-      sort?: string | string[];
+      sortBy?: {
+        column_name: string;
+        direction: 'asc' | 'desc';
+      };
       groupByColumnName?: string;
       widgetFilterArr?: Filter[];
     },
@@ -449,8 +452,6 @@ class BaseModelSqlv2 {
 
     const aliasColObjMap = await this.model.getAliasColObjMap();
 
-    const sorts = extractSortsObject(rest?.sort, aliasColObjMap);
-
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
     await conditionV2(
       [
@@ -471,7 +472,9 @@ class BaseModelSqlv2 {
     if (args?.groupByColumnName) {
       qb.groupBy(args?.groupByColumnName);
     }
-    if (sorts) await sortV2(sorts, qb, this.dbDriver);
+    if (args?.sortBy?.column_name) {
+      qb.orderBy(args.sortBy.column_name, args.sortBy.direction);
+    }
     applyPaginate(qb, rest);
     return await qb;
   }

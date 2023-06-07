@@ -50,13 +50,19 @@ export class TreeViewPage extends BasePage {
   }
 
   async openBase({ title }: { title: string }) {
-    const nodes = await this.get().locator(`.ant-collapse`);
+    let nodes: Locator;
+    if (isHub()) {
+      nodes = await this.get().locator(`.nc-project-sub-menu`);
+    } else {
+      nodes = await this.get().locator(`.ant-collapse`);
+    }
+
     // loop through nodes.count() to find the node with title
     for (let i = 0; i < (await nodes.count()); i++) {
       const node = nodes.nth(i);
       const nodeTitle = await node.innerText();
       // check if nodeTitle contains title
-      if (nodeTitle.includes(title)) {
+      if (nodeTitle.toLowerCase().includes(title.toLowerCase())) {
         // click on node
         await node.waitFor({ state: 'visible' });
         await node.click();
@@ -231,11 +237,20 @@ export class TreeViewPage extends BasePage {
 
   async verifyTabIcon({ title, icon }: { title: string; icon: string }) {
     await new Promise(resolve => setTimeout(resolve, 1000));
-    await expect(
-      this.rootPage.locator(
-        `[data-testid="nc-tab-title"]:has-text("${title}") [data-testid="nc-tab-icon-emojione:${icon}"]`
-      )
-    ).toBeVisible();
+
+    // tbd: check if we can have a common method for this
+    if (isHub()) {
+      await this.rootPage.locator(`.nc-project-tree-tbl-${title}`).waitFor({ state: 'visible' });
+      await this.rootPage.locator(`.nc-project-tree-tbl-${title} [data-testid="nc-icon-emojione:${icon}"]`).waitFor({
+        state: 'visible',
+      });
+    } else {
+      await expect(
+        this.rootPage.locator(
+          `[data-testid="nc-tab-title"]:has-text("${title}") [data-testid="nc-icon-emojione:${icon}"]`
+        )
+      ).toBeVisible();
+    }
   }
 
   // todo: Break this into smaller methods

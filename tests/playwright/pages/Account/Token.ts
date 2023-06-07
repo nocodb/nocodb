@@ -1,4 +1,4 @@
-import { Locator } from '@playwright/test';
+import { expect, Locator } from '@playwright/test';
 import BasePage from '../Base';
 import { AccountPage } from './index';
 
@@ -48,5 +48,7 @@ export class AccountTokenPage extends BasePage {
     await this.rootPage.locator('[data-testid="nc-token-row-action-icon"] .nc-delete-token').click();
     await this.rootPage.locator('.ant-modal-confirm-confirm button:has-text("Ok")').click();
     await this.verifyToast({ message: 'Token deleted successfully' });
+
+    expect(await this.get().locator(`tr`).count()).toBe(0);
   }
 }

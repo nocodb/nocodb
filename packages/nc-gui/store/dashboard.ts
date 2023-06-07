@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import type {
   AppearanceConfig,
+  ButtonWidget,
   ColumnType,
   DataConfig,
   DataConfigAggregated2DChart,
@@ -8,9 +9,11 @@ import type {
   DataSource,
   DataSourceInternal,
   LayoutType,
+  NumberWidget,
   ProjectType,
   ScreenDimensions,
   ScreenPosition,
+  StaticTextWidget,
   ViewType,
   Widget,
   WidgetReqType,
@@ -349,15 +352,15 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
 
   watch(
     openedLayoutId,
-    async (newLayoutId, previousDashboardId) => {
+    async (newLayoutId, previousLayoutId) => {
       //
       // Helper functions/props
       //
       const isDashboardNewButAlreadyOpen = openedLayoutSidebarNode.value?.new && openedLayoutSidebarNode.value.id === newLayoutId
 
       const setPreviousDashboardAsOld = () => {
-        if (previousDashboardId) {
-          const previousDashboard = _findSingleLayout(layoutsOfProjects.value[openedProjectId.value], previousDashboardId)
+        if (previousLayoutId) {
+          const previousDashboard = _findSingleLayout(layoutsOfProjects.value[openedProjectId.value], previousLayoutId)
           if (previousDashboard?.new) {
             previousDashboard.new = false
           }
@@ -620,8 +623,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       layout_id: openedLayoutId.value!,
       schema_version: '1.0.0',
       appearance_config: {
-        name: 'New element',
-        description: 'Empty description',
         screenPosition: {
           x: screenPosition.x - defaultScreenDimensions.width / 2,
           y: screenPosition.y - defaultScreenDimensions.height / 2,
@@ -745,8 +746,17 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     }
   }
 
-  const changeSelectRecordsModeForNumberWidgetDataConfig = (newVal: string) => {
-    if (!focusedWidget.value || ![WidgetTypeType.Number].includes(focusedWidget.value.widget_type)) {
+  const changeSelectRecordsModeForNumberWidgetDataConfig = (newVal: 'all_records' | 'specific_records') => {
+    if (
+      !focusedWidget.value ||
+      ![
+        WidgetTypeType.Number,
+        WidgetTypeType.BarChart,
+        WidgetTypeType.LineChart,
+        WidgetTypeType.PieChart,
+        WidgetTypeType.ScatterPlot,
+      ].includes(focusedWidget.value.widget_type)
+    ) {
       console.error('changeSelectRecordsModeForNumberWidgetDataConfig: focusedWidget.value is undefined or not a Number widget')
       return
     }
@@ -759,10 +769,10 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     })
   }
 
-  const changeRecordCountOrFieldSummaryForNumberWidgetDataConfig = (newVal: string) => {
-    if (!focusedWidget.value || ![WidgetTypeType.Number].includes(focusedWidget.value.widget_type)) {
+  const changeRecordCountOrFieldSummaryForNumberWidgetDataConfig = (newVal: 'record_count' | 'field_summary') => {
+    if (!focusedWidget.value || ![WidgetTypeType.Number, ...chartTypes].includes(focusedWidget.value.widget_type)) {
       console.error(
-        'changeRecordCountOrFieldSummaryForNumberWidgetDataConfig: focusedWidget.value is undefined or not a Number widget',
+        'changeRecordCountOrFieldSummaryForNumberWidgetDataConfig: focusedWidget.value is undefined or not a Number/Chart widget',
       )
       return
     }
@@ -771,6 +781,34 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       data_config: {
         ...focusedWidget.value.data_config,
         recordCountOrFieldSummary: newVal,
+      },
+    })
+  }
+
+  const changeDescriptionOfNumberWidget = (newDescription: string) => {
+    if (!focusedWidget.value || ![WidgetTypeType.Number].includes(focusedWidget.value.widget_type)) {
+      console.error('changeDescriptionOfNumberWidget: focusedWidget.value is undefined or not a Number widget')
+      return
+    }
+    _updateWidgetInAPIAndLocally({
+      ...focusedWidget.value,
+      data_config: {
+        ...focusedWidget.value.data_config,
+        description: newDescription,
+      },
+    })
+  }
+
+  const changeNameOfNumberWidget = (newName: string) => {
+    if (!focusedWidget.value || ![WidgetTypeType.Number].includes(focusedWidget.value.widget_type)) {
+      console.error('changeNameOfNumberWidget: focusedWidget.value is undefined or not a Number widget')
+      return
+    }
+    _updateWidgetInAPIAndLocally({
+      ...focusedWidget.value,
+      data_config: {
+        ...focusedWidget.value.data_config,
+        name: newName,
       },
     })
   }
@@ -789,6 +827,226 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       widget_type: newChartType as WidgetTypeType,
     }
     _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const changeSelectedXColumnIdOfFocusedWidget = (newXColumnId: string) => {
+    if (!focusedWidget.value || !chartTypes.includes(focusedWidget.value.widget_type)) {
+      console.error('changeSelectedXColumnIfOfFocusedWidget: focusedWidget.value is undefined or not a chart')
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      data_config: {
+        ...focusedWidget.value.data_config,
+        xAxisColId: newXColumnId,
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const changeSelectedXAxisOrderByOfFocusedWidget = (newXAxisOrderBy: 'x_val' | 'y_val') => {
+    if (!focusedWidget.value || !chartTypes.includes(focusedWidget.value.widget_type)) {
+      console.error('changeSelectedXColumnIfOfFocusedWidget: focusedWidget.value is undefined or not a chart')
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      data_config: {
+        ...focusedWidget.value.data_config,
+        xAxisOrderBy: newXAxisOrderBy,
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const changexAxisOrderDirectionOfFocusedWidget = (newXAxisOrderDirection: 'asc' | 'desc') => {
+    if (!focusedWidget.value || !chartTypes.includes(focusedWidget.value.widget_type)) {
+      console.error('changeSelectedXColumnIfOfFocusedWidget: focusedWidget.value is undefined or not a chart')
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      data_config: {
+        ...focusedWidget.value.data_config,
+        xAxisOrderDirection: newXAxisOrderDirection,
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const changeSelectedYColumnIdOfFocusedWidget = (newYColumnId: string) => {
+    if (!focusedWidget.value || !chartTypes.includes(focusedWidget.value.widget_type)) {
+      console.error('changeSelectedXColumnIfOfFocusedWidget: focusedWidget.value is undefined or not a chart')
+      return
+    }
+    // ;(focusedWidget.value.data_config as DataConfigAggregated2DChart).yAxisColId = newYColumnId
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      data_config: {
+        ...focusedWidget.value.data_config,
+        yAxisColId: newYColumnId,
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const changeTextOfFocusedTextElement = (newText: string) => {
+    if (!focusedWidget.value || ![WidgetTypeType.StaticText].includes(focusedWidget.value.widget_type)) {
+      console.error('changeTextOfFocusedTextElement: focusedWidget.value is undefined or not a Text widget')
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      data_config: {
+        ...focusedWidget.value.data_config,
+        text: newText,
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const changeUrlOfFocusedTextElement = (newUrl: string) => {
+    if (!focusedWidget.value || ![WidgetTypeType.StaticText].includes(focusedWidget.value.widget_type)) {
+      console.error('changeUrlOfFocusedTextElement: focusedWidget.value is undefined or not a Text widget')
+      return
+    }
+
+    const currentWidgetConf = focusedWidget.value as StaticTextWidget
+
+    if (currentWidgetConf.data_config.staticTextFunction?.type !== 'url') {
+      console.error('changeUrlOfFocusedTextElement: staticTextFunction.type is not url')
+      return
+    }
+    const updatedWidget: StaticTextWidget = {
+      ...currentWidgetConf,
+      data_config: {
+        ...currentWidgetConf.data_config,
+        staticTextFunction: {
+          type: 'url',
+          url: newUrl,
+        },
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  // TODO: use types from skd for function signature
+  const changeFunctionTypeOfStaticTextWidget = (newFunctionType: false | 'url') => {
+    // if (!focusedWidget.value || ![WidgetTypeType.StaticText].includes(focusedWidget.value.widget_type)) {
+    if (!focusedWidget.value || focusedWidget.value.widget_type !== WidgetTypeType.StaticText) {
+      console.error('changeFunctionTypeOfStaticTextWidget: focusedWidget.value is undefined or not a Text widget')
+      return
+    }
+
+    const currentWidgetConf = focusedWidget.value as StaticTextWidget
+    let updatedWidget: StaticTextWidget
+    if (newFunctionType === false) {
+      updatedWidget = {
+        ...currentWidgetConf!,
+        data_config: {
+          ...currentWidgetConf.data_config,
+          hasFunction: false,
+        },
+      }
+    } else {
+      updatedWidget = {
+        ...currentWidgetConf!,
+        data_config: {
+          ...currentWidgetConf.data_config,
+          hasFunction: true,
+          staticTextFunction: currentWidgetConf.data_config.staticTextFunction || {
+            type: 'url',
+            url: '',
+          },
+        },
+      }
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const changeButtonActionTypeOfFocusedWidget = (newActionType: ButtonActionType) => {
+    if (!focusedWidget.value || ![WidgetTypeType.Button].includes(focusedWidget.value.widget_type)) {
+      console.error('changeButtonActionTypeOfFocusedWidget: focusedWidget.value is undefined or not a button')
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      data_config: {
+        ...(focusedWidget.value as ButtonWidget).data_config,
+        actionType: newActionType,
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const changeButtonTextOfFocusedButtonWidget = (newButtonText: string) => {
+    if (!focusedWidget.value || ![WidgetTypeType.Button].includes(focusedWidget.value.widget_type)) {
+      console.error('changeButtonActionTypeOfFocusedWidget: focusedWidget.value is undefined or not a button')
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      data_config: {
+        ...(focusedWidget.value as ButtonWidget).data_config,
+        buttonText: newButtonText,
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const changeExternalUrlOfFocusedButtonWidget = (newExternalUrl: string) => {
+    if (!focusedWidget.value || ![WidgetTypeType.Button].includes(focusedWidget.value.widget_type)) {
+      console.error('changeButtonActionTypeOfFocusedWidget: focusedWidget.value is undefined or not a button')
+      return
+    }
+    if ((focusedWidget.value as ButtonWidget).data_config.actionType !== ButtonActionType.OPEN_EXTERNAL_URL) {
+      console.error('Trying to change external url of a button which is not of correct ActionType')
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      data_config: {
+        ...(focusedWidget.value as ButtonWidget).data_config,
+        url: newExternalUrl,
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const _changeColorPropertyOfFocusedWidget = (
+    newColor: string,
+    colorPropertyName: 'fillColor' | 'textColor' | 'borderColor' | 'iconColor',
+  ) => {
+    if (!focusedWidget.value || ![WidgetTypeType.Number].includes(focusedWidget.value.widget_type)) {
+      console.error(
+        `_changeColorPropertyOfFocusedWidget (for property ${colorPropertyName}): focusedWidget.value is undefined or not a button`,
+      )
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      appearance_config: {
+        ...(focusedWidget.value as NumberWidget).appearance_config,
+        [colorPropertyName]: newColor,
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const changeFillColorOfFocusedWidget = (newFillColor: string) => {
+    _changeColorPropertyOfFocusedWidget(newFillColor, 'fillColor')
+  }
+
+  const changeBorderColorOfFocusedWidget = (newBorderColor: string) => {
+    _changeColorPropertyOfFocusedWidget(newBorderColor, 'borderColor')
+  }
+
+  const changeTextColorOfFocusedWidget = (newTextColor: string) => {
+    _changeColorPropertyOfFocusedWidget(newTextColor, 'textColor')
+  }
+
+  const changeIconColorOfFocusedWidget = (newIconColor: string) => {
+    _changeColorPropertyOfFocusedWidget(newIconColor, 'iconColor')
   }
 
   return {
@@ -818,10 +1076,26 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     changeSelectedProjectIdAndTableIdOfFocusedWidget,
     changeSelectedNumberColumnIdOfFocusedWidget,
     changeSelectedViewIdOfFocusedWidget,
+    changeSelectedXColumnIdOfFocusedWidget,
+    changeSelectedYColumnIdOfFocusedWidget,
     changeRecordCountOrFieldSummaryForNumberWidgetDataConfig,
     changeSelectRecordsModeForNumberWidgetDataConfig,
     changeAggregateFunctionOfFocusedWidget,
     changeChartTypeOfFocusedChartElement,
     populateLayouts,
+    changeNameOfNumberWidget,
+    changeDescriptionOfNumberWidget,
+    changeSelectedXAxisOrderByOfFocusedWidget,
+    changexAxisOrderDirectionOfFocusedWidget,
+    changeTextOfFocusedTextElement,
+    changeFunctionTypeOfStaticTextWidget,
+    changeUrlOfFocusedTextElement,
+    changeButtonActionTypeOfFocusedWidget,
+    changeButtonTextOfFocusedButtonWidget,
+    changeExternalUrlOfFocusedButtonWidget,
+    changeFillColorOfFocusedWidget,
+    changeBorderColorOfFocusedWidget,
+    changeTextColorOfFocusedWidget,
+    changeIconColorOfFocusedWidget,
   }
 })

@@ -24,8 +24,10 @@ const dataLinkConfigIsMissing = computed(() => {
     !data_source?.value.projectId ||
     !data_source?.value.tableId ||
     !data_source.value.viewId ||
-    !data_config.value.colId ||
-    !data_config.value.aggregateFunction
+    !(
+      (data_config.value.colId && data_config.value.aggregateFunction) ||
+      data_config.value.recordCountOrFieldSummary === 'record_count'
+    )
   )
 })
 

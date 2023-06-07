@@ -74,16 +74,43 @@ export interface DataConfigNumber {
   selectRecordsMode?: 'all_records' | 'specific_records';
   colId?: string;
   aggregateFunction?: AggregateFnType;
+  name?: string;
+  description?: string;
+}
+
+export interface StaticTextFunctionBase {
+  type: 'url'; // | ... More Functions to come?;
+}
+export interface StatictTextFunctionUrl extends StaticTextFunctionBase {
+  type: 'url';
+  url: string;
+}
+
+export type StaticTextFunction = StatictTextFunctionUrl;
+
+export interface DataConfigStaticText {
+  text?: string;
+  hasFunction?: boolean;
+  staticTextFunction?: StaticTextFunction;
 }
 
 export interface DataConfigStaticText {
   text?: string;
+  hasFunction?: boolean;
+  staticTextFunction?: StaticTextFunction;
 }
 
 export interface DataConfigAggregated2DChart {
   xAxisColId?: string;
+  xAxisOrderBy?: 'x_val' | 'y_val';
+  xAxisOrderDirection?: 'asc' | 'desc';
+  xAxisIncludeEmptyRecords?: boolean;
+  recordCountOrFieldSummary?: 'record_count' | 'field_summary';
+  yAxisRecordCountMode?: 'count' | 'distinct';
   yAxisColId?: string;
   aggregateFunction?: AggregateFnType;
+  yAxisGroupByColId?: string;
+  yAxisStartAtZero?: boolean;
 }
 export type DataConfigBarChart = DataConfigAggregated2DChart;
 export type DataConfigLineChart = DataConfigAggregated2DChart;
@@ -124,8 +151,6 @@ export enum FontType {
 }
 
 export interface AppearanceConfigBase {
-  name: string;
-  description?: string;
   screenDimensions: ScreenDimensions;
   screenPosition: ScreenPosition;
 }
@@ -134,9 +159,16 @@ export interface AppearanceConfigStaticText extends AppearanceConfigBase {
   fontType?: FontType;
 }
 
+export interface AppearanceConfigNumber extends AppearanceConfigBase {
+  fillColor?: string;
+  textColor?: string;
+  borderColor?: string;
+  iconColor?: string;
+}
+
 export type AppearanceConfig =
   | AppearanceConfigStaticText
-  | AppearanceConfigBase;
+  | AppearanceConfigNumber;
 
 export interface Widget {
   id: string;
@@ -161,7 +193,7 @@ export interface ButtonWidget extends Widget {
 }
 
 export interface NumberWidget extends Widget {
-  appearance_config: AppearanceConfigBase;
+  appearance_config: AppearanceConfigNumber;
   data_config: DataConfigNumber;
   widget_type: WidgetTypeType.Number;
 }

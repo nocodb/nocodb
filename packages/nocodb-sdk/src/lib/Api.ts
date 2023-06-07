@@ -2135,6 +2135,8 @@ export interface ProjectReqType {
   type?: string;
   /** List of Linked Database Project IDs (only used for Dashboard Projects so far) */
   linked_db_project_ids?: string[];
+  /** Workspace ID */
+  fk_workspace_id?: string;
 }
 
 /**

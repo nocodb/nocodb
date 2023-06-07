@@ -4,6 +4,7 @@ import { MetaTable } from '../utils/globals';
 
 import Page from './Page';
 import type { WorkspaceType } from 'nocodb-sdk';
+import {Project} from "./index";
 
 export default class Workspace implements WorkspaceType {
   id?: string;
@@ -128,6 +129,11 @@ export default class Workspace implements WorkspaceType {
     await ncMeta.metaDelete(null, null, MetaTable.WORKSPACE_USER, {
       fk_workspace_id: id,
     });
+
+    const projectList = await Project.list(id, ncMeta);
+    for (const project of projectList) {
+      await Project.softDelete(project.id, ncMeta);
+    }
 
     // todo: reset project workspace mapping
     // and mark it as deleted

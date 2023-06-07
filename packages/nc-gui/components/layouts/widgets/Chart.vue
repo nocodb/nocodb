@@ -85,13 +85,14 @@ const chartComponent = computed(() => {
   }
 })
 
+const dashboardStore = useDashboardStore()
+const { openedLayoutSidebarNode } = storeToRefs(dashboardStore)
+
 const chartData = ref<ChartData | undefined>()
 
 const aggregateFunction = ref<string | undefined>()
 
-const dashboardStore = useDashboardStore()
 const { reloadWidgetDataEventBus } = dashboardStore
-const { focusedWidget } = storeToRefs(dashboardStore)
 
 const dataLinkConfigIsMissing = computed(() => {
   const data_source = chartWidget.value?.data_source as DataSourceInternal
@@ -102,8 +103,10 @@ const dataLinkConfigIsMissing = computed(() => {
     !data_source?.tableId ||
     !data_source.viewId ||
     !data_config.value.xAxisColId ||
-    !data_config.value.yAxisColId ||
-    !data_config.value.aggregateFunction
+    !(
+      (data_config.value.yAxisColId && data_config.value.aggregateFunction) ||
+      data_config.value.recordCountOrFieldSummary === 'record_count'
+    )
   )
 })
 
@@ -112,7 +115,7 @@ const getData = async () => {
     console.error('Tried to get data for Chart Visualisation without complete data link configuration')
     return
   }
-  const widgetData: any = await (await api.dashboard.widgetGet(focusedWidget.value!.id, chartWidget.value.id)).data
+  const widgetData: any = await (await api.dashboard.widgetGet(openedLayoutSidebarNode.value!.id!, chartWidget.value.id)).data
   if (widgetData == null) {
     console.error('Chart#getData: widgetData null/undefined')
     return

@@ -99,7 +99,7 @@ declare module '@vue/runtime-core' {
     IcBaselineKeyboardDoubleArrowRight: typeof import('~icons/ic/baseline-keyboard-double-arrow-right')['default']
     IcBaselineMoreVert: typeof import('~icons/ic/baseline-more-vert')['default']
     IcBaselineVisibilityOff: typeof import('~icons/ic/baseline-visibility-off')['default']
-    IconifyIcon: typeof import('~icons/ic/onify-icon')['default']
+    Icon: typeof import('~icons/ic/on')['default']
     IcOutlineInfo: typeof import('~icons/ic/outline-info')['default']
     IcOutlineInsertDriveFile: typeof import('~icons/ic/outline-insert-drive-file')['default']
     IcOutlineKeyboardArrowDown: typeof import('~icons/ic/outline-keyboard-arrow-down')['default']

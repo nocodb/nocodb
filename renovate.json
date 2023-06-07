@@ -3,25 +3,49 @@
   "extends": [
     "config:base",
     ":dependencyDashboard",
-    ":onlyNpm"
+    ":onlyNpm",
+    ":prConcurrentLimit20",
+    ":autodetectPinVersions",
+    ":label(renovate)",
+    ":rebaseStalePrs",
+    ":semanticPrefixFixDepsChoreOthers",
+    ":separatePatchReleases",
+    "group:monorepos",
+    "group:recommended"
   ],
   "baseBranches": [
     "develop"
   ],
+  "vulnerabilityAlerts": {
+    "commitMessagePrefix": "chore(renovate): Security update",
+  },
+  "schedule": "at any time",
+  "rangeStrategy": "bump",
   "packageRules": [
     {
-      "matchBaseBranches": [
-        "develop"
-      ],
-      "matchPackagePatterns": [
-        "*"
-      ],
-      "matchUpdateTypes": [
-        "minor",
-        "patch"
-      ],
-      "groupName": "all non-major dependencies",
-      "groupSlug": "all-minor-patch"
+      "matchPackagePatterns": ["*"],
+      "matchUpdateTypes": ["major"],
+      "reviewersFromCodeOwners": true,
+      "commitMessagePrefix": "chore(renovate): major",
+      "groupName": "major"
+    },
+    {
+      "matchPackagePatterns": ["*"],
+      "matchUpdateTypes": ["minor"],
+      "commitMessagePrefix": "chore(renovate): minor",
+      "groupName": "minor"
+    },
+    {
+      "matchPackagePatterns": ["*"],
+      "matchUpdateTypes": ["patch"],
+      "commitMessagePrefix": "chore(renovate): patch",
+      "groupName": "patch"
+    },
+    {
+      "matchPackagePatterns": ["*"],
+      "matchUpdateTypes": ["pin", "digest"],
+      "commitMessagePrefix": "chore(renovate): pin",
+      "groupName": "pin"
     }
   ],
   "ignorePaths": [

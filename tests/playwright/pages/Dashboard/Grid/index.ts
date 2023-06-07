@@ -183,8 +183,9 @@ export class GridPage extends BasePage {
   }
 
   async selectRow(index: number) {
-    await this.get().locator(`td[data-testid="cell-Id-${index}"]`).locator('span.ant-checkbox').click();
-    await this.rootPage.waitForTimeout(300);
+    const cell: Locator = await this.get().locator(`td[data-testid="cell-Id-${index}"]`);
+    await cell.hover();
+    await cell.locator('input[type="checkbox"]').check({ force: true });
   }
 
   async selectAll() {

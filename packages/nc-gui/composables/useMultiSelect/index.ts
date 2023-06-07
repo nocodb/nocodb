@@ -24,6 +24,7 @@ import {
   useI18n,
   useMetas,
   useProject,
+  useUIPermission,
 } from '#imports'
 
 const MAIN_MOUSE_PRESSED = 0
@@ -72,6 +73,9 @@ export function useMultiSelect(
   const isCellActive = computed(
     () => !(activeCell.row === null || activeCell.col === null || isNaN(activeCell.row) || isNaN(activeCell.col)),
   )
+
+  const { isUIAllowed } = useUIPermission()
+  const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
 
   function makeActive(row: number, col: number) {
     if (activeCell.row === row && activeCell.col === col) {
@@ -343,6 +347,9 @@ export function useMultiSelect(
               // paste - ctrl/cmd + v
               case 86:
                 try {
+                  // if edit permission is not there, return
+                  if (!hasEditPermission) return
+
                   // handle belongs to column
                   if (
                     columnObj.uidt === UITypes.LinkToAnotherRecord &&

@@ -43,6 +43,7 @@ export async function getViewAndModelByAliasOrId(param: {
       fk_model_id: model.id,
     }));
   if (!model) NcError.notFound('Table not found');
+  if (param.viewName && !view) NcError.notFound('View not found');
   return { model, view };
 }
 

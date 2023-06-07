@@ -113,7 +113,7 @@
     "@vitest/ui": "^0.18.0",
     "@vue/compiler-sfc": "^3.2.37",
     "@vue/test-utils": "^2.0.2",
-    "@vueuse/nuxt": "^9.0.2",
+    "@vueuse/nuxt": "^10.0.0",
     "@windicss/plugin-animations": "^1.0.9",
     "@windicss/plugin-question-mark": "^0.1.1",
     "@windicss/plugin-scrollbar": "^1.2.3",

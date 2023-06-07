@@ -1,0 +1,37 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base",
+    ":onlyNpm"
+  ],
+  "baseBranches": [
+    "develop"
+  ],
+  "packageRules": [
+    {
+      "matchBaseBranches": [
+        "develop"
+      ],
+      "matchPackagePatterns": [
+        "*"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "groupName": "all non-major dependencies",
+      "groupSlug": "all-minor-patch"
+    }
+  ],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/nc-cli/**",
+    "**/nc-lib-gui/**",
+    "**/nc-plugin/**",
+    "**/nocodb-legacy/**",
+    "**/test/**",
+    "**/tests/**",
+    "**/workflows/**",
+    "**/charts/**"
+  ]
+}

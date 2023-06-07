@@ -81,7 +81,7 @@
     "debug": "^4.3.4",
     "dotenv": "^8.6.0",
     "ejs": "^3.1.9",
-    "emittery": "^1.0.1",
+    "emittery": "^0.7.1",
     "express": "^4.17.3",
     "express-graphql": "^0.12.0",
     "extract-zip": "^2.0.1",

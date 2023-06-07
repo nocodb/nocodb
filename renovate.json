@@ -2,6 +2,7 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:base",
+    ":dependencyDashboard",
     ":onlyNpm"
   ],
   "baseBranches": [
@@ -33,5 +34,8 @@
     "**/tests/**",
     "**/workflows/**",
     "**/charts/**"
+  ],
+  "assignees": [
+    "wingkwong"
   ]
 }

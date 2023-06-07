@@ -12,6 +12,7 @@ import {
   useNuxtApp,
   useRoute,
   validateEmail,
+  onMounted,
 } from '#imports'
 
 definePageMeta({
@@ -35,6 +36,14 @@ const subscribe = ref(false)
 const form = reactive({
   email: '',
   password: '',
+})
+
+onMounted(() => {
+  if (route.query.redirectTo) {
+    sessionStorage.setItem('redirectTo', route.query.redirectTo as string)
+  } else {
+    sessionStorage.removeItem('redirectTo')
+  }
 })
 
 const formRules = {
@@ -80,7 +89,10 @@ async function signUp() {
   api.auth.signup(data).then(async ({ token }) => {
     signIn(token!)
 
-    await navigateTo('/')
+
+    const redirectTo = sessionStorage.getItem('redirectTo')
+    sessionStorage.removeItem('redirectTo')
+    await navigateTo(redirectTo ?? '/')
 
     $e('a:auth:sign-up')
   })

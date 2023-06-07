@@ -1,12 +1,13 @@
 import type { Api } from 'nocodb-sdk'
 import { navigateTo, useGlobal, useRouter } from '#imports'
+import { Router } from 'vue-router'
 
 const DbNotFoundMsg = 'Database config not found'
 
 export function addAxiosInterceptors(api: Api<any>) {
   const state = useGlobal()
   const router = useRouter()
-  const route = $(router.currentRoute)
+  const route: Router['currentRoute'] = $(router.currentRoute)
 
   api.instance.interceptors.request.use((config) => {
     config.headers['xc-gui'] = 'true'
@@ -68,7 +69,9 @@ export function addAxiosInterceptors(api: Api<any>) {
         .catch(async (error) => {
           await state.signOut()
 
-          if (!route.meta.public) navigateTo('/signIn')
+          if (!route.meta.public) {
+            navigateTo(`/signIn?redirectTo=${route.fullPath}`)
+          }
 
           return Promise.reject(error)
         })

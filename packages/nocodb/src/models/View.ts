@@ -1,3 +1,4 @@
+import { title } from 'process';
 import { isSystemColumn, UITypes, ViewTypes } from 'nocodb-sdk';
 import Noco from '../Noco';
 import {
@@ -952,6 +953,7 @@ export default class View implements ViewType {
     // get existing cache
     const key = `${CacheScope.VIEW}:${viewId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    let oldView = { ...o };
     if (o) {
       // update data
       o = {
@@ -963,7 +965,12 @@ export default class View implements ViewType {
       }
       // set cache
       await NocoCache.set(key, o);
+    } else {
+      oldView = await this.get(viewId);
     }
+
+    // reset alias cache
+    await NocoCache.del(`${CacheScope.VIEW}:${oldView.fk_model_id}:${oldView.title}`);
 
     // if meta data defined then stringify it
     if ('meta' in updateObj) {

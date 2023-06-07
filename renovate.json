@@ -17,7 +17,7 @@
     "develop"
   ],
   "vulnerabilityAlerts": {
-    "commitMessagePrefix": "chore(renovate): Security update",
+    "commitMessagePrefix": "chore(renovate): Security update"
   },
   "schedule": "at any time",
   "rangeStrategy": "bump",
@@ -26,25 +26,25 @@
       "matchPackagePatterns": ["*"],
       "matchUpdateTypes": ["major"],
       "reviewersFromCodeOwners": true,
-      "commitMessagePrefix": "chore(renovate): major",
+      "commitMessagePrefix": "chore(renovate):",
       "groupName": "major"
     },
     {
       "matchPackagePatterns": ["*"],
       "matchUpdateTypes": ["minor"],
-      "commitMessagePrefix": "chore(renovate): minor",
+      "commitMessagePrefix": "chore(renovate):",
       "groupName": "minor"
     },
     {
       "matchPackagePatterns": ["*"],
       "matchUpdateTypes": ["patch"],
-      "commitMessagePrefix": "chore(renovate): patch",
+      "commitMessagePrefix": "chore(renovate):",
       "groupName": "patch"
     },
     {
       "matchPackagePatterns": ["*"],
       "matchUpdateTypes": ["pin", "digest"],
-      "commitMessagePrefix": "chore(renovate): pin",
+      "commitMessagePrefix": "chore(renovate):",
       "groupName": "pin"
     }
   ],

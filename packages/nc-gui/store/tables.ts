@@ -29,8 +29,16 @@ export const useTablesStore = defineStore('tablesStore', () => {
     projectTables.value.set(projectId, tables.list || [])
   }
 
+  const addTable = (projectId: string, table: TableType) => {
+    const tables = projectTables.value.get(projectId)
+    if (!tables) return
+
+    tables.push(table)
+  }
+
   return {
     projectTables,
     loadProjectTables,
+    addTable,
   }
 })

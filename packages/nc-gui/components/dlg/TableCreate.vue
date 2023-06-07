@@ -33,7 +33,7 @@ const { addTab } = useTabs()
 
 const { loadTables, isMysql, isMssql, isPg, loadProject } = useProject()
 
-const { loadProjectTables } = useTablesStore()
+const { loadProjectTables, addTable } = useTablesStore()
 
 const { table, createTable, generateUniqueTitle, tables, project } = useTableNew({
   async onTableCreate(table) {
@@ -47,6 +47,7 @@ const { table, createTable, generateUniqueTitle, tables, project } = useTableNew
       // baseId: props.baseId,
     })
 
+    addTable(props.projectId, table)
     await loadProjectTables(props.projectId, true)
 
     dialogShow.value = false

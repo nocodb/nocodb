@@ -5,13 +5,10 @@ import type { AppInfo } from '~/composables/useGlobal'
 import { parseProp } from '#imports'
 
 export default function convertCellData(
-  args: { from: UITypes; to: UITypes; value: any; column: ColumnType; appInfo: AppInfo },
+  args: { to: UITypes; value: any; column: ColumnType; appInfo: AppInfo },
   isMysql = false,
 ) {
-  const { from, to, value } = args
-  if (from === to && ![UITypes.Attachment, UITypes.Date, UITypes.DateTime, UITypes.Time, UITypes.Year].includes(to)) {
-    return value
-  }
+  const { to, value } = args
 
   const dateFormat = isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
@@ -145,7 +142,7 @@ export default function convertCellData(
     case UITypes.Rollup:
     case UITypes.Formula:
     case UITypes.QrCode:
-      throw new Error(`Unsupported conversion from ${from} to ${to}`)
+      throw new Error(`Unsupported conversion for ${to}`)
     default:
       return value
   }

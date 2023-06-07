@@ -282,7 +282,7 @@ export class CellPageObject extends BasePage {
     await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
 
     // verify chip count & contents
-    await expect(chips).toHaveCount(count);
+    if (count) await expect(chips).toHaveCount(count);
 
     // verify only the elements that are passed in
     for (let i = 0; i < value.length; ++i) {

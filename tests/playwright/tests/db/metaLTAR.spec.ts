@@ -30,7 +30,9 @@ import { isSqlite } from '../../setup/db';
 let api: Api<any>;
 const recordCount = 10;
 
-test.describe('Test table', () => {
+// serial as all projects end up creating xcdb using same name
+// fix me : use worker ID logic for creating unique project name
+test.describe.serial('Test table', () => {
   let context: any;
   let dashboard: DashboardPage;
   let grid: GridPage;

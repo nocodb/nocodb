@@ -75,6 +75,12 @@ const onDrop = async (event: DragEvent) => {
     const data = JSON.parse(event.dataTransfer?.getData('text/json')!)
     // Do something with the received data
 
+    // if dragged item is not from the same base, return
+    if (data.baseId !== meta.value?.base_id) return
+
+    // if dragged item or opened view is not a table, return
+    if (data.type !== 'table' || meta.value?.type !== 'table') return
+
     const childMeta = await getMeta(data.id)
     const parentMeta = metas.value[meta.value.id!]
 

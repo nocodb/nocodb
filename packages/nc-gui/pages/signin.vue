@@ -34,7 +34,7 @@ onMounted(() => {
   } else {
     sessionStorage.removeItem('redirectTo')
   }
-}
+})
 
 const { signIn: _signIn, appInfo } = useGlobal()
 

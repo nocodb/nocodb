@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import type { ProjectType } from 'nocodb-sdk'
-import { onMounted, toRef } from '@vue/runtime-core'
+import { toRef } from '@vue/runtime-core'
+import type { NcProject } from '~~/lib'
 import { useDashboardStore } from '~~/store/dashboard'
 
 const props = defineProps<{
-  project: ProjectType
+  project: NcProject
 }>()
 
 const project = toRef(props, 'project')
@@ -13,13 +13,9 @@ const dashboardStore = useDashboardStore()
 
 const { layoutsOfProjects } = storeToRefs(dashboardStore)
 
-const { fetchLayouts, addNewLayout, openLayout } = dashboardStore
+const { openLayout } = dashboardStore
 
 const layouts = computed(() => layoutsOfProjects.value[project.value.id!])
-
-onMounted(async () => {
-  await fetchLayouts({ projectId: project.value.id! })
-})
 </script>
 
 <template>

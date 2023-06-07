@@ -312,7 +312,7 @@ onMounted(async () => {
   @apply invisible;
 }
 .ant-tree-node-content-wrapper {
-  @apply w-full mr-2 pl-0.5 bg-inherit transition-none !important;
+  @apply w-full mr-0.5 pl-0.5 bg-inherit transition-none !important;
   transition: none !important;
 }
 

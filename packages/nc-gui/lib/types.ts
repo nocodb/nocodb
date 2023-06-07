@@ -131,11 +131,11 @@ export type NcProject = ProjectType & {
   /**
    * When project is expanded in sidebar
    * */
-  isExpanded: boolean
+  isExpanded?: boolean
   /**
    * When project's content is being fetched i.e tables, views, etc
    */
-  isLoading: boolean
+  isLoading?: boolean
   temp_title?: string
   edit?: boolean
   starred?: boolean

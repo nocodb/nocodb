@@ -14,7 +14,7 @@ import {
   useRouter,
   useTheme,
 } from '#imports'
-import type { ProjectMetaInfo, ThemeConfig } from '~/lib'
+import type { NcProject, ProjectMetaInfo, ThemeConfig } from '~/lib'
 import { useProjects } from '~/store/projects'
 
 export const useProject = defineStore('projectStore', () => {
@@ -44,7 +44,7 @@ export const useProject = defineStore('projectStore', () => {
   let sharedProject = $ref<ProjectType>()
 
   // todo: new-layout
-  const project = computed<ProjectType>(() => projectsStore.projects.get(projectId.value) || sharedProject || {})
+  const project = computed<NcProject>(() => projectsStore.projects.get(projectId.value) || sharedProject || {})
   const tables = computed<TableType[]>(() => tablesStore.projectTables.get(projectId.value) || [])
 
   const projectLoadedHook = createEventHook<ProjectType>()

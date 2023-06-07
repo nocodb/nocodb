@@ -8,6 +8,7 @@ import {
 import { extractProps } from '../helpers/extractProps';
 import NocoCache from '../cache/NocoCache';
 import Base from './/Base';
+import { ProjectUser } from './index';
 import type { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
 import type { DB_TYPES } from './/Base';
 
@@ -276,6 +277,15 @@ export default class Project implements ProjectType {
 
   // Todo: Remove the project entry from the connection pool in NcConnectionMgrv2
   static async delete(projectId, ncMeta = Noco.ncMeta): Promise<any> {
+    const users = await ProjectUser.getUsersList({
+      project_id: projectId,
+      offset: 0,
+      limit: 1000,
+    });
+    for (const user of users) {
+      await ProjectUser.delete(projectId, user.id);
+    }
+
     const bases = await Base.list({ projectId });
     for (const base of bases) {
       await base.delete(ncMeta);

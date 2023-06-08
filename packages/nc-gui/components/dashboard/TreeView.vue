@@ -97,6 +97,8 @@ const initSortable = (el: Element) => {
     onEnd: async (evt) => {
       const { newIndex = 0, oldIndex = 0 } = evt
 
+      if(newIndex === oldIndex) return
+
       const itemEl = evt.item as HTMLLIElement
       const item = tablesById[itemEl.dataset.id as string]
 
@@ -185,6 +187,18 @@ const initSortable = (el: Element) => {
       })
     },
     animation: 150,
+    setData(dataTransfer, dragEl) {
+      dataTransfer.setData(
+        'text/json',
+        JSON.stringify({
+          id: dragEl.dataset.id,
+          title: dragEl.dataset.title,
+          type: dragEl.dataset.type,
+          baseId: dragEl.dataset.baseId,
+        }),
+      )
+    },
+    revertOnSpill: true,
   })
 }
 
@@ -718,6 +732,9 @@ const duplicateTable = async (table: TableType) => {
                     class="nc-tree-item text-sm cursor-pointer group"
                     :data-order="table.order"
                     :data-id="table.id"
+                    :data-base-id="bases[0].id"
+                    :data-type="table.type"
+                    :data-title="table.title"
                     :data-testid="`tree-view-table-${table.title}`"
                     @click="addTableTab(table)"
                   >
@@ -1042,6 +1059,9 @@ const duplicateTable = async (table: TableType) => {
                       class="nc-tree-item text-sm cursor-pointer group"
                       :data-order="table.order"
                       :data-id="table.id"
+                      :data-title="table.title"
+                      :data-base-id="base.id"
+                      :data-type="table.type"
                       :data-testid="`tree-view-table-${table.title}`"
                       @click="addTableTab(table)"
                     >

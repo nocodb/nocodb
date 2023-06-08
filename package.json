@@ -17,9 +17,9 @@
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "fs": "0.0.1-security",
-    "lerna": "^6.4.1",
-    "husky": "^8.0.0",
-    "xlsx": "^0.17.4"
+    "lerna": "^6.6.2",
+    "husky": "^8.0.3",
+    "xlsx": "^0.17.5"
   },
   "husky": {
     "hooks": {
@@ -50,9 +50,9 @@
     "install:local-sdk": "node scripts/installLocalSdk.js"
   },
   "dependencies": {
-    "express": "^4.18.1",
+    "express": "^4.18.2",
     "mysql2": "^2.3.3",
-    "pg": "^8.7.3",
-    "sqlite3": "^5.0.2"
+    "pg": "^8.11.0",
+    "sqlite3": "^5.0.11"
   }
 }

@@ -37,6 +37,7 @@ export class ExtractProjectIdMiddleware implements NestMiddleware, CanActivate {
       // extract project id based on request path params
       if (params.projectName) {
         const project = await Project.getByTitleOrId(params.projectName);
+        if (!project) NcError.notFound('Project not found');
         req.ncProjectId = project.id;
         res.locals.project = project;
       }

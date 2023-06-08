@@ -200,4 +200,10 @@ export default defineNuxtConfig({
       { name: 'storeToRefs', from: 'pinia' },
     ],
   },
+  
+  router: {
+    options: {
+      hashMode: true
+    }
+  }
 })

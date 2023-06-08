@@ -169,6 +169,7 @@ export class GridPage extends BasePage {
 
   async addRowRightClickMenu(index: number) {
     const rowCount = await this.get().locator('.nc-grid-row').count();
+    await this.get().locator(`td[data-testid="cell-Title-${index}"]`).click();
     await this.get().locator(`td[data-testid="cell-Title-${index}"]`).click({
       button: 'right',
     });

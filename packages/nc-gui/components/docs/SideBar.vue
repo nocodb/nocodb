@@ -157,10 +157,16 @@ onMounted(async () => {
         class="!w-full h-full overflow-y-scroll !overflow-x-hidden !bg-inherit"
         @dragenter="onDragEnter"
       >
-        <template #switcherIcon="{ expanded }">
-          <div class="flex flex-row nc-sidebar-expand h-full items-center">
+        <template #switcherIcon="{ expanded, children }">
+          <div
+            class="flex flex-row nc-sidebar-expand h-full items-center justify-end"
+            :style="{
+              width: children.length > 0 ? `${(children[0].level - 1) * 2.5 + 3.5}rem` : undefined,
+              marginLeft: children.length > 0 ? '-1.25rem' : undefined,
+            }"
+          >
             <PhTriangleFill
-              class="cursor-pointer transform transition-transform duration-500 h-1.25 w-1.75 text-gray-500"
+              class="cursor-pointer transform transition-transform duration-500 h-1.25 text-gray-500"
               :class="{ 'rotate-180': expanded, 'rotate-90': !expanded }"
             />
           </div>
@@ -172,9 +178,17 @@ onMounted(async () => {
             :data-level="page.level"
           >
             <div
+              class="flex h-6"
+              :style="{
+                width: !page.is_parent ? `${page.level * 2.5 + 2.25}rem` : undefined,
+              }"
+              @click="onTabSelect(page)"
+            ></div>
+            <div
               class="flex flex-row gap-x-1 text-ellipsis overflow-clip min-w-0 transition-all duration-200 ease-in-out"
               :class="{}"
             >
+              <div class="nc-docs-sidebar-spacer"></div>
               <div class="flex flex-shrink-0">
                 <a-popover
                   :visible="isEditAllowed ? undefined : false"
@@ -296,7 +310,7 @@ onMounted(async () => {
 }
 
 .ant-tree-treenode {
-  @apply flex flex-row items-center w-full rounded-md pl-4 pb-0 h-7.25 hover:bg-hover mb-0.25 !important;
+  @apply flex flex-row items-center w-full rounded-md pb-0 h-7.25 hover:bg-hover mb-0.25 !important;
   transition: none !important;
 }
 
@@ -326,13 +340,12 @@ onMounted(async () => {
     @apply !bg-primary-selected !hover:bg-primary-selected;
   }
   .ant-tree-indent-unit {
-    @apply w-8 !important;
-  }
-  .ant-tree-switcher.ant-tree-switcher-noop {
-    @apply w-6;
+    @apply w-0 !important;
   }
 }
-
+.ant-tree-switcher {
+  width: fit-content;
+}
 .nc-docs-menu .ant-dropdown-menu-item {
   @apply p-0 !important;
 }

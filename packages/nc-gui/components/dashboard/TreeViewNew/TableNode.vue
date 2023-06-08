@@ -131,7 +131,11 @@ const { isSharedBase } = useProject()
               </component>
             </div>
             <template v-if="isUIAllowed('tableIconCustomisation', false, projectRole)" #overlay>
-              <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon($event, table)" />
+              <GeneralEmojiIcons
+                class="shadow bg-white p-2"
+                :show-reset="table.meta?.icon"
+                @select-icon="setIcon($event, table)"
+              />
             </template>
           </component>
         </div>

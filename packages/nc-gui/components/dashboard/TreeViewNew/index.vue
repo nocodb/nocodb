@@ -419,8 +419,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
       <WorkspaceEmptyPlaceholder v-else />
     </div>
 
-    <div class="flex flex-col">
-      <a-divider class="!my-0" />
+    <div class="flex flex-col border-t-1 border-gray-100">
       <div class="flex items-center mt-4 justify-center mx-2">
         <WorkspaceCreateProjectBtn
           modal
@@ -558,7 +557,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
     width: 3px;
   }
   &::-webkit-scrollbar-track {
-    @apply bg-white;
+    @apply bg-inherit;
   }
   &::-webkit-scrollbar-thumb {
     @apply bg-scrollbar;

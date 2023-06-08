@@ -62,7 +62,7 @@ const { isSharedBase } = useProject()
     <GeneralTooltip
       class="pl-4 pr-2 mb-0.25 rounded-md h-7.25 select-none"
       :class="{
-        'hover:bg-gray-100': openeLayoutId !== layout.id,
+        '!hover:bg-hover': openeLayoutId !== layout.id,
       }"
       modifier-key="Alt"
     >

@@ -31,7 +31,12 @@ const currentVersion = ref('')
 </script>
 
 <template>
-  <div class="nc-sidebar flex flex-col bg-white">
+  <div
+    class="nc-sidebar flex flex-col bg-gray-50 outline-r-1 outline-gray-100"
+    :style="{
+      outlineWidth: '1px',
+    }"
+  >
     <div
       style="height: var(--header-height); border-bottom-width: 1px"
       :class="isOpen ? 'pl-4' : ''"

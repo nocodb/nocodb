@@ -202,7 +202,7 @@ onMounted(async () => {
                     </div>
                     <template #overlay>
                       <div class="flex flex-col p-1 bg-gray-50 rounded-md">
-                        <GeneralEmojiIcons class="shadow p-2" @select-icon="setIcon(page.id, $event)" />
+                        <GeneralEmojiIcons class="shadow p-2" :show-reset="page.icon" @select-icon="setIcon(page.id, $event)" />
                       </div>
                     </template>
                   </a-dropdown>

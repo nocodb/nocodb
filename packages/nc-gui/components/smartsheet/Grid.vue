@@ -906,7 +906,7 @@ function openGenerateDialog(target: any) {
           <thead ref="tableHead">
             <tr class="nc-grid-header">
               <th class="w-[80px] min-w-[80px]" data-testid="grid-id-column">
-                <div class="w-full h-full bg-gray-100 flex pl-5 pr-1 items-center" data-testid="nc-check-all">
+                <div class="w-full h-full flex pl-5 pr-1 items-center" data-testid="nc-check-all">
                   <template v-if="!readOnly">
                     <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
                     <div
@@ -933,7 +933,7 @@ function openGenerateDialog(target: any) {
                 @xcresizing="onXcResizing(col.title, $event)"
                 @xcresized="resizingCol = null"
               >
-                <div class="w-full h-full bg-gray-100 flex items-center">
+                <div class="w-full h-full flex items-center">
                   <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="readOnly" />
 
                   <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="readOnly" />
@@ -1161,7 +1161,7 @@ function openGenerateDialog(target: any) {
                 :colspan="visibleColLength + 1"
                 class="text-left pointer nc-grid-add-new-cell cursor-pointer"
                 :class="{
-                  '!border-r-2 !border-r-gray-300': visibleColLength === 1,
+                  '!border-r-2 !border-r-gray-100': visibleColLength === 1,
                 }"
                 @click="addEmptyRow()"
               >
@@ -1271,14 +1271,14 @@ function openGenerateDialog(target: any) {
 
   td,
   th {
-    @apply border-gray-200 border-solid border-b border-r;
+    @apply border-gray-100 border-solid border-b border-r;
     min-height: 41px !important;
     height: 41px !important;
     position: relative;
   }
 
   th {
-    @apply bg-gray-100;
+    @apply bg-white;
   }
 
   td:not(:first-child) > div {
@@ -1334,7 +1334,7 @@ function openGenerateDialog(target: any) {
     position: sticky !important;
     left: 80px;
     z-index: 5;
-    @apply border-r-2 border-r-gray-300;
+    @apply border-r-2 border-r-gray-100;
   }
 
   tbody td:nth-child(2) {
@@ -1342,7 +1342,7 @@ function openGenerateDialog(target: any) {
     left: 80px;
     z-index: 4;
     background: white;
-    @apply border-r-2 border-r-gray-300;
+    @apply border-r-2 border-r-gray-100;
   }
 }
 
@@ -1390,7 +1390,7 @@ function openGenerateDialog(target: any) {
   position: sticky;
   top: -1px;
 
-  @apply z-10 bg-gray-100;
+  @apply z-10 bg-white;
 
   &:hover {
     .nc-no-label {

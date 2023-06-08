@@ -368,7 +368,11 @@ const reloadTables = async () => {
               </component>
             </div>
             <template v-if="isUIAllowed('projectIconCustomisation', false, projectRole)" #overlay>
-              <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon($event, project)" />
+              <GeneralEmojiIcons
+                class="shadow bg-white p-2"
+                :show-reset="project.meta?.icon"
+                @select-icon="setIcon($event, project)"
+              />
             </template>
           </component>
 

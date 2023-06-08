@@ -149,7 +149,7 @@ function onOpenModal({
     collapsiple
     collapsed-width="0"
     width="0"
-    class="nc-view-sidebar relative shadow h-full w-full !flex-1 !min-w-0 !max-w-[150px] !w-[150px] lg:(!max-w-[250px] !w-[250px])"
+    class="nc-view-sidebar border-l-1 border-gray-100 relative shadow h-full w-full !flex-1 !min-w-0 !max-w-[150px] !w-[150px] lg:(!max-w-[250px] !w-[250px])"
     theme="light"
   >
     <LazySmartsheetSidebarToolbar

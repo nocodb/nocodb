@@ -82,7 +82,7 @@ provide(
       <Transition name="layout" mode="out-in">
         <template v-if="meta">
           <div class="flex flex-1 min-h-0">
-            <div v-if="activeView" class="h-full flex-1 min-w-0 min-h-0 bg-gray-50">
+            <div v-if="activeView" class="h-full flex-1 min-w-0 min-h-0 bg-white">
               <LazySmartsheetGrid v-if="isGrid" />
 
               <LazySmartsheetGallery v-else-if="isGallery" />

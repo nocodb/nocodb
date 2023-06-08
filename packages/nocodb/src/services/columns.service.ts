@@ -12,13 +12,14 @@ import formulaQueryBuilderv2 from '../db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
 import {
   createHmAndBtColumn,
-  generateFkName, populateRollupForLTAR,
+  generateFkName,
+  populateRollupForLTAR,
   randomID,
   validateLookupPayload,
   validatePayload,
   validateRequiredField,
   validateRollupPayload,
-} from '../helpers'
+} from '../helpers';
 import { NcError } from '../helpers/catchError';
 import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
 import {
@@ -43,7 +44,6 @@ import { MetaService } from '../meta/meta.service';
 import type {
   LinkToAnotherRecordColumn,
   Project,
-  RollupColumn,
 } from '../models';
 import type SqlMgrv2 from '../db/sql-mgr/v2/SqlMgrv2';
 import type {
@@ -1808,10 +1808,10 @@ export class ColumnsService {
 
       await populateRollupForLTAR({
         column: col1,
-      })
+      });
       await populateRollupForLTAR({
         column: col2,
-      })
+      });
 
       // todo: create index for virtual relations as well
       // create index for foreign key in pg
@@ -1881,5 +1881,4 @@ export class ColumnsService {
       await Column.update(column.id, colBody);
     }
   }
-
 }

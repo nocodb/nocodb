@@ -1677,10 +1677,10 @@ class BaseModelSqlv2 {
             `${alias || this.model.table_name}.${column.column_name}`,
           );
           break;
-        case 'LinkToAnotherRecord':
-        case 'Lookup':
+        case UITypes.LinkToAnotherRecord:
+        case UITypes.Lookup:
           break;
-        case 'QrCode': {
+        case UITypes.QrCode: {
           const qrCodeColumn = await column.getColOptions<QrCodeColumn>();
           const qrValueColumn = await Column.get({
             colId: qrCodeColumn.fk_qr_value_column_id,
@@ -1715,7 +1715,7 @@ class BaseModelSqlv2 {
 
           break;
         }
-        case 'Barcode': {
+        case UITypes.Barcode: {
           const barcodeColumn = await column.getColOptions<BarcodeColumn>();
           const barcodeValueColumn = await Column.get({
             colId: barcodeColumn.fk_barcode_value_column_id,
@@ -1752,7 +1752,7 @@ class BaseModelSqlv2 {
 
           break;
         }
-        case 'Formula':
+        case UITypes.Formula:
           {
             try {
               const selectQb = await this.getSelectQueryBuilderForFormula(
@@ -1776,7 +1776,8 @@ class BaseModelSqlv2 {
             }
           }
           break;
-        case 'Rollup':
+        case UITypes.Rollup:
+        case UITypes.Link:
           qb.select(
             (
               await genRollupSelectv2({

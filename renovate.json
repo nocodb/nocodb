@@ -23,6 +23,7 @@
   "rangeStrategy": "bump",
   "packageRules": [
     {
+      "enabled": false,
       "matchPackagePatterns": ["*"],
       "matchUpdateTypes": ["major"],
       "reviewersFromCodeOwners": true,
@@ -30,18 +31,21 @@
       "groupName": "major"
     },
     {
+      "enabled": false,
       "matchPackagePatterns": ["*"],
       "matchUpdateTypes": ["minor"],
       "commitMessagePrefix": "chore(renovate):",
       "groupName": "minor"
     },
     {
+      "enabled": false,
       "matchPackagePatterns": ["*"],
       "matchUpdateTypes": ["patch"],
       "commitMessagePrefix": "chore(renovate):",
       "groupName": "patch"
     },
     {
+      "enabled": false,
       "matchPackagePatterns": ["*"],
       "matchUpdateTypes": ["pin", "digest"],
       "commitMessagePrefix": "chore(renovate):",

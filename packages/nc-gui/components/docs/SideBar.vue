@@ -205,7 +205,7 @@ function onExpandClick(id: string, expanded: boolean) {
                     <div
                       class="flex px-0.75 pt-0.75 text-gray-500 rounded-md"
                       :class="{
-                        'hover:bg-gray-200 cursor-pointer': isEditAllowed,
+                        'hover:bg-gray-100 cursor-pointer': isEditAllowed,
                       }"
                       data-testid="docs-sidebar-emoji-selector"
                     >

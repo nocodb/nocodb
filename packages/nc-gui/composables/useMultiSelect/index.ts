@@ -43,7 +43,7 @@ export function useMultiSelect(
   scrollToActiveCell?: (row?: number | null, col?: number | null) => void,
   keyEventHandler?: Function,
   syncCellData?: Function,
-  updateMultipleRows?: Function,
+  bulkUpdateRows?: Function,
 ) {
   const meta = ref(_meta)
 
@@ -392,8 +392,8 @@ export function useMultiSelect(
         const rowsToPaste = unref(data).slice(activeCell.row, activeCell.row + pasteMatrixRows)
 
         for (let i = 0; i < pasteMatrixRows; i++) {
+          const pasteRow = rowsToPaste[i]
           for (let j = 0; j < pasteMatrixCols; j++) {
-            const pasteRow = rowsToPaste[i]
             const pasteCol = colsToPaste[j]
 
             if (!pasteRow || !pasteCol) {
@@ -416,7 +416,7 @@ export function useMultiSelect(
             )
           }
         }
-        await updateMultipleRows?.(rowsToPaste)
+        await bulkUpdateRows?.(rowsToPaste)
       } else {
         // handle belongs to column
         if (

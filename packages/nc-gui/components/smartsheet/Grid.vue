@@ -125,7 +125,7 @@ const {
   navigateToSiblingRow,
   getExpandedRowIndex,
   deleteRangeOfRows,
-  updateMultipleRows,
+  bulkUpdateRows,
 } = useViewData(meta, view, xWhere)
 
 const { getMeta } = useMetas()
@@ -338,7 +338,7 @@ const {
     // update/save cell value
     await updateOrSaveRow(rowObj, ctx.updatedColumnTitle || columnObj.title)
   },
-  updateMultipleRows,
+  bulkUpdateRows,
 )
 
 function scrollToCell(row?: number | null, col?: number | null) {

@@ -448,7 +448,7 @@ export function useViewData(
     }
   }
 
-  async function updateMultipleRows(
+  async function bulkUpdateRows(
     rows: Row[],
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
     undo = false,
@@ -479,7 +479,7 @@ export function useViewData(
       addUndo({
         redo: {
           fn: async function redo(redoRows: Row[], pg: { page: number; pageSize: number }) {
-            await updateMultipleRows(redoRows, { metaValue, viewMetaValue }, true)
+            await bulkUpdateRows(redoRows, { metaValue, viewMetaValue }, true)
             if (pg.page === paginationData.value.page && pg.pageSize === paginationData.value.pageSize) {
               for (const toUpdate of redoRows) {
                 const rowIndex = findIndexByPk(rowPkData(toUpdate.row, meta?.value?.columns as ColumnType[]))
@@ -500,7 +500,7 @@ export function useViewData(
         },
         undo: {
           fn: async function undo(undoRows: Row[], pg: { page: number; pageSize: number }) {
-            await updateMultipleRows(undoRows, { metaValue, viewMetaValue }, true)
+            await bulkUpdateRows(undoRows, { metaValue, viewMetaValue }, true)
             if (pg.page === paginationData.value.page && pg.pageSize === paginationData.value.pageSize) {
               for (const toUpdate of undoRows) {
                 const rowIndex = findIndexByPk(rowPkData(toUpdate.row, meta?.value?.columns as ColumnType[]))
@@ -918,7 +918,7 @@ export function useViewData(
     deleteSelectedRows,
     deleteRangeOfRows,
     updateOrSaveRow,
-    updateMultipleRows,
+    bulkUpdateRows,
     selectedAllRecords,
     syncCount,
     syncPagination,

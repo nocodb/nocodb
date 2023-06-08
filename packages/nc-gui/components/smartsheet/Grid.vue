@@ -954,9 +954,9 @@ const deleteSelectedRangeOfRows = () => {
                   <SmartsheetTableDataCell
                     v-for="(columnObj, colIndex) of fields"
                     :key="columnObj.id"
-                    class="cell relative cursor-pointer nc-grid-cell"
+                    class="cell relative nc-grid-cell"
                     :class="{
-                      'active': hasEditPermission && isCellSelected(rowIndex, colIndex),
+                      'active': isCellSelected(rowIndex, colIndex),
                       'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
                       'align-middle': !rowHeight || rowHeight === 1,
                       'align-top': rowHeight && rowHeight !== 1,

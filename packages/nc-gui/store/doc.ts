@@ -21,7 +21,6 @@ export const useDocStore = defineStore('docStore', () => {
   const isNestedFetchErrored = ref<boolean>(false)
 
   const nestedPagesOfProjects = ref<Record<string, PageSidebarNode[]>>({})
-  const openedTabsOfProjects = ref<Record<string, string[]>>({})
 
   const openedPage = ref<PageSidebarNode | undefined>(undefined)
 
@@ -304,7 +303,6 @@ export const useDocStore = defineStore('docStore', () => {
       traverse(undefined, nestedDocTree as any, 0)
 
       nestedPagesOfProjects.value[projectId] = nestedDocTree as any
-      openedTabsOfProjects.value[projectId] = flattenedNestedPages.value.map((p) => p.id) as any
 
       return nestedDocTree
     } catch (e) {
@@ -449,11 +447,6 @@ export const useDocStore = defineStore('docStore', () => {
 
       openedPage.value = findPage(nestedPages, createdPageData.id!)
       await navigateTo(nestedUrl({ id: createdPageData.id!, projectId: projectId! }))
-
-      const openedTabs = openedTabsOfProjects.value[projectId]
-      if (!openedTabs.includes(createdPageData.id!)) {
-        openedTabs.push(createdPageData.id!)
-      }
 
       if (isPublic.value) return
       // const { addTab } = useTabs()
@@ -612,14 +605,6 @@ export const useDocStore = defineStore('docStore', () => {
     })
 
     navigateTo(nestedUrl({ id: node.id!, projectId }))
-    const openedPages = [...getPageWithParents({ page: node, projectId }), node]
-    const openedTabs = openedTabsOfProjects.value[projectId]
-
-    for (const page of openedPages) {
-      if (!openedTabs.includes(page.id!)) {
-        openedTabs.push(page.id!)
-      }
-    }
   }
 
   function getPageWithParents({ page, projectId }: { page: PageSidebarNode; projectId: string }): PageSidebarNode[] {
@@ -637,20 +622,6 @@ export const useDocStore = defineStore('docStore', () => {
     return parents
   }
 
-  function expandTabOfOpenedPage({ projectId }: { projectId: string }) {
-    if (!openedPageInSidebar.value) throw new Error('openedPage is not defined')
-
-    const pagesWithParents = getPageWithParents({ page: openedPageInSidebar.value, projectId })
-    const openedTabs = openedTabsOfProjects.value[projectId] || []
-
-    for (const page of pagesWithParents) {
-      if (!openedTabs.includes(page.id!)) {
-        openedTabs.push(page.id!)
-      }
-    }
-    openedTabsOfProjects.value[projectId] = [...openedTabs]
-  }
-
   function getChildrenOfPage({ pageId, projectId }: { pageId?: string; projectId: string }) {
     const nestedPages = nestedPagesOfProjects.value[projectId]
     if (!pageId) return nestedPages
@@ -659,6 +630,22 @@ export const useDocStore = defineStore('docStore', () => {
     if (!page) return []
 
     return page.children || []
+  }
+
+  function getAllChildrenOfPage({ pageId, projectId }: { pageId?: string; projectId: string }) {
+    if (!pageId) return []
+    const nestedPages = nestedPagesOfProjects.value[projectId]
+
+    const page = findPage(nestedPages, pageId!)
+    if (!page) return []
+
+    let children: PageSidebarNode[] = []
+    for (const child of page.children || []) {
+      children.push(child)
+      children = children.concat(getAllChildrenOfPage({ pageId: child.id, projectId }))
+    }
+
+    return children
   }
 
   const createPagesGpt = async ({ text, projectId }: { text: string; projectId: string }) => {
@@ -698,19 +685,6 @@ export const useDocStore = defineStore('docStore', () => {
 
     isPageFetching.value = true
     await navigateTo(url)
-  }
-
-  const openChildPageTabsOfRootPages = async ({ projectId }: { projectId: string }) => {
-    const nestedPages = nestedPagesOfProjects.value[projectId]
-    const openedTabs = openedTabsOfProjects.value[projectId]
-
-    for (const page of nestedPages) {
-      if (!page.is_parent) continue
-
-      if (!openedTabs.includes(page.id!)) {
-        openedTabs.push(page.id!)
-      }
-    }
   }
 
   const getParentOfPage = ({ pageId, projectId }: { pageId: string; projectId: string }) => {
@@ -851,7 +825,6 @@ export const useDocStore = defineStore('docStore', () => {
     openedPageId,
     openedProjectId,
     nestedUrl,
-    openedTabsOfProjects,
     deletePage,
     projectUrl,
     reorderPages,
@@ -860,12 +833,11 @@ export const useDocStore = defineStore('docStore', () => {
     addNewPage,
     createPage,
     isEditAllowed,
-    expandTabOfOpenedPage,
+    getPageWithParents,
     getChildrenOfPage,
     createPagesGpt,
     createImport,
     openPage,
-    openChildPageTabsOfRootPages,
     isPageFetching,
     openedPageWithParents,
     openedPage,
@@ -883,6 +855,7 @@ export const useDocStore = defineStore('docStore', () => {
     isNestedFetchErrored,
     isPageErrored,
     populatedNestedPages,
+    getAllChildrenOfPage,
   }
 })
 

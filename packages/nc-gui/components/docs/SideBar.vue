@@ -4,7 +4,7 @@ import type { TreeProps } from 'ant-design-vue'
 import type { AntTreeNodeDropEvent } from 'ant-design-vue/lib/tree'
 import { Icon as IconifyIcon } from '@iconify/vue'
 import type { ProjectType } from 'nocodb-sdk'
-import { onMounted, toRef } from '@vue/runtime-core'
+import { toRef } from '@vue/runtime-core'
 import type { PageSidebarNode } from '~~/lib'
 
 const props = defineProps<{
@@ -13,20 +13,17 @@ const props = defineProps<{
 
 const project = toRef(props, 'project')
 
-const { isPublic, openedPageInSidebar, nestedPagesOfProjects, isEditAllowed, openedTabsOfProjects, openedPage } = storeToRefs(
-  useDocStore(),
-)
+const { isPublic, openedPageInSidebar, nestedPagesOfProjects, isEditAllowed, openedPage } = storeToRefs(useDocStore())
 
 const {
-  fetchNestedPages,
   deletePage,
   reorderPages,
   updatePage,
   addNewPage,
-  expandTabOfOpenedPage,
+  getPageWithParents,
   getChildrenOfPage,
-  openChildPageTabsOfRootPages,
   openPage,
+  getAllChildrenOfPage,
 } = useDocStore()
 
 const nestedPages = computed(() => nestedPagesOfProjects.value[project.value.id!])
@@ -92,6 +89,8 @@ const onTabSelect = (page: PageSidebarNode) => {
     page,
     projectId: project.value.id!,
   })
+
+  onExpandClick(page.id!, true)
 }
 
 const setIcon = async (id: string, icon: string) => {
@@ -104,26 +103,25 @@ const setIcon = async (id: string, icon: string) => {
 
 watch(
   openedPageInSidebar,
-  () => {
+  (newPage, prevPage) => {
     if (!openedPageInSidebar.value) return
 
-    expandTabOfOpenedPage({
-      projectId: project.value.id!,
-    })
-  },
-  {
-    immediate: true,
-  },
-)
+    openedTabs.value = []
+    if (newPage?.id === prevPage?.id) return
 
-watch(
-  () => openedTabsOfProjects.value[project.value.id!],
-  (val) => {
-    openedTabs.value = val ?? []
+    const pageWithParents = getPageWithParents({
+      page: openedPageInSidebar.value,
+      projectId: project.value.id!,
+    }).reverse()
+
+    for (const page of pageWithParents) {
+      if (!openedTabs.value.includes(page.id!)) {
+        openedTabs.value.push(page.id!)
+      }
+    }
   },
   {
     immediate: true,
-    deep: true,
   },
 )
 
@@ -133,15 +131,20 @@ onKeyStroke('Enter', () => {
   }
 })
 
-onMounted(async () => {
-  if (isPublic.value) return
+function onExpandClick(id: string, expanded: boolean) {
+  if (expanded) {
+    if (!openedTabs.value.includes(id)) {
+      openedTabs.value.push(id)
+    }
+  } else {
+    const children = getAllChildrenOfPage({ pageId: id, projectId: project.value.id! })
+    const pageIdWithChildrenId = [id, ...children.map((child) => child.id)]
 
-  // await fetchNestedPages({ projectId: project.value.id! })
-
-  // await openChildPageTabsOfRootPages({
-  //   projectId: project.value.id!,
-  // })
-})
+    setTimeout(() => {
+      openedTabs.value = openedTabs.value.filter((tab) => !pageIdWithChildrenId.includes(tab))
+    }, 0)
+  }
+}
 </script>
 
 <template>
@@ -157,13 +160,14 @@ onMounted(async () => {
         class="!w-full h-full overflow-y-scroll !overflow-x-hidden !bg-inherit"
         @dragenter="onDragEnter"
       >
-        <template #switcherIcon="{ expanded, children }">
+        <template #switcherIcon="{ expanded, children, key }">
           <div
             class="flex flex-row nc-sidebar-expand h-full items-center justify-end"
             :style="{
               width: children.length > 0 ? `${(children[0].level - 1) * 2.5 + 3.5}rem` : undefined,
               marginLeft: children.length > 0 ? '-1.25rem' : undefined,
             }"
+            @click="() => onExpandClick(key, !expanded)"
           >
             <PhTriangleFill
               class="cursor-pointer transform transition-transform duration-500 h-1.25 text-gray-500"
@@ -180,7 +184,7 @@ onMounted(async () => {
             <div
               class="flex h-6"
               :style="{
-                width: !page.is_parent ? `${page.level * 2.5 + 2.25}rem` : undefined,
+                width: !page.children || page.children.length === 0 ? `${page.level * 2.5 + 2.25}rem` : undefined,
               }"
               @click="onTabSelect(page)"
             ></div>

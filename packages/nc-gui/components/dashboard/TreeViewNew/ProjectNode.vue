@@ -73,6 +73,8 @@ const { projectUrl: docsProjectUrl } = useDocStore()
 
 const { $e } = useNuxtApp()
 
+const isOptionsOpen = ref(false)
+
 const contextMenuTarget = reactive<{ type?: 'project' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
 const activeKey = ref<string[]>([])
 const [searchActive] = useToggle()
@@ -335,7 +337,7 @@ const reloadTables = async () => {
           <div class="nc-sidebar-expand">
             <PhTriangleFill
               class="invisible group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.25 w-1.75 text-gray-500 rotate-90"
-              :class="{ '!rotate-180': project.isExpanded }"
+              :class="{ '!rotate-180': project.isExpanded, '!visible': isOptionsOpen }"
             />
           </div>
           <component
@@ -395,8 +397,12 @@ const reloadTables = async () => {
           </span>
           <span :class="{ 'flex-grow': !editMode }"></span>
 
-          <a-dropdown>
-            <MdiDotsHorizontal class="mr-1.5 opacity-0 group-hover:opacity-100 hover:text-black text-gray-600" @click.stop />
+          <a-dropdown v-model:visible="isOptionsOpen" trigger="click">
+            <MdiDotsHorizontal
+              class="mr-1.5 opacity-0 group-hover:opacity-100 hover:text-black text-gray-600"
+              :class="{ '!text-black !opacity-100': isOptionsOpen }"
+              @click.stop
+            />
             <template #overlay>
               <a-menu>
                 <!--          <a-menu class="!ml-1 !w-[300px] !text-sm"> -->
@@ -485,7 +491,7 @@ const reloadTables = async () => {
           <div
             class="mr-1 flex flex-row pr-1 items-center gap-x-2 cursor-pointer hover:text-black text-gray-600 text-sm invisible !group-hover:visible"
             data-testid="nc-sidebar-add-project-entity"
-            :class="{ '!text-black !visible': isAddNewProjectChildEntityLoading }"
+            :class="{ '!text-black !visible': isAddNewProjectChildEntityLoading, '!visible': isOptionsOpen }"
             @click.stop="addNewProjectChildEntity"
           >
             <div v-if="isAddNewProjectChildEntityLoading" class="flex flex-row items-center">

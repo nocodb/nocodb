@@ -17,6 +17,7 @@ const animationDuration = 300
 const viewportWidth = ref(window.innerWidth)
 const isMouseOverShowSidebarZone = ref(false)
 const isAnimationEndAfterSidebarHide = ref(false)
+const isStartHideSidebarAnimation = ref(false)
 
 const sidebarWidth = computed(() => (sideBarSize.value.old * viewportWidth.value) / 100)
 const currentSidebarSize = computed({
@@ -98,6 +99,19 @@ onBeforeUnmount(() => {
   document.removeEventListener('mousemove', handleMouseMove)
   window.removeEventListener('resize', onWindowResize)
 })
+
+watch(
+  () => !isOpen.value && isSidebarShort.value,
+  (value) => {
+    if (value) {
+      setTimeout(() => {
+        isStartHideSidebarAnimation.value = true
+      }, animationDuration / 2)
+    } else {
+      isStartHideSidebarAnimation.value = false
+    }
+  },
+)
 </script>
 
 <script lang="ts">
@@ -124,7 +138,7 @@ export default {
             'close': !isOpen,
             'absolute': isMouseOverShowSidebarZone,
             'sidebar-short': isSidebarShort,
-            'hide-sidebar': isSidebarHidden,
+            'hide-sidebar': isStartHideSidebarAnimation && !isMouseOverShowSidebarZone,
           }"
           :style="{
             width: isAnimationEndAfterSidebarHide && isSidebarHidden ? '0px' : `${sidebarWidth}px`,

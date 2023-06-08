@@ -232,7 +232,6 @@ const {
     if (e.key === ' ') {
       if (isCellActive.value && !editEnabled && hasEditPermission) {
         e.preventDefault()
-        clearSelectedRange()
         const row = data.value[activeCell.row]
         expandForm(row)
         return true

@@ -77,13 +77,16 @@ async function upgradeModelRelations({
             });
           }
 
-          // create a new index for the column
-          const indexArgs = {
-            columns: [relation.cn],
-            tn: relation.tn,
-            non_unique: true,
-          };
-          await sqlClient.indexCreate(indexArgs);
+          // skip postgres since we were already creating the index while creating the relation
+          if (ncMeta.knex.clientType() !== 'pg') {
+            // create a new index for the column
+            const indexArgs = {
+              columns: [relation.cn],
+              tn: relation.tn,
+              non_unique: true,
+            };
+            await sqlClient.indexCreate(indexArgs);
+          }
         }
         break;
     }

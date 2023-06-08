@@ -46,7 +46,8 @@
     "start:mysql": "docker-compose -f ./tests/playwright/scripts/docker-compose-mysql-playwright.yml up -d",
     "stop:mysql": "docker-compose -f ./tests/playwright/scripts/docker-compose-mysql-playwright.yml down",
     "start:pg": "docker-compose -f ./tests/playwright/scripts/docker-compose-pg.yml up -d",
-    "stop:pg": "docker-compose -f ./tests/playwright/scripts/docker-compose-pg.yml down"
+    "stop:pg": "docker-compose -f ./tests/playwright/scripts/docker-compose-pg.yml down",
+    "install:local-sdk": "node scripts/installLocalSdk.js"
   },
   "dependencies": {
     "express": "^4.18.1",

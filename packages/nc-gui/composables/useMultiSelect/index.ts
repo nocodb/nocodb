@@ -2,12 +2,12 @@ import dayjs from 'dayjs'
 import type { MaybeRef } from '@vueuse/core'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
+import { parse } from 'papaparse'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
 import convertCellData from './convertCellData'
 import type { Nullable, Row } from '~/lib'
 import {
-  copyTable,
   dateFormats,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
@@ -99,6 +99,84 @@ export function useMultiSelect(
     return parseProp(column?.meta)?.time_format ?? timeFormats[0]
   }
 
+  const valueToCopy = (rowObj: Row, columnObj: ColumnType) => {
+    let textToCopy = (columnObj.title && rowObj.row[columnObj.title]) || ''
+
+    if (columnObj.uidt === UITypes.Checkbox) {
+      textToCopy = !!textToCopy
+    }
+
+    if (typeof textToCopy === 'object') {
+      textToCopy = JSON.stringify(textToCopy)
+    }
+
+    if (columnObj.uidt === UITypes.Formula) {
+      textToCopy = textToCopy.replace(/\b(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2})\b/g, (d: string) => {
+        // TODO(timezone): retrieve the format from the corresponding column meta
+        // assume hh:mm at this moment
+        return dayjs(d).utc().local().format('YYYY-MM-DD HH:mm')
+      })
+    }
+
+    if (columnObj.uidt === UITypes.DateTime || columnObj.uidt === UITypes.Time) {
+      // remove `"`
+      // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
+      textToCopy = textToCopy.replace(/["']/g, '')
+
+      const isMySQL = isMysql(columnObj.base_id)
+
+      let d = dayjs(textToCopy)
+
+      if (!d.isValid()) {
+        // insert a datetime value, copy the value without refreshing
+        // e.g. textToCopy = 2023-05-12T03:49:25.000Z
+        // feed custom parse format
+        d = dayjs(textToCopy, isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
+      }
+
+      // users can change the datetime format in UI
+      // `textToCopy` would be always in YYYY-MM-DD HH:mm:ss(Z / +xx:yy) format
+      // therefore, here we reformat to the correct datetime format based on the meta
+      textToCopy = d.format(
+        columnObj.uidt === UITypes.DateTime ? constructDateTimeFormat(columnObj) : constructTimeFormat(columnObj),
+      )
+
+      if (columnObj.uidt === UITypes.DateTime && !dayjs(textToCopy).isValid()) {
+        throw new Error('Invalid DateTime')
+      }
+    }
+
+    if (columnObj.uidt === UITypes.LongText) {
+      textToCopy = `"${textToCopy.replace(/\"/g, '""')}"`
+    }
+
+    return textToCopy
+  }
+
+  const copyTable = async (rows: Row[], cols: ColumnType[]) => {
+    let copyHTML = '<table>'
+    let copyPlainText = ''
+
+    rows.forEach((row, i) => {
+      let copyRow = '<tr>'
+      cols.forEach((col, i) => {
+        const value = valueToCopy(row, col)
+        copyRow += `<td>${value}</td>`
+        copyPlainText = `${copyPlainText}${value}${cols.length - 1 !== i ? '\t' : ''}`
+      })
+      copyHTML += `${copyRow}</tr>`
+      if (rows.length - 1 !== i) {
+        copyPlainText = `${copyPlainText}\n`
+      }
+    })
+    copyHTML += '</table>'
+
+    const blobHTML = new Blob([copyHTML], { type: 'text/html' })
+    const blobPlainText = new Blob([copyPlainText], { type: 'text/plain' })
+
+    return navigator.clipboard.write([new ClipboardItem({ [blobHTML.type]: blobHTML, [blobPlainText.type]: blobPlainText })])
+  }
+
   async function copyValue(ctx?: Cell) {
     try {
       if (selectedRange.start !== null && selectedRange.end !== null && !selectedRange.isSingleCell()) {
@@ -117,51 +195,7 @@ export function useMultiSelect(
           const rowObj = unref(data)[cpRow]
           const columnObj = unref(fields)[cpCol]
 
-          let textToCopy = (columnObj.title && rowObj.row[columnObj.title]) || ''
-
-          if (columnObj.uidt === UITypes.Checkbox) {
-            textToCopy = !!textToCopy
-          }
-
-          if (typeof textToCopy === 'object') {
-            textToCopy = JSON.stringify(textToCopy)
-          }
-
-          if (columnObj.uidt === UITypes.Formula) {
-            textToCopy = textToCopy.replace(/\b(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2})\b/g, (d: string) => {
-              // TODO(timezone): retrieve the format from the corresponding column meta
-              // assume hh:mm at this moment
-              return dayjs(d).utc().local().format('YYYY-MM-DD HH:mm')
-            })
-          }
-
-          if (columnObj.uidt === UITypes.DateTime || columnObj.uidt === UITypes.Time) {
-            // remove `"`
-            // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
-            textToCopy = textToCopy.replace(/["']/g, '')
-
-            const isMySQL = isMysql(columnObj.base_id)
-
-            let d = dayjs(textToCopy)
-
-            if (!d.isValid()) {
-              // insert a datetime value, copy the value without refreshing
-              // e.g. textToCopy = 2023-05-12T03:49:25.000Z
-              // feed custom parse format
-              d = dayjs(textToCopy, isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
-            }
-
-            // users can change the datetime format in UI
-            // `textToCopy` would be always in YYYY-MM-DD HH:mm:ss(Z / +xx:yy) format
-            // therefore, here we reformat to the correct datetime format based on the meta
-            textToCopy = d.format(
-              columnObj.uidt === UITypes.DateTime ? constructDateTimeFormat(columnObj) : constructTimeFormat(columnObj),
-            )
-
-            if (columnObj.uidt === UITypes.DateTime && !dayjs(textToCopy).isValid()) {
-              throw new Error('Invalid DateTime')
-            }
-          }
+          const textToCopy = valueToCopy(rowObj, columnObj)
 
           await copy(textToCopy)
           message.success(t('msg.info.copiedToClipboard'))
@@ -382,11 +416,17 @@ export function useMultiSelect(
 
     try {
       if (clipboardData?.includes('\n') || clipboardData?.includes('\t')) {
-        // if the clipboard data contains new line or tab, then it is a matrix
-        const pasteMatrix = clipboardData.split('\n').map((row) => row.split('\t'))
+        // if the clipboard data contains new line or tab, then it is a matrix or LongText
+        const parsedClipboard = parse(clipboardData, { delimiter: '\t' })
 
-        const pasteMatrixRows = pasteMatrix.length
-        const pasteMatrixCols = pasteMatrix[0].length
+        if (parsedClipboard.errors.length > 0) {
+          throw new Error(parsedClipboard.errors[0].message)
+        }
+
+        const clipboardMatrix = parsedClipboard.data as string[][]
+
+        const pasteMatrixRows = clipboardMatrix.length
+        const pasteMatrixCols = clipboardMatrix[0].length
 
         const colsToPaste = unref(fields).slice(activeCell.col, activeCell.col + pasteMatrixCols)
         const rowsToPaste = unref(data).slice(activeCell.row, activeCell.row + pasteMatrixRows)
@@ -410,7 +450,7 @@ export function useMultiSelect(
 
             pasteRow.row[pasteCol.title!] = convertCellData(
               {
-                value: pasteMatrix[i][j],
+                value: clipboardMatrix[i][j],
                 to: pasteCol.uidt as UITypes,
                 column: pasteCol,
                 appInfo: unref(appInfo),

@@ -82,7 +82,7 @@ export default function convertCellData(
       } catch (e) {
         throw new Error('Invalid attachment data')
       }
-      if (parsedVal.some((v: any) => v && !(v.url || v.data))) {
+      if (parsedVal.some((v: any) => v && !(v.url || v.data || v.path))) {
         throw new Error('Invalid attachment data')
       }
       // TODO(refactor): duplicate logic in attachment/utils.ts

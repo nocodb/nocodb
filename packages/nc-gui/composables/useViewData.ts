@@ -450,6 +450,7 @@ export function useViewData(
 
   async function bulkUpdateRows(
     rows: Row[],
+    props: string[],
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
     undo = false,
   ) {
@@ -472,14 +473,19 @@ export function useViewData(
 
       const pk = rowPkData(row.row, metaValue?.columns as ColumnType[])
 
-      updateArray.push({ ...row.row, ...pk })
+      const updateData = props.reduce((acc: Record<string, any>, prop) => {
+        acc[prop] = row.row[prop]
+        return acc
+      }, {} as Record<string, any>)
+
+      updateArray.push({ ...updateData, ...pk })
     }
 
     if (!undo) {
       addUndo({
         redo: {
-          fn: async function redo(redoRows: Row[], pg: { page: number; pageSize: number }) {
-            await bulkUpdateRows(redoRows, { metaValue, viewMetaValue }, true)
+          fn: async function redo(redoRows: Row[], props: string[], pg: { page: number; pageSize: number }) {
+            await bulkUpdateRows(redoRows, props, { metaValue, viewMetaValue }, true)
             if (pg.page === paginationData.value.page && pg.pageSize === paginationData.value.pageSize) {
               for (const toUpdate of redoRows) {
                 const rowIndex = findIndexByPk(rowPkData(toUpdate.row, meta?.value?.columns as ColumnType[]))
@@ -496,11 +502,11 @@ export function useViewData(
               await changePage(pg.page)
             }
           },
-          args: [clone(rows), { page: paginationData.value.page, pageSize: paginationData.value.pageSize }],
+          args: [clone(rows), clone(props), { page: paginationData.value.page, pageSize: paginationData.value.pageSize }],
         },
         undo: {
-          fn: async function undo(undoRows: Row[], pg: { page: number; pageSize: number }) {
-            await bulkUpdateRows(undoRows, { metaValue, viewMetaValue }, true)
+          fn: async function undo(undoRows: Row[], props: string[], pg: { page: number; pageSize: number }) {
+            await bulkUpdateRows(undoRows, props, { metaValue, viewMetaValue }, true)
             if (pg.page === paginationData.value.page && pg.pageSize === paginationData.value.pageSize) {
               for (const toUpdate of undoRows) {
                 const rowIndex = findIndexByPk(rowPkData(toUpdate.row, meta?.value?.columns as ColumnType[]))
@@ -523,6 +529,7 @@ export function useViewData(
                 return { row: row.oldRow, oldRow: row.row, rowMeta: row.rowMeta }
               }),
             ),
+            props,
             { page: paginationData.value.page, pageSize: paginationData.value.pageSize },
           ],
         },

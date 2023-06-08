@@ -390,6 +390,7 @@ export function useMultiSelect(
 
         const colsToPaste = unref(fields).slice(activeCell.col, activeCell.col + pasteMatrixCols)
         const rowsToPaste = unref(data).slice(activeCell.row, activeCell.row + pasteMatrixRows)
+        const propsToPaste: string[] = []
 
         for (let i = 0; i < pasteMatrixRows; i++) {
           const pasteRow = rowsToPaste[i]
@@ -401,9 +402,11 @@ export function useMultiSelect(
             }
 
             // skip pasting virtual columns for now
-            if (isVirtualCol(columnObj)) {
+            if (isVirtualCol(pasteCol)) {
               continue
             }
+
+            propsToPaste.push(pasteCol.title!)
 
             pasteRow.row[pasteCol.title!] = convertCellData(
               {
@@ -416,7 +419,7 @@ export function useMultiSelect(
             )
           }
         }
-        await bulkUpdateRows?.(rowsToPaste)
+        await bulkUpdateRows?.(rowsToPaste, propsToPaste)
       } else {
         // handle belongs to column
         if (

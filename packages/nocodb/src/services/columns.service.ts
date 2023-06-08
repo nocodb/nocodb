@@ -12,13 +12,13 @@ import formulaQueryBuilderv2 from '../db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
 import {
   createHmAndBtColumn,
-  generateFkName,
+  generateFkName, populateRollupForLTAR,
   randomID,
   validateLookupPayload,
   validatePayload,
   validateRequiredField,
   validateRollupPayload,
-} from '../helpers';
+} from '../helpers'
 import { NcError } from '../helpers/catchError';
 import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
 import {
@@ -32,13 +32,18 @@ import {
   Base,
   Column,
   FormulaColumn,
+  GridViewColumn,
   KanbanView,
   Model,
 } from '../models';
 import Noco from '../Noco';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { MetaTable } from '../utils/globals';
-import type { LinkToAnotherRecordColumn, Project } from '../models';
+import type {
+  LinkToAnotherRecordColumn,
+  Project,
+  RollupColumn,
+} from '../models';
 import type { MetaService } from '../meta/meta.service';
 import type SqlMgrv2 from '../db/sql-mgr/v2/SqlMgrv2';
 import type {
@@ -1710,7 +1715,7 @@ export class ColumnsService {
         true,
       );
 
-      await Column.insert({
+      const col1 = await Column.insert({
         title: getUniqueColumnAliasName(
           await child.getColumns(),
           `${parent.title} List`,
@@ -1730,7 +1735,7 @@ export class ColumnsService {
         fk_mm_parent_column_id: parentCol.id,
         fk_related_model_id: parent.id,
       });
-      await Column.insert({
+      const col2 = await Column.insert({
         title: getUniqueColumnAliasName(
           await parent.getColumns(),
           param.column.title ?? `${child.title} List`,
@@ -1749,6 +1754,13 @@ export class ColumnsService {
         fk_mm_parent_column_id: childCol.id,
         fk_related_model_id: child.id,
       });
+
+      await populateRollupForLTAR({
+        column: col1,
+      })
+      await populateRollupForLTAR({
+        column: col2,
+      })
 
       // todo: create index for virtual relations as well
       // create index for foreign key in pg
@@ -1818,4 +1830,5 @@ export class ColumnsService {
       await Column.update(column.id, colBody);
     }
   }
+
 }

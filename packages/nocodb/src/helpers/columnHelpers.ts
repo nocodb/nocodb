@@ -1,5 +1,6 @@
 import { customAlphabet } from 'nanoid';
 import { UITypes } from 'nocodb-sdk';
+import { GridViewColumn, RollupColumn } from '../models'
 import Column from '../models/Column';
 import { getUniqueColumnAliasName } from '../helpers/getUniqueName';
 import validateParams from '../helpers/validateParams';
@@ -61,7 +62,7 @@ export async function createHmAndBtColumn(
       await parent.getColumns(),
       type === 'hm' ? alias : `${child.title} List`,
     );
-    await Column.insert({
+    const col = await Column.insert({
       title,
       fk_model_id: parent.id,
       uidt: UITypes.LinkToAnotherRecord,
@@ -74,6 +75,11 @@ export async function createHmAndBtColumn(
       fk_col_name: fkColName,
       fk_index_name: fkColName,
     });
+
+    if (!isSystemCol)
+      await populateRollupForLTAR({
+        column: col,
+      });
   }
 }
 
@@ -206,3 +212,35 @@ export const generateFkName = (parent: TableType, child: TableType) => {
     .slice(0, 10)}_${randomID(15)}`;
   return constraintName;
 };
+
+
+
+export async function populateRollupForLTAR({ column }: { column: Column }) {
+  const model = await column.getModel();
+
+  const views = await model.getViews();
+
+  const relatedModel = await column
+    .getColOptions<LinkToAnotherRecordColumn>()
+    .then((colOpt) => colOpt.getRelatedTable());
+  await relatedModel.getColumns();
+  const pkId =
+    relatedModel.primaryKey?.id || (await relatedModel.getColumns())[0]?.id;
+
+  await Column.insert<RollupColumn>({
+    uidt: 'Rollup',
+    title: getUniqueColumnAliasName(
+      await model.getColumns(),
+      `${relatedModel.title} Count`,
+    ),
+    fk_rollup_column_id: pkId,
+    fk_model_id: model.id,
+    rollup_function: 'count',
+    fk_relation_column_id: column.id,
+  });
+
+  const viewCol = await GridViewColumn.list(views[0].id).then((cols) =>
+    cols.find((c) => c.fk_column_id === column.id),
+  );
+  await GridViewColumn.update(viewCol.id, { show: false });
+}

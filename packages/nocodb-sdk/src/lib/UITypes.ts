@@ -38,6 +38,7 @@ enum UITypes {
   Barcode = 'Barcode',
   QrCode = 'QrCode',
   Button = 'Button',
+  Link = 'Link',
 }
 
 export const numericUITypes = [
@@ -79,6 +80,7 @@ export function isVirtualCol(
     UITypes.Barcode,
     UITypes.Rollup,
     UITypes.Lookup,
+    UITypes.Link,
     // UITypes.Count,
   ].includes(<UITypes>(typeof col === 'object' ? col?.uidt : col));
 }

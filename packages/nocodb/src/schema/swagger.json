@@ -14887,7 +14887,8 @@
               "Time",
               "URL",
               "Year",
-              "QrCode"
+              "QrCode",
+              "Link"
             ],
             "type": "string"
           },
@@ -17424,7 +17425,7 @@
             "description": "The type of the relationship"
           },
           "uidt": {
-            "enum": ["LinkToAnotherRecord"],
+            "enum": ["LinkToAnotherRecord", "Link"],
             "type": "string",
             "description": "Abstract type of the relationship"
           },
@@ -17974,7 +17975,8 @@
               "Time",
               "URL",
               "Year",
-              "QrCode"
+              "QrCode",
+              "Link"
             ],
             "type": "string",
             "description": "UI Data Type"

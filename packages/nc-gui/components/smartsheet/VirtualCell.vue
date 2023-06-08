@@ -18,6 +18,7 @@ import {
   isMm,
   isQrCode,
   isRollup,
+  isLink,
   provide,
   toRef,
 } from '#imports'
@@ -99,6 +100,7 @@ onUnmounted(() => {
       <LazyVirtualCellManyToMany v-else-if="isMm(column)" />
       <LazyVirtualCellBelongsTo v-else-if="isBt(column)" />
       <LazyVirtualCellRollup v-else-if="isRollup(column)" />
+      <LazyVirtualCellLink v-else-if="isLink(column)" />
       <LazyVirtualCellFormula v-else-if="isFormula(column)" />
       <LazyVirtualCellQrCode v-else-if="isQrCode(column)" />
       <LazyVirtualCellBarcode v-else-if="isBarcode(column)" />

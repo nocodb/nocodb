@@ -309,6 +309,7 @@ export default class Project implements ProjectType {
       `${CacheScope.PROJECT}:${projectId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+
     return await ncMeta.metaDelete(null, null, MetaTable.PROJECT, projectId);
   }
 

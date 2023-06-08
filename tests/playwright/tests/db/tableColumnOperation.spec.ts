@@ -68,9 +68,6 @@ test.describe('Table Column Operations', () => {
       value: 'value_a',
     });
 
-    // kludge: fix me!
-    await dashboard.rootPage.reload();
-
     // add new row using right-click menu
     await grid.addRowRightClickMenu(0);
   });

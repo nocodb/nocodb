@@ -77,8 +77,9 @@ export class GridPage extends BasePage {
     if (index !== 0) await this.get().locator('.nc-grid-row').nth(0).waitFor({ state: 'attached' });
     const rowCount = await this.get().locator('.nc-grid-row').count();
 
-    await (await this.get().locator('.nc-grid-add-new-cell').elementHandle())?.waitForElementState('stable');
-    await this.get().locator('.nc-grid-add-new-cell').click();
+    const addNewRowButton: Locator = await this.rootPage.locator(`[data-testid="nc-grid-add-new-row"]`);
+    await addNewRowButton.waitFor({ state: 'visible' });
+    await addNewRowButton.click();
 
     await expect(await this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);
 
@@ -168,6 +169,7 @@ export class GridPage extends BasePage {
 
   async addRowRightClickMenu(index: number) {
     const rowCount = await this.get().locator('.nc-grid-row').count();
+    await this.get().locator(`td[data-testid="cell-Title-${index}"]`).click();
     await this.get().locator(`td[data-testid="cell-Title-${index}"]`).click({
       button: 'right',
     });

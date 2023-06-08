@@ -32,7 +32,7 @@ const recordCount = 10;
 
 // serial as all projects end up creating xcdb using same name
 // fix me : use worker ID logic for creating unique project name
-test.describe.serial('Test table', () => {
+test.describe.serial.only('Test table', () => {
   let context: any;
   let dashboard: DashboardPage;
   let grid: GridPage;

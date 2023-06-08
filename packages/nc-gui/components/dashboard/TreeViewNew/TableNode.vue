@@ -108,12 +108,12 @@ const { isSharedBase } = useProject()
             :is="isUIAllowed('tableIconCustomisation', false, projectRole) ? Dropdown : 'div'"
             trigger="click"
             destroy-popup-on-hide
-            class="flex items-center"
+            class="flex items-center nc-table-icon"
             @click.stop
           >
             <div class="flex items-center" @click.stop>
               <component :is="isUIAllowed('tableIconCustomisation', false, projectRole) ? Tooltip : 'div'">
-                <span v-if="table.meta?.icon" :key="table.meta?.icon" class="nc-table-icon flex items-center">
+                <span v-if="table.meta?.icon" :key="table.meta?.icon" class="flex items-center">
                   <IconifyIcon
                     :key="table.meta?.icon"
                     :data-testid="`nc-icon-${table.meta?.icon}`"

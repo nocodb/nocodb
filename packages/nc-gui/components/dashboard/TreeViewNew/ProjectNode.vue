@@ -313,7 +313,11 @@ const reloadTables = async () => {
 
 <template>
   <a-dropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
-    <div class="mx-1 nc-project-sub-menu rounded-md" :class="{ active: project.isExpanded }">
+    <div
+      class="mx-1 nc-project-sub-menu rounded-md"
+      :class="{ active: project.isExpanded }"
+      :data-testid="`nc-sidebar-project-${project.title}`"
+    >
       <div
         class="flex items-center gap-0.75 py-0.25 cursor-pointer"
         @click="onProjectClick(project)"
@@ -325,6 +329,7 @@ const reloadTables = async () => {
             'bg-primary-selected': activeProjectId === project.id && projectViewOpen,
             'hover:bg-hover': !(activeProjectId === project.id && projectViewOpen),
           }"
+          :data-testid="`nc-sidebar-project-title-${project.title}`"
           class="project-title-node h-7.25 flex-grow rounded-md group flex items-center w-full pl-2"
         >
           <div class="nc-sidebar-expand">
@@ -479,7 +484,7 @@ const reloadTables = async () => {
 
           <div
             class="mr-1 flex flex-row pr-1 items-center gap-x-2 cursor-pointer hover:text-black text-gray-600 text-sm invisible !group-hover:visible"
-            data-testid="nc-docs-sidebar-add-page"
+            data-testid="nc-sidebar-add-project-entity"
             :class="{ '!text-black !visible': isAddNewProjectChildEntityLoading }"
             @click.stop="addNewProjectChildEntity"
           >

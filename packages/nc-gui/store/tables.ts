@@ -18,7 +18,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
     if (!workspaceProject) throw new Error('Project not found')
 
     const existingTables = projectTables.value.get(projectId)
-    if (existingTables) {
+    if (existingTables && !force) {
       return
     }
 

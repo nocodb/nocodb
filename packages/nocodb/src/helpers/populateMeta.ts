@@ -1,5 +1,6 @@
 import { ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
 import { isVirtualCol, RelationTypes } from 'nocodb-sdk';
+import { GridViewColumn } from '../models';
 import Column from '../models/Column';
 import Model from '../models/Model';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
@@ -9,6 +10,7 @@ import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
 import getColumnUiType from '../helpers/getColumnUiType';
 import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
 import { getUniqueColumnAliasName } from './getUniqueName';
+import type { RollupColumn } from '../models';
 import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
 import type Base from '../models/Base';
 import type Project from '../models/Project';
@@ -434,4 +436,50 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
   (info as any).timeTaken = t2.toFixed(1);
 
   return info;
+}
+
+export async function populateRollupColumnAndHideLTAR(
+  base: Base,
+  project: Project,
+) {
+  for (const model of await Model.list({
+    project_id: project.id,
+    base_id: base.id,
+  })) {
+    const columns = await model.getColumns();
+    const hmAndMmLTARColumns = columns.filter(
+      (c) =>
+        c.uidt === UITypes.LinkToAnotherRecord &&
+        c.colOptions.type !== RelationTypes.BELONGS_TO &&
+        !c.system,
+    );
+
+    const views = await model.getViews();
+
+    for (const column of hmAndMmLTARColumns) {
+      const relatedModel = await column
+        .getColOptions<LinkToAnotherRecordColumn>()
+        .then((colOpt) => colOpt.getRelatedTable());
+      await relatedModel.getColumns();
+      const pkId =
+        relatedModel.primaryKey?.id || (await relatedModel.getColumns())[0]?.id;
+
+      await Column.insert<RollupColumn>({
+        uidt: 'Rollup',
+        title: getUniqueColumnAliasName(
+          await model.getColumns(),
+          `${relatedModel.title} Count`,
+        ),
+        fk_rollup_column_id: pkId,
+        fk_model_id: model.id,
+        rollup_function: 'count',
+        fk_relation_column_id: column.id,
+      });
+
+      const viewCol = await GridViewColumn.list(views[0].id).then((cols) =>
+        cols.find((c) => c.fk_column_id === column.id),
+      );
+      await GridViewColumn.update(viewCol.id, { show: false });
+    }
+  }
 }

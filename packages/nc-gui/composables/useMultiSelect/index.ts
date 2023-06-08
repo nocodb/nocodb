@@ -11,6 +11,7 @@ import {
   dateFormats,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
+  isDrawerOrModalExist,
   isMac,
   isTypableInputColumn,
   message,
@@ -361,7 +362,11 @@ export function useMultiSelect(
           const rowObj = unref(data)[activeCell.row]
           const columnObj = unref(fields)[activeCell.col]
 
-          if ((!unref(editEnabled) || !isTypableInputColumn(columnObj)) && (isMac() ? e.metaKey : e.ctrlKey)) {
+          if (
+            (!unref(editEnabled) || !isTypableInputColumn(columnObj)) &&
+            !isDrawerOrModalExist() &&
+            (isMac() ? e.metaKey : e.ctrlKey)
+          ) {
             switch (e.keyCode) {
               // copy - ctrl/cmd +c
               case 67:
@@ -395,6 +400,10 @@ export function useMultiSelect(
   const clearSelectedRange = selectedRange.clear.bind(selectedRange)
 
   const handlePaste = async (e: ClipboardEvent) => {
+    if (isDrawerOrModalExist()) {
+      return
+    }
+
     if (!isCellActive.value) {
       return
     }

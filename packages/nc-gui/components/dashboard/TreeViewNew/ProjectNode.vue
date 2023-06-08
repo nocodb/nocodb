@@ -335,13 +335,14 @@ const reloadTables = async () => {
           }"
           :data-testid="`nc-sidebar-project-title-${project.title}`"
           class="project-title-node h-7.25 flex-grow rounded-md group flex items-center w-full"
-          @click="onProjectClick(project, true)"
         >
-          <div class="nc-sidebar-expand pl-2 pr-1">
-            <PhTriangleFill
-              class="invisible group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.25 w-1.75 text-gray-500 rotate-90"
-              :class="{ '!rotate-180': project.isExpanded, '!visible': isOptionsOpen }"
-            />
+          <div @click="onProjectClick(project, true)">
+            <div class="nc-sidebar-expand pl-2 pr-1">
+              <PhTriangleFill
+                class="invisible group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.25 w-1.75 text-gray-500 rotate-90"
+                :class="{ '!rotate-180': project.isExpanded, '!visible': isOptionsOpen }"
+              />
+            </div>
           </div>
           <component
             :is="isUIAllowed('projectIconCustomisation', false, projectRole) ? Dropdown : 'div'"

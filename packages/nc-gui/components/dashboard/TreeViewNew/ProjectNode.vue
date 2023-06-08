@@ -224,7 +224,7 @@ const addNewProjectChildEntity = async () => {
 // todo: temp
 const isSharedBase = ref(false)
 
-const onProjectClick = async (project: NcProject) => {
+const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean) => {
   if (!project) {
     return
   }
@@ -246,7 +246,9 @@ const onProjectClick = async (project: NcProject) => {
       // })
       $e('c:dashboard:open', project.id)
       await populateLayouts({ projectId: project.id! })
-      await navigateTo(dashboardProjectUrl(project.id!))
+      if (!ignoreNavigation) {
+        await navigateTo(dashboardProjectUrl(project.id!))
+      }
       break
     case 'documentation':
       // addTab({
@@ -257,15 +259,19 @@ const onProjectClick = async (project: NcProject) => {
       // })
       $e('c:document:open', project.id)
       await populatedNestedPages({ projectId: project.id! })
-      await navigateTo(docsProjectUrl(project.id!))
+      if (!ignoreNavigation) {
+        await navigateTo(docsProjectUrl(project.id!))
+      }
       break
     case 'database':
-      await navigateTo(
-        projectUrl({
-          id: project.id!,
-          type: 'database',
-        }),
-      )
+      if (!ignoreNavigation) {
+        await navigateTo(
+          projectUrl({
+            id: project.id!,
+            type: 'database',
+          }),
+        )
+      }
 
       if (!isProjectPopulated) {
         await loadProject(project.id!)
@@ -320,11 +326,7 @@ const reloadTables = async () => {
       :class="{ active: project.isExpanded }"
       :data-testid="`nc-sidebar-project-${project.title}`"
     >
-      <div
-        class="flex items-center gap-0.75 py-0.25 cursor-pointer"
-        @click="onProjectClick(project)"
-        @contextmenu="setMenuContext('project', project)"
-      >
+      <div class="flex items-center gap-0.75 py-0.25 cursor-pointer" @contextmenu="setMenuContext('project', project)">
         <div
           ref="projectNodeRefs"
           :class="{
@@ -332,9 +334,10 @@ const reloadTables = async () => {
             'hover:bg-hover': !(activeProjectId === project.id && projectViewOpen),
           }"
           :data-testid="`nc-sidebar-project-title-${project.title}`"
-          class="project-title-node h-7.25 flex-grow rounded-md group flex items-center w-full pl-2"
+          class="project-title-node h-7.25 flex-grow rounded-md group flex items-center w-full"
+          @click="onProjectClick(project, true)"
         >
-          <div class="nc-sidebar-expand">
+          <div class="nc-sidebar-expand pl-2 pr-1">
             <PhTriangleFill
               class="invisible group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.25 w-1.75 text-gray-500 rotate-90"
               :class="{ '!rotate-180': project.isExpanded, '!visible': isOptionsOpen }"
@@ -344,13 +347,13 @@ const reloadTables = async () => {
             :is="isUIAllowed('projectIconCustomisation', false, projectRole) ? Dropdown : 'div'"
             trigger="click"
             destroy-popup-on-hide
-            class="flex items-center mx-1"
+            class="flex items-center mr-1"
             @click.stop
           >
             <div class="flex items-center select-none w-6 h-full" @click.stop>
               <a-spin
                 v-if="project.isLoading"
-                class="nc-sidebar-icon !flex !flex-row !items-center !my-0.5 !ml-1.5 !mr-1.5 w-8"
+                class="nc-sidebar-icon !flex !flex-row !items-center !my-0.5 !mx-1.5 w-8"
                 :indicator="indicator"
               />
               <component :is="isUIAllowed('projectIconCustomisation', false, projectRole) ? Tooltip : 'div'" v-else>
@@ -392,10 +395,10 @@ const reloadTables = async () => {
             @keyup.enter="updateProjectTitle"
             @keyup.esc="closeEditMode"
           />
-          <span v-else class="capitalize min-w-5 text-ellipsis overflow-clip select-none">
+          <span v-else class="capitalize min-w-5 text-ellipsis overflow-clip select-none" @click="onProjectClick(project)">
             {{ project.title }}
           </span>
-          <span :class="{ 'flex-grow': !editMode }"></span>
+          <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(project)"></div>
 
           <a-dropdown v-model:visible="isOptionsOpen" trigger="click">
             <MdiDotsHorizontal

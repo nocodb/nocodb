@@ -109,6 +109,13 @@ const isAddingColumnAllowed = $computed(() => !readOnly.value && !isLocked.value
 
 const isAddingEmptyRowAllowed = $computed(() => !isView && !isLocked.value && hasEditPermission && !isSqlView.value)
 
+const expandFormClick = async (e: MouseEvent, row: Row) => {
+  const target = e.target as HTMLElement
+  if (target && !target.closest('.gallery-carousel')) {
+    expandForm(row)
+  }
+}
+
 const {
   isLoading,
   loadData,
@@ -406,13 +413,13 @@ const showLoading = ref(true)
 
 const skipRowRemovalOnCancel = ref(false)
 
-function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) {
+function expandForm(row: Row, state?: Record<string, any>) {
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
 
   if (rowId) {
     router.push({
       query: {
-        ...routeQuery,
+        ...route.query,
         rowId,
       },
     })
@@ -420,7 +427,6 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) 
     expandedFormRow.value = row
     expandedFormRowState.value = state
     expandedFormDlg.value = true
-    skipRowRemovalOnCancel.value = !fromToolbar
   }
 }
 
@@ -965,6 +971,28 @@ const confirmDeleteRow = (row: number) => {
                       />
                     </div>
                   </SmartsheetTableDataCell>
+                  <div v-if="!switchingTab" class="w-full h-full">
+                    <LazySmartsheetVirtualCell
+                      v-if="isVirtualCol(columnObj)"
+                      v-model="row.row[columnObj.title]"
+                      :column="columnObj"
+                      :active="activeCell.col === colIndex && activeCell.row === rowIndex"
+                      :row="row"
+                      :read-only="readOnly"
+                      @navigate="onNavigate"
+                      @save="updateOrSaveRow(row, '', state)"
+                    />
+                    <component
+                      :is="iconMap.edit"
+                      class="text-pint-500 text-xs ml-2 text-primary"
+                      @click="expandFormClick($event, row)"
+                    />
+                    <component
+                      :is="iconMap.delete"
+                      class="text-pint-500 text-xs ml-2 text-primary"
+                      @click="confirmDeleteRow(rowIndex)"
+                    />
+                  </div>
                 </tr>
               </template>
             </LazySmartsheetRow>

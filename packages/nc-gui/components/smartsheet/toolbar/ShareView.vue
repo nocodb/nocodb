@@ -36,6 +36,9 @@ const { isUIAllowed } = useUIPermission()
 
 const { isSharedBase } = storeToRefs(useProject())
 
+const projectStore = useProject()
+const { project } = storeToRefs(projectStore)
+
 const { isMobileMode } = useGlobal()
 
 let showShareModel = $ref(false)
@@ -126,8 +129,7 @@ const sharedViewUrl = computed(() => {
     default:
       viewType = 'view'
   }
-
-  return encodeURI(`${dashboardUrl?.value}#/nc/${viewType}/${shared.value.uuid}`)
+  return encodeURI(`${dashboardUrl?.value}#/nc/${viewType}/${shared.value.uuid}?projectId=${project.value.id}`)
 })
 
 async function saveAllowCSVDownload() {

@@ -31,7 +31,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const column = inject(ColumnInj, ref())
 
-const readonly = inject(ReadonlyInj, ref(false))
+// const readonly = inject(ReadonlyInj, ref(false))
+const readonly = false
 
 const {
   childrenList,

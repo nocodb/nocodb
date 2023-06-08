@@ -305,7 +305,12 @@ export class PublicDatasService {
 
     if (!view) NcError.notFound('Not found');
 
-    if (view.type !== ViewTypes.FORM && view.type !== ViewTypes.GALLERY) {
+    // if (view.type !== ViewTypes.FORM && view.type !== ViewTypes.GALLERY) {
+    if (
+      view.type !== ViewTypes.FORM &&
+      view.type !== ViewTypes.GALLERY &&
+      view.type !== ViewTypes.GRID
+    ) {
       NcError.notFound('Not found');
     }
 

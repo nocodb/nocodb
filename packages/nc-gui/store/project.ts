@@ -45,7 +45,9 @@ export const useProject = defineStore('projectStore', () => {
 
   const forcedProjectId = ref<string>()
 
-  const projectId = computed(() => forcedProjectId.value || (route.params.projectId as string))
+  const projectId = computed(
+    () => forcedProjectId.value || (route.params.projectId as string) || (route.query.projectId as string),
+  )
 
   // todo: refactor path param name and variable name
   const projectType = $computed(() => route.params.projectType as string)

@@ -22,7 +22,8 @@ class SqliteClient extends KnexClient {
     // sqlite does not support inserting default values and knex fires a warning without this flag
     connectionConfig.connection.useNullAsDefault = true;
     super(connectionConfig);
-    this.sqlClient = connectionConfig?.knex  || knex(connectionConfig.connection);
+    this.sqlClient =
+      connectionConfig?.knex || knex(connectionConfig.connection);
     this.queries = queries;
     this._version = {};
   }
@@ -1557,7 +1558,13 @@ class SqliteClient extends KnexClient {
         upQuery,
       );
 
-      await this.sqlClient.raw('PRAGMA foreign_keys = OFF;');
+      const fkCheckEnabled = (
+        await this.sqlClient.raw('PRAGMA foreign_keys;')
+      )?.[0]?.foreign_keys;
+
+      if (fkCheckEnabled)
+        await this.sqlClient.raw('PRAGMA foreign_keys = OFF;');
+
       await this.sqlClient.raw('PRAGMA legacy_alter_table = ON;');
 
       const trx = await this.sqlClient.transaction();
@@ -1594,7 +1601,8 @@ class SqliteClient extends KnexClient {
         log.ppe(e, _func);
         throw e;
       } finally {
-        await this.sqlClient.raw('PRAGMA foreign_keys = ON;');
+        if (fkCheckEnabled)
+          await this.sqlClient.raw('PRAGMA foreign_keys = ON;');
         await this.sqlClient.raw('PRAGMA legacy_alter_table = OFF;');
       }
 

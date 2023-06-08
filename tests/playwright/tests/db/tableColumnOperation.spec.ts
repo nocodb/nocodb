@@ -12,7 +12,7 @@ test.describe('Table Column Operations', () => {
     dashboard = new DashboardPage(page, context.project);
     grid = dashboard.grid;
 
-    await dashboard.treeView.createTable({ title: 'sheet1' });
+    await dashboard.treeView.createTable({ title: 'sheet1', projectTitle: context.project.title });
   });
 
   test('Create column', async () => {

@@ -312,7 +312,7 @@ test.describe('Timezone-XCDB : Asia/Hong-kong', () => {
       await projectsPage.openProject({ title: 'xcdb', withoutPrefix: true });
     }
 
-    await dashboard.treeView.createTable({ title: 'dateTimeTable', mode: 'Xcdb' });
+    await dashboard.treeView.createTable({ title: 'dateTimeTable', mode: 'Xcdb', projectTitle: context.project.title });
     await dashboard.grid.column.create({
       title: 'DateTime',
       type: 'DateTime',

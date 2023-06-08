@@ -17,6 +17,7 @@ test.describe('Expanded form URL', () => {
   async function viewTestTestTable(viewType: string) {
     await dashboard.treeView.createTable({
       title: 'Test Table',
+      projectTitle: context.project.title,
     });
     await dashboard.grid.addNewRow({ index: 0 });
 

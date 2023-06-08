@@ -20,7 +20,11 @@ test.describe('Verify shortcuts', () => {
     await dashboard.treeView.openTable({ title: 'Country' });
     // create new table
     await page.keyboard.press('Alt+t');
-    await dashboard.treeView.createTable({ title: 'New Table', skipOpeningModal: true });
+    await dashboard.treeView.createTable({
+      title: 'New Table',
+      skipOpeningModal: true,
+      projectTitle: context.project.title,
+    });
     await dashboard.treeView.verifyTable({ title: 'New Table' });
 
     // create new row

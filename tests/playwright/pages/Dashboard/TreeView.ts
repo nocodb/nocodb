@@ -90,31 +90,41 @@ export class TreeViewPage extends BasePage {
       await this.rootPage.locator('.h-full > div > .nc-sidebar-left-toggle-icon').click();
     }
 
-    if ((await this.get().locator('.active.nc-project-tree-tbl').count()) > 0) {
-      if ((await this.get().locator('.active.nc-project-tree-tbl').innerText()) === title) {
-        // table already open
-        return;
-      }
-    }
-
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).waitFor({ state: 'visible' });
+    await this.get().getByTestId(`tree-view-table-${title}`).waitFor({ state: 'visible' });
 
     if (networkResponse === true) {
       await this.waitForResponse({
-        uiAction: () => this.get().locator(`.nc-project-tree-tbl-${title}`).click(),
+        uiAction: () => this.get().getByTestId(`tree-view-table-${title}`).click(),
         httpMethodsToMatch: ['GET'],
         requestUrlPathToMatch: `/api/v1/db/data/noco/`,
         responseJsonMatcher: json => json.pageInfo,
       });
       await this.dashboard.waitForTabRender({ title, mode });
     } else {
-      await this.get().locator(`.nc-project-tree-tbl-${title}`).click();
+      await this.get().getByTestId(`tree-view-table-${title}`).click();
       await this.rootPage.waitForTimeout(1000);
     }
   }
 
-  async createTable({ title, skipOpeningModal, mode }: { title: string; skipOpeningModal?: boolean; mode?: string }) {
-    if (!skipOpeningModal) await this.get().locator('.nc-add-new-table').click();
+  async createTable({
+    title,
+    skipOpeningModal,
+    mode,
+    projectTitle,
+  }: {
+    title: string;
+    skipOpeningModal?: boolean;
+    mode?: string;
+    projectTitle: string;
+  }) {
+    if (!skipOpeningModal) {
+      await this.get().getByTestId(`nc-sidebar-project-title-${projectTitle}`).hover();
+
+      await this.get()
+        .getByTestId(`nc-sidebar-project-${projectTitle}`)
+        .getByTestId('nc-sidebar-add-project-entity')
+        .click();
+    }
 
     await this.dashboard.get().locator('.nc-modal-table-create').locator('.ant-modal-body').waitFor();
 

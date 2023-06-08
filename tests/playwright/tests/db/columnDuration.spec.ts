@@ -50,7 +50,7 @@ test.describe('Duration column', () => {
   });
 
   test('Create duration column', async () => {
-    await dashboard.treeView.createTable({ title: 'tablex' });
+    await dashboard.treeView.createTable({ title: 'tablex', projectTitle: context.project.title });
     // Create duration column
     await dashboard.grid.column.create({
       title: 'NC_DURATION_0',

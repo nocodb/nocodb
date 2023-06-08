@@ -594,6 +594,10 @@ function makeEditable(row: Row, col: ColumnType) {
     return
   }
 
+  if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(col.uidt as UITypes)) {
+    return
+  }
+
   return (editEnabled = true)
 }
 

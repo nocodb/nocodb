@@ -47,8 +47,6 @@ const readOnly = inject(ReadonlyInj)!
 
 const active = inject(ActiveCellInj, ref(false))
 
-const editable = inject(EditModeInj, ref(false))
-
 const isPublic = inject(IsPublicInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
@@ -96,7 +94,7 @@ const isOptionMissing = computed(() => {
 
 const hasEditRoles = computed(() => hasRole('owner', true) || hasRole('creator', true) || hasRole('editor', true))
 
-const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && (active.value || editable.value))
+const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && active.value)
 
 const vModel = computed({
   get: () => {
@@ -331,7 +329,7 @@ const selectedOpts = computed(() => {
 <template>
   <div class="nc-multi-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
     <div
-      v-if="!editable && !active"
+      v-if="!active"
       class="flex flex-wrap"
       :style="{
         'display': '-webkit-box',

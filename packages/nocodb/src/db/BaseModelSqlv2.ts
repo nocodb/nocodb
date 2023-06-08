@@ -172,7 +172,7 @@ class BaseModelSqlv2 {
       data.__proto__ = proto;
     }
 
-    return data ? await nocoExecute(ast, data, {}, query) : {};
+    return data ? await nocoExecute(ast, data, {}, query) : null;
   }
 
   public async exist(id?: any): Promise<any> {

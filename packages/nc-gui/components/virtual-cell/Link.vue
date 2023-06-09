@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { computed } from '@vue/reactivity'
-import { inflect } from 'inflection'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { CellValueInj, inject } from '#imports'
-import { pluralize, singularize } from 'inflection'
 
 const value = inject(CellValueInj)
 
@@ -59,9 +57,9 @@ const textVal = computed(() => {
   if (!value.value) {
     return 'Empty'
   } else if (value.value === 1) {
-    return `1 ${singularize(relatedTableMeta.value?.title ?? '')}`
+    return `1 ${column.value?.meta?.singular || 'Item'}`
   } else {
-    return `${value.value} ${pluralize(relatedTableMeta.value?.title ?? '')}`
+    return `${value.value} ${column.value?.meta?.plural || 'Items'}`
   }
 })
 

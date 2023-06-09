@@ -8,6 +8,7 @@ import {
 import Noco from '../Noco';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../helpers/extractProps';
+import { parseMetaProp } from '../utils/modelUtils';
 import User from './User';
 import type { ProjectType } from 'nocodb-sdk';
 
@@ -369,6 +370,11 @@ export default class ProjectUser {
 
     const projectList = await qb;
     if (projectList?.length) {
+      // parse meta
+      for (const project of projectList) {
+        project.meta = parseMetaProp(project);
+      }
+
       await NocoCache.setList(CacheScope.USER_PROJECT, [userId], projectList);
     }
 

@@ -11,11 +11,8 @@ export function parseMetaProp(model: any, propName = 'meta'): any {
   }
 }
 
-export function stringifyMetaProp(
-  model: any,
-  propName = 'meta',
-): string | void {
-  if (!model) return;
+export function stringifyMetaProp(model: any, propName = 'meta'): string {
+  if (!model) return null;
 
   // stringify meta property
   try {

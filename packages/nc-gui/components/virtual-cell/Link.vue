@@ -65,7 +65,10 @@ const textVal = computed(() => {
   }
 })
 
-
+const onAttachRecord = () => {
+  childListDlg.value = false
+  listItemsDlg.value = true
+}
 </script>
 
 <template>
@@ -94,7 +97,6 @@ const textVal = computed(() => {
 
     <LazyVirtualCellComponentsListChildItems
       v-model="childListDlg"
-      :cell-value="localCellValue"
       :column="relatedTableDisplayColumn"
       @attach-record="onAttachRecord"
     />

@@ -108,6 +108,45 @@ test.describe('Verify shortcuts', () => {
   test.describe('Copy Paste', () => {
     const today = new Date().toISOString().slice(0, 10);
 
+    async function verifyCellContents({ rowIndex }: { rowIndex: number }) {
+      const responseTable = [
+        { type: 'SingleLineText', value: 'SingleLineText' },
+        { type: 'LongText', value: '"LongText"' },
+        { type: 'SingleSelect', value: 'Option1' },
+        { type: 'MultiSelect', value: 'Option1,Option2' },
+        { type: 'Number', value: '123' },
+        { type: 'PhoneNumber', value: '987654321' },
+        { type: 'Email', value: 'test@example.com' },
+        { type: 'URL', value: 'nocodb.com' },
+        { type: 'Decimal', value: '1.12' },
+        { type: 'Percent', value: '80' },
+        { type: 'Currency', value: 20, options: { parseInt: true } },
+        { type: 'Duration', value: 480, options: { parseInt: true } },
+        { type: 'Rating', value: '4' },
+        { type: 'Checkbox', value: 'true' },
+        { type: 'Date', value: today },
+        { type: 'Attachment', value: '1.json', options: { jsonParse: true } },
+      ];
+
+      for (const { type, value, options } of responseTable) {
+        await dashboard.grid.cell.copyToClipboard(
+          {
+            index: rowIndex,
+            columnHeader: type,
+          },
+          { position: { x: 1, y: 1 } }
+        );
+        if (options?.parseInt) {
+          expect(parseInt(await dashboard.grid.cell.getClipboardText())).toBe(value);
+        } else if (options?.jsonParse) {
+          const attachmentsInfo = JSON.parse(await dashboard.grid.cell.getClipboardText());
+          expect(attachmentsInfo[0]['title']).toBe('1.json');
+        } else {
+          expect(await dashboard.grid.cell.getClipboardText()).toBe(value);
+        }
+      }
+    }
+
     test.beforeEach(async () => {
       api = new Api({
         baseURL: `http://localhost:8080/`,
@@ -254,8 +293,10 @@ test.describe('Verify shortcuts', () => {
       });
     });
 
-    test('Clipboard support for cells', async () => {
+    test('Clipboard support: single cell', async () => {
       // ########################################
+
+      await verifyCellContents({ rowIndex: 0 });
 
       const responseTable = [
         { type: 'SingleLineText', value: 'SingleLineText' },
@@ -293,6 +334,25 @@ test.describe('Verify shortcuts', () => {
           expect(await dashboard.grid.cell.getClipboardText()).toBe(value);
         }
       }
+    });
+
+    test('Clipboard support: multiple cells', async ({ page }) => {
+      // click first cell, press `Ctrl A` and `Ctrl C`
+      await grid.cell.click({ index: 0, columnHeader: 'Id' });
+      await page.keyboard.press((await grid.isMacOs()) ? 'Meta+a' : 'Control+a');
+      await page.keyboard.press((await grid.isMacOs()) ? 'Meta+c' : 'Control+c');
+
+      /////////////////////////////////////////////////////////////////////////
+
+      // horizontal multiple cells selection : copy paste
+      // add new row, click on first cell, paste
+      await grid.addRowRightClickMenu(0, 'Id');
+      await page.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
+      await verifyCellContents({ rowIndex: 1 });
+
+      // reload page
+      await dashboard.rootPage.reload();
+      await dashboard.grid.verifyRowCount({ count: 2 });
     });
   });
 });

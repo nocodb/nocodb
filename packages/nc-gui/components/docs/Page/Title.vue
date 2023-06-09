@@ -90,7 +90,7 @@ const focusTitle = () => {
 watch(title, async (newTitle, oldTitle) => {
   if (!isEditAllowed.value) return
   if (!openedPage.value) return
-  if (!oldTitle) return
+  if (oldTitle === undefined) return
   if (newTitle === oldTitle) return
 
   await updatePage({ pageId: openedPage.value!.id!, page: { title: openedPage.value?.title } as any, projectId: project.id! })
@@ -160,7 +160,7 @@ onMounted(() => {
       ref="titleInputRef"
       :contenteditable="isEditAllowed && !propTitle"
       data-testid="docs-page-title"
-      class="nc-docs-page-title"
+      class="nc-docs-page-title w-full"
       :readonly="!isEditAllowed || !!propTitle"
       @input="onTitleInput"
       @keydown="onTitleKeyDown"

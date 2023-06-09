@@ -28,6 +28,8 @@ import { NcProjectType } from '~/utils'
 
 const { $e } = useNuxtApp()
 
+useProjects()
+useDashboardStore()
 const { loadTables, loadProject } = useProject()
 
 const { table, createTable } = useTable(async (_) => {
@@ -107,6 +109,7 @@ const createProject = async () => {
         await navigateTo(`/ws/${route.query.workspaceId}/nc/${result.id}`)
     }
   } catch (e: any) {
+    console.error(e)
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     creating.value = false

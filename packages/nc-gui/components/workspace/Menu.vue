@@ -109,7 +109,7 @@ const modalVisible = false
         class="group cursor-pointer flex gap-1 items-center nc-workspace-menu overflow-hidden"
       >
         <template v-if="props.isOpen">
-          <div class="flex-grow min-w-10">
+          <div class="flex-grow min-w-10 font-semibold">
             <a-tooltip v-if="workspace?.title?.length > 12" placement="bottom">
               <div class="text-md truncate">{{ workspace.title }}</div>
               <template #title>
@@ -129,9 +129,9 @@ const modalVisible = false
 
       <template #overlay>
         <a-menu class="!ml-4 !w-[300px]">
-          <a-menu-item-group>
+          <a-menu-item-group class="!border-t-0">
             <!--  <div class="nc-menu-sub-head">Current Workspace</div> -->
-            <div class="group select-none flex items-center gap-4 p-2 pb-0">
+            <div class="group select-none flex items-center gap-4 p-2 pb-0 !border-t-0">
               <input v-model="workspace.title" class="nc-workspace-title-input text-current" @input="updateWorkspaceTitle" />
             </div>
 
@@ -153,7 +153,7 @@ const modalVisible = false
             <div class="nc-menu-sub-head">Workspaces</div>
 
             <div class="max-h-300px overflow-y-auto">
-              <a-menu-item v-for="workspace of workspaces" @click="navigateTo(`/ws/${workspace.id}`)">
+              <a-menu-item v-for="workspace of workspaces" :key="workspace.id!" @click="navigateTo(`/ws/${workspace.id}`)">
                 <div class="nc-workspace-menu-item group">
                   <GeneralIcon icon="workspace" />
 

@@ -23,7 +23,7 @@ test.describe.skip('Mobile Mode', () => {
     // in non-mobile mode, all menu items are visible
     await dashboard.verifyTeamAndSettingsLinkIsVisible();
 
-    await dashboard.treeView.createTable({ title: 'test-table-for-mobile-mode' });
+    await dashboard.treeView.createTable({ title: 'test-table-for-mobile-mode', projectTitle: context.project.title });
 
     // and all toolbar items have icons AND text
     await toolbar.verifyFieldsButtonIsVisibleWithTextAndIcon();

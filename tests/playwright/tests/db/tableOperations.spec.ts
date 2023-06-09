@@ -18,7 +18,7 @@ test.describe('Table Operations', () => {
   });
 
   test('Create, and delete table, verify in audit tab, rename City table, update icon and reorder tables', async () => {
-    await dashboard.treeView.createTable({ title: 'tablex' });
+    await dashboard.treeView.createTable({ title: 'tablex', projectTitle: context.project.title });
     await dashboard.treeView.verifyTable({ title: 'tablex' });
 
     await dashboard.treeView.deleteTable({ title: 'tablex' });

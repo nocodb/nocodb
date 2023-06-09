@@ -20,6 +20,7 @@ const emit = defineEmits(['update:modelValue'])
 const dialogShow = useVModel(props, 'modelValue', emit)
 
 const projectsStore = useProjects()
+const { loadProjects } = projectsStore
 
 const workspaceStore = useWorkspace()
 const input: VNodeRef = ref<typeof Input>()
@@ -45,12 +46,12 @@ const creating = ref(false)
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const { loadWorkspaceList } = workspaceStore
-const { projects } = storeToRefs(workspaceStore)
+const { projects } = storeToRefs(useProjects())
 const availableDbProjects: ComputedRef<Array<IdAndTitle>> = computed(() => {
   return (
-    projects.value
-      ?.filter((project) => project.type === 'database')
-      .map((project) => ({
+    Array.from(projects.value)
+      ?.filter(([_, project]) => project.type === 'database')
+      .map(([_, project]) => ({
         id: project.id!,
         title: project.title || 'unknown',
       })) || []
@@ -95,9 +96,9 @@ const createDashboardProject = async () => {
       type: NcProjectType.DASHBOARD,
       title: formState.title,
       workspaceId: workspaceStore.workspace!.id!,
-      linkedDbProjectIds: filteredDbProjects.value.map(p => p.id)
+      linkedDbProjectIds: filteredDbProjects.value.map((p) => p.id),
     })
-    await workspaceStore.loadProjects()
+    await loadProjects()
 
     navigateTo(`/ws/${workspaceStore.workspace!.id!}/project/${project.id!}/layout`)
 

@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import type { ProjectType } from 'nocodb-sdk'
-import { onMounted, toRef } from '@vue/runtime-core'
+import { toRef } from '@vue/runtime-core'
+import type { NcProject } from '~~/lib'
 import { useDashboardStore } from '~~/store/dashboard'
 
 const props = defineProps<{
-  project: ProjectType
+  project: NcProject
 }>()
 
 const project = toRef(props, 'project')
@@ -13,53 +13,32 @@ const dashboardStore = useDashboardStore()
 
 const { layoutsOfProjects } = storeToRefs(dashboardStore)
 
-const { fetchLayouts, addNewLayout, openLayout } = dashboardStore
+const { openLayout } = dashboardStore
 
 const layouts = computed(() => layoutsOfProjects.value[project.value.id!])
-
-onMounted(async () => {
-  await fetchLayouts({ projectId: project.value.id! })
-})
 </script>
 
 <template>
-  <a-layout-sider
-    :collapsed="false"
-    collapsed-width="50"
-    class="relative h-full z-1 nc-dashboards-left-sidebar !min-w-56.5 pb-1 !bg-inherit pl-2"
-    :trigger="null"
-    collapsible
-    theme="light"
-  >
-    <div class="border-none sortable-list">
-      <LayoutsSideBarLayoutNode
-        v-for="layout of layouts ?? []"
-        :key="layout.id"
-        v-e="['a:layout:open']"
-        class="nc-tree-item text-sm cursor-pointer group"
-        :data-order="layout.order"
-        :data-id="layout.id"
-        :data-testid="`tree-view-layout-${layout.title}`"
-        :layout="layout"
-        :project="project"
-        @click="
-          openLayout({
-            layout,
-            projectId: project.id!,
-          })
-        "
-      >
-      </LayoutsSideBarLayoutNode>
-    </div>
-
-    <div
-      class="py-1 flex flex-row pl-7 items-center gap-x-2 cursor-pointer hover:text-black text-gray-600 text-sm"
-      @click="() => addNewLayout({ projectId: project.id })"
+  <div class="border-none sortable-list">
+    <LayoutsSideBarLayoutNode
+      v-for="layout of layouts ?? []"
+      :key="layout.id"
+      v-e="['a:layout:open']"
+      class="nc-tree-item text-sm cursor-pointer group"
+      :data-order="layout.order"
+      :data-id="layout.id"
+      :data-testid="`tree-view-layout-${layout.title}`"
+      :layout="layout"
+      :project="project"
+      @click="
+        openLayout({
+          layout,
+          projectId: project.id!,
+        })
+      "
     >
-      <MdiPlus />
-      <div class="flex">Create New Layout</div>
-    </div>
-  </a-layout-sider>
+    </LayoutsSideBarLayoutNode>
+  </div>
 </template>
 
 <style lang="scss">

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../pages/Dashboard';
-import setup from '../../setup';
+import setup, { NcContext } from '../../setup';
 import makeServer from '../../setup/server';
 import { WebhookFormPage } from '../../pages/Dashboard/WebhookForm';
 import { isSubset } from '../utils/general';
@@ -105,7 +105,7 @@ test.describe.serial('Webhook', () => {
   // start a server locally for webhook tests
 
   let dashboard: DashboardPage, webhook: WebhookFormPage;
-  let context: any;
+  let context: NcContext;
 
   test.beforeAll(async () => {
     await makeServer();
@@ -131,7 +131,7 @@ test.describe.serial('Webhook', () => {
     // close 'Team & Auth' tab
     await clearServerData({ request });
     await dashboard.closeTab({ title: 'Team & Auth' });
-    await dashboard.treeView.createTable({ title: 'Test' });
+    await dashboard.treeView.createTable({ title: 'Test', projectTitle: context.project.title });
 
     // create
     //
@@ -305,7 +305,7 @@ test.describe.serial('Webhook', () => {
     await clearServerData({ request });
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
-    await dashboard.treeView.createTable({ title: 'Test' });
+    await dashboard.treeView.createTable({ title: 'Test', projectTitle: context.project.title });
 
     // after insert hook
     await webhook.create({

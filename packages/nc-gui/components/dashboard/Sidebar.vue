@@ -31,7 +31,12 @@ const currentVersion = ref('')
 </script>
 
 <template>
-  <div class="nc-sidebar flex flex-col bg-white">
+  <div
+    class="nc-sidebar flex flex-col bg-gray-50 outline-r-1 outline-gray-100"
+    :style="{
+      outlineWidth: '1px',
+    }"
+  >
     <div
       style="height: var(--header-height); border-bottom-width: 1px"
       :class="isOpen ? 'pl-4' : ''"
@@ -41,7 +46,7 @@ const currentVersion = ref('')
         v-if="!isSharedBase"
         v-e="['c:navbar:home']"
         data-testid="nc-noco-brand-icon"
-        class="w-[29px] min-w-[29px] transition-all duration-200 py-1 pl-1 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
+        class="w-[29px] min-w-[29px] transition-all duration-200 py-1 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
         @click="navigateTo('/')"
       >
         <a-tooltip placement="bottom">

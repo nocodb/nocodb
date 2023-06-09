@@ -38,7 +38,7 @@ export const themeColors = {
   'primary': '#4351e8',
   'primary-selected': '#EBF0FF',
   'primary-selected-sidebar': '#EBF0FF',
-  'hover': '#F2F4F7',
+  'hover': '#E1E3E6',
   'scrollbar': '#d7d7d7',
   'scrollbar-hover': '#cbcbcb',
   'border': '#F3F4F6',

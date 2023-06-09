@@ -14,7 +14,7 @@ import {
   useMetas,
   useNuxtApp,
   useProject,
-  useProjects,
+  useTablesStore,
   useTabs,
   useUndoRedo,
   useVModel,
@@ -42,7 +42,7 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const { updateTab } = useTabs()
 
-const projectsStore = useProjects()
+const { loadProjectTables } = useTablesStore()
 
 const projectStore = useProject()
 const { loadTables, isMysql, isMssql, isPg } = projectStore
@@ -135,7 +135,7 @@ const renameTable = async (undo = false) => {
 
     dialogShow.value = false
 
-    await projectsStore.loadProjectTables(tableMeta.project_id!, true)
+    await loadProjectTables(tableMeta.project_id!, true)
 
     if (!undo) {
       addUndo({

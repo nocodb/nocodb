@@ -213,7 +213,7 @@ test.describe('Form view', () => {
   });
 
   test('Form share, verify attachment file', async () => {
-    await dashboard.treeView.createTable({ title: 'New' });
+    await dashboard.treeView.createTable({ title: 'New', projectTitle: context.project.title });
 
     await dashboard.grid.column.create({
       title: 'Attachment',

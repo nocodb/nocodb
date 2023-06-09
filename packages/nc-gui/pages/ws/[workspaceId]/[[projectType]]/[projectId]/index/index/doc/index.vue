@@ -2,12 +2,21 @@
 const route = useRoute()
 
 const { openedProjectId } = storeToRefs(useDocStore())
-const { fetchNestedPages } = useDocStore()
+const { populatedNestedPages } = useDocStore()
+const { project } = storeToRefs(useProject())
 
-onMounted(() => {
-  fetchNestedPages({
-    projectId: openedProjectId.value,
-  })
+onMounted(async () => {
+  if (project.value) project.value.isLoading = true
+
+  try {
+    await populatedNestedPages({
+      projectId: openedProjectId.value,
+    })
+  } catch (e) {
+    console.error(e)
+  }
+
+  if (project.value) project.value.isLoading = false
 })
 </script>
 

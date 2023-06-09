@@ -7,7 +7,7 @@ const props = defineProps<{
 
 const projectCreateDlg = ref(false)
 const projectType = ref()
-const workspaceStore = useWorkspace()
+const { projects, projectsList } = storeToRefs(useProjects())
 
 const router = useRouter()
 
@@ -15,11 +15,11 @@ const loading = ref(false)
 
 // if at least one project exists, redirect to first project
 watch(
-  () => workspaceStore.projects,
+  projects,
   (projects) => {
-    if (projects?.length) {
+    if (projects.size) {
       return router.replace({
-        path: `/ws/${router.currentRoute.value.params.workspaceId}/nc/${projects[0].id}`,
+        path: `/ws/${router.currentRoute.value.params.workspaceId}/nc/${projectsList.value[0].id}`,
       })
     }
     loading.value = false

@@ -90,9 +90,8 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   const projectStore = useProject()
   const { project } = storeToRefs(projectStore)
 
-  const projectsStore = useProjects()
-  const { loadProjectTables } = projectsStore
-  const { projectTableList } = storeToRefs(projectsStore)
+  const { loadProjectTables } = useTablesStore()
+  const { projectTables } = storeToRefs(useTablesStore())
 
   const focusedWidgetId = ref<string | undefined>(undefined)
 
@@ -338,7 +337,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     }
     await Promise.all(availableDbProjects.value.map(async (project) => await loadProjectTables(project.id)))
 
-    availableTablesOfAllDBProjectsLinkedWithDashboardProject.value = Object.values(projectTableList.value)
+    availableTablesOfAllDBProjectsLinkedWithDashboardProject.value = Array.from(projectTables.value)
       .flat()
       .filter((t) => t != null)
       .map((table) => ({
@@ -443,6 +442,12 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     if (completeUrl) return `${window.location.origin}/#${path}`
 
     return path
+  }
+
+  async function populateLayouts({ projectId }: { projectId: string }) {
+    if (layoutsOfProjects.value[projectId]) return
+
+    await fetchLayouts({ projectId })
   }
 
   async function fetchLayouts({ withoutLoading, projectId }: { projectId: string; withoutLoading?: boolean }) {
@@ -1077,6 +1082,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     changeSelectRecordsModeForNumberWidgetDataConfig,
     changeAggregateFunctionOfFocusedWidget,
     changeChartTypeOfFocusedChartElement,
+    populateLayouts,
     changeNameOfNumberWidget,
     changeDescriptionOfNumberWidget,
     changeSelectedXAxisOrderByOfFocusedWidget,

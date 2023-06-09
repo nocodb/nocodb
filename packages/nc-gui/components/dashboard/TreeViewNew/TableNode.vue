@@ -42,7 +42,8 @@ const projectRole = inject(ProjectRoleInj)
 const { setMenuContext, openRenameTableDialog, duplicateTable } = inject(TreeViewFunctions)!
 
 // todo: temp
-const { projectTableList } = storeToRefs(useProjects())
+const { projectTables } = storeToRefs(useTablesStore())
+const tables = computed(() => projectTables.value.get(project.id!) ?? [])
 
 const openedTableId = computed(() => route.params.viewId)
 
@@ -61,7 +62,7 @@ const setIcon = async (icon: string, table: TableType) => {
       ...((table.meta as object) || {}),
       icon,
     }
-    projectTableList.value[project.id!].splice(projectTableList.value[project.id!].indexOf(table), 1, { ...table })
+    tables.value.splice(tables.value.indexOf(table), 1, { ...table })
 
     updateTab({ id: table.id }, { meta: table.meta })
 
@@ -82,7 +83,7 @@ const { isSharedBase } = useProject()
 
 <template>
   <div
-    class="nc-tree-item text-sm cursor-pointer group"
+    class="nc-tree-item text-sm cursor-pointer group select-none"
     :data-order="table.order"
     :data-id="table.id"
     :data-testid="`tree-view-table-${table.title}`"
@@ -94,7 +95,7 @@ const { isSharedBase } = useProject()
     ]"
   >
     <GeneralTooltip
-      class="pl-4 pr-3 py-1.5 mt-0.65 rounded-md"
+      class="pl-11 pr-1.5 py-1 mb-0.25 rounded-md"
       :class="{
         'hover:bg-hover': openedTableId !== table.id,
       }"
@@ -107,12 +108,12 @@ const { isSharedBase } = useProject()
             :is="isUIAllowed('tableIconCustomisation', false, projectRole) ? Dropdown : 'div'"
             trigger="click"
             destroy-popup-on-hide
-            class="flex items-center"
+            class="flex items-center nc-table-icon"
             @click.stop
           >
             <div class="flex items-center" @click.stop>
               <component :is="isUIAllowed('tableIconCustomisation', false, projectRole) ? Tooltip : 'div'">
-                <span v-if="table.meta?.icon" :key="table.meta?.icon" class="nc-table-icon flex items-center">
+                <span v-if="table.meta?.icon" :key="table.meta?.icon" class="flex items-center">
                   <IconifyIcon
                     :key="table.meta?.icon"
                     :data-testid="`nc-icon-${table.meta?.icon}`"
@@ -120,10 +121,9 @@ const { isSharedBase } = useProject()
                     :icon="table.meta?.icon"
                   ></IconifyIcon>
                 </span>
-                <component
-                  :is="icon(table)"
+                <MdiTable
                   v-else
-                  class="nc-table-icon nc-view-icon w-5"
+                  class="w-5 !text-gray-500"
                   :class="{ 'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole) }"
                 />
 
@@ -131,7 +131,11 @@ const { isSharedBase } = useProject()
               </component>
             </div>
             <template v-if="isUIAllowed('tableIconCustomisation', false, projectRole)" #overlay>
-              <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon($event, table)" />
+              <GeneralEmojiIcons
+                class="shadow bg-white p-2"
+                :show-reset="table.meta?.icon"
+                @select-icon="setIcon($event, table)"
+              />
             </template>
           </component>
         </div>
@@ -149,7 +153,7 @@ const { isSharedBase } = useProject()
           :trigger="['click']"
           @click.stop
         >
-          <MdiDotsVertical
+          <MdiDotsHorizontal
             class="transition-opacity opacity-0 group-hover:opacity-100 outline-0"
             :class="{
               '!text-gray-600': openedTableId !== table.id,

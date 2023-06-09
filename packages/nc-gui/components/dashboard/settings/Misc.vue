@@ -24,7 +24,8 @@ onMounted(async () => {
 })
 
 async function showNullAndEmptyInFilterOnChange(evt: CheckboxChangeEvent) {
-  const project = projectsStore.projects[projectId.value!]
+  const project = projectsStore.projects.get(projectId.value!)
+  if (!project) throw new Error(`Project ${projectId.value} not found`)
 
   const meta = projectsStore.getProjectMeta(projectId.value!) ?? {}
 

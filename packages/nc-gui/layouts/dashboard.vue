@@ -17,6 +17,7 @@ const animationDuration = 300
 const viewportWidth = ref(window.innerWidth)
 const isMouseOverShowSidebarZone = ref(false)
 const isAnimationEndAfterSidebarHide = ref(false)
+const isStartHideSidebarAnimation = ref(false)
 
 const sidebarWidth = computed(() => (sideBarSize.value.old * viewportWidth.value) / 100)
 const currentSidebarSize = computed({
@@ -98,6 +99,19 @@ onBeforeUnmount(() => {
   document.removeEventListener('mousemove', handleMouseMove)
   window.removeEventListener('resize', onWindowResize)
 })
+
+watch(
+  () => !isOpen.value && isSidebarShort.value,
+  (value) => {
+    if (value) {
+      setTimeout(() => {
+        isStartHideSidebarAnimation.value = true
+      }, animationDuration / 2)
+    } else {
+      isStartHideSidebarAnimation.value = false
+    }
+  },
+)
 </script>
 
 <script lang="ts">
@@ -124,7 +138,7 @@ export default {
             'close': !isOpen,
             'absolute': isMouseOverShowSidebarZone,
             'sidebar-short': isSidebarShort,
-            'hide-sidebar': isSidebarHidden,
+            'hide-sidebar': isStartHideSidebarAnimation && !isMouseOverShowSidebarZone,
           }"
           :style="{
             width: isAnimationEndAfterSidebarHide && isSidebarHidden ? '0px' : `${sidebarWidth}px`,
@@ -136,7 +150,7 @@ export default {
       </Pane>
       <div v-if="!isOpen" class="absolute top-0 left-0 pl-2 flex flex-col h-full z-40">
         <div class="mt-2 p-1 px-1.5 rounded-md hover:bg-gray-100 cursor-pointer" @click="isOpen = true">
-          <MdiMenu v-if="isSidebarHidden" />
+          <MdiMenu v-if="isSidebarHidden && !isStartHideSidebarAnimation" />
           <IcBaselineKeyboardDoubleArrowRight v-else />
         </div>
       </div>
@@ -149,6 +163,7 @@ export default {
 
 <style lang="scss">
 .splitpanes__splitter {
+  width: 0 !important;
   position: relative;
   overflow: visible;
 }
@@ -164,8 +179,14 @@ export default {
 
 .splitpanes__splitter:hover:before {
   @apply bg-scrollbar;
-  width: 4px !important;
-  left: -4px;
+  width: 3px !important;
+  left: -3px;
+}
+
+.splitpanes--dragging .splitpanes__splitter:before {
+  @apply bg-scrollbar;
+  width: 3px !important;
+  left: -3px;
 }
 
 .sidebar-short {

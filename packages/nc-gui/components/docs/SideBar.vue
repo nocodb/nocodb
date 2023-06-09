@@ -4,7 +4,7 @@ import type { TreeProps } from 'ant-design-vue'
 import type { AntTreeNodeDropEvent } from 'ant-design-vue/lib/tree'
 import { Icon as IconifyIcon } from '@iconify/vue'
 import type { ProjectType } from 'nocodb-sdk'
-import { onMounted, toRef } from '@vue/runtime-core'
+import { toRef } from '@vue/runtime-core'
 import type { PageSidebarNode } from '~~/lib'
 
 const props = defineProps<{
@@ -13,20 +13,17 @@ const props = defineProps<{
 
 const project = toRef(props, 'project')
 
-const { isPublic, openedPageInSidebar, nestedPagesOfProjects, isEditAllowed, openedTabsOfProjects, openedPage } = storeToRefs(
-  useDocStore(),
-)
+const { isPublic, openedPageInSidebar, nestedPagesOfProjects, isEditAllowed, openedPage } = storeToRefs(useDocStore())
 
 const {
-  fetchNestedPages,
   deletePage,
   reorderPages,
   updatePage,
   addNewPage,
-  expandTabOfOpenedPage,
+  getPageWithParents,
   getChildrenOfPage,
-  openChildPageTabsOfRootPages,
   openPage,
+  getAllChildrenOfPage,
 } = useDocStore()
 
 const nestedPages = computed(() => nestedPagesOfProjects.value[project.value.id!])
@@ -92,6 +89,8 @@ const onTabSelect = (page: PageSidebarNode) => {
     page,
     projectId: project.value.id!,
   })
+
+  onExpandClick(page.id!, true)
 }
 
 const setIcon = async (id: string, icon: string) => {
@@ -104,26 +103,25 @@ const setIcon = async (id: string, icon: string) => {
 
 watch(
   openedPageInSidebar,
-  () => {
+  (newPage, prevPage) => {
     if (!openedPageInSidebar.value) return
 
-    expandTabOfOpenedPage({
-      projectId: project.value.id!,
-    })
-  },
-  {
-    immediate: true,
-  },
-)
+    openedTabs.value = []
+    if (newPage?.id === prevPage?.id) return
 
-watch(
-  () => openedTabsOfProjects.value[project.value.id!],
-  (val) => {
-    openedTabs.value = val ?? []
+    const pageWithParents = getPageWithParents({
+      page: openedPageInSidebar.value,
+      projectId: project.value.id!,
+    }).reverse()
+
+    for (const page of pageWithParents) {
+      if (!openedTabs.value.includes(page.id!)) {
+        openedTabs.value.push(page.id!)
+      }
+    }
   },
   {
     immediate: true,
-    deep: true,
   },
 )
 
@@ -133,20 +131,25 @@ onKeyStroke('Enter', () => {
   }
 })
 
-onMounted(async () => {
-  if (isPublic.value) return
+function onExpandClick(id: string, expanded: boolean) {
+  if (expanded) {
+    if (!openedTabs.value.includes(id)) {
+      openedTabs.value.push(id)
+    }
+  } else {
+    const children = getAllChildrenOfPage({ pageId: id, projectId: project.value.id! })
+    const pageIdWithChildrenId = [id, ...children.map((child) => child.id)]
 
-  await fetchNestedPages({ projectId: project.value.id! })
-
-  // await openChildPageTabsOfRootPages({
-  //   projectId: project.value.id!,
-  // })
-})
+    setTimeout(() => {
+      openedTabs.value = openedTabs.value.filter((tab) => !pageIdWithChildrenId.includes(tab))
+    }, 0)
+  }
+}
 </script>
 
 <template>
   <template v-if="nestedPages">
-    <div class="nc-docs-sidebar mb-1">
+    <div class="nc-docs-sidebar">
       <a-tree
         v-model:expanded-keys="openedTabs"
         v-model:selectedKeys="openPageTabKeys"
@@ -157,16 +160,39 @@ onMounted(async () => {
         class="!w-full h-full overflow-y-scroll !overflow-x-hidden !bg-inherit"
         @dragenter="onDragEnter"
       >
+        <template #switcherIcon="{ expanded, children, key }">
+          <div
+            class="flex flex-row nc-sidebar-expand h-full items-center justify-end"
+            :style="{
+              width: children.length > 0 ? `${(children[0].level - 1) * 2.5 + 3.5}rem` : undefined,
+              marginLeft: children.length > 0 ? '-1.25rem' : undefined,
+            }"
+            @click="() => onExpandClick(key, !expanded)"
+          >
+            <PhTriangleFill
+              class="cursor-pointer transform transition-transform duration-500 h-1.25 text-gray-500"
+              :class="{ 'rotate-180': expanded, 'rotate-90': !expanded }"
+            />
+          </div>
+        </template>
         <template #title="page">
           <div
-            class="flex flex-row items-center justify-between group pt-1"
+            class="flex flex-row items-center justify-between group"
             :data-testid="`docs-sidebar-page-${project.title}-${page.title}`"
             :data-level="page.level"
           >
             <div
+              class="flex h-6"
+              :style="{
+                width: !page.children || page.children.length === 0 ? `${page.level * 2.5 + 2.25}rem` : undefined,
+              }"
+              @click="onTabSelect(page)"
+            ></div>
+            <div
               class="flex flex-row gap-x-1 text-ellipsis overflow-clip min-w-0 transition-all duration-200 ease-in-out"
               :class="{}"
             >
+              <div class="nc-docs-sidebar-spacer"></div>
               <div class="flex flex-shrink-0">
                 <a-popover
                   :visible="isEditAllowed ? undefined : false"
@@ -179,7 +205,7 @@ onMounted(async () => {
                     <div
                       class="flex px-0.75 pt-0.75 text-gray-500 rounded-md"
                       :class="{
-                        'hover:bg-gray-300 cursor-pointer': isEditAllowed,
+                        'hover:bg-gray-100 cursor-pointer': isEditAllowed,
                       }"
                       data-testid="docs-sidebar-emoji-selector"
                     >
@@ -194,7 +220,7 @@ onMounted(async () => {
                     </div>
                     <template #overlay>
                       <div class="flex flex-col p-1 bg-gray-50 rounded-md">
-                        <GeneralEmojiIcons class="shadow p-2" @select-icon="setIcon(page.id, $event)" />
+                        <GeneralEmojiIcons class="shadow p-2" :show-reset="page.icon" @select-icon="setIcon(page.id, $event)" />
                       </div>
                     </template>
                   </a-dropdown>
@@ -237,15 +263,6 @@ onMounted(async () => {
 :deep(.ant-tree) {
   @apply !bg-transparent;
   background: transparent !important;
-}
-
-.docs-page-icon-change-popover {
-  .ant-popover-inner {
-    padding: 0 !important;
-  }
-  .ant-popover-inner-content {
-    @apply !px-1.5 !py-1 text-xs text-white bg-black;
-  }
 }
 
 .ant-tree-node-content-wrapper {
@@ -295,25 +312,29 @@ onMounted(async () => {
     background: rgb(203, 203, 203);
   }
 }
+
 .ant-tree-treenode {
-  @apply w-full rounded-md mb-0.65 pl-6 !important;
-}
-.ant-tree-node-content-wrapper {
-  @apply w-full mr-2 pl-0.5 bg-inherit transition-none !important;
+  @apply flex flex-row items-center w-full rounded-md pb-0 h-7.25 hover:bg-hover mb-0.25 !important;
   transition: none !important;
 }
+
+.ant-tree-treenode:hover {
+  .nc-sidebar-expand {
+    @apply !text-gray-500 !visible;
+  }
+}
+.ant-tree-treenode:last-child {
+  @apply !mb-0;
+}
+.nc-sidebar-expand {
+  @apply invisible;
+}
+.ant-tree-node-content-wrapper {
+  @apply w-full mr-0.5 pl-0.5 bg-inherit transition-none !important;
+  transition: none !important;
+}
+
 .ant-tree-list {
-  @apply last:pb-1 mt-0.5;
-  .ant-tree-switcher {
-    @apply mt-1 !important;
-  }
-  .ant-tree-switcher-icon {
-    @apply !text-gray-300;
-  }
-  .ant-tree-treenode {
-    @apply hover:bg-hover;
-    transition: none !important;
-  }
   .ant-tree-treenode-selected {
     @apply !bg-primary-selected;
     transition: none !important;
@@ -323,13 +344,12 @@ onMounted(async () => {
     @apply !bg-primary-selected !hover:bg-primary-selected;
   }
   .ant-tree-indent-unit {
-    @apply w-8 !important;
-  }
-  .ant-tree-switcher.ant-tree-switcher-noop {
-    @apply w-6;
+    @apply w-0 !important;
   }
 }
-
+.ant-tree-switcher {
+  width: fit-content;
+}
 .nc-docs-menu .ant-dropdown-menu-item {
   @apply p-0 !important;
 }

@@ -11,8 +11,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   // const activeWorkspace = ref<WorkspaceType | null>()
 
+  const isWorkspaceLoading = ref(true)
+
   // todo: update type in swagger
-  const projects = ref<(ProjectType & { temp_title?: string; edit?: boolean; starred?: boolean })[] | null>()
+  const projectsStore = useProjects()
 
   const collaborators = ref<WorkspaceUserType[] | null>()
 
@@ -121,28 +123,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     refreshCommandPalette()
   }
 
-  const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace') => {
-    if ((!page || page === 'workspace') && !workspace.value?.id && !activeWorkspace.value?.id) {
-      throw new Error('Workspace not selected')
-    }
-
-    if (activeWorkspace.value?.id) {
-      const { list } = await $api.workspaceProject.list(activeWorkspace.value?.id ?? workspace.value?.id)
-      projects.value = list
-    } else {
-      const { list } = await $api.project.list(
-        page
-          ? {
-              query: {
-                [page]: true,
-              },
-            }
-          : {},
-      )
-      projects.value = list
-    }
-  }
-
   const loadCollaborators = async (params?: { offset?: number; limit?: number }) => {
     if (!activeWorkspace.value?.id) {
       throw new Error('Workspace not selected')
@@ -189,37 +169,34 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     await loadCollaborators()
   }
 
-  // load projects and collaborators list on active workspace change
-  watch(
-    activeWorkspace,
-    async (workspace) => {
-      // skip and reset if workspace not selected
-      if (!workspace?.id) {
-        projects.value = []
-        collaborators.value = []
-        return
-      }
+  const loadWorkspace = async (workspaceId: string) => {
+    workspace.value = await $api.workspace.read(workspaceId)
+    workspaces.value = [workspace.value, ...workspaces.value.filter((w) => w.id !== workspaceId)]
+  }
 
-      await Promise.all([loadCollaborators(), loadProjects()])
-    },
-    { immediate: true },
-  )
+  async function populateActiveWorkspace({ force }: { force?: boolean } = {}) {
+    isWorkspaceLoading.value = true
+    const workspaceId = (route.params.workspaceId ?? route.query.workspaceId) as string
+    const workspace = workspaces.value?.find((w) => w.id === workspaceId)
+    if (force || !workspace) {
+      await loadWorkspace(workspaceId)
+    }
+    await Promise.all([loadCollaborators(), projectsStore.loadProjects()])
+    isWorkspaceLoading.value = false
+  }
 
   // load projects and collaborators list on active workspace change
-  watch(
-    activePage,
-    async (page) => {
-      if (page === 'workspace') {
-        return
-      }
-      await loadProjects(page)
-    },
-    { immediate: true },
-  )
+  watch(activePage, async (page) => {
+    if (page === 'workspace') {
+      return
+    }
+    await projectsStore.loadProjects(page)
+  })
 
   const addToFavourite = async (projectId: string) => {
     try {
-      const project = projects.value?.find(({ id }) => id === projectId)
+      const projects = projectsStore.projects
+      const project = projects.get(projectId)
       if (!project) return
 
       // todo: update the type
@@ -232,19 +209,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
+
   const removeFromFavourite = async (projectId: string) => {
     try {
-      const projectIndex = projects.value?.findIndex(({ id }) => id === projectId)
-      if (projectIndex === -1) return
-
-      const project = projects.value![projectIndex!]
+      const project = projectsStore.projects.get(projectId)
+      if (!project) return
 
       project.starred = false
-
-      // if active page is starred then remove the project from the list
-      if (activePage.value === 'starred') {
-        projects.value!.splice(projectIndex!, 1)
-      }
 
       await $api.project.userMetaUpdate(projectId, {
         starred: false,
@@ -274,11 +245,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  const loadWorkspace = async (workspaceId: string) => {
-    workspace.value = await $api.workspace.read(workspaceId)
-    setTheme(workspaceMeta.value?.theme)
-  }
-
   async function saveTheme(_theme: Partial<ThemeConfig>) {
     const fullTheme = {
       primaryColor: theme.value.primaryColor,
@@ -305,12 +271,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     deleteWorkspace,
     updateWorkspace,
     activeWorkspace,
-    loadProjects,
     loadCollaborators,
     inviteCollaborator,
     removeCollaborator,
     updateCollaborator,
-    projects,
     collaborators,
     isWorkspaceCreator,
     isWorkspaceOwner,
@@ -323,5 +287,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     workspace,
     saveTheme,
     workspaceMeta,
+    isWorkspaceLoading,
+    populateActiveWorkspace,
   }
 })

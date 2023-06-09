@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { WorkspaceUserRoles } from 'nocodb-sdk'
-import { useWorkspaceStoreOrThrow } from '~/composables/useWorkspaceStore'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import { useWorkspace } from '~/store/workspace'
 

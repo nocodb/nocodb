@@ -7,6 +7,7 @@ import { parseProp } from '#imports'
 export default function convertCellData(
   args: { to: UITypes; value: string; column: ColumnType; appInfo: AppInfo },
   isMysql = false,
+  isMultiple = false,
 ) {
   const { to, value, column } = args
 
@@ -16,14 +17,22 @@ export default function convertCellData(
     case UITypes.Number: {
       const parsedNumber = Number(value)
       if (isNaN(parsedNumber)) {
-        throw new TypeError(`Cannot convert '${value}' to number`)
+        if (isMultiple) {
+          return null
+        } else {
+          throw new TypeError(`Cannot convert '${value}' to number`)
+        }
       }
       return parsedNumber
     }
     case UITypes.Rating: {
       const parsedNumber = Number(value ?? 0)
       if (isNaN(parsedNumber)) {
-        throw new TypeError(`Cannot convert '${value}' to rating`)
+        if (isMultiple) {
+          return null
+        } else {
+          throw new TypeError(`Cannot convert '${value}' to rating`)
+        }
       }
       return parsedNumber
     }
@@ -37,13 +46,23 @@ export default function convertCellData(
       return Boolean(value)
     case UITypes.Date: {
       const parsedDate = dayjs(value)
-      if (!parsedDate.isValid()) throw new Error('Not a valid date')
+      if (!parsedDate.isValid()) {
+        if (isMultiple) {
+          return null
+        } else {
+          throw new Error('Not a valid date')
+        }
+      }
       return parsedDate.format('YYYY-MM-DD')
     }
     case UITypes.DateTime: {
       const parsedDateTime = dayjs(value)
       if (!parsedDateTime.isValid()) {
-        throw new Error('Not a valid datetime value')
+        if (isMultiple) {
+          return null
+        } else {
+          throw new Error('Not a valid datetime value')
+        }
       }
       return parsedDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ')
     }
@@ -57,7 +76,11 @@ export default function convertCellData(
         parsedTime = dayjs(`1999-01-01 ${value}`)
       }
       if (!parsedTime.isValid()) {
-        throw new Error('Not a valid time value')
+        if (isMultiple) {
+          return null
+        } else {
+          throw new Error('Not a valid time value')
+        }
       }
       return parsedTime.format(dateFormat)
     }
@@ -72,7 +95,11 @@ export default function convertCellData(
         return parsedDate.format('YYYY')
       }
 
-      throw new Error('Not a valid year value')
+      if (isMultiple) {
+        return null
+      } else {
+        throw new Error('Not a valid year value')
+      }
     }
     case UITypes.Attachment: {
       let parsedVal
@@ -80,12 +107,17 @@ export default function convertCellData(
         parsedVal = parseProp(value)
         parsedVal = Array.isArray(parsedVal) ? parsedVal : [parsedVal]
       } catch (e) {
-        console.error('Invalid attachment value', e)
-        return null
+        if (isMultiple) {
+          return null
+        } else {
+          throw new Error('Invalid attachment data')
+        }
       }
+
       if (parsedVal.some((v: any) => v && !(v.url || v.data || v.path))) {
         return null
       }
+
       // TODO(refactor): duplicate logic in attachment/utils.ts
       const defaultAttachmentMeta = {
         ...(args.appInfo.ee && {
@@ -156,8 +188,13 @@ export default function convertCellData(
     case UITypes.Lookup:
     case UITypes.Rollup:
     case UITypes.Formula:
-    case UITypes.QrCode:
-      throw new Error(`Unsupported conversion for ${to}`)
+    case UITypes.QrCode: {
+      if (isMultiple) {
+        return undefined
+      } else {
+        throw new Error(`Unsupported conversion for ${to}`)
+      }
+    }
     default:
       return value
   }

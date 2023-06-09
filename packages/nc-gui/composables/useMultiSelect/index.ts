@@ -536,7 +536,7 @@ export function useMultiSelect(
 
             propsToPaste.push(pasteCol.title!)
 
-            pasteRow.row[pasteCol.title!] = convertCellData(
+            const pasteValue = convertCellData(
               {
                 value: clipboardMatrix[i][j],
                 to: pasteCol.uidt as UITypes,
@@ -544,7 +544,12 @@ export function useMultiSelect(
                 appInfo: unref(appInfo),
               },
               isMysql(meta.value?.base_id),
+              true,
             )
+
+            if (pasteValue !== undefined) {
+              pasteRow.row[pasteCol.title!] = pasteValue
+            }
           }
         }
         await bulkUpdateRows?.(rowsToPaste, propsToPaste)
@@ -588,7 +593,7 @@ export function useMultiSelect(
           return message.info(t('msg.info.pasteNotSupported'))
         }
 
-        rowObj.row[columnObj.title!] = convertCellData(
+        const pasteValue = convertCellData(
           {
             value: clipboardData,
             to: columnObj.uidt as UITypes,
@@ -597,6 +602,10 @@ export function useMultiSelect(
           },
           isMysql(meta.value?.base_id),
         )
+
+        if (pasteValue !== undefined) {
+          rowObj.row[columnObj.title!] = pasteValue
+        }
 
         await syncCellData?.(activeCell)
       }

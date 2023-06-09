@@ -265,7 +265,7 @@ test.describe('Verify shortcuts', () => {
       index: 0,
       columnHeader: 'LongText',
     });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('LongText');
+    expect(await dashboard.grid.cell.getClipboardText()).toBe('\"LongText\"');
 
     await dashboard.grid.cell.copyToClipboard(
       {

@@ -420,18 +420,20 @@ useEventListener(document, 'contextmenu', handleContext, true)
     </div>
 
     <div class="flex flex-col border-t-1 border-gray-100">
-      <div class="flex items-center mt-4 justify-center mx-2">
+      <div class="flex items-center mt-3 justify-center mx-2">
         <WorkspaceCreateProjectBtn
           modal
           type="ghost"
           class="h-auto w-full nc-create-project-btn !rounded-lg"
           :active-workspace-id="route.params.workspaceId"
         >
-          <PhPlusThin />
-          Create new Project
+          <div class="flex flex-row justify-between w-full items-center">
+            <div class="flex">Create new Project</div>
+            <MaterialSymbolsAddRounded />
+          </div>
         </WorkspaceCreateProjectBtn>
       </div>
-      <div class="flex items-start flex-row justify-center px-2 py-3 gap-2">
+      <div class="flex items-start flex-row justify-center px-2 pt-1 pb-1.5 gap-2">
         <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
       </div>
     </div>
@@ -544,7 +546,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
 .nc-create-project-btn {
   @apply px-2;
   :deep(.ant-btn) {
-    @apply w-full !text-center justify-center h-auto rounded py-2 px-4 border-gray-200;
+    @apply w-full !text-center justify-center h-auto rounded-lg py-2 px-4 border-gray-100 bg-white;
     & > div {
       @apply !justify-center;
     }

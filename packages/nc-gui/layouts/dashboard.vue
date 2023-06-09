@@ -163,6 +163,7 @@ export default {
 
 <style lang="scss">
 .splitpanes__splitter {
+  width: 0 !important;
   position: relative;
   overflow: visible;
 }

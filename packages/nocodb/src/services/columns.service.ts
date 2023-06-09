@@ -41,10 +41,7 @@ import Noco from '../Noco';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { MetaTable } from '../utils/globals';
 import { MetaService } from '../meta/meta.service';
-import type {
-  LinkToAnotherRecordColumn,
-  Project,
-} from '../models';
+import type { LinkToAnotherRecordColumn, Project } from '../models';
 import type SqlMgrv2 from '../db/sql-mgr/v2/SqlMgrv2';
 import type {
   ColumnReqType,
@@ -124,6 +121,7 @@ export class ColumnsService {
         UITypes.QrCode,
         UITypes.Barcode,
         UITypes.ForeignKey,
+        UITypes.Links,
       ].includes(column.uidt)
     ) {
       if (column.uidt === colBody.uidt) {
@@ -161,10 +159,18 @@ export class ColumnsService {
             ...column,
             ...colBody,
           });
-        } else if (colBody.title !== column.title) {
-          await Column.updateAlias(param.columnId, {
-            title: colBody.title,
-          });
+        } else {
+          if (colBody.title !== column.title) {
+            await Column.updateAlias(param.columnId, {
+              title: colBody.title,
+            });
+          }
+          if ('meta' in colBody && column.uidt === UITypes.Links) {
+            await Column.updateMeta({
+              colId: param.columnId,
+              meta: colBody.meta,
+            });
+          }
         }
         await this.updateRollupOrLookup(colBody, column);
       } else {
@@ -1647,7 +1653,7 @@ export class ColumnsService {
         (param.column as LinkToAnotherColumnReqType).title,
         foreignKeyName,
         (param.column as LinkToAnotherColumnReqType).virtual,
-        param.column['meta']
+        param.column['meta'],
       );
     } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
       const aTn = `${param.project?.prefix ?? ''}_nc_m2m_${randomID()}`;
@@ -1809,11 +1815,11 @@ export class ColumnsService {
 
       await populateRollupForLTAR({
         column: col1,
-        columnMeta: param.column['meta']
+        columnMeta: param.column['meta'],
       });
       await populateRollupForLTAR({
         column: col2,
-        columnMeta: param.column['meta']
+        columnMeta: param.column['meta'],
       });
 
       // todo: create index for virtual relations as well

@@ -10,6 +10,7 @@ import Noco from '../Noco';
 import addFormulaErrorIfMissingColumn from '../helpers/addFormulaErrorIfMissingColumn';
 import { NcError } from '../helpers/catchError';
 import { extractProps } from '../helpers/extractProps';
+import { stringifyMetaProp } from '../utils/modelUtils';
 import FormulaColumn from './FormulaColumn';
 import LinkToAnotherRecordColumn from './LinkToAnotherRecordColumn';
 import LookupColumn from './LookupColumn';
@@ -1206,5 +1207,30 @@ export default class Column<T = any> implements ColumnType {
       fieldLengthLimit = 128;
     }
     return fieldLengthLimit;
+  }
+
+  static async updateMeta(
+    { colId, meta }: { colId: string; meta: any },
+    ncMeta = Noco.ncMeta,
+  ) {
+    // get existing cache
+    const key = `${CacheScope.COLUMN}:${colId}`;
+    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    if (o) {
+      // update meta
+      o.meta = meta;
+      // set cache
+      await NocoCache.set(key, o);
+    }
+    // set meta
+    await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.COLUMNS,
+      {
+        meta: stringifyMetaProp(meta),
+      },
+      colId,
+    );
   }
 }

@@ -41,7 +41,7 @@ export function useMultiSelect(
   isPkAvail: MaybeRef<boolean | undefined>,
   clearCell: Function,
   makeEditable: Function,
-  scrollToActiveCell?: (row?: number | null, col?: number | null) => void,
+  scrollToCell?: (row?: number | null, col?: number | null) => void,
   keyEventHandler?: Function,
   syncCellData?: Function,
   bulkUpdateRows?: Function,
@@ -238,15 +238,33 @@ export function useMultiSelect(
     }
 
     isMouseDown = true
+
+    // if shift key is pressed, don't restart the selection
+    if (event.shiftKey) return
+
     selectedRange.startRange({ row, col })
+
+    // clear active cell on selection start
+    activeCell.row = null
+    activeCell.col = null
   }
 
   const handleCellClick = (event: MouseEvent, row: number, col: number) => {
     isMouseDown = true
-    selectedRange.startRange({ row, col })
+
+    // if shift key is pressed, prevent selecting text
+    if (event.shiftKey && !unref(editEnabled)) {
+      event.preventDefault()
+    }
+
+    // if shift key is pressed, don't restart the selection (unless there is no active cell)
+    if (!event.shiftKey || activeCell.col === null || activeCell.row === null) {
+      selectedRange.startRange({ row, col })
+      makeActive(row, col)
+    }
+
     selectedRange.endRange({ row, col })
-    makeActive(row, col)
-    scrollToActiveCell?.()
+    scrollToCell?.(row, col)
     isMouseDown = false
   }
 
@@ -254,6 +272,8 @@ export function useMultiSelect(
     // timeout is needed, because we want to set cell as active AFTER all the child's click handler's called
     // this is needed e.g. for date field edit, where two clicks had to be done - one to select cell, and another one to open date dropdown
     setTimeout(() => {
+      // if shift key is pressed, don't change the active cell
+      if (event.shiftKey) return
       makeActive(selectedRange.start.row, selectedRange.start.col)
     }, 0)
 
@@ -271,7 +291,7 @@ export function useMultiSelect(
       return true
     }
 
-    if (!isCellActive.value) {
+    if (!isCellActive.value || activeCell.row === null || activeCell.col === null) {
       return
     }
 
@@ -300,7 +320,7 @@ export function useMultiSelect(
             editEnabled.value = false
           }
         }
-        scrollToActiveCell?.()
+        scrollToCell?.()
         break
       /** on enter key press make cell editable */
       case 'Enter':
@@ -319,42 +339,94 @@ export function useMultiSelect(
       /** on arrow key press navigate through cells */
       case 'ArrowRight':
         e.preventDefault()
-        selectedRange.clear()
 
-        if (activeCell.col < unref(columnLength) - 1) {
-          activeCell.col++
-          scrollToActiveCell?.()
-          editEnabled.value = false
+        if (e.shiftKey) {
+          if ((selectedRange._end?.col || activeCell.col) < unref(columnLength) - 1) {
+            editEnabled.value = false
+            selectedRange.endRange({
+              row: selectedRange._end?.row || activeCell.row,
+              col: (selectedRange._end?.col || activeCell.col) + 1,
+            })
+            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
+          }
+        } else {
+          selectedRange.clear()
+
+          if (activeCell.col < unref(columnLength) - 1) {
+            activeCell.col++
+            selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
+            scrollToCell?.()
+            editEnabled.value = false
+          }
         }
         break
       case 'ArrowLeft':
         e.preventDefault()
-        selectedRange.clear()
 
-        if (activeCell.col > 0) {
-          activeCell.col--
-          scrollToActiveCell?.()
-          editEnabled.value = false
+        if (e.shiftKey) {
+          if ((selectedRange._end?.col || activeCell.col) > 0) {
+            editEnabled.value = false
+            selectedRange.endRange({
+              row: selectedRange._end?.row || activeCell.row,
+              col: (selectedRange._end?.col || activeCell.col) - 1,
+            })
+            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
+          }
+        } else {
+          selectedRange.clear()
+
+          if (activeCell.col > 0) {
+            activeCell.col--
+            selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
+            scrollToCell?.()
+            editEnabled.value = false
+          }
         }
         break
       case 'ArrowUp':
         e.preventDefault()
-        selectedRange.clear()
 
-        if (activeCell.row > 0) {
-          activeCell.row--
-          scrollToActiveCell?.()
-          editEnabled.value = false
+        if (e.shiftKey) {
+          if ((selectedRange._end?.row || activeCell.row) > 0) {
+            editEnabled.value = false
+            selectedRange.endRange({
+              row: (selectedRange._end?.row || activeCell.row) - 1,
+              col: selectedRange._end?.col || activeCell.col,
+            })
+            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
+          }
+        } else {
+          selectedRange.clear()
+
+          if (activeCell.row > 0) {
+            activeCell.row--
+            selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
+            scrollToCell?.()
+            editEnabled.value = false
+          }
         }
         break
       case 'ArrowDown':
         e.preventDefault()
-        selectedRange.clear()
 
-        if (activeCell.row < unref(data).length - 1) {
-          activeCell.row++
-          scrollToActiveCell?.()
-          editEnabled.value = false
+        if (e.shiftKey) {
+          if ((selectedRange._end?.row || activeCell.row) < unref(data).length - 1) {
+            editEnabled.value = false
+            selectedRange.endRange({
+              row: (selectedRange._end?.row || activeCell.row) + 1,
+              col: selectedRange._end?.col || activeCell.col,
+            })
+            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
+          }
+        } else {
+          selectedRange.clear()
+
+          if (activeCell.row < unref(data).length - 1) {
+            activeCell.row++
+            selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
+            scrollToCell?.()
+            editEnabled.value = false
+          }
         }
         break
       default:

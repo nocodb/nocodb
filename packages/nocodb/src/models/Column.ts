@@ -600,6 +600,9 @@ export default class Column<T = any> implements ColumnType {
   static async delete(id, ncMeta = Noco.ncMeta) {
     const col = await this.get({ colId: id }, ncMeta);
 
+    // if column is not found, return
+    if(!col) return;
+
     // todo: or instead of delete reset related foreign key value to null and handle in BaseModel
 
     // get qr code columns and delete

@@ -244,9 +244,11 @@ export function useMultiSelect(
 
     selectedRange.startRange({ row, col })
 
-    // clear active cell on selection start
-    activeCell.row = null
-    activeCell.col = null
+    if (activeCell.row !== row || activeCell.col !== col) {
+      // clear active cell on selection start
+      activeCell.row = null
+      activeCell.col = null
+    }
   }
 
   const handleCellClick = (event: MouseEvent, row: number, col: number) => {

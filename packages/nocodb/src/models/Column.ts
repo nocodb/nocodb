@@ -190,7 +190,7 @@ export default class Column<T = any> implements ColumnType {
         );
         break;
       }
-      case UITypes.Link:
+      case UITypes.Links:
       case UITypes.Rollup: {
         await RollupColumn.insert(
           {
@@ -415,7 +415,7 @@ export default class Column<T = any> implements ColumnType {
         res = await LookupColumn.read(this.id, ncMeta);
         break;
       case UITypes.Rollup:
-      case UITypes.Link:
+      case UITypes.Links:
         res = await RollupColumn.read(this.id, ncMeta);
         break;
       case UITypes.LinkToAnotherRecord:

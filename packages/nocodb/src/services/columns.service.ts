@@ -1764,7 +1764,7 @@ export class ColumnsService {
 
       await populateRollupForLTAR({
         column: col1,
-        columnMeta: param.column['meta'],
+        // columnMeta: param.column['meta'],
       });
       await populateRollupForLTAR({
         column: col2,

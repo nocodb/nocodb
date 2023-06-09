@@ -222,7 +222,7 @@ export async function populateRollupForLTAR({
   columnMeta
 }: {
   column: Column;
-  columnMeta: any;
+  columnMeta?: any;
 }) {
   const model = await column.getModel();
 

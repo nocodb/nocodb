@@ -1,6 +1,13 @@
 {
   "dashboards": {
-    "create_new_dashboard_project": "New Dashboard Project",
+    "create_new_dashboard_project": "Create New Interface",
+    "connect_data_sources": "Connect data sources",
+    "alert": "Alert",
+    "alert-message": "No databases have been connected. Connect database projects to build interfaces. Skip this step and add databases from the project home page later.",
+    "select_database_projects_that_you_want_to_link_to_this_dashboard_projects": "Select Database Projects that you want to link to this Interface.",
+    "create_interface": "Create interface",
+    "project_name": "Project Name",
+    "connect": "Connect",
     "buttonActionTypes": {
       "open_external_url": "External link",
       "delete_record": "Delete record",
@@ -290,6 +297,7 @@
     "created": "Created",
     "sqlOutput": "SQL Output",
     "addOption": "Add option",
+    "interfaceColor": "Interface Color",
     "qrCodeValueColumn": "Column with QR code value",
     "barcodeValueColumn": "Column with Barcode value",
     "barcodeFormat": "Barcode format",

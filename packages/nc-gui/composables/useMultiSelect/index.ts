@@ -444,6 +444,11 @@ export function useMultiSelect(
               case 67:
                 await copyValue()
                 break
+              // select all - ctrl/cmd +a
+              case 65:
+                selectedRange.startRange({ row: 0, col: 0 })
+                selectedRange.endRange({ row: unref(data).length - 1, col: unref(fields).length - 1 })
+                break
             }
           }
 

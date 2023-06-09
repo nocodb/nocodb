@@ -85,6 +85,12 @@ const filterOption = (value: string, option: { key: string }) => option.key.toLo
           </a-select-option>
         </a-select>
       </a-form-item>
+
+
+      <LazySmartsheetColumnLinkOptions
+        v-model:value="vModel"
+      />
+
     </div>
     <template v-if="!isXcdbBase">
       <div

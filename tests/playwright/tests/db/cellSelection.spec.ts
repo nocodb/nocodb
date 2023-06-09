@@ -30,7 +30,7 @@ test.describe('Verify cell selection', () => {
       start: { index: 0, columnHeader: 'FirstName' },
       end: { index: 1, columnHeader: 'LastName' },
     });
-    expect(await grid.copyWithKeyboard()).toBe('MARY \t SMITH\n' + ' PATRICIA \t JOHNSON\n');
+    expect(await grid.copyWithKeyboard()).toBe('MARY\tSMITH\n' + 'PATRICIA\tJOHNSON');
     await dashboard.closeAllTabs();
 
     // #3 when copied with mouse, it copies correct text
@@ -40,7 +40,7 @@ test.describe('Verify cell selection', () => {
       end: { index: 1, columnHeader: 'LastName' },
     });
     expect(await grid.copyWithMouse({ index: 0, columnHeader: 'FirstName' })).toBe(
-      'MARY \t SMITH\n' + ' PATRICIA \t JOHNSON\n'
+      'MARY\tSMITH\n' + 'PATRICIA\tJOHNSON'
     );
     await dashboard.closeAllTabs();
   });

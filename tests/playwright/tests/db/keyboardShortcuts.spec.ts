@@ -105,294 +105,194 @@ test.describe('Verify shortcuts', () => {
     await grid.cell.verify({ index: 1, columnHeader: 'Country', value: 'NewAlgeria' });
   });
 
-  test('Clipboard support for cells', async () => {
-    api = new Api({
-      baseURL: `http://localhost:8080/`,
-      headers: {
-        'xc-auth': context.token,
-      },
-    });
-
-    const columns = [
-      {
-        column_name: 'Id',
-        title: 'Id',
-        uidt: UITypes.ID,
-      },
-      {
-        column_name: 'SingleLineText',
-        title: 'SingleLineText',
-        uidt: UITypes.SingleLineText,
-      },
-      {
-        column_name: 'LongText',
-        title: 'LongText',
-        uidt: UITypes.LongText,
-      },
-      {
-        column_name: 'Number',
-        title: 'Number',
-        uidt: UITypes.Number,
-      },
-      {
-        column_name: 'PhoneNumber',
-        title: 'PhoneNumber',
-        uidt: UITypes.PhoneNumber,
-      },
-      {
-        column_name: 'Email',
-        title: 'Email',
-        uidt: UITypes.Email,
-      },
-      {
-        column_name: 'URL',
-        title: 'URL',
-        uidt: UITypes.URL,
-      },
-      {
-        column_name: 'Decimal',
-        title: 'Decimal',
-        uidt: UITypes.Decimal,
-      },
-      {
-        column_name: 'Percent',
-        title: 'Percent',
-        uidt: UITypes.Percent,
-      },
-      {
-        column_name: 'Currency',
-        title: 'Currency',
-        uidt: UITypes.Currency,
-      },
-      {
-        column_name: 'Duration',
-        title: 'Duration',
-        uidt: UITypes.Duration,
-      },
-      {
-        column_name: 'SingleSelect',
-        title: 'SingleSelect',
-        uidt: UITypes.SingleSelect,
-        dtxp: "'Option1','Option2'",
-      },
-      {
-        column_name: 'MultiSelect',
-        title: 'MultiSelect',
-        uidt: UITypes.MultiSelect,
-        dtxp: "'Option1','Option2'",
-      },
-      {
-        column_name: 'Rating',
-        title: 'Rating',
-        uidt: UITypes.Rating,
-      },
-      {
-        column_name: 'Checkbox',
-        title: 'Checkbox',
-        uidt: UITypes.Checkbox,
-      },
-      {
-        column_name: 'Date',
-        title: 'Date',
-        uidt: UITypes.Date,
-      },
-      {
-        column_name: 'Attachment',
-        title: 'Attachment',
-        uidt: UITypes.Attachment,
-      },
-    ];
-
+  test.describe('Copy Paste', () => {
     const today = new Date().toISOString().slice(0, 10);
-    const record = {
-      Id: 1,
-      SingleLineText: 'SingleLineText',
-      LongText: 'LongText',
-      SingleSelect: 'Option1',
-      MultiSelect: 'Option1,Option2',
-      Number: 123,
-      PhoneNumber: '987654321',
-      Email: 'test@example.com',
-      URL: 'nocodb.com',
-      Rating: 4,
-      Decimal: 1.12,
-      Percent: 80,
-      Currency: 20,
-      Duration: 480,
-      Checkbox: 1,
-      Date: today,
-    };
 
-    try {
-      const project = await api.project.read(context.project.id);
-      const table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
-        table_name: 'Sheet1',
-        title: 'Sheet1',
-        columns: columns,
+    test.beforeEach(async () => {
+      api = new Api({
+        baseURL: `http://localhost:8080/`,
+        headers: {
+          'xc-auth': context.token,
+        },
       });
 
-      await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, [record]);
-      await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 1 });
-    } catch (e) {
-      console.error(e);
-    }
+      const columns = [
+        {
+          column_name: 'Id',
+          title: 'Id',
+          uidt: UITypes.ID,
+        },
+        {
+          column_name: 'SingleLineText',
+          title: 'SingleLineText',
+          uidt: UITypes.SingleLineText,
+        },
+        {
+          column_name: 'LongText',
+          title: 'LongText',
+          uidt: UITypes.LongText,
+        },
+        {
+          column_name: 'Number',
+          title: 'Number',
+          uidt: UITypes.Number,
+        },
+        {
+          column_name: 'PhoneNumber',
+          title: 'PhoneNumber',
+          uidt: UITypes.PhoneNumber,
+        },
+        {
+          column_name: 'Email',
+          title: 'Email',
+          uidt: UITypes.Email,
+        },
+        {
+          column_name: 'URL',
+          title: 'URL',
+          uidt: UITypes.URL,
+        },
+        {
+          column_name: 'Decimal',
+          title: 'Decimal',
+          uidt: UITypes.Decimal,
+        },
+        {
+          column_name: 'Percent',
+          title: 'Percent',
+          uidt: UITypes.Percent,
+        },
+        {
+          column_name: 'Currency',
+          title: 'Currency',
+          uidt: UITypes.Currency,
+        },
+        {
+          column_name: 'Duration',
+          title: 'Duration',
+          uidt: UITypes.Duration,
+        },
+        {
+          column_name: 'SingleSelect',
+          title: 'SingleSelect',
+          uidt: UITypes.SingleSelect,
+          dtxp: "'Option1','Option2'",
+        },
+        {
+          column_name: 'MultiSelect',
+          title: 'MultiSelect',
+          uidt: UITypes.MultiSelect,
+          dtxp: "'Option1','Option2'",
+        },
+        {
+          column_name: 'Rating',
+          title: 'Rating',
+          uidt: UITypes.Rating,
+        },
+        {
+          column_name: 'Checkbox',
+          title: 'Checkbox',
+          uidt: UITypes.Checkbox,
+        },
+        {
+          column_name: 'Date',
+          title: 'Date',
+          uidt: UITypes.Date,
+        },
+        {
+          column_name: 'Attachment',
+          title: 'Attachment',
+          uidt: UITypes.Attachment,
+        },
+      ];
 
-    // reload page
-    await dashboard.rootPage.reload();
+      const record = {
+        Id: 1,
+        SingleLineText: 'SingleLineText',
+        LongText: 'LongText',
+        SingleSelect: 'Option1',
+        MultiSelect: 'Option1,Option2',
+        Number: 123,
+        PhoneNumber: '987654321',
+        Email: 'test@example.com',
+        URL: 'nocodb.com',
+        Rating: 4,
+        Decimal: 1.12,
+        Percent: 80,
+        Currency: 20,
+        Duration: 480,
+        Checkbox: 1,
+        Date: today,
+      };
 
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
+      try {
+        const project = await api.project.read(context.project.id);
+        const table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+          table_name: 'Sheet1',
+          title: 'Sheet1',
+          columns: columns,
+        });
 
-    await dashboard.treeView.openTable({ title: 'Sheet1' });
+        await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, [record]);
+        await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 1 });
+      } catch (e) {
+        console.error(e);
+      }
 
-    // ########################################
+      // reload page
+      await dashboard.rootPage.reload();
+      // close 'Team & Auth' tab
+      await dashboard.closeTab({ title: 'Team & Auth' });
+      await dashboard.treeView.openTable({ title: 'Sheet1' });
 
-    await dashboard.grid.cell.attachment.addFile({
-      index: 0,
-      columnHeader: 'Attachment',
-      filePath: `${process.cwd()}/fixtures/sampleFiles/1.json`,
-    });
+      // ########################################
 
-    // ########################################
-
-    await dashboard.grid.cell.copyToClipboard({
-      index: 0,
-      columnHeader: 'SingleLineText',
-    });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('SingleLineText');
-
-    await dashboard.grid.cell.copyToClipboard({
-      index: 0,
-      columnHeader: 'LongText',
-    });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('\"LongText\"');
-
-    await dashboard.grid.cell.copyToClipboard(
-      {
-        index: 0,
-        columnHeader: 'SingleSelect',
-      },
-      { position: { x: 1, y: 1 } }
-    );
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('Option1');
-
-    await dashboard.grid.cell.copyToClipboard(
-      {
-        index: 0,
-        columnHeader: 'MultiSelect',
-      },
-      { position: { x: 1, y: 1 } }
-    );
-    expect(await dashboard.grid.cell.getClipboardText()).toContain('Option1');
-    expect(await dashboard.grid.cell.getClipboardText()).toContain('Option2');
-
-    await dashboard.grid.cell.copyToClipboard({
-      index: 0,
-      columnHeader: 'SingleLineText',
-    });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('SingleLineText');
-
-    await dashboard.grid.cell.copyToClipboard({
-      index: 0,
-      columnHeader: 'Number',
-    });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('123');
-
-    await dashboard.grid.cell.copyToClipboard({
-      index: 0,
-      columnHeader: 'PhoneNumber',
-    });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('987654321');
-
-    await dashboard.grid.cell.copyToClipboard(
-      {
-        index: 0,
-        columnHeader: 'Email',
-      },
-      { position: { x: 1, y: 1 } }
-    );
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('test@example.com');
-
-    await dashboard.grid.cell.copyToClipboard(
-      {
-        index: 0,
-        columnHeader: 'URL',
-      },
-      { position: { x: 1, y: 1 } }
-    );
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('nocodb.com');
-
-    await dashboard.grid.cell.copyToClipboard({
-      index: 0,
-      columnHeader: 'Decimal',
-    });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('1.12');
-
-    await dashboard.grid.cell.copyToClipboard({
-      index: 0,
-      columnHeader: 'Percent',
-    });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('80');
-
-    await dashboard.grid.cell.copyToClipboard({
-      index: 0,
-      columnHeader: 'Currency',
-    });
-    // convert from string to integer
-    expect(parseInt(await dashboard.grid.cell.getClipboardText())).toBe(20);
-
-    await dashboard.grid.cell.copyToClipboard({
-      index: 0,
-      columnHeader: 'Duration',
-    });
-    expect(parseInt(await dashboard.grid.cell.getClipboardText())).toBe(480);
-
-    await dashboard.grid.cell.copyToClipboard(
-      {
-        index: 0,
-        columnHeader: 'Rating',
-      },
-      { position: { x: 1, y: 1 } }
-    );
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('4');
-
-    await dashboard.grid.cell.copyToClipboard(
-      {
-        index: 0,
-        columnHeader: 'Checkbox',
-      },
-      { position: { x: 1, y: 1 } }
-    );
-    // await new Promise(resolve => setTimeout(resolve, 5000));
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('true');
-
-    await dashboard.grid.cell.click({
-      index: 0,
-      columnHeader: 'Checkbox',
-    });
-    await dashboard.grid.cell.copyToClipboard(
-      {
-        index: 0,
-        columnHeader: 'Checkbox',
-      },
-      { position: { x: 1, y: 1 } }
-    );
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('false');
-
-    await dashboard.grid.cell.copyToClipboard({
-      index: 0,
-      columnHeader: 'Date',
-    });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe(today);
-
-    await dashboard.grid.cell.copyToClipboard(
-      {
+      await dashboard.grid.cell.attachment.addFile({
         index: 0,
         columnHeader: 'Attachment',
-      },
-      { position: { x: 1, y: 1 } }
-    );
-    const attachmentsInfo = JSON.parse(await dashboard.grid.cell.getClipboardText());
-    expect(attachmentsInfo[0]['title']).toBe('1.json');
+        filePath: `${process.cwd()}/fixtures/sampleFiles/1.json`,
+      });
+    });
+
+    test('Clipboard support for cells', async () => {
+      // ########################################
+
+      const responseTable = [
+        { type: 'SingleLineText', value: 'SingleLineText' },
+        { type: 'LongText', value: '"LongText"' },
+        { type: 'SingleSelect', value: 'Option1' },
+        { type: 'MultiSelect', value: 'Option1,Option2' },
+        { type: 'Number', value: '123' },
+        { type: 'PhoneNumber', value: '987654321' },
+        { type: 'Email', value: 'test@example.com' },
+        { type: 'URL', value: 'nocodb.com' },
+        { type: 'Decimal', value: '1.12' },
+        { type: 'Percent', value: '80' },
+        { type: 'Currency', value: 20, options: { parseInt: true } },
+        { type: 'Duration', value: 480, options: { parseInt: true } },
+        { type: 'Rating', value: '4' },
+        { type: 'Checkbox', value: 'true' },
+        { type: 'Date', value: today },
+        { type: 'Attachment', value: '1.json', options: { jsonParse: true } },
+      ];
+
+      for (const { type, value, options } of responseTable) {
+        await dashboard.grid.cell.copyToClipboard(
+          {
+            index: 0,
+            columnHeader: type,
+          },
+          { position: { x: 1, y: 1 } }
+        );
+        if (options?.parseInt) {
+          expect(parseInt(await dashboard.grid.cell.getClipboardText())).toBe(value);
+        } else if (options?.jsonParse) {
+          const attachmentsInfo = JSON.parse(await dashboard.grid.cell.getClipboardText());
+          expect(attachmentsInfo[0]['title']).toBe('1.json');
+        } else {
+          expect(await dashboard.grid.cell.getClipboardText()).toBe(value);
+        }
+      }
+    });
   });
 });

@@ -80,10 +80,11 @@ export default function convertCellData(
         parsedVal = parseProp(value)
         parsedVal = Array.isArray(parsedVal) ? parsedVal : [parsedVal]
       } catch (e) {
-        throw new Error('Invalid attachment data')
+        console.error('Invalid attachment value', e)
+        return null
       }
       if (parsedVal.some((v: any) => v && !(v.url || v.data || v.path))) {
-        throw new Error('Invalid attachment data')
+        return null
       }
       // TODO(refactor): duplicate logic in attachment/utils.ts
       const defaultAttachmentMeta = {

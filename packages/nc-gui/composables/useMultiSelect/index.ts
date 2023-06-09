@@ -469,6 +469,10 @@ export function useMultiSelect(
           }
         }
         await bulkUpdateRows?.(rowsToPaste, propsToPaste)
+
+        // highlight the pasted range
+        selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
+        selectedRange.endRange({ row: activeCell.row + pasteMatrixRows - 1, col: activeCell.col + pasteMatrixCols - 1 })
       } else {
         // handle belongs to column
         if (

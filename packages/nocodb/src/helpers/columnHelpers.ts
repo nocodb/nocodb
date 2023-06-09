@@ -1,9 +1,11 @@
 import { customAlphabet } from 'nanoid';
 import { UITypes } from 'nocodb-sdk';
-import { GridViewColumn, RollupColumn } from '../models'
+import { pluralize, singularize } from 'inflection';
+import { GridViewColumn } from '../models';
 import Column from '../models/Column';
 import { getUniqueColumnAliasName } from '../helpers/getUniqueName';
 import validateParams from '../helpers/validateParams';
+import type { RollupColumn } from '../models';
 import type {
   BoolType,
   ColumnReqType,
@@ -31,6 +33,7 @@ export async function createHmAndBtColumn(
   fkColName?: string,
   virtual: BoolType = false,
   isSystemCol = false,
+  columnMeta = null
 ) {
   // save bt column
   {
@@ -79,6 +82,7 @@ export async function createHmAndBtColumn(
     if (!isSystemCol)
       await populateRollupForLTAR({
         column: col,
+        columnMeta
       });
   }
 }
@@ -213,9 +217,13 @@ export const generateFkName = (parent: TableType, child: TableType) => {
   return constraintName;
 };
 
-
-
-export async function populateRollupForLTAR({ column }: { column: Column }) {
+export async function populateRollupForLTAR({
+  column,
+  columnMeta
+}: {
+  column: Column;
+  columnMeta: any;
+}) {
   const model = await column.getModel();
 
   const views = await model.getViews();
@@ -227,6 +235,11 @@ export async function populateRollupForLTAR({ column }: { column: Column }) {
   const pkId =
     relatedModel.primaryKey?.id || (await relatedModel.getColumns())[0]?.id;
 
+  const meta = {
+    plural: columnMeta?.plural || pluralize(relatedModel.title),
+    singular: columnMeta?.singular || singularize(relatedModel.title),
+  };
+
   await Column.insert<RollupColumn>({
     uidt: UITypes.Links,
     title: getUniqueColumnAliasName(
@@ -237,6 +250,7 @@ export async function populateRollupForLTAR({ column }: { column: Column }) {
     fk_model_id: model.id,
     rollup_function: 'count',
     fk_relation_column_id: column.id,
+    meta,
   });
 
   const viewCol = await GridViewColumn.list(views[0].id).then((cols) =>

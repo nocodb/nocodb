@@ -1598,6 +1598,7 @@ export class ColumnsService {
         (param.column as LinkToAnotherColumnReqType).title,
         foreignKeyName,
         (param.column as LinkToAnotherColumnReqType).virtual,
+        param.column['meta']
       );
     } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
       const aTn = `${param.project?.prefix ?? ''}_nc_m2m_${randomID()}`;
@@ -1757,9 +1758,11 @@ export class ColumnsService {
 
       await populateRollupForLTAR({
         column: col1,
+        columnMeta: param.column['meta']
       });
       await populateRollupForLTAR({
         column: col2,
+        columnMeta: param.column['meta']
       });
 
       // todo: create index for virtual relations as well

@@ -58,7 +58,7 @@ const advancedDbOptions = ref(false)
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
-const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup]
+const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup, UITypes.Links]
 
 const geoDataToggleCondition = (t: { name: UITypes }) => {
   return betaFeatureToggleState.show ? betaFeatureToggleState.show : !t.name.includes(UITypes.GeoData)
@@ -209,7 +209,11 @@ useEventListener('keydown', (e: KeyboardEvent) => {
         <LazySmartsheetColumnDateTimeOptions v-if="formState.uidt === UITypes.DateTime" v-model:value="formState" />
         <LazySmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />
         <LazySmartsheetColumnLinkedToAnotherRecordOptions
-          v-if="!isEdit && (formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links)"
+          v-if="!isEdit && (formState.uidt === UITypes.LinkToAnotherRecord)"
+          v-model:value="formState"
+        />
+        <LazySmartsheetColumnLinkOptions
+          v-if="formState.uidt === UITypes.Links"
           v-model:value="formState"
         />
         <LazySmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />

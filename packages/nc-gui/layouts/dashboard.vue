@@ -150,7 +150,7 @@ export default {
       </Pane>
       <div v-if="!isOpen" class="absolute top-0 left-0 pl-2 flex flex-col h-full z-40">
         <div class="mt-2 p-1 px-1.5 rounded-md hover:bg-gray-100 cursor-pointer" @click="isOpen = true">
-          <MdiMenu v-if="isSidebarHidden" />
+          <MdiMenu v-if="isSidebarHidden && !isStartHideSidebarAnimation" />
           <IcBaselineKeyboardDoubleArrowRight v-else />
         </div>
       </div>

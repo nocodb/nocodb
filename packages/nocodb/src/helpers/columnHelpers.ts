@@ -228,7 +228,7 @@ export async function populateRollupForLTAR({ column }: { column: Column }) {
     relatedModel.primaryKey?.id || (await relatedModel.getColumns())[0]?.id;
 
   await Column.insert<RollupColumn>({
-    uidt: UITypes.Link,
+    uidt: UITypes.Links,
     title: getUniqueColumnAliasName(
       await model.getColumns(),
       `${relatedModel.title} Count`,

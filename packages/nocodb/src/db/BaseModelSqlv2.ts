@@ -1777,7 +1777,7 @@ class BaseModelSqlv2 {
           }
           break;
         case UITypes.Rollup:
-        case UITypes.Link:
+        case UITypes.Links:
           qb.select(
             (
               await genRollupSelectv2({

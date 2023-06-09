@@ -922,7 +922,7 @@ function addEmptyRow(row?: number) {
               <template #default="{ state }">
                 <tr
                   class="nc-grid-row"
-                  :style="{ height: rowHeight ? `${rowHeight * 1.5}rem` : `1.5rem` }"
+                  :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
                   :data-testid="`grid-row-${rowIndex}`"
                 >
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1" :data-testid="`cell-Id-${rowIndex}`">

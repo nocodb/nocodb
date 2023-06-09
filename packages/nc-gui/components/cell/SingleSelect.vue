@@ -326,7 +326,7 @@ const selectedOpt = computed(() => {
 }
 
 :deep(.ant-tag) {
-  @apply "rounded-tag";
+  @apply "rounded-tag" my-[2px];
 }
 
 :deep(.ant-select-clear) {

@@ -19,7 +19,12 @@ watch(dataConfig, (newConfig) => {
 </script>
 
 <template>
-  <a-input v-model:value="localName" placeholder="Value" class="nc-value-input" @blur="() => changeNameOfNumberWidget(localName)">
+  <a-input
+    v-model:value="localName"
+    placeholder="Value"
+    class="nc-dashboard-layouts-propspanel-value-input"
+    @blur="() => changeNameOfNumberWidget(localName)"
+  >
     <template #suffix>
       <Icon class="text-xl iconify" icon="material-symbols:edit-outline" color="#565B66"></Icon>
     </template>
@@ -27,7 +32,7 @@ watch(dataConfig, (newConfig) => {
   <a-textarea
     v-model:value="localDescription"
     placeholder="Description"
-    class="nc-description-input"
+    class="nc-dashboard-layouts-propspanel-description-input"
     @blur="() => changeDescriptionOfNumberWidget(localDescription)"
   >
     <template #suffix>
@@ -35,13 +40,3 @@ watch(dataConfig, (newConfig) => {
     </template>
   </a-textarea>
 </template>
-
-<style>
-.nc-value-input {
-  @apply flex-grow py-1 px-3 border-grey-light border border-solid rounded-lg text-sm w-full my-2;
-}
-
-.nc-description-input {
-  @apply flex-grow py-1 px-3 !border-gray-200 border border-solid rounded-lg text-sm w-full my-2;
-}
-</style>

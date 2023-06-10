@@ -1204,6 +1204,21 @@ export interface LayoutType {
    * @example My Layout
    */
   title?: string;
+  /**
+   * Layout Grid's horizontal padding
+   * @example 20px
+   */
+  grid_padding_horizontal?: string;
+  /**
+   * Layout Grid's vertical padding
+   * @example 20px
+   */
+  grid_padding_vertical?: string;
+  /**
+   * Layout Grid's gap
+   * @example 20px
+   */
+  grid_gap?: string;
   /** The order of this Layout in the list of Layouts */
   order?: number;
 }
@@ -1289,6 +1304,8 @@ export enum WidgetTypeType {
   PieChart = 'pie_chart',
   ScatterPlot = 'scatter_plot',
   Button = 'button',
+  Image = 'image',
+  Divider = 'divider',
 }
 
 /**

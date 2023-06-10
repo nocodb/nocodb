@@ -56,6 +56,9 @@ const chartTypesForDropdown = computed(() =>
       <LayoutsWidgetsPropertiesPanelAppearanceConfigSectionsNumber v-if="isNumber" />
     </div>
   </template>
+  <template v-else>
+    <LayoutsWidgetsPropertiesPanelNoWidgetSelected />
+  </template>
 </template>
 
 <style scoped lang="scss">

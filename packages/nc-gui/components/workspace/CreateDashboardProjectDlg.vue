@@ -90,17 +90,23 @@ const fuse = ref<Fuse<{
   isToggle: boolean
 }> | null>(null)
 
-watch(availableDbProjects, (projects) => {
-  dbProjectsWithToggleStatus.value = projects.map((project) => ({
-    ...project,
-    isToggle: false,
-  }))
-  fuse.value = new Fuse(dbProjectsWithToggleStatus.value, {
-    keys: ['title'],
-    includeScore: true,
-    threshold: 0.0,
-  })
-})
+watch(
+  availableDbProjects,
+  (projects) => {
+    dbProjectsWithToggleStatus.value = projects.map((project) => ({
+      ...project,
+      isToggle: false,
+    }))
+    fuse.value = new Fuse(dbProjectsWithToggleStatus.value, {
+      keys: ['title'],
+      includeScore: true,
+      threshold: 0.0,
+    })
+  },
+  {
+    immediate: true,
+  },
+)
 
 const filteredDbProjects = computed(() => {
   if (!dbProjectSearchTerm.value) {

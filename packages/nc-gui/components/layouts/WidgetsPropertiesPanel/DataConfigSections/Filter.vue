@@ -149,7 +149,7 @@ const selectRecordsMode = computed(() => (focusedWidget.value as NumberWidget)?.
 
 <template>
   <div class="flex flex-col m-0">
-    <div class="bg-gray-100 rounded-lg p-2 mb-2">
+    <div class="nc-dashboard-layouts-propspanel-selectable-config-section mb-2">
       <a-radio
         :checked="selectRecordsMode === 'all_records'"
         @change="changeSelectRecordsModeForNumberWidgetDataConfig('all_records')"
@@ -157,13 +157,13 @@ const selectRecordsMode = computed(() => (focusedWidget.value as NumberWidget)?.
       >
     </div>
 
-    <div class="bg-gray-100 rounded-lg p-2">
+    <div class="nc-dashboard-layouts-propspanel-selectable-config-section">
       <a-radio
         :checked="selectRecordsMode === 'specific_records'"
         @change="changeSelectRecordsModeForNumberWidgetDataConfig('specific_records')"
         ><h3>Specific records</h3></a-radio
       >
-      <h3 class="text-gray-500">Show records with conditions</h3>
+      <h4>Show records with conditions</h4>
       <div v-if="selectRecordsMode === 'specific_records'">
         <div
           v-if="filters && filters.length"

@@ -9,7 +9,7 @@
     "project_name": "Project Name",
     "connect": "Connect",
     "buttonActionTypes": {
-      "open_external_url": "External link",
+      "open_external_url": "Open external link",
       "delete_record": "Delete record",
       "update_record": "Update record",
       "open_layout": "Open layout"

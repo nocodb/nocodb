@@ -7,8 +7,8 @@ const { focusedWidget, availableFontTypesWithIdAndTitle } = storeToRefs(dashboar
 </script>
 
 <template>
-  <a-collapse expand-icon-position="right" accordion class="nc-dashboard-props-panel-collapse-group">
-    <a-collapse-panel header="Text Options">
+  <a-collapse expand-icon-position="right" accordion :bordered="false" class="nc-dashboard-layouts-propspanel-collapse">
+    <a-collapse-panel class="nc-dashboard-layouts-propspanel-collapse-panel !rounded-lg" header="Text Options">
       <template #extra><setting-outlined /></template>
       <DashboardsWidgetsPropertiesPanelVisualisationConfigIdWithTitleSelectBox
         v-model="(focusedWidget as StaticTextWidget).appearance_config.fontType"

@@ -88,10 +88,9 @@ export interface StatictTextFunctionUrl extends StaticTextFunctionBase {
 
 export type StaticTextFunction = StatictTextFunctionUrl;
 
-export interface DataConfigStaticText {
-  text?: string;
-  hasFunction?: boolean;
-  staticTextFunction?: StaticTextFunction;
+export interface DataConfigImage {
+  imageUrl?: string;
+  imageAltText?: string;
 }
 
 export interface DataConfigStaticText {
@@ -128,7 +127,8 @@ export type DataConfig =
   | DataConfigLineChart
   | DataConfigPieChart
   | DataConfigScatterPlot
-  | DataConfigButton;
+  | DataConfigButton
+  | DataConfigImage;
 
 export interface ScreenPosition {
   x: number;
@@ -183,6 +183,19 @@ export interface StaticTextWidget extends Widget {
   appearance_config: AppearanceConfigStaticText;
   data_config: DataConfigStaticText;
   data_source: DataSourceStaticContent;
+  widget_type: WidgetTypeType.StaticText;
+}
+
+export interface DividerWidget extends Widget {
+  data_source: undefined;
+  data_config: undefined;
+  appearance_config: AppearanceConfigBase;
+  widget_type: WidgetTypeType.StaticText;
+}
+export interface ImageWidget extends Widget {
+  data_source: undefined;
+  data_config: DataConfigImage;
+  appearance_config: AppearanceConfigBase;
   widget_type: WidgetTypeType.StaticText;
 }
 

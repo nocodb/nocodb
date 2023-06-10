@@ -10,10 +10,7 @@ const emits = defineEmits(['update:modelValue'])
 
 const editEnabled = inject(EditModeInj)
 
-const rowHeight = inject(
-  RowHeightInj,
-  computed(() => undefined),
-)
+const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const { showNull } = useGlobal()
 

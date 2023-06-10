@@ -53,10 +53,7 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
 
-const rowHeight = inject(
-  RowHeightInj,
-  computed(() => undefined),
-)
+const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const selectedIds = ref<string[]>([])
 

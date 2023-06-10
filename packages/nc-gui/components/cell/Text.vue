@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, IsExpandedFormOpenInj, ReadonlyInj, inject, ref, useVModel } from '#imports'
+import { EditModeInj, IsExpandedFormOpenInj, ReadonlyInj, RowHeightInj, inject, ref, useVModel } from '#imports'
 
 interface Props {
   modelValue?: string | null
@@ -14,10 +14,7 @@ const { showNull } = useGlobal()
 
 const editEnabled = inject(EditModeInj)
 
-const rowHeight = inject(
-  RowHeightInj,
-  computed(() => undefined),
-)
+const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const readonly = inject(ReadonlyInj, ref(false))
 

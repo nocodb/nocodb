@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ModelTypes, MssqlUi, SqliteUi } from 'nocodb-sdk'
+import { ModelTypes, MssqlUi, SqliteUi, UITypes } from 'nocodb-sdk'
 import { MetaInj, inject, ref, storeToRefs, useProject, useVModel } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
@@ -50,6 +50,8 @@ const refTables = $computed(() => {
 })
 
 const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())
+
+const isLinks = $computed(() => vModel.value.uidt.type === UITypes.Links)
 </script>
 
 <template>
@@ -85,12 +87,6 @@ const filterOption = (value: string, option: { key: string }) => option.key.toLo
           </a-select-option>
         </a-select>
       </a-form-item>
-
-
-      <LazySmartsheetColumnLinkOptions
-        v-model:value="vModel"
-      />
-
     </div>
     <template v-if="!isXcdbBase">
       <div
@@ -103,6 +99,8 @@ const filterOption = (value: string, option: { key: string }) => option.key.toLo
       </div>
 
       <div v-if="advancedOptions" class="flex flex-col p-6 gap-4 border-2 mt-2">
+      <LazySmartsheetColumnLinkOptions v-model:value="vModel" class="-my-2" />
+
         <div class="flex flex-row space-x-2">
           <a-form-item class="flex w-1/2" :label="$t('labels.onUpdate')">
             <a-select

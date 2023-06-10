@@ -210,6 +210,7 @@ const {
   $$(editEnabled),
   isPkAvail,
   clearCell,
+  clearSelectedRangeOfCells,
   makeEditable,
   scrollToCell,
   (e: KeyboardEvent) => {
@@ -569,6 +570,36 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
     // update/save cell value
     await updateOrSaveRow(rowObj, columnObj.title)
   }
+}
+
+async function clearSelectedRangeOfCells() {
+  if (!hasEditPermission) return
+
+  const start = selectedRange.start
+  const end = selectedRange.end
+
+  const startRow = Math.min(start.row, end.row)
+  const endRow = Math.max(start.row, end.row)
+  const startCol = Math.min(start.col, end.col)
+  const endCol = Math.max(start.col, end.col)
+
+  const cols = fields.value.slice(startCol, endCol + 1)
+  const rows = data.value.slice(startRow, endRow + 1)
+  const props = []
+
+  for (const row of rows) {
+    for (const col of cols) {
+      if (!row || !col || !col.title) continue
+
+      // TODO handle LinkToAnotherRecord
+      if (isVirtualCol(col)) continue
+
+      row.row[col.title] = null
+      props.push(col.title)
+    }
+  }
+
+  await bulkUpdateRows(rows, props)
 }
 
 function makeEditable(row: Row, col: ColumnType) {
@@ -1093,6 +1124,11 @@ function addEmptyRow(row?: number) {
               @click="clearCell(contextMenuTarget)"
             >
               <div v-e="['a:row:clear']" class="nc-project-menu-item">{{ $t('activity.clearCell') }}</div>
+            </a-menu-item>
+
+            <!--            Clear cell -->
+            <a-menu-item v-else @click="clearSelectedRangeOfCells()">
+              <div v-e="['a:row:clear-range']" class="nc-project-menu-item">Clear Cells</div>
             </a-menu-item>
 
             <a-menu-item v-if="contextMenuTarget && selectedRange.isSingleCell()" @click="addEmptyRow(contextMenuTarget.row + 1)">

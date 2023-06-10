@@ -40,6 +40,7 @@ export function useMultiSelect(
   _editEnabled: MaybeRef<boolean>,
   isPkAvail: MaybeRef<boolean | undefined>,
   clearCell: Function,
+  clearSelectedRangeOfCells: Function,
   makeEditable: Function,
   scrollToCell?: (row?: number | null, col?: number | null) => void,
   keyEventHandler?: Function,
@@ -335,9 +336,14 @@ export function useMultiSelect(
       /** on delete key press clear cell */
       case 'Delete':
         e.preventDefault()
-        selectedRange.clear()
 
-        await clearCell(activeCell as { row: number; col: number })
+        if (selectedRange.isSingleCell()) {
+          selectedRange.clear()
+
+          await clearCell(activeCell as { row: number; col: number })
+        } else {
+          await clearSelectedRangeOfCells()
+        }
         break
       /** on arrow key press navigate through cells */
       case 'ArrowRight':

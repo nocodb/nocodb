@@ -831,6 +831,7 @@ const deleteSelectedRangeOfRows = () => {
 function addEmptyRow(row?: number) {
   const rowObj = _addEmptyRow(row)
   nextTick().then(() => {
+    clearSelectedRange()
     makeActive(row ?? data.value.length - 1, 0)
     scrollToCell?.()
   })

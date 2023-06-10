@@ -2,7 +2,7 @@
 import { computed } from '@vue/reactivity'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { CellValueInj, inject } from '#imports'
+import { CellValueInj, ColumnInj, inject } from '#imports'
 
 const value = inject(CellValueInj)
 
@@ -13,6 +13,8 @@ const meta = inject(MetaInj, ref())
 const relColumn = computed(() => {
   return meta.value.columns.find((c: ColumnType) => c.id === column.value?.colOptions?.fk_relation_column_id)
 })
+
+provide(ColumnInj, relColumn)
 
 const cellValue = inject(CellValueInj)!
 
@@ -34,9 +36,9 @@ const childListDlg = ref(false)
 
 const { isUIAllowed } = useUIPermission()
 
-const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
+const { state, isNew } = useSmartsheetRowStoreOrThrow()
 
-const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvideLTARStore(
+const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp } = useProvideLTARStore(
   relColumn as Ref<Required<ColumnType>>,
   row,
   isNew,
@@ -68,8 +70,7 @@ const onAttachRecord = () => {
 <template>
   <div class="flex w-full items-center">
     <template v-if="!isForm">
-      <a @click.stop.prevent="childListDlg = true" class="text-center pl-3 flex-grow block"
-         :class="{'!text-gray-300': !value}">
+      <a class="text-center pl-3 flex-grow block" :class="{ '!text-gray-300': !value }" @click.stop.prevent="childListDlg = true">
         {{ textVal }}
       </a>
 

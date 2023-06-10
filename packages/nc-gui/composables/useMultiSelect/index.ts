@@ -142,8 +142,9 @@ export function useMultiSelect(
         columnObj.uidt === UITypes.DateTime ? constructDateTimeFormat(columnObj) : constructTimeFormat(columnObj),
       )
 
-      if (columnObj.uidt === UITypes.DateTime && !dayjs(textToCopy).isValid()) {
-        throw new Error('Invalid DateTime')
+      if (!dayjs(textToCopy).isValid()) {
+        // return empty string for invalid datetime / time
+        return ''
       }
     }
 

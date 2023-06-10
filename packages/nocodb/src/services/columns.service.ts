@@ -935,6 +935,7 @@ export class ColumnsService {
         }
         break;
 
+      case UITypes.Links:
       case UITypes.LinkToAnotherRecord:
         await this.createLTARColumn({ ...param, base, project });
         T.emit('evt', { evt_type: 'relation:created' });
@@ -1523,6 +1524,7 @@ export class ColumnsService {
     const sqlMgr = await ProjectMgrv2.getSqlMgr({
       id: param.base.project_id,
     });
+    const isLinks = param.column.uidt === UITypes.Links;
     if (
       (param.column as LinkToAnotherColumnReqType).type === 'hm' ||
       (param.column as LinkToAnotherColumnReqType).type === 'bt'
@@ -1618,6 +1620,8 @@ export class ColumnsService {
         foreignKeyName,
         (param.column as LinkToAnotherColumnReqType).virtual,
         param.column['meta'],
+        null,
+        isLinks,
       );
     } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
       const aTn = `${param.project?.prefix ?? ''}_nc_m2m_${randomID()}`;
@@ -1758,7 +1762,9 @@ export class ColumnsService {
       const col2 = await Column.insert({
         title: getUniqueColumnAliasName(
           await parent.getColumns(),
-          param.column.title ?? `${child.title} List`,
+          isLinks
+            ? `${param.column.title} List`
+            : param.column.title ?? `${child.title} List`,
         ),
 
         uidt: UITypes.LinkToAnotherRecord,
@@ -1782,6 +1788,7 @@ export class ColumnsService {
       await populateRollupForLTAR({
         column: col2,
         columnMeta: param.column['meta'],
+        alias: param.column.title,
       });
 
       // todo: create index for virtual relations as well

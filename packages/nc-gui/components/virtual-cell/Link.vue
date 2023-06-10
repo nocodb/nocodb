@@ -42,10 +42,6 @@ const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, un
   isNew,
   reloadRowTrigger.trigger,
 )
-
-
-
-
 const relatedTableDisplayColumn = computed(
   () =>
     relatedTableMeta.value?.columns?.find((c: any) => c.title === relatedTableDisplayValueProp.value) as ColumnType | undefined,

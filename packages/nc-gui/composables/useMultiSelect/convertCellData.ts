@@ -13,6 +13,9 @@ export default function convertCellData(
 
   const dateFormat = isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
+  // return null if value is empty
+  if (value === '') return null
+
   switch (to) {
     case UITypes.Number: {
       const parsedNumber = Number(value)
@@ -43,7 +46,7 @@ export default function convertCellData(
         if (strval === 'true' || strval === '1') return true
         if (strval === 'false' || strval === '0' || strval === '') return false
       }
-      return Boolean(value)
+      return null
     case UITypes.Date: {
       const parsedDate = dayjs(value)
       if (!parsedDate.isValid()) {

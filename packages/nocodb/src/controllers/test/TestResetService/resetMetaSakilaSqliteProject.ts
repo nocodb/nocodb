@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import axios from 'axios';
+import type { AxiosResponse } from 'axios';
 
 const sqliteFilePath = (parallelId: string) => {
   const rootDir = process.cwd();
@@ -46,23 +47,37 @@ const resetMetaSakilaSqliteProject = async ({
 
   if (!isEmptyProject) await seedSakilaSqliteFile(parallelId);
 
-  await createProject(token, title, parallelId);
+  await createProject(token, title, parallelId, isEmptyProject);
 };
 
 const createProject = async (
   token: string,
   title: string,
   parallelId: string,
+  isEmptyProject: boolean,
 ) => {
-  const response = await axios.post(
-    'http://localhost:8080/api/v1/db/meta/projects/',
-    sakilaProjectConfig(title, parallelId),
-    {
-      headers: {
-        'xc-auth': token,
+  let response: AxiosResponse;
+  if (isEmptyProject) {
+    response = await axios.post(
+      'http://localhost:8080/api/v1/db/meta/projects/',
+      { title },
+      {
+        headers: {
+          'xc-auth': token,
+        },
       },
-    },
-  );
+    );
+  } else {
+    response = await axios.post(
+      'http://localhost:8080/api/v1/db/meta/projects/',
+      sakilaProjectConfig(title, parallelId),
+      {
+        headers: {
+          'xc-auth': token,
+        },
+      },
+    );
+  }
   if (response.status !== 200) {
     console.error('Error creating project', response.data);
   }

@@ -535,6 +535,16 @@ export function useMultiSelect(
               continue
             }
 
+            // skip pasting auto increment columns
+            if (pasteCol.ai) {
+              continue
+            }
+
+            // skip pasting primary key columns
+            if (pasteCol.pk && !pasteRow.rowMeta.new) {
+              continue
+            }
+
             propsToPaste.push(pasteCol.title!)
 
             const pasteValue = convertCellData(
@@ -592,6 +602,16 @@ export function useMultiSelect(
         // if it's a virtual column excluding belongs to cell type skip paste
         if (isVirtualCol(columnObj)) {
           return message.info(t('msg.info.pasteNotSupported'))
+        }
+
+        // skip pasting auto increment columns
+        if (columnObj.ai) {
+          return message.info(t('msg.info.autoIncFieldNotEditable'))
+        }
+
+        // skip pasting primary key columns
+        if (columnObj.pk && !rowObj.rowMeta.new) {
+          return message.info(t('msg.info.editingPKnotSupported'))
         }
 
         const pasteValue = convertCellData(

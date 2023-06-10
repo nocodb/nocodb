@@ -572,7 +572,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 }
 
 function makeEditable(row: Row, col: ColumnType) {
-  if (!hasEditPermission || editEnabled || isView) {
+  if (!hasEditPermission || editEnabled || isView || isLocked.value || readOnly.value) {
     return
   }
 

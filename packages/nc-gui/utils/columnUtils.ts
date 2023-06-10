@@ -6,6 +6,11 @@ import ID from '~icons/mdi/identifier'
 
 const uiTypes = [
   {
+    name: UITypes.Links,
+    icon: iconMap.link,
+    virtual: 1,
+  },
+  {
     name: UITypes.LinkToAnotherRecord,
     icon: iconMap.link,
     virtual: 1,

@@ -115,8 +115,8 @@ const onDrop = async (event: DragEvent) => {
       })
     } else {
       grid.value?.openColumnCreate({
-        uidt: UITypes.LinkToAnotherRecord,
-        title: `${data.title}List`,
+        uidt: UITypes.Links,
+        title: `${data.title}`,
         parentId: parentMeta.id,
         childId: childMeta.id,
         parentTable: parentMeta.title,

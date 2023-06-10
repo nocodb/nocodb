@@ -1832,15 +1832,17 @@ export class ColumnsService {
         virtual: (param.column as LinkToAnotherColumnReqType).virtual,
       });
 
-      await populateRollupForLTAR({
-        column: col1,
-        // columnMeta: param.column['meta'],
-      });
-      await populateRollupForLTAR({
-        column: col2,
-        columnMeta: param.column['meta'],
-        alias: param.column.title,
-      });
+      if (isLinks) {
+        await populateRollupForLTAR({
+          column: col1,
+          // columnMeta: param.column['meta'],
+        });
+        await populateRollupForLTAR({
+          column: col2,
+          columnMeta: param.column['meta'],
+          alias: param.column.title,
+        });
+      }
 
       // todo: create index for virtual relations as well
       // create index for foreign key in pg

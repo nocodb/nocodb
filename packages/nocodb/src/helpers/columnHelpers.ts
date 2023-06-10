@@ -33,13 +33,14 @@ export async function createHmAndBtColumn(
   fkColName?: string,
   virtual: BoolType = false,
   isSystemCol = false,
-  columnMeta = null
+  columnMeta = null,
+  isLinks = false,
 ) {
   // save bt column
   {
     const title = getUniqueColumnAliasName(
       await child.getColumns(),
-      type === 'bt' ? alias : `${parent.title}`,
+      type === 'bt' && !isLinks ? alias : `${parent.title}`,
     );
     await Column.insert<LinkToAnotherRecordColumn>({
       title,
@@ -63,7 +64,7 @@ export async function createHmAndBtColumn(
   {
     const title = getUniqueColumnAliasName(
       await parent.getColumns(),
-      type === 'hm' ? alias : `${child.title} List`,
+      type === 'hm' && !isLinks ? alias : `${child.title} List`,
     );
     const col = await Column.insert({
       title,
@@ -79,10 +80,11 @@ export async function createHmAndBtColumn(
       fk_index_name: fkColName,
     });
 
-    if (!isSystemCol)
+    if (!isSystemCol && isLinks)
       await populateRollupForLTAR({
         column: col,
-        columnMeta
+        columnMeta,
+        alias
       });
   }
 }
@@ -219,10 +221,12 @@ export const generateFkName = (parent: TableType, child: TableType) => {
 
 export async function populateRollupForLTAR({
   column,
-  columnMeta
+  columnMeta,
+  alias
 }: {
   column: Column;
   columnMeta?: any;
+  alias?: string;
 }) {
   const model = await column.getModel();
 
@@ -244,7 +248,7 @@ export async function populateRollupForLTAR({
     uidt: UITypes.Links,
     title: getUniqueColumnAliasName(
       await model.getColumns(),
-      `${relatedModel.title} Count`,
+      alias || `${relatedModel.title} Count`,
     ),
     fk_rollup_column_id: pkId,
     fk_model_id: model.id,

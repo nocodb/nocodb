@@ -67,25 +67,21 @@ const onAttachRecord = () => {
 
 <template>
   <div class="flex w-full items-center">
-    <a @click.stop.prevent="childListDlg = true" class="text-center pl-3 flex-grow block"
-       :class="{'!text-gray-300': !value}">
-      {{ textVal }}
-    </a>
+    <template v-if="!isForm">
+      <a @click.stop.prevent="childListDlg = true" class="text-center pl-3 flex-grow block"
+         :class="{'!text-gray-300': !value}">
+        {{ textVal }}
+      </a>
 
-    <div v-if="!isLocked && !isUnderLookup" class="flex justify-end gap-1 min-h-[30px] items-center">
-      <!--      <GeneralIcon-->
-      <!--        icon="expand"-->
-      <!--        class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"-->
-      <!--        @click.stop="childListDlg = true"-->
-      <!--      />-->
-
-      <GeneralIcon
-        v-if="!readOnly && isUIAllowed('xcDatatableEditable')"
-        icon="plus"
-        class="select-none text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
-        @click.stop="listItemsDlg = true"
-      />
-    </div>
+      <div v-if="!isLocked && !isUnderLookup" class="flex justify-end gap-1 min-h-[30px] items-center">
+        <GeneralIcon
+          v-if="!readOnly && isUIAllowed('xcDatatableEditable')"
+          icon="plus"
+          class="select-none text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
+          @click.stop="listItemsDlg = true"
+        />
+      </div>
+    </template>
 
     <LazyVirtualCellComponentsListItems v-model="listItemsDlg" :column="relatedTableDisplayColumn" />
 

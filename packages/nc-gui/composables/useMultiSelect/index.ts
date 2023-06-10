@@ -521,8 +521,15 @@ export function useMultiSelect(
         const rowsToPaste = unref(data).slice(activeCell.row, activeCell.row + pasteMatrixRows)
         const propsToPaste: string[] = []
 
+        let pastedRows = 0
+
         for (let i = 0; i < pasteMatrixRows; i++) {
           const pasteRow = rowsToPaste[i]
+          // TODO handle insert new row
+          if (pasteRow.rowMeta.new) break
+
+          pastedRows++
+
           for (let j = 0; j < pasteMatrixCols; j++) {
             const pasteCol = colsToPaste[j]
 
@@ -565,9 +572,11 @@ export function useMultiSelect(
         }
         await bulkUpdateRows?.(rowsToPaste, propsToPaste)
 
-        // highlight the pasted range
-        selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
-        selectedRange.endRange({ row: activeCell.row + pasteMatrixRows - 1, col: activeCell.col + pasteMatrixCols - 1 })
+        if (pastedRows > 0) {
+          // highlight the pasted range
+          selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
+          selectedRange.endRange({ row: activeCell.row + pastedRows - 1, col: activeCell.col + pasteMatrixCols - 1 })
+        }
       } else {
         // handle belongs to column
         if (

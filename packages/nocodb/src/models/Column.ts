@@ -655,7 +655,7 @@ export default class Column<T = any> implements ColumnType {
       }
     }
 
-    // get rollup column and delete
+    // get rollup/links column and delete
     {
       const cachedList = await NocoCache.getList(CacheScope.COL_ROLLUP, [id]);
       let { list: rollups } = cachedList;

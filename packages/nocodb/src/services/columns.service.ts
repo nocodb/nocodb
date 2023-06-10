@@ -41,7 +41,11 @@ import Noco from '../Noco';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { MetaTable } from '../utils/globals';
 import { MetaService } from '../meta/meta.service';
-import type { LinkToAnotherRecordColumn, Project } from '../models';
+import type {
+  LinkToAnotherRecordColumn,
+  Project,
+  RollupColumn,
+} from '../models';
 import type SqlMgrv2 from '../db/sql-mgr/v2/SqlMgrv2';
 import type {
   ColumnReqType,
@@ -1181,6 +1185,15 @@ export class ColumnsService {
       case UITypes.Formula:
         await Column.delete(param.columnId, ncMeta);
         break;
+      // When deleting a link column, we need to delete the relation column
+      // while deleting the LTAR column, links column will be deleted automatically
+      case UITypes.Links:
+        return await column.getColOptions<RollupColumn>().then((colOpt) =>
+          this.columnDelete({
+            ...param,
+            columnId: colOpt.fk_relation_column_id,
+          }),
+        );
       case UITypes.LinkToAnotherRecord:
         {
           const relationColOpt =

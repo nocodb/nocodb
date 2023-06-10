@@ -13,6 +13,7 @@ const props = defineProps<{
       '-webkit-line-clamp': props.lines || 1,
       '-webkit-box-orient': 'vertical',
       'overflow': 'hidden',
+      'white-space': 'pre',
     }"
   >
     {{ props.value || '' }}

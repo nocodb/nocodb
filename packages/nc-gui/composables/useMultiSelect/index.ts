@@ -278,7 +278,9 @@ export function useMultiSelect(
     setTimeout(() => {
       // if shift key is pressed, don't change the active cell
       if (event.shiftKey) return
-      makeActive(selectedRange.start.row, selectedRange.start.col)
+      if (selectedRange._start) {
+        makeActive(selectedRange._start.row, selectedRange._start.col)
+      }
     }, 0)
 
     // if the editEnabled is false, prevent selecting text on mouseUp

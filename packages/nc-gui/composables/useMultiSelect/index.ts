@@ -233,7 +233,10 @@ export function useMultiSelect(
 
   function handleMouseDown(event: MouseEvent, row: number, col: number) {
     // if there was a right click on selected range, don't restart the selection
-    if (event?.button !== MAIN_MOUSE_PRESSED && isCellSelected(row, col)) {
+    if (
+      (event?.button !== MAIN_MOUSE_PRESSED || (event?.button === MAIN_MOUSE_PRESSED && event.ctrlKey)) &&
+      isCellSelected(row, col)
+    ) {
       return
     }
 

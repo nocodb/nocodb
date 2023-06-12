@@ -257,6 +257,9 @@ const {
     if (cmdOrCtrl) {
       if (!isCellActive.value) return
 
+      // cmdOrCtrl+shift handled in useMultiSelect
+      if (e.shiftKey) return
+
       switch (e.key) {
         case 'ArrowUp':
           e.preventDefault()

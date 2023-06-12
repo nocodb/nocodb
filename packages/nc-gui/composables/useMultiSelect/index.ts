@@ -304,6 +304,8 @@ export function useMultiSelect(
       return
     }
 
+    const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+
     /** on tab key press navigate through cells */
     switch (e.key) {
       case 'Tab':
@@ -355,11 +357,18 @@ export function useMultiSelect(
         e.preventDefault()
 
         if (e.shiftKey) {
-          if ((selectedRange._end?.col || activeCell.col) < unref(columnLength) - 1) {
+          if (cmdOrCtrl) {
             editEnabled.value = false
             selectedRange.endRange({
-              row: selectedRange._end?.row || activeCell.row,
-              col: (selectedRange._end?.col || activeCell.col) + 1,
+              row: selectedRange._end?.row ?? activeCell.row,
+              col: unref(columnLength) - 1,
+            })
+            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
+          } else if ((selectedRange._end?.col ?? activeCell.col) < unref(columnLength) - 1) {
+            editEnabled.value = false
+            selectedRange.endRange({
+              row: selectedRange._end?.row ?? activeCell.row,
+              col: (selectedRange._end?.col ?? activeCell.col) + 1,
             })
             scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
           }
@@ -378,11 +387,18 @@ export function useMultiSelect(
         e.preventDefault()
 
         if (e.shiftKey) {
-          if ((selectedRange._end?.col || activeCell.col) > 0) {
+          if (cmdOrCtrl) {
             editEnabled.value = false
             selectedRange.endRange({
-              row: selectedRange._end?.row || activeCell.row,
-              col: (selectedRange._end?.col || activeCell.col) - 1,
+              row: selectedRange._end?.row ?? activeCell.row,
+              col: 0,
+            })
+            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
+          } else if ((selectedRange._end?.col ?? activeCell.col) > 0) {
+            editEnabled.value = false
+            selectedRange.endRange({
+              row: selectedRange._end?.row ?? activeCell.row,
+              col: (selectedRange._end?.col ?? activeCell.col) - 1,
             })
             scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
           }
@@ -401,11 +417,20 @@ export function useMultiSelect(
         e.preventDefault()
 
         if (e.shiftKey) {
-          if ((selectedRange._end?.row || activeCell.row) > 0) {
+          if (cmdOrCtrl) {
+            editEnabled.value = false
+            console.log(selectedRange._end?.col)
+            selectedRange.endRange({
+              row: 0,
+              col: selectedRange._end?.col ?? activeCell.col,
+            })
+            console.log(selectedRange._end?.col)
+            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
+          } else if ((selectedRange._end?.row ?? activeCell.row) > 0) {
             editEnabled.value = false
             selectedRange.endRange({
-              row: (selectedRange._end?.row || activeCell.row) - 1,
-              col: selectedRange._end?.col || activeCell.col,
+              row: (selectedRange._end?.row ?? activeCell.row) - 1,
+              col: selectedRange._end?.col ?? activeCell.col,
             })
             scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
           }
@@ -424,11 +449,18 @@ export function useMultiSelect(
         e.preventDefault()
 
         if (e.shiftKey) {
-          if ((selectedRange._end?.row || activeCell.row) < unref(data).length - 1) {
+          if (cmdOrCtrl) {
             editEnabled.value = false
             selectedRange.endRange({
-              row: (selectedRange._end?.row || activeCell.row) + 1,
-              col: selectedRange._end?.col || activeCell.col,
+              row: unref(data).length - 1,
+              col: selectedRange._end?.col ?? activeCell.col,
+            })
+            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
+          } else if ((selectedRange._end?.row ?? activeCell.row) < unref(data).length - 1) {
+            editEnabled.value = false
+            selectedRange.endRange({
+              row: (selectedRange._end?.row ?? activeCell.row) + 1,
+              col: selectedRange._end?.col ?? activeCell.col,
             })
             scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
           }
@@ -461,7 +493,7 @@ export function useMultiSelect(
               // select all - ctrl/cmd +a
               case 65:
                 selectedRange.startRange({ row: 0, col: 0 })
-                selectedRange.endRange({ row: unref(data).length - 1, col: unref(fields).length - 1 })
+                selectedRange.endRange({ row: unref(data).length - 1, col: unref(columnLength) - 1 })
                 break
             }
           }

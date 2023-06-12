@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import type { Ref } from 'vue'
 import type {
   AppearanceConfig,
   ButtonWidget,
@@ -24,6 +25,19 @@ import { computed, extractSdkResponseErrorMsg, message, navigateTo, ref, useNuxt
 import type { LayoutSidebarNode } from '~~/lib'
 import { TabType } from '~~/lib'
 import type { IdAndTitle, TableWithProject } from '~~/components/layouts/types'
+
+interface LayoutEntry {
+  x: number
+  y: number
+  w: number
+  h: number
+  i: string
+  static: boolean
+}
+
+interface WidgetLayoutEntry extends LayoutEntry {
+  widget: Widget
+}
 
 export const availableAggregateFunctions = [
   AggregateFnType.Sum,
@@ -94,7 +108,9 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
 
   const focusedWidgetId = ref<string | undefined>(undefined)
 
-  const openedWidgets = reactive<Widget[]>([])
+  const openedWidgets = ref<Widget[] | null>(null)
+
+  const gridLayout: Ref<WidgetLayoutEntry[]> = ref([])
 
   const availableColumnsOfSelectedView = ref<Array<ColumnType>>()
 
@@ -107,7 +123,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
    */
 
   const focusedWidget = computed(() =>
-    openedWidgets.find((widget: { id: string | undefined }) => widget.id === focusedWidgetId.value),
+    openedWidgets.value?.find((widget: { id: string | undefined }) => widget.id === focusedWidgetId.value),
   )
 
   const linkedDbProjects = computed(() => project.value?.linked_db_projects)
@@ -148,21 +164,18 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   const _updateWidgetInAPIAndLocally = async (updatedWidget: Widget) => {
     // 1. Update the API
     await $api.dashboard.widgetUpdate(openedLayoutId.value!, updatedWidget.id, updatedWidget)
+    if (openedWidgets.value == null) {
+      throw new Error('openedWidgets.value is undefined')
+    }
+
     // 2. Update the local object in collection
-    // Question here: regarding reactivity,
-    //   * better to replace the whole object in the collection?
-    //   * or to update the respective props of the same object only
-    openedWidgets.splice(
-      0,
-      openedWidgets.length,
-      ...openedWidgets.map((wid: Widget) => {
-        if (wid.id === updatedWidget.id) {
-          return updatedWidget
-        } else {
-          return wid
-        }
-      }),
-    )
+    openedWidgets.value = openedWidgets.value.map((wid: Widget) => {
+      if (wid.id === updatedWidget.id) {
+        return updatedWidget
+      } else {
+        return wid
+      }
+    })
   }
 
   function _findSingleLayout(layouts: LayoutSidebarNode[], layoutId: string) {
@@ -336,6 +349,28 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       }
     },
   )
+  watch(
+    () => openedWidgets.value,
+    (newOpenedWidgets, oldOpenedWidgets) => {
+      if (newOpenedWidgets != null && oldOpenedWidgets == null) {
+        gridLayout.value = newOpenedWidgets.map((widget) => {
+          return {
+            x: widget.appearance_config.screenPosition.x,
+            y: widget.appearance_config.screenPosition.y,
+            w: widget.appearance_config.screenDimensions.width,
+            h: widget.appearance_config.screenDimensions.height,
+            i: widget.id,
+            static: false,
+            widget,
+          } as WidgetLayoutEntry
+        })
+      }
+    },
+    {
+      immediate: true,
+      deep: true,
+    },
+  )
 
   watch(availableDbProjects, async () => {
     if (availableDbProjects.value == null || availableDbProjects.value.length === 0) {
@@ -360,38 +395,17 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
 
   watch(
     openedLayoutId,
-    async (newLayoutId, previousLayoutId) => {
-      //
-      // Helper functions/props
-      //
-      const isLayoutNewButAlreadyOpen = openedLayoutSidebarNode.value?.new && openedLayoutSidebarNode.value.id === newLayoutId
-
-      const setPreviousLayoutAsOld = () => {
-        if (previousLayoutId) {
-          const previousLayout = _findSingleLayout(layoutsOfProjects.value[openedProjectId.value], previousLayoutId)
-          if (previousLayout?.new) {
-            previousLayout.new = false
-          }
-        }
-      }
-
+    async (newLayoutId) => {
+      openedWidgets.value = null
       const noNewLayoutId = newLayoutId == null
 
-      //
-      // Main function flow
-      //
       if (noNewLayoutId) {
         openedLayoutSidebarNode.value = undefined
         return
       }
 
-      if (isLayoutNewButAlreadyOpen) return
-
-      setPreviousLayoutAsOld()
-
       openedLayoutSidebarNode.value = undefined
 
-      // TODO extract that out in a seperate function START
       const fetchedLayout: LayoutType | undefined = await _fetchSingleLayout({
         layoutId: newLayoutId,
         projectId: openedProjectId.value,
@@ -412,8 +426,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
         key: fetchedLayout.id,
       }
       openedLayoutSidebarNode.value = { ...fetchedLayout, ...mandatorySidebarNodeProps }
-      // TODO extract that out in a seperate function END
-
       _fetchAndSetWidgetsOfOpenedLayoutId(openedLayoutId.value)
 
       _addTabWhenNestedLayoutIsPopulated({
@@ -535,7 +547,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     // TODO: fix typing/implementation mismatch here: type expects there is a 'list' property where the widgets are stored in
     const parsedWidgets = widgets.list.map(_parseWidgetFromAPI)
 
-    openedWidgets.splice(0, openedWidgets.length, ...parsedWidgets)
+    openedWidgets.value = parsedWidgets
   }
 
   const openLayout = async ({ layout, projectId }: { layout: LayoutType; projectId: string }) => {
@@ -545,12 +557,12 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   }
 
   const updatePositionOfWidgetById = (id: string, newPosition: ScreenPosition) => {
-    if (openedWidgets == null) {
+    if (openedWidgets.value == null) {
       console.error('Could not find UI element to update position')
       return
     }
 
-    const elementToUpdate = openedWidgets.find((widget: Widget) => widget.id === id)
+    const elementToUpdate = openedWidgets.value.find((widget: Widget) => widget.id === id)
     if (elementToUpdate == null) {
       console.error('Could not find UI element to update position')
       return
@@ -564,26 +576,22 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       },
     }
 
-    openedWidgets.splice(
-      0,
-      openedWidgets.length,
-      ...openedWidgets.map((element: any) => {
-        if (element.id === id) {
-          return updatedElement
-        }
-        return element
-      }),
-    )
+    openedWidgets.value = openedWidgets.value.map((element: any) => {
+      if (element.id === id) {
+        return updatedElement
+      }
+      return element
+    })
     $api.dashboard.widgetUpdate(openedLayoutId.value!, updatedElement.id, updatedElement)
   }
 
   const updateScreenDimensionsOfWidgetById = (id: string, newScreenDimensions: ScreenDimensions) => {
-    if (openedWidgets == null) {
+    if (openedWidgets.value == null) {
       console.error('Could not find UI element to update screen dimensions')
       return
     }
 
-    const elementToUpdate = openedWidgets.find((widget: Widget) => widget.id === id)
+    const elementToUpdate = openedWidgets.value.find((widget: Widget) => widget.id === id)
     if (elementToUpdate == null) {
       console.error('Could not find widget to update dimensions for')
       return
@@ -597,16 +605,12 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       },
     }
 
-    openedWidgets.splice(
-      0,
-      openedWidgets.length,
-      ...openedWidgets.map((element: any) => {
-        if (element.id === id) {
-          return updatedElement
-        }
-        return element
-      }),
-    )
+    openedWidgets.value = openedWidgets.value.map((element: any) => {
+      if (element.id === id) {
+        return updatedElement
+      }
+      return element
+    })
 
     $api.dashboard.widgetUpdate(openedLayoutId.value!, updatedElement.id, updatedElement)
   }
@@ -621,6 +625,11 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       y: 2,
     },
   ) => {
+    if (openedWidgets.value == null) {
+      console.error('openedWidgets.value is undefined')
+      return
+    }
+
     const defaultScreenDimensions = {
       width: 2,
       height: 2,
@@ -661,19 +670,34 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
 
     const widgetFromAPI = await $api.dashboard.widgetCreate(openedLayoutId.value!, widgetReqType)
     const parsedWidgetFromAPI = _parseWidgetFromAPI(widgetFromAPI)
-    openedWidgets.push(parsedWidgetFromAPI)
+    openedWidgets.value.push(parsedWidgetFromAPI)
     focusedWidgetId.value = parsedWidgetFromAPI.id
+
+    gridLayout.value.push({
+      x: parsedWidgetFromAPI.appearance_config.screenPosition.x,
+      y: parsedWidgetFromAPI.appearance_config.screenPosition.y,
+      w: parsedWidgetFromAPI.appearance_config.screenDimensions.width,
+      h: parsedWidgetFromAPI.appearance_config.screenDimensions.height,
+      i: parsedWidgetFromAPI.id,
+      static: false,
+      widget: parsedWidgetFromAPI,
+    } as WidgetLayoutEntry)
   }
 
   const removeWidgetById = async (id: string) => {
-    const idxOfElementToRemove = openedWidgets.findIndex((element: { id: string }) => element.id === id)
-    const elementToRemove = openedWidgets[idxOfElementToRemove]
-    if (idxOfElementToRemove == null) {
+    if (openedWidgets.value == null) {
+      console.error('openedWidgets.value is undefined')
+      return
+    }
+
+    const elementToRemove = openedWidgets.value.find((element: { id: string }) => element.id === id)
+    if (elementToRemove == null) {
       console.error('Could not find UI element to remove')
       return
     }
     await $api.dashboard.widgetDelete(openedLayoutId.value!, elementToRemove.id)
-    openedWidgets.splice(idxOfElementToRemove, 1)
+    openedWidgets.value = openedWidgets.value.filter((element: { id: string }) => element.id !== id)
+    gridLayout.value = gridLayout.value.filter((element) => element.i !== id)
   }
 
   const updateFocusedWidgetByElementId = async (elementId: string) => {
@@ -1146,5 +1170,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     changeLayoutGap,
     changeLayoutPaddingHorizontal,
     changeLayoutPaddingVertical,
+    gridLayout,
   }
 })

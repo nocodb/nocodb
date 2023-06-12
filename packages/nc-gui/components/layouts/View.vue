@@ -6,7 +6,7 @@ import type { WidgetTemplate } from './types'
 import { useDashboardStore } from '~~/store/dashboard'
 import '~/assets/dashboardLayout.scss'
 const dashboardStore = useDashboardStore()
-const { openedWidgets, focusedWidget, openedLayoutSidebarNode } = storeToRefs(dashboardStore)
+const { openedWidgets, focusedWidget, openedLayoutSidebarNode, gridLayout } = storeToRefs(dashboardStore)
 const {
   updatePositionOfWidgetById,
   updateScreenDimensionsOfWidgetById,
@@ -17,42 +17,6 @@ const {
 } = dashboardStore
 
 const mainArea = ref<any>()
-
-interface LayoutEntry {
-  x: number
-  y: number
-  w: number
-  h: number
-  i: string
-  static: boolean
-}
-
-interface WidgetLayoutEntry extends LayoutEntry {
-  widget: Widget
-}
-
-const layout: Ref<WidgetLayoutEntry[]> = ref([])
-
-watch(
-  () => openedWidgets.value,
-  () => {
-    layout.value = openedWidgets.value.map((widget) => {
-      return {
-        x: widget.appearance_config.screenPosition.x,
-        y: widget.appearance_config.screenPosition.y,
-        w: widget.appearance_config.screenDimensions.width,
-        h: widget.appearance_config.screenDimensions.height,
-        i: widget.id,
-        static: false,
-        widget,
-      } as WidgetLayoutEntry
-    })
-  },
-  {
-    immediate: true,
-    deep: true,
-  },
-)
 
 const drop = (ev: DragEvent) => {
   const item = JSON.parse(ev.dataTransfer?.getData('text/plain') || '{}') as WidgetTemplate
@@ -87,7 +51,7 @@ const gridMargins = computed(() => {
       So we enforce a re-render via setting they key to gridMargins -->
       <GridLayout
         :key="`${JSON.stringify(gridMargins)}`"
-        v-model:layout="layout"
+        v-model:layout="gridLayout"
         :style="{
           margin: `${openedLayoutSidebarNode?.grid_padding_vertical || '10'}px ${
             openedLayoutSidebarNode?.grid_padding_horizontal || '10'
@@ -105,7 +69,7 @@ const gridMargins = computed(() => {
         style="height: '100%'"
       >
         <GridItem
-          v-for="item in layout"
+          v-for="item in gridLayout"
           :key="item.i"
           :static="item.static"
           :x="item.x"

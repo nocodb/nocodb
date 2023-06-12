@@ -1,12 +1,7 @@
 <script lang="ts" setup>
-const router = useRouter()
-const route = $(router.currentRoute)
-
-const { project } = storeToRefs(useProject())
-
 const workspaceStore = useWorkspace()
 
-const { workspace } = storeToRefs(workspaceStore)
+const { activeWorkspace } = storeToRefs(workspaceStore)
 
 const { isOpen } = storeToRefs(useSidebarStore())
 
@@ -71,7 +66,7 @@ const currentVersion = ref('')
         </a-tooltip>
       </a>
 
-      <WorkspaceMenu :workspace="workspace" :is-open="true" />
+      <WorkspaceMenu :workspace="activeWorkspace" :is-open="true" />
       <div
         class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2"
       >

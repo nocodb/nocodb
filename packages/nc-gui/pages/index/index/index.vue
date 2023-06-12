@@ -31,11 +31,11 @@ const roleAlias = {
 
 const workspaceStore = useWorkspace()
 
-const { deleteWorkspace: _deleteWorkspace, loadWorkspaceList, updateWorkspace, populateActiveWorkspace } = workspaceStore
+const { deleteWorkspace: _deleteWorkspace, loadWorkspaces, updateWorkspace, populateActiveWorkspace } = workspaceStore
 
 const projectsStore = useProjects()
 
-const { workspaces, activeWorkspace, isWorkspaceOwner, activePage, collaborators } = storeToRefs(workspaceStore)
+const { workspacesList, activeWorkspace, isWorkspaceOwner, activePage, collaborators } = storeToRefs(workspaceStore)
 
 const { loadProjects } = useProjects()
 
@@ -45,12 +45,12 @@ const route = $(router.currentRoute)
 
 const selectedWorkspaceIndex = computed<number[]>({
   get() {
-    const index = workspaces?.value?.findIndex((workspace) => workspace.id === (route.query?.workspaceId as string))
+    const index = workspacesList?.value?.findIndex((workspace) => workspace.id === (route.query?.workspaceId as string))
     return activePage?.value === 'workspace' ? [index === -1 ? 0 : index] : []
   },
   set(index: number[]) {
     if (index?.length) {
-      router.push({ query: { workspaceId: workspaces.value?.[index[0]]?.id, page: 'workspace' } })
+      router.push({ query: { workspaceId: workspacesList.value?.[index[0]]?.id, page: 'workspace' } })
     } else {
       router.push({ query: {} })
     }
@@ -74,12 +74,12 @@ const menu = (el?: typeof Menu) => {
 onMounted(async () => {
   toggle(true)
   toggleHasSidebar(true)
-  await loadWorkspaceList()
+  await loadWorkspaces()
 
-  if (!route.query.workspaceId && workspaces.value?.length) {
-    await router.push({ query: { workspaceId: workspaces.value[0].id, page: 'workspace' } })
+  if (!route.query.workspaceId && workspacesList.value?.length) {
+    await router.push({ query: { workspaceId: workspacesList.value[0].id, page: 'workspace' } })
   } else {
-    selectedWorkspaceIndex.value = [workspaces.value?.findIndex((workspace) => workspace.id === route.query.workspaceId)]
+    selectedWorkspaceIndex.value = [workspacesList.value?.findIndex((workspace) => workspace.id === route.query.workspaceId)]
   }
 
   await loadProjects()
@@ -107,13 +107,13 @@ useDialog(resolveComponent('WorkspaceCreateDlg'), {
   'onUpdate:modelValue': (isOpen: boolean) => (isCreateDlgOpen.value = isOpen),
   'onSuccess': async () => {
     isCreateDlgOpen.value = false
-    await loadWorkspaceList()
+    await loadWorkspaces()
     await nextTick(() => {
       ;[...menuEl?.value?.$el?.querySelectorAll('li.ant-menu-item')]?.pop()?.scrollIntoView({
         block: 'nearest',
         inline: 'nearest',
       })
-      selectedWorkspaceIndex.value = [workspaces.value?.length - 1]
+      selectedWorkspaceIndex.value = [workspacesList.value?.length - 1]
     })
   },
 })
@@ -121,7 +121,7 @@ useDialog(resolveComponent('WorkspaceCreateDlg'), {
 const { loadScope } = useCommandPalette()
 
 // TODO
-loadWorkspaceList()
+loadWorkspaces()
 
 loadScope('workspace')
 
@@ -131,7 +131,7 @@ const deleteWorkspace = (workspace: WorkspaceType) => {
     type: 'warn',
     onOk: async () => {
       await _deleteWorkspace(workspace.id!)
-      await loadWorkspaceList()
+      await loadWorkspaces()
     },
   })
 }
@@ -147,7 +147,7 @@ const updateWorkspaceTitle = async (workspace: WorkspaceType & { edit: boolean; 
 }
 
 const handleWorkspaceColor = async (workspaceId: string, color: string) => {
-  const workspace = workspaces.value?.find((w) => w.id === workspaceId)
+  const workspace = workspacesList.value?.find((w) => w.id === workspaceId)
 
   if (!workspace) return
 
@@ -180,7 +180,7 @@ function getIdFromEl(previousEl: HTMLElement) {
 function initSortable(el: Element) {
   Sortable.create(el as HTMLLIElement, {
     onEnd: async (evt) => {
-      if (workspaces.value?.length < 2) return
+      if (workspacesList.value?.length < 2) return
 
       const { newIndex = 0, oldIndex = 0 } = evt
 
@@ -191,17 +191,17 @@ function initSortable(el: Element) {
       const previousEl = children[newIndex - 1]
       const nextEl = children[newIndex + 1]
 
-      const currentItem = workspaces.value.find((v) => v.id === getIdFromEl(evt.item))
+      const currentItem = workspacesList.value.find((v) => v.id === getIdFromEl(evt.item))
 
       if (!currentItem || !currentItem.id) return
 
-      const previousItem = (previousEl ? workspaces.value.find((v) => v.id === getIdFromEl(previousEl)) : {}) as WorkspaceType
-      const nextItem = (nextEl ? workspaces.value.find((v) => v.id === getIdFromEl(nextEl)) : {}) as WorkspaceType
+      const previousItem = (previousEl ? workspacesList.value.find((v) => v.id === getIdFromEl(previousEl)) : {}) as WorkspaceType
+      const nextItem = (nextEl ? workspacesList.value.find((v) => v.id === getIdFromEl(nextEl)) : {}) as WorkspaceType
 
       let nextOrder: number
 
       // set new order value based on the new order of the items
-      if (workspaces.value.length - 1 === newIndex) {
+      if (workspacesList.value.length - 1 === newIndex) {
         nextOrder = parseFloat(String(previousItem.order)) + 1
       } else if (newIndex === 0) {
         nextOrder = parseFloat(String(nextItem.order)) / 2
@@ -232,16 +232,16 @@ const tab = computed({
 
 const renameInput = ref<HTMLInputElement[]>()
 const enableEdit = (index: number) => {
-  workspaces.value[index].temp_title = workspaces.value[index].title
-  workspaces.value[index].edit = true
+  workspacesList.value[index].temp_title = workspacesList.value[index].title
+  workspacesList.value[index].edit = true
   nextTick(() => {
     renameInput.value?.[0]?.focus()
     renameInput.value?.[0]?.select()
   })
 }
 const disableEdit = (index: number) => {
-  workspaces.value[index].temp_title = null
-  workspaces.value[index].edit = false
+  workspacesList.value[index].temp_title = null
+  workspacesList.value[index].edit = false
 }
 
 const projectListType = computed(() => {
@@ -317,7 +317,7 @@ const projectListType = computed(() => {
         </div>
 
         <div class="overflow-auto min-h-25 flex-grow" style="flex-basis: 0">
-          <a-empty v-if="!workspaces?.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
+          <a-empty v-if="!workspacesList?.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
           <a-menu
             v-else
@@ -326,7 +326,7 @@ const projectListType = computed(() => {
             class="nc-workspace-list"
             trigger-sub-menu-action="click"
           >
-            <a-menu-item v-for="(workspace, i) of workspaces" :key="i">
+            <a-menu-item v-for="(workspace, i) of workspacesList" :key="i">
               <div class="nc-workspace-list-item flex items-center h-full group" :data-id="workspace.id">
                 <a-dropdown :trigger="['click']" trigger-sub-menu-action="click" @click.stop>
                   <div>

@@ -67,8 +67,19 @@ const { isSharedBase } = useProject()
       modifier-key="Alt"
     >
       <template #title>{{ layout.title }}</template>
-      <div class="layout-context flex items-center gap-2 h-full ml-7.25" @contextmenu="setMenuContext('layout', layout)">
-        <MaterialSymbolsSpaceDashboardOutlineRounded class="flex !text-gray-500" />
+      <div
+        class="layout-context flex items-center gap-2 h-full ml-7.25"
+        :class="{
+          '!text-black': openeLayoutId === layout.id,
+        }"
+        @contextmenu="setMenuContext('layout', layout)"
+      >
+        <MaterialSymbolsSpaceDashboardOutlineRounded
+          class="flex !text-gray-500"
+          :class="{
+            '!text-black !font-semibold': openeLayoutId === layout.id,
+          }"
+        />
         <div class="nc-tbl-title flex-1">
           <GeneralTruncateText :key="layout.title" :length="openeLayoutId === layout.id ? 18 : 20"
             >{{ layout.title }}

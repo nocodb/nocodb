@@ -13,7 +13,7 @@ const props = defineProps<{
 
 const project = toRef(props, 'project')
 
-const { isPublic, openedPageInSidebar, nestedPagesOfProjects, isEditAllowed, openedPage } = storeToRefs(useDocStore())
+const { openedPageInSidebar, nestedPagesOfProjects, isEditAllowed, openedPage } = storeToRefs(useDocStore())
 
 const {
   deletePage,
@@ -106,7 +106,6 @@ watch(
   (newPage, prevPage) => {
     if (!openedPageInSidebar.value) return
 
-    openedTabs.value = []
     if (newPage?.id === prevPage?.id) return
 
     const pageWithParents = getPageWithParents({
@@ -216,7 +215,12 @@ function onExpandClick(id: string, expanded: boolean) {
                         class="text-lg"
                         :icon="page.icon"
                       ></IconifyIcon>
-                      <MdiFileDocumentOutline v-else />
+                      <MdiFileDocumentOutline
+                        v-else
+                        :class="{
+                          'text-black': openedPage?.id === page.id,
+                        }"
+                      />
                     </div>
                     <template #overlay>
                       <div class="flex flex-col p-1 bg-gray-50 rounded-md">
@@ -320,14 +324,11 @@ function onExpandClick(id: string, expanded: boolean) {
 
 .ant-tree-treenode:hover {
   .nc-sidebar-expand {
-    @apply !text-gray-500 !visible;
+    @apply !text-gray-500;
   }
 }
 .ant-tree-treenode:last-child {
   @apply !mb-0;
-}
-.nc-sidebar-expand {
-  @apply invisible;
 }
 .ant-tree-node-content-wrapper {
   @apply w-full mr-0.5 pl-0.5 bg-inherit transition-none !important;
@@ -341,7 +342,7 @@ function onExpandClick(id: string, expanded: boolean) {
   }
   .ant-tree-node-selected {
     transition: none !important;
-    @apply !bg-primary-selected !hover:bg-primary-selected;
+    @apply !bg-primary-selected !hover:bg-primary-selected font-semibold;
   }
   .ant-tree-indent-unit {
     @apply w-0 !important;

@@ -14,7 +14,7 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const workspaceStore = useWorkspace()
 const { moveWorkspace } = workspaceStore
-const { workspaces } = storeToRefs(workspaceStore)
+const { workspacesList } = storeToRefs(workspaceStore)
 
 const workspaceId = ref()
 
@@ -30,7 +30,7 @@ watch(dialogShow, (val) => {
 })
 
 const ownedWorkspaces = computed(() => {
-  return workspaces.value.filter((w) => w.roles === WorkspaceUserRoles.OWNER)
+  return workspacesList.value.filter((w) => w.roles === WorkspaceUserRoles.OWNER)
 })
 </script>
 

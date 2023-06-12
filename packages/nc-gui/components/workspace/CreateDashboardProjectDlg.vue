@@ -26,7 +26,8 @@ const { loadProjects } = projectsStore
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const workspaceStore = useWorkspace()
-const { loadWorkspaceList } = workspaceStore
+const { loadWorkspaces } = workspaceStore
+const { activeWorkspace } = storeToRefs(workspaceStore)
 const { projects } = storeToRefs(useProjects())
 
 const input: VNodeRef = ref<typeof Input>()
@@ -133,12 +134,12 @@ const createDashboardProject = async () => {
     const project = await _createProject({
       type: NcProjectType.DASHBOARD,
       title: formState.title,
-      workspaceId: workspaceStore.workspace!.id!,
+      workspaceId: activeWorkspace.value!.id!,
       linkedDbProjectIds: selectedDbProjects.value.map((p) => p.id),
     })
     await loadProjects()
 
-    navigateTo(`/ws/${workspaceStore.workspace!.id!}/project/${project.id!}/layout`)
+    navigateTo(`/ws/${activeWorkspace.value!.id!}/project/${project.id!}/layout`)
 
     dialogShow.value = false
   } catch (e: any) {
@@ -163,7 +164,7 @@ watch(dialogShow, async (n, o) => {
 
 onMounted(async () => {
   formState.title = await generateUniqueName()
-  await loadWorkspaceList()
+  await loadWorkspaces()
   await nextTick()
   input.value?.$el?.focus()
   input.value?.$el?.select()

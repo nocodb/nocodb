@@ -396,7 +396,12 @@ const reloadTables = async () => {
             @keyup.enter="updateProjectTitle"
             @keyup.esc="closeEditMode"
           />
-          <span v-else class="capitalize min-w-5 text-ellipsis overflow-clip select-none" @click="onProjectClick(project)">
+          <span
+            v-else
+            class="capitalize min-w-5 text-ellipsis overflow-clip select-none"
+            :class="{ 'text-black font-semibold': activeProjectId === project.id && projectViewOpen }"
+            @click="onProjectClick(project)"
+          >
             {{ project.title }}
           </span>
           <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(project)"></div>

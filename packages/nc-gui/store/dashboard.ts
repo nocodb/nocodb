@@ -36,7 +36,7 @@ interface LayoutEntry {
 }
 
 interface WidgetLayoutEntry extends LayoutEntry {
-  widget: Widget
+  widgetId: string
 }
 
 export const availableAggregateFunctions = [
@@ -361,7 +361,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
             h: widget.appearance_config.screenDimensions.height,
             i: widget.id,
             static: false,
-            widget,
+            widgetId: widget.id,
           } as WidgetLayoutEntry
         })
       }
@@ -680,7 +680,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       h: parsedWidgetFromAPI.appearance_config.screenDimensions.height,
       i: parsedWidgetFromAPI.id,
       static: false,
-      widget: parsedWidgetFromAPI,
+      widgetId: parsedWidgetFromAPI.id,
     } as WidgetLayoutEntry)
   }
 

@@ -1,12 +1,10 @@
 <script lang="ts" setup>
 import { GridItem, GridLayout } from 'vue3-grid-layout-next'
-import type { Ref } from 'vue'
-import type { Widget } from 'nocodb-sdk'
 import type { WidgetTemplate } from './types'
 import { useDashboardStore } from '~~/store/dashboard'
 import '~/assets/dashboardLayout.scss'
 const dashboardStore = useDashboardStore()
-const { openedWidgets, focusedWidget, openedLayoutSidebarNode, gridLayout } = storeToRefs(dashboardStore)
+const { focusedWidget, openedLayoutSidebarNode, gridLayout } = storeToRefs(dashboardStore)
 const {
   updatePositionOfWidgetById,
   updateScreenDimensionsOfWidgetById,
@@ -78,16 +76,16 @@ const gridMargins = computed(() => {
           :h="item.h"
           :i="item.i"
           style="touch-action: none"
-          :class="{ 'nc-layout-ui-element-has-focus': item.widget.id === focusedWidget?.id }"
+          :class="{ 'nc-layout-ui-element-has-focus': item.widgetId === focusedWidget?.id }"
           @moved="movedEvent"
           @resized="resizedEvent"
         >
           <LayoutsFocusableContainer
-            :has-focus="item.widget.id === focusedWidget?.id"
-            @set-focus="updateFocusedWidgetByElementId(item.widget.id)"
-            @remove="removeWidgetById(item.widget.id)"
+            :has-focus="item.widgetId === focusedWidget?.id"
+            @set-focus="updateFocusedWidgetByElementId(item.widgetId)"
+            @remove="removeWidgetById(item.widgetId)"
           >
-            <LayoutsWidgetsWidget :widget="item.widget" />
+            <LayoutsWidgetsWidget :widget-id="item.widgetId" />
           </LayoutsFocusableContainer>
         </GridItem>
       </GridLayout>

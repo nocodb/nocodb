@@ -49,8 +49,6 @@ export function useMultiSelect(
 ) {
   const meta = ref(_meta)
 
-  const tbodyEl = ref<HTMLElement>()
-
   const { t } = useI18n()
 
   const { copy } = useCopy()
@@ -273,22 +271,24 @@ export function useMultiSelect(
   }
 
   const handleMouseUp = (event: MouseEvent) => {
-    // timeout is needed, because we want to set cell as active AFTER all the child's click handler's called
-    // this is needed e.g. for date field edit, where two clicks had to be done - one to select cell, and another one to open date dropdown
-    setTimeout(() => {
-      // if shift key is pressed, don't change the active cell
-      if (event.shiftKey) return
-      if (selectedRange._start) {
-        makeActive(selectedRange._start.row, selectedRange._start.col)
+    if (isMouseDown) {
+      isMouseDown = false
+
+      // timeout is needed, because we want to set cell as active AFTER all the child's click handler's called
+      // this is needed e.g. for date field edit, where two clicks had to be done - one to select cell, and another one to open date dropdown
+      setTimeout(() => {
+        // if shift key is pressed, don't change the active cell
+        if (event.shiftKey) return
+        if (selectedRange._start) {
+          makeActive(selectedRange._start.row, selectedRange._start.col)
+        }
+      }, 0)
+
+      // if the editEnabled is false, prevent selecting text on mouseUp
+      if (!unref(editEnabled)) {
+        event.preventDefault()
       }
-    }, 0)
-
-    // if the editEnabled is false, prevent selecting text on mouseUp
-    if (!unref(editEnabled)) {
-      event.preventDefault()
     }
-
-    isMouseDown = false
   }
 
   const handleKeyDown = async (e: KeyboardEvent) => {
@@ -711,7 +711,7 @@ export function useMultiSelect(
   }
 
   useEventListener(document, 'keydown', handleKeyDown)
-  useEventListener(tbodyEl, 'mouseup', handleMouseUp)
+  useEventListener(document, 'mouseup', handleMouseUp)
   useEventListener(document, 'paste', handlePaste)
 
   return {
@@ -723,7 +723,6 @@ export function useMultiSelect(
     isCellSelected,
     activeCell,
     handleCellClick,
-    tbodyEl,
     resetSelectedRange,
     selectedRange,
     makeActive,

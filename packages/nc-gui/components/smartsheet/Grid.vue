@@ -104,7 +104,8 @@ const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
 const gridWrapper = ref<HTMLElement>()
-const tableHead = ref<HTMLElement>()
+const tableHeadEl = ref<HTMLElement>()
+const tableBodyEl = ref<HTMLElement>()
 
 const isAddingColumnAllowed = $computed(() => !readOnly.value && !isLocked.value && isUIAllowed('add-column') && !isSqlView.value)
 
@@ -199,7 +200,6 @@ const {
   clearSelectedRange,
   copyValue,
   isCellActive,
-  tbodyEl,
   resetSelectedRange,
   makeActive,
   selectedRange,
@@ -348,13 +348,13 @@ function scrollToCell(row?: number | null, col?: number | null) {
 
   if (row !== null && col !== null) {
     // get active cell
-    const rows = tbodyEl.value?.querySelectorAll('tr')
+    const rows = tableBodyEl.value?.querySelectorAll('tr')
     const cols = rows?.[row].querySelectorAll('td')
     const td = cols?.[col === 0 ? 0 : col + 1]
 
     if (!td || !gridWrapper.value) return
 
-    const { height: headerHeight } = tableHead.value!.getBoundingClientRect()
+    const { height: headerHeight } = tableHeadEl.value!.getBoundingClientRect()
     const tdScroll = getContainerScrollForElement(td, gridWrapper.value, { top: headerHeight, bottom: 9, right: 9 })
 
     // if first column set left to 0 since it's sticky it will be visible and calculated value will be wrong
@@ -465,7 +465,7 @@ const onXcResizing = (cn: string, event: any) => {
 defineExpose({
   loadData,
   openColumnCreate: (data) => {
-    tableHead.value?.querySelector('th:last-child')?.scrollIntoView({ behavior: 'smooth' })
+    tableHeadEl.value?.querySelector('th:last-child')?.scrollIntoView({ behavior: 'smooth' })
     setTimeout(() => {
       addColumnDropdown.value = true
       preloadColumn.value = data
@@ -642,7 +642,7 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
 
-onClickOutside(tbodyEl, (e) => {
+onClickOutside(tableBodyEl, (e) => {
   // do nothing if context menu was open
   if (contextMenu.value) return
 
@@ -826,7 +826,7 @@ const closeAddColumnDropdown = (scrollToLastCol = false) => {
   addColumnDropdown.value = false
   if (scrollToLastCol) {
     setTimeout(() => {
-      const lastAddNewRowHeader = tableHead.value?.querySelector('th:last-child')
+      const lastAddNewRowHeader = tableHeadEl.value?.querySelector('th:last-child')
       if (lastAddNewRowHeader) {
         lastAddNewRowHeader.scrollIntoView({ behavior: 'smooth' })
       }
@@ -889,7 +889,7 @@ function addEmptyRow(row?: number) {
           class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white"
           @contextmenu="showContextMenu"
         >
-          <thead ref="tableHead">
+          <thead ref="tableHeadEl">
             <tr class="nc-grid-header">
               <th class="w-[85px] min-w-[85px]" data-testid="grid-id-column">
                 <div class="w-full h-full bg-gray-100 flex pl-5 pr-1 items-center" data-testid="nc-check-all">
@@ -955,7 +955,7 @@ function addEmptyRow(row?: number) {
               </th>
             </tr>
           </thead>
-          <tbody ref="tbodyEl">
+          <tbody ref="tableBodyEl">
             <LazySmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
               <template #default="{ state }">
                 <tr

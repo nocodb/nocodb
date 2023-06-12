@@ -20,6 +20,7 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 const projectsStore = useProjects()
 
 const workspaceStore = useWorkspace()
+const { activeWorkspace } = storeToRefs(workspaceStore)
 const { loadProjects } = useProjects()
 const { createProject: _createProject } = projectsStore
 
@@ -45,13 +46,13 @@ const createProject = async () => {
     const project = await _createProject({
       type: props.type,
       title: formState.title,
-      workspaceId: workspaceStore.workspace!.id!,
+      workspaceId: activeWorkspace.value!.id!,
     })
 
     await loadProjects()
     navigateToProject({
       projectId: project.id!,
-      workspaceId: workspaceStore.workspace!.id!,
+      workspaceId: activeWorkspace.value!.id!,
       type: props.type,
     })
     dialogShow.value = false

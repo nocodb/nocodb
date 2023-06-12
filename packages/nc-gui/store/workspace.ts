@@ -6,19 +6,17 @@ import { isString } from '@vueuse/core'
 import { computed, ref, useCommandPalette, useNuxtApp, useRouter, useTheme } from '#imports'
 import type { ThemeConfig } from '~/lib'
 
+interface NcWorkspace extends WorkspaceType {
+  edit?: boolean
+  temp_title?: string | null
+  roles?: string
+}
+
 export const useWorkspace = defineStore('workspaceStore', () => {
-  const workspaces = ref<(WorkspaceType & { edit?: boolean; temp_title?: string | null; roles?: string })[]>([])
-
-  // const activeWorkspace = ref<WorkspaceType | null>()
-
-  const isWorkspaceLoading = ref(true)
-
   // todo: update type in swagger
   const projectsStore = useProjects()
 
   const collaborators = ref<WorkspaceUserType[] | null>()
-
-  const workspace = ref<WorkspaceType>()
 
   const router = useRouter()
 
@@ -32,24 +30,35 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { $e } = useNuxtApp()
 
+  const workspaces = ref<Map<string, NcWorkspace>>(new Map())
+  const workspacesList = computed<NcWorkspace[]>(() =>
+    Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at),
+  )
+
+  const isWorkspaceLoading = ref(true)
+
   const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(
     () => (route.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'workspace',
   )
 
-  const workspaceMeta = computed<Record<string, any>>(() => {
+  const activeWorkspace = computed(() => {
+    return (
+      workspaces.value?.get((route.query.workspaceId || route.params.workspaceId) as string) ??
+      (activePage.value === 'workspace' ? workspacesList.value[0] : null)
+    )
+  })
+
+  const activeWorkspaceMeta = computed<Record<string, any>>(() => {
     const defaultMeta = {}
-    if (!workspace.value) return defaultMeta
+    if (!activeWorkspace.value) return defaultMeta
     try {
-      return (isString(workspace.value.meta) ? JSON.parse(workspace.value.meta) : workspace.value.meta) ?? defaultMeta
+      return (
+        (isString(activeWorkspace.value.meta) ? JSON.parse(activeWorkspace.value.meta) : activeWorkspace.value.meta) ??
+        defaultMeta
+      )
     } catch (e) {
       return defaultMeta
     }
-  })
-  const activeWorkspace = computed(() => {
-    return (
-      workspaces.value?.find((w) => w.id === route.query.workspaceId || w.id === route.params.workspaceId) ??
-      (activePage.value === 'workspace' ? workspaces.value?.[0] : null)
-    )
   })
 
   /** getters */
@@ -66,11 +75,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   })
 
   /** actions */
-  const loadWorkspaceList = async () => {
+  const loadWorkspaces = async () => {
     try {
       // todo: pagination
       const { list, pageInfo: _ } = await $api.workspace.list()
-      workspaces.value = list ?? []
+      for (const workspace of list ?? []) {
+        workspaces.value.set(workspace.id!, workspace)
+      }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -170,15 +181,14 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   const loadWorkspace = async (workspaceId: string) => {
-    workspace.value = await $api.workspace.read(workspaceId)
-    workspaces.value = [workspace.value, ...workspaces.value.filter((w) => w.id !== workspaceId)]
+    const workspace = await $api.workspace.read(workspaceId)
+    workspaces.value.set(workspace.id!, workspace)
   }
 
   async function populateActiveWorkspace({ force }: { force?: boolean } = {}) {
     isWorkspaceLoading.value = true
     const workspaceId = (route.params.workspaceId ?? route.query.workspaceId) as string
-    const workspace = workspaces.value?.find((w) => w.id === workspaceId)
-    if (force || !workspace) {
+    if (force || !workspaces.value.get(workspaceId)) {
       await loadWorkspace(workspaceId)
     }
     await Promise.all([loadCollaborators(), projectsStore.loadProjects()])
@@ -252,9 +262,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       ..._theme,
     }
 
-    await updateWorkspace(workspace.value!.id!, {
+    await updateWorkspace(activeWorkspace.value!.id!, {
       meta: {
-        ...workspaceMeta.value,
+        ...activeWorkspace.value,
         theme: fullTheme,
       },
     })
@@ -265,8 +275,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   return {
-    loadWorkspaceList,
+    loadWorkspaces,
     workspaces,
+    workspacesList,
     createWorkspace,
     deleteWorkspace,
     updateWorkspace,
@@ -284,9 +295,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     updateProjectTitle,
     moveWorkspace,
     loadWorkspace,
-    workspace,
     saveTheme,
-    workspaceMeta,
+    activeWorkspaceMeta,
     isWorkspaceLoading,
     populateActiveWorkspace,
   }

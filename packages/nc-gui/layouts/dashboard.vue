@@ -241,6 +241,6 @@ export default {
   opacity: 0;
 }
 .nc-sidebar-wrapper.sidebar-short > * {
-  @apply !(rounded-lg border-1 border-gray-100 shadow-lg);
+  @apply !(rounded-r-lg border-1 border-gray-100 shadow-lg);
 }
 </style>

@@ -13,9 +13,10 @@ const props = defineProps<{
 const workspaceStore = useWorkspace()
 
 const { saveTheme } = workspaceStore
-const { workspace, workspaces, isWorkspaceOwner } = storeToRefs(workspaceStore)
+const { activeWorkspace, workspacesList, isWorkspaceOwner } = storeToRefs(workspaceStore)
+const { loadWorkspaces } = workspaceStore
 
-const { appInfo, token, signOut, signedIn, user, currentVersion } = useGlobal()
+const { signOut, signedIn, user } = useGlobal()
 
 const email = computed(() => user.value?.email ?? '---')
 
@@ -24,7 +25,7 @@ const { isUIAllowed } = useUIPermission()
 const { theme, defaultTheme } = useTheme()
 
 onMounted(async () => {
-  await workspaceStore.loadWorkspaceList()
+  await loadWorkspaces()
 })
 
 const workspaceModalVisible = ref(false)
@@ -33,13 +34,13 @@ const createDlg = ref(false)
 
 const onWorkspaceCreate = async (workspace: WorkspaceType) => {
   createDlg.value = false
-  await workspaceStore.loadWorkspaceList()
+  await loadWorkspaces()
   navigateTo(`/ws/${workspace.id}`)
 }
 
 const updateWorkspaceTitle = useDebounceFn(async () => {
-  await workspaceStore.updateWorkspace(workspace.value!.id!, {
-    title: workspace.value!.title,
+  await workspaceStore.updateWorkspace(activeWorkspace.value!.id!, {
+    title: activeWorkspace.value!.title,
   })
 }, 500)
 
@@ -110,13 +111,13 @@ const modalVisible = false
       >
         <template v-if="props.isOpen">
           <div class="flex-grow min-w-10 font-semibold">
-            <a-tooltip v-if="workspace?.title?.length > 12" placement="bottom">
-              <div class="text-md truncate">{{ workspace.title }}</div>
+            <a-tooltip v-if="activeWorkspace!.title!.length > 12" placement="bottom">
+              <div class="text-md truncate">{{ activeWorkspace!.title }}</div>
               <template #title>
-                <div class="text-sm !text-red-500">{{ workspace?.title }}</div>
+                <div class="text-sm !text-red-500">{{ activeWorkspace?.title }}</div>
               </template>
             </a-tooltip>
-            <div v-else class="text-md truncate capitalize">{{ workspace?.title }}</div>
+            <div v-else class="text-md truncate capitalize">{{ activeWorkspace?.title }}</div>
           </div>
 
           <MdiCodeTags class="min-w-[17px] text-md transform rotate-90" />
@@ -132,7 +133,11 @@ const modalVisible = false
           <a-menu-item-group class="!border-t-0">
             <!--  <div class="nc-menu-sub-head">Current Workspace</div> -->
             <div class="group select-none flex items-center gap-4 p-2 pb-0 !border-t-0">
-              <input v-model="workspace.title" class="nc-workspace-title-input text-current" @input="updateWorkspaceTitle" />
+              <input
+                v-model="activeWorkspace!.title"
+                class="nc-workspace-title-input text-current"
+                @input="updateWorkspaceTitle"
+              />
             </div>
 
             <a-menu-item @click="workspaceModalVisible = true">
@@ -153,7 +158,7 @@ const modalVisible = false
             <div class="nc-menu-sub-head">Workspaces</div>
 
             <div class="max-h-300px overflow-y-auto">
-              <a-menu-item v-for="workspace of workspaces" :key="workspace.id!" @click="navigateTo(`/ws/${workspace.id}`)">
+              <a-menu-item v-for="workspace of workspacesList" :key="workspace.id!" @click="navigateTo(`/ws/${workspace.id}`)">
                 <div class="nc-workspace-menu-item group">
                   <GeneralIcon icon="workspace" />
 

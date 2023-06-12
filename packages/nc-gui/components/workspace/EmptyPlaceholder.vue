@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { NcProjectType, useWorkspace } from '#imports'
+import { NcProjectType } from '#imports'
 
 const props = defineProps<{
   buttons?: boolean

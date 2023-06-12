@@ -13,7 +13,7 @@ const props = defineProps<{
 
 const project = toRef(props, 'project')
 
-const { isPublic, openedPageInSidebar, nestedPagesOfProjects, isEditAllowed, openedPage } = storeToRefs(useDocStore())
+const { openedPageInSidebar, nestedPagesOfProjects, isEditAllowed, openedPage } = storeToRefs(useDocStore())
 
 const {
   deletePage,
@@ -106,7 +106,6 @@ watch(
   (newPage, prevPage) => {
     if (!openedPageInSidebar.value) return
 
-    openedTabs.value = []
     if (newPage?.id === prevPage?.id) return
 
     const pageWithParents = getPageWithParents({

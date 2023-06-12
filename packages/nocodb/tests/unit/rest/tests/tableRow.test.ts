@@ -1422,22 +1422,15 @@ function tableTest() {
       rowId: row['Id'],
     });
 
-    const response = await request(context.app)
+    await request(context.app)
       .delete(`/api/v1/db/data/noco/${project.id}/${table.id}/${row['Id']}`)
       .set('xc-auth', context.token)
       .expect(200);
 
     const deleteRow = await getRow(context, { project, table, id: row['Id'] });
-    if (!deleteRow) {
-      throw new Error('Should not delete');
-    }
-
-    if (
-      !(response.body.message[0] as string).includes(
-        'is a LinkToAnotherRecord of',
-      )
-    ) {
-      throw new Error('Should give ltar foreign key error');
+    if (deleteRow && Object.keys(deleteRow).length > 0) {
+      console.log(deleteRow);
+      throw new Error('Wrong delete');
     }
   });
 

@@ -1001,9 +1001,9 @@ export default class View implements ViewType {
 
   // @ts-ignore
   static async delete(viewId, ncMeta = Noco.ncMeta) {
-    const view = await this.get(viewId);
-    await Sort.deleteAll(viewId);
-    await Filter.deleteAll(viewId);
+    const view = await this.get(viewId, ncMeta);
+    await Sort.deleteAll(viewId, ncMeta);
+    await Filter.deleteAll(viewId, ncMeta);
     const table = this.extractViewTableName(view);
     const tableScope = this.extractViewTableNameScope(view);
     const columnTable = this.extractViewColumnsTableName(view);
@@ -1273,8 +1273,8 @@ export default class View implements ViewType {
     );
   }
 
-  async delete() {
-    await View.delete(this.id);
+  async delete(ncMeta = Noco.ncMeta){
+    await View.delete(this.id, ncMeta);
   }
 
   static async shareViewList(tableId, ncMeta = Noco.ncMeta) {

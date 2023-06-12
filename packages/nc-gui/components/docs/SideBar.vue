@@ -215,7 +215,12 @@ function onExpandClick(id: string, expanded: boolean) {
                         class="text-lg"
                         :icon="page.icon"
                       ></IconifyIcon>
-                      <MdiFileDocumentOutline v-else />
+                      <MdiFileDocumentOutline
+                        v-else
+                        :class="{
+                          'text-black': openedPage?.id === page.id,
+                        }"
+                      />
                     </div>
                     <template #overlay>
                       <div class="flex flex-col p-1 bg-gray-50 rounded-md">
@@ -337,7 +342,7 @@ function onExpandClick(id: string, expanded: boolean) {
   }
   .ant-tree-node-selected {
     transition: none !important;
-    @apply !bg-primary-selected !hover:bg-primary-selected;
+    @apply !bg-primary-selected !hover:bg-primary-selected font-semibold;
   }
   .ant-tree-indent-unit {
     @apply w-0 !important;

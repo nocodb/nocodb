@@ -124,7 +124,10 @@ const { isSharedBase } = useProject()
                 <MdiTable
                   v-else
                   class="w-5 !text-gray-500"
-                  :class="{ 'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole) }"
+                  :class="{
+                    'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole),
+                    '!text-black': openedTableId === table.id,
+                  }"
                 />
 
                 <template v-if="isUIAllowed('tableIconCustomisation', false, projectRole)" #title>Change icon</template>
@@ -140,7 +143,12 @@ const { isSharedBase } = useProject()
           </component>
         </div>
 
-        <div class="nc-tbl-title flex-1">
+        <div
+          class="nc-tbl-title flex-1"
+          :class="{
+            'text-black !font-semibold': openedTableId === table.id,
+          }"
+        >
           <GeneralTruncateText :key="table.title" :length="openedTableId === table.id ? 18 : 20"
             >{{ table.title }}
           </GeneralTruncateText>

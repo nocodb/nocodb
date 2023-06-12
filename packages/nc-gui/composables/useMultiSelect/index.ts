@@ -532,7 +532,7 @@ export function useMultiSelect(
           const pasteRow = rowsToPaste[i]
 
           // TODO handle insert new row
-          if (pasteRow.rowMeta.new) break
+          if (!pasteRow || pasteRow.rowMeta.new) break
 
           pastedRows++
 
@@ -663,10 +663,10 @@ export function useMultiSelect(
 
           for (const row of rows) {
             // TODO handle insert new row
-            if (row.rowMeta.new) continue
+            if (!row || row.rowMeta.new) continue
 
             for (const col of cols) {
-              if (!row || !col || !col.title) continue
+              if (!col || !col.title) continue
 
               // skip pasting virtual columns (including LTAR columns for now)
               if (isVirtualCol(col)) {

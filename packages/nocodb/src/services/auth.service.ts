@@ -13,7 +13,9 @@ import type { CreateUserDto } from '../controllers/auth.controller';
 export class AuthService {
   constructor(private usersService: UsersService) {}
 
-  async validateUser(email: string, pass: string): Promise<any> {
+  async validateUser(_email: string, pass: string): Promise<any> {
+    const email = _email.toLowerCase();
+
     const user = await this.usersService.findOne(email);
     if (user) {
       const { password, salt, ...result } = user;

@@ -3,7 +3,6 @@ import { DashboardPage } from '../../pages/Dashboard';
 import { GridPage } from '../../pages/Dashboard/Grid';
 import setup from '../../setup';
 import { Api, UITypes } from 'nocodb-sdk';
-import { keyPress } from '../utils/general';
 
 let api: Api<any>;
 
@@ -20,32 +19,32 @@ test.describe('Verify shortcuts', () => {
   test('Verify shortcuts', async ({ page }) => {
     await dashboard.treeView.openTable({ title: 'Country' });
     // create new table
-    await keyPress(page, 'Alt+t');
+    await page.keyboard.press('Alt+t');
     await dashboard.treeView.createTable({ title: 'New Table', skipOpeningModal: true });
     await dashboard.treeView.verifyTable({ title: 'New Table' });
 
     // create new row
     await grid.column.clickColumnHeader({ title: 'Title' });
     await page.waitForTimeout(2000);
-    await keyPress(page, 'Alt+r');
+    await page.keyboard.press('Alt+r');
     await grid.editRow({ index: 0, value: 'New Row' });
     await grid.verifyRowCount({ count: 1 });
 
     // create new column
-    await keyPress(page, 'Alt+c');
+    await page.keyboard.press('Alt+c');
     await grid.column.fillTitle({ title: 'New Column' });
     await grid.column.save();
     await grid.column.verify({ title: 'New Column' });
 
     // fullscreen
-    await keyPress(page, 'Alt+f');
+    await page.keyboard.press('Alt+f');
     await dashboard.treeView.verifyVisibility({
       isVisible: false,
     });
     await dashboard.viewSidebar.verifyVisibility({
       isVisible: false,
     });
-    await keyPress(page, 'Alt+f');
+    await page.keyboard.press('Alt+f');
     await dashboard.treeView.verifyVisibility({
       isVisible: true,
     });
@@ -54,7 +53,7 @@ test.describe('Verify shortcuts', () => {
     });
 
     // invite team member
-    await keyPress(page, 'Alt+i');
+    await page.keyboard.press('Alt+i');
     await dashboard.settings.teams.invite({
       email: 'new@example.com',
       role: 'editor',
@@ -71,37 +70,37 @@ test.describe('Verify shortcuts', () => {
     await page.waitForTimeout(1500);
     await grid.cell.click({ index: 0, columnHeader: 'Country' });
     await page.waitForTimeout(1500);
-    await keyPress(page, 'Meta+ArrowRight');
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+ArrowRight' : 'Control+ArrowRight');
     await grid.cell.verifyCellActiveSelected({ index: 0, columnHeader: 'City List' });
 
     // Cmd + Right arrow
-    await keyPress(page, 'Meta+ArrowLeft');
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+ArrowLeft' : 'Control+ArrowLeft');
     await grid.cell.verifyCellActiveSelected({ index: 0, columnHeader: 'Country' });
 
     // Cmd + up arrow
     await grid.cell.click({ index: 24, columnHeader: 'Country' });
-    await keyPress(page, 'Meta+ArrowUp');
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+ArrowUp' : 'Control+ArrowUp');
     await grid.cell.verifyCellActiveSelected({ index: 0, columnHeader: 'Country' });
 
     // Cmd + down arrow
-    await keyPress(page, 'Meta+ArrowDown');
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+ArrowDown' : 'Control+ArrowDown');
     await grid.cell.verifyCellActiveSelected({ index: 24, columnHeader: 'Country' });
 
     // Enter to edit and Esc to cancel
     await grid.cell.click({ index: 0, columnHeader: 'Country' });
-    await keyPress(page, 'Enter');
+    await page.keyboard.press('Enter');
     await page.keyboard.type('New');
-    await keyPress(page, 'Escape');
+    await page.keyboard.press('Escape');
     await grid.cell.verify({ index: 0, columnHeader: 'Country', value: 'AfghanistanNew' });
 
     // Space to open expanded row and Meta + Space to save
     await grid.cell.click({ index: 1, columnHeader: 'Country' });
-    await keyPress(page, 'Space');
+    await page.keyboard.press('Space');
     await dashboard.expandedForm.verify({
       header: 'Algeria',
     });
     await dashboard.expandedForm.fillField({ columnTitle: 'Country', value: 'NewAlgeria' });
-    await keyPress(page, 'Meta+Enter');
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+Enter' : 'Control+Enter');
     await page.waitForTimeout(2000);
     await grid.cell.verify({ index: 1, columnHeader: 'Country', value: 'NewAlgeria' });
   });
@@ -290,8 +289,8 @@ test.describe('Clipboard support', () => {
   test('multiple cells - horizontal, all data types', async ({ page }) => {
     // click first cell, press `Ctrl A` and `Ctrl C`
     await grid.cell.click({ index: 0, columnHeader: 'Id' });
-    await keyPress(page, 'Meta+a');
-    await keyPress(page, 'Meta+c');
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+a' : 'Control+a');
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+c' : 'Control+c');
 
     /////////////////////////////////////////////////////////////////////////
 
@@ -300,8 +299,8 @@ test.describe('Clipboard support', () => {
     await grid.addNewRow({ index: 1, columnHeader: 'SingleLineText', value: 'aaa' });
     await dashboard.rootPage.waitForTimeout(1000);
     await grid.cell.click({ index: 1, columnHeader: 'SingleLineText' });
-    await keyPress(page, 'ArrowLeft');
-    await keyPress(page, 'Meta+v');
+    await page.keyboard.press('ArrowLeft');
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
     await verifyCellContents({ rowIndex: 1 });
 
     // reload page
@@ -316,15 +315,15 @@ test.describe('Clipboard support', () => {
     }
 
     await grid.cell.click({ index: 1, columnHeader: 'SingleLineText' });
-    await keyPress(page, 'Shift+ArrowDown');
-    await keyPress(page, 'Shift+ArrowDown');
-    await keyPress(page, 'Shift+ArrowDown');
-    await keyPress(page, 'Shift+ArrowDown');
-    await keyPress(page, 'Shift+ArrowDown');
+    await page.keyboard.press('Shift+ArrowDown');
+    await page.keyboard.press('Shift+ArrowDown');
+    await page.keyboard.press('Shift+ArrowDown');
+    await page.keyboard.press('Shift+ArrowDown');
+    await page.keyboard.press('Shift+ArrowDown');
 
-    await keyPress(page, 'Meta+c');
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+c' : 'Control+c');
     await grid.cell.click({ index: 1, columnHeader: 'LongText' });
-    await keyPress(page, 'Meta+v');
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
 
     // reload page
     await dashboard.rootPage.reload();
@@ -336,12 +335,12 @@ test.describe('Clipboard support', () => {
 
     // Block selection
     await grid.cell.click({ index: 1, columnHeader: 'SingleLineText' });
-    await keyPress(page, 'Shift+ArrowDown');
-    await keyPress(page, 'Shift+ArrowDown');
-    await keyPress(page, 'Shift+ArrowRight');
-    await keyPress(page, 'Meta+c');
+    await page.keyboard.press('Shift+ArrowDown');
+    await page.keyboard.press('Shift+ArrowDown');
+    await page.keyboard.press('Shift+ArrowRight');
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+c' : 'Control+c');
     await grid.cell.click({ index: 4, columnHeader: 'SingleLineText' });
-    await keyPress(page, 'Meta+v');
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
 
     // reload page
     await dashboard.rootPage.reload();
@@ -358,10 +357,10 @@ test.describe('Clipboard support', () => {
 
     // // Meta for block selection
     // await grid.cell.click({ index: 1, columnHeader: 'SingleLineText' });
-    // await keyPress(page, 'Shift+Meta+ArrowDown');
-    // await keyPress(page, 'Meta+c');
+    // await page.keyboard.press('Shift+Meta+ArrowDown');
+    // await page.keyboard.press((await grid.isMacOs()) ? 'Meta+c' : 'Control+c');
     // await grid.cell.click({ index: 1, columnHeader: 'Email' });
-    // await keyPress(page, 'Meta+v');
+    // await page.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
     //
     // // reload page
     // await dashboard.rootPage.reload();

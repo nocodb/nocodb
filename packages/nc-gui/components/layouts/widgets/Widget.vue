@@ -21,10 +21,12 @@ const isButton = computed(() => widget.value.widget_type === WidgetTypeType.Butt
 </script>
 
 <template>
-  <LayoutsWidgetsChart v-if="isChart" :widget-config="widget as ChartWidget" />
-  <LayoutsWidgetsNumber v-else-if="isNumber" :widget-config="widget as NumberWidget" />
-  <LayoutsWidgetsText v-else-if="isStaticText" :widget-config="widget as StaticTextWidget" />
-  <LayoutsWidgetsButton v-else-if="isButton" :widget-config="widget as ButtonWidget" />
+  <template v-if="widget">
+    <LayoutsWidgetsChart v-if="isChart" :widget-config="widget as ChartWidget" />
+    <LayoutsWidgetsNumber v-else-if="isNumber" :widget-config="widget as NumberWidget" />
+    <LayoutsWidgetsText v-else-if="isStaticText" :widget-config="widget as StaticTextWidget" />
+    <LayoutsWidgetsButton v-else-if="isButton" :widget-config="widget as ButtonWidget" />
 
-  <div v-else>Visualisation Type '{{ widget.widget_type }}' not yet implemented</div>
+    <div v-else>Visualisation Type '{{ widget.widget_type }}' not yet implemented</div>
+  </template>
 </template>

@@ -1339,7 +1339,7 @@ function viewRowTests() {
     await testDeleteViewRow(ViewTypes.FORM);
   });
 
-  const testDeleteViewRowWithForiegnKeyConstraint = async (
+  const testDeleteViewRowWithForeignKeyConstraint = async (
     viewType: ViewTypes,
   ) => {
     const table = await createTable(context, project);
@@ -1370,7 +1370,7 @@ function viewRowTests() {
       rowId: row['Id'],
     });
 
-    const response = await request(context.app)
+    await request(context.app)
       .delete(
         `/api/v1/db/data/noco/${project.id}/${table.id}/views/${view.id}/${row['Id']}`,
       )
@@ -1390,15 +1390,15 @@ function viewRowTests() {
   };
 
   it('Delete view row with ltar foreign key constraint GALLERY', async function () {
-    await testDeleteViewRowWithForiegnKeyConstraint(ViewTypes.GALLERY);
+    await testDeleteViewRowWithForeignKeyConstraint(ViewTypes.GALLERY);
   });
 
   it('Delete view row with ltar foreign key constraint GRID', async function () {
-    await testDeleteViewRowWithForiegnKeyConstraint(ViewTypes.GRID);
+    await testDeleteViewRowWithForeignKeyConstraint(ViewTypes.GRID);
   });
 
   it('Delete view row with ltar foreign key constraint FORM', async function () {
-    await testDeleteViewRowWithForiegnKeyConstraint(ViewTypes.FORM);
+    await testDeleteViewRowWithForeignKeyConstraint(ViewTypes.FORM);
   });
 
   const testViewRowExists = async (viewType: ViewTypes) => {

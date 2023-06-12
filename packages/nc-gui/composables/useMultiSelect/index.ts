@@ -453,5 +453,6 @@ export function useMultiSelect(
     tbodyEl,
     resetSelectedRange,
     selectedRange,
+    makeActive,
   }
 }

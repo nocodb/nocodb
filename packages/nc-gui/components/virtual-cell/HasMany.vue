@@ -6,6 +6,7 @@ import {
   ColumnInj,
   IsFormInj,
   IsLockedInj,
+  IsUnderLookupInj,
   ReadonlyInj,
   ReloadRowDataHookInj,
   RowInj,
@@ -16,7 +17,6 @@ import {
   useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
   useUIPermission,
-  IsUnderLookupInj
 } from '#imports'
 
 const column = inject(ColumnInj)!

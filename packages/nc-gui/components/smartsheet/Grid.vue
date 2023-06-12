@@ -117,7 +117,7 @@ const {
   formattedData: data,
   updateOrSaveRow,
   changePage,
-  addEmptyRow,
+  addEmptyRow: _addEmptyRow,
   deleteRow,
   deleteSelectedRows,
   selectedAllRecords,
@@ -200,6 +200,7 @@ const {
   isCellActive,
   tbodyEl,
   resetSelectedRange,
+  makeActive,
   selectedRange,
 } = useMultiSelect(
   meta,
@@ -429,6 +430,8 @@ const showLoading = ref(true)
 
 const skipRowRemovalOnCancel = ref(false)
 
+const preloadColumn = ref<Partial<any>>()
+
 function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) {
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
 
@@ -458,6 +461,13 @@ const onXcResizing = (cn: string, event: any) => {
 
 defineExpose({
   loadData,
+  openColumnCreate: (data) => {
+    tableHead.value?.querySelector('th:last-child')?.scrollIntoView({ behavior: 'smooth' })
+    setTimeout(() => {
+      addColumnDropdown.value = true
+      preloadColumn.value = data
+    }, 500)
+  },
 })
 
 // reset context menu target on hide
@@ -774,26 +784,25 @@ eventBus.on(async (event, payload) => {
   }
 })
 
-const closeAddColumnDropdown = () => {
+const closeAddColumnDropdown = (scrollToLastCol = false) => {
   columnOrder.value = null
   addColumnDropdown.value = false
+  if (scrollToLastCol) {
+    setTimeout(() => {
+      const lastAddNewRowHeader = tableHead.value?.querySelector('th:last-child')
+      if (lastAddNewRowHeader) {
+        lastAddNewRowHeader.scrollIntoView({ behavior: 'smooth' })
+      }
+    }, 200)
+  }
 }
 
 const confirmDeleteRow = (row: number) => {
-  Modal.confirm({
-    title: `Do you want to delete this row?`,
-    wrapClassName: 'nc-modal-row-delete',
-    okText: 'Yes',
-    okType: 'danger',
-    cancelText: 'No',
-    onOk() {
-      try {
-        deleteRow(row)
-      } catch (e: any) {
-        message.error(e.message)
-      }
-    },
-  })
+  try {
+    deleteRow(row)
+  } catch (e: any) {
+    message.error(e.message)
+  }
 }
 
 const deleteSelectedRangeOfRows = () => {
@@ -802,6 +811,15 @@ const deleteSelectedRangeOfRows = () => {
     activeCell.row = null
     activeCell.col = null
   })
+}
+
+function addEmptyRow(row?: number) {
+  const rowObj = _addEmptyRow(row)
+  nextTick().then(() => {
+    makeActive(row ?? data.value.length - 1, 0)
+    scrollToCell?.()
+  })
+  return rowObj
 }
 </script>
 
@@ -826,7 +844,7 @@ const deleteSelectedRangeOfRows = () => {
         >
           <thead ref="tableHead">
             <tr class="nc-grid-header">
-              <th class="w-[80px] min-w-[80px]" data-testid="grid-id-column">
+              <th class="w-[85px] min-w-[85px]" data-testid="grid-id-column">
                 <div class="w-full h-full bg-gray-100 flex pl-5 pr-1 items-center" data-testid="nc-check-all">
                   <template v-if="!readOnly">
                     <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
@@ -878,9 +896,10 @@ const deleteSelectedRangeOfRows = () => {
                   <template #overlay>
                     <SmartsheetColumnEditOrAddProvider
                       v-if="addColumnDropdown"
+                      :preload="preloadColumn"
                       :column-position="columnOrder"
-                      @submit="closeAddColumnDropdown"
-                      @cancel="closeAddColumnDropdown"
+                      @submit="closeAddColumnDropdown(true)"
+                      @cancel="closeAddColumnDropdown()"
                       @click.stop
                       @keydown.stop
                     />
@@ -894,7 +913,7 @@ const deleteSelectedRangeOfRows = () => {
               <template #default="{ state }">
                 <tr
                   class="nc-grid-row"
-                  :style="{ height: rowHeight ? `${rowHeight * 1.5}rem` : `1.5rem` }"
+                  :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
                   :data-testid="`grid-row-${rowIndex}`"
                 >
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1" :data-testid="`cell-Id-${rowIndex}`">
@@ -955,7 +974,8 @@ const deleteSelectedRangeOfRows = () => {
                     :key="columnObj.id"
                     class="cell relative nc-grid-cell"
                     :class="{
-                      'active': isCellSelected(rowIndex, colIndex),
+                      'cursor-pointer': hasEditPermission,
+                      'active': hasEditPermission && isCellSelected(rowIndex, colIndex),
                       'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
                       'align-middle': !rowHeight || rowHeight === 1,
                       'align-top': rowHeight && rowHeight !== 1,
@@ -1003,21 +1023,19 @@ const deleteSelectedRangeOfRows = () => {
               </template>
             </LazySmartsheetRow>
 
-            <tr v-if="isAddingEmptyRowAllowed">
-              <td
-                v-e="['c:row:add:grid-bottom']"
-                :colspan="visibleColLength + 1"
-                class="text-left pointer nc-grid-add-new-cell cursor-pointer"
-                @click="addEmptyRow()"
-              >
+            <tr
+              v-if="isAddingEmptyRowAllowed"
+              v-e="['c:row:add:grid-bottom']"
+              class="cursor-pointer"
+              @mouseup.stop
+              @click="addEmptyRow()"
+            >
+              <td class="text-left pointer nc-grid-add-new-cell sticky left-0 !z-5 !border-r-0">
                 <div class="px-2 w-full flex items-center text-gray-500">
                   <component :is="iconMap.plus" class="text-pint-500 text-xs ml-2 text-primary" />
-
-                  <span class="ml-1">
-                    {{ $t('activity.addRow') }}
-                  </span>
                 </div>
               </td>
+              <td :colspan="visibleColLength"></td>
             </tr>
           </tbody>
         </table>
@@ -1079,8 +1097,23 @@ const deleteSelectedRangeOfRows = () => {
       </a-dropdown>
     </div>
 
-    <LazySmartsheetPagination />
+    <div
+      v-if="isAddingEmptyRowAllowed"
+      class="absolute bottom-1px left-2 z-4"
+      data-testid="nc-grid-add-new-row"
+      @click="addEmptyRow()"
+    >
+      <a-button v-e="['c:row:add:grid-bottom', { footer: true }]" class="!rounded-xl" size="small">
+        <div class="flex items-center">
+          <component :is="iconMap.plus" class="text-pint-500 text-xs" />
+          <span class="ml-1">
+            {{ $t('activity.addRow') }}
+          </span>
+        </div>
+      </a-button>
+    </div>
 
+    <LazySmartsheetPagination align-count-on-right> </LazySmartsheetPagination>
     <Suspense>
       <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"
@@ -1179,14 +1212,14 @@ const deleteSelectedRangeOfRows = () => {
 
   thead th:nth-child(2) {
     position: sticky !important;
-    left: 80px;
+    left: 85px;
     z-index: 5;
     @apply border-r-2 border-r-gray-300;
   }
 
   tbody td:nth-child(2) {
     position: sticky !important;
-    left: 80px;
+    left: 85px;
     z-index: 4;
     background: white;
     @apply border-r-2 border-r-gray-300;

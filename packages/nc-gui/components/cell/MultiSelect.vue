@@ -10,6 +10,7 @@ import {
   ColumnInj,
   IsKanbanInj,
   ReadonlyInj,
+  RowHeightInj,
   computed,
   enumColor,
   extractSdkResponseErrorMsg,
@@ -51,6 +52,8 @@ const editable = inject(EditModeInj, ref(false))
 const isPublic = inject(IsPublicInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
+
+const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const selectedIds = ref<string[]>([])
 
@@ -327,7 +330,17 @@ const selectedOpts = computed(() => {
 
 <template>
   <div class="nc-multi-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
-    <div v-if="!editable && !active" class="flex flex-nowrap">
+    <div
+      v-if="!editable && !active"
+      class="flex flex-wrap"
+      :style="{
+        'display': '-webkit-box',
+        'max-width': '100%',
+        '-webkit-line-clamp': rowHeight || 1,
+        '-webkit-box-orient': 'vertical',
+        'overflow': 'hidden',
+      }"
+    >
       <template v-for="selectedOpt of selectedOpts" :key="selectedOpt.value">
         <a-tag class="rounded-tag" :color="selectedOpt.color" :style="{ order: selectedOpt.index }">
           <span

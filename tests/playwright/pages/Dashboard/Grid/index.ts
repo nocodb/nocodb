@@ -77,8 +77,9 @@ export class GridPage extends BasePage {
     if (index !== 0) await this.get().locator('.nc-grid-row').nth(0).waitFor({ state: 'attached' });
     const rowCount = await this.get().locator('.nc-grid-row').count();
 
-    await (await this.get().locator('.nc-grid-add-new-cell').elementHandle())?.waitForElementState('stable');
-    await this.get().locator('.nc-grid-add-new-cell').click();
+    const addNewRowButton: Locator = await this.rootPage.locator(`[data-testid="nc-grid-add-new-row"]`);
+    await addNewRowButton.waitFor({ state: 'visible' });
+    await addNewRowButton.click();
 
     await expect(await this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);
 
@@ -156,7 +157,7 @@ export class GridPage extends BasePage {
 
     // Click text=Delete Row
     await this.rootPage.locator('text=Delete Row').click();
-    await this.rootPage.locator('text=Yes').click();
+
     // todo: improve selector
     await this.rootPage
       .locator('span.ant-dropdown-menu-title-content > nc-project-menu-item')
@@ -168,6 +169,7 @@ export class GridPage extends BasePage {
 
   async addRowRightClickMenu(index: number) {
     const rowCount = await this.get().locator('.nc-grid-row').count();
+    await this.get().locator(`td[data-testid="cell-Title-${index}"]`).click();
     await this.get().locator(`td[data-testid="cell-Title-${index}"]`).click({
       button: 'right',
     });
@@ -180,6 +182,12 @@ export class GridPage extends BasePage {
     await this.row(index).locator(`td[data-testid="cell-Id-${index}"]`).hover();
     await this.row(index).locator(`div[data-testid="nc-expand-${index}"]`).click();
     await (await this.rootPage.locator('.ant-drawer-body').elementHandle())?.waitForElementState('stable');
+  }
+
+  async selectRow(index: number) {
+    const cell: Locator = await this.get().locator(`td[data-testid="cell-Id-${index}"]`);
+    await cell.hover();
+    await cell.locator('input[type="checkbox"]').check({ force: true });
   }
 
   async selectAll() {
@@ -198,13 +206,17 @@ export class GridPage extends BasePage {
     await this.rootPage.waitForTimeout(300);
   }
 
-  async deleteAll() {
-    await this.selectAll();
+  async deleteSelectedRows() {
     await this.get().locator('[data-testid="nc-check-all"]').nth(0).click({
       button: 'right',
     });
     await this.rootPage.locator('text=Delete Selected Rows').click();
     await this.dashboard.waitForLoaderToDisappear();
+  }
+
+  async deleteAll() {
+    await this.selectAll();
+    await this.deleteSelectedRows();
   }
 
   async verifyTotalRowCount({ count }: { count: number }) {

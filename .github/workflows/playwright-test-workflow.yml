@@ -28,6 +28,7 @@ jobs:
             sudo chmod 600 $SWAP_FILE
             sudo mkswap $SWAP_FILE
             sudo swapon $SWAP_FILE
+            sudo apt-get install gawk
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
@@ -128,6 +129,25 @@ jobs:
             sleep 2
           done
           PLAYWRIGHT_HTML_REPORT=playwright-report-quick npm run test:quick
+      - name: Stop Server and Generate Coverage Report
+        if: always()
+        working-directory: ./packages/nocodb
+        run: |
+          echo "Running process id :"
+          ps -ef | grep -e "nodemon" -e "ts-node" | grep -v grep
+          ps -ef | grep -e "nodemon" -e "ts-node" | grep -v grep | awk '{print $2}'
+          process_id=$(ps -ef | grep -e "nodemon" -e "ts-node" | grep -v grep | awk '{print $2}')
+          if [[ ${process_id} ]]; then
+            echo "Killing process ${process_id}"
+            kill -2 ${process_id}
+            sleep 3
+            ls -ltr .nyc_output/*
+            ps -ef | grep -e "nodemon" -e "ts-node" | grep -v grep | awk '{print $2}'
+            npm run gen-coverage-report
+          else
+            echo "process_id : ${process_id} could not found"
+          fi   
+          
       - uses: actions/upload-artifact@v3
         if: ${{ inputs.db == 'sqlite' }}
         with:
@@ -158,4 +178,10 @@ jobs:
         with:
           name: backend-logs-${{ inputs.db }}-${{ inputs.shard }}
           path: ./packages/nocodb/${{ inputs.db }}_${{ inputs.shard }}_test_backend.log
+          retention-days: 2
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: coverage-${{ inputs.db }}-${{ inputs.shard }}
+          path: ./packages/nocodb/coverage
           retention-days: 2

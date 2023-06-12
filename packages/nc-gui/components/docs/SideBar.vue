@@ -320,14 +320,11 @@ function onExpandClick(id: string, expanded: boolean) {
 
 .ant-tree-treenode:hover {
   .nc-sidebar-expand {
-    @apply !text-gray-500 !visible;
+    @apply !text-gray-500;
   }
 }
 .ant-tree-treenode:last-child {
   @apply !mb-0;
-}
-.nc-sidebar-expand {
-  @apply invisible;
 }
 .ant-tree-node-content-wrapper {
   @apply w-full mr-0.5 pl-0.5 bg-inherit transition-none !important;

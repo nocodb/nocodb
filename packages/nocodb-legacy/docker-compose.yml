@@ -1,0 +1,453 @@
+version: "2.2"
+
+services:
+    # db55:
+    #   image: mysql:5.5
+    #   restart: always
+    #   environment:
+    #     MYSQL_ROOT_PASSWORD: password
+    #   ports:
+    #     - 3355:3306
+    #   volumes:
+    #     - ./mysql-sakila-db:/docker-entrypoint-initdb.d
+    # db56:
+    #   image: mysql:5.6
+    #   restart: always
+    #   environment:
+    #     MYSQL_ROOT_PASSWORD: password
+    #   ports:
+    #     - 3356:3306
+    #   volumes:
+    #     - ./mysql-sakila-db:/docker-entrypoint-initdb.d
+    # db57:
+    #   image: mysql:5.7
+    #   restart: always
+    #   environment:
+    #     MYSQL_ROOT_PASSWORD: password
+    #   ports:
+    #    - 3357:3306
+    #   volumes:
+    #    - ./tests/mysql-sakila-db:/docker-entrypoint-initdb.d
+      # healthcheck:
+      #    test: "/etc/init.d/mysql status"
+      #    interval: 1s
+      #    retries: 240
+    db8032:
+      image: mysql:8.0.32
+      restart: always
+      environment:
+        MYSQL_ROOT_PASSWORD: password
+      ports:
+        - 3380:3306
+      volumes:
+        - ./tests/mysql-sakila-db:/docker-entrypoint-initdb.d
+      healthcheck:
+         test: "/etc/init.d/mysql status"
+         interval: 1s
+         retries: 240
+    # maria102:
+    #   image: mariadb:10.2
+    #   restart: always
+    #   environment:
+    #     MYSQL_ROOT_PASSWORD: password
+    #   ports:
+    #     - 3412:3306
+    #   volumes:
+    #     - ./mysql-sakila-db:/docker-entrypoint-initdb.d
+    # maria103:
+    #   image: mariadb:10.3
+    #   restart: always
+    #   environment:
+    #     MYSQL_ROOT_PASSWORD: password
+    #   ports:
+    #     - 3413:3306
+    #   volumes:
+    #     - ./mysql-sakila-db:/docker-entrypoint-initdb.d
+    # maria104:
+    #   image: mariadb:10.4
+    #   restart: always
+    #   environment:
+    #     MYSQL_ROOT_PASSWORD: password
+    #   ports:
+    #     - 3414:3306
+    #   volumes:
+    #     - ./mysql-sakila-db:/docker-entrypoint-initdb.d
+    # healthcheck:
+    #   test: '/usr/bin/mysql --user=root --password=password --database=sakila --execute "SELECT count(*) FROM payment;"'
+    #   interval: 10s
+    #   timeout: 3s
+    #   retries: 10
+    #  ERROR 1832 (HY000) at line 23: Cannot change column 'manager_staff_id': used in a foreign key constraint 'fk_store_staff'
+    # pg9.4:
+    #   image: postgres:9.4
+    #   restart: always
+    #   environment:
+    #     POSTGRES_PASSWORD: password
+    #   ports:
+    #     - 5494:5432
+    #   volumes:
+    #     - ./pg-sakila-db:/docker-entrypoint-initdb.d
+    # pg9.5:
+    #   image: postgres:9.5
+    #   restart: always
+    #   environment:
+    #     POSTGRES_PASSWORD: password
+    #   ports:
+    #     - 5495:5432
+    #   volumes:
+    #     - ./pg-sakila-db:/docker-entrypoint-initdb.d
+    pg147:
+     image: postgres:14.7
+     restart: always
+     environment:
+       POSTGRES_PASSWORD: password
+     ports:
+       - 5496:5432
+     volumes:
+       - ./tests/pg-sakila-db:/docker-entrypoint-initdb.d
+     healthcheck:
+       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+       interval: 10s
+       timeout: 5s
+       retries: 5
+    # pg10:
+    #   image: postgres:10
+    #   restart: always
+    #   environment:
+    #     POSTGRES_PASSWORD: password
+    #   ports:
+    #     - 5410:5432
+    #   volumes:
+    #     - ./pg-sakila-db:/docker-entrypoint-initdb.d
+    # pg11:
+    #   image: postgres:11
+    #   restart: always
+    #   environment:
+    #     POSTGRES_PASSWORD: password
+    #   ports:
+    #     - 5411:5432
+    #   volumes:
+    #     - ./pg-sakila-db:/docker-entrypoint-initdb.d
+    # INFO: not working sqlite
+    # sqlite3:
+    #   image: nouchka/sqlite3:latest
+    #   restart: always
+    #   command: sqlite3 /root/db/01-sqlite-sakila-schema.sql
+    #   # environment:
+    #   #   MYSQL_ROOT_PASSWORD: password
+    #   stdin_open: true
+    #   tty: true
+    #   # ports:
+    #   #   - 3414:3306
+    #   volumes:
+    #     - ./sqlite-sakila-db:/root/db/
+    #     # - ./sqlite-sakila-db:/root/db/
+    mssql:
+     image: mcr.microsoft.com/mssql/server:2019-CU11-ubuntu-20.04
+     # restart: always
+     environment:
+       ACCEPT_EULA: Y
+       SA_PASSWORD: Password123.
+     ports:
+       - 1433:1433
+     volumes:
+       - ./tests/sql-server-sakila-db:/scripts/
+     command:
+       - /bin/bash
+       - -c
+       - |
+         echo "Starting to import - - - - - - - -"
+         # Launch MSSQL and send to background
+         /opt/mssql/bin/sqlservr &
+         # Wait 30 seconds for it to be available
+         # (lame, I know, but there's no nc available to start prodding network ports)
+         sleep 30
+         /opt/mssql-tools/bin/sqlcmd -U sa -P $$SA_PASSWORD -l 30  -i /scripts/01-sql-server-sakila-schema.sql
+         /opt/mssql-tools/bin/sqlcmd -U sa -P $$SA_PASSWORD -l 30  -i /scripts/02-sql-server-sakila-insert-data.sql
+         # So that the container doesn't shut down, sleep this thread
+         echo "DONE inserting - - - - - - - -"
+         python -m SimpleHTTPServer 80
+         sleep infinity
+#     healthcheck:
+#       test: curl -sS http://localhost || exit 1
+#       interval: 15s
+#       retries: 200
+    #  oracle18:
+    #    image: quillbuilduser/oracle-18-xe
+    #    restart: always
+    #    environment:
+    #      - IMPORT_FROM_VOLUME=true
+    #    ports:
+    #      - 1521:1521
+    #      - 8080:8080
+    #    volumes:
+    #      - ./oracle-sakila-db:/docker-entrypoint-initdb.d
+    # oracle12c:
+    #   image: andersjanmyr/oracle-12c-extended
+    #   restart: always
+    #   environment:
+    #     - IMPORT_FROM_VOLUME=true
+    #   ports:
+    #     - 1521:1521
+    #     - 8080:8080
+    #   volumes:
+    #     - ./oracle-sakila-db:/docker-entrypoint-initdb.d
+    # oracle11g:
+    #   image: oracleinanutshell/oracle-xe-11g
+    #   restart: always
+    #   environment:
+    #     - ORACLE_DISABLE_ASYNCH_IO=true
+    #     - ORACLE_ALLOW_REMOTE=true
+    #   ports:
+    #     - 1521:1521
+    #   volumes:
+    #     - ./oracle-sakila-db:/docker-entrypoint-initdb.d
+
+    # knexPG:
+    #   image: node
+    #   depends_on:
+    #     - pg10
+    #   volumes:
+    #     - ./:/home/app
+    #   environment:
+    #     DOCKER_DB_HOST: pg10
+    #     DOCKER_DB_PORT: 5432
+    #     DOCKERIZE_VERSION: v0.6.1
+    #   command:
+    #     - /bin/bash
+    #     - -c
+    #     - |
+    #       echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    #       chmod +x /home/app/dockerize.sh && /home/app/dockerize.sh  && cd /home/app/ && npm i && npm test
+    # knexOracle11g:
+    #   image: node
+    #   depends_on:
+    #     - oracle11g
+    #   volumes:
+    #     - ./:/home/app
+    #     - ./instantclient_18_5:/opt/oracle/instantclient_18_5
+    #   environment:
+    #     DOCKER_DB_HOST: oracle11g
+    #     DOCKER_DB_PORT: 1521
+    #     DOCKERIZE_VERSION: v0.6.1
+    #   command:
+    #     - /bin/bash
+    #     - -c
+    #     - |
+    #       echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    #       apt update -y
+    #       apt install libaio1 libaio-dev -y
+    #       echo /opt/oracle/instantclient_18_5 > /etc/ld.so.conf.d/oracle-instantclient.conf
+    #       ldconfig
+    #       mkdir -p /opt/oracle/instantclient_18_5/network/admin
+    #       chmod +x /home/app/dockerize-oracle.sh && /home/app/dockerize-oracle.sh && cd /home/app/ && npm i && npm test
+    # knexOracle12c:
+    #   image: node
+    #   depends_on:
+    #     - oracle12c
+    #   volumes:
+    #     - ./:/home/app
+    #     - ./instantclient_18_5:/opt/oracle/instantclient_18_5
+    #   environment:
+    #     DOCKER_DB_HOST: oracle12c
+    #     DOCKER_DB_PORT: 1521
+    #     DOCKERIZE_VERSION: v0.6.1
+    #   command:
+    #     - /bin/bash
+    #     - -c
+    #     - |
+    #       echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    #       apt update -y
+    #       apt install libaio1 libaio-dev -y
+    #       echo /opt/oracle/instantclient_18_5 > /etc/ld.so.conf.d/oracle-instantclient.conf
+    #       ldconfig
+    #       mkdir -p /opt/oracle/instantclient_18_5/network/admin
+    #       chmod +x /home/app/dockerize-oracle.sh && /home/app/dockerize-oracle.sh && cd /home/app/ && npm i && npm test
+    #  knexOracle18:
+    #    image: node
+    #    depends_on:
+    #      - oracle18
+    #    volumes:
+    #      - ./:/home/app
+    #      - ./instantclient_18_5:/opt/oracle/instantclient_18_5
+    #    environment:
+    #      DOCKER_DB_HOST: oracle18
+    #      DOCKER_DB_PORT: 1521
+    #      DOCKERIZE_VERSION: v0.6.1
+    #    command:
+    #      - /bin/bash
+    #      - -c
+    #      - |
+    #        echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    #        apt update -y
+    #        apt install libaio1 libaio-dev -y
+    #        echo /opt/oracle/instantclient_18_5 > /etc/ld.so.conf.d/oracle-instantclient.conf
+    #        ldconfig
+    #        mkdir -p /opt/oracle/instantclient_18_5/network/admin
+    #        chmod +x /home/app/dockerize-oracle.sh && /home/app/dockerize-oracle.sh && cd /home/app/ && npm i && npm test
+    # knexMSSQL:
+    #   image: node
+    #   depends_on:
+    #     - mssql
+    #   volumes:
+    #     - ./:/home/app
+    #   environment:
+    #     DOCKER_DB_HOST: mssql
+    #     DOCKER_DB_PORT: 1433
+    #     DOCKERIZE_VERSION: v0.6.1
+    #   command:
+    #     - /bin/bash
+    #     - -c
+    #     - |
+    #       echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    #       chmod +x /home/app/dockerize-mssql.sh && /home/app/dockerize-mssql.sh  && cd /home/app/ && npm i && npm test
+    # knexMySQL:
+    #   image: node
+    #   depends_on:
+    #     - db57
+    #   volumes:
+    #     - ./:/home/app
+    #   environment:
+    #     DOCKER_DB_HOST: db57
+    #     DOCKER_DB_PORT: 3306
+    #     DOCKERIZE_VERSION: v0.6.1
+    #   command:
+    #     - /bin/bash
+    #     - -c
+    #     - |
+    #       echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    #       chmod +x /home/app/dockerize.sh && /home/app/dockerize.sh  && cd /home/app/ && npm i && npm test
+    xc-test-mysql:
+      image: node:12.22.1-slim
+      depends_on:
+        db57:
+          condition: service_healthy
+      volumes:
+        - ./:/home/app
+      environment:
+        NODE_ENV: test
+        DATABASE_URL: mysql://root:password@db57:3306/sakila
+      command:
+        - /bin/bash
+        - -c
+        - |
+          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+          cd /home/app/ && npm i && npm run test:rest
+
+    xc-test-pg:
+      image: node:12.22.1-slim
+      depends_on:
+        pg147:
+          condition: service_healthy
+      volumes:
+        - ./:/home/app
+      environment:
+        NODE_ENV: test
+        DATABASE_URL: postgres://postgres:password@pg147:5432/postgres
+      command:
+        - /bin/bash
+        - -c
+        - |
+          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+          cd /home/app/ && npm i && npm run test:rest
+
+    xc-test-mssql:
+      image: node:12.22.1-slim
+      depends_on:
+        - mssql
+      volumes:
+        - ./:/home/app
+      environment:
+        NODE_ENV: test
+        DATABASE_URL: mssql://sa:Password123.@mssql:1433/sakila
+        DOCKER_DB_HOST: mssql
+        DOCKERIZE_VERSION: v0.6.1
+      command:
+        - /bin/bash
+        - -c
+        - |
+          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"#
+          chmod +x /home/app/tests/dockerize-mssql.sh && /home/app/tests/dockerize-mssql.sh  && cd /home/app/  && npm i && npm run test:rest
+
+    xc-test-sqlite:
+      image: node:12.22.1-slim
+      volumes:
+        - ./:/home/app
+      environment:
+        NODE_ENV: test
+        DATABASE_URL: sqlite:////home/sakila.db
+      command:
+        - /bin/bash
+        - -c
+        - |
+          cp /home/app/tests/sqlite-dump/sakila.db /home/sakila.db
+          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"#
+          cd /home/app/  && npm i && npm run test:rest
+
+
+    xc-test-gql-mysql:
+      image: node:12.22.1-slim
+      depends_on:
+        db57:
+          condition: service_healthy
+      volumes:
+        - ./:/home/app
+      environment:
+        NODE_ENV: test
+        DATABASE_URL: mysql://root:password@db57:3306/sakila
+      command:
+        - /bin/bash
+        - -c
+        - |
+          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+          cd /home/app/ && npm i && npm run test:graphql
+
+    xc-test-gql-pg:
+      image: node:12.22.1-slim
+      depends_on:
+        pg147:
+          condition: service_healthy
+      volumes:
+        - ./:/home/app
+      environment:
+        NODE_ENV: test
+        DATABASE_URL: postgres://postgres:password@pg147:5432/postgres
+      command:
+        - /bin/bash
+        - -c
+        - |
+          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+          cd /home/app/ && npm i && npm run test:graphql
+
+    xc-test-gql-mssql:
+      image: node:12.22.1-slim
+      depends_on:
+        - mssql
+      volumes:
+        - ./:/home/app
+      environment:
+        NODE_ENV: test
+        DATABASE_URL: mssql://sa:Password123.@mssql:1433/sakila
+        DOCKER_DB_HOST: mssql
+        DOCKERIZE_VERSION: v0.6.1
+      command:
+        - /bin/bash
+        - -c
+        - |
+          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"#
+          chmod +x /home/app/tests/dockerize-mssql.sh && /home/app/tests/dockerize-mssql.sh  && cd /home/app/  && npm i && npm run test:graphql
+
+    xc-test-gql-sqlite:
+      image: node:12.22.1-slim
+      volumes:
+        - ./:/home/app
+      environment:
+        NODE_ENV: test
+        DATABASE_URL: sqlite:////home/sakila.db
+      command:
+        - /bin/bash
+        - -c
+        - |
+          cp /home/app/tests/sqlite-dump/sakila.db /home/sakila.db
+          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"#
+          cd /home/app/  && npm i && npm run test:graphql

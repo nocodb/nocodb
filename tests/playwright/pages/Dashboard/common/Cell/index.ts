@@ -114,6 +114,15 @@ export class CellPageObject extends BasePage {
       // if text is found, return
       // if text is not found, throw error
       let count = 0;
+
+      if (!(this.parent instanceof SharedFormPage)) {
+        await this.rootPage.locator(`td[data-testid="cell-${columnHeader}-${index}"]`).waitFor({ state: 'visible' });
+      }
+
+      await this.get({
+        index,
+        columnHeader,
+      }).scrollIntoViewIfNeeded();
       while (count < 5) {
         const innerTexts = await this.get({
           index,
@@ -260,27 +269,62 @@ export class CellPageObject extends BasePage {
     columnHeader,
     count,
     value,
+    verifyChildList = false,
   }: CellProps & {
     count?: number;
     value: string[];
+    verifyChildList?: boolean;
   }) {
     // const count = value.length;
-    const cell = this.get({ index, columnHeader });
+    const cell = await this.get({ index, columnHeader });
     const chips = cell.locator('.chips > .chip');
+
+    await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
 
     // verify chip count & contents
     if (count) await expect(chips).toHaveCount(count);
 
     // verify only the elements that are passed in
     for (let i = 0; i < value.length; ++i) {
-      await expect(await chips.nth(i)).toHaveText(value[i]);
+      await chips.nth(i).locator('.name').waitFor({ state: 'visible' });
+      await chips.nth(i).locator('.name').scrollIntoViewIfNeeded();
+      await expect(await chips.nth(i).locator('.name')).toHaveText(value[i]);
+    }
+
+    if (verifyChildList) {
+      // open child list
+      await this.get({ index, columnHeader }).hover();
+      const arrow_expand = await this.get({ index, columnHeader }).locator('.nc-arrow-expand');
+
+      // arrow expand doesn't exist for bt columns
+      if (await arrow_expand.count()) {
+        await this.waitForResponse({
+          uiAction: () => arrow_expand.click(),
+          requestUrlPathToMatch: '/api/v1/db',
+          httpMethodsToMatch: ['GET'],
+        });
+
+        // wait for child list to open
+        await this.rootPage.waitForSelector('.nc-modal-child-list:visible');
+
+        // verify child list count & contents
+        const childList = await this.rootPage.locator('.ant-card:visible');
+        expect(await childList.count()).toBe(count);
+
+        // close child list
+        await this.rootPage.locator('.nc-modal-child-list').locator('button.ant-modal-close:visible').click();
+      }
     }
   }
 
   async unlinkVirtualCell({ index, columnHeader }: CellProps) {
     const cell = this.get({ index, columnHeader });
     await cell.click();
-    await cell.locator('.nc-icon.unlink-icon').click();
+    await this.waitForResponse({
+      uiAction: () => cell.locator('.unlink-icon').first().click(),
+      requestUrlPathToMatch: '/api/v1/db/data/noco/',
+      httpMethodsToMatch: ['GET'],
+    });
   }
 
   async verifyRoleAccess(param: { role: string }) {
@@ -291,6 +335,7 @@ export class CellPageObject extends BasePage {
     await expect(await cell.locator(`input`)).toHaveCount(param.role === 'creator' || param.role === 'editor' ? 1 : 0);
 
     // press escape to close the input
+    await cell.press('Escape');
     await cell.press('Escape');
 
     await cell.click({ button: 'right', clickCount: 1 });
@@ -315,10 +360,19 @@ export class CellPageObject extends BasePage {
   }
 
   async copyToClipboard({ index, columnHeader }: CellProps, ...clickOptions: Parameters<Locator['click']>) {
+    await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
     await this.get({ index, columnHeader }).click(...clickOptions);
     await (await this.get({ index, columnHeader }).elementHandle()).waitForElementState('stable');
 
     await this.get({ index, columnHeader }).press((await this.isMacOs()) ? 'Meta+C' : 'Control+C');
     await this.verifyToast({ message: 'Copied to clipboard' });
+  }
+
+  async pasteFromClipboard({ index, columnHeader }: CellProps, ...clickOptions: Parameters<Locator['click']>) {
+    await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
+    await this.get({ index, columnHeader }).click(...clickOptions);
+    await (await this.get({ index, columnHeader }).elementHandle()).waitForElementState('stable');
+
+    await this.get({ index, columnHeader }).press((await this.isMacOs()) ? 'Meta+V' : 'Control+V');
   }
 }

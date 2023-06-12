@@ -4,6 +4,7 @@ import {
   computed,
   extractSdkResponseErrorMsg,
   h,
+  iconMap,
   message,
   onMounted,
   storeToRefs,
@@ -120,20 +121,20 @@ const columns = [
       <div class="flex flex-row items-center w-full mb-4 gap-2">
         <a-input v-model:value="searchInput" placeholder="Search models" class="nc-acl-search">
           <template #prefix>
-            <MdiMagnify />
+            <component :is="iconMap.search" />
           </template>
         </a-input>
 
-        <a-button class="self-start nc-acl-reload" @click="loadTableList">
+        <a-button type="text" ghost class="self-start !rounded-md nc-acl-reload" @click="loadTableList">
           <div class="flex items-center gap-2 text-gray-600 font-light">
-            <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
+            <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
             Reload
           </div>
         </a-button>
 
-        <a-button class="self-start nc-acl-save" @click="saveUIAcl">
-          <div class="flex items-center gap-2 text-gray-600 font-light">
-            <MdiContentSave />
+        <a-button type="primary" class="!rounded-md self-start nc-acl-save" @click="saveUIAcl">
+          <div class="flex items-center gap-2 text-white font-light">
+            <component :is="iconMap.save" />
             Save
           </div>
         </a-button>

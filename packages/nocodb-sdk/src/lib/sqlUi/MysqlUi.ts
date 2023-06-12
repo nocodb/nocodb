@@ -206,7 +206,7 @@ export class MysqlUi {
 
       case 'datetime':
       case 'timestamp':
-        return 6;
+        return '';
 
       case 'time':
         return '';
@@ -871,7 +871,7 @@ export class MysqlUi {
   }
 
   static getAbstractType(col): any {
-    switch (col.dt.toLowerCase()) {
+    switch (col.dt?.toLowerCase()) {
       case 'int':
       case 'smallint':
       case 'mediumint':

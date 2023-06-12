@@ -22,7 +22,7 @@ const currentRow = toRef(props, 'row')
 
 const { meta } = useSmartsheetStoreOrThrow()
 
-const { isNew, state, syncLTARRefs, clearLTARCell } = useProvideSmartsheetRowStore(meta as Ref<TableType>, currentRow)
+const { isNew, state, syncLTARRefs, clearLTARCell, addLTARRef } = useProvideSmartsheetRowStore(meta as Ref<TableType>, currentRow)
 
 // on changing isNew(new record insert) status sync LTAR cell values
 watch(isNew, async (nextVal, prevVal) => {
@@ -49,6 +49,7 @@ provide(ReloadRowDataHookInj, reloadHook)
 defineExpose({
   syncLTARRefs,
   clearLTARCell,
+  addLTARRef,
 })
 </script>
 

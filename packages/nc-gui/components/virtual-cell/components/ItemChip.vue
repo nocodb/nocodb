@@ -1,22 +1,27 @@
 <script lang="ts" setup>
+import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   IsFormInj,
   IsLockedInj,
   ReadonlyInj,
+  iconMap,
   inject,
+  isAttachment,
   ref,
+  renderValue,
   useExpandedFormDetached,
   useLTARStoreOrThrow,
-  useUIPermission,
 } from '#imports'
 
 interface Props {
   value?: string | number | boolean
   item?: any
+  column: any
+  showUnlinkButton: boolean
 }
 
-const { value, item } = defineProps<Props>()
+const { value, item, column, showUnlinkButton } = defineProps<Props>()
 
 const emit = defineEmits(['unlink'])
 
@@ -55,14 +60,51 @@ export default {
 
 <template>
   <div
-    class="chip group py-1 px-2 mr-1 my-1 flex items-center bg-blue-100/60 hover:bg-blue-100/40 rounded-[2px]"
-    :class="{ active }"
+    class="chip group mr-1 my-1 flex items-center rounded-[2px] flex-row"
+    :class="{ active, 'border-1 py-1 px-2': isAttachment(column) }"
     @click="openExpandedForm"
   >
-    <span class="name">{{ value }}</span>
+    <span class="name">
+      <!-- Render virtual cell -->
+      <div v-if="isVirtualCol(column)">
+        <template v-if="column.uidt === UITypes.LinkToAnotherRecord">
+          <LazySmartsheetVirtualCell :edit-enabled="false" :model-value="value" :column="column" :read-only="true" />
+        </template>
 
-    <div v-show="active || isForm" v-if="!readOnly && !isLocked && isUIAllowed('xcDatatableEditable')" class="flex items-center">
-      <MdiCloseThick class="unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500" @click.stop="emit('unlink')" />
+        <LazySmartsheetVirtualCell v-else :edit-enabled="false" :read-only="true" :model-value="value" :column="column" />
+      </div>
+      <!-- Render normal cell -->
+      <template v-else>
+        <div v-if="isAttachment(column) && value && !Array.isArray(value) && typeof value === 'object'">
+          <LazySmartsheetCell :model-value="value" :column="column" :edit-enabled="false" :read-only="true" />
+        </div>
+        <!-- For attachment cell avoid adding chip style -->
+        <template v-else>
+          <div
+            class="min-w-max"
+            :class="{
+              'px-1 rounded-full flex-1': !isAttachment(column),
+              'border-gray-200 rounded border-1': ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(
+                column.uidt,
+              ),
+            }"
+          >
+            <LazySmartsheetCell :model-value="value" :column="column" :edit-enabled="false" :virtual="true" :read-only="true" />
+          </div>
+        </template>
+      </template>
+    </span>
+
+    <div
+      v-show="active || isForm"
+      v-if="showUnlinkButton && !readOnly && !isLocked && isUIAllowed('xcDatatableEditable')"
+      class="flex items-center"
+    >
+      <component
+        :is="iconMap.closeThick"
+        class="nc-icon unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500"
+        @click.stop="emit('unlink')"
+      />
     </div>
   </div>
 </template>

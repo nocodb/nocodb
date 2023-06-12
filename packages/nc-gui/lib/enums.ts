@@ -99,3 +99,19 @@ export enum DataSourcesSubTab {
   Misc = 'Misc',
   Edit = 'Edit',
 }
+
+export enum AutomationLogLevel {
+  OFF = 'OFF',
+  ERROR = 'ERROR',
+  ALL = 'ALL',
+}
+
+export enum JobStatus {
+  COMPLETED = 'completed',
+  WAITING = 'waiting',
+  ACTIVE = 'active',
+  DELAYED = 'delayed',
+  FAILED = 'failed',
+  PAUSED = 'paused',
+  REFRESH = 'refresh',
+}

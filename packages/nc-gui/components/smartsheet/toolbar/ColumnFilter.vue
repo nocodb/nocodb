@@ -8,6 +8,7 @@ import {
   comparisonOpList,
   comparisonSubOpList,
   computed,
+  iconMap,
   inject,
   ref,
   useNuxtApp,
@@ -63,6 +64,7 @@ const {
   () => reloadDataHook.trigger(showLoading),
   modelValue || nestedFilters.value,
   !modelValue,
+  webHook,
 )
 
 const localNestedFilters = ref()
@@ -213,7 +215,8 @@ defineExpose({
       <template v-for="(filter, i) in filters" :key="i">
         <template v-if="filter.status !== 'delete'">
           <template v-if="filter.is_group">
-            <MdiCloseBox
+            <component
+              :is="iconMap.closeBox"
               v-if="!filter.readOnly"
               :key="i"
               small
@@ -222,7 +225,8 @@ defineExpose({
             />
             <span v-else :key="`${i}dummy`" />
 
-            <div :key="`${i}nested`" class="flex">
+            <span v-if="!i" class="flex items-center">{{ $t('labels.where') }}</span>
+            <div v-else :key="`${i}nested`" class="flex bob">
               <a-select
                 v-model:value="filter.logical_op"
                 :dropdown-match-select-width="false"
@@ -247,11 +251,13 @@ defineExpose({
                 :parent-id="filter.id"
                 nested
                 :auto-save="autoSave"
+                :web-hook="webHook"
               />
             </div>
           </template>
           <template v-else>
-            <MdiCloseBox
+            <component
+              :is="iconMap.closeBox"
               v-if="!filter.readOnly"
               class="nc-filter-item-remove-btn text-grey self-center"
               @click.stop="deleteFilter(filter, i)"
@@ -361,18 +367,18 @@ defineExpose({
     </div>
 
     <div class="flex gap-2 mb-2 mt-4">
-      <a-button class="elevation-0 text-capitalize" type="primary" ghost @click.stop="addFilter">
+      <a-button class="elevation-0 text-capitalize" type="primary" ghost @click.stop="addFilter()">
         <div class="flex items-center gap-1">
-          <MdiPlus />
+          <component :is="iconMap.plus" />
           <!-- Add Filter -->
           {{ $t('activity.addFilter') }}
         </div>
       </a-button>
 
-      <a-button v-if="!webHook" class="text-capitalize !text-gray-500" @click.stop="addFilterGroup">
+      <a-button v-if="!webHook" class="text-capitalize !text-gray-500" @click.stop="addFilterGroup()">
         <div class="flex items-center gap-1">
           <!-- Add Filter Group -->
-          <MdiPlus />
+          <component :is="iconMap.plus" />
           {{ $t('activity.addFilterGroup') }}
         </div>
       </a-button>

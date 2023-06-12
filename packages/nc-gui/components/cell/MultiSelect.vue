@@ -10,10 +10,12 @@ import {
   ColumnInj,
   IsKanbanInj,
   ReadonlyInj,
+  RowHeightInj,
   computed,
   enumColor,
   extractSdkResponseErrorMsg,
   h,
+  iconMap,
   inject,
   isDrawerOrModalExist,
   onMounted,
@@ -50,6 +52,8 @@ const editable = inject(EditModeInj, ref(false))
 const isPublic = inject(IsPublicInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
+
+const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const selectedIds = ref<string[]>([])
 
@@ -282,7 +286,7 @@ const onTagClick = (e: Event, onClose: Function) => {
   }
 }
 
-const cellClickHook = inject(CellClickHookInj)
+const cellClickHook = inject(CellClickHookInj, null)
 
 const toggleMenu = () => {
   if (cellClickHook) return
@@ -312,11 +316,50 @@ const handleClose = (e: MouseEvent) => {
 }
 
 useEventListener(document, 'click', handleClose, true)
+
+const selectedOpts = computed(() => {
+  return options.value.reduce<(SelectOptionType & { index: number })[]>((selectedOptions, option) => {
+    const index = vModel.value.indexOf(option.value!)
+    if (index !== -1) {
+      selectedOptions.push({ ...option, index })
+    }
+    return selectedOptions
+  }, [])
+})
 </script>
 
 <template>
   <div class="nc-multi-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
+    <div
+      v-if="!editable && !active"
+      class="flex flex-wrap"
+      :style="{
+        'display': '-webkit-box',
+        'max-width': '100%',
+        '-webkit-line-clamp': rowHeight || 1,
+        '-webkit-box-orient': 'vertical',
+        'overflow': 'hidden',
+      }"
+    >
+      <template v-for="selectedOpt of selectedOpts" :key="selectedOpt.value">
+        <a-tag class="rounded-tag" :color="selectedOpt.color" :style="{ order: selectedOpt.index }">
+          <span
+            :style="{
+              'color': tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                ? '#fff'
+                : tinycolor.mostReadable(selectedOpt.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+              'font-size': '13px',
+            }"
+            :class="{ 'text-sm': isKanban }"
+          >
+            {{ selectedOpt.title }}
+          </span>
+        </a-tag>
+      </template>
+    </div>
+
     <a-select
+      v-else
       ref="aselect"
       v-model:value="vModel"
       mode="multiple"
@@ -367,7 +410,7 @@ useEventListener(document, 'click', handleClose, true)
         :value="searchVal"
       >
         <div class="flex gap-2 text-gray-500 items-center h-full">
-          <MdiPlusThick class="min-w-4" />
+          <component :is="iconMap.plusThick" class="min-w-4" />
           <div class="text-xs whitespace-normal">
             Create new option named <strong>{{ searchVal }}</strong>
           </div>

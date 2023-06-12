@@ -3,6 +3,7 @@ import {
   IsKanbanInj,
   IsLockedInj,
   IsPublicInj,
+  iconMap,
   inject,
   provide,
   ref,
@@ -44,11 +45,11 @@ provide(IsKanbanInj, ref(true))
         :disabled="isLocked"
       >
         <div class="flex items-center gap-1">
-          <MdiPlusCircleOutline />
+          <component :is="iconMap.plusCircle" />
           <span class="text-capitalize !text-sm font-weight-normal">
             {{ $t('activity.kanban.addOrEditStack') }}
           </span>
-          <MdiMenuDown class="text-grey" />
+          <component :is="iconMap.arrowDown" class="text-grey" />
         </div>
       </a-button>
     </div>

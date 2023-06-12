@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 import BasePage from '../../Base';
 import { DataSourcesPage } from './DataSources';
+import { getTextExcludeIconText } from '../../../tests/utils/general';
 
 export class MetaDataPage extends BasePage {
   private readonly dataSources: DataSourcesPage;
@@ -31,12 +32,10 @@ export class MetaDataPage extends BasePage {
   }
 
   async verifyRow({ index, model, state }: { index: number; model: string; state: string }) {
-    await expect(this.get().locator(`tr.ant-table-row`).nth(index).locator(`td.ant-table-cell`).nth(0)).toHaveText(
-      model,
-      {
-        ignoreCase: true,
-      }
-    );
+    const fieldLocator = await this.get().locator(`tr.ant-table-row`).nth(index).locator(`td.ant-table-cell`).nth(0);
+    const fieldText = await getTextExcludeIconText(fieldLocator);
+    await expect(fieldText).toBe(model);
+
     await expect(this.get().locator(`tr.ant-table-row`).nth(index).locator(`td.ant-table-cell`).nth(1)).toHaveText(
       state,
       {

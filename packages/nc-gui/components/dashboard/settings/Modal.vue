@@ -2,11 +2,7 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
 import DataSources from './DataSources.vue'
 import Misc from './Misc.vue'
-import { DataSourcesSubTab, useI18n, useNuxtApp, useUIPermission, useVModel, watch } from '#imports'
-import TeamFillIcon from '~icons/ri/team-fill'
-import MultipleTableIcon from '~icons/mdi/table-multiple'
-import NotebookOutline from '~icons/mdi/notebook-outline'
-import FolderCog from '~icons/mdi/folder-cog'
+import { DataSourcesSubTab, iconMap, useI18n, useNuxtApp, useUIPermission, useVModel, watch } from '#imports'
 
 interface Props {
   modelValue: boolean
@@ -54,7 +50,7 @@ const dataSourcesAwakened = ref(false)
 const tabsInfo: TabGroup = {
   teamAndAuth: {
     title: t('title.teamAndAuth'),
-    icon: TeamFillIcon,
+    icon: iconMap.users,
     subTabs: {
       ...(isUIAllowed('userMgmtTab')
         ? {
@@ -82,7 +78,7 @@ const tabsInfo: TabGroup = {
   dataSources: {
     // Data Sources
     title: 'Data Sources',
-    icon: MultipleTableIcon,
+    icon: iconMap.datasource,
     subTabs: {
       dataSources: {
         title: 'Data Sources',
@@ -97,7 +93,7 @@ const tabsInfo: TabGroup = {
   audit: {
     // Audit
     title: t('title.audit'),
-    icon: NotebookOutline,
+    icon: iconMap.book,
     subTabs: {
       audit: {
         // Audit
@@ -112,7 +108,7 @@ const tabsInfo: TabGroup = {
   projectSettings: {
     // Project Settings
     title: 'Project Settings',
-    icon: FolderCog,
+    icon: iconMap.settings,
     subTabs: {
       misc: {
         // Misc
@@ -174,7 +170,7 @@ watch(
         data-testid="settings-modal-close-button"
         @click="vModel = false"
       >
-        <MdiClose class="cursor-pointer nc-modal-close w-4" />
+        <component :is="iconMap.close" class="cursor-pointer nc-modal-close w-4" />
       </a-button>
     </div>
 
@@ -182,13 +178,9 @@ watch(
       <!-- Side tabs -->
       <a-layout-sider>
         <a-menu v-model:selected-keys="selectedTabKeys" class="tabs-menu h-full" :open-keys="[]">
-          <a-menu-item
-            v-for="(tab, key) of tabsInfo"
-            :key="key"
-            class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
-          >
+          <a-menu-item v-for="(tab, key) of tabsInfo" :key="key" class="active:(!ring-0) hover:(!bg-primary !bg-opacity-25)">
             <div class="flex items-center space-x-2" @click="tab.onClick">
-              <component :is="tab.icon" class="group-hover:text-accent" />
+              <component :is="tab.icon" />
 
               <div class="select-none">
                 {{ tab.title }}
@@ -227,22 +219,24 @@ watch(
             <div v-if="vDataState === ''" class="flex flex-row justify-end items-center w-full gap-1">
               <a-button
                 v-if="dataSourcesAwakened"
-                class="self-start nc-btn-new-datasource"
+                type="primary"
+                class="self-start !rounded-md nc-btn-new-datasource"
                 @click="vDataState = DataSourcesSubTab.New"
               >
-                <div v-if="vDataState === ''" class="flex items-center gap-2 text-primary font-light">
-                  <MdiDatabasePlusOutline class="text-lg group-hover:text-accent" />
+                <div v-if="vDataState === ''" class="flex items-center gap-2 font-light">
+                  <component :is="iconMap.plusCircle" class="group-hover:text-accent" />
                   New
                 </div>
               </a-button>
               <!--        Reload -->
               <a-button
                 v-e="['a:proj-meta:data-sources:reload']"
-                class="self-start nc-btn-metasync-reload"
+                type="text"
+                class="self-start !rounded-md nc-btn-metasync-reload"
                 @click="dataSourcesReload = true"
               >
                 <div class="flex items-center gap-2 text-gray-600 font-light">
-                  <MdiReload :class="{ 'animate-infinite animate-spin !text-success': dataSourcesReload }" />
+                  <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': dataSourcesReload }" />
                   {{ $t('general.reload') }}
                 </div>
               </a-button>

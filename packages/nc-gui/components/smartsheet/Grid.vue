@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import type { ColumnReqType, ColumnType, GridType, TableType, ViewType } from 'nocodb-sdk'
+import { nextTick } from '@vue/runtime-core'
+import type { ColumnReqType, ColumnType, GridType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -23,6 +24,7 @@ import {
   createEventHook,
   enumColor,
   extractPkFromRow,
+  iconMap,
   inject,
   isColumnRequiredAndNull,
   isDrawerOrModalExist,
@@ -43,6 +45,7 @@ import {
   useRoute,
   useSmartsheetStoreOrThrow,
   useUIPermission,
+  useUndoRedo,
   useViewData,
   watch,
 } from '#imports'
@@ -71,6 +74,8 @@ const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
 
 const route = useRoute()
 const router = useRouter()
+
+const { addUndo, clone, defineViewScope } = useUndoRedo()
 
 // todo: get from parent ( inject or use prop )
 const isView = false
@@ -112,13 +117,14 @@ const {
   formattedData: data,
   updateOrSaveRow,
   changePage,
-  addEmptyRow,
+  addEmptyRow: _addEmptyRow,
   deleteRow,
   deleteSelectedRows,
   selectedAllRecords,
   removeRowIfNew,
   navigateToSiblingRow,
   getExpandedRowIndex,
+  deleteRangeOfRows,
 } = useViewData(meta, view, xWhere)
 
 const { getMeta } = useMetas()
@@ -137,11 +143,20 @@ const getContainerScrollForElement = (
 ) => {
   const childPos = el.getBoundingClientRect()
   const parentPos = container.getBoundingClientRect()
+
+  // provide an extra offset to show the prev/next/up/bottom cell
+  const extraOffset = 15
+
+  const numColWidth = container.querySelector('thead th:nth-child(1)')?.getBoundingClientRect().width ?? 0
+  const primaryColWidth = container.querySelector('thead th:nth-child(2)')?.getBoundingClientRect().width ?? 0
+
+  const stickyColsWidth = numColWidth + primaryColWidth
+
   const relativePos = {
     top: childPos.top - parentPos.top,
     right: childPos.right - parentPos.right,
     bottom: childPos.bottom - parentPos.bottom,
-    left: childPos.left - parentPos.left,
+    left: childPos.left - parentPos.left - stickyColsWidth,
   }
 
   const scroll = {
@@ -155,9 +170,9 @@ const getContainerScrollForElement = (
    */
   scroll.left =
     relativePos.right + (offset?.right || 0) > 0
-      ? container.scrollLeft + relativePos.right + (offset?.right || 0)
+      ? container.scrollLeft + relativePos.right + (offset?.right || 0) + extraOffset
       : relativePos.left - (offset?.left || 0) < 0
-      ? container.scrollLeft + relativePos.left - (offset?.left || 0)
+      ? container.scrollLeft + relativePos.left - (offset?.left || 0) - extraOffset
       : container.scrollLeft
 
   /*
@@ -166,9 +181,9 @@ const getContainerScrollForElement = (
    */
   scroll.top =
     relativePos.bottom + (offset?.bottom || 0) > 0
-      ? container.scrollTop + relativePos.bottom + (offset?.bottom || 0)
+      ? container.scrollTop + relativePos.bottom + (offset?.bottom || 0) + extraOffset
       : relativePos.top - (offset?.top || 0) < 0
-      ? container.scrollTop + relativePos.top - (offset?.top || 0)
+      ? container.scrollTop + relativePos.top - (offset?.top || 0) - extraOffset
       : container.scrollTop
 
   return scroll
@@ -185,6 +200,8 @@ const {
   isCellActive,
   tbodyEl,
   resetSelectedRange,
+  makeActive,
+  selectedRange,
 } = useMultiSelect(
   meta,
   fields,
@@ -215,7 +232,6 @@ const {
     if (e.key === ' ') {
       if (isCellActive.value && !editEnabled && hasEditPermission) {
         e.preventDefault()
-        clearSelectedRange()
         const row = data.value[activeCell.row]
         expandForm(row)
         return true
@@ -312,6 +328,12 @@ const {
       return
     }
 
+    // See DateTimePicker.vue for details
+    data.value[ctx.row].rowMeta.isUpdatedFromCopyNPaste = {
+      ...data.value[ctx.row].rowMeta.isUpdatedFromCopyNPaste,
+      [ctx.updatedColumnTitle || columnObj.title]: true,
+    }
+
     // update/save cell value
     await updateOrSaveRow(rowObj, ctx.updatedColumnTitle || columnObj.title)
   },
@@ -331,6 +353,12 @@ function scrollToCell(row?: number | null, col?: number | null) {
 
     const { height: headerHeight } = tableHead.value!.getBoundingClientRect()
     const tdScroll = getContainerScrollForElement(td, gridWrapper.value, { top: headerHeight, bottom: 9, right: 9 })
+
+    // if first column set left to 0 since it's sticky it will be visible and calculated value will be wrong
+    // setting left to 0 will make it scroll to the left
+    if (col === 0) {
+      tdScroll.left = 0
+    }
 
     if (rows && row === rows.length - 2) {
       // if last row make 'Add New Row' visible
@@ -402,6 +430,8 @@ const showLoading = ref(true)
 
 const skipRowRemovalOnCancel = ref(false)
 
+const preloadColumn = ref<Partial<any>>()
+
 function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) {
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
 
@@ -431,6 +461,13 @@ const onXcResizing = (cn: string, event: any) => {
 
 defineExpose({
   loadData,
+  openColumnCreate: (data) => {
+    tableHead.value?.querySelector('th:last-child')?.scrollIntoView({ behavior: 'smooth' })
+    setTimeout(() => {
+      addColumnDropdown.value = true
+      preloadColumn.value = data
+    }, 500)
+  },
 })
 
 // reset context menu target on hide
@@ -454,6 +491,61 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
   const columnObj = fields.value[ctx.col]
 
   if (isVirtualCol(columnObj)) {
+    addUndo({
+      undo: {
+        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType) => {
+          if (paginationData.value.pageSize === pg.pageSize) {
+            if (paginationData.value.page !== pg.page) {
+              await changePage(pg.page!)
+            }
+            const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+            const rowObj = data.value[ctx.row]
+            const columnObj = fields.value[ctx.col]
+            if (
+              columnObj.title &&
+              rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
+              columnObj.id === col.id
+            ) {
+              rowObj.row[columnObj.title] = row.row[columnObj.title]
+              await rowRefs[ctx.row]!.addLTARRef(rowObj.row[columnObj.title], columnObj)
+              await rowRefs[ctx.row]!.syncLTARRefs(rowObj.row)
+              activeCell.col = ctx.col
+              activeCell.row = ctx.row
+              scrollToCell?.()
+            } else {
+              throw new Error('Record could not be found')
+            }
+          } else {
+            throw new Error('Page size changed')
+          }
+        },
+        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationData.value)],
+      },
+      redo: {
+        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType) => {
+          if (paginationData.value.pageSize === pg.pageSize) {
+            if (paginationData.value.page !== pg.page) {
+              await changePage(pg.page!)
+            }
+            const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+            const rowObj = data.value[ctx.row]
+            const columnObj = fields.value[ctx.col]
+            if (rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) && columnObj.id === col.id) {
+              await rowRefs[ctx.row]!.clearLTARCell(columnObj)
+              activeCell.col = ctx.col
+              activeCell.row = ctx.row
+              scrollToCell?.()
+            } else {
+              throw new Error('Record could not be found')
+            }
+          } else {
+            throw new Error('Page size changed')
+          }
+        },
+        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationData.value)],
+      },
+      scope: defineViewScope({ view: view.value }),
+    })
     await rowRefs[ctx.row]!.clearLTARCell(columnObj)
     return
   }
@@ -566,6 +658,9 @@ const onNavigate = (dir: NavigateDir) => {
       }
       break
   }
+  nextTick(() => {
+    scrollToCell()
+  })
 }
 
 const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) => {
@@ -689,9 +784,42 @@ eventBus.on(async (event, payload) => {
   }
 })
 
-const closeAddColumnDropdown = () => {
+const closeAddColumnDropdown = (scrollToLastCol = false) => {
   columnOrder.value = null
   addColumnDropdown.value = false
+  if (scrollToLastCol) {
+    setTimeout(() => {
+      const lastAddNewRowHeader = tableHead.value?.querySelector('th:last-child')
+      if (lastAddNewRowHeader) {
+        lastAddNewRowHeader.scrollIntoView({ behavior: 'smooth' })
+      }
+    }, 200)
+  }
+}
+
+const confirmDeleteRow = (row: number) => {
+  try {
+    deleteRow(row)
+  } catch (e: any) {
+    message.error(e.message)
+  }
+}
+
+const deleteSelectedRangeOfRows = () => {
+  deleteRangeOfRows(selectedRange).then(() => {
+    clearSelectedRange()
+    activeCell.row = null
+    activeCell.col = null
+  })
+}
+
+function addEmptyRow(row?: number) {
+  const rowObj = _addEmptyRow(row)
+  nextTick().then(() => {
+    makeActive(row ?? data.value.length - 1, 0)
+    scrollToCell?.()
+  })
+  return rowObj
 }
 </script>
 
@@ -716,7 +844,7 @@ const closeAddColumnDropdown = () => {
         >
           <thead ref="tableHead">
             <tr class="nc-grid-header">
-              <th class="w-[80px] min-w-[80px]" data-testid="grid-id-column">
+              <th class="w-[85px] min-w-[85px]" data-testid="grid-id-column">
                 <div class="w-full h-full bg-gray-100 flex pl-5 pr-1 items-center" data-testid="nc-check-all">
                   <template v-if="!readOnly">
                     <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
@@ -762,15 +890,16 @@ const closeAddColumnDropdown = () => {
                   overlay-class-name="nc-dropdown-grid-add-column"
                 >
                   <div class="h-full w-[60px] flex items-center justify-center">
-                    <MdiPlus class="text-sm nc-column-add" />
+                    <component :is="iconMap.plus" class="text-sm nc-column-add" />
                   </div>
 
                   <template #overlay>
                     <SmartsheetColumnEditOrAddProvider
                       v-if="addColumnDropdown"
+                      :preload="preloadColumn"
                       :column-position="columnOrder"
-                      @submit="closeAddColumnDropdown"
-                      @cancel="closeAddColumnDropdown"
+                      @submit="closeAddColumnDropdown(true)"
+                      @cancel="closeAddColumnDropdown()"
                       @click.stop
                       @keydown.stop
                     />
@@ -784,11 +913,11 @@ const closeAddColumnDropdown = () => {
               <template #default="{ state }">
                 <tr
                   class="nc-grid-row"
-                  :style="{ height: rowHeight ? `${rowHeight * 1.5}rem` : `1.5rem` }"
+                  :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
                   :data-testid="`grid-row-${rowIndex}`"
                 >
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1" :data-testid="`cell-Id-${rowIndex}`">
-                    <div class="items-center flex gap-1 min-w-[55px]">
+                    <div class="items-center flex gap-1 min-w-[60px]">
                       <div
                         v-if="!readOnly || !isLocked"
                         class="nc-row-no text-xs text-gray-500"
@@ -829,7 +958,8 @@ const closeAddColumnDropdown = () => {
                             v-else
                             class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)"
                           >
-                            <MdiArrowExpand
+                            <component
+                              :is="iconMap.expand"
                               v-e="['c:row-expand']"
                               class="select-none transform hover:(text-accent scale-120) nc-row-expand"
                               @click="expandForm(row, state)"
@@ -842,8 +972,9 @@ const closeAddColumnDropdown = () => {
                   <SmartsheetTableDataCell
                     v-for="(columnObj, colIndex) of fields"
                     :key="columnObj.id"
-                    class="cell relative cursor-pointer nc-grid-cell"
+                    class="cell relative nc-grid-cell"
                     :class="{
+                      'cursor-pointer': hasEditPermission,
                       'active': hasEditPermission && isCellSelected(rowIndex, colIndex),
                       'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
                       'align-middle': !rowHeight || rowHeight === 1,
@@ -892,35 +1023,43 @@ const closeAddColumnDropdown = () => {
               </template>
             </LazySmartsheetRow>
 
-            <tr v-if="isAddingEmptyRowAllowed">
-              <td
-                v-e="['c:row:add:grid-bottom']"
-                :colspan="visibleColLength + 1"
-                class="text-left pointer nc-grid-add-new-cell cursor-pointer"
-                @click="addEmptyRow()"
-              >
+            <tr
+              v-if="isAddingEmptyRowAllowed"
+              v-e="['c:row:add:grid-bottom']"
+              class="cursor-pointer"
+              @mouseup.stop
+              @click="addEmptyRow()"
+            >
+              <td class="text-left pointer nc-grid-add-new-cell sticky left-0 !z-5 !border-r-0">
                 <div class="px-2 w-full flex items-center text-gray-500">
-                  <MdiPlus class="text-pint-500 text-xs ml-2 text-primary" />
-
-                  <span class="ml-1">
-                    {{ $t('activity.addRow') }}
-                  </span>
+                  <component :is="iconMap.plus" class="text-pint-500 text-xs ml-2 text-primary" />
                 </div>
               </td>
+              <td :colspan="visibleColLength"></td>
             </tr>
           </tbody>
         </table>
 
         <template v-if="!isLocked && hasEditPermission" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
-            <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)">
+            <a-menu-item
+              v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
+              @click="confirmDeleteRow(contextMenuTarget.row)"
+            >
               <div v-e="['a:row:delete']" class="nc-project-menu-item">
                 <!-- Delete Row -->
                 {{ $t('activity.deleteRow') }}
               </div>
             </a-menu-item>
 
-            <a-menu-item @click="deleteSelectedRows">
+            <a-menu-item v-else-if="contextMenuTarget" @click="deleteSelectedRangeOfRows">
+              <div v-e="['a:row:delete']" class="nc-project-menu-item">
+                <!-- Delete Rows -->
+                Delete Rows
+              </div>
+            </a-menu-item>
+
+            <a-menu-item v-if="data.some((r) => r.rowMeta.selected)" @click="deleteSelectedRows">
               <div v-e="['a:row:delete-bulk']" class="nc-project-menu-item">
                 <!-- Delete Selected Rows -->
                 {{ $t('activity.deleteSelectedRow') }}
@@ -931,6 +1070,7 @@ const closeAddColumnDropdown = () => {
             <a-menu-item
               v-if="
                 contextMenuTarget &&
+                selectedRange.isSingleCell() &&
                 (fields[contextMenuTarget.col].uidt === UITypes.LinkToAnotherRecord ||
                   !isVirtualCol(fields[contextMenuTarget.col]))
               "
@@ -939,7 +1079,7 @@ const closeAddColumnDropdown = () => {
               <div v-e="['a:row:clear']" class="nc-project-menu-item">{{ $t('activity.clearCell') }}</div>
             </a-menu-item>
 
-            <a-menu-item v-if="contextMenuTarget" @click="addEmptyRow(contextMenuTarget.row + 1)">
+            <a-menu-item v-if="contextMenuTarget && selectedRange.isSingleCell()" @click="addEmptyRow(contextMenuTarget.row + 1)">
               <div v-e="['a:row:insert']" class="nc-project-menu-item">
                 <!-- Insert New Row -->
                 {{ $t('activity.insertRow') }}
@@ -957,8 +1097,23 @@ const closeAddColumnDropdown = () => {
       </a-dropdown>
     </div>
 
-    <LazySmartsheetPagination />
+    <div
+      v-if="isAddingEmptyRowAllowed"
+      class="absolute bottom-1px left-2 z-4"
+      data-testid="nc-grid-add-new-row"
+      @click="addEmptyRow()"
+    >
+      <a-button v-e="['c:row:add:grid-bottom', { footer: true }]" class="!rounded-xl" size="small">
+        <div class="flex items-center">
+          <component :is="iconMap.plus" class="text-pint-500 text-xs" />
+          <span class="ml-1">
+            {{ $t('activity.addRow') }}
+          </span>
+        </div>
+      </a-button>
+    </div>
 
+    <LazySmartsheetPagination align-count-on-right> </LazySmartsheetPagination>
     <Suspense>
       <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"
@@ -1057,14 +1212,14 @@ const closeAddColumnDropdown = () => {
 
   thead th:nth-child(2) {
     position: sticky !important;
-    left: 80px;
+    left: 85px;
     z-index: 5;
     @apply border-r-2 border-r-gray-300;
   }
 
   tbody td:nth-child(2) {
     position: sticky !important;
-    left: 80px;
+    left: 85px;
     z-index: 4;
     background: white;
     @apply border-r-2 border-r-gray-300;

@@ -4,6 +4,7 @@ import {
   ActiveViewInj,
   ReloadViewDataHookInj,
   computed,
+  iconMap,
   inject,
   onClickOutside,
   ref,
@@ -55,9 +56,9 @@ function onPressEnter() {
       :class="{ '!bg-gray-100 ': isDropdownOpen }"
       @click="isDropdownOpen = !isDropdownOpen"
     >
-      <MdiMagnify class="text-grey" />
+      <component :is="iconMap.search" class="text-grey" />
 
-      <MdiMenuDown class="text-grey" />
+      <component :is="iconMap.arrowDown" class="text-grey" />
 
       <a-select
         v-model:value="search.field"

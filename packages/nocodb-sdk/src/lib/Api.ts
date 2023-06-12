@@ -154,13 +154,11 @@ export interface AuditType {
     | 'LINK_RECORD'
     | 'UNLINK_RECORD'
     | 'DELETE'
-    | 'CREATED'
-    | 'DELETED'
-    | 'RENAMED'
+    | 'CREATE'
+    | 'RENAME'
     | 'IMPORT_FROM_ZIP'
     | 'EXPORT_TO_FS'
     | 'EXPORT_TO_ZIP'
-    | 'UPDATED'
     | 'SIGNIN'
     | 'SIGNUP'
     | 'PASSWORD_RESET'
@@ -500,6 +498,17 @@ export interface CommentReqType {
 }
 
 /**
+ * Model for Comment Update Request
+ */
+export interface CommentUpdateReqType {
+  /**
+   * Description for the target row
+   * @example This is the comment for the row
+   */
+  description?: string;
+}
+
+/**
  * Model for Filter
  */
 export interface FilterType {
@@ -537,7 +546,39 @@ export interface FilterType {
     | 'notchecked'
     | 'notempty'
     | 'notnull'
-    | 'null';
+    | 'null'
+    | null
+    | (
+        | 'allof'
+        | 'anyof'
+        | 'blank'
+        | 'btw'
+        | 'checked'
+        | 'empty'
+        | 'eq'
+        | 'ge'
+        | 'gt'
+        | 'gte'
+        | 'in'
+        | 'is'
+        | 'isWithin'
+        | 'isnot'
+        | 'le'
+        | 'like'
+        | 'lt'
+        | 'lte'
+        | 'nallof'
+        | 'nanyof'
+        | 'nbtw'
+        | 'neq'
+        | 'nlike'
+        | 'not'
+        | 'notblank'
+        | 'notchecked'
+        | 'notempty'
+        | 'notnull'
+        | ('null' & null)
+      );
   /** Comparison Sub-Operator */
   comparison_sub_op?:
     | 'daysAgo'
@@ -580,7 +621,7 @@ export interface FilterType {
         | ('yesterday' & null)
       );
   /** Foreign Key to Column */
-  fk_column_id?: IdType;
+  fk_column_id?: StringOrNullType;
   /** Foreign Key to Hook */
   fk_hook_id?: StringOrNullType;
   /** Foreign Key to Model */
@@ -605,6 +646,16 @@ export interface FilterType {
  * Model for Filter List
  */
 export interface FilterListType {
+  /** List of filter objects */
+  list: FilterType[];
+  /** Model for Paginated */
+  pageInfo: PaginatedType;
+}
+
+/**
+ * Model for Filter Log List
+ */
+export interface FilterLogListType {
   /** List of filter objects */
   list: FilterType[];
   /** Model for Paginated */
@@ -645,7 +696,39 @@ export interface FilterReqType {
     | 'notchecked'
     | 'notempty'
     | 'notnull'
-    | 'null';
+    | 'null'
+    | null
+    | (
+        | 'allof'
+        | 'anyof'
+        | 'blank'
+        | 'btw'
+        | 'checked'
+        | 'empty'
+        | 'eq'
+        | 'ge'
+        | 'gt'
+        | 'gte'
+        | 'in'
+        | 'is'
+        | 'isWithin'
+        | 'isnot'
+        | 'le'
+        | 'like'
+        | 'lt'
+        | 'lte'
+        | 'nallof'
+        | 'nanyof'
+        | 'nbtw'
+        | 'neq'
+        | 'nlike'
+        | 'not'
+        | 'notblank'
+        | 'notchecked'
+        | 'notempty'
+        | 'notnull'
+        | ('null' & null)
+      );
   /** Comparison Sub-Operator */
   comparison_sub_op?:
     | 'daysAgo'
@@ -688,7 +771,7 @@ export interface FilterReqType {
         | ('yesterday' & null)
       );
   /** Foreign Key to Column */
-  fk_column_id?: IdType;
+  fk_column_id?: StringOrNullType;
   /** Belong to which filter ID */
   fk_parent_id?: StringOrNullType;
   /** Is this filter grouped? */
@@ -891,7 +974,7 @@ export interface GalleryType {
   /** Model for Bool */
   deleted?: BoolType;
   /** Foreign Key to Cover Image Column */
-  fk_cover_image_col_id?: string;
+  fk_cover_image_col_id?: StringOrNullType;
   /** Foreign Key to Model */
   fk_model_id?: string;
   /** Foreign Key to View */
@@ -953,6 +1036,29 @@ export interface GeoLocationType {
  * Model for Grid
  */
 export interface GridType {
+  /** Unique ID */
+  id?: IdType;
+  /** Project ID */
+  project_id?: IdType;
+  /** Base ID */
+  base_id?: IdType;
+  /** Foreign Key to View */
+  fk_view_id?: IdType;
+  /**
+   * Row Height
+   * @example 1
+   */
+  row_height?: number;
+  /** Meta info for Grid Model */
+  meta?: MetaType;
+  /** Grid View Columns */
+  columns?: GridColumnType[];
+}
+
+/**
+ * Model for Grid
+ */
+export interface GridCopyType {
   /** Unique ID */
   id?: IdType;
   /** Project ID */
@@ -1071,7 +1177,13 @@ export interface HookType {
    * Hook Operation
    * @example insert
    */
-  operation?: 'delete' | 'insert' | 'update';
+  operation?:
+    | 'insert'
+    | 'update'
+    | 'delete'
+    | 'bulkInsert'
+    | 'bulkUpdate'
+    | 'bulkDelete';
   /**
    * Retry Count
    * @example 10
@@ -1094,6 +1206,11 @@ export interface HookType {
   title?: string;
   /** Hook Type */
   type?: string;
+  /**
+   * Hook Version
+   * @example v2
+   */
+  version?: 'v1' | 'v2';
 }
 
 /**
@@ -1129,7 +1246,13 @@ export interface HookReqType {
    * Hook Operation
    * @example insert
    */
-  operation: 'delete' | 'insert' | 'update';
+  operation:
+    | 'insert'
+    | 'update'
+    | 'delete'
+    | 'bulkInsert'
+    | 'bulkUpdate'
+    | 'bulkDelete';
   /**
    * Retry Count
    * @example 10
@@ -1170,26 +1293,77 @@ export interface HookListType {
  * Model for Hook Log
  */
 export interface HookLogType {
+  /**
+   * Unique Base ID
+   * @example ds_jxuewivwbxeum2
+   */
   base_id?: string;
+  /** Hook Conditions */
   conditions?: string;
-  error?: string;
-  error_code?: string;
-  error_message?: string;
-  event?: string;
+  /** Error */
+  error?: StringOrNullType;
+  /** Error Code */
+  error_code?: StringOrNullType;
+  /** Error Message */
+  error_message?: StringOrNullType;
+  /**
+   * Hook Event
+   * @example after
+   */
+  event?: 'after' | 'before';
+  /**
+   * Execution Time in milliseconds
+   * @example 98
+   */
   execution_time?: string;
-  /** Model for StringOrNull */
+  /** Foreign Key to Hook */
   fk_hook_id?: StringOrNullType;
   /** Unique ID */
-  id?: IdType;
+  id?: StringOrNullType;
+  /** Hook Notification */
   notifications?: string;
-  operation?: string;
-  payload?: any;
+  /**
+   * Hook Operation
+   * @example insert
+   */
+  operation?:
+    | 'insert'
+    | 'update'
+    | 'delete'
+    | 'bulkInsert'
+    | 'bulkUpdate'
+    | 'bulkDelete';
+  /**
+   * Hook Payload
+   * @example {"method":"POST","body":"{{ json data }}","headers":[{}],"parameters":[{}],"auth":"","path":"https://webhook.site/6eb45ce5-b611-4be1-8b96-c2965755662b"}
+   */
+  payload?: string;
+  /**
+   * Project ID
+   * @example p_tbhl1hnycvhe5l
+   */
   project_id?: string;
-  response?: string;
-  /** Model for Bool */
+  /** Hook Response */
+  response?: StringOrNullType;
+  /** Is this testing hook call? */
   test_call?: BoolType;
-  triggered_by?: string;
+  /** Who triggered the hook? */
+  triggered_by?: StringOrNullType;
+  /**
+   * Hook Type
+   * @example URL
+   */
   type?: string;
+}
+
+/**
+ * Model for Hook Log List
+ */
+export interface HookLogListType {
+  /** List of hook objects */
+  list: HookLogType[];
+  /** Model for Paginated */
+  pageInfo: PaginatedType;
 }
 
 /**
@@ -1218,7 +1392,7 @@ export interface KanbanType {
   /** View ID */
   fk_view_id?: IdType;
   /** Cover Image Column ID */
-  fk_cover_image_col_id?: IdType;
+  fk_cover_image_col_id?: StringOrNullType;
   /** Kanban Columns */
   columns?: KanbanColumnType[];
   /** Meta Info for Kanban */
@@ -1493,7 +1667,7 @@ export interface NormalColumnRequestType {
   /** Data Type Extra */
   dtx?: StringOrNullType;
   /** Data Type Extra Precision */
-  dtxp?: StringOrNullType | number;
+  dtxp?: string | number | null;
   /** Data Type Extra Scale */
   dtxs?: StringOrNullType | number;
   /** Numeric Precision */
@@ -1694,7 +1868,7 @@ export interface PluginReqType {
   /** Is Plugin Active? */
   active?: BoolType;
   /** Plugin Input */
-  input?: StringOrNullType;
+  input?: string | null;
 }
 
 /**
@@ -1782,6 +1956,11 @@ export interface ProjectReqType {
    * @example My Project
    */
   title: string;
+  /**
+   * Project Status
+   * @example locked
+   */
+  status?: StringOrNullType;
 }
 
 /**
@@ -1800,6 +1979,11 @@ export interface ProjectUpdateReqType {
    * @example My Project
    */
   title?: string;
+  /**
+   * Project Status
+   * @example locked
+   */
+  status?: StringOrNullType;
 }
 
 /**
@@ -2135,6 +2319,8 @@ export interface UserType {
    * @example org-level-viewer
    */
   roles?: string;
+  /** Access token version */
+  token_version?: string;
 }
 
 /**
@@ -2192,6 +2378,8 @@ export interface ViewType {
   show: BoolType;
   /** Should show system fields in this view? */
   show_system_fields?: BoolType;
+  /** Is this view default view for the model? */
+  is_default?: BoolType;
   /** View Title */
   title: string;
   /** View Type */
@@ -3890,6 +4078,103 @@ export class Api<
       }),
 
     /**
+ * @description Duplicate a project
+ * 
+ * @tags Project
+ * @name BaseDuplicate
+ * @summary Duplicate Project Base
+ * @request POST:/api/v1/db/meta/duplicate/{projectId}/{baseId}
+ * @response `200` `{
+  name?: string,
+  id?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    baseDuplicate: (
+      projectId: IdType,
+      data: {
+        options?: {
+          excludeData?: boolean;
+          excludeViews?: boolean;
+          excludeHooks?: boolean;
+        };
+        project?: object;
+      },
+      baseId?: IdType,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          name?: string;
+          id?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/duplicate/${projectId}/${baseId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Duplicate a project
+ * 
+ * @tags Project
+ * @name Duplicate
+ * @summary Duplicate Project
+ * @request POST:/api/v1/db/meta/duplicate/{projectId}
+ * @response `200` `{
+  name?: string,
+  id?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    duplicate: (
+      projectId: IdType,
+      data: {
+        options?: {
+          excludeData?: boolean;
+          excludeViews?: boolean;
+          excludeHooks?: boolean;
+        };
+        project?: object;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          name?: string;
+          id?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/duplicate/${projectId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Get the info of a given project
  * 
  * @tags Project
@@ -4879,6 +5164,54 @@ export class Api<
       >({
         path: `/api/v1/db/meta/tables/${tableId}`,
         method: 'DELETE',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Duplicate a table
+ * 
+ * @tags DB Table
+ * @name Duplicate
+ * @summary Duplicate Table
+ * @request POST:/api/v1/db/meta/duplicate/{projectId}/table/{tableId}
+ * @response `200` `{
+  name?: string,
+  id?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    duplicate: (
+      projectId: IdType,
+      tableId: IdType,
+      data: {
+        options?: {
+          excludeData?: boolean;
+          excludeViews?: boolean;
+          excludeHooks?: boolean;
+        };
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          name?: string;
+          id?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/duplicate/${projectId}/table/${tableId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),
@@ -6386,6 +6719,45 @@ export class Api<
         ...params,
       }),
   };
+  dbTableWebhookLogs = {
+    /**
+ * @description List the log data in a given Hook
+ * 
+ * @tags DB Table Webhook Logs
+ * @name List
+ * @summary List Hook Logs
+ * @request GET:/api/v1/db/meta/hooks/{hookId}/logs
+ * @response `200` `HookLogListType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    list: (
+      hookId: IdType,
+      query?: {
+        /** @min 1 */
+        limit?: number;
+        /** @min 0 */
+        offset?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        HookLogListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/hooks/${hookId}/logs`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+  };
   dbTableRow = {
     /**
  * @description List all table rows in a given table and project
@@ -7754,7 +8126,7 @@ export class Api<
  */
     dataCreate: (
       sharedViewUuid: string,
-      data: object,
+      data: any,
       params: RequestParams = {}
     ) =>
       this.request<
@@ -7767,7 +8139,7 @@ export class Api<
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows`,
         method: 'POST',
         body: data,
-        type: ContentType.Json,
+        type: ContentType.FormData,
         format: 'json',
         ...params,
       }),
@@ -8105,6 +8477,29 @@ export class Api<
       }),
 
     /**
+     * @description Update comment in Audit
+     *
+     * @tags Utils
+     * @name CommentUpdate
+     * @summary Update Comment in Audit
+     * @request PATCH:/api/v1/db/meta/audits/{auditId}/comment
+     * @response `200` `number` OK
+     */
+    commentUpdate: (
+      auditId: string,
+      data: CommentUpdateReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<number, any>({
+        path: `/api/v1/db/meta/audits/${auditId}/comment`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Return the number of comments in the given query.
  * 
  * @tags Utils
@@ -8373,6 +8768,8 @@ export class Api<
   ncAttachmentFieldSize?: number,
   ncMaxAttachmentsAllowed?: number,
   isCloud?: boolean,
+  \** @example OFF *\
+  automationLogLevel?: "OFF" | "ERROR" | "ALL",
 
 }` OK
  * @response `400` `{
@@ -8402,6 +8799,8 @@ export class Api<
           ncAttachmentFieldSize?: number;
           ncMaxAttachmentsAllowed?: number;
           isCloud?: boolean;
+          /** @example OFF */
+          automationLogLevel?: 'OFF' | 'ERROR' | 'ALL';
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
@@ -8824,7 +9223,7 @@ export class Api<
  * @tags DB Table Webhook
  * @name SamplePayloadGet
  * @summary Get Sample Hook Payload
- * @request GET:/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}
+ * @request GET:/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}/{version}
  * @response `200` `{
   \** Sample Payload Data *\
   data?: object,
@@ -8838,7 +9237,14 @@ export class Api<
  */
     samplePayloadGet: (
       tableId: IdType,
-      operation: 'update' | 'delete' | 'insert',
+      operation:
+        | 'insert'
+        | 'update'
+        | 'delete'
+        | 'bulkInsert'
+        | 'bulkUpdate'
+        | 'bulkDelete',
+      version: 'v1' | 'v2',
       params: RequestParams = {}
     ) =>
       this.request<
@@ -8851,7 +9257,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/tables/${tableId}/hooks/samplePayload/${operation}`,
+        path: `/api/v1/db/meta/tables/${tableId}/hooks/samplePayload/${operation}/${version}`,
         method: 'GET',
         format: 'json',
         ...params,

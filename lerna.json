@@ -1,6 +1,10 @@
 {
   "packages": [
-    "packages/*"
+    "packages/nc-cli",
+    "packages/nc-gui",
+    "packages/nc-plugin",
+    "packages/nocodb",
+    "packages/nocodb-sdk"
   ],
   "version": "independent"
 }

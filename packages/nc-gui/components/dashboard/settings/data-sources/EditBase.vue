@@ -15,6 +15,7 @@ import {
   fieldRequiredValidator,
   getDefaultConnectionConfig,
   getTestDatabaseName,
+  iconMap,
   onMounted,
   projectTitleValidator,
   readFile,
@@ -345,8 +346,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="edit-base max-w-800px mx-auto bg-white relative flex flex-col justify-center gap-2 w-full p-8">
-    <h1 class="prose-2xl font-bold self-center my-4">Edit Base</h1>
+  <div class="edit-base max-w-800px bg-white relative flex flex-col justify-start gap-2 w-full p-2">
+    <h1 class="prose-2xl font-bold self-start">Edit Base</h1>
 
     <a-form
       ref="form"
@@ -464,15 +465,16 @@ onMounted(async () => {
         >
           <a-input v-model:value="formState.dataSource.searchPath[0]" />
         </a-form-item>
-
+        <!--                Use Connection URL -->
+        <div class="flex justify-end gap-2">
+          <a-button type="primary" class="nc-extdb-btn-import-url !rounded-md" @click.stop="importURLDlg = true">
+            {{ $t('activity.useConnectionUrl') }}
+          </a-button>
+        </div>
         <a-collapse ghost expand-icon-position="right" class="!mt-6">
           <a-collapse-panel key="1">
             <template #header>
               <div class="flex items-center gap-2">
-                <!--                Use Connection URL -->
-                <a-button type="default" class="nc-extdb-btn-import-url" @click.stop="importURLDlg = true">
-                  {{ $t('activity.useConnectionUrl') }}
-                </a-button>
                 <span>{{ $t('title.advancedParameters') }}</span>
               </div>
             </template>
@@ -537,11 +539,15 @@ onMounted(async () => {
 
                     <a-input v-model:value="item.value" />
 
-                    <MdiClose :style="{ 'font-size': '1.5em', 'color': 'red' }" @click="removeParam(index)" />
+                    <component
+                      :is="iconMap.close"
+                      :style="{ 'font-size': '1.5em', 'color': 'red' }"
+                      @click="removeParam(index)"
+                    />
                   </div>
                 </div>
                 <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">
-                  <div class="flex items-center justify-center"><MdiPlus /></div>
+                  <div class="flex items-center justify-center"><component :is="iconMap.plus" /></div>
                 </a-button>
               </a-card>
             </a-form-item>
@@ -567,7 +573,7 @@ onMounted(async () => {
             </a-form-item>
 
             <div class="flex justify-end">
-              <a-button class="!shadow-md" @click="handleEditJSON()">
+              <a-button type="primary" class="!rounded-md" @click="handleEditJSON()">
                 <!-- Edit connection JSON -->
                 {{ $t('activity.editConnJson') }}
               </a-button>
@@ -576,19 +582,19 @@ onMounted(async () => {
         </a-collapse>
       </template>
 
-      <a-form-item class="flex justify-center !mt-5">
-        <div class="flex justify-center gap-2">
-          <a-button type="primary" ghost class="nc-extdb-btn-test-connection" @click="testConnection">
+      <a-form-item class="flex justify-end !mt-5">
+        <div class="flex justify-end gap-2">
+          <a-button type="text" class="nc-extdb-btn-test-connection" @click="testConnection">
             {{ $t('activity.testDbConn') }}
           </a-button>
 
-          <a-button type="primary" :disabled="!testSuccess" class="nc-extdb-btn-submit !shadow" @click="editBase">
+          <a-button type="primary" :disabled="!testSuccess" class="nc-extdb-btn-submit !rounded-md" @click="editBase">
             {{ $t('general.submit') }}
           </a-button>
         </div>
       </a-form-item>
       <div class="w-full flex items-center mt-2 text-[#e65100]">
-        <MdiWarning class="mr-1" />
+        <component :is="iconMap.warning" class="mr-1" />
         Please make sure database you are trying to connect is valid! This operation can cause schema loss!!
       </div>
     </a-form>

@@ -37,6 +37,53 @@ export class ProjectsPage extends BasePage {
     await this.rootPage.locator('.nc-container').waitFor({ state: 'visible' });
   }
 
+  // duplicate project
+  async duplicateProject({
+    name = 'sample',
+    withoutPrefix,
+    includeData = true,
+    includeViews = true,
+  }: {
+    name?: string;
+    type?: string;
+    withoutPrefix?: boolean;
+    includeData: boolean;
+    includeViews: boolean;
+  }) {
+    if (!withoutPrefix) name = this.prefixTitle(name);
+    // click three-dot
+    await this.rootPage.getByTestId('p-three-dot-' + name).click();
+    // check duplicate visible
+    await expect(this.rootPage.getByTestId('dupe-project-' + name)).toBeVisible();
+    // click duplicate
+    await this.rootPage.getByTestId('dupe-project-' + name).click();
+
+    // Find the checkbox element with the label "Include data"
+    const includeDataCheckbox = await this.rootPage.getByText('Include data', { exact: true });
+    // Check the checkbox if it is not already checked
+    if ((await includeDataCheckbox.isChecked()) && !includeData) {
+      await includeDataCheckbox.click(); // click the checkbox to check it
+    }
+
+    // Find the checkbox element with the label "Include data"
+    const includeViewsCheckbox = await this.rootPage.getByText('Include views', { exact: true });
+    // Check the checkbox if it is not already checked
+    if ((await includeViewsCheckbox.isChecked()) && !includeViews) {
+      await includeViewsCheckbox.click(); // click the checkbox to check it
+    }
+
+    // click duplicate confirmation "Do you want to duplicate 'sampleREST0' project?"
+    const dupeProjectSubmitAction = () => this.rootPage.getByRole('button', { name: 'Confirm' }).click();
+
+    await this.waitForResponse({
+      uiAction: dupeProjectSubmitAction,
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: 'api/v1/db/meta/duplicate/',
+    });
+    // wait for duplicate create completed and render kebab
+    await this.get().locator(`[data-testid="p-three-dot-${name} copy"]`).waitFor();
+  }
+
   async checkProjectCreateButton({ exists = true }) {
     await expect(this.rootPage.locator('.nc-new-project-menu:visible')).toHaveCount(exists ? 1 : 0);
   }
@@ -146,6 +193,9 @@ export class ProjectsPage extends BasePage {
       has: project.locator(`td.ant-table-cell:has-text("${title}")`),
     });
     await projRow.locator('.nc-action-btn').nth(0).click();
+
+    // there is a flicker; add delay to avoid flakiness
+    await this.rootPage.waitForTimeout(1000);
 
     await project.locator('input.nc-metadb-project-name').fill(newTitle);
     // press enter to save

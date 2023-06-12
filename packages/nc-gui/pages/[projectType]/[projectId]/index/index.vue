@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { Icon as IconifyIcon } from '@iconify/vue'
 import type { TabItem } from '~/lib'
 import { TabType } from '~/lib'
 import { TabMetaInj, iconMap, provide, storeToRefs, useGlobal, useSidebar, useTabs } from '#imports'
@@ -15,11 +15,11 @@ provide(TabMetaInj, activeTab)
 const icon = (tab: TabItem) => {
   switch (tab.type) {
     case TabType.TABLE:
-      return iconMap['mdi-table-large']
+      return iconMap.table
     case TabType.VIEW:
-      return iconMap['mdi-eye-circle-outline']
+      return iconMap.view
     case TabType.AUTH:
-      return iconMap['mdi-account-group']
+      return iconMap.users
   }
 }
 
@@ -42,9 +42,10 @@ const hideSidebarOnClickOrTouchIfMobileMode = () => {
       <div class="flex items-end !min-h-[var(--header-height)] !bg-white-500 nc-tab-bar">
         <div
           v-if="!isOpen"
-          class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3 mb-1"
+          class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3"
         >
-          <MdiMenu
+          <component
+            :is="iconMap.sidebarMinimise"
             v-e="['c:grid:toggle-navdraw']"
             class="cursor-pointer transform transition-transform duration-500 text-gray-500/80 hover:text-gray-500"
             :class="{ 'rotate-180': !isOpen }"
@@ -57,7 +58,7 @@ const hideSidebarOnClickOrTouchIfMobileMode = () => {
             <template #tab>
               <div class="flex items-center gap-2" data-testid="nc-tab-title">
                 <div class="flex items-center">
-                  <Icon
+                  <IconifyIcon
                     v-if="tab.meta?.icon"
                     :icon="tab.meta?.icon"
                     class="text-xl"
@@ -82,7 +83,7 @@ const hideSidebarOnClickOrTouchIfMobileMode = () => {
           <div v-if="isLoading" class="flex items-center gap-2 ml-3 text-gray-200" data-testid="nc-loading">
             {{ $t('general.loading') }}
 
-            <MdiLoading class="animate-infinite animate-spin" />
+            <component :is="iconMap.loading" class="animate-infinite animate-spin" />
           </div>
         </div>
 

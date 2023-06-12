@@ -3,7 +3,17 @@ import type { VNodeRef } from '@vue/runtime-core'
 import type { KanbanType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { Tooltip } from 'ant-design-vue'
-import { IsLockedInj, inject, message, onKeyStroke, useDebounceFn, useNuxtApp, useUIPermission, useVModel } from '#imports'
+import {
+  IsLockedInj,
+  iconMap,
+  inject,
+  message,
+  onKeyStroke,
+  useDebounceFn,
+  useNuxtApp,
+  useUIPermission,
+  useVModel,
+} from '#imports'
 
 interface Props {
   view: ViewType
@@ -17,7 +27,7 @@ interface Emits {
 
   (event: 'changeView', view: Record<string, any>): void
 
-  (event: 'rename', view: ViewType): void
+  (event: 'rename', view: ViewType, originalTitle: string | undefined): void
 
   (event: 'delete', view: ViewType): void
 
@@ -132,7 +142,7 @@ async function onRename() {
     return
   }
 
-  emits('rename', vModel.value)
+  emits('rename', vModel.value, originalTitle)
 
   onStopEdit()
 }
@@ -173,7 +183,11 @@ function onStopEdit() {
           </component>
 
           <template v-if="isUIAllowed('viewIconCustomisation')" #overlay>
-            <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="emits('selectIcon', $event)" />
+            <GeneralEmojiIcons
+              class="shadow bg-white p-2"
+              :show-reset="!!view.meta?.icon"
+              @select-icon="emits('selectIcon', $event)"
+            />
           </template>
         </a-dropdown>
       </div>
@@ -199,7 +213,11 @@ function onStopEdit() {
               {{ $t('activity.copyView') }}
             </template>
 
-            <MdiContentCopy class="!hidden !group-hover:block text-gray-500 nc-view-copy-icon" @click.stop="onDuplicate" />
+            <component
+              :is="iconMap.copy"
+              class="!hidden !group-hover:block text-gray-500 nc-view-copy-icon"
+              @click.stop="onDuplicate"
+            />
           </a-tooltip>
 
           <template v-if="!vModel.is_default">
@@ -208,7 +226,11 @@ function onStopEdit() {
                 {{ $t('activity.deleteView') }}
               </template>
 
-              <MdiTrashCan class="!hidden !group-hover:block text-red-500 nc-view-delete-icon" @click.stop="onDelete" />
+              <component
+                :is="iconMap.delete"
+                class="!hidden !group-hover:block text-red-500 nc-view-delete-icon"
+                @click.stop="onDelete"
+              />
             </a-tooltip>
           </template>
         </div>

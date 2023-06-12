@@ -1,6 +1,17 @@
 <script setup lang="ts">
 import type { FilterReqType, HookReqType, HookType } from 'nocodb-sdk'
-import { MetaInj, extractSdkResponseErrorMsg, inject, message, onMounted, parseProp, ref, useI18n, useNuxtApp } from '#imports'
+import {
+  MetaInj,
+  extractSdkResponseErrorMsg,
+  iconMap,
+  inject,
+  message,
+  onMounted,
+  parseProp,
+  ref,
+  useI18n,
+  useNuxtApp,
+} from '#imports'
 
 const emit = defineEmits(['edit', 'add'])
 
@@ -97,9 +108,9 @@ onMounted(() => {
 
       <a-button
         v-e="['c:webhook:add']"
-        class="float-right nc-btn-create-webhook"
+        class="float-right !rounded-md nc-btn-create-webhook"
         type="primary"
-        size="large"
+        size="middle"
         @click="emit('add')"
       >
         {{ $t('activity.addWebhook') }}
@@ -114,18 +125,19 @@ onMounted(() => {
           <a-list-item class="p-2 nc-hook" @click="emit('edit', item)">
             <a-list-item-meta>
               <template #description>
-                <span class="uppercase"> {{ item.event }} {{ item.operation }}</span>
+                <span class="uppercase"> {{ item.event }} {{ item.operation.replace(/[A-Z]/g, ' $&') }}</span>
               </template>
 
               <template #title>
-                <span class="text-xl normal-case">
+                <div class="text-xl normal-case">
+                  <span class="text-gray-400 text-sm"> ({{ item.version }}) </span>
                   {{ item.title }}
-                </span>
+                </div>
               </template>
 
               <template #avatar>
-                <div class="my-1 px-2">
-                  <MdiHook class="text-xl" />
+                <div class="px-2">
+                  <component :is="iconMap.hook" class="text-xl" />
                 </div>
                 <div class="px-2 text-white rounded" :class="{ 'bg-green-500': item.active, 'bg-gray-500': !item.active }">
                   {{ item.active ? 'ON' : 'OFF' }}
@@ -139,18 +151,18 @@ onMounted(() => {
                 <div class="mr-2">{{ $t('labels.notifyVia') }} : {{ item?.notification?.type }}</div>
 
                 <div class="float-right pt-2 pr-1">
-                  <a-tooltip placement="left">
+                  <a-tooltip v-if="item.version === 'v2'" placement="left">
                     <template #title>
                       {{ $t('activity.copyWebhook') }}
                     </template>
-                    <MdiContentCopy class="text-xl nc-hook-copy-icon" @click.stop="copyHook(item)" />
+                    <component :is="iconMap.copy" class="text-xl nc-hook-copy-icon" @click.stop="copyHook(item)" />
                   </a-tooltip>
 
                   <a-tooltip placement="left">
                     <template #title>
                       {{ $t('activity.deleteWebhook') }}
                     </template>
-                    <MdiDeleteOutline class="text-xl nc-hook-delete-icon" @click.stop="deleteHook(item, index)" />
+                    <component :is="iconMap.delete" class="text-xl nc-hook-delete-icon" @click.stop="deleteHook(item, index)" />
                   </a-tooltip>
                 </div>
               </div>

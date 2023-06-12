@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { ChangePageInj, PaginationDataInj, computed, inject } from '#imports'
+import { ChangePageInj, PaginationDataInj, computed, iconMap, inject } from '#imports'
+
+const props = defineProps<{
+  alignCountOnRight?: boolean
+}>()
 
 const paginatedData = inject(PaginationDataInj)!
 
@@ -19,19 +23,23 @@ const page = computed({
 
 <template>
   <div class="flex items-center mb-1">
-    <span v-if="count !== null && count !== Infinity" class="caption ml-5 text-gray-500" data-testid="grid-pagination">
-      {{ count }} {{ count !== 1 ? $t('objects.records') : $t('objects.record') }}
-    </span>
-
-    <div class="flex-1" />
+    <div class="flex-1">
+      <span
+        v-if="!alignCountOnRight && count !== null && count !== Infinity"
+        class="caption ml-5 text-gray-500"
+        data-testid="grid-pagination"
+      >
+        {{ count }} {{ count !== 1 ? $t('objects.records') : $t('objects.record') }}
+      </span>
+    </div>
 
     <a-pagination
       v-if="count !== Infinity"
       v-model:current="page"
+      v-model:page-size="size"
       size="small"
       class="!text-xs !m-1 nc-pagination"
       :total="count"
-      :page-size="size"
       show-less-items
       :show-size-changer="false"
     />
@@ -39,12 +47,20 @@ const page = computed({
       <span class="text-xs" style="white-space: nowrap"> Change page:</span>
       <a-input :value="page" size="small" class="ml-1 !text-xs" type="number" @keydown.enter="changePage(page)">
         <template #suffix>
-          <MdiKeyboardReturn class="mt-1" @click="changePage(page)" />
+          <component :is="iconMap.returnKey" class="mt-1" @click="changePage(page)" />
         </template>
       </a-input>
     </div>
 
-    <div class="flex-1" />
+    <div class="flex-1 text-right pr-2">
+      <span
+        v-if="alignCountOnRight && count !== null && count !== Infinity"
+        class="caption mr-5 text-gray-500"
+        data-testid="grid-pagination"
+      >
+        {{ count }} {{ count !== 1 ? $t('objects.records') : $t('objects.record') }}
+      </span>
+    </div>
   </div>
 </template>
 

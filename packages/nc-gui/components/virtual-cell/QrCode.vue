@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useQRCode } from '@vueuse/integrations/useQRCode'
 import type QRCode from 'qrcode'
-import { RowHeightInj } from '#imports'
+import { RowHeightInj, computed, inject, ref } from '#imports'
 
 const maxNumberOfAllowedCharsForQrValue = 2000
 
@@ -21,7 +21,8 @@ const qrCodeOptions: QRCode.QRCodeToDataURLOptions = {
     quality: 1,
   },
 }
-const rowHeight = inject(RowHeightInj)
+
+const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const qrCode = useQRCode(qrValue, {
   ...qrCodeOptions,

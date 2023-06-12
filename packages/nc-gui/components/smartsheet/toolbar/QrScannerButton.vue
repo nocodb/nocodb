@@ -4,7 +4,7 @@ import { ref } from 'vue'
 import { StreamBarcodeReader } from 'vue-barcode-reader'
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import { NOCO, storeToRefs } from '#imports'
+import { NOCO, iconMap, storeToRefs } from '#imports'
 
 const meta = inject(MetaInj, ref())
 
@@ -125,7 +125,7 @@ const onDecode = async (codeValue: string) => {
   <div>
     <a-button class="nc-btn-find-row-by-scan nc-toolbar-btn" @click="showCodeScannerOverlay = true">
       <div class="flex items-center gap-1">
-        <MdiQrcodeScan />
+        <component :is="iconMap.qrCode" />
         <span v-if="!isMobileMode" class="!text-xs font-weight-normal"> {{ $t('activity.findRowByCodeScan') }}</span>
       </div>
     </a-button>

@@ -1,4 +1,4 @@
-import clone from 'just-clone'
+import rfdc from 'rfdc'
 import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
@@ -18,6 +18,8 @@ import {
   watch,
 } from '#imports'
 
+const clone = rfdc()
+
 const useForm = Form.useForm
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
@@ -29,7 +31,7 @@ interface ValidationsObj {
 const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState(
   (meta: Ref<TableType | undefined>, column: Ref<ColumnType | undefined>) => {
     const projectStore = useProject()
-    const { isMysql: isMysqlFunc, isPg: isPgFunc, isMssql: isMssqlFunc } = projectStore
+    const { isMysql: isMysqlFunc, isPg: isPgFunc, isMssql: isMssqlFunc, isXcdbBase: isXcdbBaseFunc } = projectStore
     const { project, sqlUis } = storeToRefs(projectStore)
 
     const { $api } = useNuxtApp()
@@ -49,6 +51,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const isPg = computed(() => isPgFunc(meta.value?.base_id ? meta.value?.base_id : Object.keys(sqlUis.value)[0]))
 
     const isMssql = computed(() => isMssqlFunc(meta.value?.base_id ? meta.value?.base_id : Object.keys(sqlUis.value)[0]))
+
+    const isXcdbBase = computed(() => isXcdbBaseFunc(meta.value?.base_id ? meta.value?.base_id : Object.keys(sqlUis.value)[0]))
 
     const idType = null
 
@@ -287,6 +291,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isMssql,
       isPg,
       isMysql,
+      isXcdbBase
     }
   },
 )

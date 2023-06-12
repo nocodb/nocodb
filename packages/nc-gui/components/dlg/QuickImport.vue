@@ -12,6 +12,7 @@ import {
   computed,
   extractSdkResponseErrorMsg,
   fieldRequiredValidator,
+  iconMap,
   importCsvUrlValidator,
   importExcelUrlValidator,
   importUrlValidator,
@@ -379,7 +380,7 @@ const beforeUpload = (file: UploadFile) => {
               <template #tab>
                 <!--              Upload -->
                 <div class="flex items-center gap-2">
-                  <MdiFileUploadOutline />
+                  <component :is="iconMap.fileUpload" />
                   {{ $t('general.upload') }}
                 </div>
               </template>
@@ -398,7 +399,7 @@ const beforeUpload = (file: UploadFile) => {
                   @change="handleChange"
                   @reject="rejectDrop"
                 >
-                  <MdiFilePlusOutline size="large" />
+                  <component :is="iconMap.plusCircle" size="large" />
 
                   <!-- Click or drag file to this area to upload -->
                   <p class="ant-upload-text">{{ $t('msg.info.import.clickOrDrag') }}</p>
@@ -413,7 +414,7 @@ const beforeUpload = (file: UploadFile) => {
             <a-tab-pane v-if="isImportTypeJson" key="jsonEditorTab" :closable="false">
               <template #tab>
                 <span class="flex items-center gap-2">
-                  <MdiCodeJson />
+                  <component :is="iconMap.json" />
                   JSON Editor
                 </span>
               </template>
@@ -426,13 +427,13 @@ const beforeUpload = (file: UploadFile) => {
             <a-tab-pane v-else key="urlTab" :closable="false">
               <template #tab>
                 <span class="flex items-center gap-2">
-                  <MdiLinkVariant />
+                  <component :is="iconMap.link" />
                   URL
                 </span>
               </template>
 
               <div class="pr-10 pt-5">
-                <a-form :model="importState" name="quick-import-url-form" layout="horizontal" class="mb-0">
+                <a-form :model="importState" name="quick-import-url-form" layout="vertical" class="mb-0">
                   <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url">
                     <a-input v-model:value="importState.url" size="large" />
                   </a-form-item>
@@ -481,13 +482,14 @@ const beforeUpload = (file: UploadFile) => {
       </div>
     </a-spin>
     <template #footer>
-      <a-button v-if="templateEditorModal" key="back" @click="templateEditorModal = false">Back</a-button>
+      <a-button v-if="templateEditorModal" key="back" class="!rounded-md" @click="templateEditorModal = false">Back</a-button>
 
-      <a-button v-else key="cancel" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
+      <a-button v-else key="cancel" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
 
       <a-button
         v-if="activeKey === 'jsonEditorTab' && !templateEditorModal"
         key="format"
+        class="!rounded-md"
         :disabled="disableFormatJsonButton"
         @click="formatJson"
       >
@@ -498,7 +500,7 @@ const beforeUpload = (file: UploadFile) => {
         v-if="!templateEditorModal"
         key="pre-import"
         type="primary"
-        class="nc-btn-import"
+        class="nc-btn-import !rounded-md"
         :loading="preImportLoading"
         :disabled="disablePreImportButton"
         @click="handlePreImport"
@@ -506,7 +508,15 @@ const beforeUpload = (file: UploadFile) => {
         {{ $t('activity.import') }}
       </a-button>
 
-      <a-button v-else key="import" type="primary" :loading="importLoading" :disabled="disableImportButton" @click="handleImport">
+      <a-button
+        v-else
+        key="import"
+        type="primary"
+        class="!rounded-md"
+        :loading="importLoading"
+        :disabled="disableImportButton"
+        @click="handleImport"
+      >
         {{ $t('activity.import') }}
       </a-button>
     </template>

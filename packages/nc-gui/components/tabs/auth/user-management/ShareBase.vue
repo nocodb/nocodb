@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   extractSdkResponseErrorMsg,
+  iconMap,
   message,
   onMounted,
   storeToRefs,
@@ -151,74 +152,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col w-full" data-testid="nc-share-base-sub-modal">
-    <div class="flex flex-row items-center space-x-0.5 pl-2 h-[0.8rem]">
-      <MdiOpenInNew />
-
-      <div class="text-xs">{{ $t('activity.shareBase.link') }}</div>
-    </div>
-
-    <div v-if="base?.uuid" class="flex flex-row mt-2 bg-red-50 py-4 mx-1 px-2 items-center rounded-sm w-full justify-between">
-      <span class="flex text-xs overflow-x-hidden overflow-ellipsis text-gray-700 pl-2 nc-url">{{ url }}</span>
-
-      <div class="flex border-l-1 pt-1 pl-1">
-        <a-tooltip placement="bottom">
-          <template #title>
-            <span>{{ $t('general.reload') }}</span>
-          </template>
-
-          <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="recreate">
-            <template #icon>
-              <MdiReload class="flex mx-auto text-gray-600" />
-            </template>
-          </a-button>
-        </a-tooltip>
-
-        <a-tooltip placement="bottom">
-          <template #title>
-            <span>{{ $t('activity.copyUrl') }}</span>
-          </template>
-
-          <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="copyUrl">
-            <template #icon>
-              <MdiContentCopy class="flex mx-auto text-gray-600" />
-            </template>
-          </a-button>
-        </a-tooltip>
-
-        <a-tooltip placement="bottom">
-          <template #title>
-            <span>{{ $t('activity.openTab') }}</span>
-          </template>
-
-          <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="navigateToSharedBase">
-            <template #icon>
-              <MdiOpenInNew class="flex mx-auto text-gray-600" />
-            </template>
-          </a-button>
-        </a-tooltip>
-
-        <a-tooltip placement="bottom">
-          <template #title>
-            <span>{{ $t('activity.iFrame') }}</span>
-          </template>
-
-          <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="generateEmbeddableIframe">
-            <template #icon>
-              <MdiXml class="flex mx-auto text-gray-600" />
-            </template>
-          </a-button>
-        </a-tooltip>
-      </div>
-    </div>
-
+  <div class="flex flex-col gap-2 w-full" data-testid="nc-share-base-sub-modal">
     <!--    Generate publicly shareable readonly base -->
-    <div class="flex text-xs text-gray-500 mt-2 justify-start ml-2">{{ $t('msg.info.generatePublicShareableReadonlyBase') }}</div>
+    <div class="flex text-xs text-gray-500 justify-start ml-1">{{ $t('msg.info.generatePublicShareableReadonlyBase') }}</div>
 
-    <div class="mt-4 flex flex-row justify-between mx-1">
+    <div class="flex flex-row justify-between mx-1">
       <a-dropdown v-model="showEditBaseDropdown" class="flex" overlay-class-name="nc-dropdown-shared-base-toggle">
         <a-button>
-          <div class="flex flex-row items-center space-x-2 nc-disable-shared-base">
+          <div class="flex flex-row rounded-md items-center space-x-2 nc-disable-shared-base">
             <div v-if="base?.uuid">{{ $t('activity.shareBase.enable') }}</div>
             <div v-else>{{ $t('activity.shareBase.disable') }}</div>
             <IcRoundKeyboardArrowDown class="h-[1rem]" />
@@ -259,6 +200,59 @@ onMounted(() => {
           </div>
         </a-select-option>
       </a-select>
+    </div>
+    <div v-if="base?.uuid" class="flex flex-row mt-2 bg-red-50 py-4 mx-1 px-2 items-center rounded-sm w-full justify-between">
+      <span class="flex text-xs overflow-x-hidden overflow-ellipsis text-gray-700 pl-2 nc-url">{{ url }}</span>
+
+      <div class="flex border-l-1 pt-1 pl-1">
+        <a-tooltip placement="bottom">
+          <template #title>
+            <span>{{ $t('general.reload') }}</span>
+          </template>
+
+          <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="recreate">
+            <template #icon>
+              <component :is="iconMap.reload" class="flex mx-auto text-gray-600" />
+            </template>
+          </a-button>
+        </a-tooltip>
+
+        <a-tooltip placement="bottom">
+          <template #title>
+            <span>{{ $t('activity.copyUrl') }}</span>
+          </template>
+
+          <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="copyUrl">
+            <template #icon>
+              <component :is="iconMap.copy" class="flex mx-auto text-gray-600" />
+            </template>
+          </a-button>
+        </a-tooltip>
+
+        <a-tooltip placement="bottom">
+          <template #title>
+            <span>{{ $t('activity.openTab') }}</span>
+          </template>
+
+          <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="navigateToSharedBase">
+            <template #icon>
+              <component :is="iconMap.share" class="flex mx-auto text-gray-600" />
+            </template>
+          </a-button>
+        </a-tooltip>
+
+        <a-tooltip placement="bottom">
+          <template #title>
+            <span>{{ $t('activity.iFrame') }}</span>
+          </template>
+
+          <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="generateEmbeddableIframe">
+            <template #icon>
+              <component :is="iconMap.xml" class="flex mx-auto text-gray-600" />
+            </template>
+          </a-button>
+        </a-tooltip>
+      </div>
     </div>
   </div>
 </template>

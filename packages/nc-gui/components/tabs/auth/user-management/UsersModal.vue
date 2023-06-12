@@ -6,6 +6,7 @@ import {
   computed,
   emailValidator,
   extractSdkResponseErrorMsg,
+  iconMap,
   message,
   onMounted,
   projectRoleTagColors,
@@ -191,7 +192,7 @@ watch(
         <template v-if="usersData.invitationToken">
           <div class="flex flex-col mt-1 border-b-1 pb-5">
             <div class="flex flex-row items-center pl-1.5 pb-1 h-[1.1rem]">
-              <MdiAccountOutline />
+              <component :is="iconMap.account" />
               <div class="text-xs ml-0.5 mt-0.5">Copy Invite Token</div>
             </div>
 
@@ -204,7 +205,7 @@ watch(
 
                   <a-button type="text" class="!rounded-md -mt-0.5" @click="copyUrl">
                     <template #icon>
-                      <MdiContentCopy class="flex mx-auto text-green-700 h-[1rem]" />
+                      <component :is="iconMap.copy" class="flex mx-auto text-green-700 h-[1rem]" />
                     </template>
                   </a-button>
                 </div>
@@ -229,19 +230,13 @@ watch(
         </template>
 
         <div v-else class="flex flex-col pb-4">
-          <div class="flex flex-row items-center pl-2 pb-1 h-[1rem]">
-            <MdiAccountOutline />
+          <div v-if="selectedUser" class="flex flex-row items-center pl-2 pb-1 h-[1rem]">
+            <component :is="iconMap.account" />
             <div class="text-xs ml-0.5 mt-0.5">{{ selectedUser ? $t('activity.editUser') : $t('activity.inviteTeam') }}</div>
           </div>
 
-          <div class="border-1 py-3 px-4 rounded-md mt-1">
-            <a-form
-              ref="formRef"
-              :validate-on-rule-change="false"
-              :model="usersData"
-              validate-trigger="onBlur"
-              @finish="saveUser"
-            >
+          <a-form ref="formRef" :validate-on-rule-change="false" :model="usersData" validate-trigger="onBlur" @finish="saveUser">
+            <div class="border-1 py-3 px-4 rounded-md mt-1">
               <div class="flex flex-row space-x-4">
                 <div class="flex flex-col w-3/4">
                   <a-form-item
@@ -255,6 +250,7 @@ watch(
                     <a-input
                       ref="emailField"
                       v-model:value="usersData.emails"
+                      size="middle"
                       validate-trigger="onBlur"
                       :placeholder="$t('labels.email')"
                       :disabled="!!selectedUser"
@@ -266,11 +262,16 @@ watch(
                   <a-form-item name="role" :rules="[{ required: true, message: 'Role required' }]">
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('labels.selectUserRole') }}</div>
 
-                    <a-select v-model:value="usersData.role" class="nc-user-roles" dropdown-class-name="nc-dropdown-user-role">
+                    <a-select
+                      v-model:value="usersData.role"
+                      size="middle"
+                      class="nc-user-roles !rounded-md"
+                      dropdown-class-name="nc-dropdown-user-role"
+                    >
                       <a-select-option v-for="(role, index) in projectRoles" :key="index" :value="role" class="nc-role-option">
                         <div class="flex flex-row h-full justify-start items-center">
                           <div
-                            class="px-2 py-1 flex rounded-full text-xs"
+                            class="px-3 py-1 flex rounded-full text-xs"
                             :style="{ backgroundColor: projectRoleTagColors[role] }"
                           >
                             {{ role }}
@@ -282,8 +283,8 @@ watch(
                 </div>
               </div>
 
-              <div class="flex flex-row justify-center">
-                <a-button type="primary" html-type="submit">
+              <div class="flex flex-row justify-end">
+                <a-button type="primary" html-type="submit" class="!rounded-md">
                   <div v-if="selectedUser">{{ $t('general.save') }}</div>
 
                   <div v-else class="flex flex-row justify-center items-center space-x-1.5">
@@ -292,11 +293,11 @@ watch(
                   </div>
                 </a-button>
               </div>
-            </a-form>
-          </div>
+            </div>
+          </a-form>
         </div>
 
-        <div class="flex mt-4">
+        <div class="flex">
           <LazyTabsAuthUserManagementShareBase />
         </div>
       </div>

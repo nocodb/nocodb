@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { ColumnInj, EditModeInj, computed, inject, parseProp, useVModel } from '#imports'
+import { ColumnInj, EditModeInj, IsExpandedFormOpenInj, computed, inject, parseProp, useVModel } from '#imports'
 
 interface Props {
   modelValue: number | null | undefined
@@ -41,18 +41,21 @@ const currencyMeta = computed(() => {
 
 const currency = computed(() => {
   try {
-    return !vModel.value || isNaN(vModel.value)
-      ? vModel.value
-      : new Intl.NumberFormat(currencyMeta.value.currency_locale || 'en-US', {
-          style: 'currency',
-          currency: currencyMeta.value.currency_code || 'USD',
-        }).format(vModel.value)
+    if (vModel.value === null || vModel.value === undefined || isNaN(vModel.value)) {
+      return vModel.value
+    }
+    return new Intl.NumberFormat(currencyMeta.value.currency_locale || 'en-US', {
+      style: 'currency',
+      currency: currencyMeta.value.currency_code || 'USD',
+    }).format(vModel.value)
   } catch (e) {
     return vModel.value
   }
 })
 
-const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
 
 const submitCurrency = () => {
   if (lastSaved.value !== vModel.value) {
@@ -72,6 +75,7 @@ onMounted(() => {
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
+    type="number"
     class="w-full h-full border-none outline-none px-2"
     @blur="submitCurrency"
     @keydown.down.stop
@@ -86,7 +90,9 @@ onMounted(() => {
 
   <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
 
-  <span v-else-if="vModel">{{ currency }}</span>
+  <!-- only show the numeric value as previously string value was accepted -->
+  <span v-else-if="!isNaN(vModel)">{{ currency }}</span>
 
+  <!-- possibly unexpected string / null with showNull == false  -->
   <span v-else />
 </template>

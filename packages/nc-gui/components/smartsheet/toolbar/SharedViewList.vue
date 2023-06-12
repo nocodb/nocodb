@@ -3,6 +3,7 @@ import { ViewTypes } from 'nocodb-sdk'
 import {
   Empty,
   extractSdkResponseErrorMsg,
+  iconMap,
   message,
   onMounted,
   parseProp,
@@ -162,8 +163,8 @@ const deleteLink = async (id: string) => {
       <a-table-column key="id" :title="$t('labels.actions')" data-index="title">
         <template #default="{ record }">
           <div class="text-sm flex gap-2" :title="text">
-            <MdiContentCopy class="cursor-pointer" @click="copyLink(record)" />
-            <MdiDeleteOutline class="cursor-pointer" @click="deleteLink(record.id)" />
+            <component :is="iconMap.copy" class="cursor-pointer" @click="copyLink(record)" />
+            <component :is="iconMap.delete" class="cursor-pointer" @click="deleteLink(record.id)" />
           </div>
         </template>
       </a-table-column>

@@ -9,6 +9,7 @@ import {
   MetaInj,
   ReloadViewDataHookInj,
   computed,
+  iconMap,
   inject,
   ref,
   useViewColumns,
@@ -84,7 +85,7 @@ const handleChange = () => {
             {{ $t('activity.map.mappedBy') }}
             <span class="font-bold">{{ geoDataFieldColumn?.title }}</span>
           </span>
-          <MdiMenuDown class="text-grey" />
+          <component :is="iconMap.arrowDown" class="text-grey" />
         </div>
       </a-button>
     </div>

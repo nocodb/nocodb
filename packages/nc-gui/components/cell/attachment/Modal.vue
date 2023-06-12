@@ -2,7 +2,7 @@
 import { onKeyDown } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
 import { useSortable } from './sort'
-import { isImage, ref, useAttachment, useDropZone, useUIPermission, watch } from '#imports'
+import { iconMap, isImage, ref, useAttachment, useDropZone, useUIPermission, watch } from '#imports'
 
 const { isUIAllowed } = useUIPermission()
 
@@ -133,7 +133,8 @@ function onRemoveFileClick(title: any, i: number) {
 
             <a-tooltip v-if="!readOnly">
               <template #title> Remove File </template>
-              <MdiCloseCircle
+              <component
+                :is="iconMap.closeCircle"
                 v-if="isSharedForm || (isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
                 class="nc-attachment-remove"
                 @click.stop="onRemoveFileClick(item.title, i)"
@@ -144,7 +145,7 @@ function onRemoveFileClick(title: any, i: number) {
               <template #title> Download File </template>
 
               <div class="nc-attachment-download group-hover:(opacity-100)">
-                <MdiDownload @click.stop="downloadFile(item)" />
+                <component :is="iconMap.download" @click.stop="downloadFile(item)" />
               </div>
             </a-tooltip>
 
@@ -155,7 +156,7 @@ function onRemoveFileClick(title: any, i: number) {
               <template #title> Rename File </template>
 
               <div class="nc-attachment-download group-hover:(opacity-100) mr-[35px]">
-                <MdiEditOutline @click.stop="renameFile(item, i)" />
+                <component :is="iconMap.edit" @click.stop="renameFile(item, i)" />
               </div>
             </a-tooltip>
 

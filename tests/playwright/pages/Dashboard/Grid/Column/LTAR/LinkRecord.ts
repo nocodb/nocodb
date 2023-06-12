@@ -29,12 +29,15 @@ export class LinkRecord extends BasePage {
       const childCards = await childList.count();
       await expect(childCards).toEqual(cardTitle.length);
       for (let i = 0; i < cardTitle.length; i++) {
-        await expect(await childList.nth(i).textContent()).toContain(cardTitle[i]);
+        await childList.nth(i).locator('.name').scrollIntoViewIfNeeded();
+        await childList.nth(i).locator('.name').waitFor({ state: 'visible' });
+        await expect(await childList.nth(i).locator('.name').textContent()).toContain(cardTitle[i]);
       }
     }
   }
 
   async select(cardTitle: string) {
+    await this.rootPage.waitForTimeout(100);
     await this.get().locator(`.ant-card:has-text("${cardTitle}"):visible`).click();
   }
 

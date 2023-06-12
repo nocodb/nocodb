@@ -5,6 +5,7 @@ import {
   computed,
   defineComponent,
   h,
+  iconMap,
   inject,
   isAttachment,
   isBoolean,
@@ -34,79 +35,56 @@ import {
   toRef,
   useProject,
 } from '#imports'
-import FilePhoneIcon from '~icons/mdi/file-phone'
-import KeyIcon from '~icons/mdi/key-variant'
-import JSONIcon from '~icons/mdi/code-json'
-import ClockIcon from '~icons/mdi/clock-time-five'
-import WebIcon from '~icons/mdi/web'
-import TextAreaIcon from '~icons/mdi/card-text-outline'
-import StringIcon from '~icons/mdi/alpha-a-box-outline'
-import BooleanIcon from '~icons/mdi/check-box-outline'
-import CalendarIcon from '~icons/mdi/calendar'
-import SingleSelectIcon from '~icons/mdi/arrow-down-drop-circle'
-import MultiSelectIcon from '~icons/mdi/format-list-bulleted-square'
-import DatetimeIcon from '~icons/mdi/calendar-clock'
-import GeoDataIcon from '~icons/mdi/map-marker'
-import RatingIcon from '~icons/mdi/star'
-import GenericIcon from '~icons/mdi/square-rounded'
-import NumericIcon from '~icons/mdi/numeric'
-import AttachmentIcon from '~icons/mdi/image-multiple-outline'
-import EmailIcon from '~icons/mdi/email'
-import CurrencyIcon from '~icons/mdi/currency-usd-circle-outline'
-import PercentIcon from '~icons/mdi/percent-outline'
-import DecimalIcon from '~icons/mdi/decimal'
-import SpecificDBTypeIcon from '~icons/mdi/database-settings'
-import DurationIcon from '~icons/mdi/timer-outline'
 
 const renderIcon = (column: ColumnType, abstractType: any) => {
   if (isPrimaryKey(column)) {
-    return KeyIcon
+    return iconMap.key
   } else if (isSpecificDBType(column)) {
-    return SpecificDBTypeIcon
+    return iconMap.specificDbType
   } else if (isJSON(column)) {
-    return JSONIcon
+    return iconMap.json
   } else if (isDate(column, abstractType)) {
-    return CalendarIcon
+    return iconMap.calendar
   } else if (isDateTime(column, abstractType)) {
-    return DatetimeIcon
+    return iconMap.datetime
   } else if (isGeoData(column)) {
-    return GeoDataIcon
+    return iconMap.geoData
   } else if (isSet(column)) {
-    return MultiSelectIcon
+    return iconMap.multiSelect
   } else if (isSingleSelect(column)) {
-    return SingleSelectIcon
+    return iconMap.singleSelect
   } else if (isBoolean(column, abstractType)) {
-    return BooleanIcon
+    return iconMap.boolean
   } else if (isTextArea(column)) {
-    return TextAreaIcon
+    return iconMap.longText
   } else if (isEmail(column)) {
-    return EmailIcon
+    return iconMap.email
   } else if (isYear(column, abstractType)) {
-    return CalendarIcon
+    return iconMap.calendar
   } else if (isTime(column, abstractType)) {
-    return ClockIcon
+    return iconMap.calendar
   } else if (isRating(column)) {
-    return RatingIcon
+    return iconMap.rating
   } else if (isAttachment(column)) {
-    return AttachmentIcon
+    return iconMap.image
   } else if (isDecimal(column)) {
-    return DecimalIcon
+    return iconMap.decimal
   } else if (isPhoneNumber(column)) {
-    return FilePhoneIcon
+    return iconMap.phone
   } else if (isURL(column)) {
-    return WebIcon
+    return iconMap.web
   } else if (isCurrency(column)) {
-    return CurrencyIcon
+    return iconMap.currency
   } else if (isDuration(column)) {
-    return DurationIcon
+    return iconMap.duration
   } else if (isPercent(column)) {
-    return PercentIcon
+    return iconMap.percent
   } else if (isInt(column, abstractType) || isFloat(column, abstractType)) {
-    return NumericIcon
+    return iconMap.number
   } else if (isString(column, abstractType)) {
-    return StringIcon
+    return iconMap.text
   } else {
-    return GenericIcon
+    return iconMap.generic
   }
 }
 
@@ -133,7 +111,7 @@ export default defineComponent({
     return () => {
       if (!column.value) return null
 
-      return h(renderIcon(column.value, abstractType.value), { class: 'text-grey mx-1 !text-xs' })
+      return h(renderIcon(column.value, abstractType.value), { class: 'text-gray-500 mx-1' })
     }
   },
 })

@@ -76,6 +76,7 @@ export interface DataConfigNumber {
   aggregateFunction?: AggregateFnType;
   name?: string;
   description?: string;
+  icon?: string;
 }
 
 export interface StaticTextFunctionBase {

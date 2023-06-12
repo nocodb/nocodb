@@ -63,6 +63,6 @@ const onUpdateScreenDimensions = (newScreenDimensions: ScreenDimensions) => {
 }
 
 .nc-layout-ui-element-has-focus {
-  outline: 2px dotted rgb(119, 119, 221);
+  /* outline: 2px dotted rgb(119, 119, 221); */
 }
 </style>

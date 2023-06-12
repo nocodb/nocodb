@@ -14,19 +14,9 @@ import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
 import getColumnUiType from '../helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
 import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
-import {
-  Audit,
-  Base,
-  Column,
-  Model,
-  ModelRoleVisibility,
-  Project,
-} from '../models';
-import Noco from '../Noco';
+import { Audit, Column, Model, ModelRoleVisibility, Project } from '../models';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { validatePayload } from '../helpers';
-import { ColumnsService } from './columns.service';
-import type { MetaService } from '../meta/meta.service';
 import type { LinkToAnotherRecordColumn, User, View } from '../models';
 import type {
   ColumnType,
@@ -36,8 +26,6 @@ import type {
 
 @Injectable()
 export class TablesService {
-  constructor(private readonly columnsService: ColumnsService) {}
-
   async tableUpdate(param: {
     tableId: any;
     table: TableReqType & { project_id?: string };
@@ -154,14 +142,11 @@ export class TablesService {
     const table = await Model.getByIdOrName({ id: param.tableId });
     await table.getColumns();
 
-    const project = await Project.getWithInfo(table.project_id);
-    const base = project.bases.find((b) => b.id === table.base_id);
-
     const relationColumns = table.columns.filter(
       (c) => c.uidt === UITypes.LinkToAnotherRecord,
     );
 
-    if (relationColumns?.length && !base.is_meta) {
+    if (relationColumns?.length) {
       const referredTables = await Promise.all(
         relationColumns.map(async (c) =>
           c
@@ -177,69 +162,37 @@ export class TablesService {
       );
     }
 
-    // start a transaction
-    const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
-    let result;
-    try {
-      // delete all relations
-      for (const c of relationColumns) {
-        // skip if column is hasmany relation to mm table
-        if (c.system) {
-          continue;
-        }
+    const project = await Project.getWithInfo(table.project_id);
+    const base = project.bases.find((b) => b.id === table.base_id);
+    const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
+    (table as any).tn = table.table_name;
+    table.columns = table.columns.filter((c) => !isVirtualCol(c));
+    table.columns.forEach((c) => {
+      (c as any).cn = c.column_name;
+    });
 
-        // verify column exist or not and based on that delete the column
-        if (!(await Column.get({ colId: c.id }, ncMeta))) {
-          continue;
-        }
-
-        await this.columnsService.columnDelete(
-          {
-            req: param.req,
-            columnId: c.id,
-          },
-          ncMeta,
-        );
-      }
-
-      const sqlMgr = await ProjectMgrv2.getSqlMgr(project, ncMeta);
-      (table as any).tn = table.table_name;
-      table.columns = table.columns.filter((c) => !isVirtualCol(c));
-      table.columns.forEach((c) => {
-        (c as any).cn = c.column_name;
+    if (table.type === ModelTypes.TABLE) {
+      await sqlMgr.sqlOpPlus(base, 'tableDelete', table);
+    } else if (table.type === ModelTypes.VIEW) {
+      await sqlMgr.sqlOpPlus(base, 'viewDelete', {
+        ...table,
+        view_name: table.table_name,
       });
-
-      if (table.type === ModelTypes.TABLE) {
-        await sqlMgr.sqlOpPlus(base, 'tableDelete', table);
-      } else if (table.type === ModelTypes.VIEW) {
-        await sqlMgr.sqlOpPlus(base, 'viewDelete', {
-          ...table,
-          view_name: table.table_name,
-        });
-      }
-
-      await Audit.insert(
-        {
-          project_id: project.id,
-          base_id: base.id,
-          op_type: AuditOperationTypes.TABLE,
-          op_sub_type: AuditOperationSubTypes.DELETE,
-          user: param.user?.email,
-          description: `Deleted ${table.type} ${table.table_name} with alias ${table.title}  `,
-          ip: param.req?.clientIp,
-        },
-        ncMeta,
-      ).then(() => {});
-
-      T.emit('evt', { evt_type: 'table:deleted' });
-
-      result = await table.delete(ncMeta);
-      await ncMeta.commit();
-    } catch (e) {
-      await ncMeta.rollback();
-      throw e;
     }
-    return result;
+
+    await Audit.insert({
+      project_id: project.id,
+      base_id: base.id,
+      op_type: AuditOperationTypes.TABLE,
+      op_sub_type: AuditOperationSubTypes.DELETE,
+      user: param.user?.email,
+      description: `Deleted ${table.type} ${table.table_name} with alias ${table.title}  `,
+      ip: param.req?.clientIp,
+    }).then(() => {});
+
+    T.emit('evt', { evt_type: 'table:deleted' });
+
+    return table.delete();
   }
 
   async getTableWithAccessibleViews(param: { tableId: string; user: User }) {

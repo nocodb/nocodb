@@ -103,15 +103,11 @@ export class DatasService {
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
-    // if xcdb project skip checking for LTAR
-    if (!base.is_meta) {
-      // todo: Should have error http status code
-      const message = await baseModel.hasLTARData(param.rowId, model);
-      if (message.length) {
-        return { message };
-      }
+    // todo: Should have error http status code
+    const message = await baseModel.hasLTARData(param.rowId, model);
+    if (message.length) {
+      return { message };
     }
-
     return await baseModel.delByPk(param.rowId, null, param.cookie);
   }
 

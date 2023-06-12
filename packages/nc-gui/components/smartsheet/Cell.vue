@@ -232,8 +232,6 @@ onUnmounted(() => {
         <div
           v-if="(isLocked || (isPublic && readOnly && !isForm) || isSystemColumn(column)) && !isAttachment(column)"
           class="nc-locked-overlay"
-          @click.prevent
-          @dblclick.prevent
         />
       </template>
     </template>

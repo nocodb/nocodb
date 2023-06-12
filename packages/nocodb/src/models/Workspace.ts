@@ -3,8 +3,8 @@ import Noco from '../Noco';
 import { MetaTable } from '../utils/globals';
 
 import Page from './Page';
+import { Project } from './index';
 import type { WorkspaceType } from 'nocodb-sdk';
-import {Project} from "./index";
 
 export default class Workspace implements WorkspaceType {
   id?: string;

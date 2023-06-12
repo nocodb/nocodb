@@ -1,4 +1,4 @@
-import {Controller, Delete, Get, UseGuards} from '@nestjs/common';
+import { Controller, Delete, Get, UseGuards } from '@nestjs/common';
 import { Acl } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { CachesService } from '../services/caches.service';
 import { GlobalGuard } from '../guards/global/global.guard';

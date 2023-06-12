@@ -75,9 +75,9 @@ const columnTitleWithAggregateFnLabel = computed(() => {
 <template>
   <div>
     <div v-if="dataLinkConfigIsMissing">Missing Data Source Configuration</div>
-    <a-card v-else>
-      <a-statistic :title="columnTitleWithAggregateFnLabel" :value="aggregatedNumberValue" style="margin-right: 50px"
-    /></a-card>
+    <div v-else>
+      <a-statistic :title="columnTitleWithAggregateFnLabel" :value="aggregatedNumberValue" style="margin-right: 50px" />
+    </div>
   </div>
 </template>
 

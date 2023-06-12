@@ -317,7 +317,8 @@ a {
   @apply !top-[50px] ;
 }
 .ant-modal-content {
-  @apply !rounded-md !px-4 py-4.5;
+  @apply  !p-6;
+  border-radius: 1rem;
 }
 .ant-modal-body {
   @apply !p-0;

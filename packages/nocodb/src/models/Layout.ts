@@ -41,7 +41,17 @@ export default class Layout implements LayoutType {
       null,
       MetaTable.LAYOUT,
       layoutId,
-      ['id', 'title', 'project_id', 'base_id', 'show', 'order'],
+      [
+        'id',
+        'title',
+        'project_id',
+        'base_id',
+        'show',
+        'order',
+        'grid_gap',
+        'grid_padding_vertical',
+        'grid_padding_horizontal',
+      ],
     );
     return layout && new Layout(layout);
   }
@@ -53,7 +63,7 @@ export default class Layout implements LayoutType {
     ncMeta = Noco.ncMeta,
   ) {
     // TODO: Caching
-    const dashboards = await ncMeta.metaList(
+    const layouts = await ncMeta.metaList(
       param.dashboard_id,
       null,
       MetaTable.LAYOUT,
@@ -64,7 +74,7 @@ export default class Layout implements LayoutType {
       },
     );
 
-    return dashboards?.map((h) => new Layout(h));
+    return layouts?.map((h) => new Layout(h));
   }
 
   public static async insert(layout: Partial<Layout>, ncMeta = Noco.ncMeta) {
@@ -74,6 +84,9 @@ export default class Layout implements LayoutType {
       'base_id',
       'show',
       'order',
+      'grid_gap',
+      'grid_padding_vertical',
+      'grid_padding_horizontal',
     ]);
 
     const { id } = await ncMeta.metaInsert2(null, null, MetaTable.LAYOUT, {
@@ -86,7 +99,7 @@ export default class Layout implements LayoutType {
   }
 
   public static async update(
-    dashboardId: string,
+    layoutId: string,
     layout: Partial<Layout>,
     ncMeta = Noco.ncMeta,
   ) {
@@ -96,6 +109,9 @@ export default class Layout implements LayoutType {
       'base_id',
       'show',
       'order',
+      'grid_gap',
+      'grid_padding_vertical',
+      'grid_padding_horizontal',
     ]);
 
     await ncMeta.metaUpdate(
@@ -103,7 +119,7 @@ export default class Layout implements LayoutType {
       null,
       MetaTable.LAYOUT,
       updateObj,
-      dashboardId,
+      layoutId,
     );
 
     // TODO: Caching

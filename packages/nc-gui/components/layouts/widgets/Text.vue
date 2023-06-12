@@ -39,14 +39,12 @@ const elementTag = computed(() => fontTypeToElement(fontType.value))
 </script>
 
 <template>
-  <a-card>
-    <component :is="elementTag" class="nc-layout-text-element">
-      <a v-if="isLink" :href="url" target="_blank">{{ text }}</a>
-      <span v-else>
-        {{ text }}
-      </span>
-    </component>
-  </a-card>
+  <component :is="elementTag" class="nc-layout-text-element">
+    <a v-if="isLink" :href="url" target="_blank">{{ text }}</a>
+    <span v-else>
+      {{ text }}
+    </span>
+  </component>
 </template>
 
 <style>

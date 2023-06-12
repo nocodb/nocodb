@@ -20,7 +20,6 @@ import type {
   WidgetType,
 } from 'nocodb-sdk'
 import { AggregateFnType, ButtonActionType, DataSourceType, FontType, WidgetTypeType, chartTypes } from 'nocodb-sdk'
-import type { ComputedRef } from 'nuxt/dist/app/compat/capi'
 import { computed, extractSdkResponseErrorMsg, message, navigateTo, ref, useNuxtApp, useRouter, useTabs, watch } from '#imports'
 import type { LayoutSidebarNode } from '~~/lib'
 import { TabType } from '~~/lib'
@@ -139,6 +138,13 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
    *
    */
 
+  const _updateLayoutInAPIAndLocally = async (updatedLayout: LayoutSidebarNode) => {
+    // 1. Update the API
+    await $api.dashboard.layoutUpdate(openedProjectId.value!, updatedLayout.id!, updatedLayout)
+    // 2. Update the local object
+    openedLayoutSidebarNode.value = updatedLayout
+  }
+
   const _updateWidgetInAPIAndLocally = async (updatedWidget: Widget) => {
     // 1. Update the API
     await $api.dashboard.widgetUpdate(openedLayoutId.value!, updatedWidget.id, updatedWidget)
@@ -243,6 +249,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
         children: [],
       })
 
+      // TODO: Check this - looks like nonsense, to find the just created layout again
       openedLayoutSidebarNode.value = _findSingleLayout(layouts, createdLayoutData.id!)
       await navigateTo(_getLayoutUrl({ id: createdLayoutData.id!, projectId: projectId! }))
 
@@ -338,6 +345,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     await Promise.all(availableDbProjects.value.map(async (project) => await loadProjectTables(project.id)))
 
     availableTablesOfAllDBProjectsLinkedWithDashboardProject.value = Array.from(projectTables.value)
+      .map(([_, tables]) => tables)
       .flat()
       .filter((t) => t != null)
       .map((table) => ({
@@ -356,13 +364,13 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       //
       // Helper functions/props
       //
-      const isDashboardNewButAlreadyOpen = openedLayoutSidebarNode.value?.new && openedLayoutSidebarNode.value.id === newLayoutId
+      const isLayoutNewButAlreadyOpen = openedLayoutSidebarNode.value?.new && openedLayoutSidebarNode.value.id === newLayoutId
 
-      const setPreviousDashboardAsOld = () => {
+      const setPreviousLayoutAsOld = () => {
         if (previousLayoutId) {
-          const previousDashboard = _findSingleLayout(layoutsOfProjects.value[openedProjectId.value], previousLayoutId)
-          if (previousDashboard?.new) {
-            previousDashboard.new = false
+          const previousLayout = _findSingleLayout(layoutsOfProjects.value[openedProjectId.value], previousLayoutId)
+          if (previousLayout?.new) {
+            previousLayout.new = false
           }
         }
       }
@@ -377,33 +385,33 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
         return
       }
 
-      if (isDashboardNewButAlreadyOpen) return
+      if (isLayoutNewButAlreadyOpen) return
 
-      setPreviousDashboardAsOld()
+      setPreviousLayoutAsOld()
 
       openedLayoutSidebarNode.value = undefined
 
       // TODO extract that out in a seperate function START
-      const fetchedDashboard: LayoutType | undefined = await _fetchSingleLayout({
+      const fetchedLayout: LayoutType | undefined = await _fetchSingleLayout({
         layoutId: newLayoutId,
         projectId: openedProjectId.value,
       })
 
-      if (fetchedDashboard == null) {
+      if (fetchedLayout == null) {
         console.error('fetchedLayout is undefined')
         return
       }
 
-      if (fetchedDashboard?.id !== openedLayoutId.value) {
+      if (fetchedLayout?.id !== openedLayoutId.value) {
         console.error('fetchedLayout.id !== openedLayoutId.value')
         return
       }
 
       const mandatorySidebarNodeProps = {
         isLeaf: true,
-        key: fetchedDashboard.id,
+        key: fetchedLayout.id,
       }
-      openedLayoutSidebarNode.value = { ...fetchedDashboard, ...mandatorySidebarNodeProps }
+      openedLayoutSidebarNode.value = { ...fetchedLayout, ...mandatorySidebarNodeProps }
       // TODO extract that out in a seperate function END
 
       _fetchAndSetWidgetsOfOpenedLayoutId(openedLayoutId.value)
@@ -609,13 +617,13 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       x: number
       y: number
     } = {
-      x: 50,
-      y: 100,
+      x: 2,
+      y: 2,
     },
   ) => {
     const defaultScreenDimensions = {
-      width: 100,
-      height: 100,
+      width: 2,
+      height: 2,
     }
 
     const newElement: Widget = {
@@ -623,10 +631,11 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       layout_id: openedLayoutId.value!,
       schema_version: '1.0.0',
       appearance_config: {
-        screenPosition: {
-          x: screenPosition.x - defaultScreenDimensions.width / 2,
-          y: screenPosition.y - defaultScreenDimensions.height / 2,
-        },
+        // screenPosition: {
+        //   x: screenPosition.x - defaultScreenDimensions.width / 2,
+        //   y: screenPosition.y - defaultScreenDimensions.height / 2,
+        // },
+        screenPosition,
         screenDimensions: defaultScreenDimensions,
       },
       widget_type,
@@ -641,7 +650,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       // TODO: make this (and similar rubber ducking checks) cleaner
     }
 
-    const dashboardWidgetReqType: WidgetReqType = {
+    const widgetReqType: WidgetReqType = {
       appearance_config: newElement.appearance_config,
       layout_id: openedLayoutId.value!,
       data_config: newElement.data_config,
@@ -650,7 +659,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       widget_type: newElement.widget_type,
     }
 
-    const widgetFromAPI = await $api.dashboard.widgetCreate(openedLayoutId.value!, dashboardWidgetReqType)
+    const widgetFromAPI = await $api.dashboard.widgetCreate(openedLayoutId.value!, widgetReqType)
     const parsedWidgetFromAPI = _parseWidgetFromAPI(widgetFromAPI)
     openedWidgets.push(parsedWidgetFromAPI)
     focusedWidgetId.value = parsedWidgetFromAPI.id
@@ -1049,6 +1058,45 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     _changeColorPropertyOfFocusedWidget(newIconColor, 'iconColor')
   }
 
+  const changeLayoutPaddingVertical = (newPaddingVertical: string) => {
+    if (!openedLayoutSidebarNode.value) {
+      console.error('changeLayoutGap: changeLayoutPaddingVertical.value is undefined')
+      return
+    }
+    const updatedLayout: LayoutSidebarNode = {
+      ...openedLayoutSidebarNode.value,
+      grid_padding_vertical: newPaddingVertical,
+    }
+
+    _updateLayoutInAPIAndLocally(updatedLayout)
+  }
+
+  const changeLayoutPaddingHorizontal = (newPaddingHorizontal: string) => {
+    if (!openedLayoutSidebarNode.value) {
+      console.error('changeLayoutGap: changeLayoutPaddingHorizontal.value is undefined')
+      return
+    }
+    const updatedLayout: LayoutSidebarNode = {
+      ...openedLayoutSidebarNode.value,
+      grid_padding_horizontal: newPaddingHorizontal,
+    }
+
+    _updateLayoutInAPIAndLocally(updatedLayout)
+  }
+
+  const changeLayoutGap = (newLayoutGap: string) => {
+    if (!openedLayoutSidebarNode.value) {
+      console.error('changeLayoutGap: openedLayoutSidebarNode.value is undefined')
+      return
+    }
+    const updatedLayout: LayoutSidebarNode = {
+      ...openedLayoutSidebarNode.value,
+      grid_gap: newLayoutGap,
+    }
+
+    _updateLayoutInAPIAndLocally(updatedLayout)
+  }
+
   return {
     openedLayoutSidebarNode: readonly(openedLayoutSidebarNode),
     openedLayoutId: readonly(openedLayoutId),
@@ -1060,8 +1108,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     availableViewsOfSelectedTable: readonly(availableViewsOfSelectedTable),
     availableColumnsOfSelectedView: readonly(availableColumnsOfSelectedView),
     availableNumericColumnsOfSelectedView: readonly(availableNumericColumnsOfSelectedView),
-    // project: readonly(project),
-    // availableDbProjects: readonly(availableDbProjects),
     getDashboardProjectUrl,
     fetchLayouts,
     openLayout,
@@ -1097,5 +1143,8 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     changeBorderColorOfFocusedWidget,
     changeTextColorOfFocusedWidget,
     changeIconColorOfFocusedWidget,
+    changeLayoutGap,
+    changeLayoutPaddingHorizontal,
+    changeLayoutPaddingVertical,
   }
 })

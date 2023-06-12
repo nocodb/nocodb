@@ -19,17 +19,7 @@ watch(dataConfig, (newConfig) => {
   <a-input
     v-model:value="localText"
     placeholder="Value"
-    class="nc-value-input"
+    class="nc-dashboard-layouts-propspanel-value-input"
     @blur="() => changeTextOfFocusedTextElement(localText)"
   />
 </template>
-
-<style>
-.nc-value-input {
-  @apply flex-grow py-1 px-3 border-grey-light border border-solid rounded-lg text-sm w-full my-2;
-}
-
-.nc-description-input {
-  @apply flex-grow py-1 px-3 !border-gray-200 border border-solid rounded-lg text-sm w-full my-2;
-}
-</style>

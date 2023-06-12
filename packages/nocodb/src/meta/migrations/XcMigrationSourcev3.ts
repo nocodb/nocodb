@@ -7,6 +7,7 @@ import * as nc_006_shared_erd from './v3/nc_006_shared_erd';
 import * as nc_007_add_last_snapshot_at_and_content_html_to_page from './v3/nc_007_add_last_snapshot_at_and_content_html_to_page';
 import * as nc_008_dashboard from './v3/nc_008_dashboard';
 import * as nc_009_add_last_snapshot_to_page from './v3/nc_009_add_last_snapshot_to_page';
+import * as nc_010_add_appearance_config_to_layouts from './v3/nc_010_add_appearance_config_to_layouts';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev3 {
@@ -25,6 +26,7 @@ export default class XcMigrationSourcev3 {
       'nc_007_add_last_snapshot_at_and_content_html_to_page',
       'nc_008_dashboard',
       'nc_009_add_last_snapshot_to_page',
+      'nc_010_add_appearance_config_to_layouts',
     ]);
   }
 
@@ -52,6 +54,8 @@ export default class XcMigrationSourcev3 {
         return nc_008_dashboard;
       case 'nc_009_add_last_snapshot_to_page':
         return nc_009_add_last_snapshot_to_page;
+      case 'nc_010_add_appearance_config_to_layouts':
+        return nc_010_add_appearance_config_to_layouts;
     }
   }
 }

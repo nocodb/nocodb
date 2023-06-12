@@ -60,7 +60,6 @@
     "@nestjs/serve-static": "^3.0.1",
     "@nestjs/throttler": "^4.0.0",
     "@nestjs/websockets": "^9.4.0",
-    "@nestjs/websockets": "^9.4.0",
     "@sentry/node": "^6.3.5",
     "@techpass/passport-openidconnect": "^0.3.3",
     "@types/chai": "^4.2.12",

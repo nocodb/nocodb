@@ -1,8 +1,10 @@
 <script lang="ts" setup>
-import type { RendererElement, RendererNode, VNode } from 'vue'
-import { WidgetTypeType } from 'nocodb-sdk'
-import { toRaw } from 'vue'
+import { GridItem, GridLayout } from 'vue3-grid-layout-next'
+import type { Ref } from 'vue'
+import type { Widget } from 'nocodb-sdk'
+import type { WidgetTemplate } from './types'
 import { useDashboardStore } from '~~/store/dashboard'
+import '~/assets/dashboardLayout.scss'
 const dashboardStore = useDashboardStore()
 const { openedWidgets, focusedWidget, openedLayoutSidebarNode } = storeToRefs(dashboardStore)
 const {
@@ -14,197 +16,168 @@ const {
   updateFocusedWidgetByElementId,
 } = dashboardStore
 
-interface WidgetMeta {
-  title: string
-  icon: VNode<
-    RendererNode,
-    RendererElement,
-    {
-      [key: string]: any
-    }
-  >
-  type: WidgetTypeType
-}
-
 const mainArea = ref<any>()
 
-const widgetsLibrary: WidgetMeta[] = [
-  {
-    title: 'Text',
-    icon: iconMap.text,
-    type: WidgetTypeType.StaticText,
-  },
-  {
-    title: 'Number',
-    icon: iconMap.number,
-    type: WidgetTypeType.Number,
-  },
-  {
-    title: 'Button',
-    icon: iconMap.plus,
-    type: WidgetTypeType.Button,
-  },
-]
-const dataVisualisationsLibrary: WidgetMeta[] = [
-  {
-    title: 'Bar',
-    icon: iconMap.text,
-    type: WidgetTypeType.BarChart,
-  },
-  {
-    title: 'Line',
-    icon: iconMap.number,
-    type: WidgetTypeType.LineChart,
-  },
-  {
-    title: 'Pie',
-    icon: iconMap.plus,
-    type: WidgetTypeType.PieChart,
-  },
-  {
-    title: 'Scatter',
-    icon: iconMap.plus,
-    type: WidgetTypeType.ScatterPlot,
-  },
-]
-
-const dragStart = (ev: DragEvent, item: WidgetMeta) => {
-  ev.dataTransfer?.setData('text/plain', JSON.stringify(item))
+interface LayoutEntry {
+  x: number
+  y: number
+  w: number
+  h: number
+  i: string
+  static: boolean
 }
 
-const drop = (ev: DragEvent) => {
-  const item = JSON.parse(ev.dataTransfer?.getData('text/plain') || '{}') as WidgetMeta
-  const rect = mainArea.value?.$el?.getBoundingClientRect()
-  const x = ev.clientX - (rect?.left || 0)
-  const y = ev.clientY - (rect?.top || 0)
+interface WidgetLayoutEntry extends LayoutEntry {
+  widget: Widget
+}
 
-  addWidget(item.type, {
+const layout: Ref<WidgetLayoutEntry[]> = ref([])
+
+watch(
+  () => openedWidgets.value,
+  () => {
+    layout.value = openedWidgets.value.map((widget) => {
+      return {
+        x: widget.appearance_config.screenPosition.x,
+        y: widget.appearance_config.screenPosition.y,
+        w: widget.appearance_config.screenDimensions.width,
+        h: widget.appearance_config.screenDimensions.height,
+        i: widget.id,
+        static: false,
+        widget,
+      } as WidgetLayoutEntry
+    })
+  },
+  {
+    immediate: true,
+    deep: true,
+  },
+)
+
+const drop = (ev: DragEvent) => {
+  const item = JSON.parse(ev.dataTransfer?.getData('text/plain') || '{}') as WidgetTemplate
+  addWidget(item.type)
+}
+
+const movedEvent = async (i: string, x: number, y: number) => {
+  await updatePositionOfWidgetById(i, {
     x,
     y,
   })
 }
+
+const resizedEvent = async (i: any, height: any, width: any) => {
+  await updateScreenDimensionsOfWidgetById(i, {
+    width,
+    height,
+  })
+}
+
+const gridMargins = computed(() => {
+  const gap = parseInt(openedLayoutSidebarNode.value?.grid_gap || '50') || 50
+  return [gap, gap]
+})
 </script>
 
 <template>
-  <a-layout class="app-container">
-    <a-layout-sider class="left-sidebar flex" width="18rem" theme="light">
-      <!-- Sidebar content here -->
-      <h2>{{ openedLayoutSidebarNode?.title }}</h2>
-      <h3>Widgets</h3>
-      <a-input placeholder="Search Widget" />
-      <a-divider />
-      <div>
-        <h4>Dashboard Elements</h4>
-        <a-list :grid="{ gutter: 10, column: 3 }" :data-source="widgetsLibrary">
-          <template #renderItem="{ item }">
-            <a-list-item>
-              <button
-                class="nc-widget-template"
-                draggable="true"
-                @click="addWidget(item.type)"
-                @dragstart="dragStart($event, toRaw(item))"
-              >
-                <div>
-                  <component :is="item.icon" class="text-grey" />
-                  <span class="ml-2">{{ item.title }}</span>
-                </div>
-              </button>
-            </a-list-item>
-          </template>
-        </a-list>
-      </div>
-      <a-divider />
-      <div>
-        <h4>Data Visualisations</h4>
-        <a-list :grid="{ gutter: 10, column: 3 }" :data-source="dataVisualisationsLibrary">
-          <template #renderItem="{ item }">
-            <a-list-item>
-              <button
-                class="nc-widget-template"
-                draggable="true"
-                @click="addWidget(item.type)"
-                @dragstart="dragStart($event, toRaw(item))"
-              >
-                <div>
-                  <component :is="item.icon" class="text-grey" />
-                  <span class="ml-2">{{ item.title }}</span>
-                </div>
-              </button>
-            </a-list-item>
-          </template>
-        </a-list>
-      </div>
-    </a-layout-sider>
-    <a-layout-content ref="mainArea" class="main-area" :min-width="200" @click="resetFocus" @dragover.prevent @drop="drop">
-      <div>
-        <template v-for="widget in openedWidgets" :key="widget.id">
-          <LayoutsDraggableResizableContainer
-            :has-focus="widget.id === focusedWidget?.id"
-            :screen-position="widget.appearance_config.screenPosition"
-            :screen-dimensions="widget.appearance_config.screenDimensions"
-            @set-focus="updateFocusedWidgetByElementId(widget.id)"
-            @update-position="updatePositionOfWidgetById(widget.id, $event.newPosition)"
-            @update-screen-dimensions="updateScreenDimensionsOfWidgetById(widget.id, $event.newScreenDimensions)"
-            @remove="removeWidgetById(widget.id)"
+  <div class="flex">
+    <LayoutsWidgetsLibraryPanel />
+    <div ref="mainArea" class="min-h-10 flex-1 overflow-y-auto" @click="resetFocus" @dragover.prevent @drop="drop">
+      <!-- TODO: Ugly hack - the GridLayout 3rd party component doesn't re-render automtically when gridMargin is changing; 
+      So we enforce a re-render via setting they key to gridMargins -->
+      <GridLayout
+        :key="`${JSON.stringify(gridMargins)}`"
+        v-model:layout="layout"
+        :style="{
+          margin: `${openedLayoutSidebarNode?.grid_padding_vertical || '10'}px ${
+            openedLayoutSidebarNode?.grid_padding_horizontal || '10'
+          }px`,
+        }"
+        :margin="gridMargins"
+        :is-draggable="true"
+        :is-resizable="true"
+        :use-css-transforms="true"
+        :vertical-compact="false"
+        :prevent-collision="false"
+        :row-height="30"
+        :col-num="4"
+        :responsive="false"
+        style="height: '100%'"
+      >
+        <GridItem
+          v-for="item in layout"
+          :key="item.i"
+          :static="item.static"
+          :x="item.x"
+          :y="item.y"
+          :w="item.w"
+          :h="item.h"
+          :i="item.i"
+          style="touch-action: none"
+          :class="{ 'nc-layout-ui-element-has-focus': item.widget.id === focusedWidget?.id }"
+          @moved="movedEvent"
+          @resized="resizedEvent"
+        >
+          <LayoutsFocusableContainer
+            :has-focus="item.widget.id === focusedWidget?.id"
+            @set-focus="updateFocusedWidgetByElementId(item.widget.id)"
+            @remove="removeWidgetById(item.widget.id)"
           >
-            <LayoutsWidgetsWidget :widget="widget" />
-          </LayoutsDraggableResizableContainer>
-        </template>
-      </div>
-    </a-layout-content>
+            <LayoutsWidgetsWidget :widget="item.widget" />
+          </LayoutsFocusableContainer>
+        </GridItem>
+      </GridLayout>
+    </div>
     <!-- TODO: decide / change again to rem for width and overall: use consistent styling -->
-    <a-layout-sider class="right-sidebar flex" width="20rem" theme="light">
+    <div class="w-[420px] p-4">
       <LayoutsWidgetsPropertiesPanel />
-    </a-layout-sider>
-  </a-layout>
+    </div>
+  </div>
 </template>
 
-<style>
-.app-container {
-  height: 100vh;
-  overflow: hidden;
-}
+<style scoped lang="scss">
+.vue-grid-item {
+  border: 1px solid #c4c7cc;
+  padding: 3px;
+  border-radius: 24px;
 
-.left-sidebar,
-.right-sidebar {
-  height: 100%;
-  overflow-y: auto;
-  padding: 1rem;
-  border-right: 1px solid #ccc;
-}
-
-.left-sidebar {
-  border-right: 1px solid #ccc;
-  @apply flex;
-}
-
-.right-sidebar {
-  border-left: 1px solid #ccc;
-}
-
-.main-area {
-  height: 100%;
-  overflow: auto;
-  padding: 1rem;
-}
-
-.nc-widget-template {
-  @apply w-18;
-  @apply h-18;
-  @apply border;
-  @apply border-solid;
-  @apply border-grey-light;
-  @apply rounded;
-  @apply text-sm;
-  @apply text-grey;
-  @apply cursor-pointer;
-  @apply hover:bg-grey-lightest;
-  @apply hover:border-grey;
-  div {
-    @apply flex;
-    @apply items-center;
-    @apply justify-center;
-    @apply flex-col;
+  &.nc-layout-ui-element-has-focus {
+    border: 4px solid #3366ff;
+    padding: 0px;
+    border-radius: 24px;
   }
+}
+
+.vue-grid-item .resizing {
+  opacity: 0.9;
+}
+
+.vue-grid-item .no-drag {
+  height: 100%;
+  width: 100%;
+}
+
+.vue-grid-item .minMax {
+  font-size: 12px;
+}
+
+.vue-grid-item .add {
+  cursor: pointer;
+}
+
+.vue-draggable-handle {
+  // position: absolute;
+  // width: 20px;
+  // height: 20px;
+  // top: 0;
+  // left: 0;
+  // background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10'><circle cx='5' cy='5' r='5' fill='#999999'/></svg>")
+  //   no-repeat;
+  // background-position: bottom right;
+  // padding: 0 8px 8px 0;
+  // background-repeat: no-repeat;
+  // background-origin: content-box;
+  // box-sizing: border-box;
+  // cursor: pointer;
 }
 </style>

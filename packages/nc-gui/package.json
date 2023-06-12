@@ -112,6 +112,7 @@
     "vue-qrcode-reader": "3.1.0-vue3-compatibility.2",
     "vue3-calendar-heatmap": "^2.0.0",
     "vue3-contextmenu": "^0.2.12",
+    "vue3-grid-layout-next": "^1.0.5",
     "vue3-text-clamp": "^0.1.1",
     "vuedraggable": "^4.1.0",
     "xlsx": "^0.18.5"

@@ -798,20 +798,11 @@ const closeAddColumnDropdown = (scrollToLastCol = false) => {
 }
 
 const confirmDeleteRow = (row: number) => {
-  Modal.confirm({
-    title: `Do you want to delete this row?`,
-    wrapClassName: 'nc-modal-row-delete',
-    okText: 'Yes',
-    okType: 'danger',
-    cancelText: 'No',
-    onOk() {
-      try {
-        deleteRow(row)
-      } catch (e: any) {
-        message.error(e.message)
-      }
-    },
-  })
+  try {
+    deleteRow(row)
+  } catch (e: any) {
+    message.error(e.message)
+  }
 }
 
 const deleteSelectedRangeOfRows = () => {

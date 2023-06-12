@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 import type { MaybeRef } from '@vueuse/core'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { parse } from 'papaparse'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
@@ -522,6 +522,41 @@ export function useMultiSelect(
 
   const clearSelectedRange = selectedRange.clear.bind(selectedRange)
 
+  const isPasteable = (row?: Row, col?: ColumnType, showInfo = false) => {
+    if (!row || !col) {
+      if (showInfo) {
+        message.info('Please select a cell to paste')
+      }
+      return false
+    }
+
+    // skip pasting virtual columns (including LTAR columns for now) and system columns
+    if (isVirtualCol(col) || isSystemColumn(col)) {
+      if (showInfo) {
+        message.info(t('msg.info.pasteNotSupported'))
+      }
+      return false
+    }
+
+    // skip pasting auto increment columns
+    if (col.ai) {
+      if (showInfo) {
+        message.info(t('msg.info.autoIncFieldNotEditable'))
+      }
+      return false
+    }
+
+    // skip pasting primary key columns
+    if (col.pk && !row.rowMeta.new) {
+      if (showInfo) {
+        message.info(t('msg.info.editingPKnotSupported'))
+      }
+      return false
+    }
+
+    return true
+  }
+
   const handlePaste = async (e: ClipboardEvent) => {
     if (isDrawerOrModalExist()) {
       return
@@ -574,22 +609,7 @@ export function useMultiSelect(
           for (let j = 0; j < pasteMatrixCols; j++) {
             const pasteCol = colsToPaste[j]
 
-            if (!pasteRow || !pasteCol) {
-              continue
-            }
-
-            // skip pasting virtual columns (including LTAR columns for now)
-            if (isVirtualCol(pasteCol)) {
-              continue
-            }
-
-            // skip pasting auto increment columns
-            if (pasteCol.ai) {
-              continue
-            }
-
-            // skip pasting primary key columns
-            if (pasteCol.pk && !pasteRow.rowMeta.new) {
+            if (!isPasteable(pasteRow, pasteCol)) {
               continue
             }
 
@@ -653,19 +673,8 @@ export function useMultiSelect(
             return await syncCellData?.({ ...activeCell, updatedColumnTitle: foreignKeyColumn.title })
           }
 
-          // if it's a virtual column excluding belongs to cell type skip paste
-          if (isVirtualCol(columnObj)) {
-            return message.info(t('msg.info.pasteNotSupported'))
-          }
-
-          // skip pasting auto increment columns
-          if (columnObj.ai) {
-            return message.info(t('msg.info.autoIncFieldNotEditable'))
-          }
-
-          // skip pasting primary key columns
-          if (columnObj.pk && !rowObj.rowMeta.new) {
-            return message.info(t('msg.info.editingPKnotSupported'))
+          if (!isPasteable(rowObj, columnObj, true)) {
+            return
           }
 
           const pasteValue = convertCellData(
@@ -701,20 +710,9 @@ export function useMultiSelect(
             if (!row || row.rowMeta.new) continue
 
             for (const col of cols) {
-              if (!col || !col.title) continue
+              if (!col.title) continue
 
-              // skip pasting virtual columns (including LTAR columns for now)
-              if (isVirtualCol(col)) {
-                continue
-              }
-
-              // skip pasting auto increment columns
-              if (col.ai) {
-                continue
-              }
-
-              // skip pasting primary key columns
-              if (col.pk && !row.rowMeta.new) {
+              if (!isPasteable(row, col)) {
                 continue
               }
 

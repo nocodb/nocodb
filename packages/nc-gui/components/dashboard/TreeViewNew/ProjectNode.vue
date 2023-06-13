@@ -371,7 +371,7 @@ const reloadTables = async () => {
                   ></IconifyIcon>
                 </span>
 
-                <GeneralProjectIcon v-else :type="project.type" />
+                <GeneralProjectIcon v-else :type="project.type" hoverable />
 
                 <template v-if="isUIAllowed('projectIconCustomisation', false, projectRole)" #title>
                   <span class="text-xs"> Change icon </span>

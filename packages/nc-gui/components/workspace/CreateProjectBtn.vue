@@ -63,16 +63,16 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <template>
   <div>
-    <a-dropdown>
-      <a-button :type="props.type ?? 'primary'">
-        <div class="flex items-center gap-2">
+    <a-dropdown class="w-full !hover:bg-gray-50">
+      <a-button class="!p-0 !border-0 !h-full" :type="props.type ?? 'primary'">
+        <div class="flex w-full items-center gap-2">
           <slot>New Project <MdiMenuDown /></slot>
         </div>
       </a-button>
       <template #overlay>
         <a-menu>
           <a-menu-item @click="navigateToCreateProject(NcProjectType.DB)">
-            <div class="py-4 px-1 flex items-center gap-4 nc-create-project-btn-db">
+            <div class="py-4 px-1 flex items-center gap-2 nc-create-project-btn-db">
               <GeneralProjectIcon :type="NcProjectType.DB" class="text-[#2824FB] text-lg" />
               Database
               <span class="flex-grow" />
@@ -81,7 +81,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           </a-menu-item>
           <!-- <a-menu-item @click="navigateToCreateProject(NcProjectType.DASHBOARD)"> -->
           <a-menu-item @click="openCreateDashboardProjectOverlay()">
-            <div class="py-4 px-1 flex items-center gap-4">
+            <div class="py-4 px-1 flex items-center gap-2">
               <GeneralProjectIcon :type="NcProjectType.DASHBOARD" class="text-[#2824FB] text-lg" />
               Dashboard
               <span class="flex-grow" />
@@ -89,7 +89,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             </div>
           </a-menu-item>
           <a-menu-item @click="navigateToCreateProject(NcProjectType.DOCS)">
-            <div class="py-4 px-1 flex items-center gap-4 nc-create-project-btn-docs">
+            <div class="py-4 px-1 flex items-center gap-2 nc-create-project-btn-docs">
               <GeneralProjectIcon :type="NcProjectType.DOCS" class="text-[#247727] text-lg" />
               Documentation
               <span class="flex-grow" />

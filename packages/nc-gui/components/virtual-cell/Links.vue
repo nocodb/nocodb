@@ -55,9 +55,9 @@ const textVal = computed(() => {
   if (!value.value) {
     return 'Empty'
   } else if (value.value === 1) {
-    return `1 ${column.value?.meta?.singular || 'Item'}`
+    return `1 ${column.value?.meta?.singular || 'Link'}`
   } else {
-    return `${value.value} ${column.value?.meta?.plural || 'Items'}`
+    return `${value.value} ${column.value?.meta?.plural || 'Links'}`
   }
 })
 

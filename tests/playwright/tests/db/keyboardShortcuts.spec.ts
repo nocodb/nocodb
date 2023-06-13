@@ -309,7 +309,7 @@ test.describe('Clipboard support', () => {
   });
 
   test('multiple cells - vertical', async ({ page }) => {
-    const cellText: string[] = ['aaa', 'bbb', 'ccc', 'ddd', 'eee'];
+    let cellText: string[] = ['aaa', 'bbb', 'ccc', 'ddd', 'eee'];
     for (let i = 1; i <= 5; i++) {
       await grid.addNewRow({ index: i, columnHeader: 'SingleLineText', value: cellText[i - 1] });
     }
@@ -353,23 +353,36 @@ test.describe('Clipboard support', () => {
 
     /////////////////////////////////////////////////////////////////////////
 
-    // To be enabled after meta handling fix
+    // Meta for block selection
+    await grid.cell.click({ index: 1, columnHeader: 'SingleLineText' });
+    await page.keyboard.press(`Shift+${(await grid.isMacOs()) ? 'Meta' : 'Control'}+ArrowDown`);
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+c' : 'Control+c');
+    await grid.cell.click({ index: 1, columnHeader: 'Email' });
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
 
-    // // Meta for block selection
-    // await grid.cell.click({ index: 1, columnHeader: 'SingleLineText' });
-    // await page.keyboard.press('Shift+Meta+ArrowDown');
-    // await page.keyboard.press((await grid.isMacOs()) ? 'Meta+c' : 'Control+c');
-    // await grid.cell.click({ index: 1, columnHeader: 'Email' });
-    // await page.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
-    //
-    // // reload page
-    // await dashboard.rootPage.reload();
-    //
-    // // verify copied data
-    // // modified cell text after previous block operation
-    // cellText = ['aaa', 'bbb', 'ccc', 'aaa', 'bbb'];
-    // for (let i = 1; i <= 5; i++) {
-    //   await grid.cell.verify({ index: i, columnHeader: 'Email', value: cellText[i - 1] });
-    // }
+    // reload page
+    await dashboard.rootPage.reload();
+
+    // verify copied data
+    // modified cell text after previous block operation
+    cellText = ['aaa', 'bbb', 'ccc', 'aaa', 'bbb'];
+    for (let i = 1; i <= 5; i++) {
+      await grid.cell.verify({ index: i, columnHeader: 'Email', value: cellText[i - 1] });
+    }
+
+    // One copy, multiple paste
+    await grid.cell.click({ index: 0, columnHeader: 'SingleLineText' });
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+c' : 'Control+c');
+    await grid.cell.click({ index: 1, columnHeader: 'SingleLineText' });
+    await page.keyboard.press(`Shift+${(await grid.isMacOs()) ? 'Meta' : 'Control'}+ArrowDown`);
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
+
+    // reload page
+    await dashboard.rootPage.reload();
+
+    // verify copied data
+    for (let i = 1; i <= 5; i++) {
+      await grid.cell.verify({ index: i, columnHeader: 'SingleLineText', value: 'SingleLineText' });
+    }
   });
 });

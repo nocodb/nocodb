@@ -17,19 +17,9 @@ import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
-import { Knex } from 'knex';
 import { NcError } from '../helpers/catchError';
 import getAst from '../helpers/getAst';
-import {
-  Audit,
-  Base,
-  Column,
-  Filter,
-  Model,
-  Project,
-  Sort,
-  View,
-} from '../models';
+import { Audit, Column, Filter, Model, Project, Sort, View } from '../models';
 import { sanitize, unsanitize } from '../helpers/sqlSanitize';
 import {
   COMPARISON_OPS,
@@ -57,8 +47,8 @@ import type {
   RollupColumn,
   SelectOption,
 } from '../models';
+import type { Knex } from 'knex';
 import type { SortType } from 'nocodb-sdk';
-import Transaction = Knex.Transaction;
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -1885,80 +1875,18 @@ class BaseModelSqlv2 {
     }
   }
 
-  async delByPk(id, _trx?, cookie?) {
-    let trx: Transaction = _trx;
+  async delByPk(id, trx?, cookie?) {
     try {
       // retrieve data for handling params in hook
       const data = await this.readByPk(id);
       await this.beforeDelete(id, trx, cookie);
-
-      const execQueries: ((trx: Transaction) => Promise<any>)[] = [];
-
-      for (const column of this.model.columns) {
-        if (column.uidt !== UITypes.LinkToAnotherRecord) continue;
-
-        const colOptions =
-          await column.getColOptions<LinkToAnotherRecordColumn>();
-
-        switch (colOptions.type) {
-          case 'mm':
-            {
-              const mmTable = await Model.get(colOptions.fk_mm_model_id);
-              const mmParentColumn = await Column.get({
-                colId: colOptions.fk_mm_child_column_id,
-              });
-
-              execQueries.push((trx) =>
-                trx(mmTable.table_name)
-                  .del()
-                  .where(mmParentColumn.column_name, id),
-              );
-            }
-            break;
-          case 'hm':
-            {
-              // skip if it's an mm table column
-              const relatedTable = await colOptions.getRelatedTable();
-              if (relatedTable.mm) {
-                break;
-              }
-
-              const childColumn = await Column.get({
-                colId: colOptions.fk_child_column_id,
-              });
-
-              execQueries.push((trx) =>
-                trx(relatedTable.table_name)
-                  .update({
-                    [childColumn.column_name]: null,
-                  })
-                  .where(childColumn.column_name, id),
-              );
-            }
-            break;
-          case 'bt':
-            {
-              // nothing to do
-            }
-            break;
-        }
-      }
-      const where = await this._wherePk(id);
-      if (!trx) {
-        trx = await this.dbDriver.transaction();
-      }
-
-      await Promise.all(execQueries.map((q) => q(trx)));
-
-      const response = await trx(this.tnPath).del().where(where);
-
-      if (!_trx) await trx.commit();
-
+      const response = await this.dbDriver(this.tnPath)
+        .del()
+        .where(await this._wherePk(id));
       await this.afterDelete(data, trx, cookie);
       return response;
     } catch (e) {
       console.log(e);
-      if (!_trx) await trx.rollback();
       await this.errorDelete(e, id, trx, cookie);
       throw e;
     }
@@ -2451,70 +2379,7 @@ class BaseModelSqlv2 {
         res.push(d);
       }
 
-      const execQueries: ((trx: Transaction, ids: any[]) => Promise<any>)[] =
-        [];
-
-      const base = await Base.get(this.model.base_id);
-
-      for (const column of this.model.columns) {
-        if (column.uidt !== UITypes.LinkToAnotherRecord) continue;
-
-        const colOptions =
-          await column.getColOptions<LinkToAnotherRecordColumn>();
-
-        switch (colOptions.type) {
-          case 'mm':
-            {
-              const mmTable = await Model.get(colOptions.fk_mm_model_id);
-              const mmParentColumn = await Column.get({
-                colId: colOptions.fk_mm_child_column_id,
-              });
-
-              execQueries.push((trx, ids) =>
-                trx(mmTable.table_name)
-                  .del()
-                  .whereIn(mmParentColumn.column_name, ids),
-              );
-            }
-            break;
-          case 'hm':
-            {
-              // skip if it's an mm table column
-              const relatedTable = await colOptions.getRelatedTable();
-              if (relatedTable.mm) {
-                break;
-              }
-
-              const childColumn = await Column.get({
-                colId: colOptions.fk_child_column_id,
-              });
-
-              execQueries.push((trx, ids) =>
-                trx(relatedTable.table_name)
-                  .update({
-                    [childColumn.column_name]: null,
-                  })
-                  .whereIn(childColumn.column_name, ids),
-              );
-            }
-            break;
-          case 'bt':
-            {
-              // nothing to do
-            }
-            break;
-        }
-      }
-
-      const idsVals = res.map((d) => d[this.model.primaryKey.column_name]);
-
       transaction = await this.dbDriver.transaction();
-
-      if (base.is_meta && execQueries.length > 0) {
-        for (const execQuery of execQueries) {
-          await execQuery(transaction, idsVals);
-        }
-      }
 
       for (const d of res) {
         await transaction(this.tnPath).del().where(d);
@@ -2536,7 +2401,6 @@ class BaseModelSqlv2 {
     args: { where?: string; filterArr?: Filter[] } = {},
     { cookie }: { cookie?: any } = {},
   ) {
-    let trx: Transaction;
     try {
       await this.model.getColumns();
       const { where } = this._getListArgs(args);
@@ -2561,102 +2425,14 @@ class BaseModelSqlv2 {
         this.dbDriver,
       );
 
-      const execQueries: ((trx: Transaction, qb: any) => Promise<any>)[] = [];
+      qb.del();
 
-      for (const column of this.model.columns) {
-        if (column.uidt !== UITypes.LinkToAnotherRecord) continue;
-
-        const colOptions =
-          await column.getColOptions<LinkToAnotherRecordColumn>();
-
-        if (colOptions.type === 'bt') {
-          continue;
-        }
-
-        const childColumn = await colOptions.getChildColumn();
-        const parentColumn = await colOptions.getParentColumn();
-        const parentTable = await parentColumn.getModel();
-        const childTable = await childColumn.getModel();
-        await childTable.getColumns();
-        await parentTable.getColumns();
-
-        const childTn = this.getTnPath(childTable);
-        const parentTn = this.getTnPath(parentTable);
-
-        switch (colOptions.type) {
-          case 'mm':
-            {
-              const vChildCol = await colOptions.getMMChildColumn();
-              const vParentCol = await colOptions.getMMParentColumn();
-              const vTable = await colOptions.getMMModel();
-
-              const vTn = this.getTnPath(vTable);
-
-              execQueries.push((trx, qb) =>
-                this.dbDriver(vTn)
-                  .where({
-                    [vChildCol.column_name]: this.dbDriver(childTn)
-                      .select(childColumn.column_name)
-                      .first(),
-                  })
-                  .delete(),
-              );
-            }
-            break;
-          case 'hm':
-            {
-              // skip if it's an mm table column
-              const relatedTable = await colOptions.getRelatedTable();
-              if (relatedTable.mm) {
-                break;
-              }
-
-              const childColumn = await Column.get({
-                colId: colOptions.fk_child_column_id,
-              });
-
-              execQueries.push((trx, qb) =>
-                trx(childTn)
-                  .where({
-                    [childColumn.column_name]: this.dbDriver.from(
-                      qb
-                        .select(parentColumn.column_name)
-                        // .where(_wherePk(parentTable.primaryKeys, rowId))
-                        .first()
-                        .as('___cn_alias'),
-                    ),
-                  })
-                  .update({
-                    [childColumn.column_name]: null,
-                  }),
-              );
-            }
-            break;
-        }
-      }
-
-      const base = await Base.get(this.model.base_id);
-
-      trx = await this.dbDriver.transaction();
-
-      // unlink LTAR data
-      if (base.is_meta) {
-        for (const execQuery of execQueries) {
-          await execQuery(trx, qb.clone());
-        }
-      }
-
-      const deleteQb = qb.clone().transacting(trx).del();
-
-      const count = (await deleteQb) as any;
-
-      await trx.commit();
+      const count = (await qb) as any;
 
       await this.afterBulkDelete(count, this.dbDriver, cookie, true);
 
       return count;
     } catch (e) {
-      if (trx) await trx.rollback();
       throw e;
     }
   }

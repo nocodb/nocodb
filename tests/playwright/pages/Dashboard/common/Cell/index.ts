@@ -39,9 +39,9 @@ export class CellPageObject extends BasePage {
 
   get({ index, columnHeader }: CellProps): Locator {
     if (this.parent instanceof SharedFormPage) {
-      return this.parent.get().locator(`[data-testid="nc-form-input-cell-${columnHeader}"]`);
+      return this.parent.get().locator(`[data-testid="nc-form-input-cell-${columnHeader}"]`).first();
     } else {
-      return this.parent.get().locator(`td[data-testid="cell-${columnHeader}-${index}"]`);
+      return this.parent.get().locator(`td[data-testid="cell-${columnHeader}-${index}"]`).first();
     }
   }
 

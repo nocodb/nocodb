@@ -22,10 +22,10 @@ export class RatingCellPageObject extends BasePage {
     });
   }
 
-  async verify({ index, columnHeader, rating }: { index?: number; columnHeader: string; rating: number }) {
-    await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
-    await expect(await this.get({ index, columnHeader }).locator(`div[role="radio"][aria-checked="true"]`)).toHaveCount(
-      rating
-    );
+  async verify({ index, columnHeader, rating }: { index: number; columnHeader: string; rating: number }) {
+    const cell = await this.get({ index, columnHeader });
+    await cell.scrollIntoViewIfNeeded();
+    const ratingCount = await cell.locator(`li.ant-rate-star.ant-rate-star-full`).count();
+    await expect(ratingCount).toBe(rating);
   }
 }

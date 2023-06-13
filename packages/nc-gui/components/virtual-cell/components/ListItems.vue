@@ -225,7 +225,7 @@ watch(vModel, (nextVal) => {
             v-for="(refRow, i) in childrenExcludedList?.list ?? []"
             :key="i"
             :ref="selectedRowIndex === i ? activeRow : null"
-            class="!my-4 cursor-pointer hover:(!bg-gray-200/50 shadow-md) group"
+            class="nc-nested-list-item !my-4 cursor-pointer hover:(!bg-gray-200/50 shadow-md) group"
             :class="{ 'nc-selected-row': selectedRowIndex === i }"
             @click="linkRow(refRow)"
           >
@@ -234,9 +234,9 @@ watch(vModel, (nextVal) => {
               :column="props.column"
               :show-unlink-button="false"
             />
-            <span class="hidden group-hover:(inline) text-gray-400 text-[11px] ml-1">
-              ({{ $t('labels.primaryKey') }} : {{ getRelatedTableRowId(refRow) }})
-            </span>
+<!--            <span class="hidden group-hover:(inline) text-gray-400 text-[11px] ml-1">-->
+<!--              ({{ $t('labels.primaryKey') }} : {{ getRelatedTableRowId(refRow) }})-->
+<!--            </span>-->
           </a-card>
         </div>
 
@@ -280,5 +280,9 @@ watch(vModel, (nextVal) => {
 
 :deep(.nc-selected-row) {
   @apply !ring;
+}
+
+:deep(.nc-nested-list-item .ant-card-body){
+  @apply !p-2
 }
 </style>

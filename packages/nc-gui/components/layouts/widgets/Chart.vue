@@ -26,8 +26,7 @@ import {
   Tooltip,
 } from 'chart.js'
 import { WidgetTypeType } from 'nocodb-sdk'
-import type { ChartWidget, DataConfigAggregated2DChart, DataSourceInternal } from 'nocodb-sdk'
-import type { Ref } from 'vue'
+import type { ChartWidget } from 'nocodb-sdk'
 
 const props = defineProps<{
   widgetConfig: ChartWidget
@@ -94,21 +93,7 @@ const aggregateFunction = ref<string | undefined>()
 
 const { reloadWidgetDataEventBus } = dashboardStore
 
-const dataLinkConfigIsMissing = computed(() => {
-  const data_source = chartWidget.value?.data_source as DataSourceInternal
-  const data_config = toRef(chartWidget.value, 'data_config') as Ref<DataConfigAggregated2DChart>
-  return (
-    !data_source ||
-    !data_source?.projectId ||
-    !data_source?.tableId ||
-    !data_source.viewId ||
-    !data_config.value.xAxisColId ||
-    !(
-      (data_config.value.yAxisColId && data_config.value.aggregateFunction) ||
-      data_config.value.recordCountOrFieldSummary === 'record_count'
-    )
-  )
-})
+const { dataLinkConfigIsMissing } = useWidget(chartWidget)
 
 const getData = async () => {
   if (!chartWidget.value.id || dataLinkConfigIsMissing.value) {

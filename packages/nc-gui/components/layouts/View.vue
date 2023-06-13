@@ -76,17 +76,10 @@ const gridMargins = computed(() => {
           :h="item.h"
           :i="item.i"
           style="touch-action: none"
-          :class="{ 'nc-layout-ui-element-has-focus': item.widgetId === focusedWidget?.id }"
           @moved="movedEvent"
           @resized="resizedEvent"
         >
-          <LayoutsFocusableContainer
-            :has-focus="item.widgetId === focusedWidget?.id"
-            @set-focus="updateFocusedWidgetByElementId(item.widgetId)"
-            @remove="removeWidgetById(item.widgetId)"
-          >
-            <LayoutsWidgetsWidget :widget-id="item.widgetId" />
-          </LayoutsFocusableContainer>
+          <LayoutsFocusableWidget :widget-id="item.widgetId" />
         </GridItem>
       </GridLayout>
     </div>
@@ -99,15 +92,8 @@ const gridMargins = computed(() => {
 
 <style scoped lang="scss">
 .vue-grid-item {
-  border: 1px solid #c4c7cc;
   padding: 3px;
   border-radius: 24px;
-
-  &.nc-layout-ui-element-has-focus {
-    border: 4px solid #3366ff;
-    padding: 0px;
-    border-radius: 24px;
-  }
 }
 
 .vue-grid-item .resizing {

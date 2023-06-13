@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { DataConfigNumber, DataSourceInternal, NumberWidget } from 'nocodb-sdk'
+import type { DataConfigNumber, NumberWidget } from 'nocodb-sdk'
 import { Icon as IconifyIcon } from '@iconify/vue'
-import { GeneralAddBaseButton, GeneralIcon } from '~~/.nuxt/components'
+import { useWidget } from '~~/composables/useWidget'
 const props = defineProps<{
   widgetConfig: NumberWidget
 }>()
@@ -19,22 +19,9 @@ const dashboardStore = useDashboardStore()
 const { reloadWidgetDataEventBus } = dashboardStore
 const { openedLayoutSidebarNode } = storeToRefs(dashboardStore)
 
-const data_source = computed(() => widgetConfig.value?.data_source as DataSourceInternal)
 const data_config = computed(() => widgetConfig.value?.data_config as DataConfigNumber)
 
-const dataLinkConfigIsMissing = computed(() => {
-  return (
-    !data_source.value ||
-    !data_source?.value.projectId ||
-    !data_source?.value.tableId ||
-    !data_source.value.viewId ||
-    !(
-      (data_config.value.colId && data_config.value.aggregateFunction) ||
-      data_config.value.recordCountOrFieldSummary === 'record_count'
-    )
-  )
-})
-
+const { dataLinkConfigIsMissing } = useWidget(widgetConfig)
 const getData = async () => {
   if (!widgetConfig.value.id || dataLinkConfigIsMissing.value) {
     console.error('Tried to get data for Number Visualisation without complete data link configuration')

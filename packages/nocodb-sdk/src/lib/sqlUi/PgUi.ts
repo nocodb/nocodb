@@ -1358,7 +1358,7 @@ export class PgUi {
   }
 
   static getAbstractType(col): any {
-    switch ((col.dt || col.dt).toLowerCase()) {
+    switch (col.dt?.toLowerCase()) {
       case 'anyenum':
         return 'enum';
       case 'anynonarray':

@@ -832,7 +832,7 @@ export class MssqlUi {
   }
 
   static getAbstractType(col): any {
-    switch ((col.dt || col.dt).toLowerCase()) {
+    switch (col.dt?.toLowerCase()) {
       case 'bigint':
       case 'smallint':
       case 'bit':

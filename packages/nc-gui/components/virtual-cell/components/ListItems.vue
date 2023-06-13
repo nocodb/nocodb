@@ -19,7 +19,7 @@ import {
   useVModel,
 } from '#imports'
 
-const props = defineProps<{ modelValue: boolean }>()
+const props = defineProps<{ modelValue: boolean; column: any }>()
 
 const emit = defineEmits(['update:modelValue', 'addNewRecord'])
 
@@ -229,7 +229,11 @@ watch(vModel, (nextVal) => {
             :class="{ 'nc-selected-row': selectedRowIndex === i }"
             @click="linkRow(refRow)"
           >
-            {{ renderValue(refRow[relatedTableDisplayValueProp]) }}
+            <VirtualCellComponentsItemChip
+              :value="refRow[relatedTableDisplayValueProp]"
+              :column="props.column"
+              :show-unlink-button="false"
+            />
             <span class="hidden group-hover:(inline) text-gray-400 text-[11px] ml-1">
               ({{ $t('labels.primaryKey') }} : {{ getRelatedTableRowId(refRow) }})
             </span>

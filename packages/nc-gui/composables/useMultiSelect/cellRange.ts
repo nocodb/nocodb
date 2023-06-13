@@ -20,6 +20,10 @@ export class CellRange {
     return !this.isEmpty() && this._start?.col === this._end?.col && this._start?.row === this._end?.row
   }
 
+  isSingleRow() {
+    return !this.isEmpty() && this._start?.row === this._end?.row
+  }
+
   get start(): Cell {
     return {
       row: Math.min(this._start?.row ?? NaN, this._end?.row ?? NaN),

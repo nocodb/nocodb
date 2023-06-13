@@ -244,13 +244,17 @@ onMounted(() => {
       class="max-w-[max(33%,600px)] mx-auto flex flex-col justify-end"
     >
       <div class="px-4 md:px-0 flex flex-col justify-end">
-        <h1 class="prose-2xl font-bold self-center my-4" data-testid="nc-survey-form__heading">
+        <h1
+          class="prose-2xl font-bold self-center my-4"
+          data-testid="nc-survey-form__heading"
+          style="word-break: break-all">
           {{ sharedFormView.heading }}
         </h1>
 
         <h2
           v-if="sharedFormView.subheading && sharedFormView.subheading !== ''"
           class="prose-lg text-slate-500 dark:text-slate-300 self-center mb-4 leading-6"
+          style="word-break: break-all"
           data-testid="nc-survey-form__sub-heading"
         >
           {{ sharedFormView?.subheading }}
@@ -287,7 +291,7 @@ onMounted(() => {
               <LazySmartsheetVirtualCell
                 v-if="isVirtualCol(field)"
                 v-model="formState[field.title]"
-                class="mt-0 nc-input"
+                class="mt-0 nc-input h-auto"
                 :row="{ row: {}, oldRow: {}, rowMeta: {} }"
                 :data-testid="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
                 :column="field"
@@ -296,7 +300,7 @@ onMounted(() => {
               <LazySmartsheetCell
                 v-else
                 v-model="formState[field.title]"
-                class="nc-input"
+                class="nc-input h-auto"
                 :data-testid="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
                 :column="field"
                 :edit-enabled="editEnabled[index]"
@@ -305,11 +309,10 @@ onMounted(() => {
                 @update:edit-enabled="editEnabled[index] = $event"
               />
 
-              <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
+              <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1" style="word-break: break-all">
                 <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
                   {{ error.$message }}
                 </div>
-
                 <div
                   class="block text-[14px]"
                   :class="field.uidt === UITypes.Checkbox ? 'text-center' : ''"
@@ -350,6 +353,7 @@ onMounted(() => {
                   :mouse-enter-delay="0.25"
                   :mouse-leave-delay="0"
                 >
+                <!-- Ok button for question -->
                   <button
                     class="bg-opacity-100 scaling-btn flex items-center gap-1"
                     data-testid="nc-survey-form__btn-next"

@@ -10,18 +10,15 @@ const emits = defineEmits(['update:modelValue'])
 
 const editEnabled = inject(EditModeInj)
 
-const rowHeight = inject(
-  RowHeightInj,
-  computed(() => undefined),
-)
+const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const { showNull } = useGlobal()
 
 const vModel = useVModel(props, 'modelValue', emits, { defaultValue: '' })
 
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj)!
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen && (el as HTMLTextAreaElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLTextAreaElement)?.focus()
 </script>
 
 <template>

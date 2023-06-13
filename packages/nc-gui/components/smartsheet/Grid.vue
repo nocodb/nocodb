@@ -1,6 +1,7 @@
 <script lang="ts" setup>
+import { nextTick } from '@vue/runtime-core'
 import type { ColumnReqType, ColumnType, GridType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
@@ -103,7 +104,8 @@ const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
 const gridWrapper = ref<HTMLElement>()
-const tableHead = ref<HTMLElement>()
+const tableHeadEl = ref<HTMLElement>()
+const tableBodyEl = ref<HTMLElement>()
 
 const isAddingColumnAllowed = $computed(() => !readOnly.value && !isLocked.value && isUIAllowed('add-column') && !isSqlView.value)
 
@@ -116,13 +118,15 @@ const {
   formattedData: data,
   updateOrSaveRow,
   changePage,
-  addEmptyRow,
+  addEmptyRow: _addEmptyRow,
   deleteRow,
   deleteSelectedRows,
   selectedAllRecords,
   removeRowIfNew,
   navigateToSiblingRow,
   getExpandedRowIndex,
+  deleteRangeOfRows,
+  bulkUpdateRows,
 } = useViewData(meta, view, xWhere)
 
 const { getMeta } = useMetas()
@@ -141,11 +145,20 @@ const getContainerScrollForElement = (
 ) => {
   const childPos = el.getBoundingClientRect()
   const parentPos = container.getBoundingClientRect()
+
+  // provide an extra offset to show the prev/next/up/bottom cell
+  const extraOffset = 15
+
+  const numColWidth = container.querySelector('thead th:nth-child(1)')?.getBoundingClientRect().width ?? 0
+  const primaryColWidth = container.querySelector('thead th:nth-child(2)')?.getBoundingClientRect().width ?? 0
+
+  const stickyColsWidth = numColWidth + primaryColWidth
+
   const relativePos = {
     top: childPos.top - parentPos.top,
     right: childPos.right - parentPos.right,
     bottom: childPos.bottom - parentPos.bottom,
-    left: childPos.left - parentPos.left,
+    left: childPos.left - parentPos.left - stickyColsWidth,
   }
 
   const scroll = {
@@ -159,9 +172,9 @@ const getContainerScrollForElement = (
    */
   scroll.left =
     relativePos.right + (offset?.right || 0) > 0
-      ? container.scrollLeft + relativePos.right + (offset?.right || 0)
+      ? container.scrollLeft + relativePos.right + (offset?.right || 0) + extraOffset
       : relativePos.left - (offset?.left || 0) < 0
-      ? container.scrollLeft + relativePos.left - (offset?.left || 0)
+      ? container.scrollLeft + relativePos.left - (offset?.left || 0) - extraOffset
       : container.scrollLeft
 
   /*
@@ -170,9 +183,9 @@ const getContainerScrollForElement = (
    */
   scroll.top =
     relativePos.bottom + (offset?.bottom || 0) > 0
-      ? container.scrollTop + relativePos.bottom + (offset?.bottom || 0)
+      ? container.scrollTop + relativePos.bottom + (offset?.bottom || 0) + extraOffset
       : relativePos.top - (offset?.top || 0) < 0
-      ? container.scrollTop + relativePos.top - (offset?.top || 0)
+      ? container.scrollTop + relativePos.top - (offset?.top || 0) - extraOffset
       : container.scrollTop
 
   return scroll
@@ -187,8 +200,9 @@ const {
   clearSelectedRange,
   copyValue,
   isCellActive,
-  tbodyEl,
   resetSelectedRange,
+  makeActive,
+  selectedRange,
 } = useMultiSelect(
   meta,
   fields,
@@ -196,6 +210,7 @@ const {
   $$(editEnabled),
   isPkAvail,
   clearCell,
+  clearSelectedRangeOfCells,
   makeEditable,
   scrollToCell,
   (e: KeyboardEvent) => {
@@ -219,7 +234,6 @@ const {
     if (e.key === ' ') {
       if (isCellActive.value && !editEnabled && hasEditPermission) {
         e.preventDefault()
-        clearSelectedRange()
         const row = data.value[activeCell.row]
         expandForm(row)
         return true
@@ -242,6 +256,9 @@ const {
 
     if (cmdOrCtrl) {
       if (!isCellActive.value) return
+
+      // cmdOrCtrl+shift handled in useMultiSelect
+      if (e.shiftKey) return
 
       switch (e.key) {
         case 'ArrowUp':
@@ -325,6 +342,7 @@ const {
     // update/save cell value
     await updateOrSaveRow(rowObj, ctx.updatedColumnTitle || columnObj.title)
   },
+  bulkUpdateRows,
 )
 
 function scrollToCell(row?: number | null, col?: number | null) {
@@ -333,14 +351,20 @@ function scrollToCell(row?: number | null, col?: number | null) {
 
   if (row !== null && col !== null) {
     // get active cell
-    const rows = tbodyEl.value?.querySelectorAll('tr')
+    const rows = tableBodyEl.value?.querySelectorAll('tr')
     const cols = rows?.[row].querySelectorAll('td')
     const td = cols?.[col === 0 ? 0 : col + 1]
 
     if (!td || !gridWrapper.value) return
 
-    const { height: headerHeight } = tableHead.value!.getBoundingClientRect()
+    const { height: headerHeight } = tableHeadEl.value!.getBoundingClientRect()
     const tdScroll = getContainerScrollForElement(td, gridWrapper.value, { top: headerHeight, bottom: 9, right: 9 })
+
+    // if first column set left to 0 since it's sticky it will be visible and calculated value will be wrong
+    // setting left to 0 will make it scroll to the left
+    if (col === 0) {
+      tdScroll.left = 0
+    }
 
     if (rows && row === rows.length - 2) {
       // if last row make 'Add New Row' visible
@@ -412,6 +436,8 @@ const showLoading = ref(true)
 
 const skipRowRemovalOnCancel = ref(false)
 
+const preloadColumn = ref<Partial<any>>()
+
 function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) {
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
 
@@ -441,6 +467,13 @@ const onXcResizing = (cn: string, event: any) => {
 
 defineExpose({
   loadData,
+  openColumnCreate: (data) => {
+    tableHeadEl.value?.querySelector('th:last-child')?.scrollIntoView({ behavior: 'smooth' })
+    setTimeout(() => {
+      addColumnDropdown.value = true
+      preloadColumn.value = data
+    }, 500)
+  },
 })
 
 // reset context menu target on hide
@@ -542,8 +575,38 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
   }
 }
 
+async function clearSelectedRangeOfCells() {
+  if (!hasEditPermission) return
+
+  const start = selectedRange.start
+  const end = selectedRange.end
+
+  const startRow = Math.min(start.row, end.row)
+  const endRow = Math.max(start.row, end.row)
+  const startCol = Math.min(start.col, end.col)
+  const endCol = Math.max(start.col, end.col)
+
+  const cols = fields.value.slice(startCol, endCol + 1)
+  const rows = data.value.slice(startRow, endRow + 1)
+  const props = []
+
+  for (const row of rows) {
+    for (const col of cols) {
+      if (!row || !col || !col.title) continue
+
+      // TODO handle LinkToAnotherRecord
+      if (isVirtualCol(col)) continue
+
+      row.row[col.title] = null
+      props.push(col.title)
+    }
+  }
+
+  await bulkUpdateRows(rows, props)
+}
+
 function makeEditable(row: Row, col: ColumnType) {
-  if (!hasEditPermission || editEnabled || isView) {
+  if (!hasEditPermission || editEnabled || isView || isLocked.value || readOnly.value || isSystemColumn(col)) {
     return
   }
 
@@ -565,6 +628,10 @@ function makeEditable(row: Row, col: ColumnType) {
     return
   }
 
+  if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(col.uidt as UITypes)) {
+    return
+  }
+
   return (editEnabled = true)
 }
 
@@ -578,7 +645,7 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
 
-onClickOutside(tbodyEl, (e) => {
+onClickOutside(tableBodyEl, (e) => {
   // do nothing if context menu was open
   if (contextMenu.value) return
 
@@ -631,6 +698,9 @@ const onNavigate = (dir: NavigateDir) => {
       }
       break
   }
+  nextTick(() => {
+    scrollToCell()
+  })
 }
 
 const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) => {
@@ -754,26 +824,43 @@ eventBus.on(async (event, payload) => {
   }
 })
 
-const closeAddColumnDropdown = () => {
+const closeAddColumnDropdown = (scrollToLastCol = false) => {
   columnOrder.value = null
   addColumnDropdown.value = false
+  if (scrollToLastCol) {
+    setTimeout(() => {
+      const lastAddNewRowHeader = tableHeadEl.value?.querySelector('th:last-child')
+      if (lastAddNewRowHeader) {
+        lastAddNewRowHeader.scrollIntoView({ behavior: 'smooth' })
+      }
+    }, 200)
+  }
 }
 
 const confirmDeleteRow = (row: number) => {
-  Modal.confirm({
-    title: `Do you want to delete this row?`,
-    wrapClassName: 'nc-modal-row-delete',
-    okText: 'Yes',
-    okType: 'danger',
-    cancelText: 'No',
-    onOk() {
-      try {
-        deleteRow(row)
-      } catch (e: any) {
-        message.error(e.message)
-      }
-    },
+  try {
+    deleteRow(row)
+  } catch (e: any) {
+    message.error(e.message)
+  }
+}
+
+const deleteSelectedRangeOfRows = () => {
+  deleteRangeOfRows(selectedRange).then(() => {
+    clearSelectedRange()
+    activeCell.row = null
+    activeCell.col = null
   })
+}
+
+function addEmptyRow(row?: number) {
+  const rowObj = _addEmptyRow(row)
+  nextTick().then(() => {
+    clearSelectedRange()
+    makeActive(row ?? data.value.length - 1, 0)
+    scrollToCell?.()
+  })
+  return rowObj
 }
 </script>
 
@@ -796,9 +883,9 @@ const confirmDeleteRow = (row: number) => {
           class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white"
           @contextmenu="showContextMenu"
         >
-          <thead ref="tableHead">
+          <thead ref="tableHeadEl">
             <tr class="nc-grid-header">
-              <th class="w-[80px] min-w-[80px]" data-testid="grid-id-column">
+              <th class="w-[85px] min-w-[85px]" data-testid="grid-id-column">
                 <div class="w-full h-full bg-gray-100 flex pl-5 pr-1 items-center" data-testid="nc-check-all">
                   <template v-if="!readOnly">
                     <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
@@ -850,9 +937,10 @@ const confirmDeleteRow = (row: number) => {
                   <template #overlay>
                     <SmartsheetColumnEditOrAddProvider
                       v-if="addColumnDropdown"
+                      :preload="preloadColumn"
                       :column-position="columnOrder"
-                      @submit="closeAddColumnDropdown"
-                      @cancel="closeAddColumnDropdown"
+                      @submit="closeAddColumnDropdown(true)"
+                      @cancel="closeAddColumnDropdown()"
                       @click.stop
                       @keydown.stop
                     />
@@ -861,12 +949,12 @@ const confirmDeleteRow = (row: number) => {
               </th>
             </tr>
           </thead>
-          <tbody ref="tbodyEl">
+          <tbody ref="tableBodyEl">
             <LazySmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
               <template #default="{ state }">
                 <tr
                   class="nc-grid-row"
-                  :style="{ height: rowHeight ? `${rowHeight * 1.5}rem` : `1.5rem` }"
+                  :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
                   :data-testid="`grid-row-${rowIndex}`"
                 >
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1" :data-testid="`cell-Id-${rowIndex}`">
@@ -925,8 +1013,9 @@ const confirmDeleteRow = (row: number) => {
                   <SmartsheetTableDataCell
                     v-for="(columnObj, colIndex) of fields"
                     :key="columnObj.id"
-                    class="cell relative cursor-pointer nc-grid-cell"
+                    class="cell relative nc-grid-cell"
                     :class="{
+                      'cursor-pointer': hasEditPermission,
                       'active': hasEditPermission && isCellSelected(rowIndex, colIndex),
                       'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
                       'align-middle': !rowHeight || rowHeight === 1,
@@ -975,35 +1064,43 @@ const confirmDeleteRow = (row: number) => {
               </template>
             </LazySmartsheetRow>
 
-            <tr v-if="isAddingEmptyRowAllowed">
-              <td
-                v-e="['c:row:add:grid-bottom']"
-                :colspan="visibleColLength + 1"
-                class="text-left pointer nc-grid-add-new-cell cursor-pointer"
-                @click="addEmptyRow()"
-              >
+            <tr
+              v-if="isAddingEmptyRowAllowed"
+              v-e="['c:row:add:grid-bottom']"
+              class="cursor-pointer"
+              @mouseup.stop
+              @click="addEmptyRow()"
+            >
+              <td class="text-left pointer nc-grid-add-new-cell sticky left-0 !z-5 !border-r-0">
                 <div class="px-2 w-full flex items-center text-gray-500">
                   <component :is="iconMap.plus" class="text-pint-500 text-xs ml-2 text-primary" />
-
-                  <span class="ml-1">
-                    {{ $t('activity.addRow') }}
-                  </span>
                 </div>
               </td>
+              <td :colspan="visibleColLength"></td>
             </tr>
           </tbody>
         </table>
 
         <template v-if="!isLocked && hasEditPermission" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
-            <a-menu-item v-if="contextMenuTarget" @click="confirmDeleteRow(contextMenuTarget.row)">
+            <a-menu-item
+              v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
+              @click="confirmDeleteRow(contextMenuTarget.row)"
+            >
               <div v-e="['a:row:delete']" class="nc-project-menu-item">
                 <!-- Delete Row -->
                 {{ $t('activity.deleteRow') }}
               </div>
             </a-menu-item>
 
-            <a-menu-item @click="deleteSelectedRows">
+            <a-menu-item v-else-if="contextMenuTarget" @click="deleteSelectedRangeOfRows">
+              <div v-e="['a:row:delete']" class="nc-project-menu-item">
+                <!-- Delete Rows -->
+                Delete Rows
+              </div>
+            </a-menu-item>
+
+            <a-menu-item v-if="data.some((r) => r.rowMeta.selected)" @click="deleteSelectedRows">
               <div v-e="['a:row:delete-bulk']" class="nc-project-menu-item">
                 <!-- Delete Selected Rows -->
                 {{ $t('activity.deleteSelectedRow') }}
@@ -1014,6 +1111,7 @@ const confirmDeleteRow = (row: number) => {
             <a-menu-item
               v-if="
                 contextMenuTarget &&
+                selectedRange.isSingleCell() &&
                 (fields[contextMenuTarget.col].uidt === UITypes.LinkToAnotherRecord ||
                   !isVirtualCol(fields[contextMenuTarget.col]))
               "
@@ -1022,7 +1120,12 @@ const confirmDeleteRow = (row: number) => {
               <div v-e="['a:row:clear']" class="nc-project-menu-item">{{ $t('activity.clearCell') }}</div>
             </a-menu-item>
 
-            <a-menu-item v-if="contextMenuTarget" @click="addEmptyRow(contextMenuTarget.row + 1)">
+            <!--            Clear cell -->
+            <a-menu-item v-else @click="clearSelectedRangeOfCells()">
+              <div v-e="['a:row:clear-range']" class="nc-project-menu-item">Clear Cells</div>
+            </a-menu-item>
+
+            <a-menu-item v-if="contextMenuTarget && selectedRange.isSingleCell()" @click="addEmptyRow(contextMenuTarget.row + 1)">
               <div v-e="['a:row:insert']" class="nc-project-menu-item">
                 <!-- Insert New Row -->
                 {{ $t('activity.insertRow') }}
@@ -1040,8 +1143,23 @@ const confirmDeleteRow = (row: number) => {
       </a-dropdown>
     </div>
 
-    <LazySmartsheetPagination />
+    <div
+      v-if="isAddingEmptyRowAllowed"
+      class="absolute bottom-1px left-2 z-4"
+      data-testid="nc-grid-add-new-row"
+      @click="addEmptyRow()"
+    >
+      <a-button v-e="['c:row:add:grid-bottom', { footer: true }]" class="!rounded-xl" size="small">
+        <div class="flex items-center">
+          <component :is="iconMap.plus" class="text-pint-500 text-xs" />
+          <span class="ml-1">
+            {{ $t('activity.addRow') }}
+          </span>
+        </div>
+      </a-button>
+    </div>
 
+    <LazySmartsheetPagination align-count-on-right> </LazySmartsheetPagination>
     <Suspense>
       <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"
@@ -1140,14 +1258,14 @@ const confirmDeleteRow = (row: number) => {
 
   thead th:nth-child(2) {
     position: sticky !important;
-    left: 80px;
+    left: 85px;
     z-index: 5;
     @apply border-r-2 border-r-gray-300;
   }
 
   tbody td:nth-child(2) {
     position: sticky !important;
-    left: 80px;
+    left: 85px;
     z-index: 4;
     background: white;
     @apply border-r-2 border-r-gray-300;

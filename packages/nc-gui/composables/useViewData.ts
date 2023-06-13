@@ -1,6 +1,7 @@
 import { UITypes, ViewTypes } from 'nocodb-sdk'
 import type { Api, ColumnType, FormColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
+import type { CellRange } from '#imports'
 import {
   IsPublicInj,
   NOCO,
@@ -447,6 +448,124 @@ export function useViewData(
     }
   }
 
+  async function bulkUpdateRows(
+    rows: Row[],
+    props: string[],
+    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    undo = false,
+  ) {
+    const promises = []
+
+    for (const row of rows) {
+      // update changed status
+      if (row.rowMeta) row.rowMeta.changed = false
+
+      // if new row and save is in progress then wait until the save is complete
+      promises.push(until(() => !(row.rowMeta?.new && row.rowMeta?.saving)).toMatch((v) => v))
+    }
+
+    await Promise.all(promises)
+
+    const updateArray = []
+
+    for (const row of rows) {
+      if (row.rowMeta) row.rowMeta.saving = true
+
+      const pk = rowPkData(row.row, metaValue?.columns as ColumnType[])
+
+      const updateData = props.reduce((acc: Record<string, any>, prop) => {
+        acc[prop] = row.row[prop]
+        return acc
+      }, {} as Record<string, any>)
+
+      updateArray.push({ ...updateData, ...pk })
+    }
+
+    if (!undo) {
+      addUndo({
+        redo: {
+          fn: async function redo(redoRows: Row[], props: string[], pg: { page: number; pageSize: number }) {
+            await bulkUpdateRows(redoRows, props, { metaValue, viewMetaValue }, true)
+            if (pg.page === paginationData.value.page && pg.pageSize === paginationData.value.pageSize) {
+              for (const toUpdate of redoRows) {
+                const rowIndex = findIndexByPk(rowPkData(toUpdate.row, meta?.value?.columns as ColumnType[]))
+                if (rowIndex !== -1) {
+                  const row = formattedData.value[rowIndex]
+                  Object.assign(row.row, toUpdate.row)
+                  Object.assign(row.oldRow, toUpdate.row)
+                } else {
+                  await loadData()
+                  break
+                }
+              }
+            } else {
+              await changePage(pg.page)
+            }
+          },
+          args: [clone(rows), clone(props), { page: paginationData.value.page, pageSize: paginationData.value.pageSize }],
+        },
+        undo: {
+          fn: async function undo(undoRows: Row[], props: string[], pg: { page: number; pageSize: number }) {
+            await bulkUpdateRows(undoRows, props, { metaValue, viewMetaValue }, true)
+            if (pg.page === paginationData.value.page && pg.pageSize === paginationData.value.pageSize) {
+              for (const toUpdate of undoRows) {
+                const rowIndex = findIndexByPk(rowPkData(toUpdate.row, meta?.value?.columns as ColumnType[]))
+                if (rowIndex !== -1) {
+                  const row = formattedData.value[rowIndex]
+                  Object.assign(row.row, toUpdate.row)
+                  Object.assign(row.oldRow, toUpdate.row)
+                } else {
+                  await loadData()
+                  break
+                }
+              }
+            } else {
+              await changePage(pg.page)
+            }
+          },
+          args: [
+            clone(
+              rows.map((row) => {
+                return { row: row.oldRow, oldRow: row.row, rowMeta: row.rowMeta }
+              }),
+            ),
+            props,
+            { page: paginationData.value.page, pageSize: paginationData.value.pageSize },
+          ],
+        },
+        scope: defineViewScope({ view: viewMetaValue }),
+      })
+    }
+
+    await $api.dbTableRow.bulkUpdate(NOCO, metaValue?.project_id as string, metaValue?.id as string, updateArray)
+
+    for (const row of rows) {
+      if (!undo) {
+        /** update row data(to sync formula and other related columns)
+         * update only formula, rollup and auto updated datetime columns data to avoid overwriting any changes made by user
+         */
+        Object.assign(
+          row.row,
+          metaValue!.columns!.reduce<Record<string, any>>((acc: Record<string, any>, col: ColumnType) => {
+            if (
+              col.uidt === UITypes.Formula ||
+              col.uidt === UITypes.QrCode ||
+              col.uidt === UITypes.Barcode ||
+              col.uidt === UITypes.Rollup ||
+              col.au ||
+              col.cdf?.includes(' on update ')
+            )
+              acc[col.title!] = row.row[col.title!]
+            return acc
+          }, {} as Record<string, any>),
+        )
+        Object.assign(row.oldRow, row.row)
+      }
+
+      if (row.rowMeta) row.rowMeta.saving = false
+    }
+  }
+
   async function changePage(page: number) {
     paginationData.value.page = page
     await loadData({
@@ -615,6 +734,82 @@ export function useViewData(
     await syncPagination()
   }
 
+  async function deleteRangeOfRows(cellRange: CellRange) {
+    if (!cellRange._start || !cellRange._end) return
+    const start = Math.max(cellRange._start.row, cellRange._end.row)
+    const end = Math.min(cellRange._start.row, cellRange._end.row)
+
+    // plus one because we want to include the end row
+    let row = start + 1
+
+    const removedRowsData: { id?: string; row: Row; rowIndex: number }[] = []
+    while (row--) {
+      try {
+        const { row: rowObj, rowMeta } = formattedData.value[row] as Record<string, any>
+        if (!rowMeta.new) {
+          const id = meta?.value?.columns
+            ?.filter((c) => c.pk)
+            .map((c) => rowObj[c.title as string])
+            .join('___')
+
+          const successfulDeletion = await deleteRowById(id as string)
+          if (!successfulDeletion) {
+            continue
+          }
+          removedRowsData.push({ id, row: clone(formattedData.value[row]), rowIndex: row })
+        }
+        formattedData.value.splice(row, 1)
+      } catch (e: any) {
+        return message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
+      }
+
+      if (row === end) break
+    }
+
+    addUndo({
+      redo: {
+        fn: async function redo(this: UndoRedoAction, removedRowsData: { id?: string; row: Row; rowIndex: number }[]) {
+          for (const { id, row } of removedRowsData) {
+            await deleteRowById(id as string)
+            const pk: Record<string, string> = rowPkData(row.row, meta?.value?.columns as ColumnType[])
+            const rowIndex = findIndexByPk(pk)
+            if (rowIndex !== -1) formattedData.value.splice(rowIndex, 1)
+            paginationData.value.totalRows = paginationData.value.totalRows! - 1
+          }
+          await syncPagination()
+        },
+        args: [removedRowsData],
+      },
+      undo: {
+        fn: async function undo(
+          this: UndoRedoAction,
+          removedRowsData: { id?: string; row: Row; rowIndex: number }[],
+          pg: { page: number; pageSize: number },
+        ) {
+          for (const { row, rowIndex } of removedRowsData.slice().reverse()) {
+            const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
+            row.row = { ...pkData, ...row.row }
+            await insertRow(row, {}, {}, true)
+            if (rowIndex !== -1 && pg.pageSize === paginationData.value.pageSize) {
+              if (pg.page === paginationData.value.page) {
+                formattedData.value.splice(rowIndex, 0, row)
+              } else {
+                await changePage(pg.page)
+              }
+            } else {
+              await loadData()
+            }
+          }
+        },
+        args: [removedRowsData, { page: paginationData.value.page, pageSize: paginationData.value.pageSize }],
+      },
+      scope: defineViewScope({ view: viewMeta.value }),
+    })
+
+    await syncCount()
+    await syncPagination()
+  }
+
   async function loadFormView() {
     if (!viewMeta?.value?.id) return
     try {
@@ -728,7 +923,9 @@ export function useViewData(
     deleteRow,
     deleteRowById,
     deleteSelectedRows,
+    deleteRangeOfRows,
     updateOrSaveRow,
+    bulkUpdateRows,
     selectedAllRecords,
     syncCount,
     syncPagination,

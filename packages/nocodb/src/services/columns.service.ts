@@ -1668,8 +1668,8 @@ export class ColumnsService {
         (param.column as LinkToAnotherColumnReqType).title,
         foreignKeyName,
         (param.column as LinkToAnotherColumnReqType).virtual,
-        param.column['meta'],
         null,
+        param.column['meta'],
         isLinks,
       );
     } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {

@@ -70,9 +70,11 @@ const onAttachRecord = () => {
 <template>
   <div class="flex w-full items-center">
     <template v-if="!isForm">
-      <a class="text-center pl-3 flex-grow block" :class="{ '!text-gray-300': !value }" @click.stop.prevent="childListDlg = true">
-        {{ textVal }}
-      </a>
+      <div class="flex-grow block">
+        <a class="text-center pl-3" :class="{ '!text-gray-300': !value }" @click.stop.prevent="childListDlg = true">
+          {{ textVal }}
+        </a>
+      </div>
 
       <div v-if="!isLocked && !isUnderLookup" class="flex justify-end gap-1 min-h-[30px] items-center">
         <GeneralIcon

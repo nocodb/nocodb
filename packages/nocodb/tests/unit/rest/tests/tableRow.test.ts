@@ -1425,7 +1425,7 @@ function tableTest() {
     const response = await request(context.app)
       .delete(`/api/v1/db/data/noco/${project.id}/${table.id}/${row['Id']}`)
       .set('xc-auth', context.token)
-      .expect(200);
+      .expect(400);
 
     const deleteRow = await getRow(context, { project, table, id: row['Id'] });
     if (!deleteRow) {
@@ -1433,11 +1433,9 @@ function tableTest() {
     }
 
     if (
-      !(response.body.message[0] as string).includes(
-        'is a LinkToAnotherRecord of',
-      )
+      !(response.body.msg as string).includes('is a LinkToAnotherRecord of')
     ) {
-      throw new Error('Should give ltar foreign key error');
+      throw new Error('Should give LTAR foreign key error');
     }
   });
 

@@ -213,7 +213,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
           v-model:value="formState"
         />
         <LazySmartsheetColumnLinkOptions
-          v-if="formState.uidt === UITypes.Links"
+          v-if="isEdit && formState.uidt === UITypes.Links"
           v-model:value="formState"
         />
         <LazySmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />

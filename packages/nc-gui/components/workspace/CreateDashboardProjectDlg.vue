@@ -125,7 +125,7 @@ const resetState = () => {
 
 const createDashboardProject = async () => {
   createButtonClicked.value = true
-  if (numberOfSelectedDbProjects.value === 0) {
+  if (numberOfSelectedDbProjects.value === 0 && !showAlertBox.value) {
     showAlertBox.value = true
     return
   }
@@ -224,24 +224,6 @@ const showSearchIcon = computed(() => {
               @finish="gotoStepTwo"
             />
           </a-form-item>
-          <a-form-item :label="$t('labels.interfaceColor')" name="interface-color">
-            <div class="flex justify-between relative">
-              <div
-                v-for="(color, index) in colorOptions"
-                :key="index"
-                class="w-9 h-9 rounded-full cursor-pointer color-option relative"
-                :style="{ backgroundColor: color, border: selectedColor === color ? '2px solid #2952CC' : 'none' }"
-                @click="selectColor(color)"
-              >
-                <GeneralIcon
-                  v-if="selectedColor === color"
-                  icon="check"
-                  class="text-white !text-center mb-10 !text-3xl !w-8 !h-8"
-                  style="position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); stroke-width: 2em"
-                />
-              </div>
-            </div>
-          </a-form-item>
         </div>
         <div v-if="selectedTab.includes('2')">
           <!-- <CreateDashboardProjectStepTwo /> -->
@@ -301,7 +283,7 @@ const showSearchIcon = computed(() => {
     </div>
     <template #footer>
       <a-button
-        v-if="selectedTab.includes('1')"
+        v-show="selectedTab.includes('1')"
         key="submit"
         :disabled="creating"
         size="large"
@@ -311,14 +293,25 @@ const showSearchIcon = computed(() => {
         >{{ $t('dashboards.connect_data_sources') }}
       </a-button>
       <a-button
-        v-if="selectedTab.includes('2')"
+        v-show="selectedTab.includes('2') && !showAlertBox"
         key="submit"
+        class="!rounded-md"
         data-testid="docs-create-proj-dlg-create-btn"
         :disabled="creating"
         size="large"
         type="primary"
         @click="createDashboardProject"
         >{{ $t('general.create') }}
+      </a-button>
+      <a-button
+        v-show="selectedTab.includes('2') && showAlertBox"
+        key="submit"
+        class="!rounded-md"
+        data-testid="docs-create-proj-dlg-skip-btn"
+        :disabled="creating"
+        size="large"
+        @click="createDashboardProject"
+        >{{ $t('general.skip') }}
       </a-button>
     </template>
   </a-modal>

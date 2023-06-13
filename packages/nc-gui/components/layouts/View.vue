@@ -42,50 +42,53 @@ const gridMargins = computed(() => {
 </script>
 
 <template>
-  <div class="flex">
-    <LayoutsWidgetsLibraryPanel />
-    <div ref="mainArea" class="min-h-10 flex-1 overflow-y-auto" @click="resetFocus" @dragover.prevent @drop="drop">
-      <!-- TODO: Ugly hack - the GridLayout 3rd party component doesn't re-render automtically when gridMargin is changing; 
+  <div class="flex flex-col">
+    <LayoutsTopBar />
+    <div class="flex">
+      <LayoutsWidgetsLibraryPanel />
+      <div ref="mainArea" class="min-h-10 flex-1 overflow-y-auto" @click="resetFocus" @dragover.prevent @drop="drop">
+        <!-- TODO: Ugly hack - the GridLayout 3rd party component doesn't re-render automtically when gridMargin is changing; 
       So we enforce a re-render via setting they key to gridMargins -->
-      <GridLayout
-        :key="`${JSON.stringify(gridMargins)}`"
-        v-model:layout="gridLayout"
-        :style="{
-          margin: `${openedLayoutSidebarNode?.grid_padding_vertical || '10'}px ${
-            openedLayoutSidebarNode?.grid_padding_horizontal || '10'
-          }px`,
-        }"
-        :margin="gridMargins"
-        :is-draggable="true"
-        :is-resizable="true"
-        :use-css-transforms="true"
-        :vertical-compact="false"
-        :prevent-collision="false"
-        :row-height="30"
-        :col-num="4"
-        :responsive="false"
-        style="height: '100%'"
-      >
-        <GridItem
-          v-for="item in gridLayout"
-          :key="item.i"
-          :static="item.static"
-          :x="item.x"
-          :y="item.y"
-          :w="item.w"
-          :h="item.h"
-          :i="item.i"
-          style="touch-action: none"
-          @moved="movedEvent"
-          @resized="resizedEvent"
+        <GridLayout
+          :key="`${JSON.stringify(gridMargins)}`"
+          v-model:layout="gridLayout"
+          :style="{
+            margin: `${openedLayoutSidebarNode?.grid_padding_vertical || '10'}px ${
+              openedLayoutSidebarNode?.grid_padding_horizontal || '10'
+            }px`,
+          }"
+          :margin="gridMargins"
+          :is-draggable="true"
+          :is-resizable="true"
+          :use-css-transforms="true"
+          :vertical-compact="false"
+          :prevent-collision="false"
+          :row-height="30"
+          :col-num="4"
+          :responsive="false"
+          style="height: '100%'"
         >
-          <LayoutsFocusableWidget :widget-id="item.widgetId" />
-        </GridItem>
-      </GridLayout>
-    </div>
-    <!-- TODO: decide / change again to rem for width and overall: use consistent styling -->
-    <div class="w-[420px] p-4">
-      <LayoutsWidgetsPropertiesPanel />
+          <GridItem
+            v-for="item in gridLayout"
+            :key="item.i"
+            :static="item.static"
+            :x="item.x"
+            :y="item.y"
+            :w="item.w"
+            :h="item.h"
+            :i="item.i"
+            style="touch-action: none"
+            @moved="movedEvent"
+            @resized="resizedEvent"
+          >
+            <LayoutsFocusableWidget :widget-id="item.widgetId" />
+          </GridItem>
+        </GridLayout>
+      </div>
+      <!-- TODO: decide / change again to rem for width and overall: use consistent styling -->
+      <div class="w-[420px] p-4">
+        <LayoutsWidgetsPropertiesPanel />
+      </div>
     </div>
   </div>
 </template>

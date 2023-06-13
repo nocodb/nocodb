@@ -148,8 +148,11 @@ export default {
           <slot name="sidebar" />
         </div>
       </Pane>
-      <div v-if="!isOpen" class="absolute top-0 left-0 pl-2 flex flex-col h-full z-40">
-        <div class="mt-2 p-1 px-1.5 rounded-md hover:bg-gray-100 cursor-pointer" @click="isOpen = true">
+      <div v-if="!isOpen" class="absolute top-0 left-0 flex flex-col h-full">
+        <div
+          class="flex flex-row items-center justify-center ml-2 mt-2.75 p-0.75 h-6.25 w-6.25 rounded-md hover:bg-gray-100 cursor-pointer z-40"
+          @click="isOpen = true"
+        >
           <MdiMenu v-if="isSidebarHidden && !isStartHideSidebarAnimation" />
           <IcBaselineKeyboardDoubleArrowRight v-else />
         </div>

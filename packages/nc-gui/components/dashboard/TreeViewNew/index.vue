@@ -27,6 +27,10 @@ import {
 
 import { useRouter } from '#app'
 
+const emit = defineEmits<{
+  (event: 'onScrollTop', type: boolean): void
+}>()
+
 const { isUIAllowed } = useUIPermission()
 
 const { addTab } = useTabs()
@@ -400,11 +404,32 @@ provide(TreeViewFunctions, {
 })
 
 useEventListener(document, 'contextmenu', handleContext, true)
+
+const treeViewDom = ref<HTMLElement>()
+
+const checkScrollTopMoreThanZero = () => {
+  if (treeViewDom.value) {
+    if (treeViewDom.value.scrollTop > 0) {
+      emit('onScrollTop', true)
+    } else {
+      emit('onScrollTop', false)
+    }
+  }
+  return false
+}
+
+onMounted(() => {
+  treeViewDom.value?.addEventListener('scroll', checkScrollTopMoreThanZero)
+})
+
+onUnmounted(() => {
+  treeViewDom.value?.removeEventListener('scroll', checkScrollTopMoreThanZero)
+})
 </script>
 
 <template>
-  <div class="nc-treeview-container flex flex-col justify-between">
-    <div mode="inline" class="nc-treeview flex-grow pt-0.25 min-h-50 overflow-x-hidden">
+  <div class="nc-treeview-container flex flex-col justify-between select-none">
+    <div ref="treeViewDom" mode="inline" class="nc-treeview flex-grow min-h-50 overflow-x-hidden">
       <template v-if="projectsList?.length">
         <ProjectWrapper
           v-for="project of projectsList"
@@ -419,7 +444,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
       <WorkspaceEmptyPlaceholder v-else />
     </div>
 
-    <div class="flex flex-col border-t-1 border-gray-100">
+    <!-- <div class="flex flex-col border-t-1 border-gray-100">
       <div class="flex items-center mt-3 justify-center mx-2">
         <WorkspaceCreateProjectBtn
           modal
@@ -436,7 +461,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
       <div class="flex items-start flex-row justify-center px-2 pt-1 pb-1.5 gap-2">
         <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 

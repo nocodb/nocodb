@@ -611,6 +611,11 @@ export function useViewData(
           .map((c) => row.row[c.title!])
           .join('___')
 
+        const deleted = await deleteRowById(id as string)
+        if (!deleted) {
+          return
+        }
+
         if (!undo) {
           addUndo({
             redo: {
@@ -647,11 +652,6 @@ export function useViewData(
             },
             scope: defineViewScope({ view: viewMeta.value }),
           })
-        }
-
-        const deleted = await deleteRowById(id as string)
-        if (!deleted) {
-          return
         }
       }
 

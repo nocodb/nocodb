@@ -69,7 +69,25 @@ const onTitleKeyDown = (e: KeyboardEvent) => {
 }
 
 const onTitleInput = (e: Event) => {
+  if (!titleInputRef.value) return
+
   title.value = (e.target as HTMLInputElement).innerText
+
+  const position = window.getSelection()?.anchorOffset
+  // Set cursor position as in safari cursor is put start of the text when typing
+  if (position !== null && position !== undefined) {
+    nextTick(() => {
+      const range = document.createRange()
+
+      const sel = window.getSelection()
+      if (sel) {
+        range.setStart(titleInputRef.value!.childNodes[0] as Node, position)
+        range.collapse(true)
+        sel.removeAllRanges()
+        sel.addRange(range)
+      }
+    })
+  }
 }
 
 const setIcon = async (icon: string) => {

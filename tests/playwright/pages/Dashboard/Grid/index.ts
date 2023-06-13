@@ -167,12 +167,13 @@ export class GridPage extends BasePage {
     await this.dashboard.waitForLoaderToDisappear();
   }
 
-  async addRowRightClickMenu(index: number) {
+  async addRowRightClickMenu(index: number, columnHeader = 'Title') {
     const rowCount = await this.get().locator('.nc-grid-row').count();
-    await this.get().locator(`td[data-testid="cell-Title-${index}"]`).click();
-    await this.get().locator(`td[data-testid="cell-Title-${index}"]`).click({
-      button: 'right',
-    });
+
+    const cell = await this.get().locator(`td[data-testid="cell-${columnHeader}-${index}"]`).last();
+    await cell.click();
+    await cell.click({ button: 'right' });
+
     // Click text=Insert New Row
     await this.rootPage.locator('text=Insert New Row').click();
     await expect(await this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);

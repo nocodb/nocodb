@@ -60,4 +60,12 @@ function getBrowserTimezoneOffset() {
   return formattedOffset;
 }
 
-export { getTextExcludeIconText, isSubset, getIconText, getDefaultPwd, getBrowserTimezoneOffset };
+async function keyPress(selector, key) {
+  const isMac = (await selector.evaluate(() => navigator.platform)).includes('Mac') ? true : false;
+  if (false === isMac) {
+    key.replace('Meta', 'Control');
+  }
+  await selector.keyboard.press(key);
+}
+
+export { getTextExcludeIconText, isSubset, getIconText, getDefaultPwd, getBrowserTimezoneOffset, keyPress };

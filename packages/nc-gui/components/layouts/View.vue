@@ -45,8 +45,6 @@ const gridMargins = computed(() => {
   return [gap, gap]
 })
 
-// const contextMenuTarget = ref<Widget | null>(null)
-
 const contextMenuVisible = ref(false)
 
 const getWidgetTypeText = (type: WidgetTypeType): string => {
@@ -168,7 +166,7 @@ const showContextMenu = (top: number, left: number, widget: Widget) => {
         </GridLayout>
       </div>
       <!-- TODO: decide / change again to rem for width and overall: use consistent styling -->
-      <div class="w-[420px] p-4">
+      <div class="p-4 w-[280px] 2xl:w-[20vw]">
         <LayoutsWidgetsPropertiesPanel />
       </div>
     </div>

@@ -78,6 +78,11 @@ const widgetTypeText = computed(() => getWidgetTypeText(widget.value.widget_type
     @contextmenu="showContextMenu($event, widget)"
   >
     <LayoutsWidgetsWidget v-if="widget" :widget="widget" />
+    <!-- Context Menu -->
+    <!-- TODO 
+      - place the context menu in a separate component 
+      - place the menu at the mouse position instead of the widget position
+      - set the menu over other components, now index-z is not working properly -->
     <div v-if="contextMenuVisible" class="bg-white !rounded-lg border-1 border-gray-100 z-1000 flex flex-col shadow-md w-max">
       <h3 class="font-normal text-gray-500 mb-0 p-4 border-b-1 border-gray-100">{{ widgetTypeText }} Widget</h3>
       <div class="py-4 flex flex-col gap-2">

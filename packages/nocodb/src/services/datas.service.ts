@@ -106,7 +106,7 @@ export class DatasService {
     // todo: Should have error http status code
     const message = await baseModel.hasLTARData(param.rowId, model);
     if (message.length) {
-      return { message };
+      NcError.badRequest(message);
     }
     return await baseModel.delByPk(param.rowId, null, param.cookie);
   }

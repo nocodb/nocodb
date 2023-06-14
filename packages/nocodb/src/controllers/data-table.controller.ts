@@ -126,4 +126,25 @@ export class DataTableController {
       viewId,
     });
   }
+
+
+  @Get(['/api/v1/tables/:modelId/links/:columnId/row/:rowId'])
+  @Acl('nestedDataList')
+  async nestedDataList(
+    @Request() req,
+    @Param('modelId') modelId: string,
+    @Query('viewId') viewId: string,
+    @Param('columnId') columnId: string,
+    @Param('rowId') rowId: string,
+    @Body() refRowIds: string | string[] | number | number[],
+  ) {
+    return await this.dataTableService.nestedDataList({
+      modelId,
+      rowId: rowId,
+      query: req.query,
+      viewId,
+      refRowIds,
+      columnId,
+    });
+  }
 }

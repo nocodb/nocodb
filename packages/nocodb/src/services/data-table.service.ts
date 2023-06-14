@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { RelationTypes, UITypes } from 'nocodb-sdk'
 import { NcError } from '../helpers/catchError';
-import { Base, Model, View } from '../models';
+import { PagedResponseImpl } from '../helpers/PagedResponse'
+import { Base, Column, LinkToAnotherRecordColumn, Model, View } from '../models'
+import { getColumnByIdOrName } from '../modules/datas/helpers'
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { DatasService } from './datas.service';
 
@@ -230,5 +233,67 @@ export class DataTableService {
       }
       keys.add(pk);
     }
+  }
+
+  async nestedDataList(param: {
+    viewId: string;
+    modelId: string;
+    query: any;
+    rowId: string | string[] | number | number[];
+    columnId: string;
+  }) {
+    const { model, view } = await this.getModelAndView(param);
+    const base = await Base.get(model.base_id);
+
+    const baseModel = await Model.getBaseModelSQL({
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(base),
+    });
+
+    const column = await Column.get({colId: param.columnId})
+
+    if(!column) NcError.badRequest('Column not found'
+
+    if(column.fk_model_id !== model.id)
+      NcError.badRequest('Column not belong to model')
+
+    if (column.uidt !== UITypes.LinkToAnotherRecord)
+      NcError.badRequest('Column is not LTAR');
+
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+    )
+
+    let data:any[] ;
+    let count:number;
+    if(colOptions.type === RelationTypes.MANY_TO_MANY) {
+      data = await baseModel.mmList(
+        {
+          colId: column.id,
+          parentId: param.rowId,
+        },
+        param.query as any,
+      );
+       count = await baseModel.mmListCount({
+        colId: column.id,
+        parentId: param.rowId,
+      });
+    }else {
+      data = await baseModel.hmList(
+        {
+          colId: column.id,
+          id: param.rowId,
+        },
+        param.query as any,
+      );
+      count = await baseModel.hmListCount({
+        colId: column.id,
+        id: param.rowId,
+      });
+    }
+    return new PagedResponseImpl(data, {
+      count,
+      ...param.query,
+    });
   }
 }

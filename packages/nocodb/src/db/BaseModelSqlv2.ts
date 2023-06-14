@@ -3491,7 +3491,7 @@ class BaseModelSqlv2 {
     rowId,
   }: {
     cookie: any;
-    childIds: (string|number)[];
+    childIds: (string | number)[];
     colId: string;
     rowId: string;
   }) {
@@ -3599,7 +3599,7 @@ class BaseModelSqlv2 {
     rowId,
   }: {
     cookie: any;
-    childIds: (string|number)[];
+    childIds: (string | number)[];
     colId: string;
     rowId: string;
   }) {
@@ -3636,7 +3636,7 @@ class BaseModelSqlv2 {
             .where({
               [vParentCol.column_name]: this.dbDriver(parentTn)
                 .select(parentColumn.column_name)
-                .whereIn(parentTable.primaryKey.column_name,childIds)
+                .whereIn(parentTable.primaryKey.column_name, childIds)
                 .first(),
               [vChildCol.column_name]: this.dbDriver(childTn)
                 .select(childColumn.column_name)

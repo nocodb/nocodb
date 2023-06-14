@@ -317,7 +317,7 @@ export class DataTableService {
 
     await baseModel.addLinks({
       colId: column.id,
-      childIds: param.refRowIds,
+      childIds: Array.isArray(param.refRowIds) ? param.refRowIds : [param.refRowIds],
       rowId: param.rowId,
       cookie: param.cookie,
     });
@@ -340,7 +340,7 @@ export class DataTableService {
 
     await baseModel.removeLinks({
       colId: column.id,
-      childIds: param.refRowIds,
+      childIds: Array.isArray(param.refRowIds) ? param.refRowIds : [param.refRowIds],
       rowId: param.rowId,
       cookie: param.cookie,
     });

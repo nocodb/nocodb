@@ -2319,6 +2319,8 @@ export interface UserType {
    * @example org-level-viewer
    */
   roles?: string;
+  /** Access token version */
+  token_version?: string;
 }
 
 /**

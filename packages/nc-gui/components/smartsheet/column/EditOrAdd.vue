@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnReqType } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   IsFormInj,
@@ -25,6 +25,7 @@ import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
 
 const props = defineProps<{
+  preload?: Partial<ColumnType>
   columnPosition?: Pick<ColumnReqType, 'column_order'>
 }>()
 
@@ -125,6 +126,18 @@ watchEffect(() => {
 onMounted(() => {
   if (!isEdit.value) {
     generateNewColumnMeta()
+    const { colOptions, ...others } = props.preload || {}
+    formState.value = {
+      ...formState.value,
+      ...others,
+    }
+    if (colOptions) {
+      onUidtOrIdTypeChange()
+      formState.value = {
+        ...formState.value,
+        ...colOptions,
+      }
+    }
   } else {
     if (formState.value.pk) {
       message.info(t('msg.info.editingPKnotSupported'))
@@ -188,7 +201,6 @@ useEventListener('keydown', (e: KeyboardEvent) => {
         <LazySmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
         <LazySmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />
         <LazySmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
-        <LazySmartsheetColumnGeoDataOptions v-if="formState.uidt === UITypes.GeoData" v-model:value="formState" />
         <LazySmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
         <LazySmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
         <LazySmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />

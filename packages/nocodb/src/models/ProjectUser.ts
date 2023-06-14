@@ -174,11 +174,6 @@ export default class ProjectUser {
   }
 
   static async delete(projectId: string, userId: string, ncMeta = Noco.ncMeta) {
-    // await NocoCache.deepDel(
-    //   CacheScope.PROJECT_USER,
-    //   `${CacheScope.PROJECT_USER}:${projectId}:${userId}`,
-    //   CacheDelDirection.CHILD_TO_PARENT
-    // );
     const { email } = await ncMeta.metaGet2(null, null, MetaTable.USERS, {
       id: userId,
     });
@@ -194,11 +189,16 @@ export default class ProjectUser {
     const { isNoneList } = cachedList;
     if (!isNoneList && cachedProjectList?.length) {
       cachedProjectList = cachedProjectList.filter((p) => p.id !== projectId);
-      await NocoCache.setList(
-        CacheScope.USER_PROJECT,
-        [userId],
-        cachedProjectList,
-      );
+      // delete the whole list first so that the old one won't be included
+      await NocoCache.del(`${CacheScope.USER_PROJECT}:${userId}:list`);
+      if (cachedProjectList.length > 0) {
+        // set the updated list (i.e. excluding the to-be-deleted project id)
+        await NocoCache.setList(
+          CacheScope.USER_PROJECT,
+          [userId],
+          cachedProjectList,
+        );
+      }
     }
 
     await NocoCache.del(`${CacheScope.PROJECT_USER}:${projectId}:${userId}`);
@@ -236,6 +236,16 @@ export default class ProjectUser {
     projectList = await ncMeta
       .knex(MetaTable.PROJECT)
       .select(`${MetaTable.PROJECT}.*`)
+      .select(`${MetaTable.PROJECT}.title`)
+      .select(`${MetaTable.PROJECT}.prefix`)
+      .select(`${MetaTable.PROJECT}.status`)
+      .select(`${MetaTable.PROJECT}.description`)
+      .select(`${MetaTable.PROJECT}.meta`)
+      .select(`${MetaTable.PROJECT}.color`)
+      .select(`${MetaTable.PROJECT}.is_meta`)
+      .select(`${MetaTable.PROJECT}.created_at`)
+      .select(`${MetaTable.PROJECT}.updated_at`)
+      .select(`${MetaTable.PROJECT_USERS}.roles`)
       .innerJoin(MetaTable.PROJECT_USERS, function () {
         this.on(
           `${MetaTable.PROJECT_USERS}.project_id`,

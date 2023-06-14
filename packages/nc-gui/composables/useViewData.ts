@@ -316,7 +316,6 @@ export function useViewData(
       await syncCount()
       return insertedData
     } catch (error: any) {
-      console.log(error)
       message.error(await extractSdkResponseErrorMsg(error))
     } finally {
       if (currentRow.rowMeta) currentRow.rowMeta.saving = false

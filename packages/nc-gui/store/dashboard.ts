@@ -684,6 +684,46 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     } as WidgetLayoutEntry)
   }
 
+  const duplicateWidget = async (widgetId: string) => {
+    if (openedWidgets.value == null) {
+      console.error('openedWidgets.value is undefined')
+      return
+    }
+    const widgetToDuplicate = openedWidgets.value.find((widget: { id: string }) => widget.id === widgetId)
+
+    if (widgetToDuplicate == null) {
+      console.error('Could not find widget to duplicate')
+      return
+    }
+
+    const duplicatedWidget = { ...widgetToDuplicate } // Shallow copy the widget object
+    duplicatedWidget.id = Date.now().toString() // Generate a new ID for the duplicated widget
+
+    const widgetReqType: WidgetReqType = {
+      appearance_config: duplicatedWidget.appearance_config,
+      layout_id: openedLayoutId.value!,
+      data_config: duplicatedWidget.data_config,
+      data_source: duplicatedWidget.data_source,
+      schema_version: duplicatedWidget.schema_version,
+      widget_type: duplicatedWidget.widget_type,
+    }
+
+    const widgetFromAPI = await $api.dashboard.widgetCreate(openedLayoutId.value!, widgetReqType)
+    const parsedWidgetFromAPI = _parseWidgetFromAPI(widgetFromAPI)
+    openedWidgets.value.push(parsedWidgetFromAPI)
+    focusedWidgetId.value = parsedWidgetFromAPI.id
+
+    gridLayout.value.push({
+      x: parsedWidgetFromAPI.appearance_config.screenPosition.x,
+      y: parsedWidgetFromAPI.appearance_config.screenPosition.y,
+      w: parsedWidgetFromAPI.appearance_config.screenDimensions.width,
+      h: parsedWidgetFromAPI.appearance_config.screenDimensions.height,
+      i: parsedWidgetFromAPI.id,
+      static: false,
+      widgetId: parsedWidgetFromAPI.id,
+    } as WidgetLayoutEntry)
+  }
+
   const removeWidgetById = async (id: string) => {
     if (openedWidgets.value == null) {
       console.error('openedWidgets.value is undefined')
@@ -1142,6 +1182,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     updatePositionOfWidgetById,
     updateScreenDimensionsOfWidgetById,
     removeWidgetById,
+    duplicateWidget,
     resetFocus,
     changeSelectedProjectIdAndTableIdOfFocusedWidget,
     changeSelectedNumberColumnIdOfFocusedWidget,

@@ -69,7 +69,7 @@ export async function createHmAndBtColumn(
     const col = await Column.insert({
       title,
       fk_model_id: parent.id,
-      uidt: UITypes.LinkToAnotherRecord,
+      uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
       type: 'hm',
       fk_child_column_id: childColumn.id,
       fk_parent_column_id: parent.primaryKey.id,
@@ -80,12 +80,12 @@ export async function createHmAndBtColumn(
       fk_index_name: fkColName,
     });
 
-    if (!isSystemCol && isLinks)
-      await populateRollupForLTAR({
-        column: col,
-        columnMeta,
-        alias
-      });
+    // if (!isSystemCol && isLinks)
+    //   await populateRollupForLTAR({
+    //     column: col,
+    //     columnMeta,
+    //     alias
+    //   });
   }
 }
 

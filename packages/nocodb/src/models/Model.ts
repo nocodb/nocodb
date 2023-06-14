@@ -840,7 +840,7 @@ export default class Model implements TableType {
     }: { table_name; project_id; base_id; exclude_id? },
     ncMeta = Noco.ncMeta,
   ) {
-    return !(await ncMeta.metaGet2(
+    const meta = await ncMeta.metaGet2(
       project_id,
       base_id,
       MetaTable.MODELS,
@@ -849,7 +849,9 @@ export default class Model implements TableType {
       },
       null,
       exclude_id && { id: { neq: exclude_id } },
-    ));
+    );
+    // check if the table name should be renamed (only if not camelcase changes are made)
+    return !(meta?.table_name.toLowerCase() === table_name.toLowerCase());
   }
 
   static async checkAliasAvailable(
@@ -862,6 +864,7 @@ export default class Model implements TableType {
     }: { title; table_name; project_id; base_id; exclude_id? },
     ncMeta = Noco.ncMeta,
   ) {
+    // Retrieve the metadata for the specified project, base, and alias details
     const meta = await ncMeta.metaGet2(
       project_id,
       base_id,
@@ -870,18 +873,25 @@ export default class Model implements TableType {
         title,
       },
       null,
-      exclude_id && { id: { neq: exclude_id } }
+      exclude_id && { id: { neq: exclude_id } },
     );
+    // If no metadata is found, the alias is considered available
     if (!meta) return;
+    // Checks if the alias is already used
+    // Conditions:
+    // - meta.title should exist (not null or undefined), or title could be undefined (to check if table_name is equal to an existing table_name)
+    // - When the table_name is equal to an existing table's table_name, it means that the alias already exists and is not available for the table
     if (
       !(
         (meta?.title || undefined == title) &&
-        meta &&
-        meta.table_name.toLowerCase() == table_name.toLowerCase()
+        meta?.table_name.replace('___', '__').toLowerCase() ==
+          table_name.toLowerCase()
       )
     ) {
+      // Throw a "Bad Request" error indicating a duplicate table alias
       NcError.badRequest('Duplicate table alias');
     }
+    // Alias is available
     return;
   }
 

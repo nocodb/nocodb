@@ -717,9 +717,9 @@ const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?
     index++
     /** if new record save row and save the LTAR cells */
     if (currentRow.rowMeta.new) {
-      const syncLTARRefs = rowRefs[index]!.syncLTARRefs
+      const syncLTARRefs = rowRefs?.[index]?.syncLTARRefs
       const savedRow = await updateOrSaveRow(currentRow, '', {}, args)
-      await syncLTARRefs(savedRow, args)
+      await syncLTARRefs?.(savedRow, args)
       currentRow.rowMeta.changed = false
       continue
     }
@@ -740,6 +740,9 @@ const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?
 }
 
 async function reloadViewDataHandler(shouldShowLoading: boolean | void) {
+  // save any unsaved data before reload
+  await saveOrUpdateRecords();
+
   // set value if spinner should be hidden
   showLoading.value = !!shouldShowLoading
   await loadData()
@@ -755,9 +758,21 @@ async function openNewRecordHandler() {
 reloadViewDataHook?.on(reloadViewDataHandler)
 openNewRecordFormHook?.on(openNewRecordHandler)
 
-onBeforeUnmount(() => {
+onBeforeUnmount(async () => {
   /** save/update records before unmounting the component */
-  saveOrUpdateRecords()
+  const viewMetaValue = view.value
+  const dataValue = data.value
+  if (viewMetaValue) {
+    getMeta(viewMetaValue.fk_model_id).then((res) => {
+      const metaValue = res
+      if (!metaValue) return
+      saveOrUpdateRecords({
+        metaValue,
+        viewMetaValue,
+        data: dataValue,
+      })
+    })
+  }
 
   // reset hooks
   reloadViewDataHook?.off(reloadViewDataHandler)

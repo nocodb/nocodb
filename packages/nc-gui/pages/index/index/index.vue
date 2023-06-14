@@ -247,7 +247,7 @@ const copyProjectMeta = async () => {
       <a-table-column key="title" :title="$t('general.title')" data-index="title">
         <template #default="{ text, record }">
           <div class="flex items-center">
-            <div @click.stop class="w-2">
+            <div class="w-2" @click.stop>
               <a-menu class="!border-0 !m-0 !p-0" trigger-sub-menu-action="click">
                 <template v-if="isUIAllowed('projectTheme') || isUIAllowed('projectTheme', true, record.roles)">
                   <a-sub-menu key="theme" popup-class-name="custom-color">
@@ -310,14 +310,15 @@ const copyProjectMeta = async () => {
               :is="iconMap.edit"
               v-if="isUIAllowed('projectUpdate', true) || isUIAllowed('projectUpdate', true, record.roles)"
               v-e="['c:project:edit:rename']"
-              class="nc-action-btn"
+              class="nc-action-btn nc-edit-project"
+              :data-testid="`edit-project-${record.title}`"
               @click.stop="navigateTo(`/${text}`)"
             />
 
             <component
               :is="iconMap.delete"
               v-if="isUIAllowed('projectDelete', true) || isUIAllowed('projectDelete', true, record.roles)"
-              class="nc-action-btn"
+              class="nc-action-btn nc-delete-project"
               :data-testid="`delete-project-${record.title}`"
               @click.stop="deleteProject(record)"
             />

@@ -2,6 +2,7 @@
 import { nextTick } from '@vue/runtime-core'
 import type { ColumnReqType, ColumnType, GridType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import type { UseElementBoundingReturn } from '@vueuse/core'
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
@@ -109,6 +110,7 @@ const expandedFormRowState = ref<Record<string, any>>()
 const gridWrapper = ref<HTMLElement>()
 const tableHeadEl = ref<HTMLElement>()
 const tableBodyEl = ref<HTMLElement>()
+const fillHandle = ref<HTMLElement>()
 
 const isAddingColumnAllowed = $computed(() => !readOnly.value && !isLocked.value && isUIAllowed('add-column') && !isSqlView.value)
 
@@ -207,6 +209,7 @@ const {
   resetSelectedRange,
   makeActive,
   selectedRange,
+  isCellInFillRange,
 } = useMultiSelect(
   meta,
   fields,
@@ -348,6 +351,7 @@ const {
     await updateOrSaveRow(rowObj, ctx.updatedColumnTitle || columnObj.title)
   },
   bulkUpdateRows,
+  fillHandle,
 )
 
 function scrollToCell(row?: number | null, col?: number | null) {
@@ -650,9 +654,9 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
   }
 })
 
-/** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
 
+/** On clicking outside of table reset active cell  */
 onClickOutside(tableBodyEl, (e) => {
   // do nothing if context menu was open
   if (contextMenu.value) return
@@ -666,7 +670,7 @@ onClickOutside(tableBodyEl, (e) => {
   // ignore unselecting if clicked inside or on the picker(Date, Time, DateTime, Year)
   // or single/multi select options
   const activePickerOrDropdownEl = document.querySelector(
-    '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
+    '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active,.nc-fill-handle',
   )
   if (
     e.target &&
@@ -881,10 +885,51 @@ function addEmptyRow(row?: number) {
   nextTick().then(() => {
     clearSelectedRange()
     makeActive(row ?? data.value.length - 1, 0)
+    selectedRange.startRange({ row: activeCell.row!, col: activeCell.col! })
     scrollToCell?.()
   })
   return rowObj
 }
+
+const tableRect = useElementBounding(smartTable)
+const { height: tableHeight, width: tableWidth } = tableRect
+
+const { x: gridX, y: gridY } = useScroll(gridWrapper)
+
+const fillHandleTop = ref()
+const fillHandleLeft = ref()
+
+const cellRefs = ref<{ el: HTMLElement }[]>([])
+let cellRect: UseElementBoundingReturn | null = null
+
+const refreshFillHandle = () => {
+  const cellRef = cellRefs.value.find(
+    (cell) =>
+      cell.el.dataset.rowIndex === String(selectedRange.end.row) && cell.el.dataset.colIndex === String(selectedRange.end.col),
+  )
+  if (cellRef) {
+    cellRect = useElementBounding(cellRef.el)
+    if (!cellRect || !tableRect) return
+    if (selectedRange.end.col === 0) {
+      fillHandleTop.value = cellRect.top.value - tableRect.top.value + cellRect.height.value - 4.5 + gridY.value
+      fillHandleLeft.value = cellRect.left.value - tableRect.left.value + cellRect.width.value - 4.5
+      return
+    }
+    fillHandleTop.value = cellRect.top.value - tableRect.top.value + cellRect.height.value - 4.5 + gridY.value
+    fillHandleLeft.value = cellRect.left.value - tableRect.left.value + cellRect.width.value - 4.5 + gridX.value
+  }
+}
+
+watch(
+  () => `${selectedRange.end.row}-${selectedRange.end.col}`,
+  (n, o) => {
+    if (n !== o) {
+      if (gridWrapper.value) {
+        refreshFillHandle()
+      }
+    }
+  },
+)
 </script>
 
 <template>
@@ -895,7 +940,17 @@ function addEmptyRow(row?: number) {
       </div>
     </general-overlay>
 
-    <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
+    <div
+      ref="gridWrapper"
+      class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull"
+      :class="{
+        relative:
+          !readOnly &&
+          !isLocked &&
+          (!selectedRange.isEmpty() || (activeCell.row !== null && activeCell.col !== null)) &&
+          ((!selectedRange.isEmpty() && selectedRange.end.col !== 0) || (selectedRange.isEmpty() && activeCell.col !== 0)),
+      }"
+    >
       <a-dropdown
         v-model:visible="contextMenu"
         :trigger="isSqlView ? [] : ['contextmenu']"
@@ -1041,6 +1096,7 @@ function addEmptyRow(row?: number) {
                   <SmartsheetTableDataCell
                     v-for="(columnObj, colIndex) of fields"
                     :key="columnObj.id"
+                    ref="cellRefs"
                     class="cell relative nc-grid-cell"
                     :class="{
                       'cursor-pointer': hasEditPermission,
@@ -1048,11 +1104,14 @@ function addEmptyRow(row?: number) {
                       'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
                       'align-middle': !rowHeight || rowHeight === 1,
                       'align-top': rowHeight && rowHeight !== 1,
+                      'filling': isCellInFillRange(rowIndex, colIndex),
                     }"
                     :data-testid="`cell-${columnObj.title}-${rowIndex}`"
                     :data-key="rowIndex + columnObj.id"
                     :data-col="columnObj.id"
                     :data-title="columnObj.title"
+                    :data-row-index="rowIndex"
+                    :data-col-index="colIndex"
                     @mousedown="handleMouseDown($event, rowIndex, colIndex)"
                     @mouseover="handleMouseOver($event, rowIndex, colIndex)"
                     @click="handleCellClick($event, rowIndex, colIndex)"
@@ -1184,6 +1243,28 @@ function addEmptyRow(row?: number) {
           </a-menu>
         </template>
       </a-dropdown>
+      <div
+        class="table-overlay absolute top-0 left-0 pointer-events-none overflow-hidden"
+        :style="{ height: `${tableHeight}px`, width: `${tableWidth}px` }"
+      >
+        <!-- Fill Handle -->
+        <div
+          v-show="
+            !readOnly &&
+            !isLocked &&
+            !editEnabled &&
+            (!selectedRange.isEmpty() || (activeCell.row !== null && activeCell.col !== null))
+          "
+          ref="fillHandle"
+          class="nc-fill-handle absolute w-[8px] h-[8px] rounded-full bg-red-500 !pointer-events-auto"
+          :class="
+            (!selectedRange.isEmpty() && selectedRange.end.col !== 0) || (selectedRange.isEmpty() && activeCell.col !== 0)
+              ? 'z-3'
+              : 'z-4'
+          "
+          :style="{ top: `${fillHandleTop}px`, left: `${fillHandleLeft}px`, cursor: 'crosshair' }"
+        />
+      </div>
     </div>
 
     <div
@@ -1291,6 +1372,22 @@ function addEmptyRow(row?: number) {
   // todo: replace with css variable
   td.active::after {
     @apply border-1 border-solid text-primary border-current bg-primary bg-opacity-5;
+  }
+
+  td.filling::after {
+    content: '';
+    position: absolute;
+    z-index: 3;
+    height: calc(100% + 2px);
+    width: calc(100% + 2px);
+    left: -1px;
+    top: -1px;
+    pointer-events: none;
+  }
+
+  // todo: replace with css variable
+  td.filling::after {
+    @apply border-1 border-solid text-accent border-current;
   }
 
   //td.active::before {

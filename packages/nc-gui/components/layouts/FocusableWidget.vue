@@ -23,7 +23,7 @@ const onContextMenuOpen = (e: MouseEvent) => {
 <template>
   <div
     ref="nodeRef"
-    class="p-6 h-full context-menu-trigger"
+    class="h-full context-menu-trigger"
     @click.stop="updateFocusedWidgetByElementId(widgetId)"
     @contextmenu="onContextMenuOpen"
   >

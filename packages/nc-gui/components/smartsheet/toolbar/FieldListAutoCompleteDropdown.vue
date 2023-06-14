@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { SelectProps } from 'ant-design-vue'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { ActiveViewInj, MetaInj, computed, inject, ref, resolveComponent, useViewColumns } from '#imports'
 
 const { modelValue, isSort } = defineProps<{
@@ -36,9 +36,7 @@ const options = computed<SelectProps['options']>(() =>
         return false
       } else if (isSort) {
         /** ignore hasmany and manytomany relations if it's using within sort menu */
-        return !(
-          c.uidt === UITypes.LinkToAnotherRecord && (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO
-        )
+        return !(isLinksOrLTAR(c) && (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO)
         /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
       } else {
         const isVirtualSystemField = c.colOptions && c.system

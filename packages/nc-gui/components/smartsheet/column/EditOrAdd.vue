@@ -209,13 +209,10 @@ useEventListener('keydown', (e: KeyboardEvent) => {
         <LazySmartsheetColumnDateTimeOptions v-if="formState.uidt === UITypes.DateTime" v-model:value="formState" />
         <LazySmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />
         <LazySmartsheetColumnLinkedToAnotherRecordOptions
-          v-if="!isEdit && (formState.uidt === UITypes.LinkToAnotherRecord||formState.uidt === UITypes.Links)"
+          v-if="!isEdit && (formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links)"
           v-model:value="formState"
         />
-        <LazySmartsheetColumnLinkOptions
-          v-if="isEdit && formState.uidt === UITypes.Links"
-          v-model:value="formState"
-        />
+        <LazySmartsheetColumnLinkOptions v-if="isEdit && formState.uidt === UITypes.Links" v-model:value="formState" />
         <LazySmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
         <LazySmartsheetColumnSelectOptions
           v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"

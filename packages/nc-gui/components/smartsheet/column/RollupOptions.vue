@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
-import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, TableType, UITypes } from 'nocodb-sdk'
+import { isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { getRelationName } from './utils'
 import { MetaInj, inject, ref, storeToRefs, useColumnCreateStoreOrThrow, useMetas, useProject, useVModel } from '#imports'
 
@@ -50,10 +50,7 @@ const refTables = $computed(() => {
   const _refTables = meta.columns
     .filter(
       (c) =>
-        c.uidt === UITypes.LinkToAnotherRecord &&
-        (c.colOptions as LinkToAnotherRecordType).type !== 'bt' &&
-        !c.system &&
-        c.base_id === meta?.base_id,
+        isLinksOrLTAR(c) && (c.colOptions as LinkToAnotherRecordType).type !== 'bt' && !c.system && c.base_id === meta?.base_id,
     )
     .map((c) => ({
       col: c.colOptions,

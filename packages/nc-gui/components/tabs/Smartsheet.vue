@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -91,7 +91,7 @@ const onDrop = async (event: DragEvent) => {
 
     // if already a link column exists, create a new Lookup column
     const relationCol = parentMeta.columns?.find((c: ColumnType) => {
-      if (c.uidt !== UITypes.LinkToAnotherRecord) return false
+      if (isLinksOrLTAR(c)) return false
 
       const ltarOptions = c.colOptions as LinkToAnotherRecordType
 

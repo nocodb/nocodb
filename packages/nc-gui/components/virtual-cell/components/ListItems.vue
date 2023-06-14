@@ -234,9 +234,9 @@ watch(vModel, (nextVal) => {
               :column="props.column"
               :show-unlink-button="false"
             />
-<!--            <span class="hidden group-hover:(inline) text-gray-400 text-[11px] ml-1">-->
-<!--              ({{ $t('labels.primaryKey') }} : {{ getRelatedTableRowId(refRow) }})-->
-<!--            </span>-->
+            <!--            <span class="hidden group-hover:(inline) text-gray-400 text-[11px] ml-1"> -->
+            <!--              ({{ $t('labels.primaryKey') }} : {{ getRelatedTableRowId(refRow) }}) -->
+            <!--            </span> -->
           </a-card>
         </div>
 
@@ -282,7 +282,7 @@ watch(vModel, (nextVal) => {
   @apply !ring;
 }
 
-:deep(.nc-nested-list-item .ant-card-body){
-  @apply !p-2
+:deep(.nc-nested-list-item .ant-card-body) {
+  @apply !p-2;
 }
 </style>

@@ -85,4 +85,12 @@ export function isVirtualCol(
   ].includes(<UITypes>(typeof col === 'object' ? col?.uidt : col));
 }
 
+export function isLinksOrLTAR(
+  colOrUidt: ColumnType | { uidt: UITypes | string } | UITypes | string
+) {
+  return [UITypes.LinkToAnotherRecord, UITypes.Links].includes(
+    <UITypes>(typeof colOrUidt === 'object' ? colOrUidt?.uidt : colOrUidt)
+  );
+}
+
 export default UITypes;

@@ -1,4 +1,4 @@
-import { RelationTypes, UITypes } from 'nocodb-sdk'
+import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { MaybeRef } from '@vueuse/core'
@@ -96,7 +96,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     const syncLTARRefs = async (row: Record<string, any>, { metaValue = meta.value }: { metaValue?: TableType } = {}) => {
       const id = extractPkFromRow(row, metaValue?.columns as ColumnType[])
       for (const column of metaValue?.columns ?? []) {
-        if (column.uidt !== UITypes.LinkToAnotherRecord) continue
+        if (isLinksOrLTAR(column)) continue
 
         const colOptions = column.colOptions as LinkToAnotherRecordType
 
@@ -132,7 +132,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     // clear LTAR cell
     const clearLTARCell = async (column: ColumnType) => {
       try {
-        if (!column || column.uidt !== UITypes.LinkToAnotherRecord) return
+        if (!column || isLinksOrLTAR(column)) return
 
         const relatedTableMeta = metas.value?.[(<LinkToAnotherRecordType>column?.colOptions)?.fk_related_model_id as string]
 

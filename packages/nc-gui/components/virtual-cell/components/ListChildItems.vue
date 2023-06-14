@@ -149,7 +149,7 @@ const onClick = (row: Row) => {
             <div class="flex items-center">
               <div class="flex-1 overflow-hidden min-w-0">
                 <VirtualCellComponentsItemChip :value="row[relatedTableDisplayValueProp]" :column="props.column" />
-<!--                <span class="text-gray-400 text-[11px] ml-1">(Primary key : {{ getRelatedTableRowId(row) }})</span>-->
+                <!--                <span class="text-gray-400 text-[11px] ml-1">(Primary key : {{ getRelatedTableRowId(row) }})</span> -->
               </div>
 
               <div v-if="!readonly" class="flex gap-2">
@@ -209,8 +209,7 @@ const onClick = (row: Row) => {
   line-height: 21px !important;
 }
 
-
-:deep(.nc-nested-list-item .ant-card-body){
-  @apply !p-2
+:deep(.nc-nested-list-item .ant-card-body) {
+  @apply !p-2;
 }
 </style>

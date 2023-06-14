@@ -1,6 +1,6 @@
 import rfdc from 'rfdc'
 import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import {
@@ -252,7 +252,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           await $api.dbTableColumn.create(meta.value?.id as string, { ...formState.value, ...columnPosition })
 
           /** if LTAR column then force reload related table meta */
-          if (formState.value.uidt === UITypes.LinkToAnotherRecord && meta.value?.id !== formState.value.childId) {
+          if (isLinksOrLTAR(formState.value) && meta.value?.id !== formState.value.childId) {
             getMeta(formState.value.childId, true).then(() => {})
           }
 

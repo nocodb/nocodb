@@ -14,11 +14,11 @@ import {
   isCount,
   isFormula,
   isHm,
+  isLink,
   isLookup,
   isMm,
   isQrCode,
   isRollup,
-  isLink,
   provide,
   toRef,
 } from '#imports'

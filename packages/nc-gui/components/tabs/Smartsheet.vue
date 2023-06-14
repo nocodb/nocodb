@@ -91,7 +91,7 @@ const onDrop = async (event: DragEvent) => {
 
     // if already a link column exists, create a new Lookup column
     const relationCol = parentMeta.columns?.find((c: ColumnType) => {
-      if (isLinksOrLTAR(c)) return false
+      if (!isLinksOrLTAR(c)) return false
 
       const ltarOptions = c.colOptions as LinkToAnotherRecordType
 

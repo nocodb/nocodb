@@ -9,8 +9,6 @@ const props = defineProps<{
 
 const contextMenuTarget = ref<Widget | null>(null)
 
-const contextMenuVisible = ref(false)
-
 const widget = toRefs(props).widget
 
 const isChart = computed(() => chartTypes.includes(widget.value.widget_type))
@@ -28,17 +26,6 @@ const showContextMenu = (e: MouseEvent, target?: Widget) => {
   if (target) {
     contextMenuTarget.value = target
   }
-  contextMenuVisible.value = true
-}
-
-const duplicateWidget = () => {
-  // Implement the logic to duplicate the widget here
-  contextMenuVisible.value = false
-}
-
-const deleteWidget = () => {
-  // Implement the logic to delete the widget here
-  contextMenuVisible.value = false
 }
 
 const borderClass = computed(() => {
@@ -58,10 +45,6 @@ const borderClass = computed(() => {
     <LayoutsWidgetsNumber v-else-if="isNumber" :widget-config="widget as NumberWidget" />
     <LayoutsWidgetsText v-else-if="isStaticText" :widget-config="widget as StaticTextWidget" />
     <LayoutsWidgetsButton v-else-if="isButton" :widget-config="widget as ButtonWidget" />
-    <div v-if="contextMenuVisible" class="bg-white rounded-md border-1 z-100">
-      <button @click="duplicateWidget">Duplicate</button>
-      <button @click="deleteWidget">Delete</button>
-    </div>
 
     <div v-else>Visualisation Type '{{ widget.widget_type }}' not yet implemented</div>
   </div>

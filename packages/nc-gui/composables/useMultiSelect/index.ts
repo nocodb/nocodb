@@ -419,12 +419,10 @@ export function useMultiSelect(
         if (e.shiftKey) {
           if (cmdOrCtrl) {
             editEnabled.value = false
-            console.log(selectedRange._end?.col)
             selectedRange.endRange({
               row: 0,
               col: selectedRange._end?.col ?? activeCell.col,
             })
-            console.log(selectedRange._end?.col)
             scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
           } else if ((selectedRange._end?.row ?? activeCell.row) > 0) {
             editEnabled.value = false

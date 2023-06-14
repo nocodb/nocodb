@@ -3020,7 +3020,7 @@ class BaseModelSqlv2 {
     const columns = await this.model.getColumns();
     const column = columns.find((c) => c.id === colId);
 
-    if (!column || column.uidt !== UITypes.LinkToAnotherRecord)
+    if (!column || ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt))
       NcError.notFound('Column not found');
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
@@ -3139,7 +3139,7 @@ class BaseModelSqlv2 {
     const columns = await this.model.getColumns();
     const column = columns.find((c) => c.id === colId);
 
-    if (!column || column.uidt !== UITypes.LinkToAnotherRecord)
+    if (!column || ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt))
       NcError.notFound('Column not found');
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();

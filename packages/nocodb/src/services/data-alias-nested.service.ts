@@ -206,7 +206,7 @@ export class DataAliasNestedService {
 
     const column = await getColumnByIdOrName(param.columnName, model);
 
-    if (column.uidt !== UITypes.LinkToAnotherRecord)
+    if (![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt))
       NcError.badRequest('Column is not LTAR');
 
     const data = await baseModel.hmList(

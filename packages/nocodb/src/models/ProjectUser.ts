@@ -236,6 +236,16 @@ export default class ProjectUser {
     projectList = await ncMeta
       .knex(MetaTable.PROJECT)
       .select(`${MetaTable.PROJECT}.*`)
+      .select(`${MetaTable.PROJECT}.title`)
+      .select(`${MetaTable.PROJECT}.prefix`)
+      .select(`${MetaTable.PROJECT}.status`)
+      .select(`${MetaTable.PROJECT}.description`)
+      .select(`${MetaTable.PROJECT}.meta`)
+      .select(`${MetaTable.PROJECT}.color`)
+      .select(`${MetaTable.PROJECT}.is_meta`)
+      .select(`${MetaTable.PROJECT}.created_at`)
+      .select(`${MetaTable.PROJECT}.updated_at`)
+      .select(`${MetaTable.PROJECT_USERS}.roles`)
       .innerJoin(MetaTable.PROJECT_USERS, function () {
         this.on(
           `${MetaTable.PROJECT_USERS}.project_id`,

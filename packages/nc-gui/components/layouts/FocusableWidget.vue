@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 const props = defineProps<{ widgetId: string }>()
-// const emits = defineEmits<{ showContextMenuForWidget: (widgetId: string) => void }>()
 const emits = defineEmits(['showContextMenuForWidget'])
 
 const widgetId = toRefs(props).widgetId
@@ -9,7 +8,7 @@ const nodeRef = ref<HTMLElement | null>(null)
 
 const dashboardStore = useDashboardStore()
 const { openedWidgets } = storeToRefs(dashboardStore)
-const { removeWidgetById, updateFocusedWidgetByElementId, duplicateWidget } = dashboardStore
+const { updateFocusedWidgetByElementId } = dashboardStore
 
 const widget = computed(() => {
   return openedWidgets.value?.find((w) => w.id === widgetId.value)

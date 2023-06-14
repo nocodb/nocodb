@@ -636,7 +636,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     }
 
     const newElement: Widget = {
-      id: Date.now().toString(),
       layout_id: openedLayoutId.value!,
       schema_version: '1.0.0',
       appearance_config: {
@@ -696,8 +695,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       return
     }
 
-    const duplicatedWidget = { ...widgetToDuplicate } // Shallow copy the widget object
-    duplicatedWidget.id = Date.now().toString() // Generate a new ID for the duplicated widget
+    const duplicatedWidget = { ...widgetToDuplicate }
 
     const widgetReqType: WidgetReqType = {
       appearance_config: duplicatedWidget.appearance_config,

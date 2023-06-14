@@ -631,8 +631,8 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     }
 
     const defaultScreenDimensions = {
-      width: 2,
-      height: 2,
+      width: 4,
+      height: 4,
     }
 
     const newElement: Widget = {

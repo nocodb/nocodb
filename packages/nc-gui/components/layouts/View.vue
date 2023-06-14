@@ -145,8 +145,8 @@ const showContextMenu = (top: number, left: number, widget: Widget) => {
           :use-css-transforms="true"
           :vertical-compact="false"
           :prevent-collision="false"
-          :row-height="30"
-          :col-num="4"
+          :row-height="10"
+          :col-num="8"
           :responsive="false"
           style="height: '100%'"
         >

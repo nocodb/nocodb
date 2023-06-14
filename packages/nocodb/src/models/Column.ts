@@ -12,6 +12,7 @@ import { NcError } from '../helpers/catchError';
 import { extractProps } from '../helpers/extractProps';
 import { stringifyMetaProp } from '../utils/modelUtils';
 import FormulaColumn from './FormulaColumn';
+import { LinksColumn } from './index'
 import LinkToAnotherRecordColumn from './LinkToAnotherRecordColumn';
 import LookupColumn from './LookupColumn';
 import RollupColumn from './RollupColumn';
@@ -194,7 +195,6 @@ export default class Column<T = any> implements ColumnType {
         );
         break;
       }
-      case UITypes.Links:
       case UITypes.Rollup: {
         await RollupColumn.insert(
           {
@@ -208,6 +208,7 @@ export default class Column<T = any> implements ColumnType {
         );
         break;
       }
+      case UITypes.Links:
       case UITypes.LinkToAnotherRecord: {
         await LinkToAnotherRecordColumn.insert(
           {
@@ -419,11 +420,13 @@ export default class Column<T = any> implements ColumnType {
         res = await LookupColumn.read(this.id, ncMeta);
         break;
       case UITypes.Rollup:
-      case UITypes.Links:
         res = await RollupColumn.read(this.id, ncMeta);
         break;
       case UITypes.LinkToAnotherRecord:
         res = await LinkToAnotherRecordColumn.read(this.id, ncMeta);
+        break;
+      case UITypes.Links:
+        res = await LinksColumn.read(this.id, ncMeta);
         break;
       case UITypes.MultiSelect:
         res = await SelectOption.read(this.id, ncMeta);

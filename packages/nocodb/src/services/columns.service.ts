@@ -1793,7 +1793,7 @@ export class ColumnsService {
           await child.getColumns(),
           `${parent.title} List`,
         ),
-        uidt: UITypes.LinkToAnotherRecord,
+        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
         type: 'mm',
 
         // ref_db_alias
@@ -1812,12 +1812,10 @@ export class ColumnsService {
       const col2 = await Column.insert({
         title: getUniqueColumnAliasName(
           await parent.getColumns(),
-          isLinks
-            ? `${param.column.title} List`
-            : param.column.title ?? `${child.title} List`,
+           param.column.title ?? `${child.title} List`,
         ),
 
-        uidt: UITypes.LinkToAnotherRecord,
+        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
         type: 'mm',
 
         fk_model_id: parent.id,
@@ -1832,17 +1830,17 @@ export class ColumnsService {
         virtual: (param.column as LinkToAnotherColumnReqType).virtual,
       });
 
-      if (isLinks) {
-        await populateRollupForLTAR({
-          column: col1,
-          // columnMeta: param.column['meta'],
-        });
-        await populateRollupForLTAR({
-          column: col2,
-          columnMeta: param.column['meta'],
-          alias: param.column.title,
-        });
-      }
+      // if (isLinks) {
+      //   await populateRollupForLTAR({
+      //     column: col1,
+      //     // columnMeta: param.column['meta'],
+      //   });
+      //   await populateRollupForLTAR({
+      //     column: col2,
+      //     columnMeta: param.column['meta'],
+      //     alias: param.column.title,
+      //   });
+      // }
 
       // todo: create index for virtual relations as well
       // create index for foreign key in pg

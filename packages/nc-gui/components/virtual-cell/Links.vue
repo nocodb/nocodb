@@ -10,12 +10,6 @@ const column = inject(ColumnInj)!
 
 const meta = inject(MetaInj, ref())
 
-const relColumn = computed(() => {
-  return meta.value.columns.find((c: ColumnType) => c.id === column.value?.colOptions?.fk_relation_column_id)
-})
-
-provide(ColumnInj, relColumn)
-
 const cellValue = inject(CellValueInj)!
 
 const row = inject(RowInj)!
@@ -39,7 +33,7 @@ const { isUIAllowed } = useUIPermission()
 const { state, isNew } = useSmartsheetRowStoreOrThrow()
 
 const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp } = useProvideLTARStore(
-  relColumn as Ref<Required<ColumnType>>,
+  column as Ref<Required<ColumnType>>,
   row,
   isNew,
   reloadRowTrigger.trigger,

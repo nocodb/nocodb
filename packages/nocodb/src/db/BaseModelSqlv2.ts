@@ -3491,7 +3491,7 @@ class BaseModelSqlv2 {
     rowId,
   }: {
     cookie: any;
-    childIds: string | string[] | number | number[];
+    childIds: (string|number)[];
     colId: string;
     rowId: string;
   }) {
@@ -3525,7 +3525,8 @@ class BaseModelSqlv2 {
           if (this.isSnowflake) {
             const parentPK = this.dbDriver(parentTn)
               .select(parentColumn.column_name)
-              .where(_wherePk(parentTable.primaryKeys, childId))
+              // .where(_wherePk(parentTable.primaryKeys, childId))
+              .whereIn(parentTable.primaryKey.column_name, childIds)
               .first();
 
             const childPK = this.dbDriver(childTn)
@@ -3541,7 +3542,8 @@ class BaseModelSqlv2 {
             await this.dbDriver(vTn).insert({
               [vParentCol.column_name]: this.dbDriver(parentTn)
                 .select(parentColumn.column_name)
-                .where(_wherePk(parentTable.primaryKeys, childId))
+                // .where(_wherePk(parentTable.primaryKeys, childId))
+                .where(parentTable.primaryKey.column_name, childIds)
                 .first(),
               [vChildCol.column_name]: this.dbDriver(childTn)
                 .select(childColumn.column_name)
@@ -3563,7 +3565,8 @@ class BaseModelSqlv2 {
                   .as('___cn_alias'),
               ),
             })
-            .where(_wherePk(childTable.primaryKeys, childId));
+            // .where(_wherePk(childTable.primaryKeys, childId));
+            .whereIn(childTable.primaryKey.column_name, childIds);
         }
         break;
       case RelationTypes.BELONGS_TO:
@@ -3573,7 +3576,8 @@ class BaseModelSqlv2 {
               [childColumn.column_name]: this.dbDriver.from(
                 this.dbDriver(parentTn)
                   .select(parentColumn.column_name)
-                  .where(_wherePk(parentTable.primaryKeys, childId))
+                  // .where(_wherePk(parentTable.primaryKeys, childId))
+                  .whereIn(parentTable.primaryKey.column_name, childIds)
                   .first()
                   .as('___cn_alias'),
               ),
@@ -3583,9 +3587,9 @@ class BaseModelSqlv2 {
         break;
     }
 
-    const response = await this.readByPk(rowId);
-    await this.afterInsert(response, this.dbDriver, cookie);
-    await this.afterAddChild(rowId, childId, cookie);
+    // const response = await this.readByPk(rowId);
+    // await this.afterInsert(response, this.dbDriver, cookie);
+    // await this.afterAddChild(rowId, childId, cookie);
   }
 
   async removeLinks({
@@ -3595,7 +3599,7 @@ class BaseModelSqlv2 {
     rowId,
   }: {
     cookie: any;
-    childIds: string | string[] | number | number[];
+    childIds: (string|number)[];
     colId: string;
     rowId: string;
   }) {
@@ -3632,7 +3636,7 @@ class BaseModelSqlv2 {
             .where({
               [vParentCol.column_name]: this.dbDriver(parentTn)
                 .select(parentColumn.column_name)
-                .where(_wherePk(parentTable.primaryKeys, childId))
+                .whereIn(parentTable.primaryKey.column_name,childIds)
                 .first(),
               [vChildCol.column_name]: this.dbDriver(childTn)
                 .select(childColumn.column_name)
@@ -3651,7 +3655,8 @@ class BaseModelSqlv2 {
             //     .where(parentTable.primaryKey.cn, rowId)
             //     .first()
             // })
-            .where(_wherePk(childTable.primaryKeys, childId))
+            // .where(_wherePk(childTable.primaryKeys, childId))
+            .whereIn(childTable.primaryKey.column_name, childIds)
             .update({ [childColumn.column_name]: null });
         }
         break;
@@ -3664,15 +3669,16 @@ class BaseModelSqlv2 {
             //     .where(parentTable.primaryKey.cn, childId)
             //     .first()
             // })
-            .where(_wherePk(childTable.primaryKeys, rowId))
+            // .where(_wherePk(childTable.primaryKeys, rowId))
+            .where(childTable.primaryKey.column_name, rowId)
             .update({ [childColumn.column_name]: null });
         }
         break;
     }
 
-    const newData = await this.readByPk(rowId);
-    await this.afterUpdate(prevData, newData, this.dbDriver, cookie);
-    await this.afterRemoveChild(rowId, childId, cookie);
+    // const newData = await this.readByPk(rowId);
+    // await this.afterUpdate(prevData, newData, this.dbDriver, cookie);
+    // await this.afterRemoveChild(rowId, childIds, cookie);
   }
 }
 

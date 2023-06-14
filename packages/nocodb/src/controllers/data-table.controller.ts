@@ -136,15 +136,55 @@ export class DataTableController {
     @Query('viewId') viewId: string,
     @Param('columnId') columnId: string,
     @Param('rowId') rowId: string,
-    @Body() refRowIds: string | string[] | number | number[],
   ) {
     return await this.dataTableService.nestedDataList({
       modelId,
       rowId: rowId,
       query: req.query,
       viewId,
-      refRowIds,
       columnId,
+    });
+  }
+
+
+  @Get(['/api/v1/tables/:modelId/links/:columnId/row/:rowId'])
+  @Post('nestedDataLink')
+  async nestedLink(
+    @Request() req,
+    @Param('modelId') modelId: string,
+    @Query('viewId') viewId: string,
+    @Param('columnId') columnId: string,
+    @Param('rowId') rowId: string,
+    @Body() refRowIds: string | string[] | number | number[],
+  ) {
+    return await this.dataTableService.nestedLink({
+      modelId,
+      rowId: rowId,
+      query: req.query,
+      viewId,
+      columnId,
+      refRowIds,
+    });
+  }
+
+
+  @Delete(['/api/v1/tables/:modelId/links/:columnId/row/:rowId'])
+  @Acl('nestedDataUnlink')
+  async nestedUnlink(
+    @Request() req,
+    @Param('modelId') modelId: string,
+    @Query('viewId') viewId: string,
+    @Param('columnId') columnId: string,
+    @Param('rowId') rowId: string,
+    @Body() refRowIds: string | string[] | number | number[],
+  ) {
+    return await this.dataTableService.nestedUnlink({
+      modelId,
+      rowId: rowId,
+      query: req.query,
+      viewId,
+      columnId,
+      refRowIds,
     });
   }
 }

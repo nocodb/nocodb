@@ -3483,6 +3483,197 @@ class BaseModelSqlv2 {
     }
     return data;
   }
+
+  async addLinks({
+    cookie,
+    childIds,
+    colId,
+    rowId,
+  }: {
+    cookie: any;
+    childIds: string | string[] | number | number[];
+    colId: string;
+    rowId: string;
+  }) {
+    const columns = await this.model.getColumns();
+    const column = columns.find((c) => c.id === colId);
+
+    if (!column || column.uidt !== UITypes.LinkToAnotherRecord)
+      NcError.notFound('Column not found');
+
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+
+    const childColumn = await colOptions.getChildColumn();
+    const parentColumn = await colOptions.getParentColumn();
+    const parentTable = await parentColumn.getModel();
+    const childTable = await childColumn.getModel();
+    await childTable.getColumns();
+    await parentTable.getColumns();
+
+    const childTn = this.getTnPath(childTable);
+    const parentTn = this.getTnPath(parentTable);
+
+    switch (colOptions.type) {
+      case RelationTypes.MANY_TO_MANY:
+        {
+          const vChildCol = await colOptions.getMMChildColumn();
+          const vParentCol = await colOptions.getMMParentColumn();
+          const vTable = await colOptions.getMMModel();
+
+          const vTn = this.getTnPath(vTable);
+
+          if (this.isSnowflake) {
+            const parentPK = this.dbDriver(parentTn)
+              .select(parentColumn.column_name)
+              .where(_wherePk(parentTable.primaryKeys, childId))
+              .first();
+
+            const childPK = this.dbDriver(childTn)
+              .select(childColumn.column_name)
+              .where(_wherePk(childTable.primaryKeys, rowId))
+              .first();
+
+            await this.dbDriver.raw(
+              `INSERT INTO ?? (??, ??) SELECT (${parentPK.toQuery()}), (${childPK.toQuery()})`,
+              [vTn, vParentCol.column_name, vChildCol.column_name],
+            );
+          } else {
+            await this.dbDriver(vTn).insert({
+              [vParentCol.column_name]: this.dbDriver(parentTn)
+                .select(parentColumn.column_name)
+                .where(_wherePk(parentTable.primaryKeys, childId))
+                .first(),
+              [vChildCol.column_name]: this.dbDriver(childTn)
+                .select(childColumn.column_name)
+                .where(_wherePk(childTable.primaryKeys, rowId))
+                .first(),
+            });
+          }
+        }
+        break;
+      case RelationTypes.HAS_MANY:
+        {
+          await this.dbDriver(childTn)
+            .update({
+              [childColumn.column_name]: this.dbDriver.from(
+                this.dbDriver(parentTn)
+                  .select(parentColumn.column_name)
+                  .where(_wherePk(parentTable.primaryKeys, rowId))
+                  .first()
+                  .as('___cn_alias'),
+              ),
+            })
+            .where(_wherePk(childTable.primaryKeys, childId));
+        }
+        break;
+      case RelationTypes.BELONGS_TO:
+        {
+          await this.dbDriver(childTn)
+            .update({
+              [childColumn.column_name]: this.dbDriver.from(
+                this.dbDriver(parentTn)
+                  .select(parentColumn.column_name)
+                  .where(_wherePk(parentTable.primaryKeys, childId))
+                  .first()
+                  .as('___cn_alias'),
+              ),
+            })
+            .where(_wherePk(childTable.primaryKeys, rowId));
+        }
+        break;
+    }
+
+    const response = await this.readByPk(rowId);
+    await this.afterInsert(response, this.dbDriver, cookie);
+    await this.afterAddChild(rowId, childId, cookie);
+  }
+
+  async removeLinks({
+    cookie,
+    childIds,
+    colId,
+    rowId,
+  }: {
+    cookie: any;
+    childIds: string | string[] | number | number[];
+    colId: string;
+    rowId: string;
+  }) {
+    const columns = await this.model.getColumns();
+    const column = columns.find((c) => c.id === colId);
+
+    if (!column || column.uidt !== UITypes.LinkToAnotherRecord)
+      NcError.notFound('Column not found');
+
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+
+    const childColumn = await colOptions.getChildColumn();
+    const parentColumn = await colOptions.getParentColumn();
+    const parentTable = await parentColumn.getModel();
+    const childTable = await childColumn.getModel();
+    await childTable.getColumns();
+    await parentTable.getColumns();
+
+    const childTn = this.getTnPath(childTable);
+    const parentTn = this.getTnPath(parentTable);
+
+    const prevData = await this.readByPk(rowId);
+
+    switch (colOptions.type) {
+      case RelationTypes.MANY_TO_MANY:
+        {
+          const vChildCol = await colOptions.getMMChildColumn();
+          const vParentCol = await colOptions.getMMParentColumn();
+          const vTable = await colOptions.getMMModel();
+
+          const vTn = this.getTnPath(vTable);
+
+          await this.dbDriver(vTn)
+            .where({
+              [vParentCol.column_name]: this.dbDriver(parentTn)
+                .select(parentColumn.column_name)
+                .where(_wherePk(parentTable.primaryKeys, childId))
+                .first(),
+              [vChildCol.column_name]: this.dbDriver(childTn)
+                .select(childColumn.column_name)
+                .where(_wherePk(childTable.primaryKeys, rowId))
+                .first(),
+            })
+            .delete();
+        }
+        break;
+      case RelationTypes.HAS_MANY:
+        {
+          await this.dbDriver(childTn)
+            // .where({
+            //   [childColumn.cn]: this.dbDriver(parentTable.tn)
+            //     .select(parentColumn.cn)
+            //     .where(parentTable.primaryKey.cn, rowId)
+            //     .first()
+            // })
+            .where(_wherePk(childTable.primaryKeys, childId))
+            .update({ [childColumn.column_name]: null });
+        }
+        break;
+      case RelationTypes.BELONGS_TO:
+        {
+          await this.dbDriver(childTn)
+            // .where({
+            //   [childColumn.cn]: this.dbDriver(parentTable.tn)
+            //     .select(parentColumn.cn)
+            //     .where(parentTable.primaryKey.cn, childId)
+            //     .first()
+            // })
+            .where(_wherePk(childTable.primaryKeys, rowId))
+            .update({ [childColumn.column_name]: null });
+        }
+        break;
+    }
+
+    const newData = await this.readByPk(rowId);
+    await this.afterUpdate(prevData, newData, this.dbDriver, cookie);
+    await this.afterRemoveChild(rowId, childId, cookie);
+  }
 }
 
 function extractSortsObject(

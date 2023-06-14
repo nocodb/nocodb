@@ -3,7 +3,7 @@ import { RelationTypes, UITypes } from 'nocodb-sdk'
 import { NcError } from '../helpers/catchError';
 import { PagedResponseImpl } from '../helpers/PagedResponse'
 import { Base, Column, LinkToAnotherRecordColumn, Model, View } from '../models'
-import { getColumnByIdOrName } from '../modules/datas/helpers'
+import { getColumnByIdOrName, getViewAndModelByAliasOrId, PathParams } from '../modules/datas/helpers'
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { DatasService } from './datas.service';
 
@@ -250,16 +250,7 @@ export class DataTableService {
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(base),
     });
-
-    const column = await Column.get({colId: param.columnId})
-
-    if(!column) NcError.badRequest('Column not found'
-
-    if(column.fk_model_id !== model.id)
-      NcError.badRequest('Column not belong to model')
-
-    if (column.uidt !== UITypes.LinkToAnotherRecord)
-      NcError.badRequest('Column is not LTAR');
+    const column = await this.getColumn(param)
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
     )
@@ -295,5 +286,65 @@ export class DataTableService {
       count,
       ...param.query,
     });
+  }
+
+  private async getColumn(param: {modelId: string; columnId: string }) {
+    const column = await Column.get({ colId: param.columnId })
+
+    if (!column) NcError.badRequest('Column not found'
+
+    if (column.fk_model_id !== param.modelId)
+      NcError.badRequest('Column not belong to model')
+
+    if (column.uidt !== UITypes.LinkToAnotherRecord)
+      NcError.badRequest('Column is not LTAR')
+    return column
+  }
+
+  async nestedLink(param: { cookie:any;viewId: string; modelId: string; columnId: string; query: any; refRowIds: string | string[] | number | number[]; rowId: string }) {
+    const { model, view } = await this.getModelAndView(param);
+    if (!model) NcError.notFound('Table not found');
+
+    const base = await Base.get(model.base_id);
+
+    const baseModel = await Model.getBaseModelSQL({
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(base),
+    });
+
+    const column = await this.getColumn(param);
+
+    await baseModel.addLinks({
+      colId: column.id,
+      childIds: param.refRowIds,
+      rowId: param.rowId,
+      cookie: param.cookie,
+    });
+
+    return true; }
+
+  async nestedUnlink(param: { cookie:any;viewId: string; modelId: string; columnId: string; query: any; refRowIds: string | string[] | number | number[]; rowId: string }) {
+    const { model, view } = await this.getModelAndView(param);
+    if (!model) NcError.notFound('Table not found');
+
+    const base = await Base.get(model.base_id);
+
+    const baseModel = await Model.getBaseModelSQL({
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(base),
+    });
+
+    const column = await this.getColumn(param);
+
+    await baseModel.removeLinks({
+      colId: column.id,
+      childIds: param.refRowIds,
+      rowId: param.rowId,
+      cookie: param.cookie,
+    });
+
+    return true;
   }
 }

@@ -1186,15 +1186,8 @@ export class ColumnsService {
       case UITypes.Formula:
         await Column.delete(param.columnId, ncMeta);
         break;
-      // When deleting a link column, we need to delete the relation column
-      // while deleting the LTAR column, links column will be deleted automatically
+      // Since Links is just an extended version of LTAR, we can use the same logic
       case UITypes.Links:
-        return await column.getColOptions<RollupColumn>().then((colOpt) =>
-          this.columnDelete({
-            ...param,
-            columnId: colOpt.fk_relation_column_id,
-          }),
-        );
       case UITypes.LinkToAnotherRecord:
         {
           const relationColOpt =

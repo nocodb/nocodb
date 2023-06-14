@@ -96,7 +96,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     const syncLTARRefs = async (row: Record<string, any>, { metaValue = meta.value }: { metaValue?: TableType } = {}) => {
       const id = extractPkFromRow(row, metaValue?.columns as ColumnType[])
       for (const column of metaValue?.columns ?? []) {
-        if (isLinksOrLTAR(column)) continue
+        if (!isLinksOrLTAR(column)) continue
 
         const colOptions = column.colOptions as LinkToAnotherRecordType
 
@@ -132,7 +132,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     // clear LTAR cell
     const clearLTARCell = async (column: ColumnType) => {
       try {
-        if (!column || isLinksOrLTAR(column)) return
+        if (!column || !isLinksOrLTAR(column)) return
 
         const relatedTableMeta = metas.value?.[(<LinkToAnotherRecordType>column?.colOptions)?.fk_related_model_id as string]
 

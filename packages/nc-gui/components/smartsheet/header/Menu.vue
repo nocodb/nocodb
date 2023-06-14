@@ -316,7 +316,7 @@ const hideField = async () => {
             {{ $t('general.edit') }}
           </div>
         </a-menu-item>
-        <template v-if="isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
+        <template v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
           <a-divider class="!my-0" />
           <a-menu-item @click="sortByColumn('asc')">
             <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">

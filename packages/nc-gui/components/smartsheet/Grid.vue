@@ -491,7 +491,7 @@ watch(contextMenu, () => {
 const rowRefs = $ref<any[]>()
 
 async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = false) {
-  if (!ctx || !hasEditPermission || (isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col]))) return
+  if (!ctx || !hasEditPermission || (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col]))) return
 
   const rowObj = data.value[ctx.row]
   const columnObj = fields.value[ctx.col]

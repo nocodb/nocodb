@@ -500,8 +500,8 @@ importers:
         specifier: ^9.0.0
         version: 9.0.0
       knex:
-        specifier: 2.2.0
-        version: 2.2.0(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6)(tedious@16.1.0)
+        specifier: 2.4.0
+        version: 2.4.0(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6)(tedious@16.1.0)
       lodash:
         specifier: ^4.17.19
         version: 4.17.19
@@ -533,8 +533,8 @@ importers:
         specifier: ^3.1.20
         version: 3.1.20
       nc-help:
-        specifier: ^0.2.87
-        version: 0.2.87(asn1.js@5.4.1)(debug@4.3.4)(knex@2.2.0)
+        specifier: ^0.2.88
+        version: 0.2.88(asn1.js@5.4.1)(debug@4.3.4)(knex@2.4.0)
       nc-lib-gui:
         specifier: 0.109.1
         version: 0.109.1
@@ -7370,6 +7370,15 @@ packages:
       - debug
     dev: false
 
+  /axios@0.27.2(debug@4.3.4):
+    resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
+    dependencies:
+      follow-redirects: 1.15.2(debug@4.3.4)
+      form-data: 4.0.0
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
   /axios@1.4.0:
     resolution: {integrity: sha512-S4XCWMEmzvo64T9GfvQDOXgYRDJ/wsSZc7Jvdgx5u1sd0JwsuPLqb3SYmusag+edF6ziyMensPVqLTSc1PiSEA==}
     dependencies:
@@ -9563,7 +9572,6 @@ packages:
   /emittery@0.13.1:
     resolution: {integrity: sha512-DeWwawk6r5yR9jFgnDKYt4sLS0LmHJJi3ZOnb5/JdbYwj3nW+FxQnHIjhBKz8YLC7oRNPVM9NQ47I3CVx34eqQ==}
     engines: {node: '>=12'}
-    dev: true
 
   /emittery@0.7.1:
     resolution: {integrity: sha512-d34LN4L6h18Bzz9xpoku2nPwKxCPlPMr3EEKTkoEBi+1/+b0lcRkRJ1UVyyZaKNeqGR3swcGl6s390DNO4YVgQ==}
@@ -13806,8 +13814,8 @@ packages:
     engines: {node: '>= 8'}
     dev: true
 
-  /knex@2.2.0(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6)(tedious@16.1.0):
-    resolution: {integrity: sha512-yhm1Qe9Ok0TeXBq3nNHqZYJPrQ4Iw2tq9k/HxjrZ/EWec2ifOjJlkNHr26v8cQrWtk5iG3iwfUazTIWy+VKG5g==}
+  /knex@2.4.0(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6)(tedious@16.1.0):
+    resolution: {integrity: sha512-i0GWwqYp1Hs2yvc2rlDO6nzzkLhwdyOZKRdsMTB8ZxOs2IXQyL5rBjSbS1krowCh6V65T4X9CJaKtuIfkaPGSA==}
     engines: {node: '>=12'}
     hasBin: true
     peerDependencies:
@@ -15182,17 +15190,17 @@ packages:
     engines: {node: '>=10'}
     dev: false
 
-  /nc-help@0.2.87(asn1.js@5.4.1)(debug@4.3.4)(knex@2.2.0):
-    resolution: {integrity: sha512-Zlg06ialvylBEE1qtvjlNKxZrPShzXwvy3WG7nfw+8GngOkQBCTlKguejT2Kq4Gfb5378WPX1APXtsetMKBrRA==}
-    engines: {node: '>=8.9'}
+  /nc-help@0.2.88(asn1.js@5.4.1)(debug@4.3.4)(knex@2.4.0):
+    resolution: {integrity: sha512-56YHE+CWfBbpaKKVfyV368ne9yHM1xBxDyUDYWaweCoSwiglFLoC0ihNonueHZlG4PL4v6Kb85EKbGGr9YFQlA==}
+    engines: {node: '>=v8.17.0'}
     peerDependencies:
-      knex: 2.2.0
+      knex: 2.4.2
     dependencies:
       '@rudderstack/rudder-sdk-node': 1.1.5(debug@4.3.4)
-      axios: 0.21.1(debug@4.3.4)
-      emittery: 0.7.1
+      axios: 0.27.2(debug@4.3.4)
+      emittery: 0.13.1
       is-docker: 2.2.1
-      knex: 2.2.0(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6)(tedious@16.1.0)
+      knex: 2.4.0(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6)(tedious@16.1.0)
       lodash: 4.17.21
       snowflake-sdk: 1.6.22(asn1.js@5.4.1)
     transitivePeerDependencies:
@@ -17846,7 +17854,7 @@ packages:
     resolution: {integrity: sha512-uWjbaKIK3T1OSVptzX7Nl6PvQ3qAGtKEtVRjRuazjfL3Bx5eI409VZSqgND+4UNnmzLVdPj9FqFJNPqBZFve4w==}
     hasBin: true
     dependencies:
-      glob: 7.1.6
+      glob: 7.2.0
     dev: true
 
   /rimraf@3.0.2:
@@ -18347,7 +18355,7 @@ packages:
       extend: 3.0.2
       fast-xml-parser: 4.2.4
       generic-pool: 3.9.0
-      glob: 7.1.6
+      glob: 7.2.0
       https-proxy-agent: 5.0.1
       jsonwebtoken: 9.0.0
       mime-types: 2.1.35
@@ -21314,7 +21322,7 @@ packages:
     resolution: {integrity: sha512-drPFnkQJik/O+uPKpqSgr22mpuFHqKdbS835iAQrUC73L2F5WkboIRd63ai/2Yg6I1jzifPFKH2NTK+cfglkIA==}
     engines: {node: '>=4.0.0'}
     dependencies:
-      sax: 1.2.1
+      sax: 1.2.4
       xmlbuilder: 11.0.1
     dev: false
 

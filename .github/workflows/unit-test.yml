@@ -29,16 +29,16 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'npm'
+        cache: 'pnpm'
     - name: install dependencies nocodb-sdk
       working-directory: ./packages/nocodb-sdk
       run: pnpm install
     - name: build nocodb-sdk
       working-directory: ./packages/nocodb-sdk
-      run: npm run build:main
+      run: pnpm run build:main
     - name: install dependencies nocodb
       working-directory: ./packages/nocodb
       run: pnpm install
     - name: run unit tests
       working-directory: ./packages/nocodb
-      run: npm run unit-test
+      run: pnpm run unit-test

@@ -21,8 +21,8 @@ jobs:
       - name: Build blogs
         run: |
           cd packages/noco-blog
-          npm install
-          npm run generate
+          pnpm install
+          pnpm run generate
 
 
       - name: Pushes generated output

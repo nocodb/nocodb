@@ -23,8 +23,8 @@ jobs:
       - name: Build docs
         run: |
           cd packages/noco-docs
-          npm install
-          npm run generate
+          pnpm install
+          pnpm run generate
       - name: Pushes generated output
         uses: dmnemec/copy_file_to_another_repo_action@1b29cbd9a323185f20b175dc6d5f8f31be5c0658
         env:

@@ -46,11 +46,11 @@ jobs:
       target_tag: ${{ steps.tag-step.outputs.TARGET_TAG }}
       current_version: ${{ steps.tag-step.outputs.CURRENT_VERSION }}
 
-  # Build, install, publish frontend and backend to npm
-  release-npm:
+  # Build, install, publish frontend and backend to pnpm
+  release-pnpm:
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action != 'closed' }}
     needs: [set-tag]
-    uses: ./.github/workflows/release-npm.yml
+    uses: ./.github/workflows/release-pnpm.yml
     with:
       tag: ${{ needs.set-tag.outputs.target_tag }}
       targetEnv: 'DEV'
@@ -60,7 +60,7 @@ jobs:
   # Build docker image and push to docker hub
   release-docker:
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action != 'closed' }}
-    needs: [release-npm, set-tag]
+    needs: [release-pnpm, set-tag]
     uses: ./.github/workflows/release-docker.yml
     with:
       currentVersion: ${{ needs.set-tag.outputs.current_version }}
@@ -74,7 +74,7 @@ jobs:
   # Build executables and publish to GitHub
   # release-executables:
   #   if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action != 'closed' }}
-  #   needs: [set-tag, release-npm]
+  #   needs: [set-tag, release-pnpm]
   #   uses: ./.github/workflows/release-timely-executables.yml
   #   with:
   #     tag: ${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}

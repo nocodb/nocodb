@@ -26,13 +26,13 @@ jobs:
           token: ${{ secrets.NC_GITHUB_TOKEN }}
           repository: 'nocodb/nocodb-timely'
       - name: Cache node modules
-        id: cache-npm
+        id: cache-pnpm
         uses: actions/cache@v3
         env:
           cache-name: cache-node-modules
         with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
-          path: ~/.npm
+          # pnpm cache files are stored in `~/.pnpm` on Linux/macOS
+          path: ~/.pnpm
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}-
@@ -70,7 +70,7 @@ jobs:
         env:
           TAG: ${{ github.event.inputs.tag || inputs.tag }}
         run: |
-          npm i -E nocodb-daily@$TAG
+          pnpm i -E nocodb-daily@$TAG
 
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
@@ -81,8 +81,8 @@ jobs:
 
       - name : Install dependencies and build executables
         run: |
-          # install npm dependendencies
-          npm i
+          # install pnpm dependendencies
+          pnpm i
 
           # Copy sqlite binaries
           # rsync -rvzhP ./binaries/binding/ ./node_modules/sqlite3/lib/binding/
@@ -105,7 +105,7 @@ jobs:
           npx modclean --patterns="default:*" --ignore="nc-lib-gui-daily/**,nocodb-daily/**,dayjs/**,express-status-monitor/**,sqlite3/**" --run
 
           # build executables
-          npm run build
+          pnpm run build
 
           mkdir ./mac-dist
           mv ./dist/Noco-macos-arm64 ./mac-dist/

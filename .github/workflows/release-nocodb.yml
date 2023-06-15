@@ -60,10 +60,10 @@ jobs:
       tag: ${{ needs.process-input.outputs.target_tag }}
       targetEnv: ${{ github.event.inputs.targetEnv || 'PROD' }}
 
-  # Build, install, publish frontend and backend to npm
-  release-npm:
+  # Build, install, publish frontend and backend to pnpm
+  release-pnpm:
     needs: [pr-to-master, process-input]
-    uses: ./.github/workflows/release-npm.yml
+    uses: ./.github/workflows/release-pnpm.yml
     with:
       tag: ${{ needs.process-input.outputs.target_tag }}
       targetEnv: ${{ github.event.inputs.targetEnv || 'PROD' }}
@@ -72,7 +72,7 @@ jobs:
 
   # Draft Release Note
   release-draft-note:
-    needs: [release-npm, process-input]
+    needs: [release-pnpm, process-input]
     uses: ./.github/workflows/release-draft.yml
     with:
       tag: ${{ needs.process-input.outputs.target_tag }}

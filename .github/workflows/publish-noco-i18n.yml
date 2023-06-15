@@ -23,8 +23,8 @@ jobs:
       - name: Build noco-i18n
         run: |
           cd packages/noco-i18n
-          npm install
-          npm run generate
+          pnpm install
+          pnpm run generate
 
 
       - name: Pushes generated output

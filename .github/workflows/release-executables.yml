@@ -23,13 +23,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Cache node modules
-        id: cache-npm
+        id: cache-pnpm
         uses: actions/cache@v3
         env:
           cache-name: cache-node-modules
         with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
-          path: ~/.npm
+          # pnpm cache files are stored in `~/.pnpm` on Linux/macOS
+          path: ~/.pnpm
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}-
@@ -71,10 +71,10 @@ jobs:
           cd ./scripts/pkg-executable
 
           # Install nocodb version based on provided tag name
-          npm i -E nocodb@${{ github.event.inputs.tag || inputs.tag }}
+          pnpm i -E nocodb@${{ github.event.inputs.tag || inputs.tag }}
 
-          # install npm dependendencies
-          npm i
+          # install pnpm dependendencies
+          pnpm i
 
           # Build sqlite binaries for all platforms
           ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=win32 --fallback-to-build --target_arch=x64 --target_libc=unknown
@@ -90,7 +90,7 @@ jobs:
           npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,nocodb/**,dayjs/**,express-status-monitor/**,sqlite3/**" --run
 
           # build executables
-          npm run build
+          pnpm run build
 
           ls ./dist
 

@@ -24,8 +24,8 @@ jobs:
       - name: Build docs
         run: |
           cd packages/noco-docs
-          npm install
-          npm run generate
+          pnpm install
+          pnpm run generate
 
 
       - name: Pushes generated output

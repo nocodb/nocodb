@@ -44,8 +44,8 @@ jobs:
             cache-name: cache-node-modules
 
           with:
-            # npm cache files are stored in `~/.npm` on Linux/macOS
-            path: ~/.npm
+            # pnpm cache files are stored in `~/.pnpm` on Linux/macOS
+            path: ~/.pnpm
             key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
             restore-keys: |
               ${{ runner.os }}-build-${{ env.cache-name }}-
@@ -53,16 +53,16 @@ jobs:
               ${{ runner.os }}-
         - name: install dependencies nocodb-sdk
           working-directory: ./packages/nocodb-sdk
-          run: npm install
+          run: pnpm install
         - name: build nocodb-sdk
           working-directory: ./packages/nocodb-sdk
-          run: npm run build:main
+          run: pnpm run build:main
         - name: Install dependencies
           working-directory: ./packages/nocodb
-          run: npm install
+          run: pnpm install
         - name: run unit tests
           working-directory: ./packages/nocodb
-          run: npm run test:unit
+          run: pnpm run test:unit
     unit-tests-pg:
       runs-on: ubuntu-20.04
       timeout-minutes: 40
@@ -82,8 +82,8 @@ jobs:
             cache-name: cache-node-modules
 
           with:
-            # npm cache files are stored in `~/.npm` on Linux/macOS
-            path: ~/.npm
+            # pnpm cache files are stored in `~/.pnpm` on Linux/macOS
+            path: ~/.pnpm
             key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
             restore-keys: |
               ${{ runner.os }}-build-${{ env.cache-name }}-
@@ -94,16 +94,16 @@ jobs:
           run: docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &
         - name: install dependencies nocodb-sdk
           working-directory: ./packages/nocodb-sdk
-          run: npm install
+          run: pnpm install
         - name: build nocodb-sdk
           working-directory: ./packages/nocodb-sdk
-          run: npm run build:main
+          run: pnpm run build:main
         - name: Install dependencies
           working-directory: ./packages/nocodb
-          run: npm install
+          run: pnpm install
         - name: run unit tests
           working-directory: ./packages/nocodb
-          run: npm run test:unit:pg
+          run: pnpm run test:unit:pg
     playwright-mysql-1:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       uses: ./.github/workflows/playwright-test-workflow.yml

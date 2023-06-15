@@ -20,10 +20,10 @@ jobs:
         
       - run: |
           cd packages/nocodb
-          npm install --save --save-exact nocodb-sdk@file:../nocodb-sdk
+          pnpm install --save --save-exact nocodb-sdk@file:../nocodb-sdk
           cd ../..
           cd packages/nc-gui
-          npm install --save --save-exact nocodb-sdk@file:../nocodb-sdk
+          pnpm install --save --save-exact nocodb-sdk@file:../nocodb-sdk
 
       - name: Create Pull Request
         id: cpr

@@ -40,8 +40,8 @@ jobs:
           cache-name: cache-node-modules
 
         with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
-          path: ~/.npm
+          # pnpm cache files are stored in `~/.pnpm` on Linux/macOS
+          path: ~/.pnpm
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}-
@@ -49,10 +49,10 @@ jobs:
             ${{ runner.os }}-
       - name: install dependencies nocodb-sdk
         working-directory: ./packages/nocodb-sdk
-        run: npm install
+        run: pnpm install
       - name: build nocodb-sdk
         working-directory: ./packages/nocodb-sdk
-        run: npm run build
+        run: pnpm run build
       - name: setup mysql
         if: ${{ inputs.db == 'mysql' }}
         working-directory: ./
@@ -67,13 +67,13 @@ jobs:
         run: docker-compose -f ./tests/playwright/scripts/docker-compose-pg-pw-quick.yml up -d &
       - name: run frontend
         working-directory: ./packages/nc-gui
-        run: npm run ci:run
+        run: pnpm run ci:run
       - name: Run backend
         working-directory: ./packages/nocodb
         run: |
-          npm install
-          npm run watch:run:playwright > ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
-      - name: Cache playwright npm modules
+          pnpm install
+          pnpm run watch:run:playwright > ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+      - name: Cache playwright pnpm modules
         uses: actions/cache@v3
         id: playwright-cache
         with:
@@ -83,7 +83,7 @@ jobs:
       - name: Install dependencies
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: ./tests/playwright
-        run: npm install
+        run: pnpm install
       - name: Install Playwright Browsers
         working-directory: ./tests/playwright
         run: npx playwright install chromium --with-deps
@@ -96,7 +96,7 @@ jobs:
 
       - name: Run Playwright tests
         working-directory: ./tests/playwright
-        run: E2E_DB_TYPE=${{ inputs.db }} npm run ci:test:shard:${{ inputs.shard }}
+        run: E2E_DB_TYPE=${{ inputs.db }} pnpm run ci:test:shard:${{ inputs.shard }}
 
       # Stress test added/modified tests
       - name: Fetch develop branch
@@ -112,13 +112,13 @@ jobs:
         working-directory: ./packages/nocodb
         run: |
           kill -9 $(lsof -t -i:8080)
-          npm run watch:run:playwright:pg:cyquick &
+          pnpm run watch:run:playwright:pg:cyquick &
       - name: Run quick server and tests (sqlite)
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '2' }}
         working-directory: ./packages/nocodb
         run: |
           kill -9 $(lsof -t -i:8080)
-          npm run watch:run:playwright:quick > quick_${{ inputs.shard }}_test_backend.log &
+          pnpm run watch:run:playwright:quick > quick_${{ inputs.shard }}_test_backend.log &
       - name: Wait for backend & run quick tests
         if: ${{ inputs.db == 'sqlite' }}
         working-directory: ./tests/playwright
@@ -127,7 +127,7 @@ jobs:
             printf '.'
             sleep 2
           done
-          PLAYWRIGHT_HTML_REPORT=playwright-report-quick npm run test:quick
+          PLAYWRIGHT_HTML_REPORT=playwright-report-quick pnpm run test:quick
       - uses: actions/upload-artifact@v3
         if: ${{ inputs.db == 'sqlite' }}
         with:

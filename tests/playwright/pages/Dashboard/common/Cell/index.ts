@@ -9,6 +9,7 @@ import { RatingCellPageObject } from './RatingCell';
 import { DateCellPageObject } from './DateCell';
 import { DateTimeCellPageObject } from './DateTimeCell';
 import { GeoDataCellPageObject } from './GeoDataCell';
+import { getTextExcludeIconText } from '../../../../tests/utils/general';
 
 export interface CellProps {
   index?: number;
@@ -350,13 +351,21 @@ export class CellPageObject extends BasePage {
     await expect(await vCell.locator('.nc-action-icon.nc-plus:visible')).toHaveCount(
       param.role === 'creator' || param.role === 'editor' ? 1 : 0
     );
+
     // in-cell expand (all have access)
-    await expect(await vCell.locator('.nc-action-icon.nc-arrow-expand:visible')).toHaveCount(1);
-    await vCell.click();
+    // PR(LinkDataType)
+    // await expect(await vCell.locator('.nc-action-icon.nc-arrow-expand:visible')).toHaveCount(1);
+    const linkText = await getTextExcludeIconText(vCell);
+    expect(linkText).toContain('1 Link');
+
+    // PR(LinkDataType)
+    // await vCell.click();
+
     // unlink
-    await expect(await vCell.locator('.nc-icon.unlink-icon:visible')).toHaveCount(
-      param.role === 'creator' || param.role === 'editor' ? 1 : 0
-    );
+    // PR(LinkDataType)
+    // await expect(await vCell.locator('.nc-icon.unlink-icon:visible')).toHaveCount(
+    //   param.role === 'creator' || param.role === 'editor' ? 1 : 0
+    // );
   }
 
   async copyToClipboard({ index, columnHeader }: CellProps, ...clickOptions: Parameters<Locator['click']>) {

@@ -81,8 +81,8 @@ export default class Filter implements FilterType {
   fk_column_id?: string;
   fk_parent_id?: string;
 
-  comparison_op?: (typeof COMPARISON_OPS)[number];
-  comparison_sub_op?: (typeof COMPARISON_SUB_OPS)[number];
+  comparison_op?: typeof COMPARISON_OPS[number];
+  comparison_sub_op?: typeof COMPARISON_SUB_OPS[number];
 
   value?: string;
 

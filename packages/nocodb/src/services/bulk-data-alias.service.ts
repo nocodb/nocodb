@@ -24,7 +24,7 @@ export class BulkDataAliasService {
   async executeBulkOperation<T extends BulkOperation>(
     param: PathParams & {
       operation: T;
-      options: Parameters<(typeof BaseModelSqlv2.prototype)[T]>;
+      options: Parameters<typeof BaseModelSqlv2.prototype[T]>;
     },
   ) {
     const { model, view, base } = await this.getModelViewBase(param);

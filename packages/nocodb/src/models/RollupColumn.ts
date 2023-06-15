@@ -20,7 +20,7 @@ export default class RollupColumn implements RollupType {
   fk_column_id;
   fk_relation_column_id;
   fk_rollup_column_id;
-  rollup_function: (typeof ROLLUP_FUNCTIONS)[number];
+  rollup_function: typeof ROLLUP_FUNCTIONS[number];
 
   constructor(data: Partial<RollupColumn>) {
     Object.assign(this, data);

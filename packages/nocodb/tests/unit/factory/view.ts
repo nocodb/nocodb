@@ -3,7 +3,10 @@ import request from 'supertest';
 import Model from '../../../src/models/Model';
 import View from '../../../src/models/View';
 
-const createView = async (context, {title, table, type}: {title: string, table: Model, type: ViewTypes}) => {
+const createView = async (
+  context,
+  { title, table, type }: { title: string; table: Model; type: ViewTypes },
+) => {
   const viewTypeStr = (type) => {
     switch (type) {
       case ViewTypes.GALLERY:
@@ -26,13 +29,16 @@ const createView = async (context, {title, table, type}: {title: string, table: 
       title,
       type,
     });
-  if(response.status !== 200) {
-    throw new Error('createView',response.body.message);
+  if (response.status !== 200) {
+    throw new Error(response.body.message);
   }
 
-  const view = await View.getByTitleOrId({fk_model_id: table.id, titleOrId:title}) as View;
+  const view = (await View.getByTitleOrId({
+    fk_model_id: table.id,
+    titleOrId: title,
+  })) as View;
 
-  return view
-}
+  return view;
+};
 
-export {createView}
+export { createView };

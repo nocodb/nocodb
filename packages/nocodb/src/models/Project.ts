@@ -63,7 +63,7 @@ export default class Project implements ProjectType {
     for (const base of project.bases) {
       await Base.createBase(
         {
-          type: base.config?.client as (typeof DB_TYPES)[number],
+          type: base.config?.client as typeof DB_TYPES[number],
           ...base,
           projectId,
         },

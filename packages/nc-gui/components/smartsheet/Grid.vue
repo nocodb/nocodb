@@ -911,12 +911,12 @@ const refreshFillHandle = () => {
     cellRect = useElementBounding(cellRef.el)
     if (!cellRect || !tableRect) return
     if (selectedRange.end.col === 0) {
-      fillHandleTop.value = cellRect.top.value - tableRect.top.value + cellRect.height.value - 4.5 + gridY.value
-      fillHandleLeft.value = cellRect.left.value - tableRect.left.value + cellRect.width.value - 4.5
+      fillHandleTop.value = cellRect.top.value - tableRect.top.value + cellRect.height.value + gridY.value
+      fillHandleLeft.value = cellRect.left.value - tableRect.left.value + cellRect.width.value
       return
     }
-    fillHandleTop.value = cellRect.top.value - tableRect.top.value + cellRect.height.value - 4.5 + gridY.value
-    fillHandleLeft.value = cellRect.left.value - tableRect.left.value + cellRect.width.value - 4.5 + gridX.value
+    fillHandleTop.value = cellRect.top.value - tableRect.top.value + cellRect.height.value + gridY.value
+    fillHandleLeft.value = cellRect.left.value - tableRect.left.value + cellRect.width.value + gridX.value
   }
 }
 
@@ -1256,7 +1256,7 @@ watch(
             (!selectedRange.isEmpty() || (activeCell.row !== null && activeCell.col !== null))
           "
           ref="fillHandle"
-          class="nc-fill-handle absolute w-[8px] h-[8px] rounded-full bg-red-500 !pointer-events-auto"
+          class="nc-fill-handle"
           :class="
             (!selectedRange.isEmpty() && selectedRange.end.col !== 0) || (selectedRange.isEmpty() && activeCell.col !== 0)
               ? 'z-3'
@@ -1488,5 +1488,15 @@ tbody tr:hover {
 
 .nc-required-cell {
   box-shadow: inset 0 0 2px #f00;
+}
+
+.nc-fill-handle {
+  @apply w-[6px] h-[6px] absolute rounded-full bg-red-500 !pointer-events-auto mt-[-4px] ml-[-4px];
+}
+
+.nc-fill-handle:hover,
+.nc-fill-handle:active,
+.nc-fill-handle:focus {
+  @apply w-[8px] h-[8px] mt-[-5px] ml-[-5px];
 }
 </style>

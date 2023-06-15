@@ -3,9 +3,9 @@
 @import '@vue-flow/core/dist/theme-default.css';
 
 :root {
-  --header-height: 11.75rem;
+  --sidebar-top-height: 11.75rem;
+  --topbar-height: 3.15rem;
   --new-header-height: 58px;
-  --toolbar-height: 3.15rem;
   --tw-text-opacity: 1;
   --navbar-bg: #FAFAFA;
   --navbar-border: #e0e0e0;
@@ -23,7 +23,7 @@
 }
 
 .ant-layout-header {
-  height: var(--header-height) !important;
+  height: var(--sidebar-top-height) !important;
 }
 
 html,

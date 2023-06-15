@@ -19,7 +19,7 @@ const { allowCSVDownload } = useSharedView()
 <template>
   <div
     class="nc-table-toolbar w-full py-1 flex gap-2 items-center px-2 border-b border-gray-100 overflow-x-hidden"
-    :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--toolbar-height)]': !isMobileMode, 'pl-8': !isSidebarOpen }"
+    :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode, 'pl-8': !isSidebarOpen }"
     style="z-index: 7"
   >
     <LazySmartsheetToolbarViewActions

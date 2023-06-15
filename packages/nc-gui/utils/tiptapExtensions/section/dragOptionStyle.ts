@@ -66,7 +66,7 @@ export const dragOptionStyle = ({
     }
   } else if (nodeType === TiptapNodesTypes.callout) {
     style = {
-      marginTop: '1.25rem',
+      marginTop: '1.3rem',
     }
   } else if (nodeType === TiptapNodesTypes.divider) {
     style = {

@@ -283,10 +283,13 @@ watch(
         }"
       >
         <div
-          class="flex flex-row justify-between items-center my-2 h-8"
+          class="flex flex-row justify-between items-center"
           :class="{
             'pl-6': isSidebarOpen,
             'pl-12': !isSidebarOpen,
+          }"
+          :style="{
+            height: 'var(--topbar-height)',
           }"
         >
           <div class="flex flex-row items-center">

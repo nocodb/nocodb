@@ -15,7 +15,7 @@ const emit = defineEmits(['emojiSelected'])
 const { emoji, size = 'medium' } = props
 
 const emojiIndex = new EmojiIndex(data)
-const emojisOutput = ref(emoji || '🙂')
+const emojisOutput = ref(emoji || '')
 const emojiMartDomRef = ref<HTMLDivElement>()
 
 function showEmoji(emoji: any) {
@@ -25,19 +25,34 @@ function showEmoji(emoji: any) {
 
 const isOpen = ref(false)
 
-onClickOutside(emojiMartDomRef, () => (isOpen.value = false))
+onClickOutside(emojiMartDomRef, (e) => {
+  // If event is created by clicking on the emoji output, it will be handled by the onClick function
+  const target = e.target as HTMLElement
+  if (
+    target?.classList.contains('nc-emoji-picker') ||
+    (target?.parentNode as HTMLElement)?.classList.contains('nc-emoji-picker')
+  ) {
+    return
+  }
+
+  isOpen.value = false
+})
+
+const onClick = () => {
+  isOpen.value = !isOpen.value
+}
 </script>
 
 <template>
   <div
-    class="nc-emoji-picker h-8 w-8 overflow-visible relative hover:bg-gray-100 rounded select-none"
+    class="nc-emoji-picker h-8 w-8 overflow-visible relative hover:bg-gray-300 hover:bg-opacity-20 rounded select-none"
     :class="{
-      'bg-gray-100': isOpen,
+      'bg-gray-300 bg-opacity-20': isOpen,
       'h-6 w-6 text-sm': size === 'small',
       'h-8 w-8 text-base': size === 'medium',
       'h-10 w-10 text-lg': size === 'large',
     }"
-    @click="isOpen = !isOpen"
+    @click.stop="onClick"
   >
     <div
       class="h-full w-full flex flex-row justify-center items-center select-none cursor-pointer"
@@ -51,7 +66,7 @@ onClickOutside(emojiMartDomRef, () => (isOpen.value = false))
     </div>
 
     <div
-      class="absolute z-40"
+      class="absolute z-40 shadow-2xl"
       :class="{
         'top-7': size === 'small',
         'top-9': size === 'medium',
@@ -64,7 +79,7 @@ onClickOutside(emojiMartDomRef, () => (isOpen.value = false))
         :data="emojiIndex"
         :native="true"
         :show-preview="false"
-        color="#000000"
+        color="#40444D"
         :auto-focus="true"
         @select="showEmoji"
         @click.stop="() => {}"
@@ -89,7 +104,7 @@ onClickOutside(emojiMartDomRef, () => (isOpen.value = false))
   }
   .emoji-mart-search {
     input {
-      @apply text-sm;
+      @apply text-sm pl-3.5;
       // Remove focus outline
       &:focus {
         @apply !outline-none border-0 mt-0.2 mb-0.2;
@@ -101,7 +116,7 @@ onClickOutside(emojiMartDomRef, () => (isOpen.value = false))
     @apply mt-1 pl-1 pr-2 overflow-x-hidden;
 
     h3.emoji-mart-category-label {
-      @apply text-sm text-gray-600;
+      @apply text-xs text-gray-500 mb-0;
     }
 
     .emoji-mart-category {

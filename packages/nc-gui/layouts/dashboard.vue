@@ -219,6 +219,7 @@ export default {
 .nc-sidebar-wrapper.sidebar-short {
   > * {
     height: 80vh !important;
+    padding-bottom: 0.35rem;
   }
 }
 
@@ -230,7 +231,7 @@ export default {
 }
 
 .nc-sidebar-wrapper > * {
-  height: calc(100% - var(--header-height));
+  height: calc(100% - var(--sidebar-top-height));
 }
 
 .nc-sidebar-wrapper > * {

@@ -353,16 +353,16 @@ export class CellPageObject extends BasePage {
     );
 
     // in-cell expand (all have access)
-    // PR(LinkDataType)
+    // PR8504
     // await expect(await vCell.locator('.nc-action-icon.nc-arrow-expand:visible')).toHaveCount(1);
     const linkText = await getTextExcludeIconText(vCell);
     expect(linkText).toContain('1 Link');
 
-    // PR(LinkDataType)
+    // PR8504
     // await vCell.click();
 
     // unlink
-    // PR(LinkDataType)
+    // PR8504
     // await expect(await vCell.locator('.nc-icon.unlink-icon:visible')).toHaveCount(
     //   param.role === 'creator' || param.role === 'editor' ? 1 : 0
     // );

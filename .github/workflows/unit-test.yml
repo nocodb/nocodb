@@ -32,13 +32,13 @@ jobs:
         cache: 'npm'
     - name: install dependencies nocodb-sdk
       working-directory: ./packages/nocodb-sdk
-      run: npm ci
+      run: pnpm install
     - name: build nocodb-sdk
       working-directory: ./packages/nocodb-sdk
       run: npm run build:main
     - name: install dependencies nocodb
       working-directory: ./packages/nocodb
-      run: npm ci
+      run: pnpm install
     - name: run unit tests
       working-directory: ./packages/nocodb
       run: npm run unit-test

@@ -13,7 +13,7 @@ const email = computed(() => user.value?.email ?? '---')
 
 const logout = async () => {
   await signOut()
-  navigateTo('/signin')
+  await navigateTo('/signin')
 }
 </script>
 

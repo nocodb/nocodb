@@ -15,7 +15,7 @@ const sidebar = ref<HTMLDivElement>()
 
 const logout = async () => {
   await signOut()
-  navigateTo('/signin')
+  await navigateTo('/signin')
 }
 
 const { hooks } = useNuxtApp()

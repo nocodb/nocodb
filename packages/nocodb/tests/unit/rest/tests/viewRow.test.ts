@@ -1,5 +1,4 @@
 import 'mocha';
-import { isString } from 'util';
 import request from 'supertest';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { expect } from 'chai';
@@ -20,7 +19,6 @@ import {
   getOneRow,
   getRow,
 } from '../../factory/row';
-import { isPg } from '../../init/db';
 import type { ColumnType } from 'nocodb-sdk';
 import type View from '../../../../src/models/View';
 import type Model from '../../../../src/models/Model';
@@ -1370,7 +1368,7 @@ function viewRowTests() {
       rowId: row['Id'],
     });
 
-    await request(context.app)
+    const response = await request(context.app)
       .delete(
         `/api/v1/db/data/noco/${project.id}/${table.id}/views/${view.id}/${row['Id']}`,
       )

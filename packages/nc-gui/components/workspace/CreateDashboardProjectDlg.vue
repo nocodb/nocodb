@@ -8,7 +8,7 @@ import type { ComputedRef } from 'nuxt/dist/app/compat/capi'
 import Fuse from 'fuse.js'
 import type { IdAndTitle } from '../layouts/types'
 import { NcProjectType, extractSdkResponseErrorMsg } from '~/utils'
-import { ref, useVModel } from '#imports'
+import { projectTitleValidator, ref, useVModel } from '#imports'
 import { useWorkspace } from '~/store/workspace'
 import { navigateTo } from '#app'
 
@@ -169,13 +169,6 @@ onMounted(async () => {
   input.value?.$el?.focus()
   input.value?.$el?.select()
 })
-
-const selectedColor = ref<string>('')
-const colorOptions = ref<string[]>(['#FF4A40', '#26D665', '#37BFFF', '#FCBE3A', '#FC3BC6', '#7D26CD', '#FF9052', '#475468'])
-
-function selectColor(color: string) {
-  selectedColor.value = color
-}
 
 const showSearchIcon = computed(() => {
   return dbProjectSearchTerm.value === ''

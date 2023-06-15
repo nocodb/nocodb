@@ -4,7 +4,7 @@ import type { Form, Input } from 'ant-design-vue'
 import type { VNodeRef } from '@vue/runtime-core'
 import { computed } from '@vue/reactivity'
 import { NcProjectType, extractSdkResponseErrorMsg } from '~/utils'
-import { ref, useVModel } from '#imports'
+import { projectTitleValidator, ref, useVModel } from '#imports'
 import { useWorkspace } from '~/store/workspace'
 import { navigateTo } from '#app'
 

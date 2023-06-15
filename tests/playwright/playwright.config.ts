@@ -1,5 +1,4 @@
-import type { PlaywrightTestConfig } from '@playwright/test';
-import { devices } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 
 /**
  * Read environment variables from file.
@@ -10,7 +9,8 @@ require('dotenv').config();
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
-const config: PlaywrightTestConfig = {
+
+export default defineConfig({
   testDir: process.env.PW_QUICK_TEST ? './quickTests' : './tests/db',
   /* Maximum time one test can run for. */
   timeout: process.env.CI ? 140 * 1000 : 100 * 1000,
@@ -106,6 +106,4 @@ const config: PlaywrightTestConfig = {
   //   command: 'npm run start',
   //   port: 3000,
   // },
-};
-
-export default config;
+});

@@ -64,12 +64,12 @@ test.describe('Test table', () => {
     await page.reload();
   });
 
-  test('drag drop for LTAR, lookup creation', async () => {
+  test('drag drop for Link, lookup creation', async () => {
     await dashboard.treeView.openTable({ title: 'Table0' });
     const src = await dashboard.rootPage.locator(`[data-testid="tree-view-table-draggable-handle-Table1"]`);
     const dst = await dashboard.rootPage.locator(`[data-testid="grid-row-0"]`);
 
-    // drag drop for LTAR column creation
+    // drag drop for Links column creation
     //
     await src.dragTo(dst);
     const columnAddModal = await dashboard.rootPage.locator(`.nc-dropdown-grid-add-column`);
@@ -78,14 +78,14 @@ test.describe('Test table', () => {
       const linkTable = await getTextExcludeIconText(
         await columnAddModal.locator(`.ant-form-item-control-input`).nth(3)
       );
-      expect(columnType).toContain('LinkToAnotherRecord');
+      expect(columnType).toContain('Links');
       expect(linkTable).toContain('Table1');
 
       // save
       await columnAddModal.locator(`.ant-btn-primary`).click();
 
       // verify if column is created
-      await grid.column.verify({ title: 'Table1List', isVisible: true });
+      await grid.column.verify({ title: 'Table1', isVisible: true });
     }
 
     // drag drop for lookup column creation
@@ -103,7 +103,7 @@ test.describe('Test table', () => {
 
       // validate
       expect(columnType).toContain('Lookup');
-      expect(linkField).toContain('Table1List');
+      expect(linkField.split(' ')[0]).toContain('Table1');
       expect(childColumn).toContain('Title');
 
       // save

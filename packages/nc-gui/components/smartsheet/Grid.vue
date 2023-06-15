@@ -1387,7 +1387,7 @@ watch(
 
   // todo: replace with css variable
   td.filling::after {
-    @apply border-1 border-solid text-accent border-current;
+    @apply border-1 border-dashed text-primary border-current bg-gray-100 bg-opacity-50;
   }
 
   //td.active::before {

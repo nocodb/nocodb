@@ -126,4 +126,67 @@ export class DataTableController {
       viewId,
     });
   }
+
+
+  @Get(['/api/v1/tables/:modelId/links/:columnId/row/:rowId'])
+  @Acl('nestedDataList')
+  async nestedDataList(
+    @Request() req,
+    @Param('modelId') modelId: string,
+    @Query('viewId') viewId: string,
+    @Param('columnId') columnId: string,
+    @Param('rowId') rowId: string,
+  ) {
+    return await this.dataTableService.nestedDataList({
+      modelId,
+      rowId: rowId,
+      query: req.query,
+      viewId,
+      columnId,
+    });
+  }
+
+
+  @Post(['/api/v1/tables/:modelId/links/:columnId/row/:rowId'])
+  @Acl('nestedDataLink')
+  async nestedLink(
+    @Request() req,
+    @Param('modelId') modelId: string,
+    @Query('viewId') viewId: string,
+    @Param('columnId') columnId: string,
+    @Param('rowId') rowId: string,
+    @Body() refRowIds: string | string[] | number | number[],
+  ) {
+    return await this.dataTableService.nestedLink({
+      modelId,
+      rowId: rowId,
+      query: req.query,
+      viewId,
+      columnId,
+      refRowIds,
+      cookie: req,
+    });
+  }
+
+
+  @Delete(['/api/v1/tables/:modelId/links/:columnId/row/:rowId'])
+  @Acl('nestedDataUnlink')
+  async nestedUnlink(
+    @Request() req,
+    @Param('modelId') modelId: string,
+    @Query('viewId') viewId: string,
+    @Param('columnId') columnId: string,
+    @Param('rowId') rowId: string,
+    @Body() refRowIds: string | string[] | number | number[],
+  ) {
+    return await this.dataTableService.nestedUnlink({
+      modelId,
+      rowId: rowId,
+      query: req.query,
+      viewId,
+      columnId,
+      refRowIds,
+      cookie: req,
+    });
+  }
 }

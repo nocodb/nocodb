@@ -1,8 +1,16 @@
 import { Injectable } from '@nestjs/common';
+import { RelationTypes, UITypes } from 'nocodb-sdk';
 import { NcError } from '../helpers/catchError';
-import { Base, Model, View } from '../models';
+import { PagedResponseImpl } from '../helpers/PagedResponse';
+import { Base, Column, Model, View } from '../models';
+import {
+  getColumnByIdOrName,
+  getViewAndModelByAliasOrId,
+  PathParams,
+} from '../modules/datas/helpers';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { DatasService } from './datas.service';
+import type { LinkToAnotherRecordColumn } from '../models';
 
 @Injectable()
 export class DataTableService {
@@ -230,5 +238,138 @@ export class DataTableService {
       }
       keys.add(pk);
     }
+  }
+
+  async nestedDataList(param: {
+    viewId: string;
+    modelId: string;
+    query: any;
+    rowId: string | string[] | number | number[];
+    columnId: string;
+  }) {
+    const { model, view } = await this.getModelAndView(param);
+    const base = await Base.get(model.base_id);
+
+    const baseModel = await Model.getBaseModelSQL({
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(base),
+    });
+    const column = await this.getColumn(param);
+
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+
+    let data: any[];
+    let count: number;
+    if (colOptions.type === RelationTypes.MANY_TO_MANY) {
+      data = await baseModel.mmList(
+        {
+          colId: column.id,
+          parentId: param.rowId,
+        },
+        param.query as any,
+      );
+      count = (await baseModel.mmListCount({
+        colId: column.id,
+        parentId: param.rowId,
+      })) as number;
+    } else {
+      data = await baseModel.hmList(
+        {
+          colId: column.id,
+          id: param.rowId,
+        },
+        param.query as any,
+      );
+      count = (await baseModel.hmListCount({
+        colId: column.id,
+        id: param.rowId,
+      })) as number;
+    }
+    return new PagedResponseImpl(data, {
+      count,
+      ...param.query,
+    });
+  }
+
+  private async getColumn(param: { modelId: string; columnId: string }) {
+    const column = await Column.get({ colId: param.columnId });
+
+    if (!column) NcError.badRequest('Column not found');
+
+    if (column.fk_model_id !== param.modelId)
+      NcError.badRequest('Column not belong to model');
+
+    if (column.uidt !== UITypes.LinkToAnotherRecord)
+      NcError.badRequest('Column is not LTAR');
+    return column;
+  }
+
+  async nestedLink(param: {
+    cookie: any;
+    viewId: string;
+    modelId: string;
+    columnId: string;
+    query: any;
+    refRowIds: string | string[] | number | number[];
+    rowId: string;
+  }) {
+    const { model, view } = await this.getModelAndView(param);
+    if (!model) NcError.notFound('Table not found');
+
+    const base = await Base.get(model.base_id);
+
+    const baseModel = await Model.getBaseModelSQL({
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(base),
+    });
+
+    const column = await this.getColumn(param);
+
+    await baseModel.addLinks({
+      colId: column.id,
+      childIds: Array.isArray(param.refRowIds)
+        ? param.refRowIds
+        : [param.refRowIds],
+      rowId: param.rowId,
+      cookie: param.cookie,
+    });
+
+    return true;
+  }
+
+  async nestedUnlink(param: {
+    cookie: any;
+    viewId: string;
+    modelId: string;
+    columnId: string;
+    query: any;
+    refRowIds: string | string[] | number | number[];
+    rowId: string;
+  }) {
+    const { model, view } = await this.getModelAndView(param);
+    if (!model) NcError.notFound('Table not found');
+
+    const base = await Base.get(model.base_id);
+
+    const baseModel = await Model.getBaseModelSQL({
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(base),
+    });
+
+    const column = await this.getColumn(param);
+
+    await baseModel.removeLinks({
+      colId: column.id,
+      childIds: Array.isArray(param.refRowIds)
+        ? param.refRowIds
+        : [param.refRowIds],
+      rowId: param.rowId,
+      cookie: param.cookie,
+    });
+
+    return true;
   }
 }

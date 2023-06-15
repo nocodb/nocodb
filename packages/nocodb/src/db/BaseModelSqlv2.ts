@@ -3483,6 +3483,385 @@ class BaseModelSqlv2 {
     }
     return data;
   }
+
+  async addLinks({
+    cookie,
+    childIds,
+    colId,
+    rowId,
+  }: {
+    cookie: any;
+    childIds: (string | number)[];
+    colId: string;
+    rowId: string;
+  }) {
+    const columns = await this.model.getColumns();
+    const column = columns.find((c) => c.id === colId);
+
+    if (!column || column.uidt !== UITypes.LinkToAnotherRecord)
+      NcError.notFound('Column not found');
+
+    const row = await this.dbDriver(this.tnPath)
+      .where(await this._wherePk(rowId))
+      .first();
+
+    // validate rowId
+    if (!row) {
+      NcError.notFound('Row not found');
+    }
+
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+
+    const childColumn = await colOptions.getChildColumn();
+    const parentColumn = await colOptions.getParentColumn();
+    const parentTable = await parentColumn.getModel();
+    const childTable = await childColumn.getModel();
+    await childTable.getColumns();
+    await parentTable.getColumns();
+
+    const childTn = this.getTnPath(childTable);
+    const parentTn = this.getTnPath(parentTable);
+
+    switch (colOptions.type) {
+      case RelationTypes.MANY_TO_MANY:
+        {
+          const vChildCol = await colOptions.getMMChildColumn();
+          const vParentCol = await colOptions.getMMParentColumn();
+          const vTable = await colOptions.getMMModel();
+
+          const vTn = this.getTnPath(vTable);
+
+          let insertData: Record<string, any>[];
+
+          // validate Ids
+          {
+            const childRowsQb = this.dbDriver(parentTn)
+              .select(parentColumn.column_name)
+              .select(`${vTable.table_name}.${vChildCol.column_name}`)
+              .leftJoin(vTn, (qb) => {
+                qb.on(
+                  `${vTable.table_name}.${vParentCol.column_name}`,
+                  `${parentTable.table_name}.${parentColumn.column_name}`,
+                ).andOn(
+                  `${vTable.table_name}.${vChildCol.column_name}`,
+                  row[childColumn.column_name],
+                );
+              });
+            // .where(_wherePk(parentTable.primaryKeys, childId))
+
+            if (parentTable.primaryKeys.length > 1) {
+              childRowsQb.where((qb) => {
+                for (const childId of childIds) {
+                  qb.orWhere(_wherePk(parentTable.primaryKeys, childId));
+                }
+              });
+            } else {
+              childRowsQb.whereIn(parentTable.primaryKey.column_name, childIds);
+            }
+
+            if (parentTable.primaryKey.column_name !== parentColumn.column_name)
+              childRowsQb.select(parentTable.primaryKey.column_name);
+
+            const childRows = await childRowsQb;
+
+            if (childRows.length !== childIds.length) {
+              const missingIds = childIds.filter(
+                (id) =>
+                  !childRows.find((r) => r[parentColumn.column_name] === id),
+              );
+
+              NcError.notFound(
+                `Child record with id ${missingIds.join(', ')} not found`,
+              );
+            }
+
+            insertData = childRows
+              // skip existing links
+              .filter((childRow) => !childRow[vChildCol.column_name])
+              // generate insert data for new links
+              .map((childRow) => ({
+                [vParentCol.column_name]: childRow[parentColumn.column_name],
+                [vChildCol.column_name]: row[childColumn.column_name],
+              }));
+
+            // if no new links, return true
+            if (!insertData.length) return true;
+          }
+
+          // if (this.isSnowflake) {
+          //   const parentPK = this.dbDriver(parentTn)
+          //     .select(parentColumn.column_name)
+          //     // .where(_wherePk(parentTable.primaryKeys, childId))
+          //     .whereIn(parentTable.primaryKey.column_name, childIds)
+          //     .first();
+          //
+          //   const childPK = this.dbDriver(childTn)
+          //     .select(childColumn.column_name)
+          //     .where(_wherePk(childTable.primaryKeys, rowId))
+          //     .first();
+          //
+          //   await this.dbDriver.raw(
+          //     `INSERT INTO ?? (??, ??) SELECT (${parentPK.toQuery()}), (${childPK.toQuery()})`,
+          //     [vTn, vParentCol.column_name, vChildCol.column_name],
+          //   );
+          // } else {
+          //   await this.dbDriver(vTn).insert({
+          //     [vParentCol.column_name]: this.dbDriver(parentTn)
+          //       .select(parentColumn.column_name)
+          //       // .where(_wherePk(parentTable.primaryKeys, childId))
+          //       .where(parentTable.primaryKey.column_name, childIds)
+          //       .first(),
+          //     [vChildCol.column_name]: this.dbDriver(childTn)
+          //       .select(childColumn.column_name)
+          //       .where(_wherePk(childTable.primaryKeys, rowId))
+          //       .first(),
+          //   });
+
+          // todo: use bulk insert
+          await this.dbDriver(vTn).insert(insertData);
+          // }
+        }
+        break;
+      case RelationTypes.HAS_MANY:
+        {
+          // validate Ids
+          {
+            const childRowsQb = this.dbDriver(childTn).select(
+              childTable.primaryKey.column_name,
+            );
+
+            if (childTable.primaryKeys.length > 1) {
+              childRowsQb.where((qb) => {
+                for (const childId of childIds) {
+                  qb.orWhere(_wherePk(childTable.primaryKeys, childId));
+                }
+              });
+            } else {
+              childRowsQb.whereIn(parentTable.primaryKey.column_name, childIds);
+            }
+
+            const childRows = await childRowsQb;
+
+            if (childRows.length !== childIds.length) {
+              const missingIds = childIds.filter(
+                (id) =>
+                  !childRows.find((r) => r[parentColumn.column_name] === id),
+              );
+
+              NcError.notFound(
+                `Child record with id ${missingIds.join(', ')} not found`,
+              );
+            }
+          }
+
+          await this.dbDriver(childTn)
+            .update({
+              [childColumn.column_name]: this.dbDriver.from(
+                this.dbDriver(parentTn)
+                  .select(parentColumn.column_name)
+                  .where(_wherePk(parentTable.primaryKeys, rowId))
+                  .first()
+                  .as('___cn_alias'),
+              ),
+            })
+            // .where(_wherePk(childTable.primaryKeys, childId));
+            .whereIn(childTable.primaryKey.column_name, childIds);
+        }
+        break;
+      case RelationTypes.BELONGS_TO:
+        {
+          // validate Ids
+          {
+            const childRowsQb = this.dbDriver(parentTn)
+              .select(parentTable.primaryKey.column_name)
+              .where(_wherePk(parentTable.primaryKeys, childIds[0]))
+              .first();
+
+            const childRow = await childRowsQb;
+
+            if (!childRow) {
+              NcError.notFound(`Child record with id ${childIds[0]} not found`);
+            }
+          }
+
+          await this.dbDriver(childTn)
+            .update({
+              [childColumn.column_name]: this.dbDriver.from(
+                this.dbDriver(parentTn)
+                  .select(parentColumn.column_name)
+                  .where(_wherePk(parentTable.primaryKeys, childIds[0]))
+                  // .whereIn(parentTable.primaryKey.column_name, childIds)
+                  .first()
+                  .as('___cn_alias'),
+              ),
+            })
+            .where(_wherePk(childTable.primaryKeys, rowId));
+        }
+        break;
+    }
+
+    // const response = await this.readByPk(rowId);
+    // await this.afterInsert(response, this.dbDriver, cookie);
+    // await this.afterAddChild(rowId, childId, cookie);
+  }
+
+  async removeLinks({
+    cookie,
+    childIds,
+    colId,
+    rowId,
+  }: {
+    cookie: any;
+    childIds: (string | number)[];
+    colId: string;
+    rowId: string;
+  }) {
+    const columns = await this.model.getColumns();
+    const column = columns.find((c) => c.id === colId);
+
+    if (!column || column.uidt !== UITypes.LinkToAnotherRecord)
+      NcError.notFound('Column not found');
+
+    const row = await this.dbDriver(this.tnPath)
+      .where(await this._wherePk(rowId))
+      .first();
+
+    // validate rowId
+    if (!row) {
+      NcError.notFound('Row not found');
+    }
+
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+
+    const childColumn = await colOptions.getChildColumn();
+    const parentColumn = await colOptions.getParentColumn();
+    const parentTable = await parentColumn.getModel();
+    const childTable = await childColumn.getModel();
+    await childTable.getColumns();
+    await parentTable.getColumns();
+
+    const childTn = this.getTnPath(childTable);
+    const parentTn = this.getTnPath(parentTable);
+
+    const prevData = await this.readByPk(rowId);
+
+    switch (colOptions.type) {
+      case RelationTypes.MANY_TO_MANY:
+        {
+          const vChildCol = await colOptions.getMMChildColumn();
+          const vParentCol = await colOptions.getMMParentColumn();
+          const vTable = await colOptions.getMMModel();
+
+          // validate Ids
+          {
+            const childRowsQb = this.dbDriver(parentTn)
+              .select(parentColumn.column_name)
+              // .where(_wherePk(parentTable.primaryKeys, childId))
+              .whereIn(parentTable.primaryKey.column_name, childIds);
+
+            if (parentTable.primaryKey.column_name !== parentColumn.column_name)
+              childRowsQb.select(parentTable.primaryKey.column_name);
+
+            const childRows = await childRowsQb;
+
+            if (childRows.length !== childIds.length) {
+              const missingIds = childIds.filter(
+                (id) =>
+                  !childRows.find((r) => r[parentColumn.column_name] === id),
+              );
+
+              NcError.notFound(
+                `Child record with id ${missingIds.join(', ')} not found`,
+              );
+            }
+          }
+
+          const vTn = this.getTnPath(vTable);
+
+          await this.dbDriver(vTn)
+            .where({
+              [vChildCol.column_name]: this.dbDriver(childTn)
+                .select(childColumn.column_name)
+                .where(_wherePk(childTable.primaryKeys, rowId))
+                .first(),
+            })
+            .whereIn(
+              [vParentCol.column_name],
+              this.dbDriver(parentTn)
+                .select(parentColumn.column_name)
+                .whereIn(parentTable.primaryKey.column_name, childIds),
+            )
+            .delete();
+        }
+        break;
+      case RelationTypes.HAS_MANY:
+        {
+          // validate Ids
+          {
+            const childRowsQb = this.dbDriver(childTn)
+              .select(childTable.primaryKey.column_name)
+              .whereIn(childTable.primaryKey.column_name, childIds);
+
+            const childRows = await childRowsQb;
+
+            if (childRows.length !== childIds.length) {
+              const missingIds = childIds.filter(
+                (id) =>
+                  !childRows.find((r) => r[parentColumn.column_name] === id),
+              );
+
+              NcError.notFound(
+                `Child record with id ${missingIds.join(', ')} not found`,
+              );
+            }
+          }
+
+          await this.dbDriver(childTn)
+            // .where({
+            //   [childColumn.cn]: this.dbDriver(parentTable.tn)
+            //     .select(parentColumn.cn)
+            //     .where(parentTable.primaryKey.cn, rowId)
+            //     .first()
+            // })
+            // .where(_wherePk(childTable.primaryKeys, childId))
+            .whereIn(childTable.primaryKey.column_name, childIds)
+            .update({ [childColumn.column_name]: null });
+        }
+        break;
+      case RelationTypes.BELONGS_TO:
+        {
+          // validate Ids
+          {
+            const childRowsQb = this.dbDriver(parentTn)
+              .select(parentTable.primaryKey.column_name)
+              .where(_wherePk(parentTable.primaryKeys, childIds[0]))
+              .first();
+
+            const childRow = await childRowsQb;
+
+            if (!childRow) {
+              NcError.notFound(`Child record with id ${childIds[0]} not found`);
+            }
+          }
+
+          await this.dbDriver(childTn)
+            // .where({
+            //   [childColumn.cn]: this.dbDriver(parentTable.tn)
+            //     .select(parentColumn.cn)
+            //     .where(parentTable.primaryKey.cn, childId)
+            //     .first()
+            // })
+            // .where(_wherePk(childTable.primaryKeys, rowId))
+            .where(childTable.primaryKey.column_name, rowId)
+            .update({ [childColumn.column_name]: null });
+        }
+        break;
+    }
+
+    // const newData = await this.readByPk(rowId);
+    // await this.afterUpdate(prevData, newData, this.dbDriver, cookie);
+    // await this.afterRemoveChild(rowId, childIds, cookie);
+  }
 }
 
 function extractSortsObject(

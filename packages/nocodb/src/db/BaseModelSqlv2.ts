@@ -3773,15 +3773,18 @@ class BaseModelSqlv2 {
 
           await this.dbDriver(vTn)
             .where({
-              [vParentCol.column_name]: this.dbDriver(parentTn)
-                .select(parentColumn.column_name)
-                .whereIn(parentTable.primaryKey.column_name, childIds)
-                .first(),
               [vChildCol.column_name]: this.dbDriver(childTn)
                 .select(childColumn.column_name)
                 .where(_wherePk(childTable.primaryKeys, rowId))
                 .first(),
             })
+            .whereIn(
+              [vParentCol.column_name],
+              this.dbDriver(parentTn)
+                .select(parentColumn.column_name)
+                .whereIn(parentTable.primaryKey.column_name, childIds)
+                .first(),
+            )
             .delete();
         }
         break;

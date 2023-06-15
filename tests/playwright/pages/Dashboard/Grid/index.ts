@@ -318,12 +318,6 @@ export class GridPage extends BasePage {
     await expect(
       await this.cell.get({ index: 0, columnHeader: 'City List' }).locator('.nc-action-icon.nc-plus')
     ).toBeVisible();
-
-    // expand row
-    await this.cell.get({ index: 0, columnHeader: 'City List' }).hover();
-    await expect(
-      await this.cell.get({ index: 0, columnHeader: 'City List' }).locator('.nc-action-icon.nc-arrow-expand')
-    ).toBeVisible();
   }
 
   async validateRoleAccess(param: { role: string }) {

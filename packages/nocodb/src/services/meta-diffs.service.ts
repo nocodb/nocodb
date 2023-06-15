@@ -748,7 +748,7 @@ export class MetaDiffsService {
                       `${childModel.title || childModel.table_name} List`,
                     );
                     await Column.insert<LinkToAnotherRecordColumn>({
-                      uidt: UITypes.LinkToAnotherRecord,
+                      uidt: UITypes.Links,
                       title,
                       fk_model_id: parentModel.id,
                       fk_related_model_id: childModel.id,
@@ -943,7 +943,7 @@ export class MetaDiffsService {
                     `${childModel.title || childModel.table_name} List`,
                   );
                   await Column.insert<LinkToAnotherRecordColumn>({
-                    uidt: UITypes.LinkToAnotherRecord,
+                    uidt: UITypes.Links,
                     title,
                     fk_model_id: parentModel.id,
                     fk_related_model_id: childModel.id,
@@ -1054,7 +1054,7 @@ export class MetaDiffsService {
             fk_mm_parent_column_id:
               belongsToCols[1].colOptions.fk_child_column_id,
             type: RelationTypes.MANY_TO_MANY,
-            uidt: UITypes.LinkToAnotherRecord,
+            uidt: UITypes.Links,
           });
         }
         if (!isRelationAvailInB) {
@@ -1074,7 +1074,7 @@ export class MetaDiffsService {
             fk_mm_parent_column_id:
               belongsToCols[0].colOptions.fk_child_column_id,
             type: RelationTypes.MANY_TO_MANY,
-            uidt: UITypes.LinkToAnotherRecord,
+            uidt: UITypes.Links,
           });
         }
 

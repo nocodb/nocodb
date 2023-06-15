@@ -64,9 +64,9 @@ export function useMultiSelect(
 
   const editEnabled = ref(_editEnabled)
 
-  let isMouseDown = $ref(false)
+  const isMouseDown = ref(false)
 
-  let fillMode = $ref(false)
+  const isFillMode = ref(false)
 
   const selectedRange = reactive(new CellRange())
 
@@ -297,13 +297,13 @@ export function useMultiSelect(
   }
 
   function handleMouseOver(event: MouseEvent, row: number, col: number) {
-    if (fillMode) {
+    if (isFillMode.value) {
       fillRange.endRange({ row, col: selectedRange.end.col })
       scrollToCell?.(row, col)
       return
     }
 
-    if (!isMouseDown) {
+    if (!isMouseDown.value) {
       return
     }
 
@@ -325,7 +325,7 @@ export function useMultiSelect(
     }
 
     // if edit is enabled, don't start the selection (some cells shrink after edit mode, which causes the selection to expand if flag is set)
-    if (!editEnabled.value) isMouseDown = true
+    if (!editEnabled.value) isMouseDown.value = true
 
     contextMenu.value = false
 
@@ -363,8 +363,8 @@ export function useMultiSelect(
   }
 
   const handleMouseUp = (_event: MouseEvent) => {
-    if (fillMode) {
-      fillMode = false
+    if (isFillMode.value) {
+      isFillMode.value = false
 
       if (fillRange._start === null || fillRange._end === null) return
 
@@ -439,8 +439,8 @@ export function useMultiSelect(
       return
     }
 
-    if (isMouseDown) {
-      isMouseDown = false
+    if (isMouseDown.value) {
+      isMouseDown.value = false
       // timeout is needed, because we want to set cell as active AFTER all the child's click handler's called
       // this is needed e.g. for date field edit, where two clicks had to be done - one to select cell, and another one to open date dropdown
       setTimeout(() => {
@@ -870,7 +870,7 @@ export function useMultiSelect(
       return
     }
 
-    fillMode = true
+    isFillMode.value = true
 
     if (selectedRange._start && selectedRange._end) {
       fillRange.startRange({ row: selectedRange._start?.row, col: selectedRange.start.col })
@@ -900,5 +900,6 @@ export function useMultiSelect(
     makeActive,
     fillHandleMouseDown,
     isCellInFillRange,
+    isMouseDown,
   }
 }

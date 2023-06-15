@@ -3542,7 +3542,7 @@ class BaseModelSqlv2 {
                 qb.on(
                   `${vTable.table_name}.${vParentCol.column_name}`,
                   `${parentTable.table_name}.${parentColumn.column_name}`,
-                ).orOn(
+                ).andOn(
                   `${vTable.table_name}.${vChildCol.column_name}`,
                   row[childColumn.column_name],
                 );
@@ -3583,6 +3583,9 @@ class BaseModelSqlv2 {
                 [vParentCol.column_name]: childRow[parentColumn.column_name],
                 [vChildCol.column_name]: row[childColumn.column_name],
               }));
+
+            // if no new links, return true
+            if(!insertData.length) return true
           }
 
           // if (this.isSnowflake) {
@@ -3785,7 +3788,6 @@ class BaseModelSqlv2 {
               this.dbDriver(parentTn)
                 .select(parentColumn.column_name)
                 .whereIn(parentTable.primaryKey.column_name, childIds)
-                .first(),
             )
             .delete();
         }

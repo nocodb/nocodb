@@ -56,7 +56,6 @@ const icon = (table: TableType) => {
 }
 
 const setIcon = async (icon: string, table: TableType) => {
-  console.log('setIcon', icon, { table })
   try {
     table.meta = {
       ...((table.meta as object) || {}),

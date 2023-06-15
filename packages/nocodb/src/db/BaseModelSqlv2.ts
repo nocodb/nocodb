@@ -3677,17 +3677,10 @@ class BaseModelSqlv2 {
               .where(_wherePk(parentTable.primaryKeys, childIds[0]))
               .first();
 
-            const childRows = await childRowsQb;
+            const childRow = await childRowsQb;
 
-            if (childRows.length !== childIds.length) {
-              const missingIds = childIds.filter(
-                (id) =>
-                  !childRows.find((r) => r[parentColumn.column_name] === id),
-              );
-
-              NcError.notFound(
-                `Child record with id ${missingIds.join(', ')} not found`,
-              );
+            if (!childRow) {
+              NcError.notFound(`Child record with id ${childIds[0]} not found`);
             }
           }
 
@@ -3841,20 +3834,13 @@ class BaseModelSqlv2 {
           {
             const childRowsQb = this.dbDriver(parentTn)
               .select(parentTable.primaryKey.column_name)
-              .whereIn(parentTable.primaryKey.column_name, childIds)
+              .where(_wherePk(parentTable.primaryKeys, childIds[0]))
               .first();
 
-            const childRows = await childRowsQb;
+            const childRow = await childRowsQb;
 
-            if (childRows.length !== childIds.length) {
-              const missingIds = childIds.filter(
-                (id) =>
-                  !childRows.find((r) => r[parentColumn.column_name] === id),
-              );
-
-              NcError.notFound(
-                `Child record with id ${missingIds.join(', ')} not found`,
-              );
+            if (!childRow) {
+              NcError.notFound(`Child record with id ${childIds[0]} not found`);
             }
           }
 

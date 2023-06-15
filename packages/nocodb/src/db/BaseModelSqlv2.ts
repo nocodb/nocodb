@@ -1371,7 +1371,7 @@ class BaseModelSqlv2 {
             });
             const relColTitle =
               relCol.uidt === UITypes.Links
-                ? `_nc_${relCol.title}`
+                ? `_nc_lk_${relCol.title}`
                 : relCol.title;
             proto.__columnAliases[column.title] = {
               path: [
@@ -1422,7 +1422,7 @@ class BaseModelSqlv2 {
 
               proto[
                 column.uidt === UITypes.Links
-                  ? `_nc_${column.title}`
+                  ? `_nc_lk_${column.title}`
                   : column.title
               ] = async function (args): Promise<any> {
                 (listLoader as any).args = args;
@@ -1472,7 +1472,7 @@ class BaseModelSqlv2 {
               // const childColumn = await colOptions.getChildColumn();
               proto[
                 column.uidt === UITypes.Links
-                  ? `_nc_${column.title}`
+                  ? `_nc_lk_${column.title}`
                   : column.title
               ] = async function (args): Promise<any> {
                 (listLoader as any).args = args;

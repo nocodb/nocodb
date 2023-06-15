@@ -77,9 +77,9 @@ export class CellPageObject extends BasePage {
   }
 
   async inCellExpand({ index, columnHeader }: CellProps) {
-    await this.get({ index, columnHeader }).hover();
+    // await this.get({ index, columnHeader }).hover();
     await this.waitForResponse({
-      uiAction: () => this.get({ index, columnHeader }).locator('.nc-action-icon >> nth=0').click(),
+      uiAction: () => this.get({ index, columnHeader }).locator('.nc-datatype-link').click(),
       requestUrlPathToMatch: '/api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
     });
@@ -268,39 +268,47 @@ export class CellPageObject extends BasePage {
   async verifyVirtualCell({
     index,
     columnHeader,
+    type,
     count,
     value,
     verifyChildList = false,
   }: CellProps & {
     count?: number;
+    type?: 'hm' | 'bt' | 'mm';
     value: string[];
     verifyChildList?: boolean;
   }) {
-    // const count = value.length;
     const cell = await this.get({ index, columnHeader });
-    const chips = cell.locator('.chips > .chip');
+    const linkText = await cell.locator('.nc-datatype-link');
 
-    await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
+    await cell.scrollIntoViewIfNeeded();
+
+    if (type === 'bt') {
+      const chips = cell.locator('.chips > .chip');
+      console.log('chips', await chips.count());
+      await expect(await chips.count()).toBe(count);
+
+      for (let i = 0; i < value.length; ++i) {
+        await chips.nth(i).locator('.name').waitFor({ state: 'visible' });
+        await chips.nth(i).locator('.name').scrollIntoViewIfNeeded();
+        await expect(await chips.nth(i).locator('.name')).toHaveText(value[i]);
+      }
+      return;
+    }
 
     // verify chip count & contents
-    if (count) await expect(chips).toHaveCount(count);
-
-    // verify only the elements that are passed in
-    for (let i = 0; i < value.length; ++i) {
-      await chips.nth(i).locator('.name').waitFor({ state: 'visible' });
-      await chips.nth(i).locator('.name').scrollIntoViewIfNeeded();
-      await expect(await chips.nth(i).locator('.name')).toHaveText(value[i]);
+    if (count) {
+      await expect(await cell.innerText()).toContain(`${count} ${count === 1 ? 'Link' : 'Links'}`);
     }
 
     if (verifyChildList) {
       // open child list
       await this.get({ index, columnHeader }).hover();
-      const arrow_expand = await this.get({ index, columnHeader }).locator('.nc-arrow-expand');
 
       // arrow expand doesn't exist for bt columns
-      if (await arrow_expand.count()) {
+      if (await linkText.count()) {
         await this.waitForResponse({
-          uiAction: () => arrow_expand.click(),
+          uiAction: () => linkText.click(),
           requestUrlPathToMatch: '/api/v1/db',
           httpMethodsToMatch: ['GET'],
         });

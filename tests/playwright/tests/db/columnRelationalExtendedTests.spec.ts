@@ -65,6 +65,7 @@ test.describe('Relational Columns', () => {
       await dashboard.grid.cell.verifyVirtualCell({
         index: i,
         columnHeader: 'Country',
+        type: 'bt',
         count: countryList[i].length,
         value: countryList[i],
       });

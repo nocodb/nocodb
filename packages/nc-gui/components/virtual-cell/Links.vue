@@ -65,7 +65,11 @@ const onAttachRecord = () => {
   <div class="flex w-full items-center">
     <template v-if="!isForm">
       <div class="flex-grow block">
-        <a class="text-center pl-3" :class="{ '!text-gray-300': !value }" @click.stop.prevent="childListDlg = true">
+        <a
+          class="text-center pl-3 nc-datatype-link"
+          :class="{ '!text-gray-300': !value }"
+          @click.stop.prevent="childListDlg = true"
+        >
           {{ textVal }}
         </a>
       </div>

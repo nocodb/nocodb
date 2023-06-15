@@ -52,15 +52,18 @@ const borderClass = computed(() => {
 <style scoped lang="scss">
 .nc-layout-ui-element {
   @apply h-full;
-  border: 4px solid transparent;
-  padding: 10px;
+  border: 1px solid #ddddddaf;
+  padding: 13px;
   border-radius: 24px;
 
-  &-has-focus, &:hover {
+  &-has-focus,
+  &:hover {
+    padding: 10px;
     border: 4px solid #3366ff;
   }
 
   &-missing-data-config {
+    padding: 10px;
     border: 4px solid red;
   }
 }

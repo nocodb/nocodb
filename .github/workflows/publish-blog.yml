@@ -10,6 +10,10 @@ jobs:
   copy-file:
     runs-on: ubuntu-latest
     steps:
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - name: Checkout
         uses: actions/checkout@v3
         with:

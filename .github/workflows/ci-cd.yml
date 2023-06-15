@@ -30,6 +30,10 @@ jobs:
       timeout-minutes: 40
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
+        - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
         - name: Setup Node
           uses: actions/setup-node@v3
           with:
@@ -68,6 +72,10 @@ jobs:
       timeout-minutes: 40
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
+        - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
         - name: Setup Node
           uses: actions/setup-node@v3
           with:

@@ -16,6 +16,10 @@ jobs:
     runs-on: ubuntu-20.04
     timeout-minutes: 40
     steps:
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
       # Reference: https://github.com/pierotofy/set-swap-space/blob/master/action.yml
       - name: Set 5gb swap
         shell: bash

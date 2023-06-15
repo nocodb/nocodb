@@ -24,21 +24,25 @@ jobs:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'pnpm'
-    - name: install dependencies nocodb-sdk
-      working-directory: ./packages/nocodb-sdk
-      run: pnpm install
-    - name: build nocodb-sdk
-      working-directory: ./packages/nocodb-sdk
-      run: pnpm run build:main
-    - name: install dependencies nocodb
-      working-directory: ./packages/nocodb
-      run: pnpm install
-    - name: run unit tests
-      working-directory: ./packages/nocodb
-      run: pnpm run unit-test
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+      - name: install dependencies nocodb-sdk
+        working-directory: ./packages/nocodb-sdk
+        run: pnpm install
+      - name: build nocodb-sdk
+        working-directory: ./packages/nocodb-sdk
+        run: pnpm run build:main
+      - name: install dependencies nocodb
+        working-directory: ./packages/nocodb
+        run: pnpm install
+      - name: run unit tests
+        working-directory: ./packages/nocodb
+        run: pnpm run unit-test

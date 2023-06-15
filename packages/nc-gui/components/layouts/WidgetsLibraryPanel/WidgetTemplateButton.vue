@@ -21,7 +21,7 @@ const dragStart = (ev: DragEvent, item: WidgetTemplate) => {
   >
     <div class="flex items-center justify-center flex-col">
       <component :is="item.icon" class="text-grey" />
-      <span class="">{{ item.title }}</span>
+      <span>{{ item.title }}</span>
     </div>
   </button>
 </template>

@@ -45,7 +45,6 @@ const borderClass = computed(() => {
     <LayoutsWidgetsNumber v-else-if="isNumber" :widget-config="widget as NumberWidget" />
     <LayoutsWidgetsText v-else-if="isStaticText" :widget-config="widget as StaticTextWidget" />
     <LayoutsWidgetsButton v-else-if="isButton" :widget-config="widget as ButtonWidget" />
-
     <div v-else>Visualisation Type '{{ widget.widget_type }}' not yet implemented</div>
   </div>
 </template>
@@ -57,7 +56,7 @@ const borderClass = computed(() => {
   padding: 10px;
   border-radius: 24px;
 
-  &-has-focus {
+  &-has-focus, &:hover {
     border: 4px solid #3366ff;
   }
 

@@ -1,21 +1,14 @@
 <script lang="ts" setup>
-import { GridItem, GridLayout } from 'vue3-grid-layout-next'
 import type { Widget } from 'nocodb-sdk'
 import { WidgetTypeType } from 'nocodb-sdk'
+import { GridItem, GridLayout } from 'vue3-grid-layout-next'
 import { WidgetTypeText } from './types'
 import type { WidgetTemplate } from './types'
 import { useDashboardStore } from '~~/store/dashboard'
 import '~/assets/dashboardLayout.scss'
 const dashboardStore = useDashboardStore()
-const { focusedWidget, openedLayoutSidebarNode, gridLayout } = storeToRefs(dashboardStore)
-const {
-  updatePositionOfWidgetById,
-  updateScreenDimensionsOfWidgetById,
-  addWidget,
-  removeWidgetById,
-  resetFocus,
-  updateFocusedWidgetByElementId,
-} = dashboardStore
+const { openedLayoutSidebarNode, gridLayout } = storeToRefs(dashboardStore)
+const { updatePositionOfWidgetById, updateScreenDimensionsOfWidgetById, addWidget, removeWidgetById, resetFocus } = dashboardStore
 
 const contextMenuRef = ref<HTMLElement | null>(null)
 const mainArea = ref<any>()
@@ -39,12 +32,7 @@ const resizedEvent = async (i: any, height: any, width: any) => {
     height,
   })
 }
-
-const gridMargins = computed(() => {
-  const gap = parseInt(openedLayoutSidebarNode.value?.grid_gap || '50') || 50
-  return [gap, gap]
-})
-
+const gap = computed(() => parseInt(openedLayoutSidebarNode.value?.grid_gap || '0') || 0)
 const contextMenuVisible = ref(false)
 
 const getWidgetTypeText = (type: WidgetTypeType): string => {
@@ -127,26 +115,20 @@ const showContextMenu = (top: number, left: number, widget: Widget) => {
     <div class="flex">
       <LayoutsWidgetsLibraryPanel />
       <div ref="mainArea" class="min-h-10 flex-1 overflow-y-auto" @click="resetFocus" @dragover.prevent @drop="drop">
-        <!-- TODO: Ugly hack - the GridLayout 3rd party component doesn't re-render automtically when gridMargin is changing; 
-      So we enforce a re-render via setting they key to gridMargins -->
         <GridLayout
-          :key="`${JSON.stringify(gridMargins)}`"
           v-model:layout="gridLayout"
           :style="{
-            margin: `${openedLayoutSidebarNode?.grid_padding_vertical || '10'}px ${
-              openedLayoutSidebarNode?.grid_padding_horizontal || '10'
-            }px`,
+            margin: `${openedLayoutSidebarNode?.grid_padding_vertical}px ${openedLayoutSidebarNode?.grid_padding_horizontal}px`,
           }"
-          :margin="gridMargins"
           :is-draggable="true"
           :is-resizable="true"
-          :use-css-transforms="true"
           :vertical-compact="false"
           :prevent-collision="false"
-          :row-height="10"
+          :row-height="48"
           :col-num="8"
           :responsive="false"
           style="height: '100%'"
+          class="flex"
         >
           <GridItem
             v-for="item in gridLayout"
@@ -161,7 +143,17 @@ const showContextMenu = (top: number, left: number, widget: Widget) => {
             @moved="movedEvent"
             @resized="resizedEvent"
           >
-            <LayoutsFocusableWidget :widget-id="item.widgetId" @show-context-menu-for-widget="showContextMenu" />
+            <div
+              class="nc-dashboard-widget-wrapper"
+              :style="{
+                width: `calc(100% - ${gap}px)`,
+                height: `calc(100% - ${gap}px)`,
+                left: `${gap / 2}px`,
+                top: `${gap / 2}px`,
+              }"
+            >
+              <LayoutsFocusableWidget :widget-id="item.widgetId" @show-context-menu-for-widget="showContextMenu" />
+            </div>
           </GridItem>
         </GridLayout>
       </div>
@@ -174,6 +166,12 @@ const showContextMenu = (top: number, left: number, widget: Widget) => {
 </template>
 
 <style scoped lang="scss">
+.nc-dashboard-widget-wrapper {
+  position: absolute;
+  // &:hover {
+  //   @apply bg-gray-100;
+  // }
+}
 .vue-grid-item {
   padding: 3px;
   border-radius: 24px;

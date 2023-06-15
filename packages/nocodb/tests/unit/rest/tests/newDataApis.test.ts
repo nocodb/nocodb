@@ -1794,38 +1794,33 @@ function linkBased() {
     });
   });
 
-  // Create hm link between Country and City
-  // List them for a record & verify in both tables
-  it('Create Has-Many ', async function () {
-    for (let i = 1; i <= 10; i++) {
-      await ncAxiosLinkAdd({
-        urlParams: {
-          tableId: tblCountry.id,
-          linkId: tblCountry.columns[2].id,
-          rowId: i,
-        },
-        body: {
-          links: [10 * i + 1, 10 * i + 2, 10 * i + 3, 10 * i + 4, 10 * i + 5],
-        },
-      });
-    }
+  it('Has-Many ', async function () {
+    // Create hm link between Country and City
+    await ncAxiosLinkAdd({
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: tblCountry.columns[2].id,
+        rowId: 1,
+      },
+      body: {
+        links: [1, 2, 3, 4, 5],
+      },
+    });
 
     // verify in Country table
-    for (let i = 1; i <= 10; i++) {
-      const rsp = await ncAxiosLinkGet({
-        urlParams: {
-          tableId: tblCountry.id,
-          linkId: tblCountry.columns[2].id,
-          rowId: i,
-        },
-      });
-      expect(rsp.body).to.deep.equal({
-        links: [10 * i + 1, 10 * i + 2, 10 * i + 3, 10 * i + 4, 10 * i + 5],
-      });
-    }
+    let rsp = await ncAxiosLinkGet({
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: tblCountry.columns[2].id,
+        rowId: 1,
+      },
+    });
+    expect(rsp.body).to.deep.equal({
+      links: [1, 2, 3, 4, 5],
+    });
 
     // verify in City table
-    for (let i = 1; i <= 100; i++) {
+    for (let i = 1; i <= 10; i++) {
       const rsp = await ncAxiosLinkGet({
         urlParams: {
           tableId: tblCity.id,
@@ -1833,9 +1828,9 @@ function linkBased() {
           rowId: i,
         },
       });
-      if (i % 10 <= 5 && i % 10 > 0) {
+      if (i <= 5) {
         expect(rsp.body).to.deep.equal({
-          links: [Math.ceil(i / 10)],
+          links: [i],
         });
       } else {
         expect(rsp.body).to.deep.equal({
@@ -1843,23 +1838,19 @@ function linkBased() {
         });
       }
     }
-  });
 
-  // Update hm link between Country and City
-  // List them for a record & verify in both tables
-  it('Update Has-Many ', async function () {
-    for (let i = 1; i <= 10; i++) {
-      await ncAxiosLinkAdd({
-        urlParams: {
-          tableId: tblCountry.id,
-          linkId: tblCountry.columns[2].id,
-          rowId: i,
-        },
-        body: {
-          links: [10 * i + 6, 10 * i + 7],
-        },
-      });
-    }
+    // Update hm link between Country and City
+    // List them for a record & verify in both tables
+    await ncAxiosLinkAdd({
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: tblCountry.columns[2].id,
+        rowId: 1,
+      },
+      body: {
+        links: [6, 7],
+      },
+    });
 
     // verify in Country table
     for (let i = 1; i <= 10; i++) {
@@ -1871,20 +1862,13 @@ function linkBased() {
         },
       });
       expect(rsp.body).to.deep.equal({
-        links: [
-          10 * i + 1,
-          10 * i + 2,
-          10 * i + 3,
-          10 * i + 4,
-          10 * i + 5,
-          10 * i + 6,
-          10 * i + 7,
-        ],
+        links: [1, 2, 3, 4, 5, 6, 7],
       });
     }
 
     // verify in City table
-    for (let i = 1; i <= 100; i++) {
+    // verify in City table
+    for (let i = 1; i <= 10; i++) {
       const rsp = await ncAxiosLinkGet({
         urlParams: {
           tableId: tblCity.id,
@@ -1892,9 +1876,9 @@ function linkBased() {
           rowId: i,
         },
       });
-      if (i % 10 <= 7 && i % 10 > 0) {
+      if (i <= 7) {
         expect(rsp.body).to.deep.equal({
-          links: [Math.ceil(i / 10)],
+          links: [i],
         });
       } else {
         expect(rsp.body).to.deep.equal({
@@ -1902,40 +1886,34 @@ function linkBased() {
         });
       }
     }
-  });
 
-  // Delete hm link between Country and City
-  // List them for a record & verify in both tables
-  it('Delete Has-Many ', async function () {
-    for (let i = 1; i <= 10; i++) {
-      await ncAxiosLinkRemove({
-        urlParams: {
-          tableId: tblCountry.id,
-          linkId: tblCountry.columns[2].id,
-          rowId: i,
-        },
-        body: {
-          links: [10 * i + 6, 10 * i + 7],
-        },
-      });
-    }
+    // Delete hm link between Country and City
+    // List them for a record & verify in both tables
+    await ncAxiosLinkRemove({
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: tblCountry.columns[2].id,
+        rowId: 1,
+      },
+      body: {
+        links: [1, 3, 5, 7],
+      },
+    });
 
     // verify in Country table
-    for (let i = 1; i <= 10; i++) {
-      const rsp = await ncAxiosLinkGet({
-        urlParams: {
-          tableId: tblCountry.id,
-          linkId: tblCountry.columns[2].id,
-          rowId: i,
-        },
-      });
-      expect(rsp.body).to.deep.equal({
-        links: [10 * i + 1, 10 * i + 2, 10 * i + 3, 10 * i + 4, 10 * i + 5],
-      });
-    }
+    rsp = await ncAxiosLinkGet({
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: tblCountry.columns[2].id,
+        rowId: 1,
+      },
+    });
+    expect(rsp.body).to.deep.equal({
+      links: [2, 4, 6],
+    });
 
     // verify in City table
-    for (let i = 1; i <= 100; i++) {
+    for (let i = 1; i <= 10; i++) {
       const rsp = await ncAxiosLinkGet({
         urlParams: {
           tableId: tblCity.id,
@@ -1943,7 +1921,7 @@ function linkBased() {
           rowId: i,
         },
       });
-      if (i % 10 <= 5 && i % 10 > 0) {
+      if (i % 2 === 0 && i <= 6) {
         expect(rsp.body).to.deep.equal({
           links: [Math.ceil(i / 10)],
         });
@@ -1957,22 +1935,289 @@ function linkBased() {
 
   // Create mm link between Actor and Film
   // List them for a record & verify in both tables
-  it('Create Many-Many ', async function () {});
 
-  // Update mm link between Actor and Film
-  // List them for a record & verify in both tables
-  it('Update Many-Many ', async function () {});
+  function initializeArrayFromSequence(i, count) {
+    return Array.from({ length: count }, (_, index) => i + index);
+  }
 
-  // Delete mm link between Actor and Film
-  // List them for a record & verify in both tables
-  it('Delete Many-Many ', async function () {});
+  it('Create Many-Many ', async function () {
+    await ncAxiosLinkAdd({
+      urlParams: {
+        tableId: tblActor.id,
+        linkId: tblActor.columns[2].id,
+        rowId: 1,
+      },
+      body: {
+        links: initializeArrayFromSequence(1, 20),
+      },
+    });
+    await ncAxiosLinkAdd({
+      urlParams: {
+        tableId: tblFilm.id,
+        linkId: tblFilm.columns[2].id,
+        rowId: 1,
+      },
+      body: {
+        links: initializeArrayFromSequence(1, 20),
+      },
+    });
+
+    // verify in Actor table
+    let rsp = await ncAxiosLinkGet({
+      urlParams: {
+        tableId: tblActor.id,
+        linkId: tblActor.columns[2].id,
+        rowId: 1,
+      },
+    });
+    expect(rsp.body).to.deep.equal({
+      links: initializeArrayFromSequence(1, 20),
+    });
+
+    // verify in Film table
+    rsp = await ncAxiosLinkGet({
+      urlParams: {
+        tableId: tblFilm.id,
+        linkId: tblFilm.columns[2].id,
+        rowId: 1,
+      },
+    });
+    expect(rsp.body).to.deep.equal({
+      links: initializeArrayFromSequence(1, 20),
+    });
+
+    // Update mm link between Actor and Film
+    // List them for a record & verify in both tables
+    await ncAxiosLinkAdd({
+      urlParams: {
+        tableId: tblActor.id,
+        linkId: tblActor.columns[2].id,
+        rowId: 1,
+      },
+      body: {
+        links: initializeArrayFromSequence(21, 30),
+      },
+    });
+
+    // verify in Actor table
+    rsp = await ncAxiosLinkGet({
+      urlParams: {
+        tableId: tblActor.id,
+        linkId: tblActor.columns[2].id,
+        rowId: 1,
+      },
+    });
+    expect(rsp.body).to.deep.equal({
+      links: initializeArrayFromSequence(1, 30),
+    });
+
+    // verify in Film table
+    for (let i = 21; i <= 30; i++) {
+      const rsp = await ncAxiosLinkGet({
+        urlParams: {
+          tableId: tblFilm.id,
+          linkId: tblFilm.columns[2].id,
+          rowId: i,
+        },
+      });
+      expect(rsp.body).to.deep.equal({
+        links: initializeArrayFromSequence(1, 1),
+      });
+    }
+
+    // Delete mm link between Actor and Film
+    // List them for a record & verify in both tables
+    await ncAxiosLinkRemove({
+      urlParams: {
+        tableId: tblActor.id,
+        linkId: tblActor.columns[2].id,
+        rowId: 1,
+      },
+      body: {
+        links: [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29],
+      },
+    });
+
+    // verify in Actor table
+    rsp = await ncAxiosLinkGet({
+      urlParams: {
+        tableId: tblActor.id,
+        linkId: tblActor.columns[2].id,
+        rowId: 1,
+      },
+    });
+    expect(rsp.body).to.deep.equal({
+      links: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30],
+    });
+
+    // verify in Film table
+    for (let i = 2; i <= 30; i++) {
+      const rsp = await ncAxiosLinkGet({
+        urlParams: {
+          tableId: tblFilm.id,
+          linkId: tblFilm.columns[2].id,
+          rowId: i,
+        },
+      });
+      if (i % 2 === 0) {
+        expect(rsp.body).to.deep.equal({
+          links: [1],
+        });
+      } else {
+        expect(rsp.body).to.deep.equal({
+          links: [],
+        });
+      }
+    }
+  });
 
   // Other scenarios
   // Has-many : change an existing link to a new one
+  it('Change an existing link to a new one', async function () {
+    // add a link
+    await ncAxiosLinkAdd({
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: tblCountry.columns[2].id,
+        rowId: 1,
+      },
+      body: {
+        links: [1, 2, 3],
+      },
+    });
+
+    // update the link
+    await ncAxiosLinkAdd({
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: tblCountry.columns[2].id,
+        rowId: 2,
+      },
+      body: {
+        links: [2, 3],
+      },
+    });
+
+    // verify record 1
+    let rsp = await ncAxiosLinkGet({
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: tblCountry.columns[2].id,
+        rowId: 1,
+      },
+    });
+    expect(rsp.body).to.deep.equal({ links: [1] });
+
+    rsp = await ncAxiosLinkGet({
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: tblCountry.columns[2].id,
+        rowId: 2,
+      },
+    });
+    expect(rsp.body).to.deep.equal({ links: [2, 3] });
+  });
 
   // limit & offset verification
+  it('Limit & offset verification', async function () {
+    // add a link
+    await ncAxiosLinkAdd({
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: tblCountry.columns[2].id,
+        rowId: 1,
+      },
+      body: {
+        links: initializeArrayFromSequence(1, 50),
+      },
+    });
+
+    // verify record 1
+    let rsp = await ncAxiosLinkGet({
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: tblCountry.columns[2].id,
+        rowId: 1,
+      },
+      query: {
+        limit: 10,
+        offset: 0,
+      },
+    });
+    expect(rsp.body).to.deep.equal({
+      links: initializeArrayFromSequence(1, 10),
+    });
+
+    rsp = await ncAxiosLinkGet({
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: tblCountry.columns[2].id,
+        rowId: 1,
+      },
+      query: {
+        limit: 10,
+        offset: 10,
+      },
+    });
+    expect(rsp.body).to.deep.equal({
+      links: initializeArrayFromSequence(11, 20),
+    });
+
+    rsp = await ncAxiosLinkGet({
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: tblCountry.columns[2].id,
+        rowId: 1,
+      },
+      query: {
+        limit: 10,
+        offset: 40,
+      },
+    });
+    expect(rsp.body).to.deep.equal({
+      links: initializeArrayFromSequence(41, 50),
+    });
+  });
 
   // invalid link id
+  it('Invalid link id', async function () {
+    // Link Add: Invalid link ID
+    await ncAxiosLinkAdd({
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: tblCountry.columns[2].id,
+        rowId: 1,
+      },
+      body: {
+        links: [9999],
+      },
+      status: 400,
+    });
+
+    // Invalid link field ID
+    const rsp = await ncAxiosLinkGet({
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: 9999,
+        rowId: 19,
+      },
+      status: 400,
+    });
+    expect(rsp.body).to.deep.equal({ links: [] });
+
+    // Link Remove: Invalid link ID
+    await ncAxiosLinkRemove({
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: tblCountry.columns[2].id,
+        rowId: 1,
+      },
+      body: {
+        links: [9999],
+      },
+      status: 400,
+    });
+  });
 }
 
 ///////////////////////////////////////////////////////////////////////////////

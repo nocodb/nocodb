@@ -147,8 +147,8 @@ export class DataTableController {
   }
 
 
-  @Get(['/api/v1/tables/:modelId/links/:columnId/row/:rowId'])
-  @Post('nestedDataLink')
+  @Post(['/api/v1/tables/:modelId/links/:columnId/row/:rowId'])
+  @Acl('nestedDataLink')
   async nestedLink(
     @Request() req,
     @Param('modelId') modelId: string,

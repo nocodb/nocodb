@@ -131,8 +131,8 @@ const formulaDataByDbType = (context: NcContext) => [
     result: isPg(context) ? ['false', 'false', 'false', 'false', 'false'] : ['0', '0', '0', '0', '0'],
   },
   {
-    formula: `IF((SEARCH({Address List}, "Parkway") != 0), "2.0","WRONG")`,
-    result: ['WRONG', 'WRONG', 'WRONG', '2.0', '2.0'],
+    formula: `IF((SEARCH({City}, "Ad") != 0), "2.0","WRONG")`,
+    result: ['WRONG', 'WRONG', 'WRONG', 'WRONG', '2.0'],
   },
 
   // additional tests for formula case-insensitivity

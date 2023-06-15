@@ -3,7 +3,7 @@ import { TiptapNodesTypes } from 'nocodb-sdk'
 import { isNodeTypeSelected } from '../helper'
 
 export const Quote = TiptapQuote.extend({
-  name: 'quote',
+  name: TiptapNodesTypes.quote,
   addKeyboardShortcuts() {
     return {
       'Ctrl-Alt-q': () => this.editor.commands.toggleBlockquote(),

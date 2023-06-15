@@ -153,7 +153,7 @@ function onOpenModal({
     theme="light"
   >
     <LazySmartsheetSidebarToolbar
-      class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1"
+      class="min-h-[var(--topbar-height)] max-h-[var(--topbar-height)] flex items-center py-3 px-3 justify-between border-b-1"
     />
 
     <div class="flex-1 flex flex-col min-h-0">

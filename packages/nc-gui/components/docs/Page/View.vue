@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { EditorContent, useEditor } from '@tiptap/vue-3'
-import { Icon as IconifyIcon } from '@iconify/vue'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { generateJSON } from '@tiptap/html'
 import { useShortcuts } from '../utils'
@@ -283,10 +282,13 @@ watch(
         }"
       >
         <div
-          class="flex flex-row justify-between items-center my-2 h-8"
+          class="flex flex-row justify-between items-center"
           :class="{
             'pl-6': isSidebarOpen,
             'pl-12': !isSidebarOpen,
+          }"
+          :style="{
+            height: 'var(--topbar-height)',
           }"
         >
           <div class="flex flex-row items-center">
@@ -302,13 +304,7 @@ watch(
                   :data-testid="`nc-doc-page-breadcrumb-${index}`"
                 >
                   <div class="flex flex-row items-center gap-x-1.5">
-                    <IconifyIcon
-                      v-if="icon"
-                      :key="icon"
-                      :data-testid="`nc-doc-page-icon-${icon}`"
-                      class="text-sm pop-in-animation"
-                      :icon="icon"
-                    ></IconifyIcon>
+                    <GeneralEmojiPicker v-if="icon" :key="icon" :emoji="icon" :readonly="true" size="small"> </GeneralEmojiPicker>
                     <div class="pop-in-animation">
                       {{ !title ? EMPTY_TITLE_PLACEHOLDER_DOCS : title }}
                     </div>
@@ -449,17 +445,14 @@ watch(
                 v-for="page of openedPageInSidebar?.children"
                 :key="page.id"
                 class="docs-page-child-page px-6 flex flex-row items-center gap-x-2 cursor-pointer text-gray-600 hover:text-black"
+                :class="{
+                  'gap-x-1.2': page.icon,
+                }"
                 @click="openPage({ page, projectId: project.id! })"
               >
-                <div v-if="page.icon" class="flex">
-                  <IconifyIcon
-                    :key="page.icon"
-                    :data-testid="`nc-doc-page-icon-${page.icon}`"
-                    class="flex text-lg pop-in-animation"
-                    :icon="page.icon"
-                  ></IconifyIcon>
-                </div>
-                <MdiFileDocumentOutline v-else class="flex pop-in-animation ml-0.25" />
+                <GeneralEmojiPicker v-if="page.icon" :key="page.icon" :emoji="page.icon" :readonly="true" size="small">
+                </GeneralEmojiPicker>
+                <MdiFileDocumentOutline v-else class="flex pop-in-animation ml-1" />
                 <div class="font-semibold text-base pop-in-animation">
                   {{ page.title }}
                 </div>

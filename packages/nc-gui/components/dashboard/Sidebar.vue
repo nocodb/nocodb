@@ -41,7 +41,7 @@ const onTreeViewScrollTop = (onScrollTop: boolean) => {
       outlineWidth: '1px',
     }"
   >
-    <div style="height: var(--header-height)">
+    <div style="height: var(--sidebar-top-height)">
       <div style="border-bottom-width: 1px" class="flex items-center px-1 nc-sidebar-header !border-0 py-1.5 pl-2">
         <div class="flex flex-row flex-grow hover:bg-gray-100 pl-2 pr-1 py-0.5 rounded-md">
           <div

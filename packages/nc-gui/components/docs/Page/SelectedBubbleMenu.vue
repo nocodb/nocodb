@@ -47,6 +47,18 @@ const parentIsTableCell = computed(() => {
   return parent?.type.name === TiptapNodesTypes.tableCell
 })
 
+const parentIsCallout = computed(() => {
+  if (!editor) return false
+
+  let parent = editor.state.selection.$from.node(-1)
+  parent =
+    parent?.type.name === TiptapNodesTypes.tableCell && editor.state.selection.$from.depth > 4
+      ? parent
+      : editor.state.selection.$from.node(-2)
+
+  return parent?.type.name === TiptapNodesTypes.callout
+})
+
 const isTableCellSelected = computed(() => {
   if (!editor) return false
 
@@ -350,7 +362,7 @@ onUnmounted(() => {
         </template>
       </a-dropdown>
 
-      <template v-if="!isTableCellSelected && !parentIsTableCell">
+      <template v-if="!isTableCellSelected && !parentIsTableCell && !parentIsCallout">
         <div class="divider"></div>
 
         <a-button
@@ -396,7 +408,7 @@ onUnmounted(() => {
 
 .bubble-menu {
   // shadow
-  @apply border-gray-200 bg-white;
+  @apply border-gray-100 bg-white;
   border-width: 1px;
   box-shadow: 0px 0px 1.2rem 0 rgb(230, 230, 230) !important;
 

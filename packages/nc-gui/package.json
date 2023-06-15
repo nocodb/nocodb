@@ -78,6 +78,7 @@
     "d3-scale": "^4.0.2",
     "dagre": "^0.8.5",
     "dayjs": "^1.11.3",
+    "emoji-mart-vue-fast": "^15.0.0",
     "file-saver": "^2.0.5",
     "fuse.js": "^6.6.2",
     "httpsnippet": "^2.0.0",

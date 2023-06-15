@@ -7,6 +7,7 @@ import { TiptapNodesTypes } from 'nocodb-sdk'
 import { generateJSON } from '@tiptap/html'
 import { createTable } from '@tiptap/extension-table'
 import { TextSelection } from 'prosemirror-state'
+import { tiptapBgColor } from '../helper'
 import CollapsableH1Icon from './custom-icons/CollapsableH1.vue'
 import CollapsableH2Icon from './custom-icons/CollapsableH2.vue'
 import CollapsableH3Icon from './custom-icons/CollapsableH3.vue'
@@ -27,10 +28,9 @@ import MdiImageMultipleOutline from '~icons/mdi/image-multiple-outline'
 import MdiFormatColorText from '~icons/mdi/format-color-text'
 import PhSparkleFill from '~icons/ph/sparkle-fill'
 import MdiFormatQuoteOpen from '~icons/mdi/format-quote-open'
-import IcOutlineInfo from '~icons/ic/outline-info'
+import IcOutlineInfo from '~icons/mdi/lightbulb-outline'
 import IcOutlineCode from '~icons/ic/outline-code'
-import IcRoundStar from '~icons/ic/round-star-outline'
-import IcRoundWarning from '~icons/ph/warning-circle-bold'
+import IcRoundWarning from '~icons/ph/siren-fill'
 import MdiTable from '~icons/mdi/table'
 import LogosYoutubeIcon from '~icons/logos/youtube-icon'
 import LogosGithubIcon from '~icons/logos/github-icon'
@@ -235,7 +235,7 @@ export const useCommandList = ({
       hasDivider: true,
     },
     {
-      title: 'Info notice',
+      title: 'Notice',
       class: 'text-xs',
       command: ({ editor, range }: { editor: Editor; range: Range }) => {
         editor
@@ -243,13 +243,17 @@ export const useCommandList = ({
           .focus()
           .deleteRange(range)
           .insertContent({
-            type: TiptapNodesTypes.infoCallout,
+            type: TiptapNodesTypes.callout,
             content: [
               {
                 type: TiptapNodesTypes.paragraph,
                 text: '',
               },
             ],
+            attrs: {
+              emoji: '💡',
+              bgColor: tiptapBgColor.gray,
+            },
           })
           .run()
       },
@@ -257,7 +261,7 @@ export const useCommandList = ({
       iconClass: '',
     },
     {
-      title: 'Tip notice',
+      title: 'Warning Notice',
       class: 'text-xs',
       command: ({ editor, range }: { editor: Editor; range: Range }) => {
         editor
@@ -265,35 +269,17 @@ export const useCommandList = ({
           .focus()
           .deleteRange(range)
           .insertContent({
-            type: TiptapNodesTypes.tipCallout,
+            type: TiptapNodesTypes.callout,
             content: [
               {
                 type: TiptapNodesTypes.paragraph,
                 text: '',
               },
             ],
-          })
-          .run()
-      },
-      icon: IcRoundStar,
-      iconClass: '',
-    },
-    {
-      title: 'Warning notice',
-      class: 'text-xs',
-      command: ({ editor, range }: { editor: Editor; range: Range }) => {
-        editor
-          .chain()
-          .focus()
-          .deleteRange(range)
-          .insertContent({
-            type: TiptapNodesTypes.warningCallout,
-            content: [
-              {
-                type: TiptapNodesTypes.paragraph,
-                text: '',
-              },
-            ],
+            attrs: {
+              emoji: '🚨',
+              bgColor: tiptapBgColor.red,
+            },
           })
           .run()
       },

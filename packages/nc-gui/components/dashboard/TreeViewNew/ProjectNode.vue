@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { Icon as IconifyIcon } from '@iconify/vue'
 import { nextTick } from '@vue/runtime-core'
 import { Dropdown, Tooltip, message } from 'ant-design-vue'
 import type { BaseType, ProjectType } from 'nocodb-sdk'
@@ -358,20 +357,17 @@ const reloadTables = async () => {
                 :indicator="indicator"
               />
               <component :is="isUIAllowed('projectIconCustomisation', false, projectRole) ? Tooltip : 'div'" v-else>
-                <span
-                  v-if="project.meta?.icon"
+                <GeneralEmojiPicker
                   :key="project.meta?.icon"
-                  class="flex items-center hover:bg-gray-200 p-1 rounded-md h-6 w-6"
+                  :emoji="project.meta?.icon"
+                  size="small"
+                  clearable
+                  @emoji-selected="setIcon($event, project)"
                 >
-                  <IconifyIcon
-                    :key="project.meta?.icon"
-                    :data-testid="`nc-icon-${project.meta?.icon}`"
-                    class="text-lg"
-                    :icon="project.meta?.icon"
-                  ></IconifyIcon>
-                </span>
-
-                <GeneralProjectIcon v-else :type="project.type" hoverable />
+                  <template #default>
+                    <GeneralProjectIcon :type="project.type" />
+                  </template>
+                </GeneralEmojiPicker>
 
                 <template v-if="isUIAllowed('projectIconCustomisation', false, projectRole)" #title>
                   <span class="text-xs"> Change icon </span>
@@ -379,10 +375,11 @@ const reloadTables = async () => {
               </component>
             </div>
             <template v-if="isUIAllowed('projectIconCustomisation', false, projectRole)" #overlay>
-              <GeneralEmojiIcons
-                class="shadow bg-white p-2"
-                :show-reset="project.meta?.icon"
-                @select-icon="setIcon($event, project)"
+              <GeneralEmojiPicker
+                :key="project.meta?.icon"
+                :emoji="project.meta?.icon"
+                clearable
+                @emoji-selected="setIcon($event, project)"
               />
             </template>
           </component>

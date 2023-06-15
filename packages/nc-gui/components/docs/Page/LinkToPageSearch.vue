@@ -3,7 +3,6 @@ import { defineProps } from 'vue'
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3'
 import { TiptapNodesTypes } from 'nocodb-sdk'
-import { Icon as IconifyIcon } from '@iconify/vue'
 import { onClickOutside } from '@vueuse/core'
 
 const { editor } = defineProps<Props>()
@@ -277,14 +276,11 @@ onClickOutside(wrapperRef, () => {
             @click="() => onPageClick(page)"
             @mouseenter="($event) => onMouseOver($event, index)"
           >
-            <IconifyIcon
-              v-if="page.icon"
-              :key="page.icon"
-              :data-testid="`nc-doc-page-icon-${page.icon}`"
-              class="text-lg"
-              :icon="page.icon"
-            ></IconifyIcon>
-            <MdiFileDocumentOutline v-else />
+            <GeneralEmojiPicker :key="page.icon" :emoji="page.icon" size="small" :readonly="true">
+              <template #default>
+                <MdiFileDocumentOutline class="text-gray-600 text-sm" />
+              </template>
+            </GeneralEmojiPicker>
 
             <div class="flex">
               {{ page.title }}

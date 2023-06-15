@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { ProjectType, TableType } from 'nocodb-sdk'
 import { toRef } from '@vue/reactivity'
-import { Icon as IconifyIcon } from '@iconify/vue'
 import { Dropdown, Tooltip, message } from 'ant-design-vue'
 import { storeToRefs } from 'pinia'
 import { useUIPermission } from '~/composables/useUIPermission'
@@ -95,14 +94,14 @@ const { isSharedBase } = useProject()
     ]"
   >
     <GeneralTooltip
-      class="pl-11 pr-1.5 py-1 mb-0.25 rounded-md"
+      class="pl-11 pr-1.5 mb-0.25 rounded-md h-7.1"
       :class="{
         'hover:bg-hover': openedTableId !== table.id,
       }"
       modifier-key="Alt"
     >
       <template #title>{{ table.table_name }}</template>
-      <div class="table-context flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
+      <div class="table-context flex items-center gap-1 h-full" @contextmenu="setMenuContext('table', table)">
         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
           <component
             :is="isUIAllowed('tableIconCustomisation', false, projectRole) ? Dropdown : 'div'"
@@ -113,32 +112,43 @@ const { isSharedBase } = useProject()
           >
             <div class="flex items-center" @click.stop>
               <component :is="isUIAllowed('tableIconCustomisation', false, projectRole) ? Tooltip : 'div'">
-                <span v-if="table.meta?.icon" :key="table.meta?.icon" class="flex items-center">
-                  <IconifyIcon
-                    :key="table.meta?.icon"
-                    :data-testid="`nc-icon-${table.meta?.icon}`"
-                    class="text-xl"
-                    :icon="table.meta?.icon"
-                  ></IconifyIcon>
-                </span>
-                <MdiTable
-                  v-else
-                  class="w-5 !text-gray-500"
-                  :class="{
-                    'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole),
-                    '!text-black': openedTableId === table.id,
-                  }"
-                />
+                <GeneralEmojiPicker
+                  :key="table.meta?.icon"
+                  :emoji="table.meta?.icon"
+                  size="small"
+                  @emoji-selected="setIcon($event, table)"
+                >
+                  <template #default>
+                    <MdiTable
+                      class="w-5 !text-gray-500 text-sm"
+                      :class="{
+                        'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole),
+                        '!text-black': openedTableId === table.id,
+                      }"
+                    />
+                  </template>
+                </GeneralEmojiPicker>
 
                 <template v-if="isUIAllowed('tableIconCustomisation', false, projectRole)" #title>Change icon</template>
               </component>
             </div>
             <template v-if="isUIAllowed('tableIconCustomisation', false, projectRole)" #overlay>
-              <GeneralEmojiIcons
-                class="shadow bg-white p-2"
-                :show-reset="table.meta?.icon"
-                @select-icon="setIcon($event, table)"
-              />
+              <GeneralEmojiPicker
+                :key="table.meta?.icon"
+                :emoji="table.meta?.icon"
+                size="small"
+                @emoji-selected="setIcon($event, table)"
+              >
+                <template #default>
+                  <MdiTable
+                    class="w-5 !text-gray-500"
+                    :class="{
+                      'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole),
+                      '!text-black': openedTableId === table.id,
+                    }"
+                  />
+                </template>
+              </GeneralEmojiPicker>
             </template>
           </component>
         </div>

@@ -97,9 +97,7 @@ export enum TiptapNodesTypes {
   divider = 'divider',
   codeBlock = 'codeBlock',
   image = 'image',
-  attachment = 'attachment',
-  infoCallout = 'infoCallout',
-  warningCallout = 'warningCallout',
+  callout = 'callout',
   tipCallout = 'tipCallout',
   table = 'table',
   tableRow = 'tableRow',
@@ -111,6 +109,7 @@ export enum TiptapNodesTypes {
   column = 'column',
   columnContent = 'columnContent',
   linkToPage = 'linkToPage',
+  attachment = 'attachment',
 }
 
 export enum TiptapMarksTypes {

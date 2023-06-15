@@ -429,7 +429,7 @@ onUnmounted(() => {
 
 <template>
   <div class="nc-treeview-container flex flex-col justify-between select-none">
-    <div ref="treeViewDom" mode="inline" class="nc-treeview flex-grow min-h-50 overflow-x-hidden">
+    <div ref="treeViewDom" mode="inline" class="nc-treeview pb-0.5 flex-grow min-h-50 overflow-x-hidden">
       <template v-if="projectsList?.length">
         <ProjectWrapper
           v-for="project of projectsList"
@@ -467,7 +467,7 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .nc-treeview-container {
-  height: calc(100% - var(--header-height));
+  height: calc(100% - var(--sidebar-top-height));
 }
 
 .nc-treeview-footer-item {

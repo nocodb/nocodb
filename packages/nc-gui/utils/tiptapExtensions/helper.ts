@@ -16,6 +16,7 @@ export const nodeTypesContainingSection = [
   TiptapNodesTypes.collapsableContent,
   TiptapNodesTypes.column,
   TiptapNodesTypes.columnContent,
+  TiptapNodesTypes.callout,
 ]
 
 export const nodeTypesContainingListItems = [
@@ -35,6 +36,18 @@ export const tiptapTextColor = {
   purple: 'rgba(144, 101, 176, 1)',
   pink: 'rgba(193, 76, 138, 1)',
   red: 'rgba(212, 76, 71, 1)',
+}
+
+export const tiptapBgColor = {
+  gray: 'gray',
+  brown: 'brown',
+  orange: 'orange',
+  yellow: 'yellow',
+  green: 'green',
+  blue: 'blue',
+  purple: 'purple',
+  pink: 'pink',
+  red: 'red',
 }
 
 export const paragraphContent = (text = '') => ({

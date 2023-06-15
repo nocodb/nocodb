@@ -28,10 +28,9 @@ import MdiImageMultipleOutline from '~icons/mdi/image-multiple-outline'
 import MdiFormatColorText from '~icons/mdi/format-color-text'
 import PhSparkleFill from '~icons/ph/sparkle-fill'
 import MdiFormatQuoteOpen from '~icons/mdi/format-quote-open'
-import IcOutlineInfo from '~icons/ic/outline-info'
+import IcOutlineInfo from '~icons/mdi/lightbulb-outline'
 import IcOutlineCode from '~icons/ic/outline-code'
-import IcRoundStar from '~icons/ic/round-star-outline'
-import IcRoundWarning from '~icons/ph/warning-circle-bold'
+import IcRoundWarning from '~icons/ph/siren-fill'
 import MdiTable from '~icons/mdi/table'
 import LogosYoutubeIcon from '~icons/logos/youtube-icon'
 import LogosGithubIcon from '~icons/logos/github-icon'
@@ -262,7 +261,7 @@ export const useCommandList = ({
       iconClass: '',
     },
     {
-      title: 'Warning notice',
+      title: 'Warning Notice',
       class: 'text-xs',
       command: ({ editor, range }: { editor: Editor; range: Range }) => {
         editor

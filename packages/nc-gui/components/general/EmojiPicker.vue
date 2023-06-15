@@ -66,7 +66,7 @@ const onClick = () => {
     </div>
 
     <div
-      class="absolute z-40 shadow-2xl"
+      class="absolute z-40 shadow-2xl rounded-md"
       :class="{
         'top-7': size === 'small',
         'top-9': size === 'medium',
@@ -128,7 +128,7 @@ const onClick = () => {
     overflow-y: overlay;
 
     &::-webkit-scrollbar {
-      width: 6px;
+      width: 3px;
     }
     &::-webkit-scrollbar-track {
       background: #f6f6f600 !important;
@@ -142,7 +142,7 @@ const onClick = () => {
   }
   .emoji-mart-scroll:hover {
     &::-webkit-scrollbar {
-      width: 6px;
+      width: 3px;
     }
     &::-webkit-scrollbar-track {
       background: #f6f6f600 !important;

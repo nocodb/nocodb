@@ -408,7 +408,7 @@ onUnmounted(() => {
 
 .bubble-menu {
   // shadow
-  @apply border-gray-200 bg-white;
+  @apply border-gray-100 bg-white;
   border-width: 1px;
   box-shadow: 0px 0px 1.2rem 0 rgb(230, 230, 230) !important;
 

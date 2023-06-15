@@ -483,6 +483,11 @@
     @apply w-full;
   }
 
+  .selected {
+    .callout {
+      @apply bg-primary-selected;
+    }
+  }
   .callout {
     @apply my-2.5 px-2 py-2 rounded-md;
     [data-type='bullet'] {

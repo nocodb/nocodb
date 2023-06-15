@@ -16,6 +16,7 @@ export const nodeTypesContainingSection = [
   TiptapNodesTypes.collapsableContent,
   TiptapNodesTypes.column,
   TiptapNodesTypes.columnContent,
+  TiptapNodesTypes.callout,
 ]
 
 export const nodeTypesContainingListItems = [

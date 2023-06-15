@@ -4,17 +4,30 @@ import { TiptapNodesTypes } from 'nocodb-sdk'
 import CalloutComponent from './callout.vue'
 import { handleOnEnterForCallouts } from './helper'
 
-export interface WarningCalloutOptions {
+export interface InfoCalloutOptions {
   HTMLAttributes: Record<string, any>
 }
 
-export const WarningCallout = Node.create<WarningCalloutOptions>({
-  name: TiptapNodesTypes.warningCallout,
+export const Callout = Node.create<InfoCalloutOptions>({
+  name: TiptapNodesTypes.callout,
+
+  addAttributes() {
+    return {
+      emoji: {
+        default: '📝',
+        parseHTML(element) {
+          return {
+            emoji: element.getAttribute('data-emoji'),
+          }
+        },
+      },
+    }
+  },
 
   addOptions() {
     return {
       HTMLAttributes: {
-        class: 'callout warning-callout items-baseline',
+        class: 'callout',
       },
     }
   },
@@ -23,11 +36,11 @@ export const WarningCallout = Node.create<WarningCalloutOptions>({
   group: 'block',
 
   parseHTML() {
-    return [{ tag: 'div[data-type="warning-callout"]' }]
+    return [{ tag: 'div[data-type="callout"]' }]
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'warning-callout' }), 0]
+    return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'callout' }), 0]
   },
 
   addNodeView() {
@@ -37,7 +50,7 @@ export const WarningCallout = Node.create<WarningCalloutOptions>({
   addKeyboardShortcuts() {
     return {
       Enter: ({ editor }) => {
-        return handleOnEnterForCallouts(editor as any, TiptapNodesTypes.warningCallout)
+        return handleOnEnterForCallouts(editor as any)
       },
     }
   },

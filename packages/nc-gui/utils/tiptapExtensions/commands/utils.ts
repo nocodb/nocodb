@@ -243,13 +243,16 @@ export const useCommandList = ({
           .focus()
           .deleteRange(range)
           .insertContent({
-            type: TiptapNodesTypes.infoCallout,
+            type: TiptapNodesTypes.callout,
             content: [
               {
                 type: TiptapNodesTypes.paragraph,
                 text: '',
               },
             ],
+            attrs: {
+              emoji: '📌',
+            },
           })
           .run()
       },
@@ -265,13 +268,16 @@ export const useCommandList = ({
           .focus()
           .deleteRange(range)
           .insertContent({
-            type: TiptapNodesTypes.tipCallout,
+            type: TiptapNodesTypes.callout,
             content: [
               {
                 type: TiptapNodesTypes.paragraph,
                 text: '',
               },
             ],
+            attrs: {
+              emoji: '💡',
+            },
           })
           .run()
       },
@@ -287,13 +293,16 @@ export const useCommandList = ({
           .focus()
           .deleteRange(range)
           .insertContent({
-            type: TiptapNodesTypes.warningCallout,
+            type: TiptapNodesTypes.callout,
             content: [
               {
                 type: TiptapNodesTypes.paragraph,
                 text: '',
               },
             ],
+            attrs: {
+              emoji: '⚠️',
+            },
           })
           .run()
       },

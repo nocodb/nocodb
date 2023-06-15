@@ -2,15 +2,13 @@ import type { Editor } from '@tiptap/vue-3'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { getPosOfNodeTypeInSection, isLastChild, isNodeTypeSelected } from '../helper'
 
-type CalloutType = TiptapNodesTypes.infoCallout | TiptapNodesTypes.tipCallout | TiptapNodesTypes.warningCallout
-
-export const handleOnEnterForCallouts = (editor: Editor, type: CalloutType) => {
+export const handleOnEnterForCallouts = (editor: Editor) => {
   const state = editor.state
   const selection = state.selection
 
   if (
     !isNodeTypeSelected({
-      nodeType: type,
+      nodeType: TiptapNodesTypes.callout,
       state: editor.state,
     })
   ) {
@@ -18,7 +16,7 @@ export const handleOnEnterForCallouts = (editor: Editor, type: CalloutType) => {
   }
 
   const calloutPos = getPosOfNodeTypeInSection({
-    nodeType: type,
+    nodeType: TiptapNodesTypes.callout,
     state: editor.state,
   })
   if (!calloutPos) return false

@@ -3501,11 +3501,13 @@ class BaseModelSqlv2 {
     if (!column || column.uidt !== UITypes.LinkToAnotherRecord)
       NcError.notFound('Column not found');
 
-    // validate parentId
-    {
-      if (!this.dbDriver(this.tnPath).where(this._wherePk(rowId)).first()) {
-        NcError.notFound('Row not found');
-      }
+    const row = await this.dbDriver(this.tnPath)
+      .where(this._wherePk(rowId))
+      .first();
+
+    // validate rowId
+    if (!row) {
+      NcError.notFound('Row not found');
     }
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
@@ -3529,12 +3531,33 @@ class BaseModelSqlv2 {
 
           const vTn = this.getTnPath(vTable);
 
+          let insertData: Record<string, any>[];
+
           // validate Ids
           {
             const childRowsQb = this.dbDriver(parentTn)
               .select(parentColumn.column_name)
-              // .where(_wherePk(parentTable.primaryKeys, childId))
-              .whereIn(parentTable.primaryKey.column_name, childIds);
+              .select(`${vTable.table_name}.${vChildCol.column_name}`)
+              .leftJoin(vTn, (qb) => {
+                qb.on(
+                  `${vTable.table_name}.${vParentCol.column_name}`,
+                  `${parentTable.table_name}.${parentColumn.column_name}`,
+                ).orOn(
+                  `${vTable.table_name}.${vChildCol.column_name}`,
+                  row[childColumn.column_name],
+                );
+              });
+            // .where(_wherePk(parentTable.primaryKeys, childId))
+
+            if (parentTable.primaryKeys.length > 1) {
+              childRowsQb.where((qb) => {
+                for (const childId of childIds) {
+                  qb.orWhere(_wherePk(parentTable.primaryKeys, childId));
+                }
+              });
+            } else {
+              childRowsQb.whereIn(parentTable.primaryKey.column_name, childIds);
+            }
 
             if (parentTable.primaryKey.column_name !== parentColumn.column_name)
               childRowsQb.select(parentTable.primaryKey.column_name);
@@ -3551,46 +3574,66 @@ class BaseModelSqlv2 {
                 `Child record with id ${missingIds.join(', ')} not found`,
               );
             }
+
+            insertData = childRows
+              // skip existing links
+              .filter((childRow) => !childRow[vChildCol.column_name])
+              // generate insert data for new links
+              .map((childRow) => ({
+                [vParentCol.column_name]: childRow[parentColumn.column_name],
+                [vChildCol.column_name]: row[childColumn.column_name],
+              }));
           }
 
-          if (this.isSnowflake) {
-            const parentPK = this.dbDriver(parentTn)
-              .select(parentColumn.column_name)
-              // .where(_wherePk(parentTable.primaryKeys, childId))
-              .whereIn(parentTable.primaryKey.column_name, childIds)
-              .first();
-
-            const childPK = this.dbDriver(childTn)
-              .select(childColumn.column_name)
-              .where(_wherePk(childTable.primaryKeys, rowId))
-              .first();
-
-            await this.dbDriver.raw(
-              `INSERT INTO ?? (??, ??) SELECT (${parentPK.toQuery()}), (${childPK.toQuery()})`,
-              [vTn, vParentCol.column_name, vChildCol.column_name],
-            );
-          } else {
-            await this.dbDriver(vTn).insert({
-              [vParentCol.column_name]: this.dbDriver(parentTn)
-                .select(parentColumn.column_name)
-                // .where(_wherePk(parentTable.primaryKeys, childId))
-                .where(parentTable.primaryKey.column_name, childIds)
-                .first(),
-              [vChildCol.column_name]: this.dbDriver(childTn)
-                .select(childColumn.column_name)
-                .where(_wherePk(childTable.primaryKeys, rowId))
-                .first(),
-            });
-          }
+          // if (this.isSnowflake) {
+          //   const parentPK = this.dbDriver(parentTn)
+          //     .select(parentColumn.column_name)
+          //     // .where(_wherePk(parentTable.primaryKeys, childId))
+          //     .whereIn(parentTable.primaryKey.column_name, childIds)
+          //     .first();
+          //
+          //   const childPK = this.dbDriver(childTn)
+          //     .select(childColumn.column_name)
+          //     .where(_wherePk(childTable.primaryKeys, rowId))
+          //     .first();
+          //
+          //   await this.dbDriver.raw(
+          //     `INSERT INTO ?? (??, ??) SELECT (${parentPK.toQuery()}), (${childPK.toQuery()})`,
+          //     [vTn, vParentCol.column_name, vChildCol.column_name],
+          //   );
+          // } else {
+          //   await this.dbDriver(vTn).insert({
+          //     [vParentCol.column_name]: this.dbDriver(parentTn)
+          //       .select(parentColumn.column_name)
+          //       // .where(_wherePk(parentTable.primaryKeys, childId))
+          //       .where(parentTable.primaryKey.column_name, childIds)
+          //       .first(),
+          //     [vChildCol.column_name]: this.dbDriver(childTn)
+          //       .select(childColumn.column_name)
+          //       .where(_wherePk(childTable.primaryKeys, rowId))
+          //       .first(),
+          //   });
+          await this.dbDriver(vTn).bulkInsert(insertData);
+          // }
         }
         break;
       case RelationTypes.HAS_MANY:
         {
           // validate Ids
           {
-            const childRowsQb = this.dbDriver(childTn)
-              .select(childTable.primaryKey.column_name)
-              .whereIn(childTable.primaryKey.column_name, childIds);
+            const childRowsQb = this.dbDriver(childTn).select(
+              childTable.primaryKey.column_name,
+            );
+
+            if (childTable.primaryKeys.length > 1) {
+              childRowsQb.where((qb) => {
+                for (const childId of childIds) {
+                  qb.orWhere(_wherePk(childTable.primaryKeys, childId));
+                }
+              });
+            } else {
+              childRowsQb.whereIn(parentTable.primaryKey.column_name, childIds);
+            }
 
             const childRows = await childRowsQb;
 
@@ -3626,7 +3669,7 @@ class BaseModelSqlv2 {
           {
             const childRowsQb = this.dbDriver(parentTn)
               .select(parentTable.primaryKey.column_name)
-              .whereIn(parentTable.primaryKey.column_name, childIds)
+              .where(_wherePk(parentTable.primaryKeys, childIds[0]))
               .first();
 
             const childRows = await childRowsQb;
@@ -3648,8 +3691,8 @@ class BaseModelSqlv2 {
               [childColumn.column_name]: this.dbDriver.from(
                 this.dbDriver(parentTn)
                   .select(parentColumn.column_name)
-                  // .where(_wherePk(parentTable.primaryKeys, childId))
-                  .whereIn(parentTable.primaryKey.column_name, childIds)
+                  .where(_wherePk(parentTable.primaryKeys, childIds[0]))
+                  // .whereIn(parentTable.primaryKey.column_name, childIds)
                   .first()
                   .as('___cn_alias'),
               ),
@@ -3702,8 +3745,6 @@ class BaseModelSqlv2 {
           const vParentCol = await colOptions.getMMParentColumn();
           const vTable = await colOptions.getMMModel();
 
-
-
           // validate Ids
           {
             const childRowsQb = this.dbDriver(parentTn)
@@ -3728,7 +3769,6 @@ class BaseModelSqlv2 {
             }
           }
 
-
           const vTn = this.getTnPath(vTable);
 
           await this.dbDriver(vTn)
@@ -3747,7 +3787,6 @@ class BaseModelSqlv2 {
         break;
       case RelationTypes.HAS_MANY:
         {
-
           // validate Ids
           {
             const childRowsQb = this.dbDriver(childTn)

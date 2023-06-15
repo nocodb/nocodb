@@ -29,7 +29,7 @@ import { PublicDatasService } from '../../services/public-datas.service';
     }),
   ],
   controllers: [
-    process.env.NC_WORKER_CONTAINER !== 'true'
+    ...(process.env.NC_WORKER_CONTAINER !== 'true'
       ? [
           DataTableController,
           DatasController,

@@ -1,11 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { RelationTypes, UITypes } from 'nocodb-sdk'
+import { RelationTypes, UITypes } from 'nocodb-sdk';
 import { NcError } from '../helpers/catchError';
-import { PagedResponseImpl } from '../helpers/PagedResponse'
-import { Base, Column, LinkToAnotherRecordColumn, Model, View } from '../models'
-import { getColumnByIdOrName, getViewAndModelByAliasOrId, PathParams } from '../modules/datas/helpers'
+import { PagedResponseImpl } from '../helpers/PagedResponse';
+import { Base, Column, Model, View } from '../models';
+import {
+  getColumnByIdOrName,
+  getViewAndModelByAliasOrId,
+  PathParams,
+} from '../modules/datas/helpers';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { DatasService } from './datas.service';
+import type { LinkToAnotherRecordColumn } from '../models';
 
 @Injectable()
 export class DataTableService {
@@ -250,14 +255,13 @@ export class DataTableService {
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(base),
     });
-    const column = await this.getColumn(param)
+    const column = await this.getColumn(param);
 
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-    )
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
 
-    let data:any[] ;
-    let count:number;
-    if(colOptions.type === RelationTypes.MANY_TO_MANY) {
+    let data: any[];
+    let count: number;
+    if (colOptions.type === RelationTypes.MANY_TO_MANY) {
       data = await baseModel.mmList(
         {
           colId: column.id,
@@ -265,11 +269,11 @@ export class DataTableService {
         },
         param.query as any,
       );
-       count = await baseModel.mmListCount({
+      count = (await baseModel.mmListCount({
         colId: column.id,
         parentId: param.rowId,
-      });
-    }else {
+      })) as number;
+    } else {
       data = await baseModel.hmList(
         {
           colId: column.id,
@@ -277,10 +281,10 @@ export class DataTableService {
         },
         param.query as any,
       );
-      count = await baseModel.hmListCount({
+      count = (await baseModel.hmListCount({
         colId: column.id,
         id: param.rowId,
-      });
+      })) as number;
     }
     return new PagedResponseImpl(data, {
       count,
@@ -288,20 +292,28 @@ export class DataTableService {
     });
   }
 
-  private async getColumn(param: {modelId: string; columnId: string }) {
-    const column = await Column.get({ colId: param.columnId })
+  private async getColumn(param: { modelId: string; columnId: string }) {
+    const column = await Column.get({ colId: param.columnId });
 
-    if (!column) NcError.badRequest('Column not found'
+    if (!column) NcError.badRequest('Column not found');
 
     if (column.fk_model_id !== param.modelId)
-      NcError.badRequest('Column not belong to model')
+      NcError.badRequest('Column not belong to model');
 
     if (column.uidt !== UITypes.LinkToAnotherRecord)
-      NcError.badRequest('Column is not LTAR')
-    return column
+      NcError.badRequest('Column is not LTAR');
+    return column;
   }
 
-  async nestedLink(param: { cookie:any;viewId: string; modelId: string; columnId: string; query: any; refRowIds: string | string[] | number | number[]; rowId: string }) {
+  async nestedLink(param: {
+    cookie: any;
+    viewId: string;
+    modelId: string;
+    columnId: string;
+    query: any;
+    refRowIds: string | string[] | number | number[];
+    rowId: string;
+  }) {
     const { model, view } = await this.getModelAndView(param);
     if (!model) NcError.notFound('Table not found');
 
@@ -317,14 +329,25 @@ export class DataTableService {
 
     await baseModel.addLinks({
       colId: column.id,
-      childIds: Array.isArray(param.refRowIds) ? param.refRowIds : [param.refRowIds],
+      childIds: Array.isArray(param.refRowIds)
+        ? param.refRowIds
+        : [param.refRowIds],
       rowId: param.rowId,
       cookie: param.cookie,
     });
 
-    return true; }
+    return true;
+  }
 
-  async nestedUnlink(param: { cookie:any;viewId: string; modelId: string; columnId: string; query: any; refRowIds: string | string[] | number | number[]; rowId: string }) {
+  async nestedUnlink(param: {
+    cookie: any;
+    viewId: string;
+    modelId: string;
+    columnId: string;
+    query: any;
+    refRowIds: string | string[] | number | number[];
+    rowId: string;
+  }) {
     const { model, view } = await this.getModelAndView(param);
     if (!model) NcError.notFound('Table not found');
 
@@ -340,7 +363,9 @@ export class DataTableService {
 
     await baseModel.removeLinks({
       colId: column.id,
-      childIds: Array.isArray(param.refRowIds) ? param.refRowIds : [param.refRowIds],
+      childIds: Array.isArray(param.refRowIds)
+        ? param.refRowIds
+        : [param.refRowIds],
       rowId: param.rowId,
       cookie: param.cookie,
     });

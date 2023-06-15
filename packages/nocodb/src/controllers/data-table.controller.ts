@@ -164,6 +164,7 @@ export class DataTableController {
       viewId,
       columnId,
       refRowIds,
+      cookie: req,
     });
   }
 
@@ -185,6 +186,7 @@ export class DataTableController {
       viewId,
       columnId,
       refRowIds,
+      cookie: req,
     });
   }
 }

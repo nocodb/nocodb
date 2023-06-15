@@ -3613,7 +3613,9 @@ class BaseModelSqlv2 {
           //       .where(_wherePk(childTable.primaryKeys, rowId))
           //       .first(),
           //   });
-          await this.dbDriver(vTn).bulkInsert(insertData);
+
+          // todo: use bulk insert
+          await this.dbDriver(vTn).insert(insertData);
           // }
         }
         break;

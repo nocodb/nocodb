@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { Icon as IconifyIcon } from '@iconify/vue'
-
 // If title is provided as prop, use it. Otherwise use the title from the store
 const props = defineProps<{
   title?: string | undefined
@@ -144,36 +142,19 @@ onMounted(() => {
     }"
     data-testid="docs-page-title-wrapper"
   >
-    <a-dropdown v-if="isEditAllowed && openedPage?.icon" placement="bottom" trigger="click">
-      <div
-        class="flex flex-col justify-center h-16 px-2 text-gray-500 rounded-md hover:bg-gray-100 cursor-pointer"
-        data-testid="nc-doc-opened-page-icon-picker"
-      >
-        <IconifyIcon
-          v-if="openedPage?.icon"
-          :key="openedPage.icon"
-          :data-testid="`nc-doc-page-icon-${openedPage.icon}`"
-          class="text-5xl"
-          :icon="openedPage.icon"
-        ></IconifyIcon>
-      </div>
-      <template #overlay>
-        <div class="flex p-1 bg-gray-50 rounded-md">
-          <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon($event)" />
-        </div>
+    <GeneralEmojiPicker
+      v-if="openedPage?.icon"
+      :key="openedPage.icon"
+      :emoji="openedPage.icon"
+      :readonly="!isEditAllowed"
+      size="xlarge"
+      clearable
+      @emoji-selected="setIcon"
+    >
+      <template #default>
+        <MdiFileDocumentOutline class="text-gray-600 text-sm" />
       </template>
-    </a-dropdown>
-    <template v-else>
-      <div v-if="openedPage?.icon" class="flex flex-col justify-center h-16 pl-2 pr-2">
-        <IconifyIcon
-          v-if="openedPage?.icon"
-          :key="openedPage.icon"
-          :data-testid="`nc-doc-page-icon-${openedPage.icon}`"
-          class="flex text-5xl"
-          :icon="openedPage.icon"
-        ></IconifyIcon>
-      </div>
-    </template>
+    </GeneralEmojiPicker>
     <div
       ref="titleInputRef"
       :contenteditable="isEditAllowed && !propTitle"

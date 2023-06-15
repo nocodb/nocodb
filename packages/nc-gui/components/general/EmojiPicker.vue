@@ -1,94 +1,131 @@
 <script lang="ts" setup>
 import data from 'emoji-mart-vue-fast/data/apple.json'
 import 'emoji-mart-vue-fast/css/emoji-mart.css'
-import { onClickOutside } from '@vueuse/core'
+import { Icon } from '@iconify/vue'
 
 import { EmojiIndex, Picker } from 'emoji-mart-vue-fast/src'
 
 const props = defineProps<{
   emoji?: string | undefined
-  size: 'small' | 'medium' | 'large'
+  size?: 'small' | 'medium' | 'large' | 'xlarge'
+  readonly?: boolean
+  clearable?: boolean
 }>()
 
 const emit = defineEmits(['emojiSelected'])
 
-const { emoji, size = 'medium' } = props
-
-const emojiIndex = new EmojiIndex(data)
-const emojisOutput = ref(emoji || '')
-const emojiMartDomRef = ref<HTMLDivElement>()
-
-function showEmoji(emoji: any) {
-  emojisOutput.value = emoji.native
-  emit('emojiSelected', emoji.native)
-}
+const { emoji: initialEmoji, size = 'medium', readonly, clearable = true } = props
 
 const isOpen = ref(false)
+const emojiIndex = new EmojiIndex(data)
+const emoji = ref(initialEmoji || '')
 
-onClickOutside(emojiMartDomRef, (e) => {
-  // If event is created by clicking on the emoji output, it will be handled by the onClick function
-  const target = e.target as HTMLElement
-  if (
-    target?.classList.contains('nc-emoji-picker') ||
-    (target?.parentNode as HTMLElement)?.classList.contains('nc-emoji-picker')
-  ) {
-    return
-  }
+function selectEmoji(_emoji: any) {
+  emoji.value = _emoji.native
+  emit('emojiSelected', _emoji.native)
 
   isOpen.value = false
+}
+
+const isUnicodeEmoji = computed(() => {
+  return emoji.value?.match(/\p{Extended_Pictographic}/gu)
 })
 
 const onClick = () => {
+  if (readonly) return
+
   isOpen.value = !isOpen.value
 }
+
+const clearEmoji = () => {
+  emoji.value = ''
+  emit('emojiSelected', '')
+
+  isOpen.value = false
+}
+
+// Due to calculation of dropdown position by ant dropdown, we need to delay the isOpen change
+// otherwise dropdown opening will be slow
+const debounceIsOpen = ref(false)
+watch(isOpen, () => {
+  if (!isOpen.value) {
+    debounceIsOpen.value = isOpen.value
+    return
+  }
+
+  setTimeout(() => {
+    debounceIsOpen.value = isOpen.value
+  }, 10)
+})
+
+const showClearButton = computed(() => {
+  return !!emoji.value && clearable
+})
 </script>
 
 <template>
-  <div
-    class="nc-emoji-picker h-8 w-8 overflow-visible relative hover:bg-gray-300 hover:bg-opacity-20 rounded select-none"
-    :class="{
-      'bg-gray-300 bg-opacity-20': isOpen,
-      'h-6 w-6 text-sm': size === 'small',
-      'h-8 w-8 text-base': size === 'medium',
-      'h-10 w-10 text-lg': size === 'large',
-    }"
-    @click.stop="onClick"
-  >
+  <a-dropdown v-model:visible="isOpen" trigger="click" :disabled="readonly">
     <div
-      class="h-full w-full flex flex-row justify-center items-center select-none cursor-pointer"
+      class="flex flex-row justify-center items-center select-none cursor-pointer rounded-md"
       :class="{
-        'text-base': size === 'small',
-        'text-lg': size === 'medium',
-        'text-xl': size === 'large',
+        'hover:bg-gray-300 hover:bg-opacity-20': !readonly,
+        'bg-gray-300 bg-opacity-20': isOpen,
+        'h-6 w-6 text-lg': size === 'small',
+        'h-8 w-8 text-xl': size === 'medium',
+        'h-10 w-10 text-2xl': size === 'large',
+        'h-14 w-16 text-5xl': size === 'xlarge',
       }"
+      @click.stop="onClick"
     >
-      {{ emojisOutput }}
+      <template v-if="!emoji">
+        <slot name="default" />
+      </template>
+      <template v-else-if="isUnicodeEmoji">
+        {{ emoji }}
+      </template>
+      <template v-else>
+        <Icon :data-testid="`nc-icon-${emoji}`" class="text-lg" :icon="emoji"></Icon>
+      </template>
     </div>
-
-    <div
-      class="absolute z-40 shadow-2xl rounded-md"
-      :class="{
-        'top-7': size === 'small',
-        'top-9': size === 'medium',
-        'top-11': size === 'large',
-      }"
-    >
-      <Picker
-        v-if="isOpen"
-        ref="emojiMartDomRef"
-        :data="emojiIndex"
-        :native="true"
-        :show-preview="false"
-        color="#40444D"
-        :auto-focus="true"
-        @select="showEmoji"
-        @click.stop="() => {}"
-      />
-    </div>
-  </div>
+    <template #overlay>
+      <div
+        class="relative"
+        :class="{
+          clearable: showClearButton,
+        }"
+      >
+        <div v-if="!debounceIsOpen" class="h-105 w-90"></div>
+        <Picker
+          v-else
+          :data="emojiIndex"
+          :native="true"
+          :show-preview="false"
+          color="#40444D"
+          :auto-focus="true"
+          @select="selectEmoji"
+          @click.stop="() => {}"
+        >
+        </Picker>
+        <div v-if="debounceIsOpen && showClearButton" class="absolute top-10 right-1.5">
+          <div
+            role="button"
+            class="flex flex-row items-center bg-white border-1 border-gray-100 py-0.5 px-2.5 rounded hover:bg-gray-100 cursor-pointer"
+            @click="clearEmoji"
+          >
+            Remove
+          </div>
+        </div>
+      </div>
+    </template>
+  </a-dropdown>
 </template>
 
 <style lang="scss">
+.clearable {
+  .emoji-mart-search {
+    @apply pr-22;
+  }
+}
 .emoji-mart {
   @apply !w-90;
 
@@ -102,9 +139,10 @@ const onClick = () => {
       @apply h-3.5 !important;
     }
   }
+
   .emoji-mart-search {
     input {
-      @apply text-sm pl-3.5;
+      @apply text-sm pl-3.5 rounded;
       // Remove focus outline
       &:focus {
         @apply !outline-none border-0 mt-0.2 mb-0.2;

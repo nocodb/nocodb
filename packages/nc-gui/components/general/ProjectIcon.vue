@@ -50,7 +50,7 @@ const { type, hoverable } = defineProps<{
 
 <style scoped>
 .nc-project-icon {
-  @apply h-6 px-1.5 py-1 text-lg rounded-md;
+  @apply text-xl;
 }
 .nc-project-icon-hoverable {
   @apply cursor-pointer !hover:bg-gray-200 !hover:bg-opacity-50;

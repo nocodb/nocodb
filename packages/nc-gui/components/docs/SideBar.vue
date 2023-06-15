@@ -2,7 +2,6 @@
 import { ref } from 'vue'
 import type { TreeProps } from 'ant-design-vue'
 import type { AntTreeNodeDropEvent } from 'ant-design-vue/lib/tree'
-import { Icon as IconifyIcon } from '@iconify/vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { toRef } from '@vue/runtime-core'
 import type { PageSidebarNode } from '~~/lib'
@@ -200,34 +199,23 @@ function onExpandClick(id: string, expanded: boolean) {
                   color="#000000"
                 >
                   <template #content> Change Icon </template>
-                  <a-dropdown placement="bottom" trigger="click" :disabled="!isEditAllowed">
-                    <div
-                      class="flex px-0.75 pt-0.75 text-gray-500 rounded-md"
-                      :class="{
-                        'hover:bg-gray-100 cursor-pointer': isEditAllowed,
-                      }"
-                      data-testid="docs-sidebar-emoji-selector"
-                    >
-                      <IconifyIcon
-                        v-if="page.icon"
-                        :key="page.icon"
-                        :data-testid="`nc-doc-page-icon-${page.icon}`"
-                        class="text-lg"
-                        :icon="page.icon"
-                      ></IconifyIcon>
+                  <GeneralEmojiPicker
+                    :key="page.icon"
+                    :emoji="page.icon"
+                    size="small"
+                    clearable
+                    :readonly="!isEditAllowed"
+                    @emoji-selected="setIcon(page.id, $event)"
+                  >
+                    <template #default>
                       <MdiFileDocumentOutline
-                        v-else
+                        class="text-gray-600 text-sm"
                         :class="{
                           'text-black': openedPage?.id === page.id,
                         }"
                       />
-                    </div>
-                    <template #overlay>
-                      <div class="flex flex-col p-1 bg-gray-50 rounded-md">
-                        <GeneralEmojiIcons class="shadow p-2" :show-reset="page.icon" @select-icon="setIcon(page.id, $event)" />
-                      </div>
                     </template>
-                  </a-dropdown>
+                  </GeneralEmojiPicker>
                 </a-popover>
               </div>
               <span

@@ -14,7 +14,7 @@ const emojiChange = (emoji: string) => {
 
 <template>
   <NodeViewWrapper class="tiptap-vue-component callout-wrapper">
-    <div class="flex flex-row gap-x-0.5 callout break-words" :data-bg-color="node.attrs.bgColor">
+    <div class="flex flex-row gap-x-1 callout break-words" :data-bg-color="node.attrs.bgColor">
       <div class="flex select-none" contenteditable="false">
         <GeneralEmojiPicker :emoji="node.attrs.emoji" @emoji-selected="emojiChange" />
       </div>

@@ -168,8 +168,6 @@ export class ProjectsService {
     for (const base of await project.getBases()) {
       const info = await populateMeta(base, project);
 
-      await populateRollupColumnAndHideLTAR(base, project);
-
       T.emit('evt_api_created', info);
       delete base.config;
     }

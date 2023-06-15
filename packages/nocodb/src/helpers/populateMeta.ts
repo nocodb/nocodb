@@ -1,6 +1,7 @@
 import { ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
 import { isVirtualCol, RelationTypes } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
+import { isLinksOrLTAR } from '../../../nocodb-sdk/src'
 import { GridViewColumn } from '../models';
 import Column from '../models/Column';
 import Model from '../models/Model';
@@ -124,7 +125,7 @@ export async function extractAndGenerateManyToManyRelations(
           fk_mm_parent_column_id:
             belongsToCols[1].colOptions.fk_child_column_id,
           type: RelationTypes.MANY_TO_MANY,
-          uidt: UITypes.LinkToAnotherRecord,
+          uidt: UITypes.Links,
         });
       }
       if (!isRelationAvailInB) {
@@ -142,7 +143,7 @@ export async function extractAndGenerateManyToManyRelations(
           fk_mm_parent_column_id:
             belongsToCols[0].colOptions.fk_child_column_id,
           type: RelationTypes.MANY_TO_MANY,
-          uidt: UITypes.LinkToAnotherRecord,
+          uidt: UITypes.Links,
         });
       }
 
@@ -154,7 +155,7 @@ export async function extractAndGenerateManyToManyRelations(
         const model = await colOpt.getRelatedTable();
 
         for (const col of await model.getColumns()) {
-          if (col.uidt !== UITypes.LinkToAnotherRecord) continue;
+          if (!isLinksOrLTAR(col.uidt)) continue;
 
           const colOpt1 = await col.getColOptions<LinkToAnotherRecordColumn>();
           if (!colOpt1 || colOpt1.type !== RelationTypes.HAS_MANY) continue;
@@ -256,7 +257,7 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
       const virtualColumns = [
         ...hasMany.map((hm) => {
           return {
-            uidt: UITypes.LinkToAnotherRecord,
+            uidt: UITypes.Links,
             type: 'hm',
             hm,
             title: `${hm.title} List`,

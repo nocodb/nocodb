@@ -3501,6 +3501,13 @@ class BaseModelSqlv2 {
     if (!column || column.uidt !== UITypes.LinkToAnotherRecord)
       NcError.notFound('Column not found');
 
+    // validate parentId
+    {
+      if (!this.dbDriver(this.tnPath).where(this._wherePk(rowId)).first()) {
+        NcError.notFound('Row not found');
+      }
+    }
+
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
 
     const childColumn = await colOptions.getChildColumn();
@@ -3521,6 +3528,30 @@ class BaseModelSqlv2 {
           const vTable = await colOptions.getMMModel();
 
           const vTn = this.getTnPath(vTable);
+
+          // validate Ids
+          {
+            const childRowsQb = this.dbDriver(parentTn)
+              .select(parentColumn.column_name)
+              // .where(_wherePk(parentTable.primaryKeys, childId))
+              .whereIn(parentTable.primaryKey.column_name, childIds);
+
+            if (parentTable.primaryKey.column_name !== parentColumn.column_name)
+              childRowsQb.select(parentTable.primaryKey.column_name);
+
+            const childRows = await childRowsQb;
+
+            if (childRows.length !== childIds.length) {
+              const missingIds = childIds.filter(
+                (id) =>
+                  !childRows.find((r) => r[parentColumn.column_name] === id),
+              );
+
+              NcError.notFound(
+                `Child record with id ${missingIds.join(', ')} not found`,
+              );
+            }
+          }
 
           if (this.isSnowflake) {
             const parentPK = this.dbDriver(parentTn)
@@ -3555,6 +3586,26 @@ class BaseModelSqlv2 {
         break;
       case RelationTypes.HAS_MANY:
         {
+          // validate Ids
+          {
+            const childRowsQb = this.dbDriver(childTn)
+              .select(childTable.primaryKey.column_name)
+              .whereIn(childTable.primaryKey.column_name, childIds);
+
+            const childRows = await childRowsQb;
+
+            if (childRows.length !== childIds.length) {
+              const missingIds = childIds.filter(
+                (id) =>
+                  !childRows.find((r) => r[parentColumn.column_name] === id),
+              );
+
+              NcError.notFound(
+                `Child record with id ${missingIds.join(', ')} not found`,
+              );
+            }
+          }
+
           await this.dbDriver(childTn)
             .update({
               [childColumn.column_name]: this.dbDriver.from(
@@ -3571,6 +3622,27 @@ class BaseModelSqlv2 {
         break;
       case RelationTypes.BELONGS_TO:
         {
+          // validate Ids
+          {
+            const childRowsQb = this.dbDriver(parentTn)
+              .select(parentTable.primaryKey.column_name)
+              .whereIn(parentTable.primaryKey.column_name, childIds)
+              .first();
+
+            const childRows = await childRowsQb;
+
+            if (childRows.length !== childIds.length) {
+              const missingIds = childIds.filter(
+                (id) =>
+                  !childRows.find((r) => r[parentColumn.column_name] === id),
+              );
+
+              NcError.notFound(
+                `Child record with id ${missingIds.join(', ')} not found`,
+              );
+            }
+          }
+
           await this.dbDriver(childTn)
             .update({
               [childColumn.column_name]: this.dbDriver.from(

@@ -1,5 +1,5 @@
 import { dirname, resolve } from 'node:path'
-import vueI18n from '@intlify/vite-plugin-vue-i18n'
+import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 import Icons from 'unplugin-icons/vite'
 import IconsResolver from 'unplugin-icons/resolver'
 import Components from 'unplugin-vue-components/vite'
@@ -99,7 +99,7 @@ export default defineNuxtConfig({
       },
     },
     plugins: [
-      vueI18n({
+      VueI18nPlugin({
         include: [resolve(dirname('./lang/**'))],
         runtimeOnly: false,
       }),
@@ -199,5 +199,10 @@ export default defineNuxtConfig({
       { name: 'useJwt', from: '@vueuse/integrations/useJwt' },
       { name: 'storeToRefs', from: 'pinia' },
     ],
+  },
+  router: {
+    options: {
+      hashMode: true,
+    },
   },
 })

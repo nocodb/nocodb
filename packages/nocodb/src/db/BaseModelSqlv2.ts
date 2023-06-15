@@ -1366,16 +1366,23 @@ class BaseModelSqlv2 {
           {
             // @ts-ignore
             const colOptions: LookupColumn = await column.getColOptions();
+            const relCol = await Column.get({
+              colId: colOptions.fk_relation_column_id,
+            });
+            const relColTitle =
+              relCol.uidt === UITypes.Links
+                ? `_nc_${relCol.title}`
+                : relCol.title;
             proto.__columnAliases[column.title] = {
               path: [
-                (await Column.get({ colId: colOptions.fk_relation_column_id }))
-                  ?.title,
+                relColTitle,
                 (await Column.get({ colId: colOptions.fk_lookup_column_id }))
                   ?.title,
               ],
             };
           }
           break;
+        case UITypes.Links:
         case UITypes.LinkToAnotherRecord:
           {
             this._columns[column.title] = column;
@@ -1413,7 +1420,11 @@ class BaseModelSqlv2 {
               });
               const self: BaseModelSqlv2 = this;
 
-              proto[column.title] = async function (args): Promise<any> {
+              proto[
+                column.uidt === UITypes.Links
+                  ? `_nc_${column.title}`
+                  : column.title
+              ] = async function (args): Promise<any> {
                 (listLoader as any).args = args;
                 return listLoader.load(
                   getCompositePk(self.model.primaryKeys, this),
@@ -1459,7 +1470,11 @@ class BaseModelSqlv2 {
 
               const self: BaseModelSqlv2 = this;
               // const childColumn = await colOptions.getChildColumn();
-              proto[column.title] = async function (args): Promise<any> {
+              proto[
+                column.uidt === UITypes.Links
+                  ? `_nc_${column.title}`
+                  : column.title
+              ] = async function (args): Promise<any> {
                 (listLoader as any).args = args;
                 return await listLoader.load(
                   getCompositePk(self.model.primaryKeys, this),
@@ -3020,7 +3035,10 @@ class BaseModelSqlv2 {
     const columns = await this.model.getColumns();
     const column = columns.find((c) => c.id === colId);
 
-    if (!column || ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt))
+    if (
+      !column ||
+      ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
+    )
       NcError.notFound('Column not found');
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
@@ -3139,7 +3157,10 @@ class BaseModelSqlv2 {
     const columns = await this.model.getColumns();
     const column = columns.find((c) => c.id === colId);
 
-    if (!column || ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt))
+    if (
+      !column ||
+      ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
+    )
       NcError.notFound('Column not found');
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();

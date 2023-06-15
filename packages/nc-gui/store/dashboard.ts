@@ -631,12 +631,11 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     }
 
     const defaultScreenDimensions = {
-      width: 2,
-      height: 2,
+      width: 4,
+      height: 4,
     }
 
     const newElement: Widget = {
-      id: Date.now().toString(),
       layout_id: openedLayoutId.value!,
       schema_version: '1.0.0',
       appearance_config: {
@@ -666,6 +665,45 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       data_source: newElement.data_source,
       schema_version: newElement.schema_version,
       widget_type: newElement.widget_type,
+    }
+
+    const widgetFromAPI = await $api.dashboard.widgetCreate(openedLayoutId.value!, widgetReqType)
+    const parsedWidgetFromAPI = _parseWidgetFromAPI(widgetFromAPI)
+    openedWidgets.value.push(parsedWidgetFromAPI)
+    focusedWidgetId.value = parsedWidgetFromAPI.id
+
+    gridLayout.value.push({
+      x: parsedWidgetFromAPI.appearance_config.screenPosition.x,
+      y: parsedWidgetFromAPI.appearance_config.screenPosition.y,
+      w: parsedWidgetFromAPI.appearance_config.screenDimensions.width,
+      h: parsedWidgetFromAPI.appearance_config.screenDimensions.height,
+      i: parsedWidgetFromAPI.id,
+      static: false,
+      widgetId: parsedWidgetFromAPI.id,
+    } as WidgetLayoutEntry)
+  }
+
+  const duplicateWidget = async (widgetId: string) => {
+    if (openedWidgets.value == null) {
+      console.error('openedWidgets.value is undefined')
+      return
+    }
+    const widgetToDuplicate = openedWidgets.value.find((widget: { id: string }) => widget.id === widgetId)
+
+    if (widgetToDuplicate == null) {
+      console.error('Could not find widget to duplicate')
+      return
+    }
+
+    const duplicatedWidget = { ...widgetToDuplicate }
+
+    const widgetReqType: WidgetReqType = {
+      appearance_config: duplicatedWidget.appearance_config,
+      layout_id: openedLayoutId.value!,
+      data_config: duplicatedWidget.data_config,
+      data_source: duplicatedWidget.data_source,
+      schema_version: duplicatedWidget.schema_version,
+      widget_type: duplicatedWidget.widget_type,
     }
 
     const widgetFromAPI = await $api.dashboard.widgetCreate(openedLayoutId.value!, widgetReqType)
@@ -1142,6 +1180,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     updatePositionOfWidgetById,
     updateScreenDimensionsOfWidgetById,
     removeWidgetById,
+    duplicateWidget,
     resetFocus,
     changeSelectedProjectIdAndTableIdOfFocusedWidget,
     changeSelectedNumberColumnIdOfFocusedWidget,

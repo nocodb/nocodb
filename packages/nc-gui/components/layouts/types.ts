@@ -25,3 +25,15 @@ export enum SelectedLayoutDimension {
   Horizontal = 'horizontal',
   Gap = 'gap',
 }
+
+export enum WidgetTypeText {
+  Number = 'Number',
+  StaticText = 'Text',
+  LineChart = 'Line Chart',
+  BarChart = 'Bar Chart',
+  PieChart = 'Pie Chart',
+  ScatterPlot = 'Scatter Plot',
+  Button = 'Button',
+  Image = 'Image',
+  Divider = 'Divider',
+}

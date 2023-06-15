@@ -1,5 +1,8 @@
 <script lang="ts" setup>
 import { GridItem, GridLayout } from 'vue3-grid-layout-next'
+import type { Widget } from 'nocodb-sdk'
+import { WidgetTypeType } from 'nocodb-sdk'
+import { WidgetTypeText } from './types'
 import type { WidgetTemplate } from './types'
 import { useDashboardStore } from '~~/store/dashboard'
 import '~/assets/dashboardLayout.scss'
@@ -14,7 +17,9 @@ const {
   updateFocusedWidgetByElementId,
 } = dashboardStore
 
+const contextMenuRef = ref<HTMLElement | null>(null)
 const mainArea = ref<any>()
+const widgetForContextMenu = ref<Widget | null>(null)
 
 const drop = (ev: DragEvent) => {
   const item = JSON.parse(ev.dataTransfer?.getData('text/plain') || '{}') as WidgetTemplate
@@ -39,10 +44,85 @@ const gridMargins = computed(() => {
   const gap = parseInt(openedLayoutSidebarNode.value?.grid_gap || '50') || 50
   return [gap, gap]
 })
+
+const contextMenuVisible = ref(false)
+
+const getWidgetTypeText = (type: WidgetTypeType): string => {
+  switch (type) {
+    case WidgetTypeType.Number:
+      return WidgetTypeText.Number
+    case WidgetTypeType.StaticText:
+      return WidgetTypeText.StaticText
+    case WidgetTypeType.LineChart:
+      return WidgetTypeText.LineChart
+    case WidgetTypeType.BarChart:
+      return WidgetTypeText.BarChart
+    case WidgetTypeType.PieChart:
+      return WidgetTypeText.PieChart
+    case WidgetTypeType.ScatterPlot:
+      return WidgetTypeText.ScatterPlot
+    case WidgetTypeType.Button:
+      return WidgetTypeText.Button
+    case WidgetTypeType.Image:
+      return WidgetTypeText.Image
+    case WidgetTypeType.Divider:
+      return WidgetTypeText.Divider
+    default:
+      return ''
+  }
+}
+
+const closeContextMenu = () => {
+  contextMenuVisible.value = false
+}
+
+onMounted(() => {
+  document.addEventListener('click', closeContextMenu)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeContextMenu)
+})
+
+const widgetTypeText = computed(
+  () => (widgetForContextMenu.value && getWidgetTypeText(widgetForContextMenu.value.widget_type)) || '',
+)
+const { duplicateWidget } = dashboardStore
+
+const showContextMenu = (top: number, left: number, widget: Widget) => {
+  widgetForContextMenu.value = widget
+  if (contextMenuRef.value == null) {
+    return
+  }
+  contextMenuRef.value.style.top = `${top}px`
+  contextMenuRef.value.style.left = `${left}px`
+  contextMenuVisible.value = true
+}
 </script>
 
 <template>
   <div class="flex flex-col">
+    <div
+      v-show="contextMenuVisible"
+      ref="contextMenuRef"
+      class="fixed bg-white !rounded-lg border-1 border-gray-100 z-1000 flex flex-col shadow-md w-max"
+    >
+      <h3 class="font-normal text-gray-500 mb-0 p-4 border-b-1 border-gray-100">{{ widgetTypeText }} Widget</h3>
+      <div class="py-4 flex flex-col gap-2">
+        <a-button class="!border-none hover:opacity-50" @click="duplicateWidget(widgetForContextMenu!.id)">
+          <div class="text-gray-600 flex items-center justify-start">
+            <GeneralIcon icon="duplicate" />
+            <h3 class="ml-1 text-inherit mb-0">{{ $t('general.duplicate') }}</h3>
+          </div>
+        </a-button>
+        <a-button class="!border-none hover:opacity-75" @click="removeWidgetById(widgetForContextMenu!.id)">
+          <div class="text-red-500 flex items-center justify-start">
+            <GeneralIcon icon="delete" />
+            <h3 class="ml-1 text-inherit mb-0">{{ $t('general.delete') }}</h3>
+          </div>
+        </a-button>
+      </div>
+    </div>
     <LayoutsTopBar />
     <div class="flex">
       <LayoutsWidgetsLibraryPanel />
@@ -63,8 +143,8 @@ const gridMargins = computed(() => {
           :use-css-transforms="true"
           :vertical-compact="false"
           :prevent-collision="false"
-          :row-height="30"
-          :col-num="4"
+          :row-height="10"
+          :col-num="8"
           :responsive="false"
           style="height: '100%'"
         >
@@ -81,12 +161,12 @@ const gridMargins = computed(() => {
             @moved="movedEvent"
             @resized="resizedEvent"
           >
-            <LayoutsFocusableWidget :widget-id="item.widgetId" />
+            <LayoutsFocusableWidget :widget-id="item.widgetId" @show-context-menu-for-widget="showContextMenu" />
           </GridItem>
         </GridLayout>
       </div>
       <!-- TODO: decide / change again to rem for width and overall: use consistent styling -->
-      <div class="w-[420px] p-4">
+      <div class="p-4 w-[280px] 2xl:w-[20vw]">
         <LayoutsWidgetsPropertiesPanel />
       </div>
     </div>

@@ -3,6 +3,9 @@ import { SelectedLayoutDimension } from '../types'
 
 const selectedLayoutDimension = ref(SelectedLayoutDimension.Vertical)
 
+const minPadding = 0
+const maxPadding = 100
+
 const dashboardStore = useDashboardStore()
 const { changeLayoutGap, changeLayoutPaddingHorizontal, changeLayoutPaddingVertical } = dashboardStore
 const { openedLayoutSidebarNode } = storeToRefs(dashboardStore)
@@ -12,14 +15,29 @@ const localVerticalPadding = ref(parseInt(openedLayoutSidebarNode.value?.grid_pa
 const localGap = ref(parseInt(openedLayoutSidebarNode.value?.grid_gap || '50'))
 
 const onBlurGapInput = () => {
+  if (localGap.value < minPadding) {
+    localGap.value = minPadding
+  } else if (localGap.value > maxPadding) {
+    localGap.value = maxPadding
+  }
   changeLayoutGap(String(localGap.value))
   selectedLayoutDimension.value = SelectedLayoutDimension.None
 }
 const onBlurPaddingHorizontalInput = () => {
+  if (localHorizontalPadding.value < minPadding) {
+    localHorizontalPadding.value = minPadding
+  } else if (localHorizontalPadding.value > maxPadding) {
+    localHorizontalPadding.value = maxPadding
+  }
   changeLayoutPaddingHorizontal(String(localHorizontalPadding.value))
   selectedLayoutDimension.value = SelectedLayoutDimension.None
 }
 const onBlurPaddingVerticalInput = () => {
+  if (localVerticalPadding.value < minPadding) {
+    localVerticalPadding.value = minPadding
+  } else if (localVerticalPadding.value > maxPadding) {
+    localVerticalPadding.value = maxPadding
+  }
   changeLayoutPaddingVertical(String(localVerticalPadding.value))
   selectedLayoutDimension.value = SelectedLayoutDimension.None
 }
@@ -42,8 +60,11 @@ const onBlurPaddingVerticalInput = () => {
               v-model:value="localVerticalPadding"
               type="number"
               autocomplete="off"
+              :min="minPadding"
+              :max="maxPadding"
               @focus="() => (selectedLayoutDimension = SelectedLayoutDimension.Vertical)"
               @blur="onBlurPaddingVerticalInput"
+              @press-enter="onBlurPaddingVerticalInput"
             />
           </div>
           <div class="nc-dashboard-layouts-propspanel-nowidget-selected-layout-formrow">
@@ -53,8 +74,11 @@ const onBlurPaddingVerticalInput = () => {
               v-model:value="localHorizontalPadding"
               type="number"
               autocomplete="off"
+              :min="minPadding"
+              :max="maxPadding"
               @focus="() => (selectedLayoutDimension = SelectedLayoutDimension.Horizontal)"
               @blur="onBlurPaddingHorizontalInput"
+              @press-enter="onBlurPaddingHorizontalInput"
             />
           </div>
           <div class="nc-dashboard-layouts-propspanel-nowidget-selected-layout-formrow">
@@ -64,8 +88,11 @@ const onBlurPaddingVerticalInput = () => {
               v-model:value="localGap"
               type="number"
               autocomplete="off"
+              :min="minPadding"
+              :max="maxPadding"
               @focus="() => (selectedLayoutDimension = SelectedLayoutDimension.Gap)"
               @blur="onBlurGapInput"
+              @press-enter="onBlurGapInput"
             />
           </div>
         </div>

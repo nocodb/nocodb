@@ -59,7 +59,7 @@ const passwordChange = async () => {
 
   await signOut()
 
-  navigateTo('/signin')
+  await navigateTo('/signin')
 }
 
 const resetError = () => {

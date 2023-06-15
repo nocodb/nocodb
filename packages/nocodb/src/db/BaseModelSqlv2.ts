@@ -3502,7 +3502,7 @@ class BaseModelSqlv2 {
       NcError.notFound('Column not found');
 
     const row = await this.dbDriver(this.tnPath)
-      .where(this._wherePk(rowId))
+      .where(await this._wherePk(rowId))
       .first();
 
     // validate rowId
@@ -3585,7 +3585,7 @@ class BaseModelSqlv2 {
               }));
 
             // if no new links, return true
-            if(!insertData.length) return true
+            if (!insertData.length) return true;
           }
 
           // if (this.isSnowflake) {
@@ -3729,6 +3729,15 @@ class BaseModelSqlv2 {
     if (!column || column.uidt !== UITypes.LinkToAnotherRecord)
       NcError.notFound('Column not found');
 
+    const row = await this.dbDriver(this.tnPath)
+      .where(await this._wherePk(rowId))
+      .first();
+
+    // validate rowId
+    if (!row) {
+      NcError.notFound('Row not found');
+    }
+
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
 
     const childColumn = await colOptions.getChildColumn();
@@ -3787,7 +3796,7 @@ class BaseModelSqlv2 {
               [vParentCol.column_name],
               this.dbDriver(parentTn)
                 .select(parentColumn.column_name)
-                .whereIn(parentTable.primaryKey.column_name, childIds)
+                .whereIn(parentTable.primaryKey.column_name, childIds),
             )
             .delete();
         }

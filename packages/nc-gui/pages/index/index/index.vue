@@ -247,7 +247,7 @@ const copyProjectMeta = async () => {
       <a-table-column key="title" :title="$t('general.title')" data-index="title">
         <template #default="{ text, record }">
           <div class="flex items-center">
-            <div @click.stop class="w-2">
+            <div class="w-2" @click.stop>
               <a-menu class="!border-0 !m-0 !p-0" trigger-sub-menu-action="click">
                 <template v-if="isUIAllowed('projectTheme') || isUIAllowed('projectTheme', true, record.roles)">
                   <a-sub-menu key="theme" popup-class-name="custom-color">

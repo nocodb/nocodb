@@ -741,7 +741,7 @@ const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?
 
 async function reloadViewDataHandler(shouldShowLoading: boolean | void) {
   // save any unsaved data before reload
-  await saveOrUpdateRecords();
+  await saveOrUpdateRecords()
 
   // set value if spinner should be hidden
   showLoading.value = !!shouldShowLoading

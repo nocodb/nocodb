@@ -3702,6 +3702,33 @@ class BaseModelSqlv2 {
           const vParentCol = await colOptions.getMMParentColumn();
           const vTable = await colOptions.getMMModel();
 
+
+
+          // validate Ids
+          {
+            const childRowsQb = this.dbDriver(parentTn)
+              .select(parentColumn.column_name)
+              // .where(_wherePk(parentTable.primaryKeys, childId))
+              .whereIn(parentTable.primaryKey.column_name, childIds);
+
+            if (parentTable.primaryKey.column_name !== parentColumn.column_name)
+              childRowsQb.select(parentTable.primaryKey.column_name);
+
+            const childRows = await childRowsQb;
+
+            if (childRows.length !== childIds.length) {
+              const missingIds = childIds.filter(
+                (id) =>
+                  !childRows.find((r) => r[parentColumn.column_name] === id),
+              );
+
+              NcError.notFound(
+                `Child record with id ${missingIds.join(', ')} not found`,
+              );
+            }
+          }
+
+
           const vTn = this.getTnPath(vTable);
 
           await this.dbDriver(vTn)
@@ -3720,6 +3747,27 @@ class BaseModelSqlv2 {
         break;
       case RelationTypes.HAS_MANY:
         {
+
+          // validate Ids
+          {
+            const childRowsQb = this.dbDriver(childTn)
+              .select(childTable.primaryKey.column_name)
+              .whereIn(childTable.primaryKey.column_name, childIds);
+
+            const childRows = await childRowsQb;
+
+            if (childRows.length !== childIds.length) {
+              const missingIds = childIds.filter(
+                (id) =>
+                  !childRows.find((r) => r[parentColumn.column_name] === id),
+              );
+
+              NcError.notFound(
+                `Child record with id ${missingIds.join(', ')} not found`,
+              );
+            }
+          }
+
           await this.dbDriver(childTn)
             // .where({
             //   [childColumn.cn]: this.dbDriver(parentTable.tn)
@@ -3734,6 +3782,27 @@ class BaseModelSqlv2 {
         break;
       case RelationTypes.BELONGS_TO:
         {
+          // validate Ids
+          {
+            const childRowsQb = this.dbDriver(parentTn)
+              .select(parentTable.primaryKey.column_name)
+              .whereIn(parentTable.primaryKey.column_name, childIds)
+              .first();
+
+            const childRows = await childRowsQb;
+
+            if (childRows.length !== childIds.length) {
+              const missingIds = childIds.filter(
+                (id) =>
+                  !childRows.find((r) => r[parentColumn.column_name] === id),
+              );
+
+              NcError.notFound(
+                `Child record with id ${missingIds.join(', ')} not found`,
+              );
+            }
+          }
+
           await this.dbDriver(childTn)
             // .where({
             //   [childColumn.cn]: this.dbDriver(parentTable.tn)

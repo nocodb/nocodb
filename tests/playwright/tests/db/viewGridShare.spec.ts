@@ -279,13 +279,13 @@ const sqliteExpectedRecords2 = [
 const expectedVirtualRecords = [
   { index: 0, columnHeader: 'Customer List', count: 1, value: ['2'] },
   { index: 1, columnHeader: 'Customer List', count: 1, value: ['2'] },
-  { index: 0, columnHeader: 'City', count: 1, value: ['Kanchrapara'] },
-  { index: 1, columnHeader: 'City', count: 1, value: ['Tafuna'] },
+  { index: 0, columnHeader: 'City', count: 1, type: 'bt', value: ['Kanchrapara'] },
+  { index: 1, columnHeader: 'City', count: 1, type: 'bt', value: ['Tafuna'] },
 ];
 
 const sqliteExpectedVirtualRecords = [
   { index: 0, columnHeader: 'Customer List', count: 1, value: ['2'] },
   { index: 1, columnHeader: 'Customer List', count: 1, value: ['1'] },
-  { index: 0, columnHeader: 'City', count: 1, value: ['Davao'] },
-  { index: 1, columnHeader: 'City', count: 1, value: ['Nagareyama'] },
+  { index: 0, columnHeader: 'City', count: 1, type: 'bt', value: ['Davao'] },
+  { index: 1, columnHeader: 'City', count: 1, type: 'bt', value: ['Nagareyama'] },
 ];

@@ -85,6 +85,7 @@ import 'mocha';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { expect } from 'chai';
 import request from 'supertest';
+import { Api } from 'nocodb-sdk';
 import init from '../../init';
 import { createProject, createSakilaProject } from '../../factory/project';
 import { createTable, getTable } from '../../factory/table';
@@ -95,7 +96,6 @@ import {
   customColumns,
 } from '../../factory/column';
 import { createView, updateView } from '../../factory/view';
-import type { Api } from 'nocodb-sdk';
 
 import type { ColumnType } from 'nocodb-sdk';
 import type Project from '../../../../src/models/Project';
@@ -189,6 +189,51 @@ async function ncAxiosDelete({
 
 ///////////////////////////////////////////////////////////////////////////////
 
+async function ncAxiosLinkGet({
+  urlParams: { tableId, linkId, rowId },
+  query = {},
+  status = 200,
+}: { urlParams?: any; query?: any; status?: number } = {}) {
+  const urlParams = { tableId, linkId, rowId };
+  const url = `/api/v1/tables/${urlParams.tableId}/links/${urlParams.linkId}/rows/${urlParams.rowId}`;
+  const response = await request(context.app)
+    .get(url)
+    .set('xc-auth', context.token)
+    .query(query)
+    .send({});
+  expect(response.status).to.equal(status);
+  return response;
+}
+async function ncAxiosLinkAdd({
+  urlParams: { tableId, linkId, rowId },
+  body = {},
+  status = 200,
+}: { urlParams?: any; body?: any; status?: number } = {}) {
+  const urlParams = { tableId, linkId, rowId };
+  const url = `/api/v1/tables/${urlParams.tableId}/links/${urlParams.linkId}/rows/${urlParams.rowId}`;
+  const response = await request(context.app)
+    .post(url)
+    .set('xc-auth', context.token)
+    .send(body);
+  expect(response.status).to.equal(status);
+  return response;
+}
+async function ncAxiosLinkRemove({
+  urlParams: { tableId, linkId, rowId },
+  body = {},
+  status = 200,
+}: { urlParams?: any; body?: any; status?: number } = {}) {
+  const urlParams = { tableId, linkId, rowId };
+  const url = `/api/v1/tables/${urlParams.tableId}/links/${urlParams.linkId}/rows/${urlParams.rowId}`;
+  const response = await request(context.app)
+    .delete(url)
+    .set('xc-auth', context.token)
+    .send(body);
+  expect(response.status).to.equal(status);
+  return response;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // generic table, sakila based
 function generalDb() {
   beforeEach(async function () {
@@ -1640,6 +1685,296 @@ function dateBased() {
   });
 }
 
+function linkBased() {
+  let tblCity: Model;
+  let tblCountry: Model;
+  let tblActor: Model;
+  let tblFilm: Model;
+
+  async function prepareRecords(title: string, count: number) {
+    const records = [];
+    for (let i = 1; i <= count; i++) {
+      records.push({
+        Id: i,
+        [title]: `${title} ${i}`,
+      });
+    }
+    return records;
+  }
+
+  // prepare data for test cases
+  beforeEach(async function () {
+    context = await init();
+    const project = await createProject(context);
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    const columns = [
+      { title: 'Title', uidt: UITypes.SingleLineText, pv: true },
+    ];
+
+    // Prepare City table
+    columns[0].title = 'City';
+    tblCity = await createTable(context, project, {
+      title: 'City',
+      columns: customColumns('custom', columns),
+    });
+    const cityRecords = await prepareRecords('City', 100);
+    await api.dbTableRow.bulkCreate(
+      'noco',
+      project.id,
+      tblCity.id,
+      cityRecords,
+    );
+
+    // Prepare Country table
+    columns[0].title = 'Country';
+    tblCountry = await createTable(context, project, {
+      title: 'Country',
+      columns: customColumns('custom', columns),
+    });
+    const countryRecords = await prepareRecords('Country', 10);
+    await api.dbTableRow.bulkCreate(
+      'noco',
+      project.id,
+      tblCountry.id,
+      countryRecords,
+    );
+
+    // Prepare Actor table
+    columns[0].title = 'Actor';
+    tblActor = await createTable(context, project, {
+      title: 'Actor',
+      columns: customColumns('custom', columns),
+    });
+    const actorRecords = await prepareRecords('Actor', 100);
+    await api.dbTableRow.bulkCreate(
+      'noco',
+      project.id,
+      tblActor.id,
+      actorRecords,
+    );
+
+    // Prepare Movie table
+    columns[0].title = 'Film';
+    tblFilm = await createTable(context, project, {
+      title: 'Film',
+      columns: customColumns('custom', columns),
+    });
+    const filmRecords = await prepareRecords('Film', 100);
+    await api.dbTableRow.bulkCreate(
+      'noco',
+      project.id,
+      tblFilm.id,
+      filmRecords,
+    );
+
+    // Create links
+    // Country <hm> City
+    await api.dbTableColumn.create(tblCountry.id, {
+      uidt: UITypes.LinkToAnotherRecord,
+      title: `Cities`,
+      parentId: tblCountry.id,
+      childId: tblCity.id,
+      type: 'hm',
+    });
+
+    // Actor <mm> Film
+    await api.dbTableColumn.create(tblActor.id, {
+      uidt: UITypes.LinkToAnotherRecord,
+      title: `Films`,
+      parentId: tblActor.id,
+      childId: tblFilm.id,
+      type: 'mm',
+    });
+  });
+
+  // Create hm link between Country and City
+  // List them for a record & verify in both tables
+  it('Create Has-Many ', async function () {
+    for (let i = 1; i <= 10; i++) {
+      await ncAxiosLinkAdd({
+        urlParams: {
+          tableId: tblCountry.id,
+          linkId: tblCountry.columns[2].id,
+          rowId: i,
+        },
+        body: {
+          links: [10 * i + 1, 10 * i + 2, 10 * i + 3, 10 * i + 4, 10 * i + 5],
+        },
+      });
+    }
+
+    // verify in Country table
+    for (let i = 1; i <= 10; i++) {
+      const rsp = await ncAxiosLinkGet({
+        urlParams: {
+          tableId: tblCountry.id,
+          linkId: tblCountry.columns[2].id,
+          rowId: i,
+        },
+      });
+      expect(rsp.body).to.deep.equal({
+        links: [10 * i + 1, 10 * i + 2, 10 * i + 3, 10 * i + 4, 10 * i + 5],
+      });
+    }
+
+    // verify in City table
+    for (let i = 1; i <= 100; i++) {
+      const rsp = await ncAxiosLinkGet({
+        urlParams: {
+          tableId: tblCity.id,
+          linkId: tblCity.columns[2].id,
+          rowId: i,
+        },
+      });
+      if (i % 10 <= 5 && i % 10 > 0) {
+        expect(rsp.body).to.deep.equal({
+          links: [Math.ceil(i / 10)],
+        });
+      } else {
+        expect(rsp.body).to.deep.equal({
+          links: [],
+        });
+      }
+    }
+  });
+
+  // Update hm link between Country and City
+  // List them for a record & verify in both tables
+  it('Update Has-Many ', async function () {
+    for (let i = 1; i <= 10; i++) {
+      await ncAxiosLinkAdd({
+        urlParams: {
+          tableId: tblCountry.id,
+          linkId: tblCountry.columns[2].id,
+          rowId: i,
+        },
+        body: {
+          links: [10 * i + 6, 10 * i + 7],
+        },
+      });
+    }
+
+    // verify in Country table
+    for (let i = 1; i <= 10; i++) {
+      const rsp = await ncAxiosLinkGet({
+        urlParams: {
+          tableId: tblCountry.id,
+          linkId: tblCountry.columns[2].id,
+          rowId: i,
+        },
+      });
+      expect(rsp.body).to.deep.equal({
+        links: [
+          10 * i + 1,
+          10 * i + 2,
+          10 * i + 3,
+          10 * i + 4,
+          10 * i + 5,
+          10 * i + 6,
+          10 * i + 7,
+        ],
+      });
+    }
+
+    // verify in City table
+    for (let i = 1; i <= 100; i++) {
+      const rsp = await ncAxiosLinkGet({
+        urlParams: {
+          tableId: tblCity.id,
+          linkId: tblCity.columns[2].id,
+          rowId: i,
+        },
+      });
+      if (i % 10 <= 7 && i % 10 > 0) {
+        expect(rsp.body).to.deep.equal({
+          links: [Math.ceil(i / 10)],
+        });
+      } else {
+        expect(rsp.body).to.deep.equal({
+          links: [],
+        });
+      }
+    }
+  });
+
+  // Delete hm link between Country and City
+  // List them for a record & verify in both tables
+  it('Delete Has-Many ', async function () {
+    for (let i = 1; i <= 10; i++) {
+      await ncAxiosLinkRemove({
+        urlParams: {
+          tableId: tblCountry.id,
+          linkId: tblCountry.columns[2].id,
+          rowId: i,
+        },
+        body: {
+          links: [10 * i + 6, 10 * i + 7],
+        },
+      });
+    }
+
+    // verify in Country table
+    for (let i = 1; i <= 10; i++) {
+      const rsp = await ncAxiosLinkGet({
+        urlParams: {
+          tableId: tblCountry.id,
+          linkId: tblCountry.columns[2].id,
+          rowId: i,
+        },
+      });
+      expect(rsp.body).to.deep.equal({
+        links: [10 * i + 1, 10 * i + 2, 10 * i + 3, 10 * i + 4, 10 * i + 5],
+      });
+    }
+
+    // verify in City table
+    for (let i = 1; i <= 100; i++) {
+      const rsp = await ncAxiosLinkGet({
+        urlParams: {
+          tableId: tblCity.id,
+          linkId: tblCity.columns[2].id,
+          rowId: i,
+        },
+      });
+      if (i % 10 <= 5 && i % 10 > 0) {
+        expect(rsp.body).to.deep.equal({
+          links: [Math.ceil(i / 10)],
+        });
+      } else {
+        expect(rsp.body).to.deep.equal({
+          links: [],
+        });
+      }
+    }
+  });
+
+  // Create mm link between Actor and Film
+  // List them for a record & verify in both tables
+  it('Create Many-Many ', async function () {});
+
+  // Update mm link between Actor and Film
+  // List them for a record & verify in both tables
+  it('Update Many-Many ', async function () {});
+
+  // Delete mm link between Actor and Film
+  // List them for a record & verify in both tables
+  it('Delete Many-Many ', async function () {});
+
+  // Other scenarios
+  // Has-many : change an existing link to a new one
+
+  // limit & offset verification
+
+  // invalid link id
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1653,6 +1988,7 @@ export default function () {
   describe('Numerical', numberBased);
   describe('Select based', selectBased);
   describe('Date based', dateBased);
+  // describe('Link based', linkBased);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

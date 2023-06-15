@@ -46,7 +46,7 @@ const defaultColumns = function (context) {
   ];
 };
 
-const customColumns = function (type: string) {
+const customColumns = function (type: string, options: any = {}) {
   switch (type) {
     case 'textBased':
       return [
@@ -157,6 +157,8 @@ const customColumns = function (type: string) {
           dtxp: "'jan','feb','mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'",
         },
       ];
+    case 'custom':
+      return [{ title: 'Id', uidt: UITypes.ID }, ...options];
   }
 };
 

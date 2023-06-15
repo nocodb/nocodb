@@ -203,6 +203,6 @@ export const generateFkName = (parent: TableType, child: TableType) => {
     .replace(/\W+/g, '_')
     .slice(0, 10)}_${child.table_name
     .replace(/\W+/g, '_')
-    .slice(0, 10)}_${randomID(15)}`;
+    .slice(0, 10)}_${randomID()}`;
   return constraintName;
 };

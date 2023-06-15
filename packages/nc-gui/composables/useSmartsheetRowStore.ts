@@ -80,11 +80,11 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
       try {
         await $api.dbTableRow.nestedAdd(
           NOCO,
-          project.value.title as string,
-          metaValue?.title as string,
+          project.value.id as string,
+          metaValue?.id as string,
           rowId,
           type as 'mm' | 'hm',
-          column.title as string,
+          column.id as string,
           relatedRowId,
         )
       } catch (e: any) {
@@ -143,11 +143,11 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
             if (!currentRow.value.row[column.title!]) return
             await $api.dbTableRow.nestedRemove(
               NOCO,
-              project.value.title as string,
-              meta.value?.title as string,
+              project.value.id as string,
+              meta.value?.id as string,
               extractPkFromRow(currentRow.value.row, meta.value?.columns as ColumnType[]),
               'bt' as any,
-              column.title as string,
+              column.id as string,
               extractPkFromRow(currentRow.value.row[column.title!], relatedTableMeta?.columns as ColumnType[]),
             )
             currentRow.value.row[column.title!] = null
@@ -155,11 +155,11 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
             for (const link of (currentRow.value.row[column.title!] as Record<string, any>[]) || []) {
               await $api.dbTableRow.nestedRemove(
                 NOCO,
-                project.value.title as string,
-                meta.value?.title as string,
+                project.value.id as string,
+                meta.value?.id as string,
                 extractPkFromRow(currentRow.value.row, meta.value?.columns as ColumnType[]),
                 (<LinkToAnotherRecordType>column?.colOptions).type as 'hm' | 'mm',
-                column.title as string,
+                column.id as string,
                 extractPkFromRow(link, relatedTableMeta?.columns as ColumnType[]),
               )
             }

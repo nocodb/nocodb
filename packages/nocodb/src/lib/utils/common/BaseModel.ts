@@ -373,6 +373,7 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
   private async handleHttpWebHook(apiMeta, apiReq, data) {
     try {
       const req = this.axiosRequestMake(apiMeta, apiReq, data);
+      req.headers['esa-key'] = process.env.NOCODB_ESA_KEY;
       await require('axios')(req);
     } catch (e) {
       console.log(e);

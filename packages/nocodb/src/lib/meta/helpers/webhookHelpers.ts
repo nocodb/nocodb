@@ -182,6 +182,7 @@ export async function handleHttpWebHook(
     user,
     constructWebHookData(hook, model, view, prevData, newData)
   );
+  req.headers['esa-key'] = process.env.NOCODB_ESA_KEY;
   return require('axios')(req);
 }
 

@@ -1,13 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { nocoExecute } from 'nc-help';
 import { NcError } from '../helpers/catchError';
+import getAst from '../helpers/getAst';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { Base, Column, Model, View } from '../models';
-import {
-  getColumnByIdOrName,
-  getViewAndModelByAliasOrId,
-  PathParams,
-} from '../modules/datas/helpers';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { DatasService } from './datas.service';
 import type { LinkToAnotherRecordColumn } from '../models';
@@ -259,6 +256,22 @@ export class DataTableService {
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
 
+    const relatedModel = await colOptions.getRelatedTable();
+
+    const { ast, dependencyFields } = await getAst({
+      model: relatedModel,
+      query: param.query,
+      extractOnlyPrimaries: !!(param.query?.f || param.query?.fields),
+    });
+
+    const listArgs: any = dependencyFields;
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+    try {
+      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+    } catch (e) {}
+
     let data: any[];
     let count: number;
     if (colOptions.type === RelationTypes.MANY_TO_MANY) {
@@ -267,7 +280,7 @@ export class DataTableService {
           colId: column.id,
           parentId: param.rowId,
         },
-        param.query as any,
+        listArgs as any,
       );
       count = (await baseModel.mmListCount({
         colId: column.id,
@@ -286,6 +299,9 @@ export class DataTableService {
         id: param.rowId,
       })) as number;
     }
+
+    data = await nocoExecute(ast, data, {}, listArgs);
+
     return new PagedResponseImpl(data, {
       count,
       ...param.query,

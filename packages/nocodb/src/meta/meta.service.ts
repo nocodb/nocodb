@@ -532,7 +532,6 @@ export class MetaService {
     } else {
       query.where(idOrCondition);
     }
-
     return query.first();
   }
 

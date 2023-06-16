@@ -261,7 +261,7 @@ export class DataTableService {
     const { ast, dependencyFields } = await getAst({
       model: relatedModel,
       query: param.query,
-      extractOnlyPrimaries: !!(param.query?.f || param.query?.fields),
+      extractOnlyPrimaries: !(param.query?.f || param.query?.fields),
     });
 
     const listArgs: any = dependencyFields;
@@ -286,21 +286,31 @@ export class DataTableService {
         colId: column.id,
         parentId: param.rowId,
       })) as number;
-    } else {
+    } else if (colOptions.type === RelationTypes.HAS_MANY) {
       data = await baseModel.hmList(
+        {
+          colId: column.id,
+          id: param.rowId,
+        },
+        listArgs as any,
+      );
+      count = (await baseModel.hmListCount({
+        colId: column.id,
+        id: param.rowId,
+      })) as number;
+    } else {
+      data = await baseModel.btRead(
         {
           colId: column.id,
           id: param.rowId,
         },
         param.query as any,
       );
-      count = (await baseModel.hmListCount({
-        colId: column.id,
-        id: param.rowId,
-      })) as number;
     }
 
     data = await nocoExecute(ast, data, {}, listArgs);
+
+    if(colOptions.type === RelationTypes.BELONGS_TO) return data;
 
     return new PagedResponseImpl(data, {
       count,

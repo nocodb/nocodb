@@ -3862,6 +3862,63 @@ class BaseModelSqlv2 {
     // await this.afterUpdate(prevData, newData, this.dbDriver, cookie);
     // await this.afterRemoveChild(rowId, childIds, cookie);
   }
+
+  async btRead(
+    { colId, id }: { colId; id },
+    args: { limit?; offset?; fieldSet?: Set<string> } = {},
+  ) {
+    try {
+      const { where, sort } = this._getListArgs(args as any);
+      // todo: get only required fields
+
+      const relColumn = (await this.model.getColumns()).find(
+        (c) => c.id === colId,
+      );
+
+      const parentCol = await (
+        (await relColumn.getColOptions()) as LinkToAnotherRecordColumn
+      ).getParentColumn();
+      const parentTable = await parentCol.getModel();
+      const chilCol = await (
+        (await relColumn.getColOptions()) as LinkToAnotherRecordColumn
+      ).getChildColumn();
+      const childTable = await chilCol.getModel();
+
+      const parentModel = await Model.getBaseModelSQL({
+        model: parentTable,
+        dbDriver: this.dbDriver,
+      });
+      await childTable.getColumns();
+
+      const childTn = this.getTnPath(childTable);
+      const parentTn = this.getTnPath(parentTable);
+
+      const qb = this.dbDriver(parentTn);
+      await this.applySortAndFilter({ table: parentTable, where, qb, sort });
+
+      qb.where(
+        parentCol.column_name,
+        this.dbDriver(childTn)
+          .select(chilCol.column_name)
+          // .where(parentTable.primaryKey.cn, p)
+          .where(_wherePk(childTable.primaryKeys, id)),
+      );
+
+      await parentModel.selectObject({ qb, fieldsSet: args.fieldSet });
+
+      const parent = (await this.execAndParse(qb, childTable))?.[0];
+
+      const proto = await parentModel.getProto();
+
+      if (parent) {
+        parent.__proto__ = proto;
+      }
+      return parent;
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  }
 }
 
 function extractSortsObject(

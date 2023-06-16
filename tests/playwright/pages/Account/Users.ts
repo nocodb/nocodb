@@ -17,8 +17,8 @@ export class AccountUsersPage extends BasePage {
     this.changePasswordPage = new ChangePasswordPage(this.rootPage);
   }
 
-  async goto() {
-    await this.rootPage.goto('/#/account/users/list');
+  goto() {
+    return this.rootPage.goto('/#/account/users/list');
   }
 
   get() {

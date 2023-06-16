@@ -9,8 +9,8 @@ export class AccountLicensePage extends BasePage {
     this.accountPage = accountPage;
   }
 
-  async goto() {
-    await this.rootPage.goto('/#/account/license');
+  goto() {
+    return this.rootPage.goto('/#/account/license');
   }
 
   async waitUntilContentLoads() {

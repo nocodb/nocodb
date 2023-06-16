@@ -78,13 +78,13 @@ export default class Sort {
 
     const row = await ncMeta.metaInsert2(null, null, MetaTable.SORT, insertObj);
     if (sortObj.push_to_top) {
-      // todo: delete cache
       const sortList = await ncMeta.metaList2(null, null, MetaTable.SORT, {
         condition: { fk_view_id: sortObj.fk_view_id },
         orderBy: {
           order: 'asc',
         },
       });
+      await NocoCache.delAll(CacheScope.SORT, `${sortObj.fk_view_id}:*`);
       await NocoCache.setList(CacheScope.SORT, [sortObj.fk_view_id], sortList);
     } else {
       await NocoCache.appendToList(

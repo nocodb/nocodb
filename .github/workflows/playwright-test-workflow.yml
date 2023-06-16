@@ -77,13 +77,6 @@ jobs:
         run: |
           pnpm install
           pnpm run watch:run:playwright > ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
-      - name: Cache playwright pnpm modules
-        uses: actions/cache@v3
-        id: playwright-cache
-        with:
-          path: |
-            **/tests/playwright/node_modules
-          key: cache-nc-playwright-${{ hashFiles('**/tests/playwright/package-lock.json') }}
       - name: Install dependencies
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: ./tests/playwright
@@ -97,7 +90,6 @@ jobs:
             printf '.'
             sleep 2
           done
-
       - name: Run Playwright tests
         working-directory: ./tests/playwright
         run: E2E_DB_TYPE=${{ inputs.db }} pnpm run ci:test:shard:${{ inputs.shard }}

@@ -45,9 +45,8 @@ export default abstract class BasePage {
       );
     });
 
-    const uiActionPromise = uiAction();
-
-    await Promise.all([waitForResponsePromise, uiActionPromise]);
+    await uiAction();
+    await waitForResponsePromise;
   }
 
   async attachFile({ filePickUIAction, filePath }: { filePickUIAction: Promise<any>; filePath: string[] }) {

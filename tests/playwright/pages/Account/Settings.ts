@@ -11,9 +11,8 @@ export class AccountSettingsPage extends BasePage {
   }
 
   async goto() {
-    // await this.rootPage.goto('/#/account/users/settings', { waitUntil: 'networkidle' });
     await this.waitForResponse({
-      uiAction: () => this.rootPage.goto('/#/account/users/settings', { waitUntil: 'networkidle' }),
+      uiAction: async () => await this.rootPage.goto('/#/account/users/settings'),
       httpMethodsToMatch: ['GET'],
       requestUrlPathToMatch: `api/v1/app-settings`,
     });

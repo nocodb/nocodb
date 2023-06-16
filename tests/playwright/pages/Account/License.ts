@@ -10,7 +10,7 @@ export class AccountLicensePage extends BasePage {
   }
 
   async goto() {
-    await this.rootPage.goto('/#/account/license', { waitUntil: 'networkidle' });
+    await this.rootPage.goto('/#/account/license');
   }
 
   async waitUntilContentLoads() {

@@ -79,7 +79,7 @@ const setup = async ({ page, isEmptyProject }: { page: Page; isEmptyProject?: bo
 
   const project = response.data.project;
 
-  await page.goto(`/#/nc/${project.id}/auth`, { waitUntil: 'networkidle' });
+  await page.goto(`/#/nc/${project.id}/auth`);
 
   return { project, token, dbType, workerId } as NcContext;
 };

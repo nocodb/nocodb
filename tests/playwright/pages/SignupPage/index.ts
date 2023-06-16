@@ -17,7 +17,7 @@ export class SignupPage extends BasePage {
   }
 
   goto() {
-    return this.rootPage.goto('/#/signup/', { waitUntil: 'networkidle' });
+    return this.rootPage.goto('/#/signup/');
   }
 
   get() {

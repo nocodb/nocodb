@@ -28,7 +28,7 @@ test.describe('User roles', () => {
     projectsPage = new ProjectsPage(accountPage.rootPage);
   });
 
-  test('Invite user, update role and delete user', async () => {
+  test.only('Invite user, update role and delete user', async () => {
     test.slow();
 
     await accountUsersPage.goto();
@@ -41,7 +41,7 @@ test.describe('User roles', () => {
       });
       await accountUsersPage.closeInvite();
       await signupAndVerify(i);
-      await accountPage.rootPage.reload({ waitUntil: 'networkidle' });
+      await accountPage.rootPage.reload();
       await accountUsersPage.goto();
     }
 

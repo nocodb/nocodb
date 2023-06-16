@@ -15,7 +15,7 @@ export class AccountTokenPage extends BasePage {
   }
 
   async goto() {
-    await this.rootPage.goto('/#/account/tokens', { waitUntil: 'networkidle' });
+    await this.rootPage.goto('/#/account/tokens');
   }
 
   get() {

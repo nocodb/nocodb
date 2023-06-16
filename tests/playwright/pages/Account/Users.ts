@@ -18,7 +18,7 @@ export class AccountUsersPage extends BasePage {
   }
 
   async goto() {
-    await this.rootPage.goto('/#/account/users/list', { waitUntil: 'networkidle' });
+    await this.rootPage.goto('/#/account/users/list');
   }
 
   get() {

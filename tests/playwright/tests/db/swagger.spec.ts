@@ -16,7 +16,7 @@ test.describe('Table Column Operations', () => {
   test('Create column', async () => {
     // access swagger link
     const link = `http://localhost:8080/api/v1/db/meta/projects/${context.project.id}/swagger`;
-    await dashboard.rootPage.goto(link, { waitUntil: 'networkidle' });
+    await dashboard.rootPage.goto(link);
 
     const swagger = await dashboard.rootPage;
 

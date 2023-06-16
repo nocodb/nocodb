@@ -59,19 +59,25 @@ const onAttachRecord = () => {
   childListDlg.value = false
   listItemsDlg.value = true
 }
+
+const openChildList = () => {
+  if(!isLocked.value)
+  childListDlg = true
+}
 </script>
 
 <template>
   <div class="flex w-full items-center">
     <template v-if="!isForm">
       <div class="flex-grow block">
-        <a
+        <component
+          :is="isLocked ? 'span' : 'a'"
           class="text-center pl-3 nc-datatype-link"
           :class="{ '!text-gray-300': !value }"
-          @click.stop.prevent="childListDlg = true"
+          @click.stop.prevent="openChildList"
         >
           {{ textVal }}
-        </a>
+        </component>
       </div>
 
       <div v-if="!isLocked && !isUnderLookup" class="flex justify-end gap-1 min-h-[30px] items-center">

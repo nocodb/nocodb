@@ -1,5 +1,4 @@
 import 'mocha';
-import { isString } from 'util';
 import request from 'supertest';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { expect } from 'chai';
@@ -20,7 +19,6 @@ import {
   getOneRow,
   getRow,
 } from '../../factory/row';
-import { isPg } from '../../init/db';
 import type { ColumnType } from 'nocodb-sdk';
 import type View from '../../../../src/models/View';
 import type Model from '../../../../src/models/Model';
@@ -1339,7 +1337,7 @@ function viewRowTests() {
     await testDeleteViewRow(ViewTypes.FORM);
   });
 
-  const testDeleteViewRowWithForiegnKeyConstraint = async (
+  const testDeleteViewRowWithForeignKeyConstraint = async (
     viewType: ViewTypes,
   ) => {
     const table = await createTable(context, project);
@@ -1370,35 +1368,29 @@ function viewRowTests() {
       rowId: row['Id'],
     });
 
-    const response = await request(context.app)
+    await request(context.app)
       .delete(
         `/api/v1/db/data/noco/${project.id}/${table.id}/views/${view.id}/${row['Id']}`,
       )
       .set('xc-auth', context.token)
-      .expect(400);
+      .expect(200);
 
     const deleteRow = await getRow(context, { project, table, id: row['Id'] });
-    if (!deleteRow) {
-      throw new Error('Should not delete');
-    }
-
-    if (
-      !(response.body.msg as string).includes('is a LinkToAnotherRecord of')
-    ) {
-      throw new Error('Should give ltar foreign key error');
+    if (deleteRow !== undefined) {
+      throw new Error('Record should have been deleted!');
     }
   };
 
   it('Delete view row with ltar foreign key constraint GALLERY', async function () {
-    await testDeleteViewRowWithForiegnKeyConstraint(ViewTypes.GALLERY);
+    await testDeleteViewRowWithForeignKeyConstraint(ViewTypes.GALLERY);
   });
 
   it('Delete view row with ltar foreign key constraint GRID', async function () {
-    await testDeleteViewRowWithForiegnKeyConstraint(ViewTypes.GRID);
+    await testDeleteViewRowWithForeignKeyConstraint(ViewTypes.GRID);
   });
 
   it('Delete view row with ltar foreign key constraint FORM', async function () {
-    await testDeleteViewRowWithForiegnKeyConstraint(ViewTypes.FORM);
+    await testDeleteViewRowWithForeignKeyConstraint(ViewTypes.FORM);
   });
 
   const testViewRowExists = async (viewType: ViewTypes) => {

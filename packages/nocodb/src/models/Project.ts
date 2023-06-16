@@ -10,7 +10,7 @@ import NocoCache from '../cache/NocoCache';
 import Base from './/Base';
 import { ProjectUser } from './index';
 import type { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
-import type { DB_TYPES } from './/Base';
+import type { DB_TYPES } from './Base';
 
 export default class Project implements ProjectType {
   public id: string;
@@ -309,6 +309,11 @@ export default class Project implements ProjectType {
       `${CacheScope.PROJECT}:${projectId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+
+    await ncMeta.metaDelete(null, null, MetaTable.AUDIT, {
+      project_id: projectId,
+    });
+
     return await ncMeta.metaDelete(null, null, MetaTable.PROJECT, projectId);
   }
 

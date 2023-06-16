@@ -158,7 +158,7 @@ const customColumns = function (type: string, options: any = {}) {
         },
       ];
     case 'custom':
-      return [{ title: 'Id', uidt: UITypes.ID }, ...options];
+      return [{ title: 'Id', column_name: 'Id', uidt: UITypes.ID }, ...options];
   }
 };
 

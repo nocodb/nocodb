@@ -127,8 +127,7 @@ export class DataTableController {
     });
   }
 
-
-  @Get(['/api/v1/tables/:modelId/links/:columnId/row/:rowId'])
+  @Get(['/api/v1/tables/:modelId/links/:columnId/rows/:rowId'])
   @Acl('nestedDataList')
   async nestedDataList(
     @Request() req,
@@ -146,8 +145,7 @@ export class DataTableController {
     });
   }
 
-
-  @Post(['/api/v1/tables/:modelId/links/:columnId/row/:rowId'])
+  @Post(['/api/v1/tables/:modelId/links/:columnId/rows/:rowId'])
   @Acl('nestedDataLink')
   async nestedLink(
     @Request() req,
@@ -168,8 +166,7 @@ export class DataTableController {
     });
   }
 
-
-  @Delete(['/api/v1/tables/:modelId/links/:columnId/row/:rowId'])
+  @Delete(['/api/v1/tables/:modelId/links/:columnId/rows/:rowId'])
   @Acl('nestedDataUnlink')
   async nestedUnlink(
     @Request() req,

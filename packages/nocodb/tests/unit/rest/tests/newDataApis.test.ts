@@ -85,13 +85,13 @@ import 'mocha';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { expect } from 'chai';
 import request from 'supertest';
-import { Api } from 'nocodb-sdk';
 import init from '../../init';
 import { createProject, createSakilaProject } from '../../factory/project';
 import { createTable, getTable } from '../../factory/table';
 import { createBulkRows, listRow, rowMixedValue } from '../../factory/row';
 import {
   createLookupColumn,
+  createLtarColumn,
   createRollupColumn,
   customColumns,
 } from '../../factory/column';
@@ -100,10 +100,6 @@ import { createView, updateView } from '../../factory/view';
 import type { ColumnType } from 'nocodb-sdk';
 import type Project from '../../../../src/models/Project';
 import type Model from '../../../../src/models/Model';
-
-let api: Api<any>;
-
-const debugMode = true;
 
 let context;
 let project: Project;
@@ -201,6 +197,10 @@ async function ncAxiosLinkGet({
     .set('xc-auth', context.token)
     .query(query)
     .send({});
+  if (response.status !== status) {
+    console.log(response.body);
+  }
+
   expect(response.status).to.equal(status);
   return response;
 }
@@ -1691,6 +1691,11 @@ function linkBased() {
   let tblActor: Model;
   let tblFilm: Model;
 
+  let columnsFilm;
+  let columnsActor;
+  let columnsCountry;
+  let columnsCity;
+
   async function prepareRecords(title: string, count: number) {
     const records = [];
     for (let i = 1; i <= count; i++) {
@@ -1705,137 +1710,171 @@ function linkBased() {
   // prepare data for test cases
   beforeEach(async function () {
     context = await init();
-    const project = await createProject(context);
-
-    api = new Api({
-      baseURL: `http://localhost:8080/`,
-      headers: {
-        'xc-auth': context.token,
-      },
-    });
+    project = await createProject(context);
 
     const columns = [
-      { title: 'Title', uidt: UITypes.SingleLineText, pv: true },
+      {
+        title: 'Title',
+        column_name: 'Title',
+        uidt: UITypes.SingleLineText,
+        pv: true,
+      },
     ];
 
-    // Prepare City table
-    columns[0].title = 'City';
-    tblCity = await createTable(context, project, {
-      title: 'City',
-      columns: customColumns('custom', columns),
-    });
-    const cityRecords = await prepareRecords('City', 100);
-    await api.dbTableRow.bulkCreate(
-      'noco',
-      project.id,
-      tblCity.id,
-      cityRecords,
-    );
+    try {
+      // Prepare City table
+      columns[0].title = 'City';
+      columns[0].column_name = 'City';
+      tblCity = await createTable(context, project, {
+        title: 'City',
+        table_name: 'City',
+        columns: customColumns('custom', columns),
+      });
+      const cityRecords = await prepareRecords('City', 100);
 
-    // Prepare Country table
-    columns[0].title = 'Country';
-    tblCountry = await createTable(context, project, {
-      title: 'Country',
-      columns: customColumns('custom', columns),
-    });
-    const countryRecords = await prepareRecords('Country', 10);
-    await api.dbTableRow.bulkCreate(
-      'noco',
-      project.id,
-      tblCountry.id,
-      countryRecords,
-    );
+      // insert records
+      await createBulkRows(context, {
+        project,
+        table: tblCity,
+        values: cityRecords,
+      });
 
-    // Prepare Actor table
-    columns[0].title = 'Actor';
-    tblActor = await createTable(context, project, {
-      title: 'Actor',
-      columns: customColumns('custom', columns),
-    });
-    const actorRecords = await prepareRecords('Actor', 100);
-    await api.dbTableRow.bulkCreate(
-      'noco',
-      project.id,
-      tblActor.id,
-      actorRecords,
-    );
+      insertedRecords = await listRow({ project, table: tblCity });
 
-    // Prepare Movie table
-    columns[0].title = 'Film';
-    tblFilm = await createTable(context, project, {
-      title: 'Film',
-      columns: customColumns('custom', columns),
-    });
-    const filmRecords = await prepareRecords('Film', 100);
-    await api.dbTableRow.bulkCreate(
-      'noco',
-      project.id,
-      tblFilm.id,
-      filmRecords,
-    );
+      // Prepare Country table
+      columns[0].title = 'Country';
+      columns[0].column_name = 'Country';
+      tblCountry = await createTable(context, project, {
+        title: 'Country',
+        table_name: 'Country',
+        columns: customColumns('custom', columns),
+      });
+      const countryRecords = await prepareRecords('Country', 10);
+      // insert records
+      await createBulkRows(context, {
+        project,
+        table: tblCountry,
+        values: countryRecords,
+      });
 
-    // Create links
-    // Country <hm> City
-    await api.dbTableColumn.create(tblCountry.id, {
-      uidt: UITypes.LinkToAnotherRecord,
-      title: `Cities`,
-      parentId: tblCountry.id,
-      childId: tblCity.id,
-      type: 'hm',
-    });
+      // Prepare Actor table
+      columns[0].title = 'Actor';
+      columns[0].column_name = 'Actor';
+      tblActor = await createTable(context, project, {
+        title: 'Actor',
+        table_name: 'Actor',
+        columns: customColumns('custom', columns),
+      });
+      const actorRecords = await prepareRecords('Actor', 100);
+      await createBulkRows(context, {
+        project,
+        table: tblActor,
+        values: actorRecords,
+      });
 
-    // Actor <mm> Film
-    await api.dbTableColumn.create(tblActor.id, {
-      uidt: UITypes.LinkToAnotherRecord,
-      title: `Films`,
-      parentId: tblActor.id,
-      childId: tblFilm.id,
-      type: 'mm',
-    });
+      // Prepare Movie table
+      columns[0].title = 'Film';
+      columns[0].column_name = 'Film';
+      tblFilm = await createTable(context, project, {
+        title: 'Film',
+        table_name: 'Film',
+        columns: customColumns('custom', columns),
+      });
+      const filmRecords = await prepareRecords('Film', 100);
+      await createBulkRows(context, {
+        project,
+        table: tblFilm,
+        values: filmRecords,
+      });
+
+      // Create links
+      // Country <hm> City
+      await createLtarColumn(context, {
+        title: 'Cities',
+        parentTable: tblCountry,
+        childTable: tblCity,
+        type: 'hm',
+      });
+      await createLtarColumn(context, {
+        title: 'Films',
+        parentTable: tblActor,
+        childTable: tblFilm,
+        type: 'mm',
+      });
+
+      columnsFilm = await tblFilm.getColumns();
+      columnsActor = await tblActor.getColumns();
+      columnsCountry = await tblCountry.getColumns();
+      columnsCity = await tblCity.getColumns();
+    } catch (e) {
+      console.log(e);
+    }
   });
+
+  function getColumnId(columns, title: string) {
+    return columns.find((c) => c.title === title).id;
+  }
 
   it('Has-Many ', async function () {
     // Create hm link between Country and City
     await ncAxiosLinkAdd({
       urlParams: {
         tableId: tblCountry.id,
-        linkId: tblCountry.columns[2].id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
         rowId: 1,
       },
-      body: {
-        links: [1, 2, 3, 4, 5],
-      },
+      body: [1, 2, 3, 4, 5],
+      status: 201,
     });
 
     // verify in Country table
     let rsp = await ncAxiosLinkGet({
       urlParams: {
         tableId: tblCountry.id,
-        linkId: tblCountry.columns[2].id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
         rowId: 1,
       },
     });
-    expect(rsp.body).to.deep.equal({
-      links: [1, 2, 3, 4, 5],
-    });
+
+    // page Info
+    const pageInfo = {
+      totalRows: 5,
+      page: 1,
+      pageSize: 25,
+      isFirstPage: true,
+      isLastPage: true,
+    };
+    expect(rsp.body.pageInfo).to.deep.equal(pageInfo);
+
+    // links
+    let subResponse = rsp.body.list.map(({ Id, City }) => ({ Id, City }));
+    for (let i = 1; i <= 5; i++) {
+      expect(subResponse[i - 1]).to.deep.equal({
+        Id: i,
+        City: `City ${i}`,
+      });
+    }
 
     // verify in City table
     for (let i = 1; i <= 10; i++) {
-      const rsp = await ncAxiosLinkGet({
+      rsp = await ncAxiosLinkGet({
         urlParams: {
           tableId: tblCity.id,
-          linkId: tblCity.columns[2].id,
-          rowId: i,
+          linkId: getColumnId(columnsCity, 'Country'),
+          rowId: i + 10,
         },
       });
+      subResponse = rsp.body.list.map(({ Id, Country }) => ({
+        Id,
+        Country,
+      }));
       if (i <= 5) {
-        expect(rsp.body).to.deep.equal({
-          links: [i],
+        expect(subResponse).to.deep.equal({
+          Id: i,
+          Country: `Country 1`,
         });
       } else {
-        expect(rsp.body).to.deep.equal({
-          links: [],
-        });
+        expect(subResponse.list.length).to.equal(0);
       }
     }
 
@@ -1844,25 +1883,25 @@ function linkBased() {
     await ncAxiosLinkAdd({
       urlParams: {
         tableId: tblCountry.id,
-        linkId: tblCountry.columns[2].id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
         rowId: 1,
       },
-      body: {
-        links: [6, 7],
-      },
+      body: [6, 7],
     });
 
     // verify in Country table
-    for (let i = 1; i <= 10; i++) {
-      const rsp = await ncAxiosLinkGet({
-        urlParams: {
-          tableId: tblCountry.id,
-          linkId: tblCountry.columns[2].id,
-          rowId: i,
-        },
-      });
-      expect(rsp.body).to.deep.equal({
-        links: [1, 2, 3, 4, 5, 6, 7],
+    rsp = await ncAxiosLinkGet({
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
+        rowId: 1,
+      },
+    });
+    subResponse = rsp.body.list.map(({ Id, City }) => ({ Id, City }));
+    for (let i = 1; i <= 7; i++) {
+      expect(subResponse[i - 1]).to.deep.equal({
+        Id: i,
+        City: `City ${i}`,
       });
     }
 
@@ -1872,18 +1911,21 @@ function linkBased() {
       const rsp = await ncAxiosLinkGet({
         urlParams: {
           tableId: tblCity.id,
-          linkId: tblCity.columns[2].id,
+          linkId: getColumnId(columnsCity, 'Country'),
           rowId: i,
         },
       });
+      subResponse = rsp.body.list.map(({ Id, Country }) => ({
+        Id,
+        Country,
+      }));
       if (i <= 7) {
-        expect(rsp.body).to.deep.equal({
-          links: [i],
+        expect(subResponse).to.deep.equal({
+          Id: 1,
+          Country: `Country 1`,
         });
       } else {
-        expect(rsp.body).to.deep.equal({
-          links: [],
-        });
+        expect(subResponse.list.length).to.equal(0);
       }
     }
 
@@ -1892,43 +1934,49 @@ function linkBased() {
     await ncAxiosLinkRemove({
       urlParams: {
         tableId: tblCountry.id,
-        linkId: tblCountry.columns[2].id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
         rowId: 1,
       },
-      body: {
-        links: [1, 3, 5, 7],
-      },
+      body: [1, 3, 5, 7],
     });
 
     // verify in Country table
     rsp = await ncAxiosLinkGet({
       urlParams: {
         tableId: tblCountry.id,
-        linkId: tblCountry.columns[2].id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
         rowId: 1,
       },
     });
-    expect(rsp.body).to.deep.equal({
-      links: [2, 4, 6],
-    });
-
+    subResponse = rsp.body.list.map(({ Id, City }) => ({ Id, City }));
+    expect(subResponse.list.length).to.equal(3);
+    for (let i = 1; i <= 3; i++) {
+      expect(subResponse[i - 1]).to.deep.equal({
+        Id: i * 2,
+        City: `City ${i * 2}`,
+      });
+    }
     // verify in City table
     for (let i = 1; i <= 10; i++) {
-      const rsp = await ncAxiosLinkGet({
+      rsp = await ncAxiosLinkGet({
         urlParams: {
           tableId: tblCity.id,
-          linkId: tblCity.columns[2].id,
+          linkId: getColumnId(columnsCity, 'Country'),
           rowId: i,
         },
       });
+      subResponse = rsp.body.list.map(({ Id, Country }) => ({
+        Id,
+        Country,
+      }));
+
       if (i % 2 === 0 && i <= 6) {
-        expect(rsp.body).to.deep.equal({
-          links: [Math.ceil(i / 10)],
+        expect(subResponse).to.deep.equal({
+          Id: 1,
+          Country: `Country 1`,
         });
       } else {
-        expect(rsp.body).to.deep.equal({
-          links: [],
-        });
+        expect(subResponse.list.length).to.equal(0);
       }
     }
   });
@@ -1944,29 +1992,25 @@ function linkBased() {
     await ncAxiosLinkAdd({
       urlParams: {
         tableId: tblActor.id,
-        linkId: tblActor.columns[2].id,
+        linkId: getColumnId(columnsActor, 'Films'),
         rowId: 1,
       },
-      body: {
-        links: initializeArrayFromSequence(1, 20),
-      },
+      body: initializeArrayFromSequence(1, 20),
     });
     await ncAxiosLinkAdd({
       urlParams: {
         tableId: tblFilm.id,
-        linkId: tblFilm.columns[2].id,
+        linkId: getColumnId(columnsFilm, 'Actor'),
         rowId: 1,
       },
-      body: {
-        links: initializeArrayFromSequence(1, 20),
-      },
+      body: initializeArrayFromSequence(1, 20),
     });
 
     // verify in Actor table
     let rsp = await ncAxiosLinkGet({
       urlParams: {
         tableId: tblActor.id,
-        linkId: tblActor.columns[2].id,
+        linkId: getColumnId(columnsActor, 'Films'),
         rowId: 1,
       },
     });
@@ -1978,7 +2022,7 @@ function linkBased() {
     rsp = await ncAxiosLinkGet({
       urlParams: {
         tableId: tblFilm.id,
-        linkId: tblFilm.columns[2].id,
+        linkId: getColumnId(columnsFilm, 'Actor'),
         rowId: 1,
       },
     });
@@ -1991,19 +2035,17 @@ function linkBased() {
     await ncAxiosLinkAdd({
       urlParams: {
         tableId: tblActor.id,
-        linkId: tblActor.columns[2].id,
+        linkId: getColumnId(columnsActor, 'Films'),
         rowId: 1,
       },
-      body: {
-        links: initializeArrayFromSequence(21, 30),
-      },
+      body: initializeArrayFromSequence(21, 30),
     });
 
     // verify in Actor table
     rsp = await ncAxiosLinkGet({
       urlParams: {
         tableId: tblActor.id,
-        linkId: tblActor.columns[2].id,
+        linkId: getColumnId(columnsActor, 'Films'),
         rowId: 1,
       },
     });
@@ -2016,7 +2058,7 @@ function linkBased() {
       const rsp = await ncAxiosLinkGet({
         urlParams: {
           tableId: tblFilm.id,
-          linkId: tblFilm.columns[2].id,
+          linkId: getColumnId(columnsFilm, 'Actor'),
           rowId: i,
         },
       });
@@ -2030,19 +2072,17 @@ function linkBased() {
     await ncAxiosLinkRemove({
       urlParams: {
         tableId: tblActor.id,
-        linkId: tblActor.columns[2].id,
+        linkId: getColumnId(columnsActor, 'Films'),
         rowId: 1,
       },
-      body: {
-        links: [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29],
-      },
+      body: [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29],
     });
 
     // verify in Actor table
     rsp = await ncAxiosLinkGet({
       urlParams: {
         tableId: tblActor.id,
-        linkId: tblActor.columns[2].id,
+        linkId: getColumnId(columnsActor, 'Films'),
         rowId: 1,
       },
     });
@@ -2055,7 +2095,7 @@ function linkBased() {
       const rsp = await ncAxiosLinkGet({
         urlParams: {
           tableId: tblFilm.id,
-          linkId: tblFilm.columns[2].id,
+          linkId: getColumnId(columnsFilm, 'Actor'),
           rowId: i,
         },
       });
@@ -2078,31 +2118,27 @@ function linkBased() {
     await ncAxiosLinkAdd({
       urlParams: {
         tableId: tblCountry.id,
-        linkId: tblCountry.columns[2].id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
         rowId: 1,
       },
-      body: {
-        links: [1, 2, 3],
-      },
+      body: [1, 2, 3],
     });
 
     // update the link
     await ncAxiosLinkAdd({
       urlParams: {
         tableId: tblCountry.id,
-        linkId: tblCountry.columns[2].id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
         rowId: 2,
       },
-      body: {
-        links: [2, 3],
-      },
+      body: [2, 3],
     });
 
     // verify record 1
     let rsp = await ncAxiosLinkGet({
       urlParams: {
         tableId: tblCountry.id,
-        linkId: tblCountry.columns[2].id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
         rowId: 1,
       },
     });
@@ -2111,7 +2147,7 @@ function linkBased() {
     rsp = await ncAxiosLinkGet({
       urlParams: {
         tableId: tblCountry.id,
-        linkId: tblCountry.columns[2].id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
         rowId: 2,
       },
     });
@@ -2124,19 +2160,17 @@ function linkBased() {
     await ncAxiosLinkAdd({
       urlParams: {
         tableId: tblCountry.id,
-        linkId: tblCountry.columns[2].id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
         rowId: 1,
       },
-      body: {
-        links: initializeArrayFromSequence(1, 50),
-      },
+      body: initializeArrayFromSequence(1, 50),
     });
 
     // verify record 1
     let rsp = await ncAxiosLinkGet({
       urlParams: {
         tableId: tblCountry.id,
-        linkId: tblCountry.columns[2].id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
         rowId: 1,
       },
       query: {
@@ -2151,7 +2185,7 @@ function linkBased() {
     rsp = await ncAxiosLinkGet({
       urlParams: {
         tableId: tblCountry.id,
-        linkId: tblCountry.columns[2].id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
         rowId: 1,
       },
       query: {
@@ -2166,7 +2200,7 @@ function linkBased() {
     rsp = await ncAxiosLinkGet({
       urlParams: {
         tableId: tblCountry.id,
-        linkId: tblCountry.columns[2].id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
         rowId: 1,
       },
       query: {
@@ -2185,12 +2219,10 @@ function linkBased() {
     await ncAxiosLinkAdd({
       urlParams: {
         tableId: tblCountry.id,
-        linkId: tblCountry.columns[2].id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
         rowId: 1,
       },
-      body: {
-        links: [9999],
-      },
+      body: [9999],
       status: 400,
     });
 
@@ -2209,12 +2241,10 @@ function linkBased() {
     await ncAxiosLinkRemove({
       urlParams: {
         tableId: tblCountry.id,
-        linkId: tblCountry.columns[2].id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
         rowId: 1,
       },
-      body: {
-        links: [9999],
-      },
+      body: [9999],
       status: 400,
     });
   });
@@ -2233,7 +2263,7 @@ export default function () {
   describe('Numerical', numberBased);
   describe('Select based', selectBased);
   describe('Date based', dateBased);
-  // describe('Link based', linkBased);
+  describe('Link based', linkBased);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

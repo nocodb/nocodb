@@ -493,6 +493,10 @@ const rowRefs = $ref<any[]>()
 async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = false) {
   if (!ctx || !hasEditPermission || (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col]))) return
 
+  if (fields.value[ctx.col]?.uidt === UITypes.Links) {
+    return message.info('Links column clear is not supported yet')
+  }
+
   const rowObj = data.value[ctx.row]
   const columnObj = fields.value[ctx.col]
 

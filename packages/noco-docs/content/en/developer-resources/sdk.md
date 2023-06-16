@@ -17,7 +17,7 @@ Note: The NocoDB SDK requires authorization token. If you haven't created one, p
 ### Install nocodb-sdk
 
 ```bash
-npm i nocodb-sdk
+pnpm i nocodb-sdk
 ```
 
 ### Import Api

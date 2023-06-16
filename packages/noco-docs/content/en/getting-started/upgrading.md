@@ -57,12 +57,12 @@ From your root folder
 #### Uninstall NocoDB package
 
 ```bash
-npm uninstall nocodb
+pnpm uninstall nocodb
 ```
 #### Install NocoDB package
 
 ```bash
-npm install --save nocodb
+pnpm install --save nocodb
 ```
 
 ## Homebrew

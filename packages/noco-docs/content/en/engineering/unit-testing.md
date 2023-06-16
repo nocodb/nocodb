@@ -21,7 +21,7 @@ menuTitle: "Unit Testing"
 ```bash
 cd packages/nocodb
 
-npm install
+pnpm install
 
 # add a .env file
 cp tests/unit/.env.sample tests/unit/.env
@@ -38,7 +38,7 @@ Configure the following variables
 ### Run Tests
 
 ``` bash
-npm run test:unit
+pnpm run test:unit
 ```
 
 ### Folder Structure

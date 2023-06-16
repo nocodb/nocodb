@@ -201,8 +201,8 @@ We provide a simple NodeJS Application for getting started.
 ```bash
 git clone https://github.com/nocodb/nocodb-seed
 cd nocodb-seed
-npm install
-npm start
+pnpm install
+pnpm start
 ```
 
 

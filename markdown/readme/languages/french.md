@@ -64,8 +64,8 @@ npx create-nocodb-app
 ```
 git clone https://github.com/nocodb/nocodb-seed
 cd nocodb-seed
-npm install
-npm start
+pnpm install
+pnpm start
 ```
 
 ### GUI

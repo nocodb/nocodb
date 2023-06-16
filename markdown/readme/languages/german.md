@@ -52,7 +52,7 @@ docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ### Verwenden von NPM 
 
 ```
-npm install create-nocodb-app
+pnpm install create-nocodb-app
 ```
 
 ### Verwenden von NPX 
@@ -66,8 +66,8 @@ npx create-nocodb-app
 ```
 git clone https://github.com/nocodb/nocodb-seed
 cd nocodb-seed
-npm install
-npm start
+pnpm install
+pnpm start
 ```
 
 ### GUI
@@ -205,8 +205,8 @@ cd nocodb
 
 ```shell
 cd packages/nocodb
-npm install
-npm run watch:run
+pnpm install
+pnpm run watch:run
 # localhost:8080/dashboard im Browser aufrufen
 ```
 
@@ -214,14 +214,14 @@ npm run watch:run
 
 ```shell
 cd packages/nc-gui
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 # localhost:3000/dashboard iM Browser aufrufen
 ```
 
 Änderungen am Code starten automatisch neu.
 
-> nocodb/packages/nocodb enthält nc-lib-gui, die entwickelte Version von nc-gui, die in der npm-Registry gehostet wird. Sie können localhost:8000/dashboard im Browser aufrufen, nachdem Sie das Backend lokal gestartet haben, wenn Sie nur das Backend ändern möchten.
+> nocodb/packages/nocodb enthält nc-lib-gui, die entwickelte Version von nc-gui, die in der pnpm-Registry gehostet wird. Sie können localhost:8000/dashboard im Browser aufrufen, nachdem Sie das Backend lokal gestartet haben, wenn Sie nur das Backend ändern möchten.
 
 # Beiträge
 

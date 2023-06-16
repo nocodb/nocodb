@@ -13,7 +13,7 @@ All the tests reside in `tests/playwright` folder.
 Make sure to install the dependencies(in the playwright folder):
 
 ```bash
-npm install
+pnpm install
 npx playwright install chromium --with-deps
 ```
 
@@ -22,13 +22,13 @@ npx playwright install chromium --with-deps
 Start the backend test server (in `packages/nocodb` folder):
 
 ```bash
-npm run watch:run:playwright
+pnpm run watch:run:playwright
 ```
 
 Start the frontend test server (in `packages/nc-gui` folder):
 
 ```bash
-NUXT_PAGE_TRANSITION_DISABLE=true npm run dev
+NUXT_PAGE_TRANSITION_DISABLE=true pnpm run dev
 ```
 
 ### Running all tests
@@ -38,13 +38,13 @@ For selecting db type, rename `.env.example` to `.env` and set `E2E_DEV_DB_TYPE`
 headless mode(without opening browser):
 
 ```bash
-npm run test
+pnpm run test
 ```
 
 with browser:
 
 ```bash
-npm run test:debug
+pnpm run test:debug
 ```
 
 </br>
@@ -73,7 +73,7 @@ test.only('should login', async ({ page }) => {
 ```
 
 ```bash
-npm run test
+pnpm run test
 ```
 
 ## Concepts
@@ -221,4 +221,4 @@ async verifyFilter({ title }: { title: string }) {
 - Open `Summary` tab in the CI workflow in github actions.
 - Scroll down to `Artifacts` section.
 - Access reports which suffixed with the db type and shard number(corresponding to the CI workerflow name). i.e `playwright-report-mysql-2` is for `playwright-mysql-2` workflow.
-- Download it and run `npm install -D @playwright/test && npx playwright show-report ./` inside the downloaded folder.
+- Download it and run `pnpm install -D @playwright/test && npx playwright show-report ./` inside the downloaded folder.

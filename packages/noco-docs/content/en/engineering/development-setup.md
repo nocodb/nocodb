@@ -17,8 +17,8 @@ cd nocodb/packages
 ```
 # build nocodb-sdk
 cd nocodb-sdk
-npm install
-npm run build
+pnpm install
+pnpm run build
 ```
 
 ## Build Backend
@@ -26,8 +26,8 @@ npm run build
 ```
 # build backend - runs on port 8080
 cd ../nocodb
-npm install
-npm run watch:run
+pnpm install
+pnpm run watch:run
 ```
 
 ## Build Frontend
@@ -35,8 +35,8 @@ npm run watch:run
 ```
 # build frontend - runs on port 3000
 cd ../nc-gui
-npm install
-npm run dev 
+pnpm install
+pnpm run dev 
 ```
 
 Any changes made to frontend and backend will be automatically reflected in the browser.

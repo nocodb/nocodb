@@ -25,6 +25,9 @@ const { showSystemFields, metaColumnById } = useViewColumns(activeView, meta)
 const options = computed<SelectProps['options']>(() =>
   meta.value?.columns
     ?.filter((c: ColumnType) => {
+      if (c.uidt === UITypes.Links) {
+        return true
+      }
       if (isSystemColumn(metaColumnById?.value?.[c.id!])) {
         return (
           /** if the field is used in filter, then show it anyway */

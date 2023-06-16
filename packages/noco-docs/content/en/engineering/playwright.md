@@ -14,7 +14,7 @@ Make sure to install the dependencies(in the playwright folder):
 
 ```bash
 pnpm install
-npx playwright install chromium --with-deps
+pnpm exec playwright install --with-deps chromium
 ```
 
 ### Run Test Server

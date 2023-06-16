@@ -33,13 +33,13 @@ vModel.value.meta = {
   <a-row class="my-2" gutter="8">
     <a-col :span="12">
       <a-form-item v-bind="validateInfos['meta.singular']" label="Singular Label">
-        <a-input v-model:value="vModel.meta.singular" class="!w-full nc-link-singular" />
+        <a-input placeholder="Link" v-model:value="vModel.meta.singular" class="!w-full nc-link-singular" />
       </a-form-item>
     </a-col>
 
     <a-col :span="12">
       <a-form-item v-bind="validateInfos['meta.plural']" label="Plural Label">
-        <a-input v-model:value="vModel.meta.plural" class="!w-full nc-link-plural" />
+        <a-input placeholder="Links" v-model:value="vModel.meta.plural" class="!w-full nc-link-plural" />
       </a-form-item>
     </a-col>
   </a-row>

@@ -28,7 +28,7 @@ pnpm run watch:run:playwright
 Start the frontend test server (in `packages/nc-gui` folder):
 
 ```bash
-pnpm run dev
+NUXT_PAGE_TRANSITION_DISABLE=true pnpm run dev
 ```
 
 ### Running all tests

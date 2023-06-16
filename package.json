@@ -28,20 +28,20 @@
   },
   "lint-staged": {
     "scripts/playwright/**/*.{ts,tsx,js,json}": [
-      "npm run lint:staged:playwright"
+      "pnpm run lint:staged:playwright"
     ]
   },
   "scripts": {
     "lint:staged:playwright": "cd ./tests/playwright; npx lint-staged; cd -",
-    "build:common": "cd ./packages/nocodb-sdk; npm install; npm run build",
-    "install:common": "cd packages/nocodb-legacy; npm install ../nocodb-sdk; cd ../nc-gui; npm install ../nocodb-sdk",
-    "start:web": "npm run build:common ; cd ./packages/nc-gui; npm install ../nocodb-sdk; npm install; ANT_MESSAGE_DURATION=0.5 npm run dev",
+    "build:common": "cd ./packages/nocodb-sdk; pnpm install; pnpm run build",
+    "install:common": "cd packages/nocodb-legacy; pnpm install ../nocodb-sdk; cd ../nc-gui; pnpm install ../nocodb-sdk",
+    "start:web": "pnpm run build:common ; cd ./packages/nc-gui; pnpm install ../nocodb-sdk; pnpm install; ANT_MESSAGE_DURATION=0.5 pnpm run dev",
     "test:travis": "git log --pretty=format:'%h' -n 1 --skip 1 | xargs  lerna run test:travis --since",
     "lerna:install": "git log --pretty=format:'%h' -n 1 --skip 1 | xargs  lerna bootstrap --ignore nc-cli --since",
-    "updated:xc-migrator": "lerna run publish --scope xc-migrator && lerna run xc && lerna publish && npm install -f xc-cli",
+    "updated:xc-migrator": "lerna run publish --scope xc-migrator && lerna run xc && lerna publish && pnpm install -f xc-cli",
     "doc": "lerna run doc",
-    "install:local:dep": "cd packages/nc-lib-gui;npm uninstall -S xc-lib;rm package-lock.json; npm i ../../../xc-lib-private; cd ../xc-instant;npm uninstall -S xc-lib xc-lib-gui;npm i ../../../xc-lib-private;npm i ../xc-lib-gui",
-    "install:npm:dep": "cd packages/nc-lib-gui;npm uninstall -S xc-lib; npm i -S xc-lib@latest; cd ../xc-instant;npm uninstall -S xc-lib xc-lib-gui;npm i -S xc-lib@latest xc-lib-gui@latest;npm i ../xc-lib-gui",
+    "install:local:dep": "cd packages/nc-lib-gui;pnpm uninstall -S xc-lib;rm package-lock.json; pnpm i ../../../xc-lib-private; cd ../xc-instant;pnpm uninstall -S xc-lib xc-lib-gui;pnpm i ../../../xc-lib-private;pnpm i ../xc-lib-gui",
+    "install:pnpm:dep": "cd packages/nc-lib-gui;pnpm uninstall -S xc-lib; pnpm i -S xc-lib@latest; cd ../xc-instant;pnpm uninstall -S xc-lib xc-lib-gui;pnpm i -S xc-lib@latest xc-lib-gui@latest;pnpm i ../xc-lib-gui",
     "prepare": "husky install",
     "start:mysql": "docker-compose -f ./tests/playwright/scripts/docker-compose-mysql-playwright.yml up -d",
     "stop:mysql": "docker-compose -f ./tests/playwright/scripts/docker-compose-mysql-playwright.yml down",

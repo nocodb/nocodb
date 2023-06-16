@@ -207,7 +207,7 @@ async function ncAxiosLinkGet({
 async function ncAxiosLinkAdd({
   urlParams: { tableId, linkId, rowId },
   body = {},
-  status = 200,
+  status = 201,
 }: { urlParams?: any; body?: any; status?: number } = {}) {
   const urlParams = { tableId, linkId, rowId };
   const url = `/api/v1/tables/${urlParams.tableId}/links/${urlParams.linkId}/rows/${urlParams.rowId}`;
@@ -2000,7 +2000,7 @@ function linkBased() {
     await ncAxiosLinkAdd({
       urlParams: {
         tableId: tblFilm.id,
-        linkId: getColumnId(columnsFilm, 'Actor'),
+        linkId: getColumnId(columnsFilm, 'Actor List'),
         rowId: 1,
       },
       body: initializeArrayFromSequence(1, 20),
@@ -2014,21 +2014,55 @@ function linkBased() {
         rowId: 1,
       },
     });
-    expect(rsp.body).to.deep.equal({
-      links: initializeArrayFromSequence(1, 20),
+
+    // page info
+    const pageInfo = {
+      totalRows: 20,
+      page: 1,
+      pageSize: 25,
+      isFirstPage: true,
+      isLastPage: true,
+    };
+    expect(rsp.body.pageInfo).to.deep.equal(pageInfo);
+
+    // Links
+    expect(rsp.body.list.length).to.equal(20);
+    for (let i = 1; i <= 20; i++) {
+      expect(rsp.body.list[i - 1]).to.deep.equal({
+        Id: i,
+        Film: `Film ${i}`,
+      });
+    }
+
+    // Second record
+    rsp = await ncAxiosLinkGet({
+      urlParams: {
+        tableId: tblActor.id,
+        linkId: getColumnId(columnsActor, 'Films'),
+        rowId: 2,
+      },
+    });
+    expect(rsp.body.list.length).to.equal(1);
+    expect(rsp.body.list[0]).to.deep.equal({
+      Id: 1,
+      Film: `Film 1`,
     });
 
     // verify in Film table
     rsp = await ncAxiosLinkGet({
       urlParams: {
         tableId: tblFilm.id,
-        linkId: getColumnId(columnsFilm, 'Actor'),
+        linkId: getColumnId(columnsFilm, 'Actor List'),
         rowId: 1,
       },
     });
-    expect(rsp.body).to.deep.equal({
-      links: initializeArrayFromSequence(1, 20),
-    });
+    expect(rsp.body.list.length).to.equal(20);
+    for (let i = 1; i <= 20; i++) {
+      expect(rsp.body.list[i - 1]).to.deep.equal({
+        Id: i,
+        Actor: `Actor ${i}`,
+      });
+    }
 
     // Update mm link between Actor and Film
     // List them for a record & verify in both tables
@@ -2038,7 +2072,7 @@ function linkBased() {
         linkId: getColumnId(columnsActor, 'Films'),
         rowId: 1,
       },
-      body: initializeArrayFromSequence(21, 30),
+      body: initializeArrayFromSequence(21, 10),
     });
 
     // verify in Actor table
@@ -2049,21 +2083,28 @@ function linkBased() {
         rowId: 1,
       },
     });
-    expect(rsp.body).to.deep.equal({
-      links: initializeArrayFromSequence(1, 30),
-    });
+    expect(rsp.body.list.length).to.equal(25);
+    // paginated response, limit to 25
+    for (let i = 1; i <= 25; i++) {
+      expect(rsp.body.list[i - 1]).to.deep.equal({
+        Id: i,
+        Film: `Film ${i}`,
+      });
+    }
 
     // verify in Film table
     for (let i = 21; i <= 30; i++) {
       const rsp = await ncAxiosLinkGet({
         urlParams: {
           tableId: tblFilm.id,
-          linkId: getColumnId(columnsFilm, 'Actor'),
+          linkId: getColumnId(columnsFilm, 'Actor List'),
           rowId: i,
         },
       });
-      expect(rsp.body).to.deep.equal({
-        links: initializeArrayFromSequence(1, 1),
+      expect(rsp.body.list.length).to.equal(1);
+      expect(rsp.body.list[0]).to.deep.equal({
+        Id: 1,
+        Actor: `Actor 1`,
       });
     }
 
@@ -2086,27 +2127,31 @@ function linkBased() {
         rowId: 1,
       },
     });
-    expect(rsp.body).to.deep.equal({
-      links: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30],
-    });
+    expect(rsp.body.list.length).to.equal(15);
+    for (let i = 2; i <= 30; i += 2) {
+      expect(rsp.body.list[i / 2 - 1]).to.deep.equal({
+        Id: i,
+        Film: `Film ${i}`,
+      });
+    }
 
     // verify in Film table
     for (let i = 2; i <= 30; i++) {
       const rsp = await ncAxiosLinkGet({
         urlParams: {
           tableId: tblFilm.id,
-          linkId: getColumnId(columnsFilm, 'Actor'),
+          linkId: getColumnId(columnsFilm, 'Actor List'),
           rowId: i,
         },
       });
       if (i % 2 === 0) {
-        expect(rsp.body).to.deep.equal({
-          links: [1],
+        expect(rsp.body.list.length).to.equal(1);
+        expect(rsp.body.list[0]).to.deep.equal({
+          Id: 1,
+          Actor: `Actor 1`,
         });
       } else {
-        expect(rsp.body).to.deep.equal({
-          links: [],
-        });
+        expect(rsp.body.list.length).to.equal(0);
       }
     }
   });
@@ -2142,7 +2187,12 @@ function linkBased() {
         rowId: 1,
       },
     });
-    expect(rsp.body).to.deep.equal({ links: [1] });
+    let subResponse = rsp.body.list.map(({ Id, City }) => ({ Id, City }));
+    expect(subResponse.length).to.equal(1);
+    expect(subResponse[0]).to.deep.equal({
+      Id: 1,
+      City: 'City 1',
+    });
 
     rsp = await ncAxiosLinkGet({
       urlParams: {
@@ -2151,7 +2201,14 @@ function linkBased() {
         rowId: 2,
       },
     });
-    expect(rsp.body).to.deep.equal({ links: [2, 3] });
+    expect(rsp.body.list.length).to.equal(2);
+    subResponse = rsp.body.list.map(({ Id, City }) => ({ Id, City }));
+    for (let i = 2; i <= 3; i++) {
+      expect(subResponse[i - 2]).to.deep.equal({
+        Id: i,
+        City: `City ${i}`,
+      });
+    }
   });
 
   // limit & offset verification
@@ -2178,9 +2235,14 @@ function linkBased() {
         offset: 0,
       },
     });
-    expect(rsp.body).to.deep.equal({
-      links: initializeArrayFromSequence(1, 10),
-    });
+    expect(rsp.body.list.length).to.equal(10);
+    let subResponse = rsp.body.list.map(({ Id, City }) => ({ Id, City }));
+    for (let i = 1; i <= 10; i++) {
+      expect(subResponse[i - 1]).to.deep.equal({
+        Id: i,
+        City: `City ${i}`,
+      });
+    }
 
     rsp = await ncAxiosLinkGet({
       urlParams: {
@@ -2193,9 +2255,14 @@ function linkBased() {
         offset: 10,
       },
     });
-    expect(rsp.body).to.deep.equal({
-      links: initializeArrayFromSequence(11, 20),
-    });
+    subResponse = rsp.body.list.map(({ Id, City }) => ({ Id, City }));
+    expect(subResponse.length).to.equal(10);
+    for (let i = 11; i <= 20; i++) {
+      expect(subResponse[i - 11]).to.deep.equal({
+        Id: i,
+        City: `City ${i}`,
+      });
+    }
 
     rsp = await ncAxiosLinkGet({
       urlParams: {
@@ -2204,13 +2271,18 @@ function linkBased() {
         rowId: 1,
       },
       query: {
-        limit: 10,
+        limit: 100,
         offset: 40,
       },
     });
-    expect(rsp.body).to.deep.equal({
-      links: initializeArrayFromSequence(41, 50),
-    });
+    subResponse = rsp.body.list.map(({ Id, City }) => ({ Id, City }));
+    expect(subResponse.length).to.equal(10);
+    for (let i = 41; i <= 50; i++) {
+      expect(subResponse[i - 41]).to.deep.equal({
+        Id: i,
+        City: `City ${i}`,
+      });
+    }
   });
 
   // invalid link id
@@ -2223,11 +2295,11 @@ function linkBased() {
         rowId: 1,
       },
       body: [9999],
-      status: 400,
+      status: 404,
     });
 
     // Invalid link field ID
-    const rsp = await ncAxiosLinkGet({
+    await ncAxiosLinkGet({
       urlParams: {
         tableId: tblCountry.id,
         linkId: 9999,
@@ -2235,7 +2307,6 @@ function linkBased() {
       },
       status: 400,
     });
-    expect(rsp.body).to.deep.equal({ links: [] });
 
     // Link Remove: Invalid link ID
     await ncAxiosLinkRemove({
@@ -2245,7 +2316,7 @@ function linkBased() {
         rowId: 1,
       },
       body: [9999],
-      status: 400,
+      status: 404,
     });
   });
 }

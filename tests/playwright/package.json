@@ -24,7 +24,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@playwright/test": "1.35.0",
+    "@playwright/test": "1.35.1",
     "@typescript-eslint/eslint-plugin": "^5.59.11",
     "@typescript-eslint/parser": "^5.59.11",
     "axios": "^0.24.0",
@@ -46,7 +46,7 @@
   "dependencies": {
     "body-parser": "^1.20.1",
     "dayjs": "^1.11.7",
-    "express": "^4.18.2",
+    "express": "^4.18.1",
     "knex": "^2.4.2",
     "nocodb-sdk": "file:../../packages/nocodb-sdk",
     "sqlite3": "^5.1.6",

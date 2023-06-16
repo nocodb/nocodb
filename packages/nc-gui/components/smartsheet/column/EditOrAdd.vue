@@ -64,9 +64,11 @@ const geoDataToggleCondition = (t: { name: UITypes }) => {
   return betaFeatureToggleState.show ? betaFeatureToggleState.show : !t.name.includes(UITypes.GeoData)
 }
 
+const showDeprecated = $ref(false)
+
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
-    ...uiTypes.filter((t) => geoDataToggleCondition(t) && (!isEdit.value || !t.virtual)),
+    ...uiTypes.filter((t) => geoDataToggleCondition(t) && (!isEdit.value || !t.virtual) && (!t.deprecated || showDeprecated)),
     ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
       ? [
           {
@@ -187,11 +189,13 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             :disabled="isKanban"
             dropdown-class-name="nc-dropdown-column-type"
             @change="onUidtOrIdTypeChange"
+            @dblclick="showDeprecated = !showDeprecated"
           >
             <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
               <div class="flex gap-1 items-center">
                 <component :is="opt.icon" class="text-grey" />
                 {{ opt.name }}
+                <span v-if="opt.deprecated" class="!text-xs !text-gray-300">(Deprecated)</span>
               </div>
             </a-select-option>
           </a-select>

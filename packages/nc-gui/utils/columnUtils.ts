@@ -14,6 +14,7 @@ const uiTypes = [
     name: UITypes.LinkToAnotherRecord,
     icon: iconMap.link,
     virtual: 1,
+    deprecated: 1,
   },
   {
     name: UITypes.Lookup,

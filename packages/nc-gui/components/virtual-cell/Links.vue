@@ -2,7 +2,7 @@
 import { computed } from '@vue/reactivity'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { CellValueInj, ColumnInj, inject } from '#imports'
+import { CellValueInj, ColumnInj, inject, useSelectedCellKeyupListener } from '#imports'
 
 const value = inject(CellValueInj)
 
@@ -64,10 +64,19 @@ const openChildList = () => {
   if(!isLocked.value)
   childListDlg = true
 }
+
+useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'Enter':
+      listItemsDlg.value = true
+      e.stopPropagation()
+      break
+  }
+})
 </script>
 
 <template>
-  <div class="flex w-full items-center">
+  <div class="flex w-full items-center" @dblclick.stop="listItemsDlg = true">
     <template v-if="!isForm">
       <div class="flex-grow block">
         <component

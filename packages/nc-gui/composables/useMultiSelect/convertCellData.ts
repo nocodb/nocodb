@@ -1,46 +1,71 @@
 import dayjs from 'dayjs'
-import type { ColumnType } from 'nocodb-sdk'
+import type { ColumnType, SelectOptionsType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { AppInfo } from '~/composables/useGlobal'
 import { parseProp } from '#imports'
 
 export default function convertCellData(
-  args: { from: UITypes; to: UITypes; value: any; column: ColumnType; appInfo: AppInfo },
+  args: { to: UITypes; value: string; column: ColumnType; appInfo: AppInfo },
   isMysql = false,
+  isMultiple = false,
 ) {
-  const { from, to, value } = args
-  if (from === to && ![UITypes.Attachment, UITypes.Date, UITypes.DateTime, UITypes.Time, UITypes.Year].includes(to)) {
-    return value
-  }
+  const { to, value, column } = args
 
   const dateFormat = isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
+
+  // return null if value is empty
+  if (value === '') return null
 
   switch (to) {
     case UITypes.Number: {
       const parsedNumber = Number(value)
       if (isNaN(parsedNumber)) {
-        throw new TypeError(`Cannot convert '${value}' to number`)
+        if (isMultiple) {
+          return null
+        } else {
+          throw new TypeError(`Cannot convert '${value}' to number`)
+        }
       }
       return parsedNumber
     }
     case UITypes.Rating: {
       const parsedNumber = Number(value ?? 0)
       if (isNaN(parsedNumber)) {
-        throw new TypeError(`Cannot convert '${value}' to rating`)
+        if (isMultiple) {
+          return null
+        } else {
+          throw new TypeError(`Cannot convert '${value}' to rating`)
+        }
       }
       return parsedNumber
     }
     case UITypes.Checkbox:
-      return Boolean(value)
+      if (typeof value === 'boolean') return value
+      if (typeof value === 'string') {
+        const strval = value.trim().toLowerCase()
+        if (strval === 'true' || strval === '1') return true
+        if (strval === 'false' || strval === '0' || strval === '') return false
+      }
+      return null
     case UITypes.Date: {
       const parsedDate = dayjs(value)
-      if (!parsedDate.isValid()) throw new Error('Not a valid date')
+      if (!parsedDate.isValid()) {
+        if (isMultiple) {
+          return null
+        } else {
+          throw new Error('Not a valid date')
+        }
+      }
       return parsedDate.format('YYYY-MM-DD')
     }
     case UITypes.DateTime: {
       const parsedDateTime = dayjs(value)
       if (!parsedDateTime.isValid()) {
-        throw new Error('Not a valid datetime value')
+        if (isMultiple) {
+          return null
+        } else {
+          throw new Error('Not a valid datetime value')
+        }
       }
       return parsedDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ')
     }
@@ -54,7 +79,11 @@ export default function convertCellData(
         parsedTime = dayjs(`1999-01-01 ${value}`)
       }
       if (!parsedTime.isValid()) {
-        throw new Error('Not a valid time value')
+        if (isMultiple) {
+          return null
+        } else {
+          throw new Error('Not a valid time value')
+        }
       }
       return parsedTime.format(dateFormat)
     }
@@ -69,7 +98,11 @@ export default function convertCellData(
         return parsedDate.format('YYYY')
       }
 
-      throw new Error('Not a valid year value')
+      if (isMultiple) {
+        return null
+      } else {
+        throw new Error('Not a valid year value')
+      }
     }
     case UITypes.Attachment: {
       let parsedVal
@@ -77,11 +110,17 @@ export default function convertCellData(
         parsedVal = parseProp(value)
         parsedVal = Array.isArray(parsedVal) ? parsedVal : [parsedVal]
       } catch (e) {
-        throw new Error('Invalid attachment data')
+        if (isMultiple) {
+          return null
+        } else {
+          throw new Error('Invalid attachment data')
+        }
       }
-      if (parsedVal.some((v: any) => v && !(v.url || v.data))) {
-        throw new Error('Invalid attachment data')
+
+      if (parsedVal.some((v: any) => v && !(v.url || v.data || v.path))) {
+        return null
       }
+
       // TODO(refactor): duplicate logic in attachment/utils.ts
       const defaultAttachmentMeta = {
         ...(args.appInfo.ee && {
@@ -95,7 +134,7 @@ export default function convertCellData(
 
       const attachmentMeta = {
         ...defaultAttachmentMeta,
-        ...parseProp(args.column?.meta),
+        ...parseProp(column?.meta),
       }
 
       const attachments = []
@@ -134,12 +173,31 @@ export default function convertCellData(
 
       return JSON.stringify(attachments)
     }
+    case UITypes.SingleSelect:
+    case UITypes.MultiSelect: {
+      // return null if value is empty
+      if (value === '') return null
+
+      const availableOptions = ((column.colOptions as SelectOptionsType)?.options || []).map((o) => o.title)
+      const vals = value.split(',')
+      const validVals = vals.filter((v) => availableOptions.includes(v))
+
+      // return null if no valid values
+      if (validVals.length === 0) return null
+
+      return validVals.join(',')
+    }
     case UITypes.LinkToAnotherRecord:
     case UITypes.Lookup:
     case UITypes.Rollup:
     case UITypes.Formula:
-    case UITypes.QrCode:
-      throw new Error(`Unsupported conversion from ${from} to ${to}`)
+    case UITypes.QrCode: {
+      if (isMultiple) {
+        return undefined
+      } else {
+        throw new Error(`Unsupported conversion for ${to}`)
+      }
+    }
     default:
       return value
   }

@@ -1350,7 +1350,8 @@ class PGClient extends KnexClient {
       const { rows } = await this.sqlClient.raw(
         `select *
            from INFORMATION_SCHEMA.views
-           WHERE table_schema = ANY (current_schemas(false));`,
+           WHERE table_schema = ?;`,
+        [this.schema],
       );
 
       for (let i = 0; i < rows.length; ++i) {

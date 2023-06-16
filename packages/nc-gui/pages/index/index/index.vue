@@ -247,9 +247,9 @@ const copyProjectMeta = async () => {
       <a-table-column key="title" :title="$t('general.title')" data-index="title">
         <template #default="{ text, record }">
           <div class="flex items-center">
-            <div @click.stop>
+            <div class="w-2" @click.stop>
               <a-menu class="!border-0 !m-0 !p-0" trigger-sub-menu-action="click">
-                <template v-if="isUIAllowed('projectTheme')">
+                <template v-if="isUIAllowed('projectTheme') || isUIAllowed('projectTheme', true, record.roles)">
                   <a-sub-menu key="theme" popup-class-name="custom-color">
                     <template #title>
                       <div
@@ -308,22 +308,23 @@ const copyProjectMeta = async () => {
           <div v-if="record.status !== ProjectStatus.JOB" class="flex items-center gap-2">
             <component
               :is="iconMap.edit"
-              v-if="isUIAllowed('projectUpdate', true)"
+              v-if="isUIAllowed('projectUpdate', true) || isUIAllowed('projectUpdate', true, record.roles)"
               v-e="['c:project:edit:rename']"
-              class="nc-action-btn"
+              class="nc-action-btn nc-edit-project"
+              :data-testid="`edit-project-${record.title}`"
               @click.stop="navigateTo(`/${text}`)"
             />
 
             <component
               :is="iconMap.delete"
-              v-if="isUIAllowed('projectDelete', true)"
-              class="nc-action-btn"
+              v-if="isUIAllowed('projectDelete', true) || isUIAllowed('projectDelete', true, record.roles)"
+              class="nc-action-btn nc-delete-project"
               :data-testid="`delete-project-${record.title}`"
               @click.stop="deleteProject(record)"
             />
 
             <a-dropdown
-              v-if="isUIAllowed('duplicateProject', true)"
+              v-if="isUIAllowed('duplicateProject', true) || isUIAllowed('duplicateProject', true, record.roles)"
               :trigger="['click']"
               overlay-class-name="nc-dropdown-import-menu"
               @click.stop

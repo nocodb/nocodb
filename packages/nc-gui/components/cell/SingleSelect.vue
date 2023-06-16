@@ -42,8 +42,6 @@ const readOnly = inject(ReadonlyInj)!
 
 const active = inject(ActiveCellInj, ref(false))
 
-const editable = inject(EditModeInj, ref(false))
-
 const aselect = ref<typeof AntSelect>()
 
 const isOpen = ref(false)
@@ -92,7 +90,7 @@ const isOptionMissing = computed(() => {
 
 const hasEditRoles = computed(() => hasRole('owner', true) || hasRole('creator', true) || hasRole('editor', true))
 
-const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && (active.value || editable.value))
+const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && active.value)
 
 const vModel = computed({
   get: () => tempSelectedOptState.value ?? modelValue,
@@ -200,7 +198,7 @@ const search = () => {
 
 // prevent propagation of keydown event if select is open
 const onKeydown = (e: KeyboardEvent) => {
-  if (isOpen.value && (active.value || editable.value)) {
+  if (isOpen.value && active.value) {
     e.stopPropagation()
   }
   if (e.key === 'Enter') {
@@ -253,7 +251,7 @@ const selectedOpt = computed(() => {
 
 <template>
   <div class="h-full w-full flex items-center nc-single-select" :class="{ 'read-only': readOnly }" @click="toggleMenu">
-    <div v-if="!editable && !active">
+    <div v-if="!active">
       <a-tag v-if="selectedOpt" class="rounded-tag" :color="selectedOpt.color">
         <span
           :style="{
@@ -279,9 +277,9 @@ const selectedOpt = computed(() => {
       :bordered="false"
       :open="isOpen && editAllowed"
       :disabled="readOnly || !editAllowed"
-      :show-arrow="hasEditRoles && !readOnly && (editable || (active && vModel === null))"
-      :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen && (active || editable) ? 'active' : ''}`"
-      :show-search="isOpen && (active || editable)"
+      :show-arrow="hasEditRoles && !readOnly && active && vModel === null"
+      :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen && active ? 'active' : ''}`"
+      :show-search="isOpen && active"
       @select="onSelect"
       @keydown="onKeydown($event)"
       @search="search"
@@ -326,7 +324,7 @@ const selectedOpt = computed(() => {
 }
 
 :deep(.ant-tag) {
-  @apply "rounded-tag";
+  @apply "rounded-tag" my-[2px];
 }
 
 :deep(.ant-select-clear) {

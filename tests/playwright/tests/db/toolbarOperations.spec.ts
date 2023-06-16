@@ -77,10 +77,10 @@ test.describe('Toolbar operations (GRID)', () => {
   test('row height', async () => {
     // define an array of row heights
     const rowHeight = [
-      { title: 'Short', height: '1.5rem' },
-      { title: 'Medium', height: '3rem' },
-      { title: 'Tall', height: '6rem' },
-      { title: 'Extra', height: '9rem' },
+      { title: 'Short', height: '1.8rem' },
+      { title: 'Medium', height: '3.6rem' },
+      { title: 'Tall', height: '7.2rem' },
+      { title: 'Extra', height: '10.8rem' },
     ];
 
     // close 'Team & Auth' tab

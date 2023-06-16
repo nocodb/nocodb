@@ -65,10 +65,13 @@ export default class Column<T = any> implements ColumnType {
     Object.assign(this, data);
   }
 
-  public async getModel(): Promise<Model> {
-    return Model.getByIdOrName({
-      id: this.fk_model_id,
-    });
+  public async getModel(ncMeta = Noco.ncMeta): Promise<Model> {
+    return Model.getByIdOrName(
+      {
+        id: this.fk_model_id,
+      },
+      ncMeta,
+    );
   }
 
   public static async insert<T>(
@@ -597,6 +600,11 @@ export default class Column<T = any> implements ColumnType {
 
   static async delete(id, ncMeta = Noco.ncMeta) {
     const col = await this.get({ colId: id }, ncMeta);
+
+    // if column is not found, return
+    if (!col) {
+      return;
+    }
 
     // todo: or instead of delete reset related foreign key value to null and handle in BaseModel
 

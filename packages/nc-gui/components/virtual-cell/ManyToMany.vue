@@ -45,7 +45,7 @@ const { isUIAllowed } = useUIPermission()
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
-const { loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvideLTARStore(
+const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
   isNew,
@@ -96,6 +96,11 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
       break
   }
 })
+
+const m2mColumn = computed(
+  () =>
+    relatedTableMeta.value?.columns?.find((c: any) => c.title === relatedTableDisplayValueProp.value) as ColumnType | undefined,
+)
 </script>
 
 <template>
@@ -108,6 +113,8 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
             :key="i"
             :item="cell.item"
             :value="cell.value"
+            :column="m2mColumn"
+            :show-unlink-button="true"
             @unlink="unlinkRef(cell.item)"
           />
 
@@ -133,11 +140,12 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
       </div>
     </template>
 
-    <LazyVirtualCellComponentsListItems v-model="listItemsDlg" />
+    <LazyVirtualCellComponentsListItems v-model="listItemsDlg" :column="m2mColumn" />
 
     <LazyVirtualCellComponentsListChildItems
       v-model="childListDlg"
       :cell-value="localCellValue"
+      :column="m2mColumn"
       @attach-record="onAttachRecord"
     />
   </div>

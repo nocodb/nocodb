@@ -24,14 +24,32 @@ export const useUIPermission = createSharedComposable(() => {
   const { previewAs } = useGlobal()
   const { allRoles } = useRoles()
 
-  const isUIAllowed = (permission: Permission | string, skipPreviewAs = false) => {
+  const isUIAllowed = (
+    permission: Permission | string,
+    skipPreviewAs = false,
+    userRoles?: string | Record<string, boolean> | string[],
+  ) => {
     if (previewAs.value && !skipPreviewAs) {
       return hasPermission(previewAs.value, true, permission)
     }
 
-    return Object.entries(allRoles.value).some(([role, hasRole]) =>
-      hasPermission(role as Role | ProjectRole, hasRole, permission),
-    )
+    let roles: Record<string, boolean> = {}
+
+    if (!userRoles) {
+      roles = allRoles.value
+    } else if (Array.isArray(userRoles) || typeof userRoles === 'string') {
+      roles = (Array.isArray(userRoles) ? userRoles : userRoles.split(','))
+        // filter out any empty-string/null/undefined values
+        .filter(Boolean)
+        .reduce<Record<string, boolean>>((acc, role) => {
+          acc[role] = true
+          return acc
+        }, {})
+    } else if (typeof userRoles === 'object') {
+      roles = userRoles
+    }
+
+    return Object.entries(roles).some(([role, hasRole]) => hasPermission(role as Role | ProjectRole, hasRole, permission))
   }
 
   return { isUIAllowed }

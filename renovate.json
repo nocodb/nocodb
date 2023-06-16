@@ -1,0 +1,70 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base",
+    ":dependencyDashboard",
+    ":onlyNpm",
+    ":prConcurrentLimit20",
+    ":autodetectPinVersions",
+    ":label(renovate)",
+    ":rebaseStalePrs",
+    ":semanticPrefixFixDepsChoreOthers",
+    ":separatePatchReleases",
+    "group:monorepos",
+    "group:recommended"
+  ],
+  "baseBranches": [
+    "develop"
+  ],
+  "vulnerabilityAlerts": {
+    "commitMessagePrefix": "chore(renovate): Security update"
+  },
+  "schedule": "at any time",
+  "rangeStrategy": "bump",
+  "packageRules": [
+    {
+      "enabled": false,
+      "matchPackagePatterns": ["*"],
+      "matchUpdateTypes": ["major"],
+      "reviewersFromCodeOwners": true,
+      "commitMessagePrefix": "chore(renovate):",
+      "groupName": "major"
+    },
+    {
+      "enabled": false,
+      "matchPackagePatterns": ["*"],
+      "matchUpdateTypes": ["minor"],
+      "commitMessagePrefix": "chore(renovate):",
+      "groupName": "minor"
+    },
+    {
+      "enabled": false,
+      "matchPackagePatterns": ["*"],
+      "matchUpdateTypes": ["patch"],
+      "commitMessagePrefix": "chore(renovate):",
+      "groupName": "patch"
+    },
+    {
+      "enabled": false,
+      "matchPackagePatterns": ["*"],
+      "matchUpdateTypes": ["pin", "digest"],
+      "commitMessagePrefix": "chore(renovate):",
+      "groupName": "pin"
+    }
+  ],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/nc-cli/**",
+    "**/nc-lib-gui/**",
+    "**/nc-plugin/**",
+    "**/nocodb-legacy/**",
+    "**/test/**",
+    "**/tests/**",
+    "**/workflows/**",
+    "**/charts/**"
+  ],
+  "assignees": [
+    "wingkwong"
+  ],
+  "enabled": false
+}

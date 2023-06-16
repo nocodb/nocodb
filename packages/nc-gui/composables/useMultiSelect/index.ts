@@ -1,16 +1,17 @@
 import dayjs from 'dayjs'
 import type { MaybeRef } from '@vueuse/core'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { parse } from 'papaparse'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
 import convertCellData from './convertCellData'
 import type { Nullable, Row } from '~/lib'
 import {
-  copyTable,
   dateFormats,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
+  isDrawerOrModalExist,
   isMac,
   isTypableInputColumn,
   message,
@@ -24,6 +25,7 @@ import {
   useI18n,
   useMetas,
   useProject,
+  useUIPermission,
 } from '#imports'
 
 const MAIN_MOUSE_PRESSED = 0
@@ -38,14 +40,14 @@ export function useMultiSelect(
   _editEnabled: MaybeRef<boolean>,
   isPkAvail: MaybeRef<boolean | undefined>,
   clearCell: Function,
+  clearSelectedRangeOfCells: Function,
   makeEditable: Function,
-  scrollToActiveCell?: (row?: number | null, col?: number | null) => void,
+  scrollToCell?: (row?: number | null, col?: number | null) => void,
   keyEventHandler?: Function,
   syncCellData?: Function,
+  bulkUpdateRows?: Function,
 ) {
   const meta = ref(_meta)
-
-  const tbodyEl = ref<HTMLElement>()
 
   const { t } = useI18n()
 
@@ -56,8 +58,6 @@ export function useMultiSelect(
   const { appInfo } = useGlobal()
 
   const { isMysql } = useProject()
-
-  let clipboardContext = $ref<{ value: any; uidt: UITypes } | null>(null)
 
   const editEnabled = ref(_editEnabled)
 
@@ -72,6 +72,9 @@ export function useMultiSelect(
   const isCellActive = computed(
     () => !(activeCell.row === null || activeCell.col === null || isNaN(activeCell.row) || isNaN(activeCell.col)),
   )
+
+  const { isUIAllowed } = useUIPermission()
+  const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
 
   function makeActive(row: number, col: number) {
     if (activeCell.row === row && activeCell.col === col) {
@@ -96,6 +99,85 @@ export function useMultiSelect(
     return parseProp(column?.meta)?.time_format ?? timeFormats[0]
   }
 
+  const valueToCopy = (rowObj: Row, columnObj: ColumnType) => {
+    let textToCopy = (columnObj.title && rowObj.row[columnObj.title]) || ''
+
+    if (columnObj.uidt === UITypes.Checkbox) {
+      textToCopy = !!textToCopy
+    }
+
+    if (typeof textToCopy === 'object') {
+      textToCopy = JSON.stringify(textToCopy)
+    }
+
+    if (columnObj.uidt === UITypes.Formula) {
+      textToCopy = textToCopy.replace(/\b(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2})\b/g, (d: string) => {
+        // TODO(timezone): retrieve the format from the corresponding column meta
+        // assume hh:mm at this moment
+        return dayjs(d).utc().local().format('YYYY-MM-DD HH:mm')
+      })
+    }
+
+    if (columnObj.uidt === UITypes.DateTime || columnObj.uidt === UITypes.Time) {
+      // remove `"`
+      // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
+      textToCopy = textToCopy.replace(/["']/g, '')
+
+      const isMySQL = isMysql(columnObj.base_id)
+
+      let d = dayjs(textToCopy)
+
+      if (!d.isValid()) {
+        // insert a datetime value, copy the value without refreshing
+        // e.g. textToCopy = 2023-05-12T03:49:25.000Z
+        // feed custom parse format
+        d = dayjs(textToCopy, isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
+      }
+
+      // users can change the datetime format in UI
+      // `textToCopy` would be always in YYYY-MM-DD HH:mm:ss(Z / +xx:yy) format
+      // therefore, here we reformat to the correct datetime format based on the meta
+      textToCopy = d.format(
+        columnObj.uidt === UITypes.DateTime ? constructDateTimeFormat(columnObj) : constructTimeFormat(columnObj),
+      )
+
+      if (!dayjs(textToCopy).isValid()) {
+        // return empty string for invalid datetime / time
+        return ''
+      }
+    }
+
+    if (columnObj.uidt === UITypes.LongText) {
+      textToCopy = `"${textToCopy.replace(/\"/g, '""')}"`
+    }
+
+    return textToCopy
+  }
+
+  const copyTable = async (rows: Row[], cols: ColumnType[]) => {
+    let copyHTML = '<table>'
+    let copyPlainText = ''
+
+    rows.forEach((row, i) => {
+      let copyRow = '<tr>'
+      cols.forEach((col, i) => {
+        const value = valueToCopy(row, col)
+        copyRow += `<td>${value}</td>`
+        copyPlainText = `${copyPlainText}${value}${cols.length - 1 !== i ? '\t' : ''}`
+      })
+      copyHTML += `${copyRow}</tr>`
+      if (rows.length - 1 !== i) {
+        copyPlainText = `${copyPlainText}\n`
+      }
+    })
+    copyHTML += '</table>'
+
+    const blobHTML = new Blob([copyHTML], { type: 'text/html' })
+    const blobPlainText = new Blob([copyPlainText], { type: 'text/plain' })
+
+    return navigator.clipboard.write([new ClipboardItem({ [blobHTML.type]: blobHTML, [blobPlainText.type]: blobPlainText })])
+  }
+
   async function copyValue(ctx?: Cell) {
     try {
       if (selectedRange.start !== null && selectedRange.end !== null && !selectedRange.isSingleCell()) {
@@ -114,51 +196,7 @@ export function useMultiSelect(
           const rowObj = unref(data)[cpRow]
           const columnObj = unref(fields)[cpCol]
 
-          let textToCopy = (columnObj.title && rowObj.row[columnObj.title]) || ''
-
-          if (columnObj.uidt === UITypes.Checkbox) {
-            textToCopy = !!textToCopy
-          }
-
-          if (typeof textToCopy === 'object') {
-            textToCopy = JSON.stringify(textToCopy)
-          }
-
-          if (columnObj.uidt === UITypes.Formula) {
-            textToCopy = textToCopy.replace(/\b(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2})\b/g, (d: string) => {
-              // TODO(timezone): retrieve the format from the corresponding column meta
-              // assume hh:mm at this moment
-              return dayjs(d).utc().local().format('YYYY-MM-DD HH:mm')
-            })
-          }
-
-          if (columnObj.uidt === UITypes.DateTime || columnObj.uidt === UITypes.Time) {
-            // remove `"`
-            // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
-            textToCopy = textToCopy.replace(/["']/g, '')
-
-            const isMySQL = isMysql(columnObj.base_id)
-
-            let d = dayjs(textToCopy)
-
-            if (!d.isValid()) {
-              // insert a datetime value, copy the value without refreshing
-              // e.g. textToCopy = 2023-05-12T03:49:25.000Z
-              // feed custom parse format
-              d = dayjs(textToCopy, isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
-            }
-
-            // users can change the datetime format in UI
-            // `textToCopy` would be always in YYYY-MM-DD HH:mm:ss(Z / +xx:yy) format
-            // therefore, here we reformat to the correct datetime format based on the meta
-            textToCopy = d.format(
-              columnObj.uidt === UITypes.DateTime ? constructDateTimeFormat(columnObj) : constructTimeFormat(columnObj),
-            )
-
-            if (columnObj.uidt === UITypes.DateTime && !dayjs(textToCopy).isValid()) {
-              throw new Error('Invalid DateTime')
-            }
-          }
+          const textToCopy = valueToCopy(rowObj, columnObj)
 
           await copy(textToCopy)
           message.success(t('msg.info.copiedToClipboard'))
@@ -195,36 +233,65 @@ export function useMultiSelect(
 
   function handleMouseDown(event: MouseEvent, row: number, col: number) {
     // if there was a right click on selected range, don't restart the selection
-    if (event?.button !== MAIN_MOUSE_PRESSED && isCellSelected(row, col)) {
+    if (
+      (event?.button !== MAIN_MOUSE_PRESSED || (event?.button === MAIN_MOUSE_PRESSED && event.ctrlKey)) &&
+      isCellSelected(row, col)
+    ) {
       return
     }
 
     isMouseDown = true
+
+    // if shift key is pressed, don't restart the selection
+    if (event.shiftKey) return
+
     selectedRange.startRange({ row, col })
+
+    if (activeCell.row !== row || activeCell.col !== col) {
+      // clear active cell on selection start
+      activeCell.row = null
+      activeCell.col = null
+    }
   }
 
   const handleCellClick = (event: MouseEvent, row: number, col: number) => {
     isMouseDown = true
-    selectedRange.startRange({ row, col })
+
+    // if shift key is pressed, prevent selecting text
+    if (event.shiftKey && !unref(editEnabled)) {
+      event.preventDefault()
+    }
+
+    // if shift key is pressed, don't restart the selection (unless there is no active cell)
+    if (!event.shiftKey || activeCell.col === null || activeCell.row === null) {
+      selectedRange.startRange({ row, col })
+      makeActive(row, col)
+    }
+
     selectedRange.endRange({ row, col })
-    makeActive(row, col)
-    scrollToActiveCell?.()
+    scrollToCell?.(row, col)
     isMouseDown = false
   }
 
   const handleMouseUp = (event: MouseEvent) => {
-    // timeout is needed, because we want to set cell as active AFTER all the child's click handler's called
-    // this is needed e.g. for date field edit, where two clicks had to be done - one to select cell, and another one to open date dropdown
-    setTimeout(() => {
-      makeActive(selectedRange.start.row, selectedRange.start.col)
-    }, 0)
+    if (isMouseDown) {
+      isMouseDown = false
 
-    // if the editEnabled is false, prevent selecting text on mouseUp
-    if (!unref(editEnabled)) {
-      event.preventDefault()
+      // timeout is needed, because we want to set cell as active AFTER all the child's click handler's called
+      // this is needed e.g. for date field edit, where two clicks had to be done - one to select cell, and another one to open date dropdown
+      setTimeout(() => {
+        // if shift key is pressed, don't change the active cell
+        if (event.shiftKey) return
+        if (selectedRange._start) {
+          makeActive(selectedRange._start.row, selectedRange._start.col)
+        }
+      }, 0)
+
+      // if the editEnabled is false, prevent selecting text on mouseUp
+      if (!unref(editEnabled)) {
+        event.preventDefault()
+      }
     }
-
-    isMouseDown = false
   }
 
   const handleKeyDown = async (e: KeyboardEvent) => {
@@ -233,9 +300,11 @@ export function useMultiSelect(
       return true
     }
 
-    if (!isCellActive.value) {
+    if (!isCellActive.value || activeCell.row === null || activeCell.col === null) {
       return
     }
+
+    const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
 
     /** on tab key press navigate through cells */
     switch (e.key) {
@@ -262,7 +331,7 @@ export function useMultiSelect(
             editEnabled.value = false
           }
         }
-        scrollToActiveCell?.()
+        scrollToCell?.()
         break
       /** on enter key press make cell editable */
       case 'Enter':
@@ -274,49 +343,134 @@ export function useMultiSelect(
       /** on delete key press clear cell */
       case 'Delete':
         e.preventDefault()
-        selectedRange.clear()
 
-        await clearCell(activeCell as { row: number; col: number })
+        if (selectedRange.isSingleCell()) {
+          selectedRange.clear()
+
+          await clearCell(activeCell as { row: number; col: number })
+        } else {
+          await clearSelectedRangeOfCells()
+        }
         break
       /** on arrow key press navigate through cells */
       case 'ArrowRight':
         e.preventDefault()
-        selectedRange.clear()
 
-        if (activeCell.col < unref(columnLength) - 1) {
-          activeCell.col++
-          scrollToActiveCell?.()
-          editEnabled.value = false
+        if (e.shiftKey) {
+          if (cmdOrCtrl) {
+            editEnabled.value = false
+            selectedRange.endRange({
+              row: selectedRange._end?.row ?? activeCell.row,
+              col: unref(columnLength) - 1,
+            })
+            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
+          } else if ((selectedRange._end?.col ?? activeCell.col) < unref(columnLength) - 1) {
+            editEnabled.value = false
+            selectedRange.endRange({
+              row: selectedRange._end?.row ?? activeCell.row,
+              col: (selectedRange._end?.col ?? activeCell.col) + 1,
+            })
+            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
+          }
+        } else {
+          selectedRange.clear()
+
+          if (activeCell.col < unref(columnLength) - 1) {
+            activeCell.col++
+            selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
+            scrollToCell?.()
+            editEnabled.value = false
+          }
         }
         break
       case 'ArrowLeft':
         e.preventDefault()
-        selectedRange.clear()
 
-        if (activeCell.col > 0) {
-          activeCell.col--
-          scrollToActiveCell?.()
-          editEnabled.value = false
+        if (e.shiftKey) {
+          if (cmdOrCtrl) {
+            editEnabled.value = false
+            selectedRange.endRange({
+              row: selectedRange._end?.row ?? activeCell.row,
+              col: 0,
+            })
+            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
+          } else if ((selectedRange._end?.col ?? activeCell.col) > 0) {
+            editEnabled.value = false
+            selectedRange.endRange({
+              row: selectedRange._end?.row ?? activeCell.row,
+              col: (selectedRange._end?.col ?? activeCell.col) - 1,
+            })
+            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
+          }
+        } else {
+          selectedRange.clear()
+
+          if (activeCell.col > 0) {
+            activeCell.col--
+            selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
+            scrollToCell?.()
+            editEnabled.value = false
+          }
         }
         break
       case 'ArrowUp':
         e.preventDefault()
-        selectedRange.clear()
 
-        if (activeCell.row > 0) {
-          activeCell.row--
-          scrollToActiveCell?.()
-          editEnabled.value = false
+        if (e.shiftKey) {
+          if (cmdOrCtrl) {
+            editEnabled.value = false
+            selectedRange.endRange({
+              row: 0,
+              col: selectedRange._end?.col ?? activeCell.col,
+            })
+            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
+          } else if ((selectedRange._end?.row ?? activeCell.row) > 0) {
+            editEnabled.value = false
+            selectedRange.endRange({
+              row: (selectedRange._end?.row ?? activeCell.row) - 1,
+              col: selectedRange._end?.col ?? activeCell.col,
+            })
+            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
+          }
+        } else {
+          selectedRange.clear()
+
+          if (activeCell.row > 0) {
+            activeCell.row--
+            selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
+            scrollToCell?.()
+            editEnabled.value = false
+          }
         }
         break
       case 'ArrowDown':
         e.preventDefault()
-        selectedRange.clear()
 
-        if (activeCell.row < unref(data).length - 1) {
-          activeCell.row++
-          scrollToActiveCell?.()
-          editEnabled.value = false
+        if (e.shiftKey) {
+          if (cmdOrCtrl) {
+            editEnabled.value = false
+            selectedRange.endRange({
+              row: unref(data).length - 1,
+              col: selectedRange._end?.col ?? activeCell.col,
+            })
+            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
+          } else if ((selectedRange._end?.row ?? activeCell.row) < unref(data).length - 1) {
+            editEnabled.value = false
+            selectedRange.endRange({
+              row: (selectedRange._end?.row ?? activeCell.row) + 1,
+              col: selectedRange._end?.col ?? activeCell.col,
+            })
+            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
+          }
+        } else {
+          selectedRange.clear()
+
+          if (activeCell.row < unref(data).length - 1) {
+            activeCell.row++
+            selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
+            scrollToCell?.()
+            editEnabled.value = false
+          }
         }
         break
       default:
@@ -324,86 +478,21 @@ export function useMultiSelect(
           const rowObj = unref(data)[activeCell.row]
           const columnObj = unref(fields)[activeCell.col]
 
-          if ((!unref(editEnabled) || !isTypableInputColumn(columnObj)) && (isMac() ? e.metaKey : e.ctrlKey)) {
+          if (
+            (!unref(editEnabled) || !isTypableInputColumn(columnObj)) &&
+            !isDrawerOrModalExist() &&
+            (isMac() ? e.metaKey : e.ctrlKey)
+          ) {
             switch (e.keyCode) {
               // copy - ctrl/cmd +c
               case 67:
-                // set clipboard context only if single cell selected
-                // or if selected range is empty
-                if (selectedRange.isSingleCell() || (selectedRange.isEmpty() && rowObj && columnObj)) {
-                  clipboardContext = {
-                    value: rowObj.row[columnObj.title!],
-                    uidt: columnObj.uidt as UITypes,
-                  }
-                } else {
-                  clipboardContext = null
-                }
                 await copyValue()
                 break
-              // paste - ctrl/cmd + v
-              case 86:
-                try {
-                  // handle belongs to column
-                  if (
-                    columnObj.uidt === UITypes.LinkToAnotherRecord &&
-                    (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.BELONGS_TO
-                  ) {
-                    if (!clipboardContext || typeof clipboardContext.value !== 'object') {
-                      return message.info('Invalid data')
-                    }
-                    rowObj.row[columnObj.title!] = convertCellData(
-                      {
-                        value: clipboardContext.value,
-                        from: clipboardContext.uidt,
-                        to: columnObj.uidt as UITypes,
-                        column: columnObj,
-                        appInfo: unref(appInfo),
-                      },
-                      isMysql(meta.value?.base_id),
-                    )
-                    e.preventDefault()
-
-                    const foreignKeyColumn = meta.value?.columns?.find(
-                      (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
-                    )
-
-                    const relatedTableMeta = await getMeta((columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
-
-                    if (!foreignKeyColumn) return
-
-                    rowObj.row[foreignKeyColumn.title!] = extractPkFromRow(
-                      clipboardContext.value,
-                      (relatedTableMeta as any)!.columns!,
-                    )
-
-                    return await syncCellData?.({ ...activeCell, updatedColumnTitle: foreignKeyColumn.title })
-                  }
-
-                  // if it's a virtual column excluding belongs to cell type skip paste
-                  if (isVirtualCol(columnObj)) {
-                    return message.info(t('msg.info.pasteNotSupported'))
-                  }
-
-                  if (clipboardContext) {
-                    rowObj.row[columnObj.title!] = convertCellData(
-                      {
-                        value: clipboardContext.value,
-                        from: clipboardContext.uidt,
-                        to: columnObj.uidt as UITypes,
-                        column: columnObj,
-                        appInfo: unref(appInfo),
-                      },
-                      isMysql(meta.value?.base_id),
-                    )
-                    e.preventDefault()
-                    syncCellData?.(activeCell)
-                  } else {
-                    clearCell(activeCell as { row: number; col: number }, true)
-                    makeEditable(rowObj, columnObj)
-                  }
-                } catch (error: any) {
-                  message.error(await extractSdkResponseErrorMsg(error))
-                }
+              // select all - ctrl/cmd +a
+              case 65:
+                selectedRange.startRange({ row: 0, col: 0 })
+                selectedRange.endRange({ row: unref(data).length - 1, col: unref(columnLength) - 1 })
+                break
             }
           }
 
@@ -431,8 +520,230 @@ export function useMultiSelect(
 
   const clearSelectedRange = selectedRange.clear.bind(selectedRange)
 
+  const isPasteable = (row?: Row, col?: ColumnType, showInfo = false) => {
+    if (!row || !col) {
+      if (showInfo) {
+        message.info('Please select a cell to paste')
+      }
+      return false
+    }
+
+    // skip pasting virtual columns (including LTAR columns for now) and system columns
+    if (isVirtualCol(col) || isSystemColumn(col)) {
+      if (showInfo) {
+        message.info(t('msg.info.pasteNotSupported'))
+      }
+      return false
+    }
+
+    // skip pasting auto increment columns
+    if (col.ai) {
+      if (showInfo) {
+        message.info(t('msg.info.autoIncFieldNotEditable'))
+      }
+      return false
+    }
+
+    // skip pasting primary key columns
+    if (col.pk && !row.rowMeta.new) {
+      if (showInfo) {
+        message.info(t('msg.info.editingPKnotSupported'))
+      }
+      return false
+    }
+
+    return true
+  }
+
+  const handlePaste = async (e: ClipboardEvent) => {
+    if (isDrawerOrModalExist()) {
+      return
+    }
+
+    if (!isCellActive.value) {
+      return
+    }
+
+    if (unref(editEnabled)) {
+      return
+    }
+
+    if (activeCell.row === null || activeCell.row === undefined || activeCell.col === null || activeCell.col === undefined) {
+      return
+    }
+
+    e.preventDefault()
+
+    const clipboardData = e.clipboardData?.getData('text/plain') || ''
+
+    try {
+      if (clipboardData?.includes('\n') || clipboardData?.includes('\t')) {
+        // if the clipboard data contains new line or tab, then it is a matrix or LongText
+        const parsedClipboard = parse(clipboardData, { delimiter: '\t' })
+
+        if (parsedClipboard.errors.length > 0) {
+          throw new Error(parsedClipboard.errors[0].message)
+        }
+
+        const clipboardMatrix = parsedClipboard.data as string[][]
+
+        const pasteMatrixRows = clipboardMatrix.length
+        const pasteMatrixCols = clipboardMatrix[0].length
+
+        const colsToPaste = unref(fields).slice(activeCell.col, activeCell.col + pasteMatrixCols)
+        const rowsToPaste = unref(data).slice(activeCell.row, activeCell.row + pasteMatrixRows)
+        const propsToPaste: string[] = []
+
+        let pastedRows = 0
+
+        for (let i = 0; i < pasteMatrixRows; i++) {
+          const pasteRow = rowsToPaste[i]
+
+          // TODO handle insert new row
+          if (!pasteRow || pasteRow.rowMeta.new) break
+
+          pastedRows++
+
+          for (let j = 0; j < pasteMatrixCols; j++) {
+            const pasteCol = colsToPaste[j]
+
+            if (!isPasteable(pasteRow, pasteCol)) {
+              continue
+            }
+
+            propsToPaste.push(pasteCol.title!)
+
+            const pasteValue = convertCellData(
+              {
+                value: clipboardMatrix[i][j],
+                to: pasteCol.uidt as UITypes,
+                column: pasteCol,
+                appInfo: unref(appInfo),
+              },
+              isMysql(meta.value?.base_id),
+              true,
+            )
+
+            if (pasteValue !== undefined) {
+              pasteRow.row[pasteCol.title!] = pasteValue
+            }
+          }
+        }
+        await bulkUpdateRows?.(rowsToPaste, propsToPaste)
+
+        if (pastedRows > 0) {
+          // highlight the pasted range
+          selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
+          selectedRange.endRange({ row: activeCell.row + pastedRows - 1, col: activeCell.col + pasteMatrixCols - 1 })
+        }
+      } else {
+        if (selectedRange.isSingleCell()) {
+          const rowObj = unref(data)[activeCell.row]
+          const columnObj = unref(fields)[activeCell.col]
+
+          // handle belongs to column
+          if (
+            columnObj.uidt === UITypes.LinkToAnotherRecord &&
+            (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.BELONGS_TO
+          ) {
+            const clipboardContext = JSON.parse(clipboardData!)
+
+            rowObj.row[columnObj.title!] = convertCellData(
+              {
+                value: clipboardContext,
+                to: columnObj.uidt as UITypes,
+                column: columnObj,
+                appInfo: unref(appInfo),
+              },
+              isMysql(meta.value?.base_id),
+            )
+
+            const foreignKeyColumn = meta.value?.columns?.find(
+              (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
+            )
+
+            const relatedTableMeta = await getMeta((columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
+
+            if (!foreignKeyColumn) return
+
+            rowObj.row[foreignKeyColumn.title!] = extractPkFromRow(clipboardContext, (relatedTableMeta as any)!.columns!)
+
+            return await syncCellData?.({ ...activeCell, updatedColumnTitle: foreignKeyColumn.title })
+          }
+
+          if (!isPasteable(rowObj, columnObj, true)) {
+            return
+          }
+
+          const pasteValue = convertCellData(
+            {
+              value: clipboardData,
+              to: columnObj.uidt as UITypes,
+              column: columnObj,
+              appInfo: unref(appInfo),
+            },
+            isMysql(meta.value?.base_id),
+          )
+
+          if (pasteValue !== undefined) {
+            rowObj.row[columnObj.title!] = pasteValue
+          }
+
+          await syncCellData?.(activeCell)
+        } else {
+          const start = selectedRange.start
+          const end = selectedRange.end
+
+          const startRow = Math.min(start.row, end.row)
+          const endRow = Math.max(start.row, end.row)
+          const startCol = Math.min(start.col, end.col)
+          const endCol = Math.max(start.col, end.col)
+
+          const cols = unref(fields).slice(startCol, endCol + 1)
+          const rows = unref(data).slice(startRow, endRow + 1)
+          const props = []
+
+          for (const row of rows) {
+            // TODO handle insert new row
+            if (!row || row.rowMeta.new) continue
+
+            for (const col of cols) {
+              if (!col.title) continue
+
+              if (!isPasteable(row, col)) {
+                continue
+              }
+
+              props.push(col.title)
+
+              const pasteValue = convertCellData(
+                {
+                  value: clipboardData,
+                  to: col.uidt as UITypes,
+                  column: col,
+                  appInfo: unref(appInfo),
+                },
+                isMysql(meta.value?.base_id),
+                true,
+              )
+
+              if (pasteValue !== undefined) {
+                row.row[col.title] = pasteValue
+              }
+            }
+          }
+
+          await bulkUpdateRows?.(rows, props)
+        }
+      }
+    } catch (error: any) {
+      message.error(await extractSdkResponseErrorMsg(error))
+    }
+  }
+
   useEventListener(document, 'keydown', handleKeyDown)
-  useEventListener(tbodyEl, 'mouseup', handleMouseUp)
+  useEventListener(document, 'mouseup', handleMouseUp)
+  useEventListener(document, 'paste', handlePaste)
 
   return {
     isCellActive,
@@ -443,7 +754,8 @@ export function useMultiSelect(
     isCellSelected,
     activeCell,
     handleCellClick,
-    tbodyEl,
     resetSelectedRange,
+    selectedRange,
+    makeActive,
   }
 }

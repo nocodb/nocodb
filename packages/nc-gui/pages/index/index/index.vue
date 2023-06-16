@@ -310,14 +310,15 @@ const copyProjectMeta = async () => {
               :is="iconMap.edit"
               v-if="isUIAllowed('projectUpdate', true) || isUIAllowed('projectUpdate', true, record.roles)"
               v-e="['c:project:edit:rename']"
-              class="nc-action-btn"
+              class="nc-action-btn nc-edit-project"
+              :data-testid="`edit-project-${record.title}`"
               @click.stop="navigateTo(`/${text}`)"
             />
 
             <component
               :is="iconMap.delete"
               v-if="isUIAllowed('projectDelete', true) || isUIAllowed('projectDelete', true, record.roles)"
-              class="nc-action-btn"
+              class="nc-action-btn nc-delete-project"
               :data-testid="`delete-project-${record.title}`"
               @click.stop="deleteProject(record)"
             />

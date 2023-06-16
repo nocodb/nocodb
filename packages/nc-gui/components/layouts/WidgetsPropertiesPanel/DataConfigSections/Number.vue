@@ -81,4 +81,7 @@ const availableColumnsOfSelectedViewWithTitles = computed(() => {
 :deep(.ant-radio-wrapper) {
   @apply m-0 mb-2;
 }
+:deep(.ant-collapse-header) {
+  @apply !text-sm !2xl:text-base;
+}
 </style>

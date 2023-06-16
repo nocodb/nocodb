@@ -89,7 +89,7 @@ const showContextMenu = (top: number, left: number, widget: Widget) => {
 </script>
 
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col h-screen">
     <div
       v-show="contextMenuVisible"
       ref="contextMenuRef"
@@ -112,7 +112,7 @@ const showContextMenu = (top: number, left: number, widget: Widget) => {
       </div>
     </div>
     <LayoutsTopBar />
-    <div class="flex">
+    <div class="flex-1 flex">
       <LayoutsWidgetsLibraryPanel />
       <div ref="mainArea" class="min-h-10 flex-1 overflow-y-auto" @click="resetFocus" @dragover.prevent @drop="drop">
         <GridLayout
@@ -158,7 +158,7 @@ const showContextMenu = (top: number, left: number, widget: Widget) => {
         </GridLayout>
       </div>
       <!-- TODO: decide / change again to rem for width and overall: use consistent styling -->
-      <div class="p-4 w-[280px] 2xl:w-[20vw]">
+      <div class="p-4 w-[280px] 2xl:w-[20vw] !overflow-y-auto h-[90vh]">
         <LayoutsWidgetsPropertiesPanel />
       </div>
     </div>

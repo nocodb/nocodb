@@ -1368,22 +1368,16 @@ function viewRowTests() {
       rowId: row['Id'],
     });
 
-    const response = await request(context.app)
+    await request(context.app)
       .delete(
         `/api/v1/db/data/noco/${project.id}/${table.id}/views/${view.id}/${row['Id']}`,
       )
       .set('xc-auth', context.token)
-      .expect(400);
+      .expect(200);
 
     const deleteRow = await getRow(context, { project, table, id: row['Id'] });
-    if (!deleteRow) {
-      throw new Error('Should not delete');
-    }
-
-    if (
-      !(response.body.msg as string).includes('is a LinkToAnotherRecord of')
-    ) {
-      throw new Error('Should give ltar foreign key error');
+    if (deleteRow !== undefined) {
+      throw new Error('Record should have been deleted!');
     }
   };
 

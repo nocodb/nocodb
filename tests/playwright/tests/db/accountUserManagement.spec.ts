@@ -28,7 +28,7 @@ test.describe('User roles', () => {
     projectsPage = new ProjectsPage(accountPage.rootPage);
   });
 
-  test.only('Invite user, update role and delete user', async () => {
+  test('Invite user, update role and delete user', async () => {
     test.slow();
 
     await accountUsersPage.goto();

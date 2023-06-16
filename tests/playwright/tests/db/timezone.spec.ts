@@ -30,7 +30,7 @@ const rowAttributes = [
   { Id: 3, DateTime: '2020-12-31 20:00:00-04:00' },
 ];
 
-async function timezoneSuite(token?: string, skipTableCreate?: boolean) {
+async function timezoneSuite(token: string, projectTitle: string, skipTableCreate?: boolean) {
   api = new Api({
     baseURL: `http://localhost:8080/`,
     headers: {
@@ -41,12 +41,12 @@ async function timezoneSuite(token?: string, skipTableCreate?: boolean) {
   const projectList = await api.project.list();
   for (const project of projectList.list) {
     // delete project with title 'xcdb' if it exists
-    if (project.title === 'xcdb') {
+    if (project.title === projectTitle) {
       await api.project.delete(project.id);
     }
   }
 
-  const project = await api.project.create({ title: 'xcdb' });
+  const project = await api.project.create({ title: projectTitle });
   if (skipTableCreate) return { project };
   const table = await api.base.tableCreate(project.id, project.bases?.[0].id, {
     table_name: 'dateTimeTable',
@@ -99,7 +99,8 @@ async function connectToExtDb(context: any, dbName: string) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-test.describe('Timezone-XCDB : Japan/Tokyo', () => {
+// serial : as we are creating an external db, we need to run the tests sequentially
+test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
   let dashboard: DashboardPage;
   let context: any;
 
@@ -109,7 +110,7 @@ test.describe('Timezone-XCDB : Japan/Tokyo', () => {
     if (!isSqlite(context)) return;
 
     try {
-      const { project, table } = await timezoneSuite(context.token);
+      const { project, table } = await timezoneSuite(context.token, 'xcdb0');
 
       await api.dbTableRow.bulkCreate('noco', project.id, table.id, rowAttributes);
       records = await api.dbTableRow.list('noco', project.id, table.id, { limit: 10 });
@@ -143,7 +144,7 @@ test.describe('Timezone-XCDB : Japan/Tokyo', () => {
 
     await dashboard.clickHome();
     const projectsPage = new ProjectsPage(dashboard.rootPage);
-    await projectsPage.openProject({ title: 'xcdb', withoutPrefix: true });
+    await projectsPage.openProject({ title: 'xcdb0', withoutPrefix: true });
 
     await dashboard.treeView.openTable({ title: 'dateTimeTable' });
 
@@ -202,7 +203,7 @@ test.describe('Timezone-XCDB : Japan/Tokyo', () => {
 
 // Change browser timezone & locale to Asia/Hong-Kong
 //
-test.describe('Timezone-XCDB : Asia/Hong-kong', () => {
+test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
   let dashboard: DashboardPage;
   let context: any;
 
@@ -211,7 +212,7 @@ test.describe('Timezone-XCDB : Asia/Hong-kong', () => {
     dashboard = new DashboardPage(page, context.project);
 
     try {
-      const { project, table } = await timezoneSuite(context.token);
+      const { project, table } = await timezoneSuite(context.token, 'xcdb1');
       await api.dbTableRow.bulkCreate('noco', project.id, table.id, rowAttributes);
     } catch (e) {
       console.error(e);
@@ -240,7 +241,7 @@ test.describe('Timezone-XCDB : Asia/Hong-kong', () => {
   test('API insert, verify display value', async () => {
     await dashboard.clickHome();
     const projectsPage = new ProjectsPage(dashboard.rootPage);
-    await projectsPage.openProject({ title: 'xcdb', withoutPrefix: true });
+    await projectsPage.openProject({ title: 'xcdb1', withoutPrefix: true });
 
     await dashboard.treeView.openTable({ title: 'dateTimeTable' });
 
@@ -268,7 +269,7 @@ test.describe('Timezone-XCDB : Asia/Hong-kong', () => {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-test.describe('Timezone-XCDB : Asia/Hong-kong', () => {
+test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
   let dashboard: DashboardPage;
   let context: any;
 
@@ -284,7 +285,7 @@ test.describe('Timezone-XCDB : Asia/Hong-kong', () => {
     // Apply only for sqlite, as currently- root DB for all instances is SQLite
     if (!isSqlite(context)) return;
 
-    const { project } = await timezoneSuite(context.token, true);
+    const { project } = await timezoneSuite(context.token, 'xcdb2', true);
     context.project = project;
 
     // Kludge: Using API for test preparation was not working
@@ -292,7 +293,7 @@ test.describe('Timezone-XCDB : Asia/Hong-kong', () => {
 
     await dashboard.clickHome();
     const projectsPage = new ProjectsPage(dashboard.rootPage);
-    await projectsPage.openProject({ title: 'xcdb', withoutPrefix: true });
+    await projectsPage.openProject({ title: 'xcdb2', withoutPrefix: true });
 
     await dashboard.treeView.createTable({ title: 'dateTimeTable', mode: 'Xcdb' });
     await dashboard.grid.column.create({

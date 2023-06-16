@@ -13,7 +13,7 @@ export class AccountLicensePage extends BasePage {
     return this.rootPage.goto('/#/account/license');
   }
 
-  async waitUntilContentLoads() {
+  waitUntilContentLoads() {
     return this.rootPage.waitForResponse(resp => resp.url().includes('api/v1/license') && resp.status() === 200);
   }
 

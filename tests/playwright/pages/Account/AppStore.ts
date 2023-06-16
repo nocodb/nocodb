@@ -10,8 +10,8 @@ export class AccountAppStorePage extends BasePage {
     this.accountPage = accountPage;
   }
 
-  async goto() {
-    await this.waitForResponse({
+  goto() {
+    return this.waitForResponse({
       uiAction: async () => await this.rootPage.goto('/#/account/apps'),
       httpMethodsToMatch: ['GET'],
       requestUrlPathToMatch: 'api/v1/db/meta/plugins',

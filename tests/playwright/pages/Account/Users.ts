@@ -18,7 +18,11 @@ export class AccountUsersPage extends BasePage {
   }
 
   async goto() {
-    return this.rootPage.goto('/#/account/users/list');
+    return this.waitForResponse({
+      uiAction: async () => await this.rootPage.goto('/#/account/users/list'),
+      httpMethodsToMatch: ['GET'],
+      requestUrlPathToMatch: `api/v1/users`,
+    });
   }
 
   get() {

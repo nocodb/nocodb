@@ -15,7 +15,11 @@ export class AccountTokenPage extends BasePage {
   }
 
   async goto() {
-    return this.rootPage.goto('/#/account/tokens');
+    return this.waitForResponse({
+      uiAction: async () => await this.rootPage.goto('/#/account/tokens'),
+      httpMethodsToMatch: ['GET'],
+      requestUrlPathToMatch: `api/v1/tokens`,
+    });
   }
 
   get() {

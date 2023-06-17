@@ -8,6 +8,7 @@ import { NcProjectType, navigateTo, projectThemeColors, storeToRefs, timeAgo, us
 import { useNuxtApp } from '#app'
 
 const workspaceStore = useWorkspace()
+const projectsStore = useProjects()
 const { addToFavourite, removeFromFavourite, updateProjectTitle } = workspaceStore
 const { activePage } = storeToRefs(workspaceStore)
 
@@ -254,6 +255,21 @@ function onProjectTitleClick(index: number) {
     clickCount = 0
   }
 }
+
+const setIcon = async (icon: string, project: ProjectType) => {
+  try {
+    const meta = {
+      ...((project.meta as object) || {}),
+      icon,
+    }
+
+    projectsStore.updateProject(project.id!, { meta: JSON.stringify(meta) })
+
+    $e('a:project:icon:navdraw', { icon })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
 </script>
 
 <template>
@@ -274,7 +290,13 @@ function onProjectTitleClick(index: number) {
         <template v-if="column.dataIndex === 'title'">
           <div class="flex items-center nc-project-title gap-2.5 max-w-full -ml-1.5">
             <div class="flex items-center gap-2 text-center">
-              <GeneralEmojiPicker :key="record.id" :emoji="record.meta?.icon" :readonly="true" size="small">
+              <GeneralEmojiPicker
+                :key="record.id"
+                :emoji="record.meta?.icon"
+                size="small"
+                clearable
+                @emoji-selected="setIcon($event, record)"
+              >
                 <GeneralProjectIcon :type="record.type" />
               </GeneralEmojiPicker>
               <!-- todo: replace with switch -->

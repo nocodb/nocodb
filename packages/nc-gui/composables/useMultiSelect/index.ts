@@ -1,4 +1,5 @@
 import dayjs from 'dayjs'
+import type { Ref } from 'vue'
 import type { MaybeRef } from '@vueuse/core'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
@@ -39,6 +40,7 @@ export function useMultiSelect(
   data: MaybeRef<Row[]>,
   _editEnabled: MaybeRef<boolean>,
   isPkAvail: MaybeRef<boolean | undefined>,
+  contextMenu: Ref<boolean>,
   clearCell: Function,
   clearSelectedRangeOfCells: Function,
   makeEditable: Function,
@@ -244,6 +246,8 @@ export function useMultiSelect(
     }
 
     isMouseDown = true
+
+    contextMenu.value = false
 
     // if shift key is pressed, don't restart the selection
     if (event.shiftKey) return

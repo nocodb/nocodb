@@ -97,6 +97,7 @@ const contextMenu = computed({
     }
   },
 })
+const contextMenuClosing = ref(false)
 
 const routeQuery = $computed(() => route.query as Record<string, string>)
 const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
@@ -209,6 +210,7 @@ const {
   data,
   $$(editEnabled),
   isPkAvail,
+  contextMenu,
   clearCell,
   clearSelectedRangeOfCells,
   makeEditable,
@@ -479,7 +481,10 @@ defineExpose({
 // reset context menu target on hide
 watch(contextMenu, () => {
   if (!contextMenu.value) {
+    contextMenuClosing.value = true
     contextMenuTarget.value = null
+  } else {
+    contextMenuClosing.value = false
   }
 })
 
@@ -1115,7 +1120,7 @@ function addEmptyRow(row?: number) {
               </div>
             </a-menu-item>
 
-            <a-menu-item v-if="data.some((r) => r.rowMeta.selected)" @click="deleteSelectedRows">
+            <a-menu-item v-if="!contextMenuClosing && data.some((r) => r.rowMeta.selected)" @click="deleteSelectedRows">
               <div v-e="['a:row:delete-bulk']" class="nc-project-menu-item">
                 <!-- Delete Selected Rows -->
                 {{ $t('activity.deleteSelectedRow') }}
@@ -1136,7 +1141,7 @@ function addEmptyRow(row?: number) {
             </a-menu-item>
 
             <!--            Clear cell -->
-            <a-menu-item v-else @click="clearSelectedRangeOfCells()">
+            <a-menu-item v-else-if="contextMenuTarget" @click="clearSelectedRangeOfCells()">
               <div v-e="['a:row:clear-range']" class="nc-project-menu-item">Clear Cells</div>
             </a-menu-item>
 

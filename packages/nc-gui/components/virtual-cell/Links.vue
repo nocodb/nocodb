@@ -61,8 +61,7 @@ const onAttachRecord = () => {
 }
 
 const openChildList = () => {
-  if(!isLocked.value)
-  childListDlg = true
+  if (!isLocked.value) childListDlg.value = true
 }
 
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {

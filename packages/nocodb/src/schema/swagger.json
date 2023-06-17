@@ -3252,9 +3252,6 @@
                   "options": {
                     "type": "object",
                     "properties": {
-                  "options": {
-                    "type": "object",
-                    "properties": {
                       "excludeData": {
                         "type": "boolean",
                         "required": false
@@ -3266,12 +3263,6 @@
                       "excludeHooks": {
                         "type": "boolean",
                         "required": false
-                      }
-                    }
-                  },
-                  "project": {
-                    "type": "object",
-                    "required": false
                       }
                     }
                   },
@@ -3293,9 +3284,7 @@
             }
           }
         },
-        "tags": [
-          "Project"
-        ],
+        "tags": ["Project"],
         "description": "Duplicate a project",
         "parameters": [
           {
@@ -5204,69 +5193,62 @@
                   "options": {
                     "type": "object",
                     "properties": {
-                      "options": {
-                        "type": "object",
-                        "properties": {
-                          "excludeData": {
-                            "type": "boolean",
-                            "required": false
-                          },
-                          "excludeViews": {
-                            "type": "boolean",
-                            "required": false
-                          },
-                          "excludeHooks": {
-                            "type": "boolean",
-                            "required": false
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "examples": {
-                    "Example 1": {
-                      "value": {
-                        "excludeData": true,
-                        "excludeViews": true
+                      "excludeData": {
+                        "type": "boolean",
+                        "required": false
+                      },
+                      "excludeViews": {
+                        "type": "boolean",
+                        "required": false
+                      },
+                      "excludeHooks": {
+                        "type": "boolean",
+                        "required": false
                       }
                     }
                   }
                 }
-              }
-            },
-            "tags": [
-              "DB Table"
-            ],
-            "description": "Duplicate a table",
-            "parameters": [
-              {
-                "$ref": "#/components/parameters/xc-auth"
               },
-              {
-                "schema": {
-                  "$ref": "#/components/schemas/Id",
-                  "example": "p_124hhlkbeasewh",
-                  "type": "string"
-                },
-                "name": "projectId",
-                "in": "path",
-                "required": true,
-                "description": "Unique Project ID"
-              },
-              {
-                "schema": {
-                  "$ref": "#/components/schemas/Id",
-                  "example": "md_124hhlkbeasewh",
-                  "type": "string"
-                },
-                "name": "tableId",
-                "in": "path",
-                "required": true,
-                "description": "Unique Table ID"
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "excludeData": true,
+                    "excludeViews": true
+                  }
+                }
               }
-            ]
+            }
           }
-        }
+        },
+        "tags": ["DB Table"],
+        "description": "Duplicate a table",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Id",
+              "example": "p_124hhlkbeasewh",
+              "type": "string"
+            },
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Project ID"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Id",
+              "example": "md_124hhlkbeasewh",
+              "type": "string"
+            },
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Table ID"
+          }
+        ]
       }
     },
     "/api/v1/db/meta/projects/{projectId}/{baseId}/tables": {

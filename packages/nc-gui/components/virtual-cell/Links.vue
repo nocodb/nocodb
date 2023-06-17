@@ -67,7 +67,7 @@ const openChildList = () => {
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
-      listItemsDlg.value = true
+      childListDlg.value = true
       e.stopPropagation()
       break
   }

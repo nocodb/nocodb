@@ -101,6 +101,8 @@ import type { ColumnType } from 'nocodb-sdk';
 import type Project from '../../../../src/models/Project';
 import type Model from '../../../../src/models/Model';
 
+const debugMode = false;
+
 let context;
 let project: Project;
 let table: Model;
@@ -189,7 +191,8 @@ async function ncAxiosLinkGet({
   urlParams: { tableId, linkId, rowId },
   query = {},
   status = 200,
-}: { urlParams?: any; query?: any; status?: number } = {}) {
+  msg,
+}: { urlParams?: any; query?: any; status?: number; msg?: string } = {}) {
   const urlParams = { tableId, linkId, rowId };
   const url = `/api/v1/tables/${urlParams.tableId}/links/${urlParams.linkId}/rows/${urlParams.rowId}`;
   const response = await request(context.app)
@@ -197,15 +200,24 @@ async function ncAxiosLinkGet({
     .set('xc-auth', context.token)
     .query(query)
     .send({});
-  console.log(status, response.status);
-  expect(response.status).to.equal(status);
+  if (debugMode && status !== response.status)
+    console.log('#### expected', status, 'received', response.status);
+  else expect(response.status).to.equal(status);
+
+  // print error codes
+  if (debugMode && status !== 200) {
+    console.log('#### ', response.body.msg);
+  }
+  if (msg) expect(response.body.msg).to.equal(msg);
+
   return response;
 }
 async function ncAxiosLinkAdd({
   urlParams: { tableId, linkId, rowId },
   body = {},
   status = 201,
-}: { urlParams?: any; body?: any; status?: number } = {}) {
+  msg,
+}: { urlParams?: any; body?: any; status?: number; msg?: string } = {}) {
   const urlParams = { tableId, linkId, rowId };
   const url = `/api/v1/tables/${urlParams.tableId}/links/${urlParams.linkId}/rows/${urlParams.rowId}`;
   const response = await request(context.app)
@@ -213,23 +225,41 @@ async function ncAxiosLinkAdd({
     .set('xc-auth', context.token)
     .send(body);
 
-  console.log(status, response.status);
-  expect(response.status).to.equal(status);
+  if (debugMode && status !== response.status)
+    console.log('#### expected', status, 'received', response.status);
+  else expect(response.status).to.equal(status);
+
+  // print error codes
+  if (debugMode && status !== 201) {
+    console.log('#### ', response.body.msg);
+  }
+
+  if (msg) expect(response.body.msg).to.equal(msg);
+
   return response;
 }
 async function ncAxiosLinkRemove({
   urlParams: { tableId, linkId, rowId },
   body = {},
   status = 200,
-}: { urlParams?: any; body?: any; status?: number } = {}) {
+  msg,
+}: { urlParams?: any; body?: any; status?: number; msg?: string } = {}) {
   const urlParams = { tableId, linkId, rowId };
   const url = `/api/v1/tables/${urlParams.tableId}/links/${urlParams.linkId}/rows/${urlParams.rowId}`;
   const response = await request(context.app)
     .delete(url)
     .set('xc-auth', context.token)
     .send(body);
-  console.log(status, response.status);
-  expect(response.status).to.equal(status);
+  if (debugMode && status !== response.status)
+    console.log('#### expected', status, 'received', response.status);
+  else expect(response.status).to.equal(status);
+
+  // print error codes
+  if (debugMode && status !== 200) {
+    console.log('#### ', response.body.msg);
+  }
+  if (msg) expect(response.body.msg).to.equal(msg);
+
   return response;
 }
 
@@ -2286,7 +2316,7 @@ function linkBased() {
     }
   });
 
-  // Error handling
+  // Error handling (has-many)
   it('Error handling : Nested ADD', async function () {
     const validParams = {
       urlParams: {
@@ -2299,30 +2329,38 @@ function linkBased() {
     };
 
     // Link Add: Invalid table ID
+    if (debugMode) console.log('Link Add: Invalid table ID');
     await ncAxiosLinkAdd({
       ...validParams,
       urlParams: { ...validParams.urlParams, tableId: 9999 },
       status: 404,
+      msg: "Table '9999' not found",
     });
 
     // Link Add: Invalid link ID
+    if (debugMode) console.log('Link Add: Invalid link ID');
     await ncAxiosLinkAdd({
       ...validParams,
       urlParams: { ...validParams.urlParams, linkId: 9999 },
       status: 404,
+      msg: "Column '9999' not found",
     });
 
     // Link Add: Invalid Source row ID
+    if (debugMode) console.log('Link Add: Invalid Source row ID');
     await ncAxiosLinkAdd({
       ...validParams,
       urlParams: { ...validParams.urlParams, rowId: 9999 },
       status: 404,
+      msg: "Row '9999' not found",
     });
 
     // Body parameter error
     //
 
     // Link Add: Invalid body parameter - empty body : ignore
+    if (debugMode)
+      console.log('Link Add: Invalid body parameter - empty body : ignore');
     await ncAxiosLinkAdd({
       ...validParams,
       body: [],
@@ -2330,17 +2368,23 @@ function linkBased() {
     });
 
     // Link Add: Invalid body parameter - row id invalid
+    if (debugMode)
+      console.log('Link Add: Invalid body parameter - row id invalid');
     await ncAxiosLinkAdd({
       ...validParams,
       body: [999, 998, 997],
-      status: 400,
+      status: 422,
+      msg: 'Child record with id 999, 998, 997 not found',
     });
 
     // Link Add: Invalid body parameter - repeated row id
+    if (debugMode)
+      console.log('Link Add: Invalid body parameter - repeated row id');
     await ncAxiosLinkAdd({
       ...validParams,
       body: [1, 2, 1, 2],
-      status: 400,
+      status: 422,
+      msg: 'Child record with id 1, 2, 1, 2 contains duplicate value',
     });
   });
 
@@ -2367,48 +2411,62 @@ function linkBased() {
     };
 
     // Link Remove: Invalid table ID
+    if (debugMode) console.log('Link Remove: Invalid table ID');
     await ncAxiosLinkRemove({
       ...validParams,
       urlParams: { ...validParams.urlParams, tableId: 9999 },
       status: 404,
+      msg: "Table '9999' not found",
     });
 
     // Link Remove: Invalid link ID
+    if (debugMode) console.log('Link Remove: Invalid link ID');
     await ncAxiosLinkRemove({
       ...validParams,
       urlParams: { ...validParams.urlParams, linkId: 9999 },
       status: 404,
+      msg: "Column '9999' not found",
     });
 
     // Link Remove: Invalid Source row ID
+    if (debugMode) console.log('Link Remove: Invalid Source row ID');
     await ncAxiosLinkRemove({
       ...validParams,
       urlParams: { ...validParams.urlParams, rowId: 9999 },
       status: 404,
+      msg: "Row '9999' not found",
     });
 
     // Body parameter error
     //
 
     // Link Remove: Invalid body parameter - empty body : ignore
+    if (debugMode)
+      console.log('Link Remove: Invalid body parameter - empty body : ignore');
     await ncAxiosLinkRemove({
       ...validParams,
       body: [],
-      status: 404,
+      status: 200,
     });
 
     // Link Remove: Invalid body parameter - row id invalid
+    if (debugMode)
+      console.log('Link Remove: Invalid body parameter - row id invalid');
     await ncAxiosLinkRemove({
       ...validParams,
       body: [999, 998],
-      status: 404,
+      status: 422,
+      msg: 'Child record with id 999, 998 not found',
     });
 
     // Link Remove: Invalid body parameter - repeated row id
+    if (debugMode)
+      console.log('Link Remove: Invalid body parameter - repeated row id');
     await ncAxiosLinkRemove({
       ...validParams,
       body: [1, 2, 1, 2],
-      status: 404,
+      status: 422,
+      msg: 'Child record with id 1, 2, 1, 2 contains duplicate value',
     });
   });
 
@@ -2438,30 +2496,38 @@ function linkBased() {
     };
 
     // Link List: Invalid table ID
+    if (debugMode) console.log('Link List: Invalid table ID');
     await ncAxiosLinkGet({
       ...validParams,
       urlParams: { ...validParams.urlParams, tableId: 9999 },
       status: 404,
+      msg: "Table '9999' not found",
     });
 
     // Link List: Invalid link ID
+    if (debugMode) console.log('Link List: Invalid link ID');
     await ncAxiosLinkGet({
       ...validParams,
       urlParams: { ...validParams.urlParams, linkId: 9999 },
       status: 404,
+      msg: "Column '9999' not found",
     });
 
     // Link List: Invalid Source row ID
+    if (debugMode) console.log('Link List: Invalid Source row ID');
     await ncAxiosLinkGet({
       ...validParams,
       urlParams: { ...validParams.urlParams, rowId: 9999 },
       status: 404,
+      msg: "Row '9999' not found",
     });
 
     // Query parameter error
     //
 
     // Link List: Invalid query parameter - negative offset
+    if (debugMode)
+      console.log('Link List: Invalid query parameter - negative offset');
     await ncAxiosLinkGet({
       ...validParams,
       query: { ...validParams.query, offset: -1 },
@@ -2469,6 +2535,8 @@ function linkBased() {
     });
 
     // Link List: Invalid query parameter - string offset
+    if (debugMode)
+      console.log('Link List: Invalid query parameter - string offset');
     await ncAxiosLinkGet({
       ...validParams,
       query: { ...validParams.query, offset: 'abcd' },
@@ -2476,6 +2544,8 @@ function linkBased() {
     });
 
     // Link List: Invalid query parameter - offset > total rows
+    if (debugMode)
+      console.log('Link List: Invalid query parameter - offset > total rows');
     await ncAxiosLinkGet({
       ...validParams,
       query: { ...validParams.query, offset: 9999 },
@@ -2483,6 +2553,8 @@ function linkBased() {
     });
 
     // Link List: Invalid query parameter - negative limit
+    if (debugMode)
+      console.log('Link List: Invalid query parameter - negative limit');
     await ncAxiosLinkGet({
       ...validParams,
       query: { ...validParams.query, limit: -1 },
@@ -2490,6 +2562,8 @@ function linkBased() {
     });
 
     // Link List: Invalid query parameter - string limit
+    if (debugMode)
+      console.log('Link List: Invalid query parameter - string limit');
     await ncAxiosLinkGet({
       ...validParams,
       query: { ...validParams.query, limit: 'abcd' },
@@ -2497,6 +2571,8 @@ function linkBased() {
     });
 
     // Link List: Invalid query parameter - limit > total rows
+    if (debugMode)
+      console.log('Link List: Invalid query parameter - limit > total rows');
     await ncAxiosLinkGet({
       ...validParams,
       query: { ...validParams.query, limit: 9999 },

@@ -1,7 +1,7 @@
 import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { Injectable, Logger } from '@nestjs/common';
 import papaparse from 'papaparse';
-import { isLinksOrLTAR } from '../../../../../../nocodb-sdk/src'
+import { isLinksOrLTAR } from 'nocodb-sdk';
 import {
   findWithIdentifier,
   generateUniqueName,

@@ -9,7 +9,7 @@ import utc from 'dayjs/plugin/utc';
 import tinycolor from 'tinycolor2';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
-import { isLinksOrLTAR } from '../../../../../../nocodb-sdk/src'
+import { isLinksOrLTAR } from 'nocodb-sdk';
 import extractRolesObj from '../../../../utils/extractRolesObj';
 import { AttachmentsService } from '../../../../services/attachments.service';
 import { ColumnsService } from '../../../../services/columns.service';

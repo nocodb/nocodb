@@ -3,7 +3,7 @@ import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import papaparse from 'papaparse';
 import { Logger } from '@nestjs/common';
-import { isLinksOrLTAR } from '../../../../../../nocodb-sdk/src'
+import { isLinksOrLTAR } from 'nocodb-sdk';
 import { Base, Column, Model, Project } from '../../../../models';
 import { ProjectsService } from '../../../../services/projects.service';
 import { findWithIdentifier } from '../../../../helpers/exportImportHelpers';

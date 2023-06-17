@@ -67,6 +67,7 @@ const openChildList = () => {
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
+      if (isLocked.value) return
       childListDlg.value = true
       e.stopPropagation()
       break
@@ -75,7 +76,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
 </script>
 
 <template>
-  <div class="flex w-full items-center" @dblclick.stop="listItemsDlg = true">
+  <div class="flex w-full items-center" @dblclick.stop="openChildList = true">
     <template v-if="!isForm">
       <div class="flex-grow block">
         <component

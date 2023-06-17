@@ -3,7 +3,8 @@ import express from 'express';
 import NcToolGui from 'nc-lib-gui';
 import { AppModule } from './app.module';
 
-export default async function (app = express()) {
+export default async function (app) {
+  if (!app) app = express();
   const nestApp = await NestFactory.create(AppModule);
   await nestApp.init();
 

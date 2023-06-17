@@ -106,7 +106,7 @@ const localCellValue = computed<any[]>(() => {
         <GeneralIcon
           v-if="!readOnly && isUIAllowed('xcDatatableEditable')"
           icon="plus"
-          class="select-none !text-xxl nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
+          class="nc-icon-transition select-none !text-xxl nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus hover:text-shadow-md"
           @click.stop="listItemsDlg = true"
         />
       </div>

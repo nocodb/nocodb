@@ -1,7 +1,7 @@
 import { ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
 import { isVirtualCol, RelationTypes } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
-import { isLinksOrLTAR } from '../../../nocodb-sdk/src'
+import { isLinksOrLTAR } from 'nocodb-sdk'
 import { GridViewColumn } from '../models';
 import Column from '../models/Column';
 import Model from '../models/Model';

@@ -409,14 +409,14 @@ export class DataTableService {
       const map = new Map<string, boolean>();
       for (const rowId of rowIds) {
         if (rowId === undefined || rowId === null)
-          NcError.badRequest('Invalid row id ' + rowId);
+          NcError.unprocessableEntity('Invalid row id ' + rowId);
         if (map.has(rowId)) {
-          NcError.badRequest('Duplicate row with id ' + rowId);
+          NcError.unprocessableEntity('Duplicate row with id ' + rowId);
         }
         map.set(rowId, true);
       }
     } else if (rowIds === undefined || rowIds === null) {
-      NcError.badRequest('Invalid row id ' + rowIds);
+      NcError.unprocessableEntity('Invalid row id ' + rowIds);
     }
   }
 }

@@ -3699,7 +3699,7 @@ class BaseModelSqlv2 {
                   !childRows.find((r) => r[parentColumn.column_name] === id),
               );
 
-              NcError.notFound(
+              NcError.unprocessableEntity(
                 `Child record with id ${missingIds.join(', ')} not found`,
               );
             }
@@ -3777,7 +3777,7 @@ class BaseModelSqlv2 {
                   !childRows.find((r) => r[parentColumn.column_name] === id),
               );
 
-              NcError.notFound(
+              NcError.unprocessableEntity(
                 `Child record with id ${missingIds.join(', ')} not found`,
               );
             }
@@ -3809,7 +3809,7 @@ class BaseModelSqlv2 {
             const childRow = await childRowsQb;
 
             if (!childRow) {
-              NcError.notFound(`Child record with id ${childIds[0]} not found`);
+              NcError.unprocessableEntity(`Child record with id ${childIds[0]} not found`);
             }
           }
 
@@ -3899,7 +3899,7 @@ class BaseModelSqlv2 {
                   !childRows.find((r) => r[parentColumn.column_name] === id),
               );
 
-              NcError.notFound(
+              NcError.unprocessableEntity(
                 `Child record with id ${missingIds.join(', ')} not found`,
               );
             }
@@ -3939,7 +3939,7 @@ class BaseModelSqlv2 {
                   !childRows.find((r) => r[parentColumn.column_name] === id),
               );
 
-              NcError.notFound(
+              NcError.unprocessableEntity(
                 `Child record with id ${missingIds.join(', ')} not found`,
               );
             }
@@ -3969,7 +3969,7 @@ class BaseModelSqlv2 {
             const childRow = await childRowsQb;
 
             if (!childRow) {
-              NcError.notFound(`Child record with id ${childIds[0]} not found`);
+              NcError.unprocessableEntity(`Child record with id ${childIds[0]} not found`);
             }
           }
 

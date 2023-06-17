@@ -6,6 +6,7 @@ import getAst from '../helpers/getAst';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { Base, Column, Model, View } from '../models';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
+import { referencedRowIdParam } from './api-docs/swagger/templates/params';
 import { DatasService } from './datas.service';
 import type { LinkToAnotherRecordColumn } from '../models';
 
@@ -310,7 +311,7 @@ export class DataTableService {
 
     data = await nocoExecute(ast, data, {}, listArgs);
 
-    if(colOptions.type === RelationTypes.BELONGS_TO) return data;
+    if (colOptions.type === RelationTypes.BELONGS_TO) return data;
 
     return new PagedResponseImpl(data, {
       count,
@@ -340,6 +341,8 @@ export class DataTableService {
     refRowIds: string | string[] | number | number[];
     rowId: string;
   }) {
+    this.validateIds(param.refRowIds);
+
     const { model, view } = await this.getModelAndView(param);
     if (!model) NcError.notFound('Table not found');
 
@@ -374,6 +377,8 @@ export class DataTableService {
     refRowIds: string | string[] | number | number[];
     rowId: string;
   }) {
+    this.validateIds(param.refRowIds);
+
     const { model, view } = await this.getModelAndView(param);
     if (!model) NcError.notFound('Table not found');
 
@@ -397,5 +402,21 @@ export class DataTableService {
     });
 
     return true;
+  }
+
+  private validateIds(rowIds: any[] | any) {
+    if (Array.isArray(rowIds)) {
+      const map = new Map<string, boolean>();
+      for (const rowId of rowIds) {
+        if (rowId === undefined || rowId === null)
+          NcError.badRequest('Invalid row id ' + rowId);
+        if (map.has(rowId)) {
+          NcError.badRequest('Duplicate row with id ' + rowId);
+        }
+        map.set(rowId, true);
+      }
+    } else if (rowIds === undefined || rowIds === null) {
+      NcError.badRequest('Invalid row id ' + rowIds);
+    }
   }
 }

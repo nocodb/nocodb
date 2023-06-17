@@ -1877,13 +1877,13 @@ function linkBased() {
     expect(rsp.body.pageInfo).to.deep.equal(pageInfo);
 
     // links
-    let subResponse = rsp.body.list.map(({ Id, City }) => ({ Id, City }));
-    for (let i = 1; i <= 5; i++) {
-      expect(subResponse[i - 1]).to.deep.equal({
-        Id: i,
-        City: `City ${i}`,
-      });
-    }
+    expect(rsp.body.list).to.deep.equal([
+      { Id: 1, City: 'City 1' },
+      { Id: 2, City: 'City 2' },
+      { Id: 3, City: 'City 3' },
+      { Id: 4, City: 'City 4' },
+      { Id: 5, City: 'City 5' },
+    ]);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -1896,17 +1896,13 @@ function linkBased() {
           rowId: i,
         },
       });
-      subResponse = rsp.body.list.map(({ Id, Country }) => ({
-        Id,
-        Country,
-      }));
       if (i <= 5) {
-        expect(subResponse).to.deep.equal({
-          Id: i,
+        expect(rsp.body).to.deep.equal({
+          Id: 1,
           Country: `Country 1`,
         });
       } else {
-        expect(subResponse.list.length).to.equal(0);
+        expect(rsp.body).to.deep.equal({});
       }
     }
 
@@ -1929,34 +1925,32 @@ function linkBased() {
         rowId: 1,
       },
     });
-    subResponse = rsp.body.list.map(({ Id, City }) => ({ Id, City }));
-    for (let i = 1; i <= 7; i++) {
-      expect(subResponse[i - 1]).to.deep.equal({
-        Id: i,
-        City: `City ${i}`,
-      });
-    }
+    expect(rsp.body.list).to.deep.equal([
+      { Id: 1, City: 'City 1' },
+      { Id: 2, City: 'City 2' },
+      { Id: 3, City: 'City 3' },
+      { Id: 4, City: 'City 4' },
+      { Id: 5, City: 'City 5' },
+      { Id: 6, City: 'City 6' },
+      { Id: 7, City: 'City 7' },
+    ]);
 
     // verify in City table
     for (let i = 1; i <= 10; i++) {
-      const rsp = await ncAxiosLinkGet({
+      rsp = await ncAxiosLinkGet({
         urlParams: {
           tableId: tblCity.id,
           linkId: getColumnId(columnsCity, 'Country'),
           rowId: i,
         },
       });
-      subResponse = rsp.body.list.map(({ Id, Country }) => ({
-        Id,
-        Country,
-      }));
       if (i <= 7) {
-        expect(subResponse).to.deep.equal({
+        expect(rsp.body).to.deep.equal({
           Id: 1,
           Country: `Country 1`,
         });
       } else {
-        expect(subResponse.list.length).to.equal(0);
+        expect(rsp.body).to.deep.equal({});
       }
     }
 
@@ -1979,14 +1973,11 @@ function linkBased() {
         rowId: 1,
       },
     });
-    subResponse = rsp.body.list.map(({ Id, City }) => ({ Id, City }));
-    expect(subResponse.list.length).to.equal(3);
-    for (let i = 1; i <= 3; i++) {
-      expect(subResponse[i - 1]).to.deep.equal({
-        Id: i * 2,
-        City: `City ${i * 2}`,
-      });
-    }
+    expect(rsp.body.list).to.deep.equal([
+      { Id: 2, City: 'City 2' },
+      { Id: 4, City: 'City 4' },
+      { Id: 6, City: 'City 6' },
+    ]);
     // verify in City table
     for (let i = 1; i <= 10; i++) {
       rsp = await ncAxiosLinkGet({
@@ -1996,18 +1987,14 @@ function linkBased() {
           rowId: i,
         },
       });
-      subResponse = rsp.body.list.map(({ Id, Country }) => ({
-        Id,
-        Country,
-      }));
 
       if (i % 2 === 0 && i <= 6) {
-        expect(subResponse).to.deep.equal({
+        expect(rsp.body).to.deep.equal({
           Id: 1,
           Country: `Country 1`,
         });
       } else {
-        expect(subResponse.list.length).to.equal(0);
+        expect(rsp.body).to.deep.equal({});
       }
     }
   });

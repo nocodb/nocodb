@@ -1046,7 +1046,7 @@ function addEmptyRow(row?: number) {
                     :data-col="columnObj.id"
                     :data-title="columnObj.title"
                     @mousedown="handleMouseDown($event, rowIndex, colIndex)"
-                    @mouseover="handleMouseOver(rowIndex, colIndex)"
+                    @mouseover="handleMouseOver($event, rowIndex, colIndex)"
                     @click="handleCellClick($event, rowIndex, colIndex)"
                     @dblclick="makeEditable(row, columnObj)"
                     @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"

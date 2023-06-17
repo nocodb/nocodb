@@ -5,13 +5,15 @@ const props = defineProps<{
   activeWorkspaceId: string
   modal?: boolean
   type?: string
+  isOpen: boolean
 }>()
 
-const emit = defineEmits<{
-  (event: 'createProject', type: NcProjectType): void
-}>()
+const emits = defineEmits(['update:isOpen'])
 
 const router = useRouter()
+
+// v-model for isOpen
+const isOpen = useVModel(props, 'isOpen', emits)
 
 const projectCreateDlg = ref(false)
 const dashboardProjectCreateDlg = ref(false)
@@ -63,8 +65,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <template>
   <div>
-    <a-dropdown class="w-full !hover:bg-gray-50">
-      <a-button class="!p-0 !border-0 !h-full" :type="props.type ?? 'primary'">
+    <a-dropdown v-model:visible="isOpen" class="w-full">
+      <a-button class="!p-0 !border-0 !h-full !rounded-md" :type="props.type ?? 'primary'">
         <div class="flex w-full items-center gap-2">
           <slot>New Project <MdiMenuDown /></slot>
         </div>

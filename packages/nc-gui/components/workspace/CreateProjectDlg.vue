@@ -79,7 +79,7 @@ const input: VNodeRef = ref<typeof Input>()
 
 watch(dialogShow, async (n, o) => {
   if (n === o && !n) return
-  formState.title = await generateUniqueName()
+  formState.title = ''
   await nextTick()
   input.value?.$el?.focus()
   input.value?.$el?.select()
@@ -98,31 +98,13 @@ const typeLabel = computed(() => {
 </script>
 
 <template>
-  <a-modal
-    v-model:visible="dialogShow"
-    :class="{ active: dialogShow }"
-    width="max(30vw, 600px)"
-    centered
-    wrap-class-name="nc-modal-project-create"
-    @keydown.esc="dialogShow = false"
-  >
-    <template #footer>
-      <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
-
-      <a-button
-        key="submit"
-        data-testid="docs-create-proj-dlg-create-btn"
-        :disabled="creating"
-        size="large"
-        type="primary"
-        @click="createProject"
-        >{{ $t('general.create') }}
-      </a-button>
-    </template>
-
-    <div class="pl-10 pr-10 pt-5">
+  <general-modal v-model:visible="dialogShow">
+    <div class="px-8 py-5.5">
       <!-- Create A New Table -->
-      <div class="prose-xl font-bold self-center my-4">Create {{ typeLabel }} Project</div>
+      <div class="flex flex-row prose-lg font-medium items-center mb-7">
+        <GeneralProjectIcon :type="props.type" class="mr-2.5 !text-lg !h-4" />
+        Create {{ typeLabel }}
+      </div>
 
       <a-form
         ref="form"
@@ -134,12 +116,34 @@ const typeLabel = computed(() => {
         autocomplete="off"
         @finish="createProject"
       >
-        <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="m-10">
-          <a-input ref="input" v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
+        <a-form-item name="title" :rules="nameValidationRules" class="m-10">
+          <a-input
+            ref="input"
+            v-model:value="formState.title"
+            name="title"
+            class="nc-metadb-project-name !rounded !py-1"
+            placeholder="Title"
+          />
         </a-form-item>
       </a-form>
+
+      <div class="flex flex-row justify-end mt-8">
+        <a-button
+          key="submit"
+          class="!rounded-md"
+          data-testid="docs-create-proj-dlg-create-btn"
+          :disabled="creating"
+          type="primary"
+          @click="createProject"
+          >{{ $t('general.create') }} {{ $t('objects.project') }}
+        </a-button>
+      </div>
     </div>
-  </a-modal>
+  </general-modal>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+:deep(.ant-modal-content) {
+  @apply !p-0;
+}
+</style>

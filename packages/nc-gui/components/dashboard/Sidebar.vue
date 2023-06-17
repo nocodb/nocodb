@@ -17,6 +17,8 @@ const dataSourcesState = ref<string>('')
 
 const projectId = ref<string>()
 
+const isCreateProjectOpen = ref(false)
+
 function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: string) {
   dialogOpen.value = value ?? !dialogOpen.value
   openDialogKey.value = key || ''
@@ -100,8 +102,19 @@ const onTreeViewScrollTop = (onScrollTop: boolean) => {
         <div>Search</div>
       </div>
 
-      <WorkspaceCreateProjectBtn modal type="text" class="!p-0" :active-workspace-id="route.params.workspaceId">
-        <div class="gap-x-2 flex flex-row w-full items-center nc-sidebar-top-button !my-0">
+      <WorkspaceCreateProjectBtn
+        v-model:is-open="isCreateProjectOpen"
+        modal
+        type="text"
+        class="!p-0"
+        :active-workspace-id="route.params.workspaceId"
+      >
+        <div
+          class="gap-x-2 flex flex-row w-full items-center nc-sidebar-top-button !my-0"
+          :class="{
+            'bg-gray-100': isCreateProjectOpen,
+          }"
+        >
           <MdiPlus class="!h-4" />
 
           <div class="flex">New Project</div>

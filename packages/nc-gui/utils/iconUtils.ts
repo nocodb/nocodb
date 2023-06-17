@@ -15,8 +15,8 @@ import MdiFlagOutline from '~icons/mdi/flag-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 import MdiEyeCircleOutline from '~icons/mdi/eye-circle-outline'
 import MdiAccountGroup from '~icons/mdi/account-group'
-import PhDotsThreeOutlineVerticalThin from '~icons/ph/dots-three-outline-vertical-light'
-import PhDotsThreeOutlineThin from '~icons/ph/dots-three-outline-light'
+import MdiDotsVertical from '~icons/mdi/dots-vertical'
+import MdiDotsHorizontal from '~icons/mdi/dots-horizontal'
 import PhExcelThin from '~icons/ph/microsoft-excel-logo-light'
 import PhCsvThin from '~icons/ph/file-csv-light'
 import PhSplitVerticalThin from '~icons/ph/split-vertical-light'
@@ -33,7 +33,7 @@ import PhSparkleFill from '~icons/ph/sparkle-fill'
 import MdiDatabaseSearch from '~icons/mdi/database-search'
 import MdiMagicStaff from '~icons/mdi/magic-staff'
 import PhCaretDoubleLeftThin from '~icons/ph/caret-double-left-light'
-import NcNotification from '~icons/ph/bell-simple-thin'
+import NcNotification from '~icons/material-symbols/notifications-outline'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -102,8 +102,8 @@ import NcNotification from '~icons/ph/bell-simple-thin'
   arrowDown: PhCaretDownLight,
   arrowRight: PhCaretRightLight,
   sidebarMinimise: PhCaretDoubleLeftLight,
-  threeDotVertical: PhDotsThreeOutlineVerticalThin,
-  threeDotHorizontal: PhDotsThreeOutlineThin,
+  threeDotVertical: MdiDotsVertical,
+  threeDotHorizontal: MdiDotsHorizontal,
   table: PhTableThin,
   excel: PhExcelThin,
   csv: PhCsvThin,
@@ -250,8 +250,8 @@ export const iconMap = {
   sidebarMinimise: PhCaretDoubleLeftThin, // h('span', { class: 'material-symbols-outlined' }, 'left_panel_close'),
   // threeDotVertical: h('span', { class: 'material-symbols-outlined' }, 'more_vert'),
   // threeDotHorizontal: h('span', { class: 'material-symbols-outlined' }, 'more_horiz'),
-  threeDotVertical: PhDotsThreeOutlineVerticalThin,
-  threeDotHorizontal: PhDotsThreeOutlineThin,
+  threeDotVertical: MdiDotsVertical,
+  threeDotHorizontal: MdiDotsHorizontal,
   table: h('span', { class: 'material-symbols-outlined' }, 'table_chart'),
   excel: PhExcelThin, // h('span', { class: 'material-symbols-outlined' }, 'grid_on'),
   csv: PhCsvThin, // h('span', { class: 'material-symbols-outlined' }, 'grid_on'),

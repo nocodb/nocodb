@@ -62,6 +62,8 @@ const { toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar:
 
 const isCreateDlgOpen = ref(false)
 
+const isCreateProjectOpen = ref(false)
+
 const menuEl = ref<Menu | null>(null)
 
 const menu = (el?: typeof Menu) => {
@@ -262,7 +264,8 @@ const projectListType = computed(() => {
   <NuxtLayout name="new">
     <template #sidebar>
       <div class="h-full flex flex-col min-h-[400px] overflow-auto">
-        <div class="nc-workspace-group overflow-auto mt-2">
+        <div class="nc-workspace-group overflow-auto mt-8">
+          <div class="flex text-sm font-medium text-gray-400 mx-4.5 mb-2">All Projects</div>
           <div
             class="nc-workspace-group-item"
             :class="{ active: activePage === 'recent' }"
@@ -274,10 +277,10 @@ const projectListType = computed(() => {
               })
             "
           >
-            <MaterialSymbolsNestClockFarsightAnalogOutlineRounded class="nc-icon" />
+            <IcOutlineAccessTime class="nc-icon" />
             <span>Recent</span>
           </div>
-          <div
+          <!-- <div
             class="nc-workspace-group-item"
             :class="{ active: activePage === 'shared' }"
             @click="
@@ -290,7 +293,7 @@ const projectListType = computed(() => {
           >
             <MaterialSymbolsGroupsOutline class="nc-icon" />
             <span>Shared with me</span>
-          </div>
+          </div> -->
           <div
             class="nc-workspace-group-item"
             :class="{ active: activePage === 'starred' }"
@@ -302,15 +305,15 @@ const projectListType = computed(() => {
               })
             "
           >
-            <MaterialSymbolsStarOutline class="nc-icon" />
-            <span>Favourites</span>
+            <IcRoundStarBorder class="nc-icon !h-5" />
+            <span>Starred</span>
           </div>
         </div>
-        <div class="flex items-center uppercase !text-gray-400 text-xs font-weight-bold pt-2 px-4 pb-2 h-10">
-          All workspaces
+        <div class="flex items-center !text-gray-400 text-xs pt-2 px-4 pb-2 h-10">
+          <div class="flex text-sm font-medium">Workspaces</div>
           <div class="flex-grow"></div>
           <MdiPlus
-            class="!text-gray-400 text-lg cursor-pointer"
+            class="!text-gray-400 text-base cursor-pointer"
             data-testid="nc-create-workspace"
             @click="isCreateDlgOpen = true"
           />
@@ -387,7 +390,7 @@ const projectListType = computed(() => {
                   >
                 </div>
                 <div class="flex-grow"></div>
-                <MdiDragVertical class="outline-0 nc-workspace-drag-icon" />
+                <IcBaselineDragIndicator class="outline-0 nc-workspace-drag-icon" />
                 <a-dropdown :trigger="['click']">
                   <div class="w-4">
                     <MdiDotsHorizontal class="outline-0 nc-workspace-menu min-w-4 nc-click-transition" />
@@ -417,24 +420,53 @@ const projectListType = computed(() => {
     </template>
 
     <div class="w-full h-full overflow-auto nc-workspace-container">
-      <div v-if="activeWorkspace" class="h-full flex flex-col pt-6">
-        <div class="px-6 flex items-center">
-          <div class="flex gap-2 items-center mb-4">
+      <div v-if="activeWorkspace" class="h-full flex flex-col pt-7">
+        <div class="pl-10 pr-6 flex items-center mb-7">
+          <div class="flex gap-2 items-center">
             <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
               {{ activeWorkspace?.title?.slice(0, 2) }}
             </span>
             <h1 class="text-3xl font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title">{{ activeWorkspace?.title }}</h1>
           </div>
           <div class="flex-grow"></div>
-          <WorkspaceCreateProjectBtn v-if="isWorkspaceOwner" :active-workspace-id="activeWorkspace?.id" />
+          <WorkspaceCreateProjectBtn
+            v-if="isWorkspaceOwner"
+            v-model:is-open="isCreateProjectOpen"
+            class="mt-0.75"
+            :active-workspace-id="activeWorkspace?.id"
+            modal
+          >
+            <div
+              class="gap-x-2 flex flex-row w-full items-center rounded py-1.5 pl-2 pr-2.75"
+              :class="{
+                '!bg-opacity-10': isCreateProjectOpen,
+              }"
+            >
+              <MdiPlus class="!h-4.2" />
+
+              <div class="flex">New Project</div>
+            </div>
+          </WorkspaceCreateProjectBtn>
         </div>
 
         <a-tabs v-model:activeKey="tab">
-          <a-tab-pane key="projects" tab="All Projects" class="w-full">
-            <WorkspaceProjectList class="h-full" />
+          <a-tab-pane key="projects" class="w-full">
+            <template #tab>
+              <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
+                <MdiFileOutline />
+                Projects
+              </div>
+            </template>
+            <WorkspaceProjectList class="h-full mt-4 px-6" />
           </a-tab-pane>
           <template v-if="isWorkspaceOwner">
-            <a-tab-pane key="collab" tab="Collaborators" class="w-full">
+            <a-tab-pane key="collab" class="w-full">
+              <template #tab>
+                <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
+                  <PhUsersBold />
+                  Collaborators
+                </div>
+              </template>
               <WorkspaceCollaboratorsList class="h-full overflow-auto" />
             </a-tab-pane>
           </template>
@@ -535,7 +567,7 @@ const projectListType = computed(() => {
 }
 
 :deep(.ant-tabs-nav-list) {
-  @apply ml-6;
+  @apply !ml-9.5;
 }
 
 .ant-layout-header {

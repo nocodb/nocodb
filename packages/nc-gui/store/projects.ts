@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
@@ -212,3 +212,7 @@ export const useProjects = defineStore('projectsStore', () => {
     isProjectPopulated,
   }
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useProjects as any, import.meta.hot))
+}

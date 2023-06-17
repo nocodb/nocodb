@@ -1,6 +1,6 @@
 import type { ProjectType, WorkspaceType, WorkspaceUserType } from 'nocodb-sdk'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vueuse/core'
 import { computed, ref, useCommandPalette, useNuxtApp, useRouter, useTheme } from '#imports'
@@ -274,6 +274,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     $e('c:themes:change')
   }
 
+  const clearWorkspaces = () => {
+    const { clearProjects } = useProjects()
+
+    clearProjects()
+    workspaces.value.clear()
+  }
+
   return {
     loadWorkspaces,
     workspaces,
@@ -299,5 +306,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     activeWorkspaceMeta,
     isWorkspaceLoading,
     populateActiveWorkspace,
+    clearWorkspaces,
   }
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useWorkspace as any, import.meta.hot))
+}

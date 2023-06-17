@@ -8,12 +8,12 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { T } from 'nc-help';
+import { pluralize, singularize } from 'inflection';
 import formulaQueryBuilderv2 from '../db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
 import {
   createHmAndBtColumn,
   generateFkName,
-  populateRollupForLTAR,
   randomID,
   validateLookupPayload,
   validatePayload,
@@ -33,7 +33,6 @@ import {
   Base,
   Column,
   FormulaColumn,
-  GridViewColumn,
   KanbanView,
   Model,
 } from '../models';
@@ -41,11 +40,7 @@ import Noco from '../Noco';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { MetaTable } from '../utils/globals';
 import { MetaService } from '../meta/meta.service';
-import type {
-  LinkToAnotherRecordColumn,
-  Project,
-  RollupColumn,
-} from '../models';
+import type { LinkToAnotherRecordColumn, Project } from '../models';
 import type SqlMgrv2 from '../db/sql-mgr/v2/SqlMgrv2';
 import type {
   ColumnReqType,
@@ -1801,11 +1796,15 @@ export class ColumnsService {
         fk_mm_parent_column_id: parentCol.id,
         fk_related_model_id: parent.id,
         virtual: (param.column as LinkToAnotherColumnReqType).virtual,
+        meta: {
+          plural: pluralize(parent.title),
+          singular: singularize(parent.title),
+        },
       });
       const col2 = await Column.insert({
         title: getUniqueColumnAliasName(
           await parent.getColumns(),
-           param.column.title ?? `${child.title} List`,
+          param.column.title ?? `${child.title} List`,
         ),
 
         uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
@@ -1821,19 +1820,11 @@ export class ColumnsService {
         fk_mm_parent_column_id: childCol.id,
         fk_related_model_id: child.id,
         virtual: (param.column as LinkToAnotherColumnReqType).virtual,
+        meta: {
+          plural: param.column['meta']?.plural || pluralize(child.title),
+          singular: param.column['meta']?.singular || singularize(child.title),
+        },
       });
-
-      // if (isLinks) {
-      //   await populateRollupForLTAR({
-      //     column: col1,
-      //     // columnMeta: param.column['meta'],
-      //   });
-      //   await populateRollupForLTAR({
-      //     column: col2,
-      //     columnMeta: param.column['meta'],
-      //     alias: param.column.title,
-      //   });
-      // }
 
       // todo: create index for virtual relations as well
       // create index for foreign key in pg

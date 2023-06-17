@@ -12,7 +12,7 @@ import { NcError } from '../helpers/catchError';
 import { extractProps } from '../helpers/extractProps';
 import { stringifyMetaProp } from '../utils/modelUtils';
 import FormulaColumn from './FormulaColumn';
-import { LinksColumn } from './index'
+import { LinksColumn } from './index';
 import LinkToAnotherRecordColumn from './LinkToAnotherRecordColumn';
 import LookupColumn from './LookupColumn';
 import RollupColumn from './RollupColumn';

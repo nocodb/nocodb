@@ -66,7 +66,12 @@ export async function createHmAndBtColumn(
       await parent.getColumns(),
       type === 'hm' && !isLinks ? alias : `${child.title} List`,
     );
-    const col = await Column.insert({
+    const meta = {
+      plural: columnMeta?.plural || pluralize(child.title),
+      singular: columnMeta?.singular || singularize(child.title),
+    };
+
+    await Column.insert({
       title,
       fk_model_id: parent.id,
       uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
@@ -78,14 +83,8 @@ export async function createHmAndBtColumn(
       system: isSystemCol,
       fk_col_name: fkColName,
       fk_index_name: fkColName,
+      meta,
     });
-
-    // if (!isSystemCol && isLinks)
-    //   await populateRollupForLTAR({
-    //     column: col,
-    //     columnMeta,
-    //     alias
-    //   });
   }
 }
 
@@ -222,7 +221,7 @@ export const generateFkName = (parent: TableType, child: TableType) => {
 export async function populateRollupForLTAR({
   column,
   columnMeta,
-  alias
+  alias,
 }: {
   column: Column;
   columnMeta?: any;

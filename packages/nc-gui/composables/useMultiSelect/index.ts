@@ -81,6 +81,9 @@ export function useMultiSelect(
       return
     }
 
+    // disable edit mode if active cell is changed
+    editEnabled.value = false
+
     activeCell.row = row
     activeCell.col = col
   }

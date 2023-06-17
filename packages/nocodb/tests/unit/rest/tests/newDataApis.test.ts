@@ -2180,7 +2180,7 @@ function linkBased() {
 
   // Other scenarios
   // Has-many : change an existing link to a new one
-  it('Change an existing link to a new one', async function () {
+  it('HM: Change an existing link to a new one', async function () {
     // add a link
     await ncAxiosLinkAdd({
       urlParams: {
@@ -2209,12 +2209,8 @@ function linkBased() {
         rowId: 1,
       },
     });
-    let subResponse = rsp.body.list.map(({ Id, City }) => ({ Id, City }));
-    expect(subResponse.length).to.equal(1);
-    expect(subResponse[0]).to.deep.equal({
-      Id: 1,
-      City: 'City 1',
-    });
+    expect(rsp.body.list.length).to.equal(1);
+    expect(rsp.body.list).to.deep.equal([{ Id: 1, City: 'City 1' }]);
 
     rsp = await ncAxiosLinkGet({
       urlParams: {
@@ -2224,13 +2220,10 @@ function linkBased() {
       },
     });
     expect(rsp.body.list.length).to.equal(2);
-    subResponse = rsp.body.list.map(({ Id, City }) => ({ Id, City }));
-    for (let i = 2; i <= 3; i++) {
-      expect(subResponse[i - 2]).to.deep.equal({
-        Id: i,
-        City: `City ${i}`,
-      });
-    }
+    expect(rsp.body.list).to.deep.equal([
+      { Id: 2, City: 'City 2' },
+      { Id: 3, City: 'City 3' },
+    ]);
   });
 
   // limit & offset verification

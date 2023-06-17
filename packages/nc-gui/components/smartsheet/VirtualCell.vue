@@ -96,11 +96,11 @@ onUnmounted(() => {
     @keydown.shift.enter.exact="onNavigate(NavigateDir.PREV, $event)"
   >
     <template v-if="intersected">
-      <LazyVirtualCellHasMany v-if="isHm(column)" />
+      <LazyVirtualCellLinks v-if="isLink(column)" />
+      <LazyVirtualCellHasMany v-else-if="isHm(column)" />
       <LazyVirtualCellManyToMany v-else-if="isMm(column)" />
       <LazyVirtualCellBelongsTo v-else-if="isBt(column)" />
       <LazyVirtualCellRollup v-else-if="isRollup(column)" />
-      <LazyVirtualCellLinks v-else-if="isLink(column)" />
       <LazyVirtualCellFormula v-else-if="isFormula(column)" />
       <LazyVirtualCellQrCode v-else-if="isQrCode(column)" />
       <LazyVirtualCellBarcode v-else-if="isBarcode(column)" />

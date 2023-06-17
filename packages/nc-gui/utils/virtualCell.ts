@@ -1,8 +1,7 @@
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 
-export const isLTAR = (uidt: string, colOptions: unknown): colOptions is LinkToAnotherRecordType =>
-  uidt === UITypes.LinkToAnotherRecord
+export const isLTAR = (uidt: string, colOptions: unknown): colOptions is LinkToAnotherRecordType => isLinksOrLTAR(uidt)
 
 export const isHm = (column: ColumnType) =>
   isLTAR(column.uidt!, column.colOptions) && column.colOptions.type === RelationTypes.HAS_MANY

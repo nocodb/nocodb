@@ -79,6 +79,13 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
       break
   }
 })
+
+const localCellValue = computed<any[]>(() => {
+  if (isNew.value) {
+    return state?.value?.[column?.value.title as string] ?? []
+  }
+  return []
+})
 </script>
 
 <template>
@@ -111,6 +118,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
       v-model="childListDlg"
       :column="relatedTableDisplayColumn"
       @attach-record="onAttachRecord"
+      :cell-value="localCellValue"
     />
   </div>
 </template>

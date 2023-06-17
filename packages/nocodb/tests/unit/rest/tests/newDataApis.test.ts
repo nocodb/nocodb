@@ -208,7 +208,7 @@ async function ncAxiosLinkGet({
   if (debugMode && status !== 200) {
     console.log('#### ', response.body.msg);
   }
-  if (msg) expect(response.body.msg).to.equal(msg);
+  if (!debugMode && msg) expect(response.body.msg).to.equal(msg);
 
   return response;
 }
@@ -234,7 +234,7 @@ async function ncAxiosLinkAdd({
     console.log('#### ', response.body.msg);
   }
 
-  if (msg) expect(response.body.msg).to.equal(msg);
+  if (!debugMode && msg) expect(response.body.msg).to.equal(msg);
 
   return response;
 }
@@ -258,7 +258,7 @@ async function ncAxiosLinkRemove({
   if (debugMode && status !== 200) {
     console.log('#### ', response.body.msg);
   }
-  if (msg) expect(response.body.msg).to.equal(msg);
+  if (!debugMode && msg) expect(response.body.msg).to.equal(msg);
 
   return response;
 }
@@ -2316,18 +2316,7 @@ function linkBased() {
     }
   });
 
-  // Error handling (has-many)
-  it('Error handling : Nested ADD', async function () {
-    const validParams = {
-      urlParams: {
-        tableId: tblCountry.id,
-        linkId: getColumnId(columnsCountry, 'Cities'),
-        rowId: 1,
-      },
-      body: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-      status: 201,
-    };
-
+  async function nestedAddTests(validParams, relationType?) {
     // Link Add: Invalid table ID
     if (debugMode) console.log('Link Add: Invalid table ID');
     await ncAxiosLinkAdd({
@@ -2367,49 +2356,40 @@ function linkBased() {
       status: 201,
     });
 
-    // Link Add: Invalid body parameter - row id invalid
-    if (debugMode)
-      console.log('Link Add: Invalid body parameter - row id invalid');
-    await ncAxiosLinkAdd({
-      ...validParams,
-      body: [999, 998, 997],
-      status: 422,
-      msg: 'Child record with id 999, 998, 997 not found',
-    });
+    if (relationType === 'bt') {
+      // Link Add: Invalid body parameter - row id invalid
+      if (debugMode)
+        console.log('Link Add: Invalid body parameter - row id invalid');
+      await ncAxiosLinkAdd({
+        ...validParams,
+        body: [999, 998],
+        status: 422,
+        msg: 'Child record with id 999, 998 invalid for belongs-to relation field. Should contain only one value',
+      });
+    } else {
+      // Link Add: Invalid body parameter - row id invalid
+      if (debugMode)
+        console.log('Link Add: Invalid body parameter - row id invalid');
+      await ncAxiosLinkAdd({
+        ...validParams,
+        body: [999, 998, 997],
+        status: 422,
+        msg: 'Child record with id 999, 998, 997 not found',
+      });
 
-    // Link Add: Invalid body parameter - repeated row id
-    if (debugMode)
-      console.log('Link Add: Invalid body parameter - repeated row id');
-    await ncAxiosLinkAdd({
-      ...validParams,
-      body: [1, 2, 1, 2],
-      status: 422,
-      msg: 'Child record with id 1, 2, 1, 2 contains duplicate value',
-    });
-  });
+      // Link Add: Invalid body parameter - repeated row id
+      if (debugMode)
+        console.log('Link Add: Invalid body parameter - repeated row id');
+      await ncAxiosLinkAdd({
+        ...validParams,
+        body: [1, 2, 1, 2],
+        status: 422,
+        msg: 'Child record with id 1, 2, 1, 2 contains duplicate value',
+      });
+    }
+  }
 
-  it('Error handling : Nested REMOVE', async function () {
-    // Prepare data
-    await ncAxiosLinkAdd({
-      urlParams: {
-        tableId: tblCountry.id,
-        linkId: getColumnId(columnsCountry, 'Cities'),
-        rowId: 1,
-      },
-      body: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-      status: 201,
-    });
-
-    const validParams = {
-      urlParams: {
-        tableId: tblCountry.id,
-        linkId: getColumnId(columnsCountry, 'Cities'),
-        rowId: 1,
-      },
-      body: [1, 2, 3],
-      status: 200,
-    };
-
+  async function nestedRemoveTests(validParams, relationType?) {
     // Link Remove: Invalid table ID
     if (debugMode) console.log('Link Remove: Invalid table ID');
     await ncAxiosLinkRemove({
@@ -2449,52 +2429,40 @@ function linkBased() {
       status: 200,
     });
 
-    // Link Remove: Invalid body parameter - row id invalid
-    if (debugMode)
-      console.log('Link Remove: Invalid body parameter - row id invalid');
-    await ncAxiosLinkRemove({
-      ...validParams,
-      body: [999, 998],
-      status: 422,
-      msg: 'Child record with id 999, 998 not found',
-    });
+    if (relationType === 'bt') {
+      // Link Remove: Invalid body parameter - row id invalid
+      if (debugMode)
+        console.log('Link Remove: Invalid body parameter - row id invalid');
+      await ncAxiosLinkRemove({
+        ...validParams,
+        body: [999, 998],
+        status: 422,
+        msg: 'Child record with id 999, 998 invalid for belongs-to relation field. Should contain only one value',
+      });
+    } else {
+      // Link Remove: Invalid body parameter - row id invalid
+      if (debugMode)
+        console.log('Link Remove: Invalid body parameter - row id invalid');
+      await ncAxiosLinkRemove({
+        ...validParams,
+        body: [999, 998],
+        status: 422,
+        msg: 'Child record with id 999, 998 not found',
+      });
 
-    // Link Remove: Invalid body parameter - repeated row id
-    if (debugMode)
-      console.log('Link Remove: Invalid body parameter - repeated row id');
-    await ncAxiosLinkRemove({
-      ...validParams,
-      body: [1, 2, 1, 2],
-      status: 422,
-      msg: 'Child record with id 1, 2, 1, 2 contains duplicate value',
-    });
-  });
+      // Link Remove: Invalid body parameter - repeated row id
+      if (debugMode)
+        console.log('Link Remove: Invalid body parameter - repeated row id');
+      await ncAxiosLinkRemove({
+        ...validParams,
+        body: [1, 2, 1, 2],
+        status: 422,
+        msg: 'Child record with id 1, 2, 1, 2 contains duplicate value',
+      });
+    }
+  }
 
-  it('Error handling : Nested List', async function () {
-    // Prepare data
-    await ncAxiosLinkAdd({
-      urlParams: {
-        tableId: tblCountry.id,
-        linkId: getColumnId(columnsCountry, 'Cities'),
-        rowId: 1,
-      },
-      body: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-      status: 201,
-    });
-
-    const validParams = {
-      urlParams: {
-        tableId: tblCountry.id,
-        linkId: getColumnId(columnsCountry, 'Cities'),
-        rowId: 1,
-      },
-      query: {
-        offset: 0,
-        limit: 10,
-      },
-      status: 200,
-    };
-
+  async function nestedListTests(validParams) {
     // Link List: Invalid table ID
     if (debugMode) console.log('Link List: Invalid table ID');
     await ncAxiosLinkGet({
@@ -2578,6 +2546,210 @@ function linkBased() {
       query: { ...validParams.query, limit: 9999 },
       status: 200,
     });
+  }
+
+  // Error handling (has-many)
+  it('Error handling : HM: Nested ADD', async function () {
+    const validParams = {
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
+        rowId: 1,
+      },
+      body: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      status: 201,
+    };
+
+    await nestedAddTests(validParams);
+  });
+
+  it('Error handling : HM: Nested REMOVE', async function () {
+    // Prepare data
+    await ncAxiosLinkAdd({
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
+        rowId: 1,
+      },
+      body: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      status: 201,
+    });
+
+    const validParams = {
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
+        rowId: 1,
+      },
+      body: [1, 2, 3],
+      status: 200,
+    };
+
+    await nestedRemoveTests(validParams);
+  });
+
+  it('Error handling : HM: Nested List', async function () {
+    // Prepare data
+    await ncAxiosLinkAdd({
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
+        rowId: 1,
+      },
+      body: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      status: 201,
+    });
+
+    const validParams = {
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
+        rowId: 1,
+      },
+      query: {
+        offset: 0,
+        limit: 10,
+      },
+      status: 200,
+    };
+
+    await nestedListTests(validParams);
+  });
+
+  // Error handling (belongs to)
+  it('Error handling : BT: Nested ADD', async function () {
+    const validParams = {
+      urlParams: {
+        tableId: tblCity.id,
+        linkId: getColumnId(columnsCity, 'Country'),
+        rowId: 1,
+      },
+      body: [1],
+      status: 201,
+    };
+
+    await nestedAddTests(validParams, 'bt');
+  });
+
+  it('Error handling : BT: Nested REMOVE', async function () {
+    // Prepare data
+    await ncAxiosLinkAdd({
+      urlParams: {
+        tableId: tblCity.id,
+        linkId: getColumnId(columnsCity, 'Country'),
+        rowId: 1,
+      },
+      body: [1],
+      status: 201,
+    });
+
+    const validParams = {
+      urlParams: {
+        tableId: tblCity.id,
+        linkId: getColumnId(columnsCity, 'Country'),
+        rowId: 1,
+      },
+      body: [1],
+      status: 200,
+    };
+
+    await nestedRemoveTests(validParams, 'bt');
+  });
+
+  it('Error handling : BT: Nested List', async function () {
+    // Prepare data
+    await ncAxiosLinkAdd({
+      urlParams: {
+        tableId: tblCity.id,
+        linkId: getColumnId(columnsCity, 'Country'),
+        rowId: 1,
+      },
+      body: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      status: 201,
+    });
+
+    const validParams = {
+      urlParams: {
+        tableId: tblCity.id,
+        linkId: getColumnId(columnsCity, 'Country'),
+        rowId: 1,
+      },
+      query: {
+        offset: 0,
+        limit: 10,
+      },
+      status: 200,
+    };
+
+    await nestedListTests(validParams);
+  });
+
+  // Error handling (many-many)
+  it('Error handling : MM: Nested ADD', async function () {
+    const validParams = {
+      urlParams: {
+        tableId: tblActor.id,
+        linkId: getColumnId(columnsActor, 'Films'),
+        rowId: 1,
+      },
+      body: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      status: 201,
+    };
+
+    await nestedAddTests(validParams);
+  });
+
+  it('Error handling : MM: Nested REMOVE', async function () {
+    // Prepare data
+    await ncAxiosLinkAdd({
+      urlParams: {
+        tableId: tblActor.id,
+        linkId: getColumnId(columnsActor, 'Films'),
+        rowId: 1,
+      },
+      body: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      status: 201,
+    });
+
+    const validParams = {
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
+        rowId: 1,
+      },
+      body: [1, 2, 3],
+      status: 200,
+    };
+
+    await nestedRemoveTests(validParams);
+  });
+
+  it('Error handling : MM: Nested List', async function () {
+    // Prepare data
+    await ncAxiosLinkAdd({
+      urlParams: {
+        tableId: tblActor.id,
+        linkId: getColumnId(columnsActor, 'Films'),
+        rowId: 1,
+      },
+      body: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      status: 201,
+    });
+
+    const validParams = {
+      urlParams: {
+        tableId: tblActor.id,
+        linkId: getColumnId(columnsActor, 'Films'),
+        rowId: 1,
+      },
+      query: {
+        offset: 0,
+        limit: 10,
+      },
+      status: 200,
+    };
+
+    await nestedListTests(validParams);
   });
 }
 

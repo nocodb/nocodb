@@ -8,7 +8,6 @@ import {
   ActiveCellInj,
   CellClickHookInj,
   ColumnInj,
-  EditModeInj,
   IsFormInj,
   IsKanbanInj,
   ReadonlyInj,

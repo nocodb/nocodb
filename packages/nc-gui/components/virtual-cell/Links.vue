@@ -2,7 +2,7 @@
 import { computed } from '@vue/reactivity'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { CellValueInj, ColumnInj, inject, useSelectedCellKeyupListener } from '#imports'
+import { ActiveCellInj, CellValueInj, ColumnInj, EditModeInj, MetaInj, inject, useSelectedCellKeyupListener } from '#imports'
 
 const value = inject(CellValueInj)
 
@@ -20,9 +20,13 @@ const isForm = inject(IsFormInj)
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
-const isLocked = inject(IsLockedInj)
+const isLocked = inject(IsLockedInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+
+const active = inject(ActiveCellInj, ref(false))
+
+const editable = inject(EditModeInj, ref(false))
 
 const listItemsDlg = ref(false)
 
@@ -61,7 +65,9 @@ const onAttachRecord = () => {
 }
 
 const openChildList = () => {
-  if (!isLocked.value) childListDlg.value = true
+  if (!isLocked.value && (editable.value || active.value)) {
+    childListDlg.value = true
+  }
 }
 
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
@@ -76,7 +82,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
 </script>
 
 <template>
-  <div class="flex w-full items-center" @dblclick.stop="openChildList = true">
+  <div class="flex w-full items-center nc-links-wrapper" @dblclick.stop="openChildList = true">
     <template v-if="!isForm">
       <div class="flex-grow block">
         <component
@@ -93,7 +99,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
         <GeneralIcon
           v-if="!readOnly && isUIAllowed('xcDatatableEditable')"
           icon="plus"
-          class="select-none text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
+          class="select-none !text-xxl nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
           @click.stop="listItemsDlg = true"
         />
       </div>
@@ -108,3 +114,13 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
     />
   </div>
 </template>
+
+<style scoped>
+.nc-action-icon {
+  @apply hidden cursor-pointer;
+}
+
+.nc-links-wrapper:hover .nc-action-icon {
+  @apply flex;
+}
+</style>

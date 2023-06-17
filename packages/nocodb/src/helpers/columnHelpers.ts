@@ -55,7 +55,8 @@ export async function createHmAndBtColumn(
       fk_parent_column_id: parent.primaryKey.id,
       fk_related_model_id: parent.id,
       virtual,
-      system: isSystemCol,
+      // if self referencing treat it as system field to hide from ui
+      system: isSystemCol || parent.id === child.id,
       fk_col_name: fkColName,
       fk_index_name: fkColName,
     });

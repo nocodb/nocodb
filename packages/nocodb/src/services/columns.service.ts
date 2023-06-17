@@ -1776,7 +1776,7 @@ export class ColumnsService {
         true,
       );
 
-      const col1 = await Column.insert({
+      await Column.insert({
         title: getUniqueColumnAliasName(
           await child.getColumns(),
           `${parent.title} List`,
@@ -1800,8 +1800,10 @@ export class ColumnsService {
           plural: pluralize(parent.title),
           singular: singularize(parent.title),
         },
+        // if self referencing treat it as system field to hide from ui
+        system: parent.id === child.id,
       });
-      const col2 = await Column.insert({
+      await Column.insert({
         title: getUniqueColumnAliasName(
           await parent.getColumns(),
           param.column.title ?? `${child.title} List`,

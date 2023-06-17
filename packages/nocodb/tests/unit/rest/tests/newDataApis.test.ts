@@ -2013,7 +2013,9 @@ function linkBased() {
         linkId: getColumnId(columnsActor, 'Films'),
         rowId: 1,
       },
-      body: initializeArrayFromSequence(1, 20),
+      body: [
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+      ],
     });
     await ncAxiosLinkAdd({
       urlParams: {
@@ -2021,7 +2023,9 @@ function linkBased() {
         linkId: getColumnId(columnsFilm, 'Actor List'),
         rowId: 1,
       },
-      body: initializeArrayFromSequence(1, 20),
+      body: [
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+      ],
     });
 
     // verify in Actor table
@@ -2090,7 +2094,7 @@ function linkBased() {
         linkId: getColumnId(columnsActor, 'Films'),
         rowId: 1,
       },
-      body: initializeArrayFromSequence(21, 10),
+      body: [21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
     });
 
     // verify in Actor table

@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { T } from 'nc-help';
 import {
   AppEvents,
   isVirtualCol,
@@ -1362,20 +1361,6 @@ export class ColumnsService {
         await Column.delete(param.columnId, ncMeta);
       }
     }
-
-    // todo: wire up with hooks
-    await Audit.insert(
-      {
-        project_id: base.project_id,
-        op_type: AuditOperationTypes.TABLE_COLUMN,
-        op_sub_type: AuditOperationSubTypes.DELETE,
-        user: param?.req?.user?.email,
-        description: `The column ${column.column_name} with alias ${column.title} from table ${table.table_name} has been deleted`,
-        ip: param?.req.clientIp,
-      },
-      ncMeta,
-    );
-
     await table.getColumns(ncMeta);
 
     const displayValueColumn = mapDefaultDisplayValue(table.columns);

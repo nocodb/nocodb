@@ -297,8 +297,6 @@ export default class ProjectUser {
       .select(`${MetaTable.PROJECT}.is_meta`)
       .select(`${MetaTable.PROJECT}.created_at`)
       .select(`${MetaTable.PROJECT}.updated_at`)
-      .select(`${MetaTable.PROJECT_USERS}.roles`)
-      .innerJoin(MetaTable.PROJECT_USERS, function () {
       .select(`${MetaTable.WORKSPACE_USER}.roles as workspace_role`)
       .select(`${MetaTable.WORKSPACE}.title as workspace_title`)
       .select(`${MetaTable.PROJECT_USERS}.starred`)

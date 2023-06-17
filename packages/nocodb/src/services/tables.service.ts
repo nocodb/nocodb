@@ -43,7 +43,7 @@ export class TablesService {
   constructor(
     private metaDiffService: MetaDiffsService,
     private appHooksService: AppHooksService,
-    private readonly columnsService: ColumnsService
+    private readonly columnsService: ColumnsService,
   ) {}
 
   async tableUpdate(param: {
@@ -210,6 +210,7 @@ export class TablesService {
           {
             req: param.req,
             columnId: c.id,
+            user: param.user,
           },
           ncMeta,
         );
@@ -232,12 +233,10 @@ export class TablesService {
       }
 
       this.appHooksService.emit(AppEvents.TABLE_DELETE, {
-          table,
-          user: param.user,
-          ip: param.req?.clientIp,
-        },
-        ncMeta,
-      );
+        table,
+        user: param.user,
+        ip: param.req?.clientIp,
+      });
 
       result = await table.delete(ncMeta);
       await ncMeta.commit();

@@ -2002,7 +2002,7 @@ function linkBased() {
   // Create mm link between Actor and Film
   // List them for a record & verify in both tables
 
-  function initializeArrayFromSequence(i, count) {
+  function initArraySeq(i, count) {
     return Array.from({ length: count }, (_, index) => i + index);
   }
 
@@ -2235,7 +2235,7 @@ function linkBased() {
         linkId: getColumnId(columnsCountry, 'Cities'),
         rowId: 1,
       },
-      body: initializeArrayFromSequence(1, 50),
+      body: initArraySeq(1, 50),
     });
 
     // verify record 1
@@ -2251,13 +2251,18 @@ function linkBased() {
       },
     });
     expect(rsp.body.list.length).to.equal(10);
-    let subResponse = rsp.body.list.map(({ Id, City }) => ({ Id, City }));
-    for (let i = 1; i <= 10; i++) {
-      expect(subResponse[i - 1]).to.deep.equal({
-        Id: i,
-        City: `City ${i}`,
-      });
-    }
+    expect(rsp.body.list).to.deep.equal([
+      { Id: 1, City: 'City 1' },
+      { Id: 2, City: 'City 2' },
+      { Id: 3, City: 'City 3' },
+      { Id: 4, City: 'City 4' },
+      { Id: 5, City: 'City 5' },
+      { Id: 6, City: 'City 6' },
+      { Id: 7, City: 'City 7' },
+      { Id: 8, City: 'City 8' },
+      { Id: 9, City: 'City 9' },
+      { Id: 10, City: 'City 10' },
+    ]);
 
     rsp = await ncAxiosLinkGet({
       urlParams: {
@@ -2266,18 +2271,18 @@ function linkBased() {
         rowId: 1,
       },
       query: {
-        limit: 10,
+        limit: 5,
         offset: 10,
       },
     });
-    subResponse = rsp.body.list.map(({ Id, City }) => ({ Id, City }));
-    expect(subResponse.length).to.equal(10);
-    for (let i = 11; i <= 20; i++) {
-      expect(subResponse[i - 11]).to.deep.equal({
-        Id: i,
-        City: `City ${i}`,
-      });
-    }
+    expect(rsp.body.list.length).to.equal(5);
+    expect(rsp.body.list).to.deep.equal([
+      { Id: 11, City: 'City 11' },
+      { Id: 12, City: 'City 12' },
+      { Id: 13, City: 'City 13' },
+      { Id: 14, City: 'City 14' },
+      { Id: 15, City: 'City 15' },
+    ]);
 
     rsp = await ncAxiosLinkGet({
       urlParams: {
@@ -2287,17 +2292,17 @@ function linkBased() {
       },
       query: {
         limit: 100,
-        offset: 40,
+        offset: 45,
       },
     });
-    subResponse = rsp.body.list.map(({ Id, City }) => ({ Id, City }));
-    expect(subResponse.length).to.equal(10);
-    for (let i = 41; i <= 50; i++) {
-      expect(subResponse[i - 41]).to.deep.equal({
-        Id: i,
-        City: `City ${i}`,
-      });
-    }
+    expect(rsp.body.list.length).to.equal(5);
+    expect(rsp.body.list).to.deep.equal([
+      { Id: 46, City: 'City 46' },
+      { Id: 47, City: 'City 47' },
+      { Id: 48, City: 'City 48' },
+      { Id: 49, City: 'City 49' },
+      { Id: 50, City: 'City 50' },
+    ]);
   });
 
   async function nestedAddTests(validParams, relationType?) {

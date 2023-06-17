@@ -65,7 +65,7 @@ const onAttachRecord = () => {
 }
 
 const openChildList = () => {
-  if (!isLocked.value && (editable.value || active.value)) {
+  if (!isLocked.value) {
     childListDlg.value = true
   }
 }
@@ -114,13 +114,3 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
     />
   </div>
 </template>
-
-<style scoped>
-.nc-action-icon {
-  @apply hidden cursor-pointer;
-}
-
-.nc-links-wrapper:hover .nc-action-icon {
-  @apply flex;
-}
-</style>

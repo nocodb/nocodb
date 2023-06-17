@@ -29,11 +29,11 @@ export default abstract class BasePage {
     responseJsonMatcher?: ResponseSelector;
   }) {
     const waitForResponsePromise = this.rootPage.waitForResponse(
-      res => {
+      async res => {
         let isResJsonMatched = true;
         if (responseJsonMatcher) {
           try {
-            isResJsonMatched = responseJsonMatcher(res.json());
+            isResJsonMatched = responseJsonMatcher(await res.json());
           } catch (e) {
             return false;
           }
@@ -50,8 +50,7 @@ export default abstract class BasePage {
       }
     );
 
-    await uiAction();
-    await waitForResponsePromise;
+    await Promise.all([uiAction(), waitForResponsePromise]);
   }
 
   async attachFile({ filePickUIAction, filePath }: { filePickUIAction: Promise<any>; filePath: string[] }) {

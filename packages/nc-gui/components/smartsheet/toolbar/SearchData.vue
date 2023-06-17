@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { TableType } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR } from '../../../../nocodb-sdk/src'
 import {
   ActiveViewInj,
   ReloadViewDataHookInj,
@@ -27,10 +28,12 @@ const searchDropdown = ref(null)
 onClickOutside(searchDropdown, () => (isDropdownOpen.value = false))
 
 const columns = computed(() =>
-  (meta.value as TableType)?.columns?.map((column) => ({
-    value: column.id,
-    label: column.title,
-  })),
+  (meta.value as TableType)?.columns
+    ?.filter((column) => column?.uidt !== UITypes.Links)
+    ?.map((column) => ({
+      value: column.id,
+      label: column.title,
+    })),
 )
 
 watch(

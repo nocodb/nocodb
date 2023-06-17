@@ -9,6 +9,7 @@ import {
 } from 'nocodb-sdk';
 import { T } from 'nc-help';
 import { pluralize, singularize } from 'inflection';
+import { isLinksOrLTAR } from '../../../nocodb-sdk/src'
 import formulaQueryBuilderv2 from '../db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
 import {
@@ -1253,7 +1254,7 @@ export class ColumnsService {
                   .then((m) => m.getColumns(ncMeta));
 
                 for (const c of columnsInRelatedTable) {
-                  if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                  if (!isLinksOrLTAR(c.uidt)) continue;
                   const colOpt =
                     await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
                   if (
@@ -1274,7 +1275,7 @@ export class ColumnsService {
                 // delete bt columns in m2m table
                 await mmTable.getColumns(ncMeta);
                 for (const c of mmTable.columns) {
-                  if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                  if (!isLinksOrLTAR(c.uidt)) continue;
                   const colOpt =
                     await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
                   if (colOpt.type === 'bt') {
@@ -1285,7 +1286,7 @@ export class ColumnsService {
                 // delete hm columns in parent table
                 await parentTable.getColumns(ncMeta);
                 for (const c of parentTable.columns) {
-                  if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                  if (!isLinksOrLTAR(c.uidt)) continue;
                   const colOpt =
                     await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
                   if (colOpt.fk_related_model_id === mmTable.id) {
@@ -1296,7 +1297,7 @@ export class ColumnsService {
                 // delete hm columns in child table
                 await childTable.getColumns(ncMeta);
                 for (const c of childTable.columns) {
-                  if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                  if (!isLinksOrLTAR(c.uidt)) continue;
                   const colOpt =
                     await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
                   if (colOpt.fk_related_model_id === mmTable.id) {

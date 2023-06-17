@@ -3700,7 +3700,7 @@ class BaseModelSqlv2 {
               );
 
               NcError.unprocessableEntity(
-                `Child record with id ${missingIds.join(', ')} not found`,
+                `Child record with id [${missingIds.join(', ')}] not found`,
               );
             }
 
@@ -3778,7 +3778,7 @@ class BaseModelSqlv2 {
               );
 
               NcError.unprocessableEntity(
-                `Child record with id ${missingIds.join(', ')} not found`,
+                `Child record with id [${missingIds.join(', ')}] not found`,
               );
             }
           }
@@ -3810,7 +3810,7 @@ class BaseModelSqlv2 {
 
             if (!childRow) {
               NcError.unprocessableEntity(
-                `Child record with id ${childIds[0]} not found`,
+                `Child record with id [${childIds[0]}] not found`,
               );
             }
           }
@@ -3902,7 +3902,7 @@ class BaseModelSqlv2 {
               );
 
               NcError.unprocessableEntity(
-                `Child record with id ${missingIds.join(', ')} not found`,
+                `Child record with id [${missingIds.join(', ')}] not found`,
               );
             }
           }
@@ -3942,7 +3942,7 @@ class BaseModelSqlv2 {
               );
 
               NcError.unprocessableEntity(
-                `Child record with id ${missingIds.join(', ')} not found`,
+                `Child record with id [${missingIds.join(', ')}] not found`,
               );
             }
           }
@@ -3977,7 +3977,7 @@ class BaseModelSqlv2 {
 
             if (!childRow) {
               NcError.unprocessableEntity(
-                `Child record with id ${childIds[0]} not found`,
+                `Child record with id [${childIds[0]}] not found`,
               );
             }
           }

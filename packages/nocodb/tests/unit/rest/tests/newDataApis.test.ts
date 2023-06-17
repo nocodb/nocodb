@@ -2312,7 +2312,7 @@ function linkBased() {
       ...validParams,
       urlParams: { ...validParams.urlParams, tableId: 9999 },
       status: 404,
-      msg: "Table '9999' not found",
+      msg: "Table with id '9999' not found",
     });
 
     // Link Add: Invalid link ID
@@ -2321,7 +2321,7 @@ function linkBased() {
       ...validParams,
       urlParams: { ...validParams.urlParams, linkId: 9999 },
       status: 404,
-      msg: "Column '9999' not found",
+      msg: "Column with id '9999' not found",
     });
 
     // Link Add: Invalid Source row ID
@@ -2330,7 +2330,7 @@ function linkBased() {
       ...validParams,
       urlParams: { ...validParams.urlParams, rowId: 9999 },
       status: 404,
-      msg: "Row '9999' not found",
+      msg: "Row with id '9999' not found",
     });
 
     // Body parameter error
@@ -2353,7 +2353,7 @@ function linkBased() {
         ...validParams,
         body: [999, 998],
         status: 422,
-        msg: 'Child record with id 999, 998 invalid for belongs-to relation field. Should contain only one value',
+        msg: 'Child record with id [999, 998] invalid for belongs-to relation field. Should contain only one value',
       });
     } else {
       // Link Add: Invalid body parameter - row id invalid
@@ -2363,7 +2363,7 @@ function linkBased() {
         ...validParams,
         body: [999, 998, 997],
         status: 422,
-        msg: 'Child record with id 999, 998, 997 not found',
+        msg: 'Child record with id [999, 998, 997] not found',
       });
 
       // Link Add: Invalid body parameter - repeated row id
@@ -2373,7 +2373,7 @@ function linkBased() {
         ...validParams,
         body: [1, 2, 1, 2],
         status: 422,
-        msg: 'Child record with id 1, 2, 1, 2 contains duplicate value',
+        msg: 'Child record with id [1, 2, 1, 2] contains duplicate value',
       });
     }
   }
@@ -2385,7 +2385,7 @@ function linkBased() {
       ...validParams,
       urlParams: { ...validParams.urlParams, tableId: 9999 },
       status: 404,
-      msg: "Table '9999' not found",
+      msg: "Table with id '9999' not found",
     });
 
     // Link Remove: Invalid link ID
@@ -2394,7 +2394,7 @@ function linkBased() {
       ...validParams,
       urlParams: { ...validParams.urlParams, linkId: 9999 },
       status: 404,
-      msg: "Column '9999' not found",
+      msg: "Column with id '9999' not found",
     });
 
     // Link Remove: Invalid Source row ID
@@ -2403,7 +2403,7 @@ function linkBased() {
       ...validParams,
       urlParams: { ...validParams.urlParams, rowId: 9999 },
       status: 404,
-      msg: "Row '9999' not found",
+      msg: "Row with id '9999' not found",
     });
 
     // Body parameter error
@@ -2426,7 +2426,7 @@ function linkBased() {
         ...validParams,
         body: [999, 998],
         status: 422,
-        msg: 'Child record with id 999, 998 invalid for belongs-to relation field. Should contain only one value',
+        msg: 'Child record with id [999, 998] invalid for belongs-to relation field. Should contain only one value',
       });
     } else {
       // Link Remove: Invalid body parameter - row id invalid
@@ -2436,7 +2436,7 @@ function linkBased() {
         ...validParams,
         body: [999, 998],
         status: 422,
-        msg: 'Child record with id 999, 998 not found',
+        msg: 'Child record with id [999, 998] not found',
       });
 
       // Link Remove: Invalid body parameter - repeated row id
@@ -2446,7 +2446,7 @@ function linkBased() {
         ...validParams,
         body: [1, 2, 1, 2],
         status: 422,
-        msg: 'Child record with id 1, 2, 1, 2 contains duplicate value',
+        msg: 'Child record with id [1, 2, 1, 2] contains duplicate value',
       });
     }
   }
@@ -2458,7 +2458,7 @@ function linkBased() {
       ...validParams,
       urlParams: { ...validParams.urlParams, tableId: 9999 },
       status: 404,
-      msg: "Table '9999' not found",
+      msg: "Table with id '9999' not found",
     });
 
     // Link List: Invalid link ID
@@ -2467,7 +2467,7 @@ function linkBased() {
       ...validParams,
       urlParams: { ...validParams.urlParams, linkId: 9999 },
       status: 404,
-      msg: "Column '9999' not found",
+      msg: "Column with id '9999' not found",
     });
 
     // Link List: Invalid Source row ID
@@ -2476,7 +2476,7 @@ function linkBased() {
       ...validParams,
       urlParams: { ...validParams.urlParams, rowId: 9999 },
       status: 404,
-      msg: "Row '9999' not found",
+      msg: "Row with id '9999' not found",
     });
 
     // Query parameter error

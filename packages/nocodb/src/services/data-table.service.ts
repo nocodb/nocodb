@@ -6,7 +6,6 @@ import getAst from '../helpers/getAst';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { Base, Column, Model, View } from '../models';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import { referencedRowIdParam } from './api-docs/swagger/templates/params';
 import { DatasService } from './datas.service';
 import type { LinkToAnotherRecordColumn } from '../models';
 
@@ -169,7 +168,7 @@ export class DataTableService {
     const model = await Model.get(param.modelId);
 
     if (!model) {
-      NcError.notFound(`Table '${param.modelId}' not found`);
+      NcError.notFound(`Table with id '${param.modelId}' not found`);
     }
 
     if (param.projectId && model.project_id !== param.projectId) {
@@ -181,7 +180,7 @@ export class DataTableService {
     if (param.viewId) {
       view = await View.get(param.viewId);
       if (!view || (view.fk_model_id && view.fk_model_id !== param.modelId)) {
-        NcError.unprocessableEntity(`View '${param.viewId}' not found`);
+        NcError.unprocessableEntity(`View with id '${param.viewId}' not found`);
       }
     }
 
@@ -322,7 +321,7 @@ export class DataTableService {
   private async getColumn(param: { modelId: string; columnId: string }) {
     const column = await Column.get({ colId: param.columnId });
 
-    if (!column) NcError.badRequest('Column not found');
+    if (!column) NcError.badRequest(`Column with id '${param.columnId}' not found`);
 
     if (column.fk_model_id !== param.modelId)
       NcError.badRequest('Column not belong to model');
@@ -344,7 +343,6 @@ export class DataTableService {
     this.validateIds(param.refRowIds);
 
     const { model, view } = await this.getModelAndView(param);
-    if (!model) NcError.notFound('Table not found');
 
     const base = await Base.get(model.base_id);
 
@@ -380,7 +378,7 @@ export class DataTableService {
     this.validateIds(param.refRowIds);
 
     const { model, view } = await this.getModelAndView(param);
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.notFound('Table with id ' + param.modelId + ' not found');
 
     const base = await Base.get(model.base_id);
 

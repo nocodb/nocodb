@@ -17,8 +17,8 @@ import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
-import { extractLimitAndOffset } from '../helpers';
 import { Knex } from 'knex';
+import { extractLimitAndOffset } from '../helpers';
 import { NcError } from '../helpers/catchError';
 import getAst from '../helpers/getAst';
 import {
@@ -3628,7 +3628,7 @@ class BaseModelSqlv2 {
     const column = columns.find((c) => c.id === colId);
 
     if (!column || column.uidt !== UITypes.LinkToAnotherRecord)
-      NcError.notFound('Column not found');
+      NcError.notFound(`Link column with id ${colId} not found`);
 
     const row = await this.dbDriver(this.tnPath)
       .where(await this._wherePk(rowId))
@@ -3636,7 +3636,7 @@ class BaseModelSqlv2 {
 
     // validate rowId
     if (!row) {
-      NcError.notFound('Row not found');
+      NcError.notFound(`Row with id ${rowId} not found`);
     }
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
@@ -3809,7 +3809,9 @@ class BaseModelSqlv2 {
             const childRow = await childRowsQb;
 
             if (!childRow) {
-              NcError.unprocessableEntity(`Child record with id ${childIds[0]} not found`);
+              NcError.unprocessableEntity(
+                `Child record with id ${childIds[0]} not found`,
+              );
             }
           }
 
@@ -3849,7 +3851,7 @@ class BaseModelSqlv2 {
     const column = columns.find((c) => c.id === colId);
 
     if (!column || column.uidt !== UITypes.LinkToAnotherRecord)
-      NcError.notFound('Column not found');
+      NcError.notFound(`Link column with id ${colId} not found`);
 
     const row = await this.dbDriver(this.tnPath)
       .where(await this._wherePk(rowId))
@@ -3857,7 +3859,7 @@ class BaseModelSqlv2 {
 
     // validate rowId
     if (!row) {
-      NcError.notFound('Row not found');
+      NcError.notFound(`Row with id ${rowId} not found`);
     }
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
@@ -3961,6 +3963,11 @@ class BaseModelSqlv2 {
         {
           // validate Ids
           {
+            if (childIds.length > 1)
+              NcError.unprocessableEntity(
+                'Request must contain only one parent id',
+              );
+
             const childRowsQb = this.dbDriver(parentTn)
               .select(parentTable.primaryKey.column_name)
               .where(_wherePk(parentTable.primaryKeys, childIds[0]))
@@ -3969,7 +3976,9 @@ class BaseModelSqlv2 {
             const childRow = await childRowsQb;
 
             if (!childRow) {
-              NcError.unprocessableEntity(`Child record with id ${childIds[0]} not found`);
+              NcError.unprocessableEntity(
+                `Child record with id ${childIds[0]} not found`,
+              );
             }
           }
 
@@ -4003,6 +4012,15 @@ class BaseModelSqlv2 {
       const relColumn = (await this.model.getColumns()).find(
         (c) => c.id === colId,
       );
+
+      const row = await this.dbDriver(this.tnPath)
+        .where(await this._wherePk(id))
+        .first();
+
+      // validate rowId
+      if (!row) {
+        NcError.notFound(`Row with id ${id} not found`);
+      }
 
       const parentCol = await (
         (await relColumn.getColOptions()) as LinkToAnotherRecordColumn

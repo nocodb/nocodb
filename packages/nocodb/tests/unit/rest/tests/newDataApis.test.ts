@@ -197,10 +197,7 @@ async function ncAxiosLinkGet({
     .set('xc-auth', context.token)
     .query(query)
     .send({});
-  if (response.status !== status) {
-    console.log(response.body);
-  }
-
+  console.log(status, response.status);
   expect(response.status).to.equal(status);
   return response;
 }
@@ -215,6 +212,8 @@ async function ncAxiosLinkAdd({
     .post(url)
     .set('xc-auth', context.token)
     .send(body);
+
+  console.log(status, response.status);
   expect(response.status).to.equal(status);
   return response;
 }
@@ -229,6 +228,7 @@ async function ncAxiosLinkRemove({
     .delete(url)
     .set('xc-auth', context.token)
     .send(body);
+  console.log(status, response.status);
   expect(response.status).to.equal(status);
   return response;
 }
@@ -1749,7 +1749,7 @@ function linkBased() {
         table_name: 'Country',
         columns: customColumns('custom', columns),
       });
-      const countryRecords = await prepareRecords('Country', 10);
+      const countryRecords = await prepareRecords('Country', 100);
       // insert records
       await createBulkRows(context, {
         project,
@@ -1855,13 +1855,15 @@ function linkBased() {
       });
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     // verify in City table
     for (let i = 1; i <= 10; i++) {
       rsp = await ncAxiosLinkGet({
         urlParams: {
           tableId: tblCity.id,
           linkId: getColumnId(columnsCity, 'Country'),
-          rowId: i + 10,
+          rowId: i,
         },
       });
       subResponse = rsp.body.list.map(({ Id, Country }) => ({
@@ -1905,7 +1907,6 @@ function linkBased() {
       });
     }
 
-    // verify in City table
     // verify in City table
     for (let i = 1; i <= 10; i++) {
       const rsp = await ncAxiosLinkGet({
@@ -2285,38 +2286,221 @@ function linkBased() {
     }
   });
 
-  // invalid link id
-  it('Invalid link id', async function () {
+  // Error handling
+  it('Error handling : Nested ADD', async function () {
+    const validParams = {
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
+        rowId: 1,
+      },
+      body: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      status: 201,
+    };
+
+    // Link Add: Invalid table ID
+    await ncAxiosLinkAdd({
+      ...validParams,
+      urlParams: { ...validParams.urlParams, tableId: 9999 },
+      status: 404,
+    });
+
     // Link Add: Invalid link ID
+    await ncAxiosLinkAdd({
+      ...validParams,
+      urlParams: { ...validParams.urlParams, linkId: 9999 },
+      status: 404,
+    });
+
+    // Link Add: Invalid Source row ID
+    await ncAxiosLinkAdd({
+      ...validParams,
+      urlParams: { ...validParams.urlParams, rowId: 9999 },
+      status: 404,
+    });
+
+    // Body parameter error
+    //
+
+    // Link Add: Invalid body parameter - empty body : ignore
+    await ncAxiosLinkAdd({
+      ...validParams,
+      body: [],
+      status: 201,
+    });
+
+    // Link Add: Invalid body parameter - row id invalid
+    await ncAxiosLinkAdd({
+      ...validParams,
+      body: [999, 998, 997],
+      status: 400,
+    });
+
+    // Link Add: Invalid body parameter - repeated row id
+    await ncAxiosLinkAdd({
+      ...validParams,
+      body: [1, 2, 1, 2],
+      status: 400,
+    });
+  });
+
+  it('Error handling : Nested REMOVE', async function () {
+    // Prepare data
     await ncAxiosLinkAdd({
       urlParams: {
         tableId: tblCountry.id,
         linkId: getColumnId(columnsCountry, 'Cities'),
         rowId: 1,
       },
-      body: [9999],
-      status: 404,
+      body: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      status: 201,
     });
 
-    // Invalid link field ID
-    await ncAxiosLinkGet({
-      urlParams: {
-        tableId: tblCountry.id,
-        linkId: 9999,
-        rowId: 19,
-      },
-      status: 400,
-    });
-
-    // Link Remove: Invalid link ID
-    await ncAxiosLinkRemove({
+    const validParams = {
       urlParams: {
         tableId: tblCountry.id,
         linkId: getColumnId(columnsCountry, 'Cities'),
         rowId: 1,
       },
-      body: [9999],
+      body: [1, 2, 3],
+      status: 200,
+    };
+
+    // Link Remove: Invalid table ID
+    await ncAxiosLinkRemove({
+      ...validParams,
+      urlParams: { ...validParams.urlParams, tableId: 9999 },
       status: 404,
+    });
+
+    // Link Remove: Invalid link ID
+    await ncAxiosLinkRemove({
+      ...validParams,
+      urlParams: { ...validParams.urlParams, linkId: 9999 },
+      status: 404,
+    });
+
+    // Link Remove: Invalid Source row ID
+    await ncAxiosLinkRemove({
+      ...validParams,
+      urlParams: { ...validParams.urlParams, rowId: 9999 },
+      status: 404,
+    });
+
+    // Body parameter error
+    //
+
+    // Link Remove: Invalid body parameter - empty body : ignore
+    await ncAxiosLinkRemove({
+      ...validParams,
+      body: [],
+      status: 404,
+    });
+
+    // Link Remove: Invalid body parameter - row id invalid
+    await ncAxiosLinkRemove({
+      ...validParams,
+      body: [999, 998],
+      status: 404,
+    });
+
+    // Link Remove: Invalid body parameter - repeated row id
+    await ncAxiosLinkRemove({
+      ...validParams,
+      body: [1, 2, 1, 2],
+      status: 404,
+    });
+  });
+
+  it('Error handling : Nested List', async function () {
+    // Prepare data
+    await ncAxiosLinkAdd({
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
+        rowId: 1,
+      },
+      body: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      status: 201,
+    });
+
+    const validParams = {
+      urlParams: {
+        tableId: tblCountry.id,
+        linkId: getColumnId(columnsCountry, 'Cities'),
+        rowId: 1,
+      },
+      query: {
+        offset: 0,
+        limit: 10,
+      },
+      status: 200,
+    };
+
+    // Link List: Invalid table ID
+    await ncAxiosLinkGet({
+      ...validParams,
+      urlParams: { ...validParams.urlParams, tableId: 9999 },
+      status: 404,
+    });
+
+    // Link List: Invalid link ID
+    await ncAxiosLinkGet({
+      ...validParams,
+      urlParams: { ...validParams.urlParams, linkId: 9999 },
+      status: 404,
+    });
+
+    // Link List: Invalid Source row ID
+    await ncAxiosLinkGet({
+      ...validParams,
+      urlParams: { ...validParams.urlParams, rowId: 9999 },
+      status: 404,
+    });
+
+    // Query parameter error
+    //
+
+    // Link List: Invalid query parameter - negative offset
+    await ncAxiosLinkGet({
+      ...validParams,
+      query: { ...validParams.query, offset: -1 },
+      status: 200,
+    });
+
+    // Link List: Invalid query parameter - string offset
+    await ncAxiosLinkGet({
+      ...validParams,
+      query: { ...validParams.query, offset: 'abcd' },
+      status: 200,
+    });
+
+    // Link List: Invalid query parameter - offset > total rows
+    await ncAxiosLinkGet({
+      ...validParams,
+      query: { ...validParams.query, offset: 9999 },
+      status: 200,
+    });
+
+    // Link List: Invalid query parameter - negative limit
+    await ncAxiosLinkGet({
+      ...validParams,
+      query: { ...validParams.query, limit: -1 },
+      status: 200,
+    });
+
+    // Link List: Invalid query parameter - string limit
+    await ncAxiosLinkGet({
+      ...validParams,
+      query: { ...validParams.query, limit: 'abcd' },
+      status: 200,
+    });
+
+    // Link List: Invalid query parameter - limit > total rows
+    await ncAxiosLinkGet({
+      ...validParams,
+      query: { ...validParams.query, limit: 9999 },
+      status: 200,
     });
   });
 }

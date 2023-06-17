@@ -14,7 +14,7 @@ const dragStart = (ev: DragEvent, item: WidgetTemplate) => {
 
 <template>
   <button
-    class="w-22 h-22 p-2 border-1 border-solid border-grey-100 rounded-lg text-sm text-grey cursor-pointer hover:bg-grey-lightest hover:border-grey"
+    class="w-20 h-20 p-2 border-1 border-solid border-grey-100 rounded-lg text-sm text-grey cursor-pointer hover:bg-grey-lightest hover:border-grey"
     draggable="true"
     @click="addWidget(item.type)"
     @dragstart="dragStart($event, toRaw(item))"

@@ -16,7 +16,7 @@ export class SignupPage extends BasePage {
     return `nc_test_${parallelId}_${email}`;
   }
 
-  goto() {
+  async goto() {
     return this.rootPage.goto('/#/signup/');
   }
 

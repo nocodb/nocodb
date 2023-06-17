@@ -64,7 +64,7 @@ export class DashboardPage extends BasePage {
     return this.rootPage.locator('html');
   }
 
-  goto() {
+  async goto() {
     return this.rootPage.goto(`/#/nc/${this.project.id}/auth`);
   }
 

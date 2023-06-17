@@ -9,7 +9,7 @@ export class AccountLicensePage extends BasePage {
     this.accountPage = accountPage;
   }
 
-  goto() {
+  async goto() {
     return this.rootPage.goto('/#/account/license');
   }
 

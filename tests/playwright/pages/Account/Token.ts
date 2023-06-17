@@ -14,7 +14,7 @@ export class AccountTokenPage extends BasePage {
     this.createModal = accountPage.rootPage.locator(`.nc-modal-generate-token`);
   }
 
-  goto() {
+  async goto() {
     return this.rootPage.goto('/#/account/tokens');
   }
 

@@ -38,7 +38,8 @@ export class UsersService {
     private appHooksService: AppHooksService,
   ) {}
 
-  async findOne(email: string) {
+  async findOne(_email: string) {
+    const email = _email.toLowerCase();
     const user = await this.metaService.metaGet(null, null, MetaTable.USERS, {
       email,
     });
@@ -56,7 +57,7 @@ export class UsersService {
     email: string;
     lastname: any;
   }) {
-    return this.metaService.metaInsert2(null, null, MetaTable.USERS, param);
+    return this.metaService.metaInsert2(null, null, MetaTable.USERS, { ...param, email: param.email?.toLowerCase() });
   }
 
   async registerNewUserIfAllowed({
@@ -489,12 +490,12 @@ export class UsersService {
     return this.login(user);
   }
 
-  login(user: any) {
+  login(user: UserType) {
     this.appHooksService.emit(AppEvents.USER_SIGNIN, {
       user,
     });
     return {
-      token: genJwt(user, Noco.getConfig()), //this.jwtService.sign(payload),
+      token: genJwt(user, Noco.getConfig()),
     };
   }
 

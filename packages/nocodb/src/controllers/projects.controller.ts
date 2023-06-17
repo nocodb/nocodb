@@ -17,6 +17,7 @@ import { GlobalGuard } from '../guards/global/global.guard';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import {
   Acl,
+  ExtractProjectIdMiddleware,
   UseAclMiddleware,
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import Noco from '../Noco';
@@ -24,14 +25,12 @@ import { packageVersion } from '../utils/packageVersion';
 import { ProjectsService } from '../services/projects.service';
 import type { ProjectType } from 'nocodb-sdk';
 
-@UseGuards(GlobalGuard)
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 @Controller()
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  @UseAclMiddleware({
-    permissionName: 'projectList',
-  })
+  @Acl('projectList')
   @Get('/api/v1/db/meta/projects/')
   async list(@Query() queryParams: Record<string, any>, @Request() req) {
     const projects = await this.projectsService.projectList({
@@ -56,7 +55,7 @@ export class ProjectsController {
       PackageVersion: packageVersion,
     };
   }
-
+  @Acl('projectGet')
   @Get('/api/v1/db/meta/projects/:projectId')
   @Acl('projectGet')
   async projectGet(@Param('projectId') projectId: string) {
@@ -68,7 +67,7 @@ export class ProjectsController {
 
     return project;
   }
-
+  @Acl('projectUpdate')
   @Patch('/api/v1/db/meta/projects/:projectId')
   @Acl('projectUpdate')
   async projectUpdate(
@@ -85,6 +84,7 @@ export class ProjectsController {
     return project;
   }
 
+  @Acl('projectDelete')
   @Delete('/api/v1/db/meta/projects/:projectId')
   @Acl('projectDelete')
   async projectDelete(@Param('projectId') projectId: string, @Request() req) {
@@ -96,6 +96,7 @@ export class ProjectsController {
     return deleted;
   }
 
+  @Acl('projectCreate')
   @Post('/api/v1/db/meta/projects')
   @HttpCode(200)
   @Acl('projectCreate')

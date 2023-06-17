@@ -40,9 +40,6 @@ export class NcConfig {
   publicUrl?: string;
   dashboardPath?: string;
 
-  // TODO what is this?
-  envs: any;
-
   queriesFolder: string;
   env: string;
   workingEnv: string;
@@ -81,8 +78,7 @@ export class NcConfig {
     ncConfig.env = '_noco';
     ncConfig.workingEnv = '_noco';
 
-    ncConfig.projectType =
-      ncConfig?.envs?.[ncConfig.workingEnv]?.db?.[0]?.meta?.api?.type || 'rest';
+    ncConfig.projectType = 'rest';
 
     if (ncConfig.meta?.db?.connection?.filename) {
       ncConfig.meta.db.connection.filename = path.join(
@@ -120,12 +116,13 @@ export class NcConfig {
     }
 
     if (publicUrl) {
-      ncConfig.envs['_noco'].publicUrl = publicUrl;
       ncConfig.publicUrl = publicUrl;
     }
 
     if (dashboardPath) {
       ncConfig.dashboardPath = dashboardPath;
+    } else {
+      ncConfig.dashboardPath = '/dashboard';
     }
 
     try {

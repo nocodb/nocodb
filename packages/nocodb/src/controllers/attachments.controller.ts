@@ -30,7 +30,6 @@ export class AttachmentsController {
     @UploadedFiles() files: Array<any>,
     @Body() body: any,
     @Request() req: any,
-    @Query('path') path: string,
   ) {
     const attachments = await this.attachmentsService.upload({
       files: files,

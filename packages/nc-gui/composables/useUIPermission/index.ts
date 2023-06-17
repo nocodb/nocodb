@@ -33,7 +33,7 @@ export const useUIPermission = createSharedComposable(() => {
       return hasPermission(previewAs.value, true, permission)
     }
 
-    let roles
+    let roles: Record<string, boolean> = {}
 
     if (!userRoles) {
       roles = allRoles.value
@@ -45,7 +45,7 @@ export const useUIPermission = createSharedComposable(() => {
           acc[role] = true
           return acc
         }, {})
-    } else if (userRoles && typeof userRoles === 'object') {
+    } else if (typeof userRoles === 'object') {
       roles = userRoles
     }
 

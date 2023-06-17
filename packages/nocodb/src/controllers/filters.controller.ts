@@ -10,14 +10,12 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { FilterReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '../guards/global/global.guard';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import {
   Acl,
   ExtractProjectIdMiddleware,
-  UseAclMiddleware,
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { FiltersService } from '../services/filters.service';
 

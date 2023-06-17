@@ -16,7 +16,6 @@ import { sanitize } from '../helpers/sqlSanitize';
 import { extractProps } from '../helpers/extractProps';
 import Audit from './Audit';
 import View from './View';
-import Base from './Base';
 import Column from './Column';
 import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
 import type { XKnex } from '../db/CustomKnex';
@@ -371,10 +370,10 @@ export default class Model implements TableType {
   }
 
   async delete(ncMeta = Noco.ncMeta, force = false): Promise<boolean> {
-    await Audit.deleteRowComments(this.id);
+    await Audit.deleteRowComments(this.id, ncMeta);
 
-    for (const view of await this.getViews(true)) {
-      await view.delete();
+    for (const view of await this.getViews(true, ncMeta)) {
+      await view.delete(ncMeta);
     }
 
     for (const col of await this.getColumns(ncMeta)) {
@@ -473,7 +472,6 @@ export default class Model implements TableType {
     knex,
   ) {
     const insertObj = {};
-    const base = await Base.get(this.base_id);
     for (const col of await this.getColumns()) {
       if (isVirtualCol(col)) continue;
       let val =
@@ -574,13 +572,25 @@ export default class Model implements TableType {
     // get existing cache
     const key = `${CacheScope.MODEL}:${tableId}`;
     const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    let oldModel = { ...o };
     // update alias
     if (o) {
       o.title = title;
       o.table_name = table_name;
       // set cache
       await NocoCache.set(key, o);
+    } else {
+      oldModel = await this.get(tableId);
     }
+
+    // delete alias cache
+    await NocoCache.del(
+      `${CacheScope.MODEL}:${oldModel.project_id}:${oldModel.base_id}:${oldModel.title}`,
+    );
+    await NocoCache.del(
+      `${CacheScope.MODEL}:${oldModel.project_id}:${oldModel.title}`,
+    );
+
     // set meta
     return await ncMeta.metaUpdate(
       null,

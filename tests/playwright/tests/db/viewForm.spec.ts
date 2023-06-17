@@ -55,7 +55,7 @@ test.describe('Form view', () => {
     // add & verify (drag-drop)
     await form.addField({ field: 'City List', mode: 'dragDrop' });
     await form.verifyFormViewFieldsOrder({
-      fields: ['LastUpdate', 'City List', 'Country'],
+      fields: ['LastUpdate', 'Country', 'City List'],
     });
 
     // remove & verify (hide field button)

@@ -3252,6 +3252,9 @@
                   "options": {
                     "type": "object",
                     "properties": {
+                  "options": {
+                    "type": "object",
+                    "properties": {
                       "excludeData": {
                         "type": "boolean",
                         "required": false
@@ -3263,6 +3266,12 @@
                       "excludeHooks": {
                         "type": "boolean",
                         "required": false
+                      }
+                    }
+                  },
+                  "project": {
+                    "type": "object",
+                    "required": false
                       }
                     }
                   },
@@ -5192,6 +5201,9 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "options": {
+                    "type": "object",
+                    "properties": {
                   "options": {
                     "type": "object",
                     "properties": {
@@ -18620,38 +18632,45 @@
           },
           "comparison_op": {
             "description": "Comparison Operator",
-            "enum": [
-              "allof",
-              "anyof",
-              "blank",
-              "btw",
-              "checked",
-              "empty",
-              "eq",
-              "ge",
-              "gt",
-              "gte",
-              "in",
-              "is",
-              "isWithin",
-              "isnot",
-              "le",
-              "like",
-              "lt",
-              "lte",
-              "nallof",
-              "nanyof",
-              "nbtw",
-              "neq",
-              "nlike",
-              "not",
-              "notblank",
-              "notchecked",
-              "notempty",
-              "notnull",
-              "null"
-            ],
-            "type": "string"
+            "anyOf": [
+              {
+                "enum": [
+                  "allof",
+                  "anyof",
+                  "blank",
+                  "btw",
+                  "checked",
+                  "empty",
+                  "eq",
+                  "ge",
+                  "gt",
+                  "gte",
+                  "in",
+                  "is",
+                  "isWithin",
+                  "isnot",
+                  "le",
+                  "like",
+                  "lt",
+                  "lte",
+                  "nallof",
+                  "nanyof",
+                  "nbtw",
+                  "neq",
+                  "nlike",
+                  "not",
+                  "notblank",
+                  "notchecked",
+                  "notempty",
+                  "notnull",
+                  "null"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "comparison_sub_op": {
             "anyOf": [
@@ -18685,7 +18704,7 @@
             "description": "Comparison Sub-Operator"
           },
           "fk_column_id": {
-            "$ref": "#/components/schemas/Id",
+            "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to Column"
           },
           "fk_hook_id": {
@@ -18956,38 +18975,45 @@
         "properties": {
           "comparison_op": {
             "description": "Comparison Operator",
-            "enum": [
-              "allof",
-              "anyof",
-              "blank",
-              "btw",
-              "checked",
-              "empty",
-              "eq",
-              "ge",
-              "gt",
-              "gte",
-              "in",
-              "is",
-              "isWithin",
-              "isnot",
-              "le",
-              "like",
-              "lt",
-              "lte",
-              "nallof",
-              "nanyof",
-              "nbtw",
-              "neq",
-              "nlike",
-              "not",
-              "notblank",
-              "notchecked",
-              "notempty",
-              "notnull",
-              "null"
-            ],
-            "type": "string"
+            "anyOf": [
+              {
+                "enum": [
+                  "allof",
+                  "anyof",
+                  "blank",
+                  "btw",
+                  "checked",
+                  "empty",
+                  "eq",
+                  "ge",
+                  "gt",
+                  "gte",
+                  "in",
+                  "is",
+                  "isWithin",
+                  "isnot",
+                  "le",
+                  "like",
+                  "lt",
+                  "lte",
+                  "nallof",
+                  "nanyof",
+                  "nbtw",
+                  "neq",
+                  "nlike",
+                  "not",
+                  "notblank",
+                  "notchecked",
+                  "notempty",
+                  "notnull",
+                  "null"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "comparison_sub_op": {
             "anyOf": [
@@ -19021,7 +19047,7 @@
             "description": "Comparison Sub-Operator"
           },
           "fk_column_id": {
-            "$ref": "#/components/schemas/Id",
+            "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to Column"
           },
           "fk_parent_id": {
@@ -20387,8 +20413,8 @@
           "bar_chart",
           "pie_chart",
           "scatter_plot",
-          "button", 
-          "image", 
+          "button",
+          "image",
           "divider"
         ],
         "type": "string"
@@ -24023,6 +24049,10 @@
             "type": "string"
           },
           "avatar": {
+            "type": "string"
+          },
+          "token_version": {
+            "description": "Access token version",
             "type": "string"
           }
         },

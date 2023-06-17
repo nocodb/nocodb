@@ -39,9 +39,9 @@ export class CellPageObject extends BasePage {
 
   get({ index, columnHeader }: CellProps): Locator {
     if (this.parent instanceof SharedFormPage) {
-      return this.parent.get().locator(`[data-testid="nc-form-input-cell-${columnHeader}"]`);
+      return this.parent.get().locator(`[data-testid="nc-form-input-cell-${columnHeader}"]`).first();
     } else {
-      return this.parent.get().locator(`td[data-testid="cell-${columnHeader}-${index}"]`);
+      return this.parent.get().locator(`td[data-testid="cell-${columnHeader}-${index}"]`).first();
     }
   }
 
@@ -286,6 +286,8 @@ export class CellPageObject extends BasePage {
 
     // verify only the elements that are passed in
     for (let i = 0; i < value.length; ++i) {
+      await chips.nth(i).locator('.name').waitFor({ state: 'visible' });
+      await chips.nth(i).locator('.name').scrollIntoViewIfNeeded();
       await expect(await chips.nth(i).locator('.name')).toHaveText(value[i]);
     }
 

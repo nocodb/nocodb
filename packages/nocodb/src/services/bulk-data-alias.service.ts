@@ -1,8 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { isSystemColumn, UITypes } from 'nocodb-sdk';
-import * as XLSX from 'xlsx';
-import { NcError } from '../helpers/catchError';
-import { Base, Column, Model, Project, View } from '../models';
+import { Base, Model } from '../models';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { getViewAndModelByAliasOrId } from '../modules/datas/helpers';
 import type { PathParams } from '../modules/datas/helpers';

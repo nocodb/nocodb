@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { nextTick } from '@vue/runtime-core'
-import { Icon as IconifyIcon } from '@iconify/vue'
 import type { BaseType, TableType } from 'nocodb-sdk'
 import type { Input } from 'ant-design-vue'
 import { Dropdown, Tooltip, message } from 'ant-design-vue'

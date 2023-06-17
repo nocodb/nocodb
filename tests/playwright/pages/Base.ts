@@ -28,27 +28,22 @@ export default abstract class BasePage {
     httpMethodsToMatch?: string[];
     responseJsonMatcher?: ResponseSelector;
   }) {
-    const waitForResponsePromise = this.rootPage.waitForResponse(
-      res => {
-        let isResJsonMatched = true;
-        if (responseJsonMatcher) {
-          try {
-            isResJsonMatched = responseJsonMatcher(res.json());
-          } catch (e) {
-            return false;
-          }
+    const waitForResponsePromise = this.rootPage.waitForResponse(res => {
+      let isResJsonMatched = true;
+      if (responseJsonMatcher) {
+        try {
+          isResJsonMatched = responseJsonMatcher(res.json());
+        } catch (e) {
+          return false;
         }
-
-        return (
-          res.request().url().includes(requestUrlPathToMatch) &&
-          httpMethodsToMatch.includes(res.request().method()) &&
-          isResJsonMatched
-        );
-      },
-      {
-        timeout: 100000,
       }
-    );
+
+      return (
+        res.request().url().includes(requestUrlPathToMatch) &&
+        httpMethodsToMatch.includes(res.request().method()) &&
+        isResJsonMatched
+      );
+    });
 
     await uiAction();
     await waitForResponsePromise;

@@ -18,6 +18,7 @@ import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
 import { Knex } from 'knex';
+import { isLinksOrLTAR } from '../../../nocodb-sdk/src';
 import { NcError } from '../helpers/catchError';
 import getAst from '../helpers/getAst';
 import {
@@ -2123,8 +2124,8 @@ class BaseModelSqlv2 {
       let rowId = null;
       const postInsertOps = [];
 
-      const nestedCols = (await this.model.getColumns()).filter(
-        (c) => c.uidt === UITypes.LinkToAnotherRecord,
+      const nestedCols = (await this.model.getColumns()).filter((c) =>
+        isLinksOrLTAR(c),
       );
 
       for (const col of nestedCols) {

@@ -7,7 +7,6 @@ import {
   computed,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
-  getHTMLEncodedText,
   message,
   populateInsertObject,
   ref,
@@ -21,8 +20,9 @@ import {
   useProject,
   useProvideSmartsheetRowStore,
   useSharedView,
+  useUndoRedo,
 } from '#imports'
-import type { Row } from '~/lib'
+import type { Row, UndoRedoAction } from '~/lib'
 
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
   const { $e, $state, $api } = useNuxtApp()
@@ -50,6 +50,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const activeView = inject(ActiveViewInj, ref())
 
   const { sharedView } = useSharedView()
+
+  const { addUndo, clone, defineViewScope } = useUndoRedo()
+
+  const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
   // getters
   const displayValue = computed(() => {
@@ -122,7 +126,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       await api.utils.commentRow({
         fk_model_id: meta.value?.id as string,
         row_id: rowId,
-        description: comment.value,
+        description: `The following comment has been created: ${comment.value}`,
       })
 
       comment.value = ''
@@ -135,7 +139,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     $e('a:row-expand:comment')
   }
 
-  const save = async (ltarState: Record<string, any> = {}) => {
+  const save = async (ltarState: Record<string, any> = {}, undo = false) => {
     let data
     try {
       const isNewRow = row.value.rowMeta?.new ?? false
@@ -160,6 +164,47 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           rowMeta: {},
           oldRow: { ...data },
         })
+
+        if (!undo) {
+          const id = extractPkFromRow(data, meta.value?.columns as ColumnType[])
+          const pkData = rowPkData(row.value.row, meta.value?.columns as ColumnType[])
+
+          // TODO remove linked record
+          addUndo({
+            redo: {
+              fn: async function redo(this: UndoRedoAction, rowData: any) {
+                await $api.dbTableRow.create('noco', project.value.title as string, meta.value.title, { ...pkData, ...rowData })
+                if (activeView.value?.type === ViewTypes.KANBAN) {
+                  const { loadKanbanData } = useKanbanViewStoreOrThrow()
+                  await loadKanbanData()
+                }
+                reloadTrigger?.trigger()
+              },
+              args: [clone(insertObj)],
+            },
+            undo: {
+              fn: async function undo(this: UndoRedoAction, id: string) {
+                const res: any = await $api.dbViewRow.delete(
+                  'noco',
+                  project.value.id as string,
+                  meta.value?.id as string,
+                  activeView.value?.id as string,
+                  id,
+                )
+                if (res.message) {
+                  throw new Error(res.message)
+                }
+                if (activeView.value?.type === ViewTypes.KANBAN) {
+                  const { loadKanbanData } = useKanbanViewStoreOrThrow()
+                  await loadKanbanData()
+                }
+                reloadTrigger?.trigger()
+              },
+              args: [id],
+            },
+            scope: defineViewScope({ view: activeView.value }),
+          })
+        }
       } else {
         const updateOrInsertObj = [...changedColumns.value].reduce((obj, col) => {
           obj[col] = row.value.row[col]
@@ -174,22 +219,41 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
           await $api.dbTableRow.update(NOCO, project.value.title as string, meta.value.title, id, updateOrInsertObj)
 
-          for (const key of Object.keys(updateOrInsertObj)) {
-            // audit
-            $api.utils
-              .auditRowUpdate(id, {
-                fk_model_id: meta.value.id,
-                column_name: key,
-                row_id: id,
-                value: getHTMLEncodedText(updateOrInsertObj[key]),
-                prev_value: getHTMLEncodedText(row.value.oldRow[key]),
-              })
-              .then(async () => {
-                /** load latest comments/audit if right drawer is open */
-                if (commentsDrawer.value) {
-                  await loadCommentsAndLogs()
-                }
-              })
+          if (!undo) {
+            const undoObject = [...changedColumns.value].reduce((obj, col) => {
+              obj[col] = row.value.oldRow[col]
+              return obj
+            }, {} as Record<string, any>)
+
+            addUndo({
+              redo: {
+                fn: async (id: string, data: Record<string, any>) => {
+                  await $api.dbTableRow.update(NOCO, project.value.title as string, meta.value.title, id, data)
+                  if (activeView.value?.type === ViewTypes.KANBAN) {
+                    const { loadKanbanData } = useKanbanViewStoreOrThrow()
+                    await loadKanbanData()
+                  }
+                  reloadTrigger?.trigger()
+                },
+                args: [id, clone(updateOrInsertObj)],
+              },
+              undo: {
+                fn: async (id: string, data: Record<string, any>) => {
+                  await $api.dbTableRow.update(NOCO, project.value.title as string, meta.value.title, id, data)
+                  if (activeView.value?.type === ViewTypes.KANBAN) {
+                    const { loadKanbanData } = useKanbanViewStoreOrThrow()
+                    await loadKanbanData()
+                  }
+                  reloadTrigger?.trigger()
+                },
+                args: [id, clone(undoObject)],
+              },
+              scope: defineViewScope({ view: activeView.value }),
+            })
+          }
+
+          if (commentsDrawer.value) {
+            await loadCommentsAndLogs()
           }
         } else {
           // No columns to update

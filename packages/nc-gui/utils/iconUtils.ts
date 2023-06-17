@@ -177,7 +177,7 @@ import NcIconsRowHeightExtraTall from '~icons/nc-icons/row-height-extra-tall'
 } as const */
 
 export const iconMap = {
-  info: h('span', { class: 'material-symbols-outlined' }, 'info_outline'),
+  info: h('span', { class: 'material-symbols-outlined' }, 'info'),
   loading: h('span', { class: 'material-symbols-outlined' }, 'autorenew'),
   arrowCollapse: h('span', { class: 'material-symbols-outlined' }, 'keyboard_arrow_up'),
   markerAlert: h('span', { class: 'material-symbols-outlined' }, 'warning'),

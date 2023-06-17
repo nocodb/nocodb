@@ -1,7 +1,5 @@
 <script lang="ts" setup>
-import { CellClickHookInj, createEventHook, onBeforeUnmount, onMounted, ref, useSmartsheetStoreOrThrow } from '#imports'
-
-const { cellRefs } = useSmartsheetStoreOrThrow()
+import { CellClickHookInj, CurrentCellInj, createEventHook, ref } from '#imports'
 
 const el = ref<HTMLTableDataCellElement>()
 
@@ -9,20 +7,11 @@ const cellClickHook = createEventHook()
 
 provide(CellClickHookInj, cellClickHook)
 
-onMounted(() => {
-  cellRefs.value.push(el.value!)
-})
-
-onBeforeUnmount(() => {
-  const index = cellRefs.value.indexOf(el.value!)
-  if (index > -1) {
-    cellRefs.value.splice(index, 1)
-  }
-})
+provide(CurrentCellInj, el)
 </script>
 
 <template>
-  <td ref="el" @click="cellClickHook.trigger($event)">
+  <td ref="el" class="select-none" @click="cellClickHook.trigger($event)">
     <slot />
   </td>
 </template>

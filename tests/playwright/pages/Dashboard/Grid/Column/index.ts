@@ -252,7 +252,7 @@ export class ColumnPageObject extends BasePage {
   async delete({ title }: { title: string }) {
     await this.getColumnHeader(title).locator('div.ant-dropdown-trigger').locator('.nc-ui-dt-dropdown').click();
     // await this.rootPage.locator('li[role="menuitem"]:has-text("Delete")').waitFor();
-    await this.rootPage.locator('li[role="menuitem"]:has-text("Delete")').click();
+    await this.rootPage.locator('li[role="menuitem"]:has-text("Delete"):visible').click();
 
     await this.rootPage.locator('button:has-text("Delete")').click();
 
@@ -398,5 +398,21 @@ export class ColumnPageObject extends BasePage {
 
     // close sort menu
     await this.grid.toolbar.clickSort();
+  }
+
+  async resize(param: { src: string; dst: string }) {
+    const { src, dst } = param;
+    const [fromStack, toStack] = await Promise.all([
+      this.rootPage.locator(`[data-title="${src}"] >> .resizer`),
+      this.rootPage.locator(`[data-title="${dst}"] >> .resizer`),
+    ]);
+
+    await fromStack.dragTo(toStack);
+  }
+
+  async getWidth(param: { title: string }) {
+    const { title } = param;
+    const cell = await this.rootPage.locator(`th[data-title="${title}"]`);
+    return await cell.evaluate(el => el.getBoundingClientRect().width);
   }
 }

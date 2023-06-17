@@ -14,10 +14,7 @@ const { $api } = useNuxtApp()
 
 const meta = inject(MetaInj, ref())
 
-const sampleData = ref({
-  data: {},
-})
-const activeKey = ref(0)
+const sampleData = ref()
 
 watch(
   () => hook?.operation,
@@ -27,9 +24,11 @@ watch(
 )
 
 async function loadSampleData() {
-  sampleData.value = {
-    data: await $api.dbTableWebhook.samplePayloadGet(meta?.value?.id as string, hook?.operation || 'insert'),
-  }
+  sampleData.value = await $api.dbTableWebhook.samplePayloadGet(
+    meta?.value?.id as string,
+    hook?.operation || 'insert',
+    hook.version!,
+  )
 }
 
 async function testWebhook() {
@@ -59,9 +58,6 @@ onMounted(async () => {
 </script>
 
 <template>
-  <a-collapse v-model:activeKey="activeKey" ghost>
-    <a-collapse-panel key="1" header="Sample Payload">
-      <LazyMonacoEditor v-model="sampleData" class="min-h-60 max-h-80" />
-    </a-collapse-panel>
-  </a-collapse>
+  <div class="mb-4 font-weight-medium">Sample Payload</div>
+  <LazyMonacoEditor v-model="sampleData" class="min-h-60 max-h-80" />
 </template>

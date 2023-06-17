@@ -4,6 +4,7 @@ import {
   ColumnInj,
   EditModeInj,
   ReadonlyInj,
+  IsExpandedFormOpenInj,
   computed,
   convertDurationToSeconds,
   convertMS2Duration,
@@ -76,7 +77,9 @@ const submitDuration = () => {
   isEdited.value = false
 }
 
-const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
 </script>
 
 <template>

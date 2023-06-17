@@ -7,6 +7,7 @@ import {
   ColumnInj,
   IsFormInj,
   IsLockedInj,
+  IsUnderLookupInj,
   ReadonlyInj,
   ReloadRowDataHookInj,
   RowInj,
@@ -36,13 +37,15 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isLocked = inject(IsLockedInj, ref(false))
 
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+
 const { isUIAllowed } = useUIPermission()
 
 const listItemsDlg = ref(false)
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
-const { loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvideLTARStore(
+const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
   isNew,
@@ -78,18 +81,29 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
       break
   }
 })
+
+const belongsToColumn = computed(
+  () =>
+    relatedTableMeta.value?.columns?.find((c: any) => c.title === relatedTableDisplayValueProp.value) as ColumnType | undefined,
+)
 </script>
 
 <template>
   <div class="flex w-full chips-wrapper items-center" :class="{ active }">
     <div class="chips flex items-center flex-1">
       <template v-if="value && relatedTableDisplayValueProp">
-        <VirtualCellComponentsItemChip :item="value" :value="value[relatedTableDisplayValueProp]" @unlink="unlinkRef(value)" />
+        <VirtualCellComponentsItemChip
+          :item="value"
+          :value="value[relatedTableDisplayValueProp]"
+          :column="belongsToColumn"
+          :show-unlink-button="true"
+          @unlink="unlinkRef(value)"
+        />
       </template>
     </div>
 
     <div
-      v-if="!readOnly && !isLocked && (isUIAllowed('xcDatatableEditable') || isForm)"
+      v-if="!readOnly && !isLocked && (isUIAllowed('xcDatatableEditable') || isForm) && !isUnderLookup"
       class="flex justify-end gap-1 min-h-[30px] items-center"
     >
       <GeneralIcon
@@ -99,7 +113,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
       />
     </div>
 
-    <LazyVirtualCellComponentsListItems v-model="listItemsDlg" @attach-record="listItemsDlg = true" />
+    <LazyVirtualCellComponentsListItems v-model="listItemsDlg" :column="belongsToColumn" @attach-record="listItemsDlg = true" />
   </div>
 </template>
 

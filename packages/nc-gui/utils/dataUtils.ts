@@ -11,6 +11,17 @@ export const extractPkFromRow = (row: Record<string, any>, columns: ColumnType[]
   )
 }
 
+export const rowPkData = (row: Record<string, any>, columns: ColumnType[]) => {
+  const pkData: Record<string, string> = {}
+  const pks = columns?.filter((c) => c.pk)
+  if (row && pks && pks.length) {
+    for (const pk of pks) {
+      if (pk.title) pkData[pk.title] = row[pk.title]
+    }
+  }
+  return pkData
+}
+
 // a function to populate insert object and verify if all required fields are present
 export async function populateInsertObject({
   getMeta,
@@ -18,12 +29,14 @@ export async function populateInsertObject({
   meta,
   ltarState,
   throwError,
+  undo = false,
 }: {
   meta: TableType
   ltarState: Record<string, any>
   getMeta: (tableIdOrTitle: string, force?: boolean) => Promise<TableType | null>
   row: Record<string, any>
   throwError?: boolean
+  undo?: boolean
 }) {
   const missingRequiredColumns = new Set()
   const insertObj = await meta.columns?.reduce(async (_o: Promise<any>, col) => {
@@ -51,7 +64,7 @@ export async function populateInsertObject({
       missingRequiredColumns.add(col.title)
     }
 
-    if (!col.ai && row?.[col.title as string] !== null) {
+    if ((!col.ai || undo) && row?.[col.title as string] !== null) {
       o[col.title as string] = row?.[col.title as string]
     }
 

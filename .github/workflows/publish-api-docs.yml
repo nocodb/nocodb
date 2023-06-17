@@ -1,6 +1,7 @@
 name: "Publish : Api Docs"
 
 on:
+  workflow_dispatch:
   push:
     branches: [ master ]
     paths:

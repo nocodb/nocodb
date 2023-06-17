@@ -158,11 +158,17 @@ watch(
                     class="block caption my-2 nc-chip w-full min-h-20px p-2 rounded"
                     :style="{ backgroundColor: enumColor.light[2] }"
                   >
-                    {{ log.description }}
+                    <!--
+                      retrieve the comment part from the audit description
+                      `The following comment has been created: foo` -> `foo`
+                    -->
+                    {{ log.description.substring(log.description.indexOf(':') + 1) }}
                   </p>
                 </div>
 
-                <p v-else v-dompurify-html="log.details" class="caption my-3" style="word-break: break-all" />
+                <p v-else-if="log.details" v-dompurify-html="log.details" class="caption my-3" style="word-break: break-all" />
+
+                <p v-else>{{ log.description }}</p>
 
                 <p class="time text-right text-[10px] mb-0 mt-1 text-gray-500">
                   {{ timeAgo(log.created_at) }}

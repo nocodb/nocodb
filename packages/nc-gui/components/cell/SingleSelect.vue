@@ -42,8 +42,6 @@ const readOnly = inject(ReadonlyInj)!
 
 const active = inject(ActiveCellInj, ref(false))
 
-const editable = inject(EditModeInj, ref(false))
-
 const aselect = ref<typeof AntSelect>()
 
 const isOpen = ref(false)
@@ -68,6 +66,10 @@ const { isPg, isMysql } = useProject()
 // temporary until it's add the option to column meta
 const tempSelectedOptState = ref<string>()
 
+const isNewOptionCreateEnabled = computed(
+  () => !isPublic.value && !disableOptionCreation && (hasRole('owner', true) || hasRole('creator', true)),
+)
+
 const options = computed<(SelectOptionType & { value: string })[]>(() => {
   if (column?.value.colOptions) {
     const opts = column.value.colOptions
@@ -88,16 +90,14 @@ const isOptionMissing = computed(() => {
 
 const hasEditRoles = computed(() => hasRole('owner', true) || hasRole('creator', true) || hasRole('editor', true))
 
-const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && (active.value || editable.value))
+const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && active.value)
 
 const vModel = computed({
   get: () => tempSelectedOptState.value ?? modelValue,
   set: (val) => {
-    if (isOptionMissing.value && val === searchVal.value) {
+    if (val && isNewOptionCreateEnabled.value && (options.value ?? []).every((op) => op.title !== val)) {
       tempSelectedOptState.value = val
-      return addIfMissingAndSave().finally(() => {
-        tempSelectedOptState.value = undefined
-      })
+      return addIfMissingAndSave()
     }
     emit('update:modelValue', val || null)
   },
@@ -146,10 +146,11 @@ useSelectedCellKeyupListener(isOpen, (e) => {
 })
 
 async function addIfMissingAndSave() {
-  if (!searchVal.value || isPublic.value) return false
+  if (!tempSelectedOptState.value || isPublic.value) return false
 
-  const newOptValue = searchVal.value
+  const newOptValue = tempSelectedOptState.value
   searchVal.value = ''
+  tempSelectedOptState.value = undefined
 
   if (newOptValue && !options.value.some((o) => o.title === newOptValue)) {
     try {
@@ -197,7 +198,7 @@ const search = () => {
 
 // prevent propagation of keydown event if select is open
 const onKeydown = (e: KeyboardEvent) => {
-  if (isOpen.value && (active.value || editable.value)) {
+  if (isOpen.value && active.value) {
     e.stopPropagation()
   }
   if (e.key === 'Enter') {
@@ -209,7 +210,7 @@ const onSelect = () => {
   isOpen.value = false
 }
 
-const cellClickHook = inject(CellClickHookInj)
+const cellClickHook = inject(CellClickHookInj, null)
 
 const toggleMenu = (e: Event) => {
   // todo: refactor
@@ -242,11 +243,32 @@ const handleClose = (e: MouseEvent) => {
 }
 
 useEventListener(document, 'click', handleClose, true)
+
+const selectedOpt = computed(() => {
+  return options.value.find((o) => o.value === vModel.value)
+})
 </script>
 
 <template>
   <div class="h-full w-full flex items-center nc-single-select" :class="{ 'read-only': readOnly }" @click="toggleMenu">
+    <div v-if="!active">
+      <a-tag v-if="selectedOpt" class="rounded-tag" :color="selectedOpt.color">
+        <span
+          :style="{
+            'color': tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+              ? '#fff'
+              : tinycolor.mostReadable(selectedOpt.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+            'font-size': '13px',
+          }"
+          :class="{ 'text-sm': isKanban }"
+        >
+          {{ selectedOpt.title }}
+        </span>
+      </a-tag>
+    </div>
+
     <a-select
+      v-else
       ref="aselect"
       v-model:value="vModel"
       class="w-full overflow-hidden"
@@ -255,9 +277,9 @@ useEventListener(document, 'click', handleClose, true)
       :bordered="false"
       :open="isOpen && editAllowed"
       :disabled="readOnly || !editAllowed"
-      :show-arrow="hasEditRoles && !readOnly && (editable || (active && vModel === null))"
-      :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen && (active || editable) ? 'active' : ''}`"
-      :show-search="isOpen && (active || editable)"
+      :show-arrow="hasEditRoles && !readOnly && active && vModel === null"
+      :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen && active ? 'active' : ''}`"
+      :show-search="isOpen && active"
       @select="onSelect"
       @keydown="onKeydown($event)"
       @search="search"
@@ -284,17 +306,7 @@ useEventListener(document, 'click', handleClose, true)
           </span>
         </a-tag>
       </a-select-option>
-      <a-select-option
-        v-if="
-          searchVal &&
-          isOptionMissing &&
-          !isPublic &&
-          !disableOptionCreation &&
-          (hasRole('owner', true) || hasRole('creator', true))
-        "
-        :key="searchVal"
-        :value="searchVal"
-      >
+      <a-select-option v-if="searchVal && isOptionMissing && isNewOptionCreateEnabled" :key="searchVal" :value="searchVal">
         <div class="flex gap-2 text-gray-500 items-center h-full">
           <component :is="iconMap.plusThick" class="min-w-4" />
           <div class="text-xs whitespace-normal">
@@ -312,7 +324,7 @@ useEventListener(document, 'click', handleClose, true)
 }
 
 :deep(.ant-tag) {
-  @apply "rounded-tag";
+  @apply "rounded-tag" my-[2px];
 }
 
 :deep(.ant-select-clear) {
@@ -328,12 +340,6 @@ useEventListener(document, 'click', handleClose, true)
 
 :deep(.ant-select-selector) {
   @apply !px-0;
-}
-
-:deep(.ant-select-selection-search) {
-  // following a-select with mode = multiple | tags
-  // initial width will block @mouseover in Grid.vue
-  @apply !w-[5px];
 }
 
 :deep(.ant-select-selection-search-input) {

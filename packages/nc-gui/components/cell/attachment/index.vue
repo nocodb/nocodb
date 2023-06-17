@@ -4,13 +4,11 @@ import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
 import {
   ActiveCellInj,
+  CurrentCellInj,
   DropZoneRef,
-  IsGalleryInj,
-  IsKanbanInj,
   iconMap,
   inject,
   isImage,
-  nextTick,
   ref,
   useAttachment,
   useDropZone,
@@ -29,13 +27,9 @@ interface Emits {
   (event: 'update:modelValue', value: string | Record<string, any>[]): void
 }
 
-const { modelValue, rowIndex } = defineProps<Props>()
+const { modelValue } = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
-
-const isGallery = inject(IsGalleryInj, ref(false))
-
-const isKanban = inject(IsKanbanInj, ref(false))
 
 const dropZoneInjection = inject(DropZoneRef, ref())
 
@@ -43,9 +37,9 @@ const attachmentCellRef = ref<HTMLDivElement>()
 
 const sortableRef = ref<HTMLDivElement>()
 
-const currentCellRef = ref<Element | undefined>(dropZoneInjection.value)
+const currentCellRef = inject(CurrentCellInj, dropZoneInjection.value)
 
-const { cellRefs, isSharedForm } = useSmartsheetStoreOrThrow()!
+const { isSharedForm } = useSmartsheetStoreOrThrow()!
 
 const { getPossibleAttachmentSrc, openAttachment } = useAttachment()
 
@@ -64,32 +58,6 @@ const {
   isReadonly,
   storedFiles,
 } = useProvideAttachmentCell(updateModelValue)
-
-watch(
-  [() => rowIndex, isForm, attachmentCellRef],
-  () => {
-    if (dropZoneInjection?.value) return
-
-    if (!rowIndex && (isForm.value || isGallery.value || isKanban.value)) {
-      currentCellRef.value = attachmentCellRef.value
-    } else {
-      nextTick(() => {
-        const nextCell = cellRefs.value.reduceRight((cell, curr) => {
-          if (!cell && curr.dataset.key === `${rowIndex}${column.value!.id}`) cell = curr
-
-          return cell
-        }, undefined as HTMLTableDataCellElement | undefined)
-
-        if (!nextCell) {
-          currentCellRef.value = attachmentCellRef.value
-        } else {
-          currentCellRef.value = nextCell
-        }
-      })
-    }
-  },
-  { immediate: true, flush: 'post' },
-)
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)
 

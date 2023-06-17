@@ -64,6 +64,7 @@ const {
   () => reloadDataHook.trigger(showLoading),
   modelValue || nestedFilters.value,
   !modelValue,
+  webHook,
 )
 
 const localNestedFilters = ref()
@@ -224,7 +225,8 @@ defineExpose({
             />
             <span v-else :key="`${i}dummy`" />
 
-            <div :key="`${i}nested`" class="flex">
+            <span v-if="!i" class="flex items-center">{{ $t('labels.where') }}</span>
+            <div v-else :key="`${i}nested`" class="flex bob">
               <a-select
                 v-model:value="filter.logical_op"
                 :dropdown-match-select-width="false"
@@ -249,6 +251,7 @@ defineExpose({
                 :parent-id="filter.id"
                 nested
                 :auto-save="autoSave"
+                :web-hook="webHook"
               />
             </div>
           </template>
@@ -364,7 +367,7 @@ defineExpose({
     </div>
 
     <div class="flex gap-2 mb-2 mt-4">
-      <a-button class="elevation-0 text-capitalize" type="primary" ghost @click.stop="addFilter">
+      <a-button class="elevation-0 text-capitalize" type="primary" ghost @click.stop="addFilter()">
         <div class="flex items-center gap-1">
           <component :is="iconMap.plus" />
           <!-- Add Filter -->
@@ -372,7 +375,7 @@ defineExpose({
         </div>
       </a-button>
 
-      <a-button v-if="!webHook" class="text-capitalize !text-gray-500" @click.stop="addFilterGroup">
+      <a-button v-if="!webHook" class="text-capitalize !text-gray-500" @click.stop="addFilterGroup()">
         <div class="flex items-center gap-1">
           <!-- Add Filter Group -->
           <component :is="iconMap.plus" />

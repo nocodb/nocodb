@@ -106,3 +106,19 @@ export enum preFilledModes {
   Locked = 'locked',
   Hidden = 'hidden',
 }
+
+export enum AutomationLogLevel {
+  OFF = 'OFF',
+  ERROR = 'ERROR',
+  ALL = 'ALL',
+}
+
+export enum JobStatus {
+  COMPLETED = 'completed',
+  WAITING = 'waiting',
+  ACTIVE = 'active',
+  DELAYED = 'delayed',
+  FAILED = 'failed',
+  PAUSED = 'paused',
+  REFRESH = 'refresh',
+}

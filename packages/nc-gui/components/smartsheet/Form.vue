@@ -532,10 +532,10 @@ watch(view, (nextView) => {
             <!-- Header -->
             <div v-if="isEditable" class="px-4 lg:px-12">
               <a-form-item v-if="isEditable">
-                <a-input
+                <a-textarea
                   v-model:value="formViewData.heading"
                   class="w-full !font-bold !text-4xl !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
-                  :style="{ borderRightWidth: '0px !important' }"
+                  :style="{ borderRightWidth: '0px !important', 'height': '54px', 'min-height': '54px', resize: 'vertical' }"
                   size="large"
                   hide-details
                   placeholder="Form Title"
@@ -551,10 +551,10 @@ watch(view, (nextView) => {
             <!-- Sub Header -->
             <div v-if="isEditable" class="px-4 lg:px-12">
               <a-form-item>
-                <a-input
+                <a-textarea
                   v-model:value="formViewData.subheading"
                   class="w-full !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
-                  :style="{ borderRightWidth: '0px !important' }"
+                  :style="{ borderRightWidth: '0px !important', height: '40px', 'min-height': '40px', resize: 'vertical' }"
                   size="large"
                   hide-details
                   :placeholder="$t('msg.info.formDesc')"
@@ -697,7 +697,7 @@ watch(view, (nextView) => {
                   <a-form-item
                     v-if="isVirtualCol(element)"
                     :name="element.title"
-                    class="!mb-0"
+                    class="!mb-0 nc-input-required-error"
                     :rules="[
                       {
                         required: isRequired(element, element.required),
@@ -719,7 +719,7 @@ watch(view, (nextView) => {
                   <a-form-item
                     v-else
                     :name="element.title"
-                    class="!mb-0"
+                    class="!mb-0 nc-input-required-error"
                     :rules="[
                       {
                         required: isRequired(element, element.required),
@@ -727,21 +727,23 @@ watch(view, (nextView) => {
                       },
                     ]"
                   >
-                    <LazySmartsheetCell
-                      v-model="formState[element.title]"
-                      class="nc-input"
-                      :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                      :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                      :column="element"
-                      :edit-enabled="editEnabled[index]"
-                      @click="editEnabled[index] = true"
-                      @cancel="editEnabled[index] = false"
-                      @update:edit-enabled="editEnabled[index] = $event"
-                      @click.stop.prevent
-                    />
+                    <LazySmartsheetDivDataCell class="relative">
+                      <LazySmartsheetCell
+                        v-model="formState[element.title]"
+                        class="nc-input"
+                        :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                        :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                        :column="element"
+                        :edit-enabled="editEnabled[index]"
+                        @click="editEnabled[index] = true"
+                        @cancel="editEnabled[index] = false"
+                        @update:edit-enabled="editEnabled[index] = $event"
+                        @click.stop.prevent
+                      />
+                    </LazySmartsheetDivDataCell>
                   </a-form-item>
 
-                  <div class="text-gray-500 text-xs" data-testid="nc-form-input-help-text-label">{{ element.description }}</div>
+                  <div class="nc-form-help-text text-gray-500 text-xs" data-testid="nc-form-input-help-text-label">{{ element.description }}</div>
                 </div>
               </template>
 
@@ -835,7 +837,7 @@ watch(view, (nextView) => {
 
 <style scoped lang="scss">
 .nc-editable:hover {
-  .nc-field-remove-icon {
+  :deep(.nc-field-remove-icon) {
     @apply opacity-100;
   }
 }
@@ -857,6 +859,12 @@ watch(view, (nextView) => {
   &::placeholder {
     @apply !text-gray-500 !text-xs;
   }
+}
+
+.nc-form-help-text, .nc-input-required-error {
+  max-width: 100%;
+  word-break: break-all;
+  white-space: pre-line;
 }
 
 :deep(.nc-cell-attachment) {

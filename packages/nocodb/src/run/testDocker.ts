@@ -1,8 +1,8 @@
 import axios from 'axios';
 import cors from 'cors';
 import express from 'express';
-import Noco from '../lib/Noco';
-import User from '../lib/models/User';
+import { User } from '../models';
+import Noco from '../Noco';
 
 process.env.NC_VERSION = '0009044';
 
@@ -13,7 +13,7 @@ server.disable('x-powered-by');
 server.use(
   cors({
     exposedHeaders: 'xc-db-response',
-  })
+  }),
 );
 
 server.set('view engine', 'ejs');
@@ -30,7 +30,7 @@ process.env[`DEBUG`] = 'xc*';
         {
           email: 'user@nocodb.com',
           password: 'Password123.',
-        }
+        },
       );
       console.log(response.data);
     }

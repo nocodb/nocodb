@@ -1,7 +1,7 @@
 import { ViewTypes } from 'nocodb-sdk';
 import request from 'supertest';
-import Model from '../../../src/lib/models/Model';
-import View from '../../../src/lib/models/View';
+import Model from '../../../src/models/Model';
+import View from '../../../src/models/View';
 
 const createView = async (context, {title, table, type}: {title: string, table: Model, type: ViewTypes}) => {
   const viewTypeStr = (type) => {
@@ -31,7 +31,7 @@ const createView = async (context, {title, table, type}: {title: string, table: 
   }
 
   const view = await View.getByTitleOrId({fk_model_id: table.id, titleOrId:title}) as View;
-  
+
   return view
 }
 

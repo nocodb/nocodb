@@ -14,6 +14,7 @@ import {
   ref,
   useKanbanViewStoreOrThrow,
   useMenuCloseOnEsc,
+  useUndoRedo,
   useViewColumns,
   watch,
 } from '#imports'
@@ -32,6 +33,8 @@ const { fields, loadViewColumns, metaColumnById } = useViewColumns(activeView, m
 
 const { kanbanMetaData, loadKanbanMeta, loadKanbanData, updateKanbanMeta, groupingField } = useKanbanViewStoreOrThrow()
 
+const { addUndo, defineViewScope } = useUndoRedo()
+
 const open = ref(false)
 
 useMenuCloseOnEsc(open)
@@ -46,16 +49,32 @@ watch(
   { immediate: true },
 )
 
+const updateGroupingField = async (v: string) => {
+  await updateKanbanMeta({
+    fk_grp_col_id: v,
+  })
+  await loadKanbanMeta()
+  await loadKanbanData()
+  ;(activeView.value?.view as KanbanType).fk_grp_col_id = v
+}
+
 const groupingFieldColumnId = computed({
   get: () => kanbanMetaData.value.fk_grp_col_id,
   set: async (val) => {
     if (val) {
-      await updateKanbanMeta({
-        fk_grp_col_id: val,
+      addUndo({
+        undo: {
+          fn: await updateGroupingField,
+          args: [kanbanMetaData.value.fk_grp_col_id],
+        },
+        redo: {
+          fn: await updateGroupingField,
+          args: [val],
+        },
+        scope: defineViewScope({ view: activeView.value }),
       })
-      await loadKanbanMeta()
-      await loadKanbanData()
-      ;(activeView.value?.view as KanbanType).fk_grp_col_id = val
+
+      await updateGroupingField(val)
     }
   },
 })

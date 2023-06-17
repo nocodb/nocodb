@@ -27,7 +27,7 @@ interface Emits {
 
   (event: 'changeView', view: Record<string, any>): void
 
-  (event: 'rename', view: ViewType): void
+  (event: 'rename', view: ViewType, originalTitle: string | undefined): void
 
   (event: 'delete', view: ViewType): void
 
@@ -142,7 +142,7 @@ async function onRename() {
     return
   }
 
-  emits('rename', vModel.value)
+  emits('rename', vModel.value, originalTitle)
 
   onStopEdit()
 }

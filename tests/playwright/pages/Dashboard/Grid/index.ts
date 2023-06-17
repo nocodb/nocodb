@@ -52,6 +52,7 @@ export class GridPage extends BasePage {
 
   private async _fillRow({ index, columnHeader, value }: { index: number; columnHeader: string; value: string }) {
     const cell = this.cell.get({ index, columnHeader });
+    await cell.waitFor({ state: 'visible' });
     await this.cell.dblclick({
       index,
       columnHeader,
@@ -72,10 +73,15 @@ export class GridPage extends BasePage {
     networkValidation?: boolean;
   } = {}) {
     const rowValue = value ?? `Row ${index}`;
+    // wait for render to complete before count
+    if (index !== 0) await this.get().locator('.nc-grid-row').nth(0).waitFor({ state: 'attached' });
     const rowCount = await this.get().locator('.nc-grid-row').count();
-    await this.get().locator('.nc-grid-add-new-cell').click();
 
-    await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);
+    const addNewRowButton: Locator = await this.rootPage.locator(`[data-testid="nc-grid-add-new-row"]`);
+    await addNewRowButton.waitFor({ state: 'visible' });
+    await addNewRowButton.click();
+
+    await expect(await this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);
 
     await this._fillRow({ index, columnHeader, value: rowValue });
 
@@ -87,7 +93,8 @@ export class GridPage extends BasePage {
         uiAction: clickOnColumnHeaderToSave,
         requestUrlPathToMatch: 'api/v1/db/data/noco',
         httpMethodsToMatch: ['POST'],
-        responseJsonMatcher: resJson => resJson?.[columnHeader] === rowValue,
+        // numerical types are returned in number format from the server
+        responseJsonMatcher: resJson => String(resJson?.[columnHeader]) === String(rowValue),
       });
     } else {
       await clickOnColumnHeaderToSave();
@@ -122,7 +129,8 @@ export class GridPage extends BasePage {
           // since edit row on an empty row will emit POST request
           'POST',
         ],
-        responseJsonMatcher: resJson => resJson?.[columnHeader] === value,
+        // numerical types are returned in number format from the server
+        responseJsonMatcher: resJson => String(resJson?.[columnHeader]) === String(value),
       });
     } else {
       await clickOnColumnHeaderToSave();
@@ -142,13 +150,14 @@ export class GridPage extends BasePage {
     return await expect(this.get().locator(`td[data-testid="cell-Title-${index}"]`)).toHaveCount(0);
   }
 
-  async deleteRow(index: number) {
-    await this.get().getByTestId(`cell-Title-${index}`).click({
+  async deleteRow(index: number, title = 'Title') {
+    await this.get().getByTestId(`cell-${title}-${index}`).click({
       button: 'right',
     });
 
     // Click text=Delete Row
     await this.rootPage.locator('text=Delete Row').click();
+
     // todo: improve selector
     await this.rootPage
       .locator('span.ant-dropdown-menu-title-content > nc-project-menu-item')
@@ -158,11 +167,13 @@ export class GridPage extends BasePage {
     await this.dashboard.waitForLoaderToDisappear();
   }
 
-  async addRowRightClickMenu(index: number) {
+  async addRowRightClickMenu(index: number, columnHeader = 'Title') {
     const rowCount = await this.get().locator('.nc-grid-row').count();
-    await this.get().locator(`td[data-testid="cell-Title-${index}"]`).click({
-      button: 'right',
-    });
+
+    const cell = await this.get().locator(`td[data-testid="cell-${columnHeader}-${index}"]`).last();
+    await cell.click();
+    await cell.click({ button: 'right' });
+
     // Click text=Insert New Row
     await this.rootPage.locator('text=Insert New Row').click();
     await expect(await this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);
@@ -172,6 +183,12 @@ export class GridPage extends BasePage {
     await this.row(index).locator(`td[data-testid="cell-Id-${index}"]`).hover();
     await this.row(index).locator(`div[data-testid="nc-expand-${index}"]`).click();
     await (await this.rootPage.locator('.ant-drawer-body').elementHandle())?.waitForElementState('stable');
+  }
+
+  async selectRow(index: number) {
+    const cell: Locator = await this.get().locator(`td[data-testid="cell-Id-${index}"]`);
+    await cell.hover();
+    await cell.locator('input[type="checkbox"]').check({ force: true });
   }
 
   async selectAll() {
@@ -190,13 +207,17 @@ export class GridPage extends BasePage {
     await this.rootPage.waitForTimeout(300);
   }
 
-  async deleteAll() {
-    await this.selectAll();
+  async deleteSelectedRows() {
     await this.get().locator('[data-testid="nc-check-all"]').nth(0).click({
       button: 'right',
     });
     await this.rootPage.locator('text=Delete Selected Rows').click();
     await this.dashboard.waitForLoaderToDisappear();
+  }
+
+  async deleteAll() {
+    await this.selectAll();
+    await this.deleteSelectedRows();
   }
 
   async verifyTotalRowCount({ count }: { count: number }) {

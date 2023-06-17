@@ -74,11 +74,11 @@ const filterOption = (input: string, option: Option) => {
           </th>
 
           <th>
-            <div class="text-center font-normal mb-2">Header Name</div>
+            <div class="text-left font-normal ml-2">Header Name</div>
           </th>
 
           <th>
-            <div class="text-center font-normal mb-2">Value</div>
+            <div class="text-left font-normal ml-2">Value</div>
           </th>
 
           <th>
@@ -123,7 +123,7 @@ const filterOption = (input: string, option: Option) => {
 
         <tr>
           <td :colspan="12" class="text-center">
-            <a-button type="default" class="!bg-gray-100 rounded-md border-none mr-1" @click="addHeaderRow">
+            <a-button type="default" class="!bg-gray-100 rounded-md border-none mr-1 mb-3" @click="addHeaderRow">
               <template #icon>
                 <component :is="iconMap.plus" class="flex mx-auto" />
               </template>

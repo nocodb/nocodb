@@ -58,7 +58,7 @@ jobs:
             if [[ ${{ github.event.inputs.currentVersion || inputs.currentVersion || 'N/A' }} != 'N/A' ]]; then
               DOCKER_BUILD_TAG=${{ github.event.inputs.currentVersion || inputs.currentVersion }}-${{ github.event.inputs.tag || inputs.tag }}
             fi
-            if [[ ${{ inputs.isDaily || 'N' }} == 'Y' ]]; then 
+            if [[ ${{ inputs.isDaily || 'N' }} == 'Y' ]]; then
               DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-daily
             else
               DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-timely
@@ -90,7 +90,7 @@ jobs:
           cd packages/nocodb-sdk
           npm install && npm run build
           cd ../..
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js && 
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNcGuiVersion.js &&
           cd packages/nc-gui
           npm install
@@ -104,7 +104,6 @@ jobs:
 
       - name: Build nocodb and docker files
         run: |
-          npm run build
           npm run docker:build
         working-directory: ${{ env.working-directory }}
 

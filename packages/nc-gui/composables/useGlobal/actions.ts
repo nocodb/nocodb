@@ -46,11 +46,13 @@ export function useGlobalActions(state: State): Actions {
             signIn(response.data.token)
           }
         })
-        .catch(async (err) => {
-          message.error(err.message || t('msg.error.youHaveBeenSignedOut'))
-          await signOut()
+        .catch(async () => {
+          if (state.token.value && state.user.value) {
+            await signOut()
+            message.error(t('msg.error.youHaveBeenSignedOut'))
+          }
         })
-        .finally(() => resolve())
+        .finally(() => resolve(true))
     })
   }
 

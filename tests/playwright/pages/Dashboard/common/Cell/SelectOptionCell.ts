@@ -85,9 +85,8 @@ export class SelectOptionCellPageObject extends BasePage {
     if (multiSelect) {
       return await expect(this.cell.get({ index, columnHeader })).toContainText(option, { useInnerText: true });
     }
-    return await expect(
-      this.cell.get({ index, columnHeader }).locator('.ant-select-selection-item > .ant-tag')
-    ).toHaveText(option, { useInnerText: true });
+    const text = await (await this.cell.get({ index, columnHeader }).locator('.ant-tag')).allInnerTexts();
+    return expect(text).toContain(option);
   }
 
   async verifyNoOptionsSelected({ index, columnHeader }: { index: number; columnHeader: string }) {
@@ -119,7 +118,7 @@ export class SelectOptionCellPageObject extends BasePage {
     index,
     columnHeader,
     option,
-    multiSelect,
+    multiSelect = false,
   }: {
     index: number;
     columnHeader: string;
@@ -135,10 +134,18 @@ export class SelectOptionCellPageObject extends BasePage {
 
     await selectCell.locator('.ant-select-selection-search-input').type(option);
 
-    await selectCell.locator('.ant-select-selection-search-input').press('Enter');
+    // await selectCell.locator('.ant-select-selection-search-input').press('Enter');
+
+    // Wait for update api call
+    const saveRowAction = () => selectCell.locator('.ant-select-selection-search-input').press('Enter');
+    await this.waitForResponse({
+      uiAction: saveRowAction,
+      requestUrlPathToMatch: 'api/v1/db/data/noco/',
+      httpMethodsToMatch: ['PATCH'],
+      responseJsonMatcher: resJson => String(resJson?.[columnHeader]).includes(String(option)),
+    });
 
     if (multiSelect) await selectCell.locator('.ant-select-selection-search-input').press('Escape');
-    // todo: wait for update api call
   }
 
   async verifySelectedOptions({

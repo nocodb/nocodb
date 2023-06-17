@@ -40,6 +40,7 @@ export const srcDestMappingColumns: (Omit<ColumnGroupType<any>, 'children'> & { 
   {
     name: 'Action',
     key: 'action',
-    align: 'right',
+    align: 'center',
+    width: 50,
   },
 ]

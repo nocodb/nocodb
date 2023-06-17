@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ComputedRef } from 'vue'
 import JsBarcodeWrapper from './JsBarcodeWrapper.vue'
-import { RowHeightInj } from '#imports'
+import { RowHeightInj, computed, inject, ref } from '#imports'
 
 const maxNumberOfAllowedCharsForBarcodeValue = 100
 
@@ -32,7 +32,7 @@ const showBarcode = computed(() => barcodeValue?.value.length > 0 && !tooManyCha
 
 const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = useShowNotEditableWarning()
 
-const rowHeight = inject(RowHeightInj)
+const rowHeight = inject(RowHeightInj, ref(undefined))
 </script>
 
 <template>

@@ -183,7 +183,7 @@ function openKeyboardShortcutDialog() {
       </a-list-item>
 
       <a-list-item @click="openKeyboardShortcutDialog">
-        <div class="ml-3 flex items-center text-sm">
+        <div class="ml-3 flex items-center text-sm cursor-pointer">
           <component :is="iconMap.keyboard" class="text-lg text-primary" />
           <span class="ml-4">{{ $t('title.keyboardShortcut') }}</span>
         </div>

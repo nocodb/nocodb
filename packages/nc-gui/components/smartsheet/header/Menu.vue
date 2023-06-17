@@ -14,17 +14,25 @@ import {
   iconMap,
   inject,
   message,
+  useGlobal,
   useI18n,
   useMetas,
   useNuxtApp,
+  useProject,
   useSmartsheetStoreOrThrow,
+  useUndoRedo,
 } from '#imports'
+import type { UndoRedoAction } from '~~/lib'
 
 const { virtual = false } = defineProps<{ virtual?: boolean }>()
 
 const emit = defineEmits(['edit', 'addColumn'])
 
 const { eventBus } = useSmartsheetStoreOrThrow()
+
+const { includeM2M } = useGlobal()
+
+const { loadTables } = useProject()
 
 const column = inject(ColumnInj)
 
@@ -42,6 +50,8 @@ const { t } = useI18n()
 
 const { getMeta } = useMetas()
 
+const { addUndo, defineModelScope, defineViewScope } = useUndoRedo()
+
 const deleteColumn = () =>
   Modal.confirm({
     title: h('div', ['Do you want to delete ', h('span', { class: 'font-weight-bold' }, [column?.value?.title]), ' column ?']),
@@ -58,6 +68,11 @@ const deleteColumn = () =>
         /** force-reload related table meta if deleted column is a LTAR and not linked to same table */
         if (column?.value?.uidt === UITypes.LinkToAnotherRecord && column.value?.colOptions) {
           await getMeta((column.value?.colOptions as LinkToAnotherRecordType).fk_related_model_id!, true)
+
+          // reload tables if deleted column is mm and include m2m is true
+          if (includeM2M.value && (column.value?.colOptions as LinkToAnotherRecordType).type === RelationTypes.MANY_TO_MANY) {
+            loadTables()
+          }
         }
 
         $e('a:column:delete')
@@ -69,6 +84,8 @@ const deleteColumn = () =>
 
 const setAsDisplayValue = async () => {
   try {
+    const currentDisplayValue = meta?.value?.columns?.find((f) => f.pv)
+
     await $api.dbTableColumn.primaryColumnSet(column?.value?.id as string)
 
     await getMeta(meta?.value?.id as string, true)
@@ -79,6 +96,36 @@ const setAsDisplayValue = async () => {
     message.success(t('msg.success.primaryColumnUpdated'))
 
     $e('a:column:set-primary')
+
+    addUndo({
+      redo: {
+        fn: async (id: string) => {
+          await $api.dbTableColumn.primaryColumnSet(id)
+
+          await getMeta(meta?.value?.id as string, true)
+
+          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+
+          // Successfully updated as primary column
+          message.success(t('msg.success.primaryColumnUpdated'))
+        },
+        args: [column?.value?.id as string],
+      },
+      undo: {
+        fn: async (id: string) => {
+          await $api.dbTableColumn.primaryColumnSet(id)
+
+          await getMeta(meta?.value?.id as string, true)
+
+          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+
+          // Successfully updated as primary column
+          message.success(t('msg.success.primaryColumnUpdated'))
+        },
+        args: [currentDisplayValue?.id],
+      },
+      scope: defineModelScope({ model: meta.value }),
+    })
   } catch (e) {
     message.error(t('msg.error.primaryColumnUpdateFailed'))
   }
@@ -87,11 +134,37 @@ const setAsDisplayValue = async () => {
 const sortByColumn = async (direction: 'asc' | 'desc') => {
   try {
     $e('a:sort:add', { from: 'column-menu' })
-    await $api.dbTableSort.create(view.value?.id as string, {
+    const data: any = await $api.dbTableSort.create(view.value?.id as string, {
       fk_column_id: column!.value.id,
       direction,
       push_to_top: true,
     })
+
+    addUndo({
+      redo: {
+        fn: async function redo(this: UndoRedoAction) {
+          const data: any = await $api.dbTableSort.create(view.value?.id as string, {
+            fk_column_id: column!.value.id,
+            direction,
+            push_to_top: true,
+          })
+          this.undo.args = [data.id]
+          eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
+          reloadDataHook?.trigger()
+        },
+        args: [],
+      },
+      undo: {
+        fn: async function undo(id: string) {
+          await $api.dbTableSort.delete(id)
+          eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
+          reloadDataHook?.trigger()
+        },
+        args: [data.id],
+      },
+      scope: defineViewScope({ view: view.value }),
+    })
+
     eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
     reloadDataHook?.trigger()
   } catch (e: any) {
@@ -209,6 +282,24 @@ const hideField = async () => {
 
   await $api.dbViewColumn.update(view.value!.id!, currentColumn!.id!, { show: false })
   eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+
+  addUndo({
+    redo: {
+      fn: async function redo(id: string) {
+        await $api.dbViewColumn.update(view.value!.id!, id, { show: false })
+        eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+      },
+      args: [currentColumn!.id],
+    },
+    undo: {
+      fn: async function undo(id: string) {
+        await $api.dbViewColumn.update(view.value!.id!, id, { show: true })
+        eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+      },
+      args: [currentColumn!.id],
+    },
+    scope: defineViewScope({ view: view.value }),
+  })
 }
 </script>
 

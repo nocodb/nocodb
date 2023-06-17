@@ -38,6 +38,7 @@ _site/
 *.pid
 *.gz
 *.tmp
+*.tmp.md
 *.bak
 *.swp
 logs/
@@ -81,8 +82,8 @@ mongod
 *.sln
 
 .history
-/packages/nocodb/docker/main.js.LICENSE.txt
-/packages/nocodb/noco_log.db
+/packages/nocodb-legacy/docker/main.js.LICENSE.txt
+/packages/nocodb-legacy/noco_log.db
 
 # NC_DBs
 #=========

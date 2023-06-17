@@ -101,6 +101,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     ncAttachmentFieldSize: 20,
     ncMaxAttachmentsAllowed: 10,
     isCloud: false,
+    automationLogLevel: 'OFF',
   })
 
   /** reactive token payload */

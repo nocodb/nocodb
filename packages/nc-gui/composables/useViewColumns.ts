@@ -25,6 +25,8 @@ export function useViewColumns(
     () => isPublic.value || !isUIAllowed('hideAllColumns') || !isUIAllowed('showAllColumns') || isSharedBase.value,
   )
 
+  const localChanges = ref<Field[]>([])
+
   const isColumnViewEssential = (column: ColumnType) => {
     // TODO: consider at some point ti delegate this via a cleaner design pattern to view specific check logic
     // which could be inside of a view specific helper class (and generalized via an interface)
@@ -76,6 +78,16 @@ export function useViewColumns(
           }
         })
         .sort((a: Field, b: Field) => a.order - b.order)
+
+      if (isLocalMode.value && fields.value) {
+        for (const field of localChanges.value) {
+          const fieldIndex = fields.value.findIndex((f) => f.fk_column_id === field.fk_column_id)
+          if (fieldIndex !== undefined && fieldIndex > -1) {
+            fields.value[fieldIndex] = field
+            fields.value = fields.value.sort((a: Field, b: Field) => a.order - b.order)
+          }
+        }
+      }
     }
   }
 
@@ -128,20 +140,20 @@ export function useViewColumns(
   }
 
   const saveOrUpdate = async (field: any, index: number) => {
-    if (isPublic.value && fields.value) {
+    if (isLocalMode.value && fields.value) {
       fields.value[index] = field
       meta.value!.columns = meta.value!.columns?.map((column: ColumnType) => {
         if (column.id === field.fk_column_id) {
           return {
             ...column,
             ...field,
+            id: field.fk_column_id,
           }
         }
         return column
       })
 
-      await loadViewColumns()
-      reloadData?.()
+      localChanges.value.push(field)
     }
 
     if (isUIAllowed('fieldsSync')) {
@@ -156,6 +168,7 @@ export function useViewColumns(
         return insertedField
       }
     }
+
     await loadViewColumns()
     reloadData?.()
   }

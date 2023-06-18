@@ -1568,59 +1568,6 @@ function dateBased() {
     expect(insertedRecords.length).to.equal(800);
   });
 
-  const records = [
-    {
-      Id: 1,
-      Date: '2022-04-25',
-      DateTime: '2022-04-25T06:30:00.000Z',
-    },
-    {
-      Id: 2,
-      Date: '2022-04-26',
-      DateTime: '2022-04-26T06:30:00.000Z',
-    },
-    {
-      Id: 3,
-      Date: '2022-04-27',
-      DateTime: '2022-04-27T06:30:00.000Z',
-    },
-    {
-      Id: 4,
-      Date: '2022-04-28',
-      DateTime: '2022-04-28T06:30:00.000Z',
-    },
-    {
-      Id: 5,
-      Date: '2022-04-29',
-      DateTime: '2022-04-29T06:30:00.000Z',
-    },
-    {
-      Id: 6,
-      Date: '2022-04-30',
-      DateTime: '2022-04-30T06:30:00.000Z',
-    },
-    {
-      Id: 7,
-      Date: '2022-05-01',
-      DateTime: '2022-05-01T06:30:00.000Z',
-    },
-    {
-      Id: 8,
-      Date: '2022-05-02',
-      DateTime: '2022-05-02T06:30:00.000Z',
-    },
-    {
-      Id: 9,
-      Date: '2022-05-03',
-      DateTime: '2022-05-03T06:30:00.000Z',
-    },
-    {
-      Id: 10,
-      Date: '2022-05-04',
-      DateTime: '2022-05-04T06:30:00.000Z',
-    },
-  ];
-
   it('Date based- List & CRUD', async function () {
     // list 10 records
     let rsp = await ncAxiosGet({
@@ -1635,8 +1582,14 @@ function dateBased() {
       isFirstPage: true,
       isLastPage: false,
     };
+
     expect(rsp.body.pageInfo).to.deep.equal(pageInfo);
-    expect(rsp.body.list).to.deep.equal(records);
+
+    // extract first 10 records from inserted records
+    const records = insertedRecords.slice(0, 10);
+    expect(JSON.stringify(rsp.body.list)).to.deep.equal(
+      JSON.stringify(records),
+    );
 
     ///////////////////////////////////////////////////////////////////////////
 
@@ -1667,7 +1620,7 @@ function dateBased() {
     // update record with Id 801 to 804
     const updatedRecord = {
       Date: '2022-04-25',
-      DateTime: '2022-04-25T06:30:00.000Z',
+      DateTime: '2022-04-25 08:30:00+00:00',
     };
     const updatedRecords = [
       {

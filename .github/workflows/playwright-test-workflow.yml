@@ -69,9 +69,6 @@ jobs:
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '1' }}
         working-directory: ./
         run: docker-compose -f ./tests/playwright/scripts/docker-compose-pg-pw-quick.yml up -d &
-      - name: run frontend
-        working-directory: ./packages/nc-gui
-        run: pnpm run ci:run
       - name: Run backend
         working-directory: ./packages/nocodb
         run: |

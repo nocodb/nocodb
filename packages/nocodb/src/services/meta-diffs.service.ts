@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { isVirtualCol, ModelTypes, RelationTypes, UITypes } from 'nocodb-sdk';
 import { T } from 'nc-help';
+import { pluralize, singularize } from 'inflection';
 import { Base, Column, Model, Project } from '../models';
 import ModelXcMetaFactory from '../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
 import getColumnUiType from '../helpers/getColumnUiType';
@@ -757,6 +758,10 @@ export class MetaDiffsService {
                       fk_child_column_id: childCol.id,
                       virtual: false,
                       fk_index_name: change.cstn,
+                      meta: {
+                        plural: pluralize(childModel.title),
+                        singular: singularize(childModel.title),
+                      },
                     });
                   }
                 });
@@ -1055,6 +1060,10 @@ export class MetaDiffsService {
               belongsToCols[1].colOptions.fk_child_column_id,
             type: RelationTypes.MANY_TO_MANY,
             uidt: UITypes.Links,
+            meta: {
+              plural: pluralize(modelB.title),
+              singular: singularize(modelB.title),
+            },
           });
         }
         if (!isRelationAvailInB) {
@@ -1075,6 +1084,10 @@ export class MetaDiffsService {
               belongsToCols[0].colOptions.fk_child_column_id,
             type: RelationTypes.MANY_TO_MANY,
             uidt: UITypes.Links,
+            meta: {
+              plural: pluralize(modelA.title),
+              singular: singularize(modelA.title),
+            },
           });
         }
 

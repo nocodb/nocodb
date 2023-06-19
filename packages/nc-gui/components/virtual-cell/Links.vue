@@ -94,16 +94,18 @@ const localCellValue = computed<any[]>(() => {
 <template>
   <div class="flex w-full items-center nc-links-wrapper" @dblclick.stop="openChildList = true">
     <template v-if="!isForm">
-      <div class="flex-grow block">
+      <div class="block flex-shrink truncate">
         <component
+          :title="textVal"
           :is="isLocked ? 'span' : 'a'"
-          class="text-center pl-3 nc-datatype-link"
+          class="text-center pl-3 nc-datatype-link "
           :class="{ '!text-gray-300': !value }"
           @click.stop.prevent="openChildList"
         >
           {{ textVal }}
         </component>
       </div>
+      <div class="flex-grow"/>
 
       <div v-if="!isLocked && !isUnderLookup" class="flex justify-end gap-1 min-h-[30px] items-center">
         <GeneralIcon

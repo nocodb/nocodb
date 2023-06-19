@@ -168,11 +168,11 @@ export class DataTableService {
     const model = await Model.get(param.modelId);
 
     if (!model) {
-      NcError.notFound(`Table with id '${param.modelId}' not found`);
+      NcError.notFound(`Table  '${param.modelId}' not found`);
     }
 
     if (param.projectId && model.project_id !== param.projectId) {
-      throw new Error('Model not belong to project');
+      throw new Error('Table not belong to project');
     }
 
     let view: View;
@@ -180,7 +180,7 @@ export class DataTableService {
     if (param.viewId) {
       view = await View.get(param.viewId);
       if (!view || (view.fk_model_id && view.fk_model_id !== param.modelId)) {
-        NcError.unprocessableEntity(`View with id '${param.viewId}' not found`);
+        NcError.unprocessableEntity(`View '${param.viewId}' not found`);
       }
     }
 
@@ -252,6 +252,11 @@ export class DataTableService {
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(base),
     });
+
+    if (!(await baseModel.exist(param.rowId))) {
+      NcError.notFound(`Row '${param.rowId}' not found`);
+    }
+
     const column = await this.getColumn(param);
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
@@ -321,7 +326,7 @@ export class DataTableService {
   private async getColumn(param: { modelId: string; columnId: string }) {
     const column = await Column.get({ colId: param.columnId });
 
-    if (!column) NcError.badRequest(`Column with id '${param.columnId}' not found`);
+    if (!column) NcError.notFound(`Column '${param.columnId}' not found`);
 
     if (column.fk_model_id !== param.modelId)
       NcError.badRequest('Column not belong to model');
@@ -378,7 +383,8 @@ export class DataTableService {
     this.validateIds(param.refRowIds);
 
     const { model, view } = await this.getModelAndView(param);
-    if (!model) NcError.notFound('Table with id ' + param.modelId + ' not found');
+    if (!model)
+      NcError.notFound('Table with id ' + param.modelId + ' not found');
 
     const base = await Base.get(model.base_id);
 
@@ -405,14 +411,21 @@ export class DataTableService {
   private validateIds(rowIds: any[] | any) {
     if (Array.isArray(rowIds)) {
       const map = new Map<string, boolean>();
+      const set = new Set<string>();
       for (const rowId of rowIds) {
         if (rowId === undefined || rowId === null)
           NcError.unprocessableEntity('Invalid row id ' + rowId);
         if (map.has(rowId)) {
-          NcError.unprocessableEntity('Duplicate row with id ' + rowId);
+          set.add(rowId);
+        } else {
+          map.set(rowId, true);
         }
-        map.set(rowId, true);
       }
+
+      if (set.size > 0)
+        NcError.unprocessableEntity(
+          'Child record with id [' + [...set].join(', ') + '] are duplicated',
+        );
     } else if (rowIds === undefined || rowIds === null) {
       NcError.unprocessableEntity('Invalid row id ' + rowIds);
     }

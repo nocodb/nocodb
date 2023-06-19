@@ -2409,7 +2409,7 @@ function linkBased() {
         ...validParams,
         body: [1, 2, 1, 2],
         status: 422,
-        msg: 'Child record with id [1, 2] contains duplicate value',
+        msg: 'Child record with id [1, 2] are duplicated',
       });
     }
   }

@@ -3628,7 +3628,7 @@ class BaseModelSqlv2 {
     const column = columns.find((c) => c.id === colId);
 
     if (!column || column.uidt !== UITypes.LinkToAnotherRecord)
-      NcError.notFound(`Link column with id ${colId} not found`);
+      NcError.notFound(`Link column ${colId} not found`);
 
     const row = await this.dbDriver(this.tnPath)
       .where(await this._wherePk(rowId))
@@ -3636,7 +3636,7 @@ class BaseModelSqlv2 {
 
     // validate rowId
     if (!row) {
-      NcError.notFound(`Row with id ${rowId} not found`);
+      NcError.notFound(`Row '${rowId}' not found`);
     }
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
@@ -3851,7 +3851,7 @@ class BaseModelSqlv2 {
     const column = columns.find((c) => c.id === colId);
 
     if (!column || column.uidt !== UITypes.LinkToAnotherRecord)
-      NcError.notFound(`Link column with id ${colId} not found`);
+      NcError.notFound(`Link column ${colId} not found`);
 
     const row = await this.dbDriver(this.tnPath)
       .where(await this._wherePk(rowId))
@@ -3859,7 +3859,7 @@ class BaseModelSqlv2 {
 
     // validate rowId
     if (!row) {
-      NcError.notFound(`Row with id ${rowId} not found`);
+      NcError.notFound(`Row '${rowId}' not found`);
     }
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();

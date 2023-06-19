@@ -2,7 +2,6 @@
 import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, TableType, UITypes } from 'nocodb-sdk'
 import { isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { getRelationName } from './utils'
 import { MetaInj, inject, ref, storeToRefs, useColumnCreateStoreOrThrow, useMetas, useProject, useVModel } from '#imports'
 
 const props = defineProps<{
@@ -104,7 +103,7 @@ const cellIcon = (column: ColumnType) =>
             <div class="flex flex-row space-x-0.5 h-full pb-0.5 items-center justify-between">
               <div class="font-semibold text-xs">{{ table.column.title }}</div>
               <div class="text-[0.65rem] text-gray-600">
-                ({{ getRelationName(table.col.type) }} {{ table.title || table.table_name }})
+                (<span class="uppercase">{{ table.col.type }}</span> {{ table.title || table.table_name }})
               </div>
             </div>
           </a-select-option>

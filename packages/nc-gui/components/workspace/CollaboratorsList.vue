@@ -35,20 +35,15 @@ const updateCollaborator = async (collab) => {
 </script>
 
 <template>
-  <div class="mt-4">
-    <div class="px-6 pb-2">
-      <div class="text-xl mb-2">Members</div>
-      <div class="text-gray-500 text-xs">Manage who has access to this workspace</div>
-    </div>
-
+  <div class="nc-collaborator-table-container mt-3 mx-6">
     <WorkspaceInviteSection v-if="isWorkspaceOwner" />
-    <table v-if="collaborators?.length" class="nc-project-list-table">
+    <table v-if="collaborators?.length" class="nc-project-list-table !nc-sidebar-md">
       <thead>
         <tr>
-          <th>Name</th>
-          <th>Last Modified</th>
-          <th>My Role</th>
-          <th>Actions</th>
+          <th>Users</th>
+          <th>Date Joined</th>
+          <th>Access</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -101,7 +96,7 @@ const updateCollaborator = async (collab) => {
 
 <style scoped lang="scss">
 .nc-project-list-table {
-  @apply min-w-[700px] !w-full;
+  @apply min-w-[700px] !w-full border-gray-100 mt-1;
 
   th {
     @apply .font-normal !text-gray-400 pb-4;
@@ -125,13 +120,51 @@ const updateCollaborator = async (collab) => {
 
   th:last-child,
   td:last-child {
-    @apply pr-6;
+    @apply pr-1 w-5;
   }
 }
 
 .nc-project-title {
   .color-band {
     @apply w-6 h-6 left-0 top-[10px] rounded-full flex justify-center uppercase text-white font-weight-bold text-xs items-center;
+  }
+}
+
+// .nc-collaborator-table-container {
+//   height: calc(50vh);
+// }
+table {
+  @apply h-full;
+}
+tbody {
+  height: calc(50vh);
+  overflow-y: overlay;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #f6f6f600 !important;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #f6f6f600;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: #f6f6f600;
+  }
+}
+tbody {
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #f6f6f600 !important;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgb(215, 215, 215);
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgb(203, 203, 203);
   }
 }
 </style>

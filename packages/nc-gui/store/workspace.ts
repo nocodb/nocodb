@@ -36,6 +36,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   )
 
   const isWorkspaceLoading = ref(true)
+  const isCollaboratorsLoading = ref(true)
+  const isInvitingCollaborators = ref(false)
 
   const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(
     () => (route.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'workspace',
@@ -134,15 +136,23 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     refreshCommandPalette()
   }
 
-  const loadCollaborators = async (params?: { offset?: number; limit?: number }) => {
+  const loadCollaborators = async (params?: { offset?: number; limit?: number; ignoreLoading: boolean }) => {
     if (!activeWorkspace.value?.id) {
       throw new Error('Workspace not selected')
     }
 
-    // todo: pagination
-    const { list, pageInfo: _ } = await $api.workspaceUser.list(activeWorkspace.value.id!, { query: params })
+    if (!params?.ignoreLoading) isCollaboratorsLoading.value = true
 
-    collaborators.value = list
+    try {
+      // todo: pagination
+      const { list, pageInfo: _ } = await $api.workspaceUser.list(activeWorkspace.value.id!, { query: params })
+
+      collaborators.value = list
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      if (!params?.ignoreLoading) isCollaboratorsLoading.value = false
+    }
   }
 
   // invite new user to the workspace
@@ -151,11 +161,18 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       throw new Error('Workspace not selected')
     }
 
-    await $api.workspaceUser.invite(activeWorkspace.value.id!, {
-      email,
-      roles,
-    })
-    await loadCollaborators()
+    isInvitingCollaborators.value = true
+    try {
+      await $api.workspaceUser.invite(activeWorkspace.value.id!, {
+        email,
+        roles,
+      })
+      await loadCollaborators()
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      isInvitingCollaborators.value = false
+    }
   }
 
   // remove user from workspace
@@ -296,6 +313,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     collaborators,
     isWorkspaceCreator,
     isWorkspaceOwner,
+    isInvitingCollaborators,
+    isCollaboratorsLoading,
     addToFavourite,
     removeFromFavourite,
     activePage,

@@ -21,11 +21,17 @@ function getFontSize() {
 }
 
 const indicator = h(LoadingOutlined, {
-  class: `!text-gray-400 !${getFontSize()}`,
+  class: `!text-gray-400 !${getFontSize()} flex flex-row items-center`,
   spin: true,
 })
 </script>
 
 <template>
-  <a-spin class="nc-loader !flex !flex-row !items-center !my-0.5 !mx-1.5 w-8" :indicator="indicator" />
+  <a-spin class="nc-loader flex flex-row items-center" :indicator="indicator" />
 </template>
+
+<style lang="scss" scoped>
+:deep(.anticon-spin) {
+  @apply flex;
+}
+</style>

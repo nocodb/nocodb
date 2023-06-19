@@ -421,7 +421,7 @@ const projectListType = computed(() => {
 
     <div class="w-full h-full overflow-auto nc-workspace-container">
       <div v-if="activeWorkspace" class="h-full flex flex-col pt-7">
-        <div class="pl-10 pr-6 flex items-center mb-7">
+        <div class="pl-8 pr-7 flex items-center mb-7">
           <div class="flex gap-2 items-center">
             <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
               {{ activeWorkspace?.title?.slice(0, 2) }}
@@ -430,7 +430,7 @@ const projectListType = computed(() => {
           </div>
           <div class="flex-grow"></div>
           <WorkspaceCreateProjectBtn
-            v-if="isWorkspaceOwner"
+            v-if="isWorkspaceOwner && tab === 'projects'"
             v-model:is-open="isCreateProjectOpen"
             class="mt-0.75"
             :active-workspace-id="activeWorkspace?.id"
@@ -467,7 +467,7 @@ const projectListType = computed(() => {
                   Collaborators
                 </div>
               </template>
-              <WorkspaceCollaboratorsList class="h-full overflow-auto" />
+              <WorkspaceCollaboratorsList />
             </a-tab-pane>
           </template>
         </a-tabs>
@@ -567,7 +567,7 @@ const projectListType = computed(() => {
 }
 
 :deep(.ant-tabs-nav-list) {
-  @apply !ml-9.5;
+  @apply !ml-6;
 }
 
 .ant-layout-header {

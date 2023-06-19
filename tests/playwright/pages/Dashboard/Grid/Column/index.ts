@@ -139,6 +139,7 @@ export class ColumnPageObject extends BasePage {
           .locator(`.ant-select-item`, {
             hasText: childColumn,
           })
+          .last()
           .click();
         break;
       case 'Rollup':

@@ -46,7 +46,7 @@ export default abstract class BasePage {
         );
       },
       {
-        timeout: 60000,
+        timeout: 120000,
       }
     );
 

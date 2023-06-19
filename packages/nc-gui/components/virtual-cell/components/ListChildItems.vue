@@ -107,7 +107,6 @@ const onClick = (row: Row) => {
     :footer="null"
     title="Child list"
     :body-style="{ padding: 0 }"
-    width="400px"
     wrap-class-name="nc-modal-child-list"
   >
     <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col py-6">

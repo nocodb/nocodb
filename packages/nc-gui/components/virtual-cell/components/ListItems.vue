@@ -197,7 +197,6 @@ watch(vModel, (nextVal) => {
     :title="$t('activity.linkRecord')"
     :body-style="{ padding: 0 }"
     wrap-class-name="nc-modal-link-record"
-    width="400px"
   >
     <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col py-6">
       <div class="flex mb-4 items-center gap-2 px-12">

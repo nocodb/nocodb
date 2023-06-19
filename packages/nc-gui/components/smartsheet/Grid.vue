@@ -99,6 +99,8 @@ const contextMenu = computed({
 })
 const contextMenuClosing = ref(false)
 
+const bulkUpdateDlg = ref(false)
+
 const routeQuery = $computed(() => route.query as Record<string, string>)
 const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
 const expandedFormDlg = ref(false)
@@ -128,6 +130,7 @@ const {
   getExpandedRowIndex,
   deleteRangeOfRows,
   bulkUpdateRows,
+  bulkUpdateView,
 } = useViewData(meta, view, xWhere)
 
 const { getMeta } = useMetas()
@@ -977,7 +980,12 @@ function addEmptyRow(row?: number) {
                   :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
                   :data-testid="`grid-row-${rowIndex}`"
                 >
-                  <td key="row-index" class="caption nc-grid-cell pl-5 pr-1" :data-testid="`cell-Id-${rowIndex}`">
+                  <td
+                    key="row-index"
+                    class="caption nc-grid-cell pl-5 pr-1"
+                    :data-testid="`cell-Id-${rowIndex}`"
+                    @contextmenu="contextMenuTarget = null"
+                  >
                     <div class="items-center flex gap-1 min-w-[60px]">
                       <div
                         v-if="!readOnly || !isLocked"
@@ -1120,7 +1128,10 @@ function addEmptyRow(row?: number) {
               </div>
             </a-menu-item>
 
-            <a-menu-item v-if="!contextMenuClosing && data.some((r) => r.rowMeta.selected)" @click="deleteSelectedRows">
+            <a-menu-item
+              v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
+              @click="deleteSelectedRows"
+            >
               <div v-e="['a:row:delete-bulk']" class="nc-project-menu-item">
                 <!-- Delete Selected Rows -->
                 {{ $t('activity.deleteSelectedRow') }}
@@ -1156,6 +1167,16 @@ function addEmptyRow(row?: number) {
               <div v-e="['a:row:copy']" class="nc-project-menu-item">
                 <!-- Copy -->
                 {{ $t('general.copy') }}
+              </div>
+            </a-menu-item>
+
+            <a-menu-item
+              v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
+              @click="bulkUpdateDlg = true"
+            >
+              <div class="nc-project-menu-item">
+                <!-- Bulk Update -->
+                Bulk Update
               </div>
             </a-menu-item>
           </a-menu>
@@ -1206,6 +1227,19 @@ function addEmptyRow(row?: number) {
         :last-row="getExpandedRowIndex() === data.length - 1"
         @next="navigateToSiblingRow(NavigateDir.NEXT)"
         @prev="navigateToSiblingRow(NavigateDir.PREV)"
+      />
+    </Suspense>
+
+    <Suspense>
+      <LazyDlgBulkUpdate
+        v-if="bulkUpdateDlg"
+        v-model="bulkUpdateDlg"
+        :meta="meta"
+        :view="view"
+        :bulk-update-rows="bulkUpdateRows"
+        :bulk-update-view="bulkUpdateView"
+        :selected-all-records="selectedAllRecords"
+        :rows="data.filter((r) => r.rowMeta.selected)"
       />
     </Suspense>
   </div>

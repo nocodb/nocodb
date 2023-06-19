@@ -64,10 +64,15 @@ const updateCollaborator = async (collab) => {
               {{ getRolesLabel(collab.roles) }}
             </span>
 
-            <a-select v-else v-model:value="collab.roles" class="w-30" @change="updateCollaborator(collab)">
-              <a-select-option :value="WorkspaceUserRoles.CREATOR"> Creator</a-select-option>
-              <a-select-option :value="WorkspaceUserRoles.VIEWER"> Viewer</a-select-option>
-            </a-select>
+            <div v-else>
+              <a-select v-model:value="collab.roles" class="w-30 !rounded px-1" @change="updateCollaborator(collab)">
+                <template #suffixIcon>
+                  <MdiChevronDown />
+                </template>
+                <a-select-option :value="WorkspaceUserRoles.CREATOR"> Creator</a-select-option>
+                <a-select-option :value="WorkspaceUserRoles.VIEWER"> Viewer</a-select-option>
+              </a-select>
+            </div>
           </td>
           <td class="relative">
             <div class="absolute -left-2.5 top-5">

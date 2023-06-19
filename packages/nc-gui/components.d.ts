@@ -172,6 +172,7 @@ declare module '@vue/runtime-core' {
     MdiChat: typeof import('~icons/mdi/chat')['default']
     MdiChatProcessingOutline: typeof import('~icons/mdi/chat-processing-outline')['default']
     MdiCheck: typeof import('~icons/mdi/check')['default']
+    MdiChevronDown: typeof import('~icons/mdi/chevron-down')['default']
     MdiChevronLeft: typeof import('~icons/mdi/chevron-left')['default']
     MdiChevronRight: typeof import('~icons/mdi/chevron-right')['default']
     MdiCircleMedium: typeof import('~icons/mdi/circle-medium')['default']

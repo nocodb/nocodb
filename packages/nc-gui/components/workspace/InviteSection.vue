@@ -35,7 +35,10 @@ const inviteCollaborator = async () => {
           class="!max-w-130 !rounded !ml-2.25"
         />
 
-        <a-select v-model:value="inviteData.roles" class="min-w-30 !rounded">
+        <a-select v-model:value="inviteData.roles" class="min-w-30 !rounded px-1">
+          <template #suffixIcon>
+            <MdiChevronDown />
+          </template>
           <a-select-option :value="WorkspaceUserRoles.CREATOR"> Creator </a-select-option>
           <a-select-option :value="WorkspaceUserRoles.VIEWER"> Viewer </a-select-option>
         </a-select>

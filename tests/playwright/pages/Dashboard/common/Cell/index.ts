@@ -283,12 +283,10 @@ export class CellPageObject extends BasePage {
     const cell = await this.get({ index, columnHeader });
     const linkText = await cell.locator('.nc-datatype-link');
 
-    console.log(index, columnHeader);
     await cell.scrollIntoViewIfNeeded();
 
     if (type === 'bt') {
       const chips = cell.locator('.chips > .chip');
-      console.log('chips', await chips.count());
       await expect(await chips.count()).toBe(count);
 
       for (let i = 0; i < value.length; ++i) {

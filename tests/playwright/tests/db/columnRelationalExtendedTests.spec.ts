@@ -25,7 +25,8 @@ test.describe('Relational Columns', () => {
         index: i,
         columnHeader: 'City List',
         count: cityList[i].length,
-        value: cityList[i],
+        type: 'hm',
+        options: { singular: 'City', plural: 'Cities' },
       });
     }
 
@@ -94,7 +95,8 @@ test.describe('Relational Columns', () => {
         columnHeader: 'Film List',
         // Count hardwired to avoid verifying all 19 entries
         count: 19,
-        value: filmList[i],
+        type: 'mm',
+        options: { singular: 'Film', plural: 'Films' },
       });
     }
     // click on expand icon, open child list

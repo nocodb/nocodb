@@ -104,7 +104,7 @@ test.describe.serial('Test table', () => {
     // Create links
     // TableA <hm> TableB <hm> TableC
     await api.dbTableColumn.create(tables[0].id, {
-      uidt: UITypes.LinkToAnotherRecord,
+      uidt: UITypes.Links,
       title: `TableA:hm:TableB`,
       column_name: `TableA:hm:TableB`,
       parentId: tables[0].id,
@@ -112,7 +112,7 @@ test.describe.serial('Test table', () => {
       type: 'hm',
     });
     await api.dbTableColumn.create(tables[1].id, {
-      uidt: UITypes.LinkToAnotherRecord,
+      uidt: UITypes.Links,
       title: `TableB:hm:TableC`,
       column_name: `TableB:hm:TableC`,
       parentId: tables[1].id,
@@ -122,7 +122,7 @@ test.describe.serial('Test table', () => {
 
     // TableA <mm> TableD <mm> TableE
     await api.dbTableColumn.create(tables[0].id, {
-      uidt: UITypes.LinkToAnotherRecord,
+      uidt: UITypes.Links,
       title: `TableA:mm:TableD`,
       column_name: `TableA:mm:TableD`,
       parentId: tables[0].id,
@@ -130,7 +130,7 @@ test.describe.serial('Test table', () => {
       type: 'mm',
     });
     await api.dbTableColumn.create(tables[3].id, {
-      uidt: UITypes.LinkToAnotherRecord,
+      uidt: UITypes.Links,
       title: `TableD:mm:TableE`,
       column_name: `TableD:mm:TableE`,
       parentId: tables[3].id,
@@ -140,7 +140,7 @@ test.describe.serial('Test table', () => {
 
     // TableA <hm> TableA : self relation
     await api.dbTableColumn.create(tables[0].id, {
-      uidt: UITypes.LinkToAnotherRecord,
+      uidt: UITypes.Links,
       title: `TableA:hm:TableA`,
       column_name: `TableA:hm:TableA`,
       parentId: tables[0].id,
@@ -150,7 +150,7 @@ test.describe.serial('Test table', () => {
 
     // TableA <mm> TableA : self relation
     await api.dbTableColumn.create(tables[0].id, {
-      uidt: UITypes.LinkToAnotherRecord,
+      uidt: UITypes.Links,
       title: `TableA:mm:TableA`,
       column_name: `TableA:mm:TableA`,
       parentId: tables[0].id,

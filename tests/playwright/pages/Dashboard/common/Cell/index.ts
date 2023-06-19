@@ -364,7 +364,7 @@ export class CellPageObject extends BasePage {
     // PR8504
     // await expect(await vCell.locator('.nc-action-icon.nc-arrow-expand:visible')).toHaveCount(1);
     const linkText = await getTextExcludeIconText(vCell);
-    expect(linkText).toContain('1 Link');
+    expect(linkText).toContain('1 City');
 
     // PR8504
     // await vCell.click();

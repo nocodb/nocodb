@@ -952,7 +952,7 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
         opType: filterList[i].op,
         value: filterList[i].value,
         result: { rowCount: filterList[i].rowCount },
-        dataType: 'LinkToAnotherRecord',
+        dataType: 'Links',
       });
     }
   }

@@ -31,13 +31,13 @@ test.describe('LTAR create & update', () => {
     // Create LTAR-HM column
     await dashboard.grid.column.create({
       title: 'Link1-2hm',
-      type: 'LinkToAnotherRecord',
+      type: 'Links',
       childTable: 'Sheet2',
       relationType: 'Has Many',
     });
     await dashboard.grid.column.create({
       title: 'Link1-2mm',
-      type: 'LinkToAnotherRecord',
+      type: 'Links',
       childTable: 'Sheet2',
       relationType: 'Many To many',
     });
@@ -46,7 +46,7 @@ test.describe('LTAR create & update', () => {
     await dashboard.treeView.openTable({ title: 'Sheet2', networkResponse: false });
     await dashboard.grid.column.create({
       title: 'Link2-1hm',
-      type: 'LinkToAnotherRecord',
+      type: 'Links',
       childTable: 'Sheet1',
       relationType: 'Has Many',
     });

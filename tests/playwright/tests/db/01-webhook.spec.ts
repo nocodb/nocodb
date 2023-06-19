@@ -613,7 +613,7 @@ test.describe.serial('Webhook', () => {
       countryTable = await api.dbTableColumn.create(countryTable.id, {
         column_name: 'CityList',
         title: 'CityList',
-        uidt: UITypes.LinkToAnotherRecord,
+        uidt: UITypes.Links,
         parentId: countryTable.id,
         childId: cityTable.id,
         type: 'hm',

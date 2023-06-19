@@ -283,9 +283,26 @@ const setIcon = async (icon: string, project: ProjectType) => {
         <GeneralLoader size="xlarge" />
       </div>
       <div v-else class="flex flex-col items-center gap-y-5">
-        <MaterialSymbolsInboxOutlineRounded class="!h-8 w-8 text-2xl text-primary" />
-        <div class="font-medium text-xl">Welcome to nocoDB</div>
-        <div class="font-medium">Create your first Project!</div>
+        <MaterialSymbolsInboxOutlineRounded
+          class="text-2xl text-primary"
+          :class="{
+            'h-8 w-8': activePage === 'workspace',
+            'h-12 w-12': activePage !== 'workspace',
+          }"
+        />
+        <template v-if="activePage === 'workspace'">
+          <div class="font-medium text-xl">Welcome to nocoDB</div>
+          <div class="font-medium">Create your first Project!</div>
+        </template>
+        <template v-else-if="activePage === 'recent'">
+          <div class="font-medium text-lg">No Recent Projects</div>
+        </template>
+        <template v-else-if="activePage === 'starred'">
+          <div class="font-medium text-lg">No Starred Projects</div>
+        </template>
+        <template v-else-if="activePage === 'shared'">
+          <div class="font-medium text-lg">No Shared Projects</div>
+        </template>
       </div>
     </div>
     <a-table

@@ -254,7 +254,7 @@ const projectListType = computed(() => {
     case 'shared':
       return 'Shared With Me'
     case 'starred':
-      return 'Favourite'
+      return 'Starred'
     default:
       return '='
   }
@@ -285,7 +285,7 @@ watch(activeWorkspaceId, async () => {
             <IcOutlineAccessTime class="nc-icon" />
             <span>Recent</span>
           </div>
-          <!-- <div
+          <div
             class="nc-workspace-group-item"
             :class="{ active: activePage === 'shared' }"
             @click="
@@ -296,9 +296,9 @@ watch(activeWorkspaceId, async () => {
               })
             "
           >
-            <MaterialSymbolsGroupsOutline class="nc-icon" />
+            <MaterialSymbolsGroupOutlineRounded class="nc-icon" />
             <span>Shared with me</span>
-          </div> -->
+          </div>
           <div
             class="nc-workspace-group-item"
             :class="{ active: activePage === 'starred' }"
@@ -478,10 +478,7 @@ watch(activeWorkspaceId, async () => {
         </a-tabs>
       </div>
       <div v-else-if="activePage !== 'workspace'" class="h-full flex flex-col px-6 mt-3">
-        <div class="flex items-center gap-2 mb-6 mt-3 text-xl">
-          <MaterialSymbolsNestClockFarsightAnalogOutlineRounded v-if="activePage === 'recent'" class="h-8" />
-          <MaterialSymbolsGroupsOutline v-else-if="activePage === 'shared'" />
-          <MaterialSymbolsStarOutline v-else-if="activePage === 'starred'" />
+        <div class="flex items-center gap-2 mb-7 mt-4 text-xl ml-5.5">
           <h2 class="text-3xl font-weight-bold tracking-[0.5px] mb-0">
             {{ projectListType }}
           </h2>

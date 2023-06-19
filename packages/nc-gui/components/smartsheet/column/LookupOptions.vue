@@ -108,8 +108,10 @@ const cellIcon = (column: ColumnType) =>
           @change="onDataTypeChange"
         >
           <a-select-option v-for="(column, index) of columns" :key="index" :value="column.id">
+            <div class="flex items-center -ml-1">
             <component :is="cellIcon(column)" :column-meta="column" />
             {{ column.title }}
+            </div>
           </a-select-option>
         </a-select>
       </a-form-item>

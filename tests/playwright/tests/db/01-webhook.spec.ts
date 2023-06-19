@@ -611,7 +611,6 @@ test.describe.serial('Webhook', () => {
 
       // create LTAR Country has-many City
       countryTable = await api.dbTableColumn.create(countryTable.id, {
-        column_name: 'CityList',
         title: 'CityList',
         uidt: UITypes.Links,
         parentId: countryTable.id,
@@ -684,16 +683,7 @@ test.describe.serial('Webhook', () => {
             CountryCode: '1',
             CityCodeRollup: '2',
             CityCodeFormula: 100,
-            CityList: [
-              {
-                Id: 1,
-                City: 'Mumbai',
-              },
-              {
-                Id: 2,
-                City: 'Pune',
-              },
-            ],
+            CityList: 2,
             CityCodeLookup: ['23', '33'],
           },
         ],
@@ -704,16 +694,7 @@ test.describe.serial('Webhook', () => {
             CountryCode: '1',
             CityCodeRollup: '2',
             CityCodeFormula: 100,
-            CityList: [
-              {
-                Id: 1,
-                City: 'Mumbai',
-              },
-              {
-                Id: 2,
-                City: 'Pune',
-              },
-            ],
+            CityList: 2,
             CityCodeLookup: ['23', '33'],
           },
         ],

@@ -360,7 +360,8 @@ test.describe('Form view with LTAR', () => {
       index: 3,
       columnHeader: 'CityList',
       count: 1,
-      value: ['Atlanta'],
+      type: 'hm',
+      options: { singular: 'City', plural: 'Cities' },
     });
   });
 });

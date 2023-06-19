@@ -760,8 +760,6 @@ const predictingNextFormulas = ref(false)
 
 const predictedNextFormulas = ref<Array<{ title: string; formula: string }>>()
 
-const preloadColumn = ref<Partial<any>>()
-
 const predictNextColumn = async () => {
   if (predictingNextColumn.value) return
   predictedNextColumn.value = []
@@ -827,7 +825,7 @@ async function reloadViewDataHandler(shouldShowLoading: boolean | void) {
     predictedNextColumn.value = predictedNextColumn.value.filter((c) => !fieldsAvailable?.includes(c.title))
   }
   // save any unsaved data before reload
-  await saveOrUpdateRecords();
+  await saveOrUpdateRecords()
 
   // set value if spinner should be hidden
   showLoading.value = !!shouldShowLoading
@@ -1261,12 +1259,11 @@ function openGenerateDialog(target: any) {
             <tr
               v-if="isAddingEmptyRowAllowed"
               v-e="['c:row:add:grid-bottom']"
-              class="cursor-pointer"
-              @mouseup.stop
               class="text-left pointer nc-grid-add-new-cell cursor-pointer"
               :class="{
-               '!border-r-2 !border-r-gray-100': visibleColLength === 1,
+                '!border-r-2 !border-r-gray-100': visibleColLength === 1,
               }"
+              @mouseup.stop
               @click="addEmptyRow()"
             >
               <td class="text-left pointer nc-grid-add-new-cell sticky left-0 !z-5 !border-r-0">

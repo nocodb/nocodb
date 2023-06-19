@@ -102,8 +102,13 @@ export default defineConfig({
   outputDir: './output',
 
   /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   port: 3000,
-  // },
+  webServer: {
+    cwd: '../../packages/nc-gui',
+    command: 'pnpm run ci:run',
+    port: 3000,
+    reuseExistingServer: !process.env.CI,
+    stdout: 'ignore',
+    stderr: 'pipe',
+    timeout: 120 * 1000,
+  },
 });

@@ -31,7 +31,7 @@ interface ValidationsObj {
 const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState(
   (meta: Ref<TableType | undefined>, column: Ref<ColumnType | undefined>) => {
     const projectStore = useProject()
-    const { isMysql: isMysqlFunc, isPg: isPgFunc, isMssql: isMssqlFunc, isXcdbBase: isXcdbBaseFunc } = projectStore
+    const { isMysql: isMysqlFunc, isPg: isPgFunc, isMssql: isMssqlFunc, isXcdbBase: isXcdbBaseFunc, getBaseType } = projectStore
     const { project, sqlUis } = storeToRefs(projectStore)
 
     const { $api } = useNuxtApp()
@@ -53,6 +53,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const isMssql = computed(() => isMssqlFunc(meta.value?.base_id ? meta.value?.base_id : Object.keys(sqlUis.value)[0]))
 
     const isXcdbBase = computed(() => isXcdbBaseFunc(meta.value?.base_id ? meta.value?.base_id : Object.keys(sqlUis.value)[0]))
+
+    const baseType = computed(() => getBaseType(meta.value?.base_id ? meta.value?.base_id : Object.keys(sqlUis.value)[0]))
 
     const idType = null
 
@@ -101,7 +103,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
               })
             },
           },
-          fieldLengthValidator(project.value?.bases?.[0].type || ClientType.MYSQL),
+          fieldLengthValidator(baseType.value || ClientType.MYSQL),
         ],
         uidt: [
           {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { getRelationName } from './utils'
 import { MetaInj, inject, ref, storeToRefs, useColumnCreateStoreOrThrow, useMetas, useProject, useVModel } from '#imports'
 
@@ -64,6 +64,12 @@ const onRelationColChange = () => {
   vModel.value.fk_lookup_column_id = columns?.[0]?.id
   onDataTypeChange()
 }
+
+
+const cellIcon = (column: ColumnType) =>
+  h(isVirtualCol(column) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
+    columnMeta: column,
+  })
 </script>
 
 <template>
@@ -94,6 +100,7 @@ const onRelationColChange = () => {
           @change="onDataTypeChange"
         >
           <a-select-option v-for="(column, index) of columns" :key="index" :value="column.id">
+            <component :is="cellIcon(column)" :column-meta="column" />
             {{ column.title }}
           </a-select-option>
         </a-select>

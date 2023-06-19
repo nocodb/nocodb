@@ -84,6 +84,11 @@ const onRelationColChange = () => {
   vModel.value.fk_rollup_column_id = columns?.[0]?.id
   onDataTypeChange()
 }
+
+const cellIcon = (column: ColumnType) =>
+  h(isVirtualCol(column) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
+    columnMeta: column,
+  })
 </script>
 
 <template>
@@ -114,6 +119,8 @@ const onRelationColChange = () => {
           @change="onDataTypeChange"
         >
           <a-select-option v-for="(column, index) of columns" :key="index" :value="column.id">
+            <component :is="cellIcon(column)" :column-meta="column" />
+
             {{ column.title }}
           </a-select-option>
         </a-select>

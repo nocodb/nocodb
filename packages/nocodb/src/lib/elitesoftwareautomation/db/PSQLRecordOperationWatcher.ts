@@ -1,7 +1,7 @@
 import Connection from "mysql2/typings/mysql/lib/Connection";
 import { Base, Hook, Model, Project } from "../../models";
 import { XKnex } from "../../db/sql-data-mapper";
-import { merge, isEqual } from "lodash";
+import { merge, isEqual, pick } from "lodash";
 import EventEmitter from "events";
 import { MetaTable } from "../../utils/globals";
 import type NcMetaIO from "../../meta/NcMetaIO";
@@ -33,6 +33,9 @@ type ISQLNotificationData = {
   payload: string;
 };
 
+/**
+ * - Treats all sql resources under the prefix as its own
+ */
 export class PSQLRecordOperationWatcher extends EventEmitter {
   public readonly recordOperationEventType = 'record-operation';
   private readonly rewatchErrorRetryDelayMillis = 3000;
@@ -44,6 +47,10 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
 
   constructor(private ncMeta: NcMetaIO){
     super();
+  }
+
+  private log(message: string, extraData?: any, level: 'log'|'error'|'warn'|'info' = 'log'){
+    console[level](`${PSQLRecordOperationWatcher.name} : ${message}`,extraData);
   }
 
   private throttleAndConsumeNotifications(baseData: IBaseData, delayMillis?: number){
@@ -105,6 +112,10 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
       .whereIn('id', baseData.knex(notificationsTableName).select('id').limit(perPage))
       .returning('*')
       .delete();
+
+    if(notifications.length){
+      this.log('consuming notifications : ', notifications.map(notification => pick(notification, ['nocodbModelId'])));
+    }
 
     if( numOfRows > perPage ){
       const consumeNotificationsPromise = this.consumeNotifications(baseData);
@@ -195,8 +206,12 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
     return this.createSqlIdentifier(baseData, 'notification_channel');
   }
 
+  private createSqlIdentifierPrefix ( baseData: IBaseData) {
+    return `esa_nocodb__${baseData.connectionOptions.database}`.toLowerCase();
+  };
+
   private createSqlIdentifier ( baseData: IBaseData, suffix: string,) {
-    return `esa_nocodb__${baseData.connectionOptions.database}__${suffix}`.toLowerCase();
+    return `${this.createSqlIdentifierPrefix(baseData)}__${suffix}`.toLowerCase();
   };
 
   private async setupSQLResources (baseData: IBaseData, models: Model[]) {
@@ -217,6 +232,8 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
       model_id TEXT;
     BEGIN
       model_id := TG_ARGV[0];
+
+      RAISE LOG '${PSQLRecordOperationWatcher.name} : inserting notification event for model : %', model_id;
 
       INSERT INTO "${notificationsTableName}"( "operation", "nocodbModelId", "oldData", "newData" ) VALUES ( LOWER(TG_OP)::VARCHAR, model_id::VARCHAR,row_to_json(OLD)::JSONB, row_to_json(NEW)::JSONB );
 
@@ -288,7 +305,11 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
       // TODO: Log this error and report as incident
       return;
     }
-    
+
+    if( base.is_meta ){
+      return;
+    }
+
     const foundModelData: Record<string, any>[] = await this.ncMeta.metaList2(
       base.project_id,
       base.id,
@@ -298,7 +319,9 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
     const models = foundModelData.map(foundModelDatum => new Model(foundModelDatum));
 
     const obsoleteModels: Model[] = [];
-    const newModels: Model[] = [];
+    
+    let skippedModels: Model[] = [];
+    let newModels: Model[] = [];
 
     let baseData:IBaseData = this.allBaseData.get(base.id);
 
@@ -335,6 +358,22 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
       baseData.models = models;
     }
 
+    /**
+     * WARNING: do not watch on table ( especially notification table ) created by this class to avoid exaustive loop of death because nocodb will also have a model for the table. If the model is
+     * watched( an sql trigger registered for it per se ), then a direct insert, update, delete action OR an insertion of notification event from trigger of other tables will cause a 
+     * notification event to be inserted again, which causes another insertion, hence an unending loop.
+     */
+    [ newModels, skippedModels ] = newModels.reduce( (results,newModel) => {
+      results[ newModel.table_name.startsWith( this.createSqlIdentifierPrefix( baseData ) ) ? 1 : 0 ].push(newModel);
+      return results;
+    }, [[],[]] );
+
+    const pickedFields = ['id', 'table_name','title'];
+    this.log(`watching base : ${base.id} , ${(await base.getConnectionConfig()).database} )`);
+    this.log(`watched models`, newModels.map(model => pick(model,pickedFields)));
+    this.log('skipped models', skippedModels.map(model => pick(model,pickedFields)));
+    this.log('obsolete models', obsoleteModels.map(model => pick(model,pickedFields)));
+
     await this.setupSQLResources(baseData, newModels);
 
     void this.consumeNotifications(baseData);
@@ -354,21 +393,24 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
   async unwatchBase( base: Base){
     const baseData = this.allBaseData.get(base.id);
     if(baseData){
-      if(baseData.throttleTaskId != undefined) {
-        clearTimeout(baseData.throttleTaskId);
-        baseData.throttleTaskId = null;
-      }
-
       try{
-        await this.consumeNotifications(baseData, true);
+        if(baseData.throttleTaskId != undefined) {
+          clearTimeout(baseData.throttleTaskId);
+          baseData.throttleTaskId = null;
+        }
+
+        try{
+          await this.consumeNotifications(baseData, true);
+        }
+        catch{};
+
+        // delete first before destroying all connections, so that a rewatch wont be attempted if connection.end event is fired
+        this.allBaseData.delete(base.id);
+        await this.disposeSQLResources(baseData);
       }
-      catch{};
-
-      // delete first before destroying all connections, so that a rewatch wont be attempted if connection.end event is fired
-      this.allBaseData.delete(base.id);
-      await this.disposeSQLResources(baseData);
-
-      await baseData.knex.destroy();
+      finally{
+        await baseData.knex.destroy();
+      }
     }
   }
 

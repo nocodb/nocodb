@@ -237,12 +237,6 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean) =>
   // if dashboard or document project, add a document tab and route to the respective page
   switch (project.type) {
     case 'dashboard':
-      // addTab({
-      //   id: project.id,
-      //   title: project.title!,
-      //   type: TabType.LAYOUT,
-      //   projectId: project.id,
-      // })
       $e('c:dashboard:open', project.id)
       await populateLayouts({ projectId: project.id! })
       if (!ignoreNavigation) {

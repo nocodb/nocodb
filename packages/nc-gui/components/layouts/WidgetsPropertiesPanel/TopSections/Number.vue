@@ -4,7 +4,7 @@ import { ref, watch } from 'vue'
 import { Icon } from '@iconify/vue'
 
 const dashboardStore = useDashboardStore()
-const { changeNameOfNumberWidget, changeDescriptionOfNumberWidget } = dashboardStore
+const { changeNameOfNumberWidget } = dashboardStore
 const { focusedWidget } = storeToRefs(dashboardStore)
 
 const dataConfig = computed(() => focusedWidget.value?.data_config as DataConfigNumber)
@@ -29,14 +29,4 @@ watch(dataConfig, (newConfig) => {
       <Icon class="text-xl iconify" icon="material-symbols:edit-outline" color="#565B66"></Icon>
     </template>
   </a-input>
-  <a-textarea
-    v-model:value="localDescription"
-    placeholder="Description"
-    class="nc-dashboard-layouts-propspanel-description-input"
-    @blur="() => changeDescriptionOfNumberWidget(localDescription)"
-  >
-    <template #suffix>
-      <Icon class="text-xl iconify" icon="material-symbols:edit-outline" color="#565B66"></Icon>
-    </template>
-  </a-textarea>
 </template>

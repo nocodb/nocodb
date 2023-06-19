@@ -23,7 +23,6 @@ import type {
 import { AggregateFnType, ButtonActionType, DataSourceType, FontType, WidgetTypeType, chartTypes } from 'nocodb-sdk'
 import { computed, extractSdkResponseErrorMsg, message, navigateTo, ref, useNuxtApp, useRouter, useTabs, watch } from '#imports'
 import type { LayoutSidebarNode } from '~~/lib'
-import { TabType } from '~~/lib'
 import type { IdAndTitle, TableWithProject } from '~~/components/layouts/types'
 
 interface LayoutEntry {
@@ -92,7 +91,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
    *
    *
    */
-  const availableTablesOfAllDBProjectsLinkedWithDashboardProject = ref<TableWithProject[] | undefined>()
 
   const isLayoutFetching = ref<Record<string, boolean>>({})
 
@@ -116,6 +114,8 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
 
   const availableViewsOfSelectedTable = ref<IdAndTitle[] | undefined>()
 
+  const dashboardProject = ref<ProjectType | undefined>(undefined)
+
   /***
    *
    * Computed
@@ -126,7 +126,9 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     openedWidgets.value?.find((widget: { id: string | undefined }) => widget.id === focusedWidgetId.value),
   )
 
-  const linkedDbProjects = computed(() => project.value?.linked_db_projects)
+  const linkedDbProjects = computed(() => {
+    return dashboardProject.value?.linked_db_projects
+  })
 
   const availableDbProjects = computed(
     () =>
@@ -147,6 +149,21 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     // TODO: check also for other numeric types here (like float)
     return availableColumnsOfSelectedView.value.filter((column) => column.dt && ['integer'].includes(column.dt))
   })
+
+  const availableTablesOfAllDBProjectsLinkedWithDashboardProject = computed(() =>
+    Array.from(projectTables.value)
+      .map(([_, tables]) => tables)
+      .flat()
+      .filter((t) => t != null && linkedDbProjects.value?.map((dbP) => dbP.id).includes(t.project_id))
+      .map((table) => ({
+        id: table.id!,
+        title: table.title || 'unknown',
+        project: {
+          id: table.project_id!,
+          title: availableDbProjects.value.find((p) => p.id === table.project_id)?.title || 'unknown',
+        },
+      })),
+  )
 
   /***
    *
@@ -217,27 +234,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     }
   }
 
-  async function _addTabWhenNestedLayoutIsPopulated({ projectId }: { projectId: string }) {
-    const layoutsOfProject = layoutsOfProjects.value[projectId]
-    if (!layoutsOfProject) {
-      setTimeout(() => {
-        _addTabWhenNestedLayoutIsPopulated({ projectId })
-      }, 100)
-      return
-    }
-
-    if (!openedLayoutId.value) return
-
-    const { addTab } = useTabs()
-
-    addTab({
-      id: openedLayoutSidebarNode.value!.id!,
-      title: openedLayoutSidebarNode.value!.title || 'NO TITLE',
-      type: TabType.LAYOUT,
-      projectId: openedProjectId.value,
-    })
-  }
-
   function _getLayoutUrl({ projectId, id, completeUrl }: { projectId: string; id: string; completeUrl?: boolean }) {
     projectId = projectId || openedProjectId.value
 
@@ -270,15 +266,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       if (!openedTabs.includes(createdLayoutData.id!)) {
         openedTabs.push(createdLayoutData.id!)
       }
-
-      const { addTab } = useTabs()
-
-      addTab({
-        id: createdLayoutData.id!,
-        title: createdLayoutData.title || 'NO TITLE',
-        type: TabType.LAYOUT,
-        projectId,
-      })
     } catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
@@ -332,6 +319,21 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
    *
    */
   watch(
+    [() => openedProjectId.value],
+    async () => {
+      if (openedProjectId.value == null) {
+        return
+      }
+      dashboardProject.value = await $api.project.read(openedProjectId.value)
+    },
+    {
+      immediate: true,
+    },
+  )
+  watch([() => availableDbProjects.value], async () => {
+    await Promise.all(availableDbProjects.value.map(async (project) => await loadProjectTables(project.id)))
+  })
+  watch(
     () => (focusedWidget.value?.data_source as DataSourceInternal)?.tableId,
     async () => {
       availableViewsOfSelectedTable.value = undefined
@@ -372,27 +374,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     },
   )
 
-  watch(availableDbProjects, async () => {
-    if (availableDbProjects.value == null || availableDbProjects.value.length === 0) {
-      availableTablesOfAllDBProjectsLinkedWithDashboardProject.value = []
-      return
-    }
-    await Promise.all(availableDbProjects.value.map(async (project) => await loadProjectTables(project.id)))
-
-    availableTablesOfAllDBProjectsLinkedWithDashboardProject.value = Array.from(projectTables.value)
-      .map(([_, tables]) => tables)
-      .flat()
-      .filter((t) => t != null)
-      .map((table) => ({
-        id: table.id!,
-        title: table.title || 'unknown',
-        project: {
-          id: table.project_id!,
-          title: availableDbProjects.value.find((p) => p.id === table.project_id)?.title || 'unknown',
-        },
-      }))
-  })
-
   watch(
     openedLayoutId,
     async (newLayoutId) => {
@@ -427,10 +408,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       }
       openedLayoutSidebarNode.value = { ...fetchedLayout, ...mandatorySidebarNodeProps }
       _fetchAndSetWidgetsOfOpenedLayoutId(openedLayoutId.value)
-
-      _addTabWhenNestedLayoutIsPopulated({
-        projectId: openedProjectId.value,
-      })
     },
     {
       immediate: true,

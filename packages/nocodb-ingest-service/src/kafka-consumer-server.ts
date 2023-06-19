@@ -33,7 +33,7 @@ export default class KafkaConsumerServer
 
     // Create a new ClickHouse client instance
     this.consumer = this.kafka.consumer({
-      groupId: 'my-group',
+      groupId: process.env.AWS_KAFKA_CONSUMER_GROUP,
       minBytes: +process.env.AWS_KAFKA_MIN_BYTES || 100000,
     });
     await this.consumer.connect();

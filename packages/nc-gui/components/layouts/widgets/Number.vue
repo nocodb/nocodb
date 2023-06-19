@@ -10,7 +10,6 @@ const { api } = useApi()
 
 const { widgetConfig } = toRefs(props)
 const aggregatedNumberValue = ref<number | undefined>()
-const description = ref<string | undefined>()
 // const icon = ref<string>('default-icon')
 const numberColumnTitle = ref<string | undefined>()
 const aggregateFunction = ref<string>('Description')
@@ -73,7 +72,6 @@ const columnTitleWithAggregateFnLabel = computed(() => {
       <div class="flex justify-between">
         <div class="flex flex-col">
           <h3 class="text-base font-medium text-gray-900 mb-1">{{ columnTitleWithAggregateFnLabel }}</h3>
-          <h4 class="font-normal text-gray-400 text-xs">{{ description }}</h4>
         </div>
         <!-- TODO make icon a dynamic value -->
         <IconifyIcon class="bg-blue-100 p-2 rounded h-10 min-w-10 text-lg" icon="iconoir:dollar"></IconifyIcon>

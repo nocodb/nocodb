@@ -2,6 +2,7 @@ import { extractProps } from '../helpers/extractProps';
 import Noco from '../Noco';
 import { MetaTable } from '../utils/globals';
 
+import { NcError } from '../helpers/catchError';
 import Page from './Page';
 import { Project } from './index';
 import type { WorkspaceType } from 'nocodb-sdk';
@@ -125,15 +126,12 @@ export default class Workspace implements WorkspaceType {
   }
 
   public static async delete(id: string, ncMeta = Noco.ncMeta) {
+    if (!id) NcError.badRequest('Workspace id is required');
+
     // todo: delete from workspace user
     await ncMeta.metaDelete(null, null, MetaTable.WORKSPACE_USER, {
       fk_workspace_id: id,
     });
-
-    const projectList = await Project.list(id, ncMeta);
-    for (const project of projectList) {
-      await Project.softDelete(project.id, ncMeta);
-    }
 
     // todo: reset project workspace mapping
     // and mark it as deleted

@@ -6,6 +6,9 @@ import KafkaConsumerServer from './kafka-consumer-server';
 
 function getServiceStrategy(): any {
   if (process.env.AWS_KAFKA_BROKERS) {
+    if (!process.env.AWS_KAFKA_CONSUMER_GROUP) {
+      throw new Error('AWS_KAFKA_CONSUMER_GROUP env variable is not set. Please set for using AWS_KAFKA');
+    }
     return new KafkaConsumerServer();
   } else if (process.env.AWS_KINESIS_CLIENT_ID) {
     return new KinesisConsumerServer();

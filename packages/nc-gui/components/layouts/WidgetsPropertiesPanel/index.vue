@@ -23,7 +23,8 @@ const chartTypesForDropdown = computed(() =>
 </script>
 
 <template>
-  <h3>Properties Panel</h3>
+  <h3 class="uppercase text-md text-gray-500">Properties</h3>
+  <a-divider />
   <template v-if="focusedWidget">
     <LayoutsWidgetsPropertiesPanelVisualisationConfigIdWithTitleSelectBox
       v-if="chartTypes.includes(focusedWidget?.widget_type)"
@@ -38,10 +39,6 @@ const chartTypesForDropdown = computed(() =>
     <LayoutsWidgetsPropertiesPanelTopSectionsNumber v-if="isNumber" />
     <LayoutsWidgetsPropertiesPanelTopSectionsButton v-if="isButton" />
     <LayoutsWidgetsPropertiesPanelTopSectionsText v-if="isText" />
-    <a-radio-group v-model:value="dataOrAppearanceMode" class="nc-radio-group">
-      <a-radio-button class="nc-radio-button" value="data">Data</a-radio-button>
-      <a-radio-button class="nc-radio-button" value="appearance">Appearance</a-radio-button>
-    </a-radio-group>
 
     <a-divider />
 
@@ -51,13 +48,6 @@ const chartTypesForDropdown = computed(() =>
       <LayoutsWidgetsPropertiesPanelDataConfigSectionsNumber v-if="isNumber" />
       <LayoutsWidgetsPropertiesPanelDataConfigSectionsButton v-if="isButton" />
     </div>
-    <div v-else-if="dataOrAppearanceMode === 'appearance'">
-      <LayoutsWidgetsPropertiesPanelAppearanceConfigSectionsText v-if="isText" />
-      <LayoutsWidgetsPropertiesPanelAppearanceConfigSectionsNumber v-if="isNumber" />
-    </div>
-  </template>
-  <template v-else>
-    <LayoutsWidgetsPropertiesPanelNoWidgetSelected />
   </template>
 </template>
 

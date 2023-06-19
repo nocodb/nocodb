@@ -40,7 +40,7 @@ export async function createHmAndBtColumn(
   {
     const title = getUniqueColumnAliasName(
       await child.getColumns(),
-      type === 'bt' && !isLinks ? alias : `${parent.title}`,
+      (type === 'bt' && alias) || `${parent.title}`,
     );
     await Column.insert<LinkToAnotherRecordColumn>({
       title,
@@ -65,7 +65,7 @@ export async function createHmAndBtColumn(
   {
     const title = getUniqueColumnAliasName(
       await parent.getColumns(),
-      type === 'hm' && !isLinks ? alias : `${child.title} List`,
+      (type === 'hm' && alias) || `${child.title}`,
     );
     const meta = {
       plural: columnMeta?.plural || pluralize(child.title),

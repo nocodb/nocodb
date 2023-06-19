@@ -513,7 +513,15 @@ function textBased() {
       isLastPage: false,
     };
     expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
+
+    // verify if all the columns are present in the response
     expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+
+    // verify column data
+    const expectedData = insertedRecords.slice(0, 1);
+    expect(JSON.stringify(rsp.body.list[0])).to.deep.equal(
+      JSON.stringify(expectedData[0]),
+    );
   });
 
   it('List: offset, limit', async function () {
@@ -883,6 +891,8 @@ function textBased() {
   });
 
   it('List: invalid sort, filter, fields', async function () {
+    // expect to ignore invalid sort, filter, fields
+
     await ncAxiosGet({
       query: {
         sort: 'abc',
@@ -2326,7 +2336,7 @@ function linkBased() {
         ...validParams,
         body: [1, 2, 1, 2],
         status: 422,
-        msg: 'Child record with id [1, 2, 1, 2] contains duplicate value',
+        msg: 'Child record with id [1, 2] contains duplicate value',
       });
     }
   }
@@ -2379,7 +2389,7 @@ function linkBased() {
         ...validParams,
         body: [999, 998],
         status: 422,
-        msg: 'Child record with id [999, 998] invalid for belongs-to relation field. Should contain only one value',
+        msg: 'Child record with id [999, 998] invalid. Belongs-to can link to only one record',
       });
     } else {
       // Link Remove: Invalid body parameter - row id invalid
@@ -2399,7 +2409,7 @@ function linkBased() {
         ...validParams,
         body: [1, 2, 1, 2],
         status: 422,
-        msg: 'Child record with id [1, 2, 1, 2] contains duplicate value',
+        msg: 'Child record with id [1, 2] contains duplicate value',
       });
     }
   }
@@ -2700,15 +2710,15 @@ function linkBased() {
 ///////////////////////////////////////////////////////////////////////////////
 
 export default function () {
-  // based out of sakila db, for link based tests
-  describe('General', generalDb);
-
   // standalone tables
   describe('Text based', textBased);
   describe('Numerical', numberBased);
   describe('Select based', selectBased);
   describe('Date based', dateBased);
   describe('Link based', linkBased);
+
+  // based out of sakila db, for link based tests
+  describe('General', generalDb);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

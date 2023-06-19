@@ -233,6 +233,7 @@ watch(vModel, (nextVal) => {
               :value="refRow[relatedTableDisplayValueProp]"
               :column="props.column"
               :show-unlink-button="false"
+              :border="false"
             />
             <!--            <span class="hidden group-hover:(inline) text-gray-400 text-[11px] ml-1"> -->
             <!--              ({{ $t('labels.primaryKey') }} : {{ getRelatedTableRowId(refRow) }}) -->
@@ -283,6 +284,6 @@ watch(vModel, (nextVal) => {
 }
 
 :deep(.nc-nested-list-item .ant-card-body) {
-  @apply !p-2;
+  @apply !px-2 !py-1;
 }
 </style>

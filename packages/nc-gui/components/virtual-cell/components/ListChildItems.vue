@@ -148,7 +148,11 @@ const onClick = (row: Row) => {
           >
             <div class="flex items-center">
               <div class="flex-1 overflow-hidden min-w-0">
-                <VirtualCellComponentsItemChip :value="row[relatedTableDisplayValueProp]" :column="props.column" />
+                <VirtualCellComponentsItemChip
+                  :border="false"
+                  :value="row[relatedTableDisplayValueProp]"
+                  :column="props.column"
+                />
                 <!--                <span class="text-gray-400 text-[11px] ml-1">(Primary key : {{ getRelatedTableRowId(row) }})</span> -->
               </div>
 
@@ -210,6 +214,6 @@ const onClick = (row: Row) => {
 }
 
 :deep(.nc-nested-list-item .ant-card-body) {
-  @apply !p-2;
+  @apply !px-2 !py-1;
 }
 </style>

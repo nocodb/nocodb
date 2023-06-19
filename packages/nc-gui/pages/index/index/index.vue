@@ -264,7 +264,7 @@ const projectListType = computed(() => {
   <NuxtLayout name="new">
     <template #sidebar>
       <div class="h-full flex flex-col min-h-[400px] overflow-auto">
-        <div class="nc-workspace-group overflow-auto mt-8">
+        <div class="nc-workspace-group overflow-auto mt-8.5">
           <div class="flex text-sm font-medium text-gray-400 mx-4.5 mb-2">All Projects</div>
           <div
             class="nc-workspace-group-item"

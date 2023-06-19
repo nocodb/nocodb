@@ -13,7 +13,7 @@ const { addToFavourite, removeFromFavourite, updateProjectTitle } = workspaceSto
 const { activePage } = storeToRefs(workspaceStore)
 
 const { loadProjects } = useProjects()
-const { projects, projectsList } = storeToRefs(useProjects())
+const { projects, projectsList, isProjectsLoading } = storeToRefs(useProjects())
 
 // const filteredProjects = computed(() => projects.value?.filter((p) => !p.deleted) || [])
 
@@ -274,7 +274,22 @@ const setIcon = async (icon: string, project: ProjectType) => {
 
 <template>
   <div>
+    <div
+      v-if="!projectsList || projectsList?.length === 0"
+      class="w-full flex flex-row justify-center items-center"
+      style="height: calc(100vh - 16rem)"
+    >
+      <div v-if="isProjectsLoading">
+        <GeneralLoader size="xlarge" />
+      </div>
+      <div v-else class="flex flex-col items-center gap-y-5">
+        <MaterialSymbolsInboxOutlineRounded class="!h-8 w-8 text-2xl text-primary" />
+        <div class="font-medium text-xl">Welcome to nocoDB</div>
+        <div class="font-medium">Create your first Project!</div>
+      </div>
+    </div>
     <a-table
+      v-else
       v-model:data-source="projectsList"
       class="h-full"
       :custom-row="customRow"
@@ -461,7 +476,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
 }
 
 :deep(.ant-table-body) {
-  @apply !p-0 w-full !overflow-y-auto;
+  @apply !px-0 !pt-0 !pb-4 w-full !mb-3 !overflow-y-auto;
 }
 
 :deep(.ant-table-thead > tr > th) {
@@ -481,5 +496,37 @@ const setIcon = async (icon: string, project: ProjectType) => {
 }
 :deep(.ant-table-column-sorters > .ant-table-column-title) {
   flex: none;
+}
+
+:deep(.ant-table-body) {
+  overflow-y: overlay;
+  height: calc(100vh - var(--topbar-height));
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #f6f6f600 !important;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #f6f6f600;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: #f6f6f600;
+  }
+}
+:deep(.ant-table-body) {
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #f6f6f600 !important;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgb(215, 215, 215);
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgb(203, 203, 203);
+  }
 }
 </style>

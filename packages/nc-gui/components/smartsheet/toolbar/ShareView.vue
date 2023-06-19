@@ -2,6 +2,7 @@
 import { ViewTypes } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
 import tinycolor from 'tinycolor2'
+import { Modal } from 'ant-design-vue'
 import {
   computed,
   extractSdkResponseErrorMsg,
@@ -40,7 +41,7 @@ const { isMobileMode } = useGlobal()
 
 let showShareModel = $ref(false)
 
-const passwordProtected = ref(false)
+const passwordProtected = ref(true)
 
 const shared = ref<SharedView>({ id: '', meta: {}, password: undefined })
 
@@ -100,9 +101,6 @@ const genShareLink = async () => {
     shared.value.meta = { ...shared.value.meta, groupingFieldColumn: groupingFieldColumn.value }
     await updateSharedViewMeta(true)
   }
-
-  passwordProtected.value = !!shared.value.password && shared.value.password !== ''
-
   showShareModel = true
 }
 
@@ -238,6 +236,18 @@ const copyIframeCode = async () => {
     }
   }
 }
+
+const displayConfirmationModal = () => {
+  Modal.confirm({
+    title: 'Are you sure about sharing this view?',
+    okText: 'Yes',
+    okType: 'Primary',
+    cancelText: 'No',
+    onOk() {
+      genShareLink()
+    },
+  })
+}
 </script>
 
 <template>
@@ -247,7 +257,7 @@ const copyIframeCode = async () => {
       v-e="['c:view:share']"
       outlined
       class="nc-btn-share-view nc-toolbar-btn"
-      @click="genShareLink"
+      @click="displayConfirmationModal"
     >
       <div class="flex items-center gap-1">
         <component :is="iconMap.share" />
@@ -367,7 +377,7 @@ const copyIframeCode = async () => {
             "
           >
             <!-- Allow Download -->
-            <a-checkbox v-model:checked="allowCSVDownload" data-testid="nc-modal-share-view__with-csv-download" class="!text-sm">
+            <a-checkbox data-testid="nc-modal-share-view__with-csv-download" class="!text-sm">
               {{ $t('labels.downloadAllowed') }}
             </a-checkbox>
           </div>

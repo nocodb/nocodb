@@ -105,7 +105,6 @@ export default defineConfig({
   webServer: {
     cwd: '../../packages/nc-gui',
     command: 'pnpm run ci:run',
-    port: 3000,
     reuseExistingServer: !process.env.CI,
     stdout: 'ignore',
     stderr: 'pipe',

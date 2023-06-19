@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed } from '@vue/reactivity'
 import type { ColumnType } from 'nocodb-sdk'
+import { ref } from 'vue'
 import type { Ref } from 'vue'
 import { ActiveCellInj, CellValueInj, ColumnInj, EditModeInj, MetaInj, inject, useSelectedCellKeyupListener } from '#imports'
 
-const value = inject(CellValueInj)
+const value = inject(CellValueInj, ref(0))
 
 const column = inject(ColumnInj)!
 
@@ -50,12 +51,14 @@ const relatedTableDisplayColumn = computed(
 loadRelatedTableMeta()
 
 const textVal = computed(() => {
-  if (!value.value) {
+  const parsedValue = +value?.value || 0
+
+  if (!parsedValue) {
     return 'Empty'
-  } else if (value.value === 1) {
+  } else if (parsedValue === 1) {
     return `1 ${column.value?.meta?.singular || 'Link'}`
   } else {
-    return `${value.value} ${column.value?.meta?.plural || 'Links'}`
+    return `${parsedValue} ${column.value?.meta?.plural || 'Links'}`
   }
 })
 
@@ -117,8 +120,8 @@ const localCellValue = computed<any[]>(() => {
     <LazyVirtualCellComponentsListChildItems
       v-model="childListDlg"
       :column="relatedTableDisplayColumn"
-      @attach-record="onAttachRecord"
       :cell-value="localCellValue"
+      @attach-record="onAttachRecord"
     />
   </div>
 </template>

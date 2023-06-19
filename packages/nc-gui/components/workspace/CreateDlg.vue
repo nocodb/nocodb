@@ -61,30 +61,14 @@ watch(dialogShow, (val) => {
 </script>
 
 <template>
-  <a-modal
-    v-model:visible="dialogShow"
-    :class="{ active: dialogShow }"
-    width="max(30vw, 600px)"
-    centered
-    wrap-class-name="nc-modal-workspace-create"
-    @keydown.esc="dialogShow = false"
-  >
-    <template #footer>
-      <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
-
-      <a-button key="submit" size="large" type="primary" @click="_createWorkspace">{{ $t('general.submit') }}</a-button>
-    </template>
-
-    <div class="pl-10 pr-10 pt-5">
+  <GeneralModal v-model:visible="dialogShow" @keydown.esc="dialogShow = false">
+    <div class="px-7 py-5">
       <a-form :model="workspace" name="create-new-workspace-form" @keydown.enter="_createWorkspace">
         <!-- Create A New Table -->
-        <div class="prose-xl font-bold self-center my-4">{{ $t('activity.createWorkspace') }}</div>
-
-        <!-- todo: i18n -->
-        <div class="mb-2">Workspace Name</div>
+        <div class="prose-xl font-bold self-center mb-5">{{ $t('activity.createWorkspace') }}</div>
 
         <a-form-item v-bind="validateInfos.title">
-          <InputOrTags v-model="workspace.title" />
+          <InputOrTags v-model="workspace.title" class="!rounded" />
 
           <!--          <a-input -->
           <!--            :ref="inputEl" -->
@@ -95,7 +79,12 @@ watch(dialogShow, (val) => {
           <!--            placeholder="Workspace name" -->
           <!--          /> -->
         </a-form-item>
-        <a-form-item v-bind="validateInfos.description">
+        <div class="flex flex-row justify-end mt-10">
+          <a-button key="submit" class="!rounded" size="large" type="primary" @click="_createWorkspace">{{
+            $t('general.submit')
+          }}</a-button>
+        </div>
+        <!-- <a-form-item v-bind="validateInfos.description">
           <a-textarea
             v-model:value="workspace.description"
             size="large"
@@ -103,10 +92,10 @@ watch(dialogShow, (val) => {
             data-testid="create-workspace-description-input"
             placeholder="Workspace description"
           />
-        </a-form-item>
+        </a-form-item> -->
       </a-form>
     </div>
-  </a-modal>
+  </GeneralModal>
 </template>
 
 <style scoped lang="scss">

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { isLinksOrLTAR, isSystemColumn, isVirtualCol, RelationTypes } from 'nocodb-sdk'
 import { getRelationName } from './utils'
 import { MetaInj, inject, ref, storeToRefs, useColumnCreateStoreOrThrow, useMetas, useProject, useVModel } from '#imports'
 
@@ -21,6 +21,8 @@ const { tables } = $(storeToRefs(useProject()))
 
 const { metas } = $(useMetas())
 
+const deprecatedEnabled = $(ref(false))
+
 setAdditionalValidations({
   fk_relation_column_id: [{ required: true, message: 'Required' }],
   fk_lookup_column_id: [{ required: true, message: 'Required' }],
@@ -35,7 +37,7 @@ const refTables = $computed(() => {
   }
 
   const _refTables = meta.columns
-    .filter((column) => isLinksOrLTAR(column) && !column.system && column.base_id === meta?.base_id)
+    .filter((column) => isLinksOrLTAR(column) && (deprecatedEnabled || column.colOptions?.type === RelationTypes.BELONGS_TO) && !column.system && column.base_id === meta?.base_id)
     .map((column) => ({
       col: column.colOptions,
       column,
@@ -80,11 +82,13 @@ const cellIcon = (column: ColumnType) =>
           v-model:value="vModel.fk_relation_column_id"
           dropdown-class-name="!w-64 nc-dropdown-relation-table"
           @change="onRelationColChange"
+          @dblclick="deprecatedEnabled = !deprecatedEnabled"
         >
           <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
             <div class="flex flex-row space-x-0.5 h-full pb-0.5 items-center justify-between">
               <div class="font-semibold text-xs">{{ table.column.title }}</div>
               <div class="text-[0.65rem] text-gray-600">
+                <span v-if="table.col.type !== RelationTypes.BELONGS_TO" class="text-[0.65rem] text-gray-600">(Deprecated)</span>
                 {{ getRelationName(table.col.type) }} {{ table.title || table.table_name }}
               </div>
             </div>

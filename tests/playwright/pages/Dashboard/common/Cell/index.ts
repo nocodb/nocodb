@@ -329,12 +329,13 @@ export class CellPageObject extends BasePage {
 
   async unlinkVirtualCell({ index, columnHeader }: CellProps) {
     const cell = this.get({ index, columnHeader });
-    await cell.click();
+    await cell.locator('.nc-datatype-link').click();
     await this.waitForResponse({
-      uiAction: () => cell.locator('.unlink-icon').first().click(),
+      uiAction: () => this.rootPage.locator(`[data-testid="nc-child-list-icon-unlink"]`).first().click(),
       requestUrlPathToMatch: '/api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
     });
+    await this.rootPage.keyboard.press('Escape');
   }
 
   async verifyRoleAccess(param: { role: string }) {

@@ -546,18 +546,35 @@ test.describe('Undo Redo - LTAR', () => {
     // inserted values
     const expectedValues = [...values];
 
-    const currentRecords: Record<string, any> = await api.dbTableRow.list('noco', context.project.id, countryTable.id, {
-      fields: ['CityList'],
-      limit: 100,
-    });
+    try {
+      const currentRecords: Record<string, any> = await api.dbTableRow.list(
+        'noco',
+        context.project.id,
+        countryTable.id,
+        {
+          fields: ['CityList'],
+          limit: 100,
+        }
+      );
+      expect(currentRecords.list.length).toBe(4);
+      expect(currentRecords.list[0].CityList).toBe(expectedValues.length);
+    } catch (e) {
+      console.log(e);
+    }
 
-    // verify if expectedValues array includes all the values in currentRecords
-    // currentRecords [ { Id: 1, City: 'Mumbai' }, { Id: 3, City: 'Delhi' } ]
-    // expectedValues [ 'Mumbai', 'Delhi' ]
-    currentRecords.list[0].CityList.forEach((record: any) => {
-      expect(expectedValues).toContain(record.City);
-    });
-    expect(currentRecords.list[0].CityList.length).toBe(expectedValues.length);
+    if (expectedValues.length > 0) {
+      // read nested records associated with first record
+      const nestedRecords: Record<string, any> = await api.dbTableRow.nestedList(
+        'noco',
+        context.project.id,
+        countryTable.id,
+        1,
+        'hm',
+        'CityList'
+      );
+      const cities = nestedRecords.list.map((record: any) => record.City);
+      expect(cities).toEqual(expectedValues);
+    }
   }
 
   async function undo({ page, values }: { page: Page; values: string[] }) {

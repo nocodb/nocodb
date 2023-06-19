@@ -317,9 +317,9 @@ useEventListener(document, 'click', handleClose, true)
 
 const selectedOpts = computed(() => {
   return vModel.value.reduce<SelectOptionType[]>((selectedOptions, option) => {
-    const fnd = options.value.find((o) => o.value === option)
-    if (fnd) {
-      selectedOptions.push(fnd)
+    const selectedOption = options.value.find((o) => o.value === option)
+    if (selectedOption) {
+      selectedOptions.push(selectedOption)
     }
     return selectedOptions
   }, [])

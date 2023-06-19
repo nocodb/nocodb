@@ -92,7 +92,7 @@ const localCellValue = computed<any[]>(() => {
 </script>
 
 <template>
-  <div class="flex w-full items-center nc-links-wrapper" @dblclick.stop="openChildList = true">
+  <div class="flex w-full items-center nc-links-wrapper" @dblclick.stop="openChildList">
     <template v-if="!isForm">
       <div class="block flex-shrink truncate">
         <component

@@ -8,11 +8,12 @@ import { NcProjectType, navigateTo, projectThemeColors, storeToRefs, timeAgo, us
 import { useNuxtApp } from '#app'
 
 const workspaceStore = useWorkspace()
-const { addToFavourite, removeFromFavourite, updateProjectTitle } = workspaceStore
-const { activePage } = storeToRefs(workspaceStore)
+const projectsStore = useProjects()
+const { addToFavourite, removeFromFavourite, updateProjectTitle, populateWorkspace } = workspaceStore
+const { activePage, activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const { loadProjects } = useProjects()
-const { projects, projectsList } = storeToRefs(useProjects())
+const { projects, projectsList, isProjectsLoading } = storeToRefs(useProjects())
 
 // const filteredProjects = computed(() => projects.value?.filter((p) => !p.deleted) || [])
 
@@ -159,23 +160,7 @@ const columns = computed(() => [
       ]
     : []),
   {
-    title: 'Color',
-    dataIndex: 'type',
-    // sorter: {
-    //   compare: (a, b) => a.type?.localeCompare(b.type),
-    //   multiple: 3,
-    // },
-  },
-  {
-    title: 'Last Accessed',
-    dataIndex: 'last_accessed',
-    sorter: {
-      compare: (a, b) => new Date(b.last_accessed) - new Date(a.last_accessed),
-      multiple: 2,
-    },
-  },
-  {
-    title: 'My Role',
+    title: 'Role',
     dataIndex: 'workspace_role',
     sorter: {
       compare: (a, b) => a - b,
@@ -183,8 +168,22 @@ const columns = computed(() => [
     },
   },
   {
-    title: 'Actions',
+    title: 'Last Opened',
+    dataIndex: 'last_accessed',
+    sorter: {
+      compare: (a, b) => new Date(b.last_accessed) - new Date(a.last_accessed),
+      multiple: 2,
+    },
+  },
+
+  {
+    title: '',
     dataIndex: 'id',
+    hidden: true,
+    width: '24px',
+    style: {
+      padding: 0,
+    },
   },
 ])
 
@@ -256,13 +255,63 @@ function onProjectTitleClick(index: number) {
     clickCount = 0
   }
 }
+
+const setIcon = async (icon: string, project: ProjectType) => {
+  try {
+    const meta = {
+      ...((project.meta as object) || {}),
+      icon,
+    }
+
+    projectsStore.updateProject(project.id!, { meta: JSON.stringify(meta) })
+
+    $e('a:project:icon:navdraw', { icon })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
 </script>
 
 <template>
   <div>
+    <div
+      v-if="!projectsList || projectsList?.length === 0 || isProjectsLoading"
+      class="w-full flex flex-row justify-center items-center"
+      style="height: calc(100vh - 16rem)"
+    >
+      <div v-if="isProjectsLoading">
+        <GeneralLoader size="xlarge" />
+      </div>
+      <div v-else class="flex flex-col items-center gap-y-5">
+        <MaterialSymbolsInboxOutlineRounded
+          class="text-2xl text-primary"
+          :class="{
+            'h-8 w-8': activePage === 'workspace',
+            'h-12 w-12': activePage !== 'workspace',
+          }"
+        />
+        <template v-if="activePage === 'workspace'">
+          <div class="font-medium text-xl">Welcome to nocoDB</div>
+          <div class="font-medium">Create your first Project!</div>
+        </template>
+        <template v-else-if="activePage === 'recent'">
+          <div class="font-medium text-lg">No Recent Projects</div>
+        </template>
+        <template v-else-if="activePage === 'starred'">
+          <div class="font-medium text-lg">No Starred Projects</div>
+        </template>
+        <template v-else-if="activePage === 'shared'">
+          <div class="font-medium text-lg">No Shared Projects</div>
+        </template>
+      </div>
+    </div>
     <a-table
+      v-else
       v-model:data-source="projectsList"
       class="h-full"
+      :class="{
+        'full-height-table': activePage !== 'workspace',
+      }"
       :custom-row="customRow"
       :columns="columns"
       :pagination="false"
@@ -274,10 +323,18 @@ function onProjectTitleClick(index: number) {
 
       <template #bodyCell="{ column, text, record, index: i }">
         <template v-if="column.dataIndex === 'title'">
-          <div class="flex items-center nc-project-title gap-2 max-w-full">
+          <div class="flex items-center nc-project-title gap-2.5 max-w-full -ml-1.5">
             <div class="flex items-center gap-2 text-center">
+              <GeneralEmojiPicker
+                :key="record.id"
+                :emoji="record.meta?.icon"
+                size="small"
+                clearable
+                @emoji-selected="setIcon($event, record)"
+              >
+                <GeneralProjectIcon :type="record.type" />
+              </GeneralEmojiPicker>
               <!-- todo: replace with switch -->
-              <GeneralProjectIcon :type="record.type" />
             </div>
 
             <div class="min-w-10">
@@ -314,52 +371,10 @@ function onProjectTitleClick(index: number) {
           </div>
         </template>
 
-        <template v-if="column.dataIndex === 'type'">
-          <div @click.stop>
-            <a-dropdown :trigger="['click']" @click.stop>
-              <div class="w-10 flex justify-center items-center">
-                <!--                  todo: allow based on role -->
-                <span
-                  class="block w-2 h-6 rounded-sm nc-click-transition-1"
-                  :style="{ backgroundColor: getProjectPrimary(record) }"
-                />
-              </div>
-              <template #overlay>
-                <a-menu trigger-sub-menu-action="click">
-                  <a-menu-item>
-                    <LazyGeneralColorPicker
-                      :model-value="getProjectPrimary(record)"
-                      :colors="projectThemeColors"
-                      :row-size="9"
-                      :advanced="false"
-                      @input="handleProjectColor(record.id, $event)"
-                    />
-                  </a-menu-item>
-                  <a-sub-menu key="pick-primary">
-                    <template #title>
-                      <div class="nc-project-menu-item group !py-0">
-                        <ClarityColorPickerSolid class="group-hover:text-accent" />
-                        Custom Color
-                      </div>
-                    </template>
-
-                    <template #expandIcon></template>
-
-                    <LazyGeneralChromeWrapper @input="handleProjectColor(record.id, $event)" />
-                  </a-sub-menu>
-                </a-menu>
-              </template>
-            </a-dropdown>
-          </div>
-        </template>
-
         <div v-if="column.dataIndex === 'last_accessed'" class="text-xs text-gray-500">
           {{ text ? timeAgo(text) : 'Newly invited' }}
         </div>
 
-        <div v-if="column.dataIndex === 'workspace_role'" class="text-xs text-gray-500">
-          {{ roleAlias[record.workspace_role || record.project_role] }}
-        </div>
         <div v-if="column.dataIndex === 'workspace_title'" class="text-xs text-gray-500">
           <span v-if="text" class="text-xs text-gray-500 whitespace-nowrap overflow-hidden overflow-ellipsis">
             <nuxt-link
@@ -377,57 +392,63 @@ function onProjectTitleClick(index: number) {
           </span>
         </div>
 
-        <template v-if="column.dataIndex === 'id'">
-          <div class="flex items-center gap-2">
-            <a-dropdown
-              v-if="isUIAllowed('projectActionMenu', true, [record.workspace_role, record.project_role].join())"
-              :trigger="['click']"
-            >
-              <div @click.stop>
-                <template v-if="record.status === ProjectStatus.JOB">
-                  <component :is="iconMap.reload" class="animate-infinite animate-spin" />
-                </template>
-                <GeneralIcon v-else icon="threeDotHorizontal" class="outline-0 nc-workspace-menu nc-click-transition" />
-              </div>
-              <template #overlay>
-                <a-menu>
-                  <a-menu-item @click="enableEdit(i)">
-                    <div class="nc-menu-item-wrapper">
-                      <GeneralIcon icon="edit" class="text-gray-500" />
-                      Rename Project
-                    </div>
-                  </a-menu-item>
-                  <a-menu-item
-                    v-if="
-                      record.type === NcProjectType.DB &&
-                      isUIAllowed('duplicateProject', true, [record.workspace_role, record.project_role].join())
-                    "
-                    @click="duplicateProject(record)"
-                  >
-                    <div class="nc-menu-item-wrapper">
-                      <GeneralIcon icon="duplicate" class="text-gray-500" />
-                      Duplicate Project
-                    </div>
-                  </a-menu-item>
-                  <a-menu-item
-                    v-if="isUIAllowed('moveProject', true, [record.workspace_role, record.project_role].join())"
-                    @click="moveProject(record)"
-                  >
-                    <div class="nc-menu-item-wrapper">
-                      <GeneralIcon icon="move" class="text-gray-500" />
-                      Move Project
-                    </div>
-                  </a-menu-item>
-                  <a-menu-item @click="deleteProject(record)">
-                    <div class="nc-menu-item-wrapper">
-                      <GeneralIcon icon="delete" class="text-gray-500" />
-                      Delete Project
-                    </div>
-                  </a-menu-item>
-                </a-menu>
-              </template>
-            </a-dropdown>
+        <div v-if="column.dataIndex === 'workspace_role'" class="flex flex-row text-xs justify-between text-gray-500">
+          <div class="flex">
+            {{ roleAlias[record.workspace_role || record.project_role] }}
           </div>
+          <div class="flex items-center gap-2"></div>
+        </div>
+
+        <template v-if="column.dataIndex === 'id'">
+          <a-dropdown
+            v-if="isUIAllowed('projectActionMenu', true, [record.workspace_role, record.project_role].join())"
+            :trigger="['click']"
+          >
+            <div @click.stop>
+              <template v-if="record.status === ProjectStatus.JOB">
+                <component :is="iconMap.reload" class="animate-infinite animate-spin" />
+              </template>
+              <GeneralIcon v-else icon="threeDotVertical" class="outline-0 nc-workspace-menu nc-click-transition" />
+            </div>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item @click="enableEdit(i)">
+                  <div class="nc-menu-item-wrapper">
+                    <GeneralIcon icon="edit" class="text-gray-500" />
+                    Rename Project
+                  </div>
+                </a-menu-item>
+                <a-menu-item
+                  v-if="
+                    record.type === NcProjectType.DB &&
+                    isUIAllowed('duplicateProject', true, [record.workspace_role, record.project_role].join())
+                  "
+                  @click="duplicateProject(record)"
+                >
+                  <div class="nc-menu-item-wrapper">
+                    <GeneralIcon icon="duplicate" class="text-gray-500" />
+                    Duplicate Project
+                  </div>
+                </a-menu-item>
+                <a-menu-item
+                  v-if="isUIAllowed('moveProject', true, [record.workspace_role, record.project_role].join())"
+                  @click="moveProject(record)"
+                >
+                  <div class="nc-menu-item-wrapper">
+                    <GeneralIcon icon="move" class="text-gray-500" />
+                    Move Project
+                  </div>
+                </a-menu-item>
+                <a-menu-item @click="deleteProject(record)">
+                  <div class="nc-menu-item-wrapper">
+                    <GeneralIcon icon="delete" class="text-gray-500" />
+                    Delete Project
+                  </div>
+                </a-menu-item>
+              </a-menu>
+            </template>
+          </a-dropdown>
+          <div v-else></div>
         </template>
       </template>
     </a-table>
@@ -462,5 +483,74 @@ function onProjectTitleClick(index: number) {
 
 :deep(th.ant-table-cell) {
   @apply !text-gray-500;
+}
+
+:deep(.ant-table-cell:last-child) {
+  @apply !p-0;
+}
+:deep(.ant-table-row:last-child > td) {
+  @apply !border-b-0;
+}
+
+:deep(.ant-table-cell:nth-child(2)) {
+  @apply !p-0;
+}
+
+:deep(.ant-table-body) {
+  @apply !p-0 w-full !overflow-y-auto;
+}
+
+:deep(.ant-table-thead > tr > th) {
+  @apply !bg-transparent;
+}
+
+:deep(.ant-table-cell::before) {
+  width: 0 !important;
+}
+
+:deep(.ant-table-column-sorter) {
+  @apply text-gray-100 !hover:text-gray-300;
+}
+
+:deep(.ant-table-column-sorters) {
+  @apply !justify-start !gap-x-2;
+}
+:deep(.ant-table-column-sorters > .ant-table-column-title) {
+  flex: none;
+}
+
+:deep(.full-height-table .ant-table-body) {
+  height: calc(100vh - var(--topbar-height) - 9rem) !important;
+}
+:deep(.ant-table-body) {
+  overflow-y: overlay;
+  height: calc(100vh - var(--topbar-height) - 13.45rem);
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #f6f6f600 !important;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #f6f6f600;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: #f6f6f600;
+  }
+}
+:deep(.ant-table-body) {
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #f6f6f600 !important;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgb(215, 215, 215);
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgb(203, 203, 203);
+  }
 }
 </style>

@@ -5,7 +5,7 @@
 :root {
   --sidebar-top-height: 11.75rem;
   --topbar-height: 3.15rem;
-  --new-header-height: 58px;
+  --new-header-height: 3.5rem;
   --tw-text-opacity: 1;
   --navbar-bg: #FAFAFA;
   --navbar-border: #e0e0e0;
@@ -32,6 +32,37 @@ body,
 .ant-layout,
 main {
   @apply m-0 h-full w-full bg-white;
+}
+
+.nc-sidebar-md {
+  overflow-y: overlay;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #f6f6f600 !important;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #f6f6f600;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: #f6f6f600;
+  }
+}
+.nc-sidebar-md {
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #f6f6f600 !important;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgb(215, 215, 215);
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgb(203, 203, 203);
+  }
 }
 
 html {

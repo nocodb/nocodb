@@ -11,10 +11,13 @@ const inviteData = reactive({
 const workspaceStore = useWorkspace()
 
 const { inviteCollaborator: _inviteCollaborator } = workspaceStore
+const { isInvitingCollaborators } = storeToRefs(workspaceStore)
 
 const inviteCollaborator = async () => {
   try {
     await _inviteCollaborator(inviteData.email, inviteData.roles)
+    message.success('Invitation sent successfully')
+    inviteData.email = ''
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -22,18 +25,37 @@ const inviteCollaborator = async () => {
 </script>
 
 <template>
-  <div class="my-4 mx-6">
+  <div class="my-2 pt-3 ml-2">
+    <div class="text-xl mb-4">Invite</div>
     <a-form>
-      <label for="email">Email</label>
-      <div class="flex gap-2 mt-1">
-        <a-input id="email" v-model:value="inviteData.email" placeholder="user@nocodb.com" class="!w-60 !rounded" />
+      <div class="flex gap-2">
+        <a-input
+          id="email"
+          v-model:value="inviteData.email"
+          placeholder="Enter emails to send invitation"
+          class="!max-w-130 !rounded"
+        />
 
-        <a-select v-model:value="inviteData.roles" class="min-w-30 !rounded">
+        <a-select v-model:value="inviteData.roles" class="min-w-30 !rounded px-1">
+          <template #suffixIcon>
+            <MdiChevronDown />
+          </template>
           <a-select-option :value="WorkspaceUserRoles.CREATOR"> Creator </a-select-option>
           <a-select-option :value="WorkspaceUserRoles.VIEWER"> Viewer </a-select-option>
         </a-select>
 
-        <a-button type="primary" class="!rounded" @click="inviteCollaborator">Send Invite</a-button>
+        <a-button
+          type="primary"
+          class="!rounded-md"
+          :disabled="!inviteData.email?.length || isInvitingCollaborators"
+          @click="inviteCollaborator"
+        >
+          <div class="flex flex-row items-center gap-x-2 pr-1">
+            <GeneralLoader v-if="isInvitingCollaborators" class="flex" />
+            <MdiPlus v-else />
+            {{ isInvitingCollaborators ? 'Adding' : 'Add' }} User/s
+          </div>
+        </a-button>
       </div>
     </a-form>
   </div>

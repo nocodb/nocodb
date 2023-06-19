@@ -1,6 +1,6 @@
 import type { ProjectType, WorkspaceType, WorkspaceUserType } from 'nocodb-sdk'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vueuse/core'
 import { computed, ref, useCommandPalette, useNuxtApp, useRouter, useTheme } from '#imports'
@@ -20,7 +20,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const router = useRouter()
 
-  const route = $(router.currentRoute)
+  const route = router.currentRoute
 
   const { $api } = useNuxtApp()
 
@@ -36,16 +36,19 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   )
 
   const isWorkspaceLoading = ref(true)
+  const isCollaboratorsLoading = ref(true)
+  const isInvitingCollaborators = ref(false)
 
   const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(
-    () => (route.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'workspace',
+    () => (route.value.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'workspace',
   )
 
+  const activeWorkspaceId = computed(() => {
+    return (route.value.query.workspaceId ?? route.value.params.workspaceId) as string | undefined
+  })
+
   const activeWorkspace = computed(() => {
-    return (
-      workspaces.value?.get((route.query.workspaceId || route.params.workspaceId) as string) ??
-      (activePage.value === 'workspace' ? workspacesList.value[0] : null)
-    )
+    return workspaces.value?.get(activeWorkspaceId.value ?? (activePage.value === 'workspace' ? workspacesList.value[0] : null))
   })
 
   const activeWorkspaceMeta = computed<Record<string, any>>(() => {
@@ -134,15 +137,23 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     refreshCommandPalette()
   }
 
-  const loadCollaborators = async (params?: { offset?: number; limit?: number }) => {
+  const loadCollaborators = async (params?: { offset?: number; limit?: number; ignoreLoading: boolean }) => {
     if (!activeWorkspace.value?.id) {
       throw new Error('Workspace not selected')
     }
 
-    // todo: pagination
-    const { list, pageInfo: _ } = await $api.workspaceUser.list(activeWorkspace.value.id!, { query: params })
+    if (!params?.ignoreLoading) isCollaboratorsLoading.value = true
 
-    collaborators.value = list
+    try {
+      // todo: pagination
+      const { list, pageInfo: _ } = await $api.workspaceUser.list(activeWorkspace.value.id!, { query: params })
+
+      collaborators.value = list
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      if (!params?.ignoreLoading) isCollaboratorsLoading.value = false
+    }
   }
 
   // invite new user to the workspace
@@ -151,11 +162,18 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       throw new Error('Workspace not selected')
     }
 
-    await $api.workspaceUser.invite(activeWorkspace.value.id!, {
-      email,
-      roles,
-    })
-    await loadCollaborators()
+    isInvitingCollaborators.value = true
+    try {
+      await $api.workspaceUser.invite(activeWorkspace.value.id!, {
+        email,
+        roles,
+      })
+      await loadCollaborators()
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      isInvitingCollaborators.value = false
+    }
   }
 
   // remove user from workspace
@@ -185,9 +203,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     workspaces.value.set(workspace.id!, workspace)
   }
 
-  async function populateActiveWorkspace({ force }: { force?: boolean } = {}) {
+  async function populateWorkspace({ force, workspaceId: _workspaceId }: { force?: boolean; workspaceId?: string } = {}) {
     isWorkspaceLoading.value = true
-    const workspaceId = (route.params.workspaceId ?? route.query.workspaceId) as string
+    const workspaceId = _workspaceId ?? activeWorkspaceId.value!
+
     if (force || !workspaces.value.get(workspaceId)) {
       await loadWorkspace(workspaceId)
     }
@@ -274,6 +293,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     $e('c:themes:change')
   }
 
+  const clearWorkspaces = () => {
+    const { clearProjects } = useProjects()
+
+    clearProjects()
+    workspaces.value.clear()
+  }
+
   return {
     loadWorkspaces,
     workspaces,
@@ -289,8 +315,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     collaborators,
     isWorkspaceCreator,
     isWorkspaceOwner,
+    isInvitingCollaborators,
+    isCollaboratorsLoading,
     addToFavourite,
     removeFromFavourite,
+    activeWorkspaceId,
     activePage,
     updateProjectTitle,
     moveWorkspace,
@@ -298,6 +327,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     saveTheme,
     activeWorkspaceMeta,
     isWorkspaceLoading,
-    populateActiveWorkspace,
+    populateWorkspace,
+    clearWorkspaces,
   }
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useWorkspace as any, import.meta.hot))
+}

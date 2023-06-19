@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia'
-import type { OracleUi, ProjectType } from 'nocodb-sdk'
+import { acceptHMRUpdate, defineStore } from 'pinia'
+import type { OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
 import { NcProjectType } from '~/utils'
@@ -21,6 +21,8 @@ export const useProjects = defineStore('projectsStore', () => {
   const { api } = useApi()
   const route = useRoute()
 
+  const isProjectsLoading = ref(false)
+
   const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace') => {
     const activeWorkspace = workspaceStore.activeWorkspace
     const workspace = workspaceStore.workspace
@@ -30,30 +32,40 @@ export const useProjects = defineStore('projectsStore', () => {
     }
 
     let _projects: ProjectType[] = []
-    if (activeWorkspace?.id) {
-      const { list } = await $api.workspaceProject.list(activeWorkspace?.id ?? workspace?.id)
-      _projects = list
-    } else {
-      const { list } = await $api.project.list(
-        page
-          ? {
-              query: {
-                [page]: true,
-              },
-            }
-          : {},
-      )
-      _projects = list
-    }
 
-    for (const project of _projects) {
-      if (projects.value.has(project.id!)) continue
+    isProjectsLoading.value = true
+    try {
+      if (activeWorkspace?.id) {
+        const { list } = await $api.workspaceProject.list(activeWorkspace?.id ?? workspace?.id)
+        _projects = list
+      } else {
+        const { list } = await $api.project.list(
+          page
+            ? {
+                query: {
+                  [page]: true,
+                },
+              }
+            : {},
+        )
+        _projects = list
+        projects.value.clear()
+      }
 
-      projects.value.set(project.id!, {
-        ...project,
-        isExpanded: route.params.projectId === project.id,
-        isLoading: false,
-      })
+      for (const project of _projects) {
+        if (projects.value.has(project.id!)) continue
+
+        projects.value.set(project.id!, {
+          ...project,
+          isExpanded: route.params.projectId === project.id,
+          isLoading: false,
+        })
+      }
+    } catch (e) {
+      console.error(e)
+      message.error(e.message)
+    } finally {
+      isProjectsLoading.value = false
     }
   }
 
@@ -210,5 +222,10 @@ export const useProjects = defineStore('projectsStore', () => {
     clearProjects,
     isProjectEmpty,
     isProjectPopulated,
+    isProjectsLoading,
   }
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useProjects as any, import.meta.hot))
+}

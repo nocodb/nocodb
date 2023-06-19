@@ -1,7 +1,7 @@
 import type { BaseType, OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import {
   ClientType,
   computed,
@@ -42,6 +42,8 @@ export const useProject = defineStore('projectStore', () => {
 
   // todo: refactor
   let sharedProject = $ref<ProjectType>()
+
+  const openedProject = computed(() => projectsStore.projects.get(projectId.value))
 
   // todo: new-layout
   const project = computed<NcProject>(() => projectsStore.projects.get(projectId.value) || sharedProject || {})
@@ -235,6 +237,17 @@ export const useProject = defineStore('projectStore', () => {
     { immediate: true },
   )
 
+  watch(
+    () => openedProject.value?.id,
+    () => {
+      if (!openedProject.value) return
+
+      if (openedProject.value.isExpanded) return
+
+      openedProject.value.isExpanded = true
+    },
+  )
+
   return {
     project,
     bases,
@@ -264,3 +277,7 @@ export const useProject = defineStore('projectStore', () => {
     projectUrl,
   }
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useProject as any, import.meta.hot))
+}

@@ -197,6 +197,7 @@ watch(vModel, (nextVal) => {
     :title="$t('activity.linkRecord')"
     :body-style="{ padding: 0 }"
     wrap-class-name="nc-modal-link-record"
+    width="400px"
   >
     <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col py-6">
       <div class="flex mb-4 items-center gap-2 px-12">
@@ -225,7 +226,7 @@ watch(vModel, (nextVal) => {
             v-for="(refRow, i) in childrenExcludedList?.list ?? []"
             :key="i"
             :ref="selectedRowIndex === i ? activeRow : null"
-            class="nc-nested-list-item !my-4 cursor-pointer hover:(!bg-gray-200/50 shadow-md) group"
+            class="nc-nested-list-item !my-2 cursor-pointer hover:(!bg-gray-200/50 shadow-md) group"
             :class="{ 'nc-selected-row': selectedRowIndex === i }"
             @click="linkRow(refRow)"
           >
@@ -284,6 +285,6 @@ watch(vModel, (nextVal) => {
 }
 
 :deep(.nc-nested-list-item .ant-card-body) {
-  @apply !px-2 !py-1;
+  @apply !px-1 !py-0;
 }
 </style>

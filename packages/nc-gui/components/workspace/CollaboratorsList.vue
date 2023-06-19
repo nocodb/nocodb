@@ -85,7 +85,7 @@ const updateCollaborator = async (collab) => {
               {{ getRolesLabel(collab.roles) }}
             </span>
 
-            <div v-else>
+            <div v-else class="nc-collaborator-role-select">
               <a-select v-model:value="collab.roles" class="w-30 !rounded px-1" @change="updateCollaborator(collab)">
                 <template #suffixIcon>
                   <MdiChevronDown />
@@ -154,6 +154,10 @@ const updateCollaborator = async (collab) => {
   .color-band {
     @apply w-6 h-6 left-0 top-[10px] rounded-full flex justify-center uppercase text-white font-weight-bold text-xs items-center;
   }
+}
+
+:deep(.nc-collaborator-role-select .ant-select-selector) {
+  @apply !rounded;
 }
 
 table {

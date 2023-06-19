@@ -51,7 +51,6 @@ const onTreeViewScrollTop = (onScrollTop: boolean) => {
             v-e="['c:navbar:home']"
             data-testid="nc-noco-brand-icon"
             class="w-[29px] min-w-[29px] transition-all duration-200 py-1 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
-            @click="navigateTo('/')"
           >
             <a-tooltip placement="bottom">
               <template #title>

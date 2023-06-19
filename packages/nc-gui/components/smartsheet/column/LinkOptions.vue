@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useGlobal, useVModel } from '#imports'
+import { useColumnCreateStoreOrThrow, useVModel } from '#imports'
 
 const props = defineProps<{
   value: any

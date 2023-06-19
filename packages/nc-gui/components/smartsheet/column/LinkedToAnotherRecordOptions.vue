@@ -51,7 +51,7 @@ const refTables = $computed(() => {
 
 const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())
 
-const isLinks = $computed(() => vModel.value.uidt.type === UITypes.Links)
+const isLinks = $computed(() => vModel.value.uidt === UITypes.Links)
 </script>
 
 <template>
@@ -88,7 +88,7 @@ const isLinks = $computed(() => vModel.value.uidt.type === UITypes.Links)
         </a-select>
       </a-form-item>
     </div>
-    <template v-if="!isXcdbBase">
+    <template v-if="!isXcdbBase || isLinks">
       <div
         class="text-xs cursor-pointer text-grey nc-more-options my-2 flex items-center gap-1 justify-end"
         @click="advancedOptions = !advancedOptions"
@@ -100,7 +100,7 @@ const isLinks = $computed(() => vModel.value.uidt.type === UITypes.Links)
 
       <div v-if="advancedOptions" class="flex flex-col p-6 gap-4 border-2 mt-2">
       <LazySmartsheetColumnLinkOptions v-model:value="vModel" class="-my-2" />
-
+<template v-if="!isXcdbBase">
         <div class="flex flex-row space-x-2">
           <a-form-item class="flex w-1/2" :label="$t('labels.onUpdate')">
             <a-select
@@ -138,6 +138,7 @@ const isLinks = $computed(() => vModel.value.uidt.type === UITypes.Links)
             </a-checkbox>
           </a-form-item>
         </div>
+</template>
       </div>
     </template>
   </div>

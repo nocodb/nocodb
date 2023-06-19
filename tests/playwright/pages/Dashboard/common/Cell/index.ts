@@ -272,15 +272,18 @@ export class CellPageObject extends BasePage {
     count,
     value,
     verifyChildList = false,
+    options,
   }: CellProps & {
     count?: number;
     type?: 'hm' | 'bt' | 'mm';
     value: string[];
     verifyChildList?: boolean;
+    options?: { singular?: string; plural?: string };
   }) {
     const cell = await this.get({ index, columnHeader });
     const linkText = await cell.locator('.nc-datatype-link');
 
+    console.log(index, columnHeader);
     await cell.scrollIntoViewIfNeeded();
 
     if (type === 'bt') {
@@ -298,7 +301,7 @@ export class CellPageObject extends BasePage {
 
     // verify chip count & contents
     if (count) {
-      await expect(await cell.innerText()).toContain(`${count} ${count === 1 ? 'Link' : 'Links'}`);
+      await expect(await cell.innerText()).toContain(`${count} ${count === 1 ? options.singular : options.plural}`);
     }
 
     if (verifyChildList) {

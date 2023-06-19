@@ -123,8 +123,8 @@ test.describe('LTAR create & update', () => {
 
     const expected = [
       [['1a'], ['1b'], ['1c']],
-      [['1a'], ['1b'], ['1c']],
-      [['1a'], ['1b'], ['1c']],
+      [['1 Sheet1'], ['1 Sheet1'], ['1 Sheet1']],
+      [['1 Sheet1'], ['1 Sheet1'], ['1 Sheet1']],
     ];
     const colHeaders = ['Sheet1', 'Sheet1 List', 'Link2-1hm'];
 
@@ -136,6 +136,8 @@ test.describe('LTAR create & update', () => {
           columnHeader: colHeaders[i],
           count: 1,
           value: expected[i][j],
+          type: i === 0 ? 'bt' : undefined,
+          options: { singular: 'Sheet1', plural: 'Sheet1s' },
         });
       }
     }
@@ -144,8 +146,8 @@ test.describe('LTAR create & update', () => {
     await dashboard.treeView.openTable({ title: 'Sheet1' });
 
     const expected2 = [
-      [['2a'], ['2b'], ['2c']],
-      [['2a'], ['2b'], ['2c']],
+      [['1 Sheet2'], ['1 Sheet2'], ['1 Sheet2']],
+      [['1 Sheet2'], ['1 Sheet2'], ['1 Sheet2']],
       [['2a'], ['2b'], ['2c']],
     ];
     const colHeaders2 = ['Link1-2hm', 'Link1-2mm', 'Sheet2'];
@@ -158,6 +160,8 @@ test.describe('LTAR create & update', () => {
           columnHeader: colHeaders2[i],
           count: 1,
           value: expected2[i][j],
+          type: i === 2 ? 'bt' : undefined,
+          options: { singular: 'Sheet2', plural: 'Sheet2s' },
         });
       }
     }

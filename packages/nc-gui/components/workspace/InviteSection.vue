@@ -25,14 +25,15 @@ const inviteCollaborator = async () => {
 </script>
 
 <template>
-  <div class="my-2 pt-3">
+  <div class="my-2 pt-3 ml-2">
+    <div class="text-xl mb-4">Invite</div>
     <a-form>
       <div class="flex gap-2">
         <a-input
           id="email"
           v-model:value="inviteData.email"
           placeholder="Enter emails to send invitation"
-          class="!max-w-130 !rounded !ml-2.25"
+          class="!max-w-130 !rounded"
         />
 
         <a-select v-model:value="inviteData.roles" class="min-w-30 !rounded px-1">

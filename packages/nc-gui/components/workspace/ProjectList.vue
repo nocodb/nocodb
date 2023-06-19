@@ -309,6 +309,9 @@ const setIcon = async (icon: string, project: ProjectType) => {
       v-else
       v-model:data-source="projectsList"
       class="h-full"
+      :class="{
+        'full-height-table': activePage !== 'workspace',
+      }"
       :custom-row="customRow"
       :columns="columns"
       :pagination="false"
@@ -516,6 +519,9 @@ const setIcon = async (icon: string, project: ProjectType) => {
   flex: none;
 }
 
+:deep(.full-height-table .ant-table-body) {
+  height: calc(100vh - var(--topbar-height) - 9rem) !important;
+}
 :deep(.ant-table-body) {
   overflow-y: overlay;
   height: calc(100vh - var(--topbar-height) - 13.45rem);

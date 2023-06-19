@@ -205,7 +205,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   async function populateWorkspace({ force, workspaceId: _workspaceId }: { force?: boolean; workspaceId?: string } = {}) {
     isWorkspaceLoading.value = true
-    const workspaceId = _workspaceId ?? activeWorkspace.value!.id!
+    const workspaceId = _workspaceId ?? activeWorkspaceId.value!
 
     if (force || !workspaces.value.get(workspaceId)) {
       await loadWorkspace(workspaceId)

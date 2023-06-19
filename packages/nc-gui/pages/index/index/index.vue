@@ -478,7 +478,7 @@ watch(activeWorkspaceId, async () => {
         </a-tabs>
       </div>
       <div v-else-if="activePage !== 'workspace'" class="h-full flex flex-col px-6 mt-3">
-        <div class="flex items-center gap-2 mb-7 mt-4 text-xl ml-5.5">
+        <div class="flex items-center gap-2 mb-5.5 mt-4 text-xl ml-5.5">
           <h2 class="text-3xl font-weight-bold tracking-[0.5px] mb-0">
             {{ projectListType }}
           </h2>

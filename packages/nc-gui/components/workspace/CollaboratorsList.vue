@@ -13,7 +13,16 @@ const workspaceStore = useWorkspace()
 
 const { removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
 
-const { collaborators, isWorkspaceOwner } = storeToRefs(workspaceStore)
+const { collaborators, isWorkspaceOwner, activePage } = storeToRefs(workspaceStore)
+const userSearchText = ref('')
+
+const filterCollaborators = computed(() => {
+  if (!userSearchText.value) return collaborators.value ?? []
+
+  if (!collaborators.value) return []
+
+  return collaborators.value.filter((collab) => collab.email!.includes(userSearchText.value))
+})
 
 const getRolesLabel = (roles?: string) => {
   return (
@@ -35,9 +44,21 @@ const updateCollaborator = async (collab) => {
 </script>
 
 <template>
-  <div class="nc-collaborator-table-container mt-3 mx-6">
+  <div class="nc-collaborator-table-container mt-4 mx-6">
     <WorkspaceInviteSection v-if="isWorkspaceOwner" />
-    <table v-if="collaborators?.length" class="nc-project-list-table !nc-sidebar-md">
+    <div class="w-full h-1 border-t-1 border-gray-100 opacity-50 mt-6"></div>
+    <div class="w-full flex flex-row justify-between items-baseline mt-6.5 mb-2 pr-0.25 ml-2">
+      <div class="text-xl">Collaborators</div>
+      <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md" placeholder="Search collaborators">
+        <template #prefix>
+          <PhMagnifyingGlassBold class="!h-3.5 text-gray-500" />
+        </template>
+      </a-input>
+    </div>
+    <div v-if="!filterCollaborators?.length" class="w-full h-full flex flex-col items-center justify-center mt-36">
+      <Empty description="No collaborators found" />
+    </div>
+    <table v-else class="nc-collaborators-list-table !nc-sidebar-md">
       <thead>
         <tr>
           <th class="w-1/3">Users</th>
@@ -47,7 +68,7 @@ const updateCollaborator = async (collab) => {
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(collab, i) of collaborators" :key="i" class="relative w-full">
+        <tr v-for="(collab, i) of filterCollaborators" :key="i" class="relative w-full">
           <td class="!py-0 w-1/3">
             <div class="flex items-center nc-project-title gap-2">
               <span class="color-band" :style="{ backgroundColor: stringToColour(collab.email) }">{{
@@ -96,13 +117,11 @@ const updateCollaborator = async (collab) => {
         </tr>
       </tbody>
     </table>
-
-    <a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="Collaborator list is empty" />
   </div>
 </template>
 
 <style scoped lang="scss">
-.nc-project-list-table {
+.nc-collaborators-list-table {
   @apply min-w-[700px] !w-full border-gray-100 mt-1;
 
   th {
@@ -152,7 +171,7 @@ tr {
 tbody {
   display: block;
   width: 100%;
-  height: calc(100vh - calc(var(--topbar-height) + 16.5rem));
+  height: calc(100vh - calc(var(--topbar-height) + 25rem));
   overflow-y: overlay;
 
   &::-webkit-scrollbar {

@@ -94,7 +94,11 @@ test.describe('Shared view', () => {
 
     // verify virtual records
     for (const record of expectedVirtualRecordsByDb) {
-      await sharedPage.grid.cell.verifyVirtualCell({ ...record, verifyChildList: true });
+      await sharedPage.grid.cell.verifyVirtualCell({
+        ...record,
+        options: { singular: 'Customer', plural: 'Customers' },
+        verifyChildList: true,
+      });
     }
 
     /**
@@ -284,8 +288,8 @@ const expectedVirtualRecords = [
 ];
 
 const sqliteExpectedVirtualRecords = [
-  { index: 0, columnHeader: 'Customer List', count: 1, value: ['2'] },
-  { index: 1, columnHeader: 'Customer List', count: 1, value: ['1'] },
+  { index: 0, columnHeader: 'Customer List', count: 1, type: 'hm' },
+  { index: 1, columnHeader: 'Customer List', count: 1, type: 'hm' },
   { index: 0, columnHeader: 'City', count: 1, type: 'bt', value: ['Davao'] },
   { index: 1, columnHeader: 'City', count: 1, type: 'bt', value: ['Nagareyama'] },
 ];

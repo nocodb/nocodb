@@ -276,7 +276,7 @@ export class CellPageObject extends BasePage {
   }: CellProps & {
     count?: number;
     type?: 'hm' | 'bt' | 'mm';
-    value: string[];
+    value?: string[];
     verifyChildList?: boolean;
     options?: { singular?: string; plural?: string };
   }) {

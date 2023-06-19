@@ -481,6 +481,8 @@ export function useViewData(
       updateArray.push({ ...updateData, ...pk })
     }
 
+    await $api.dbTableRow.bulkUpdate(NOCO, metaValue?.project_id as string, metaValue?.id as string, updateArray)
+
     if (!undo) {
       addUndo({
         redo: {
@@ -536,8 +538,6 @@ export function useViewData(
         scope: defineViewScope({ view: viewMetaValue }),
       })
     }
-
-    await $api.dbTableRow.bulkUpdate(NOCO, metaValue?.project_id as string, metaValue?.id as string, updateArray)
 
     for (const row of rows) {
       if (!undo) {

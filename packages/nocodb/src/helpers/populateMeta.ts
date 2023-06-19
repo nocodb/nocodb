@@ -126,6 +126,10 @@ export async function extractAndGenerateManyToManyRelations(
             belongsToCols[1].colOptions.fk_child_column_id,
           type: RelationTypes.MANY_TO_MANY,
           uidt: UITypes.Links,
+          meta: {
+            plural: pluralize(modelB.title),
+            singular: singularize(modelB.title),
+          },
         });
       }
       if (!isRelationAvailInB) {
@@ -144,6 +148,10 @@ export async function extractAndGenerateManyToManyRelations(
             belongsToCols[0].colOptions.fk_child_column_id,
           type: RelationTypes.MANY_TO_MANY,
           uidt: UITypes.Links,
+          meta: {
+            plural: pluralize(modelA.title),
+            singular: singularize(modelA.title),
+          },
         });
       }
 
@@ -261,6 +269,10 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
             type: 'hm',
             hm,
             title: `${hm.title} List`,
+            meta: {
+              plural: pluralize(hm.title),
+              singular: singularize(hm.title),
+            },
           };
         }),
         ...belongsTo.map((bt) => {
@@ -348,6 +360,7 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
               order: colOrder++,
               fk_related_model_id: column.hm ? tnId : rtnId,
               system: column.system,
+              meta: column.meta,
             });
 
             // nested relations data apis

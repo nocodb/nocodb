@@ -16,8 +16,8 @@ setAdditionalValidations({
     {
       validator: (_, value: string) => {
         return new Promise((resolve, reject) => {
-          if (value?.length > 64) {
-            return reject(new Error('The length exceeds the max 64 characters'))
+          if (value?.length > 59) {
+            return reject(new Error('The length exceeds the max 59 characters'))
           }
           resolve(true)
         })
@@ -28,8 +28,8 @@ setAdditionalValidations({
     {
       validator: (_, value: string) => {
         return new Promise((resolve, reject) => {
-          if (value?.length > 64) {
-            return reject(new Error('The length exceeds the max 64 characters'))
+          if (value?.length > 59) {
+            return reject(new Error('The length exceeds the max 59 characters'))
           }
           resolve(true)
         })

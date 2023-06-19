@@ -31,11 +31,12 @@ const roleAlias = {
 
 const workspaceStore = useWorkspace()
 
-const { deleteWorkspace: _deleteWorkspace, loadWorkspaces, updateWorkspace, populateActiveWorkspace } = workspaceStore
+const { deleteWorkspace: _deleteWorkspace, loadWorkspaces, updateWorkspace, populateWorkspace } = workspaceStore
 
 const projectsStore = useProjects()
 
-const { workspacesList, activeWorkspace, isWorkspaceOwner, activePage, collaborators } = storeToRefs(workspaceStore)
+const { workspacesList, activeWorkspace, isWorkspaceOwner, activePage, collaborators, activeWorkspaceId } =
+  storeToRefs(workspaceStore)
 
 const { loadProjects } = useProjects()
 
@@ -96,7 +97,7 @@ watch(
     }
 
     if (newId) {
-      populateActiveWorkspace()
+      populateWorkspace()
     }
   },
   {
@@ -257,6 +258,10 @@ const projectListType = computed(() => {
     default:
       return '='
   }
+})
+
+watch(activeWorkspaceId, async () => {
+  await loadProjects(activePage.value)
 })
 </script>
 
@@ -419,7 +424,7 @@ const projectListType = computed(() => {
       </div>
     </template>
 
-    <div class="w-full h-full overflow-auto nc-workspace-container">
+    <div class="w-full h-full nc-workspace-container">
       <div v-if="activeWorkspace" class="flex flex-col pt-7">
         <div class="pl-8 pr-7 flex items-center mb-7 h-8">
           <div class="flex gap-2 items-center">
@@ -472,7 +477,7 @@ const projectListType = computed(() => {
           </template>
         </a-tabs>
       </div>
-      <div v-else-if="activePage !== 'workspace'" class="h-full flex flex-col px-6 my-3">
+      <div v-else-if="activePage !== 'workspace'" class="h-full flex flex-col px-6 mt-3">
         <div class="flex items-center gap-2 mb-6 mt-3 text-xl">
           <MaterialSymbolsNestClockFarsightAnalogOutlineRounded v-if="activePage === 'recent'" class="h-8" />
           <MaterialSymbolsGroupsOutline v-else-if="activePage === 'shared'" />

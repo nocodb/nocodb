@@ -4,7 +4,7 @@ const router = useRouter()
 const route = $(router.currentRoute)
 
 const { isWorkspaceLoading, collaborators } = storeToRefs(useWorkspace())
-const { populateActiveWorkspace } = useWorkspace()
+const { populateWorkspace } = useWorkspace()
 const projectsStore = useProjects()
 
 watch(
@@ -16,7 +16,7 @@ watch(
       return
     }
 
-    populateActiveWorkspace()
+    populateWorkspace()
   },
   {
     immediate: true,

@@ -144,14 +144,14 @@ export default {
         :collapsed="!isOpen"
         width="250"
         collapsed-width="50"
-        class="relative shadow-md h-full z-1 nc-left-sidebar h-[calc(100vh_-_var(--new-header-height))] overflow-auto !shadow-none border-gray-100 border-r-1 !overflow-x-hidden"
+        class="relative shadow-md h-full z-1 nc-left-sidebar h-[calc(100vh_-_var(--new-header-height))] !shadow-none border-gray-100 border-r-1 !overflow-x-hidden"
         :trigger="null"
         collapsible
         theme="light"
       >
         <slot name="sidebar" />
       </a-layout-sider>
-      <div class="w-full h-[calc(100vh_-_var(--new-header-height))] overflow-auto">
+      <div class="w-full h-[calc(100vh_-_var(--new-header-height))]">
         <slot></slot>
       </div>
     </a-layout>

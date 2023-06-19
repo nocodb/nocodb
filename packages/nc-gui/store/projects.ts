@@ -49,6 +49,7 @@ export const useProjects = defineStore('projectsStore', () => {
             : {},
         )
         _projects = list
+        projects.value.clear()
       }
 
       for (const project of _projects) {

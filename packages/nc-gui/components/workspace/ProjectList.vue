@@ -9,8 +9,8 @@ import { useNuxtApp } from '#app'
 
 const workspaceStore = useWorkspace()
 const projectsStore = useProjects()
-const { addToFavourite, removeFromFavourite, updateProjectTitle } = workspaceStore
-const { activePage } = storeToRefs(workspaceStore)
+const { addToFavourite, removeFromFavourite, updateProjectTitle, populateWorkspace } = workspaceStore
+const { activePage, activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const { loadProjects } = useProjects()
 const { projects, projectsList, isProjectsLoading } = storeToRefs(useProjects())
@@ -275,7 +275,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
 <template>
   <div>
     <div
-      v-if="!projectsList || projectsList?.length === 0"
+      v-if="!projectsList || projectsList?.length === 0 || isProjectsLoading"
       class="w-full flex flex-row justify-center items-center"
       style="height: calc(100vh - 16rem)"
     >

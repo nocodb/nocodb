@@ -20,7 +20,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const router = useRouter()
 
-  const route = $(router.currentRoute)
+  const route = router.currentRoute
 
   const { $api } = useNuxtApp()
 
@@ -40,14 +40,15 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const isInvitingCollaborators = ref(false)
 
   const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(
-    () => (route.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'workspace',
+    () => (route.value.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'workspace',
   )
 
+  const activeWorkspaceId = computed(() => {
+    return (route.value.query.workspaceId ?? route.value.params.workspaceId) as string | undefined
+  })
+
   const activeWorkspace = computed(() => {
-    return (
-      workspaces.value?.get((route.query.workspaceId || route.params.workspaceId) as string) ??
-      (activePage.value === 'workspace' ? workspacesList.value[0] : null)
-    )
+    return workspaces.value?.get(activeWorkspaceId.value ?? (activePage.value === 'workspace' ? workspacesList.value[0] : null))
   })
 
   const activeWorkspaceMeta = computed<Record<string, any>>(() => {
@@ -202,9 +203,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     workspaces.value.set(workspace.id!, workspace)
   }
 
-  async function populateActiveWorkspace({ force }: { force?: boolean } = {}) {
+  async function populateWorkspace({ force, workspaceId: _workspaceId }: { force?: boolean; workspaceId?: string } = {}) {
     isWorkspaceLoading.value = true
-    const workspaceId = (route.params.workspaceId ?? route.query.workspaceId) as string
+    const workspaceId = _workspaceId ?? activeWorkspace.value!.id!
+
     if (force || !workspaces.value.get(workspaceId)) {
       await loadWorkspace(workspaceId)
     }
@@ -317,6 +319,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isCollaboratorsLoading,
     addToFavourite,
     removeFromFavourite,
+    activeWorkspaceId,
     activePage,
     updateProjectTitle,
     moveWorkspace,
@@ -324,7 +327,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     saveTheme,
     activeWorkspaceMeta,
     isWorkspaceLoading,
-    populateActiveWorkspace,
+    populateWorkspace,
     clearWorkspaces,
   }
 })

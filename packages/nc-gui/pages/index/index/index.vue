@@ -420,8 +420,8 @@ const projectListType = computed(() => {
     </template>
 
     <div class="w-full h-full overflow-auto nc-workspace-container">
-      <div v-if="activeWorkspace" class="h-full flex flex-col pt-7">
-        <div class="pl-8 pr-7 flex items-center mb-7">
+      <div v-if="activeWorkspace" class="flex flex-col pt-7">
+        <div class="pl-8 pr-7 flex items-center mb-7 h-8">
           <div class="flex gap-2 items-center">
             <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
               {{ activeWorkspace?.title?.slice(0, 2) }}

@@ -428,6 +428,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
               </a-menu>
             </template>
           </a-dropdown>
+          <div v-else></div>
         </template>
       </template>
     </a-table>
@@ -476,7 +477,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
 }
 
 :deep(.ant-table-body) {
-  @apply !px-0 !pt-0 !pb-4 w-full !mb-3 !overflow-y-auto;
+  @apply !p-0 w-full !overflow-y-auto;
 }
 
 :deep(.ant-table-thead > tr > th) {
@@ -500,7 +501,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
 
 :deep(.ant-table-body) {
   overflow-y: overlay;
-  height: calc(100vh - var(--topbar-height));
+  height: calc(100vh - var(--topbar-height) - 13.45rem);
 
   &::-webkit-scrollbar {
     width: 4px;

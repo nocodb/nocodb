@@ -27,6 +27,7 @@ import {
   useRoles,
   useSelectedCellKeyupListener,
   watch,
+  EditModeInj
 } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
@@ -45,7 +46,13 @@ const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj)!
 
-const active = inject(ActiveCellInj, ref(false))
+const isEditable = inject(EditModeInj, ref(false))
+
+const _active = inject(ActiveCellInj, ref(false))
+
+// use both ActiveCellInj or EditModeInj to determine the active state
+// since active will be false in case of form view
+const active = computed(() => _active.value || isEditable.value)
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -94,7 +101,7 @@ const isOptionMissing = computed(() => {
 
 const hasEditRoles = computed(() => hasRole('owner', true) || hasRole('creator', true) || hasRole('editor', true))
 
-const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && active.value)
+const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && (active.value))
 
 const vModel = computed({
   get: () => {

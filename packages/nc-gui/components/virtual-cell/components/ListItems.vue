@@ -198,7 +198,7 @@ watch(vModel, (nextVal) => {
     :body-style="{ padding: 0 }"
     wrap-class-name="nc-modal-link-record"
   >
-    <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col py-6">
+    <div class="h-[max(calc(100vh_-_300px)_,500px)] flex flex-col py-6">
       <div class="flex mb-4 items-center gap-2 px-12">
         <a-input
           ref="filterQueryRef"

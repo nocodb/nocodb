@@ -100,17 +100,21 @@ test.describe('Test table', () => {
       const childColumn = await getTextExcludeIconText(
         await columnAddModal.locator(`.ant-form-item-control-input`).nth(3)
       );
+      const aggregateFunction = await getTextExcludeIconText(
+        await columnAddModal.locator(`.ant-form-item-control-input`).nth(4)
+      );
 
       // validate
-      expect(columnType).toContain('Lookup');
+      expect(columnType).toContain('Rollup');
       expect(linkField.split(' ')[0]).toContain('Table1');
-      expect(childColumn).toContain('Title');
+      expect(childColumn).toContain('Id');
+      expect(aggregateFunction).toContain('max');
 
       // save
       await columnAddModal.locator(`.ant-btn-primary`).click();
 
       // verify if column is created
-      await grid.column.verify({ title: 'Table1Lookup', isVisible: true });
+      await grid.column.verify({ title: 'Table1Rollup', isVisible: true });
     }
   });
 });

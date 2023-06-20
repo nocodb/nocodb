@@ -27,6 +27,7 @@ import {
   useRoles,
   useSelectedCellKeyupListener,
   watch,
+  EditModeInj
 } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
@@ -92,9 +93,13 @@ const isOptionMissing = computed(() => {
   return (options.value ?? []).every((op) => op.title !== searchVal.value)
 })
 
+const isEditable = inject(EditModeInj, ref(false))
+
 const hasEditRoles = computed(() => hasRole('owner', true) || hasRole('creator', true) || hasRole('editor', true))
 
-const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && active.value)
+// use both active or edit mode to determine if edit is allowed
+// since active will be false in case of form view
+const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && (active.value || isEditable.value))
 
 const vModel = computed({
   get: () => {

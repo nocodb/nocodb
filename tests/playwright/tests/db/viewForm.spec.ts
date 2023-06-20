@@ -6,6 +6,7 @@ import { SharedFormPage } from '../../pages/SharedForm';
 import { AccountPage } from '../../pages/Account';
 import { AccountAppStorePage } from '../../pages/Account/AppStore';
 import { Api, UITypes } from 'nocodb-sdk';
+import { rowMixedValue } from '../../setup/xcdb-records';
 let api: Api<any>;
 
 // todo: Move most of the ui actions to page object and await on the api response
@@ -238,6 +239,103 @@ test.describe('Form view', () => {
 
     await sharedForm.submit();
     await sharedForm.verifySuccessMessage();
+  });
+});
+
+test.describe('Form view', () => {
+  let dashboard: DashboardPage;
+  let form: FormPage;
+  let context: any;
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page, isEmptyProject: true });
+    dashboard = new DashboardPage(page, context.project);
+    form = dashboard.form;
+  });
+
+  test('Select fields in form view', async () => {
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    const columns = [
+      {
+        column_name: 'Id',
+        title: 'Id',
+        uidt: UITypes.ID,
+      },
+      {
+        column_name: 'SingleSelect',
+        title: 'SingleSelect',
+        uidt: UITypes.SingleSelect,
+        dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
+      },
+      {
+        column_name: 'MultiSelect',
+        title: 'MultiSelect',
+        uidt: UITypes.MultiSelect,
+        dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
+      },
+    ];
+
+    const project = await api.project.read(context.project.id);
+    await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+      table_name: 'selectBased',
+      title: 'selectBased',
+      columns: columns,
+    });
+
+    await dashboard.rootPage.reload();
+
+    await dashboard.treeView.openTable({ title: 'selectBased' });
+    const url = dashboard.rootPage.url();
+
+    await dashboard.viewSidebar.createFormView({ title: 'NewForm' });
+    await dashboard.form.toolbar.clickShareView();
+    const formLink = await dashboard.form.toolbar.shareView.getShareLink();
+
+    await dashboard.rootPage.goto(formLink);
+
+    const sharedForm = new SharedFormPage(dashboard.rootPage);
+
+    // Click on single select options
+    await sharedForm.cell.selectOption.select({
+      index: 0,
+      columnHeader: 'SingleSelect',
+      option: 'jan',
+      multiSelect: false,
+    });
+
+    // Click on multi select options
+    const multiSelectParams = {
+      index: 0,
+      columnHeader: 'MultiSelect',
+      option: 'jan',
+      multiSelect: true,
+    };
+    await sharedForm.cell.selectOption.select({ ...multiSelectParams, option: 'jan' });
+    await sharedForm.cell.selectOption.select({ ...multiSelectParams, option: 'feb' });
+    await sharedForm.cell.selectOption.select({ ...multiSelectParams, option: 'mar' });
+
+    await sharedForm.submit();
+    await dashboard.rootPage.goto(url);
+    await dashboard.viewSidebar.openView({ title: 'selectBased' });
+
+    await dashboard.grid.cell.selectOption.verify({
+      index: 0,
+      columnHeader: 'SingleSelect',
+      option: 'jan',
+      multiSelect: false,
+    });
+
+    await dashboard.grid.cell.selectOption.verifyOptions({
+      index: 0,
+      columnHeader: 'MultiSelect',
+      options: ['jan', 'feb', 'mar'],
+    });
   });
 });
 

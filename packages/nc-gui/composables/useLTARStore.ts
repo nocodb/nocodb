@@ -158,7 +158,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             meta.value.id,
             rowId.value,
             colOptions.type as 'mm' | 'hm',
-            encodeURIComponent(column?.value?.title),
+            column?.value?.id,
             {
               limit: String(childrenExcludedListPagination.size),
               offset: String(childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1)),
@@ -183,7 +183,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             sharedView.value?.uuid as string,
             rowId.value,
             colOptions.type as 'mm' | 'hm',
-            encodeURIComponent(column?.value?.id),
+            column?.value?.id,
             {
               limit: String(childrenListPagination.size),
               offset: String(childrenListPagination.size * (childrenListPagination.page - 1)),
@@ -198,7 +198,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             meta.value.id,
             rowId.value,
             colOptions.type as 'mm' | 'hm',
-            encodeURIComponent(column?.value?.title),
+            column?.value?.id,
             {
               limit: String(childrenListPagination.size),
               offset: String(childrenListPagination.size * (childrenListPagination.page - 1)),
@@ -219,7 +219,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         onOk: async () => {
           const id = getRelatedTableRowId(row)
           try {
-            const res: { message?: string[] } = await $api.dbTableRow.delete(
+            const res: { message?: string[] } | number = await $api.dbTableRow.delete(
               NOCO,
               projectId,
               relatedTableMeta.value.id as string,
@@ -267,11 +267,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         // todo: audit
         await $api.dbTableRow.nestedRemove(
           NOCO,
-          project.value.title as string,
-          metaValue.title,
+          project.value.id as string,
+          metaValue.id!,
           rowId.value,
           colOptions.type as 'mm' | 'hm',
-          encodeURIComponent(column?.value?.title),
+          column?.value?.id,
           getRelatedTableRowId(row) as string,
         )
 
@@ -313,11 +313,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       try {
         await $api.dbTableRow.nestedAdd(
           NOCO,
-          project.value.title as string,
-          metaValue.title as string,
+          project.value.id as string,
+          metaValue.id as string,
           rowId.value,
           colOptions.type as 'mm' | 'hm',
-          encodeURIComponent(column?.value?.title),
+          column?.value?.id,
           getRelatedTableRowId(row) as string,
         )
         await loadChildrenList()

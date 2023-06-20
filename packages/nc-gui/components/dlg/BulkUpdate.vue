@@ -203,7 +203,7 @@ onMounted(() => {
       </a-button>
     </div>
 
-    <div class="flex w-full h-full !bg-gray-100">
+    <div class="flex w-full !bg-gray-100 flex-1">
       <div class="form w-2/3 p-4">
         <Draggable
           ref="draggableRef"

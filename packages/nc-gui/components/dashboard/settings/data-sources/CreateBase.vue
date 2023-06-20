@@ -379,7 +379,11 @@ watch(
 
 <template>
   <div class="create-base max-w-800px bg-white relative flex flex-col justify-center gap-2 w-full p-8">
-    <h1 class="prose-2xl font-bold self-start my-4">New Base</h1>
+    <h1 class="prose-2xl font-bold self-start my-4 flex items-center gap-2">
+      New Base
+      <span class="flex-grow"></span>
+        <span class="text-gray-400 !text-sm font-weight-normal">( Whitelist our ip: 52.15.226.51 to allow database access )</span>
+    </h1>
 
     <a-form
       ref="form"

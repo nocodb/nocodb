@@ -374,6 +374,8 @@ const rolePermissions = {
       workspaceCreate: true,
       commandPalette: true,
       trackEvents: true,
+      // allow only in cloud
+      testConnection: true,
     },
   },
   [OrgUserRoles.SUPER_ADMIN]: '*',

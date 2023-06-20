@@ -31,6 +31,7 @@ async function upgradeModelRelations({
     rtn: string;
     cn: string;
     rcn: string;
+    cstn?: string;
   }[];
 }) {
   // Iterate over each column and upgrade LTAR
@@ -74,6 +75,7 @@ async function upgradeModelRelations({
               childColumn: relation.cn,
               parentTable: relation.rtn,
               childTable: relation.tn,
+              foreignKeyName: relation.cstn,
             });
           }
 

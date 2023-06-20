@@ -31,7 +31,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
 
   const { getMeta, removeMeta } = useMetas()
 
-  const { loadTables } = useProject()
+  const { loadTables, isXcdbBase } = useProject()
 
   const { closeTab } = useTabs()
 
@@ -152,7 +152,9 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
           const meta = (await getMeta(table.id as string, true)) as TableType
           const relationColumns = meta?.columns?.filter((c) => c.uidt === UITypes.LinkToAnotherRecord && !isSystemColumn(c))
 
-          if (relationColumns?.length) {
+          // Check if table has any relation columns and show notification
+          // skip for xcdb base
+          if (relationColumns?.length && !isXcdbBase(table.base_id)) {
             const refColMsgs = await Promise.all(
               relationColumns.map(async (c, i) => {
                 const refMeta = (await getMeta(

@@ -10,6 +10,7 @@ import {
   ColumnInj,
   IsKanbanInj,
   ReadonlyInj,
+  RowHeightInj,
   computed,
   enumColor,
   extractSdkResponseErrorMsg,
@@ -46,11 +47,11 @@ const readOnly = inject(ReadonlyInj)!
 
 const active = inject(ActiveCellInj, ref(false))
 
-const editable = inject(EditModeInj, ref(false))
-
 const isPublic = inject(IsPublicInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
+
+const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const selectedIds = ref<string[]>([])
 
@@ -93,7 +94,7 @@ const isOptionMissing = computed(() => {
 
 const hasEditRoles = computed(() => hasRole('owner', true) || hasRole('creator', true) || hasRole('editor', true))
 
-const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && (active.value || editable.value))
+const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && active.value)
 
 const vModel = computed({
   get: () => {
@@ -327,7 +328,17 @@ const selectedOpts = computed(() => {
 
 <template>
   <div class="nc-multi-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
-    <div v-if="!editable && !active" class="flex flex-nowrap">
+    <div
+      v-if="!active"
+      class="flex flex-wrap"
+      :style="{
+        'display': '-webkit-box',
+        'max-width': '100%',
+        '-webkit-line-clamp': rowHeight || 1,
+        '-webkit-box-orient': 'vertical',
+        'overflow': 'hidden',
+      }"
+    >
       <template v-for="selectedOpt of selectedOpts" :key="selectedOpt.value">
         <a-tag class="rounded-tag" :color="selectedOpt.color" :style="{ order: selectedOpt.index }">
           <span

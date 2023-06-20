@@ -7,6 +7,7 @@ import {
   IsFormInj,
   IsGalleryInj,
   IsGridInj,
+  IsPublicInj,
   MetaInj,
   NavigateDir,
   OpenNewRecordFormHookInj,
@@ -61,6 +62,8 @@ provide(IsGalleryInj, ref(true))
 provide(IsGridInj, ref(false))
 provide(PaginationDataInj, paginationData)
 provide(ChangePageInj, changePage)
+
+const isPublic = inject(IsPublicInj, ref(false))
 
 const fields = inject(FieldsInj, ref([]))
 
@@ -125,6 +128,10 @@ const attachments = (record: any): Attachment[] => {
 }
 
 const expandForm = (row: RowType, state?: Record<string, any>) => {
+  if (isPublic.value) {
+    return
+  }
+
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
 
   if (rowId) {
@@ -232,6 +239,7 @@ watch(view, async (nextView) => {
               hoverable
               class="!rounded-lg h-full overflow-hidden break-all max-w-[450px]"
               :data-testid="`nc-gallery-card-${record.row.id}`"
+              :style="isPublic ? { cursor: 'default' } : { cursor: 'pointer' }"
               @click="expandFormClick($event, record)"
               @contextmenu="showContextMenu($event, { row: rowIndex })"
             >

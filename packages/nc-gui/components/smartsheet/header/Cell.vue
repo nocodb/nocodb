@@ -52,8 +52,8 @@ const openHeaderMenu = () => {
     <span
       v-if="column"
       class="name"
-      :class="{ 'cursor-pointer': !isForm && isUIAllowed('edit-column') }"
-      style="white-space: nowrap"
+      :class="{ 'cursor-pointer': !isForm && isUIAllowed('edit-column') && !hideMenu }"
+      style="white-space: pre-line"
       :title="column.title"
       @dblclick="openHeaderMenu"
       >{{ column.title }}</span
@@ -95,7 +95,6 @@ const openHeaderMenu = () => {
 <style scoped>
 .name {
   max-width: calc(100% - 40px);
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-all;
 }
 </style>

@@ -1118,8 +1118,9 @@ class MssqlClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const response = await this.sqlClient.raw(
-        `SELECT v.name AS view_name,v.*,m.* FROM sys.views v INNER JOIN sys.schemas s ON s.schema_id = v.schema_id
+        `SELECT v.name AS view_name,v.*,m.* FROM sys.views v INNER JOIN sys.schemas s ON s.schema_id = v.schema_id AND schema_name(v.schema_id) = ?
         INNER JOIN sys.sql_modules AS m ON m.object_id = v.object_id`,
+        [this.schema || 'dbo'],
       );
 
       result.data.list = response;

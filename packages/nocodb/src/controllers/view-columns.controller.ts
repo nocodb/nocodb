@@ -9,8 +9,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ColumnReqType, ViewColumnReqType } from 'nocodb-sdk';
-import { AuthGuard } from '@nestjs/passport';
+import { ViewColumnReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '../guards/global/global.guard';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import {

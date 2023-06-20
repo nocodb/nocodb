@@ -8,7 +8,6 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { GlobalGuard } from '../guards/global/global.guard';
 import {
   Acl,
@@ -131,7 +130,6 @@ export class DataAliasNestedController {
     @Param('projectName') projectName: string,
     @Param('tableName') tableName: string,
     @Param('refRowId') refRowId: string,
-    @Param('relationType') relationType: string,
   ) {
     await this.dataAliasNestedService.relationDataRemove({
       columnName: columnName,
@@ -158,7 +156,6 @@ export class DataAliasNestedController {
     @Param('projectName') projectName: string,
     @Param('tableName') tableName: string,
     @Param('refRowId') refRowId: string,
-    @Param('relationType') relationType: string,
   ) {
     await this.dataAliasNestedService.relationDataAdd({
       columnName: columnName,

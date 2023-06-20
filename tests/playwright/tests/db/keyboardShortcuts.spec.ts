@@ -108,8 +108,18 @@ test.describe('Verify shortcuts', () => {
     await page.waitForTimeout(2000);
     await grid.cell.verify({ index: 1, columnHeader: 'Country', value: 'NewAlgeria' });
   });
+});
 
-  test('Clipboard support for cells', async () => {
+test.describe('Clipboard support', () => {
+  const today = new Date().toISOString().slice(0, 10);
+  let dashboard: DashboardPage, grid: GridPage;
+  let context: any;
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page, isEmptyProject: true });
+    dashboard = new DashboardPage(page, context.project);
+    grid = dashboard.grid;
+
     api = new Api({
       baseURL: `http://localhost:8080/`,
       headers: {
@@ -118,98 +128,26 @@ test.describe('Verify shortcuts', () => {
     });
 
     const columns = [
-      {
-        column_name: 'Id',
-        title: 'Id',
-        uidt: UITypes.ID,
-      },
-      {
-        column_name: 'SingleLineText',
-        title: 'SingleLineText',
-        uidt: UITypes.SingleLineText,
-      },
-      {
-        column_name: 'LongText',
-        title: 'LongText',
-        uidt: UITypes.LongText,
-      },
-      {
-        column_name: 'Number',
-        title: 'Number',
-        uidt: UITypes.Number,
-      },
-      {
-        column_name: 'PhoneNumber',
-        title: 'PhoneNumber',
-        uidt: UITypes.PhoneNumber,
-      },
-      {
-        column_name: 'Email',
-        title: 'Email',
-        uidt: UITypes.Email,
-      },
-      {
-        column_name: 'URL',
-        title: 'URL',
-        uidt: UITypes.URL,
-      },
-      {
-        column_name: 'Decimal',
-        title: 'Decimal',
-        uidt: UITypes.Decimal,
-      },
-      {
-        column_name: 'Percent',
-        title: 'Percent',
-        uidt: UITypes.Percent,
-      },
-      {
-        column_name: 'Currency',
-        title: 'Currency',
-        uidt: UITypes.Currency,
-      },
-      {
-        column_name: 'Duration',
-        title: 'Duration',
-        uidt: UITypes.Duration,
-      },
-      {
-        column_name: 'SingleSelect',
-        title: 'SingleSelect',
-        uidt: UITypes.SingleSelect,
-        dtxp: "'Option1','Option2'",
-      },
-      {
-        column_name: 'MultiSelect',
-        title: 'MultiSelect',
-        uidt: UITypes.MultiSelect,
-        dtxp: "'Option1','Option2'",
-      },
-      {
-        column_name: 'Rating',
-        title: 'Rating',
-        uidt: UITypes.Rating,
-      },
-      {
-        column_name: 'Checkbox',
-        title: 'Checkbox',
-        uidt: UITypes.Checkbox,
-      },
-      {
-        column_name: 'Date',
-        title: 'Date',
-        uidt: UITypes.Date,
-      },
-      {
-        column_name: 'Attachment',
-        title: 'Attachment',
-        uidt: UITypes.Attachment,
-      },
+      { column_name: 'Id', uidt: UITypes.ID },
+      { column_name: 'SingleLineText', uidt: UITypes.SingleLineText },
+      { column_name: 'LongText', uidt: UITypes.LongText },
+      { column_name: 'Number', uidt: UITypes.Number },
+      { column_name: 'PhoneNumber', uidt: UITypes.PhoneNumber },
+      { column_name: 'Email', uidt: UITypes.Email },
+      { column_name: 'URL', uidt: UITypes.URL },
+      { column_name: 'Decimal', uidt: UITypes.Decimal },
+      { column_name: 'Percent', uidt: UITypes.Percent },
+      { column_name: 'Currency', uidt: UITypes.Currency },
+      { column_name: 'Duration', uidt: UITypes.Duration },
+      { column_name: 'SingleSelect', uidt: UITypes.SingleSelect, dtxp: "'Option1','Option2'" },
+      { column_name: 'MultiSelect', uidt: UITypes.MultiSelect, dtxp: "'Option1','Option2'" },
+      { column_name: 'Rating', uidt: UITypes.Rating },
+      { column_name: 'Checkbox', uidt: UITypes.Checkbox },
+      { column_name: 'Date', uidt: UITypes.Date },
+      { column_name: 'Attachment', uidt: UITypes.Attachment },
     ];
 
-    const today = new Date().toISOString().slice(0, 10);
     const record = {
-      Id: 1,
       SingleLineText: 'SingleLineText',
       LongText: 'LongText',
       SingleSelect: 'Option1',
@@ -243,10 +181,8 @@ test.describe('Verify shortcuts', () => {
 
     // reload page
     await dashboard.rootPage.reload();
-
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
-
     await dashboard.treeView.openTable({ title: 'Sheet1' });
 
     // ########################################
@@ -256,147 +192,201 @@ test.describe('Verify shortcuts', () => {
       columnHeader: 'Attachment',
       filePath: `${process.cwd()}/fixtures/sampleFiles/1.json`,
     });
+  });
+  async function verifyCellContents({ rowIndex }: { rowIndex: number }) {
+    const responseTable = [
+      { type: 'SingleLineText', value: 'SingleLineText' },
+      { type: 'LongText', value: 'LongText' },
+      { type: 'SingleSelect', value: 'Option1' },
+      { type: 'MultiSelect', value: `Option1Option2` },
+      { type: 'Number', value: '123' },
+      { type: 'PhoneNumber', value: '987654321' },
+      { type: 'Email', value: 'test@example.com' },
+      { type: 'URL', value: 'nocodb.com' },
+      { type: 'Decimal', value: '1.12' },
+      { type: 'Percent', value: '80' },
+      { type: 'Currency', value: 20 },
+      { type: 'Duration', value: '00:08' },
+      { type: 'Rating', value: 4 },
+      { type: 'Checkbox', value: 'true' },
+      { type: 'Date', value: today },
+      { type: 'Attachment', value: 1 },
+    ];
 
-    // ########################################
+    for (const { type, value } of responseTable) {
+      if (type === 'Rating') {
+        await dashboard.grid.cell.rating.verify({
+          index: rowIndex,
+          columnHeader: type,
+          rating: value,
+        });
+      } else if (type === 'Checkbox') {
+        await dashboard.grid.cell.checkbox.verifyChecked({
+          index: rowIndex,
+          columnHeader: type,
+        });
+      } else if (type === 'Date') {
+        await dashboard.grid.cell.date.verify({
+          index: rowIndex,
+          columnHeader: type,
+          date: value,
+        });
+      } else if (type === 'Attachment') {
+        await dashboard.grid.cell.attachment.verifyFileCount({
+          index: rowIndex,
+          columnHeader: type,
+          count: value,
+        });
+      } else {
+        await dashboard.grid.cell.verify({
+          index: rowIndex,
+          columnHeader: type,
+          value,
+        });
+      }
+    }
+  }
 
-    await dashboard.grid.cell.copyToClipboard({
-      index: 0,
-      columnHeader: 'SingleLineText',
-    });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('SingleLineText');
+  async function verifyClipContents({ rowIndex }: { rowIndex: number }) {
+    const responseTable = [
+      { type: 'SingleLineText', value: 'SingleLineText' },
+      { type: 'LongText', value: '"LongText"' },
+      { type: 'SingleSelect', value: 'Option1' },
+      { type: 'MultiSelect', value: 'Option1,Option2' },
+      { type: 'Number', value: '123' },
+      { type: 'PhoneNumber', value: '987654321' },
+      { type: 'Email', value: 'test@example.com' },
+      { type: 'URL', value: 'nocodb.com' },
+      { type: 'Decimal', value: '1.12' },
+      { type: 'Percent', value: '80' },
+      { type: 'Currency', value: 20, options: { parseInt: true } },
+      { type: 'Duration', value: 480, options: { parseInt: true } },
+      { type: 'Rating', value: '4' },
+      { type: 'Checkbox', value: 'true' },
+      { type: 'Date', value: today },
+      { type: 'Attachment', value: '1.json', options: { jsonParse: true } },
+    ];
 
-    await dashboard.grid.cell.copyToClipboard({
-      index: 0,
-      columnHeader: 'LongText',
-    });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('LongText');
+    for (const { type, value, options } of responseTable) {
+      await dashboard.grid.cell.copyToClipboard(
+        {
+          index: rowIndex,
+          columnHeader: type,
+        },
+        { position: { x: 1, y: 1 } }
+      );
+      if (options?.parseInt) {
+        expect(parseInt(await dashboard.grid.cell.getClipboardText())).toBe(value);
+      } else if (options?.jsonParse) {
+        const attachmentsInfo = JSON.parse(await dashboard.grid.cell.getClipboardText());
+        expect(attachmentsInfo[0]['title']).toBe('1.json');
+      } else {
+        expect(await dashboard.grid.cell.getClipboardText()).toBe(value);
+      }
+    }
+  }
 
-    await dashboard.grid.cell.copyToClipboard(
-      {
-        index: 0,
-        columnHeader: 'SingleSelect',
-      },
-      { position: { x: 1, y: 1 } }
-    );
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('Option1');
+  test('single cell- all data types', async () => {
+    await verifyClipContents({ rowIndex: 0 });
+  });
 
-    await dashboard.grid.cell.copyToClipboard(
-      {
-        index: 0,
-        columnHeader: 'MultiSelect',
-      },
-      { position: { x: 1, y: 1 } }
-    );
-    expect(await dashboard.grid.cell.getClipboardText()).toContain('Option1');
-    expect(await dashboard.grid.cell.getClipboardText()).toContain('Option2');
+  test('multiple cells - horizontal, all data types', async ({ page }) => {
+    // click first cell, press `Ctrl A` and `Ctrl C`
+    await grid.cell.click({ index: 0, columnHeader: 'Id' });
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+a' : 'Control+a');
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+c' : 'Control+c');
 
-    await dashboard.grid.cell.copyToClipboard({
-      index: 0,
-      columnHeader: 'SingleLineText',
-    });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('SingleLineText');
+    /////////////////////////////////////////////////////////////////////////
 
-    await dashboard.grid.cell.copyToClipboard({
-      index: 0,
-      columnHeader: 'Number',
-    });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('123');
+    // horizontal multiple cells selection : copy paste
+    // add new row, click on first cell, paste
+    await grid.addNewRow({ index: 1, columnHeader: 'SingleLineText', value: 'aaa' });
+    await dashboard.rootPage.waitForTimeout(1000);
+    await grid.cell.click({ index: 1, columnHeader: 'SingleLineText' });
+    await page.keyboard.press('ArrowLeft');
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
+    await verifyCellContents({ rowIndex: 1 });
 
-    await dashboard.grid.cell.copyToClipboard({
-      index: 0,
-      columnHeader: 'PhoneNumber',
-    });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('987654321');
+    // reload page
+    await dashboard.rootPage.reload();
+    await dashboard.grid.verifyRowCount({ count: 2 });
+  });
 
-    await dashboard.grid.cell.copyToClipboard(
-      {
-        index: 0,
-        columnHeader: 'Email',
-      },
-      { position: { x: 1, y: 1 } }
-    );
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('test@example.com');
+  test('multiple cells - vertical', async ({ page }) => {
+    let cellText: string[] = ['aaa', 'bbb', 'ccc', 'ddd', 'eee'];
+    for (let i = 1; i <= 5; i++) {
+      await grid.addNewRow({ index: i, columnHeader: 'SingleLineText', value: cellText[i - 1] });
+    }
 
-    await dashboard.grid.cell.copyToClipboard(
-      {
-        index: 0,
-        columnHeader: 'URL',
-      },
-      { position: { x: 1, y: 1 } }
-    );
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('nocodb.com');
+    await grid.cell.click({ index: 1, columnHeader: 'SingleLineText' });
+    await page.keyboard.press('Shift+ArrowDown');
+    await page.keyboard.press('Shift+ArrowDown');
+    await page.keyboard.press('Shift+ArrowDown');
+    await page.keyboard.press('Shift+ArrowDown');
+    await page.keyboard.press('Shift+ArrowDown');
 
-    await dashboard.grid.cell.copyToClipboard({
-      index: 0,
-      columnHeader: 'Decimal',
-    });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('1.12');
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+c' : 'Control+c');
+    await grid.cell.click({ index: 1, columnHeader: 'LongText' });
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
 
-    await dashboard.grid.cell.copyToClipboard({
-      index: 0,
-      columnHeader: 'Percent',
-    });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('80');
+    // reload page
+    await dashboard.rootPage.reload();
 
-    await dashboard.grid.cell.copyToClipboard({
-      index: 0,
-      columnHeader: 'Currency',
-    });
-    // convert from string to integer
-    expect(parseInt(await dashboard.grid.cell.getClipboardText())).toBe(20);
+    // verify copied data
+    for (let i = 1; i <= 5; i++) {
+      await grid.cell.verify({ index: i, columnHeader: 'LongText', value: cellText[i - 1] });
+    }
 
-    await dashboard.grid.cell.copyToClipboard({
-      index: 0,
-      columnHeader: 'Duration',
-    });
-    expect(parseInt(await dashboard.grid.cell.getClipboardText())).toBe(480);
+    // Block selection
+    await grid.cell.click({ index: 1, columnHeader: 'SingleLineText' });
+    await page.keyboard.press('Shift+ArrowDown');
+    await page.keyboard.press('Shift+ArrowDown');
+    await page.keyboard.press('Shift+ArrowRight');
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+c' : 'Control+c');
+    await grid.cell.click({ index: 4, columnHeader: 'SingleLineText' });
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
 
-    await dashboard.grid.cell.copyToClipboard(
-      {
-        index: 0,
-        columnHeader: 'Rating',
-      },
-      { position: { x: 1, y: 1 } }
-    );
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('4');
+    // reload page
+    await dashboard.rootPage.reload();
 
-    await dashboard.grid.cell.copyToClipboard(
-      {
-        index: 0,
-        columnHeader: 'Checkbox',
-      },
-      { position: { x: 1, y: 1 } }
-    );
-    // await new Promise(resolve => setTimeout(resolve, 5000));
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('true');
+    // verify copied data
+    for (let i = 4; i <= 5; i++) {
+      await grid.cell.verify({ index: i, columnHeader: 'SingleLineText', value: cellText[i - 4] });
+      await grid.cell.verify({ index: i, columnHeader: 'LongText', value: cellText[i - 4] });
+    }
 
-    await dashboard.grid.cell.click({
-      index: 0,
-      columnHeader: 'Checkbox',
-    });
-    await dashboard.grid.cell.copyToClipboard(
-      {
-        index: 0,
-        columnHeader: 'Checkbox',
-      },
-      { position: { x: 1, y: 1 } }
-    );
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('false');
+    /////////////////////////////////////////////////////////////////////////
 
-    await dashboard.grid.cell.copyToClipboard({
-      index: 0,
-      columnHeader: 'Date',
-    });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe(today);
+    // Meta for block selection
+    await grid.cell.click({ index: 1, columnHeader: 'SingleLineText' });
+    await page.keyboard.press(`Shift+${(await grid.isMacOs()) ? 'Meta' : 'Control'}+ArrowDown`);
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+c' : 'Control+c');
+    await grid.cell.click({ index: 1, columnHeader: 'Email' });
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
 
-    await dashboard.grid.cell.copyToClipboard(
-      {
-        index: 0,
-        columnHeader: 'Attachment',
-      },
-      { position: { x: 1, y: 1 } }
-    );
-    const attachmentsInfo = JSON.parse(await dashboard.grid.cell.getClipboardText());
-    expect(attachmentsInfo[0]['title']).toBe('1.json');
+    // reload page
+    await dashboard.rootPage.reload();
+
+    // verify copied data
+    // modified cell text after previous block operation
+    cellText = ['aaa', 'bbb', 'ccc', 'aaa', 'bbb'];
+    for (let i = 1; i <= 5; i++) {
+      await grid.cell.verify({ index: i, columnHeader: 'Email', value: cellText[i - 1] });
+    }
+
+    // One copy, multiple paste
+    await grid.cell.click({ index: 0, columnHeader: 'SingleLineText' });
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+c' : 'Control+c');
+    await grid.cell.click({ index: 1, columnHeader: 'SingleLineText' });
+    await page.keyboard.press(`Shift+${(await grid.isMacOs()) ? 'Meta' : 'Control'}+ArrowDown`);
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
+
+    // reload page
+    await dashboard.rootPage.reload();
+
+    // verify copied data
+    for (let i = 1; i <= 5; i++) {
+      await grid.cell.verify({ index: i, columnHeader: 'SingleLineText', value: 'SingleLineText' });
+    }
   });
 });

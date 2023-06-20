@@ -17,6 +17,9 @@ import { Acl } from '../../middlewares/extract-project-id/extract-project-id.mid
 import { User } from '../../models';
 import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
 import {
+  ExtractProjectIdMiddleware,
+} from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import {
   randomTokenString,
   setTokenCookie,
 } from '../../services/users/helpers';
@@ -95,7 +98,7 @@ export class UsersController {
 
   @Get('/auth/google')
   @UseGuards(AuthGuard('google'))
-  googleAuthenticate(@Request() req) {
+  googleAuthenticate() {
     // google strategy will take care the request
   }
 
@@ -117,7 +120,7 @@ export class UsersController {
   @UseGuards(GlobalGuard)
   @Acl('passwordChange')
   @HttpCode(200)
-  async passwordChange(@Request() req: any, @Body() body: any): Promise<any> {
+  async passwordChange(@Request() req: any): Promise<any> {
     if (!(req as any).isAuthenticated()) {
       NcError.forbidden('Not allowed');
     }
@@ -137,7 +140,7 @@ export class UsersController {
     '/api/v1/auth/password/forgot',
   ])
   @HttpCode(200)
-  async passwordForgot(@Request() req: any, @Body() body: any): Promise<any> {
+  async passwordForgot(@Request() req: any): Promise<any> {
     await this.usersService.passwordForgot({
       siteUrl: (req as any).ncSiteUrl,
       body: req.body,
@@ -219,6 +222,29 @@ export class UsersController {
     }
   }
 
+  async setRefreshToken({ res, req }) {
+    const userId = req.user?.id;
+
+    if (!userId) return;
+
+    const user = await User.get(userId);
+
+    if (!user) return;
+
+    const refreshToken = randomTokenString();
+
+    if (!user['token_version']) {
+      user['token_version'] = randomTokenString();
+    }
+
+    await User.update(user.id, {
+      refresh_token: refreshToken,
+      email: user.email,
+      token_version: user['token_version'],
+    });
+    setTokenCookie(res, refreshToken);
+  }
+
   /* OpenID Connect auth apis */
   /* OpenID Connect APIs */
   @Post('/auth/oidc/genTokenByCode')
@@ -232,28 +258,5 @@ export class UsersController {
   @UseGuards(AuthGuard('openid'))
   openidAuth() {
     // openid strategy will take care the request
-  }
-
-  async setRefreshToken({ res, req }) {
-    const userId = req.user?.id;
-
-    if (!userId) return;
-
-    const user: any = await User.get(userId);
-
-    if (!user) return;
-
-    const refreshToken = randomTokenString();
-
-    if (!user.token_version) {
-      user.token_version = randomTokenString();
-    }
-
-    await User.update(user.id, {
-      refresh_token: refreshToken,
-      email: user.email,
-      token_version: user.token_version,
-    });
-    setTokenCookie(res, refreshToken);
   }
 }

@@ -6,6 +6,7 @@ import {
   ColumnInj,
   IsFormInj,
   IsLockedInj,
+  IsUnderLookupInj,
   ReadonlyInj,
   ReloadRowDataHookInj,
   RowInj,
@@ -32,6 +33,8 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const isLocked = inject(IsLockedInj)
 
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+
 const listItemsDlg = ref(false)
 
 const childListDlg = ref(false)
@@ -40,7 +43,7 @@ const { isUIAllowed } = useUIPermission()
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
-const { loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvideLTARStore(
+const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
   isNew,
@@ -78,6 +81,11 @@ const unlinkRef = async (rec: Record<string, any>) => {
   }
 }
 
+const hasManyColumn = computed(
+  () =>
+    relatedTableMeta.value?.columns?.find((c: any) => c.title === relatedTableDisplayValueProp.value) as ColumnType | undefined,
+)
+
 const onAttachRecord = () => {
   childListDlg.value = false
   listItemsDlg.value = true
@@ -103,6 +111,8 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
             :key="i"
             :item="cell.item"
             :value="cell.value"
+            :column="hasManyColumn"
+            :show-unlink-button="true"
             @unlink="unlinkRef(cell.item)"
           />
 
@@ -112,7 +122,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
         </template>
       </div>
 
-      <div v-if="!isLocked" class="flex justify-end gap-1 min-h-[30px] items-center">
+      <div v-if="!isLocked && !isUnderLookup" class="flex justify-end gap-1 min-h-[30px] items-center">
         <GeneralIcon
           icon="expand"
           class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
@@ -128,11 +138,12 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
       </div>
     </template>
 
-    <LazyVirtualCellComponentsListItems v-model="listItemsDlg" />
+    <LazyVirtualCellComponentsListItems v-model="listItemsDlg" :column="hasManyColumn" />
 
     <LazyVirtualCellComponentsListChildItems
       v-model="childListDlg"
       :cell-value="localCellValue"
+      :column="hasManyColumn"
       @attach-record="onAttachRecord"
     />
   </div>

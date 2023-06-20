@@ -40,7 +40,7 @@ export default class RedisMockCacheMgr extends CacheMgr {
   }
 
   // @ts-ignore
-  async get(key: string, type: string, config?: any): Promise<any> {
+  async get(key: string, type: string): Promise<any> {
     log(`RedisMockCacheMgr::get: getting key ${key} with type ${type}`);
     if (type === CacheGetType.TYPE_ARRAY) {
       return this.client.smembers(key);

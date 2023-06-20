@@ -11,7 +11,6 @@ import {
   Response,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { GlobalGuard } from '../guards/global/global.guard';
 import { parseHrtimeToSeconds } from '../helpers';
 import { Acl } from '../middlewares/extract-project-id/extract-project-id.middleware';

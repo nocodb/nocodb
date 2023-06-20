@@ -580,7 +580,7 @@
       "afterEnablePwd": "L’accès est restreint par un mot de passe",
       "privateLink": "Cette vue est partagée avec un lien privé",
       "privateLinkAdditionalInfo": "Les personnes ayant le lien privé peuvent voir uniquement les cellules visibles de cette vue",
-      "afterFormSubmitted": "Après que le formulaire ait été soumis",
+      "afterFormSubmitted": "Après que le formulaire a été soumis",
       "apiOptions": "Accéder au projet via",
       "submitAnotherForm": "Afficher le bouton \"Soumettre un autre formulaire\"",
       "showBlankForm": "Montrer un formulaire vierge après 5 secondes",

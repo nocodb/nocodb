@@ -225,7 +225,8 @@ defineExpose({
             />
             <span v-else :key="`${i}dummy`" />
 
-            <div :key="`${i}nested`" class="flex">
+            <span v-if="!i" class="flex items-center">{{ $t('labels.where') }}</span>
+            <div v-else :key="`${i}nested`" class="flex bob">
               <a-select
                 v-model:value="filter.logical_op"
                 :dropdown-match-select-width="false"

@@ -31,7 +31,10 @@ export class ChildList extends BasePage {
       const childCards = await childList.count();
       await expect(childCards).toEqual(cardCount);
       for (let i = 0; i < cardCount; i++) {
-        await expect(await childList.nth(i).textContent()).toContain(cardTitle[i]);
+        await childList.nth(i).locator('.name').waitFor({ state: 'visible' });
+        await childList.nth(i).locator('.name').scrollIntoViewIfNeeded();
+        await this.rootPage.waitForTimeout(100);
+        await expect(await childList.nth(i).locator('.name').textContent()).toContain(cardTitle[i]);
         // icon: unlink
         // icon: delete
         await expect(

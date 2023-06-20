@@ -46,7 +46,13 @@ const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj)!
 
-const active = inject(ActiveCellInj, ref(false))
+const isEditable = inject(EditModeInj, ref(false))
+
+const _active = inject(ActiveCellInj, ref(false))
+
+// use both ActiveCellInj or EditModeInj to determine the active state
+// since active will be false in case of form view
+const active = computed(() => _active.value || isEditable.value)
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -93,13 +99,9 @@ const isOptionMissing = computed(() => {
   return (options.value ?? []).every((op) => op.title !== searchVal.value)
 })
 
-const isEditable = inject(EditModeInj, ref(false))
-
 const hasEditRoles = computed(() => hasRole('owner', true) || hasRole('creator', true) || hasRole('editor', true))
 
-// use both active or edit mode to determine if edit is allowed
-// since active will be false in case of form view
-const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && (active.value || isEditable.value))
+const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && (active.value))
 
 const vModel = computed({
   get: () => {

@@ -59,8 +59,8 @@ const fields = computed(() => {
 const paginatedData = inject(PaginationDataInj)!
 
 const editCount = computed(() => {
-  if (updateMode.value === BulkUpdateMode.SELECTED && props.rows) {
-    return props.rows.length
+  if (updateMode.value === BulkUpdateMode.SELECTED) {
+    return props.rows!.length
   } else {
     return paginatedData.value?.totalRows ?? Infinity
   }
@@ -182,50 +182,22 @@ onMounted(() => {
         <template v-if="meta">
           {{ meta.title }}
         </template>
-
+        <!-- TODO i18n -->
         <div>: Bulk Update ({{ editCount }} records)</div>
       </h5>
 
       <div class="flex-1" />
-      <!--
-      <a-dropdown-button v-if="props.rows && props.rows.length" class="nc-bulk-update-save-btn" type="primary" @click="save">
-        <template #icon><component :is="iconMap.arrowDown" /></template>
-
-        <template #overlay>
-          <a-menu class="nc-bulk-update-save-dropdown-menu">
-            <a-menu-item key="0" class="!py-2 flex gap-2" @click="updateMode = BulkUpdateMode.ALL">
-              <div class="flex items-center">
-                <component :is="iconMap.contentSaveExit" class="mr-1" />
-                Bulk Update All
-              </div>
-            </a-menu-item>
-            <a-menu-item key="1" class="!py-2 flex gap-2 items-center" @click="updateMode = BulkUpdateMode.SELECTED">
-              <div class="flex items-center">
-                <component :is="iconMap.contentSaveStay" class="mr-1" />
-                Bulk Update Selected
-              </div>
-            </a-menu-item>
-          </a-menu>
-        </template>
-        <div v-if="updateMode === BulkUpdateMode.ALL" class="flex items-center">
-          <component :is="iconMap.contentSaveExit" class="mr-1" />
-          Bulk Update All
-        </div>
-        <div v-if="updateMode === BulkUpdateMode.SELECTED" class="flex items-center">
-          <component :is="iconMap.contentSaveStay" class="mr-1" />
-          Bulk Update Selected
-        </div>
-      </a-dropdown-button>
-      -->
-      <a-button v-if="props.selectedAllRecords" class="nc-bulk-update-save-btn" type="primary" @click="save">
+      <a-button v-if="updateMode === BulkUpdateMode.ALL" class="nc-bulk-update-save-btn" type="primary" @click="save">
         <div class="flex items-center">
           <component :is="iconMap.contentSaveExit" class="mr-1" />
+          <!-- TODO i18n -->
           Bulk Update All
         </div>
       </a-button>
-      <a-button v-else-if="props.rows && props.rows.length" class="nc-bulk-update-save-btn" type="primary" @click="save">
+      <a-button v-else-if="updateMode === BulkUpdateMode.SELECTED" class="nc-bulk-update-save-btn" type="primary" @click="save">
         <div class="flex items-center">
           <component :is="iconMap.contentSaveStay" class="mr-1" />
+          <!-- TODO i18n -->
           Bulk Update Selected
         </div>
       </a-button>
@@ -333,13 +305,17 @@ onMounted(() => {
 
           <template #footer>
             <div v-if="!editColumns.length" class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center">
+              <!-- TODO i18n -->
               Drag and drop fields here to edit
             </div>
           </template>
         </Draggable>
       </div>
       <div class="nc-columns-drawer w-1/3 p-3 shadow-md" :class="{ active: columnsDrawer }">
-        <div class="flex-1 text-bold uppercase text-gray-500 font-weight-bold !mb-2">Editable Columns</div>
+        <div class="flex-1 text-bold uppercase text-gray-500 font-weight-bold !mb-2">
+          <!-- TODO i18n -->
+          Editable Columns
+        </div>
 
         <Draggable
           :list="fields"

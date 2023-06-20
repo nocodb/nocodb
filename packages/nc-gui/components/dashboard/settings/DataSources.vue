@@ -257,6 +257,7 @@ watch(
                 <div class="ds-table-col ds-table-actions">
                   <div class="flex items-center gap-2">
                     <a-button
+                      v-if="!sources[0].is_meta"
                       class="nc-action-btn cursor-pointer outline-0"
                       @click="baseAction(sources[0].id, DataSourcesSubTab.Metadata)"
                     >
@@ -326,6 +327,7 @@ watch(
                 <div class="ds-table-col ds-table-actions">
                   <div class="flex items-center gap-2">
                     <a-button
+                      v-if="!base.is_meta"
                       class="nc-action-btn cursor-pointer outline-0"
                       @click="baseAction(base.id, DataSourcesSubTab.Metadata)"
                     >

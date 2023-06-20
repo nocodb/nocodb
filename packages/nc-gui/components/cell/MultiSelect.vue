@@ -316,10 +316,10 @@ const handleClose = (e: MouseEvent) => {
 useEventListener(document, 'click', handleClose, true)
 
 const selectedOpts = computed(() => {
-  return options.value.reduce<(SelectOptionType & { index: number })[]>((selectedOptions, option) => {
-    const index = vModel.value.indexOf(option.value!)
-    if (index !== -1) {
-      selectedOptions.push({ ...option, index })
+  return vModel.value.reduce<SelectOptionType[]>((selectedOptions, option) => {
+    const selectedOption = options.value.find((o) => o.value === option)
+    if (selectedOption) {
+      selectedOptions.push(selectedOption)
     }
     return selectedOptions
   }, [])
@@ -340,7 +340,7 @@ const selectedOpts = computed(() => {
       }"
     >
       <template v-for="selectedOpt of selectedOpts" :key="selectedOpt.value">
-        <a-tag class="rounded-tag" :color="selectedOpt.color" :style="{ order: selectedOpt.index }">
+        <a-tag class="rounded-tag" :color="selectedOpt.color">
           <span
             :style="{
               'color': tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })

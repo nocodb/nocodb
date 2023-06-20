@@ -8,12 +8,14 @@ export function useGlobalActions(state: State): Actions {
 
   /** Sign out by deleting the token from localStorage */
   const signOut: Actions['signOut'] = async () => {
-    state.token.value = null
-    state.user.value = null
     try {
       const nuxtApp = useNuxtApp()
       await nuxtApp.$api.auth.signout()
-    } catch {}
+    } catch {
+    } finally {
+      state.token.value = null
+      state.user.value = null
+    }
   }
 
   /** Sign in by setting the token in localStorage */

@@ -77,11 +77,15 @@ export class UsersController {
     res.json(this.usersService.login(req.user));
   }
 
+  @UseGuards(GlobalGuard)
   @Post('/api/v1/auth/user/signout')
   @HttpCode(200)
-  async signout(@Request() req, @Response() res): Promise<any> {
+  async signOut(@Request() req, @Response() res): Promise<any> {
+    if (!(req as any).isAuthenticated()) {
+      NcError.forbidden('Not allowed');
+    }
     res.json(
-      await this.usersService.signout({
+      await this.usersService.signOut({
         req,
         res,
       }),

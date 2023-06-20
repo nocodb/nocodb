@@ -121,16 +121,13 @@ async function upgradeModelRelations({
 async function upgradeBaseRelations({
   ncMeta,
   base,
+  relations,
 }: {
   ncMeta: MetaService;
   base: any;
+  relations: any;
 }) {
-  // const sqlMgr = ProjectMgrv2.getSqlMgr({ id: base.project_id }, ncMeta);
-
   const sqlClient = await NcConnectionMgrv2.getSqlClient(base, ncMeta.knex);
-
-  // get all relations
-  const relations = (await sqlClient.relationListAll())?.data?.list;
 
   // get models for the base
   const models = await ncMeta.metaList2(null, base.id, MetaTable.MODELS);
@@ -156,11 +153,22 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
     orderBy: {},
   });
 
+  if (!bases.length) return;
+
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(
+    new Base(bases[0]),
+    ncMeta.knex,
+  );
+
+  // get all relations
+  const relations = (await sqlClient.relationListAll())?.data?.list;
+
   // iterate and upgrade each base
   for (const base of bases) {
     await upgradeBaseRelations({
       ncMeta,
       base: new Base(base),
+      relations,
     });
   }
 }

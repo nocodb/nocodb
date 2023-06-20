@@ -453,7 +453,7 @@ const parseConditionV2 = async (
                   nestedQb.whereNot(field, val);
 
                   if (column.uidt !== UITypes.Links)
-                    qb.orWhereNull(customWhereClause ? _val : _field);
+                    nestedQb.orWhereNull(customWhereClause ? _val : _field);
                 });
               } else if (column.uidt === UITypes.Rating) {
                 // unset rating is considered as NULL
@@ -476,7 +476,7 @@ const parseConditionV2 = async (
                 nestedQb.whereNot(field, val);
 
                 if (column.uidt !== UITypes.Links)
-                  qb.orWhereNull(customWhereClause ? _val : _field);
+                  nestedQb.orWhereNull(customWhereClause ? _val : _field);
               });
             }
             break;

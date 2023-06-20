@@ -228,27 +228,25 @@ test.describe.serial('Test table', () => {
 
     // has-many removal verification
     await dashboard.treeView.openTable({ title: 'Table1' });
-    await dashboard.grid.cell.verifyVirtualCell({ index: 0, columnHeader: 'Table0', count: 0, value: [] });
-    await dashboard.grid.cell.verifyVirtualCell({ index: 1, columnHeader: 'Table0', count: 0, value: [] });
-    await dashboard.grid.cell.verifyVirtualCell({ index: 2, columnHeader: 'Table0', count: 0, value: [] });
+    await dashboard.grid.cell.verifyVirtualCell({ index: 0, columnHeader: 'Table0', count: 0, value: [], type: 'bt' });
+    await dashboard.grid.cell.verifyVirtualCell({ index: 1, columnHeader: 'Table0', count: 0, value: [], type: 'bt' });
+    await dashboard.grid.cell.verifyVirtualCell({ index: 2, columnHeader: 'Table0', count: 0, value: [], type: 'bt' });
 
     // many-many removal verification
     await dashboard.treeView.openTable({ title: 'Table3' });
-    await dashboard.grid.cell.verifyVirtualCell({ index: 0, columnHeader: 'Table0 List', count: 0, value: [] });
-    await dashboard.grid.cell.verifyVirtualCell({ index: 1, columnHeader: 'Table0 List', count: 1, value: ['2'] });
-    await dashboard.grid.cell.verifyVirtualCell({ index: 2, columnHeader: 'Table0 List', count: 2, value: ['2', '3'] });
-    await dashboard.grid.cell.verifyVirtualCell({
-      index: 3,
+    const params = {
+      index: 0,
       columnHeader: 'Table0 List',
-      count: 3,
-      value: ['2', '3', '4'],
-    });
-    await dashboard.grid.cell.verifyVirtualCell({
-      index: 4,
-      columnHeader: 'Table0 List',
-      count: 4,
-      value: ['2', '3', '4', '5'],
-    });
+      count: 0,
+      value: [],
+      type: 'hm',
+      options: { singular: 'Table0', plural: 'Table0s' },
+    };
+    await dashboard.grid.cell.verifyVirtualCell({ ...params });
+    await dashboard.grid.cell.verifyVirtualCell({ ...params, count: 1, index: 1, value: ['2'] });
+    await dashboard.grid.cell.verifyVirtualCell({ ...params, count: 2, index: 2, value: ['2', '3'] });
+    await dashboard.grid.cell.verifyVirtualCell({ ...params, count: 3, index: 3, value: ['2', '3', '4'] });
+    await dashboard.grid.cell.verifyVirtualCell({ ...params, count: 4, index: 4, value: ['2', '3', '4', '5'] });
   });
 
   test('Delete record - bulk, over UI', async () => {

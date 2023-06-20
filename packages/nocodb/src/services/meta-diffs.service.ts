@@ -15,6 +15,7 @@ import { getUniqueColumnAliasName } from '../helpers/getUniqueName';
 import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import NcHelp from '../utils/NcHelp';
+import { NcError } from '../helpers/catchError';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import type { LinkToAnotherRecordColumn } from '../models';
 
@@ -121,6 +122,11 @@ export class MetaDiffsService {
     project: Project,
     base: Base,
   ): Promise<Array<MetaDiff>> {
+    // if meta base then return empty array
+    if (base.is_meta) {
+      return [];
+    }
+
     const changes: Array<MetaDiff> = [];
     const virtualRelationColumns: Column<LinkToAnotherRecordColumn>[] = [];
 
@@ -558,6 +564,9 @@ export class MetaDiffsService {
     let changes = [];
     for (const base of project.bases) {
       try {
+        // skip meta base
+        if (base.is_meta) continue;
+
         // @ts-ignore
         const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
         changes = changes.concat(
@@ -574,6 +583,7 @@ export class MetaDiffsService {
   async baseMetaDiff(param: { projectId: string; baseId: string }) {
     const project = await Project.getWithInfo(param.projectId);
     const base = await Base.get(param.baseId);
+
     let changes = [];
 
     const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
@@ -585,6 +595,9 @@ export class MetaDiffsService {
   async metaDiffSync(param: { projectId: string }) {
     const project = await Project.getWithInfo(param.projectId);
     for (const base of project.bases) {
+      // skip if metadb base
+      if (base.is_meta) continue;
+
       const virtualColumnInsert: Array<() => Promise<void>> = [];
 
       // @ts-ignore
@@ -791,6 +804,10 @@ export class MetaDiffsService {
   async baseMetaDiffSync(param: { projectId: string; baseId: string }) {
     const project = await Project.getWithInfo(param.projectId);
     const base = await Base.get(param.baseId);
+
+    if (base.is_meta) {
+      NcError.badRequest('Cannot sync meta base');
+    }
 
     const virtualColumnInsert: Array<() => Promise<void>> = [];
 

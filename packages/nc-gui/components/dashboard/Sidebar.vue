@@ -52,12 +52,7 @@ const onTreeViewScrollTop = (onScrollTop: boolean) => {
             data-testid="nc-noco-brand-icon"
             class="w-[29px] min-w-[29px] transition-all duration-200 py-1 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
           >
-            <a-tooltip placement="bottom">
-              <template #title>
-                {{ currentVersion }}
-              </template>
-              <img width="25" class="-mr-1" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
-            </a-tooltip>
+            <img width="25" class="mr-0" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
           </div>
 
           <a

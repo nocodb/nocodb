@@ -21,10 +21,10 @@ function onOpenModal(type: ViewTypes, title = '') {
 </script>
 
 <template>
-  <a-menu :selected-keys="[]" class="flex flex-col">
-    <h3 class="px-3 text-xs font-semibold flex items-center gap-4 text-gray-500">
+  <a-menu :selected-keys="[]" class="flex flex-col !text-gray-600">
+    <div class="px-4 text-xs flex items-center gap-4 my-2 !text-gray-700">
       {{ $t('activity.createView') }}
-    </h3>
+    </div>
 
     <a-menu-item
       key="grid"
@@ -37,7 +37,7 @@ function onOpenModal(type: ViewTypes, title = '') {
         </template>
 
         <div class="nc-project-menu-item !py-0 text-xs flex items-center h-full w-full gap-2">
-          <component :is="viewIcons[ViewTypes.GRID].icon" :style="{ color: viewIcons[ViewTypes.GRID].color }" />
+          <component :is="viewIcons[ViewTypes.GRID].icon" />
 
           <div>{{ $t('objects.viewType.grid') }}</div>
 
@@ -59,7 +59,7 @@ function onOpenModal(type: ViewTypes, title = '') {
         </template>
 
         <div class="nc-project-menu-item !py-0 text-xs flex items-center h-full w-full gap-2">
-          <component :is="viewIcons[ViewTypes.GALLERY].icon" :style="{ color: viewIcons[ViewTypes.GALLERY].color }" />
+          <component :is="viewIcons[ViewTypes.GALLERY].icon" />
 
           <div>{{ $t('objects.viewType.gallery') }}</div>
 
@@ -82,7 +82,7 @@ function onOpenModal(type: ViewTypes, title = '') {
         </template>
 
         <div class="nc-project-menu-item !py-0 text-xs flex items-center h-full w-full gap-2">
-          <component :is="viewIcons[ViewTypes.FORM].icon" :style="{ color: viewIcons[ViewTypes.FORM].color }" />
+          <component :is="viewIcons[ViewTypes.FORM].icon" />
 
           <div>{{ $t('objects.viewType.form') }}</div>
 
@@ -104,13 +104,13 @@ function onOpenModal(type: ViewTypes, title = '') {
         </template>
 
         <div class="nc-project-menu-item !py-0 text-xs flex items-center h-full w-full gap-2">
-          <component :is="viewIcons[ViewTypes.KANBAN].icon" :style="{ color: viewIcons[ViewTypes.KANBAN].color }" />
+          <component :is="viewIcons[ViewTypes.KANBAN].icon" />
 
           <div>{{ $t('objects.viewType.kanban') }}</div>
 
           <div class="flex-1" />
 
-          <component :is="iconMap.plus" class="group-hover:text-primary" />
+          <component :is="iconMap.plus" class="group-hover:text-gray-600" />
         </div>
       </a-tooltip>
     </a-menu-item>

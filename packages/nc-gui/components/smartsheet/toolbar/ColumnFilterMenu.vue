@@ -74,10 +74,10 @@ useMenuCloseOnEsc(open)
   <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-filter-menu">
     <div :class="{ 'nc-active-btn': filtersLength }">
       <a-button v-e="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm" :disabled="isLocked">
-        <div class="flex items-center gap-1">
-          <component :is="iconMap.filter" />
+        <div class="flex items-center gap-2">
+          <img src="~/assets/nc-icons/filter.svg" class="text-[#DDB00F] h-3.75 w-3.75" />
           <!-- Filter -->
-          <span v-if="!isMobileMode" class="text-capitalize !text-xs font-weight-normal">{{ $t('activity.filter') }}</span>
+          <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.filter') }}</span>
           <component :is="iconMap.arrowDown" class="text-grey" />
 
           <span v-if="filtersLength" class="nc-count-badge">{{ filtersLength }}</span>

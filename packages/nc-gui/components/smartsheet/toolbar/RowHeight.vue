@@ -59,16 +59,18 @@ useMenuCloseOnEsc(open)
   <a-dropdown v-model:visible="open" offset-y class="" :trigger="['click']" overlay-class-name="nc-dropdown-height-menu">
     <div>
       <a-button v-e="['c:row-height']" class="nc-height-menu-btn nc-toolbar-btn" :disabled="isLocked">
-        <div class="flex items-center gap-1">
-          <component :is="iconMap.rowHeight" />
-          <!-- Row Height -->
+        <div class="flex items-center gap-1.5">
+          <component :is="iconMap.rowHeight" class="!h-3.75 !w-3.75" />
+          <span v-if="!isMobileMode" class="!text-sm !font-medium">{{ $t('objects.rowHeight') }}</span>
           <component :is="iconMap.arrowDown" class="text-grey" />
         </div>
       </a-button>
     </div>
     <template #overlay>
-      <div class="w-full bg-gray-50 shadow-lg menu-filter-dropdown !border" data-testid="nc-height-menu">
-        <div class="text-gray-500 !text-xs px-4 py-2">Select a row height</div>
+      <div
+        class="w-full bg-gray-50 shadow-lg menu-filter-dropdown !border rounded-md overflow-hidden"
+        data-testid="nc-height-menu"
+      >
         <div class="flex flex-col w-full text-sm" @click.stop>
           <div class="nc-row-height-option" @click="updateRowHeight(0)">
             <GeneralIcon icon="heightShort" class="nc-row-height-icon" />
@@ -94,10 +96,10 @@ useMenuCloseOnEsc(open)
 
 <style scoped>
 .nc-row-height-option {
-  @apply flex items-center py-1 px-2 justify-start hover:bg-gray-200 cursor-pointer;
+  @apply flex items-center py-2 pl-1 pr-2 justify-start hover:bg-gray-100 cursor-pointer text-gray-600;
 }
 
 .nc-row-height-icon {
-  @apply text-gray-600 mx-4 text-base;
+  @apply mx-2 text-base;
 }
 </style>

@@ -985,7 +985,11 @@ function openGenerateDialog(target: any) {
 </script>
 
 <template>
-  <div class="relative flex flex-col h-full min-h-0 w-full" data-testid="nc-grid-wrapper">
+  <div
+    class="relative flex flex-col h-full min-h-0 w-full"
+    data-testid="nc-grid-wrapper"
+    style="background-color: var(--nc-grid-bg)"
+  >
     <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15" data-testid="grid-load-spinner">
       <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
         <a-spin size="large" />
@@ -1401,13 +1405,14 @@ function openGenerateDialog(target: any) {
 
   td,
   th {
-    @apply border-gray-100 border-solid border-b border-r;
+    @apply border-gray-75 border-solid border-b border-r;
     min-height: 41px !important;
     height: 41px !important;
     position: relative;
   }
 
-  th {
+  th,
+  td {
     @apply bg-white;
   }
 
@@ -1417,6 +1422,8 @@ function openGenerateDialog(target: any) {
   }
 
   table {
+    background-color: var(--nc-grid-bg);
+
     border-collapse: separate;
     border-spacing: 0;
   }
@@ -1464,7 +1471,7 @@ function openGenerateDialog(target: any) {
     position: sticky !important;
     left: 85px;
     z-index: 5;
-    @apply border-r-2 border-r-gray-100;
+    @apply border-r-1 border-r-gray-100;
   }
 
   tbody td:nth-child(2) {
@@ -1472,7 +1479,7 @@ function openGenerateDialog(target: any) {
     left: 85px;
     z-index: 4;
     background: white;
-    @apply border-r-2 border-r-gray-100;
+    @apply border-r-1 border-r-gray-100;
   }
 }
 

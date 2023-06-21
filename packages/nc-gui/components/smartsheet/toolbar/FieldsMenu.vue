@@ -24,6 +24,8 @@ import {
   watch,
 } from '#imports'
 
+import TablerEye from '~icons/ph/eye'
+
 const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
@@ -289,11 +291,11 @@ useMenuCloseOnEsc(open)
   <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-fields-menu">
     <div :class="{ 'nc-active-btn': numberOfHiddenFields }">
       <a-button v-e="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
-        <div class="flex items-center gap-1">
-          <component :is="iconMap.eye" />
+        <div class="flex items-center gap-2">
+          <img src="~/assets/nc-icons/eye.svg" class="text-[#DDB00F] h-4 w-4" />
 
           <!-- Fields -->
-          <span v-if="!isMobileMode" class="text-capitalize !text-xs font-weight-normal">{{ $t('objects.fields') }}</span>
+          <span v-if="!isMobileMode" class="text-capitalize text-sm font-medium">{{ $t('objects.fields') }}</span>
 
           <component :is="iconMap.arrowDown" class="text-grey" />
 

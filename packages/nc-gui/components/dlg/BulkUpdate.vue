@@ -311,8 +311,8 @@ onMounted(() => {
           </template>
         </Draggable>
       </div>
-      <div class="nc-columns-drawer w-1/3 p-3 shadow-md" :class="{ active: columnsDrawer }">
-        <div class="flex-1 text-bold uppercase text-gray-500 font-weight-bold !mb-2">
+      <div class="nc-columns-drawer w-1/3 p-3 shadow-md flex flex-col" :class="{ active: columnsDrawer }">
+        <div class="text-bold uppercase text-gray-500 font-weight-bold !mb-2">
           <!-- TODO i18n -->
           Editable Columns
         </div>
@@ -322,7 +322,7 @@ onMounted(() => {
           item-key="id"
           draggable=".item"
           group="form-inputs"
-          class="flex flex-col gap-2"
+          class="flex flex-col gap-2 flex-1"
           @start="drag = true"
           @end="drag = false"
         >

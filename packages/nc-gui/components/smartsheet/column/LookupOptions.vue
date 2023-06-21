@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { RelationTypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { MetaInj, inject, ref, storeToRefs, useColumnCreateStoreOrThrow, useMetas, useProject, useVModel } from '#imports'
 
 const props = defineProps<{
@@ -57,7 +57,9 @@ const columns = $computed<ColumnType[]>(() => {
   if (!selectedTable?.id) {
     return []
   }
-  return metas[selectedTable.id].columns.filter((c: ColumnType) => !isSystemColumn(c) && c.id !== vModel.value.id)
+  return metas[selectedTable.id].columns.filter(
+    (c: ColumnType) => !isSystemColumn(c) && c.id !== vModel.value.id && c.uidt !== UITypes.Links,
+  )
 })
 
 onMounted(() => {
@@ -109,8 +111,8 @@ const cellIcon = (column: ColumnType) =>
         >
           <a-select-option v-for="(column, index) of columns" :key="index" :value="column.id">
             <div class="flex items-center -ml-1">
-            <component :is="cellIcon(column)" :column-meta="column" />
-            {{ column.title }}
+              <component :is="cellIcon(column)" :column-meta="column" />
+              {{ column.title }}
             </div>
           </a-select-option>
         </a-select>

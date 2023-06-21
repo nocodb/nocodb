@@ -3,7 +3,7 @@ import { computed } from '@vue/reactivity'
 import type { ColumnType } from 'nocodb-sdk'
 import { ref } from 'vue'
 import type { Ref } from 'vue'
-import { ActiveCellInj, CellValueInj, ColumnInj, EditModeInj, MetaInj, inject, useSelectedCellKeyupListener } from '#imports'
+import { ActiveCellInj,IsUnderLookupInj, CellValueInj, ColumnInj, EditModeInj, MetaInj, inject, useSelectedCellKeyupListener } from '#imports'
 
 const value = inject(CellValueInj, ref(0))
 
@@ -28,6 +28,9 @@ const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
+
+
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 const listItemsDlg = ref(false)
 
@@ -97,8 +100,8 @@ const localCellValue = computed<any[]>(() => {
       <div class="block flex-shrink truncate">
         <component
           :title="textVal"
-          :is="isLocked ? 'span' : 'a'"
-          class="text-center pl-3 nc-datatype-link "
+          :is="isLocked || IsUnderLookupInj ? 'span' : 'a'"
+          class="text-center pl-3 nc-datatype-link"
           :class="{ '!text-gray-300': !value }"
           @click.stop.prevent="openChildList"
         >

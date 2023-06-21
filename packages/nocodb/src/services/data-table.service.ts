@@ -168,7 +168,7 @@ export class DataTableService {
     const model = await Model.get(param.modelId);
 
     if (!model) {
-      NcError.notFound(`Table  '${param.modelId}' not found`);
+      NcError.notFound(`Table with id '${param.modelId}' not found`);
     }
 
     if (param.projectId && model.project_id !== param.projectId) {

@@ -132,7 +132,11 @@ const save = () => {
     title:
       updateMode.value === BulkUpdateMode.SELECTED
         ? `Do you want to update selected ${editCount.value} records?`
-        : `Do you want to update all ${editCount.value} records in current view?`,
+        : h('div', {}, [
+            `Do you want to update all ${editCount.value} records in current view?`,
+            h('br'),
+            h('div', { class: 'text-gray-500 text-xs mt-2' }, `Note: Undo on bulk update ALL is not supported`),
+          ]),
     type: 'warn',
     onOk: async () => {
       if (updateMode.value === BulkUpdateMode.SELECTED) {
@@ -195,14 +199,26 @@ onMounted(() => {
       </h5>
 
       <div class="flex-1" />
-      <a-button v-if="updateMode === BulkUpdateMode.ALL" class="nc-bulk-update-save-btn" type="primary" @click="save">
+      <a-button
+        v-if="updateMode === BulkUpdateMode.ALL"
+        class="nc-bulk-update-save-btn"
+        type="primary"
+        :disabled="!editColumns.length"
+        @click="save"
+      >
         <div class="flex items-center">
           <component :is="iconMap.contentSaveExit" class="mr-1" />
           <!-- TODO i18n -->
           Bulk Update All
         </div>
       </a-button>
-      <a-button v-else-if="updateMode === BulkUpdateMode.SELECTED" class="nc-bulk-update-save-btn" type="primary" @click="save">
+      <a-button
+        v-else-if="updateMode === BulkUpdateMode.SELECTED"
+        class="nc-bulk-update-save-btn"
+        type="primary"
+        :disabled="!editColumns.length"
+        @click="save"
+      >
         <div class="flex items-center">
           <component :is="iconMap.contentSaveStay" class="mr-1" />
           <!-- TODO i18n -->

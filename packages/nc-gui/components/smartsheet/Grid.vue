@@ -97,6 +97,7 @@ const contextMenu = computed({
     }
   },
 })
+const contextMenuClosing = ref(false)
 
 const routeQuery = $computed(() => route.query as Record<string, string>)
 const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
@@ -209,6 +210,7 @@ const {
   data,
   $$(editEnabled),
   isPkAvail,
+  contextMenu,
   clearCell,
   clearSelectedRangeOfCells,
   makeEditable,
@@ -479,7 +481,10 @@ defineExpose({
 // reset context menu target on hide
 watch(contextMenu, () => {
   if (!contextMenu.value) {
+    contextMenuClosing.value = true
     contextMenuTarget.value = null
+  } else {
+    contextMenuClosing.value = false
   }
 })
 
@@ -763,7 +768,7 @@ onBeforeUnmount(async () => {
   const viewMetaValue = view.value
   const dataValue = data.value
   if (viewMetaValue) {
-    getMeta(viewMetaValue.fk_model_id).then((res) => {
+    getMeta(viewMetaValue.fk_model_id, false, true).then((res) => {
       const metaValue = res
       if (!metaValue) return
       saveOrUpdateRecords({
@@ -810,7 +815,7 @@ watch(
         switchingTab.value = true
         // whenever tab changes or view changes save any unsaved data
         if (old?.id) {
-          const oldMeta = await getMeta(old.fk_model_id!)
+          const oldMeta = await getMeta(old.fk_model_id!, false, true)
           if (oldMeta) {
             await saveOrUpdateRecords({
               viewMetaValue: old,
@@ -1041,7 +1046,7 @@ function addEmptyRow(row?: number) {
                     :data-col="columnObj.id"
                     :data-title="columnObj.title"
                     @mousedown="handleMouseDown($event, rowIndex, colIndex)"
-                    @mouseover="handleMouseOver(rowIndex, colIndex)"
+                    @mouseover="handleMouseOver($event, rowIndex, colIndex)"
                     @click="handleCellClick($event, rowIndex, colIndex)"
                     @dblclick="makeEditable(row, columnObj)"
                     @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
@@ -1115,7 +1120,7 @@ function addEmptyRow(row?: number) {
               </div>
             </a-menu-item>
 
-            <a-menu-item v-if="data.some((r) => r.rowMeta.selected)" @click="deleteSelectedRows">
+            <a-menu-item v-if="!contextMenuClosing && data.some((r) => r.rowMeta.selected)" @click="deleteSelectedRows">
               <div v-e="['a:row:delete-bulk']" class="nc-project-menu-item">
                 <!-- Delete Selected Rows -->
                 {{ $t('activity.deleteSelectedRow') }}
@@ -1136,7 +1141,7 @@ function addEmptyRow(row?: number) {
             </a-menu-item>
 
             <!--            Clear cell -->
-            <a-menu-item v-else @click="clearSelectedRangeOfCells()">
+            <a-menu-item v-else-if="contextMenuTarget" @click="clearSelectedRangeOfCells()">
               <div v-e="['a:row:clear-range']" class="nc-project-menu-item">Clear Cells</div>
             </a-menu-item>
 

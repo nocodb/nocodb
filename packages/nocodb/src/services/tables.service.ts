@@ -16,7 +16,6 @@ import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
 import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
 import {
   Audit,
-  Base,
   Column,
   Model,
   ModelRoleVisibility,
@@ -246,6 +245,10 @@ export class TablesService {
     const table = await Model.getWithInfo({
       id: param.tableId,
     });
+
+    if (!table) {
+      NcError.notFound('Table not found');
+    }
 
     // todo: optimise
     const viewList = <View[]>(

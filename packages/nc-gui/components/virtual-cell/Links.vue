@@ -105,7 +105,7 @@ const localCellValue = computed<any[]>(() => {
     <template v-if="!isForm">
       <div class="block flex-shrink truncate">
         <component
-          :is="isLocked || IsUnderLookupInj ? 'span' : 'a'"
+          :is="isLocked || !IsUnderLookupInj ? 'span' : 'a'"
           :title="textVal"
           class="text-center pl-3 nc-datatype-link"
           :class="{ '!text-gray-300': !value }"

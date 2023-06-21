@@ -8,6 +8,7 @@ import {
   ActiveCellInj,
   CellClickHookInj,
   ColumnInj,
+  EditModeInj,
   IsKanbanInj,
   ReadonlyInj,
   RowHeightInj,
@@ -27,7 +28,6 @@ import {
   useRoles,
   useSelectedCellKeyupListener,
   watch,
-  EditModeInj
 } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
@@ -101,7 +101,7 @@ const isOptionMissing = computed(() => {
 
 const hasEditRoles = computed(() => hasRole('owner', true) || hasRole('creator', true) || hasRole('editor', true))
 
-const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && (active.value))
+const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && active.value)
 
 const vModel = computed({
   get: () => {

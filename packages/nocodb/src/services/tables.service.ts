@@ -16,7 +16,6 @@ import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
 import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
 import {
   Audit,
-  Base,
   Column,
   Model,
   ModelRoleVisibility,

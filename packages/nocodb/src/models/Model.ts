@@ -293,9 +293,9 @@ export default class Model implements TableType {
       ));
     if (!modelData) {
       modelData = await ncMeta.metaGet2(null, null, MetaTable.MODELS, k);
-      modelData.meta = parseMetaProp(modelData);
     }
     if (modelData) {
+      modelData.meta = parseMetaProp(modelData);
       await NocoCache.set(`${CacheScope.MODEL}:${modelData.id}`, modelData);
       return new Model(modelData);
     }

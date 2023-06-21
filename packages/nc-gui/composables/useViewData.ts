@@ -1,5 +1,16 @@
 import { UITypes, ViewTypes } from 'nocodb-sdk'
-import type { Api, ColumnType, FormColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import type {
+  Api,
+  ColumnType,
+  FormColumnType,
+  FormType,
+  GalleryType,
+  LinkToAnotherRecordType,
+  PaginatedType,
+  RelationTypes,
+  TableType,
+  ViewType,
+} from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { CellRange } from '#imports'
 import {
@@ -54,7 +65,7 @@ export function useViewData(
 
   const { appInfo } = $(useGlobal())
 
-  const { getMeta } = useMetas()
+  const { getMeta, metas } = useMetas()
 
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 
@@ -335,7 +346,7 @@ export function useViewData(
     try {
       const id = extractPkFromRow(toUpdate.row, metaValue?.columns as ColumnType[])
 
-      const updatedRowData = await $api.dbViewRow.update(
+      const updatedRowData: Record<string, any> = await $api.dbViewRow.update(
         NOCO,
         project?.value.id as string,
         metaValue?.id as string,
@@ -575,6 +586,62 @@ export function useViewData(
     $e('a:grid:pagination')
   }
 
+  const linkRecord = async (
+    rowId: string,
+    relatedRowId: string,
+    column: ColumnType,
+    type: RelationTypes,
+    { metaValue = meta.value }: { metaValue?: TableType } = {},
+  ) => {
+    try {
+      await $api.dbTableRow.nestedAdd(
+        NOCO,
+        project.value.title as string,
+        metaValue?.title as string,
+        rowId,
+        type as 'mm' | 'hm',
+        column.title as string,
+        relatedRowId,
+      )
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  // Recover LTAR relations for a row using the row data
+  const recoverLTARRefs = async (row: Record<string, any>, { metaValue = meta.value }: { metaValue?: TableType } = {}) => {
+    const id = extractPkFromRow(row, metaValue?.columns as ColumnType[])
+    for (const column of metaValue?.columns ?? []) {
+      if (column.uidt !== UITypes.LinkToAnotherRecord) continue
+
+      const colOptions = column.colOptions as LinkToAnotherRecordType
+
+      const relatedTableMeta = metas.value?.[colOptions?.fk_related_model_id as string]
+
+      if (isHm(column) || isMm(column)) {
+        const relatedRows = (row[column.title!] ?? []) as Record<string, any>[]
+
+        for (const relatedRow of relatedRows) {
+          await linkRecord(
+            id,
+            extractPkFromRow(relatedRow, relatedTableMeta.columns as ColumnType[]),
+            column,
+            colOptions.type as RelationTypes,
+            { metaValue },
+          )
+        }
+      } else if (isBt(column) && row[column.title!]) {
+        await linkRecord(
+          id,
+          extractPkFromRow(row[column.title!] as Record<string, any>, relatedTableMeta.columns as ColumnType[]),
+          column,
+          colOptions.type as RelationTypes,
+          { metaValue },
+        )
+      }
+    }
+  }
+
   async function deleteRowById(
     id: string,
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
@@ -638,6 +705,7 @@ export function useViewData(
                 const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
                 row.row = { ...pkData, ...row.row }
                 await insertRow(row, ltarState, {}, true)
+                recoverLTARRefs(row.row)
                 if (rowIndex !== -1 && pg.pageSize === paginationData.value.pageSize) {
                   if (pg.page === paginationData.value.page) {
                     formattedData.value.splice(rowIndex, 0, row)
@@ -714,6 +782,7 @@ export function useViewData(
             const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
             row.row = { ...pkData, ...row.row }
             await insertRow(row, {}, {}, true)
+            recoverLTARRefs(row.row)
             if (rowIndex !== -1 && pg.pageSize === paginationData.value.pageSize) {
               if (pg.page === paginationData.value.page) {
                 formattedData.value.splice(rowIndex, 0, row)

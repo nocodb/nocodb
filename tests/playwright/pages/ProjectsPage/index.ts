@@ -1,10 +1,21 @@
-import { expect, Page } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 import BasePage from '../Base';
 import { DashboardPage } from '../Dashboard';
 
 export class ProjectsPage extends BasePage {
+  readonly buttonEditProject: Locator;
+  readonly buttonDeleteProject: Locator;
+  readonly buttonMoreActions: Locator;
+  readonly buttonNewProject: Locator;
+  readonly buttonColorSelector: Locator;
+
   constructor(rootPage: Page) {
     super(rootPage);
+    this.buttonEditProject = this.get().locator('.nc-action-btn.nc-edit-project');
+    this.buttonDeleteProject = this.get().locator('.nc-action-btn.nc-delete-project');
+    this.buttonMoreActions = this.get().locator('.nc-import-menu');
+    this.buttonNewProject = this.get().locator('.nc-new-project-menu');
+    this.buttonColorSelector = this.get().locator('div.color-selector');
   }
 
   prefixTitle(title: string) {
@@ -235,5 +246,28 @@ export class ProjectsPage extends BasePage {
 
   async waitForRender() {
     await this.rootPage.locator('.nc-project-page-title:has-text("My Projects")').waitFor();
+  }
+
+  async validateRoleAccess(param: { role: string }) {
+    // new user; by default org level permission is to viewer (can't create project)
+    await expect(await this.buttonNewProject).toBeVisible({ visible: false });
+
+    // role specific permissions
+    switch (param.role) {
+      case 'creator':
+        await expect(await this.buttonColorSelector).toBeVisible();
+        await expect(await this.buttonEditProject).toBeVisible();
+        await expect(await this.buttonDeleteProject).toBeVisible();
+        await expect(await this.buttonMoreActions).toBeVisible();
+        break;
+      case 'editor':
+      case 'commenter':
+      case 'viewer':
+        await expect(await this.buttonColorSelector).toBeVisible({ visible: false });
+        await expect(await this.buttonEditProject).toBeVisible({ visible: false });
+        await expect(await this.buttonDeleteProject).toBeVisible({ visible: false });
+        await expect(await this.buttonMoreActions).toBeVisible({ visible: false });
+        break;
+    }
   }
 }

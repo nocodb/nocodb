@@ -1254,7 +1254,7 @@ export class ImportService {
         step: async (results, parser) => {
           if (!headers.length) {
             parser.pause();
-            for (const header of results.data) {
+            for (const header of results.data as any) {
               const id = idMap.get(header);
               if (id) {
                 const col = await Column.get({

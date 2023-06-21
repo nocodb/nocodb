@@ -293,9 +293,9 @@ export default class Model implements TableType {
       ));
     if (!modelData) {
       modelData = await ncMeta.metaGet2(null, null, MetaTable.MODELS, k);
-      modelData.meta = parseMetaProp(modelData);
     }
     if (modelData) {
+      modelData.meta = parseMetaProp(modelData);
       await NocoCache.set(`${CacheScope.MODEL}:${modelData.id}`, modelData);
       return new Model(modelData);
     }
@@ -327,8 +327,10 @@ export default class Model implements TableType {
           table_name,
         },
       );
-      modelData.meta = parseMetaProp(modelData);
-      await NocoCache.set(`${CacheScope.MODEL}:${modelData.id}`, modelData);
+      if (modelData) {
+        modelData.meta = parseMetaProp(modelData);
+        await NocoCache.set(`${CacheScope.MODEL}:${modelData.id}`, modelData);
+      }
       // modelData.filters = await Filter.getFilterObject({
       //   viewId: modelData.id
       // });
@@ -368,10 +370,10 @@ export default class Model implements TableType {
   }
 
   async delete(ncMeta = Noco.ncMeta, force = false): Promise<boolean> {
-    await Audit.deleteRowComments(this.id);
+    await Audit.deleteRowComments(this.id, ncMeta);
 
-    for (const view of await this.getViews(true)) {
-      await view.delete();
+    for (const view of await this.getViews(true, ncMeta)) {
+      await view.delete(ncMeta);
     }
 
     for (const col of await this.getColumns(ncMeta)) {

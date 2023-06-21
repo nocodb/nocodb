@@ -1,4 +1,5 @@
 import dayjs from 'dayjs'
+import type { Ref } from 'vue'
 import type { MaybeRef } from '@vueuse/core'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
@@ -39,6 +40,7 @@ export function useMultiSelect(
   data: MaybeRef<Row[]>,
   _editEnabled: MaybeRef<boolean>,
   isPkAvail: MaybeRef<boolean | undefined>,
+  contextMenu: Ref<boolean>,
   clearCell: Function,
   clearSelectedRangeOfCells: Function,
   makeEditable: Function,
@@ -80,6 +82,9 @@ export function useMultiSelect(
     if (activeCell.row === row && activeCell.col === col) {
       return
     }
+
+    // disable edit mode if active cell is changed
+    editEnabled.value = false
 
     activeCell.row = row
     activeCell.col = col
@@ -207,13 +212,6 @@ export function useMultiSelect(
     }
   }
 
-  function handleMouseOver(row: number, col: number) {
-    if (!isMouseDown) {
-      return
-    }
-    selectedRange.endRange({ row, col })
-  }
-
   function isCellSelected(row: number, col: number) {
     if (activeCell.col === col && activeCell.row === row) {
       return true
@@ -231,6 +229,19 @@ export function useMultiSelect(
     )
   }
 
+  function handleMouseOver(event: MouseEvent, row: number, col: number) {
+    if (!isMouseDown) {
+      return
+    }
+
+    // extend the selection and scroll to the cell
+    selectedRange.endRange({ row, col })
+    scrollToCell?.(row, col)
+
+    // avoid selecting text
+    event.preventDefault()
+  }
+
   function handleMouseDown(event: MouseEvent, row: number, col: number) {
     // if there was a right click on selected range, don't restart the selection
     if (
@@ -240,11 +251,26 @@ export function useMultiSelect(
       return
     }
 
-    isMouseDown = true
+    // if edit is enabled, don't start the selection (some cells shrink after edit mode, which causes the selection to expand if flag is set)
+    if (!editEnabled.value) isMouseDown = true
 
-    // if shift key is pressed, don't restart the selection
-    if (event.shiftKey) return
+    contextMenu.value = false
 
+    // avoid text selection
+    event.preventDefault()
+
+    // if shift key is pressed, extend the selection
+    if (event.shiftKey) {
+      // if shift key is pressed, don't restart the selection (unless there is no active cell)
+      if (activeCell.col === null || activeCell.row === null) {
+        selectedRange.startRange({ row, col })
+      }
+
+      selectedRange.endRange({ row, col })
+      return
+    }
+
+    // start a new selection
     selectedRange.startRange({ row, col })
 
     if (activeCell.row !== row || activeCell.col !== col) {
@@ -255,42 +281,26 @@ export function useMultiSelect(
   }
 
   const handleCellClick = (event: MouseEvent, row: number, col: number) => {
-    isMouseDown = true
-
-    // if shift key is pressed, prevent selecting text
-    if (event.shiftKey && !unref(editEnabled)) {
-      event.preventDefault()
-    }
-
-    // if shift key is pressed, don't restart the selection (unless there is no active cell)
+    // if shift key is pressed, don't change the active cell (unless there is no active cell)
     if (!event.shiftKey || activeCell.col === null || activeCell.row === null) {
-      selectedRange.startRange({ row, col })
       makeActive(row, col)
     }
 
-    selectedRange.endRange({ row, col })
     scrollToCell?.(row, col)
-    isMouseDown = false
   }
 
-  const handleMouseUp = (event: MouseEvent) => {
+  const handleMouseUp = (_event: MouseEvent) => {
     if (isMouseDown) {
       isMouseDown = false
-
       // timeout is needed, because we want to set cell as active AFTER all the child's click handler's called
       // this is needed e.g. for date field edit, where two clicks had to be done - one to select cell, and another one to open date dropdown
       setTimeout(() => {
-        // if shift key is pressed, don't change the active cell
-        if (event.shiftKey) return
         if (selectedRange._start) {
-          makeActive(selectedRange._start.row, selectedRange._start.col)
+          if (activeCell.row !== selectedRange._start.row || activeCell.col !== selectedRange._start.col) {
+            makeActive(selectedRange._start.row, selectedRange._start.col)
+          }
         }
       }, 0)
-
-      // if the editEnabled is false, prevent selecting text on mouseUp
-      if (!unref(editEnabled)) {
-        event.preventDefault()
-      }
     }
   }
 
@@ -419,12 +429,10 @@ export function useMultiSelect(
         if (e.shiftKey) {
           if (cmdOrCtrl) {
             editEnabled.value = false
-            console.log(selectedRange._end?.col)
             selectedRange.endRange({
               row: 0,
               col: selectedRange._end?.col ?? activeCell.col,
             })
-            console.log(selectedRange._end?.col)
             scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
           } else if ((selectedRange._end?.row ?? activeCell.row) > 0) {
             editEnabled.value = false

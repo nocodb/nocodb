@@ -51,7 +51,10 @@ export class UsersService {
     email: string;
     lastname: any;
   }) {
-    return this.metaService.metaInsert2(null, null, MetaTable.USERS, { ...param, email: param.email?.toLowerCase() });
+    return this.metaService.metaInsert2(null, null, MetaTable.USERS, {
+      ...param,
+      email: param.email?.toLowerCase(),
+    });
   }
 
   async registerNewUserIfAllowed({
@@ -493,13 +496,14 @@ export class UsersService {
     };
   }
 
-  async signout(param: { res: any; req: any }) {
+  async signOut(param: { res: any; req: any }) {
     try {
       param.res.clearCookie('refresh_token');
       const user = (param.req as any).user;
-      if (user) {
+      if (user?.id) {
         await User.update(user.id, {
           refresh_token: null,
+          token_version: null,
         });
       }
       return { msg: 'Signed out successfully' };

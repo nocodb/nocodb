@@ -103,6 +103,18 @@ test.describe('User roles', () => {
       title: 'CustomerList',
       exists: roleDb[roleIdx].role === 'creator' ? true : false,
     });
+
+    // Project page validation
+    await dashboard.clickHome();
+    await projectsPage.validateRoleAccess({
+      role: roleDb[roleIdx].role,
+    });
+
+    await projectsPage.openProject({
+      title: context.project.title,
+      waitForAuthTab: roleDb[roleIdx].role === 'creator',
+      withoutPrefix: true,
+    });
   }
 
   async function roleSignup(roleIdx: number) {

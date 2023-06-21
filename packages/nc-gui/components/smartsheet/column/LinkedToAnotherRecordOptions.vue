@@ -16,7 +16,7 @@ const vModel = useVModel(props, 'value', emit)
 
 const meta = $(inject(MetaInj, ref()))
 
-const { setAdditionalValidations, validateInfos, onDataTypeChange, sqlUi } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, onDataTypeChange, sqlUi, isXcdbBase } = useColumnCreateStoreOrThrow()
 
 const { tables } = $(storeToRefs(useProject()))
 
@@ -86,54 +86,55 @@ const filterOption = (value: string, option: { key: string }) => option.key.toLo
         </a-select>
       </a-form-item>
     </div>
+    <template v-if="!isXcdbBase">
+      <div
+        class="text-xs cursor-pointer text-grey nc-more-options my-2 flex items-center gap-1 justify-end"
+        @click="advancedOptions = !advancedOptions"
+      >
+        {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
 
-    <div
-      class="text-xs cursor-pointer text-grey nc-more-options my-2 flex items-center gap-1 justify-end"
-      @click="advancedOptions = !advancedOptions"
-    >
-      {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
-
-      <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
-    </div>
-
-    <div v-if="advancedOptions" class="flex flex-col p-6 gap-4 border-2 mt-2">
-      <div class="flex flex-row space-x-2">
-        <a-form-item class="flex w-1/2" :label="$t('labels.onUpdate')">
-          <a-select
-            v-model:value="vModel.onUpdate"
-            :disabled="vModel.virtual"
-            name="onUpdate"
-            dropdown-class-name="nc-dropdown-on-update"
-            @change="onDataTypeChange"
-          >
-            <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
-              {{ option }}
-            </a-select-option>
-          </a-select>
-        </a-form-item>
-
-        <a-form-item class="flex w-1/2" :label="$t('labels.onDelete')">
-          <a-select
-            v-model:value="vModel.onDelete"
-            :disabled="vModel.virtual"
-            name="onDelete"
-            dropdown-class-name="nc-dropdown-on-delete"
-            @change="onDataTypeChange"
-          >
-            <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
-              {{ option }}
-            </a-select-option>
-          </a-select>
-        </a-form-item>
+        <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
       </div>
 
-      <div class="flex flex-row">
-        <a-form-item>
-          <a-checkbox v-model:checked="vModel.virtual" :disabled="appInfo.isCloud" name="virtual" @change="onDataTypeChange"
-            >Virtual Relation</a-checkbox
-          >
-        </a-form-item>
+      <div v-if="advancedOptions" class="flex flex-col p-6 gap-4 border-2 mt-2">
+        <div class="flex flex-row space-x-2">
+          <a-form-item class="flex w-1/2" :label="$t('labels.onUpdate')">
+            <a-select
+              v-model:value="vModel.onUpdate"
+              :disabled="vModel.virtual"
+              name="onUpdate"
+              dropdown-class-name="nc-dropdown-on-update"
+              @change="onDataTypeChange"
+            >
+              <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
+                {{ option }}
+              </a-select-option>
+            </a-select>
+          </a-form-item>
+
+          <a-form-item class="flex w-1/2" :label="$t('labels.onDelete')">
+            <a-select
+              v-model:value="vModel.onDelete"
+              :disabled="vModel.virtual"
+              name="onDelete"
+              dropdown-class-name="nc-dropdown-on-delete"
+              @change="onDataTypeChange"
+            >
+              <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
+                {{ option }}
+              </a-select-option>
+            </a-select>
+          </a-form-item>
+        </div>
+
+        <div class="flex flex-row">
+          <a-form-item>
+            <a-checkbox v-model:checked="vModel.virtual" :disabled="appInfo.isCloud" name="virtual" @change="onDataTypeChange"
+              >Virtual Relation
+            </a-checkbox>
+          </a-form-item>
+        </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>

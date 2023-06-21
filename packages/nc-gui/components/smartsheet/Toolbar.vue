@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ViewTypes } from 'nocodb-sdk'
 import { IsPublicInj, inject, ref, useSharedView, useSidebar, useSmartsheetStoreOrThrow, useUIPermission } from '#imports'
 
 const { isGrid, isForm, isGallery, isKanban, isMap, isSqlView } = useSmartsheetStoreOrThrow()
@@ -8,6 +9,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 const { isOpen: isSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { isMobileMode } = useGlobal()
+
+const { activeTable } = storeToRefs(useTablesStore())
 
 const { isUIAllowed } = useUIPermission()
 
@@ -22,6 +25,10 @@ const { allowCSVDownload } = useSharedView()
     :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode, 'pl-8': !isSidebarOpen }"
     style="z-index: 7"
   >
+    <LazySmartsheetToolbarViewInfo />
+
+    <div v-if="!isMobileMode" class="flex-1" />
+
     <LazySmartsheetToolbarViewInfo v-if="!isUIAllowed('dataInsert') && !isPublic" />
 
     <LazySmartsheetToolbarStackedBy v-if="isKanban" />
@@ -41,7 +48,6 @@ const { allowCSVDownload } = useSharedView()
     <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" />
 
     <LazySmartsheetToolbarExport v-if="(!isPublic && !isUIAllowed('dataInsert')) || (isPublic && allowCSVDownload)" />
-    <div v-if="!isMobileMode" class="flex-1" />
 
     <LazySmartsheetToolbarSearchData v-if="(isGrid || isGallery || isKanban) && !isPublic" class="shrink" />
 

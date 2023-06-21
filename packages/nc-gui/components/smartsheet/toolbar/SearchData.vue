@@ -100,7 +100,7 @@ watchDebounced(
       size="small"
       class="!text-xs"
       :style="{
-        width: '16rem',
+        width: '12rem',
       }"
       :placeholder="`${$t('general.search')} in ${displayColumnLabel}`"
       :bordered="false"

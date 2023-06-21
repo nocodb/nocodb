@@ -1,12 +1,30 @@
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { TableType } from 'nocodb-sdk'
 
 export const useTablesStore = defineStore('tablesStore', () => {
   const { includeM2M } = useGlobal()
   const { api } = useApi()
-  const projectsStore = useProjects()
+
+  const router = useRouter()
+  const route = router.currentRoute
 
   const projectTables = ref<Map<string, TableType[]>>(new Map())
+  const projectsStore = useProjects()
+
+  const activeTableId = computed(() => route.value.params.viewId as string | undefined)
+
+  const activeTable = computed(() => {
+    if (!projectsStore) return
+
+    const projectId = projectsStore.activeProjectId
+    if (!projectId) return
+
+    const tables = projectTables.value.get(projectId!)
+
+    if (!tables) return
+
+    return tables.find((t) => t.id === activeTableId.value)
+  })
 
   const loadProjectTables = async (projectId: string, force = false) => {
     const projects = projectsStore.projects
@@ -40,5 +58,10 @@ export const useTablesStore = defineStore('tablesStore', () => {
     projectTables,
     loadProjectTables,
     addTable,
+    activeTable,
   }
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useTablesStore as any, import.meta.hot))
+}

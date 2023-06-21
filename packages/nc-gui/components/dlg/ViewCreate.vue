@@ -106,7 +106,7 @@ watch(
 )
 
 function init() {
-  form.title = generateUniqueTitle(capitalize(ViewTypes[props.type].toLowerCase()), views, 'title')
+  form.title = ''
 
   if (selectedViewId) {
     form.copy_from_id = selectedViewId
@@ -205,59 +205,62 @@ async function onSubmit() {
 </script>
 
 <template>
-  <a-modal
-    v-model:visible="vModel"
-    centered
-    :class="{ active: vModel }"
-    :confirm-loading="loading"
-    wrap-class-name="nc-modal-view-create"
-  >
-    <template #title>
-      {{ $t(`general.${selectedViewId ? 'duplicate' : 'create'}`) }} <span class="capitalize">{{ typeAlias }}</span>
-      {{ $t('objects.view') }}
-    </template>
+  <GeneralModal v-model:visible="vModel" centered :confirm-loading="loading">
+    <div class="py-4 px-5">
+      <div class="font-medium text-lg mb-5">
+        {{ $t(`general.${selectedViewId ? 'duplicate' : 'create'}`) }} <span class="capitalize">{{ typeAlias }}</span>
+        {{ $t('objects.view') }}
+      </div>
 
-    <a-form ref="formValidator" layout="vertical" :model="form">
-      <a-form-item :label="$t('labels.viewName')" name="title" :rules="viewNameRules">
-        <a-input ref="inputEl" v-model:value="form.title" size="large" autofocus @keydown.enter="onSubmit" />
-      </a-form-item>
-      <a-form-item
-        v-if="form.type === ViewTypes.KANBAN"
-        :label="$t('general.groupingField')"
-        name="fk_grp_col_id"
-        :rules="groupingFieldColumnRules"
-      >
-        <a-select
-          v-model:value="form.fk_grp_col_id"
-          class="w-full nc-kanban-grouping-field-select"
-          :options="viewSelectFieldOptions"
-          :disabled="groupingFieldColumnId"
-          placeholder="Select a Grouping Field"
-          not-found-content="No Single Select Field can be found. Please create one first."
-        />
-      </a-form-item>
-      <a-form-item
-        v-if="form.type === ViewTypes.MAP"
-        :label="$t('general.geoDataField')"
-        name="fk_geo_data_col_id"
-        :rules="geoDataFieldColumnRules"
-      >
-        <a-select
-          v-model:value="form.fk_geo_data_col_id"
-          class="w-full"
-          :options="viewSelectFieldOptions"
-          :disabled="geoDataFieldColumnId"
-          placeholder="Select a GeoData Field"
-          not-found-content="No GeoData Field can be found. Please create one first."
-        />
-      </a-form-item>
-    </a-form>
+      <a-form ref="formValidator" layout="vertical" :model="form">
+        <a-form-item name="title" :rules="viewNameRules">
+          <a-input
+            ref="inputEl"
+            v-model:value="form.title"
+            class="!rounded"
+            autofocus
+            :placeholder="$t('labels.viewName')"
+            @keydown.enter="onSubmit"
+          />
+        </a-form-item>
+        <a-form-item
+          v-if="form.type === ViewTypes.KANBAN"
+          :label="$t('general.groupingField')"
+          name="fk_grp_col_id"
+          :rules="groupingFieldColumnRules"
+        >
+          <a-select
+            v-model:value="form.fk_grp_col_id"
+            class="w-full nc-kanban-grouping-field-select"
+            :options="viewSelectFieldOptions"
+            :disabled="groupingFieldColumnId"
+            placeholder="Select a Grouping Field"
+            not-found-content="No Single Select Field can be found. Please create one first."
+          />
+        </a-form-item>
+        <a-form-item
+          v-if="form.type === ViewTypes.MAP"
+          :label="$t('general.geoDataField')"
+          name="fk_geo_data_col_id"
+          :rules="geoDataFieldColumnRules"
+        >
+          <a-select
+            v-model:value="form.fk_geo_data_col_id"
+            class="w-full"
+            :options="viewSelectFieldOptions"
+            :disabled="geoDataFieldColumnId"
+            placeholder="Select a GeoData Field"
+            not-found-content="No GeoData Field can be found. Please create one first."
+          />
+        </a-form-item>
+      </a-form>
 
-    <template #footer>
-      <a-button key="back" class="!rounded-md" @click="vModel = false">{{ $t('general.cancel') }}</a-button>
-      <a-button key="submit" class="!rounded-md" type="primary" :loading="loading" @click="onSubmit">{{
-        $t('general.submit')
-      }}</a-button>
-    </template>
-  </a-modal>
+      <div class="flex flex-row w-full justify-end gap-x-2 mt-8">
+        <a-button key="back" class="!rounded-md" @click="vModel = false">{{ $t('general.cancel') }}</a-button>
+        <a-button key="submit" class="!rounded-md" type="primary" :loading="loading" @click="onSubmit">{{
+          $t('general.submit')
+        }}</a-button>
+      </div>
+    </div>
+  </GeneralModal>
 </template>

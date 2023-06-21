@@ -59,9 +59,9 @@ useMenuCloseOnEsc(open)
   <a-dropdown v-model:visible="open" offset-y class="" :trigger="['click']" overlay-class-name="nc-dropdown-height-menu">
     <div>
       <a-button v-e="['c:row-height']" class="nc-height-menu-btn nc-toolbar-btn" :disabled="isLocked">
-        <div class="flex items-center gap-1.5">
+        <div class="flex items-center gap-0.5">
           <component :is="iconMap.rowHeight" class="!h-3.75 !w-3.75" />
-          <span v-if="!isMobileMode" class="!text-sm !font-medium">{{ $t('objects.rowHeight') }}</span>
+          <!-- <span v-if="!isMobileMode" class="!text-sm !font-medium">{{ $t('objects.rowHeight') }}</span> -->
           <component :is="iconMap.arrowDown" class="text-grey" />
         </div>
       </a-button>
@@ -72,6 +72,7 @@ useMenuCloseOnEsc(open)
         data-testid="nc-height-menu"
       >
         <div class="flex flex-col w-full text-sm" @click.stop>
+          <div class="text-xs text-gray-400 px-3 pt-2 pb-1 select-none">{{ $t('objects.rowHeight') }}</div>
           <div class="nc-row-height-option" @click="updateRowHeight(0)">
             <GeneralIcon icon="heightShort" class="nc-row-height-icon" />
             Short

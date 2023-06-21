@@ -298,6 +298,11 @@ export function useMultiSelect(
 
   function handleMouseOver(event: MouseEvent, row: number, col: number) {
     if (isFillMode.value) {
+      const rw = unref(data)[row]
+
+      // fill is not supported for new rows yet
+      if (rw.rowMeta.new) return
+
       fillRange.endRange({ row, col: selectedRange.end.col })
       scrollToCell?.(row, col)
       return

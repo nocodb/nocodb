@@ -19,9 +19,10 @@ interface Props {
   column: any
   showUnlinkButton: boolean
   border?: boolean
+  readonly?: boolean
 }
 
-const { value, item, column, showUnlinkButton, border = true } = defineProps<Props>()
+const { value, item, column, showUnlinkButton, border = true, readonly: readonlyProp } = defineProps<Props>()
 
 const emit = defineEmits(['unlink'])
 
@@ -40,7 +41,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 const { open } = useExpandedFormDetached()
 
 function openExpandedForm() {
-  if (!readOnly.value && !isLocked.value) {
+  if (!readOnly.value && !isLocked.value && !readonlyProp) {
     open({
       isOpen: true,
       row: { row: item, rowMeta: {}, oldRow: { ...item } },

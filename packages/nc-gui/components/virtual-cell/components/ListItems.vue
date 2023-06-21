@@ -234,6 +234,7 @@ watch(vModel, (nextVal) => {
               :column="props.column"
               :show-unlink-button="false"
               :border="false"
+              readonly
             />
             <!--            <span class="hidden group-hover:(inline) text-gray-400 text-[11px] ml-1"> -->
             <!--              ({{ $t('labels.primaryKey') }} : {{ getRelatedTableRowId(refRow) }}) -->

@@ -45,6 +45,14 @@ const drag = ref(false)
 
 const editColumns = ref<Record<string, any>[]>([])
 
+const tempRow = ref<Row>({
+  row: {},
+  oldRow: {},
+  rowMeta: {},
+})
+
+useProvideSmartsheetRowStore(meta, tempRow)
+
 const fields = computed(() => {
   return (meta.value.columns ?? []).filter(
     (col) =>
@@ -262,7 +270,6 @@ onMounted(() => {
               >
                 <LazySmartsheetVirtualCell
                   v-model="formState[element.title]"
-                  :row="row"
                   class="nc-input"
                   :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                   :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"

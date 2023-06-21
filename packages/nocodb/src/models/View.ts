@@ -207,8 +207,10 @@ export default class View implements ViewType {
         },
         null,
       );
-      view.meta = parseMetaProp(view);
-      await NocoCache.set(`${CacheScope.VIEW}:${fk_model_id}:default`, view);
+      if (view) {
+        view.meta = parseMetaProp(view);
+        await NocoCache.set(`${CacheScope.VIEW}:${fk_model_id}:default`, view);
+      }
     }
     return view && new View(view);
   }

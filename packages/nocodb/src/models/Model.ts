@@ -327,8 +327,10 @@ export default class Model implements TableType {
           table_name,
         },
       );
-      modelData.meta = parseMetaProp(modelData);
-      await NocoCache.set(`${CacheScope.MODEL}:${modelData.id}`, modelData);
+      if (modelData) {
+        modelData.meta = parseMetaProp(modelData);
+        await NocoCache.set(`${CacheScope.MODEL}:${modelData.id}`, modelData);
+      }
       // modelData.filters = await Filter.getFilterObject({
       //   viewId: modelData.id
       // });

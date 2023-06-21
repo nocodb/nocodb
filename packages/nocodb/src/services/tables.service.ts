@@ -247,6 +247,10 @@ export class TablesService {
       id: param.tableId,
     });
 
+    if (!table) {
+      NcError.notFound('Table not found');
+    }
+
     // todo: optimise
     const viewList = <View[]>(
       await this.xcVisibilityMetaGet(table.project_id, [table])

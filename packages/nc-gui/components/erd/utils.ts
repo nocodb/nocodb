@@ -174,7 +174,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
 
       const columns =
         metasWithIdAsKey.value[table.id].columns?.filter(
-          (col) => config.showAllColumns || (!config.showAllColumns && col.uidt === UITypes.LinkToAnotherRecord),
+          (col) => config.showAllColumns || (!config.showAllColumns && isLinksOrLTAR(col)),
         ) || []
 
       const pkAndFkColumns = columns.filter(() => config.showPkAndFk).filter((col) => col.pk || col.uidt === UITypes.ForeignKey)

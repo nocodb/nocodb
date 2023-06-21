@@ -129,11 +129,9 @@ const filterOption = (value: string, option: { key: string }) => option.key.toLo
 
         <div class="flex flex-row">
           <a-form-item>
-            <a-checkbox v-model:checked="vModel.virtual" :disabled="appInfo.isCloud" name="virtual"
-                        @change="onDataTypeChange"
-            >Virtual Relation
-            </a-checkbox
-            >
+            <a-checkbox v-model:checked="vModel.virtual" :disabled="appInfo.isCloud" name="virtual" @change="onDataTypeChange"
+              >Virtual Relation
+            </a-checkbox>
           </a-form-item>
         </div>
       </div>

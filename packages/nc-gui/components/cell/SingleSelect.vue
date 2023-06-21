@@ -8,6 +8,7 @@ import {
   ActiveCellInj,
   CellClickHookInj,
   ColumnInj,
+  EditModeInj,
   IsFormInj,
   IsKanbanInj,
   ReadonlyInj,
@@ -23,7 +24,6 @@ import {
   useRoles,
   useSelectedCellKeyupListener,
   watch,
-  EditModeInj
 } from '#imports'
 
 interface Props {
@@ -96,7 +96,7 @@ const isOptionMissing = computed(() => {
 
 const hasEditRoles = computed(() => hasRole('owner', true) || hasRole('creator', true) || hasRole('editor', true))
 
-const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && (active.value))
+const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && active.value)
 
 const vModel = computed({
   get: () => tempSelectedOptState.value ?? modelValue,
@@ -257,7 +257,7 @@ const selectedOpt = computed(() => {
 
 <template>
   <div class="h-full w-full flex items-center nc-single-select" :class="{ 'read-only': readOnly }" @click="toggleMenu">
-    <div v-if="!(active || isEditable) ">
+    <div v-if="!(active || isEditable)">
       <a-tag v-if="selectedOpt" class="rounded-tag" :color="selectedOpt.color">
         <span
           :style="{

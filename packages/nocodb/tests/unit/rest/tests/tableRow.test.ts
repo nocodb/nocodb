@@ -1295,20 +1295,7 @@ function tableTest() {
       .expect(200);
 
     const record = response.body;
-    expect(record['Film List']).length(19);
-    expect(record['Film List'][0]).to.have.all.keys(
-      'Title',
-      'ReleaseYear',
-      'Language',
-    );
-
-    // for SQLite Sakila, Language is null
-    if (isPg(context)) {
-      expect(record['Film List'][0]['Language']).to.have.all.keys(
-        'Name',
-        'LanguageId',
-      );
-    }
+    expect(record['Film List']).to.equal(19);
   });
 
   it('Update table row', async function () {

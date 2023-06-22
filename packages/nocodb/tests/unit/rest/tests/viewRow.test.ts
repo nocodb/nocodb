@@ -701,19 +701,7 @@ function viewRowTests() {
       throw new Error('Wrong filter');
     }
 
-    const nestedRentalResponse = Object.keys(
-      ascResponse.body.list[0]['Rental List'][0],
-    );
-
-    if (
-      !(
-        nestedRentalResponse.includes('ReturnDate') &&
-        nestedRentalResponse.includes('RentalDate') &&
-        nestedRentalResponse.length === 2
-      )
-    ) {
-      throw new Error('Wrong nested fields');
-    }
+    expect(ascResponse.body.list[0]['Rental List']).to.equal(12);
   };
 
   it('Get nested sorted filtered table with nested fields data list with a rollup column in customer table view grid', async () => {

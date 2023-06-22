@@ -393,6 +393,7 @@ function generalDb() {
     });
 
     const expectedRecords = [1, 3, 1, 2];
+    const expectedRecordsPg = ['1', '3', '1', '2'];
 
     // read first 4 records
     const records = await ncAxiosGet({
@@ -405,7 +406,11 @@ function generalDb() {
 
     // extract Lookup column
     const rollupData = records.body.list.map((record) => record.Rollup);
-    expect(rollupData).to.deep.equal(expectedRecords);
+    if (isPg(context)) {
+      expect(rollupData).to.deep.equal(expectedRecordsPg);
+    } else {
+      expect(rollupData).to.deep.equal(expectedRecords);
+    }
   });
 
   it('Nested Read - Link to another record', async function () {
@@ -450,7 +455,11 @@ function generalDb() {
     const records = await ncAxiosGet({
       url: `/api/v1/tables/${countryTable.id}/rows/1`,
     });
-    expect(records.body.Rollup).to.equal(1);
+    if (isPg(context)) {
+      expect(records.body.Rollup).to.equal('1');
+    } else {
+      expect(records.body.Rollup).to.equal(1);
+    }
   });
 }
 

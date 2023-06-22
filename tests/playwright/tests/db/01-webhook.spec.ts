@@ -714,6 +714,10 @@ test.describe.serial('Webhook', () => {
       expectedData.data.previous_rows[0].CityCodeLookup = [23, 33];
       // @ts-ignore
       expectedData.data.rows[0].CityCodeLookup = [23, 33];
+      // @ts-ignore
+      expectedData.data.previous_rows[0].CityList = 2;
+      // @ts-ignore
+      expectedData.data.rows[0].CityList = 2;
 
       if (isMysql(context)) {
         // @ts-ignore

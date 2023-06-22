@@ -326,7 +326,8 @@ export class DataTableService {
   private async getColumn(param: { modelId: string; columnId: string }) {
     const column = await Column.get({ colId: param.columnId });
 
-    if (!column) NcError.notFound(`Column '${param.columnId}' not found`);
+    if (!column)
+      NcError.notFound(`Column with id '${param.columnId}' not found`);
 
     if (column.fk_model_id !== param.modelId)
       NcError.badRequest('Column not belong to model');

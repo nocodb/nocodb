@@ -5,6 +5,7 @@ import { Api, UITypes } from 'nocodb-sdk';
 import { rowMixedValue } from '../../setup/xcdb-records';
 import { GridPage } from '../../pages/Dashboard/Grid';
 import { ToolbarPage } from '../../pages/Dashboard/common/Toolbar';
+import { isSqlite } from '../../setup/db';
 
 let dashboard: DashboardPage,
   grid: GridPage,
@@ -591,6 +592,10 @@ test.describe('Undo Redo - LTAR', () => {
   });
 
   test('Row with links: Delete & Undo', async ({ page }) => {
+    // SQLite has foreign key constraint disabled by default & hence below test
+    // will work even for ext DB
+    if (!isSqlite(context)) test.skip();
+
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });
 

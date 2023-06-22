@@ -97,6 +97,7 @@ import {
 } from '../../factory/column';
 import { createView, updateView } from '../../factory/view';
 
+import { isPg } from '../../init/db';
 import type { ColumnType } from 'nocodb-sdk';
 import type Project from '../../../../src/models/Project';
 import type Model from '../../../../src/models/Model';
@@ -1256,6 +1257,99 @@ function numberBased() {
     },
   ];
 
+  const recordsPg = [
+    {
+      Id: 1,
+      Number: '33',
+      Decimal: '33.3',
+      Currency: '33.3',
+      Percent: 33,
+      Duration: '10',
+      Rating: 0,
+    },
+    {
+      Id: 2,
+      Number: null,
+      Decimal: '456.34',
+      Currency: '456.34',
+      Percent: null,
+      Duration: '20',
+      Rating: 1,
+    },
+    {
+      Id: 3,
+      Number: '456',
+      Decimal: '333.3',
+      Currency: '333.3',
+      Percent: 456,
+      Duration: '30',
+      Rating: 2,
+    },
+    {
+      Id: 4,
+      Number: '333',
+      Decimal: null,
+      Currency: null,
+      Percent: 333,
+      Duration: '40',
+      Rating: 3,
+    },
+    {
+      Id: 5,
+      Number: '267',
+      Decimal: '267.5674',
+      Currency: '267.5674',
+      Percent: 267,
+      Duration: '50',
+      Rating: null,
+    },
+    {
+      Id: 6,
+      Number: '34',
+      Decimal: '34',
+      Currency: '34',
+      Percent: 34,
+      Duration: '60',
+      Rating: 0,
+    },
+    {
+      Id: 7,
+      Number: '8754',
+      Decimal: '8754',
+      Currency: '8754',
+      Percent: 8754,
+      Duration: null,
+      Rating: 4,
+    },
+    {
+      Id: 8,
+      Number: '3234',
+      Decimal: '3234.547',
+      Currency: '3234.547',
+      Percent: 3234,
+      Duration: '70',
+      Rating: 5,
+    },
+    {
+      Id: 9,
+      Number: '44',
+      Decimal: '44.2647',
+      Currency: '44.2647',
+      Percent: 44,
+      Duration: '80',
+      Rating: 0,
+    },
+    {
+      Id: 10,
+      Number: '33',
+      Decimal: '33.98',
+      Currency: '33.98',
+      Percent: 33,
+      Duration: '90',
+      Rating: 1,
+    },
+  ];
+
   it('Number based- List & CRUD', async function () {
     // list 10 records
     let rsp = await ncAxiosGet({
@@ -1271,7 +1365,11 @@ function numberBased() {
       isLastPage: false,
     };
     expect(rsp.body.pageInfo).to.deep.equal(pageInfo);
-    expect(rsp.body.list).to.deep.equal(records);
+    if (isPg(context)) {
+      expect(rsp.body.list).to.deep.equal(recordsPg);
+    } else {
+      expect(rsp.body.list).to.deep.equal(records);
+    }
 
     ///////////////////////////////////////////////////////////////////////////
 
@@ -1295,7 +1393,11 @@ function numberBased() {
     rsp = await ncAxiosGet({
       url: `/api/v1/tables/${table.id}/rows/401`,
     });
-    expect(rsp.body).to.deep.equal({ Id: 401, ...records[0] });
+    if (isPg(context)) {
+      expect(rsp.body).to.deep.equal({ ...recordsPg[0], Id: 401 });
+    } else {
+      expect(rsp.body).to.deep.equal({ ...records[0], Id: 401 });
+    }
 
     ///////////////////////////////////////////////////////////////////////////
 
@@ -1308,6 +1410,15 @@ function numberBased() {
       Duration: 55,
       Rating: 5,
     };
+    const updatedRecordPg = {
+      Number: '55',
+      Decimal: '55.5',
+      Currency: '55.5',
+      Percent: 55,
+      Duration: '55',
+      Rating: 5,
+    };
+
     const updatedRecords = [
       {
         Id: 401,
@@ -1326,6 +1437,25 @@ function numberBased() {
         ...updatedRecord,
       },
     ];
+    const updatedRecordsPg = [
+      {
+        Id: 401,
+        ...updatedRecordPg,
+      },
+      {
+        Id: 402,
+        ...updatedRecordPg,
+      },
+      {
+        Id: 403,
+        ...updatedRecordPg,
+      },
+      {
+        Id: 404,
+        ...updatedRecordPg,
+      },
+    ];
+
     rsp = await ncAxiosPatch({
       body: updatedRecords,
     });
@@ -1340,7 +1470,11 @@ function numberBased() {
         offset: 400,
       },
     });
-    expect(rsp.body.list).to.deep.equal(updatedRecords);
+    if (isPg(context)) {
+      expect(rsp.body.list).to.deep.equal(updatedRecordsPg);
+    } else {
+      expect(rsp.body.list).to.deep.equal(updatedRecords);
+    }
 
     ///////////////////////////////////////////////////////////////////////////
 

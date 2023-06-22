@@ -19,6 +19,7 @@ import {
   getOneRow,
   getRow,
 } from '../../factory/row';
+import { isPg } from '../../init/db';
 import type { ColumnType } from 'nocodb-sdk';
 import type View from '../../../../src/models/View';
 import type Model from '../../../../src/models/Model';
@@ -681,7 +682,11 @@ function viewRowTests() {
       throw new Error('Wrong filter');
     }
 
-    expect(ascResponse.body.list[0]['Rental List']).to.equal(12);
+    if (isPg(context)) {
+      expect(ascResponse.body.list[0]['Rental List']).to.equal('12');
+    } else {
+      expect(ascResponse.body.list[0]['Rental List']).to.equal(12);
+    }
   };
 
   it('Get nested sorted filtered table with nested fields data list with a rollup column in customer table view grid', async () => {

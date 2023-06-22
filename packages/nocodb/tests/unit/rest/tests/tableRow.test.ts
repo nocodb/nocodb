@@ -2159,7 +2159,7 @@ function tableTest() {
     const updatedRow = await getRow(context, { project, table, id: row['Id'] });
 
     // LTAR now returns rollup count
-    if (updatedRow['Ltar'] !== 0) {
+    if (!(updatedRow['Ltar'] === 0 || updatedRow['Ltar'] === '0')) {
       throw new Error('Was not deleted');
     }
 

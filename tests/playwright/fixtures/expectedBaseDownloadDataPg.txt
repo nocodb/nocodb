@@ -1,4 +1,4 @@
-Country,City Lis
+Country,City List
 Afghanistan,1
 Algeria,3
 American Samoa,1

@@ -51,7 +51,8 @@ export function deepCompare(
   for (const key of keys1) {
     if (
       (ignoredFields !== undefined && ignoredFields.has(key)) ||
-      key.endsWith(' List') /* temp hack to avoid fields like */
+      key.endsWith(' List') /* temp hack to avoid fields like */ ||
+      key.includes('___')
     ) {
       // console.log(`${keyId} ignored in comparison`)
     } else {

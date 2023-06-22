@@ -56,7 +56,7 @@ test.describe('Table Operations', () => {
     await dashboard.treeView.verifyTabIcon({ title: 'Address', icon: 'american-football' });
   });
 
-  test.only('duplicate_table', async () => {
+  test('duplicate_table', async () => {
     const orginalTableName = 'Actor';
     const dupTableName = 'Actor copy';
     // verify table icon customization
@@ -85,7 +85,7 @@ test.describe('Table Operations', () => {
     // check individual field values where values does not match as per design
   });
 
-  test.only('duplicate_table_with_no_data_views', async () => {
+  test('duplicate_table_with_no_data_views', async () => {
     const orginalTableName = 'Actor';
     const dupTableName = 'Actor copy';
     // verify table icon customization

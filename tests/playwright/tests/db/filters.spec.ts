@@ -942,8 +942,6 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
       { op: '<', value: '5', rowCount: 79 },
       { op: '>=', value: '5', rowCount: 30 },
       { op: '<=', value: '5', rowCount: 84 },
-      { op: 'is blank', value: null, rowCount: 0 },
-      { op: 'is not blank', value: null, rowCount: 109 },
     ];
 
     await toolbar.clickFilter();

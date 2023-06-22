@@ -69,7 +69,7 @@ test.describe('Test table', () => {
     const src = await dashboard.rootPage.locator(`[data-testid="tree-view-table-draggable-handle-Table1"]`);
     const dst = await dashboard.rootPage.locator(`[data-testid="grid-row-0"]`);
 
-    // drag drop for Links column creation
+    // drag drop for LTAR column creation
     //
     await src.dragTo(dst);
     const columnAddModal = await dashboard.rootPage.locator(`.nc-dropdown-grid-add-column`);
@@ -100,21 +100,17 @@ test.describe('Test table', () => {
       const childColumn = await getTextExcludeIconText(
         await columnAddModal.locator(`.ant-form-item-control-input`).nth(3)
       );
-      const aggregateFunction = await getTextExcludeIconText(
-        await columnAddModal.locator(`.ant-form-item-control-input`).nth(4)
-      );
 
       // validate
-      expect(columnType).toContain('Rollup');
-      expect(linkField.split(' ')[0]).toContain('Table1');
-      expect(childColumn).toContain('Id');
-      expect(aggregateFunction).toContain('max');
+      expect(columnType).toContain('Lookup');
+      expect(linkField).toContain('Table1');
+      expect(childColumn).toContain('Title');
 
       // save
       await columnAddModal.locator(`.ant-btn-primary`).click();
 
       // verify if column is created
-      await grid.column.verify({ title: 'Table1Rollup', isVisible: true });
+      await grid.column.verify({ title: 'Table1Lookup', isVisible: true });
     }
   });
 });

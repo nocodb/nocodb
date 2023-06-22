@@ -100,10 +100,11 @@ const cellIcon = (column: ColumnType) =>
           @change="onRelationColChange"
         >
           <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
-            <div class="flex flex-row space-x-0.5 h-full pb-0.5 items-center justify-between">
-              <div class="font-semibold text-xs">{{ table.column.title }}</div>
-              <div class="text-[0.65rem] text-gray-600">
-                (<span class="uppercase">{{ table.col.type }}</span> {{ table.title || table.table_name }})
+            <div class="flex flex-row h-full pb-0.5 items-center max-w-full">
+              <div class="font-semibold text-xs flex-shrink flex-grow-0 truncate">{{ table.column.title }}</div>
+              <div class="flex-grow"></div>
+              <div class="text-[0.65rem] text-gray-600 nc-relation-details">
+                <span class="uppercase">{{ table.col.type }}</span> {{ table.title || table.table_name }}
               </div>
             </div>
           </a-select-option>
@@ -118,7 +119,7 @@ const cellIcon = (column: ColumnType) =>
           @change="onDataTypeChange"
         >
           <a-select-option v-for="(column, index) of columns" :key="index" :value="column.id">
-            <div class="flex items-center -ml-1">
+            <div class="flex items-center -ml-1 font-semibold text-xs">
               <component :is="cellIcon(column)" :column-meta="column" />
 
               {{ column.title }}
@@ -141,3 +142,9 @@ const cellIcon = (column: ColumnType) =>
     </a-form-item>
   </div>
 </template>
+
+<style scoped>
+:deep(.ant-select-selector .ant-select-selection-item .nc-relation-details) {
+  @apply hidden;
+}
+</style>

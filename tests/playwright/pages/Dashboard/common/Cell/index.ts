@@ -285,6 +285,9 @@ export class CellPageObject extends BasePage {
 
     await cell.scrollIntoViewIfNeeded();
 
+    // lazy load- give enough time for cell to load
+    await this.rootPage.waitForTimeout(1000);
+
     if (type === 'bt') {
       const chips = cell.locator('.chips > .chip');
       await expect(await chips.count()).toBe(count);

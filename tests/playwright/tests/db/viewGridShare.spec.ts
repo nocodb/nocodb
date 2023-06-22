@@ -281,8 +281,8 @@ const sqliteExpectedRecords2 = [
 ];
 
 const expectedVirtualRecords = [
-  { index: 0, columnHeader: 'Customer List', count: 1, value: ['2'] },
-  { index: 1, columnHeader: 'Customer List', count: 1, value: ['2'] },
+  { index: 0, columnHeader: 'Customer List', count: 1, type: 'hm' },
+  { index: 1, columnHeader: 'Customer List', count: 1, type: 'hm' },
   { index: 0, columnHeader: 'City', count: 1, type: 'bt', value: ['Kanchrapara'] },
   { index: 1, columnHeader: 'City', count: 1, type: 'bt', value: ['Tafuna'] },
 ];

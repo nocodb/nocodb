@@ -3639,6 +3639,8 @@ class BaseModelSqlv2 {
       NcError.notFound(`Row with id '${rowId}' not found`);
     }
 
+    if (!childIds.length) return;
+
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
 
     const childColumn = await colOptions.getChildColumn();
@@ -3861,6 +3863,8 @@ class BaseModelSqlv2 {
     if (!row) {
       NcError.notFound(`Row with id '${rowId}' not found`);
     }
+
+    if (!childIds.length) return;
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
 

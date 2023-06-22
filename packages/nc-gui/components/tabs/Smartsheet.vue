@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes, isLinksOrLTAR, RelationTypes } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -98,25 +98,13 @@ const onDrop = async (event: DragEvent) => {
       return ltarOptions.fk_related_model_id === childMeta.id
     })
     if (relationCol) {
-      if (relationCol.colOptions.type === RelationTypes.BELONGS_TO) {
-        const lookupCol = childMeta.columns?.find((c) => c.pv) ?? childMeta.columns?.[0]
-
-        grid.value?.openColumnCreate({
-          uidt: UITypes.Lookup,
-          title: `${relationCol.title}Lookup`,
-          fk_relation_column_id: relationCol.id,
-          fk_lookup_column_id: lookupCol?.id,
-        })
-      } else {
-        const rollupCol = childMeta.columns?.find((c) => c.pk) ?? childMeta.columns?.[0]
-        grid.value?.openColumnCreate({
-          uidt: UITypes.Rollup,
-          title: `${relationCol.title}Rollup`,
-          fk_relation_column_id: relationCol.id,
-          fk_rollup_column_id: rollupCol?.id,
-          rollup_function: 'max',
-        })
-      }
+      const lookupCol = childMeta.columns?.find((c) => c.pv) ?? childMeta.columns?.[0]
+      grid.value?.openColumnCreate({
+        uidt: UITypes.Lookup,
+        title: `${relationCol.title}Lookup`,
+        fk_relation_column_id: relationCol.id,
+        fk_lookup_column_id: lookupCol?.id,
+      })
     } else {
       grid.value?.openColumnCreate({
         uidt: UITypes.Links,

@@ -180,7 +180,7 @@ export class DataTableService {
     if (param.viewId) {
       view = await View.get(param.viewId);
       if (!view || (view.fk_model_id && view.fk_model_id !== param.modelId)) {
-        NcError.unprocessableEntity(`View '${param.viewId}' not found`);
+        NcError.unprocessableEntity(`View with id '${param.viewId}' not found`);
       }
     }
 
@@ -254,7 +254,7 @@ export class DataTableService {
     });
 
     if (!(await baseModel.exist(param.rowId))) {
-      NcError.notFound(`Row '${param.rowId}' not found`);
+      NcError.notFound(`Row with id '${param.rowId}' not found`);
     }
 
     const column = await this.getColumn(param);

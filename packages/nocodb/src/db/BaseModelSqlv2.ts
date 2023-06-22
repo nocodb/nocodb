@@ -3636,7 +3636,7 @@ class BaseModelSqlv2 {
 
     // validate rowId
     if (!row) {
-      NcError.notFound(`Row '${rowId}' not found`);
+      NcError.notFound(`Row with id '${rowId}' not found`);
     }
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
@@ -3859,7 +3859,7 @@ class BaseModelSqlv2 {
 
     // validate rowId
     if (!row) {
-      NcError.notFound(`Row '${rowId}' not found`);
+      NcError.notFound(`Row with id '${rowId}' not found`);
     }
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();

@@ -329,13 +329,24 @@ export class CellPageObject extends BasePage {
 
   async unlinkVirtualCell({ index, columnHeader }: CellProps) {
     const cell = this.get({ index, columnHeader });
-    await cell.locator('.nc-datatype-link').click();
-    await this.waitForResponse({
-      uiAction: () => this.rootPage.locator(`[data-testid="nc-child-list-icon-unlink"]`).first().click(),
-      requestUrlPathToMatch: '/api/v1/db/data/noco/',
-      httpMethodsToMatch: ['GET'],
-    });
-    await this.rootPage.keyboard.press('Escape');
+    const isLink = await cell.locator('.nc-datatype-link').count();
+
+    // Count will be 0 for BT columns
+    if (!isLink) {
+      await cell.click();
+      await cell.locator('.nc-icon.unlink-icon').click();
+    }
+
+    // For HM/MM columns
+    else {
+      await cell.locator('.nc-datatype-link').click();
+      await this.waitForResponse({
+        uiAction: () => this.rootPage.locator(`[data-testid="nc-child-list-icon-unlink"]`).first().click(),
+        requestUrlPathToMatch: '/api/v1/db/data/noco/',
+        httpMethodsToMatch: ['GET'],
+      });
+      await this.rootPage.keyboard.press('Escape');
+    }
   }
 
   async verifyRoleAccess(param: { role: string }) {

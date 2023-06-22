@@ -166,7 +166,7 @@ test.describe('LTAR create & update', () => {
       }
     }
 
-    // verify LTAR cell values
+    // Unlink LTAR cells
     for (let i = 0; i < expected2.length; i++) {
       for (let j = 0; j < expected2[i].length; j++) {
         await dashboard.grid.cell.unlinkVirtualCell({

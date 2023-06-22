@@ -85,7 +85,6 @@ const cellIcon = (column: ColumnType) =>
             <div class="flex flex-row space-x-0.5 h-full pb-0.5 items-center justify-between">
               <div class="font-semibold text-xs">{{ table.column.title }}</div>
               <div class="text-[0.65rem] text-gray-600">
-                <span v-if="table.col.type !== RelationTypes.BELONGS_TO" class="text-[0.65rem] text-gray-600">(Deprecated)</span>
                 <span class="uppercase">{{ table.col.type }}</span> {{ table.title || table.table_name }}
               </div>
             </div>

@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
 import {
   AuditOperationSubTypes,
-  AuditOperationTypes,
+  AuditOperationTypes, isLinksOrLTAR,
   isVirtualCol,
   ModelTypes,
   UITypes,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk'
 import { T } from 'nc-help';
 import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
 import { NcError } from '../helpers/catchError';
@@ -157,7 +157,7 @@ export class TablesService {
     const base = project.bases.find((b) => b.id === table.base_id);
 
     const relationColumns = table.columns.filter(
-      (c) => c.uidt === UITypes.LinkToAnotherRecord,
+      (c) => isLinksOrLTAR(c),
     );
 
     if (relationColumns?.length && !base.is_meta) {

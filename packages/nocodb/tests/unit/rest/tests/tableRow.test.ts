@@ -2195,8 +2195,9 @@ function tableTest() {
       column: ltarColumn,
       type: 'hm',
     });
-    const childRow = row['Ltar'][0];
 
+    // read rows of related table
+    const childRow = (await listRow({ project, table: relatedTable }))[0];
     const response = await request(context.app)
       .delete(
         `/api/v1/db/data/noco/${project.id}/${table.id}/${row['Id']}/hm/${ltarColumn.id}/${childRow['Id']}`,
@@ -2206,7 +2207,8 @@ function tableTest() {
 
     const updatedRow = await getRow(context, { project, table, id: row['Id'] });
 
-    if (updatedRow['Ltar'].length !== 0) {
+    // LTAR now returns rollup count
+    if (updatedRow['Ltar'] !== 0) {
       throw new Error('Was not deleted');
     }
 

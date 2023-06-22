@@ -20,8 +20,6 @@ const { tables } = $(storeToRefs(useProject()))
 
 const { metas } = $(useMetas())
 
-const deprecatedEnabled = $(ref(false))
-
 setAdditionalValidations({
   fk_relation_column_id: [{ required: true, message: 'Required' }],
   fk_lookup_column_id: [{ required: true, message: 'Required' }],
@@ -36,13 +34,7 @@ const refTables = $computed(() => {
   }
 
   const _refTables = meta.columns
-    .filter(
-      (column) =>
-        isLinksOrLTAR(column) &&
-        (deprecatedEnabled || column.colOptions?.type === RelationTypes.BELONGS_TO) &&
-        !column.system &&
-        column.base_id === meta?.base_id,
-    )
+    .filter((column) => isLinksOrLTAR(column) && !column.system && column.base_id === meta?.base_id)
     .map((column) => ({
       col: column.colOptions,
       column,
@@ -88,7 +80,6 @@ const cellIcon = (column: ColumnType) =>
           v-model:value="vModel.fk_relation_column_id"
           dropdown-class-name="!w-64 nc-dropdown-relation-table"
           @change="onRelationColChange"
-          @dblclick="deprecatedEnabled = !deprecatedEnabled"
         >
           <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
             <div class="flex flex-row space-x-0.5 h-full pb-0.5 items-center justify-between">

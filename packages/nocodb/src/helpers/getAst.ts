@@ -89,11 +89,12 @@ const getAst = async ({
         value = ast;
 
         // todo: include field relative to the relation => pk / fk
+      } else if (col.uidt === UITypes.Links) {
+        value = 1;
       } else {
-        value = (Array.isArray(fields) ? fields : fields.split(',')).reduce(
-          (o, f) => ({ ...o, [f]: 1 }),
-          {},
-        );
+        value = (
+          Array.isArray(nestedFields) ? nestedFields : nestedFields.split(',')
+        ).reduce((o, f) => ({ ...o, [f]: 1 }), {});
       }
     } else if (col.uidt === UITypes.LinkToAnotherRecord) {
       const model = await col

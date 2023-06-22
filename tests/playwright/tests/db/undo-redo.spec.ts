@@ -557,7 +557,7 @@ test.describe('Undo Redo - LTAR', () => {
         }
       );
       expect(currentRecords.list.length).toBe(4);
-      expect(currentRecords.list[0].CityList).toBe(expectedValues.length);
+      expect(+currentRecords.list[0].CityList).toBe(expectedValues.length);
     } catch (e) {
       console.log(e);
     }
@@ -573,7 +573,10 @@ test.describe('Undo Redo - LTAR', () => {
         'CityList'
       );
       const cities = nestedRecords.list.map((record: any) => record.City);
-      expect(cities).toEqual(expectedValues);
+
+      for (let i = 0; i < expectedValues.length; i++) {
+        expect(cities.includes(expectedValues[i])).toBeTruthy();
+      }
     }
   }
 

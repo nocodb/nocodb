@@ -2270,8 +2270,7 @@ function linkBased() {
 
   async function nestedAddTests(validParams, relationType?) {
     // Link Add: Invalid table ID
-    // if (debugMode)
-    console.log('Link Add: Invalid table ID');
+    if (debugMode) console.log('Link Add: Invalid table ID');
     await ncAxiosLinkAdd({
       ...validParams,
       urlParams: { ...validParams.urlParams, tableId: 9999 },
@@ -2280,8 +2279,7 @@ function linkBased() {
     });
 
     // Link Add: Invalid link ID
-    // if (debugMode)
-    console.log('Link Add: Invalid link ID');
+    if (debugMode) console.log('Link Add: Invalid link ID');
     await ncAxiosLinkAdd({
       ...validParams,
       urlParams: { ...validParams.urlParams, linkId: 9999 },
@@ -2290,8 +2288,7 @@ function linkBased() {
     });
 
     // Link Add: Invalid Source row ID
-    // if (debugMode)
-    console.log('Link Add: Invalid Source row ID');
+    if (debugMode) console.log('Link Add: Invalid Source row ID');
     await ncAxiosLinkAdd({
       ...validParams,
       urlParams: { ...validParams.urlParams, rowId: 9999 },
@@ -2303,8 +2300,8 @@ function linkBased() {
     //
 
     // Link Add: Invalid body parameter - empty body : ignore
-    // if (debugMode)
-    console.log('Link Add: Invalid body parameter - empty body : ignore');
+    if (debugMode)
+      console.log('Link Add: Invalid body parameter - empty body : ignore');
     await ncAxiosLinkAdd({
       ...validParams,
       body: [],
@@ -2313,18 +2310,18 @@ function linkBased() {
 
     if (relationType === 'bt') {
       // Link Add: Invalid body parameter - row id invalid
-      // if (debugMode)
-      console.log('Link Add: Invalid body parameter - row id invalid');
+      if (debugMode)
+        console.log('Link Add: Invalid body parameter - row id invalid');
       await ncAxiosLinkAdd({
         ...validParams,
         body: [999, 998],
         status: 422,
-        msg: 'Child record with id [999, 998] invalid for belongs-to relation field. Should contain only one value',
+        msg: 'Child record with id [999] not found',
       });
     } else {
       // Link Add: Invalid body parameter - row id invalid
-      // if (debugMode)
-      console.log('Link Add: Invalid body parameter - row id invalid');
+      if (debugMode)
+        console.log('Link Add: Invalid body parameter - row id invalid');
       await ncAxiosLinkAdd({
         ...validParams,
         body: [999, 998, 997],
@@ -2333,8 +2330,8 @@ function linkBased() {
       });
 
       // Link Add: Invalid body parameter - repeated row id
-      // if (debugMode)
-      console.log('Link Add: Invalid body parameter - repeated row id');
+      if (debugMode)
+        console.log('Link Add: Invalid body parameter - repeated row id');
       await ncAxiosLinkAdd({
         ...validParams,
         body: [1, 2, 1, 2],
@@ -2346,8 +2343,7 @@ function linkBased() {
 
   async function nestedRemoveTests(validParams, relationType?) {
     // Link Remove: Invalid table ID
-    // if (debugMode)
-    console.log('Link Remove: Invalid table ID');
+    if (debugMode) console.log('Link Remove: Invalid table ID');
     await ncAxiosLinkRemove({
       ...validParams,
       urlParams: { ...validParams.urlParams, tableId: 9999 },
@@ -2356,8 +2352,7 @@ function linkBased() {
     });
 
     // Link Remove: Invalid link ID
-    // if (debugMode)
-    console.log('Link Remove: Invalid link ID');
+    if (debugMode) console.log('Link Remove: Invalid link ID');
     await ncAxiosLinkRemove({
       ...validParams,
       urlParams: { ...validParams.urlParams, linkId: 9999 },
@@ -2366,8 +2361,7 @@ function linkBased() {
     });
 
     // Link Remove: Invalid Source row ID
-    // if (debugMode)
-    console.log('Link Remove: Invalid Source row ID');
+    if (debugMode) console.log('Link Remove: Invalid Source row ID');
     await ncAxiosLinkRemove({
       ...validParams,
       urlParams: { ...validParams.urlParams, rowId: 9999 },
@@ -2379,8 +2373,8 @@ function linkBased() {
     //
 
     // Link Remove: Invalid body parameter - empty body : ignore
-    // if (debugMode)
-    console.log('Link Remove: Invalid body parameter - empty body : ignore');
+    if (debugMode)
+      console.log('Link Remove: Invalid body parameter - empty body : ignore');
     await ncAxiosLinkRemove({
       ...validParams,
       body: [],
@@ -2389,18 +2383,18 @@ function linkBased() {
 
     if (relationType === 'bt') {
       // Link Remove: Invalid body parameter - row id invalid
-      // if (debugMode)
-      console.log('Link Remove: Invalid body parameter - row id invalid');
+      if (debugMode)
+        console.log('Link Remove: Invalid body parameter - row id invalid');
       await ncAxiosLinkRemove({
         ...validParams,
         body: [999, 998],
         status: 422,
-        msg: 'Child record with id [999, 998] invalid. Belongs-to can link to only one record',
+        msg: 'Request must contain only one parent id',
       });
     } else {
       // Link Remove: Invalid body parameter - row id invalid
-      // if (debugMode)
-      console.log('Link Remove: Invalid body parameter - row id invalid');
+      if (debugMode)
+        console.log('Link Remove: Invalid body parameter - row id invalid');
       await ncAxiosLinkRemove({
         ...validParams,
         body: [999, 998],
@@ -2409,8 +2403,8 @@ function linkBased() {
       });
 
       // Link Remove: Invalid body parameter - repeated row id
-      // if (debugMode)
-      console.log('Link Remove: Invalid body parameter - repeated row id');
+      if (debugMode)
+        console.log('Link Remove: Invalid body parameter - repeated row id');
       await ncAxiosLinkRemove({
         ...validParams,
         body: [1, 2, 1, 2],

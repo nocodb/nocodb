@@ -8,6 +8,7 @@ import { nocoExecute } from 'nc-help';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
+  isLinksOrLTAR,
   isSystemColumn,
   isVirtualCol,
   RelationTypes,
@@ -18,7 +19,6 @@ import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
 import { Knex } from 'knex';
-import { isLinksOrLTAR } from '../../../nocodb-sdk/src';
 import { NcError } from '../helpers/catchError';
 import getAst from '../helpers/getAst';
 import {

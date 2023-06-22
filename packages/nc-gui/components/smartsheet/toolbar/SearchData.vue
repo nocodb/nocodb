@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { TableType } from 'nocodb-sdk'
-import { UITypes, isLinksOrLTAR } from '../../../../nocodb-sdk/src'
+import { UITypes } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   ReloadViewDataHookInj,

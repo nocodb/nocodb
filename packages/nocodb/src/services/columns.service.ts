@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
+  isLinksOrLTAR,
   isVirtualCol,
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
@@ -9,7 +10,6 @@ import {
 } from 'nocodb-sdk';
 import { T } from 'nc-help';
 import { pluralize, singularize } from 'inflection';
-import { isLinksOrLTAR } from '../../../nocodb-sdk/src'
 import formulaQueryBuilderv2 from '../db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
 import {

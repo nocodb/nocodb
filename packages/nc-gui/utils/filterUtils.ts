@@ -1,4 +1,4 @@
-import { UITypes, isNumericCol, numericUITypes } from 'nocodb-sdk'
+import { isNumericCol, numericUITypes, UITypes } from 'nocodb-sdk'
 
 const getEqText = (fieldUiType: UITypes) => {
   if (isNumericCol(fieldUiType) || fieldUiType === UITypes.Time) {
@@ -261,13 +261,13 @@ export const comparisonOpList = (
     text: 'is blank',
     value: 'blank',
     ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox],
+    excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],
   },
   {
     text: 'is not blank',
     value: 'notblank',
     ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox],
+    excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],
   },
 ]
 

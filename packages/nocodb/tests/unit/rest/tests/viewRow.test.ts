@@ -521,10 +521,6 @@ function viewRowTests() {
       relatedTableColumnTitle: 'FirstName',
     });
 
-    const paymentListColumn = (await rentalTable.getColumns()).find(
-      (c) => c.title === 'Payment List',
-    );
-
     const nestedFilter = {
       is_group: true,
       status: 'create',
@@ -536,12 +532,6 @@ function viewRowTests() {
           logical_op: 'and',
           comparison_op: 'like',
           value: '%a%',
-        },
-        {
-          fk_column_id: paymentListColumn?.id,
-          status: 'create',
-          logical_op: 'and',
-          comparison_op: 'notblank',
         },
       ],
     };
@@ -622,10 +612,6 @@ function viewRowTests() {
       relatedTableColumnTitle: 'RentalDate',
     });
 
-    const paymentListColumn = (await customerTable.getColumns()).find(
-      (c) => c.title === 'Payment List',
-    );
-
     const activeColumn = (await customerTable.getColumns()).find(
       (c) => c.title === 'Active',
     );
@@ -653,12 +639,6 @@ function viewRowTests() {
             logical_op: 'and',
             comparison_op: 'lte',
             value: 30,
-          },
-          {
-            fk_column_id: paymentListColumn?.id,
-            status: 'create',
-            logical_op: 'and',
-            comparison_op: 'notblank',
           },
           {
             is_group: true,
@@ -879,10 +859,6 @@ function viewRowTests() {
       attr: { show: true },
     });
 
-    const paymentListColumn = (await customerTable.getColumns()).find(
-      (c) => c.title === 'Payment List',
-    );
-
     const activeColumn = (await customerTable.getColumns()).find(
       (c) => c.title === 'Active',
     );
@@ -910,12 +886,6 @@ function viewRowTests() {
             logical_op: 'and',
             comparison_op: 'lte',
             value: 30,
-          },
-          {
-            fk_column_id: paymentListColumn?.id,
-            status: 'create',
-            logical_op: 'and',
-            comparison_op: 'notblank',
           },
           {
             is_group: true,

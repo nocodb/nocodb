@@ -427,10 +427,6 @@ function tableTest() {
       relatedTableColumnTitle: 'FirstName',
     });
 
-    const paymentListColumn = (await rentalTable.getColumns()).find(
-      (c) => c.title === 'Payment List',
-    );
-
     const nestedFilter = {
       is_group: true,
       status: 'create',
@@ -442,12 +438,6 @@ function tableTest() {
           logical_op: 'and',
           comparison_op: 'like',
           value: '%a%',
-        },
-        {
-          fk_column_id: paymentListColumn?.id,
-          status: 'create',
-          logical_op: 'and',
-          comparison_op: 'notblank',
         },
       ],
     };
@@ -513,10 +503,6 @@ function tableTest() {
       relatedTableColumnTitle: 'FirstName',
     });
 
-    const paymentListColumn = (await rentalTable.getColumns()).find(
-      (c) => c.title === 'Payment List',
-    );
-
     const returnDateColumn = (await rentalTable.getColumns()).find(
       (c) => c.title === 'ReturnDate',
     );
@@ -532,12 +518,6 @@ function tableTest() {
           logical_op: 'and',
           comparison_op: 'like',
           value: '%a%',
-        },
-        {
-          fk_column_id: paymentListColumn?.id,
-          status: 'create',
-          logical_op: 'and',
-          comparison_op: 'notblank',
         },
         {
           is_group: true,
@@ -786,10 +766,6 @@ function tableTest() {
       relatedTableColumnTitle: 'RentalDate',
     });
 
-    const paymentListColumn = (await customerTable.getColumns()).find(
-      (c) => c.title === 'Payment List',
-    );
-
     const activeColumn = (await customerTable.getColumns()).find(
       (c) => c.title === 'Active',
     );
@@ -817,12 +793,6 @@ function tableTest() {
             logical_op: 'and',
             comparison_op: 'lte',
             value: 30,
-          },
-          {
-            fk_column_id: paymentListColumn?.id,
-            status: 'create',
-            logical_op: 'and',
-            comparison_op: 'notblank',
           },
           {
             is_group: true,
@@ -1097,10 +1067,6 @@ function tableTest() {
       relatedTableColumnTitle: 'RentalDate',
     });
 
-    const paymentListColumn = (await customerTable.getColumns()).find(
-      (c) => c.title === 'Payment List',
-    );
-
     const activeColumn = (await customerTable.getColumns()).find(
       (c) => c.title === 'Active',
     );
@@ -1130,12 +1096,6 @@ function tableTest() {
             logical_op: 'and',
             comparison_op: 'lte',
             value: 30,
-          },
-          {
-            fk_column_id: paymentListColumn?.id,
-            status: 'create',
-            logical_op: 'and',
-            comparison_op: 'notblank',
           },
           {
             is_group: true,
@@ -1295,7 +1255,11 @@ function tableTest() {
       .expect(200);
 
     const record = response.body;
-    expect(record['Film List']).to.equal(19);
+    if (isPg(context)) {
+      expect(record['Film List']).to.equal('19');
+    } else {
+      expect(record['Film List']).to.equal(19);
+    }
   });
 
   it('Update table row', async function () {

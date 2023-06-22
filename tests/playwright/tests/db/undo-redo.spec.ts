@@ -589,6 +589,25 @@ test.describe('Undo Redo - LTAR', () => {
     await undo({ page, values: ['Mumbai'] });
     await undo({ page, values: [] });
   });
+
+  test('Row with links: Delete & Undo', async ({ page }) => {
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'Country' });
+
+    await grid.cell.inCellAdd({ index: 0, columnHeader: 'CityList' });
+    await dashboard.linkRecord.select('Mumbai');
+
+    await grid.cell.inCellAdd({ index: 0, columnHeader: 'CityList' });
+    await dashboard.linkRecord.select('Delhi');
+
+    await grid.deleteRow(0, 'Country');
+    await dashboard.rootPage.waitForTimeout(200);
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+z' : 'Control+z');
+    await dashboard.rootPage.waitForTimeout(200);
+    await verifyRecords(['Mumbai', 'Delhi']);
+    await dashboard.rootPage.reload();
+    await verifyRecords(['Mumbai', 'Delhi']);
+  });
 });
 
 test.describe('Undo Redo - Select based', () => {

@@ -83,6 +83,7 @@ export class BulkUpdatePage extends BasePage {
   //////////////////////////////////////////////////////////////////////////////
 
   async fillField({ columnTitle, value, type = 'text' }: { columnTitle: string; value: string; type?: string }) {
+    let picker = null;
     const field = this.form.locator(`[data-testid="nc-form-input-${columnTitle}"]`);
     await field.hover();
     await field.click();
@@ -94,6 +95,28 @@ export class BulkUpdatePage extends BasePage {
       case 'longText':
         await field.locator('textarea').waitFor();
         await field.locator('textarea').fill(value);
+        break;
+      case 'rating':
+        await field
+          .locator('.ant-rate-star')
+          .nth(Number(value) - 1)
+          .click();
+        break;
+      case 'year':
+        picker = this.rootPage.locator('.ant-picker-dropdown.active');
+        await picker.waitFor();
+        await picker.locator(`td[title="${value}"]`).click();
+        break;
+      case 'time':
+        picker = this.rootPage.locator('.ant-picker-dropdown.active');
+        await picker.waitFor();
+        // eslint-disable-next-line no-case-declarations
+        const time = value.split(':');
+        // eslint-disable-next-line no-case-declarations
+        const timePanel = picker.locator('.ant-picker-time-panel-column');
+        await timePanel.nth(0).locator('li').nth(+time[0]).click();
+        await timePanel.nth(1).locator('li').nth(+time[1]).click();
+        await picker.locator('.ant-picker-ok').click();
         break;
     }
   }

@@ -76,42 +76,114 @@ test.describe('Bulk update', () => {
   });
 
   test('Text based', async () => {
-    await bulkUpdateForm.addField(0);
-    await bulkUpdateForm.addField(0);
-    await bulkUpdateForm.addField(0);
-    await bulkUpdateForm.addField(0);
-    await bulkUpdateForm.addField(0);
+    const fields = ['SingleLineText', 'Email', 'PhoneNumber', 'URL', 'MultiLineText'];
+    const longText =
+      'Long text. Long text. Long text. Long text. Long text. Long text. Long text. Long text. Long text. ';
+    const fieldsFillText = ['SingleLineText', 'a@b.com', '987654321', 'https://www.google.com', longText];
+    const fieldsFillType = ['text', 'text', 'text', 'text', 'longText'];
 
-    await bulkUpdateForm.fillField({ columnTitle: 'SingleLineText', value: 'SingleLineText', type: 'text' });
-    await bulkUpdateForm.fillField({ columnTitle: 'Email', value: 'a@b.com', type: 'text' });
-    await bulkUpdateForm.fillField({ columnTitle: 'PhoneNumber', value: '987654321', type: 'text' });
-    await bulkUpdateForm.fillField({ columnTitle: 'URL', value: 'htps://www.google.com', type: 'text' });
-    await bulkUpdateForm.fillField({
-      columnTitle: 'MultiLineText',
-      value: 'Long text. Long text. Long text. Long text. Long text. Long text. Long text. Long text. Long text. ',
-      type: 'longText',
-    });
+    // move all fields to active
+    for (let i = 0; i < fields.length; i++) {
+      await bulkUpdateForm.addField(0);
+    }
+
+    // fill all fields
+    for (let i = 0; i < fields.length; i++) {
+      await bulkUpdateForm.fillField({ columnTitle: fields[i], value: fieldsFillText[i], type: fieldsFillType[i] });
+    }
+
+    // save form
     await bulkUpdateForm.save({ awaitResponse: true });
 
-    await dashboard.grid.cell.verify({ index: 5, columnHeader: 'SingleLineText', value: 'SingleLineText' });
-    await dashboard.grid.cell.verify({ index: 5, columnHeader: 'Email', value: 'a@b.com' });
-    await dashboard.grid.cell.verify({ index: 5, columnHeader: 'PhoneNumber', value: '987654321' });
-    await dashboard.grid.cell.verify({ index: 5, columnHeader: 'URL', value: 'htps://www.google.com' });
-    await dashboard.grid.cell.verify({
-      index: 5,
-      columnHeader: 'MultiLineText',
-      value: 'Long text. Long text. Long text. Long text. Long text. Long text. Long text. Long text. Long text. ',
-    });
+    // verify data on grid
+    for (let i = 0; i < fields.length; i++) {
+      await dashboard.grid.cell.verify({ index: 5, columnHeader: fields[i], value: fieldsFillText[i] });
+    }
 
+    // verify api response
     const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 })).list;
     for (let i = 0; i < records.length; i++) {
-      expect(updatedRecords[i].SingleLineText).toEqual('SingleLineText');
-      expect(updatedRecords[i].Email).toEqual('a@b.com');
-      expect(updatedRecords[i].PhoneNumber).toEqual('987654321');
-      expect(updatedRecords[i].URL).toEqual('htps://www.google.com');
-      expect(updatedRecords[i].MultiLineText).toEqual(
-        'Long text. Long text. Long text. Long text. Long text. Long text. Long text. Long text. Long text. '
-      );
+      for (let j = 0; j < fields.length; j++) {
+        expect(updatedRecords[i][fields[j]]).toEqual(fieldsFillText[j]);
+      }
+    }
+  });
+});
+
+test.describe('Bulk update - Number based', () => {
+  let dashboard: DashboardPage;
+  let bulkUpdateForm: BulkUpdatePage;
+  let context: any;
+  let api: Api<any>;
+  let records: any[];
+  let table;
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page, isEmptyProject: true });
+    dashboard = new DashboardPage(page, context.project);
+    bulkUpdateForm = dashboard.bulkUpdateForm;
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    table = await createDemoTable({ context, type: 'numberBased', recordCnt: 50 });
+    records = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 })).list;
+    await page.reload();
+
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'numberBased' });
+
+    // Open bulk update form
+    await dashboard.grid.updateAll();
+  });
+
+  test('Number based', async () => {
+    const fields = ['Number', 'Decimal', 'Currency', 'Percent', 'Duration', 'Rating', 'Year', 'Time'];
+    const fieldsFillText = ['1', '1.1', '1.1', '10', '16:40', '3', '2024', '10:10'];
+    const fieldsFillType = ['text', 'text', 'text', 'text', 'text', 'rating', 'year', 'time'];
+
+    // move all fields to active
+    for (let i = 0; i < fields.length; i++) {
+      await bulkUpdateForm.addField(0);
+    }
+
+    // fill all fields
+    for (let i = 0; i < fields.length; i++) {
+      await bulkUpdateForm.fillField({ columnTitle: fields[i], value: fieldsFillText[i], type: fieldsFillType[i] });
+    }
+
+    // save form
+    await bulkUpdateForm.save({ awaitResponse: true });
+
+    // verify data on grid
+    for (let i = 0; i < fields.length; i++) {
+      if (fieldsFillType[i] === 'rating') {
+        await dashboard.grid.cell.rating.verify({ index: 5, columnHeader: fields[i], rating: +fieldsFillText[i] });
+      } else if (fieldsFillType[i] === 'year') {
+        await dashboard.grid.cell.year.verify({ index: 5, columnHeader: fields[i], value: +fieldsFillText[i] });
+      } else if (fieldsFillType[i] === 'time') {
+        await dashboard.grid.cell.time.verify({ index: 5, columnHeader: fields[i], value: fieldsFillText[i] });
+      } else {
+        await dashboard.grid.cell.verify({ index: 5, columnHeader: fields[i], value: fieldsFillText[i] });
+      }
+    }
+
+    // verify api response
+    // duration in seconds
+    const APIResponse = [1, 1.1, 1.1, 10, 60000, 3, 2024, '10:10:00'];
+    const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 })).list;
+    for (let i = 0; i < records.length; i++) {
+      for (let j = 0; j < fields.length; j++) {
+        if (fields[j] === 'Time') {
+          expect(updatedRecords[i][fields[j]]).toContain(APIResponse[j]);
+        } else {
+          expect(+updatedRecords[i][fields[j]]).toEqual(APIResponse[j]);
+        }
+      }
     }
   });
 });

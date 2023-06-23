@@ -13,7 +13,6 @@ import {
   iconMap,
   inject,
   ref,
-  renderValue,
   useLTARStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
   useVModel,
@@ -40,7 +39,6 @@ const {
   childrenListPagination,
   relatedTableDisplayValueProp,
   unlink,
-  getRelatedTableRowId,
   relatedTableMeta,
 } = useLTARStoreOrThrow()
 
@@ -153,7 +151,6 @@ const onClick = (row: Row) => {
                   :value="row[relatedTableDisplayValueProp]"
                   :column="props.column"
                 />
-                <!--                <span class="text-gray-400 text-[11px] ml-1">(Primary key : {{ getRelatedTableRowId(row) }})</span> -->
               </div>
 
               <div v-if="!readonly" class="flex gap-2">

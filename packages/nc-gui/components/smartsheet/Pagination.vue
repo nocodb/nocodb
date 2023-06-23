@@ -5,6 +5,8 @@ const props = defineProps<{
   alignCountOnRight?: boolean
 }>()
 
+const { alignCountOnRight } = props
+
 const paginatedData = inject(PaginationDataInj)!
 
 const changePage = inject(ChangePageInj)!

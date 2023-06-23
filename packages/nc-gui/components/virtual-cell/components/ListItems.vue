@@ -12,7 +12,6 @@ import {
   inject,
   isDrawerExist,
   ref,
-  renderValue,
   useLTARStoreOrThrow,
   useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
@@ -35,7 +34,6 @@ const {
   childrenExcludedListPagination,
   relatedTableDisplayValueProp,
   link,
-  getRelatedTableRowId,
   relatedTableMeta,
   meta,
   row,
@@ -236,9 +234,6 @@ watch(vModel, (nextVal) => {
               :border="false"
               readonly
             />
-            <!--            <span class="hidden group-hover:(inline) text-gray-400 text-[11px] ml-1"> -->
-            <!--              ({{ $t('labels.primaryKey') }} : {{ getRelatedTableRowId(refRow) }}) -->
-            <!--            </span> -->
           </a-card>
         </div>
 

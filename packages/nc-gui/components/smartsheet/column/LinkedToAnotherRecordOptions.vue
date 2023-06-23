@@ -99,46 +99,46 @@ const isLinks = $computed(() => vModel.value.uidt === UITypes.Links)
       </div>
 
       <div v-if="advancedOptions" class="flex flex-col p-6 gap-4 border-2 mt-2">
-      <LazySmartsheetColumnLinkOptions v-model:value="vModel" class="-my-2" />
-<template v-if="!isXcdbBase">
-        <div class="flex flex-row space-x-2">
-          <a-form-item class="flex w-1/2" :label="$t('labels.onUpdate')">
-            <a-select
-              v-model:value="vModel.onUpdate"
-              :disabled="vModel.virtual"
-              name="onUpdate"
-              dropdown-class-name="nc-dropdown-on-update"
-              @change="onDataTypeChange"
-            >
-              <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
-                {{ option }}
-              </a-select-option>
-            </a-select>
-          </a-form-item>
+        <LazySmartsheetColumnLinkOptions v-model:value="vModel" class="-my-2" />
+        <template v-if="!isXcdbBase">
+          <div class="flex flex-row space-x-2">
+            <a-form-item class="flex w-1/2" :label="$t('labels.onUpdate')">
+              <a-select
+                v-model:value="vModel.onUpdate"
+                :disabled="vModel.virtual"
+                name="onUpdate"
+                dropdown-class-name="nc-dropdown-on-update"
+                @change="onDataTypeChange"
+              >
+                <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
+                  {{ option }}
+                </a-select-option>
+              </a-select>
+            </a-form-item>
 
-          <a-form-item class="flex w-1/2" :label="$t('labels.onDelete')">
-            <a-select
-              v-model:value="vModel.onDelete"
-              :disabled="vModel.virtual"
-              name="onDelete"
-              dropdown-class-name="nc-dropdown-on-delete"
-              @change="onDataTypeChange"
-            >
-              <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
-                {{ option }}
-              </a-select-option>
-            </a-select>
-          </a-form-item>
-        </div>
+            <a-form-item class="flex w-1/2" :label="$t('labels.onDelete')">
+              <a-select
+                v-model:value="vModel.onDelete"
+                :disabled="vModel.virtual"
+                name="onDelete"
+                dropdown-class-name="nc-dropdown-on-delete"
+                @change="onDataTypeChange"
+              >
+                <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
+                  {{ option }}
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+          </div>
 
-        <div class="flex flex-row">
-          <a-form-item>
-            <a-checkbox v-model:checked="vModel.virtual" :disabled="appInfo.isCloud" name="virtual" @change="onDataTypeChange"
-              >Virtual Relation
-            </a-checkbox>
-          </a-form-item>
-        </div>
-</template>
+          <div class="flex flex-row">
+            <a-form-item>
+              <a-checkbox v-model:checked="vModel.virtual" :disabled="appInfo.isCloud" name="virtual" @change="onDataTypeChange"
+                >Virtual Relation
+              </a-checkbox>
+            </a-form-item>
+          </div>
+        </template>
       </div>
     </template>
   </div>

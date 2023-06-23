@@ -3,24 +3,11 @@ import { computed } from '@vue/reactivity'
 import type { ColumnType } from 'nocodb-sdk'
 import { ref } from 'vue'
 import type { Ref } from 'vue'
-import {
-  ActiveCellInj,
-  CellValueInj,
-  ColumnInj,
-  EditModeInj,
-  IsUnderLookupInj,
-  MetaInj,
-  inject,
-  useSelectedCellKeyupListener,
-} from '#imports'
+import { ActiveCellInj, CellValueInj, ColumnInj, IsUnderLookupInj, inject, useSelectedCellKeyupListener } from '#imports'
 
 const value = inject(CellValueInj, ref(0))
 
 const column = inject(ColumnInj)!
-
-const meta = inject(MetaInj, ref())
-
-const cellValue = inject(CellValueInj)!
 
 const row = inject(RowInj)!
 
@@ -33,10 +20,6 @@ const readOnly = inject(ReadonlyInj, ref(false))
 const isLocked = inject(IsLockedInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
-
-const active = inject(ActiveCellInj, ref(false))
-
-const editable = inject(EditModeInj, ref(false))
 
 const listItemsDlg = ref(false)
 

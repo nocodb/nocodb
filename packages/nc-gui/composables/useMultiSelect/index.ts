@@ -26,7 +26,6 @@ import {
   useI18n,
   useMetas,
   useProject,
-  useUIPermission,
 } from '#imports'
 
 const MAIN_MOUSE_PRESSED = 0
@@ -74,9 +73,6 @@ export function useMultiSelect(
   const isCellActive = computed(
     () => !(activeCell.row === null || activeCell.col === null || isNaN(activeCell.row) || isNaN(activeCell.col)),
   )
-
-  const { isUIAllowed } = useUIPermission()
-  const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
 
   function makeActive(row: number, col: number) {
     if (activeCell.row === row && activeCell.col === col) {

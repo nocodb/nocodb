@@ -771,7 +771,7 @@ onBeforeUnmount(async () => {
   const viewMetaValue = view.value
   const dataValue = data.value
   if (viewMetaValue) {
-    getMeta(viewMetaValue.fk_model_id).then((res) => {
+    getMeta(viewMetaValue.fk_model_id, false, true).then((res) => {
       const metaValue = res
       if (!metaValue) return
       saveOrUpdateRecords({
@@ -818,7 +818,7 @@ watch(
         switchingTab.value = true
         // whenever tab changes or view changes save any unsaved data
         if (old?.id) {
-          const oldMeta = await getMeta(old.fk_model_id!)
+          const oldMeta = await getMeta(old.fk_model_id!, false, true)
           if (oldMeta) {
             await saveOrUpdateRecords({
               viewMetaValue: old,

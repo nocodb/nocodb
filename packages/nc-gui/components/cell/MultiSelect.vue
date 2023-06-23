@@ -8,6 +8,7 @@ import {
   ActiveCellInj,
   CellClickHookInj,
   ColumnInj,
+  EditModeInj,
   IsKanbanInj,
   ReadonlyInj,
   RowHeightInj,
@@ -45,7 +46,13 @@ const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj)!
 
-const active = inject(ActiveCellInj, ref(false))
+const isEditable = inject(EditModeInj, ref(false))
+
+const _active = inject(ActiveCellInj, ref(false))
+
+// use both ActiveCellInj or EditModeInj to determine the active state
+// since active will be false in case of form view
+const active = computed(() => _active.value || isEditable.value)
 
 const isPublic = inject(IsPublicInj, ref(false))
 

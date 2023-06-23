@@ -86,7 +86,9 @@ export class BulkUpdatePage extends BasePage {
     let picker = null;
     const field = this.form.locator(`[data-testid="nc-form-input-${columnTitle}"]`);
     await field.hover();
-    await field.click();
+    if (type !== 'checkbox' && type !== 'attachment') {
+      await field.click();
+    }
     switch (type) {
       case 'text':
         await field.locator('input').waitFor();
@@ -129,6 +131,16 @@ export class BulkUpdatePage extends BasePage {
         for (const val of value.split(',')) {
           await picker.locator(`.nc-select-option-MultiSelect-${val}`).click();
         }
+        break;
+      case 'checkbox':
+        if (value === 'true') {
+          await field.click();
+        }
+        break;
+      case 'attachment':
+        // eslint-disable-next-line no-case-declarations
+        const attachFileAction = field.locator('[data-testid="attachment-cell-file-picker-button"]').click();
+        await this.attachFile({ filePickUIAction: attachFileAction, filePath: value });
         break;
     }
   }

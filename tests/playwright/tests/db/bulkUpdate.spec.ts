@@ -5,9 +5,24 @@ import { Api } from 'nocodb-sdk';
 import { createDemoTable } from '../../setup/demoTable';
 import { BulkUpdatePage } from '../../pages/Dashboard/BulkUpdate';
 
+let bulkUpdateForm: BulkUpdatePage;
+async function updateBulkFields(fields) {
+  // move all fields to active
+  for (let i = 0; i < fields.length; i++) {
+    await bulkUpdateForm.addField(0);
+  }
+
+  // fill all fields
+  for (let i = 0; i < fields.length; i++) {
+    await bulkUpdateForm.fillField({ columnTitle: fields[i].title, value: fields[i].value, type: fields[i].type });
+  }
+
+  // save form
+  await bulkUpdateForm.save({ awaitResponse: true });
+}
+
 test.describe('Bulk update', () => {
   let dashboard: DashboardPage;
-  let bulkUpdateForm: BulkUpdatePage;
   let context: any;
   let api: Api<any>;
   let table;
@@ -27,7 +42,6 @@ test.describe('Bulk update', () => {
     table = await createDemoTable({ context, type: 'textBased', recordCnt: 50 });
     await page.reload();
 
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'textBased' });
 
     // Open bulk update form
@@ -74,35 +88,30 @@ test.describe('Bulk update', () => {
   });
 
   test('Text based', async () => {
-    const fields = ['SingleLineText', 'Email', 'PhoneNumber', 'URL', 'MultiLineText'];
-    const longText =
-      'Long text. Long text. Long text. Long text. Long text. Long text. Long text. Long text. Long text. ';
-    const fieldsFillText = ['SingleLineText', 'a@b.com', '987654321', 'https://www.google.com', longText];
-    const fieldsFillType = ['text', 'text', 'text', 'text', 'longText'];
+    const fields = [
+      { title: 'SingleLineText', value: 'SingleLineText', type: 'text' },
+      { title: 'Email', value: 'a@b.com', type: 'text' },
+      { title: 'PhoneNumber', value: '987654321', type: 'text' },
+      { title: 'URL', value: 'https://www.google.com', type: 'text' },
+      {
+        title: 'MultiLineText',
+        value: 'Long text. Long text. Long text. Long text. Long text. Long text. Long text. Long text. Long text. ',
+        type: 'longText',
+      },
+    ];
 
-    // move all fields to active
-    for (let i = 0; i < fields.length; i++) {
-      await bulkUpdateForm.addField(0);
-    }
-
-    // fill all fields
-    for (let i = 0; i < fields.length; i++) {
-      await bulkUpdateForm.fillField({ columnTitle: fields[i], value: fieldsFillText[i], type: fieldsFillType[i] });
-    }
-
-    // save form
-    await bulkUpdateForm.save({ awaitResponse: true });
+    await updateBulkFields(fields);
 
     // verify data on grid
     for (let i = 0; i < fields.length; i++) {
-      await dashboard.grid.cell.verify({ index: 5, columnHeader: fields[i], value: fieldsFillText[i] });
+      await dashboard.grid.cell.verify({ index: 5, columnHeader: fields[i].title, value: fields[i].value });
     }
 
     // verify api response
     const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 })).list;
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
-        expect(updatedRecords[i][fields[j]]).toEqual(fieldsFillText[j]);
+        expect(updatedRecords[i][fields[j].title]).toEqual(fields[j].value);
       }
     }
   });
@@ -110,7 +119,6 @@ test.describe('Bulk update', () => {
 
 test.describe('Bulk update - Number based', () => {
   let dashboard: DashboardPage;
-  let bulkUpdateForm: BulkUpdatePage;
   let context: any;
   let api: Api<any>;
   let table;
@@ -130,7 +138,6 @@ test.describe('Bulk update - Number based', () => {
     table = await createDemoTable({ context, type: 'numberBased', recordCnt: 50 });
     await page.reload();
 
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'numberBased' });
 
     // Open bulk update form
@@ -138,33 +145,29 @@ test.describe('Bulk update - Number based', () => {
   });
 
   test('Number based', async () => {
-    const fields = ['Number', 'Decimal', 'Currency', 'Percent', 'Duration', 'Rating', 'Year', 'Time'];
-    const fieldsFillText = ['1', '1.1', '1.1', '10', '16:40', '3', '2024', '10:10'];
-    const fieldsFillType = ['text', 'text', 'text', 'text', 'text', 'rating', 'year', 'time'];
+    const fields = [
+      { title: 'Number', value: '1', type: 'text' },
+      { title: 'Decimal', value: '1.1', type: 'text' },
+      { title: 'Currency', value: '1.1', type: 'text' },
+      { title: 'Percent', value: '10', type: 'text' },
+      { title: 'Duration', value: '16:40', type: 'text' },
+      { title: 'Rating', value: '3', type: 'rating' },
+      { title: 'Year', value: '2024', type: 'year' },
+      { title: 'Time', value: '10:10', type: 'time' },
+    ];
 
-    // move all fields to active
-    for (let i = 0; i < fields.length; i++) {
-      await bulkUpdateForm.addField(0);
-    }
-
-    // fill all fields
-    for (let i = 0; i < fields.length; i++) {
-      await bulkUpdateForm.fillField({ columnTitle: fields[i], value: fieldsFillText[i], type: fieldsFillType[i] });
-    }
-
-    // save form
-    await bulkUpdateForm.save({ awaitResponse: true });
+    await updateBulkFields(fields);
 
     // verify data on grid
     for (let i = 0; i < fields.length; i++) {
-      if (fieldsFillType[i] === 'rating') {
-        await dashboard.grid.cell.rating.verify({ index: 5, columnHeader: fields[i], rating: +fieldsFillText[i] });
-      } else if (fieldsFillType[i] === 'year') {
-        await dashboard.grid.cell.year.verify({ index: 5, columnHeader: fields[i], value: +fieldsFillText[i] });
-      } else if (fieldsFillType[i] === 'time') {
-        await dashboard.grid.cell.time.verify({ index: 5, columnHeader: fields[i], value: fieldsFillText[i] });
+      if (fields[i].type === 'rating') {
+        await dashboard.grid.cell.rating.verify({ index: 5, columnHeader: fields[i].title, rating: +fields[i].value });
+      } else if (fields[i].type === 'year') {
+        await dashboard.grid.cell.year.verify({ index: 5, columnHeader: fields[i].title, value: +fields[i].value });
+      } else if (fields[i].type === 'time') {
+        await dashboard.grid.cell.time.verify({ index: 5, columnHeader: fields[i].title, value: fields[i].value });
       } else {
-        await dashboard.grid.cell.verify({ index: 5, columnHeader: fields[i], value: fieldsFillText[i] });
+        await dashboard.grid.cell.verify({ index: 5, columnHeader: fields[i].title, value: fields[i].value });
       }
     }
 
@@ -174,10 +177,10 @@ test.describe('Bulk update - Number based', () => {
     const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 })).list;
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
-        if (fields[j] === 'Time') {
-          expect(updatedRecords[i][fields[j]]).toContain(APIResponse[j]);
+        if (fields[j].title === 'Time') {
+          expect(updatedRecords[i][fields[j].title]).toContain(APIResponse[j]);
         } else {
-          expect(+updatedRecords[i][fields[j]]).toEqual(APIResponse[j]);
+          expect(+updatedRecords[i][fields[j].title]).toEqual(APIResponse[j]);
         }
       }
     }
@@ -186,7 +189,6 @@ test.describe('Bulk update - Number based', () => {
 
 test.describe('Bulk update - Select based', () => {
   let dashboard: DashboardPage;
-  let bulkUpdateForm: BulkUpdatePage;
   let context: any;
   let api: Api<any>;
   let table;
@@ -206,7 +208,6 @@ test.describe('Bulk update - Select based', () => {
     table = await createDemoTable({ context, type: 'selectBased', recordCnt: 50 });
     await page.reload();
 
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'selectBased' });
 
     // Open bulk update form
@@ -214,36 +215,26 @@ test.describe('Bulk update - Select based', () => {
   });
 
   test('Select based', async () => {
-    const fields = ['SingleSelect', 'MultiSelect'];
-    const fieldsFillText = ['jan', 'jan,feb,mar'];
-    const fieldsFillType = ['singleSelect', 'multiSelect'];
+    const fields = [
+      { title: 'SingleSelect', value: 'jan', type: 'singleSelect' },
+      { title: 'MultiSelect', value: 'jan,feb,mar', type: 'multiSelect' },
+    ];
 
-    // move all fields to active
-    for (let i = 0; i < fields.length; i++) {
-      await bulkUpdateForm.addField(0);
-    }
-
-    // fill all fields
-    for (let i = 0; i < fields.length; i++) {
-      await bulkUpdateForm.fillField({ columnTitle: fields[i], value: fieldsFillText[i], type: fieldsFillType[i] });
-    }
-
-    // save form
-    await bulkUpdateForm.save({ awaitResponse: true });
+    await updateBulkFields(fields);
 
     // verify data on grid
     const displayOptions = ['jan', 'feb', 'mar'];
     for (let i = 0; i < fields.length; i++) {
-      if (fieldsFillType[i] === 'singleSelect') {
+      if (fields[i].type === 'singleSelect') {
         await dashboard.grid.cell.selectOption.verify({
           index: 5,
-          columnHeader: fields[i],
-          option: fieldsFillText[i],
+          columnHeader: fields[i].title,
+          option: fields[i].value,
         });
       } else {
         await dashboard.grid.cell.selectOption.verifyOptions({
           index: 5,
-          columnHeader: fields[i],
+          columnHeader: fields[i].title,
           options: displayOptions,
         });
       }
@@ -253,7 +244,70 @@ test.describe('Bulk update - Select based', () => {
     const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 })).list;
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
-        expect(updatedRecords[i][fields[j]]).toContain(fieldsFillText[j]);
+        expect(updatedRecords[i][fields[j].title]).toContain(fields[j].value);
+      }
+    }
+  });
+});
+
+test.describe('Bulk update - Miscellaneous', () => {
+  let dashboard: DashboardPage;
+  let context: any;
+  let api: Api<any>;
+  let table;
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page, isEmptyProject: true });
+    dashboard = new DashboardPage(page, context.project);
+    bulkUpdateForm = dashboard.bulkUpdateForm;
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    table = await createDemoTable({ context, type: 'miscellaneous', recordCnt: 50 });
+    await page.reload();
+
+    await dashboard.treeView.openTable({ title: 'miscellaneous' });
+
+    // Open bulk update form
+    await dashboard.grid.updateAll();
+  });
+
+  test('Miscellaneous', async () => {
+    const fields = [
+      { title: 'Checkbox', value: 'true', type: 'checkbox' },
+      { title: 'Attachment', value: `${process.cwd()}/fixtures/sampleFiles/1.json`, type: 'attachment' },
+    ];
+
+    await updateBulkFields(fields);
+
+    // verify data on grid
+    for (let i = 0; i < fields.length; i++) {
+      if (fields[i].type === 'checkbox') {
+        await dashboard.grid.cell.checkbox.verifyChecked({
+          index: 5,
+          columnHeader: fields[i].title,
+        });
+      } else {
+        await dashboard.grid.cell.attachment.verifyFileCount({
+          index: 5,
+          columnHeader: fields[i].title,
+          count: 1,
+        });
+      }
+    }
+
+    // verify api response
+    const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 })).list;
+    for (let i = 0; i < updatedRecords.length; i++) {
+      for (let j = 0; j < fields.length; j++) {
+        expect(+updatedRecords[i]['Checkbox']).toBe(1);
+        expect(updatedRecords[i]['Attachment'][0].title).toBe('1.json');
+        expect(updatedRecords[i]['Attachment'][0].mimetype).toBe('application/json');
       }
     }
   });

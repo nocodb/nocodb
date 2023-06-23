@@ -117,7 +117,7 @@ test.describe('Bulk update', () => {
   });
 });
 
-test.describe('Bulk update - Number based', () => {
+test.describe('Bulk update', () => {
   let dashboard: DashboardPage;
   let context: any;
   let api: Api<any>;
@@ -187,7 +187,7 @@ test.describe('Bulk update - Number based', () => {
   });
 });
 
-test.describe('Bulk update - Select based', () => {
+test.describe('Bulk update', () => {
   let dashboard: DashboardPage;
   let context: any;
   let api: Api<any>;
@@ -250,7 +250,7 @@ test.describe('Bulk update - Select based', () => {
   });
 });
 
-test.describe('Bulk update - Miscellaneous', () => {
+test.describe('Bulk update', () => {
   let dashboard: DashboardPage;
   let context: any;
   let api: Api<any>;
@@ -277,7 +277,7 @@ test.describe('Bulk update - Miscellaneous', () => {
     await dashboard.grid.updateAll();
   });
 
-  test('Miscellaneous', async () => {
+  test('Miscellaneous (Checkbox, attachment)', async () => {
     const fields = [
       { title: 'Checkbox', value: 'true', type: 'checkbox' },
       { title: 'Attachment', value: `${process.cwd()}/fixtures/sampleFiles/1.json`, type: 'attachment' },
@@ -313,7 +313,7 @@ test.describe('Bulk update - Miscellaneous', () => {
   });
 });
 
-test.describe('Bulk update - DateTimeBased', () => {
+test.describe('Bulk update', () => {
   let dashboard: DashboardPage;
   let context: any;
   let api: Api<any>;
@@ -340,7 +340,7 @@ test.describe('Bulk update - DateTimeBased', () => {
     await dashboard.grid.updateAll();
   });
 
-  test('dateTimeBased', async () => {
+  test('Date Time Based', async () => {
     const fields = [{ title: 'Date', value: '2024-08-04', type: 'date' }];
 
     await updateBulkFields(fields);

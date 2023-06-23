@@ -220,6 +220,19 @@ export class GridPage extends BasePage {
     await this.deleteSelectedRows();
   }
 
+  async updateSelectedRows() {
+    await this.get().locator('[data-testid="nc-check-all"]').nth(0).click({
+      button: 'right',
+    });
+    await this.rootPage.locator('text=Bulk Update').click();
+    await this.dashboard.waitForLoaderToDisappear();
+  }
+
+  async updateAll() {
+    await this.selectAll();
+    await this.updateSelectedRows();
+  }
+
   async verifyTotalRowCount({ count }: { count: number }) {
     // wait for 100 ms and try again : 5 times
     let i = 0;

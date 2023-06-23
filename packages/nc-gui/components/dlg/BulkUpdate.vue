@@ -187,7 +187,7 @@ onMounted(() => {
     class="nc-drawer-bulk-update"
     :class="{ active: isExpanded }"
   >
-    <div class="flex p-2 items-center gap-2 p-4 nc-expanded-form-header">
+    <div class="flex p-2 items-center gap-2 p-4 nc-bulk-update-form-header">
       <h5 class="text-lg font-weight-medium flex items-center gap-1 mb-0 min-w-0 overflow-x-hidden truncate">
         <GeneralTableIcon :style="{ color: iconColor }" :meta="meta" class="mx-2" />
 
@@ -251,6 +251,7 @@ onMounted(() => {
                 <component
                   :is="iconMap.closeCircle"
                   class="group-hover:text-red-500 cursor-pointer text-4xl"
+                  data-testid="nc-form-fields-close-icon"
                   @click="handleRemove(element)"
                 />
               </div>

@@ -35,6 +35,7 @@ const columns = computed(() =>
     .map((column) => ({
       value: column.id,
       label: column.title,
+      column,
     })),
 )
 
@@ -70,10 +71,16 @@ function onPressEnter() {
         :open="isDropdownOpen"
         size="small"
         :dropdown-match-select-width="false"
-        :options="columns"
         dropdown-class-name="!py-0 !rounded nc-dropdown-toolbar-search-field-option"
         class="!absolute top-0 left-0 w-full h-full z-10 !text-xs opacity-0"
-      />
+      >
+        <a-select-option v-for="op of columns" :key="op.value" :value="op.value">
+          <div class="flex items-center -ml-1 gap-2">
+            <SmartsheetHeaderIcon class="" :column="op.column" />
+            {{ op.label }}
+          </div>
+        </a-select-option>
+      </a-select>
     </div>
 
     <a-input

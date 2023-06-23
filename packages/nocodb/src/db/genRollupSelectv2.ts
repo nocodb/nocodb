@@ -1,5 +1,5 @@
 import { RelationTypes } from 'nocodb-sdk';
-import { LinksColumn } from '../models'
+import type { LinksColumn } from '../models';
 import type { RollupColumn } from '../models';
 import type { XKnex } from '../db/CustomKnex';
 import type { LinkToAnotherRecordColumn } from '../models';

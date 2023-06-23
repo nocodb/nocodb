@@ -166,9 +166,7 @@ export class ImportService {
       const modelData = data.model;
       const table = tableReferences.get(modelData.id);
 
-      const linkedColumnSet = modelData.columns.filter(
-        (a) => isLinksOrLTAR(a)
-      );
+      const linkedColumnSet = modelData.columns.filter((a) => isLinksOrLTAR(a));
 
       for (const col of linkedColumnSet) {
         if (col.colOptions) {

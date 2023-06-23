@@ -7,7 +7,6 @@ import { OrgUserRoles } from 'nocodb-sdk';
 import { populateMeta, validatePayload } from '../helpers';
 import { NcError } from '../helpers/catchError';
 import { extractPropsAndSanitize } from '../helpers/extractProps';
-import { populateRollupColumnAndHideLTAR } from '../helpers/populateMeta'
 import syncMigration from '../helpers/syncMigration';
 import { Project, ProjectUser } from '../models';
 import Noco from '../Noco';

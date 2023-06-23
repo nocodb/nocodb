@@ -1972,9 +1972,7 @@ export class AtImportProcessor {
         migrationStatsObj.aTbl.rollup = aTblRollup.length;
 
         const ncTbl = await nc_getTableSchema(aTblSchema[idx].name);
-        const linkColumn = ncTbl.columns.filter(
-          (x) => isLinksOrLTAR(x)
-        );
+        const linkColumn = ncTbl.columns.filter((x) => isLinksOrLTAR(x));
         const lookup = ncTbl.columns.filter((x) => x.uidt === UITypes.Lookup);
         const rollup = ncTbl.columns.filter((x) => x.uidt === UITypes.Rollup);
 

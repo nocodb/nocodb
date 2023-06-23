@@ -12,7 +12,6 @@ import { NcError } from '../helpers/catchError';
 import { extractProps } from '../helpers/extractProps';
 import { stringifyMetaProp } from '../utils/modelUtils';
 import FormulaColumn from './FormulaColumn';
-import { LinksColumn } from './index';
 import LinkToAnotherRecordColumn from './LinkToAnotherRecordColumn';
 import LookupColumn from './LookupColumn';
 import RollupColumn from './RollupColumn';
@@ -23,6 +22,7 @@ import Sort from './Sort';
 import Filter from './Filter';
 import QrCodeColumn from './QrCodeColumn';
 import BarcodeColumn from './BarcodeColumn';
+import { LinksColumn } from './index';
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk';
 
 export default class Column<T = any> implements ColumnType {

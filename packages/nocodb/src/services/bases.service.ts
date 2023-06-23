@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
 import { populateMeta, validatePayload } from '../helpers';
-import { populateRollupColumnAndHideLTAR } from '../helpers/populateMeta'
+import { populateRollupColumnAndHideLTAR } from '../helpers/populateMeta';
 import { syncBaseMigration } from '../helpers/syncMigration';
 import { Base, Project } from '../models';
 import type { BaseReqType } from 'nocodb-sdk';

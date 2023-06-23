@@ -38,7 +38,7 @@ setAdditionalValidations({
   ],
 })
 
-// set default valueO
+// set default value
 vModel.value.meta = {
   singular: '',
   plural: '',

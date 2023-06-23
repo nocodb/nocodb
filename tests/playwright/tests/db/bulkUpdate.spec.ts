@@ -10,7 +10,6 @@ test.describe('Bulk update', () => {
   let bulkUpdateForm: BulkUpdatePage;
   let context: any;
   let api: Api<any>;
-  let records: any[];
   let table;
 
   test.beforeEach(async ({ page }) => {
@@ -26,7 +25,6 @@ test.describe('Bulk update', () => {
     });
 
     table = await createDemoTable({ context, type: 'textBased', recordCnt: 50 });
-    records = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 })).list;
     await page.reload();
 
     await dashboard.closeTab({ title: 'Team & Auth' });
@@ -102,7 +100,7 @@ test.describe('Bulk update', () => {
 
     // verify api response
     const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 })).list;
-    for (let i = 0; i < records.length; i++) {
+    for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
         expect(updatedRecords[i][fields[j]]).toEqual(fieldsFillText[j]);
       }
@@ -115,7 +113,6 @@ test.describe('Bulk update - Number based', () => {
   let bulkUpdateForm: BulkUpdatePage;
   let context: any;
   let api: Api<any>;
-  let records: any[];
   let table;
 
   test.beforeEach(async ({ page }) => {
@@ -131,7 +128,6 @@ test.describe('Bulk update - Number based', () => {
     });
 
     table = await createDemoTable({ context, type: 'numberBased', recordCnt: 50 });
-    records = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 })).list;
     await page.reload();
 
     await dashboard.closeTab({ title: 'Team & Auth' });
@@ -176,13 +172,88 @@ test.describe('Bulk update - Number based', () => {
     // duration in seconds
     const APIResponse = [1, 1.1, 1.1, 10, 60000, 3, 2024, '10:10:00'];
     const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 })).list;
-    for (let i = 0; i < records.length; i++) {
+    for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
         if (fields[j] === 'Time') {
           expect(updatedRecords[i][fields[j]]).toContain(APIResponse[j]);
         } else {
           expect(+updatedRecords[i][fields[j]]).toEqual(APIResponse[j]);
         }
+      }
+    }
+  });
+});
+
+test.describe('Bulk update - Select based', () => {
+  let dashboard: DashboardPage;
+  let bulkUpdateForm: BulkUpdatePage;
+  let context: any;
+  let api: Api<any>;
+  let table;
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page, isEmptyProject: true });
+    dashboard = new DashboardPage(page, context.project);
+    bulkUpdateForm = dashboard.bulkUpdateForm;
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    table = await createDemoTable({ context, type: 'selectBased', recordCnt: 50 });
+    await page.reload();
+
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'selectBased' });
+
+    // Open bulk update form
+    await dashboard.grid.updateAll();
+  });
+
+  test('Select based', async () => {
+    const fields = ['SingleSelect', 'MultiSelect'];
+    const fieldsFillText = ['jan', 'jan,feb,mar'];
+    const fieldsFillType = ['singleSelect', 'multiSelect'];
+
+    // move all fields to active
+    for (let i = 0; i < fields.length; i++) {
+      await bulkUpdateForm.addField(0);
+    }
+
+    // fill all fields
+    for (let i = 0; i < fields.length; i++) {
+      await bulkUpdateForm.fillField({ columnTitle: fields[i], value: fieldsFillText[i], type: fieldsFillType[i] });
+    }
+
+    // save form
+    await bulkUpdateForm.save({ awaitResponse: true });
+
+    // verify data on grid
+    const displayOptions = ['jan', 'feb', 'mar'];
+    for (let i = 0; i < fields.length; i++) {
+      if (fieldsFillType[i] === 'singleSelect') {
+        await dashboard.grid.cell.selectOption.verify({
+          index: 5,
+          columnHeader: fields[i],
+          option: fieldsFillText[i],
+        });
+      } else {
+        await dashboard.grid.cell.selectOption.verifyOptions({
+          index: 5,
+          columnHeader: fields[i],
+          options: displayOptions,
+        });
+      }
+    }
+
+    // verify api response
+    const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 })).list;
+    for (let i = 0; i < updatedRecords.length; i++) {
+      for (let j = 0; j < fields.length; j++) {
+        expect(updatedRecords[i][fields[j]]).toContain(fieldsFillText[j]);
       }
     }
   });

@@ -118,6 +118,18 @@ export class BulkUpdatePage extends BasePage {
         await timePanel.nth(1).locator('li').nth(+time[1]).click();
         await picker.locator('.ant-picker-ok').click();
         break;
+      case 'singleSelect':
+        picker = this.rootPage.locator('.ant-select-dropdown.active');
+        await picker.waitFor();
+        await picker.locator(`.nc-select-option-SingleSelect-${value}`).click();
+        break;
+      case 'multiSelect':
+        picker = this.rootPage.locator('.ant-select-dropdown.active');
+        await picker.waitFor();
+        for (const val of value.split(',')) {
+          await picker.locator(`.nc-select-option-MultiSelect-${val}`).click();
+        }
+        break;
     }
   }
 

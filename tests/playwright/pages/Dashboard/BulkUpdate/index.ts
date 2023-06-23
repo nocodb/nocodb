@@ -142,6 +142,26 @@ export class BulkUpdatePage extends BasePage {
         const attachFileAction = field.locator('[data-testid="attachment-cell-file-picker-button"]').click();
         await this.attachFile({ filePickUIAction: attachFileAction, filePath: value });
         break;
+      case 'date':
+        {
+          const values = value.split('-');
+          const { year, month, day } = { year: values[0], month: values[1], day: values[2] };
+          picker = this.rootPage.locator('.ant-picker-dropdown.active');
+          const monthBtn = picker.locator('.ant-picker-month-btn');
+          const yearBtn = picker.locator('.ant-picker-year-btn');
+
+          await yearBtn.click();
+          await picker.waitFor();
+          await picker.locator(`td[title="${year}"]`).click();
+
+          await monthBtn.click();
+          await picker.waitFor();
+          await picker.locator(`td[title="${year}-${month}"]`).click();
+
+          await picker.waitFor();
+          await picker.locator(`td[title="${year}-${month}-${day}"]`).click();
+        }
+        break;
     }
   }
 

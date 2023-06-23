@@ -312,3 +312,54 @@ test.describe('Bulk update - Miscellaneous', () => {
     }
   });
 });
+
+test.describe('Bulk update - DateTimeBased', () => {
+  let dashboard: DashboardPage;
+  let context: any;
+  let api: Api<any>;
+  let table;
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page, isEmptyProject: true });
+    dashboard = new DashboardPage(page, context.project);
+    bulkUpdateForm = dashboard.bulkUpdateForm;
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    table = await createDemoTable({ context, type: 'dateTimeBased', recordCnt: 50 });
+    await page.reload();
+
+    await dashboard.treeView.openTable({ title: 'dateTimeBased' });
+
+    // Open bulk update form
+    await dashboard.grid.updateAll();
+  });
+
+  test('dateTimeBased', async () => {
+    const fields = [{ title: 'Date', value: '2024-08-04', type: 'date' }];
+
+    await updateBulkFields(fields);
+
+    // verify data on grid
+    for (let i = 0; i < fields.length; i++) {
+      await dashboard.grid.cell.date.verify({
+        index: 5,
+        columnHeader: fields[i].title,
+        date: fields[i].value,
+      });
+    }
+
+    // verify api response
+    const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 })).list;
+    for (let i = 0; i < updatedRecords.length; i++) {
+      for (let j = 0; j < fields.length; j++) {
+        expect(updatedRecords[i]['Date']).toBe(fields[j].value);
+      }
+    }
+  });
+});

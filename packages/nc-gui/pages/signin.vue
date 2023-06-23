@@ -63,6 +63,7 @@ async function signIn() {
   if (!formValidator.value.validate()) return
 
   resetError()
+  loadScope('disabled')
 
   api.auth.signin(form).then(async ({ token }) => {
     _signIn(token!)

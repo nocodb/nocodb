@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { isSystemColumn } from 'nocodb-sdk'
 import type { TableType } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -27,10 +28,14 @@ const searchDropdown = ref(null)
 onClickOutside(searchDropdown, () => (isDropdownOpen.value = false))
 
 const columns = computed(() =>
-  (meta.value as TableType)?.columns?.map((column) => ({
-    value: column.id,
-    label: column.title,
-  })),
+  (meta.value as TableType)?.columns
+    ?.filter((c) => {
+      return !isSystemColumn(c)
+    })
+    .map((column) => ({
+      value: column.id,
+      label: column.title,
+    })),
 )
 
 watch(

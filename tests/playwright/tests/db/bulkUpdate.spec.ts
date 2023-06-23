@@ -11,6 +11,7 @@ test.describe('Bulk update', () => {
   let context: any;
   let api: Api<any>;
   let records: any[];
+  let table;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
@@ -24,8 +25,8 @@ test.describe('Bulk update', () => {
       },
     });
 
-    const table = await createDemoTable({ context, type: 'textBased', recordCnt: 50 });
-    records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 });
+    table = await createDemoTable({ context, type: 'textBased', recordCnt: 50 });
+    records = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 })).list;
     await page.reload();
 
     await dashboard.closeTab({ title: 'Team & Auth' });
@@ -72,5 +73,45 @@ test.describe('Bulk update', () => {
       'PhoneNumber',
       'URL',
     ]);
+  });
+
+  test('Text based', async () => {
+    await bulkUpdateForm.addField(0);
+    await bulkUpdateForm.addField(0);
+    await bulkUpdateForm.addField(0);
+    await bulkUpdateForm.addField(0);
+    await bulkUpdateForm.addField(0);
+
+    await bulkUpdateForm.fillField({ columnTitle: 'SingleLineText', value: 'SingleLineText', type: 'text' });
+    await bulkUpdateForm.fillField({ columnTitle: 'Email', value: 'a@b.com', type: 'text' });
+    await bulkUpdateForm.fillField({ columnTitle: 'PhoneNumber', value: '987654321', type: 'text' });
+    await bulkUpdateForm.fillField({ columnTitle: 'URL', value: 'htps://www.google.com', type: 'text' });
+    await bulkUpdateForm.fillField({
+      columnTitle: 'MultiLineText',
+      value: 'Long text. Long text. Long text. Long text. Long text. Long text. Long text. Long text. Long text. ',
+      type: 'longText',
+    });
+    await bulkUpdateForm.save({ awaitResponse: true });
+
+    await dashboard.grid.cell.verify({ index: 5, columnHeader: 'SingleLineText', value: 'SingleLineText' });
+    await dashboard.grid.cell.verify({ index: 5, columnHeader: 'Email', value: 'a@b.com' });
+    await dashboard.grid.cell.verify({ index: 5, columnHeader: 'PhoneNumber', value: '987654321' });
+    await dashboard.grid.cell.verify({ index: 5, columnHeader: 'URL', value: 'htps://www.google.com' });
+    await dashboard.grid.cell.verify({
+      index: 5,
+      columnHeader: 'MultiLineText',
+      value: 'Long text. Long text. Long text. Long text. Long text. Long text. Long text. Long text. Long text. ',
+    });
+
+    const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 })).list;
+    for (let i = 0; i < records.length; i++) {
+      expect(updatedRecords[i].SingleLineText).toEqual('SingleLineText');
+      expect(updatedRecords[i].Email).toEqual('a@b.com');
+      expect(updatedRecords[i].PhoneNumber).toEqual('987654321');
+      expect(updatedRecords[i].URL).toEqual('htps://www.google.com');
+      expect(updatedRecords[i].MultiLineText).toEqual(
+        'Long text. Long text. Long text. Long text. Long text. Long text. Long text. Long text. Long text. '
+      );
+    }
   });
 });

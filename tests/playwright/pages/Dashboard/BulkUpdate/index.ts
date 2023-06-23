@@ -85,34 +85,15 @@ export class BulkUpdatePage extends BasePage {
   async fillField({ columnTitle, value, type = 'text' }: { columnTitle: string; value: string; type?: string }) {
     const field = this.form.locator(`[data-testid="nc-form-input-${columnTitle}"]`);
     await field.hover();
+    await field.click();
     switch (type) {
       case 'text':
+        await field.locator('input').waitFor();
         await field.locator('input').fill(value);
         break;
-      case 'geodata': {
-        const [lat, long] = value.split(',');
-        await this.rootPage.locator(`[data-testid="nc-geo-data-set-location-button"]`).click();
-        await this.rootPage.locator(`[data-testid="nc-geo-data-latitude"]`).fill(lat);
-        await this.rootPage.locator(`[data-testid="nc-geo-data-longitude"]`).fill(long);
-        await this.rootPage.locator(`[data-testid="nc-geo-data-save"]`).click();
-        break;
-      }
-      case 'belongsTo':
-        await field.locator('.nc-action-icon').click();
-        await this.dashboard.linkRecord.select(value);
-        break;
-      case 'hasMany':
-      case 'manyToMany':
-        await field.locator(`[data-testid="nc-child-list-button-link-to"]`).click();
-        await this.dashboard.linkRecord.select(value);
-        break;
-      case 'dateTime':
-        await field.locator('.nc-cell').click();
-        // eslint-disable-next-line no-case-declarations
-        const dateTimeObj = new DateTimeCellPageObject(this.dashboard.grid.cell);
-        await dateTimeObj.selectDate({ date: value.slice(0, 10) });
-        await dateTimeObj.selectTime({ hour: +value.slice(11, 13), minute: +value.slice(14, 16) });
-        await dateTimeObj.save();
+      case 'longText':
+        await field.locator('textarea').waitFor();
+        await field.locator('textarea').fill(value);
         break;
     }
   }

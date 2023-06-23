@@ -180,6 +180,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     :dropdown-class-name="`${randomClass} nc-picker-date ${open ? 'active' : ''}`"
     :open="(readOnly || (localState && isPk)) && !active && !editable ? false : open"
     @click="open = (active || editable) && !open"
+    @update:open="open = $event"
   >
     <template #suffixIcon></template>
   </a-date-picker>

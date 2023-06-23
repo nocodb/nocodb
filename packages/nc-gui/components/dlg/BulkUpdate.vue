@@ -336,9 +336,9 @@ onMounted(() => {
         </Draggable>
       </div>
       <div class="nc-columns-drawer w-1/3 p-3 shadow-md flex flex-col" :class="{ active: columnsDrawer }">
-        <div class="text-bold uppercase text-gray-500 font-weight-bold !mb-2">
+        <div class="text-bold text-gray-400 font-weight-bold !mb-2">
           <!-- TODO i18n -->
-          Editable Columns
+          Select columns to Edit
         </div>
 
         <Draggable

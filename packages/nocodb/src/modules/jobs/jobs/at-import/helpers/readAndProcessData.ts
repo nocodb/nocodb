@@ -293,13 +293,10 @@ export async function importLTARData({
     await new Promise((resolve) => {
       const promises = [];
       const readable = allData.getStream();
-      let activeProcess = 0;
       let tempCount = 0;
       readable.on('data', async (record) => {
         promises.push(
           new Promise(async (resolve) => {
-            activeProcess++;
-            if (activeProcess >= BULK_PARALLEL_PROCESS) readable.pause();
             const { id: _atId, ...rec } = record;
 
             // todo: use actual alias instead of sanitized
@@ -344,8 +341,6 @@ export async function importLTARData({
               }
               tempCount = 0;
             }
-            activeProcess--;
-            if (activeProcess < BULK_PARALLEL_PROCESS) readable.resume();
             resolve(true);
           }),
         );

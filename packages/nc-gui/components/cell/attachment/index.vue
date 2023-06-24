@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onKeyDown } from '@vueuse/core'
+import { RowHeightInj } from '~/context'
 import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
 import {
@@ -129,6 +130,10 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
     }
   }
 })
+
+
+const rowHeight = inject(RowHeightInj, ref(1.8))
+
 </script>
 
 <template>
@@ -153,7 +158,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
     <div
       v-if="!isReadonly"
       :class="{ 'mx-auto px-4': !visibleItems.length }"
-      class="group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+      class="group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
       data-testid="attachment-cell-file-picker-button"
       @click.stop="open"
     >
@@ -162,7 +167,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
       <a-tooltip v-else placement="bottom">
         <template #title> Click or drop a file into cell</template>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1">
           <MaterialSymbolsAttachFile
             class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
           />
@@ -183,7 +188,10 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
       <div
         ref="sortableRef"
         :class="{ dragging }"
-        class="flex cursor-pointer justify-center items-center flex-wrap gap-2 p-1 scrollbar-thin-dull max-h-[150px] overflow-auto"
+        class="flex cursor-pointer justify-center items-center flex-wrap gap-2 py-1.5 scrollbar-thin-dull overflow-hidden mt-0 items-start"
+        :style="{
+          maxHeight: `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
+        }"
       >
         <template v-for="(item, i) of visibleItems" :key="item.url || item.title">
           <a-tooltip placement="bottom">
@@ -193,7 +201,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
             <div v-if="isImage(item.title, item.mimetype ?? item.type)">
               <div class="nc-attachment flex items-center justify-center" @click.stop="selectedImage = item">
                 <LazyCellAttachmentImage
-                  class="max-h-full max-w-full"
+                  class="max-h-[1.8rem] max-w-[1.8rem]"
                   :alt="item.title || `#${i}`"
                   :srcs="getPossibleAttachmentSrc(item)"
                 />
@@ -233,7 +241,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
 .nc-cell {
   .nc-attachment-cell {
     .nc-attachment {
-      @apply w-[50px] h-[50px] min-h-[50px] min-w-[50px] ring-1 ring-gray-300 rounded;
+      @apply w-[1.8rem] h-[1.8rem] min-h-[1.8rem] min-w-[1.8rem] ring-1 ring-gray-300 rounded;
     }
 
     .ghost,

@@ -116,14 +116,19 @@ export class TestResetService {
     if (project) {
       await removeProjectUsersFromCache(project);
 
-      const bases = await project.getBases();
+      // Kludge: Soft reset to support PG as root DB in PW tests
+      // Revisit to fix this later
 
-      for (const base of bases) {
-        await NcConnectionMgrv2.deleteAwait(base);
-        await base.delete(Noco.ncMeta, { force: true });
-      }
+      // const bases = await project.getBases();
+      //
+      // for (const base of bases) {
+      //   await NcConnectionMgrv2.deleteAwait(base);
+      //   await base.delete(Noco.ncMeta, { force: true });
+      // }
+      //
+      // await Project.delete(project.id);
 
-      await Project.delete(project.id);
+      await Project.softDelete(project.id);
     }
 
     if (dbType == 'sqlite') {

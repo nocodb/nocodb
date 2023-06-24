@@ -1163,10 +1163,6 @@ test.describe('Filter Tests: Filter groups', () => {
   });
 
   test('Filter: Empty filters', async () => {
-    if (isPg(context)) {
-      test.skip();
-    }
-
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country', networkResponse: false });
 

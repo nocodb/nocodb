@@ -93,6 +93,8 @@ const genShareLink = async () => {
 
   const meta = isString(response.meta) ? JSON.parse(response.meta) : response.meta
 
+  console.log('genShareLink', response, meta)
+
   shared.value = { ...response, meta }
 
   if (shared.value.type === ViewTypes.KANBAN) {
@@ -238,6 +240,10 @@ const copyIframeCode = async () => {
     }
   }
 }
+
+watch(shared, () => {
+  console.log('shared', shared.value)
+})
 </script>
 
 <template>

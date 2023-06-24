@@ -160,32 +160,12 @@ watch(
 </script>
 
 <template>
-  <a-modal
-    :footer="null"
-    centered
-    :visible="show"
-    :class="{ active: show }"
-    :closable="false"
-    width="max(50vw, 44rem)"
-    wrap-class-name="nc-modal-invite-user-and-share-base"
-    @cancel="close"
-  >
-    <div class="flex flex-col" data-testid="invite-user-and-share-base-modal">
-      <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
-        <a-typography-title v-if="!isMobileMode" class="select-none" :level="4">
-          {{ $t('activity.share') }}: {{ project.title }}
-        </a-typography-title>
-
-        <a-button
-          type="text"
-          class="!rounded-md mr-1 -mt-1.5"
-          data-testid="invite-user-and-share-base-modal-close-btn"
-          @click="close"
-        >
-          <template #icon>
-            <MaterialSymbolsCloseRounded class="flex mx-auto" />
-          </template>
-        </a-button>
+  <GeneralModal centered :visible="show" @cancel="close">
+    <div class="flex flex-col p-6" data-testid="invite-user-and-share-base-modal">
+      <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 border-gray-75 w-full">
+        <div v-if="!isMobileMode" class="select-none font-medium">
+          {{ $t('activity.share') }}
+        </div>
       </div>
 
       <div class="px-2 mt-1.5">
@@ -301,6 +281,12 @@ watch(
           <LazyTabsAuthUserManagementShareBase />
         </div>
       </div>
+
+      <div class="flex flex-row justify-end gap-x-2 border-t-1 border-gray-75 pt-3">
+        <a-button key="back" class="!rounded-md" @click="cancel">Cancel</a-button>
+        <a-button class="!rounded-md">Manage project access</a-button>
+        <a-button key="submit" class="!rounded-md" type="primary" :loading="loading">Share</a-button>
+      </div>
     </div>
-  </a-modal>
+  </GeneralModal>
 </template>

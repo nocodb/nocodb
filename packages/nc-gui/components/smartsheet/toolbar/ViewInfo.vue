@@ -10,7 +10,7 @@ const { activeTable } = storeToRefs(useTablesStore())
 <template>
   <div class="flex flex-row font-medium ml-1.5 items-center border-gray-50">
     <MdiTable class="w-5 !text-gray-500 mb-0.25" :class="{}" />
-    <div class="pl-1.5 text-gray-500">{{ activeTable?.title }}</div>
+    <div class="pl-1 text-gray-500">{{ activeTable?.title }}</div>
     <div class="px-2 text-gray-500">/</div>
     <component :is="viewIcons[ViewTypes.GRID].icon" class="flex text-gray-700 mb-0.25" />
     <div

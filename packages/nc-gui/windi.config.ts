@@ -74,7 +74,7 @@ export default defineConfig({
         ...themeColors,
         ...themeV2Colors,
         gray: {
-          50: '#F9FAFB',
+          50: '#F2F4F7',
           75: '#EDEDED',
           100: '#E1E3E6',
           200: '#C4C7CC',

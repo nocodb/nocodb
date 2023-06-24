@@ -408,6 +408,14 @@ export default class Model implements TableType {
           colOptionTableName = MetaTable.COL_FORMULA;
           cacheScopeName = CacheScope.COL_FORMULA;
           break;
+        case UITypes.QrCode:
+          colOptionTableName = MetaTable.COL_QRCODE;
+          cacheScopeName = CacheScope.COL_QRCODE;
+          break;
+        case UITypes.Barcode:
+          colOptionTableName = MetaTable.COL_BARCODE;
+          cacheScopeName = CacheScope.COL_BARCODE;
+          break;
       }
       if (colOptionTableName && cacheScopeName) {
         await ncMeta.metaDelete(null, null, colOptionTableName, {

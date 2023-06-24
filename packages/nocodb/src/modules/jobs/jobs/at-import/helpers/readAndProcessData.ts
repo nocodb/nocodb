@@ -1,5 +1,6 @@
 /* eslint-disable no-async-promise-executor */
 import { RelationTypes, UITypes } from 'nocodb-sdk';
+import sizeof from 'object-sizeof';
 import EntityMap from './EntityMap';
 import type { BulkDataAliasService } from '../../../../../services/bulk-data-alias.service';
 import type { TablesService } from '../../../../../services/tables.service';
@@ -7,8 +8,8 @@ import type { TablesService } from '../../../../../services/tables.service';
 import type { AirtableBase } from 'airtable/lib/airtable_base';
 import type { TableType } from 'nocodb-sdk';
 
-const BULK_DATA_BATCH_SIZE = 500;
-const ASSOC_BULK_DATA_BATCH_SIZE = 1000;
+const BULK_DATA_BATCH_COUNT = 100; // check size for every 100 records
+const BULK_DATA_BATCH_SIZE = 102400; // in bytes
 const BULK_PARALLEL_PROCESS = 5;
 
 interface AirtableImportContext {
@@ -122,27 +123,28 @@ export async function importData({
               fields,
             });
             tempData.push(r);
+            if (tempData.length % BULK_DATA_BATCH_COUNT === 0) {
+              if (sizeof(tempData) >= BULK_DATA_BATCH_SIZE) {
+                let insertArray = tempData.splice(0, tempData.length);
 
-            if (tempData.length >= BULK_DATA_BATCH_SIZE) {
-              let insertArray = tempData.splice(0, tempData.length);
+                await services.bulkDataService.bulkDataInsert({
+                  projectName,
+                  tableName: table.title,
+                  body: insertArray,
+                  cookie: {},
+                });
 
-              await services.bulkDataService.bulkDataInsert({
-                projectName,
-                tableName: table.title,
-                body: insertArray,
-                cookie: {},
-              });
-
-              logBasic(
-                `:: Importing '${
-                  table.title
-                }' data :: ${importedCount} - ${Math.min(
-                  importedCount + BULK_DATA_BATCH_SIZE,
-                  allRecordsCount,
-                )}`,
-              );
-              importedCount += insertArray.length;
-              insertArray = [];
+                logBasic(
+                  `:: Importing '${
+                    table.title
+                  }' data :: ${importedCount} - ${Math.min(
+                    importedCount + insertArray.length,
+                    allRecordsCount,
+                  )}`,
+                );
+                importedCount += insertArray.length;
+                insertArray = [];
+              }
             }
             activeProcess--;
             if (activeProcess < BULK_PARALLEL_PROCESS) readable.resume();
@@ -164,7 +166,7 @@ export async function importData({
             `:: Importing '${
               table.title
             }' data :: ${importedCount} - ${Math.min(
-              importedCount + BULK_DATA_BATCH_SIZE,
+              importedCount + tempData.length,
               allRecordsCount,
             )}`,
           );
@@ -300,26 +302,31 @@ export async function importLTARData({
               })),
             );
 
-            if (assocTableData.length >= ASSOC_BULK_DATA_BATCH_SIZE) {
-              let insertArray = assocTableData.splice(0, assocTableData.length);
-              logBasic(
-                `:: Importing '${
-                  table.title
-                }' LTAR data :: ${importedCount} - ${Math.min(
-                  importedCount + ASSOC_BULK_DATA_BATCH_SIZE,
-                  insertArray.length,
-                )}`,
-              );
+            if (assocTableData.length % BULK_DATA_BATCH_COUNT === 0) {
+              if (sizeof(assocTableData) >= BULK_DATA_BATCH_SIZE) {
+                let insertArray = assocTableData.splice(
+                  0,
+                  assocTableData.length,
+                );
+                logBasic(
+                  `:: Importing '${
+                    table.title
+                  }' LTAR data :: ${importedCount} - ${Math.min(
+                    importedCount + insertArray.length,
+                    insertArray.length,
+                  )}`,
+                );
 
-              await services.bulkDataService.bulkDataInsert({
-                projectName,
-                tableName: assocMeta.modelMeta.title,
-                body: insertArray,
-                cookie: {},
-              });
+                await services.bulkDataService.bulkDataInsert({
+                  projectName,
+                  tableName: assocMeta.modelMeta.title,
+                  body: insertArray,
+                  cookie: {},
+                });
 
-              importedCount += insertArray.length;
-              insertArray = [];
+                importedCount += insertArray.length;
+                insertArray = [];
+              }
             }
             activeProcess--;
             if (activeProcess < BULK_PARALLEL_PROCESS) readable.resume();
@@ -334,7 +341,7 @@ export async function importLTARData({
             `:: Importing '${
               table.title
             }' LTAR data :: ${importedCount} - ${Math.min(
-              importedCount + ASSOC_BULK_DATA_BATCH_SIZE,
+              importedCount + assocTableData.length,
               assocTableData.length,
             )}`,
           );

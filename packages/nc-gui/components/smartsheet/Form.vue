@@ -535,7 +535,7 @@ watch(view, (nextView) => {
                 <a-textarea
                   v-model:value="formViewData.heading"
                   class="w-full !font-bold !text-4xl !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
-                  :style="{ borderRightWidth: '0px !important', 'height': '54px', 'min-height': '54px', resize: 'vertical' }"
+                  :style="{ 'borderRightWidth': '0px !important', 'height': '54px', 'min-height': '54px', 'resize': 'vertical' }"
                   size="large"
                   hide-details
                   placeholder="Form Title"
@@ -554,7 +554,7 @@ watch(view, (nextView) => {
                 <a-textarea
                   v-model:value="formViewData.subheading"
                   class="w-full !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
-                  :style="{ borderRightWidth: '0px !important', height: '40px', 'min-height': '40px', resize: 'vertical' }"
+                  :style="{ 'borderRightWidth': '0px !important', 'height': '40px', 'min-height': '40px', 'resize': 'vertical' }"
                   size="large"
                   hide-details
                   :placeholder="$t('msg.info.formDesc')"
@@ -743,7 +743,9 @@ watch(view, (nextView) => {
                     </LazySmartsheetDivDataCell>
                   </a-form-item>
 
-                  <div class="nc-form-help-text text-gray-500 text-xs" data-testid="nc-form-input-help-text-label">{{ element.description }}</div>
+                  <div class="nc-form-help-text text-gray-500 text-xs" data-testid="nc-form-input-help-text-label">
+                    {{ element.description }}
+                  </div>
                 </div>
               </template>
 
@@ -861,7 +863,8 @@ watch(view, (nextView) => {
   }
 }
 
-.nc-form-help-text, .nc-input-required-error {
+.nc-form-help-text,
+.nc-input-required-error {
   max-width: 100%;
   word-break: break-all;
   white-space: pre-line;

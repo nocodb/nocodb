@@ -148,6 +148,7 @@ export async function importData({
                   tableName: table.title,
                   body: insertArray,
                   cookie: {},
+                  skip_hooks: true,
                 });
 
                 logBasic(
@@ -183,6 +184,7 @@ export async function importData({
             tableName: table.title,
             body: tempData,
             cookie: {},
+            skip_hooks: true,
           });
 
           logBasic(
@@ -349,6 +351,7 @@ export async function importLTARData({
                   tableName: assocMeta.modelMeta.title,
                   body: insertArray,
                   cookie: {},
+                  skip_hooks: true,
                 });
 
                 importedCount += insertArray.length;
@@ -382,6 +385,7 @@ export async function importLTARData({
             tableName: assocMeta.modelMeta.title,
             body: assocTableData,
             cookie: {},
+            skip_hooks: true,
           });
 
           importedCount += assocTableData.length;

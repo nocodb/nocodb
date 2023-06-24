@@ -351,7 +351,11 @@ onMounted(async () => {
 
 <template>
   <div class="edit-base max-w-800px bg-white relative flex flex-col justify-start gap-2 w-full p-2">
-    <h1 class="prose-2xl font-bold self-start">Edit Base</h1>
+    <h1 class="prose-2xl font-bold self-start">
+      Edit Base
+      <span class="flex-grow"></span>
+      <span class="text-gray-400 !text-sm font-weight-normal">( Whitelist our ip: 52.15.226.51 to allow database access )</span>
+    </h1>
 
     <a-form
       ref="form"

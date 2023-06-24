@@ -481,6 +481,8 @@ export function useViewData(
       updateArray.push({ ...updateData, ...pk })
     }
 
+    await $api.dbTableRow.bulkUpdate(NOCO, metaValue?.project_id as string, metaValue?.id as string, updateArray)
+
     if (!undo) {
       addUndo({
         redo: {
@@ -537,8 +539,6 @@ export function useViewData(
       })
     }
 
-    await $api.dbTableRow.bulkUpdate(NOCO, metaValue?.project_id as string, metaValue?.id as string, updateArray)
-
     for (const row of rows) {
       if (!undo) {
         /** update row data(to sync formula and other related columns)
@@ -564,6 +564,19 @@ export function useViewData(
 
       if (row.rowMeta) row.rowMeta.saving = false
     }
+  }
+
+  async function bulkUpdateView(
+    data: Record<string, any>[],
+    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+  ) {
+    if (!viewMetaValue) return
+
+    await $api.dbTableRow.bulkUpdateAll(NOCO, metaValue?.project_id as string, metaValue?.id as string, data, {
+      viewId: viewMetaValue.id,
+    })
+
+    await loadData()
   }
 
   async function changePage(page: number) {
@@ -926,6 +939,7 @@ export function useViewData(
     deleteRangeOfRows,
     updateOrSaveRow,
     bulkUpdateRows,
+    bulkUpdateView,
     selectedAllRecords,
     syncCount,
     syncPagination,

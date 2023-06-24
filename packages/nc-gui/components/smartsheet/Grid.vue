@@ -98,6 +98,9 @@ const contextMenu = computed({
     }
   },
 })
+const contextMenuClosing = ref(false)
+
+const bulkUpdateDlg = ref(false)
 
 const routeQuery = $computed(() => route.query as Record<string, string>)
 const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
@@ -128,6 +131,7 @@ const {
   getExpandedRowIndex,
   deleteRangeOfRows,
   bulkUpdateRows,
+  bulkUpdateView,
 } = useViewData(meta, view, xWhere)
 
 const { getMeta } = useMetas()
@@ -210,6 +214,7 @@ const {
   data,
   $$(editEnabled),
   isPkAvail,
+  contextMenu,
   clearCell,
   clearSelectedRangeOfCells,
   makeEditable,
@@ -480,7 +485,10 @@ defineExpose({
 // reset context menu target on hide
 watch(contextMenu, () => {
   if (!contextMenu.value) {
+    contextMenuClosing.value = true
     contextMenuTarget.value = null
+  } else {
+    contextMenuClosing.value = false
   }
 })
 
@@ -1149,7 +1157,12 @@ function openGenerateDialog(target: any) {
                   :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
                   :data-testid="`grid-row-${rowIndex}`"
                 >
-                  <td key="row-index" class="caption nc-grid-cell pl-5 pr-1" :data-testid="`cell-Id-${rowIndex}`">
+                  <td
+                    key="row-index"
+                    class="caption nc-grid-cell pl-5 pr-1"
+                    :data-testid="`cell-Id-${rowIndex}`"
+                    @contextmenu="contextMenuTarget = null"
+                  >
                     <div class="items-center flex gap-1 min-w-[60px]">
                       <div
                         v-if="!readOnly || !isLocked"
@@ -1218,7 +1231,7 @@ function openGenerateDialog(target: any) {
                     :data-col="columnObj.id"
                     :data-title="columnObj.title"
                     @mousedown="handleMouseDown($event, rowIndex, colIndex)"
-                    @mouseover="handleMouseOver(rowIndex, colIndex)"
+                    @mouseover="handleMouseOver($event, rowIndex, colIndex)"
                     @click="handleCellClick($event, rowIndex, colIndex)"
                     @dblclick="makeEditable(row, columnObj)"
                     @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
@@ -1295,7 +1308,10 @@ function openGenerateDialog(target: any) {
               </div>
             </a-menu-item>
 
-            <a-menu-item v-if="data.some((r) => r.rowMeta.selected)" @click="deleteSelectedRows">
+            <a-menu-item
+              v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
+              @click="deleteSelectedRows"
+            >
               <div v-e="['a:row:delete-bulk']" class="nc-project-menu-item">
                 <!-- Delete Selected Rows -->
                 {{ $t('activity.deleteSelectedRow') }}
@@ -1316,7 +1332,7 @@ function openGenerateDialog(target: any) {
             </a-menu-item>
 
             <!--            Clear cell -->
-            <a-menu-item v-else @click="clearSelectedRangeOfCells()">
+            <a-menu-item v-else-if="contextMenuTarget" @click="clearSelectedRangeOfCells()">
               <div v-e="['a:row:clear-range']" class="nc-project-menu-item">Clear Cells</div>
             </a-menu-item>
 
@@ -1331,6 +1347,16 @@ function openGenerateDialog(target: any) {
               <div v-e="['a:row:copy']" class="nc-project-menu-item">
                 <!-- Copy -->
                 {{ $t('general.copy') }}
+              </div>
+            </a-menu-item>
+
+            <a-menu-item
+              v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
+              @click="bulkUpdateDlg = true"
+            >
+              <div class="nc-project-menu-item">
+                <!-- Bulk Update -->
+                Bulk Update
               </div>
             </a-menu-item>
 
@@ -1390,6 +1416,19 @@ function openGenerateDialog(target: any) {
         :last-row="getExpandedRowIndex() === data.length - 1"
         @next="navigateToSiblingRow(NavigateDir.NEXT)"
         @prev="navigateToSiblingRow(NavigateDir.PREV)"
+      />
+    </Suspense>
+
+    <Suspense>
+      <LazyDlgBulkUpdate
+        v-if="bulkUpdateDlg"
+        v-model="bulkUpdateDlg"
+        :meta="meta"
+        :view="view"
+        :bulk-update-rows="bulkUpdateRows"
+        :bulk-update-view="bulkUpdateView"
+        :selected-all-records="selectedAllRecords"
+        :rows="data.filter((r) => r.rowMeta.selected)"
       />
     </Suspense>
   </div>

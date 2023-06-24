@@ -11711,6 +11711,13 @@
           },
           "in": "query",
           "name": "where"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "query",
+          "name": "viewId"
         }
       ],
       "patch": {

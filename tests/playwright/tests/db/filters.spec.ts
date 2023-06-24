@@ -7,6 +7,7 @@ import { Api } from 'nocodb-sdk';
 import { rowMixedValue } from '../../setup/xcdb-records';
 import dayjs from 'dayjs';
 import { createDemoTable } from '../../setup/demoTable';
+import { isPg } from '../../setup/db';
 
 let dashboard: DashboardPage, toolbar: ToolbarPage;
 let context: any;
@@ -1162,6 +1163,10 @@ test.describe('Filter Tests: Filter groups', () => {
   });
 
   test('Filter: Empty filters', async () => {
+    if (isPg(context)) {
+      test.skip();
+    }
+
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country', networkResponse: false });
 

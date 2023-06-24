@@ -74,10 +74,14 @@ const menu = (el?: typeof Menu) => {
   }
 }
 
+const { loadScope } = useCommandPalette()
+
 onMounted(async () => {
   toggle(true)
   toggleHasSidebar(true)
+
   await loadWorkspaces()
+  await loadScope('workspace')
 
   if (!route.query.workspaceId && workspacesList.value?.length) {
     await router.push({ query: { workspaceId: workspacesList.value[0].id, page: 'workspace' } })
@@ -120,13 +124,6 @@ useDialog(resolveComponent('WorkspaceCreateDlg'), {
     })
   },
 })
-
-const { loadScope } = useCommandPalette()
-
-// TODO
-loadWorkspaces()
-
-loadScope('workspace')
 
 const deleteWorkspace = (workspace: WorkspaceType) => {
   Modal.confirm({

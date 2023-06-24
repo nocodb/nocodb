@@ -14,6 +14,7 @@ import {
 import { NcError } from '../helpers/catchError';
 import { sanitize } from '../helpers/sqlSanitize';
 import { extractProps } from '../helpers/extractProps';
+import Hook from './Hook';
 import Audit from './Audit';
 import View from './View';
 import Column from './Column';
@@ -374,6 +375,11 @@ export default class Model implements TableType {
 
     for (const view of await this.getViews(true, ncMeta)) {
       await view.delete(ncMeta);
+    }
+
+    // delete associated hooks
+    for (const hook of await Hook.list({ fk_model_id: this.id }, ncMeta)) {
+      await Hook.delete(hook.id, ncMeta);
     }
 
     for (const col of await this.getColumns(ncMeta)) {

@@ -50,7 +50,7 @@ export default abstract class BasePage {
       }
     );
 
-    await Promise.all([uiAction(), waitForResponsePromise]);
+    return await Promise.all([uiAction(), waitForResponsePromise]);
   }
 
   async attachFile({ filePickUIAction, filePath }: { filePickUIAction: Promise<any>; filePath: string[] }) {

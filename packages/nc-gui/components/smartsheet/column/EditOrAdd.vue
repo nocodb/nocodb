@@ -185,17 +185,17 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 
 <template>
   <div
-    class="w-[400px] bg-gray-50 shadow p-4 overflow-auto border"
+    class="w-[400px] bg-gray-50 shadow rounded-md p-4 overflow-auto border-1 border-gray-100"
     :class="{ '!w-[600px]': formState.uidt === UITypes.Formula, '!w-[500px]': formState.uidt === UITypes.Attachment }"
     @click.stop
   >
     <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical" data-testid="add-or-edit-column">
       <div class="flex flex-col gap-2">
-        <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.title">
+        <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.title" :required="false">
           <a-input
             ref="antInput"
             v-model:value="formState.title"
-            class="nc-column-name-input"
+            class="nc-column-name-input !rounded !mt-1"
             :disabled="isKanban"
             @input="onAlter(8)"
           />
@@ -207,12 +207,13 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             class="flex-1"
             :label="$t('labels.columnType')"
           >
+            <div class="h-1 w-full"></div>
             <a-select
               v-model:value="formState.uidt"
               show-search
-              class="nc-column-type-input"
+              class="nc-column-type-input !rounded"
               :disabled="isKanban"
-              dropdown-class-name="nc-dropdown-column-type"
+              dropdown-class-name="nc-dropdown-column-type "
               @change="onUidtOrIdTypeChange"
             >
               <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
@@ -285,13 +286,13 @@ useEventListener('keydown', (e: KeyboardEvent) => {
       </Transition>
 
       <a-form-item>
-        <div class="flex justify-end gap-1 mt-4">
-          <a-button html-type="button" @click="emit('cancel')">
+        <div class="flex justify-end gap-x-2 mt-2">
+          <a-button class="!rounded !px-3.5" html-type="button" @click="emit('cancel')">
             <!-- Cancel -->
             {{ $t('general.cancel') }}
           </a-button>
 
-          <a-button html-type="submit" type="primary" :loading="saving" @click.prevent="onSubmit">
+          <a-button class="!rounded" html-type="submit" type="primary" :loading="saving" @click.prevent="onSubmit">
             <!-- Save -->
             {{ $t('general.save') }}
           </a-button>
@@ -300,6 +301,14 @@ useEventListener('keydown', (e: KeyboardEvent) => {
     </a-form>
   </div>
 </template>
+
+<style lang="scss">
+.nc-column-type-input {
+  .ant-select-selector {
+    @apply !rounded;
+  }
+}
+</style>
 
 <style scoped>
 :deep(.ant-form-item-label > label) {

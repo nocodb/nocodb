@@ -14,7 +14,6 @@ import MdiFlag from '~icons/mdi/flag'
 import MdiFlagOutline from '~icons/mdi/flag-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 import MdiEyeCircleOutline from '~icons/mdi/eye-circle-outline'
-import MsArrowDown from '~icons/material-symbols/keyboard-arrow-down-rounded'
 import Copy from '~icons/material-symbols/content-copy-outline'
 import Delete from '~icons/material-symbols/delete-outline'
 import PhEye from '~icons/ph/eye'
@@ -44,6 +43,10 @@ import MdiDatabaseSearch from '~icons/mdi/database-search'
 import MdiMagicStaff from '~icons/mdi/magic-staff'
 import PhCaretDoubleLeftThin from '~icons/ph/caret-double-left-light'
 import NcNotification from '~icons/material-symbols/notifications-outline'
+import Right from '~icons/material-symbols/chevron-right-rounded'
+import Left from '~icons/material-symbols/chevron-left-rounded'
+import Up from '~icons/material-symbols/keyboard-arrow-up-rounded'
+import Down from '~icons/material-symbols/keyboard-arrow-down-rounded'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -255,8 +258,10 @@ export const iconMap = {
   image: h('span', { class: 'material-symbols-outlined' }, 'image'),
   datasource: h('span', { class: 'material-symbols-outlined' }, 'hard_drive'),
   book: h('span', { class: 'material-symbols-outlined' }, 'menu_book'),
-  arrowDown: h(MsArrowDown, { style: { fontSize: '.8rem' } }, 'keyboard_arrow_down'),
-  arrowRight: h('span', { class: 'material-symbols-outlined' }, 'keyboard_arrow_right'),
+  arrowDown: h(Down, {}, 'keyboard_arrow_down'),
+  arrowRight: h(Right, {}, 'keyboard_arrow_right'),
+  arrowLeft: h(Left, {}, 'keyboard_arrow_left'),
+  arrowUp: h(Up, {}, 'keyboard_arrow_up'),
   sidebarMinimise: PhCaretDoubleLeftThin, // h('span', { class: 'material-symbols-outlined' }, 'left_panel_close'),
   // threeDotVertical: h('span', { class: 'material-symbols-outlined' }, 'more_vert'),
   // threeDotHorizontal: h('span', { class: 'material-symbols-outlined' }, 'more_horiz'),

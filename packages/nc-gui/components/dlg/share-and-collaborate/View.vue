@@ -11,6 +11,7 @@ const { copy } = useCopy()
 const { dashboardUrl } = $(useDashboard())
 const { project } = storeToRefs(useProject())
 const { openedPage, nestedPagesOfProjects } = storeToRefs(useDocStore())
+const { view, $api } = useSmartsheetStoreOrThrow()
 
 const { formStatus, showShareModal, invitationValid, invitationUsersData } = storeToRefs(useShare())
 const { inviteUser } = useManageUsers()
@@ -109,6 +110,15 @@ watch(showShareModal, (val) => {
         <div class="flex text-base font-medium">Share</div>
       </div>
       <a-collapse v-model:active-key="expandedSharedType" expand-icon-position="right" class="!mx-3" :accordion="true">
+        <template #expandIcon="{ isActive }">
+          <div class="h-5 w-5 flex flex-row items-center justify-center">
+            <component
+              :is="iconMap.arrowDown"
+              class="text-gray-600 !rotate-90 transition-all duration-400 !text-md !h-4.5 !w-4.5"
+              :style="{ rotate: isActive ? '180deg' : '0deg' }"
+            />
+          </div>
+        </template>
         <a-collapse-panel key="project" class="share-collapse-item">
           <template #header>
             <div class="flex flex-row items-center gap-x-2">
@@ -132,7 +142,8 @@ watch(showShareModal, (val) => {
         <a-collapse-panel v-if="viewTitle" key="view" class="share-collapse-item">
           <template #header>
             <div class="flex flex-row items-center gap-x-2">
-              <IonDocumentOutline />
+              <IonDocumentOutline v-if="project.type === NcProjectType.DOCS" />
+              <GeneralViewIcon v-else :meta="view!" class="nc-view-icon"></GeneralViewIcon>
               <div data-testid="docs-share-dlg-share-view">
                 Share {{ project.type === NcProjectType.DOCS ? 'Page' : 'View' }}
                 <span class="ml-5.25 py-1 px-2 rounded-md bg-gray-75 capitalize">{{

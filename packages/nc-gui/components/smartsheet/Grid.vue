@@ -1353,16 +1353,14 @@ function openGenerateDialog(target: any) {
 
     <div
       v-if="isAddingEmptyRowAllowed"
-      class="absolute bottom-1px left-2 z-4"
+      class="absolute bottom-12.5 left-2 z-4"
       data-testid="nc-grid-add-new-row"
       @click="addEmptyRow()"
     >
-      <a-button v-e="['c:row:add:grid-bottom', { footer: true }]" class="!rounded-xl" size="small">
+      <a-button v-e="['c:row:add:grid-bottom', { footer: true }]" class="!rounded-md !shadow !px-2">
         <div class="flex items-center">
+          <span class="mr-1"> New Record </span>
           <component :is="iconMap.plus" class="text-pint-500 text-xs" />
-          <span class="ml-1">
-            {{ $t('activity.addRow') }}
-          </span>
         </div>
       </a-button>
     </div>

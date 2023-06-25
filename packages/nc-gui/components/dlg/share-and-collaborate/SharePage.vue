@@ -51,7 +51,6 @@ const activeView = computed<(ViewType & { meta: object & Record<string, any> }) 
       value!.meta = JSON.parse(value.meta as string)
     }
 
-    console.log('activeView', value)
     _view.value = value
   },
 })
@@ -94,14 +93,20 @@ const viewTheme = computed({
 
 const togglePasswordProtected = async () => {
   if (!activeView.value) return
+  if (isUpdating.value.password) return
 
-  if (passwordProtected.value) {
-    activeView.value = { ...(activeView.value as any), password: null }
-  } else {
-    activeView.value = { ...(activeView.value as any), password: '' }
+  isUpdating.value.password = true
+  try {
+    if (passwordProtected.value) {
+      activeView.value = { ...(activeView.value as any), password: null }
+    } else {
+      activeView.value = { ...(activeView.value as any), password: '' }
+    }
+
+    await updateSharedView()
+  } finally {
+    isUpdating.value.password = false
   }
-
-  await updateSharedView()
 }
 
 const withRTL = computed({
@@ -128,11 +133,17 @@ const withRTL = computed({
 
 const allowCSVDownload = computed({
   get: () => !!(activeView.value?.meta as any)?.allowCSVDownload,
-  set: (allow) => {
+  set: async (allow) => {
     if (!activeView.value?.meta) return
 
-    activeView.value.meta = { ...activeView.value.meta, allowCSVDownload: allow }
-    saveAllowCSVDownload()
+    isUpdating.value.download = true
+
+    try {
+      activeView.value.meta = { ...activeView.value.meta, allowCSVDownload: allow }
+      await saveAllowCSVDownload()
+    } finally {
+      isUpdating.value.download = false
+    }
   },
 })
 
@@ -173,8 +184,6 @@ function sharedViewUrl() {
 const isNestedParent = computed(() => nestedPublicParentPage.value?.id === page.value!.id)
 
 const togglePagePublishedState = async () => {
-  isUpdating.value.public = true
-
   let pageUpdates
   if (page.value!.is_published) {
     pageUpdates = {
@@ -186,15 +195,11 @@ const togglePagePublishedState = async () => {
     }
   }
 
-  try {
-    await updatePage({
-      pageId: page.value!.id!,
-      page: pageUpdates,
-      projectId: project.value.id!,
-    })
-  } finally {
-    isUpdating.value.public = false
-  }
+  await updatePage({
+    pageId: page.value!.id!,
+    page: pageUpdates,
+    projectId: project.value.id!,
+  })
 }
 
 const toggleViewShare = async () => {
@@ -217,10 +222,19 @@ const toggleViewShare = async () => {
 }
 
 const toggleShare = async () => {
-  if (project.value?.type === NcProjectType.DOCS) {
-    return await togglePagePublishedState()
-  } else {
-    return await toggleViewShare()
+  if (isUpdating.value.public) return
+
+  isUpdating.value.public = true
+  try {
+    if (project.value?.type === NcProjectType.DOCS) {
+      return await togglePagePublishedState()
+    } else {
+      return await toggleViewShare()
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isUpdating.value.public = false
   }
 }
 
@@ -307,7 +321,7 @@ const isPublicShareDisabled = computed(() => {
 <template>
   <div class="flex flex-col py-2 px-3 mb-1">
     <div class="flex flex-col w-full mt-2.5 px-3 py-2.5 border-gray-100 border-1 rounded-md gap-y-2">
-      <div class="flex flex-row w-full justify-between">
+      <div class="flex flex-row w-full justify-between py-0.5">
         <div class="flex" :style="{ fontWeight: 500 }">Enable public viewing</div>
         <a-switch
           data-testid="share-view-toggle"
@@ -375,13 +389,20 @@ const isPublicShareDisabled = computed(() => {
           >
             <div class="flex text-black">Allow Download</div>
             <a-switch
+              v-model:checked="allowCSVDownload"
               data-testid="share-password-toggle"
-              :checked="allowCSVDownload"
               :loading="isUpdating.download"
               class="public-password-toggle !mt-0.25"
             />
           </div>
 
+          <div v-if="activeView?.type === ViewTypes.FORM" class="flex flex-row justify-between">
+            <!-- use RTL orientation in form - todo: i18n -->
+            <div class="text-black">Survey Mode</div>
+            <a-switch v-model:checked="surveyMode" data-testid="nc-modal-share-view__locale">
+              <!-- todo i18n -->
+            </a-switch>
+          </div>
           <div v-if="activeView?.type === ViewTypes.FORM" class="flex flex-row justify-between">
             <!-- use RTL orientation in form - todo: i18n -->
             <div class="text-black">RTL Orientation</div>

@@ -135,7 +135,7 @@ watch(showShareModal, (val) => {
               <IonDocumentOutline />
               <div data-testid="docs-share-dlg-share-view">
                 Share {{ project.type === NcProjectType.DOCS ? 'Page' : 'View' }}
-                <span class="ml-2 py-1 px-2 rounded-md bg-gray-75 capitalize">{{
+                <span class="ml-5.25 py-1 px-2 rounded-md bg-gray-75 capitalize">{{
                   !viewTitle ? EMPTY_TITLE_PLACEHOLDER_DOCS : viewTitle
                 }}</span>
               </div>

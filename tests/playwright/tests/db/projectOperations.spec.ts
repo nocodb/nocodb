@@ -155,6 +155,6 @@ test.describe('Project operations', () => {
     });
 
     // cleanup test-data
-    await cleanupTestData(dupeProjectName, testProjectName);
+    // await cleanupTestData(dupeProjectName, testProjectName);
   });
 });

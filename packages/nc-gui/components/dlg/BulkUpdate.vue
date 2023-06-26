@@ -245,11 +245,11 @@ onMounted(() => {
               :class="[`nc-form-drag-${element.title.replaceAll(' ', '')}`]"
               data-testid="nc-form-fields"
             >
-              <div class="text-gray group absolute top-0 right-12">
+              <div class="text-gray group absolute top-4 right-12">
                 <component
-                  :is="iconMap.closeCircle"
-                  class="group-hover:text-red-500 cursor-pointer text-4xl"
-                  data-testid="nc-form-fields-close-icon"
+                  :is="iconMap.eyeSlash"
+                  class="opacity-0 nc-field-remove-icon group-hover:text-red-500 cursor-pointer"
+                  data-testid="nc-form-fields-remove-icon"
                   @click="handleRemove(element)"
                 />
               </div>
@@ -330,8 +330,8 @@ onMounted(() => {
           </template>
         </Draggable>
       </div>
-      <div class="nc-columns-drawer w-1/3 p-3 shadow-md flex flex-col" :class="{ active: columnsDrawer }">
-        <div class="text-bold text-gray-400 font-weight-bold !mb-2">
+      <div class="nc-columns-drawer w-1/3 p-3 flex flex-col bg-[#eceff1]" :class="{ active: columnsDrawer }">
+        <div class="text-bold uppercase text-gray-500 font-weight-bold !mb-2">
           <!-- TODO i18n -->
           Select columns to Edit
         </div>

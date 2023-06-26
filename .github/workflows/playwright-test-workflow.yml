@@ -69,11 +69,17 @@ jobs:
         working-directory: ./packages/nc-gui
         run: npm run ci:run
       - name: Run backend
-        if: ${{ inputs.db != 'pg' }}
+        if: ${{ inputs.db == 'sqlite' }}
         working-directory: ./packages/nocodb
         run: |
           npm install
           npm run watch:run:playwright > ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+      - name: Run backend:mysql
+        if: ${{ inputs.db == 'mysql' }}
+        working-directory: ./packages/nocodb
+        run: |
+          npm install
+          npm run watch:run:playwright:mysql > ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
       - name: Run backend:pg
         if: ${{ inputs.db == 'pg' }}
         working-directory: ./packages/nocodb

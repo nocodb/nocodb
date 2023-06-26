@@ -70,10 +70,30 @@ jobs:
         working-directory: ./
         run: docker-compose -f ./tests/playwright/scripts/docker-compose-pg-pw-quick.yml up -d &
       - name: Run backend
+        if: ${{ inputs.db == 'sqlite' }}
         working-directory: ./packages/nocodb
         run: |
           pnpm install
           pnpm run watch:run:playwright > ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+      - name: Run backend:mysql
+        if: ${{ inputs.db == 'mysql' }}
+        working-directory: ./packages/nocodb
+        run: |
+          pnpm install
+          pnpm run watch:run:playwright:mysql > ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+      - name: Run backend:pg
+        if: ${{ inputs.db == 'pg' }}
+        working-directory: ./packages/nocodb
+        run: |
+          pnpm install
+          pnpm run watch:run:playwright:pg > ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+      - name: Cache playwright npm modules
+        uses: actions/cache@v3
+        id: playwright-cache
+        with:
+          path: |
+            **/tests/playwright/node_modules
+          key: cache-nc-playwright-${{ hashFiles('**/tests/playwright/package-lock.json') }}
       - name: Install dependencies
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: ./tests/playwright

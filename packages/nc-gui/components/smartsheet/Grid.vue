@@ -1175,8 +1175,8 @@ function addEmptyRow(row?: number) {
               @click="bulkUpdateDlg = true"
             >
               <div class="nc-project-menu-item">
-                <!-- Bulk Update -->
-                Bulk Update
+                <!-- TODO i18n -->
+                Update Selected Rows
               </div>
             </a-menu-item>
           </a-menu>

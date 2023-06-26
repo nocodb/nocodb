@@ -69,10 +69,17 @@ jobs:
         working-directory: ./packages/nc-gui
         run: npm run ci:run
       - name: Run backend
+        if: ${{ inputs.db != 'pg' }}
         working-directory: ./packages/nocodb
         run: |
           npm install
           npm run watch:run:playwright > ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+      - name: Run backend:pg
+        if: ${{ inputs.db == 'pg' }}
+        working-directory: ./packages/nocodb
+        run: |
+          npm install
+          npm run watch:run:playwright:pg > ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
       - name: Cache playwright npm modules
         uses: actions/cache@v3
         id: playwright-cache

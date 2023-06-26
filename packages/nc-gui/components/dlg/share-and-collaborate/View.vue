@@ -4,10 +4,14 @@ import ManageUsers from './ManageUsers.vue'
 import ShareProject from './ShareProject.vue'
 import SharePage from './SharePage.vue'
 
+const router = useRouter()
+const route = router.currentRoute
+
 const { copy } = useCopy()
 const { dashboardUrl } = $(useDashboard())
 const { project } = storeToRefs(useProject())
 const { openedPage, nestedPagesOfProjects } = storeToRefs(useDocStore())
+const { view, $api } = useSmartsheetStoreOrThrow()
 
 const { formStatus, showShareModal, invitationValid, invitationUsersData } = storeToRefs(useShare())
 const { inviteUser } = useManageUsers()
@@ -15,7 +19,9 @@ const { inviteUser } = useManageUsers()
 const isInvitationLinkCopied = ref(false)
 const expandedSharedType = ref<'none' | 'project' | 'page'>('project')
 
-const page = computed(() => openedPage.value ?? nestedPagesOfProjects.value[project.value.id!]?.[0])
+const pageTitle = computed(() => (openedPage.value ?? nestedPagesOfProjects.value[project.value.id!]?.[0])?.title)
+const dbViewTitle = computed(() => route.value.params.viewTitle)
+const viewTitle = computed(() => (project.value?.type === NcProjectType.DOCS ? pageTitle.value : dbViewTitle.value))
 
 const inviteUrl = computed(() =>
   invitationUsersData.value.invitationToken ? `${dashboardUrl}#/signup/${invitationUsersData.value.invitationToken}` : null,
@@ -55,7 +61,7 @@ watch(showShareModal, (val) => {
 <template>
   <a-modal
     v-model:visible="showShareModal"
-    class="!top-[35%]"
+    class="!top-[55%]"
     :class="{ active: showShareModal }"
     wrap-class-name="nc-modal-share-collaborate"
     :closable="false"
@@ -63,7 +69,6 @@ watch(showShareModal, (val) => {
     :ok-button-props="{ hidden: true } as any"
     :cancel-button-props="{ hidden: true } as any"
     :footer="null"
-    :centered="true"
     :width="formStatus === 'manageCollaborators' ? '60rem' : '40rem'"
   >
     <div v-if="formStatus === 'project-collaborateSaving'" class="flex flex-row w-full px-5 justify-between items-center py-1">
@@ -100,29 +105,48 @@ watch(showShareModal, (val) => {
       <ManageUsers v-if="formStatus === 'manageCollaborators'" @close="formStatus = 'collaborate'" />
     </div>
     <div v-else class="flex flex-col px-1">
-      <div class="flex flex-row justify-between items-center pb-1.5 mx-4">
-        <div class="flex text-lg py-1" style="font-weight: 500">Share</div>
+      <div class="flex flex-row justify-between items-center pb-1 mx-4 mt-3">
+        <div class="flex text-base font-medium">Share</div>
       </div>
       <a-collapse v-model:active-key="expandedSharedType" expand-icon-position="right" class="!mx-3" :accordion="true">
+        <template #expandIcon="{ isActive }">
+          <div class="h-5 w-5 flex flex-row items-center justify-center">
+            <component
+              :is="iconMap.arrowDown"
+              class="text-gray-600 !rotate-90 transition-all duration-400 !text-md !h-4.5 !w-4.5"
+              :style="{ rotate: isActive ? '180deg' : '0deg' }"
+            />
+          </div>
+        </template>
         <a-collapse-panel key="project" class="share-collapse-item">
           <template #header>
             <div class="flex flex-row items-center gap-x-2">
-              <PhBook />
+              <PhBook v-if="project.type === NcProjectType.DOCS" />
+              <GeneralProjectIcon
+                v-else
+                class="!text-black !grayscale !fill-black px-0.5"
+                :style="{
+                  filter: 'grayscale(200%)',
+                }"
+              />
               <div data-testid="docs-share-dlg-share-project">
-                Share Document <span class="ml-2 py-1 px-2 rounded-md bg-gray-100 capitalize">{{ project.title }}</span>
+                Share
+                {{ project.type === NcProjectType.DOCS ? 'Document' : 'Project' }}
+                <span class="ml-2 py-1 px-2 rounded-md bg-gray-75 capitalize">{{ project.title }}</span>
               </div>
             </div>
           </template>
           <ShareProject />
         </a-collapse-panel>
-        <a-collapse-panel v-if="page" key="page" class="share-collapse-item">
+        <a-collapse-panel v-if="viewTitle" key="view" class="share-collapse-item">
           <template #header>
             <div class="flex flex-row items-center gap-x-2">
-              <IonDocumentOutline />
-              <div data-testid="docs-share-dlg-share-page">
-                Share Page
-                <span class="ml-10.5 py-1 px-2 rounded-md bg-gray-100 capitalize">{{
-                  !page.title ? EMPTY_TITLE_PLACEHOLDER_DOCS : page.title
+              <IonDocumentOutline v-if="project.type === NcProjectType.DOCS" />
+              <GeneralViewIcon v-else :meta="view!" class="nc-view-icon"></GeneralViewIcon>
+              <div data-testid="docs-share-dlg-share-view">
+                Share {{ project.type === NcProjectType.DOCS ? 'Page' : 'View' }}
+                <span class="ml-5.25 py-1 px-2 rounded-md bg-gray-75 capitalize">{{
+                  !viewTitle ? EMPTY_TITLE_PLACEHOLDER_DOCS : viewTitle
                 }}</span>
               </div>
             </div>
@@ -180,6 +204,9 @@ watch(showShareModal, (val) => {
 
 <style lang="scss">
 .nc-modal-share-collaborate {
+  .ant-modal {
+    top: 28vh !important;
+  }
   .ant-collapse-item {
     @apply !border-1 border-gray-200;
   }
@@ -206,7 +233,7 @@ watch(showShareModal, (val) => {
     @apply !p-0.5;
   }
   .ant-select-selector {
-    @apply !bg-gray-100;
+    @apply !bg-white;
   }
 }
 </style>

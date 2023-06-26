@@ -33,6 +33,12 @@ const { isUIAllowed } = useUIPermission()
 
 const { metas, getMeta } = useMetas()
 
+const { isOpen } = useSidebar('nc-right-sidebar')
+
+const isPublic = inject(IsPublicInj, ref(false))
+
+const { isMobileMode } = useGlobal()
+
 const activeTab = toRef(props, 'activeTab')
 
 const activeView = ref()
@@ -144,29 +150,31 @@ const onDrop = async (event: DragEvent) => {
     <div class="flex flex-col h-full flex-1 min-w-0">
       <LazySmartsheetToolbar />
 
-      <Transition name="layout" mode="out-in">
-        <template v-if="meta">
-          <div class="flex flex-1 min-h-0">
-            <div v-if="activeView" class="h-full flex-1 min-w-0 min-h-0 bg-white">
-              <LazySmartsheetGrid v-if="isGrid" ref="grid" />
+      <div class="flex flex-row w-full" style="height: calc(100vh - var(--topbar-height))">
+        <Transition name="layout" mode="out-in">
+          <template v-if="meta">
+            <div class="flex flex-1 min-h-0 w-3/4">
+              <div v-if="activeView" class="h-full flex-1 min-w-0 min-h-0 bg-white">
+                <LazySmartsheetGrid v-if="isGrid" ref="grid" />
 
-              <LazySmartsheetGallery v-else-if="isGallery" />
+                <LazySmartsheetGallery v-else-if="isGallery" />
 
-              <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
+                <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
-              <LazySmartsheetKanban v-else-if="isKanban" />
+                <LazySmartsheetKanban v-else-if="isKanban" />
 
-              <LazySmartsheetMap v-else-if="isMap" />
+                <LazySmartsheetMap v-else-if="isMap" />
+              </div>
             </div>
-          </div>
+          </template>
+        </Transition>
+        <template v-if="!isPublic">
+          <LazySmartsheetSidebar />
         </template>
-      </Transition>
+      </div>
     </div>
 
     <LazySmartsheetExpandedFormDetached />
-
-    <!-- Lazy loading the sidebar causes issues when deleting elements, i.e. it appears as if multiple elements are removed when they are not -->
-    <SmartsheetSidebar v-if="meta" class="nc-right-sidebar" />
   </div>
 </template>
 

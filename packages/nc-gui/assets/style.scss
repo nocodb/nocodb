@@ -9,6 +9,7 @@
   --tw-text-opacity: 1;
   --navbar-bg: #FAFAFA;
   --navbar-border: #e0e0e0;
+  --nc-grid-bg: #fdfdfd;
 }
 
 ::-moz-selection {
@@ -23,7 +24,7 @@
 }
 
 .ant-layout-header {
-  height: var(--sidebar-top-height) !important;
+  height: var(--topbar-height) !important;
 }
 
 html,
@@ -337,7 +338,7 @@ a {
 }
 
 .nc-toolbar-btn {
-  @apply !shadow-none rounded hover:(ring-1 ring-primary ring-opacity-100) focus:(ring-1 ring-accent ring-opacity-100);
+  @apply !shadow-none rounded hover:(ring-1 ring-gray-100 ring-opacity-100 bg-gray-50 !text-gray-800) focus:(ring-1 ring-gray-100 ring-opacity-100 !text-gray-800 bg-gray-50) text-gray-600;
 }
 
 .nc-warning-info {

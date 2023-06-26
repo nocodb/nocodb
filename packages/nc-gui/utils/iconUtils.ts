@@ -14,12 +14,20 @@ import MdiFlag from '~icons/mdi/flag'
 import MdiFlagOutline from '~icons/mdi/flag-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 import MdiEyeCircleOutline from '~icons/mdi/eye-circle-outline'
+import Copy from '~icons/material-symbols/content-copy-outline'
+import Delete from '~icons/material-symbols/delete-outline'
+import PhEye from '~icons/ph/eye'
+import CiFilter from '~icons/mdi/filter-outline'
+import Gallery from '~icons/ph/image-square-bold'
+import Plus from '~icons/material-symbols/add-rounded'
+import Form from '~icons/material-symbols/assignment-outline'
+import Kanban from '~icons/material-symbols/view-kanban-outline'
 import MdiAccountGroup from '~icons/mdi/account-group'
 import MdiDotsVertical from '~icons/mdi/dots-vertical'
 import MdiDotsHorizontal from '~icons/mdi/dots-horizontal'
 import PhExcelThin from '~icons/ph/microsoft-excel-logo-light'
 import PhCsvThin from '~icons/ph/file-csv-light'
-import PhSplitVerticalThin from '~icons/ph/split-vertical-light'
+import PhSplitVerticalThin from '~icons/material-symbols/height-rounded'
 import PhDiscordLogoLight from '~icons/ph/discord-logo-light'
 import PhRedditLogoLight from '~icons/ph/reddit-logo-light'
 import PhTwitterLogoLight from '~icons/ph/twitter-logo-light'
@@ -29,11 +37,16 @@ import NcIconsRowHeightShort from '~icons/nc-icons/row-height-short'
 import NcIconsRowHeightTall from '~icons/nc-icons/row-height-tall'
 import NcIconsRowHeightExtraTall from '~icons/nc-icons/row-height-extra-tall'
 import PhSparkleFill from '~icons/ph/sparkle-fill'
+import Grid from '~icons/material-symbols/grid-view-outline'
 
 import MdiDatabaseSearch from '~icons/mdi/database-search'
 import MdiMagicStaff from '~icons/mdi/magic-staff'
 import PhCaretDoubleLeftThin from '~icons/ph/caret-double-left-light'
 import NcNotification from '~icons/material-symbols/notifications-outline'
+import Right from '~icons/material-symbols/chevron-right-rounded'
+import Left from '~icons/material-symbols/chevron-left-rounded'
+import Up from '~icons/material-symbols/keyboard-arrow-up-rounded'
+import Down from '~icons/material-symbols/keyboard-arrow-down-rounded'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -236,17 +249,19 @@ export const iconMap = {
   upload: h('span', { class: 'material-symbols-outlined' }, 'cloud_upload'),
   hook: h('span', { class: 'material-symbols-outlined' }, 'compare_arrows'),
   erd: h('span', { class: 'material-symbols-outlined' }, 'account_tree'),
-  plus: h('span', { class: 'material-symbols-outlined' }, 'add'),
+  plus: h(Plus, {}, 'add'),
   search: h('span', { class: 'material-symbols-outlined' }, 'search'),
-  copy: h('span', { class: 'material-symbols-outlined' }, 'content_copy'),
+  copy: h(Copy, {}, 'content_copy'),
   duplicate: h('span', { class: 'material-symbols-outlined' }, 'file_copy'),
   clipboard: h('span', { class: 'material-symbols-outlined' }, 'content_paste'),
   settings: h('span', { class: 'material-symbols-outlined' }, 'settings'),
   image: h('span', { class: 'material-symbols-outlined' }, 'image'),
   datasource: h('span', { class: 'material-symbols-outlined' }, 'hard_drive'),
   book: h('span', { class: 'material-symbols-outlined' }, 'menu_book'),
-  arrowDown: h('span', { class: 'material-symbols-outlined', style: { fontSize: '.8rem' } }, 'keyboard_arrow_down'),
-  arrowRight: h('span', { class: 'material-symbols-outlined' }, 'keyboard_arrow_right'),
+  arrowDown: h(Down, {}, 'keyboard_arrow_down'),
+  arrowRight: h(Right, {}, 'keyboard_arrow_right'),
+  arrowLeft: h(Left, {}, 'keyboard_arrow_left'),
+  arrowUp: h(Up, {}, 'keyboard_arrow_up'),
   sidebarMinimise: PhCaretDoubleLeftThin, // h('span', { class: 'material-symbols-outlined' }, 'left_panel_close'),
   // threeDotVertical: h('span', { class: 'material-symbols-outlined' }, 'more_vert'),
   // threeDotHorizontal: h('span', { class: 'material-symbols-outlined' }, 'more_horiz'),
@@ -256,7 +271,7 @@ export const iconMap = {
   excel: PhExcelThin, // h('span', { class: 'material-symbols-outlined' }, 'grid_on'),
   csv: PhCsvThin, // h('span', { class: 'material-symbols-outlined' }, 'grid_on'),
   code: h('span', { class: 'material-symbols-outlined' }, 'code'),
-  delete: h('span', { class: 'material-symbols-outlined' }, 'delete'),
+  delete: h(Delete, {}, 'delete'),
   edit: h('span', { class: 'material-symbols-outlined' }, 'edit'),
   lookup: h('span', { class: 'material-symbols-outlined' }, 'search'),
   text: h('span', { class: 'material-symbols-outlined' }, 'text_fields'),
@@ -289,7 +304,7 @@ export const iconMap = {
   barCode: h('span', { class: 'material-symbols-outlined' }, 'barcode'),
   calculator: h('span', { class: 'material-symbols-outlined' }, 'calculate'),
   rollup: h('span', { class: 'material-symbols-outlined' }, 'group_work'),
-  eye: h('span', { class: 'material-symbols-outlined' }, 'visibility'),
+  eye: h(PhEye, { class: 'ph-eye' }, 'visibility'),
   eyeSlash: h('span', { class: 'material-symbols-outlined' }, 'visibility_off'),
   expand: h('span', { class: 'material-symbols-outlined' }, 'open_in_full'),
   check: h('span', { class: 'material-symbols-outlined' }, 'check'),
@@ -300,15 +315,15 @@ export const iconMap = {
   reload: h('span', { class: 'material-symbols-outlined' }, 'refresh'),
   xml: h('span', { class: 'material-symbols-outlined' }, 'code'),
   airtable: h('span', { class: 'material-symbols-outlined' }, 'grid_on'),
-  grid: h('span', { class: 'material-symbols-outlined' }, 'grid_on'),
-  gallery: h('span', { class: 'material-symbols-outlined' }, 'image'),
-  form: h('span', { class: 'material-symbols-outlined' }, 'receipt'),
+  grid: h(Grid, 'grid_on'),
+  gallery: h(Gallery, {}, 'image'),
+  form: h(Form, {}, 'receipt'),
   map: h('span', { class: 'material-symbols-outlined' }, 'map'),
-  kanban: h('span', { class: 'material-symbols-outlined' }, 'view_column'),
+  kanban: h(Kanban, {}, 'view_column'),
   view: h('span', { class: 'material-symbols-outlined' }, 'visibility'),
   // rowHeight: h('span', { class: 'material-symbols-outlined' }, 'height'),
   rowHeight: h(PhSplitVerticalThin, { style: { fontSize: '14px' } }),
-  filter: h('span', { class: 'material-symbols-outlined' }, 'filter_list'),
+  filter: h(CiFilter, {}, 'filter_list'),
   closeCircle: h('span', { class: 'material-symbols-outlined' }, 'cancel'),
   closeBox: h('span', { class: 'material-symbols-outlined' }, 'close'),
   close: h('span', { class: 'material-symbols-outlined' }, 'close'),

@@ -43,7 +43,7 @@ export default defineConfig({
   shortcuts: {
     'color-transition': 'transition-color duration-100 ease-in',
     'scrollbar-thin-primary': 'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-primary scrollbar-track-white',
-    'scrollbar-thin-dull': 'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-200 scrollbar-track-gray-50',
+    'scrollbar-thin-dull': 'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-100 scrollbar-track-white',
   },
 
   theme: {
@@ -74,7 +74,8 @@ export default defineConfig({
         ...themeColors,
         ...themeV2Colors,
         gray: {
-          50: '#F9FAFB',
+          50: '#F2F4F7',
+          75: '#EDEDED',
           100: '#E1E3E6',
           200: '#C4C7CC',
           300: '#A6AAB3',

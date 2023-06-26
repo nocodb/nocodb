@@ -31,24 +31,17 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 <template>
   <div
     v-if="visibility !== 'hidden'"
-    class="flex flex-col justify-center h-full mr-1"
+    class="flex flex-col justify-center h-full"
     data-testid="share-project-button"
     :data-sharetype="visibility"
   >
-    <button
-      class="flex flex-row items-center gap-x-1.5 bg-primary text-white hover:bg-opacity-80 py-1 px-2.5 rounded-md cursor-pointer z-10"
-      :class="{
-        '!pl-3': visibility === 'none',
-        'cursor-not-allowed opacity-65': disabled,
-      }"
-      type="button"
-      :disabled="disabled"
-      @click="showShareModal = true"
-    >
-      <MaterialSymbolsPublic v-if="visibility === 'public'" class="h-3.5" />
-      <MaterialSymbolsLockOutline v-else-if="visibility === 'private'" class="h-3.5" />
-      <div class="flex">Share</div>
-    </button>
+    <a-button class="z-10 !rounded-lg !px-2" type="primary" :disabled="disabled" @click="showShareModal = true">
+      <div class="flex flex-row items-center w-full gap-x-1">
+        <MaterialSymbolsPublic v-if="visibility === 'public'" class="h-3.5" />
+        <MaterialSymbolsLockOutline v-else-if="visibility === 'private'" class="h-3.5" />
+        <div class="flex">Share</div>
+      </div>
+    </a-button>
   </div>
 
   <LazyDlgShareAndCollaborateView />

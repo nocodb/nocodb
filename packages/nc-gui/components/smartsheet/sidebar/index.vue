@@ -143,17 +143,11 @@ function onOpenModal({
 </script>
 
 <template>
-  <a-layout-sider
-    ref="sidebar"
-    :collapsed="sidebarCollapsed"
-    collapsiple
-    collapsed-width="0"
-    width="0"
-    class="nc-view-sidebar border-l-1 border-gray-100 relative shadow h-full w-full !flex-1 !min-w-0 !max-w-[150px] !w-[150px] lg:(!max-w-[250px] !w-[250px])"
-    theme="light"
+  <div
+    class="nc-view-sidebar flex flex-col border-l-1 border-gray-100 relative h-full w-full !flex-1 !min-w-0 !max-w-[150px] !w-[150px] lg:(!max-w-[250px] !w-[250px])"
   >
     <LazySmartsheetSidebarToolbar
-      class="min-h-[var(--topbar-height)] max-h-[var(--topbar-height)] flex items-center py-3 px-3 justify-between border-b-1"
+      class="min-h-[var(--topbar-height)] max-h-[var(--topbar-height)] flex items-center pt-2.5 pb-1 px-3 justify-between"
     />
 
     <div class="flex-1 flex flex-col min-h-0">
@@ -166,12 +160,12 @@ function onOpenModal({
       <LazySmartsheetSidebarMenuTop :views="views" @open-modal="onOpenModal" @deleted="loadViews" />
 
       <template v-if="isUIAllowed('virtualViewsCreateOrEdit')">
-        <div class="!my-3 w-full border-b-1" />
+        <div class="!my-3 w-full border-b-1 border-gray-100" />
 
         <LazySmartsheetSidebarMenuBottom @open-modal="onOpenModal" />
       </template>
     </div>
-  </a-layout-sider>
+  </div>
 </template>
 
 <style scoped>

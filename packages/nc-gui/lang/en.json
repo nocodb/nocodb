@@ -157,7 +157,8 @@
       "orgLevelCreator": "Organization Level Creator",
       "orgLevelViewer": "Organization Level Viewer"
     },
-    "sqlVIew": "SQL View"
+    "sqlVIew": "SQL View",
+    "rowHeight": "Row Height"
   },
   "datatype": {
     "ID": "ID",

@@ -107,19 +107,9 @@ useMenuCloseOnEsc(open)
 
 <template>
   <div>
-    <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
-      <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
-        <div class="flex gap-2 items-center">
-          <GeneralViewIcon :meta="selectedView"></GeneralViewIcon>
-
-          <span class="!text-xs font-weight-normal">
-            <GeneralTruncateText :key="selectedView?.title">{{ selectedView?.title }}</GeneralTruncateText>
-          </span>
-
-          <component :is="Icon" class="text-gray-500" :class="`nc-icon-${selectedView?.lock_type}`" />
-
-          <component :is="iconMap.arrowDown" class="text-grey" />
-        </div>
+    <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu" placement="bottomLeft">
+      <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn !border-1 !rounded-md !py-1 !px-2">
+        <MdiDotsHorizontal class="!w-4 !h-4" />
       </a-button>
 
       <template #overlay>

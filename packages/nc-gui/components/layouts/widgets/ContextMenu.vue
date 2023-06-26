@@ -43,8 +43,6 @@ const getWidgetTypeText = (type: WidgetTypeType): string => {
 const widgetTypeText = computed(() => (widget.value && getWidgetTypeText(widget.value.widget_type)) || '')
 
 const handleDocumentClick = (event: MouseEvent) => {
-  alert('click')
-  console.log('event: ', event)
   // Check if the click target is outside the child component
   if (contextMenuRef.value && !contextMenuRef.value.contains(event.target as Node)) {
     emits('closeContextMenu')

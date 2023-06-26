@@ -9,6 +9,8 @@ const props = defineProps<{
 
 const widget = toRefs(props).widget
 
+const widgetRef = ref<HTMLElement | null>(null)
+
 const isChart = computed(() => chartTypes.includes(widget.value.widget_type))
 const isNumber = computed(() => widget.value.widget_type === WidgetTypeType.Number)
 const isStaticText = computed(() => widget.value.widget_type === WidgetTypeType.StaticText)
@@ -38,8 +40,8 @@ const borderClass = computed(() => {
 </script>
 
 <template v-slot:item="{ element: widget }">
-  <div v-if="widget" class="nc-layout-ui-element" :class="borderClass">
-    <button @click="showContextMenu = true">CONTEXT MENU</button>
+  <div v-if="widget" ref="widgetRef" class="nc-layout-ui-element" :class="borderClass" @click="showContextMenu = false">
+    <button @click.stop="showContextMenu = true">CONTEXT MENU</button>
     <LayoutsWidgetsContextMenu v-show="showContextMenu" :widget="widget" @close-context-menu="showContextMenu = false" />
     <LayoutsWidgetsChart v-if="isChart" :widget-config="widget as ChartWidget" />
     <LayoutsWidgetsNumber v-else-if="isNumber" :widget-config="widget as NumberWidget" />

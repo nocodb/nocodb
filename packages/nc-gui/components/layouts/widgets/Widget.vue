@@ -7,8 +7,6 @@ const props = defineProps<{
   widget: Widget
 }>()
 
-const contextMenuTarget = ref<Widget | null>(null)
-
 const widget = toRefs(props).widget
 
 const isChart = computed(() => chartTypes.includes(widget.value.widget_type))
@@ -21,12 +19,12 @@ const { dataLinkConfigIsMissing } = useWidget(widget)
 const dashboardStore = useDashboardStore()
 const { focusedWidget } = storeToRefs(dashboardStore)
 
-const showContextMenu = (e: MouseEvent, target?: Widget) => {
-  e.preventDefault()
-  if (target) {
-    contextMenuTarget.value = target
-  }
-}
+const showContextMenu = ref(false)
+
+// const handleShowContextMenuClick = (e: MouseEvent) => {
+//   e.preventDefault()
+//   showContextMenu.value = true
+// }
 
 const borderClass = computed(() => {
   if (widget.value.id === focusedWidget.value?.id) {
@@ -40,7 +38,9 @@ const borderClass = computed(() => {
 </script>
 
 <template v-slot:item="{ element: widget }">
-  <div v-if="widget" class="nc-layout-ui-element" :class="borderClass" @contextmenu="showContextMenu($event, widget)">
+  <div v-if="widget" class="nc-layout-ui-element" :class="borderClass">
+    <button @click="showContextMenu = true">CONTEXT MENU</button>
+    <LayoutsWidgetsContextMenu v-show="showContextMenu" :widget="widget" @close-context-menu="showContextMenu = false" />
     <LayoutsWidgetsChart v-if="isChart" :widget-config="widget as ChartWidget" />
     <LayoutsWidgetsNumber v-else-if="isNumber" :widget-config="widget as NumberWidget" />
     <LayoutsWidgetsText v-else-if="isStaticText" :widget-config="widget as StaticTextWidget" />

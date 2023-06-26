@@ -13,20 +13,10 @@ const { updateFocusedWidgetByElementId } = dashboardStore
 const widget = computed(() => {
   return openedWidgets.value?.find((w) => w.id === widgetId.value)
 })
-
-const onContextMenuOpen = (e: MouseEvent) => {
-  e.preventDefault()
-  emits('showContextMenuForWidget', e.clientY, e.clientX, widget.value)
-}
 </script>
 
 <template>
-  <div
-    ref="nodeRef"
-    class="h-full context-menu-trigger"
-    @click.stop="updateFocusedWidgetByElementId(widgetId)"
-    @contextmenu="onContextMenuOpen"
-  >
+  <div ref="nodeRef" class="h-full context-menu-trigger" @click.stop="updateFocusedWidgetByElementId(widgetId)">
     <LayoutsWidgetsWidget v-if="widget" :widget="widget" />
     <!-- TODO 
       - place the context menu in a separate component 

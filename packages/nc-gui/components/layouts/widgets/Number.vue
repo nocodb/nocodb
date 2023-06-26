@@ -30,8 +30,6 @@ const getData = async () => {
   aggregatedNumberValue.value = widgetData.value
   numberColumnTitle.value = widgetData.columnName
   aggregateFunction.value = widgetData.aggregateFunction
-  description.value = widgetData.description || 'Descritpion'
-
   // icon.value = widgetData.icon || 'default-icon'
 }
 
@@ -58,11 +56,6 @@ watch(
     immediate: true,
   },
 )
-const columnTitleWithAggregateFnLabel = computed(() => {
-  return data_config.value.recordCountOrFieldSummary === 'field_summary'
-    ? `${numberColumnTitle.value} (${aggregateFunction.value})`
-    : 'Value'
-})
 </script>
 
 <template>
@@ -71,7 +64,7 @@ const columnTitleWithAggregateFnLabel = computed(() => {
       <!-- <a-statistic :title="columnTitleWithAggregateFnLabel" :value="aggregatedNumberValue" /> -->
       <div class="flex justify-between">
         <div class="flex flex-col">
-          <h3 class="text-base font-medium text-gray-900 mb-1">{{ columnTitleWithAggregateFnLabel }}</h3>
+          <h3 class="text-base font-medium text-gray-900 mb-1">{{ data_config.name }}</h3>
         </div>
         <!-- TODO make icon a dynamic value -->
         <IconifyIcon class="bg-blue-100 p-2 rounded h-10 min-w-10 text-lg" icon="iconoir:dollar"></IconifyIcon>

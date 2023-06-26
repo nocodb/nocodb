@@ -15,7 +15,7 @@ export class BulkUpdatePage extends BasePage {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.bulkUpdateButton = this.dashboard.get().locator('.nc-bulk-update-save-btn');
-    this.formHeader = this.dashboard.get().locator('.nc-bulk-update-form-header');
+    this.formHeader = this.dashboard.get().locator('.nc-bulk-update-bulk-update-header');
     this.columnsDrawer = this.dashboard.get().locator('.nc-columns-drawer');
     this.form = this.dashboard.get().locator('div.form');
   }
@@ -34,7 +34,7 @@ export class BulkUpdatePage extends BasePage {
   }
 
   async getActiveColumn(index: number) {
-    const activeColumns = await this.form.locator('[data-testid="nc-form-fields"]');
+    const activeColumns = await this.form.locator('[data-testid="nc-bulk-update-fields"]');
     return activeColumns.nth(index);
   }
 
@@ -52,12 +52,12 @@ export class BulkUpdatePage extends BasePage {
   }
 
   async getActiveColumns() {
-    const activeColumns = await this.form.locator('[data-testid="nc-form-fields"]');
+    const activeColumns = await this.form.locator('[data-testid="nc-bulk-update-fields"]');
     const activeColumnsCount = await activeColumns.count();
     const activeColumnsTitles = [];
     // get title for each active column
     for (let i = 0; i < activeColumnsCount; i++) {
-      const title = await getTextExcludeIconText(activeColumns.nth(i).locator('[data-testid="nc-form-input-label"]'));
+      const title = await getTextExcludeIconText(activeColumns.nth(i).locator('[data-testid="nc-bulk-update-input-label"]'));
       activeColumnsTitles.push(title);
     }
 
@@ -65,9 +65,9 @@ export class BulkUpdatePage extends BasePage {
   }
 
   async removeField(index: number) {
-    const removeFieldButton = await this.form.locator('[data-testid="nc-form-fields"]');
+    const removeFieldButton = await this.form.locator('[data-testid="nc-bulk-update-fields"]');
     const removeFieldButtonCount = await removeFieldButton.count();
-    await removeFieldButton.nth(index).locator('[data-testid="nc-form-fields-close-icon"]').click();
+    await removeFieldButton.nth(index).locator('[data-testid="nc-bulk-update-fields-remove-icon"]').click();
     const newRemoveFieldButtonCount = await removeFieldButton.count();
     expect(newRemoveFieldButtonCount).toBe(removeFieldButtonCount - 1);
   }
@@ -84,7 +84,8 @@ export class BulkUpdatePage extends BasePage {
 
   async fillField({ columnTitle, value, type = 'text' }: { columnTitle: string; value: string; type?: string }) {
     let picker = null;
-    const field = this.form.locator(`[data-testid="nc-form-input-${columnTitle}"]`);
+    const field = this.form.locator(`[data-testid="nc-bulk-update-input-${columnTitle}"]`);
+    await field.scrollIntoViewIfNeeded();
     await field.hover();
     if (type !== 'checkbox' && type !== 'attachment') {
       await field.click();

@@ -224,7 +224,7 @@ export class GridPage extends BasePage {
     await this.get().locator('[data-testid="nc-check-all"]').nth(0).click({
       button: 'right',
     });
-    await this.rootPage.locator('text=Bulk Update').click();
+    await this.rootPage.locator('text=Update Selected Rows').click();
     await this.dashboard.waitForLoaderToDisappear();
   }
 

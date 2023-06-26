@@ -8,8 +8,31 @@ const props = defineProps<{
 
 const { api } = useApi()
 
+// Takes a number and formats it into a string that does:
+// * it shortens the number by using 'k' for kilo, 'm' for milli etc
+// * it does not round the number, but instead puts a decimal point in the right place
+// * example: if the value ids 70000210, it will be formatted as '70.0m'
+const formatValue = (value: number): string => {
+  if (value === null || value === undefined) {
+    return 'N/A'
+  }
+  if (value === 0) {
+    return '0'
+  }
+  const absValue = Math.abs(value)
+  const sign = value < 0 ? '-' : ''
+  if (absValue < 1000) {
+    return `${sign}${absValue}`
+  }
+  const units = ['', 'k', 'm', 'b', 't']
+  const unit = Math.floor(Math.log10(absValue) / 3)
+  const num = absValue / 1000 ** unit
+  const decimalPlaces = num < 10 ? 1 : 0
+  return `${sign}${num.toFixed(decimalPlaces)}${units[unit]}`
+}
+
 const { widgetConfig } = toRefs(props)
-const aggregatedNumberValue = ref<number | undefined>()
+const aggregatedNumberValue = ref<string>('NaN')
 // const icon = ref<string>('default-icon')
 const numberColumnTitle = ref<string | undefined>()
 const aggregateFunction = ref<string>('Description')
@@ -27,9 +50,9 @@ const getData = async () => {
     return
   }
   const widgetData: any = await (await api.dashboard.widgetGet(openedLayoutSidebarNode.value!.id!, widgetConfig.value.id)).data
-  aggregatedNumberValue.value = widgetData.value
   numberColumnTitle.value = widgetData.columnName
   aggregateFunction.value = widgetData.aggregateFunction
+  aggregatedNumberValue.value = formatValue(widgetData.value)
   // icon.value = widgetData.icon || 'default-icon'
 }
 

@@ -553,6 +553,9 @@ importers:
       object-hash:
         specifier: ^3.0.0
         version: 3.0.0
+      object-sizeof:
+        specifier: ^2.6.1
+        version: 2.6.1
       os-locale:
         specifier: ^6.0.2
         version: 6.0.2
@@ -15188,6 +15191,12 @@ packages:
   /object-keys@1.1.1:
     resolution: {integrity: sha512-NuAESUOUMrlIXOfHKzD6bpPu3tYt3xvjNdRIQ+FeT0lNb4K8WR70CaDxhuNguS2XG+GjkyMwOzsN5ZktImfhLA==}
     engines: {node: '>= 0.4'}
+
+  /object-sizeof@2.6.1:
+    resolution: {integrity: sha512-a7VJ1Zx7ZuHceKwjgfsSqzV/X0PVGvpZz7ho3Dn4Cs0LLcR5e5WuV+gsbizmplD8s0nAXMJmckKB2rkSiPm/Gg==}
+    dependencies:
+      buffer: 6.0.3
+    dev: false
 
   /object.assign@4.1.4:
     resolution: {integrity: sha512-1mxKf0e58bvyjSCtKYY4sRe9itRk3PJpquJOjeIkz885CczcI4IvJJDLPS72oowuSh+pBxUFROpX+TU++hxhZQ==}

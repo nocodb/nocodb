@@ -23,6 +23,8 @@ export async function deepCompare(
   keyId = '',
   breakAtFirstMismatch = true
 ): Promise<boolean> {
+  console.log(`deepCompare key start`);
+
   if (ignoredKeys !== undefined && ignoredKeys.has(keyId)) {
     return true;
   }

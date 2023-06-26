@@ -23,7 +23,7 @@ test.describe('Project operations', () => {
       const project = projectList.list.find((p: any) => p.title === name);
       if (project) {
         await api.project.delete(project.id);
-        console.log('deleted project: ', project.id);
+        console.log('1. deleted project: ', name, project.id);
       }
     } catch (e) {
       console.log('Error: ', e);
@@ -31,6 +31,8 @@ test.describe('Project operations', () => {
   }
 
   async function createTestProjectWithData(testProjectName: string) {
+    console.log('createTestProjectWithData: ', testProjectName);
+
     await dashboard.clickHome();
     await projectPage.createProject({ name: testProjectName, withoutPrefix: true });
     await dashboard.treeView.quickImport({ title: 'Airtable' });
@@ -43,6 +45,8 @@ test.describe('Project operations', () => {
   }
 
   async function cleanupTestData(dupeProjectName: string, testProjectName: string) {
+    console.log('cleanupTestData: ', dupeProjectName, testProjectName);
+
     await dashboard.clickHome();
     await projectPage.deleteProject({ title: dupeProjectName, withoutPrefix: true });
     await projectPage.deleteProject({ title: testProjectName, withoutPrefix: true });
@@ -93,6 +97,9 @@ test.describe('Project operations', () => {
 
     // create duplicate
     await dashboard.clickHome();
+
+    console.log('3. duplicate project: ', testProjectName, dupeProjectName);
+
     await projectPage.duplicateProject({
       name: testProjectName,
       withoutPrefix: true,
@@ -103,6 +110,9 @@ test.describe('Project operations', () => {
     // await quickVerify({ dashboard, airtableImport: true, context });
 
     // compare
+
+    console.log('4. compare project: ', testProjectName, dupeProjectName);
+
     const projectList = await api.project.list();
     const testProjectId = await projectList.list.find((p: any) => p.title === testProjectName);
     const dupeProjectId = await projectList.list.find((p: any) => p.title === dupeProjectName);
@@ -155,6 +165,6 @@ test.describe('Project operations', () => {
     });
 
     // cleanup test-data
-    // await cleanupTestData(dupeProjectName, testProjectName);
+    await cleanupTestData(dupeProjectName, testProjectName);
   });
 });

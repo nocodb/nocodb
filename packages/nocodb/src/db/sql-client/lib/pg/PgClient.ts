@@ -1058,28 +1058,32 @@ class PGClient extends KnexClient {
     const result = new Result();
     log.api(`${_func}:args:`, args);
     try {
+      // The relationList & relationListAll queries is may look needlessly long, but it is a way
+      // to get relationships without the `information_schema.constraint_column_usage` table (view).
+      // As that view only returns fk relations if the pg user is the table owner.
+      // Resource: https://dba.stackexchange.com/a/218969
+      // Remove clause `WHERE clause: AND f_sch.nspname = sch.nspname` for x-schema relations.
       const { rows } = await this.sqlClient.raw(
-        `SELECT distinct
-                                  tc.table_schema as ts,
-                                  tc.constraint_name as cstn,
-                                  tc.table_name as tn,
-                                  kcu.column_name as cn,
-                                  ccu.table_schema AS foreign_table_schema,
-                                  ccu.table_name AS rtn,
-                                  ccu.column_name AS rcn,
-                                  pc.confupdtype as ur, pc.confdeltype as dr
-                          FROM
-                              information_schema.table_constraints AS tc
-                              JOIN information_schema.key_column_usage AS kcu
-                                ON tc.constraint_name = kcu.constraint_name
-                                AND tc.table_schema = kcu.table_schema
-                              JOIN information_schema.constraint_column_usage AS ccu
-                                ON ccu.constraint_name = tc.constraint_name
-                                AND ccu.table_schema = tc.table_schema
-                              join (select conname,confupdtype,confdeltype from pg_catalog.pg_constraint) pc
-                              on pc.conname = tc.constraint_name
-                          WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema=? and tc.table_name='${args.tn}'
-                          order by tc.table_name;`,
+        `SELECT 
+          sch.nspname    AS ts,
+          pc.conname     AS cstn,
+          tbl.relname    AS tn,
+          col.attname    AS cn,
+          f_sch.nspname  AS foreign_table_schema,
+          f_tbl.relname  AS rtn,
+          f_col.attname  AS rcn,
+          pc.confupdtype AS ur,
+          pc.confdeltype AS dr
+        FROM pg_constraint pc
+          LEFT JOIN LATERAL UNNEST(pc.conkey)  WITH ORDINALITY AS u(attnum, attposition)   ON TRUE
+          LEFT JOIN LATERAL UNNEST(pc.confkey) WITH ORDINALITY AS f_u(attnum, attposition) ON f_u.attposition = u.attposition
+          JOIN pg_class tbl ON tbl.oid = pc.conrelid
+          JOIN pg_namespace sch ON sch.oid = tbl.relnamespace
+          LEFT JOIN pg_attribute col ON (col.attrelid = tbl.oid AND col.attnum = u.attnum)
+          LEFT JOIN pg_class f_tbl ON f_tbl.oid = pc.confrelid
+          LEFT JOIN pg_namespace f_sch ON f_sch.oid = f_tbl.relnamespace
+          LEFT JOIN pg_attribute f_col ON (f_col.attrelid = f_tbl.oid AND f_col.attnum = f_u.attnum)
+        WHERE pc.contype = 'f' AND sch.nspname = ? AND f_sch.nspname = sch.nspname AND tbl.relname='${args.tn}';`,
         [this.schema],
       );
 
@@ -1129,28 +1133,27 @@ class PGClient extends KnexClient {
     log.api(`${_func}:args:`, args);
     try {
       const { rows } = await this.sqlClient.raw(
-        `SELECT DISTINCT tc.table_schema as ts,
-                                                      tc.constraint_name as cstn,
-                                                      tc.table_name as tn,
-                                                      kcu.column_name as cn,
-                                                      ccu.table_schema AS foreign_table_schema,
-                                                      ccu.table_name   AS rtn,
-                                                      ccu.column_name  AS rcn,
-                                                      pc.confupdtype   as ur,
-                                                      pc.confdeltype   as dr
-                                               FROM information_schema.table_constraints AS tc
-                                                      JOIN information_schema.key_column_usage AS kcu
-                                                           ON tc.constraint_name = kcu.constraint_name
-                                                             AND tc.table_schema = kcu.table_schema
-                                                      JOIN information_schema.constraint_column_usage AS ccu
-                                                           ON ccu.constraint_name = tc.constraint_name
-                                                             AND ccu.table_schema = tc.table_schema
-                                                      join (select conname, confupdtype, confdeltype
-                                                            from pg_catalog.pg_constraint) pc
-                                                           on pc.conname = tc.constraint_name
-                                               WHERE tc.constraint_type = 'FOREIGN KEY'
-                                                 AND tc.table_schema = ?
-                                               order by tc.table_name;`,
+        `SELECT 
+          sch.nspname    AS ts,
+          pc.conname     AS cstn,
+          tbl.relname    AS tn,
+          col.attname    AS cn,
+          f_sch.nspname  AS foreign_table_schema,
+          f_tbl.relname  AS rtn,
+          f_col.attname  AS rcn,
+          pc.confupdtype AS ur,
+          pc.confdeltype AS dr
+        FROM pg_constraint pc
+          LEFT JOIN LATERAL UNNEST(pc.conkey)  WITH ORDINALITY AS u(attnum, attposition)   ON TRUE
+          LEFT JOIN LATERAL UNNEST(pc.confkey) WITH ORDINALITY AS f_u(attnum, attposition) ON f_u.attposition = u.attposition
+          JOIN pg_class tbl ON tbl.oid = pc.conrelid
+          JOIN pg_namespace sch ON sch.oid = tbl.relnamespace
+          LEFT JOIN pg_attribute col ON (col.attrelid = tbl.oid AND col.attnum = u.attnum)
+          LEFT JOIN pg_class f_tbl ON f_tbl.oid = pc.confrelid
+          LEFT JOIN pg_namespace f_sch ON f_sch.oid = f_tbl.relnamespace
+          LEFT JOIN pg_attribute f_col ON (f_col.attrelid = f_tbl.oid AND f_col.attnum = f_u.attnum)
+        WHERE pc.contype = 'f' AND sch.nspname = ?
+        ORDER BY tn;`,
         [this.schema],
       );
 

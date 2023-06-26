@@ -37,12 +37,21 @@ const borderClass = computed(() => {
     return ''
   }
 })
+
+const reloadWidgetData = () => {
+  alert('RELOAD!')
+}
 </script>
 
 <template v-slot:item="{ element: widget }">
   <div v-if="widget" ref="widgetRef" class="nc-layout-ui-element" :class="borderClass" @click="showContextMenu = false">
     <button @click.stop="showContextMenu = true">CONTEXT MENU</button>
-    <LayoutsWidgetsContextMenu v-show="showContextMenu" :widget="widget" @close-context-menu="showContextMenu = false" />
+    <LayoutsWidgetsContextMenu
+      v-show="showContextMenu"
+      :widget="widget"
+      @close-context-menu="showContextMenu = false"
+      @reload-widget-data="reloadWidgetData"
+    />
     <LayoutsWidgetsChart v-if="isChart" :widget-config="widget as ChartWidget" />
     <LayoutsWidgetsNumber v-else-if="isNumber" :widget-config="widget as NumberWidget" />
     <LayoutsWidgetsText v-else-if="isStaticText" :widget-config="widget as StaticTextWidget" />

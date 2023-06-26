@@ -7,7 +7,7 @@ const props = defineProps<{
   widget: Widget
 }>()
 
-const emits = defineEmits(['closeContextMenu'])
+const emits = defineEmits(['closeContextMenu', 'reloadWidgetData'])
 
 const widget = toRefs(props).widget
 const contextMenuRef = ref<HTMLElement | null>(null)
@@ -57,6 +57,16 @@ onUnmounted(() => {
   // Remove the event listener when the component is unmounted
   document.removeEventListener('click', handleDocumentClick)
 })
+
+const hasDataReload = computed(() =>
+  [
+    WidgetTypeType.BarChart,
+    WidgetTypeType.LineChart,
+    WidgetTypeType.PieChart,
+    WidgetTypeType.ScatterPlot,
+    WidgetTypeType.Number,
+  ].includes(widget.value.widget_type),
+)
 </script>
 
 <template>
@@ -67,6 +77,12 @@ onUnmounted(() => {
         <div class="text-gray-600 flex items-center justify-start">
           <GeneralIcon icon="duplicate" />
           <h3 class="ml-1 text-inherit mb-0">{{ $t('general.duplicate') }}</h3>
+        </div>
+      </a-button>
+      <a-button v-if="hasDataReload" class="!border-none hover:opacity-75" @click="emits('closeContextMenu')">
+        <div class="text-red-500 flex items-center justify-start">
+          <GeneralIcon icon="delete" />
+          <h3 class="ml-1 text-inherit mb-0">Reload</h3>
         </div>
       </a-button>
       <a-button class="!border-none hover:opacity-75" @click="removeWidgetById(widget!.id)">

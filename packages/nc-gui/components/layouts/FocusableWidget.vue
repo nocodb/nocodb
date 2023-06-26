@@ -1,7 +1,5 @@
 <script lang="ts" setup>
 const props = defineProps<{ widgetId: string }>()
-const emits = defineEmits(['showContextMenuForWidget'])
-
 const widgetId = toRefs(props).widgetId
 
 const nodeRef = ref<HTMLElement | null>(null)

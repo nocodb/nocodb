@@ -294,7 +294,7 @@ onMounted(() => {
               <div class="text-gray group absolute top-4 right-12">
                 <component
                   :is="iconMap.eyeSlash"
-                  class="opacity-0 nc-field-remove-icon group-hover:text-red-500 cursor-pointer"
+                  class="opacity-0 nc-field-remove-icon group-hover:text-red-500 cursor-pointer !text-xl"
                   data-testid="nc-bulk-update-fields-remove-icon"
                   @click="handleRemove(element)"
                 />
@@ -383,7 +383,7 @@ onMounted(() => {
           <button
             v-if="fields.length > editColumns.length"
             type="button"
-            class="nc-bulk-update-add-all color-transition bg-white transform hover:(text-primary ring ring-accent ring-opacity-100) active:translate-y-[1px] px-2 py-1 shadow-md rounded"
+            class="nc-bulk-update-add-all color-transition bg-white transform hover:(text-primary ring-1 ring-primary ring-opacity-100) active:translate-y-[1px] px-2 py-1 shadow-md rounded"
             data-testid="nc-bulk-update-add-all"
             tabindex="-1"
             @click="addAllColumns"
@@ -395,7 +395,7 @@ onMounted(() => {
           <button
             v-if="editColumns.length"
             type="button"
-            class="nc-bulk-update-remove-all color-transition bg-white transform hover:(text-primary ring ring-accent ring-opacity-100) active:translate-y-[1px] px-2 py-1 shadow-md rounded"
+            class="nc-bulk-update-remove-all color-transition bg-white transform hover:(text-primary ring-1 ring-primary ring-opacity-100) active:translate-y-[1px] px-2 py-1 shadow-md rounded"
             data-testid="nc-bulk-update-remove-all"
             tabindex="-1"
             @click="removeAllColumns"

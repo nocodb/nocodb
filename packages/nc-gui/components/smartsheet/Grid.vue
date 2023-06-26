@@ -1130,9 +1130,21 @@ function addEmptyRow(row?: number) {
 
             <a-menu-item
               v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
+              @click="bulkUpdateDlg = true"
+            >
+              <div v-e="['a:row:update-bulk']" class="nc-project-menu-item">
+                <component :is="iconMap.edit" />
+                <!-- TODO i18n -->
+                Update Selected Rows
+              </div>
+            </a-menu-item>
+
+            <a-menu-item
+              v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
               @click="deleteSelectedRows"
             >
-              <div v-e="['a:row:delete-bulk']" class="nc-project-menu-item">
+              <div v-e="['a:row:delete-bulk']" class="nc-project-menu-item text-red-500">
+                <component :is="iconMap.delete" />
                 <!-- Delete Selected Rows -->
                 {{ $t('activity.deleteSelectedRow') }}
               </div>
@@ -1167,16 +1179,6 @@ function addEmptyRow(row?: number) {
               <div v-e="['a:row:copy']" class="nc-project-menu-item">
                 <!-- Copy -->
                 {{ $t('general.copy') }}
-              </div>
-            </a-menu-item>
-
-            <a-menu-item
-              v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
-              @click="bulkUpdateDlg = true"
-            >
-              <div class="nc-project-menu-item">
-                <!-- TODO i18n -->
-                Update Selected Rows
               </div>
             </a-menu-item>
           </a-menu>

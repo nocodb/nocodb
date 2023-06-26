@@ -100,7 +100,7 @@ const onTreeViewScrollTop = (onScrollTop: boolean) => {
         v-model:is-open="isCreateProjectOpen"
         modal
         type="text"
-        class="!p-0"
+        class="!p-0 mx-1"
         :active-workspace-id="route.params.workspaceId"
       >
         <div

@@ -61,7 +61,7 @@ watch(showShareModal, (val) => {
 <template>
   <a-modal
     v-model:visible="showShareModal"
-    class="!top-[35%]"
+    class="!top-[55%]"
     :class="{ active: showShareModal }"
     wrap-class-name="nc-modal-share-collaborate"
     :closable="false"
@@ -69,7 +69,6 @@ watch(showShareModal, (val) => {
     :ok-button-props="{ hidden: true } as any"
     :cancel-button-props="{ hidden: true } as any"
     :footer="null"
-    :centered="true"
     :width="formStatus === 'manageCollaborators' ? '60rem' : '40rem'"
   >
     <div v-if="formStatus === 'project-collaborateSaving'" class="flex flex-row w-full px-5 justify-between items-center py-1">
@@ -205,6 +204,9 @@ watch(showShareModal, (val) => {
 
 <style lang="scss">
 .nc-modal-share-collaborate {
+  .ant-modal {
+    top: 28vh !important;
+  }
   .ant-collapse-item {
     @apply !border-1 border-gray-200;
   }

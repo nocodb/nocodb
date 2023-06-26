@@ -36,7 +36,7 @@ const copyUrl = async () => {
   <div
     class="flex flex-row items-center justify-end text-gray-600 gap-x-1.5 py-1.5 px-1.5 bg-gray-50 rounded-md border-1 border-gray-200"
   >
-    <div class="flex flex-row block flex-1 overflow-hidden pl-3">
+    <div class="flex flex-row block flex-1 overflow-hidden pl-3 cursor-pointer" @click="copyUrl">
       <div class="overflow-hidden whitespace-nowrap text-gray-500">{{ url }}</div>
     </div>
     <div class="flex flex-row gap-x-1">

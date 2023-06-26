@@ -106,7 +106,7 @@ watch(
 )
 
 function init() {
-  form.title = ''
+  form.title = `Untitled ${capitalize(typeAlias.value)}`
 
   if (selectedViewId) {
     form.copy_from_id = selectedViewId

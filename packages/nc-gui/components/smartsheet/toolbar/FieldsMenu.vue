@@ -334,23 +334,24 @@ useMenuCloseOnEsc(open)
               <div
                 v-if="filteredFieldList.filter((el) => el !== gridDisplayValueField).includes(field)"
                 :key="field.id"
-                class="px-2 py-1 flex items-center"
+                class="px-2 py-1 flex flex-row items-center"
                 :data-testid="`nc-fields-menu-${field.title}`"
                 @click.stop
               >
-                <a-checkbox
-                  v-model:checked="field.show"
-                  v-e="['a:fields:show-hide']"
-                  class="shrink"
-                  :disabled="field.isViewEssentialField"
-                  @change="toggleFieldVisibility($event, field, index)"
-                >
-                  <div class="flex items-center">
-                    <component :is="getIcon(metaColumnById[field.fk_column_id])" />
-
-                    <span>{{ field.title }}</span>
-                  </div>
-                </a-checkbox>
+                <div class="flex flex-row items-center pt-2">
+                  <a-checkbox
+                    v-model:checked="field.show"
+                    v-e="['a:fields:show-hide']"
+                    class="shrink flex flex-row items-center"
+                    :disabled="field.isViewEssentialField"
+                    @change="toggleFieldVisibility($event, field, index)"
+                  >
+                  </a-checkbox>
+                </div>
+                <div class="flex items-center">
+                  <component :is="getIcon(metaColumnById[field.fk_column_id])" />
+                  <div>{{ field.title }}</div>
+                </div>
 
                 <div class="flex-1" />
 
@@ -394,12 +395,12 @@ useMenuCloseOnEsc(open)
         </div>
 
         <div class="p-2 flex gap-2" @click.stop>
-          <a-button size="small" class="!text-xs text-gray-500 text-capitalize" @click.stop="onShowAll">
+          <a-button size="small" class="!text-xs text-gray-500 text-capitalize !rounded" @click.stop="onShowAll">
             <!-- Show All -->
             {{ $t('general.showAll') }}
           </a-button>
 
-          <a-button size="small" class="!text-xs text-gray-500 text-capitalize" @click.stop="onHideAll">
+          <a-button size="small" class="!text-xs text-gray-500 text-capitalize !rounded" @click.stop="onHideAll">
             <!-- Hide All -->
             {{ $t('general.hideAll') }}
           </a-button>

@@ -22,11 +22,11 @@ const page = computed({
 </script>
 
 <template>
-  <div class="flex items-center mb-1">
+  <div class="flex items-center border-t-1 border-gray-75 py-0.5">
     <div class="flex-1">
       <span
         v-if="!alignCountOnRight && count !== null && count !== Infinity"
-        class="caption ml-5 text-gray-500"
+        class="caption ml-2.5 text-gray-500 text-xs"
         data-testid="grid-pagination"
       >
         {{ count }} {{ count !== 1 ? $t('objects.records') : $t('objects.record') }}
@@ -55,7 +55,7 @@ const page = computed({
     <div class="flex-1 text-right pr-2">
       <span
         v-if="alignCountOnRight && count !== null && count !== Infinity"
-        class="caption mr-5 text-gray-500"
+        class="caption mr-2.5 text-gray-500 text-xs"
         data-testid="grid-pagination"
       >
         {{ count }} {{ count !== 1 ? $t('objects.records') : $t('objects.record') }}
@@ -67,6 +67,10 @@ const page = computed({
 <style scoped>
 :deep(.ant-pagination-item a) {
   @apply text-sm !leading-[21px] !no-underline;
+}
+
+:deep(.nc-pagination .ant-pagination-item) {
+  @apply !border-0 !pt-0.25;
 }
 
 :deep(.ant-pagination-item:not(.ant-pagination-item-active) a) {

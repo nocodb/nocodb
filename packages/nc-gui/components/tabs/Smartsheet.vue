@@ -150,7 +150,7 @@ const onDrop = async (event: DragEvent) => {
     <div class="flex flex-col h-full flex-1 min-w-0">
       <LazySmartsheetToolbar />
 
-      <div class="flex flex-row h-full w-full">
+      <div class="flex flex-row w-full" style="height: calc(100vh - var(--topbar-height))">
         <Transition name="layout" mode="out-in">
           <template v-if="meta">
             <div class="flex flex-1 min-h-0 w-3/4">

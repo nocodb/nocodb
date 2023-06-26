@@ -37,8 +37,6 @@ const formState: Record<string, any> = reactive({})
 
 const updateMode = ref(BulkUpdateMode.ALL)
 
-const editEnabled = ref<boolean[]>([])
-
 const moved = ref(false)
 
 const drag = ref(false)
@@ -312,11 +310,8 @@ onMounted(() => {
                     :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                     :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                     :column="element"
-                    :edit-enabled="editEnabled[index]"
+                    :edit-enabled="true"
                     :active="true"
-                    @click="editEnabled[index] = true"
-                    @cancel="editEnabled[index] = false"
-                    @update:edit-enabled="editEnabled[index] = $event"
                   />
                 </LazySmartsheetDivDataCell>
               </a-form-item>

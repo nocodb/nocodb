@@ -17,9 +17,6 @@ import { Acl } from '../../middlewares/extract-project-id/extract-project-id.mid
 import { User } from '../../models';
 import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
 import {
-  ExtractProjectIdMiddleware,
-} from '../../middlewares/extract-project-id/extract-project-id.middleware';
-import {
   randomTokenString,
   setTokenCookie,
 } from '../../services/users/helpers';

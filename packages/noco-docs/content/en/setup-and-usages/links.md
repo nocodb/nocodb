@@ -32,60 +32,79 @@ The decision to switch over to new column type was made to ensure better perform
   
 Child list to display the related records can be accessed by clicking on the link count displayed on the cell. 
 Except for the column type, the following procedures remain same as before 
-- create, update & delete a relationship column, 
-- link & unlink a record, 
-- create a lookup and rollup columns 
+- Create, update & delete a relationship column, 
+- Link & unlink a record, 
+- Create a lookup and rollup columns 
 
 Workflow details are captured below.
 
 ## Adding a relationship
+  
+![Screenshot 2023-06-27 at 11 03 20 AM](https://github.com/nocodb/nocodb/assets/86527202/b3762fc8-4bba-42ef-8415-41428840ee0e)
 
-<img width="1016" alt="image" src="https://user-images.githubusercontent.com/35857179/189105583-20014dd9-e5a6-4f27-b03c-97fad9096b5f.png">
 
-### 1. Create column
+1. Create column
+   Click on '+' button at end of column headers
 
-Click on '+' button at end of column headers
+2. Update column name
+   Input name in the text box provided
 
-### 2. Update column name
+3. Select column type
+   Select Column type as "Links" from the drop-down menu
 
-Input name in the text box provided
-
-### 3. Select column type
-
-Select Column type as "Links" from the drop-down menu
-
-### 4. Choose relationship type
-
+4. Choose relationship type
 - 'Has Many' corresponds to the 'One-to-many' relationships
 - 'Many To Many' corresponds to the 'Many-to-many' relationships
 
-### 5. Select child table from drop down menu
+5. Select child table from drop down menu
 
-### 6. Click on 'Save'
+6. Click on 'Save'
+   A new column will get created in both the parent table & child table
 
-A new column will get created in both the parent table & child table
-
-## Updating linked records
+## Linking records
 
 ### 1. Open link record tab
 
 Click on the '+' icon in corresponding row - cell
-<img width="750" alt="image" src="https://user-images.githubusercontent.com/35857179/189106326-90e46156-798d-4a01-a4eb-4e991ce94c03.png">
+![Screenshot 2023-06-27 at 11 06 52 AM](https://github.com/nocodb/nocodb/assets/86527202/96a90a6d-544e-4e43-b6d1-fe1aef784257)
 
 ### 2. Select from the option displayed
 
-Use 'Filter box' to narrow down on search items
-You can opt to insert a new record as well, using "+ New Record" button
-<img width="1014" alt="image" src="https://user-images.githubusercontent.com/35857179/189106494-4b49a200-a44f-41ae-8b54-93b18d867a04.png">
+Use 'Filter box' to narrow down on search items.    
+You can opt to insert a new record as well, using "+ New Record" button.  
+You can use `ALT + Click` to insert multiple options together.  
+  
+![Screenshot 2023-06-27 at 11 08 40 AM](https://github.com/nocodb/nocodb/assets/86527202/68246783-8d01-488b-8926-644fca8fa164)
 
-### 3. Column mapping showing "Has Many" relationship
+### 3. Column display for "Has Many" relationship
 
-Sheet1 'has many' Sheet2
+Country 'has many' City
 
-<img width="756" alt="image" src="https://user-images.githubusercontent.com/35857179/189106702-3b8d7a50-08f4-4a04-b2cb-16db0cf667b3.png">
+![Screenshot 2023-06-27 at 11 11 50 AM](https://github.com/nocodb/nocodb/assets/86527202/b5bb62b7-37ad-480e-8bf2-d666b775b07a)
 
-### 4. Column mapping for "Belongs to" relationship [Automatically updated]
 
-Sheet2 'belongs to' Sheet1
+### 4. Column display for "Belongs to" relationship [Automatically updated]
 
-<img width="574" alt="image" src="https://user-images.githubusercontent.com/35857179/189106731-59e5bc3c-bcc5-4796-b5b2-d9b5418bfe2b.png">
+City 'belongs to' Country.  
+Note: Primary value is still used as cell display value for "Belongs to" as it can have only one associated record.
+
+![Screenshot 2023-06-27 at 11 12 27 AM](https://github.com/nocodb/nocodb/assets/86527202/54e9ee75-4af5-49f6-8cd9-275dc53a8915)
+
+
+## Unlinking records
+
+1. Click on link count to open Child modal
+2. Click on Unlink icon against required item
+
+![Screenshot 2023-06-27 at 11 22 00 AM](https://github.com/nocodb/nocodb/assets/86527202/dad3cbc7-289d-45a7-9c49-a72264ed36b1)
+
+
+
+
+
+## Link label reconfiguration
+
+Use column edit menu for **Links** to reconfigure display label
+
+![Screenshot 2023-06-27 at 11 16 19 AM](https://github.com/nocodb/nocodb/assets/86527202/1aabdd8c-7102-4917-b0c0-b72e1187b0b7)
+

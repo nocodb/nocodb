@@ -1113,6 +1113,10 @@ useEventListener(document, 'mouseup', () => {
                       :class="{
                         'cursor-pointer': hasEditPermission,
                         'active': hasEditPermission && isCellSelected(rowIndex, colIndex),
+                        'active-cell':
+                          hasEditPermission &&
+                          ((activeCell.row === rowIndex && activeCell.col === colIndex) ||
+                            (selectedRange._start?.row === rowIndex && selectedRange._start?.col === colIndex)),
                         'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
                         'align-middle': !rowHeight || rowHeight === 1,
                         'align-top': rowHeight && rowHeight !== 1,
@@ -1375,6 +1379,10 @@ useEventListener(document, 'mouseup', () => {
 
   // todo: replace with css variable
   td.active::after {
+    @apply text-primary border-current bg-primary bg-opacity-5;
+  }
+
+  td.active-cell::after {
     @apply border-1 border-solid text-primary border-current bg-primary bg-opacity-5;
   }
 

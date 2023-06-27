@@ -232,7 +232,7 @@ export function useMultiSelect(
       return true
     }
 
-    if (selectedRange.start === null || selectedRange.end === null) {
+    if (selectedRange._start === null || selectedRange._end === null) {
       return false
     }
 
@@ -245,7 +245,7 @@ export function useMultiSelect(
   }
 
   function isCellInFillRange(row: number, col: number) {
-    if (fillRange.start === null || fillRange.end === null) {
+    if (fillRange._start === null || fillRange._end === null) {
       return false
     }
 
@@ -300,10 +300,12 @@ export function useMultiSelect(
     if (isFillMode.value) {
       const rw = unref(data)[row]
 
+      if (!selectedRange._start || !selectedRange._end) return
+
       // fill is not supported for new rows yet
       if (rw.rowMeta.new) return
 
-      fillRange.endRange({ row, col: selectedRange.end.col })
+      fillRange.endRange({ row, col: selectedRange._end.col })
       scrollToCell?.(row, col)
       return
     }
@@ -373,7 +375,9 @@ export function useMultiSelect(
 
       if (fillRange._start === null || fillRange._end === null) return
 
-      if (selectedRange.start !== null && selectedRange.end !== null) {
+      if (selectedRange._start !== null && selectedRange._end !== null) {
+        const tempActiveCell = { row: selectedRange._start.row, col: selectedRange._start.col }
+
         const cprows = unref(data).slice(selectedRange.start.row, selectedRange.end.row + 1) // slice the selected rows for copy
         const cpcols = unref(fields).slice(selectedRange.start.col, selectedRange.end.col + 1) // slice the selected cols for copy
 
@@ -436,6 +440,10 @@ export function useMultiSelect(
         }
 
         bulkUpdateRows?.(rowsToPaste, propsToPaste).then(() => {
+          if (fillRange._start === null || fillRange._end === null) return
+          selectedRange.startRange(tempActiveCell)
+          selectedRange.endRange(fillRange._end)
+          makeActive(tempActiveCell.row, tempActiveCell.col)
           fillRange.clear()
         })
       } else {
@@ -878,8 +886,8 @@ export function useMultiSelect(
     isFillMode.value = true
 
     if (selectedRange._start && selectedRange._end) {
-      fillRange.startRange({ row: selectedRange._start?.row, col: selectedRange.start.col })
-      fillRange.endRange({ row: selectedRange._end?.row, col: selectedRange.end.col })
+      fillRange.startRange({ row: selectedRange._start?.row, col: selectedRange._start.col })
+      fillRange.endRange({ row: selectedRange._end?.row, col: selectedRange._end.col })
     }
 
     event.preventDefault()

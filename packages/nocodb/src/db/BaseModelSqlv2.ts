@@ -2493,7 +2493,7 @@ class BaseModelSqlv2 {
   }
 
   async bulkUpdateAll(
-    args: { where?: string; filterArr?: Filter[] } = {},
+    args: { where?: string; filterArr?: Filter[]; viewId?: string } = {},
     data,
     { cookie }: { cookie?: any } = {},
   ) {
@@ -2515,22 +2515,30 @@ class BaseModelSqlv2 {
         const aliasColObjMap = await this.model.getAliasColObjMap();
         const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
-        await conditionV2(
-          [
+        const conditionObj = [
+          new Filter({
+            children: args.filterArr || [],
+            is_group: true,
+            logical_op: 'and',
+          }),
+          new Filter({
+            children: filterObj,
+            is_group: true,
+            logical_op: 'and',
+          }),
+        ];
+
+        if (args.viewId) {
+          conditionObj.push(
             new Filter({
-              children: args.filterArr || [],
+              children:
+                (await Filter.rootFilterList({ viewId: args.viewId })) || [],
               is_group: true,
-              logical_op: 'and',
             }),
-            new Filter({
-              children: filterObj,
-              is_group: true,
-              logical_op: 'and',
-            }),
-          ],
-          qb,
-          this.dbDriver,
-        );
+          );
+        }
+
+        await conditionV2(conditionObj, qb, this.dbDriver);
 
         qb.update(updateData);
 

@@ -107,9 +107,9 @@ test.describe('Project operations', () => {
     const testProjectId = await projectList.list.find((p: any) => p.title === testProjectName);
     const dupeProjectId = await projectList.list.find((p: any) => p.title === dupeProjectName);
     const projectInfoOp: ProjectInfoApiUtil = new ProjectInfoApiUtil(context.token);
-    const original: Promise<ProjectInfo> = projectInfoOp.extractProjectInfo(testProjectId.id);
+    const orginal: Promise<ProjectInfo> = projectInfoOp.extractProjectInfo(testProjectId.id);
     const duplicate: Promise<ProjectInfo> = projectInfoOp.extractProjectInfo(dupeProjectId.id);
-    await Promise.all([original, duplicate]).then(arr => {
+    await Promise.all([orginal, duplicate]).then(arr => {
       const ignoredFields: Set<string> = new Set([
         'id',
         'prefix',
@@ -126,30 +126,31 @@ test.describe('Project operations', () => {
         'updated_at',
       ]);
       const ignoredKeys: Set<string> = new Set([
-        '.project.is_meta.id',
-        '.project.is_meta.title',
-        '.project.tables.0.table.id',
-        '.project.tables.0.table.id.base_id',
+        '.project.id',
+        '.project.title',
+        '.project.tables.0.id',
+        '.project.tables.0.base_id',
 
         // below are potential bugs
-        '.project.is_meta.title.status',
-        '.project.tables.0.table.shares.views.0.view._ptn.ptype.tn',
-        '.project.tables.0.table.shares.views.0.view._ptn.ptype.tn._tn',
-        '.project.tables.0.table.shares.views.0.view._ptn.ptype.tn._tn.table_meta.title',
-        '.project.tables.0.1.table.shares.views.0.view._ptn.ptype.tn',
-        '.project.tables.0.1.table.shares.views.0.view._ptn.ptype.tn._tn',
-        '.project.tables.0.1.table.shares.views.0.view._ptn.ptype.tn._tn.table_meta.title',
-        '.project.tables.0.1.2.table.shares.views.0.view._ptn.ptype.tn',
-        '.project.tables.0.1.2.table.shares.views.0.view._ptn.ptype.tn._tn',
-        '.project.tables.0.1.2.table.shares.views.0.view._ptn.ptype.tn._tn.table_meta.title',
-        '.project.tables.bases.0.alias.config',
-        '.project.tables.bases.users.0.1.email.invite_token.main_roles.roles',
-        '.project.tables.bases.users.0.1.2.email.invite_token.main_roles.roles',
-        '.project.tables.bases.users.0.1.2.3.email.invite_token.main_roles.roles',
+        '.project.status',
+        '.tables.0.views.0.view.tn',
+        '.tables.0.views.0.view.tn._tn',
+        '.tables.0.views.0.view.title',
+        '.tables.0.views.0.view._tn',
+        '.tables.1.views.0.view.title',
+        '.tables.1.views.0.view.tn',
+        '.tables.1.views.0.view._tn',
+        '.tables.1.views.0.view.tn._tn',
+        '.tables.2.views.0.view.tn',
+        '.tables.2.views.0.view._tn',
+        '.tables.2.views.0.view.title',
+        '.bases.0.config',
+        '.users.1.roles',
+        '.users.2.roles',
       ]);
       const orginalProjectInfo: ProjectInfo = arr[0];
       const duplicateProjectInfo: ProjectInfo = arr[1];
-      expect(deepCompare(orginalProjectInfo, duplicateProjectInfo, ignoredFields, ignoredKeys)).toBeTruthy();
+      expect(deepCompare(orginalProjectInfo, duplicateProjectInfo, ignoredFields, ignoredKeys, '', false)).toBeTruthy();
     });
 
     // cleanup test-data

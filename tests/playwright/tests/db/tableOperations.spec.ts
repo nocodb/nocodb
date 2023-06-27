@@ -79,14 +79,7 @@ test.describe('Table Operations', () => {
         orginalTable,
         duplicateTable,
         undefined,
-        new Set([
-          '.id',
-          '.id.base_id.project_id.table_name',
-          '.id.base_id.project_id.table_name.title',
-          '.id.base_id.project_id.table_name.title.type.meta.schema.enabled.mm.tags.pinned.deleted.order',
-          '.id.base_id.project_id.table_name.title.type.meta.schema.enabled.mm.tags.pinned.deleted.order.created_at',
-          '.id.base_id.project_id.table_name.title.type.meta.schema.enabled.mm.tags.pinned.deleted.order.created_at.updated_at',
-        ])
+        new Set(['.id', '.table_name', '.title', '.order', '.created_at', '.updated_at'])
       )
     ).toBeTruthy();
     // check individual field values where values does not match as per design
@@ -120,28 +113,29 @@ test.describe('Table Operations', () => {
         new Set(['created_at']),
         new Set([
           '.table.id',
-          '.table.id.base_id.project_id.table_name',
-          '.table.id.base_id.project_id.table_name.title',
-          '.table.id.base_id.project_id.table_name.title.type.meta.schema.enabled.mm.tags.pinned.deleted.order',
-          '.table.id.base_id.project_id.table_name.title.type.meta.schema.enabled.mm.tags.pinned.deleted.order.created_at',
-          '.table.id.base_id.project_id.table_name.title.type.meta.schema.enabled.mm.tags.pinned.deleted.order.created_at.updated_at',
-          '.table.shares.views.0.view.filters.sorts.firstPageData',
-          '.table.shares.views.webhooks.firstPageData.list.pageInfo.totalRows',
-          '.table.shares.views.0.view.ptn',
-          '.table.id.base_id.project_id.table_name.title.type.meta.schema.enabled.mm.tags.pinned.deleted.order.updated_at',
-          '.table.shares.views.0.view.ptn._ptn',
-          '.table.shares.views.0.view.ptn._ptn.ptype.tn',
-          '.table.shares.views.0.view.ptn._ptn.ptype.tn._tn',
-          '.table.shares.views.0.view.ptn._ptn.ptype.tn._tn.table_meta.id',
-          '.table.shares.views.0.view.ptn._ptn.ptype.tn._tn.table_meta.id.base_id.project_id.fk_model_id',
-          '.table.shares.views.0.view.ptn._ptn.ptype.tn._tn.table_meta.id.base_id.project_id.fk_model_id.title',
-          '.table.shares.views.0.view.ptn._ptn.ptype.tn._tn.table_meta.id.base_id.project_id.fk_model_id.title.type.is_default.show_system_fields.lock_type.uuid.password.show.order.updated_at',
-          '.table.shares.views.0.view.ptn._ptn.ptype.tn._tn.table_meta.id.base_id.project_id.fk_model_id.title.type.is_default.show_system_fields.lock_type.uuid.password.show.order.updated_at.meta.description.view.fk_view_id',
-          '.table.shares.views.0.view.ptn._ptn.ptype.tn._tn.table_meta.id.base_id.project_id.fk_model_id.title.type.is_default.show_system_fields.lock_type.uuid.password.show.order.updated_at.meta.description.view.fk_view_id.base_id.project_id.uuid.updated_at',
-          '.table.shares.views.webhooks.firstPageData.list.pageInfo.totalRows.page.pageSize.isFirstPage.isLastPage',
+          '.table.table_name',
+          '.table.title',
+          '.table.order',
+          '.table.created_at',
+          '.table.updated_at',
+          '.views.0.view.ptn',
+          '.views.0.view._ptn',
+          '.views.0.view.ptn._ptn',
+          '.views.0.view.ptn._ptn.ptype.tn',
+          '.views.0.view.tn',
+          '.views.0.view._tn',
+          '.views.0.view.id',
+          '.views.0.view.view.fk_view_id',
+          '.views.0.view.view.updated_at',
+          '.views.0.view.fk_model_id',
+          '.views.0.view.title',
+          '.views.0.view.updated_at',
+          '.views.0.view.fk_view_id',
 
           // Mismatch length key:
-          '.table.shares.views.webhooks.firstPageData.list',
+          '.firstPageData.list',
+          '.firstPageData.pageInfo',
+          '.views.0.firstPageData',
         ])
       )
     ).toBeTruthy();

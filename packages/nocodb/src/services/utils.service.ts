@@ -14,6 +14,8 @@ import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { MetaTable } from '../utils/globals';
 import { jdbcToXcConfig } from '../utils/nc-config/helpers';
 import { packageVersion } from '../utils/packageVersion';
+import {ConfigService} from "@nestjs/config";
+import {AppConfig} from "../interface/config";
 
 const versionCache = {
   releaseVersion: null,
@@ -70,6 +72,10 @@ interface AllMeta {
 
 @Injectable()
 export class UtilsService {
+
+  constructor(private readonly configService: ConfigService<AppConfig>) {
+  }
+
   async versionInfo() {
     if (
       !versionCache.lastFetched ||
@@ -405,6 +411,9 @@ export class UtilsService {
       ncMaxAttachmentsAllowed: +(process.env.NC_MAX_ATTACHMENTS_ALLOWED || 10),
       isCloud: process.env.NC_CLOUD === 'true',
       automationLogLevel: process.env.NC_AUTOMATION_LOG_LEVEL || 'OFF',
+      disableEmailAuth: this.configService.get('auth.disableEmailAuth', {
+        infer: true,
+      }),
     };
 
     return result;

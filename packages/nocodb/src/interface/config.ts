@@ -298,4 +298,9 @@ export interface AppConfig {
     max_apis: number;
     calc_execution_time: boolean;
   };
+
+  auth: {
+    emailPattern?: RegExp | null;
+    disableEmailAuth: boolean;
+  };
 }

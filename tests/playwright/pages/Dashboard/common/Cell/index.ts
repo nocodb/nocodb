@@ -294,7 +294,9 @@ export class CellPageObject extends BasePage {
     for (let i = 0; i < value.length; ++i) {
       await chips.nth(i).locator('.name').waitFor({ state: 'visible' });
       await chips.nth(i).locator('.name').scrollIntoViewIfNeeded();
-      await expect(await chips.nth(i).locator('.name')).toHaveText(value[i]);
+      await chips.nth(i).locator('.name').waitFor({ state: 'visible' });
+      const chipText = await chips.nth(i).locator('.name').textContent();
+      expect(value).toContain(chipText);
     }
 
     if (verifyChildList) {

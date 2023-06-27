@@ -164,6 +164,9 @@ test.describe('Project operations', () => {
       ).toBeTruthy();
     });
 
+    // kludge, add delay to avoid test failures due to residual data
+    await dashboard.rootPage.waitForTimeout(5000);
+
     // cleanup test-data
     await cleanupTestData(dupeProjectName, testProjectName);
   });

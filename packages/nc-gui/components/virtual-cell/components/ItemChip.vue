@@ -40,7 +40,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 const { open } = useExpandedFormDetached()
 
 function openExpandedForm() {
-  if (!readOnly && !isLocked.value) {
+  if (!readOnly.value && !isLocked.value) {
     open({
       isOpen: true,
       row: { row: item, rowMeta: {}, oldRow: { ...item } },

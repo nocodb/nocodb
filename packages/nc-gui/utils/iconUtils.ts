@@ -20,6 +20,7 @@ import PhEye from '~icons/ph/eye'
 import CiFilter from '~icons/mdi/filter-outline'
 import Gallery from '~icons/ph/image-square-bold'
 import Plus from '~icons/material-symbols/add-rounded'
+import Code from '~icons/material-symbols/code-rounded'
 import Form from '~icons/material-symbols/assignment-outline'
 import Kanban from '~icons/material-symbols/view-kanban-outline'
 import MdiAccountGroup from '~icons/mdi/account-group'
@@ -218,7 +219,7 @@ export const iconMap = {
   contentSaveExit: h('span', { class: 'material-symbols' }, 'save'),
   contentSaveStay: h('span', { class: 'material-symbols' }, 'save_as'),
   exit: h('span', { class: 'material-symbols' }, 'exit_to_app'),
-  snippet: h('span', { class: 'material-symbols' }, 'code'),
+  snippet: h(Code, 'code'),
   embed: h('span', { class: 'material-symbols' }, 'code'),
   list: h('span', { class: 'material-symbols' }, 'view_list'),
   cloud: h('span', { class: 'material-symbols' }, 'cloud'),

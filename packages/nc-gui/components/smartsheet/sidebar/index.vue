@@ -19,6 +19,9 @@ import {
   useViews,
   watch,
 } from '#imports'
+import FieldIcon from '~icons/nc-icons/eye'
+
+const openedTab = ref<'views' | 'developer'>('views')
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -140,15 +143,43 @@ function onOpenModal({
     close(1000)
   }
 }
+const onTabChange = (tab: 'views' | 'developer') => {
+  openedTab.value = tab
+}
 </script>
 
 <template>
   <div
-    class="nc-view-sidebar flex flex-col border-l-1 border-gray-75 relative h-full w-full !flex-1 !min-w-0 !max-w-[150px] !w-[150px] lg:(!max-w-[250px] !w-[250px])"
+    class="nc-view-sidebar flex flex-col border-l-1 border-gray-75 relative h-full w-full !flex-1 !min-w-0 !max-w-[250px] !w-[250px] lg:(!max-w-[250px] !w-[250px])"
   >
-    <LazySmartsheetSidebarToolbar
-      class="min-h-[var(--topbar-height)] max-h-[var(--topbar-height)] flex items-center pt-2.5 pb-1 px-3 justify-between"
-    />
+    <div class="flex flex-row p-1 mx-3 mt-3 mb-3 bg-gray-50 rounded-md gap-x-2">
+      <div
+        class="tab"
+        :class="{
+          active: openedTab === 'views',
+        }"
+        @click="onTabChange('views')"
+      >
+        <FieldIcon class="h-3.5 w-3.5" />
+        <div>Views</div>
+      </div>
+      <div
+        class="tab"
+        :class="{
+          active: openedTab === 'developer',
+        }"
+        @click="onTabChange('developer')"
+      >
+        <component
+          :is="iconMap.snippet"
+          class="text-gray-500"
+          :style="{
+            fontWeight: 600,
+          }"
+        />
+        <div>Developer</div>
+      </div>
+    </div>
 
     <div class="flex-1 flex flex-col min-h-0">
       <GeneralOverlay v-if="!views.length" :model-value="isLoading" inline class="bg-gray-300/50">
@@ -157,13 +188,15 @@ function onOpenModal({
         </div>
       </GeneralOverlay>
 
-      <LazySmartsheetSidebarMenuTop :views="views" @open-modal="onOpenModal" @deleted="loadViews" />
+      <template v-if="openedTab === 'views'">
+        <LazySmartsheetSidebarMenuTop :views="views" @open-modal="onOpenModal" @deleted="loadViews" />
+        <template v-if="isUIAllowed('virtualViewsCreateOrEdit')">
+          <div class="!my-3 w-full border-b-1 border-gray-75" />
 
-      <template v-if="isUIAllowed('virtualViewsCreateOrEdit')">
-        <div class="!my-3 w-full border-b-1 border-gray-75" />
-
-        <LazySmartsheetSidebarMenuBottom @open-modal="onOpenModal" />
+          <LazySmartsheetSidebarMenuBottom @open-modal="onOpenModal" />
+        </template>
       </template>
+      <LazySmartsheetSidebarToolbarDeveloper v-if="openedTab === 'developer'" />
     </div>
   </div>
 </template>
@@ -175,5 +208,12 @@ function onOpenModal({
 
 :deep(.ant-layout-sider-children) {
   @apply flex flex-col;
+}
+
+.tab {
+  @apply flex flex-row items-center justify-center w-1/2 py-1 bg-gray-50 rounded-md gap-x-1.5 text-gray-500 cursor-pointer transition-all duration-300 select-none;
+}
+.active {
+  @apply bg-white shadow text-gray-700;
 }
 </style>

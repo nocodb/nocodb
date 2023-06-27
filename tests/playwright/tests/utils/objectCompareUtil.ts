@@ -15,14 +15,14 @@
  * @param breakAtFirstMismatch : default true. returns false on first field mismatch
  * @returns
  */
-export async function deepCompare(
+export function deepCompare(
   obj1: any,
   obj2: any,
   ignoredFields?: Set<string>,
   ignoredKeys?: Set<string>,
   keyId = '',
   breakAtFirstMismatch = true
-): Promise<boolean> {
+): boolean {
   if (ignoredKeys !== undefined && ignoredKeys.has(keyId)) {
     return true;
   }
@@ -56,7 +56,7 @@ export async function deepCompare(
       // console.log(`${keyId} ignored in comparison`)
     } else {
       keyId = keyId + '.' + key;
-      if (!(await deepCompare(obj1[key], obj2[key], ignoredFields, ignoredKeys, keyId, breakAtFirstMismatch))) {
+      if (!deepCompare(obj1[key], obj2[key], ignoredFields, ignoredKeys, keyId, breakAtFirstMismatch)) {
         return !breakAtFirstMismatch;
         // return false;
       }

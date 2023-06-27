@@ -107,9 +107,9 @@ test.describe('Project operations', () => {
     const testProjectId = await projectList.list.find((p: any) => p.title === testProjectName);
     const dupeProjectId = await projectList.list.find((p: any) => p.title === dupeProjectName);
     const projectInfoOp: ProjectInfoApiUtil = new ProjectInfoApiUtil(context.token);
-    const orginal: Promise<ProjectInfo> = projectInfoOp.extractProjectInfo(testProjectId.id);
+    const original: Promise<ProjectInfo> = projectInfoOp.extractProjectInfo(testProjectId.id);
     const duplicate: Promise<ProjectInfo> = projectInfoOp.extractProjectInfo(dupeProjectId.id);
-    await Promise.all([orginal, duplicate]).then(async arr => {
+    await Promise.all([original, duplicate]).then(arr => {
       const ignoredFields: Set<string> = new Set([
         'id',
         'prefix',
@@ -149,9 +149,7 @@ test.describe('Project operations', () => {
       ]);
       const orginalProjectInfo: ProjectInfo = arr[0];
       const duplicateProjectInfo: ProjectInfo = arr[1];
-      await expect(
-        await deepCompare(orginalProjectInfo, duplicateProjectInfo, ignoredFields, ignoredKeys)
-      ).toBeTruthy();
+      expect(deepCompare(orginalProjectInfo, duplicateProjectInfo, ignoredFields, ignoredKeys)).toBeTruthy();
     });
 
     // cleanup test-data

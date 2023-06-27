@@ -23,7 +23,7 @@ test.describe('Project operations', () => {
       const project = projectList.list.find((p: any) => p.title === name);
       if (project) {
         await api.project.delete(project.id);
-        console.log('1. deleted project: ', name, project.id);
+        console.log('deleted project: ', project.id);
       }
     } catch (e) {
       console.log('Error: ', e);
@@ -31,8 +31,6 @@ test.describe('Project operations', () => {
   }
 
   async function createTestProjectWithData(testProjectName: string) {
-    console.log('createTestProjectWithData: ', testProjectName);
-
     await dashboard.clickHome();
     await projectPage.createProject({ name: testProjectName, withoutPrefix: true });
     await dashboard.treeView.quickImport({ title: 'Airtable' });
@@ -45,8 +43,6 @@ test.describe('Project operations', () => {
   }
 
   async function cleanupTestData(dupeProjectName: string, testProjectName: string) {
-    console.log('cleanupTestData: ', dupeProjectName, testProjectName);
-
     await dashboard.clickHome();
     await projectPage.deleteProject({ title: dupeProjectName, withoutPrefix: true });
     await projectPage.deleteProject({ title: testProjectName, withoutPrefix: true });
@@ -97,9 +93,6 @@ test.describe('Project operations', () => {
 
     // create duplicate
     await dashboard.clickHome();
-
-    console.log('3. duplicate project: ', testProjectName, dupeProjectName);
-
     await projectPage.duplicateProject({
       name: testProjectName,
       withoutPrefix: true,
@@ -110,16 +103,13 @@ test.describe('Project operations', () => {
     // await quickVerify({ dashboard, airtableImport: true, context });
 
     // compare
-
-    console.log('4. compare project: ', testProjectName, dupeProjectName);
-
     const projectList = await api.project.list();
     const testProjectId = await projectList.list.find((p: any) => p.title === testProjectName);
     const dupeProjectId = await projectList.list.find((p: any) => p.title === dupeProjectName);
     const projectInfoOp: ProjectInfoApiUtil = new ProjectInfoApiUtil(context.token);
     const orginal: Promise<ProjectInfo> = projectInfoOp.extractProjectInfo(testProjectId.id);
     const duplicate: Promise<ProjectInfo> = projectInfoOp.extractProjectInfo(dupeProjectId.id);
-    await Promise.all([orginal, duplicate]).then(async arr => {
+    await Promise.all([orginal, duplicate]).then(arr => {
       const ignoredFields: Set<string> = new Set([
         'id',
         'prefix',
@@ -159,13 +149,8 @@ test.describe('Project operations', () => {
       ]);
       const orginalProjectInfo: ProjectInfo = arr[0];
       const duplicateProjectInfo: ProjectInfo = arr[1];
-      await expect(
-        await deepCompare(orginalProjectInfo, duplicateProjectInfo, ignoredFields, ignoredKeys)
-      ).toBeTruthy();
+      expect(deepCompare(orginalProjectInfo, duplicateProjectInfo, ignoredFields, ignoredKeys)).toBeTruthy();
     });
-
-    // kludge, add delay to avoid test failures due to residual data
-    await dashboard.rootPage.waitForTimeout(10000);
 
     // cleanup test-data
     await cleanupTestData(dupeProjectName, testProjectName);

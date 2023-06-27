@@ -938,6 +938,21 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     _updateWidgetInAPIAndLocally(updatedWidget)
   }
 
+  const changeNameOfFocusedChart = (newName: string) => {
+    if (!focusedWidget.value || !chartTypes.includes(focusedWidget.value.widget_type)) {
+      console.error('changeNameOfFocusedChart: focusedWidget.value is undefined or not a chart widget')
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      data_config: {
+        ...focusedWidget.value.data_config,
+        name: newName,
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
   const changeTextOfFocusedTextElement = (newText: string) => {
     if (!focusedWidget.value || ![WidgetTypeType.StaticText].includes(focusedWidget.value.widget_type)) {
       console.error('changeTextOfFocusedTextElement: focusedWidget.value is undefined or not a Text widget')
@@ -1187,5 +1202,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     changeLayoutPaddingHorizontal,
     changeLayoutPaddingVertical,
     gridLayout,
+    changeNameOfFocusedChart,
   }
 })

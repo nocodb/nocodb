@@ -147,6 +147,7 @@ const chartOptions = {
 </script>
 
 <template>
+  <h3 class="text-base font-medium text-gray-900 mb-0">{{ widgetConfig.data_config.name }}</h3>
   <div v-if="dataLinkConfigIsMissing">Missing Data Source Configuration</div>
   <component
     :is="chartComponent"

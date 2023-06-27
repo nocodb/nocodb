@@ -101,6 +101,7 @@ export interface DataConfigStaticText {
 }
 
 export interface DataConfigAggregated2DChart {
+  name?: string;
   xAxisColId?: string;
   xAxisOrderBy?: 'x_val' | 'y_val';
   xAxisOrderDirection?: 'asc' | 'desc';

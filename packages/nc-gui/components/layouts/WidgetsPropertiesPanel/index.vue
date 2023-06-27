@@ -39,6 +39,7 @@ const chartTypesForDropdown = computed(() =>
     <LayoutsWidgetsPropertiesPanelTopSectionsNumber v-if="isNumber" />
     <LayoutsWidgetsPropertiesPanelTopSectionsButton v-if="isButton" />
     <LayoutsWidgetsPropertiesPanelTopSectionsText v-if="isText" />
+    <LayoutsWidgetsPropertiesPanelTopSectionsChart v-if="isChart" />
 
     <a-divider />
 

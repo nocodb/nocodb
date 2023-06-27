@@ -149,9 +149,7 @@ const onTabChange = (tab: 'views' | 'developer') => {
 </script>
 
 <template>
-  <div
-    class="nc-view-sidebar flex flex-col border-l-1 border-gray-75 relative h-full w-full !flex-1 !min-w-0 !max-w-[250px] !w-[250px] lg:(!max-w-[250px] !w-[250px])"
-  >
+  <div class="nc-view-sidebar flex flex-col border-l-1 border-gray-75 relative h-full w-full">
     <div class="flex flex-row p-1 mx-3 mt-3 mb-3 bg-gray-50 rounded-md gap-x-2">
       <div
         class="tab"

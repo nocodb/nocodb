@@ -10,6 +10,7 @@ const props = defineProps<{
 const widget = toRefs(props).widget
 
 const widgetRef = ref<HTMLElement | null>(null)
+const widgetWithReloadDataSupportRef = ref<HTMLElement | null>(null)
 
 const isChart = computed(() => chartTypes.includes(widget.value.widget_type))
 const isNumber = computed(() => widget.value.widget_type === WidgetTypeType.Number)
@@ -38,14 +39,17 @@ const borderClass = computed(() => {
   }
 })
 
+// const FOO: typeof NumberComponet = ref<typeof NumberComponet | null>(null)
+
 const reloadWidgetData = () => {
   alert('RELOAD!')
+  console.log(widgetWithReloadDataSupportRef.value)
 }
 </script>
 
 <template v-slot:item="{ element: widget }">
   <div v-if="widget" ref="widgetRef" class="nc-layout-ui-element" :class="borderClass" @click="showContextMenu = false">
-    <button @click.stop="showContextMenu = true">CONTEXT MENU</button>
+    <!-- <button @click.stop="showContextMenu = true">CONTEXT MENU</button> -->
     <LayoutsWidgetsContextMenu
       v-show="showContextMenu"
       :widget="widget"
@@ -53,7 +57,7 @@ const reloadWidgetData = () => {
       @reload-widget-data="reloadWidgetData"
     />
     <LayoutsWidgetsChart v-if="isChart" :widget-config="widget as ChartWidget" />
-    <LayoutsWidgetsNumber v-else-if="isNumber" :widget-config="widget as NumberWidget" />
+    <LayoutsWidgetsNumber v-else-if="isNumber" ref="widgetWithReloadDataSupportRef" :widget-config="widget as NumberWidget" />
     <LayoutsWidgetsText v-else-if="isStaticText" :widget-config="widget as StaticTextWidget" />
     <LayoutsWidgetsButton v-else-if="isButton" :widget-config="widget as ButtonWidget" />
     <div v-else>Visualisation Type '{{ widget.widget_type }}' not yet implemented</div>

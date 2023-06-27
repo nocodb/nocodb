@@ -45,6 +45,7 @@ const data_config = computed(() => widgetConfig.value?.data_config as DataConfig
 
 const { dataLinkConfigIsMissing } = useWidget(widgetConfig)
 const getData = async () => {
+  // alert('GET DATA')
   if (!widgetConfig.value.id || dataLinkConfigIsMissing.value) {
     console.error('Tried to get data for Number Visualisation without complete data link configuration')
     return
@@ -83,16 +84,18 @@ watch(
 
 <template>
   <div class="h-full">
-    <div class="flex flex-col justify-between h-full">
-      <!-- <a-statistic :title="columnTitleWithAggregateFnLabel" :value="aggregatedNumberValue" /> -->
-      <div class="flex justify-between">
-        <div class="flex flex-col">
-          <h3 class="text-base font-medium text-gray-900 mb-1">{{ data_config.name }}</h3>
+    <div class="flex flex-col h-full">
+      <div class="flex justify-between items-center bg-green-200">
+        <div class="flex items-center">
+          <IconifyIcon class="bg-blue-100 mr-3 p-2 rounded-lg h-10 min-w-10 text-lg" icon="iconoir:dollar"></IconifyIcon>
+          <h3 class="text-base font-medium text-gray-900 mb-0">{{ data_config.name }}</h3>
+          <!-- <button @click.stop="showContextMenu = true"> -->
         </div>
-        <!-- TODO make icon a dynamic value -->
-        <IconifyIcon class="bg-blue-100 p-2 rounded h-10 min-w-10 text-lg" icon="iconoir:dollar"></IconifyIcon>
+        <button>
+          <GeneralIcon icon="threeDotHorizontal" class="text-gray-900 text-xl" />
+        </button>
       </div>
-      <div class="">
+      <div class="flex bg-gray-200 items-center flex-1 text-center">
         <h2 v-if="dataLinkConfigIsMissing" class="text-5xl text-center mb-0">N/A</h2>
         <h1 v-else class="text-8xl text-center mb-0">{{ aggregatedNumberValue }}</h1>
       </div>

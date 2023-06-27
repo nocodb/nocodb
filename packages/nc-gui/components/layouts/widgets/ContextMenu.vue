@@ -79,7 +79,7 @@ const hasDataReload = computed(() =>
           <h3 class="ml-1 text-inherit mb-0">{{ $t('general.duplicate') }}</h3>
         </div>
       </a-button>
-      <a-button v-if="hasDataReload" class="!border-none hover:opacity-75" @click="emits('closeContextMenu')">
+      <a-button v-if="hasDataReload" class="!border-none hover:opacity-75" @click="emits('reloadWidgetData')">
         <div class="text-red-500 flex items-center justify-start">
           <GeneralIcon icon="delete" />
           <h3 class="ml-1 text-inherit mb-0">Reload</h3>

@@ -81,6 +81,10 @@ const setup = async ({ page, isEmptyProject }: { page: Page; isEmptyProject?: bo
 
   await page.goto(`/#/nc/${project.id}/auth`);
 
+  await page.waitForResponse(
+    resp => resp.url().includes(`api/v1/db/meta/projects/${project.id}/users`) && resp.status() === 200
+  );
+
   return { project, token, dbType, workerId } as NcContext;
 };
 

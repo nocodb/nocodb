@@ -10,14 +10,11 @@ export class AccountLicensePage extends BasePage {
   }
 
   async goto() {
-    return this.waitForResponse({
-      uiAction: async () => await this.rootPage.goto('/#/account/license'),
-      httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: 'api/v1/license',
-    });
+    await this.rootPage.goto(`/#/account/license`);
+    await this.waitUntilContentLoads();
   }
 
-  waitUntilContentLoads() {
+  async waitUntilContentLoads() {
     return this.rootPage.waitForResponse(resp => resp.url().includes('api/v1/license') && resp.status() === 200);
   }
 

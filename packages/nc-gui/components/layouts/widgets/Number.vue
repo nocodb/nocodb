@@ -85,7 +85,7 @@ watch(
 <template>
   <div class="h-full">
     <div class="flex flex-col h-full">
-      <div class="flex justify-between items-center bg-green-200">
+      <div class="flex justify-between items-center">
         <div class="flex items-center">
           <IconifyIcon class="bg-blue-100 mr-3 p-2 rounded-lg h-10 min-w-10 text-lg" icon="iconoir:dollar"></IconifyIcon>
           <h3 class="text-base font-medium text-gray-900 mb-0">{{ data_config.name }}</h3>
@@ -95,9 +95,9 @@ watch(
           <GeneralIcon icon="threeDotHorizontal" class="text-gray-900 text-xl" />
         </button>
       </div>
-      <div class="flex bg-gray-200 items-center flex-1 text-center">
+      <div class="flex items-center flex-1 m-auto">
         <h2 v-if="dataLinkConfigIsMissing" class="text-5xl text-center mb-0">N/A</h2>
-        <h1 v-else class="text-8xl text-center mb-0">{{ aggregatedNumberValue }}</h1>
+        <h2 v-else class="text-8xl text-center mb-0">{{ aggregatedNumberValue }}</h2>
       </div>
     </div>
   </div>

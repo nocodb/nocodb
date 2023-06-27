@@ -99,6 +99,8 @@ const contextMenu = computed({
 })
 const contextMenuClosing = ref(false)
 
+const scrolling = ref(false)
+
 const bulkUpdateDlg = ref(false)
 
 const routeQuery = $computed(() => route.query as Record<string, string>)
@@ -660,6 +662,11 @@ const smartTable = ref(null)
 
 /** On clicking outside of table reset active cell  */
 onClickOutside(tableBodyEl, (e) => {
+  // do nothing if mousedown on the scrollbar (scrolling)
+  if (scrolling.value) {
+    return
+  }
+
   // do nothing if context menu was open
   if (contextMenu.value) return
 
@@ -935,6 +942,19 @@ watch(
 
 useEventListener(gridWrapper, 'scroll', () => {
   refreshFillHandle()
+})
+
+useEventListener(document, 'mousedown', (e) => {
+  if (e.offsetX > (e.target as HTMLElement)?.clientWidth || e.offsetY > (e.target as HTMLElement)?.clientHeight) {
+    scrolling.value = true
+  }
+})
+
+useEventListener(document, 'mouseup', () => {
+  // wait for click event to finish before setting scrolling to false
+  setTimeout(() => {
+    scrolling.value = false
+  }, 100)
 })
 </script>
 

@@ -96,7 +96,7 @@ watch(
         </button>
       </div>
       <div class="flex items-center flex-1 m-auto">
-        <h2 v-if="dataLinkConfigIsMissing" class="text-5xl text-center mb-0">N/A</h2>
+        <IconifyIcon v-if="dataLinkConfigIsMissing" class="text-8xl !text-gray-600" icon="mingcute:alert-fill"></IconifyIcon>
         <h2 v-else class="text-8xl text-center mb-0">{{ aggregatedNumberValue }}</h2>
       </div>
     </div>

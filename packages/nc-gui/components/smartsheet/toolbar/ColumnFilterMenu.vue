@@ -16,6 +16,8 @@ import {
   watch,
 } from '#imports'
 
+import FilterIcon from '~icons/nc-icons/filter'
+
 const isLocked = inject(IsLockedInj, ref(false))
 
 const activeView = inject(ActiveViewInj, ref())
@@ -75,10 +77,10 @@ useMenuCloseOnEsc(open)
     <div :class="{ 'nc-active-btn': filtersLength }">
       <a-button v-e="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm" :disabled="isLocked">
         <div class="flex items-center gap-2">
-          <img src="~/assets/nc-icons/filter.svg" class="text-[#DDB00F] h-3.75 w-3.75" />
+          <FilterIcon class="h-4 w-4" />
+
           <!-- Filter -->
           <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.filter') }}</span>
-          <component :is="iconMap.arrowDown" class="text-grey" />
 
           <span v-if="filtersLength" class="nc-count-badge">{{ filtersLength }}</span>
         </div>

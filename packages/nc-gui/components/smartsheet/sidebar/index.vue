@@ -144,7 +144,7 @@ function onOpenModal({
 
 <template>
   <div
-    class="nc-view-sidebar flex flex-col border-l-1 border-gray-100 relative h-full w-full !flex-1 !min-w-0 !max-w-[150px] !w-[150px] lg:(!max-w-[250px] !w-[250px])"
+    class="nc-view-sidebar flex flex-col border-l-1 border-gray-75 relative h-full w-full !flex-1 !min-w-0 !max-w-[150px] !w-[150px] lg:(!max-w-[250px] !w-[250px])"
   >
     <LazySmartsheetSidebarToolbar
       class="min-h-[var(--topbar-height)] max-h-[var(--topbar-height)] flex items-center pt-2.5 pb-1 px-3 justify-between"
@@ -160,7 +160,7 @@ function onOpenModal({
       <LazySmartsheetSidebarMenuTop :views="views" @open-modal="onOpenModal" @deleted="loadViews" />
 
       <template v-if="isUIAllowed('virtualViewsCreateOrEdit')">
-        <div class="!my-3 w-full border-b-1 border-gray-100" />
+        <div class="!my-3 w-full border-b-1 border-gray-75" />
 
         <LazySmartsheetSidebarMenuBottom @open-modal="onOpenModal" />
       </template>

@@ -124,7 +124,7 @@ useMenuCloseOnEsc(open)
                 <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group px-0 !py-0">
                   <LazySmartsheetToolbarLockType hide-tick :type="lockType" />
 
-                  <component :is="iconMap.arrowRight" class="transform group-hover:(scale-115 text-accent) text-gray-400" />
+                  <component :is="iconMap.arrowRight" class="transform group-hover:(scale-115 ) text-gray-400" />
                 </div>
               </template>
 
@@ -148,11 +148,11 @@ useMenuCloseOnEsc(open)
               <template #title>
                 <!--                Download -->
                 <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group">
-                  <component :is="iconMap.download" class="group-hover:text-accent text-gray-500" />
+                  <component :is="iconMap.download" class="text-gray-500" />
                   {{ $t('general.download') }}
                   <div class="flex-1" />
 
-                  <component :is="iconMap.arrowRight" class="transform group-hover:(scale-115 text-accent) text-gray-400" />
+                  <component :is="iconMap.arrowRight" class="transform group-hover:(scale-115 ) text-gray-400" />
                 </div>
               </template>
 
@@ -166,11 +166,11 @@ useMenuCloseOnEsc(open)
                 <!--                Upload -->
                 <template #title>
                   <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group">
-                    <component :is="iconMap.upload" class="group-hover:text-accent text-gray-500" />
+                    <component :is="iconMap.upload" class="text-gray-500" />
                     {{ $t('general.upload') }}
                     <div class="flex-1" />
 
-                    <component :is="iconMap.arrowRight" class="transform group-hover:(scale-115 text-accent) text-gray-400" />
+                    <component :is="iconMap.arrowRight" class="transform group-hover:(scale-115 ) text-gray-400" />
                   </div>
                 </template>
 

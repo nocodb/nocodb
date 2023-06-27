@@ -62,7 +62,6 @@ useMenuCloseOnEsc(open)
         <div class="flex items-center gap-0.5">
           <component :is="iconMap.rowHeight" class="!h-3.75 !w-3.75" />
           <!-- <span v-if="!isMobileMode" class="!text-sm !font-medium">{{ $t('objects.rowHeight') }}</span> -->
-          <component :is="iconMap.arrowDown" class="text-grey" />
         </div>
       </a-button>
     </div>

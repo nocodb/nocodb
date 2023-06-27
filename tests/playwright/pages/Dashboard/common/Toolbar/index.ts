@@ -92,7 +92,7 @@ export class ToolbarPage extends BasePage {
     await expect(fieldText).toBe('Fields');
 
     // icons count within fields menu button
-    expect(await this.get().locator(`button.nc-fields-menu-btn`).locator(`.material-symbols-outlined`).count()).toBe(2);
+    expect(await this.get().locator(`button.nc-fields-menu-btn`).locator(`.material-symbols`).count()).toBe(2);
   }
 
   async verifyFieldsButtonIsVisibleWithoutTextButIcon() {
@@ -104,7 +104,7 @@ export class ToolbarPage extends BasePage {
     await expect(fieldText).not.toBe('Fields');
 
     // icons count within fields menu button
-    expect(await this.get().locator(`button.nc-fields-menu-btn`).locator(`.material-symbols-outlined`).count()).toBe(2);
+    expect(await this.get().locator(`button.nc-fields-menu-btn`).locator(`.material-symbols`).count()).toBe(2);
   }
 
   async clickFilter({

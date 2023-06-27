@@ -6,15 +6,12 @@ category: "Product"
 menuTitle: "Links"
 ---
 
-### Relationship types:
+### Supported relationship types:
 
-- One to one
-  - A Table record in first table is related to only one record of second table.
-  - Example: Country has a capital city
 - One to many
   - A Table record in first table is related to more than one record of second table. But second table record maps to only one entry of first table
   - NocoDB refers to this category of relationship as **has many**
-  - For every **has many** relation defined, NocoDB augments **belongs to** relationship column in the other table automatically
+  - For every **has many** relation defined, NocoDB augments **belongs to** relationship column in the adjacent table automatically
   - Example: Country **has many** Cities. (other way mapping > City **belongs to** Country )
 - Many to many
   - A Table record in first table is related to more than one record of second table; second table record can also map to more than on record of first table.

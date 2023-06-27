@@ -907,13 +907,14 @@ const showFillHandle = computed(
     !isLocked.value &&
     !editEnabled &&
     (!selectedRange.isEmpty() || (activeCell.row !== null && activeCell.col !== null)) &&
-    !data.value[selectedRange.end.row ?? activeCell.row]?.rowMeta?.new,
+    !data.value[(isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) ?? -1]?.rowMeta?.new,
 )
 
 const refreshFillHandle = () => {
   const cellRef = cellRefs.value.find(
     (cell) =>
-      cell.el.dataset.rowIndex === String(selectedRange.end.row) && cell.el.dataset.colIndex === String(selectedRange.end.col),
+      cell.el.dataset.rowIndex === String(isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) &&
+      cell.el.dataset.colIndex === String(isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col),
   )
   if (cellRef) {
     const cellRect = useElementBounding(cellRef.el)
@@ -923,11 +924,14 @@ const refreshFillHandle = () => {
   }
 }
 
-watch([() => selectedRange.end.row, () => selectedRange.end.col], (n, o) => {
-  if (n !== o) {
-    refreshFillHandle()
-  }
-})
+watch(
+  [() => selectedRange.end.row, () => selectedRange.end.col, () => activeCell.row, () => activeCell.col],
+  ([sr, sc, ar, ac], [osr, osc, oar, oac]) => {
+    if (sr !== osr || sc !== osc || ar !== oar || ac !== oac) {
+      refreshFillHandle()
+    }
+  },
+)
 
 useEventListener(gridWrapper, 'scroll', () => {
   refreshFillHandle()

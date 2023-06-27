@@ -126,7 +126,7 @@ export class SelectOptionCellPageObject extends BasePage {
       await expect(this.rootPage.locator(`div.ant-select-item-option`).nth(counter)).toHaveText(option);
       counter++;
     }
-    await this.get({ index, columnHeader }).click();
+    await this.rootPage.keyboard.press('Escape');
     await this.rootPage.locator(`.nc-dropdown-single-select-cell`).nth(index).waitFor({ state: 'hidden' });
   }
 

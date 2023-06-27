@@ -791,8 +791,6 @@ class PGClient extends KnexClient {
         INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
         WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
                 ) enum_values
-
-
             from information_schema.columns c
               left join
                 ( 
@@ -802,7 +800,6 @@ class PGClient extends KnexClient {
                       col.attname as column_name,
                       pc.contype as constraint_type,
                       kc.ordinal_position as ordinal_position
-                      
                     from
                         pg_constraint pc
                     JOIN pg_namespace n
@@ -810,19 +807,15 @@ class PGClient extends KnexClient {
                         
                     INNER JOIN pg_catalog.pg_class rel
                          ON rel.oid = pc.conrelid
-               --      INNER JOIN pg_catalog.pg_database db
-               --                 ON db.oid = rel.relnamespace
-
                     LEFT JOIN LATERAL UNNEST(pc.conkey)  WITH ORDINALITY AS u(attnum, attposition)   ON TRUE
                     LEFT JOIN pg_attribute col ON (col.attrelid = pc.conrelid AND col.attnum = u.attnum)
                     left join information_schema.key_column_usage as kc
                       on pc.conname = kc.constraint_name 
                       and col.attname = kc.column_name
                       and pc.conrelid::regclass::text = kc.table_name
-                 WHERE n.nspname = :schema
-                    AND rel.relname = :table
-               --     AND db.datname = :database 
-                    and pc.contype = 'p' and pc.conrelid::regclass::text = :table
+                    WHERE n.nspname = :schema
+                      AND rel.relname = :table 
+                      and pc.contype = 'p' and pc.conrelid::regclass::text = :table
                  ) pk
                 on
                 pk.table_name = c.table_name and pk.column_name=c.column_name

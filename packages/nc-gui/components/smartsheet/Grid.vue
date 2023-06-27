@@ -211,6 +211,7 @@ const {
   makeActive,
   selectedRange,
   isCellInFillRange,
+  isFillMode,
 } = useMultiSelect(
   meta,
   fields,
@@ -668,10 +669,13 @@ onClickOutside(tableBodyEl, (e) => {
 
   if (editEnabled && (isVirtualCol(activeCol) || activeCol.uidt === UITypes.JSON)) return
 
+  // skip if fill mode is active
+  if (isFillMode.value) return
+
   // ignore unselecting if clicked inside or on the picker(Date, Time, DateTime, Year)
   // or single/multi select options
   const activePickerOrDropdownEl = document.querySelector(
-    '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active,.nc-fill-handle',
+    '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
   )
   if (
     e.target &&

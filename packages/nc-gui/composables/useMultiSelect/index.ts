@@ -903,8 +903,8 @@ export function useMultiSelect(
     resetSelectedRange,
     selectedRange,
     makeActive,
-    fillHandleMouseDown,
     isCellInFillRange,
     isMouseDown,
+    isFillMode,
   }
 }

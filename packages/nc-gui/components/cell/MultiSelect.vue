@@ -48,11 +48,11 @@ const readOnly = inject(ReadonlyInj)!
 
 const isEditable = inject(EditModeInj, ref(false))
 
-const activeCell = inject(ActiveCellInj, ref(false))
+const _active = inject(ActiveCellInj, ref(false))
 
 // use both ActiveCellInj or EditModeInj to determine the active state
 // since active will be false in case of form view
-const active = computed(() => activeCell.value || isEditable.value)
+const active = computed(() => _active.value || isEditable.value)
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -180,7 +180,7 @@ watch(isOpen, (n, _o) => {
   }
 })
 
-useSelectedCellKeyupListener(activeCell, (e) => {
+useSelectedCellKeyupListener(active, (e) => {
   switch (e.key) {
     case 'Escape':
       isOpen.value = false

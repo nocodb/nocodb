@@ -4,6 +4,8 @@ import { DashboardPage } from '../../pages/Dashboard';
 import { Api } from 'nocodb-sdk';
 import { createDemoTable } from '../../setup/demoTable';
 import { BulkUpdatePage } from '../../pages/Dashboard/BulkUpdate';
+import { AccountLicensePage } from '../../pages/Account/License';
+import { AccountPage } from '../../pages/Account';
 
 let bulkUpdateForm: BulkUpdatePage;
 async function updateBulkFields(fields) {
@@ -31,6 +33,8 @@ test.describe('Bulk update', () => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     bulkUpdateForm = dashboard.bulkUpdateForm;
+    const accountPage: AccountPage = new AccountPage(page);
+    const accountLicensePage: AccountLicensePage = new AccountLicensePage(accountPage);
 
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -41,6 +45,10 @@ test.describe('Bulk update', () => {
 
     table = await createDemoTable({ context, type: 'textBased', recordCnt: 50 });
     await page.reload();
+
+    await accountLicensePage.goto();
+    await accountLicensePage.saveLicenseKey('1234567890');
+    await dashboard.goto();
 
     await dashboard.treeView.openTable({ title: 'textBased' });
 
@@ -127,6 +135,8 @@ test.describe('Bulk update', () => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     bulkUpdateForm = dashboard.bulkUpdateForm;
+    const accountPage: AccountPage = new AccountPage(page);
+    const accountLicensePage: AccountLicensePage = new AccountLicensePage(accountPage);
 
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -137,6 +147,10 @@ test.describe('Bulk update', () => {
 
     table = await createDemoTable({ context, type: 'numberBased', recordCnt: 50 });
     await page.reload();
+
+    await accountLicensePage.goto();
+    await accountLicensePage.saveLicenseKey('1234567890');
+    await dashboard.goto();
 
     await dashboard.treeView.openTable({ title: 'numberBased' });
 
@@ -197,6 +211,8 @@ test.describe('Bulk update', () => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     bulkUpdateForm = dashboard.bulkUpdateForm;
+    const accountPage: AccountPage = new AccountPage(page);
+    const accountLicensePage: AccountLicensePage = new AccountLicensePage(accountPage);
 
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -207,6 +223,10 @@ test.describe('Bulk update', () => {
 
     table = await createDemoTable({ context, type: 'selectBased', recordCnt: 50 });
     await page.reload();
+
+    await accountLicensePage.goto();
+    await accountLicensePage.saveLicenseKey('1234567890');
+    await dashboard.goto();
 
     await dashboard.treeView.openTable({ title: 'selectBased' });
 
@@ -260,6 +280,8 @@ test.describe('Bulk update', () => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     bulkUpdateForm = dashboard.bulkUpdateForm;
+    const accountPage: AccountPage = new AccountPage(page);
+    const accountLicensePage: AccountLicensePage = new AccountLicensePage(accountPage);
 
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -270,6 +292,10 @@ test.describe('Bulk update', () => {
 
     table = await createDemoTable({ context, type: 'miscellaneous', recordCnt: 50 });
     await page.reload();
+
+    await accountLicensePage.goto();
+    await accountLicensePage.saveLicenseKey('1234567890');
+    await dashboard.goto();
 
     await dashboard.treeView.openTable({ title: 'miscellaneous' });
 
@@ -323,6 +349,8 @@ test.describe('Bulk update', () => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     bulkUpdateForm = dashboard.bulkUpdateForm;
+    const accountPage: AccountPage = new AccountPage(page);
+    const accountLicensePage: AccountLicensePage = new AccountLicensePage(accountPage);
 
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -333,6 +361,10 @@ test.describe('Bulk update', () => {
 
     table = await createDemoTable({ context, type: 'dateTimeBased', recordCnt: 50 });
     await page.reload();
+
+    await accountLicensePage.goto();
+    await accountLicensePage.saveLicenseKey('1234567890');
+    await dashboard.goto();
 
     await dashboard.treeView.openTable({ title: 'dateTimeBased' });
 

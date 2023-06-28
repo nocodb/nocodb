@@ -15,6 +15,7 @@ export class RatingCellPageObject extends BasePage {
   }
 
   async select({ index, columnHeader, rating }: { index?: number; columnHeader: string; rating: number }) {
+    await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
     await this.waitForResponse({
       uiAction: () => this.get({ index, columnHeader }).locator('.ant-rate-star > div').nth(rating).click(),
       httpMethodsToMatch: ['POST', 'PATCH'],

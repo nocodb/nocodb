@@ -65,15 +65,15 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <template>
   <div>
-    <div
-      class="py-0.25 !px-0 !border-0 !h-full !rounded-md w-full bg-inherit hover:bg-gray-100 text-sm"
+    <a-button
+      class="!py-0 !px-0 !border-0 !h-full !rounded-md w-full hover:bg-gray-100 text-sm select-none cursor-pointer"
       :type="props.type ?? 'primary'"
       @click="navigateToCreateProject(NcProjectType.DB)"
     >
       <div class="flex w-full items-center gap-2">
         <slot>New Project <MdiMenuDown /></slot>
       </div>
-    </div>
+    </a-button>
     <!-- <a-dropdown v-model:visible="isOpen" class="w-full">
       <template #overlay>
         <a-menu>

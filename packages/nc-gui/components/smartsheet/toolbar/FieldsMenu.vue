@@ -24,7 +24,7 @@ import {
   watch,
 } from '#imports'
 
-import TablerEye from '~icons/ph/eye'
+import FieldIcon from '~icons/nc-icons/eye'
 
 const meta = inject(MetaInj, ref())
 
@@ -292,12 +292,10 @@ useMenuCloseOnEsc(open)
     <div :class="{ 'nc-active-btn': numberOfHiddenFields }">
       <a-button v-e="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-2">
-          <img src="~/assets/nc-icons/eye.svg" class="text-[#DDB00F] h-4 w-4" />
+          <FieldIcon class="h-4 w-4" />
 
           <!-- Fields -->
           <span v-if="!isMobileMode" class="text-capitalize text-sm font-medium">{{ $t('objects.fields') }}</span>
-
-          <component :is="iconMap.arrowDown" class="text-grey" />
 
           <span v-if="numberOfHiddenFields" class="nc-count-badge">{{ numberOfHiddenFields }}</span>
         </div>

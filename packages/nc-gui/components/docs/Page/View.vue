@@ -9,7 +9,7 @@ import { emptySectionContent, removeUploadingPlaceHolderAndEmptyLinkNode } from 
 import '~/assets/docsPage.scss'
 
 const { project } = useProject()
-const { isOpen: isSidebarOpen } = storeToRefs(useSidebarStore())
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 useShortcuts()
 
 const {
@@ -284,8 +284,8 @@ watch(
         <div
           class="flex flex-row justify-between items-center"
           :class="{
-            'pl-6': isSidebarOpen,
-            'pl-12': !isSidebarOpen,
+            'pl-6': isLeftSidebarOpen,
+            'pl-12': !isLeftSidebarOpen,
           }"
           :style="{
             height: 'var(--topbar-height)',

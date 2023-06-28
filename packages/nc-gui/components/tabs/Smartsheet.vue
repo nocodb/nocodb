@@ -146,33 +146,38 @@ const onDrop = async (event: DragEvent) => {
 </script>
 
 <template>
-  <div class="nc-container flex h-full" @drop="onDrop" @dragover.prevent>
-    <div class="flex flex-col h-full flex-1 min-w-0">
-      <LazySmartsheetToolbar />
+  <div class="nc-container flex flex-col h-full" @drop="onDrop" @dragover.prevent>
+    <LazySmartsheetToolbar />
+    <TabsSmarsheetResizable>
+      <template #content>
+        <div class="flex flex-col h-full flex-1 min-w-0">
+          <div class="flex flex-row w-full" style="height: calc(100vh - var(--topbar-height))">
+            <Transition name="layout" mode="out-in">
+              <template v-if="meta">
+                <div class="flex flex-1 min-h-0 w-3/4">
+                  <div v-if="activeView" class="h-full flex-1 min-w-0 min-h-0 bg-white">
+                    <LazySmartsheetGrid v-if="isGrid" ref="grid" />
 
-      <div class="flex flex-row w-full" style="height: calc(100vh - var(--topbar-height))">
-        <Transition name="layout" mode="out-in">
-          <template v-if="meta">
-            <div class="flex flex-1 min-h-0 w-3/4">
-              <div v-if="activeView" class="h-full flex-1 min-w-0 min-h-0 bg-white">
-                <LazySmartsheetGrid v-if="isGrid" ref="grid" />
+                    <LazySmartsheetGallery v-else-if="isGallery" />
 
-                <LazySmartsheetGallery v-else-if="isGallery" />
+                    <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
-                <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
+                    <LazySmartsheetKanban v-else-if="isKanban" />
 
-                <LazySmartsheetKanban v-else-if="isKanban" />
-
-                <LazySmartsheetMap v-else-if="isMap" />
-              </div>
-            </div>
-          </template>
-        </Transition>
+                    <LazySmartsheetMap v-else-if="isMap" />
+                  </div>
+                </div>
+              </template>
+            </Transition>
+          </div>
+        </div>
+      </template>
+      <template #sidebar>
         <template v-if="!isPublic">
           <LazySmartsheetSidebar />
         </template>
-      </div>
-    </div>
+      </template>
+    </TabsSmarsheetResizable>
 
     <LazySmartsheetExpandedFormDetached />
   </div>

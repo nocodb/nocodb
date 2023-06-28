@@ -7,8 +7,6 @@ const workspaceStore = useWorkspace()
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
 
-const { isOpen } = storeToRefs(useSidebarStore())
-
 const dialogOpen = ref(false)
 
 const openDialogKey = ref<string>('')
@@ -44,7 +42,7 @@ const onTreeViewScrollTop = (onScrollTop: boolean) => {
     }"
   >
     <div style="height: var(--sidebar-top-height)">
-      <div style="border-bottom-width: 1px" class="flex items-center px-1 nc-sidebar-header !border-0 py-1.5 pl-2">
+      <div style="border-bottom-width: 1px" class="flex items-center px-1 nc-sidebar-header !border-0 py-1.25 pl-2">
         <div class="flex flex-row flex-grow hover:bg-gray-100 pl-2 pr-1 py-0.5 rounded-md">
           <div
             v-if="!isSharedBase"
@@ -71,17 +69,6 @@ const onTreeViewScrollTop = (onScrollTop: boolean) => {
 
           <WorkspaceMenu :workspace="activeWorkspace" :is-open="true" />
         </div>
-
-        <div
-          class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center ml-0.5 pr-0.5 h-full"
-        >
-          <IcOutlineKeyboardDoubleArrowLeft
-            v-e="['c:grid:toggle-navdraw']"
-            class="cursor-pointer transform transition-transform duration-500 p-0.75 h-6.25 w-6.25 rounded-md hover:bg-gray-100"
-            :class="{ 'rotate-180': !isOpen }"
-            @click="isOpen = !isOpen"
-          />
-        </div>
       </div>
 
       <div class="w-full mt-2"></div>
@@ -104,7 +91,7 @@ const onTreeViewScrollTop = (onScrollTop: boolean) => {
         :active-workspace-id="route.params.workspaceId"
       >
         <div
-          class="gap-x-2 flex flex-row w-full items-center nc-sidebar-top-button !my-0"
+          class="gap-x-2 flex flex-row w-full items-center nc-sidebar-top-button !my-0 !ml-0"
           :class="{
             'bg-gray-100': isCreateProjectOpen,
           }"

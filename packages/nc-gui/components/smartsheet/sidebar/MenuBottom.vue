@@ -21,7 +21,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 </script>
 
 <template>
-  <a-menu :selected-keys="[]" class="flex flex-col !text-gray-600">
+  <a-menu :selected-keys="[]" class="flex flex-col !text-gray-600 !bg-inherit">
     <div class="px-6 text-xs flex items-center gap-4 my-2 !text-gray-700">
       {{ $t('activity.createView') }}
     </div>

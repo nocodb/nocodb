@@ -218,7 +218,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             >
               <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
                 <div class="flex gap-1 items-center">
-                  <component :is="opt.icon" class="text-grey" />
+                  <component :is="opt.icon" class="text-gray-700 mx-1" style="font-weight: 600; font-size: 1.1rem" />
                   {{ opt.name }}
                 </div>
               </a-select-option>

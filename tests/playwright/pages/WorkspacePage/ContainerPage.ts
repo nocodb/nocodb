@@ -22,7 +22,7 @@ import { getIconText, getTextExcludeIconText } from '../../tests/utils/general';
     thead.ant-table-thead
       tr.ant-table-row
         td.ant-table-cell (nc-project-title)
-          material-symbols-outlined : database
+          material-symbols : database
           span : project title
           nc-icon : favourites icon
         td.ant-table-cell (color)

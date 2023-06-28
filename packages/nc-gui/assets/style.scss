@@ -4,7 +4,7 @@
 
 :root {
   --sidebar-top-height: 11.75rem;
-  --topbar-height: 3.15rem;
+  --topbar-height: 3.25rem;
   --new-header-height: 3.5rem;
   --tw-text-opacity: 1;
   --navbar-bg: #FAFAFA;
@@ -37,34 +37,27 @@ main {
 
 .nc-sidebar-md {
   overflow-y: overlay;
+  overflow-x: hidden;
 
   &::-webkit-scrollbar {
     width: 4px;
+    height: 4px;
   }
-  &::-webkit-scrollbar-track {
-    background: #f6f6f600 !important;
+  &::-webkit-scrollbar-track-piece {
+    width: 0px;
   }
-  &::-webkit-scrollbar-thumb {
-    background: #f6f6f600;
-  }
-  &::-webkit-scrollbar-thumb:hover {
-    background: #f6f6f600;
-  }
-}
-.nc-sidebar-md {
   &::-webkit-scrollbar {
-    width: 4px;
-  }
-  &::-webkit-scrollbar-track {
-    background: #f6f6f600 !important;
+    @apply bg-transparent;
   }
   &::-webkit-scrollbar-thumb {
-    background: rgb(215, 215, 215);
+    width: 4px;
+    @apply bg-gray-100 ;
   }
   &::-webkit-scrollbar-thumb:hover {
-    background: rgb(203, 203, 203);
+    @apply bg-gray-200;
   }
 }
+
 
 html {
   overflow-y: auto !important;
@@ -93,13 +86,13 @@ a {
 }
 
 .nc-project-menu-item {
-  @apply cursor-pointer flex items-center gap-2 py-2 hover:text-primary after:(content-[''] absolute top-0 left-0 bottom-0 right-0 w-full h-full bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
+  @apply cursor-pointer flex items-center gap-2 py-2 after:(content-[''] absolute top-0 left-0 bottom-0 right-0 w-full h-full bg-current opacity-0 transition transition-opacity duration-100) hover:(after:(opacity-5));
 
-  &:hover {
-    .nc-icon {
-      @apply text-accent;
-    }
-  }
+  // &:hover {
+  //   .nc-icon {
+  //     @apply text-accent;
+  //   }
+  // }
 }
 
 .nc-workspace-menu-item {

@@ -1004,7 +1004,7 @@ function openGenerateDialog(target: any) {
       </div>
     </general-overlay>
 
-    <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
+    <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 nc-sidebar-md">
       <a-dropdown
         v-model:visible="contextMenu"
         :trigger="isSqlView ? [] : ['contextmenu']"
@@ -1020,7 +1020,7 @@ function openGenerateDialog(target: any) {
               <th class="w-[85px] min-w-[85px]" data-testid="grid-id-column">
                 <div class="w-full h-full flex pl-5 pr-1 items-center" data-testid="nc-check-all">
                   <template v-if="!readOnly">
-                    <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
+                    <div class="nc-no-label text-gray-400" :class="{ hidden: selectedAllRecords }">#</div>
                     <div
                       :class="{ hidden: !selectedAllRecords, flex: selectedAllRecords }"
                       class="nc-check-all w-full items-center"
@@ -1065,7 +1065,7 @@ function openGenerateDialog(target: any) {
                 >
                   <div class="h-full w-[60px] flex items-center justify-center">
                     <GeneralIcon v-if="altModifier || persistMenu" icon="magic" class="text-sm text-orange-400" />
-                    <component :is="iconMap.plus" class="text-sm nc-column-add" />
+                    <component :is="iconMap.plus" class="text-sm nc-column-add text-gray-600" />
                   </div>
 
                   <template v-if="persistMenu" #overlay>
@@ -1206,12 +1206,12 @@ function openGenerateDialog(target: any) {
                           </span>
                           <div
                             v-else
-                            class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)"
+                            class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded p-1 hover:(bg-gray-50)"
                           >
                             <component
                               :is="iconMap.expand"
                               v-e="['c:row-expand']"
-                              class="select-none transform hover:(text-accent scale-120) nc-row-expand"
+                              class="select-none transform hover:(text-black scale-120) nc-row-expand"
                               @click="expandForm(row, state)"
                             />
                           </div>
@@ -1288,7 +1288,7 @@ function openGenerateDialog(target: any) {
                   <component :is="iconMap.plus" class="text-pint-500 text-xs ml-2 text-gray-600 group-hover:text-black" />
                 </div>
               </td>
-              <td :colspan="visibleColLength"></td>
+              <td class="!border-gray-50" :colspan="visibleColLength"></td>
             </tr>
           </tbody>
         </table>
@@ -1379,7 +1379,7 @@ function openGenerateDialog(target: any) {
 
     <div
       v-if="isAddingEmptyRowAllowed"
-      class="absolute bottom-12.5 left-3 z-4"
+      class="absolute bottom-12 left-2 z-4"
       data-testid="nc-grid-add-new-row"
       @click="addEmptyRow()"
     >
@@ -1444,9 +1444,13 @@ function openGenerateDialog(target: any) {
   @apply h-full w-full;
   overflow: overlay !important;
 
+  tr:nth-child(1) {
+    height: 41px !important;
+  }
+
   td,
   th {
-    @apply border-gray-75 border-solid border-b border-r;
+    @apply border-gray-50 border-solid border-b border-r;
     min-height: 41px !important;
     height: 41px !important;
     position: relative;
@@ -1512,7 +1516,7 @@ function openGenerateDialog(target: any) {
     position: sticky !important;
     left: 85px;
     z-index: 5;
-    @apply border-r-1 border-r-gray-100;
+    @apply border-r-1 border-r-gray-75;
   }
 
   tbody td:nth-child(2) {
@@ -1520,7 +1524,7 @@ function openGenerateDialog(target: any) {
     left: 85px;
     z-index: 4;
     background: white;
-    @apply border-r-1 border-r-gray-100;
+    @apply border-r-1 border-r-gray-75;
   }
 }
 

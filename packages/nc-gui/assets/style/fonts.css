@@ -153,7 +153,7 @@
 
 /* material-symbols-outlined-200 - latin */
 @font-face {
-  font-family: 'Material Symbols Outlined';
+  font-family: 'Material Symbols';
   font-style: normal;
   font-weight: 200;
   src: url('./material-symbols/material-symbols-outlined-v92-latin-200.eot'); /* IE9 Compat Modes */
@@ -169,14 +169,14 @@
 
 /* fallback */
 @font-face {
-  font-family: 'Material Symbols Outlined';
+  font-family: 'Material Symbols';
   font-style: normal;
   font-weight: 200;
   src: url(./material.woff2) format('woff2');
 }
 
-.material-symbols-outlined {
-  font-family: 'Material Symbols Outlined';
+.material-symbols {
+  font-family: 'Material Symbols';
   font-weight: normal;
   font-style: normal;
   line-height: 1;
@@ -186,8 +186,9 @@
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
+  font-weight: 500;
   -webkit-font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
-  font-size: 22px  !important;
-user-select: none;
+  font-size: 1.25rem;
+  user-select: none;
 }

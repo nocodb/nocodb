@@ -18,12 +18,11 @@ export class AccountUsersPage extends BasePage {
   }
 
   async goto() {
-    await this.waitForResponse({
+    return this.waitForResponse({
       uiAction: async () => await this.rootPage.goto('/#/account/users/list'),
       httpMethodsToMatch: ['GET'],
       requestUrlPathToMatch: `api/v1/users`,
     });
-    return this.waitUntilContentLoads();
   }
 
   async waitUntilContentLoads() {

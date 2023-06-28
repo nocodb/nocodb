@@ -58,8 +58,8 @@ export class ToolbarFieldsPage extends BasePage {
 
   async click({ title, isLocallySaved }: { title: string; isLocallySaved?: boolean }) {
     await this.waitForResponse({
-      uiAction: () =>
-        this.get().locator(`[data-testid="nc-fields-menu-${title}"]`).locator('input[type="checkbox"]').click(),
+      uiAction: async () =>
+      await this.get().locator(`[data-testid="nc-fields-menu-${title}"]`).locator('input[type="checkbox"]').click(),
       requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
     });
@@ -69,7 +69,7 @@ export class ToolbarFieldsPage extends BasePage {
   async hideAll({ isLocallySaved }: { isLocallySaved?: boolean } = {}) {
     await this.toolbar.clickFields();
     await this.waitForResponse({
-      uiAction: () => this.get().locator(`button:has-text("Hide all")`).click(),
+      uiAction: async () => await this.get().locator(`button:has-text("Hide all")`).click(),
       requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
     });
@@ -79,7 +79,7 @@ export class ToolbarFieldsPage extends BasePage {
   async showAll({ isLocallySaved }: { isLocallySaved?: boolean } = {}) {
     await this.toolbar.clickFields();
     await this.waitForResponse({
-      uiAction: () => this.get().locator(`button:has-text("Show all")`).click(),
+      uiAction: async () => await this.get().locator(`button:has-text("Show all")`).click(),
       requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
     });
@@ -89,7 +89,7 @@ export class ToolbarFieldsPage extends BasePage {
   async toggleShowSystemFields({ isLocallySaved }: { isLocallySaved?: boolean } = {}) {
     await this.toolbar.clickFields();
     await this.waitForResponse({
-      uiAction: () => this.get().locator(`.nc-fields-show-system-fields`).click(),
+      uiAction: async () => await this.get().locator(`.nc-fields-show-system-fields`).click(),
       requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
     });

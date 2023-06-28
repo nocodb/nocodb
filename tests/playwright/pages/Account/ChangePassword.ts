@@ -37,8 +37,8 @@ export class ChangePasswordPage extends BasePage {
     await newPassword.fill(newPass);
     await confirmPassword.fill(repeatPass);
 
-    const submitChangePassword = () =>
-      this.get().locator('button[data-testid="nc-user-settings-form__submit"]').click();
+    const submitChangePassword = async () =>
+      await this.get().locator('button[data-testid="nc-user-settings-form__submit"]').click();
     if (networkValidation) {
       await this.waitForResponse({
         uiAction: submitChangePassword,

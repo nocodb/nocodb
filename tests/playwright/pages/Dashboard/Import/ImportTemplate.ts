@@ -63,7 +63,7 @@ export class ImportTemplatePage extends BasePage {
     await this.waitForResponse({
       requestUrlPathToMatch: '/api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
-      uiAction: () => this.get().locator('button:has-text("Import"):visible').click(),
+      uiAction: async () => await this.get().locator('button:has-text("Import"):visible').click(),
     });
     await this.dashboard.waitForTabRender({
       title: tblList[0],

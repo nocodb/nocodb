@@ -84,7 +84,7 @@ export class CellPageObject extends BasePage {
   async inCellExpand({ index, columnHeader }: CellProps) {
     await this.get({ index, columnHeader }).hover();
     await this.waitForResponse({
-      uiAction: () => this.get({ index, columnHeader }).locator('.nc-action-icon >> nth=0').click(),
+      uiAction: async () =>await this.get({ index, columnHeader }).locator('.nc-action-icon >> nth=0').click(),
       requestUrlPathToMatch: '/api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
     });
@@ -307,7 +307,7 @@ export class CellPageObject extends BasePage {
       // arrow expand doesn't exist for bt columns
       if (await arrow_expand.count()) {
         await this.waitForResponse({
-          uiAction: () => arrow_expand.click(),
+          uiAction: async () => await arrow_expand.click(),
           requestUrlPathToMatch: '/api/v1/db',
           httpMethodsToMatch: ['GET'],
         });
@@ -329,7 +329,7 @@ export class CellPageObject extends BasePage {
     const cell = this.get({ index, columnHeader });
     await cell.click();
     await this.waitForResponse({
-      uiAction: () => cell.locator('.unlink-icon').first().click(),
+      uiAction: async () => await cell.locator('.unlink-icon').first().click(),
       requestUrlPathToMatch: '/api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
     });

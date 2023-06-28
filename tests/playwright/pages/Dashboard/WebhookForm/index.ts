@@ -97,7 +97,7 @@ export class WebhookFormPage extends BasePage {
   }
 
   async save() {
-    const saveAction = () => this.saveButton.click();
+    const saveAction = async () => await this.saveButton.click();
 
     await this.waitForResponse({
       uiAction: saveAction,

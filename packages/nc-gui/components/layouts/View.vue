@@ -34,7 +34,6 @@ const resizedEvent = async (i: any, height: any, width: any) => {
 const gap = computed(() => parseInt(openedLayoutSidebarNode.value?.grid_gap || '0') || 0)
 const contextMenuVisible = ref(false)
 
-
 const closeContextMenu = () => {
   contextMenuVisible.value = false
 }
@@ -46,7 +45,6 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener('click', closeContextMenu)
 })
-
 
 const showContextMenu = (top: number, left: number, widget: Widget) => {
   widgetForContextMenu.value = widget

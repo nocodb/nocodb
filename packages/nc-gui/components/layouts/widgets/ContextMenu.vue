@@ -80,8 +80,8 @@ const hasDataReload = computed(() =>
         </div>
       </a-button>
       <a-button v-if="hasDataReload" class="!border-none hover:opacity-75" @click="emits('reloadWidgetData')">
-        <div class="text-red-500 flex items-center justify-start">
-          <GeneralIcon icon="delete" />
+        <div class="text-gray-600 flex items-center justify-start">
+          <GeneralIcon icon="reload" />
           <h3 class="ml-1 text-inherit mb-0">Reload</h3>
         </div>
       </a-button>

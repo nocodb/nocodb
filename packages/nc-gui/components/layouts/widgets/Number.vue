@@ -45,7 +45,6 @@ const data_config = computed(() => widgetConfig.value?.data_config as DataConfig
 
 const { dataLinkConfigIsMissing } = useWidget(widgetConfig)
 const getData = async () => {
-  // alert('GET DATA')
   if (!widgetConfig.value.id || dataLinkConfigIsMissing.value) {
     console.error('Tried to get data for Number Visualisation without complete data link configuration')
     return
@@ -80,6 +79,45 @@ watch(
     immediate: true,
   },
 )
+
+// const menuItems = [
+//   {
+//     title: 'Edit',
+//     icon: 'edit',
+//     onClick: () => {
+//       alert('Edit')
+//     },
+//   },
+//   {
+//     title: 'Delete',
+//     icon: 'delete',
+//     onClick: () => {
+//       alert('Delete')
+//     },
+//   },
+// ]
+const isContextMenuVisible = ref(false)
+
+const contextMenuRef = ref<HTMLElement | null>(null)
+const showContextMenuButtonRef = ref<HTMLElement | null>(null)
+
+const handleDocumentClick = (event: MouseEvent) => {
+  console.log('event: ', event)
+  if (!contextMenuRef.value?.contains(event.target as Node) && !showContextMenuButtonRef.value?.contains(event.target as Node)) {
+    isContextMenuVisible.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleDocumentClick)
+})
+onUnmounted(() => {
+  document.removeEventListener('click', handleDocumentClick)
+})
+
+const showContextMenu = () => {
+  isContextMenuVisible.value = true
+}
 </script>
 
 <template>
@@ -89,11 +127,11 @@ watch(
         <div class="flex items-center">
           <IconifyIcon class="bg-blue-100 mr-3 p-2 rounded-lg h-10 min-w-10 text-lg" icon="iconoir:dollar"></IconifyIcon>
           <h3 class="text-base font-medium text-gray-900 mb-0">{{ data_config.name }}</h3>
-          <!-- <button @click.stop="showContextMenu = true"> -->
         </div>
-        <button>
+        <button ref="showContextMenuButtonRef" @click="showContextMenu">
           <GeneralIcon icon="threeDotHorizontal" class="text-gray-900 text-xl" />
         </button>
+        <LayoutsWidgetsContextMenu v-if="isContextMenuVisible" :widget="widgetConfig" @reload-widget-data="getData" />
       </div>
       <div class="flex items-center flex-1 m-auto">
         <IconifyIcon v-if="dataLinkConfigIsMissing" class="text-8xl !text-gray-600" icon="mingcute:alert-fill"></IconifyIcon>

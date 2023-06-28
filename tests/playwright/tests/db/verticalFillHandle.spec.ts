@@ -129,7 +129,7 @@ test.describe('Fill Handle', () => {
   });
 });
 
-test.describe.skip('Fill Handle', () => {
+test.describe('Fill Handle', () => {
   test.beforeEach(async ({ page }) => {
     await beforeEachInit({ page, tableType: 'selectBased' });
   });

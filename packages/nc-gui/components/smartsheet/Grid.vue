@@ -82,6 +82,8 @@ const isView = false
 
 let editEnabled = $ref(false)
 
+const { appInfo } = useGlobal()
+
 const { xWhere, isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
 
 const visibleColLength = $computed(() => fields.value?.length)
@@ -1129,7 +1131,7 @@ function addEmptyRow(row?: number) {
             </a-menu-item>
 
             <a-menu-item
-              v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
+              v-if="appInfo.ee && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
               @click="bulkUpdateDlg = true"
             >
               <div v-e="['a:row:update-bulk']" class="nc-project-menu-item">

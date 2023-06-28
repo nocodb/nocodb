@@ -438,6 +438,7 @@ watch(activeWorkspaceId, async () => {
             v-if="isWorkspaceOwner && tab === 'projects'"
             v-model:is-open="isCreateProjectOpen"
             class="mt-0.75"
+            type="primary"
             :active-workspace-id="activeWorkspace?.id"
             modal
           >

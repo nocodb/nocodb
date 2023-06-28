@@ -7,8 +7,6 @@ const workspaceStore = useWorkspace()
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
 
-const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
-
 const dialogOpen = ref(false)
 
 const openDialogKey = ref<string>('')
@@ -71,17 +69,6 @@ const onTreeViewScrollTop = (onScrollTop: boolean) => {
 
           <WorkspaceMenu :workspace="activeWorkspace" :is-open="true" />
         </div>
-
-        <div
-          class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center ml-0.5 pr-0.5 h-full"
-        >
-          <IcOutlineKeyboardDoubleArrowLeft
-            v-e="['c:grid:toggle-navdraw']"
-            class="cursor-pointer transform transition-transform duration-500 p-0.75 h-6.25 w-6.25 rounded-md hover:bg-gray-100"
-            :class="{ 'rotate-180': !isLeftSidebarOpen }"
-            @click="isLeftSidebarOpen = !isLeftSidebarOpen"
-          />
-        </div>
       </div>
 
       <div class="w-full mt-2"></div>
@@ -104,7 +91,7 @@ const onTreeViewScrollTop = (onScrollTop: boolean) => {
         :active-workspace-id="route.params.workspaceId"
       >
         <div
-          class="gap-x-2 flex flex-row w-full items-center nc-sidebar-top-button !my-0"
+          class="gap-x-2 flex flex-row w-full items-center nc-sidebar-top-button !my-0 !ml-0"
           :class="{
             'bg-gray-100': isCreateProjectOpen,
           }"

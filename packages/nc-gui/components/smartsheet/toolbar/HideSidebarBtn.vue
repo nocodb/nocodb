@@ -6,7 +6,7 @@ const { isRightSidebarOpen } = storeToRefs(useSidebarStore())
 
 <template>
   <div
-    class="flex flex-row items-center justify-center !rounded-md !p-1.75 border-1 cursor-pointer hover:bg-gray-50"
+    class="flex flex-row items-center justify-center !rounded-md !p-1.75 border-1 cursor-pointer bg-white hover:bg-gray-50"
     :class="{
       'bg-gray-75': !isRightSidebarOpen,
     }"

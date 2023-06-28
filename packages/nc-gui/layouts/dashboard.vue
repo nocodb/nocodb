@@ -158,15 +158,6 @@ export default {
           <slot name="sidebar" />
         </div>
       </Pane>
-      <div v-if="!isLeftSidebarOpen" class="absolute top-0 left-0 flex flex-col h-full">
-        <div
-          class="flex flex-row items-center justify-center ml-2 mt-2.25 p-1 border-1 border-gray-100 h-7.5 w-7.5 rounded-md hover:bg-gray-50 cursor-pointer z-40"
-          @click="isLeftSidebarOpen = true"
-        >
-          <MdiMenu v-if="isSidebarHidden && !isStartHideSidebarAnimation" />
-          <IcBaselineKeyboardDoubleArrowRight v-else />
-        </div>
-      </div>
       <Pane :size="contentSize.current">
         <slot name="content" />
       </Pane>

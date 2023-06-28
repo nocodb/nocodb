@@ -38,7 +38,6 @@ main {
 .nc-sidebar-md {
   overflow-y: overlay;
   overflow-x: hidden;
-  scrollbar-color: gray transparent;
 
   &::-webkit-scrollbar {
     width: 4px;

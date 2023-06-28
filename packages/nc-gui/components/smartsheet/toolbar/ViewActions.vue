@@ -108,7 +108,7 @@ useMenuCloseOnEsc(open)
 <template>
   <div>
     <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu" placement="bottomLeft">
-      <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn !border-1 !rounded-md !py-1 !px-2">
+      <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn !border-0 !rounded-md !py-1 !px-2">
         <MdiDotsHorizontal class="!w-4 !h-4" />
       </a-button>
 

@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { ChangePageInj, PaginationDataInj, computed, iconMap, inject } from '#imports'
+import SidebarIcon from '~icons/nc-icons/sidebar'
 
 const props = defineProps<{
   alignCountOnRight?: boolean
 }>()
+
+const isPublic = inject(IsPublicInj, ref(false))
+
+const { isLeftSidebarOpen, isRightSidebarOpen } = storeToRefs(useSidebarStore())
 
 const paginatedData = inject(PaginationDataInj)!
 
@@ -22,7 +27,16 @@ const page = computed({
 </script>
 
 <template>
-  <div class="flex items-center border-t-1 border-gray-75 py-0.5">
+  <div class="flex items-center border-t-1 border-gray-75 py-0.5 nc-pagination-wrapper">
+    <div
+      class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) hover:(bg-gray-50 border-gray-200) text-gray-500 border-gray-100 hover:text-black group flex items-center justify-center border-1 rounded-md h-full ml-2 px-2 h-8 mt-1 cursor-pointer"
+      :class="{
+        'bg-gray-50': !isLeftSidebarOpen,
+      }"
+      @click="isLeftSidebarOpen = !isLeftSidebarOpen"
+    >
+      <SidebarIcon class="cursor-pointer transform transition-transform duration-500 rounded-md rotate-180" />
+    </div>
     <div class="flex-1">
       <span
         v-if="!alignCountOnRight && count !== null && count !== Infinity"
@@ -61,8 +75,31 @@ const page = computed({
         {{ count }} {{ count !== 1 ? $t('objects.records') : $t('objects.record') }}
       </span>
     </div>
+
+    <div v-if="!isPublic" class="mr-2 mt-0.5">
+      <div
+        class="flex flex-row items-center justify-center !rounded-md !p-1.75 border-1 border-gray-100 cursor-pointer bg-white hover:bg-gray-50"
+        :class="{
+          'bg-gray-75': !isRightSidebarOpen,
+        }"
+        type="ghost"
+        @click="isRightSidebarOpen = !isRightSidebarOpen"
+      >
+        <SidebarIcon class="w-4 h-4 text-gray-500" />
+      </div>
+    </div>
   </div>
 </template>
+
+<style lang="scss">
+.nc-pagination-wrapper {
+  .ant-pagination-item-active {
+    a {
+      @apply text-sm !text-gray-500;
+    }
+  }
+}
+</style>
 
 <style scoped>
 :deep(.ant-pagination-item a) {

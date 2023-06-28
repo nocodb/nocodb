@@ -105,6 +105,10 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', onWindowResize)
 })
 
+watch(leftSidebarWidthPercent, () => {
+  contentDomWidth.value = ((100 - leftSidebarWidthPercent.value) / 100) * window.innerWidth
+})
+
 watch(isLeftSidebarOpen, () => {
   if (isLeftSidebarOpen.value) {
     contentDomWidth.value = ((100 - leftSidebarWidthPercent.value) / 100) * window.innerWidth
@@ -223,8 +227,11 @@ export default {
   background-color: transparent !important;
 }
 
-.splitpanes--dragging .splitpanes__splitter {
-  @apply w-1 mr-0;
+.splitpanes--dragging .splitpanes__splitter::before {
+  @apply w-1 mr-0 bg-scrollbar;
+  z-index: 40;
+  width: 4px !important;
+  left: -4px;
 }
 
 .splitpanes--dragging {
@@ -267,6 +274,7 @@ export default {
 .nc-smartsheet-sidebar-wrapper.hide-sidebar > * {
   position: absolute;
   opacity: 0;
+  transform: translateX(100%);
 }
 .mouseover-show-sidebar-zone > * {
   transform: translateX(-100%);

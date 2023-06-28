@@ -1353,7 +1353,7 @@ function openGenerateDialog(target: any) {
 
     <div
       v-if="isAddingEmptyRowAllowed"
-      class="absolute bottom-11.25 left-2.5 z-4"
+      class="absolute bottom-12 left-2 z-4"
       data-testid="nc-grid-add-new-row"
       @click="addEmptyRow()"
     >
@@ -1404,6 +1404,10 @@ function openGenerateDialog(target: any) {
 .nc-grid-wrapper {
   @apply h-full w-full;
   overflow: overlay !important;
+
+  tr:nth-child(1) {
+    height: 41px !important;
+  }
 
   td,
   th {

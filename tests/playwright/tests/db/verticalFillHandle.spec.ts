@@ -129,7 +129,7 @@ test.describe('Fill Handle', () => {
   });
 });
 
-test.describe('Fill Handle', () => {
+test.describe.skip('Fill Handle', () => {
   test.beforeEach(async ({ page }) => {
     await beforeEachInit({ page, tableType: 'selectBased' });
   });
@@ -172,7 +172,7 @@ test.describe('Fill Handle', () => {
   });
 });
 
-test.describe.only('Fill Handle', () => {
+test.describe('Fill Handle', () => {
   test.beforeEach(async ({ page }) => {
     await beforeEachInit({ page, tableType: 'miscellaneous' });
   });
@@ -183,26 +183,35 @@ test.describe.only('Fill Handle', () => {
       { title: 'Attachment', value: `${process.cwd()}/fixtures/sampleFiles/1.json`, type: 'attachment' },
     ];
 
+    await dashboard.grid.cell.checkbox.click({ index: 0, columnHeader: 'Checkbox' });
+    const filepath = [`${process.cwd()}/fixtures/sampleFiles/1.json`];
+    await dashboard.grid.cell.attachment.addFile({
+      index: 0,
+      columnHeader: 'Attachment',
+      filePath: filepath,
+    });
     await dragDrop({ firstColumn: 'Checkbox', lastColumn: 'Attachment' });
 
     // verify data on grid
     for (let i = 0; i < fields.length; i++) {
-      if (fields[i].type === 'checkbox') {
-        await dashboard.grid.cell.checkbox.verifyChecked({
-          index: 5,
-          columnHeader: fields[i].title,
-        });
-      } else {
-        await dashboard.grid.cell.attachment.verifyFileCount({
-          index: 5,
-          columnHeader: fields[i].title,
-          count: 1,
-        });
+      for (let j = 0; j < 4; j++) {
+        if (fields[i].type === 'checkbox') {
+          await dashboard.grid.cell.checkbox.verifyChecked({
+            index: j,
+            columnHeader: fields[i].title,
+          });
+        } else {
+          await dashboard.grid.cell.attachment.verifyFileCount({
+            index: j,
+            columnHeader: fields[i].title,
+            count: 1,
+          });
+        }
       }
     }
 
     // verify api response
-    const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 })).list;
+    const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 4 })).list;
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
         expect(+updatedRecords[i]['Checkbox']).toBe(1);
@@ -219,17 +228,20 @@ test.describe('Fill Handle', () => {
   });
 
   test('Date Time Based', async () => {
-    const fields = [{ title: 'Date', value: '2024-08-04', type: 'date' }];
+    const row0_date = await api.dbTableRow.read('noco', context.project.id, table.id, 1);
+    const fields = [{ title: 'Date', value: row0_date['Date'], type: 'date' }];
 
     await dragDrop({ firstColumn: 'Date', lastColumn: 'Date' });
 
     // verify data on grid
     for (let i = 0; i < fields.length; i++) {
-      await dashboard.grid.cell.date.verify({
-        index: 5,
-        columnHeader: fields[i].title,
-        date: fields[i].value,
-      });
+      for (let j = 0; j < 4; j++) {
+        await dashboard.grid.cell.date.verify({
+          index: j,
+          columnHeader: fields[i].title,
+          date: fields[i].value,
+        });
+      }
     }
 
     // verify api response

@@ -2,7 +2,7 @@
 import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 
-const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+const { isLeftSidebarOpen, leftSidebarWidthPercent } = storeToRefs(useSidebarStore())
 const wrapperRef = ref<HTMLDivElement>()
 const sideBarSize = ref({
   old: 20,
@@ -27,6 +27,16 @@ const currentSidebarSize = computed({
     sideBarSize.value.old = val
   },
 })
+
+watch(
+  currentSidebarSize,
+  () => {
+    leftSidebarWidthPercent.value = currentSidebarSize.value
+  },
+  {
+    immediate: true,
+  },
+)
 
 const isSidebarHidden = ref(false)
 

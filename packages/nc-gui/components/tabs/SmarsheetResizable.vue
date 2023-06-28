@@ -2,7 +2,7 @@
 import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 
-const { isRightSidebarOpen, isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+const { isRightSidebarOpen, isLeftSidebarOpen, leftSidebarWidthPercent } = storeToRefs(useSidebarStore())
 const wrapperRef = ref<HTMLDivElement>()
 const splitpaneWrapperRef = ref()
 const sideBarSize = ref({
@@ -90,11 +90,11 @@ function handleMouseMove(e: MouseEvent) {
 }
 
 function onWindowResize() {
-  contentDomWidth.value = splitpaneWrapperRef.value?.$el?.clientWidth
+  contentDomWidth.value = ((100 - leftSidebarWidthPercent.value) / 100) * window.innerWidth
 }
 
 onMounted(() => {
-  contentDomWidth.value = splitpaneWrapperRef.value?.$el?.clientWidth
+  contentDomWidth.value = ((100 - leftSidebarWidthPercent.value) / 100) * window.innerWidth
   document.addEventListener('mousemove', handleMouseMove)
 
   window.addEventListener('resize', onWindowResize)
@@ -107,11 +107,8 @@ onBeforeUnmount(() => {
 
 watch(isLeftSidebarOpen, () => {
   if (isLeftSidebarOpen.value) {
-    setTimeout(() => {
-      contentDomWidth.value = splitpaneWrapperRef.value?.$el?.clientWidth
-    }, 350)
+    contentDomWidth.value = ((100 - leftSidebarWidthPercent.value) / 100) * window.innerWidth
   } else {
-    setTimeout(() => {}, 1000)
     contentDomWidth.value = window.innerWidth
   }
 

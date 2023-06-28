@@ -95,7 +95,7 @@ const page = computed({
 .nc-pagination-wrapper {
   .ant-pagination-item-active {
     a {
-      @apply text-sm !text-gray-500;
+      @apply text-sm !text-gray-500 !hover:text-gray-700;
     }
   }
 }

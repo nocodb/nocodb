@@ -6,6 +6,9 @@ import { createDemoTable } from '../../setup/demoTable';
 import { BulkUpdatePage } from '../../pages/Dashboard/BulkUpdate';
 
 let dashboard: DashboardPage;
+let context: any;
+let api: Api<any>;
+let table;
 async function dragDrop({ firstColumn, lastColumn }: { firstColumn: string; lastColumn: string }) {
   await dashboard.grid.cell.get({ index: 0, columnHeader: firstColumn }).click();
   await dashboard.rootPage.keyboard.press(
@@ -19,27 +22,26 @@ async function dragDrop({ firstColumn, lastColumn }: { firstColumn: string; last
   // drag and drop
   await src.dragTo(dst);
 }
+async function beforeEachInit({ page, tableType }: { page: any; tableType: string }) {
+  context = await setup({ page, isEmptyProject: true });
+  dashboard = new DashboardPage(page, context.project);
 
-test.describe.skip('Bulk update', () => {
-  let context: any;
-  let api: Api<any>;
-  let table;
+  api = new Api({
+    baseURL: `http://localhost:8080/`,
+    headers: {
+      'xc-auth': context.token,
+    },
+  });
 
+  table = await createDemoTable({ context, type: tableType, recordCnt: 10 });
+  await page.reload();
+
+  await dashboard.treeView.openTable({ title: tableType });
+}
+
+test.describe('Fill Handle', () => {
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
-
-    api = new Api({
-      baseURL: `http://localhost:8080/`,
-      headers: {
-        'xc-auth': context.token,
-      },
-    });
-
-    table = await createDemoTable({ context, type: 'textBased', recordCnt: 10 });
-    await page.reload();
-
-    await dashboard.treeView.openTable({ title: 'textBased' });
+    await beforeEachInit({ page, tableType: 'textBased' });
   });
 
   test('Text based', async () => {
@@ -70,26 +72,9 @@ test.describe.skip('Bulk update', () => {
   });
 });
 
-test.describe.skip('Bulk update', () => {
-  let context: any;
-  let api: Api<any>;
-  let table;
-
+test.describe('Fill Handle', () => {
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
-
-    api = new Api({
-      baseURL: `http://localhost:8080/`,
-      headers: {
-        'xc-auth': context.token,
-      },
-    });
-
-    table = await createDemoTable({ context, type: 'numberBased', recordCnt: 10 });
-    await page.reload();
-
-    await dashboard.treeView.openTable({ title: 'numberBased' });
+    await beforeEachInit({ page, tableType: 'numberBased' });
   });
 
   test('Number based', async () => {
@@ -144,26 +129,9 @@ test.describe.skip('Bulk update', () => {
   });
 });
 
-test.describe.skip('Bulk update', () => {
-  let context: any;
-  let api: Api<any>;
-  let table;
-
+test.describe('Fill Handle', () => {
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
-
-    api = new Api({
-      baseURL: `http://localhost:8080/`,
-      headers: {
-        'xc-auth': context.token,
-      },
-    });
-
-    table = await createDemoTable({ context, type: 'selectBased', recordCnt: 10 });
-    await page.reload();
-
-    await dashboard.treeView.openTable({ title: 'selectBased' });
+    await beforeEachInit({ page, tableType: 'selectBased' });
   });
 
   test('Select based', async () => {
@@ -204,26 +172,9 @@ test.describe.skip('Bulk update', () => {
   });
 });
 
-test.describe.skip('Bulk update', () => {
-  let context: any;
-  let api: Api<any>;
-  let table;
-
+test.describe.only('Fill Handle', () => {
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
-
-    api = new Api({
-      baseURL: `http://localhost:8080/`,
-      headers: {
-        'xc-auth': context.token,
-      },
-    });
-
-    table = await createDemoTable({ context, type: 'miscellaneous', recordCnt: 50 });
-    await page.reload();
-
-    await dashboard.treeView.openTable({ title: 'miscellaneous' });
+    await beforeEachInit({ page, tableType: 'miscellaneous' });
   });
 
   test('Miscellaneous (Checkbox, attachment)', async () => {
@@ -231,6 +182,8 @@ test.describe.skip('Bulk update', () => {
       { title: 'Checkbox', value: 'true', type: 'checkbox' },
       { title: 'Attachment', value: `${process.cwd()}/fixtures/sampleFiles/1.json`, type: 'attachment' },
     ];
+
+    await dragDrop({ firstColumn: 'Checkbox', lastColumn: 'Attachment' });
 
     // verify data on grid
     for (let i = 0; i < fields.length; i++) {
@@ -260,30 +213,15 @@ test.describe.skip('Bulk update', () => {
   });
 });
 
-test.describe.skip('Bulk update', () => {
-  let context: any;
-  let api: Api<any>;
-  let table;
-
+test.describe('Fill Handle', () => {
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
-
-    api = new Api({
-      baseURL: `http://localhost:8080/`,
-      headers: {
-        'xc-auth': context.token,
-      },
-    });
-
-    table = await createDemoTable({ context, type: 'dateTimeBased', recordCnt: 50 });
-    await page.reload();
-
-    await dashboard.treeView.openTable({ title: 'dateTimeBased' });
+    await beforeEachInit({ page, tableType: 'dateTimeBased' });
   });
 
   test('Date Time Based', async () => {
     const fields = [{ title: 'Date', value: '2024-08-04', type: 'date' }];
+
+    await dragDrop({ firstColumn: 'Date', lastColumn: 'Date' });
 
     // verify data on grid
     for (let i = 0; i < fields.length; i++) {

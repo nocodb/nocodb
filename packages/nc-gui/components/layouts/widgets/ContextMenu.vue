@@ -70,7 +70,10 @@ const hasDataReload = computed(() =>
 </script>
 
 <template>
-  <div ref="contextMenuRef" class="fixed bg-white !rounded-lg border-1 border-gray-100 z-1000 flex flex-col shadow-md w-max">
+  <div
+    ref="contextMenuRef"
+    class="fixed top-10 right-4 bg-white !rounded-lg border-1 border-gray-100 z-1000 flex flex-col shadow-md w-max"
+  >
     <h3 class="font-normal text-gray-500 mb-0 p-4 border-b-1 border-gray-100">{{ widgetTypeText }} Widget</h3>
     <div class="py-4 flex flex-col gap-2">
       <a-button class="!border-none hover:opacity-50" @click="duplicateWidget(widget!.id)">

@@ -4,8 +4,15 @@ import { DashboardPage } from '../../pages/Dashboard';
 import { Api } from 'nocodb-sdk';
 import { createDemoTable } from '../../setup/demoTable';
 import { BulkUpdatePage } from '../../pages/Dashboard/BulkUpdate';
+import { AccountLicensePage } from '../../pages/Account/License';
+import { AccountPage } from '../../pages/Account';
 
 let bulkUpdateForm: BulkUpdatePage;
+let dashboard: DashboardPage;
+let context: any;
+let api: Api<any>;
+let table;
+
 async function updateBulkFields(fields) {
   // move all fields to active
   for (let i = 0; i < fields.length; i++) {
@@ -21,31 +28,35 @@ async function updateBulkFields(fields) {
   await bulkUpdateForm.save({ awaitResponse: true });
 }
 
+async function beforeEachInit({ page, tableType }: { page: any; tableType: string }) {
+  context = await setup({ page, isEmptyProject: true });
+  dashboard = new DashboardPage(page, context.project);
+  bulkUpdateForm = dashboard.bulkUpdateForm;
+  const accountPage: AccountPage = new AccountPage(page);
+  const accountLicensePage: AccountLicensePage = new AccountLicensePage(accountPage);
+
+  api = new Api({
+    baseURL: `http://localhost:8080/`,
+    headers: {
+      'xc-auth': context.token,
+    },
+  });
+
+  table = await createDemoTable({ context, type: tableType, recordCnt: 50 });
+
+  await accountLicensePage.goto();
+  await accountLicensePage.saveLicenseKey('1234567890');
+  await dashboard.goto();
+
+  await dashboard.treeView.openTable({ title: tableType });
+
+  // Open bulk update form
+  await dashboard.grid.updateAll();
+}
+
 test.describe('Bulk update', () => {
-  let dashboard: DashboardPage;
-  let context: any;
-  let api: Api<any>;
-  let table;
-
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
-    bulkUpdateForm = dashboard.bulkUpdateForm;
-
-    api = new Api({
-      baseURL: `http://localhost:8080/`,
-      headers: {
-        'xc-auth': context.token,
-      },
-    });
-
-    table = await createDemoTable({ context, type: 'textBased', recordCnt: 50 });
-    await page.reload();
-
-    await dashboard.treeView.openTable({ title: 'textBased' });
-
-    // Open bulk update form
-    await dashboard.grid.updateAll();
+    await beforeEachInit({ page, tableType: 'textBased' });
   });
 
   test('General- Click to add & remove', async () => {
@@ -118,30 +129,8 @@ test.describe('Bulk update', () => {
 });
 
 test.describe('Bulk update', () => {
-  let dashboard: DashboardPage;
-  let context: any;
-  let api: Api<any>;
-  let table;
-
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
-    bulkUpdateForm = dashboard.bulkUpdateForm;
-
-    api = new Api({
-      baseURL: `http://localhost:8080/`,
-      headers: {
-        'xc-auth': context.token,
-      },
-    });
-
-    table = await createDemoTable({ context, type: 'numberBased', recordCnt: 50 });
-    await page.reload();
-
-    await dashboard.treeView.openTable({ title: 'numberBased' });
-
-    // Open bulk update form
-    await dashboard.grid.updateAll();
+    await beforeEachInit({ page, tableType: 'numberBased' });
   });
 
   test('Number based', async () => {
@@ -188,30 +177,8 @@ test.describe('Bulk update', () => {
 });
 
 test.describe('Bulk update', () => {
-  let dashboard: DashboardPage;
-  let context: any;
-  let api: Api<any>;
-  let table;
-
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
-    bulkUpdateForm = dashboard.bulkUpdateForm;
-
-    api = new Api({
-      baseURL: `http://localhost:8080/`,
-      headers: {
-        'xc-auth': context.token,
-      },
-    });
-
-    table = await createDemoTable({ context, type: 'selectBased', recordCnt: 50 });
-    await page.reload();
-
-    await dashboard.treeView.openTable({ title: 'selectBased' });
-
-    // Open bulk update form
-    await dashboard.grid.updateAll();
+    await beforeEachInit({ page, tableType: 'selectBased' });
   });
 
   test('Select based', async () => {
@@ -251,30 +218,8 @@ test.describe('Bulk update', () => {
 });
 
 test.describe('Bulk update', () => {
-  let dashboard: DashboardPage;
-  let context: any;
-  let api: Api<any>;
-  let table;
-
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
-    bulkUpdateForm = dashboard.bulkUpdateForm;
-
-    api = new Api({
-      baseURL: `http://localhost:8080/`,
-      headers: {
-        'xc-auth': context.token,
-      },
-    });
-
-    table = await createDemoTable({ context, type: 'miscellaneous', recordCnt: 50 });
-    await page.reload();
-
-    await dashboard.treeView.openTable({ title: 'miscellaneous' });
-
-    // Open bulk update form
-    await dashboard.grid.updateAll();
+    await beforeEachInit({ page, tableType: 'miscellaneous' });
   });
 
   test('Miscellaneous (Checkbox, attachment)', async () => {
@@ -314,30 +259,8 @@ test.describe('Bulk update', () => {
 });
 
 test.describe('Bulk update', () => {
-  let dashboard: DashboardPage;
-  let context: any;
-  let api: Api<any>;
-  let table;
-
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
-    bulkUpdateForm = dashboard.bulkUpdateForm;
-
-    api = new Api({
-      baseURL: `http://localhost:8080/`,
-      headers: {
-        'xc-auth': context.token,
-      },
-    });
-
-    table = await createDemoTable({ context, type: 'dateTimeBased', recordCnt: 50 });
-    await page.reload();
-
-    await dashboard.treeView.openTable({ title: 'dateTimeBased' });
-
-    // Open bulk update form
-    await dashboard.grid.updateAll();
+    await beforeEachInit({ page, tableType: 'dateTimeBased' });
   });
 
   test('Date Time Based', async () => {

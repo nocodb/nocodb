@@ -2,7 +2,7 @@
 import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 
-const { isOpen } = storeToRefs(useSidebarStore())
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 const wrapperRef = ref<HTMLDivElement>()
 const sideBarSize = ref({
   old: 20,
@@ -30,10 +30,10 @@ const currentSidebarSize = computed({
 
 const isSidebarHidden = ref(false)
 
-watch(isOpen, () => {
+watch(isLeftSidebarOpen, () => {
   sideBarSize.value.current = sideBarSize.value.old
 
-  if (isOpen.value) {
+  if (isLeftSidebarOpen.value) {
     contentSize.value.current = contentSize.value.old
 
     setTimeout(() => {
@@ -64,8 +64,8 @@ watch(isOpen, () => {
 
 function handleMouseMove(e: MouseEvent) {
   if (!wrapperRef.value) return
-  if (isOpen.value && !isSidebarHidden.value && !isMouseOverShowSidebarZone.value) return
-  if (isOpen.value) {
+  if (isLeftSidebarOpen.value && !isSidebarHidden.value && !isMouseOverShowSidebarZone.value) return
+  if (isLeftSidebarOpen.value) {
     isSidebarHidden.value = false
     isMouseOverShowSidebarZone.value = false
     return
@@ -101,7 +101,7 @@ onBeforeUnmount(() => {
 })
 
 watch(
-  () => !isOpen.value && isSidebarShort.value,
+  () => !isLeftSidebarOpen.value && isSidebarShort.value,
   (value) => {
     if (value) {
       setTimeout(() => {
@@ -134,8 +134,8 @@ export default {
           ref="wrapperRef"
           class="nc-sidebar-wrapper relative z-10"
           :class="{
-            'open': isOpen,
-            'close': !isOpen,
+            'open': isLeftSidebarOpen,
+            'close': !isLeftSidebarOpen,
             'absolute': isMouseOverShowSidebarZone,
             'sidebar-short': isSidebarShort,
             'hide-sidebar': isStartHideSidebarAnimation && !isMouseOverShowSidebarZone,
@@ -148,10 +148,10 @@ export default {
           <slot name="sidebar" />
         </div>
       </Pane>
-      <div v-if="!isOpen" class="absolute top-0 left-0 flex flex-col h-full">
+      <div v-if="!isLeftSidebarOpen" class="absolute top-0 left-0 flex flex-col h-full">
         <div
-          class="flex flex-row items-center justify-center ml-2 mt-2.75 p-0.75 h-6.25 w-6.25 rounded-md hover:bg-gray-100 cursor-pointer z-40"
-          @click="isOpen = true"
+          class="flex flex-row items-center justify-center ml-2 mt-2.25 p-1 border-1 border-gray-100 h-7.5 w-7.5 rounded-md hover:bg-gray-50 cursor-pointer z-40"
+          @click="isLeftSidebarOpen = true"
         >
           <MdiMenu v-if="isSidebarHidden && !isStartHideSidebarAnimation" />
           <IcBaselineKeyboardDoubleArrowRight v-else />
@@ -192,12 +192,11 @@ export default {
   left: -3px;
 }
 
-.sidebar-short {
-  .splitpanes__splitter {
-    display: none !important;
-    background-color: transparent !important;
-  }
+.sidebar-short > .splitpanes__splitter {
+  display: none !important;
+  background-color: transparent !important;
 }
+
 .splitpanes--dragging .splitpanes__splitter {
   @apply w-1 mr-0;
 }

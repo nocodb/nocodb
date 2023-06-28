@@ -7,7 +7,7 @@ const workspaceStore = useWorkspace()
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
 
-const { isOpen } = storeToRefs(useSidebarStore())
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const dialogOpen = ref(false)
 
@@ -44,7 +44,7 @@ const onTreeViewScrollTop = (onScrollTop: boolean) => {
     }"
   >
     <div style="height: var(--sidebar-top-height)">
-      <div style="border-bottom-width: 1px" class="flex items-center px-1 nc-sidebar-header !border-0 py-1.5 pl-2">
+      <div style="border-bottom-width: 1px" class="flex items-center px-1 nc-sidebar-header !border-0 py-1.25 pl-2">
         <div class="flex flex-row flex-grow hover:bg-gray-100 pl-2 pr-1 py-0.5 rounded-md">
           <div
             v-if="!isSharedBase"
@@ -78,8 +78,8 @@ const onTreeViewScrollTop = (onScrollTop: boolean) => {
           <IcOutlineKeyboardDoubleArrowLeft
             v-e="['c:grid:toggle-navdraw']"
             class="cursor-pointer transform transition-transform duration-500 p-0.75 h-6.25 w-6.25 rounded-md hover:bg-gray-100"
-            :class="{ 'rotate-180': !isOpen }"
-            @click="isOpen = !isOpen"
+            :class="{ 'rotate-180': !isLeftSidebarOpen }"
+            @click="isLeftSidebarOpen = !isLeftSidebarOpen"
           />
         </div>
       </div>

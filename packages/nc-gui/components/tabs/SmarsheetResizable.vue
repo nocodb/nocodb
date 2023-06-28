@@ -2,7 +2,7 @@
 import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 
-const { isOpen } = storeToRefs(useSidebarStore())
+const { isRightSidebarOpen, isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 const wrapperRef = ref<HTMLDivElement>()
 const splitpaneWrapperRef = ref()
 const sideBarSize = ref({
@@ -15,12 +15,13 @@ const contentSize = ref({
 })
 const isSidebarShort = ref(false)
 const animationDuration = 300
-const viewportWidth = ref(window.innerWidth)
+const contentDomWidth = ref(window.innerWidth)
 const isMouseOverShowSidebarZone = ref(false)
 const isAnimationEndAfterSidebarHide = ref(false)
 const isStartHideSidebarAnimation = ref(false)
+const isLeftSidebarAnimating = ref(false)
 
-const sidebarWidth = computed(() => (sideBarSize.value.old * viewportWidth.value) / 100)
+const sidebarWidth = computed(() => (sideBarSize.value.old * contentDomWidth.value) / 100)
 const currentSidebarSize = computed({
   get: () => sideBarSize.value.current,
   set: (val) => {
@@ -31,10 +32,10 @@ const currentSidebarSize = computed({
 
 const isSidebarHidden = ref(false)
 
-watch(isOpen, () => {
+watch(isRightSidebarOpen, () => {
   sideBarSize.value.current = sideBarSize.value.old
 
-  if (isOpen.value) {
+  if (isRightSidebarOpen.value) {
     contentSize.value.current = contentSize.value.old
 
     setTimeout(() => {
@@ -56,8 +57,8 @@ watch(isOpen, () => {
     isAnimationEndAfterSidebarHide.value = false
 
     setTimeout(() => {
-      isSidebarHidden.value = true
       sideBarSize.value.current = 0
+      isSidebarHidden.value = true
       isAnimationEndAfterSidebarHide.value = true
     }, animationDuration * 1.75)
   }
@@ -65,17 +66,19 @@ watch(isOpen, () => {
 
 function handleMouseMove(e: MouseEvent) {
   if (!wrapperRef.value) return
-  if (isOpen.value && !isSidebarHidden.value && !isMouseOverShowSidebarZone.value) return
-  if (isOpen.value) {
+  if (isRightSidebarOpen.value && !isSidebarHidden.value && !isMouseOverShowSidebarZone.value) return
+  if (isRightSidebarOpen.value) {
     isSidebarHidden.value = false
     isMouseOverShowSidebarZone.value = false
     return
   }
 
-  if (e.clientX < 4) {
+  const viewportWidth = window.innerWidth
+
+  if (e.clientX > viewportWidth - 14) {
     isSidebarHidden.value = false
     isMouseOverShowSidebarZone.value = true
-  } else if (e.clientX > sidebarWidth.value + 10 && !isSidebarHidden.value) {
+  } else if (e.clientX < viewportWidth - (sidebarWidth.value + 10) && !isSidebarHidden.value) {
     isSidebarHidden.value = true
     isMouseOverShowSidebarZone.value = false
     isAnimationEndAfterSidebarHide.value = false
@@ -87,11 +90,11 @@ function handleMouseMove(e: MouseEvent) {
 }
 
 function onWindowResize() {
-  viewportWidth.value = splitpaneWrapperRef.value?.$el?.clientWidth
+  contentDomWidth.value = splitpaneWrapperRef.value?.$el?.clientWidth
 }
 
 onMounted(() => {
-  viewportWidth.value = splitpaneWrapperRef.value?.$el?.clientWidth
+  contentDomWidth.value = splitpaneWrapperRef.value?.$el?.clientWidth
   document.addEventListener('mousemove', handleMouseMove)
 
   window.addEventListener('resize', onWindowResize)
@@ -102,8 +105,24 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', onWindowResize)
 })
 
+watch(isLeftSidebarOpen, () => {
+  if (isLeftSidebarOpen.value) {
+    setTimeout(() => {
+      contentDomWidth.value = splitpaneWrapperRef.value?.$el?.clientWidth
+    }, 350)
+  } else {
+    setTimeout(() => {}, 1000)
+    contentDomWidth.value = window.innerWidth
+  }
+
+  isLeftSidebarAnimating.value = true
+  setTimeout(() => {
+    isLeftSidebarAnimating.value = false
+  }, 700)
+})
+
 watch(
-  () => !isOpen.value && isSidebarShort.value,
+  () => !isRightSidebarOpen.value && isSidebarShort.value,
   (value) => {
     if (value) {
       setTimeout(() => {
@@ -126,6 +145,7 @@ export default {
   <Splitpanes
     ref="splitpaneWrapperRef"
     style="height: 100vh"
+    class="smartsheet-resizable-wrapper"
     :class="{
       'smartsheet-sidebar-short': isSidebarShort,
     }"
@@ -138,21 +158,28 @@ export default {
       min-size="15%"
       :size="currentSidebarSize"
       max-size="40%"
-      class="nc-smartsheet-sidebar-splitpane relative !overflow-visible"
+      class="nc-smartsheet-sidebar-splitpane !bg-transparent relative !overflow-visible !-ml-0.5"
     >
       <div
         ref="wrapperRef"
-        class="nc-smartsheet-sidebar-wrapper relative z-10"
+        class="nc-smartsheet-sidebar-wrapper relative z-10 !bg-transparent"
         :class="{
-          'open': isOpen,
-          'close': !isOpen,
+          'open': isRightSidebarOpen,
+          'close': !isRightSidebarOpen,
           'absolute': isMouseOverShowSidebarZone,
           'smartsheet-sidebar-short': isSidebarShort,
           'hide-sidebar': isStartHideSidebarAnimation && !isMouseOverShowSidebarZone,
+          'mouseover-show-sidebar-zone':
+            isSidebarShort && !isRightSidebarOpen && isMouseOverShowSidebarZone && isAnimationEndAfterSidebarHide,
         }"
         :style="{
-          width: isAnimationEndAfterSidebarHide && isSidebarHidden ? '0px' : `${sidebarWidth}px`,
+          width: isLeftSidebarAnimating
+            ? '100%'
+            : isAnimationEndAfterSidebarHide && isSidebarHidden
+            ? '0px'
+            : `${sidebarWidth}px`,
           overflow: isMouseOverShowSidebarZone ? 'visible' : undefined,
+          translate: isMouseOverShowSidebarZone ? 'translateX(-100%)' : undefined,
         }"
       >
         <slot name="sidebar" />
@@ -162,39 +189,43 @@ export default {
 </template>
 
 <style lang="scss">
-.splitpanes__splitter {
-  width: 0 !important;
-  position: relative;
-  overflow: visible;
-}
-.splitpanes__splitter:before {
-  @apply bg-border w-0.25;
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100vh;
-  z-index: 40;
-}
-
-.splitpanes__splitter:hover:before {
-  @apply bg-scrollbar;
-  width: 3px !important;
-  left: -3px;
-}
-
-.splitpanes--dragging .splitpanes__splitter:before {
-  @apply bg-scrollbar;
-  width: 3px !important;
-  left: -3px;
-}
-
-.smartsheet-sidebar-short {
+.smartsheet-resizable-wrapper > {
   .splitpanes__splitter {
-    display: none !important;
-    background-color: transparent !important;
+    width: 0 !important;
+    position: relative;
+    overflow: visible;
+  }
+  .splitpanes__splitter:before {
+    @apply bg-transparent;
+    width: 1px;
+    content: '';
+    position: absolute;
+    left: -2px;
+    top: 0;
+    height: 100vh;
+    z-index: 40;
+  }
+
+  .splitpanes__splitter:hover:before {
+    @apply bg-scrollbar;
+    z-index: 40;
+    width: 4px !important;
+    left: -4px;
+  }
+
+  .splitpanes--dragging .splitpanes__splitter:before {
+    @apply bg-scrollbar;
+    z-index: 40;
+    width: 10px !important;
+    left: -6px;
   }
 }
+
+.smartsheet-sidebar-short > .splitpanes__splitter {
+  display: none !important;
+  background-color: transparent !important;
+}
+
 .splitpanes--dragging .splitpanes__splitter {
   @apply w-1 mr-0;
 }
@@ -209,13 +240,13 @@ export default {
 
 .nc-smartsheet-sidebar-wrapper.close {
   > * {
-    height: 70vh;
+    height: 80vh;
   }
 }
 
 .nc-smartsheet-sidebar-wrapper.smartsheet-sidebar-short {
   > * {
-    height: 70vh !important;
+    height: 80vh !important;
     padding-bottom: 0.35rem;
   }
 }
@@ -238,10 +269,12 @@ export default {
 
 .nc-smartsheet-sidebar-wrapper.hide-sidebar > * {
   position: absolute;
-  transform: translateX(+100%);
   opacity: 0;
 }
+.mouseover-show-sidebar-zone > * {
+  transform: translateX(-100%);
+}
 .nc-smartsheet-sidebar-wrapper.smartsheet-sidebar-short > * {
-  @apply !(rounded-r-lg border-1 border-gray-100 shadow-lg);
+  @apply !(rounded-l-lg border-1 border-gray-100 shadow-lg);
 }
 </style>

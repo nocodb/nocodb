@@ -6,25 +6,27 @@ const { isGrid, isForm, isGallery, isKanban, isMap, isSqlView } = useSmartsheetS
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { isOpen: isSidebarOpen } = storeToRefs(useSidebarStore())
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { isMobileMode } = useGlobal()
 
-const { activeTable } = storeToRefs(useTablesStore())
-
 const { isUIAllowed } = useUIPermission()
-
-const { isOpen } = useSidebar('nc-right-sidebar')
 
 const { allowCSVDownload } = useSharedView()
 </script>
 
 <template>
   <div
-    class="nc-table-toolbar h-20 w-full py-1 flex gap-2 items-center pl-3 pr-2 border-b border-gray-75 overflow-hidden"
-    :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode, 'pl-8': !isSidebarOpen }"
+    class="nc-table-toolbar h-20 w-full py-1 flex gap-2 items-center pr-2 border-b border-gray-75 overflow-hidden"
+    :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
     style="z-index: 7"
   >
+    <div
+      class="bg-transparent w-1.5 transition-all duration-300"
+      :class="{
+        '!w-8': !isLeftSidebarOpen,
+      }"
+    ></div>
     <LazySmartsheetToolbarViewInfo />
 
     <div v-if="!isMobileMode" class="flex-1" />
@@ -57,6 +59,10 @@ const { allowCSVDownload } = useSharedView()
       v-if="(isGrid || isGallery || isKanban || isMap) && !isPublic && isUIAllowed('dataInsert')"
       :show-system-fields="false"
     />
+
+    <div class="h-3/4 border-r-1 border-gray-50"></div>
+
+    <SmartsheetToolbarHideSidebarBtn v-if="!isPublic" />
   </div>
 </template>
 

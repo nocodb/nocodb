@@ -44,6 +44,11 @@ async function upgradeModelRelations({
       ncMeta,
     );
 
+    // if colOptions not found then skip
+    if (!colOptions) {
+      continue;
+    }
+
     switch (colOptions.type) {
       case RelationTypes.HAS_MANY:
         {

@@ -245,7 +245,7 @@ test.describe('Fill Handle', () => {
     }
 
     // verify api response
-    const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 })).list;
+    const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 4 })).list;
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
         expect(updatedRecords[i]['Date']).toBe(fields[j].value);

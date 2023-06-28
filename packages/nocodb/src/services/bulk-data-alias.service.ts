@@ -43,6 +43,7 @@ export class BulkDataAliasService {
       cookie: any;
       chunkSize?: number;
       foreign_key_checks?: boolean;
+      skip_hooks?: boolean;
       raw?: boolean;
     },
   ) {
@@ -54,6 +55,7 @@ export class BulkDataAliasService {
         {
           cookie: param.cookie,
           foreign_key_checks: param.foreign_key_checks,
+          skip_hooks: param.skip_hooks,
           raw: param.raw,
         },
       ],

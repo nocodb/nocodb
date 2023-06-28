@@ -6,6 +6,8 @@ import { UITypes } from 'nocodb-sdk';
 import { Api } from 'nocodb-sdk';
 import { rowMixedValue } from '../../setup/xcdb-records';
 import dayjs from 'dayjs';
+import { createDemoTable } from '../../setup/demoTable';
+import { isPg } from '../../setup/db';
 
 let dashboard: DashboardPage, toolbar: ToolbarPage;
 let context: any;
@@ -227,83 +229,8 @@ test.describe('Filter Tests: Numerical', () => {
       },
     });
 
-    const columns = [
-      {
-        column_name: 'Id',
-        title: 'Id',
-        uidt: UITypes.ID,
-      },
-      {
-        column_name: 'Number',
-        title: 'Number',
-        uidt: UITypes.Number,
-      },
-      {
-        column_name: 'Decimal',
-        title: 'Decimal',
-        uidt: UITypes.Decimal,
-      },
-      {
-        column_name: 'Currency',
-        title: 'Currency',
-        uidt: UITypes.Currency,
-      },
-      {
-        column_name: 'Percent',
-        title: 'Percent',
-        uidt: UITypes.Percent,
-      },
-      {
-        column_name: 'Duration',
-        title: 'Duration',
-        uidt: UITypes.Duration,
-      },
-      {
-        column_name: 'Rating',
-        title: 'Rating',
-        uidt: UITypes.Rating,
-      },
-      {
-        column_name: 'Year',
-        title: 'Year',
-        uidt: UITypes.Year,
-      },
-      {
-        column_name: 'Time',
-        title: 'Time',
-        uidt: UITypes.Time,
-      },
-    ];
-
-    try {
-      const project = await api.project.read(context.project.id);
-      const table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
-        table_name: 'numberBased',
-        title: 'numberBased',
-        columns: columns,
-      });
-
-      const rowAttributes = [];
-      for (let i = 0; i < 400; i++) {
-        const row = {
-          Number: rowMixedValue(columns[1], i),
-          Decimal: rowMixedValue(columns[2], i),
-          Currency: rowMixedValue(columns[3], i),
-          Percent: rowMixedValue(columns[4], i),
-          Duration: rowMixedValue(columns[5], i),
-          Rating: rowMixedValue(columns[6], i),
-          Year: rowMixedValue(columns[7], i),
-          Time: rowMixedValue(columns[8], i, context.dbType),
-        };
-        rowAttributes.push(row);
-      }
-
-      await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, rowAttributes);
-      records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 400 });
-    } catch (e) {
-      console.error(e);
-    }
-
+    const table = await createDemoTable({ context, type: 'numberBased', recordCnt: 400 });
+    records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 400 });
     await page.reload();
   });
 
@@ -453,64 +380,8 @@ test.describe('Filter Tests: Text based', () => {
       },
     });
 
-    const columns = [
-      {
-        column_name: 'Id',
-        title: 'Id',
-        uidt: UITypes.ID,
-      },
-      {
-        column_name: 'SingleLineText',
-        title: 'SingleLineText',
-        uidt: UITypes.SingleLineText,
-      },
-      {
-        column_name: 'MultiLineText',
-        title: 'MultiLineText',
-        uidt: UITypes.LongText,
-      },
-      {
-        column_name: 'Email',
-        title: 'Email',
-        uidt: UITypes.Email,
-      },
-      {
-        column_name: 'PhoneNumber',
-        title: 'PhoneNumber',
-        uidt: UITypes.PhoneNumber,
-      },
-      {
-        column_name: 'URL',
-        title: 'URL',
-        uidt: UITypes.URL,
-      },
-    ];
-
-    try {
-      const project = await api.project.read(context.project.id);
-      const table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
-        table_name: 'textBased',
-        title: 'textBased',
-        columns: columns,
-      });
-
-      const rowAttributes = [];
-      for (let i = 0; i < 400; i++) {
-        const row = {
-          SingleLineText: rowMixedValue(columns[1], i),
-          MultiLineText: rowMixedValue(columns[2], i),
-          Email: rowMixedValue(columns[3], i),
-          PhoneNumber: rowMixedValue(columns[4], i),
-          URL: rowMixedValue(columns[5], i),
-        };
-        rowAttributes.push(row);
-      }
-
-      await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, rowAttributes);
-      records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 400 });
-    } catch (e) {
-      console.error(e);
-    }
+    const table = await createDemoTable({ context, type: 'textBased', recordCnt: 400 });
+    records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 400 });
     await page.reload();
   });
 
@@ -629,48 +500,9 @@ test.describe('Filter Tests: Select based', () => {
       },
     });
 
-    const columns = [
-      {
-        column_name: 'Id',
-        title: 'Id',
-        uidt: UITypes.ID,
-      },
-      {
-        column_name: 'SingleSelect',
-        title: 'SingleSelect',
-        uidt: UITypes.SingleSelect,
-        dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
-      },
-      {
-        column_name: 'MultiSelect',
-        title: 'MultiSelect',
-        uidt: UITypes.MultiSelect,
-        dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
-      },
-    ];
+    const table = await createDemoTable({ context, type: 'selectBased', recordCnt: 400 });
+    records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 400 });
 
-    try {
-      const project = await api.project.read(context.project.id);
-      const table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
-        table_name: 'selectBased',
-        title: 'selectBased',
-        columns: columns,
-      });
-
-      const rowAttributes = [];
-      for (let i = 0; i < 400; i++) {
-        const row = {
-          SingleSelect: rowMixedValue(columns[1], i),
-          MultiSelect: rowMixedValue(columns[2], i),
-        };
-        rowAttributes.push(row);
-      }
-
-      await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, rowAttributes);
-      records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 400 });
-    } catch (e) {
-      console.error(e);
-    }
     await page.reload();
   });
 
@@ -976,40 +808,9 @@ test.describe('Filter Tests: Date based', () => {
       },
     });
 
-    const columns = [
-      {
-        column_name: 'Id',
-        title: 'Id',
-        uidt: UITypes.ID,
-      },
-      {
-        column_name: 'Date',
-        title: 'Date',
-        uidt: UITypes.Date,
-      },
-    ];
+    const table = await createDemoTable({ context, type: 'dateTimeBased', recordCnt: 800 });
+    records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 800 });
 
-    try {
-      const project = await api.project.read(context.project.id);
-      const table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
-        table_name: 'dateTimeBased',
-        title: 'dateTimeBased',
-        columns: columns,
-      });
-
-      const rowAttributes = [];
-      for (let i = 0; i < 800; i++) {
-        const row = {
-          Date: rowMixedValue(columns[1], i),
-        };
-        rowAttributes.push(row);
-      }
-
-      await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, rowAttributes);
-      records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 800 });
-    } catch (e) {
-      console.error(e);
-    }
     await page.reload();
   });
 

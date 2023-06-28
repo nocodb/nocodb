@@ -28,29 +28,25 @@ export default abstract class BasePage {
     httpMethodsToMatch?: string[];
     responseJsonMatcher?: ResponseSelector;
   }) {
-    const waitForResponsePromise = this.rootPage.waitForResponse(
-      async res => {
-        let isResJsonMatched = true;
-        if (responseJsonMatcher) {
-          try {
-            isResJsonMatched = responseJsonMatcher(await res.json());
-          } catch (e) {
-            return false;
-          }
-        }
-
-        return (
-          res.request().url().includes(requestUrlPathToMatch) &&
-          httpMethodsToMatch.includes(res.request().method()) &&
-          isResJsonMatched
-        );
-      },
-      {
-        timeout: 120000,
-      }
+    // trigger UI action first
+    await uiAction();
+    // wait for response
+    const res = await this.rootPage.waitForResponse(
+      res =>
+        res.url().includes(requestUrlPathToMatch) &&
+        res.status() === 200 &&
+        httpMethodsToMatch.includes(res.request().method())
     );
-
-    return await Promise.all([uiAction(), waitForResponsePromise]);
+    // handle JSON matcher if provided
+    let isResJsonMatched = true;
+    if (responseJsonMatcher) {
+      try {
+        isResJsonMatched = responseJsonMatcher(await res.json());
+      } catch {
+        isResJsonMatched = false;
+      }
+    }
+    return isResJsonMatched;
   }
 
   async attachFile({ filePickUIAction, filePath }: { filePickUIAction: Promise<any>; filePath: string[] }) {

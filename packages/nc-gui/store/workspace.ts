@@ -146,7 +146,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     try {
       // todo: pagination
-      const { list, pageInfo: _ } = await $api.workspaceUser.list(activeWorkspace.value.id!, { query: params })
+      const { list, pageInfo: _ } = await $api.workspaceUser.list(activeWorkspace.value.id!, {
+        query: params,
+        baseURL: process.env.NODE_ENV === 'production' ? `https://${activeWorkspace.value.id!}.nocodb.ai` : undefined,
+      })
 
       collaborators.value = list
     } catch (e: any) {
@@ -167,6 +170,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       await $api.workspaceUser.invite(activeWorkspace.value.id!, {
         email,
         roles,
+      },{
+        baseURL: process.env.NODE_ENV === 'production' ? `https://${activeWorkspace.value.id!}.nocodb.ai` : undefined,
       })
       await loadCollaborators()
     } catch (e: any) {
@@ -182,7 +187,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       throw new Error('Workspace not selected')
     }
 
-    await $api.workspaceUser.delete(activeWorkspace.value.id!, userId)
+    await $api.workspaceUser.delete(activeWorkspace.value.id!, userId, {
+      baseURL: process.env.NODE_ENV === 'production' ? `https://${activeWorkspace.value.id!}.nocodb.ai` : undefined,
+    })
     await loadCollaborators()
   }
 
@@ -194,6 +201,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     await $api.workspaceUser.update(activeWorkspace.value.id!, userId, {
       roles,
+    },{
+      baseURL: process.env.NODE_ENV === 'production' ? `https://${activeWorkspace.value.id!}.nocodb.ai` : undefined,
     })
     await loadCollaborators()
   }
@@ -256,7 +265,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const updateProjectTitle = async (project: ProjectType & { edit: boolean; temp_title: string }) => {
     try {
-      await $api.project.update(project.id!, { title: project.temp_title })
+      await $api.project.update(project.id!, { title: project.temp_title },{
+        baseURL: process.env.NODE_ENV === 'production' ? `https://${activeWorkspace.value.id!}.nocodb.ai` : undefined,
+      })
       project.title = project.temp_title
       project.edit = false
       refreshCommandPalette()

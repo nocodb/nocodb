@@ -40,7 +40,10 @@ export const useProjects = defineStore('projectsStore', () => {
     isProjectsLoading.value = true
     try {
       if (activeWorkspace?.id) {
-        const { list } = await $api.workspaceProject.list(activeWorkspace?.id ?? workspace?.id)
+        const { list } = await $api.workspaceProject.list(activeWorkspace?.id ?? workspace?.id, {
+          baseURL:
+            process.env.NODE_ENV === 'production' ? `https://${activeWorkspace?.id ?? workspace?.id}.nocodb.ai` : undefined,
+        })
         _projects = list
       } else {
         const { list } = await $api.project.list(

@@ -144,6 +144,12 @@ export function useMultiSelect(
         d = dayjs(textToCopy, isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
       }
 
+      // we check time validity before formatting because ['HH:mm', 'HH:mm:ss'] are not valid dayjs formats
+      if (columnObj.uidt === UITypes.Time && !dayjs(textToCopy).isValid()) {
+        // return empty string for invalid time
+        return ''
+      }
+
       // users can change the datetime format in UI
       // `textToCopy` would be always in YYYY-MM-DD HH:mm:ss(Z / +xx:yy) format
       // therefore, here we reformat to the correct datetime format based on the meta
@@ -151,8 +157,8 @@ export function useMultiSelect(
         columnObj.uidt === UITypes.DateTime ? constructDateTimeFormat(columnObj) : constructTimeFormat(columnObj),
       )
 
-      if (!dayjs(textToCopy).isValid()) {
-        // return empty string for invalid datetime / time
+      if (columnObj.uidt === UITypes.DateTime && !dayjs(textToCopy).isValid()) {
+        // return empty string for invalid datetime
         return ''
       }
     }

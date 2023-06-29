@@ -94,10 +94,10 @@ export const OpenidStrategyProvider: FactoryProvider = {
 
         // cache based store for managing the state of the authorization request
         store: {
-          store: async (_req, meta, callback) => {
+          store: async (req, meta, callback) => {
             const handle = `oidc_${uuidv4()}`;
 
-            const state = { handle };
+            const state = { handle, org: req.query.org };
             for (const key in meta) {
               state[key] = meta[key];
             }
@@ -106,7 +106,7 @@ export const OpenidStrategyProvider: FactoryProvider = {
               .then(() => callback(null, handle))
               .catch((err) => callback(err));
           },
-          verify: (_req, providedState, callback) => {
+          verify: (req, providedState, callback) => {
             const key = `oidc:${providedState}`;
             NocoCache.get(key, CacheGetType.TYPE_OBJECT)
               .then(async (state) => {
@@ -115,6 +115,8 @@ export const OpenidStrategyProvider: FactoryProvider = {
                     message: 'Unable to verify authorization request state.',
                   });
                 }
+
+                req.nc_org = state.org;
 
                 await NocoCache.del(key);
                 return callback(null, true, state);

@@ -25,6 +25,8 @@ import {
 } from '../../services/users/helpers';
 import { UsersService } from '../../services/users/users.service';
 import extractRolesObj from '../../utils/extractRolesObj';
+import NocoCache from "../../cache/NocoCache";
+import {CacheGetType} from "../../utils/globals";
 
 @Controller()
 export class UsersController {
@@ -262,5 +264,20 @@ export class UsersController {
   @UseGuards(AuthGuard('openid'))
   openidAuth() {
     // openid strategy will take care the request
+  }
+
+
+  @Post('/auth/oidc/redirect')
+  // @UseGuards(AuthGuard('openid'))
+  async redirect(@Request() req, @Response() res) {
+    const key = `oidc:${req.query.state}`;
+    const state = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    if (!state) {
+      NcError.forbidden('Unable to verify authorization request state.');
+    }
+
+    res.redirect(
+      `https://${state.org}.nocohub.ai/dashboard?code=${req.query.code}&state=${req.query.state}`,
+    );
   }
 }

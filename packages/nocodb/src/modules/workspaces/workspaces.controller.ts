@@ -6,17 +6,24 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   Request,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { UseAclMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import { NcError } from '../../helpers/catchError';
+import { MetaTable } from '../../utils/globals';
+import { MetaService } from '../../meta/meta.service';
 import { WorkspacesService } from './workspaces.service';
 
 @Controller()
 @UseGuards(AuthGuard('jwt'))
 export class WorkspacesController {
-  constructor(private readonly workspacesService: WorkspacesService) {}
+  constructor(
+    private readonly workspacesService: WorkspacesService,
+    private readonly metaService: MetaService,
+  ) {}
 
   @Get('/api/v1/workspaces/')
   @UseAclMiddleware({
@@ -105,5 +112,32 @@ export class WorkspacesController {
       workspaceId,
       user: req.user,
     });
+  }
+
+  // Todo: move logic to service
+  @Patch('/api/v1/workspaces/:workspaceId/status')
+  @UseGuards(AuthGuard('basic'))
+  async updateStatus(@Req() req, @Body() body) {
+    if (!body.status) NcError.badRequest('Missing status in body');
+
+    const workspace = await this.metaService.metaGet2(
+      null,
+      null,
+      MetaTable.WORKSPACE,
+      req.params.workspaceId,
+    );
+
+    await this.metaService.metaUpdate(
+      null,
+      null,
+      MetaTable.WORKSPACE,
+      {
+        status: body.status,
+        message: body.message,
+      },
+      workspace.id,
+    );
+
+    return true;
   }
 }

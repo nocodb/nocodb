@@ -28,6 +28,7 @@ import { ExecutionTimeCalculatorInterceptor } from './interceptors/execution-tim
 
 import { HookHandlerService } from './services/hook-handler.service';
 import type { MiddlewareConsumer } from '@nestjs/common';
+import { BasicStrategy } from './strategies/basic.strategy/basic.strategy';
 
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
@@ -85,6 +86,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     AuthTokenStrategy,
     BaseViewStrategy,
     HookHandlerService,
+    BasicStrategy,
   ],
 })
 export class AppModule {

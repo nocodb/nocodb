@@ -298,4 +298,8 @@ export interface AppConfig {
     max_apis: number;
     calc_execution_time: boolean;
   };
+  basicAuth: {
+    username: string;
+    password: string;
+  };
 }

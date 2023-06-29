@@ -60,7 +60,7 @@ export function useMultiSelect(
 
   const { appInfo } = useGlobal()
 
-  const { isMysql } = useProject()
+  const { isMysql, isPg } = useProject()
 
   const editEnabled = ref(_editEnabled)
 
@@ -128,7 +128,7 @@ export function useMultiSelect(
       })
     }
 
-    if (columnObj.uidt === UITypes.DateTime || columnObj.uidt === UITypes.Time) {
+    if (columnObj.uidt === UITypes.DateTime) {
       // remove `"`
       // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
       textToCopy = textToCopy.replace(/["']/g, '')
@@ -144,23 +144,34 @@ export function useMultiSelect(
         d = dayjs(textToCopy, isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
       }
 
-      // we check time validity before formatting because ['HH:mm', 'HH:mm:ss'] are not valid dayjs formats
-      if (columnObj.uidt === UITypes.Time && !dayjs(textToCopy).isValid()) {
+      // users can change the datetime format in UI
+      // `textToCopy` would be always in YYYY-MM-DD HH:mm:ss(Z / +xx:yy) format
+      // therefore, here we reformat to the correct datetime format based on the meta
+      textToCopy = d.format(constructDateTimeFormat(columnObj))
+
+      if (!dayjs(textToCopy).isValid()) {
+        // return empty string for invalid datetime
+        return ''
+      }
+    }
+
+    if (columnObj.uidt === UITypes.Time) {
+      // remove `"`
+      // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
+      textToCopy = textToCopy.replace(/["']/g, '')
+
+      const isMySQL = isMysql(columnObj.base_id)
+      const isPostgres = isPg(columnObj.base_id)
+
+      // MySQL and Postgres store time in HH:mm:ss format so we need to feed custom parse format
+      const d = isMySQL || isPostgres ? dayjs(textToCopy, 'HH:mm:ss') : dayjs(textToCopy)
+
+      if (!d.isValid()) {
         // return empty string for invalid time
         return ''
       }
 
-      // users can change the datetime format in UI
-      // `textToCopy` would be always in YYYY-MM-DD HH:mm:ss(Z / +xx:yy) format
-      // therefore, here we reformat to the correct datetime format based on the meta
-      textToCopy = d.format(
-        columnObj.uidt === UITypes.DateTime ? constructDateTimeFormat(columnObj) : constructTimeFormat(columnObj),
-      )
-
-      if (columnObj.uidt === UITypes.DateTime && !dayjs(textToCopy).isValid()) {
-        // return empty string for invalid datetime
-        return ''
-      }
+      textToCopy = d.format(constructTimeFormat(columnObj))
     }
 
     if (columnObj.uidt === UITypes.LongText) {

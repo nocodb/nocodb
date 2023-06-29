@@ -104,7 +104,7 @@ const { showContextMenuButtonRef, isContextMenuVisible, showContextMenu } = useL
 <template>
   <div class="h-full w-full">
     <div class="flex flex-col h-full relative">
-      <div class="flex justify-between items-center absolute w-full">
+      <div class="flex justify-between items-center w-full">
         <div class="flex items-center">
           <IconifyIcon class="bg-blue-100 mr-3 p-2 rounded-lg h-10 min-w-10 text-lg" icon="iconoir:dollar"></IconifyIcon>
           <h3 class="text-base font-medium text-gray-900 mb-0">{{ data_config.name }}</h3>

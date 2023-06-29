@@ -41,7 +41,7 @@ const chartTypesForDropdown = computed(() =>
     <LayoutsWidgetsPropertiesPanelTopSectionsText v-if="isText" />
     <LayoutsWidgetsPropertiesPanelTopSectionsChart v-if="isChart" />
 
-    <a-radio-group v-model:value="dataOrAppearanceMode" class="nc-radio-group">
+    <a-radio-group v-if="isNumber" v-model:value="dataOrAppearanceMode" class="nc-radio-group">
       <a-radio-button class="nc-radio-button" value="data">Data</a-radio-button>
       <a-radio-button class="nc-radio-button" value="appearance">Appearance</a-radio-button>
     </a-radio-group>
@@ -53,6 +53,9 @@ const chartTypesForDropdown = computed(() =>
       <LayoutsWidgetsPropertiesPanelDataConfigSectionsText v-if="isText" />
       <LayoutsWidgetsPropertiesPanelDataConfigSectionsNumber v-if="isNumber" />
       <LayoutsWidgetsPropertiesPanelDataConfigSectionsButton v-if="isButton" />
+    </div>
+    <div v-else-if="dataOrAppearanceMode === 'appearance'">
+      <LayoutsWidgetsPropertiesPanelAppearanceConfigSectionsNumber v-if="isNumber" />
     </div>
   </template>
 </template>

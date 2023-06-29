@@ -42,16 +42,18 @@ const { showContextMenuButtonRef, isContextMenuVisible, showContextMenu } = useL
 </script>
 
 <template>
-  <button ref="showContextMenuButtonRef" @click="showContextMenu">
-    <GeneralIcon icon="threeDotHorizontal" class="text-gray-900 text-xl" />
-  </button>
+  <div class="flex justify-between">
+    <component :is="elementTag" class="nc-layout-text-element">
+      <a v-if="isLink" :href="url" target="_blank">{{ text }}</a>
+      <span v-else>
+        {{ text }}
+      </span>
+    </component>
+    <button ref="showContextMenuButtonRef" @click="showContextMenu">
+      <GeneralIcon icon="threeDotHorizontal" class="text-gray-900 text-xl" />
+    </button>
+  </div>
   <LayoutsWidgetsContextMenu v-if="isContextMenuVisible" :widget="widgetConfig" />
-  <component :is="elementTag" class="nc-layout-text-element">
-    <a v-if="isLink" :href="url" target="_blank">{{ text }}</a>
-    <span v-else>
-      {{ text }}
-    </span>
-  </component>
 </template>
 
 <style>

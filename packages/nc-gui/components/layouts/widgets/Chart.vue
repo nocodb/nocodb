@@ -149,12 +149,13 @@ const chartOptions = {
 </script>
 
 <template>
-  <h3 class="text-base font-medium text-gray-900 mb-0">{{ widgetConfig.data_config.name }}</h3>
+  <div class="flex justify-between">
+    <h3 class="text-base font-medium text-gray-900 mb-0">{{ widgetConfig.data_config.name }}</h3>
+    <button ref="showContextMenuButtonRef" @click="showContextMenu">
+      <GeneralIcon icon="threeDotHorizontal" class="text-gray-900 text-xl" />
+    </button>
+  </div>
   <div v-if="dataLinkConfigIsMissing">Missing Data Source Configuration</div>
-  <button ref="showContextMenuButtonRef" @click="showContextMenu">
-    <GeneralIcon icon="threeDotHorizontal" class="text-gray-900 text-xl" />
-  </button>
-  <LayoutsWidgetsContextMenu v-if="isContextMenuVisible" :widget="widgetConfig" @reload-widget-data="getData" />
   <component
     :is="chartComponent"
     v-else-if="chartData"
@@ -162,4 +163,5 @@ const chartOptions = {
     :options="chartOptions"
     :data="chartData"
   />
+  <LayoutsWidgetsContextMenu v-if="isContextMenuVisible" :widget="widgetConfig" @reload-widget-data="getData" />
 </template>

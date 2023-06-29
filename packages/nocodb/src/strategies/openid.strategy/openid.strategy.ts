@@ -62,10 +62,20 @@ export class OpenidStrategy extends PassportStrategy(
   }
 
   async authenticate(req: any, options?: any): Promise<void> {
+    let callbackURL = req.ncSiteUrl + Noco.getConfig().dashboardPath;
+    if (process.env.NC_BASE_APP_URL) {
+      const url = new URL(req.ncSiteUrl);
+      const baseAppUrl = new URL(process.env.NC_BASE_APP_URL);
+
+      if (baseAppUrl.host !== url.host) {
+        callbackURL = process.env.NC_BASE_APP_URL + '/auth/oidc/redirect';
+      }
+    }
+
     return super.authenticate(req, {
       ...options,
       scope: ['profile', 'email'],
-      callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath,
+      callbackURL,
     });
   }
 }

@@ -210,7 +210,7 @@ export class WorkspacesService {
     };
 
     // Create promise and SNS service object
-    const publishTextPromise = new AWS.SNS({ apiVersion: '2010-03-31' })
+    const publishTextPromise = new AWS.SNS({ apiVersion: '2010-03-31', region: 'us-east-2' })
       .publish(params)
       .promise();
 

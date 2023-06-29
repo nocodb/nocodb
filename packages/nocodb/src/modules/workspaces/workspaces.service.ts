@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import AWS from 'aws-sdk';
 import WorkspaceUser from '../../models/WorkspaceUser';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import Workspace from '../../models/Workspace';
 import validateParams from '../../helpers/validateParams';
 import { NcError } from '../../helpers/catchError';
 import { Project, ProjectUser } from '../../models';
-import { parseMetaProp } from '../../utils/modelUtils';
 import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
 
@@ -51,6 +51,9 @@ export class WorkspacesService {
         // todo : extend request type
         fk_user_id: param.user.id,
       });
+
+      // todo: error handling
+      await this.createWorkspaceSubdomain({ titleOrId: workspace.id });
 
       await WorkspaceUser.insert({
         fk_workspace_id: workspace.id,
@@ -192,5 +195,35 @@ export class WorkspacesService {
     return new PagedResponseImpl<WorkspaceType>(projects, {
       count: projects.length,
     });
+  }
+
+  private async createWorkspaceSubdomain(param: { titleOrId: string }) {
+    // Set region
+    // AWS.config.update({ region: 'us-east-2' });
+
+    // Create publish parameters
+    const params = {
+      Message: JSON.stringify({ WS_NAME: param.titleOrId }) /* required */,
+      TopicArn:
+        'arn:aws:sns:us-east-2:249717198246:nocohub-upgrade-workspace-staging',
+      // TopicArn: 'arn:aws:sns:us-east-2:249717198246:nocohub-upgrade-workspace-prod'
+    };
+
+    // Create promise and SNS service object
+    const publishTextPromise = new AWS.SNS({ apiVersion: '2010-03-31' })
+      .publish(params)
+      .promise();
+
+    // Handle promise's fulfilled/rejected states
+    publishTextPromise
+      .then(function (data) {
+        console.log(
+          `Message ${params.Message} sent to the topic ${params.TopicArn}`,
+        );
+        console.log('MessageID is ' + data.MessageId);
+      })
+      .catch(function (err) {
+        console.error(err, err.stack);
+      });
   }
 }

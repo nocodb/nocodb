@@ -766,6 +766,7 @@ export default class Column<T = any> implements ColumnType {
         });
       }
       for (const filter of filters) {
+        if (filter.fk_parent_id) continue;
         await Filter.delete(filter.id, ncMeta);
       }
     }

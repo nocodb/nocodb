@@ -7,6 +7,7 @@ import { Api } from 'nocodb-sdk';
 import { rowMixedValue } from '../../setup/xcdb-records';
 import dayjs from 'dayjs';
 import { createDemoTable } from '../../setup/demoTable';
+import { isPg } from '../../setup/db';
 
 let dashboard: DashboardPage, toolbar: ToolbarPage;
 let context: any;

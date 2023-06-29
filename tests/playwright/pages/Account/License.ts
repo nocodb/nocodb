@@ -28,6 +28,10 @@ export class AccountLicensePage extends BasePage {
   }
 
   async saveLicenseKey(licenseKey: string) {
+    // Kludge: fix me!
+    // await this.get().waitFor({ state: 'visible' });
+    await this.rootPage.waitForTimeout(1000);
+
     await this.get().fill(licenseKey);
     await this.getSaveButton().click();
     await this.verifyToast({ message: 'License key updated' });

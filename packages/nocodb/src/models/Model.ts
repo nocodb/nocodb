@@ -14,6 +14,7 @@ import {
 import { NcError } from '../helpers/catchError';
 import { sanitize } from '../helpers/sqlSanitize';
 import { extractProps } from '../helpers/extractProps';
+import Hook from './Hook';
 import Audit from './Audit';
 import View from './View';
 import Column from './Column';
@@ -376,6 +377,11 @@ export default class Model implements TableType {
       await view.delete(ncMeta);
     }
 
+    // delete associated hooks
+    for (const hook of await Hook.list({ fk_model_id: this.id }, ncMeta)) {
+      await Hook.delete(hook.id, ncMeta);
+    }
+
     for (const col of await this.getColumns(ncMeta)) {
       let colOptionTableName = null;
       let cacheScopeName = null;
@@ -401,6 +407,14 @@ export default class Model implements TableType {
         case UITypes.Formula:
           colOptionTableName = MetaTable.COL_FORMULA;
           cacheScopeName = CacheScope.COL_FORMULA;
+          break;
+        case UITypes.QrCode:
+          colOptionTableName = MetaTable.COL_QRCODE;
+          cacheScopeName = CacheScope.COL_QRCODE;
+          break;
+        case UITypes.Barcode:
+          colOptionTableName = MetaTable.COL_BARCODE;
+          cacheScopeName = CacheScope.COL_BARCODE;
           break;
       }
       if (colOptionTableName && cacheScopeName) {

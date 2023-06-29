@@ -116,6 +116,24 @@ const columns = {
       uidt: UITypes.Time,
     },
   ],
+
+  miscellaneous: [
+    {
+      column_name: 'Id',
+      title: 'Id',
+      uidt: UITypes.ID,
+    },
+    {
+      column_name: 'Checkbox',
+      title: 'Checkbox',
+      uidt: UITypes.Checkbox,
+    },
+    {
+      column_name: 'Attachment',
+      title: 'Attachment',
+      uidt: UITypes.Attachment,
+    },
+  ],
 };
 
 async function createDemoTable({
@@ -191,6 +209,18 @@ async function createDemoTable({
         for (let i = 0; i < recordCnt; i++) {
           const row = {
             Date: rowMixedValue(columns.dateTimeBased[1], i),
+          };
+          rowAttributes.push(row);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+      break;
+    case 'miscellaneous':
+      try {
+        for (let i = 0; i < recordCnt; i++) {
+          const row = {
+            Checkbox: rowMixedValue(columns.miscellaneous[1], i),
           };
           rowAttributes.push(row);
         }

@@ -2,6 +2,7 @@
 import dayjs from 'dayjs'
 import {
   ActiveCellInj,
+  CellClickHookInj,
   ColumnInj,
   ReadonlyInj,
   dateFormats,
@@ -213,6 +214,24 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
       break
   }
 })
+
+const cellClickHook = inject(CellClickHookInj, null)
+const cellClickHandler = () => {
+  open.value = (active.value || editable.value) && !open.value
+}
+onMounted(() => {
+  cellClickHook?.on(cellClickHandler)
+})
+onUnmounted(() => {
+  cellClickHook?.on(cellClickHandler)
+})
+
+const clickHandler = () => {
+  if (cellClickHook) {
+    return
+  }
+  cellClickHandler()
+}
 </script>
 
 <template>
@@ -229,7 +248,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     :dropdown-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''}`"
     :open="readOnly || (localState && isPk) ? false : open && (active || editable)"
     :disabled="readOnly || (localState && isPk)"
-    @click="open = (active || editable) && !open"
+    @click="clickHandler"
     @ok="open = !open"
   >
     <template #suffixIcon></template>

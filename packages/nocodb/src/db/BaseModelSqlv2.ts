@@ -2261,37 +2261,151 @@ class BaseModelSqlv2 {
       chunkSize: _chunkSize = 100,
       cookie,
       foreign_key_checks = true,
+      skip_hooks = false,
       raw = false,
     }: {
       chunkSize?: number;
       cookie?: any;
       foreign_key_checks?: boolean;
+      skip_hooks?: boolean;
       raw?: boolean;
     } = {},
   ) {
     let trx;
     try {
       // TODO: ag column handling for raw bulk insert
-      const insertDatas = raw
-        ? datas
-        : await Promise.all(
-            datas.map(async (d) => {
-              await populatePk(this.model, d);
-              return this.model.mapAliasToColumn(
-                d,
-                this.clientMeta,
-                this.dbDriver,
-              );
-            }),
-          );
-
-      // await this.beforeInsertb(insertDatas, null);
+      const insertDatas = raw ? datas : [];
 
       if (!raw) {
-        for (const data of datas) {
-          await this.validate(data);
+        await this.model.getColumns();
+
+        for (const d of datas) {
+          const insertObj = {};
+
+          // populate pk, map alias to column, validate data
+          for (let i = 0; i < this.model.columns.length; ++i) {
+            const col = this.model.columns[i];
+
+            // populate pk columns
+            if (col.pk) {
+              if (col.meta?.ag && !d[col.title]) {
+                d[col.title] =
+                  col.meta?.ag === 'nc' ? `rc_${nanoidv2()}` : uuidv4();
+              }
+            }
+
+            // map alias to column
+            if (!isVirtualCol(col)) {
+              let val =
+                d?.[col.column_name] !== undefined
+                  ? d?.[col.column_name]
+                  : d?.[col.title];
+              if (val !== undefined) {
+                if (
+                  col.uidt === UITypes.Attachment &&
+                  typeof val !== 'string'
+                ) {
+                  val = JSON.stringify(val);
+                }
+                if (col.uidt === UITypes.DateTime && dayjs(val).isValid()) {
+                  const { isMySQL, isSqlite, isMssql, isPg } = this.clientMeta;
+                  if (
+                    val.indexOf('-') < 0 &&
+                    val.indexOf('+') < 0 &&
+                    val.slice(-1) !== 'Z'
+                  ) {
+                    // if no timezone is given,
+                    // then append +00:00 to make it as UTC
+                    val += '+00:00';
+                  }
+                  if (isMySQL) {
+                    // first convert the value to utc
+                    // from UI
+                    // e.g. 2022-01-01 20:00:00Z -> 2022-01-01 20:00:00
+                    // from API
+                    // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 12:00:00
+                    // if timezone info is not found - considered as utc
+                    // e.g. 2022-01-01 20:00:00 -> 2022-01-01 20:00:00
+                    // if timezone info is found
+                    // e.g. 2022-01-01 20:00:00Z -> 2022-01-01 20:00:00
+                    // e.g. 2022-01-01 20:00:00+00:00 -> 2022-01-01 20:00:00
+                    // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 12:00:00
+                    // then we use CONVERT_TZ to convert that in the db timezone
+                    val = this.dbDriver.raw(
+                      `CONVERT_TZ(?, '+00:00', @@GLOBAL.time_zone)`,
+                      [dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss')],
+                    );
+                  } else if (isSqlite) {
+                    // convert to UTC
+                    // e.g. 2022-01-01T10:00:00.000Z -> 2022-01-01 04:30:00+00:00
+                    val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
+                  } else if (isPg) {
+                    // convert to UTC
+                    // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00
+                    // then convert to db timezone
+                    val = this.dbDriver.raw(
+                      `? AT TIME ZONE CURRENT_SETTING('timezone')`,
+                      [dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ')],
+                    );
+                  } else if (isMssql) {
+                    // convert ot UTC
+                    // e.g. 2023-05-10T08:49:32.000Z -> 2023-05-10 08:49:32-08:00
+                    // then convert to db timezone
+                    val = this.dbDriver.raw(
+                      `SWITCHOFFSET(CONVERT(datetimeoffset, ?), DATENAME(TzOffset, SYSDATETIMEOFFSET()))`,
+                      [dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ')],
+                    );
+                  } else {
+                    // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00
+                    val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
+                  }
+                }
+                insertObj[sanitize(col.column_name)] = val;
+              }
+            }
+
+            // validate data
+            if (col?.meta?.validate && col?.validate) {
+              const validate = col.getValidators();
+              const cn = col.column_name;
+              const columnTitle = col.title;
+              if (validate) {
+                const { func, msg } = validate;
+                for (let j = 0; j < func.length; ++j) {
+                  const fn =
+                    typeof func[j] === 'string'
+                      ? customValidators[func[j]]
+                        ? customValidators[func[j]]
+                        : Validator[func[j]]
+                      : func[j];
+                  const columnValue =
+                    insertObj?.[cn] || insertObj?.[columnTitle];
+                  const arg =
+                    typeof func[j] === 'string'
+                      ? columnValue + ''
+                      : columnValue;
+                  if (
+                    ![null, undefined, ''].includes(columnValue) &&
+                    !(fn.constructor.name === 'AsyncFunction'
+                      ? await fn(arg)
+                      : fn(arg))
+                  ) {
+                    NcError.badRequest(
+                      msg[j]
+                        .replace(/\{VALUE}/g, columnValue)
+                        .replace(/\{cn}/g, columnTitle),
+                    );
+                  }
+                }
+              }
+            }
+          }
+
+          insertDatas.push(insertObj);
         }
       }
+
+      // await this.beforeInsertb(insertDatas, null);
 
       // fallbacks to `10` if database client is sqlite
       // to avoid `too many SQL variables` error
@@ -2325,7 +2439,8 @@ class BaseModelSqlv2 {
 
       await trx.commit();
 
-      if (!raw) await this.afterBulkInsert(insertDatas, this.dbDriver, cookie);
+      if (!raw && !skip_hooks)
+        await this.afterBulkInsert(insertDatas, this.dbDriver, cookie);
 
       return response;
     } catch (e) {
@@ -2395,7 +2510,7 @@ class BaseModelSqlv2 {
   }
 
   async bulkUpdateAll(
-    args: { where?: string; filterArr?: Filter[] } = {},
+    args: { where?: string; filterArr?: Filter[]; viewId?: string } = {},
     data,
     { cookie }: { cookie?: any } = {},
   ) {
@@ -2417,22 +2532,30 @@ class BaseModelSqlv2 {
         const aliasColObjMap = await this.model.getAliasColObjMap();
         const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
-        await conditionV2(
-          [
+        const conditionObj = [
+          new Filter({
+            children: args.filterArr || [],
+            is_group: true,
+            logical_op: 'and',
+          }),
+          new Filter({
+            children: filterObj,
+            is_group: true,
+            logical_op: 'and',
+          }),
+        ];
+
+        if (args.viewId) {
+          conditionObj.push(
             new Filter({
-              children: args.filterArr || [],
+              children:
+                (await Filter.rootFilterList({ viewId: args.viewId })) || [],
               is_group: true,
-              logical_op: 'and',
             }),
-            new Filter({
-              children: filterObj,
-              is_group: true,
-              logical_op: 'and',
-            }),
-          ],
-          qb,
-          this.dbDriver,
-        );
+          );
+        }
+
+        await conditionV2(conditionObj, qb, this.dbDriver);
 
         qb.update(updateData);
 

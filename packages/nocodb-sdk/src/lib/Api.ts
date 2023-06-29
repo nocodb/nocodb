@@ -7251,6 +7251,7 @@ export class Api<
       data: object,
       query?: {
         where?: string;
+        viewId?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -7291,6 +7292,7 @@ export class Api<
       data: object,
       query?: {
         where?: string;
+        viewId?: string;
       },
       params: RequestParams = {}
     ) =>

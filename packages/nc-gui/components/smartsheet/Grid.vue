@@ -879,6 +879,15 @@ const closeAddColumnDropdown = (scrollToLastCol = false) => {
 const confirmDeleteRow = (row: number) => {
   try {
     deleteRow(row)
+
+    if (selectedRange.isRowInRange(row)) {
+      clearSelectedRange()
+    }
+
+    if (activeCell.row === row) {
+      activeCell.row = null
+      activeCell.col = null
+    }
   } catch (e: any) {
     message.error(e.message)
   }

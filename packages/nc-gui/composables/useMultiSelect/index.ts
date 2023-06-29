@@ -232,16 +232,7 @@ export function useMultiSelect(
       return true
     }
 
-    if (selectedRange._start === null || selectedRange._end === null) {
-      return false
-    }
-
-    return (
-      col >= selectedRange.start.col &&
-      col <= selectedRange.end.col &&
-      row >= selectedRange.start.row &&
-      row <= selectedRange.end.row
-    )
+    return selectedRange.isCellInRange({ row, col })
   }
 
   function isCellInFillRange(row: number, col: number) {
@@ -249,16 +240,11 @@ export function useMultiSelect(
       return false
     }
 
-    if (
-      col >= selectedRange.start.col &&
-      col <= selectedRange.end.col &&
-      row >= selectedRange.start.row &&
-      row <= selectedRange.end.row
-    ) {
+    if (selectedRange.isCellInRange({ row, col })) {
       return false
     }
 
-    return col >= fillRange.start.col && col <= fillRange.end.col && row >= fillRange.start.row && row <= fillRange.end.row
+    return fillRange.isCellInRange({ row, col })
   }
 
   const isPasteable = (row?: Row, col?: ColumnType, showInfo = false) => {

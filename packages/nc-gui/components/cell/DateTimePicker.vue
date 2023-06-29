@@ -122,6 +122,8 @@ watch(
   (next) => {
     if (next) {
       onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, () => (open.value = false))
+    } else {
+      editable.value = false
     }
   },
   { flush: 'post' },

@@ -18,13 +18,13 @@ import { MetaService } from '../../meta/meta.service';
 import { WorkspacesService } from './workspaces.service';
 
 @Controller()
-@UseGuards(AuthGuard('jwt'))
 export class WorkspacesController {
   constructor(
     private readonly workspacesService: WorkspacesService,
     private readonly metaService: MetaService,
   ) {}
 
+  @UseGuards(AuthGuard('jwt'))
   @Get('/api/v1/workspaces/')
   @UseAclMiddleware({
     permissionName: 'workspaceList',
@@ -35,6 +35,7 @@ export class WorkspacesController {
     });
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get('/api/v1/workspaces/:workspaceId')
   @UseAclMiddleware({
     permissionName: 'workspaceGet',
@@ -46,6 +47,7 @@ export class WorkspacesController {
     });
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Post('/api/v1/workspaces/')
   @UseAclMiddleware({
     permissionName: 'workspaceCreate',
@@ -57,6 +59,7 @@ export class WorkspacesController {
     });
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Patch('/api/v1/workspaces/:workspaceId')
   @UseAclMiddleware({
     permissionName: 'workspaceUpdate',
@@ -73,6 +76,7 @@ export class WorkspacesController {
     });
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Delete('/api/v1/workspaces/:workspaceId')
   @UseAclMiddleware({
     permissionName: 'workspaceDelete',
@@ -84,6 +88,7 @@ export class WorkspacesController {
     });
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Post('/api/v1/workspaces/:workspaceId/projects/:projectId/move')
   @UseAclMiddleware({
     permissionName: 'moveProjectToWorkspace',
@@ -100,6 +105,7 @@ export class WorkspacesController {
     });
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get('/api/v1/workspaces/:workspaceId/projects')
   @UseAclMiddleware({
     permissionName: 'workspaceProjectList',

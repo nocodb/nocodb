@@ -1,10 +1,10 @@
-import type { ProjectType, WorkspaceType, WorkspaceUserType } from 'nocodb-sdk'
-import { WorkspaceUserRoles } from 'nocodb-sdk'
-import { acceptHMRUpdate, defineStore } from 'pinia'
-import { message } from 'ant-design-vue'
-import { isString } from '@vueuse/core'
-import { computed, ref, useCommandPalette, useNuxtApp, useRouter, useTheme } from '#imports'
-import type { ThemeConfig } from '~/lib'
+import type {ProjectType, WorkspaceType, WorkspaceUserType} from 'nocodb-sdk'
+import {WorkspaceStatus, WorkspaceUserRoles} from 'nocodb-sdk'
+import {acceptHMRUpdate, defineStore} from 'pinia'
+import {message} from 'ant-design-vue'
+import {isString} from '@vueuse/core'
+import {computed, ref, useCommandPalette, useNuxtApp, useRouter, useTheme} from '#imports'
+import type {ThemeConfig} from '~/lib'
 
 interface NcWorkspace extends WorkspaceType {
   edit?: boolean
@@ -22,13 +22,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const route = router.currentRoute
 
-  const { $api } = useNuxtApp()
+  const {$api} = useNuxtApp()
 
-  const { refreshCommandPalette } = useCommandPalette()
+  const {refreshCommandPalette} = useCommandPalette()
 
-  const { setTheme, theme } = useTheme()
+  const {setTheme, theme} = useTheme()
 
-  const { $e } = useNuxtApp()
+  const {$e} = useNuxtApp()
 
   const workspaces = ref<Map<string, NcWorkspace>>(new Map())
   const workspacesList = computed<NcWorkspace[]>(() =>
@@ -81,7 +81,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const loadWorkspaces = async () => {
     try {
       // todo: pagination
-      const { list, pageInfo: _ } = await $api.workspace.list()
+      const {list, pageInfo: _} = await $api.workspace.list()
       for (const workspace of list ?? []) {
         workspaces.value.set(workspace.id!, workspace)
       }
@@ -101,12 +101,12 @@ export const useWorkspace = defineStore('workspaceStore', () => {
           .map((title) => {
             // pick a random color from array and assign to workspace
             const color = projectThemeColors[Math.floor(Math.random() * 1000) % projectThemeColors.length]
-            return { ...workspace, title, meta: { color } }
+            return {...workspace, title, meta: {color}}
           })
       } else {
         // pick a random color from array and assign to workspace
         const color = projectThemeColors[Math.floor(Math.random() * 1000) % projectThemeColors.length]
-        reqPayload = { ...workspace, meta: { color } }
+        reqPayload = {...workspace, meta: {color}}
       }
 
       // todo: pagination
@@ -146,7 +146,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     try {
       // todo: pagination
-      const { list, pageInfo: _ } = await $api.workspaceUser.list(activeWorkspace.value.id!, { query: params })
+      const {list, pageInfo: _} = await $api.workspaceUser.list(activeWorkspace.value.id!, {query: params})
 
       collaborators.value = list
     } catch (e: any) {
@@ -203,7 +203,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     workspaces.value.set(workspace.id!, workspace)
   }
 
-  async function populateWorkspace({ force, workspaceId: _workspaceId }: { force?: boolean; workspaceId?: string } = {}) {
+  async function populateWorkspace({force, workspaceId: _workspaceId}: { force?: boolean; workspaceId?: string } = {}) {
     isWorkspaceLoading.value = true
     const workspaceId = _workspaceId ?? activeWorkspaceId.value!
 
@@ -256,7 +256,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const updateProjectTitle = async (project: ProjectType & { edit: boolean; temp_title: string }) => {
     try {
-      await $api.project.update(project.id!, { title: project.temp_title })
+      await $api.project.update(project.id!, {title: project.temp_title})
       project.title = project.temp_title
       project.edit = false
       refreshCommandPalette()
@@ -294,11 +294,12 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   const clearWorkspaces = () => {
-    const { clearProjects } = useProjects()
+    const {clearProjects} = useProjects()
 
     clearProjects()
     workspaces.value.clear()
   }
+
 
   return {
     loadWorkspaces,

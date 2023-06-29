@@ -291,7 +291,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isMssql,
       isPg,
       isMysql,
-      isXcdbBase
+      isXcdbBase,
     }
   },
 )

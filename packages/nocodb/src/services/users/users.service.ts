@@ -57,7 +57,10 @@ export class UsersService {
     email: string;
     lastname: any;
   }) {
-    return this.metaService.metaInsert2(null, null, MetaTable.USERS, { ...param, email: param.email?.toLowerCase() });
+    return this.metaService.metaInsert2(null, null, MetaTable.USERS, {
+      ...param,
+      email: param.email?.toLowerCase(),
+    });
   }
 
   async registerNewUserIfAllowed({

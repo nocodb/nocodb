@@ -86,13 +86,13 @@ test.describe('Fill Handle', () => {
       { title: 'Duration', value: '00:01', type: 'text' },
       { title: 'Rating', value: '3', type: 'rating' },
       { title: 'Year', value: '2023', type: 'year' },
-      // { title: 'Time', value: '10:10', type: 'time' },
+      { title: 'Time', value: '02:02', type: 'time' },
     ];
 
     // set rating for first record
     await dashboard.grid.cell.rating.select({ index: 0, columnHeader: 'Rating', rating: 2 });
 
-    await dragDrop({ firstColumn: 'Number', lastColumn: 'Year' });
+    await dragDrop({ firstColumn: 'Number', lastColumn: 'Time' });
 
     // verify data on grid
     for (let i = 0; i < fields.length; i++) {
@@ -115,7 +115,7 @@ test.describe('Fill Handle', () => {
 
     // verify api response
     // duration in seconds
-    const APIResponse = [33, 33.3, 33.3, 33, 60, 3, 2023, '10:10:00'];
+    const APIResponse = [33, 33.3, 33.3, 33, 60, 3, 2023, '02:02:00'];
     const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 4 })).list;
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {

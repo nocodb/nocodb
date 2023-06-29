@@ -92,6 +92,8 @@ export default class WorkspaceUser {
         `${MetaTable.WORKSPACE}.fk_user_id`,
         `${MetaTable.WORKSPACE}.deleted`,
         `${MetaTable.WORKSPACE}.deleted_at`,
+        `${MetaTable.WORKSPACE}.status`,
+        `${MetaTable.WORKSPACE}.message`,
         `${MetaTable.WORKSPACE_USER}.order`,
         `${MetaTable.WORKSPACE_USER}.invite_token`,
         `${MetaTable.WORKSPACE_USER}.invite_accepted`,

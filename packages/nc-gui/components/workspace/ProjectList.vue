@@ -24,13 +24,13 @@ const { isUIAllowed } = useUIPermission()
 const openProject = async (project: ProjectType) => {
   switch (project.type) {
     case NcProjectType.DOCS:
-      await window.open(`http://${project.fk_workspace_id}.nocodb.ai/ws/${project.fk_workspace_id}/nc/${project.id}/doc`)
+      await window.open(`http://${project.fk_workspace_id}.nocodb.ai/dashboard/#/ws/${project.fk_workspace_id}/nc/${project.id}/doc`)
       break
     case NcProjectType.COWRITER:
-      await window.open(`http://${project.fk_workspace_id}.nocodb.ai/ws/${project.fk_workspace_id}/nc/${project.id}/cowriter`)
+      await window.open(`http://${project.fk_workspace_id}.nocodb.ai/dashboard/#/ws/${project.fk_workspace_id}/nc/${project.id}/cowriter`)
       break
     default:
-      await window.open(`http://${project.fk_workspace_id}.nocodb.ai/ws/${project.fk_workspace_id}/nc/${project.id}`)
+      await window.open(`http://${project.fk_workspace_id}.nocodb.ai/dashboard/#/ws/${project.fk_workspace_id}/nc/${project.id}`)
       break
   }
 }

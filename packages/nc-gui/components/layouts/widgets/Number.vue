@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { DataConfigNumber, NumberWidget } from 'nocodb-sdk'
 import { Icon as IconifyIcon } from '@iconify/vue'
+import useLayoutsContextMenu from './useLayoutsContextMenu'
 import { useWidget } from '~~/composables/useWidget'
 const props = defineProps<{
   widgetConfig: NumberWidget
@@ -80,6 +81,8 @@ watch(
   },
 )
 
+const { showContextMenuButtonRef, isContextMenuVisible, showContextMenu } = useLayoutsContextMenu()
+
 // const menuItems = [
 //   {
 //     title: 'Edit',
@@ -96,28 +99,6 @@ watch(
 //     },
 //   },
 // ]
-const isContextMenuVisible = ref(false)
-
-const contextMenuRef = ref<HTMLElement | null>(null)
-const showContextMenuButtonRef = ref<HTMLElement | null>(null)
-
-const handleDocumentClick = (event: MouseEvent) => {
-  console.log('event: ', event)
-  if (!contextMenuRef.value?.contains(event.target as Node) && !showContextMenuButtonRef.value?.contains(event.target as Node)) {
-    isContextMenuVisible.value = false
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleDocumentClick)
-})
-onUnmounted(() => {
-  document.removeEventListener('click', handleDocumentClick)
-})
-
-const showContextMenu = () => {
-  isContextMenuVisible.value = true
-}
 </script>
 
 <template>

@@ -107,7 +107,9 @@ export const OpenidStrategyProvider: FactoryProvider = {
           store: async (req, meta, callback) => {
             const handle = `oidc_${uuidv4()}`;
 
-            const state = { handle, org: req.query.org };
+            const url = new URL(req.ncSiteUrl);
+
+            const state = { handle, host: url.host };
             for (const key in meta) {
               state[key] = meta[key];
             }
@@ -126,7 +128,7 @@ export const OpenidStrategyProvider: FactoryProvider = {
                   });
                 }
 
-                req.nc_org = state.org;
+                req.ncRedirectHost = state.host;
 
                 await NocoCache.del(key);
                 return callback(null, true, state);

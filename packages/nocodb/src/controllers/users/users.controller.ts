@@ -16,17 +16,15 @@ import { NcError } from '../../helpers/catchError';
 import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { User } from '../../models';
 import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
-import {
-  ExtractProjectIdMiddleware,
-} from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import { ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import {
   randomTokenString,
   setTokenCookie,
 } from '../../services/users/helpers';
 import { UsersService } from '../../services/users/users.service';
 import extractRolesObj from '../../utils/extractRolesObj';
-import NocoCache from "../../cache/NocoCache";
-import {CacheGetType} from "../../utils/globals";
+import NocoCache from '../../cache/NocoCache';
+import { CacheGetType } from '../../utils/globals';
 
 @Controller()
 export class UsersController {
@@ -266,7 +264,6 @@ export class UsersController {
     // openid strategy will take care the request
   }
 
-
   @Post('/auth/oidc/redirect')
   // @UseGuards(AuthGuard('openid'))
   async redirect(@Request() req, @Response() res) {
@@ -277,7 +274,7 @@ export class UsersController {
     }
 
     res.redirect(
-      `https://${state.org}.nocohub.ai/dashboard?code=${req.query.code}&state=${req.query.state}`,
+      `https://${state.host}/dashboard?code=${req.query.code}&state=${req.query.state}`,
     );
   }
 }

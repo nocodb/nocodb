@@ -7,8 +7,6 @@ const workspaceStore = useWorkspace()
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
 
-const { isOpen } = storeToRefs(useSidebarStore())
-
 const dialogOpen = ref(false)
 
 const openDialogKey = ref<string>('')
@@ -44,7 +42,7 @@ const onTreeViewScrollTop = (onScrollTop: boolean) => {
     }"
   >
     <div style="height: var(--sidebar-top-height)">
-      <div style="border-bottom-width: 1px" class="flex items-center px-1 nc-sidebar-header !border-0 py-1.5 pl-2">
+      <div style="border-bottom-width: 1px" class="flex items-center px-1 nc-sidebar-header !border-0 py-1.25 pl-2">
         <div class="flex flex-row flex-grow hover:bg-gray-100 pl-2 pr-1 py-0.5 rounded-md">
           <div
             v-if="!isSharedBase"
@@ -52,12 +50,7 @@ const onTreeViewScrollTop = (onScrollTop: boolean) => {
             data-testid="nc-noco-brand-icon"
             class="w-[29px] min-w-[29px] transition-all duration-200 py-1 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
           >
-            <a-tooltip placement="bottom">
-              <template #title>
-                {{ currentVersion }}
-              </template>
-              <img width="25" class="-mr-1" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
-            </a-tooltip>
+            <img width="25" class="mr-0" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
           </div>
 
           <a
@@ -75,17 +68,6 @@ const onTreeViewScrollTop = (onScrollTop: boolean) => {
           </a>
 
           <WorkspaceMenu :workspace="activeWorkspace" :is-open="true" />
-        </div>
-
-        <div
-          class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center ml-0.5 pr-0.5 h-full"
-        >
-          <IcOutlineKeyboardDoubleArrowLeft
-            v-e="['c:grid:toggle-navdraw']"
-            class="cursor-pointer transform transition-transform duration-500 p-0.75 h-6.25 w-6.25 rounded-md hover:bg-gray-100"
-            :class="{ 'rotate-180': !isOpen }"
-            @click="isOpen = !isOpen"
-          />
         </div>
       </div>
 
@@ -105,11 +87,11 @@ const onTreeViewScrollTop = (onScrollTop: boolean) => {
         v-model:is-open="isCreateProjectOpen"
         modal
         type="text"
-        class="!p-0"
+        class="!p-0 mx-1"
         :active-workspace-id="route.params.workspaceId"
       >
         <div
-          class="gap-x-2 flex flex-row w-full items-center nc-sidebar-top-button !my-0"
+          class="gap-x-2 flex flex-row w-full items-center nc-sidebar-top-button !my-0 !ml-0"
           :class="{
             'bg-gray-100': isCreateProjectOpen,
           }"

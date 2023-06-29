@@ -15,11 +15,15 @@ export const useProjects = defineStore('projectsStore', () => {
     Array.from(projects.value.values()).sort((a, b) => a.updated_at - b.updated_at),
   )
 
+  const router = useRouter()
+  const route = router.currentRoute
+
+  const activeProjectId = computed(() => route.value.params.projectId as string | undefined)
+
   const workspaceStore = useWorkspace()
   const tableStore = useTablesStore()
 
   const { api } = useApi()
-  const route = useRoute()
 
   const isProjectsLoading = ref(false)
 
@@ -57,7 +61,7 @@ export const useProjects = defineStore('projectsStore', () => {
 
         projects.value.set(project.id!, {
           ...project,
-          isExpanded: route.params.projectId === project.id,
+          isExpanded: route.value.params.projectId === project.id,
           isLoading: false,
         })
       }
@@ -117,7 +121,7 @@ export const useProjects = defineStore('projectsStore', () => {
     const project = {
       ...existingProject,
       ..._project,
-      isExpanded: route.params.projectId === projectId || existingProject.isExpanded,
+      isExpanded: route.value.params.projectId === projectId || existingProject.isExpanded,
       // isLoading is managed by Sidebar
       isLoading: existingProject.isLoading,
     }
@@ -164,7 +168,7 @@ export const useProjects = defineStore('projectsStore', () => {
       //     primaryColor: color,
       //     accentColor: complement.toHex8String(),
       //   },
-      //   ...(route.query.type === NcProjectType.COWRITER && {prompt_statement: ''}),
+      //   ...(route.value.query.type === NcProjectType.COWRITER && {prompt_statement: ''}),
       // }),
     })
 
@@ -223,6 +227,7 @@ export const useProjects = defineStore('projectsStore', () => {
     isProjectEmpty,
     isProjectPopulated,
     isProjectsLoading,
+    activeProjectId,
   }
 })
 

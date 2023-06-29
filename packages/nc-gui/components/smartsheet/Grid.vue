@@ -993,14 +993,18 @@ function openGenerateDialog(target: any) {
 </script>
 
 <template>
-  <div class="relative flex flex-col h-full min-h-0 w-full" data-testid="nc-grid-wrapper">
+  <div
+    class="relative flex flex-col h-full min-h-0 w-full"
+    data-testid="nc-grid-wrapper"
+    style="background-color: var(--nc-grid-bg)"
+  >
     <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15" data-testid="grid-load-spinner">
       <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
         <a-spin size="large" />
       </div>
     </general-overlay>
 
-    <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
+    <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 nc-sidebar-md">
       <a-dropdown
         v-model:visible="contextMenu"
         :trigger="isSqlView ? [] : ['contextmenu']"
@@ -1016,7 +1020,7 @@ function openGenerateDialog(target: any) {
               <th class="w-[85px] min-w-[85px]" data-testid="grid-id-column">
                 <div class="w-full h-full flex pl-5 pr-1 items-center" data-testid="nc-check-all">
                   <template v-if="!readOnly">
-                    <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
+                    <div class="nc-no-label text-gray-400" :class="{ hidden: selectedAllRecords }">#</div>
                     <div
                       :class="{ hidden: !selectedAllRecords, flex: selectedAllRecords }"
                       class="nc-check-all w-full items-center"
@@ -1061,7 +1065,7 @@ function openGenerateDialog(target: any) {
                 >
                   <div class="h-full w-[60px] flex items-center justify-center">
                     <GeneralIcon v-if="altModifier || persistMenu" icon="magic" class="text-sm text-orange-400" />
-                    <component :is="iconMap.plus" class="text-sm nc-column-add" />
+                    <component :is="iconMap.plus" class="text-sm nc-column-add text-gray-600" />
                   </div>
 
                   <template v-if="persistMenu" #overlay>
@@ -1202,12 +1206,12 @@ function openGenerateDialog(target: any) {
                           </span>
                           <div
                             v-else
-                            class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)"
+                            class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded p-1 hover:(bg-gray-50)"
                           >
                             <component
                               :is="iconMap.expand"
                               v-e="['c:row-expand']"
-                              class="select-none transform hover:(text-accent scale-120) nc-row-expand"
+                              class="select-none transform hover:(text-black scale-120) nc-row-expand"
                               @click="expandForm(row, state)"
                             />
                           </div>
@@ -1272,19 +1276,19 @@ function openGenerateDialog(target: any) {
             <tr
               v-if="isAddingEmptyRowAllowed"
               v-e="['c:row:add:grid-bottom']"
-              class="text-left pointer nc-grid-add-new-cell cursor-pointer"
+              class="text-left pointer nc-grid-add-new-cell cursor-pointer group"
               :class="{
                 '!border-r-2 !border-r-gray-100': visibleColLength === 1,
               }"
               @mouseup.stop
               @click="addEmptyRow()"
             >
-              <td class="text-left pointer nc-grid-add-new-cell sticky left-0 !z-5 !border-r-0">
+              <td class="text-left pointer nc-grid-add-new-cell sticky left-0 !border-r-0">
                 <div class="px-2 w-full flex items-center text-gray-500">
-                  <component :is="iconMap.plus" class="text-pint-500 text-xs ml-2 text-primary" />
+                  <component :is="iconMap.plus" class="text-pint-500 text-xs ml-2 text-gray-600 group-hover:text-black" />
                 </div>
               </td>
-              <td :colspan="visibleColLength"></td>
+              <td class="!border-gray-50" :colspan="visibleColLength"></td>
             </tr>
           </tbody>
         </table>
@@ -1375,16 +1379,17 @@ function openGenerateDialog(target: any) {
 
     <div
       v-if="isAddingEmptyRowAllowed"
-      class="absolute bottom-1px left-2 z-4"
+      class="absolute bottom-12 left-2 z-4"
       data-testid="nc-grid-add-new-row"
       @click="addEmptyRow()"
     >
-      <a-button v-e="['c:row:add:grid-bottom', { footer: true }]" class="!rounded-xl" size="small">
-        <div class="flex items-center">
+      <a-button
+        v-e="['c:row:add:grid-bottom', { footer: true }]"
+        class="!rounded-md !shadow-xs !shadow-gray-100 !px-2 z-10 !border-gray-100"
+      >
+        <div class="flex items-center text-gray-600 hover:text-black">
+          <span class="mr-1.5"> New Record </span>
           <component :is="iconMap.plus" class="text-pint-500 text-xs" />
-          <span class="ml-1">
-            {{ $t('activity.addRow') }}
-          </span>
         </div>
       </a-button>
     </div>
@@ -1436,17 +1441,23 @@ function openGenerateDialog(target: any) {
 
 <style scoped lang="scss">
 .nc-grid-wrapper {
-  @apply h-full w-full overflow-auto;
+  @apply h-full w-full;
+  overflow: overlay !important;
+
+  tr:nth-child(1) {
+    height: 41px !important;
+  }
 
   td,
   th {
-    @apply border-gray-100 border-solid border-b border-r;
+    @apply border-gray-50 border-solid border-b border-r;
     min-height: 41px !important;
     height: 41px !important;
     position: relative;
   }
 
-  th {
+  th,
+  td {
     @apply bg-white;
   }
 
@@ -1456,6 +1467,8 @@ function openGenerateDialog(target: any) {
   }
 
   table {
+    background-color: var(--nc-grid-bg);
+
     border-collapse: separate;
     border-spacing: 0;
   }
@@ -1503,7 +1516,7 @@ function openGenerateDialog(target: any) {
     position: sticky !important;
     left: 85px;
     z-index: 5;
-    @apply border-r-2 border-r-gray-100;
+    @apply border-r-1 border-r-gray-75;
   }
 
   tbody td:nth-child(2) {
@@ -1511,7 +1524,7 @@ function openGenerateDialog(target: any) {
     left: 85px;
     z-index: 4;
     background: white;
-    @apply border-r-2 border-r-gray-100;
+    @apply border-r-1 border-r-gray-75;
   }
 }
 

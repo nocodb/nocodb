@@ -110,7 +110,7 @@ export default defineNuxtConfig({
         compiler: 'vue3',
         defaultClass: 'nc-icon',
         customCollections: {
-          'nc-icons': FileSystemIconLoader('./assets/nc-icons', (svg) => svg.replace(/^<svg /, '<svg fill="currentColor" ')),
+          'nc-icons': FileSystemIconLoader('./assets/nc-icons', (svg) => svg.replace(/^<svg /, '<svg stroke="currentColor" ')),
         },
       }),
       Components({

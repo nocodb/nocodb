@@ -65,12 +65,16 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <template>
   <div>
-    <a-dropdown v-model:visible="isOpen" class="w-full">
-      <a-button class="!p-0 !border-0 !h-full !rounded-md" :type="props.type ?? 'primary'">
-        <div class="flex w-full items-center gap-2">
-          <slot>New Project <MdiMenuDown /></slot>
-        </div>
-      </a-button>
+    <a-button
+      class="!py-0 !px-0 !border-0 !h-full !rounded-md w-full hover:bg-gray-100 text-sm select-none cursor-pointer"
+      :type="props.type ?? 'primary'"
+      @click="navigateToCreateProject(NcProjectType.DB)"
+    >
+      <div class="flex w-full items-center gap-2">
+        <slot>New Project <MdiMenuDown /></slot>
+      </div>
+    </a-button>
+    <!-- <a-dropdown v-model:visible="isOpen" class="w-full">
       <template #overlay>
         <a-menu>
           <a-menu-item @click="navigateToCreateProject(NcProjectType.DB)">
@@ -81,7 +85,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
               <GeneralShortcutLabel class="justify-center" :keys="['Alt', 'D']" />
             </div>
           </a-menu-item>
-          <!-- <a-menu-item @click="navigateToCreateProject(NcProjectType.DASHBOARD)"> -->
           <a-menu-item @click="openCreateDashboardProjectOverlay()">
             <div class="py-4 px-1 flex items-center gap-2">
               <GeneralProjectIcon :type="NcProjectType.DASHBOARD" class="text-[#2824FB] text-lg" />
@@ -98,21 +101,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
               <GeneralShortcutLabel class="justify-center" :keys="['Alt', 'B']" />
             </div>
           </a-menu-item>
-          <!--          <a-menu-item @click="navigateToCreateProject(NcProjectType.AUTOMATION)">
-            <div class="py-4 px-1 flex items-center gap-4">
-              <GeneralProjectIcon :type="NcProjectType.AUTOMATION" class="text-[#DDB00F] text-lg" />
-              Automation
-            </div>
-          </a-menu-item>
-          <a-menu-item @click="navigateToCreateProject(NcProjectType.COWRITER)">
-            <div class="py-4 px-1 flex items-center gap-4">
-              <GeneralProjectIcon :type="NcProjectType.COWRITER" class="text-[#8626FF] text-lg" />
-              Cowriter
-            </div>
-          </a-menu-item> -->
         </a-menu>
       </template>
-    </a-dropdown>
+    </a-dropdown> -->
     <WorkspaceCreateProjectDlg v-model="projectCreateDlg" :type="projectType" />
     <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
   </div>

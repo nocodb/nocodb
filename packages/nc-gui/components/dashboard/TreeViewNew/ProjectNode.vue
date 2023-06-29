@@ -350,23 +350,18 @@ const reloadTables = async () => {
                 class="nc-sidebar-icon !flex !flex-row !items-center !my-0.5 !mx-1.5 w-8"
                 :indicator="indicator"
               />
-              <component :is="isUIAllowed('projectIconCustomisation', false, projectRole) ? Tooltip : 'div'" v-else>
-                <GeneralEmojiPicker
-                  :key="project.meta?.icon"
-                  :emoji="project.meta?.icon"
-                  size="small"
-                  clearable
-                  @emoji-selected="setIcon($event, project)"
-                >
-                  <template #default>
-                    <GeneralProjectIcon :type="project.type" />
-                  </template>
-                </GeneralEmojiPicker>
 
-                <template v-if="isUIAllowed('projectIconCustomisation', false, projectRole)" #title>
-                  <span class="text-xs"> Change icon </span>
+              <GeneralEmojiPicker
+                :key="project.meta?.icon"
+                :emoji="project.meta?.icon"
+                size="small"
+                readonly
+                @emoji-selected="setIcon($event, project)"
+              >
+                <template #default>
+                  <GeneralProjectIcon :type="project.type" />
                 </template>
-              </component>
+              </GeneralEmojiPicker>
             </div>
             <template v-if="isUIAllowed('projectIconCustomisation', false, projectRole)" #overlay>
               <GeneralEmojiPicker

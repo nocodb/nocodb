@@ -169,12 +169,12 @@ function onStopEdit() {
 
 <template>
   <a-menu-item
-    class="select-none group !flex !items-center !my-0 hover:(bg-primary !bg-opacity-5)"
+    class="!h-8 !mb-0.25 select-none group text-gray-700 !flex !items-center !mt-0 hover:(!bg-gray-75 !text-gray-900)"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @dblclick.stop="onDblClick"
     @click.stop="onClick"
   >
-    <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2" data-testid="view-item">
+    <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-1" data-testid="view-item">
       <div class="flex w-auto min-w-5" :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`">
         <a-dropdown :trigger="['click']" @click.stop>
           <component :is="isUIAllowed('viewIconCustomisation') ? Tooltip : 'div'">
@@ -213,11 +213,7 @@ function onStopEdit() {
               {{ $t('activity.copyView') }}
             </template>
 
-            <component
-              :is="iconMap.copy"
-              class="!hidden !group-hover:block text-gray-500 nc-view-copy-icon"
-              @click.stop="onDuplicate"
-            />
+            <component :is="iconMap.copy" class="!hidden !group-hover:block nc-view-copy-icon" @click.stop="onDuplicate" />
           </a-tooltip>
 
           <template v-if="!vModel.is_default">
@@ -228,7 +224,7 @@ function onStopEdit() {
 
               <component
                 :is="iconMap.delete"
-                class="!hidden !group-hover:block text-red-500 nc-view-delete-icon"
+                class="!hidden !group-hover:block text-red-600 nc-view-delete-icon"
                 @click.stop="onDelete"
               />
             </a-tooltip>

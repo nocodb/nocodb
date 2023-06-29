@@ -1,32 +1,29 @@
 <script setup lang="ts">
+import { ViewTypes } from 'nocodb-sdk'
 import { IsPublicInj, inject, ref, useSharedView, useSidebar, useSmartsheetStoreOrThrow, useUIPermission } from '#imports'
 
 const { isGrid, isForm, isGallery, isKanban, isMap, isSqlView } = useSmartsheetStoreOrThrow()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { isOpen: isSidebarOpen } = storeToRefs(useSidebarStore())
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useUIPermission()
-
-const { isOpen } = useSidebar('nc-right-sidebar')
 
 const { allowCSVDownload } = useSharedView()
 </script>
 
 <template>
   <div
-    class="nc-table-toolbar w-full py-1 flex gap-2 items-center px-2 border-b border-gray-100 overflow-x-hidden"
-    :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode, 'pl-8': !isSidebarOpen }"
+    class="nc-table-toolbar h-20 w-full py-1 flex gap-2 items-center pr-2 pl-2.5 border-b border-gray-75 overflow-hidden"
+    :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
     style="z-index: 7"
   >
-    <LazySmartsheetToolbarViewActions
-      v-if="(isGrid || isGallery || isKanban || isMap) && !isPublic && isUIAllowed('dataInsert')"
-      :show-system-fields="false"
-      class="ml-1"
-    />
+    <LazySmartsheetToolbarViewInfo />
+
+    <div v-if="!isMobileMode" class="flex-1" />
 
     <LazySmartsheetToolbarViewInfo v-if="!isUIAllowed('dataInsert') && !isPublic" />
 
@@ -44,26 +41,18 @@ const { allowCSVDownload } = useSharedView()
 
     <LazySmartsheetToolbarRowHeight v-if="isGrid" />
 
-    <LazySmartsheetToolbarShareView v-if="(isForm || isGrid || isKanban || isGallery || isMap) && !isPublic" />
-
     <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" />
 
     <LazySmartsheetToolbarExport v-if="(!isPublic && !isUIAllowed('dataInsert')) || (isPublic && allowCSVDownload)" />
-    <div v-if="!isMobileMode" class="flex-1" />
 
-    <LazySmartsheetToolbarReload v-if="!isPublic && !isForm" />
+    <LazySmartsheetToolbarSearchData v-if="(isGrid || isGallery || isKanban) && !isPublic" class="shrink" />
 
-    <LazySmartsheetToolbarAddRow v-if="isUIAllowed('dataInsert') && !isPublic && !isForm && !isSqlView" />
+    <LazyGeneralShareProject v-if="(isForm || isGrid || isKanban || isGallery || isMap) && !isPublic" class="" />
 
-    <LazySmartsheetToolbarSearchData v-if="(isGrid || isGallery || isKanban) && !isPublic" class="shrink mx-2" />
-
-    <LazyGeneralShareBaseButton class="" />
-
-    <template v-if="!isOpen && !isPublic">
-      <div class="border-l-1 pl-3 nc-views-show-sidebar-button" :class="{ 'ml-auto': isMobileMode }">
-        <LazySmartsheetSidebarToolbarToggleDrawer class="mr-2" />
-      </div>
-    </template>
+    <LazySmartsheetToolbarViewActions
+      v-if="(isGrid || isGallery || isKanban || isMap) && !isPublic && isUIAllowed('dataInsert')"
+      :show-system-fields="false"
+    />
   </div>
 </template>
 

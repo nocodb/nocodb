@@ -107,10 +107,10 @@ const modalVisible = false
         :style="{ width: props.isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
         :class="[props.isOpen ? '' : 'justify-center']"
         data-testid="nc-workspace-menu"
-        class="group cursor-pointer flex gap-1 items-center nc-workspace-menu overflow-hidden py-1.25 pl-1.5 pr-0.25"
+        class="group cursor-pointer flex gap-1 items-center nc-workspace-menu overflow-hidden py-1.25 pl-0.75 pr-0.25"
       >
         <template v-if="props.isOpen">
-          <div class="flex-grow min-w-10 font-semibold">
+          <div class="flex-grow min-w-10 font-semibold text-base">
             <a-tooltip v-if="activeWorkspace!.title!.length > 12" placement="bottom">
               <div class="text-md truncate">{{ activeWorkspace!.title }}</div>
               <template #title>

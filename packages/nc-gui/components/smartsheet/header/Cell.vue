@@ -49,15 +49,16 @@ const openHeaderMenu = () => {
     :class="{ 'h-full': column, '!text-gray-400': isKanban }"
   >
     <SmartsheetHeaderCellIcon v-if="column" />
-    <span
+    <div
       v-if="column"
       class="name"
-      :class="{ 'cursor-pointer': !isForm && isUIAllowed('edit-column') && !hideMenu }"
+      :class="{ 'cursor-pointer pt-0.25': !isForm && isUIAllowed('edit-column') && !hideMenu }"
       style="white-space: pre-line"
       :title="column.title"
       @dblclick="openHeaderMenu"
-      >{{ column.title }}</span
     >
+      {{ column.title }}
+    </div>
 
     <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
 

@@ -17,6 +17,8 @@ import {
   watch,
 } from '#imports'
 
+import ListIcon from '~icons/nc-icons/list'
+
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 const isLocked = inject(IsLockedInj, ref(false))
@@ -75,12 +77,11 @@ useMenuCloseOnEsc(open)
   <a-dropdown v-model:visible="open" offset-y class="" :trigger="['click']" overlay-class-name="nc-dropdown-sort-menu">
     <div :class="{ 'nc-badge nc-active-btn': sorts?.length }">
       <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked">
-        <div class="flex items-center gap-1">
-          <component :is="iconMap.sort" />
+        <div class="flex items-center gap-2">
+          <ListIcon class="h-4 w-4" />
 
           <!-- Sort -->
-          <span v-if="!isMobileMode" class="text-capitalize !text-xs font-weight-normal">{{ $t('activity.sort') }}</span>
-          <component :is="iconMap.arrowDown" class="text-grey" />
+          <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.sort') }}</span>
 
           <span v-if="sorts?.length" class="nc-count-badge">{{ sorts.length }}</span>
         </div>

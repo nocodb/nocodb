@@ -329,7 +329,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                 :key="record.id"
                 :emoji="record.meta?.icon"
                 size="small"
-                clearable
+                readonly
                 @emoji-selected="setIcon($event, record)"
               >
                 <GeneralProjectIcon :type="record.type" />

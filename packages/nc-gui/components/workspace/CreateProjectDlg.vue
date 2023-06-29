@@ -79,7 +79,7 @@ const input: VNodeRef = ref<typeof Input>()
 
 watch(dialogShow, async (n, o) => {
   if (n === o && !n) return
-  formState.title = ''
+  formState.title = 'Untitled'
   await nextTick()
   input.value?.$el?.focus()
   input.value?.$el?.select()

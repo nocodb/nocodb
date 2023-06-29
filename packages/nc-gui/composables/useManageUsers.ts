@@ -74,7 +74,6 @@ const [setup, use] = useInjectionState(() => {
       users.value = []
       await loadUsers()
       // Successfully added user to project
-      message.success(t('msg.success.userAddedToProject'))
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
       formStatus.value = 'collaborate'

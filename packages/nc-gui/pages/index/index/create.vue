@@ -71,26 +71,32 @@ const createProject = async () => {
     // todo: provide proper project type
     creating.value = true
 
-    const result = (await api.project.create({
-      title: formState.title,
-      fk_workspace_id: route.query.workspaceId,
-      type: route.query.type ?? NcProjectType.DB,
-      color,
-      meta: JSON.stringify({
-        theme: {
-          primaryColor: color,
-          accentColor: complement.toHex8String(),
-        },
-        ...(route.query.type === NcProjectType.COWRITER && { prompt_statement: '' }),
-      }),
-    })) as Partial<ProjectType>
+    const result = (await api.project.create(
+      {
+        title: formState.title,
+        fk_workspace_id: route.query.workspaceId,
+        type: route.query.type ?? NcProjectType.DB,
+        color,
+        meta: JSON.stringify({
+          theme: {
+            primaryColor: color,
+            accentColor: complement.toHex8String(),
+          },
+          ...(route.query.type === NcProjectType.COWRITER && { prompt_statement: '' }),
+        }),
+      },
+      {
+        baseURL: process.env.NODE_ENV === 'production' ? `https://${route.query.workspaceId}.nocodb.ai` : undefined,
+      },
+    )) as Partial<ProjectType>
 
     refreshCommandPalette()
 
     switch (route.query.type) {
       case NcProjectType.DOCS:
         await loadProject(true, result.id)
-        await navigateTo(`/ws/${route.query.workspaceId}/nc/${result.id}/doc`)
+        // await navigateTo(`/ws/${route.query.workspaceId}/nc/${result.id}/doc`)
+        location.href = `https://${route.query.workspaceId}.nocodb.ai/dashboard/#/ws/${route.query.workspaceId}/nc/${result.id}/cowriter`
         break
       case NcProjectType.COWRITER: {
         // force load project so that baseId is available in useTable
@@ -106,8 +112,10 @@ const createProject = async () => {
         break
       }
       default:
-        await navigateTo(`/ws/${route.query.workspaceId}/nc/${result.id}`)
+        // await navigateTo(`/ws/${route.query.workspaceId}/nc/${result.id}`)
+        location.href = `https://${route.query.workspaceId}.nocodb.ai/dashboard/#/ws/${route.query.workspaceId}/nc/${result.id}/cowriter`
     }
+
   } catch (e: any) {
     console.error(e)
     message.error(await extractSdkResponseErrorMsg(e))

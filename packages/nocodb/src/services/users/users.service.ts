@@ -519,6 +519,9 @@ export class UsersService {
   }
 
   private async createDefaultWorkspace(user: User) {
+    // todo: enable or remove based on discussion
+    return;
+
     const title = `${user.email?.split('@')?.[0]}`;
     // create new workspace for user
     const workspace = await Workspace.insert({

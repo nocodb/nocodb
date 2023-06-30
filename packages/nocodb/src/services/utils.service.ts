@@ -405,6 +405,7 @@ export class UtilsService {
       ncMaxAttachmentsAllowed: +(process.env.NC_MAX_ATTACHMENTS_ALLOWED || 10),
       isCloud: process.env.NC_CLOUD === 'true',
       automationLogLevel: process.env.NC_AUTOMATION_LOG_LEVEL || 'OFF',
+      baseHostName: process.env.NC_BASE_HOST_NAME,
     };
 
     return result;

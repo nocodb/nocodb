@@ -4,11 +4,13 @@ import bcrypt from 'bcryptjs';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy as OpenIDConnectStrategy } from '@techpass/passport-openidconnect';
 import { v4 as uuidv4 } from 'uuid';
+import { ConfigService } from '@nestjs/config';
 import { User } from '../../models';
 import Noco from '../../Noco';
 import NocoCache from '../../cache/NocoCache';
 import { CacheGetType } from '../../utils/globals';
 import { UsersService } from '../../services/users/users.service';
+import type { AppConfig } from 'aws-sdk';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
 
 @Injectable()
@@ -18,6 +20,7 @@ export class OpenidStrategy extends PassportStrategy(
 ) {
   constructor(
     @Optional() clientConfig: any,
+    private configService: ConfigService<AppConfig>,
     private usersService: UsersService,
   ) {
     super(clientConfig, (_issuer, _subject, profile, done) =>
@@ -82,8 +85,11 @@ export class OpenidStrategy extends PassportStrategy(
 
 export const OpenidStrategyProvider: FactoryProvider = {
   provide: OpenidStrategy,
-  inject: [UsersService],
-  useFactory: async (usersService: UsersService) => {
+  inject: [UsersService, ConfigService<AppConfig>],
+  useFactory: async (
+    usersService: UsersService,
+    config: ConfigService<AppConfig>,
+  ) => {
     // OpenID Connect
     if (
       process.env.NC_OIDC_ISSUER &&
@@ -138,7 +144,7 @@ export const OpenidStrategyProvider: FactoryProvider = {
         },
       };
 
-      return new OpenidStrategy(clientConfig, usersService);
+      return new OpenidStrategy(clientConfig, config, usersService);
     }
     return null;
   },

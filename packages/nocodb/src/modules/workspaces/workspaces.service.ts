@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import AWS from 'aws-sdk';
+import { ConfigService } from '@nestjs/config';
 import WorkspaceUser from '../../models/WorkspaceUser';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import Workspace from '../../models/Workspace';
@@ -9,14 +10,14 @@ import { NcError } from '../../helpers/catchError';
 import { Project, ProjectUser } from '../../models';
 import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
-import {ConfigService} from "@nestjs/config";
-import {AppConfig} from "../../interface/config";
+import type { AppConfig } from '../../interface/config';
 
 @Injectable()
 export class WorkspacesService {
-  constructor(private appHooksService: AppHooksService,
-              private configService: ConfigService<AppConfig>,
-              ) {}
+  constructor(
+    private appHooksService: AppHooksService,
+    private configService: ConfigService<AppConfig>,
+  ) {}
 
   async list(param: {
     user: {
@@ -213,11 +214,14 @@ export class WorkspacesService {
     // Create publish parameters
     const params = {
       Message: JSON.stringify({ WS_NAME: param.titleOrId }) /* required */,
-      TopicArn: snsConfig.topicArn
+      TopicArn: snsConfig.topicArn,
     };
 
     // Create promise and SNS service object
-    const publishTextPromise = new AWS.SNS({ apiVersion: snsConfig.apiVersion, region: snsConfig.region })
+    const publishTextPromise = new AWS.SNS({
+      apiVersion: snsConfig.apiVersion,
+      region: snsConfig.region,
+    })
       .publish(params)
       .promise();
 

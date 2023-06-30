@@ -50,6 +50,7 @@ const selectedRowIndex = ref(0)
 const isAltKeyDown = ref(false)
 
 const linkRow = async (row: Record<string, any>) => {
+  childrenExcludedList.value?.list?.splice(selectedRowIndex.value, 1)
   if (isNew.value) {
     addLTARRef(row, column?.value as ColumnType)
     saveRow!()
@@ -57,7 +58,7 @@ const linkRow = async (row: Record<string, any>) => {
     await link(row)
   }
   if (isAltKeyDown.value) {
-    loadChildrenExcludedList()
+    if (!isNew.value) loadChildrenExcludedList()
   } else {
     vModel.value = false
   }

@@ -48,34 +48,19 @@ const rowMixedValue = (column: ColumnType, index: number, db?: string) => {
   const numbers = [33, null, 456, 333, 267, 34, 8754, 3234, 44, 33, null];
   const decimals = [33.3, 456.34, 333.3, null, 267.5674, 34.0, 8754.0, 3234.547, 44.2647, 33.98, null];
   const duration = [60, 120, 180, 3600, 3660, 3720, null, 3780, 60, 120, null];
-  const time =
-    db === 'mysql'
-      ? [
-          `02:02:00`,
-          `20:20:20`,
-          `04:04:00`,
-          `02:02:00`,
-          `20:20:20`,
-          `18:18:18`,
-          null,
-          `02:02:00`,
-          `20:20:20`,
-          `18:18:18`,
-          null,
-        ]
-      : [
-          `1999-01-01 02:02:00${timezoneOffset}`,
-          `1999-01-01 20:20:20${timezoneOffset}`,
-          `1999-01-01 04:04:00${timezoneOffset}`,
-          `1999-01-01 02:02:00${timezoneOffset}`,
-          `1999-01-01 20:20:20${timezoneOffset}`,
-          `1999-01-01 18:18:18${timezoneOffset}`,
-          null,
-          `1999-01-01 02:02:00${timezoneOffset}`,
-          `1999-01-01 20:20:20${timezoneOffset}`,
-          `1999-01-01 18:18:18${timezoneOffset}`,
-          null,
-        ];
+  const time = [
+    `1999-01-01 02:02:00${timezoneOffset}`,
+    `1999-01-01 20:20:20${timezoneOffset}`,
+    `1999-01-01 04:04:00${timezoneOffset}`,
+    `1999-01-01 02:02:00${timezoneOffset}`,
+    `1999-01-01 20:20:20${timezoneOffset}`,
+    `1999-01-01 18:18:18${timezoneOffset}`,
+    null,
+    `1999-01-01 02:02:00${timezoneOffset}`,
+    `1999-01-01 20:20:20${timezoneOffset}`,
+    `1999-01-01 18:18:18${timezoneOffset}`,
+    null,
+  ];
   const rating = [0, 1, 2, 3, null, 0, 4, 5, 0, 1, null];
   const years = [2023, null, 1956, 2023, 1967, 2024, 1954, 1924, 2044, 1923, null];
 

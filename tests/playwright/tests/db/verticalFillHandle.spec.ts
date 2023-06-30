@@ -89,6 +89,9 @@ test.describe('Fill Handle', () => {
       { title: 'Time', value: '02:02', type: 'time' },
     ];
 
+    // kludge: insert time from browser until mysql issue with timezone is fixed
+    await dashboard.grid.cell.time.set({ index: 0, columnHeader: 'Time', value: '02:02' });
+
     // set rating for first record
     await dashboard.grid.cell.rating.select({ index: 0, columnHeader: 'Rating', rating: 2 });
 

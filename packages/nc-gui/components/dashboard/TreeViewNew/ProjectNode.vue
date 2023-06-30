@@ -318,6 +318,7 @@ const reloadTables = async () => {
       class="mx-1 nc-project-sub-menu rounded-md"
       :class="{ active: project.isExpanded }"
       :data-testid="`nc-sidebar-project-${project.title}`"
+      :data-project-id="project.id"
     >
       <div class="flex items-center gap-0.75 py-0.25 cursor-pointer" @contextmenu="setMenuContext('project', project)">
         <div

@@ -167,12 +167,16 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     isInvitingCollaborators.value = true
     try {
-      await $api.workspaceUser.invite(activeWorkspace.value.id!, {
-        email,
-        roles,
-      },{
-        baseURL: process.env.NODE_ENV === 'production' ? `https://${activeWorkspace.value.id!}.nocodb.ai` : undefined,
-      })
+      await $api.workspaceUser.invite(
+        activeWorkspace.value.id!,
+        {
+          email,
+          roles,
+        },
+        {
+          baseURL: process.env.NODE_ENV === 'production' ? `https://${activeWorkspace.value.id!}.nocodb.ai` : undefined,
+        },
+      )
       await loadCollaborators()
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
@@ -199,11 +203,16 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       throw new Error('Workspace not selected')
     }
 
-    await $api.workspaceUser.update(activeWorkspace.value.id!, userId, {
-      roles,
-    },{
-      baseURL: process.env.NODE_ENV === 'production' ? `https://${activeWorkspace.value.id!}.nocodb.ai` : undefined,
-    })
+    await $api.workspaceUser.update(
+      activeWorkspace.value.id!,
+      userId,
+      {
+        roles,
+      },
+      {
+        baseURL: process.env.NODE_ENV === 'production' ? `https://${activeWorkspace.value.id!}.nocodb.ai` : undefined,
+      },
+    )
     await loadCollaborators()
   }
 
@@ -219,7 +228,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     if (force || !workspaces.value.get(workspaceId)) {
       await loadWorkspace(workspaceId)
     }
-    // await Promise.all([loadCollaborators(), projectsStore.loadProjects()])
+    if (activeWorkspace.value?.status === WorkspaceStatus.CREATED) {
+      await Promise.all([loadCollaborators(), projectsStore.loadProjects()])
+    }
     isWorkspaceLoading.value = false
   }
 
@@ -265,9 +276,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const updateProjectTitle = async (project: ProjectType & { edit: boolean; temp_title: string }) => {
     try {
-      await $api.project.update(project.id!, { title: project.temp_title },{
-        baseURL: process.env.NODE_ENV === 'production' ? `https://${activeWorkspace.value.id!}.nocodb.ai` : undefined,
-      })
+      await $api.project.update(
+        project.id!,
+        { title: project.temp_title },
+        {
+          baseURL: process.env.NODE_ENV === 'production' ? `https://${activeWorkspace.value.id!}.nocodb.ai` : undefined,
+        },
+      )
       project.title = project.temp_title
       project.edit = false
       refreshCommandPalette()

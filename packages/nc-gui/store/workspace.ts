@@ -219,7 +219,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     if (force || !workspaces.value.get(workspaceId)) {
       await loadWorkspace(workspaceId)
     }
-    await Promise.all([loadCollaborators(), projectsStore.loadProjects()])
+    // await Promise.all([loadCollaborators(), projectsStore.loadProjects()])
     isWorkspaceLoading.value = false
   }
 

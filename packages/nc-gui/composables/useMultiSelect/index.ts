@@ -163,8 +163,19 @@ export function useMultiSelect(
       const isMySQL = isMysql(columnObj.base_id)
       const isPostgres = isPg(columnObj.base_id)
 
-      // MySQL and Postgres store time in HH:mm:ss format so we need to feed custom parse format
-      const d = isMySQL || isPostgres ? dayjs(textToCopy, 'HH:mm:ss') : dayjs(textToCopy)
+      let d = dayjs(textToCopy)
+
+      if (!d.isValid()) {
+        // insert a datetime value, copy the value without refreshing
+        // e.g. textToCopy = 2023-05-12T03:49:25.000Z
+        // feed custom parse format
+        d = dayjs(textToCopy, isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
+      }
+
+      if (!d.isValid()) {
+        // MySQL and Postgres store time in HH:mm:ss format so we need to feed custom parse format
+        d = isMySQL || isPostgres ? dayjs(textToCopy, 'HH:mm:ss') : dayjs(textToCopy)
+      }
 
       if (!d.isValid()) {
         // return empty string for invalid time

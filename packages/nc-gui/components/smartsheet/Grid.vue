@@ -83,6 +83,8 @@ const isView = false
 
 let editEnabled = $ref(false)
 
+const { appInfo } = useGlobal()
+
 const { xWhere, isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
 
 const visibleColLength = $computed(() => fields.value?.length)
@@ -855,7 +857,7 @@ onBeforeUnmount(async () => {
   const viewMetaValue = view.value
   const dataValue = data.value
   if (viewMetaValue) {
-    getMeta(viewMetaValue.fk_model_id).then((res) => {
+    getMeta(viewMetaValue.fk_model_id, false, true).then((res) => {
       const metaValue = res
       if (!metaValue) return
       saveOrUpdateRecords({
@@ -902,7 +904,7 @@ watch(
         switchingTab.value = true
         // whenever tab changes or view changes save any unsaved data
         if (old?.id) {
-          const oldMeta = await getMeta(old.fk_model_id!)
+          const oldMeta = await getMeta(old.fk_model_id!, false, true)
           if (oldMeta) {
             await saveOrUpdateRecords({
               viewMetaValue: old,
@@ -1313,10 +1315,22 @@ function openGenerateDialog(target: any) {
             </a-menu-item>
 
             <a-menu-item
+              v-if="appInfo.ee && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
+              @click="bulkUpdateDlg = true"
+            >
+              <div v-e="['a:row:update-bulk']" class="nc-project-menu-item">
+                <component :is="iconMap.edit" />
+                <!-- TODO i18n -->
+                Update Selected Rows
+              </div>
+            </a-menu-item>
+
+            <a-menu-item
               v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
               @click="deleteSelectedRows"
             >
-              <div v-e="['a:row:delete-bulk']" class="nc-project-menu-item">
+              <div v-e="['a:row:delete-bulk']" class="nc-project-menu-item text-red-500">
+                <component :is="iconMap.delete" />
                 <!-- Delete Selected Rows -->
                 {{ $t('activity.deleteSelectedRow') }}
               </div>
@@ -1351,16 +1365,6 @@ function openGenerateDialog(target: any) {
               <div v-e="['a:row:copy']" class="nc-project-menu-item">
                 <!-- Copy -->
                 {{ $t('general.copy') }}
-              </div>
-            </a-menu-item>
-
-            <a-menu-item
-              v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
-              @click="bulkUpdateDlg = true"
-            >
-              <div class="nc-project-menu-item">
-                <!-- Bulk Update -->
-                Bulk Update
               </div>
             </a-menu-item>
 

@@ -624,7 +624,7 @@ export class MetaService {
       offset?: number;
       xcCondition?;
       fields?: string[];
-      orderBy: { [key: string]: 'asc' | 'desc' };
+      orderBy?: { [key: string]: 'asc' | 'desc' };
     },
   ): Promise<any[]> {
     const query = this.knexConnection(target);

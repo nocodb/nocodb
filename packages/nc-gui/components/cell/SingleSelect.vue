@@ -8,6 +8,7 @@ import {
   ActiveCellInj,
   CellClickHookInj,
   ColumnInj,
+  EditModeInj,
   IsFormInj,
   IsKanbanInj,
   ReadonlyInj,
@@ -39,7 +40,13 @@ const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj)!
 
-const active = inject(ActiveCellInj, ref(false))
+const isEditable = inject(EditModeInj, ref(false))
+
+const activeCell = inject(ActiveCellInj, ref(false))
+
+// use both ActiveCellInj or EditModeInj to determine the active state
+// since active will be false in case of form view
+const active = computed(() => activeCell.value || isEditable.value)
 
 const aselect = ref<typeof AntSelect>()
 
@@ -112,7 +119,7 @@ watch(isOpen, (n, _o) => {
   }
 })
 
-useSelectedCellKeyupListener(active, (e) => {
+useSelectedCellKeyupListener(activeCell, (e) => {
   switch (e.key) {
     case 'Escape':
       isOpen.value = false
@@ -250,7 +257,7 @@ const selectedOpt = computed(() => {
 
 <template>
   <div class="h-full w-full flex items-center nc-single-select" :class="{ 'read-only': readOnly }" @click="toggleMenu">
-    <div v-if="!active">
+    <div v-if="!(active || isEditable)">
       <a-tag v-if="selectedOpt" class="rounded-tag" :color="selectedOpt.color">
         <span
           :style="{

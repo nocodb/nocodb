@@ -197,6 +197,7 @@ export class WorkspacesService {
     });
   }
 
+  // todo: handle error case
   private async createWorkspaceSubdomain(param: { titleOrId: string }) {
     // Set region
     // AWS.config.update({ region: 'us-east-2' });

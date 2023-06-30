@@ -123,15 +123,21 @@ export class WorkspacesController {
   // Todo: move logic to service
   @Patch('/api/v1/workspaces/:workspaceId/status')
   @UseGuards(AuthGuard('basic'))
-  async updateStatus(@Req() req, @Body() body) {
+  async updateStatus(
+    @Req() req,
+    @Body() body,
+    @Param('workspaceId') workspaceId: string,
+  ) {
     if (!body.status) NcError.badRequest('Missing status in body');
 
     const workspace = await this.metaService.metaGet2(
       null,
       null,
       MetaTable.WORKSPACE,
-      req.params.workspaceId,
+      workspaceId,
     );
+
+    if (!workspace) NcError.notFound('Workspace not found');
 
     await this.metaService.metaUpdate(
       null,

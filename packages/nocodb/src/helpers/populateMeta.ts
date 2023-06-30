@@ -114,7 +114,7 @@ export async function extractAndGenerateManyToManyRelations(
         await Column.insert<LinkToAnotherRecordColumn>({
           title: getUniqueColumnAliasName(
             modelA.columns,
-            `${modelB.title} List`,
+            pluralize(modelB.title),
           ),
           fk_model_id: modelA.id,
           fk_related_model_id: modelB.id,
@@ -136,7 +136,7 @@ export async function extractAndGenerateManyToManyRelations(
         await Column.insert<LinkToAnotherRecordColumn>({
           title: getUniqueColumnAliasName(
             modelB.columns,
-            `${modelA.title} List`,
+            pluralize(modelA.title),
           ),
           fk_model_id: modelB.id,
           fk_related_model_id: modelA.id,
@@ -268,7 +268,7 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
             uidt: UITypes.Links,
             type: 'hm',
             hm,
-            title: `${hm.title} List`,
+            title: pluralize(hm.title),
             meta: {
               plural: pluralize(hm.title),
               singular: singularize(hm.title),

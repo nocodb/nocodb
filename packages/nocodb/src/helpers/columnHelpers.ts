@@ -65,7 +65,7 @@ export async function createHmAndBtColumn(
   {
     const title = getUniqueColumnAliasName(
       await parent.getColumns(),
-      (type === 'hm' && alias) || `${child.title}`,
+      (type === 'hm' && alias) || pluralize(child.title),
     );
     const meta = {
       plural: columnMeta?.plural || pluralize(child.title),

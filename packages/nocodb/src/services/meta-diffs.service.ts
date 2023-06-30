@@ -746,7 +746,7 @@ export class MetaDiffsService {
                   } else if (change.relationType === RelationTypes.HAS_MANY) {
                     const title = getUniqueColumnAliasName(
                       childModel.columns,
-                      `${childModel.title || childModel.table_name} List`,
+                      pluralize(childModel.title || childModel.table_name),
                     );
                     await Column.insert<LinkToAnotherRecordColumn>({
                       uidt: UITypes.Links,
@@ -945,7 +945,7 @@ export class MetaDiffsService {
                 } else if (change.relationType === RelationTypes.HAS_MANY) {
                   const title = getUniqueColumnAliasName(
                     childModel.columns,
-                    `${childModel.title || childModel.table_name} List`,
+                    pluralize(childModel.title || childModel.table_name),
                   );
                   await Column.insert<LinkToAnotherRecordColumn>({
                     uidt: UITypes.Links,
@@ -1046,7 +1046,7 @@ export class MetaDiffsService {
           await Column.insert<LinkToAnotherRecordColumn>({
             title: getUniqueColumnAliasName(
               modelA.columns,
-              `${modelB.title} List`,
+              pluralize(modelB.title),
             ),
             fk_model_id: modelA.id,
             fk_related_model_id: modelB.id,
@@ -1070,7 +1070,7 @@ export class MetaDiffsService {
           await Column.insert<LinkToAnotherRecordColumn>({
             title: getUniqueColumnAliasName(
               modelB.columns,
-              `${modelA.title} List`,
+              pluralize(modelA.title),
             ),
             fk_model_id: modelB.id,
             fk_related_model_id: modelA.id,

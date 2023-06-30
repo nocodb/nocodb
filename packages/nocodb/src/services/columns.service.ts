@@ -1780,7 +1780,7 @@ export class ColumnsService {
       await Column.insert({
         title: getUniqueColumnAliasName(
           await child.getColumns(),
-          `${parent.title} List`,
+          pluralize(parent.title),
         ),
         uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
         type: 'mm',
@@ -1807,7 +1807,7 @@ export class ColumnsService {
       await Column.insert({
         title: getUniqueColumnAliasName(
           await parent.getColumns(),
-          param.column.title ?? `${child.title} List`,
+          param.column.title ?? pluralize(child.title),
         ),
 
         uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,

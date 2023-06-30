@@ -9,10 +9,14 @@ import { NcError } from '../../helpers/catchError';
 import { Project, ProjectUser } from '../../models';
 import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
+import {ConfigService} from "@nestjs/config";
+import {AppConfig} from "../../interface/config";
 
 @Injectable()
 export class WorkspacesService {
-  constructor(private appHooksService: AppHooksService) {}
+  constructor(private appHooksService: AppHooksService,
+              private configService: ConfigService<AppConfig>,
+              ) {}
 
   async list(param: {
     user: {
@@ -199,19 +203,21 @@ export class WorkspacesService {
 
   // todo: handle error case
   private async createWorkspaceSubdomain(param: { titleOrId: string }) {
+    const snsConfig = this.configService.get('workspace.sns', {
+      infer: true,
+    });
+
     // Set region
     // AWS.config.update({ region: 'us-east-2' });
 
     // Create publish parameters
     const params = {
       Message: JSON.stringify({ WS_NAME: param.titleOrId }) /* required */,
-      TopicArn:
-        'arn:aws:sns:us-east-2:249717198246:nocohub-upgrade-workspace-staging',
-      // TopicArn: 'arn:aws:sns:us-east-2:249717198246:nocohub-upgrade-workspace-prod'
+      TopicArn: snsConfig.topicArn
     };
 
     // Create promise and SNS service object
-    const publishTextPromise = new AWS.SNS({ apiVersion: '2010-03-31', region: 'us-east-2' })
+    const publishTextPromise = new AWS.SNS({ apiVersion: snsConfig.apiVersion, region: snsConfig.region })
       .publish(params)
       .promise();
 

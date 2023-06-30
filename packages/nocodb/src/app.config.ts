@@ -10,6 +10,14 @@ const config: AppConfig = {
     username: process.env.NC_HTTP_BASIC_USER ?? 'defaultusername',
     password: process.env.NC_HTTP_BASIC_PASS ?? 'defaultpassword',
   },
+  workspace: {
+    sns: {
+      apiVersion: '2010-03-31',
+      topicArn:
+        'arn:aws:sns:us-east-2:249717198246:nocohub-upgrade-workspace-staging',
+      region: 'us-east-2',
+    },
+  },
 };
 
 export default config;

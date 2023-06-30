@@ -302,4 +302,11 @@ export interface AppConfig {
     username: string;
     password: string;
   };
+  workspace: {
+    sns: {
+      topicArn: string;
+      region?: string;
+      apiVersion?: string;
+    };
+  };
 }

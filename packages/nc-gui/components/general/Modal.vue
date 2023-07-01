@@ -1,9 +1,12 @@
 <script lang="ts" setup>
 const props = defineProps<{
   visible: boolean
+  width?: string | number
 }>()
 
 const emits = defineEmits(['update:visible'])
+
+const { width } = props
 
 const visible = useVModel(props, 'visible', emits)
 </script>
@@ -12,7 +15,7 @@ const visible = useVModel(props, 'visible', emits)
   <a-modal
     v-model:visible="visible"
     :class="{ active: visible }"
-    width="max(30vw, 600px)"
+    :width="width ?? 'max(30vw, 600px)'"
     centered
     :closable="false"
     wrap-class-name="nc-modal"

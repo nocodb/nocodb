@@ -23,6 +23,9 @@ import Plus from '~icons/material-symbols/add-rounded'
 import Code from '~icons/material-symbols/code-rounded'
 import Form from '~icons/material-symbols/assignment-outline'
 import Kanban from '~icons/material-symbols/view-kanban-outline'
+import Erd from '~icons/material-symbols/account-tree-outline-rounded'
+import ApiSnippet from '~icons/material-symbols/settings-ethernet-rounded'
+import Phishing from '~icons/material-symbols/phishing-outline-rounded'
 import MdiAccountGroup from '~icons/mdi/account-group'
 import MdiDotsVertical from '~icons/mdi/dots-vertical'
 import MdiDotsHorizontal from '~icons/mdi/dots-horizontal'
@@ -219,7 +222,7 @@ export const iconMap = {
   contentSaveExit: h('span', { class: 'material-symbols' }, 'save'),
   contentSaveStay: h('span', { class: 'material-symbols' }, 'save_as'),
   exit: h('span', { class: 'material-symbols' }, 'exit_to_app'),
-  snippet: h(Code, 'code'),
+  snippet: h(ApiSnippet, 'code'),
   embed: h('span', { class: 'material-symbols' }, 'code'),
   list: h('span', { class: 'material-symbols' }, 'view_list'),
   cloud: h('span', { class: 'material-symbols' }, 'cloud'),
@@ -248,8 +251,8 @@ export const iconMap = {
   users: h('span', { class: 'material-symbols' }, 'people'),
   download: h('span', { class: 'material-symbols' }, 'cloud_download'),
   upload: h('span', { class: 'material-symbols' }, 'cloud_upload'),
-  hook: h('span', { class: 'material-symbols' }, 'compare_arrows'),
-  erd: h('span', { class: 'material-symbols' }, 'account_tree'),
+  hook: h(Phishing, {}, 'phishing'),
+  erd: h(Erd, {}, 'account_tree'),
   plus: h(Plus, {}, 'add'),
   search: h('span', { class: 'material-symbols' }, 'search'),
   copy: h(Copy, {}, 'content_copy'),
@@ -271,7 +274,7 @@ export const iconMap = {
   table: h('span', { class: 'material-symbols' }, 'table_chart'),
   excel: PhExcelThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
   csv: PhCsvThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
-  code: h('span', { class: 'material-symbols' }, 'code'),
+  code: h(Code, {}, 'code'),
   delete: h(Delete, {}, 'delete'),
   edit: h('span', { class: 'material-symbols' }, 'edit'),
   lookup: h('span', { class: 'material-symbols' }, 'search'),

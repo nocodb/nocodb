@@ -244,10 +244,7 @@ onMounted(() => {
       class="max-w-[max(33%,600px)] mx-auto flex flex-col justify-end"
     >
       <div class="px-4 md:px-0 flex flex-col justify-end">
-        <h1
-          class="prose-2xl font-bold self-center my-4"
-          data-testid="nc-survey-form__heading"
-          style="word-break: break-all">
+        <h1 class="prose-2xl font-bold self-center my-4" data-testid="nc-survey-form__heading" style="word-break: break-all">
           {{ sharedFormView.heading }}
         </h1>
 
@@ -309,7 +306,10 @@ onMounted(() => {
                 @update:edit-enabled="editEnabled[index] = $event"
               />
 
-              <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1" style="word-break: break-all">
+              <div
+                class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1"
+                style="word-break: break-all"
+              >
                 <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
                   {{ error.$message }}
                 </div>
@@ -353,7 +353,7 @@ onMounted(() => {
                   :mouse-enter-delay="0.25"
                   :mouse-leave-delay="0"
                 >
-                <!-- Ok button for question -->
+                  <!-- Ok button for question -->
                   <button
                     class="bg-opacity-100 scaling-btn flex items-center gap-1"
                     data-testid="nc-survey-form__btn-next"

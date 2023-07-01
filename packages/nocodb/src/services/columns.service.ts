@@ -1227,6 +1227,7 @@ export class ColumnsService {
                     childColumn: mmParentCol,
                     base,
                     ncMeta,
+                    virtual: !!relationColOpt.virtual,
                   },
                   true,
                 );
@@ -1241,6 +1242,7 @@ export class ColumnsService {
                     childColumn: mmChildCol,
                     base,
                     ncMeta,
+                    virtual: !!relationColOpt.virtual,
                   },
                   true,
                 );
@@ -1392,6 +1394,7 @@ export class ColumnsService {
       parentTable,
       sqlMgr,
       ncMeta = Noco.ncMeta,
+      virtual,
     }: {
       relationColOpt: LinkToAnotherRecordColumn;
       base: Base;
@@ -1401,6 +1404,7 @@ export class ColumnsService {
       parentTable: Model;
       sqlMgr: SqlMgrv2;
       ncMeta?: MetaService;
+      virtual?: boolean;
     },
     ignoreFkDelete = false,
   ) => {
@@ -1429,7 +1433,7 @@ export class ColumnsService {
       foreignKeyName = relationColOpt.fk_index_name;
     }
 
-    if (!relationColOpt?.virtual) {
+    if (!relationColOpt?.virtual && !virtual) {
       // todo: handle relation delete exception
       try {
         await sqlMgr.sqlOpPlus(base, 'relationDelete', {
@@ -1440,7 +1444,7 @@ export class ColumnsService {
           foreignKeyName,
         });
       } catch (e) {
-        console.log(e);
+        console.log(e.message);
       }
     }
 
@@ -1486,7 +1490,7 @@ export class ColumnsService {
           if (index.cn !== childColumn.column_name) continue;
 
           await sqlMgr.sqlOpPlus(base, 'indexDelete', {
-           ...index,
+            ...index,
             tn: cTable.table_name,
             columns: [childColumn.column_name],
             indexName: index.index_name,

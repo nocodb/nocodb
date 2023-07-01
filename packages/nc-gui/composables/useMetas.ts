@@ -26,7 +26,7 @@ export function useMetas() {
   }
 
   // todo: this needs a proper refactor, arbitrary waiting times are usually not a good idea
-  const getMeta = async (tableIdOrTitle: string, force = false): Promise<TableType | null> => {
+  const getMeta = async (tableIdOrTitle: string, force = false, skipIfCacheMiss = false): Promise<TableType | null> => {
     if (!tableIdOrTitle) return null
     /** wait until loading is finished if requesting same meta */
     if (!force && loadingState.value[tableIdOrTitle]) {
@@ -58,6 +58,7 @@ export function useMetas() {
         return metas.value[tableIdOrTitle]
       }
     }
+    if (skipIfCacheMiss) return null
 
     loadingState.value[tableIdOrTitle] = true
 

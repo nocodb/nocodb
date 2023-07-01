@@ -140,8 +140,10 @@ export default class View implements ViewType {
       ));
     if (!view) {
       view = await ncMeta.metaGet2(null, null, MetaTable.VIEWS, viewId);
-      view.meta = parseMetaProp(view);
-      await NocoCache.set(`${CacheScope.VIEW}:${view.id}`, view);
+      if (view) {
+        view.meta = parseMetaProp(view);
+        await NocoCache.set(`${CacheScope.VIEW}:${view.id}`, view);
+      }
     }
 
     return view && new View(view);
@@ -218,8 +220,10 @@ export default class View implements ViewType {
         },
         null,
       );
-      view.meta = parseMetaProp(view);
-      await NocoCache.set(`${CacheScope.VIEW}:${fk_model_id}:default`, view);
+      if (view) {
+        view.meta = parseMetaProp(view);
+        await NocoCache.set(`${CacheScope.VIEW}:${fk_model_id}:default`, view);
+      }
     }
     return view && new View(view);
   }
@@ -1286,7 +1290,7 @@ export default class View implements ViewType {
     );
   }
 
-  async delete(ncMeta = Noco.ncMeta){
+  async delete(ncMeta = Noco.ncMeta) {
     await View.delete(this.id, ncMeta);
   }
 

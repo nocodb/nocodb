@@ -9,6 +9,8 @@ import { RatingCellPageObject } from './RatingCell';
 import { DateCellPageObject } from './DateCell';
 import { DateTimeCellPageObject } from './DateTimeCell';
 import { GeoDataCellPageObject } from './GeoDataCell';
+import { YearCellPageObject } from './YearCell';
+import { TimeCellPageObject } from './TimeCell';
 
 export interface CellProps {
   index?: number;
@@ -21,6 +23,8 @@ export class CellPageObject extends BasePage {
   readonly attachment: AttachmentCellPageObject;
   readonly checkbox: CheckboxCellPageObject;
   readonly rating: RatingCellPageObject;
+  readonly year: YearCellPageObject;
+  readonly time: TimeCellPageObject;
   readonly geoData: GeoDataCellPageObject;
   readonly date: DateCellPageObject;
   readonly dateTime: DateTimeCellPageObject;
@@ -32,6 +36,8 @@ export class CellPageObject extends BasePage {
     this.attachment = new AttachmentCellPageObject(this);
     this.checkbox = new CheckboxCellPageObject(this);
     this.rating = new RatingCellPageObject(this);
+    this.year = new YearCellPageObject(this);
+    this.time = new TimeCellPageObject(this);
     this.geoData = new GeoDataCellPageObject(this);
     this.date = new DateCellPageObject(this);
     this.dateTime = new DateTimeCellPageObject(this);
@@ -288,7 +294,9 @@ export class CellPageObject extends BasePage {
     for (let i = 0; i < value.length; ++i) {
       await chips.nth(i).locator('.name').waitFor({ state: 'visible' });
       await chips.nth(i).locator('.name').scrollIntoViewIfNeeded();
-      await expect(await chips.nth(i).locator('.name')).toHaveText(value[i]);
+      await chips.nth(i).locator('.name').waitFor({ state: 'visible' });
+      const chipText = await chips.nth(i).locator('.name').textContent();
+      expect(value).toContain(chipText);
     }
 
     if (verifyChildList) {

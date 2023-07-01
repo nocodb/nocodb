@@ -566,6 +566,8 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
   let dashboard: DashboardPage;
   let context: any;
 
+  let counter = 0;
+
   const expectedDisplayValues = {
     pg: {
       // PG ignores timezone information for datetime without timezone
@@ -614,8 +616,8 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
         'xc-auth': context.token,
       },
     });
-
-    await createTableWithDateTimeColumn(context.dbType, 'datetimetable01');
+    counter++;
+    await createTableWithDateTimeColumn(context.dbType, `datetimetable01${counter}`);
   });
 
   // ExtDB : DateAdd, DateTime_Diff verification
@@ -623,13 +625,13 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
   //  - verify API response value
   //
   test('Formula, verify display value', async () => {
-    await connectToExtDb(context, 'datetimetable01');
+    await connectToExtDb(context, `datetimetable01${counter}`);
     await dashboard.rootPage.reload();
     await dashboard.rootPage.waitForTimeout(2000);
 
     // insert a record to work with formula experiments
     //
-    await dashboard.treeView.openBase({ title: 'datetimetable01' });
+    await dashboard.treeView.openBase({ title: `datetimetable01${counter}` });
     await dashboard.treeView.openTable({ title: 'MyTable' });
 
     // Create formula column (dummy)
@@ -783,14 +785,14 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
   });
 
   test('Verify display value, UI insert, API response', async () => {
-    await connectToExtDb(context, 'datetimetable01');
+    await connectToExtDb(context, `datetimetable01${counter}`);
     await dashboard.rootPage.reload();
     await dashboard.rootPage.waitForTimeout(2000);
 
     // get timezone offset
     const formattedOffset = getBrowserTimezoneOffset();
 
-    await dashboard.treeView.openBase({ title: 'datetimetable01' });
+    await dashboard.treeView.openBase({ title: `datetimetable01${counter}` });
     await dashboard.treeView.openTable({ title: 'MyTable' });
 
     if (isSqlite(context)) {

@@ -169,7 +169,7 @@ const onTabChange = (tab: 'views' | 'developer') => {
         @click="onTabChange('developer')"
       >
         <component
-          :is="iconMap.snippet"
+          :is="iconMap.code"
           class="text-gray-500"
           :style="{
             fontWeight: 600,

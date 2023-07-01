@@ -6,7 +6,7 @@ import { isPg, isSqlite } from '../../../setup/db';
 // Add formula to be verified here & store expected results for 5 rows
 // Column data from City table (Sakila DB)
 /**
- * City                   LastUpdate              Address List                Country
+ * City                   LastUpdate              Addresses                Country
  * A Corua (La Corua)     2006-02-15 04:45:25     939 Probolinggo Loop        Spain
  * Abha                   2006-02-15 04:45:25     733 Mandaluyong Place       Saudi Arabia
  * Abu Dhabi              2006-02-15 04:45:25     535 Ahmadnagar Manor        United Arab Emirates

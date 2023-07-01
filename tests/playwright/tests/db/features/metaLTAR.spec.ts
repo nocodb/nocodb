@@ -235,7 +235,7 @@ test.describe.serial('Test table', () => {
     await dashboard.treeView.openTable({ title: 'Table3' });
     const params = {
       index: 0,
-      columnHeader: 'Table0 List',
+      columnHeader: 'Table0s',
       count: 0,
       value: [],
       type: 'hm',
@@ -283,7 +283,7 @@ test.describe.serial('Test table', () => {
 
     // verify
     await dashboard.treeView.openTable({ title: 'Table3' });
-    await dashboard.grid.column.verify({ title: 'Table0 List', isVisible: false });
+    await dashboard.grid.column.verify({ title: 'Table0s', isVisible: false });
     await dashboard.grid.column.verify({ title: 'TableD:mm:TableE', isVisible: true });
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -303,7 +303,7 @@ test.describe.serial('Test table', () => {
     await dashboard.grid.column.delete({ title: 'TableA:mm:TableA' });
 
     // verify
-    await dashboard.grid.column.verify({ title: 'Table0 List', isVisible: false });
+    await dashboard.grid.column.verify({ title: 'Table0s', isVisible: false });
     await dashboard.grid.column.verify({ title: 'TableA:mm:TableA', isVisible: false });
   });
 
@@ -316,6 +316,6 @@ test.describe.serial('Test table', () => {
     await dashboard.grid.column.verify({ title: 'Table0', isVisible: false });
 
     await dashboard.treeView.openTable({ title: 'Table3' });
-    await dashboard.grid.column.verify({ title: 'Table0 List', isVisible: false });
+    await dashboard.grid.column.verify({ title: 'Table0s', isVisible: false });
   });
 });

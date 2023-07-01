@@ -67,7 +67,7 @@ test.describe('LTAR create & update', () => {
       type: 'belongsTo',
     });
     await dashboard.expandedForm.fillField({
-      columnTitle: 'Sheet1 List',
+      columnTitle: 'Sheet1s',
       value: '1a',
       type: 'manyToMany',
     });
@@ -84,7 +84,7 @@ test.describe('LTAR create & update', () => {
     await dashboard.linkRecord.select('1b');
     await dashboard.grid.cell.inCellAdd({
       index: 1,
-      columnHeader: 'Sheet1 List',
+      columnHeader: 'Sheet1s',
     });
     await dashboard.linkRecord.select('1b');
     await dashboard.grid.cell.inCellAdd({
@@ -102,7 +102,7 @@ test.describe('LTAR create & update', () => {
       type: 'belongsTo',
     });
     await dashboard.expandedForm.fillField({
-      columnTitle: 'Sheet1 List',
+      columnTitle: 'Sheet1s',
       value: '1c',
       type: 'manyToMany',
     });
@@ -126,7 +126,7 @@ test.describe('LTAR create & update', () => {
       [['1 Sheet1'], ['1 Sheet1'], ['1 Sheet1']],
       [['1 Sheet1'], ['1 Sheet1'], ['1 Sheet1']],
     ];
-    const colHeaders = ['Sheet1', 'Sheet1 List', 'Link2-1hm'];
+    const colHeaders = ['Sheet1', 'Sheet1s', 'Link2-1hm'];
 
     // verify LTAR cell values
     for (let i = 0; i < expected.length; i++) {
@@ -192,7 +192,7 @@ test.describe('LTAR create & update', () => {
       Country: string;
       formula?: string;
       SLT?: string;
-      'City List': string[];
+      Cities: string[];
     };
   }) {
     await dashboard.grid.cell.verify({
@@ -209,9 +209,9 @@ test.describe('LTAR create & update', () => {
     }
     await dashboard.grid.cell.verifyVirtualCell({
       index: param.index,
-      columnHeader: 'City List',
-      count: param.value['City List'].length,
-      value: param.value['City List'],
+      columnHeader: 'Cities',
+      count: param.value['Cities'].length,
+      value: param.value['Cities'],
     });
     if (param.value.SLT) {
       await dashboard.grid.cell.verify({
@@ -241,14 +241,14 @@ test.describe('LTAR create & update', () => {
       index: 0,
       value: {
         Country: 'Afghanistan',
-        'City List': ['Kabul'],
+        Cities: ['Kabul'],
       },
     });
     await verifyRow({
       index: 1,
       value: {
         Country: 'Algeria',
-        'City List': ['Batna', 'Bchar', 'Skikda'],
+        Cities: ['Batna', 'Bchar', 'Skikda'],
       },
     });
 
@@ -274,7 +274,7 @@ test.describe('LTAR create & update', () => {
       index: 0,
       value: {
         Country: 'Afghanistan',
-        'City List': ['Kabul'],
+        Cities: ['Kabul'],
         SLT: 'test',
         formula: 'Afghanistan test',
       },
@@ -290,7 +290,7 @@ test.describe('LTAR create & update', () => {
       index: 0,
       value: {
         Country: 'Afghanistan2',
-        'City List': ['Kabul'],
+        Cities: ['Kabul'],
         SLT: 'test',
         formula: 'Afghanistan2 test',
       },
@@ -305,7 +305,7 @@ test.describe('LTAR create & update', () => {
       index: 0,
       value: {
         Country: 'Afghanistan2',
-        'City List': ['Kabul'],
+        Cities: ['Kabul'],
         SLT: '',
         formula: 'Afghanistan2',
       },

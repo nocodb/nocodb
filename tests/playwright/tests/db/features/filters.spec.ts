@@ -949,7 +949,7 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
     await toolbar.filter.clickAddFilter();
     for (let i = 0; i < filterList.length; i++) {
       await verifyFilter({
-        column: 'City List',
+        column: 'Cities',
         opType: filterList[i].op,
         value: filterList[i].value,
         result: { rowCount: filterList[i].rowCount },
@@ -1003,7 +1003,7 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
     await dashboard.grid.column.create({
       title: 'Rollup',
       type: 'Rollup',
-      childTable: 'Address List',
+      childTable: 'Addresses',
       childColumn: 'PostalCode',
       rollupType: 'Sum',
     });

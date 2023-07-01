@@ -375,7 +375,7 @@ export class CellPageObject extends BasePage {
     );
 
     // virtual cell
-    const vCell = await this.get({ index: 0, columnHeader: 'City List' });
+    const vCell = await this.get({ index: 0, columnHeader: 'Cities' });
     await vCell.hover();
     // in-cell add
     await expect(await vCell.locator('.nc-action-icon.nc-plus:visible')).toHaveCount(

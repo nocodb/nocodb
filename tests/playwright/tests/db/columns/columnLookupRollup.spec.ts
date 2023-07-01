@@ -40,7 +40,7 @@ test.describe('Virtual columns', () => {
     await dashboard.grid.column.create({
       title: 'Rollup',
       type: 'Rollup',
-      childTable: 'City List',
+      childTable: 'Cities',
       childColumn: 'CityId',
       rollupType: 'count',
     });

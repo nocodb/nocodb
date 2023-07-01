@@ -23,7 +23,7 @@ test.describe('Relational Columns', () => {
     for (let i = 0; i < cityList.length; i++) {
       await dashboard.grid.cell.verifyVirtualCell({
         index: i,
-        columnHeader: 'City List',
+        columnHeader: 'Cities',
         count: cityList[i].length,
         type: 'hm',
         options: { singular: 'City', plural: 'Cities' },
@@ -33,7 +33,7 @@ test.describe('Relational Columns', () => {
     // click on expand icon, open child list
     await dashboard.grid.cell.inCellExpand({
       index: 0,
-      columnHeader: 'City List',
+      columnHeader: 'Cities',
     });
     await dashboard.childList.verify({
       cardTitle: ['Kabul'],
@@ -92,7 +92,7 @@ test.describe('Relational Columns', () => {
     for (let i = 0; i < filmList.length; i++) {
       await dashboard.grid.cell.verifyVirtualCell({
         index: i,
-        columnHeader: 'Film List',
+        columnHeader: 'Films',
         // Count hardwired to avoid verifying all 19 entries
         count: 19,
         type: 'mm',
@@ -102,7 +102,7 @@ test.describe('Relational Columns', () => {
     // click on expand icon, open child list
     await dashboard.grid.cell.inCellExpand({
       index: 0,
-      columnHeader: 'Film List',
+      columnHeader: 'Films',
     });
     await dashboard.childList.verify({
       cardTitle: filmList[0],

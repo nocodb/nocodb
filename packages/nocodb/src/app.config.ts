@@ -13,9 +13,8 @@ const config: AppConfig = {
   workspace: {
     sns: {
       apiVersion: '2010-03-31',
-      topicArn:
-        'arn:aws:sns:us-east-2:249717198246:nocohub-upgrade-workspace-staging',
-      region: 'us-east-2',
+      topicArn: process.env.NC_WORKSPACE_SNS_TOPIC_ARN,
+      region: process.env.NC_WORKSPACE_SNS_REGION,
     },
   },
 };

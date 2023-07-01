@@ -6,6 +6,7 @@ import { NcError } from '../helpers/catchError';
 import Page from './Page';
 import { Project } from './index';
 import type { WorkspaceType } from 'nocodb-sdk';
+import {WorkspacePlan, WorkspaceStatus} from "nocodb-sdk";
 
 export default class Workspace implements WorkspaceType {
   id?: string;
@@ -19,6 +20,10 @@ export default class Workspace implements WorkspaceType {
   deleted?: boolean;
   deleted_at?: Date | string | number;
   order?: number;
+
+  plan?: WorkspacePlan;
+  status?: WorkspaceStatus;
+  message?: string;
 
   constructor(workspace: Workspace | WorkspaceType) {
     Object.assign(this, workspace);
@@ -75,6 +80,8 @@ export default class Workspace implements WorkspaceType {
       'deleted',
       'deleted_at',
       'order',
+      'status',
+      'plan',
     ]);
 
     // stringify meta if it is an object
@@ -115,6 +122,23 @@ export default class Workspace implements WorkspaceType {
     if ('meta' in updateObject && typeof updateObject.meta === 'object') {
       updateObject.meta = JSON.stringify(updateObject.meta);
     }
+
+    return await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.WORKSPACE,
+      updateObject,
+      id,
+    );
+  }
+
+  public static async updateStatusAndPlan(
+    id: string,
+    workspace: Partial<Workspace>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    // extract props which is allowed to be inserted
+    const updateObject = extractProps(workspace, ['status', 'plan']);
 
     return await ncMeta.metaUpdate(
       null,

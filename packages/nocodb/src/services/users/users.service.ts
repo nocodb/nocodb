@@ -5,7 +5,7 @@ import {
   AuditOperationSubTypes,
   AuditOperationTypes,
   OrgUserRoles,
-  validatePassword,
+  validatePassword, WorkspacePlan, WorkspaceStatus,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
@@ -519,15 +519,14 @@ export class UsersService {
   }
 
   private async createDefaultWorkspace(user: User) {
-    // todo: enable or remove based on discussion
-    return;
-
     const title = `${user.email?.split('@')?.[0]}`;
     // create new workspace for user
     const workspace = await Workspace.insert({
       title,
       description: 'Default workspace',
       fk_user_id: user.id,
+      plan: WorkspacePlan.FREE,
+      status: WorkspaceStatus.CREATED,
     });
 
     await WorkspaceUser.insert({

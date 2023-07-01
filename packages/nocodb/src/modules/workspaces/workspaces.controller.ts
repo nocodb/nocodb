@@ -77,6 +77,18 @@ export class WorkspacesController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Post('/api/v1/workspaces/:workspaceId/upgrade')
+  @UseAclMiddleware({
+    permissionName: 'workspaceUpgrade',
+  })
+  async upgrade(@Param('workspaceId') workspaceId: string, @Request() req) {
+    return await this.workspacesService.upgrade({
+      workspaceId,
+      user: req.user,
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Delete('/api/v1/workspaces/:workspaceId')
   @UseAclMiddleware({
     permissionName: 'workspaceDelete',

@@ -1,5 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { AppEvents, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import { Injectable, Logger } from '@nestjs/common';
+import {
+  AppEvents,
+  ProjectRoles,
+  WorkspacePlan,
+  WorkspaceStatus,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import AWS from 'aws-sdk';
 import { ConfigService } from '@nestjs/config';
 import WorkspaceUser from '../../models/WorkspaceUser';
@@ -14,6 +20,8 @@ import type { AppConfig } from '../../interface/config';
 
 @Injectable()
 export class WorkspacesService {
+  private logger = new Logger(WorkspacesService.name);
+
   constructor(
     private appHooksService: AppHooksService,
     private configService: ConfigService<AppConfig>,
@@ -55,15 +63,17 @@ export class WorkspacesService {
         title: workspacePayload.title.trim(),
         // todo : extend request type
         fk_user_id: param.user.id,
+        status: WorkspaceStatus.CREATED,
+        plan: WorkspacePlan.FREE,
       });
 
       // todo: error handling
-      await this.createWorkspaceSubdomain({ titleOrId: workspace.id });
+      // await this.createWorkspaceSubdomain({ titleOrId: workspace.id });
 
       await WorkspaceUser.insert({
         fk_workspace_id: workspace.id,
         fk_user_id: param.user.id,
-        roles: WorkspaceUserRoles.OWNER,
+        roles: WorkspaceUserRoles.OWNER
       });
 
       this.appHooksService.emit(AppEvents.WORKSPACE_CREATE, {
@@ -86,6 +96,25 @@ export class WorkspacesService {
     const workspace = await Workspace.get(param.workspaceId);
 
     if (!workspace) NcError.notFound('Workspace not found');
+
+    return workspace;
+  }
+
+  async upgrade(param: {
+    user: {
+      id: string;
+      roles: string[];
+    };
+    workspaceId: string;
+  }) {
+    const workspace = await Workspace.get(param.workspaceId);
+
+    if (!workspace) NcError.notFound('Workspace not found');
+
+   await Workspace.updateStatusAndPlan(param.workspaceId, {
+      plan: WorkspacePlan.PAID,
+      status: WorkspaceStatus.CREATING,
+    });
 
     return workspace;
   }
@@ -208,6 +237,11 @@ export class WorkspacesService {
       infer: true,
     });
 
+    if (!snsConfig.topicArn) {
+      this.logger.error('SNS topicArn not configured');
+      NcError.notImplemented('Not available');
+    }
+
     // Set region
     // AWS.config.update({ region: 'us-east-2' });
 
@@ -224,17 +258,16 @@ export class WorkspacesService {
     })
       .publish(params)
       .promise();
-
-    // Handle promise's fulfilled/rejected states
-    publishTextPromise
-      .then(function (data) {
-        console.log(
-          `Message ${params.Message} sent to the topic ${params.TopicArn}`,
-        );
-        console.log('MessageID is ' + data.MessageId);
-      })
-      .catch(function (err) {
-        console.error(err, err.stack);
-      });
+    try {
+      // Handle promise's fulfilled/rejected states
+      const data = await publishTextPromise;
+      this.logger.log(
+        `Message ${params.Message} sent to the topic ${params.TopicArn}`,
+      );
+      this.logger.log('MessageID is ' + data.MessageId);
+    } catch (err) {
+      console.error(err, err.stack);
+      NcError.internalServerError('Error while upgrading workspace');
+    }
   }
 }

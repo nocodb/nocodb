@@ -263,8 +263,7 @@ export class UsersController {
     // openid strategy will take care the request
   }
 
-  @Post('/auth/oidc/redirect')
-  // @UseGuards(AuthGuard('openid'))
+  @Get('/auth/oidc/redirect')
   async redirect(@Request() req, @Response() res) {
     const key = `oidc:${req.query.state}`;
     const state = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);

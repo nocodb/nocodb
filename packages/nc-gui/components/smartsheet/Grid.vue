@@ -942,6 +942,19 @@ const refreshFillHandle = () => {
   }
 }
 
+const addRowExpandOnClose = (row: Row) => {
+  if (!skipRowRemovalOnCancel.value) {
+    const removed = removeRowIfNew(row)
+
+    if (removed) {
+      clearSelectedRange()
+
+      activeCell.row = null
+      activeCell.col = null
+    }
+  }
+}
+
 watch(
   [() => selectedRange.end.row, () => selectedRange.end.col, () => activeCell.row, () => activeCell.col],
   ([sr, sc, ar, ac], [osr, osc, oar, oac]) => {
@@ -1310,7 +1323,7 @@ useEventListener(document, 'mouseup', () => {
         :state="expandedFormRowState"
         :meta="meta"
         :view="view"
-        @update:model-value="!skipRowRemovalOnCancel && removeRowIfNew(expandedFormRow)"
+        @update:model-value="addRowExpandOnClose(expandedFormRow)"
       />
     </Suspense>
 

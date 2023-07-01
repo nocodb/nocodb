@@ -54,7 +54,7 @@ export default class Noco {
     process.env.PORT = process.env.PORT || '8080';
     // todo: move
     // if env variable NC_MINIMAL_DBS is set, then disable project creation with external sources
-    if (process.env.NC_MINIMAL_DBS) {
+    if (process.env.NC_MINIMAL_DBS === 'true') {
       process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED = 'true';
     }
 

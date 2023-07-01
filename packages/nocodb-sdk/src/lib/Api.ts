@@ -11391,6 +11391,23 @@ export class Api<
         method: 'DELETE',
         ...params,
       }),
+
+    /**
+     * @description Upgrade workspace
+     *
+     * @tags Workspace
+     * @name Upgrade
+     * @summary Upgrade workspace
+     * @request POST:/api/v1/workspaces/{workspaceId}/upgrade
+     * @response `200` `any` OK
+     */
+    upgrade: (workspaceId: string, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/workspaces/${workspaceId}/upgrade`,
+        method: 'POST',
+        format: 'json',
+        ...params,
+      }),
   };
   workspaceUser = {
     /**

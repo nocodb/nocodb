@@ -3284,7 +3284,9 @@
             }
           }
         },
-        "tags": ["Project"],
+        "tags": [
+          "Project"
+        ],
         "description": "Duplicate a project",
         "parameters": [
           {
@@ -5220,7 +5222,9 @@
             }
           }
         },
-        "tags": ["DB Table"],
+        "tags": [
+          "DB Table"
+        ],
         "description": "Duplicate a table",
         "parameters": [
           {
@@ -16325,6 +16329,37 @@
           "Workspace"
         ],
         "description": "Delete workspace"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v1/workspaces/{workspaceId}/upgrade": {
+      "post": {
+        "summary": "Upgrade workspace",
+        "operationId": "workspace-upgrade",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "description": "Upgrade workspace"
       },
       "parameters": [
         {

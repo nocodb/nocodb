@@ -120,7 +120,8 @@ const { project } = useProject()
         </div>
       </div>
       <!-- TODO: decide / change again to rem for width and overall: use consistent styling -->
-      <div class="p-4 w-[280px] 2xl:w-[20vw] !overflow-y-auto h-[90vh]">
+      <!-- <div class="p-4 w-[280px] 2xl:w-[20vw] !overflow-y-auto h-[90vh]"> -->
+      <div class="p-4 w-[480px] 2xl:w-[20vw] !overflow-y-auto h-[90vh]">
         <LayoutsWidgetsPropertiesPanel />
       </div>
     </div>

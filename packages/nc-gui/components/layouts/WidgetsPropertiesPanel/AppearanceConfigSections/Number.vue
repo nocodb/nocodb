@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import type { NumberWidget } from 'nocodb-sdk'
+import * as Icons from '@iconify-json/material-symbols'
 
 const dashboardStore = useDashboardStore()
 const { changeTextColorOfFocusedWidget } = dashboardStore
 const { focusedWidget } = storeToRefs(dashboardStore)
+
+// Icons.icons.categories['']
 
 const colors = [
   {
@@ -36,6 +39,7 @@ watch(
 <template>
   <a-collapse expand-icon-position="right" accordion class="nc-dashboard-props-panel-collapse-group">
     <a-collapse-panel header="Style">
+      <LayoutsWidgetsPropertiesPanelAppearanceConfigSectionsNumberIconPicker />
       <template #extra><setting-outlined /></template>
       <a-select
         v-model:value="selectedTextColor"

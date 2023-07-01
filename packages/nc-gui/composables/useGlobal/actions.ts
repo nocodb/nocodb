@@ -1,7 +1,7 @@
 import type { Actions, AppInfo, State } from './types'
 import { message, useNuxtApp } from '#imports'
-import {NcProjectType} from "~/utils";
-import {navigateTo} from "#app";
+import { NcProjectType } from '~/utils'
+import { navigateTo } from '#app'
 
 export function useGlobalActions(state: State): Actions {
   const setIsMobileMode = (isMobileMode: boolean) => {
@@ -70,21 +70,27 @@ export function useGlobalActions(state: State): Actions {
   }
 
   const navigateToProject = ({
-    workspaceId,type,projectId
-                          } :{workspaceId: string, projectId: string, type: NcProjectType}) {
-      let path: string;
+    workspaceId,
+    type,
+    projectId,
+  }: {
+    workspaceId: string
+    projectId: string
+    type: NcProjectType
+  }) => {
+    let path: string
     switch (type) {
       case NcProjectType.DOCS:
-         path = `/ws/${workspaceId}/nc/${projectId}/doc`
+        path = `/ws/${workspaceId}/nc/${projectId}/doc`
         break
       default:
-         path = `/ws/${workspaceId}/project/${projectId}`
+        path = `/ws/${workspaceId}/project/${projectId}`
         break
     }
 
-    if(state.appInfo.value.baseHostName){
+    if (state.appInfo.value.baseHostName) {
       location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}/dashboard/#${path}`
-    }else{
+    } else {
       navigateTo(path)
     }
   }

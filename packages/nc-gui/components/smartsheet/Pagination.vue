@@ -29,7 +29,7 @@ const page = computed({
 <template>
   <div class="flex items-center border-t-1 border-gray-75 py-0.5 nc-pagination-wrapper">
     <div
-      class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) hover:(bg-gray-50 border-gray-200) text-gray-500 border-gray-100 hover:text-black group flex items-center justify-center border-1 rounded-md h-full ml-2 px-2 h-8 mt-1 cursor-pointer"
+      class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) hover:(bg-gray-50 border-gray-200) border-gray-100 group flex items-center justify-center rounded-md h-full ml-2 px-2 h-8 mt-1 cursor-pointer text-gray-400 hover:text-gray-700"
       :class="{
         'bg-gray-50': !isLeftSidebarOpen,
       }"
@@ -78,14 +78,14 @@ const page = computed({
 
     <div v-if="!isPublic" class="mr-2 mt-0.5">
       <div
-        class="flex flex-row items-center justify-center !rounded-md !p-1.75 border-1 border-gray-100 cursor-pointer bg-white hover:bg-gray-50"
+        class="flex flex-row items-center justify-center !rounded-md !p-1.75 border-gray-100 cursor-pointer bg-white hover:bg-gray-50 text-gray-400 hover:text-gray-700"
         :class="{
           'bg-gray-75': !isRightSidebarOpen,
         }"
         type="ghost"
         @click="isRightSidebarOpen = !isRightSidebarOpen"
       >
-        <SidebarIcon class="w-4 h-4 text-gray-500" />
+        <SidebarIcon class="w-4 h-4" />
       </div>
     </div>
   </div>

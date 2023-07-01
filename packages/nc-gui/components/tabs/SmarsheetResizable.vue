@@ -9,10 +9,7 @@ const sideBarSize = ref({
   old: 20,
   current: 20,
 })
-const contentSize = ref({
-  old: 80,
-  current: 80,
-})
+const contentSize = computed(() => 100 - sideBarSize.value.current)
 const isSidebarShort = ref(false)
 const animationDuration = 300
 const contentDomWidth = ref(window.innerWidth)
@@ -36,8 +33,6 @@ watch(isRightSidebarOpen, () => {
   sideBarSize.value.current = sideBarSize.value.old
 
   if (isRightSidebarOpen.value) {
-    contentSize.value.current = contentSize.value.old
-
     setTimeout(() => {
       isSidebarShort.value = true
 
@@ -49,9 +44,6 @@ watch(isRightSidebarOpen, () => {
     }, animationDuration / 2)
   } else {
     sideBarSize.value.old = sideBarSize.value.current
-
-    contentSize.value.current = contentSize.value.old
-    contentSize.value.current = 100
 
     isSidebarShort.value = true
     isAnimationEndAfterSidebarHide.value = false
@@ -136,23 +128,17 @@ watch(
 )
 </script>
 
-<script lang="ts">
-export default {
-  name: 'DashboardLayout',
-}
-</script>
-
 <template>
   <Splitpanes
     ref="splitpaneWrapperRef"
     style="height: 100vh"
-    class="smartsheet-resizable-wrapper"
+    class="smartsheet-resizable-wrapper w-full"
     :class="{
       'smartsheet-sidebar-short': isSidebarShort,
     }"
     @resize="currentSidebarSize = $event[1].size"
   >
-    <Pane :size="contentSize.current">
+    <Pane :size="contentSize">
       <slot name="content" />
     </Pane>
     <Pane

@@ -618,7 +618,7 @@ function viewRowTests() {
     );
 
     const nestedFields = {
-      'Rental List': { fields: ['RentalDate', 'ReturnDate'] },
+      Rentals: { fields: ['RentalDate', 'ReturnDate'] },
     };
 
     const nestedFilter = [
@@ -683,9 +683,9 @@ function viewRowTests() {
     }
 
     if (isPg(context)) {
-      expect(ascResponse.body.list[0]['Rental List']).to.equal('12');
+      expect(ascResponse.body.list[0]['Rentals']).to.equal('12');
     } else {
-      expect(ascResponse.body.list[0]['Rental List']).to.equal(12);
+      expect(ascResponse.body.list[0]['Rentals']).to.equal(12);
     }
   };
 
@@ -869,7 +869,7 @@ function viewRowTests() {
     );
 
     const nestedFields = {
-      'Rental List': { f: 'RentalDate,ReturnDate' },
+      Rentals: { f: 'RentalDate,ReturnDate' },
     };
 
     const nestedFilter = [
@@ -927,7 +927,7 @@ function viewRowTests() {
       throw new Error('Wrong filter');
     }
 
-    const nestedRentalResponse = Object.keys(ascResponse.body['Rental List']);
+    const nestedRentalResponse = Object.keys(ascResponse.body['Rentals']);
     if (
       nestedRentalResponse.includes('RentalId') &&
       nestedRentalResponse.includes('RentalDate') &&

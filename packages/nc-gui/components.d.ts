@@ -122,6 +122,7 @@ declare module '@vue/runtime-core' {
     MaterialSymbolsAttachFile: typeof import('~icons/material-symbols/attach-file')['default']
     MaterialSymbolsChevronRightRounded: typeof import('~icons/material-symbols/chevron-right-rounded')['default']
     MaterialSymbolsCloseRounded: typeof import('~icons/material-symbols/close-rounded')['default']
+    MaterialSymbolsCreditCardOutline: typeof import('~icons/material-symbols/credit-card-outline')['default']
     MaterialSymbolsDarkModeOutline: typeof import('~icons/material-symbols/dark-mode-outline')['default']
     MaterialSymbolsDeleteOutlineRounded: typeof import('~icons/material-symbols/delete-outline-rounded')['default']
     MaterialSymbolsFileCopyOutline: typeof import('~icons/material-symbols/file-copy-outline')['default']

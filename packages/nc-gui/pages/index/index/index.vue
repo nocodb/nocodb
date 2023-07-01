@@ -472,6 +472,15 @@ watch(activeWorkspaceId, async () => {
               </template>
               <WorkspaceCollaboratorsList />
             </a-tab-pane>
+            <a-tab-pane key="billing" class="w-full">
+              <template #tab>
+                <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
+                  <MaterialSymbolsCreditCardOutline />
+                  Billing
+                </div>
+              </template>
+              <WorkspaceBilling />
+            </a-tab-pane>
           </template>
         </a-tabs>
       </div>

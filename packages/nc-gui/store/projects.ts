@@ -25,6 +25,8 @@ export const useProjects = defineStore('projectsStore', () => {
 
   const { api } = useApi()
 
+  const { appInfo } = $(useGlobal())
+
   const isProjectsLoading = ref(false)
 
   const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace') => {
@@ -41,8 +43,7 @@ export const useProjects = defineStore('projectsStore', () => {
     try {
       if (activeWorkspace?.id) {
         const { list } = await $api.workspaceProject.list(activeWorkspace?.id ?? workspace?.id, {
-          baseURL:
-            process.env.NODE_ENV === 'production' ? `https://${activeWorkspace?.id ?? workspace?.id}.nocodb.ai` : undefined,
+          baseURL: appInfo.baseHostName ? `https://${activeWorkspace?.id ?? workspace?.id}.${appInfo.baseHostName}` : undefined,
         })
         _projects = list
       } else {

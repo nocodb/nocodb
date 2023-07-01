@@ -36,6 +36,11 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
   const { allRoles } = useRoles()
 
+  /** If baseHostname defined block home page access under subdomains, and redirect to workspace page */
+  if (state.appInfo.value.baseHostName && !location.hostname?.startsWith('app.') && to.path === '/') {
+    return navigateTo(`/ws/${location.hostname.split('.')[0]}`)
+  }
+
   /** if user isn't signed in and google auth is enabled, try to check if sign-in data is present */
   if (!state.signedIn.value && state.appInfo.value.googleAuthEnabled) await tryGoogleAuth(api, state.signIn)
 
@@ -47,10 +52,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
   /** if auth is required or unspecified (same as required) and user is not signed in, redirect to signin page */
   if ((to.meta.requiresAuth || typeof to.meta.requiresAuth === 'undefined') && !state.signedIn.value) {
-    /** If baseHostname defined block home page access under subdomains, and redirect to workspace page */
-    if (state.appInfo.value.baseHostName && !location.hostname?.startsWith('app.') && to.path === '/') {
-      return navigateTo(`/ws/${location.hostname.split('.')[0]}`)
-    }
+
 
     /** If this is the first usern navigate to signup page directly */
     if (state.appInfo.value.firstUser) {

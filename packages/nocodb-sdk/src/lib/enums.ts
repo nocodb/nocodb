@@ -151,3 +151,8 @@ export enum WorkspaceStatus {
   DELETED,
   FAILED,
 }
+
+export enum WorkspacePlan {
+  FREE = 'free',
+  PAID = 'paid',
+}

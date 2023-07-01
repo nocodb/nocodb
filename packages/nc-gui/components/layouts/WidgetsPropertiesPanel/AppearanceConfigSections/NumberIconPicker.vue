@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue'
 import { Icon as IconifyIcon } from '@iconify/vue'
+// import * as allIcons from '@iconify/iconify/json/aliases/material-symbols.json'
+import allIcons from '@iconify-json/material-symbols/icons.json'
 
 const materialIcons = ['switch', 'ac_unit', 'zoom_in', 'zoom_out', 'zoom_out_map']
 const currentIcon = ref('android')
@@ -32,6 +34,10 @@ const selectIcon = (icon) => {
 //     document.removeEventListener('mouseup', handleOutsideClick)
 //   }
 // })
+
+const allMaterialIcons = computed(() => {
+  return Object.keys(allIcons).filter((icon) => icon.startsWith('mdi:'))
+})
 </script>
 
 <template>
@@ -48,6 +54,7 @@ const selectIcon = (icon) => {
             @input="updateIcon"
           /> -->
         <i class="material-icons material-icon-picker-prefix prefix" v-text="currentIcon"></i>
+        allIcons: {{ allIcons }}
         <div v-if="showPicker" class="material-icon-picker" tabindex="-1">
           <input v-model="searchQuery" type="text" placeholder="Search" />
           <ul class="icons">

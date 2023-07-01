@@ -1,4 +1,4 @@
-Address,District,PostalCode,Phone,Customer List,Staff List,City
+Address,District,PostalCode,Phone,Customers,Staffs,City
 1013 Tabuk Boulevard," ",96203," ",1,0,Kanchrapara
 1168 Najafabad Parkway," ",40301," ",1,0,Kabul
 1294 Firozabad Drive," ",70618," ",1,0,Pingxiang

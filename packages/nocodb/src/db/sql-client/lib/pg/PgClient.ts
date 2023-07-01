@@ -774,15 +774,18 @@ class PGClient extends KnexClient {
                     c.generation_expression,
                     c.character_octet_length,
                     c.character_set_name as csn,
-                    pk.ordinal_position as pk_ordinal_position,
-                    pk.constraint_name as pk_constraint_name,
+                    -- c.collation_name as clnn,
+                    pk.ordinal_position as pk_ordinal_position, pk.constraint_name as pk_constraint_name,
                     c.udt_name,
 
        (SELECT count(*)
             FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc1
+                inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu
+                    on cu.CONSTRAINT_NAME = tc1.CONSTRAINT_NAME
             where
                 tc1.CONSTRAINT_TYPE = 'UNIQUE'
                 and tc1.TABLE_NAME = c.TABLE_NAME
+                and cu.COLUMN_NAME = c.COLUMN_NAME
                 and tc1.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique,
                 (SELECT
         string_agg(enumlabel, ',')
@@ -791,42 +794,23 @@ class PGClient extends KnexClient {
         INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
         WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
                 ) enum_values
+
+
             from information_schema.columns c
               left join
-                ( 
-                    select 
-                      pc.conrelid::regclass::text AS table_name,
-                      pc.conname as constraint_name,
-                      col.attname as column_name,
-                      pc.contype as constraint_type,
-                      kc.ordinal_position as ordinal_position
-                    from
-                        pg_constraint pc
-                    JOIN pg_namespace n
-                        ON n.oid = pc.connamespace
-                        
-                    INNER JOIN pg_catalog.pg_class rel
-                         ON rel.oid = pc.conrelid
-                    LEFT JOIN LATERAL UNNEST(pc.conkey)  WITH ORDINALITY AS u(attnum, attposition)   ON TRUE
-                    LEFT JOIN pg_attribute col ON (col.attrelid = pc.conrelid AND col.attnum = u.attnum)
-                    left join information_schema.key_column_usage as kc
-                      on pc.conname = kc.constraint_name 
-                      and col.attname = kc.column_name
-                      and pc.conrelid::regclass::text = kc.table_name
-                    WHERE n.nspname = :schema
-                      AND rel.relname = :table 
-                      and pc.contype = 'p' and pc.conrelid::regclass::text = :table
-                 ) pk
+                ( select kc.constraint_name, kc.table_name,kc.column_name, kc.ordinal_position,tc.constraint_type
+                  from information_schema.key_column_usage kc
+                    inner join information_schema.table_constraints as tc
+                      on kc.constraint_name = tc.constraint_name 
+                      and kc.constraint_schema=tc.constraint_schema and tc.constraint_type in ('PRIMARY KEY')
+                  where kc.table_catalog='${args.databaseName}' and kc.table_schema= ?
+                  order by table_name,ordinal_position ) pk
                 on
                 pk.table_name = c.table_name and pk.column_name=c.column_name
-                left join information_schema.triggers trg on trg.event_object_table = c.table_name and trg.trigger_name = CONCAT('xc_trigger_' , 'scans' , '_' , c.column_name)
-              where c.table_catalog=:database and c.table_schema=:schema and c.table_name=:table
+                left join information_schema.triggers trg on trg.event_object_table = c.table_name and trg.trigger_name = CONCAT('xc_trigger_' , '${args.tn}' , '_' , c.column_name)
+              where c.table_catalog='${args.databaseName}' and c.table_schema=? and c.table_name='${args.tn}'
               order by c.table_name, c.ordinal_position`,
-        {
-          schema: this.schema,
-          table: args.tn,
-          database: args.databaseName,
-        },
+        [this.schema, this.schema],
       );
 
       const columns = [];

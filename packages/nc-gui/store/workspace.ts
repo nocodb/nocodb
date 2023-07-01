@@ -30,6 +30,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { $e } = useNuxtApp()
 
+  const { appInfo } = $(useGlobal())
+
   const workspaces = ref<Map<string, NcWorkspace>>(new Map())
   const workspacesList = computed<NcWorkspace[]>(() =>
     Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at),
@@ -148,7 +150,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       // todo: pagination
       const { list, pageInfo: _ } = await $api.workspaceUser.list(activeWorkspace.value.id!, {
         query: params,
-        baseURL: process.env.NODE_ENV === 'production' ? `https://${activeWorkspace.value.id!}.nocodb.ai` : undefined,
+        baseURL: appInfo.baseHostName ? `https://${activeWorkspace.value.id!}.${appInfo.baseHostName}` : undefined,
       })
 
       collaborators.value = list
@@ -174,7 +176,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
           roles,
         },
         {
-          baseURL: process.env.NODE_ENV === 'production' ? `https://${activeWorkspace.value.id!}.nocodb.ai` : undefined,
+          baseURL: appInfo.baseHostName ? `https://${activeWorkspace.value.id!}.${appInfo.baseHostName}` : undefined,
         },
       )
       await loadCollaborators()
@@ -192,7 +194,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
 
     await $api.workspaceUser.delete(activeWorkspace.value.id!, userId, {
-      baseURL: process.env.NODE_ENV === 'production' ? `https://${activeWorkspace.value.id!}.nocodb.ai` : undefined,
+      baseURL: appInfo.baseHostName ? `https://${activeWorkspace.value.id!}.${appInfo.baseHostName}` : undefined,
     })
     await loadCollaborators()
   }
@@ -210,7 +212,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         roles,
       },
       {
-        baseURL: process.env.NODE_ENV === 'production' ? `https://${activeWorkspace.value.id!}.nocodb.ai` : undefined,
+        baseURL: appInfo.baseHostName ? `https://${activeWorkspace.value.id!}.${appInfo.baseHostName}` : undefined,
       },
     )
     await loadCollaborators()
@@ -280,7 +282,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         project.id!,
         { title: project.temp_title },
         {
-          baseURL: process.env.NODE_ENV === 'production' ? `https://${activeWorkspace.value.id!}.nocodb.ai` : undefined,
+          baseURL: appInfo.baseHostName
+            ? `https://${activeWorkspace.value?.id! || project.fk_workspace_id}.${appInfo.baseHostName}`
+            : undefined,
         },
       )
       project.title = project.temp_title

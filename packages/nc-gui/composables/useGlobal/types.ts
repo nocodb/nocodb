@@ -26,6 +26,7 @@ export interface AppInfo {
   ncMaxAttachmentsAllowed: number
   isCloud: boolean
   automationLogLevel: 'OFF' | 'ERROR' | 'ALL'
+  baseHostName?: string
 }
 
 export interface StoredState {

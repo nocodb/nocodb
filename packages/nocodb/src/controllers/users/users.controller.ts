@@ -16,7 +16,6 @@ import { NcError } from '../../helpers/catchError';
 import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { User } from '../../models';
 import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
-import { ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import {
   randomTokenString,
   setTokenCookie,

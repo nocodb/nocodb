@@ -1,11 +1,10 @@
 <script lang="ts" setup>
-import type { Widget } from 'nocodb-sdk'
-import { WidgetTypeType } from 'nocodb-sdk'
+import type { ProjectType, Widget } from 'nocodb-sdk'
 import { GridItem, GridLayout } from 'vue3-grid-layout-next'
-import { WidgetTypeText } from './types'
 import type { WidgetTemplate } from './types'
 import { useDashboardStore } from '~~/store/dashboard'
 import '~/assets/dashboardLayout.scss'
+
 const dashboardStore = useDashboardStore()
 const { openedLayoutSidebarNode, gridLayout } = storeToRefs(dashboardStore)
 const { updatePositionOfWidgetById, updateScreenDimensionsOfWidgetById, addWidget, resetFocus } = dashboardStore
@@ -55,6 +54,8 @@ const showContextMenu = (top: number, left: number, widget: Widget) => {
   contextMenuRef.value.style.left = `${left}px`
   contextMenuVisible.value = true
 }
+
+const { project } = useProject()
 </script>
 
 <template>
@@ -62,48 +63,61 @@ const showContextMenu = (top: number, left: number, widget: Widget) => {
     <LayoutsTopBar />
     <div class="flex-1 flex">
       <LayoutsWidgetsLibraryPanel />
-      <div ref="mainArea" class="min-h-10 flex-1 overflow-y-auto" @click="resetFocus" @dragover.prevent @drop="drop">
-        <GridLayout
-          v-model:layout="gridLayout"
-          :style="{
-            margin: `${openedLayoutSidebarNode?.grid_padding_vertical}px ${openedLayoutSidebarNode?.grid_padding_horizontal}px`,
-          }"
-          :is-draggable="true"
-          :is-resizable="true"
-          :vertical-compact="false"
-          :prevent-collision="false"
-          :row-height="48"
-          :col-num="8"
-          :responsive="false"
-          style="height: '100%'"
-          class="flex"
+      <div class="flex-1 bg-gray-100 overflow-y-auto">
+        <div
+          ref="mainArea"
+          class="min-h-10 bg-white rounded-lg m-4 h-full"
+          @click="resetFocus"
+          @dragover.prevent
+          @drop="drop"
         >
-          <GridItem
-            v-for="item in gridLayout"
-            :key="item.i"
-            :static="item.static"
-            :x="item.x"
-            :y="item.y"
-            :w="item.w"
-            :h="item.h"
-            :i="item.i"
-            style="touch-action: none"
-            @moved="movedEvent"
-            @resized="resizedEvent"
+          <div class="flex border-b-1 text-xs py-2 border-gray-100 items-center">
+            <GeneralIcon class="text-gray-500 mx-2" icon="table"></GeneralIcon>
+            <!-- name of the project with name of the layout -->
+            <h4 class="mb-0">{{ project.title }} / {{ openedLayoutSidebarNode?.title }}</h4>
+          </div>
+          <GridLayout
+            v-model:layout="gridLayout"
+            :style="{
+              margin: `${openedLayoutSidebarNode?.grid_padding_vertical}px ${openedLayoutSidebarNode?.grid_padding_horizontal}px`,
+            }"
+            :is-draggable="true"
+            :is-resizable="true"
+            :vertical-compact="false"
+            :prevent-collision="false"
+            :row-height="48"
+            :col-num="8"
+            :responsive="false"
+            style="height: '100%'"
+            class="flex"
           >
-            <div
-              class="nc-dashboard-widget-wrapper"
-              :style="{
-                width: `calc(100% - ${gap}px)`,
-                height: `calc(100% - ${gap}px)`,
-                left: `${gap / 2}px`,
-                top: `${gap / 2}px`,
-              }"
+            <GridItem
+              v-for="item in gridLayout"
+              :key="item.i"
+              :static="item.static"
+              :x="item.x"
+              :y="item.y"
+              :w="item.w"
+              :h="item.h"
+              :i="item.i"
+              style="touch-action: none"
+              @moved="movedEvent"
+              @resized="resizedEvent"
             >
-              <LayoutsFocusableWidget :widget-id="item.widgetId" @show-context-menu-for-widget="showContextMenu" />
-            </div>
-          </GridItem>
-        </GridLayout>
+              <div
+                class="nc-dashboard-widget-wrapper"
+                :style="{
+                  width: `calc(100% - ${gap}px)`,
+                  height: `calc(100% - ${gap}px)`,
+                  left: `${gap / 2}px`,
+                  top: `${gap / 2}px`,
+                }"
+              >
+                <LayoutsFocusableWidget :widget-id="item.widgetId" @show-context-menu-for-widget="showContextMenu" />
+              </div>
+            </GridItem>
+          </GridLayout>
+        </div>
       </div>
       <!-- TODO: decide / change again to rem for width and overall: use consistent styling -->
       <div class="p-4 w-[280px] 2xl:w-[20vw] !overflow-y-auto h-[90vh]">

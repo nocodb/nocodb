@@ -1,13 +1,16 @@
 <script lang="ts" setup>
-const { workspace } = storeToRefs(useWorkspace())
+import {extractSdkResponseErrorMsg} from "~/utils";
+
+const workspaceStore = useWorkspace()
+const { upgradeActiveWorkspace } = workspaceStore
 const isUpgrading = ref(false)
 
 const upgradeWorkspace = async () => {
   isUpgrading.value = true
   try {
-    // await upgradeWorkspaceMutation(workspace.value.id)
+    await upgradeActiveWorkspace()
   } catch (e: any) {
-    message.error(e?.message)
+    message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     isUpgrading.value = false
   }

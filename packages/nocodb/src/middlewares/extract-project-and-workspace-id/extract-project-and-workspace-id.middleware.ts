@@ -1,10 +1,9 @@
-import { promisify } from 'util';
-import { Injectable, SetMetadata, UseInterceptors } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { NextFunction, Request, Response } from 'express';
-import { OrgUserRoles } from 'nocodb-sdk';
-import passport from 'passport';
-import { map, throwError } from 'rxjs';
+import type {CallHandler, CanActivate, ExecutionContext, NestInterceptor, NestMiddleware,} from '@nestjs/common';
+import {Injectable, SetMetadata, UseInterceptors} from '@nestjs/common';
+import {Reflector} from '@nestjs/core';
+import {OrgUserRoles, WorkspacePlan, WorkspaceStatus} from 'nocodb-sdk';
+import type {Observable} from 'rxjs';
+import {map} from 'rxjs';
 import {
   Column,
   Filter,
@@ -18,19 +17,11 @@ import {
   Sort,
   View,
   Widget,
+  Workspace,
 } from '../../models';
 import extractRolesObj from '../../utils/extractRolesObj';
 import projectAcl from '../../utils/projectAcl';
-import catchError, { NcError } from '../catchError';
-import extractProjectIdAndAuthenticate from '../extractProjectIdAndAuthenticate';
-import type { Observable } from 'rxjs';
-import type {
-  CallHandler,
-  CanActivate,
-  ExecutionContext,
-  NestInterceptor,
-  NestMiddleware,
-} from '@nestjs/common';
+import {NcError} from '../catchError';
 
 // todo: refactor name since we are using it as auth guard
 @Injectable()
@@ -131,6 +122,21 @@ export class ExtractProjectAndWorkspaceIdMiddleware
         req.ncWorkspaceId = req.params.workspaceId;
       } else if (req.body.fk_workspace_id) {
         req.ncWorkspaceId = req.body.fk_workspace_id;
+      }
+
+      if (req.ncWorkspaceId && process.env.NC_WORKSPACE_ID) {
+        if (req.ncWorkspaceId !== process.env.NC_WORKSPACE_ID) {
+          NcError.badRequest('Invalid workspace id');
+        }
+      } else if (req.ncWorkspaceId) {
+        const workspace = await Workspace.get(req.ncWorkspaceId);
+        if (!workspace) {
+          NcError.badRequest('Invalid workspace id');
+        }
+
+        if (workspace.plan !== WorkspacePlan.FREE) {
+          NcError.badRequest('invalid workspace id');
+        }
       }
     } catch (e) {
       console.log(e);

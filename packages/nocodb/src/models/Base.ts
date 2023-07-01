@@ -34,6 +34,7 @@ export default class Base implements BaseType {
   alias?: string;
   type?: (typeof DB_TYPES)[number];
   is_meta?: BoolType;
+  is_local?: BoolType;
   config?: string;
   inflection_column?: string;
   inflection_table?: string;
@@ -55,6 +56,7 @@ export default class Base implements BaseType {
       'config',
       'type',
       'is_meta',
+      'is_local',
       'inflection_column',
       'inflection_table',
       'order',
@@ -263,6 +265,8 @@ export default class Base implements BaseType {
       }
       return config;
     }
+
+    // TODO reuse minimal db connections
 
     const config = JSON.parse(
       CryptoJS.AES.decrypt(

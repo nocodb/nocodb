@@ -231,6 +231,8 @@ export interface BaseType {
   inflection_table?: string;
   /** Is the data source connected externally */
   is_meta?: BoolType;
+  /** Is the data source minimal db */
+  is_local?: BoolType;
   /**
    * The order of the list of bases
    * @example 1
@@ -285,6 +287,8 @@ export interface BaseReqType {
   inflection_table?: string;
   /** Is the data source connected externally */
   is_meta?: boolean;
+  /** Is the data source minimal db */
+  is_local?: boolean;
   /** DB Type */
   type?:
     | 'mssql'

@@ -10,8 +10,8 @@ import { extractProps } from '../helpers/extractProps';
 import NocoCache from '../cache/NocoCache';
 import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
 import Base from './/Base';
-import { ProjectUser } from './index';
 import DashboardProjectDBProject from './DashboardProjectDBProject';
+import { ProjectUser } from './index';
 import type { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
 import type { DB_TYPES } from './Base';
 

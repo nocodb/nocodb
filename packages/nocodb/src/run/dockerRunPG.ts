@@ -20,7 +20,7 @@ const metaDb = `meta_v2_${date.getFullYear()}_${(date.getMonth() + 1)
   .padStart(2, '0')}_${date.getDate().toString().padStart(2, '0')}`;
 // process.env[`NC_DB`] = `mysql2://localhost:3306?u=root&p=password&d=${metaDb}`;
 // process.env[`NC_DB`] = `pg:/2/localhost:3306?u=root&p=password&d=mar_24`;
-process.env[`NC_DB`] = `pg://localhost:5432?u=postgres&p=password&d=${metaDb}`;
+// process.env[`NC_DB`] = `pg://localhost:5432?u=postgres&p=password&d=${metaDb}`;
 // process.env[`NC_TRY`] = 'true';
 // process.env[`NC_DASHBOARD_URL`] = '/test';
 

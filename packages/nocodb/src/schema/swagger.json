@@ -17090,6 +17090,10 @@
             "$ref": "#/components/schemas/Bool",
             "description": "Is the data source connected externally"
           },
+          "is_local": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the data source minimal db"
+          },
           "order": {
             "description": "The order of the list of bases",
             "example": 1,
@@ -17257,6 +17261,10 @@
           },
           "is_meta": {
             "description": "Is the data source connected externally",
+            "type": "boolean"
+          },
+          "is_local": {
+            "description": "Is the data source minimal db",
             "type": "boolean"
           },
           "type": {

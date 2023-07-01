@@ -2,16 +2,21 @@
 import { computed, onMounted, ref } from 'vue'
 import { Icon as IconifyIcon } from '@iconify/vue'
 // import * as allIcons from '@iconify/iconify/json/aliases/material-symbols.json'
-import allIcons from '@iconify-json/material-symbols/icons.json'
+// import allIcons from '@iconify-json/material-symbols/icons.json'
+import allIcons from '@iconify-json/mdi/chars.json'
 
-const materialIcons = ['switch', 'ac_unit', 'zoom_in', 'zoom_out', 'zoom_out_map']
+// const materialIcons = ['switch', 'ac_unit', 'zoom_in', 'zoom_out', 'zoom_out_map']
+const materialIcons = computed(() => {
+  return Object.values(allIcons)
+  // .filter((icon) => icon.startsWith('mdi:'))
+})
 const currentIcon = ref('android')
 const showPicker = ref(true)
 const searchQuery = ref('')
 
 const filteredIcons = computed(() => {
   const search = searchQuery.value.toLowerCase()
-  return materialIcons.filter((icon) => icon.includes(search))
+  return materialIcons.value.filter((icon) => icon.includes(search))
 })
 
 const updateIcon = (event) => {
@@ -35,9 +40,6 @@ const selectIcon = (icon) => {
 //   }
 // })
 
-const allMaterialIcons = computed(() => {
-  return Object.keys(allIcons).filter((icon) => icon.startsWith('mdi:'))
-})
 </script>
 
 <template>
@@ -54,7 +56,7 @@ const allMaterialIcons = computed(() => {
             @input="updateIcon"
           /> -->
         <i class="material-icons material-icon-picker-prefix prefix" v-text="currentIcon"></i>
-        allIcons: {{ allIcons }}
+        <!-- materialIcons: {{ materialIcons }} -->
         <div v-if="showPicker" class="material-icon-picker" tabindex="-1">
           <input v-model="searchQuery" type="text" placeholder="Search" />
           <ul class="icons">
@@ -63,7 +65,7 @@ const allMaterialIcons = computed(() => {
               v-for="icon in filteredIcons"
               :key="icon"
               class="bg-blue-100 mr-3 p-2 rounded-lg h-10 min-w-10 text-lg"
-              :icon="`material-symbols:${icon}`"
+              :icon="`mdi:${icon}`"
             ></IconifyIcon>
           </ul>
         </div>

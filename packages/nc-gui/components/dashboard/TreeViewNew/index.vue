@@ -45,11 +45,9 @@ const projectsStore = useProjects()
 
 const { createProject: _createProject } = projectsStore
 
-const { projects, projectsList } = storeToRefs(projectsStore)
+const { projects, projectsList, activeProjectId } = storeToRefs(projectsStore)
 
 const { projectTables } = storeToRefs(useTablesStore())
-
-const activeProjectId = computed(() => route.params.projectId as string | undefined)
 
 const projectStore = useProject()
 
@@ -169,43 +167,6 @@ function openRenameTableDialog(table: TableType, rightClick = false) {
   }
 }
 
-// function openQuickImportDialog(type: string, baseId?: string) {
-//   $e(`a:actions:import-${type}`)
-
-//   const isOpen = ref(true)
-
-//   const { close } = useDialog(resolveComponent('DlgQuickImport'), {
-//     'modelValue': isOpen,
-//     'importType': type,
-//     'baseId': baseId, // || bases.value[0].id,
-//     'onUpdate:modelValue': closeDialog,
-//   })
-
-//   function closeDialog() {
-//     isOpen.value = false
-
-//     close(1000)
-//   }
-// }
-
-// function openAirtableImportDialog(baseId?: string) {
-//   $e('a:actions:import-airtable')
-
-//   const isOpen = ref(true)
-
-//   const { close } = useDialog(resolveComponent('DlgAirtableImport'), {
-//     'modelValue': isOpen,
-//     'baseId': baseId, // || bases.value[0].id,
-//     'onUpdate:modelValue': closeDialog,
-//   })
-
-//   function closeDialog() {
-//     isOpen.value = false
-
-//     close(1000)
-//   }
-// }
-
 function openTableCreateDialog(baseId?: string, projectId?: string) {
   $e('c:table:create:navdraw')
 
@@ -224,42 +185,6 @@ function openTableCreateDialog(baseId?: string, projectId?: string) {
     close(1000)
   }
 }
-
-// function openTableCreateMagicDialog(baseId?: string) {
-//   $e('c:table:create:navdraw')
-
-//   const isOpen = ref(true)
-
-//   const { close } = useDialog(resolveComponent('DlgTableMagic'), {
-//     'modelValue': isOpen,
-//     'baseId': baseId, // || bases.value[0].id,
-//     'onUpdate:modelValue': closeDialog,
-//   })
-
-//   function closeDialog() {
-//     isOpen.value = false
-
-//     close(1000)
-//   }
-// }
-
-// function openSchemaMagicDialog(baseId?: string) {
-//   $e('c:table:create:navdraw')
-
-//   const isOpen = ref(true)
-
-//   const { close } = useDialog(resolveComponent('DlgSchemaMagic'), {
-//     'modelValue': isOpen,
-//     'baseId': baseId, // || bases.value[0].id,
-//     'onUpdate:modelValue': closeDialog,
-//   })
-
-//   function closeDialog() {
-//     isOpen.value = false
-
-//     close(1000)
-//   }
-// }
 
 const duplicateTable = async (table: TableType) => {
   if (!table || !table.id || !table.project_id) return
@@ -292,22 +217,6 @@ const duplicateTable = async (table: TableType) => {
     close(1000)
   }
 }
-
-// const searchInputRef: VNodeRef = (vnode: typeof Input) => vnode?.$el?.focus()
-
-// const beforeSearch = ref<string[]>([])
-//
-// const onSearchCloseIconClick = () => {
-//   filterQuery = ''
-//   toggleSearchActive(false)
-//   activeKey.value = beforeSearch.value
-// }
-//
-// const onSearchIconClick = () => {
-//   beforeSearch.value = activeKey.value
-//   toggleSearchActive(true)
-//   activeKey.value = bases.value.filter((el) => el.enabled).map((el) => `collapse-${el.id}`)
-// }
 
 const isCreateTableAllowed = computed(
   () =>
@@ -353,44 +262,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
-watch(
-  activeTable,
-  (value, oldValue) => {
-    if (value) {
-      if (value !== oldValue) {
-        // const fndTable = tables.value.find((el) => el.id === value)
-        // if (fndTable) {
-        //   activeKey.value = [`collapse-${fndTable.base_id}`]
-        // }
-      }
-    } else {
-      // if (bases.value.filter((el) => el.enabled)[0]?.id)
-      //   activeKey.value = [`collapse-${bases.value.filter((el) => el.enabled)[0].id}`]
-    }
-  },
-  { immediate: true },
-)
-
-// const setIcon = async (icon: string, table: TableType) => {
-//   try {
-//     table.meta = {
-//       ...(table.meta || {}),
-//       icon,
-//     }
-//     tables.value.splice(tables.value.indexOf(table), 1, { ...table })
-
-//     updateTab({ id: table.id }, { meta: table.meta })
-
-//     $api.dbTable.update(table.id as string, {
-//       meta: table.meta,
-//     })
-
-//     $e('a:table:icon:navdraw', { icon })
-//   } catch (e) {
-//     message.error(await extractSdkResponseErrorMsg(e))
-//   }
-// }
-
 const handleContext = (e: MouseEvent) => {
   if (!document.querySelector('.base-context, .table-context')?.contains(e.target as Node)) {
     setMenuContext('main')
@@ -417,6 +288,18 @@ const checkScrollTopMoreThanZero = () => {
   }
   return false
 }
+
+watch(activeProjectId, () => {
+  const activeProjectDom = document.querySelector(`.nc-treeview [data-project-id="${activeProjectId.value}"]`)
+
+  if (activeProjectDom) {
+    activeProjectDom.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+      inline: 'center',
+    })
+  }
+})
 
 onMounted(() => {
   treeViewDom.value?.addEventListener('scroll', checkScrollTopMoreThanZero)

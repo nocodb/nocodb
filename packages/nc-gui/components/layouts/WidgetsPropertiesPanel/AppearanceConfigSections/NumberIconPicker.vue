@@ -7,7 +7,7 @@ import allIcons from '@iconify-json/mdi/chars.json'
 
 // const materialIcons = ['switch', 'ac_unit', 'zoom_in', 'zoom_out', 'zoom_out_map']
 const materialIcons = computed(() => {
-  return Object.values(allIcons)
+  return Object.values(allIcons).map((icon) => `mdi:${icon}`)
   // .filter((icon) => icon.startsWith('mdi:'))
 })
 const currentIcon = ref('android')
@@ -46,7 +46,6 @@ const selectIcon = (icon) => {
   <a-collapse expand-icon-position="right" accordion :bordered="false" class="nc-dashboard-layouts-propspanel-collapse">
     <a-collapse-panel class="nc-dashboard-layouts-propspanel-collapse-panel" header="Icon selector">
       <div class="input-field col s4">
-        <label for="icon">Icon picker</label>
         <!-- <input
             ref="iconInput"
             type="text"
@@ -57,15 +56,15 @@ const selectIcon = (icon) => {
           /> -->
         <i class="material-icons material-icon-picker-prefix prefix" v-text="currentIcon"></i>
         <!-- materialIcons: {{ materialIcons }} -->
-        <div v-if="showPicker" class="material-icon-picker" tabindex="-1">
-          <input v-model="searchQuery" type="text" placeholder="Search" />
-          <ul class="icons">
+        <div v-if="showPicker" class="bg-gray-50 p-4 rounded-lg" tabindex="-1">
+          <input v-model="searchQuery" type="text" class="rounded-lg w-full border-gray-100 mb-4" placeholder="Search icon" />
+          <ul class="flex flex-wrap max-h-40 overflow-y-auto justify-between">
             <!-- <li v-for="icon in filteredIcons" :key="icon" class="material-icons" @click="selectIcon(icon)" v-text="icon"></li> -->
             <IconifyIcon
               v-for="icon in filteredIcons"
               :key="icon"
-              class="bg-blue-100 mr-3 p-2 rounded-lg h-10 min-w-10 text-lg"
-              :icon="`mdi:${icon}`"
+              class="p-2 rounded-lg h-10 min-w-10 text-lg"
+              :icon="icon"
             ></IconifyIcon>
           </ul>
         </div>

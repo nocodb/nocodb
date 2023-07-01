@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onKeyDown } from '@vueuse/core'
-import { RowHeightInj } from '~/context'
 import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
+import { RowHeightInj } from '~/context'
 import {
   ActiveCellInj,
   CurrentCellInj,
@@ -131,14 +131,15 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
   }
 })
 
-
 const rowHeight = inject(RowHeightInj, ref(1.8))
-
 </script>
 
 <template>
   <div
     ref="attachmentCellRef"
+    :style="{
+      height: isForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
+    }"
     class="nc-attachment-cell relative flex-1 color-transition flex items-center justify-between gap-1"
   >
     <LazyCellAttachmentCarousel />
@@ -158,7 +159,7 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
     <div
       v-if="!isReadonly"
       :class="{ 'mx-auto px-4': !visibleItems.length }"
-      class="group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+      class="group cursor-pointer py-1 flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
       data-testid="attachment-cell-file-picker-button"
       @click.stop="open"
     >
@@ -190,7 +191,7 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
         :class="{ dragging }"
         class="flex cursor-pointer justify-center items-center flex-wrap gap-2 py-1.5 scrollbar-thin-dull overflow-hidden mt-0 items-start"
         :style="{
-          maxHeight: `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
+          maxHeight: isForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
         }"
       >
         <template v-for="(item, i) of visibleItems" :key="item.url || item.title">

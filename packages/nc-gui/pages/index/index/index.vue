@@ -260,7 +260,7 @@ const projectListType = computed(() => {
 })
 
 watch(activeWorkspaceId, async () => {
-  if(activeWorkspace.)
+  if (activeWorkspace.value?.status !== WorkspaceStatus.CREATED) return
   await loadProjects(activePage.value)
 })
 

@@ -399,6 +399,8 @@ async function saveHooks() {
           payload: hook.notification.payload,
         },
       } as HookReqType)
+
+      hooks.value.push(res)
     }
 
     if (!hook.id && res) {

@@ -9,7 +9,6 @@ const props = defineProps<{
 
 const widget = toRefs(props).widget
 
-const widgetRef = ref<HTMLElement | null>(null)
 const widgetWithReloadDataSupportRef = ref<HTMLElement | null>(null)
 
 const isChart = computed(() => chartTypes.includes(widget.value.widget_type))
@@ -22,13 +21,6 @@ const { dataLinkConfigIsMissing } = useWidget(widget)
 const dashboardStore = useDashboardStore()
 const { focusedWidget } = storeToRefs(dashboardStore)
 
-const showContextMenu = ref(false)
-
-// const handleShowContextMenuClick = (e: MouseEvent) => {
-//   e.preventDefault()
-//   showContextMenu.value = true
-// }
-
 const borderClass = computed(() => {
   if (widget.value.id === focusedWidget.value?.id) {
     return 'nc-layout-ui-element-has-focus'
@@ -39,23 +31,10 @@ const borderClass = computed(() => {
   }
 })
 
-// const FOO: typeof NumberComponet = ref<typeof NumberComponet | null>(null)
-
-const reloadWidgetData = () => {
-  alert('RELOAD!')
-  console.log(widgetWithReloadDataSupportRef.value)
-}
 </script>
 
 <template v-slot:item="{ element: widget }">
-  <div v-if="widget" ref="widgetRef" class="nc-layout-ui-element" :class="borderClass" @click="showContextMenu = false">
-    <!-- <button @click.stop="showContextMenu = true">CONTEXT MENU</button> -->
-    <LayoutsWidgetsContextMenu
-      v-show="showContextMenu"
-      :widget="widget"
-      @close-context-menu="showContextMenu = false"
-      @reload-widget-data="reloadWidgetData"
-    />
+  <div v-if="widget" class="nc-layout-ui-element" :class="borderClass">
     <LayoutsWidgetsChart v-if="isChart" :widget-config="widget as ChartWidget" />
     <LayoutsWidgetsNumber v-else-if="isNumber" ref="widgetWithReloadDataSupportRef" :widget-config="widget as NumberWidget" />
     <LayoutsWidgetsText v-else-if="isStaticText" :widget-config="widget as StaticTextWidget" />

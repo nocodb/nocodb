@@ -4,13 +4,10 @@ import { Icon as IconifyIcon } from '@iconify/vue'
 import allIcons from '@iconify-json/mdi/chars.json'
 
 const dashboardStore = useDashboardStore()
-// const { updateIconOfNumberWidget } = dashboardStore
 
 const materialIcons = computed(() => {
   return Object.values(allIcons).map((icon) => `mdi:${icon}`)
 })
-// const currentIcon = ref('android')
-// const showPicker = ref(true)
 const searchQuery = ref('')
 
 const filteredIcons = computed(() => {
@@ -19,27 +16,8 @@ const filteredIcons = computed(() => {
 })
 
 const updateIcon = (icon: string) => {
-  // dashboardStore.updateIconOfNumberWidget(icon)
-  dashboardStore.changeNameOfFocusedChart('foo')
-  debugger
+  dashboardStore.updateIconOfNumberWidget(icon)
 }
-
-// const selectIcon = (icon) => {
-//   currentIcon.value = icon
-//   //   showPicker.value = false
-// }
-
-// onMounted(() => {
-//   const handleOutsideClick = (event) => {
-//     if (!event.target.classList.contains('use-material-icon-picker')) {
-//       showPicker.value = false
-//     }
-//   }
-//   document.addEventListener('mouseup', handleOutsideClick)
-//   return () => {
-//     document.removeEventListener('mouseup', handleOutsideClick)
-//   }
-// })
 </script>
 
 <template>

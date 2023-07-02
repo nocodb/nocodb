@@ -34,7 +34,6 @@ const formatValue = (value: number): string => {
 
 const { widgetConfig } = toRefs(props)
 const aggregatedNumberValue = ref<string>('NaN')
-// const icon = ref<string>('default-icon')
 const numberColumnTitle = ref<string | undefined>()
 const aggregateFunction = ref<string>('Description')
 
@@ -54,8 +53,9 @@ const getData = async () => {
   numberColumnTitle.value = widgetData.columnName
   aggregateFunction.value = widgetData.aggregateFunction
   aggregatedNumberValue.value = formatValue(widgetData.value)
-  // icon.value = widgetData.icon || 'default-icon'
 }
+
+const icon = computed(() => widgetConfig?.value.data_config?.icon || 'default-icon')
 
 reloadWidgetDataEventBus.on(async (ev) => {
   if (ev !== widgetConfig.value.id) {
@@ -80,25 +80,7 @@ watch(
     immediate: true,
   },
 )
-
 const { showContextMenuButtonRef, isContextMenuVisible, showContextMenu } = useLayoutsContextMenu()
-
-// const menuItems = [
-//   {
-//     title: 'Edit',
-//     icon: 'edit',
-//     onClick: () => {
-//       alert('Edit')
-//     },
-//   },
-//   {
-//     title: 'Delete',
-//     icon: 'delete',
-//     onClick: () => {
-//       alert('Delete')
-//     },
-//   },
-// ]
 </script>
 
 <template>
@@ -106,7 +88,8 @@ const { showContextMenuButtonRef, isContextMenuVisible, showContextMenu } = useL
     <div class="flex flex-col h-full relative">
       <div class="flex justify-between items-center w-full">
         <div class="flex items-center">
-          <IconifyIcon class="bg-blue-100 mr-3 p-2 rounded-lg h-10 min-w-10 text-lg" icon="iconoir:dollar"></IconifyIcon>
+          <!-- <IconifyIcon class="bg-blue-100 mr-3 p-2 rounded-lg h-10 min-w-10 text-lg" icon="iconoir:dollar"></IconifyIcon> -->
+          <IconifyIcon class="bg-blue-100 mr-3 p-2 rounded-lg h-10 min-w-10 text-lg" :icon="icon"></IconifyIcon>
           <h3 class="text-base font-medium text-gray-900 mb-0">{{ data_config.name }}</h3>
         </div>
         <button ref="showContextMenuButtonRef" @click="showContextMenu">

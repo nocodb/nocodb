@@ -729,7 +729,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
 
   const updateFocusedWidgetByElementId = async (elementId: string) => {
     temporaryFocusedWidgetId.value = elementId
-    // focusedWidgetId.value = elementId
   }
 
   // Widget Data Config methods

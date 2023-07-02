@@ -21,6 +21,8 @@ const isExternalUrlActionType = computed(
   () => focusedButtonWidget.value?.data_config?.actionType === ButtonActionType.OPEN_EXTERNAL_URL,
 )
 
+const { showContextMenuButtonRef, isContextMenuVisible, showContextMenu } = useLayoutsContextMenu()
+
 interface SectionTypeChooserOption {
   id: ButtonActionType
   label: string

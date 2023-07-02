@@ -30,7 +30,7 @@ const updateIcon = (icon: string) => {
             <IconifyIcon
               v-for="icon in filteredIcons"
               :key="icon"
-              class="p-2 rounded-lg h-10 min-w-10 text-lg"
+              class="p-2 rounded-lg h-10 min-w-9 text-lg cursor-pointer"
               :icon="icon"
               @click="updateIcon(icon)"
             ></IconifyIcon>

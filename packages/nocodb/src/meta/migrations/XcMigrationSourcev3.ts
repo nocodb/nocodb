@@ -9,7 +9,8 @@ import * as nc_008_dashboard from './v3/nc_008_dashboard';
 import * as nc_009_add_last_snapshot_to_page from './v3/nc_009_add_last_snapshot_to_page';
 import * as nc_010_add_appearance_config_to_layouts from './v3/nc_010_add_appearance_config_to_layouts';
 import * as nc_011_workspace_status_col from './v3/nc_011_workspace_status_col';
-import * as nc_012_pg_minimal_dbs from './v3/nc_011_pg_minimal_dbs';
+import * as nc_012_pg_minimal_dbs from './v3/nc_012_pg_minimal_dbs';
+import * as nc_013_workspace_plan from './v3/nc_013_workspace_plan';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev3 {
@@ -30,7 +31,8 @@ export default class XcMigrationSourcev3 {
       'nc_009_add_last_snapshot_to_page',
       'nc_010_add_appearance_config_to_layouts',
       'nc_011_workspace_status_col',
-      'nc_011_pg_minimal_dbs',
+      'nc_012_pg_minimal_dbs',
+      'nc_013_workspace_plan',
     ]);
   }
 
@@ -64,6 +66,8 @@ export default class XcMigrationSourcev3 {
         return nc_011_workspace_status_col;
       case 'nc_012_pg_minimal_dbs':
         return nc_012_pg_minimal_dbs;
+      case 'nc_013_workspace_plan':
+        return nc_013_workspace_plan;
     }
   }
 }

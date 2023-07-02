@@ -5,7 +5,6 @@ export default function useLayoutsContextMenu() {
   const showContextMenuButtonRef = ref<HTMLElement | null>(null)
 
   const handleDocumentClick = (event: MouseEvent) => {
-    console.log('event: ', event)
     if (
       !contextMenuRef.value?.contains(event.target as Node) &&
       !showContextMenuButtonRef.value?.contains(event.target as Node)

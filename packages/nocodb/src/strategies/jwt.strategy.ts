@@ -33,7 +33,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     const user = await User.getByEmail(jwtPayload?.email);
-    // .then(async (user) =>
 
     if (
       !user.token_version ||

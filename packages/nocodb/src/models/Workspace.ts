@@ -194,6 +194,8 @@ export default class Workspace implements WorkspaceType {
       fk_workspace_id: id,
     });
 
+    await NocoCache.delAll(CacheScope.WORKSPACE_USER, `${id}:*`);
+
     // todo: reset project workspace mapping
     // and mark it as deleted
     await ncMeta.metaUpdate(

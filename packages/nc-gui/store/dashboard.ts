@@ -967,7 +967,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   }
 
   const updateIconOfNumberWidget = (newIcon: string) => {
-    alert('updateIconOfNumberWidget')
     if (!focusedWidget.value || WidgetTypeType.Number !== focusedWidget.value.widget_type) {
       console.error('updateIconOfNumberWidget: focusedWidget.value is undefined or not a NumberWidget')
       return

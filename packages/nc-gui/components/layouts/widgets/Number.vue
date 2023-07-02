@@ -34,11 +34,12 @@ const formatValue = (value: number): string => {
 
 const { widgetConfig } = toRefs(props)
 const aggregatedNumberValue = ref<string>('NaN')
+const numberColumnTitle = ref<string | undefined>()
+const aggregateFunction = ref<string>('Description')
 
 const dashboardStore = useDashboardStore()
 const { reloadWidgetDataEventBus } = dashboardStore
 const { openedLayoutSidebarNode } = storeToRefs(dashboardStore)
-const widgetData = ref()
 
 const data_config = computed(() => widgetConfig.value?.data_config as DataConfigNumber)
 
@@ -48,15 +49,13 @@ const getData = async () => {
     console.error('Tried to get data for Number Visualisation without complete data link configuration')
     return
   }
-  widgetData.value = await (await api.dashboard.widgetGet(openedLayoutSidebarNode.value!.id!, widgetConfig.value.id)).data
+  const widgetData: any = await (await api.dashboard.widgetGet(openedLayoutSidebarNode.value!.id!, widgetConfig.value.id)).data
+  numberColumnTitle.value = widgetData.columnName
+  aggregateFunction.value = widgetData.aggregateFunction
   aggregatedNumberValue.value = formatValue(widgetData.value)
 }
 
-const icon = computed(() => widgetData.icon || 'default-icon')
-const numberColumnTitle = computed(() => widgetData.columnName)
-
-aggregateFunction.value = widgetData.aggregateFunction
-const aggregateFunction = ref<string>('Description')
+const icon = computed(() => widgetConfig?.value.data_config?.icon || 'default-icon')
 
 reloadWidgetDataEventBus.on(async (ev) => {
   if (ev !== widgetConfig.value.id) {

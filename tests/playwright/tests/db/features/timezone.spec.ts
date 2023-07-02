@@ -107,7 +107,6 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
-    if (!isSqlite(context)) return;
 
     try {
       const { project, table } = await timezoneSuite(context.token, 'xcdb0');
@@ -140,8 +139,6 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
    *  Display value is converted to Asia/Tokyo
    */
   test('API insert, verify display value', async () => {
-    if (!isSqlite(context)) return;
-
     await dashboard.clickHome();
     const projectsPage = new ProjectsPage(dashboard.rootPage);
     await projectsPage.openProject({ title: 'xcdb0', withoutPrefix: true });
@@ -179,8 +176,6 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
    */
 
   test('API Insert, verify API read response', async () => {
-    if (!isSqlite(context)) return;
-
     const dateInserted = new Date(`2021-01-01 00:00:00${getBrowserTimezoneOffset()}`);
     // translate dateInserted to UTC in YYYY-MM-DD HH:mm format
     const dateInsertedInUTC = dateInserted.toISOString().replace('T', ' ').replace('Z', '');
@@ -282,9 +277,6 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
 
-    // Apply only for sqlite, as currently- root DB for all instances is SQLite
-    if (!isSqlite(context)) return;
-
     const { project } = await timezoneSuite(context.token, 'xcdb2', true);
     context.project = project;
 
@@ -323,8 +315,6 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
    *
    */
   test('Cell insert', async () => {
-    if (!isSqlite(context)) return;
-
     // Verify stored value in database is UTC
     records = await api.dbTableRow.list('noco', context.project.id, 'dateTimeTable', { limit: 10 });
 
@@ -352,8 +342,6 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
    *
    */
   test('Expanded record insert', async () => {
-    if (!isSqlite(context)) return;
-
     await dashboard.grid.openExpandedRow({ index: 0 });
     await dashboard.expandedForm.fillField({
       columnTitle: 'DateTime',
@@ -387,8 +375,6 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
    *
    */
   test('Copy paste', async () => {
-    if (!isSqlite(context)) return;
-
     await dashboard.grid.addNewRow({ index: 1, columnHeader: 'Title', value: 'Copy paste test' });
 
     await dashboard.rootPage.reload();

@@ -19,8 +19,7 @@ const filteredIcons = computed(() => {
 })
 
 const updateIcon = (icon: string) => {
-  // dashboardStore.updateIconOfNumberWidget(icon)
-  dashboardStore.changeNameOfFocusedChart('foo')
+  dashboardStore.updateIconOfNumberWidget(icon)
   debugger
 }
 

@@ -55,10 +55,5 @@ const borderClass = computed(() => {
     padding: 10px;
     border: 4px solid #3366ff;
   }
-
-  &-missing-data-config {
-    padding: 10px;
-    border: 4px solid red;
-  }
 }
 </style>

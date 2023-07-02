@@ -16,8 +16,5 @@ const widget = computed(() => {
 <template>
   <div ref="nodeRef" class="h-full context-menu-trigger" @click="updateFocusedWidgetByElementId(widgetId)">
     <LayoutsWidgetsWidget v-if="widget" :widget="widget" />
-    <!-- TODO 
-      - place the context menu in a separate component 
-    -->
   </div>
 </template>

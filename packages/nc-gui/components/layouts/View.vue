@@ -63,11 +63,9 @@ const { project } = useProject()
     <LayoutsTopBar />
     <div class="flex-1 flex">
       <LayoutsWidgetsLibraryPanel />
-      <!-- <div class="flex-1 bg-gray-100 overflow-auto"> -->
       <div ref="mainArea" class="overflow-y-auto flex-1 border-10" @click="resetFocus" @dragover.prevent @drop="drop">
         <div class="flex border-b-1 text-xs py-2 border-gray-100 items-center">
           <GeneralIcon class="text-gray-500 mx-2" icon="table"></GeneralIcon>
-          <!-- name of the project with name of the layout -->
           <h4 class="mb-0">{{ project.title }} / {{ openedLayoutSidebarNode?.title }}</h4>
         </div>
         <GridLayout
@@ -113,8 +111,6 @@ const { project } = useProject()
         </GridLayout>
       </div>
       <!-- </div> -->
-      <!-- TODO: decide / change again to rem for width and overall: use consistent styling -->
-      <!-- <div class="p-4 w-[280px] 2xl:w-[20vw] !overflow-y-auto h-[90vh]"> -->
       <div class="p-4 w-[280px] 2xl:w-[20vw] !overflow-y-auto h-[90vh]">
         <LayoutsWidgetsPropertiesPanel />
       </div>
@@ -125,9 +121,6 @@ const { project } = useProject()
 <style scoped lang="scss">
 .nc-dashboard-widget-wrapper {
   position: absolute;
-  // &:hover {
-  //   @apply bg-gray-100;
-  // }
 }
 .vue-grid-item {
   padding: 3px;
@@ -149,21 +142,5 @@ const { project } = useProject()
 
 .vue-grid-item .add {
   cursor: pointer;
-}
-
-.vue-draggable-handle {
-  // position: absolute;
-  // width: 20px;
-  // height: 20px;
-  // top: 0;
-  // left: 0;
-  // background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10'><circle cx='5' cy='5' r='5' fill='#999999'/></svg>")
-  //   no-repeat;
-  // background-position: bottom right;
-  // padding: 0 8px 8px 0;
-  // background-repeat: no-repeat;
-  // background-origin: content-box;
-  // box-sizing: border-box;
-  // cursor: pointer;
 }
 </style>

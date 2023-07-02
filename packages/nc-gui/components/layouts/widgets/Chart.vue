@@ -155,7 +155,7 @@ const chartOptions = {
       <GeneralIcon icon="threeDotHorizontal" class="text-gray-900 text-xl" />
     </button>
   </div>
-  <div v-if="dataLinkConfigIsMissing">Missing Data Source Configuration</div>
+  <LayoutsWidgetsConfigMissing v-if="dataLinkConfigIsMissing" />
   <component
     :is="chartComponent"
     v-else-if="chartData"

@@ -21,7 +21,6 @@ const isExternalUrlActionType = computed(
   () => focusedButtonWidget.value?.data_config?.actionType === ButtonActionType.OPEN_EXTERNAL_URL,
 )
 
-const { showContextMenuButtonRef, isContextMenuVisible, showContextMenu } = useLayoutsContextMenu()
 
 interface SectionTypeChooserOption {
   id: ButtonActionType
@@ -36,7 +35,7 @@ const selectedActionType = computed(() => focusedButtonWidget.value?.data_config
 </script>
 
 <template>
-    <a-collapse expand-icon-position="right" accordion :bordered="false" class="nc-dashboard-layouts-propspanel-collapse">
+  <a-collapse expand-icon-position="right" accordion :bordered="false" class="nc-dashboard-layouts-propspanel-collapse">
     <a-collapse-panel class="nc-dashboard-layouts-propspanel-collapse-panel !rounded-lg" header="Function">
       <a-select :value="selectedActionType" class="mb-4" option-filter-prop="children" @change="updateSelectedValue">
         <a-select-option v-for="option of sectionOptions" :key="option.id" :value="option.id">

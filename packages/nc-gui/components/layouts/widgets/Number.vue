@@ -88,7 +88,6 @@ const { showContextMenuButtonRef, isContextMenuVisible, showContextMenu } = useL
     <div class="flex flex-col h-full relative">
       <div class="flex justify-between items-center w-full">
         <div class="flex items-center">
-          <!-- <IconifyIcon class="bg-blue-100 mr-3 p-2 rounded-lg h-10 min-w-10 text-lg" icon="iconoir:dollar"></IconifyIcon> -->
           <IconifyIcon class="bg-blue-100 mr-3 p-2 rounded-lg h-10 min-w-10 text-lg" :icon="icon"></IconifyIcon>
           <h3 class="text-base font-medium text-gray-900 mb-0">{{ data_config.name }}</h3>
         </div>
@@ -98,7 +97,7 @@ const { showContextMenuButtonRef, isContextMenuVisible, showContextMenu } = useL
         <LayoutsWidgetsContextMenu v-if="isContextMenuVisible" :widget="widgetConfig" @reload-widget-data="getData" />
       </div>
       <div class="flex items-center flex-1 m-auto">
-        <IconifyIcon v-if="dataLinkConfigIsMissing" class="text-8xl !text-gray-600" icon="mingcute:alert-fill"></IconifyIcon>
+        <LayoutsWidgetsConfigMissing v-if="dataLinkConfigIsMissing" />
         <h2 v-else class="text-8xl text-center mb-0">{{ aggregatedNumberValue }}</h2>
       </div>
     </div>

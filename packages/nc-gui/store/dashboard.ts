@@ -952,6 +952,8 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   }
 
   const changeNameOfFocusedChart = (newName: string) => {
+    alert('store')
+    debugger
     if (!focusedWidget.value || !chartTypes.includes(focusedWidget.value.widget_type)) {
       console.error('changeNameOfFocusedChart: focusedWidget.value is undefined or not a chart widget')
       return
@@ -1089,6 +1091,22 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     _updateWidgetInAPIAndLocally(updatedWidget)
   }
 
+  const updateIconOfNumberWidget = (newIcon: string) => {
+    alert('updateIconOfNumberWidget')
+    // if (!focusedWidget.value || WidgetTypeType.Number !== focusedWidget.value.widget_type) {
+    //   console.error('updateIconOfNumberWidget: focusedWidget.value is undefined or not a NumberWidget')
+    //   return
+    // }
+    // const updatedWidget = {
+    //   ...focusedWidget.value!,
+    //   data_config: {
+    //     ...(focusedWidget.value as NumberWidget).data_config,
+    //     icon: newIcon,
+    //   },
+    // } as NumberWidget
+    // _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
   const _changeColorPropertyOfFocusedWidget = (
     newColor: string,
     colorPropertyName: 'fillColor' | 'textColor' | 'borderColor' | 'iconColor',
@@ -1216,5 +1234,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     changeLayoutPaddingVertical,
     gridLayout,
     changeNameOfFocusedChart,
+    updateIconOfNumberWidget,
   }
 })

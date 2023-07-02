@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import type { NumberWidget } from 'nocodb-sdk'
-import * as Icons from '@iconify-json/material-symbols'
 
 const dashboardStore = useDashboardStore()
 const { changeTextColorOfFocusedWidget } = dashboardStore
 const { focusedWidget } = storeToRefs(dashboardStore)
-
-// Icons.icons.categories['']
 
 const colors = [
   {

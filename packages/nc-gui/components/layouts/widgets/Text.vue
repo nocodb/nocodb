@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { StaticTextWidget } from 'nocodb-sdk'
 import { FontType } from 'nocodb-sdk'
+import useLayoutsContextMenu from './useLayoutsContextMenu'
 const props = defineProps<{
   widgetConfig: StaticTextWidget
 }>()
@@ -36,15 +37,23 @@ const fontTypeToElement = (fontType: FontType | undefined) => {
 }
 
 const elementTag = computed(() => fontTypeToElement(fontType.value))
+
+const { showContextMenuButtonRef, isContextMenuVisible, showContextMenu } = useLayoutsContextMenu()
 </script>
 
 <template>
-  <component :is="elementTag" class="nc-layout-text-element">
-    <a v-if="isLink" :href="url" target="_blank">{{ text }}</a>
-    <span v-else>
-      {{ text }}
-    </span>
-  </component>
+  <div class="flex justify-between">
+    <component :is="elementTag" class="nc-layout-text-element">
+      <a v-if="isLink" :href="url" target="_blank">{{ text }}</a>
+      <span v-else>
+        {{ text }}
+      </span>
+    </component>
+    <button ref="showContextMenuButtonRef" @click="showContextMenu">
+      <GeneralIcon icon="threeDotHorizontal" class="text-gray-900 text-xl" />
+    </button>
+  </div>
+  <LayoutsWidgetsContextMenu v-if="isContextMenuVisible" :widget="widgetConfig" />
 </template>
 
 <style>

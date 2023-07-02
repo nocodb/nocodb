@@ -105,6 +105,14 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   const { projectTables } = storeToRefs(useTablesStore())
 
   const focusedWidgetId = ref<string | undefined>(undefined)
+  // NOTE: Instead of using stop propagation on the click handler on the Layout View level
+  // (which is responsible for calling resetFocus) and which made problems for example for
+  // handling other click event types (e.g. opening and closing the context menu on a widget),
+  // we use a temporaryFocusedWidgetId to store the id of the widget that should be focused
+  // AFTER the click event on a widget has been handled and BEFORE the event is bubbling up to the Layout View
+  // Within the Layout view, we then check whether the temporaryFocusedWidgetId is set and if so,
+  // set the focusedWidgetId to it. Otherise we set it to undefined (because the click event was not on a widget).
+  const temporaryFocusedWidgetId = ref<string | undefined>(undefined)
 
   const openedWidgets = ref<Widget[] | null>(null)
 
@@ -466,9 +474,13 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       if (!withoutLoading) isLayoutFetching.value[projectId] = false
     }
   }
-
   const resetFocus = () => {
-    focusedWidgetId.value = undefined
+    if (temporaryFocusedWidgetId.value) {
+      focusedWidgetId.value = temporaryFocusedWidgetId.value
+      temporaryFocusedWidgetId.value = undefined
+    } else {
+      focusedWidgetId.value = undefined
+    }
   }
 
   const addNewLayout = async ({ projectId }: { projectId: string }) => {
@@ -716,7 +728,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   }
 
   const updateFocusedWidgetByElementId = async (elementId: string) => {
-    focusedWidgetId.value = elementId
+    temporaryFocusedWidgetId.value = elementId
   }
 
   // Widget Data Config methods
@@ -935,6 +947,36 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
         yAxisColId: newYColumnId,
       },
     }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const changeNameOfFocusedChart = (newName: string) => {
+    if (!focusedWidget.value || !chartTypes.includes(focusedWidget.value.widget_type)) {
+      console.error('changeNameOfFocusedChart: focusedWidget.value is undefined or not a chart widget')
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      data_config: {
+        ...focusedWidget.value.data_config,
+        name: newName,
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const updateIconOfNumberWidget = (newIcon: string) => {
+    if (!focusedWidget.value || WidgetTypeType.Number !== focusedWidget.value.widget_type) {
+      console.error('updateIconOfNumberWidget: focusedWidget.value is undefined or not a NumberWidget')
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      data_config: {
+        ...(focusedWidget.value as NumberWidget).data_config,
+        icon: newIcon,
+      },
+    } as NumberWidget
     _updateWidgetInAPIAndLocally(updatedWidget)
   }
 
@@ -1187,5 +1229,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     changeLayoutPaddingHorizontal,
     changeLayoutPaddingVertical,
     gridLayout,
+    changeNameOfFocusedChart,
+    updateIconOfNumberWidget,
   }
 })

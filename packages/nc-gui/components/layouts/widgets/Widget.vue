@@ -7,9 +7,9 @@ const props = defineProps<{
   widget: Widget
 }>()
 
-const contextMenuTarget = ref<Widget | null>(null)
-
 const widget = toRefs(props).widget
+
+const widgetWithReloadDataSupportRef = ref<HTMLElement | null>(null)
 
 const isChart = computed(() => chartTypes.includes(widget.value.widget_type))
 const isNumber = computed(() => widget.value.widget_type === WidgetTypeType.Number)
@@ -21,13 +21,6 @@ const { dataLinkConfigIsMissing } = useWidget(widget)
 const dashboardStore = useDashboardStore()
 const { focusedWidget } = storeToRefs(dashboardStore)
 
-const showContextMenu = (e: MouseEvent, target?: Widget) => {
-  e.preventDefault()
-  if (target) {
-    contextMenuTarget.value = target
-  }
-}
-
 const borderClass = computed(() => {
   if (widget.value.id === focusedWidget.value?.id) {
     return 'nc-layout-ui-element-has-focus'
@@ -37,12 +30,13 @@ const borderClass = computed(() => {
     return ''
   }
 })
+
 </script>
 
 <template v-slot:item="{ element: widget }">
-  <div v-if="widget" class="nc-layout-ui-element" :class="borderClass" @contextmenu="showContextMenu($event, widget)">
+  <div v-if="widget" class="nc-layout-ui-element" :class="borderClass">
     <LayoutsWidgetsChart v-if="isChart" :widget-config="widget as ChartWidget" />
-    <LayoutsWidgetsNumber v-else-if="isNumber" :widget-config="widget as NumberWidget" />
+    <LayoutsWidgetsNumber v-else-if="isNumber" ref="widgetWithReloadDataSupportRef" :widget-config="widget as NumberWidget" />
     <LayoutsWidgetsText v-else-if="isStaticText" :widget-config="widget as StaticTextWidget" />
     <LayoutsWidgetsButton v-else-if="isButton" :widget-config="widget as ButtonWidget" />
     <div v-else>Visualisation Type '{{ widget.widget_type }}' not yet implemented</div>
@@ -60,11 +54,6 @@ const borderClass = computed(() => {
   &:hover {
     padding: 10px;
     border: 4px solid #3366ff;
-  }
-
-  &-missing-data-config {
-    padding: 10px;
-    border: 4px solid red;
   }
 }
 </style>

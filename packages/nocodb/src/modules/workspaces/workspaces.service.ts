@@ -73,7 +73,7 @@ export class WorkspacesService {
       await WorkspaceUser.insert({
         fk_workspace_id: workspace.id,
         fk_user_id: param.user.id,
-        roles: WorkspaceUserRoles.OWNER
+        roles: WorkspaceUserRoles.OWNER,
       });
 
       this.appHooksService.emit(AppEvents.WORKSPACE_CREATE, {
@@ -111,7 +111,9 @@ export class WorkspacesService {
 
     if (!workspace) NcError.notFound('Workspace not found');
 
-   await Workspace.updateStatusAndPlan(param.workspaceId, {
+    await this.createWorkspaceSubdomain({ titleOrId: workspace.id });
+
+    await Workspace.updateStatusAndPlan(param.workspaceId, {
       plan: WorkspacePlan.PAID,
       status: WorkspaceStatus.CREATING,
     });

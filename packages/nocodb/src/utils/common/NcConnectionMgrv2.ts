@@ -64,6 +64,8 @@ export default class NcConnectionMgrv2 {
       return this.dataKnex;
     }
 
+    // TODO reuse minimal db connections
+
     if (this.connectionRefs?.[base.project_id]?.[base.id]) {
       return this.connectionRefs?.[base.project_id]?.[base.id];
     }

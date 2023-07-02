@@ -16,6 +16,7 @@ import {
 import Noco from '../Noco';
 import extractRolesObj from '../utils/extractRolesObj';
 import { getToolDir } from '../utils/nc-config';
+import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import type {
   ProjectReqType,
@@ -161,8 +162,8 @@ export class ProjectsService {
       projectBody.prefix = `nc_${ranId}__`;
       projectBody.is_meta = true;
       if (process.env.NC_MINIMAL_DBS === 'true') {
-        const metaDb = Noco.getConfig().meta?.db;
-        if (metaDb?.client === 'pg') {
+        const dataConfig = await NcConnectionMgrv2.getDataConfig();
+        if (dataConfig?.client === 'pg') {
           const nanoidv2 = customAlphabet(
             '1234567890abcdefghijklmnopqrstuvwxyz',
             6,
@@ -173,9 +174,11 @@ export class ProjectsService {
           projectBody.bases = [
             {
               type: 'pg',
+              is_local: true,
+              is_meta: false,
               config: {
                 client: 'pg',
-                connection: metaDb?.connection,
+                connection: dataConfig?.connection,
                 searchPath: [`nc_${projectTitle}_${dbId}`],
               },
               inflection_column: 'camelize',
@@ -200,6 +203,8 @@ export class ProjectsService {
           projectBody.bases = [
             {
               type: 'sqlite3',
+              is_local: true,
+              is_meta: false,
               config: {
                 client: 'sqlite3',
                 connection: {

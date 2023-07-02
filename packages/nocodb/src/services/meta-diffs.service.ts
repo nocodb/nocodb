@@ -123,7 +123,7 @@ export class MetaDiffsService {
     base: Base,
   ): Promise<Array<MetaDiff>> {
     // if meta base then return empty array
-    if (base.is_meta) {
+    if (base.is_meta || base.is_local) {
       return [];
     }
 
@@ -565,7 +565,7 @@ export class MetaDiffsService {
     for (const base of project.bases) {
       try {
         // skip meta base
-        if (base.is_meta) continue;
+        if (base.is_meta || base.is_local) continue;
 
         // @ts-ignore
         const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
@@ -596,7 +596,7 @@ export class MetaDiffsService {
     const project = await Project.getWithInfo(param.projectId);
     for (const base of project.bases) {
       // skip if metadb base
-      if (base.is_meta) continue;
+      if (base.is_meta || base.is_local) continue;
 
       const virtualColumnInsert: Array<() => Promise<void>> = [];
 
@@ -805,7 +805,7 @@ export class MetaDiffsService {
     const project = await Project.getWithInfo(param.projectId);
     const base = await Base.get(param.baseId);
 
-    if (base.is_meta) {
+    if (base.is_meta || base.is_local) {
       NcError.badRequest('Cannot sync meta base');
     }
 

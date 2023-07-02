@@ -173,7 +173,7 @@ export class TablesService {
       (c) => c.uidt === UITypes.LinkToAnotherRecord,
     );
 
-    if (relationColumns?.length && !base.is_meta) {
+    if (relationColumns?.length && !base.is_meta && !base.is_local) {
       const referredTables = await Promise.all(
         relationColumns.map(async (c) =>
           c

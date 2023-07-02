@@ -1549,7 +1549,7 @@ export class ColumnsService {
     });
 
     // if xcdb base then treat as virtual relation to avoid creating foreign key
-    if (param.base.is_meta) {
+    if (param.base.is_meta || param.base.is_local) {
       (param.column as LinkToAnotherColumnReqType).virtual = true;
     }
 

@@ -47,7 +47,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
   const { loadProjectTables } = useTablesStore()
 
-  const { loadTables, projectUrl } = useProject()
+  const { loadTables, projectUrl, isXcdbBase } = useProject()
 
   const workspaceId = $computed(() => route.params.workspaceId as string)
 
@@ -200,7 +200,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
           const meta = (await getMeta(table.id as string, true)) as TableType
           const relationColumns = meta?.columns?.filter((c) => c.uidt === UITypes.LinkToAnotherRecord && !isSystemColumn(c))
 
-          if (relationColumns?.length) {
+          if (relationColumns?.length && !isXcdbBase(table.base_id)) {
             const refColMsgs = await Promise.all(
               relationColumns.map(async (c, i) => {
                 const refMeta = (await getMeta(

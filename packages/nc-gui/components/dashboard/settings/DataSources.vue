@@ -257,7 +257,7 @@ watch(
                 <div class="ds-table-col ds-table-actions">
                   <div class="flex items-center gap-2">
                     <a-button
-                      v-if="!sources[0].is_meta"
+                      v-if="!sources[0].is_meta && !sources[0].is_local"
                       class="nc-action-btn cursor-pointer outline-0"
                       @click="baseAction(sources[0].id, DataSourcesSubTab.Metadata)"
                     >
@@ -289,7 +289,7 @@ watch(
                       </div>
                     </a-button>
                     <a-button
-                      v-if="!sources[0].is_meta"
+                      v-if="!sources[0].is_meta && !sources[0].is_local"
                       class="nc-action-btn cursor-pointer outline-0"
                       @click="baseAction(sources[0].id, DataSourcesSubTab.Edit)"
                     >
@@ -320,14 +320,14 @@ watch(
                   <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
                   <div class="flex items-center gap-1">
                     <GeneralBaseLogo :base-type="base.type" />
-                    {{ base.is_meta ? 'BASE' : base.alias }} <span class="text-gray-400 text-xs">({{ base.type }})</span>
+                    {{ base.is_meta || base.is_local ? 'BASE' : base.alias }} <span class="text-gray-400 text-xs">({{ base.type }})</span>
                   </div>
                 </div>
 
                 <div class="ds-table-col ds-table-actions">
                   <div class="flex items-center gap-2">
                     <a-button
-                      v-if="!base.is_meta"
+                      v-if="!base.is_meta && !base.is_local"
                       class="nc-action-btn cursor-pointer outline-0"
                       @click="baseAction(base.id, DataSourcesSubTab.Metadata)"
                     >
@@ -356,7 +356,7 @@ watch(
                       </div>
                     </a-button>
                     <a-button
-                      v-if="!base.is_meta"
+                      v-if="!base.is_meta && !base.is_local"
                       class="nc-action-btn cursor-pointer outline-0"
                       @click="baseAction(base.id, DataSourcesSubTab.Edit)"
                     >
@@ -365,7 +365,11 @@ watch(
                         Edit
                       </div>
                     </a-button>
-                    <a-button v-if="!base.is_meta" class="nc-action-btn cursor-pointer outline-0" @click="deleteBase(base)">
+                    <a-button
+                      v-if="!base.is_meta && !base.is_local"
+                      class="nc-action-btn cursor-pointer outline-0"
+                      @click="deleteBase(base)"
+                    >
                       <div class="flex items-center gap-2 text-red-500 font-light">
                         <GeneralIcon icon="delete" class="group-hover:text-accent" />
                         Delete

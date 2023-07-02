@@ -57,7 +57,10 @@ export enum Altered {
 
 @Injectable()
 export class ColumnsService {
-  constructor(private readonly metaService: MetaService, private readonly appHooksService: AppHooksService) {}
+  constructor(
+    private readonly metaService: MetaService,
+    private readonly appHooksService: AppHooksService,
+  ) {}
 
   async columnUpdate(param: {
     req?: any;

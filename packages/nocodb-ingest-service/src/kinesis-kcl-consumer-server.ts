@@ -1,9 +1,8 @@
 import { CustomTransportStrategy, Server } from '@nestjs/microservices';
 // import * as AWS from 'aws-sdk';
 
-import  kcl from 'aws-kcl';
+import kcl from 'aws-kcl';
 import util from 'util';
-
 
 export default class KinesisConsumerServer
   extends Server
@@ -20,9 +19,6 @@ export default class KinesisConsumerServer
    * This method is triggered when you run "app.listen()".
    */
   async listen(callback: () => void) {
-
-
-
     /**
      * The record processor must provide three functions:
      *
@@ -53,7 +49,7 @@ export default class KinesisConsumerServer
        * @param {callback} completeCallback - The callback that must be invoked
        *        once the initialization operation is complete.
        */
-      initialize: function(initializeInput, completeCallback) {
+      initialize: function (initializeInput, completeCallback) {
         // Initialization logic...
         completeCallback();
       },
@@ -77,16 +73,16 @@ export default class KinesisConsumerServer
        *             once all records are processed and checkpoint (optional) is
        *             complete.
        */
-      processRecords: function(processRecordsInput, completeCallback) {
+      processRecords: function (processRecordsInput, completeCallback) {
         if (!processRecordsInput || !processRecordsInput.records) {
           // Must call completeCallback to proceed further.
           completeCallback();
           return;
         }
 
-        var records = processRecordsInput.records;
-        var record, sequenceNumber, partitionKey, data;
-        for (var i = 0 ; i < records.length ; ++i) {
+        const records = processRecordsInput.records;
+        let record, sequenceNumber, partitionKey, data;
+        for (let i = 0; i < records.length; ++i) {
           record = records[i];
           sequenceNumber = record.sequenceNumber;
           partitionKey = record.partitionKey;
@@ -103,12 +99,13 @@ export default class KinesisConsumerServer
         }
         // If checkpointing, only call completeCallback once checkpoint operation
         // is complete.
-        processRecordsInput.checkpointer.checkpoint(sequenceNumber,
-          function(err, checkpointedSequenceNumber) {
+        processRecordsInput.checkpointer.checkpoint(
+          sequenceNumber,
+          function (err, checkpointedSequenceNumber) {
             // In this example, regardless of error, we mark processRecords
             // complete to proceed further with more records.
             completeCallback();
-          }
+          },
         );
       },
 
@@ -122,7 +119,7 @@ export default class KinesisConsumerServer
        * @param {callback} completeCallback - The callback must be invoked once lease
        *               lost operations are completed.
        */
-      leaseLost: function(leaseLostInput, completeCallback) {
+      leaseLost: function (leaseLostInput, completeCallback) {
         // Lease lost logic ...
         completeCallback();
       },
@@ -139,24 +136,21 @@ export default class KinesisConsumerServer
        * @param {callback} completeCallback - The callback must be invoked once shard
        *               ended operations are completed.
        */
-      shardEnded: function(shardEndedInput, completeCallback) {
+      shardEnded: function (shardEndedInput, completeCallback) {
         // Shard end logic ...
 
         // Since you are checkpointing, only call completeCallback once the checkpoint
         // operation is complete.
-        shardEndedInput.checkpointer.checkpoint(function(err) {
+        shardEndedInput.checkpointer.checkpoint(function (err) {
           // In this example, regardless of the error, we mark the shutdown operation
           // complete.
           completeCallback();
         });
         completeCallback();
-      }
+      },
     };
 
     kcl(recordProcessor).run();
-
-
-
   }
 
   /**

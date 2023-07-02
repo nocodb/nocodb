@@ -27,8 +27,8 @@ import { ExtractProjectAndWorkspaceIdMiddleware } from './middlewares/extract-pr
 import { ExecutionTimeCalculatorInterceptor } from './interceptors/execution-time-calculator/execution-time-calculator.interceptor';
 
 import { HookHandlerService } from './services/hook-handler.service';
-import type { MiddlewareConsumer } from '@nestjs/common';
 import { BasicStrategy } from './strategies/basic.strategy/basic.strategy';
+import type { MiddlewareConsumer } from '@nestjs/common';
 
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];

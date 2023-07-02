@@ -1,10 +1,6 @@
 import { extractProps } from '../helpers/extractProps';
 import Noco from '../Noco';
-import {
-  CacheGetType,
-  CacheScope,
-  MetaTable,
-} from '../utils/globals';
+import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 
 import { NcError } from '../helpers/catchError';
 import NocoCache from '../cache/NocoCache';

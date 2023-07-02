@@ -1,8 +1,8 @@
 import crypto from 'crypto';
 import * as jwt from 'jsonwebtoken';
 import type User from '../../models/User';
-import type {NcConfig} from '../../interface/config';
-import type {Response} from 'express';
+import type { NcConfig } from '../../interface/config';
+import type { Response } from 'express';
 
 export function genJwt(user: User, config: NcConfig) {
   return jwt.sign(
@@ -17,7 +17,7 @@ export function genJwt(user: User, config: NcConfig) {
     },
     config.auth.jwt.secret,
     // todo: better typing
-    {expiresIn: '10h', ...(config.auth.jwt.options as any)},
+    { expiresIn: '10h', ...(config.auth.jwt.options as any) },
   );
 }
 

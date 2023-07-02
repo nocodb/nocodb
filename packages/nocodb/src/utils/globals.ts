@@ -173,7 +173,7 @@ export enum CacheScope {
   BOOK = 'book',
   COWRITER = 'cowriter',
   WORKSPACE = 'workspace',
-  WORKSPACE_USER= 'workspaceUser',
+  WORKSPACE_USER = 'workspaceUser',
 }
 
 export enum CacheGetType {

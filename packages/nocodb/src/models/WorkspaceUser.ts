@@ -39,7 +39,6 @@ export default class WorkspaceUser {
       true,
     );
 
-
     return this.get(fk_workspace_id, fk_user_id, ncMeta);
   }
 
@@ -206,8 +205,6 @@ export default class WorkspaceUser {
     userId: any,
     _updateData: Partial<WorkspaceUser>,
   ) {
-
-
     // get existing cache
     const key = `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`;
     const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -243,7 +240,9 @@ export default class WorkspaceUser {
   }
 
   static async delete(workspaceId: any, userId: any) {
-    await NocoCache.del(`${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`);
+    await NocoCache.del(
+      `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
+    );
     return await Noco.ncMeta.metaDelete(null, null, MetaTable.WORKSPACE_USER, {
       fk_user_id: userId,
       fk_workspace_id: workspaceId,

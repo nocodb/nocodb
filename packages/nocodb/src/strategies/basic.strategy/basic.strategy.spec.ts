@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { BasicStrategy } from './basic.strategy';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('BasicStrategy', () => {
   let provider: BasicStrategy;

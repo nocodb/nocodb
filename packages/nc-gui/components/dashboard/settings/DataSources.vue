@@ -320,7 +320,8 @@ watch(
                   <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
                   <div class="flex items-center gap-1">
                     <GeneralBaseLogo :base-type="base.type" />
-                    {{ base.is_meta || base.is_local ? 'BASE' : base.alias }} <span class="text-gray-400 text-xs">({{ base.type }})</span>
+                    {{ base.is_meta || base.is_local ? 'BASE' : base.alias }}
+                    <span class="text-gray-400 text-xs">({{ base.type }})</span>
                   </div>
                 </div>
 

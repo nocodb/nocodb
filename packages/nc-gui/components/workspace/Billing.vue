@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {extractSdkResponseErrorMsg} from "~/utils";
+import { extractSdkResponseErrorMsg } from '~/utils'
 
 const workspaceStore = useWorkspace()
 const { upgradeActiveWorkspace } = workspaceStore

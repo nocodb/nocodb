@@ -24,7 +24,7 @@ const { isUIAllowed } = useUIPermission()
 const openProject = async (project: ProjectType) => {
   switch (project.type) {
     case NcProjectType.DOCS:
-      location.href =  `https://${project.fk_workspace_id}.nocodb.ai/dashboard/#/ws/${project.fk_workspace_id}/nc/${project.id}/doc`
+      location.href = `https://${project.fk_workspace_id}.nocodb.ai/dashboard/#/ws/${project.fk_workspace_id}/nc/${project.id}/doc`
       break
     case NcProjectType.COWRITER:
       location.href = `https://${project.fk_workspace_id}.nocodb.ai/dashboard/#/ws/${project.fk_workspace_id}/nc/${project.id}/cowriter`

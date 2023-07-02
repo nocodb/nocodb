@@ -1,9 +1,7 @@
-import type {CallHandler, CanActivate, ExecutionContext, NestInterceptor, NestMiddleware,} from '@nestjs/common';
-import {Injectable, SetMetadata, UseInterceptors} from '@nestjs/common';
-import {Reflector} from '@nestjs/core';
-import {OrgUserRoles, WorkspacePlan, WorkspaceStatus} from 'nocodb-sdk';
-import type {Observable} from 'rxjs';
-import {map} from 'rxjs';
+import { Injectable, SetMetadata, UseInterceptors } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { OrgUserRoles, WorkspacePlan, WorkspaceStatus } from 'nocodb-sdk';
+import { map } from 'rxjs';
 import {
   Column,
   Filter,
@@ -21,7 +19,15 @@ import {
 } from '../../models';
 import extractRolesObj from '../../utils/extractRolesObj';
 import projectAcl from '../../utils/projectAcl';
-import {NcError} from '../catchError';
+import { NcError } from '../catchError';
+import type { Observable } from 'rxjs';
+import type {
+  CallHandler,
+  CanActivate,
+  ExecutionContext,
+  NestInterceptor,
+  NestMiddleware,
+} from '@nestjs/common';
 
 // todo: refactor name since we are using it as auth guard
 @Injectable()

@@ -50,7 +50,7 @@ const { table, createTable, generateUniqueTitle, tables, project } = useTableNew
     addTable(props.projectId, table)
     await loadProjectTables(props.projectId, true)
 
-  emit('create', table)
+    emit('create', table)
     dialogShow.value = false
   },
   baseId: props.baseId,

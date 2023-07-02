@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
+import type { TableType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import Sortable from 'sortablejs'
 

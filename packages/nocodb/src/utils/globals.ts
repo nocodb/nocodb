@@ -172,6 +172,7 @@ export enum CacheScope {
   DOCS_PAGE = 'page',
   BOOK = 'book',
   COWRITER = 'cowriter',
+  WORKSPACE = 'workspace',
 }
 
 export enum CacheGetType {

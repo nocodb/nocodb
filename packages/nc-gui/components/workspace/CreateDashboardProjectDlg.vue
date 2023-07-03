@@ -200,9 +200,9 @@ const showSearchIcon = computed(() => {
           <h2 class="text-base font-medium self-center mb-0">{{ $t('dashboards.create_new_dashboard_project') }}</h2>
         </div>
         <a-menu v-model:selectedKeys="selectedTab" class="!mb-8" mode="horizontal">
-          <a-menu-item key="1" class="custom-menu-item !-ml-4">Step 1: Interfaces Name</a-menu-item>
+          <a-menu-item key="1" class="custom-menu-item !-ml-4">1: Interfaces Name</a-menu-item>
           <a-menu-item key="2"
-            >Step 2: Data Sources
+            >2: Data Sources
             <a-tag class="!border-none !bg-gray-50 !rounded-md">{{ numberOfSelectedDbProjects }} connected</a-tag></a-menu-item
           >
         </a-menu>

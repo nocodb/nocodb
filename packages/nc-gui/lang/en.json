@@ -27,7 +27,7 @@
       "area_chart": "Area Chart",
       "pie_chart": "Pie Chart",
       "donut_chart": "Donut Chart",
-      "scatter_chart": "Scatter Chart",
+      "scatter_plot": "Scatter Plot",
       "bubble_chart": "Bubble Chart",
       "radar_chart": "Radar Chart",
       "polar_area_chart": "Polar Area Chart",

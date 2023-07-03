@@ -307,6 +307,10 @@ export interface AppConfig {
       topicArn: string;
       region?: string;
       apiVersion?: string;
+      credentials?: {
+        accessKeyId: string;
+        secretAccessKey: string;
+      };
     };
   };
 }

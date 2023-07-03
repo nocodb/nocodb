@@ -246,13 +246,15 @@ export class WorkspacesService {
       infer: true,
     });
 
-    if (!snsConfig.topicArn) {
-      this.logger.error('SNS topicArn not configured');
+    if (
+      !snsConfig.topicArn ||
+      !snsConfig.credentials ||
+      !snsConfig.credentials.secretAccessKey ||
+      !snsConfig.credentials.accessKeyId
+    ) {
+      this.logger.error('SNS is not configured');
       NcError.notImplemented('Not available');
     }
-
-    // Set region
-    // AWS.config.update({ region: 'us-east-2' });
 
     // Create publish parameters
     const params = {
@@ -267,6 +269,10 @@ export class WorkspacesService {
     const publishTextPromise = new AWS.SNS({
       apiVersion: snsConfig.apiVersion,
       region: snsConfig.region,
+      credentials: {
+        accessKeyId: snsConfig.credentials.accessKeyId,
+        secretAccessKey: snsConfig.credentials.secretAccessKey,
+      },
     })
       .publish(params)
       .promise();

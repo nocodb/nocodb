@@ -15,6 +15,14 @@ const config: AppConfig = {
       apiVersion: '2010-03-31',
       topicArn: process.env.NC_WORKSPACE_SNS_TOPIC_ARN,
       region: process.env.NC_WORKSPACE_SNS_REGION,
+      credentials: {
+        accessKeyId:
+          process.env.NC_WORKSPACE_SNS_ACCESS_KEY_ID ??
+          process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey:
+          process.env.NC_WORKSPACE_SNS_SECRET_ACCESS_KEY ??
+          process.env.AWS_SECRET_ACCESS_KEY,
+      },
     },
   },
 };

@@ -6,17 +6,17 @@ import tinycolor from 'tinycolor2'
 import { nextTick } from '@vue/runtime-core'
 import { NcProjectType, navigateTo, projectThemeColors, storeToRefs, timeAgo, useWorkspace } from '#imports'
 import { useNuxtApp } from '#app'
-import {useGlobal} from "~/composables/useGlobal";
+import { useGlobal } from '~/composables/useGlobal'
 
 const workspaceStore = useWorkspace()
 const projectsStore = useProjects()
 const { addToFavourite, removeFromFavourite, updateProjectTitle, populateWorkspace } = workspaceStore
-const { activePage, activeWorkspaceId } = storeToRefs(workspaceStore)
+const { activePage } = storeToRefs(workspaceStore)
 
 const { loadProjects } = useProjects()
 const { projects, projectsList, isProjectsLoading } = storeToRefs(useProjects())
 
-const {navigateToProject } = $(useGlobal())
+const { navigateToProject } = $(useGlobal())
 
 // const filteredProjects = computed(() => projects.value?.filter((p) => !p.deleted) || [])
 

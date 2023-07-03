@@ -53,8 +53,15 @@ export const useProjects = defineStore('projectsStore', () => {
                 query: {
                   [page]: true,
                 },
+                baseURL: appInfo.baseHostName
+                  ? `https://${activeWorkspace?.id ?? workspace?.id}.${appInfo.baseHostName}`
+                  : undefined,
               }
-            : {},
+            : {
+                baseURL: appInfo.baseHostName
+                  ? `https://${activeWorkspace?.id ?? workspace?.id}.${appInfo.baseHostName}`
+                  : undefined,
+              },
         )
         _projects = list
         projects.value.clear()
@@ -160,21 +167,26 @@ export const useProjects = defineStore('projectsStore', () => {
     type: string
     linkedDbProjectIds?: string[]
   }) => {
-    const result = await api.project.create({
-      title: projectPayload.title,
-      // @ts-expect-error todo: include in swagger
-      fk_workspace_id: projectPayload.workspaceId,
-      type: projectPayload.type ?? NcProjectType.DB,
-      linked_db_project_ids: projectPayload.linkedDbProjectIds,
-      // color,
-      // meta: JSON.stringify({
-      //   theme: {
-      //     primaryColor: color,
-      //     accentColor: complement.toHex8String(),
-      //   },
-      //   ...(route.value.query.type === NcProjectType.COWRITER && {prompt_statement: ''}),
-      // }),
-    })
+    const result = await api.project.create(
+      {
+        title: projectPayload.title,
+        // @ts-expect-error todo: include in swagger
+        fk_workspace_id: projectPayload.workspaceId,
+        type: projectPayload.type ?? NcProjectType.DB,
+        linked_db_project_ids: projectPayload.linkedDbProjectIds,
+        // color,
+        // meta: JSON.stringify({
+        //   theme: {
+        //     primaryColor: color,
+        //     accentColor: complement.toHex8String(),
+        //   },
+        //   ...(route.value.query.type === NcProjectType.COWRITER && {prompt_statement: ''}),
+        // }),
+      },
+      {
+        baseURL: appInfo.baseHostName ? `https://${projectPayload.workspaceId}.${appInfo.baseHostName}` : undefined,
+      },
+    )
 
     const count = projects.value.size
     projects.value.set(result.id!, { ...result, isExpanded: true, isLoading: false, order: count })

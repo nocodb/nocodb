@@ -21,5 +21,6 @@ const { activeTable } = storeToRefs(useTablesStore())
     >
       {{ selectedView?.title }}
     </div>
+    <LazySmartsheetToolbarReload />
   </div>
 </template>

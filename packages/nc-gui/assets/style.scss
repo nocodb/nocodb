@@ -4,7 +4,7 @@
 
 :root {
   --sidebar-top-height: 11.75rem;
-  --topbar-height: 3.25rem;
+  --topbar-height: 3.1rem;
   --new-header-height: 3.5rem;
   --tw-text-opacity: 1;
   --navbar-bg: #FAFAFA;
@@ -144,12 +144,12 @@ a {
 
 // badge with count
 .nc-count-badge {
-  @apply absolute flex items-center top-[-6px] right-[-6px] px-1 min-w-[14px] h-[14px] rounded-full bg-primary bg-opacity-100 text-white !text-[9px] !z-21;
+  @apply absolute flex items-center top-[-6px] right-[-6px] px-1 min-w-[14px] h-[14px] rounded-full bg-gray-500 !text-[9px] text-white !z-21;
 }
 
 // for highlighting toolbar menu item
 .nc-active-btn > .ant-btn {
-  @apply bg-primary bg-opacity-20 hover:(bg-primary bg-opacity-20);
+  @apply bg-gray-200 bg-opacity-20;
 }
 
 // for highlighing toolbar kanban menu item

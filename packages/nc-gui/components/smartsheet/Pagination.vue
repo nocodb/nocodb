@@ -27,9 +27,9 @@ const page = computed({
 </script>
 
 <template>
-  <div class="flex items-center border-t-1 border-gray-75 py-0.5 nc-pagination-wrapper">
+  <div class="flex items-center border-t-1 border-gray-75 h-10 nc-pagination-wrapper">
     <div
-      class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) hover:(bg-gray-50 border-gray-200) border-gray-100 group flex items-center justify-center rounded-md h-full ml-2 px-2 h-8 mt-1 cursor-pointer text-gray-400 hover:text-gray-700"
+      class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) hover:(bg-gray-50 border-gray-200) border-gray-100 group flex items-center justify-center rounded-md h-full ml-2 px-2 h-7 cursor-pointer text-gray-400 hover:text-gray-700"
       :class="{
         'bg-gray-50': !isLeftSidebarOpen,
       }"
@@ -37,6 +37,7 @@ const page = computed({
     >
       <SidebarIcon class="cursor-pointer transform transition-transform duration-500 rounded-md rotate-180" />
     </div>
+    <slot name="add-record" />
     <div class="flex-1">
       <span
         v-if="!alignCountOnRight && count !== null && count !== Infinity"

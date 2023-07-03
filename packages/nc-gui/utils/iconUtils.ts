@@ -24,6 +24,7 @@ import Code from '~icons/material-symbols/code-rounded'
 import Form from '~icons/material-symbols/assignment-outline'
 import Kanban from '~icons/material-symbols/view-kanban-outline'
 import Erd from '~icons/material-symbols/account-tree-outline-rounded'
+import MdiRefresh from '~icons/mdi/refresh'
 import ApiSnippet from '~icons/material-symbols/settings-ethernet-rounded'
 import Phishing from '~icons/material-symbols/phishing-outline-rounded'
 import MdiAccountGroup from '~icons/mdi/account-group'
@@ -316,7 +317,7 @@ export const iconMap = {
   sync: h('span', { class: 'material-symbols' }, 'sync'),
   warning: h('span', { class: 'material-symbols' }, 'warning'),
   share: h('span', { class: 'material-symbols' }, 'share'),
-  reload: h('span', { class: 'material-symbols' }, 'refresh'),
+  reload: h(MdiRefresh, {}, 'refresh'),
   xml: h('span', { class: 'material-symbols' }, 'code'),
   airtable: h('span', { class: 'material-symbols' }, 'grid_on'),
   grid: h(Grid, 'grid_on'),

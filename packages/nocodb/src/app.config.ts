@@ -25,6 +25,10 @@ const config: AppConfig = {
       },
     },
   },
+  auth: {
+    emailPattern: process.env.NC_EMAIL_PATTERN && new RegExp(process.env.NC_EMAIL_PATTERN),
+    disableEmailAuth: !!process.env.NC_DISABLE_EMAIL_AUTH,
+  }
 };
 
 export default config;

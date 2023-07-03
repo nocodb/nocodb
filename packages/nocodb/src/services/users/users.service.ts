@@ -2,8 +2,6 @@ import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
-  AuditOperationSubTypes,
-  AuditOperationTypes,
   OrgUserRoles,
   validatePassword,
   WorkspacePlan,
@@ -39,6 +37,18 @@ export class UsersService {
     private metaService: MetaService,
     private appHooksService: AppHooksService,
   ) {}
+
+  // allow signup/signin only if email matches against pattern
+   validateEmailPattern(email: string) {
+    const emailPattern = process.env.NC_AUTH_EMAIL_PATTERN;
+    if (emailPattern) {
+      const regex = new RegExp(emailPattern);
+      if (!regex.test(email)) {
+        NcError.forbidden('Not allowed to signup/signin with this email');
+      }
+    }
+  }
+
 
   async findOne(_email: string) {
     const email = _email.toLowerCase();
@@ -82,6 +92,9 @@ export class UsersService {
     password;
     email_verification_token;
   }) {
+
+    this.validateEmailPattern(email);
+
     let roles: string = OrgUserRoles.CREATOR;
 
     if (await User.isFirst()) {
@@ -399,6 +412,8 @@ export class UsersService {
     }
 
     const email = _email.toLowerCase();
+
+    this.validateEmailPattern(email);
 
     let user = await User.getByEmail(email);
 

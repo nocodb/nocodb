@@ -28,6 +28,7 @@ export interface AppInfo {
   isCloud: boolean
   automationLogLevel: 'OFF' | 'ERROR' | 'ALL'
   baseHostName?: string
+  disableEmailAuth: boolean
 }
 
 export interface StoredState {

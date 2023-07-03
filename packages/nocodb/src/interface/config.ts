@@ -313,4 +313,9 @@ export interface AppConfig {
       };
     };
   };
+
+  auth: {
+    emailPattern?: RegExp | null;
+    disableEmailAuth: boolean;
+  };
 }

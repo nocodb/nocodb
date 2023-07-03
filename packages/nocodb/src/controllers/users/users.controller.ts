@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import * as ejs from 'ejs';
+import { ConfigService } from '@nestjs/config';
 import { GlobalGuard } from '../../guards/global/global.guard';
 import { NcError } from '../../helpers/catchError';
 import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
@@ -22,6 +23,7 @@ import {
 } from '../../services/users/helpers';
 import { UsersService } from '../../services/users/users.service';
 import extractRolesObj from '../../utils/extractRolesObj';
+import type { AppConfig } from '../../interface/config';
 import NocoCache from '../../cache/NocoCache';
 import { CacheGetType } from '../../utils/globals';
 
@@ -30,6 +32,7 @@ export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly appHooksService: AppHooksService,
+    private readonly config: ConfigService<AppConfig>,
   ) {}
 
   @Post([
@@ -39,6 +42,9 @@ export class UsersController {
   ])
   @HttpCode(200)
   async signup(@Request() req: any, @Response() res: any): Promise<any> {
+    if (this.config.get('auth', { infer: true }).disableEmailAuth) {
+      NcError.forbidden('Email authentication is disabled');
+    }
     res.json(
       await this.usersService.signup({
         body: req.body,
@@ -72,6 +78,9 @@ export class UsersController {
   @UseGuards(AuthGuard('local'))
   @HttpCode(200)
   async signin(@Request() req, @Response() res) {
+    if (this.config.get('auth', { infer: true }).disableEmailAuth) {
+      NcError.forbidden('Email authentication is disabled');
+    }
     await this.setRefreshToken({ req, res });
     res.json(this.usersService.login(req.user));
   }

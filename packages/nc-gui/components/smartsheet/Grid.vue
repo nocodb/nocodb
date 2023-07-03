@@ -1443,12 +1443,7 @@ function openGenerateDialog(target: any) {
 
 <style scoped lang="scss">
 .nc-grid-wrapper {
-  @apply h-full w-full;
-  overflow: overlay !important;
-
-  tr:nth-child(1) {
-    height: 41px !important;
-  }
+  @apply h-full w-full overflow-auto;
 
   td,
   th {

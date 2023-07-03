@@ -50,7 +50,7 @@ export default class WorkspaceUser {
         `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
         CacheGetType.TYPE_OBJECT,
       ));
-    if (!WorkspaceUser) {
+    if (!workspaceUser) {
       workspaceUser = await ncMeta.metaGet2(
         null,
         null,
@@ -63,7 +63,7 @@ export default class WorkspaceUser {
       if (workspaceUser)
         await NocoCache.set(
           `${CacheScope.PROJECT_USER}:${workspaceId}:${userId}`,
-          WorkspaceUser,
+          workspaceUser,
         );
     }
     return workspaceUser;

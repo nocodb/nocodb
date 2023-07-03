@@ -1386,6 +1386,7 @@ function openGenerateDialog(target: any) {
         <div v-if="isAddingEmptyRowAllowed" class="flex ml-2" data-testid="nc-grid-add-new-row" @click="addEmptyRow()">
           <a-button
             v-e="['c:row:add:grid-bottom', { footer: true }]"
+            type="text"
             class="!rounded-md !shadow-xs !shadow-gray-100 !px-2 z-10 !border-gray-100"
           >
             <div class="flex items-center text-gray-600 hover:text-black">

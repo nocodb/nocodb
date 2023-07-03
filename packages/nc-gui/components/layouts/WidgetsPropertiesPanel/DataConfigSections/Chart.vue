@@ -23,16 +23,16 @@ const recordCountOrFieldSummary = computed(() => dataConfig.value?.recordCountOr
 
 <template>
   <a-collapse expand-icon-position="right" accordion :bordered="false" class="nc-dashboard-layouts-propspanel-collapse">
-    <a-collapse-panel class="nc-dashboard-layouts-propspanel-collapse-panel" header="Step 1: Select Table and View">
+    <a-collapse-panel class="nc-dashboard-layouts-propspanel-collapse-panel" header="1: Select Table and View">
       <LayoutsWidgetsPropertiesPanelProjectTableViewSelectorSection />
     </a-collapse-panel>
-    <a-collapse-panel class="nc-dashboard-layouts-propspanel-collapse-panel" header="Step 2: Select Records">
+    <a-collapse-panel class="nc-dashboard-layouts-propspanel-collapse-panel" header="2: Select Records">
       <LayoutsWidgetsPropertiesPanelDataConfigSectionsFilterSection />
     </a-collapse-panel>
-    <a-collapse-panel class="nc-dashboard-layouts-propspanel-collapse-panel !rounded-lg" header="Step 3: Setup X-axis">
+    <a-collapse-panel class="nc-dashboard-layouts-propspanel-collapse-panel !rounded-lg" header="3: Setup X-axis">
       <LayoutsWidgetsPropertiesPanelDataConfigSectionsXAxis />
     </a-collapse-panel>
-    <a-collapse-panel class="nc-dashboard-layouts-propspanel-collapse-panel !rounded-lg" header="Step 4: Setup Y-axis">
+    <a-collapse-panel class="nc-dashboard-layouts-propspanel-collapse-panel !rounded-lg" header="4: Setup Y-axis">
       <div class="flex flex-col m-0">
         <div class="nc-dashboard-layouts-propspanel-selectable-config-section mb-2">
           <a-radio

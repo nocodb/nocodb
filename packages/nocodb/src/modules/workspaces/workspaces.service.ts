@@ -102,6 +102,7 @@ export class WorkspacesService {
 
   async upgrade(param: {
     user: {
+      email: string;
       id: string;
       roles: string[];
     };
@@ -111,7 +112,10 @@ export class WorkspacesService {
 
     if (!workspace) NcError.notFound('Workspace not found');
 
-    await this.createWorkspaceSubdomain({ titleOrId: workspace.id });
+    await this.createWorkspaceSubdomain({
+      titleOrId: workspace.id,
+      user: param.user?.email ?? param.user?.id,
+    });
 
     await Workspace.updateStatusAndPlan(param.workspaceId, {
       plan: WorkspacePlan.PAID,
@@ -234,7 +238,10 @@ export class WorkspacesService {
   }
 
   // todo: handle error case
-  private async createWorkspaceSubdomain(param: { titleOrId: string }) {
+  private async createWorkspaceSubdomain(param: {
+    titleOrId: string;
+    user: string;
+  }) {
     const snsConfig = this.configService.get('workspace.sns', {
       infer: true,
     });
@@ -249,7 +256,10 @@ export class WorkspacesService {
 
     // Create publish parameters
     const params = {
-      Message: JSON.stringify({ WS_NAME: param.titleOrId }) /* required */,
+      Message: JSON.stringify({
+        WS_NAME: param.titleOrId,
+        user: param.user,
+      }) /* required */,
       TopicArn: snsConfig.topicArn,
     };
 

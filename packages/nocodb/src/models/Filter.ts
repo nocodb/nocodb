@@ -147,8 +147,6 @@ export default class Filter implements FilterType {
         model = await Hook.get(filter.fk_hook_id, ncMeta);
       } else if (filter.fk_column_id) {
         model = await Column.get({ colId: filter.fk_column_id }, ncMeta);
-        // } else if (filter.fk_widget_id) {
-        //   const model2 = await Widget.get(filter.fk_widget_id, ncMeta);
       } else {
         NcError.badRequest('Invalid filter');
       }

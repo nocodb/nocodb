@@ -134,6 +134,7 @@ export default {
   <NuxtLayout>
     <Splitpanes
       style="height: 100vh"
+      class="nc-sidebar-content-resizable-wrapper w-full"
       :class="{
         'sidebar-short': isSidebarShort,
       }"
@@ -166,31 +167,33 @@ export default {
 </template>
 
 <style lang="scss">
-.splitpanes__splitter {
-  width: 0 !important;
-  position: relative;
-  overflow: visible;
-}
-.splitpanes__splitter:before {
-  @apply bg-border w-0.25;
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100vh;
-  z-index: 40;
-}
+.nc-sidebar-content-resizable-wrapper > {
+  .splitpanes__splitter {
+    width: 0 !important;
+    position: relative;
+    overflow: visible;
+  }
+  .splitpanes__splitter:before {
+    @apply bg-border w-0.25;
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    z-index: 40;
+  }
 
-.splitpanes__splitter:hover:before {
-  @apply bg-scrollbar;
-  width: 3px !important;
-  left: -3px;
-}
+  .splitpanes__splitter:hover:before {
+    @apply bg-scrollbar;
+    width: 3px !important;
+    left: -3px;
+  }
 
-.splitpanes--dragging .splitpanes__splitter:before {
-  @apply bg-scrollbar;
-  width: 3px !important;
-  left: -3px;
+  .splitpanes--dragging .splitpanes__splitter:before {
+    @apply bg-scrollbar;
+    width: 3px !important;
+    left: -3px;
+  }
 }
 
 .sidebar-short > .splitpanes__splitter {

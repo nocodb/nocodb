@@ -127,6 +127,8 @@ declare module '@vue/runtime-core' {
     MaterialSymbolsCreditCardOutline: typeof import('~icons/material-symbols/credit-card-outline')['default']
     MaterialSymbolsDarkModeOutline: typeof import('~icons/material-symbols/dark-mode-outline')['default']
     MaterialSymbolsDeleteOutlineRounded: typeof import('~icons/material-symbols/delete-outline-rounded')['default']
+    MaterialSymbolsEditOutlineRounded: typeof import('~icons/material-symbols/edit-outline-rounded')['default']
+    MaterialSymbolsEditRounded: typeof import('~icons/material-symbols/edit-rounded')['default']
     MaterialSymbolsFileCopyOutline: typeof import('~icons/material-symbols/file-copy-outline')['default']
     MaterialSymbolsGroup: typeof import('~icons/material-symbols/group')['default']
     MaterialSymbolsGroupOutlineRounded: typeof import('~icons/material-symbols/group-outline-rounded')['default']

@@ -1014,7 +1014,7 @@ function openGenerateDialog(target: any) {
       >
         <table
           ref="smartTable"
-          class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white"
+          class="xc-row-table nc-grid backgroundColorDefault !h-full bg-white"
           @contextmenu="showContextMenu"
         >
           <thead ref="tableHeadEl">
@@ -1383,17 +1383,27 @@ function openGenerateDialog(target: any) {
 
     <LazySmartsheetPagination align-count-on-right>
       <template #add-record>
-        <div v-if="isAddingEmptyRowAllowed" class="flex ml-2" data-testid="nc-grid-add-new-row" @click="addEmptyRow()">
-          <a-button
-            v-e="['c:row:add:grid-bottom', { footer: true }]"
-            type="text"
-            class="!rounded-md !shadow-xs !shadow-gray-100 !px-2 z-10 !border-gray-100"
-          >
-            <div class="flex items-center text-gray-600 hover:text-black">
-              <span class="mr-1.5"> New Record </span>
+        <div v-if="isAddingEmptyRowAllowed" class="flex ml-2">
+          <a-dropdown-button @click="addEmptyRow()">
+            <div class="flex items-center px-2 text-gray-600 hover:text-black">
               <component :is="iconMap.plus" class="text-pint-500 text-xs" />
+              <span class="ml-1.5"> New Record </span>
             </div>
-          </a-button>
+
+            <template #overlay>
+              <div
+                v-e="['c:row:add:grid-top']"
+                :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
+                class="bg-white shadow-sm border-1 border-gray-100 rounded p-2 flex items-center justify-center select-none cursor-pointer hover:bg-gray-50 text-gray-600"
+              >
+                <MaterialSymbolsEditOutlineRounded class="mr-2" />
+                New Record with Form
+              </div>
+            </template>
+            <template #icon>
+              <component :is="iconMap.arrowUp" class="text-gray-600 h-3.75" />
+            </template>
+          </a-dropdown-button>
         </div>
       </template>
     </LazySmartsheetPagination>
@@ -1441,13 +1451,30 @@ function openGenerateDialog(target: any) {
   </div>
 </template>
 
+<style lang="scss">
+.nc-pagination-wrapper .ant-dropdown-button {
+  > .ant-btn {
+    @apply !p-0 !rounded-l hover:border-gray-300;
+  }
+
+  > .ant-dropdown-trigger {
+    @apply !rounded-r;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  @apply !rounded;
+}
+</style>
+
 <style scoped lang="scss">
 .nc-grid-wrapper {
   @apply h-full w-full overflow-auto;
 
   td,
   th {
-    @apply border-gray-50 border-solid border-b border-r bg-gray-50 bg-opacity-23;
+    @apply border-gray-50 border-solid border-b border-r bg-gray-50;
+    background-color: rgb(252, 252, 252);
     min-height: 41px !important;
     height: 41px !important;
     position: relative;

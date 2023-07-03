@@ -189,7 +189,7 @@ watch(
     position: absolute;
     left: -2px;
     top: 0;
-    height: 100vh;
+    height: 100%;
     z-index: 40;
   }
 

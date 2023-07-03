@@ -118,6 +118,8 @@ export class UsersService {
       token_version,
     });
 
+    await this.createDefaultWorkspace(user);
+
     return user;
   }
 
@@ -481,7 +483,6 @@ export class UsersService {
     });
 
     setTokenCookie(param.res, refreshToken);
-    await this.createDefaultWorkspace(user);
 
     this.appHooksService.emit(AppEvents.USER_SIGNUP, {
       user: user,

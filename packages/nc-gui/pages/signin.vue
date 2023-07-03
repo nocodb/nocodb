@@ -159,7 +159,12 @@ function resetError() {
                   <span class="flex items-center gap-2">
                     <MdiLogin />
 
-                    {{ $t('labels.signInWithProvider', { provider: appInfo.oidcProviderName || 'OpenID Connect' }) }}
+                    <template v-if="!appInfo.disableEmailAuth">
+                      {{ $t('labels.signUpWithProvider', { provider: appInfo.oidcProviderName || 'OpenID Connect' }) }}
+                    </template>
+                    <template v-else>
+                      {{ $t('general.signIn') }}
+                    </template>
                   </span>
                 </button>
               </a>

@@ -1014,7 +1014,7 @@ function openGenerateDialog(target: any) {
       >
         <table
           ref="smartTable"
-          class="xc-row-table nc-grid backgroundColorDefault !h-full bg-white"
+          class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white"
           @contextmenu="showContextMenu"
         >
           <thead ref="tableHeadEl">

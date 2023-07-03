@@ -449,7 +449,7 @@ watch(
       </div>
     </template>
 
-    <div class="w-full h-full nc-workspace-container">
+    <div class="h-full nc-workspace-container overflow-x-hidden" style="width: calc(100vw - 250px)">
       <div
         v-if="activeWorkspace && activeWorkspace.status !== WorkspaceStatus.CREATED"
         class="h-full w-full flex flex-col gap-3 items-center justify-center"

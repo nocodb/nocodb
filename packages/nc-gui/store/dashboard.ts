@@ -21,9 +21,9 @@ import type {
   WidgetType,
 } from 'nocodb-sdk'
 import { AggregateFnType, ButtonActionType, DataSourceType, FontType, WidgetTypeType, chartTypes } from 'nocodb-sdk'
-import { computed, extractSdkResponseErrorMsg, message, navigateTo, ref, useNuxtApp, useRouter, useTabs, watch } from '#imports'
+import { computed, extractSdkResponseErrorMsg, message, navigateTo, ref, useNuxtApp, useRouter, watch } from '#imports'
 import type { LayoutSidebarNode } from '~~/lib'
-import type { IdAndTitle, TableWithProject } from '~~/components/layouts/types'
+import type { IdAndTitle } from '~~/components/layouts/types'
 
 interface LayoutEntry {
   x: number
@@ -134,13 +134,9 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     openedWidgets.value?.find((widget: { id: string | undefined }) => widget.id === focusedWidgetId.value),
   )
 
-  const linkedDbProjects = computed(() => {
-    return dashboardProject.value?.linked_db_projects
-  })
-
   const availableDbProjects = computed(
     () =>
-      linkedDbProjects.value?.map((project) => ({
+      dashboardProject.value?.linked_db_projects?.map((project) => ({
         id: project.id!,
         title: project.title || 'unknown',
       })) || [],
@@ -162,7 +158,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     Array.from(projectTables.value)
       .map(([_, tables]) => tables)
       .flat()
-      .filter((t) => t != null && linkedDbProjects.value?.map((dbP) => dbP.id).includes(t.project_id))
+      .filter((t) => t != null && availableDbProjects.value?.map((dbP) => dbP.id).includes(t.project_id!))
       .map((table) => ({
         id: table.id!,
         title: table.title || 'unknown',

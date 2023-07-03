@@ -139,7 +139,7 @@ export default class Filter implements FilterType {
       [referencedModelColName]: filter[referencedModelColName],
     });
 
-    if (!(filter.project_id && filter.base_id)) {
+    if (!filter.fk_widget_id && !(filter.project_id && filter.base_id)) {
       let model: { project_id?: string; base_id?: string };
       if (filter.fk_view_id) {
         model = await View.get(filter.fk_view_id, ncMeta);
@@ -147,6 +147,8 @@ export default class Filter implements FilterType {
         model = await Hook.get(filter.fk_hook_id, ncMeta);
       } else if (filter.fk_column_id) {
         model = await Column.get({ colId: filter.fk_column_id }, ncMeta);
+        // } else if (filter.fk_widget_id) {
+        //   const model2 = await Widget.get(filter.fk_widget_id, ncMeta);
       } else {
         NcError.badRequest('Invalid filter');
       }

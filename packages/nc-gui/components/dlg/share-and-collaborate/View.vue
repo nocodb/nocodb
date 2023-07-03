@@ -11,7 +11,16 @@ const { copy } = useCopy()
 const { dashboardUrl } = $(useDashboard())
 const { project } = storeToRefs(useProject())
 const { openedPage, nestedPagesOfProjects } = storeToRefs(useDocStore())
-const { view, $api } = useSmartsheetStoreOrThrow()
+
+let view, $api
+
+try {
+  const store = useSmartsheetStoreOrThrow()
+  view = store.view
+  $api = store.$api
+} catch (e) {
+  console.error(e)
+}
 
 const { formStatus, showShareModal, invitationValid, invitationUsersData } = storeToRefs(useShare())
 const { inviteUser } = useManageUsers()

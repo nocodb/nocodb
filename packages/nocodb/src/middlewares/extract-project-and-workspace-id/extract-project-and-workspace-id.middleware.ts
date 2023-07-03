@@ -35,117 +35,109 @@ export class ExtractProjectAndWorkspaceIdMiddleware
   implements NestMiddleware, CanActivate
 {
   async use(req, res, next): Promise<any> {
-    try {
-      const { params } = req;
+    const { params } = req;
 
-      // extract project id based on request path params
-      if (params.projectName) {
-        const project = await Project.getByTitleOrId(params.projectName);
+    // extract project id based on request path params
+    if (params.projectName) {
+      const project = await Project.getByTitleOrId(params.projectName);
+      if(project) {
         req.ncProjectId = project.id;
         res.locals.project = project;
       }
-      if (params.projectId) {
-        req.ncProjectId = params.projectId;
-      } else if (req.query.project_id) {
-        req.ncProjectId = req.query.project_id;
-      } else if (params.dashboardId) {
-        req.ncProjectId = params.dashboardId;
-      } else if (
-        params.tableId ||
-        req.query.fk_model_id ||
-        req.body?.fk_model_id
-      ) {
-        const model = await Model.getByIdOrName({
-          id: params.tableId || req.query?.fk_model_id || req.body?.fk_model_id,
-        });
-        req.ncProjectId = model?.project_id;
-      } else if (params.viewId) {
-        const view =
-          (await View.get(params.viewId)) || (await Model.get(params.viewId));
-        req.ncProjectId = view?.project_id;
-      } else if (
+    }
+    if (params.projectId) {
+      req.ncProjectId = params.projectId;
+    } else if (req.query.project_id) {
+      req.ncProjectId = req.query.project_id;
+    } else if (params.dashboardId) {
+      req.ncProjectId = params.dashboardId;
+    } else if (
+      params.tableId ||
+      req.query.fk_model_id ||
+      req.body?.fk_model_id
+    ) {
+      const model = await Model.getByIdOrName({
+        id: params.tableId || req.query?.fk_model_id || req.body?.fk_model_id,
+      });
+      req.ncProjectId = model?.project_id;
+    } else if (params.viewId) {
+      const view =
+        (await View.get(params.viewId)) || (await Model.get(params.viewId));
+      req.ncProjectId = view?.project_id;
+    } else if (
+      params.formViewId ||
+      params.gridViewId ||
+      params.kanbanViewId ||
+      params.galleryViewId
+    ) {
+      const view = await View.get(
         params.formViewId ||
-        params.gridViewId ||
-        params.kanbanViewId ||
-        params.galleryViewId
-      ) {
-        const view = await View.get(
-          params.formViewId ||
-            params.gridViewId ||
-            params.kanbanViewId ||
-            params.galleryViewId,
-        );
-        req.ncProjectId = view?.project_id;
-      } else if (params.publicDataUuid) {
-        const view = await View.getByUUID(req.params.publicDataUuid);
-        req.ncProjectId = view?.project_id;
-      } else if (params.hookId) {
-        const hook = await Hook.get(params.hookId);
-        req.ncProjectId = hook?.project_id;
-      } else if (params.gridViewColumnId) {
-        const gridViewColumn = await GridViewColumn.get(
-          params.gridViewColumnId,
-        );
-        req.ncProjectId = gridViewColumn?.project_id;
-      } else if (params.formViewColumnId) {
-        const formViewColumn = await FormViewColumn.get(
-          params.formViewColumnId,
-        );
-        req.ncProjectId = formViewColumn?.project_id;
-      } else if (params.galleryViewColumnId) {
-        const galleryViewColumn = await GalleryViewColumn.get(
-          params.galleryViewColumnId,
-        );
-        req.ncProjectId = galleryViewColumn?.project_id;
-      } else if (params.columnId) {
-        const column = await Column.get({ colId: params.columnId });
-        req.ncProjectId = column?.project_id;
-      } else if (params.filterId) {
-        const filter = await Filter.get(params.filterId);
-        req.ncProjectId = filter?.project_id;
-      } else if (params.filterParentId) {
-        const filter = await Filter.get(params.filterParentId);
-        req.ncProjectId = filter?.project_id;
-      } else if (params.sortId) {
-        const sort = await Sort.get(params.sortId);
-        req.ncProjectId = sort?.project_id;
-      } else if (params.layoutId) {
-        const layout = await Layout.get(params.layoutId);
-        req.ncProjectId = layout?.project_id;
-      } else if (params.widgetId) {
-        const widget = await Widget.get(params.widgetId);
-        const layout = await Layout.get(widget.layout_id);
-        req.ncProjectId = layout?.project_id;
+          params.gridViewId ||
+          params.kanbanViewId ||
+          params.galleryViewId,
+      );
+      req.ncProjectId = view?.project_id;
+    } else if (params.publicDataUuid) {
+      const view = await View.getByUUID(req.params.publicDataUuid);
+      req.ncProjectId = view?.project_id;
+    } else if (params.hookId) {
+      const hook = await Hook.get(params.hookId);
+      req.ncProjectId = hook?.project_id;
+    } else if (params.gridViewColumnId) {
+      const gridViewColumn = await GridViewColumn.get(params.gridViewColumnId);
+      req.ncProjectId = gridViewColumn?.project_id;
+    } else if (params.formViewColumnId) {
+      const formViewColumn = await FormViewColumn.get(params.formViewColumnId);
+      req.ncProjectId = formViewColumn?.project_id;
+    } else if (params.galleryViewColumnId) {
+      const galleryViewColumn = await GalleryViewColumn.get(
+        params.galleryViewColumnId,
+      );
+      req.ncProjectId = galleryViewColumn?.project_id;
+    } else if (params.columnId) {
+      const column = await Column.get({ colId: params.columnId });
+      req.ncProjectId = column?.project_id;
+    } else if (params.filterId) {
+      const filter = await Filter.get(params.filterId);
+      req.ncProjectId = filter?.project_id;
+    } else if (params.filterParentId) {
+      const filter = await Filter.get(params.filterParentId);
+      req.ncProjectId = filter?.project_id;
+    } else if (params.sortId) {
+      const sort = await Sort.get(params.sortId);
+      req.ncProjectId = sort?.project_id;
+    } else if (params.layoutId) {
+      const layout = await Layout.get(params.layoutId);
+      req.ncProjectId = layout?.project_id;
+    } else if (params.widgetId) {
+      const widget = await Widget.get(params.widgetId);
+      const layout = await Layout.get(widget.layout_id);
+      req.ncProjectId = layout?.project_id;
+    }
+
+    // todo:  verify all scenarios
+    // extract workspace id based on request path params or projectId
+    if (req.ncProjectId) {
+      req.ncWorkspaceId = (await Project.get(req.ncProjectId))?.fk_workspace_id;
+    } else if (req.params.workspaceId) {
+      req.ncWorkspaceId = req.params.workspaceId;
+    } else if (req.body.fk_workspace_id) {
+      req.ncWorkspaceId = req.body.fk_workspace_id;
+    }
+
+    if (req.ncWorkspaceId && process.env.NC_WORKSPACE_ID) {
+      if (req.ncWorkspaceId !== process.env.NC_WORKSPACE_ID) {
+        NcError.badRequest('Invalid workspace id');
+      }
+    } else if (req.ncWorkspaceId) {
+      const workspace = await Workspace.get(req.ncWorkspaceId);
+      if (!workspace) {
+        NcError.badRequest('Invalid workspace id');
       }
 
-      // todo:  verify all scenarios
-      // extract workspace id based on request path params or projectId
-      if (req.ncProjectId) {
-        req.ncWorkspaceId = (
-          await Project.get(req.ncProjectId)
-        )?.fk_workspace_id;
-      } else if (req.params.workspaceId) {
-        req.ncWorkspaceId = req.params.workspaceId;
-      } else if (req.body.fk_workspace_id) {
-        req.ncWorkspaceId = req.body.fk_workspace_id;
+      if (workspace.plan !== WorkspacePlan.FREE) {
+        NcError.badRequest('invalid workspace id');
       }
-
-      if (req.ncWorkspaceId && process.env.NC_WORKSPACE_ID) {
-        if (req.ncWorkspaceId !== process.env.NC_WORKSPACE_ID) {
-          NcError.badRequest('Invalid workspace id');
-        }
-      } else if (req.ncWorkspaceId) {
-        const workspace = await Workspace.get(req.ncWorkspaceId);
-        if (!workspace) {
-          NcError.badRequest('Invalid workspace id');
-        }
-
-        if (workspace.plan !== WorkspacePlan.FREE) {
-          NcError.badRequest('invalid workspace id');
-        }
-      }
-    } catch (e) {
-      console.log(e);
     }
     next();
   }

@@ -9,6 +9,7 @@ import utc from 'dayjs/plugin/utc';
 import tinycolor from 'tinycolor2';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
+import debug from 'debug';
 import extractRolesObj from '../../../../utils/extractRolesObj';
 import { AttachmentsService } from '../../../../services/attachments.service';
 import { ColumnsService } from '../../../../services/columns.service';
@@ -84,6 +85,8 @@ const selectColors = {
 
 @Processor(JOBS_QUEUE)
 export class AtImportProcessor {
+  private readonly dubugLog = debug('nc:at-import:processor');
+
   constructor(
     private readonly tablesService: TablesService,
     private readonly viewsService: ViewsService,
@@ -136,10 +139,12 @@ export class AtImportProcessor {
 
     const logBasic = (log) => {
       this.jobsLogService.sendLog(job, { message: log });
+      this.dubugLog(log);
     };
 
     const logDetailed = (log) => {
       if (debugMode) this.jobsLogService.sendLog(job, { message: log });
+      this.dubugLog(log);
     };
 
     const perfStats = [];

@@ -1174,6 +1174,21 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     _updateLayoutInAPIAndLocally(updatedLayout)
   }
 
+  const changeFontTypeOfFocusedTextWidget = (newFontType: FontType) => {
+    if (!focusedWidget.value || ![WidgetTypeType.StaticText].includes(focusedWidget.value.widget_type)) {
+      console.error('changeFontTypeOfFocusedTextWidget: focusedWidget.value is undefined or not a Text widget')
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      appearance_config: {
+        ...(focusedWidget.value as StaticTextWidget).appearance_config,
+        fontType: newFontType,
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
   return {
     openedLayoutSidebarNode: readonly(openedLayoutSidebarNode),
     openedLayoutId: readonly(openedLayoutId),
@@ -1227,5 +1242,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     gridLayout,
     changeNameOfFocusedChart,
     updateIconOfNumberWidget,
+    changeFontTypeOfFocusedTextWidget,
   }
 })

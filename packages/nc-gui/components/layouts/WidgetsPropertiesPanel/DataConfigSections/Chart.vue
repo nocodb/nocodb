@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DataConfigAggregated2DChart } from '~~/../nocodb-sdk/build/main'
+import type { DataConfigAggregated2DChart } from 'nocodb-sdk'
 
 const dashboardStore = useDashboardStore()
 const {

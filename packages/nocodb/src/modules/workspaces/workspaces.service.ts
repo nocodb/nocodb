@@ -112,6 +112,9 @@ export class WorkspacesService {
 
     if (!workspace) NcError.notFound('Workspace not found');
 
+    if (workspace.plan !== WorkspacePlan.FREE)
+      NcError.notFound('Workspace is already upgraded');
+
     await this.createWorkspaceSubdomain({
       titleOrId: workspace.id,
       user: param.user?.email ?? param.user?.id,

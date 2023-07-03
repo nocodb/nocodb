@@ -4,7 +4,7 @@ import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 
 import { NcError } from '../helpers/catchError';
 import NocoCache from '../cache/NocoCache';
-import { parseMetaProp } from '../utils/modelUtils';
+import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
 import Page from './Page';
 import type { WorkspaceType } from 'nocodb-sdk';
 import type { WorkspacePlan, WorkspaceStatus } from 'nocodb-sdk';
@@ -25,6 +25,7 @@ export default class Workspace implements WorkspaceType {
   plan?: WorkspacePlan;
   status?: WorkspaceStatus;
   message?: string;
+  infra_meta?: string | Record<string, any>;
 
   constructor(workspace: Workspace | WorkspaceType) {
     Object.assign(this, workspace);
@@ -65,6 +66,7 @@ export default class Workspace implements WorkspaceType {
       );
       if (workspaceData) {
         workspaceData.meta = parseMetaProp(workspaceData);
+        workspaceData.infra_meta = parseMetaProp(workspaceData, 'infra_meta');
         await NocoCache.set(
           `${CacheScope.WORKSPACE}:${workspaceData.id}`,
           workspaceData,
@@ -163,13 +165,21 @@ export default class Workspace implements WorkspaceType {
     const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
 
     // extract props which is allowed to be inserted
-    const updateObject = extractProps(workspace, ['status', 'plan']);
+    const updateObject = extractProps(workspace, [
+      'status',
+      'plan',
+      'infra_meta',
+    ]);
 
     const res = await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.WORKSPACE,
-      updateObject,
+      {
+        ...updateObject,
+        // stringify infra_meta if it is an object
+        infra_meta: stringifyMetaProp(updateObject, 'infra_meta'),
+      },
       id,
     );
 
@@ -230,13 +240,8 @@ export default class Workspace implements WorkspaceType {
   static async list(ncMeta = Noco.ncMeta) {
     const workspaces = await ncMeta.metaList(null, null, MetaTable.WORKSPACE);
     return workspaces.map((workspace) => {
-      if (workspace.meta && typeof workspace.meta === 'string') {
-        try {
-          workspace.meta = JSON.parse(workspace.meta);
-        } catch {
-          workspace.meta = {};
-        }
-      }
+      workspace.meta = parseMetaProp(workspace);
+      workspace.infra_meta = parseMetaProp(workspace, 'infra_meta');
       new Workspace(workspace);
     });
   }

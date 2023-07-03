@@ -807,10 +807,10 @@ class PGClient extends KnexClient {
                   order by table_name,ordinal_position ) pk
                 on
                 pk.table_name = c.table_name and pk.column_name=c.column_name
-                left join information_schema.triggers trg on trg.event_object_table = c.table_name and trg.trigger_name = CONCAT('xc_trigger_' , '${args.tn}' , '_' , c.column_name)
+                left join information_schema.triggers trg on trg.event_object_table = c.table_name and trg.trigger_name = CONCAT('xc_trigger_' , '${args.tn}' , '_' , c.column_name) and trg.trigger_schema = ?
               where c.table_catalog='${args.databaseName}' and c.table_schema=? and c.table_name='${args.tn}'
               order by c.table_name, c.ordinal_position`,
-        [this.schema, this.schema],
+        [this.schema, this.schema, this.schema],
       );
 
       const columns = [];

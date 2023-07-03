@@ -1,9 +1,8 @@
-<script setup lang="ts">
-import type { BaseType, DataSourceInternal, FilterType, NumberWidget } from 'nocodb-sdk'
+<script lang="ts" setup>
+import type { BaseType, DataSourceInternal, FilterType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import useWidgetFilters from './useWidgetFilters'
-import { iconMap, ref } from '#imports'
-import type { Filter } from '~/lib'
+import type { Filter } from '~~/lib/types'
 
 interface Props {
   nested?: boolean
@@ -23,10 +22,17 @@ const logicalOps = [
 
 const dashboardStore = useDashboardStore()
 const { availableColumnsOfSelectedView, focusedWidget } = storeToRefs(dashboardStore)
-const { changeSelectRecordsModeForNumberWidgetDataConfig } = dashboardStore
 
-const { filters, addFilter, isComparisonOpAllowed, isComparisonSubOpAllowed, deleteFilter, saveOrUpdate, loadFilters } =
-  useWidgetFilters(focusedWidget, parentId)
+const {
+  filters,
+  addFilter,
+  addFilterGroup,
+  isComparisonOpAllowed,
+  isComparisonSubOpAllowed,
+  deleteFilter,
+  saveOrUpdate,
+  loadFilters,
+} = useWidgetFilters(focusedWidget, parentId)
 
 const updateFilterValue = (value: string, filter: Filter, index: number) => {
   filter.value = value
@@ -143,123 +149,159 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
     comparison_sub_op: filter.comparison_sub_op,
   })
 }
-
-const selectRecordsMode = computed(() => (focusedWidget.value as NumberWidget)?.data_config?.selectRecordsMode)
 </script>
 
 <template>
-  <div class="flex flex-col m-0">
-    <div class="nc-dashboard-layouts-propspanel-selectable-config-section mb-2">
-      <a-radio
-        :checked="selectRecordsMode === 'all_records'"
-        @change="changeSelectRecordsModeForNumberWidgetDataConfig('all_records')"
-        ><h3>All records</h3></a-radio
-      >
-    </div>
+  <div
+    class="p-4 menu-filter-dropdown bg-gray-50 !border"
+    :class="{
+      'min-w-[430px]': filters.length,
+      'shadow max-h-[max(80vh,500px)] overflow-auto': !nested,
+      'border-1 w-full': nested,
+    }"
+  >
+    <div
+      v-if="filters && filters.length"
+      class="nc-filter-grid mb-2"
+      :class="{ 'max-h-420px overflow-y-auto': !nested }"
+      @click.stop
+    >
+      <template v-for="(filter, i) in filters" :key="i">
+        <template v-if="filter.status !== 'delete'">
+          <template v-if="filter.is_group">
+            <component
+              :is="iconMap.closeBox"
+              v-if="!filter.readOnly"
+              :key="i"
+              small
+              class="nc-filter-item-remove-btn cursor-pointer text-grey"
+              @click.stop="deleteFilter(filter, i)"
+            />
+            <span v-else :key="`${i}dummy`" />
 
-    <div class="nc-dashboard-layouts-propspanel-selectable-config-section">
-      <a-radio
-        :checked="selectRecordsMode === 'specific_records'"
-        @change="changeSelectRecordsModeForNumberWidgetDataConfig('specific_records')"
-        ><h3>Specific records</h3></a-radio
-      >
-      <h4>Show records with conditions</h4>
-      <div v-if="selectRecordsMode === 'specific_records'">
-        <div
-          v-if="filters && filters.length"
-          class="nc-filter-grid mb-2"
-          :class="{ 'max-h-420px overflow-y-auto': !nested }"
-          @click.stop
-        >
-          <template v-for="(filter, i) in filters" :key="i">
-            <template v-if="filter.status !== 'delete'">
-              <component
-                :is="iconMap.closeBox"
-                v-if="!filter.readOnly"
-                class="nc-filter-item-remove-btn text-grey self-center"
-                @click.stop="deleteFilter(filter, i)"
-              />
-
-              <span v-else />
-
-              <span v-if="!i" class="flex items-center">{{ $t('labels.where') }}</span>
-
+            <div :key="`${i}nested`" class="flex">
               <a-select
-                v-else
                 v-model:value="filter.logical_op"
                 :dropdown-match-select-width="false"
-                class="h-full"
-                hide-details
-                :disabled="filter.readOnly"
-                dropdown-class-name="nc-dropdown-filter-logical-op"
+                class="shrink grow-0"
+                placeholder="Group op"
+                dropdown-class-name="nc-dropdown-filter-logical-op-group"
                 @click.stop
-                @change="filterUpdateCondition(filter, i)"
+                @change="saveOrUpdate(filter, i)"
               >
-                <a-select-option v-for="op of logicalOps" :key="op.value" :value="op.value">
+                <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value" class="">
                   {{ op.text }}
                 </a-select-option>
               </a-select>
-              <LazyLayoutsWidgetsPropertiesPanelDataConfigSectionsFieldListAutoCompleteDropdown
-                :key="`${i}_6`"
-                v-model="filter.fk_column_id"
-                class="nc-filter-field-select"
-                :columns="availableColumnsOfSelectedView!"
-                :disabled="filter.readOnly"
-                @click.stop
-                @change="selectFilterField(filter, i)"
+            </div>
+            <span class="col-span-3" />
+            <div class="col-span-6">
+              <LayoutsWidgetsPropertiesPanelDataConfigSectionsFilter
+                v-if="filter.id || filter.children"
+                :key="filter.id ?? i"
+                v-model="filter.children"
+                :parent-id="filter.id"
               />
 
-              <!-- START COMPARISON OPERATOR -->
-              <a-select
-                v-model:value="filter.comparison_op"
-                :dropdown-match-select-width="false"
-                class="caption nc-filter-operation-select"
-                :placeholder="$t('labels.operation')"
-                density="compact"
-                variant="solo"
-                :disabled="filter.readOnly"
-                hide-details
-                dropdown-class-name="nc-dropdown-filter-comp-op"
-                @change="filterUpdateCondition(filter, i)"
-              >
-                <template v-for="compOp of comparisonOpList(getColumn(filter)?.uidt)" :key="compOp.value">
-                  <a-select-option v-if="isComparisonOpAllowed(filter, compOp)" :value="compOp.value">
-                    {{ compOp.text }}
-                  </a-select-option>
-                </template>
-              </a-select>
-              <!-- END COMPARISON OPERATOR -->
+              <!-- <LazySmartsheetToolbarColumnFilter
+                    v-if="filter.id || filter.children"
+                    :key="filter.id ?? i"
+                    ref="localNestedFilters"
+                    v-model="filter.children"
+                    :parent-id="filter.id"
+                    nested
+                    :web-hook="webHook"
+                  /> -->
+            </div>
+          </template>
+          <template v-else>
+            <component
+              :is="iconMap.closeBox"
+              v-if="!filter.readOnly"
+              class="nc-filter-item-remove-btn text-grey self-center"
+              @click.stop="deleteFilter(filter, i)"
+            />
 
-              <a-select
-                v-if="
-                  [UITypes.Date, UITypes.DateTime].includes(getColumn(filter)?.uidt) &&
-                  !['blank', 'notblank'].includes(filter.comparison_op)
-                "
-                v-model:value="filter.comparison_sub_op"
-                :dropdown-match-select-width="false"
-                class="caption nc-filter-sub_operation-select"
-                :placeholder="$t('labels.operationSub')"
-                density="compact"
-                variant="solo"
-                :disabled="filter.readOnly"
-                hide-details
-                dropdown-class-name="nc-dropdown-filter-comp-sub-op"
-                @change="filterUpdateCondition(filter, i)"
-              >
-                <template v-for="compSubOp of comparisonSubOpList(filter.comparison_op)" :key="compSubOp.value">
-                  <a-select-option v-if="isComparisonSubOpAllowed(filter, compSubOp)" :value="compSubOp.value">
-                    {{ compSubOp.text }}
-                  </a-select-option>
-                </template>
-              </a-select>
+            <span v-else />
 
-              <span v-else />
-              <div v-if="filter.field && types[filter.field] === 'boolean'">
-                <a-checkbox v-model:checked="filter.value" dense :disabled="filter.readOnly" />
-              </div>
-              <!-- @change="saveOrUpdate(filter, i)" -->
+            <span v-if="!i" class="flex items-center">{{ $t('labels.where') }}</span>
 
-              <!-- <span
+            <a-select
+              v-else
+              v-model:value="filter.logical_op"
+              :dropdown-match-select-width="false"
+              class="h-full"
+              hide-details
+              :disabled="filter.readOnly"
+              dropdown-class-name="nc-dropdown-filter-logical-op"
+              @click.stop
+              @change="filterUpdateCondition(filter, i)"
+            >
+              <a-select-option v-for="op of logicalOps" :key="op.value" :value="op.value">
+                {{ op.text }}
+              </a-select-option>
+            </a-select>
+            <LazyLayoutsWidgetsPropertiesPanelDataConfigSectionsFieldListAutoCompleteDropdown
+              :key="`${i}_6`"
+              v-model="filter.fk_column_id"
+              class="nc-filter-field-select"
+              :columns="availableColumnsOfSelectedView!"
+              :disabled="filter.readOnly"
+              @click.stop
+              @change="selectFilterField(filter, i)"
+            />
+
+            <!-- START COMPARISON OPERATOR -->
+            <a-select
+              v-model:value="filter.comparison_op"
+              :dropdown-match-select-width="false"
+              class="caption nc-filter-operation-select"
+              :placeholder="$t('labels.operation')"
+              density="compact"
+              variant="solo"
+              :disabled="filter.readOnly"
+              hide-details
+              dropdown-class-name="nc-dropdown-filter-comp-op"
+              @change="filterUpdateCondition(filter, i)"
+            >
+              <template v-for="compOp of comparisonOpList(getColumn(filter)?.uidt)" :key="compOp.value">
+                <a-select-option v-if="isComparisonOpAllowed(filter, compOp)" :value="compOp.value">
+                  {{ compOp.text }}
+                </a-select-option>
+              </template>
+            </a-select>
+            <!-- END COMPARISON OPERATOR -->
+
+            <a-select
+              v-if="
+                [UITypes.Date, UITypes.DateTime].includes(getColumn(filter)?.uidt) &&
+                !['blank', 'notblank'].includes(filter.comparison_op)
+              "
+              v-model:value="filter.comparison_sub_op"
+              :dropdown-match-select-width="false"
+              class="caption nc-filter-sub_operation-select"
+              :placeholder="$t('labels.operationSub')"
+              density="compact"
+              variant="solo"
+              :disabled="filter.readOnly"
+              hide-details
+              dropdown-class-name="nc-dropdown-filter-comp-sub-op"
+              @change="filterUpdateCondition(filter, i)"
+            >
+              <template v-for="compSubOp of comparisonSubOpList(filter.comparison_op)" :key="compSubOp.value">
+                <a-select-option v-if="isComparisonSubOpAllowed(filter, compSubOp)" :value="compSubOp.value">
+                  {{ compSubOp.text }}
+                </a-select-option>
+              </template>
+            </a-select>
+
+            <span v-else />
+            <div v-if="filter.field && types[filter.field] === 'boolean'">
+              <a-checkbox v-model:checked="filter.value" dense :disabled="filter.readOnly" />
+            </div>
+            <!-- @change="saveOrUpdate(filter, i)" -->
+
+            <!-- <span
               v-else-if="
                 filter.comparison_sub_op
                   ? comparisonSubOpList(filter.comparison_op).find((op) => op.value === filter.comparison_sub_op)?.ignoreVal ??
@@ -269,37 +311,35 @@ const selectRecordsMode = computed(() => (focusedWidget.value as NumberWidget)?.
               :key="`span${i}`"
             /> -->
 
-              <LazyLayoutsWidgetsPropertiesPanelDataConfigSectionsFilterInput
-                v-else
-                class="nc-filter-value-select min-w-[120px]"
-                :column="getColumn(filter)"
-                :base-type="baseType!"
-                :filter="filter"
-                @click.stop
-                @update-filter-value="(value) => updateFilterValue(value, filter, i)"
-              />
-            </template>
+            <LazyLayoutsWidgetsPropertiesPanelDataConfigSectionsFilterInput
+              v-else
+              class="nc-filter-value-select min-w-[120px]"
+              :column="getColumn(filter)"
+              :base-type="baseType!"
+              :filter="filter"
+              @click.stop
+              @update-filter-value="(value) => updateFilterValue(value, filter, i)"
+            />
           </template>
+        </template>
+      </template>
+    </div>
+    <div class="flex flex-wrap">
+      <a-button class="elevation-0 text-capitalize p-0 m-0 pr-2" type="text" @click.stop="addFilter()">
+        <div class="flex items-center gap-1">
+          <component :is="iconMap.plus" />
+          <!-- Add Filter -->
+          {{ $t('activity.addFilter') }}
         </div>
-        <div class="flex flex-wrap">
-          <a-button class="elevation-0 text-capitalize p-0 m-0 pr-2" type="text" @click.stop="addFilter()">
-            <div class="flex items-center gap-1">
-              <component :is="iconMap.plus" />
-              <!-- Add Filter -->
-              {{ $t('activity.addFilter') }}
-            </div>
-          </a-button>
+      </a-button>
 
-          <a-button v-if="!webHook" type="text" class="text-capitalize p-0 m-0 pr-2">
-            <div class="flex items-center gap-1">
-              <!-- Add Filter Group -->
-              <component :is="iconMap.plus" />
-              {{ $t('activity.addFilterGroup') }}
-            </div>
-          </a-button>
+      <a-button v-if="!webHook" class="text-capitalize !text-gray-500" @click.stop="addFilterGroup()">
+        <div class="flex items-center gap-1">
+          <!-- Add Filter Group -->
+          <component :is="iconMap.plus" />
+          {{ $t('activity.addFilterGroup') }}
         </div>
-        <slot />
-      </div>
+      </a-button>
     </div>
   </div>
 </template>

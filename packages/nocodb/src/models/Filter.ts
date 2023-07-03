@@ -139,7 +139,7 @@ export default class Filter implements FilterType {
       [referencedModelColName]: filter[referencedModelColName],
     });
 
-    if (!(filter.project_id && filter.base_id)) {
+    if (!filter.fk_widget_id && !(filter.project_id && filter.base_id)) {
       let model: { project_id?: string; base_id?: string };
       if (filter.fk_view_id) {
         model = await View.get(filter.fk_view_id, ncMeta);

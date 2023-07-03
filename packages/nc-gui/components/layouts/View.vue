@@ -110,7 +110,6 @@ const { project } = useProject()
           </GridItem>
         </GridLayout>
       </div>
-      <!-- </div> -->
       <div class="p-4 w-[280px] 2xl:w-[20vw] !overflow-y-auto h-[90vh]">
         <LayoutsWidgetsPropertiesPanel />
       </div>

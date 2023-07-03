@@ -21,7 +21,7 @@ const chartTypesForDropdown = computed(() =>
   })),
 )
 
-const hasAppearanceSection = computed(() => isNumber || isText)
+const hasAppearanceSection = computed(() => isNumber.value || isText.value)
 
 </script>
 
@@ -78,7 +78,6 @@ const hasAppearanceSection = computed(() => isNumber || isText)
         <div>Appearance</div>
       </div>
     </div>
-    
     <a-divider />
 
     <div v-if="dataOrAppearanceMode === 'data'">

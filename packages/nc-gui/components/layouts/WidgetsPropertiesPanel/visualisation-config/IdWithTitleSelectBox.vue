@@ -6,6 +6,7 @@ const props = defineProps<{
   idAndTitleTupleList?: Readonly<IdAndTitle[] | null>
   modelValue?: string
   id?: string
+  class?: string | string[]
 }>()
 const emit = defineEmits<Emits>()
 interface Emits {
@@ -39,18 +40,22 @@ const handleChange = (value: SelectValue) => {
 const allDataIsReady = computed(() => {
   return props.idAndTitleTupleList
 })
+
+const combinedClasses = computed(() => {
+  const baseClass = 'nc-id-with-title-select-box'
+  if (props.class) {
+    if (Array.isArray(props.class)) {
+      return [baseClass, ...props.class]
+    }
+    return [baseClass, props.class]
+  }
+  return baseClass
+})
 </script>
 
 <template>
   <template v-if="allDataIsReady">
-    <a-select
-      :id="props.id"
-      ref="select"
-      v-model:value="selectedId"
-      show-search
-      class="nc-id-with-title-select-box"
-      @change="handleChange"
-    >
+    <a-select :id="props.id" ref="select" v-model:value="selectedId" show-search :class="combinedClasses" @change="handleChange">
       <a-select-option v-for="opt of optionsForSelectBoxes" :key="opt.name" :value="opt.value">
         <div class="flex gap-1 items-center">
           {{ opt.name }}

@@ -27,6 +27,7 @@ import {
 } from 'chart.js'
 import { WidgetTypeType } from 'nocodb-sdk'
 import type { ChartWidget } from 'nocodb-sdk'
+import useLayoutsContextMenu from './useLayoutsContextMenu'
 
 const props = defineProps<{
   widgetConfig: ChartWidget
@@ -94,6 +95,7 @@ const aggregateFunction = ref<string | undefined>()
 const { reloadWidgetDataEventBus } = dashboardStore
 
 const { dataLinkConfigIsMissing } = useWidget(chartWidget)
+const { showContextMenuButtonRef, isContextMenuVisible, showContextMenu } = useLayoutsContextMenu()
 
 const getData = async () => {
   if (!chartWidget.value.id || dataLinkConfigIsMissing.value) {
@@ -147,7 +149,13 @@ const chartOptions = {
 </script>
 
 <template>
-  <div v-if="dataLinkConfigIsMissing">Missing Data Source Configuration</div>
+  <div class="flex justify-between">
+    <h3 class="text-base font-medium text-gray-900 mb-0">{{ widgetConfig.data_config.name }}</h3>
+    <button ref="showContextMenuButtonRef" @click="showContextMenu">
+      <GeneralIcon icon="threeDotHorizontal" class="text-gray-900 text-xl" />
+    </button>
+  </div>
+  <LayoutsWidgetsConfigMissing v-if="dataLinkConfigIsMissing" />
   <component
     :is="chartComponent"
     v-else-if="chartData"
@@ -155,4 +163,5 @@ const chartOptions = {
     :options="chartOptions"
     :data="chartData"
   />
+  <LayoutsWidgetsContextMenu v-if="isContextMenuVisible" :widget="widgetConfig" @reload-widget-data="getData" />
 </template>

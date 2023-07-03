@@ -5,12 +5,12 @@ import 'splitpanes/dist/splitpanes.css'
 const { isLeftSidebarOpen, leftSidebarWidthPercent } = storeToRefs(useSidebarStore())
 const wrapperRef = ref<HTMLDivElement>()
 const sideBarSize = ref({
-  old: 20,
-  current: 20,
+  old: 17.5,
+  current: 17.5,
 })
 const contentSize = ref({
-  old: 80,
-  current: 80,
+  old: 82.5,
+  current: 82.5,
 })
 const isSidebarShort = ref(false)
 const animationDuration = 300

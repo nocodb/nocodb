@@ -168,6 +168,9 @@ export class WidgetDataService {
               : `${aggregateFunction}__${aggregateColumnName}`;
           const sort = `${sortByColName} ${xAxisOrderDirection}`;
 
+          const ignoreFilters =
+            chartWidget.data_config.selectRecordsMode === 'all_records';
+
           const widgetData = await this.dataGroupAndAggregateBy({
             widget,
             query: undefined,
@@ -177,6 +180,7 @@ export class WidgetDataService {
             aggregateColumnName,
             aggregateFunction: aggregateFunction,
             groupByColumnName,
+            ignoreFilters,
             ...(sortByColName
               ? {
                   sort: {

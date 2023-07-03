@@ -8,6 +8,8 @@ export enum AggregateFnType {
   Sum = 'sum',
 }
 
+export type SelectRecordsMode = 'all_records' | 'specific_records';
+
 export enum DataSourceType {
   INTERNAL = 'internal',
   EXTERNAL = 'external',
@@ -71,7 +73,7 @@ export interface DataConfigButtonExternalUrl
 
 export interface DataConfigNumber {
   recordCountOrFieldSummary?: 'record_count' | 'field_summary';
-  selectRecordsMode?: 'all_records' | 'specific_records';
+  selectRecordsMode?: SelectRecordsMode;
   colId?: string;
   aggregateFunction?: AggregateFnType;
   name?: string;
@@ -101,6 +103,7 @@ export interface DataConfigStaticText {
 }
 
 export interface DataConfigAggregated2DChart {
+  name?: string;
   xAxisColId?: string;
   xAxisOrderBy?: 'x_val' | 'y_val';
   xAxisOrderDirection?: 'asc' | 'desc';
@@ -111,6 +114,7 @@ export interface DataConfigAggregated2DChart {
   aggregateFunction?: AggregateFnType;
   yAxisGroupByColId?: string;
   yAxisStartAtZero?: boolean;
+  selectRecordsMode?: SelectRecordsMode;
 }
 export type DataConfigBarChart = DataConfigAggregated2DChart;
 export type DataConfigLineChart = DataConfigAggregated2DChart;

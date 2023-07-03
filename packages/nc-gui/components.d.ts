@@ -100,6 +100,7 @@ declare module '@vue/runtime-core' {
     IcBaselineMoreVert: typeof import('~icons/ic/baseline-more-vert')['default']
     IcBaselineVisibilityOff: typeof import('~icons/ic/baseline-visibility-off')['default']
     Icon: typeof import('~icons/ic/on')['default']
+    IconifyIcon: typeof import('~icons/ic/onify-icon')['default']
     IcOutlineAccessTime: typeof import('~icons/ic/outline-access-time')['default']
     IcOutlineInfo: typeof import('~icons/ic/outline-info')['default']
     IcOutlineInsertDriveFile: typeof import('~icons/ic/outline-insert-drive-file')['default']

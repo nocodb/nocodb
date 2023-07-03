@@ -131,7 +131,7 @@ watch(
 <template>
   <Splitpanes
     ref="splitpaneWrapperRef"
-    style="height: 100vh"
+    style="height: calc(100vh - var(--topbar-height))"
     class="smartsheet-resizable-wrapper w-full"
     :class="{
       'smartsheet-sidebar-short': isSidebarShort,
@@ -236,8 +236,10 @@ watch(
 
 .nc-smartsheet-sidebar-wrapper.smartsheet-sidebar-short {
   > * {
-    height: 80vh !important;
+    height: 80h !important;
     padding-bottom: 0.35rem;
+    margin-top: -3.25rem;
+    margin-left: 0.25rem;
   }
 }
 

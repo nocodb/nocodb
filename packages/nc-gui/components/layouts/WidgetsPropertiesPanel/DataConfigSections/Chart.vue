@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DataConfigAggregated2DChart } from '~~/../nocodb-sdk/build/main'
+import type { DataConfigAggregated2DChart } from 'nocodb-sdk'
 
 const dashboardStore = useDashboardStore()
 const {
@@ -27,7 +27,7 @@ const recordCountOrFieldSummary = computed(() => dataConfig.value?.recordCountOr
       <LayoutsWidgetsPropertiesPanelProjectTableViewSelectorSection />
     </a-collapse-panel>
     <a-collapse-panel class="nc-dashboard-layouts-propspanel-collapse-panel" header="Step 2: Select Records">
-      <LayoutsWidgetsPropertiesPanelDataConfigSectionsFilter />
+      <LayoutsWidgetsPropertiesPanelDataConfigSectionsFilterSection />
     </a-collapse-panel>
     <a-collapse-panel class="nc-dashboard-layouts-propspanel-collapse-panel !rounded-lg" header="Step 3: Setup X-axis">
       <LayoutsWidgetsPropertiesPanelDataConfigSectionsXAxis />

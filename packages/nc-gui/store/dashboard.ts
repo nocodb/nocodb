@@ -21,9 +21,9 @@ import type {
   WidgetType,
 } from 'nocodb-sdk'
 import { AggregateFnType, ButtonActionType, DataSourceType, FontType, WidgetTypeType, chartTypes } from 'nocodb-sdk'
-import { computed, extractSdkResponseErrorMsg, message, navigateTo, ref, useNuxtApp, useRouter, useTabs, watch } from '#imports'
+import { computed, extractSdkResponseErrorMsg, message, navigateTo, ref, useNuxtApp, useRouter, watch } from '#imports'
 import type { LayoutSidebarNode } from '~~/lib'
-import type { IdAndTitle, TableWithProject } from '~~/components/layouts/types'
+import type { IdAndTitle } from '~~/components/layouts/types'
 
 interface LayoutEntry {
   x: number
@@ -105,6 +105,14 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   const { projectTables } = storeToRefs(useTablesStore())
 
   const focusedWidgetId = ref<string | undefined>(undefined)
+  // NOTE: Instead of using stop propagation on the click handler on the Layout View level
+  // (which is responsible for calling resetFocus) and which made problems for example for
+  // handling other click event types (e.g. opening and closing the context menu on a widget),
+  // we use a temporaryFocusedWidgetId to store the id of the widget that should be focused
+  // AFTER the click event on a widget has been handled and BEFORE the event is bubbling up to the Layout View
+  // Within the Layout view, we then check whether the temporaryFocusedWidgetId is set and if so,
+  // set the focusedWidgetId to it. Otherise we set it to undefined (because the click event was not on a widget).
+  const temporaryFocusedWidgetId = ref<string | undefined>(undefined)
 
   const openedWidgets = ref<Widget[] | null>(null)
 
@@ -126,13 +134,9 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     openedWidgets.value?.find((widget: { id: string | undefined }) => widget.id === focusedWidgetId.value),
   )
 
-  const linkedDbProjects = computed(() => {
-    return dashboardProject.value?.linked_db_projects
-  })
-
   const availableDbProjects = computed(
     () =>
-      linkedDbProjects.value?.map((project) => ({
+      dashboardProject.value?.linked_db_projects?.map((project) => ({
         id: project.id!,
         title: project.title || 'unknown',
       })) || [],
@@ -154,7 +158,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     Array.from(projectTables.value)
       .map(([_, tables]) => tables)
       .flat()
-      .filter((t) => t != null && linkedDbProjects.value?.map((dbP) => dbP.id).includes(t.project_id))
+      .filter((t) => t != null && availableDbProjects.value?.map((dbP) => dbP.id).includes(t.project_id!))
       .map((table) => ({
         id: table.id!,
         title: table.title || 'unknown',
@@ -466,9 +470,13 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       if (!withoutLoading) isLayoutFetching.value[projectId] = false
     }
   }
-
   const resetFocus = () => {
-    focusedWidgetId.value = undefined
+    if (temporaryFocusedWidgetId.value) {
+      focusedWidgetId.value = temporaryFocusedWidgetId.value
+      temporaryFocusedWidgetId.value = undefined
+    } else {
+      focusedWidgetId.value = undefined
+    }
   }
 
   const addNewLayout = async ({ projectId }: { projectId: string }) => {
@@ -716,7 +724,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   }
 
   const updateFocusedWidgetByElementId = async (elementId: string) => {
-    focusedWidgetId.value = elementId
+    temporaryFocusedWidgetId.value = elementId
   }
 
   // Widget Data Config methods
@@ -938,6 +946,36 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     _updateWidgetInAPIAndLocally(updatedWidget)
   }
 
+  const changeNameOfFocusedChart = (newName: string) => {
+    if (!focusedWidget.value || !chartTypes.includes(focusedWidget.value.widget_type)) {
+      console.error('changeNameOfFocusedChart: focusedWidget.value is undefined or not a chart widget')
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      data_config: {
+        ...focusedWidget.value.data_config,
+        name: newName,
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const updateIconOfNumberWidget = (newIcon: string) => {
+    if (!focusedWidget.value || WidgetTypeType.Number !== focusedWidget.value.widget_type) {
+      console.error('updateIconOfNumberWidget: focusedWidget.value is undefined or not a NumberWidget')
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      data_config: {
+        ...(focusedWidget.value as NumberWidget).data_config,
+        icon: newIcon,
+      },
+    } as NumberWidget
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
   const changeTextOfFocusedTextElement = (newText: string) => {
     if (!focusedWidget.value || ![WidgetTypeType.StaticText].includes(focusedWidget.value.widget_type)) {
       console.error('changeTextOfFocusedTextElement: focusedWidget.value is undefined or not a Text widget')
@@ -1136,6 +1174,21 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     _updateLayoutInAPIAndLocally(updatedLayout)
   }
 
+  const changeFontTypeOfFocusedTextWidget = (newFontType: FontType) => {
+    if (!focusedWidget.value || ![WidgetTypeType.StaticText].includes(focusedWidget.value.widget_type)) {
+      console.error('changeFontTypeOfFocusedTextWidget: focusedWidget.value is undefined or not a Text widget')
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      appearance_config: {
+        ...(focusedWidget.value as StaticTextWidget).appearance_config,
+        fontType: newFontType,
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
   return {
     openedLayoutSidebarNode: readonly(openedLayoutSidebarNode),
     openedLayoutId: readonly(openedLayoutId),
@@ -1187,5 +1240,8 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     changeLayoutPaddingHorizontal,
     changeLayoutPaddingVertical,
     gridLayout,
+    changeNameOfFocusedChart,
+    updateIconOfNumberWidget,
+    changeFontTypeOfFocusedTextWidget,
   }
 })

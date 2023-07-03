@@ -131,33 +131,21 @@ onMounted(() => {
 </script>
 
 <template>
-  <a-modal
-    v-model:visible="dialogShow"
-    :class="{ active: dialogShow }"
-    :title="$t('activity.createTable')"
-    centered
-    wrap-class-name="nc-modal-table-create"
-    @keydown.esc="dialogShow = false"
-  >
-    <template #footer>
-      <a-button key="back" size="middle" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
-
-      <a-button key="submit" size="middle" class="!rounded-md" type="primary" :loading="creating" @click="_createTable"
-        >{{ $t('general.submit') }}
-      </a-button>
-    </template>
-
-    <div>
+  <GeneralModal v-model:visible="dialogShow" @keydown.esc="dialogShow = false">
+    <div class="flex flex-col p-6">
+      <div class="flex mb-5 text-lg font-medium">
+        {{ $t('activity.createTable') }}
+      </div>
       <a-form :model="table" name="create-new-table-form" @keydown.enter="_createTable">
         <!-- hint="Enter table name" -->
         <!--        Table name -->
-        <div class="mb-2">{{ $t('labels.tableName') }}</div>
+        <div class="mb-1">{{ $t('labels.tableName') }}</div>
 
         <a-form-item v-bind="validateInfos.title">
           <a-input
             ref="inputEl"
             v-model:value="table.title"
-            size="large"
+            class="!rounded-md"
             hide-details
             data-testid="create-table-title-input"
             :placeholder="$t('msg.info.enterTableName')"
@@ -165,7 +153,10 @@ onMounted(() => {
         </a-form-item>
 
         <div class="flex justify-end items-center">
-          <div class="pointer flex flex-row items-center gap-x-1" @click="isAdvanceOptVisible = !isAdvanceOptVisible">
+          <div
+            class="pointer flex flex-row items-center gap-x-1 cursor-pointer"
+            @click="isAdvanceOptVisible = !isAdvanceOptVisible"
+          >
             {{ isAdvanceOptVisible ? $t('general.hideAll') : $t('general.showMore') }}
 
             <component :is="iconMap.minusCircle" v-if="isAdvanceOptVisible" class="text-gray-500" />
@@ -207,9 +198,16 @@ onMounted(() => {
             </a-row>
           </div>
         </div>
+        <div class="flex flex-rown justify-end gap-x-2 mt-2">
+          <a-button key="back" size="middle" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
+
+          <a-button key="submit" size="middle" class="!rounded-md" type="primary" :loading="creating" @click="_createTable"
+            >{{ $t('general.submit') }}
+          </a-button>
+        </div>
       </a-form>
     </div>
-  </a-modal>
+  </GeneralModal>
 </template>
 
 <style scoped lang="scss">

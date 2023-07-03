@@ -192,6 +192,10 @@ const useWidgetFilters = (widget: Ref<Widget | undefined>, parentId?: string) =>
 
     filters.value.push(placeHolderGroupFilter)
 
+    const index = filters.value.length - 1
+
+    await saveOrUpdate(filters.value[index], index)
+
     $e('a:filter:add', { length: filters.value.length, group: true })
   }
 

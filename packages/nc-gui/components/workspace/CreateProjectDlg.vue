@@ -88,7 +88,7 @@ const typeLabel = computed(() => {
 </script>
 
 <template>
-  <general-modal v-model:visible="dialogShow">
+  <general-modal v-model:visible="dialogShow" width="32rem">
     <div class="px-8 py-5.5">
       <!-- Create A New Table -->
       <div class="flex flex-row prose-lg font-medium items-center mb-7">

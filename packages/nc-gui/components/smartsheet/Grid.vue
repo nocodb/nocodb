@@ -992,6 +992,10 @@ function openGenerateDialog(target: any) {
     close(1000)
   }
 }
+
+const onDraftRecordClick = () => {
+  if (!isLocked?.value) openNewRecordFormHook.trigger()
+}
 </script>
 
 <template>
@@ -1395,6 +1399,7 @@ function openGenerateDialog(target: any) {
                 v-e="['c:row:add:grid-top']"
                 :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
                 class="bg-white shadow-sm border-1 border-gray-100 rounded p-2 flex items-center justify-center select-none cursor-pointer hover:bg-gray-50 text-gray-600"
+                @click="onDraftRecordClick"
               >
                 <MaterialSymbolsEditOutlineRounded class="mr-2" />
                 New Record with Form

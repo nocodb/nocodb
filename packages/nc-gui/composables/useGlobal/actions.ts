@@ -88,7 +88,7 @@ export function useGlobalActions(state: State): Actions {
         break
     }
 
-    if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
+    if (state.appInfo.value.baseHostName) {
       location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}/dashboard/#${path}`
     } else {
       navigateTo(path)

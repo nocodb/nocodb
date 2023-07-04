@@ -31,13 +31,13 @@ test.describe('LTAR create & update', () => {
     // Create LTAR-HM column
     await dashboard.grid.column.create({
       title: 'Link1-2hm',
-      type: 'Links',
+      type: 'LinkToAnotherRecord',
       childTable: 'Sheet2',
       relationType: 'Has Many',
     });
     await dashboard.grid.column.create({
       title: 'Link1-2mm',
-      type: 'Links',
+      type: 'LinkToAnotherRecord',
       childTable: 'Sheet2',
       relationType: 'Many To many',
     });
@@ -46,7 +46,7 @@ test.describe('LTAR create & update', () => {
     await dashboard.treeView.openTable({ title: 'Sheet2', networkResponse: false });
     await dashboard.grid.column.create({
       title: 'Link2-1hm',
-      type: 'Links',
+      type: 'LinkToAnotherRecord',
       childTable: 'Sheet1',
       relationType: 'Has Many',
     });
@@ -67,7 +67,7 @@ test.describe('LTAR create & update', () => {
       type: 'belongsTo',
     });
     await dashboard.expandedForm.fillField({
-      columnTitle: 'Sheet1s',
+      columnTitle: 'Sheet1 List',
       value: '1a',
       type: 'manyToMany',
     });
@@ -84,7 +84,7 @@ test.describe('LTAR create & update', () => {
     await dashboard.linkRecord.select('1b');
     await dashboard.grid.cell.inCellAdd({
       index: 1,
-      columnHeader: 'Sheet1s',
+      columnHeader: 'Sheet1 List',
     });
     await dashboard.linkRecord.select('1b');
     await dashboard.grid.cell.inCellAdd({
@@ -102,7 +102,7 @@ test.describe('LTAR create & update', () => {
       type: 'belongsTo',
     });
     await dashboard.expandedForm.fillField({
-      columnTitle: 'Sheet1s',
+      columnTitle: 'Sheet1 List',
       value: '1c',
       type: 'manyToMany',
     });
@@ -123,10 +123,10 @@ test.describe('LTAR create & update', () => {
 
     const expected = [
       [['1a'], ['1b'], ['1c']],
-      [['1 Sheet1'], ['1 Sheet1'], ['1 Sheet1']],
-      [['1 Sheet1'], ['1 Sheet1'], ['1 Sheet1']],
+      [['1a'], ['1b'], ['1c']],
+      [['1a'], ['1b'], ['1c']],
     ];
-    const colHeaders = ['Sheet1', 'Sheet1s', 'Link2-1hm'];
+    const colHeaders = ['Sheet1', 'Sheet1 List', 'Link2-1hm'];
 
     // verify LTAR cell values
     for (let i = 0; i < expected.length; i++) {
@@ -136,8 +136,6 @@ test.describe('LTAR create & update', () => {
           columnHeader: colHeaders[i],
           count: 1,
           value: expected[i][j],
-          type: i === 0 ? 'bt' : undefined,
-          options: { singular: 'Sheet1', plural: 'Sheet1s' },
         });
       }
     }
@@ -146,8 +144,8 @@ test.describe('LTAR create & update', () => {
     await dashboard.treeView.openTable({ title: 'Sheet1' });
 
     const expected2 = [
-      [['1 Sheet2'], ['1 Sheet2'], ['1 Sheet2']],
-      [['1 Sheet2'], ['1 Sheet2'], ['1 Sheet2']],
+      [['2a'], ['2b'], ['2c']],
+      [['2a'], ['2b'], ['2c']],
       [['2a'], ['2b'], ['2c']],
     ];
     const colHeaders2 = ['Link1-2hm', 'Link1-2mm', 'Sheet2'];
@@ -160,13 +158,11 @@ test.describe('LTAR create & update', () => {
           columnHeader: colHeaders2[i],
           count: 1,
           value: expected2[i][j],
-          type: i === 2 ? 'bt' : undefined,
-          options: { singular: 'Sheet2', plural: 'Sheet2s' },
         });
       }
     }
 
-    // Unlink LTAR cells
+    // verify LTAR cell values
     for (let i = 0; i < expected2.length; i++) {
       for (let j = 0; j < expected2[i].length; j++) {
         await dashboard.grid.cell.unlinkVirtualCell({
@@ -192,7 +188,7 @@ test.describe('LTAR create & update', () => {
       Country: string;
       formula?: string;
       SLT?: string;
-      Cities: string[];
+      'City List': string[];
     };
   }) {
     await dashboard.grid.cell.verify({
@@ -209,9 +205,9 @@ test.describe('LTAR create & update', () => {
     }
     await dashboard.grid.cell.verifyVirtualCell({
       index: param.index,
-      columnHeader: 'Cities',
-      count: param.value['Cities'].length,
-      value: param.value['Cities'],
+      columnHeader: 'City List',
+      count: param.value['City List'].length,
+      value: param.value['City List'],
     });
     if (param.value.SLT) {
       await dashboard.grid.cell.verify({
@@ -241,14 +237,14 @@ test.describe('LTAR create & update', () => {
       index: 0,
       value: {
         Country: 'Afghanistan',
-        Cities: ['Kabul'],
+        'City List': ['Kabul'],
       },
     });
     await verifyRow({
       index: 1,
       value: {
         Country: 'Algeria',
-        Cities: ['Batna', 'Bchar', 'Skikda'],
+        'City List': ['Batna', 'Bchar', 'Skikda'],
       },
     });
 
@@ -274,7 +270,7 @@ test.describe('LTAR create & update', () => {
       index: 0,
       value: {
         Country: 'Afghanistan',
-        Cities: ['Kabul'],
+        'City List': ['Kabul'],
         SLT: 'test',
         formula: 'Afghanistan test',
       },
@@ -290,7 +286,7 @@ test.describe('LTAR create & update', () => {
       index: 0,
       value: {
         Country: 'Afghanistan2',
-        Cities: ['Kabul'],
+        'City List': ['Kabul'],
         SLT: 'test',
         formula: 'Afghanistan2 test',
       },
@@ -305,7 +301,7 @@ test.describe('LTAR create & update', () => {
       index: 0,
       value: {
         Country: 'Afghanistan2',
-        Cities: ['Kabul'],
+        'City List': ['Kabul'],
         SLT: '',
         formula: 'Afghanistan2',
       },

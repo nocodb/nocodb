@@ -92,11 +92,9 @@ test.describe('Attachment column', () => {
     const rows = csvArray.slice(1);
     const cells = rows[10].split(',');
 
-    await expect(columns).toBe('Country,Cities,testAttach');
+    await expect(columns).toBe('Country,City List,testAttach');
     await expect(cells[0]).toBe('Bahrain');
-    // PR8504
-    // await expect(cells[1]).toBe('al-Manama');
-    await expect(cells[1]).toBe('1');
+    await expect(cells[1]).toBe('al-Manama');
     await expect(cells[2].includes('5.json(http://localhost:8080/download/')).toBe(true);
   });
 

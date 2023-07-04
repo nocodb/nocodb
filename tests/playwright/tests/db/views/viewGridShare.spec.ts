@@ -32,7 +32,7 @@ test.describe('Shared view', () => {
 
     // hide column
     await dashboard.grid.toolbar.fields.toggle({ title: 'Address2' });
-    await dashboard.grid.toolbar.fields.toggle({ title: 'Stores' });
+    await dashboard.grid.toolbar.fields.toggle({ title: 'Store List' });
 
     // sort
     await dashboard.grid.toolbar.sort.add({
@@ -73,9 +73,9 @@ test.describe('Shared view', () => {
       { title: 'PostalCode', isVisible: true },
       { title: 'Phone', isVisible: true },
       { title: 'LastUpdate', isVisible: true },
-      { title: 'Customers', isVisible: true },
-      { title: 'Staffs', isVisible: true },
-      { title: 'Stores', isVisible: false },
+      { title: 'Customer List', isVisible: true },
+      { title: 'Staff List', isVisible: true },
+      { title: 'Store List', isVisible: false },
       { title: 'City', isVisible: true },
     ];
     for (const column of expectedColumns) {
@@ -94,11 +94,7 @@ test.describe('Shared view', () => {
 
     // verify virtual records
     for (const record of expectedVirtualRecordsByDb) {
-      await sharedPage.grid.cell.verifyVirtualCell({
-        ...record,
-        options: { singular: 'Customer', plural: 'Customers' },
-        verifyChildList: true,
-      });
+      await sharedPage.grid.cell.verifyVirtualCell({ ...record, verifyChildList: true });
     }
 
     /**
@@ -281,15 +277,15 @@ const sqliteExpectedRecords2 = [
 ];
 
 const expectedVirtualRecords = [
-  { index: 0, columnHeader: 'Customers', count: 1, type: 'hm' },
-  { index: 1, columnHeader: 'Customers', count: 1, type: 'hm' },
-  { index: 0, columnHeader: 'City', count: 1, type: 'bt', value: ['Kanchrapara'] },
-  { index: 1, columnHeader: 'City', count: 1, type: 'bt', value: ['Tafuna'] },
+  { index: 0, columnHeader: 'Customer List', count: 1, value: ['2'] },
+  { index: 1, columnHeader: 'Customer List', count: 1, value: ['2'] },
+  { index: 0, columnHeader: 'City', count: 1, value: ['Kanchrapara'] },
+  { index: 1, columnHeader: 'City', count: 1, value: ['Tafuna'] },
 ];
 
 const sqliteExpectedVirtualRecords = [
-  { index: 0, columnHeader: 'Customers', count: 1, type: 'hm' },
-  { index: 1, columnHeader: 'Customers', count: 1, type: 'hm' },
-  { index: 0, columnHeader: 'City', count: 1, type: 'bt', value: ['Davao'] },
-  { index: 1, columnHeader: 'City', count: 1, type: 'bt', value: ['Nagareyama'] },
+  { index: 0, columnHeader: 'Customer List', count: 1, value: ['2'] },
+  { index: 1, columnHeader: 'Customer List', count: 1, value: ['1'] },
+  { index: 0, columnHeader: 'City', count: 1, value: ['Davao'] },
+  { index: 1, columnHeader: 'City', count: 1, value: ['Nagareyama'] },
 ];

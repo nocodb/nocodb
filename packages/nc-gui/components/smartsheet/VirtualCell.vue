@@ -14,7 +14,6 @@ import {
   isCount,
   isFormula,
   isHm,
-  isLink,
   isLookup,
   isMm,
   isQrCode,
@@ -96,8 +95,7 @@ onUnmounted(() => {
     @keydown.shift.enter.exact="onNavigate(NavigateDir.PREV, $event)"
   >
     <template v-if="intersected">
-      <LazyVirtualCellLinks v-if="isLink(column)" />
-      <LazyVirtualCellHasMany v-else-if="isHm(column)" />
+      <LazyVirtualCellHasMany v-if="isHm(column)" />
       <LazyVirtualCellManyToMany v-else-if="isMm(column)" />
       <LazyVirtualCellBelongsTo v-else-if="isBt(column)" />
       <LazyVirtualCellRollup v-else-if="isRollup(column)" />

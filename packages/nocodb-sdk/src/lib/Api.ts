@@ -433,8 +433,7 @@ export interface ColumnType {
     | 'Time'
     | 'URL'
     | 'Year'
-    | 'QrCode'
-    | 'Links';
+    | 'QrCode';
   /** Is Unsigned? */
   un?: BoolType;
   /** Is unique? */
@@ -1469,7 +1468,7 @@ export interface LinkToAnotherColumnReqType {
   /** The type of the relationship */
   type: 'bt' | 'hm' | 'mm';
   /** Abstract type of the relationship */
-  uidt: 'LinkToAnotherRecord' | 'Links';
+  uidt: 'LinkToAnotherRecord';
   /** Is this relationship virtual? */
   virtual?: BoolType;
 }
@@ -1721,8 +1720,7 @@ export interface NormalColumnRequestType {
     | 'Time'
     | 'URL'
     | 'Year'
-    | 'QrCode'
-    | 'Links';
+    | 'QrCode';
   /** Is this column unique? */
   un?: BoolType;
   /** Is this column unique? */

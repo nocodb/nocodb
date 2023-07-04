@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { isLinksOrLTAR } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import type { ERDConfig } from './utils'
 import { reactive, ref, storeToRefs, useMetas, useProject, watch } from '#imports'
 
@@ -42,7 +42,9 @@ const populateTables = async () => {
       (t) =>
         t.id === props.table?.id ||
         props.table?.columns?.find(
-          (column) => isLinksOrLTAR(column.uidt) && (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id === t.id,
+          (column) =>
+            column.uidt === UITypes.LinkToAnotherRecord &&
+            (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id === t.id,
         ),
     )
   } else {

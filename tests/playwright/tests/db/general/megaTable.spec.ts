@@ -202,9 +202,9 @@ test.describe.serial('Test table', () => {
     await api.dbTableRow.bulkCreate('noco', context.project.id, table_2.id, rows);
 
     await api.dbTableColumn.create(table_2.id, {
-      uidt: UITypes.Links,
-      title: 'Links',
-      column_name: 'Links',
+      uidt: UITypes.LinkToAnotherRecord,
+      title: 'LinkToAnotherRecord',
+      column_name: 'LinkToAnotherRecord',
       parentId: table_1.id,
       childId: table_2.id,
       type: 'hm',

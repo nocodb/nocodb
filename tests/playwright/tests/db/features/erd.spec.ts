@@ -188,33 +188,33 @@ test.describe('Erd', () => {
     // Verify tables with default config
     await erd.verifyColumns({
       tableName: `country`,
-      columns: ['country_id', 'country', 'last_update', 'cities'],
+      columns: ['country_id', 'country', 'last_update', 'city_list'],
     });
 
     await erd.verifyColumns({
       tableName: `city`,
-      columns: ['city_id', 'city', 'country_id', 'last_update', 'country', 'addresses'],
+      columns: ['city_id', 'city', 'country_id', 'last_update', 'country', 'address_list'],
     });
 
     // Verify with PK/FK disabled
     await erd.clickShowPkAndFk();
     await erd.verifyColumns({
       tableName: `country`,
-      columns: ['country', 'last_update', 'cities'],
+      columns: ['country', 'last_update', 'city_list'],
     });
 
     await erd.verifyColumns({
       tableName: `city`,
-      columns: ['city', 'last_update', 'country', 'addresses'],
+      columns: ['city', 'last_update', 'country', 'address_list'],
     });
 
     // Verify with all columns disabled
     await erd.clickShowColumnNames();
-    await erd.verifyColumns({ tableName: `country`, columns: ['cities'] });
+    await erd.verifyColumns({ tableName: `country`, columns: ['city_list'] });
 
     await erd.verifyColumns({
       tableName: `city`,
-      columns: ['country', 'addresses'],
+      columns: ['country', 'address_list'],
     });
 
     // Enable All columns
@@ -311,7 +311,7 @@ test.describe('Erd', () => {
   });
 });
 
-const actorTableColumn = ['actor_id', 'first_name', 'last_name', 'last_update', 'films'];
+const actorTableColumn = ['actor_id', 'first_name', 'last_name', 'last_update', 'film_list'];
 
 const mysqlPaymentTableColumns = [
   'payment_id',
@@ -338,9 +338,9 @@ const pgPaymentTableColumns = [
   'staff',
 ];
 
-const actorLTARColumns = ['filmactors', 'films'];
+const actorLTARColumns = ['filmactor_list', 'film_list'];
 
-const actorNonPkFkColumns = ['first_name', 'last_name', 'last_update', 'films', 'filmactors'];
+const actorNonPkFkColumns = ['first_name', 'last_name', 'last_update', 'film_list', 'filmactor_list'];
 
 const paymentLTARColumns = ['customer', 'rental', 'staff'];
 

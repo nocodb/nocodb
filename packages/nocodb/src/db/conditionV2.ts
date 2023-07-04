@@ -275,10 +275,7 @@ const parseConditionV2 = async (
       return (_qb) => {};
     } else if (column.uidt === UITypes.Lookup) {
       return await generateLookupCondition(column, filter, knex, aliasCount);
-    } else if (
-      [UITypes.Rollup, UITypes.Links].includes(column.uidt) &&
-      !customWhereClause
-    ) {
+    } else if (column.uidt === UITypes.Rollup && !customWhereClause) {
       const builder = (
         await genRollupSelectv2({
           knex,
@@ -419,7 +416,6 @@ const parseConditionV2 = async (
                   UITypes.Decimal,
                   UITypes.Rating,
                   UITypes.Rollup,
-                  UITypes.Links,
                 ].includes(column.uidt)
               ) {
                 qb = qb.where(field, val);
@@ -446,14 +442,12 @@ const parseConditionV2 = async (
                   UITypes.Number,
                   UITypes.Decimal,
                   UITypes.Rollup,
-                  UITypes.Links,
                 ].includes(column.uidt)
               ) {
                 qb = qb.where((nestedQb) => {
-                  nestedQb.whereNot(field, val);
-
-                  if (column.uidt !== UITypes.Links)
-                    nestedQb.orWhereNull(customWhereClause ? _val : _field);
+                  nestedQb
+                    .whereNot(field, val)
+                    .orWhereNull(customWhereClause ? _val : _field);
                 });
               } else if (column.uidt === UITypes.Rating) {
                 // unset rating is considered as NULL
@@ -473,10 +467,9 @@ const parseConditionV2 = async (
               }
             } else {
               qb = qb.where((nestedQb) => {
-                nestedQb.whereNot(field, val);
-
-                if (column.uidt !== UITypes.Links)
-                  nestedQb.orWhereNull(customWhereClause ? _val : _field);
+                nestedQb
+                  .whereNot(field, val)
+                  .orWhereNull(customWhereClause ? _val : _field);
               });
             }
             break;

@@ -3,7 +3,6 @@ import DOMPurify from 'isomorphic-dompurify';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
-  isLinksOrLTAR,
   isVirtualCol,
   ModelTypes,
   UITypes,
@@ -15,7 +14,13 @@ import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
 import getColumnUiType from '../helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
 import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
-import { Audit, Column, Model, ModelRoleVisibility, Project } from '../models';
+import {
+  Audit,
+  Column,
+  Model,
+  ModelRoleVisibility,
+  Project,
+} from '../models';
 import Noco from '../Noco';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { validatePayload } from '../helpers';
@@ -151,7 +156,9 @@ export class TablesService {
     const project = await Project.getWithInfo(table.project_id);
     const base = project.bases.find((b) => b.id === table.base_id);
 
-    const relationColumns = table.columns.filter((c) => isLinksOrLTAR(c));
+    const relationColumns = table.columns.filter(
+      (c) => c.uidt === UITypes.LinkToAnotherRecord,
+    );
 
     if (relationColumns?.length && !base.is_meta) {
       const referredTables = await Promise.all(

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnReqType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { RelationTypes, UITypes } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   ColumnInj,
@@ -66,7 +66,7 @@ const deleteColumn = () =>
         await getMeta(meta?.value?.id as string, true)
 
         /** force-reload related table meta if deleted column is a LTAR and not linked to same table */
-        if (isLinksOrLTAR(column?.value) && column.value?.colOptions) {
+        if (column?.value?.uidt === UITypes.LinkToAnotherRecord && column.value?.colOptions) {
           await getMeta((column.value?.colOptions as LinkToAnotherRecordType).fk_related_model_id!, true)
 
           // reload tables if deleted column is mm and include m2m is true
@@ -181,7 +181,6 @@ const duplicateColumn = async () => {
   // construct column create payload
   switch (column?.value.uidt) {
     case UITypes.LinkToAnotherRecord:
-    case UITypes.Links:
     case UITypes.Lookup:
     case UITypes.Rollup:
     case UITypes.Formula:
@@ -316,7 +315,7 @@ const hideField = async () => {
             {{ $t('general.edit') }}
           </div>
         </a-menu-item>
-        <template v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
+        <template v-if="column.uidt !== UITypes.LinkToAnotherRecord || column.colOptions.type !== RelationTypes.BELONGS_TO">
           <a-divider class="!my-0" />
           <a-menu-item @click="sortByColumn('asc')">
             <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">

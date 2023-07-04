@@ -296,15 +296,15 @@ export class GridPage extends BasePage {
     await expect(await this.rootPage.locator('text=Insert New Row')).not.toBeVisible();
 
     // in cell-add
-    await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();
+    await this.cell.get({ index: 0, columnHeader: 'City List' }).hover();
     await expect(
-      await this.cell.get({ index: 0, columnHeader: 'Cities' }).locator('.nc-action-icon.nc-plus')
+      await this.cell.get({ index: 0, columnHeader: 'City List' }).locator('.nc-action-icon.nc-plus')
     ).not.toBeVisible();
 
     // expand row
-    await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();
+    await this.cell.get({ index: 0, columnHeader: 'City List' }).hover();
     await expect(
-      await this.cell.get({ index: 0, columnHeader: 'Cities' }).locator('.nc-action-icon >> nth=0')
+      await this.cell.get({ index: 0, columnHeader: 'City List' }).locator('.nc-action-icon >> nth=0')
     ).not.toBeVisible();
   }
 
@@ -327,9 +327,15 @@ export class GridPage extends BasePage {
     await expect(await this.rootPage.locator('text=Insert New Row')).toBeVisible();
 
     // in cell-add
-    await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();
+    await this.cell.get({ index: 0, columnHeader: 'City List' }).hover();
     await expect(
-      await this.cell.get({ index: 0, columnHeader: 'Cities' }).locator('.nc-action-icon.nc-plus')
+      await this.cell.get({ index: 0, columnHeader: 'City List' }).locator('.nc-action-icon.nc-plus')
+    ).toBeVisible();
+
+    // expand row
+    await this.cell.get({ index: 0, columnHeader: 'City List' }).hover();
+    await expect(
+      await this.cell.get({ index: 0, columnHeader: 'City List' }).locator('.nc-action-icon.nc-arrow-expand')
     ).toBeVisible();
   }
 

@@ -1,4 +1,4 @@
-import { AllowedColumnTypesForQrAndBarcodes, isLinksOrLTAR, UITypes } from 'nocodb-sdk'
+import { AllowedColumnTypesForQrAndBarcodes, UITypes } from 'nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
 import {
   CacheDelDirection,
@@ -10,7 +10,6 @@ import Noco from '../Noco';
 import addFormulaErrorIfMissingColumn from '../helpers/addFormulaErrorIfMissingColumn';
 import { NcError } from '../helpers/catchError';
 import { extractProps } from '../helpers/extractProps';
-import { stringifyMetaProp } from '../utils/modelUtils';
 import FormulaColumn from './FormulaColumn';
 import LinkToAnotherRecordColumn from './LinkToAnotherRecordColumn';
 import LookupColumn from './LookupColumn';
@@ -22,7 +21,6 @@ import Sort from './Sort';
 import Filter from './Filter';
 import QrCodeColumn from './QrCodeColumn';
 import BarcodeColumn from './BarcodeColumn';
-import { LinksColumn } from './index';
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk';
 
 export default class Column<T = any> implements ColumnType {
@@ -208,7 +206,6 @@ export default class Column<T = any> implements ColumnType {
         );
         break;
       }
-      case UITypes.Links:
       case UITypes.LinkToAnotherRecord: {
         await LinkToAnotherRecordColumn.insert(
           {
@@ -424,9 +421,6 @@ export default class Column<T = any> implements ColumnType {
         break;
       case UITypes.LinkToAnotherRecord:
         res = await LinkToAnotherRecordColumn.read(this.id, ncMeta);
-        break;
-      case UITypes.Links:
-        res = await LinksColumn.read(this.id, ncMeta);
         break;
       case UITypes.MultiSelect:
         res = await SelectOption.read(this.id, ncMeta);
@@ -658,7 +652,7 @@ export default class Column<T = any> implements ColumnType {
       }
     }
 
-    // get rollup/links column and delete
+    // get rollup column and delete
     {
       const cachedList = await NocoCache.getList(CacheScope.COL_ROLLUP, [id]);
       let { list: rollups } = cachedList;
@@ -705,7 +699,7 @@ export default class Column<T = any> implements ColumnType {
     }
 
     //  if relation column check lookup and rollup and delete
-    if (isLinksOrLTAR(col.uidt)) {
+    if (col.uidt === UITypes.LinkToAnotherRecord) {
       {
         // get lookup columns using relation and delete
         const cachedList = await NocoCache.getList(CacheScope.COL_LOOKUP, [id]);
@@ -784,7 +778,6 @@ export default class Column<T = any> implements ColumnType {
         cacheScopeName = CacheScope.COL_LOOKUP;
         break;
       case UITypes.LinkToAnotherRecord:
-      case UITypes.Links:
         colOptionTableName = MetaTable.COL_RELATIONS;
         cacheScopeName = CacheScope.COL_RELATION;
         break;
@@ -1212,30 +1205,5 @@ export default class Column<T = any> implements ColumnType {
       fieldLengthLimit = 128;
     }
     return fieldLengthLimit;
-  }
-
-  static async updateMeta(
-    { colId, meta }: { colId: string; meta: any },
-    ncMeta = Noco.ncMeta,
-  ) {
-    // get existing cache
-    const key = `${CacheScope.COLUMN}:${colId}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      // update meta
-      o.meta = meta;
-      // set cache
-      await NocoCache.set(key, o);
-    }
-    // set meta
-    await ncMeta.metaUpdate(
-      null,
-      null,
-      MetaTable.COLUMNS,
-      {
-        meta: stringifyMetaProp(meta),
-      },
-      colId,
-    );
   }
 }

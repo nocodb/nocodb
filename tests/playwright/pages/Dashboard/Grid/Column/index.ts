@@ -139,6 +139,7 @@ export class ColumnPageObject extends BasePage {
           .locator(`.ant-select-item`, {
             hasText: childColumn,
           })
+          .last()
           .click();
         break;
       case 'Rollup':
@@ -162,7 +163,7 @@ export class ColumnPageObject extends BasePage {
           .nth(0)
           .click();
         break;
-      case 'LinkToAnotherRecord':
+      case 'Links':
         await this.get()
           .locator('.nc-ltar-relation-type >> .ant-radio')
           .nth(relationType === 'Has Many' ? 0 : 1)

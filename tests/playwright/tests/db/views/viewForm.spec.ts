@@ -34,7 +34,7 @@ test.describe('Form view', () => {
 
     // verify form-view fields order
     await form.verifyFormViewFieldsOrder({
-      fields: ['Country', 'LastUpdate', 'City List'],
+      fields: ['Country', 'LastUpdate', 'Cities'],
     });
 
     // reorder & verify
@@ -43,31 +43,31 @@ test.describe('Form view', () => {
       destinationField: 'Country',
     });
     await form.verifyFormViewFieldsOrder({
-      fields: ['LastUpdate', 'Country', 'City List'],
+      fields: ['LastUpdate', 'Country', 'Cities'],
     });
 
     // remove & verify (drag-drop)
-    await form.removeField({ field: 'City List', mode: 'dragDrop' });
+    await form.removeField({ field: 'Cities', mode: 'dragDrop' });
     await form.verifyFormViewFieldsOrder({
       fields: ['LastUpdate', 'Country'],
     });
 
     // add & verify (drag-drop)
-    await form.addField({ field: 'City List', mode: 'dragDrop' });
+    await form.addField({ field: 'Cities', mode: 'dragDrop' });
     await form.verifyFormViewFieldsOrder({
-      fields: ['LastUpdate', 'Country', 'City List'],
+      fields: ['LastUpdate', 'Country', 'Cities'],
     });
 
     // remove & verify (hide field button)
-    await form.removeField({ field: 'City List', mode: 'hideField' });
+    await form.removeField({ field: 'Cities', mode: 'hideField' });
     await form.verifyFormViewFieldsOrder({
       fields: ['LastUpdate', 'Country'],
     });
 
     // add & verify (hide field button)
-    await form.addField({ field: 'City List', mode: 'clickField' });
+    await form.addField({ field: 'Cities', mode: 'clickField' });
     await form.verifyFormViewFieldsOrder({
-      fields: ['LastUpdate', 'Country', 'City List'],
+      fields: ['LastUpdate', 'Country', 'Cities'],
     });
 
     // remove-all & verify
@@ -81,7 +81,7 @@ test.describe('Form view', () => {
     await form.addAllFields();
     await dashboard.rootPage.waitForTimeout(2000);
     await form.verifyFormViewFieldsOrder({
-      fields: ['LastUpdate', 'Country', 'City List'],
+      fields: ['LastUpdate', 'Country', 'Cities'],
     });
   });
 
@@ -310,7 +310,7 @@ test.describe('Form view with LTAR', () => {
       await api.dbTableColumn.create(countryTable.id, {
         column_name: 'CityList',
         title: 'CityList',
-        uidt: UITypes.LinkToAnotherRecord,
+        uidt: UITypes.Links,
         parentId: countryTable.id,
         childId: cityTable.id,
         type: 'hm',
@@ -360,7 +360,8 @@ test.describe('Form view with LTAR', () => {
       index: 3,
       columnHeader: 'CityList',
       count: 1,
-      value: ['Atlanta'],
+      type: 'hm',
+      options: { singular: 'City', plural: 'Cities' },
     });
   });
 });

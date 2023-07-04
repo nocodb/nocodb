@@ -65,7 +65,7 @@ test.describe('Share form', () => {
     await surveyForm.validate({
       heading: 'Country Title',
       subHeading: 'Country Form Subtitle',
-      fieldLabel: 'City List',
+      fieldLabel: 'Cities',
       footer: '3 / 3',
     });
     await surveyForm.submitButton.click();

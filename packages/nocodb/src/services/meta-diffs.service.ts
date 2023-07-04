@@ -1,6 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { isVirtualCol, ModelTypes, RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  isLinksOrLTAR,
+  isVirtualCol,
+  ModelTypes,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import { T } from 'nc-help';
+import { pluralize, singularize } from 'inflection';
 import { Base, Column, Model, Project } from '../models';
 import ModelXcMetaFactory from '../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
 import getColumnUiType from '../helpers/getColumnUiType';
@@ -9,7 +16,7 @@ import { getUniqueColumnAliasName } from '../helpers/getUniqueName';
 import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import NcHelp from '../utils/NcHelp';
-import type { LinkToAnotherRecordColumn } from '../models';
+import type { LinksColumn, LinkToAnotherRecordColumn } from '../models';
 
 // todo:move enum and types
 export enum MetaDiffType {
@@ -222,12 +229,13 @@ export class MetaDiffsService {
         if (
           [
             UITypes.LinkToAnotherRecord,
+            UITypes.Links,
             UITypes.Rollup,
             UITypes.Lookup,
             UITypes.Formula,
           ].includes(column.uidt)
         ) {
-          if (column.uidt === UITypes.LinkToAnotherRecord) {
+          if (isLinksOrLTAR(column.uidt)) {
             virtualRelationColumns.push(column);
           }
 
@@ -507,6 +515,7 @@ export class MetaDiffsService {
             UITypes.Rollup,
             UITypes.Lookup,
             UITypes.Formula,
+            UITypes.Links,
           ].includes(column.uidt)
         ) {
           continue;
@@ -745,10 +754,10 @@ export class MetaDiffsService {
                   } else if (change.relationType === RelationTypes.HAS_MANY) {
                     const title = getUniqueColumnAliasName(
                       childModel.columns,
-                      `${childModel.title || childModel.table_name} List`,
+                      pluralize(childModel.title || childModel.table_name),
                     );
                     await Column.insert<LinkToAnotherRecordColumn>({
-                      uidt: UITypes.LinkToAnotherRecord,
+                      uidt: UITypes.Links,
                       title,
                       fk_model_id: parentModel.id,
                       fk_related_model_id: childModel.id,
@@ -757,6 +766,10 @@ export class MetaDiffsService {
                       fk_child_column_id: childCol.id,
                       virtual: false,
                       fk_index_name: change.cstn,
+                      meta: {
+                        plural: pluralize(childModel.title),
+                        singular: singularize(childModel.title),
+                      },
                     });
                   }
                 });
@@ -940,10 +953,10 @@ export class MetaDiffsService {
                 } else if (change.relationType === RelationTypes.HAS_MANY) {
                   const title = getUniqueColumnAliasName(
                     childModel.columns,
-                    `${childModel.title || childModel.table_name} List`,
+                    pluralize(childModel.title || childModel.table_name),
                   );
-                  await Column.insert<LinkToAnotherRecordColumn>({
-                    uidt: UITypes.LinkToAnotherRecord,
+                  await Column.insert<LinksColumn>({
+                    uidt: UITypes.Links,
                     title,
                     fk_model_id: parentModel.id,
                     fk_related_model_id: childModel.id,
@@ -979,7 +992,7 @@ export class MetaDiffsService {
     const colChildOpt =
       await belongsToCol.getColOptions<LinkToAnotherRecordColumn>();
     for (const col of await model.getColumns()) {
-      if (col.uidt === UITypes.LinkToAnotherRecord) {
+      if (isLinksOrLTAR(col.uidt)) {
         const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>();
         if (
           colOpt &&
@@ -1038,10 +1051,10 @@ export class MetaDiffsService {
         );
 
         if (!isRelationAvailInA) {
-          await Column.insert<LinkToAnotherRecordColumn>({
+          await Column.insert<LinksColumn>({
             title: getUniqueColumnAliasName(
               modelA.columns,
-              `${modelB.title} List`,
+              pluralize(modelB.title),
             ),
             fk_model_id: modelA.id,
             fk_related_model_id: modelB.id,
@@ -1054,14 +1067,18 @@ export class MetaDiffsService {
             fk_mm_parent_column_id:
               belongsToCols[1].colOptions.fk_child_column_id,
             type: RelationTypes.MANY_TO_MANY,
-            uidt: UITypes.LinkToAnotherRecord,
+            uidt: UITypes.Links,
+            meta: {
+              plural: pluralize(modelB.title),
+              singular: singularize(modelB.title),
+            },
           });
         }
         if (!isRelationAvailInB) {
-          await Column.insert<LinkToAnotherRecordColumn>({
+          await Column.insert<LinksColumn>({
             title: getUniqueColumnAliasName(
               modelB.columns,
-              `${modelA.title} List`,
+              pluralize(modelA.title),
             ),
             fk_model_id: modelB.id,
             fk_related_model_id: modelA.id,
@@ -1074,7 +1091,11 @@ export class MetaDiffsService {
             fk_mm_parent_column_id:
               belongsToCols[0].colOptions.fk_child_column_id,
             type: RelationTypes.MANY_TO_MANY,
-            uidt: UITypes.LinkToAnotherRecord,
+            uidt: UITypes.Links,
+            meta: {
+              plural: pluralize(modelA.title),
+              singular: singularize(modelA.title),
+            },
           });
         }
 
@@ -1086,7 +1107,7 @@ export class MetaDiffsService {
           const model = await colOpt.getRelatedTable();
 
           for (const col of await model.getColumns()) {
-            if (col.uidt !== UITypes.LinkToAnotherRecord) continue;
+            if (!isLinksOrLTAR(col.uidt)) continue;
 
             const colOpt1 =
               await col.getColOptions<LinkToAnotherRecordColumn>();

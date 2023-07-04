@@ -227,5 +227,6 @@ export const useProject = defineStore('projectStore', () => {
     isXcdbBase,
     hasEmptyOrNullFilters,
     setProject,
+    getBaseType,
   }
 })

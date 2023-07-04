@@ -2,8 +2,8 @@ import { Readable } from 'stream';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import papaparse from 'papaparse';
-import { UITypes } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
+import { isLinksOrLTAR } from 'nocodb-sdk';
 import { Base, Column, Model, Project } from '../../../../models';
 import { ProjectsService } from '../../../../services/projects.service';
 import { findWithIdentifier } from '../../../../helpers/exportImportHelpers';
@@ -137,7 +137,7 @@ export class DuplicateProcessor {
     await sourceModel.getColumns();
 
     const relatedModelIds = sourceModel.columns
-      .filter((col) => col.uidt === UITypes.LinkToAnotherRecord)
+      .filter((col) => isLinksOrLTAR(col))
       .map((col) => col.colOptions.fk_related_model_id)
       .filter((id) => id);
 
@@ -186,7 +186,7 @@ export class DuplicateProcessor {
         const bts = md.columns
           .filter(
             (c) =>
-              c.uidt === UITypes.LinkToAnotherRecord &&
+              isLinksOrLTAR(c) &&
               c.colOptions.type === 'bt' &&
               c.colOptions.fk_related_model_id === modelId,
           )

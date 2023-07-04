@@ -1490,6 +1490,10 @@ const onDraftRecordClick = () => {
     position: relative;
   }
 
+  .nc-grid-header th:last-child {
+    @apply !border-b-1;
+  }
+
   tr:nth-child(1) td {
     @apply border-t-1;
   }

@@ -582,7 +582,6 @@ function openTableCreateMagicDialog(baseId?: string) {
                   <!-- Quick Import From -->
                   <a-menu-item-group :title="$t('title.quickImportFrom')" class="!px-0 !mx-0">
                     <a-menu-item
-                      v-if="isUIAllowed('airtableImport', false, projectRole)"
                       key="quick-import-airtable"
                       @click="openAirtableImportDialog(project.bases[0].id)"
                     >
@@ -593,7 +592,6 @@ function openTableCreateMagicDialog(baseId?: string) {
                     </a-menu-item>
 
                     <a-menu-item
-                      v-if="isUIAllowed('csvImport', false, projectRole)"
                       key="quick-import-csv"
                       @click="openQuickImportDialog('csv', project.bases[0].id)"
                     >
@@ -604,7 +602,6 @@ function openTableCreateMagicDialog(baseId?: string) {
                     </a-menu-item>
 
                     <a-menu-item
-                      v-if="isUIAllowed('jsonImport', false, projectRole)"
                       key="quick-import-json"
                       @click="openQuickImportDialog('json', project.bases[0].id)"
                     >
@@ -615,7 +612,6 @@ function openTableCreateMagicDialog(baseId?: string) {
                     </a-menu-item>
 
                     <a-menu-item
-                      v-if="isUIAllowed('excelImport', false, projectRole)"
                       key="quick-import-excel"
                       @click="openQuickImportDialog('excel', project.bases[0].id)"
                     >

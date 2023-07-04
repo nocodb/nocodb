@@ -611,8 +611,9 @@ test.describe.serial('Webhook', () => {
 
       // create LTAR Country has-many City
       countryTable = await api.dbTableColumn.create(countryTable.id, {
+        column_name: 'CityList',
         title: 'CityList',
-        uidt: UITypes.Links,
+        uidt: UITypes.LinkToAnotherRecord,
         parentId: countryTable.id,
         childId: cityTable.id,
         type: 'hm',
@@ -683,7 +684,16 @@ test.describe.serial('Webhook', () => {
             CountryCode: '1',
             CityCodeRollup: '2',
             CityCodeFormula: 100,
-            CityList: '2',
+            CityList: [
+              {
+                Id: 1,
+                City: 'Mumbai',
+              },
+              {
+                Id: 2,
+                City: 'Pune',
+              },
+            ],
             CityCodeLookup: ['23', '33'],
           },
         ],
@@ -694,7 +704,16 @@ test.describe.serial('Webhook', () => {
             CountryCode: '1',
             CityCodeRollup: '2',
             CityCodeFormula: 100,
-            CityList: '2',
+            CityList: [
+              {
+                Id: 1,
+                City: 'Mumbai',
+              },
+              {
+                Id: 2,
+                City: 'Pune',
+              },
+            ],
             CityCodeLookup: ['23', '33'],
           },
         ],
@@ -714,10 +733,6 @@ test.describe.serial('Webhook', () => {
       expectedData.data.previous_rows[0].CityCodeLookup = [23, 33];
       // @ts-ignore
       expectedData.data.rows[0].CityCodeLookup = [23, 33];
-      // @ts-ignore
-      expectedData.data.previous_rows[0].CityList = 2;
-      // @ts-ignore
-      expectedData.data.rows[0].CityList = 2;
 
       if (isMysql(context)) {
         // @ts-ignore

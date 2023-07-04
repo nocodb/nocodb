@@ -427,6 +427,10 @@ function tableTest() {
       relatedTableColumnTitle: 'FirstName',
     });
 
+    const paymentListColumn = (await rentalTable.getColumns()).find(
+      (c) => c.title === 'Payment List',
+    );
+
     const nestedFilter = {
       is_group: true,
       status: 'create',
@@ -438,6 +442,12 @@ function tableTest() {
           logical_op: 'and',
           comparison_op: 'like',
           value: '%a%',
+        },
+        {
+          fk_column_id: paymentListColumn?.id,
+          status: 'create',
+          logical_op: 'and',
+          comparison_op: 'notblank',
         },
       ],
     };
@@ -503,6 +513,10 @@ function tableTest() {
       relatedTableColumnTitle: 'FirstName',
     });
 
+    const paymentListColumn = (await rentalTable.getColumns()).find(
+      (c) => c.title === 'Payment List',
+    );
+
     const returnDateColumn = (await rentalTable.getColumns()).find(
       (c) => c.title === 'ReturnDate',
     );
@@ -518,6 +532,12 @@ function tableTest() {
           logical_op: 'and',
           comparison_op: 'like',
           value: '%a%',
+        },
+        {
+          fk_column_id: paymentListColumn?.id,
+          status: 'create',
+          logical_op: 'and',
+          comparison_op: 'notblank',
         },
         {
           is_group: true,
@@ -611,7 +631,7 @@ function tableTest() {
     });
 
     const paymentListColumn = (await customerTable.getColumns()).find(
-      (c) => c.title === 'Payments',
+      (c) => c.title === 'Payment List',
     );
 
     const activeColumn = (await customerTable.getColumns()).find(
@@ -766,12 +786,16 @@ function tableTest() {
       relatedTableColumnTitle: 'RentalDate',
     });
 
+    const paymentListColumn = (await customerTable.getColumns()).find(
+      (c) => c.title === 'Payment List',
+    );
+
     const activeColumn = (await customerTable.getColumns()).find(
       (c) => c.title === 'Active',
     );
 
     const nestedFields = {
-      Rentals: { fields: ['RentalDate', 'ReturnDate'] },
+      'Rental List': { fields: ['RentalDate', 'ReturnDate'] },
     };
 
     const nestedFilter = [
@@ -793,6 +817,12 @@ function tableTest() {
             logical_op: 'and',
             comparison_op: 'lte',
             value: 30,
+          },
+          {
+            fk_column_id: paymentListColumn?.id,
+            status: 'create',
+            logical_op: 'and',
+            comparison_op: 'notblank',
           },
           {
             is_group: true,
@@ -837,7 +867,7 @@ function tableTest() {
     }
 
     const nestedRentalResponse = Object.keys(
-      ascResponse.body.list[0]['Rentals'],
+      ascResponse.body.list[0]['Rental List'],
     );
     if (
       nestedRentalResponse.includes('ReturnDate') &&
@@ -1067,12 +1097,16 @@ function tableTest() {
       relatedTableColumnTitle: 'RentalDate',
     });
 
+    const paymentListColumn = (await customerTable.getColumns()).find(
+      (c) => c.title === 'Payment List',
+    );
+
     const activeColumn = (await customerTable.getColumns()).find(
       (c) => c.title === 'Active',
     );
 
     const nestedFields = {
-      Rentals: {
+      'Rental List': {
         f: 'RentalDate,ReturnDate',
       },
     };
@@ -1096,6 +1130,12 @@ function tableTest() {
             logical_op: 'and',
             comparison_op: 'lte',
             value: 30,
+          },
+          {
+            fk_column_id: paymentListColumn?.id,
+            status: 'create',
+            logical_op: 'and',
+            comparison_op: 'notblank',
           },
           {
             is_group: true,
@@ -1132,7 +1172,7 @@ function tableTest() {
       throw new Error('Wrong filter');
     }
 
-    const nestedRentalResponse = Object.keys(ascResponse.body['Rentals']);
+    const nestedRentalResponse = Object.keys(ascResponse.body['Rental List']);
     if (
       nestedRentalResponse.includes('RentalId') &&
       nestedRentalResponse.includes('RentalDate') &&
@@ -1250,15 +1290,24 @@ function tableTest() {
       )
       .set('xc-auth', context.token)
       .query({
-        'nested[Films][fields]': 'Title,ReleaseYear,Language',
+        'nested[Film List][fields]': 'Title,ReleaseYear,Language',
       })
       .expect(200);
 
     const record = response.body;
+    expect(record['Film List']).length(19);
+    expect(record['Film List'][0]).to.have.all.keys(
+      'Title',
+      'ReleaseYear',
+      'Language',
+    );
+
+    // for SQLite Sakila, Language is null
     if (isPg(context)) {
-      expect(record['Films']).to.equal('19');
-    } else {
-      expect(record['Films']).to.equal(19);
+      expect(record['Film List'][0]['Language']).to.have.all.keys(
+        'Name',
+        'LanguageId',
+      );
     }
   });
 
@@ -1634,7 +1683,7 @@ function tableTest() {
   it('Nested row list hm', async () => {
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
-      (column) => column.title === 'Rentals',
+      (column) => column.title === 'Rental List',
     )!;
     const response = await request(context.app)
       .get(
@@ -1653,7 +1702,7 @@ function tableTest() {
   it('Nested row list hm with limit and offset', async () => {
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
-      (column) => column.title === 'Rentals',
+      (column) => column.title === 'Rental List',
     )!;
     const response = await request(context.app)
       .get(
@@ -1679,7 +1728,7 @@ function tableTest() {
   it('Row list hm with invalid table id', async () => {
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
-      (column) => column.title === 'Rentals',
+      (column) => column.title === 'Rental List',
     )!;
     const response = await request(context.app)
       .get(
@@ -1703,7 +1752,7 @@ function tableTest() {
   //   const visibleColumns = [firstNameColumn];
 
   //   const rentalListColumn = (await customerTable.getColumns()).find(
-  //     (column) => column.title === 'Rentals'
+  //     (column) => column.title === 'Rental List'
   //   )!;
   //   const response = await request(context.app)
   //     .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`)
@@ -1731,7 +1780,7 @@ function tableTest() {
     });
     const filmTable = await getTable({ project: sakilaProject, name: 'film' });
     const filmListColumn = (await actorTable.getColumns()).find(
-      (column) => column.title === 'Films',
+      (column) => column.title === 'Film List',
     )!;
     const response = await request(context.app)
       .get(
@@ -1755,7 +1804,7 @@ function tableTest() {
     });
     const filmTable = await getTable({ project: sakilaProject, name: 'film' });
     const filmListColumn = (await actorTable.getColumns()).find(
-      (column) => column.title === 'Films',
+      (column) => column.title === 'Film List',
     )!;
     const response = await request(context.app)
       .get(
@@ -1786,7 +1835,7 @@ function tableTest() {
       name: 'actor',
     });
     const filmListColumn = (await actorTable.getColumns()).find(
-      (column) => column.title === 'Films',
+      (column) => column.title === 'Film List',
     )!;
     const response = await request(context.app)
       .get(
@@ -1804,7 +1853,7 @@ function tableTest() {
   it('Create hm relation with invalid table id', async () => {
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
-      (column) => column.title === 'Rentals',
+      (column) => column.title === 'Rental List',
     )!;
     const refId = 1;
     const response = await request(context.app)
@@ -1861,7 +1910,7 @@ function tableTest() {
   // it.only('Create list mm existing ref row id', async () => {
   //   const rowId = 1;
   //   const rentalListColumn = (await customerTable.getColumns()).find(
-  //     (column) => column.title === 'Rentals'
+  //     (column) => column.title === 'Rental List'
   //   )!;
   //   const refId = 1;
 
@@ -1879,7 +1928,7 @@ function tableTest() {
   it('Create list hm', async () => {
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
-      (column) => column.title === 'Rentals',
+      (column) => column.title === 'Rental List',
     )!;
     const refId = 1;
 
@@ -1966,7 +2015,7 @@ function tableTest() {
       name: 'actor',
     });
     const filmListColumn = (await actorTable.getColumns()).find(
-      (column) => column.title === 'Films',
+      (column) => column.title === 'Film List',
     )!;
     const refId = 1;
 
@@ -1988,7 +2037,7 @@ function tableTest() {
       name: 'actor',
     });
     const filmListColumn = (await actorTable.getColumns()).find(
-      (column) => column.title === 'Films',
+      (column) => column.title === 'Film List',
     )!;
     const refId = 2;
 
@@ -2057,7 +2106,7 @@ function tableTest() {
       name: 'actor',
     });
     const filmListColumn = (await actorTable.getColumns()).find(
-      (column) => column.title === 'Films',
+      (column) => column.title === 'Film List',
     )!;
     const refId = 1;
 
@@ -2097,7 +2146,7 @@ function tableTest() {
 
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
-      (column) => column.title === 'Rentals',
+      (column) => column.title === 'Rental List',
     )!;
     const refId = 76;
 
@@ -2146,9 +2195,8 @@ function tableTest() {
       column: ltarColumn,
       type: 'hm',
     });
+    const childRow = row['Ltar'][0];
 
-    // read rows of related table
-    const childRow = (await listRow({ project, table: relatedTable }))[0];
     const response = await request(context.app)
       .delete(
         `/api/v1/db/data/noco/${project.id}/${table.id}/${row['Id']}/hm/${ltarColumn.id}/${childRow['Id']}`,
@@ -2158,8 +2206,7 @@ function tableTest() {
 
     const updatedRow = await getRow(context, { project, table, id: row['Id'] });
 
-    // LTAR now returns rollup count
-    if (!(updatedRow['Ltar'] === 0 || updatedRow['Ltar'] === '0')) {
+    if (updatedRow['Ltar'].length !== 0) {
       throw new Error('Was not deleted');
     }
 
@@ -2173,7 +2220,7 @@ function tableTest() {
   it('Exclude list hm', async () => {
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
-      (column) => column.title === 'Rentals',
+      (column) => column.title === 'Rental List',
     )!;
 
     const response = await request(context.app)
@@ -2192,7 +2239,7 @@ function tableTest() {
   it('Exclude list hm with limit and offset', async () => {
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
-      (column) => column.title === 'Rentals',
+      (column) => column.title === 'Rental List',
     )!;
 
     const response = await request(context.app)
@@ -2224,7 +2271,7 @@ function tableTest() {
       name: 'actor',
     });
     const filmListColumn = (await actorTable.getColumns()).find(
-      (column) => column.title === 'Films',
+      (column) => column.title === 'Film List',
     )!;
 
     const response = await request(context.app)
@@ -2247,7 +2294,7 @@ function tableTest() {
       name: 'actor',
     });
     const filmListColumn = (await actorTable.getColumns()).find(
-      (column) => column.title === 'Films',
+      (column) => column.title === 'Film List',
     )!;
 
     const response = await request(context.app)
@@ -2321,7 +2368,7 @@ function tableTest() {
   it('Create nested hm relation with invalid table id', async () => {
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
-      (column) => column.title === 'Rentals',
+      (column) => column.title === 'Rental List',
     )!;
     const refId = 1;
     const response = await request(context.app)
@@ -2344,7 +2391,7 @@ function tableTest() {
       name: 'actor',
     });
     const filmListColumn = (await actorTable.getColumns()).find(
-      (column) => column.title === 'Films',
+      (column) => column.title === 'Film List',
     )!;
     const response = await request(context.app)
       .post(

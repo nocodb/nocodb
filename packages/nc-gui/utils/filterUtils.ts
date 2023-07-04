@@ -261,13 +261,13 @@ export const comparisonOpList = (
     text: 'is blank',
     value: 'blank',
     ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],
+    excludedTypes: [UITypes.Checkbox],
   },
   {
     text: 'is not blank',
     value: 'notblank',
     ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],
+    excludedTypes: [UITypes.Checkbox],
   },
 ]
 

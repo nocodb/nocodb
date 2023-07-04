@@ -121,9 +121,7 @@ const closeAddColumnDropdown = () => {
       <template #title>
         {{ tooltipMsg }}
       </template>
-      <span class="name" :class="{ 'truncate': !isForm, 'whitespace-pre-line': isForm }" :title="column.title">
-        {{ column.title }}
-      </span>
+      <span class="name" style="white-space: pre-line" :title="column.title"> {{ column.title }}</span>
     </a-tooltip>
 
     <span v-if="isVirtualColRequired(column, meta?.columns || []) || required" class="text-red-500">&nbsp;*</span>

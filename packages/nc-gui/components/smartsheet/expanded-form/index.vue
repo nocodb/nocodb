@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableType, ViewType } from 'nocodb-sdk'
-import { isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import {
   CellClickHookInj,
@@ -324,7 +324,7 @@ export default {
             <div
               v-for="(col, i) of fields"
               v-else
-              v-show="!isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
+              v-show="!isVirtualCol(col) || !isNew || col.uidt === UITypes.LinkToAnotherRecord"
               :key="col.title"
               class="mt-2 py-2"
               :class="`nc-expand-col-${col.title}`"

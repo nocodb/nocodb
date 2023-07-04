@@ -7,8 +7,7 @@ import Column from './Column';
 import type { BoolType } from 'nocodb-sdk';
 
 export default class LinkToAnotherRecordColumn {
-  id: string;
-  fk_column_id: string;
+  fk_column_id?: string;
   fk_child_column_id?: string;
   fk_parent_column_id?: string;
   fk_mm_model_id?: string;
@@ -127,4 +126,6 @@ export default class LinkToAnotherRecordColumn {
     }
     return colData ? new LinkToAnotherRecordColumn(colData) : null;
   }
+
+  id: string;
 }

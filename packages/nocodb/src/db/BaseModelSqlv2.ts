@@ -8,7 +8,6 @@ import { nocoExecute } from 'nc-help';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
-  isLinksOrLTAR,
   isSystemColumn,
   isVirtualCol,
   RelationTypes,
@@ -1367,23 +1366,16 @@ class BaseModelSqlv2 {
           {
             // @ts-ignore
             const colOptions: LookupColumn = await column.getColOptions();
-            const relCol = await Column.get({
-              colId: colOptions.fk_relation_column_id,
-            });
-            const relColTitle =
-              relCol.uidt === UITypes.Links
-                ? `_nc_lk_${relCol.title}`
-                : relCol.title;
             proto.__columnAliases[column.title] = {
               path: [
-                relColTitle,
+                (await Column.get({ colId: colOptions.fk_relation_column_id }))
+                  ?.title,
                 (await Column.get({ colId: colOptions.fk_lookup_column_id }))
                   ?.title,
               ],
             };
           }
           break;
-        case UITypes.Links:
         case UITypes.LinkToAnotherRecord:
           {
             this._columns[column.title] = column;
@@ -1421,11 +1413,7 @@ class BaseModelSqlv2 {
               });
               const self: BaseModelSqlv2 = this;
 
-              proto[
-                column.uidt === UITypes.Links
-                  ? `_nc_lk_${column.title}`
-                  : column.title
-              ] = async function (args): Promise<any> {
+              proto[column.title] = async function (args): Promise<any> {
                 (listLoader as any).args = args;
                 return listLoader.load(
                   getCompositePk(self.model.primaryKeys, this),
@@ -1471,11 +1459,7 @@ class BaseModelSqlv2 {
 
               const self: BaseModelSqlv2 = this;
               // const childColumn = await colOptions.getChildColumn();
-              proto[
-                column.uidt === UITypes.Links
-                  ? `_nc_lk_${column.title}`
-                  : column.title
-              ] = async function (args): Promise<any> {
+              proto[column.title] = async function (args): Promise<any> {
                 (listLoader as any).args = args;
                 return await listLoader.load(
                   getCompositePk(self.model.primaryKeys, this),
@@ -1693,10 +1677,10 @@ class BaseModelSqlv2 {
             `${alias || this.model.table_name}.${column.column_name}`,
           );
           break;
-        case UITypes.LinkToAnotherRecord:
-        case UITypes.Lookup:
+        case 'LinkToAnotherRecord':
+        case 'Lookup':
           break;
-        case UITypes.QrCode: {
+        case 'QrCode': {
           const qrCodeColumn = await column.getColOptions<QrCodeColumn>();
           const qrValueColumn = await Column.get({
             colId: qrCodeColumn.fk_qr_value_column_id,
@@ -1731,7 +1715,7 @@ class BaseModelSqlv2 {
 
           break;
         }
-        case UITypes.Barcode: {
+        case 'Barcode': {
           const barcodeColumn = await column.getColOptions<BarcodeColumn>();
           const barcodeValueColumn = await Column.get({
             colId: barcodeColumn.fk_barcode_value_column_id,
@@ -1768,7 +1752,7 @@ class BaseModelSqlv2 {
 
           break;
         }
-        case UITypes.Formula:
+        case 'Formula':
           {
             try {
               const selectQb = await this.getSelectQueryBuilderForFormula(
@@ -1792,8 +1776,7 @@ class BaseModelSqlv2 {
             }
           }
           break;
-        case UITypes.Rollup:
-        case UITypes.Links:
+        case 'Rollup':
           qb.select(
             (
               await genRollupSelectv2({
@@ -2124,8 +2107,8 @@ class BaseModelSqlv2 {
       let rowId = null;
       const postInsertOps = [];
 
-      const nestedCols = (await this.model.getColumns()).filter((c) =>
-        isLinksOrLTAR(c),
+      const nestedCols = (await this.model.getColumns()).filter(
+        (c) => c.uidt === UITypes.LinkToAnotherRecord,
       );
 
       for (const col of nestedCols) {
@@ -3159,10 +3142,7 @@ class BaseModelSqlv2 {
     const columns = await this.model.getColumns();
     const column = columns.find((c) => c.id === colId);
 
-    if (
-      !column ||
-      ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
-    )
+    if (!column || column.uidt !== UITypes.LinkToAnotherRecord)
       NcError.notFound('Column not found');
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
@@ -3281,10 +3261,7 @@ class BaseModelSqlv2 {
     const columns = await this.model.getColumns();
     const column = columns.find((c) => c.id === colId);
 
-    if (
-      !column ||
-      ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
-    )
+    if (!column || column.uidt !== UITypes.LinkToAnotherRecord)
       NcError.notFound('Column not found');
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();

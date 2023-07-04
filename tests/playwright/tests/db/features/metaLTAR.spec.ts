@@ -103,7 +103,7 @@ test.describe.serial('Test table', () => {
     // Create links
     // TableA <hm> TableB <hm> TableC
     await api.dbTableColumn.create(tables[0].id, {
-      uidt: UITypes.Links,
+      uidt: UITypes.LinkToAnotherRecord,
       title: `TableA:hm:TableB`,
       column_name: `TableA:hm:TableB`,
       parentId: tables[0].id,
@@ -111,7 +111,7 @@ test.describe.serial('Test table', () => {
       type: 'hm',
     });
     await api.dbTableColumn.create(tables[1].id, {
-      uidt: UITypes.Links,
+      uidt: UITypes.LinkToAnotherRecord,
       title: `TableB:hm:TableC`,
       column_name: `TableB:hm:TableC`,
       parentId: tables[1].id,
@@ -121,7 +121,7 @@ test.describe.serial('Test table', () => {
 
     // TableA <mm> TableD <mm> TableE
     await api.dbTableColumn.create(tables[0].id, {
-      uidt: UITypes.Links,
+      uidt: UITypes.LinkToAnotherRecord,
       title: `TableA:mm:TableD`,
       column_name: `TableA:mm:TableD`,
       parentId: tables[0].id,
@@ -129,7 +129,7 @@ test.describe.serial('Test table', () => {
       type: 'mm',
     });
     await api.dbTableColumn.create(tables[3].id, {
-      uidt: UITypes.Links,
+      uidt: UITypes.LinkToAnotherRecord,
       title: `TableD:mm:TableE`,
       column_name: `TableD:mm:TableE`,
       parentId: tables[3].id,
@@ -139,7 +139,7 @@ test.describe.serial('Test table', () => {
 
     // TableA <hm> TableA : self relation
     await api.dbTableColumn.create(tables[0].id, {
-      uidt: UITypes.Links,
+      uidt: UITypes.LinkToAnotherRecord,
       title: `TableA:hm:TableA`,
       column_name: `TableA:hm:TableA`,
       parentId: tables[0].id,
@@ -149,7 +149,7 @@ test.describe.serial('Test table', () => {
 
     // TableA <mm> TableA : self relation
     await api.dbTableColumn.create(tables[0].id, {
-      uidt: UITypes.Links,
+      uidt: UITypes.LinkToAnotherRecord,
       title: `TableA:mm:TableA`,
       column_name: `TableA:mm:TableA`,
       parentId: tables[0].id,
@@ -227,25 +227,27 @@ test.describe.serial('Test table', () => {
 
     // has-many removal verification
     await dashboard.treeView.openTable({ title: 'Table1' });
-    await dashboard.grid.cell.verifyVirtualCell({ index: 0, columnHeader: 'Table0', count: 0, value: [], type: 'bt' });
-    await dashboard.grid.cell.verifyVirtualCell({ index: 1, columnHeader: 'Table0', count: 0, value: [], type: 'bt' });
-    await dashboard.grid.cell.verifyVirtualCell({ index: 2, columnHeader: 'Table0', count: 0, value: [], type: 'bt' });
+    await dashboard.grid.cell.verifyVirtualCell({ index: 0, columnHeader: 'Table0', count: 0, value: [] });
+    await dashboard.grid.cell.verifyVirtualCell({ index: 1, columnHeader: 'Table0', count: 0, value: [] });
+    await dashboard.grid.cell.verifyVirtualCell({ index: 2, columnHeader: 'Table0', count: 0, value: [] });
 
     // many-many removal verification
     await dashboard.treeView.openTable({ title: 'Table3' });
-    const params = {
-      index: 0,
-      columnHeader: 'Table0s',
-      count: 0,
-      value: [],
-      type: 'hm',
-      options: { singular: 'Table0', plural: 'Table0s' },
-    };
-    await dashboard.grid.cell.verifyVirtualCell({ ...params });
-    await dashboard.grid.cell.verifyVirtualCell({ ...params, count: 1, index: 1, value: ['2'] });
-    await dashboard.grid.cell.verifyVirtualCell({ ...params, count: 2, index: 2, value: ['2', '3'] });
-    await dashboard.grid.cell.verifyVirtualCell({ ...params, count: 3, index: 3, value: ['2', '3', '4'] });
-    await dashboard.grid.cell.verifyVirtualCell({ ...params, count: 4, index: 4, value: ['2', '3', '4', '5'] });
+    await dashboard.grid.cell.verifyVirtualCell({ index: 0, columnHeader: 'Table0 List', count: 0, value: [] });
+    await dashboard.grid.cell.verifyVirtualCell({ index: 1, columnHeader: 'Table0 List', count: 1, value: ['2'] });
+    await dashboard.grid.cell.verifyVirtualCell({ index: 2, columnHeader: 'Table0 List', count: 2, value: ['2', '3'] });
+    await dashboard.grid.cell.verifyVirtualCell({
+      index: 3,
+      columnHeader: 'Table0 List',
+      count: 3,
+      value: ['2', '3', '4'],
+    });
+    await dashboard.grid.cell.verifyVirtualCell({
+      index: 4,
+      columnHeader: 'Table0 List',
+      count: 4,
+      value: ['2', '3', '4', '5'],
+    });
   });
 
   test('Delete record - bulk, over UI', async () => {
@@ -283,7 +285,7 @@ test.describe.serial('Test table', () => {
 
     // verify
     await dashboard.treeView.openTable({ title: 'Table3' });
-    await dashboard.grid.column.verify({ title: 'Table0s', isVisible: false });
+    await dashboard.grid.column.verify({ title: 'Table0 List', isVisible: false });
     await dashboard.grid.column.verify({ title: 'TableD:mm:TableE', isVisible: true });
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -303,7 +305,7 @@ test.describe.serial('Test table', () => {
     await dashboard.grid.column.delete({ title: 'TableA:mm:TableA' });
 
     // verify
-    await dashboard.grid.column.verify({ title: 'Table0s', isVisible: false });
+    await dashboard.grid.column.verify({ title: 'Table0 List', isVisible: false });
     await dashboard.grid.column.verify({ title: 'TableA:mm:TableA', isVisible: false });
   });
 
@@ -316,6 +318,6 @@ test.describe.serial('Test table', () => {
     await dashboard.grid.column.verify({ title: 'Table0', isVisible: false });
 
     await dashboard.treeView.openTable({ title: 'Table3' });
-    await dashboard.grid.column.verify({ title: 'Table0s', isVisible: false });
+    await dashboard.grid.column.verify({ title: 'Table0 List', isVisible: false });
   });
 });

@@ -6,7 +6,7 @@ import { isPg, isSqlite } from '../../../setup/db';
 // Add formula to be verified here & store expected results for 5 rows
 // Column data from City table (Sakila DB)
 /**
- * City                   LastUpdate              Addresses                Country
+ * City                   LastUpdate              Address List                Country
  * A Corua (La Corua)     2006-02-15 04:45:25     939 Probolinggo Loop        Spain
  * Abha                   2006-02-15 04:45:25     733 Mandaluyong Place       Saudi Arabia
  * Abu Dhabi              2006-02-15 04:45:25     535 Ahmadnagar Manor        United Arab Emirates
@@ -131,8 +131,8 @@ const formulaDataByDbType = (context: NcContext) => [
     result: isPg(context) ? ['false', 'false', 'false', 'false', 'false'] : ['0', '0', '0', '0', '0'],
   },
   {
-    formula: `IF((SEARCH({City}, "Ad") != 0), "2.0","WRONG")`,
-    result: ['WRONG', 'WRONG', 'WRONG', 'WRONG', '2.0'],
+    formula: `IF((SEARCH({Address List}, "Parkway") != 0), "2.0","WRONG")`,
+    result: ['WRONG', 'WRONG', 'WRONG', '2.0', '2.0'],
   },
 
   // additional tests for formula case-insensitivity

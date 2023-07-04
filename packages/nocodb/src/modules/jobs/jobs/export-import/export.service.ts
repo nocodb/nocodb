@@ -1,5 +1,5 @@
 import { Readable } from 'stream';
-import { isLinksOrLTAR, UITypes, ViewTypes } from 'nocodb-sdk';
+import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { unparse } from 'papaparse';
 import { Injectable, Logger } from '@nestjs/common';
 import NcConnectionMgrv2 from '../../../../utils/common/NcConnectionMgrv2';
@@ -352,12 +352,14 @@ export class ExportService {
           .map((c) => c.title)
           .join(',')
       : model.columns
-          .filter((c) => !isLinksOrLTAR(c))
+          .filter((c) => c.uidt !== UITypes.LinkToAnotherRecord)
           .map((c) => c.title)
           .join(',');
 
     const mmColumns = model.columns.filter(
-      (col) => isLinksOrLTAR(col) && col.colOptions?.type === 'mm',
+      (col) =>
+        col.uidt === UITypes.LinkToAnotherRecord &&
+        col.colOptions?.type === 'mm',
     );
 
     const hasLink = mmColumns.length > 0;

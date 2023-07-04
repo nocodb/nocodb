@@ -937,23 +937,23 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
 
     // add filter for CityList column
     const filterList = [
-      { op: '=', value: '5', rowCount: 5 },
-      { op: '!=', value: '5', rowCount: 104 },
-      { op: '>', value: '5', rowCount: 25 },
-      { op: '<', value: '5', rowCount: 79 },
-      { op: '>=', value: '5', rowCount: 30 },
-      { op: '<=', value: '5', rowCount: 84 },
+      { op: 'is', value: 'Kabul', rowCount: 1 },
+      { op: 'is not', value: 'Kabul', rowCount: 108 },
+      { op: 'is like', value: 'bad', rowCount: 2 },
+      { op: 'is not like', value: 'bad', rowCount: 107 },
+      { op: 'is blank', value: null, rowCount: 0 },
+      { op: 'is not blank', value: null, rowCount: 109 },
     ];
 
     await toolbar.clickFilter();
     await toolbar.filter.clickAddFilter();
     for (let i = 0; i < filterList.length; i++) {
       await verifyFilter({
-        column: 'Cities',
+        column: 'City List',
         opType: filterList[i].op,
         value: filterList[i].value,
         result: { rowCount: filterList[i].rowCount },
-        dataType: 'Links',
+        dataType: 'LinkToAnotherRecord',
       });
     }
   }
@@ -965,8 +965,8 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
     await dashboard.grid.column.create({
       title: 'Lookup',
       type: 'Lookup',
-      childTable: 'Country',
-      childColumn: 'Country',
+      childTable: 'Address List',
+      childColumn: 'PostalCode',
     });
 
     // Enable NULL & EMPTY filters
@@ -975,12 +975,12 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
 
     // add filter for CityList column
     const filterList = [
-      { op: 'is equal', value: 'Spain', rowCount: 5 },
-      { op: 'is not equal', value: 'Spain', rowCount: 595 },
-      { op: 'is like', value: 'ca', rowCount: 28 },
-      { op: 'is not like', value: 'ca', rowCount: 572 },
-      { op: 'is blank', value: null, rowCount: 0 },
-      { op: 'is not blank', value: null, rowCount: 600 },
+      { op: 'is equal', value: '4166', rowCount: 1 },
+      { op: 'is not equal', value: '4166', rowCount: 599 },
+      { op: 'is like', value: '41', rowCount: 19 },
+      { op: 'is not like', value: '41', rowCount: 581 },
+      { op: 'is blank', value: null, rowCount: 1 },
+      { op: 'is not blank', value: null, rowCount: 599 },
     ];
 
     await toolbar.clickFilter();
@@ -1003,7 +1003,7 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
     await dashboard.grid.column.create({
       title: 'Rollup',
       type: 'Rollup',
-      childTable: 'Addresses',
+      childTable: 'Address List',
       childColumn: 'PostalCode',
       rollupType: 'Sum',
     });
@@ -1018,8 +1018,6 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
       { op: 'is not equal', value: '4166', rowCount: 599 },
       { op: 'is like', value: '41', rowCount: 19 },
       { op: 'is not like', value: '41', rowCount: 581 },
-      { op: 'is empty', value: '41', rowCount: 581 },
-      { op: 'is not empty', value: '41', rowCount: 581 },
       { op: 'is blank', value: null, rowCount: 2 },
       { op: 'is not blank', value: null, rowCount: 598 },
     ];
@@ -1028,11 +1026,11 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
     await toolbar.filter.clickAddFilter();
     for (let i = 0; i < filterList.length; i++) {
       await verifyFilter({
-        column: 'Rollup',
+        column: 'Lookup',
         opType: filterList[i].op,
         value: filterList[i].value,
         result: { rowCount: filterList[i].rowCount },
-        dataType: 'Rollup',
+        dataType: 'Lookup',
       });
     }
   }

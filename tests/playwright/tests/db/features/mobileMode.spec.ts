@@ -45,7 +45,7 @@ test.describe('Mobile Mode', () => {
 
     // verify form-view fields order
     await form.verifyFormViewFieldsOrder({
-      fields: ['Country', 'LastUpdate', 'Cities'],
+      fields: ['Country', 'LastUpdate', 'City List'],
     });
 
     // reorder & verify
@@ -54,7 +54,7 @@ test.describe('Mobile Mode', () => {
       destinationField: 'Country',
     });
     await form.verifyFormViewFieldsOrder({
-      fields: ['LastUpdate', 'Country', 'Cities'],
+      fields: ['LastUpdate', 'Country', 'City List'],
     });
 
     await dashboard.treeView.openTable({ mobileMode: true, title: 'test-table-for-mobile-mode' });

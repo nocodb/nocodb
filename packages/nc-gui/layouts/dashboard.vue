@@ -2,6 +2,9 @@
 import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 
+const router = useRouter()
+const route = router.currentRoute
+
 const { isLeftSidebarOpen, leftSidebarWidthPercent } = storeToRefs(useSidebarStore())
 const wrapperRef = ref<HTMLDivElement>()
 const sideBarSize = ref({
@@ -122,6 +125,12 @@ watch(
     }
   },
 )
+
+watch(route, () => {
+  if (route.value.name === 'index-index') {
+    isLeftSidebarOpen.value = true
+  }
+})
 </script>
 
 <script lang="ts">
@@ -143,7 +152,7 @@ export default {
       <Pane min-size="15%" :size="currentSidebarSize" max-size="40%" class="nc-sidebar-splitpane relative !overflow-visible">
         <div
           ref="wrapperRef"
-          class="nc-sidebar-wrapper relative z-10"
+          class="nc-sidebar-wrapper relative"
           :class="{
             'open': isLeftSidebarOpen,
             'close': !isLeftSidebarOpen,
@@ -221,6 +230,7 @@ export default {
 
 .nc-sidebar-wrapper.sidebar-short {
   > * {
+    @apply z-10;
     height: 80vh !important;
     padding-bottom: 0.35rem;
   }

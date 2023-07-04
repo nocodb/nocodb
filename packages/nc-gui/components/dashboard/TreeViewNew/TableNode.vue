@@ -162,6 +162,7 @@ const { isSharedBase } = useProject()
         >
           {{ table.title }}
         </span>
+        <div class="flex flex-grow h-full"></div>
 
         <a-dropdown
           v-if="

@@ -12,7 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { GlobalGuard } from '../guards/global/global.guard';
-import { parseHrtimeToSeconds } from '../helpers';
+import { parseHrtimeToMilliSeconds } from '../helpers';
 import { Acl } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { DatasService } from '../services/datas.service';
 
@@ -41,7 +41,7 @@ export class DataAliasController {
       tableName: tableName,
       viewName: viewName,
     });
-    const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
+    const elapsedSeconds = parseHrtimeToMilliSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);
     res.json(responseData);
   }
@@ -239,7 +239,7 @@ export class DataAliasController {
       query: req.query,
       columnId: columnId,
     });
-    const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
+    const elapsedSeconds = parseHrtimeToMilliSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);
     res.json(groupedData);
   }

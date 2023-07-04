@@ -159,7 +159,7 @@ const onTabChange = (tab: 'views' | 'developer') => {
         @click="onTabChange('views')"
       >
         <FieldIcon class="h-3.5 w-3.5" />
-        <div>Views</div>
+        <div class="tab-title">Views</div>
       </div>
       <div
         class="tab"
@@ -170,12 +170,12 @@ const onTabChange = (tab: 'views' | 'developer') => {
       >
         <component
           :is="iconMap.code"
-          class="text-gray-500"
+          class="text-gray-500 h-3.5 w-3.5"
           :style="{
             fontWeight: 600,
           }"
         />
-        <div>Developer</div>
+        <div class="tab-title">Developer</div>
       </div>
     </div>
 
@@ -211,6 +211,13 @@ const onTabChange = (tab: 'views' | 'developer') => {
 .tab {
   @apply flex flex-row items-center justify-center w-1/2 py-1 bg-gray-50 rounded-md gap-x-1.5 text-gray-500 cursor-pointer transition-all duration-300 select-none;
 }
+.tab .tab-title {
+  @apply min-w-0;
+  word-break: 'keep-all';
+  white-space: 'nowrap';
+  display: 'inline';
+}
+
 .active {
   @apply bg-white shadow text-gray-700;
 }

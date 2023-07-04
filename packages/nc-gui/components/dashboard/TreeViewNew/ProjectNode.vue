@@ -451,14 +451,15 @@ function openTableCreateMagicDialog(baseId?: string) {
             v-if="editMode"
             ref="input"
             v-model="tempTitle"
-            class="flex-grow min-w-5 leading-1 outline-0 ring-none"
+            class="flex-grow leading-1 outline-0 ring-none"
             @click.stop
             @keyup.enter="updateProjectTitle"
             @keyup.esc="closeEditMode"
           />
           <span
             v-else
-            class="capitalize min-w-5 text-ellipsis overflow-clip select-none"
+            class="capitalize text-ellipsis overflow-hidden select-none"
+            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             :class="{ 'text-black font-semibold': activeProjectId === project.id && projectViewOpen }"
             @click="onProjectClick(project)"
           >
@@ -468,7 +469,7 @@ function openTableCreateMagicDialog(baseId?: string) {
 
           <a-dropdown v-model:visible="isOptionsOpen" trigger="click">
             <MdiDotsHorizontal
-              class="mr-1.5 opacity-0 group-hover:opacity-100 hover:text-black text-gray-600"
+              class="min-w-6 mr-1.5 opacity-0 group-hover:opacity-100 hover:text-black text-gray-600"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
               @click.stop
             />

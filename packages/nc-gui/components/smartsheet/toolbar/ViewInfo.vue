@@ -8,19 +8,23 @@ const { activeTable } = storeToRefs(useTablesStore())
 </script>
 
 <template>
-  <div class="flex flex-row font-medium ml-1.5 items-center border-gray-50">
-    <MdiTable class="w-5 !text-gray-500 mb-0.25" :class="{}" />
-    <div class="pl-1 text-gray-400">{{ activeTable?.title }}</div>
+  <div class="flex flex-row font-medium ml-1.5 items-center border-gray-50 max-w-2/5">
+    <MdiTable class="min-w-5 !text-gray-500 mb-0.25" :class="{}" />
+    <span
+      class="text-ellipsis overflow-hidden pl-1 text-gray-400 max-w-1/2"
+      :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+    >
+      {{ activeTable?.title }}
+    </span>
+
     <div class="px-2 text-gray-500">/</div>
-    <component :is="viewIcons[ViewTypes.GRID].icon" class="flex text-gray-700 mb-0.25" />
-    <div
-      class="pl-1.5 text-gray-700"
-      :style="{
-        fontSize: '0.9rem',
-      }"
+    <component :is="viewIcons[ViewTypes.GRID].icon" class="min-w-5 flex text-gray-700 mb-0.25" />
+    <span
+      class="text-ellipsis overflow-hidden pl-1.5 text-gray-700 max-w-1/2"
+      :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline', fontSize: '0.9rem' }"
     >
       {{ selectedView?.title }}
-    </div>
+    </span>
     <LazySmartsheetToolbarReload />
   </div>
 </template>

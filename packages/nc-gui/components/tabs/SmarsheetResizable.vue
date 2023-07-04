@@ -225,7 +225,7 @@ watch(
 }
 
 .nc-smartsheet-sidebar-wrapper {
-  @apply flex flex-col h-full justify-center;
+  @apply flex flex-col h-full justify-center min-w-36;
 }
 
 .nc-smartsheet-sidebar-wrapper.close {

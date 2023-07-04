@@ -153,16 +153,15 @@ const { isSharedBase } = useProject()
           </component>
         </div>
 
-        <div
-          class="nc-tbl-title flex-1"
+        <span
+          class="nc-tbl-title capitalize text-ellipsis overflow-hidden select-none"
           :class="{
             'text-black !font-semibold': openedTableId === table.id,
           }"
+          :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
         >
-          <GeneralTruncateText :key="table.title" :length="openedTableId === table.id ? 18 : 20"
-            >{{ table.title }}
-          </GeneralTruncateText>
-        </div>
+          {{ table.title }}
+        </span>
 
         <a-dropdown
           v-if="
@@ -172,7 +171,7 @@ const { isSharedBase } = useProject()
           @click.stop
         >
           <MdiDotsHorizontal
-            class="transition-opacity opacity-0 group-hover:opacity-100 outline-0"
+            class="min-w-6 transition-opacity opacity-0 group-hover:opacity-100 outline-0"
             :class="{
               '!text-gray-600': openedTableId !== table.id,
             }"

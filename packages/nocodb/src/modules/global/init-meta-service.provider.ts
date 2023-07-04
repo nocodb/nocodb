@@ -1,4 +1,5 @@
 import { T } from 'nc-help';
+import { populatePluginsForCloud } from '../../utils/cloud/populateCloudPlugins';
 import { MetaService } from '../../meta/meta.service';
 import Noco from '../../Noco';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
@@ -49,6 +50,10 @@ export const InitMetaServiceProvider: Provider = {
     // init plugin manager
     await NcPluginMgrv2.init(Noco.ncMeta);
     await Noco.loadEEState();
+
+    if (process.env.NC_CLOUD === 'true') {
+      await populatePluginsForCloud({ ncMeta: Noco.ncMeta });
+    }
 
     // run upgrader
     await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });

@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { isVirtualCol, ModelTypes, RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  isLinksOrLTAR,
+  isVirtualCol,
+  ModelTypes,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import { T } from 'nc-help';
 import { pluralize, singularize } from 'inflection';
 import { Base, Column, Model, Project } from '../models';
@@ -10,7 +16,7 @@ import { getUniqueColumnAliasName } from '../helpers/getUniqueName';
 import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import NcHelp from '../utils/NcHelp';
-import type { LinkToAnotherRecordColumn } from '../models';
+import type { LinksColumn, LinkToAnotherRecordColumn } from '../models';
 
 // todo:move enum and types
 export enum MetaDiffType {
@@ -223,12 +229,13 @@ export class MetaDiffsService {
         if (
           [
             UITypes.LinkToAnotherRecord,
+            UITypes.Links,
             UITypes.Rollup,
             UITypes.Lookup,
             UITypes.Formula,
           ].includes(column.uidt)
         ) {
-          if (column.uidt === UITypes.LinkToAnotherRecord) {
+          if (isLinksOrLTAR(column.uidt)) {
             virtualRelationColumns.push(column);
           }
 
@@ -508,6 +515,7 @@ export class MetaDiffsService {
             UITypes.Rollup,
             UITypes.Lookup,
             UITypes.Formula,
+            UITypes.Links,
           ].includes(column.uidt)
         ) {
           continue;
@@ -947,7 +955,7 @@ export class MetaDiffsService {
                     childModel.columns,
                     pluralize(childModel.title || childModel.table_name),
                   );
-                  await Column.insert<LinkToAnotherRecordColumn>({
+                  await Column.insert<LinksColumn>({
                     uidt: UITypes.Links,
                     title,
                     fk_model_id: parentModel.id,
@@ -984,7 +992,7 @@ export class MetaDiffsService {
     const colChildOpt =
       await belongsToCol.getColOptions<LinkToAnotherRecordColumn>();
     for (const col of await model.getColumns()) {
-      if (col.uidt === UITypes.LinkToAnotherRecord) {
+      if (isLinksOrLTAR(col.uidt)) {
         const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>();
         if (
           colOpt &&
@@ -1043,7 +1051,7 @@ export class MetaDiffsService {
         );
 
         if (!isRelationAvailInA) {
-          await Column.insert<LinkToAnotherRecordColumn>({
+          await Column.insert<LinksColumn>({
             title: getUniqueColumnAliasName(
               modelA.columns,
               pluralize(modelB.title),
@@ -1067,7 +1075,7 @@ export class MetaDiffsService {
           });
         }
         if (!isRelationAvailInB) {
-          await Column.insert<LinkToAnotherRecordColumn>({
+          await Column.insert<LinksColumn>({
             title: getUniqueColumnAliasName(
               modelB.columns,
               pluralize(modelA.title),
@@ -1099,7 +1107,7 @@ export class MetaDiffsService {
           const model = await colOpt.getRelatedTable();
 
           for (const col of await model.getColumns()) {
-            if (col.uidt !== UITypes.LinkToAnotherRecord) continue;
+            if (!isLinksOrLTAR(col.uidt)) continue;
 
             const colOpt1 =
               await col.getColOptions<LinkToAnotherRecordColumn>();

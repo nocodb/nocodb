@@ -1,4 +1,4 @@
-import { AllowedColumnTypesForQrAndBarcodes, UITypes } from 'nocodb-sdk';
+import { AllowedColumnTypesForQrAndBarcodes, isLinksOrLTAR, UITypes } from 'nocodb-sdk'
 import NocoCache from '../cache/NocoCache';
 import {
   CacheDelDirection,
@@ -705,7 +705,7 @@ export default class Column<T = any> implements ColumnType {
     }
 
     //  if relation column check lookup and rollup and delete
-    if (col.uidt === UITypes.LinkToAnotherRecord) {
+    if (isLinksOrLTAR(col.uidt)) {
       {
         // get lookup columns using relation and delete
         const cachedList = await NocoCache.getList(CacheScope.COL_LOOKUP, [id]);
@@ -784,6 +784,7 @@ export default class Column<T = any> implements ColumnType {
         cacheScopeName = CacheScope.COL_LOOKUP;
         break;
       case UITypes.LinkToAnotherRecord:
+      case UITypes.Links:
         colOptionTableName = MetaTable.COL_RELATIONS;
         cacheScopeName = CacheScope.COL_RELATION;
         break;

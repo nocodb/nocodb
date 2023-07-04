@@ -360,7 +360,7 @@ function scrollToCell(row?: number | null, col?: number | null) {
   if (row !== null && col !== null) {
     // get active cell
     const rows = tableBodyEl.value?.querySelectorAll('tr')
-    const cols = rows?.[row].querySelectorAll('td')
+    const cols = rows?.[row]?.querySelectorAll('td')
     const td = cols?.[col === 0 ? 0 : col + 1]
 
     if (!td || !gridWrapper.value) return

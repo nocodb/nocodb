@@ -11,7 +11,7 @@ menuTitle: "Lookup"
 ### Example organization structure
   
 Consider an organization with
-- 5 departments (company departments), each department has a team name & associated team code. Each `Team` **has many** `Employees` - relationship has been defined using `LinkToAnotherRecord` column
+- 5 departments (company departments), each department has a team name & associated team code. Each `Team` **has many** `Employees` - relationship has been defined using `LinkToAnotherRecord` or `Links`column
 - 5 employees working at different departments
   
   

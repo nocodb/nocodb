@@ -58,15 +58,17 @@ const advancedDbOptions = ref(false)
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
-const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup]
+const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup, UITypes.Links]
 
 const geoDataToggleCondition = (t: { name: UITypes }) => {
   return betaFeatureToggleState.show ? betaFeatureToggleState.show : !t.name.includes(UITypes.GeoData)
 }
 
+const showDeprecated = $ref(false)
+
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
-    ...uiTypes.filter((t) => geoDataToggleCondition(t) && (!isEdit.value || !t.virtual)),
+    ...uiTypes.filter((t) => geoDataToggleCondition(t) && (!isEdit.value || !t.virtual) && (!t.deprecated || showDeprecated)),
     ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
       ? [
           {
@@ -187,11 +189,13 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             :disabled="isKanban"
             dropdown-class-name="nc-dropdown-column-type"
             @change="onUidtOrIdTypeChange"
+            @dblclick="showDeprecated = !showDeprecated"
           >
             <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
               <div class="flex gap-1 items-center">
                 <component :is="opt.icon" class="text-grey" />
                 {{ opt.name }}
+                <span v-if="opt.deprecated" class="!text-xs !text-gray-300">(Deprecated)</span>
               </div>
             </a-select-option>
           </a-select>
@@ -209,9 +213,10 @@ useEventListener('keydown', (e: KeyboardEvent) => {
         <LazySmartsheetColumnDateTimeOptions v-if="formState.uidt === UITypes.DateTime" v-model:value="formState" />
         <LazySmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />
         <LazySmartsheetColumnLinkedToAnotherRecordOptions
-          v-if="!isEdit && formState.uidt === UITypes.LinkToAnotherRecord"
+          v-if="!isEdit && (formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links)"
           v-model:value="formState"
         />
+        <LazySmartsheetColumnLinkOptions v-if="isEdit && formState.uidt === UITypes.Links" v-model:value="formState" />
         <LazySmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
         <LazySmartsheetColumnSelectOptions
           v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"

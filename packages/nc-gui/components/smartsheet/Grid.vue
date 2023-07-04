@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
 import type { ColumnReqType, ColumnType, GridType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
-import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
@@ -504,12 +504,11 @@ watch(contextMenu, () => {
 const rowRefs = $ref<any[]>()
 
 async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = false) {
-  if (
-    !ctx ||
-    !hasEditPermission ||
-    (fields.value[ctx.col].uidt !== UITypes.LinkToAnotherRecord && isVirtualCol(fields.value[ctx.col]))
-  )
-    return
+  if (!ctx || !hasEditPermission || (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col]))) return
+
+  if (fields.value[ctx.col]?.uidt === UITypes.Links) {
+    return message.info('Links column clear is not supported yet')
+  }
 
   const rowObj = data.value[ctx.row]
   const columnObj = fields.value[ctx.col]
@@ -868,6 +867,7 @@ eventBus.on(async (event, payload) => {
 const closeAddColumnDropdown = (scrollToLastCol = false) => {
   columnOrder.value = null
   addColumnDropdown.value = false
+  preloadColumn.value = {}
   if (scrollToLastCol) {
     setTimeout(() => {
       const lastAddNewRowHeader = tableHeadEl.value?.querySelector('th:last-child')
@@ -1268,8 +1268,7 @@ useEventListener(document, 'mouseup', () => {
               v-if="
                 contextMenuTarget &&
                 selectedRange.isSingleCell() &&
-                (fields[contextMenuTarget.col].uidt === UITypes.LinkToAnotherRecord ||
-                  !isVirtualCol(fields[contextMenuTarget.col]))
+                (isLinksOrLTAR(fields[contextMenuTarget.col]) || !isVirtualCol(fields[contextMenuTarget.col]))
               "
               @click="clearCell(contextMenuTarget)"
             >

@@ -1,5 +1,8 @@
 import { ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
 import { isVirtualCol, RelationTypes } from 'nocodb-sdk';
+import { pluralize, singularize } from 'inflection';
+import { isLinksOrLTAR } from 'nocodb-sdk';
+import { GridViewColumn } from '../models';
 import Column from '../models/Column';
 import Model from '../models/Model';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
@@ -9,6 +12,7 @@ import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
 import getColumnUiType from '../helpers/getColumnUiType';
 import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
 import { getUniqueColumnAliasName } from './getUniqueName';
+import type { RollupColumn } from '../models';
 import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
 import type Base from '../models/Base';
 import type Project from '../models/Project';
@@ -110,7 +114,7 @@ export async function extractAndGenerateManyToManyRelations(
         await Column.insert<LinkToAnotherRecordColumn>({
           title: getUniqueColumnAliasName(
             modelA.columns,
-            `${modelB.title} List`,
+            pluralize(modelB.title),
           ),
           fk_model_id: modelA.id,
           fk_related_model_id: modelB.id,
@@ -121,14 +125,18 @@ export async function extractAndGenerateManyToManyRelations(
           fk_mm_parent_column_id:
             belongsToCols[1].colOptions.fk_child_column_id,
           type: RelationTypes.MANY_TO_MANY,
-          uidt: UITypes.LinkToAnotherRecord,
+          uidt: UITypes.Links,
+          meta: {
+            plural: pluralize(modelB.title),
+            singular: singularize(modelB.title),
+          },
         });
       }
       if (!isRelationAvailInB) {
         await Column.insert<LinkToAnotherRecordColumn>({
           title: getUniqueColumnAliasName(
             modelB.columns,
-            `${modelA.title} List`,
+            pluralize(modelA.title),
           ),
           fk_model_id: modelB.id,
           fk_related_model_id: modelA.id,
@@ -139,7 +147,11 @@ export async function extractAndGenerateManyToManyRelations(
           fk_mm_parent_column_id:
             belongsToCols[0].colOptions.fk_child_column_id,
           type: RelationTypes.MANY_TO_MANY,
-          uidt: UITypes.LinkToAnotherRecord,
+          uidt: UITypes.Links,
+          meta: {
+            plural: pluralize(modelA.title),
+            singular: singularize(modelA.title),
+          },
         });
       }
 
@@ -151,7 +163,7 @@ export async function extractAndGenerateManyToManyRelations(
         const model = await colOpt.getRelatedTable();
 
         for (const col of await model.getColumns()) {
-          if (col.uidt !== UITypes.LinkToAnotherRecord) continue;
+          if (!isLinksOrLTAR(col.uidt)) continue;
 
           const colOpt1 = await col.getColOptions<LinkToAnotherRecordColumn>();
           if (!colOpt1 || colOpt1.type !== RelationTypes.HAS_MANY) continue;
@@ -253,10 +265,14 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
       const virtualColumns = [
         ...hasMany.map((hm) => {
           return {
-            uidt: UITypes.LinkToAnotherRecord,
+            uidt: UITypes.Links,
             type: 'hm',
             hm,
-            title: `${hm.title} List`,
+            title: pluralize(hm.title),
+            meta: {
+              plural: pluralize(hm.title),
+              singular: singularize(hm.title),
+            },
           };
         }),
         ...belongsTo.map((bt) => {
@@ -344,6 +360,7 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
               order: colOrder++,
               fk_related_model_id: column.hm ? tnId : rtnId,
               system: column.system,
+              meta: column.meta,
             });
 
             // nested relations data apis
@@ -434,4 +451,54 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
   (info as any).timeTaken = t2.toFixed(1);
 
   return info;
+}
+
+export async function populateRollupColumnAndHideLTAR(
+  base: Base,
+  project: Project,
+) {
+  for (const model of await Model.list({
+    project_id: project.id,
+    base_id: base.id,
+  })) {
+    const columns = await model.getColumns();
+    const hmAndMmLTARColumns = columns.filter(
+      (c) =>
+        c.uidt === UITypes.LinkToAnotherRecord &&
+        c.colOptions.type !== RelationTypes.BELONGS_TO &&
+        !c.system,
+    );
+
+    const views = await model.getViews();
+
+    for (const column of hmAndMmLTARColumns) {
+      const relatedModel = await column
+        .getColOptions<LinkToAnotherRecordColumn>()
+        .then((colOpt) => colOpt.getRelatedTable());
+      await relatedModel.getColumns();
+      const pkId =
+        relatedModel.primaryKey?.id || (await relatedModel.getColumns())[0]?.id;
+
+      await Column.insert<RollupColumn>({
+        uidt: UITypes.Links,
+        title: getUniqueColumnAliasName(
+          await model.getColumns(),
+          `${relatedModel.title}`,
+        ),
+        fk_rollup_column_id: pkId,
+        fk_model_id: model.id,
+        rollup_function: 'count',
+        fk_relation_column_id: column.id,
+        meta: {
+          singular: singularize(relatedModel.title),
+          plural: pluralize(relatedModel.title),
+        },
+      });
+
+      const viewCol = await GridViewColumn.list(views[0].id).then((cols) =>
+        cols.find((c) => c.fk_column_id === column.id),
+      );
+      await GridViewColumn.update(viewCol.id, { show: false });
+    }
+  }
 }

@@ -1,5 +1,5 @@
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes, isSystemColumn } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import {
   Modal,
   SYSTEM_COLUMNS,
@@ -86,7 +86,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
       async onOk() {
         try {
           const meta = (await getMeta(table.id as string, true)) as TableType
-          const relationColumns = meta?.columns?.filter((c) => c.uidt === UITypes.LinkToAnotherRecord && !isSystemColumn(c))
+          const relationColumns = meta?.columns?.filter((c) => isLinksOrLTAR(c) && !isSystemColumn(c))
 
           // Check if table has any relation columns and show notification
           // skip for xcdb base

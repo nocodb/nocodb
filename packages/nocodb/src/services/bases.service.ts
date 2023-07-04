@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
 import { populateMeta, validatePayload } from '../helpers';
+import { populateRollupColumnAndHideLTAR } from '../helpers/populateMeta';
 import { syncBaseMigration } from '../helpers/syncMigration';
 import { Base, Project } from '../models';
 import type { BaseReqType } from 'nocodb-sdk';
@@ -68,6 +69,8 @@ export class BasesService {
     await syncBaseMigration(project, base);
 
     const info = await populateMeta(base, project);
+
+    await populateRollupColumnAndHideLTAR(base, project);
 
     T.emit('evt_api_created', info);
 

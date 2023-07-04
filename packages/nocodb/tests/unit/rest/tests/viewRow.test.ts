@@ -19,6 +19,7 @@ import {
   getOneRow,
   getRow,
 } from '../../factory/row';
+import { isPg } from '../../init/db';
 import type { ColumnType } from 'nocodb-sdk';
 import type View from '../../../../src/models/View';
 import type Model from '../../../../src/models/Model';
@@ -521,10 +522,6 @@ function viewRowTests() {
       relatedTableColumnTitle: 'FirstName',
     });
 
-    const paymentListColumn = (await rentalTable.getColumns()).find(
-      (c) => c.title === 'Payment List',
-    );
-
     const nestedFilter = {
       is_group: true,
       status: 'create',
@@ -536,12 +533,6 @@ function viewRowTests() {
           logical_op: 'and',
           comparison_op: 'like',
           value: '%a%',
-        },
-        {
-          fk_column_id: paymentListColumn?.id,
-          status: 'create',
-          logical_op: 'and',
-          comparison_op: 'notblank',
         },
       ],
     };
@@ -622,16 +613,12 @@ function viewRowTests() {
       relatedTableColumnTitle: 'RentalDate',
     });
 
-    const paymentListColumn = (await customerTable.getColumns()).find(
-      (c) => c.title === 'Payment List',
-    );
-
     const activeColumn = (await customerTable.getColumns()).find(
       (c) => c.title === 'Active',
     );
 
     const nestedFields = {
-      'Rental List': { fields: ['RentalDate', 'ReturnDate'] },
+      Rentals: { fields: ['RentalDate', 'ReturnDate'] },
     };
 
     const nestedFilter = [
@@ -653,12 +640,6 @@ function viewRowTests() {
             logical_op: 'and',
             comparison_op: 'lte',
             value: 30,
-          },
-          {
-            fk_column_id: paymentListColumn?.id,
-            status: 'create',
-            logical_op: 'and',
-            comparison_op: 'notblank',
           },
           {
             is_group: true,
@@ -701,18 +682,10 @@ function viewRowTests() {
       throw new Error('Wrong filter');
     }
 
-    const nestedRentalResponse = Object.keys(
-      ascResponse.body.list[0]['Rental List'][0],
-    );
-
-    if (
-      !(
-        nestedRentalResponse.includes('ReturnDate') &&
-        nestedRentalResponse.includes('RentalDate') &&
-        nestedRentalResponse.length === 2
-      )
-    ) {
-      throw new Error('Wrong nested fields');
+    if (isPg(context)) {
+      expect(ascResponse.body.list[0]['Rentals']).to.equal('12');
+    } else {
+      expect(ascResponse.body.list[0]['Rentals']).to.equal(12);
     }
   };
 
@@ -891,16 +864,12 @@ function viewRowTests() {
       attr: { show: true },
     });
 
-    const paymentListColumn = (await customerTable.getColumns()).find(
-      (c) => c.title === 'Payment List',
-    );
-
     const activeColumn = (await customerTable.getColumns()).find(
       (c) => c.title === 'Active',
     );
 
     const nestedFields = {
-      'Rental List': { f: 'RentalDate,ReturnDate' },
+      Rentals: { f: 'RentalDate,ReturnDate' },
     };
 
     const nestedFilter = [
@@ -922,12 +891,6 @@ function viewRowTests() {
             logical_op: 'and',
             comparison_op: 'lte',
             value: 30,
-          },
-          {
-            fk_column_id: paymentListColumn?.id,
-            status: 'create',
-            logical_op: 'and',
-            comparison_op: 'notblank',
           },
           {
             is_group: true,
@@ -964,7 +927,7 @@ function viewRowTests() {
       throw new Error('Wrong filter');
     }
 
-    const nestedRentalResponse = Object.keys(ascResponse.body['Rental List']);
+    const nestedRentalResponse = Object.keys(ascResponse.body['Rentals']);
     if (
       nestedRentalResponse.includes('RentalId') &&
       nestedRentalResponse.includes('RentalDate') &&

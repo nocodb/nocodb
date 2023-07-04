@@ -1,4 +1,4 @@
-import { RelationTypes, UITypes } from 'nocodb-sdk'
+import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { MaybeRef } from '@vueuse/core'
@@ -80,11 +80,11 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
       try {
         await $api.dbTableRow.nestedAdd(
           NOCO,
-          project.value.title as string,
-          metaValue?.title as string,
+          project.value.id as string,
+          metaValue?.id as string,
           rowId,
           type as 'mm' | 'hm',
-          column.title as string,
+          column.id as string,
           relatedRowId,
         )
       } catch (e: any) {
@@ -96,7 +96,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     const syncLTARRefs = async (row: Record<string, any>, { metaValue = meta.value }: { metaValue?: TableType } = {}) => {
       const id = extractPkFromRow(row, metaValue?.columns as ColumnType[])
       for (const column of metaValue?.columns ?? []) {
-        if (column.uidt !== UITypes.LinkToAnotherRecord) continue
+        if (!isLinksOrLTAR(column)) continue
 
         const colOptions = column.colOptions as LinkToAnotherRecordType
 
@@ -132,7 +132,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     // clear LTAR cell
     const clearLTARCell = async (column: ColumnType) => {
       try {
-        if (!column || column.uidt !== UITypes.LinkToAnotherRecord) return
+        if (!column || !isLinksOrLTAR(column)) return
 
         const relatedTableMeta = metas.value?.[(<LinkToAnotherRecordType>column?.colOptions)?.fk_related_model_id as string]
 
@@ -143,11 +143,11 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
             if (!currentRow.value.row[column.title!]) return
             await $api.dbTableRow.nestedRemove(
               NOCO,
-              project.value.title as string,
-              meta.value?.title as string,
+              project.value.id as string,
+              meta.value?.id as string,
               extractPkFromRow(currentRow.value.row, meta.value?.columns as ColumnType[]),
               'bt' as any,
-              column.title as string,
+              column.id as string,
               extractPkFromRow(currentRow.value.row[column.title!], relatedTableMeta?.columns as ColumnType[]),
             )
             currentRow.value.row[column.title!] = null
@@ -155,11 +155,11 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
             for (const link of (currentRow.value.row[column.title!] as Record<string, any>[]) || []) {
               await $api.dbTableRow.nestedRemove(
                 NOCO,
-                project.value.title as string,
-                meta.value?.title as string,
+                project.value.id as string,
+                meta.value?.id as string,
                 extractPkFromRow(currentRow.value.row, meta.value?.columns as ColumnType[]),
                 (<LinkToAnotherRecordType>column?.colOptions).type as 'hm' | 'mm',
-                column.title as string,
+                column.id as string,
                 extractPkFromRow(link, relatedTableMeta?.columns as ColumnType[]),
               )
             }

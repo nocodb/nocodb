@@ -229,6 +229,7 @@ async function _formulaQueryBuilder(
             }
 
             switch (lookupColumn.uidt) {
+              case UITypes.Links:
               case UITypes.Rollup:
                 {
                   const builder = (
@@ -415,6 +416,7 @@ async function _formulaQueryBuilder(
         };
         break;
       case UITypes.Rollup:
+      case UITypes.Links:
         aliasToColumn[col.id] = async (): Promise<any> => {
           const qb = await genRollupSelectv2({
             knex,

@@ -395,7 +395,7 @@ a {
 
 
 .nc-icon-transition {
-  @apply transform transition-transform !hover:(scale-115) !active:(scale-100)
+  @apply transform transition-transform !hover:(scale-115 text-shadow-sm) !active:(scale-100)
 }
 
 .nc-animation-pulse {

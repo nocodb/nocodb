@@ -115,7 +115,9 @@ export class SelectOptionCellPageObject extends BasePage {
     const selectCell = this.get({ index, columnHeader });
 
     // check if cell active
-    if (!(await selectCell.getAttribute('class')).includes('active')) {
+    // drag based non-primary cell will have 'active' attribute
+    // primary cell with blue border will have 'active-cell' attribute
+    if (!(await selectCell.getAttribute('class')).includes('active-cell')) {
       await selectCell.click();
     }
 

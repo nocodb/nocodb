@@ -6,6 +6,8 @@ const props = defineProps<{
   alignCountOnRight?: boolean
 }>()
 
+const { alignCountOnRight } = props
+
 const isPublic = inject(IsPublicInj, ref(false))
 
 const { isLeftSidebarOpen, isRightSidebarOpen } = storeToRefs(useSidebarStore())

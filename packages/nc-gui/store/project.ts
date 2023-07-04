@@ -276,6 +276,7 @@ export const useProject = defineStore('projectStore', () => {
     hasEmptyOrNullFilters,
     setProject,
     projectUrl,
+    getBaseType,
   }
 })
 

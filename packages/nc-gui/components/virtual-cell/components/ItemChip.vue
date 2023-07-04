@@ -9,7 +9,6 @@ import {
   inject,
   isAttachment,
   ref,
-  renderValue,
   useExpandedFormDetached,
   useLTARStoreOrThrow,
 } from '#imports'
@@ -19,9 +18,11 @@ interface Props {
   item?: any
   column: any
   showUnlinkButton: boolean
+  border?: boolean
+  readonly?: boolean
 }
 
-const { value, item, column, showUnlinkButton } = defineProps<Props>()
+const { value, item, column, showUnlinkButton, border = true, readonly: readonlyProp } = defineProps<Props>()
 
 const emit = defineEmits(['unlink'])
 
@@ -40,7 +41,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 const { open } = useExpandedFormDetached()
 
 function openExpandedForm() {
-  if (!readOnly.value && !isLocked.value) {
+  if (!readOnly.value && !isLocked.value && !readonlyProp) {
     open({
       isOpen: true,
       row: { row: item, rowMeta: {}, oldRow: { ...item } },
@@ -84,9 +85,8 @@ export default {
             class="min-w-max"
             :class="{
               'px-1 rounded-full flex-1': !isAttachment(column),
-              'border-gray-200 rounded border-1': ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(
-                column.uidt,
-              ),
+              'border-gray-200 rounded border-1':
+                border && ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(column.uidt),
             }"
           >
             <LazySmartsheetCell :model-value="value" :column="column" :edit-enabled="false" :virtual="true" :read-only="true" />

@@ -36,6 +36,7 @@ export default async function sortV2(
 
     switch (column.uidt) {
       case UITypes.Rollup:
+      case UITypes.Links:
         {
           const builder = (
             await genRollupSelectv2({
@@ -121,6 +122,7 @@ export default async function sortV2(
             }
 
             switch (lookupColumn.uidt) {
+              case UITypes.Links:
               case UITypes.Rollup:
                 {
                   const builder = (

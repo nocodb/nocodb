@@ -1289,7 +1289,7 @@ const onDraftRecordClick = () => {
               @mouseup.stop
               @click="addEmptyRow()"
             >
-              <td class="text-left pointer nc-grid-add-new-cell sticky left-0 !border-r-0">
+              <td class="text-left pointer sticky left-0 !border-r-0">
                 <div class="px-2 w-full flex items-center text-gray-500">
                   <component :is="iconMap.plus" class="text-pint-500 text-xs ml-2 text-gray-600 group-hover:text-black" />
                 </div>
@@ -1476,17 +1476,25 @@ const onDraftRecordClick = () => {
 .nc-grid-wrapper {
   @apply h-full w-full overflow-auto;
 
+  .nc-grid-add-new-cell:hover td {
+    background-color: rgb(252, 252, 252);
+    @apply text-black;
+  }
+
   td,
   th {
-    @apply border-gray-50 border-solid border-b border-r bg-gray-50;
+    @apply border-gray-50 border-solid border-r bg-gray-50;
     background-color: rgb(252, 252, 252);
     min-height: 41px !important;
     height: 41px !important;
     position: relative;
   }
 
+  tr:nth-child(1) td {
+    @apply border-t-1;
+  }
   td {
-    @apply bg-white;
+    @apply bg-white border-b;
   }
 
   td:not(:first-child) > div {
@@ -1518,7 +1526,7 @@ const onDraftRecordClick = () => {
 
   // todo: replace with css variable
   td.active::after {
-    @apply border-1 border-solid text-primary border-current bg-primary bg-opacity-5;
+    @apply border-1 border-solid text-primary border-current bg-primary bg-opacity-3;
   }
 
   //td.active::before {
@@ -1600,7 +1608,7 @@ const onDraftRecordClick = () => {
   position: sticky;
   top: -1px;
 
-  @apply z-10 bg-white;
+  @apply z-4 bg-white;
 
   &:hover {
     .nc-no-label {

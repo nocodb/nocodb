@@ -11,6 +11,7 @@ export const useProjects = defineStore('projectsStore', () => {
   const { $api } = useNuxtApp()
 
   const projects = ref<Map<string, NcProject>>(new Map())
+
   const projectsList = computed<NcProject[]>(() =>
     Array.from(projects.value.values()).sort((a, b) => a.updated_at - b.updated_at),
   )
@@ -68,8 +69,6 @@ export const useProjects = defineStore('projectsStore', () => {
       }
 
       for (const project of _projects) {
-        if (projects.value.has(project.id!)) continue
-
         projects.value.set(project.id!, {
           ...project,
           isExpanded: route.value.params.projectId === project.id,

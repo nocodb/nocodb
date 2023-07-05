@@ -29,6 +29,7 @@ onMounted(async () => {
 })
 
 const workspaceModalVisible = ref(false)
+const isWorkspaceDropdownOpen = ref(false)
 
 const createDlg = ref(false)
 
@@ -93,11 +94,18 @@ const logout = async () => {
 // todo: temp
 const isSharedBase = false
 const modalVisible = false
+
+onKeyStroke('Escape', () => {
+  if (isWorkspaceDropdownOpen.value) {
+    isWorkspaceDropdownOpen.value = false
+  }
+})
 </script>
 
 <template>
   <div class="flex-grow min-w-20">
     <a-dropdown
+      v-model:visible="isWorkspaceDropdownOpen"
       class="h-full min-w-0 flex-1"
       :trigger="['click']"
       placement="bottom"

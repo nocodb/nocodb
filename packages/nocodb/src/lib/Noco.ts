@@ -280,18 +280,17 @@ export default class Noco {
     console.log(`App started successfully.\nVisit -> ${Noco.dashboardUrl}`);
     weAreHiring();
 
-    if(process.env.ESA_SKIP_DB_RECORD_ACTION_EVENT_WATCHER_FOR_WEBHOOK !== 'true' ){
+    if( process.env.ESA_SKIP_DB_RECORD_ACTION_EVENT_WATCHER_FOR_WEBHOOK !== 'true' ){
       try{
         await PSQLRecordOperationWatcher.watchForWebhook(Noco._ncMeta);
       }
       catch(e){
-        const message = `PSQLRecordOperationWatcher could not be setup`;
+        const message = `${PSQLRecordOperationWatcher.name} could not be setup`;
         // TODO: report as incident
 
-        console.error(message, e);
-
-        process.stderr.write('', function () {
-          // this is critical, as events needs to be fired to meet app requirements especially for business. It is better the program is down so this should be taken more seriously.
+        process.stderr.write(`${message} : ${e?.message || e?.toString()}`, function () {
+          // this is critical, as events needs to be fired as quick as possible to meet business/app requirement though they will be in notifications table waiting to be picked.
+          // It is better the program is down so this should be taken more seriously.
           process.exit(1);
         });
       }

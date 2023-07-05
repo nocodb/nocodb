@@ -14,7 +14,6 @@ import {
   useSmartsheetStoreOrThrow,
   useUIPermission,
 } from '#imports'
-import type { TabItem } from '~/lib'
 
 export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () => void) {
   const { sharedView } = useSharedView()
@@ -33,8 +32,6 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const tabMeta = inject(TabMetaInj, ref({ sortsState: new Map() } as TabItem))
-
   const lastSorts = ref<SortType[]>([])
 
   watchOnce(sorts, (sorts: SortType[]) => {
@@ -51,11 +48,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
     try {
       if (!isUIAllowed('sortSync')) {
-        const sortsBackup = tabMeta.value.sortsState!.get(view.value!.id!)
-        if (sortsBackup) {
-          sorts.value = sortsBackup
-          return
-        }
+        return
       }
       if (!view?.value) return
       sorts.value = (await $api.dbTableSort.list(view.value!.id!)).list as SortType[]
@@ -109,7 +102,6 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
       sorts.value[i] = sort
       sorts.value = [...sorts.value]
       reloadHook?.trigger()
-      tabMeta.value.sortsState!.set(view.value!.id!, sorts.value)
       return
     }
 
@@ -161,8 +153,6 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
       lastSorts.value = clone(sorts.value)
 
-      tabMeta.value.sortsState!.set(view.value!.id!, sorts.value)
-
       reloadHook?.trigger()
       $e('a:sort:delete')
     } catch (e: any) {
@@ -200,8 +190,6 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
     }
 
     lastSorts.value = clone(sorts.value)
-
-    tabMeta.value.sortsState!.set(view.value!.id!, sorts.value)
   }
 
   return { sorts, loadSorts, addSort, deleteSort, saveOrUpdate }

@@ -53,8 +53,6 @@ export function useViewFilters(
 
   const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterSync') || !isUIAllowed('filterChildrenRead'))
 
-  const tabMeta = inject(TabMetaInj, ref({ filterState: new Map(), sortsState: new Map() } as TabItem))
-
   const filters = computed<Filter[]>({
     get: () => {
       return nestedMode.value ? currentFilters! : _filters.value
@@ -64,7 +62,6 @@ export function useViewFilters(
         currentFilters = value
         if (isNestedRoot) {
           nestedFilters.value = value
-          tabMeta.value.filterState!.set(view.value!.id!, nestedFilters.value)
         }
         nestedFilters.value = [...nestedFilters.value]
         reloadHook?.trigger()
@@ -190,7 +187,6 @@ export function useViewFilters(
   const loadFilters = async (hookId?: string) => {
     if (nestedMode.value) {
       // ignore restoring if not root filter group
-      if (isNestedRoot) filters.value = tabMeta.value.filterState!.get(view.value!.id!) || []
       return
     }
 

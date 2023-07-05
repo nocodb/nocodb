@@ -4,6 +4,7 @@ import { SharedFormPage } from '../../../pages/SharedForm';
 import setup from '../../../setup';
 import { AccountPage } from '../../../pages/Account';
 import { AccountLicensePage } from '../../../pages/Account/License';
+import { isHub } from '../../../setup/db';
 
 test.describe('Attachment column', () => {
   let dashboard: DashboardPage;
@@ -16,7 +17,7 @@ test.describe('Attachment column', () => {
     accountLicensePage = new AccountLicensePage(accountPage);
   });
 
-  test('Create and verify attachment column, verify it in shared form,', async ({ page, context }) => {
+  test('Create and verify attachment column, verify it in shared form,', async ({ context }) => {
     // run tests slowly
     test.slow();
 
@@ -51,9 +52,15 @@ test.describe('Attachment column', () => {
     await dashboard.viewSidebar.createFormView({
       title: 'Form 1',
     });
-    await dashboard.form.toolbar.clickShareView();
-    const sharedFormUrl = await dashboard.form.toolbar.shareView.getShareLink();
-    await dashboard.form.toolbar.shareView.close();
+    let sharedFormUrl;
+    if (isHub()) {
+      sharedFormUrl = await dashboard.form.toolbar.getSharedViewUrl();
+      console.log(sharedFormUrl);
+    } else {
+      await dashboard.form.toolbar.clickShareView();
+      sharedFormUrl = await dashboard.form.toolbar.shareView.getShareLink();
+      await dashboard.form.toolbar.shareView.close();
+    }
     await dashboard.viewSidebar.openView({ title: 'Country' });
 
     // Verify attachment in shared form
@@ -100,7 +107,7 @@ test.describe('Attachment column', () => {
     await expect(cells[2].includes('5.json(http://localhost:8080/download/')).toBe(true);
   });
 
-  test('Attachment enterprise features,', async ({ page, context }) => {
+  test('Attachment enterprise features,', async () => {
     // configure enterprise key
     test.slow();
     await accountLicensePage.goto();

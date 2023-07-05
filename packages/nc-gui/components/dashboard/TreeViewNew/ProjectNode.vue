@@ -383,6 +383,12 @@ function openTableCreateMagicDialog(baseId?: string) {
     close(1000)
   }
 }
+
+onKeyStroke('Escape', () => {
+  if (isOptionsOpen.value) {
+    isOptionsOpen.value = false
+  }
+})
 </script>
 
 <template>
@@ -474,7 +480,13 @@ function openTableCreateMagicDialog(baseId?: string) {
               @click.stop
             />
             <template #overlay>
-              <a-menu>
+              <a-menu
+                class="nc-sidebar-md"
+                :style="{
+                  maxHeight: '70vh',
+                  overflow: 'overlay',
+                }"
+              >
                 <!--          <a-menu class="!ml-1 !w-[300px] !text-sm"> -->
                 <a-menu-item-group>
                   <template #title>
@@ -482,15 +494,15 @@ function openTableCreateMagicDialog(baseId?: string) {
                       <GeneralIcon icon="folder" class="group-hover:text-accent text-xl" />
 
                       <div class="flex flex-col">
-                        <div class="text-lg group-hover:(!text-primary) font-semibold capitalize">
+                        <div class="text-base font-semibold capitalize text-gray-600">
                           <GeneralTruncateText>{{ project.title }}</GeneralTruncateText>
                         </div>
 
-                        <div v-if="!isSharedBase" class="flex items-center gap-1">
+                        <!-- <div v-if="!isSharedBase" class="flex items-center gap-1">
                           <div class="group-hover:(!text-primary)">ID:</div>
 
                           <div class="text-xs group-hover:text-accent truncate font-italic">{{ project.id }}</div>
-                        </div>
+                        </div> -->
                       </div>
                     </div>
                   </template>

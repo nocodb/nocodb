@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup from '../../../setup';
 import { GridPage } from '../../../pages/Dashboard/Grid';

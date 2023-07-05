@@ -246,21 +246,40 @@ export class ToolbarPage extends BasePage {
     );
   }
 
-  async getSharedViewUrl() {
-    await this.clickShare();
-    await this.share.clickShareView();
-    await this.share.clickShareViewToggle();
-    await this.share.clickCopyLink();
-    await this.share.closeModal();
-    return await this.getClipboardText();
+  async getSharedViewUrl(surveyMode = false, password = '', download = false) {
+    if (isHub()) {
+      await this.clickShare();
+      await this.share.clickShareView();
+      await this.share.clickShareViewPublicAccess();
+      await this.share.clickCopyLink();
+      if (surveyMode) {
+        await this.share.clickShareViewSurveyMode();
+      }
+
+      if (password !== '') {
+        await this.share.clickShareViewWithPassword({ password });
+      }
+
+      if (download) {
+        await this.share.clickShareViewWithCSVDownload();
+      }
+
+      await this.share.closeModal();
+      return await this.getClipboardText();
+    } else {
+      await this.clickShareView();
+      const formLink = await this.shareView.getShareLink();
+      await this.shareView.close();
+      return formLink;
+    }
   }
 
   async getSharedBaseUrl({ role }: { role: string }) {
     await this.clickShare();
     await this.share.clickShareBase();
-    await this.share.clickShareBaseToggle();
+    await this.share.clickShareBasePublicAccess();
     if (role === 'editor') {
-      await this.share.clickShareBaseEditorToggle();
+      await this.share.clickShareBaseEditorAccess();
     }
     await this.share.clickCopyLink();
     await this.share.closeModal();

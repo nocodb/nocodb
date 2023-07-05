@@ -315,8 +315,7 @@ test.describe('View', () => {
 
     // Share view
     await toolbar.fields.toggle({ title: 'Rating' });
-    await toolbar.clickShareView();
-    const sharedLink = await toolbar.shareView.getShareLink();
+    const sharedLink = await toolbar.getSharedViewUrl();
     await toolbar.shareView.close();
 
     // sign-out

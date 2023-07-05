@@ -6,6 +6,7 @@ import { SharedFormPage } from '../../../pages/SharedForm';
 import { AccountPage } from '../../../pages/Account';
 import { AccountAppStorePage } from '../../../pages/Account/AppStore';
 import { Api, UITypes } from 'nocodb-sdk';
+import { isHub } from '../../../setup/db';
 let api: Api<any>;
 
 // todo: Move most of the ui actions to page object and await on the api response
@@ -221,10 +222,7 @@ test.describe('Form view', () => {
     });
 
     await dashboard.viewSidebar.createFormView({ title: 'NewForm' });
-    await dashboard.form.toolbar.clickShareView();
-    const formLink = await dashboard.form.toolbar.shareView.getShareLink();
-
-    console.log(formLink);
+    const formLink = await dashboard.form.toolbar.getSharedViewUrl();
 
     await dashboard.rootPage.goto(formLink);
     // fix me! kludge@hub; page wasn't getting loaded from previous step
@@ -335,10 +333,7 @@ test.describe('Form view with LTAR', () => {
     const url = dashboard.rootPage.url();
 
     await dashboard.viewSidebar.createFormView({ title: 'NewForm' });
-    await dashboard.form.toolbar.clickShareView();
-    const formLink = await dashboard.form.toolbar.shareView.getShareLink();
-
-    await dashboard.rootPage.goto(formLink);
+    await dashboard.form.toolbar.getSharedViewUrl();
 
     const sharedForm = new SharedFormPage(dashboard.rootPage);
     await sharedForm.cell.fillText({
@@ -422,8 +417,7 @@ test.describe('Form view', () => {
     const url = dashboard.rootPage.url();
 
     await dashboard.viewSidebar.createFormView({ title: 'NewForm' });
-    await dashboard.form.toolbar.clickShareView();
-    const formLink = await dashboard.form.toolbar.shareView.getShareLink();
+    const formLink = await dashboard.form.toolbar.getSharedViewUrl();
 
     await dashboard.rootPage.goto(formLink);
 

@@ -51,8 +51,7 @@ test.describe('Shared view', () => {
     await dashboard.grid.toolbar.clickFilter();
 
     // share with password disabled, download enabled
-    await dashboard.grid.toolbar.clickShareView();
-    sharedLink = await dashboard.grid.toolbar.shareView.getShareLink();
+    sharedLink = await dashboard.grid.toolbar.getSharedViewUrl();
 
     /**
      * 2. Access shared view: verify
@@ -166,14 +165,7 @@ test.describe('Shared view', () => {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });
 
-    // enable password & verify share link
-    await dashboard.grid.toolbar.clickShareView();
-    await dashboard.grid.toolbar.shareView.enablePassword('p@ssword');
-    // disable download
-    await dashboard.grid.toolbar.shareView.toggleDownload();
-
-    sharedLink = await dashboard.grid.toolbar.shareView.getShareLink();
-    await dashboard.grid.toolbar.shareView.close();
+    sharedLink = await dashboard.grid.toolbar.getSharedViewUrl(false, 'p@ssword', true);
 
     // add new column, record after share view creation
     await dashboard.grid.column.create({

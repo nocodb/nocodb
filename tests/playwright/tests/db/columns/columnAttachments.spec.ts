@@ -4,7 +4,6 @@ import { SharedFormPage } from '../../../pages/SharedForm';
 import setup from '../../../setup';
 import { AccountPage } from '../../../pages/Account';
 import { AccountLicensePage } from '../../../pages/Account/License';
-import { isHub } from '../../../setup/db';
 
 test.describe('Attachment column', () => {
   let dashboard: DashboardPage;
@@ -52,15 +51,7 @@ test.describe('Attachment column', () => {
     await dashboard.viewSidebar.createFormView({
       title: 'Form 1',
     });
-    let sharedFormUrl;
-    if (isHub()) {
-      sharedFormUrl = await dashboard.form.toolbar.getSharedViewUrl();
-      console.log(sharedFormUrl);
-    } else {
-      await dashboard.form.toolbar.clickShareView();
-      sharedFormUrl = await dashboard.form.toolbar.shareView.getShareLink();
-      await dashboard.form.toolbar.shareView.close();
-    }
+    const sharedFormUrl = await dashboard.form.toolbar.getSharedViewUrl();
     await dashboard.viewSidebar.openView({ title: 'Country' });
 
     // Verify attachment in shared form

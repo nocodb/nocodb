@@ -21,7 +21,7 @@ export class ToolbarSharePage extends BasePage {
     await this.get().locator(`[data-testid="docs-share-dlg-share-project"]`).click();
   }
 
-  async clickShareViewToggle() {
+  async clickShareViewPublicAccess() {
     await this.get().locator(`[data-testid="share-view-toggle"]`).click();
   }
 
@@ -33,8 +33,9 @@ export class ToolbarSharePage extends BasePage {
     await this.rootPage.keyboard.press('Escape');
   }
 
-  async clickShareViewWithPassword() {
+  async clickShareViewWithPassword({ password }: { password: string }) {
     await this.get().locator(`[data-testid="share-password-toggle"]`).click();
+    await this.get().locator('data-testid="nc-modal-share-view__password"]').fill(password);
   }
 
   async clickShareViewWithCSVDownload() {
@@ -45,11 +46,15 @@ export class ToolbarSharePage extends BasePage {
     await this.get().locator(`[data-testid="db-share-base"]`).click();
   }
 
-  async clickShareBaseToggle() {
+  async clickShareBasePublicAccess() {
     await this.get().locator(`[data-testid="nc-share-base-sub-modal"]`).locator('.ant-switch-checked').nth(0).click();
   }
 
-  async clickShareBaseEditorToggle() {
+  async clickShareBaseEditorAccess() {
     await this.get().locator(`[data-testid="nc-share-base-sub-modal"]`).locator('.ant-switch-checked').nth(1).click();
+  }
+
+  async clickShareViewSurveyMode() {
+    await this.get().locator(`[data-testid="nc-modal-share-view__surveyMode"]`).click();
   }
 }

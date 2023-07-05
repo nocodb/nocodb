@@ -30,10 +30,8 @@ test.describe('Share form', () => {
     });
     await dashboard.form.showAnotherFormRadioButton.click();
     await dashboard.form.showAnotherFormAfter5SecRadioButton.click();
-    await dashboard.form.toolbar.clickShareView();
-    await dashboard.form.toolbar.shareView.toggleSurveyMode();
 
-    const surveyLink = await dashboard.form.toolbar.shareView.getShareLink();
+    const surveyLink = await dashboard.form.toolbar.getSharedViewUrl(true);
     await dashboard.rootPage.waitForTimeout(2000);
     await dashboard.rootPage.goto(surveyLink);
     // fix me! kludge@hub; page wasn't getting loaded from previous step

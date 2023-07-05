@@ -17,17 +17,17 @@ jobs:
     timeout-minutes: 40
     steps:
       # Reference: https://github.com/pierotofy/set-swap-space/blob/master/action.yml
-      - name: Set 5gb swap
-        shell: bash
-        # Delete the swap file, allocate a new one, and activate it
-        run: |
-            export SWAP_FILE=$(swapon --show=NAME | tail -n 1)
-            sudo swapoff $SWAP_FILE
-            sudo rm $SWAP_FILE
-            sudo fallocate -l 5G $SWAP_FILE
-            sudo chmod 600 $SWAP_FILE
-            sudo mkswap $SWAP_FILE
-            sudo swapon $SWAP_FILE
+      # - name: Set 5gb swap
+      #   shell: bash
+      #   # Delete the swap file, allocate a new one, and activate it
+      #   run: |
+      #       export SWAP_FILE=$(swapon --show=NAME | tail -n 1)
+      #       sudo swapoff $SWAP_FILE
+      #       sudo rm $SWAP_FILE
+      #       sudo fallocate -l 5G $SWAP_FILE
+      #       sudo chmod 600 $SWAP_FILE
+      #       sudo mkswap $SWAP_FILE
+      #       sudo swapon $SWAP_FILE
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
@@ -97,9 +97,9 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: ./tests/playwright
         run: npm install
-      - name: Install Playwright Browsers
-        working-directory: ./tests/playwright
-        run: npx playwright install chromium --with-deps
+      # - name: Install Playwright Browsers
+      #   working-directory: ./tests/playwright
+      #   run: npx playwright install chromium --with-deps
       - name: Wait for backend
         run: |
           while ! curl --output /dev/null --silent --head --fail http://localhost:8080; do

@@ -90,11 +90,11 @@ const navigateToHome = () => {
         <MaterialSymbolsHomeOutlineRounded class="!h-3.9" />
         <div>Home</div>
       </div>
-
+      <!-- 
       <div role="button" class="nc-sidebar-top-button">
         <PhMagnifyingGlassBold class="!h-3.3" />
         <div>Search</div>
-      </div>
+      </div> -->
 
       <WorkspaceCreateProjectBtn
         v-model:is-open="isCreateProjectOpen"

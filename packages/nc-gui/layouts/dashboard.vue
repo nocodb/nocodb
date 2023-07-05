@@ -2,6 +2,9 @@
 import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 
+const router = useRouter()
+const route = router.currentRoute
+
 const { isLeftSidebarOpen, leftSidebarWidthPercent } = storeToRefs(useSidebarStore())
 const wrapperRef = ref<HTMLDivElement>()
 const sideBarSize = ref({
@@ -122,6 +125,12 @@ watch(
     }
   },
 )
+
+watch(route, () => {
+  if (route.value.name === 'index-index') {
+    isLeftSidebarOpen.value = true
+  }
+})
 </script>
 
 <script lang="ts">
@@ -134,6 +143,7 @@ export default {
   <NuxtLayout>
     <Splitpanes
       style="height: 100vh"
+      class="nc-sidebar-content-resizable-wrapper w-full"
       :class="{
         'sidebar-short': isSidebarShort,
       }"
@@ -142,7 +152,7 @@ export default {
       <Pane min-size="15%" :size="currentSidebarSize" max-size="40%" class="nc-sidebar-splitpane relative !overflow-visible">
         <div
           ref="wrapperRef"
-          class="nc-sidebar-wrapper relative z-10"
+          class="nc-sidebar-wrapper relative"
           :class="{
             'open': isLeftSidebarOpen,
             'close': !isLeftSidebarOpen,
@@ -166,31 +176,33 @@ export default {
 </template>
 
 <style lang="scss">
-.splitpanes__splitter {
-  width: 0 !important;
-  position: relative;
-  overflow: visible;
-}
-.splitpanes__splitter:before {
-  @apply bg-border w-0.25;
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100vh;
-  z-index: 40;
-}
+.nc-sidebar-content-resizable-wrapper > {
+  .splitpanes__splitter {
+    width: 0 !important;
+    position: relative;
+    overflow: visible;
+  }
+  .splitpanes__splitter:before {
+    @apply bg-border w-0.25;
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    z-index: 40;
+  }
 
-.splitpanes__splitter:hover:before {
-  @apply bg-scrollbar;
-  width: 3px !important;
-  left: -3px;
-}
+  .splitpanes__splitter:hover:before {
+    @apply bg-scrollbar;
+    width: 3px !important;
+    left: -3px;
+  }
 
-.splitpanes--dragging .splitpanes__splitter:before {
-  @apply bg-scrollbar;
-  width: 3px !important;
-  left: -3px;
+  .splitpanes--dragging .splitpanes__splitter:before {
+    @apply bg-scrollbar;
+    width: 3px !important;
+    left: -3px;
+  }
 }
 
 .sidebar-short > .splitpanes__splitter {
@@ -207,7 +219,7 @@ export default {
 }
 
 .nc-sidebar-wrapper {
-  @apply flex flex-col h-full justify-center;
+  @apply flex flex-col h-full justify-center min-w-48;
 }
 
 .nc-sidebar-wrapper.close {
@@ -218,6 +230,7 @@ export default {
 
 .nc-sidebar-wrapper.sidebar-short {
   > * {
+    @apply z-10;
     height: 80vh !important;
     padding-bottom: 0.35rem;
   }

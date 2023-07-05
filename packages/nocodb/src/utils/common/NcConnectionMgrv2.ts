@@ -1,8 +1,11 @@
+import { promisify } from 'util';
+import fs from 'fs';
 import SqlClientFactory from '../../db/sql-client/lib/SqlClientFactory';
 import { XKnex } from '../../db/CustomKnex';
 import {
   defaultConnectionConfig,
   defaultConnectionOptions,
+  jdbcToXcConfig,
   metaUrlToDbConfig,
 } from '../nc-config';
 import Noco from '../../Noco';
@@ -64,6 +67,8 @@ export default class NcConnectionMgrv2 {
       return this.dataKnex;
     }
 
+    // TODO reuse minimal db connections
+
     if (this.connectionRefs?.[base.project_id]?.[base.id]) {
       return this.connectionRefs?.[base.project_id]?.[base.id];
     }
@@ -93,10 +98,41 @@ export default class NcConnectionMgrv2 {
   }
 
   public static async getDataConfig() {
+    // if data db is set, use it for generating knex connection
     if (process.env.NC_DATA_DB) {
       if (!this.dataConfig)
         this.dataConfig = await metaUrlToDbConfig(process.env.NC_DATA_DB);
       return this.dataConfig;
+      // if data db json is set, use it for generating knex connection
+    } else if (process.env.NC_DATA_DB_JSON) {
+      try {
+        this.dataConfig = JSON.parse(process.env.NC_DATA_DB_JSON);
+      } catch (e) {
+        throw new Error(
+          `NC_DATA_DB_JSON is not a valid JSON: ${process.env.NC_DATA_DB_JSON}`,
+        );
+      }
+      // if data db json file is set, use it for generating knex connection
+    } else if (process.env.NC_DATA_DB_JSON_FILE) {
+      const filePath = process.env.NC_DATA_DB_JSON_FILE;
+
+      if (!(await promisify(fs.exists)(filePath))) {
+        throw new Error(`NC_DATA_DB_JSON_FILE not found: ${filePath}`);
+      }
+
+      const fileContent = await promisify(fs.readFile)(filePath, {
+        encoding: 'utf8',
+      });
+      try {
+        this.dataConfig = JSON.parse(fileContent);
+      } catch (e) {
+        throw new Error(
+          `NC_DATA_DB_JSON_FILE is not a valid JSON: ${filePath}`,
+        );
+      }
+      // if jdbc url is set, use it for generating knex connection
+    } else if (process.env.DATA_DATABASE_URL) {
+      this.dataConfig = await jdbcToXcConfig(process.env.DATA_DATABASE_URL);
     } else {
       if (!this.dataConfig) {
         this.dataConfig = Noco.getConfig()?.meta?.db;

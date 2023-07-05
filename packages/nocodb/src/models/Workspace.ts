@@ -1,11 +1,13 @@
 import { extractProps } from '../helpers/extractProps';
 import Noco from '../Noco';
-import { MetaTable } from '../utils/globals';
+import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 
 import { NcError } from '../helpers/catchError';
+import NocoCache from '../cache/NocoCache';
+import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
 import Page from './Page';
-import { Project } from './index';
 import type { WorkspaceType } from 'nocodb-sdk';
+import type { WorkspacePlan, WorkspaceStatus } from 'nocodb-sdk';
 
 export default class Workspace implements WorkspaceType {
   id?: string;
@@ -19,6 +21,11 @@ export default class Workspace implements WorkspaceType {
   deleted?: boolean;
   deleted_at?: Date | string | number;
   order?: number;
+
+  plan?: WorkspacePlan;
+  status?: WorkspaceStatus;
+  message?: string;
+  infra_meta?: string | Record<string, any>;
 
   constructor(workspace: Workspace | WorkspaceType) {
     Object.assign(this, workspace);
@@ -45,20 +52,29 @@ export default class Workspace implements WorkspaceType {
   }
 
   public static async get(workspaceId: string, ncMeta = Noco.ncMeta) {
-    const workspace = await ncMeta.metaGet2(
-      null,
-      null,
-      MetaTable.WORKSPACE,
-      workspaceId,
+    let workspaceData = await NocoCache.get(
+      `${CacheScope.WORKSPACE}:${workspaceId}`,
+      CacheGetType.TYPE_OBJECT,
     );
-    if (workspace.meta && typeof workspace.meta === 'string') {
-      try {
-        workspace.meta = JSON.parse(workspace.meta);
-      } catch {
-        workspace.meta = {};
+
+    if (!workspaceData) {
+      workspaceData = await ncMeta.metaGet2(
+        null,
+        null,
+        MetaTable.WORKSPACE,
+        workspaceId,
+      );
+      if (workspaceData) {
+        workspaceData.meta = parseMetaProp(workspaceData);
+        workspaceData.infra_meta = parseMetaProp(workspaceData, 'infra_meta');
+        await NocoCache.set(
+          `${CacheScope.WORKSPACE}:${workspaceData.id}`,
+          workspaceData,
+        );
       }
     }
-    return workspace && new Workspace(workspace);
+
+    return workspaceData && new Workspace(workspaceData);
   }
 
   public static async insert(
@@ -75,6 +91,8 @@ export default class Workspace implements WorkspaceType {
       'deleted',
       'deleted_at',
       'order',
+      'status',
+      'plan',
     ]);
 
     // stringify meta if it is an object
@@ -101,6 +119,10 @@ export default class Workspace implements WorkspaceType {
     workspace: Partial<Workspace>,
     ncMeta = Noco.ncMeta,
   ) {
+    // get existing cache
+    const key = `${CacheScope.WORKSPACE}:${id}`;
+    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+
     // extract props which is allowed to be inserted
     const updateObject = extractProps(workspace, [
       'title',
@@ -116,13 +138,58 @@ export default class Workspace implements WorkspaceType {
       updateObject.meta = JSON.stringify(updateObject.meta);
     }
 
-    return await ncMeta.metaUpdate(
+    const res = await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.WORKSPACE,
       updateObject,
       id,
     );
+
+    // update cache after successful update
+    if (o) {
+      Object.assign(o, updateObject);
+      // set cache
+      await NocoCache.set(key, o);
+    }
+    return res;
+  }
+
+  public static async updateStatusAndPlan(
+    id: string,
+    workspace: Partial<Workspace>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    // get existing cache
+    const key = `${CacheScope.WORKSPACE}:${id}`;
+    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+
+    // extract props which is allowed to be inserted
+    const updateObject = extractProps(workspace, [
+      'status',
+      'plan',
+      'infra_meta',
+    ]);
+
+    const res = await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.WORKSPACE,
+      {
+        ...updateObject,
+        // stringify infra_meta if it is an object
+        infra_meta: stringifyMetaProp(updateObject, 'infra_meta'),
+      },
+      id,
+    );
+
+    // update cache after successful update
+    if (o) {
+      Object.assign(o, updateObject);
+      // set cache
+      await NocoCache.set(key, o);
+    }
+    return res;
   }
 
   public static async delete(id: string, ncMeta = Noco.ncMeta) {
@@ -132,6 +199,8 @@ export default class Workspace implements WorkspaceType {
     await ncMeta.metaDelete(null, null, MetaTable.WORKSPACE_USER, {
       fk_workspace_id: id,
     });
+
+    await NocoCache.delAll(CacheScope.WORKSPACE_USER, `${id}:*`);
 
     // todo: reset project workspace mapping
     // and mark it as deleted
@@ -148,10 +217,14 @@ export default class Workspace implements WorkspaceType {
       },
     );
 
+    await NocoCache.del(`${CacheScope.WORKSPACE}:${id}`);
+
     return await ncMeta.metaDelete(null, null, MetaTable.WORKSPACE, id);
   }
 
   public static async softDelete(id: string, ncMeta = Noco.ncMeta) {
+    await NocoCache.del(`${CacheScope.WORKSPACE}:${id}`);
+
     return await ncMeta.metaUpdate(
       null,
       null,
@@ -167,13 +240,8 @@ export default class Workspace implements WorkspaceType {
   static async list(ncMeta = Noco.ncMeta) {
     const workspaces = await ncMeta.metaList(null, null, MetaTable.WORKSPACE);
     return workspaces.map((workspace) => {
-      if (workspace.meta && typeof workspace.meta === 'string') {
-        try {
-          workspace.meta = JSON.parse(workspace.meta);
-        } catch {
-          workspace.meta = {};
-        }
-      }
+      workspace.meta = parseMetaProp(workspace);
+      workspace.infra_meta = parseMetaProp(workspace, 'infra_meta');
       new Workspace(workspace);
     });
   }

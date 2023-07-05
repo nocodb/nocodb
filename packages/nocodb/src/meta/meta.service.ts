@@ -291,91 +291,98 @@ export class MetaService {
     let prefix;
     switch (target) {
       case MetaTable.PROJECT:
-        prefix = 'p_';
+        prefix = 'p';
         break;
       case MetaTable.BASES:
-        prefix = 'ds_';
+        prefix = 'b';
         break;
       case MetaTable.MODELS:
-        prefix = 'md_';
+        prefix = 'm';
         break;
       case MetaTable.COLUMNS:
-        prefix = 'cl_';
+        prefix = 'c';
         break;
       case MetaTable.COL_RELATIONS:
-        prefix = 'ln_';
+        prefix = 'l';
         break;
       case MetaTable.COL_SELECT_OPTIONS:
-        prefix = 'sl_';
+        prefix = 's';
         break;
       case MetaTable.COL_LOOKUP:
-        prefix = 'lk_';
+        prefix = 'lk';
         break;
       case MetaTable.COL_ROLLUP:
-        prefix = 'rl_';
+        prefix = 'rl';
         break;
       case MetaTable.COL_FORMULA:
-        prefix = 'fm_';
+        prefix = 'f';
         break;
       case MetaTable.FILTER_EXP:
-        prefix = 'fi_';
+        prefix = 'fi';
         break;
       case MetaTable.SORT:
-        prefix = 'so_';
+        prefix = 'so';
         break;
       case MetaTable.SHARED_VIEWS:
-        prefix = 'sv_';
+        prefix = 'sv';
         break;
       case MetaTable.ACL:
-        prefix = 'ac_';
+        prefix = 'ac';
         break;
       case MetaTable.FORM_VIEW:
-        prefix = 'fv_';
+        prefix = 'fv';
         break;
       case MetaTable.FORM_VIEW_COLUMNS:
-        prefix = 'fvc_';
+        prefix = 'fvc';
         break;
       case MetaTable.GALLERY_VIEW:
-        prefix = 'gv_';
+        prefix = 'gv';
         break;
       case MetaTable.GALLERY_VIEW_COLUMNS:
-        prefix = 'gvc_';
+        prefix = 'gvc';
         break;
       case MetaTable.KANBAN_VIEW:
-        prefix = 'kv_';
+        prefix = 'kv';
         break;
       case MetaTable.KANBAN_VIEW_COLUMNS:
-        prefix = 'kvc_';
+        prefix = 'kvc';
         break;
       case MetaTable.USERS:
-        prefix = 'us_';
+        prefix = 'us';
         break;
       case MetaTable.ORGS:
-        prefix = 'org_';
+        prefix = 'org';
         break;
       case MetaTable.TEAMS:
-        prefix = 'tm_';
+        prefix = 'tm';
         break;
       case MetaTable.VIEWS:
-        prefix = 'vw_';
+        prefix = 'vw';
         break;
       case MetaTable.HOOKS:
-        prefix = 'hk_';
+        prefix = 'hk';
         break;
       case MetaTable.HOOK_LOGS:
-        prefix = 'hkl_';
+        prefix = 'hkl';
         break;
       case MetaTable.AUDIT:
-        prefix = 'adt_';
+        prefix = 'adt';
         break;
       case MetaTable.API_TOKENS:
-        prefix = 'tkn_';
+        prefix = 'tkn';
+        break;
+      case MetaTable.WORKSPACE:
+        prefix = 'w';
+        break;
+      case MetaTable.COWRITER:
+        prefix = 'cw';
         break;
       default:
-        prefix = 'nc_';
+        prefix = 'nc';
         break;
     }
 
+    // using nanoid to avoid collision with existing ids when duplicating
     return `${prefix}${nanoidv2()}`;
   }
 

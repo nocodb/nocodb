@@ -404,7 +404,7 @@ async function saveHooks() {
     }
 
     if (!hook.id && res) {
-      hook.id = res.id
+      hook.value = { ...hook, ...res } as any
     }
 
     if (filterRef.value) {

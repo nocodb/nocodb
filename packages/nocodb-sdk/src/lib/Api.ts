@@ -231,6 +231,8 @@ export interface BaseType {
   inflection_table?: string;
   /** Is the data source connected externally */
   is_meta?: BoolType;
+  /** Is the data source minimal db */
+  is_local?: BoolType;
   /**
    * The order of the list of bases
    * @example 1
@@ -285,6 +287,8 @@ export interface BaseReqType {
   inflection_table?: string;
   /** Is the data source connected externally */
   is_meta?: boolean;
+  /** Is the data source minimal db */
+  is_local?: boolean;
   /** DB Type */
   type?:
     | 'mssql'
@@ -433,7 +437,8 @@ export interface ColumnType {
     | 'Time'
     | 'URL'
     | 'Year'
-    | 'QrCode';
+    | 'QrCode'
+    | 'Links';
   /** Is Unsigned? */
   un?: BoolType;
   /** Is unique? */
@@ -1717,7 +1722,7 @@ export interface LinkToAnotherColumnReqType {
   /** The type of the relationship */
   type: 'bt' | 'hm' | 'mm';
   /** Abstract type of the relationship */
-  uidt: 'LinkToAnotherRecord';
+  uidt: 'LinkToAnotherRecord' | 'Links';
   /** Is this relationship virtual? */
   virtual?: BoolType;
 }
@@ -1969,7 +1974,8 @@ export interface NormalColumnRequestType {
     | 'Time'
     | 'URL'
     | 'Year'
-    | 'QrCode';
+    | 'QrCode'
+    | 'Links';
   /** Is this column unique? */
   un?: BoolType;
   /** Is this column unique? */
@@ -11389,6 +11395,23 @@ export class Api<
       this.request<void, any>({
         path: `/api/v1/workspaces/${workspaceId}`,
         method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * @description Upgrade workspace
+     *
+     * @tags Workspace
+     * @name Upgrade
+     * @summary Upgrade workspace
+     * @request POST:/api/v1/workspaces/{workspaceId}/upgrade
+     * @response `200` `any` OK
+     */
+    upgrade: (workspaceId: string, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/workspaces/${workspaceId}/upgrade`,
+        method: 'POST',
+        format: 'json',
         ...params,
       }),
   };

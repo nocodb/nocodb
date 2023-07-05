@@ -41,15 +41,13 @@ const { allowCSVDownload } = useSharedView()
 
     <LazySmartsheetToolbarRowHeight v-if="isGrid" />
 
-    <LazySmartsheetToolbarAddRow v-if="isGrid" class="ml-2" />
-
     <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" />
 
     <LazySmartsheetToolbarExport v-if="(!isPublic && !isUIAllowed('dataInsert')) || (isPublic && allowCSVDownload)" />
 
     <LazySmartsheetToolbarSearchData v-if="(isGrid || isGallery || isKanban) && !isPublic" class="shrink" />
 
-    <LazyGeneralShareProject v-if="(isForm || isGrid || isKanban || isGallery || isMap) && !isPublic" class="" />
+    <LazyGeneralShareProject v-if="(isForm || isGrid || isKanban || isGallery || isMap) && !isPublic" />
 
     <LazySmartsheetToolbarViewActions
       v-if="(isGrid || isGallery || isKanban || isMap) && !isPublic && isUIAllowed('dataInsert')"

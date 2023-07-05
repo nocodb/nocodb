@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import { useGlobal } from '#imports'
+import { navigateTo } from '#app'
+
 const router = useRouter()
 
 const route = $(router.currentRoute)
@@ -31,6 +34,16 @@ const currentVersion = ref('')
 const isTreeViewOnScrollTop = ref(true)
 const onTreeViewScrollTop = (onScrollTop: boolean) => {
   isTreeViewOnScrollTop.value = !onScrollTop
+}
+
+const { appInfo } = $(useGlobal())
+
+const navigateToHome = () => {
+  if (appInfo.baseHostName) {
+    window.location.href = `https://app.${appInfo.baseHostName}/dashboard`
+  } else {
+    navigateTo('/')
+  }
 }
 </script>
 
@@ -73,15 +86,15 @@ const onTreeViewScrollTop = (onScrollTop: boolean) => {
 
       <div class="w-full mt-2"></div>
 
-      <div role="button" class="nc-sidebar-top-button" @click="navigateTo('/')">
+      <div role="button" class="nc-sidebar-top-button" @click="navigateToHome">
         <MaterialSymbolsHomeOutlineRounded class="!h-3.9" />
         <div>Home</div>
       </div>
-
+      <!-- 
       <div role="button" class="nc-sidebar-top-button">
         <PhMagnifyingGlassBold class="!h-3.3" />
         <div>Search</div>
-      </div>
+      </div> -->
 
       <WorkspaceCreateProjectBtn
         v-model:is-open="isCreateProjectOpen"

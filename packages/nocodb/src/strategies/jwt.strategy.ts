@@ -33,7 +33,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     const user = await User.getByEmail(jwtPayload?.email);
-    // .then(async (user) =>
 
     if (
       !user.token_version ||
@@ -76,10 +75,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       }),
     ]);
 
+    // override workspace level role with project level role if exists
+    // since project level role is more specific
+    const workspaceOrProjectRoles = projectRoles || workspaceRoles;
+
     return {
       ...user,
       roles: extractRolesObj(
-        [user.roles, workspaceRoles, projectRoles].filter(Boolean).join(','),
+        [user.roles, workspaceOrProjectRoles].filter(Boolean).join(','),
       ),
     };
   }

@@ -114,42 +114,49 @@ function resetError() {
         </h2>
 
         <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signUp">
-          <Transition name="layout">
-            <div
-              v-if="error"
-              class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1"
-              data-testid="nc-signup-error"
-            >
-              <div class="flex items-center gap-2 justify-center">
-                <MaterialSymbolsWarning />
-                <div class="break-words">{{ error }}</div>
+          <template v-if="!appInfo.disableEmailAuth">
+            <Transition name="layout">
+              <div
+                v-if="error"
+                class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1"
+                data-testid="nc-signup-error"
+              >
+                <div class="flex items-center gap-2 justify-center">
+                  <MaterialSymbolsWarning />
+                  <div class="break-words">{{ error }}</div>
+                </div>
               </div>
-            </div>
-          </Transition>
+            </Transition>
 
-          <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
-            <a-input v-model:value="form.email" size="large" :placeholder="$t('msg.info.signUp.workEmail')" @focus="resetError" />
-          </a-form-item>
+            <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
+              <a-input
+                v-model:value="form.email"
+                size="large"
+                :placeholder="$t('msg.info.signUp.workEmail')"
+                @focus="resetError"
+              />
+            </a-form-item>
 
-          <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
-            <a-input-password
-              v-model:value="form.password"
-              size="large"
-              class="password"
-              :placeholder="$t('msg.info.signUp.enterPassword')"
-              @focus="resetError"
-            />
-          </a-form-item>
-
+            <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
+              <a-input-password
+                v-model:value="form.password"
+                size="large"
+                class="password"
+                :placeholder="$t('msg.info.signUp.enterPassword')"
+                @focus="resetError"
+              />
+            </a-form-item>
+          </template>
           <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4">
-            <button class="scaling-btn bg-opacity-100" type="submit">
-              <span class="flex items-center gap-2">
-                <MaterialSymbolsRocketLaunchOutline />
+            <template v-if="!appInfo.disableEmailAuth">
+              <button class="scaling-btn bg-opacity-100" type="submit">
+                <span class="flex items-center gap-2">
+                  <MaterialSymbolsRocketLaunchOutline />
 
-                {{ $t('general.signUp') }}
-              </span>
-            </button>
-
+                  {{ $t('general.signUp') }}
+                </span>
+              </button>
+            </template>
             <a
               v-if="appInfo.googleAuthEnabled"
               :href="`${appInfo.ncSiteUrl}/auth/google`"
@@ -170,13 +177,18 @@ function resetError() {
                 <button type="button" class="scaling-btn bg-opacity-100">
                   <span class="flex items-center gap-2">
                     <MdiLogin />
+                    <template v-if="!appInfo.disableEmailAuth">
                     {{ $t('labels.signUpWithProvider', { provider: appInfo.oidcProviderName || 'OpenID Connect' }) }}
+                      </template>
+                    <template v-else>
+                      {{ $t('general.signUp') }}
+                    </template>
                   </span>
                 </button>
               </a>
             </div>
 
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2" v-if="!appInfo.disableEmailAuth">
               <a-switch
                 v-model:checked="subscribe"
                 size="small"

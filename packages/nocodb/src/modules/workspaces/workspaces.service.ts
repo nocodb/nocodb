@@ -1,18 +1,31 @@
-import { Injectable } from '@nestjs/common';
-import { AppEvents, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import { Injectable, Logger } from '@nestjs/common';
+import {
+  AppEvents,
+  ProjectRoles,
+  WorkspacePlan,
+  WorkspaceStatus,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
+import AWS from 'aws-sdk';
+import { ConfigService } from '@nestjs/config';
 import WorkspaceUser from '../../models/WorkspaceUser';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import Workspace from '../../models/Workspace';
 import validateParams from '../../helpers/validateParams';
 import { NcError } from '../../helpers/catchError';
 import { Project, ProjectUser } from '../../models';
-import { parseMetaProp } from '../../utils/modelUtils';
 import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
+import type { AppConfig } from '../../interface/config';
 
 @Injectable()
 export class WorkspacesService {
-  constructor(private appHooksService: AppHooksService) {}
+  private logger = new Logger(WorkspacesService.name);
+
+  constructor(
+    private appHooksService: AppHooksService,
+    private configService: ConfigService<AppConfig>,
+  ) {}
 
   async list(param: {
     user: {
@@ -50,7 +63,12 @@ export class WorkspacesService {
         title: workspacePayload.title.trim(),
         // todo : extend request type
         fk_user_id: param.user.id,
+        status: WorkspaceStatus.CREATED,
+        plan: WorkspacePlan.FREE,
       });
+
+      // todo: error handling
+      // await this.createWorkspaceSubdomain({ titleOrId: workspace.id });
 
       await WorkspaceUser.insert({
         fk_workspace_id: workspace.id,
@@ -78,6 +96,34 @@ export class WorkspacesService {
     const workspace = await Workspace.get(param.workspaceId);
 
     if (!workspace) NcError.notFound('Workspace not found');
+
+    return workspace;
+  }
+
+  async upgrade(param: {
+    user: {
+      email: string;
+      id: string;
+      roles: string[];
+    };
+    workspaceId: string;
+  }) {
+    const workspace = await Workspace.get(param.workspaceId);
+
+    if (!workspace) NcError.notFound('Workspace not found');
+
+    if (workspace.plan !== WorkspacePlan.FREE)
+      NcError.notFound('Workspace is already upgraded');
+
+    await this.createWorkspaceSubdomain({
+      titleOrId: workspace.id,
+      user: param.user?.email ?? param.user?.id,
+    });
+
+    await Workspace.updateStatusAndPlan(param.workspaceId, {
+      plan: WorkspacePlan.PAID,
+      status: WorkspaceStatus.CREATING,
+    });
 
     return workspace;
   }
@@ -192,5 +238,57 @@ export class WorkspacesService {
     return new PagedResponseImpl<WorkspaceType>(projects, {
       count: projects.length,
     });
+  }
+
+  // todo: handle error case
+  private async createWorkspaceSubdomain(param: {
+    titleOrId: string;
+    user: string;
+  }) {
+    const snsConfig = this.configService.get('workspace.sns', {
+      infer: true,
+    });
+
+    if (
+      !snsConfig.topicArn ||
+      !snsConfig.credentials ||
+      !snsConfig.credentials.secretAccessKey ||
+      !snsConfig.credentials.accessKeyId
+    ) {
+      this.logger.error('SNS is not configured');
+      NcError.notImplemented('Not available');
+    }
+
+    // Create publish parameters
+    const params = {
+      Message: JSON.stringify({
+        WS_NAME: param.titleOrId,
+        user: param.user,
+      }) /* required */,
+      TopicArn: snsConfig.topicArn,
+    };
+
+    // Create promise and SNS service object
+    const publishTextPromise = new AWS.SNS({
+      apiVersion: snsConfig.apiVersion,
+      region: snsConfig.region,
+      credentials: {
+        accessKeyId: snsConfig.credentials.accessKeyId,
+        secretAccessKey: snsConfig.credentials.secretAccessKey,
+      },
+    })
+      .publish(params)
+      .promise();
+    try {
+      // Handle promise's fulfilled/rejected states
+      const data = await publishTextPromise;
+      this.logger.log(
+        `Message ${params.Message} sent to the topic ${params.TopicArn}`,
+      );
+      this.logger.log('MessageID is ' + data.MessageId);
+    } catch (err) {
+      console.error(err, err.stack);
+      NcError.internalServerError('Error while upgrading workspace');
+    }
   }
 }

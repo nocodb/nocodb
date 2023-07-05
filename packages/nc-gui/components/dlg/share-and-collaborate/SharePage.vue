@@ -390,7 +390,7 @@ const isPublicShareDisabled = computed(() => {
             <div class="flex text-black">Allow Download</div>
             <a-switch
               v-model:checked="allowCSVDownload"
-              data-testid="share-password-toggle"
+              data-testid="share-download-toggle"
               :loading="isUpdating.download"
               class="public-password-toggle !mt-0.25"
             />
@@ -399,14 +399,14 @@ const isPublicShareDisabled = computed(() => {
           <div v-if="activeView?.type === ViewTypes.FORM" class="flex flex-row justify-between">
             <!-- use RTL orientation in form - todo: i18n -->
             <div class="text-black">Survey Mode</div>
-            <a-switch v-model:checked="surveyMode" data-testid="nc-modal-share-view__locale">
+            <a-switch v-model:checked="surveyMode" data-testid="nc-modal-share-view__surveyMode">
               <!-- todo i18n -->
             </a-switch>
           </div>
           <div v-if="activeView?.type === ViewTypes.FORM" class="flex flex-row justify-between">
             <!-- use RTL orientation in form - todo: i18n -->
             <div class="text-black">RTL Orientation</div>
-            <a-switch v-model:checked="withRTL" data-testid="nc-modal-share-view__locale">
+            <a-switch v-model:checked="withRTL" data-testid="nc-modal-share-view__RTL">
               <!-- todo i18n -->
             </a-switch>
           </div>

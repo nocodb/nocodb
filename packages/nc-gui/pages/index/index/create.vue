@@ -18,6 +18,7 @@ import {
   ref,
   useApi,
   useCommandPalette,
+  useGlobal,
   useNuxtApp,
   useProject,
   useRoute,
@@ -35,6 +36,8 @@ const { loadTables, loadProject } = useProject()
 const { table, createTable } = useTable(async (_) => {
   await loadTables()
 })
+
+const { navigateToProject } = $(useGlobal())
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -68,29 +71,40 @@ const createProject = async () => {
 
     const complement = tcolor.complement()
 
+    const { appInfo } = $(useGlobal())
+
     // todo: provide proper project type
     creating.value = true
 
-    const result = (await api.project.create({
-      title: formState.title,
-      fk_workspace_id: route.query.workspaceId,
-      type: route.query.type ?? NcProjectType.DB,
-      color,
-      meta: JSON.stringify({
-        theme: {
-          primaryColor: color,
-          accentColor: complement.toHex8String(),
-        },
-        ...(route.query.type === NcProjectType.COWRITER && { prompt_statement: '' }),
-      }),
-    })) as Partial<ProjectType>
+    const result = (await api.project.create(
+      {
+        title: formState.title,
+        fk_workspace_id: route.query.workspaceId,
+        type: route.query.type ?? NcProjectType.DB,
+        color,
+        meta: JSON.stringify({
+          theme: {
+            primaryColor: color,
+            accentColor: complement.toHex8String(),
+          },
+          ...(route.query.type === NcProjectType.COWRITER && { prompt_statement: '' }),
+        }),
+      },
+      {
+        baseURL: appInfo.baseHostName ? `https://${route.query.workspaceId}.${appInfo.baseHostName}` : undefined,
+      },
+    )) as Partial<ProjectType>
 
     refreshCommandPalette()
 
     switch (route.query.type) {
       case NcProjectType.DOCS:
         await loadProject(true, result.id)
-        await navigateTo(`/ws/${route.query.workspaceId}/nc/${result.id}/doc`)
+        navigateToProject({
+          projectId: result.id!,
+          workspaceId: route.query.workspaceId as string,
+          type: NcProjectType.DOCS,
+        })
         break
       case NcProjectType.COWRITER: {
         // force load project so that baseId is available in useTable
@@ -106,7 +120,11 @@ const createProject = async () => {
         break
       }
       default:
-        await navigateTo(`/ws/${route.query.workspaceId}/nc/${result.id}`)
+        navigateToProject({
+          projectId: result.id!,
+          workspaceId: route.query.workspaceId as string,
+          type: NcProjectType.DB,
+        })
     }
   } catch (e: any) {
     console.error(e)

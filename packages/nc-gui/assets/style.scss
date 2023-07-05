@@ -3,7 +3,7 @@
 @import '@vue-flow/core/dist/theme-default.css';
 
 :root {
-  --sidebar-top-height: 11.75rem;
+  --sidebar-top-height: 9.75rem;
   --topbar-height: 3.1rem;
   --new-header-height: 3.5rem;
   --tw-text-opacity: 1;
@@ -395,7 +395,7 @@ a {
 
 
 .nc-icon-transition {
-  @apply transform transition-transform !hover:(scale-115) !active:(scale-100)
+  @apply transform transition-transform !hover:(scale-115 text-shadow-sm) !active:(scale-100)
 }
 
 .nc-animation-pulse {

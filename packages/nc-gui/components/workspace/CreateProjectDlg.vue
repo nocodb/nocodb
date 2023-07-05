@@ -7,6 +7,7 @@ import { NcProjectType, extractSdkResponseErrorMsg } from '~/utils'
 import { projectTitleValidator, ref, useVModel } from '#imports'
 import { useWorkspace } from '~/store/workspace'
 import { navigateTo } from '#app'
+import { useGlobal } from '~/composables/useGlobal'
 
 const props = defineProps<{
   modelValue: boolean
@@ -22,6 +23,7 @@ const projectsStore = useProjects()
 const workspaceStore = useWorkspace()
 const { activeWorkspace } = storeToRefs(workspaceStore)
 const { loadProjects } = useProjects()
+const { navigateToProject } = $(useGlobal())
 const { createProject: _createProject } = projectsStore
 
 const nameValidationRules = [
@@ -60,18 +62,6 @@ const createProject = async () => {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     creating.value = false
-  }
-}
-
-// todo: move to utils
-function navigateToProject(param: { projectId: string; workspaceId: string; type: NcProjectType }) {
-  switch (param.type) {
-    case NcProjectType.DOCS:
-      navigateTo(`/ws/${param.workspaceId}/nc/${param.projectId}/doc`)
-      break
-    default:
-      navigateTo(`/ws/${param.workspaceId}/project/${param.projectId}`)
-      break
   }
 }
 

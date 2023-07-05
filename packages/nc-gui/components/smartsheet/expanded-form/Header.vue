@@ -36,9 +36,6 @@ const save = async () => {
     await _save()
     reloadTrigger?.trigger()
   }
-  if (!saveRowAndStay.value) {
-    emit('cancel')
-  }
 }
 
 // todo: accept as a prop / inject
@@ -49,11 +46,12 @@ const { dashboardUrl } = useDashboard()
 const { copy } = useClipboard()
 
 const copyRecordUrl = () => {
+  debugger
   copy(
     encodeURI(
-      `${dashboardUrl?.value}#/${route.params.projectType}/${route.params.projectId}/${route.params.type}/${meta.value?.title}${
-        props.view ? `/${props.view.title}` : ''
-      }?rowId=${primaryKey.value}`,
+      `${dashboardUrl?.value}#/ws/${route.params.workspaceId}/${route.params.projectType}/${route.params.projectId}/${
+        route.params.type
+      }/${meta.value?.title}${props.view ? `/${props.view.title}` : ''}?rowId=${primaryKey.value}`,
     ),
   )
   message.success('Copied to clipboard')
@@ -129,34 +127,9 @@ const onConfirmDeleteRowClick = async () => {
       />
     </a-tooltip>
 
-    <a-dropdown-button class="nc-expand-form-save-btn" type="primary" :disabled="!isUIAllowed('tableRowUpdate')" @click="save">
-      <template #icon><component :is="iconMap.arrowDown" /></template>
-
-      <template #overlay>
-        <a-menu class="nc-expand-form-save-dropdown-menu">
-          <a-menu-item key="0" class="!py-2 flex gap-2" @click="saveRowAndStay = 0">
-            <div class="flex items-center">
-              <component :is="iconMap.contentSaveExit" class="mr-1" />
-              {{ $t('activity.saveAndExit') }}
-            </div>
-          </a-menu-item>
-          <a-menu-item key="1" class="!py-2 flex gap-2 items-center" @click="saveRowAndStay = 1">
-            <div class="flex items-center">
-              <component :is="iconMap.contentSaveStay" class="mr-1" />
-              {{ $t('activity.saveAndStay') }}
-            </div>
-          </a-menu-item>
-        </a-menu>
-      </template>
-      <div v-if="saveRowAndStay === 0" class="flex items-center">
-        <component :is="iconMap.contentSaveExit" class="mr-1" />
-        {{ $t('activity.saveAndExit') }}
-      </div>
-      <div v-if="saveRowAndStay === 1" class="flex items-center">
-        <component :is="iconMap.contentSaveStay" class="mr-1" />
-        {{ $t('activity.saveAndStay') }}
-      </div>
-    </a-dropdown-button>
+    <a-button class="nc-expand-form-save-btn !rounded-md" type="primary" :disabled="!isUIAllowed('tableRowUpdate')" @click="save">
+      {{ $t('general.save') }}
+    </a-button>
 
     <a-dropdown>
       <component :is="iconMap.threeDotVertical" class="nc-icon-transition" />

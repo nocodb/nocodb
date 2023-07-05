@@ -18,6 +18,7 @@ import { RowHeight } from './RowHeight';
 import { MapPage } from '../../Map';
 import { getTextExcludeIconText } from '../../../../tests/utils/general';
 import { isHub } from '../../../../setup/db';
+import { ToolbarSharePage } from './Share';
 
 export class ToolbarPage extends BasePage {
   readonly parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage;
@@ -31,6 +32,7 @@ export class ToolbarPage extends BasePage {
   readonly addEditStack: ToolbarAddEditStackPage;
   readonly searchData: ToolbarSearchDataPage;
   readonly rowHeight: RowHeight;
+  readonly share: ToolbarSharePage;
 
   constructor(parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage) {
     super(parent.rootPage);
@@ -45,6 +47,7 @@ export class ToolbarPage extends BasePage {
     this.addEditStack = new ToolbarAddEditStackPage(this);
     this.searchData = new ToolbarSearchDataPage(this);
     this.rowHeight = new RowHeight(this);
+    this.share = new ToolbarSharePage(this);
   }
 
   get() {
@@ -139,6 +142,10 @@ export class ToolbarPage extends BasePage {
 
     // Wait for the menu to close
     if (menuOpen) await this.shareView.get().waitFor({ state: 'hidden' });
+  }
+
+  async clickShare() {
+    await this.get().locator(`[data-testid="share-project-button"]`).click();
   }
 
   async clickStackByField() {
@@ -237,5 +244,45 @@ export class ToolbarPage extends BasePage {
     await expect(this.get().locator('.nc-add-new-row-btn')).toHaveCount(
       param.role === 'creator' || param.role === 'editor' ? 1 : 0
     );
+  }
+
+  async getSharedViewUrl(surveyMode = false, password = '', download = false) {
+    if (isHub()) {
+      await this.clickShare();
+      await this.share.clickShareView();
+      await this.share.clickShareViewPublicAccess();
+      await this.share.clickCopyLink();
+      if (surveyMode) {
+        await this.share.clickShareViewSurveyMode();
+      }
+
+      if (password !== '') {
+        await this.share.clickShareViewWithPassword({ password });
+      }
+
+      if (download) {
+        await this.share.clickShareViewWithCSVDownload();
+      }
+
+      await this.share.closeModal();
+      return await this.getClipboardText();
+    } else {
+      await this.clickShareView();
+      const formLink = await this.shareView.getShareLink();
+      await this.shareView.close();
+      return formLink;
+    }
+  }
+
+  async getSharedBaseUrl({ role }: { role: string }) {
+    await this.clickShare();
+    await this.share.clickShareBase();
+    await this.share.clickShareBasePublicAccess();
+    if (role === 'editor') {
+      await this.share.clickShareBaseEditorAccess();
+    }
+    await this.share.clickCopyLink();
+    await this.share.closeModal();
+    return await this.getClipboardText();
   }
 }

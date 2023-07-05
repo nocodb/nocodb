@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import type { TableType } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -27,11 +28,14 @@ const searchDropdown = ref(null)
 onClickOutside(searchDropdown, () => (isDropdownOpen.value = false))
 
 const columns = computed(() =>
-  (meta.value as TableType)?.columns?.map((column) => ({
-    value: column.id,
-    label: column.title,
-    primaryValue: column.pv,
-  })),
+  (meta.value as TableType)?.columns
+    ?.filter((column) => !isSystemColumn(column) && column?.uidt !== UITypes.Links)
+    ?.map((column) => ({
+      value: column.id,
+      label: column.title,
+      column,
+      primaryValue: column.pv,
+    })),
 )
 
 watch(
@@ -55,7 +59,7 @@ const displayColumnLabel = computed(() => {
 watch(
   () => (meta.value as TableType)?.columns,
   () => {
-    search.value.field = columns.value!.find((column) => column.primaryValue)!.value!
+    search.value.field = columns.value!.find((column) => column.primaryValue)?.value
   },
   { immediate: true },
 )
@@ -89,10 +93,16 @@ watchDebounced(
         :open="isDropdownOpen"
         size="small"
         :dropdown-match-select-width="false"
-        :options="columns"
         dropdown-class-name="!rounded-lg nc-dropdown-toolbar-search-field-option !w-48"
         class="!py-1 !absolute top-0 left-0 w-full h-full z-10 !text-xs opacity-0"
-      />
+      >
+        <a-select-option v-for="op of columns" :key="op.value" :value="op.value">
+          <div class="flex items-center -ml-1 gap-2">
+            <SmartsheetHeaderIcon class="" :column="op.column" />
+            {{ op.label }}
+          </div>
+        </a-select-option>
+      </a-select>
     </div>
 
     <a-input

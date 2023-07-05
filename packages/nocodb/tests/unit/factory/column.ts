@@ -1,13 +1,13 @@
 import { UITypes } from 'nocodb-sdk';
 import request from 'supertest';
-import Column from '../../../src/models/Column';
-import FormViewColumn from '../../../src/models/FormViewColumn';
-import GalleryViewColumn from '../../../src/models/GalleryViewColumn';
-import GridViewColumn from '../../../src/models/GridViewColumn';
 import Model from '../../../src/models/Model';
-import Project from '../../../src/models/Project';
-import View from '../../../src/models/View';
-import { isSqlite, isPg } from '../init/db';
+import { isPg, isSqlite } from '../init/db';
+import type Column from '../../../src/models/Column';
+import type FormViewColumn from '../../../src/models/FormViewColumn';
+import type GalleryViewColumn from '../../../src/models/GalleryViewColumn';
+import type GridViewColumn from '../../../src/models/GridViewColumn';
+import type Project from '../../../src/models/Project';
+import type View from '../../../src/models/View';
 
 const defaultColumns = function (context) {
   return [
@@ -55,7 +55,7 @@ const createColumn = async (context, table, columnAttr) => {
     });
 
   const column: Column = (await table.getColumns()).find(
-    (column) => column.title === columnAttr.title
+    (column) => column.title === columnAttr.title,
   );
   return column;
 };
@@ -76,7 +76,7 @@ const createRollupColumn = async (
     table: Model;
     relatedTableName: string;
     relatedTableColumnTitle: string;
-  }
+  },
 ) => {
   const childBases = await project.getBases();
   const childTable = await Model.getByIdOrName({
@@ -86,13 +86,14 @@ const createRollupColumn = async (
   });
   const childTableColumns = await childTable.getColumns();
   const childTableColumn = await childTableColumns.find(
-    (column) => column.title === relatedTableColumnTitle
+    (column) => column.title === relatedTableColumnTitle,
   );
 
   const ltarColumn = (await table.getColumns()).find(
     (column) =>
-      column.uidt === UITypes.LinkToAnotherRecord &&
-      column.colOptions?.fk_related_model_id === childTable.id
+      (column.uidt === UITypes.Links ||
+        column.uidt === UITypes.LinkToAnotherRecord) &&
+      column.colOptions?.fk_related_model_id === childTable.id,
   );
 
   const rollupColumn = await createColumn(context, table, {
@@ -122,7 +123,7 @@ const createLookupColumn = async (
     table: Model;
     relatedTableName: string;
     relatedTableColumnTitle: string;
-  }
+  },
 ) => {
   const childBases = await project.getBases();
   const childTable = await Model.getByIdOrName({
@@ -132,19 +133,20 @@ const createLookupColumn = async (
   });
   const childTableColumns = await childTable.getColumns();
   const childTableColumn = await childTableColumns.find(
-    (column) => column.title === relatedTableColumnTitle
+    (column) => column.title === relatedTableColumnTitle,
   );
 
   if (!childTableColumn) {
     throw new Error(
-      `Could not find column ${relatedTableColumnTitle} in ${relatedTableName}`
+      `Could not find column ${relatedTableColumnTitle} in ${relatedTableName}`,
     );
   }
 
   const ltarColumn = (await table.getColumns()).find(
     (column) =>
-      column.uidt === UITypes.LinkToAnotherRecord &&
-      column.colOptions?.fk_related_model_id === childTable.id
+      (column.uidt === UITypes.Links ||
+        column.uidt === UITypes.LinkToAnotherRecord) &&
+      column.colOptions?.fk_related_model_id === childTable.id,
   );
   const lookupColumn = await createColumn(context, table, {
     title: title,
@@ -168,15 +170,15 @@ const createQrCodeColumn = async (
     title: string;
     table: Model;
     referencedQrValueTableColumnTitle: string;
-  }
+  },
 ) => {
   const referencedQrValueTableColumnId = await table
     .getColumns()
     .then(
       (cols) =>
         cols.find(
-          (column) => column.title == referencedQrValueTableColumnTitle
-        )['id']
+          (column) => column.title == referencedQrValueTableColumnTitle,
+        )['id'],
     );
 
   const qrCodeColumn = await createColumn(context, table, {
@@ -198,15 +200,15 @@ const createBarcodeColumn = async (
     title: string;
     table: Model;
     referencedBarcodeValueTableColumnTitle: string;
-  }
+  },
 ) => {
   const referencedBarcodeValueTableColumnId = await table
     .getColumns()
     .then(
       (cols) =>
         cols.find(
-          (column) => column.title == referencedBarcodeValueTableColumnTitle
-        )['id']
+          (column) => column.title == referencedBarcodeValueTableColumnTitle,
+        )['id'],
     );
 
   const barcodeColumn = await createColumn(context, table, {
@@ -230,12 +232,12 @@ const createLtarColumn = async (
     parentTable: Model;
     childTable: Model;
     type: string;
-  }
+  },
 ) => {
   const ltarColumn = await createColumn(context, parentTable, {
     title: title,
     column_name: title,
-    uidt: UITypes.LinkToAnotherRecord,
+    uidt: UITypes.Links,
     parentId: parentTable.id,
     childId: childTable.id,
     type: type,
@@ -246,7 +248,7 @@ const createLtarColumn = async (
 
 const updateViewColumn = async (
   context,
-  { view, column, attr }: { column: Column; view: View; attr: any }
+  { view, column, attr }: { column: Column; view: View; attr: any },
 ) => {
   const res = await request(context.app)
     .patch(`/api/v1/db/meta/views/${view.id}/columns/${column.id}`)

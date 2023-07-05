@@ -105,7 +105,8 @@ export const useProject = defineStore('projectStore', () => {
   }
 
   function isXcdbBase(baseId?: string) {
-    return (bases.value.find((base) => base.id === baseId)?.is_meta as boolean) || false
+    const base = bases.value.find((base) => base.id === baseId)
+    return (base?.is_meta as boolean) || (base?.is_local as boolean) || false
   }
 
   const isSharedBase = computed(() => projectType === 'base')
@@ -275,6 +276,7 @@ export const useProject = defineStore('projectStore', () => {
     hasEmptyOrNullFilters,
     setProject,
     projectUrl,
+    getBaseType,
   }
 })
 

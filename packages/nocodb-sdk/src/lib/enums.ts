@@ -143,3 +143,16 @@ export enum ClickhouseTables {
   TELEMETRY = 'usage_telemetry',
   AUDIT = 'nc_audit',
 }
+
+export enum WorkspaceStatus {
+  CREATING,
+  CREATED,
+  DELETING,
+  DELETED,
+  FAILED,
+}
+
+export enum WorkspacePlan {
+  FREE = 'free',
+  PAID = 'paid',
+}

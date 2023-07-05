@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -85,8 +85,13 @@ const grid = ref()
 const onDrop = async (event: DragEvent) => {
   event.preventDefault()
   try {
-    // Access the dropped data
-    const data = JSON.parse(event.dataTransfer?.getData('text/json')!)
+    // extract the data from the event's data transfer object
+    const textData = event.dataTransfer?.getData('text/json')
+
+    if (!textData) return
+
+    // parse the data
+    const data = JSON.parse(textData)
     // Do something with the received data
 
     // if dragged item is not from the same base, return
@@ -105,32 +110,24 @@ const onDrop = async (event: DragEvent) => {
 
     // if already a link column exists, create a new Lookup column
     const relationCol = parentMeta.columns?.find((c: ColumnType) => {
-      if (c.uidt !== UITypes.LinkToAnotherRecord) return false
+      if (!isLinksOrLTAR(c)) return false
 
       const ltarOptions = c.colOptions as LinkToAnotherRecordType
 
-      if (ltarOptions.type !== 'mm') {
-        return false
-      }
-
-      if (ltarOptions.fk_related_model_id === childMeta.id) {
-        return true
-      }
-
-      return false
+      return ltarOptions.fk_related_model_id === childMeta.id
     })
     if (relationCol) {
       const lookupCol = childMeta.columns?.find((c) => c.pv) ?? childMeta.columns?.[0]
       grid.value?.openColumnCreate({
         uidt: UITypes.Lookup,
-        title: `${data.title}Lookup`,
+        title: `${relationCol.title}Lookup`,
         fk_relation_column_id: relationCol.id,
         fk_lookup_column_id: lookupCol?.id,
       })
     } else {
       grid.value?.openColumnCreate({
-        uidt: UITypes.LinkToAnotherRecord,
-        title: `${data.title}List`,
+        uidt: UITypes.Links,
+        title: `${data.title}`,
         parentId: parentMeta.id,
         childId: childMeta.id,
         parentTable: parentMeta.title,

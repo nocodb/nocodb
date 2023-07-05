@@ -9,6 +9,8 @@ import utc from 'dayjs/plugin/utc';
 import tinycolor from 'tinycolor2';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
+import { isLinksOrLTAR } from 'nocodb-sdk';
+import debug from 'debug';
 import extractRolesObj from '../../../../utils/extractRolesObj';
 import { AttachmentsService } from '../../../../services/attachments.service';
 import { ColumnsService } from '../../../../services/columns.service';
@@ -84,6 +86,8 @@ const selectColors = {
 
 @Processor(JOBS_QUEUE)
 export class AtImportProcessor {
+  private readonly dubugLog = debug('nc:at-import:processor');
+
   constructor(
     private readonly tablesService: TablesService,
     private readonly viewsService: ViewsService,
@@ -136,10 +140,12 @@ export class AtImportProcessor {
 
     const logBasic = (log) => {
       this.jobsLogService.sendLog(job, { message: log });
+      this.dubugLog(log);
     };
 
     const logDetailed = (log) => {
       if (debugMode) this.jobsLogService.sendLog(job, { message: log });
+      this.dubugLog(log);
     };
 
     const perfStats = [];
@@ -270,7 +276,7 @@ export class AtImportProcessor {
 
     // base mapping table
     const aTblNcTypeMap = {
-      foreignKey: UITypes.LinkToAnotherRecord,
+      foreignKey: UITypes.Links,
       text: UITypes.SingleLineText,
       multilineText: UITypes.LongText,
       richText: UITypes.LongText,
@@ -787,7 +793,7 @@ export class AtImportProcessor {
               const ncTbl: any = await this.columnsService.columnAdd({
                 tableId: srcTableId,
                 column: {
-                  uidt: UITypes.LinkToAnotherRecord,
+                  uidt: UITypes.Links,
                   title: ncName.title,
                   column_name: ncName.column_name,
                   parentId: srcTableId,
@@ -870,14 +876,14 @@ export class AtImportProcessor {
                 updateMigrationSkipLog(
                   parentTblSchema?.title,
                   ncLinkMappingTable[x].nc.title,
-                  UITypes.LinkToAnotherRecord,
+                  UITypes.Links,
                   'Link error',
                 );
                 continue;
               }
 
               // hack // fix me
-              if (parentLinkColumn.uidt !== 'LinkToAnotherRecord') {
+              if (!isLinksOrLTAR(parentLinkColumn)) {
                 parentLinkColumn = parentTblSchema.columns.find(
                   (col) => col.title === ncLinkMappingTable[x].nc.title + '_2',
                 );
@@ -891,7 +897,7 @@ export class AtImportProcessor {
                 //
                 childLinkColumn = childTblSchema.columns.find(
                   (col) =>
-                    col.uidt === UITypes.LinkToAnotherRecord &&
+                    isLinksOrLTAR(col) &&
                     col.colOptions.fk_child_column_id ===
                       parentLinkColumn.colOptions.fk_child_column_id &&
                     col.colOptions.fk_parent_column_id ===
@@ -903,7 +909,7 @@ export class AtImportProcessor {
                 //
                 childLinkColumn = childTblSchema.columns.find(
                   (col) =>
-                    col.uidt === UITypes.LinkToAnotherRecord &&
+                    isLinksOrLTAR(col) &&
                     col.colOptions.fk_child_column_id ===
                       parentLinkColumn.colOptions.fk_parent_column_id &&
                     col.colOptions.fk_parent_column_id ===
@@ -1439,7 +1445,7 @@ export class AtImportProcessor {
         // always process LTAR, Lookup, and Rollup columns as we delete the key after processing
         if (
           !value &&
-          dt !== UITypes.LinkToAnotherRecord &&
+          !isLinksOrLTAR(dt) &&
           dt !== UITypes.Lookup &&
           dt !== UITypes.Rollup
         ) {
@@ -1458,6 +1464,7 @@ export class AtImportProcessor {
 
           // we will pick up LTAR once all table data's are in place
           case UITypes.LinkToAnotherRecord:
+          case UITypes.Links:
             if (storeLinks) {
               if (ncLinkDataStore[table.title][record.id] === undefined)
                 ncLinkDataStore[table.title][record.id] = {
@@ -1980,9 +1987,7 @@ export class AtImportProcessor {
         migrationStatsObj.aTbl.rollup = aTblRollup.length;
 
         const ncTbl = await nc_getTableSchema(aTblSchema[idx].name);
-        const linkColumn = ncTbl.columns.filter(
-          (x) => x.uidt === UITypes.LinkToAnotherRecord,
-        );
+        const linkColumn = ncTbl.columns.filter((x) => isLinksOrLTAR(x));
         const lookup = ncTbl.columns.filter((x) => x.uidt === UITypes.Lookup);
         const rollup = ncTbl.columns.filter((x) => x.uidt === UITypes.Rollup);
 

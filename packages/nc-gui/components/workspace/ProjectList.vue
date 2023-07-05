@@ -6,14 +6,17 @@ import tinycolor from 'tinycolor2'
 import { nextTick } from '@vue/runtime-core'
 import { NcProjectType, navigateTo, projectThemeColors, storeToRefs, timeAgo, useWorkspace } from '#imports'
 import { useNuxtApp } from '#app'
+import { useGlobal } from '~/composables/useGlobal'
 
 const workspaceStore = useWorkspace()
 const projectsStore = useProjects()
 const { addToFavourite, removeFromFavourite, updateProjectTitle, populateWorkspace } = workspaceStore
-const { activePage, activeWorkspaceId } = storeToRefs(workspaceStore)
+const { activePage } = storeToRefs(workspaceStore)
 
 const { loadProjects } = useProjects()
 const { projects, projectsList, isProjectsLoading } = storeToRefs(useProjects())
+
+const { navigateToProject } = $(useGlobal())
 
 // const filteredProjects = computed(() => projects.value?.filter((p) => !p.deleted) || [])
 
@@ -22,17 +25,11 @@ const { $e, $api, $jobs } = useNuxtApp()
 const { isUIAllowed } = useUIPermission()
 
 const openProject = async (project: ProjectType) => {
-  switch (project.type) {
-    case NcProjectType.DOCS:
-      await navigateTo(`/ws/${project.fk_workspace_id}/nc/${project.id}/doc`)
-      break
-    case NcProjectType.COWRITER:
-      await navigateTo(`/ws/${project.fk_workspace_id}/nc/${project.id}/cowriter`)
-      break
-    default:
-      await navigateTo(`/ws/${project.fk_workspace_id}/nc/${project.id}`)
-      break
-  }
+  navigateToProject({
+    projectId: project.id!,
+    workspaceId: project.fk_workspace_id!,
+    type: project.type as NcProjectType,
+  })
 }
 
 const roleAlias = {

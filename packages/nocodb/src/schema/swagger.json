@@ -3284,7 +3284,9 @@
             }
           }
         },
-        "tags": ["Project"],
+        "tags": [
+          "Project"
+        ],
         "description": "Duplicate a project",
         "parameters": [
           {
@@ -5220,7 +5222,9 @@
             }
           }
         },
-        "tags": ["DB Table"],
+        "tags": [
+          "DB Table"
+        ],
         "description": "Duplicate a table",
         "parameters": [
           {
@@ -16337,6 +16341,37 @@
         }
       ]
     },
+    "/api/v1/workspaces/{workspaceId}/upgrade": {
+      "post": {
+        "summary": "Upgrade workspace",
+        "operationId": "workspace-upgrade",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "description": "Upgrade workspace"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
     "/api/v1/workspaces/{workspaceId}/users": {
       "get": {
         "summary": "Workspace users list",
@@ -17090,6 +17125,10 @@
             "$ref": "#/components/schemas/Bool",
             "description": "Is the data source connected externally"
           },
+          "is_local": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the data source minimal db"
+          },
           "order": {
             "description": "The order of the list of bases",
             "example": 1,
@@ -17257,6 +17296,10 @@
           },
           "is_meta": {
             "description": "Is the data source connected externally",
+            "type": "boolean"
+          },
+          "is_local": {
+            "description": "Is the data source minimal db",
             "type": "boolean"
           },
           "type": {
@@ -17570,7 +17613,8 @@
               "Time",
               "URL",
               "Year",
-              "QrCode"
+              "QrCode",
+              "Links"
             ],
             "type": "string"
           },
@@ -20787,7 +20831,7 @@
           "uidt": {
             "enum": [
               "LinkToAnotherRecord"
-            ],
+            , "Links"],
             "type": "string",
             "description": "Abstract type of the relationship"
           },
@@ -21347,7 +21391,8 @@
               "Time",
               "URL",
               "Year",
-              "QrCode"
+              "QrCode",
+              "Links"
             ],
             "type": "string",
             "description": "UI Data Type"

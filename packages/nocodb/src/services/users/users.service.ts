@@ -2,10 +2,10 @@ import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
-  AuditOperationSubTypes,
-  AuditOperationTypes,
   OrgUserRoles,
   validatePassword,
+  WorkspacePlan,
+  WorkspaceStatus,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
@@ -37,6 +37,18 @@ export class UsersService {
     private metaService: MetaService,
     private appHooksService: AppHooksService,
   ) {}
+
+  // allow signup/signin only if email matches against pattern
+   validateEmailPattern(email: string) {
+    const emailPattern = process.env.NC_AUTH_EMAIL_PATTERN;
+    if (emailPattern) {
+      const regex = new RegExp(emailPattern);
+      if (!regex.test(email)) {
+        NcError.forbidden('Not allowed to signup/signin with this email');
+      }
+    }
+  }
+
 
   async findOne(_email: string) {
     const email = _email.toLowerCase();
@@ -80,6 +92,9 @@ export class UsersService {
     password;
     email_verification_token;
   }) {
+
+    this.validateEmailPattern(email);
+
     let roles: string = OrgUserRoles.CREATOR;
 
     if (await User.isFirst()) {
@@ -115,6 +130,8 @@ export class UsersService {
       roles,
       token_version,
     });
+
+    await this.createDefaultWorkspace(user);
 
     return user;
   }
@@ -396,6 +413,8 @@ export class UsersService {
 
     const email = _email.toLowerCase();
 
+    this.validateEmailPattern(email);
+
     let user = await User.getByEmail(email);
 
     if (user) {
@@ -479,7 +498,6 @@ export class UsersService {
     });
 
     setTokenCookie(param.res, refreshToken);
-    await this.createDefaultWorkspace(user);
 
     this.appHooksService.emit(AppEvents.USER_SIGNUP, {
       user: user,
@@ -509,7 +527,7 @@ export class UsersService {
       if (user?.id) {
         await User.update(user.id, {
           refresh_token: null,
-          token_version: null,
+          token_version: randomTokenString(),
         });
       }
       return { msg: 'Signed out successfully' };
@@ -525,6 +543,8 @@ export class UsersService {
       title,
       description: 'Default workspace',
       fk_user_id: user.id,
+      plan: WorkspacePlan.FREE,
+      status: WorkspaceStatus.CREATED,
     });
 
     await WorkspaceUser.insert({

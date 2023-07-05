@@ -189,7 +189,7 @@ watch(
     position: absolute;
     left: -2px;
     top: 0;
-    height: 100vh;
+    height: 100%;
     z-index: 40;
   }
 
@@ -225,7 +225,7 @@ watch(
 }
 
 .nc-smartsheet-sidebar-wrapper {
-  @apply flex flex-col h-full justify-center;
+  @apply flex flex-col h-full justify-center min-w-36;
 }
 
 .nc-smartsheet-sidebar-wrapper.close {

@@ -1,11 +1,11 @@
-import { promisify } from 'util';
-import { Injectable } from '@nestjs/common';
+import {promisify} from 'util';
+import {Injectable} from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
-import { customAlphabet } from 'nanoid';
-import { AppEvents, OrgUserRoles } from 'nocodb-sdk';
-import { populateMeta, validatePayload } from '../helpers';
-import { NcError } from '../helpers/catchError';
-import { extractPropsAndSanitize } from '../helpers/extractProps';
+import {customAlphabet} from 'nanoid';
+import {AppEvents, OrgUserRoles} from 'nocodb-sdk';
+import {populateMeta, validatePayload} from '../helpers';
+import {NcError} from '../helpers/catchError';
+import {extractPropsAndSanitize} from '../helpers/extractProps';
 import syncMigration from '../helpers/syncMigration';
 import {
   DashboardProjectDBProject,
@@ -15,13 +15,16 @@ import {
 } from '../models';
 import Noco from '../Noco';
 import extractRolesObj from '../utils/extractRolesObj';
-import { getToolDir } from '../utils/nc-config';
-import { AppHooksService } from './app-hooks/app-hooks.service';
+import {getToolDir} from '../utils/nc-config';
+import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
+import {AppHooksService} from './app-hooks/app-hooks.service';
 import type {
   ProjectReqType,
   ProjectUpdateReqType,
   UserType,
 } from 'nocodb-sdk';
+import {MetaService} from "../meta/meta.service";
+import {MetaTable} from "../utils/globals";
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -69,7 +72,10 @@ const validateUserHasReadPermissionsForLinkedDbProjects = async (
 
 @Injectable()
 export class ProjectsService {
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(private readonly appHooksService: AppHooksService,
+              private metaService: MetaService,
+  ) {
+  }
 
   async projectList(param: {
     user: { id: string; roles: Record<string, boolean> };
@@ -90,7 +96,7 @@ export class ProjectsService {
   }
 
   sanitizeProject(project: any) {
-    const sanitizedProject = { ...project };
+    const sanitizedProject = {...project};
     sanitizedProject.bases?.forEach((b: any) => {
       ['config'].forEach((k) => delete b[k]);
     });
@@ -155,43 +161,72 @@ export class ProjectsService {
       param.project,
     );
 
+    const projectId = this.metaService.genNanoid(MetaTable.PROJECT);
+
     const projectBody: ProjectReqType & Record<string, any> = param.project;
+    projectBody.id = projectId;
+
     if (!projectBody.external) {
       const ranId = nanoid();
       projectBody.prefix = `nc_${ranId}__`;
       projectBody.is_meta = true;
-      if (process.env.NC_MINIMAL_DBS) {
-        // if env variable NC_MINIMAL_DBS is set, then create a SQLite file/connection for each project
-        // each file will be named as nc_<random_id>.db
-        const fs = require('fs');
-        const toolDir = getToolDir();
-        const nanoidv2 = customAlphabet(
-          '1234567890abcdefghijklmnopqrstuvwxyz',
-          14,
-        );
-        if (!(await promisify(fs.exists)(`${toolDir}/nc_minimal_dbs`))) {
-          await promisify(fs.mkdir)(`${toolDir}/nc_minimal_dbs`);
-        }
-        const dbId = nanoidv2();
-        const projectTitle = DOMPurify.sanitize(projectBody.title);
-        projectBody.prefix = '';
-        projectBody.bases = [
-          {
-            type: 'sqlite3',
-            config: {
-              client: 'sqlite3',
-              connection: {
+      if (process.env.NC_MINIMAL_DBS === 'true') {
+        const dataConfig = await NcConnectionMgrv2.getDataConfig();
+        if (dataConfig?.client === 'pg') {
+          const nanoidv2 = customAlphabet(
+            '1234567890abcdefghijklmnopqrstuvwxyz',
+            6,
+          );
+          projectBody.prefix = '';
+          projectBody.bases = [
+            {
+              type: 'pg',
+              is_local: true,
+              is_meta: false,
+              config: {
+                client: 'pg',
+                connection: dataConfig?.connection,
+                searchPath: [projectId],
+              },
+              inflection_column: 'camelize',
+              inflection_table: 'camelize',
+            },
+          ];
+        } else {
+          // if env variable NC_MINIMAL_DBS is set, then create a SQLite file/connection for each project
+          // each file will be named as nc_<random_id>.db
+          const fs = require('fs');
+          const toolDir = getToolDir();
+          const nanoidv2 = customAlphabet(
+            '1234567890abcdefghijklmnopqrstuvwxyz',
+            14,
+          );
+          if (!(await promisify(fs.exists)(`${toolDir}/nc_minimal_dbs`))) {
+            await promisify(fs.mkdir)(`${toolDir}/nc_minimal_dbs`);
+          }
+          const dbId = nanoidv2();
+          const projectTitle = DOMPurify.sanitize(projectBody.title);
+          projectBody.prefix = '';
+          projectBody.bases = [
+            {
+              type: 'sqlite3',
+              is_local: true,
+              is_meta: false,
+              config: {
                 client: 'sqlite3',
-                database: projectTitle,
                 connection: {
-                  filename: `${toolDir}/nc_minimal_dbs/${projectTitle}_${dbId}.db`,
+                  client: 'sqlite3',
+                  database: projectTitle,
+                  connection: {
+                    filename: `${toolDir}/nc_minimal_dbs/${projectTitle}_${dbId}.db`,
+                  },
                 },
               },
+              inflection_column: 'camelize',
+              inflection_table: 'camelize',
             },
-            inflection_column: 'camelize',
-            inflection_table: 'camelize',
-          },
-        ];
+          ];
+        }
       } else {
         const db = Noco.getConfig().meta?.db;
         projectBody.bases = [

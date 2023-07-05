@@ -29,6 +29,7 @@ onMounted(async () => {
 })
 
 const workspaceModalVisible = ref(false)
+const isWorkspaceDropdownOpen = ref(false)
 
 const createDlg = ref(false)
 
@@ -93,11 +94,18 @@ const logout = async () => {
 // todo: temp
 const isSharedBase = false
 const modalVisible = false
+
+onKeyStroke('Escape', () => {
+  if (isWorkspaceDropdownOpen.value) {
+    isWorkspaceDropdownOpen.value = false
+  }
+})
 </script>
 
 <template>
   <div class="flex-grow min-w-20">
     <a-dropdown
+      v-model:visible="isWorkspaceDropdownOpen"
       class="h-full min-w-0 flex-1"
       :trigger="['click']"
       placement="bottom"
@@ -112,7 +120,7 @@ const modalVisible = false
         <template v-if="props.isOpen">
           <div class="flex-grow min-w-10 font-semibold text-base">
             <a-tooltip v-if="activeWorkspace!.title!.length > 12" placement="bottom">
-              <div class="text-md truncate">{{ activeWorkspace!.title }}</div>
+              <div class="text-md truncate capitalize">{{ activeWorkspace!.title }}</div>
               <template #title>
                 <div class="text-sm !text-red-500">{{ activeWorkspace?.title }}</div>
               </template>
@@ -132,10 +140,10 @@ const modalVisible = false
         <a-menu class="!ml-4 !w-[300px]">
           <a-menu-item-group class="!border-t-0">
             <!--  <div class="nc-menu-sub-head">Current Workspace</div> -->
-            <div class="group select-none flex items-center gap-4 p-2 pb-0 !border-t-0">
+            <div class="group select-none flex items-center gap-4 p-2 pb-1 !border-t-0">
               <input
                 v-model="activeWorkspace!.title"
-                class="nc-workspace-title-input text-current"
+                class="nc-workspace-title-input text-current capitalize"
                 @input="updateWorkspaceTitle"
               />
             </div>
@@ -146,12 +154,12 @@ const modalVisible = false
                 Collaborators
               </div>
             </a-menu-item>
-            <a-menu-item @click="workspaceModalVisible = true">
+            <!-- <a-menu-item @click="workspaceModalVisible = true">
               <div class="nc-workspace-menu-item group">
                 <PhFadersThin />
                 Settings
               </div>
-            </a-menu-item>
+            </a-menu-item> -->
 
             <a-menu-divider />
 
@@ -159,7 +167,7 @@ const modalVisible = false
 
             <div class="max-h-300px overflow-y-auto">
               <a-menu-item v-for="workspace of workspacesList" :key="workspace.id!" @click="navigateTo(`/ws/${workspace.id}`)">
-                <div class="nc-workspace-menu-item group">
+                <div class="nc-workspace-menu-item group capitalize">
                   <GeneralIcon icon="workspace" />
 
                   {{ workspace.title }}
@@ -184,10 +192,10 @@ const modalVisible = false
                 </div>
               </a-menu-item>
 
-              <a-menu-divider />
+              <a-menu-divider v-if="false" />
 
               <!-- Theme -->
-              <template v-if="isUIAllowed('projectTheme')">
+              <template v-if="isUIAllowed('projectTheme') && false">
                 <a-sub-menu key="theme">
                   <template #title>
                     <div class="nc-workspace-menu-item group">
@@ -260,10 +268,10 @@ const modalVisible = false
                 </a-sub-menu>
               </template>
 
-              <a-menu-divider />
+              <a-menu-divider v-if="false" />
 
               <!-- Preview As -->
-              <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as">
+              <a-sub-menu v-if="isUIAllowed('previewAs') && false" key="preview-as">
                 <template #title>
                   <div v-e="['c:navdraw:preview-as']" class="nc-workspace-menu-item group">
                     <GeneralIcon icon="preview" class="group-hover:text-accent" />
@@ -284,6 +292,7 @@ const modalVisible = false
             </template>
             <!-- Language -->
             <a-sub-menu
+              v-if="false"
               key="language"
               class="lang-menu !py-0"
               popup-class-name="scrollbar-thin-dull min-w-50 max-h-90vh !overflow-auto"
@@ -348,18 +357,25 @@ const modalVisible = false
         </a-menu>
       </template>
     </a-dropdown>
-    <a-modal v-model:visible="workspaceModalVisible" :class="{ active: modalVisible }" width="80%" :footer="null">
-      <a-tabs v-model:activeKey="tab">
-        <template v-if="isWorkspaceOwner">
-          <a-tab-pane key="collab" tab="Collaborators" class="w-full">
-            <WorkspaceCollaboratorsList class="h-full overflow-auto" />
-          </a-tab-pane>
-          <a-tab-pane key="settings" tab="Settings" class="w-full">
-            <div class="min-h-50 flex items-center justify-center">Not available</div>
-          </a-tab-pane>
-        </template>
-      </a-tabs>
-    </a-modal>
+    <GeneralModal v-model:visible="workspaceModalVisible" :class="{ active: modalVisible }" width="80%" :footer="null">
+      <div class="relative flex flex-col px-6 py-2">
+        <div class="absolute right-4 top-4 z-20">
+          <a-button type="text" class="!p-1 !h-7 !rounded">
+            <component :is="iconMap.close" />
+          </a-button>
+        </div>
+        <a-tabs v-model:activeKey="tab">
+          <template v-if="isWorkspaceOwner">
+            <a-tab-pane key="collab" tab="Collaborators" class="w-full">
+              <WorkspaceCollaboratorsList class="h-full" />
+            </a-tab-pane>
+            <!-- <a-tab-pane key="settings" tab="Settings" class="w-full">
+              <div class="min-h-50 flex items-center justify-center">Not available</div>
+            </a-tab-pane> -->
+          </template>
+        </a-tabs>
+      </div>
+    </GeneralModal>
 
     <WorkspaceCreateDlg v-model="createDlg" @success="onWorkspaceCreate" />
   </div>
@@ -376,6 +392,14 @@ const modalVisible = false
 
 .nc-workspace-menu-item {
   @apply flex items-center pl-2 py-2 gap-2 text-sm;
+}
+
+:deep(.ant-dropdown-menu-item-group-title) {
+  @apply hidden;
+}
+
+:deep(.ant-tabs-nav) {
+  @apply !mb-0;
 }
 
 :deep(.ant-dropdown-menu-submenu-title) {

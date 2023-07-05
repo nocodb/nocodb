@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableType, ViewType } from 'nocodb-sdk'
-import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import {
   CellClickHookInj,
@@ -296,7 +296,7 @@ export default {
   >
     <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" @duplicate-row="onDuplicateRow" />
 
-    <div :key="key" class="!bg-gray-100 rounded flex-1">
+    <div :key="key" class="!bg-gray-50 rounded flex-1">
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
         <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container relative">
           <template v-if="props.showNextPrevIcons">
@@ -324,7 +324,7 @@ export default {
             <div
               v-for="(col, i) of fields"
               v-else
-              v-show="!isVirtualCol(col) || !isNew || col.uidt === UITypes.LinkToAnotherRecord"
+              v-show="!isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
               :key="col.title"
               class="mt-2 py-2"
               :class="`nc-expand-col-${col.title}`"
@@ -369,7 +369,7 @@ export default {
 }
 
 :deep(.ant-modal-body) {
-  @apply !bg-gray-100;
+  @apply !bg-gray-50;
 }
 
 .nc-comments-drawer {

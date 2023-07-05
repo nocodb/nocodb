@@ -90,10 +90,9 @@ jobs:
           COMMIT_HASH: ${{ github.sha }}
         run: |
           cd packages/nocodb &&
-          docker build -f Dockerfile-cloud $CUSTOM_IMAGE_TAG_ARG -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker build -f Dockerfile-cloud $CUSTOM_IMAGE_TAG_ARG -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH .
           [[ ! -z "$IMAGE_TAG" ]] && docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
   microservice-cloud-docker-build:
     runs-on: ubuntu-latest
@@ -130,7 +129,6 @@ jobs:
           COMMIT_HASH: ${{ github.sha }}
         run: |
           cd packages/nocodb-ingest-service &&
-          docker build -f Dockerfile $CUSTOM_IMAGE_TAG_ARG -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker build -f Dockerfile $CUSTOM_IMAGE_TAG_ARG -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH .
           [[ ! -z "$IMAGE_TAG" ]] && docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest

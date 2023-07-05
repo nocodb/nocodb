@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
+import type { TableType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import Sortable from 'sortablejs'
 
@@ -317,7 +317,7 @@ onUnmounted(() => {
         <ProjectWrapper
           v-for="project of projectsList"
           :key="project.id"
-          :project-role="[project.project_role, project.role]"
+          :project-role="[project.project_role || project.workspace_role]"
           :project="project"
         >
           <DashboardTreeViewNewProjectNode />

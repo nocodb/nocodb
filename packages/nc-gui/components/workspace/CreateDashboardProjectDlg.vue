@@ -203,8 +203,8 @@ const showSearchIcon = computed(() => {
           <a-menu-item key="1" class="custom-menu-item !-ml-4">1: Interfaces Name</a-menu-item>
           <a-menu-item key="2"
             >2: Data Sources
-            <a-tag class="!border-none !bg-gray-50 !rounded-md">{{ numberOfSelectedDbProjects }} connected</a-tag></a-menu-item
-          >
+            <a-tag class="!border-none !bg-gray-50 !rounded-md">{{ numberOfSelectedDbProjects }} connected</a-tag>
+          </a-menu-item>
         </a-menu>
         <div v-if="selectedTab.includes('1')">
           <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="m-10">
@@ -253,12 +253,10 @@ const showSearchIcon = computed(() => {
               class="nc-create-dashboard-project-modal-db-list max-h-52 overflow-y-auto"
             >
               <template #header>
-                <a-list-header>
-                  <div class="flex items-center justify-between text-gray-400">
-                    <div class="text-left">{{ $t('dashboards.project_name') }}</div>
-                    <div class="text-right">{{ $t('dashboards.connect') }}</div>
-                  </div>
-                </a-list-header>
+                <div class="flex items-center justify-between text-gray-400">
+                  <div class="text-left">{{ $t('dashboards.project_name') }}</div>
+                  <div class="text-right">{{ $t('dashboards.connect') }}</div>
+                </div>
               </template>
               <template #renderItem="{ item }">
                 <a-list-item>

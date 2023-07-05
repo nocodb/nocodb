@@ -2,8 +2,8 @@
 import type { Menu } from 'ant-design-vue'
 import { Empty, Modal } from 'ant-design-vue'
 import type { WorkspaceType } from 'nocodb-sdk'
-import { nextTick } from '@vue/runtime-core'
-import { WorkspaceUserRoles } from 'nocodb-sdk'
+import { nextTick, onUnmounted } from '@vue/runtime-core'
+import { WorkspaceStatus, WorkspaceUserRoles } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import Sortable from 'sortablejs'
 import {
@@ -83,13 +83,15 @@ onMounted(async () => {
   await loadWorkspaces()
   await loadScope('workspace')
 
+  loadWorkspacesWithInterval()
+
   if (!route.query.workspaceId && workspacesList.value?.length) {
     await router.push({ query: { workspaceId: workspacesList.value[0].id, page: 'workspace' } })
   } else {
     selectedWorkspaceIndex.value = [workspacesList.value?.findIndex((workspace) => workspace.id === route.query.workspaceId)]
   }
 
-  await loadProjects()
+  if (activeWorkspace.value && activeWorkspace.value.status !== WorkspaceStatus.CREATING) await loadProjects()
 })
 
 watch(
@@ -258,8 +260,34 @@ const projectListType = computed(() => {
 })
 
 watch(activeWorkspaceId, async () => {
+  if (activeWorkspace.value?.status !== WorkspaceStatus.CREATED) return
   await loadProjects(activePage.value)
 })
+
+let timerRef: any
+
+// todo: do it in a better way
+function loadWorkspacesWithInterval() {
+  timerRef = setTimeout(async () => {
+    if (!workspacesList.value || workspacesList.value.some((workspace) => workspace.status === WorkspaceStatus.CREATING)) {
+      await loadWorkspaces()
+    }
+    loadWorkspacesWithInterval()
+  }, 10000)
+}
+
+onUnmounted(() => {
+  if (timerRef) clearTimeout(timerRef)
+})
+
+watch(
+  () => activeWorkspace.value?.status,
+  async (status) => {
+    if (status === WorkspaceStatus.CREATED) {
+      await loadProjects()
+    }
+  },
+)
 </script>
 
 <template>
@@ -421,8 +449,15 @@ watch(activeWorkspaceId, async () => {
       </div>
     </template>
 
-    <div class="w-full h-full nc-workspace-container">
-      <div v-if="activeWorkspace" class="flex flex-col pt-7">
+    <div class="h-full nc-workspace-container overflow-x-hidden" style="width: calc(100vw - 250px)">
+      <div
+        v-if="activeWorkspace && activeWorkspace.status !== WorkspaceStatus.CREATED"
+        class="h-full w-full flex flex-col gap-3 items-center justify-center"
+      >
+        <a-spin size="large" />
+        <div class="text-gray-300 text-lg">Please wait while we set up your workspace</div>
+      </div>
+      <div v-else-if="activeWorkspace" class="flex flex-col pt-7">
         <div class="pl-8 pr-7 flex items-center mb-7 h-8">
           <div class="flex gap-2 items-center">
             <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
@@ -471,6 +506,15 @@ watch(activeWorkspaceId, async () => {
                 </div>
               </template>
               <WorkspaceCollaboratorsList />
+            </a-tab-pane>
+            <a-tab-pane key="billing" class="w-full">
+              <template #tab>
+                <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
+                  <MaterialSymbolsCreditCardOutline />
+                  Billing
+                </div>
+              </template>
+              <WorkspaceBilling />
             </a-tab-pane>
           </template>
         </a-tabs>

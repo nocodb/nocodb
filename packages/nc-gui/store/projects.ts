@@ -11,6 +11,7 @@ export const useProjects = defineStore('projectsStore', () => {
   const { $api } = useNuxtApp()
 
   const projects = ref<Map<string, NcProject>>(new Map())
+
   const projectsList = computed<NcProject[]>(() =>
     Array.from(projects.value.values()).sort((a, b) => a.updated_at - b.updated_at),
   )
@@ -24,6 +25,8 @@ export const useProjects = defineStore('projectsStore', () => {
   const tableStore = useTablesStore()
 
   const { api } = useApi()
+
+  const { appInfo } = $(useGlobal())
 
   const isProjectsLoading = ref(false)
 
@@ -40,7 +43,9 @@ export const useProjects = defineStore('projectsStore', () => {
     isProjectsLoading.value = true
     try {
       if (activeWorkspace?.id) {
-        const { list } = await $api.workspaceProject.list(activeWorkspace?.id ?? workspace?.id)
+        const { list } = await $api.workspaceProject.list(activeWorkspace?.id ?? workspace?.id, {
+          baseURL: appInfo.baseHostName ? `https://${activeWorkspace?.id ?? workspace?.id}.${appInfo.baseHostName}` : undefined,
+        })
         _projects = list
       } else {
         const { list } = await $api.project.list(
@@ -49,16 +54,21 @@ export const useProjects = defineStore('projectsStore', () => {
                 query: {
                   [page]: true,
                 },
+                baseURL: appInfo.baseHostName
+                  ? `https://${activeWorkspace?.id ?? workspace?.id}.${appInfo.baseHostName}`
+                  : undefined,
               }
-            : {},
+            : {
+                baseURL: appInfo.baseHostName
+                  ? `https://${activeWorkspace?.id ?? workspace?.id}.${appInfo.baseHostName}`
+                  : undefined,
+              },
         )
         _projects = list
         projects.value.clear()
       }
 
       for (const project of _projects) {
-        if (projects.value.has(project.id!)) continue
-
         projects.value.set(project.id!, {
           ...project,
           isExpanded: route.value.params.projectId === project.id,
@@ -156,21 +166,26 @@ export const useProjects = defineStore('projectsStore', () => {
     type: string
     linkedDbProjectIds?: string[]
   }) => {
-    const result = await api.project.create({
-      title: projectPayload.title,
-      // @ts-expect-error todo: include in swagger
-      fk_workspace_id: projectPayload.workspaceId,
-      type: projectPayload.type ?? NcProjectType.DB,
-      linked_db_project_ids: projectPayload.linkedDbProjectIds,
-      // color,
-      // meta: JSON.stringify({
-      //   theme: {
-      //     primaryColor: color,
-      //     accentColor: complement.toHex8String(),
-      //   },
-      //   ...(route.value.query.type === NcProjectType.COWRITER && {prompt_statement: ''}),
-      // }),
-    })
+    const result = await api.project.create(
+      {
+        title: projectPayload.title,
+        // @ts-expect-error todo: include in swagger
+        fk_workspace_id: projectPayload.workspaceId,
+        type: projectPayload.type ?? NcProjectType.DB,
+        linked_db_project_ids: projectPayload.linkedDbProjectIds,
+        // color,
+        // meta: JSON.stringify({
+        //   theme: {
+        //     primaryColor: color,
+        //     accentColor: complement.toHex8String(),
+        //   },
+        //   ...(route.value.query.type === NcProjectType.COWRITER && {prompt_statement: ''}),
+        // }),
+      },
+      {
+        baseURL: appInfo.baseHostName ? `https://${projectPayload.workspaceId}.${appInfo.baseHostName}` : undefined,
+      },
+    )
 
     const count = projects.value.size
     projects.value.set(result.id!, { ...result, isExpanded: true, isLoading: false, order: count })

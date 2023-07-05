@@ -1,6 +1,7 @@
 import Noco from '../Noco';
-import { MetaTable } from '../utils/globals';
+import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import { extractProps } from '../helpers/extractProps';
+import NocoCache from '../cache/NocoCache';
 
 export default class WorkspaceUser {
   fk_workspace_id: string;
@@ -38,41 +39,33 @@ export default class WorkspaceUser {
       true,
     );
 
-    // // reset all user projects cache
-    // await NocoCache.delAll(
-    //   CacheScope.USER_PROJECT,
-    //   `${projectUser.fk_user_id}:*`
-    // );
-
     return this.get(fk_workspace_id, fk_user_id, ncMeta);
   }
 
-  // public static async update(id, user: Partial<WorkspaceUser>, ncMeta = Noco.ncMeta) {
-  //   // return await ncMeta.metaUpdate(null, null, MetaTable.USERS, id, insertObj);
-  // }
   static async get(workspaceId: string, userId: string, ncMeta = Noco.ncMeta) {
-    // let projectUser =
-    //   workspaceId &&
-    //   userId &&
-    //   (await NocoCache.get(
-    //     `${CacheScope.PROJECT_USER}:${workspaceId}:${userId}`,
-    //     CacheGetType.TYPE_OBJECT
-    //   ));
-    // if (!projectUser) {
-    const workspaceUser = await ncMeta.metaGet2(
-      null,
-      null,
-      MetaTable.WORKSPACE_USER,
-      {
-        fk_user_id: userId,
-        fk_workspace_id: workspaceId,
-      },
-    );
-    //   await NocoCache.set(
-    //     `${CacheScope.PROJECT_USER}:${workspaceId}:${userId}`,
-    //     projectUser
-    //   );
-    // }
+    let workspaceUser =
+      workspaceId &&
+      userId &&
+      (await NocoCache.get(
+        `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
+        CacheGetType.TYPE_OBJECT,
+      ));
+    if (!workspaceUser) {
+      workspaceUser = await ncMeta.metaGet2(
+        null,
+        null,
+        MetaTable.WORKSPACE_USER,
+        {
+          fk_user_id: userId,
+          fk_workspace_id: workspaceId,
+        },
+      );
+      if (workspaceUser)
+        await NocoCache.set(
+          `${CacheScope.PROJECT_USER}:${workspaceId}:${userId}`,
+          workspaceUser,
+        );
+    }
     return workspaceUser;
   }
 
@@ -92,6 +85,9 @@ export default class WorkspaceUser {
         `${MetaTable.WORKSPACE}.fk_user_id`,
         `${MetaTable.WORKSPACE}.deleted`,
         `${MetaTable.WORKSPACE}.deleted_at`,
+        `${MetaTable.WORKSPACE}.status`,
+        `${MetaTable.WORKSPACE}.message`,
+        `${MetaTable.WORKSPACE}.plan`,
         `${MetaTable.WORKSPACE_USER}.order`,
         `${MetaTable.WORKSPACE_USER}.invite_token`,
         `${MetaTable.WORKSPACE_USER}.invite_accepted`,
@@ -210,6 +206,10 @@ export default class WorkspaceUser {
     userId: any,
     _updateData: Partial<WorkspaceUser>,
   ) {
+    // get existing cache
+    const key = `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`;
+    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+
     const updateData = extractProps(_updateData, [
       'roles',
       'deleted',
@@ -220,7 +220,7 @@ export default class WorkspaceUser {
       'order',
     ]);
 
-    return await Noco.ncMeta.metaUpdate(
+    const res = await Noco.ncMeta.metaUpdate(
       null,
       null,
       MetaTable.WORKSPACE_USER,
@@ -230,9 +230,20 @@ export default class WorkspaceUser {
         fk_workspace_id: workspaceId,
       },
     );
+
+    if (o) {
+      Object.assign(o, updateData);
+      // set cache
+      await NocoCache.set(key, o);
+    }
+
+    return res;
   }
 
   static async delete(workspaceId: any, userId: any) {
+    await NocoCache.del(
+      `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
+    );
     return await Noco.ncMeta.metaDelete(null, null, MetaTable.WORKSPACE_USER, {
       fk_user_id: userId,
       fk_workspace_id: workspaceId,

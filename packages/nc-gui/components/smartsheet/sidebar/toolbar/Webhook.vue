@@ -80,7 +80,8 @@ onMounted(() => {
         <component :is="iconMap.plus" class="text-primary-600" />
       </div>
     </div>
-    <div class="flex flex-col ml-6">
+    <div v-if="hooks.length === 0" class="flex flex-col ml-6.5 text-gray-500">Empty</div>
+    <div v-else class="flex flex-col ml-6">
       <div
         v-for="hook in hooks"
         :key="hook.id"

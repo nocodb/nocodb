@@ -2,7 +2,7 @@
 import type { NodeProps } from '@vue-flow/core'
 import { Handle, Position, useVueFlow } from '@vue-flow/core'
 import type { LinkToAnotherRecordType } from 'nocodb-sdk'
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import { isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 import type { NodeData } from './utils'
 import { MetaInj, computed, provide, refAutoReset, toRef, useNuxtApp, watch } from '#imports'
 
@@ -86,7 +86,7 @@ watch(
             :class="index + 1 === data.nonPkColumns.length ? 'rounded-b-lg' : 'border-b-1'"
           >
             <div
-              v-if="col.uidt === UITypes.LinkToAnotherRecord"
+              v-if="isLinksOrLTAR(col)"
               class="flex w-full"
               :class="`nc-erd-table-node-${table.table_name}-column-${col.title?.toLowerCase().replace(' ', '_')}`"
             >

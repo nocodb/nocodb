@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
+  isLinksOrLTAR,
   isVirtualCol,
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
   UITypes,
 } from 'nocodb-sdk';
+import { pluralize, singularize } from 'inflection';
 import formulaQueryBuilderv2 from '../db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
 import {
@@ -57,7 +59,10 @@ export enum Altered {
 
 @Injectable()
 export class ColumnsService {
-  constructor(private readonly metaService: MetaService, private readonly appHooksService: AppHooksService) {}
+  constructor(
+    private readonly metaService: MetaService,
+    private readonly appHooksService: AppHooksService,
+  ) {}
 
   async columnUpdate(param: {
     req?: any;
@@ -120,6 +125,7 @@ export class ColumnsService {
         UITypes.QrCode,
         UITypes.Barcode,
         UITypes.ForeignKey,
+        UITypes.Links,
       ].includes(column.uidt)
     ) {
       if (column.uidt === colBody.uidt) {
@@ -157,10 +163,18 @@ export class ColumnsService {
             ...column,
             ...colBody,
           });
-        } else if (colBody.title !== column.title) {
-          await Column.updateAlias(param.columnId, {
-            title: colBody.title,
-          });
+        } else {
+          if (colBody.title !== column.title) {
+            await Column.updateAlias(param.columnId, {
+              title: colBody.title,
+            });
+          }
+          if ('meta' in colBody && column.uidt === UITypes.Links) {
+            await Column.updateMeta({
+              colId: param.columnId,
+              meta: colBody.meta,
+            });
+          }
         }
         await this.updateRollupOrLookup(colBody, column);
       } else {
@@ -926,6 +940,7 @@ export class ColumnsService {
         }
         break;
 
+      case UITypes.Links:
       case UITypes.LinkToAnotherRecord:
         await this.createLTARColumn({ ...param, base, project });
 
@@ -1181,6 +1196,8 @@ export class ColumnsService {
       case UITypes.Formula:
         await Column.delete(param.columnId, ncMeta);
         break;
+      // Since Links is just an extended version of LTAR, we can use the same logic
+      case UITypes.Links:
       case UITypes.LinkToAnotherRecord:
         {
           const relationColOpt =
@@ -1251,7 +1268,7 @@ export class ColumnsService {
                   .then((m) => m.getColumns(ncMeta));
 
                 for (const c of columnsInRelatedTable) {
-                  if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                  if (!isLinksOrLTAR(c.uidt)) continue;
                   const colOpt =
                     await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
                   if (
@@ -1272,7 +1289,7 @@ export class ColumnsService {
                 // delete bt columns in m2m table
                 await mmTable.getColumns(ncMeta);
                 for (const c of mmTable.columns) {
-                  if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                  if (!isLinksOrLTAR(c.uidt)) continue;
                   const colOpt =
                     await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
                   if (colOpt.type === 'bt') {
@@ -1283,7 +1300,7 @@ export class ColumnsService {
                 // delete hm columns in parent table
                 await parentTable.getColumns(ncMeta);
                 for (const c of parentTable.columns) {
-                  if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                  if (!isLinksOrLTAR(c.uidt)) continue;
                   const colOpt =
                     await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
                   if (colOpt.fk_related_model_id === mmTable.id) {
@@ -1294,7 +1311,7 @@ export class ColumnsService {
                 // delete hm columns in child table
                 await childTable.getColumns(ncMeta);
                 for (const c of childTable.columns) {
-                  if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                  if (!isLinksOrLTAR(c.uidt)) continue;
                   const colOpt =
                     await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
                   if (colOpt.fk_related_model_id === mmTable.id) {
@@ -1547,9 +1564,10 @@ export class ColumnsService {
     const sqlMgr = await ProjectMgrv2.getSqlMgr({
       id: param.base.project_id,
     });
+    const isLinks = param.column.uidt === UITypes.Links;
 
     // if xcdb base then treat as virtual relation to avoid creating foreign key
-    if (param.base.is_meta) {
+    if (param.base.is_meta || param.base.is_local) {
       (param.column as LinkToAnotherColumnReqType).virtual = true;
     }
 
@@ -1647,6 +1665,9 @@ export class ColumnsService {
         (param.column as LinkToAnotherColumnReqType).title,
         foreignKeyName,
         (param.column as LinkToAnotherColumnReqType).virtual,
+        null,
+        param.column['meta'],
+        isLinks,
       );
     } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
       const aTn = `${param.project?.prefix ?? ''}_nc_m2m_${randomID()}`;
@@ -1767,9 +1788,9 @@ export class ColumnsService {
       await Column.insert({
         title: getUniqueColumnAliasName(
           await child.getColumns(),
-          `${parent.title} List`,
+          pluralize(parent.title),
         ),
-        uidt: UITypes.LinkToAnotherRecord,
+        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
         type: 'mm',
 
         // ref_db_alias
@@ -1784,14 +1805,20 @@ export class ColumnsService {
         fk_mm_parent_column_id: parentCol.id,
         fk_related_model_id: parent.id,
         virtual: (param.column as LinkToAnotherColumnReqType).virtual,
+        meta: {
+          plural: pluralize(parent.title),
+          singular: singularize(parent.title),
+        },
+        // if self referencing treat it as system field to hide from ui
+        system: parent.id === child.id,
       });
       await Column.insert({
         title: getUniqueColumnAliasName(
           await parent.getColumns(),
-          param.column.title ?? `${child.title} List`,
+          param.column.title ?? pluralize(child.title),
         ),
 
-        uidt: UITypes.LinkToAnotherRecord,
+        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
         type: 'mm',
 
         fk_model_id: parent.id,
@@ -1804,6 +1831,10 @@ export class ColumnsService {
         fk_mm_parent_column_id: childCol.id,
         fk_related_model_id: child.id,
         virtual: (param.column as LinkToAnotherColumnReqType).virtual,
+        meta: {
+          plural: param.column['meta']?.plural || pluralize(child.title),
+          singular: param.column['meta']?.singular || singularize(child.title),
+        },
       });
 
       // todo: create index for virtual relations as well

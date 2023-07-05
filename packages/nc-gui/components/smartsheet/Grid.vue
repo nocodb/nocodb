@@ -1271,8 +1271,7 @@ const onDraftRecordClick = () => {
                       class="caption nc-grid-cell pl-5 pr-1"
                       :data-testid="`cell-Id-${rowIndex}`"
                       @contextmenu="contextMenuTarget = null"
-                    ></td>
-                    <td key="row-index" class="caption nc-grid-cell pl-5 pr-1" :data-testid="`cell-Id-${rowIndex}`">
+                    >
                       <div class="items-center flex gap-1 min-w-[60px]">
                         <div
                           v-if="!readOnly || !isLocked"

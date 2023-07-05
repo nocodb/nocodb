@@ -132,7 +132,7 @@ const modalVisible = false
         <a-menu class="!ml-4 !w-[300px]">
           <a-menu-item-group class="!border-t-0">
             <!--  <div class="nc-menu-sub-head">Current Workspace</div> -->
-            <div class="group select-none flex items-center gap-4 p-2 pb-0 !border-t-0">
+            <div class="group select-none flex items-center gap-4 p-2 pb-1 !border-t-0">
               <input
                 v-model="activeWorkspace!.title"
                 class="nc-workspace-title-input text-current capitalize"
@@ -146,12 +146,12 @@ const modalVisible = false
                 Collaborators
               </div>
             </a-menu-item>
-            <a-menu-item @click="workspaceModalVisible = true">
+            <!-- <a-menu-item @click="workspaceModalVisible = true">
               <div class="nc-workspace-menu-item group">
                 <PhFadersThin />
                 Settings
               </div>
-            </a-menu-item>
+            </a-menu-item> -->
 
             <a-menu-divider />
 
@@ -349,18 +349,25 @@ const modalVisible = false
         </a-menu>
       </template>
     </a-dropdown>
-    <a-modal v-model:visible="workspaceModalVisible" :class="{ active: modalVisible }" width="80%" :footer="null">
-      <a-tabs v-model:activeKey="tab">
-        <template v-if="isWorkspaceOwner">
-          <a-tab-pane key="collab" tab="Collaborators" class="w-full">
-            <WorkspaceCollaboratorsList class="h-full overflow-auto" />
-          </a-tab-pane>
-          <a-tab-pane key="settings" tab="Settings" class="w-full">
-            <div class="min-h-50 flex items-center justify-center">Not available</div>
-          </a-tab-pane>
-        </template>
-      </a-tabs>
-    </a-modal>
+    <GeneralModal v-model:visible="workspaceModalVisible" :class="{ active: modalVisible }" width="80%" :footer="null">
+      <div class="relative flex flex-col px-6 py-2">
+        <div class="absolute right-4 top-4 z-20">
+          <a-button type="text" class="!p-1 !h-7 !rounded">
+            <component :is="iconMap.close" />
+          </a-button>
+        </div>
+        <a-tabs v-model:activeKey="tab">
+          <template v-if="isWorkspaceOwner">
+            <a-tab-pane key="collab" tab="Collaborators" class="w-full">
+              <WorkspaceCollaboratorsList class="h-full" />
+            </a-tab-pane>
+            <!-- <a-tab-pane key="settings" tab="Settings" class="w-full">
+              <div class="min-h-50 flex items-center justify-center">Not available</div>
+            </a-tab-pane> -->
+          </template>
+        </a-tabs>
+      </div>
+    </GeneralModal>
 
     <WorkspaceCreateDlg v-model="createDlg" @success="onWorkspaceCreate" />
   </div>
@@ -381,6 +388,10 @@ const modalVisible = false
 
 :deep(.ant-dropdown-menu-item-group-title) {
   @apply hidden;
+}
+
+:deep(.ant-tabs-nav) {
+  @apply !mb-0;
 }
 
 :deep(.ant-dropdown-menu-submenu-title) {

@@ -23,13 +23,13 @@ const availableColumnsOfSelectedViewWithTitles = computed(() => {
 
 <template>
   <a-collapse expand-icon-position="right" accordion :bordered="false" class="nc-dashboard-layouts-propspanel-collapse">
-    <a-collapse-panel class="nc-dashboard-layouts-propspanel-collapse-panel" header="Step 1: Select Table and View">
+    <a-collapse-panel class="nc-dashboard-layouts-propspanel-collapse-panel" header="1: Select Table and View">
       <LayoutsWidgetsPropertiesPanelProjectTableViewSelectorSection />
     </a-collapse-panel>
-    <a-collapse-panel class="nc-dashboard-layouts-propspanel-collapse-panel" header="Step 2: Select Records">
+    <a-collapse-panel class="nc-dashboard-layouts-propspanel-collapse-panel" header="2: Select Records">
       <LayoutsWidgetsPropertiesPanelDataConfigSectionsFilterSection />
     </a-collapse-panel>
-    <a-collapse-panel class="nc-dashboard-layouts-propspanel-collapse-panel !rounded-lg" header="Step 3: Rollup function">
+    <a-collapse-panel class="nc-dashboard-layouts-propspanel-collapse-panel !rounded-lg" header="3: Rollup function">
       <div class="flex flex-col m-0">
         <div class="nc-dashboard-layouts-propspanel-selectable-config-section mb-2">
           <a-radio
@@ -80,8 +80,5 @@ const availableColumnsOfSelectedViewWithTitles = computed(() => {
 
 :deep(.ant-radio-wrapper) {
   @apply m-0 mb-2;
-}
-:deep(.ant-collapse-header) {
-  @apply !text-sm !2xl:text-base;
 }
 </style>

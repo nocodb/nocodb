@@ -21,7 +21,7 @@ const chartTypesForDropdown = computed(() =>
   })),
 )
 
-const hasAppearanceSection = computed(() => isNumber || isText)
+const hasAppearanceSection = computed(() => isNumber.value || isText.value)
 
 </script>
 
@@ -44,11 +44,40 @@ const hasAppearanceSection = computed(() => isNumber || isText)
     <LayoutsWidgetsPropertiesPanelTopSectionsText v-if="isText" />
     <LayoutsWidgetsPropertiesPanelTopSectionsChart v-if="isChart" />
 
-    <a-radio-group v-if="hasAppearanceSection" v-model:value="dataOrAppearanceMode" class="nc-radio-group">
-      <a-radio-button class="nc-radio-button" value="data">Data</a-radio-button>
-      <a-radio-button class="nc-radio-button" value="appearance">Appearance</a-radio-button>
-    </a-radio-group>
-
+    <div v-if="hasAppearanceSection" class="flex flex-row p-1 mt-3 mb-3 bg-gray-50 rounded-md gap-x-2">
+      <div
+        class="tab"
+        :class="{
+          active: dataOrAppearanceMode === 'data',
+        }"
+        @click="dataOrAppearanceMode = 'data'"
+      >
+        <component
+          :is="iconMap.code"
+          class="text-gray-500"
+          :style="{
+            fontWeight: 600,
+          }"
+        />
+        <div>Data</div>
+      </div>
+      <div
+        class="tab"
+        :class="{
+          active: dataOrAppearanceMode === 'appearance',
+        }"
+        @click="dataOrAppearanceMode = 'appearance'"
+      >
+        <component
+          :is="iconMap.palette"
+          class="text-gray-500"
+          :style="{
+            fontWeight: 600,
+          }"
+        />
+        <div>Appearance</div>
+      </div>
+    </div>
     <a-divider />
 
     <div v-if="dataOrAppearanceMode === 'data'">
@@ -71,5 +100,20 @@ const hasAppearanceSection = computed(() => isNumber || isText)
 
 .nc-radio-button {
   @apply flex-grow rounded-lg text-center;
+}
+
+:deep(.ant-menu-title-content) {
+  @apply w-full;
+}
+
+:deep(.ant-layout-sider-children) {
+  @apply flex flex-col;
+}
+
+.tab {
+  @apply flex flex-row items-center justify-center w-1/2 py-1 bg-gray-50 rounded-md gap-x-1.5 text-gray-500 cursor-pointer transition-all duration-300 select-none;
+}
+.active {
+  @apply bg-white shadow text-gray-700;
 }
 </style>

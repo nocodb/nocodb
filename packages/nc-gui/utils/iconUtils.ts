@@ -21,6 +21,7 @@ import CiFilter from '~icons/mdi/filter-outline'
 import Gallery from '~icons/ph/image-square-bold'
 import Plus from '~icons/material-symbols/add-rounded'
 import Code from '~icons/material-symbols/code-rounded'
+import Palette from '~icons/material-symbols/palette-outline'
 import Form from '~icons/material-symbols/assignment-outline'
 import Kanban from '~icons/material-symbols/view-kanban-outline'
 import Erd from '~icons/material-symbols/account-tree-outline-rounded'
@@ -276,6 +277,7 @@ export const iconMap = {
   excel: PhExcelThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
   csv: PhCsvThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
   code: Code,
+  palette: h(Palette, {}, 'palette'),
   delete: Delete,
   edit: h('span', { class: 'material-symbols' }, 'edit'),
   lookup: h('span', { class: 'material-symbols' }, 'search'),

@@ -1147,97 +1147,102 @@ const onDraftRecordClick = () => {
                 >
                 <div class="w-full h-full flex items-center">
                     <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="readOnly" />
-
-                    <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="readOnly" />
-                  </div>
-                </th>
-                <th
-                  v-if="isAddingColumnAllowed"
-                  v-e="['c:column:add']"
-                  class="cursor-pointer"
-                  @click.stop="addColumnDropdown = true"
-                >
+                  <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="readOnly" />
+                </div>
+              </th>
+              <th
+                v-if="isAddingColumnAllowed"
+                v-e="['c:column:add']"
+                class="cursor-pointer !border-0 relative"
+                :style="{
+                  borderWidth: '0px !important',
+                }"
+                @click.stop="addColumnDropdown = true"
+              >
+                <div class="absolute top-0 left-0 h-10.5 border-b-1 border-r-1 border-gray-50 nc-grid-add-edit-column group">
                   <a-dropdown
                     v-model:visible="addColumnDropdown"
                     :trigger="['click']"
                     overlay-class-name="nc-dropdown-grid-add-column"
-                  @visible-change="persistMenu = altModifier"
+                    @visible-change="persistMenu = altModifier"
                   >
                     <div class="h-full w-[60px] flex items-center justify-center">
-                    <GeneralIcon v-if="altModifier || persistMenu" icon="magic" class="text-sm text-orange-400" />
-                    <component :is="iconMap.plus" class="text-sm nc-column-add text-gray-600" />
-                  </div>
+                      <GeneralIcon v-if="altModifier || persistMenu" icon="magic" class="text-sm text-orange-400" />
+                      <component :is="iconMap.plus" class="text-sm nc-column-add text-gray-500 !group-hover:text-black" />
+                    </div>
 
-                  <template v-if="persistMenu" #overlay>
-                    <a-menu>
-                      <a-sub-menu v-if="predictedNextColumn?.length" key="predict-column">
-                        <template #title>
-                          <div class="flex flex-row items-center py-3">
-                            <MdiTableColumnPlusAfter class="flex h-[1rem] text-gray-500" />
-                            <div class="text-xs pl-2">Predict Columns</div>
-                            <MdiChevronRight class="text-gray-500 ml-2" />
-                          </div>
-                        </template>
-                        <template #expandIcon></template>
-                        <a-menu>
-                          <template v-for="col in predictedNextColumn" :key="`predict-${col.title}-${col.type}`">
-                            <a-menu-item>
-                              <div class="flex flex-row items-center py-3" @click="loadColumn(col.title, col.type)">
-                                <div class="text-xs pl-2">{{ col.title }}</div>
-                              </div>
-                            </a-menu-item>
-                          </template>
-                          <a-menu-item>
-                            <div class="flex flex-row items-center py-3" @click="predictNextColumn">
-                              <div class="text-red-500 text-xs pl-2">
-                                <MdiReload />
-                                Generate Again
-                              </div>
+                    <template v-if="persistMenu" #overlay>
+                      <a-menu>
+                        <a-sub-menu v-if="predictedNextColumn?.length" key="predict-column">
+                          <template #title>
+                            <div class="flex flex-row items-center py-3">
+                              <MdiTableColumnPlusAfter class="flex h-[1rem] text-gray-500" />
+                              <div class="text-xs pl-2">Predict Columns</div>
+                              <MdiChevronRight class="text-gray-500 ml-2" />
                             </div>
-                          </a-menu-item>
-                        </a-menu>
-                      </a-sub-menu>
-                      <a-menu-item v-else>
-                        <!-- Predict Columns -->
-                        <div class="flex flex-row items-center py-3" @click="predictNextColumn">
-                          <MdiReload v-if="predictingNextColumn" class="animate-infinite animate-spin" />
-                          <MdiTableColumnPlusAfter v-else class="flex h-[1rem] text-gray-500" />
-                          <div class="text-xs pl-2">Predict Columns</div>
-                        </div>
-                      </a-menu-item>
-                      <a-sub-menu v-if="predictedNextFormulas" key="predict-formula">
-                        <template #title>
-                          <div class="flex flex-row items-center py-3">
-                            <MdiCalculatorVariant class="flex h-[1rem] text-gray-500" />
-                            <div class="text-xs pl-2">Predict Formulas</div>
-                            <MdiChevronRight class="text-gray-500 ml-2" />
-                          </div>
-                        </template>
-                        <template #expandIcon></template>
-                        <a-menu>
-                          <template v-for="col in predictedNextFormulas" :key="`predict-${col.title}-formula`">
+                          </template>
+                          <template #expandIcon></template>
+                          <a-menu>
+                            <template v-for="col in predictedNextColumn" :key="`predict-${col.title}-${col.type}`">
+                              <a-menu-item>
+                                <div class="flex flex-row items-center py-3" @click="loadColumn(col.title, col.type)">
+                                  <div class="text-xs pl-2">{{ col.title }}</div>
+                                </div>
+                              </a-menu-item>
+                            </template>
+
                             <a-menu-item>
-                              <div
-                                class="flex flex-row items-center py-3"
-                                @click="loadColumn(col.title, 'Formula', { formula_raw: col.formula })"
-                              >
-                                <div class="text-xs pl-2">{{ col.title }}</div>
+                              <div class="flex flex-row items-center py-3" @click="predictNextColumn">
+                                <div class="text-red-500 text-xs pl-2">
+                                  <MdiReload />
+                                  Generate Again
+                                </div>
                               </div>
                             </a-menu-item>
+                          </a-menu>
+                        </a-sub-menu>
+                        <a-menu-item v-else>
+                          <!-- Predict Columns -->
+                          <div class="flex flex-row items-center py-3" @click="predictNextColumn">
+                            <MdiReload v-if="predictingNextColumn" class="animate-infinite animate-spin" />
+                            <MdiTableColumnPlusAfter v-else class="flex h-[1rem] text-gray-500" />
+                            <div class="text-xs pl-2">Predict Columns</div>
+                          </div>
+                        </a-menu-item>
+                        <a-sub-menu v-if="predictedNextFormulas" key="predict-formula">
+                          <template #title>
+                            <div class="flex flex-row items-center py-3">
+                              <MdiCalculatorVariant class="flex h-[1rem] text-gray-500" />
+                              <div class="text-xs pl-2">Predict Formulas</div>
+                              <MdiChevronRight class="text-gray-500 ml-2" />
+                            </div>
                           </template>
-                        </a-menu>
-                      </a-sub-menu>
-                      <a-menu-item v-else>
-                        <!-- Predict Formulas -->
-                        <div class="flex flex-row items-center py-3" @click="predictNextFormulas">
-                          <MdiReload v-if="predictingNextFormulas" class="animate-infinite animate-spin" />
-                          <MdiCalculatorVariant v-else class="flex h-[1rem] text-gray-500" />
-                          <div class="text-xs pl-2">Predict Formulas</div>
-                        </div>
-                      </a-menu-item>
-                    </a-menu>
-                  </template>
-                  <template v-else #overlay>
+                          <template #expandIcon></template>
+                          <a-menu>
+                            <template v-for="col in predictedNextFormulas" :key="`predict-${col.title}-formula`">
+                              <a-menu-item>
+                                <div
+                                  class="flex flex-row items-center py-3"
+                                  @click="loadColumn(col.title, 'Formula', { formula_raw: col.formula })"
+                                >
+                                  <div class="text-xs pl-2">{{ col.title }}</div>
+                                </div>
+                              </a-menu-item>
+                            </template>
+                          </a-menu>
+                        </a-sub-menu>
+                        <a-menu-item v-else>
+                          <!-- Predict Formulas -->
+                          <div class="flex flex-row items-center py-3" @click="predictNextFormulas">
+                            <MdiReload v-if="predictingNextFormulas" class="animate-infinite animate-spin" />
+                            <MdiCalculatorVariant v-else class="flex h-[1rem] text-gray-500" />
+                            <div class="text-xs pl-2">Predict Formulas</div>
+                          </div>
+
+                        </a-menu-item>
+                      </a-menu>
+                    </template>
+                    <template v-else #overlay>
                       <SmartsheetColumnEditOrAddProvider
                         v-if="addColumnDropdown"
                         :preload="preloadColumn"
@@ -1246,20 +1251,27 @@ const onDraftRecordClick = () => {
                         @cancel="closeAddColumnDropdown()"
                         @click.stop
                         @keydown.stop
-                      @mounted="preloadColumn = undefined"
+                        @mounted="preloadColumn = undefined"
                       />
                     </template>
                   </a-dropdown>
-                </th>
-              </tr>
-            </thead>
-            <tbody ref="tableBodyEl">
-              <LazySmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
-                <template #default="{ state }">
-                  <tr
-                    class="nc-grid-row"
-                    :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
-                    :data-testid="`grid-row-${rowIndex}`"
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody ref="tableBodyEl">
+            <LazySmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
+              <template #default="{ state }">
+                <tr
+                  class="nc-grid-row"
+                  :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
+                  :data-testid="`grid-row-${rowIndex}`"
+                >
+                  <td
+                    key="row-index"
+                    class="caption nc-grid-cell pl-5 pr-1"
+                    :data-testid="`cell-Id-${rowIndex}`"
+                    @contextmenu="contextMenuTarget = null"
                   >
                     <td key="row-index" class="caption nc-grid-cell pl-5 pr-1" :data-testid="`cell-Id-${rowIndex}`">
                       <div class="items-center flex gap-1 min-w-[60px]">
@@ -1586,6 +1598,9 @@ const onDraftRecordClick = () => {
 .nc-grid-wrapper {
   @apply h-full w-full overflow-auto;
 
+  .nc-grid-add-edit-column {
+    background-color: rgb(252, 252, 252);
+  }
   .nc-grid-add-new-cell:hover td {
     background-color: rgb(252, 252, 252);
     @apply text-black;

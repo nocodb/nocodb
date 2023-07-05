@@ -527,7 +527,7 @@ export class UsersService {
       if (user?.id) {
         await User.update(user.id, {
           refresh_token: null,
-          token_version: null,
+          token_version: randomTokenString(),
         });
       }
       return { msg: 'Signed out successfully' };

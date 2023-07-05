@@ -390,7 +390,7 @@ const isPublicShareDisabled = computed(() => {
             <div class="flex text-black">Allow Download</div>
             <a-switch
               v-model:checked="allowCSVDownload"
-              data-testid="share-password-toggle"
+              data-testid="share-download-toggle"
               :loading="isUpdating.download"
               class="public-password-toggle !mt-0.25"
             />

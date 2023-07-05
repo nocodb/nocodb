@@ -320,7 +320,7 @@ export const iconMap = {
   reload: MdiRefresh,
   xml: h('span', { class: 'material-symbols' }, 'code'),
   airtable: h('span', { class: 'material-symbols' }, 'grid_on'),
-  grid: h(Grid, 'grid_on'),
+  grid: Grid,
   gallery: Gallery,
   form: Form,
   map: h('span', { class: 'material-symbols' }, 'map'),

@@ -1,6 +1,7 @@
 import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { Injectable, Logger } from '@nestjs/common';
 import papaparse from 'papaparse';
+import { isLinksOrLTAR } from 'nocodb-sdk';
 import {
   findWithIdentifier,
   generateUniqueName,
@@ -125,7 +126,7 @@ export class ImportService {
 
       const reducedColumnSet = modelData.columns.filter(
         (a) =>
-          a.uidt !== UITypes.LinkToAnotherRecord &&
+          !isLinksOrLTAR(a) &&
           a.uidt !== UITypes.Lookup &&
           a.uidt !== UITypes.Rollup &&
           a.uidt !== UITypes.Formula &&
@@ -165,9 +166,7 @@ export class ImportService {
       const modelData = data.model;
       const table = tableReferences.get(modelData.id);
 
-      const linkedColumnSet = modelData.columns.filter(
-        (a) => a.uidt === UITypes.LinkToAnotherRecord,
-      );
+      const linkedColumnSet = modelData.columns.filter((a) => isLinksOrLTAR(a));
 
       for (const col of linkedColumnSet) {
         if (col.colOptions) {

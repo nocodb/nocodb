@@ -39,3 +39,4 @@ export { default as View } from './View';
 export { default as Widget } from './Widget';
 export { default as Workspace } from './Workspace';
 export { default as WorkspaceUser } from './WorkspaceUser';
+export { default as LinksColumn } from './LinksColumn';

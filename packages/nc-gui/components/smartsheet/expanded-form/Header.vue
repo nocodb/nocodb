@@ -46,11 +46,12 @@ const { dashboardUrl } = useDashboard()
 const { copy } = useClipboard()
 
 const copyRecordUrl = () => {
+  debugger
   copy(
     encodeURI(
-      `${dashboardUrl?.value}#/${route.params.projectType}/${route.params.projectId}/${route.params.type}/${meta.value?.title}${
-        props.view ? `/${props.view.title}` : ''
-      }?rowId=${primaryKey.value}`,
+      `${dashboardUrl?.value}#/ws/${route.params.workspaceId}/${route.params.projectType}/${route.params.projectId}/${
+        route.params.type
+      }/${meta.value?.title}${props.view ? `/${props.view.title}` : ''}?rowId=${primaryKey.value}`,
     ),
   )
   message.success('Copied to clipboard')

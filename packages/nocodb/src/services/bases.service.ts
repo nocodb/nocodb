@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
 import { AppEvents } from 'nocodb-sdk';
 import { populateMeta, validatePayload } from '../helpers';
+import { populateRollupColumnAndHideLTAR } from '../helpers/populateMeta';
 import { syncBaseMigration } from '../helpers/syncMigration';
 import { Base, Project } from '../models';
 import { AppHooksService } from './app-hooks/app-hooks.service';
@@ -75,10 +76,12 @@ export class BasesService {
 
     const info = await populateMeta(base, project);
 
+    await populateRollupColumnAndHideLTAR(base, project);
+
     this.appHooksService.emit(AppEvents.APIS_CREATED, {
       info,
     });
-
+    
     delete base.config;
 
     this.appHooksService.emit(AppEvents.BASE_CREATE, {

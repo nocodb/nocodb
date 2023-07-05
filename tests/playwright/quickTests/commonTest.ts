@@ -100,7 +100,7 @@ const quickVerify = async ({
     rating: recordsVirtualCells.Rating,
   });
 
-  // LinkToAnotherRecord
+  // Links
   await dashboard.grid.cell.verifyVirtualCell({
     index: cellIndex,
     columnHeader: 'Actor',
@@ -122,7 +122,7 @@ const quickVerify = async ({
       value: recordsVirtualCells.Computation,
     });
 
-    // LinkToAnotherRecord
+    // Links
     await dashboard.grid.cell.verifyVirtualCell({
       index: cellIndex,
       columnHeader: 'Producer',

@@ -1,5 +1,5 @@
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import dagre from 'dagre'
 import type { Edge, EdgeMarker, Elements, Node } from '@vue-flow/core'
 import type { MaybeRef } from '@vueuse/core'
@@ -73,8 +73,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
   const relations = computed(() =>
     erdTables.value.reduce((acc, table) => {
       const meta = metasWithIdAsKey.value[table.id!]
-      const columns =
-        meta.columns?.filter((column: ColumnType) => column.uidt === UITypes.LinkToAnotherRecord && column.system !== 1) || []
+      const columns = meta.columns?.filter((column: ColumnType) => isLinksOrLTAR(column) && column.system !== 1) || []
 
       for (const column of columns) {
         const colOptions = column.colOptions as LinkToAnotherRecordType
@@ -177,7 +176,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
 
       const columns =
         metasWithIdAsKey.value[table.id].columns?.filter(
-          (col) => config.showAllColumns || (!config.showAllColumns && col.uidt === UITypes.LinkToAnotherRecord),
+          (col) => config.showAllColumns || (!config.showAllColumns && isLinksOrLTAR(col)),
         ) || []
 
       const pkAndFkColumns = columns.filter(() => config.showPkAndFk).filter((col) => col.pk || col.uidt === UITypes.ForeignKey)

@@ -938,7 +938,9 @@ export function useViewData(
 
     if (index > -1 && row.rowMeta.new) {
       formattedData.value.splice(index, 1)
+      return true
     }
+    return false
   }
 
   // get current expanded row index

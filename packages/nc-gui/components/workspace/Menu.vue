@@ -112,7 +112,7 @@ const modalVisible = false
         <template v-if="props.isOpen">
           <div class="flex-grow min-w-10 font-semibold text-base">
             <a-tooltip v-if="activeWorkspace!.title!.length > 12" placement="bottom">
-              <div class="text-md truncate">{{ activeWorkspace!.title }}</div>
+              <div class="text-md truncate capitalize">{{ activeWorkspace!.title }}</div>
               <template #title>
                 <div class="text-sm !text-red-500">{{ activeWorkspace?.title }}</div>
               </template>
@@ -135,7 +135,7 @@ const modalVisible = false
             <div class="group select-none flex items-center gap-4 p-2 pb-0 !border-t-0">
               <input
                 v-model="activeWorkspace!.title"
-                class="nc-workspace-title-input text-current"
+                class="nc-workspace-title-input text-current capitalize"
                 @input="updateWorkspaceTitle"
               />
             </div>
@@ -159,7 +159,7 @@ const modalVisible = false
 
             <div class="max-h-300px overflow-y-auto">
               <a-menu-item v-for="workspace of workspacesList" :key="workspace.id!" @click="navigateTo(`/ws/${workspace.id}`)">
-                <div class="nc-workspace-menu-item group">
+                <div class="nc-workspace-menu-item group capitalize">
                   <GeneralIcon icon="workspace" />
 
                   {{ workspace.title }}
@@ -184,10 +184,10 @@ const modalVisible = false
                 </div>
               </a-menu-item>
 
-              <a-menu-divider />
+              <a-menu-divider v-if="false" />
 
               <!-- Theme -->
-              <template v-if="isUIAllowed('projectTheme')">
+              <template v-if="isUIAllowed('projectTheme') && false">
                 <a-sub-menu key="theme">
                   <template #title>
                     <div class="nc-workspace-menu-item group">
@@ -260,10 +260,10 @@ const modalVisible = false
                 </a-sub-menu>
               </template>
 
-              <a-menu-divider />
+              <a-menu-divider v-if="false" />
 
               <!-- Preview As -->
-              <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as">
+              <a-sub-menu v-if="isUIAllowed('previewAs') && false" key="preview-as">
                 <template #title>
                   <div v-e="['c:navdraw:preview-as']" class="nc-workspace-menu-item group">
                     <GeneralIcon icon="preview" class="group-hover:text-accent" />
@@ -284,6 +284,7 @@ const modalVisible = false
             </template>
             <!-- Language -->
             <a-sub-menu
+              v-if="false"
               key="language"
               class="lang-menu !py-0"
               popup-class-name="scrollbar-thin-dull min-w-50 max-h-90vh !overflow-auto"
@@ -376,6 +377,10 @@ const modalVisible = false
 
 .nc-workspace-menu-item {
   @apply flex items-center pl-2 py-2 gap-2 text-sm;
+}
+
+:deep(.ant-dropdown-menu-item-group-title) {
+  @apply hidden;
 }
 
 :deep(.ant-dropdown-menu-submenu-title) {

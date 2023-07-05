@@ -147,6 +147,7 @@ const onClick = (row: Row) => {
             <div class="flex items-center">
               <div class="flex-1 overflow-hidden min-w-0">
                 <VirtualCellComponentsItemChip
+                  :item="row"
                   :border="false"
                   :value="row[relatedTableDisplayValueProp]"
                   :column="props.column"

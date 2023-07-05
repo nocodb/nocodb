@@ -229,6 +229,7 @@ watch(vModel, (nextVal) => {
             @click="linkRow(refRow)"
           >
             <VirtualCellComponentsItemChip
+              :item="refRow"
               :value="refRow[relatedTableDisplayValueProp]"
               :column="props.column"
               :show-unlink-button="false"

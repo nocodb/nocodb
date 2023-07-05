@@ -14,10 +14,10 @@ import {
 } from '#imports'
 
 interface Props {
-  value?: string | number | boolean
-  item?: any
+  value: string | number | boolean
+  item: any
   column: any
-  showUnlinkButton: boolean
+  showUnlinkButton?: boolean
   border?: boolean
   readonly?: boolean
 }

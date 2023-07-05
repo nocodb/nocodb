@@ -126,7 +126,7 @@ export class TreeViewPage extends BasePage {
         .click();
     }
 
-    await this.dashboard.get().locator('.nc-modal-table-create').locator('.ant-modal-body').waitFor();
+    await this.dashboard.get().locator('.ant-modal.active').locator('.ant-modal-body').waitFor();
 
     await this.dashboard.get().getByPlaceholder('Enter table name').fill(title);
 

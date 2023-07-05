@@ -93,7 +93,7 @@ export class GridPage extends BasePage {
     await this._fillRow({ index, columnHeader, value: rowValue });
 
     const clickOnColumnHeaderToSave = () =>
-      this.get().locator(`[data-title="${columnHeader}"]`).locator(`span[title="${columnHeader}"]`).click();
+      this.get().locator(`[data-title="${columnHeader}"]`).locator(`div[title="${columnHeader}"]`).click();
 
     if (networkValidation) {
       await this.waitForResponse({
@@ -125,7 +125,7 @@ export class GridPage extends BasePage {
     await this._fillRow({ index, columnHeader, value });
 
     const clickOnColumnHeaderToSave = () =>
-      this.get().locator(`[data-title="${columnHeader}"]`).locator(`span[title="${columnHeader}"]`).click();
+      this.get().locator(`[data-title="${columnHeader}"]`).locator(`div[title="${columnHeader}"]`).click();
 
     if (networkValidation) {
       await this.waitForResponse({

@@ -195,10 +195,6 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
     // translate dateInserted to UTC in YYYY-MM-DD HH:mm format
     const dateInsertedInUTC = dateInserted.toISOString().replace('T', ' ').replace('Z', '');
 
-    const dateInserted = new Date(`2021-01-01 00:00:00${getBrowserTimezoneOffset()}`);
-    // translate dateInserted to UTC in YYYY-MM-DD HH:mm format
-    const dateInsertedInUTC = dateInserted.toISOString().replace('T', ' ').replace('Z', '');
-
     // UTC expected response
     const dateUTC = [
       `${dateInsertedInUTC.slice(0, 19)}+00:00`,

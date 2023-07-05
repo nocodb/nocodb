@@ -4,8 +4,8 @@ import { AccountUsersPage } from '../../../pages/Account/Users';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { SignupPage } from '../../../pages/SignupPage';
 import setup from '../../../setup';
-import { isHub } from '../../setup/db';
-import { WorkspacePage } from '../../pages/WorkspacePage';
+import { isHub } from '../../../setup/db';
+import { WorkspacePage } from '../../../pages/WorkspacePage';
 import { getDefaultPwd } from '../../utils/general';
 
 const roleDb = [

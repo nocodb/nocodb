@@ -3,7 +3,7 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import setup from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { SettingsPage, SettingTab } from '../../../pages/Dashboard/Settings';
-import { isHub } from '../../setup/db';
+import { isHub } from '../../../setup/db';
 
 const roles = ['Editor', 'Commenter', 'Viewer'];
 

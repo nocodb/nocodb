@@ -2,7 +2,7 @@ import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
 import setup from '../../../setup';
-import { isHub } from '../../setup/db';
+import { isHub } from '../../../setup/db';
 
 const langMenu = [
   'help-translate',

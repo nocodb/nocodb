@@ -1,14 +1,13 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { airtableApiBase, airtableApiKey } from '../../../constants';
-import { quickVerify } from '../../../quickTests/commonTest';
 import setup from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { Api } from 'nocodb-sdk';
 import { ProjectInfo, ProjectInfoApiUtil } from '../../utils/projectInfoApiUtil';
 import { deepCompare } from '../../utils/objectCompareUtil';
-import { isHub } from '../../setup/db';
+import { isHub } from '../../../setup/db';
 
 test.describe('Project operations', () => {
   if (isHub()) {

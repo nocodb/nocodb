@@ -4,7 +4,7 @@ import { AccountSettingsPage } from '../../../pages/Account/Settings';
 import { SignupPage } from '../../../pages/SignupPage';
 import setup from '../../../setup';
 import { getDefaultPwd } from '../../utils/general';
-import { isHub } from '../../setup/db';
+import { isHub } from '../../../setup/db';
 
 test.describe('App settings', () => {
   let accountSettingsPage: AccountSettingsPage;

@@ -5,7 +5,7 @@ import { SettingsPage, SettingTab } from '../../../pages/Dashboard/Settings';
 import { deepCompare } from '../../utils/objectCompareUtil';
 import setup from '../../../setup';
 import { ProjectInfoApiUtil, TableInfo } from '../../utils/projectInfoApiUtil';
-import { isHub } from '../../setup/db';
+import { isHub } from '../../../setup/db';
 
 test.describe('Table Operations', () => {
   let dashboard: DashboardPage, settings: SettingsPage;

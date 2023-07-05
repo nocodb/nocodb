@@ -5,9 +5,8 @@ import { SettingsPage, SettingTab } from '../../../pages/Dashboard/Settings';
 import { SignupPage } from '../../../pages/SignupPage';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { getDefaultPwd } from '../../utils/general';
-import { workerData } from 'worker_threads';
-import { WorkspacePage } from '../../pages/WorkspacePage';
-import { isHub } from '../../setup/db';
+import { WorkspacePage } from '../../../pages/WorkspacePage';
+import { isHub } from '../../../setup/db';
 
 const roleDb = [
   { email: 'creator@nocodb.com', role: 'creator', url: '' },

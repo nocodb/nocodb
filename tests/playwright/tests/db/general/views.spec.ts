@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import setup from '../../../setup';
-import { isHub } from '../../setup/db';
+import { isHub } from '../../../setup/db';
 
 test.describe('Views CRUD Operations', () => {
   let dashboard: DashboardPage;

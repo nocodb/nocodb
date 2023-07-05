@@ -7,8 +7,8 @@ import { SignupPage } from '../../../pages/SignupPage';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { AccountPage } from '../../../pages/Account';
 import { getDefaultPwd } from '../../utils/general';
-import { isHub } from '../../setup/db';
-import { WorkspacePage } from '../../pages/WorkspacePage';
+import { isHub } from '../../../setup/db';
+import { WorkspacePage } from '../../../pages/WorkspacePage';
 
 test.describe('Auth', () => {
   let context: any;

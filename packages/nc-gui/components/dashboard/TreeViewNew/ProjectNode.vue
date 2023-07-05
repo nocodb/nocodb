@@ -486,6 +486,7 @@ onKeyStroke('Escape', () => {
                   maxHeight: '70vh',
                   overflow: 'overlay',
                 }"
+                @click="isOptionsOpen = false"
               >
                 <!--          <a-menu class="!ml-1 !w-[300px] !text-sm"> -->
                 <a-menu-item-group>

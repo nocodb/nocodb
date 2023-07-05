@@ -78,6 +78,8 @@ const setIcon = async (icon: string, table: TableType) => {
 // Todo: temp
 
 const { isSharedBase } = useProject()
+
+const isMultiBase = computed(() => project.bases && project.bases.length > 1)
 </script>
 
 <template>
@@ -86,6 +88,7 @@ const { isSharedBase } = useProject()
     :data-order="table.order"
     :data-id="table.id"
     :data-testid="`tree-view-table-${table.title}`"
+    :data-table-id="table.id"
     :class="[
       // todo: table filter
       // { hidden: !filteredTables?.includes(table), active: openedTableId === table.id },
@@ -97,6 +100,8 @@ const { isSharedBase } = useProject()
       class="pl-11 pr-1.5 mb-0.25 rounded-md h-7.1"
       :class="{
         'hover:bg-hover': openedTableId !== table.id,
+        'pl-17': isMultiBase,
+        'pl-11': !isMultiBase,
       }"
       modifier-key="Alt"
     >

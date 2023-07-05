@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
 import { Dropdown, Tooltip, message } from 'ant-design-vue'
-import type { BaseType, ProjectType } from 'nocodb-sdk'
+import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import AddNewTableNode from './AddNewTableNode'
 import TableList from './TableList'
@@ -172,21 +172,34 @@ const setIcon = async (icon: string, project: ProjectType) => {
   }
 }
 
-function openTableCreateDialog() {
+function openTableCreateDialog(baseIndex?: number | undefined) {
   $e('c:table:create:navdraw')
 
   const isOpen = ref(true)
-  const baseId = project.value!.bases?.[0].id
+  let baseId = project.value!.bases?.[0].id
+  if (typeof baseIndex === 'number') {
+    baseId = project.value!.bases?.[baseIndex].id
+  }
 
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
-    'modelValue': isOpen,
-    'baseId': baseId, // || bases.value[0].id,
-    'projectId': project.value!.id,
-    'onUpdate:modelValue': closeDialog,
+    modelValue: isOpen,
+    baseId, // || bases.value[0].id,
+    projectId: project.value!.id,
+    onCreate: closeDialog,
   })
 
-  function closeDialog() {
+  function closeDialog(table: TableType) {
     isOpen.value = false
+
+    if (!activeKey.value || !activeKey.value.includes(`collapse-${baseId}`)) {
+      activeKey.value = [`collapse-${baseId}`]
+    }
+
+    // TODO: Better way to know when the table node dom is available
+    setTimeout(() => {
+      const newTableDom = document.querySelector(`[data-table-id="${table.id}"]`)
+      newTableDom?.scrollIntoView({ behavior: 'smooth' })
+    }, 1700)
 
     close(1000)
   }
@@ -750,46 +763,58 @@ onKeyStroke('Escape', () => {
                   <a-collapse
                     v-if="base && base.enabled"
                     v-model:activeKey="activeKey"
+                    class="!mx-0 !px-0 nc-sidebar-base-node"
                     :class="[{ hidden: searchActive && !!filterQuery }]"
-                    expand-icon-position="right"
+                    expand-icon-position="left"
                     :bordered="false"
-                    :accordion="!searchActive"
                     ghost
                   >
+                    <template #expandIcon="{ isActive }">
+                      <div class="flex flex-row items-center -mt-2">
+                        <PhTriangleFill
+                          class="nc-sidebar-base-node-btns -mt-1 invisible cursor-pointer transform transition-transform duration-500 h-1.25 w-1.75 text-gray-500 rotate-90"
+                          :class="{ '!rotate-180': isActive }"
+                        />
+                      </div>
+                    </template>
                     <a-collapse-panel :key="`collapse-${base.id}`">
                       <template #header>
-                        <div
-                          v-if="baseIndex === 0"
-                          class="base-context flex items-center gap-2 text-gray-500 font-bold"
-                          @contextmenu="setMenuContext('base', base)"
-                        >
-                          <GeneralBaseLogo :base-type="base.type" />
-                          Default ({{
-                            projectTables.get(project.id)?.filter((table) => table.base_id === base.id).length || '0'
-                          }})
-                        </div>
-                        <div
-                          v-else
-                          class="base-context flex items-center gap-2 text-gray-500 font-bold"
-                          @contextmenu="setMenuContext('base', base)"
-                        >
-                          <GeneralBaseLogo :base-type="base.type" />
-                          {{ base.alias || '' }}
-                          ({{ projectTables.get(project.id)?.filter((table) => table.base_id === base.id).length || '0' }})
+                        <div class="w-full flex flex-row justify-between">
+                          <div
+                            v-if="baseIndex === 0"
+                            class="base-context flex items-center gap-2 text-gray-800"
+                            @contextmenu="setMenuContext('base', base)"
+                          >
+                            <GeneralBaseLogo :base-type="base.type" />
+                            Default
+                          </div>
+                          <div
+                            v-else
+                            class="base-context flex items-center gap-2 text-gray-800"
+                            @contextmenu="setMenuContext('base', base)"
+                          >
+                            <GeneralBaseLogo :base-type="base.type" />
+                            {{ base.alias || '' }}
+                          </div>
+                          <div
+                            class="flex h-full items-center invisible nc-sidebar-base-node-btns hover:bg-gray-200 mt-0.5 text-gray-500 hover:text-gray-700 rounded p-0.25"
+                            @click.stop="openTableCreateDialog(baseIndex)"
+                          >
+                            <component :is="iconMap.plus" class="text-inherit" />
+                          </div>
                         </div>
                       </template>
-                      <AddNewTableNode
+                      <!-- <AddNewTableNode
                         :project="project"
                         :base-index="baseIndex"
                         @open-table-create-dialog="openTableCreateDialog()"
-                      />
-
+                      /> -->
                       <div
                         ref="menuRefs"
                         :key="`sortable-${base.id}-${base.id && base.id in keys ? keys[base.id] : '0'}`"
                         :nc-base="base.id"
                       >
-                        <TableList class="pl-2" :project="project" :base-index="baseIndex" />
+                        <TableList :project="project" :base-index="baseIndex" />
                       </div>
                     </a-collapse-panel>
                   </a-collapse>
@@ -857,5 +882,13 @@ onKeyStroke('Escape', () => {
 <style lang="scss" scoped>
 .nc-sidebar-icon {
   @apply ml-0.5 mr-1;
+}
+
+:deep(.ant-collapse-header) {
+  @apply !mx-0 !pl-7.25 !pr-1 !py-0.75 hover:bg-gray-100 !rounded-md;
+}
+
+.nc-sidebar-base-node:hover .nc-sidebar-base-node-btns {
+  @apply visible;
 }
 </style>

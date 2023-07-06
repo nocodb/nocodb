@@ -562,8 +562,8 @@ onKeyStroke('Escape', () => {
       <div
         v-if="project.id && !project.isLoading"
         key="g1"
-        class="overflow-y-auto overflow-x-hidden transition-max-height"
-        :class="{ 'max-h-0': !project.isExpanded, 'max-h-500': project.isExpanded }"
+        class="overflow-x-hidden transition-max-height"
+        :class="{ 'max-h-0': !project.isExpanded }"
       >
         <div v-if="isProjectEmpty(project.id)" class="flex ml-11.75 my-1 text-gray-500 select-none">Empty</div>
         <div v-else-if="project.type === 'documentation'">

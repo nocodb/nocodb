@@ -161,7 +161,7 @@ export class ContainerPage extends BasePage {
   async projectDelete({ title }: { title: string }) {
     await this.rootPage.waitForTimeout(1000);
     const row = await this.getProjectRow({ title });
-    await row.locator('td.ant-table-cell').nth(4).locator('.nc-icon').click();
+    await row.locator('td.ant-table-cell').nth(3).locator('.nc-icon').click();
     await this.rootPage.locator('.ant-dropdown-menu-item:has-text("Delete Project")').click();
     await this.waitForResponse({
       uiAction: () => this.rootPage.locator('.ant-modal-confirm').locator('button:has-text("Yes")').click(),

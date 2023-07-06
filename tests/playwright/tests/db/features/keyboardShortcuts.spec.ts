@@ -196,7 +196,7 @@ test.describe('Clipboard support', () => {
     await dashboard.grid.cell.attachment.addFile({
       index: 0,
       columnHeader: 'Attachment',
-      filePath: `${process.cwd()}/fixtures/sampleFiles/1.json`,
+      filePath: [`${process.cwd()}/fixtures/sampleFiles/1.json`],
     });
   });
   async function verifyCellContents({ rowIndex }: { rowIndex: number }) {

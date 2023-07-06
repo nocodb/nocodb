@@ -1,4 +1,4 @@
-import { expect, Locator, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import setup from '../../../setup';
 import { Api, UITypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../../pages/Dashboard';

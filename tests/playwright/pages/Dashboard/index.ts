@@ -226,6 +226,11 @@ export class DashboardPage extends BasePage {
     mode?: string;
     type?: ProjectTypes;
   }) {
+    // tabs disabled
+    if (isHub()) {
+      return;
+    }
+
     if (type === ProjectTypes.DATABASE) {
       // 0523: Tabs are disabled & hence below checks are not required
       // await this._waitForDBTabRender({ title, mode });

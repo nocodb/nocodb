@@ -623,7 +623,7 @@ onKeyStroke('Escape', () => {
                             <a-tooltip>
                               <template #title>External DB</template>
                               <div>
-                                <GeneralIcon icon="info" class="text-gray-400 -mt-0.75 hover:text-gray-700" />
+                                <GeneralIcon icon="info" class="text-gray-400 -mt-0.5 hover:text-gray-700" />
                               </div>
                             </a-tooltip>
                           </div>

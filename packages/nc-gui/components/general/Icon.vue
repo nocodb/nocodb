@@ -7,5 +7,5 @@ const props = defineProps<{
 </script>
 
 <template>
-  <component :is="iconMap[props.icon]" class="!text-inherit" />
+  <component :is="iconMap[props.icon]" />
 </template>

@@ -42,6 +42,7 @@ import NcIconsRowHeightMedium from '~icons/nc-icons/row-height-medium'
 import NcIconsRowHeightShort from '~icons/nc-icons/row-height-short'
 import NcIconsRowHeightTall from '~icons/nc-icons/row-height-tall'
 import NcIconsRowHeightExtraTall from '~icons/nc-icons/row-height-extra-tall'
+import MsInfo from '~icons/material-symbols/info-outline-rounded'
 import PhSparkleFill from '~icons/ph/sparkle-fill'
 import Grid from '~icons/material-symbols/grid-view-outline'
 
@@ -202,7 +203,7 @@ import Down from '~icons/material-symbols/keyboard-arrow-down-rounded'
 } as const */
 
 export const iconMap = {
-  info: h('span', { class: 'material-symbols' }, 'info'),
+  info: h(MsInfo, {}, 'info'),
   inbox: h('span', { class: 'material-symbols' }, 'inbox'),
   loading: h('span', { class: 'material-symbols' }, 'autorenew'),
   arrowCollapse: h('span', { class: 'material-symbols' }, 'keyboard_arrow_up'),

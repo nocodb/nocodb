@@ -9,6 +9,7 @@ import { openLink, useProjects } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import { ProjectInj, ProjectRoleInj, ToggleDialogInj } from '~/context'
 import type { NcProject } from '~~/lib'
+import MdiInformationSlabSymbol from '~icons/ion/information'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
@@ -199,8 +200,14 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
     // TODO: Better way to know when the table node dom is available
     setTimeout(() => {
       const newTableDom = document.querySelector(`[data-table-id="${table.id}"]`)
-      newTableDom?.scrollIntoView({ behavior: 'smooth' })
-    }, 1700)
+      if (!newTableDom) return
+
+      // Verify that table node is not in the viewport
+      if (newTableDom.getBoundingClientRect().top < 0 || newTableDom.getBoundingClientRect().bottom > window.innerHeight) {
+        // Scroll to the table node
+        newTableDom?.scrollIntoView({ behavior: 'smooth' })
+      }
+    }, 1200)
 
     close(1000)
   }
@@ -566,20 +573,18 @@ onKeyStroke('Escape', () => {
         </div>
         <template v-else-if="project && project?.bases">
           <div class="flex-1 overflow-y-auto flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
-            <div
-              v-if="project?.bases?.[0]?.enabled && !project?.bases?.slice(1).filter((el) => el.enabled)?.length"
-              class="flex-1"
-            >
+            <div v-if="project?.bases?.[0]?.enabled" class="flex-1">
               <div class="transition-height duration-200">
                 <TableList :project="project" :base-index="0" />
               </div>
             </div>
 
-            <div v-else class="transition-height duration-200">
+            <div v-if="project?.bases?.slice(1).filter((el) => el.enabled)?.length" class="transition-height duration-200">
               <div class="border-none sortable-list">
                 <div v-for="(base, baseIndex) of project.bases" :key="`base-${base.id}`">
+                  <template v-if="baseIndex === 0"></template>
                   <a-collapse
-                    v-if="base && base.enabled"
+                    v-else-if="base && base.enabled"
                     v-model:activeKey="activeKey"
                     class="!mx-0 !px-0 nc-sidebar-base-node"
                     :class="[{ hidden: searchActive && !!filterQuery }]"
@@ -608,11 +613,19 @@ onKeyStroke('Escape', () => {
                           </div>
                           <div
                             v-else
-                            class="base-context flex items-center gap-2 text-gray-800"
+                            class="base-context flex items-center gap-1.75 text-gray-800"
                             @contextmenu="setMenuContext('base', base)"
                           >
-                            <GeneralBaseLogo :base-type="base.type" />
-                            {{ base.alias || '' }}
+                            <GeneralBaseLogo :base-type="base.type" class="w-4" />
+                            <div class="flex">
+                              {{ base.alias || '' }}
+                            </div>
+                            <a-tooltip>
+                              <template #title>External DB</template>
+                              <div>
+                                <GeneralIcon icon="info" class="text-gray-400 -mt-0.75 hover:text-gray-700" />
+                              </div>
+                            </a-tooltip>
                           </div>
                           <div class="flex flex-row items-center gap-x-1">
                             <a-dropdown
@@ -640,10 +653,10 @@ onKeyStroke('Escape', () => {
                             </a-dropdown>
 
                             <div
-                              class="flex h-full items-center invisible nc-sidebar-base-node-btns hover:bg-gray-200 mt-0.25 text-gray-600 hover:text-gray-700 rounded p-0.25"
+                              class="flex h-5.5 invisible nc-sidebar-base-node-btns hover:bg-gray-200 text-gray-600 py-0.25 hover:text-gray-700 rounded px-0.35 mt-0.25"
                               @click.stop="openTableCreateDialog(baseIndex)"
                             >
-                              <component :is="iconMap.plus" class="text-inherit" />
+                              <component :is="iconMap.plus" class="text-inherit mt-0.5" />
                             </div>
                           </div>
                         </div>

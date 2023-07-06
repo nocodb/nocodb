@@ -117,7 +117,7 @@ const navigateToHome = () => {
         </div>
       </WorkspaceCreateProjectBtn>
 
-      <div class="text-gray-500 mx-5 font-medium mt-3.5 mb-1.5">Projects</div>
+      <div class="text-gray-500 mx-5 font-medium mt-3 mb-1.5">Projects</div>
       <div
         class="w-full border-b-1"
         :class="{

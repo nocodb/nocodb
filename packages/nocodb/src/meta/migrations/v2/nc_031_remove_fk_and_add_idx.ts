@@ -165,9 +165,6 @@ const up = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.GRID_VIEW, (table) => {
     table.dropForeign('fk_view_id');
     table.index('fk_view_id');
-
-    table.dropForeign('fk_column_id');
-    table.index('fk_column_id');
   });
 
 

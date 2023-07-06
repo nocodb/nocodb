@@ -45,7 +45,7 @@ const up = async (knex: Knex) => {
     },
   );
 
-  await knex.schema.createTable(
+  await knex.schema.alterTable(
     MetaTable.WIDGET_DB_DEPENDENCIES,
     async (table) => {
       table.dropForeign('widget_id');
@@ -60,7 +60,7 @@ const up = async (knex: Knex) => {
   );
 
   await knex.schema.alterTable(MetaTable.FILTER_EXP, (table) => {
-    table.foreign('fk_widget_id');
+    table.dropForeign('fk_widget_id');
     table.index('fk_widget_id');
   });
 };
@@ -112,7 +112,7 @@ const down = async (knex) => {
     },
   );
 
-  await knex.schema.createTable(
+  await knex.schema.alterTable(
     MetaTable.WIDGET_DB_DEPENDENCIES,
     async (table) => {
       table.dropIndex('widget_id');

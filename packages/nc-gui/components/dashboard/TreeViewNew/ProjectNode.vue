@@ -653,10 +653,10 @@ onKeyStroke('Escape', () => {
                             </a-dropdown>
 
                             <div
-                              class="flex h-5.5 w-5.5 invisible nc-sidebar-base-node-btns !focus:outline-0 text-gray-600 py-0.25 hover:text-gray-700 rounded px-0.35 mt-0.25"
+                              class="flex invisible nc-sidebar-base-node-btns !focus:outline-0 text-gray-600 hover:text-gray-700 rounded px-0.35 mt-0.25"
                               @click.stop="openTableCreateDialog(baseIndex)"
                             >
-                              <component :is="iconMap.plus" class="text-inherit mt-0.5 !focus:outline-0" />
+                              <component :is="iconMap.plus" class="text-inherit h-5.5 w-5.5 py-0.5 !focus:outline-0" />
                             </div>
                           </div>
                         </div>

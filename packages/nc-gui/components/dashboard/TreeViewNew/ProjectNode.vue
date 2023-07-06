@@ -38,7 +38,7 @@ const {
 const { projects } = storeToRefs(projectsStore)
 
 const { loadProjectTables } = useTablesStore()
-const { projectTables } = storeToRefs(useTablesStore())
+const { projectTables, activeTable } = storeToRefs(useTablesStore())
 
 const { addNewLayout } = useDashboardStore()
 
@@ -192,7 +192,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
     isOpen.value = false
 
     if (!activeKey.value || !activeKey.value.includes(`collapse-${baseId}`)) {
-      activeKey.value = [`collapse-${baseId}`]
+      activeKey.value.push(`collapse-${baseId}`)
     }
 
     // TODO: Better way to know when the table node dom is available
@@ -396,6 +396,23 @@ function openTableCreateMagicDialog(baseId?: string) {
     close(1000)
   }
 }
+
+watch(
+  () => activeTable.value?.id,
+  async () => {
+    if (!activeTable.value) return
+
+    const baseId = activeTable.value.base_id
+    if (!baseId) return
+
+    if (!activeKey.value.includes(`collapse-${baseId}`)) {
+      activeKey.value.push(`collapse-${baseId}`)
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 
 onKeyStroke('Escape', () => {
   if (isOptionsOpen.value) {

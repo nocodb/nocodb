@@ -1518,7 +1518,7 @@ const onDraftRecordClick = () => {
               <div
                 v-e="['c:row:add:grid-top']"
                 :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
-                class="bg-white shadow-sm border-1 border-gray-100 rounded p-2 flex items-center justify-center select-none cursor-pointer hover:bg-gray-50 text-gray-600"
+                class="bg-white shadow-sm border-1 border-gray-100 rounded p-2 flex items-center justify-center select-none cursor-pointer hover:bg-gray-50 text-gray-600 nc-new-record-with-form"
                 @click="onDraftRecordClick"
               >
                 <MaterialSymbolsEditOutlineRounded class="mr-2" />

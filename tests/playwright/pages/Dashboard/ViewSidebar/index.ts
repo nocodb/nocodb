@@ -188,4 +188,16 @@ export class ViewSidebarPage extends BasePage {
     await expect(this.createFormButton).toHaveCount(count);
     await expect(this.createKanbanButton).toHaveCount(count);
   }
+
+  async openDeveloperTab({ option }: { option: string }) {
+    console.log(await this.get().locator('.nc-tab').count());
+    await this.get().locator('.nc-tab').nth(1).click();
+    if (option === 'ERD') {
+      await this.get().locator('.nc-view-action-erd.button').click();
+    }
+  }
+
+  async openViewsTab() {
+    await this.get().locator(',nc-tab').nth(0).click();
+  }
 }

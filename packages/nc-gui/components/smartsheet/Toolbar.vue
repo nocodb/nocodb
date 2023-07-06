@@ -33,6 +33,8 @@ const { allowCSVDownload } = useSharedView()
 
     <LazySmartsheetToolbarMappedBy v-if="isMap" />
 
+    <GeneralApiLoader />
+
     <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
 
     <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />

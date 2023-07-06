@@ -5,6 +5,7 @@ import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { LoginPage } from '../../../pages/LoginPage';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { getDefaultPwd } from '../../utils/general';
+import { isHub } from '../../../setup/db';
 
 test.describe('Shared base', () => {
   let dashboard: DashboardPage;
@@ -59,13 +60,20 @@ test.describe('Shared base', () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
 
-    await dashboard.gotoSettings();
-    await dashboard.settings.teams.clickInviteTeamBtn();
-    await dashboard.settings.teams.toggleSharedBase({ toggle: true });
-    await dashboard.settings.teams.sharedBaseRole({ role: 'editor' });
-    let url = await dashboard.settings.teams.getSharedBaseUrl();
-    await dashboard.settings.teams.closeInvite();
-    await dashboard.settings.close();
+    let url = '';
+    if (isHub()) {
+      // share button visible only if a table is opened
+      await dashboard.treeView.openTable({ title: 'Country' });
+      url = await dashboard.grid.toolbar.getSharedBaseUrl({ role: 'editor' });
+    } else {
+      await dashboard.gotoSettings();
+      await dashboard.settings.teams.clickInviteTeamBtn();
+      await dashboard.settings.teams.toggleSharedBase({ toggle: true });
+      await dashboard.settings.teams.sharedBaseRole({ role: 'editor' });
+      url = await dashboard.settings.teams.getSharedBaseUrl();
+      await dashboard.settings.teams.closeInvite();
+      await dashboard.settings.close();
+    }
 
     await dashboard.rootPage.waitForTimeout(2000);
     // access shared base link

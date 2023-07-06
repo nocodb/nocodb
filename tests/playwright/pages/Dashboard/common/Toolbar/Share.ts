@@ -47,11 +47,11 @@ export class ToolbarSharePage extends BasePage {
   }
 
   async clickShareBasePublicAccess() {
-    await this.get().locator(`[data-testid="nc-share-base-sub-modal"]`).locator('.ant-switch-checked').nth(0).click();
+    await this.get().locator(`[data-testid="nc-share-base-sub-modal"]`).locator('.ant-switch').nth(0).click();
   }
 
   async clickShareBaseEditorAccess() {
-    await this.get().locator(`[data-testid="nc-share-base-sub-modal"]`).locator('.ant-switch-checked').nth(1).click();
+    await this.get().locator(`[data-testid="nc-share-base-sub-modal"]`).locator('.ant-switch').nth(1).click();
   }
 
   async clickShareViewSurveyMode() {

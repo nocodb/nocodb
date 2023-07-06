@@ -729,7 +729,7 @@ onKeyStroke('Escape', () => {
 }
 
 :deep(.ant-collapse-header) {
-  @apply !mx-0 !pl-7.25 !pr-1 !py-0.75 hover:bg-gray-100 !rounded-md;
+  @apply !mx-0 !pl-7 !pr-1 !py-0.75 hover:bg-gray-100 !rounded-md;
 }
 
 :deep(.ant-collapse-header:hover .nc-sidebar-base-node-btns) {

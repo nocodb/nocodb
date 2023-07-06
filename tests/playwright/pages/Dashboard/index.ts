@@ -9,6 +9,7 @@ import { LinkRecord } from './Grid/Column/LTAR/LinkRecord';
 import { TreeViewPage } from './TreeView';
 import { SettingsPage } from './Settings';
 import { ViewSidebarPage } from './ViewSidebar';
+import { LeftSidebarPage } from './LeftSidebar';
 import { GalleryPage } from './Gallery';
 import { KanbanPage } from './Kanban';
 import { MapPage } from './Map';
@@ -44,6 +45,7 @@ export class DashboardPage extends BasePage {
   readonly linkRecord: LinkRecord;
   readonly settings: SettingsPage;
   readonly viewSidebar: ViewSidebarPage;
+  readonly leftSidebar: LeftSidebarPage;
   readonly importAirtable: ImportAirtablePage;
   readonly importTemplate = new ImportTemplatePage(this);
   readonly docs: DocsPageGroup;
@@ -75,6 +77,7 @@ export class DashboardPage extends BasePage {
     this.linkRecord = new LinkRecord(this);
     this.settings = new SettingsPage(this);
     this.viewSidebar = new ViewSidebarPage(this);
+    this.leftSidebar = new LeftSidebarPage(this);
     this.importAirtable = new ImportAirtablePage(this);
     this.sidebar = new SidebarPage(this);
     this.docs = new DocsPageGroup(this);
@@ -136,8 +139,11 @@ export class DashboardPage extends BasePage {
   }
 
   async clickHome() {
-    await this.rootPage.getByTestId('nc-noco-brand-icon').click();
-
+    if (isHub()) {
+      await this.leftSidebar.clickHome();
+    } else {
+      await this.rootPage.getByTestId('nc-noco-brand-icon').click();
+    }
     // wait for workspace page to render
     const workspacePage = new WorkspacePage(this.rootPage);
     await workspacePage.waitFor({ state: 'visible' });

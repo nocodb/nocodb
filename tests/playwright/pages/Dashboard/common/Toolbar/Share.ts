@@ -1,5 +1,6 @@
 import BasePage from '../../../Base';
 import { ToolbarPage } from './index';
+import { Locator } from '@playwright/test';
 
 export class ToolbarSharePage extends BasePage {
   readonly toolbar: ToolbarPage;
@@ -56,5 +57,30 @@ export class ToolbarSharePage extends BasePage {
 
   async clickShareViewSurveyMode() {
     await this.get().locator(`[data-testid="nc-modal-share-view__surveyMode"]`).click();
+  }
+
+  async invite({ email, role }: { email: string; role: string }) {
+    const emailField: Locator = this.get().locator('[data-testid="docs-share-dlg-share-project-collaborate-emails"]');
+    await emailField.fill(email);
+
+    if (role === 'editor') {
+      const roleField: Locator = this.get().locator('[data-testid="docs-share-dlg-share-project-collaborate-role"]');
+      await roleField.click();
+
+      const roleOptionsMenu: Locator = this.rootPage.locator('.ant-select-dropdown.nc-dropdown-user-role');
+      console.log(await roleOptionsMenu.locator(`.nc-role-option`).count());
+      await roleOptionsMenu
+        .locator(`.nc-role-option`)
+        .nth(role === 'editor' ? 0 : 1)
+        .click();
+    }
+
+    await this.get().locator('[data-testid="docs-share-btn"]').click();
+  }
+
+  async getInvitationUrl() {
+    await this.get().locator('[data-testid="docs-share-invitation-copy"]').click();
+    await this.rootPage.keyboard.press('Escape');
+    return await this.getClipboardText();
   }
 }

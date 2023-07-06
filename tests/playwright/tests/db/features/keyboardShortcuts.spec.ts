@@ -3,6 +3,7 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import { GridPage } from '../../../pages/Dashboard/Grid';
 import setup from '../../../setup';
 import { Api, UITypes } from 'nocodb-sdk';
+import { isHub } from '../../../setup/db';
 
 let api: Api<any>;
 
@@ -58,16 +59,21 @@ test.describe('Verify shortcuts', () => {
 
     // invite team member
     await page.keyboard.press('Alt+i');
-    await dashboard.settings.teams.invite({
-      email: 'new@example.com',
-      role: 'editor',
-      skipOpeningModal: true,
-    });
-    const url = await dashboard.settings.teams.getInvitationUrl();
-    // await dashboard.settings.teams.closeInvite();
-    expect(url).toContain('signup');
-    await page.waitForTimeout(1000);
-    await dashboard.settings.teams.closeInvite();
+    if (isHub()) {
+      await dashboard.grid.toolbar.share.invite({ email: 'new@example.com', role: 'editor' });
+      const url = await dashboard.grid.toolbar.share.getInvitationUrl();
+      expect(url).toContain('signup');
+    } else {
+      await dashboard.settings.teams.invite({
+        email: 'new@example.com',
+        role: 'editor',
+        skipOpeningModal: true,
+      });
+      const url = await dashboard.settings.teams.getInvitationUrl();
+      expect(url).toContain('signup');
+      await page.waitForTimeout(1000);
+      await dashboard.settings.teams.closeInvite();
+    }
 
     // Cmd + Right arrow
     await dashboard.treeView.openTable({ title: 'Country' });

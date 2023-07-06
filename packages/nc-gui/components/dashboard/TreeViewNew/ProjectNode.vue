@@ -477,6 +477,7 @@ onKeyStroke('Escape', () => {
             <MdiDotsHorizontal
               class="min-w-6 mr-1.5 opacity-0 group-hover:opacity-100 hover:text-black text-gray-600"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
+              data-testid="nc-sidebar-context-menu"
               @click.stop
             />
             <template #overlay>

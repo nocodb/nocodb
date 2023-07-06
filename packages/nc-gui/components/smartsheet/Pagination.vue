@@ -81,7 +81,7 @@ const page = computed({
 
     <div v-if="!isPublic" class="mr-2 mt-0.5">
       <div
-        class="flex flex-row items-center justify-center !rounded-md !p-1.75 border-gray-100 cursor-pointer bg-white hover:bg-gray-50 text-gray-400 hover:text-gray-700"
+        class="flex flex-row items-center justify-center !rounded-md !p-1.75 border-gray-100 cursor-pointer bg-white hover:bg-gray-50 text-gray-400 hover:text-gray-700 nc-sidebar-right-toggle-icon"
         :class="{
           'bg-gray-75': !isRightSidebarOpen,
         }"

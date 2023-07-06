@@ -208,12 +208,7 @@ watch(
   }
 }
 
-.smartsheet-sidebar-short > .splitpanes__splitter {
-  display: none !important;
-  background-color: transparent !important;
-}
-
-.splitpanes--dragging .splitpanes__splitter::before {
+.splitpanes--dragging > .splitpanes__splitter::before {
   @apply w-1 mr-0 bg-scrollbar;
   z-index: 40;
   width: 4px !important;
@@ -221,7 +216,12 @@ watch(
 }
 
 .splitpanes--dragging {
-  cursor: ew-resize;
+  cursor: col-resize;
+}
+
+.smartsheet-sidebar-short > .splitpanes__splitter {
+  display: none !important;
+  background-color: transparent !important;
 }
 
 .nc-smartsheet-sidebar-wrapper {

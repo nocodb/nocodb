@@ -101,7 +101,7 @@ const isMultiBase = computed(() => project.bases && project.bases.length > 1)
       :class="{
         'hover:bg-hover': openedTableId !== table.id,
         'pl-16.75': isMultiBase,
-        'pl-11': !isMultiBase,
+        'pl-10.5': !isMultiBase,
       }"
       modifier-key="Alt"
     >

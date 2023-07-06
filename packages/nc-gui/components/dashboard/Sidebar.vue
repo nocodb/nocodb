@@ -57,15 +57,6 @@ const navigateToHome = () => {
     <div style="height: var(--sidebar-top-height)">
       <div style="border-bottom-width: 1px" class="flex items-center px-1 nc-sidebar-header !border-0 py-1.25 pl-2">
         <div class="flex flex-row flex-grow hover:bg-gray-100 pl-2 pr-1 py-0.5 rounded-md">
-          <div
-            v-if="!isSharedBase"
-            v-e="['c:navbar:home']"
-            data-testid="nc-noco-brand-icon"
-            class="w-[29px] min-w-[29px] transition-all duration-200 py-1 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
-          >
-            <img width="25" class="mr-0" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
-          </div>
-
           <a
             v-if="isSharedBase"
             class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
@@ -80,7 +71,18 @@ const navigateToHome = () => {
             </a-tooltip>
           </a>
 
-          <WorkspaceMenu :workspace="activeWorkspace" :is-open="true" />
+          <WorkspaceMenu :workspace="activeWorkspace" :is-open="true">
+            <template #brandIcon>
+              <div
+                v-if="!isSharedBase"
+                v-e="['c:navbar:home']"
+                data-testid="nc-noco-brand-icon"
+                class="w-[29px] min-w-[29px] nc-noco-brand-icon"
+              >
+                <img width="25" class="mr-0" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
+              </div>
+            </template>
+          </WorkspaceMenu>
         </div>
       </div>
 

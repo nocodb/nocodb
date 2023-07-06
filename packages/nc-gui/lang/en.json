@@ -400,6 +400,7 @@
     "translate": "Help translate",
     "account": {
       "authToken": "Copy Auth Token",
+      "authTokenCopied": "Copied Auth Token",
       "swagger": "Swagger: REST APIs",
       "projInfo": "Copy Project Info",
       "themes": "Themes"

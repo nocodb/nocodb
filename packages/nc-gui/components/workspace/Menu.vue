@@ -16,7 +16,9 @@ const { saveTheme } = workspaceStore
 const { activeWorkspace, workspacesList, isWorkspaceOwner } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
-const { signOut, signedIn, user } = useGlobal()
+const { signOut, signedIn, user, token } = useGlobal()
+
+const { copy } = useCopy(true)
 
 const email = computed(() => user.value?.email ?? '---')
 
@@ -30,6 +32,7 @@ onMounted(async () => {
 
 const workspaceModalVisible = ref(false)
 const isWorkspaceDropdownOpen = ref(false)
+const isAuthTokenCopied = ref(false)
 
 const createDlg = ref(false)
 
@@ -95,6 +98,16 @@ const logout = async () => {
 const isSharedBase = false
 const modalVisible = false
 
+const copyAuthToken = async () => {
+  try {
+    await copy(token.value!)
+    isAuthTokenCopied.value = true
+  } catch (e: any) {
+    console.error(e)
+    message.error(e.message)
+  }
+}
+
 onKeyStroke('Escape', () => {
   if (isWorkspaceDropdownOpen.value) {
     isWorkspaceDropdownOpen.value = false
@@ -115,8 +128,9 @@ onKeyStroke('Escape', () => {
         :style="{ width: props.isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
         :class="[props.isOpen ? '' : 'justify-center']"
         data-testid="nc-workspace-menu"
-        class="group cursor-pointer flex gap-1 items-center nc-workspace-menu overflow-hidden py-1.25 pl-0.75 pr-0.25"
+        class="group cursor-pointer flex gap-1 items-center nc-workspace-menu overflow-hidden py-1.25 pr-0.25"
       >
+        <slot name="brandIcon" />
         <template v-if="props.isOpen">
           <div class="flex-grow min-w-10 font-semibold text-base">
             <a-tooltip v-if="activeWorkspace!.title!.length > 12" placement="bottom">
@@ -137,7 +151,7 @@ onKeyStroke('Escape', () => {
       </div>
 
       <template #overlay>
-        <a-menu class="!ml-4 !w-[300px]">
+        <a-menu class="" @click="isWorkspaceDropdownOpen = false">
           <a-menu-item-group class="!border-t-0">
             <!--  <div class="nc-menu-sub-head">Current Workspace</div> -->
             <div class="group select-none flex items-center gap-4 p-2 pb-1 !border-t-0">
@@ -148,12 +162,6 @@ onKeyStroke('Escape', () => {
               />
             </div>
 
-            <a-menu-item @click="workspaceModalVisible = true">
-              <div class="nc-workspace-menu-item group">
-                <PhUserCircleThin />
-                Collaborators
-              </div>
-            </a-menu-item>
             <!-- <a-menu-item @click="workspaceModalVisible = true">
               <div class="nc-workspace-menu-item group">
                 <PhFadersThin />
@@ -165,7 +173,7 @@ onKeyStroke('Escape', () => {
 
             <div class="nc-menu-sub-head">Workspaces</div>
 
-            <div class="max-h-300px overflow-y-auto">
+            <div class="max-h-300px nc-sidebar-md">
               <a-menu-item v-for="workspace of workspacesList" :key="workspace.id!" @click="navigateTo(`/ws/${workspace.id}`)">
                 <div class="nc-workspace-menu-item group capitalize">
                   <GeneralIcon icon="workspace" />
@@ -174,21 +182,38 @@ onKeyStroke('Escape', () => {
                 </div>
               </a-menu-item>
             </div>
-            <a-menu-divider />
-
             <a-menu-item @click="createDlg = true">
-              <div class="nc-workspace-menu-item group">
-                <GeneralIcon icon="plus" />
+              <div class="nc-workspace-menu-item group text-gray-700 group-hover:text-black">
+                <GeneralIcon icon="plus" class="mr-1" />
 
-                Add new workspace
+                <div class="">Add new workspace</div>
               </div>
             </a-menu-item>
+            <a-menu-divider />
+
+            <!-- <a-menu-item @click="workspaceModalVisible = true">
+              <div class="nc-workspace-menu-item group">
+                <GeneralIcon icon="users" />
+                Collaborators
+              </div>
+            </a-menu-item> -->
+
             <template v-if="!isSharedBase">
               <!-- Copy Auth Token -->
               <a-menu-item key="copy">
-                <div v-e="['a:navbar:user:copy-auth-token']" class="nc-workspace-menu-item group" @click.stop="copyAuthToken">
-                  <GeneralIcon icon="copy" class="group-hover:text-accent" />
-                  {{ $t('activity.account.authToken') }}
+                <div
+                  v-e="['a:navbar:user:copy-auth-token']"
+                  class="nc-workspace-menu-item group !gap-x-3"
+                  @click.stop="copyAuthToken"
+                >
+                  <GeneralIcon v-if="isAuthTokenCopied" icon="check" class="group-hover:text-black" />
+                  <GeneralIcon v-else icon="copy" class="group-hover:text-black" />
+                  <div v-if="isAuthTokenCopied">
+                    {{ $t('activity.account.authTokenCopied') }}
+                  </div>
+                  <div v-else>
+                    {{ $t('activity.account.authToken') }}
+                  </div>
                 </div>
               </a-menu-item>
 
@@ -199,7 +224,7 @@ onKeyStroke('Escape', () => {
                 <a-sub-menu key="theme">
                   <template #title>
                     <div class="nc-workspace-menu-item group">
-                      <GeneralIcon icon="image" class="group-hover:text-accent" />
+                      <GeneralIcon icon="image" class="group-hover:text-black" />
                       {{ $t('activity.account.themes') }}
 
                       <div class="flex-1" />
@@ -241,7 +266,7 @@ onKeyStroke('Escape', () => {
                     <a-sub-menu key="pick-primary">
                       <template #title>
                         <div class="nc-workspace-menu-item group">
-                          <ClarityColorPickerSolid class="group-hover:text-accent" />
+                          <ClarityColorPickerSolid class="group-hover:text-black" />
                           {{ $t('labels.primaryColor') }}
                         </div>
                       </template>
@@ -255,7 +280,7 @@ onKeyStroke('Escape', () => {
                     <a-sub-menu key="pick-accent">
                       <template #title>
                         <div class="nc-workspace-menu-item group">
-                          <ClarityColorPickerSolid class="group-hover:text-accent" />
+                          <ClarityColorPickerSolid class="group-hover:text-black" />
                           {{ $t('labels.accentColor') }}
                         </div>
                       </template>
@@ -274,7 +299,7 @@ onKeyStroke('Escape', () => {
               <a-sub-menu v-if="isUIAllowed('previewAs') && false" key="preview-as">
                 <template #title>
                   <div v-e="['c:navdraw:preview-as']" class="nc-workspace-menu-item group">
-                    <GeneralIcon icon="preview" class="group-hover:text-accent" />
+                    <GeneralIcon icon="preview" class="group-hover:text-black" />
                     {{ $t('activity.previewAs') }}
 
                     <div class="flex-1" />
@@ -299,7 +324,7 @@ onKeyStroke('Escape', () => {
             >
               <template #title>
                 <div class="nc-workspace-menu-item group">
-                  <GeneralIcon icon="translate" class="group-hover:text-accent nc-language" />
+                  <GeneralIcon icon="translate" class="group-hover:text-black nc-language" />
                   {{ $t('labels.language') }}
                   <div class="flex items-center text-gray-400 text-xs">(Community Translated)</div>
                   <div class="flex-1" />
@@ -320,7 +345,7 @@ onKeyStroke('Escape', () => {
               <a-sub-menu key="account">
                 <template #title>
                   <div class="nc-workspace-menu-item group">
-                    <GeneralIcon icon="account" class="group-hover:text-accent" />
+                    <GeneralIcon icon="account" class="group-hover:text-black" />
                     {{ $t('labels.account') }}
                     <div class="flex-1" />
 
@@ -334,7 +359,7 @@ onKeyStroke('Escape', () => {
 
                 <a-menu-item key="0" class="!rounded-t">
                   <nuxt-link v-e="['c:navbar:user:email']" class="nc-workspace-menu-item group !no-underline" to="/account/users">
-                    <GeneralIcon icon="at" class="mt-1 group-hover:text-accent" />&nbsp;
+                    <GeneralIcon icon="at" class="mt-1 group-hover:text-black" />&nbsp;
                     <div class="prose-sm group-hover:text-primary">
                       <div>Account</div>
                       <div class="text-xs text-gray-500">{{ email }}</div>
@@ -360,7 +385,7 @@ onKeyStroke('Escape', () => {
     <GeneralModal v-model:visible="workspaceModalVisible" :class="{ active: modalVisible }" width="80%" :footer="null">
       <div class="relative flex flex-col px-6 py-2">
         <div class="absolute right-4 top-4 z-20">
-          <a-button type="text" class="!p-1 !h-7 !rounded">
+          <a-button type="text" class="!p-1 !h-7 !rounded" @click="workspaceModalVisible = false">
             <component :is="iconMap.close" />
           </a-button>
         </div>
@@ -383,7 +408,7 @@ onKeyStroke('Escape', () => {
 
 <style scoped lang="scss">
 .nc-workspace-title-input {
-  @apply flex-grow py-2 px-3 outline-none hover:(bg-gray-100) focus:(bg-gray-100) rounded text-md text-defaault;
+  @apply flex-grow py-2 px-3 outline-none hover:(bg-gray-50) focus:(bg-gray-50) font-medium rounded text-md text-defaault;
 }
 
 .nc-menu-sub-head {
@@ -391,7 +416,7 @@ onKeyStroke('Escape', () => {
 }
 
 .nc-workspace-menu-item {
-  @apply flex items-center pl-2 py-2 gap-2 text-sm;
+  @apply flex items-center pl-2 py-2 gap-2 text-sm hover:text-black;
 }
 
 :deep(.ant-dropdown-menu-item-group-title) {

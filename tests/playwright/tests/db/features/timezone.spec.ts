@@ -53,7 +53,7 @@ async function timezoneSuite(token: string, projectTitle: string, skipTableCreat
     workspaceId = workspaces.list[0].id;
   }
 
-  const project = await api.project.create({ title: 'xcdb', fk_workspace_id: workspaceId });
+  const project = await api.project.create({ title: projectTitle, fk_workspace_id: workspaceId, type: 'database' });
   if (skipTableCreate) return { project };
   const table = await api.base.tableCreate(project.id, project.bases?.[0].id, {
     table_name: 'dateTimeTable',
@@ -150,7 +150,7 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
     if (!isSqlite(context) && !isHub()) return;
 
     if (isHub()) {
-      await dashboard.treeView.openBase({ title: 'xcdb' });
+      await dashboard.treeView.openBase({ title: 'xcdb0' });
     } else {
       await dashboard.clickHome();
       const projectsPage = new ProjectsPage(dashboard.rootPage);

@@ -555,7 +555,7 @@ async function importTemplate() {
                 for (let i = 0; i < data.length; i += offset) {
                   updateImportTips(projectName, tableMeta.title, progress, total)
                   const batchData = remapColNames(data.slice(i, i + offset), tableMeta.columns)
-                  await $api.dbTableRow.bulkCreate('noco', projectName, tableMeta.id, batchData)
+                  await $api.dbTableRow.bulkCreate('noco', project.value.id, tableMeta.id, batchData)
                   progress += batchData.length
                 }
                 updateImportTips(projectName, tableMeta.title, total, total)

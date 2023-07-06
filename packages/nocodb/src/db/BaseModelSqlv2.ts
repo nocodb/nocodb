@@ -3966,7 +3966,21 @@ function _wherePk(primaryKeys: Column[], id) {
   const ids = (id + '').split('___');
   const where = {};
   for (let i = 0; i < primaryKeys.length; ++i) {
-    where[primaryKeys[i].column_name] = ids[i];
+    //Check if the id is a UUID and the column is binary(16)
+    const idAsUUID =
+      primaryKeys[i].ct === 'binary(16)' &&
+      ((ids[i] + '').length === 36 || (ids[i] + '').length === 32)
+        ? (ids[i] + '').length === 32
+          ? (ids[i] + '').replace(
+              /(.{8})(.{4})(.{4})(.{4})(.{12})/,
+              '$1-$2-$3-$4-$5',
+            )
+          : ids[i] + ''
+        : null;
+
+    where[primaryKeys[i].column_name] = idAsUUID
+      ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
+      : ids[i];
   }
   return where;
 }

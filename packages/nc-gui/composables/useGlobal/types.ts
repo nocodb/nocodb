@@ -29,6 +29,7 @@ export interface AppInfo {
   automationLogLevel: 'OFF' | 'ERROR' | 'ALL'
   baseHostName?: string
   disableEmailAuth: boolean
+  mainSubDomain?: string
 }
 
 export interface StoredState {
@@ -68,6 +69,7 @@ export interface Actions {
   loadAppInfo: () => void
   setIsMobileMode: (isMobileMode: boolean) => void
   navigateToProject: (params: { workspaceId: string; projectId: string; type: NcProjectType }) => void
+  getBaseUrl: (workspaceId: string) => string | undefined
 }
 
 export type ReadonlyState = Readonly<Pick<State, 'token' | 'user'>> & Omit<State, 'token' | 'user'>

@@ -318,4 +318,5 @@ export interface AppConfig {
     emailPattern?: RegExp | null;
     disableEmailAuth: boolean;
   };
+  mainSubDomain: string;
 }

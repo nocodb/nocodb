@@ -71,7 +71,7 @@ const createProject = async () => {
 
     const complement = tcolor.complement()
 
-    const { appInfo } = $(useGlobal())
+    const { getBaseUrl } = $(useGlobal())
 
     // todo: provide proper project type
     creating.value = true
@@ -91,7 +91,7 @@ const createProject = async () => {
         }),
       },
       {
-        baseURL: appInfo.baseHostName ? `https://${route.query.workspaceId}.${appInfo.baseHostName}` : undefined,
+        baseURL: getBaseUrl(route.query.workspaceId as string),
       },
     )) as Partial<ProjectType>
 

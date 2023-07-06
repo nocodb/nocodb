@@ -10,6 +10,7 @@ import { extractSdkResponseErrorMsg } from '~/utils'
 import { ProjectInj, ProjectRoleInj, ToggleDialogInj } from '~/context'
 import type { NcProject } from '~~/lib'
 import MdiInformationSlabSymbol from '~icons/ion/information'
+import { isElementInvisible } from '~~/utils/domUtils'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
@@ -203,11 +204,11 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
       if (!newTableDom) return
 
       // Verify that table node is not in the viewport
-      if (newTableDom.getBoundingClientRect().top < 0 || newTableDom.getBoundingClientRect().bottom > window.innerHeight) {
+      if (isElementInvisible(newTableDom)) {
         // Scroll to the table node
         newTableDom?.scrollIntoView({ behavior: 'smooth' })
       }
-    }, 1200)
+    }, 1000)
 
     close(1000)
   }

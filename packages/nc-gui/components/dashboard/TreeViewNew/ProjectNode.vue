@@ -444,13 +444,13 @@ onKeyStroke('Escape', () => {
 
           <a-dropdown v-model:visible="isOptionsOpen" trigger="click">
             <MdiDotsHorizontal
-              class="min-w-6 mr-1.5 opacity-0 group-hover:opacity-100 hover:text-black text-gray-600"
+              class="min-w-5 min-h-5 py-0.25 mr-1.5 !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 opacity-0 group-hover:(opacity-100) hover:text-black text-gray-600 rounded"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
               @click.stop
             />
             <template #overlay>
               <a-menu
-                class="nc-sidebar-md"
+                class="nc-scrollbar-md"
                 :style="{
                   maxHeight: '70vh',
                   overflow: 'overlay',
@@ -545,7 +545,7 @@ onKeyStroke('Escape', () => {
           </a-dropdown>
 
           <div
-            class="mr-1 flex flex-row pr-1 items-center gap-x-2 cursor-pointer hover:text-black text-gray-600 text-sm invisible !group-hover:visible"
+            class="mr-2 flex flex-row items-center gap-x-2 cursor-pointer hover:(text-black) text-gray-600 text-sm invisible !group-hover:visible rounded"
             data-testid="nc-sidebar-add-project-entity"
             :class="{ '!text-black !visible': isAddNewProjectChildEntityLoading, '!visible': isOptionsOpen }"
             @click.stop="addNewProjectChildEntity"
@@ -553,7 +553,7 @@ onKeyStroke('Escape', () => {
             <div v-if="isAddNewProjectChildEntityLoading" class="flex flex-row items-center">
               <a-spin class="!flex !flex-row !items-center !my-0.5" :indicator="indicator" />
             </div>
-            <MdiPlus v-else />
+            <MdiPlus v-else class="min-w-5 min-h-5 py-0.25" />
           </div>
         </div>
       </div>
@@ -634,13 +634,13 @@ onKeyStroke('Escape', () => {
                               @update:visible="isBasesOptionsOpen[base!.id!] = $event"
                             >
                               <MdiDotsHorizontal
-                                class="invisible nc-sidebar-base-node-btns hover:text-black py-0.25 h-5.5 w-5 px-0.5 mt-0.25 rounded hover:bg-gray-200 text-gray-600"
+                                class="invisible nc-sidebar-base-node-btns !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 hover:text-black py-0.25 h-5.5 w-5.5 px-0.5 mt-0.25 rounded text-gray-600"
                                 :class="{ '!text-black !opacity-100': isBasesOptionsOpen[base!.id!] }"
                                 @click.stop="isBasesOptionsOpen[base!.id!] = !isBasesOptionsOpen[base!.id!]"
                               />
                               <template #overlay>
                                 <a-menu
-                                  class="nc-sidebar-md"
+                                  class="nc-scrollbar-md"
                                   :style="{
                                     maxHeight: '70vh',
                                     overflow: 'overlay',
@@ -653,10 +653,10 @@ onKeyStroke('Escape', () => {
                             </a-dropdown>
 
                             <div
-                              class="flex h-5.5 invisible nc-sidebar-base-node-btns hover:bg-gray-200 text-gray-600 py-0.25 hover:text-gray-700 rounded px-0.35 mt-0.25"
+                              class="flex h-5.5 w-5.5 invisible nc-sidebar-base-node-btns !focus:outline-0 text-gray-600 py-0.25 hover:text-gray-700 rounded px-0.35 mt-0.25"
                               @click.stop="openTableCreateDialog(baseIndex)"
                             >
-                              <component :is="iconMap.plus" class="text-inherit mt-0.5" />
+                              <component :is="iconMap.plus" class="text-inherit mt-0.5 !focus:outline-0" />
                             </div>
                           </div>
                         </div>

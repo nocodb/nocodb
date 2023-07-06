@@ -1103,7 +1103,7 @@ const onDraftRecordClick = () => {
       </div>
     </general-overlay>
 
-    <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 nc-sidebar-md scrollbar-thin-dull relative">
+    <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 nc-scrollbar-md scrollbar-thin-dull relative">
       <a-dropdown
         v-model:visible="contextMenu"
         :trigger="isSqlView ? [] : ['contextmenu']"

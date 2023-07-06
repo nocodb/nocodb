@@ -504,7 +504,7 @@ onMounted(async () => {
 
   <div class="mt-4 py-2 border-1 border-gray-100 rounded-lg">
     <div
-      class="flex flex-row px-6 py-4 nc-sidebar-md"
+      class="flex flex-row px-6 py-4 nc-scrollbar-md"
       :style="{
         height: '70vh',
       }"

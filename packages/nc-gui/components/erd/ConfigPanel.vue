@@ -16,7 +16,7 @@ const showAdvancedOptions = ref(false)
 
 <template>
   <Panel
-    class="flex flex-col gap-y-1 bg-white border-1 rounded border-gray-100 z-50 px-3 py-2 nc-erd-context-menu"
+    class="flex flex-col gap-y-1 bg-white border-1 rounded-lg border-gray-100 z-50 px-3 py-2 nc-erd-context-menu shadow-md"
     :position="PanelPosition.TopRight"
   >
     <div class="flex items-center gap-2">

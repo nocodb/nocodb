@@ -83,7 +83,7 @@ export default {
     <path
       v-else
       :id="id"
-      class="stroke-slate-500"
+      stroke="#898E99"
       :style="style"
       :stroke-width="showSkeleton ? baseStroke * 4 : baseStroke"
       fill="none"
@@ -124,7 +124,7 @@ export default {
       :width="8"
       :height="8"
       fill="#fff"
-      :stroke="sourceNode.data.color"
+      stroke="#898E99"
       :stroke-width="2"
       :transform="`rotate(45,${sourceX + 2},${sourceY - 4})`"
     />
@@ -137,19 +137,10 @@ export default {
       :width="8"
       :height="8"
       fill="#fff"
-      :stroke="sourceNode.data.color"
+      stroke="#898E99"
       :stroke-width="2"
       :transform="`rotate(45,${targetX + 2},${targetY - 4})`"
     />
-    <circle
-      v-else
-      class="nc-erd-edge-circle"
-      :cx="targetX"
-      :cy="targetY"
-      fill="#fff"
-      :r="5"
-      :stroke="targetNode.data.color"
-      :stroke-width="2"
-    />
+    <circle v-else class="nc-erd-edge-circle" :cx="targetX" :cy="targetY" fill="#fff" :r="5" stroke="#898E99" :stroke-width="2" />
   </template>
 </template>

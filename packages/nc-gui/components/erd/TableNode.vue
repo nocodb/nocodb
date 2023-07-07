@@ -39,7 +39,7 @@ watch(
 
 <template>
   <GeneralTooltip
-    class="h-full flex flex-1 justify-center items-center border-0"
+    class="h-full flex flex-1 justify-center items-center"
     :modifier-key="showSkeleton || viewport.zoom > 0.35 ? 'Alt' : undefined"
     :disabled="dragging || isZooming"
   >
@@ -51,7 +51,7 @@ watch(
       class="relative h-full flex flex-col justify-center bg-white min-w-16 min-h-8 rounded-lg nc-erd-table-node"
       :class="[
         `nc-erd-table-node-${table.table_name}`,
-        showSkeleton ? 'cursor-pointer items-center min-h-200px min-w-300px px-4' : '',
+        showSkeleton ? 'cursor-pointer items-center min-h-200px min-w-300px' : '',
       ]"
       @click="$e('c:erd:node-click')"
     >
@@ -70,7 +70,7 @@ watch(
         <Handle style="right: -15px" class="opacity-0" :position="Position.Right" type="source" :connectable="false" />
       </div>
 
-      <div v-else-if="hasColumns" class="px-2 py-1">
+      <div v-else-if="hasColumns" class="py-1 pr-0.5">
         <div
           v-for="col in data.pkAndFkColumns"
           :key="col.title"
@@ -131,6 +131,6 @@ watch(
 
 <style lang="scss" scoped>
 .nc-erd-table-node-column {
-  @apply py-0.5 text-gray-700;
+  @apply py-0.5 px-2 text-gray-700;
 }
 </style>

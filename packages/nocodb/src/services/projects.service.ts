@@ -286,7 +286,7 @@ export class ProjectsService {
       roles: 'owner',
     });
 
-    await syncMigration(project);
+    // await syncMigration(project);
 
     // populate metadata if existing table
     for (const base of await project.getBases()) {

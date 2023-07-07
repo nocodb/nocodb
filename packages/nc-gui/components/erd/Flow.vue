@@ -22,10 +22,11 @@ const { layout, elements } = useErdElements(tables, config)
 const showSkeleton = computed(() => viewport.value.zoom < 0.15)
 
 async function init() {
+  fitView({ duration: 0, minZoom: 0.2 })
   await layout(showSkeleton.value).then(() => {
-    setTimeout(() => {
-      fitView({ duration: 0, minZoom: 0.2 })
-    }, 250)
+    // setTimeout(() => {
+    //   fitView({ duration: 0, minZoom: 0.2 })
+    // }, 250)
   })
 }
 
@@ -52,12 +53,25 @@ watch(showSkeleton, async (isSkeleton) => {
   })
 })
 
+onMounted(init)
+
 onScopeDispose($destroy)
 </script>
 
 <template>
   <VueFlow v-model="elements">
-    <Controls class="rounded" :position="PanelPosition.BottomLeft" :show-fit-view="false" :show-interactive="false" />
+    <Controls class="rounded !shadow-md" :position="PanelPosition.BottomLeft" :show-fit-view="false" :show-interactive="false">
+      <template #control-zoom-in>
+        <div class="nc-erd-zoom-btn rounded-t-lg">
+          <GeneralIcon icon="plus" />
+        </div>
+      </template>
+      <template #control-zoom-out>
+        <div class="nc-erd-zoom-btn border-t-1 border-gray-100 rounded-b-lg">
+          <GeneralIcon icon="minus" />
+        </div>
+      </template>
+    </Controls>
 
     <template #node-custom="{ data, dragging }">
       <ErdTableNode :data="data" :dragging="dragging" :show-skeleton="showSkeleton" />
@@ -86,11 +100,18 @@ onScopeDispose($destroy)
 </template>
 
 <style>
+.vue-flow__controls {
+  @apply border-1 border-gray-100;
+}
 .vue-flow__controls-zoomin {
   @apply rounded-t;
 }
 
 .vue-flow__controls-zoomout {
   @apply rounded-b;
+}
+
+.nc-erd-zoom-btn {
+  @apply bg-white px-1.5 py-1;
 }
 </style>

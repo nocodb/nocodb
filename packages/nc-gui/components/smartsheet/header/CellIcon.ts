@@ -112,7 +112,7 @@ export default defineComponent({
       if (!column.value) return null
 
       return h(renderIcon(column.value, abstractType.value), {
-        class: 'text-gray-400 mx-1',
+        class: 'text-inherit mx-1',
         style: 'font-weight: 600; font-size: 1rem',
       })
     }

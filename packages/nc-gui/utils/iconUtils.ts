@@ -12,6 +12,7 @@ import MdiThumbUp from '~icons/mdi/thumb-up'
 import MdiThumbUpOutline from '~icons/mdi/thumb-up-outline'
 import MdiFlag from '~icons/mdi/flag'
 import MdiFlagOutline from '~icons/mdi/flag-outline'
+import MdiTable from '~icons/mdi/table'
 import MdiTableLarge from '~icons/mdi/table-large'
 import MdiEyeCircleOutline from '~icons/mdi/eye-circle-outline'
 import Copy from '~icons/material-symbols/content-copy-outline'
@@ -20,6 +21,7 @@ import PhEye from '~icons/ph/eye'
 import CiFilter from '~icons/mdi/filter-outline'
 import Gallery from '~icons/ph/image-square-bold'
 import Plus from '~icons/material-symbols/add-rounded'
+import Minus from '~icons/material-symbols/remove-rounded'
 import Code from '~icons/material-symbols/code-rounded'
 import Palette from '~icons/material-symbols/palette-outline'
 import Form from '~icons/material-symbols/assignment-outline'
@@ -257,6 +259,7 @@ export const iconMap = {
   hook: Phishing,
   erd: Erd,
   plus: Plus,
+  minus: Minus,
   search: h('span', { class: 'material-symbols' }, 'search'),
   copy: Copy,
   duplicate: h('span', { class: 'material-symbols' }, 'file_copy'),
@@ -274,7 +277,7 @@ export const iconMap = {
   // threeDotHorizontal: h('span', { class: 'material-symbols' }, 'more_horiz'),
   threeDotVertical: MdiDotsVertical,
   threeDotHorizontal: MdiDotsHorizontal,
-  table: h('span', { class: 'material-symbols' }, 'table_chart'),
+  table: MdiTable,
   excel: PhExcelThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
   csv: PhCsvThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
   code: Code,

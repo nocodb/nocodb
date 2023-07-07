@@ -62,6 +62,7 @@ watch(
       workspace.value = {
         title: 'Untitled Workspace',
       }
+    } else {
       nextTick(() => {
         inputRef.value?.$el?.focus()
         inputRef.value?.$el?.select()
@@ -93,15 +94,7 @@ watch(
         <div class="prose-xl font-bold self-center mb-5">{{ $t('activity.createWorkspace') }}</div>
 
         <a-form-item v-bind="validateInfos.title">
-          <a-input
-            ref="inputRef"
-            v-model:value="workspace.title"
-            size="large"
-            hide-details
-            class="!rounded"
-            data-testid="create-workspace-title-input"
-            placeholder="Workspace name"
-          />
+          <InputOrTags ref="inputRef" v-model="workspace.title" class="!rounded" />
         </a-form-item>
         <div class="flex flex-row justify-end mt-10">
           <a-button key="submit" class="!rounded" size="large" type="primary" @click="_createWorkspace">{{

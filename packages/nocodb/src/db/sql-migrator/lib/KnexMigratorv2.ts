@@ -406,11 +406,11 @@ export default class KnexMigratorv2 {
 
     // this.emit(`Creating Table if not exists in ${connectionConfig.meta.tn}`);
 
-    if (!('NC_MIGRATIONS_DISABLED' in process.env)) {
-      await sqlClient.createTableIfNotExists({
-        tn: 'nc_evolutions',
-      });
-    }
+    // if (!('NC_MIGRATIONS_DISABLED' in process.env)) {
+    //   await sqlClient.createTableIfNotExists({
+    //     tn: 'nc_evolutions',
+    //   });
+    // }
     // if (connectionConfig.client === "pg") {
     //   this.emit(
     //     `Creating Function 'xc_trigger_update_timestamp' if not exists in ${connectionConfig.connection.databaseName}`

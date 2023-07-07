@@ -32,16 +32,22 @@ const up = async (knex: Knex) => {
     table.index('fk_column_id');
 
     table.dropForeign('fk_related_model_id');
+    table.index('fk_related_model_id');
 
     table.dropForeign('fk_child_column_id');
+    table.index('fk_child_column_id');
 
     table.dropForeign('fk_parent_column_id');
+    table.index('fk_parent_column_id');
 
     table.dropForeign('fk_mm_model_id');
+    table.index('fk_mm_model_id');
 
     table.dropForeign('fk_mm_child_column_id');
+    table.index('fk_mm_child_column_id');
 
     table.dropForeign('fk_mm_parent_column_id');
+    table.index('fk_mm_parent_column_id');
   });
   console.timeEnd(MetaTable.COL_RELATIONS);
 
@@ -58,8 +64,10 @@ const up = async (knex: Knex) => {
     table.index('fk_column_id');
 
     table.dropForeign('fk_relation_column_id');
+    table.index('fk_relation_column_id');
 
     table.dropForeign('fk_lookup_column_id');
+    table.index('fk_lookup_column_id');
   });
   console.timeEnd(MetaTable.COL_LOOKUP);
 
@@ -94,8 +102,10 @@ const up = async (knex: Knex) => {
     table.index('fk_column_id');
 
     table.dropForeign('fk_relation_column_id');
+    table.index('fk_relation_column_id');
 
     table.dropForeign('fk_rollup_column_id');
+    table.index('fk_rollup_column_id');
   });
   console.timeEnd(MetaTable.COL_ROLLUP);
 
@@ -122,6 +132,7 @@ const up = async (knex: Knex) => {
     table.index('fk_hook_id');
 
     table.dropForeign('fk_column_id');
+    table.index('fk_column_id');
 
     table.dropForeign('fk_parent_id');
     table.index('fk_parent_id');

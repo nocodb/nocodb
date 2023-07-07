@@ -73,7 +73,7 @@ watch(
                 dropdown-class-name="nc-dropdown-user-role !rounded-md"
                 data-testid="docs-share-dlg-share-project-collaborate-role"
               >
-                <a-select-option v-for="(role, index) in docsProjectRoles" :key="index" :value="role" class="nc-role-option">
+                <a-select-option v-for="(role, index) in projectRoles" :key="index" :value="role" class="nc-role-option">
                   <div
                     class="flex flex-row h-full justify-start items-center"
                     :data-testid="`nc-share-invite-user-role-option-${role}`"

@@ -31,12 +31,13 @@ export class ToolbarSharePage extends BasePage {
   }
 
   async closeModal() {
-    await this.rootPage.keyboard.press('Escape');
+    // await this.rootPage.keyboard.press('Escape');
+    await this.get().locator('[data-testid="docs-cancel-btn"]').click();
   }
 
   async clickShareViewWithPassword({ password }: { password: string }) {
     await this.get().locator(`[data-testid="share-password-toggle"]`).click();
-    await this.get().locator('data-testid="nc-modal-share-view__password"]').fill(password);
+    await this.get().locator('[data-testid="nc-modal-share-view__password"]').fill(password);
   }
 
   async clickShareViewWithCSVDownload() {

@@ -168,6 +168,7 @@ watch(showShareModal, (val) => {
           v-if="formStatus === 'project-collaborate'"
           type="text"
           class="!border-1 !border-gray-200 !rounded-md"
+          data-testid="docs-cancel-btn"
           @click="showShareModal = false"
         >
           Cancel

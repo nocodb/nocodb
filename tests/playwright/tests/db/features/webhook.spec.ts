@@ -5,7 +5,7 @@ import makeServer from '../../../setup/server';
 import { WebhookFormPage } from '../../../pages/Dashboard/WebhookForm';
 import { isSubset } from '../../utils/general';
 import { Api, UITypes } from 'nocodb-sdk';
-import { isHub, isMysql, isPg, isSqlite } from '../../../setup/db';
+import { isMysql, isSqlite } from '../../../setup/db';
 
 const hookPath = 'http://localhost:9090/hook';
 let api: Api<any>;

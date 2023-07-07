@@ -9,7 +9,7 @@ import * as nc_008_add_nc_shared_bases from './v1/nc_008_add_nc_shared_bases';
 import * as nc_009_add_model_order from './v1/nc_009_add_model_order';
 import * as nc_010_add_parent_title_column from './v1/nc_010_add_parent_title_column';
 import * as nc_011_remove_old_ses_plugin from './v1/nc_011_remove_old_ses_plugin';
-import * as nc_cloud_001_init from './v1/nc_cloud_001_init';
+import * as nc_012_cloud_cleanup from './v1/nc_012_cloud_cleanup';
 
 // Create a custom migration source class
 export default class XcMigrationSource {
@@ -18,23 +18,20 @@ export default class XcMigrationSource {
   // arguments to getMigrationName and getMigration
   public getMigrations(): Promise<any> {
     // In this run we are just returning migration names
-    return Promise.resolve(
-      process.env.NC_CLOUD === 'true'
-        ? ['nc_cloud_001_init']
-        : [
-            'project',
-            'm2m',
-            'fkn',
-            'viewType',
-            'viewName',
-            'nc_006_alter_nc_shared_views',
-            'nc_007_alter_nc_shared_views_1',
-            'nc_008_add_nc_shared_bases',
-            'nc_009_add_model_order',
-            'nc_010_add_parent_title_column',
-            'nc_011_remove_old_ses_plugin',
-          ],
-    );
+    return Promise.resolve([
+      'project',
+      'm2m',
+      'fkn',
+      'viewType',
+      'viewName',
+      'nc_006_alter_nc_shared_views',
+      'nc_007_alter_nc_shared_views_1',
+      'nc_008_add_nc_shared_bases',
+      'nc_009_add_model_order',
+      'nc_010_add_parent_title_column',
+      'nc_011_remove_old_ses_plugin',
+      ...(process.env.NC_CLOUD === 'true' ? ['nc_012_cloud_cleanup'] : []),
+    ]);
   }
 
   public getMigrationName(migration): string {
@@ -65,8 +62,8 @@ export default class XcMigrationSource {
         return nc_010_add_parent_title_column;
       case 'nc_011_remove_old_ses_plugin':
         return nc_011_remove_old_ses_plugin;
-      case 'nc_cloud_001_init':
-        return nc_cloud_001_init;
+      case 'nc_012_cloud_cleanup':
+        return nc_012_cloud_cleanup;
     }
   }
 }

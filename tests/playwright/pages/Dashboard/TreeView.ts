@@ -215,20 +215,33 @@ export class TreeViewPage extends BasePage {
     }
   }
 
-  async changeTableIcon({ title, icon }: { title: string; icon: string }) {
+  async changeTableIcon({ title, icon, iconDisplay }: { title: string; icon: string; iconDisplay?: string }) {
     await this.get().locator(`.nc-project-tree-tbl-${title} .nc-table-icon`).click();
 
-    await this.rootPage.getByTestId('nc-emoji-filter').type(icon);
-    await this.rootPage.getByTestId('nc-emoji-container').locator(`.nc-emoji-item >> svg`).first().click();
+    if (isHub()) {
+      await this.rootPage.locator('.emoji-mart-search').type(icon);
+      const emojiList = await this.rootPage.locator('[id="emoji-mart-list"]');
+      await emojiList.locator('button').first().click();
+      await expect(
+        this.get().locator(`.nc-project-tree-tbl-${title}`).locator(`.nc-table-icon:has-text("${iconDisplay}")`)
+      ).toHaveCount(1);
+    } else {
+      await this.rootPage.getByTestId('nc-emoji-filter').type(icon);
+      await this.rootPage.getByTestId('nc-emoji-container').locator(`.nc-emoji-item >> svg`).first().click();
 
-    await this.rootPage.getByTestId('nc-emoji-container').isHidden();
-    await expect(
-      this.get().locator(`.nc-project-tree-tbl-${title} [data-testid="nc-icon-emojione:${icon}"]`)
-    ).toHaveCount(1);
+      await this.rootPage.getByTestId('nc-emoji-container').isHidden();
+      await expect(
+        this.get().locator(`.nc-project-tree-tbl-${title} [data-testid="nc-icon-emojione:${icon}"]`)
+      ).toHaveCount(1);
+    }
   }
 
   async duplicateTable(title: string, includeData = true, includeViews = true) {
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).click({ button: 'right' });
+    if (isHub()) {
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).locator('.nc-icon.ant-dropdown-trigger').click();
+    } else {
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).click({ button: 'right' });
+    }
     await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Duplicate")').click();
 
     // Find the checkbox element with the label "Include data"
@@ -253,15 +266,15 @@ export class TreeViewPage extends BasePage {
     await this.get().locator(`[data-testid="tree-view-table-${title} copy"]`).waitFor();
   }
 
-  async verifyTabIcon({ title, icon }: { title: string; icon: string }) {
+  async verifyTabIcon({ title, icon, iconDisplay }: { title: string; icon: string; iconDisplay?: string }) {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     // tbd: check if we can have a common method for this
     if (isHub()) {
       await this.rootPage.locator(`.nc-project-tree-tbl-${title}`).waitFor({ state: 'visible' });
-      await this.rootPage.locator(`.nc-project-tree-tbl-${title} [data-testid="nc-icon-emojione:${icon}"]`).waitFor({
-        state: 'visible',
-      });
+      await expect(
+        this.get().locator(`.nc-project-tree-tbl-${title}`).locator(`.nc-table-icon:has-text("${iconDisplay}")`)
+      ).toHaveCount(1);
     } else {
       await expect(
         this.rootPage.locator(

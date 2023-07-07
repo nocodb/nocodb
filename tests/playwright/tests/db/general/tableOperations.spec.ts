@@ -56,8 +56,8 @@ test.describe('Table Operations', () => {
 
     // verify table icon customization
     await dashboard.treeView.openTable({ title: 'Address' });
-    await dashboard.treeView.changeTableIcon({ title: 'Address', icon: 'american-football' });
-    await dashboard.treeView.verifyTabIcon({ title: 'Address', icon: 'american-football' });
+    await dashboard.treeView.changeTableIcon({ title: 'Address', icon: 'american-football', iconDisplay: '🏈' });
+    await dashboard.treeView.verifyTabIcon({ title: 'Address', icon: 'american-football', iconDisplay: '🏈' });
   });
 
   test('duplicate_table', async () => {

@@ -205,7 +205,7 @@ export class TreeViewPage extends BasePage {
       const addProject: Locator = this.get().locator('[data-testid="nc-sidebar-context-menu"]');
       await addProject.hover();
       await addProject.click();
-      const importMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-sidebar-md');
+      const importMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md');
       await importMenu.locator(`.ant-dropdown-menu-item:has-text("${title}")`).click();
     } else {
       await this.get().locator('.nc-add-new-table').hover();

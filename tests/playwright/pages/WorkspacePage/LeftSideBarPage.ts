@@ -76,6 +76,7 @@ export class LeftSideBarPage extends BasePage {
   async verifyDynamicElements(param: ({ role: string; title: string } | { role: string; title: string })[]) {
     expect(await this.getWorkspaceCount()).toBe(param.length);
 
+    //@ts-ignore
     for (const { role, title } of param) {
       const ws = this.get().locator(`li.ant-menu-item:has-text("${title}")`);
       await ws.waitFor({ state: 'visible' });

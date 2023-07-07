@@ -6,10 +6,11 @@ import { DashboardPage } from '../../pages/Dashboard';
 test.describe('DashboardBasicTests', () => {
   let wsPage: WorkspacePage;
   let dashboardPage: DashboardPage;
+  let context: any;
   test.beforeEach(async ({ page }) => {
-    await setup({ page, isEmptyProject: true, url: '/#/' });
+    context = await setup({ page, isEmptyProject: true, url: '/#/' });
     wsPage = new WorkspacePage(page);
-    dashboardPage = new DashboardPage(page);
+    dashboardPage = new DashboardPage(page, context.project);
   });
 
   test('Page load & static configurations verification', async () => {

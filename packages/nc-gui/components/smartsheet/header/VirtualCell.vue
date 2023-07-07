@@ -121,7 +121,7 @@ const closeAddColumnDropdown = () => {
       <template #title>
         {{ tooltipMsg }}
       </template>
-      <span class="name" :class="{ 'truncate': !isForm, 'whitespace-pre-line': isForm }" :title="column.title">
+      <span class="name pl-1" :class="{ 'truncate': !isForm, 'whitespace-pre-line': isForm }" :title="column.title">
         {{ column.title }}
       </span>
     </a-tooltip>

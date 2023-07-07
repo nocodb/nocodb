@@ -22,10 +22,11 @@ const { layout, elements } = useErdElements(tables, config)
 const showSkeleton = computed(() => viewport.value.zoom < 0.15)
 
 async function init() {
+  fitView({ duration: 0, minZoom: 0.2 })
   await layout(showSkeleton.value).then(() => {
-    setTimeout(() => {
-      fitView({ duration: 0, minZoom: 0.2 })
-    }, 250)
+    // setTimeout(() => {
+    //   fitView({ duration: 0, minZoom: 0.2 })
+    // }, 250)
   })
 }
 
@@ -51,6 +52,8 @@ watch(showSkeleton, async (isSkeleton) => {
     })
   })
 })
+
+onMounted(init)
 
 onScopeDispose($destroy)
 </script>

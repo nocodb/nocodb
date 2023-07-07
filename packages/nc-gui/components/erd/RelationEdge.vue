@@ -71,8 +71,10 @@ export default {
   <Transition name="layout" :duration="50" mode="in-out">
     <path
       v-if="selected || isHovering"
-      style="stroke: url(#linear-gradient)"
-      :stroke-width="(showSkeleton ? baseStroke * 12 : baseStroke * 8) / (selected || isHovering ? 2 : 1)"
+      style="color: blue"
+      color="blue"
+      stroke="#3366FF"
+      :stroke-width="(showSkeleton ? baseStroke * 12 : baseStroke * 3) / (selected || isHovering ? 2 : 1)"
       fill="none"
       :d="edgePath[0]"
       :marker-end="showSkeleton ? markerEnd : ''"

@@ -51,7 +51,7 @@ const openHeaderMenu = () => {
     <SmartsheetHeaderCellIcon v-if="column" />
     <div
       v-if="column"
-      class="name"
+      class="name pl-1"
       :class="{ 'cursor-pointer pt-0.25': !isForm && isUIAllowed('edit-column') && !hideMenu }"
       style="white-space: pre-line"
       :title="column.title"

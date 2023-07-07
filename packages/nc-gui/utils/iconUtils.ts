@@ -12,6 +12,7 @@ import MdiThumbUp from '~icons/mdi/thumb-up'
 import MdiThumbUpOutline from '~icons/mdi/thumb-up-outline'
 import MdiFlag from '~icons/mdi/flag'
 import MdiFlagOutline from '~icons/mdi/flag-outline'
+import MdiTable from '~icons/mdi/table'
 import MdiTableLarge from '~icons/mdi/table-large'
 import MdiEyeCircleOutline from '~icons/mdi/eye-circle-outline'
 import Copy from '~icons/material-symbols/content-copy-outline'
@@ -274,7 +275,7 @@ export const iconMap = {
   // threeDotHorizontal: h('span', { class: 'material-symbols' }, 'more_horiz'),
   threeDotVertical: MdiDotsVertical,
   threeDotHorizontal: MdiDotsHorizontal,
-  table: h('span', { class: 'material-symbols' }, 'table_chart'),
+  table: h(MdiTable, {}, 'table_chart'),
   excel: PhExcelThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
   csv: PhCsvThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
   code: Code,

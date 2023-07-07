@@ -249,10 +249,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
     }, [])
   }
 
-  const boxShadow = (skeleton: boolean, color: string) => ({
-    border: 'none !important',
-    boxShadow: `0 0 0 ${skeleton ? '12' : '2'}px ${color}`,
-  })
+  const boxShadow = (skeleton: boolean, color: string) => ({})
 
   const layout = async (skeleton = false): Promise<void> => {
     return new Promise((resolve) => {
@@ -285,7 +282,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
           el.targetPosition = Position.Left
           el.sourcePosition = Position.Right
           el.position = { x: nodeWithPosition.x, y: nodeWithPosition.y }
-          el.class = ['rounded-lg'].join(' ')
+          el.class = ['rounded-lg border-1 border-gray-100 shadow-lg'].join(' ')
           el.data.color = color
 
           el.style = (n) => {

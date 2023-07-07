@@ -435,6 +435,7 @@ test.describe('Form view', () => {
     const formLink = await dashboard.form.toolbar.getSharedViewUrl();
 
     await dashboard.rootPage.goto(formLink);
+    await dashboard.rootPage.reload();
 
     const sharedForm = new SharedFormPage(dashboard.rootPage);
 

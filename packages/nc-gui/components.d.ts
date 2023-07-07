@@ -209,6 +209,7 @@ declare module '@vue/runtime-core' {
     MdiGestureDoubleTap: typeof import('~icons/mdi/gesture-double-tap')['default']
     MdiHeart: typeof import('~icons/mdi/heart')['default']
     MdiHistory: typeof import('~icons/mdi/history')['default']
+    MdiInformationSlabSymbol: typeof import('~icons/mdi/information-slab-symbol')['default']
     MdiKeyStar: typeof import('~icons/mdi/key-star')['default']
     MdiLayersTriple: typeof import('~icons/mdi/layers-triple')['default']
     MdiLink: typeof import('~icons/mdi/link')['default']

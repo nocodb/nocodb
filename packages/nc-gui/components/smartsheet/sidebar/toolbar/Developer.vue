@@ -10,7 +10,7 @@ const showErd = ref(false)
 </script>
 
 <template>
-  <div class="flex flex-col px-3 nc-sidebar-md">
+  <div class="flex flex-col px-3 nc-scrollbar-md">
     <div
       v-if="!isMobileMode"
       v-e="['c:erd:open']"

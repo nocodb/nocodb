@@ -1103,7 +1103,7 @@ const onDraftRecordClick = () => {
       </div>
     </general-overlay>
 
-    <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 nc-sidebar-md scrollbar-thin-dull relative">
+    <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 nc-scrollbar-md scrollbar-thin-dull relative">
       <a-dropdown
         v-model:visible="contextMenu"
         :trigger="isSqlView ? [] : ['contextmenu']"
@@ -1579,16 +1579,16 @@ const onDraftRecordClick = () => {
 <style lang="scss">
 .nc-pagination-wrapper .ant-dropdown-button {
   > .ant-btn {
-    @apply !p-0 !rounded-l hover:border-gray-300;
+    @apply !p-0 !rounded-l-md hover:border-gray-300;
   }
 
   > .ant-dropdown-trigger {
-    @apply !rounded-r;
+    @apply !rounded-r-md;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
   }
 
-  @apply !rounded;
+  @apply !rounded-md;
 }
 </style>
 

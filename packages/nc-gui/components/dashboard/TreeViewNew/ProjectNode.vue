@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
 import { Dropdown, Tooltip, message } from 'ant-design-vue'
-import type { BaseType, ProjectType } from 'nocodb-sdk'
+import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import AddNewTableNode from './AddNewTableNode'
 import TableList from './TableList'
@@ -9,6 +9,8 @@ import { openLink, useProjects } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import { ProjectInj, ProjectRoleInj, ToggleDialogInj } from '~/context'
 import type { NcProject } from '~~/lib'
+import MdiInformationSlabSymbol from '~icons/ion/information'
+import { isElementInvisible } from '~~/utils/domUtils'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
@@ -38,7 +40,7 @@ const {
 const { projects } = storeToRefs(projectsStore)
 
 const { loadProjectTables } = useTablesStore()
-const { projectTables } = storeToRefs(useTablesStore())
+const { activeTable } = storeToRefs(useTablesStore())
 
 const { addNewLayout } = useDashboardStore()
 
@@ -73,6 +75,7 @@ const { projectUrl: docsProjectUrl } = useDocStore()
 const { $e } = useNuxtApp()
 
 const isOptionsOpen = ref(false)
+const isBasesOptionsOpen = ref<Record<string, boolean>>({})
 
 const contextMenuTarget = reactive<{ type?: 'project' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
 const activeKey = ref<string[]>([])
@@ -172,21 +175,40 @@ const setIcon = async (icon: string, project: ProjectType) => {
   }
 }
 
-function openTableCreateDialog() {
+function openTableCreateDialog(baseIndex?: number | undefined) {
   $e('c:table:create:navdraw')
 
   const isOpen = ref(true)
-  const baseId = project.value!.bases?.[0].id
+  let baseId = project.value!.bases?.[0].id
+  if (typeof baseIndex === 'number') {
+    baseId = project.value!.bases?.[baseIndex].id
+  }
 
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
-    'modelValue': isOpen,
-    'baseId': baseId, // || bases.value[0].id,
-    'projectId': project.value!.id,
-    'onUpdate:modelValue': closeDialog,
+    modelValue: isOpen,
+    baseId, // || bases.value[0].id,
+    projectId: project.value!.id,
+    onCreate: closeDialog,
   })
 
-  function closeDialog() {
+  function closeDialog(table: TableType) {
     isOpen.value = false
+
+    if (!activeKey.value || !activeKey.value.includes(`collapse-${baseId}`)) {
+      activeKey.value.push(`collapse-${baseId}`)
+    }
+
+    // TODO: Better way to know when the table node dom is available
+    setTimeout(() => {
+      const newTableDom = document.querySelector(`[data-table-id="${table.id}"]`)
+      if (!newTableDom) return
+
+      // Verify that table node is not in the viewport
+      if (isElementInvisible(newTableDom)) {
+        // Scroll to the table node
+        newTableDom?.scrollIntoView({ behavior: 'smooth' })
+      }
+    }, 1000)
 
     close(1000)
   }
@@ -311,82 +333,30 @@ const reloadTables = async () => {
   // await loadTables()
 }
 
-function openSchemaMagicDialog(baseId?: string) {
-  $e('c:table:create:navdraw')
+watch(
+  () => activeTable.value?.id,
+  async () => {
+    if (!activeTable.value) return
 
-  const isOpen = ref(true)
+    const baseId = activeTable.value.base_id
+    if (!baseId) return
 
-  const { close } = useDialog(resolveComponent('DlgSchemaMagic'), {
-    'modelValue': isOpen,
-    'baseId': baseId,
-    'onUpdate:modelValue': closeDialog,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
-function openQuickImportDialog(type: string, baseId?: string) {
-  $e(`a:actions:import-${type}`)
-
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgQuickImport'), {
-    'modelValue': isOpen,
-    'importType': type,
-    'baseId': baseId,
-    'onUpdate:modelValue': closeDialog,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
-function openAirtableImportDialog(baseId?: string) {
-  $e('a:actions:import-airtable')
-
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgAirtableImport'), {
-    'modelValue': isOpen,
-    'baseId': baseId,
-    'onUpdate:modelValue': closeDialog,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
-function openTableCreateMagicDialog(baseId?: string) {
-  $e('c:table:create:navdraw')
-
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgTableMagic'), {
-    'modelValue': isOpen,
-    'baseId': baseId,
-    'onUpdate:modelValue': closeDialog,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
+    if (!activeKey.value.includes(`collapse-${baseId}`)) {
+      activeKey.value.push(`collapse-${baseId}`)
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 
 onKeyStroke('Escape', () => {
   if (isOptionsOpen.value) {
     isOptionsOpen.value = false
+  }
+
+  for (const key of Object.keys(isBasesOptionsOpen.value)) {
+    isBasesOptionsOpen.value[key] = false
   }
 })
 </script>
@@ -475,14 +445,14 @@ onKeyStroke('Escape', () => {
 
           <a-dropdown v-model:visible="isOptionsOpen" trigger="click">
             <MdiDotsHorizontal
-              class="min-w-6 mr-1.5 opacity-0 group-hover:opacity-100 hover:text-black text-gray-600"
+              class="min-w-5 min-h-5 py-0.25 mr-1.5 !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 opacity-0 group-hover:(opacity-100) hover:text-black text-gray-600 rounded"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
               data-testid="nc-sidebar-context-menu"
               @click.stop
             />
             <template #overlay>
               <a-menu
-                class="nc-sidebar-md"
+                class="nc-scrollbar-md"
                 :style="{
                   maxHeight: '70vh',
                   overflow: 'overlay',
@@ -570,145 +540,14 @@ onKeyStroke('Escape', () => {
                 <!--          </a-menu> -->
 
                 <template v-if="project?.bases?.[0]?.enabled && !project?.bases?.slice(1).filter((el) => el.enabled)?.length">
-                  <a-menu-item-group class="!px-0 !mx-0">
-                    <template #title>
-                      <div class="flex items-center">
-                        Noco
-                        <GeneralIcon icon="magic" class="ml-1 text-orange-400" />
-                      </div>
-                    </template>
-                    <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(project.bases[0].id)">
-                      <div class="color-transition nc-project-menu-item group">
-                        <GeneralIcon icon="magic1" class="group-hover:text-accent" />
-                        Create table
-                      </div>
-                    </a-menu-item>
-                    <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(project.bases[0].id)">
-                      <div class="color-transition nc-project-menu-item group">
-                        <GeneralIcon icon="magic1" class="group-hover:text-accent" />
-                        Create schema
-                      </div>
-                    </a-menu-item>
-                  </a-menu-item-group>
-
-                  <a-menu-divider class="my-0" />
-
-                  <!-- Quick Import From -->
-                  <a-menu-item-group :title="$t('title.quickImportFrom')" class="!px-0 !mx-0">
-                    <a-menu-item
-                      v-if="isUIAllowed('airtableImport', false, projectRole)"
-                      key="quick-import-airtable"
-                      @click="openAirtableImportDialog(project.bases[0].id)"
-                    >
-                      <div class="color-transition nc-project-menu-item group">
-                        <GeneralIcon icon="airtable" class="group-hover:text-accent" />
-                        Airtable
-                      </div>
-                    </a-menu-item>
-
-                    <a-menu-item
-                      v-if="isUIAllowed('csvImport', false, projectRole)"
-                      key="quick-import-csv"
-                      @click="openQuickImportDialog('csv', project.bases[0].id)"
-                    >
-                      <div class="color-transition nc-project-menu-item group">
-                        <GeneralIcon icon="csv" class="group-hover:text-accent" />
-                        CSV file
-                      </div>
-                    </a-menu-item>
-
-                    <a-menu-item
-                      v-if="isUIAllowed('jsonImport', false, projectRole)"
-                      key="quick-import-json"
-                      @click="openQuickImportDialog('json', project.bases[0].id)"
-                    >
-                      <div class="color-transition nc-project-menu-item group">
-                        <GeneralIcon icon="json" class="group-hover:text-accent" />
-                        JSON file
-                      </div>
-                    </a-menu-item>
-
-                    <a-menu-item
-                      v-if="isUIAllowed('excelImport', false, projectRole)"
-                      key="quick-import-excel"
-                      @click="openQuickImportDialog('excel', project.bases[0].id)"
-                    >
-                      <div class="color-transition nc-project-menu-item group">
-                        <GeneralIcon icon="excel" class="group-hover:text-accent" />
-                        Microsoft Excel
-                      </div>
-                    </a-menu-item>
-                  </a-menu-item-group>
-
-                  <a-menu-divider class="my-0" />
-
-                  <a-menu-item-group title="Connect to new datasource" class="!px-0 !mx-0">
-                    <a-menu-item
-                      key="connect-new-source"
-                      @click="toggleDialog(true, 'dataSources', ClientType.MYSQL, project.id)"
-                    >
-                      <div class="color-transition nc-project-menu-item group">
-                        <LogosMysqlIcon class="group-hover:text-accent" />
-                        MySQL
-                      </div>
-                    </a-menu-item>
-                    <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.PG, project.id)">
-                      <div class="color-transition nc-project-menu-item group">
-                        <LogosPostgresql class="group-hover:text-accent" />
-                        Postgres
-                      </div>
-                    </a-menu-item>
-                    <a-menu-item
-                      key="connect-new-source"
-                      @click="toggleDialog(true, 'dataSources', ClientType.SQLITE, project.id)"
-                    >
-                      <div class="color-transition nc-project-menu-item group">
-                        <VscodeIconsFileTypeSqlite class="group-hover:text-accent" />
-                        SQLite
-                      </div>
-                    </a-menu-item>
-                    <a-menu-item
-                      key="connect-new-source"
-                      @click="toggleDialog(true, 'dataSources', ClientType.MSSQL, project.id)"
-                    >
-                      <div class="color-transition nc-project-menu-item group">
-                        <SimpleIconsMicrosoftsqlserver class="group-hover:text-accent" />
-                        MSSQL
-                      </div>
-                    </a-menu-item>
-                    <a-menu-item
-                      v-if="appInfo.ee"
-                      key="connect-new-source"
-                      @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE, project.id)"
-                    >
-                      <div class="color-transition nc-project-menu-item group">
-                        <LogosSnowflakeIcon class="group-hover:text-accent" />
-                        Snowflake
-                      </div>
-                    </a-menu-item>
-                  </a-menu-item-group>
-
-                  <a-menu-divider class="my-0" />
-
-                  <a-menu-item v-if="isUIAllowed('importRequest', false, projectRole)" key="add-new-table" class="py-1 rounded-b">
-                    <a
-                      v-e="['e:datasource:import-request']"
-                      href="https://github.com/nocodb/nocodb/issues/2052"
-                      target="_blank"
-                      class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
-                    >
-                      <GeneralIcon icon="openInNew" class="group-hover:text-accent" />
-                      <!-- Request a data source you need? -->
-                      {{ $t('labels.requestDataSource') }}
-                    </a>
-                  </a-menu-item>
+                  <DashboardTreeViewNewBaseOptions v-model:project="project" :base="project.bases[0]" />
                 </template>
               </a-menu>
             </template>
           </a-dropdown>
 
           <div
-            class="mr-1 flex flex-row pr-1 items-center gap-x-2 cursor-pointer hover:text-black text-gray-600 text-sm invisible !group-hover:visible"
+            class="mr-2 flex flex-row items-center gap-x-2 cursor-pointer hover:(text-black) text-gray-600 text-sm invisible !group-hover:visible rounded"
             data-testid="nc-sidebar-add-project-entity"
             :class="{ '!text-black !visible': isAddNewProjectChildEntityLoading, '!visible': isOptionsOpen }"
             @click.stop="addNewProjectChildEntity"
@@ -716,7 +555,7 @@ onKeyStroke('Escape', () => {
             <div v-if="isAddNewProjectChildEntityLoading" class="flex flex-row items-center">
               <a-spin class="!flex !flex-row !items-center !my-0.5" :indicator="indicator" />
             </div>
-            <MdiPlus v-else />
+            <MdiPlus v-else class="min-w-5 min-h-5 py-0.25" />
           </div>
         </div>
       </div>
@@ -724,8 +563,8 @@ onKeyStroke('Escape', () => {
       <div
         v-if="project.id && !project.isLoading"
         key="g1"
-        class="overflow-y-auto overflow-x-hidden transition-max-height"
-        :class="{ 'max-h-0': !project.isExpanded, 'max-h-500': project.isExpanded }"
+        class="overflow-x-hidden transition-max-height"
+        :class="{ 'max-h-0': !project.isExpanded }"
       >
         <div v-if="isProjectEmpty(project.id)" class="flex ml-11.75 my-1 text-gray-500 select-none">Empty</div>
         <div v-else-if="project.type === 'documentation'">
@@ -736,61 +575,105 @@ onKeyStroke('Escape', () => {
         </div>
         <template v-else-if="project && project?.bases">
           <div class="flex-1 overflow-y-auto flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
-            <div
-              v-if="project?.bases?.[0]?.enabled && !project?.bases?.slice(1).filter((el) => el.enabled)?.length"
-              class="flex-1"
-            >
+            <div v-if="project?.bases?.[0]?.enabled" class="flex-1">
               <div class="transition-height duration-200">
                 <TableList :project="project" :base-index="0" />
               </div>
             </div>
 
-            <div v-else class="transition-height duration-200">
+            <div v-if="project?.bases?.slice(1).filter((el) => el.enabled)?.length" class="transition-height duration-200">
               <div class="border-none sortable-list">
                 <div v-for="(base, baseIndex) of project.bases" :key="`base-${base.id}`">
+                  <template v-if="baseIndex === 0"></template>
                   <a-collapse
-                    v-if="base && base.enabled"
+                    v-else-if="base && base.enabled"
                     v-model:activeKey="activeKey"
+                    class="!mx-0 !px-0 nc-sidebar-base-node"
                     :class="[{ hidden: searchActive && !!filterQuery }]"
-                    expand-icon-position="right"
+                    expand-icon-position="left"
                     :bordered="false"
-                    :accordion="!searchActive"
                     ghost
                   >
+                    <template #expandIcon="{ isActive }">
+                      <div class="flex flex-row items-center -mt-2">
+                        <PhTriangleFill
+                          class="nc-sidebar-base-node-btns -mt-1 invisible cursor-pointer transform transition-transform duration-500 h-1.25 w-1.75 text-gray-500 rotate-90"
+                          :class="{ '!rotate-180': isActive }"
+                        />
+                      </div>
+                    </template>
                     <a-collapse-panel :key="`collapse-${base.id}`">
                       <template #header>
-                        <div
-                          v-if="baseIndex === 0"
-                          class="base-context flex items-center gap-2 text-gray-500 font-bold"
-                          @contextmenu="setMenuContext('base', base)"
-                        >
-                          <GeneralBaseLogo :base-type="base.type" />
-                          Default ({{
-                            projectTables.get(project.id)?.filter((table) => table.base_id === base.id).length || '0'
-                          }})
-                        </div>
-                        <div
-                          v-else
-                          class="base-context flex items-center gap-2 text-gray-500 font-bold"
-                          @contextmenu="setMenuContext('base', base)"
-                        >
-                          <GeneralBaseLogo :base-type="base.type" />
-                          {{ base.alias || '' }}
-                          ({{ projectTables.get(project.id)?.filter((table) => table.base_id === base.id).length || '0' }})
+                        <div class="w-full flex flex-row justify-between">
+                          <div
+                            v-if="baseIndex === 0"
+                            class="base-context flex items-center gap-2 text-gray-800"
+                            @contextmenu="setMenuContext('base', base)"
+                          >
+                            <GeneralBaseLogo :base-type="base.type" />
+                            Default
+                          </div>
+                          <div
+                            v-else
+                            class="base-context flex items-center gap-1.75 text-gray-800"
+                            @contextmenu="setMenuContext('base', base)"
+                          >
+                            <GeneralBaseLogo :base-type="base.type" class="w-4" />
+                            <div class="flex">
+                              {{ base.alias || '' }}
+                            </div>
+                            <a-tooltip>
+                              <template #title>External DB</template>
+                              <div>
+                                <GeneralIcon icon="info" class="text-gray-400 -mt-0.5 hover:text-gray-700" />
+                              </div>
+                            </a-tooltip>
+                          </div>
+                          <div class="flex flex-row items-center gap-x-1">
+                            <a-dropdown
+                              :visible="isBasesOptionsOpen[base!.id!]"
+                              trigger="click"
+                              @update:visible="isBasesOptionsOpen[base!.id!] = $event"
+                            >
+                              <MdiDotsHorizontal
+                                class="invisible nc-sidebar-base-node-btns !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 hover:text-black py-0.25 h-5.5 w-5.5 px-0.5 mt-0.25 rounded text-gray-600"
+                                :class="{ '!text-black !opacity-100': isBasesOptionsOpen[base!.id!] }"
+                                @click.stop="isBasesOptionsOpen[base!.id!] = !isBasesOptionsOpen[base!.id!]"
+                              />
+                              <template #overlay>
+                                <a-menu
+                                  class="nc-scrollbar-md"
+                                  :style="{
+                                    maxHeight: '70vh',
+                                    overflow: 'overlay',
+                                  }"
+                                  @click="isBasesOptionsOpen[base!.id!] = false"
+                                >
+                                  <DashboardTreeViewNewBaseOptions v-model:project="project" :base="base" />
+                                </a-menu>
+                              </template>
+                            </a-dropdown>
+
+                            <div
+                              class="flex invisible nc-sidebar-base-node-btns !focus:outline-0 text-gray-600 hover:text-gray-700 rounded px-0.35 mt-0.25"
+                              @click.stop="openTableCreateDialog(baseIndex)"
+                            >
+                              <component :is="iconMap.plus" class="text-inherit h-5.5 w-5.5 py-0.5 !focus:outline-0" />
+                            </div>
+                          </div>
                         </div>
                       </template>
-                      <AddNewTableNode
+                      <!-- <AddNewTableNode
                         :project="project"
                         :base-index="baseIndex"
                         @open-table-create-dialog="openTableCreateDialog()"
-                      />
-
+                      /> -->
                       <div
                         ref="menuRefs"
                         :key="`sortable-${base.id}-${base.id && base.id in keys ? keys[base.id] : '0'}`"
                         :nc-base="base.id"
                       >
-                        <TableList class="pl-2" :project="project" :base-index="baseIndex" />
+                        <TableList :project="project" :base-index="baseIndex" />
                       </div>
                     </a-collapse-panel>
                   </a-collapse>
@@ -858,5 +741,13 @@ onKeyStroke('Escape', () => {
 <style lang="scss" scoped>
 .nc-sidebar-icon {
   @apply ml-0.5 mr-1;
+}
+
+:deep(.ant-collapse-header) {
+  @apply !mx-0 !pl-7 !pr-1 !py-0.75 hover:bg-gray-100 !rounded-md;
+}
+
+:deep(.ant-collapse-header:hover .nc-sidebar-base-node-btns) {
+  @apply visible;
 }
 </style>

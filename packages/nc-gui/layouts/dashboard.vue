@@ -203,19 +203,19 @@ export default {
     width: 3px !important;
     left: -3px;
   }
-}
 
-.sidebar-short > .splitpanes__splitter {
-  display: none !important;
-  background-color: transparent !important;
-}
+  .splitpanes--dragging .splitpanes__splitter {
+    @apply w-1 mr-0;
+  }
 
-.splitpanes--dragging .splitpanes__splitter {
-  @apply w-1 mr-0;
+  .sidebar-short > .splitpanes__splitter {
+    display: none !important;
+    background-color: transparent !important;
+  }
 }
 
 .splitpanes--dragging {
-  cursor: ew-resize;
+  cursor: col-resize;
 }
 
 .nc-sidebar-wrapper {

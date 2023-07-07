@@ -26,6 +26,7 @@ import {
 } from '#imports'
 
 import { useRouter } from '#app'
+import { isElementInvisible } from '~~/utils/domUtils'
 
 const emit = defineEmits<{
   (event: 'onScrollTop', type: boolean): void
@@ -54,6 +55,8 @@ const projectStore = useProject()
 const { loadTables } = projectStore
 
 const { tables } = storeToRefs(projectStore)
+
+const { activeTable: _activeTable } = storeToRefs(useTablesStore())
 
 const { activeTab } = storeToRefs(useTabs())
 
@@ -289,17 +292,47 @@ const checkScrollTopMoreThanZero = () => {
   return false
 }
 
-watch(activeProjectId, () => {
-  const activeProjectDom = document.querySelector(`.nc-treeview [data-project-id="${activeProjectId.value}"]`)
+const scrollTableNode = () => {
+  const activeTableDom = document.querySelector(`.nc-treeview [data-table-id="${_activeTable.value?.id}"]`)
+  if (!activeTableDom) return
 
-  if (activeProjectDom) {
-    activeProjectDom.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center',
-      inline: 'center',
-    })
+  console.log('scrollTableNode', activeTableDom, isElementInvisible(activeTableDom))
+  if (isElementInvisible(activeTableDom)) {
+    // Scroll to the table node
+    activeTableDom?.scrollIntoView({ behavior: 'smooth' })
   }
-})
+}
+
+watch(
+  () => _activeTable.value?.id,
+  () => {
+    if (!_activeTable.value?.id) return
+
+    // TODO: Find a better way to scroll to the table node
+    setTimeout(() => {
+      scrollTableNode()
+    }, 1000)
+  },
+  {
+    immediate: true,
+  },
+)
+
+watch(
+  activeProjectId,
+  () => {
+    const activeProjectDom = document.querySelector(`.nc-treeview [data-project-id="${activeProjectId.value}"]`)
+    if (!activeProjectDom) return
+
+    if (isElementInvisible(activeProjectDom)) {
+      // Scroll to the table node
+      activeProjectDom?.scrollIntoView({ behavior: 'smooth' })
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 
 onMounted(() => {
   treeViewDom.value?.addEventListener('scroll', checkScrollTopMoreThanZero)

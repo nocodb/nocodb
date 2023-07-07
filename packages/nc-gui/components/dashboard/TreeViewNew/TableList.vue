@@ -98,6 +98,10 @@ const menuRef = (divEl: HTMLDivElement) => {
     initSortable(divEl)
   }
 }
+
+const availableTables = computed(() => {
+  return tables.value.filter((table) => table.base_id === project.value?.bases?.[baseIndex.value].id)
+})
 </script>
 
 <template>
@@ -109,20 +113,23 @@ const menuRef = (divEl: HTMLDivElement) => {
         :key="key"
         :nc-base="project.bases[baseIndex].id"
       >
-        <TableNode
-          v-for="table of tables.filter((table) => table.base_id === project?.bases?.[baseIndex].id)"
-          :key="table.id"
-          v-e="['a:table:open']"
-          class="nc-tree-item text-sm cursor-pointer group"
-          :data-order="table.order"
-          :data-id="table.id"
-          :data-testid="`tree-view-table-${table.title}`"
-          :table="table"
-          :project="project"
-          :base-index="baseIndex"
-          @click="openTable(table)"
-        >
-        </TableNode>
+        <div v-if="availableTables.length === 0" class="ml-18.5 py-0.5 text-gray-500">Empty</div>
+        <template v-else>
+          <TableNode
+            v-for="table of availableTables"
+            :key="table.id"
+            v-e="['a:table:open']"
+            class="nc-tree-item text-sm cursor-pointer group"
+            :data-order="table.order"
+            :data-id="table.id"
+            :data-testid="`tree-view-table-${table.title}`"
+            :table="table"
+            :project="project"
+            :base-index="baseIndex"
+            @click="openTable(table)"
+          >
+          </TableNode>
+        </template>
       </div>
     </template>
   </div>

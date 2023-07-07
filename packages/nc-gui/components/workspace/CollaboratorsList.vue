@@ -58,7 +58,7 @@ const updateCollaborator = async (collab) => {
     <div v-if="!filterCollaborators?.length" class="w-full h-full flex flex-col items-center justify-center mt-36">
       <Empty description="No collaborators found" />
     </div>
-    <table v-else class="nc-collaborators-list-table !nc-sidebar-md">
+    <table v-else class="nc-collaborators-list-table !nc-scrollbar-md">
       <thead>
         <tr>
           <th class="w-1/3">Users</th>

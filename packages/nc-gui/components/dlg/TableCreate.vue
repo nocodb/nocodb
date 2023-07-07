@@ -39,7 +39,7 @@ const { table, createTable, generateUniqueTitle, tables, project } = useTableNew
   async onTableCreate(table) {
     // await loadProject(props.projectId)
 
-    addTab({
+    await addTab({
       id: table.id as string,
       title: table.title,
       type: TabType.TABLE,

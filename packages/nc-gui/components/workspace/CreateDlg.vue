@@ -53,11 +53,36 @@ const _createWorkspace = async () => {
   }
 }
 
-watch(dialogShow, (val) => {
-  if (!val) {
-    workspace.value = {}
-  }
-})
+const inputRef = ref()
+
+watch(
+  dialogShow,
+  (val) => {
+    if (!val) {
+      workspace.value = {
+        title: 'Untitled Workspace',
+      }
+      nextTick(() => {
+        inputRef.value?.$el?.focus()
+        inputRef.value?.$el?.select()
+      })
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
+watch(
+  inputRef,
+  () => {
+    inputRef.value?.$el?.focus()
+    inputRef.value?.$el?.select()
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -68,16 +93,15 @@ watch(dialogShow, (val) => {
         <div class="prose-xl font-bold self-center mb-5">{{ $t('activity.createWorkspace') }}</div>
 
         <a-form-item v-bind="validateInfos.title">
-          <InputOrTags v-model="workspace.title" class="!rounded" />
-
-          <!--          <a-input -->
-          <!--            :ref="inputEl" -->
-          <!--            v-model:value="workspace.title" -->
-          <!--            size="large" -->
-          <!--            hide-details -->
-          <!--            data-testid="create-workspace-title-input" -->
-          <!--            placeholder="Workspace name" -->
-          <!--          /> -->
+          <a-input
+            ref="inputRef"
+            v-model:value="workspace.title"
+            size="large"
+            hide-details
+            class="!rounded"
+            data-testid="create-workspace-title-input"
+            placeholder="Workspace name"
+          />
         </a-form-item>
         <div class="flex flex-row justify-end mt-10">
           <a-button key="submit" class="!rounded" size="large" type="primary" @click="_createWorkspace">{{

@@ -159,17 +159,29 @@ export class ViewSidebarPage extends BasePage {
     await this.verifyToast({ message: 'View created successfully' });
   }
 
-  async changeViewIcon({ title, icon }: { title: string; icon: string }) {
+  async changeViewIcon({ title, icon, iconDisplay }: { title: string; icon: string; iconDisplay?: string }) {
     await this.rootPage.waitForTimeout(1000);
     await this.get().locator(`[data-testid="view-sidebar-view-${title}"] .nc-view-icon`).click();
 
-    await this.rootPage.getByTestId('nc-emoji-filter').type(icon);
-    await this.rootPage.getByTestId('nc-emoji-container').locator(`.nc-emoji-item >> svg`).first().click();
+    // if (false) {
+    //   await this.rootPage.locator('.emoji-mart-search').type(icon);
+    //   const emojiList = await this.rootPage.locator('[id="emoji-mart-list"]');
+    //   await emojiList.locator('button').first().click();
+    //   await expect(
+    //     this.get()
+    //       .locator(`[data-testid="view-sidebar-view-${title}"]`)
+    //       .locator(`.nc-table-icon:has-text("${iconDisplay}")`)
+    //   ).toHaveCount(1);
+    // } else
+    {
+      await this.rootPage.getByTestId('nc-emoji-filter').type(icon);
+      await this.rootPage.getByTestId('nc-emoji-container').locator(`.nc-emoji-item >> svg`).first().click();
 
-    await this.rootPage.getByTestId('nc-emoji-container').isHidden();
-    await expect(
-      this.get().locator(`[data-testid="view-sidebar-view-${title}"] [data-testid="nc-icon-emojione:${icon}"]`)
-    ).toHaveCount(1);
+      await this.rootPage.getByTestId('nc-emoji-container').isHidden();
+      await expect(
+        this.get().locator(`[data-testid="view-sidebar-view-${title}"] [data-testid="nc-icon-emojione:${icon}"]`)
+      ).toHaveCount(1);
+    }
   }
 
   async verifyTabIcon({ title, icon }: { title: string; icon: string }) {

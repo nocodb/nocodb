@@ -94,9 +94,11 @@ export class ContainerPage extends BasePage {
     const titles = [];
     const rows = await this.get().locator('.ant-table-tbody > tr.ant-table-row');
     const count = await rows.count();
+
     for (let i = 0; i < count; i++) {
       titles.push(await getTextExcludeIconText(rows.nth(i).locator('.nc-project-title')));
     }
+
     return rows.nth(titles.indexOf(title));
   }
 
@@ -172,7 +174,10 @@ export class ContainerPage extends BasePage {
 
   async projectOpen(param: { title: any }) {
     const row = await this.getProjectRow({ title: param.title });
-    await row.locator('td.ant-table-cell').nth(0).click();
+
+    // use index 1, as 0 contains icon to mark favourite
+    await row.locator('td.ant-table-cell').nth(1).waitFor({ state: 'visible' });
+    await row.locator('td.ant-table-cell').nth(1).click();
   }
 
   async projectAddToFavourites({ title }: { title: string }) {

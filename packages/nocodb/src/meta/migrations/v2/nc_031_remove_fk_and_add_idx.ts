@@ -1,12 +1,11 @@
 // import ses from '../../v1-legacy/plugins/ses';
-import type {Knex} from 'knex';
-import {MetaTable} from "../../meta.service";
+import { MetaTable } from '../../meta.service';
+import type { Knex } from 'knex';
 
 const up = async (knex: Knex) => {
-
   await knex.schema.alterTable(MetaTable.BASES, (table) => {
-    table.dropForeign('project_id')
-    table.index('project_id')
+    table.dropForeign('project_id');
+    table.index('project_id');
   });
 
   await knex.schema.alterTable(MetaTable.MODELS, (table) => {
@@ -37,7 +36,6 @@ const up = async (knex: Knex) => {
 
     table.dropForeign('fk_mm_parent_column_id');
   });
-
 
   await knex.schema.alterTable(MetaTable.COL_SELECT_OPTIONS, (table) => {
     table.dropForeign('fk_column_id');
@@ -72,7 +70,6 @@ const up = async (knex: Knex) => {
     table.index('fk_column_id');
   });
 
-
   await knex.schema.alterTable(MetaTable.COL_ROLLUP, (table) => {
     table.dropForeign('fk_column_id');
     table.index('fk_column_id');
@@ -81,7 +78,6 @@ const up = async (knex: Knex) => {
 
     table.dropForeign('fk_rollup_column_id');
   });
-
 
   await knex.schema.alterTable(MetaTable.VIEWS, (table) => {
     table.dropForeign('fk_model_id');
@@ -139,7 +135,6 @@ const up = async (knex: Knex) => {
     table.dropForeign('fk_cover_image_col_id');
   });
 
-
   await knex.schema.alterTable(MetaTable.GALLERY_VIEW_COLUMNS, (table) => {
     table.dropForeign('fk_view_id');
     table.index('fk_view_id');
@@ -153,7 +148,6 @@ const up = async (knex: Knex) => {
     table.index('fk_view_id');
   });
 
-
   await knex.schema.alterTable(MetaTable.GRID_VIEW_COLUMNS, (table) => {
     table.dropForeign('fk_view_id');
     table.index('fk_view_id');
@@ -161,7 +155,6 @@ const up = async (knex: Knex) => {
     table.dropForeign('fk_column_id');
     table.index('fk_column_id');
   });
-
 
   await knex.schema.alterTable(MetaTable.MAP_VIEW, (table) => {
     table.dropForeign('fk_view_id');
@@ -182,7 +175,6 @@ const up = async (knex: Knex) => {
     table.index('fk_column_id');
   });
 
-
   await knex.schema.alterTable(MetaTable.KANBAN_VIEW, (table) => {
     table.dropForeign('fk_view_id');
     table.index('fk_view_id');
@@ -193,7 +185,6 @@ const up = async (knex: Knex) => {
     table.dropForeign('fk_cover_image_col_id');
   });
 
-
   await knex.schema.alterTable(MetaTable.KANBAN_VIEW_COLUMNS, (table) => {
     table.dropForeign('fk_view_id');
     table.index('fk_view_id');
@@ -201,7 +192,6 @@ const up = async (knex: Knex) => {
     table.dropForeign('fk_column_id');
     table.index('fk_column_id');
   });
-
 
   await knex.schema.alterTable(MetaTable.PROJECT_USERS, (table) => {
     table.dropForeign('project_id');
@@ -211,9 +201,7 @@ const up = async (knex: Knex) => {
     table.index('fk_user_id');
   });
 
-
   await knex.schema.alterTable(MetaTable.AUDIT, (table) => {
-
     table.dropForeign('project_id');
     table.index('project_id');
 
@@ -221,12 +209,10 @@ const up = async (knex: Knex) => {
     table.index('fk_model_id');
   });
 
-
   await knex.schema.alterTable(MetaTable.MODEL_ROLE_VISIBILITY, (table) => {
     table.dropForeign('fk_view_id');
     table.index('fk_view_id');
   });
-
 
   await knex.schema.alterTable(MetaTable.SYNC_SOURCE, (table) => {
     table.dropForeign('project_id');
@@ -236,7 +222,6 @@ const up = async (knex: Knex) => {
     table.index('base_id');
   });
 
-
   await knex.schema.alterTable(MetaTable.API_TOKENS, (table) => {
     table.dropForeign('fk_user_id');
     table.index('fk_user_id');
@@ -244,7 +229,6 @@ const up = async (knex: Knex) => {
 };
 
 const down = async (knex: Knex) => {
-
   await knex.schema.alterTable(MetaTable.BASES, (table) => {
     table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
   });
@@ -272,7 +256,6 @@ const down = async (knex: Knex) => {
       .references(`${MetaTable.COLUMNS}.id`);
   });
 
-
   await knex.schema.alterTable(MetaTable.COL_SELECT_OPTIONS, (table) => {
     table.foreign('fk_column_id').references(`${MetaTable.COLUMNS}.id`);
   });
@@ -285,7 +268,6 @@ const down = async (knex: Knex) => {
     table.foreign('fk_lookup_column_id').references(`${MetaTable.COLUMNS}.id`);
   });
 
-
   await knex.schema.alterTable(MetaTable.COL_ROLLUP, (table) => {
     table.foreign('fk_column_id').references(`${MetaTable.COLUMNS}.id`);
     table
@@ -294,15 +276,12 @@ const down = async (knex: Knex) => {
     table.foreign('fk_rollup_column_id').references(`${MetaTable.COLUMNS}.id`);
   });
 
-
   await knex.schema.alterTable(MetaTable.COL_QRCODE, (table) => {
     table.foreign('fk_column_id').references(`${MetaTable.COLUMNS}.id`);
     table
       .foreign('fk_qr_value_column_id')
       .references(`${MetaTable.COLUMNS}.id`);
-
   });
-
 
   await knex.schema.alterTable(MetaTable.COL_BARCODE, (table) => {
     table.foreign('fk_column_id').references(`${MetaTable.COLUMNS}.id`);
@@ -363,27 +342,24 @@ const down = async (knex: Knex) => {
   });
 
   await knex.schema.alterTable(MetaTable.GRID_VIEW, (table) => {
-    table
-      .foreign('fk_view_id')
-      .references(`${MetaTable.VIEWS}.id`);
+    table.foreign('fk_view_id').references(`${MetaTable.VIEWS}.id`);
   });
   await knex.schema.alterTable(MetaTable.GRID_VIEW_COLUMNS, (table) => {
     table.foreign('fk_view_id').references(`${MetaTable.GRID_VIEW}.fk_view_id`);
     table.foreign('fk_column_id').references(`${MetaTable.COLUMNS}.id`);
   });
 
-  await knex.schema.alterTable(MetaTable.MAP_VIEW, (table) => {  table.string('fk_view_id', 20).primary();
+  await knex.schema.alterTable(MetaTable.MAP_VIEW, (table) => {
+    table.string('fk_view_id', 20).primary();
     table.foreign('fk_view_id').references(`${MetaTable.VIEWS}.id`);
     table.foreign('base_id').references(`${MetaTable.BASES}.id`);
     table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
     table.foreign('fk_geo_data_col_id').references(`${MetaTable.COLUMNS}.id`);
-
   });
   await knex.schema.alterTable(MetaTable.MAP_VIEW_COLUMNS, (table) => {
     table.foreign('fk_view_id').references(`${MetaTable.MAP_VIEW}.fk_view_id`);
     table.foreign('fk_column_id').references(`${MetaTable.COLUMNS}.id`);
   });
-
 
   await knex.schema.alterTable(MetaTable.KANBAN_VIEW, (table) => {
     table.foreign('fk_view_id').references(`${MetaTable.VIEWS}.id`);
@@ -391,23 +367,18 @@ const down = async (knex: Knex) => {
     table
       .foreign('fk_cover_image_col_id')
       .references(`${MetaTable.COLUMNS}.id`);
-
   });
-
 
   await knex.schema.alterTable(MetaTable.KANBAN_VIEW_COLUMNS, (table) => {
     table
       .foreign('fk_view_id')
       .references(`${MetaTable.KANBAN_VIEW}.fk_view_id`);
     table.foreign('fk_column_id').references(`${MetaTable.COLUMNS}.id`);
-
-
   });
   await knex.schema.alterTable(MetaTable.PROJECT_USERS, (table) => {
     table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
     table.foreign('fk_user_id').references(`${MetaTable.USERS}.id`);
   });
-
 
   await knex.schema.alterTable(MetaTable.AUDIT, (table) => {
     table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
@@ -428,4 +399,4 @@ const down = async (knex: Knex) => {
   });
 };
 
-export {up, down};
+export { up, down };

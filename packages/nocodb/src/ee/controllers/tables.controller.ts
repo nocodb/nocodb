@@ -1,22 +1,26 @@
 import {
   Body,
   Controller,
+  Delete,
+  Get,
+  HttpCode,
   Param,
+  Patch,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
 import { TableReqType } from 'nocodb-sdk';
-import { GlobalGuard } from '../guards/global/global.guard';
-import {
-  Acl,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { TablesService } from '../services/tables.service';
+import {GlobalGuard} from "../../guards/global/global.guard";
+import {TablesServiceEe} from "../services/tables.service";
+import {Acl} from "../../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware";
+
 
 @Controller()
 @UseGuards(GlobalGuard)
-export class TablesController {
-  constructor(private readonly tablesService: TablesService) {}
+export class TablesControllerEe {
+  constructor(private readonly tablesService: TablesServiceEe) {}
 
   @Post('/api/v1/db/meta/projects/:projectId/:baseId/tables/magic')
   @Acl('tableCreateMagic')

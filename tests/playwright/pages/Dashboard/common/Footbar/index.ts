@@ -28,7 +28,7 @@ export class FootbarPage extends BasePage {
 
   async clickAddRecordFromForm() {
     await this.get().locator(`button.ant-btn`).nth(1).click();
-    await this.rootPage.locator('.ant-dropdown-content').waitFor({ state: 'visible' });
-    await this.rootPage.locator('.ant-dropdown-content').locator('.nc-new-record-with-form').click();
+    await this.rootPage.locator('.ant-dropdown-content:visible').waitFor();
+    await this.rootPage.locator('.ant-dropdown-content:visible').locator('.nc-new-record-with-form').click();
   }
 }

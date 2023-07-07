@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup from '../../../setup';
 import { knex } from 'knex';
-import { Api, UITypes } from 'nocodb-sdk';
+import { Api, ProjectListType, UITypes } from 'nocodb-sdk';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { isHub, isMysql, isPg, isSqlite } from '../../../setup/db';
 import { getKnexConfig } from '../../utils/config';
@@ -38,12 +38,22 @@ async function timezoneSuite(token: string, projectTitle: string, skipTableCreat
     },
   });
 
-  const projectList = await api.project.list();
-  for (const project of projectList.list) {
-    // delete project with title 'xcdb' if it exists
-    if (project.title === projectTitle) {
-      await api.project.delete(project.id);
+  try {
+    let projectList: ProjectListType;
+    if (isHub()) {
+      const ws = await api.workspace.list();
+      projectList = await api.workspaceProject.list(ws.list[0].id);
+    } else {
+      projectList = await api.project.list();
     }
+    for (const project of projectList.list) {
+      // delete project with title 'xcdb' if it exists
+      if (project.title === projectTitle) {
+        await api.project.delete(project.id);
+      }
+    }
+  } catch (e) {
+    console.log(e);
   }
 
   // get current workspace information if in hub
@@ -250,7 +260,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
    */
   test('API insert, verify display value', async () => {
     if (isHub()) {
-      await dashboard.treeView.openBase({ title: 'xcdb' });
+      await dashboard.treeView.openBase({ title: 'xcdb1' });
     } else {
       await dashboard.clickHome();
       const projectsPage = new ProjectsPage(dashboard.rootPage);
@@ -303,7 +313,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     // Hence switched over to UI based table creation
 
     if (isHub()) {
-      await dashboard.treeView.openBase({ title: 'xcdb' });
+      await dashboard.treeView.openBase({ title: 'xcdb2' });
     } else {
       await dashboard.clickHome();
       const projectsPage = new ProjectsPage(dashboard.rootPage);

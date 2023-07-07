@@ -26,22 +26,16 @@ const up = async (knex: Knex) => {
     table.index('fk_column_id');
 
     table.dropForeign('fk_related_model_id');
-    table.index('fk_related_model_id');
 
     table.dropForeign('fk_child_column_id');
-    table.index('fk_child_column_id');
 
     table.dropForeign('fk_parent_column_id');
-    table.index('fk_parent_column_id');
 
     table.dropForeign('fk_mm_model_id');
-    table.index('fk_mm_model_id');
 
     table.dropForeign('fk_mm_child_column_id');
-    table.index('fk_mm_child_column_id');
 
     table.dropForeign('fk_mm_parent_column_id');
-    table.index('fk_mm_parent_column_id');
   });
 
 
@@ -55,10 +49,8 @@ const up = async (knex: Knex) => {
     table.index('fk_column_id');
 
     table.dropForeign('fk_relation_column_id');
-    table.index('fk_relation_column_id');
 
     table.dropForeign('fk_lookup_column_id');
-    table.index('fk_lookup_column_id');
   });
 
   await knex.schema.alterTable(MetaTable.COL_QRCODE, (table) => {
@@ -66,7 +58,6 @@ const up = async (knex: Knex) => {
     table.index('fk_column_id');
 
     table.dropForeign('fk_qr_value_column_id');
-    table.index('fk_qr_value_column_id');
   });
 
   await knex.schema.alterTable(MetaTable.COL_BARCODE, (table) => {
@@ -74,7 +65,6 @@ const up = async (knex: Knex) => {
     table.index('fk_column_id');
 
     table.dropForeign('fk_barcode_value_column_id');
-    table.index('fk_barcode_value_column_id');
   });
 
   await knex.schema.alterTable(MetaTable.COL_FORMULA, (table) => {
@@ -88,10 +78,8 @@ const up = async (knex: Knex) => {
     table.index('fk_column_id');
 
     table.dropForeign('fk_relation_column_id');
-    table.index('fk_relation_column_id');
 
     table.dropForeign('fk_rollup_column_id');
-    table.index('fk_rollup_column_id');
   });
 
 
@@ -113,7 +101,6 @@ const up = async (knex: Knex) => {
     table.index('fk_hook_id');
 
     table.dropForeign('fk_column_id');
-    table.index('fk_column_id');
 
     table.dropForeign('fk_parent_id');
     table.index('fk_parent_id');
@@ -150,7 +137,6 @@ const up = async (knex: Knex) => {
     table.index('fk_view_id');
 
     table.dropForeign('fk_cover_image_col_id');
-    table.index('fk_cover_image_col_id');
   });
 
 
@@ -205,7 +191,6 @@ const up = async (knex: Knex) => {
     table.index('fk_grp_col_id');
 
     table.dropForeign('fk_cover_image_col_id');
-    table.index('fk_cover_image_col_id');
   });
 
 

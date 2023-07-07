@@ -2,17 +2,22 @@ import { MetaTable } from '../../../utils/globals';
 import type { Knex } from 'knex';
 
 const up = async (knex: Knex) => {
+  console.time(MetaTable.BOOK);
   await knex.schema.alterTable(MetaTable.BOOK, (table) => {
     table.dropForeign('project_id');
     table.dropForeign('created_by_id');
     table.dropForeign('last_updated_by_id');
     table.dropForeign('last_published_by_id');
   });
+  console.timeEnd(MetaTable.BOOK);
 
+  console.time(MetaTable.PROJECT);
   await knex.schema.alterTable(MetaTable.PROJECT, (table) => {
     table.index('fk_workspace_id');
   });
+  console.timeEnd(MetaTable.PROJECT);
 
+  console.time(MetaTable.FOLLOWER);
   await knex.schema.alterTable(MetaTable.FOLLOWER, (table) => {
     table.dropForeign('fk_user_id');
     table.dropForeign('fk_follower_id');
@@ -21,14 +26,18 @@ const up = async (knex: Knex) => {
 
     table.dropIndex(['fk_user_id', 'fk_follower_id']);
   });
+  console.timeEnd(MetaTable.FOLLOWER);
 
+  console.time(MetaTable.COWRITER);
   await knex.schema.alterTable(MetaTable.COWRITER, (table) => {
     table.dropForeign('fk_model_id');
     table.index('fk_model_id');
     table.dropForeign('created_by');
     table.index('created_by');
   });
+  console.timeEnd(MetaTable.COWRITER);
 
+  console.time(MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS);
   await knex.schema.alterTable(
     MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS,
     async (table) => {
@@ -44,7 +53,9 @@ const up = async (knex: Knex) => {
       table.index('db_project_id');
     },
   );
+  console.timeEnd(MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS);
 
+  console.time(MetaTable.WIDGET_DB_DEPENDENCIES);
   await knex.schema.alterTable(
     MetaTable.WIDGET_DB_DEPENDENCIES,
     async (table) => {
@@ -58,11 +69,14 @@ const up = async (knex: Knex) => {
       table.index('column_id');
     },
   );
+  console.timeEnd(MetaTable.WIDGET_DB_DEPENDENCIES);
 
+  console.time(MetaTable.FILTER_EXP);
   await knex.schema.alterTable(MetaTable.FILTER_EXP, (table) => {
     table.dropForeign('fk_widget_id');
     table.index('fk_widget_id');
   });
+  console.timeEnd(MetaTable.FILTER_EXP);
 };
 
 const down = async (knex) => {

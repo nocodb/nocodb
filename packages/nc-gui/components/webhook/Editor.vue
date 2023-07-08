@@ -180,12 +180,13 @@ const formInput = ref({
   ],
 })
 
+// TODO: Add back when show logs is working
 const showLogs = computed(
-  () =>
-    !(
-      appInfo.automationLogLevel === AutomationLogLevel.OFF ||
-      (appInfo.automationLogLevel === AutomationLogLevel.ALL && !appInfo.ee)
-    ),
+  () => false,
+  // !(
+  //   appInfo.automationLogLevel === AutomationLogLevel.OFF ||
+  //   (appInfo.automationLogLevel === AutomationLogLevel.ALL && !appInfo.ee)
+  // ),
 )
 
 const eventList = ref<Record<string, any>[]>([

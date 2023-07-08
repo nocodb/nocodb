@@ -5,6 +5,8 @@ const showWebhookDrawer = ref(false)
 const { hooks } = storeToRefs(useWebhooksStore())
 const { loadHooksList, deleteHook: _deleteHook, copyHook } = useWebhooksStore()
 
+const { activeTable } = storeToRefs(useTablesStore())
+
 const eventList = ref<Record<string, any>[]>([
   { text: ['After', 'Insert'], value: ['after', 'insert'] },
   { text: ['After', 'Update'], value: ['after', 'update'] },
@@ -64,9 +66,17 @@ const openEditor = (hookId: string | undefined) => {
   showEditModal.value = true
 }
 
-onMounted(() => {
-  loadHooksList()
-})
+watch(
+  () => activeTable.value?.id,
+  () => {
+    console.log('active table changed', activeTable.value?.id)
+    selectedHookId.value = undefined
+    loadHooksList()
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>

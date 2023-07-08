@@ -1,5 +1,5 @@
 import type { FilterReqType, HookReqType, HookType } from 'nocodb-sdk'
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 
 export const useWebhooksStore = defineStore('webhooksStore', () => {
   const hooks = ref<HookType[]>([])
@@ -7,11 +7,12 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
   const { $api, $e } = useNuxtApp()
   const { t } = useI18n()
 
-  const { activeTable } = useTablesStore()
-
   async function loadHooksList() {
+    const { activeTable } = useTablesStore()
+
     try {
       const hookList = (await $api.dbTableWebhook.list(activeTable?.id as string)).list
+      console.log('hookList', hookList)
       hooks.value = hookList.map((hook) => {
         hook.notification = parseProp(hook.notification)
         return hook
@@ -78,3 +79,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     copyHook,
   }
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useWebhooksStore as any, import.meta.hot))
+}

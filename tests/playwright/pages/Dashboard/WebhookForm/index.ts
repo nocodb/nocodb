@@ -120,16 +120,22 @@ export class WebhookFormPage extends BasePage {
   }
 
   async delete({ index }: { index: number }) {
-    await this.toolbar.clickActions();
-    await this.toolbar.actions.click('Webhooks');
+    if (isHub()) {
+      await this.dashboard.viewSidebar.openDeveloperTab({});
+      await this.dashboard.viewSidebar.webhook.deleteHook({ index });
+      await this.rootPage.locator('div.ant-modal.active').locator('button:has-text("Delete")').click();
+    } else {
+      await this.toolbar.clickActions();
+      await this.toolbar.actions.click('Webhooks');
 
-    await this.get().locator(`.nc-hook-delete-icon`).nth(index).click();
-    await this.rootPage.locator('.ant-modal-confirm-confirm button:has-text("Yes")').click();
-    await this.verifyToast({ message: 'Hook deleted successfully' });
+      await this.get().locator(`.nc-hook-delete-icon`).nth(index).click();
+      await this.rootPage.locator('.ant-modal-confirm-confirm button:has-text("Yes")').click();
+      await this.verifyToast({ message: 'Hook deleted successfully' });
 
-    // click escape to close the drawer
-    await this.get().click();
-    await this.get().press('Escape');
+      // click escape to close the drawer
+      await this.get().click();
+      await this.get().press('Escape');
+    }
   }
 
   async close() {

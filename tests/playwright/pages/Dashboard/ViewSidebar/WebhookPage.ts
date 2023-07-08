@@ -42,14 +42,22 @@ export class WebhookPage extends BasePage {
   }
 
   async copyHook({ index }: { index: number }) {
-    await (await this.getItem({ index })).hover();
-    await (await this.getItem({ index })).locator('.nc-view-sidebar-webhook-context-menu').hover();
-    await this.rootPage.locator('.ant-dropdown').locator('[data-testid="nc-view-sidebar-webhook-copy"]').click();
+    const hookItem = await this.getItem({ index });
+    await hookItem.hover();
+    await hookItem.locator('[data-testid="nc-view-sidebar-webhook-context-menu"]').click();
+    await this.rootPage
+      .locator('.ant-dropdown:visible')
+      .locator('[data-testid="nc-view-sidebar-webhook-copy"]')
+      .click();
   }
 
   async deleteHook({ index }: { index: number }) {
-    await (await this.getItem({ index })).hover();
-    await (await this.getItem({ index })).locator('.nc-view-sidebar-webhook-context-menu').hover();
-    await this.rootPage.locator('.ant-dropdown').locator('[data-testid="nc-view-sidebar-webhook-delete"]').click();
+    const hookItem = await this.getItem({ index });
+    await hookItem.hover();
+    await hookItem.locator('[data-testid="nc-view-sidebar-webhook-context-menu"]').click();
+    await this.rootPage
+      .locator('.ant-dropdown:visible')
+      .locator('[data-testid="nc-view-sidebar-webhook-delete"]')
+      .click();
   }
 }

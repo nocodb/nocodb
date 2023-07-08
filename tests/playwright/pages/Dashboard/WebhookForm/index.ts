@@ -138,10 +138,16 @@ export class WebhookFormPage extends BasePage {
   }
 
   async open({ index }: { index: number }) {
-    await this.toolbar.clickActions();
-    await this.toolbar.actions.click('Webhooks');
-    await this.dashboard.get().locator(`.nc-hook`).nth(index).click();
-    await this.get().locator('.nc-check-box-enable-webhook').waitFor({ state: 'visible' });
+    if (isHub()) {
+      await this.dashboard.viewSidebar.openDeveloperTab({});
+      await (await this.dashboard.viewSidebar.webhook.getItem({ index })).click();
+      await this.get().waitFor({ state: 'visible' });
+    } else {
+      await this.toolbar.clickActions();
+      await this.toolbar.actions.click('Webhooks');
+      await this.dashboard.get().locator(`.nc-hook`).nth(index).click();
+      await this.get().locator('.nc-check-box-enable-webhook').waitFor({ state: 'visible' });
+    }
   }
 
   async openForm({ index }: { index: number }) {

@@ -2,9 +2,12 @@ import { expect, Locator } from '@playwright/test';
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { isHub } from '../../../setup/db';
+import { WebhookPage } from './WebhookPage';
 
 export class ViewSidebarPage extends BasePage {
   readonly project: any;
+  readonly webhook: WebhookPage;
+
   readonly dashboard: DashboardPage;
   readonly createGalleryButton: Locator;
   readonly createGridButton: Locator;
@@ -15,6 +18,8 @@ export class ViewSidebarPage extends BasePage {
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
+    this.webhook = new WebhookPage(this);
+
     this.createGalleryButton = this.get().locator('.nc-create-gallery-view:visible');
     this.createGridButton = this.get().locator('.nc-create-grid-view:visible');
     this.createFormButton = this.get().locator('.nc-create-form-view:visible');
@@ -163,17 +168,18 @@ export class ViewSidebarPage extends BasePage {
     await this.rootPage.waitForTimeout(1000);
     await this.get().locator(`[data-testid="view-sidebar-view-${title}"] .nc-view-icon`).click();
 
-    // if (false) {
-    //   await this.rootPage.locator('.emoji-mart-search').type(icon);
-    //   const emojiList = await this.rootPage.locator('[id="emoji-mart-list"]');
-    //   await emojiList.locator('button').first().click();
-    //   await expect(
-    //     this.get()
-    //       .locator(`[data-testid="view-sidebar-view-${title}"]`)
-    //       .locator(`.nc-table-icon:has-text("${iconDisplay}")`)
-    //   ).toHaveCount(1);
-    // } else
-    {
+    // views still has old icon set
+    // eslint-disable-next-line no-constant-condition
+    if (isHub() && false) {
+      await this.rootPage.locator('.emoji-mart-search').type(icon);
+      const emojiList = await this.rootPage.locator('[id="emoji-mart-list"]');
+      await emojiList.locator('button').first().click();
+      await expect(
+        this.get()
+          .locator(`[data-testid="view-sidebar-view-${title}"]`)
+          .locator(`.nc-table-icon:has-text("${iconDisplay}")`)
+      ).toHaveCount(1);
+    } else {
       await this.rootPage.getByTestId('nc-emoji-filter').type(icon);
       await this.rootPage.getByTestId('nc-emoji-container').locator(`.nc-emoji-item >> svg`).first().click();
 
@@ -201,11 +207,13 @@ export class ViewSidebarPage extends BasePage {
     await expect(this.createKanbanButton).toHaveCount(count);
   }
 
-  async openDeveloperTab({ option }: { option: string }) {
+  async openDeveloperTab({ option }: { option?: string }) {
     console.log(await this.get().locator('.nc-tab').count());
     await this.get().locator('.nc-tab').nth(1).click();
     if (option === 'ERD') {
       await this.get().locator('.nc-view-action-erd.button').click();
+    } else if (option?.toLowerCase() === 'webhook') {
+      await this.get().locator('.nc-view-sidebar-webhook').click();
     }
   }
 

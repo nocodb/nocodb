@@ -70,14 +70,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col mt-2 pt-1 border-t-1 border-gray-50 px-2">
+  <div class="flex flex-col mt-2 pt-1 border-t-1 border-gray-50 px-2 nc-view-sidebar-webhook">
     <div v-e="['c:actions:webhook']" class="py-2 flex gap-2 items-center justify-between text-gray-700" @click="openEditor()">
-      <div class="flex flex-row items-center gap-x-2">
+      <div class="flex flex-row items-center gap-x-2 nc-view-sidebar-webhook-label">
         <component :is="iconMap.hook" class="text-gray-600" />
         {{ $t('objects.webhooks') }}
       </div>
       <div class="flex !rounded-md hover:(bg-gray-50 text-black) p-1 cursor-pointer">
-        <component :is="iconMap.plus" class="text-primary-600" />
+        <component :is="iconMap.plus" class="text-primary-600 nc-view-sidebar-webhook-plus-icon" />
       </div>
     </div>
     <div v-if="hooks.length === 0" class="flex flex-col ml-6.5 text-gray-500">Empty</div>
@@ -85,7 +85,7 @@ onMounted(() => {
       <div
         v-for="hook in hooks"
         :key="hook.id"
-        class="flex flex-row items-center hover:bg-gray-50 rounded-md px-1.5 py-2.5 cursor-pointer group"
+        class="flex flex-row items-center hover:bg-gray-50 rounded-md px-1.5 py-2.5 cursor-pointer group nc-view-sidebar-webhook-item"
       >
         <div class="flex flex-row items-center gap-x-2 flex-grow" @click="openEditor(hook.id!)">
           <div class="circle">
@@ -108,7 +108,7 @@ onMounted(() => {
           <a-dropdown placement="bottom" trigger="click">
             <div
               class="nc-docs-sidebar-page-options px-0.5 hover:(!bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none"
-              data-testid="docs-sidebar-page-options"
+              data-testid="nc-view-sidebar-webhook-context-menu"
               :class="{
                 'hidden group-hover:block': !isOptionOpen,
               }"
@@ -122,7 +122,7 @@ onMounted(() => {
                   :class="{
                     'cursor-not-allowed': isCopying,
                   }"
-                  data-testid="docs-sidebar-page-delete"
+                  data-testid="nc-view-sidebar-webhook-copy"
                   @click="copyWebhook(hook)"
                 >
                   <GeneralLoader v-if="isCopying" class="!h-4.75" />
@@ -131,7 +131,7 @@ onMounted(() => {
                 </div>
                 <div
                   class="flex items-center cursor-pointer select-none px-2 py-1.5 text-xs gap-x-1.5 hover:bg-gray-50 rounded-md !text-red-500"
-                  data-testid="docs-sidebar-page-delete"
+                  data-testid="nc-view-sidebar-webhook-delete"
                   @click="openDeleteModal(hook.id!)"
                 >
                   <MdiDeleteOutline class="!h-4.75" />
@@ -155,7 +155,7 @@ onMounted(() => {
   </GeneralModal>
   <GeneralModal v-model:visible="showEditModal" width="48rem">
     <div class="py-6">
-      <div class="webhook-scroll px-5">
+      <div class="webhook-scroll px-5 nc-drawer-webhook-body">
         <WebhookEditor :key="selectedHook?.id" :hook="selectedHook" @close="showEditModal = false" />
       </div>
     </div>

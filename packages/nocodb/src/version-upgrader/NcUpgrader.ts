@@ -101,7 +101,9 @@ export default class NcUpgrader {
       } else {
         this.log(`upgrade : Inserting config to meta database`);
         const configObj: any = {};
-        const isOld = (await ctx.ncMeta.projectList())?.length;
+        const isOld =
+          process.env.NC_CLOUD !== 'true' &&
+          (await ctx.ncMeta.projectList())?.length;
         configObj.version = isOld ? '0009000' : process.env.NC_VERSION;
         await ctx.ncMeta.metaInsert('', '', 'nc_store', {
           key: NcUpgrader.STORE_KEY,

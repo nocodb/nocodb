@@ -31,9 +31,10 @@ function projectTest() {
   let project;
 
   beforeEach(async function () {
+    console.time('#### projectTest');
     context = await init();
-
     project = await createProject(context);
+    console.timeEnd('#### projectTest');
   });
 
   it('Get project info', async () => {

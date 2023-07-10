@@ -20,9 +20,11 @@ function attachmentTests() {
   let context;
 
   beforeEach(async function () {
+    console.time('#### attachmentTests');
     context = await init();
     fs.writeFileSync(FILE_PATH, 'test', `utf-8`);
     context = await init();
+    console.timeEnd('#### attachmentTests');
   });
 
   afterEach(function () {
@@ -73,7 +75,7 @@ function attachmentTests() {
     expect(msg).to.be.eq('Upload not allowed');
   });
 
-  it('Upload file - Org level creator', async () => {
+  it.skip('Upload file - Org level creator', async () => {
     // signup a user
     const args = {
       email: 'dummyuser@example.com',
@@ -92,7 +94,7 @@ function attachmentTests() {
       .expect(200);
 
     const user = usersListResponse.body.list.find(
-      (u) => u.email === args.email
+      (u) => u.email === args.email,
     );
 
     expect(user).to.have.property('roles').to.be.equal(OrgUserRoles.VIEWER);

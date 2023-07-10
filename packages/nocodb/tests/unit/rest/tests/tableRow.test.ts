@@ -107,6 +107,7 @@ function tableTest() {
   let customerColumns;
 
   beforeEach(async function () {
+    console.time('#### tableTest');
     context = await init();
 
     sakilaProject = await createSakilaProject(context);
@@ -117,6 +118,7 @@ function tableTest() {
       name: 'customer',
     });
     customerColumns = await customerTable.getColumns();
+    console.timeEnd('#### tableTest');
   });
 
   it('Get table data list', async function () {

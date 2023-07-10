@@ -121,6 +121,7 @@ function viewRowTests() {
   let filmKanbanView: View;
 
   beforeEach(async function () {
+    console.time('#### viewRowTests');
     context = await init();
     sakilaProject = await createSakilaProject(context);
     project = await createProject(context);
@@ -155,6 +156,7 @@ function viewRowTests() {
       table: filmTable,
       type: ViewTypes.KANBAN,
     });
+    console.timeEnd('#### viewRowTests');
   });
 
   const testGetViewRowList = async (view: View) => {

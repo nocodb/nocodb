@@ -19,6 +19,7 @@ function layoutTests() {
   let dashboard;
 
   beforeEach(async function () {
+    console.time('#### layoutTests');
     context = await init();
 
     dashboard = await createProject(context, {
@@ -29,6 +30,7 @@ function layoutTests() {
       title: 'Layout1',
       project_id: dashboard.id,
     });
+    console.timeEnd('#### layoutTests');
   });
 
   describe('Layout create, update, list, delete', async function () {
@@ -88,31 +90,29 @@ function layoutTests() {
   });
 }
 
-  //   it('Create layout with same title', async function () {
-  //     const temp = await Layout.get(layout);
-  //     console.log('old layout', temp);
-  //     const response = await request(context.app)
-  //       .post(`/api/v1/dashboards/${dashboard.id}/layouts`)
-  //       .set('xc-auth', context.token)
-  //       .send({
-  //         title: 'Layout1',
-  //         project_id: dashboard.id,
-  //       })
-  //       .expect(400);
+//   it('Create layout with same title', async function () {
+//     const temp = await Layout.get(layout);
+//     console.log('old layout', temp);
+//     const response = await request(context.app)
+//       .post(`/api/v1/dashboards/${dashboard.id}/layouts`)
+//       .set('xc-auth', context.token)
+//       .send({
+//         title: 'Layout1',
+//         project_id: dashboard.id,
+//       })
+//       .expect(400);
 
+// if (!response.text.includes('Duplicate table alias')) {
+//   console.error(response.text);
+//   return new Error('Wrong api response');
+// }
 
-  // if (!response.text.includes('Duplicate table alias')) {
-  //   console.error(response.text);
-  //   return new Error('Wrong api response');
-  // }
+// const tables = await getAllTables({ project });
+// if (tables.length !== 1) {
+//   return new Error('Tables should not be created');
+// }
+//   });
 
-  // const tables = await getAllTables({ project });
-  // if (tables.length !== 1) {
-  //   return new Error('Tables should not be created');
-  // }
-  //   });
-
-
-  export default function () {
-    describe('Layout', layoutTests);
-  };
+export default function () {
+  describe('Layout', layoutTests);
+}

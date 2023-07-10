@@ -28,6 +28,7 @@ function columnTypeSpecificTests() {
   const qrCodeReferenceColumnTitle = 'Qr Code Column';
 
   beforeEach(async function () {
+    console.time('#### columnTypeSpecificTests');
     context = await init();
 
     sakilaProject = await createSakilaProject(context);
@@ -50,6 +51,7 @@ function columnTypeSpecificTests() {
       table: customerTable,
       referencedQrValueTableColumnTitle: qrValueReferenceColumnTitle,
     });
+    console.timeEnd('#### columnTypeSpecificTests');
   });
 
   describe('Qr Code Column', () => {

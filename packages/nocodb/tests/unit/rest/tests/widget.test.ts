@@ -26,6 +26,7 @@ function widgetTests() {
   let dbProject;
 
   beforeEach(async function () {
+    console.time('#### widgetTests');
     context = await init();
 
     dbProject = await createProject(context);
@@ -48,7 +49,7 @@ function widgetTests() {
       widget_type: 'number',
       layout_id: layout.id,
     });
-
+    console.timeEnd('#### widgetTests');
   });
 
   describe('Widget create, delete, update, list', async function () {
@@ -107,7 +108,6 @@ function widgetTests() {
 
       expect(response.body.list).to.be.an('array').not.empty;
     });
-
   });
 }
 
@@ -154,7 +154,6 @@ function widgetTests() {
 //   it('for chart widget: trying to connect to a non existing column for the x-axis results in an error', async function () {});
 //   it('for chart widget: trying to connect to a non existing column for the y-axis results in an error', async function () {});
 // });
-
 
 export default function () {
   describe('Widget', widgetTests);

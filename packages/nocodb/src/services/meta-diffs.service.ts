@@ -17,6 +17,7 @@ export enum MetaDiffType {
   TABLE_REMOVE = 'TABLE_REMOVE',
   TABLE_COLUMN_ADD = 'TABLE_COLUMN_ADD',
   TABLE_COLUMN_TYPE_CHANGE = 'TABLE_COLUMN_TYPE_CHANGE',
+  TABLE_COLUMN_PK_CHANGED = 'TABLE_COLUMN_PK_CHANGED',
   TABLE_COLUMN_REMOVE = 'TABLE_COLUMN_REMOVE',
   VIEW_NEW = 'VIEW_NEW',
   VIEW_REMOVE = 'VIEW_REMOVE',
@@ -102,6 +103,16 @@ type MetaDiffChange = {
       rcn?: string;
       relationType: RelationTypes;
       cstn?: string;
+    }
+  | {
+      type: MetaDiffType.TABLE_COLUMN_PK_CHANGED;
+      tn?: string;
+      model?: Model;
+      id?: string;
+      cn: string;
+      column: Column;
+      colId?: string;
+      status: 'removed' | 'added';
     }
 );
 
@@ -215,6 +226,18 @@ export class MetaDiffsService {
             cn: oldCol.column_name,
             id: oldMeta.id,
             column: oldCol,
+          });
+        }
+        if (!!oldCol.pk !== !!column.pk) {
+          tableProp.detectedChanges.push({
+            type: MetaDiffType.TABLE_COLUMN_PK_CHANGED,
+            msg: column.pk
+              ? `Column ${column.cn} is new primary key`
+              : `Column ${column.cn} is no longer primary key`,
+            cn: oldCol.column_name,
+            id: oldMeta.id,
+            column: oldCol,
+            status: column.pk ? 'added' : 'removed',
           });
         }
       }
@@ -685,6 +708,13 @@ export class MetaDiffsService {
                 );
                 column.uidt = metaFact.getUIDataType(column);
                 column.title = change.column.title;
+                await Column.update(change.column.id, column);
+              }
+              break;
+            case MetaDiffType.TABLE_COLUMN_PK_CHANGED:
+              {
+                const column = change.column;
+                column.pk = change.status === 'added';
                 await Column.update(change.column.id, column);
               }
               break;

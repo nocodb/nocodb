@@ -357,14 +357,14 @@ const setIcon = async (icon: string, project: ProjectType) => {
               </div>
             </div>
 
-            <div v-if="!record.edit" class="nc-click-transition-1" @click.stop>
-              <MdiStar v-if="record.starred" class="text-yellow-400 cursor-pointer" @click="removeFromFavourite(record.id)" />
-              <MdiStarOutline
-                v-else
-                class="opacity-0 group-hover:opacity-100 transition transition-opacity text-yellow-400 cursor-pointer"
-                @click="addToFavourite(record.id)"
-              />
-            </div>
+            <!--            <div v-if="!record.edit" class="nc-click-transition-1" @click.stop>-->
+            <!--              <MdiStar v-if="record.starred" class="text-yellow-400 cursor-pointer" @click="removeFromFavourite(record.id)" />-->
+            <!--              <MdiStarOutline-->
+            <!--                v-else-->
+            <!--                class="opacity-0 group-hover:opacity-100 transition transition-opacity text-yellow-400 cursor-pointer"-->
+            <!--                @click="addToFavourite(record.id)"-->
+            <!--              />-->
+            <!--            </div>-->
           </div>
         </template>
 

@@ -17,7 +17,7 @@ export enum MetaDiffType {
   TABLE_REMOVE = 'TABLE_REMOVE',
   TABLE_COLUMN_ADD = 'TABLE_COLUMN_ADD',
   TABLE_COLUMN_TYPE_CHANGE = 'TABLE_COLUMN_TYPE_CHANGE',
-  TABLE_COLUMN_PK_CHANGED = 'TABLE_COLUMN_PK_CHANGED',
+  TABLE_COLUMN_PROPS_CHANGED = 'TABLE_COLUMN_PROPS_CHANGED',
   TABLE_COLUMN_REMOVE = 'TABLE_COLUMN_REMOVE',
   VIEW_NEW = 'VIEW_NEW',
   VIEW_REMOVE = 'VIEW_REMOVE',
@@ -105,14 +105,13 @@ type MetaDiffChange = {
       cstn?: string;
     }
   | {
-      type: MetaDiffType.TABLE_COLUMN_PK_CHANGED;
+      type: MetaDiffType.TABLE_COLUMN_PROPS_CHANGED;
       tn?: string;
       model?: Model;
       id?: string;
       cn: string;
       column: Column;
       colId?: string;
-      status: 'removed' | 'added';
     }
 );
 
@@ -228,16 +227,18 @@ export class MetaDiffsService {
             column: oldCol,
           });
         }
-        if (!!oldCol.pk !== !!column.pk) {
+        if (
+          !!oldCol.pk !== !!column.pk ||
+          !!oldCol.rqd !== !!column.rqd ||
+          !!oldCol.un !== !!column.un ||
+          !!oldCol.ai !== !!column.ai
+        ) {
           tableProp.detectedChanges.push({
-            type: MetaDiffType.TABLE_COLUMN_PK_CHANGED,
-            msg: column.pk
-              ? `Column ${column.cn} is new primary key`
-              : `Column ${column.cn} is no longer primary key`,
+            type: MetaDiffType.TABLE_COLUMN_PROPS_CHANGED,
+            msg: `Column properties changed (${column.cn})`,
             cn: oldCol.column_name,
             id: oldMeta.id,
             column: oldCol,
-            status: column.pk ? 'added' : 'removed',
           });
         }
       }
@@ -711,11 +712,20 @@ export class MetaDiffsService {
                 await Column.update(change.column.id, column);
               }
               break;
-            case MetaDiffType.TABLE_COLUMN_PK_CHANGED:
+            case MetaDiffType.TABLE_COLUMN_PROPS_CHANGED:
               {
-                const column = change.column;
-                column.pk = change.status === 'added';
-                await Column.update(change.column.id, column);
+                const columns = (
+                  await sqlClient.columnList({ tn: table_name })
+                )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
+                const colMeta = columns.find((c) => c.cn === change.cn);
+                if (!colMeta) break;
+                const { pk, ai, rqd, un } = colMeta;
+                await Column.update(change.column.id, {
+                  pk,
+                  ai,
+                  rqd,
+                  un,
+                });
               }
               break;
             case MetaDiffType.TABLE_COLUMN_REMOVE:
@@ -912,6 +922,22 @@ export class MetaDiffsService {
               column.uidt = metaFact.getUIDataType(column);
               column.title = change.column.title;
               await Column.update(change.column.id, column);
+            }
+            break;
+          case MetaDiffType.TABLE_COLUMN_PROPS_CHANGED:
+            {
+              const columns = (
+                await sqlClient.columnList({ tn: table_name })
+              )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
+              const colMeta = columns.find((c) => c.cn === change.cn);
+              if (!colMeta) break;
+              const { pk, ai, rqd, un } = colMeta;
+              await Column.update(change.column.id, {
+                pk,
+                ai,
+                rqd,
+                un,
+              });
             }
             break;
           case MetaDiffType.TABLE_COLUMN_REMOVE:

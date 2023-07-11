@@ -196,7 +196,7 @@ async function onSubmit() {
 
       if (data) {
         // View created successfully
-        message.success(t('msg.toast.createView'))
+        // message.success(t('msg.toast.createView'))
 
         emits('created', data)
       }

@@ -520,7 +520,7 @@ onKeyStroke('Escape', () => {
                         @click="toggleDialog(true, 'teamAndAuth', undefined, project.id)"
                       >
                         <GeneralIcon icon="settings" class="group-hover:text-accent" />
-                        {{ $t('title.teamAndSettings') }}
+                        {{ $t('activity.settings') }}
                       </div>
                     </a-menu-item>
 

@@ -231,7 +231,8 @@ export class MetaDiffsService {
           !!oldCol.pk !== !!column.pk ||
           !!oldCol.rqd !== !!column.rqd ||
           !!oldCol.un !== !!column.un ||
-          !!oldCol.ai !== !!column.ai
+          !!oldCol.ai !== !!column.ai ||
+          !!oldCol.unique !== !!column.unique
         ) {
           tableProp.detectedChanges.push({
             type: MetaDiffType.TABLE_COLUMN_PROPS_CHANGED,
@@ -719,12 +720,13 @@ export class MetaDiffsService {
                 )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
                 const colMeta = columns.find((c) => c.cn === change.cn);
                 if (!colMeta) break;
-                const { pk, ai, rqd, un } = colMeta;
+                const { pk, ai, rqd, un, unique } = colMeta;
                 await Column.update(change.column.id, {
                   pk,
                   ai,
                   rqd,
                   un,
+                  unique,
                 });
               }
               break;
@@ -931,12 +933,13 @@ export class MetaDiffsService {
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
               const colMeta = columns.find((c) => c.cn === change.cn);
               if (!colMeta) break;
-              const { pk, ai, rqd, un } = colMeta;
+              const { pk, ai, rqd, un, unique } = colMeta;
               await Column.update(change.column.id, {
                 pk,
                 ai,
                 rqd,
                 un,
+                unique,
               });
             }
             break;

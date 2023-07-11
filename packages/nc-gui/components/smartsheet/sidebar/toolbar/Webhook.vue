@@ -5,6 +5,8 @@ const showWebhookDrawer = ref(false)
 const { hooks } = storeToRefs(useWebhooksStore())
 const { loadHooksList, deleteHook: _deleteHook, copyHook } = useWebhooksStore()
 
+const modalDeleteButtonRef = ref(null)
+
 const { activeTable } = storeToRefs(useTablesStore())
 
 const eventList = ref<Record<string, any>[]>([
@@ -65,6 +67,14 @@ const openEditor = (hookId: string | undefined) => {
   selectedHookId.value = hookId
   showEditModal.value = true
 }
+
+watch(showDeleteModal, () => {
+  if (!showDeleteModal.value) return
+
+  nextTick(() => {
+    modalDeleteButtonRef.value?.$el?.focus()
+  })
+})
 
 watch(
   () => activeTable.value?.id,
@@ -159,7 +169,7 @@ watch(
       <div>Are you sure you want to delete this webhook?</div>
       <div class="flex flex-row justify-end gap-x-1">
         <a-button type="text" class="!rounded" @click="hideDeleteModal">Cancel</a-button>
-        <a-button type="danger" class="!rounded" @click="deleteHook">Delete</a-button>
+        <a-button ref="modalDeleteButtonRef" type="danger" class="!rounded" @click="deleteHook">Delete</a-button>
       </div>
     </div>
   </GeneralModal>

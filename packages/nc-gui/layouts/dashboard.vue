@@ -219,7 +219,7 @@ export default {
 }
 
 .nc-sidebar-wrapper {
-  @apply flex flex-col h-full justify-center min-w-48;
+  @apply flex flex-col h-full justify-center !min-w-32;
 }
 
 .nc-sidebar-wrapper.close {

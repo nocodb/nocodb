@@ -45,7 +45,7 @@ const hookTabKey = ref('hook-edit')
 
 const useForm = Form.useForm
 
-const hook = reactive<
+let hook = reactive<
   Omit<HookType, 'notification'> & { notification: Record<string, any>; eventOperation?: string; condition: boolean }
 >({
   id: '',
@@ -404,8 +404,13 @@ async function saveHooks() {
       hooks.value.push(res)
     }
 
+    if (res && typeof res.notification === 'string') {
+      res.notification = JSON.parse(res.notification)
+    }
+    console.log('res', res, hook)
+
     if (!hook.id && res) {
-      hook.value = { ...hook, ...res } as any
+      hook = { ...hook, ...res } as any
     }
 
     if (filterRef.value) {
@@ -514,6 +519,7 @@ onMounted(async () => {
         class="nc-webhook-form flex flex-col"
         :class="{
           'w-1/2': showLogs,
+          'w-full': !showLogs,
         }"
       >
         <div class="flex flex-row justify-between mb-6">

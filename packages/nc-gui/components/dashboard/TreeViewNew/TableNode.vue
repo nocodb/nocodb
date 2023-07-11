@@ -180,6 +180,7 @@ const isMultiBase = computed(() => project.bases && project.bases.length > 1)
             class="min-w-6 transition-opacity opacity-0 group-hover:opacity-100 outline-0"
             :class="{
               '!text-gray-600': openedTableId !== table.id,
+              '!text-black': openedTableId === table.id,
             }"
           />
 

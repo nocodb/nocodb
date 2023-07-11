@@ -144,7 +144,7 @@ watch(showShareModal, (val) => {
                   {{ project.type === NcProjectType.DOCS ? 'Document' : 'Project' }}
                 </div>
                 <div
-                  class="ml-6.25 py-1 px-2 rounded-md bg-gray-75 capitalize"
+                  class="max-w-7/10 ml-2 px-2 py-0.5 rounded-md bg-gray-75 capitalize text-ellipsis overflow-hidden"
                   :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
                 >
                   {{ project.title }}

@@ -156,14 +156,14 @@ curl http://get.nocodb.com/linux-arm64 -o nocodb -L && chmod +x nocodb && ./noco
 ##### Windows (x64)
 
 ```bash
-iwr http://get.nocodb.com/win-x64.exe
+iwr http://get.nocodb.com/win-x64.exe -o Noco-win-x64.exe
 .\Noco-win-x64.exe
 ```
 
 ##### Windows (arm64)
 
 ```bash
-iwr http://get.nocodb.com/win-arm64.exe
+iwr http://get.nocodb.com/win-arm64.exe -o Noco-win-arm64.exe
 .\Noco-win-arm64.exe
 ```
 

@@ -21,6 +21,8 @@ export const useProjects = defineStore('projectsStore', () => {
 
   const activeProjectId = computed(() => route.value.params.projectId as string | undefined)
 
+  const openedProject = computed(() => (activeProjectId.value ? projects.value.get(activeProjectId.value) : undefined))
+
   const workspaceStore = useWorkspace()
   const tableStore = useTablesStore()
 
@@ -240,6 +242,7 @@ export const useProjects = defineStore('projectsStore', () => {
     isProjectPopulated,
     isProjectsLoading,
     activeProjectId,
+    openedProject,
   }
 })
 

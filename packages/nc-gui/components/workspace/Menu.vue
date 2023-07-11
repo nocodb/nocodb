@@ -132,7 +132,7 @@ onKeyStroke('Escape', () => {
       >
         <slot name="brandIcon" />
         <template v-if="props.isOpen">
-          <div class="flex-grow min-w-10 font-semibold text-base">
+          <div v-if="activeWorkspace" class="flex-grow min-w-10 font-semibold text-base">
             <a-tooltip v-if="activeWorkspace!.title!.length > 12" placement="bottom">
               <div class="text-md truncate capitalize">{{ activeWorkspace!.title }}</div>
               <template #title>

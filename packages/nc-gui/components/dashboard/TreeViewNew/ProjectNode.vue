@@ -253,7 +253,7 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean) =>
     return
   }
 
-  project.isExpanded = !project.isExpanded
+  project.isExpanded = true
 
   const isProjectPopulated = projectsStore.isProjectPopulated(project.id!)
 

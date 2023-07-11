@@ -8,7 +8,6 @@ import UIAcl from './UIAcl.vue'
 import Erd from './Erd.vue'
 import { ClientType, DataSourcesSubTab } from '~/lib'
 import { storeToRefs, useCommandPalette, useNuxtApp, useProject } from '#imports'
-import { ProjectIdInj } from '~/context'
 
 interface Props {
   state: string
@@ -30,9 +29,6 @@ const { loadProject } = projectStore
 const { project } = storeToRefs(projectStore)
 const { refreshCommandPalette } = useCommandPalette()
 
-const _projectId = $(inject(ProjectIdInj))
-const projectId = $computed(() => _projectId ?? project.value?.id)
-
 let sources = $ref<BaseType[]>([])
 
 let activeBaseId = $ref('')
@@ -47,13 +43,11 @@ let forceAwakened = $ref(false)
 
 async function loadBases(changed?: boolean) {
   try {
-    if (!projectId) return
-
     if (changed) refreshCommandPalette()
 
     isReloading = true
     vReload.value = true
-    const baseList = await $api.base.list(projectId)
+    const baseList = await $api.base.list(project.value.id as string)
     if (baseList.list && baseList.list.length) {
       sources = baseList.list
     }
@@ -67,11 +61,9 @@ async function loadBases(changed?: boolean) {
 
 async function loadMetaDiff() {
   try {
-    if (!projectId) return
-
     metadiffbases = []
 
-    const metadiff = await $api.project.metaDiffGet(projectId)
+    const metadiff = await $api.project.metaDiffGet(project.value.id as string)
     for (const model of metadiff) {
       if (model.detectedChanges?.length > 0) {
         metadiffbases.push(model.base_id)
@@ -270,7 +262,7 @@ watch(
                         Sync Metadata
                       </div>
                     </a-button>
-                    <a-button
+                    <!-- <a-button
                       class="nc-action-btn cursor-pointer outline-0"
                       @click="baseAction(sources[0].id, DataSourcesSubTab.UIAcl)"
                     >
@@ -278,7 +270,7 @@ watch(
                         <GeneralIcon icon="acl" class="group-hover:text-accent" />
                         UI ACL
                       </div>
-                    </a-button>
+                    </a-button> -->
                     <a-button
                       class="nc-action-btn cursor-pointer outline-0"
                       @click="baseAction(sources[0].id, DataSourcesSubTab.ERD)"

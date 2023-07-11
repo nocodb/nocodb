@@ -15,6 +15,8 @@ import MdiFlagOutline from '~icons/mdi/flag-outline'
 import MdiTable from '~icons/mdi/table'
 import MdiTableLarge from '~icons/mdi/table-large'
 import MdiEyeCircleOutline from '~icons/mdi/eye-circle-outline'
+import MsAddBoxOutline from '~icons/nc-icons/add-box'
+import MsDownloadRounded from '~icons/nc-icons/download'
 import Copy from '~icons/material-symbols/content-copy-outline'
 import Delete from '~icons/material-symbols/delete-outline'
 import PhEye from '~icons/ph/eye'
@@ -207,6 +209,7 @@ import Down from '~icons/material-symbols/keyboard-arrow-down-rounded'
 export const iconMap = {
   info: h(MsInfo, {}, 'info'),
   inbox: h('span', { class: 'material-symbols' }, 'inbox'),
+  addOutlineBox: MsAddBoxOutline,
   loading: h('span', { class: 'material-symbols' }, 'autorenew'),
   arrowCollapse: h('span', { class: 'material-symbols' }, 'keyboard_arrow_up'),
   markerAlert: h('span', { class: 'material-symbols' }, 'warning'),
@@ -254,7 +257,7 @@ export const iconMap = {
   account: h('span', { class: 'material-symbols' }, 'person'),
   accountCircle: h('span', { class: 'material-symbols' }, 'account_circle'),
   users: h('span', { class: 'material-symbols' }, 'people'),
-  download: h('span', { class: 'material-symbols' }, 'cloud_download'),
+  download: MsDownloadRounded,
   upload: h('span', { class: 'material-symbols' }, 'cloud_upload'),
   hook: Phishing,
   erd: Erd,

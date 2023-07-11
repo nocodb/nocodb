@@ -203,12 +203,17 @@ export default class CSVTemplateAdapter {
     return new Promise((resolve, reject) => {
       const that = this
       let steppers = 0
+      console.log('that.config.shouldImportData', that.config.shouldImportData)
       if (that.config.shouldImportData) {
         steppers = 0
         const parseSource = (this.config.importFromURL ? (source as string) : (source as UploadFile).originFileObj)!
+
+        console.log(parseSource)
+        console.log(source)
+
         parse(parseSource, {
           download: that.config.importFromURL,
-          worker: true,
+          // worker: true,
           skipEmptyLines: 'greedy',
           step(row) {
             steppers += 1
@@ -256,7 +261,6 @@ export default class CSVTemplateAdapter {
       const parseSource = (this.config.importFromURL ? (source as string) : (source as UploadFile).originFileObj)!
       parse(parseSource, {
         download: that.config.importFromURL,
-        worker: true,
         skipEmptyLines: 'greedy',
         step(row) {
           steppers += 1

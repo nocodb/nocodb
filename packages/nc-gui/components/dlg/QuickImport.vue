@@ -2,6 +2,7 @@
 import type { TableType } from 'nocodb-sdk'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
+import { onMounted, onUnmounted, unref } from '@vue/runtime-core'
 import {
   CSVTemplateAdapter,
   ExcelTemplateAdapter,
@@ -28,7 +29,7 @@ import type { importFileList, streamImportFileList } from '~/lib'
 
 // import worker script according to the doc of Vite
 import ImportWorker from '@/assets/workers/importWorker?worker'
-import {onMounted, onUnmounted} from "@vue/runtime-core";
+import { ImportWorkerOperations, ImportWorkerResponse } from '~/lib'
 
 interface Props {
   modelValue: boolean
@@ -37,20 +38,19 @@ interface Props {
   importDataOnly?: boolean
 }
 
-let worker: Worker;
-
-
-onMounted(() => {
-  worker = new ImportWorker()
-})
-
-onUnmounted(() => {
-  worker.terminate()
-})
-
 const { importType, importDataOnly = false, baseId, ...rest } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
+
+let importWorker: Worker
+
+onMounted(() => {
+  importWorker = new ImportWorker()
+})
+
+onUnmounted(() => {
+  importWorker.terminate()
+})
 
 const { t } = useI18n()
 
@@ -327,66 +327,90 @@ const beforeUpload = (file: UploadFile) => {
 // ArrayBuffer for excel import
 // string for json import
 async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
-  // return new Promise((resolve, reject) => {
-  //   const worker = new Worker('/worker.js')
-  //   worker.postMessage(100000000000000);
-  //   worker.addEventListener('message', (e) => {
-  //     if (e.data) {
-  //       resolve(e.data)
-  //       worker.terminate()
-  //     }
-  //   }, false);
-  // })
+  importWorker.postMessage([ImportWorkerOperations.SET_TABLES, [...unref(tables)]])
+  importWorker.postMessage([
+    ImportWorkerOperations.SET_CONFIG,
+    {
+      importDataOnly,
+      importColumns: !!importColumns.value,
+      importData: !!importData.value,
+    },
+  ])
 
-  return new Promise((resolve, reject) => {
-    const worker = new ImportWorker()
-    worker.postMessage([...val])
-    worker.addEventListener(
-      'message',
-      (e) => {
-        console.log(e.data)
-        if (e.data) {
-          resolve(e.data)
-          worker.terminate()
-        }
-      },
+  const response: {
+    templateData: any
+    importColumns: any
+    importData: any
+  } = await new Promise((resolve) => {
+    const handler = (e) => {
+      const [type, payload] = e.data
+      switch (type) {
+        case ImportWorkerResponse.PROCESSED_DATA:
+          debugger
+            resolve(payload)
+            importWorker.removeEventListener('message', handler, false);
+          break
+        case ImportWorkerResponse.PROGRESS:
+          // setProgress(payload)
+          break
+      }
+    }
+    importWorker.addEventListener(
+      'message',handler,
       false,
     )
+
+    importWorker.postMessage([
+      ImportWorkerOperations.PROCESS,
+      JSON.parse(JSON.stringify(val)).map((v, i) => ({ ...v, originFileObj: val[i].originFileObj })),
+    ])
   })
 
-  try {
-    templateData.value = null
-    importData.value = null
-    importColumns.value = []
+  templateData.value = response.templateData
+  importColumns.value = response.importColumns
+  importData.value = response.importData
 
-    templateGenerator = getAdapter(val)
+  templateEditorModal.value = true
+  isParsingData.value = false
+  preImportLoading.value = false
 
-    if (!templateGenerator) {
-      message.error(t('msg.error.templateGeneratorNotFound'))
-      return
-    }
-
-    await templateGenerator.init()
-
-    await templateGenerator.parse()
-
-    templateData.value = templateGenerator!.getTemplate()
-    if (importDataOnly) importColumns.value = templateGenerator!.getColumns()
-    else {
-      // ensure the target table name not exist in current table list
-      templateData.value.tables = templateData.value.tables.map((table: Record<string, any>) => ({
-        ...table,
-        table_name: populateUniqueTableName(table.table_name),
-      }))
-    }
-    importData.value = templateGenerator!.getData()
-    templateEditorModal.value = true
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    isParsingData.value = false
-    preImportLoading.value = false
-  }
+  // templateEditorModal.value = true
+  // isParsingData.value = false
+  // preImportLoading.value = false
+  //
+  // try {
+  //   templateData.value = null
+  //   importData.value = null
+  //   importColumns.value = []
+  //
+  //   templateGenerator = getAdapter(val)
+  //
+  //   if (!templateGenerator) {
+  //     message.error(t('msg.error.templateGeneratorNotFound'))
+  //     return
+  //   }
+  //
+  //   await templateGenerator.init()
+  //
+  //   await templateGenerator.parse()
+  //
+  //   templateData.value = templateGenerator!.getTemplate()
+  //   if (importDataOnly) importColumns.value = templateGenerator!.getColumns()
+  //   else {
+  //     // ensure the target table name not exist in current table list
+  //     templateData.value.tables = templateData.value.tables.map((table: Record<string, any>) => ({
+  //       ...table,
+  //       table_name: populateUniqueTableName(table.table_name),
+  //     }))
+  //   }
+  //   importData.value = templateGenerator!.getData()
+  //   templateEditorModal.value = true
+  // } catch (e: any) {
+  //   message.error(await extractSdkResponseErrorMsg(e))
+  // } finally {
+  //   isParsingData.value = false
+  //   preImportLoading.value = false
+  // }
 }
 </script>
 
@@ -413,6 +437,7 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
             :quick-import-type="importType"
             :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
             :base-id="baseId"
+            :import-worker="importWorker"
             class="nc-quick-import-template-editor"
             @import="handleImport"
           />
@@ -517,16 +542,16 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
 
             <!-- Import Data -->
             <a-form-item v-if="!importDataOnly" class="!my-2">
-              <a-checkbox v-model:checked="importState.parserConfig.shouldImportData">{{ $t('labels.importData') }}</a-checkbox>
+              <a-checkbox v-model:checked="importState.parserConfig.shouldImportData">{{ $t('labels.importData') }} </a-checkbox>
             </a-form-item>
           </div>
         </div>
       </div>
     </a-spin>
     <template #footer>
-      <a-button v-if="templateEditorModal" key="back" class="!rounded-md" @click="templateEditorModal = false">Back</a-button>
+      <a-button v-if="templateEditorModal" key="back" class="!rounded-md" @click="templateEditorModal = false">Back </a-button>
 
-      <a-button v-else key="cancel" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
+      <a-button v-else key="cancel" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }} </a-button>
 
       <a-button
         v-if="activeKey === 'jsonEditorTab' && !templateEditorModal"

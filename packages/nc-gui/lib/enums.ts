@@ -125,3 +125,18 @@ export enum JobStatus {
   PAUSED = 'paused',
   REFRESH = 'refresh',
 }
+
+export enum ImportWorkerOperations {
+  PROCESS = 'process',
+  SET_TABLES = 'setTables',
+  SET_CONFIG = 'setConfig',
+  GET_SINGLE_SELECT_OPTIONS = 'getSingleSelectOptions',
+  GET_MULTI_SELECT_OPTIONS = 'getMultiSelectOptions',
+}
+
+export enum ImportWorkerResponse {
+  PROCESSED_DATA = 'processedData',
+  PROGRESS = 'progress',
+  SINGLE_SELECT_OPTIONS = 'singleSelectOptions',
+  MULTI_SELECT_OPTIONS = 'multiSelectOptions',
+}

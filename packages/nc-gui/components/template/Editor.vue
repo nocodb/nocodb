@@ -32,9 +32,9 @@ import {
   useProject,
   useTabs,
 } from '#imports'
-import { TabType } from '~/lib'
+import {ImportWorkerOperations, ImportWorkerResponse, TabType} from '~/lib'
 
-const { quickImportType, projectTemplate, importData, importColumns, importDataOnly, maxRowsToParse, baseId } =
+const { quickImportType, projectTemplate, importData, importColumns, importDataOnly, maxRowsToParse, baseId, importWorker } =
   defineProps<Props>()
 
 const emit = defineEmits(['import'])
@@ -51,6 +51,7 @@ interface Props {
   importDataOnly: boolean
   maxRowsToParse: number
   baseId: string
+  importWorker: Worker
 }
 
 interface Option {
@@ -627,6 +628,54 @@ function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {
     record.enabled = isChecked
   }
 }
+
+function handleUIDTChange(record, column, table) {
+  console.log(record, column, table)
+
+  const handler = (e) => {
+    const [type, payload] = e.data
+    switch (type) {
+      case ImportWorkerResponse.SINGLE_SELECT_OPTIONS:
+        importWorker.removeEventListener('message', handler, false);
+        record.dtxp = payload
+        break
+      case ImportWorkerResponse.MULTI_SELECT_OPTIONS:
+        importWorker.removeEventListener('message', handler, false);
+        record.dtxp = payload
+        break
+    }
+  }
+
+
+
+  if (column.uidt === UITypes.SingleSelect) {
+    importWorker.postMessage([
+      ImportWorkerOperations.GET_SINGLE_SELECT_OPTIONS,
+      {
+        table,
+        column,
+        record
+      },
+    ])
+    importWorker.addEventListener(
+        'message',handler,
+        false,
+    )
+  } else if (column.uidt === UITypes.MultiSelect) {
+    importWorker.postMessage([
+      ImportWorkerOperations.GET_SINGLE_SELECT_OPTIONS,
+      {
+        table,
+        column,
+        record,
+      },
+    ])
+    importWorker.addEventListener(
+        'message',handler,
+        false,
+    )
+  }
+}
 </script>
 
 <template>
@@ -817,19 +866,15 @@ function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {
                       show-search
                       :filter-option="filterOption"
                       dropdown-class-name="nc-dropdown-template-uidt"
+                      @change="handleUIDTChange(record, column, table)"
                     >
-                      <a-select-option
-                        v-for="(option, i) of uiTypeOptions"
-                        :key="i"
-                        :value="option.value"
-                        :disabled="isSelectDisabled(option.label, table.columns[record.key]?._disableSelect)"
-                      >
-                        <a-tooltip placement="right">
-                          <template v-if="isSelectDisabled(option.label, table.columns[record.key]?._disableSelect)" #title>
-                            The field is too large to be converted to {{ option.label }}
-                          </template>
-                          {{ option.label }}
-                        </a-tooltip>
+                      <a-select-option v-for="(option, i) of uiTypeOptions" :key="i" :value="option.value">
+                        <!--                        <a-tooltip placement="right"> -->
+                        <!--                          <template v-if="isSelectDisabled(option.label, table.columns[record.key]?._disableSelect)" #title> -->
+                        <!--                            The field is too large to be converted to {{ option.label }} -->
+                        <!--                          </template> -->
+                        {{ option.label }}
+                        <!--                        </a-tooltip> -->
                       </a-select-option>
                     </a-select>
                   </a-form-item>

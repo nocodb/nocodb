@@ -24,6 +24,7 @@ function baseModelSqlTests() {
   let baseModelSql: BaseModelSqlv2;
 
   beforeEach(async function () {
+    console.time('#### baseModelSqlTests');
     context = await init();
     project = await createProject(context);
     table = await createTable(context, project);
@@ -35,6 +36,7 @@ function baseModelSqlTests() {
       model: table,
       view,
     });
+    console.timeEnd('#### baseModelSqlTests');
   });
 
   it('Insert record', async () => {

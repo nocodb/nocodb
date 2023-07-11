@@ -6,7 +6,9 @@ import { SharedFormPage } from '../../../pages/SharedForm';
 import { AccountPage } from '../../../pages/Account';
 import { AccountAppStorePage } from '../../../pages/Account/AppStore';
 import { Api, UITypes } from 'nocodb-sdk';
-import { isHub } from '../../../setup/db';
+import { LoginPage } from '../../../pages/LoginPage';
+import { getDefaultPwd } from '../../utils/general';
+import { WorkspacePage } from '../../../pages/WorkspacePage';
 let api: Api<any>;
 
 // todo: Move most of the ui actions to page object and await on the api response
@@ -231,7 +233,7 @@ test.describe('Form view', () => {
     const sharedForm = new SharedFormPage(dashboard.rootPage);
     await sharedForm.cell.attachment.addFile({
       columnHeader: 'Attachment',
-      filePath: `${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`,
+      filePath: [`${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg]`],
     });
     await sharedForm.cell.fillText({
       columnHeader: 'Title',
@@ -245,7 +247,8 @@ test.describe('Form view', () => {
 
 test.describe('Form view with LTAR', () => {
   let dashboard: DashboardPage;
-  let form: FormPage;
+  let loginPage: LoginPage;
+  let wsPage: WorkspacePage;
   let context: any;
 
   let cityTable: any, countryTable: any;
@@ -253,7 +256,8 @@ test.describe('Form view with LTAR', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
-    form = dashboard.form;
+    loginPage = new LoginPage(page);
+    wsPage = new WorkspacePage(page);
 
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -327,13 +331,19 @@ test.describe('Form view with LTAR', () => {
     await page.reload();
   });
 
-  test('Form view with LTAR', async () => {
+  test('Form view with LTAR', async ({ page }) => {
     await dashboard.treeView.openTable({ title: 'Country' });
 
     const url = dashboard.rootPage.url();
 
     await dashboard.viewSidebar.createFormView({ title: 'NewForm' });
-    await dashboard.form.toolbar.getSharedViewUrl();
+    const formUrl = await dashboard.form.toolbar.getSharedViewUrl();
+    console.log(formUrl);
+
+    // sign-out
+    await dashboard.signOut();
+    await page.goto(formUrl);
+    await page.reload();
 
     const sharedForm = new SharedFormPage(dashboard.rootPage);
     await sharedForm.cell.fillText({
@@ -347,7 +357,13 @@ test.describe('Form view with LTAR', () => {
     await sharedForm.submit();
     await sharedForm.verifySuccessMessage();
 
-    await dashboard.rootPage.goto(url);
+    await page.goto(url);
+    await page.reload();
+    await loginPage.signIn({ email: 'user@nocodb.com', password: getDefaultPwd(), withoutPrefix: true });
+
+    await wsPage.projectOpen({ title: context.project.title });
+
+    await dashboard.treeView.openTable({ title: 'Country' });
     await dashboard.viewSidebar.openView({ title: 'Country' });
 
     await dashboard.grid.cell.verify({
@@ -367,13 +383,11 @@ test.describe('Form view with LTAR', () => {
 
 test.describe('Form view', () => {
   let dashboard: DashboardPage;
-  let form: FormPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
-    form = dashboard.form;
   });
 
   test('Select fields in form view', async () => {
@@ -420,6 +434,7 @@ test.describe('Form view', () => {
     const formLink = await dashboard.form.toolbar.getSharedViewUrl();
 
     await dashboard.rootPage.goto(formLink);
+    await dashboard.rootPage.reload();
 
     const sharedForm = new SharedFormPage(dashboard.rootPage);
 

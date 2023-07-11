@@ -20,7 +20,7 @@ test.describe('Auth', () => {
   let workspacePage: WorkspacePage;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
+    context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     signupPage = new SignupPage(page);
     projectsPage = new ProjectsPage(page);
@@ -31,15 +31,23 @@ test.describe('Auth', () => {
   });
 
   test('Change password', async ({ page }) => {
-    await dashboard.closeTab({ title: 'Team & Auth' });
-    await dashboard.gotoSettings();
-    await settings.selectTab({ tab: SettingTab.TeamAuth });
-    const url = await settings.teams.invite({
-      email: 'user-1@nocodb.com',
-      role: 'creator',
-    });
-    await settings.teams.closeInvite();
-    await settings.close();
+    let url = '';
+    if (isHub()) {
+      await dashboard.treeView.openTable({ title: 'Country' });
+      await dashboard.grid.toolbar.clickShare();
+      await dashboard.grid.toolbar.share.invite({ email: 'user-1@nocodb.com', role: 'creator' });
+      url = await dashboard.grid.toolbar.share.getInvitationUrl();
+    } else {
+      await dashboard.closeTab({ title: 'Team & Auth' });
+      await dashboard.gotoSettings();
+      await settings.selectTab({ tab: SettingTab.TeamAuth });
+      url = await settings.teams.invite({
+        email: 'user-1@nocodb.com',
+        role: 'creator',
+      });
+      await settings.teams.closeInvite();
+      await settings.close();
+    }
 
     await dashboard.signOut();
 
@@ -47,6 +55,7 @@ test.describe('Auth', () => {
     await signupPage.signUp({
       email: 'user-1@nocodb.com',
       password: getDefaultPwd(),
+      withoutPrefix: true,
     });
 
     if (isHub()) {

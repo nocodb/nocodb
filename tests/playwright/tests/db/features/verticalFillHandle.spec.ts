@@ -3,7 +3,6 @@ import setup from '../../../setup';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { Api } from 'nocodb-sdk';
 import { createDemoTable } from '../../../setup/demoTable';
-import { BulkUpdatePage } from '../../../pages/Dashboard/BulkUpdate';
 
 let dashboard: DashboardPage;
 let context: any;

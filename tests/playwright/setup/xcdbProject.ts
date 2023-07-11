@@ -1,5 +1,7 @@
-import { Api } from 'nocodb-sdk';
-let api: Api;
+import { Api, WorkspaceListType } from 'nocodb-sdk';
+import { isHub } from './db';
+let api: Api<any>;
+
 async function createXcdb(token?: string) {
   api = new Api({
     baseURL: `http://localhost:8080/`,
@@ -7,6 +9,11 @@ async function createXcdb(token?: string) {
       'xc-auth': token,
     },
   });
+
+  let wsList: WorkspaceListType;
+  if (isHub()) {
+    wsList = await api.workspace.list();
+  }
 
   const projectList = await api.project.list();
   for (const project of projectList.list) {
@@ -16,7 +23,7 @@ async function createXcdb(token?: string) {
     }
   }
 
-  const project = await api.project.create({ title: 'xcdb' });
+  const project = await api.project.create({ title: 'xcdb', fk_workspace_id: wsList?.list[0].id, type: 'database' });
   return project;
 }
 

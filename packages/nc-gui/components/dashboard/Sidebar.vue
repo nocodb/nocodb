@@ -88,7 +88,7 @@ const navigateToHome = () => {
 
       <div class="w-full mt-2"></div>
 
-      <div role="button" class="nc-sidebar-top-button" @click="navigateToHome">
+      <div role="button" class="nc-sidebar-top-button" @click="navigateToHome" data-testid="nc-sidebar-home-btn">
         <MaterialSymbolsHomeOutlineRounded class="!h-3.9" />
         <div>Home</div>
       </div>
@@ -103,6 +103,7 @@ const navigateToHome = () => {
         modal
         type="text"
         class="!p-0 mx-1"
+        data-testid="nc-sidebar-create-project-btn"
         :active-workspace-id="route.params.workspaceId"
       >
         <div

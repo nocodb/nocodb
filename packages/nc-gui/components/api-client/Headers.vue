@@ -77,7 +77,7 @@ const filterOption = (input: string, option: Option) => option.value.toUpperCase
 
       <tbody>
         <tr v-for="(headerRow, idx) in vModel" :key="idx" class="!h-2 overflow-hidden">
-          <td class="px-2">
+          <td class="px-2 nc-hook-header-tab-checkbox">
             <a-form-item class="form-item">
               <a-checkbox v-model:checked="headerRow.enabled" />
             </a-form-item>
@@ -88,6 +88,7 @@ const filterOption = (input: string, option: Option) => option.value.toUpperCase
               <a-auto-complete
                 v-model:value="headerRow.name"
                 placeholder="Key"
+                class="nc-input-hook-header-key"
                 :options="headerList"
                 :filter-option="filterOption"
               />
@@ -96,7 +97,7 @@ const filterOption = (input: string, option: Option) => option.value.toUpperCase
 
           <td class="px-2">
             <a-form-item class="form-item">
-              <a-input v-model:value="headerRow.value" placeholder="Value" class="!rounded-md" />
+              <a-input v-model:value="headerRow.value" placeholder="Value" class="!rounded-md nc-input-hook-header-value" />
             </a-form-item>
           </td>
 

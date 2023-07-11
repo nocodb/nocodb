@@ -60,7 +60,7 @@ watch(
   (val) => {
     if (!val) {
       workspace.value = {
-        title: 'Untitled Workspace',
+        title: 'Untitled',
       }
     } else {
       nextTick(() => {

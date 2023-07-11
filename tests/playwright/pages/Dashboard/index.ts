@@ -9,13 +9,13 @@ import { LinkRecord } from './Grid/Column/LTAR/LinkRecord';
 import { TreeViewPage } from './TreeView';
 import { SettingsPage } from './Settings';
 import { ViewSidebarPage } from './ViewSidebar';
+import { LeftSidebarPage } from './LeftSidebar';
 import { GalleryPage } from './Gallery';
 import { KanbanPage } from './Kanban';
 import { MapPage } from './Map';
 import { ImportAirtablePage } from './Import/Airtable';
 import { ImportTemplatePage } from './Import/ImportTemplate';
 import { WebhookFormPage } from './WebhookForm';
-import { ProjectsPage } from '../ProjectsPage';
 import { FindRowByScanOverlay } from './FindRowByScanOverlay';
 import { SidebarPage } from './Sidebar';
 import { DocsPageGroup } from './Docs';
@@ -44,6 +44,7 @@ export class DashboardPage extends BasePage {
   readonly linkRecord: LinkRecord;
   readonly settings: SettingsPage;
   readonly viewSidebar: ViewSidebarPage;
+  readonly leftSidebar: LeftSidebarPage;
   readonly importAirtable: ImportAirtablePage;
   readonly importTemplate = new ImportTemplatePage(this);
   readonly docs: DocsPageGroup;
@@ -75,6 +76,7 @@ export class DashboardPage extends BasePage {
     this.linkRecord = new LinkRecord(this);
     this.settings = new SettingsPage(this);
     this.viewSidebar = new ViewSidebarPage(this);
+    this.leftSidebar = new LeftSidebarPage(this);
     this.importAirtable = new ImportAirtablePage(this);
     this.sidebar = new SidebarPage(this);
     this.docs = new DocsPageGroup(this);
@@ -136,48 +138,14 @@ export class DashboardPage extends BasePage {
   }
 
   async clickHome() {
-    await this.rootPage.getByTestId('nc-noco-brand-icon').click();
-
+    if (isHub()) {
+      await this.leftSidebar.clickHome();
+    } else {
+      await this.rootPage.getByTestId('nc-noco-brand-icon').click();
+    }
     // wait for workspace page to render
     const workspacePage = new WorkspacePage(this.rootPage);
     await workspacePage.waitFor({ state: 'visible' });
-  }
-
-  private async _waitForDBTabRender({ title, mode }: { title: string; mode: string }) {
-    if (title === 'Team & Auth') {
-      await this.get()
-        .locator('div[role="tab"]', {
-          hasText: 'Users Management',
-        })
-        .waitFor({
-          state: 'visible',
-        });
-    } else {
-      await this.get().getByTestId('grid-id-column').waitFor({
-        state: 'visible',
-      });
-    }
-
-    await this.tabBar.locator(`.ant-tabs-tab-active:has-text("${title}")`).waitFor();
-
-    // wait active tab animation to finish
-    await expect
-      .poll(async () => {
-        return await this.tabBar.getByTestId(`nc-root-tabs-${title}`).evaluate(el => {
-          return window.getComputedStyle(el).getPropertyValue('color');
-        });
-      })
-      .toBe('rgb(67, 81, 232)'); // active tab text color
-
-    await this.get().getByTestId('grid-load-spinner').waitFor({ state: 'hidden' });
-
-    if (mode === 'standard') {
-      if (title === 'Team & Auth') {
-        await expect(this.rootPage).toHaveURL(`/nc/${this.project.id}/auth`);
-      } else {
-        await expect(this.rootPage).toHaveURL(new RegExp(`/nc/${this.project.id}/table/md_.{14}`));
-      }
-    }
   }
 
   async verifyOpenedTab({ title, mode = 'standard', emoji }: { title: string; mode?: string; emoji?: string }) {
@@ -220,9 +188,13 @@ export class DashboardPage extends BasePage {
     mode?: string;
     type?: ProjectTypes;
   }) {
+    // tabs disabled
+    if (isHub()) {
+      return;
+    }
+
     if (type === ProjectTypes.DATABASE) {
       // 0523: Tabs are disabled & hence below checks are not required
-      // await this._waitForDBTabRender({ title, mode });
     } else if (type === ProjectTypes.DOCUMENTATION) {
       await this._waitForDocsTabRender({ title, mode });
     }

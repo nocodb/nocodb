@@ -18,7 +18,9 @@ function authTests() {
   let context;
 
   beforeEach(async function () {
+    console.time('#### orgTests');
     context = await init();
+    console.timeEnd('#### orgTests');
   });
 
   it('Get users list', async () => {

@@ -26,7 +26,7 @@ export const useProjects = defineStore('projectsStore', () => {
 
   const { api } = useApi()
 
-  const { appInfo } = $(useGlobal())
+  const { getBaseUrl } = $(useGlobal())
 
   const isProjectsLoading = ref(false)
 
@@ -44,7 +44,7 @@ export const useProjects = defineStore('projectsStore', () => {
     try {
       if (activeWorkspace?.id) {
         const { list } = await $api.workspaceProject.list(activeWorkspace?.id ?? workspace?.id, {
-          baseURL: appInfo.baseHostName ? `https://${activeWorkspace?.id ?? workspace?.id}.${appInfo.baseHostName}` : undefined,
+          baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
         })
         _projects = list
       } else {
@@ -54,14 +54,10 @@ export const useProjects = defineStore('projectsStore', () => {
                 query: {
                   [page]: true,
                 },
-                baseURL: appInfo.baseHostName
-                  ? `https://${activeWorkspace?.id ?? workspace?.id}.${appInfo.baseHostName}`
-                  : undefined,
+                baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
               }
             : {
-                baseURL: appInfo.baseHostName
-                  ? `https://${activeWorkspace?.id ?? workspace?.id}.${appInfo.baseHostName}`
-                  : undefined,
+                baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
               },
         )
         _projects = list
@@ -183,7 +179,7 @@ export const useProjects = defineStore('projectsStore', () => {
         // }),
       },
       {
-        baseURL: appInfo.baseHostName ? `https://${projectPayload.workspaceId}.${appInfo.baseHostName}` : undefined,
+        baseURL: getBaseUrl(projectPayload.workspaceId),
       },
     )
 

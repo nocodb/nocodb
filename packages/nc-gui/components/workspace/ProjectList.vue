@@ -357,14 +357,14 @@ const setIcon = async (icon: string, project: ProjectType) => {
               </div>
             </div>
 
-            <div v-if="!record.edit" class="nc-click-transition-1" @click.stop>
-              <MdiStar v-if="record.starred" class="text-yellow-400 cursor-pointer" @click="removeFromFavourite(record.id)" />
-              <MdiStarOutline
-                v-else
-                class="opacity-0 group-hover:opacity-100 transition transition-opacity text-yellow-400 cursor-pointer"
-                @click="addToFavourite(record.id)"
-              />
-            </div>
+            <!--            <div v-if="!record.edit" class="nc-click-transition-1" @click.stop>-->
+            <!--              <MdiStar v-if="record.starred" class="text-yellow-400 cursor-pointer" @click="removeFromFavourite(record.id)" />-->
+            <!--              <MdiStarOutline-->
+            <!--                v-else-->
+            <!--                class="opacity-0 group-hover:opacity-100 transition transition-opacity text-yellow-400 cursor-pointer"-->
+            <!--                @click="addToFavourite(record.id)"-->
+            <!--              />-->
+            <!--            </div>-->
           </div>
         </template>
 
@@ -411,7 +411,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
               <a-menu>
                 <a-menu-item @click="enableEdit(i)">
                   <div class="nc-menu-item-wrapper">
-                    <GeneralIcon icon="edit" class="text-gray-500" />
+                    <GeneralIcon icon="edit" class="text-gray-500 text-primary" />
                     Rename Project
                   </div>
                 </a-menu-item>
@@ -423,7 +423,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                   @click="duplicateProject(record)"
                 >
                   <div class="nc-menu-item-wrapper">
-                    <GeneralIcon icon="duplicate" class="text-gray-500" />
+                    <GeneralIcon icon="duplicate" class="text-gray-500 text-primary" />
                     Duplicate Project
                   </div>
                 </a-menu-item>
@@ -432,13 +432,13 @@ const setIcon = async (icon: string, project: ProjectType) => {
                   @click="moveProject(record)"
                 >
                   <div class="nc-menu-item-wrapper">
-                    <GeneralIcon icon="move" class="text-gray-500" />
+                    <GeneralIcon icon="move" class="text-gray-500 text-primary" />
                     Move Project
                   </div>
                 </a-menu-item>
                 <a-menu-item @click="deleteProject(record)">
-                  <div class="nc-menu-item-wrapper">
-                    <GeneralIcon icon="delete" class="text-gray-500" />
+                  <div class="nc-menu-item-wrapper text-red-600">
+                    <GeneralIcon icon="delete2" class="text-gray-500 text-error" />
                     Delete Project
                   </div>
                 </a-menu-item>

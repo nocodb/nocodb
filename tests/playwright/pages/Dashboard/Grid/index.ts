@@ -4,6 +4,7 @@ import BasePage from '../../Base';
 import { CellPageObject, CellProps } from '../common/Cell';
 import { ColumnPageObject } from './Column';
 import { ToolbarPage } from '../common/Toolbar';
+import { FootbarPage } from '../common/Footbar';
 import { ProjectMenuObject } from '../common/ProjectMenu';
 import { QrCodeOverlay } from '../QrCodeOverlay';
 import { BarcodeOverlay } from '../BarcodeOverlay';
@@ -19,6 +20,7 @@ export class GridPage extends BasePage {
   readonly column: ColumnPageObject;
   readonly cell: CellPageObject;
   readonly toolbar: ToolbarPage;
+  readonly footbar: FootbarPage;
   readonly projectMenu: ProjectMenuObject;
   readonly workspaceMenu: WorkspaceMenuObject;
   readonly rowPage: RowPageObject;
@@ -32,6 +34,7 @@ export class GridPage extends BasePage {
     this.column = new ColumnPageObject(this);
     this.cell = new CellPageObject(this);
     this.toolbar = new ToolbarPage(this);
+    this.footbar = new FootbarPage(this);
     this.projectMenu = new ProjectMenuObject(this);
     this.workspaceMenu = new WorkspaceMenuObject(this);
     this.rowPage = new RowPageObject(this);

@@ -37,7 +37,11 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   const { allRoles } = useRoles()
 
   /** If baseHostname defined block home page access under subdomains, and redirect to workspace page */
-  if (state.appInfo.value.baseHostName && !location.hostname?.startsWith('app.') && to.path === '/') {
+  if (
+    state.appInfo.value.baseHostName &&
+    !location.hostname?.startsWith(`${state.appInfo.value.mainSubDomain}.`) &&
+    to.path === '/'
+  ) {
     return navigateTo(`/ws/${location.hostname.split('.')[0]}`)
   }
 

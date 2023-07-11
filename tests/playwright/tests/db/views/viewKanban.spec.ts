@@ -3,7 +3,7 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 
 import setup from '../../../setup';
-import { isPg, isSqlite } from '../../../setup/db';
+import { isHub, isPg, isSqlite } from '../../../setup/db';
 
 const filmRatings = ['G', 'PG', 'PG-13', 'R', 'NC-17'];
 
@@ -29,6 +29,9 @@ test.describe('View', () => {
       await dashboard.treeView.deleteTable({ title: 'NicerButSlowerFilmList' });
       await dashboard.treeView.deleteTable({ title: 'FilmList' });
     }
+
+    // in hub, after table delete- first table in the list gets rendered
+    await dashboard.treeView.openTable({ title: 'Film' });
 
     if (isSqlite(context) || isPg(context)) {
       await dashboard.grid.column.openEdit({ title: 'Rating' });
@@ -212,7 +215,7 @@ test.describe('View', () => {
 
     await dashboard.viewSidebar.copyView({ title: 'Film Kanban' });
     await dashboard.viewSidebar.verifyView({
-      title: 'Kanban-1',
+      title: isHub() ? 'Untitled Kanban' : 'Kanban-1',
       index: 2,
     });
     const kanban = dashboard.kanban;
@@ -238,11 +241,12 @@ test.describe('View', () => {
       });
 
     await dashboard.viewSidebar.changeViewIcon({
-      title: 'Kanban-1',
+      title: 'Untitled Kanban',
       icon: 'american-football',
+      iconDisplay: '🏈',
     });
 
-    await dashboard.viewSidebar.deleteView({ title: 'Kanban-1' });
+    await dashboard.viewSidebar.deleteView({ title: 'Untitled Kanban' });
     ///////////////////////////////////////////////
 
     await dashboard.viewSidebar.openView({ title: 'Film Kanban' });

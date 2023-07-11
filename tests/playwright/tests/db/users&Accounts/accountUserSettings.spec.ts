@@ -7,6 +7,11 @@ import { getDefaultPwd } from '../../utils/general';
 import { isHub } from '../../../setup/db';
 
 test.describe('App settings', () => {
+  // hub will not have this feature
+  if (isHub()) {
+    test.skip();
+  }
+
   let accountSettingsPage: AccountSettingsPage;
   let accountPage: AccountPage;
   // @ts-ignore
@@ -19,11 +24,6 @@ test.describe('App settings', () => {
   });
 
   test('Toggle invite only signup', async () => {
-    // hub will not have this feature
-    if (isHub()) {
-      test.skip();
-    }
-
     test.slow();
 
     await accountSettingsPage.goto();

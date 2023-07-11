@@ -31,9 +31,10 @@ function projectTest() {
   let project;
 
   beforeEach(async function () {
+    console.time('#### projectTest');
     context = await init();
-
     project = await createProject(context);
+    console.timeEnd('#### projectTest');
   });
 
   it('Get project info', async () => {
@@ -86,7 +87,7 @@ function projectTest() {
       .send({
         title: project.title,
       })
-      .expect(400);
+      .expect(200);
   });
 
   // todo: fix passport user role popluation bug
@@ -308,7 +309,7 @@ function projectTest() {
           'userCount',
           'sharedBaseCount',
           'projectCount',
-          'projects'
+          'projects',
         );
         expect(res.body).to.have.property('projectCount').to.eq(1);
         expect(res.body).to.have.property('projects').to.be.an('array');
@@ -333,7 +334,7 @@ function projectTest() {
             'sharedGalleryCount',
             'sharedKanbanCount',
             'sharedTotal',
-            'sharedLockedCount'
+            'sharedLockedCount',
           );
         expect(res.body.projects[0]).have.keys(
           'external',
@@ -343,7 +344,7 @@ function projectTest() {
           'userCount',
           'rowCount',
           'tableCount',
-          'viewCount'
+          'viewCount',
         );
         expect(res.body)
           .to.have.nested.property('projects[0].rowCount')

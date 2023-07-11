@@ -107,21 +107,10 @@ export class ExpandedFormPage extends BasePage {
 
   async save({
     waitForRowsData = true,
-    saveAndExitMode = true,
   }: {
     waitForRowsData?: boolean;
-    saveAndExitMode?: boolean;
   } = {}) {
-    if (!saveAndExitMode) {
-      await this.get().locator('.nc-expand-form-save-btn .ant-dropdown-trigger').click();
-      const dropdownList = this.rootPage.locator('.nc-expand-form-save-dropdown-menu');
-      await dropdownList.locator('.ant-dropdown-menu-item:has-text("Save & Stay")').click();
-    }
-
-    const saveRowAction = () =>
-      saveAndExitMode
-        ? this.get().locator('button:has-text("Save & Exit")').click()
-        : this.get().locator('button:has-text("Save & Stay")').click();
+    const saveRowAction = () => this.get().locator('button.nc-expand-form-save-btn').click();
 
     if (waitForRowsData) {
       await this.waitForResponse({
@@ -138,10 +127,7 @@ export class ExpandedFormPage extends BasePage {
       });
     }
 
-    if (!saveAndExitMode) {
-      await this.get().press('Escape');
-    }
-
+    await this.get().press('Escape');
     await this.get().waitFor({ state: 'hidden' });
     await this.verifyToast({ message: `updated successfully.` });
     await this.rootPage.locator('[data-testid="grid-load-spinner"]').waitFor({ state: 'hidden' });

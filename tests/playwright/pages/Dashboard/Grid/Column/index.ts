@@ -276,6 +276,7 @@ export class ColumnPageObject extends BasePage {
     dateFormat?: string;
     timeFormat?: string;
   }) {
+    await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').scrollIntoViewIfNeeded();
     await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').click();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').last().click();
 

@@ -32,6 +32,7 @@ export class TeamsPage extends BasePage {
     await this.inviteTeamBtn.click();
   }
 
+  // will be obsolete once we have hub deployed
   async invite({ email, role, skipOpeningModal }: { email: string; role: string; skipOpeningModal?: boolean }) {
     email = this.prefixEmail(email);
 

@@ -382,7 +382,7 @@ const hideField = async () => {
 
         <a-menu-item v-if="!column?.pv" @click="deleteColumn">
           <div class="nc-column-delete nc-header-menu-item">
-            <component :is="iconMap.delete" class="text-error" />
+            <component :is="iconMap.delete2" class="text-error" />
             <!-- Delete -->
             {{ $t('general.delete') }}
           </div>

@@ -4,7 +4,7 @@ import { airtableApiBase, airtableApiKey } from '../../../constants';
 import setup from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
-import { Api } from 'nocodb-sdk';
+import { Api, ProjectListType } from 'nocodb-sdk';
 import { ProjectInfo, ProjectInfoApiUtil } from '../../utils/projectInfoApiUtil';
 import { deepCompare } from '../../utils/objectCompareUtil';
 import { isHub } from '../../../setup/db';
@@ -24,7 +24,14 @@ test.describe('Project operations', () => {
 
   async function deleteIfExists(name: string) {
     try {
-      const projectList = await api.project.list();
+      let projectList: ProjectListType;
+      if (isHub()) {
+        const ws = await api.workspace.list();
+        projectList = await api.workspaceProject.list(ws.list[0].id);
+      } else {
+        projectList = await api.project.list();
+      }
+
       const project = projectList.list.find((p: any) => p.title === name);
       if (project) {
         await api.project.delete(project.id);
@@ -114,7 +121,13 @@ test.describe('Project operations', () => {
     // await quickVerify({ dashboard, airtableImport: true, context });
 
     // compare
-    const projectList = await api.project.list();
+    let projectList: ProjectListType;
+    if (isHub()) {
+      const ws = await api.workspace.list();
+      projectList = await api.workspaceProject.list(ws.list[0].id);
+    } else {
+      projectList = await api.project.list();
+    }
     const testProjectId = await projectList.list.find((p: any) => p.title === testProjectName);
     const dupeProjectId = await projectList.list.find((p: any) => p.title === dupeProjectName);
     const projectInfoOp: ProjectInfoApiUtil = new ProjectInfoApiUtil(context.token);

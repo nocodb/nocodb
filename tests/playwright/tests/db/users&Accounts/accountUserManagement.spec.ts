@@ -23,6 +23,10 @@ test.describe('User roles', () => {
   let context: any;
 
   test.beforeEach(async ({ page }) => {
+    // hub will not have this feature
+    if (isHub()) {
+      test.skip();
+    }
     context = await setup({ page, isEmptyProject: true });
     accountPage = new AccountPage(page);
     accountUsersPage = new AccountUsersPage(accountPage);
@@ -33,11 +37,6 @@ test.describe('User roles', () => {
   });
 
   test('Invite user, update role and delete user', async () => {
-    // hub will not have this feature
-    if (isHub()) {
-      test.skip();
-    }
-
     test.slow();
 
     await accountUsersPage.goto();

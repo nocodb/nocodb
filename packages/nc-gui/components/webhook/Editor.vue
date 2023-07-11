@@ -477,7 +477,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex">
+  <div class="flex nc-webhook-header">
     <div class="flex-1">
       <div class="flex items-center">
         <div class="flex flex-row items-center gap-x-2">

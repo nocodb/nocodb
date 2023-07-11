@@ -450,6 +450,7 @@ onKeyStroke('Escape', () => {
             <MdiDotsHorizontal
               class="min-w-5 min-h-5 py-0.25 mr-1.5 !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 opacity-0 group-hover:(opacity-100) hover:text-black text-gray-600 rounded"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
+              data-testid="nc-sidebar-context-menu"
               @click.stop
             />
             <template #overlay>
@@ -468,7 +469,7 @@ onKeyStroke('Escape', () => {
                       <GeneralIcon icon="folder" class="group-hover:text-accent text-xl" />
 
                       <div class="flex flex-col">
-                        <div class="text-base font-semibold capitalize text-gray-600">
+                        <div class="text-base font-semibold capitalize text-gray-600 group-hover:text-accent">
                           <GeneralTruncateText>{{ project.title }}</GeneralTruncateText>
                         </div>
 
@@ -519,7 +520,7 @@ onKeyStroke('Escape', () => {
                         @click="toggleDialog(true, 'teamAndAuth', undefined, project.id)"
                       >
                         <GeneralIcon icon="settings" class="group-hover:text-accent" />
-                        {{ $t('title.teamAndSettings') }}
+                        {{ $t('activity.settings') }}
                       </div>
                     </a-menu-item>
 
@@ -527,13 +528,13 @@ onKeyStroke('Escape', () => {
 
                     <a-menu-item @click="enableEditMode">
                       <div class="nc-project-menu-item group">
-                        <GeneralIcon icon="edit" />
+                        <GeneralIcon icon="edit" class="group-hover:text-accent" />
                         Edit
                       </div>
                     </a-menu-item>
                     <a-menu-item @click="confirmDeleteProject">
                       <div class="nc-project-menu-item group">
-                        <GeneralIcon icon="delete" />
+                        <GeneralIcon icon="delete" class="group-hover:text-accent" />
                         Delete
                       </div>
                     </a-menu-item>

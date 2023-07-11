@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup from '../../../setup';
 import { knex } from 'knex';
-import { Api, UITypes } from 'nocodb-sdk';
+import { Api, ProjectListType, UITypes } from 'nocodb-sdk';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { isHub, isMysql, isPg, isSqlite } from '../../../setup/db';
 import { getKnexConfig } from '../../utils/config';
@@ -37,30 +37,35 @@ async function timezoneSuite(token: string, projectTitle: string, skipTableCreat
       'xc-auth': token,
     },
   });
-
-  const projectList = await api.project.list();
-  for (const project of projectList.list) {
-    // delete project with title 'xcdb' if it exists
-    if (project.title === projectTitle) {
-      await api.project.delete(project.id);
-    }
-  }
-
   // get current workspace information if in hub
   let workspaceId = '';
-  if (isHub()) {
-    const workspaces = await api.workspace.list();
-    workspaceId = workspaces.list[0].id;
+  try {
+    let projectList: ProjectListType;
+    if (isHub()) {
+      const ws = await api.workspace.list();
+      workspaceId = ws.list[0].id;
+      projectList = await api.workspaceProject.list(workspaceId);
+    } else {
+      projectList = await api.project.list();
+    }
+    for (const project of projectList.list) {
+      // delete project with title 'xcdb' if it exists
+      if (project.title === projectTitle) {
+        await api.project.delete(project.id);
+      }
+    }
+  } catch (e) {
+    console.log(e);
   }
 
-  const project = await api.project.create({ title: 'xcdb', fk_workspace_id: workspaceId });
+  const project = await api.project.create({ title: projectTitle, fk_workspace_id: workspaceId, type: 'database' });
+
   if (skipTableCreate) return { project };
   const table = await api.base.tableCreate(project.id, project.bases?.[0].id, {
     table_name: 'dateTimeTable',
     title: 'dateTimeTable',
     columns: columns,
   });
-
   return { project, table };
 }
 
@@ -118,6 +123,7 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
 
     try {
       const { project, table } = await timezoneSuite(context.token, 'xcdb0');
+      await dashboard.rootPage.reload();
 
       await api.dbTableRow.bulkCreate('noco', project.id, table.id, rowAttributes);
       records = await api.dbTableRow.list('noco', project.id, table.id, { limit: 10 });
@@ -150,7 +156,7 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
     if (!isSqlite(context) && !isHub()) return;
 
     if (isHub()) {
-      await dashboard.treeView.openBase({ title: 'xcdb' });
+      await dashboard.treeView.openBase({ title: 'xcdb0' });
     } else {
       await dashboard.clickHome();
       const projectsPage = new ProjectsPage(dashboard.rootPage);
@@ -223,6 +229,8 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
 
     try {
       const { project, table } = await timezoneSuite(context.token, 'xcdb1');
+      await dashboard.rootPage.reload();
+
       await api.dbTableRow.bulkCreate('noco', project.id, table.id, rowAttributes);
     } catch (e) {
       console.error(e);
@@ -250,7 +258,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
    */
   test('API insert, verify display value', async () => {
     if (isHub()) {
-      await dashboard.treeView.openBase({ title: 'xcdb' });
+      await dashboard.treeView.openBase({ title: 'xcdb1' });
     } else {
       await dashboard.clickHome();
       const projectsPage = new ProjectsPage(dashboard.rootPage);
@@ -297,13 +305,15 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     dashboard = new DashboardPage(page, context.project);
 
     const { project } = await timezoneSuite(context.token, 'xcdb2', true);
+    await dashboard.rootPage.reload();
+
     context.project = project;
 
     // Kludge: Using API for test preparation was not working
     // Hence switched over to UI based table creation
 
     if (isHub()) {
-      await dashboard.treeView.openBase({ title: 'xcdb' });
+      await dashboard.treeView.openBase({ title: 'xcdb2' });
     } else {
       await dashboard.clickHome();
       const projectsPage = new ProjectsPage(dashboard.rootPage);
@@ -545,11 +555,6 @@ function getDateTimeInUTCTimeZone(dateString: string) {
 }
 
 test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same as server timezone', async () => {
-  if (isHub()) {
-    // Hub not to have extDB support
-    test.skip();
-  }
-
   let dashboard: DashboardPage;
   let context: any;
 
@@ -905,11 +910,6 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
 });
 
 test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to HKT', async () => {
-  if (isHub()) {
-    // Hub not to have extDB support
-    test.skip();
-  }
-
   let dashboard: DashboardPage;
   let context: any;
 
@@ -1046,11 +1046,6 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
 });
 
 test.describe.serial('Timezone- ExtDB (MySQL Only) : DB Timezone configured as HKT', () => {
-  if (isHub()) {
-    // Hub not to have extDB support
-    test.skip();
-  }
-
   let dashboard: DashboardPage;
   let context: any;
 

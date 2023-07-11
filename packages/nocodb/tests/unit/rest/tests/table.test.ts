@@ -25,10 +25,12 @@ function tableTest() {
   let table;
 
   beforeEach(async function () {
+    console.time('#### tableTest');
     context = await init();
 
     project = await createProject(context);
     table = await createTable(context, project);
+    console.timeEnd('#### tableTest');
   });
 
   it('Get table list', async function () {
@@ -84,7 +86,7 @@ function tableTest() {
 
     if (
       !response.text.includes(
-        'Missing table name `table_name` property in request body'
+        'Missing table name `table_name` property in request body',
       )
     ) {
       console.error(response.text);
@@ -95,7 +97,7 @@ function tableTest() {
     if (tables.length !== 1) {
       console.log(tables);
       return new Error(
-        `Tables should not be created, tables.length:${tables.length}`
+        `Tables should not be created, tables.length:${tables.length}`,
       );
     }
   });
@@ -179,7 +181,7 @@ function tableTest() {
 
     if (
       !response.text.includes(
-        'Leading or trailing whitespace not allowed in table names'
+        'Leading or trailing whitespace not allowed in table names',
       )
     ) {
       console.error(response.text);

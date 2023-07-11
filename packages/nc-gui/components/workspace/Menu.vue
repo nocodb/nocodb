@@ -157,7 +157,7 @@ onKeyStroke('Escape', () => {
             <div class="group select-none flex items-center gap-4 p-2 pb-1 !border-t-0">
               <input
                 v-model="activeWorkspace!.title"
-                class="nc-workspace-title-input text-current capitalize"
+                class="nc-workspace-title-input text-current capitalize group-hover:text-accent"
                 @input="updateWorkspaceTitle"
               />
             </div>
@@ -176,7 +176,7 @@ onKeyStroke('Escape', () => {
             <div class="max-h-300px nc-scrollbar-md">
               <a-menu-item v-for="workspace of workspacesList" :key="workspace.id!" @click="navigateTo(`/ws/${workspace.id}`)">
                 <div class="nc-workspace-menu-item group capitalize">
-                  <GeneralIcon icon="workspace" />
+                  <GeneralIcon icon="workspace" class="group-hover:text-accent" />
 
                   {{ workspace.title }}
                 </div>
@@ -224,7 +224,7 @@ onKeyStroke('Escape', () => {
                 <a-sub-menu key="theme">
                   <template #title>
                     <div class="nc-workspace-menu-item group">
-                      <GeneralIcon icon="image" class="group-hover:text-black" />
+                      <GeneralIcon icon="image" class="group-hover:text-accent" />
                       {{ $t('activity.account.themes') }}
 
                       <div class="flex-1" />
@@ -345,7 +345,7 @@ onKeyStroke('Escape', () => {
               <a-sub-menu key="account">
                 <template #title>
                   <div class="nc-workspace-menu-item group">
-                    <GeneralIcon icon="account" class="group-hover:text-black" />
+                    <GeneralIcon icon="account" class="group-hover:text-accent" />
                     {{ $t('labels.account') }}
                     <div class="flex-1" />
 
@@ -359,7 +359,7 @@ onKeyStroke('Escape', () => {
 
                 <a-menu-item key="0" class="!rounded-t">
                   <nuxt-link v-e="['c:navbar:user:email']" class="nc-workspace-menu-item group !no-underline" to="/account/users">
-                    <GeneralIcon icon="at" class="mt-1 group-hover:text-black" />&nbsp;
+                    <GeneralIcon icon="at" class="mt-1 group-hover:text-accent" />&nbsp;
                     <div class="prose-sm group-hover:text-primary">
                       <div>Account</div>
                       <div class="text-xs text-gray-500">{{ email }}</div>

@@ -150,7 +150,7 @@ const onTabChange = (tab: 'views' | 'developer') => {
 
 <template>
   <div class="relative nc-view-sidebar flex flex-col border-l-1 border-gray-75 relative h-full w-full bg-white">
-    <div class="flex flex-row p-1 mx-3 mt-3 mb-3 bg-gray-50 rounded-md gap-x-2">
+    <div class="flex flex-row p-1 mx-3 mt-3 mb-3 bg-gray-50 rounded-md gap-x-2 nc-view-sidebar-tab">
       <div
         class="tab"
         :class="{
@@ -159,7 +159,7 @@ const onTabChange = (tab: 'views' | 'developer') => {
         @click="onTabChange('views')"
       >
         <FieldIcon class="h-3.5 w-3.5" />
-        <div class="tab-title">Views</div>
+        <div class="tab-title nc-tab">Views</div>
       </div>
       <div
         class="tab"
@@ -175,7 +175,7 @@ const onTabChange = (tab: 'views' | 'developer') => {
             fontWeight: 600,
           }"
         />
-        <div class="tab-title">Developer</div>
+        <div class="tab-title nc-tab">Developer</div>
       </div>
     </div>
 

@@ -172,14 +172,10 @@ const createQrCodeColumn = async (
     referencedQrValueTableColumnTitle: string;
   },
 ) => {
-  const referencedQrValueTableColumnId = await table
-    .getColumns()
-    .then(
-      (cols) =>
-        cols.find(
-          (column) => column.title == referencedQrValueTableColumnTitle,
-        )['id'],
-    );
+  const columns = await table.getColumns();
+  const referencedQrValueTableColumnId = columns.find(
+    (column) => column.title == referencedQrValueTableColumnTitle,
+  )['id'];
 
   const qrCodeColumn = await createColumn(context, table, {
     title: title,

@@ -26,6 +26,8 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import { GridPage } from '../../../pages/Dashboard/Grid';
 import { createXcdb, deleteXcdb } from '../../../setup/xcdbProject';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
+import { WorkspacePage } from '../../../pages/WorkspacePage';
+import { isHub } from '../../../setup/db';
 let api: Api<any>;
 const recordCount = 10;
 
@@ -58,8 +60,13 @@ test.describe.serial('Test table', () => {
     // create a new xcdb project
     const xcdb = await createXcdb(context.token);
     await dashboard.clickHome();
-    const projectsPage = new ProjectsPage(dashboard.rootPage);
-    await projectsPage.openProject({ title: 'xcdb', withoutPrefix: true });
+    if (isHub()) {
+      const workspacePage = new WorkspacePage(dashboard.rootPage);
+      await workspacePage.projectOpen({ title: 'xcdb' });
+    } else {
+      const projectsPage = new ProjectsPage(dashboard.rootPage);
+      await projectsPage.openProject({ title: 'xcdb', withoutPrefix: true });
+    }
 
     api = new Api({
       baseURL: `http://localhost:8080/`,

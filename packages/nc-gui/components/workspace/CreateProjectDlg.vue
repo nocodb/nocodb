@@ -125,7 +125,7 @@ const typeLabel = computed(() => {
           :disabled="creating"
           type="primary"
           @click="createProject"
-          >{{ $t('general.create') }} {{ $t('objects.project') }}
+          >{{ $t('general.submit') }}
         </a-button>
       </div>
     </div>

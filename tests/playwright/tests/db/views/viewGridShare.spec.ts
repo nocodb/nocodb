@@ -177,11 +177,11 @@ test.describe('Shared view', () => {
       value: 'New Country',
     });
 
+    await dashboard.signOut();
+
     await page.goto(sharedLink);
-    // fix me! kludge@hub; page wasn't getting loaded from previous step
     await page.reload();
 
-    // todo: Create shared view page
     // verify if password request modal exists
     const sharedPage2 = new DashboardPage(page, context.project);
     await sharedPage2.rootPage.locator('input[placeholder="Enter password"]').fill('incorrect p@ssword');

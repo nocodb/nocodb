@@ -23,6 +23,7 @@ export class AttachmentCellPageObject extends BasePage {
   //
   async addFile({ index, columnHeader, filePath }: { index?: number; columnHeader: string; filePath: string[] }) {
     await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
+    await this.get({ index, columnHeader }).click({ position: { x: 1, y: 1 } });
     const attachFileAction = this.get({ index, columnHeader })
       .locator('[data-testid="attachment-cell-file-picker-button"]')
       .click();

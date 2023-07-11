@@ -267,7 +267,11 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         addOrEditStackRow(row.value, isNewRow)
       }
 
-      message.success(`${displayValue.value || 'Row'} updated successfully.`)
+      // trim the display value if greater than 20chars
+      const trimmedDisplayValue =
+        displayValue.value && displayValue.value?.length > 20 ? `${displayValue.value?.substring(0, 20)}...` : displayValue.value
+
+      message.success(`${trimmedDisplayValue || 'Row'} updated successfully.`)
 
       changedColumns.value = new Set()
     } catch (e: any) {

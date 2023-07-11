@@ -99,13 +99,22 @@ function openQuickImportDialog(type: string) {
 </script>
 
 <template>
-  <a-menu-item-group class="!px-0 !mx-0">
+  <a-menu-divider class="my-0" v-if="false" />
+
+  <!-- NocoAI -->
+  <a-sub-menu v-if="false">
     <template #title>
-      <div class="flex items-center">
-        Noco
-        <GeneralIcon icon="magic" class="ml-1 text-orange-400" />
+      <div class="nc-project-menu-item group">
+        <GeneralIcon icon="magic" class="group-hover:text-accent" />
+        NocoAI
+        <div class="flex-1" />
+
+        <MaterialSymbolsChevronRightRounded class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400" />
       </div>
     </template>
+
+    <template #expandIcon></template>
+
     <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(base.id)">
       <div class="color-transition nc-project-menu-item group">
         <GeneralIcon icon="magic1" class="group-hover:text-accent" />
@@ -118,12 +127,24 @@ function openQuickImportDialog(type: string) {
         Create schema
       </div>
     </a-menu-item>
-  </a-menu-item-group>
+  </a-sub-menu>
 
   <a-menu-divider class="my-0" />
 
   <!-- Quick Import From -->
-  <a-menu-item-group :title="$t('title.quickImportFrom')" class="!px-0 !mx-0">
+  <a-sub-menu>
+    <template #title>
+      <div class="nc-project-menu-item group">
+        <GeneralIcon icon="import" class="group-hover:text-accent" />
+        {{ $t('title.quickImportFrom') }}
+        <div class="flex-1" />
+
+        <MaterialSymbolsChevronRightRounded class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400" />
+      </div>
+    </template>
+
+    <template #expandIcon></template>
+
     <a-menu-item
       v-if="isUIAllowed('airtableImport', false, projectRole)"
       key="quick-import-airtable"
@@ -163,11 +184,23 @@ function openQuickImportDialog(type: string) {
         Microsoft Excel
       </div>
     </a-menu-item>
-  </a-menu-item-group>
+  </a-sub-menu>
 
-  <a-menu-divider class="my-0" />
+  <a-menu-divider class="my-0" v-if="false" />
 
-  <a-menu-item-group title="Connect to new datasource" class="!px-0 !mx-0">
+  <!-- Connect to new datasource -->
+  <a-sub-menu>
+    <template #title>
+      <div class="nc-project-menu-item group">
+        <GeneralIcon icon="datasource" class="group-hover:text-accent" />
+        Connect to new datasource
+        <div class="flex-1" />
+
+        <MaterialSymbolsChevronRightRounded class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400" />
+      </div>
+    </template>
+
+    <template #expandIcon></template>
     <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MYSQL, project.id)">
       <div class="color-transition nc-project-menu-item group">
         <LogosMysqlIcon class="group-hover:text-accent" />
@@ -202,20 +235,17 @@ function openQuickImportDialog(type: string) {
         Snowflake
       </div>
     </a-menu-item>
-  </a-menu-item-group>
-
-  <a-menu-divider class="my-0" />
-
-  <a-menu-item v-if="isUIAllowed('importRequest', false, projectRole)" key="add-new-table" class="py-1 rounded-b">
-    <a
-      v-e="['e:datasource:import-request']"
-      href="https://github.com/nocodb/nocodb/issues/2052"
-      target="_blank"
-      class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
-    >
-      <GeneralIcon icon="openInNew" class="group-hover:text-accent" />
-      <!-- Request a data source you need? -->
-      {{ $t('labels.requestDataSource') }}
-    </a>
-  </a-menu-item>
+    <a-menu-item v-if="isUIAllowed('importRequest', false, projectRole)" key="add-new-table" class="py-1 rounded-b">
+      <a
+        v-e="['e:datasource:import-request']"
+        href="https://github.com/nocodb/nocodb/issues/2052"
+        target="_blank"
+        class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
+      >
+        <GeneralIcon icon="openInNew" class="group-hover:text-accent" />
+        <!-- Request a data source you need? -->
+        {{ $t('labels.requestDataSource') }}
+      </a>
+    </a-menu-item>
+  </a-sub-menu>
 </template>

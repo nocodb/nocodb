@@ -284,6 +284,7 @@ export const iconMap = {
   palette: h(Palette, {}, 'palette'),
   delete: Delete,
   delete2: h('span', { class: 'material-symbols' }, 'delete'),
+  import: h('span', { class: 'material-symbols' }, 'system_update_alt'),
   edit: h('span', { class: 'material-symbols' }, 'edit'),
   lookup: h('span', { class: 'material-symbols' }, 'search'),
   text: h('span', { class: 'material-symbols', style: 'font-weight: 600' }, 'text_fields'),

@@ -28,7 +28,7 @@ const selectedView = inject(ActiveViewInj)
 </script>
 
 <template>
-  <div class="nc-locked-menu-item" @click="emit('select', type)">
+  <div class="nc-locked-menu-item group-hover:text-accent" @click="emit('select', type)">
     <div :class="{ 'show-tick': !hideTick }">
       <template v-if="!hideTick">
         <GeneralIcon v-if="selectedView?.lock_type === type" icon="check" />
@@ -38,7 +38,7 @@ const selectedView = inject(ActiveViewInj)
 
       <div>
         <div class="flex items-center gap-1">
-          <component :is="types[type].icon" class="text-gray-500" />
+          <component :is="types[type].icon" class="text-gray-500 group-hover:text-accent" />
 
           {{ $t(types[type].title) }}
         </div>

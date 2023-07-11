@@ -469,7 +469,7 @@ onKeyStroke('Escape', () => {
                       <GeneralIcon icon="folder" class="group-hover:text-accent text-xl" />
 
                       <div class="flex flex-col">
-                        <div class="text-base font-semibold capitalize text-gray-600">
+                        <div class="text-base font-semibold capitalize text-gray-600 group-hover:text-accent">
                           <GeneralTruncateText>{{ project.title }}</GeneralTruncateText>
                         </div>
 
@@ -528,13 +528,13 @@ onKeyStroke('Escape', () => {
 
                     <a-menu-item @click="enableEditMode">
                       <div class="nc-project-menu-item group">
-                        <GeneralIcon icon="edit" />
+                        <GeneralIcon icon="edit" class="group-hover:text-accent" />
                         Edit
                       </div>
                     </a-menu-item>
                     <a-menu-item @click="confirmDeleteProject">
                       <div class="nc-project-menu-item group">
-                        <GeneralIcon icon="delete" />
+                        <GeneralIcon icon="delete" class="group-hover:text-accent" />
                         Delete
                       </div>
                     </a-menu-item>

@@ -137,7 +137,10 @@ const onConfirmDeleteRowClick = async () => {
         <a-menu>
           <a-menu-item v-if="!isNew" @click="loadRow">
             <div v-e="['c:row-expand:reload']" class="py-2 flex gap-2 items-center">
-              <component :is="iconMap.reload" class="nc-icon-transition cursor-pointer select-none text-gray-500 mx-1 min-w-4" />
+              <component
+                :is="iconMap.reload"
+                class="nc-icon-transition cursor-pointer select-none text-gray-500 mx-1 min-w-4 text-primary"
+              />
               {{ $t('general.reload') }}
             </div>
           </a-menu-item>
@@ -145,7 +148,7 @@ const onConfirmDeleteRowClick = async () => {
             <div v-e="['c:row-expand:duplicate']" class="py-2 flex gap-2 a">
               <component
                 :is="iconMap.copy"
-                class="nc-icon-transition cursor-pointer select-none nc-duplicate-row text-gray-500 mx-1 min-w-4"
+                class="nc-icon-transition cursor-pointer select-none nc-duplicate-row text-gray-500 mx-1 min-w-4 text-primary"
               />
               {{ $t('activity.duplicateRow') }}
             </div>
@@ -154,7 +157,7 @@ const onConfirmDeleteRowClick = async () => {
             <div v-e="['c:row-expand:delete']" class="py-2 flex gap-2 items-center">
               <component
                 :is="iconMap.delete"
-                class="nc-icon-transition cursor-pointer select-none nc-delete-row text-gray-500 mx-1 min-w-4"
+                class="nc-icon-transition cursor-pointer select-none nc-delete-row text-gray-500 mx-1 min-w-4 text-primary"
               />
               {{ $t('activity.deleteRow') }}
             </div>
@@ -162,8 +165,8 @@ const onConfirmDeleteRowClick = async () => {
           <a-menu-item @click="emit('cancel')">
             <div v-e="['c:row-expand:delete']" class="py-2 flex gap-2 items-center">
               <component
-                :is="iconMap.closeCircle"
-                class="nc-icon-transition cursor-pointer select-none nc-delete-row text-gray-500 mx-1 min-w-4"
+                :is="iconMap.close"
+                class="nc-icon-transition cursor-pointer select-none nc-delete-row text-gray-500 mx-1 min-w-4 text-primary"
               />
               {{ $t('general.close') }}
             </div>

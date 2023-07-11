@@ -136,7 +136,7 @@ watch(
               <component
                 :is="iconMap.accountCircle"
                 class="row-span-2"
-                :class="isYou(log.user) ? 'text-pink-300' : 'text-blue-300 '"
+                :class="isYou(log.user) ? 'text-pink-600' : 'text-blue-600 '"
               />
 
               <div class="flex-1">
@@ -218,7 +218,7 @@ watch(
         >
           <template #addonBefore>
             <div class="flex items-center">
-              <component :is="iconMap.accountCircle" class="text-lg text-pink-300" small @click="saveComment" />
+              <component :is="iconMap.accountCircle" class="text-lg text-pink-700" small @click="saveComment" />
             </div>
           </template>
 

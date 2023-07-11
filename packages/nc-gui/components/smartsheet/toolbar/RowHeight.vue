@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { GridType } from 'nocodb-sdk'
+import { GridType } from 'nocodb-sdk'
 import { ActiveViewInj, IsLockedInj, iconMap, inject, ref, storeToRefs, useMenuCloseOnEsc, useUndoRedo } from '#imports'
 
 const { isSharedBase } = storeToRefs(useProject())
@@ -39,8 +39,6 @@ const updateRowHeight = async (rh: number, undo = false) => {
         await $api.dbView.gridUpdate(view.value.id, {
           row_height: rh,
         })
-
-        message.success('View updated successfully!')
       }
 
       ;(view.value.view as GridType).row_height = rh
@@ -72,19 +70,35 @@ useMenuCloseOnEsc(open)
       >
         <div class="flex flex-col w-full text-sm" @click.stop>
           <div class="text-xs text-gray-400 px-3 pt-2 pb-1 select-none">{{ $t('objects.rowHeight') }}</div>
-          <div class="nc-row-height-option" @click="updateRowHeight(0)">
+          <div
+            class="nc-row-height-option"
+            :class="{'active': (view?.view as GridType).row_height === 0}"
+            @click="updateRowHeight(0)"
+          >
             <GeneralIcon icon="heightShort" class="nc-row-height-icon" />
             Short
           </div>
-          <div class="nc-row-height-option" @click="updateRowHeight(1)">
+          <div
+            class="nc-row-height-option"
+            :class="{'active': (view?.view as GridType).row_height === 1}"
+            @click="updateRowHeight(1)"
+          >
             <GeneralIcon icon="heightMedium" class="nc-row-height-icon" />
             Medium
           </div>
-          <div class="nc-row-height-option" @click="updateRowHeight(2)">
+          <div
+            class="nc-row-height-option"
+            :class="{'active': (view?.view as GridType).row_height === 2}"
+            @click="updateRowHeight(2)"
+          >
             <GeneralIcon icon="heightTall" class="nc-row-height-icon" />
             Tall
           </div>
-          <div class="nc-row-height-option" @click="updateRowHeight(3)">
+          <div
+            class="nc-row-height-option"
+            :class="{'active': (view?.view as GridType).row_height === 3}"
+            @click="updateRowHeight(3)"
+          >
             <GeneralIcon icon="heightExtra" class="nc-row-height-icon" />
             Extra
           </div>
@@ -101,5 +115,9 @@ useMenuCloseOnEsc(open)
 
 .nc-row-height-icon {
   @apply mx-2 text-base;
+}
+
+.active {
+  @apply bg-primary-selected;
 }
 </style>

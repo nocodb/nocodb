@@ -1,9 +1,10 @@
-import type { DocsPageType, FilterType, LayoutType, MetaType, ProjectType, ViewTypes } from 'nocodb-sdk'
-import type { I18n } from 'vue-i18n'
-import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
-import type { UploadFile } from 'ant-design-vue'
-import type { ProjectRole, Role, TabType } from './enums'
-import type { rolePermissions } from './constants'
+import type {DocsPageType, FilterType, LayoutType, MetaType, ProjectType, ViewTypes} from 'nocodb-sdk'
+import type {I18n} from 'vue-i18n'
+import type {Theme as AntTheme} from 'ant-design-vue/es/config-provider'
+import type {UploadFile} from 'ant-design-vue'
+import type {ProjectRole, Role, TabType} from './enums'
+import type {rolePermissions} from './constants'
+import {ImportSource, ImportType} from "./enums";
 
 export interface User {
   id: string
@@ -145,4 +146,11 @@ export interface UndoRedoAction {
   undo: { fn: Function; args: any[] }
   redo: { fn: Function; args: any[] }
   scope?: { key: string; param: string }[]
+}
+
+export interface ImportWorkerPayload {
+  importType: ImportType
+  importSource: ImportSource
+  value: any
+  config: Record<string, any>
 }

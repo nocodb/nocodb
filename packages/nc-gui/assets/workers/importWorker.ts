@@ -1,16 +1,81 @@
 import type { TableType } from 'nocodb-sdk'
-import { ColumnType, UITypes, isSystemColumn } from 'nocodb-sdk'
-import { CSVTemplateAdapter } from '~/utils/parsers'
-import { ImportWorkerOperations, ImportWorkerResponse, TabType } from '~/lib'
+import {
+  CSVTemplateAdapter,
+  ExcelTemplateAdapter,
+  ExcelUrlTemplateAdapter,
+  JSONTemplateAdapter,
+  JSONUrlTemplateAdapter,
+} from '~/utils/parsers'
+import type { ImportWorkerPayload } from '~/lib'
+import { ImportSource, ImportType, ImportWorkerOperations, ImportWorkerResponse, importFileList } from '~/lib'
+import type TemplateGenerator from '~/utils/parsers/TemplateGenerator'
 
 const state: {
   tables: TableType[]
-  templateGenerator: CSVTemplateAdapter | null
+  templateGenerator:
+    | TemplateGenerator
+    | CSVTemplateAdapter
+    | ExcelTemplateAdapter
+    | ExcelUrlTemplateAdapter
+    | JSONTemplateAdapter
+    | JSONUrlTemplateAdapter
+    | null
   config: any
 } = {
   tables: [],
   config: {} as any,
   templateGenerator: null,
+}
+
+const progress = (msg: string) => {
+  postMessage([ImportWorkerResponse.PROGRESS, msg])
+}
+
+async function readFileContent(val: any) {
+  const data = await new Promise<any>((resolve) => {
+    const reader = new FileReader()
+    reader.onload = (e: ProgressEvent<FileReader>) => {
+      if (e.target && e.target.result) {
+        resolve(e.target.result)
+      }
+    }
+    reader.readAsArrayBuffer(val[0].originFileObj!)
+  })
+  return data;
+}
+
+async function getAdapter(importType: ImportType, sourceType: ImportSource, val: any, config) {
+  if (importType === ImportType.CSV) {
+    switch (sourceType) {
+      case ImportSource.FILE:
+        return new CSVTemplateAdapter(val, config, progress)
+      case ImportSource.URL:
+        return new CSVTemplateAdapter(val, config, progress)
+    }
+  } else if (importType === ImportType.EXCEL) {
+    switch (sourceType) {
+      case ImportSource.FILE: {
+        const data = await readFileContent(val);
+
+        return new ExcelTemplateAdapter(data, config)
+      }
+      case ImportSource.URL:
+        return new ExcelUrlTemplateAdapter(val, config)
+    }
+  } else if (importType === 'json') {
+    switch (sourceType) {
+      case ImportSource.FILE: {
+        const data = await readFileContent(val);
+        return new JSONTemplateAdapter(data, config)
+      }
+      case ImportSource.URL:
+        return new JSONUrlTemplateAdapter(val, config)
+      case ImportSource.STRING:
+        return new JSONTemplateAdapter(val, config)
+    }
+  }
+
+  return null
 }
 
 function populateUniqueTableName(tn: string) {
@@ -28,17 +93,13 @@ function populateUniqueTableName(tn: string) {
   return tn
 }
 
-const progress = (msg: string) => {
-  postMessage([ImportWorkerResponse.PROGRESS, msg])
-}
-
-const process = async (payload, config) => {
+const process = async (payload: ImportWorkerPayload) => {
   let templateData
   let importColumns = []
   let importData
 
   try {
-    state.templateGenerator = new CSVTemplateAdapter(payload, config, progress)
+    state.templateGenerator = await getAdapter(payload.importType, payload.importSource, payload.value, payload.config)
 
     await state.templateGenerator.init()
 
@@ -267,26 +328,17 @@ async function importTemplate({tables} ) {
 self.addEventListener(
   'message',
   async function (e) {
-    const [operation, payload, extra] = e.data
+    const [operation, payload] = e.data
 
     switch (operation) {
       case ImportWorkerOperations.SET_TABLES:
         state.tables = payload
         break
       case ImportWorkerOperations.PROCESS:
-        await process(payload, extra)
+        await process(payload)
         break
       case ImportWorkerOperations.SET_CONFIG:
         state.config = payload
-        break
-      case ImportWorkerOperations.GET_SINGLE_SELECT_OPTIONS:
-      case ImportWorkerOperations.GET_MULTI_SELECT_OPTIONS: {
-        const {table, column, record} = payload
-
-        console.log('table', table)
-        console.log('column', column)
-        console.log('record', record)
-      }
         break
     }
   },

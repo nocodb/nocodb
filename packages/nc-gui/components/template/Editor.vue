@@ -629,51 +629,46 @@ function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {
   }
 }
 
-function handleUIDTChange(record, column, table) {
-  console.log(record, column, table)
-
+function handleUIDTChange(column, table) {
   const handler = (e) => {
     const [type, payload] = e.data
     switch (type) {
       case ImportWorkerResponse.SINGLE_SELECT_OPTIONS:
         importWorker.removeEventListener('message', handler, false);
-        record.dtxp = payload
+      column.dtxp = payload
         break
       case ImportWorkerResponse.MULTI_SELECT_OPTIONS:
         importWorker.removeEventListener('message', handler, false);
-        record.dtxp = payload
+        column.dtxp = payload
         break
     }
   }
 
-
-
   if (column.uidt === UITypes.SingleSelect) {
-    importWorker.postMessage([
-      ImportWorkerOperations.GET_SINGLE_SELECT_OPTIONS,
-      {
-        table,
-        column,
-        record
-      },
-    ])
     importWorker.addEventListener(
         'message',handler,
         false,
     )
+    importWorker.postMessage([
+      ImportWorkerOperations.GET_SINGLE_SELECT_OPTIONS,
+      {
+        tableName: table.ref_table_name,
+        columnName: column.ref_column_name
+      },
+    ])
   } else if (column.uidt === UITypes.MultiSelect) {
-    importWorker.postMessage([
-      ImportWorkerOperations.GET_SINGLE_SELECT_OPTIONS,
-      {
-        table,
-        column,
-        record,
-      },
-    ])
+
     importWorker.addEventListener(
         'message',handler,
         false,
     )
+    importWorker.postMessage([
+      ImportWorkerOperations.GET_SINGLE_SELECT_OPTIONS,
+      {
+        tableName: table.ref_table_name,
+        columnName: column.ref_column_name
+      },
+    ])
   }
 }
 </script>
@@ -866,7 +861,7 @@ function handleUIDTChange(record, column, table) {
                       show-search
                       :filter-option="filterOption"
                       dropdown-class-name="nc-dropdown-template-uidt"
-                      @change="handleUIDTChange(record, column, table)"
+                      @change="handleUIDTChange(record, table)"
                     >
                       <a-select-option v-for="(option, i) of uiTypeOptions" :key="i" :value="option.value">
                         <!--                        <a-tooltip placement="right"> -->

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type {TableType} from 'nocodb-sdk'
-import type {UploadChangeParam, UploadFile} from 'ant-design-vue'
-import {Upload} from 'ant-design-vue'
-import {onMounted, onUnmounted, unref} from '@vue/runtime-core'
+import type { TableType } from 'nocodb-sdk'
+import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
+import { Upload } from 'ant-design-vue'
+import {onMounted, onUnmounted, toRaw, unref} from '@vue/runtime-core'
 import {
   CSVTemplateAdapter,
   ExcelTemplateAdapter,
@@ -25,11 +25,11 @@ import {
   useProject,
   useVModel,
 } from '#imports'
-import type {importFileList, streamImportFileList} from '~/lib'
+import type { ImportWorkerPayload, importFileList, streamImportFileList } from '~/lib'
 
 // import worker script according to the doc of Vite
 import ImportWorker from '@/assets/workers/importWorker?worker'
-import {ImportWorkerOperations, ImportWorkerResponse} from '~/lib'
+import { ImportSource, ImportType, ImportWorkerOperations, ImportWorkerResponse } from '~/lib'
 
 interface Props {
   modelValue: boolean
@@ -38,7 +38,7 @@ interface Props {
   importDataOnly?: boolean
 }
 
-const {importType, importDataOnly = false, baseId, ...rest} = defineProps<Props>()
+const { importType, importDataOnly = false, baseId, ...rest } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -52,11 +52,11 @@ onUnmounted(() => {
   importWorker.terminate()
 })
 
-const {t} = useI18n()
+const { t } = useI18n()
 
 const progressMsg = ref('Parsing Data ...')
 
-const {tables} = storeToRefs(useProject())
+const { tables } = storeToRefs(useProject())
 
 const activeKey = ref('uploadTab')
 
@@ -105,7 +105,7 @@ const validators = computed(() => ({
   maxRowsToParse: [fieldRequiredValidator()],
 }))
 
-const {validate, validateInfos} = useForm(importState, validators)
+const { validate, validateInfos } = useForm(importState, validators)
 
 const importMeta = computed(() => {
   if (IsImportTypeExcel.value) {
@@ -167,11 +167,11 @@ async function handlePreImport() {
   isParsingData.value = true
 
   if (activeKey.value === 'uploadTab') {
-    if (isImportTypeCsv.value) {
+    // if (isImportTypeCsv.value) {
       await parseAndExtractData(importState.fileList as streamImportFileList)
-    } else {
-      await parseAndExtractData((importState.fileList as importFileList)[0].data)
-    }
+    // } else {
+    //   await parseAndExtractData((importState.fileList as importFileList)[0].data)
+    // }
   } else if (activeKey.value === 'urlTab') {
     try {
       await validate()
@@ -186,10 +186,10 @@ async function handlePreImport() {
 
 async function handleImport() {
   try {
-    if (!templateGenerator) {
-      message.error(t('msg.error.templateGeneratorNotFound'))
-      return
-    }
+    // if (!templateGenerator) {
+    //   message.error(t('msg.error.templateGeneratorNotFound'))
+    //   return
+    // }
     importLoading.value = true
     await templateEditorRef.value.importTemplate()
   } catch (e: any) {
@@ -211,33 +211,33 @@ function rejectDrop(fileList: UploadFile[]) {
 function handleChange(info: UploadChangeParam) {
   const status = info.file.status
   if (status && status !== 'uploading' && status !== 'removed') {
-    if (isImportTypeCsv.value) {
+    // if (isImportTypeCsv.value) {
       if (!importState.fileList.find((f) => f.uid === info.file.uid)) {
         ;(importState.fileList as streamImportFileList).push({
           ...info.file,
           status: 'done',
         })
       }
-    } else {
-      const reader = new FileReader()
-      reader.onload = (e: ProgressEvent<FileReader>) => {
-        const target = (importState.fileList as importFileList).find((f) => f.uid === info.file.uid)
-        if (e.target && e.target.result) {
-          /** if the file was pushed into the list by `<a-upload-dragger>` we just add the data to the file */
-          if (target) {
-            target.data = e.target.result
-          } else if (!target) {
-            /** if the file was added programmatically and not with d&d, we create file infos and push it into the list */
-            importState.fileList.push({
-              ...info.file,
-              status: 'done',
-              data: e.target.result,
-            })
-          }
-        }
-      }
-      reader.readAsArrayBuffer(info.file.originFileObj!)
-    }
+    // } else {
+    //   const reader = new FileReader()
+    //   reader.onload = (e: ProgressEvent<FileReader>) => {
+    //     const target = (importState.fileList as importFileList).find((f) => f.uid === info.file.uid)
+    //     if (e.target && e.target.result) {
+    //       /** if the file was pushed into the list by `<a-upload-dragger>` we just add the data to the file */
+    //       if (target) {
+    //         target.data = e.target.result
+    //       } else if (!target) {
+    //         /** if the file was added programmatically and not with d&d, we create file infos and push it into the list */
+    //         importState.fileList.push({
+    //           ...info.file,
+    //           status: 'done',
+    //           data: e.target.result,
+    //         })
+    //       }
+    //     }
+    //   }
+    //   reader.readAsArrayBuffer(info.file.originFileObj!)
+    // }
   }
 
   if (status === 'done') {
@@ -254,13 +254,13 @@ function formatJson() {
 function populateUniqueTableName(tn: string) {
   let c = 1
   while (
-      tables.value.some((t: TableType) => {
-        const s = t.table_name.split('___')
-        let target = t.table_name
-        if (s.length > 1) target = s[1]
-        return target === `${tn}`
-      })
-      ) {
+    tables.value.some((t: TableType) => {
+      const s = t.table_name.split('___')
+      let target = t.table_name
+      if (s.length > 1) target = s[1]
+      return target === `${tn}`
+    })
+  ) {
     tn = `${tn}_${c++}`
   }
   return tn
@@ -310,7 +310,7 @@ const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
   importState.fileList.forEach((f) => {
     if (f.uid === customReqArgs.file.uid) {
       f.status = 'done'
-      handleChange({file: f, fileList: importState.fileList})
+      handleChange({ file: f, fileList: importState.fileList })
     }
   })
   customReqArgs.onSuccess()
@@ -329,14 +329,95 @@ const beforeUpload = (file: UploadFile) => {
 // ArrayBuffer for excel import
 // string for json import
 async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
-  importWorker.postMessage([ImportWorkerOperations.SET_TABLES, [...unref(tables)]])
+  let payload: ImportWorkerPayload
+  const value = toRaw(val)
+  if (isImportTypeCsv.value) {
+    switch (activeKey.value) {
+      case 'uploadTab':
+        payload = {
+          config: {
+            ...importState.parserConfig,
+            importFromURL: false,
+          },
+          value,
+          importType: ImportType.CSV,
+          importSource: ImportSource.FILE,
+        }
+        break
+      case 'urlTab':
+        payload = {
+          config: {
+            ...importState.parserConfig,
+            importFromURL: true,
+          },
+          value,
+          importType: ImportType.CSV,
+          importSource: ImportSource.FILE,
+        }
+        break
+    }
+  } else if (IsImportTypeExcel.value) {
+    switch (activeKey.value) {
+      case 'uploadTab':
+        payload = {
+          config: toRaw(importState.parserConfig),
+          value,
+          importType: ImportType.EXCEL,
+          importSource: ImportSource.FILE,
+        }
+        break
+      case 'urlTab':
+        payload = {
+          config: toRaw(importState.parserConfig),
+          value,
+          importType: ImportType.EXCEL,
+          importSource: ImportSource.URL,
+        }
+        break
+    }
+  } else if (isImportTypeJson.value) {
+    switch (activeKey.value) {
+      case 'uploadTab':
+        payload = {
+          config: toRaw(importState.parserConfig),
+          value,
+          importType: ImportType.JSON,
+          importSource: ImportSource.FILE,
+        }
+        break
+      case 'urlTab':
+        payload = {
+          config: toRaw(importState.parserConfig),
+          value,
+          importType: ImportType.JSON,
+          importSource: ImportSource.URL,
+        }
+        break
+      case 'jsonEditorTab':
+        payload = {
+          config: toRaw(importState.parserConfig),
+          value,
+          importType: ImportType.JSON,
+          importSource: ImportSource.STRING,
+        }
+        break
+    }
+  }
+
+  importWorker.postMessage([
+    ImportWorkerOperations.SET_TABLES,
+    unref(tables).map((t) => ({
+      table_name: t.table_name,
+      title: t.title,
+    })),
+  ])
   importWorker.postMessage([
     ImportWorkerOperations.SET_CONFIG,
     {
       importDataOnly,
       importColumns: !!importColumns.value,
       importData: !!importData.value,
-    }
+    },
   ])
 
   const response: {
@@ -352,7 +433,7 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
           importWorker.removeEventListener('message', handler, false)
           break
         case ImportWorkerResponse.PROGRESS:
-          progressMsg.value = payload;
+          progressMsg.value = payload
           break
       }
     }
@@ -360,10 +441,7 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
 
     importWorker.postMessage([
       ImportWorkerOperations.PROCESS,
-      JSON.parse(JSON.stringify(val)).map((v, i) => ({...v, originFileObj: val[i].originFileObj})), {
-        ...importState.parserConfig,
-        importFromURL: false,
-      }
+      payload,
     ])
   })
 
@@ -417,11 +495,11 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
 
 <template>
   <a-modal
-      v-model:visible="dialogShow"
-      :class="{ active: dialogShow }"
-      :width="modalWidth"
-      wrap-class-name="nc-modal-quick-import"
-      @keydown.esc="dialogShow = false"
+    v-model:visible="dialogShow"
+    :class="{ active: dialogShow }"
+    :width="modalWidth"
+    wrap-class-name="nc-modal-quick-import"
+    @keydown.esc="dialogShow = false"
   >
     <a-spin :spinning="isParsingData" :tip="progressMsg" size="large">
       <div class="px-5">
@@ -429,18 +507,18 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
 
         <div class="mt-5">
           <LazyTemplateEditor
-              v-if="templateEditorModal"
-              ref="templateEditorRef"
-              :project-template="templateData"
-              :import-data="importData"
-              :import-columns="importColumns"
-              :import-data-only="importDataOnly"
-              :quick-import-type="importType"
-              :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
-              :base-id="baseId"
-              :import-worker="importWorker"
-              class="nc-quick-import-template-editor"
-              @import="handleImport"
+            v-if="templateEditorModal"
+            ref="templateEditorRef"
+            :project-template="templateData"
+            :import-data="importData"
+            :import-columns="importColumns"
+            :import-data-only="importDataOnly"
+            :quick-import-type="importType"
+            :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
+            :base-id="baseId"
+            :import-worker="importWorker"
+            class="nc-quick-import-template-editor"
+            @import="handleImport"
           />
 
           <a-tabs v-else v-model:activeKey="activeKey" hide-add type="editable-card" tab-position="top">
@@ -448,26 +526,26 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
               <template #tab>
                 <!--              Upload -->
                 <div class="flex items-center gap-2">
-                  <component :is="iconMap.fileUpload"/>
+                  <component :is="iconMap.fileUpload" />
                   {{ $t('general.upload') }}
                 </div>
               </template>
 
               <div class="py-6">
                 <a-upload-dragger
-                    v-model:fileList="importState.fileList"
-                    name="file"
-                    class="nc-input-import !scrollbar-thin-dull"
-                    list-type="picture"
-                    :accept="importMeta.acceptTypes"
-                    :max-count="isImportTypeCsv ? 5 : 1"
-                    :multiple="true"
-                    :custom-request="customReqCbk"
-                    :before-upload="beforeUpload"
-                    @change="handleChange"
-                    @reject="rejectDrop"
+                  v-model:fileList="importState.fileList"
+                  name="file"
+                  class="nc-input-import !scrollbar-thin-dull"
+                  list-type="picture"
+                  :accept="importMeta.acceptTypes"
+                  :max-count="isImportTypeCsv ? 5 : 1"
+                  :multiple="true"
+                  :custom-request="customReqCbk"
+                  :before-upload="beforeUpload"
+                  @change="handleChange"
+                  @reject="rejectDrop"
                 >
-                  <component :is="iconMap.plusCircle" size="large"/>
+                  <component :is="iconMap.plusCircle" size="large" />
 
                   <!-- Click or drag file to this area to upload -->
                   <p class="ant-upload-text">{{ $t('msg.info.import.clickOrDrag') }}</p>
@@ -482,20 +560,20 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
             <a-tab-pane v-if="isImportTypeJson" key="jsonEditorTab" :closable="false">
               <template #tab>
                 <span class="flex items-center gap-2">
-                  <component :is="iconMap.json"/>
+                  <component :is="iconMap.json" />
                   JSON Editor
                 </span>
               </template>
 
               <div class="pb-3 pt-3">
-                <LazyMonacoEditor ref="jsonEditorRef" v-model="importState.jsonEditor" class="min-h-60 max-h-80"/>
+                <LazyMonacoEditor ref="jsonEditorRef" v-model="importState.jsonEditor" class="min-h-60 max-h-80" />
               </div>
             </a-tab-pane>
 
             <a-tab-pane v-else key="urlTab" :closable="false">
               <template #tab>
                 <span class="flex items-center gap-2">
-                  <component :is="iconMap.link"/>
+                  <component :is="iconMap.link" />
                   URL
                 </span>
               </template>
@@ -503,7 +581,7 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
               <div class="pr-10 pt-5">
                 <a-form :model="importState" name="quick-import-url-form" layout="vertical" class="mb-0">
                   <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url">
-                    <a-input v-model:value="importState.url" size="large"/>
+                    <a-input v-model:value="importState.url" size="large" />
                   </a-form-item>
                 </a-form>
               </div>
@@ -512,14 +590,14 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
         </div>
 
         <div v-if="!templateEditorModal">
-          <a-divider/>
+          <a-divider />
 
           <div class="mb-4">
             <!-- Advanced Settings -->
             <span class="prose-lg">{{ $t('title.advancedSettings') }}</span>
 
             <a-form-item class="!my-2" :label="t('msg.info.footMsg')" v-bind="validateInfos.maxRowsToParse">
-              <a-input-number v-model:value="importState.parserConfig.maxRowsToParse" :min="1" :max="50000"/>
+              <a-input-number v-model:value="importState.parserConfig.maxRowsToParse" :min="1" :max="50000" />
             </a-form-item>
 
             <a-form-item v-if="!importDataOnly" class="!my-2">
@@ -543,54 +621,47 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
 
             <!-- Import Data -->
             <a-form-item v-if="!importDataOnly" class="!my-2">
-              <a-checkbox v-model:checked="importState.parserConfig.shouldImportData">{{
-                  $t('labels.importData')
-                }}
-              </a-checkbox>
+              <a-checkbox v-model:checked="importState.parserConfig.shouldImportData">{{ $t('labels.importData') }} </a-checkbox>
             </a-form-item>
           </div>
         </div>
       </div>
     </a-spin>
     <template #footer>
-      <a-button v-if="templateEditorModal" key="back" class="!rounded-md" @click="templateEditorModal = false">Back
-      </a-button>
+      <a-button v-if="templateEditorModal" key="back" class="!rounded-md" @click="templateEditorModal = false">Back </a-button>
 
-      <a-button v-else key="cancel" class="!rounded-md" @click="dialogShow = false">{{
-          $t('general.cancel')
-        }}
-      </a-button>
+      <a-button v-else key="cancel" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }} </a-button>
 
       <a-button
-          v-if="activeKey === 'jsonEditorTab' && !templateEditorModal"
-          key="format"
-          class="!rounded-md"
-          :disabled="disableFormatJsonButton"
-          @click="formatJson"
+        v-if="activeKey === 'jsonEditorTab' && !templateEditorModal"
+        key="format"
+        class="!rounded-md"
+        :disabled="disableFormatJsonButton"
+        @click="formatJson"
       >
         Format JSON
       </a-button>
 
       <a-button
-          v-if="!templateEditorModal"
-          key="pre-import"
-          type="primary"
-          class="nc-btn-import !rounded-md"
-          :loading="preImportLoading"
-          :disabled="disablePreImportButton"
-          @click="handlePreImport"
+        v-if="!templateEditorModal"
+        key="pre-import"
+        type="primary"
+        class="nc-btn-import !rounded-md"
+        :loading="preImportLoading"
+        :disabled="disablePreImportButton"
+        @click="handlePreImport"
       >
         {{ $t('activity.import') }}
       </a-button>
 
       <a-button
-          v-else
-          key="import"
-          type="primary"
-          class="!rounded-md"
-          :loading="importLoading"
-          :disabled="disableImportButton"
-          @click="handleImport"
+        v-else
+        key="import"
+        type="primary"
+        class="!rounded-md"
+        :loading="importLoading"
+        :disabled="disableImportButton"
+        @click="handleImport"
       >
         {{ $t('activity.import') }}
       </a-button>

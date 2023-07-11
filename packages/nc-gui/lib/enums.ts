@@ -140,3 +140,15 @@ export enum ImportWorkerResponse {
   SINGLE_SELECT_OPTIONS = 'singleSelectOptions',
   MULTI_SELECT_OPTIONS = 'multiSelectOptions',
 }
+
+export enum ImportType {
+  EXCEL = 'excel',
+  CSV = 'csv',
+  JSON = 'json',
+}
+
+export enum ImportSource {
+  FILE = 'file',
+  URL = 'url',
+  STRING = 'string',
+}

@@ -185,14 +185,17 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
   }
 
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
-    modelValue: isOpen,
+    'modelValue': isOpen,
     baseId, // || bases.value[0].id,
-    projectId: project.value!.id,
-    onCreate: closeDialog,
+    'projectId': project.value!.id,
+    'onCreate': closeDialog,
+    'onUpdate:modelValue': () => closeDialog(),
   })
 
-  function closeDialog(table: TableType) {
+  function closeDialog(table?: TableType) {
     isOpen.value = false
+
+    if (!table) return
 
     if (!activeKey.value || !activeKey.value.includes(`collapse-${baseId}`)) {
       activeKey.value.push(`collapse-${baseId}`)

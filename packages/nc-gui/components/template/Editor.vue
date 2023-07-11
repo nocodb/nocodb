@@ -32,7 +32,7 @@ import {
   useProject,
   useTabs,
 } from '#imports'
-import {ImportWorkerOperations, ImportWorkerResponse, TabType} from '~/lib'
+import { ImportWorkerOperations, ImportWorkerResponse, TabType } from '~/lib'
 
 const { quickImportType, projectTemplate, importData, importColumns, importDataOnly, maxRowsToParse, baseId, importWorker } =
   defineProps<Props>()
@@ -510,7 +510,11 @@ async function importTemplate() {
               column.pk = true
               column.rqd = true
             }
-            if (!isSystemColumn(column) && column.uidt !== UITypes.SingleSelect && column.uidt !== UITypes.MultiSelect) {
+            if (
+              (!isSystemColumn(column) || ['created_at', 'updated_at'].includes(column.column_name)) &&
+              column.uidt !== UITypes.SingleSelect &&
+              column.uidt !== UITypes.MultiSelect
+            ) {
               // delete dtxp if the final data type is not single & multi select
               // e.g. import -> detect as single / multi select -> switch to SingleLineText
               // the correct dtxp will be generated during column creation
@@ -634,39 +638,32 @@ function handleUIDTChange(column, table) {
     const [type, payload] = e.data
     switch (type) {
       case ImportWorkerResponse.SINGLE_SELECT_OPTIONS:
-        importWorker.removeEventListener('message', handler, false);
-      column.dtxp = payload
+        importWorker.removeEventListener('message', handler, false)
+        column.dtxp = payload
         break
       case ImportWorkerResponse.MULTI_SELECT_OPTIONS:
-        importWorker.removeEventListener('message', handler, false);
+        importWorker.removeEventListener('message', handler, false)
         column.dtxp = payload
         break
     }
   }
 
   if (column.uidt === UITypes.SingleSelect) {
-    importWorker.addEventListener(
-        'message',handler,
-        false,
-    )
+    importWorker.addEventListener('message', handler, false)
     importWorker.postMessage([
       ImportWorkerOperations.GET_SINGLE_SELECT_OPTIONS,
       {
         tableName: table.ref_table_name,
-        columnName: column.ref_column_name
+        columnName: column.ref_column_name,
       },
     ])
   } else if (column.uidt === UITypes.MultiSelect) {
-
-    importWorker.addEventListener(
-        'message',handler,
-        false,
-    )
+    importWorker.addEventListener('message', handler, false)
     importWorker.postMessage([
       ImportWorkerOperations.GET_SINGLE_SELECT_OPTIONS,
       {
         tableName: table.ref_table_name,
-        columnName: column.ref_column_name
+        columnName: column.ref_column_name,
       },
     ])
   }

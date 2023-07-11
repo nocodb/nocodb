@@ -1423,23 +1423,6 @@ const onDraftRecordClick = () => {
         <template v-if="!isLocked && hasEditPermission" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
             <a-menu-item
-              v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
-              @click="confirmDeleteRow(contextMenuTarget.row)"
-            >
-              <div v-e="['a:row:delete']" class="nc-project-menu-item">
-                <!-- Delete Row -->
-                {{ $t('activity.deleteRow') }}
-              </div>
-            </a-menu-item>
-
-            <a-menu-item v-else-if="contextMenuTarget" @click="deleteSelectedRangeOfRows">
-              <div v-e="['a:row:delete']" class="nc-project-menu-item">
-                <!-- Delete Rows -->
-                Delete Rows
-              </div>
-            </a-menu-item>
-
-            <a-menu-item
               v-if="appInfo.ee && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
               @click="bulkUpdateDlg = true"
             >
@@ -1461,6 +1444,22 @@ const onDraftRecordClick = () => {
               </div>
             </a-menu-item>
 
+            <a-menu-item v-if="contextMenuTarget && selectedRange.isSingleCell()" @click="addEmptyRow(contextMenuTarget.row + 1)">
+              <div v-e="['a:row:insert']" class="nc-project-menu-item">
+                <GeneralIcon icon="plus" class="text-gray-500 text-primary" />
+                <!-- Insert New Row -->
+                {{ $t('activity.insertRow') }}
+              </div>
+            </a-menu-item>
+
+            <a-menu-item v-if="contextMenuTarget" data-testid="context-menu-item-copy" @click="copyValue(contextMenuTarget)">
+              <div v-e="['a:row:copy']" class="nc-project-menu-item">
+                <GeneralIcon icon="copy" class="text-gray-500 text-primary" />
+                <!-- Copy -->
+                {{ $t('general.copy') }}
+              </div>
+            </a-menu-item>
+
             <!--            Clear cell -->
             <a-menu-item
               v-if="
@@ -1470,36 +1469,48 @@ const onDraftRecordClick = () => {
               "
               @click="clearCell(contextMenuTarget)"
             >
-              <div v-e="['a:row:clear']" class="nc-project-menu-item">{{ $t('activity.clearCell') }}</div>
+              <div v-e="['a:row:clear']" class="nc-project-menu-item">
+                <GeneralIcon icon="closeBox" class="text-gray-500 text-primary" />
+                {{ $t('general.clear') }}
+              </div>
             </a-menu-item>
 
             <!--            Clear cell -->
             <a-menu-item v-else-if="contextMenuTarget" @click="clearSelectedRangeOfCells()">
-              <div v-e="['a:row:clear-range']" class="nc-project-menu-item">Clear Cells</div>
-            </a-menu-item>
-
-            <a-menu-item v-if="contextMenuTarget && selectedRange.isSingleCell()" @click="addEmptyRow(contextMenuTarget.row + 1)">
-              <div v-e="['a:row:insert']" class="nc-project-menu-item">
-                <!-- Insert New Row -->
-                {{ $t('activity.insertRow') }}
+              <div v-e="['a:row:clear-range']" class="nc-project-menu-item">
+                <GeneralIcon icon="closeBox" class="text-gray-500 text-primary" />
+                Clear
               </div>
             </a-menu-item>
 
-            <a-menu-item v-if="contextMenuTarget" data-testid="context-menu-item-copy" @click="copyValue(contextMenuTarget)">
-              <div v-e="['a:row:copy']" class="nc-project-menu-item">
-                <!-- Copy -->
-                {{ $t('general.copy') }}
+            <!--To be enabled later-->
+            <!--            <a-sub-menu v-if="contextMenuTarget" title="NocoAI">-->
+            <!--              <a-menu-item @click="openGenerateDialog(contextMenuTarget)">-->
+            <!--                <div class="color-transition nc-project-menu-item group">-->
+            <!--                  <GeneralIcon icon="magic1" class="group-hover:text-accent text-primary" />-->
+            <!--                  Generate-->
+            <!--                </div>-->
+            <!--              </a-menu-item>-->
+            <!--            </a-sub-menu>-->
+
+            <a-menu-item
+              v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
+              @click="confirmDeleteRow(contextMenuTarget.row)"
+            >
+              <div v-e="['a:row:delete']" class="nc-project-menu-item text-red-600">
+                <GeneralIcon icon="delete" class="text-gray-500 text-error" />
+                <!-- Delete Row -->
+                {{ $t('activity.deleteRow') }}
               </div>
             </a-menu-item>
 
-            <a-sub-menu v-if="contextMenuTarget" title="NocoAI">
-              <a-menu-item @click="openGenerateDialog(contextMenuTarget)">
-                <div class="color-transition nc-project-menu-item group">
-                  <GeneralIcon icon="magic1" class="group-hover:text-accent" />
-                  Generate
-                </div>
-              </a-menu-item>
-            </a-sub-menu>
+            <a-menu-item v-else-if="contextMenuTarget" @click="deleteSelectedRangeOfRows">
+              <div v-e="['a:row:delete']" class="nc-project-menu-item text-red-600">
+                <GeneralIcon icon="delete" class="text-gray-500 text-error" />
+                <!-- Delete Rows -->
+                Delete rows
+              </div>
+            </a-menu-item>
           </a-menu>
         </template>
       </a-dropdown>

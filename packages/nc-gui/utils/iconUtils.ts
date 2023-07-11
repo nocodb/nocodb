@@ -283,6 +283,7 @@ export const iconMap = {
   code: Code,
   palette: h(Palette, {}, 'palette'),
   delete: Delete,
+  delete2: h('span', { class: 'material-symbols' }, 'delete'),
   edit: h('span', { class: 'material-symbols' }, 'edit'),
   lookup: h('span', { class: 'material-symbols' }, 'search'),
   text: h('span', { class: 'material-symbols', style: 'font-weight: 600' }, 'text_fields'),

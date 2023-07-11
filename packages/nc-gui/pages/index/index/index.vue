@@ -429,13 +429,13 @@ watch(
                     <a-menu>
                       <a-menu-item @click="enableEdit(i)">
                         <div class="nc-menu-item-wrapper">
-                          <MdiPencil class="text-gray-500" />
+                          <MdiPencil class="text-gray-500 text-primary" />
                           Rename Workspace
                         </div>
                       </a-menu-item>
                       <a-menu-item @click="deleteWorkspace(workspace)">
-                        <div class="nc-menu-item-wrapper">
-                          <MdiDeleteOutline class="text-gray-500" />
+                        <div class="nc-menu-item-wrapper text-red-600">
+                          <MdiDeleteOutline class="text-gray-500 text-error" />
                           Delete Workspace
                         </div>
                       </a-menu-item>

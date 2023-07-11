@@ -501,7 +501,7 @@ onKeyStroke('Escape', () => {
                       </div>
                     </a-menu-item>
 
-                    <a-menu-divider />
+                    <a-menu-divider v-if="false" />
 
                     <!-- Swagger: Rest APIs -->
                     <a-menu-item key="api">

@@ -26,12 +26,27 @@ import {
 } from '#imports'
 import type { importFileList, streamImportFileList } from '~/lib'
 
+// import worker script according to the doc of Vite
+import ImportWorker from '@/assets/workers/importWorker?worker'
+import {onMounted, onUnmounted} from "@vue/runtime-core";
+
 interface Props {
   modelValue: boolean
   importType: 'csv' | 'json' | 'excel'
   baseId: string
   importDataOnly?: boolean
 }
+
+let worker: Worker;
+
+
+onMounted(() => {
+  worker = new ImportWorker()
+})
+
+onUnmounted(() => {
+  worker.terminate()
+})
 
 const { importType, importDataOnly = false, baseId, ...rest } = defineProps<Props>()
 
@@ -185,45 +200,6 @@ async function handleImport() {
   dialogShow.value = false
 }
 
-// UploadFile[] for csv import (streaming)
-// ArrayBuffer for excel import
-// string for json import
-async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
-  try {
-    templateData.value = null
-    importData.value = null
-    importColumns.value = []
-
-    templateGenerator = getAdapter(val)
-
-    if (!templateGenerator) {
-      message.error(t('msg.error.templateGeneratorNotFound'))
-      return
-    }
-
-    await templateGenerator.init()
-
-    await templateGenerator.parse()
-
-    templateData.value = templateGenerator!.getTemplate()
-    if (importDataOnly) importColumns.value = templateGenerator!.getColumns()
-    else {
-      // ensure the target table name not exist in current table list
-      templateData.value.tables = templateData.value.tables.map((table: Record<string, any>) => ({
-        ...table,
-        table_name: populateUniqueTableName(table.table_name),
-      }))
-    }
-    importData.value = templateGenerator!.getData()
-    templateEditorModal.value = true
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    isParsingData.value = false
-    preImportLoading.value = false
-  }
-}
-
 function rejectDrop(fileList: UploadFile[]) {
   fileList.map((file) => {
     return message.error(`${t('msg.error.fileUploadFailed')} ${file.name}`)
@@ -340,11 +316,77 @@ const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
 
 /** check if the file size exceeds the limit */
 const beforeUpload = (file: UploadFile) => {
-  const exceedLimit = file.size! / 1024 / 1024 > 5
+  const exceedLimit = file.size! / 1024 / 1024 > 10
   if (exceedLimit) {
-    message.error(`File ${file.name} is too big. The accepted file size is less than 5MB.`)
+    message.error(`File ${file.name} is too big. The accepted file size is less than 10MB.`)
   }
   return !exceedLimit || Upload.LIST_IGNORE
+}
+
+// UploadFile[] for csv import (streaming)
+// ArrayBuffer for excel import
+// string for json import
+async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
+  // return new Promise((resolve, reject) => {
+  //   const worker = new Worker('/worker.js')
+  //   worker.postMessage(100000000000000);
+  //   worker.addEventListener('message', (e) => {
+  //     if (e.data) {
+  //       resolve(e.data)
+  //       worker.terminate()
+  //     }
+  //   }, false);
+  // })
+
+  return new Promise((resolve, reject) => {
+    const worker = new ImportWorker()
+    worker.postMessage([...val])
+    worker.addEventListener(
+      'message',
+      (e) => {
+        console.log(e.data)
+        if (e.data) {
+          resolve(e.data)
+          worker.terminate()
+        }
+      },
+      false,
+    )
+  })
+
+  try {
+    templateData.value = null
+    importData.value = null
+    importColumns.value = []
+
+    templateGenerator = getAdapter(val)
+
+    if (!templateGenerator) {
+      message.error(t('msg.error.templateGeneratorNotFound'))
+      return
+    }
+
+    await templateGenerator.init()
+
+    await templateGenerator.parse()
+
+    templateData.value = templateGenerator!.getTemplate()
+    if (importDataOnly) importColumns.value = templateGenerator!.getColumns()
+    else {
+      // ensure the target table name not exist in current table list
+      templateData.value.tables = templateData.value.tables.map((table: Record<string, any>) => ({
+        ...table,
+        table_name: populateUniqueTableName(table.table_name),
+      }))
+    }
+    importData.value = templateGenerator!.getData()
+    templateEditorModal.value = true
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isParsingData.value = false
+    preImportLoading.value = false
+  }
 }
 </script>
 

@@ -244,6 +244,7 @@ export default class CSVTemplateAdapter {
   }
 
   async _parseTableMeta(tableIdx: number, source: UploadFile | string) {
+    console.log('tn', tableIdx)
     return new Promise((resolve, reject) => {
       const that = this
       let steppers = 0
@@ -251,6 +252,7 @@ export default class CSVTemplateAdapter {
         .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
         .trim()!
       this.data[tn] = []
+      console.log('tn', tn)
       const parseSource = (this.config.importFromURL ? (source as string) : (source as UploadFile).originFileObj)!
       parse(parseSource, {
         download: that.config.importFromURL,
@@ -300,9 +302,11 @@ export default class CSVTemplateAdapter {
     if (this.config.importFromURL) {
       await this._parseTableMeta(0, this.source as string)
     } else {
+      console.log('this.source', this.source)
       await Promise.all(
         (this.source as UploadFile[]).map((file: UploadFile, tableIdx: number) =>
           (async (f, idx) => {
+            console.log('t', file, tableIdx)
             await this._parseTableMeta(idx, f)
           })(file, tableIdx),
         ),

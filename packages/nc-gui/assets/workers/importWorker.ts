@@ -1,7 +1,7 @@
 import type { TableType } from 'nocodb-sdk'
+import { ColumnType, UITypes, isSystemColumn } from 'nocodb-sdk'
 import { CSVTemplateAdapter } from '~/utils/parsers'
-import {ImportWorkerOperations, ImportWorkerResponse, TabType} from '~/lib'
-import {ColumnType, isSystemColumn, UITypes} from "nocodb-sdk";
+import { ImportWorkerOperations, ImportWorkerResponse, TabType } from '~/lib'
 
 const state: {
   tables: TableType[]
@@ -28,17 +28,18 @@ function populateUniqueTableName(tn: string) {
   return tn
 }
 
-const process = async (payload) => {
+const progress = (msg: string) => {
+  postMessage([ImportWorkerResponse.PROGRESS, msg])
+}
+
+const process = async (payload, config) => {
   let templateData
   let importColumns = []
   let importData
 
   try {
-    state.templateGenerator = new CSVTemplateAdapter(payload, {
-      importFromURL: false,
-      shouldImportData: true,
-    })
-    //
+    state.templateGenerator = new CSVTemplateAdapter(payload, config, progress)
+
     await state.templateGenerator.init()
 
     console.log('parse')
@@ -76,8 +77,6 @@ const process = async (payload) => {
     },
   ])
 }
-
-
 
 /*
 
@@ -268,28 +267,26 @@ async function importTemplate({tables} ) {
 self.addEventListener(
   'message',
   async function (e) {
-    const [operation, payload] = e.data
+    const [operation, payload, extra] = e.data
 
     switch (operation) {
       case ImportWorkerOperations.SET_TABLES:
         state.tables = payload
         break
       case ImportWorkerOperations.PROCESS:
-        await process(payload)
+        await process(payload, extra)
         break
       case ImportWorkerOperations.SET_CONFIG:
         state.config = payload
         break
       case ImportWorkerOperations.GET_SINGLE_SELECT_OPTIONS:
-      case ImportWorkerOperations.GET_MULTI_SELECT_OPTIONS:
+      case ImportWorkerOperations.GET_MULTI_SELECT_OPTIONS: {
         const {table, column, record} = payload
-
 
         console.log('table', table)
         console.log('column', column)
         console.log('record', record)
-
-
+      }
         break
     }
   },

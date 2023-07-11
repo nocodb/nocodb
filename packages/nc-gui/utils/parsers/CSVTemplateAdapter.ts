@@ -27,7 +27,9 @@ export default class CSVTemplateAdapter {
   data: Record<string, any> = {}
   columnValues: Record<number, []>
 
-  constructor(source: UploadFile[] | string, parserConfig = {}) {
+  private progressCallback?: (msg: string) => void;
+
+  constructor(source: UploadFile[] | string, parserConfig = {}, progressCallback?: (msg: string) => void){
     this.config = parserConfig
     this.source = source
     this.project = {
@@ -38,6 +40,7 @@ export default class CSVTemplateAdapter {
     this.headers = {}
     this.columnValues = {}
     this.tables = {}
+    this.progressCallback = progressCallback
   }
 
   async init() {}
@@ -203,8 +206,10 @@ export default class CSVTemplateAdapter {
     return new Promise((resolve, reject) => {
       const that = this
       let steppers = 0
-      console.log('that.config.shouldImportData', that.config.shouldImportData)
       if (that.config.shouldImportData) {
+
+        that.progress(`Processing ${tn} data`)
+
         steppers = 0
         const parseSource = (this.config.importFromURL ? (source as string) : (source as UploadFile).originFileObj)!
 
@@ -234,8 +239,13 @@ export default class CSVTemplateAdapter {
               }
               that.data[tn].push(rowData)
             }
+
+            if(steppers % 1000 === 0){
+              that.progress(`Processed ${steppers} rows of ${tn}`)
+            }
           },
           complete() {
+            that.progress(`Processed ${tn} data`)
             resolve(true)
           },
           error(e: Error) {
@@ -249,7 +259,6 @@ export default class CSVTemplateAdapter {
   }
 
   async _parseTableMeta(tableIdx: number, source: UploadFile | string) {
-    console.log('tn', tableIdx)
     return new Promise((resolve, reject) => {
       const that = this
       let steppers = 0
@@ -257,7 +266,6 @@ export default class CSVTemplateAdapter {
         .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
         .trim()!
       this.data[tn] = []
-      console.log('tn', tn)
       const parseSource = (this.config.importFromURL ? (source as string) : (source as UploadFile).originFileObj)!
       parse(parseSource, {
         download: that.config.importFromURL,
@@ -292,6 +300,7 @@ export default class CSVTemplateAdapter {
         async complete() {
           that.updateTemplate(tableIdx)
           that.project.tables.push(that.tables[tableIdx])
+          that.progress(`Processed ${tn} metadata`)
           await that._parseTableData(tableIdx, source, tn)
           resolve(true)
         },
@@ -306,11 +315,9 @@ export default class CSVTemplateAdapter {
     if (this.config.importFromURL) {
       await this._parseTableMeta(0, this.source as string)
     } else {
-      console.log('this.source', this.source)
       await Promise.all(
-        (this.source as UploadFile[]).map((file: UploadFile, tableIdx: number) =>
-          (async (f, idx) => {
-            console.log('t', file, tableIdx)
+        (this.source as UploadFile[]).map((file: UploadFile, tableIdx: number) => (async (f, idx) => {
+            this.progress(`Parsing ${f.name}`)
             await this._parseTableMeta(idx, f)
           })(file, tableIdx),
         ),
@@ -328,5 +335,9 @@ export default class CSVTemplateAdapter {
 
   getTemplate() {
     return this.project
+  }
+
+  progress(msg:string){
+    this.progressCallback?.(msg)
   }
 }

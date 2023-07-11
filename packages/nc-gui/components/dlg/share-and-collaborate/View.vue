@@ -129,7 +129,7 @@ watch(showShareModal, (val) => {
         </template>
         <a-collapse-panel key="project" class="share-collapse-item">
           <template #header>
-            <div class="flex flex-row items-center gap-x-2">
+            <div class="flex flex-row items-center gap-x-2 w-full">
               <PhBook v-if="project.type === NcProjectType.DOCS" />
               <GeneralProjectIcon
                 v-else
@@ -138,13 +138,21 @@ watch(showShareModal, (val) => {
                   filter: 'grayscale(200%)',
                 }"
               />
-              <div data-testid="docs-share-dlg-share-project">
-                Share
-                {{ project.type === NcProjectType.DOCS ? 'Document' : 'Project' }}
-                <span class="ml-2 py-1 px-2 rounded-md bg-gray-75 capitalize">{{ project.title }}</span>
+              <div class="flex flex-row w-full items-center gap-x-1 select-none" data-testid="docs-share-dlg-share-project">
+                <div class="flex">
+                  Share
+                  {{ project.type === NcProjectType.DOCS ? 'Document' : 'Project' }}
+                </div>
+                <div
+                  class="w-7/10 ml-2 px-2 py-0.5 rounded-md bg-gray-75 capitalize text-ellipsis overflow-hidden"
+                  :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
+                >
+                  {{ project.title }}
+                </div>
               </div>
             </div>
           </template>
+
           <ShareProject />
         </a-collapse-panel>
         <a-collapse-panel v-if="viewTitle" key="view" class="share-collapse-item">
@@ -152,9 +160,9 @@ watch(showShareModal, (val) => {
             <div class="flex flex-row items-center gap-x-2">
               <IonDocumentOutline v-if="project.type === NcProjectType.DOCS" />
               <GeneralViewIcon v-else :meta="view!" class="nc-view-icon"></GeneralViewIcon>
-              <div data-testid="docs-share-dlg-share-view">
-                Share {{ project.type === NcProjectType.DOCS ? 'Page' : 'View' }}
-                <span class="ml-5.25 py-1 px-2 rounded-md bg-gray-75 capitalize">{{
+              <div data-testid="docs-share-dlg-share-view select-none">
+                <span> Share {{ project.type === NcProjectType.DOCS ? 'Page' : 'View' }} </span>
+                <span class="ml-6.25 py-1 px-2 rounded-md bg-gray-75 capitalize">{{
                   !viewTitle ? EMPTY_TITLE_PLACEHOLDER_DOCS : viewTitle
                 }}</span>
               </div>

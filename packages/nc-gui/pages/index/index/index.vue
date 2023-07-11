@@ -31,7 +31,13 @@ const roleAlias = {
 
 const workspaceStore = useWorkspace()
 
-const { deleteWorkspace: _deleteWorkspace, loadWorkspaces, updateWorkspace, populateWorkspace } = workspaceStore
+const {
+  deleteWorkspace: _deleteWorkspace,
+  loadWorkspaces,
+  updateWorkspace,
+  populateWorkspace,
+  navigateToWorkspace,
+} = workspaceStore
 
 const projectsStore = useProjects()
 
@@ -134,6 +140,12 @@ const deleteWorkspace = (workspace: WorkspaceType) => {
     onOk: async () => {
       await _deleteWorkspace(workspace.id!)
       await loadWorkspaces()
+
+      if (!workspacesList.value?.[0]?.id) {
+        return await navigateToWorkspace()
+      }
+
+      await navigateToWorkspace(workspacesList.value?.[0]?.id)
     },
   })
 }

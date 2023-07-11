@@ -1159,7 +1159,7 @@ const onDraftRecordClick = () => {
                   }"
                   @click.stop="addColumnDropdown = true"
                 >
-                  <div class="absolute top-0 left-0 h-10.5 border-b-1 border-r-1 border-gray-50 nc-grid-add-edit-column group">
+                  <div class="absolute top-0 left-0 h-10.25 border-b-1 border-r-1 border-gray-50 nc-grid-add-edit-column group">
                     <a-dropdown
                       v-model:visible="addColumnDropdown"
                       :trigger="['click']"
@@ -1483,15 +1483,15 @@ const onDraftRecordClick = () => {
               </div>
             </a-menu-item>
 
-            <!--To be enabled later-->
-            <!--            <a-sub-menu v-if="contextMenuTarget" title="NocoAI">-->
-            <!--              <a-menu-item @click="openGenerateDialog(contextMenuTarget)">-->
-            <!--                <div class="color-transition nc-project-menu-item group">-->
-            <!--                  <GeneralIcon icon="magic1" class="group-hover:text-accent text-primary" />-->
-            <!--                  Generate-->
-            <!--                </div>-->
-            <!--              </a-menu-item>-->
-            <!--            </a-sub-menu>-->
+            <!-- To be enabled later -->
+            <!--            <a-sub-menu v-if="contextMenuTarget" title="NocoAI"> -->
+            <!--              <a-menu-item @click="openGenerateDialog(contextMenuTarget)"> -->
+            <!--                <div class="color-transition nc-project-menu-item group"> -->
+            <!--                  <GeneralIcon icon="magic1" class="group-hover:text-accent text-primary" /> -->
+            <!--                  Generate -->
+            <!--                </div> -->
+            <!--              </a-menu-item> -->
+            <!--            </a-sub-menu> -->
 
             <a-menu-item
               v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
@@ -1624,13 +1624,14 @@ const onDraftRecordClick = () => {
     position: relative;
   }
 
+  th {
+    @apply border-b-1 border-gray-50;
+  }
+
   .nc-grid-header th:last-child {
     @apply !border-b-1;
   }
 
-  tr:nth-child(1) td {
-    @apply border-t-1;
-  }
   td {
     @apply bg-white border-b;
   }
@@ -1696,27 +1697,31 @@ const onDraftRecordClick = () => {
   thead th:nth-child(1) {
     position: sticky !important;
     left: 0;
-    z-index: 5;
+    z-index: 2;
   }
 
   tbody td:nth-child(1) {
     position: sticky !important;
     left: 0;
-    z-index: 4;
+    z-index: 1;
     background: white;
+  }
+
+  .nc-grid-header {
+    z-index: 2;
   }
 
   thead th:nth-child(2) {
     position: sticky !important;
     left: 85px;
-    z-index: 5;
+    z-index: 2;
     @apply border-r-1 border-r-gray-75;
   }
 
   tbody td:nth-child(2) {
     position: sticky !important;
     left: 85px;
-    z-index: 4;
+    z-index: 1;
     background: white;
     @apply border-r-1 border-r-gray-75;
   }

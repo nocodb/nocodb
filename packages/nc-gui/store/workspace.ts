@@ -140,6 +140,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     await $api.workspace.delete(workspaceId, {
       baseURL: appInfo.baseHostName ? `https://${workspaceId}.${appInfo.baseHostName}` : undefined,
     })
+
+    workspaces.value.delete(workspaceId)
     refreshCommandPalette()
   }
 
@@ -360,6 +362,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     await loadWorkspaces()
   }
 
+  const navigateToWorkspace = async (workspaceId?: string) => {
+    if (!workspaceId) {
+      return await router.push({ query: { page: 'workspace' } })
+    }
+    await router.push({ query: { workspaceId, page: 'workspace' } })
+  }
+
   return {
     loadWorkspaces,
     workspaces,
@@ -390,6 +399,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     populateWorkspace,
     clearWorkspaces,
     upgradeActiveWorkspace,
+    navigateToWorkspace,
   }
 })
 

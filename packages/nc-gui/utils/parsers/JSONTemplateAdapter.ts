@@ -22,8 +22,8 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
   }
 
   columns: object
-  constructor(data: object, parserConfig = {}) {
-    super()
+  constructor(data: object, parserConfig = {}, progressCallback?: (msg: string) => void) {
+    super(progressCallback)
     this.config = parserConfig
     this._jsonData = data
     this.project = {
@@ -35,6 +35,7 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
   }
 
   async init() {
+    this.progress('Initializing json parser')
     const parsedJsonData =
       typeof this._jsonData === 'string'
         ? // for json editor
@@ -53,6 +54,7 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
   }
 
   parse(): any {
+    this.progress('Parsing json data')
     const jsonData = this.jsonData
     const tn = 'table'
     const table: any = { table_name: tn, ref_table_name: tn, columns: [] }

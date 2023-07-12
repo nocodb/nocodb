@@ -6,15 +6,16 @@ export default class ExcelUrlTemplateAdapter extends ExcelTemplateAdapter {
   excelData: any
   $api: any
 
-  constructor(url: string, parserConfig: Record<string, any>) {
+  constructor(url: string, parserConfig: Record<string, any>, progressCallback?: (msg: string) => void) {
     const { $api } = useNuxtApp()
-    super({}, parserConfig)
+    super({}, parserConfig, progressCallback)
     this.url = url
     this.excelData = null
     this.$api = $api
   }
 
   async init() {
+    this.progress('Downloading excel file')
     const data: any = await this.$api.utils.axiosRequestMake({
       apiMeta: {
         url: this.url,

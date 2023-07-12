@@ -1,4 +1,5 @@
-import type { TableType } from 'nocodb-sdk'
+import type { ColumnType, TableType } from 'nocodb-sdk'
+import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import {
   CSVTemplateAdapter,
   ExcelTemplateAdapter,
@@ -7,11 +8,10 @@ import {
   JSONUrlTemplateAdapter,
 } from '~/utils/parsers'
 import type { ImportWorkerPayload } from '~/lib'
-import { ImportSource, ImportType, ImportWorkerOperations, ImportWorkerResponse, importFileList } from '~/lib'
+import { ImportSource, ImportType, ImportWorkerOperations, ImportWorkerResponse, TabType, importFileList } from '~/lib'
 import type TemplateGenerator from '~/utils/parsers/TemplateGenerator'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import { extractSelectOptions } from '~/utils/parsers/parserHelpers'
-import {UITypes} from "nocodb-sdk";
 
 const state: {
   tables: TableType[]
@@ -66,21 +66,21 @@ async function getAdapter(importType: ImportType, sourceType: ImportSource, val:
       case ImportSource.FILE: {
         const data = await readFileContent(val)
 
-        return new ExcelTemplateAdapter(data, config)
+        return new ExcelTemplateAdapter(data, config, progress)
       }
       case ImportSource.URL:
-        return new ExcelUrlTemplateAdapter(val, config)
+        return new ExcelUrlTemplateAdapter(val, config, progress)
     }
   } else if (importType === 'json') {
     switch (sourceType) {
       case ImportSource.FILE: {
         const data = await readFileContent(val)
-        return new JSONTemplateAdapter(data, config)
+        return new JSONTemplateAdapter(data, config, progress)
       }
       case ImportSource.URL:
-        return new JSONUrlTemplateAdapter(val, config)
+        return new JSONUrlTemplateAdapter(val, config, progress)
       case ImportSource.STRING:
-        return new JSONTemplateAdapter(val, config)
+        return new JSONTemplateAdapter(val, config, progress)
     }
   }
 

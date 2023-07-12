@@ -5,14 +5,15 @@ export default class JSONUrlTemplateAdapter extends JSONTemplateAdapter {
   url: string
   $api: any
 
-  constructor(url: string, parserConfig: Record<string, any>) {
+  constructor(url: string, parserConfig: Record<string, any>, progressCallback?: (msg: string) => void) {
     const { $api } = useNuxtApp()
-    super({}, parserConfig)
+    super({}, parserConfig, progressCallback)
     this.url = url
     this.$api = $api
   }
 
   async init() {
+    this.progress('Downloading json file')
     const data = await this.$api.utils.axiosRequestMake({
       apiMeta: {
         url: this.url,

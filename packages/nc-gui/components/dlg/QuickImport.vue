@@ -42,7 +42,7 @@ const { importType, importDataOnly = false, baseId, ...rest } = defineProps<Prop
 
 const emit = defineEmits(['update:modelValue'])
 
-const isWorkerSupport = typeof Worker !== 'undefined'
+const isWorkerSupport = false && typeof Worker !== 'undefined'
 
 let importWorker: Worker
 

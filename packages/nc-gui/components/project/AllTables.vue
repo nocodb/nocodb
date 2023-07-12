@@ -90,7 +90,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
     >
       <div
         v-for="table in [...activeTables].sort(
-          (a, b) => a.base_id!.localeCompare(b.base_id!) * 20 - a.created_at!.localeCompare(b.created_at!),
+          (a, b) => a.base_id!.localeCompare(b.base_id!) * 20 
         )"
         :key="table.id"
         class="py-4 flex flex-row w-full cursor-pointer hover:bg-gray-50 border-b-1 border-gray-50 px-2"

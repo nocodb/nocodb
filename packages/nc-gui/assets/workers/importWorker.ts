@@ -101,6 +101,10 @@ const process = async (payload: ImportWorkerPayload) => {
   try {
     state.templateGenerator = await getAdapter(payload.importType, payload.importSource, payload.value, payload.config)
 
+    if(!state.templateGenerator) {
+      return
+    }
+
     await state.templateGenerator.init()
 
     console.log('parse')

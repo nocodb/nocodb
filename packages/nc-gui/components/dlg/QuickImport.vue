@@ -2,7 +2,7 @@
 import type { TableType } from 'nocodb-sdk'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
-import {onMounted, onUnmounted, toRaw, unref} from '@vue/runtime-core'
+import { onMounted, onUnmounted, toRaw, unref } from '@vue/runtime-core'
 import {
   CSVTemplateAdapter,
   ExcelTemplateAdapter,
@@ -42,14 +42,16 @@ const { importType, importDataOnly = false, baseId, ...rest } = defineProps<Prop
 
 const emit = defineEmits(['update:modelValue'])
 
+const isWorkerSupport = typeof Worker !== 'undefined'
+
 let importWorker: Worker
 
 onMounted(() => {
-  importWorker = new ImportWorker()
+  if (isWorkerSupport) importWorker = new ImportWorker()
 })
 
 onUnmounted(() => {
-  importWorker.terminate()
+  if (isWorkerSupport) importWorker.terminate()
 })
 
 const { t } = useI18n()
@@ -167,11 +169,11 @@ async function handlePreImport() {
   isParsingData.value = true
 
   if (activeKey.value === 'uploadTab') {
-    // if (isImportTypeCsv.value) {
+    if (isImportTypeCsv.value || isWorkerSupport) {
       await parseAndExtractData(importState.fileList as streamImportFileList)
-    // } else {
-    //   await parseAndExtractData((importState.fileList as importFileList)[0].data)
-    // }
+    } else {
+      await parseAndExtractData((importState.fileList as importFileList)[0].data)
+    }
   } else if (activeKey.value === 'urlTab') {
     try {
       await validate()
@@ -186,10 +188,10 @@ async function handlePreImport() {
 
 async function handleImport() {
   try {
-    // if (!templateGenerator) {
-    //   message.error(t('msg.error.templateGeneratorNotFound'))
-    //   return
-    // }
+    if (!templateGenerator && !importWorker) {
+      message.error(t('msg.error.templateGeneratorNotFound'))
+      return
+    }
     importLoading.value = true
     await templateEditorRef.value.importTemplate()
   } catch (e: any) {
@@ -211,33 +213,33 @@ function rejectDrop(fileList: UploadFile[]) {
 function handleChange(info: UploadChangeParam) {
   const status = info.file.status
   if (status && status !== 'uploading' && status !== 'removed') {
-    // if (isImportTypeCsv.value) {
+    if (isImportTypeCsv.value || isWorkerSupport) {
       if (!importState.fileList.find((f) => f.uid === info.file.uid)) {
         ;(importState.fileList as streamImportFileList).push({
           ...info.file,
           status: 'done',
         })
       }
-    // } else {
-    //   const reader = new FileReader()
-    //   reader.onload = (e: ProgressEvent<FileReader>) => {
-    //     const target = (importState.fileList as importFileList).find((f) => f.uid === info.file.uid)
-    //     if (e.target && e.target.result) {
-    //       /** if the file was pushed into the list by `<a-upload-dragger>` we just add the data to the file */
-    //       if (target) {
-    //         target.data = e.target.result
-    //       } else if (!target) {
-    //         /** if the file was added programmatically and not with d&d, we create file infos and push it into the list */
-    //         importState.fileList.push({
-    //           ...info.file,
-    //           status: 'done',
-    //           data: e.target.result,
-    //         })
-    //       }
-    //     }
-    //   }
-    //   reader.readAsArrayBuffer(info.file.originFileObj!)
-    // }
+    } else {
+      const reader = new FileReader()
+      reader.onload = (e: ProgressEvent<FileReader>) => {
+        const target = (importState.fileList as importFileList).find((f) => f.uid === info.file.uid)
+        if (e.target && e.target.result) {
+          /** if the file was pushed into the list by `<a-upload-dragger>` we just add the data to the file */
+          if (target) {
+            target.data = e.target.result
+          } else if (!target) {
+            /** if the file was added programmatically and not with d&d, we create file infos and push it into the list */
+            importState.fileList.push({
+              ...info.file,
+              status: 'done',
+              data: e.target.result,
+            })
+          }
+        }
+      }
+      reader.readAsArrayBuffer(info.file.originFileObj!)
+    }
   }
 
   if (status === 'done') {
@@ -327,10 +329,8 @@ const beforeUpload = (file: UploadFile) => {
 
 // UploadFile[] for csv import (streaming)
 // ArrayBuffer for excel import
-// string for json import
-async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
+function extractImportWorkerPayload(value: UploadFile[] | ArrayBuffer | string) {
   let payload: ImportWorkerPayload
-  const value = toRaw(val)
   if (isImportTypeCsv.value) {
     switch (activeKey.value) {
       case 'uploadTab':
@@ -403,93 +403,99 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
         break
     }
   }
+  return payload
+}
 
-  importWorker.postMessage([
-    ImportWorkerOperations.SET_TABLES,
-    unref(tables).map((t) => ({
-      table_name: t.table_name,
-      title: t.title,
-    })),
-  ])
-  importWorker.postMessage([
-    ImportWorkerOperations.SET_CONFIG,
-    {
-      importDataOnly,
-      importColumns: !!importColumns.value,
-      importData: !!importData.value,
-    },
-  ])
-
-  const response: {
-    templateData: any
-    importColumns: any
-    importData: any
-  } = await new Promise((resolve) => {
-    const handler = (e) => {
-      const [type, payload] = e.data
-      switch (type) {
-        case ImportWorkerResponse.PROCESSED_DATA:
-          resolve(payload)
-          importWorker.removeEventListener('message', handler, false)
-          break
-        case ImportWorkerResponse.PROGRESS:
-          progressMsg.value = payload
-          break
-      }
-    }
-    importWorker.addEventListener('message', handler, false)
+// string for json import
+async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
+  if (isWorkerSupport) {
+    const value = toRaw(val)
+    const payload = extractImportWorkerPayload(value)
 
     importWorker.postMessage([
-      ImportWorkerOperations.PROCESS,
-      payload,
+      ImportWorkerOperations.SET_TABLES,
+      unref(tables).map((t) => ({
+        table_name: t.table_name,
+        title: t.title,
+      })),
     ])
-  })
+    importWorker.postMessage([
+      ImportWorkerOperations.SET_CONFIG,
+      {
+        importDataOnly,
+        importColumns: !!importColumns.value,
+        importData: !!importData.value,
+      },
+    ])
 
-  templateData.value = response.templateData
-  importColumns.value = response.importColumns
-  importData.value = response.importData
+    const response: {
+      templateData: any
+      importColumns: any
+      importData: any
+    } = await new Promise((resolve) => {
+      const handler = (e) => {
+        const [type, payload] = e.data
+        switch (type) {
+          case ImportWorkerResponse.PROCESSED_DATA:
+            resolve(payload)
+            importWorker.removeEventListener('message', handler, false)
+            break
+          case ImportWorkerResponse.PROGRESS:
+            progressMsg.value = payload
+            break
+        }
+      }
+      importWorker.addEventListener('message', handler, false)
 
-  templateEditorModal.value = true
-  isParsingData.value = false
-  preImportLoading.value = false
+      importWorker.postMessage([ImportWorkerOperations.PROCESS, payload])
+    })
 
-  // templateEditorModal.value = true
-  // isParsingData.value = false
-  // preImportLoading.value = false
-  //
-  // try {
-  //   templateData.value = null
-  //   importData.value = null
-  //   importColumns.value = []
-  //
-  //   templateGenerator = getAdapter(val)
-  //
-  //   if (!templateGenerator) {
-  //     message.error(t('msg.error.templateGeneratorNotFound'))
-  //     return
-  //   }
-  //
-  //   await templateGenerator.init()
-  //
-  //   await templateGenerator.parse()
-  //
-  //   templateData.value = templateGenerator!.getTemplate()
-  //   if (importDataOnly) importColumns.value = templateGenerator!.getColumns()
-  //   else {
-  //     // ensure the target table name not exist in current table list
-  //     templateData.value.tables = templateData.value.tables.map((table: Record<string, any>) => ({
-  //       ...table,
-  //       table_name: populateUniqueTableName(table.table_name),
-  //     }))
-  //   }
-  //   importData.value = templateGenerator!.getData()
-  //   templateEditorModal.value = true
-  // } catch (e: any) {
-  //   message.error(await extractSdkResponseErrorMsg(e))
-  // } finally {
-  //   isParsingData.value = false
-  //   preImportLoading.value = false
-  // }
+    templateData.value = response.templateData
+    importColumns.value = response.importColumns
+    importData.value = response.importData
+
+    templateEditorModal.value = true
+    isParsingData.value = false
+    preImportLoading.value = false
+  } else {
+    templateEditorModal.value = true
+    isParsingData.value = false
+    preImportLoading.value = false
+
+    try {
+      templateData.value = null
+      importData.value = null
+      importColumns.value = []
+
+      templateGenerator = getAdapter(val)
+
+      if (!templateGenerator) {
+        message.error(t('msg.error.templateGeneratorNotFound'))
+        return
+      }
+
+      await templateGenerator.init()
+
+      await templateGenerator.parse()
+
+      templateData.value = templateGenerator!.getTemplate()
+      if (importDataOnly) importColumns.value = templateGenerator!.getColumns()
+      else {
+        // ensure the target table name not exist in current table list
+        templateData.value.tables = templateData.value.tables.map((table: Record<string, any>) => ({
+          ...table,
+          table_name: populateUniqueTableName(table.table_name),
+        }))
+      }
+      importData.value = templateGenerator!.getData()
+      templateEditorModal.value = true
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      isParsingData.value = false
+      preImportLoading.value = false
+    }
+  }
 }
 </script>
 

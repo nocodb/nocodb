@@ -2,14 +2,12 @@ import 'mocha';
 import request from 'supertest';
 import { expect } from 'chai';
 import { Exception } from 'handlebars';
-import { DataConfig, DataSourceType, WidgetType } from 'nocodb-sdk';
 import { createWidget } from '../../factory/widget';
 import init from '../../init';
 import { createLayout } from '../../factory/layout';
 import { createProject } from '../../factory/project';
 import { createTable } from '../../factory/table';
 import { Widget } from '../../../../src/models';
-import type { DataSource, WidgetReqType, WidgetTypeType } from 'nocodb-sdk';
 
 // Test case list
 // 1. Create widget
@@ -69,7 +67,7 @@ function widgetTests() {
     });
 
     it('Delete widget', async function () {
-      const response = await request(context.app)
+      await request(context.app)
         .delete(`/api/v1/layouts/${layout.id}/widgets/${widget.id}`)
         .set('xc-auth', context.token)
         .send({})
@@ -83,7 +81,7 @@ function widgetTests() {
     });
 
     it('Update widget type', async () => {
-      const response = await request(context.app)
+      await request(context.app)
         .patch(`/api/v1/layouts/${layout.id}/widgets/${widget.id}`)
         .set('xc-auth', context.token)
         .send({

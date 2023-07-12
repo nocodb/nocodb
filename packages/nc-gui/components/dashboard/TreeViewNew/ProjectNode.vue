@@ -519,9 +519,7 @@ onKeyStroke('Escape', () => {
                 </a-menu-item-group>
                 <!--          </a-menu> -->
 
-                <template v-if="project?.bases?.[0]?.enabled && !project?.bases?.slice(1).filter((el) => el.enabled)?.length">
-                  <DashboardTreeViewNewBaseOptions v-model:project="project" :base="project.bases[0]" />
-                </template>
+                <DashboardTreeViewNewBaseOptions v-model:project="project" :base="project.bases[0]" />
 
                 <a-menu-divider />
 

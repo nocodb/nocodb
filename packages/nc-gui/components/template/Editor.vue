@@ -779,7 +779,7 @@ function handleUIDTChange(column, table) {
             <template #header>
               <a-form-item v-if="editableTn[tableIdx]" v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
                 <a-input
-                  v-model:value="table.table_name"
+                  v-model:value.lazy="table.table_name"
                   class="max-w-xs font-weight-bold text-lg"
                   size="large"
                   hide-details

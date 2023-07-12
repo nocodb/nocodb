@@ -25,7 +25,7 @@ const serverInit = async () => {
 
 const isFirstTimeRun = () => !server;
 
-export default async function () {
+export default async function (forceReset = false) {
   const { default: TestDbMngr } = await import('../TestDbMngr');
 
   if (isFirstTimeRun()) {
@@ -33,7 +33,7 @@ export default async function () {
     server = await serverInit();
   }
 
-  await cleanUpSakila();
+  await cleanUpSakila(forceReset);
   await cleanupMeta();
 
   const { token } = await createUser({ app: server }, { roles: 'editor' });

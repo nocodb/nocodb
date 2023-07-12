@@ -29,7 +29,7 @@ function columnTypeSpecificTests() {
 
   beforeEach(async function () {
     console.time('#### columnTypeSpecificTests');
-    context = await init();
+    context = await init(true);
 
     sakilaProject = await createSakilaProject(context);
     project = await createProject(context);
@@ -43,7 +43,7 @@ function columnTypeSpecificTests() {
       title: qrValueReferenceColumnTitle,
       uidt: UITypes.SingleLineText,
       table_name: customerTable.table_name,
-      column_name: title,
+      column_name: qrValueReferenceColumnTitle,
     });
 
     await createQrCodeColumn(context, {

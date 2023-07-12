@@ -86,6 +86,28 @@ onMounted(async () => {
   }
 })
 
+function toggleRole(role: string | number) {
+  const isRoleDisabled = isRoleChecked(role)
+  filteredTables.value.forEach((table) => {
+    table.disabled[role] = isRoleDisabled
+    table.edited = true
+  })
+}
+
+function getCheckedCountForRole(role: string | number) {
+  return filteredTables.value.filter((table) => !table.disabled[role]).length
+}
+
+function isRoleChecked(role: string | number) {
+  const checkedCount = getCheckedCountForRole(role)
+  return checkedCount === filteredTables.value.length
+}
+
+function isRoleIndeterminate(role: string | number) {
+  const checkedCount = getCheckedCountForRole(role)
+  return checkedCount > 0 && checkedCount < filteredTables.value.length
+}
+
 const tableHeaderRenderer = (label: string) => () => h('div', { class: 'text-gray-500' }, label)
 
 const columns = [
@@ -139,7 +161,21 @@ const columns = [
           </div>
         </a-button>
       </div>
-
+      <div class="flex flex-row items-center w-full mb-4 gap-2 justify-end">
+        <template v-for="role in roles" :key="role">
+          <a-tooltip>
+            <template #title>
+              {{ `Click to select all ${role}'s` }}
+            </template>
+            <a-checkbox
+              class="checkbox-spacing"
+              :checked="isRoleChecked(role)"
+              :indeterminate="isRoleIndeterminate(role)"
+              @change="toggleRole(role)"
+            />
+          </a-tooltip>
+        </template>
+      </div>
       <div class="max-h-600px overflow-y-auto">
         <a-table
           class="w-full"
@@ -205,3 +241,9 @@ const columns = [
     </div>
   </div>
 </template>
+
+<style>
+.checkbox-spacing {
+  @apply mr-[7.5rem];
+}
+</style>

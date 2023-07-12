@@ -53,7 +53,7 @@ const visible = useVModel(props, 'visible', emits)
     v-model:visible="visible"
     :class="{ active: visible }"
     :width="width"
-    centered
+    :centered="true"
     :closable="false"
     wrap-class-name="nc-modal-wrapper"
     :footer="null"

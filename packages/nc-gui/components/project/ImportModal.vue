@@ -63,10 +63,10 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json') => {
 </script>
 
 <template>
-  <GeneralModal v-model:visible="visible">
-    <div class="flex flex-col pl-12.5 pt-8 pb-10">
-      <div class="text-lg font-medium mb-8">Import</div>
-      <div class="row mb-12">
+  <GeneralModal v-model:visible="visible" width="36rem">
+    <div class="flex flex-col pl-10.5 pt-6 pb-9">
+      <div class="text-lg font-medium mb-6">Import</div>
+      <div class="row mb-10">
         <div class="nc-project-view-import-sub-btn" @click="onClick('airtable')">
           <GeneralIcon icon="airtable" />
           <div class="label">Airtable</div>
@@ -92,7 +92,7 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json') => {
 
 <style lang="scss" scoped>
 .row {
-  @apply flex flex-row gap-x-12;
+  @apply flex flex-row gap-x-10;
 }
 .nc-project-view-import-sub-btn {
   @apply flex flex-col gap-y-6 p-16 bg-gray-50 items-center justify-center rounded-xl w-56 cursor-pointer text-gray-600 hover:(bg-gray-100 !text-black);

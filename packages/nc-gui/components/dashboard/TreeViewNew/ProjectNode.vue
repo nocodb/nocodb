@@ -482,8 +482,15 @@ onKeyStroke('Escape', () => {
                     </div>
                   </template>
                   <template v-if="!isSharedBase">
+                    <a-menu-item @click="enableEditMode">
+                      <div class="nc-project-menu-item group">
+                        <GeneralIcon icon="edit" class="group-hover:text-accent" />
+                        Edit
+                      </div>
+                    </a-menu-item>
+
                     <!-- Copy Project Info -->
-                    <a-menu-item key="copy">
+                    <a-menu-item key="copy" v-if="false">
                       <div
                         v-e="['c:navbar:user:copy-proj-info']"
                         class="nc-project-menu-item group"
@@ -494,7 +501,7 @@ onKeyStroke('Escape', () => {
                       </div>
                     </a-menu-item>
 
-                    <a-menu-divider />
+                    <a-menu-divider v-if="false" />
 
                     <!-- Swagger: Rest APIs -->
                     <a-menu-item key="api">
@@ -508,36 +515,6 @@ onKeyStroke('Escape', () => {
                         {{ $t('activity.account.swagger') }}
                       </div>
                     </a-menu-item>
-
-                    <a-menu-divider />
-
-                    <!-- Team & Settings -->
-                    <a-menu-item key="teamAndSettings">
-                      <div
-                        v-if="isUIAllowed('settings')"
-                        v-e="['c:navdraw:project-settings']"
-                        class="nc-project-menu-item group"
-                        @click="toggleDialog(true, 'teamAndAuth', undefined, project.id)"
-                      >
-                        <GeneralIcon icon="settings" class="group-hover:text-accent" />
-                        {{ $t('activity.settings') }}
-                      </div>
-                    </a-menu-item>
-
-                    <a-menu-divider />
-
-                    <a-menu-item @click="enableEditMode">
-                      <div class="nc-project-menu-item group">
-                        <GeneralIcon icon="edit" class="group-hover:text-accent" />
-                        Edit
-                      </div>
-                    </a-menu-item>
-                    <a-menu-item @click="confirmDeleteProject">
-                      <div class="nc-project-menu-item group">
-                        <GeneralIcon icon="delete" class="group-hover:text-accent" />
-                        Delete
-                      </div>
-                    </a-menu-item>
                   </template>
                 </a-menu-item-group>
                 <!--          </a-menu> -->
@@ -545,6 +522,30 @@ onKeyStroke('Escape', () => {
                 <template v-if="project?.bases?.[0]?.enabled && !project?.bases?.slice(1).filter((el) => el.enabled)?.length">
                   <DashboardTreeViewNewBaseOptions v-model:project="project" :base="project.bases[0]" />
                 </template>
+
+                <a-menu-divider />
+
+                <!-- Team & Settings -->
+                <a-menu-item key="teamAndSettings">
+                  <div
+                    v-if="isUIAllowed('settings')"
+                    v-e="['c:navdraw:project-settings']"
+                    class="nc-project-menu-item group"
+                    @click="toggleDialog(true, 'teamAndAuth', undefined, project.id)"
+                  >
+                    <GeneralIcon icon="settings" class="group-hover:text-accent" />
+                    {{ $t('activity.settings') }}
+                  </div>
+                </a-menu-item>
+
+                <a-menu-divider v-if="false" />
+
+                <a-menu-item @click="confirmDeleteProject">
+                  <div class="nc-project-menu-item group text-red-500">
+                    <GeneralIcon icon="delete2" class="group-hover:text-accent" />
+                    Delete
+                  </div>
+                </a-menu-item>
               </a-menu>
             </template>
           </a-dropdown>

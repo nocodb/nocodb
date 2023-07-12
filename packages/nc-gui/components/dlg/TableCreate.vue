@@ -136,7 +136,7 @@ onMounted(() => {
       <div class="flex mb-5 text-lg font-medium">
         {{ $t('activity.createTable') }}
       </div>
-      <a-form :model="table" name="create-new-table-form" @keydown.enter="_createTable">
+      <a-form :model="table" name="create-new-table-form" @keydown.enter="_createTable" @keydown.esc="dialogShow = false">
         <!-- hint="Enter table name" -->
         <!--        Table name -->
         <div class="mb-1">{{ $t('labels.tableName') }}</div>

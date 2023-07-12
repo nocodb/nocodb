@@ -13,7 +13,8 @@ import { isHub, isMysql, isPg, isSqlite } from '../../../setup/db';
 import { SettingsErdPage } from '../../../pages/Dashboard/Settings/Erd';
 import { defaultBaseName } from '../../../constants';
 
-test.describe('Erd', () => {
+// Global ERD to be enabled after project-menu landing page is implemented
+test.describe.skip('Erd', () => {
   let dashboard: DashboardPage;
   let context: any;
   let sakilaTables, sakilaSqlViews;

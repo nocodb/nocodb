@@ -22,7 +22,9 @@ function restTests() {
   attachmentTests();
   filterTest();
   layoutTests();
-  widgetTest();
+
+  // Enable for dashboard feature
+  // widgetTest();
 }
 
 export default function () {

@@ -42,20 +42,23 @@ test.describe('Verify shortcuts', () => {
     await grid.column.verify({ title: 'New Column' });
 
     // fullscreen
-    await page.keyboard.press('Alt+f');
-    await dashboard.treeView.verifyVisibility({
-      isVisible: false,
-    });
-    await dashboard.viewSidebar.verifyVisibility({
-      isVisible: false,
-    });
-    await page.keyboard.press('Alt+f');
-    await dashboard.treeView.verifyVisibility({
-      isVisible: true,
-    });
-    await dashboard.viewSidebar.verifyVisibility({
-      isVisible: true,
-    });
+    // to be implemented for hub
+    if (!isHub()) {
+      await page.keyboard.press('Alt+f');
+      await dashboard.treeView.verifyVisibility({
+        isVisible: false,
+      });
+      await dashboard.viewSidebar.verifyVisibility({
+        isVisible: false,
+      });
+      await page.keyboard.press('Alt+f');
+      await dashboard.treeView.verifyVisibility({
+        isVisible: true,
+      });
+      await dashboard.viewSidebar.verifyVisibility({
+        isVisible: true,
+      });
+    }
 
     // invite team member
     await page.keyboard.press('Alt+i');

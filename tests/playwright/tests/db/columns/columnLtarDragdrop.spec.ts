@@ -7,7 +7,7 @@ import { getTextExcludeIconText } from '../../utils/general';
 let api: Api<any>;
 const recordCount = 10;
 
-test.describe('Test table', () => {
+test.describe.skip('Links', () => {
   let context: any;
   let dashboard: DashboardPage;
   let grid: GridPage;

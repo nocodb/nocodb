@@ -112,7 +112,7 @@ export class DashboardPage extends BasePage {
 
   async gotoSettings() {
     await this.projectMenuLink.click();
-    await this.rootPage.locator('div.nc-project-menu-item:has-text(" Team & Settings")').click();
+    await this.rootPage.locator('div.nc-project-menu-item:has-text("Settings")').click();
   }
 
   async gotoProjectSubMenu({ title }: { title: string }) {

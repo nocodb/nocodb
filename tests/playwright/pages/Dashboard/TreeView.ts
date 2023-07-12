@@ -52,7 +52,7 @@ export class TreeViewPage extends BasePage {
   async openBase({ title }: { title: string }) {
     let nodes: Locator;
     if (isHub()) {
-      nodes = await this.get().locator(`.nc-sidebar-base-node`);
+      nodes = await this.get().locator(`.nc-project-sub-menu`).locator('.nc-sidebar-base-node');
     } else {
       nodes = await this.get().locator(`.ant-collapse`);
     }
@@ -206,7 +206,9 @@ export class TreeViewPage extends BasePage {
       await addProject.hover();
       await addProject.click();
       const importMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md');
-      await importMenu.locator(`.ant-dropdown-menu-item:has-text("${title}")`).click();
+      await importMenu.locator(`.ant-dropdown-menu-submenu:has-text("Quick Import From")`).click();
+      await this.rootPage.locator(`.ant-dropdown-menu-item:has-text("${title}")`).waitFor();
+      await this.rootPage.locator(`.ant-dropdown-menu-item:has-text("${title}")`).click();
     } else {
       await this.get().locator('.nc-add-new-table').hover();
       await this.quickImportButton.click();
@@ -309,5 +311,24 @@ export class TreeViewPage extends BasePage {
         param.role === 'creator' ? 1 : 0
       );
     }
+  }
+
+  async openProject(param: { title: string }) {
+    const nodes = await this.get().locator(`.nc-project-sub-menu`);
+
+    // loop through nodes.count() to find the node with title
+    for (let i = 0; i < (await nodes.count()); i++) {
+      const node = nodes.nth(i);
+      const nodeTitle = await node.innerText();
+      // check if nodeTitle contains title
+      if (nodeTitle.toLowerCase().includes(param.title.toLowerCase())) {
+        // click on node
+        await node.waitFor({ state: 'visible' });
+        await node.click();
+        break;
+      }
+    }
+
+    await this.rootPage.waitForTimeout(1000);
   }
 }

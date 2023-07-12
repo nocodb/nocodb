@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { SwipeDirection, breakpointsTailwind } from '@vueuse/core'
+import {breakpointsTailwind} from '@vueuse/core'
 import {
   DropZoneRef,
   IsSurveyFormInj,
@@ -225,9 +225,9 @@ onMounted(() => {
       onSwipe: () => {
         if (isTransitioning.value) return
 
-        if (direction.value === SwipeDirection.LEFT) {
+        if (direction.value === 'left') {
           goNext()
-        } else if (direction.value === SwipeDirection.RIGHT) {
+        } else if (direction.value === 'right') {
           goPrevious()
         }
       },

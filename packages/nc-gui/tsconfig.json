@@ -17,10 +17,6 @@
       "nuxt-windicss",
       "vite/client",
       "@nuxt/image-edge"
-    ],
-    "lib": [
-      "esnext.full",
-      "webworker"
     ]
   },
   "exclude": ["node_modules", "dist", ".output"]

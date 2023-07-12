@@ -2,7 +2,7 @@
 import type { ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import { storeToRefs } from 'pinia'
-import { isString } from '@vueuse/core'
+import {isString} from "@vue/shared";
 import tinycolor from 'tinycolor2'
 import type { SharedView } from '~~/lib'
 

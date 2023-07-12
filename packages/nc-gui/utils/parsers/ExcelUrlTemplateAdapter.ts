@@ -1,5 +1,5 @@
 import ExcelTemplateAdapter from './ExcelTemplateAdapter'
-import { useNuxtApp } from '#imports'
+// import { useNuxtApp } from '#imports'
 
 export default class ExcelUrlTemplateAdapter extends ExcelTemplateAdapter {
   url: string
@@ -7,11 +7,11 @@ export default class ExcelUrlTemplateAdapter extends ExcelTemplateAdapter {
   $api: any
 
   constructor(url: string, parserConfig: Record<string, any>, progressCallback?: (msg: string) => void) {
-    const { $api } = useNuxtApp()
+    // const { $api } = useNuxtApp()
     super({}, parserConfig, progressCallback)
     this.url = url
     this.excelData = null
-    this.$api = $api
+    // this.$api = $api
   }
 
   async init() {

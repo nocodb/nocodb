@@ -28,7 +28,7 @@ import {
 import type { ImportWorkerPayload, importFileList, streamImportFileList } from '~/lib'
 
 // import worker script according to the doc of Vite
-import ImportWorker from '@/assets/workers/importWorker?worker'
+import ImportWorker from '~/workers/importWorker?worker&inline'
 import { ImportSource, ImportType, ImportWorkerOperations, ImportWorkerResponse } from '~/lib'
 
 interface Props {

@@ -33,6 +33,7 @@ import {
   useTabs,
 } from '#imports'
 import { ImportWorkerOperations, ImportWorkerResponse, TabType } from '~/lib'
+import General from '~/layouts/general.vue'
 
 const { quickImportType, projectTemplate, importData, importColumns, importDataOnly, maxRowsToParse, baseId, importWorker } =
   defineProps<Props>()
@@ -744,6 +745,11 @@ function handleUIDTChange(column, table) {
                   :filter-option="filterOption"
                   dropdown-class-name="nc-dropdown-filter-field"
                 >
+                  <a-select-option>
+                    <GeneralIcon icon="add" />
+                    <span class="ml-2 font-weight-bold">Add as a new column</span>
+                  </a-select-option>
+
                   <a-select-option v-for="(col, i) of columns" :key="i" :value="col.title">
                     <div class="flex items-center">
                       <component :is="getUIDTIcon(col.uidt)" />
@@ -974,6 +980,7 @@ function handleUIDTChange(column, table) {
   :deep(.ant-table-thead) > tr > th {
     @apply bg-white;
   }
+
   :deep(.template-form-row) > td {
     @apply p-0 mb-0;
     .ant-form-item {

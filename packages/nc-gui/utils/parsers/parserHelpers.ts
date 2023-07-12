@@ -1,6 +1,7 @@
 import { UITypes } from 'nocodb-sdk'
-import { isValidURL } from '~/utils/urlUtils'
-import { validateEmail } from '~/utils/validation'
+import isURL from 'validator/lib/isURL'
+const validateEmail = (v: string) =>
+  /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(v)
 
 const booleanOptions = [
   { checked: true, unchecked: false },
@@ -139,7 +140,7 @@ export const isEmailType = (colData: [], col?: number) =>
 export const isUrlType = (colData: [], col?: number) =>
   colData.some((r: any) => {
     const v = getColVal(r, col)
-    return v && isValidURL(v)
+    return v && isURL(v)
   })
 
 export const getColumnUIDTAndMetas = (colData: [], defaultType: string) => {

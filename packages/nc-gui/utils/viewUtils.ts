@@ -1,7 +1,7 @@
 import { ViewTypes } from 'nocodb-sdk'
-import { iconMap } from '~/utils/iconUtils'
+import { iconMap } from './iconUtils'
 
-import type { Language } from '~/lib'
+import type { Language } from '../lib'
 
 export const viewIcons: Record<number | string, { icon: any; color: string }> = {
   [ViewTypes.GRID]: { icon: iconMap.grid, color: '#2b39f3' },

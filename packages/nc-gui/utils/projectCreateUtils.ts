@@ -1,4 +1,4 @@
-import { ClientType } from '~/lib'
+import { ClientType } from '../lib'
 
 // todo: move to noco-sdk
 export enum NcProjectType {

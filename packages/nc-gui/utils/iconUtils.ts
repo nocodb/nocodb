@@ -29,6 +29,7 @@ import Palette from '~icons/material-symbols/palette-outline'
 import Form from '~icons/material-symbols/assignment-outline'
 import Kanban from '~icons/material-symbols/view-kanban-outline'
 import Erd from '~icons/material-symbols/account-tree-outline-rounded'
+import MsSync from '~icons/material-symbols/sync-rounded'
 import MdiRefresh from '~icons/mdi/refresh'
 import ApiSnippet from '~icons/material-symbols/settings-ethernet-rounded'
 import Phishing from '~icons/material-symbols/phishing-outline-rounded'
@@ -324,7 +325,7 @@ export const iconMap = {
   expand: h('span', { class: 'material-symbols' }, 'open_in_full'),
   check: h('span', { class: 'material-symbols' }, 'check'),
   acl: h('span', { class: 'material-symbols' }, 'shield'),
-  sync: h('span', { class: 'material-symbols' }, 'sync'),
+  sync: MsSync,
   warning: h('span', { class: 'material-symbols' }, 'warning'),
   share: h('span', { class: 'material-symbols' }, 'share'),
   reload: MdiRefresh,

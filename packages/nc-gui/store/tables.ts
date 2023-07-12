@@ -25,7 +25,9 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
     if (!tables) return []
 
-    return tables
+    const openedProjectBasesMap = projectsStore.openedProjectBasesMap
+
+    return tables.filter((t) => !t.base_id || openedProjectBasesMap.get(t.base_id)?.enabled)
   })
 
   const activeTable = computed(() => {

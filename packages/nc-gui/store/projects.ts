@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { OracleUi, ProjectType, TableType } from 'nocodb-sdk'
+import type { BaseType, OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
 import { NcProjectType } from '~/utils'
@@ -22,6 +22,18 @@ export const useProjects = defineStore('projectsStore', () => {
   const activeProjectId = computed(() => route.value.params.projectId as string | undefined)
 
   const openedProject = computed(() => (activeProjectId.value ? projects.value.get(activeProjectId.value) : undefined))
+  const openedProjectBasesMap = computed(() => {
+    const basesMap = new Map<string, BaseType>()
+
+    if (!openedProject.value) return basesMap
+    if (!openedProject.value.bases) return basesMap
+
+    for (const base of openedProject.value.bases) {
+      basesMap.set(base.id!, base)
+    }
+
+    return basesMap
+  })
 
   const workspaceStore = useWorkspace()
   const tableStore = useTablesStore()
@@ -243,6 +255,7 @@ export const useProjects = defineStore('projectsStore', () => {
     isProjectsLoading,
     activeProjectId,
     openedProject,
+    openedProjectBasesMap,
   }
 })
 

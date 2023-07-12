@@ -253,7 +253,7 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean) =>
     return
   }
 
-  project.isExpanded = true
+  project.isExpanded = !project.isExpanded
 
   const isProjectPopulated = projectsStore.isProjectPopulated(project.id!)
 
@@ -490,7 +490,7 @@ onKeyStroke('Escape', () => {
                     </a-menu-item>
 
                     <!-- Copy Project Info -->
-                    <a-menu-item key="copy" v-if="false">
+                    <a-menu-item v-if="false" key="copy">
                       <div
                         v-e="['c:navbar:user:copy-proj-info']"
                         class="nc-project-menu-item group"

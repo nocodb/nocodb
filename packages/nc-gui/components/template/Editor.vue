@@ -634,6 +634,8 @@ function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {
 }
 
 function handleUIDTChange(column, table) {
+  if(!handleUIDTChange) return
+
   const handler = (e) => {
     const [type, payload] = e.data
     switch (type) {
@@ -660,7 +662,7 @@ function handleUIDTChange(column, table) {
   } else if (column.uidt === UITypes.MultiSelect) {
     importWorker.addEventListener('message', handler, false)
     importWorker.postMessage([
-      ImportWorkerOperations.GET_SINGLE_SELECT_OPTIONS,
+      ImportWorkerOperations.GET_MULTI_SELECT_OPTIONS,
       {
         tableName: table.ref_table_name,
         columnName: column.ref_column_name,

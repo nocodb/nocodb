@@ -10,6 +10,8 @@ import type { ImportWorkerPayload } from '~/lib'
 import { ImportSource, ImportType, ImportWorkerOperations, ImportWorkerResponse, importFileList } from '~/lib'
 import type TemplateGenerator from '~/utils/parsers/TemplateGenerator'
 import { extractSdkResponseErrorMsg } from '~/utils'
+import { extractSelectOptions } from '~/utils/parsers/parserHelpers'
+import {UITypes} from "nocodb-sdk";
 
 const state: {
   tables: TableType[]
@@ -22,6 +24,11 @@ const state: {
     | JSONUrlTemplateAdapter
     | null
   config: any
+  data?: {
+    templateData: any
+    importColumns: any
+    importData: any
+  }
 } = {
   tables: [],
   config: {} as any,
@@ -124,6 +131,12 @@ const process = async (payload: ImportWorkerPayload) => {
     }
     importData = state.templateGenerator!.getData()
 
+    state.data = {
+      templateData,
+      importColumns,
+      importData,
+    }
+
     postMessage([
       ImportWorkerResponse.PROCESSED_DATA,
       {
@@ -152,6 +165,22 @@ self.addEventListener(
         break
       case ImportWorkerOperations.SET_CONFIG:
         state.config = payload
+        break
+      case ImportWorkerOperations.GET_SINGLE_SELECT_OPTIONS:
+      case ImportWorkerOperations.GET_MULTI_SELECT_OPTIONS:
+        {
+          const { tableName, columnName } = payload
+          const colOptions = extractSelectOptions(
+            state.templateGenerator?.data?.[tableName]?.flatMap((row: any) => row[columnName] || []) ?? [],
+            operation === ImportWorkerOperations.GET_MULTI_SELECT_OPTIONS ? UITypes.MultiSelect : UITypes.SingleSelect,
+          )
+
+          if (operation === ImportWorkerOperations.GET_MULTI_SELECT_OPTIONS) {
+            postMessage([ImportWorkerResponse.MULTI_SELECT_OPTIONS, colOptions.dtxp])
+          } else {
+            postMessage([ImportWorkerResponse.SINGLE_SELECT_OPTIONS, colOptions.dtxp])
+          }
+        }
         break
     }
   },

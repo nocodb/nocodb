@@ -102,6 +102,29 @@ export const extractMultiOrSingleSelectProps = (colData: []) => {
   }
 }
 
+export const extractSelectOptions = (colData: [], type: UITypes.SingleSelect | UITypes.MultiSelect): { dtxp: string } => {
+  const colProps: any = {}
+
+  if (type === UITypes.MultiSelect) {
+    const flattenedVals = colData.flatMap((v: any) =>
+      v
+        ? v
+            .toString()
+            .trim()
+            .split(/\s*,\s*/)
+        : [],
+    )
+    const uniqueVals = [...new Set(flattenedVals.map((v: any) => v.toString().trim()))]
+    colProps.uidt = UITypes.MultiSelect
+    colProps.dtxp = `${uniqueVals.map((v) => `'${v.replace(/'/gi, "''")}'`).join(',')}`
+  } else {
+    const uniqueVals = [...new Set(colData.map((v: any) => v.toString().trim()))]
+    colProps.uidt = UITypes.SingleSelect
+    colProps.dtxp = `${uniqueVals.map((v) => `'${v.replace(/'/gi, "''")}'`).join(',')}`
+  }
+  return colProps
+}
+
 export const isDecimalType = (colData: []) =>
   colData.some((v: any) => {
     return v && parseInt(v) !== +v

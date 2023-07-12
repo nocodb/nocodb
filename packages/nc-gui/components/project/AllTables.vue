@@ -68,11 +68,11 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
 <template>
   <div class="">
     <div class="flex flex-row gap-x-6 pb-3 pt-6">
-      <div class="nc-project-view-all-table-btn" @click="openTableCreateDialog()" data-testid="proj-view-btn__new-table">
+      <div class="nc-project-view-all-table-btn" @click="openTableCreateDialog()" data-testid="proj-view-btn__add-new-table">
         <GeneralIcon icon="addOutlineBox" />
         <div class="label">New Empty Table</div>
       </div>
-      <div class="nc-project-view-all-table-btn" @click="isImportModalOpen = true" data-testid="proj-view-btn__import">
+      <div class="nc-project-view-all-table-btn" @click="isImportModalOpen = true" data-testid="proj-view-btn__import-data">
         <GeneralIcon icon="download" />
         <div class="label">Import Data</div>
       </div>

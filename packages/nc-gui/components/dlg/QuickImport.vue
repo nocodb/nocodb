@@ -489,6 +489,7 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
 
     templateEditorModal.value = true
   } catch (e: any) {
+    console.log(e)
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     isParsingData.value = false

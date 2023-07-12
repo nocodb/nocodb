@@ -412,7 +412,7 @@ async function importTemplate() {
       isImporting.value = true
 
       const tableId = meta.value?.id
-      const projectName = project.value.title!
+      const projectId = project.value.id!
       const table_names = data.tables.map((t: Record<string, any>) => t.table_name)
 
       await Promise.all(
@@ -456,8 +456,8 @@ async function importTemplate() {
                   return res
                 }, {}),
               )
-              await $api.dbTableRow.bulkCreate('noco', projectName, tableId!, batchData)
-              updateImportTips(projectName, tableId!, progress, total)
+              await $api.dbTableRow.bulkCreate('noco', projectId, tableId!, batchData)
+              updateImportTips(projectId, tableId!, progress, total)
               progress += batchData.length
             }
           })(key),

@@ -99,7 +99,7 @@ function openQuickImportDialog(type: string) {
 </script>
 
 <template>
-  <a-menu-divider class="my-0" v-if="false" />
+  <a-menu-divider v-if="false" class="my-0" />
 
   <!-- NocoAI -->
   <a-sub-menu v-if="false">
@@ -186,10 +186,10 @@ function openQuickImportDialog(type: string) {
     </a-menu-item>
   </a-sub-menu>
 
-  <a-menu-divider class="my-0" v-if="false" />
+  <a-menu-divider v-if="false" class="my-0" />
 
   <!-- Connect to new datasource -->
-  <a-sub-menu>
+  <!-- <a-sub-menu>
     <template #title>
       <div class="nc-project-menu-item group">
         <GeneralIcon icon="datasource" class="group-hover:text-accent" />
@@ -243,9 +243,8 @@ function openQuickImportDialog(type: string) {
         class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
       >
         <GeneralIcon icon="openInNew" class="group-hover:text-accent" />
-        <!-- Request a data source you need? -->
         {{ $t('labels.requestDataSource') }}
       </a>
     </a-menu-item>
-  </a-sub-menu>
+  </a-sub-menu> -->
 </template>

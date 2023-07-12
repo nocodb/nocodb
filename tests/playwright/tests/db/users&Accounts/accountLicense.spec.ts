@@ -1,8 +1,9 @@
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { AccountPage } from '../../../pages/Account';
 import setup from '../../../setup';
 import { AccountLicensePage } from '../../../pages/Account/License';
 import { DashboardPage } from '../../../pages/Dashboard';
+import { isHub } from '../../../setup/db';
 
 test.describe('Enterprise License', () => {
   // @ts-ignore
@@ -24,6 +25,13 @@ test.describe('Enterprise License', () => {
 
     await dashboard.goto();
     // presence of snowflake icon indicates enterprise features are enabled
-    await dashboard.treeView.quickImport({ title: 'Snowflake' });
+    if (isHub()) {
+      await dashboard.projectView.tab_dataSources.click();
+      await dashboard.projectView.btn_addNewDataSource.click();
+      const types = await dashboard.projectView.dataSources.getDatabaseTypeList();
+      await expect(types).toContain('Snowflake');
+    } else {
+      await dashboard.treeView.quickImport({ title: 'Snowflake' });
+    }
   });
 });

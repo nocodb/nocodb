@@ -18,6 +18,7 @@ import MdiEyeCircleOutline from '~icons/mdi/eye-circle-outline'
 import MsAddBoxOutline from '~icons/nc-icons/add-box'
 import MsDownloadRounded from '~icons/nc-icons/download'
 import LogosAirtable from '~icons/logos/airtable'
+import PhLayout from '~icons/ph/layout'
 import Copy from '~icons/material-symbols/content-copy-outline'
 import Delete from '~icons/material-symbols/delete-outline'
 import PhEye from '~icons/ph/eye'
@@ -53,6 +54,7 @@ import MsInfo from '~icons/material-symbols/info-outline-rounded'
 import PhSparkleFill from '~icons/ph/sparkle-fill'
 import Grid from '~icons/material-symbols/grid-view-outline'
 
+import MsDatabase from '~icons/mdi/database-outline'
 import MdiDatabaseSearch from '~icons/mdi/database-search'
 import MdiMagicStaff from '~icons/mdi/magic-staff'
 import PhCaretDoubleLeftThin from '~icons/ph/caret-double-left-light'
@@ -245,7 +247,7 @@ export const iconMap = {
   returnKey: h('span', { class: 'material-symbols' }, 'keyboard_return'),
   keyboard: h('span', { class: 'material-symbols' }, 'keyboard'),
   accountPlus: h('span', { class: 'material-symbols' }, 'person_add'),
-  database: h('span', { class: 'material-symbols' }, 'database'),
+  database: MsDatabase,
   discord: PhDiscordLogoLight,
   reddit: PhRedditLogoLight,
   github: PhGithubLogoLight,
@@ -278,6 +280,7 @@ export const iconMap = {
   arrowRight: Right,
   arrowLeft: Left,
   arrowUp: Up,
+  layout: PhLayout,
   sidebarMinimise: PhCaretDoubleLeftThin, // h('span', { class: 'material-symbols' }, 'left_panel_close'),
   // threeDotVertical: h('span', { class: 'material-symbols' }, 'more_vert'),
   // threeDotHorizontal: h('span', { class: 'material-symbols' }, 'more_horiz'),

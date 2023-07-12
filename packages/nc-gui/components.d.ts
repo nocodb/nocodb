@@ -265,6 +265,7 @@ declare module '@vue/runtime-core' {
     PhUsersBold: typeof import('~icons/ph/users-bold')['default']
     PhXCircleLight: typeof import('~icons/ph/x-circle-light')['default']
     RiExternalLinkLine: typeof import('~icons/ri/external-link-line')['default']
+    RiLayout4Line: typeof import('~icons/ri/layout4-line')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SimpleIconsMicrosoftsqlserver: typeof import('~icons/simple-icons/microsoftsqlserver')['default']

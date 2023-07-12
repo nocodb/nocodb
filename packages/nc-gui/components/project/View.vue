@@ -1,5 +1,7 @@
 <script lang="ts" setup>
+import NcLayout from '~icons/nc-icons/layout'
 const { openedProject } = storeToRefs(useProjects())
+const { activeTables } = storeToRefs(useTablesStore())
 
 const defaultBase = computed(() => {
   return openedProject.value?.bases?.[0]
@@ -33,13 +35,34 @@ const baseSettingsState = ref('')
       }"
     >
       <a-tabs v-model:activeKey="activeKey" class="w-full">
-        <a-tab-pane key="allTables" tab="All Tables">
+        <a-tab-pane key="allTables">
+          <template #tab>
+            <div class="tab-title">
+              <NcLayout />
+              <div>All tables</div>
+              <div
+                class="flex pl-1.25 px-1.5 py-0.75 rounded-md text-xs"
+                :class="{
+                  'bg-primary-selected': activeKey === 'allTables',
+                  'bg-gray-50': activeKey !== 'allTables',
+                }"
+              >
+                {{ activeTables.length }}
+              </div>
+            </div>
+          </template>
           <ProjectAllTables />
         </a-tab-pane>
         <!-- <a-tab-pane v-if="defaultBase" key="erd" tab="Project ERD" force-render class="pt-4 pb-12">
           <ErdView :base-id="defaultBase!.id" class="!h-full" />
         </a-tab-pane> -->
-        <a-tab-pane key="dataSources" tab="Data sources">
+        <a-tab-pane key="dataSources">
+          <template #tab>
+            <div class="tab-title">
+              <GeneralIcon icon="database" />
+              <div>Data sources</div>
+            </div>
+          </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" />
         </a-tab-pane>
       </a-tabs>
@@ -53,5 +76,15 @@ const baseSettingsState = ref('')
 }
 :deep(.ant-tabs-nav) {
   @apply !mb-0;
+}
+
+.tab-title {
+  @apply flex flex-row items-center gap-x-2 px-2;
+}
+:deep(.ant-tabs-tab .tab-title) {
+  @apply text-gray-500;
+}
+:deep(.ant-tabs-tab-active .tab-title) {
+  @apply text-primary;
 }
 </style>

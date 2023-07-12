@@ -171,7 +171,7 @@ self.addEventListener(
         {
           const { tableName, columnName } = payload
           const colOptions = extractSelectOptions(
-            state.templateGenerator?.data?.[tableName]?.flatMap((row: any) => row[columnName] || []) ?? [],
+            state.data?.importData?.[tableName]?.flatMap((row: any) => row[columnName] || []) ?? [],
             operation === ImportWorkerOperations.GET_MULTI_SELECT_OPTIONS ? UITypes.MultiSelect : UITypes.SingleSelect,
           )
 

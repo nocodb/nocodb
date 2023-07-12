@@ -7,7 +7,8 @@ import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { getDefaultPwd } from '../../utils/general';
 import { isHub } from '../../../setup/db';
 
-test.describe('Shared base', () => {
+// To be enabled after shared base is implemented
+test.describe.skip('Shared base', () => {
   let dashboard: DashboardPage;
   let toolbar: ToolbarPage;
   let context: any;

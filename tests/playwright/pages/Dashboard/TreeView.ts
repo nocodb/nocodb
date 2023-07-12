@@ -52,6 +52,7 @@ export class TreeViewPage extends BasePage {
   async openBase({ title }: { title: string }) {
     let nodes: Locator;
     if (isHub()) {
+      await this.rootPage.waitForTimeout(500);
       nodes = await this.get().locator(`.nc-project-sub-menu`);
     } else {
       nodes = await this.get().locator(`.ant-collapse`);

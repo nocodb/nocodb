@@ -169,7 +169,6 @@ const modalWidth = computed(() => {
 let templateGenerator: CSVTemplateAdapter | JSONTemplateAdapter | ExcelTemplateAdapter | null
 
 async function handlePreImport() {
-  debugger
   preImportLoading.value = true
   isParsingData.value = true
 

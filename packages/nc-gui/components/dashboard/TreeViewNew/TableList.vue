@@ -115,10 +115,10 @@ const availableTables = computed(() => {
       >
         <div
           v-if="availableTables.length === 0"
-          class="ml-18.5 py-0.5 text-gray-500"
+          class="py-0.5 text-gray-500"
           :class="{
+            'ml-11.75': baseIndex === 0,
             'ml-17.5': baseIndex !== 0,
-            'ml-18.5': baseIndex === 0,
           }"
         >
           Empty

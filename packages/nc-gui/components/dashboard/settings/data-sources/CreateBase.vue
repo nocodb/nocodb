@@ -40,6 +40,8 @@ const projectStore = useProject()
 const { loadProject } = useProjects()
 const { project } = storeToRefs(projectStore)
 
+const { loadProjectTables } = useTablesStore()
+
 const _projectId = inject(ProjectIdInj)
 const projectId = computed(() => _projectId?.value ?? project.value?.id)
 
@@ -254,6 +256,7 @@ const createBase = async () => {
     $e('a:base:create:extdb')
 
     await loadProject(projectId.value, true)
+    await loadProjectTables(projectId.value, true)
     emit('baseCreated')
     emit('close')
   } catch (e: any) {

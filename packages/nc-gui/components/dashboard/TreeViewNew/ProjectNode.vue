@@ -570,14 +570,13 @@ onKeyStroke('Escape', () => {
         class="overflow-x-hidden transition-max-height"
         :class="{ 'max-h-0': !project.isExpanded }"
       >
-        <div v-if="isProjectEmpty(project.id)" class="flex ml-11.75 my-1 text-gray-500 select-none">Empty</div>
-        <div v-else-if="project.type === 'documentation'">
+        <div v-if="project.type === 'documentation'">
           <DocsSideBar v-if="project.isExpanded" :project="project" />
         </div>
         <div v-else-if="project.type === 'dashboard'">
           <LayoutsSideBar v-if="project.isExpanded" :project="project" />
         </div>
-        <template v-else-if="project && project?.bases">
+        <template v-if="project && project?.bases">
           <div class="flex-1 overflow-y-auto flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
             <div v-if="project?.bases?.[0]?.enabled" class="flex-1">
               <div class="transition-height duration-200">

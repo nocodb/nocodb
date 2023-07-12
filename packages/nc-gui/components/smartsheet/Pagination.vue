@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { ChangePageInj, PaginationDataInj, computed, iconMap, inject } from '#imports'
+import { ChangePageInj, PaginationDataInj, computed, iconMap, inject, useGlobal } from '#imports'
+import type { StoredState } from '~/composables/useGlobal/types'
 
 const props = defineProps<{
   alignCountOnRight?: boolean
 }>()
+
+const { lang } = useGlobal()
+const rtlLanguages: Array<StoredState['lang']> = ['ar', 'fa']
 
 const paginatedData = inject(PaginationDataInj)!
 
@@ -19,6 +23,8 @@ const page = computed({
     changePage?.(p)
   },
 })
+
+const isRTLLanguage = computed(() => rtlLanguages.includes(lang.value))
 </script>
 
 <template>
@@ -39,6 +45,7 @@ const page = computed({
       v-model:page-size="size"
       size="small"
       class="!text-xs !m-1 nc-pagination"
+      :class="{ 'rtl-pagination': isRTLLanguage }"
       :total="count"
       show-less-items
       :show-size-changer="false"
@@ -76,5 +83,10 @@ const page = computed({
 
 :deep(.ant-pagination-item-link) {
   @apply text-gray-500 flex items-center justify-center;
+}
+
+:deep(.rtl-pagination .ant-pagination-prev .ant-pagination-item-link),
+:deep(.rtl-pagination .ant-pagination-next .ant-pagination-item-link) {
+  @apply transform rotate-180;
 }
 </style>

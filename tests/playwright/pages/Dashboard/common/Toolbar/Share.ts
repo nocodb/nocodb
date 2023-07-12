@@ -15,7 +15,9 @@ export class ToolbarSharePage extends BasePage {
   }
 
   async clickShareView() {
-    await this.get().locator(`[data-testid="docs-share-dlg-share-view"]`).click();
+    await this.get().waitFor();
+    // collapse header 0: Share Project, 1: Share View
+    await this.get().locator(`.ant-collapse-header`).nth(1).click();
   }
 
   async clickShareProject() {

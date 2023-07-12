@@ -32,7 +32,7 @@ const props = defineProps<{
   baseId: string
 }>()
 
-const emit = defineEmits(['baseUpdated'])
+const emit = defineEmits(['baseUpdated', 'close'])
 
 const projectStore = useProject()
 const projectsStore = useProjects()
@@ -52,8 +52,6 @@ const { api } = useApi()
 const { $e } = useNuxtApp()
 
 const { t } = useI18n()
-
-const toggleDialog = inject(ToggleDialogInj, () => {})
 
 const formState = ref<ProjectCreateForm>({
   title: '',
@@ -232,8 +230,7 @@ const editBase = async () => {
 
     await projectsStore.loadProject(projectId.value!, true)
     emit('baseUpdated')
-    message.success('Base updated!')
-    toggleDialog(true, 'dataSources', '', projectId)
+    emit('close')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

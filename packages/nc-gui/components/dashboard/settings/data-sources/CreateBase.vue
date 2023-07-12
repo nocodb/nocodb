@@ -32,12 +32,12 @@ import { ProjectIdInj } from '~/context'
 
 const { connectionType } = defineProps<{ connectionType: ClientType }>()
 
-const emit = defineEmits(['baseCreated'])
+const emit = defineEmits(['baseCreated', 'close'])
 
 const { appInfo } = useGlobal()
 
 const projectStore = useProject()
-const { loadProject } = projectStore
+const { loadProject } = useProjects()
 const { project } = storeToRefs(projectStore)
 
 const _projectId = inject(ProjectIdInj)
@@ -54,8 +54,6 @@ const { api } = useApi()
 const { $e } = useNuxtApp()
 
 const { t } = useI18n()
-
-const toggleDialog = inject(ToggleDialogInj, () => {})
 
 let formState = $ref<ProjectCreateForm>({
   title: '',
@@ -255,10 +253,9 @@ const createBase = async () => {
 
     $e('a:base:create:extdb')
 
-    await loadProject()
+    await loadProject(projectId.value, true)
     emit('baseCreated')
-    message.success('Base created!')
-    toggleDialog(true, 'dataSources', '', projectId.value)
+    emit('close')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

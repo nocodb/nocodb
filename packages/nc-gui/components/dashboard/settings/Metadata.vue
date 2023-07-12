@@ -90,9 +90,26 @@ const columns = [
 </script>
 
 <template>
-  <div class="flex flex-row w-full">
-    <div class="flex flex-col w-3/5">
-      <div class="flex flex-row justify-end items-center w-full mb-4">
+  <div class="flex flex-col w-full">
+    <div class="flex flex-col">
+      <div class="flex flex-row justify-between items-center w-full mb-4">
+        <div class="flex">
+          <div v-if="isDifferent">
+            <a-button v-e="['a:proj-meta:meta-data:sync']" class="nc-btn-metasync-sync-now" type="primary" @click="syncMetaDiff">
+              <div class="flex items-center gap-2">
+                <component :is="iconMap.databaseSync" />
+                {{ $t('activity.metaSync') }}
+              </div>
+            </a-button>
+          </div>
+
+          <div v-else>
+            <!--        Tables metadata is in sync -->
+            <span>
+              <a-alert :message="$t('msg.info.tablesMetadataInSync')" type="success" show-icon />
+            </span>
+          </div>
+        </div>
         <!--        Reload -->
         <a-button
           v-e="['a:proj-meta:meta-data:reload']"
@@ -138,23 +155,8 @@ const columns = [
       </div>
     </div>
 
-    <div class="flex place-content-center w-2/5">
+    <div class="flex place-content-center item-center">
       <!--      Sync Now -->
-      <div v-if="isDifferent">
-        <a-button v-e="['a:proj-meta:meta-data:sync']" class="nc-btn-metasync-sync-now" type="primary" @click="syncMetaDiff">
-          <div class="flex items-center gap-2">
-            <component :is="iconMap.databaseSync" />
-            {{ $t('activity.metaSync') }}
-          </div>
-        </a-button>
-      </div>
-
-      <div v-else>
-        <!--        Tables metadata is in sync -->
-        <span>
-          <a-alert :message="$t('msg.info.tablesMetadataInSync')" type="success" show-icon />
-        </span>
-      </div>
     </div>
   </div>
 </template>

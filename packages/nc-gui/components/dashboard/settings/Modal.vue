@@ -80,51 +80,51 @@ const tabsInfo: TabGroup = {
       $e('c:settings:team-auth')
     },
   },
-  dataSources: {
-    // Data Sources
-    title: 'Data Sources',
-    icon: iconMap.datasource,
-    subTabs: {
-      dataSources: {
-        title: 'Data Sources',
-        body: DataSources,
-      },
-    },
-    onClick: () => {
-      vDataState.value = ''
-      $e('c:settings:data-sources')
-    },
-  },
-  audit: {
-    // Audit
-    title: t('title.audit'),
-    icon: iconMap.book,
-    subTabs: {
-      audit: {
-        // Audit
-        title: t('title.audit'),
-        body: resolveComponent('DashboardSettingsAuditTab'),
-      },
-    },
-    onClick: () => {
-      $e('c:settings:audit')
-    },
-  },
-  projectSettings: {
-    // Project Settings
-    title: 'Project Settings',
-    icon: iconMap.settings,
-    subTabs: {
-      misc: {
-        // Misc
-        title: 'Misc',
-        body: Misc,
-      },
-    },
-    onClick: () => {
-      $e('c:settings:project-settings')
-    },
-  },
+  // dataSources: {
+  //   // Data Sources
+  //   title: 'Data Sources',
+  //   icon: iconMap.datasource,
+  //   subTabs: {
+  //     dataSources: {
+  //       title: 'Data Sources',
+  //       body: DataSources,
+  //     },
+  //   },
+  //   onClick: () => {
+  //     vDataState.value = ''
+  //     $e('c:settings:data-sources')
+  //   },
+  // },
+  // audit: {
+  //   // Audit
+  //   title: t('title.audit'),
+  //   icon: iconMap.book,
+  //   subTabs: {
+  //     audit: {
+  //       // Audit
+  //       title: t('title.audit'),
+  //       body: resolveComponent('DashboardSettingsAuditTab'),
+  //     },
+  //   },
+  //   onClick: () => {
+  //     $e('c:settings:audit')
+  //   },
+  // },
+  // projectSettings: {
+  //   // Project Settings
+  //   title: 'Project Settings',
+  //   icon: iconMap.settings,
+  //   subTabs: {
+  //     misc: {
+  //       // Misc
+  //       title: 'Misc',
+  //       body: Misc,
+  //     },
+  //   },
+  //   onClick: () => {
+  //     $e('c:settings:project-settings')
+  //   },
+  // },
 }
 const firstKeyOfObject = (obj: object) => Object.keys(obj)[0]
 

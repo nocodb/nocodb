@@ -486,7 +486,7 @@ const isEditBaseModalOpen = computed({
       </div>
       <GeneralModal v-model:visible="isNewBaseModalOpen" size="medium">
         <div class="py-6 px-8">
-          <CreateBase :connection-type="clientType" @base-created="loadBases(true)" />
+          <CreateBase :connection-type="clientType" @base-created="loadBases(true)" @close="isNewBaseModalOpen = false" />
         </div>
       </GeneralModal>
       <GeneralModal v-model:visible="isErdModalOpen" size="large">
@@ -511,7 +511,7 @@ const isEditBaseModalOpen = computed({
       </GeneralModal>
       <GeneralModal v-model:visible="isEditBaseModalOpen" size="medium">
         <div class="p-6">
-          <EditBase :base-id="activeBaseId" @base-updated="loadBases(true)" />
+          <EditBase :base-id="activeBaseId" @base-updated="loadBases(true)" @close="isEditBaseModalOpen = false" />
         </div>
       </GeneralModal>
     </div>

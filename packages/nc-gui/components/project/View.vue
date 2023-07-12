@@ -36,9 +36,9 @@ const baseSettingsState = ref('')
         <a-tab-pane key="allTables" tab="All Tables">
           <ProjectAllTables />
         </a-tab-pane>
-        <a-tab-pane v-if="defaultBase" key="erd" tab="Project ERD" force-render class="pt-4 pb-12">
+        <!-- <a-tab-pane v-if="defaultBase" key="erd" tab="Project ERD" force-render class="pt-4 pb-12">
           <ErdView :base-id="defaultBase!.id" class="!h-full" />
-        </a-tab-pane>
+        </a-tab-pane> -->
         <a-tab-pane key="dataSources" tab="Data sources">
           <DashboardSettingsDataSources v-model:state="baseSettingsState" />
         </a-tab-pane>

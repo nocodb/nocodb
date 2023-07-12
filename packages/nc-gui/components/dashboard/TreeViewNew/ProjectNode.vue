@@ -622,7 +622,7 @@ onKeyStroke('Escape', () => {
                             @contextmenu="setMenuContext('base', base)"
                           >
                             <GeneralBaseLogo :base-type="base.type" class="w-4" />
-                            <div class="flex">
+                            <div class="flex capitalize">
                               {{ base.alias || '' }}
                             </div>
                             <a-tooltip>

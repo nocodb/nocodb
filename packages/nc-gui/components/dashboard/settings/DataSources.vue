@@ -536,11 +536,11 @@ const isEditBaseModalOpen = computed({
 }
 
 .ds-table-enabled {
-  @apply col-span-2 flex justify-center items-center;
+  @apply col-span-1 flex justify-center items-center;
 }
 
 .ds-table-name {
-  @apply col-span-6 items-center;
+  @apply col-span-6 items-center pl-2 capitalize;
 }
 
 .ds-table-type {

@@ -53,6 +53,8 @@ async function loadBases(changed?: boolean) {
     if (baseList.list && baseList.list.length) {
       sources = baseList.list
     }
+
+    await loadMetaDiff()
   } catch (e) {
     console.error(e)
   } finally {

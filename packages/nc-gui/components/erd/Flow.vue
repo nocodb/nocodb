@@ -15,7 +15,14 @@ const props = defineProps<Props>()
 
 const { tables, config } = toRefs(props)
 
-const { $destroy, fitView, viewport, onNodeDoubleClick } = useVueFlow({ minZoom: 0.05, maxZoom: 2 })
+const {
+  $destroy,
+  fitView,
+  viewport,
+  onNodeDoubleClick,
+  zoomIn: internalZoomIn,
+  zoomOut: internalZoomOut,
+} = useVueFlow({ minZoom: 0.05, maxZoom: 2 })
 
 const { layout, elements } = useErdElements(tables, config)
 
@@ -60,14 +67,19 @@ onScopeDispose($destroy)
 
 <template>
   <VueFlow v-model="elements">
-    <Controls class="rounded !shadow-md" :position="PanelPosition.BottomLeft" :show-fit-view="false" :show-interactive="false">
+    <Controls
+      class="bg-transparent rounded-lg"
+      :position="PanelPosition.BottomLeft"
+      :show-fit-view="false"
+      :show-interactive="false"
+    >
       <template #control-zoom-in>
-        <div class="nc-erd-zoom-btn rounded-t-lg">
+        <div class="nc-erd-zoom-btn rounded-t-md" @click="internalZoomIn">
           <GeneralIcon icon="plus" />
         </div>
       </template>
       <template #control-zoom-out>
-        <div class="nc-erd-zoom-btn border-t-1 border-gray-100 rounded-b-lg">
+        <div class="nc-erd-zoom-btn border-t-1 border-gray-100 rounded-b-lg" @click="internalZoomOut">
           <GeneralIcon icon="minus" />
         </div>
       </template>
@@ -101,17 +113,10 @@ onScopeDispose($destroy)
 
 <style>
 .vue-flow__controls {
-  @apply border-1 border-gray-100;
-}
-.vue-flow__controls-zoomin {
-  @apply rounded-t;
-}
-
-.vue-flow__controls-zoomout {
-  @apply rounded-b;
+  @apply !bg-transparent;
 }
 
 .nc-erd-zoom-btn {
-  @apply bg-white px-1.5 py-1;
+  @apply bg-white px-1.5 py-1 hover:(bg-gray-50 text-gray-800) cursor-pointer text-gray-600;
 }
 </style>

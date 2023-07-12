@@ -2,11 +2,48 @@
 const props = defineProps<{
   visible: boolean
   width?: string | number
+  size: 'small' | 'medium' | 'large'
 }>()
 
 const emits = defineEmits(['update:visible'])
 
-const { width } = props
+const { width: propWidth } = props
+
+const width = computed(() => {
+  if (propWidth) {
+    return propWidth
+  }
+
+  if (props.size === 'small') {
+    return '28rem'
+  }
+
+  if (props.size === 'medium') {
+    return '40rem'
+  }
+
+  if (props.size === 'large') {
+    return '80rem'
+  }
+
+  return 'max(30vw, 600px)'
+})
+
+const height = computed(() => {
+  if (props.size === 'small') {
+    return 'auto'
+  }
+
+  if (props.size === 'medium') {
+    return '26.5'
+  }
+
+  if (props.size === 'large') {
+    return '80vh'
+  }
+
+  return 'auto'
+})
 
 const visible = useVModel(props, 'visible', emits)
 </script>
@@ -15,19 +52,26 @@ const visible = useVModel(props, 'visible', emits)
   <a-modal
     v-model:visible="visible"
     :class="{ active: visible }"
-    :width="width ?? 'max(30vw, 600px)'"
-    centered
+    :width="width"
+    :centered="true"
     :closable="false"
-    wrap-class-name="nc-modal"
+    wrap-class-name="nc-modal-wrapper"
     :footer="null"
     @keydown.esc="visible = false"
   >
-    <slot />
+    <div
+      class="nc-modal"
+      :style="{
+        maxHeight: height,
+      }"
+    >
+      <slot />
+    </div>
   </a-modal>
 </template>
 
 <style lang="scss">
-.nc-modal {
+.nc-modal-wrapper {
   .ant-modal-content {
     @apply !p-0;
   }

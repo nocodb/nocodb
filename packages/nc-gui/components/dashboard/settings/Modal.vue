@@ -53,33 +53,33 @@ const dataSourcesReload = ref(false)
 const dataSourcesAwakened = ref(false)
 
 const tabsInfo: TabGroup = {
-  // teamAndAuth: {
-  //   title: t('title.teamAndAuth'),
-  //   icon: iconMap.users,
-  //   subTabs: {
-  //     ...(isUIAllowed('userMgmtTab')
-  //       ? {
-  //           usersManagement: {
-  //             // Users Management
-  //             title: t('title.userMgmt'),
-  //             body: resolveComponent('TabsAuthUserManagement'),
-  //           },
-  //         }
-  //       : {}),
-  //     ...(isUIAllowed('apiTokenTab')
-  //       ? {
-  //           apiTokenManagement: {
-  //             // API Tokens Management
-  //             title: t('title.apiTokenMgmt'),
-  //             body: resolveComponent('TabsAuthApiTokenManagement'),
-  //           },
-  //         }
-  //       : {}),
-  //   },
-  //   onClick: () => {
-  //     $e('c:settings:team-auth')
-  //   },
-  // },
+  teamAndAuth: {
+    title: t('title.teamAndAuth'),
+    icon: iconMap.users,
+    subTabs: {
+      ...(isUIAllowed('userMgmtTab')
+        ? {
+            usersManagement: {
+              // Users Management
+              title: t('title.userMgmt'),
+              body: resolveComponent('TabsAuthUserManagement'),
+            },
+          }
+        : {}),
+      ...(isUIAllowed('apiTokenTab')
+        ? {
+            apiTokenManagement: {
+              // API Tokens Management
+              title: t('title.apiTokenMgmt'),
+              body: resolveComponent('TabsAuthApiTokenManagement'),
+            },
+          }
+        : {}),
+    },
+    onClick: () => {
+      $e('c:settings:team-auth')
+    },
+  },
   // dataSources: {
   //   // Data Sources
   //   title: 'Data Sources',
@@ -110,21 +110,21 @@ const tabsInfo: TabGroup = {
   //     $e('c:settings:audit')
   //   },
   // },
-  projectSettings: {
-    // Project Settings
-    title: 'Project Settings',
-    icon: iconMap.settings,
-    subTabs: {
-      misc: {
-        // Misc
-        title: 'Misc',
-        body: Misc,
-      },
-    },
-    onClick: () => {
-      $e('c:settings:project-settings')
-    },
-  },
+  // projectSettings: {
+  //   // Project Settings
+  //   title: 'Project Settings',
+  //   icon: iconMap.settings,
+  //   subTabs: {
+  //     misc: {
+  //       // Misc
+  //       title: 'Misc',
+  //       body: Misc,
+  //     },
+  //   },
+  //   onClick: () => {
+  //     $e('c:settings:project-settings')
+  //   },
+  // },
 }
 const firstKeyOfObject = (obj: object) => Object.keys(obj)[0]
 

@@ -76,6 +76,12 @@ watch(showDeleteModal, () => {
   })
 })
 
+watch(showEditModal, () => {
+  if (!showEditModal.value) {
+    selectedHookId.value = undefined
+  }
+})
+
 watch(
   () => activeTable.value?.id,
   () => {

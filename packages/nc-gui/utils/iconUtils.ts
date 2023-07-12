@@ -15,6 +15,10 @@ import MdiFlagOutline from '~icons/mdi/flag-outline'
 import MdiTable from '~icons/mdi/table'
 import MdiTableLarge from '~icons/mdi/table-large'
 import MdiEyeCircleOutline from '~icons/mdi/eye-circle-outline'
+import MsAddBoxOutline from '~icons/nc-icons/add-box'
+import MsDownloadRounded from '~icons/nc-icons/download'
+import LogosAirtable from '~icons/logos/airtable'
+import PhLayout from '~icons/ph/layout'
 import Copy from '~icons/material-symbols/content-copy-outline'
 import Delete from '~icons/material-symbols/delete-outline'
 import PhEye from '~icons/ph/eye'
@@ -27,6 +31,7 @@ import Palette from '~icons/material-symbols/palette-outline'
 import Form from '~icons/material-symbols/assignment-outline'
 import Kanban from '~icons/material-symbols/view-kanban-outline'
 import Erd from '~icons/material-symbols/account-tree-outline-rounded'
+import MsSync from '~icons/material-symbols/sync-rounded'
 import MdiRefresh from '~icons/mdi/refresh'
 import ApiSnippet from '~icons/material-symbols/settings-ethernet-rounded'
 import Phishing from '~icons/material-symbols/phishing-outline-rounded'
@@ -34,7 +39,8 @@ import MdiAccountGroup from '~icons/mdi/account-group'
 import MdiDotsVertical from '~icons/mdi/dots-vertical'
 import MdiDotsHorizontal from '~icons/mdi/dots-horizontal'
 import PhExcelThin from '~icons/ph/microsoft-excel-logo-light'
-import PhCsvThin from '~icons/ph/file-csv-light'
+import VscodeIconsExcelColored from '~icons/vscode-icons/file-type-excel'
+import PhCsvThin from '~icons/ph/file-csv'
 import PhSplitVerticalThin from '~icons/material-symbols/height-rounded'
 import PhDiscordLogoLight from '~icons/ph/discord-logo-light'
 import PhRedditLogoLight from '~icons/ph/reddit-logo-light'
@@ -48,6 +54,7 @@ import MsInfo from '~icons/material-symbols/info-outline-rounded'
 import PhSparkleFill from '~icons/ph/sparkle-fill'
 import Grid from '~icons/material-symbols/grid-view-outline'
 
+import MsDatabase from '~icons/mdi/database-outline'
 import MdiDatabaseSearch from '~icons/mdi/database-search'
 import MdiMagicStaff from '~icons/mdi/magic-staff'
 import PhCaretDoubleLeftThin from '~icons/ph/caret-double-left-light'
@@ -207,6 +214,7 @@ import Down from '~icons/material-symbols/keyboard-arrow-down-rounded'
 export const iconMap = {
   info: h(MsInfo, {}, 'info'),
   inbox: h('span', { class: 'material-symbols' }, 'inbox'),
+  addOutlineBox: MsAddBoxOutline,
   loading: h('span', { class: 'material-symbols' }, 'autorenew'),
   arrowCollapse: h('span', { class: 'material-symbols' }, 'keyboard_arrow_up'),
   markerAlert: h('span', { class: 'material-symbols' }, 'warning'),
@@ -239,7 +247,7 @@ export const iconMap = {
   returnKey: h('span', { class: 'material-symbols' }, 'keyboard_return'),
   keyboard: h('span', { class: 'material-symbols' }, 'keyboard'),
   accountPlus: h('span', { class: 'material-symbols' }, 'person_add'),
-  database: h('span', { class: 'material-symbols' }, 'database'),
+  database: MsDatabase,
   discord: PhDiscordLogoLight,
   reddit: PhRedditLogoLight,
   github: PhGithubLogoLight,
@@ -254,7 +262,7 @@ export const iconMap = {
   account: h('span', { class: 'material-symbols' }, 'person'),
   accountCircle: h('span', { class: 'material-symbols' }, 'account_circle'),
   users: h('span', { class: 'material-symbols' }, 'people'),
-  download: h('span', { class: 'material-symbols' }, 'cloud_download'),
+  download: MsDownloadRounded,
   upload: h('span', { class: 'material-symbols' }, 'cloud_upload'),
   hook: Phishing,
   erd: Erd,
@@ -272,6 +280,7 @@ export const iconMap = {
   arrowRight: Right,
   arrowLeft: Left,
   arrowUp: Up,
+  layout: PhLayout,
   sidebarMinimise: PhCaretDoubleLeftThin, // h('span', { class: 'material-symbols' }, 'left_panel_close'),
   // threeDotVertical: h('span', { class: 'material-symbols' }, 'more_vert'),
   // threeDotHorizontal: h('span', { class: 'material-symbols' }, 'more_horiz'),
@@ -322,12 +331,13 @@ export const iconMap = {
   expand: h('span', { class: 'material-symbols' }, 'open_in_full'),
   check: h('span', { class: 'material-symbols' }, 'check'),
   acl: h('span', { class: 'material-symbols' }, 'shield'),
-  sync: h('span', { class: 'material-symbols' }, 'sync'),
+  sync: MsSync,
   warning: h('span', { class: 'material-symbols' }, 'warning'),
   share: h('span', { class: 'material-symbols' }, 'share'),
   reload: MdiRefresh,
   xml: h('span', { class: 'material-symbols' }, 'code'),
-  airtable: h('span', { class: 'material-symbols' }, 'grid_on'),
+  airtable: LogosAirtable,
+  excelColored: VscodeIconsExcelColored,
   grid: Grid,
   gallery: Gallery,
   form: Form,

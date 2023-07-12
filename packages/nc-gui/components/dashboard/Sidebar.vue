@@ -88,7 +88,7 @@ const navigateToHome = () => {
 
       <div class="w-full mt-2"></div>
 
-      <div role="button" class="nc-sidebar-top-button" @click="navigateToHome" data-testid="nc-sidebar-home-btn">
+      <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-home-btn" @click="navigateToHome">
         <MaterialSymbolsHomeOutlineRounded class="!h-3.9" />
         <div>Home</div>
       </div>

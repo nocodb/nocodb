@@ -11,7 +11,24 @@ export const useTablesStore = defineStore('tablesStore', () => {
   const projectTables = ref<Map<string, TableType[]>>(new Map())
   const projectsStore = useProjects()
 
+  const workspaceStore = useWorkspace()
+
   const activeTableId = computed(() => route.value.params.viewId as string | undefined)
+
+  const activeTables = computed(() => {
+    if (!projectsStore) return []
+
+    const projectId = projectsStore.activeProjectId
+    if (!projectId) return []
+
+    const tables = projectTables.value.get(projectId!)
+
+    if (!tables) return []
+
+    const openedProjectBasesMap = projectsStore.openedProjectBasesMap
+
+    return tables.filter((t) => !t.base_id || openedProjectBasesMap.get(t.base_id)?.enabled)
+  })
 
   const activeTable = computed(() => {
     if (!projectsStore) return
@@ -23,7 +40,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
     if (!tables) return
 
-    return tables.find((t) => t.id === activeTableId.value)
+    return activeTables.value.find((t) => t.id === activeTableId.value)
   })
 
   const loadProjectTables = async (projectId: string, force = false) => {
@@ -54,11 +71,40 @@ export const useTablesStore = defineStore('tablesStore', () => {
     tables.push(table)
   }
 
+  const openTable = async (table: TableType) => {
+    if (!table.project_id) return
+
+    const projects = projectsStore.projects
+    const workspaceId = workspaceStore.activeWorkspaceId
+
+    let project = projects.get(table.project_id)
+    if (!project) {
+      await projectsStore.loadProject(table.project_id)
+      await loadProjectTables(table.project_id)
+
+      project = projects.get(table.project_id)
+      if (!project) throw new Error('Project not found')
+    }
+
+    const { getMeta } = useMetas()
+
+    await getMeta(table.id as string)
+
+    const projectType = (route.value.params.projectType as string) || 'nc'
+
+    await navigateTo({
+      path: `/ws/${workspaceId}/${projectType}/${project.id!}/table/${table?.id}${table.title ? `/${table.title}` : ''}`,
+      query: route.value.query,
+    })
+  }
+
   return {
     projectTables,
     loadProjectTables,
     addTable,
     activeTable,
+    activeTables,
+    openTable,
   }
 })
 

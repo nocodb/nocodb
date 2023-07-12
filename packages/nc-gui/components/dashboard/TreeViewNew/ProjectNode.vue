@@ -490,7 +490,7 @@ onKeyStroke('Escape', () => {
                     </a-menu-item>
 
                     <!-- Copy Project Info -->
-                    <a-menu-item key="copy" v-if="false">
+                    <a-menu-item v-if="false" key="copy">
                       <div
                         v-e="['c:navbar:user:copy-proj-info']"
                         class="nc-project-menu-item group"
@@ -519,9 +519,7 @@ onKeyStroke('Escape', () => {
                 </a-menu-item-group>
                 <!--          </a-menu> -->
 
-                <template v-if="project?.bases?.[0]?.enabled && !project?.bases?.slice(1).filter((el) => el.enabled)?.length">
-                  <DashboardTreeViewNewBaseOptions v-model:project="project" :base="project.bases[0]" />
-                </template>
+                <DashboardTreeViewNewBaseOptions v-model:project="project" :base="project.bases[0]" />
 
                 <a-menu-divider />
 
@@ -570,14 +568,13 @@ onKeyStroke('Escape', () => {
         class="overflow-x-hidden transition-max-height"
         :class="{ 'max-h-0': !project.isExpanded }"
       >
-        <div v-if="isProjectEmpty(project.id)" class="flex ml-11.75 my-1 text-gray-500 select-none">Empty</div>
-        <div v-else-if="project.type === 'documentation'">
+        <div v-if="project.type === 'documentation'">
           <DocsSideBar v-if="project.isExpanded" :project="project" />
         </div>
         <div v-else-if="project.type === 'dashboard'">
           <LayoutsSideBar v-if="project.isExpanded" :project="project" />
         </div>
-        <template v-else-if="project && project?.bases">
+        <template v-if="project && project?.bases">
           <div class="flex-1 overflow-y-auto flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
             <div v-if="project?.bases?.[0]?.enabled" class="flex-1">
               <div class="transition-height duration-200">
@@ -623,7 +620,7 @@ onKeyStroke('Escape', () => {
                             @contextmenu="setMenuContext('base', base)"
                           >
                             <GeneralBaseLogo :base-type="base.type" class="w-4" />
-                            <div class="flex">
+                            <div class="flex capitalize">
                               {{ base.alias || '' }}
                             </div>
                             <a-tooltip>

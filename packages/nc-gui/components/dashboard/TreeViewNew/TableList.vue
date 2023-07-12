@@ -113,7 +113,16 @@ const availableTables = computed(() => {
         :key="key"
         :nc-base="project.bases[baseIndex].id"
       >
-        <div v-if="availableTables.length === 0" class="ml-18.5 py-0.5 text-gray-500">Empty</div>
+        <div
+          v-if="availableTables.length === 0"
+          class="py-0.5 text-gray-500"
+          :class="{
+            'ml-11.75': baseIndex === 0,
+            'ml-17.5': baseIndex !== 0,
+          }"
+        >
+          Empty
+        </div>
         <template v-else>
           <TableNode
             v-for="table of availableTables"

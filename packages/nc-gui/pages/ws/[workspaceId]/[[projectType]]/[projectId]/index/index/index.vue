@@ -178,43 +178,5 @@ watch(
 </script>
 
 <template>
-  <div class="h-full w-full text-gray-600 flex items-center justify-center relative">
-    <div
-      v-if="isSharedBase || !isUIAllowed('dataInsert')"
-      class="flex flex-col gap-6 items-center justify-center mx-auto text-center text-gray-500 border-gray-300 border-1 w-3/5 h-1/2 rounded-md"
-    >
-      <div class="text-3xl">Welcome to NocoDB!</div>
-
-      <div class="prose-lg leading-8">To get started, click on a table in the left pane</div>
-    </div>
-
-    <div v-else ref="dropZone">
-      <general-overlay
-        :model-value="true"
-        :class="[isOverDropZone ? 'bg-gray-300/75 border-primary shadow' : 'bg-gray-100/25 border-gray-500 cursor-pointer']"
-        inline
-        style="top: 20%; left: 20%; right: 20%; bottom: 20%"
-        class="text-3xl flex items-center justify-center gap-2 border-1 border-dashed rounded hover:border-primary"
-        :z-index="1"
-        @click="onDropZoneClick"
-      >
-        <template v-if="isOverDropZone"> <MaterialSymbolsFileCopyOutline class="text-accent" /> Drop here </template>
-      </general-overlay>
-
-      <div class="flex flex-col gap-6 items-center justify-center md:w-1/2 mx-auto text-center">
-        <div class="text-3xl">Welcome to NocoDB!</div>
-        <div class="flex items-center flex-wrap justify-center gap-2 prose-lg leading-8">
-          To get started, either drop a <span class="flex items-center gap-2"><PhFileCsv /> CSV,</span>
-
-          <span class="flex items-center gap-2"><BiFiletypeJson /> JSON</span> or
-
-          <span class="flex items-center gap-2"><BiFiletypeXlsx /> Excel file here or</span>
-        </div>
-
-        <a-button type="primary" ghost class="create-table-btn">
-          <span class="prose text-[1rem] text-primary z-50" @click.stop="openCreateTable">{{ $t('tooltip.addTable') }}</span>
-        </a-button>
-      </div>
-    </div>
-  </div>
+  <ProjectView />
 </template>

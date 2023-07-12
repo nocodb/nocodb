@@ -8,7 +8,6 @@ import UIAcl from './UIAcl.vue'
 import Erd from './Erd.vue'
 import { ClientType, DataSourcesSubTab } from '~/lib'
 import { storeToRefs, useCommandPalette, useNuxtApp, useProject } from '#imports'
-import { ProjectIdInj } from '~/context'
 
 interface Props {
   state: string
@@ -26,12 +25,9 @@ const vReload = useVModel(props, 'reload', emits)
 const { $api, $e } = useNuxtApp()
 
 const projectStore = useProject()
-const { loadProject } = projectStore
+const { loadProject } = useProjects()
 const { project } = storeToRefs(projectStore)
 const { refreshCommandPalette } = useCommandPalette()
-
-const _projectId = $(inject(ProjectIdInj))
-const projectId = $computed(() => _projectId ?? project.value?.id)
 
 let sources = $ref<BaseType[]>([])
 
@@ -45,18 +41,20 @@ let isReloading = $ref(false)
 
 let forceAwakened = $ref(false)
 
+const dataSourcesAwakened = ref(false)
+
 async function loadBases(changed?: boolean) {
   try {
-    if (!projectId) return
-
     if (changed) refreshCommandPalette()
 
     isReloading = true
     vReload.value = true
-    const baseList = await $api.base.list(projectId)
+    const baseList = await $api.base.list(project.value.id as string)
     if (baseList.list && baseList.list.length) {
       sources = baseList.list
     }
+
+    await loadMetaDiff()
   } catch (e) {
     console.error(e)
   } finally {
@@ -67,11 +65,9 @@ async function loadBases(changed?: boolean) {
 
 async function loadMetaDiff() {
   try {
-    if (!projectId) return
-
     metadiffbases = []
 
-    const metadiff = await $api.project.metaDiffGet(projectId)
+    const metadiff = await $api.project.metaDiffGet(project.value.id as string)
     for (const model of metadiff) {
       if (model.detectedChanges?.length > 0) {
         metadiffbases.push(model.base_id)
@@ -104,7 +100,7 @@ const deleteBase = (base: BaseType) => {
         $e('a:base:delete')
 
         sources.splice(sources.indexOf(base), 1)
-        await loadProject()
+        await loadProject(project.value.id as string, true)
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
@@ -125,7 +121,7 @@ const toggleBase = async (base: BaseType, state: boolean) => {
       project_id: base.project_id,
       enabled: base.enabled,
     })
-    await loadProject()
+    await loadProject(project.value.id as string, true)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -152,7 +148,7 @@ const moveBase = async (e: any) => {
         })
       }
     }
-    await loadProject()
+    await loadProject(project.value.id as string, true)
     await loadBases()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -161,6 +157,7 @@ const moveBase = async (e: any) => {
 
 const forceAwaken = () => {
   forceAwakened = !forceAwakened
+  dataSourcesAwakened.value = forceAwakened
   emits('awaken', forceAwakened)
 }
 
@@ -185,8 +182,10 @@ watch(
   () => sources.length,
   (l) => {
     if (l > 1 && !forceAwakened) {
+      dataSourcesAwakened.value = false
       emits('awaken', false)
     } else {
+      dataSourcesAwakened.value = true
       emits('awaken', true)
     }
   },
@@ -229,29 +228,122 @@ watch(
   },
   { immediate: true },
 )
+
+const isNewBaseModalOpen = computed({
+  get: () => {
+    return [DataSourcesSubTab.New].includes(vState.value as any)
+  },
+  set: (val) => {
+    if (!val) {
+      vState.value = ''
+    }
+  },
+})
+
+const isErdModalOpen = computed({
+  get: () => {
+    return [DataSourcesSubTab.ERD].includes(vState.value as any)
+  },
+  set: (val) => {
+    if (!val) {
+      vState.value = ''
+    }
+  },
+})
+
+const isMetaDataModal = computed({
+  get: () => {
+    return [DataSourcesSubTab.Metadata].includes(vState.value as any)
+  },
+  set: (val) => {
+    if (!val) {
+      vState.value = ''
+    }
+  },
+})
+
+const isUIAclModalOpen = computed({
+  get: () => {
+    return [DataSourcesSubTab.UIAcl].includes(vState.value as any)
+  },
+  set: (val) => {
+    if (!val) {
+      vState.value = ''
+    }
+  },
+})
+
+const isEditBaseModalOpen = computed({
+  get: () => {
+    return [DataSourcesSubTab.Edit].includes(vState.value as any)
+  },
+  set: (val) => {
+    if (!val) {
+      vState.value = ''
+    }
+  },
+})
 </script>
 
 <template>
   <div class="flex flex-row w-full h-full">
     <div class="flex flex-col w-full overflow-auto">
-      <div v-if="vState === ''" class="max-h-600px min-w-1200px overflow-y-auto">
+      <div class="flex flex-row w-full justify-end mt-6 mb-5">
+        <a-button
+          v-if="dataSourcesAwakened"
+          type="primary"
+          class="self-start !rounded-md nc-btn-new-datasource !h-8.5"
+          @click="vState = DataSourcesSubTab.New"
+        >
+          <div class="flex items-center gap-2">
+            <component :is="iconMap.plus" />
+            New source
+          </div>
+        </a-button>
+      </div>
+      <div
+        class="overflow-y-auto nc-scrollbar-md"
+        :style="{
+          maxHeight: 'calc(100vh - 200px)',
+        }"
+      >
         <div class="ds-table-head">
           <div class="ds-table-row">
+            <div class="ds-table-col ds-table-enabled cursor-pointer" @dblclick="forceAwaken">Visibility</div>
             <div class="ds-table-col ds-table-name">Name</div>
-            <div class="ds-table-col ds-table-actions">Actions</div>
-            <div class="ds-table-col ds-table-enabled cursor-pointer" @dblclick="forceAwaken">Show / Hide</div>
+            <div class="ds-table-col ds-table-type">Type</div>
+            <div class="ds-table-col ds-table-actions pl-2">Actions</div>
+            <div class="ds-table-col ds-table-crud"></div>
           </div>
         </div>
         <div class="ds-table-body">
           <Draggable :list="sources" item-key="id" handle=".ds-table-handle" @end="moveBase">
             <template #header>
               <div v-if="sources[0]" class="ds-table-row border-gray-200">
-                <div class="ds-table-col ds-table-name">
-                  <div class="flex items-center gap-1">
-                    <GeneralBaseLogo :base-type="sources[0].type" />
-                    BASE
-                    <span class="text-gray-400 text-xs">({{ sources[0].type }})</span>
+                <div class="ds-table-col ds-table-enabled">
+                  <div class="flex items-center gap-1 cursor-pointer">
+                    <a-tooltip>
+                      <template #title>
+                        <template v-if="sources[0].enabled">Hide in UI</template>
+                        <template v-else>Show in UI</template>
+                      </template>
+                      <a-switch
+                        :checked="sources[0].enabled ? true : false"
+                        size="medium"
+                        @change="toggleBase(sources[0], $event)"
+                      />
+                    </a-tooltip>
                   </div>
+                </div>
+                <div class="ds-table-col ds-table-name font-medium">
+                  <div class="flex items-center gap-1">
+                    <!-- <GeneralBaseLogo :base-type="sources[0].type" /> -->
+                    Default
+                  </div>
+                </div>
+
+                <div class="ds-table-col ds-table-type">
+                  <div class="flex items-center gap-1">-</div>
                 </div>
 
                 <div class="ds-table-col ds-table-actions">
@@ -259,9 +351,10 @@ watch(
                     <a-button
                       v-if="!sources[0].is_meta && !sources[0].is_local"
                       class="nc-action-btn cursor-pointer outline-0"
+                      type="text"
                       @click="baseAction(sources[0].id, DataSourcesSubTab.Metadata)"
                     >
-                      <div class="flex items-center gap-2 text-gray-600 font-light">
+                      <div class="flex items-center gap-2 text-gray-600">
                         <a-tooltip v-if="metadiffbases.includes(sources[0].id)">
                           <template #title>Out of sync</template>
                           <GeneralIcon icon="warning" class="group-hover:text-accent text-primary" />
@@ -270,115 +363,41 @@ watch(
                         Sync Metadata
                       </div>
                     </a-button>
-                    <a-button
+                    <!-- <a-button
                       class="nc-action-btn cursor-pointer outline-0"
                       @click="baseAction(sources[0].id, DataSourcesSubTab.UIAcl)"
                     >
-                      <div class="flex items-center gap-2 text-gray-600 font-light">
+                      <div class="flex items-center gap-2 text-gray-600 ">
                         <GeneralIcon icon="acl" class="group-hover:text-accent" />
                         UI ACL
                       </div>
-                    </a-button>
+                    </a-button> -->
                     <a-button
                       class="nc-action-btn cursor-pointer outline-0"
+                      type="text"
                       @click="baseAction(sources[0].id, DataSourcesSubTab.ERD)"
                     >
-                      <div class="flex items-center gap-2 text-gray-600 font-light">
+                      <div class="flex items-center gap-2 text-gray-600">
                         <GeneralIcon icon="erd" class="group-hover:text-accent" />
                         ERD
                       </div>
                     </a-button>
-                    <a-button
-                      v-if="!sources[0].is_meta && !sources[0].is_local"
-                      class="nc-action-btn cursor-pointer outline-0"
-                      @click="baseAction(sources[0].id, DataSourcesSubTab.Edit)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600 font-light">
-                        <GeneralIcon icon="edit" class="group-hover:text-accent" />
-                        Edit
-                      </div>
-                    </a-button>
                   </div>
                 </div>
-
-                <div class="ds-table-col ds-table-enabled">
-                  <div class="flex items-center gap-1 cursor-pointer">
-                    <a-tooltip>
-                      <template #title>
-                        <template v-if="sources[0].enabled">Hide in UI</template>
-                        <template v-else>Show in UI</template>
-                      </template>
-                      <a-switch :checked="sources[0].enabled ? true : false" @change="toggleBase(sources[0], $event)" />
-                    </a-tooltip>
-                  </div>
+                <div class="ds-table-col ds-table-crud">
+                  <a-button
+                    v-if="!sources[0].is_meta && !sources[0].is_local"
+                    class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg"
+                    type="text"
+                    @click="baseAction(sources[0].id, DataSourcesSubTab.Edit)"
+                  >
+                    <GeneralIcon icon="edit" class="text-gray-600" />
+                  </a-button>
                 </div>
               </div>
             </template>
             <template #item="{ element: base, index }">
               <div v-if="index !== 0" class="ds-table-row border-gray-200">
-                <div class="ds-table-col ds-table-name">
-                  <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
-                  <div class="flex items-center gap-1">
-                    <GeneralBaseLogo :base-type="base.type" />
-                    {{ base.is_meta || base.is_local ? 'BASE' : base.alias }}
-                    <span class="text-gray-400 text-xs">({{ base.type }})</span>
-                  </div>
-                </div>
-
-                <div class="ds-table-col ds-table-actions">
-                  <div class="flex items-center gap-2">
-                    <a-button
-                      v-if="!base.is_meta && !base.is_local"
-                      class="nc-action-btn cursor-pointer outline-0"
-                      @click="baseAction(base.id, DataSourcesSubTab.Metadata)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600 font-light">
-                        <a-tooltip v-if="metadiffbases.includes(base.id)">
-                          <template #title>Out of sync</template>
-                          <GeneralIcon icon="warning" class="group-hover:text-accent text-primary" />
-                        </a-tooltip>
-                        <GeneralIcon v-else icon="sync" class="group-hover:text-accent" />
-                        Sync Metadata
-                      </div>
-                    </a-button>
-                    <a-button
-                      class="nc-action-btn cursor-pointer outline-0"
-                      @click="baseAction(base.id, DataSourcesSubTab.UIAcl)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600 font-light">
-                        <GeneralIcon icon="acl" class="group-hover:text-accent" />
-                        UI ACL
-                      </div>
-                    </a-button>
-                    <a-button class="nc-action-btn cursor-pointer outline-0" @click="baseAction(base.id, DataSourcesSubTab.ERD)">
-                      <div class="flex items-center gap-2 text-gray-600 font-light">
-                        <GeneralIcon icon="erd" class="group-hover:text-accent" />
-                        ERD
-                      </div>
-                    </a-button>
-                    <a-button
-                      v-if="!base.is_meta && !base.is_local"
-                      class="nc-action-btn cursor-pointer outline-0"
-                      @click="baseAction(base.id, DataSourcesSubTab.Edit)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600 font-light">
-                        <GeneralIcon icon="edit" class="group-hover:text-accent" />
-                        Edit
-                      </div>
-                    </a-button>
-                    <a-button
-                      v-if="!base.is_meta && !base.is_local"
-                      class="nc-action-btn cursor-pointer outline-0"
-                      @click="deleteBase(base)"
-                    >
-                      <div class="flex items-center gap-2 text-red-500 font-light">
-                        <GeneralIcon icon="delete" class="group-hover:text-accent" />
-                        Delete
-                      </div>
-                    </a-button>
-                  </div>
-                </div>
-
                 <div class="ds-table-col ds-table-enabled">
                   <div class="flex items-center gap-1 cursor-pointer">
                     <a-tooltip>
@@ -390,33 +409,120 @@ watch(
                     </a-tooltip>
                   </div>
                 </div>
+                <div class="ds-table-col ds-table-name font-medium">
+                  <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
+                  <div v-if="base.is_meta || base.is_local">-</div>
+                  <div v-else class="flex items-center gap-1">
+                    {{ base.is_meta || base.is_local ? 'BASE' : base.alias }}
+                  </div>
+                </div>
+
+                <div class="ds-table-col ds-table-type">
+                  <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
+                  <div class="flex items-center gap-2">
+                    <GeneralBaseLogo :base-type="base.type" />
+                    <span class="text-gray-700 capitalize">{{ base.type }}</span>
+                  </div>
+                </div>
+
+                <div class="ds-table-col ds-table-actions">
+                  <div class="flex items-center gap-2">
+                    <a-button
+                      v-if="!base.is_meta && !base.is_local"
+                      type="text"
+                      class="nc-action-btn cursor-pointer outline-0"
+                      @click="baseAction(base.id, DataSourcesSubTab.Metadata)"
+                    >
+                      <div class="flex items-center gap-2 text-gray-600">
+                        <a-tooltip v-if="metadiffbases.includes(base.id)">
+                          <template #title>Out of sync</template>
+                          <GeneralIcon icon="warning" class="group-hover:text-accent text-primary" />
+                        </a-tooltip>
+                        <GeneralIcon v-else icon="sync" class="group-hover:text-accent" />
+                        Sync Metadata
+                      </div>
+                    </a-button>
+                    <!-- <a-button
+                      class="nc-action-btn cursor-pointer outline-0"
+                      @click="baseAction(base.id, DataSourcesSubTab.UIAcl)"
+                    >
+                      <div class="flex items-center gap-2 text-gray-600 ">
+                        <GeneralIcon icon="acl" class="group-hover:text-accent" />
+                        UI ACL
+                      </div>
+                    </a-button> -->
+                    <a-button
+                      class="nc-action-btn cursor-pointer outline-0"
+                      type="text"
+                      @click="baseAction(base.id, DataSourcesSubTab.ERD)"
+                    >
+                      <div class="flex items-center gap-2 text-gray-600">
+                        <GeneralIcon icon="erd" class="group-hover:text-accent" />
+                        ERD
+                      </div>
+                    </a-button>
+                  </div>
+                </div>
+                <div class="ds-table-col ds-table-crud gap-x-1">
+                  <a-button
+                    v-if="!base.is_meta && !base.is_local"
+                    class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg"
+                    type="text"
+                    @click="baseAction(base.id, DataSourcesSubTab.Edit)"
+                  >
+                    <GeneralIcon icon="edit" class="text-gray-600 mt-0.5" />
+                  </a-button>
+                  <a-button
+                    v-if="!base.is_meta && !base.is_local"
+                    class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg"
+                    type="text"
+                    @click="deleteBase(base)"
+                  >
+                    <GeneralIcon icon="delete" class="text-red-500" />
+                  </a-button>
+                </div>
               </div>
             </template>
           </Draggable>
         </div>
       </div>
-      <div v-else-if="vState === DataSourcesSubTab.New" class="max-h-600px overflow-y-auto">
-        <CreateBase :connection-type="clientType" @base-created="loadBases(true)" />
-      </div>
-      <div v-else-if="vState === DataSourcesSubTab.Metadata" class="max-h-600px overflow-y-auto">
-        <Metadata :base-id="activeBaseId" @base-synced="loadBases(true)" />
-      </div>
-      <div v-else-if="vState === DataSourcesSubTab.UIAcl" class="max-h-600px overflow-y-auto">
-        <UIAcl :base-id="activeBaseId" />
-      </div>
-      <div v-else-if="vState === DataSourcesSubTab.ERD" class="h-full overflow-y-auto">
-        <Erd :base-id="activeBaseId" />
-      </div>
-      <div v-else-if="vState === DataSourcesSubTab.Edit" class="max-h-600px overflow-y-auto">
-        <EditBase :base-id="activeBaseId" @base-updated="loadBases(true)" />
-      </div>
+      <GeneralModal v-model:visible="isNewBaseModalOpen" size="medium">
+        <div class="py-6 px-8">
+          <CreateBase :connection-type="clientType" @base-created="loadBases(true)" @close="isNewBaseModalOpen = false" />
+        </div>
+      </GeneralModal>
+      <GeneralModal v-model:visible="isErdModalOpen" size="large">
+        <div
+          class="p-6"
+          :style="{
+            height: '80vh',
+          }"
+        >
+          <Erd :base-id="activeBaseId" />
+        </div>
+      </GeneralModal>
+      <GeneralModal v-model:visible="isMetaDataModal" size="medium">
+        <div class="p-6">
+          <Metadata :base-id="activeBaseId" @base-synced="loadBases(true)" />
+        </div>
+      </GeneralModal>
+      <GeneralModal v-model:visible="isUIAclModalOpen" size="large">
+        <div class="p-6">
+          <UIAcl :base-id="activeBaseId" />
+        </div>
+      </GeneralModal>
+      <GeneralModal v-model:visible="isEditBaseModalOpen" size="medium">
+        <div class="p-6">
+          <EditBase :base-id="activeBaseId" @base-updated="loadBases(true)" @close="isEditBaseModalOpen = false" />
+        </div>
+      </GeneralModal>
     </div>
   </div>
 </template>
 
 <style>
 .ds-table-head {
-  @apply flex items-center border-t bg-gray-100 font-bold text-gray-500;
+  @apply flex items-center border-0 text-gray-400;
 }
 
 .ds-table-body {
@@ -424,23 +530,31 @@ watch(
 }
 
 .ds-table-row {
-  @apply grid grid-cols-20 border-b w-full h-full border-l border-r;
+  @apply grid grid-cols-20 border-b border-gray-100 w-full h-full;
 }
 
 .ds-table-col {
-  @apply flex items-center p-3 border-r-1 mr-2 h-50px;
+  @apply flex items-start py-3 mr-2;
 }
 
 .ds-table-enabled {
-  @apply col-span-2 flex justify-center;
+  @apply col-span-1 flex justify-center items-center;
 }
 
 .ds-table-name {
-  @apply col-span-8;
+  @apply col-span-6 items-center pl-2 capitalize;
+}
+
+.ds-table-type {
+  @apply col-span-3 items-center;
 }
 
 .ds-table-actions {
-  @apply col-span-10;
+  @apply col-span-8;
+}
+
+.ds-table-crud {
+  @apply col-span-1;
 }
 
 .ds-table-col:last-child {

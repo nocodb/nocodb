@@ -8,6 +8,8 @@ const { openedProject } = storeToRefs(useProjects())
 
 const { $e } = useNuxtApp()
 
+const isImportModalOpen = ref(false)
+
 const defaultBase = computed(() => {
   return openedProject.value?.bases?.[0]
 })
@@ -70,7 +72,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
         <GeneralIcon icon="addOutlineBox" />
         <div class="label">New Empty Table</div>
       </div>
-      <div class="nc-project-view-all-table-btn">
+      <div class="nc-project-view-all-table-btn" @click="isImportModalOpen = true">
         <GeneralIcon icon="download" />
         <div class="label">Import Data</div>
       </div>
@@ -108,6 +110,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
         </div>
       </div>
     </div>
+    <ProjectImportModal v-model:visible="isImportModalOpen" :base="defaultBase" />
   </div>
 </template>
 

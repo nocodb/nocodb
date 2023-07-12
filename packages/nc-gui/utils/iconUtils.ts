@@ -17,6 +17,7 @@ import MdiTableLarge from '~icons/mdi/table-large'
 import MdiEyeCircleOutline from '~icons/mdi/eye-circle-outline'
 import MsAddBoxOutline from '~icons/nc-icons/add-box'
 import MsDownloadRounded from '~icons/nc-icons/download'
+import LogosAirtable from '~icons/logos/airtable'
 import Copy from '~icons/material-symbols/content-copy-outline'
 import Delete from '~icons/material-symbols/delete-outline'
 import PhEye from '~icons/ph/eye'
@@ -37,7 +38,8 @@ import MdiAccountGroup from '~icons/mdi/account-group'
 import MdiDotsVertical from '~icons/mdi/dots-vertical'
 import MdiDotsHorizontal from '~icons/mdi/dots-horizontal'
 import PhExcelThin from '~icons/ph/microsoft-excel-logo-light'
-import PhCsvThin from '~icons/ph/file-csv-light'
+import VscodeIconsExcelColored from '~icons/vscode-icons/file-type-excel'
+import PhCsvThin from '~icons/ph/file-csv'
 import PhSplitVerticalThin from '~icons/material-symbols/height-rounded'
 import PhDiscordLogoLight from '~icons/ph/discord-logo-light'
 import PhRedditLogoLight from '~icons/ph/reddit-logo-light'
@@ -330,7 +332,8 @@ export const iconMap = {
   share: h('span', { class: 'material-symbols' }, 'share'),
   reload: MdiRefresh,
   xml: h('span', { class: 'material-symbols' }, 'code'),
-  airtable: h('span', { class: 'material-symbols' }, 'grid_on'),
+  airtable: LogosAirtable,
+  excelColored: VscodeIconsExcelColored,
   grid: Grid,
   gallery: Gallery,
   form: Form,

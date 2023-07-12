@@ -65,7 +65,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
 
 <template>
   <div class="">
-    <div class="flex flex-row gap-x-6 py-3">
+    <div class="flex flex-row gap-x-6 pb-3 pt-6">
       <div class="nc-project-view-all-table-btn" @click="openTableCreateDialog()">
         <GeneralIcon icon="addOutlineBox" />
         <div class="label">New Empty Table</div>
@@ -113,10 +113,10 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
 
 <style lang="scss" scoped>
 .nc-project-view-all-table-btn {
-  @apply flex flex-col gap-y-6 p-4 bg-gray-50 rounded-xl w-56 cursor-pointer hover:(bg-gray-100 !text-black);
+  @apply flex flex-col gap-y-6 p-4 bg-gray-50 rounded-xl w-56 cursor-pointer text-gray-600 hover:(bg-gray-100 !text-black);
 
   .nc-icon {
-    @apply h-10 w-10 text-gray-700;
+    @apply h-10 w-10;
   }
 
   .label {

@@ -41,6 +41,8 @@ let isReloading = $ref(false)
 
 let forceAwakened = $ref(false)
 
+const dataSourcesAwakened = ref(false)
+
 async function loadBases(changed?: boolean) {
   try {
     if (changed) refreshCommandPalette()
@@ -153,6 +155,7 @@ const moveBase = async (e: any) => {
 
 const forceAwaken = () => {
   forceAwakened = !forceAwakened
+  dataSourcesAwakened.value = forceAwakened
   emits('awaken', forceAwakened)
 }
 
@@ -177,8 +180,10 @@ watch(
   () => sources.length,
   (l) => {
     if (l > 1 && !forceAwakened) {
+      dataSourcesAwakened.value = false
       emits('awaken', false)
     } else {
+      dataSourcesAwakened.value = true
       emits('awaken', true)
     }
   },
@@ -221,12 +226,80 @@ watch(
   },
   { immediate: true },
 )
+
+const isNewBaseModalOpen = computed({
+  get: () => {
+    return [DataSourcesSubTab.New].includes(vState.value as any)
+  },
+  set: (val) => {
+    if (!val) {
+      vState.value = ''
+    }
+  },
+})
+
+const isErdModalOpen = computed({
+  get: () => {
+    return [DataSourcesSubTab.ERD].includes(vState.value as any)
+  },
+  set: (val) => {
+    if (!val) {
+      vState.value = ''
+    }
+  },
+})
+
+const isMetaDataModal = computed({
+  get: () => {
+    return [DataSourcesSubTab.Metadata].includes(vState.value as any)
+  },
+  set: (val) => {
+    if (!val) {
+      vState.value = ''
+    }
+  },
+})
+
+const isUIAclModalOpen = computed({
+  get: () => {
+    return [DataSourcesSubTab.UIAcl].includes(vState.value as any)
+  },
+  set: (val) => {
+    if (!val) {
+      vState.value = ''
+    }
+  },
+})
+
+const isEditBaseModalOpen = computed({
+  get: () => {
+    return [DataSourcesSubTab.Edit].includes(vState.value as any)
+  },
+  set: (val) => {
+    if (!val) {
+      vState.value = ''
+    }
+  },
+})
 </script>
 
 <template>
   <div class="flex flex-row w-full h-full">
     <div class="flex flex-col w-full overflow-auto">
-      <div v-if="vState === ''" class="max-h-600px min-w-1200px overflow-y-auto">
+      <div class="flex flex-row w-full justify-end mb-6">
+        <a-button
+          v-if="dataSourcesAwakened"
+          type="primary"
+          class="self-start !rounded-md nc-btn-new-datasource !h-8.5"
+          @click="vState = DataSourcesSubTab.New"
+        >
+          <div class="flex items-center gap-2">
+            <component :is="iconMap.plus" />
+            New source
+          </div>
+        </a-button>
+      </div>
+      <div class="max-h-600px min-w-1200px overflow-y-auto">
         <div class="ds-table-head">
           <div class="ds-table-row">
             <div class="ds-table-col ds-table-name">Name</div>
@@ -333,7 +406,7 @@ watch(
                         Sync Metadata
                       </div>
                     </a-button>
-                    <a-button
+                    <!-- <a-button
                       class="nc-action-btn cursor-pointer outline-0"
                       @click="baseAction(base.id, DataSourcesSubTab.UIAcl)"
                     >
@@ -341,7 +414,7 @@ watch(
                         <GeneralIcon icon="acl" class="group-hover:text-accent" />
                         UI ACL
                       </div>
-                    </a-button>
+                    </a-button> -->
                     <a-button class="nc-action-btn cursor-pointer outline-0" @click="baseAction(base.id, DataSourcesSubTab.ERD)">
                       <div class="flex items-center gap-2 text-gray-600 font-light">
                         <GeneralIcon icon="erd" class="group-hover:text-accent" />
@@ -387,21 +460,36 @@ watch(
           </Draggable>
         </div>
       </div>
-      <div v-else-if="vState === DataSourcesSubTab.New" class="max-h-600px overflow-y-auto">
-        <CreateBase :connection-type="clientType" @base-created="loadBases(true)" />
-      </div>
-      <div v-else-if="vState === DataSourcesSubTab.Metadata" class="max-h-600px overflow-y-auto">
-        <Metadata :base-id="activeBaseId" @base-synced="loadBases(true)" />
-      </div>
-      <div v-else-if="vState === DataSourcesSubTab.UIAcl" class="max-h-600px overflow-y-auto">
-        <UIAcl :base-id="activeBaseId" />
-      </div>
-      <div v-else-if="vState === DataSourcesSubTab.ERD" class="h-full overflow-y-auto">
-        <Erd :base-id="activeBaseId" />
-      </div>
-      <div v-else-if="vState === DataSourcesSubTab.Edit" class="max-h-600px overflow-y-auto">
-        <EditBase :base-id="activeBaseId" @base-updated="loadBases(true)" />
-      </div>
+      <GeneralModal v-model:visible="isNewBaseModalOpen" size="medium">
+        <div class="py-6 px-8">
+          <CreateBase :connection-type="clientType" @base-created="loadBases(true)" />
+        </div>
+      </GeneralModal>
+      <GeneralModal v-model:visible="isErdModalOpen" size="large">
+        <div
+          class="p-6"
+          :style="{
+            height: '80vh',
+          }"
+        >
+          <Erd :base-id="activeBaseId" />
+        </div>
+      </GeneralModal>
+      <GeneralModal v-model:visible="isMetaDataModal" size="medium">
+        <div class="p-6">
+          <Metadata :base-id="activeBaseId" @base-synced="loadBases(true)" />
+        </div>
+      </GeneralModal>
+      <GeneralModal v-model:visible="isUIAclModalOpen" size="large">
+        <div class="p-6">
+          <UIAcl :base-id="activeBaseId" />
+        </div>
+      </GeneralModal>
+      <GeneralModal v-model:visible="isEditBaseModalOpen" size="medium">
+        <div class="p-6">
+          <EditBase :base-id="activeBaseId" @base-updated="loadBases(true)" />
+        </div>
+      </GeneralModal>
     </div>
   </div>
 </template>

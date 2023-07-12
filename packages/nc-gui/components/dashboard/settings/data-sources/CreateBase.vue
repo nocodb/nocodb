@@ -378,8 +378,8 @@ watch(
 </script>
 
 <template>
-  <div class="create-base max-w-800px bg-white relative flex flex-col justify-center gap-2 w-full p-8">
-    <h1 class="prose-2xl font-bold self-start my-4 flex items-center gap-2">
+  <div class="create-base bg-white relative flex flex-col justify-center gap-2 w-full">
+    <h1 class="prose-2xl font-bold self-start mb-4 flex items-center gap-2">
       New Base
       <span class="flex-grow"></span>
       <span class="text-gray-400 !text-sm font-weight-normal">( Whitelist our ip: 52.15.226.51 to allow database access )</span>
@@ -393,229 +393,236 @@ watch(
       no-style
       :label-col="{ span: 8 }"
     >
-      <a-form-item label="Base Name" v-bind="validateInfos.title">
-        <a-input v-model:value="formState.title" class="nc-extdb-proj-name" />
-      </a-form-item>
-
-      <a-form-item :label="$t('labels.dbType')" v-bind="validateInfos['dataSource.client']">
-        <a-select
-          v-model:value="formState.dataSource.client"
-          class="nc-extdb-db-type"
-          dropdown-class-name="nc-dropdown-ext-db-type"
-          @change="onClientChange"
-        >
-          <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value"
-            >{{ client.text }}
-          </a-select-option>
-        </a-select>
-      </a-form-item>
-
-      <!-- SQLite File -->
-      <a-form-item
-        v-if="formState.dataSource.client === ClientType.SQLITE"
-        :label="$t('labels.sqliteFile')"
-        v-bind="validateInfos['dataSource.connection.connection.filename']"
+      <div
+        class="nc-scrollbar-md"
+        :style="{
+          maxHeight: '60vh',
+        }"
       >
-        <a-input v-model:value="(formState.dataSource.connection as SQLiteConnection).connection.filename" />
-      </a-form-item>
-
-      <template v-else-if="formState.dataSource.client === ClientType.SNOWFLAKE">
-        <!-- Account -->
-        <a-form-item label="Account" v-bind="validateInfos['dataSource.connection.account']">
-          <a-input v-model:value="formState.dataSource.connection.account" class="nc-extdb-account" />
+        <a-form-item label="Base Name" v-bind="validateInfos.title">
+          <a-input v-model:value="formState.title" class="nc-extdb-proj-name" />
         </a-form-item>
 
-        <!-- Username -->
-        <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.username']">
-          <a-input v-model:value="formState.dataSource.connection.username" class="nc-extdb-host-user" />
+        <a-form-item :label="$t('labels.dbType')" v-bind="validateInfos['dataSource.client']">
+          <a-select
+            v-model:value="formState.dataSource.client"
+            class="nc-extdb-db-type"
+            dropdown-class-name="nc-dropdown-ext-db-type"
+            @change="onClientChange"
+          >
+            <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value"
+              >{{ client.text }}
+            </a-select-option>
+          </a-select>
         </a-form-item>
 
-        <!-- Password -->
-        <a-form-item :label="$t('labels.password')" v-bind="validateInfos['dataSource.connection.password']">
-          <a-input-password v-model:value="formState.dataSource.connection.password" class="nc-extdb-host-password" />
-        </a-form-item>
-
-        <!-- Warehouse -->
-        <a-form-item label="Warehouse" v-bind="validateInfos['dataSource.connection.warehouse']">
-          <a-input v-model:value="formState.dataSource.connection.warehouse" />
-        </a-form-item>
-
-        <!-- Database -->
-        <a-form-item :label="$t('labels.database')" v-bind="validateInfos['dataSource.connection.database']">
-          <!-- Database : create if not exists -->
-          <a-input
-            v-model:value="formState.dataSource.connection.database"
-            :placeholder="$t('labels.dbCreateIfNotExists')"
-            class="nc-extdb-host-database"
-          />
-        </a-form-item>
-
-        <!-- Schema name -->
-        <a-form-item :label="$t('labels.schemaName')" v-bind="validateInfos['dataSource.connection.schema']">
-          <a-input v-model:value="formState.dataSource.connection.schema" />
-        </a-form-item>
-      </template>
-
-      <template v-else>
-        <!-- Host Address -->
-        <a-form-item :label="$t('labels.hostAddress')" v-bind="validateInfos['dataSource.connection.host']">
-          <a-input v-model:value="(formState.dataSource.connection as DefaultConnection).host" class="nc-extdb-host-address" />
-        </a-form-item>
-
-        <!-- Port Number -->
-        <a-form-item :label="$t('labels.port')" v-bind="validateInfos['dataSource.connection.port']">
-          <a-input-number
-            v-model:value="(formState.dataSource.connection as DefaultConnection).port"
-            class="!w-full nc-extdb-host-port"
-          />
-        </a-form-item>
-
-        <!-- Username -->
-        <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.user']">
-          <a-input v-model:value="(formState.dataSource.connection as DefaultConnection).user" class="nc-extdb-host-user" />
-        </a-form-item>
-
-        <!-- Password -->
-        <a-form-item :label="$t('labels.password')">
-          <a-input-password
-            v-model:value="(formState.dataSource.connection as DefaultConnection).password"
-            class="nc-extdb-host-password"
-          />
-        </a-form-item>
-
-        <!-- Database -->
-        <a-form-item :label="$t('labels.database')" v-bind="validateInfos['dataSource.connection.database']">
-          <!-- Database : create if not exists -->
-          <a-input
-            v-model:value="formState.dataSource.connection.database"
-            :placeholder="$t('labels.dbCreateIfNotExists')"
-            class="nc-extdb-host-database"
-          />
-        </a-form-item>
-
-        <!-- Schema name -->
+        <!-- SQLite File -->
         <a-form-item
-          v-if="[ClientType.MSSQL, ClientType.PG].includes(formState.dataSource.client) && formState.dataSource.searchPath"
-          :label="$t('labels.schemaName')"
-          v-bind="validateInfos['dataSource.searchPath.0']"
+          v-if="formState.dataSource.client === ClientType.SQLITE"
+          :label="$t('labels.sqliteFile')"
+          v-bind="validateInfos['dataSource.connection.connection.filename']"
         >
-          <a-input v-model:value="formState.dataSource.searchPath[0]" />
+          <a-input v-model:value="(formState.dataSource.connection as SQLiteConnection).connection.filename" />
         </a-form-item>
-        <div class="flex items-right justify-end gap-2">
-          <!--                Use Connection URL -->
-          <a-button class="nc-extdb-btn-import-url !rounded-md" @click.stop="importURLDlg = true">
-            {{ $t('activity.useConnectionUrl') }}
-          </a-button>
-        </div>
 
-        <a-collapse ghost expand-icon-position="right" class="!mt-6">
-          <a-collapse-panel key="1">
-            <template #header>
-              <span>{{ $t('title.advancedParameters') }}</span>
-            </template>
-            <a-form-item label="SSL mode">
-              <a-select v-model:value="formState.sslUse" dropdown-class-name="nc-dropdown-ssl-mode" @select="onSSLModeChange">
-                <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }}</a-select-option>
-              </a-select>
-            </a-form-item>
+        <template v-else-if="formState.dataSource.client === ClientType.SNOWFLAKE">
+          <!-- Account -->
+          <a-form-item label="Account" v-bind="validateInfos['dataSource.connection.account']">
+            <a-input v-model:value="formState.dataSource.connection.account" class="nc-extdb-account" />
+          </a-form-item>
 
-            <a-form-item label="SSL keys">
-              <div class="flex gap-2">
-                <a-tooltip placement="top">
-                  <!-- Select .cert file -->
-                  <template #title>
-                    <span>{{ $t('tooltip.clientCert') }}</span>
-                  </template>
+          <!-- Username -->
+          <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.username']">
+            <a-input v-model:value="formState.dataSource.connection.username" class="nc-extdb-host-user" />
+          </a-form-item>
 
-                  <a-button :disabled="!sslFilesRequired" class="shadow" @click="certFileInput?.click()">
-                    {{ $t('labels.clientCert') }}
-                  </a-button>
-                </a-tooltip>
+          <!-- Password -->
+          <a-form-item :label="$t('labels.password')" v-bind="validateInfos['dataSource.connection.password']">
+            <a-input-password v-model:value="formState.dataSource.connection.password" class="nc-extdb-host-password" />
+          </a-form-item>
 
-                <a-tooltip placement="top">
-                  <!-- Select .key file -->
-                  <template #title>
-                    <span>{{ $t('tooltip.clientKey') }}</span>
-                  </template>
-                  <a-button :disabled="!sslFilesRequired" class="shadow" @click="keyFileInput?.click()">
-                    {{ $t('labels.clientKey') }}
-                  </a-button>
-                </a-tooltip>
+          <!-- Warehouse -->
+          <a-form-item label="Warehouse" v-bind="validateInfos['dataSource.connection.warehouse']">
+            <a-input v-model:value="formState.dataSource.connection.warehouse" />
+          </a-form-item>
 
-                <a-tooltip placement="top">
-                  <!-- Select CA file -->
-                  <template #title>
-                    <span>{{ $t('tooltip.clientCA') }}</span>
-                  </template>
+          <!-- Database -->
+          <a-form-item :label="$t('labels.database')" v-bind="validateInfos['dataSource.connection.database']">
+            <!-- Database : create if not exists -->
+            <a-input
+              v-model:value="formState.dataSource.connection.database"
+              :placeholder="$t('labels.dbCreateIfNotExists')"
+              class="nc-extdb-host-database"
+            />
+          </a-form-item>
 
-                  <a-button :disabled="!sslFilesRequired" class="shadow" @click="caFileInput?.click()">
-                    {{ $t('labels.serverCA') }}
-                  </a-button>
-                </a-tooltip>
-              </div>
-            </a-form-item>
+          <!-- Schema name -->
+          <a-form-item :label="$t('labels.schemaName')" v-bind="validateInfos['dataSource.connection.schema']">
+            <a-input v-model:value="formState.dataSource.connection.schema" />
+          </a-form-item>
+        </template>
 
-            <input ref="caFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.ca, caFileInput)" />
+        <template v-else>
+          <!-- Host Address -->
+          <a-form-item :label="$t('labels.hostAddress')" v-bind="validateInfos['dataSource.connection.host']">
+            <a-input v-model:value="(formState.dataSource.connection as DefaultConnection).host" class="nc-extdb-host-address" />
+          </a-form-item>
 
-            <input ref="certFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.cert, certFileInput)" />
+          <!-- Port Number -->
+          <a-form-item :label="$t('labels.port')" v-bind="validateInfos['dataSource.connection.port']">
+            <a-input-number
+              v-model:value="(formState.dataSource.connection as DefaultConnection).port"
+              class="!w-full nc-extdb-host-port"
+            />
+          </a-form-item>
 
-            <input ref="keyFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.key, keyFileInput)" />
+          <!-- Username -->
+          <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.user']">
+            <a-input v-model:value="(formState.dataSource.connection as DefaultConnection).user" class="nc-extdb-host-user" />
+          </a-form-item>
 
-            <a-divider />
+          <!-- Password -->
+          <a-form-item :label="$t('labels.password')">
+            <a-input-password
+              v-model:value="(formState.dataSource.connection as DefaultConnection).password"
+              class="nc-extdb-host-password"
+            />
+          </a-form-item>
 
-            <!--            Extra connection parameters -->
-            <a-form-item class="mb-2" :label="$t('labels.extraConnectionParameters')" v-bind="validateInfos.extraParameters">
-              <a-card>
-                <div v-for="(item, index) of formState.extraParameters" :key="index">
-                  <div class="flex py-1 items-center gap-1">
-                    <a-input v-model:value="item.key" />
+          <!-- Database -->
+          <a-form-item :label="$t('labels.database')" v-bind="validateInfos['dataSource.connection.database']">
+            <!-- Database : create if not exists -->
+            <a-input
+              v-model:value="formState.dataSource.connection.database"
+              :placeholder="$t('labels.dbCreateIfNotExists')"
+              class="nc-extdb-host-database"
+            />
+          </a-form-item>
 
-                    <span>:</span>
+          <!-- Schema name -->
+          <a-form-item
+            v-if="[ClientType.MSSQL, ClientType.PG].includes(formState.dataSource.client) && formState.dataSource.searchPath"
+            :label="$t('labels.schemaName')"
+            v-bind="validateInfos['dataSource.searchPath.0']"
+          >
+            <a-input v-model:value="formState.dataSource.searchPath[0]" />
+          </a-form-item>
+          <div class="flex items-right justify-end gap-2">
+            <!--                Use Connection URL -->
+            <a-button class="nc-extdb-btn-import-url !rounded-md" @click.stop="importURLDlg = true">
+              {{ $t('activity.useConnectionUrl') }}
+            </a-button>
+          </div>
 
-                    <a-input v-model:value="item.value" />
+          <a-collapse ghost expand-icon-position="right" class="!mt-6">
+            <a-collapse-panel key="1">
+              <template #header>
+                <span>{{ $t('title.advancedParameters') }}</span>
+              </template>
+              <a-form-item label="SSL mode">
+                <a-select v-model:value="formState.sslUse" dropdown-class-name="nc-dropdown-ssl-mode" @select="onSSLModeChange">
+                  <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }}</a-select-option>
+                </a-select>
+              </a-form-item>
 
-                    <component
-                      :is="iconMap.close"
-                      :style="{ 'font-size': '1.5em', 'color': 'red' }"
-                      @click="removeParam(index)"
-                    />
-                  </div>
+              <a-form-item label="SSL keys">
+                <div class="flex gap-2">
+                  <a-tooltip placement="top">
+                    <!-- Select .cert file -->
+                    <template #title>
+                      <span>{{ $t('tooltip.clientCert') }}</span>
+                    </template>
+
+                    <a-button :disabled="!sslFilesRequired" class="shadow" @click="certFileInput?.click()">
+                      {{ $t('labels.clientCert') }}
+                    </a-button>
+                  </a-tooltip>
+
+                  <a-tooltip placement="top">
+                    <!-- Select .key file -->
+                    <template #title>
+                      <span>{{ $t('tooltip.clientKey') }}</span>
+                    </template>
+                    <a-button :disabled="!sslFilesRequired" class="shadow" @click="keyFileInput?.click()">
+                      {{ $t('labels.clientKey') }}
+                    </a-button>
+                  </a-tooltip>
+
+                  <a-tooltip placement="top">
+                    <!-- Select CA file -->
+                    <template #title>
+                      <span>{{ $t('tooltip.clientCA') }}</span>
+                    </template>
+
+                    <a-button :disabled="!sslFilesRequired" class="shadow" @click="caFileInput?.click()">
+                      {{ $t('labels.serverCA') }}
+                    </a-button>
+                  </a-tooltip>
                 </div>
-                <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">
-                  <div class="flex items-center justify-center"><component :is="iconMap.plus" /></div>
+              </a-form-item>
+
+              <input ref="caFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.ca, caFileInput)" />
+
+              <input ref="certFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.cert, certFileInput)" />
+
+              <input ref="keyFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.key, keyFileInput)" />
+
+              <a-divider />
+
+              <!--            Extra connection parameters -->
+              <a-form-item class="mb-2" :label="$t('labels.extraConnectionParameters')" v-bind="validateInfos.extraParameters">
+                <a-card>
+                  <div v-for="(item, index) of formState.extraParameters" :key="index">
+                    <div class="flex py-1 items-center gap-1">
+                      <a-input v-model:value="item.key" />
+
+                      <span>:</span>
+
+                      <a-input v-model:value="item.value" />
+
+                      <component
+                        :is="iconMap.close"
+                        :style="{ 'font-size': '1.5em', 'color': 'red' }"
+                        @click="removeParam(index)"
+                      />
+                    </div>
+                  </div>
+                  <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">
+                    <div class="flex items-center justify-center"><component :is="iconMap.plus" /></div>
+                  </a-button>
+                </a-card>
+              </a-form-item>
+
+              <a-divider />
+
+              <a-form-item :label="$t('labels.inflection.tableName')">
+                <a-select
+                  v-model:value="formState.inflection.inflectionTable"
+                  dropdown-class-name="nc-dropdown-inflection-table-name"
+                >
+                  <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
+                </a-select>
+              </a-form-item>
+
+              <a-form-item :label="$t('labels.inflection.columnName')">
+                <a-select
+                  v-model:value="formState.inflection.inflectionColumn"
+                  dropdown-class-name="nc-dropdown-inflection-column-name"
+                >
+                  <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
+                </a-select>
+              </a-form-item>
+
+              <div class="flex justify-end">
+                <a-button type="primary" class="!rounded-md" @click="handleEditJSON()">
+                  <!-- Edit connection JSON -->
+                  {{ $t('activity.editConnJson') }}
                 </a-button>
-              </a-card>
-            </a-form-item>
-
-            <a-divider />
-
-            <a-form-item :label="$t('labels.inflection.tableName')">
-              <a-select
-                v-model:value="formState.inflection.inflectionTable"
-                dropdown-class-name="nc-dropdown-inflection-table-name"
-              >
-                <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
-              </a-select>
-            </a-form-item>
-
-            <a-form-item :label="$t('labels.inflection.columnName')">
-              <a-select
-                v-model:value="formState.inflection.inflectionColumn"
-                dropdown-class-name="nc-dropdown-inflection-column-name"
-              >
-                <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
-              </a-select>
-            </a-form-item>
-
-            <div class="flex justify-end">
-              <a-button type="primary" class="!rounded-md" @click="handleEditJSON()">
-                <!-- Edit connection JSON -->
-                {{ $t('activity.editConnJson') }}
-              </a-button>
-            </div>
-          </a-collapse-panel>
-        </a-collapse>
-      </template>
+              </div>
+            </a-collapse-panel>
+          </a-collapse>
+        </template>
+      </div>
 
       <a-form-item class="flex justify-end !mt-5">
         <div class="flex justify-end gap-2">
@@ -680,7 +687,7 @@ watch(
   :deep(.ant-input-affix-wrapper),
   :deep(.ant-input),
   :deep(.ant-select) {
-    @apply !appearance-none border-1 border-solid rounded;
+    @apply !appearance-none border-solid rounded-md;
   }
 
   :deep(.ant-input-password) {

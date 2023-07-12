@@ -40,7 +40,7 @@ const baseSettingsState = ref('')
           <ErdView :base-id="defaultBase!.id" class="!h-full" />
         </a-tab-pane>
         <a-tab-pane key="dataSources" tab="Data sources">
-          <DashboardSettingsDataSources v-model:state="baseSettingsState" />
+          <DashboardSettingsDataSources v-model:state="baseSettingsState" class="mt-6" />
         </a-tab-pane>
       </a-tabs>
     </div>
@@ -48,9 +48,10 @@ const baseSettingsState = ref('')
 </template>
 
 <style lang="scss" scoped>
-.nc-project-view {
-  .ant-tabs-content {
-    @apply h-full;
-  }
+:deep(.ant-tabs-content) {
+  @apply !h-full;
+}
+:deep(.ant-tabs-nav) {
+  @apply !mb-0;
 }
 </style>

@@ -53,63 +53,63 @@ const dataSourcesReload = ref(false)
 const dataSourcesAwakened = ref(false)
 
 const tabsInfo: TabGroup = {
-  // teamAndAuth: {
-  //   title: t('title.teamAndAuth'),
-  //   icon: iconMap.users,
-  //   subTabs: {
-  //     ...(isUIAllowed('userMgmtTab')
-  //       ? {
-  //           usersManagement: {
-  //             // Users Management
-  //             title: t('title.userMgmt'),
-  //             body: resolveComponent('TabsAuthUserManagement'),
-  //           },
-  //         }
-  //       : {}),
-  //     ...(isUIAllowed('apiTokenTab')
-  //       ? {
-  //           apiTokenManagement: {
-  //             // API Tokens Management
-  //             title: t('title.apiTokenMgmt'),
-  //             body: resolveComponent('TabsAuthApiTokenManagement'),
-  //           },
-  //         }
-  //       : {}),
-  //   },
-  //   onClick: () => {
-  //     $e('c:settings:team-auth')
-  //   },
-  // },
-  // dataSources: {
-  //   // Data Sources
-  //   title: 'Data Sources',
-  //   icon: iconMap.datasource,
-  //   subTabs: {
-  //     dataSources: {
-  //       title: 'Data Sources',
-  //       body: DataSources,
-  //     },
-  //   },
-  //   onClick: () => {
-  //     vDataState.value = ''
-  //     $e('c:settings:data-sources')
-  //   },
-  // },
-  // audit: {
-  //   // Audit
-  //   title: t('title.audit'),
-  //   icon: iconMap.book,
-  //   subTabs: {
-  //     audit: {
-  //       // Audit
-  //       title: t('title.audit'),
-  //       body: resolveComponent('DashboardSettingsAuditTab'),
-  //     },
-  //   },
-  //   onClick: () => {
-  //     $e('c:settings:audit')
-  //   },
-  // },
+  teamAndAuth: {
+    title: t('title.teamAndAuth'),
+    icon: iconMap.users,
+    subTabs: {
+      ...(isUIAllowed('userMgmtTab')
+        ? {
+            usersManagement: {
+              // Users Management
+              title: t('title.userMgmt'),
+              body: resolveComponent('TabsAuthUserManagement'),
+            },
+          }
+        : {}),
+      ...(isUIAllowed('apiTokenTab')
+        ? {
+            apiTokenManagement: {
+              // API Tokens Management
+              title: t('title.apiTokenMgmt'),
+              body: resolveComponent('TabsAuthApiTokenManagement'),
+            },
+          }
+        : {}),
+    },
+    onClick: () => {
+      $e('c:settings:team-auth')
+    },
+  },
+  dataSources: {
+    // Data Sources
+    title: 'Data Sources',
+    icon: iconMap.datasource,
+    subTabs: {
+      dataSources: {
+        title: 'Data Sources',
+        body: DataSources,
+      },
+    },
+    onClick: () => {
+      vDataState.value = ''
+      $e('c:settings:data-sources')
+    },
+  },
+  audit: {
+    // Audit
+    title: t('title.audit'),
+    icon: iconMap.book,
+    subTabs: {
+      audit: {
+        // Audit
+        title: t('title.audit'),
+        body: resolveComponent('DashboardSettingsAuditTab'),
+      },
+    },
+    onClick: () => {
+      $e('c:settings:audit')
+    },
+  },
   projectSettings: {
     // Project Settings
     title: 'Project Settings',

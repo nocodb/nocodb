@@ -634,15 +634,12 @@ function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {
 }
 
 function handleUIDTChange(column, table) {
-  if(!handleUIDTChange) return
+  if (!importWorker) return
 
   const handler = (e) => {
     const [type, payload] = e.data
     switch (type) {
       case ImportWorkerResponse.SINGLE_SELECT_OPTIONS:
-        importWorker.removeEventListener('message', handler, false)
-        column.dtxp = payload
-        break
       case ImportWorkerResponse.MULTI_SELECT_OPTIONS:
         importWorker.removeEventListener('message', handler, false)
         column.dtxp = payload
@@ -818,7 +815,7 @@ function handleUIDTChange(column, table) {
               row-class-name="template-form-row"
               :data-source="table.columns"
               :columns="tableColumns"
-              :pagination="false"
+              :pagination="table.columns.length > 50 ? { defaultPageSize: 50, position: ['bottomCenter'] } : false"
             >
               <template #emptyText>
                 <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />

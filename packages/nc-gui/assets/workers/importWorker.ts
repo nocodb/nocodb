@@ -9,7 +9,7 @@ import {
 import type { ImportWorkerPayload } from '~/lib'
 import { ImportSource, ImportType, ImportWorkerOperations, ImportWorkerResponse, importFileList } from '~/lib'
 import type TemplateGenerator from '~/utils/parsers/TemplateGenerator'
-import {extractSdkResponseErrorMsg} from "~/utils";
+import { extractSdkResponseErrorMsg } from '~/utils'
 
 const state: {
   tables: TableType[]
@@ -33,6 +33,7 @@ const progress = (msg: string) => {
 }
 
 async function readFileContent(val: any) {
+  progress('Reading file content')
   const data = await new Promise<any>((resolve) => {
     const reader = new FileReader()
     reader.onload = (e: ProgressEvent<FileReader>) => {
@@ -42,7 +43,7 @@ async function readFileContent(val: any) {
     }
     reader.readAsArrayBuffer(val[0].originFileObj!)
   })
-  return data;
+  return data
 }
 
 async function getAdapter(importType: ImportType, sourceType: ImportSource, val: any, config) {
@@ -56,7 +57,7 @@ async function getAdapter(importType: ImportType, sourceType: ImportSource, val:
   } else if (importType === ImportType.EXCEL) {
     switch (sourceType) {
       case ImportSource.FILE: {
-        const data = await readFileContent(val);
+        const data = await readFileContent(val)
 
         return new ExcelTemplateAdapter(data, config)
       }
@@ -66,7 +67,7 @@ async function getAdapter(importType: ImportType, sourceType: ImportSource, val:
   } else if (importType === 'json') {
     switch (sourceType) {
       case ImportSource.FILE: {
-        const data = await readFileContent(val);
+        const data = await readFileContent(val)
         return new JSONTemplateAdapter(data, config)
       }
       case ImportSource.URL:
@@ -102,20 +103,18 @@ const process = async (payload: ImportWorkerPayload) => {
   try {
     state.templateGenerator = await getAdapter(payload.importType, payload.importSource, payload.value, payload.config)
 
-    if(!state.templateGenerator) {
-      return
+    if (!state.templateGenerator) {
+      return postMessage([ImportWorkerResponse.ERROR, 'Invalid import type'])
     }
 
+    progress('Initializing parser')
     await state.templateGenerator.init()
 
-    console.log('parse')
+    progress('Parsing content and generating template')
     await state.templateGenerator.parse()
-    //
-    console.log('getTemplate')
 
     templateData = state.templateGenerator!.getTemplate()
 
-    console.log(templateData)
     if (state.config.importDataOnly) importColumns = state.templateGenerator!.getColumns()
     else {
       // ensure the target table name not exist in current table list
@@ -125,8 +124,6 @@ const process = async (payload: ImportWorkerPayload) => {
     }
     importData = state.templateGenerator!.getData()
 
-    console.log(importData)
-
     postMessage([
       ImportWorkerResponse.PROCESSED_DATA,
       {
@@ -134,10 +131,10 @@ const process = async (payload: ImportWorkerPayload) => {
         importColumns,
         importData,
       },
-    ]);
+    ])
   } catch (e: any) {
     console.log('error', e)
-    postMessage([ImportWorkerResponse.ERROR, await extractSdkResponseErrorMsg(e));
+    postMessage([ImportWorkerResponse.ERROR, await extractSdkResponseErrorMsg(e)])
   }
 }
 

@@ -320,7 +320,7 @@ const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
 
 /** check if the file size exceeds the limit */
 const beforeUpload = (file: UploadFile) => {
-  const exceedLimit = file.size! / 1024 / 1024 > 5
+  const exceedLimit = file.size! / 1024 / 1024 > 300
   if (exceedLimit) {
     message.error(`File ${file.name} is too big. The accepted file size is less than 5MB.`)
   }
@@ -408,8 +408,6 @@ function extractImportWorkerPayload(value: UploadFile[] | ArrayBuffer | string) 
 
 // string for json import
 async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
-  templateEditorModal.value = true
-
   templateData.value = null
   importData.value = null
   importColumns.value = []
@@ -444,15 +442,15 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
           const [type, payload] = e.data
           switch (type) {
             case ImportWorkerResponse.PROCESSED_DATA:
-              importWorker.removeEventListener('message', handler, false)
               resolve(payload)
+              importWorker.removeEventListener('message', handler, false)
               break
             case ImportWorkerResponse.PROGRESS:
               progressMsg.value = payload
               break
             case ImportWorkerResponse.ERROR:
-              importWorker.removeEventListener('message', handler, false)
               reject(payload)
+              importWorker.removeEventListener('message', handler, false)
               break
           }
         }
@@ -460,7 +458,6 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
 
         importWorker.postMessage([ImportWorkerOperations.PROCESS, payload])
       })
-
       templateData.value = response.templateData
       importColumns.value = response.importColumns
       importData.value = response.importData

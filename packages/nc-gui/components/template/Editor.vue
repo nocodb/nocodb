@@ -511,7 +511,7 @@ async function importTemplate() {
               column.rqd = true
             }
             if (
-              (!isSystemColumn(column) || ['created_at', 'updated_at'].includes(column.column_name)) &&
+              (!isSystemColumn(column) || ['created_at', 'updated_at'].includes(column.column_name!)) &&
               column.uidt !== UITypes.SingleSelect &&
               column.uidt !== UITypes.MultiSelect
             ) {

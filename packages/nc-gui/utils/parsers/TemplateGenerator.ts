@@ -1,4 +1,8 @@
 export default class TemplateGenerator {
+
+  init() {
+  }
+
   parse() {
     throw new Error("'parse' method is not implemented")
   }

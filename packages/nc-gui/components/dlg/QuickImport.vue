@@ -408,65 +408,65 @@ function extractImportWorkerPayload(value: UploadFile[] | ArrayBuffer | string) 
 
 // string for json import
 async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
-  if (isWorkerSupport) {
-    const value = toRaw(val)
-    const payload = extractImportWorkerPayload(value)
+  templateEditorModal.value = true
 
-    importWorker.postMessage([
-      ImportWorkerOperations.SET_TABLES,
-      unref(tables).map((t) => ({
-        table_name: t.table_name,
-        title: t.title,
-      })),
-    ])
-    importWorker.postMessage([
-      ImportWorkerOperations.SET_CONFIG,
-      {
-        importDataOnly,
-        importColumns: !!importColumns.value,
-        importData: !!importData.value,
-      },
-    ])
+  templateData.value = null
+  importData.value = null
+  importColumns.value = []
+  try {
+    // if the browser supports web worker, use it to parse the file and process the data
+    if (isWorkerSupport) {
+      const value = toRaw(val)
+      const payload = extractImportWorkerPayload(value)
 
-    const response: {
-      templateData: any
-      importColumns: any
-      importData: any
-    } = await new Promise((resolve) => {
-      const handler = (e) => {
-        const [type, payload] = e.data
-        switch (type) {
-          case ImportWorkerResponse.PROCESSED_DATA:
-            resolve(payload)
-            importWorker.removeEventListener('message', handler, false)
-            break
-          case ImportWorkerResponse.PROGRESS:
-            progressMsg.value = payload
-            break
+      importWorker.postMessage([
+        ImportWorkerOperations.SET_TABLES,
+        unref(tables).map((t) => ({
+          table_name: t.table_name,
+          title: t.title,
+        })),
+      ])
+      importWorker.postMessage([
+        ImportWorkerOperations.SET_CONFIG,
+        {
+          importDataOnly,
+          importColumns: !!importColumns.value,
+          importData: !!importData.value,
+        },
+      ])
+
+      const response: {
+        templateData: any
+        importColumns: any
+        importData: any
+      } = await new Promise((resolve, reject) => {
+        const handler = (e: MessageEvent) => {
+          const [type, payload] = e.data
+          switch (type) {
+            case ImportWorkerResponse.PROCESSED_DATA:
+              importWorker.removeEventListener('message', handler, false)
+              resolve(payload)
+              break
+            case ImportWorkerResponse.PROGRESS:
+              progressMsg.value = payload
+              break
+            case ImportWorkerResponse.ERROR:
+              importWorker.removeEventListener('message', handler, false)
+              reject(payload)
+              break
+          }
         }
-      }
-      importWorker.addEventListener('message', handler, false)
+        importWorker.addEventListener('message', handler, false)
 
-      importWorker.postMessage([ImportWorkerOperations.PROCESS, payload])
-    })
+        importWorker.postMessage([ImportWorkerOperations.PROCESS, payload])
+      })
 
-    templateData.value = response.templateData
-    importColumns.value = response.importColumns
-    importData.value = response.importData
-
-    templateEditorModal.value = true
-    isParsingData.value = false
-    preImportLoading.value = false
-  } else {
-    templateEditorModal.value = true
-    isParsingData.value = false
-    preImportLoading.value = false
-
-    try {
-      templateData.value = null
-      importData.value = null
-      importColumns.value = []
-
+      templateData.value = response.templateData
+      importColumns.value = response.importColumns
+      importData.value = response.importData
+    }
+    // otherwise, use the main thread to parse the file and process the data
+    else {
       templateGenerator = getAdapter(val)
 
       if (!templateGenerator) {
@@ -488,13 +488,14 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
         }))
       }
       importData.value = templateGenerator!.getData()
-      templateEditorModal.value = true
-    } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
-      isParsingData.value = false
-      preImportLoading.value = false
     }
+
+    templateEditorModal.value = true
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isParsingData.value = false
+    preImportLoading.value = false
   }
 }
 </script>

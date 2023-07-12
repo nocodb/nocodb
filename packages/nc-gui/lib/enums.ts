@@ -139,6 +139,7 @@ export enum ImportWorkerResponse {
   PROGRESS = 'progress',
   SINGLE_SELECT_OPTIONS = 'singleSelectOptions',
   MULTI_SELECT_OPTIONS = 'multiSelectOptions',
+  ERROR = 'error',
 }
 
 export enum ImportType {

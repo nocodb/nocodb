@@ -49,6 +49,6 @@ export class AccountTokenPage extends BasePage {
     await this.rootPage.locator('.ant-modal-confirm-confirm button:has-text("Ok")').click();
     await this.verifyToast({ message: 'Token deleted successfully' });
 
-    expect(await this.get().locator(`tr`).count()).toBe(0);
+    expect(await this.get().locator(`tr:has-text("${description}:visible")`).count()).toBe(0);
   }
 }

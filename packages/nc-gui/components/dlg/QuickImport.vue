@@ -42,17 +42,9 @@ const { importType, importDataOnly = false, baseId, ...rest } = defineProps<Prop
 
 const emit = defineEmits(['update:modelValue'])
 
-const isWorkerSupport = false && typeof Worker !== 'undefined'
+const isWorkerSupport = typeof Worker !== 'undefined'
 
 let importWorker: Worker
-
-onMounted(() => {
-  if (isWorkerSupport) importWorker = new ImportWorker()
-})
-
-onUnmounted(() => {
-  if (isWorkerSupport) importWorker.terminate()
-})
 
 const { t } = useI18n()
 
@@ -138,6 +130,18 @@ const importMeta = computed(() => {
 
 const dialogShow = useVModel(rest, 'modelValue', emit)
 
+// watch dialogShow to create or terminate worker
+if (isWorkerSupport) {
+  watch(
+    dialogShow,
+    (val) => {
+      if (val) importWorker = new ImportWorker()
+      else importWorker?.terminate()
+    },
+    { immediate: true },
+  )
+}
+
 const disablePreImportButton = computed(() => {
   if (activeKey.value === 'uploadTab') {
     return !(importState.fileList.length > 0)
@@ -165,6 +169,7 @@ const modalWidth = computed(() => {
 let templateGenerator: CSVTemplateAdapter | JSONTemplateAdapter | ExcelTemplateAdapter | null
 
 async function handlePreImport() {
+  debugger
   preImportLoading.value = true
   isParsingData.value = true
 

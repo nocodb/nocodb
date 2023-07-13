@@ -39,7 +39,7 @@ export class UsersService {
   ) {}
 
   // allow signup/signin only if email matches against pattern
-   validateEmailPattern(email: string) {
+  validateEmailPattern(email: string) {
     const emailPattern = process.env.NC_AUTH_EMAIL_PATTERN;
     if (emailPattern) {
       const regex = new RegExp(emailPattern);
@@ -48,7 +48,6 @@ export class UsersService {
       }
     }
   }
-
 
   async findOne(_email: string) {
     const email = _email.toLowerCase();
@@ -92,12 +91,11 @@ export class UsersService {
     password;
     email_verification_token;
   }) {
-
     this.validateEmailPattern(email);
 
     let roles: string = OrgUserRoles.CREATOR;
 
-    if (await User.isFirst()) {
+    if ((await User.isFirst()) && process.env.NC_CLOUD !== 'true') {
       roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
       // todo: update in nc_store
       // roles = 'owner,creator,editor'

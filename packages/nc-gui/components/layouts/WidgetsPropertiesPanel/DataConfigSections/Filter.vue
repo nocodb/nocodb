@@ -153,7 +153,7 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
 
 <template>
   <div
-    class="p-4 menu-filter-dropdown bg-gray-50 !border"
+    class="p-4 bg-white shadow rounded-md overflow-auto border-1 border-gray-110 menu-filter-dropdown"
     :class="{
       'min-w-[430px]': filters.length,
       'shadow max-h-[max(80vh,500px)] overflow-auto': !nested,

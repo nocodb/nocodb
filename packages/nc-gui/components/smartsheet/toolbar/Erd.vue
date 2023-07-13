@@ -9,6 +9,8 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue'])
 
+const { activeTable } = storeToRefs(useTablesStore())
+
 const meta = inject(MetaInj)
 
 const vModel = useVModel(props, 'modelValue', emits)
@@ -35,7 +37,7 @@ const selectedView = inject(ActiveViewInj)
     </div>
 
     <div class="w-full h-70vh">
-      <LazyErdView :table="meta" />
+      <LazyErdView :table="activeTable" :base-id="activeTable?.base_id" />
     </div>
   </a-modal>
 </template>

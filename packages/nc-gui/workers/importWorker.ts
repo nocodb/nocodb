@@ -12,7 +12,7 @@ import { ImportSource, ImportType, ImportWorkerOperations, ImportWorkerResponse 
 import type TemplateGenerator from '../utils/parsers/TemplateGenerator'
 import { extractSdkResponseErrorMsg } from '../utils/errorUtils'
 import { extractSelectOptions } from '../utils/parsers/parserHelpers'
-import xlsx from 'xlsx'
+import * as xlsx from 'xlsx'
 
 const state: {
   tables: TableType[]

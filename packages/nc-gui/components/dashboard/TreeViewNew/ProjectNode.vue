@@ -575,7 +575,7 @@ onKeyStroke('Escape', () => {
           <LayoutsSideBar v-if="project.isExpanded" :project="project" />
         </div>
         <template v-if="project && project?.bases">
-          <div class="flex-1 overflow-y-auto flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
+          <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
             <div v-if="project?.bases?.[0]?.enabled" class="flex-1">
               <div class="transition-height duration-200">
                 <TableList :project="project" :base-index="0" />

@@ -10,6 +10,8 @@ const workspaceStore = useWorkspace()
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
 
+const { isUIAllowed } = useUIPermission()
+
 const dialogOpen = ref(false)
 
 const openDialogKey = ref<string>('')
@@ -97,8 +99,8 @@ const navigateToHome = () => {
         <PhMagnifyingGlassBold class="!h-3.3" />
         <div>Search</div>
       </div> -->
-
       <WorkspaceCreateProjectBtn
+        v-if="isUIAllowed('createProject')"
         v-model:is-open="isCreateProjectOpen"
         modal
         type="text"
@@ -117,7 +119,7 @@ const navigateToHome = () => {
           <div class="flex">New Project</div>
         </div>
       </WorkspaceCreateProjectBtn>
-
+      <div v-else class="!h-7"></div>
       <div class="text-gray-500 mx-5 font-medium mt-3 mb-1.5">Projects</div>
       <div
         class="w-full border-b-1"

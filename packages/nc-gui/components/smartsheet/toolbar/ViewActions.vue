@@ -49,7 +49,7 @@ type QuickImportDialogType = 'csv' | 'excel' | 'json'
 // TODO: add 'json' when it's ready
 const quickImportDialogTypes: QuickImportDialogType[] = ['csv', 'excel']
 
-const quickImportDialogs: Record<(typeof quickImportDialogTypes)[number], Ref<boolean>> = quickImportDialogTypes.reduce(
+const quickImportDialogs: Record<typeof quickImportDialogTypes[number], Ref<boolean>> = quickImportDialogTypes.reduce(
   (acc: any, curr) => {
     acc[curr] = ref(false)
     return acc
@@ -148,7 +148,7 @@ useMenuCloseOnEsc(open)
               <template #title>
                 <!--                Download -->
                 <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group">
-                  <component :is="iconMap.download" class="text-gray-500 group-hover:text-accent" />
+                  <component :is="iconMap.cloudDownload" class="text-gray-500 group-hover:text-accent" />
                   {{ $t('general.download') }}
                   <div class="flex-1" />
 

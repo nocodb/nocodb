@@ -262,6 +262,7 @@ export const iconMap = {
   account: h('span', { class: 'material-symbols' }, 'person'),
   accountCircle: h('span', { class: 'material-symbols' }, 'account_circle'),
   users: h('span', { class: 'material-symbols' }, 'people'),
+  cloudDownload: h('span', { class: 'material-symbols' }, 'cloud_download'),
   download: MsDownloadRounded,
   upload: h('span', { class: 'material-symbols' }, 'cloud_upload'),
   hook: Phishing,

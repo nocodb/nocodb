@@ -407,7 +407,6 @@ async function saveHooks() {
     if (res && typeof res.notification === 'string') {
       res.notification = JSON.parse(res.notification)
     }
-    console.log('res', res, hook)
 
     if (!hook.id && res) {
       hook = { ...hook, ...res } as any

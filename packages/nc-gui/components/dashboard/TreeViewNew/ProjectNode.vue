@@ -430,10 +430,11 @@ onKeyStroke('Escape', () => {
             v-if="editMode"
             ref="input"
             v-model="tempTitle"
-            class="flex-grow leading-1 outline-0 ring-none"
+            class="flex-grow leading-1 outline-0 ring-none capitalize text-black font-semibold bg-primary-selected-sidebar"
             @click.stop
             @keyup.enter="updateProjectTitle"
             @keyup.esc="closeEditMode"
+            @blur="closeEditMode"
           />
           <span
             v-else

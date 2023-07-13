@@ -7,6 +7,8 @@ const defaultBase = computed(() => {
   return openedProject.value?.bases?.[0]
 })
 
+const { isUIAllowed } = useUIPermission()
+
 const { isMobileMode } = useGlobal()
 
 const activeKey = ref('allTables')
@@ -56,7 +58,7 @@ const baseSettingsState = ref('')
         <!-- <a-tab-pane v-if="defaultBase" key="erd" tab="Project ERD" force-render class="pt-4 pb-12">
           <ErdView :base-id="defaultBase!.id" class="!h-full" />
         </a-tab-pane> -->
-        <a-tab-pane key="dataSources">
+        <a-tab-pane v-if="isUIAllowed('createBase')" key="dataSources">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__data-sources">
               <GeneralIcon icon="database" />

@@ -211,7 +211,8 @@
     "codeSnippet": "Code Ausschnitt",
     "keyboardShortcut": "Tastenkürzel",
     "generateRandomName": "Generate Random Name",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode",
+    "tokenManagement": "Token-Management"
   },
   "labels": {
     "createdBy": "Erstellt von",

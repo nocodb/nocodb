@@ -211,7 +211,8 @@
     "codeSnippet": "代码片段",
     "keyboardShortcut": "快捷键",
     "generateRandomName": "随机名称",
-    "findRowByScanningCode": "通过扫描二维码或条码查找行"
+    "findRowByScanningCode": "通过扫描二维码或条码查找行",
+    "tokenManagement": "代币管理"
   },
   "labels": {
     "createdBy": "创建自",

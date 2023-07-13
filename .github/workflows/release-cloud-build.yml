@@ -113,7 +113,7 @@ jobs:
       - name: Publish to staging
         if: ${{ github.event.inputs.staging == 'true' }}
         run: |
-          sh ./scripts/release/staging.sh
+           ./scripts/release/staging.sh
 
   microservice-cloud-docker-build:
     runs-on: ubuntu-latest

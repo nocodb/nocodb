@@ -15,13 +15,24 @@ import { UtilsService } from '../services/utils.service';
 
 @Controller()
 export class UtilsController {
-  private version;
+  private version: string;
 
   constructor(private readonly utilsService: UtilsService) {}
 
   @Get('/api/v1/version')
-  version() {
-    return this.utilsService.versionInfo();
+  async getVersion() {
+    if (process.env.NC_CLOUD === 'true') {
+      return this.utilsService.versionInfo();
+    }
+
+    if (!this.version) {
+      try {
+        this.version = await promisify(fs.readFile)('./public/nc.txt', 'utf-8');
+      } catch {
+        this.version = 'Not available';
+      }
+    }
+    return this.version;
   }
 
   @UseGuards(GlobalGuard)
@@ -73,17 +84,5 @@ export class UtilsController {
     return await this.utilsService.genericGPT({
       body,
     });
-  }
-
-  @Get('/api/v1/version')
-  async getVersion() {
-    if (!this.version) {
-      try {
-        this.version = await promisify(fs.readFile)('./public/nc.txt', 'utf-8');
-      } catch {
-        this.version = 'Not available';
-      }
-    }
-    return this.version;
   }
 }

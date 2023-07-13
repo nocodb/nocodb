@@ -108,7 +108,7 @@ const rolesTypes = [
         </div>
         <a-select
           v-model:value="user.roles"
-          class="flex !rounded-md p-0.5 !bg-white capitalize nc-dropdown-user-role-container"
+          class="flex !rounded-md p-0.5 !bg-white capitalize nc-dropdown-user-role-container !min-w-26"
           dropdown-class-name="nc-dropdown-user-role !rounded-md"
           placeholder="Select role"
           :options="rolesTypes"

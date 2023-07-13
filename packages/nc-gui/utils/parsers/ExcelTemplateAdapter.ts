@@ -58,7 +58,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   }
 
   async parse() {
-    this.progress('Parsing excel data')
+    this.progress('Parsing excel file')
     const tableNamePrefixRef: Record<string, any> = {}
     await Promise.all(
       this.wb.SheetNames.map((sheetName: string) =>
@@ -234,7 +234,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
             this.data[tn] = []
             if (this.config.shouldImportData) {
-              this.progress(`Importing data for ${tn}`)
+              this.progress(`Parsing data from ${tn}`)
               let rowIndex = 0
               for (const row of rows.slice(1)) {
                 const rowData: Record<string, any> = {}

@@ -96,6 +96,7 @@ watch(showShareModal, (val) => {
             type="text"
             class="!border-1 !border-gray-200 !rounded-md"
             data-testid="docs-share-invitation-copy"
+            :data-invite-link="inviteUrl"
             @click="copyInvitationLink"
           >
             <div v-if="isInvitationLinkCopied" class="flex flex-row items-center gap-x-1">

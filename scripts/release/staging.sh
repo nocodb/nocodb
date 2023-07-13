@@ -37,6 +37,5 @@ if [[ "${STATUS}" == *"IN_PROGRESS"* ]]
 then
     message "Staging: deployment status is IN_PROGRESS after waiting for staturation time. check status at https://us-east-2.console.aws.amazon.com/ecs/v2/clusters/nocodb-staging/services/nocohub-noco_to_main/tasks?region=us-east-2 "
 else
-    message "Staging: deployment completed successfully"    
-    message "Staging: deployment completed successfully"    
+    message "Staging: deployment completed successfully"     
 fi

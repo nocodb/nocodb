@@ -432,9 +432,8 @@ onKeyStroke('Escape', () => {
             v-model="tempTitle"
             class="flex-grow leading-1 outline-0 ring-none capitalize text-black font-semibold bg-primary-selected-sidebar"
             @click.stop
-            @keyup.enter="updateProjectTitle"
-            @keyup.esc="closeEditMode"
-            @blur="closeEditMode"
+            @keyup.esc="updateProjectTitle"
+            @blur="updateProjectTitle"
           />
           <span
             v-else

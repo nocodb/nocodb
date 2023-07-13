@@ -20,7 +20,7 @@ export default defineNuxtConfig({
       hashMode: true,
     },
   },
-
+  spaLoadingTemplate: false,
   app: {
     pageTransition: process.env.NUXT_PAGE_TRANSITION_DISABLE
       ? false

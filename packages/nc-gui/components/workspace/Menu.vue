@@ -157,6 +157,7 @@ onKeyStroke('Escape', () => {
             <div class="group select-none flex items-center gap-4 p-2 pb-1 !border-t-0">
               <input
                 v-model="activeWorkspace!.title"
+                :readonly="!isUIAllowed('workspaceUpdate', false, activeWorkspace.roles)"
                 class="nc-workspace-title-input text-current capitalize group-hover:text-accent"
                 @input="updateWorkspaceTitle"
               />

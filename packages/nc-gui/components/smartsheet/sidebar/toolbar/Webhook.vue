@@ -63,7 +63,7 @@ const deleteHook = async () => {
   }
 }
 
-const openEditor = (hookId: string | undefined) => {
+const openEditor = (hookId?: string | undefined) => {
   selectedHookId.value = hookId
   showEditModal.value = true
 }
@@ -180,10 +180,10 @@ watch(
       </div>
     </div>
   </GeneralModal>
-  <GeneralModal v-model:visible="showEditModal" width="48rem">
+  <GeneralModal v-model:visible="showEditModal" width="48rem" destroy-on-close>
     <div class="py-6">
       <div class="webhook-scroll px-5 nc-drawer-webhook-body">
-        <WebhookEditor :key="selectedHook?.id" :hook="selectedHook" @close="showEditModal = false" />
+        <WebhookEditor :key="selectedHookId" :hook="selectedHook" @close="showEditModal = false" />
       </div>
     </div>
   </GeneralModal>

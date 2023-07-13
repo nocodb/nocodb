@@ -67,7 +67,8 @@ export function useMetas() {
         return metas.value[tableIdOrTitle]
       }
 
-      const modelId = (tables.value.find((t) => t.id === tableIdOrTitle) || tables.value.find((t) => t.title === tableIdOrTitle))?.id
+      const modelId = (tables.value.find((t) => t.id === tableIdOrTitle) || tables.value.find((t) => t.title === tableIdOrTitle))
+        ?.id
 
       if (!modelId) {
         console.warn(`Table '${tableIdOrTitle}' is not found in the table list`)

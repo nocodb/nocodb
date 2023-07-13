@@ -10,7 +10,7 @@ import {
   isMultiLineTextType,
   isUrlType,
 } from './parserHelpers'
-import {getDateFormat, validateDateWithUnknownFormat} from "~/utils/dateTimeUtils";
+import { getDateFormat, validateDateWithUnknownFormat } from '~/utils/dateTimeUtils'
 
 export class CSVTemplateAdapter {
   config: Record<string, any>
@@ -26,9 +26,9 @@ export class CSVTemplateAdapter {
   data: Record<string, any> = {}
   columnValues: Record<number, []>
 
-  private progressCallback?: (msg: string) => void;
+  private progressCallback?: (msg: string) => void
 
-  constructor(source: UploadFile[] | string, parserConfig = {}, progressCallback?: (msg: string) => void){
+  constructor(source: UploadFile[] | string, parserConfig = {}, progressCallback?: (msg: string) => void) {
     this.config = parserConfig
     this.source = source
     this.project = {
@@ -206,12 +206,10 @@ export class CSVTemplateAdapter {
       const that = this
       let steppers = 0
       if (that.config.shouldImportData) {
-
         that.progress(`Processing ${tn} data`)
 
         steppers = 0
         const parseSource = (this.config.importFromURL ? (source as string) : (source as UploadFile).originFileObj)!
-
 
         parse(parseSource, {
           download: that.config.importFromURL,
@@ -237,7 +235,7 @@ export class CSVTemplateAdapter {
               that.data[tn].push(rowData)
             }
 
-            if(steppers % 1000 === 0){
+            if (steppers % 1000 === 0) {
               that.progress(`Processed ${steppers} rows of ${tn}`)
             }
           },
@@ -313,7 +311,8 @@ export class CSVTemplateAdapter {
       await this._parseTableMeta(0, this.source as string)
     } else {
       await Promise.all(
-        (this.source as UploadFile[]).map((file: UploadFile, tableIdx: number) => (async (f, idx) => {
+        (this.source as UploadFile[]).map((file: UploadFile, tableIdx: number) =>
+          (async (f, idx) => {
             this.progress(`Parsing ${f.name}`)
             await this._parseTableMeta(idx, f)
           })(file, tableIdx),
@@ -334,7 +333,7 @@ export class CSVTemplateAdapter {
     return this.project
   }
 
-  progress(msg:string){
+  progress(msg: string) {
     this.progressCallback?.(msg)
   }
 }

@@ -14,7 +14,7 @@ const selected = ref(0)
 
 const wordToComplete = ref<string | undefined>('')
 
-const sugOptionsRef = ref<typeof AntListItem[]>([])
+const sugOptionsRef = ref<(typeof AntListItem)[]>([])
 
 const syncValue = useDebounceFn(async () => await savePromptStatementTemplate(), 500, { maxWait: 2000 })
 

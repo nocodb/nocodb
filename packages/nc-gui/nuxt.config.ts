@@ -17,8 +17,8 @@ export default defineNuxtConfig({
   ssr: false,
   router: {
     options: {
-      hashMode: true
-    }
+      hashMode: true,
+    },
   },
 
   app: {
@@ -55,7 +55,6 @@ export default defineNuxtConfig({
     },
   },
 
-
   $meta: {
     link: [
       {
@@ -78,12 +77,11 @@ export default defineNuxtConfig({
     ],
   },
 
-  build: {
-  },
+  build: {},
 
   vite: {
-    worker:{
-      format:"es"
+    worker: {
+      format: 'es',
     },
     build: {
       commonjsOptions: {

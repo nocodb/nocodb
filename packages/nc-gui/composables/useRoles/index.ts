@@ -1,6 +1,6 @@
+import { isString } from '@vue/shared'
 import { computed, createSharedComposable, ref, useApi, useGlobal } from '#imports'
 import type { ProjectRole, Role, Roles } from '~/lib'
-import {isString} from "@vue/shared";
 
 /**
  * Provides the roles a user currently has

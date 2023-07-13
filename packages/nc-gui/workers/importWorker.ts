@@ -9,7 +9,8 @@
 // // importScripts('node_modules/nocodb-sdk/dist/nocodb-sdk.umd.js')
 //
 // console.log('ViewTypes', ViewTypes)
-import {Api, TableType, UITypes} from 'nocodb-sdk'
+import type { TableType } from 'nocodb-sdk'
+import { Api, UITypes } from 'nocodb-sdk'
 import {
   CSVTemplateAdapter,
   ExcelTemplateAdapter,
@@ -80,7 +81,7 @@ async function getAdapter(importType: ImportType, sourceType: ImportSource, val:
         return new ExcelTemplateAdapter(data, config, progress)
       }
       case ImportSource.URL:
-        return new ExcelUrlTemplateAdapter(val, config,state.api, progress)
+        return new ExcelUrlTemplateAdapter(val, config, state.api, progress)
     }
   } else if (importType === 'json') {
     switch (sourceType) {
@@ -89,7 +90,7 @@ async function getAdapter(importType: ImportType, sourceType: ImportSource, val:
         return new JSONTemplateAdapter(data, config, progress)
       }
       case ImportSource.URL:
-        return new JSONUrlTemplateAdapter(val, config,state.api, progress)
+        return new JSONUrlTemplateAdapter(val, config, state.api, progress)
       case ImportSource.STRING:
         return new JSONTemplateAdapter(val, config, progress)
     }
@@ -178,15 +179,15 @@ self.addEventListener(
         state.config = payload
         break
       case ImportWorkerOperations.INIT_SDK:
-      {
-        console.log(payload)
-       state.api = new Api<any>({
-          baseURL: payload.baseURL,
-          headers: {
-            'xc-auth': payload.token,
-          }
-        })
-      }
+        {
+          console.log(payload)
+          state.api = new Api<any>({
+            baseURL: payload.baseURL,
+            headers: {
+              'xc-auth': payload.token,
+            },
+          })
+        }
         break
       case ImportWorkerOperations.GET_SINGLE_SELECT_OPTIONS:
       case ImportWorkerOperations.GET_MULTI_SELECT_OPTIONS:

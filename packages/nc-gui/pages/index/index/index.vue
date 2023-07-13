@@ -306,51 +306,51 @@ watch(
   <NuxtLayout name="new">
     <template #sidebar>
       <div class="h-full flex flex-col min-h-[400px] overflow-auto">
-        <!--        <div class="nc-workspace-group overflow-auto mt-8.5">-->
-        <!--          <div class="flex text-sm font-medium text-gray-400 mx-4.5 mb-2">All Projects</div>-->
-        <!--          <div-->
-        <!--            class="nc-workspace-group-item"-->
-        <!--            :class="{ active: activePage === 'recent' }"-->
-        <!--            @click="-->
-        <!--              navigateTo({-->
-        <!--                query: {-->
-        <!--                  page: 'recent',-->
-        <!--                },-->
-        <!--              })-->
-        <!--            "-->
-        <!--          >-->
-        <!--            <IcOutlineAccessTime class="nc-icon" />-->
-        <!--            <span>Recent</span>-->
-        <!--          </div>-->
-        <!--          <div-->
-        <!--            class="nc-workspace-group-item"-->
-        <!--            :class="{ active: activePage === 'shared' }"-->
-        <!--            @click="-->
-        <!--              navigateTo({-->
-        <!--                query: {-->
-        <!--                  page: 'shared',-->
-        <!--                },-->
-        <!--              })-->
-        <!--            "-->
-        <!--          >-->
-        <!--            <MaterialSymbolsGroupOutlineRounded class="nc-icon" />-->
-        <!--            <span>Shared with me</span>-->
-        <!--          </div>-->
-        <!--          <div-->
-        <!--            class="nc-workspace-group-item"-->
-        <!--            :class="{ active: activePage === 'starred' }"-->
-        <!--            @click="-->
-        <!--              navigateTo({-->
-        <!--                query: {-->
-        <!--                  page: 'starred',-->
-        <!--                },-->
-        <!--              })-->
-        <!--            "-->
-        <!--          >-->
-        <!--            <IcRoundStarBorder class="nc-icon !h-5" />-->
-        <!--            <span>Starred</span>-->
-        <!--          </div>-->
-        <!--        </div>-->
+        <!--        <div class="nc-workspace-group overflow-auto mt-8.5"> -->
+        <!--          <div class="flex text-sm font-medium text-gray-400 mx-4.5 mb-2">All Projects</div> -->
+        <!--          <div -->
+        <!--            class="nc-workspace-group-item" -->
+        <!--            :class="{ active: activePage === 'recent' }" -->
+        <!--            @click=" -->
+        <!--              navigateTo({ -->
+        <!--                query: { -->
+        <!--                  page: 'recent', -->
+        <!--                }, -->
+        <!--              }) -->
+        <!--            " -->
+        <!--          > -->
+        <!--            <IcOutlineAccessTime class="nc-icon" /> -->
+        <!--            <span>Recent</span> -->
+        <!--          </div> -->
+        <!--          <div -->
+        <!--            class="nc-workspace-group-item" -->
+        <!--            :class="{ active: activePage === 'shared' }" -->
+        <!--            @click=" -->
+        <!--              navigateTo({ -->
+        <!--                query: { -->
+        <!--                  page: 'shared', -->
+        <!--                }, -->
+        <!--              }) -->
+        <!--            " -->
+        <!--          > -->
+        <!--            <MaterialSymbolsGroupOutlineRounded class="nc-icon" /> -->
+        <!--            <span>Shared with me</span> -->
+        <!--          </div> -->
+        <!--          <div -->
+        <!--            class="nc-workspace-group-item" -->
+        <!--            :class="{ active: activePage === 'starred' }" -->
+        <!--            @click=" -->
+        <!--              navigateTo({ -->
+        <!--                query: { -->
+        <!--                  page: 'starred', -->
+        <!--                }, -->
+        <!--              }) -->
+        <!--            " -->
+        <!--          > -->
+        <!--            <IcRoundStarBorder class="nc-icon !h-5" /> -->
+        <!--            <span>Starred</span> -->
+        <!--          </div> -->
+        <!--        </div> -->
         <div class="flex items-center !text-gray-400 text-xs pt-2 px-4 pb-2 h-10">
           <div class="flex text-sm font-medium">Workspaces</div>
           <div class="flex-grow"></div>

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
-import {isString} from "@vue/shared";
+import { isString } from '@vue/shared'
 import tinycolor from 'tinycolor2'
 import {
   computed,

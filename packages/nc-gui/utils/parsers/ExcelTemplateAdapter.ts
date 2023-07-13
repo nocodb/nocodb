@@ -7,8 +7,8 @@ import {
   isEmailType,
   isMultiLineTextType,
   isUrlType,
-} from './parserHelpers';
-import {getDateFormat} from "~/utils/dateTimeUtils";
+} from './parserHelpers'
+import { getDateFormat } from '~/utils/dateTimeUtils'
 
 const excelTypeToUidt: Record<string, UITypes> = {
   d: UITypes.DateTime,

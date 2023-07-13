@@ -1,12 +1,12 @@
+import type { Api } from 'nocodb-sdk'
 import ExcelTemplateAdapter from './ExcelTemplateAdapter'
-import {Api} from "nocodb-sdk";
 
 export default class ExcelUrlTemplateAdapter extends ExcelTemplateAdapter {
   url: string
   excelData: any
   $api: any
 
-  constructor(url: string, parserConfig: Record<string, any>, api:Api<any>, progressCallback?: (msg: string) => void) {
+  constructor(url: string, parserConfig: Record<string, any>, api: Api<any>, progressCallback?: (msg: string) => void) {
     super({}, parserConfig, progressCallback)
     this.url = url
     this.excelData = null

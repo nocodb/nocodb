@@ -1,10 +1,9 @@
-import type {DocsPageType, FilterType, LayoutType, MetaType, ProjectType, ViewTypes} from 'nocodb-sdk'
-import type {I18n} from 'vue-i18n'
-import type {Theme as AntTheme} from 'ant-design-vue/es/config-provider'
-import type {UploadFile} from 'ant-design-vue'
-import type {ProjectRole, Role, TabType} from './enums'
-import type {rolePermissions} from './constants'
-import {ImportSource, ImportType} from "./enums";
+import type { DocsPageType, FilterType, LayoutType, MetaType, ProjectType, ViewTypes } from 'nocodb-sdk'
+import type { I18n } from 'vue-i18n'
+import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
+import type { UploadFile } from 'ant-design-vue'
+import type { ImportSource, ImportType, ProjectRole, Role, TabType } from './enums'
+import type { rolePermissions } from './constants'
 
 export interface User {
   id: string

@@ -1,15 +1,15 @@
 export default class TemplateGenerator {
-  progressCallback?: (msg:string)=>void
+  progressCallback?: (msg: string) => void
 
-  constructor(progressCallback?: (msg:string)=>void) {
+  constructor(progressCallback?: (msg: string) => void) {
     this.progressCallback = progressCallback
   }
 
-  progress(msg: string){
+  progress(msg: string) {
     this.progressCallback?.(msg)
   }
 
-  init() { }
+  init() {}
 
   parse() {
     throw new Error("'parse' method is not implemented")

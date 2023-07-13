@@ -187,7 +187,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 
 <template>
   <div
-    class="w-[400px] bg-gray-50 shadow rounded-md p-4 overflow-auto border-1 border-gray-100"
+    class="w-[400px] bg-white shadow rounded-md p-4 overflow-auto border-1 border-gray-110"
     :class="{ '!w-[600px]': formState.uidt === UITypes.Formula, '!w-[500px]': formState.uidt === UITypes.Attachment }"
     @click.stop
   >

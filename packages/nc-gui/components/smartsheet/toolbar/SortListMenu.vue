@@ -90,7 +90,7 @@ useMenuCloseOnEsc(open)
     <template #overlay>
       <div
         :class="{ ' min-w-[400px]': sorts.length }"
-        class="bg-gray-50 p-6 shadow-lg menu-filter-dropdown max-h-[max(80vh,500px)] overflow-auto !border"
+        class="p-4 bg-white shadow rounded-md overflow-auto border-1 border-gray-110 menu-filter-dropdown max-h-[max(80vh,500px)]"
         data-testid="nc-sorts-menu"
       >
         <div v-if="sorts?.length" class="sort-grid mb-2 max-h-420px overflow-y-auto" @click.stop>

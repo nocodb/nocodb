@@ -41,9 +41,9 @@ const populateTables = async () => {
     localTables = projectTables.value.filter(
       (t) =>
         t.id === props.table?.id ||
-        props.table?.columns?.find(
-          (column) => isLinksOrLTAR(column.uidt) && (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id === t.id,
-        ),
+        metas.value[props.table!.id!].columns?.find((column) => {
+          return isLinksOrLTAR(column.uidt) && (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id === t.id
+        }),
     )
   } else {
     localTables = projectTables.value

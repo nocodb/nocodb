@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { Widget } from 'nocodb-sdk'
-import { ButtonWidget, ChartWidget, NumberWidget, StaticTextWidget, WidgetTypeType, chartTypes } from 'nocodb-sdk'
+import type { ButtonWidget, ChartWidget, NumberWidget, StaticTextWidget, Widget } from 'nocodb-sdk'
+import { WidgetTypeType, chartTypes } from 'nocodb-sdk'
 import { computed } from '#imports'
 
 const props = defineProps<{
@@ -30,7 +30,6 @@ const borderClass = computed(() => {
     return ''
   }
 })
-
 </script>
 
 <template v-slot:item="{ element: widget }">

@@ -1,4 +1,4 @@
-import { getI18n } from '~/plugins/a.i18n'
+import { getI18n } from '../plugins/a.i18n'
 
 export const validateEmail = (v: string) =>
   /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(v)

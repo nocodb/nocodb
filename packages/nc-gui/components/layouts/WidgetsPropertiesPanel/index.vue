@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { Widget, WidgetTypeType, chartTypes } from 'nocodb-sdk'
+import type { Widget } from 'nocodb-sdk'
+import { WidgetTypeType, chartTypes } from 'nocodb-sdk'
 
 const dashboardStore = useDashboardStore()
 const { focusedWidget } = storeToRefs(dashboardStore)
@@ -22,7 +23,6 @@ const chartTypesForDropdown = computed(() =>
 )
 
 const hasAppearanceSection = computed(() => isNumber.value || isText.value)
-
 </script>
 
 <template>

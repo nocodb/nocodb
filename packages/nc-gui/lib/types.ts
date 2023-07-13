@@ -2,7 +2,7 @@ import type { DocsPageType, FilterType, LayoutType, MetaType, ProjectType, ViewT
 import type { I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
-import type { ProjectRole, Role, TabType } from './enums'
+import type { ImportSource, ImportType, ProjectRole, Role, TabType } from './enums'
 import type { rolePermissions } from './constants'
 
 export interface User {
@@ -145,4 +145,11 @@ export interface UndoRedoAction {
   undo: { fn: Function; args: any[] }
   redo: { fn: Function; args: any[] }
   scope?: { key: string; param: string }[]
+}
+
+export interface ImportWorkerPayload {
+  importType: ImportType
+  importSource: ImportSource
+  value: any
+  config: Record<string, any>
 }

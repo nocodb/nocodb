@@ -217,13 +217,13 @@ useEventListener('keydown', (e: KeyboardEvent) => {
               :disabled="isKanban"
               dropdown-class-name="nc-dropdown-column-type "
               @change="onUidtOrIdTypeChange"
-            @dblclick="showDeprecated = !showDeprecated"
+              @dblclick="showDeprecated = !showDeprecated"
             >
               <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
                 <div class="flex gap-1 items-center">
                   <component :is="opt.icon" class="text-gray-700 mx-1" style="font-weight: 600; font-size: 1.1rem" />
                   {{ opt.name }}
-                <span v-if="opt.deprecated" class="!text-xs !text-gray-300">(Deprecated)</span>
+                  <span v-if="opt.deprecated" class="!text-xs !text-gray-300">(Deprecated)</span>
                 </div>
               </a-select-option>
             </a-select>

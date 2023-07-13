@@ -12,7 +12,7 @@ import type {
   ViewType,
 } from 'nocodb-sdk'
 import { ErrorMessages, RelationTypes, UITypes, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
-import { isString } from '@vueuse/core'
+import { isString } from '@vue/shared'
 import {
   SharedViewPasswordInj,
   computed,

@@ -1,7 +1,7 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { BaseType, OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
-import { isString } from '@vueuse/core'
+import { isString } from '@vue/shared'
 import { NcProjectType } from '~/utils'
 import { useWorkspace } from '~/store/workspace'
 import type { NcProject } from '~~/lib'
@@ -162,7 +162,7 @@ export const useProjects = defineStore('projectsStore', () => {
         break
       }
     }
-    return sqlUi as Exclude<ReturnType<typeof SqlUiFactory['create']>, typeof OracleUi>
+    return sqlUi as Exclude<ReturnType<(typeof SqlUiFactory)['create']>, typeof OracleUi>
   }
 
   const updateProject = async (projectId: string, projectUpdatePayload: ProjectType) => {

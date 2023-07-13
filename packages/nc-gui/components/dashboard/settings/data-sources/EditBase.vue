@@ -2,12 +2,10 @@
 import type { BaseType } from 'nocodb-sdk'
 import { Form, Modal, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
-import type { ProjectCreateForm } from '#imports'
+import type { DefaultConnection, ProjectCreateForm, SQLiteConnection } from '#imports'
 import {
   CertTypes,
   ClientType,
-  DefaultConnection,
-  SQLiteConnection,
   SSLUsage,
   clientTypes,
   computed,

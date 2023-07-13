@@ -1,5 +1,5 @@
 import { dirname, resolve } from 'node:path'
-import vueI18n from '@intlify/vite-plugin-vue-i18n'
+import vueI18n from '@intlify/unplugin-vue-i18n/vite'
 import Icons from 'unplugin-icons/vite'
 import IconsResolver from 'unplugin-icons/resolver'
 import Components from 'unplugin-vue-components/vite'
@@ -15,7 +15,12 @@ export default defineNuxtConfig({
   modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image-edge', '@pinia/nuxt'],
 
   ssr: false,
-
+  router: {
+    options: {
+      hashMode: true,
+    },
+  },
+  spaLoadingTemplate: false,
   app: {
     pageTransition: process.env.NUXT_PAGE_TRANSITION_DISABLE
       ? false
@@ -50,7 +55,7 @@ export default defineNuxtConfig({
     },
   },
 
-  meta: {
+  $meta: {
     link: [
       {
         rel: 'icon',
@@ -72,33 +77,18 @@ export default defineNuxtConfig({
     ],
   },
 
-  build: {
-    splitChunks: {
-      pages: true,
-      layouts: true,
-    },
-  },
+  build: {},
 
   vite: {
+    worker: {
+      format: 'es',
+    },
     build: {
       commonjsOptions: {
         ignoreTryCatch: true,
       },
-      minify: true,
-      rollupOptions: {
-        output: {
-          manualChunks(id) {
-            const chunks = ['ant-design-vue', 'nocodb-sdk', 'vue-router', 'vue-i18n']
-            if (id.includes('/node_modules/')) {
-              for (const chunkName of chunks) {
-                if (id.includes(chunkName)) {
-                  return chunkName
-                }
-              }
-            }
-          },
-        },
-      },
+      minify: false,
+      rollupOptions: {},
     },
     plugins: [
       vueI18n({

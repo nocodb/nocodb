@@ -1,6 +1,7 @@
 import { UITypes } from 'nocodb-sdk'
-import { isValidURL } from '~/utils/urlUtils'
-import { validateEmail } from '~/utils/validation'
+import isURL from 'validator/lib/isURL'
+const validateEmail = (v: string) =>
+  /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(v)
 
 const booleanOptions = [
   { checked: true, unchecked: false },
@@ -64,7 +65,9 @@ export const extractMultiOrSingleSelectProps = (colData: []) => {
         : [],
     )
 
-    const uniqueVals = [...new Set(flattenedVals.map((v: any) => v.toString().trim()))]
+    const uniqueVals = [
+      ...new Set(flattenedVals.filter((v) => v !== null && v !== undefined).map((v: any) => v.toString().trim())),
+    ]
 
     if (uniqueVals.length > maxSelectOptionsAllowed) {
       // too many options are detected, convert the column to SingleLineText instead
@@ -81,7 +84,7 @@ export const extractMultiOrSingleSelectProps = (colData: []) => {
       colProps.dtxp = `${uniqueVals.map((v) => `'${v.replace(/'/gi, "''")}'`).join(',')}`
     }
   } else {
-    const uniqueVals = [...new Set(colData.map((v: any) => v.toString().trim()))]
+    const uniqueVals = [...new Set(colData.filter((v) => v !== null && v !== undefined).map((v: any) => v.toString().trim()))]
 
     if (uniqueVals.length > maxSelectOptionsAllowed) {
       // too many options are detected, convert the column to SingleLineText instead
@@ -102,6 +105,29 @@ export const extractMultiOrSingleSelectProps = (colData: []) => {
   }
 }
 
+export const extractSelectOptions = (colData: [], type: UITypes.SingleSelect | UITypes.MultiSelect): { dtxp: string } => {
+  const colProps: any = {}
+
+  if (type === UITypes.MultiSelect) {
+    const flattenedVals = colData.flatMap((v: any) =>
+      v
+        ? v
+            .toString()
+            .trim()
+            .split(/\s*,\s*/)
+        : [],
+    )
+    const uniqueVals = [...new Set(flattenedVals.map((v: any) => v.toString().trim()))]
+    colProps.uidt = UITypes.MultiSelect
+    colProps.dtxp = `${uniqueVals.map((v) => `'${v.replace(/'/gi, "''")}'`).join(',')}`
+  } else {
+    const uniqueVals = [...new Set(colData.map((v: any) => v.toString().trim()))]
+    colProps.uidt = UITypes.SingleSelect
+    colProps.dtxp = `${uniqueVals.map((v) => `'${v.replace(/'/gi, "''")}'`).join(',')}`
+  }
+  return colProps
+}
+
 export const isDecimalType = (colData: []) =>
   colData.some((v: any) => {
     return v && parseInt(v) !== +v
@@ -116,7 +142,7 @@ export const isEmailType = (colData: [], col?: number) =>
 export const isUrlType = (colData: [], col?: number) =>
   colData.some((r: any) => {
     const v = getColVal(r, col)
-    return v && isValidURL(v)
+    return v && isURL(v)
   })
 
 export const getColumnUIDTAndMetas = (colData: [], defaultType: string) => {

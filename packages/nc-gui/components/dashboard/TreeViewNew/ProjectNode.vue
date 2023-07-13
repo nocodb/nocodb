@@ -446,7 +446,7 @@ onKeyStroke('Escape', () => {
           </span>
           <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(project)"></div>
 
-          <a-dropdown v-model:visible="isOptionsOpen" trigger="click">
+          <a-dropdown v-if="isUIAllowed('tableCreate', false, projectRole)" v-model:visible="isOptionsOpen" trigger="click">
             <MdiDotsHorizontal
               class="min-w-5 min-h-5 py-0.25 mr-1.5 !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 opacity-0 group-hover:(opacity-100) hover:text-black text-gray-600 rounded"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
@@ -549,6 +549,7 @@ onKeyStroke('Escape', () => {
           </a-dropdown>
 
           <div
+            v-if="isUIAllowed('tableCreate', false, projectRole)"
             class="mr-2 flex flex-row items-center gap-x-2 cursor-pointer hover:(text-black) text-gray-600 text-sm invisible !group-hover:visible rounded"
             data-testid="nc-sidebar-add-project-entity"
             :class="{ '!text-black !visible': isAddNewProjectChildEntityLoading, '!visible': isOptionsOpen }"
@@ -575,7 +576,7 @@ onKeyStroke('Escape', () => {
           <LayoutsSideBar v-if="project.isExpanded" :project="project" />
         </div>
         <template v-if="project && project?.bases">
-          <div class="flex-1 overflow-y-auto flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
+          <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
             <div v-if="project?.bases?.[0]?.enabled" class="flex-1">
               <div class="transition-height duration-200">
                 <TableList :project="project" :base-index="0" />
@@ -630,7 +631,7 @@ onKeyStroke('Escape', () => {
                               </div>
                             </a-tooltip>
                           </div>
-                          <div class="flex flex-row items-center gap-x-1">
+                          <div v-if="isUIAllowed('tableCreate', false, projectRole)" class="flex flex-row items-center gap-x-1">
                             <a-dropdown
                               :visible="isBasesOptionsOpen[base!.id!]"
                               trigger="click"
@@ -656,6 +657,7 @@ onKeyStroke('Escape', () => {
                             </a-dropdown>
 
                             <div
+                              v-if="isUIAllowed('tableCreate', false, projectRole)"
                               class="flex invisible nc-sidebar-base-node-btns !focus:outline-0 text-gray-600 hover:text-gray-700 rounded px-0.35 mt-0.25"
                               @click.stop="openTableCreateDialog(baseIndex)"
                             >

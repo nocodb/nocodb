@@ -23,6 +23,8 @@ import {
 
 const router = useRouter()
 
+const { isUIAllowed } = useUIPermission()
+
 const roleAlias = {
   [WorkspaceUserRoles.OWNER]: 'Owner',
   [WorkspaceUserRoles.VIEWER]: 'Viewer',
@@ -479,7 +481,7 @@ watch(
           </div>
           <div class="flex-grow"></div>
           <WorkspaceCreateProjectBtn
-            v-if="isWorkspaceOwner && tab === 'projects'"
+            v-if="isUIAllowed('createProject') && tab === 'projects'"
             v-model:is-open="isCreateProjectOpen"
             class="mt-0.75"
             type="primary"

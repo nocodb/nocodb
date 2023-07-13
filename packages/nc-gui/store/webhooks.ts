@@ -12,7 +12,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
 
     try {
       const hookList = (await $api.dbTableWebhook.list(activeTable?.id as string)).list
-      console.log('hookList', hookList)
+
       hooks.value = hookList.map((hook) => {
         hook.notification = parseProp(hook.notification)
         return hook

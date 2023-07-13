@@ -99,6 +99,7 @@ const rolePermissions = {
       workspaceInvitationReject: true,
       workspaceInvitationTokenRead: true,
       createBase: true,
+      tableCreate: true,
     },
   },
   creator: {
@@ -126,6 +127,7 @@ const rolePermissions = {
       workspaceInvitationReject: true,
       workspaceInvitationTokenRead: true,
       createBase: true,
+      tableCreate: true,
     },
   },
   guest: {},
@@ -452,6 +454,8 @@ const rolePermissions = {
       pluginRead: true,
       pluginUpdate: true,
       isPluginActive: true,
+      createProject: true,
+      shareProject: true,
     },
   },
   [WorkspaceUserRoles.VIEWER]: {
@@ -472,6 +476,8 @@ const rolePermissions = {
       pluginUpdate: true,
       isPluginActive: true,
       commandPalette: true,
+      createProject: true,
+      shareProject: true,
     },
   },
 };

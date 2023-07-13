@@ -11,6 +11,8 @@ const { visibility, showShareModal } = storeToRefs(useShare())
 
 const { $e } = useNuxtApp()
 
+const { isUIAllowed } = useUIPermission()
+
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
@@ -30,7 +32,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <template>
   <div
-    v-if="visibility !== 'hidden'"
+    v-if="isUIAllowed('shareProject') && visibility !== 'hidden'"
     class="flex flex-col justify-center h-full"
     data-testid="share-project-button"
     :data-sharetype="visibility"

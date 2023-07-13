@@ -206,7 +206,7 @@ watch(
         </a-checkbox>
       </div>
 
-      <div class="shrink mt-2 flex">
+      <div v-if="hasEditPermission" class="shrink mt-2 flex">
         <a-input
           v-model:value="comment"
           class="!text-xs nc-comment-box"

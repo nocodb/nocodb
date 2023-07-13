@@ -31,6 +31,7 @@ const page = computed({
 <template>
   <div class="flex items-center border-t-1 border-gray-75 h-10 nc-pagination-wrapper">
     <div
+      v-if="!isPublic"
       class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) hover:(bg-gray-50 border-gray-200) border-gray-100 group flex items-center justify-center rounded-md h-full ml-2 px-2 h-7 cursor-pointer text-gray-400 hover:text-gray-700"
       :class="{
         'bg-gray-50': !isLeftSidebarOpen,

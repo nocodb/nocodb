@@ -85,7 +85,8 @@ watch(showEditModal, () => {
 watch(
   () => activeTable.value?.id,
   () => {
-    console.log('active table changed', activeTable.value?.id)
+    if (!activeTable.value?.id) return
+
     selectedHookId.value = undefined
     loadHooksList()
   },

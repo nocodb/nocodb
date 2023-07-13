@@ -4,7 +4,9 @@ import dayjs from 'dayjs'
 
 const { activeTables } = storeToRefs(useTablesStore())
 const { openTable } = useTablesStore()
-const { openedProject } = storeToRefs(useProjects())
+const { openedProject, roles } = storeToRefs(useProjects())
+
+const { isUIAllowed } = useUIPermission()
 
 const { $e } = useNuxtApp()
 
@@ -67,12 +69,12 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
 
 <template>
   <div class="">
-    <div class="flex flex-row gap-x-6 pb-3 pt-6">
-      <div class="nc-project-view-all-table-btn" @click="openTableCreateDialog()" data-testid="proj-view-btn__add-new-table">
+    <div v-if="isUIAllowed('tableCreate', false, roles)" class="flex flex-row gap-x-6 pb-3 pt-6">
+      <div class="nc-project-view-all-table-btn" data-testid="proj-view-btn__add-new-table" @click="openTableCreateDialog()">
         <GeneralIcon icon="addOutlineBox" />
         <div class="label">New Empty Table</div>
       </div>
-      <div class="nc-project-view-all-table-btn" @click="isImportModalOpen = true" data-testid="proj-view-btn__import-data">
+      <div class="nc-project-view-all-table-btn" data-testid="proj-view-btn__import-data" @click="isImportModalOpen = true">
         <GeneralIcon icon="download" />
         <div class="label">Import Data</div>
       </div>

@@ -21,7 +21,7 @@ const { allowCSVDownload } = useSharedView()
     :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
     style="z-index: 7"
   >
-    <LazySmartsheetToolbarViewInfo />
+    <LazySmartsheetToolbarViewInfo v-if="!isPublic" />
 
     <div v-if="!isMobileMode" class="flex-1" />
 

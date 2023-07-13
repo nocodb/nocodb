@@ -85,6 +85,8 @@ let editEnabled = $ref(false)
 
 const { appInfo } = useGlobal()
 
+const isPublicView = inject(IsPublicInj, ref(false))
+
 const { xWhere, isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
 
 const visibleColLength = $computed(() => fields.value?.length)
@@ -120,7 +122,9 @@ const gridRect = useElementBounding(gridWrapper)
 
 const isAddingColumnAllowed = $computed(() => !readOnly.value && !isLocked.value && isUIAllowed('add-column') && !isSqlView.value)
 
-const isAddingEmptyRowAllowed = $computed(() => !isView && !isLocked.value && hasEditPermission && !isSqlView.value)
+const isAddingEmptyRowAllowed = $computed(
+  () => !isView && !isLocked.value && hasEditPermission && !isSqlView.value && !isPublicView,
+)
 
 const {
   isLoading,

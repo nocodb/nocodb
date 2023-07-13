@@ -37,7 +37,7 @@ const baseSettingsState = ref('')
       <a-tabs v-model:activeKey="activeKey" class="w-full">
         <a-tab-pane key="allTables">
           <template #tab>
-            <div class="tab-title">
+            <div class="tab-title" data-testid="proj-view-tab__all-tables">
               <NcLayout />
               <div>All tables</div>
               <div
@@ -58,7 +58,7 @@ const baseSettingsState = ref('')
         </a-tab-pane> -->
         <a-tab-pane key="dataSources">
           <template #tab>
-            <div class="tab-title">
+            <div class="tab-title" data-testid="proj-view-tab__data-sources">
               <GeneralIcon icon="database" />
               <div>Data sources</div>
             </div>

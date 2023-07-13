@@ -68,11 +68,11 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
 <template>
   <div class="">
     <div class="flex flex-row gap-x-6 pb-3 pt-6">
-      <div class="nc-project-view-all-table-btn" @click="openTableCreateDialog()">
+      <div class="nc-project-view-all-table-btn" @click="openTableCreateDialog()" data-testid="proj-view-btn__add-new-table">
         <GeneralIcon icon="addOutlineBox" />
         <div class="label">New Empty Table</div>
       </div>
-      <div class="nc-project-view-all-table-btn" @click="isImportModalOpen = true">
+      <div class="nc-project-view-all-table-btn" @click="isImportModalOpen = true" data-testid="proj-view-btn__import-data">
         <GeneralIcon icon="download" />
         <div class="label">Import Data</div>
       </div>
@@ -94,20 +94,21 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
         )"
         :key="table.id"
         class="py-4 flex flex-row w-full cursor-pointer hover:bg-gray-50 border-b-1 border-gray-50 px-2"
+        data-testid="proj-view-list__item"
         @click="openTable(table)"
       >
-        <div class="flex flex-row w-2/5 items-center gap-x-2">
+        <div class="flex flex-row w-2/5 items-center gap-x-2" data-testid="proj-view-list__item-title">
           <GeneralIcon icon="table" class="text-gray-700" />
           {{ table?.title }}
         </div>
-        <div class="w-1/5 text-gray-600">
+        <div class="w-1/5 text-gray-600" data-testid="proj-view-list__item-type">
           <div v-if="table.base_id === defaultBase?.id" class="ml-0.75">-</div>
           <div v-else>
             <GeneralBaseLogo :base-type="bases.get(table.base_id!)?.type" class="w-4 mr-1" />
             {{ bases.get(table.base_id!)?.alias }}
           </div>
         </div>
-        <div class="w-1/5 text-gray-400 ml-0.25">
+        <div class="w-1/5 text-gray-400 ml-0.25" data-testid="proj-view-list__item-created-at">
           {{ dayjs(table?.created_at).fromNow() }}
         </div>
       </div>

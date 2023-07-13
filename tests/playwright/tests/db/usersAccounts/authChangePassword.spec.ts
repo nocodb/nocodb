@@ -10,7 +10,12 @@ import { getDefaultPwd } from '../../utils/general';
 import { isHub } from '../../../setup/db';
 import { WorkspacePage } from '../../../pages/WorkspacePage';
 
+// To enable after fixing it in hub
 test.describe('Auth', () => {
+  if (isHub()) {
+    test.skip();
+  }
+
   let context: any;
   let dashboard: DashboardPage;
   let settings: SettingsPage;

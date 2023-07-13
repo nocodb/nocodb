@@ -41,33 +41,44 @@ test.describe('User roles', () => {
 
     test.slow();
 
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
-    await dashboard.gotoSettings();
-    await settings.selectTab({ tab: SettingTab.TeamAuth });
-    for (let i = 0; i < roleDb.length; i++) {
-      roleDb[i].url = await settings.teams.invite({
-        email: roleDb[i].email,
-        role: roleDb[i].role,
-      });
-      await settings.teams.closeInvite();
-    }
-    await settings.close();
+    if (isHub()) {
+      for (let i = 0; i < roleDb.length; i++) {
+        await dashboard.projectView.btn_share.click();
+        roleDb[i].url = await settings.teams.invite({
+          email: roleDb[i].email,
+          role: roleDb[i].role,
+        });
+        console.log(roleDb[i].url);
+      }
+    } else {
+      // close 'Team & Auth' tab
+      await dashboard.closeTab({ title: 'Team & Auth' });
+      await dashboard.gotoSettings();
+      await settings.selectTab({ tab: SettingTab.TeamAuth });
+      for (let i = 0; i < roleDb.length; i++) {
+        roleDb[i].url = await settings.teams.invite({
+          email: roleDb[i].email,
+          role: roleDb[i].role,
+        });
+        await settings.teams.closeInvite();
+      }
+      await settings.close();
 
-    // configure access control
-    await dashboard.gotoSettings();
-    await settings.selectTab({
-      tab: SettingTab.DataSources,
-    });
-    await settings.dataSources.openAcl();
-    await settings.dataSources.acl.toggle({ table: 'Language', role: 'editor' });
-    await settings.dataSources.acl.toggle({ table: 'Language', role: 'commenter' });
-    await settings.dataSources.acl.toggle({ table: 'Language', role: 'viewer' });
-    await settings.dataSources.acl.toggle({ table: 'CustomerList', role: 'editor' });
-    await settings.dataSources.acl.toggle({ table: 'CustomerList', role: 'commenter' });
-    await settings.dataSources.acl.toggle({ table: 'CustomerList', role: 'viewer' });
-    await settings.dataSources.acl.save();
-    await settings.close();
+      // configure access control
+      await dashboard.gotoSettings();
+      await settings.selectTab({
+        tab: SettingTab.DataSources,
+      });
+      await settings.dataSources.openAcl();
+      await settings.dataSources.acl.toggle({ table: 'Language', role: 'editor' });
+      await settings.dataSources.acl.toggle({ table: 'Language', role: 'commenter' });
+      await settings.dataSources.acl.toggle({ table: 'Language', role: 'viewer' });
+      await settings.dataSources.acl.toggle({ table: 'CustomerList', role: 'editor' });
+      await settings.dataSources.acl.toggle({ table: 'CustomerList', role: 'commenter' });
+      await settings.dataSources.acl.toggle({ table: 'CustomerList', role: 'viewer' });
+      await settings.dataSources.acl.save();
+      await settings.close();
+    }
 
     // Role test
     for (let i = 0; i < roleDb.length; i++) {

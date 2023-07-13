@@ -10,6 +10,7 @@ import { TreeViewPage } from './TreeView';
 import { SettingsPage } from './Settings';
 import { ViewSidebarPage } from './ViewSidebar';
 import { LeftSidebarPage } from './LeftSidebar';
+import { ProjectViewPage } from './ProjectView';
 import { GalleryPage } from './Gallery';
 import { KanbanPage } from './Kanban';
 import { MapPage } from './Map';
@@ -45,6 +46,7 @@ export class DashboardPage extends BasePage {
   readonly settings: SettingsPage;
   readonly viewSidebar: ViewSidebarPage;
   readonly leftSidebar: LeftSidebarPage;
+  readonly projectView: ProjectViewPage;
   readonly importAirtable: ImportAirtablePage;
   readonly importTemplate = new ImportTemplatePage(this);
   readonly docs: DocsPageGroup;
@@ -77,6 +79,7 @@ export class DashboardPage extends BasePage {
     this.settings = new SettingsPage(this);
     this.viewSidebar = new ViewSidebarPage(this);
     this.leftSidebar = new LeftSidebarPage(this);
+    this.projectView = new ProjectViewPage(this);
     this.importAirtable = new ImportAirtablePage(this);
     this.sidebar = new SidebarPage(this);
     this.docs = new DocsPageGroup(this);

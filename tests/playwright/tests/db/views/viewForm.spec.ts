@@ -233,7 +233,7 @@ test.describe('Form view', () => {
     const sharedForm = new SharedFormPage(dashboard.rootPage);
     await sharedForm.cell.attachment.addFile({
       columnHeader: 'Attachment',
-      filePath: [`${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg]`],
+      filePath: [`${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`],
     });
     await sharedForm.cell.fillText({
       columnHeader: 'Title',

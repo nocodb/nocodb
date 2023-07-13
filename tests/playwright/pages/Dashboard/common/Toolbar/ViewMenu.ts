@@ -140,9 +140,12 @@ export class ToolbarViewMenuPage extends BasePage {
     await expect(await this.toolbar.get().locator(`.nc-fields-menu-btn.nc-toolbar-btn`)).toBeDisabled();
     await expect(await this.toolbar.get().locator(`.nc-filter-menu-btn.nc-toolbar-btn`)).toBeDisabled();
     await expect(await this.toolbar.get().locator(`.nc-sort-menu-btn.nc-toolbar-btn`)).toBeDisabled();
+    // await expect(
+    //   await this.toolbar.get().locator(`.nc-add-new-row-btn.nc-toolbar-btn > .material-symbols.disabled`)
+    // ).toBeVisible();
     await expect(
-      await this.toolbar.get().locator(`.nc-add-new-row-btn.nc-toolbar-btn > .material-symbols.disabled`)
-    ).toBeVisible();
+      await this.rootPage.locator('.nc-pagination-wrapper').locator('button.ant-btn:has-text(" New Record ")')
+    ).not.toBeVisible();
 
     await (this.toolbar.parent as GridPage).verifyEditDisabled({
       columnHeader: 'Country',
@@ -153,8 +156,13 @@ export class ToolbarViewMenuPage extends BasePage {
     await expect(await this.toolbar.get().locator(`.nc-fields-menu-btn.nc-toolbar-btn`)).toBeEnabled();
     await expect(await this.toolbar.get().locator(`.nc-filter-menu-btn.nc-toolbar-btn`)).toBeEnabled();
     await expect(await this.toolbar.get().locator(`.nc-sort-menu-btn.nc-toolbar-btn`)).toBeEnabled();
+
+    // Add button not in toolbar now
+    // await expect(
+    //   await this.toolbar.get().locator(`.nc-add-new-row-btn.nc-toolbar-btn > .material-symbols`)
+    // ).toBeVisible();
     await expect(
-      await this.toolbar.get().locator(`.nc-add-new-row-btn.nc-toolbar-btn > .material-symbols`)
+      await this.rootPage.locator('.nc-pagination-wrapper').locator('button.ant-btn:has-text(" New Record ")')
     ).toBeVisible();
 
     await (this.toolbar.parent as GridPage).verifyEditEnabled({

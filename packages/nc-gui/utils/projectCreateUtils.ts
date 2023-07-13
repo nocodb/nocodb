@@ -85,7 +85,7 @@ export const clientTypes = [
     value: ClientType.SQLITE,
   },
   {
-    text: 'SnowFlake',
+    text: 'Snowflake',
     value: ClientType.SNOWFLAKE,
   },
 ]

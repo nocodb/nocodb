@@ -1,3 +1,5 @@
+import fs from 'fs';
+import { promisify } from 'util';
 import {
   Body,
   Controller,
@@ -13,11 +15,24 @@ import { UtilsService } from '../services/utils.service';
 
 @Controller()
 export class UtilsController {
+  private version: string;
+
   constructor(private readonly utilsService: UtilsService) {}
 
   @Get('/api/v1/version')
-  version() {
-    return this.utilsService.versionInfo();
+  async getVersion() {
+    if (process.env.NC_CLOUD !== 'true') {
+      return this.utilsService.versionInfo();
+    }
+
+    if (!this.version) {
+      try {
+        this.version = await promisify(fs.readFile)('./public/nc.txt', 'utf-8');
+      } catch {
+        this.version = 'Not available';
+      }
+    }
+    return this.version;
   }
 
   @UseGuards(GlobalGuard)
@@ -27,6 +42,7 @@ export class UtilsController {
   async testConnection(@Body() body: any) {
     return await this.utilsService.testConnection({ body });
   }
+
   @Get('/api/v1/db/meta/nocodb/info')
   async appInfo(@Request() req) {
     return await this.utilsService.appInfo({

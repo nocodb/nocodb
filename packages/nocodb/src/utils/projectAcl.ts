@@ -466,6 +466,24 @@ const rolePermissions = {
       commandPalette: true,
     },
   },
+  [WorkspaceUserRoles.COMMENTER]: {
+    include: {
+      workspaceList: true,
+      projectUserMetaUpdate: true,
+      workspaceGet: true,
+      workspaceDelete: true,
+      commandPalette: true,
+    },
+  },
+  [WorkspaceUserRoles.EDITOR]: {
+    include: {
+      workspaceList: true,
+      projectUserMetaUpdate: true,
+      workspaceGet: true,
+      workspaceDelete: true,
+      commandPalette: true,
+    },
+  },
   [WorkspaceUserRoles.OWNER]: {
     exclude: {
       pluginList: true,
@@ -482,6 +500,17 @@ const rolePermissions = {
 Object.assign(
   rolePermissions[WorkspaceUserRoles.VIEWER].include,
   rolePermissions['viewer'].include,
+);
+// include editor project role permissions
+Object.assign(
+  rolePermissions[WorkspaceUserRoles.EDITOR].include,
+  rolePermissions['editor'].include,
+);
+
+// include editor project role permissions
+Object.assign(
+  rolePermissions[WorkspaceUserRoles.COMMENTER].include,
+  rolePermissions['commenter'].include,
 );
 
 // todo: remove org level roles in cloud

@@ -36,6 +36,8 @@ const roleAlias = {
   [WorkspaceUserRoles.OWNER]: 'Workspace Owner',
   [WorkspaceUserRoles.VIEWER]: 'Workspace Viewer',
   [WorkspaceUserRoles.CREATOR]: 'Workspace Creator',
+  [WorkspaceUserRoles.EDITOR]: 'Workspace Editor',
+  [WorkspaceUserRoles.COMMENTER]: 'Workspace Commenter',
   [ProjectRole.Creator]: 'Project Creator',
   [ProjectRole.Editor]: 'Project Editor',
   [ProjectRole.Viewer]: 'Project Viewer',

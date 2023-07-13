@@ -6,6 +6,8 @@ import { storeToRefs, stringToColour, timeAgo, useWorkspace, useWorkspaceStoreOr
 const rolesLabel = {
   [WorkspaceUserRoles.CREATOR]: 'Creator',
   [WorkspaceUserRoles.OWNER]: 'Owner',
+  [WorkspaceUserRoles.EDITOR]: 'Editor',
+  [WorkspaceUserRoles.COMMENTER]: 'Commenter',
   [WorkspaceUserRoles.VIEWER]: 'Viewer',
 }
 
@@ -91,6 +93,8 @@ const updateCollaborator = async (collab) => {
                   <MdiChevronDown />
                 </template>
                 <a-select-option :value="WorkspaceUserRoles.CREATOR"> Creator</a-select-option>
+                <a-select-option :value="WorkspaceUserRoles.EDITOR"> Editor</a-select-option>
+                <a-select-option :value="WorkspaceUserRoles.COMMENTER"> Commenter</a-select-option>
                 <a-select-option :value="WorkspaceUserRoles.VIEWER"> Viewer</a-select-option>
               </a-select>
             </div>

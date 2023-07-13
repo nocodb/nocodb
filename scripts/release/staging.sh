@@ -11,7 +11,7 @@ function message(){
 	echo $@
 	curl -X POST -H "Content-type: application/json" --data "{\"text\":\"${@}\"}" https://hooks.slack.com/services/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
 }
-
+STAGE_TAG="ws-pre-release"
 latest_remote_digest=$(aws ecr batch-get-image --region us-east-2 --repository-name nocohub --image-ids imageTag=${STAGE_TAG} --output text --query images[].imageId )
 message "Staging: deployment started. Image with tag:ws-pre-release will be launched. digest: ${latest_remote_digest}"
 

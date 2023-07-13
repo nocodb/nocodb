@@ -21,7 +21,7 @@ export class UtilsController {
 
   @Get('/api/v1/version')
   async getVersion() {
-    if (process.env.NC_CLOUD === 'true') {
+    if (process.env.NC_CLOUD !== 'true') {
       return this.utilsService.versionInfo();
     }
 

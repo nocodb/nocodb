@@ -123,7 +123,7 @@ const gridRect = useElementBounding(gridWrapper)
 const isAddingColumnAllowed = $computed(() => !readOnly.value && !isLocked.value && isUIAllowed('add-column') && !isSqlView.value)
 
 const isAddingEmptyRowAllowed = $computed(
-  () => !isView && !isLocked.value && hasEditPermission && !isSqlView.value && !isPublicView,
+  () => !isView && !isLocked.value && hasEditPermission && !isSqlView.value && !isPublicView.value,
 )
 
 const {

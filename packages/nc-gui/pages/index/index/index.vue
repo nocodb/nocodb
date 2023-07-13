@@ -435,19 +435,19 @@ watch(
                 </div>
                 <div class="flex-grow"></div>
                 <IcBaselineDragIndicator class="outline-0 nc-workspace-drag-icon" />
-                <a-dropdown :trigger="['click']">
+                <a-dropdown :trigger="['click']" v-if="isUIAllowed('workspaceRename', true, workspace.roles) || isUIAllowed('workspaceDelete', true, workspace.roles)">
                   <div class="w-4">
                     <MdiDotsHorizontal class="outline-0 nc-workspace-menu min-w-4 nc-click-transition" />
                   </div>
                   <template #overlay>
                     <a-menu>
-                      <a-menu-item @click="enableEdit(i)">
+                      <a-menu-item @click="enableEdit(i)" v-if="isUIAllowed('workspaceDelete', true, workspace.roles)">
                         <div class="nc-menu-item-wrapper">
                           <MdiPencil class="text-gray-500 text-primary" />
                           Rename Workspace
                         </div>
                       </a-menu-item>
-                      <a-menu-item @click="deleteWorkspace(workspace)">
+                      <a-menu-item @click="deleteWorkspace(workspace)" v-if="isUIAllowed('workspaceRename', true, workspace.roles)">
                         <div class="nc-menu-item-wrapper text-red-600">
                           <MdiDeleteOutline class="text-gray-500 text-error" />
                           Delete Workspace

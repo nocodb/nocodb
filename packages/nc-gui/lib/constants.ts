@@ -31,9 +31,6 @@ const rolePermissions = {
 
   // Project role permissions
   [ProjectRole.Creator]: {
-    include: {
-      commentEditable: true,
-    },
     exclude: {
       appStore: true,
       superAdminUserManagement: true,
@@ -43,9 +40,6 @@ const rolePermissions = {
     },
   },
   [ProjectRole.Owner]: {
-    include: {
-      commentEditable: true,
-    },
     exclude: {
       appStore: true,
       superAdminUserManagement: true,

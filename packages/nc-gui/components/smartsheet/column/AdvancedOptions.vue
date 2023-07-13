@@ -40,7 +40,7 @@ vModel.value.au = !!vModel.value.au
 </script>
 
 <template>
-  <div class="p-4 border-[2px] radius-1 border-grey w-full flex flex-col gap-2">
+  <div class="p-4 border-[0.1px] radius-1 border-grey w-full flex flex-col gap-2">
     <template v-if="props.advancedDbOptions">
       <div class="flex justify-between w-full gap-1">
         <a-form-item label="NN">

@@ -82,7 +82,7 @@ const formulaRef = ref()
 
 const sugListRef = ref()
 
-const sugOptionsRef = ref<typeof AntListItem[]>([])
+const sugOptionsRef = ref<(typeof AntListItem)[]>([])
 
 const wordToComplete = ref<string | undefined>('')
 

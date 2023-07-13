@@ -4,9 +4,14 @@ on:
   # Triggered manually
   workflow_dispatch:
     inputs:
-      tag:
-        description: "Tag"
+      staging:
+        description: 'Staging (ws-pre-release)'
         required: false
+        default: 'false'
+      tag:
+        description: "Any additional Tag"
+        required: false
+
 
 jobs:
   cloud-docker-build:
@@ -87,12 +92,26 @@ jobs:
           ECR_REPOSITORY: nocohub
           IMAGE_TAG: ${{ github.event.inputs.tag }}
           CUSTOM_IMAGE_TAG_ARG: ${{ github.event.inputs.tag && format('-t {0}/nocohub:{1}', steps.login-ecr.outputs.registry, github.event.inputs.tag) || '' }}
+          STAGING_IMAGE_TAG_ARG: ${{ github.event.inputs.staging == 'true' && format('-t {0}/nocohub:ws-pre-release', steps.login-ecr.outputs.registry) || '' }}
           COMMIT_HASH: ${{ github.sha }}
         run: |
           cd packages/nocodb &&
-          docker build -f Dockerfile-cloud $CUSTOM_IMAGE_TAG_ARG -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH .
+          docker build -f Dockerfile-cloud $CUSTOM_IMAGE_TAG_ARG $STAGING_IMAGE_TAG_ARG  -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH .
           [[ ! -z "$IMAGE_TAG" ]] && docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Push staging image to ECR
+        if: ${{ github.event.inputs.staging == 'true' }}
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: nocohub
+        run: |
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:ws-pre-release
+      - name: Publish to staging
+        if: ${{ github.event.inputs.staging == 'true' }}
+        run: |
+          sh ./scripts/release/staging.sh
 
   microservice-cloud-docker-build:
     runs-on: ubuntu-latest
@@ -129,6 +148,7 @@ jobs:
           COMMIT_HASH: ${{ github.sha }}
         run: |
           cd packages/nocodb-ingest-service &&
-          docker build -f Dockerfile $CUSTOM_IMAGE_TAG_ARG -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH .
+          docker build -f Dockerfile $CUSTOM_IMAGE_TAG_ARG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH .
           [[ ! -z "$IMAGE_TAG" ]] && docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest

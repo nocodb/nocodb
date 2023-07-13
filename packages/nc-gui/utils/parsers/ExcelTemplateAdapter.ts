@@ -3,12 +3,12 @@ import TemplateGenerator from './TemplateGenerator'
 import {
   extractMultiOrSingleSelectProps,
   getCheckboxValue,
-  getDateFormat,
   isCheckboxType,
   isEmailType,
   isMultiLineTextType,
   isUrlType,
-} from '#imports'
+} from './parserHelpers'
+import { getDateFormat } from '~/utils/dateTimeUtils'
 
 const excelTypeToUidt: Record<string, UITypes> = {
   d: UITypes.DateTime,
@@ -32,18 +32,19 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
   xlsx: typeof import('xlsx')
 
-  constructor(data = {}, parserConfig = {}) {
-    super()
+  constructor(data = {}, parserConfig = {},xlsx:any = null, progressCallback?: (msg: string) => void) {
+    super(progressCallback)
     this.config = parserConfig
     this.excelData = data
     this.project = {
       tables: [],
     }
-    this.xlsx = {} as any
+    this.xlsx = xlsx  || {} as any
   }
 
   async init() {
-    this.xlsx = await import('xlsx')
+    this.progress('Initializing excel parser')
+    this.xlsx = this.xlsx || await import('xlsx')
 
     const options = {
       cellText: true,
@@ -57,10 +58,13 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   }
 
   async parse() {
+    this.progress('Parsing excel file')
     const tableNamePrefixRef: Record<string, any> = {}
     await Promise.all(
       this.wb.SheetNames.map((sheetName: string) =>
         (async (sheet) => {
+          this.progress(`Parsing sheet ${sheetName}`)
+
           await new Promise((resolve) => {
             const columnNamePrefixRef: Record<string, any> = { id: 0 }
             let tn: string = (sheet || 'table').replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_').trim()
@@ -72,6 +76,12 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
             const table = { table_name: tn, ref_table_name: tn, columns: [] as any[] }
             const ws: any = this.wb.Sheets[sheet]
+
+            // if sheet is empty, skip it
+            if (!ws || !ws['!ref']) {
+              return resolve(true)
+            }
+
             const range = this.xlsx.utils.decode_range(ws['!ref'])
             let rows: any = this.xlsx.utils.sheet_to_json(ws, {
               // header has to be 1 disregarding this.config.firstRowAsHeaders
@@ -224,6 +234,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
             this.data[tn] = []
             if (this.config.shouldImportData) {
+              this.progress(`Parsing data from ${tn}`)
               let rowIndex = 0
               for (const row of rows.slice(1)) {
                 const rowData: Record<string, any> = {}

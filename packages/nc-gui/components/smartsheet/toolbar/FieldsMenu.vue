@@ -304,7 +304,7 @@ useMenuCloseOnEsc(open)
 
     <template #overlay>
       <div
-        class="p-3 min-w-[280px] bg-gray-50 shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto !border"
+        class="p-4 bg-white min-w-[280px] shadow rounded-md nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto border-1 border-gray-110"
         data-testid="nc-fields-menu"
         @click.stop
       >

@@ -16,7 +16,7 @@ const { data, showSkeleton, dragging } = defineProps<Props>()
 
 const { viewport } = useVueFlow()
 
-const table = toRef(data, 'table')
+const table = toRef(() => data, 'table')
 
 const isZooming = refAutoReset(false, 200)
 

@@ -1,4 +1,4 @@
-import { isString } from '@vueuse/core'
+import { isString } from '@vue/shared'
 import { createSharedComposable, rolePermissions, useGlobal, useRoles } from '#imports'
 import type { Permission, ProjectRole, Role } from '~/lib'
 

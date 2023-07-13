@@ -462,62 +462,37 @@ onKeyStroke('Escape', () => {
                 }"
                 @click="isOptionsOpen = false"
               >
-                <!--          <a-menu class="!ml-1 !w-[300px] !text-sm"> -->
-                <a-menu-item-group>
-                  <template #title>
-                    <div class="group select-none flex items-center gap-4 py-1">
-                      <GeneralIcon icon="folder" class="group-hover:text-accent text-xl" />
-
-                      <div class="flex flex-col">
-                        <div class="text-base font-semibold capitalize text-gray-600 group-hover:text-accent">
-                          <GeneralTruncateText>{{ project.title }}</GeneralTruncateText>
-                        </div>
-
-                        <!-- <div v-if="!isSharedBase" class="flex items-center gap-1">
-                          <div class="group-hover:(!text-primary)">ID:</div>
-
-                          <div class="text-xs group-hover:text-accent truncate font-italic">{{ project.id }}</div>
-                        </div> -->
-                      </div>
+                <template v-if="!isSharedBase">
+                  <a-menu-item @click="enableEditMode">
+                    <div class="nc-project-menu-item group">
+                      <GeneralIcon icon="edit" class="group-hover:text-accent" />
+                      Edit
                     </div>
-                  </template>
-                  <template v-if="!isSharedBase">
-                    <a-menu-item @click="enableEditMode">
-                      <div class="nc-project-menu-item group">
-                        <GeneralIcon icon="edit" class="group-hover:text-accent" />
-                        Edit
-                      </div>
-                    </a-menu-item>
+                  </a-menu-item>
 
-                    <!-- Copy Project Info -->
-                    <a-menu-item v-if="false" key="copy">
-                      <div
-                        v-e="['c:navbar:user:copy-proj-info']"
-                        class="nc-project-menu-item group"
-                        @click.stop="copyProjectInfo"
-                      >
-                        <GeneralIcon icon="copy" class="group-hover:text-accent" />
-                        {{ $t('activity.account.projInfo') }}
-                      </div>
-                    </a-menu-item>
+                  <!-- Copy Project Info -->
+                  <a-menu-item v-if="false" key="copy">
+                    <div v-e="['c:navbar:user:copy-proj-info']" class="nc-project-menu-item group" @click.stop="copyProjectInfo">
+                      <GeneralIcon icon="copy" class="group-hover:text-accent" />
+                      {{ $t('activity.account.projInfo') }}
+                    </div>
+                  </a-menu-item>
 
-                    <a-menu-divider v-if="false" />
+                  <a-menu-divider v-if="false" />
 
-                    <!-- Swagger: Rest APIs -->
-                    <a-menu-item key="api">
-                      <div
-                        v-if="isUIAllowed('apiDocs')"
-                        v-e="['e:api-docs']"
-                        class="nc-project-menu-item group"
-                        @click.stop="openLink(`/api/v1/db/meta/projects/${project.id}/swagger`, appInfo.ncSiteUrl)"
-                      >
-                        <GeneralIcon icon="json" class="group-hover:text-accent" />
-                        {{ $t('activity.account.swagger') }}
-                      </div>
-                    </a-menu-item>
-                  </template>
-                </a-menu-item-group>
-                <!--          </a-menu> -->
+                  <!-- Swagger: Rest APIs -->
+                  <a-menu-item key="api">
+                    <div
+                      v-if="isUIAllowed('apiDocs')"
+                      v-e="['e:api-docs']"
+                      class="nc-project-menu-item group"
+                      @click.stop="openLink(`/api/v1/db/meta/projects/${project.id}/swagger`, appInfo.ncSiteUrl)"
+                    >
+                      <GeneralIcon icon="json" class="group-hover:text-accent" />
+                      {{ $t('activity.account.swagger') }}
+                    </div>
+                  </a-menu-item>
+                </template>
 
                 <DashboardTreeViewNewBaseOptions v-model:project="project" :base="project.bases[0]" />
 

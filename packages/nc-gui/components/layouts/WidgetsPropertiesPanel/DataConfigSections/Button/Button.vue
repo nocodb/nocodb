@@ -21,7 +21,6 @@ const isExternalUrlActionType = computed(
   () => focusedButtonWidget.value?.data_config?.actionType === ButtonActionType.OPEN_EXTERNAL_URL,
 )
 
-
 interface SectionTypeChooserOption {
   id: ButtonActionType
   label: string

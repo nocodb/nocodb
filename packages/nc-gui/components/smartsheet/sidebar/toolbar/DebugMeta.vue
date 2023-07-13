@@ -10,7 +10,7 @@ const { metas } = $(useMetas())
 const { tables } = useTable()
 
 const localTables = computed(
-  () => tables.value.filter((t) => metas[t.id as string]) as (typeof tables.value[number] & { id: string })[],
+  () => tables.value.filter((t) => metas[t.id as string]) as ((typeof tables.value)[number] & { id: string })[],
 )
 </script>
 

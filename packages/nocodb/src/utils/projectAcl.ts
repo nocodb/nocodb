@@ -99,6 +99,7 @@ const rolePermissions = {
       workspaceInvitationReject: true,
       workspaceInvitationTokenRead: true,
       createBase: true,
+      tableCreate: true,
     },
   },
   creator: {
@@ -126,6 +127,7 @@ const rolePermissions = {
       workspaceInvitationReject: true,
       workspaceInvitationTokenRead: true,
       createBase: true,
+      tableCreate: true,
     },
   },
   guest: {},

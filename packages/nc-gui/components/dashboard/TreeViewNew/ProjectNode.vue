@@ -549,6 +549,7 @@ onKeyStroke('Escape', () => {
           </a-dropdown>
 
           <div
+            v-if="isUIAllowed('tableCreate', false, projectRole)"
             class="mr-2 flex flex-row items-center gap-x-2 cursor-pointer hover:(text-black) text-gray-600 text-sm invisible !group-hover:visible rounded"
             data-testid="nc-sidebar-add-project-entity"
             :class="{ '!text-black !visible': isAddNewProjectChildEntityLoading, '!visible': isOptionsOpen }"
@@ -656,6 +657,7 @@ onKeyStroke('Escape', () => {
                             </a-dropdown>
 
                             <div
+                              v-if="isUIAllowed('tableCreate', false, projectRole)"
                               class="flex invisible nc-sidebar-base-node-btns !focus:outline-0 text-gray-600 hover:text-gray-700 rounded px-0.35 mt-0.25"
                               @click.stop="openTableCreateDialog(baseIndex)"
                             >

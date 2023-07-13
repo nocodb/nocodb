@@ -452,6 +452,8 @@ const rolePermissions = {
       pluginRead: true,
       pluginUpdate: true,
       isPluginActive: true,
+      projectDelete: true,
+      createBase: true,
     },
   },
   [WorkspaceUserRoles.VIEWER]: {

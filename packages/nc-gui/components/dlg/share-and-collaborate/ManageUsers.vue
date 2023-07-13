@@ -42,9 +42,19 @@ const loadListData = async ($state: any) => {
 
 const rolesTypes = [
   {
+    id: 'Creator',
+    name: 'Creator',
+    value: 'creator',
+  },
+  {
     id: 'Editor',
     name: 'Editor',
     value: 'editor',
+  },
+  {
+    id: 'Commenter',
+    name: 'Commenter',
+    value: 'commenter',
   },
   {
     id: 'Viewer',

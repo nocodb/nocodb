@@ -12,7 +12,7 @@ import {
 } from './parserHelpers'
 import { getDateFormat, validateDateWithUnknownFormat } from '~/utils/dateTimeUtils'
 
-export class CSVTemplateAdapter {
+export default class CSVTemplateAdapter {
   config: Record<string, any>
   source: UploadFile[] | string
   detectedColumnTypes: Record<number, Record<string, number>>

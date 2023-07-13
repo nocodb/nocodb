@@ -1,14 +1,3 @@
-// // import { CSVTemplateAdapter } from './dep'
-// import {CSVTemplateAdapter} from '../utils/parsers/CSVTemplateAdapter'
-//
-//
-// const adapter = new CSVTemplateAdapter([], {}, () => {})
-//
-// console.log(adapter)
-//
-// // importScripts('node_modules/nocodb-sdk/dist/nocodb-sdk.umd.js')
-//
-// console.log('ViewTypes', ViewTypes)
 import type { TableType } from 'nocodb-sdk'
 import { Api, UITypes } from 'nocodb-sdk'
 import {
@@ -40,7 +29,7 @@ const state: {
     importColumns: any
     importData: any
   }
-  api: Api<any>
+  api?: Api<any>
 } = {
   tables: [],
   config: {} as any,
@@ -180,7 +169,6 @@ self.addEventListener(
         break
       case ImportWorkerOperations.INIT_SDK:
         {
-          console.log(payload)
           state.api = new Api<any>({
             baseURL: payload.baseURL,
             headers: {

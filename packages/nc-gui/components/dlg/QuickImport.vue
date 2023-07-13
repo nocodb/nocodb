@@ -43,8 +43,11 @@ interface Props {
 }
 
 const { importType, importDataOnly = false, baseId, ...rest } = defineProps<Props>()
+
 const emit = defineEmits(['update:modelValue'])
+
 const { $api } = useNuxtApp()
+
 const { appInfo } = useGlobal()
 
 const config = useRuntimeConfig()

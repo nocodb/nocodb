@@ -3,16 +3,8 @@ name: "Build cloud docker image"
 on:
   # Triggered manually
   workflow_dispatch:
-    staging:
-      description: 'Staging'
-      required: false
-      default: 'false'
-    production:
-      description: 'Production'
-      required: false
-      default: 'false'
     inputs:
-     staging:
+      staging:
         description: 'Staging (ws-pre-release)'
         required: false
         default: 'false'
@@ -21,7 +13,7 @@ on:
         required: false
         default: 'false'
       tag:
-        description: "Additional Tag"
+        description: "Any additional Tag"
         required: false
 
 

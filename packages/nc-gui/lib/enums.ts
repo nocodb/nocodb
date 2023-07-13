@@ -132,6 +132,7 @@ export enum ImportWorkerOperations {
   SET_CONFIG = 'setConfig',
   GET_SINGLE_SELECT_OPTIONS = 'getSingleSelectOptions',
   GET_MULTI_SELECT_OPTIONS = 'getMultiSelectOptions',
+  INIT_SDK = 'initSDK',
 }
 
 export enum ImportWorkerResponse {

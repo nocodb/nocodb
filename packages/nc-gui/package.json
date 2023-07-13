@@ -2,7 +2,6 @@
   "name": "nc-gui",
   "description": "NocoDB Frontend",
   "private": true,
-  "type": "module",
   "author": {
     "name": "NocoDB",
     "url": "https://nocodb.com/"
@@ -141,7 +140,7 @@
     "@iconify-json/system-uicons": "^1.1.4",
     "@iconify-json/tabler": "^1.1.59",
     "@iconify-json/vscode-icons": "^1.1.14",
-    "@intlify/vite-plugin-vue-i18n": "^7.0.0",
+    "@intlify/unplugin-vue-i18n": "^0.12.2",
     "@nuxt/image-edge": "^1.0.0-27657146.da85542",
     "@types/axios": "^0.14.0",
     "@types/d3-scale": "^4.0.3",
@@ -174,17 +173,12 @@
     "nuxt-windicss": "^2.5.0",
     "prettier": "^2.7.1",
     "sass": "^1.53.0",
-    "terser-webpack-plugin": "^5.3.9",
     "ts-loader": "^9.4.4",
-    "tsconfig-paths-webpack-plugin": "^4.1.0",
     "unplugin-icons": "^0.14.15",
     "unplugin-vue-components": "^0.22.12",
-    "vite": "^4.4.3",
     "vite-plugin-monaco-editor": "^1.1.0",
     "vite-plugin-purge-icons": "^0.9.2",
     "vitest": "^0.18.0",
-    "webpack-cli": "^5.1.4",
-    "webpack-node-externals": "^3.0.0",
     "windicss": "^3.5.6"
   }
 }

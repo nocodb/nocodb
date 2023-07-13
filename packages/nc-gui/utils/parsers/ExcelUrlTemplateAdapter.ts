@@ -1,17 +1,16 @@
 import ExcelTemplateAdapter from './ExcelTemplateAdapter'
-// import { useNuxtApp } from '#imports'
+import {Api} from "nocodb-sdk";
 
 export default class ExcelUrlTemplateAdapter extends ExcelTemplateAdapter {
   url: string
   excelData: any
   $api: any
 
-  constructor(url: string, parserConfig: Record<string, any>, progressCallback?: (msg: string) => void) {
-    // const { $api } = useNuxtApp()
+  constructor(url: string, parserConfig: Record<string, any>, api:Api<any>, progressCallback?: (msg: string) => void) {
     super({}, parserConfig, progressCallback)
     this.url = url
     this.excelData = null
-    // this.$api = $api
+    this.$api = api
   }
 
   async init() {

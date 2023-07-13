@@ -22,7 +22,7 @@ then
     message "Production: promoting ws-pre-release to ws before rollout."    
     ${SCRIPT_DIR}/image_promote.sh "ws-pre-release" "ws"
 fi
-latest_remote_digest=$(aws ecr describe-images --repository-name nocohub | jq '.imageDetails[] | select(.imageTags != null) | select (.imageTags[] | contains ("ws")) | .imageDigest ' -r | tail -1)
+latest_remote_digest=$(aws ecr batch-get-image --region us-east-2 --repository-name nocohub --image-ids imageTag=${STAGE_TAG} --output text --query images[].imageId )
 message "Production: Image with tag:ws will be launched. digest: ${latest_remote_digest}"
 
 # TODO: prewarm ASG to have additional instances. update only desired 

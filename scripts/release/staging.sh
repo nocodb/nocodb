@@ -12,7 +12,7 @@ function message(){
 	curl -X POST -H "Content-type: application/json" --data "{\"text\":\"${@}\"}" https://hooks.slack.com/services/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
 }
 
-latest_remote_digest=$(aws ecr describe-images --repository-name nocohub | jq '.imageDetails[] | select(.imageTags != null) | select (.imageTags[] | contains ("ws-pre-release")) | .imageDigest ' -r | tail -1)
+latest_remote_digest=$(aws ecr batch-get-image --region us-east-2 --repository-name nocohub --image-ids imageTag=${STAGE_TAG} --output text --query images[].imageId )
 message "Staging: deployment started. Image with tag:ws-pre-release will be launched. digest: ${latest_remote_digest}"
 
 # prewarm ASG to have additional instances. update only desired 

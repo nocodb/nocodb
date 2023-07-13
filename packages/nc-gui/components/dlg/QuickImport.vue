@@ -29,7 +29,7 @@ import {
 import type {ImportWorkerPayload, importFileList, streamImportFileList} from '~/lib'
 
 // import worker script according to the doc of Vite
-import ImportWorker from '~/workers/importWorker?worker&inline'
+import ImportWorker from '~/workers/importWorker?worker&url'
 import {BASE_FALLBACK_URL, ImportSource, ImportType, ImportWorkerOperations, ImportWorkerResponse} from '~/lib'
 import api from '~/plugins/api'
 import {useNuxtApp} from '#app'

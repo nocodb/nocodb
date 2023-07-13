@@ -438,7 +438,11 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
         },
       ])
 
-      const value = toRaw(val)
+      let value = toRaw(val)
+
+      // if array, iterate and unwrap proxy
+      if(Array.isArray(value)) value = value.map(v => toRaw(v))
+
       const payload = extractImportWorkerPayload(value)
 
       importWorker.postMessage([
@@ -467,20 +471,20 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
           switch (type) {
             case ImportWorkerResponse.PROCESSED_DATA:
               resolve(payload)
-              importWorker.removeEventListener('message', handler, false)
+              importWorker?.removeEventListener('message', handler, false)
               break
             case ImportWorkerResponse.PROGRESS:
               progressMsg.value = payload
               break
             case ImportWorkerResponse.ERROR:
               reject(payload)
-              importWorker.removeEventListener('message', handler, false)
+              importWorker?.removeEventListener('message', handler, false)
               break
           }
         }
-        importWorker.addEventListener('message', handler, false)
+        importWorker?.addEventListener('message', handler, false)
 
-        importWorker.postMessage([ImportWorkerOperations.PROCESS, payload])
+        importWorker?.postMessage([ImportWorkerOperations.PROCESS, payload])
       })
       templateData.value = response.templateData
       importColumns.value = response.importColumns

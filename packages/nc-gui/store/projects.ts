@@ -35,6 +35,8 @@ export const useProjects = defineStore('projectsStore', () => {
     return basesMap
   })
 
+  const roles = computed(() => openedProject.value?.project_role || openedProject.value?.workspace_role)
+
   const workspaceStore = useWorkspace()
   const tableStore = useTablesStore()
 
@@ -256,6 +258,7 @@ export const useProjects = defineStore('projectsStore', () => {
     activeProjectId,
     openedProject,
     openedProjectBasesMap,
+    roles,
   }
 })
 

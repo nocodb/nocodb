@@ -446,7 +446,7 @@ onKeyStroke('Escape', () => {
           </span>
           <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(project)"></div>
 
-          <a-dropdown v-model:visible="isOptionsOpen" trigger="click">
+          <a-dropdown v-if="isUIAllowed('tableCreate', false, projectRole)" v-model:visible="isOptionsOpen" trigger="click">
             <MdiDotsHorizontal
               class="min-w-5 min-h-5 py-0.25 mr-1.5 !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 opacity-0 group-hover:(opacity-100) hover:text-black text-gray-600 rounded"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
@@ -631,7 +631,7 @@ onKeyStroke('Escape', () => {
                               </div>
                             </a-tooltip>
                           </div>
-                          <div class="flex flex-row items-center gap-x-1">
+                          <div v-if="isUIAllowed('tableCreate', false, projectRole)" class="flex flex-row items-center gap-x-1">
                             <a-dropdown
                               :visible="isBasesOptionsOpen[base!.id!]"
                               trigger="click"

@@ -73,7 +73,7 @@ const rolesTypes = [
   <div class="flex flex-col mx-4 h-112">
     <div class="flex mt-2.5 mb-2.5 border-b-1 border-gray-50 pb-1.5" :style="{ fontWeight: 500 }">Manage Collaborators</div>
     <div class="flex mt-2.5 mb-2.5 text-xs" :style="{ fontWeight: 500 }">Project Owner</div>
-    <div v-if="owner" class="flex flex-row px-2 py-2 items-center gap-x-2 border-1 border-gray-200 rounded-md">
+    <div v-if="owner" class="flex flex-row px-2 py-2 items-center gap-x-2 border-1 border-gray-100 rounded-md">
       <a-avatar></a-avatar>
       <div class="flex flex-col justify-center">
         <div class="flex" :style="{ fontWeight: 500 }">{{ owner.firstname }} {{ owner.lastname }}</div>
@@ -83,18 +83,18 @@ const rolesTypes = [
       </div>
     </div>
     <div class="flex flex-grow"></div>
-    <div class="flex flex-row mt-4 mb-2 pt-3 border-gray-200 border-t-1 gap-x-3 items-center text-xs">
+    <div class="flex flex-row mt-4 mb-2 pt-3 border-gray-100 border-t-1 gap-x-3 items-center text-xs">
       <div :style="{ fontWeight: 500 }">People with access</div>
-      <div class="bg-gray-100 border-gray-200 border-1 py-0.5 px-1.5 rounded-md" data-testid="nc-manage-user-user-count">
+      <div class="bg-gray-50 border-gray-100 border-1 py-0.5 px-1.5 rounded-md" data-testid="nc-manage-user-user-count">
         {{ totalUsers - 1 }} users
       </div>
     </div>
-    <div class="flex flex-col mb-2 pr-0.5 h-96 overflow-y-auto users-list border-b-1 border-gray-200">
+    <div class="flex flex-col mb-2 pr-0.5 h-96 overflow-y-auto users-list border-b-1 border-gray-100">
       <div v-if="nonOwners.length === 0" class="text-xs mt-2">No users have access to this project</div>
       <div
         v-for="user of nonOwners"
         :key="user.id"
-        class="flex flex-row mb-1.5 px-2 py-1.5 items-center border-1 border-gray-200 rounded-md justify-between"
+        class="flex flex-row mb-1.5 px-2 py-1.5 items-center border-1 border-gray-100 rounded-md justify-between"
         :data-testid="`nc-manage-users-${user.email}`"
       >
         <div class="flex flex-row items-center gap-x-2">

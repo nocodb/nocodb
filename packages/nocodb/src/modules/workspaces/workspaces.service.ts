@@ -15,6 +15,7 @@ import validateParams from '../../helpers/validateParams';
 import { NcError } from '../../helpers/catchError';
 import { Project, ProjectUser } from '../../models';
 import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
+import { extractProps } from '../../helpers/extractProps';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig } from '../../interface/config';
 
@@ -139,8 +140,6 @@ export class WorkspacesService {
 
     if (!existingWorkspace) NcError.badRequest('Workspace not found');
 
-    // todo: allow order update for all user
-    //       and block rest of the options
     if ('order' in workspace) {
       existingWorkspace.order = workspace.order;
       await WorkspaceUser.update(workspaceId, user.id, {
@@ -149,10 +148,16 @@ export class WorkspacesService {
       delete workspace.order;
     }
 
-    // todo: validate params
-    // validateParams(['title', 'description'], req.body);
+    // allow only owner and creator to update anything other that order
+    if (
+      user.roles !== WorkspaceUserRoles.OWNER &&
+      user.roles !== WorkspaceUserRoles.CREATOR
+    )
+      return;
 
-    const updatedWorkspace = await Workspace.update(workspaceId, workspace);
+    const updateObj = extractProps(workspace, ['title', 'description', 'meta']);
+
+    const updatedWorkspace = await Workspace.update(workspaceId, updateObj);
 
     this.appHooksService.emit(AppEvents.WORKSPACE_UPDATE, {
       workspace: {

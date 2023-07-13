@@ -16,6 +16,7 @@ import { NcError } from '../../helpers/catchError';
 import { MetaTable } from '../../utils/globals';
 import { MetaService } from '../../meta/meta.service';
 import { WorkspacesService } from './workspaces.service';
+import type { WorkspaceType } from 'nocodb-sdk';
 
 @Controller()
 export class WorkspacesController {
@@ -41,10 +42,16 @@ export class WorkspacesController {
     permissionName: 'workspaceGet',
   })
   async get(@Param('workspaceId') workspaceId: string, @Request() req) {
-    return await this.workspacesService.get({
+    const workspace: WorkspaceType & {
+      roles?: any;
+    } = await this.workspacesService.get({
       workspaceId,
       user: req.user,
     });
+
+    workspace.roles = req.user?.roles;
+
+    return workspace;
   }
 
   @UseGuards(AuthGuard('jwt'))

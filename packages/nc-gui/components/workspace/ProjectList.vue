@@ -36,6 +36,8 @@ const roleAlias = {
   [WorkspaceUserRoles.OWNER]: 'Workspace Owner',
   [WorkspaceUserRoles.VIEWER]: 'Workspace Viewer',
   [WorkspaceUserRoles.CREATOR]: 'Workspace Creator',
+  [WorkspaceUserRoles.EDITOR]: 'Workspace Editor',
+  [WorkspaceUserRoles.COMMENTER]: 'Workspace Commenter',
   [ProjectRole.Creator]: 'Project Creator',
   [ProjectRole.Editor]: 'Project Editor',
   [ProjectRole.Viewer]: 'Project Viewer',
@@ -436,7 +438,10 @@ const setIcon = async (icon: string, project: ProjectType) => {
                     Move Project
                   </div>
                 </a-menu-item>
-                <a-menu-item @click="deleteProject(record)">
+                <a-menu-item
+                  v-if="isUIAllowed('projectDelete', true, [record.workspace_role, record.project_role].join())"
+                  @click="deleteProject(record)"
+                >
                   <div class="nc-menu-item-wrapper text-red-600">
                     <GeneralIcon icon="delete2" class="text-gray-500 text-error" />
                     Delete Project

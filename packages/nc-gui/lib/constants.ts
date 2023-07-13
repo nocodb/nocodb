@@ -37,6 +37,7 @@ const rolePermissions = {
       superAdminAppSettings: true,
       appLicense: true,
       moveProject: true,
+      projectDelete: true,
     },
   },
   [ProjectRole.Owner]: {
@@ -91,5 +92,7 @@ const rolePermissions = {
 rolePermissions[WorkspaceUserRoles.OWNER] = rolePermissions[ProjectRole.Owner]
 rolePermissions[WorkspaceUserRoles.CREATOR] = rolePermissions[ProjectRole.Creator]
 rolePermissions[WorkspaceUserRoles.VIEWER] = rolePermissions[ProjectRole.Viewer]
+rolePermissions[WorkspaceUserRoles.EDITOR] = rolePermissions[ProjectRole.Editor]
+rolePermissions[WorkspaceUserRoles.COMMENTER] = rolePermissions[ProjectRole.Commenter]
 
 export { rolePermissions }

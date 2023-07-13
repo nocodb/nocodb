@@ -79,7 +79,7 @@ export default {
         <div class="flex-1" />
       </a-layout-header>
 
-      <div class="w-full overflow-hidden" style="height: calc(100% - var(--sidebar-top-height))">
+      <div class="w-full overflow-hidden" style="height: calc(100vh)">
         <slot />
       </div>
     </a-layout>

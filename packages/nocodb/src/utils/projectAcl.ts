@@ -455,6 +455,7 @@ const rolePermissions = {
       pluginUpdate: true,
       isPluginActive: true,
       createProject: true,
+      shareProject: true,
     },
   },
   [WorkspaceUserRoles.VIEWER]: {
@@ -476,6 +477,7 @@ const rolePermissions = {
       isPluginActive: true,
       commandPalette: true,
       createProject: true,
+      shareProject: true,
     },
   },
 };

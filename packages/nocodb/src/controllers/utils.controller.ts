@@ -1,3 +1,5 @@
+import fs from 'fs';
+import { promisify } from 'util';
 import {
   Body,
   Controller,
@@ -13,6 +15,8 @@ import { UtilsService } from '../services/utils.service';
 
 @Controller()
 export class UtilsController {
+  private version;
+
   constructor(private readonly utilsService: UtilsService) {}
 
   @Get('/api/v1/version')
@@ -27,6 +31,7 @@ export class UtilsController {
   async testConnection(@Body() body: any) {
     return await this.utilsService.testConnection({ body });
   }
+
   @Get('/api/v1/db/meta/nocodb/info')
   async appInfo(@Request() req) {
     return await this.utilsService.appInfo({
@@ -68,5 +73,17 @@ export class UtilsController {
     return await this.utilsService.genericGPT({
       body,
     });
+  }
+
+  @Get('/api/v1/nc')
+  async getVersion() {
+    if (!this.version) {
+      try {
+        this.version = await promisify(fs.readFile)('./public/nc.txt', 'utf-8');
+      } catch {
+        this.version = 'Not available';
+      }
+    }
+    return this.version;
   }
 }

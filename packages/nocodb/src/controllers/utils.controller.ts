@@ -75,7 +75,7 @@ export class UtilsController {
     });
   }
 
-  @Get('/api/v1/nc')
+  @Get('/api/v1/version')
   async getVersion() {
     if (!this.version) {
       try {

@@ -25,8 +25,6 @@ const { allowCSVDownload } = useSharedView()
 
     <div v-if="!isMobileMode" class="flex-1" />
 
-    <LazySmartsheetToolbarViewInfo v-if="!isUIAllowed('dataInsert') && !isPublic" />
-
     <LazySmartsheetToolbarStackedBy v-if="isKanban" />
 
     <LazySmartsheetToolbarKanbanStackEditOrAdd v-if="isKanban" />

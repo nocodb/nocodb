@@ -12,7 +12,8 @@ function message(){
 	curl -X POST -H "Content-type: application/json" --data "{\"text\":\"${@}\"}" https://hooks.slack.com/services/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
 }
 
-message "Staging deployment started. Image with tag:ws-pre-release will be launched"
+latest_remote_digest=$(aws ecr describe-images --repository-name nocohub | jq '.imageDetails[] | select(.imageTags != null) | select (.imageTags[] | contains ("ws-pre-release")) | .imageDigest ' -r | tail -1)
+message "Staging: deployment started. Image with tag:ws-pre-release will be launched. digest: ${latest_remote_digest}"
 
 # prewarm ASG to have additional instances. update only desired 
 aws autoscaling set-desired-capacity --region=us-east-2 --auto-scaling-group-name nocohub-nocodb_ai_main --desired-capacity 2 > /dev/null 
@@ -34,7 +35,8 @@ done
 
 if [[ "${STATUS}" == *"IN_PROGRESS"* ]]
 then
-    message "staging deployment status is IN_PROGRESS after waiting for staturation time. check status at https://us-east-2.console.aws.amazon.com/ecs/v2/clusters/nocodb-staging/services/nocohub-noco_to_main/tasks?region=us-east-2 "
+    message "Staging: deployment status is IN_PROGRESS after waiting for staturation time. check status at https://us-east-2.console.aws.amazon.com/ecs/v2/clusters/nocodb-staging/services/nocohub-noco_to_main/tasks?region=us-east-2 "
 else
-    message "staging deployment completed successfully"    
+    message "Staging: deployment completed successfully"    
+    message "Staging: deployment completed successfully"    
 fi

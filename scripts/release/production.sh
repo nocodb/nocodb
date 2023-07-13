@@ -15,13 +15,16 @@ function message(){
 
 PROMOTE_READY_BEFORE_ROLLOUT=${1:-false}
 
-message "Production deployment started. Image with tag:ws will be launched"
+message "Production: deployment started."
 
 if [[ "${PROMOTE_READY_BEFORE_ROLLOUT}" == "true" ]]
 then    
-    message "promoting ws-pre-release to ws before rollout."    
+    message "Production: promoting ws-pre-release to ws before rollout."    
     ${SCRIPT_DIR}/image_promote.sh "ws-pre-release" "ws"
 fi
+latest_remote_digest=$(aws ecr describe-images --repository-name nocohub | jq '.imageDetails[] | select(.imageTags != null) | select (.imageTags[] | contains ("ws")) | .imageDigest ' -r | tail -1)
+message "Production: Image with tag:ws will be launched. digest: ${latest_remote_digest}"
+
 # TODO: prewarm ASG to have additional instances. update only desired 
 aws autoscaling set-desired-capacity --region=us-east-2 --auto-scaling-group-name nocohub-nocodb_ai_main --desired-capacity 2 > /dev/null 
 DEPLOY_OUT=$(aws ecs update-service --cluster nocohub-001-a --service nocohub-nocodb_ai_main --force-new-deployment --region=us-east-2 )
@@ -39,7 +42,7 @@ done
 
 if [[ "${STATUS}" == *"IN_PROGRESS"* ]]
 then
-    message "production deployment status is IN_PROGRESS after waiting for staturation time. check status at https://us-east-2.console.aws.amazon.com/ecs/v2/clusters/nocohub-001-a/services/nocohub-nocodb_ai_main/tasks?region=us-east-2 "
+    message "Production: deployment status is IN_PROGRESS after waiting for about 5 mins. check status at https://us-east-2.console.aws.amazon.com/ecs/v2/clusters/nocohub-001-a/services/nocohub-nocodb_ai_main/tasks?region=us-east-2 "
 else
-    message "production deployment completed successfully"    
+    message "Production: deployment completed successfully"    
 fi

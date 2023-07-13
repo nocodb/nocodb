@@ -12,6 +12,7 @@ import { ImportSource, ImportType, ImportWorkerOperations, ImportWorkerResponse 
 import type TemplateGenerator from '../utils/parsers/TemplateGenerator'
 import { extractSdkResponseErrorMsg } from '../utils/errorUtils'
 import { extractSelectOptions } from '../utils/parsers/parserHelpers'
+import xlsx from 'xlsx'
 
 const state: {
   tables: TableType[]
@@ -67,10 +68,10 @@ async function getAdapter(importType: ImportType, sourceType: ImportSource, val:
       case ImportSource.FILE: {
         const data = await readFileContent(val)
 
-        return new ExcelTemplateAdapter(data, config, progress)
+        return new ExcelTemplateAdapter(data, config, xlsx, progress)
       }
       case ImportSource.URL:
-        return new ExcelUrlTemplateAdapter(val, config, state.api, progress)
+        return new ExcelUrlTemplateAdapter(val, config, state.api!, xlsx, progress)
     }
   } else if (importType === 'json') {
     switch (sourceType) {

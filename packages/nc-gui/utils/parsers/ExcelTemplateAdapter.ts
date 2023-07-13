@@ -32,19 +32,19 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
   xlsx: typeof import('xlsx')
 
-  constructor(data = {}, parserConfig = {}, progressCallback?: (msg: string) => void) {
+  constructor(data = {}, parserConfig = {},xlsx:any = null, progressCallback?: (msg: string) => void) {
     super(progressCallback)
     this.config = parserConfig
     this.excelData = data
     this.project = {
       tables: [],
     }
-    this.xlsx = {} as any
+    this.xlsx = xlsx  || {} as any
   }
 
   async init() {
     this.progress('Initializing excel parser')
-    this.xlsx = await import('xlsx')
+    this.xlsx = this.xlsx || await import('xlsx')
 
     const options = {
       cellText: true,

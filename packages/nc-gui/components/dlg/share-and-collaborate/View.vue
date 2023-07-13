@@ -22,10 +22,10 @@ try {
   console.error(e)
 }
 
-const { formStatus, showShareModal, invitationValid, invitationUsersData } = storeToRefs(useShare())
+const { formStatus, showShareModal, invitationValid, invitationUsersData, isInvitationLinkCopied } = storeToRefs(useShare())
+const { resetData } = useShare()
 const { inviteUser } = useManageUsers()
 
-const isInvitationLinkCopied = ref(false)
 const expandedSharedType = ref<'none' | 'project' | 'page'>('project')
 
 const pageTitle = computed(() => (openedPage.value ?? nestedPagesOfProjects.value[project.value.id!]?.[0])?.title)
@@ -61,7 +61,7 @@ const copyInvitationLink = async () => {
 watch(showShareModal, (val) => {
   if (!val) {
     setTimeout(() => {
-      formStatus.value = 'project-collaborate'
+      resetData()
     }, 500)
   }
 })
@@ -96,6 +96,7 @@ watch(showShareModal, (val) => {
             type="text"
             class="!border-1 !border-gray-200 !rounded-md"
             data-testid="docs-share-invitation-copy"
+            :data-invite-link="inviteUrl"
             @click="copyInvitationLink"
           >
             <div v-if="isInvitationLinkCopied" class="flex flex-row items-center gap-x-1">

@@ -29,7 +29,7 @@ import {
 import type {ImportWorkerPayload, importFileList, streamImportFileList} from '~/lib'
 
 // import worker script according to the doc of Vite
-import ImportWorker from '~/workers/importWorker?worker&url'
+import importWorkerUrl from '~/workers/importWorker?worker&url'
 import {BASE_FALLBACK_URL, ImportSource, ImportType, ImportWorkerOperations, ImportWorkerResponse} from '~/lib'
 import api from '~/plugins/api'
 import {useNuxtApp} from '#app'
@@ -149,7 +149,17 @@ if (isWorkerSupport) {
       (val) => {
         if (val) {
           try {
-            importWorker = new ImportWorker()
+            const worker_url = getWorkerURL( importWorkerUrl );
+            importWorker = new Worker( worker_url );
+            URL.revokeObjectURL(worker_url);
+
+            // Returns a blob:// URL which points
+            // to a javascript file which will call
+            // importScripts with the given URL
+            function getWorkerURL( url:string ) {
+              const content = `importScripts( "${ url }" );`;
+              return URL.createObjectURL( new Blob( [ content ], { type: "text/javascript" } ) );
+            }
           } catch (e) {
             console.error(e)
           }

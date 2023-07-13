@@ -50,6 +50,8 @@ const { projects, projectsList, activeProjectId } = storeToRefs(projectsStore)
 
 const { projectTables } = storeToRefs(useTablesStore())
 
+const { openTable } = useTablesStore()
+
 const projectStore = useProject()
 
 const { loadTables } = projectStore
@@ -203,6 +205,8 @@ const duplicateTable = async (table: TableType) => {
           await loadTables()
           const newTable = tables.value.find((el) => el.id === data?.result?.id)
           if (newTable) addTab({ title: newTable.title, id: newTable.id, type: newTable.type as TabType })
+
+          openTable(newTable!)
         } else if (status === JobStatus.FAILED) {
           message.error('Failed to duplicate table')
           await loadTables()

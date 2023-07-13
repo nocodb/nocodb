@@ -66,6 +66,7 @@ const rolePermissions = {
       apiDocs: true,
       projectSettings: true,
       newUser: false,
+      commentEditable: true,
     },
   },
   [ProjectRole.Commenter]: {
@@ -74,6 +75,7 @@ const rolePermissions = {
       column: true,
       rowComments: true,
       projectSettings: true,
+      commentEditable: true,
     },
   },
   [ProjectRole.Viewer]: {

@@ -27,14 +27,7 @@ import {
 } from '../helpers/getUniqueName';
 import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
 import validateParams from '../helpers/validateParams';
-import {
-  Audit,
-  Base,
-  Column,
-  FormulaColumn,
-  KanbanView,
-  Model,
-} from '../models';
+import { Base, Column, FormulaColumn, KanbanView, Model } from '../models';
 import Noco from '../Noco';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { MetaTable } from '../utils/globals';
@@ -141,9 +134,14 @@ export class ColumnsService {
           );
 
           try {
+            const baseModel = await Model.getBaseModelSQL({
+              id: table.id,
+              dbDriver: await NcConnectionMgrv2.get(base),
+            });
             // test the query to see if it is valid in db level
             const dbDriver = await NcConnectionMgrv2.get(base);
             await formulaQueryBuilderv2(
+              baseModel,
               colBody.formula,
               null,
               dbDriver,
@@ -973,9 +971,14 @@ export class ColumnsService {
         );
 
         try {
+          const baseModel = await Model.getBaseModelSQL({
+            id: table.id,
+            dbDriver: await NcConnectionMgrv2.get(base),
+          });
           // test the query to see if it is valid in db level
           const dbDriver = await NcConnectionMgrv2.get(base);
           await formulaQueryBuilderv2(
+            baseModel,
             colBody.formula,
             null,
             dbDriver,
@@ -1135,8 +1138,12 @@ export class ColumnsService {
               cn: string;
               system?: boolean;
             }
-          > = (await sqlClient.columnList({ tn: table.table_name }))?.data
-            ?.list;
+          > = (
+            await sqlClient.columnList({
+              tn: table.table_name,
+              schema: base.getConfig()?.schema,
+            })
+          )?.data?.list;
 
           const insertedColumnMeta =
             columns.find((c) => c.cn === colBody.column_name) || ({} as any);

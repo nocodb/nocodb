@@ -257,7 +257,7 @@ export default class Base implements BaseType {
   }
 
   public async getConnectionConfig(): Promise<any> {
-    if (this.is_meta) {
+    if (this.is_meta || this.is_local) {
       const metaConfig = await NcConnectionMgrv2.getDataConfig();
       const config = { ...metaConfig };
       if (config.client === 'sqlite3') {
@@ -265,8 +265,6 @@ export default class Base implements BaseType {
       }
       return config;
     }
-
-    // TODO reuse minimal db connections
 
     const config = JSON.parse(
       CryptoJS.AES.decrypt(
@@ -280,6 +278,17 @@ export default class Base implements BaseType {
       config.connection.filename =
         config.connection.filename || config.connection?.connection.filename;
     }
+
+    return config;
+  }
+
+  public getConfig(): any {
+    const config = JSON.parse(
+      CryptoJS.AES.decrypt(
+        this.config,
+        Noco.getConfig()?.auth?.jwt?.secret,
+      ).toString(CryptoJS.enc.Utf8),
+    );
 
     return config;
   }

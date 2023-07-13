@@ -5,6 +5,7 @@ import Filter from '../models/Filter';
 import { sanitize } from '../helpers/sqlSanitize';
 import genRollupSelectv2 from './genRollupSelectv2';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
+import type { BaseModelSqlv2 } from '../db/BaseModelSqlv2';
 import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
 import type { Knex } from 'knex';
 import type Column from '../models/Column';
@@ -16,6 +17,7 @@ import type FormulaColumn from '../models/FormulaColumn';
 // extend(customParseFormat);
 
 export default async function conditionV2(
+  baseModelSqlv2: BaseModelSqlv2,
   conditionObj: Filter | Filter[],
   qb: Knex.QueryBuilder,
   knex: Knex,
@@ -23,7 +25,7 @@ export default async function conditionV2(
   if (!conditionObj || typeof conditionObj !== 'object') {
     return;
   }
-  (await parseConditionV2(conditionObj, knex))(qb);
+  (await parseConditionV2(baseModelSqlv2, conditionObj, knex))(qb);
 }
 
 function getLogicalOpMethod(filter: Filter) {
@@ -40,6 +42,7 @@ function getLogicalOpMethod(filter: Filter) {
 }
 
 const parseConditionV2 = async (
+  baseModelSqlv2: BaseModelSqlv2,
   _filter: Filter | Filter[],
   knex: Knex,
   aliasCount = { count: 0 },
@@ -53,7 +56,9 @@ const parseConditionV2 = async (
   }
   if (Array.isArray(_filter)) {
     const qbs = await Promise.all(
-      _filter.map((child) => parseConditionV2(child, knex, aliasCount)),
+      _filter.map((child) =>
+        parseConditionV2(baseModelSqlv2, child, knex, aliasCount),
+      ),
     );
 
     return (qbP) => {
@@ -68,7 +73,7 @@ const parseConditionV2 = async (
 
     const qbs = await Promise.all(
       (children || []).map((child) =>
-        parseConditionV2(child, knex, aliasCount),
+        parseConditionV2(baseModelSqlv2, child, knex, aliasCount),
       ),
     );
 
@@ -129,6 +134,7 @@ const parseConditionV2 = async (
         );
         (
           await parseConditionV2(
+            baseModelSqlv2,
             new Filter({
               ...filter,
               ...(filter.comparison_op in negatedMapping
@@ -186,6 +192,7 @@ const parseConditionV2 = async (
         );
         (
           await parseConditionV2(
+            baseModelSqlv2,
             new Filter({
               ...filter,
               ...(filter.comparison_op in negatedMapping
@@ -252,6 +259,7 @@ const parseConditionV2 = async (
 
         (
           await parseConditionV2(
+            baseModelSqlv2,
             new Filter({
               ...filter,
               ...(filter.comparison_op in negatedMapping
@@ -274,19 +282,27 @@ const parseConditionV2 = async (
 
       return (_qb) => {};
     } else if (column.uidt === UITypes.Lookup) {
-      return await generateLookupCondition(column, filter, knex, aliasCount);
+      return await generateLookupCondition(
+        baseModelSqlv2,
+        column,
+        filter,
+        knex,
+        aliasCount,
+      );
     } else if (
       [UITypes.Rollup, UITypes.Links].includes(column.uidt) &&
       !customWhereClause
     ) {
       const builder = (
         await genRollupSelectv2({
+          baseModelSqlv2,
           knex,
           alias,
           columnOptions: (await column.getColOptions()) as RollupColumn,
         })
       ).builder;
       return parseConditionV2(
+        baseModelSqlv2,
         new Filter({ ...filter, value: knex.raw('?', [filter.value]) } as any),
         knex,
         aliasCount,
@@ -297,9 +313,17 @@ const parseConditionV2 = async (
       const model = await column.getModel();
       const formula = await column.getColOptions<FormulaColumn>();
       const builder = (
-        await formulaQueryBuilderv2(formula.formula, null, knex, model, column)
+        await formulaQueryBuilderv2(
+          baseModelSqlv2,
+          formula.formula,
+          null,
+          knex,
+          model,
+          column,
+        )
       ).builder;
       return parseConditionV2(
+        baseModelSqlv2,
         new Filter({ ...filter, value: knex.raw('?', [filter.value]) } as any),
         knex,
         aliasCount,
@@ -779,6 +803,7 @@ function getAlias(aliasCount: { count: number }) {
 
 // todo: refactor child , parent in mm
 async function generateLookupCondition(
+  baseModelSqlv2: BaseModelSqlv2,
   col: Column,
   filter: Filter,
   knex,
@@ -815,6 +840,7 @@ async function generateLookupCondition(
         };
       } else {
         await nestedConditionJoin(
+          baseModelSqlv2,
           {
             ...filter,
             ...(filter.comparison_op in negatedMapping
@@ -848,6 +874,7 @@ async function generateLookupCondition(
         };
       } else {
         await nestedConditionJoin(
+          baseModelSqlv2,
           {
             ...filter,
             ...(filter.comparison_op in negatedMapping
@@ -892,6 +919,7 @@ async function generateLookupCondition(
         };
       } else {
         await nestedConditionJoin(
+          baseModelSqlv2,
           {
             ...filter,
             ...(filter.comparison_op in negatedMapping
@@ -916,6 +944,7 @@ async function generateLookupCondition(
 }
 
 async function nestedConditionJoin(
+  baseModelSqlv2: BaseModelSqlv2,
   filter: Filter,
   lookupColumn: Column,
   qb: Knex.QueryBuilder,
@@ -987,6 +1016,7 @@ async function nestedConditionJoin(
 
     if (lookupColumn.uidt === UITypes.Lookup) {
       await nestedConditionJoin(
+        baseModelSqlv2,
         filter,
         await (
           await lookupColumn.getColOptions<LookupColumn>()
@@ -1002,6 +1032,7 @@ async function nestedConditionJoin(
           {
             (
               await parseConditionV2(
+                baseModelSqlv2,
                 new Filter({
                   ...filter,
                   fk_model_id: childModel.id,
@@ -1018,6 +1049,7 @@ async function nestedConditionJoin(
           {
             (
               await parseConditionV2(
+                baseModelSqlv2,
                 new Filter({
                   ...filter,
                   fk_model_id: parentModel.id,
@@ -1034,6 +1066,7 @@ async function nestedConditionJoin(
           {
             (
               await parseConditionV2(
+                baseModelSqlv2,
                 new Filter({
                   ...filter,
                   fk_model_id: parentModel.id,
@@ -1051,6 +1084,7 @@ async function nestedConditionJoin(
   } else {
     (
       await parseConditionV2(
+        baseModelSqlv2,
         new Filter({
           ...filter,
           fk_model_id: (await lookupColumn.getModel()).id,

@@ -76,6 +76,13 @@ export default class SqlMgrv2 {
     const func = this.sqlOpPlus.name;
     log.api(`${func}:args:`, base, op, opArgs);
 
+    if (base.getConfig()?.schema) {
+      opArgs = {
+        ...opArgs,
+        schema: base.getConfig().schema,
+      };
+    }
+
     // create sql client for this operation
     const sqlClient = await this.getSqlClient(base); //await this.projectGetSqlClient(args);
 

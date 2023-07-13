@@ -173,10 +173,6 @@ export class ProjectsService {
       if (process.env.NC_MINIMAL_DBS === 'true') {
         const dataConfig = await NcConnectionMgrv2.getDataConfig();
         if (dataConfig?.client === 'pg') {
-          const nanoidv2 = customAlphabet(
-            '1234567890abcdefghijklmnopqrstuvwxyz',
-            6,
-          );
           projectBody.prefix = '';
           projectBody.bases = [
             {
@@ -184,9 +180,8 @@ export class ProjectsService {
               is_local: true,
               is_meta: false,
               config: {
-                client: 'pg',
-                connection: dataConfig?.connection,
-                searchPath: [projectId],
+                nc_minimal_dbs: true,
+                schema: projectId,
               },
               inflection_column: 'camelize',
               inflection_table: 'camelize',

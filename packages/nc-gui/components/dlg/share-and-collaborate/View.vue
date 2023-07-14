@@ -3,7 +3,9 @@ import { LoadingOutlined } from '@ant-design/icons-vue'
 import ManageUsers from './ManageUsers.vue'
 import ShareProject from './ShareProject.vue'
 import SharePage from './SharePage.vue'
-
+const { isViewToolbar } = defineProps<{
+  isViewToolbar?: boolean
+}>()
 const router = useRouter()
 const route = router.currentRoute
 
@@ -12,14 +14,14 @@ const { dashboardUrl } = $(useDashboard())
 const { project } = storeToRefs(useProject())
 const { openedPage, nestedPagesOfProjects } = storeToRefs(useDocStore())
 
-let view, $api
-
-try {
-  const store = useSmartsheetStoreOrThrow()
-  view = store.view
-  $api = store.$api
-} catch (e) {
-  console.error(e)
+let view
+if (isViewToolbar) {
+  try {
+    const store = useSmartsheetStoreOrThrow()
+    view = store.view
+  } catch (e) {
+    console.error(e)
+  }
 }
 
 const { formStatus, showShareModal, invitationValid, invitationUsersData, isInvitationLinkCopied } = storeToRefs(useShare())
@@ -80,6 +82,7 @@ watch(showShareModal, (val) => {
     :footer="null"
     :width="formStatus === 'manageCollaborators' ? '60rem' : '40rem'"
   >
+    {{isViewToolbar}}
     <div v-if="formStatus === 'project-collaborateSaving'" class="flex flex-row w-full px-5 justify-between items-center py-1">
       <div class="flex text-base" :style="{ fontWeight: 500 }">Adding Collaborators</div>
       <a-spin :indicator="indicator" />
@@ -88,10 +91,12 @@ watch(showShareModal, (val) => {
       <div class="flex flex-col py-1.5">
         <div class="flex flex-row w-full px-5 justify-between items-center py-0.5">
           <div class="flex text-base" :style="{ fontWeight: 500 }">Collaborators added</div>
-          <div class="flex"><MdiCheck /></div>
+          <div class="flex">
+            <MdiCheck />
+          </div>
         </div>
         <div class="flex flex-row mx-3 mt-2.5 pt-3.5 border-t-1 border-gray-100 justify-end gap-x-2">
-          <a-button type="text" class="!border-1 !border-gray-200 !rounded-md" @click="showShareModal = false">Close</a-button>
+          <a-button type="text" class="!border-1 !border-gray-200 !rounded-md" @click="showShareModal = false">Close </a-button>
           <a-button
             type="text"
             class="!border-1 !border-gray-200 !rounded-md"
@@ -187,8 +192,8 @@ watch(showShareModal, (val) => {
           type="text"
           class="!border-1 !border-gray-200 !rounded-md"
           @click="formStatus = 'manageCollaborators'"
-          >Manage project access</a-button
-        >
+          >Manage project access
+        </a-button>
         <a-button
           v-if="formStatus !== 'project-collaborate'"
           type="text"
@@ -216,6 +221,7 @@ watch(showShareModal, (val) => {
 .share-collapse-item {
   @apply !rounded-lg !mb-2 !mt-4 !border-0;
 }
+
 .ant-collapse {
   @apply !bg-white !border-0;
 }
@@ -226,12 +232,15 @@ watch(showShareModal, (val) => {
   .ant-modal {
     top: 28vh !important;
   }
+
   .ant-collapse-item {
     @apply !border-1 border-gray-200;
   }
+
   .ant-collapse-content {
     @apply !border-t-0;
   }
+
   .ant-collapse-content-box {
     @apply !p-0;
   }
@@ -239,18 +248,23 @@ watch(showShareModal, (val) => {
   .ant-modal-content {
     @apply !rounded-lg !px-1 !py-2;
   }
+
   .ant-select-selector {
     @apply !rounded-md !border-gray-200 !border-1;
   }
+
   .ant-form-item {
     @apply !my-0;
   }
+
   .ant-form-item-explain {
     @apply !ml-3;
   }
+
   .ant-select {
     @apply !p-0.5;
   }
+
   .ant-select-selector {
     @apply !bg-white;
   }

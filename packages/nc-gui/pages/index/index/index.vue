@@ -489,7 +489,7 @@ watch(
           </div>
           <div class="flex-grow"></div>
           <WorkspaceCreateProjectBtn
-            v-if="isUIAllowed('createProject') && tab === 'projects'"
+            v-if="isUIAllowed('createProject', false, activeWorkspace.roles) && tab === 'projects'"
             v-model:is-open="isCreateProjectOpen"
             class="mt-0.75"
             type="primary"

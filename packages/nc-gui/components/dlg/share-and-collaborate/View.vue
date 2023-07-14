@@ -82,7 +82,6 @@ watch(showShareModal, (val) => {
     :footer="null"
     :width="formStatus === 'manageCollaborators' ? '60rem' : '40rem'"
   >
-    {{isViewToolbar}}
     <div v-if="formStatus === 'project-collaborateSaving'" class="flex flex-row w-full px-5 justify-between items-center py-1">
       <div class="flex text-base" :style="{ fontWeight: 500 }">Adding Collaborators</div>
       <a-spin :indicator="indicator" />

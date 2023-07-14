@@ -16,6 +16,7 @@ import { NcError } from '../../helpers/catchError';
 import { Project, ProjectUser } from '../../models';
 import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
 import { extractProps } from '../../helpers/extractProps';
+import extractRolesObj from '../../utils/extractRolesObj';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig } from '../../interface/config';
 
@@ -148,11 +149,9 @@ export class WorkspacesService {
       delete workspace.order;
     }
 
+    const roles = extractRolesObj(user.roles);
     // allow only owner and creator to update anything other that order
-    if (
-      user.roles !== WorkspaceUserRoles.OWNER &&
-      user.roles !== WorkspaceUserRoles.CREATOR
-    )
+    if (!roles[WorkspaceUserRoles.OWNER] && !roles[WorkspaceUserRoles.CREATOR])
       return;
 
     const updateObj = extractProps(workspace, ['title', 'description', 'meta']);

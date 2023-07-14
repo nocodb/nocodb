@@ -30,7 +30,7 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
             class="tabs-menu h-full"
             mode="inline"
           >
-            <div class="text-xs text-gray-500 ml-4 pt-4 pb-2 font-weight-bold">Account Settings</div>
+            <div class="text-xs text-gray-500 ml-4 pt-4 pb-2 font-weight-bold">{{ $t('title.accountSettings') }}</div>
 
             <a-sub-menu key="users" class="!bg-white">
               <template #icon>
@@ -44,10 +44,10 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
                 class="text-xs"
                 @click="navigateTo('/account/users/list')"
               >
-                <span class="ml-4">User Management</span>
+                <span class="ml-4">{{ $t('title.userManagement') }}</span>
               </a-menu-item>
               <a-menu-item key="password-reset" class="text-xs" @click="navigateTo('/account/users/password-reset')">
-                <span class="ml-4">Reset Password</span>
+                <span class="ml-4">{{ $t('title.resetPasswordMenu') }}</span>
               </a-menu-item>
               <a-menu-item
                 v-if="isUIAllowed('superAdminAppSettings')"
@@ -55,7 +55,7 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
                 class="text-xs"
                 @click="navigateTo('/account/users/settings')"
               >
-                <span class="ml-4">Settings</span>
+                <span class="ml-4">{{ $t('activity.settings') }}</span>
               </a-menu-item>
             </a-sub-menu>
 
@@ -67,7 +67,7 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
               <div class="flex items-center space-x-2">
                 <MdiShieldKeyOutline />
 
-                <div class="select-none">Tokens</div>
+                <div class="select-none">{{ $t('title.tokens') }}</div>
               </div>
             </a-menu-item>
             <a-menu-item
@@ -79,7 +79,7 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
               <div class="flex items-center space-x-2">
                 <component :is="iconMap.appStore" />
 
-                <div class="select-none">App Store</div>
+                <div class="select-none">{{ $t('title.appStore') }}</div>
               </div>
             </a-menu-item>
             <a-menu-item
@@ -91,7 +91,7 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
               <div class="flex items-center space-x-2">
                 <component :is="iconMap.key" />
 
-                <div class="select-none">License</div>
+                <div class="select-none">{{ $t('title.licence') }}</div>
               </div>
             </a-menu-item>
           </a-menu>

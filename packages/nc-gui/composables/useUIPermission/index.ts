@@ -1,6 +1,6 @@
-import {isString} from '@vue/shared'
-import {createSharedComposable, rolePermissions, useGlobal, useRoles} from '#imports'
-import type {Permission, ProjectRole, Role} from '~/lib'
+import { isString } from '@vue/shared'
+import { createSharedComposable, rolePermissions, useGlobal, useRoles } from '#imports'
+import type { Permission, ProjectRole, Role } from '~/lib'
 
 const hasPermission = (role: Role | ProjectRole, hasRole: boolean, permission: Permission | string) => {
   const rolePermission = rolePermissions[role]
@@ -21,8 +21,8 @@ const hasPermission = (role: Role | ProjectRole, hasRole: boolean, permission: P
 }
 
 export const useUIPermission = createSharedComposable(() => {
-  const {previewAs} = useGlobal()
-  const {allRoles} = useRoles()
+  const { previewAs } = useGlobal()
+  const { allRoles } = useRoles()
 
   const isUIAllowed = (
     permission: Permission | string,
@@ -51,12 +51,11 @@ export const useUIPermission = createSharedComposable(() => {
     }
 
     if (userRoles && combineWithStateRoles) {
-      roles = {...roles, ...allRoles.value}
+      roles = { ...roles, ...allRoles.value }
     }
-
 
     return Object.entries(roles).some(([role, hasRole]) => hasPermission(role as Role | ProjectRole, hasRole, permission))
   }
 
-  return {isUIAllowed}
+  return { isUIAllowed }
 })

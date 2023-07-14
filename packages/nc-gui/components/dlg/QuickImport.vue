@@ -441,7 +441,7 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
       let value = toRaw(val)
 
       // if array, iterate and unwrap proxy
-      if(Array.isArray(value)) value = value.map(v => toRaw(v))
+      if (Array.isArray(value)) value = value.map((v) => toRaw(v))
 
       const payload = extractImportWorkerPayload(value)
 

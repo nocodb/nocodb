@@ -4,6 +4,7 @@ import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
+import { WorkspaceUserRoles } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   CellClickHookInj,
@@ -73,7 +74,13 @@ const { isPg, isMysql } = useProject()
 const tempSelectedOptState = ref<string>()
 
 const isNewOptionCreateEnabled = computed(
-  () => !isPublic.value && !disableOptionCreation && (hasRole('owner', true) || hasRole('creator', true)),
+  () =>
+    !isPublic.value &&
+    !disableOptionCreation &&
+    (hasRole('owner', true) ||
+      hasRole('creator', true) ||
+      hasRole(WorkspaceUserRoles.OWNER, true) ||
+      hasRole(WorkspaceUserRoles.CREATOR, true)),
 )
 
 const options = computed<(SelectOptionType & { value: string })[]>(() => {
@@ -94,7 +101,15 @@ const isOptionMissing = computed(() => {
   return (options.value ?? []).every((op) => op.title !== searchVal.value)
 })
 
-const hasEditRoles = computed(() => hasRole('owner', true) || hasRole('creator', true) || hasRole('editor', true))
+const hasEditRoles = computed(
+  () =>
+    hasRole('owner', true) ||
+    hasRole('creator', true) ||
+    hasRole('editor', true) ||
+    hasRole(WorkspaceUserRoles.OWNER, true) ||
+    hasRole(WorkspaceUserRoles.CREATOR, true) ||
+    hasRole(WorkspaceUserRoles.EDITOR, true),
+)
 
 const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && active.value)
 

@@ -4,6 +4,7 @@ import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType, SelectOptionsType } from 'nocodb-sdk'
+import { WorkspaceUserRoles } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   CellClickHookInj,
@@ -99,7 +100,15 @@ const isOptionMissing = computed(() => {
   return (options.value ?? []).every((op) => op.title !== searchVal.value)
 })
 
-const hasEditRoles = computed(() => hasRole('owner', true) || hasRole('creator', true) || hasRole('editor', true))
+const hasEditRoles = computed(
+  () =>
+    hasRole('owner', true) ||
+    hasRole('creator', true) ||
+    hasRole('editor', true) ||
+    hasRole(WorkspaceUserRoles.OWNER, true) ||
+    hasRole(WorkspaceUserRoles.CREATOR, true) ||
+    hasRole(WorkspaceUserRoles.EDITOR, true),
+)
 
 const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && active.value)
 
@@ -409,7 +418,10 @@ const selectedOpts = computed(() => {
           isOptionMissing &&
           !isPublic &&
           !disableOptionCreation &&
-          (hasRole('owner', true) || hasRole('creator', true))
+          (hasRole('owner', true) ||
+            hasRole('creator', true) ||
+            hasRole(WorkspaceUserRoles.OWNER, true) ||
+            hasRole(WorkspaceUserRoles.CREATOR, true))
         "
         :key="searchVal"
         :value="searchVal"

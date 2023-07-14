@@ -235,7 +235,8 @@ const emailInput = ref((el) => {
                         <span class="text-gray-500 text-xs whitespace-normal">
                           {{ $t('msg.info.roles.workspaceLevelEditor') }}
                         </span>
-                      </a-select-option>              <a-select-option
+                      </a-select-option>
+                      <a-select-option
                         class="nc-role-option"
                         :value="WorkspaceUserRoles.COMMENTER"
                         :label="$t(`objects.roleType.workspaceLevelCommenter`)"

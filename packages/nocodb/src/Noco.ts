@@ -90,7 +90,7 @@ export default class Noco {
   }
 
   public static isEE(): boolean {
-    return Noco.ee;
+    return Noco.ee || process.env.NC_CLOUD === 'true';
   }
 
   public static async loadEEState(): Promise<boolean> {

@@ -266,12 +266,7 @@ export default class Base implements BaseType {
       return config;
     }
 
-    const config = JSON.parse(
-      CryptoJS.AES.decrypt(
-        this.config,
-        Noco.getConfig()?.auth?.jwt?.secret,
-      ).toString(CryptoJS.enc.Utf8),
-    );
+    const config = this.getConfig();
 
     // todo: update sql-client args
     if (config?.client === 'sqlite3') {

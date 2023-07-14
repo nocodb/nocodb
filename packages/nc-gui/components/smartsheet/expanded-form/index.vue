@@ -56,6 +56,8 @@ const meta = toRef(props, 'meta')
 
 const router = useRouter()
 
+const { isUIAllowed } = useUIPermission()
+
 // override cell click hook to avoid unexpected behavior at form fields
 provide(CellClickHookInj, null)
 
@@ -288,7 +290,7 @@ export default {
   <a-drawer
     v-model:visible="isExpanded"
     :footer="null"
-    :width="commentsDrawer ? 'min(90vw,900px)' : 'min(90vw,700px)'"
+    :width="commentsDrawer && isUIAllowed('commentList') ? 'min(90vw,900px)' : 'min(90vw,700px)'"
     :body-style="{ 'padding': 0, 'display': 'flex', 'flex-direction': 'column' }"
     :closable="false"
     class="nc-drawer-expanded-form"
@@ -353,9 +355,13 @@ export default {
           </div>
         </div>
 
-        <div v-if="!isNew" class="nc-comments-drawer min-w-0 min-h-full max-h-full" :class="{ active: commentsDrawer }">
+        <div
+          v-if="!isNew"
+          class="nc-comments-drawer min-w-0 min-h-full max-h-full"
+          :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
+        >
           <div class="h-full">
-            <LazySmartsheetExpandedFormComments v-if="commentsDrawer" />
+            <LazySmartsheetExpandedFormComments v-if="commentsDrawer && isUIAllowed('commentList')" />
           </div>
         </div>
       </div>

@@ -55,6 +55,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
+  const { isUIAllowed } = useUIPermission()
+
   // getters
   const displayValue = computed(() => {
     if (row?.value?.row) {
@@ -95,6 +97,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   // actions
   const loadCommentsAndLogs = async () => {
+    if (!isUIAllowed('commentList')) return
+
     if (!row.value) return
 
     const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])

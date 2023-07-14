@@ -68,6 +68,8 @@ const rolePermissions = {
       projectSettings: true,
       newUser: false,
       commentEditable: true,
+      commentList: true,
+      commentsCount: true,
     },
   },
   [ProjectRole.Commenter]: {
@@ -77,6 +79,8 @@ const rolePermissions = {
       rowComments: true,
       projectSettings: true,
       commentEditable: true,
+      commentList: true,
+      commentsCount: true,
     },
   },
   [ProjectRole.Viewer]: {

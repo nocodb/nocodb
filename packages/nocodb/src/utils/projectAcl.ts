@@ -14,7 +14,7 @@ const viewerPermissions = {
     dataExist: true,
     dataFindOne: true,
     dataGroupBy: true,
-    commentsCount: true,
+    // commentsCount: process.env.NC_CLOUD !== 'true',
     exportCsv: true,
     exportExcel: true,
 
@@ -30,7 +30,7 @@ const viewerPermissions = {
 
     mmList: true,
     hmList: true,
-    commentList: true,
+    // commentList: process.env.NC_CLOUD !== 'true',
     commentRow: false,
 
     xcTableAndViewList: true,

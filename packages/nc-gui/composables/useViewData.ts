@@ -180,6 +180,8 @@ export function useViewData(
 
   /** load row comments count */
   async function loadAggCommentsCount() {
+    if (!isUIAllowed('commentsCount')) return
+
     if (isPublic.value || isSharedBase.value) return
 
     const ids = formattedData.value

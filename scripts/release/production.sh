@@ -33,7 +33,7 @@ DEPLOY_OUT=$(aws ecs update-service --cluster nocohub-001-a --service nocohub-no
 # check if all deployments in the service is set to COMPLETED
 STATUS="IN_PROGRESS";
 retry_count=0
-while [[ ${retry_count} -lt 10 &&  "${STATUS}" == *"IN_PROGRESS"* ]]
+while [[ ${retry_count} -lt 20 &&  "${STATUS}" == *"IN_PROGRESS"* ]]
 do 
 	STATUS=$(aws ecs describe-services --cluster nocohub-001-a --service nocohub-nocodb_ai_main --region us-east-2 | jq .services[].deployments[].rolloutState -r)    
 	retry_count=$((retry_count+1)) 	

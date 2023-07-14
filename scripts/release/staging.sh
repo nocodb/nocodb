@@ -25,7 +25,7 @@ aws ecs update-service --cluster nocodb-staging --service nocohub-wj1dqpgolupckb
 # check if all deployments in the service is set to COMPLETED
 STATUS="IN_PROGRESS";
 retry_count=0
-while [[ ${retry_count} -lt 10 &&  "${STATUS}" == *"IN_PROGRESS"* ]]
+while [[ ${retry_count} -lt 20 &&  "${STATUS}" == *"IN_PROGRESS"* ]]
 do 
 	STATUS=$(aws ecs describe-services --cluster nocodb-staging --service nocohub-noco_to_main --region us-east-2 | jq .services[].deployments[].rolloutState -r)    
 	retry_count=$((retry_count+1)) 	

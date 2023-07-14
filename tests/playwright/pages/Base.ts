@@ -28,20 +28,21 @@ export default abstract class BasePage {
     httpMethodsToMatch?: string[];
     responseJsonMatcher?: ResponseSelector;
   }) {
-    // trigger UI action first
-    await uiAction();
-    // wait for response
-    const res = await this.rootPage.waitForResponse(
-      res =>
-        res.url().includes(requestUrlPathToMatch) &&
-        res.status() === 200 &&
-        httpMethodsToMatch.includes(res.request().method())
-    );
+    const [res] = await Promise.all([
+      this.rootPage.waitForResponse(
+        res =>
+          res.url().includes(requestUrlPathToMatch) &&
+          res.status() === 200 &&
+          httpMethodsToMatch.includes(res.request().method())
+      ),
+      uiAction(),
+    ]);
+
     // handle JSON matcher if provided
     let isResJsonMatched = true;
     if (responseJsonMatcher) {
       try {
-        isResJsonMatched = responseJsonMatcher(await res.json());
+        isResJsonMatched = responseJsonMatcher(res.json());
       } catch {
         isResJsonMatched = false;
       }

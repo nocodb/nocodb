@@ -134,7 +134,7 @@ const onConfirmDeleteRowClick = async () => {
       <component :is="iconMap.threeDotVertical" class="nc-icon-transition" />
       <template #overlay>
         <a-menu>
-          <a-menu-item v-if="!isNew" @click="loadRow">
+          <a-menu-item v-if="!isNew" @click="loadRow()">
             <div v-e="['c:row-expand:reload']" class="py-2 flex gap-2 items-center">
               <component
                 :is="iconMap.reload"

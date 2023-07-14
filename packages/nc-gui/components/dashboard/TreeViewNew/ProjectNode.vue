@@ -498,11 +498,11 @@ onKeyStroke('Escape', () => {
                     </div>
                   </a-menu-item>
                 </template>
+                <template v-if="project.bases && project.bases[0]">
+                  <DashboardTreeViewNewBaseOptions v-model:project="project" :base="project.bases[0]" />
 
-                <DashboardTreeViewNewBaseOptions v-model:project="project" :base="project.bases[0]" />
-
-                <a-menu-divider />
-
+                  <a-menu-divider />
+                </template>
                 <!-- Team & Settings -->
                 <a-menu-item key="teamAndSettings">
                   <div

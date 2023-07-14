@@ -43,6 +43,17 @@ export class WorkspaceUsersService {
 
     if (!user) NcError.notFound('User not found');
 
+    if (
+      ![
+        WorkspaceUserRoles.CREATOR,
+        WorkspaceUserRoles.VIEWER,
+        WorkspaceUserRoles.EDITOR,
+        WorkspaceUserRoles.COMMENTER,
+      ].includes(param.roles)
+    ) {
+      NcError.badRequest('Invalid role');
+    }
+
     await WorkspaceUser.update(param.workspaceId, param.userId, {
       roles: param.roles,
     });
@@ -79,8 +90,12 @@ export class WorkspaceUsersService {
     }
 
     if (
-      roles !== WorkspaceUserRoles.CREATOR &&
-      roles !== WorkspaceUserRoles.VIEWER
+      ![
+        WorkspaceUserRoles.CREATOR,
+        WorkspaceUserRoles.VIEWER,
+        WorkspaceUserRoles.EDITOR,
+        WorkspaceUserRoles.COMMENTER,
+      ].includes(roles)
     ) {
       NcError.badRequest('Invalid role');
     }

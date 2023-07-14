@@ -484,14 +484,14 @@ watch(
         <div class="text-gray-300 text-lg">Please wait while we set up your workspace</div>
       </div>
       <div v-else-if="activeWorkspace" class="flex flex-col pt-7">
-        <div class="pl-8 pr-7 flex items-center mb-7 h-8">
-          <div class="flex gap-2 items-center">
+        <div class="pl-8 pr-7 flex items-center mb-7 h-8  max-w-full ">
+          <div class="flex gap-2 items-center min-w-0">
             <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
               {{ activeWorkspace?.title?.slice(0, 2) }}
             </span>
-            <h1 class="text-3xl font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title">{{ activeWorkspace?.title }}</h1>
+            <h1 class="text-3xl font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title truncate min-w-10">{{ activeWorkspace?.title }}</h1>
           </div>
-          <div class="flex-grow"></div>
+          <div class="flex-grow min-w-10"></div>
           <WorkspaceCreateProjectBtn
             v-if="isUIAllowed('createProject', false, activeWorkspace.roles) && tab === 'projects'"
             v-model:is-open="isCreateProjectOpen"

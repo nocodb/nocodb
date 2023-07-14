@@ -44,6 +44,8 @@ const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useUIPermission()
 
+const activeView = inject(ActiveViewInj, ref())
+
 const isLocked = inject(IsLockedInj, ref(false))
 
 /** Is editing the view name enabled */
@@ -196,12 +198,20 @@ function onStopEdit() {
         v-if="isEditing"
         :ref="focusInput"
         v-model:value="vModel.title"
+        class="!bg-transparent !text-xs !border-0 !ring-0 !outline-transparent !border-transparent"
+        :class="{
+          'font-medium': activeView?.id === vModel.id,
+        }"
         @blur="onRename"
         @keydown.stop="onKeyDown($event)"
       />
 
-      <div v-else>
-        <LazyGeneralTruncateText>{{ vModel.alias || vModel.title }}</LazyGeneralTruncateText>
+      <div
+        v-else
+        class="capitalize text-ellipsis overflow-hidden select-none w-full"
+        :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+      >
+        {{ vModel.alias || vModel.title }}
       </div>
 
       <div class="flex-1" />

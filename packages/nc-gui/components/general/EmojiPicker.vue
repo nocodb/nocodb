@@ -17,7 +17,15 @@ const emit = defineEmits(['emojiSelected'])
 const { emoji: initialEmoji, size = 'medium', readonly, clearable = true } = props
 
 const isOpen = ref(false)
-const emojiIndex = new EmojiIndex(data)
+const emojiIndex = new EmojiIndex(data, {
+  emojisToShowFilter: (emoji: any) => {
+    if (Number(emoji.added_in) >= 14) {
+      return false
+    }
+
+    return true
+  },
+})
 const emoji = ref(initialEmoji || '')
 
 function selectEmoji(_emoji: any) {
@@ -151,7 +159,7 @@ const showClearButton = computed(() => {
   }
 
   .emoji-mart-scroll {
-    @apply mt-1 pl-1 pr-2 overflow-x-hidden;
+    @apply mt-1 px-1 overflow-x-hidden;
 
     h3.emoji-mart-category-label {
       @apply text-xs text-gray-500 mb-0;

@@ -19,7 +19,7 @@ import { NcError } from '../../helpers/catchError';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
 import { randomTokenString } from '../../helpers/stringHelpers';
 import { MetaService, MetaTable } from '../../meta/meta.service';
-import { Audit, Store, User, Workspace, WorkspaceUser } from '../../models';
+import {  Store, User, Workspace, WorkspaceUser } from '../../models';
 import Noco from '../../Noco';
 import { AppHooksService } from '../app-hooks/app-hooks.service';
 import { genJwt, setTokenCookie } from './helpers';

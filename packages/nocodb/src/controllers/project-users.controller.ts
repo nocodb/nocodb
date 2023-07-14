@@ -12,11 +12,10 @@ import {
 } from '@nestjs/common';
 import { ProjectUserReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '../guards/global/global.guard';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
+import { Acl } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { ProjectUsersService } from '../services/project-users/project-users.service';
+import { User, WorkspaceUser } from '../models';
+import { NcError } from '../helpers/catchError';
 
 @UseGuards(GlobalGuard)
 @Controller()
@@ -42,6 +41,24 @@ export class ProjectUsersController {
     @Request() req,
     @Body() body: ProjectUserReqType,
   ): Promise<any> {
+
+    // todo: move this to a service
+    if (!body.email) {
+      NcError.badRequest('Email is required');
+    }
+
+    const user = await User.getByEmail(body.email);
+
+    if (!user) {
+      NcError.badRequest('Only user belonging to the workspace can be invited');
+    }
+
+    const workspaceUser = await WorkspaceUser.get(req.ncWorkspaceId, user.id);
+
+    if (!workspaceUser) {
+      NcError.badRequest('Only user belonging to the workspace can be invited');
+    }
+
     return await this.projectUsersService.userInvite({
       projectId,
       projectUser: body,

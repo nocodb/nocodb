@@ -140,14 +140,18 @@ const deleteWorkspace = (workspace: WorkspaceType) => {
     title: 'Are you sure you want to delete this workspace?',
     type: 'warn',
     onOk: async () => {
-      await _deleteWorkspace(workspace.id!)
-      await loadWorkspaces()
+      try {
+        await _deleteWorkspace(workspace.id!)
+        await loadWorkspaces()
 
-      if (!workspacesList.value?.[0]?.id) {
-        return await navigateToWorkspace()
+        if (!workspacesList.value?.[0]?.id) {
+          return await navigateToWorkspace()
+        }
+
+        await navigateToWorkspace(workspacesList.value?.[0]?.id)
+      } catch (e) {
+        message.error(await extractSdkResponseErrorMsg(e))
       }
-
-      await navigateToWorkspace(workspacesList.value?.[0]?.id)
     },
   })
 }
@@ -446,14 +450,14 @@ watch(
                   </div>
                   <template #overlay>
                     <a-menu>
-                      <a-menu-item v-if="isUIAllowed('workspaceDelete', true, workspace.roles)" @click="enableEdit(i)">
+                      <a-menu-item v-if="isUIAllowed('workspaceRename', true, workspace.roles)" @click="enableEdit(i)">
                         <div class="nc-menu-item-wrapper">
                           <MdiPencil class="text-gray-500 text-primary" />
                           Rename Workspace
                         </div>
                       </a-menu-item>
                       <a-menu-item
-                        v-if="isUIAllowed('workspaceRename', true, workspace.roles)"
+                        v-if="isUIAllowed('workspaceDelete', true, workspace.roles)"
                         @click="deleteWorkspace(workspace)"
                       >
                         <div class="nc-menu-item-wrapper text-red-600">

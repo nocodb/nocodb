@@ -90,7 +90,12 @@ const rolePermissions = {
 
 // todo: fix type error
 rolePermissions[WorkspaceUserRoles.OWNER] = rolePermissions[ProjectRole.Owner]
-rolePermissions[WorkspaceUserRoles.CREATOR] = rolePermissions[ProjectRole.Creator]
+rolePermissions[WorkspaceUserRoles.CREATOR] = {
+  exclude: {
+    ...rolePermissions[ProjectRole.Creator].exclude,
+    workspaceDelete: true,
+  },
+}
 rolePermissions[WorkspaceUserRoles.VIEWER] = rolePermissions[ProjectRole.Viewer]
 rolePermissions[WorkspaceUserRoles.EDITOR] = rolePermissions[ProjectRole.Editor]
 rolePermissions[WorkspaceUserRoles.COMMENTER] = rolePermissions[ProjectRole.Commenter]

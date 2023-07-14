@@ -756,7 +756,9 @@ watch(view, (nextView) => {
             </Draggable>
 
             <div class="justify-center flex mt-6">
-              <button type="submit" class="uppercase scaling-btn nc-form-submit" data-testid="nc-form-submit" @click="submitForm">
+              <button type="submit"
+                      :disabled="!isUIAllowed('dataInsert')"
+                      class="uppercase scaling-btn nc-form-submit" data-testid="nc-form-submit" @click="submitForm">
                 {{ $t('general.submit') }}
               </button>
             </div>

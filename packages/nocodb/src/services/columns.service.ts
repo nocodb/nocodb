@@ -138,13 +138,10 @@ export class ColumnsService {
               id: table.id,
               dbDriver: await NcConnectionMgrv2.get(base),
             });
-            // test the query to see if it is valid in db level
-            const dbDriver = await NcConnectionMgrv2.get(base);
             await formulaQueryBuilderv2(
               baseModel,
               colBody.formula,
               null,
-              dbDriver,
               table,
               null,
               {},
@@ -975,13 +972,10 @@ export class ColumnsService {
             id: table.id,
             dbDriver: await NcConnectionMgrv2.get(base),
           });
-          // test the query to see if it is valid in db level
-          const dbDriver = await NcConnectionMgrv2.get(base);
           await formulaQueryBuilderv2(
             baseModel,
             colBody.formula,
             null,
-            dbDriver,
             table,
             null,
             {},

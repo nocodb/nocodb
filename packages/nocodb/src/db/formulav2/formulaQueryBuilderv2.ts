@@ -9,7 +9,6 @@ import {
 } from '../../helpers/formulaFnHelper';
 import { CacheGetType, CacheScope } from '../../utils/globals';
 import NocoCache from '../../cache/NocoCache';
-import type { XKnex } from '../CustomKnex';
 import type Column from '../../models/Column';
 import type Model from '../../models/Model';
 import type RollupColumn from '../../models/RollupColumn';
@@ -56,11 +55,11 @@ async function _formulaQueryBuilder(
   baseModelSqlv2: BaseModelSqlv2,
   _tree,
   alias,
-  knex: XKnex,
   model: Model,
   aliasToColumn: Record<string, () => Promise<{ builder: any }>> = {},
   tableAlias?: string,
 ) {
+  const knex = baseModelSqlv2.dbDriver;
   // formula may include double curly brackets in previous version
   // convert to single curly bracket here for compatibility
   const tree = jsep(_tree.replaceAll('{{', '{').replaceAll('}}', '}'));
@@ -80,7 +79,6 @@ async function _formulaQueryBuilder(
               baseModelSqlv2,
               formulOption.formula,
               alias,
-              knex,
               model,
               { ...aliasToColumn, [col.id]: null },
               tableAlias,
@@ -367,7 +365,6 @@ async function _formulaQueryBuilder(
                     baseModelSqlv2,
                     formulaOption.formula,
                     '',
-                    knex,
                     lookupModel,
                     aliasToColumn,
                   );
@@ -902,13 +899,13 @@ export default async function formulaQueryBuilderv2(
   baseModelSqlv2: BaseModelSqlv2,
   _tree,
   alias,
-  knex: XKnex,
   model: Model,
   column?: Column,
   aliasToColumn = {},
   tableAlias?: string,
   validateFormula = false,
 ) {
+  const knex = baseModelSqlv2.dbDriver;
   // register jsep curly hook once only
   jsep.plugins.register(jsepCurlyHook);
   // generate qb
@@ -916,7 +913,6 @@ export default async function formulaQueryBuilderv2(
     baseModelSqlv2,
     _tree,
     alias,
-    knex,
     model,
     aliasToColumn,
     tableAlias,

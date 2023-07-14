@@ -5,7 +5,6 @@ import genRollupSelectv2 from './genRollupSelectv2';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import type { BaseModelSqlv2 } from './BaseModelSqlv2';
 import type { Knex } from 'knex';
-import type { XKnex } from '../db/CustomKnex';
 import type {
   FormulaColumn,
   LinkToAnotherRecordColumn,
@@ -17,8 +16,9 @@ export default async function sortV2(
   baseModelSqlv2: BaseModelSqlv2,
   sortList: Sort[],
   qb: Knex.QueryBuilder,
-  knex: XKnex,
 ) {
+  const knex = baseModelSqlv2.dbDriver;
+
   if (!sortList?.length) {
     return;
   }
@@ -60,7 +60,6 @@ export default async function sortV2(
                 await column.getColOptions<FormulaColumn>()
               ).formula,
               null,
-              knex,
               model,
               column,
             )
@@ -174,7 +173,6 @@ export default async function sortV2(
                         await column.getColOptions<FormulaColumn>()
                       ).formula,
                       null,
-                      knex,
                       model,
                       column,
                     )

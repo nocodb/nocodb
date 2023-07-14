@@ -180,7 +180,6 @@ export class ProjectsService {
               is_local: true,
               is_meta: false,
               config: {
-                nc_minimal_dbs: true,
                 schema: projectId,
               },
               inflection_column: 'camelize',

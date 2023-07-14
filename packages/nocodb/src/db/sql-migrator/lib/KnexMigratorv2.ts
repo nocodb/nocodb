@@ -388,7 +388,7 @@ export default class KnexMigratorv2 {
       await sqlClient.createDatabaseIfNotExists({
         database: connectionConfig.connection.user,
       });
-    } else if (base.getConfig()?.nc_minimal_dbs) {
+    } else if (base.is_local && base.type === 'pg') {
       this.emit(
         `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.database}`,
       );

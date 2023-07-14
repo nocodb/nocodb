@@ -1,6 +1,6 @@
 import { Injectable, SetMetadata, UseInterceptors } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { OrgUserRoles, WorkspacePlan, WorkspaceStatus } from 'nocodb-sdk';
+import {OrgUserRoles, ProjectRoles, WorkspacePlan, WorkspaceStatus, WorkspaceUserRoles} from 'nocodb-sdk';
 import { map } from 'rxjs';
 import {
   Column,
@@ -28,6 +28,35 @@ import type {
   NestInterceptor,
   NestMiddleware,
 } from '@nestjs/common';
+
+const labels = {
+  [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
+  [OrgUserRoles.CREATOR]: 'Org Creator',
+  [OrgUserRoles.VIEWER]: 'Org Viewer',
+  [WorkspaceUserRoles.OWNER]: 'Workspace Owner',
+  [WorkspaceUserRoles.CREATOR]: 'Workspace Creator',
+  [WorkspaceUserRoles.VIEWER]: 'Workspace Viewer',
+  [WorkspaceUserRoles.EDITOR]: 'Workspace Editor',
+  [WorkspaceUserRoles.COMMENTER]: 'Workspace Commenter',
+  [ProjectRoles.OWNER]: 'Project Owner',
+  [ProjectRoles.CREATOR]: 'Project Creator',
+  [ProjectRoles.VIEWER]: 'Project Viewer',
+  [ProjectRoles.EDITOR]: 'Project Editor',
+  [ProjectRoles.COMMENTER]: 'Project Commenter',
+};
+
+export function getRolesLabels(
+  roles: (OrgUserRoles | WorkspaceUserRoles | ProjectRoles | string)[],
+) {
+  return roles
+    .filter(
+      (role) =>
+        ![OrgUserRoles.CREATOR, OrgUserRoles.VIEWER].includes(
+          role as OrgUserRoles,
+        ),
+    )
+    .map((role) => labels[role]);
+}
 
 // todo: refactor name since we are using it as auth guard
 @Injectable()
@@ -214,9 +243,9 @@ export class AclMiddleware implements NestInterceptor {
       });
     if (!isAllowed) {
       NcError.forbidden(
-        `${permissionName} - ${Object.keys(roles).filter(
+        `${permissionName} - ${getRolesLabels(Object.keys(roles).filter(
           (k) => roles[k],
-        )} : Not allowed`,
+        ))} : Not allowed`,
       );
     }
 

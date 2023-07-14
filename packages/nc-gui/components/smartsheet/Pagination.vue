@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { ChangePageInj, PaginationDataInj, computed, iconMap, inject, useGlobal } from '#imports'
-import type { StoredState } from '~/composables/useGlobal/types'
+import { ChangePageInj, PaginationDataInj, computed, iconMap, inject, isRtlLang, useI18n } from '#imports'
+import type { Language } from '~/lib'
 
 const props = defineProps<{
   alignCountOnRight?: boolean
 }>()
 
-const { lang } = useGlobal()
-const rtlLanguages: Array<StoredState['lang']> = ['ar', 'fa']
+const { locale } = useI18n()
 
 const paginatedData = inject(PaginationDataInj)!
 
@@ -24,7 +23,7 @@ const page = computed({
   },
 })
 
-const isRTLLanguage = computed(() => rtlLanguages.includes(lang.value))
+const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Language))
 </script>
 
 <template>

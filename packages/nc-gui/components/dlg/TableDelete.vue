@@ -100,7 +100,7 @@ const onDelete = async () => {
       <div v-if="table" class="flex flex-row items-center py-2 px-3.75 bg-gray-50 rounded-lg text-gray-700 mb-4">
         <GeneralTableIcon :meta="table" class="nc-view-icon"></GeneralTableIcon>
         <div
-          class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1"
+          class="capitalize text-ellipsis overflow-hidden select-none w-full pl-2"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
         >
           {{ table.title }}
@@ -108,7 +108,7 @@ const onDelete = async () => {
       </div>
 
       <div class="flex flex-row items-center py-2 px-3 border-1 border-gray-100 rounded-lg text-gray-700">
-        <GeneralIcon icon="warning" class="text-orange-500 pl-1"></GeneralIcon>
+        <GeneralIcon icon="warning" class="text-orange-500 pl-2"></GeneralIcon>
         <div class="pl-1.25 text-gray-500">This action cannot be undone</div>
       </div>
 
@@ -123,7 +123,7 @@ const onDelete = async () => {
           :loading="isLoading"
           @click="onDelete"
         >
-          {{ $t('general.submit') }}
+          {{ $t('general.delete') }} {{ $t('objects.table') }}
         </a-button>
       </div>
     </div>

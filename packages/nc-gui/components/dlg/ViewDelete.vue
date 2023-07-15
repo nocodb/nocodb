@@ -93,7 +93,7 @@ async function onDelete() {
           :loading="isLoading"
           @click="onDelete"
         >
-          {{ $t('general.submit') }}
+          {{ $t('general.delete') }} {{ $t('objects.view') }}
         </a-button>
       </div>
     </div>

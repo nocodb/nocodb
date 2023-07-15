@@ -46,7 +46,7 @@ const onDelete = async () => {
       <div v-if="project" class="flex flex-row items-center py-2 px-3.75 bg-gray-50 rounded-lg text-gray-700 mb-4">
         <GeneralProjectIcon :type="project.type" class="nc-view-icon px-1.5"></GeneralProjectIcon>
         <div
-          class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1"
+          class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.5"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
         >
           {{ project.title }}
@@ -55,7 +55,7 @@ const onDelete = async () => {
 
       <div class="flex flex-row items-center py-2 px-3 border-1 border-gray-100 rounded-lg text-gray-700">
         <GeneralIcon icon="warning" class="text-orange-500 pl-1"></GeneralIcon>
-        <div class="pl-1.25 text-gray-500">This action cannot be undone</div>
+        <div class="pl-1.75 text-gray-500">This action cannot be undone</div>
       </div>
 
       <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 border-t-1 border-gray-50 justify-end">
@@ -69,7 +69,7 @@ const onDelete = async () => {
           :loading="isLoading"
           @click="onDelete"
         >
-          {{ $t('general.submit') }}
+          {{ $t('general.delete') }} {{ $t('objects.project') }}
         </a-button>
       </div>
     </div>

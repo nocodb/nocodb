@@ -1,8 +1,9 @@
-import { expect, Page } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 import BasePage from '../Base';
 import { HeaderPage } from './HeaderPage';
 import { LeftSideBarPage } from './LeftSideBarPage';
 import { ContainerPage } from './ContainerPage';
+import { CollaborationPage } from './CollaborationPage';
 
 /*
   Workspace page
@@ -19,12 +20,14 @@ export class WorkspacePage extends BasePage {
   readonly Header: HeaderPage;
   readonly LeftSideBar: LeftSideBarPage;
   readonly Container: ContainerPage;
+  readonly collaboration: CollaborationPage;
 
   constructor(rootPage: Page) {
     super(rootPage);
     this.Header = new HeaderPage(this);
     this.LeftSideBar = new LeftSideBarPage(this);
     this.Container = new ContainerPage(this);
+    this.collaboration = new CollaborationPage(this);
   }
 
   get() {

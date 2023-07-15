@@ -39,10 +39,20 @@ export class ContainerPage extends BasePage {
   readonly workspace: WorkspacePage;
   readonly newProjectButton: Locator;
 
+  // tabs
+  readonly projects: Locator;
+  readonly collaborators: Locator;
+  readonly billing: Locator;
+
   constructor(workspace: WorkspacePage) {
     super(workspace.rootPage);
     this.workspace = workspace;
     this.newProjectButton = this.get().locator('button:has-text("New Project")');
+
+    // tabs
+    this.projects = this.get().locator('.ant-tabs-tab:has-text("Projects")');
+    this.collaborators = this.get().locator('.ant-tabs-tab:has-text("Collaborators")');
+    this.billing = this.get().locator('.ant-tabs-tab:has-text("Billing")');
   }
 
   get() {

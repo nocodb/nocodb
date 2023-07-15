@@ -21,7 +21,7 @@ export class CollaborationPage extends BasePage {
     this.workspace = workspace;
     this.button_addUser = this.get().locator('button.ant-btn.ant-btn-primary');
     this.input_email = this.get().locator('input[id="email"]');
-    this.selector_role = this.get().locator('.ant-select');
+    this.selector_role = this.get().locator('[data-testid="invite"] >> [data-testid="roles"]');
     this.list_collaborators = this.get().locator('.nc-collaborators-list-table');
   }
 
@@ -41,10 +41,11 @@ export class CollaborationPage extends BasePage {
 
     // role
     await this.selector_role.click();
-    await this.rootPage.locator(`.ant-select-item-option-content:has-text("${role}")`).click();
+    await this.rootPage.locator(`.ant-select-item-option-content:has-text("${role}"):visible`).click();
 
     // submit
     await this.button_addUser.click();
+    await this.verifyToast({ message: 'Invitation sent successfully' });
   }
 
   async getCollaboratorsCount() {

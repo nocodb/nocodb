@@ -81,8 +81,8 @@ const contextMenuTarget = reactive<{ type?: 'project' | 'base' | 'table' | 'main
 const activeKey = ref<string[]>([])
 const [searchActive] = useToggle()
 const filterQuery = $ref('')
-const { deleteTable } = useTable()
 const keys = $ref<Record<string, number>>({})
+const isTableDeleteDialogVisible = ref(false)
 
 // If only project is open, i.e in case of docs, project view is open and not the page view
 const projectViewOpen = computed(() => {
@@ -699,7 +699,7 @@ onKeyStroke('Escape', () => {
             </div>
           </a-menu-item>
 
-          <a-menu-item v-if="isUIAllowed('table-delete')" @click="deleteTable(contextMenuTarget.value)">
+          <a-menu-item v-if="isUIAllowed('table-delete')" @click="isTableDeleteDialogVisible = true">
             <div class="nc-project-menu-item">
               {{ $t('general.delete') }}
             </div>
@@ -716,6 +716,7 @@ onKeyStroke('Escape', () => {
       </a-menu>
     </template>
   </a-dropdown>
+  <DlgTableDelete v-model:visible="isTableDeleteDialogVisible" :table-id="contextMenuTarget.value?.id" />
 </template>
 
 <style lang="scss" scoped>

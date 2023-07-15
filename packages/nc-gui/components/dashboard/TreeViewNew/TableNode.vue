@@ -46,6 +46,8 @@ const tables = computed(() => projectTables.value.get(project.id!) ?? [])
 
 const openedTableId = computed(() => route.params.viewId)
 
+const isTableDeleteDialogVisible = ref(false)
+
 const icon = (table: TableType) => {
   if (table.type === 'table') {
     return iconMap.table
@@ -206,7 +208,7 @@ const isMultiBase = computed(() => project.bases && project.bases.length > 1)
               <a-menu-item
                 v-if="isUIAllowed('table-delete', false, projectRole)"
                 :data-testid="`sidebar-table-delete-${table.title}`"
-                @click="deleteTable(table)"
+                @click="isTableDeleteDialogVisible = true"
               >
                 <div class="nc-project-menu-item text-red-600">
                   <GeneralIcon icon="delete2" class="text-gray-500 text-error" />
@@ -219,6 +221,7 @@ const isMultiBase = computed(() => project.bases && project.bases.length > 1)
       </div>
     </GeneralTooltip>
   </div>
+  <DlgTableDelete v-model:visible="isTableDeleteDialogVisible" :table-id="table.id" />
 </template>
 
 <style scoped lang="scss">

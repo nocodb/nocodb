@@ -18,10 +18,12 @@ import MdiEyeCircleOutline from '~icons/mdi/eye-circle-outline'
 import MsAddBoxOutline from '~icons/nc-icons/add-box'
 import MsDownloadRounded from '~icons/nc-icons/download'
 import LogosAirtable from '~icons/logos/airtable'
+import MaterialSymbolsEdit from '~icons/material-symbols/edit-outline-rounded'
+import MaterialDuplicate from '~icons/material-symbols/file-copy-outline-rounded'
 import MaterialSymbolsWarningOutlineRounded from '~icons/material-symbols/warning-outline-rounded'
 import PhLayout from '~icons/ph/layout'
 import Copy from '~icons/material-symbols/content-copy-outline'
-import Delete from '~icons/material-symbols/delete-outline'
+import Delete from '~icons/material-symbols/delete-outline-rounded'
 import PhEye from '~icons/ph/eye'
 import CiFilter from '~icons/mdi/filter-outline'
 import Gallery from '~icons/ph/image-square-bold'
@@ -272,7 +274,7 @@ export const iconMap = {
   minus: Minus,
   search: h('span', { class: 'material-symbols' }, 'search'),
   copy: Copy,
-  duplicate: h('span', { class: 'material-symbols' }, 'file_copy'),
+  duplicate: MaterialDuplicate,
   clipboard: h('span', { class: 'material-symbols' }, 'content_paste'),
   settings: h('span', { class: 'material-symbols' }, 'settings'),
   image: h('span', { class: 'material-symbols' }, 'image'),
@@ -294,9 +296,9 @@ export const iconMap = {
   code: Code,
   palette: h(Palette, {}, 'palette'),
   delete: Delete,
-  delete2: h('span', { class: 'material-symbols' }, 'delete'),
+  delete2: Delete,
   import: h('span', { class: 'material-symbols' }, 'system_update_alt'),
-  edit: h('span', { class: 'material-symbols' }, 'edit'),
+  edit: MaterialSymbolsEdit,
   lookup: h('span', { class: 'material-symbols' }, 'search'),
   text: h('span', { class: 'material-symbols', style: 'font-weight: 600' }, 'text_fields'),
   longText: h('span', { class: 'material-symbols' }, 'text_format'),

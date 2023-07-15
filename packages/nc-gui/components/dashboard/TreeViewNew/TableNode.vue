@@ -193,14 +193,14 @@ const isMultiBase = computed(() => project.bases && project.bases.length > 1)
                 @click="openRenameTableDialog(table, project.bases[baseIndex].id)"
               >
                 <div class="nc-project-menu-item" :data-testid="`sidebar-table-rename-${table.title}`">
-                  <GeneralIcon icon="edit" class="text-gray-500 text-primary" />
+                  <GeneralIcon icon="edit" class="text-gray-700" />
                   {{ $t('general.rename') }}
                 </div>
               </a-menu-item>
 
               <a-menu-item v-if="isUIAllowed('table-duplicate')" @click="duplicateTable(table)">
                 <div class="nc-project-menu-item" :data-testid="`sidebar-table-duplicate-${table.title}`">
-                  <GeneralIcon icon="duplicate" class="text-gray-500 text-primary" />
+                  <GeneralIcon icon="duplicate" class="text-gray-700" />
                   {{ $t('general.duplicate') }}
                 </div>
               </a-menu-item>

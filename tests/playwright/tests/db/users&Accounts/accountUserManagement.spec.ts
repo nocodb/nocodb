@@ -41,7 +41,7 @@ test.describe('User roles', () => {
       });
       await accountUsersPage.closeInvite();
       await signupAndVerify(i);
-      await accountPage.rootPage.reload();
+      await accountPage.rootPage.reload({ waitUntil: 'load' });
       await accountUsersPage.goto();
     }
 

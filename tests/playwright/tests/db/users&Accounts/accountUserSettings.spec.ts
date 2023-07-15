@@ -23,7 +23,7 @@ test.describe('App settings', () => {
     await accountSettingsPage.goto();
 
     // todo: remove after route navigation issue resolved
-    await accountSettingsPage.rootPage.reload();
+    await accountSettingsPage.rootPage.reload({ waitUntil: 'load' });
 
     // enable invite only signup
     if (!(await accountSettingsPage.getInviteOnlyCheckboxValue())) {
@@ -42,7 +42,7 @@ test.describe('App settings', () => {
       expectedError: 'Not allowed to signup, contact super admin.',
     });
 
-    await signupPage.rootPage.reload();
+    await signupPage.rootPage.reload({ waitUntil: 'load' });
 
     await accountSettingsPage.goto();
 

@@ -121,4 +121,23 @@ export class WorkspacePage extends BasePage {
   async waitForRender() {
     await this.Header.verifyStaticElements();
   }
+
+  async verifyAccess(role: string) {
+    const addWs = await this.LeftSideBar.createWorkspace;
+    const addProject = await this.Container.newProjectButton;
+    const collaborators = await this.Container.collaborators;
+    const billing = await this.Container.billing;
+
+    if (role === 'creator' || role === 'owner') {
+      expect(await addWs.isVisible()).toBeTruthy();
+      expect(await collaborators.isVisible()).toBeTruthy();
+      expect(await billing.isVisible()).toBeTruthy();
+      expect(await addProject.isVisible()).toBeTruthy();
+    } else {
+      expect(await addWs.isVisible()).toBeFalsy();
+      expect(await collaborators.isVisible()).toBeFalsy();
+      expect(await billing.isVisible()).toBeFalsy();
+      expect(await addProject.isVisible()).toBeFalsy();
+    }
+  }
 }

@@ -46,6 +46,7 @@ export class CollaborationPage extends BasePage {
     // submit
     await this.button_addUser.click();
     await this.verifyToast({ message: 'Invitation sent successfully' });
+    await this.rootPage.waitForTimeout(500);
   }
 
   async getCollaboratorsCount() {

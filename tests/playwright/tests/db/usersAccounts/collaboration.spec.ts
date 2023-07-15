@@ -5,6 +5,7 @@ import { getDefaultPwd } from '../../utils/general';
 import { WorkspacePage } from '../../../pages/WorkspacePage';
 import { Api } from 'nocodb-sdk';
 import { CollaborationPage } from '../../../pages/WorkspacePage/CollaborationPage';
+import { LoginPage } from '../../../pages/LoginPage';
 
 let api: Api<any>;
 
@@ -48,13 +49,26 @@ test.describe('Collaborators', () => {
     await dashboard.leftSidebar.home.click();
   });
 
-  test('Add different roles to WS', async () => {
+  test('WS role access validation', async ({ page }) => {
     await workspacePage.Container.collaborators.click();
 
     for (let i = 0; i < roleDb.length; i++) {
       await collaborationPage.addUsers(roleDb[i].email, roleDb[i].role);
     }
 
-    console.log('roleDb', roleDb);
+    for (let i = 0; i < roleDb.length; i++) {
+      await workspacePage.Header.accountMenuOpen({ title: 'sign-out' });
+
+      const loginPage = new LoginPage(page);
+      await loginPage.signIn({
+        email: roleDb[i].email,
+        password: getDefaultPwd(),
+        withoutPrefix: true,
+        skipReload: true,
+      });
+
+      await workspacePage.workspaceOpen({ title: context.workspace.title });
+      await workspacePage.verifyAccess(roleDb[i].role);
+    }
   });
 });

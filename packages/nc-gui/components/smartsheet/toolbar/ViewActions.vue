@@ -116,7 +116,7 @@ useMenuCloseOnEsc(open)
         <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded" data-testid="toolbar-actions" @click="open = false">
           <a-menu-item-group>
             <a-sub-menu
-              v-if="isUIAllowed('view-type')"
+              v-if="isUIAllowed('view-type') && false"
               key="lock-type"
               class="scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !py-0"
             >

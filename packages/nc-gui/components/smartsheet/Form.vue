@@ -777,14 +777,14 @@ watch(view, (nextView) => {
 
           <!-- Show this message -->
           <div class="text-gray-500 text-bold">{{ $t('msg.info.showMessage') }}:</div>
-         <a-textarea
-        v-model:value="formViewData.success_msg"
-        :rows="3"
-         hide-details
-          class="nc-form-after-submit-msg"
-          data-testid="nc-form-after-submit-msg"
-          @change="updateView"
-          />
+           <a-textarea
+             v-model:value="formViewData.success_msg"
+             :rows="3"
+             hide-details
+             class="nc-form-after-submit-msg"
+             data-testid="nc-form-after-submit-msg"
+            @change="updateView"
+           />
 
           <!-- Other options -->
           <div class="flex flex-col gap-2 mt-4">
@@ -838,8 +838,6 @@ watch(view, (nextView) => {
 </template>
 
 <style scoped lang="scss">
-
-
 .nc-editable:hover {
   :deep(.nc-field-remove-icon) {
     @apply opacity-100;
@@ -848,7 +846,6 @@ watch(view, (nextView) => {
 
 .nc-input {
   @apply appearance-none w-full !bg-white rounded px-2 py-2 my-2 border-solid border-1 border-primary border-opacity-50 overflow-auto;
-  
   :deep(input) {
     @apply !px-1;
   }
@@ -866,7 +863,6 @@ watch(view, (nextView) => {
     @apply !text-gray-500 !text-xs;
   }
 }
-
 
 .nc-form-help-text,
 .nc-input-required-error {

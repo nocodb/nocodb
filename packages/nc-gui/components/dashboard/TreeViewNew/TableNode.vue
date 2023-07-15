@@ -211,7 +211,7 @@ const isMultiBase = computed(() => project.bases && project.bases.length > 1)
                 @click="isTableDeleteDialogVisible = true"
               >
                 <div class="nc-project-menu-item text-red-600">
-                  <GeneralIcon icon="delete2" class="text-gray-500 text-error" />
+                  <GeneralIcon icon="delete" />
                   {{ $t('general.delete') }}
                 </div>
               </a-menu-item>

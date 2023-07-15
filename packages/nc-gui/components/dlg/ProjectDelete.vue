@@ -26,6 +26,8 @@ const onDelete = async () => {
   try {
     await deleteProject(toBeDeletedProject.id!)
     await closeTab(toBeDeletedProject.id as any)
+
+    visible.value = false
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {

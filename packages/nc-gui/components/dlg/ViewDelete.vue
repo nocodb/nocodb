@@ -45,16 +45,14 @@ async function onDelete() {
   try {
     await api.dbView.delete(props.view.id)
 
-    // View deleted successfully
-    message.success(t('msg.success.viewDeleted'))
+    vModel.value = false
+    emits('deleted')
+    $e('a:view:delete', { view: props.view.type })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 
-  emits('deleted')
-
   // telemetry event
-  $e('a:view:delete', { view: props.view.type })
 }
 </script>
 

@@ -105,7 +105,7 @@ function openQuickImportDialog(type: string) {
   <a-sub-menu v-if="false">
     <template #title>
       <div class="nc-project-menu-item group">
-        <GeneralIcon icon="magic" class="group-hover:text-accent" />
+        <GeneralIcon icon="magic" class="group-hover:text-black" />
         NocoAI
         <div class="flex-1" />
 
@@ -117,13 +117,13 @@ function openQuickImportDialog(type: string) {
 
     <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(base.id)">
       <div class="color-transition nc-project-menu-item group">
-        <GeneralIcon icon="magic1" class="group-hover:text-accent" />
+        <GeneralIcon icon="magic1" class="group-hover:text-black" />
         Create table
       </div>
     </a-menu-item>
     <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(base.id)">
       <div class="color-transition nc-project-menu-item group">
-        <GeneralIcon icon="magic1" class="group-hover:text-accent" />
+        <GeneralIcon icon="magic1" class="group-hover:text-black" />
         Create schema
       </div>
     </a-menu-item>
@@ -135,9 +135,10 @@ function openQuickImportDialog(type: string) {
   <a-sub-menu>
     <template #title>
       <div class="nc-project-menu-item group">
-        <GeneralIcon icon="import" class="group-hover:text-accent" />
-        {{ $t('title.quickImportFrom') }}
-        <div class="flex-1" />
+        <GeneralIcon icon="download" class="-ml-0.25" />
+        <div class="-ml-0.5">
+          {{ $t('title.quickImportFrom') }}
+        </div>
 
         <MaterialSymbolsChevronRightRounded class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400" />
       </div>
@@ -151,14 +152,14 @@ function openQuickImportDialog(type: string) {
       @click="openAirtableImportDialog(base.id)"
     >
       <div class="color-transition nc-project-menu-item group">
-        <GeneralIcon icon="airtable" class="group-hover:text-accent" />
+        <GeneralIcon icon="airtable" class="group-hover:text-black" />
         Airtable
       </div>
     </a-menu-item>
 
     <a-menu-item v-if="isUIAllowed('csvImport', false, projectRole)" key="quick-import-csv" @click="openQuickImportDialog('csv')">
       <div class="color-transition nc-project-menu-item group">
-        <GeneralIcon icon="csv" class="group-hover:text-accent" />
+        <GeneralIcon icon="csv" class="group-hover:text-black" />
         CSV file
       </div>
     </a-menu-item>
@@ -169,7 +170,7 @@ function openQuickImportDialog(type: string) {
       @click="openQuickImportDialog('json')"
     >
       <div class="color-transition nc-project-menu-item group">
-        <GeneralIcon icon="json" class="group-hover:text-accent" />
+        <GeneralIcon icon="code" class="group-hover:text-black" />
         JSON file
       </div>
     </a-menu-item>
@@ -180,7 +181,7 @@ function openQuickImportDialog(type: string) {
       @click="openQuickImportDialog('excel')"
     >
       <div class="color-transition nc-project-menu-item group">
-        <GeneralIcon icon="excel" class="group-hover:text-accent" />
+        <GeneralIcon icon="excel" class="group-hover:text-black" />
         Microsoft Excel
       </div>
     </a-menu-item>
@@ -192,7 +193,7 @@ function openQuickImportDialog(type: string) {
   <!-- <a-sub-menu>
     <template #title>
       <div class="nc-project-menu-item group">
-        <GeneralIcon icon="datasource" class="group-hover:text-accent" />
+        <GeneralIcon icon="datasource" class="group-hover:text-black" />
         Connect to new datasource
         <div class="flex-1" />
 
@@ -203,25 +204,25 @@ function openQuickImportDialog(type: string) {
     <template #expandIcon></template>
     <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MYSQL, project.id)">
       <div class="color-transition nc-project-menu-item group">
-        <LogosMysqlIcon class="group-hover:text-accent" />
+        <LogosMysqlIcon class="group-hover:text-black" />
         MySQL
       </div>
     </a-menu-item>
     <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.PG, project.id)">
       <div class="color-transition nc-project-menu-item group">
-        <LogosPostgresql class="group-hover:text-accent" />
+        <LogosPostgresql class="group-hover:text-black" />
         Postgres
       </div>
     </a-menu-item>
     <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.SQLITE, project.id)">
       <div class="color-transition nc-project-menu-item group">
-        <VscodeIconsFileTypeSqlite class="group-hover:text-accent" />
+        <VscodeIconsFileTypeSqlite class="group-hover:text-black" />
         SQLite
       </div>
     </a-menu-item>
     <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MSSQL, project.id)">
       <div class="color-transition nc-project-menu-item group">
-        <SimpleIconsMicrosoftsqlserver class="group-hover:text-accent" />
+        <SimpleIconsMicrosoftsqlserver class="group-hover:text-black" />
         MSSQL
       </div>
     </a-menu-item>
@@ -231,7 +232,7 @@ function openQuickImportDialog(type: string) {
       @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE, project.id)"
     >
       <div class="color-transition nc-project-menu-item group">
-        <LogosSnowflakeIcon class="group-hover:text-accent" />
+        <LogosSnowflakeIcon class="group-hover:text-black" />
         Snowflake
       </div>
     </a-menu-item>
@@ -242,7 +243,7 @@ function openQuickImportDialog(type: string) {
         target="_blank"
         class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
       >
-        <GeneralIcon icon="openInNew" class="group-hover:text-accent" />
+        <GeneralIcon icon="openInNew" class="group-hover:text-black" />
         {{ $t('labels.requestDataSource') }}
       </a>
     </a-menu-item>

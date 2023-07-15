@@ -52,35 +52,7 @@ const { getMeta } = useMetas()
 
 const { addUndo, defineModelScope, defineViewScope } = useUndoRedo()
 
-const deleteColumn = () =>
-  Modal.confirm({
-    title: h('div', ['Do you want to delete ', h('span', { class: 'font-weight-bold' }, [column?.value?.title]), ' column ?']),
-    wrapClassName: 'nc-modal-column-delete',
-    okText: t('general.delete'),
-    okType: 'danger',
-    cancelText: t('general.cancel'),
-    async onOk() {
-      try {
-        await $api.dbTableColumn.delete(column?.value?.id as string)
-
-        await getMeta(meta?.value?.id as string, true)
-
-        /** force-reload related table meta if deleted column is a LTAR and not linked to same table */
-        if (isLinksOrLTAR(column?.value) && column.value?.colOptions) {
-          await getMeta((column.value?.colOptions as LinkToAnotherRecordType).fk_related_model_id!, true)
-
-          // reload tables if deleted column is mm and include m2m is true
-          if (includeM2M.value && (column.value?.colOptions as LinkToAnotherRecordType).type === RelationTypes.MANY_TO_MANY) {
-            loadTables()
-          }
-        }
-
-        $e('a:column:delete')
-      } catch (e: any) {
-        message.error(await extractSdkResponseErrorMsg(e))
-      }
-    },
-  })
+const showDeleteColumnModal = ref(false)
 
 const setAsDisplayValue = async () => {
   try {
@@ -388,7 +360,7 @@ const hideField = async () => {
         </a-menu-item>
         <a-divider class="!my-0" />
 
-        <a-menu-item v-if="!column?.pv" @click="deleteColumn">
+        <a-menu-item v-if="!column?.pv" @click="showDeleteColumnModal = true">
           <div class="nc-column-delete nc-header-menu-item my-0.75 text-red-600">
             <component :is="iconMap.delete" class="ml-0.75 mr-1" />
             <!-- Delete -->
@@ -398,6 +370,7 @@ const hideField = async () => {
       </a-menu>
     </template>
   </a-dropdown>
+  <SmartsheetHeaderDeleteColumnModal v-model:visible="showDeleteColumnModal" />
 </template>
 
 <style scoped>

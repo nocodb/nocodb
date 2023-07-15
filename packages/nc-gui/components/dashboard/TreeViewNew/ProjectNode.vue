@@ -457,7 +457,7 @@ onKeyStroke('Escape', () => {
                 <template v-if="!isSharedBase">
                   <a-menu-item @click="enableEditMode">
                     <div class="nc-project-menu-item group">
-                      <GeneralIcon icon="edit" class="group-hover:text-accent" />
+                      <GeneralIcon icon="edit" class="group-hover:text-black" />
                       Edit
                     </div>
                   </a-menu-item>
@@ -465,7 +465,7 @@ onKeyStroke('Escape', () => {
                   <!-- Copy Project Info -->
                   <a-menu-item v-if="false" key="copy">
                     <div v-e="['c:navbar:user:copy-proj-info']" class="nc-project-menu-item group" @click.stop="copyProjectInfo">
-                      <GeneralIcon icon="copy" class="group-hover:text-accent" />
+                      <GeneralIcon icon="copy" class="group-hover:text-black" />
                       {{ $t('activity.account.projInfo') }}
                     </div>
                   </a-menu-item>
@@ -480,15 +480,10 @@ onKeyStroke('Escape', () => {
                       class="nc-project-menu-item group"
                       @click.stop="openLink(`/api/v1/db/meta/projects/${project.id}/swagger`, appInfo.ncSiteUrl)"
                     >
-                      <GeneralIcon icon="json" class="group-hover:text-accent" />
+                      <GeneralIcon icon="snippet" class="group-hover:text-black" />
                       {{ $t('activity.account.swagger') }}
                     </div>
                   </a-menu-item>
-                </template>
-                <template v-if="project.bases && project.bases[0]">
-                  <DashboardTreeViewNewBaseOptions v-model:project="project" :base="project.bases[0]" />
-
-                  <a-menu-divider />
                 </template>
                 <!-- Team & Settings -->
                 <a-menu-item key="teamAndSettings">
@@ -498,10 +493,15 @@ onKeyStroke('Escape', () => {
                     class="nc-project-menu-item group"
                     @click="toggleDialog(true, 'teamAndAuth', undefined, project.id)"
                   >
-                    <GeneralIcon icon="settings" class="group-hover:text-accent" />
+                    <GeneralIcon icon="settings" class="group-hover:text-black" />
                     {{ $t('activity.settings') }}
                   </div>
                 </a-menu-item>
+                <template v-if="project.bases && project.bases[0]">
+                  <DashboardTreeViewNewBaseOptions v-model:project="project" :base="project.bases[0]" />
+
+                  <a-menu-divider />
+                </template>
 
                 <a-menu-divider v-if="false" />
 
@@ -510,7 +510,7 @@ onKeyStroke('Escape', () => {
                   @click="isProjectDeleteDialogVisible = true"
                 >
                   <div class="nc-project-menu-item group text-red-500">
-                    <GeneralIcon icon="delete2" class="group-hover:text-accent" />
+                    <GeneralIcon icon="delete" />
                     Delete
                   </div>
                 </a-menu-item>

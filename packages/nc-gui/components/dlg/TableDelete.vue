@@ -80,6 +80,7 @@ const onDelete = async () => {
     } else {
       await openTable(activeTables.value[0])
     }
+    visible.value = false
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {

@@ -42,6 +42,7 @@ import Erd from '~icons/material-symbols/account-tree-outline-rounded'
 import MsSync from '~icons/material-symbols/sync-rounded'
 import MdiRefresh from '~icons/mdi/refresh'
 import ApiSnippet from '~icons/material-symbols/settings-ethernet-rounded'
+import MdiSettings from '~icons/mdi/cog-outline'
 import Phishing from '~icons/material-symbols/phishing-outline-rounded'
 import MdiAccountGroup from '~icons/mdi/account-group'
 import MdiDotsVertical from '~icons/mdi/dots-vertical'
@@ -281,7 +282,7 @@ export const iconMap = {
   copy: Copy,
   duplicate: MaterialDuplicate,
   clipboard: h('span', { class: 'material-symbols' }, 'content_paste'),
-  settings: h('span', { class: 'material-symbols' }, 'settings'),
+  settings: MdiSettings,
   image: h('span', { class: 'material-symbols' }, 'image'),
   datasource: h('span', { class: 'material-symbols' }, 'hard_drive'),
   book: h('span', { class: 'material-symbols' }, 'menu_book'),
@@ -301,7 +302,6 @@ export const iconMap = {
   code: Code,
   palette: h(Palette, {}, 'palette'),
   delete: Delete,
-  delete2: h('span', { class: 'material-symbols' }, 'delete'),
   import: h('span', { class: 'material-symbols' }, 'system_update_alt'),
   edit: MaterialSymbolsEdit,
   lookup: h('span', { class: 'material-symbols' }, 'search'),

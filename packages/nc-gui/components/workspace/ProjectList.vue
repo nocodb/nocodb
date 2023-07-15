@@ -443,7 +443,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                   @click="deleteProject(record)"
                 >
                   <div class="nc-menu-item-wrapper text-red-600">
-                    <GeneralIcon icon="delete2" class="text-gray-500 text-error" />
+                    <GeneralIcon icon="delete" />
                     Delete Project
                   </div>
                 </a-menu-item>

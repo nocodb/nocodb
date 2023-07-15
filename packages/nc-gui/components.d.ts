@@ -228,6 +228,7 @@ declare module '@vue/runtime-core' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SimpleIconsMicrosoftsqlserver: typeof import('~icons/simple-icons/microsoftsqlserver')['default']
+    TablerColumnInsertLeft: typeof import('~icons/tabler/column-insert-left')['default']
     VscodeIconsFileTypeSqlite: typeof import('~icons/vscode-icons/file-type-sqlite')['default']
   }
 }

@@ -316,31 +316,49 @@ const hideField = async () => {
             {{ $t('general.edit') }}
           </div>
         </a-menu-item>
+        <a-divider class="!my-0" />
+        <a-menu-item v-if="!column?.pv" @click="hideField">
+          <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item my-0.5">
+            <component :is="iconMap.eye" class="text-gray-700 mx-0.75 !w-3.75 !h-3.75 ml-1 mr-0.25" />
+            <!-- Hide Field -->
+            {{ $t('general.hideField') }}
+          </div>
+        </a-menu-item>
+        <a-menu-item v-if="(!virtual || column?.uidt === UITypes.Formula) && !column?.pv" @click="setAsDisplayValue">
+          <div class="nc-column-set-primary nc-header-menu-item item my-0.5">
+            <GeneralIcon icon="star" class="text-gray-700 !w-4.25 !h-4.25 ml-0.5 mr-0.25 -mt-0.5" />
+
+            <!--       todo : tooltip -->
+            <!-- Set as Display value -->
+            {{ $t('activity.setDisplay') }}
+          </div>
+        </a-menu-item>
+
+        <a-divider class="!my-0" />
+
         <template v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
-          <a-divider class="!my-0" />
           <a-menu-item @click="sortByColumn('asc')">
             <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
-              <component :is="iconMap.sortAsc" class="text-gray-700" />
+              <component
+                :is="iconMap.sortDesc"
+                class="text-gray-700 !rotate-180 !w-4.25 !h-4.25 ml-0.5 mr-0.25"
+                :style="{
+                  transform: 'rotate(180deg)',
+                }"
+              />
+
               <!-- Sort Ascending -->
               {{ $t('general.sortAsc') }}
             </div>
           </a-menu-item>
           <a-menu-item @click="sortByColumn('desc')">
             <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
-              <component :is="iconMap.sortDesc" class="text-gray-700" />
+              <component :is="iconMap.sortDesc" class="text-gray-700 !w-4.25 !h-4.25 ml-0.5 mr-0.25" />
               <!-- Sort Descending -->
               {{ $t('general.sortDesc') }}
             </div>
           </a-menu-item>
         </template>
-        <a-divider class="!my-0" />
-        <a-menu-item v-if="!column?.pv" @click="hideField">
-          <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item my-0.5">
-            <component :is="iconMap.eye" class="text-gray-700 mx-0.75" />
-            <!-- Hide Field -->
-            {{ $t('general.hideField') }}
-          </div>
-        </a-menu-item>
 
         <a-divider class="!my-0" />
 
@@ -356,33 +374,23 @@ const hideField = async () => {
         </a-menu-item>
         <a-menu-item @click="addColumn()">
           <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
-            <component :is="iconMap.colInsertAfter" class="text-gray-700" />
+            <component :is="iconMap.colInsertAfter" class="text-gray-700 !w-4.5 !h-4.5 ml-1" />
             <!-- Insert After -->
             {{ t('general.insertAfter') }}
           </div>
         </a-menu-item>
         <a-menu-item v-if="!column?.pv" @click="addColumn(true)">
           <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
-            <component :is="iconMap.colInsertBefore" class="text-gray-700" />
+            <component :is="iconMap.colInsertBefore" class="text-gray-600 !w-4.5 !h-4.5 mr-1.5 -ml-0.5" />
             <!-- Insert Before -->
             {{ t('general.insertBefore') }}
           </div>
         </a-menu-item>
         <a-divider class="!my-0" />
 
-        <a-menu-item v-if="(!virtual || column?.uidt === UITypes.Formula) && !column?.pv" @click="setAsDisplayValue">
-          <div class="nc-column-set-primary nc-header-menu-item item my-0.5">
-            <GeneralIcon icon="star" class="text-gray-700 -mt-0.75" />
-
-            <!--       todo : tooltip -->
-            <!-- Set as Display value -->
-            {{ $t('activity.setDisplay') }}
-          </div>
-        </a-menu-item>
-
         <a-menu-item v-if="!column?.pv" @click="deleteColumn">
           <div class="nc-column-delete nc-header-menu-item my-0.75 text-red-600">
-            <component :is="iconMap.delete2" class="mx-0.75" />
+            <component :is="iconMap.delete" class="ml-0.75 mr-1" />
             <!-- Delete -->
             {{ $t('general.delete') }}
           </div>
@@ -401,5 +409,9 @@ const hideField = async () => {
   .nc-icons {
     @apply !w-5 !h-5;
   }
+}
+
+:deep(.ant-dropdown-menu-item) {
+  @apply !hover:text-black text-gray-700;
 }
 </style>

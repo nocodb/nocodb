@@ -130,6 +130,7 @@ export default defineNuxtConfig({
               'simple-icons',
               'nc-icons',
               'ion',
+              'tabler',
               'carbon',
             ],
           }),

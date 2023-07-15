@@ -36,7 +36,7 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
           >
             <div class="text-xs text-gray-500 ml-4 pt-4 pb-2 font-weight-bold">Account Settings</div>
 
-            <a-sub-menu key="users" class="!bg-white">
+            <a-sub-menu key="users" class="!bg-white" v-if="false">
               <template #icon>
                 <MdiAccountSupervisorOutline />
               </template>

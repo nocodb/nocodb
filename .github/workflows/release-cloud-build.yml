@@ -72,7 +72,11 @@ jobs:
         run: |
           mkdir -p packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
           mv packages/nc-gui/dist/* packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
-
+          echo "User: ${{ github.actor }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          echo "Commit: ${{ github.sha }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          echo "Branch: ${{ github.ref }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          echo "Action ID: ${{ github.run_id }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          cp packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt ./packages/nocodb/src/public/
 
       - name: Deploy
         uses: pranavxc/s3-deploy@2cdf96df65b6c97ee09a5771958582b77f22b738
@@ -111,7 +115,7 @@ jobs:
       - name: Publish to staging
         if: ${{ github.event.inputs.staging == 'true' }}
         run: |
-          sh ./scripts/release/staging.sh
+           ./scripts/release/staging.sh
 
   microservice-cloud-docker-build:
     runs-on: ubuntu-latest

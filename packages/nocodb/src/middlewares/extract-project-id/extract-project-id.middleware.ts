@@ -19,6 +19,7 @@ import {
 import extractRolesObj from '../../utils/extractRolesObj';
 import projectAcl from '../../utils/projectAcl';
 import { NcError } from '../catchError';
+import { getRolesLabels } from '../extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import type { Observable } from 'rxjs';
 import type {
   CallHandler,
@@ -261,8 +262,8 @@ export class AclMiddleware implements NestInterceptor {
       });
     if (!isAllowed) {
       NcError.forbidden(
-        `${permissionName} - ${Object.keys(roles).filter(
-          (k) => roles[k],
+        `${permissionName} - ${getRolesLabels(
+          Object.keys(roles).filter((k) => roles[k]),
         )} : Not allowed`,
       );
     }

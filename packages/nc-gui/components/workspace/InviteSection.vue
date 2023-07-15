@@ -41,6 +41,8 @@ const inviteCollaborator = async () => {
             <MdiChevronDown />
           </template>
           <a-select-option :value="WorkspaceUserRoles.CREATOR"> Creator </a-select-option>
+          <a-select-option :value="WorkspaceUserRoles.EDITOR"> Editor </a-select-option>
+          <a-select-option :value="WorkspaceUserRoles.COMMENTER"> Commenter </a-select-option>
           <a-select-option :value="WorkspaceUserRoles.VIEWER"> Viewer </a-select-option>
         </a-select>
 

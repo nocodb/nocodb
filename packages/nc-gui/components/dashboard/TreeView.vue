@@ -617,7 +617,7 @@ const duplicateTable = async (table: TableType) => {
                     </div>
                   </a-menu-item>
                   <a-menu-item
-                    v-if="appInfo.ee"
+                    v-if="appInfo.ee && false"
                     key="connect-new-source"
                     @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)"
                   >
@@ -763,7 +763,7 @@ const duplicateTable = async (table: TableType) => {
                       </div>
                     </a-menu-item>
                     <a-menu-item
-                      v-if="appInfo.ee"
+                      v-if="appInfo.ee && false"
                       key="connect-new-source"
                       @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)"
                     >

@@ -3,9 +3,10 @@ import { isDrawerOrModalExist, isMac, useNuxtApp } from '#imports'
 
 interface Props {
   disabled?: boolean
+  isViewToolbar?: boolean
 }
 
-const { disabled } = defineProps<Props>()
+const { disabled, isViewToolbar } = defineProps<Props>()
 
 const { visibility, showShareModal } = storeToRefs(useShare())
 
@@ -46,7 +47,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     </a-button>
   </div>
 
-  <LazyDlgShareAndCollaborateView />
+  <LazyDlgShareAndCollaborateView :is-view-toolbar="isViewToolbar" />
 </template>
 
 <style lang="scss">

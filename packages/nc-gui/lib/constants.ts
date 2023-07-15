@@ -37,6 +37,7 @@ const rolePermissions = {
       superAdminAppSettings: true,
       appLicense: true,
       moveProject: true,
+      projectDelete: true,
     },
   },
   [ProjectRole.Owner]: {
@@ -67,6 +68,8 @@ const rolePermissions = {
       projectSettings: true,
       newUser: false,
       commentEditable: true,
+      commentList: true,
+      commentsCount: true,
     },
   },
   [ProjectRole.Commenter]: {
@@ -76,6 +79,8 @@ const rolePermissions = {
       rowComments: true,
       projectSettings: true,
       commentEditable: true,
+      commentList: true,
+      commentsCount: true,
     },
   },
   [ProjectRole.Viewer]: {
@@ -89,7 +94,14 @@ const rolePermissions = {
 
 // todo: fix type error
 rolePermissions[WorkspaceUserRoles.OWNER] = rolePermissions[ProjectRole.Owner]
-rolePermissions[WorkspaceUserRoles.CREATOR] = rolePermissions[ProjectRole.Creator]
+rolePermissions[WorkspaceUserRoles.CREATOR] = {
+  exclude: {
+    ...rolePermissions[ProjectRole.Creator].exclude,
+    workspaceDelete: true,
+  },
+}
 rolePermissions[WorkspaceUserRoles.VIEWER] = rolePermissions[ProjectRole.Viewer]
+rolePermissions[WorkspaceUserRoles.EDITOR] = rolePermissions[ProjectRole.Editor]
+rolePermissions[WorkspaceUserRoles.COMMENTER] = rolePermissions[ProjectRole.Commenter]
 
 export { rolePermissions }

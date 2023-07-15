@@ -30,6 +30,10 @@ export class BasesController {
       baseId,
     });
 
+    if (base?.is_meta || base?.is_local) {
+      delete base.config;
+    }
+
     return base;
   }
 
@@ -55,6 +59,12 @@ export class BasesController {
     const bases = await this.basesService.baseList({
       projectId,
     });
+
+    for (const base of bases) {
+      if (base?.is_meta || base?.is_local) {
+        delete base.config;
+      }
+    }
 
     return new PagedResponseImpl(bases, {
       count: bases.length,
@@ -82,6 +92,10 @@ export class BasesController {
       projectId,
       base: body,
     });
+
+    if (base?.is_meta || base?.is_local) {
+      delete base.config;
+    }
 
     return base;
   }

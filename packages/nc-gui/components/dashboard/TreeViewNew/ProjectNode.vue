@@ -11,6 +11,7 @@ import { ProjectInj, ProjectRoleInj, ToggleDialogInj } from '~/context'
 import type { NcProject } from '~~/lib'
 import MdiInformationSlabSymbol from '~icons/ion/information'
 import { isElementInvisible } from '~~/utils/domUtils'
+import { useWorkspace } from '~/store/workspace'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
@@ -29,6 +30,8 @@ const project = inject(ProjectInj)!
 
 const projectsStore = useProjects()
 
+const workspaceStore = useWorkspace()
+
 const {
   loadProject,
   createProject: _createProject,
@@ -38,6 +41,8 @@ const {
   getProjectMetaInfo,
 } = projectsStore
 const { projects } = storeToRefs(projectsStore)
+
+const { activeWorkspace } = storeToRefs(workspaceStore)
 
 const { loadProjectTables } = useTablesStore()
 const { activeTable } = storeToRefs(useTablesStore())
@@ -480,11 +485,11 @@ onKeyStroke('Escape', () => {
                     </div>
                   </a-menu-item>
                 </template>
+                <template v-if="project.bases && project.bases[0]">
+                  <DashboardTreeViewNewBaseOptions v-model:project="project" :base="project.bases[0]" />
 
-                <DashboardTreeViewNewBaseOptions v-model:project="project" :base="project.bases[0]" />
-
-                <a-menu-divider />
-
+                  <a-menu-divider />
+                </template>
                 <!-- Team & Settings -->
                 <a-menu-item key="teamAndSettings">
                   <div
@@ -500,7 +505,10 @@ onKeyStroke('Escape', () => {
 
                 <a-menu-divider v-if="false" />
 
-                <a-menu-item @click="isProjectDeleteDialogVisible = true">
+                <a-menu-item
+                  v-if="isUIAllowed('projectDelete', false, [activeWorkspace.roles], true)"
+                  @click="isProjectDeleteDialogVisible = true"
+                >
                   <div class="nc-project-menu-item group text-red-500">
                     <GeneralIcon icon="delete2" class="group-hover:text-accent" />
                     Delete

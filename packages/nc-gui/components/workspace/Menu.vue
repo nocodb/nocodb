@@ -134,7 +134,7 @@ onKeyStroke('Escape', () => {
         <template v-if="props.isOpen">
           <div v-if="activeWorkspace" class="flex-grow min-w-10 font-semibold text-base">
             <a-tooltip v-if="activeWorkspace!.title!.length > 12" placement="bottom">
-              <div class="text-md truncate capitalize">{{ activeWorkspace!.title }}</div>
+              <div class="text-md truncate capitalize min-w-0">{{ activeWorkspace!.title }}</div>
               <template #title>
                 <div class="text-sm !text-red-500">{{ activeWorkspace?.title }}</div>
               </template>
@@ -157,6 +157,7 @@ onKeyStroke('Escape', () => {
             <div class="group select-none flex items-center gap-4 p-2 pb-1 !border-t-0">
               <input
                 v-model="activeWorkspace!.title"
+                :readonly="!isUIAllowed('workspaceUpdate', false, activeWorkspace.roles)"
                 class="nc-workspace-title-input text-current capitalize group-hover:text-accent"
                 @input="updateWorkspaceTitle"
               />
@@ -175,10 +176,11 @@ onKeyStroke('Escape', () => {
 
             <div class="max-h-300px nc-scrollbar-md">
               <a-menu-item v-for="workspace of workspacesList" :key="workspace.id!" @click="navigateTo(`/ws/${workspace.id}`)">
-                <div class="nc-workspace-menu-item group capitalize">
+                <div class="nc-workspace-menu-item group capitalize max-w-300px flex">
                   <GeneralIcon icon="workspace" class="group-hover:text-accent" />
-
-                  {{ workspace.title }}
+                  <span class="truncate min-w-10 flex-shrink">
+                    {{ workspace.title }}
+                  </span>
                 </div>
               </a-menu-item>
             </div>

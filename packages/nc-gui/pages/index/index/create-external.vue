@@ -70,7 +70,8 @@ const customFormState = ref<ProjectCreateForm>({
 
 const clientTypes = computed(() => {
   return _clientTypes.filter((type) => {
-    return appInfo.value?.ee || type.value !== ClientType.SNOWFLAKE
+    // return appInfo.value?.ee || type.value !== ClientType.SNOWFLAKE
+    return type.value !== ClientType.SNOWFLAKE
   })
 })
 
@@ -410,7 +411,7 @@ onMounted(async () => {
         <a-input v-model:value="formState.dataSource.connection.connection.filename" />
       </a-form-item>
 
-      <template v-else-if="formState.dataSource.client === ClientType.SNOWFLAKE">
+      <template v-else-if="formState.dataSource.client === ClientType.SNOWFLAKE && false">
         <!-- Account -->
         <a-form-item label="Account" v-bind="validateInfos['dataSource.connection.account']">
           <a-input v-model:value="formState.dataSource.connection.account" class="nc-extdb-account" />

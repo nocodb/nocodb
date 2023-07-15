@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
 import type { ColumnReqType, ColumnType, GridType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
-import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, WorkspaceUserRoles, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
@@ -42,7 +42,6 @@ import {
   useMultiSelect,
   useNuxtApp,
   useRoles,
-  useRoute,
   useSmartsheetStoreOrThrow,
   useUIPermission,
   useUndoRedo,
@@ -1294,7 +1293,13 @@ const onDraftRecordClick = () => {
                         <span class="flex-1" />
 
                         <div
-                          v-if="!readOnly || hasRole('commenter', true) || hasRole('viewer', true)"
+                          v-if="
+                            !readOnly ||
+                            hasRole('commenter', true) ||
+                            hasRole('viewer', true) ||
+                            hasRole(WorkspaceUserRoles.COMMENTER, true) ||
+                            hasRole(WorkspaceUserRoles.VIEWER, true)
+                          "
                           class="nc-expand"
                           :data-testid="`nc-expand-${rowIndex}`"
                           :class="{ 'nc-comment': row.rowMeta?.commentCount }"

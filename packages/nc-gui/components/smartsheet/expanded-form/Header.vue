@@ -119,7 +119,7 @@ const onConfirmDeleteRowClick = async () => {
       </template>
       <component
         :is="iconMap.comment"
-        v-if="isUIAllowed('rowComments') && !isNew"
+        v-if="isUIAllowed('commentList') && !isNew"
         v-e="['c:row-expand:comment-toggle']"
         class="nc-icon-transition cursor-pointer select-none nc-toggle-comments text-gray-500 mx-1 min-w-4"
         @click="commentsDrawer = !commentsDrawer"
@@ -134,7 +134,7 @@ const onConfirmDeleteRowClick = async () => {
       <component :is="iconMap.threeDotVertical" class="nc-icon-transition" />
       <template #overlay>
         <a-menu>
-          <a-menu-item v-if="!isNew" @click="loadRow">
+          <a-menu-item v-if="!isNew" @click="loadRow()">
             <div v-e="['c:row-expand:reload']" class="py-2 flex gap-2 items-center">
               <component
                 :is="iconMap.reload"

@@ -140,14 +140,18 @@ const deleteWorkspace = (workspace: WorkspaceType) => {
     title: 'Are you sure you want to delete this workspace?',
     type: 'warn',
     onOk: async () => {
-      await _deleteWorkspace(workspace.id!)
-      await loadWorkspaces()
+      try {
+        await _deleteWorkspace(workspace.id!)
+        await loadWorkspaces()
 
-      if (!workspacesList.value?.[0]?.id) {
-        return await navigateToWorkspace()
+        if (!workspacesList.value?.[0]?.id) {
+          return await navigateToWorkspace()
+        }
+
+        await navigateToWorkspace(workspacesList.value?.[0]?.id)
+      } catch (e) {
+        message.error(await extractSdkResponseErrorMsg(e))
       }
-
-      await navigateToWorkspace(workspacesList.value?.[0]?.id)
     },
   })
 }
@@ -412,7 +416,7 @@ watch(
                   </template>
                 </a-dropdown>
                 <input
-                  v-if="workspace.edit"
+                  v-if="workspace.edit && isUIAllowed('workspaceUpdate', false, activeWorkspace.roles)"
                   ref="renameInput"
                   v-model="workspace.temp_title"
                   class="!leading-none outline-none bg-transparent"
@@ -435,19 +439,27 @@ watch(
                 </div>
                 <div class="flex-grow"></div>
                 <IcBaselineDragIndicator class="outline-0 nc-workspace-drag-icon" />
-                <a-dropdown :trigger="['click']">
+                <a-dropdown
+                  v-if="
+                    isUIAllowed('workspaceRename', true, workspace.roles) || isUIAllowed('workspaceDelete', true, workspace.roles)
+                  "
+                  :trigger="['click']"
+                >
                   <div class="w-4">
                     <MdiDotsHorizontal class="outline-0 nc-workspace-menu min-w-4 nc-click-transition" />
                   </div>
                   <template #overlay>
                     <a-menu>
-                      <a-menu-item @click="enableEdit(i)">
+                      <a-menu-item v-if="isUIAllowed('workspaceRename', true, workspace.roles)" @click="enableEdit(i)">
                         <div class="nc-menu-item-wrapper">
                           <MdiPencil class="text-gray-500 text-primary" />
                           Rename Workspace
                         </div>
                       </a-menu-item>
-                      <a-menu-item @click="deleteWorkspace(workspace)">
+                      <a-menu-item
+                        v-if="isUIAllowed('workspaceDelete', true, workspace.roles)"
+                        @click="deleteWorkspace(workspace)"
+                      >
                         <div class="nc-menu-item-wrapper text-red-600">
                           <MdiDeleteOutline class="text-gray-500 text-error" />
                           Delete Workspace
@@ -472,16 +484,18 @@ watch(
         <div class="text-gray-300 text-lg">Please wait while we set up your workspace</div>
       </div>
       <div v-else-if="activeWorkspace" class="flex flex-col pt-7">
-        <div class="pl-8 pr-7 flex items-center mb-7 h-8">
-          <div class="flex gap-2 items-center">
+        <div class="pl-8 pr-7 flex items-center mb-7 h-8 max-w-full">
+          <div class="flex gap-2 items-center min-w-0">
             <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
               {{ activeWorkspace?.title?.slice(0, 2) }}
             </span>
-            <h1 class="text-3xl font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title">{{ activeWorkspace?.title }}</h1>
+            <h1 class="text-3xl font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title truncate min-w-10">
+              {{ activeWorkspace?.title }}
+            </h1>
           </div>
-          <div class="flex-grow"></div>
+          <div class="flex-grow min-w-10"></div>
           <WorkspaceCreateProjectBtn
-            v-if="isUIAllowed('createProject') && tab === 'projects'"
+            v-if="isUIAllowed('createProject', false, activeWorkspace.roles) && tab === 'projects'"
             v-model:is-open="isCreateProjectOpen"
             class="mt-0.75"
             type="primary"

@@ -14,7 +14,7 @@ const viewerPermissions = {
     dataExist: true,
     dataFindOne: true,
     dataGroupBy: true,
-    commentsCount: true,
+    // commentsCount: process.env.NC_CLOUD !== 'true',
     exportCsv: true,
     exportExcel: true,
 
@@ -30,7 +30,7 @@ const viewerPermissions = {
 
     mmList: true,
     hmList: true,
-    commentList: true,
+    // commentList: process.env.NC_CLOUD !== 'true',
     commentRow: false,
 
     xcTableAndViewList: true,
@@ -452,11 +452,32 @@ const rolePermissions = {
       pluginRead: true,
       pluginUpdate: true,
       isPluginActive: true,
+      projectDelete: true,
+      createBase: true,
+      workspaceDelete: true,
     },
   },
   [WorkspaceUserRoles.VIEWER]: {
     include: {
       ...viewerPermissions.include,
+      workspaceList: true,
+      projectUserMetaUpdate: true,
+      workspaceGet: true,
+      workspaceDelete: true,
+      commandPalette: true,
+    },
+  },
+  [WorkspaceUserRoles.COMMENTER]: {
+    include: {
+      workspaceList: true,
+      projectUserMetaUpdate: true,
+      workspaceGet: true,
+      workspaceDelete: true,
+      commandPalette: true,
+    },
+  },
+  [WorkspaceUserRoles.EDITOR]: {
+    include: {
       workspaceList: true,
       projectUserMetaUpdate: true,
       workspaceGet: true,
@@ -480,6 +501,17 @@ const rolePermissions = {
 Object.assign(
   rolePermissions[WorkspaceUserRoles.VIEWER].include,
   rolePermissions['viewer'].include,
+);
+// include editor project role permissions
+Object.assign(
+  rolePermissions[WorkspaceUserRoles.EDITOR].include,
+  rolePermissions['editor'].include,
+);
+
+// include editor project role permissions
+Object.assign(
+  rolePermissions[WorkspaceUserRoles.COMMENTER].include,
+  rolePermissions['commenter'].include,
 );
 
 // todo: remove org level roles in cloud

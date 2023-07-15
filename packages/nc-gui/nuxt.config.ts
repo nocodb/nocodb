@@ -39,10 +39,34 @@ export default defineNuxtConfig({
 
     /** In production build we need to load assets using relative path, to achieve the result we are using cdnURL */
     cdnURL: process.env.NODE_ENV === 'production' ? process.env.NC_CDN_URL || '.' : undefined,
+    head: {
+      link: [
+        {
+          rel: 'icon',
+          type: 'image/x-icon',
+          href: './favicon.ico',
+        },
+        ...(process.env.NC_CDN_URL
+          ? [{ rel: 'stylesheet', href: new URL('/shared/style/fonts.css', process.env.NC_CDN_URL).href }]
+          : []),
+      ],
+      meta: [
+        { charset: 'utf-8' },
+        {
+          name: 'viewport',
+          content: 'width=device-width, initial-scale=1',
+        },
+        {
+          hid: 'description',
+          name: 'description',
+          content: process.env.npm_package_description || '',
+        },
+      ],
+    },
   },
 
   css: [
-    '~/assets/style/fonts.css',
+    ...(process.env.NC_CDN_URL ? [] : ['~/assets/style/fonts.css']),
     'virtual:windi.css',
     'virtual:windi-devtools',
     '~/assets/css/global.css',
@@ -53,28 +77,6 @@ export default defineNuxtConfig({
     public: {
       ncBackendUrl: '',
     },
-  },
-
-  $meta: {
-    link: [
-      {
-        rel: 'icon',
-        type: 'image/x-icon',
-        href: './favicon.ico',
-      },
-    ],
-    meta: [
-      { charset: 'utf-8' },
-      {
-        name: 'viewport',
-        content: 'width=device-width, initial-scale=1',
-      },
-      {
-        hid: 'description',
-        name: 'description',
-        content: process.env.npm_package_description || '',
-      },
-    ],
   },
 
   build: {},

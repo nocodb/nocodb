@@ -151,23 +151,8 @@
 }
 
 
-/* material-symbols-outlined-200 - latin */
-@font-face {
-  font-family: 'Material Symbols';
-  font-style: normal;
-  font-weight: 200;
-  src: url('./material-symbols/material-symbols-outlined-v92-latin-200.eot'); /* IE9 Compat Modes */
-  src: url('./material-symbols/material-symbols-outlined-v92-latin-200.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
-  url('./material-symbols/material-symbols-outlined-v92-latin-200.woff2') format('woff2'), /* Super Modern Browsers */
-  url('./material-symbols/material-symbols-outlined-v92-latin-200.woff') format('woff'), /* Modern Browsers */
-  url('./material-symbols/material-symbols-outlined-v92-latin-200.ttf') format('truetype'), /* Safari, Android, iOS */
-  url('./material-symbols/material-symbols-outlined-v92-latin-200.svg#MaterialSymbolsOutlined') format('svg'); /* Legacy iOS */
-}
-
-/*      //   href: 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,200,0,-25',
+/*  //   href: 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,200,0,-25',
 */
-
-/* fallback */
 @font-face {
   font-family: 'Material Symbols';
   font-style: normal;

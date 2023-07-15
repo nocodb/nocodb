@@ -186,8 +186,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         },
       )
       await loadCollaborators()
-    } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
     } finally {
       isInvitingCollaborators.value = false
     }

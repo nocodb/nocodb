@@ -58,7 +58,7 @@ const navigateToHome = () => {
   >
     <div style="height: var(--sidebar-top-height)">
       <div style="border-bottom-width: 1px" class="flex items-center px-1 nc-sidebar-header !border-0 py-1.25 pl-2">
-        <div class="flex flex-row flex-grow hover:bg-gray-100 pl-2 pr-1 py-0.5 rounded-md">
+        <div class="flex flex-row flex-grow hover:bg-gray-100 pl-2 pr-1 py-0.5 rounded-md max-w-full">
           <a
             v-if="isSharedBase"
             class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
@@ -94,13 +94,8 @@ const navigateToHome = () => {
         <MaterialSymbolsHomeOutlineRounded class="!h-3.9" />
         <div>Home</div>
       </div>
-      <!-- 
-      <div role="button" class="nc-sidebar-top-button">
-        <PhMagnifyingGlassBold class="!h-3.3" />
-        <div>Search</div>
-      </div> -->
       <WorkspaceCreateProjectBtn
-        v-if="isUIAllowed('createProject')"
+        v-if="isUIAllowed('createProject', false, activeWorkspace.roles)"
         v-model:is-open="isCreateProjectOpen"
         modal
         type="text"

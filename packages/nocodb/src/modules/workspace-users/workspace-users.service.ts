@@ -6,7 +6,7 @@ import WorkspaceUser from '../../models/WorkspaceUser';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import validateParams from '../../helpers/validateParams';
 import { NcError } from '../../helpers/catchError';
-import { User } from '../../models';
+import { Project, ProjectUser, User } from '../../models';
 import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
 import Workspace from '../../models/Workspace';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
@@ -43,6 +43,17 @@ export class WorkspaceUsersService {
 
     if (!user) NcError.notFound('User not found');
 
+    if (
+      ![
+        WorkspaceUserRoles.CREATOR,
+        WorkspaceUserRoles.VIEWER,
+        WorkspaceUserRoles.EDITOR,
+        WorkspaceUserRoles.COMMENTER,
+      ].includes(param.roles)
+    ) {
+      NcError.badRequest('Invalid role');
+    }
+
     await WorkspaceUser.update(param.workspaceId, param.userId, {
       roles: param.roles,
     });
@@ -52,6 +63,16 @@ export class WorkspaceUsersService {
 
   async delete(param: { workspaceId: string; userId: string }) {
     const { workspaceId, userId } = param;
+
+    // get all projects user is part of and delete them
+    const workspaceProjects = await Project.listByWorkspaceAndUser(
+      workspaceId,
+      userId,
+    );
+
+    for (const project of workspaceProjects) {
+      await ProjectUser.delete(project.id, userId);
+    }
 
     return await WorkspaceUser.delete(workspaceId, userId);
   }
@@ -79,8 +100,12 @@ export class WorkspaceUsersService {
     }
 
     if (
-      roles !== WorkspaceUserRoles.CREATOR &&
-      roles !== WorkspaceUserRoles.VIEWER
+      ![
+        WorkspaceUserRoles.CREATOR,
+        WorkspaceUserRoles.VIEWER,
+        WorkspaceUserRoles.EDITOR,
+        WorkspaceUserRoles.COMMENTER,
+      ].includes(roles)
     ) {
       NcError.badRequest('Invalid role');
     }

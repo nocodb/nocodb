@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import type {TableType} from 'nocodb-sdk'
-import type {UploadChangeParam, UploadFile} from 'ant-design-vue'
-import {Upload} from 'ant-design-vue'
-import {onMounted, onUnmounted, toRaw, unref} from '@vue/runtime-core'
-import {worker} from 'monaco-editor'
+import type { TableType } from 'nocodb-sdk'
+import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
+import { Upload } from 'ant-design-vue'
+import { toRaw, unref } from '@vue/runtime-core'
 import {
   CSVTemplateAdapter,
   ExcelTemplateAdapter,
@@ -18,22 +17,22 @@ import {
   importCsvUrlValidator,
   importExcelUrlValidator,
   importUrlValidator,
+  initWorker,
   message,
   reactive,
   ref,
   storeToRefs,
+  useGlobal,
   useI18n,
   useProject,
   useVModel,
 } from '#imports'
-import type {ImportWorkerPayload, importFileList, streamImportFileList} from '~/lib'
+import type { ImportWorkerPayload, importFileList, streamImportFileList } from '~/lib'
 
 // import worker script according to the doc of Vite
 import importWorkerUrl from '~/workers/importWorker?worker&url'
-import {BASE_FALLBACK_URL, ImportSource, ImportType, ImportWorkerOperations, ImportWorkerResponse} from '~/lib'
-import api from '~/plugins/api'
-import {useNuxtApp} from '#app'
-import {useGlobal} from '~/composables/useGlobal'
+import { BASE_FALLBACK_URL, ImportSource, ImportType, ImportWorkerOperations, ImportWorkerResponse } from '~/lib'
+import { useNuxtApp } from '#app'
 
 interface Props {
   modelValue: boolean
@@ -42,25 +41,25 @@ interface Props {
   importDataOnly?: boolean
 }
 
-const {importType, importDataOnly = false, baseId, ...rest} = defineProps<Props>()
+const { importType, importDataOnly = false, baseId, ...rest } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const {$api} = useNuxtApp()
+const { $api } = useNuxtApp()
 
-const {appInfo} = useGlobal()
+const { appInfo } = useGlobal()
 
 const config = useRuntimeConfig()
 
 const isWorkerSupport = typeof Worker !== 'undefined'
 
-let importWorker: Worker
+let importWorker: Worker | null
 
-const {t} = useI18n()
+const { t } = useI18n()
 
 const progressMsg = ref('Parsing Data ...')
 
-const {tables} = storeToRefs(useProject())
+const { tables } = storeToRefs(useProject())
 
 const activeKey = ref('uploadTab')
 
@@ -98,7 +97,7 @@ const defaultImportState = {
 }
 const importState = reactive(defaultImportState)
 
-const {token} = useGlobal()
+const { token } = useGlobal()
 
 const isImportTypeJson = computed(() => importType === 'json')
 
@@ -111,7 +110,7 @@ const validators = computed(() => ({
   maxRowsToParse: [fieldRequiredValidator()],
 }))
 
-const {validate, validateInfos} = useForm(importState, validators)
+const { validate, validateInfos } = useForm(importState, validators)
 
 const importMeta = computed(() => {
   if (IsImportTypeExcel.value) {
@@ -142,30 +141,16 @@ const importMeta = computed(() => {
 
 const dialogShow = useVModel(rest, 'modelValue', emit)
 
-// watch dialogShow to create or terminate worker
+// watch dialogShow to init or terminate worker
 if (isWorkerSupport) {
   watch(
-      dialogShow,
-      (val) => {
-        if (val) {
-          try {
-            const worker_url = getWorkerURL( importWorkerUrl );
-            importWorker = new Worker( worker_url );
-            URL.revokeObjectURL(worker_url);
-
-            // Returns a blob:// URL which points
-            // to a javascript file which will call
-            // importScripts with the given URL
-            function getWorkerURL( url:string ) {
-              const content = `importScripts( "${ url }" );`;
-              return URL.createObjectURL( new Blob( [ content ], { type: "text/javascript" } ) );
-            }
-          } catch (e) {
-            console.error(e)
-          }
-        } else importWorker?.terminate()
-      },
-      {immediate: true},
+    dialogShow,
+    (val) => {
+      if (val) {
+        importWorker = initWorker(importWorkerUrl)
+      } else importWorker?.terminate()
+    },
+    { immediate: true },
   )
 }
 
@@ -287,13 +272,13 @@ function formatJson() {
 function populateUniqueTableName(tn: string) {
   let c = 1
   while (
-      tables.value.some((t: TableType) => {
-        const s = t.table_name.split('___')
-        let target = t.table_name
-        if (s.length > 1) target = s[1]
-        return target === `${tn}`
-      })
-      ) {
+    tables.value.some((t: TableType) => {
+      const s = t.table_name.split('___')
+      let target = t.table_name
+      if (s.length > 1) target = s[1]
+      return target === `${tn}`
+    })
+  ) {
     tn = `${tn}_${c++}`
   }
   return tn
@@ -343,7 +328,7 @@ const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
   importState.fileList.forEach((f) => {
     if (f.uid === customReqArgs.file.uid) {
       f.status = 'done'
-      handleChange({file: f, fileList: importState.fileList})
+      handleChange({ file: f, fileList: importState.fileList })
     }
   })
   customReqArgs.onSuccess()
@@ -453,7 +438,11 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
         },
       ])
 
-      const value = toRaw(val)
+      let value = toRaw(val)
+
+      // if array, iterate and unwrap proxy
+      if (Array.isArray(value)) value = value.map((v) => toRaw(v))
+
       const payload = extractImportWorkerPayload(value)
 
       importWorker.postMessage([
@@ -482,20 +471,20 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
           switch (type) {
             case ImportWorkerResponse.PROCESSED_DATA:
               resolve(payload)
-              importWorker.removeEventListener('message', handler, false)
+              importWorker?.removeEventListener('message', handler, false)
               break
             case ImportWorkerResponse.PROGRESS:
               progressMsg.value = payload
               break
             case ImportWorkerResponse.ERROR:
               reject(payload)
-              importWorker.removeEventListener('message', handler, false)
+              importWorker?.removeEventListener('message', handler, false)
               break
           }
         }
-        importWorker.addEventListener('message', handler, false)
+        importWorker?.addEventListener('message', handler, false)
 
-        importWorker.postMessage([ImportWorkerOperations.PROCESS, payload])
+        importWorker?.postMessage([ImportWorkerOperations.PROCESS, payload])
       })
       templateData.value = response.templateData
       importColumns.value = response.importColumns
@@ -539,11 +528,11 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
 
 <template>
   <a-modal
-      v-model:visible="dialogShow"
-      :class="{ active: dialogShow }"
-      :width="modalWidth"
-      wrap-class-name="nc-modal-quick-import"
-      @keydown.esc="dialogShow = false"
+    v-model:visible="dialogShow"
+    :class="{ active: dialogShow }"
+    :width="modalWidth"
+    wrap-class-name="nc-modal-quick-import"
+    @keydown.esc="dialogShow = false"
   >
     <a-spin :spinning="isParsingData" :tip="progressMsg" size="large">
       <div class="px-5">
@@ -551,18 +540,18 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
 
         <div class="mt-5">
           <LazyTemplateEditor
-              v-if="templateEditorModal"
-              ref="templateEditorRef"
-              :project-template="templateData"
-              :import-data="importData"
-              :import-columns="importColumns"
-              :import-data-only="importDataOnly"
-              :quick-import-type="importType"
-              :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
-              :base-id="baseId"
-              :import-worker="importWorker"
-              class="nc-quick-import-template-editor"
-              @import="handleImport"
+            v-if="templateEditorModal"
+            ref="templateEditorRef"
+            :project-template="templateData"
+            :import-data="importData"
+            :import-columns="importColumns"
+            :import-data-only="importDataOnly"
+            :quick-import-type="importType"
+            :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
+            :base-id="baseId"
+            :import-worker="importWorker"
+            class="nc-quick-import-template-editor"
+            @import="handleImport"
           />
 
           <a-tabs v-else v-model:activeKey="activeKey" hide-add type="editable-card" tab-position="top">
@@ -570,26 +559,26 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
               <template #tab>
                 <!--              Upload -->
                 <div class="flex items-center gap-2">
-                  <component :is="iconMap.fileUpload"/>
+                  <component :is="iconMap.fileUpload" />
                   {{ $t('general.upload') }}
                 </div>
               </template>
 
               <div class="py-6">
                 <a-upload-dragger
-                    v-model:fileList="importState.fileList"
-                    name="file"
-                    class="nc-input-import !scrollbar-thin-dull"
-                    list-type="picture"
-                    :accept="importMeta.acceptTypes"
-                    :max-count="isImportTypeCsv ? 5 : 1"
-                    :multiple="true"
-                    :custom-request="customReqCbk"
-                    :before-upload="beforeUpload"
-                    @change="handleChange"
-                    @reject="rejectDrop"
+                  v-model:fileList="importState.fileList"
+                  name="file"
+                  class="nc-input-import !scrollbar-thin-dull"
+                  list-type="picture"
+                  :accept="importMeta.acceptTypes"
+                  :max-count="isImportTypeCsv ? 5 : 1"
+                  :multiple="true"
+                  :custom-request="customReqCbk"
+                  :before-upload="beforeUpload"
+                  @change="handleChange"
+                  @reject="rejectDrop"
                 >
-                  <component :is="iconMap.plusCircle" size="large"/>
+                  <component :is="iconMap.plusCircle" size="large" />
 
                   <!-- Click or drag file to this area to upload -->
                   <p class="ant-upload-text">{{ $t('msg.info.import.clickOrDrag') }}</p>
@@ -604,20 +593,20 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
             <a-tab-pane v-if="isImportTypeJson" key="jsonEditorTab" :closable="false">
               <template #tab>
                 <span class="flex items-center gap-2">
-                  <component :is="iconMap.json"/>
+                  <component :is="iconMap.json" />
                   JSON Editor
                 </span>
               </template>
 
               <div class="pb-3 pt-3">
-                <LazyMonacoEditor ref="jsonEditorRef" v-model="importState.jsonEditor" class="min-h-60 max-h-80"/>
+                <LazyMonacoEditor ref="jsonEditorRef" v-model="importState.jsonEditor" class="min-h-60 max-h-80" />
               </div>
             </a-tab-pane>
 
             <a-tab-pane v-else key="urlTab" :closable="false">
               <template #tab>
                 <span class="flex items-center gap-2">
-                  <component :is="iconMap.link"/>
+                  <component :is="iconMap.link" />
                   URL
                 </span>
               </template>
@@ -625,7 +614,7 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
               <div class="pr-10 pt-5">
                 <a-form :model="importState" name="quick-import-url-form" layout="vertical" class="mb-0">
                   <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url">
-                    <a-input v-model:value="importState.url" size="large"/>
+                    <a-input v-model:value="importState.url" size="large" />
                   </a-form-item>
                 </a-form>
               </div>
@@ -634,14 +623,14 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
         </div>
 
         <div v-if="!templateEditorModal">
-          <a-divider/>
+          <a-divider />
 
           <div class="mb-4">
             <!-- Advanced Settings -->
             <span class="prose-lg">{{ $t('title.advancedSettings') }}</span>
 
             <a-form-item class="!my-2" :label="t('msg.info.footMsg')" v-bind="validateInfos.maxRowsToParse">
-              <a-input-number v-model:value="importState.parserConfig.maxRowsToParse" :min="1" :max="50000"/>
+              <a-input-number v-model:value="importState.parserConfig.maxRowsToParse" :min="1" :max="50000" />
             </a-form-item>
 
             <a-form-item v-if="!importDataOnly" class="!my-2">
@@ -665,54 +654,47 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
 
             <!-- Import Data -->
             <a-form-item v-if="!importDataOnly" class="!my-2">
-              <a-checkbox v-model:checked="importState.parserConfig.shouldImportData">{{
-                  $t('labels.importData')
-                }}
-              </a-checkbox>
+              <a-checkbox v-model:checked="importState.parserConfig.shouldImportData">{{ $t('labels.importData') }} </a-checkbox>
             </a-form-item>
           </div>
         </div>
       </div>
     </a-spin>
     <template #footer>
-      <a-button v-if="templateEditorModal" key="back" class="!rounded-md" @click="templateEditorModal = false">Back
-      </a-button>
+      <a-button v-if="templateEditorModal" key="back" class="!rounded-md" @click="templateEditorModal = false">Back </a-button>
 
-      <a-button v-else key="cancel" class="!rounded-md" @click="dialogShow = false">{{
-          $t('general.cancel')
-        }}
-      </a-button>
+      <a-button v-else key="cancel" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }} </a-button>
 
       <a-button
-          v-if="activeKey === 'jsonEditorTab' && !templateEditorModal"
-          key="format"
-          class="!rounded-md"
-          :disabled="disableFormatJsonButton"
-          @click="formatJson"
+        v-if="activeKey === 'jsonEditorTab' && !templateEditorModal"
+        key="format"
+        class="!rounded-md"
+        :disabled="disableFormatJsonButton"
+        @click="formatJson"
       >
         Format JSON
       </a-button>
 
       <a-button
-          v-if="!templateEditorModal"
-          key="pre-import"
-          type="primary"
-          class="nc-btn-import !rounded-md"
-          :loading="preImportLoading"
-          :disabled="disablePreImportButton"
-          @click="handlePreImport"
+        v-if="!templateEditorModal"
+        key="pre-import"
+        type="primary"
+        class="nc-btn-import !rounded-md"
+        :loading="preImportLoading"
+        :disabled="disablePreImportButton"
+        @click="handlePreImport"
       >
         {{ $t('activity.import') }}
       </a-button>
 
       <a-button
-          v-else
-          key="import"
-          type="primary"
-          class="!rounded-md"
-          :loading="importLoading"
-          :disabled="disableImportButton"
-          @click="handleImport"
+        v-else
+        key="import"
+        type="primary"
+        class="!rounded-md"
+        :loading="importLoading"
+        :disabled="disableImportButton"
+        @click="handleImport"
       >
         {{ $t('activity.import') }}
       </a-button>

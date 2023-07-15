@@ -82,7 +82,7 @@ async function onDelete() {
         <div class="pl-2.5 text-gray-500">This action cannot be undone</div>
       </div>
 
-      <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 border-t-1 border-gray-50 justify-end">
+      <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
         <a-button key="back" class="!rounded-md !font-medium" @click="vModel = false">{{ $t('general.cancel') }}</a-button>
 
         <a-button

@@ -42,7 +42,7 @@ export default defineNuxtConfig({
   },
 
   css: [
-    '~/assets/style/fonts.css',
+    ...(process.env.NC_CDN_URL ? [] : ['~/assets/style/fonts.css']),
     'virtual:windi.css',
     'virtual:windi-devtools',
     '~/assets/css/global.css',
@@ -62,6 +62,9 @@ export default defineNuxtConfig({
         type: 'image/x-icon',
         href: './favicon.ico',
       },
+      ...(process.env.NC_CDN_URL
+        ? [{ rel: 'stylesheet', href: new URL('/shared/style/fonts.css', process.env.NC_CDN_URL).href }]
+        : []),
     ],
     meta: [
       { charset: 'utf-8' },

@@ -18,6 +18,7 @@ import MdiEyeCircleOutline from '~icons/mdi/eye-circle-outline'
 import MsAddBoxOutline from '~icons/nc-icons/add-box'
 import MsDownloadRounded from '~icons/nc-icons/download'
 import LogosAirtable from '~icons/logos/airtable'
+import MaterialSymbolsWarningOutlineRounded from '~icons/material-symbols/warning-outline-rounded'
 import PhLayout from '~icons/ph/layout'
 import Copy from '~icons/material-symbols/content-copy-outline'
 import Delete from '~icons/material-symbols/delete-outline'
@@ -333,7 +334,7 @@ export const iconMap = {
   check: h('span', { class: 'material-symbols' }, 'check'),
   acl: h('span', { class: 'material-symbols' }, 'shield'),
   sync: MsSync,
-  warning: h('span', { class: 'material-symbols' }, 'warning'),
+  warning: MaterialSymbolsWarningOutlineRounded,
   share: h('span', { class: 'material-symbols' }, 'share'),
   reload: MdiRefresh,
   xml: h('span', { class: 'material-symbols' }, 'code'),

@@ -30,6 +30,8 @@ const columnMeta = inject(ColumnInj, null)!
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
+const isLockedMode = inject(IsLockedInj, ref(false))
+
 const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
@@ -206,7 +208,7 @@ const clickHandler = () => {
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
     :dropdown-class-name="`${randomClass} nc-picker-date ${open ? 'active' : ''}`"
-    :open="(readOnly || (localState && isPk)) && !active && !editable ? false : open"
+    :open="((readOnly || (localState && isPk)) && !active && !editable) || isLockedMode ? false : open"
     @click="clickHandler"
     @update:open="updateOpen"
   >

@@ -47,6 +47,8 @@ const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj)!
 
+const isLockedMode = inject(IsLockedInj, ref(false))
+
 const isEditable = inject(EditModeInj, ref(false))
 
 const activeCell = inject(ActiveCellInj, ref(false))
@@ -343,7 +345,11 @@ const selectedOpts = computed(() => {
 </script>
 
 <template>
-  <div class="nc-multi-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
+  <div
+    class="nc-multi-select h-full w-full flex items-center"
+    :class="{ 'read-only': readOnly || isLockedMode }"
+    @click="toggleMenu"
+  >
     <div
       v-if="!active"
       class="flex flex-wrap"
@@ -381,9 +387,9 @@ const selectedOpts = computed(() => {
       :bordered="false"
       clear-icon
       show-search
-      :show-arrow="editAllowed && !readOnly"
+      :show-arrow="editAllowed && !(readOnly || isLockedMode)"
       :open="isOpen && editAllowed"
-      :disabled="readOnly || !editAllowed"
+      :disabled="readOnly || !editAllowed || isLockedMode"
       :class="{ 'caret-transparent': !hasEditRoles }"
       :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
       @search="search"
@@ -491,6 +497,12 @@ const selectedOpts = computed(() => {
 
 .ms-close-icon:hover {
   color: rgba(0, 0, 0, 0.45);
+}
+
+.read-only {
+  .ms-close-icon {
+    display: none;
+  }
 }
 
 .rounded-tag {

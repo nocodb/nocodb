@@ -374,14 +374,14 @@ const hideField = async () => {
         </a-menu-item>
         <a-menu-item @click="addColumn()">
           <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
-            <component :is="iconMap.colInsertAfter" class="text-gray-700 !w-4.5 !h-4.5 ml-1" />
+            <component :is="iconMap.colInsertAfter" class="text-gray-700 !w-4.5 !h-4.5 ml-0.75" />
             <!-- Insert After -->
             {{ t('general.insertAfter') }}
           </div>
         </a-menu-item>
         <a-menu-item v-if="!column?.pv" @click="addColumn(true)">
           <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
-            <component :is="iconMap.colInsertBefore" class="text-gray-600 !w-4.5 !h-4.5 mr-1.5 -ml-0.5" />
+            <component :is="iconMap.colInsertBefore" class="text-gray-600 !w-4.5 !h-4.5 mr-1.5 -ml-0.75" />
             <!-- Insert Before -->
             {{ t('general.insertBefore') }}
           </div>

@@ -43,6 +43,9 @@ export class WorkspaceUsersService {
 
     if (!user) NcError.notFound('User not found');
 
+    if (user.roles === WorkspaceUserRoles.OWNER)
+      NcError.badRequest('Owner cannot be updated');
+
     if (
       ![
         WorkspaceUserRoles.CREATOR,
@@ -63,6 +66,13 @@ export class WorkspaceUsersService {
 
   async delete(param: { workspaceId: string; userId: string }) {
     const { workspaceId, userId } = param;
+
+    const user = await WorkspaceUser.get(workspaceId, userId);
+
+    if (!user) NcError.notFound('User not found');
+
+    if (user.roles === WorkspaceUserRoles.OWNER)
+      NcError.badRequest('Owner cannot be deleted');
 
     // get all projects user is part of and delete them
     const workspaceProjects = await Project.listByWorkspaceAndUser(

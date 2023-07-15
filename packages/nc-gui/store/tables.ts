@@ -4,6 +4,9 @@ import type { TableType } from 'nocodb-sdk'
 export const useTablesStore = defineStore('tablesStore', () => {
   const { includeM2M } = useGlobal()
   const { api } = useApi()
+  const { $e, $api } = useNuxtApp()
+  const { addUndo, defineProjectScope } = useUndoRedo()
+  const { refreshCommandPalette } = useCommandPalette()
 
   const router = useRouter()
   const route = router.currentRoute
@@ -98,6 +101,55 @@ export const useTablesStore = defineStore('tablesStore', () => {
     })
   }
 
+  const updateTable = async (table: TableType, undo?: boolean) => {
+    if (!table) return
+
+    try {
+      await $api.dbTable.update(table.id as string, {
+        project_id: table.project_id,
+        table_name: table.table_name,
+        title: table.title,
+      })
+
+      await loadProjectTables(table.project_id!, true)
+
+      if (!undo) {
+        addUndo({
+          redo: {
+            fn: (t: string) => {
+              table.title = t
+              updateTable(table, true)
+            },
+            args: [table.title],
+          },
+          undo: {
+            fn: (t: string) => {
+              table.title = t
+              updateTable(table, true)
+            },
+            args: [table.title],
+          },
+          scope: defineProjectScope({ model: table }),
+        })
+      }
+
+      // update metas
+      const newMeta = await $api.dbTable.read(table.id as string)
+      projectTables.value.set(
+        table.project_id!,
+        projectTables.value.get(table.project_id!)!.map((t) => (t.id === table.id ? { ...t, ...newMeta } : t)),
+      )
+
+      // updateTab({ id: tableMeta.id }, { title: newMeta.title })
+
+      refreshCommandPalette()
+
+      $e('a:table:rename')
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
   return {
     projectTables,
     loadProjectTables,
@@ -105,6 +157,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
     activeTable,
     activeTables,
     openTable,
+    updateTable,
   }
 })
 

@@ -83,6 +83,7 @@ const [searchActive] = useToggle()
 const filterQuery = $ref('')
 const keys = $ref<Record<string, number>>({})
 const isTableDeleteDialogVisible = ref(false)
+const isProjectDeleteDialogVisible = ref(false)
 
 // If only project is open, i.e in case of docs, project view is open and not the page view
 const projectViewOpen = computed(() => {
@@ -118,22 +119,6 @@ const updateProjectTitle = async () => {
 const closeEditMode = () => {
   editMode.value = false
   tempTitle.value = ''
-}
-
-const confirmDeleteProject = () => {
-  Modal.confirm({
-    title: 'Delete Project',
-    content: 'Are you sure you want to delete this project?',
-    onOk: async () => {
-      try {
-        await deleteProject(project.value.id!)
-        await closeTab(project.value.id as any)
-        message.success('Project deleted successfully')
-      } catch (e: any) {
-        message.error(await extractSdkResponseErrorMsg(e))
-      }
-    },
-  })
 }
 
 const { copy } = useCopy(true)
@@ -515,7 +500,7 @@ onKeyStroke('Escape', () => {
 
                 <a-menu-divider v-if="false" />
 
-                <a-menu-item @click="confirmDeleteProject">
+                <a-menu-item @click="isProjectDeleteDialogVisible = true">
                   <div class="nc-project-menu-item group text-red-500">
                     <GeneralIcon icon="delete2" class="group-hover:text-accent" />
                     Delete
@@ -717,6 +702,7 @@ onKeyStroke('Escape', () => {
     </template>
   </a-dropdown>
   <DlgTableDelete v-model:visible="isTableDeleteDialogVisible" :table-id="contextMenuTarget.value?.id" />
+  <DlgProjectDelete v-model:visible="isProjectDeleteDialogVisible" :project-id="project?.id" />
 </template>
 
 <style lang="scss" scoped>

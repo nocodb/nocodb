@@ -109,7 +109,7 @@ const onDelete = async () => {
 
       <div class="flex flex-row items-center py-2 px-3 border-1 border-gray-100 rounded-lg text-gray-700">
         <GeneralIcon icon="warning" class="text-orange-500 pl-1"></GeneralIcon>
-        <div class="pl-1.25">This action cannot be undone</div>
+        <div class="pl-1.25 text-gray-500">This action cannot be undone</div>
       </div>
 
       <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 border-t-1 border-gray-50 justify-end">

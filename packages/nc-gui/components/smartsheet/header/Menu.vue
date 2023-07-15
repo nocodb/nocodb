@@ -308,10 +308,10 @@ const hideField = async () => {
   <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']" overlay-class-name="nc-dropdown-column-operations">
     <div><GeneralIcon icon="arrowDown" class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2" /></div>
     <template #overlay>
-      <a-menu class="shadow bg-white">
+      <a-menu class="shadow bg-white nc-column-options">
         <a-menu-item @click="emit('edit')">
           <div class="nc-column-edit nc-header-menu-item">
-            <component :is="iconMap.edit" class="text-primary" />
+            <component :is="iconMap.edit" class="text-gray-700 mx-0.65 my-0.75" />
             <!-- Edit -->
             {{ $t('general.edit') }}
           </div>
@@ -320,14 +320,14 @@ const hideField = async () => {
           <a-divider class="!my-0" />
           <a-menu-item @click="sortByColumn('asc')">
             <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
-              <component :is="iconMap.sortAsc" class="text-primary" />
+              <component :is="iconMap.sortAsc" class="text-gray-700" />
               <!-- Sort Ascending -->
               {{ $t('general.sortAsc') }}
             </div>
           </a-menu-item>
           <a-menu-item @click="sortByColumn('desc')">
             <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
-              <component :is="iconMap.sortDesc" class="text-primary" />
+              <component :is="iconMap.sortDesc" class="text-gray-700" />
               <!-- Sort Descending -->
               {{ $t('general.sortDesc') }}
             </div>
@@ -335,8 +335,8 @@ const hideField = async () => {
         </template>
         <a-divider class="!my-0" />
         <a-menu-item v-if="!column?.pv" @click="hideField">
-          <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
-            <component :is="iconMap.eye" class="text-primary" />
+          <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item my-0.5">
+            <component :is="iconMap.eye" class="text-gray-700 mx-0.75" />
             <!-- Hide Field -->
             {{ $t('general.hideField') }}
           </div>
@@ -348,22 +348,22 @@ const hideField = async () => {
           v-if="column.uidt !== UITypes.LinkToAnotherRecord && column.uidt !== UITypes.Lookup && !column.pk"
           @click="duplicateColumn"
         >
-          <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
-            <component :is="iconMap.duplicate" class="text-primary" />
+          <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item my-0.5">
+            <component :is="iconMap.duplicate" class="text-gray-700 mx-0.75" />
             <!-- Duplicate -->
             {{ t('general.duplicate') }}
           </div>
         </a-menu-item>
         <a-menu-item @click="addColumn()">
           <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
-            <component :is="iconMap.colInsertAfter" class="text-primary" />
+            <component :is="iconMap.colInsertAfter" class="text-gray-700" />
             <!-- Insert After -->
             {{ t('general.insertAfter') }}
           </div>
         </a-menu-item>
         <a-menu-item v-if="!column?.pv" @click="addColumn(true)">
           <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
-            <component :is="iconMap.colInsertBefore" class="text-primary" />
+            <component :is="iconMap.colInsertBefore" class="text-gray-700" />
             <!-- Insert Before -->
             {{ t('general.insertBefore') }}
           </div>
@@ -371,8 +371,8 @@ const hideField = async () => {
         <a-divider class="!my-0" />
 
         <a-menu-item v-if="(!virtual || column?.uidt === UITypes.Formula) && !column?.pv" @click="setAsDisplayValue">
-          <div class="nc-column-set-primary nc-header-menu-item">
-            <GeneralIcon icon="star" class="text-primary" />
+          <div class="nc-column-set-primary nc-header-menu-item item my-0.5">
+            <GeneralIcon icon="star" class="text-gray-700 -mt-0.75" />
 
             <!--       todo : tooltip -->
             <!-- Set as Display value -->
@@ -381,8 +381,8 @@ const hideField = async () => {
         </a-menu-item>
 
         <a-menu-item v-if="!column?.pv" @click="deleteColumn">
-          <div class="nc-column-delete nc-header-menu-item">
-            <component :is="iconMap.delete2" class="text-error" />
+          <div class="nc-column-delete nc-header-menu-item my-0.75 text-red-600">
+            <component :is="iconMap.delete2" class="mx-0.75" />
             <!-- Delete -->
             {{ $t('general.delete') }}
           </div>
@@ -395,5 +395,11 @@ const hideField = async () => {
 <style scoped>
 .nc-header-menu-item {
   @apply text-xs flex items-center px-1 py-2 gap-1;
+}
+
+.nc-column-options {
+  .nc-icons {
+    @apply !w-5 !h-5;
+  }
 }
 </style>

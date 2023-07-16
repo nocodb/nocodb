@@ -19,7 +19,6 @@ app/tests/coverage/
 coverage/
 package-lock.json
 
-
 # MEAN.js app and assets
 # ======================
 public/dist/

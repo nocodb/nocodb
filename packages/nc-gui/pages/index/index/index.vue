@@ -10,7 +10,6 @@ import {
   computed,
   extractSdkResponseErrorMsg,
   message,
-  navigateTo,
   onMounted,
   parseProp,
   projectThemeColors,
@@ -43,8 +42,15 @@ const {
 
 const projectsStore = useProjects()
 
-const { workspacesList, activeWorkspace, isWorkspaceOwner, activePage, collaborators, activeWorkspaceId } =
-  storeToRefs(workspaceStore)
+const {
+  workspacesList,
+  activeWorkspace,
+  isWorkspaceOwnerOrCreator,
+  isWorkspaceOwner,
+  activePage,
+  collaborators,
+  activeWorkspaceId,
+} = storeToRefs(workspaceStore)
 
 const { loadProjects } = useProjects()
 
@@ -525,7 +531,7 @@ watch(
             </template>
             <WorkspaceProjectList class="h-full mt-4 px-6" />
           </a-tab-pane>
-          <template v-if="isWorkspaceOwner">
+          <template v-if="isWorkspaceOwnerOrCreator">
             <a-tab-pane key="collab" class="w-full">
               <template #tab>
                 <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
@@ -535,6 +541,9 @@ watch(
               </template>
               <WorkspaceCollaboratorsList />
             </a-tab-pane>
+          </template>
+
+          <template v-if="isWorkspaceOwner">
             <a-tab-pane key="billing" class="w-full">
               <template #tab>
                 <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">

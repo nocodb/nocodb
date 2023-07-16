@@ -851,8 +851,6 @@ watch(view, (nextView) => {
   }
 }
 
-
-
 .form-meta-input::placeholder {
   @apply text-[#3d3d3d] italic;
 }

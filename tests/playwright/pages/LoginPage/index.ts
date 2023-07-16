@@ -37,8 +37,18 @@ export class LoginPage extends BasePage {
     await expect(this.rootPage.locator('.nc-workspace-container')).toBeVisible();
   }
 
-  async signIn({ email, password, withoutPrefix }: { email: string; password: string; withoutPrefix?: boolean }) {
-    await this.goto();
+  async signIn({
+    email,
+    password,
+    withoutPrefix,
+    skipReload = false,
+  }: {
+    email: string;
+    password: string;
+    withoutPrefix?: boolean;
+    skipReload?: boolean;
+  }) {
+    if (!skipReload) await this.goto();
 
     // todo: Login page is sometimes not loaded. Probably because of lazy loading
     await this.rootPage.waitForTimeout(1500);

@@ -70,19 +70,19 @@ const updateCollaborator = async (collab) => {
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(collab, i) of filterCollaborators" :key="i" class="relative w-full">
-          <td class="!py-0 w-1/3">
-            <div class="flex items-center nc-project-title gap-2">
+        <tr v-for="(collab, i) of filterCollaborators" :key="i" class="relative w-full nc-collaborators">
+          <td class="!py-0 w-1/3 email">
+            <div class="flex items-center gap-2">
               <span class="color-band" :style="{ backgroundColor: stringToColour(collab.email) }">{{
                 collab.email.slice(0, 2)
               }}</span>
               {{ collab.email }}
             </div>
           </td>
-          <td class="text-gray-500 text-xs w-1/3">
+          <td class="text-gray-500 text-xs w-1/3 created-at">
             {{ timeAgo(collab.created_at) }}
           </td>
-          <td class="w-1/3">
+          <td class="w-1/3 roles">
             <span v-if="collab.roles === WorkspaceUserRoles.OWNER" class="text-xs text-gray-500">
               {{ getRolesLabel(collab.roles) }}
             </span>

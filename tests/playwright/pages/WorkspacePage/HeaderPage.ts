@@ -93,5 +93,7 @@ export class HeaderPage extends BasePage {
       .locator('.ant-dropdown-menu-vertical')
       .locator(`[data-testid="nc-menu-accounts__${title}"]`)
       .click();
+    // wait for URL to include 'signin'
+    await this.rootPage.waitForURL(/signin/);
   }
 }

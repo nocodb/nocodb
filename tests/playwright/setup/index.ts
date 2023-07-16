@@ -273,11 +273,16 @@ const resetSakilaPg = async (parallelId: string) => {
 // General purpose API based routines
 //
 async function getWorkspaceId(title: string) {
-  const ws = await api.workspace.list();
-  for (const w of ws.list) {
-    if (w.title === title) {
-      return w.id;
+  try {
+    const ws = await api.workspace.list();
+
+    for (const w of ws.list) {
+      if (w.title === title) {
+        return w.id;
+      }
     }
+  } catch (e) {
+    console.error(`Error getting workspace id: ${title}`);
   }
   return null;
 }

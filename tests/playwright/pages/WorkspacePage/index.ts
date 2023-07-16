@@ -127,14 +127,25 @@ export class WorkspacePage extends BasePage {
     const addProject = await this.Container.newProjectButton;
     const collaborators = await this.Container.collaborators;
     const billing = await this.Container.billing;
+    const moreActions = await this.Container.moreActions;
+
+    if (role === 'owner') expect(await billing.isVisible()).toBeTruthy();
+    else expect(await billing.isVisible()).toBeFalsy();
+
+    expect(await addWs.isVisible()).toBeTruthy();
 
     if (role === 'creator' || role === 'owner') {
-      expect(await addWs.isVisible()).toBeTruthy();
       expect(await collaborators.isVisible()).toBeTruthy();
-      expect(await billing.isVisible()).toBeTruthy();
       expect(await addProject.isVisible()).toBeTruthy();
+      expect(await moreActions.isVisible()).toBeTruthy();
+
+      const menuItems = await this.Container.getMoreActionsSubMenuDetails();
+      if (role === 'creator') {
+        expect(menuItems).toEqual(['Rename Project', 'Duplicate Project']);
+      } else {
+        expect(menuItems).toEqual(['Rename Project', 'Duplicate Project', 'Move Project', 'Delete Project']);
+      }
     } else {
-      expect(await addWs.isVisible()).toBeFalsy();
       expect(await collaborators.isVisible()).toBeFalsy();
       expect(await billing.isVisible()).toBeFalsy();
       expect(await addProject.isVisible()).toBeFalsy();

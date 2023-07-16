@@ -123,7 +123,6 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
 
     try {
       const { project, table } = await timezoneSuite(context.token, 'xcdb0');
-      await dashboard.rootPage.reload();
 
       await api.dbTableRow.bulkCreate('noco', project.id, table.id, rowAttributes);
       records = await api.dbTableRow.list('noco', project.id, table.id, { limit: 10 });
@@ -162,6 +161,7 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
       const projectsPage = new ProjectsPage(dashboard.rootPage);
       await projectsPage.openProject({ title: 'xcdb0', withoutPrefix: true });
     }
+
     await dashboard.treeView.openTable({ title: 'dateTimeTable' });
 
     // DateTime inserted using API without timezone is converted to db-timezone (server timezone in case of sqlite)

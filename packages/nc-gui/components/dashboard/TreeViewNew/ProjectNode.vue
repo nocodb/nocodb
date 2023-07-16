@@ -606,7 +606,7 @@ onKeyStroke('Escape', () => {
                             @contextmenu="setMenuContext('base', base)"
                           >
                             <GeneralBaseLogo :base-type="base.type" class="w-4" />
-                            <div class="flex capitalize">
+                            <div class="flex capitalize" :data-testid="`nc-sidebar-project-${base.alias}`">
                               {{ base.alias || '' }}
                             </div>
                             <a-tooltip>

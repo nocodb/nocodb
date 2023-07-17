@@ -120,11 +120,15 @@ export default class Notification {
   }
 
   public static async markAllAsRead(fk_user_id: string, ncMeta = Noco.ncMeta) {
-    return ncMeta.metaUpdate(null, null, MetaTable.NOTIFICATION, {
-      condition: {
+    return ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.NOTIFICATION,
+      { is_read: true },
+      {
         fk_user_id,
         is_read: false,
       },
-    });
+    );
   }
 }

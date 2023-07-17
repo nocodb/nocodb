@@ -86,8 +86,9 @@ const contextMenuTarget = reactive<{ type?: 'project' | 'base' | 'table' | 'main
 const activeKey = ref<string[]>([])
 const [searchActive] = useToggle()
 const filterQuery = $ref('')
-const { deleteTable } = useTable()
 const keys = $ref<Record<string, number>>({})
+const isTableDeleteDialogVisible = ref(false)
+const isProjectDeleteDialogVisible = ref(false)
 
 // If only project is open, i.e in case of docs, project view is open and not the page view
 const projectViewOpen = computed(() => {
@@ -123,22 +124,6 @@ const updateProjectTitle = async () => {
 const closeEditMode = () => {
   editMode.value = false
   tempTitle.value = ''
-}
-
-const confirmDeleteProject = () => {
-  Modal.confirm({
-    title: 'Delete Project',
-    content: 'Are you sure you want to delete this project?',
-    onOk: async () => {
-      try {
-        await deleteProject(project.value.id!)
-        await closeTab(project.value.id as any)
-        message.success('Project deleted successfully')
-      } catch (e: any) {
-        message.error(await extractSdkResponseErrorMsg(e))
-      }
-    },
-  })
 }
 
 const { copy } = useCopy(true)
@@ -472,7 +457,7 @@ onKeyStroke('Escape', () => {
                 <template v-if="!isSharedBase">
                   <a-menu-item @click="enableEditMode">
                     <div class="nc-project-menu-item group">
-                      <GeneralIcon icon="edit" class="group-hover:text-accent" />
+                      <GeneralIcon icon="edit" class="group-hover:text-black" />
                       Edit
                     </div>
                   </a-menu-item>
@@ -480,7 +465,7 @@ onKeyStroke('Escape', () => {
                   <!-- Copy Project Info -->
                   <a-menu-item v-if="false" key="copy">
                     <div v-e="['c:navbar:user:copy-proj-info']" class="nc-project-menu-item group" @click.stop="copyProjectInfo">
-                      <GeneralIcon icon="copy" class="group-hover:text-accent" />
+                      <GeneralIcon icon="copy" class="group-hover:text-black" />
                       {{ $t('activity.account.projInfo') }}
                     </div>
                   </a-menu-item>
@@ -495,15 +480,10 @@ onKeyStroke('Escape', () => {
                       class="nc-project-menu-item group"
                       @click.stop="openLink(`/api/v1/db/meta/projects/${project.id}/swagger`, appInfo.ncSiteUrl)"
                     >
-                      <GeneralIcon icon="json" class="group-hover:text-accent" />
+                      <GeneralIcon icon="snippet" class="group-hover:text-black" />
                       {{ $t('activity.account.swagger') }}
                     </div>
                   </a-menu-item>
-                </template>
-                <template v-if="project.bases && project.bases[0]">
-                  <DashboardTreeViewNewBaseOptions v-model:project="project" :base="project.bases[0]" />
-
-                  <a-menu-divider />
                 </template>
                 <!-- Team & Settings -->
                 <a-menu-item key="teamAndSettings">
@@ -513,19 +493,24 @@ onKeyStroke('Escape', () => {
                     class="nc-project-menu-item group"
                     @click="toggleDialog(true, 'teamAndAuth', undefined, project.id)"
                   >
-                    <GeneralIcon icon="settings" class="group-hover:text-accent" />
+                    <GeneralIcon icon="settings" class="group-hover:text-black" />
                     {{ $t('activity.settings') }}
                   </div>
                 </a-menu-item>
+                <template v-if="project.bases && project.bases[0]">
+                  <DashboardTreeViewNewBaseOptions v-model:project="project" :base="project.bases[0]" />
+
+                  <a-menu-divider />
+                </template>
 
                 <a-menu-divider v-if="false" />
 
                 <a-menu-item
                   v-if="isUIAllowed('projectDelete', false, [activeWorkspace.roles], true)"
-                  @click="confirmDeleteProject"
+                  @click="isProjectDeleteDialogVisible = true"
                 >
                   <div class="nc-project-menu-item group text-red-500">
-                    <GeneralIcon icon="delete2" class="group-hover:text-accent" />
+                    <GeneralIcon icon="delete" />
                     Delete
                   </div>
                 </a-menu-item>
@@ -707,7 +692,7 @@ onKeyStroke('Escape', () => {
             </div>
           </a-menu-item>
 
-          <a-menu-item v-if="isUIAllowed('table-delete')" @click="deleteTable(contextMenuTarget.value)">
+          <a-menu-item v-if="isUIAllowed('table-delete')" @click="isTableDeleteDialogVisible = true">
             <div class="nc-project-menu-item">
               {{ $t('general.delete') }}
             </div>
@@ -724,6 +709,8 @@ onKeyStroke('Escape', () => {
       </a-menu>
     </template>
   </a-dropdown>
+  <DlgTableDelete v-model:visible="isTableDeleteDialogVisible" :table-id="contextMenuTarget.value?.id" />
+  <DlgProjectDelete v-model:visible="isProjectDeleteDialogVisible" :project-id="project?.id" />
 </template>
 
 <style lang="scss" scoped>

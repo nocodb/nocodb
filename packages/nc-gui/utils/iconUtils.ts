@@ -13,14 +13,23 @@ import MdiThumbUpOutline from '~icons/mdi/thumb-up-outline'
 import MdiFlag from '~icons/mdi/flag'
 import MdiFlagOutline from '~icons/mdi/flag-outline'
 import MdiTable from '~icons/mdi/table'
+import MsMove from '~icons/material-symbols/drive-file-move-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
+import TablerColumnInsertLeft from '~icons/tabler/column-insert-left'
+import TablerColumnInsertRight from '~icons/tabler/column-insert-right'
 import MdiEyeCircleOutline from '~icons/mdi/eye-circle-outline'
+import NcEye from '~icons/nc-icons/eye'
 import MsAddBoxOutline from '~icons/nc-icons/add-box'
 import MsDownloadRounded from '~icons/nc-icons/download'
 import LogosAirtable from '~icons/logos/airtable'
+import MsStar from '~icons/material-symbols/star-outline-rounded'
+import MsSort from '~icons/material-symbols/sort'
+import MaterialSymbolsEdit from '~icons/material-symbols/edit-outline-rounded'
+import MaterialDuplicate from '~icons/material-symbols/file-copy-outline-rounded'
+import MaterialSymbolsWarningOutlineRounded from '~icons/material-symbols/warning-outline-rounded'
 import PhLayout from '~icons/ph/layout'
 import Copy from '~icons/material-symbols/content-copy-outline'
-import Delete from '~icons/material-symbols/delete-outline'
+import Delete from '~icons/material-symbols/delete-outline-rounded'
 import PhEye from '~icons/ph/eye'
 import CiFilter from '~icons/mdi/filter-outline'
 import Gallery from '~icons/ph/image-square-bold'
@@ -34,6 +43,7 @@ import Erd from '~icons/material-symbols/account-tree-outline-rounded'
 import MsSync from '~icons/material-symbols/sync-rounded'
 import MdiRefresh from '~icons/mdi/refresh'
 import ApiSnippet from '~icons/material-symbols/settings-ethernet-rounded'
+import MdiSettings from '~icons/mdi/cog-outline'
 import Phishing from '~icons/material-symbols/phishing-outline-rounded'
 import MdiAccountGroup from '~icons/mdi/account-group'
 import MdiDotsVertical from '~icons/mdi/dots-vertical'
@@ -216,7 +226,7 @@ export const iconMap = {
   inbox: h('span', { class: 'material-symbols' }, 'inbox'),
   addOutlineBox: MsAddBoxOutline,
   loading: h('span', { class: 'material-symbols' }, 'autorenew'),
-  arrowCollapse: h('span', { class: 'material-symbols' }, 'keyboard_arrow_up'),
+  arrowCollapse: Up,
   markerAlert: h('span', { class: 'material-symbols' }, 'warning'),
   appStore: h('span', { class: 'material-symbols' }, 'apps'),
   chevronLeft: h('span', { class: 'material-symbols' }, 'chevron_left'),
@@ -227,10 +237,10 @@ export const iconMap = {
   role: h('span', { class: 'material-symbols' }, 'badge'),
   tableKey: h('span', { class: 'material-symbols' }, 'table_rows'),
   export: h('span', { class: 'material-symbols' }, 'get_app'),
-  colInsertAfter: h('span', { class: 'material-symbols' }, 'add_box'),
-  colInsertBefore: h('span', { class: 'material-symbols' }, 'indeterminate_check_box'),
-  star: h('span', { class: 'material-symbols' }, 'star'),
-  sortDesc: h('span', { class: 'material-symbols' }, 'sort'),
+  colInsertAfter: TablerColumnInsertRight,
+  colInsertBefore: TablerColumnInsertLeft,
+  star: MsStar,
+  sortDesc: MsSort,
   sortAsc: h('span', { class: 'material-symbols', style: { transform: 'scaleY(-1)' } }, 'sort'),
   contentSaveExit: h('span', { class: 'material-symbols' }, 'save'),
   contentSaveStay: h('span', { class: 'material-symbols' }, 'save_as'),
@@ -271,9 +281,9 @@ export const iconMap = {
   minus: Minus,
   search: h('span', { class: 'material-symbols' }, 'search'),
   copy: Copy,
-  duplicate: h('span', { class: 'material-symbols' }, 'file_copy'),
+  duplicate: MaterialDuplicate,
   clipboard: h('span', { class: 'material-symbols' }, 'content_paste'),
-  settings: h('span', { class: 'material-symbols' }, 'settings'),
+  settings: MdiSettings,
   image: h('span', { class: 'material-symbols' }, 'image'),
   datasource: h('span', { class: 'material-symbols' }, 'hard_drive'),
   book: h('span', { class: 'material-symbols' }, 'menu_book'),
@@ -293,9 +303,8 @@ export const iconMap = {
   code: Code,
   palette: h(Palette, {}, 'palette'),
   delete: Delete,
-  delete2: h('span', { class: 'material-symbols' }, 'delete'),
   import: h('span', { class: 'material-symbols' }, 'system_update_alt'),
-  edit: h('span', { class: 'material-symbols' }, 'edit'),
+  edit: MaterialSymbolsEdit,
   lookup: h('span', { class: 'material-symbols' }, 'search'),
   text: h('span', { class: 'material-symbols', style: 'font-weight: 600' }, 'text_fields'),
   longText: h('span', { class: 'material-symbols' }, 'text_format'),
@@ -327,13 +336,13 @@ export const iconMap = {
   barCode: h('span', { class: 'material-symbols' }, 'barcode'),
   calculator: h('span', { class: 'material-symbols' }, 'calculate'),
   rollup: h('span', { class: 'material-symbols' }, 'group_work'),
-  eye: h(PhEye, { class: 'ph-eye' }, 'visibility'),
+  eye: NcEye,
   eyeSlash: h('span', { class: 'material-symbols' }, 'visibility_off'),
   expand: h('span', { class: 'material-symbols' }, 'open_in_full'),
   check: h('span', { class: 'material-symbols' }, 'check'),
   acl: h('span', { class: 'material-symbols' }, 'shield'),
   sync: MsSync,
-  warning: h('span', { class: 'material-symbols' }, 'warning'),
+  warning: MaterialSymbolsWarningOutlineRounded,
   share: h('span', { class: 'material-symbols' }, 'share'),
   reload: MdiRefresh,
   xml: h('span', { class: 'material-symbols' }, 'code'),
@@ -365,7 +374,7 @@ export const iconMap = {
   drag: h('span', { class: 'material-symbols' }, 'drag_handle'),
   comment: h('span', { class: 'material-symbols' }, 'comment'),
   doc: h('span', { class: 'material-symbols' }, 'menu_book'),
-  move: h('span', { class: 'material-symbols' }, 'drive_file_move'),
+  move: MsMove,
 
   heightShort: NcIconsRowHeightShort,
   heightMedium: NcIconsRowHeightMedium,

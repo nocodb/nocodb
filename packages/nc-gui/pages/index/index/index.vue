@@ -32,13 +32,7 @@ const roleAlias = {
 
 const workspaceStore = useWorkspace()
 
-const {
-  deleteWorkspace: _deleteWorkspace,
-  loadWorkspaces,
-  updateWorkspace,
-  populateWorkspace,
-  navigateToWorkspace,
-} = workspaceStore
+const { deleteWorkspace: _deleteWorkspace, loadWorkspaces, updateWorkspace, populateWorkspace } = workspaceStore
 
 const projectsStore = useProjects()
 
@@ -80,6 +74,9 @@ const isCreateDlgOpen = ref(false)
 const isCreateProjectOpen = ref(false)
 
 const menuEl = ref<Menu | null>(null)
+
+const toBeDeletedWorkspaceId = ref<string | null>(null)
+const showDeleteWorkspace = ref(false)
 
 const menu = (el?: typeof Menu) => {
   if (el) {
@@ -142,24 +139,8 @@ useDialog(resolveComponent('WorkspaceCreateDlg'), {
 })
 
 const deleteWorkspace = (workspace: WorkspaceType) => {
-  Modal.confirm({
-    title: 'Are you sure you want to delete this workspace?',
-    type: 'warn',
-    onOk: async () => {
-      try {
-        await _deleteWorkspace(workspace.id!)
-        await loadWorkspaces()
-
-        if (!workspacesList.value?.[0]?.id) {
-          return await navigateToWorkspace()
-        }
-
-        await navigateToWorkspace(workspacesList.value?.[0]?.id)
-      } catch (e) {
-        message.error(await extractSdkResponseErrorMsg(e))
-      }
-    },
-  })
+  toBeDeletedWorkspaceId.value = workspace.id!
+  showDeleteWorkspace.value = true
 }
 
 const updateWorkspaceTitle = async (workspace: WorkspaceType & { edit: boolean; temp_title: string }) => {
@@ -565,6 +546,7 @@ watch(
 
         <WorkspaceProjectList class="min-h-20 grow" />
       </div>
+      <DlgWorkspaceDelete v-model:visible="showDeleteWorkspace" :workspace-id="toBeDeletedWorkspaceId" />
     </div>
   </NuxtLayout>
 </template>

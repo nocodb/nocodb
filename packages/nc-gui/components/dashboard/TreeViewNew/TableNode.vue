@@ -46,6 +46,8 @@ const tables = computed(() => projectTables.value.get(project.id!) ?? [])
 
 const openedTableId = computed(() => route.params.viewId)
 
+const isTableDeleteDialogVisible = ref(false)
+
 const icon = (table: TableType) => {
   if (table.type === 'table') {
     return iconMap.table
@@ -191,14 +193,14 @@ const isMultiBase = computed(() => project.bases && project.bases.length > 1)
                 @click="openRenameTableDialog(table, project.bases[baseIndex].id)"
               >
                 <div class="nc-project-menu-item" :data-testid="`sidebar-table-rename-${table.title}`">
-                  <GeneralIcon icon="edit" class="text-gray-500 text-primary" />
+                  <GeneralIcon icon="edit" class="text-gray-700" />
                   {{ $t('general.rename') }}
                 </div>
               </a-menu-item>
 
               <a-menu-item v-if="isUIAllowed('table-duplicate')" @click="duplicateTable(table)">
                 <div class="nc-project-menu-item" :data-testid="`sidebar-table-duplicate-${table.title}`">
-                  <GeneralIcon icon="duplicate" class="text-gray-500 text-primary" />
+                  <GeneralIcon icon="duplicate" class="text-gray-700" />
                   {{ $t('general.duplicate') }}
                 </div>
               </a-menu-item>
@@ -206,10 +208,10 @@ const isMultiBase = computed(() => project.bases && project.bases.length > 1)
               <a-menu-item
                 v-if="isUIAllowed('table-delete', false, projectRole)"
                 :data-testid="`sidebar-table-delete-${table.title}`"
-                @click="deleteTable(table)"
+                @click="isTableDeleteDialogVisible = true"
               >
                 <div class="nc-project-menu-item text-red-600">
-                  <GeneralIcon icon="delete2" class="text-gray-500 text-error" />
+                  <GeneralIcon icon="delete" />
                   {{ $t('general.delete') }}
                 </div>
               </a-menu-item>
@@ -217,6 +219,7 @@ const isMultiBase = computed(() => project.bases && project.bases.length > 1)
           </template>
         </a-dropdown>
       </div>
+      <DlgTableDelete v-model:visible="isTableDeleteDialogVisible" :table-id="table.id" />
     </GeneralTooltip>
   </div>
 </template>

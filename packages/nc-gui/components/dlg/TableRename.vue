@@ -182,38 +182,32 @@ const renameTable = async (undo = false) => {
 </script>
 
 <template>
-  <a-modal
-    v-model:visible="dialogShow"
-    :class="{ active: dialogShow }"
-    :title="$t('activity.renameTable')"
-    :mask-closable="false"
-    centered
-    wrap-class-name="nc-modal-table-rename"
-    @keydown.esc="dialogShow = false"
-    @finish="renameTable"
-  >
-    <template #footer>
-      <a-button key="back" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
+  <GeneralModal v-model:visible="dialogShow">
+    <div class="p-6">
+      <div class="mb-4 text-gray-800 font-medium text-lg">
+        {{ $t('activity.renameTable') }}
+      </div>
 
-      <a-button key="submit" class="!rounded-md" type="primary" :loading="loading" @click="renameTable()">{{
-        $t('general.submit')
-      }}</a-button>
-    </template>
+      <a-form :model="formState" name="create-new-table-form">
+        <a-form-item v-bind="validateInfos.title">
+          <a-input
+            ref="inputEl"
+            v-model:value="formState.title"
+            class="!rounded-lg"
+            hide-details
+            size="large"
+            :placeholder="$t('msg.info.enterTableName')"
+            @keydown.enter="renameTable()"
+          />
+        </a-form-item>
+      </a-form>
+      <div class="flex flex-row justify-end gap-x-2 mt-3">
+        <a-button key="back" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
 
-    <a-form :model="formState" name="create-new-table-form">
-      <!-- hint="Enter table name" -->
-      <div class="mb-2">{{ $t('msg.info.enterTableName') }}</div>
-
-      <a-form-item v-bind="validateInfos.title">
-        <a-input
-          ref="inputEl"
-          v-model:value="formState.title"
-          hide-details
-          size="large"
-          :placeholder="$t('msg.info.enterTableName')"
-          @keydown.enter="renameTable()"
-        />
-      </a-form-item>
-    </a-form>
-  </a-modal>
+        <a-button key="submit" class="!rounded-md" type="primary" :loading="loading" @click="renameTable()">{{
+          $t('general.rename')
+        }}</a-button>
+      </div>
+    </div>
+  </GeneralModal>
 </template>

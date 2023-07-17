@@ -52,35 +52,7 @@ const { getMeta } = useMetas()
 
 const { addUndo, defineModelScope, defineViewScope } = useUndoRedo()
 
-const deleteColumn = () =>
-  Modal.confirm({
-    title: h('div', ['Do you want to delete ', h('span', { class: 'font-weight-bold' }, [column?.value?.title]), ' column ?']),
-    wrapClassName: 'nc-modal-column-delete',
-    okText: t('general.delete'),
-    okType: 'danger',
-    cancelText: t('general.cancel'),
-    async onOk() {
-      try {
-        await $api.dbTableColumn.delete(column?.value?.id as string)
-
-        await getMeta(meta?.value?.id as string, true)
-
-        /** force-reload related table meta if deleted column is a LTAR and not linked to same table */
-        if (isLinksOrLTAR(column?.value) && column.value?.colOptions) {
-          await getMeta((column.value?.colOptions as LinkToAnotherRecordType).fk_related_model_id!, true)
-
-          // reload tables if deleted column is mm and include m2m is true
-          if (includeM2M.value && (column.value?.colOptions as LinkToAnotherRecordType).type === RelationTypes.MANY_TO_MANY) {
-            loadTables()
-          }
-        }
-
-        $e('a:column:delete')
-      } catch (e: any) {
-        message.error(await extractSdkResponseErrorMsg(e))
-      }
-    },
-  })
+const showDeleteColumnModal = ref(false)
 
 const setAsDisplayValue = async () => {
   try {
@@ -308,71 +280,25 @@ const hideField = async () => {
   <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']" overlay-class-name="nc-dropdown-column-operations">
     <div><GeneralIcon icon="arrowDown" class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2" /></div>
     <template #overlay>
-      <a-menu class="shadow bg-white">
+      <a-menu class="shadow bg-white nc-column-options">
         <a-menu-item @click="emit('edit')">
           <div class="nc-column-edit nc-header-menu-item">
-            <component :is="iconMap.edit" class="text-primary" />
+            <component :is="iconMap.edit" class="text-gray-700 mx-0.65 my-0.75" />
             <!-- Edit -->
             {{ $t('general.edit') }}
           </div>
         </a-menu-item>
-        <template v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
-          <a-divider class="!my-0" />
-          <a-menu-item @click="sortByColumn('asc')">
-            <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
-              <component :is="iconMap.sortAsc" class="text-primary" />
-              <!-- Sort Ascending -->
-              {{ $t('general.sortAsc') }}
-            </div>
-          </a-menu-item>
-          <a-menu-item @click="sortByColumn('desc')">
-            <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
-              <component :is="iconMap.sortDesc" class="text-primary" />
-              <!-- Sort Descending -->
-              {{ $t('general.sortDesc') }}
-            </div>
-          </a-menu-item>
-        </template>
-        <a-divider class="!my-0" />
+        <a-divider v-if="!column?.pv" class="!my-0" />
         <a-menu-item v-if="!column?.pv" @click="hideField">
-          <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
-            <component :is="iconMap.eye" class="text-primary" />
+          <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item my-0.5">
+            <component :is="iconMap.eye" class="text-gray-700 mx-0.75 !w-3.75 !h-3.75 ml-0.75 mr-0.5" />
             <!-- Hide Field -->
             {{ $t('general.hideField') }}
           </div>
         </a-menu-item>
-
-        <a-divider class="!my-0" />
-
-        <a-menu-item
-          v-if="column.uidt !== UITypes.LinkToAnotherRecord && column.uidt !== UITypes.Lookup && !column.pk"
-          @click="duplicateColumn"
-        >
-          <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
-            <component :is="iconMap.duplicate" class="text-primary" />
-            <!-- Duplicate -->
-            {{ t('general.duplicate') }}
-          </div>
-        </a-menu-item>
-        <a-menu-item @click="addColumn()">
-          <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
-            <component :is="iconMap.colInsertAfter" class="text-primary" />
-            <!-- Insert After -->
-            {{ t('general.insertAfter') }}
-          </div>
-        </a-menu-item>
-        <a-menu-item v-if="!column?.pv" @click="addColumn(true)">
-          <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
-            <component :is="iconMap.colInsertBefore" class="text-primary" />
-            <!-- Insert Before -->
-            {{ t('general.insertBefore') }}
-          </div>
-        </a-menu-item>
-        <a-divider class="!my-0" />
-
         <a-menu-item v-if="(!virtual || column?.uidt === UITypes.Formula) && !column?.pv" @click="setAsDisplayValue">
-          <div class="nc-column-set-primary nc-header-menu-item">
-            <GeneralIcon icon="star" class="text-primary" />
+          <div class="nc-column-set-primary nc-header-menu-item item my-0.5">
+            <GeneralIcon icon="star" class="text-gray-700 !w-4.25 !h-4.25 ml-0.5 mr-0.25 -mt-0.5" />
 
             <!--       todo : tooltip -->
             <!-- Set as Display value -->
@@ -380,9 +306,63 @@ const hideField = async () => {
           </div>
         </a-menu-item>
 
-        <a-menu-item v-if="!column?.pv" @click="deleteColumn">
-          <div class="nc-column-delete nc-header-menu-item">
-            <component :is="iconMap.delete2" class="text-error" />
+        <a-divider class="!my-0" />
+
+        <template v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
+          <a-menu-item @click="sortByColumn('asc')">
+            <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
+              <component
+                :is="iconMap.sortDesc"
+                class="text-gray-700 !rotate-180 !w-4.25 !h-4.25 ml-0.5 mr-0.25"
+                :style="{
+                  transform: 'rotate(180deg)',
+                }"
+              />
+
+              <!-- Sort Ascending -->
+              {{ $t('general.sortAsc') }}
+            </div>
+          </a-menu-item>
+          <a-menu-item @click="sortByColumn('desc')">
+            <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
+              <component :is="iconMap.sortDesc" class="text-gray-700 !w-4.25 !h-4.25 ml-0.5 mr-0.25" />
+              <!-- Sort Descending -->
+              {{ $t('general.sortDesc') }}
+            </div>
+          </a-menu-item>
+        </template>
+
+        <a-divider class="!my-0" />
+
+        <a-menu-item
+          v-if="column.uidt !== UITypes.LinkToAnotherRecord && column.uidt !== UITypes.Lookup && !column.pk"
+          @click="duplicateColumn"
+        >
+          <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item my-0.5">
+            <component :is="iconMap.duplicate" class="text-gray-700 mx-0.75" />
+            <!-- Duplicate -->
+            {{ t('general.duplicate') }}
+          </div>
+        </a-menu-item>
+        <a-menu-item @click="addColumn()">
+          <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
+            <component :is="iconMap.colInsertAfter" class="text-gray-700 !w-4.5 !h-4.5 ml-0.75" />
+            <!-- Insert After -->
+            {{ t('general.insertAfter') }}
+          </div>
+        </a-menu-item>
+        <a-menu-item v-if="!column?.pv" @click="addColumn(true)">
+          <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
+            <component :is="iconMap.colInsertBefore" class="text-gray-600 !w-4.5 !h-4.5 mr-1.5 -ml-0.75" />
+            <!-- Insert Before -->
+            {{ t('general.insertBefore') }}
+          </div>
+        </a-menu-item>
+        <a-divider class="!my-0" />
+
+        <a-menu-item v-if="!column?.pv" @click="showDeleteColumnModal = true">
+          <div class="nc-column-delete nc-header-menu-item my-0.75 text-red-600">
+            <component :is="iconMap.delete" class="ml-0.75 mr-1" />
             <!-- Delete -->
             {{ $t('general.delete') }}
           </div>
@@ -390,10 +370,21 @@ const hideField = async () => {
       </a-menu>
     </template>
   </a-dropdown>
+  <SmartsheetHeaderDeleteColumnModal v-model:visible="showDeleteColumnModal" />
 </template>
 
 <style scoped>
 .nc-header-menu-item {
   @apply text-xs flex items-center px-1 py-2 gap-1;
+}
+
+.nc-column-options {
+  .nc-icons {
+    @apply !w-5 !h-5;
+  }
+}
+
+:deep(.ant-dropdown-menu-item) {
+  @apply !hover:text-black text-gray-700;
 }
 </style>

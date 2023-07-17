@@ -1309,7 +1309,7 @@ const onDraftRecordClick = () => {
                             class="!flex items-center"
                             :data-testid="`row-save-spinner-${rowIndex}`"
                           />
-                          <template v-else>
+                          <template v-else-if="!isLocked">
                             <span
                               v-if="row.rowMeta?.commentCount"
                               class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"

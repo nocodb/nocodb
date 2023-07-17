@@ -19,6 +19,10 @@ const eventList = ref<Record<string, any>[]>([
 ])
 
 const deleteHookId = ref('')
+const toBeDeleteHook = computed(() => {
+  return hooks.value.find((hook) => hook.id === deleteHookId.value)
+})
+
 const selectedHookId = ref<string | undefined>(undefined)
 const selectedHook = computed(() => {
   if (!selectedHookId.value) return undefined
@@ -42,11 +46,6 @@ const copyWebhook = async (hook: HookType) => {
   }
 }
 
-const hideDeleteModal = () => {
-  showDeleteModal.value = false
-  deleteHookId.value = ''
-}
-
 const openDeleteModal = (hookId: string) => {
   deleteHookId.value = hookId
   showDeleteModal.value = true
@@ -54,6 +53,7 @@ const openDeleteModal = (hookId: string) => {
 
 const deleteHook = async () => {
   isDeleting.value = true
+
   try {
     await _deleteHook(deleteHookId.value)
   } finally {
@@ -171,15 +171,19 @@ watch(
       </div>
     </div>
   </div>
-  <GeneralModal v-model:visible="showDeleteModal" width="24rem">
-    <div class="flex flex-col px-6 py-5 gap-y-6">
-      <div>Are you sure you want to delete this webhook?</div>
-      <div class="flex flex-row justify-end gap-x-1">
-        <a-button type="text" class="!rounded" @click="hideDeleteModal">Cancel</a-button>
-        <a-button ref="modalDeleteButtonRef" type="danger" class="!rounded" @click="deleteHook">Delete</a-button>
+  <GeneralDeleteModal v-model:visible="showDeleteModal" :entity-name="$t('objects.webhook')" :on-delete="deleteHook">
+    <template #entity-preview>
+      <div v-if="toBeDeleteHook" class="flex flex-row items-center py-2 px-3 bg-gray-50 rounded-lg text-gray-700 mb-4">
+        <component :is="iconMap.hook" class="text-gray-600" />
+        <div
+          class="capitalize text-ellipsis overflow-hidden select-none w-full pl-2.5"
+          :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+        >
+          {{ toBeDeleteHook.title }}
+        </div>
       </div>
-    </div>
-  </GeneralModal>
+    </template>
+  </GeneralDeleteModal>
   <GeneralModal v-model:visible="showEditModal" width="48rem" destroy-on-close>
     <div class="py-6">
       <div class="webhook-scroll px-5 nc-drawer-webhook-body">

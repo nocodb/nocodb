@@ -8,7 +8,7 @@ ARG RUNNER_VERSION="2.306.0"
 FROM node:18
 
 # Get the latest version of Playwright
-FROM mcr.microsoft.com/playwright:focal
+FROM mcr.microsoft.com/playwright:v1.32.2-focal
  
 # Set the work directory for the application
 WORKDIR /app

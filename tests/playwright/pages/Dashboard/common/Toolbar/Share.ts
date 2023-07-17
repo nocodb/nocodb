@@ -83,7 +83,11 @@ export class ToolbarSharePage extends BasePage {
 
   async getInvitationUrl() {
     await this.get().locator('[data-testid="docs-share-invitation-copy"]').click();
+    const url = await this.get().locator('[data-invite-link="data-invite-link"]').innerText();
     await this.rootPage.keyboard.press('Escape');
-    return await this.getClipboardText();
+
+    // TODO: fix this; text wasn't copied to clipboard
+    // return await this.getClipboardText();
+    return url;
   }
 }

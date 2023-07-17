@@ -4,6 +4,7 @@ import { GridPage } from '../../../pages/Dashboard/Grid';
 import setup from '../../../setup';
 import { Api, UITypes } from 'nocodb-sdk';
 import { isHub } from '../../../setup/db';
+import { getDefaultPwd } from '../../utils/general';
 
 let api: Api<any>;
 
@@ -15,6 +16,31 @@ test.describe('Verify shortcuts', () => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     grid = dashboard.grid;
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    try {
+      await api.auth.signup({
+        email: 'new@example.com',
+        password: getDefaultPwd(),
+      });
+    } catch (e) {
+      // ignore error even if user already exists
+    }
+
+    try {
+      await api.workspaceUser.invite(context.workspace.id, {
+        email: 'new@example.com',
+        roles: 'workspace-level-creator',
+      });
+    } catch (e) {
+      console.log(e);
+    }
   });
 
   test('Verify shortcuts', async ({ page }) => {

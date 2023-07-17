@@ -30,7 +30,7 @@ const { t } = useI18n()
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-const { api, isLoading } = useApi()
+const { api } = useApi()
 
 const { $e } = useNuxtApp()
 
@@ -57,15 +57,9 @@ async function onDelete() {
 </script>
 
 <template>
-  <GeneralModal v-model:visible="vModel" centered :class="{ active: vModel }" :confirm-loading="isLoading">
-    <div class="flex flex-col p-6">
-      <div class="flex flex-row pb-2 mb-4 font-medium text-lg border-b-1 border-gray-50 text-gray-800">
-        {{ $t('general.delete') }} {{ $t('objects.view') }}
-      </div>
-
-      <div class="mb-3 text-gray-800">Are you sure you want to delete the following view?</div>
-
-      <div class="flex flex-row items-center py-2 px-3 bg-gray-50 rounded-lg text-gray-700 mb-4">
+  <GeneralDeleteModal v-model:visible="vModel" :entity-name="$t('objects.view')" :on-delete="onDelete">
+    <template #entity-preview>
+      <div v-if="view" class="flex flex-row items-center py-2 px-3 bg-gray-50 rounded-lg text-gray-700 mb-4">
         <GeneralViewIcon :meta="props.view" class="nc-view-icon"></GeneralViewIcon>
         <div
           class="capitalize text-ellipsis overflow-hidden select-none w-full pl-3"
@@ -74,26 +68,6 @@ async function onDelete() {
           {{ view.title }}
         </div>
       </div>
-
-      <div class="flex flex-row items-center py-2 px-3 border-1 border-gray-100 rounded-lg text-gray-700">
-        <GeneralIcon icon="warning" class="text-orange-500"></GeneralIcon>
-        <div class="pl-2.5 text-gray-500">This action cannot be undone</div>
-      </div>
-
-      <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
-        <a-button key="back" class="!rounded-md !font-medium" @click="vModel = false">{{ $t('general.cancel') }}</a-button>
-
-        <a-button
-          key="submit"
-          class="!rounded-md !font-medium"
-          type="danger"
-          html-type="submit"
-          :loading="isLoading"
-          @click="onDelete"
-        >
-          {{ $t('general.delete') }} {{ $t('objects.view') }}
-        </a-button>
-      </div>
-    </div>
-  </GeneralModal>
+    </template>
+  </GeneralDeleteModal>
 </template>

@@ -37,43 +37,17 @@ const onDelete = async () => {
 </script>
 
 <template>
-  <GeneralModal v-model:visible="visible">
-    <div class="flex flex-col p-6">
-      <div class="flex flex-row pb-2 mb-4 font-medium text-lg border-b-1 border-gray-50 text-gray-800">
-        {{ $t('general.delete') }} {{ $t('objects.project') }}
-      </div>
-
-      <div class="mb-3 text-gray-800">Are you sure you want to delete the following project?</div>
-
-      <div v-if="project" class="flex flex-row items-center py-2 px-3 bg-gray-50 rounded-lg text-gray-700 mb-4">
+  <GeneralDeleteModal v-model:visible="visible" :entity-name="$t('objects.project')" :on-delete="onDelete">
+    <template #entity-preview>
+      <div v-if="project" class="flex flex-row items-center py-2 px-2.25 bg-gray-50 rounded-lg text-gray-700 mb-4">
         <GeneralProjectIcon :type="project.type" class="nc-view-icon px-1.5"></GeneralProjectIcon>
         <div
-          class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.5"
+          class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
         >
           {{ project.title }}
         </div>
       </div>
-
-      <div class="flex flex-row items-center py-2 px-3.5 border-1 border-gray-100 rounded-lg text-gray-700">
-        <GeneralIcon icon="warning" class="text-orange-500"></GeneralIcon>
-        <div class="pl-2.5 text-gray-500">This action cannot be undone</div>
-      </div>
-
-      <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
-        <a-button key="back" class="!rounded-md !font-medium" @click="visible = false">{{ $t('general.cancel') }}</a-button>
-
-        <a-button
-          key="submit"
-          class="!rounded-md !font-medium"
-          type="danger"
-          html-type="submit"
-          :loading="isLoading"
-          @click="onDelete"
-        >
-          {{ $t('general.delete') }} {{ $t('objects.project') }}
-        </a-button>
-      </div>
-    </div>
-  </GeneralModal>
+    </template>
+  </GeneralDeleteModal>
 </template>

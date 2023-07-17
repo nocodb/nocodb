@@ -5,6 +5,7 @@ import {
   ReloadRowDataHookInj,
   iconMap,
   isMac,
+  useCopy,
   useExpandedFormStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
   useSmartsheetStoreOrThrow,
@@ -43,7 +44,7 @@ const iconColor = '#1890ff'
 
 const { dashboardUrl } = useDashboard()
 
-const { copy } = useClipboard()
+const { copy } = useCopy()
 
 const copyRecordUrl = () => {
   copy(

@@ -26,6 +26,7 @@ export enum MetaDiffType {
   TABLE_REMOVE = 'TABLE_REMOVE',
   TABLE_COLUMN_ADD = 'TABLE_COLUMN_ADD',
   TABLE_COLUMN_TYPE_CHANGE = 'TABLE_COLUMN_TYPE_CHANGE',
+  TABLE_COLUMN_PROPS_CHANGED = 'TABLE_COLUMN_PROPS_CHANGED',
   TABLE_COLUMN_REMOVE = 'TABLE_COLUMN_REMOVE',
   VIEW_NEW = 'VIEW_NEW',
   VIEW_REMOVE = 'VIEW_REMOVE',
@@ -111,6 +112,15 @@ type MetaDiffChange = {
       rcn?: string;
       relationType: RelationTypes;
       cstn?: string;
+    }
+  | {
+      type: MetaDiffType.TABLE_COLUMN_PROPS_CHANGED;
+      tn?: string;
+      model?: Model;
+      id?: string;
+      cn: string;
+      column: Column;
+      colId?: string;
     }
 );
 
@@ -228,6 +238,21 @@ export class MetaDiffsService {
           tableProp.detectedChanges.push({
             type: MetaDiffType.TABLE_COLUMN_TYPE_CHANGE,
             msg: `Column type changed(${column.cn})`,
+            cn: oldCol.column_name,
+            id: oldMeta.id,
+            column: oldCol,
+          });
+        }
+        if (
+          !!oldCol.pk !== !!column.pk ||
+          !!oldCol.rqd !== !!column.rqd ||
+          !!oldCol.un !== !!column.un ||
+          !!oldCol.ai !== !!column.ai ||
+          !!oldCol.unique !== !!column.unique
+        ) {
+          tableProp.detectedChanges.push({
+            type: MetaDiffType.TABLE_COLUMN_PROPS_CHANGED,
+            msg: `Column properties changed (${column.cn})`,
             cn: oldCol.column_name,
             id: oldMeta.id,
             column: oldCol,
@@ -713,6 +738,23 @@ export class MetaDiffsService {
                 await Column.update(change.column.id, column);
               }
               break;
+            case MetaDiffType.TABLE_COLUMN_PROPS_CHANGED:
+              {
+                const columns = (
+                  await sqlClient.columnList({ tn: table_name })
+                )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
+                const colMeta = columns.find((c) => c.cn === change.cn);
+                if (!colMeta) break;
+                const { pk, ai, rqd, un, unique } = colMeta;
+                await Column.update(change.column.id, {
+                  pk,
+                  ai,
+                  rqd,
+                  un,
+                  unique,
+                });
+              }
+              break;
             case MetaDiffType.TABLE_COLUMN_REMOVE:
             case MetaDiffType.VIEW_COLUMN_REMOVE:
               await change.column.delete();
@@ -917,6 +959,23 @@ export class MetaDiffsService {
               column.uidt = metaFact.getUIDataType(column);
               column.title = change.column.title;
               await Column.update(change.column.id, column);
+            }
+            break;
+          case MetaDiffType.TABLE_COLUMN_PROPS_CHANGED:
+            {
+              const columns = (
+                await sqlClient.columnList({ tn: table_name })
+              )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
+              const colMeta = columns.find((c) => c.cn === change.cn);
+              if (!colMeta) break;
+              const { pk, ai, rqd, un, unique } = colMeta;
+              await Column.update(change.column.id, {
+                pk,
+                ai,
+                rqd,
+                un,
+                unique,
+              });
             }
             break;
           case MetaDiffType.TABLE_COLUMN_REMOVE:

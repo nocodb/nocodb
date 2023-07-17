@@ -75,18 +75,20 @@ export function useGlobalActions(state: State): Actions {
     projectId,
   }: {
     workspaceId: string
-    projectId: string
-    type: NcProjectType
+    projectId?: string
+    type?: NcProjectType
   }) => {
     let path: string
-    switch (type) {
-      case NcProjectType.DOCS:
-        path = `/ws/${workspaceId}/nc/${projectId}/doc`
-        break
-      default:
-        path = `/ws/${workspaceId}/project/${projectId}`
-        break
-    }
+    if (projectId)
+      switch (type) {
+        case NcProjectType.DOCS:
+          path = `/ws/${workspaceId}/nc/${projectId}/doc`
+          break
+        default:
+          path = `/ws/${workspaceId}/project/${projectId}`
+          break
+      }
+    else path = `/ws/${workspaceId}`
 
     if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
       location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}/dashboard/#${path}`

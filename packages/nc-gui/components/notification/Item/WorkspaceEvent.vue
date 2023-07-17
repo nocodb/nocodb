@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import type { TableEventType } from 'nocodb-sdk'
 import { AppEvents } from 'nocodb-sdk'
+import { useGlobal } from '#imports'
 
 const props = defineProps<{
   item: any
 }>()
+
+const { navigateToProject } = $(useGlobal())
 
 const item = $(toRef(props, 'item'))
 
@@ -21,7 +23,7 @@ const action = computed(() => {
 
 const onClick = () => {
   if (item.type === AppEvents.WORKSPACE_DELETE) return
-  navigateTo(`/ws/${item.body.id}`)
+  navigateToProject({ workspaceId: item.body.id })
 }
 </script>
 

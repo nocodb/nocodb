@@ -17,7 +17,7 @@ export class SignupPage extends BasePage {
   }
 
   async goto() {
-    return this.rootPage.goto('/#/signup/');
+    await this.rootPage.locator('[href="#/signup"]').click();
   }
 
   get() {

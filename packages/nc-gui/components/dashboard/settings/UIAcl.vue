@@ -108,6 +108,18 @@ function isRoleIndeterminate(role: string | number) {
   return checkedCount > 0 && checkedCount < filteredTables.value.length
 }
 
+function getColumnTitle(columnName: string): string {
+  const titles: { [key: string]: string } = {
+    table_name: 'Table name',
+    view_name: 'View name',
+    editor: 'Editor',
+    commenter: 'Commenter',
+    viewer: 'Viewer',
+  }
+
+  return titles[columnName] || ''
+}
+
 const tableHeaderRenderer = (label: string) => () => h('div', { class: 'text-gray-500' }, label)
 
 const columns = [
@@ -161,21 +173,6 @@ const columns = [
           </div>
         </a-button>
       </div>
-      <div class="flex flex-row items-center w-full mb-4 gap-2 justify-end">
-        <template v-for="role in roles" :key="role">
-          <a-tooltip>
-            <template #title>
-              {{ `Click to select all ${role}'s` }}
-            </template>
-            <a-checkbox
-              class="checkbox-spacing"
-              :checked="isRoleChecked(role)"
-              :indeterminate="isRoleIndeterminate(role)"
-              @change="toggleRole(role)"
-            />
-          </a-tooltip>
-        </template>
-      </div>
       <div class="max-h-600px overflow-y-auto">
         <a-table
           class="w-full"
@@ -193,6 +190,16 @@ const columns = [
         >
           <template #emptyText>
             <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
+          </template>
+          <template #headerCell="{ column }">
+            <span v-if="column.name === 'editor' || column.name === 'commenter' || column.name === 'viewer'" class="mr-2">
+              <a-checkbox
+                :checked="isRoleChecked(column.name)"
+                :indeterminate="isRoleIndeterminate(column.name)"
+                @change="toggleRole(column.name)"
+              />
+            </span>
+            <span> {{ getColumnTitle(column.name) }} </span>
           </template>
 
           <template #bodyCell="{ record, column }">
@@ -241,9 +248,3 @@ const columns = [
     </div>
   </div>
 </template>
-
-<style>
-.checkbox-spacing {
-  @apply mr-[7.5rem];
-}
-</style>

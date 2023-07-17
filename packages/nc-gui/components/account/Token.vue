@@ -101,7 +101,7 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 <template>
   <div class="h-full overflow-y-scroll scrollbar-thin-dull pt-2">
     <div class="max-w-[900px] mx-auto p-4" data-testid="nc-token-list">
-      <div class="text-xl my-4 text-left font-weight-bold">Token Management</div>
+      <div class="text-xl my-4 text-left font-weight-bold">{{ $t('title.tokenManagement') }}</div>
       <div class="py-2 flex gap-4 items-center">
         <div class="flex-grow"></div>
         <component :is="iconMap.reload" class="cursor-pointer" @click="loadTokens" />
@@ -114,7 +114,7 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
         >
           <div class="flex items-center gap-1">
             <component :is="iconMap.plus" />
-            Add new token
+            {{ $t('title.addNewToken') }}
           </div>
         </a-button>
       </div>

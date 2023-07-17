@@ -1,6 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup from '../../../setup';
+import { isHub } from '../../../setup/db';
 
 test.describe('Super user', () => {
   let dashboard: DashboardPage;
@@ -12,6 +13,11 @@ test.describe('Super user', () => {
   });
 
   test('AppStore access', async () => {
+    if (isHub()) {
+      // Appstore is not available in hub
+      test.skip();
+    }
+
     await dashboard.closeTab({ title: 'Team & Auth' });
 
     await dashboard.rootPage.goto('/#/account/apps', { waitUntil: 'networkidle' });

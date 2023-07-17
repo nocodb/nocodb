@@ -428,7 +428,7 @@ watch(view, async (nextView) => {
                               </div>
                             </a-menu-item>
                             <a-menu-item v-e="['c:kanban:collapse-stack']" @click="handleCollapseStack(stackIdx)">
-                              <div class="py-2 flex gap-2 items-center">
+                              <div class="py-2 flex gap-1.8 items-center">
                                 <component :is="iconMap.arrowCollapse" class="text-gray-500" />
                                 {{ $t('activity.kanban.collapseStack') }}
                               </div>
@@ -672,27 +672,18 @@ watch(view, async (nextView) => {
     />
   </Suspense>
 
-  <a-modal
-    v-model:visible="deleteStackVModel"
-    class="!top-[35%]"
-    :class="{ active: deleteStackVModel }"
-    wrap-class-name="nc-modal-kanban-delete-stack"
-  >
-    <template #title>
-      {{ $t('activity.deleteKanbanStack') }}
+  <GeneralDeleteModal v-model:visible="deleteStackVModel" entity-name="Stack" :on-delete="handleDeleteStackConfirmClick">
+    <template #entity-preview>
+      <div v-if="stackToBeDeleted" class="flex flex-row items-center py-2 px-2.25 bg-gray-50 rounded-lg text-gray-700 mb-4">
+        <div
+          class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
+          :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+        >
+          {{ stackToBeDeleted }}
+        </div>
+      </div>
     </template>
-    <div>
-      {{ $t('msg.info.deleteKanbanStackConfirmation', { stackToBeDeleted, groupingField }) }}
-    </div>
-    <template #footer>
-      <a-button key="back" v-e="['c:kanban:cancel-delete-stack']" @click="deleteStackVModel = false">
-        {{ $t('general.cancel') }}
-      </a-button>
-      <a-button key="submit" v-e="['c:kanban:confirm-delete-stack']" type="primary" @click="handleDeleteStackConfirmClick">
-        {{ $t('general.delete') }}
-      </a-button>
-    </template>
-  </a-modal>
+  </GeneralDeleteModal>
 </template>
 
 <style lang="scss" scoped>

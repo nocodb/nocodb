@@ -226,7 +226,7 @@ export const iconMap = {
   inbox: h('span', { class: 'material-symbols' }, 'inbox'),
   addOutlineBox: MsAddBoxOutline,
   loading: h('span', { class: 'material-symbols' }, 'autorenew'),
-  arrowCollapse: h('span', { class: 'material-symbols' }, 'keyboard_arrow_up'),
+  arrowCollapse: Up,
   markerAlert: h('span', { class: 'material-symbols' }, 'warning'),
   appStore: h('span', { class: 'material-symbols' }, 'apps'),
   chevronLeft: h('span', { class: 'material-symbols' }, 'chevron_left'),

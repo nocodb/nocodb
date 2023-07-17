@@ -132,7 +132,7 @@ export default `<!doctype html>
                                         <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
                                             Hi,</p>
                                         <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
-                                            You've been invited to the "<%- workspaceName %>" Noco workspace with "<%- roles -%>" role.
+                                            Your role in "<%- workspaceName %>" Noco workspace has changed to "<%- roles -%>" role.
                                             Click the button below to access the workspace.</p>
                                         <table role="presentation" border="0" cellpadding="0" cellspacing="0"
                                                class="btn btn-primary"
@@ -161,7 +161,7 @@ export default `<!doctype html>
                                             </tbody>
                                         </table>
                                         <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
-                                            Regards, <br/>Noco Team</p>
+                                            Regards, <br/> Noco Team</p>
                                     </td>
                                 </tr>
                             </table>

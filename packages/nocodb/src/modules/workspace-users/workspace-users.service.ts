@@ -12,6 +12,7 @@ import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
 import Workspace from '../../models/Workspace';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
 import { getWorkspaceSiteUrl } from '../../utils';
+import { rolesLabel } from '../../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
 
 @Injectable()
@@ -41,10 +42,15 @@ export class WorkspaceUsersService {
     workspaceId: string;
     userId: string;
     roles: WorkspaceUserRoles;
+    siteUrl: string;
   }) {
     const user = await WorkspaceUser.get(param.workspaceId, param.userId);
 
     if (!user) NcError.notFound('User not found');
+
+    const workspace = await Workspace.get(param.workspaceId);
+
+    if (!workspace) NcError.notFound('Workspace not found');
 
     if (user.roles === WorkspaceUserRoles.OWNER)
       NcError.badRequest('Owner cannot be updated');
@@ -62,6 +68,18 @@ export class WorkspaceUsersService {
 
     await WorkspaceUser.update(param.workspaceId, param.userId, {
       roles: param.roles,
+    });
+
+    this.sendRoleUpdateEmail({
+      workspace,
+      user,
+      roles: param.roles,
+      siteUrl: getWorkspaceSiteUrl({
+        siteUrl: param.siteUrl,
+        workspaceId: workspace.id,
+      }),
+    }).then(() => {
+      /* ignore */
     });
 
     return user;
@@ -255,7 +273,44 @@ export class WorkspaceUsersService {
           html: ejs.render(template, {
             workspaceLink: siteUrl + `/dashboard/#/ws/${workspace.id}`,
             workspaceName: workspace.title,
-            roles,
+            roles: rolesLabel[roles],
+          }),
+        });
+      });
+    } catch (e) {
+      console.log(e);
+      return NcError.badRequest(
+        'Email Plugin is not found. Please contact administrators to configure it in App Store first.',
+      );
+    }
+  }
+
+  private async sendRoleUpdateEmail({
+    user,
+    workspace,
+    roles,
+    siteUrl,
+  }: {
+    workspace: Workspace;
+    roles: any;
+    user: any;
+    siteUrl: string;
+  }) {
+    try {
+      const template = (await import('./emailTemplates/roleUpdate')).default;
+      await NcPluginMgrv2.emailAdapter().then((adapter) => {
+        if (!adapter)
+          return Promise.reject(
+            'Email Plugin is not found. Please contact administrators to configure it in App Store first.',
+          );
+        adapter.mailSend({
+          to: user.email,
+          subject: 'Your workspace role has been updated',
+          text: `Your role in workspace ${workspace.title} has been updated to ${rolesLabel[roles]}`,
+          html: ejs.render(template, {
+            workspaceLink: siteUrl + `/dashboard/#/ws/${workspace.id}`,
+            workspaceName: workspace.title,
+            roles: rolesLabel[roles],
           }),
         });
       });

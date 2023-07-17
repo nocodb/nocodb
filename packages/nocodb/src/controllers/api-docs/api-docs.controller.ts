@@ -33,15 +33,11 @@ export class ApiDocsController {
 
   @Get('/api/v1/db/meta/projects/:projectId/swagger')
   swaggerHtml(@Param('projectId') projectId: string, @Response() res) {
-    const ncPublicUrl = process.env.NC_PUBLIC_URL || '';
-    const swaggerHtml = getSwaggerHtml({ ncSiteUrl : ncPublicUrl })
-    res.send(swaggerHtml);
+    res.send(getSwaggerHtml({ ncSiteUrl: process.env.NC_PUBLIC_URL || '' }));
   }
 
   @Get('/api/v1/db/meta/projects/:projectId/redoc')
   redocHtml(@Param('projectId') projectId: string, @Response() res) {
-    const ncPublicUrl = process.env.NC_PUBLIC_URL || '';
-    const redocHtml = getRedocHtml({ ncSiteUrl : ncPublicUrl })
-    res.send(redocHtml);
+    res.send(getRedocHtml({ ncSiteUrl: process.env.NC_PUBLIC_URL || '' }));
   }
 }

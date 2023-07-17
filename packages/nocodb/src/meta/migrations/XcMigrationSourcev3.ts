@@ -11,6 +11,7 @@ import * as nc_010_add_appearance_config_to_layouts from './v3/nc_010_add_appear
 import * as nc_011_workspace_infra_cols from './v3/nc_011_workspace_infra_cols';
 import * as nc_012_pg_minimal_dbs from './v3/nc_012_pg_minimal_dbs';
 import * as nc_013_remove_fk_and_add_idx from './v3/nc_013_remove_fk_and_add_idx';
+import * as nc_014_notification from './v3/nc_014_notification';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev3 {
@@ -33,6 +34,7 @@ export default class XcMigrationSourcev3 {
       'nc_011_workspace_infra_cols',
       'nc_012_pg_minimal_dbs',
       'nc_013_remove_fk_and_add_idx',
+      'nc_014_notification',
     ]);
   }
 
@@ -68,6 +70,8 @@ export default class XcMigrationSourcev3 {
         return nc_012_pg_minimal_dbs;
       case 'nc_013_remove_fk_and_add_idx':
         return nc_013_remove_fk_and_add_idx;
+      case 'nc_014_notification':
+        return nc_014_notification;
     }
   }
 }

@@ -2,7 +2,7 @@ import { MetaTable } from '../../../utils/globals';
 import type { Knex } from 'knex';
 
 const up = async (knex: Knex) => {
-  await knex.schema.alterTable(MetaTable.NOTIFICATION, (table) => {
+  await knex.schema.createTable(MetaTable.NOTIFICATION, (table) => {
     table.string('id', 20).primary().notNullable();
     table.text('body');
     table.boolean('is_read').defaultTo(false);

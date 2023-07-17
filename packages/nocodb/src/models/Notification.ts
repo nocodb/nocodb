@@ -1,8 +1,7 @@
-import {MetaTable, UserType} from 'nocodb-sdk';
-import {extractProps} from '../helpers/extractProps';
+import { extractProps } from '../helpers/extractProps';
 import Noco from '../Noco';
-import {parseMetaProp, stringifyMetaProp} from "../utils/modelUtils";
-import {NcError} from "../helpers/catchError";
+import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
+import { MetaTable } from '../meta/meta.service';
 
 export default class Notification {
   id?: string;
@@ -34,13 +33,7 @@ export default class Notification {
   }
 
   public static async list(
-    {
-      fk_user_id,
-      limit = 10,
-      offset = 0,
-      is_read = false,
-      is_deleted = false,
-    }: {
+    params: {
       fk_user_id: string;
       limit?: number;
       offset?: number;
@@ -49,20 +42,24 @@ export default class Notification {
     },
     ncMeta = Noco.ncMeta,
   ) {
+    const { limit = 10, offset = 0 } = params;
+
+    const condition = extractProps(params, [
+      'is_read',
+      'is_deleted',
+      'fk_user_id',
+    ]);
+
     const notifications = await ncMeta.metaList(
       null,
       null,
       MetaTable.NOTIFICATION,
       {
-        condition: {
-          fk_user_id,
-          is_read,
-          is_deleted,
-        },
+        condition,
         limit,
         offset,
-      }
-    )
+      },
+    );
 
     for (const notification of notifications) {
       notification.body = parseMetaProp(notification, 'body');
@@ -72,29 +69,21 @@ export default class Notification {
   }
 
   public static async count(
-    {
-      fk_user_id,
-      is_read ,
-      is_deleted ,
-    }: {
+    params: {
       fk_user_id: string;
       is_read?: boolean;
       is_deleted?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const count = await ncMeta.metaCount(
-      null,
-      null,
-      MetaTable.NOTIFICATION,
-      {
-        condition: {
-          fk_user_id,
-          is_read,
-          is_deleted,
-        }
-      }
-    )
+    const condition = extractProps(params, [
+      'is_read',
+      'is_deleted',
+      'fk_user_id',
+    ]);
+    const count = await ncMeta.metaCount(null, null, MetaTable.NOTIFICATION, {
+      condition,
+    });
 
     return count;
   }
@@ -112,7 +101,7 @@ export default class Notification {
       'is_deleted',
     ]);
 
-    if('body' in updateData) {
+    if ('body' in updateData) {
       updateData.body = stringifyMetaProp(updateData, 'body');
     }
 
@@ -121,27 +110,16 @@ export default class Notification {
       null,
       MetaTable.NOTIFICATION,
       updateData,
-      id
+      id,
     );
   }
 
-  public static async markAllAsRead(
-    fk_user_id: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-
-
-return ncMeta.metaUpdate(
-      null,
-      null,
-      MetaTable.NOTIFICATION,
-      {
-        condition: {
-          fk_user_id,
-          is_read: false,
-        }
-      }
-    )
-
+  public static async markAllAsRead(fk_user_id: string, ncMeta = Noco.ncMeta) {
+    return ncMeta.metaUpdate(null, null, MetaTable.NOTIFICATION, {
+      condition: {
+        fk_user_id,
+        is_read: false,
+      },
+    });
   }
 }

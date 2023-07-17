@@ -47,7 +47,7 @@ onKeyStroke('Enter', () => {
       </div>
 
       <div class="mb-3 text-gray-800">
-        Are you sure you want to delete the following <span class="-ml-0.3">{{ props.entityName }}</span> ?
+        Are you sure you want to delete the following <span class="-ml-0.3">{{ props.entityName.toLowerCase() }}?</span>
       </div>
 
       <slot name="entity-preview"></slot>

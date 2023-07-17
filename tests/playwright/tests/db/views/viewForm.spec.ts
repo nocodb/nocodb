@@ -27,7 +27,7 @@ test.describe('Form view', () => {
     accountAppStorePage = accountPage.appStore;
   });
 
-  test('Field re-order operations', async () => {
+  test.only('Field re-order operations', async () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });

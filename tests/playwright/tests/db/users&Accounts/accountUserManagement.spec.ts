@@ -5,6 +5,7 @@ import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { SignupPage } from '../../../pages/SignupPage';
 import setup from '../../../setup';
 import { getDefaultPwd } from '../../utils/general';
+import { LoginPage } from '../../../pages/LoginPage';
 
 const roleDb = [
   { email: 'creator@nocodb.com', role: 'Organization Level Creator', url: '' },
@@ -31,20 +32,27 @@ test.describe('User roles', () => {
   test('Invite user, update role and delete user', async () => {
     test.slow();
 
-    await accountUsersPage.goto();
-
     // invite user
     for (let i = 0; i < roleDb.length; i++) {
+      await accountUsersPage.goto();
+
       roleDb[i].url = await accountUsersPage.invite({
         email: roleDb[i].email,
         role: roleDb[i].role,
       });
       await accountUsersPage.closeInvite();
       await signupAndVerify(i);
-      await accountUsersPage.goto();
+
+      await accountPage.signOut();
+      const loginPage = new LoginPage(accountPage.rootPage);
+      await loginPage.fillEmail({ email: 'user@nocodb.com', withoutPrefix: true });
+      await loginPage.fillPassword(getDefaultPwd());
+      await loginPage.submit();
     }
 
     // update role
+    await accountUsersPage.goto();
+
     for (let i = 0; i < roleDb.length; i++) {
       await accountUsersPage.updateRole({
         email: roleDb[i].email,

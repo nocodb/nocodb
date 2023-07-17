@@ -192,7 +192,7 @@ const columns = [
             <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
           </template>
           <template #headerCell="{ column }">
-            <span v-if="column.name === 'editor' || column.name === 'commenter' || column.name === 'viewer'" class="mr-2">
+            <span v-if="['editor', 'commenter', 'viewer'].includes(column.name)" class="mr-2">
               <a-checkbox
                 :checked="isRoleChecked(column.name)"
                 :indeterminate="isRoleIndeterminate(column.name)"

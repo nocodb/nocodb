@@ -10,6 +10,9 @@ import { Project, ProjectUser, User } from '../../models';
 import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
 import Workspace from '../../models/Workspace';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
+import NcPluginMgrv2 from "../../helpers/NcPluginMgrv2";
+
+import * as ejs from 'ejs';
 
 @Injectable()
 export class WorkspaceUsersService {
@@ -91,6 +94,7 @@ export class WorkspaceUsersService {
     workspaceId: string;
     body: any;
     invitedBy?: UserType;
+    siteUrl: string;
   }) {
     validateParams(['email', 'roles'], param.body);
 
@@ -156,6 +160,13 @@ export class WorkspaceUsersService {
           roles: roles || 'editor',
         });
 
+        this.sendInviteEmail({
+          workspace,
+          user,
+          roles: roles || 'viewer',
+          siteUrl
+        })
+
         this.appHooksService.emit(AppEvents.WORKSPACE_INVITE, {
           workspace,
           user,
@@ -213,4 +224,31 @@ export class WorkspaceUsersService {
       },
     );
   }
+
+  private async sendInviteEmail({user, workspace, roles,siteUrl}: { workspace: Workspace; roles: any; user: any; siteUrl:string; }){
+    const template = (
+      await import(
+        './emailTemplates/invite'
+        )
+    ).default;
+    await NcPluginMgrv2.emailAdapter().then((adapter) =>
+      adapter.mailSend({
+        to: user.email,
+        subject: 'You\'ve been invited to a Noco Cloud Workspace\n',
+        text: `Visit following link to access the workspace : ${siteUrl}/dashboard/#/ws/${workspace.id}`,
+        html: ejs.render(template, {
+          workspaceLink: siteUrl + `/dashboard/#/ws/${workspace.id}`,
+          workspaceName: workspace.title,
+          roles
+        }),
+      }),
+    );
+  } catch (e) {
+    console.log(e);
+    return NcError.badRequest(
+      'Email Plugin is not found. Please contact administrators to configure it in App Store first.',
+    );
+  }
+
+}
 }

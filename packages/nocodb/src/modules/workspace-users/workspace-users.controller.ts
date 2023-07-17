@@ -88,6 +88,7 @@ export class WorkspaceUsersController {
       workspaceId,
       body,
       invitedBy: req.user,
+      siteUrl: req.ncSiteUrl,
     });
   }
 

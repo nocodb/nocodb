@@ -121,6 +121,8 @@
     "geoDataField": "GeoData Field"
   },
   "objects": {
+    "workspace": "Workspace",
+    "workspaces": "Workspaces",
     "project": "Project",
     "projects": "Projects",
     "table": "Table",

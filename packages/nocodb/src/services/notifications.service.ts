@@ -27,7 +27,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     await Notification.insert(insertData);
   }
 
-  private async hookHandler(event: AppEvents, data: any) {
+  private async hookHandler({ event, data }: { event: AppEvents; data: any }) {
     switch (event) {
       case AppEvents.PROJECT_INVITE:
         {

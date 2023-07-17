@@ -4,6 +4,7 @@ import type { Knex } from 'knex';
 const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.NOTIFICATION, (table) => {
     table.string('id', 20).primary().notNullable();
+    table.string('type', 40);
     table.text('body');
     table.boolean('is_read').defaultTo(false);
     table.boolean('is_deleted').defaultTo(false);

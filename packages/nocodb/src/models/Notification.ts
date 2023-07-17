@@ -29,7 +29,12 @@ export default class Notification {
 
     insertData.body = stringifyMetaProp(insertData, 'body');
 
-    return await ncMeta.insert(MetaTable.NOTIFICATION, insertData);
+    return await ncMeta.metaInsert2(
+      null,
+      null,
+      MetaTable.NOTIFICATION,
+      insertData,
+    );
   }
 
   public static async list(

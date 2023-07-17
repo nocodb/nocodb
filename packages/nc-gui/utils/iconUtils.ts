@@ -13,6 +13,7 @@ import MdiThumbUpOutline from '~icons/mdi/thumb-up-outline'
 import MdiFlag from '~icons/mdi/flag'
 import MdiFlagOutline from '~icons/mdi/flag-outline'
 import MdiTable from '~icons/mdi/table'
+import MsMove from '~icons/material-symbols/drive-file-move-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 import TablerColumnInsertLeft from '~icons/tabler/column-insert-left'
 import TablerColumnInsertRight from '~icons/tabler/column-insert-right'
@@ -373,7 +374,7 @@ export const iconMap = {
   drag: h('span', { class: 'material-symbols' }, 'drag_handle'),
   comment: h('span', { class: 'material-symbols' }, 'comment'),
   doc: h('span', { class: 'material-symbols' }, 'menu_book'),
-  move: h('span', { class: 'material-symbols' }, 'drive_file_move'),
+  move: MsMove,
 
   heightShort: NcIconsRowHeightShort,
   heightMedium: NcIconsRowHeightMedium,

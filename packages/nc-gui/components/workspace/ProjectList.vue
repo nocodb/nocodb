@@ -24,6 +24,9 @@ const { $e, $api, $jobs } = useNuxtApp()
 
 const { isUIAllowed } = useUIPermission()
 
+const showProjectDeleteModal = ref(false)
+const toBeDeletedProjectId = ref<string | undefined>()
+
 const openProject = async (project: ProjectType) => {
   navigateToProject({
     projectId: project.id!,
@@ -48,24 +51,8 @@ const roleAlias = {
 const deleteProject = (project: ProjectType) => {
   $e('c:project:delete')
 
-  Modal.confirm({
-    title: `Do you want to delete '${project.title}' project?`,
-    wrapClassName: 'nc-modal-project-delete',
-    okText: 'Yes',
-    okType: 'danger',
-    cancelText: 'No',
-    async onOk() {
-      try {
-        await $api.project.delete(project.id as string)
-
-        $e('a:project:delete')
-
-        projects.value.delete(project!.id!)
-      } catch (e: any) {
-        message.error(await extractSdkResponseErrorMsg(e))
-      }
-    },
-  })
+  showProjectDeleteModal.value = true
+  toBeDeletedProjectId.value = project.id
 }
 
 const handleProjectColor = async (projectId: string, color: string) => {
@@ -413,7 +400,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
               <a-menu>
                 <a-menu-item @click="enableEdit(i)">
                   <div class="nc-menu-item-wrapper">
-                    <GeneralIcon icon="edit" class="text-gray-500 text-primary" />
+                    <GeneralIcon icon="edit" class="text-gray-700" />
                     Rename Project
                   </div>
                 </a-menu-item>
@@ -425,7 +412,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                   @click="duplicateProject(record)"
                 >
                   <div class="nc-menu-item-wrapper">
-                    <GeneralIcon icon="duplicate" class="text-gray-500 text-primary" />
+                    <GeneralIcon icon="duplicate" class="text-gray-700" />
                     Duplicate Project
                   </div>
                 </a-menu-item>
@@ -434,7 +421,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                   @click="moveProject(record)"
                 >
                   <div class="nc-menu-item-wrapper">
-                    <GeneralIcon icon="move" class="text-gray-500 text-primary" />
+                    <GeneralIcon icon="move" class="text-gray-700" />
                     Move Project
                   </div>
                 </a-menu-item>
@@ -442,7 +429,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                   v-if="isUIAllowed('projectDelete', true, [record.workspace_role, record.project_role].join())"
                   @click="deleteProject(record)"
                 >
-                  <div class="nc-menu-item-wrapper text-red-600">
+                  <div class="nc-menu-item-wrapper text-red-500">
                     <GeneralIcon icon="delete" />
                     Delete Project
                   </div>
@@ -454,6 +441,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
         </template>
       </template>
     </a-table>
+    <DlgProjectDelete v-model:visible="showProjectDeleteModal" :project-id="toBeDeletedProjectId" />
   </div>
 </template>
 

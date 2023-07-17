@@ -36,6 +36,8 @@ RUN cd /home/docker && mkdir actions-runner && cd actions-runner \
 # install some additional dependencies
 RUN chown -R docker ~docker && /home/docker/actions-runner/bin/installdependencies.sh
 
+RUN npx playwright install --with-deps
+
 # copy over the start.sh script
 COPY start.sh start.sh
 

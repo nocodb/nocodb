@@ -43,6 +43,9 @@ let forceAwakened = $ref(false)
 
 const dataSourcesAwakened = ref(false)
 
+const isDeleteBaseModalOpen = ref(false)
+const toBeDeletedBase = ref<BaseType | undefined>()
+
 async function loadBases(changed?: boolean) {
   try {
     if (changed) refreshCommandPalette()
@@ -84,29 +87,25 @@ const baseAction = (baseId?: string, action?: string) => {
   vState.value = action || ''
 }
 
-const deleteBase = (base: BaseType) => {
+const openDeleteBase = (base: BaseType) => {
   $e('c:base:delete')
+  isDeleteBaseModalOpen.value = true
+  toBeDeletedBase.value = base
+}
 
-  Modal.confirm({
-    title: `Do you want to delete '${base.alias}' project?`,
-    wrapClassName: 'nc-modal-base-delete',
-    okText: 'Yes',
-    okType: 'danger',
-    cancelText: 'No',
-    async onOk() {
-      try {
-        await $api.base.delete(base.project_id as string, base.id as string)
+const deleteBase = async () => {
+  if (!toBeDeletedBase.value) return
 
-        $e('a:base:delete')
+  try {
+    await $api.base.delete(toBeDeletedBase.value.project_id as string, toBeDeletedBase.value.id as string)
 
-        sources.splice(sources.indexOf(base), 1)
-        await loadProject(project.value.id as string, true)
-      } catch (e: any) {
-        message.error(await extractSdkResponseErrorMsg(e))
-      }
-    },
-    style: 'top: 30%!important',
-  })
+    $e('a:base:delete')
+
+    sources.splice(sources.indexOf(toBeDeletedBase.value), 1)
+    await loadProject(project.value.id as string, true)
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 
 const toggleBase = async (base: BaseType, state: boolean) => {
@@ -463,22 +462,22 @@ const isEditBaseModalOpen = computed({
                     </a-button>
                   </div>
                 </div>
-                <div class="ds-table-col ds-table-crud gap-x-1">
+                <div class="ds-table-col ds-table-crud justify-end gap-x-1">
                   <a-button
                     v-if="!base.is_meta && !base.is_local"
-                    class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg"
+                    class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg mt-0.5"
                     type="text"
                     @click="baseAction(base.id, DataSourcesSubTab.Edit)"
                   >
-                    <GeneralIcon icon="edit" class="text-gray-600 mt-0.5" />
+                    <GeneralIcon icon="edit" class="text-gray-600 -mt-0.5" />
                   </a-button>
                   <a-button
                     v-if="!base.is_meta && !base.is_local"
-                    class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg"
+                    class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg mt-0.5"
                     type="text"
-                    @click="deleteBase(base)"
+                    @click="openDeleteBase(base)"
                   >
-                    <GeneralIcon icon="delete" class="text-red-500" />
+                    <GeneralIcon icon="delete" class="text-red-500 -mt-0.5" />
                   </a-button>
                 </div>
               </div>
@@ -516,6 +515,19 @@ const isEditBaseModalOpen = computed({
           <EditBase :base-id="activeBaseId" @base-updated="loadBases(true)" @close="isEditBaseModalOpen = false" />
         </div>
       </GeneralModal>
+      <GeneralDeleteModal v-model:visible="isDeleteBaseModalOpen" entity-name="base" :on-delete="deleteBase">
+        <template #entity-preview>
+          <div v-if="toBeDeletedBase" class="flex flex-row items-center py-2 px-3.25 bg-gray-50 rounded-lg text-gray-700 mb-4">
+            <GeneralBaseLogo :base-type="toBeDeletedBase.type" />
+            <div
+              class="capitalize text-ellipsis overflow-hidden select-none w-full pl-3"
+              :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+            >
+              {{ toBeDeletedBase.alias }}
+            </div>
+          </div>
+        </template>
+      </GeneralDeleteModal>
     </div>
   </div>
 </template>
@@ -550,11 +562,11 @@ const isEditBaseModalOpen = computed({
 }
 
 .ds-table-actions {
-  @apply col-span-8;
+  @apply col-span-7;
 }
 
 .ds-table-crud {
-  @apply col-span-1;
+  @apply col-span-2;
 }
 
 .ds-table-col:last-child {

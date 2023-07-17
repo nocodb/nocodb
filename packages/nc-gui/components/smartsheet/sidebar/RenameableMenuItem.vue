@@ -209,6 +209,7 @@ function onStopEdit() {
       <div
         v-else
         class="capitalize text-ellipsis overflow-hidden select-none w-full"
+        data-testid="sidebar-view-title"
         :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
       >
         {{ vModel.alias || vModel.title }}

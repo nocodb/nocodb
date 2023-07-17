@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, ClickhouseTables } from 'nocodb-sdk';
+import { AppEvents } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
-import { MetaService } from '../meta/meta.service';
-import { parseMetaProp } from '../utils/modelUtils';
+import { Notification } from '../models';
+import { NcError } from '../helpers/catchError';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import { ClickhouseService } from './clickhouse/clickhouse.service';
 import type {
@@ -19,27 +19,12 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly appHooks: AppHooksService,
     private clickhouseService: ClickhouseService,
-    private metaService: MetaService,
   ) {}
 
   private async insertNotification(insertData: NotificationType) {
-    // todo: fix
     this.appHooks.emit('notification' as any, insertData);
-    // Define the values to insert
-    const id = this.metaService.genNanoid('');
-    const body = JSON.stringify(insertData.body);
-    const type = insertData.type;
-    const isRead = false;
-    const isDeleted = false;
-    const fkUserId = insertData.fk_user_id;
 
-    // Define the SQL query to insert the row
-    const query = `
-  INSERT INTO ${ClickhouseTables.NOTIFICATION} (id, body, type, is_read, is_deleted, fk_user_id)
-  VALUES ('${id}', '${body}', '${type}', ${isRead}, ${isDeleted}, '${fkUserId}')
-`;
-
-    await this.clickhouseService.execute(query, true);
+    await Notification.insert(insertData);
   }
 
   private async hookHandler(event: AppEvents, data: any) {
@@ -110,44 +95,23 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
       // Define the pagination parameters
       const { limit = 10, offset = 0 } = param; // Number of rows to skip before returning results
 
-      // Define the SQL query with pagination parameters
-      const query = `
-  SELECT  *
-  FROM ${ClickhouseTables.NOTIFICATION} FINAL
-  WHERE fk_user_id = '${param.user.id}'
-  ORDER BY created_at DESC
-  LIMIT ${limit}
-  OFFSET ${offset}  
-  `;
+      const list = await Notification.list({
+        fk_user_id: param.user.id,
+        limit,
+        offset,
+        is_deleted: false,
+      });
 
-      const list = ((await this.clickhouseService.execute(query)) ?? []).map(
-        (row) => {
-          row.body = parseMetaProp(row, 'body');
-          return row;
-        },
-      );
+      const count = await Notification.count({
+        fk_user_id: param.user.id,
+        is_deleted: false,
+      });
 
-      const countQuery = `
-  SELECT count(id) as count
-  FROM ${ClickhouseTables.NOTIFICATION}  FINAL       
-  WHERE fk_user_id = '${param.user.id}'
-  AND is_deleted = false 
-    `;
-      const count =
-        (await this.clickhouseService.execute(countQuery))?.[0]?.count ?? 0;
-
-      const unreadCountQuery = `
-  SELECT count(id) as count
-  FROM ${ClickhouseTables.NOTIFICATION} FINAL
-  WHERE fk_user_id = '${param.user.id}'
-  AND is_read = false
-  AND is_deleted = false   
-   
-    `;
-
-      const unreadCount = (
-        await this.clickhouseService.execute(unreadCountQuery)
-      )?.[0]?.count;
+      const unreadCount = await Notification.count({
+        fk_user_id: param.user.id,
+        is_deleted: false,
+        is_read: false,
+      });
 
       return new PagedResponseImpl(
         list,
@@ -165,66 +129,18 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
   }
 
   async notificationUpdate(param: { notificationId: string; body; user: any }) {
-    const existingRecord = (
-      await this.clickhouseService.execute(`
-      SELECT  *
-  FROM ${ClickhouseTables.NOTIFICATION} FINAL
-    WHERE id = '${param.notificationId}'
-    AND fk_user_id = '${param.user.id}'    `)
-    )?.[0];
+    await Notification.update(param.notificationId, param.body);
 
-    if (existingRecord) {
-      Object.assign(existingRecord, param.body);
-      return this.clickhouseService.execute(`
-        INSERT INTO ${ClickhouseTables.NOTIFICATION}
-        (id, fk_user_id, type, body, is_read, is_deleted, created_at)
-        VALUES (
-          '${param.notificationId}',
-          '${param.user.id}',
-          '${existingRecord.type}',
-          '${existingRecord.body}',
-          ${existingRecord.is_read},
-          ${existingRecord.is_deleted},
-          '${existingRecord.created_at}'
-        )`);
-    }
+    return true;
   }
 
   async markAllRead(param: { user: any }) {
-    try {
-      // get all unread notifications
-      const query = `
-  SELECT *
-  FROM ${ClickhouseTables.NOTIFICATION} FINAL
-  WHERE fk_user_id = '${param.user.id}'
-  AND is_read = false
- 
-  `;
-
-      const list = await this.clickhouseService.execute(query);
-
-      const updateQueries = [];
-
-      for (const not of list) {
-        updateQueries.push(`(
-        '${not.id}',
-        '${not.fk_user_id}',
-        '${not.type}',
-        '${not.body}',
-        true,
-        ${not.is_deleted},
-        '${not.created_at}'
-      )`);
-      }
-
-      return await this.clickhouseService.execute(`INSERT INTO ${
-        ClickhouseTables.NOTIFICATION
-      }
-      (id, fk_user_id, type, body, is_read, is_deleted, created_at)
-      VALUES ${updateQueries.join(',')}`);
-    } catch (e) {
-      console.log(e);
-      throw e;
+    if (!param.user?.id) {
+      NcError.badRequest('User id is required');
     }
+
+    await Notification.markAllAsRead(param.user.id);
+
+    return true;
   }
 }

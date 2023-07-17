@@ -1,7 +1,16 @@
 import { MetaTable, orderedMetaTables } from '../../meta.service';
-// import googleAuth from '../plugins/googleAuth';
-// import ses from '../plugins/ses';
-// import cache from '../plugins/cache';
+
+// CREATE TABLE IF NOT EXISTS nc_notification (
+//           id String(20) NOT NULL,
+//           body Text,
+//           type String,
+//           is_read UInt8 DEFAULT 0,
+//           is_deleted UInt8 DEFAULT 0,
+//           fk_user_id String(20),
+//           created_at DateTime DEFAULT now(),
+//           PRIMARY KEY (id)
+//       ) ENGINE = ReplacingMergeTree
+//       ORDER BY id;
 
 const up = async (knex) => {
   await knex.schema.createTable(MetaTable.PROJECT, (table) => {

@@ -1,8 +1,8 @@
 # base
-FROM ubuntu:18.04
+FROM ubuntu:22.04
 
 # set the github runner version
-ARG RUNNER_VERSION="2.283.3"
+ARG RUNNER_VERSION="2.306.0"
 
 # Get the base image of Node version 16
 FROM node:16
@@ -17,7 +17,7 @@ WORKDIR /app
 ENV PATH /app/node_modules/.bin:$PATH
 
 # Get the needed libraries to run Playwright
-RUN apt-get update && apt-get -y install libnss3 libatk-bridge2.0-0 libdrm-dev libxkbcommon-dev libgbm-dev libasound-dev libatspi2.0-0 libxshmfence-dev
+RUN apt-get update && apt-get -y install libnss3 libatk-bridge2.0-0 libdrm-dev libxkbcommon-dev libgbm-dev libasound-dev libatspi2.0-0 libxshmfence-dev python-is-python3
 
 
 # update the base packages and add a non-sudo user
@@ -30,8 +30,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
 
 # cd into the user directory, download and unzip the github actions runner
 RUN cd /home/docker && mkdir actions-runner && cd actions-runner \
-    && curl -O -L https://github.com/actions/runner/releases/download/v2.283.3/actions-runner-linux-x64-2.283.3.tar.gz \
-    && tar xzf ./actions-runner-linux-x64-2.283.3.tar.gz
+    && curl -O -L https://github.com/actions/runner/releases/download/v2.306.0/actions-runner-linux-x64-2.306.0.tar.gz \
+    && tar xzf ./actions-runner-linux-x64-2.306.0.tar.gz
 
 # install some additional dependencies
 RUN chown -R docker ~docker && /home/docker/actions-runner/bin/installdependencies.sh

@@ -199,7 +199,7 @@ const columns = [
                 @change="toggleRole(column.name)"
               />
             </span>
-            <span> {{ getColumnTitle(column.name) }} </span>
+            <span class="text-gray-500"> {{ getColumnTitle(column.name) }} </span>
           </template>
 
           <template #bodyCell="{ record, column }">

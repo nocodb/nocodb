@@ -1,14 +1,5 @@
 <script lang="ts" setup>
-import {
-  extractSdkResponseErrorMsg,
-  message,
-  onKeyStroke,
-  useApi,
-  useCommandPalette,
-  useI18n,
-  useNuxtApp,
-  useVModel,
-} from '#imports'
+import { extractSdkResponseErrorMsg, message, useApi, useI18n, useNuxtApp, useVModel } from '#imports'
 
 interface Props {
   modelValue: boolean
@@ -33,10 +24,6 @@ const vModel = useVModel(props, 'modelValue', emits)
 const { api } = useApi()
 
 const { $e } = useNuxtApp()
-
-onKeyStroke('Escape', () => (vModel.value = false))
-
-onKeyStroke('Enter', () => onDelete())
 
 /** Delete a view */
 async function onDelete() {

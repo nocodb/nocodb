@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { onKeyStroke } from '#imports'
+
 const props = defineProps<{
   visible: boolean
   entityName: string
@@ -23,6 +25,18 @@ const onDelete = async () => {
     isLoading.value = false
   }
 }
+
+onKeyStroke('Escape', () => {
+  if (visible.value) visible.value = false
+})
+
+onKeyStroke('Enter', () => {
+  if (isLoading.value) return
+
+  if (!visible.value) return
+
+  onDelete()
+})
 </script>
 
 <template>

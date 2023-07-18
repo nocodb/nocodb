@@ -24,10 +24,7 @@ RUN apt-get update && apt-get -y install sudo curl ca-certificates gnupg && curl
 
 # Install PostgreSQL
 RUN apt-get update && \
-    apt-get -y install gnupg gnupg2 gnupg1 -y postgresql-14 && \
-    service postgresql start && \
-    sudo -u postgres psql -c "CREATE USER docker WITH PASSWORD 'password';" && \
-    sudo -u postgres psql -c "ALTER USER docker WITH SUPERUSER;"
+    apt-get -y install gnupg gnupg2 gnupg1 -y postgresql-14
 
 # update the base packages and add a non-sudo user
 RUN apt-get update -y && apt-get upgrade -y && useradd -m docker
@@ -52,10 +49,6 @@ COPY start.sh start.sh
 
 # make the script executable
 RUN chmod +x start.sh
-
-# since the config and run script for actions are not allowed to be run by root,
-# set the user to "docker" so all subsequent commands are run as the docker user
-USER docker
 
 # set the entrypoint to the start.sh script
 ENTRYPOINT ["./start.sh"]

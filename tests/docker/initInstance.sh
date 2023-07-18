@@ -26,7 +26,7 @@ sudo apt-get -y update
 sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 #swap
-sudo fallocate -l 1G /swapfile
+sudo fallocate -l 8G /swapfile
 sudo chmod 600 /swapfile
 sudo mkswap /swapfile
 sudo swapon /swapfile

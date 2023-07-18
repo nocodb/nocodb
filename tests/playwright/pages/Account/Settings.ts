@@ -20,7 +20,6 @@ export class AccountSettingsPage extends BasePage {
     } else {
       await this.rootPage.goto('/#/account/users/settings');
       await this.rootPage.waitForTimeout(500);
-      return;
     }
   }
 
@@ -33,7 +32,9 @@ export class AccountSettingsPage extends BasePage {
   }
 
   async getInviteOnlyCheckboxValue() {
-    await this.get().locator(`.nc-invite-only-signup-checkbox`).waitFor({ state: 'visible' });
+    // allow time for the checkbox to be rendered
+    await this.rootPage.waitForTimeout(1000);
+
     return this.get().locator(`.nc-invite-only-signup-checkbox`).isChecked({ timeout: 1000 });
   }
 

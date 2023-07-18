@@ -214,29 +214,35 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const addOrUpdate = async (onSuccess: () => void, columnPosition?: Pick<ColumnReqType, 'column_order'>) => {
       try {
-        if (!(await validate())) return
+        if (!(await validate())) return;
       } catch (e: any) {
         const errorMsgs = e.errorFields
           ?.map((e: any) => e.errors?.join(', '))
           .filter(Boolean)
-          .join(', ')
+          .join(', ');
         if (errorMsgs) {
-          message.error(errorMsgs)
+          message.error(errorMsgs);
         } else {
-          message.error(t('msg.error.formValidationFailed'))
+          message.error(t('msg.error.formValidationFailed'));
         }
-        return
+        return;
       }
-
+    
+      const specialCharsRegex = /[!@#$%^&*(),.?":{}|<>]/g;
+      if (specialCharsRegex.test(formState.value.title)) {
+        message.error('Special characters are not allowed in the column name');
+        return;
+      }
+    
       try {
-        formState.value.table_name = meta.value?.table_name
+        formState.value.table_name = meta.value?.table_name;
         // formState.value.title = formState.value.column_name
         if (column.value) {
           // reset column validation if column is not to be validated
           if (!columnToValidate.includes(formState.value.uidt)) {
-            formState.value.validate = ''
+            formState.value.validate = '';
           }
-          await $api.dbTableColumn.update(column.value?.id as string, formState.value)
+          await $api.dbTableColumn.update(column.value?.id as string, formState.value);
           // Column updated
           message.success(t('msg.success.columnUpdated'))
         } else {
@@ -249,25 +255,29 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             //   };
             // }
           }
-          await $api.dbTableColumn.create(meta.value?.id as string, { ...formState.value, ...columnPosition })
-
+          await $api.dbTableColumn.create(meta.value?.id as string, { ...formState.value, ...columnPosition });
+    
           /** if LTAR column then force reload related table meta */
           if (formState.value.uidt === UITypes.LinkToAnotherRecord && meta.value?.id !== formState.value.childId) {
-            getMeta(formState.value.childId, true).then(() => {})
+            getMeta(formState.value.childId, true).then(() => {});
           }
-
+    
           // Column created
           message.success(t('msg.success.columnCreated'))
 
-          $e('a:column:add', { datatype: formState.value.uidt })
+          if (specialCharsRegex.test(formState.value.title)) {
+            message.warning('Special characters are not allowed in the column name.');
+          }
+    
+          $e('a:column:add', { datatype: formState.value.uidt });
         }
-        onSuccess?.()
-        return true
+        onSuccess?.();
+        return true;
       } catch (e: any) {
-        message.error(await extractSdkResponseErrorMsg(e))
+        message.error(await extractSdkResponseErrorMsg(e));
       }
-    }
-
+    };
+    
     /** set column name same as title which is actual name in db */
     watch(
       () => formState.value?.title,

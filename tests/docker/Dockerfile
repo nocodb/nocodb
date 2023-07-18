@@ -9,16 +9,25 @@ FROM node:18
 
 # Get the latest version of Playwright
 FROM mcr.microsoft.com/playwright:v1.32.2-focal
- 
+
 # Set the work directory for the application
 WORKDIR /app
- 
+
 # Set the environment path to node_modules/.bin
 ENV PATH /app/node_modules/.bin:$PATH
 
 # Get the needed libraries to run Playwright
 RUN apt-get update && apt-get -y install libnss3 libatk-bridge2.0-0 libdrm-dev libxkbcommon-dev libgbm-dev libasound-dev libatspi2.0-0 libxshmfence-dev python-is-python3
 
+RUN apt-get update && apt-get -y install sudo curl ca-certificates gnupg && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc|sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg && sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && apt-get update
+
+
+# Install PostgreSQL
+RUN apt-get update && \
+    apt-get -y install gnupg gnupg2 gnupg1 -y postgresql-14 && \
+    service postgresql start && \
+    sudo -u postgres psql -c "CREATE USER docker WITH PASSWORD 'password';" && \
+    sudo -u postgres psql -c "ALTER USER docker WITH SUPERUSER;"
 
 # update the base packages and add a non-sudo user
 RUN apt-get update -y && apt-get upgrade -y && useradd -m docker

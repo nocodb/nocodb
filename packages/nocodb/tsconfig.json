@@ -18,6 +18,11 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "resolveJsonModule": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "paths": {
+      "src/*": ["./src/*"],
+      "~/*": ["./src/*"],
+      "@/*": ["./src/*"]
+    }
   }
 }

@@ -44,7 +44,15 @@ export class WorkspaceUsersService {
     roles: WorkspaceUserRoles;
     siteUrl: string;
   }) {
-    const user = await WorkspaceUser.get(param.workspaceId, param.userId);
+    const workspaceUser = await WorkspaceUser.get(
+      param.workspaceId,
+      param.userId,
+    );
+
+    if (!workspaceUser)
+      NcError.notFound('User is not a member of this workspace');
+
+    const user = await User.get(param.userId);
 
     if (!user) NcError.notFound('User not found');
 
@@ -52,7 +60,7 @@ export class WorkspaceUsersService {
 
     if (!workspace) NcError.notFound('Workspace not found');
 
-    if (user.roles === WorkspaceUserRoles.OWNER)
+    if (workspaceUser.roles === WorkspaceUserRoles.OWNER)
       NcError.badRequest('Owner cannot be updated');
 
     if (
@@ -82,7 +90,7 @@ export class WorkspaceUsersService {
       /* ignore */
     });
 
-    return user;
+    return workspaceUser;
   }
 
   async delete(param: { workspaceId: string; userId: string }) {

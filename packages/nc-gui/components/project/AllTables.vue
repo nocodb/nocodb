@@ -72,7 +72,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
     <div v-if="isUIAllowed('tableCreate', false, roles)" class="flex flex-row gap-x-6 pb-3 pt-6">
       <div class="nc-project-view-all-table-btn" data-testid="proj-view-btn__add-new-table" @click="openTableCreateDialog()">
         <GeneralIcon icon="addOutlineBox" />
-        <div class="label">New Empty Table</div>
+        <div class="label">New Table</div>
       </div>
       <div class="nc-project-view-all-table-btn" data-testid="proj-view-btn__import-data" @click="isImportModalOpen = true">
         <GeneralIcon icon="download" />

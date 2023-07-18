@@ -10,12 +10,18 @@ export class AccountSettingsPage extends BasePage {
     this.accountPage = accountPage;
   }
 
-  async goto() {
-    return this.waitForResponse({
-      uiAction: async () => await this.rootPage.goto('/#/account/users/settings'),
-      httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: `api/v1/app-settings`,
-    });
+  async goto(p: { networkValidation: boolean }) {
+    if (p.networkValidation) {
+      return this.waitForResponse({
+        uiAction: async () => await this.rootPage.goto('/#/account/users/settings'),
+        httpMethodsToMatch: ['GET'],
+        requestUrlPathToMatch: `api/v1/app-settings`,
+      });
+    } else {
+      await this.rootPage.goto('/#/account/users/settings');
+      await this.rootPage.waitForTimeout(500);
+      return;
+    }
   }
 
   get() {

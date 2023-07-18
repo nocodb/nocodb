@@ -20,7 +20,7 @@ test.describe('App settings', () => {
   test('Toggle invite only signup', async () => {
     test.slow();
 
-    await accountSettingsPage.goto();
+    await accountSettingsPage.goto({ networkValidation: false });
 
     // todo: remove after route navigation issue resolved
     await accountSettingsPage.rootPage.reload({ waitUntil: 'load' });
@@ -44,7 +44,7 @@ test.describe('App settings', () => {
 
     await signupPage.rootPage.reload({ waitUntil: 'load' });
 
-    await accountSettingsPage.goto();
+    await accountSettingsPage.goto({ networkValidation: false });
 
     await accountSettingsPage.checkInviteOnlySignupCheckbox(true);
     await accountSettingsPage.toggleInviteOnlyCheckbox();

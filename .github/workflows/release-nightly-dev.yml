@@ -43,10 +43,10 @@ jobs:
       nightly_build_tag: ${{ steps.tag-step.outputs.NIGHTLY_BUILD_TAG }}
       is_daily: ${{ steps.tag-step.outputs.IS_DAILY }}
       current_version: ${{ steps.tag-step.outputs.CURRENT_VERSION }}
-  # Build frontend and backend and publish to pnpm
-  release-pnpm:
+  # Build frontend and backend and publish to npm
+  release-npm:
     needs: set-tag
-    uses: ./.github/workflows/release-pnpm.yml
+    uses: ./.github/workflows/release-npm.yml
     with:
       tag: ${{ needs.set-tag.outputs.nightly_build_tag }}
       targetEnv: 'DEV'
@@ -55,7 +55,7 @@ jobs:
 
   # Build executables and publish to GitHub
   release-executables:
-    needs: [set-tag, release-pnpm]
+    needs: [set-tag, release-npm]
     uses: ./.github/workflows/release-timely-executables.yml
     with:
       tag: ${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.nightly_build_tag }}
@@ -64,7 +64,7 @@ jobs:
 
   # Build docker image and push to docker hub
   release-docker:
-    needs: [set-tag, release-pnpm]
+    needs: [set-tag, release-npm]
     uses: ./.github/workflows/release-docker.yml
     with:
       currentVersion: ${{ needs.set-tag.outputs.current_version }}

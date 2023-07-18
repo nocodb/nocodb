@@ -11,10 +11,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { UseAclMiddleware } from '../../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
-import { NcError } from '../../helpers/catchError';
-import { MetaTable } from '../../utils/globals';
-import { MetaService } from '../../meta/meta.service';
+import { UseAclMiddleware } from '~/middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
+import { NcError } from '~/helpers/catchError';
+import { MetaTable } from '~/utils/globals';
+import { MetaService } from '~/meta/meta.service';
 import { WorkspacesService } from './workspaces.service';
 import type { WorkspaceType } from 'nocodb-sdk';
 

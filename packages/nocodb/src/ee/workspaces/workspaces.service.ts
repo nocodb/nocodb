@@ -8,17 +8,17 @@ import {
 } from 'nocodb-sdk';
 import AWS from 'aws-sdk';
 import { ConfigService } from '@nestjs/config';
-import WorkspaceUser from '../../models/WorkspaceUser';
-import { PagedResponseImpl } from '../../helpers/PagedResponse';
-import Workspace from '../../models/Workspace';
-import validateParams from '../../helpers/validateParams';
-import { NcError } from '../../helpers/catchError';
-import { Project, ProjectUser } from '../../models';
-import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
-import { extractProps } from '../../helpers/extractProps';
-import extractRolesObj from '../../utils/extractRolesObj';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
-import type { AppConfig } from '../../interface/config';
+import type { AppConfig } from '~/interface/config';
+import WorkspaceUser from '~/models/WorkspaceUser';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import Workspace from '~/models/Workspace';
+import validateParams from '~/helpers/validateParams';
+import { NcError } from '~/helpers/catchError';
+import { Project, ProjectUser } from '~/models';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { extractProps } from '~/helpers/extractProps';
+import extractRolesObj from '~/utils/extractRolesObj';
 
 @Injectable()
 export class WorkspacesService {

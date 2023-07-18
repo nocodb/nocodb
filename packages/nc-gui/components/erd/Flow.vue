@@ -29,12 +29,9 @@ const { layout, elements } = useErdElements(tables, config)
 const showSkeleton = computed(() => viewport.value.zoom < 0.15)
 
 async function init() {
+  // TODO fit view after first render
   fitView({ duration: 0, minZoom: 0.2 })
-  await layout(showSkeleton.value).then(() => {
-    // setTimeout(() => {
-    //   fitView({ duration: 0, minZoom: 0.2 })
-    // }, 250)
-  })
+  layout(showSkeleton.value)
 }
 
 function zoomIn(nodeId?: string) {
@@ -49,9 +46,10 @@ onNodeDoubleClick(({ node }) => {
   }, 250)
 })
 
-watch(tables, init, { flush: 'post' })
+watch(tables, init, { flush: 'post', immediate: true })
 watch(showSkeleton, async (isSkeleton) => {
-  await layout(isSkeleton).then(() => {
+  layout(isSkeleton).then(() => {
+    if (!isSkeleton) return
     fitView({
       duration: 300,
       minZoom: isSkeleton ? undefined : viewport.value.zoom,
@@ -59,8 +57,6 @@ watch(showSkeleton, async (isSkeleton) => {
     })
   })
 })
-
-onMounted(init)
 
 onScopeDispose($destroy)
 </script>

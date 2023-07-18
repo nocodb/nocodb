@@ -7,7 +7,7 @@ import ProjectWrapper from './ProjectWrapper.vue'
 
 import {
   TabType,
-  TreeViewFunctions,
+  TreeViewInj,
   computed,
   isDrawerOrModalExist,
   isMac,
@@ -275,10 +275,11 @@ const handleContext = (e: MouseEvent) => {
   }
 }
 
-provide(TreeViewFunctions, {
+provide(TreeViewInj, {
   setMenuContext,
   duplicateTable,
   openRenameTableDialog,
+  contextMenuTarget,
 })
 
 useEventListener(document, 'contextmenu', handleContext, true)

@@ -8,7 +8,7 @@ import { useUIPermission } from '~/composables/useUIPermission'
 import { useTabs } from '~/store/tab'
 import { useNuxtApp } from '#app'
 import { ProjectRoleInj } from '~/context'
-import { TreeViewFunctions } from '#imports'
+import { TreeViewInj } from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -38,7 +38,7 @@ const { deleteTable } = useTableNew({
 
 const projectRole = inject(ProjectRoleInj)
 
-const { setMenuContext, openRenameTableDialog, duplicateTable } = inject(TreeViewFunctions)!
+const { setMenuContext, openRenameTableDialog, duplicateTable } = inject(TreeViewInj)!
 
 // todo: temp
 const { projectTables } = storeToRefs(useTablesStore())
@@ -198,7 +198,14 @@ const isMultiBase = computed(() => project.bases && project.bases.length > 1)
                 </div>
               </a-menu-item>
 
-              <a-menu-item v-if="isUIAllowed('table-duplicate')" @click="duplicateTable(table)">
+              <a-menu-item
+                v-if="
+                  isUIAllowed('table-duplicate') &&
+                  project.bases?.[baseIndex] &&
+                  (project.bases[baseIndex].is_meta || project.bases[baseIndex].is_local)
+                "
+                @click="duplicateTable(table)"
+              >
                 <div class="nc-project-menu-item" :data-testid="`sidebar-table-duplicate-${table.title}`">
                   <GeneralIcon icon="duplicate" class="text-gray-700" />
                   {{ $t('general.duplicate') }}

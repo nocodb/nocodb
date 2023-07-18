@@ -24,7 +24,7 @@ const indicator = h(LoadingOutlined, {
 const router = useRouter()
 const route = $(router.currentRoute)
 
-const { setMenuContext, openRenameTableDialog, duplicateTable } = inject(TreeViewFunctions)!
+const { setMenuContext, openRenameTableDialog, duplicateTable, contextMenuTarget } = inject(TreeViewInj)!
 
 const project = inject(ProjectInj)!
 
@@ -82,7 +82,6 @@ const { $e } = useNuxtApp()
 const isOptionsOpen = ref(false)
 const isBasesOptionsOpen = ref<Record<string, boolean>>({})
 
-const contextMenuTarget = reactive<{ type?: 'project' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
 const activeKey = ref<string[]>([])
 const [searchActive] = useToggle()
 const filterQuery = $ref('')
@@ -297,16 +296,22 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean) =>
 }
 
 function openSqlEditor(base: BaseType) {
-  addSqlEditorTab(projects.value.get(base.project_id!)!)
+  navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/sql/${base.id}`)
 }
 
 function openErdView(base: BaseType) {
   navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/erd/${base.id}`)
 }
 
-async function openProjectSqlEditor(project: ProjectType) {
-  if (!project.id) return
-  navigateTo(`/ws/${route.params.workspaceId}/nc/${project.id}/sql`)
+async function openProjectSqlEditor(_project: ProjectType) {
+  if (!_project.id) return
+
+  const project = projects.value.get(_project.id)
+  if (!project) await loadProject(_project.id!)
+
+  const base = project?.bases?.[0]
+  if (!base) return
+  navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/sql/${base.id}`)
 }
 
 async function openProjectErdView(_project: ProjectType) {
@@ -325,6 +330,16 @@ const reloadTables = async () => {
 
   // await loadTables()
 }
+
+const contextMenuBase = computed(() => {
+  if (contextMenuTarget.type === 'base') {
+    return contextMenuTarget.value
+  } else if (contextMenuTarget.type === 'table') {
+    const base = project.value?.bases?.find((b) => b.id === contextMenuTarget.value.base_id)
+    if (base) return base
+  }
+  return null
+})
 
 watch(
   () => activeTable.value?.id,
@@ -682,18 +697,24 @@ onKeyStroke('Escape', () => {
         <template v-else-if="contextMenuTarget.type === 'table'">
           <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
             <div class="nc-project-menu-item">
+              <GeneralIcon icon="edit" class="text-gray-700" />
               {{ $t('general.rename') }}
             </div>
           </a-menu-item>
 
-          <a-menu-item v-if="isUIAllowed('table-duplicate')" @click="duplicateTable(contextMenuTarget.value)">
+          <a-menu-item
+            v-if="isUIAllowed('table-duplicate') && (contextMenuBase?.is_meta || contextMenuBase?.is_local)"
+            @click="duplicateTable(contextMenuTarget.value)"
+          >
             <div class="nc-project-menu-item">
+              <GeneralIcon icon="duplicate" class="text-gray-700" />
               {{ $t('general.duplicate') }}
             </div>
           </a-menu-item>
 
           <a-menu-item v-if="isUIAllowed('table-delete')" @click="isTableDeleteDialogVisible = true">
-            <div class="nc-project-menu-item">
+            <div class="nc-project-menu-item text-red-600">
+              <GeneralIcon icon="delete" />
               {{ $t('general.delete') }}
             </div>
           </a-menu-item>

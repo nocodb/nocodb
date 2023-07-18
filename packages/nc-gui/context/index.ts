@@ -43,8 +43,9 @@ export const DocsLocalPageInj: InjectionKey<Ref<PageSidebarNode | undefined>> = 
 export const ProjectRoleInj: InjectionKey<Ref<string>> = Symbol('project-roles-injection')
 export const ProjectInj: InjectionKey<Ref<NcProject>> = Symbol('project-injection')
 export const ProjectIdInj: InjectionKey<Ref<string>> = Symbol('project-id-injection')
-export const TreeViewFunctions: InjectionKey<{
+export const TreeViewInj: InjectionKey<{
   setMenuContext: (type: 'project' | 'base' | 'table' | 'main' | 'layout', value?: any) => void
   duplicateTable: (table: TableType) => void
   openRenameTableDialog: (table: TableType, rightClick: boolean) => void
+  contextMenuTarget: { type?: 'project' | 'base' | 'table' | 'main' | 'layout'; value?: any }
 }> = Symbol('tree-view-functions-injection')

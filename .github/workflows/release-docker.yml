@@ -102,7 +102,7 @@ jobs:
           cd ../..
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js
 
-      - uses: bahmutov/pnpm-install@v1
+      - uses: bahmutov/npm-install@v1
         with:
           working-directory: ${{ env.working-directory }}
 

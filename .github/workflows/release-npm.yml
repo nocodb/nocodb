@@ -1,4 +1,4 @@
-name: "Release : pnpm packages"
+name: "Release : NPM packages"
 
 on:
   # Triggered manually
@@ -47,7 +47,7 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.ref }}
       - name: pnpm Setup and Publish with 16.15.0
-        # Setup .npmrc file to publish to pnpm
+        # Setup .npmrc file to publish to npm
         uses: actions/setup-node@v3
         with:
           node-version: 16.15.0
@@ -55,18 +55,18 @@ jobs:
       - run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js &&
-          cd packages/nocodb-sdk &&
-          pnpm install && pnpm run build && pnpm publish &&
+          pnpm install
+          cd packages/nocodb-sdk && pnpm run build && pnpm publish &&
           cd ../.. &&
           sleep 60 &&
+          pnpm install &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNcGuiVersion.js &&
           cd packages/nc-gui &&
-          pnpm install &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} pnpm run build:copy:publish &&
           cd ../.. &&
           sleep 60 &&
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js && cd packages/nocodb && pnpm install && pnpm run obfuscate:build:publish
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js && cd packages/nocodb && pnpm run obfuscate:build:publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Create Pull Request

@@ -76,6 +76,7 @@ export class FiltersService {
 
     return filter;
   }
+
   async filterUpdate(param: {
     filter: FilterReqType;
     filterId: string;
@@ -88,7 +89,6 @@ export class FiltersService {
     if (!filter) {
       NcError.badRequest('Filter not found');
     }
-
     // todo: type correction
     const res = await Filter.update(param.filterId, param.filter as Filter);
 

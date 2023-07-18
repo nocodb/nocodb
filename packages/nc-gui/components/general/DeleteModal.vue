@@ -40,19 +40,19 @@ onKeyStroke('Enter', () => {
 </script>
 
 <template>
-  <GeneralModal v-model:visible="visible">
+  <GeneralModal v-model:visible="visible" size="small">
     <div class="flex flex-col p-6">
       <div class="flex flex-row pb-2 mb-4 font-medium text-lg border-b-1 border-gray-50 text-gray-800">
         {{ $t('general.delete') }} {{ props.entityName }}
       </div>
 
       <div class="mb-3 text-gray-800">
-        Are you sure you want to delete the following <span class="-ml-0.3">{{ props.entityName }}</span> ?
+        Are you sure you want to delete the following <span class="-ml-0.3">{{ props.entityName.toLowerCase() }}?</span>
       </div>
 
       <slot name="entity-preview"></slot>
 
-      <div class="flex flex-row items-center py-2 px-3 border-1 border-gray-100 rounded-lg text-gray-700">
+      <div v-if="false" class="flex flex-row items-center py-2 px-3 border-1 border-gray-100 rounded-lg text-gray-700">
         <GeneralIcon icon="warning" class="text-orange-500"></GeneralIcon>
         <div class="pl-2.5 text-gray-500">This action cannot be undone</div>
       </div>

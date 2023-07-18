@@ -21,6 +21,7 @@ import type { Express } from 'express';
 // import type * as http from 'http';
 
 import type http from 'http';
+import {MetaService} from "./meta/meta.service";
 
 dotenv.config();
 
@@ -77,7 +78,7 @@ export default class Noco {
     this.requestContext = context;
   }
 
-  public static get ncMeta(): any {
+  public static get ncMeta(): MetaService {
     return this._ncMeta;
   }
 

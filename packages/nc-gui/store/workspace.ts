@@ -79,6 +79,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     return activeWorkspace.value?.roles === WorkspaceUserRoles.OWNER
   })
 
+  const isWorkspaceOwnerOrCreator = computed(() => {
+    // todo: type correction
+    return (
+      activeWorkspace.value?.roles === WorkspaceUserRoles.OWNER || activeWorkspace.value?.roles === WorkspaceUserRoles.CREATOR
+    )
+  })
+
   /** actions */
   const loadWorkspaces = async () => {
     try {
@@ -398,6 +405,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     clearWorkspaces,
     upgradeActiveWorkspace,
     navigateToWorkspace,
+    isWorkspaceOwnerOrCreator,
   }
 })
 

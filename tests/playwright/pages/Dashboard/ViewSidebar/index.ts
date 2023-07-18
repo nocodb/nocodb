@@ -98,11 +98,11 @@ export class ViewSidebarPage extends BasePage {
     await this.get()
       .locator('[data-testid="view-item"]')
       .nth(index)
-      .locator('[data-testid="truncate-label"]')
+      .locator('[data-testid="sidebar-view-title"]')
       .waitFor({ state: 'visible' });
 
     await expect(
-      this.get().locator('[data-testid="view-item"]').nth(index).locator('[data-testid="truncate-label"]')
+      this.get().locator('[data-testid="view-item"]').nth(index).locator('[data-testid="sidebar-view-title"]')
     ).toHaveText(title, { ignoreCase: true });
   }
 

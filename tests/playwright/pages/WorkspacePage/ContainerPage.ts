@@ -39,10 +39,26 @@ export class ContainerPage extends BasePage {
   readonly workspace: WorkspacePage;
   readonly newProjectButton: Locator;
 
+  // tabs
+  readonly projects: Locator;
+  readonly collaborators: Locator;
+  readonly billing: Locator;
+
+  // list
+  readonly moreActions: Locator;
+
   constructor(workspace: WorkspacePage) {
     super(workspace.rootPage);
     this.workspace = workspace;
     this.newProjectButton = this.get().locator('button:has-text("New Project")');
+
+    // tabs
+    this.projects = this.get().locator('.ant-tabs-tab:has-text("Projects")');
+    this.collaborators = this.get().locator('.ant-tabs-tab:has-text("Collaborators")');
+    this.billing = this.get().locator('.ant-tabs-tab:has-text("Billing")');
+
+    // list
+    this.moreActions = this.get().locator('td.ant-table-cell >> .nc-workspace-menu');
   }
 
   get() {
@@ -183,5 +199,16 @@ export class ContainerPage extends BasePage {
   async projectAddToFavourites({ title }: { title: string }) {
     const row = await this.getProjectRow({ title });
     await row.locator('td.ant-table-cell').nth(0).locator('.nc-icon').click({ force: true });
+  }
+
+  async getMoreActionsSubMenuDetails() {
+    await this.moreActions.click();
+    const menuItems = await this.rootPage.locator('.ant-dropdown-menu-item');
+    const count = await menuItems.count();
+    const menuItemsText = [];
+    for (let i = 0; i < count; i++) {
+      menuItemsText.push((await menuItems.nth(i).innerText()).split('\n')[1]);
+    }
+    return menuItemsText;
   }
 }

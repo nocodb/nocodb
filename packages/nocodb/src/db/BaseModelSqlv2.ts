@@ -4029,7 +4029,25 @@ function _wherePk(primaryKeys: Column[], id) {
   const ids = (id + '').split('___');
   const where = {};
   for (let i = 0; i < primaryKeys.length; ++i) {
-    where[primaryKeys[i].column_name] = ids[i];
+    //Cast the id to string.
+    const idAsString = ids[i] + '';
+    // Check if the id is a UUID and the column is binary(16)
+    const isUUIDBinary16 =
+      primaryKeys[i].ct === 'binary(16)' &&
+      (idAsString.length === 36 || idAsString.length === 32);
+    // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
+    const idAsUUID = isUUIDBinary16
+      ? idAsString.length === 32
+        ? idAsString.replace(
+            /(.{8})(.{4})(.{4})(.{4})(.{12})/,
+            '$1-$2-$3-$4-$5',
+          )
+        : idAsString
+      : null;
+
+    where[primaryKeys[i].column_name] = idAsUUID
+      ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
+      : ids[i];
   }
   return where;
 }

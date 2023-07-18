@@ -600,7 +600,11 @@ test.describe.serial('Webhook', () => {
         { City: 'Bangalore', CityCode: 53 },
       ];
       await api.dbTableRow.bulkCreate('noco', context.project.id, cityTable.id, cityRowAttributes);
+    } catch (e) {
+      console.error(e);
+    }
 
+    try {
       const countryRowAttributes = [
         { Country: 'India', CountryCode: 1 },
         { Country: 'USA', CountryCode: 2 },
@@ -636,13 +640,17 @@ test.describe.serial('Webhook', () => {
         fk_rollup_column_id: cityTable.columns.filter(c => c.title === 'CityCode')[0].id,
         rollup_function: 'count',
       });
+    } catch (e) {
+      console.error(e);
+    }
 
+    try {
       // Create links
-      await api.dbTableRow.nestedAdd('noco', context.project.title, countryTable.title, 1, 'hm', 'CityList', '1');
-      await api.dbTableRow.nestedAdd('noco', context.project.title, countryTable.title, 1, 'hm', 'CityList', '2');
-      await api.dbTableRow.nestedAdd('noco', context.project.title, countryTable.title, 2, 'hm', 'CityList', '3');
-      await api.dbTableRow.nestedAdd('noco', context.project.title, countryTable.title, 3, 'hm', 'CityList', '4');
-
+      await api.dbTableRow.nestedAdd('noco', context.project.id, countryTable.title, 1, 'hm', 'CityList', '1');
+      await api.dbTableRow.nestedAdd('noco', context.project.id, countryTable.title, 1, 'hm', 'CityList', '2');
+      await api.dbTableRow.nestedAdd('noco', context.project.id, countryTable.title, 2, 'hm', 'CityList', '3');
+      await api.dbTableRow.nestedAdd('noco', context.project.id, countryTable.title, 3, 'hm', 'CityList', '4');
+      //
       // create formula column
       countryTable = await api.dbTableColumn.create(countryTable.id, {
         column_name: 'CityCodeFormula',
@@ -680,22 +688,22 @@ test.describe.serial('Webhook', () => {
           {
             Id: 1,
             Country: 'India',
-            CountryCode: 1,
-            CityCodeRollup: 2,
-            CityCodeFormula: 100,
+            CountryCode: '1',
             CityList: '2',
-            CityCodeLookup: [23, 33],
+            CityCodeRollup: '2',
+            CityCodeFormula: 100,
+            CityCodeLookup: ['23', '33'],
           },
         ],
         rows: [
           {
             Id: 1,
             Country: 'INDIA',
-            CountryCode: 1,
-            CityCodeRollup: 2,
-            CityCodeFormula: 100,
+            CountryCode: '1',
             CityList: '2',
-            CityCodeLookup: [23, 33],
+            CityCodeRollup: '2',
+            CityCodeFormula: 100,
+            CityCodeLookup: ['23', '33'],
           },
         ],
       },

@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup from '../../../setup';
-import { isPg } from '../../../setup/db';
+import { isHub, isPg } from '../../../setup/db';
 
 test.describe('Grid view locked', () => {
   let dashboard: DashboardPage;
@@ -13,6 +13,9 @@ test.describe('Grid view locked', () => {
   });
 
   test('ReadOnly lock & collaboration mode', async () => {
+    if (isHub()) {
+      test.skip();
+    }
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });

@@ -19,6 +19,11 @@ test.describe('Enterprise License', () => {
   });
 
   test('Update license key & verify if enterprise features enabled', async () => {
+    if (isHub()) {
+      // Enterprise license is not applicable for hub
+      test.skip();
+    }
+
     test.slow();
     await accountLicensePage.goto();
     await accountLicensePage.saveLicenseKey('1234567890');

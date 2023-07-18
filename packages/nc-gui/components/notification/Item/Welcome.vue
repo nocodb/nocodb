@@ -3,11 +3,20 @@ const props = defineProps<{
   item: any
 }>()
 
+const router = useRouter()
+const route = $(router.currentRoute)
+
 const item = toRef(props, 'item')
+
+const navigateToHome = () => {
+  if (route.path !== '/') {
+    navigateTo(`/`)
+  }
+}
 </script>
 
 <template>
-  <NotificationItemWrapper :item="item" @click="navigateTo(`/`)">
+  <NotificationItemWrapper :item="item" @click="navigateToHome">
     <template #avatar>
       <img src="~/assets/img/icons/64x64.png" class="w-6" />
     </template>

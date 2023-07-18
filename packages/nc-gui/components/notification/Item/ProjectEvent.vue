@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import type { ProjectEventType } from 'nocodb-sdk'
 import { AppEvents } from 'nocodb-sdk'
-import { computed, toRef } from '#imports'
+import { computed, toRef, useGlobal } from '#imports'
 
 const props = defineProps<{
   item: ProjectEventType
 }>()
 
 const item = $(toRef(props, 'item'))
+
+const { navigateToProject } = $(useGlobal())
 
 const action = computed(() => {
   switch (item.type) {
@@ -22,7 +24,7 @@ const action = computed(() => {
 
 const onClick = () => {
   if (item.type === AppEvents.PROJECT_DELETE) return
-  navigateTo(`/ws/${item.body.workspace_id}/nc/${item.body.id}`)
+  navigateToProject({ workspaceId: item.body.workspace_id, projectId: item.body.id })
 }
 </script>
 

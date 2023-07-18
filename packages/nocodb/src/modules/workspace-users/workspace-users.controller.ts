@@ -53,11 +53,13 @@ export class WorkspaceUsersController {
     @Param('workspaceId') workspaceId: string,
     @Param('userId') userId: string,
     @Body() body: any,
+    @Req() req,
   ) {
     return await this.workspaceUsersService.update({
       workspaceId,
       userId,
       roles: body.roles,
+      siteUrl: req.ncSiteUrl,
     });
   }
 
@@ -88,6 +90,7 @@ export class WorkspaceUsersController {
       workspaceId,
       body,
       invitedBy: req.user,
+      siteUrl: req.ncSiteUrl,
     });
   }
 

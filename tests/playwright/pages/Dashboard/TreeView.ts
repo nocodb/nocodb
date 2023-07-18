@@ -52,7 +52,9 @@ export class TreeViewPage extends BasePage {
   async openBase({ title }: { title: string }) {
     let nodes: Locator;
     if (isHub()) {
-      nodes = await this.get().locator(`.nc-project-sub-menu`).locator('.nc-sidebar-base-node');
+      nodes = await this.get().locator(`[data-testid="nc-sidebar-project-${title.toLowerCase()}"]`);
+      await nodes.click();
+      return;
     } else {
       nodes = await this.get().locator(`.ant-collapse`);
     }
@@ -62,6 +64,7 @@ export class TreeViewPage extends BasePage {
       const node = nodes.nth(i);
       const nodeTitle = await node.innerText();
       // check if nodeTitle contains title
+
       if (nodeTitle.toLowerCase().includes(title.toLowerCase())) {
         // click on node
         await node.waitFor({ state: 'visible' });

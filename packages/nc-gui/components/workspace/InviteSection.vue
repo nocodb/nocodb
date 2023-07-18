@@ -25,7 +25,7 @@ const inviteCollaborator = async () => {
 </script>
 
 <template>
-  <div class="my-2 pt-3 ml-2">
+  <div class="my-2 pt-3 ml-2" data-testid="invite">
     <div class="text-xl mb-4">Invite</div>
     <a-form>
       <div class="flex gap-2">
@@ -36,7 +36,7 @@ const inviteCollaborator = async () => {
           class="!max-w-130 !rounded"
         />
 
-        <a-select v-model:value="inviteData.roles" class="min-w-30 !rounded px-1">
+        <a-select v-model:value="inviteData.roles" class="min-w-30 !rounded px-1" data-testid="roles">
           <template #suffixIcon>
             <MdiChevronDown />
           </template>

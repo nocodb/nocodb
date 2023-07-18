@@ -417,7 +417,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                   </div>
                 </a-menu-item>
                 <a-menu-item
-                  v-if="isUIAllowed('moveProject', true, [record.workspace_role, record.project_role].join())"
+                  v-if="false && isUIAllowed('moveProject', true, [record.workspace_role, record.project_role].join())"
                   @click="moveProject(record)"
                 >
                   <div class="nc-menu-item-wrapper">

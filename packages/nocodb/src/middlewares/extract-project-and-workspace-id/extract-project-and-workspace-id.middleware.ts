@@ -29,7 +29,7 @@ import type {
   NestMiddleware,
 } from '@nestjs/common';
 
-const labels = {
+export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
   [OrgUserRoles.CREATOR]: 'Org Creator',
   [OrgUserRoles.VIEWER]: 'Org Viewer',
@@ -55,7 +55,7 @@ export function getRolesLabels(
           role as OrgUserRoles,
         ),
     )
-    .map((role) => labels[role]);
+    .map((role) => rolesLabel[role]);
 }
 
 // todo: refactor name since we are using it as auth guard

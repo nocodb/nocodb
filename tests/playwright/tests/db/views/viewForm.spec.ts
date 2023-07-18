@@ -9,6 +9,7 @@ import { Api, UITypes } from 'nocodb-sdk';
 import { LoginPage } from '../../../pages/LoginPage';
 import { getDefaultPwd } from '../../utils/general';
 import { WorkspacePage } from '../../../pages/WorkspacePage';
+import { isHub } from '../../../setup/db';
 let api: Api<any>;
 
 // todo: Move most of the ui actions to page object and await on the api response
@@ -179,6 +180,11 @@ test.describe('Form view', () => {
       message: 'Please activate SMTP plugin in App store for enabling email notification',
     });
     const url = dashboard.rootPage.url();
+
+    if (isHub()) {
+      // Appstore is not available in Hub
+      return;
+    }
 
     // activate SMTP plugin
     await accountAppStorePage.goto();

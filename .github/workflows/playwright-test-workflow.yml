@@ -67,9 +67,9 @@ jobs:
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '1' }}
         working-directory: ./
         run: docker-compose -f ./tests/playwright/scripts/docker-compose-pg-pw-quick.yml up -d &
-      # - name: run frontend
-      #   working-directory: ./packages/nc-gui
-      #   run: npm run ci:run
+      - name: run frontend
+        working-directory: ./packages/nc-gui
+        run: npm run ci:run
       - name: Run backend
         if: ${{ inputs.db == 'sqlite' }}
         working-directory: ./packages/nocodb
@@ -87,7 +87,7 @@ jobs:
         working-directory: ./packages/nocodb
         run: |
           npm install
-          npm run watch:run:playwright:pg
+          npm run watch:run:playwright:pg > ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
       - name: Cache playwright npm modules
         uses: actions/cache@v3
         id: playwright-cache

@@ -21,7 +21,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     private clickhouseService: ClickhouseService,
   ) {}
 
-  private async insertNotification(insertData: NotificationType) {
+  private async insertNotification(insertData: Partial<Notification>) {
     this.appHooks.emit('notification' as any, insertData);
 
     await Notification.insert(insertData);

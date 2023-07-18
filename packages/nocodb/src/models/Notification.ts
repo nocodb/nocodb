@@ -2,6 +2,7 @@ import { extractProps } from '../helpers/extractProps';
 import Noco from '../Noco';
 import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
 import { MetaTable } from '../meta/meta.service';
+import type { AppEvents } from 'nocodb-sdk';
 
 export default class Notification {
   id?: string;
@@ -10,6 +11,8 @@ export default class Notification {
   is_deleted?: boolean;
   fk_user_id?: string;
   created_at?: string | Date;
+  updated_at?: string | Date;
+  type?: AppEvents;
 
   constructor(notification: Partial<Notification>) {
     Object.assign(this, notification);

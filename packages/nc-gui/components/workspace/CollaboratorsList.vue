@@ -154,10 +154,8 @@ const updateCollaborator = async (collab) => {
   }
 }
 
-.nc-project-title {
-  .color-band {
-    @apply w-6 h-6 left-0 top-[10px] rounded-full flex justify-center uppercase text-white font-weight-bold text-xs items-center;
-  }
+.color-band {
+  @apply w-6 h-6 left-0 top-[10px] rounded-full flex justify-center uppercase text-white font-weight-bold text-xs items-center;
 }
 
 :deep(.nc-collaborator-role-select .ant-select-selector) {

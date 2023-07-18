@@ -40,3 +40,4 @@ export { default as Widget } from './Widget';
 export { default as Workspace } from './Workspace';
 export { default as WorkspaceUser } from './WorkspaceUser';
 export { default as LinksColumn } from './LinksColumn';
+export { default as Notification } from './Notification';

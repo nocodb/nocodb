@@ -102,10 +102,6 @@ jobs:
           cd ../..
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js
 
-      - uses: bahmutov/npm-install@v1
-        with:
-          working-directory: ${{ env.working-directory }}
-
       - name: Build nocodb and docker files
         run: |
           pnpm run docker:build

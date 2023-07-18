@@ -1,5 +1,5 @@
 /* eslint-disable no-async-promise-executor */
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk';
 import sizeof from 'object-sizeof';
 import EntityMap from './EntityMap';
 import type { BulkDataAliasService } from '../../../../../services/bulk-data-alias.service';
@@ -266,7 +266,7 @@ export async function importLTARData({
   for (const colMeta of modelMeta.columns) {
     // skip columns which are not LTAR and Many to many
     if (
-      colMeta.uidt !== UITypes.LinkToAnotherRecord ||
+      !isLinksOrLTAR(colMeta.uidt) ||
       colMeta.colOptions.type !== RelationTypes.MANY_TO_MANY
     ) {
       continue;

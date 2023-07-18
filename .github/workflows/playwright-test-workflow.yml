@@ -49,6 +49,8 @@ jobs:
             ${{ runner.os }}-
       - name: Set CI env
         run: export CI=true
+      - name: Set Node env
+        run: export NODE_OPTIONS=\"--max_old_space_size=16384\";
       - name: install dependencies nocodb-sdk
         working-directory: ./packages/nocodb-sdk
         run: npm install

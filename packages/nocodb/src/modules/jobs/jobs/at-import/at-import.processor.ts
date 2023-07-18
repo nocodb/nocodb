@@ -2423,7 +2423,7 @@ export class AtImportProcessor {
             recordCnt = 0;
 
             recordsMap[ncTbl.id] = await importData({
-              projectName: syncDB.projectName,
+              projectName: syncDB.projectId,
               table: ncTbl,
               base,
               logBasic,

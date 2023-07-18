@@ -283,6 +283,10 @@ export default class Filter implements FilterType {
       'is_group',
       'logical_op',
     ]);
+
+    if (typeof updateObj.value === 'string')
+      updateObj.value = updateObj.value.slice(0, 255);
+
     // get existing cache
     const key = `${CacheScope.FILTER_EXP}:${id}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);

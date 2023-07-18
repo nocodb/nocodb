@@ -33,7 +33,8 @@ export class AccountSettingsPage extends BasePage {
   }
 
   async getInviteOnlyCheckboxValue() {
-    return this.get().locator(`.nc-invite-only-signup-checkbox`).isChecked();
+    await this.get().locator(`.nc-invite-only-signup-checkbox`).waitFor({ state: 'visible' });
+    return this.get().locator(`.nc-invite-only-signup-checkbox`).isChecked({ timeout: 1000 });
   }
 
   async checkInviteOnlySignupCheckbox(value: boolean) {

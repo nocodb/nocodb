@@ -48,7 +48,7 @@ const sqlite3 = {
       ),
     };
   },
-  NOW: 'DATE',
+  NOW: 'DATETIME',
   SEARCH: 'INSTR',
   async INT(args: MapFnArgs) {
     return {

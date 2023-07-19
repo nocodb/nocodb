@@ -139,16 +139,17 @@ onMounted(() => {
       <div class="flex mb-2 text-lg font-medium">
         {{ $t('activity.createTable') }}
       </div>
+      <div class="flex mb-6 text-gray-600">A blank table for a fresh start.</div>
       <a-form :model="table" name="create-new-table-form" @keydown.enter="_createTable" @keydown.esc="dialogShow = false">
         <!-- hint="Enter table name" -->
         <!--        Table name -->
-        <div class="mb-1">{{ $t('labels.tableName') }}</div>
+        <div class="mb-2">{{ $t('labels.tableName') }}</div>
 
         <a-form-item v-bind="validateInfos.title">
           <a-input
             ref="inputEl"
             v-model:value="table.title"
-            class="!rounded-md !py-2 !px-3"
+            class="nc-input-md"
             hide-details
             data-testid="create-table-title-input"
             :placeholder="$t('msg.info.enterTableName')"

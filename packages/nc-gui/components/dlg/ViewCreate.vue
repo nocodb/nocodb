@@ -228,7 +228,7 @@ async function onSubmit() {
           <a-input
             ref="inputEl"
             v-model:value="form.title"
-            class="!rounded-lg !py-2 !px-3"
+            class="nc-input-md"
             autofocus
             :placeholder="$t('labels.viewName')"
             @keydown.enter="onSubmit"
@@ -276,8 +276,7 @@ async function onSubmit() {
           loading-label="Creating View"
           :loading="isViewCreating"
           @click="onSubmit"
-        >
-        </NcButton>
+        />
       </div>
     </div>
   </GeneralModal>

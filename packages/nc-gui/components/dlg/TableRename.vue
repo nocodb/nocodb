@@ -182,7 +182,7 @@ const renameTable = async (undo = false) => {
 </script>
 
 <template>
-  <GeneralModal v-model:visible="dialogShow">
+  <GeneralModal v-model:visible="dialogShow" size="small">
     <div class="p-6">
       <div class="mb-4 text-gray-800 font-medium text-lg">
         {{ $t('activity.renameTable') }}
@@ -193,7 +193,7 @@ const renameTable = async (undo = false) => {
           <a-input
             ref="inputEl"
             v-model:value="formState.title"
-            class="!rounded-lg"
+            class="nc-input-md"
             hide-details
             size="large"
             :placeholder="$t('msg.info.enterTableName')"
@@ -201,12 +201,17 @@ const renameTable = async (undo = false) => {
           />
         </a-form-item>
       </a-form>
-      <div class="flex flex-row justify-end gap-x-2 mt-3">
-        <a-button key="back" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
+      <div class="flex flex-row justify-end gap-x-2 mt-6">
+        <NcButton type="secondary" :label="$t('general.cancel')" @click="dialogShow = false" />
 
-        <a-button key="submit" class="!rounded-md" type="primary" :loading="loading" @click="renameTable()">{{
-          $t('general.rename')
-        }}</a-button>
+        <NcButton
+          key="submit"
+          type="primary"
+          label="Rename Table"
+          loading-label="Renaming Table"
+          :loading="loading"
+          @click="renameTable"
+        />
       </div>
     </div>
   </GeneralModal>

@@ -35,6 +35,10 @@ main {
   @apply m-0 h-full w-full bg-white;
 }
 
+.nc-input-md {
+  @apply !rounded-lg !py-2 !px-3;
+}
+
 .nc-scrollbar-md {
   overflow-y: overlay;
   overflow-x: hidden;

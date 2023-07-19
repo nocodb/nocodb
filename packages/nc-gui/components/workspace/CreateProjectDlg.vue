@@ -61,7 +61,9 @@ const createProject = async () => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    creating.value = false
+    setTimeout(() => {
+      creating.value = false
+    }, 500)
   }
 }
 
@@ -88,14 +90,15 @@ const typeLabel = computed(() => {
 </script>
 
 <template>
-  <general-modal v-model:visible="dialogShow" width="32rem">
-    <div class="px-8 py-5.5">
+  <NcModal v-model:visible="dialogShow" size="small">
+    <template #header>
       <!-- Create A New Table -->
-      <div class="flex flex-row prose-lg font-medium items-center mb-7">
+      <div class="flex flex-row items-center">
         <GeneralProjectIcon :type="props.type" class="mr-2.5 !text-lg !h-4" />
         Create {{ typeLabel }}
       </div>
-
+    </template>
+    <div class="mt-3">
       <a-form
         ref="form"
         :model="formState"
@@ -111,25 +114,23 @@ const typeLabel = computed(() => {
             ref="input"
             v-model:value="formState.title"
             name="title"
-            class="nc-metadb-project-name !rounded !py-1"
+            class="nc-metadb-project-name nc-input-md"
             placeholder="Title"
           />
         </a-form-item>
       </a-form>
 
-      <div class="flex flex-row justify-end mt-8">
-        <a-button
-          key="submit"
-          class="!rounded-md"
+      <div class="flex flex-row justify-end mt-7">
+        <NcButton
           data-testid="docs-create-proj-dlg-create-btn"
-          :disabled="creating"
+          :loading="creating"
           type="primary"
+          :label="$t('general.submit')"
           @click="createProject"
-          >{{ $t('general.submit') }}
-        </a-button>
+        />
       </div>
     </div>
-  </general-modal>
+  </NcModal>
 </template>
 
 <style scoped lang="scss">

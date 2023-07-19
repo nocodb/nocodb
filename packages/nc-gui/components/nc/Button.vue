@@ -38,7 +38,7 @@ const loading = useVModel(props, 'loading', emits)
 
       <slot v-else name="icon" />
 
-      <div class="flex">
+      <div class="flex font-medium">
         <span v-if="loading && props.loadingLabel">{{ props.loadingLabel }}</span>
         <span v-else>{{ props.label }}</span>
       </div>

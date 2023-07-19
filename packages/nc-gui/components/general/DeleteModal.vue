@@ -58,18 +58,16 @@ onKeyStroke('Enter', () => {
       </div>
 
       <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
-        <a-button key="back" class="!rounded-md !font-medium" @click="visible = false">{{ $t('general.cancel') }}</a-button>
+        <NcButton type="secondary" :label="$t('general.cancel')" @click="visible = false" />
 
-        <a-button
+        <NcButton
           key="submit"
-          class="!rounded-md !font-medium"
           type="danger"
           html-type="submit"
           :loading="isLoading"
+          :label="`${$t('general.delete')} ${props.entityName}`"
           @click="onDelete"
-        >
-          {{ $t('general.delete') }} {{ props.entityName }}
-        </a-button>
+        />
       </div>
     </div>
   </GeneralModal>

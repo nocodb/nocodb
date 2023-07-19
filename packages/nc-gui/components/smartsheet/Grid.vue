@@ -1706,31 +1706,27 @@ const onDraftRecordClick = () => {
   thead th:nth-child(1) {
     position: sticky !important;
     left: 0;
-    z-index: 2;
+    z-index: 5;
   }
 
   tbody td:nth-child(1) {
     position: sticky !important;
     left: 0;
-    z-index: 1;
+    z-index: 4;
     background: white;
-  }
-
-  .nc-grid-header {
-    z-index: 2;
   }
 
   thead th:nth-child(2) {
     position: sticky !important;
     left: 85px;
-    z-index: 2;
+    z-index: 5;
     @apply border-r-1 border-r-gray-75;
   }
 
   tbody td:nth-child(2) {
     position: sticky !important;
     left: 85px;
-    z-index: 1;
+    z-index: 4;
     background: white;
     @apply border-r-1 border-r-gray-75;
   }
@@ -1780,7 +1776,7 @@ const onDraftRecordClick = () => {
   position: sticky;
   top: -1px;
 
-  @apply z-4 bg-white;
+  @apply z-5 bg-white;
 
   &:hover {
     .nc-no-label {

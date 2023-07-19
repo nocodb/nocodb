@@ -432,7 +432,7 @@ onKeyStroke('Escape', () => {
             v-if="editMode"
             ref="input"
             v-model="tempTitle"
-            class="flex-grow leading-1 outline-0 ring-none capitalize !text-inherit !bg-transparent"
+            class="flex-grow leading-1 outline-0 ring-none capitalize !text-inherit !bg-transparent w-4/5"
             :class="{ 'text-black font-semibold': activeProjectId === project.id && projectViewOpen }"
             @click.stop
             @keyup.enter="updateProjectTitle"

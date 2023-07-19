@@ -102,10 +102,12 @@ async function localInit({
   const workspaceTitle = `ws_pgExtREST${parallelId}`;
   const projectTitle = `pgExtREST${parallelId}`;
 
-  // Delete all workspaces
+  // Delete associated workspace
   const ws = await api.workspace.list();
   for (const w of ws.list) {
-    await api.workspace.delete(w.id);
+    if (w.title === workspaceTitle) {
+      await api.workspace.delete(w.id);
+    }
   }
 
   // DB reset
@@ -158,19 +160,14 @@ const setup = async ({
 }): Promise<NcContext> => {
   // on noco-hub, only PG is supported
   const dbType = 'pg';
-  let response, workerId;
+  let response;
 
-  // local parallel execution not supported with local init
-  if (enableLocalInit) {
-    workerId = '0';
-  } else {
-    const workerIndex = process.env.TEST_PARALLEL_INDEX;
-    if (!workerCount[workerIndex]) {
-      workerCount[workerIndex] = 0;
-    }
-    workerCount[workerIndex]++;
-    workerId = String(Number(workerIndex) + Number(workerCount[workerIndex]) * 4);
+  const workerIndex = process.env.TEST_PARALLEL_INDEX;
+  if (!workerCount[workerIndex]) {
+    workerCount[workerIndex] = 0;
   }
+  workerCount[workerIndex]++;
+  const workerId = String(Number(workerIndex) + Number(workerCount[workerIndex]) * 4);
 
   try {
     // Localised reset logic

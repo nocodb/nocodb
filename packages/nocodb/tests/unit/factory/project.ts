@@ -2,6 +2,7 @@ import request from 'supertest';
 import Project from '../../../src/models/Project';
 
 interface ProjectArgs {
+  fk_workspace_id?: string;
   title?: string;
   type?: string;
 }

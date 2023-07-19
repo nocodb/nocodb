@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import fs from 'fs';
-import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
+import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import path from 'path';
 import 'mocha';
 import request from 'supertest';
@@ -134,9 +134,26 @@ function attachmentTests() {
       .send(args)
       .expect(200);
 
+    const wsList = await request(context.app)
+      .get('/api/v1/workspaces')
+      .set('xc-auth', context.token)
+      .expect(200);
+
     const newProject = await createProject(context, {
       title: 'NewTitle1',
+      fk_workspace_id: wsList.body.list[0].id,
+      type: 'database',
     });
+
+    // add user to WS
+    await request(context.app)
+      .post(`/api/v1/workspaces/${wsList.body.list[0].id}/invitations`)
+      .set('xc-auth', context.token)
+      .send({
+        roles: WorkspaceUserRoles.EDITOR,
+        email: args.email,
+      })
+      .expect(200);
 
     // invite user to project with editor role
     await request(context.app)

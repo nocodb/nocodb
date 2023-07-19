@@ -71,7 +71,7 @@ const input: VNodeRef = ref<typeof Input>()
 
 watch(dialogShow, async (n, o) => {
   if (n === o && !n) return
-  formState.title = 'Untitled'
+  formState.title = 'Untitled Database'
   await nextTick()
   input.value?.$el?.focus()
   input.value?.$el?.select()
@@ -120,12 +120,14 @@ const typeLabel = computed(() => {
         </a-form-item>
       </a-form>
 
-      <div class="flex flex-row justify-end mt-7">
+      <div class="flex flex-row justify-end mt-7 gap-x-2">
+        <NcButton type="secondary" label="Cancel" @click="dialogShow = false" />
         <NcButton
           data-testid="docs-create-proj-dlg-create-btn"
           :loading="creating"
           type="primary"
-          :label="$t('general.submit')"
+          :label="`Create ${typeLabel}`"
+          :loading-label="`Creating ${typeLabel}`"
           @click="createProject"
         />
       </div>

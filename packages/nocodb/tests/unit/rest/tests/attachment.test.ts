@@ -153,7 +153,7 @@ function attachmentTests() {
         roles: WorkspaceUserRoles.EDITOR,
         email: args.email,
       })
-      .expect(200);
+      .expect(201);
 
     // invite user to project with editor role
     await request(context.app)

@@ -1050,7 +1050,6 @@ async function nestedConditionJoin(
                   fk_model_id: childModel.id,
                   fk_column_id: childModel.displayValue?.id,
                 }),
-                knex,
                 aliasCount,
                 relAlias,
               )
@@ -1067,7 +1066,6 @@ async function nestedConditionJoin(
                   fk_model_id: parentModel.id,
                   fk_column_id: parentModel?.displayValue?.id,
                 }),
-                knex,
                 aliasCount,
                 relAlias,
               )
@@ -1084,7 +1082,6 @@ async function nestedConditionJoin(
                   fk_model_id: parentModel.id,
                   fk_column_id: parentModel.displayValue?.id,
                 }),
-                knex,
                 aliasCount,
                 relAlias,
               )
@@ -1102,7 +1099,6 @@ async function nestedConditionJoin(
           fk_model_id: (await lookupColumn.getModel()).id,
           fk_column_id: lookupColumn?.id,
         }),
-        knex,
         aliasCount,
         alias,
       )

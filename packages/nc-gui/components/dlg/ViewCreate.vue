@@ -216,13 +216,12 @@ async function onSubmit() {
 </script>
 
 <template>
-  <GeneralModal v-model:visible="vModel" size="small">
-    <div class="p-6">
-      <div class="font-medium text-lg mb-5">
-        {{ $t(`general.${selectedViewId ? 'duplicate' : 'create'}`) }} <span class="capitalize">{{ typeAlias }}</span>
-        {{ $t('objects.view') }}
-      </div>
-
+  <NcModal v-model:visible="vModel" size="small">
+    <template #header>
+      {{ $t(`general.${selectedViewId ? 'duplicate' : 'create'}`) }} <span class="capitalize">{{ typeAlias }}</span>
+      {{ $t('objects.view') }}
+    </template>
+    <div class="mt-3">
       <a-form ref="formValidator" layout="vertical" :model="form">
         <a-form-item name="title" :rules="viewNameRules">
           <a-input
@@ -279,5 +278,5 @@ async function onSubmit() {
         />
       </div>
     </div>
-  </GeneralModal>
+  </NcModal>
 </template>

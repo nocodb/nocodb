@@ -3,8 +3,8 @@ import { Sort } from '../models';
 import { sanitize } from '../helpers/sqlSanitize';
 import genRollupSelectv2 from './genRollupSelectv2';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
+import type { BaseModelSqlv2 } from './BaseModelSqlv2';
 import type { Knex } from 'knex';
-import type { XKnex } from '../db/CustomKnex';
 import type {
   FormulaColumn,
   LinkToAnotherRecordColumn,
@@ -13,10 +13,12 @@ import type {
 } from '../models';
 
 export default async function sortV2(
+  baseModelSqlv2: BaseModelSqlv2,
   sortList: Sort[],
   qb: Knex.QueryBuilder,
-  knex: XKnex,
 ) {
+  const knex = baseModelSqlv2.dbDriver;
+
   if (!sortList?.length) {
     return;
   }
@@ -40,6 +42,7 @@ export default async function sortV2(
         {
           const builder = (
             await genRollupSelectv2({
+              baseModelSqlv2,
               knex,
               columnOptions: (await column.getColOptions()) as RollupColumn,
             })
@@ -52,11 +55,11 @@ export default async function sortV2(
         {
           const builder = (
             await formulaQueryBuilderv2(
+              baseModelSqlv2,
               (
                 await column.getColOptions<FormulaColumn>()
               ).formula,
               null,
-              knex,
               model,
               column,
             )
@@ -127,6 +130,7 @@ export default async function sortV2(
                 {
                   const builder = (
                     await genRollupSelectv2({
+                      baseModelSqlv2,
                       knex,
                       columnOptions:
                         (await lookupColumn.getColOptions()) as RollupColumn,
@@ -164,11 +168,11 @@ export default async function sortV2(
                 {
                   const builder = (
                     await formulaQueryBuilderv2(
+                      baseModelSqlv2,
                       (
                         await column.getColOptions<FormulaColumn>()
                       ).formula,
                       null,
-                      knex,
                       model,
                       column,
                     )

@@ -9,12 +9,12 @@ import {
 } from '../../helpers/formulaFnHelper';
 import { CacheGetType, CacheScope } from '../../utils/globals';
 import NocoCache from '../../cache/NocoCache';
-import type { XKnex } from '../CustomKnex';
 import type Column from '../../models/Column';
 import type Model from '../../models/Model';
 import type RollupColumn from '../../models/RollupColumn';
 import type LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
 import type LookupColumn from '../../models/LookupColumn';
+import type { BaseModelSqlv2 } from '../BaseModelSqlv2';
 
 // todo: switch function based on database
 
@@ -52,13 +52,14 @@ const getAggregateFn: (fnName: string) => (args: { qb; knex?; cn }) => any = (
 };
 
 async function _formulaQueryBuilder(
+  baseModelSqlv2: BaseModelSqlv2,
   _tree,
   alias,
-  knex: XKnex,
   model: Model,
   aliasToColumn: Record<string, () => Promise<{ builder: any }>> = {},
   tableAlias?: string,
 ) {
+  const knex = baseModelSqlv2.dbDriver;
   // formula may include double curly brackets in previous version
   // convert to single curly bracket here for compatibility
   const tree = jsep(_tree.replaceAll('{{', '{').replaceAll('}}', '}'));
@@ -75,9 +76,9 @@ async function _formulaQueryBuilder(
           aliasToColumn[col.id] = async () => {
             const formulOption = await col.getColOptions<FormulaColumn>();
             const { builder } = await _formulaQueryBuilder(
+              baseModelSqlv2,
               formulOption.formula,
               alias,
-              knex,
               model,
               { ...aliasToColumn, [col.id]: null },
               tableAlias,
@@ -234,6 +235,7 @@ async function _formulaQueryBuilder(
                 {
                   const builder = (
                     await genRollupSelectv2({
+                      baseModelSqlv2,
                       knex,
                       alias: prevAlias,
                       columnOptions:
@@ -360,9 +362,9 @@ async function _formulaQueryBuilder(
                     await lookupColumn.getColOptions<FormulaColumn>();
                   const lookupModel = await lookupColumn.getModel();
                   const { builder } = await _formulaQueryBuilder(
+                    baseModelSqlv2,
                     formulaOption.formula,
                     '',
-                    knex,
                     lookupModel,
                     aliasToColumn,
                   );
@@ -419,6 +421,7 @@ async function _formulaQueryBuilder(
       case UITypes.Links:
         aliasToColumn[col.id] = async (): Promise<any> => {
           const qb = await genRollupSelectv2({
+            baseModelSqlv2,
             knex,
             columnOptions: (await col.getColOptions()) as RollupColumn,
             alias: tableAlias,
@@ -893,22 +896,23 @@ function getTnPath(tb: Model, knex, tableAlias?: string) {
 }
 
 export default async function formulaQueryBuilderv2(
+  baseModelSqlv2: BaseModelSqlv2,
   _tree,
   alias,
-  knex: XKnex,
   model: Model,
   column?: Column,
   aliasToColumn = {},
   tableAlias?: string,
   validateFormula = false,
 ) {
+  const knex = baseModelSqlv2.dbDriver;
   // register jsep curly hook once only
   jsep.plugins.register(jsepCurlyHook);
   // generate qb
   const qb = await _formulaQueryBuilder(
+    baseModelSqlv2,
     _tree,
     alias,
-    knex,
     model,
     aliasToColumn,
     tableAlias,

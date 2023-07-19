@@ -270,7 +270,7 @@ class MssqlClient extends KnexClient {
    * @param {String} args.database
    * @returns {Result}
    */
-  async createDatabaseIfNotExists(args: { database: string }) {
+  async createDatabaseIfNotExists(args: { database: string; schema?: string }) {
     const _func = this.createDatabaseIfNotExists.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -527,6 +527,7 @@ class MssqlClient extends KnexClient {
     tn: string;
     columns?: ColumnType[];
     databaseName?: string;
+    schema?: string;
   }) {
     const _func = this.columnList.name;
     const result = new Result();

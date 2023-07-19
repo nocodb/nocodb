@@ -134,7 +134,7 @@ export class MetaDiffsService {
     base: Base,
   ): Promise<Array<MetaDiff>> {
     // if meta base then return empty array
-    if (base.is_meta || base.is_local) {
+    if (base.is_meta) {
       return [];
     }
 
@@ -143,7 +143,7 @@ export class MetaDiffsService {
 
     // @ts-ignore
     const tableList: Array<{ tn: string }> = (
-      await sqlClient.tableList()
+      await sqlClient.tableList({ schema: base.getConfig()?.schema })
     )?.data?.list?.filter((t) => {
       if (project?.prefix && base.is_meta) {
         return t.tn?.startsWith(project?.prefix);
@@ -170,7 +170,8 @@ export class MetaDiffsService {
       rcn: string;
       found?: any;
       cstn?: string;
-    }> = (await sqlClient.relationListAll())?.data?.list;
+    }> = (await sqlClient.relationListAll({ schema: base.getConfig()?.schema }))
+      ?.data?.list;
 
     for (const table of tableList) {
       if (table.tn === 'nc_evolutions') continue;
@@ -211,7 +212,10 @@ export class MetaDiffsService {
 
       // check for column change
       colListRef[table.tn] = (
-        await sqlClient.columnList({ tn: table.tn })
+        await sqlClient.columnList({
+          tn: table.tn,
+          schema: base.getConfig()?.schema,
+        })
       )?.data?.list;
 
       await oldMeta.getColumns();
@@ -349,17 +353,30 @@ export class MetaDiffsService {
 
         const cColumns = (colListRef[childModel.table_name] =
           colListRef[childModel.table_name] ||
-          (await sqlClient.columnList({ tn: childModel.table_name }))?.data
-            ?.list);
+          (
+            await sqlClient.columnList({
+              tn: childModel.table_name,
+              schema: base.getConfig()?.schema,
+            })
+          )?.data?.list);
 
         const pColumns = (colListRef[parentModel.table_name] =
           colListRef[parentModel.table_name] ||
-          (await sqlClient.columnList({ tn: parentModel.table_name }))?.data
-            ?.list);
+          (
+            await sqlClient.columnList({
+              tn: parentModel.table_name,
+              schema: base.getConfig()?.schema,
+            })
+          )?.data?.list);
 
         const vColumns = (colListRef[m2mTable.tn] =
           colListRef[m2mTable.tn] ||
-          (await sqlClient.columnList({ tn: m2mTable.tn }))?.data?.list);
+          (
+            await sqlClient.columnList({
+              tn: m2mTable.tn,
+              schema: base.getConfig()?.schema,
+            })
+          )?.data?.list);
 
         const m2mChildCol = await colOpt.getMMChildColumn();
         const m2mParentCol = await colOpt.getMMParentColumn();
@@ -459,7 +476,9 @@ export class MetaDiffsService {
       view_name: string;
       tn: string;
       type: 'view';
-    }> = (await sqlClient.viewList())?.data?.list
+    }> = (
+      await sqlClient.viewList({ schema: base.getConfig()?.schema })
+    )?.data?.list
       ?.map((v) => {
         v.type = 'view';
         v.tn = v.view_name;
@@ -509,7 +528,10 @@ export class MetaDiffsService {
 
       // check for column change
       colListRef[view.tn] = (
-        await sqlClient.columnList({ tn: view.tn })
+        await sqlClient.columnList({
+          tn: view.tn,
+          schema: base.getConfig()?.schema,
+        })
       )?.data?.list;
 
       await oldMeta.getColumns();
@@ -593,7 +615,7 @@ export class MetaDiffsService {
     for (const base of project.bases) {
       try {
         // skip meta base
-        if (base.is_meta || base.is_local) continue;
+        if (base.is_meta) continue;
 
         // @ts-ignore
         const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
@@ -624,7 +646,7 @@ export class MetaDiffsService {
     const project = await Project.getWithInfo(param.projectId);
     for (const base of project.bases) {
       // skip if metadb base
-      if (base.is_meta || base.is_local) continue;
+      if (base.is_meta) continue;
 
       const virtualColumnInsert: Array<() => Promise<void>> = [];
 
@@ -650,7 +672,10 @@ export class MetaDiffsService {
             case MetaDiffType.TABLE_NEW:
               {
                 const columns = (
-                  await sqlClient.columnList({ tn: table_name })
+                  await sqlClient.columnList({
+                    tn: table_name,
+                    schema: base.getConfig()?.schema,
+                  })
                 )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
 
                 mapDefaultDisplayValue(columns);
@@ -678,7 +703,10 @@ export class MetaDiffsService {
             case MetaDiffType.VIEW_NEW:
               {
                 const columns = (
-                  await sqlClient.columnList({ tn: table_name })
+                  await sqlClient.columnList({
+                    tn: table_name,
+                    schema: base.getConfig()?.schema,
+                  })
                 )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
 
                 mapDefaultDisplayValue(columns);
@@ -709,7 +737,10 @@ export class MetaDiffsService {
             case MetaDiffType.VIEW_COLUMN_ADD:
               {
                 const columns = (
-                  await sqlClient.columnList({ tn: table_name })
+                  await sqlClient.columnList({
+                    tn: table_name,
+                    schema: base.getConfig()?.schema,
+                  })
                 )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
                 const column = columns.find((c) => c.cn === change.cn);
                 column.uidt = getColumnUiType(base, column);
@@ -726,7 +757,10 @@ export class MetaDiffsService {
             case MetaDiffType.VIEW_COLUMN_TYPE_CHANGE:
               {
                 const columns = (
-                  await sqlClient.columnList({ tn: table_name })
+                  await sqlClient.columnList({
+                    tn: table_name,
+                    schema: base.getConfig()?.schema,
+                  })
                 )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
                 const column = columns.find((c) => c.cn === change.cn);
                 const metaFact = ModelXcMetaFactory.create(
@@ -854,7 +888,7 @@ export class MetaDiffsService {
     const project = await Project.getWithInfo(param.projectId);
     const base = await Base.get(param.baseId);
 
-    if (base.is_meta || base.is_local) {
+    if (base.is_meta) {
       NcError.badRequest('Cannot sync meta base');
     }
 
@@ -873,7 +907,10 @@ export class MetaDiffsService {
           case MetaDiffType.TABLE_NEW:
             {
               const columns = (
-                await sqlClient.columnList({ tn: table_name })
+                await sqlClient.columnList({
+                  tn: table_name,
+                  schema: base.getConfig()?.schema,
+                })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
 
               mapDefaultDisplayValue(columns);
@@ -901,7 +938,10 @@ export class MetaDiffsService {
           case MetaDiffType.VIEW_NEW:
             {
               const columns = (
-                await sqlClient.columnList({ tn: table_name })
+                await sqlClient.columnList({
+                  tn: table_name,
+                  schema: base.getConfig()?.schema,
+                })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
 
               mapDefaultDisplayValue(columns);
@@ -932,7 +972,10 @@ export class MetaDiffsService {
           case MetaDiffType.VIEW_COLUMN_ADD:
             {
               const columns = (
-                await sqlClient.columnList({ tn: table_name })
+                await sqlClient.columnList({
+                  tn: table_name,
+                  schema: base.getConfig()?.schema,
+                })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
               const column = columns.find((c) => c.cn === change.cn);
               column.uidt = getColumnUiType(base, column);
@@ -949,7 +992,10 @@ export class MetaDiffsService {
           case MetaDiffType.VIEW_COLUMN_TYPE_CHANGE:
             {
               const columns = (
-                await sqlClient.columnList({ tn: table_name })
+                await sqlClient.columnList({
+                  tn: table_name,
+                  schema: base.getConfig()?.schema,
+                })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
               const column = columns.find((c) => c.cn === change.cn);
               const metaFact = ModelXcMetaFactory.create(

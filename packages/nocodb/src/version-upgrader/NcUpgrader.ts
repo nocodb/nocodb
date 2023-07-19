@@ -15,6 +15,7 @@ import ncProjectEnvUpgrader from './ncProjectEnvUpgrader';
 import ncHookUpgrader from './ncHookUpgrader';
 import ncProjectConfigUpgrader from './ncProjectConfigUpgrader';
 import ncXcdbLTARUpgrader from './ncXcdbLTARUpgrader';
+import ncMinimalDbUpgrader from './ncMinimalDbUpgrader';
 import type { MetaService } from '../meta/meta.service';
 import type { NcConfig } from '../interface/config';
 
@@ -52,6 +53,7 @@ export default class NcUpgrader {
         { name: '0105004', handler: ncHookUpgrader },
         { name: '0107004', handler: ncProjectConfigUpgrader },
         { name: '0108002', handler: ncXcdbLTARUpgrader },
+        { name: '0108003', handler: ncMinimalDbUpgrader },
       ];
       if (!(await ctx.ncMeta.knexConnection?.schema?.hasTable?.('nc_store'))) {
         return;

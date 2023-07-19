@@ -486,8 +486,12 @@ export class TablesService {
         cn: string;
         system?: boolean;
       }
-    > = (await sqlClient.columnList({ tn: tableCreatePayLoad.table_name }))
-      ?.data?.list;
+    > = (
+      await sqlClient.columnList({
+        tn: tableCreatePayLoad.table_name,
+        schema: base.getConfig()?.schema,
+      })
+    )?.data?.list;
 
     const tables = await Model.list({
       project_id: project.id,

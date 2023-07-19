@@ -18,6 +18,7 @@ import Hook from './Hook';
 import Audit from './Audit';
 import View from './View';
 import Column from './Column';
+import Base from './Base';
 import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
 import type { XKnex } from '../db/CustomKnex';
 
@@ -360,10 +361,20 @@ export default class Model implements TableType {
     ncMeta = Noco.ncMeta,
   ): Promise<BaseModelSqlv2> {
     const model = args?.model || (await this.get(args.id, ncMeta));
+    const base = await Base.get(model.base_id);
 
     if (!args?.viewId) {
       const view = await View.getDefaultView(model.id, ncMeta);
       args.viewId = view.id;
+    }
+
+    if (base && base.is_local) {
+      return new BaseModelSqlv2({
+        dbDriver: args.dbDriver,
+        viewId: args.viewId,
+        model,
+        schema: base.getConfig()?.schema,
+      });
     }
 
     return new BaseModelSqlv2({

@@ -114,7 +114,12 @@ export class SqlViewsService {
         cn: string;
         system?: boolean;
       }
-    > = (await sqlClient.columnList({ tn: body.view_name }))?.data?.list;
+    > = (
+      await sqlClient.columnList({
+        tn: body.view_name,
+        schema: base.getConfig()?.schema,
+      })
+    )?.data?.list;
 
     const tables = await Model.list({
       project_id: project.id,

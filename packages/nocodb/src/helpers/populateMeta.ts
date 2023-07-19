@@ -203,11 +203,15 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
   const virtualColumnsInsert = [];
 
   /* Get all relations */
-  const relations = (await sqlClient.relationListAll())?.data?.list;
+  const relations = (
+    await sqlClient.relationListAll({ schema: base.getConfig()?.schema })
+  )?.data?.list;
 
   info.relationsCount = relations.length;
 
-  let tables = (await sqlClient.tableList())?.data?.list
+  let tables = (
+    await sqlClient.tableList({ schema: base.getConfig()?.schema })
+  )?.data?.list
     ?.filter(({ tn }) => !IGNORE_TABLES.includes(tn))
     ?.map((t) => {
       t.order = ++order;
@@ -248,7 +252,12 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
           cn: string;
           system?: boolean;
         }
-      > = (await sqlClient.columnList({ tn: table.tn }))?.data?.list;
+      > = (
+        await sqlClient.columnList({
+          tn: table.tn,
+          schema: base.getConfig()?.schema,
+        })
+      )?.data?.list;
 
       const hasMany =
         table.type === 'view'
@@ -379,7 +388,9 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
   await extractAndGenerateManyToManyRelations(Object.values(models2));
 
   let views: Array<{ order: number; table_name: string; title: string }> = (
-    await sqlClient.viewList()
+    await sqlClient.viewList({
+      schema: base.getConfig()?.schema,
+    })
   )?.data?.list
     // ?.filter(({ tn }) => !IGNORE_TABLES.includes(tn))
     ?.map((v) => {
@@ -400,8 +411,12 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
 
   const viewMetasInsert = views.map((table) => {
     return async () => {
-      const columns = (await sqlClient.columnList({ tn: table.table_name }))
-        ?.data?.list;
+      const columns = (
+        await sqlClient.columnList({
+          tn: table.table_name,
+          schema: base.getConfig()?.schema,
+        })
+      )?.data?.list;
 
       mapDefaultDisplayValue(columns);
 

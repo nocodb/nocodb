@@ -58,7 +58,7 @@ export default class NcConnectionMgrv2 {
   }
 
   public static async get(base: Base): Promise<XKnex> {
-    if (base.is_meta) {
+    if (base.is_meta || base.is_local) {
       // if data db is set, use it for generating knex connection
       if (!this.dataKnex) {
         await this.getDataConfig();
@@ -66,8 +66,6 @@ export default class NcConnectionMgrv2 {
       }
       return this.dataKnex;
     }
-
-    // TODO reuse minimal db connections
 
     if (this.connectionRefs?.[base.project_id]?.[base.id]) {
       return this.connectionRefs?.[base.project_id]?.[base.id];

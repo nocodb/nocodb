@@ -920,30 +920,6 @@ async function _formulaQueryBuilder(
   return { builder };
 }
 
-function getTnPathDry(tb: Model, knex, tableAlias?: string) {
-  const schema = knex.searchPath?.();
-  if (knex.clientType() === 'mssql' && schema) {
-    return knex.raw(`??.??${tableAlias ? ' as ??' : ''}`, [
-      schema,
-      tb.table_name,
-      ...(tableAlias ? [tableAlias] : []),
-    ]);
-  } else if (knex.clientType() === 'snowflake') {
-    return (
-      [
-        knex.client.config.connection.database,
-        knex.client.config.connection.schema,
-        tb.table_name,
-      ].join('.') + (tableAlias ? ` as ${tableAlias}` : '')
-    );
-  } else {
-    return knex.raw(`??${tableAlias ? ' as ??' : ''}`, [
-      tb.table_name,
-      ...(tableAlias ? [tableAlias] : []),
-    ]);
-  }
-}
-
 export default async function formulaQueryBuilderv2(
   baseModelSqlv2: BaseModelSqlv2,
   _tree,
@@ -972,7 +948,7 @@ export default async function formulaQueryBuilderv2(
   try {
     // dry run qb.builder to see if it will break the grid view or not
     // if so, set formula error and show empty selectQb instead
-    await knex(getTnPathDry(model, knex, tableAlias))
+    await knex(baseModelSqlv2.getTnPath(model, tableAlias))
       .select(knex.raw(`?? as ??`, [qb.builder, '__dry_run_alias']))
       .as('dry-run-only');
 

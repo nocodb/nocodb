@@ -2098,21 +2098,25 @@ class BaseModelSqlv2 {
     return _wherePk(this.model.primaryKeys, id);
   }
 
-  public getTnPath(tb: { table_name: string } | string) {
+  public getTnPath(tb: { table_name: string } | string, alias?: string) {
     const tn = typeof tb === 'string' ? tb : tb.table_name;
     const schema = (this.dbDriver as any).searchPath?.();
     if (this.isPg && this.schema) {
-      return `${this.schema}.${tn}`;
+      return `${this.schema}.${tn}${alias ? ` as ${alias}` : ``}`;
     } else if (this.isMssql && schema) {
-      return this.dbDriver.raw('??.??', [schema, tn]);
+      return this.dbDriver.raw(`??.??${alias ? ' as ??' : ''}`, [
+        schema,
+        tn,
+        ...(alias ? [alias] : []),
+      ]);
     } else if (this.isSnowflake) {
-      return [
+      return `${[
         this.dbDriver.client.config.connection.database,
         this.dbDriver.client.config.connection.schema,
         tn,
-      ].join('.');
+      ].join('.')}${alias ? ` as ${alias}` : ``}`;
     } else {
-      return tn;
+      return `${tn}${alias ? ` as ${alias}` : ``}`;
     }
   }
 

@@ -100,15 +100,4 @@ export default defineConfig({
 
   /* Folder for test artifacts such as screenshots, videos, traces, etc. */
   outputDir: './output',
-
-  /* Run your local dev server before starting the tests */
-  webServer: {
-    cwd: '../../packages/nc-gui',
-    command: 'pnpm run ci:run',
-    reuseExistingServer: !process.env.CI,
-    stdout: 'ignore',
-    stderr: 'pipe',
-    timeout: 300000,
-    url: 'http://localhost:3000',
-  },
 });

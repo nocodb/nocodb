@@ -56,7 +56,9 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const { t } = useI18n()
 
-const { isLoading: loading, api } = useApi()
+const { api } = useApi()
+
+const isViewCreating = ref(false)
 
 const form = reactive<Form>({
   title: props.title || '',
@@ -205,12 +207,16 @@ async function onSubmit() {
     }
 
     vModel.value = false
+
+    setTimeout(() => {
+      isViewCreating.value = false
+    }, 500)
   }
 }
 </script>
 
 <template>
-  <GeneralModal v-model:visible="vModel" size="small" centered :confirm-loading="loading">
+  <GeneralModal v-model:visible="vModel" size="small">
     <div class="p-6">
       <div class="font-medium text-lg mb-5">
         {{ $t(`general.${selectedViewId ? 'duplicate' : 'create'}`) }} <span class="capitalize">{{ typeAlias }}</span>
@@ -268,7 +274,7 @@ async function onSubmit() {
           type="primary"
           label="Create View"
           loading-label="Creating View"
-          :loading="loading"
+          :loading="isViewCreating"
           @click="onSubmit"
         >
         </NcButton>

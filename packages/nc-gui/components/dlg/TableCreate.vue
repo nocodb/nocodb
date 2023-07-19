@@ -118,7 +118,9 @@ const _createTable = async () => {
     e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
     if (e.errorFields.length) return
   } finally {
-    creating.value = false
+    setTimeout(() => {
+      creating.value = false
+    }, 500)
   }
 }
 

@@ -68,7 +68,7 @@ watch(
   (val) => {
     if (!val) {
       workspace.value = {
-        title: 'Untitled',
+        title: 'Untitled Workspace',
       }
     } else {
       nextTick(() => {
@@ -102,11 +102,13 @@ watch(
         <InputOrTags ref="inputRef" v-model="workspace.title" class="nc-input-md" />
       </a-form-item>
       <div class="flex flex-row justify-end mt-7 gap-x-2">
+        <NcButton type="secondary" :label="$t('general.cancel')" @click="dialogShow = false" />
         <NcButton
           type="primary"
           :label="$t('activity.createWorkspace')"
           loading-label="Creating Workspace"
           :loading="isCreating"
+          :disabled="validateInfos.title.validateStatus === 'error'"
           @click="_createWorkspace"
         />
       </div>

@@ -11,9 +11,7 @@ RUN apk add --no-cache python3 make g++
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Copy application dependency manifests to the container image.
-# A wildcard is used to ensure both package.json AND package-lock.json are copied.
-# Copying this separately prevents re-running pnpm install on every code change.
-COPY ./package*.json ./
+COPY ./package.json ./package.json
 COPY ./docker/nc-gui/ ./docker/nc-gui/
 COPY ./docker/main.js ./docker/index.js
 COPY ./docker/start-local.sh /usr/src/appEntry/start.sh

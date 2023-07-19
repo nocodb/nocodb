@@ -1295,6 +1295,7 @@ const duplicateTable = async (table: TableType) => {
       <template v-if="!isSharedBase" #overlay>
         <a-menu class="!py-0 rounded text-sm">
           <template v-if="contextMenuTarget.type === 'base'">
+            <!--
             <a-menu-item v-if="isUIAllowed('sqlEditor')" @click="openSqlEditor(contextMenuTarget.value)">
               <div class="nc-project-menu-item">SQL Editor</div>
             </a-menu-item>
@@ -1302,6 +1303,7 @@ const duplicateTable = async (table: TableType) => {
             <a-menu-item @click="openErdView(contextMenuTarget.value)">
               <div class="nc-project-menu-item">ERD View</div>
             </a-menu-item>
+            -->
           </template>
 
           <template v-else-if="contextMenuTarget.type === 'table'">

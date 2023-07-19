@@ -9,16 +9,13 @@ export const useSqlEditor = createGlobalState(() => {
     promptHistory: [],
   })
 
-  const sqlEditors = ref<Record<string, { rawSql: string; sqlPrompt: string; selectedBase?: string }>>({})
+  const sqlEditors = ref<Record<string, { rawSql: string; sqlPrompt: string }>>({})
 
-  const selectBase = (projectId: string, baseId?: string) => {
-    if (sqlEditors.value[projectId]) {
-      sqlEditors.value[projectId].selectedBase = baseId
-    } else {
-      sqlEditors.value[projectId] = {
+  const selectBase = (baseId: string) => {
+    if (!sqlEditors.value[baseId]) {
+      sqlEditors.value[baseId] = {
         rawSql: '',
         sqlPrompt: '',
-        selectedBase: baseId,
       }
     }
   }

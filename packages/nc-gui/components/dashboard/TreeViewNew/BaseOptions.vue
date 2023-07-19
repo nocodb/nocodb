@@ -132,7 +132,7 @@ function openQuickImportDialog(type: string) {
   <a-menu-divider class="my-0" />
 
   <!-- Quick Import From -->
-  <a-sub-menu>
+  <a-sub-menu class="py-0">
     <template #title>
       <div class="nc-project-menu-item group">
         <GeneralIcon icon="download" class="-ml-0.25" />

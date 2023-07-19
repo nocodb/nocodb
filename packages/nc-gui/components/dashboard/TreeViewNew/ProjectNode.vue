@@ -1,15 +1,13 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
-import { Dropdown, Tooltip, message } from 'ant-design-vue'
+import { Dropdown, message } from 'ant-design-vue'
 import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
-import AddNewTableNode from './AddNewTableNode'
-import TableList from './TableList'
+import TableList from './TableList.vue'
 import { openLink, useProjects } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import { ProjectInj, ProjectRoleInj, ToggleDialogInj } from '~/context'
 import type { NcProject } from '~~/lib'
-import MdiInformationSlabSymbol from '~icons/ion/information'
 import { isElementInvisible } from '~~/utils/domUtils'
 import { useWorkspace } from '~/store/workspace'
 
@@ -24,7 +22,7 @@ const indicator = h(LoadingOutlined, {
 const router = useRouter()
 const route = $(router.currentRoute)
 
-const { setMenuContext, openRenameTableDialog, duplicateTable } = inject(TreeViewFunctions)!
+const { setMenuContext, openRenameTableDialog, duplicateTable, contextMenuTarget } = inject(TreeViewInj)!
 
 const project = inject(ProjectInj)!
 
@@ -32,14 +30,7 @@ const projectsStore = useProjects()
 
 const workspaceStore = useWorkspace()
 
-const {
-  loadProject,
-  createProject: _createProject,
-  isProjectEmpty,
-  updateProject,
-  deleteProject,
-  getProjectMetaInfo,
-} = projectsStore
+const { loadProject, createProject: _createProject, updateProject, getProjectMetaInfo } = projectsStore
 const { projects } = storeToRefs(projectsStore)
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
@@ -51,7 +42,7 @@ const { addNewLayout } = useDashboardStore()
 
 const { appInfo } = useGlobal()
 
-const { closeTab, addSqlEditorTab } = useTabs()
+useTabs()
 
 const editMode = ref(false)
 
@@ -82,7 +73,6 @@ const { $e } = useNuxtApp()
 const isOptionsOpen = ref(false)
 const isBasesOptionsOpen = ref<Record<string, boolean>>({})
 
-const contextMenuTarget = reactive<{ type?: 'project' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
 const activeKey = ref<string[]>([])
 const [searchActive] = useToggle()
 const filterQuery = $ref('')
@@ -297,23 +287,35 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean) =>
 }
 
 function openSqlEditor(base: BaseType) {
-  addSqlEditorTab(projects.value.get(base.project_id!)!)
+  navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/sql/${base.id}`)
 }
 
 function openErdView(base: BaseType) {
   navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/erd/${base.id}`)
 }
 
-async function openProjectSqlEditor(project: ProjectType) {
-  if (!project.id) return
-  navigateTo(`/ws/${route.params.workspaceId}/nc/${project.id}/sql`)
+async function openProjectSqlEditor(_project: ProjectType) {
+  if (!_project.id) return
+
+  if (!projectsStore.isProjectPopulated(_project.id)) {
+    await loadProject(_project.id)
+  }
+
+  const project = projects.value.get(_project.id)
+
+  const base = project?.bases?.[0]
+  if (!base) return
+  navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/sql/${base.id}`)
 }
 
 async function openProjectErdView(_project: ProjectType) {
   if (!_project.id) return
 
+  if (!projectsStore.isProjectPopulated(_project.id)) {
+    await loadProject(_project.id)
+  }
+
   const project = projects.value.get(_project.id)
-  if (!project) await loadProject(_project.id!)
 
   const base = project?.bases?.[0]
   if (!base) return
@@ -325,6 +327,16 @@ const reloadTables = async () => {
 
   // await loadTables()
 }
+
+const contextMenuBase = computed(() => {
+  if (contextMenuTarget.type === 'base') {
+    return contextMenuTarget.value
+  } else if (contextMenuTarget.type === 'table') {
+    const base = project.value?.bases?.find((b) => b.id === contextMenuTarget.value.base_id)
+    if (base) return base
+  }
+  return null
+})
 
 watch(
   () => activeTable.value?.id,
@@ -458,7 +470,7 @@ onKeyStroke('Escape', () => {
                   <a-menu-item @click="enableEditMode">
                     <div class="nc-project-menu-item group">
                       <GeneralIcon icon="edit" class="group-hover:text-black" />
-                      Edit
+                      {{ $t('general.edit') }}
                     </div>
                   </a-menu-item>
 
@@ -471,6 +483,14 @@ onKeyStroke('Escape', () => {
                   </a-menu-item>
 
                   <a-menu-divider v-if="false" />
+
+                  <!-- ERD View -->
+                  <a-menu-item key="erd" @click="openProjectErdView(project)">
+                    <div class="nc-project-menu-item group">
+                      <GeneralIcon icon="erd" />
+                      {{ $t('title.erdView') }}
+                    </div>
+                  </a-menu-item>
 
                   <!-- Swagger: Rest APIs -->
                   <a-menu-item key="api">
@@ -511,7 +531,7 @@ onKeyStroke('Escape', () => {
                 >
                   <div class="nc-project-menu-item group text-red-500">
                     <GeneralIcon icon="delete" />
-                    Delete
+                    {{ $t('general.delete') }}
                   </div>
                 </a-menu-item>
               </a-menu>
@@ -621,6 +641,14 @@ onKeyStroke('Escape', () => {
                                   }"
                                   @click="isBasesOptionsOpen[base!.id!] = false"
                                 >
+                                  <!-- ERD View -->
+                                  <a-menu-item key="erd" @click="openErdView(base)">
+                                    <div class="nc-project-menu-item group">
+                                      <GeneralIcon icon="erd" />
+                                      {{ $t('title.erdView') }}
+                                    </div>
+                                  </a-menu-item>
+
                                   <DashboardTreeViewNewBaseOptions v-model:project="project" :base="base" />
                                 </a-menu>
                               </template>
@@ -660,40 +688,55 @@ onKeyStroke('Escape', () => {
     <template v-if="!isSharedBase" #overlay>
       <a-menu class="!py-0 rounded text-sm">
         <template v-if="contextMenuTarget.type === 'project' && project.type === 'database'">
+          <!--
           <a-menu-item v-if="isUIAllowed('sqlEditor')" @click="openProjectSqlEditor(contextMenuTarget.value)">
             <div class="nc-project-menu-item">SQL Editor</div>
           </a-menu-item>
-
           <a-menu-item @click="openProjectErdView(contextMenuTarget.value)">
-            <div class="nc-project-menu-item">ERD View</div>
+            <div class="nc-project-menu-item">
+              <GeneralIcon icon="erd" />
+              {{ $t('title.erdView') }}
+            </div>
           </a-menu-item>
+          -->
         </template>
 
         <template v-else-if="contextMenuTarget.type === 'base'">
+          <!--
           <a-menu-item v-if="isUIAllowed('sqlEditor')" @click="openSqlEditor(contextMenuTarget.value)">
             <div class="nc-project-menu-item">SQL Editor</div>
           </a-menu-item>
 
           <a-menu-item @click="openErdView(contextMenuTarget.value)">
-            <div class="nc-project-menu-item">ERD View</div>
+            <div class="nc-project-menu-item">
+              <GeneralIcon icon="erd" />
+              {{ $t('title.erdView') }}
+            </div>
           </a-menu-item>
+          -->
         </template>
 
         <template v-else-if="contextMenuTarget.type === 'table'">
           <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
             <div class="nc-project-menu-item">
+              <GeneralIcon icon="edit" class="text-gray-700" />
               {{ $t('general.rename') }}
             </div>
           </a-menu-item>
 
-          <a-menu-item v-if="isUIAllowed('table-duplicate')" @click="duplicateTable(contextMenuTarget.value)">
+          <a-menu-item
+            v-if="isUIAllowed('table-duplicate') && (contextMenuBase?.is_meta || contextMenuBase?.is_local)"
+            @click="duplicateTable(contextMenuTarget.value)"
+          >
             <div class="nc-project-menu-item">
+              <GeneralIcon icon="duplicate" class="text-gray-700" />
               {{ $t('general.duplicate') }}
             </div>
           </a-menu-item>
 
           <a-menu-item v-if="isUIAllowed('table-delete')" @click="isTableDeleteDialogVisible = true">
-            <div class="nc-project-menu-item">
+            <div class="nc-project-menu-item text-red-600">
+              <GeneralIcon icon="delete" />
               {{ $t('general.delete') }}
             </div>
           </a-menu-item>
@@ -724,5 +767,9 @@ onKeyStroke('Escape', () => {
 
 :deep(.ant-collapse-header:hover .nc-sidebar-base-node-btns) {
   @apply visible;
+}
+
+:deep(.ant-dropdown-menu-submenu-title) {
+  @apply !py-0;
 }
 </style>

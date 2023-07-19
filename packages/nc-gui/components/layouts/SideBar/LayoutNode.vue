@@ -5,7 +5,7 @@ import { useUIPermission } from '~/composables/useUIPermission'
 
 import { useNuxtApp } from '#app'
 import { ProjectRoleInj } from '~/context'
-import { TreeViewFunctions } from '#imports'
+import { TreeViewInj } from '#imports'
 
 const props = defineProps<{
   project: ProjectType
@@ -25,7 +25,7 @@ const { deleteLayout } = useDashboardStore()
 
 const projectRole = inject(ProjectRoleInj)
 
-const { setMenuContext } = inject(TreeViewFunctions)!
+const { setMenuContext } = inject(TreeViewInj)!
 
 const openeLayoutId = computed(() => route.params.layoutId)
 

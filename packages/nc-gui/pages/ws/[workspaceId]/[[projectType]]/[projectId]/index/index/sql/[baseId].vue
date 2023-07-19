@@ -7,7 +7,11 @@ import { storeToRefs } from 'pinia'
 import MdiHammer from '~icons/mdi/hammer'
 import { useNuxtApp, useProject, useSqlEditor, useUIPermission } from '#imports'
 
-const { project, bases, tables } = storeToRefs(useProject())
+const { bases, tables } = storeToRefs(useProject())
+
+const router = useRouter()
+
+const route = useRoute()
 
 const { metas, getMeta } = useMetas()
 
@@ -17,21 +21,20 @@ const { $api, $e } = useNuxtApp()
 
 const { sqlEditors, promptHistory } = useSqlEditor()
 
+const base = computed(() => bases.value.find((el) => el.id === route.params?.baseId) || bases.value.filter((el) => el.enabled)[0])
+
 const activeSqlEditor = computed(() => {
-  if (project.value.id! in sqlEditors.value) {
-    return sqlEditors.value[project.value.id!]
+  if (!base.value?.id) return { sqlPrompt: '', rawSql: '' }
+  if (base.value?.id && base.value.id in sqlEditors.value) {
+    return sqlEditors.value[base.value.id]
   } else {
-    sqlEditors.value[project.value.id!] = {
-      selectedBase: bases.value[0]?.id,
-      sqlPrompt: '',
-      rawSql: '',
-    }
-    return sqlEditors.value[project.value.id!]
+    sqlEditors.value[base.value.id] = { sqlPrompt: '', rawSql: '' }
+    return sqlEditors.value[base.value.id]
   }
 })
 
 const activePrompt = computed(() =>
-  promptHistory.find((p) => activeSqlEditor.value.selectedBase === p.baseId && p.prompt === activeSqlEditor.value.sqlPrompt),
+  promptHistory.find((p) => base.value?.id === p.baseId && p.prompt === activeSqlEditor.value.sqlPrompt),
 )
 
 const historyDrawer = ref(false)
@@ -58,8 +61,8 @@ const loadPrompt = (pr: { prompt: string; query?: string }) => {
 }
 
 const addHistory = (prompt: string, query: string, status: boolean | null = null, error = '') => {
-  if (!prompt.length) return
-  const fnd = promptHistory.find((p) => p.baseId === activeSqlEditor.value.selectedBase && p.prompt === prompt)
+  if (!prompt.length || !base.value.id) return
+  const fnd = promptHistory.find((p) => p.baseId === base.value.id && p.prompt === prompt)
   if (fnd) {
     fnd.query = query
     fnd.status = status
@@ -67,7 +70,7 @@ const addHistory = (prompt: string, query: string, status: boolean | null = null
     promptHistory.splice(promptHistory.indexOf(fnd), 1)
     promptHistory.unshift(fnd)
   } else {
-    promptHistory.unshift({ baseId: activeSqlEditor.value.selectedBase, prompt, query, status, error })
+    promptHistory.unshift({ baseId: base.value.id, prompt, query, status, error })
   }
 }
 
@@ -77,8 +80,7 @@ const generateSQL = async () => {
 
   loadMagic.value = true
 
-  const base = bases.value.find((b) => b.id === activeSqlEditor.value.selectedBase)
-  const baseTables = tables.value.filter((t) => t.base_id === base?.id && t.type === 'table' && t.table_name)
+  const baseTables = tables.value.filter((t) => t.base_id === base.value.id && t.type === 'table' && t.table_name)
 
   for (const table of baseTables) {
     if (table.id && !metas.value[table.id]) await getMeta(table.id)
@@ -89,7 +91,7 @@ const generateSQL = async () => {
   const req = {
     prompt: activeSqlEditor.value.sqlPrompt,
     base: {
-      type: base.type,
+      type: base.value.type,
       tables: baseTables.map((t) => ({
         title: t.table_name,
         columns: ((t.id && metas.value[t.id].columns.filter((c: ColumnType) => c.column_name)) || []).map((c: ColumnType) => ({
@@ -128,8 +130,7 @@ const generatePrompt = async (mode: 'KPI' | 'dashboard', max = 5) => {
 
   loadMagic.value = true
 
-  const base = bases.value.find((b) => b.id === activeSqlEditor.value.selectedBase)
-  const baseTables = tables.value.filter((t) => t.base_id === base?.id && t.type === 'table' && t.table_name)
+  const baseTables = tables.value.filter((t) => t.base_id === base.value.id && t.type === 'table' && t.table_name)
 
   for (const table of baseTables) {
     if (table.id && !metas.value[table.id]) await getMeta(table.id)
@@ -141,7 +142,7 @@ const generatePrompt = async (mode: 'KPI' | 'dashboard', max = 5) => {
     prompt: mode,
     max,
     base: {
-      type: base.type,
+      type: base.value.type,
       tables: baseTables.map((t) => ({
         title: t.table_name,
         columns: ((t.id && metas.value[t.id].columns.filter((c: ColumnType) => c.column_name)) || []).map((c: ColumnType) => ({
@@ -176,8 +177,7 @@ const repairSQL = async () => {
 
   loadSQL.value = true
 
-  const base = bases.value.find((b) => b.id === activeSqlEditor.value.selectedBase)
-  const baseTables = tables.value.filter((t) => t.base_id === base?.id && t.type === 'table' && t.table_name)
+  const baseTables = tables.value.filter((t) => t.base_id === base.value.id && t.type === 'table' && t.table_name)
 
   for (const table of baseTables) {
     if (table.id && !metas.value[table.id]) await getMeta(table.id)
@@ -188,7 +188,7 @@ const repairSQL = async () => {
   const req = {
     sql: activeSqlEditor.value.rawSql,
     base: {
-      type: base.type,
+      type: base.value.type,
       tables: baseTables.map((t) => ({
         title: t.table_name,
         columns: ((t.id && metas.value[t.id].columns.filter((c: ColumnType) => c.column_name)) || []).map((c: ColumnType) => ({
@@ -255,7 +255,7 @@ const runSQL = async () => {
 
   await $api.utils
     .selectQuery({
-      baseId: activeSqlEditor.value.selectedBase,
+      baseId: base.value.id,
       query: activeSqlEditor.value.rawSql,
     })
     .then((res: { data: Record<string, any>[] }) => {
@@ -313,9 +313,28 @@ watch(
   { immediate: true },
 )
 
-onMounted(() => {
-  activeSqlEditor.value.selectedBase = activeSqlEditor.value.selectedBase || bases.value[0]?.id
-})
+const changeBase = (baseId?: string) => {
+  if (baseId) {
+    const base = bases.value.find((b) => b.id === baseId)
+    if (base) {
+      router.replace({ params: { baseId: base.id } })
+    } else {
+      router.replace({ params: { baseId: bases.value[0].id } })
+    }
+  }
+}
+
+watch(
+  () => route.params.baseId,
+  (baseId) => {
+    until(bases)
+      .toMatch((bases) => bases.length > 0)
+      .then(() => {
+        changeBase(baseId as string)
+      })
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -323,7 +342,12 @@ onMounted(() => {
     <div class="flex flex-col h-full w-full text-gray-60" :class="[historyDrawer ? 'col-span-9' : 'col-span-12']">
       <div class="flex flex-col h-[500px]">
         <div class="flex p-4">
-          <a-select v-model:value="activeSqlEditor.selectedBase" :options="baseOptions" class="w-[200px] !mr-4" />
+          <a-select
+            :value="base?.id"
+            :options="baseOptions"
+            class="w-[200px] !mr-4"
+            @change="(v, o) => changeBase(v as string)"
+          />
           <a-dropdown-button class="!mr-4" @click="generateSQL()">
             Generate Query
             <template #overlay>
@@ -357,7 +381,7 @@ onMounted(() => {
             Run
           </a-button>
           <MdiHistory
-            v-if="loadMagic || promptHistory.filter((p) => p.baseId === activeSqlEditor.selectedBase).length"
+            v-if="loadMagic || promptHistory.filter((p) => p.baseId === base?.id).length"
             id="history"
             class="my-auto ml-2 text-xl text-gray-400 cursor-pointer"
             :class="{ 'animate-spin': loadMagic }"
@@ -396,7 +420,7 @@ onMounted(() => {
           v-if="dataQuery && data.length"
           type="primary"
           class="!flex items-center absolute z-5 bottom-[50px]"
-          @click="openSqlViewCreateDialog(activeSqlEditor.selectedBase)"
+          @click="openSqlViewCreateDialog(base?.id)"
         >
           <MdiEyeCircleOutline class="mr-2" />
           Create SQL View
@@ -411,7 +435,7 @@ onMounted(() => {
       <div class="flex p-4">
         <a-steps progress-dot :current="-1" direction="vertical" size="small">
           <a-step
-            v-for="pr of promptHistory.filter((p) => p.baseId === activeSqlEditor.selectedBase)"
+            v-for="pr of promptHistory.filter((p) => p.baseId === base?.id)"
             :key="pr.prompt"
             :class="{ 'ant-steps-item-worked': pr.status && activePrompt?.prompt !== pr.prompt }"
             :status="pr.status === false ? 'error' : activePrompt?.prompt === pr.prompt ? 'process' : 'wait'"

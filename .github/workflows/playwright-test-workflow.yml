@@ -14,7 +14,7 @@ on:
 jobs:
   playwright:
     runs-on: self-hosted
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
       # Reference: https://github.com/pierotofy/set-swap-space/blob/master/action.yml
       # - name: Set 5gb swap

@@ -210,8 +210,8 @@ async function onSubmit() {
 </script>
 
 <template>
-  <GeneralModal v-model:visible="vModel" centered :confirm-loading="loading">
-    <div class="py-4 px-5">
+  <GeneralModal v-model:visible="vModel" size="small" centered :confirm-loading="loading">
+    <div class="p-6">
       <div class="font-medium text-lg mb-5">
         {{ $t(`general.${selectedViewId ? 'duplicate' : 'create'}`) }} <span class="capitalize">{{ typeAlias }}</span>
         {{ $t('objects.view') }}
@@ -222,7 +222,7 @@ async function onSubmit() {
           <a-input
             ref="inputEl"
             v-model:value="form.title"
-            class="!rounded"
+            class="!rounded-lg !py-2 !px-3"
             autofocus
             :placeholder="$t('labels.viewName')"
             @keydown.enter="onSubmit"
@@ -261,10 +261,17 @@ async function onSubmit() {
       </a-form>
 
       <div class="flex flex-row w-full justify-end gap-x-2 mt-8">
-        <a-button key="back" class="!rounded-md" @click="vModel = false">{{ $t('general.cancel') }}</a-button>
-        <a-button key="submit" class="!rounded-md" type="primary" :loading="loading" @click="onSubmit">{{
-          $t('general.submit')
-        }}</a-button>
+        <NcButton type="secondary" :label="$t('general.cancel')" @click="vModel = false" />
+
+        <NcButton
+          key="submit"
+          type="primary"
+          label="Create View"
+          loading-label="Creating View"
+          :loading="loading"
+          @click="onSubmit"
+        >
+        </NcButton>
       </div>
     </div>
   </GeneralModal>

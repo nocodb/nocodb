@@ -112,6 +112,7 @@ const _createTable = async () => {
     creating.value = true
     await validate()
     await createTable()
+    dialogShow.value = false
   } catch (e: any) {
     console.error(e)
     e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
@@ -131,9 +132,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <GeneralModal v-model:visible="dialogShow" @keydown.esc="dialogShow = false">
+  <GeneralModal v-model:visible="dialogShow" size="small" @keydown.esc="dialogShow = false">
     <div class="flex flex-col p-6">
-      <div class="flex mb-5 text-lg font-medium">
+      <div class="flex mb-2 text-lg font-medium">
         {{ $t('activity.createTable') }}
       </div>
       <a-form :model="table" name="create-new-table-form" @keydown.enter="_createTable" @keydown.esc="dialogShow = false">
@@ -145,14 +146,14 @@ onMounted(() => {
           <a-input
             ref="inputEl"
             v-model:value="table.title"
-            class="!rounded-md"
+            class="!rounded-md !py-2 !px-3"
             hide-details
             data-testid="create-table-title-input"
             :placeholder="$t('msg.info.enterTableName')"
           />
         </a-form-item>
 
-        <div class="flex justify-end items-center">
+        <div v-if="false" class="flex justify-end items-center">
           <div
             class="pointer flex flex-row items-center gap-x-1 cursor-pointer"
             @click="isAdvanceOptVisible = !isAdvanceOptVisible"
@@ -165,16 +166,16 @@ onMounted(() => {
         </div>
         <div class="nc-table-advanced-options" :class="{ active: isAdvanceOptVisible }">
           <!-- hint="Table name as saved in database" -->
-          <div v-if="!project.prefix" class="mb-2">{{ $t('msg.info.tableNameInDb') }}</div>
+          <!-- <div v-if="!project.prefix" class="mb-2">{{ $t('msg.info.tableNameInDb') }}</div>
 
           <a-form-item v-if="!project.prefix" v-bind="validateInfos.table_name">
             <a-input v-model:value="table.table_name" size="large" hide-details :placeholder="$t('msg.info.tableNameInDb')" />
-          </a-form-item>
+          </a-form-item> -->
 
           <div>
             <div class="mb-1">
               <!-- Add Default Columns -->
-              {{ $t('msg.info.addDefaultColumns') }}
+              {{ $t('msg.info.defaultColumns') }}
             </div>
 
             <a-row>
@@ -198,12 +199,18 @@ onMounted(() => {
             </a-row>
           </div>
         </div>
-        <div class="flex flex-rown justify-end gap-x-2 mt-2">
-          <a-button key="back" size="middle" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
+        <div class="flex flex-row justify-end gap-x-2 mt-3">
+          <NcButton type="secondary" :label="$t('general.cancel')" @click="dialogShow = false" />
 
-          <a-button key="submit" size="middle" class="!rounded-md" type="primary" :loading="creating" @click="_createTable"
-            >{{ $t('general.submit') }}
-          </a-button>
+          <NcButton
+            key="submit"
+            type="primary"
+            :label="$t('activity.createTable')"
+            loading-label="Creating Table"
+            :loading="creating"
+            @click="_createTable"
+          >
+          </NcButton>
         </div>
       </a-form>
     </div>

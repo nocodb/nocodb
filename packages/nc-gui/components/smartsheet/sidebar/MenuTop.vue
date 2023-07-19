@@ -298,7 +298,7 @@ const setIcon = async (icon: string, view: ViewType) => {
   <a-menu
     ref="menuRef"
     :class="{ dragging }"
-    class="nc-views-menu flex flex-col flex-1 !px-3 w-full !border-r-0 !bg-inherit"
+    class="nc-views-menu flex flex-col !px-3 w-full !border-r-0 !bg-inherit nc-scrollbar-md"
     :selected-keys="selected"
   >
     <!-- Lazy load breaks menu item active styles, i.e. styles never change even when active item changes -->
@@ -320,12 +320,13 @@ const setIcon = async (icon: string, view: ViewType) => {
       @rename="onRename"
       @select-icon="setIcon($event, view)"
     />
+    <div class="min-h-1 max-h-1 w-full bg-transparent"></div>
   </a-menu>
 </template>
 
 <style lang="scss">
 .nc-views-menu {
-  @apply flex-1 min-h-[100px] overflow-y-auto scrollbar-thin-dull;
+  @apply min-h-20 flex-grow;
 
   .ghost,
   .ghost > * {

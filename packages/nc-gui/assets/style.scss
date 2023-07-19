@@ -23,6 +23,11 @@
   background-color: #3366ff20;
 }
 
+.ant-layout-content {
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+}
+
 .ant-layout-header {
   height: var(--topbar-height) !important;
 }

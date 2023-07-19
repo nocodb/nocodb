@@ -40,6 +40,7 @@ export class DataAliasController {
       projectName: projectName,
       tableName: tableName,
       viewName: viewName,
+      optimisedQuery: true,
     });
     const elapsedSeconds = parseHrtimeToMilliSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);

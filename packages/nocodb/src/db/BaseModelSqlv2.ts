@@ -97,7 +97,7 @@ class BaseModelSqlv2 {
   private _proto: any;
   private _columns = {};
 
-  private config: any = {
+  public static config: any = {
     limitDefault: Math.max(+process.env.DB_QUERY_LIMIT_DEFAULT || 25, 1),
     limitMin: Math.max(+process.env.DB_QUERY_LIMIT_MIN || 1, 1),
     limitMax: Math.max(+process.env.DB_QUERY_LIMIT_MAX || 1000, 1),
@@ -1584,10 +1584,10 @@ class BaseModelSqlv2 {
     obj.conditionGraph = args.conditionGraph || {};
     obj.limit = Math.max(
       Math.min(
-        args.limit || args.l || this.config.limitDefault,
-        this.config.limitMax,
+        args.limit || args.l || BaseModelSqlv2.config.limitDefault,
+        BaseModelSqlv2.config.limitMax,
       ),
-      this.config.limitMin,
+      BaseModelSqlv2.config.limitMin,
     );
     obj.offset = Math.max(+(args.offset || args.o) || 0, 0);
     obj.fields = args.fields || args.f;
@@ -3864,7 +3864,7 @@ class BaseModelSqlv2 {
   }
 }
 
-function extractSortsObject(
+export function extractSortsObject(
   _sorts: string | string[],
   aliasColObjMap: { [columnAlias: string]: Column },
 ): Sort[] | void {
@@ -3885,7 +3885,7 @@ function extractSortsObject(
   });
 }
 
-function extractFilterFromXwhere(
+export function extractFilterFromXwhere(
   str,
   aliasColObjMap: { [columnAlias: string]: Column },
 ) {
@@ -3975,7 +3975,7 @@ function validateFilterComparison(uidt: UITypes, op: any, sub_op?: any) {
   }
 }
 
-function extractCondition(nestedArrayConditions, aliasColObjMap) {
+export function extractCondition(nestedArrayConditions, aliasColObjMap) {
   return nestedArrayConditions?.map((str) => {
     let [logicOp, alias, op, value] =
       str.match(/(?:~(and|or|not))?\((.*?),(\w+),(.*)\)/)?.slice(1) || [];
@@ -4027,7 +4027,7 @@ function applyPaginate(
   return query;
 }
 
-function _wherePk(primaryKeys: Column[], id) {
+export function _wherePk(primaryKeys: Column[], id) {
   const ids = (id + '').split('___');
   const where = {};
   for (let i = 0; i < primaryKeys.length; ++i) {
@@ -4092,6 +4092,31 @@ function shouldSkipField(
     }
     return false;
   }
+}
+
+export function getListArgs(
+  args: XcFilterWithAlias,
+  model: Model,
+  { ignoreAssigningWildcardSelect = false } = {},
+): XcFilter {
+  const obj: XcFilter = {};
+  obj.where = args.where || args.w || '';
+  obj.having = args.having || args.h || '';
+  obj.shuffle = args.shuffle || args.r || '';
+  obj.condition = args.condition || args.c || {};
+  obj.conditionGraph = args.conditionGraph || {};
+  obj.limit = Math.max(
+    Math.min(
+      args?.limit || args?.l || BaseModelSqlv2.config.limitDefault,
+      BaseModelSqlv2.config.limitMax,
+    ),
+    BaseModelSqlv2.config.limitMin,
+  );
+  obj.offset = Math.max(+(args?.offset || args?.o) || 0, 0);
+  obj.fields =
+    args?.fields || args?.f || (ignoreAssigningWildcardSelect ? null : '*');
+  obj.sort = args?.sort || args?.s || model.primaryKey?.[0]?.column_name;
+  return obj;
 }
 
 export { BaseModelSqlv2 };

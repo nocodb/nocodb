@@ -134,11 +134,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <GeneralModal v-model:visible="dialogShow" size="small" @keydown.esc="dialogShow = false">
-    <div class="flex flex-col p-6">
-      <div class="flex mb-2 text-lg font-medium">
-        {{ $t('activity.createTable') }}
-      </div>
+  <NcModal v-model:visible="dialogShow" :header="$t('activity.createTable')" size="small" @keydown.esc="dialogShow = false">
+    <div class="flex flex-col">
       <div class="flex mb-6 text-gray-600">A blank table for a fresh start.</div>
       <a-form :model="table" name="create-new-table-form" @keydown.enter="_createTable" @keydown.esc="dialogShow = false">
         <!-- hint="Enter table name" -->
@@ -217,7 +214,7 @@ onMounted(() => {
         </div>
       </a-form>
     </div>
-  </GeneralModal>
+  </NcModal>
 </template>
 
 <style scoped lang="scss">

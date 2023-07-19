@@ -4,6 +4,7 @@ const props = defineProps<{
   width?: string | number
   size: 'small' | 'medium' | 'large'
   destroyOnClose: boolean
+  header?: string
 }>()
 
 const emits = defineEmits(['update:visible'])
@@ -62,11 +63,14 @@ const visible = useVModel(props, 'visible', emits)
     @keydown.esc="visible = false"
   >
     <div
-      class="nc-modal"
+      class="flex flex-col nc-modal p-6"
       :style="{
         maxHeight: height,
       }"
     >
+      <div v-if="props.header" class="flex mb-2 text-lg font-medium">
+        {{ props.header }}
+      </div>
       <slot />
     </div>
   </a-modal>

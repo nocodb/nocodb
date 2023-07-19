@@ -218,10 +218,12 @@ async function onSubmit() {
 <template>
   <NcModal v-model:visible="vModel" size="small">
     <template #header>
-      {{ $t(`general.${selectedViewId ? 'duplicate' : 'create'}`) }} <span class="capitalize">{{ typeAlias }}</span>
-      {{ $t('objects.view') }}
+      <div>
+        {{ $t(`general.${selectedViewId ? 'duplicate' : 'create'}`) }} <span class="capitalize">{{ typeAlias }}</span>
+        {{ $t('objects.view') }}
+      </div>
     </template>
-    <div class="mt-3">
+    <div class="mt-2">
       <a-form ref="formValidator" layout="vertical" :model="form">
         <a-form-item name="title" :rules="viewNameRules">
           <a-input
@@ -265,7 +267,7 @@ async function onSubmit() {
         </a-form-item>
       </a-form>
 
-      <div class="flex flex-row w-full justify-end gap-x-2 mt-8">
+      <div class="flex flex-row w-full justify-end gap-x-2 mt-7">
         <NcButton type="secondary" :label="$t('general.cancel')" @click="vModel = false" />
 
         <NcButton

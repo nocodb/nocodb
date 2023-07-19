@@ -182,12 +182,11 @@ const renameTable = async (undo = false) => {
 </script>
 
 <template>
-  <GeneralModal v-model:visible="dialogShow" size="small">
-    <div class="p-6">
-      <div class="mb-4 text-gray-800 font-medium text-lg">
-        {{ $t('activity.renameTable') }}
-      </div>
-
+  <NcModal v-model:visible="dialogShow" size="small">
+    <template #header>
+      {{ $t('activity.renameTable') }}
+    </template>
+    <div class="mt-2">
       <a-form :model="formState" name="create-new-table-form">
         <a-form-item v-bind="validateInfos.title">
           <a-input
@@ -214,5 +213,5 @@ const renameTable = async (undo = false) => {
         />
       </div>
     </div>
-  </GeneralModal>
+  </NcModal>
 </template>

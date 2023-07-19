@@ -135,6 +135,9 @@ onMounted(() => {
 
 <template>
   <NcModal v-model:visible="dialogShow" :header="$t('activity.createTable')" size="small" @keydown.esc="dialogShow = false">
+    <template #header>
+      {{ $t('activity.createTable') }}
+    </template>
     <div class="flex flex-col">
       <div class="flex mb-6 text-gray-600">A blank table for a fresh start.</div>
       <a-form :model="table" name="create-new-table-form" @keydown.enter="_createTable" @keydown.esc="dialogShow = false">

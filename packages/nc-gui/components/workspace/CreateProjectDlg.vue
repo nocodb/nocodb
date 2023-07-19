@@ -29,14 +29,14 @@ const { createProject: _createProject } = projectsStore
 const nameValidationRules = [
   {
     required: true,
-    message: 'Project name is required',
+    message: 'Database name is required',
   },
   projectTitleValidator,
 ] as RuleObject[]
 
 const form = ref<typeof Form>()
 
-const formState = reactive({
+const formState = ref({
   title: '',
 })
 
@@ -47,7 +47,7 @@ const createProject = async () => {
   try {
     const project = await _createProject({
       type: props.type,
-      title: formState.title,
+      title: formState.value.title,
       workspaceId: activeWorkspace.value!.id!,
     })
 
@@ -71,7 +71,13 @@ const input: VNodeRef = ref<typeof Input>()
 
 watch(dialogShow, async (n, o) => {
   if (n === o && !n) return
-  formState.title = 'Untitled Database'
+
+  // Clear errors
+  form.value?.resetFields()
+
+  formState.value = {
+    title: 'Untitled Database',
+  }
   await nextTick()
   input.value?.$el?.focus()
   input.value?.$el?.select()

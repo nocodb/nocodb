@@ -167,9 +167,6 @@ const renameTable = async (undo = false) => {
 
     refreshCommandPalette()
 
-    // Table renamed successfully
-    message.success(t('msg.success.tableRenamed'))
-
     $e('a:table:rename')
 
     dialogShow.value = false
@@ -184,7 +181,10 @@ const renameTable = async (undo = false) => {
 <template>
   <NcModal v-model:visible="dialogShow" size="small">
     <template #header>
-      {{ $t('activity.renameTable') }}
+      <div class="flex flex-row items-center gap-x-2">
+        <GeneralIcon icon="table" />
+        {{ $t('activity.renameTable') }}
+      </div>
     </template>
     <div class="mt-2">
       <a-form :model="formState" name="create-new-table-form">
@@ -206,6 +206,7 @@ const renameTable = async (undo = false) => {
         <NcButton
           key="submit"
           type="primary"
+          :disabled="validateInfos.title.validateStatus === 'error'"
           label="Rename Table"
           loading-label="Renaming Table"
           :loading="loading"

@@ -67,7 +67,7 @@ const visible = useVModel(props, 'visible', emits)
         maxHeight: height,
       }"
     >
-      <div class="flex mb-2 text-lg font-medium">
+      <div class="flex pb-2 mb-2 text-lg font-medium border-b-1 border-gray-50">
         <slot name="header" />
       </div>
 

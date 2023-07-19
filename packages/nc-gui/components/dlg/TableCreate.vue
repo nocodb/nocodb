@@ -136,15 +136,13 @@ onMounted(() => {
 <template>
   <NcModal v-model:visible="dialogShow" :header="$t('activity.createTable')" size="small" @keydown.esc="dialogShow = false">
     <template #header>
-      {{ $t('activity.createTable') }}
+      <div class="flex flex-row items-center gap-x-2">
+        <GeneralIcon icon="table" />
+        {{ $t('activity.createTable') }}
+      </div>
     </template>
-    <div class="flex flex-col">
-      <div class="flex mb-6 text-gray-600">A blank table for a fresh start.</div>
+    <div class="flex flex-col mt-2">
       <a-form :model="table" name="create-new-table-form" @keydown.enter="_createTable" @keydown.esc="dialogShow = false">
-        <!-- hint="Enter table name" -->
-        <!--        Table name -->
-        <div class="mb-2">{{ $t('labels.tableName') }}</div>
-
         <a-form-item v-bind="validateInfos.title">
           <a-input
             ref="inputEl"
@@ -155,7 +153,6 @@ onMounted(() => {
             :placeholder="$t('msg.info.enterTableName')"
           />
         </a-form-item>
-
         <div v-if="false" class="flex justify-end items-center">
           <div
             class="pointer flex flex-row items-center gap-x-1 cursor-pointer"
@@ -202,12 +199,13 @@ onMounted(() => {
             </a-row>
           </div>
         </div>
-        <div class="flex flex-row justify-end gap-x-2 mt-3">
+        <div class="flex flex-row justify-end gap-x-2 mt-2">
           <NcButton type="secondary" :label="$t('general.cancel')" @click="dialogShow = false" />
 
           <NcButton
             key="submit"
             type="primary"
+            :disabled="validateInfos.title.validateStatus === 'error'"
             :label="$t('activity.createTable')"
             loading-label="Creating Table"
             :loading="creating"

@@ -15,12 +15,12 @@
 ::-moz-selection {
   /* Code for Firefox */
   color: inherit;
-  background-color: #1c26b820;
+  background-color: #3366ff20;
 }
 
 ::selection {
   color: inherit;
-  background-color: #1c26b820;
+  background-color: #3366ff20;
 }
 
 .ant-layout-header {
@@ -36,7 +36,7 @@ main {
 }
 
 .nc-input-md {
-  @apply !rounded-lg !py-2 !px-3;
+  @apply !rounded-lg !py-2 !px-3 mb-1;
 }
 
 .nc-scrollbar-md {

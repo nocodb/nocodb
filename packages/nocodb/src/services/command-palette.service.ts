@@ -64,7 +64,7 @@ export class CommandPaletteService {
                 parent: 'projects',
                 handler: {
                   type: 'navigate',
-                  payload: `/nc/${project.id}`,
+                  payload: `/ws/${project.fk_workspace_id}/project/${project.id}`,
                 },
               });
             }
@@ -75,6 +75,8 @@ export class CommandPaletteService {
             const viewList = (
               (await this.tablesService.xcVisibilityMetaGet(
                 data.project_id,
+                null,
+                false,
               )) as any[]
             ).filter((v) => {
               return Object.keys(param.user.roles).some(
@@ -93,7 +95,7 @@ export class CommandPaletteService {
                   parent: 'tables',
                   handler: {
                     type: 'navigate',
-                    payload: `/nc/${data.project_id}/table/${v.fk_model_id}`,
+                    payload: `/ws/${data.workspace_id}/project/${data.project_id}/table/${v.fk_model_id}`,
                   },
                 });
               }
@@ -103,9 +105,9 @@ export class CommandPaletteService {
                 parent: 'views',
                 handler: {
                   type: 'navigate',
-                  payload: `/nc/${data.project_id}/table/${
-                    v.fk_model_id
-                  }/${encodeURIComponent(v.title)}`,
+                  payload: `/ws/${data.workspace_id}/project/${
+                    data.project_id
+                  }/table/${v.fk_model_id}/${encodeURIComponent(v.title)}`,
                 },
               });
             }

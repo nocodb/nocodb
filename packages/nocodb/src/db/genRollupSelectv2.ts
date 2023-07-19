@@ -28,24 +28,21 @@ export default async function ({
   const parentCol = await relationColumnOption.getParentColumn();
   const parentModel = await parentCol?.getModel();
   const refTableAlias = `__nc_rollup`;
-  const schema = baseModelSqlv2.schema;
-
-  function getTnPath(tn: string) {
-    return `${schema ? `${schema}.${tn}` : tn}`;
-  }
 
   switch (relationColumnOption.type) {
     case RelationTypes.HAS_MANY:
       return {
         builder: knex(
-          `${getTnPath(childModel?.table_name)} as ${refTableAlias}`,
+          `${baseModelSqlv2.getTnPath(
+            childModel?.table_name,
+          )} as ${refTableAlias}`,
         )
           [columnOptions.rollup_function as string]?.(
             knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),
           )
           .where(
             knex.ref(
-              `${getTnPath(alias || parentModel.table_name)}.${
+              `${baseModelSqlv2.getTnPath(alias || parentModel.table_name)}.${
                 parentCol.column_name
               }`,
             ),
@@ -60,26 +57,32 @@ export default async function ({
 
       return {
         builder: knex(
-          `${getTnPath(parentModel?.table_name)} as ${refTableAlias}`,
+          `${baseModelSqlv2.getTnPath(
+            parentModel?.table_name,
+          )} as ${refTableAlias}`,
         )
           [columnOptions.rollup_function as string]?.(
             knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),
           )
           .innerJoin(
-            getTnPath(mmModel.table_name),
+            baseModelSqlv2.getTnPath(mmModel.table_name),
             knex.ref(
-              `${getTnPath(mmModel.table_name)}.${mmParentCol.column_name}`,
+              `${baseModelSqlv2.getTnPath(mmModel.table_name)}.${
+                mmParentCol.column_name
+              }`,
             ),
             '=',
             knex.ref(`${refTableAlias}.${parentCol.column_name}`),
           )
           .where(
             knex.ref(
-              `${getTnPath(mmModel.table_name)}.${mmChildCol.column_name}`,
+              `${baseModelSqlv2.getTnPath(mmModel.table_name)}.${
+                mmChildCol.column_name
+              }`,
             ),
             '=',
             knex.ref(
-              `${getTnPath(alias || childModel.table_name)}.${
+              `${baseModelSqlv2.getTnPath(alias || childModel.table_name)}.${
                 childCol.column_name
               }`,
             ),

@@ -25,6 +25,8 @@ import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import { sanitize } from '~/helpers/sqlSanitize';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { CacheGetType, CacheScope } from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
 
 @Injectable()
 export class DataOptService {
@@ -35,38 +37,58 @@ export class DataOptService {
     params;
     paramsHash: string;
   }): Promise<PagedResponseImpl<Record<string, any>>> {
-    // if (queryMap[ctx.view.id]) return await queryMap[ctx.view.id];
-
     if (ctx.base.type !== 'pg') {
       throw new Error('Single query only supported in postgres');
     }
 
-    // const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${ctx.view.id}:${ctx.paramsHash}`;
+    let skipCache = false;
 
-    const cachedQuery = null; // await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
+    // skip using cached query if sortArr or filterArr is present since it will be different query
+    if (
+      'sortArr' in ctx.params ||
+      'filterArr' in ctx.params ||
+      'sort' in ctx.params ||
+      'filter' in ctx.params ||
+      'where' in ctx.params ||
+      'nested' in ctx.params
+    ) {
+      skipCache = true;
+    }
+
+    const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
+
+    const getAlias = getAliasGenerator();
+
+    // get knex connection
+    const knex = await NcConnectionMgrv2.get(ctx.base);
+
+    const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${ctx.view.id}`;
+    if (!skipCache) {
+      const cachedQuery = await NocoCache.get(
+        cacheKey,
+        CacheGetType.TYPE_STRING,
+      );
+      if (cachedQuery) {
+        const rawRes = await knex.raw(cachedQuery, [
+          +listArgs.limit,
+          +listArgs.offset,
+        ]);
+
+        const res = rawRes?.rows?.[0];
+
+        return new PagedResponseImpl(res.list, {
+          count: +res.count,
+          limit: +listArgs.limit,
+          offset: +listArgs.offset,
+        });
+      }
+    }
 
     const baseModel = await Model.getBaseModelSQL({
       id: ctx.model.id,
       viewId: ctx.view?.id,
       dbDriver: await NcConnectionMgrv2.get(ctx.base),
     });
-
-    // get knex connection
-    const knex = await NcConnectionMgrv2.get(ctx.base);
-
-    const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
-
-    // todo: exclude nested offset and limit from cache key
-    if (cachedQuery) {
-      const res = await knex.raw(cachedQuery, [
-        +listArgs.limit,
-        +listArgs.offset,
-        1,
-      ]);
-      return res.rows[0];
-    }
-
-    const getAlias = getAliasGenerator();
 
     // load columns list
     const columns = await ctx.model.getColumns();
@@ -123,15 +145,14 @@ export class DataOptService {
     const tableColumns = await ctx.model.getColumns();
 
     if (ctx.view)
-      allowedCols = (await View.getColumns(ctx.view.id)).reduce(
-        (o, c) => ({
+      allowedCols = (await View.getColumns(ctx.view.id)).reduce((o, c) => {
+        const column = tableColumns.find((tc) => tc.id === c.fk_column_id);
+        return {
           ...o,
-          [c.fk_column_id]:
-            c.show &&
-            !tableColumns.find((tc) => tc.id === c.fk_column_id)?.system,
-        }),
-        {},
-      );
+          [c.fk_column_id]: column.pk || (c.show && !column?.system),
+        };
+      }, {});
+
     await this.extractColumns({
       columns,
       allowedCols,
@@ -142,9 +163,15 @@ export class DataOptService {
       baseModel,
     });
 
-    rootQb.limit(+listArgs.limit);
-    rootQb.offset(+listArgs.offset);
-
+    if (skipCache) {
+      rootQb.limit(+listArgs.limit);
+      rootQb.offset(+listArgs.offset);
+    } else {
+      // provide some dummy non-zero value to limit and offset to populate bindings,
+      // if offset is 0 then it will ignore bindings
+      rootQb.limit(9999);
+      rootQb.offset(9999);
+    }
     const dataAlias = getAlias();
 
     const finalQb = knex
@@ -158,19 +185,34 @@ export class DataOptService {
       .select(countQb.as('count'))
       .first();
 
-    // const { sql } = finalQb.toSQL();
+    let res: any;
+    if (skipCache) {
+      res = await finalQb;
+    } else {
+      const { sql, bindings } = finalQb.toSQL();
 
-    // await NocoCache.set(cacheKey, sql);
+      // bind all params and replace limit and offset with placeholders
+      // and in generated sql replace placeholders with bindings
+      const query = knex
+        .raw(sql, [...bindings.slice(0, -3), '__nc__limit', '__nc__offset', 1])
+        .toQuery()
+        .replace(
+          /\blimit '__nc__limit' offset '__nc__offset'(?!=[\s\S]*limit '__nc__limit' offset '__nc__offset')/i,
+          'limit ? offset ?',
+        );
 
-    const res = await finalQb; //knex.raw(sql, [+listArgs.limit, +listArgs.offset, 1]);
+      // cache query for later use
+      await NocoCache.set(cacheKey, query);
 
-    console.log(finalQb.toQuery());
-
+      // run the query with actual limit and offset
+      res = (await knex.raw(query, [+listArgs.limit, +listArgs.offset]))
+        .rows?.[0];
+    }
     return new PagedResponseImpl(res.list, {
       count: +res.count,
       limit: +listArgs.limit,
       offset: +listArgs.offset,
-    }); //.rows[0];
+    });
   }
 
   generateNestedRowSelectQuery({
@@ -698,24 +740,32 @@ export class DataOptService {
         }
         break;
 
-      case UITypes.DateTime: {
-        // if there is no timezone info,
-        // convert to database timezone,
-        // then convert to UTC
-        if (
-          column.dt !== 'timestamp with time zone' &&
-          column.dt !== 'timestamptz'
-        ) {
+      case UITypes.DateTime:
+        {
+          // if there is no timezone info,
+          // convert to database timezone,
+          // then convert to UTC
+          if (
+            column.dt !== 'timestamp with time zone' &&
+            column.dt !== 'timestamptz'
+          ) {
+            qb.select(
+              knex.raw(
+                `(??.?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC') as ??`,
+                [rootAlias, column.column_name, column.title],
+              ),
+            );
+            break;
+          }
           qb.select(
-            knex.raw(
-              `(??.?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC') as ??`,
-              [rootAlias, column.column_name, column.title],
-            ),
+            knex.raw(`??.?? as ??`, [
+              rootAlias,
+              column.column_name,
+              column.title,
+            ]),
           );
-          break;
         }
-      }
-      // eslint-disable-next-line no-fallthrough
+        break;
       default:
         {
           qb.select(

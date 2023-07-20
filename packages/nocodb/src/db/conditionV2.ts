@@ -455,10 +455,10 @@ const parseConditionV2 = async (
               ) {
                 qb = qb.where(field, val);
               } else if (column.ct === 'timestamp') {
-                qb = qb.whereRaw('DATE(??) = DATE(?)', [field, val]);
+                qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
               } else {
                 // mysql is case-insensitive for strings, turn to case-sensitive
-                qb = qb.whereRaw('BINARY ?? = ?', [field, val]);
+                qb = qb.where(knex.raw('BINARY ?? = ?', [field, val]));
               }
             } else {
               qb = qb.where(field, val);
@@ -498,7 +498,7 @@ const parseConditionV2 = async (
               } else {
                 // mysql is case-insensitive for strings, turn to case-sensitive
                 qb = qb.where((nestedQb) => {
-                  nestedQb.whereRaw('BINARY ?? != ?', [field, val]);
+                  nestedQb.where(knex.raw('BINARY ?? != ?', [field, val]));
                   if (column.uidt !== UITypes.Rating) {
                     nestedQb.orWhereNull(customWhereClause ? _val : _field);
                   }
@@ -534,7 +534,7 @@ const parseConditionV2 = async (
                   val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
               }
               if (qb?.client?.config?.client === 'pg') {
-                qb = qb.whereRaw('??::text ilike ?', [field, val]);
+                qb = qb.where(knex.raw('??::text ilike ?', [field, val]));
               } else {
                 qb = qb.where(field, 'like', val);
               }
@@ -561,7 +561,9 @@ const parseConditionV2 = async (
               }
               qb.where((nestedQb) => {
                 if (qb?.client?.config?.client === 'pg') {
-                  nestedQb.whereRaw('??::text not ilike ?', [field, val]);
+                  nestedQb.where(
+                    knex.raw('??::text not ilike ?', [field, val]),
+                  );
                 } else {
                   nestedQb.whereNot(field, 'like', val);
                 }
@@ -595,15 +597,15 @@ const parseConditionV2 = async (
                     sql = "CONCAT(',', ??, ',') like ?";
                   }
                   if (i === 0) {
-                    builder = builder.whereRaw(sql, bindings);
+                    builder = builder.where(knex.raw(sql, bindings));
                   } else {
                     if (
                       filter.comparison_op === 'allof' ||
                       filter.comparison_op === 'nallof'
                     ) {
-                      builder = builder.andWhereRaw(sql, bindings);
+                      builder = builder.andWhere(knex.raw(sql, bindings));
                     } else {
-                      builder = builder.orWhereRaw(sql, bindings);
+                      builder = builder.orWhere(knex.raw(sql, bindings));
                     }
                   }
                 }

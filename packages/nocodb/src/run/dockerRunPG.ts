@@ -17,7 +17,7 @@ server.set('view engine', 'ejs');
 const date = new Date();
 const metaDb = `meta_v2_${date.getFullYear()}_${(date.getMonth() + 1)
   .toString()
-  .padStart(2, '0')}_${date.getDate().toString().padStart(2, '0')}`;
+  .padStart(2, '0')}_${(date.getDate()-1).toString().padStart(2, '0')}`;
 process.env[`NC_DB`] = `pg://localhost:5432?u=postgres&p=password&d=${metaDb}`;
 // process.env[`NC_DATA_DB`] = `pg://localhost:5432?u=postgres&p=password&d=${metaDb}_data`;
 // process.env[`NC_MINIMAL_DBS`] = `true`;

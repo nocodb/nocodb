@@ -14,7 +14,7 @@ on:
 jobs:
   playwright:
     runs-on: self-hosted
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
       # Reference: https://github.com/pierotofy/set-swap-space/blob/master/action.yml
       # - name: Set 5gb swap
@@ -47,6 +47,10 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
+      - name: Set CI env
+        run: export CI=true
+      - name: Set Node env
+        run: export NODE_OPTIONS=\"--max_old_space_size=16384\";
       - name: install dependencies nocodb-sdk
         working-directory: ./packages/nocodb-sdk
         run: npm install

@@ -194,9 +194,13 @@ export class WorkspaceUsersService {
             siteUrl: param.siteUrl,
             workspaceId: workspace.id,
           }),
-        }).then(() => {
-          /* ignore */
-        });
+        })
+          .then(() => {
+            /* ignore */
+          })
+          .catch((e) => {
+            console.error(e);
+          });
 
         this.appHooksService.emit(AppEvents.WORKSPACE_INVITE, {
           workspace,
@@ -269,22 +273,30 @@ export class WorkspaceUsersService {
   }) {
     try {
       const template = (await import('./emailTemplates/invite')).default;
-      await NcPluginMgrv2.emailAdapter().then((adapter) => {
-        if (!adapter)
-          return Promise.reject(
-            'Email Plugin is not found. Please contact administrators to configure it in App Store first.',
-          );
-        adapter.mailSend({
-          to: user.email,
-          subject: "You've been invited to a Noco Cloud Workspace\n",
-          text: `Visit following link to access the workspace : ${siteUrl}/dashboard/#/ws/${workspace.id}`,
-          html: ejs.render(template, {
-            workspaceLink: siteUrl + `/dashboard/#/ws/${workspace.id}`,
-            workspaceName: workspace.title,
-            roles: rolesLabel[roles],
-          }),
+      await NcPluginMgrv2.emailAdapter()
+        .then((adapter) => {
+          if (!adapter)
+            return Promise.reject(
+              'Email Plugin is not found. Please contact administrators to configure it in App Store first.',
+            );
+          adapter
+            .mailSend({
+              to: user.email,
+              subject: "You've been invited to a Noco Cloud Workspace\n",
+              text: `Visit following link to access the workspace : ${siteUrl}/dashboard/#/ws/${workspace.id}`,
+              html: ejs.render(template, {
+                workspaceLink: siteUrl + `/dashboard/#/ws/${workspace.id}`,
+                workspaceName: workspace.title,
+                roles: rolesLabel[roles],
+              }),
+            })
+            .catch((e) => {
+              console.error(e);
+            });
+        })
+        .catch((e) => {
+          console.error(e);
         });
-      });
     } catch (e) {
       console.log(e);
       return NcError.badRequest(
@@ -306,22 +318,30 @@ export class WorkspaceUsersService {
   }) {
     try {
       const template = (await import('./emailTemplates/roleUpdate')).default;
-      await NcPluginMgrv2.emailAdapter().then((adapter) => {
-        if (!adapter)
-          return Promise.reject(
-            'Email Plugin is not found. Please contact administrators to configure it in App Store first.',
-          );
-        adapter.mailSend({
-          to: user.email,
-          subject: 'Your workspace role has been updated',
-          text: `Your role in workspace ${workspace.title} has been updated to ${rolesLabel[roles]}`,
-          html: ejs.render(template, {
-            workspaceLink: siteUrl + `/dashboard/#/ws/${workspace.id}`,
-            workspaceName: workspace.title,
-            roles: rolesLabel[roles],
-          }),
+      await NcPluginMgrv2.emailAdapter()
+        .then((adapter) => {
+          if (!adapter)
+            return Promise.reject(
+              'Email Plugin is not found. Please contact administrators to configure it in App Store first.',
+            );
+          adapter
+            .mailSend({
+              to: user.email,
+              subject: 'Your workspace role has been updated',
+              text: `Your role in workspace ${workspace.title} has been updated to ${rolesLabel[roles]}`,
+              html: ejs.render(template, {
+                workspaceLink: siteUrl + `/dashboard/#/ws/${workspace.id}`,
+                workspaceName: workspace.title,
+                roles: rolesLabel[roles],
+              }),
+            })
+            .catch((e) => {
+              console.error(e);
+            });
+        })
+        .catch((e) => {
+          console.error(e);
         });
-      });
     } catch (e) {
       console.log(e);
       return NcError.badRequest(

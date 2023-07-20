@@ -57,7 +57,7 @@ export function useViewData(
 
   const { t } = useI18n()
 
-  const optimisedQuery = ref(true)
+  const optimisedQuery = ref(false)
 
   const { api, isLoading, error } = useApi()
 

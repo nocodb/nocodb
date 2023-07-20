@@ -29,6 +29,9 @@ import MsSort from '~icons/material-symbols/sort'
 import MaterialSymbolsEdit from '~icons/material-symbols/edit-outline-rounded'
 import MaterialDuplicate from '~icons/material-symbols/file-copy-outline-rounded'
 import MaterialSymbolsWarningOutlineRounded from '~icons/material-symbols/warning-outline-rounded'
+
+import NcUsers from '~icons/nc-icons/users'
+
 import PhLayout from '~icons/ph/layout'
 import Copy from '~icons/material-symbols/content-copy-outline'
 import Delete from '~icons/material-symbols/delete-outline-rounded'
@@ -274,7 +277,7 @@ export const iconMap = {
   lock: h('span', { class: 'material-symbols' }, 'lock'),
   account: h('span', { class: 'material-symbols' }, 'person'),
   accountCircle: h('span', { class: 'material-symbols' }, 'account_circle'),
-  users: h('span', { class: 'material-symbols' }, 'people'),
+  users: NcUsers,
   cloudDownload: h('span', { class: 'material-symbols' }, 'cloud_download'),
   download: MsDownloadRounded,
   upload: h('span', { class: 'material-symbols' }, 'cloud_upload'),

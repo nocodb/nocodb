@@ -67,6 +67,15 @@ const baseSettingsState = ref('')
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" />
         </a-tab-pane>
+        <a-tab-pane v-if="isUIAllowed('shareProject')" key="accessSettings">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__access-settings">
+              <GeneralIcon icon="users" />
+              <div>Access Settings</div>
+            </div>
+          </template>
+          <ProjectAccessSettings />
+        </a-tab-pane>
       </a-tabs>
     </div>
   </div>

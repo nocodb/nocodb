@@ -240,7 +240,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           }
           await $api.dbTableColumn.update(column.value?.id as string, formState.value)
           // Column updated
-          message.success(t('msg.success.columnUpdated'))
+          // message.success(t('msg.success.columnUpdated'))
         } else {
           // todo : set additional meta for auto generated string id
           if (formState.value.uidt === UITypes.ID) {
@@ -259,7 +259,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           }
 
           // Column created
-          message.success(t('msg.success.columnCreated'))
+          // message.success(t('msg.success.columnCreated'))
 
           $e('a:column:add', { datatype: formState.value.uidt })
         }

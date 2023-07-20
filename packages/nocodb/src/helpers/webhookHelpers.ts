@@ -146,8 +146,9 @@ export function constructWebHookData(hook, model, view, prevData, newData) {
       data: {
         table_id: model.id,
         table_name: model.title,
-        view_id: view?.id,
-        view_name: view?.title,
+        // webhook are table specific, so no need to send view_id and view_name
+        // view_id: view?.id,
+        // view_name: view?.title,
         ...(prevData && {
           previous_rows: Array.isArray(prevData) ? prevData : [prevData],
         }),

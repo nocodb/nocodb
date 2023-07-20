@@ -484,26 +484,26 @@
     "apiRest": "Acessível por REST APIs",
     "apiGQL": "Acessível por GraphQL APIs",
     "theme": {
-      "dark": "Ele vem em preto (^ ⇧B)",
-      "light": "Ele vem em preto? (^ ⇧b)"
+      "dark": "Tema escuro (^ ⇧B)",
+      "light": "Tema claro (^ ⇧b)"
     },
     "addTable": "Adicionar nova tabela",
     "inviteMore": "Convide mais usuários",
-    "toggleNavDraw": "Alternar gaveta de navegação",
-    "reloadApiToken": "Reload API Tokens",
+    "toggleNavDraw": "Alternar navegação",
+    "reloadApiToken": "Recarregar token da API",
     "generateNewApiToken": "Gerar novos token da API",
     "addRole": "Adicionar nova função",
-    "reloadList": "Lista de recarga",
-    "metaSync": "Metadados de sincronização",
-    "sqlMigration": "Recarregar migrações",
+    "reloadList": "Recarregar lista",
+    "metaSync": "Sincronizar metadados",
+    "sqlMigration": "SQL de migrações",
     "updateRestart": "Atualizar & Reiniciar",
     "cancelReturn": "Cancelar e voltar",
-    "exportMetadata": "Exportar todos os metadados das meta-tabelas para um diretório de metadados",
-    "importMetadata": "Importar todos os metadados do diretório de metadados para as meta-tabelas",
-    "clearMetadata": "Limpar todos os metadados das meta-tabelas",
-    "clientKey": "Selecione arquivo .key",
-    "clientCert": "Selecione arquivo .cert",
-    "clientCA": "Selecione arquivo CA"
+    "exportMetadata": "Exportar metadados",
+    "importMetadata": "Importar metadadoss",
+    "clearMetadata": "Apagar metadados",
+    "clientKey": "Selecione arquivo Certificado '.key'",
+    "clientCert": "Selecione arquivo Certificado '.cert'",
+    "clientCA": "Selecione arquivo certificado"
   },
   "placeholder": {
     "projName": "Insira o nome do projeto",
@@ -514,16 +514,16 @@
       "save": "Salve a senha",
       "confirm": "Confirme a nova senha"
     },
-    "searchProjectTree": "Tabelas de pesquisa",
+    "searchProjectTree": "Árvore de pesquisa de projto",
     "searchFields": "Campos de pesquisa",
-    "searchColumn": "Pesquisar {pesquisar} Coluna",
-    "searchApps": "Apps de pesquisa",
-    "searchModels": "Modelos de pesquisa",
+    "searchColumn": "Coluna de pesquisa",
+    "searchApps": "Perquisar apps",
+    "searchModels": "Pesquisar por modelos",
     "noItemsFound": "Nenhum item encontrado",
     "defaultValue": "Valor padrão",
     "filterByEmail": "Filtrar por e-mail",
-    "filterQuery": "Consulta de filtro",
-    "selectField": "Seleccionar campo"
+    "filterQuery": "Filtro de consulta",
+    "selectField": "Campo de seleção"
   },
   "msg": {
     "warning": {

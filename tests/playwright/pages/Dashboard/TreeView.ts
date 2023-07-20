@@ -134,7 +134,7 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.get().getByPlaceholder('Enter table name').fill(title);
 
     await this.waitForResponse({
-      uiAction: () => this.dashboard.get().locator('button:has-text("Submit")').click(),
+      uiAction: () => this.dashboard.get().locator('button:has-text("Create Table")').click(),
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: `/api/v1/db/meta/projects/`,
       responseJsonMatcher: json => json.title === title && json.type === 'table',

@@ -16,16 +16,33 @@ import {
 import type { BaseModelSqlv2 } from '../db/BaseModelSqlv2';
 import type { PathParams } from '../modules/datas/helpers';
 import type { LinkToAnotherRecordColumn, LookupColumn } from '../models';
+import { DataOptService } from '~/services/data-opt.service';
 
 @Injectable()
 export class DatasService {
-  async dataList(param: PathParams & { query: any }) {
+  constructor(private readonly DataOptionsService: DataOptService) {}
+
+  async dataList(param: PathParams & { query: any; optimisedQuery: boolean }) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
-    const responseData = await this.getDataList({
-      model,
-      view,
-      query: param.query,
-    });
+
+    let responseData;
+    const base = await Base.get(model.base_id);
+    if (param.optimisedQuery && base.type === 'pg') {
+      responseData = await this.DataOptionsService.populateSingleQuery({
+        model,
+        view,
+        params: param.query,
+        base,
+        paramsHash: null,
+      });
+    } else {
+      responseData = await this.getDataList({
+        model,
+        view,
+        query: param.query,
+      });
+    }
+
     return responseData;
   }
 

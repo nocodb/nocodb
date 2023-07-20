@@ -20,11 +20,14 @@ export default async function conditionV2(
   baseModelSqlv2: BaseModelSqlv2,
   conditionObj: Filter | Filter[],
   qb: Knex.QueryBuilder,
+  alias?: string,
 ) {
   if (!conditionObj || typeof conditionObj !== 'object') {
     return;
   }
-  (await parseConditionV2(baseModelSqlv2, conditionObj))(qb);
+  (await parseConditionV2(baseModelSqlv2, conditionObj, { count: 0 }, alias))(
+    qb,
+  );
 }
 
 function getLogicalOpMethod(filter: Filter) {
@@ -63,7 +66,7 @@ const parseConditionV2 = async (
   if (Array.isArray(_filter)) {
     const qbs = await Promise.all(
       _filter.map((child) =>
-        parseConditionV2(baseModelSqlv2, child, aliasCount),
+        parseConditionV2(baseModelSqlv2, child, aliasCount, alias),
       ),
     );
 

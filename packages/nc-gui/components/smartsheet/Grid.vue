@@ -142,6 +142,7 @@ const {
   deleteRangeOfRows,
   bulkUpdateRows,
   bulkUpdateView,
+  optimisedQuery,
 } = useViewData(meta, view, xWhere)
 
 const { getMeta } = useMetas()
@@ -1092,6 +1093,28 @@ function openGenerateDialog(target: any) {
 const onDraftRecordClick = () => {
   if (!isLocked?.value) openNewRecordFormHook.trigger()
 }
+
+const enableOptimisedQuery = () => {
+  if (optimisedQuery.value) {
+    optimisedQuery.value = false
+    message.info('Optimised query disabled')
+  } else {
+    optimisedQuery.value = true
+    message.info(
+      h('span', [
+        'Optimised query',
+        h(
+          'span',
+          {
+            style: 'font-size: 0.8em;',
+          },
+          '(experimental)',
+        ),
+        ' enabled',
+      ]),
+    )
+  }
+}
 </script>
 
 <template>
@@ -1120,7 +1143,7 @@ const onDraftRecordClick = () => {
           >
             <thead ref="tableHeadEl">
               <tr class="nc-grid-header">
-                <th class="w-[85px] min-w-[85px]" data-testid="grid-id-column">
+                <th class="w-[85px] min-w-[85px]" data-testid="grid-id-column" @dblclick="enableOptimisedQuery">
                   <div class="w-full h-full flex pl-5 pr-1 items-center" data-testid="nc-check-all">
                     <template v-if="!readOnly">
                       <div class="nc-no-label text-gray-400" :class="{ hidden: selectedAllRecords }">#</div>

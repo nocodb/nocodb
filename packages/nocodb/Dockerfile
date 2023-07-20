@@ -34,10 +34,14 @@ COPY ./docker/main.js ./docker/main.js
 COPY ./docker/start-litestream.sh /usr/src/appEntry/start.sh
 COPY src/public/ ./docker/public/
 
+# for pnpm to generate a flat node_modules without symlinks
+# so that modclean could work as expected
+RUN echo "node-linker=hoisted" > .npmrc
+
 # install production dependencies,
 # reduce node_module size with modclean & removing sqlite deps,
 # package built code into app.tar.gz & add execute permission to start.sh
-RUN pnpm install --prod --shamefully-hoist --reporter=silent \
+RUN pnpm install --prod --reporter=silent \
     && npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**" --run  \
     && rm -rf ./node_modules/sqlite3/deps \
     && tar -czf ../appEntry/app.tar.gz ./* \

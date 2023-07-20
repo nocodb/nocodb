@@ -23,6 +23,11 @@ COPY ./package*.json ./
 COPY ./docker/main.js ./docker/main.js
 #COPY ./docker/start.sh /usr/src/appEntry/start.sh
 COPY ./docker/start-litestream.sh /usr/src/appEntry/start.sh
+
+# for pnpm to generate a flat node_modules without symlinks
+# so that modclean could work as expected
+RUN echo "node-linker=hoisted" > .npmrc
+
 # install production dependencies,
 # reduce node_module size with modclean & removing sqlite deps,
 # package built code into app.tar.gz & add execute permission to start.sh
@@ -31,9 +36,6 @@ RUN npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express
 RUN rm -rf ./node_modules/sqlite3/deps
 RUN tar -czf ../appEntry/app.tar.gz ./*
 RUN chmod +x /usr/src/appEntry/start.sh
-
-
-
 
 FROM alpine:3.14
 

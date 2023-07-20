@@ -2098,7 +2098,7 @@ class BaseModelSqlv2 {
     return _wherePk(this.model.primaryKeys, id);
   }
 
-  private getTnPath(tb: Model) {
+  public getTnPath(tb: { table_name: string }) {
     const schema = (this.dbDriver as any).searchPath?.();
     if (this.isMssql && schema) {
       return this.dbDriver.raw('??.??', [schema, tb.table_name]);

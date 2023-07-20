@@ -24,6 +24,7 @@ import sortV2 from '~/db/sortV2';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import { sanitize } from '~/helpers/sqlSanitize';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
 
 @Injectable()
 export class DataOptService {
@@ -33,7 +34,7 @@ export class DataOptService {
     base: Base;
     params;
     paramsHash: string;
-  }): Promise<{ count?: number | string; data: any[] }> {
+  }): Promise<PagedResponseImpl<Record<string, any>>> {
     // if (queryMap[ctx.view.id]) return await queryMap[ctx.view.id];
 
     if (ctx.base.type !== 'pg') {
@@ -70,9 +71,9 @@ export class DataOptService {
     // load columns list
     const columns = await ctx.model.getColumns();
 
-    const rootQb = knex(ctx.model.table_name);
+    const rootQb = knex(baseModel.getTnPath(ctx.model));
 
-    const countQb = knex(ctx.model.table_name);
+    const countQb = knex(baseModel.getTnPath(ctx.model));
     countQb.count({ count: ctx.model.primaryKey?.column_name || '*' });
 
     const aliasColObjMap = await ctx.model.getAliasColObjMap();
@@ -141,7 +142,7 @@ export class DataOptService {
       baseModel,
     });
 
-    rootQb.limit(+listArgs.limit,);
+    rootQb.limit(+listArgs.limit);
     rootQb.offset(+listArgs.offset);
 
     const dataAlias = getAlias();
@@ -151,7 +152,7 @@ export class DataOptService {
       .select(
         knex.raw(`coalesce(json_agg(??.*),'[]'::json) as ??`, [
           dataAlias,
-          'data',
+          'list',
         ]),
       )
       .select(countQb.as('count'))
@@ -161,9 +162,15 @@ export class DataOptService {
 
     // await NocoCache.set(cacheKey, sql);
 
-    const res = await finalQb //knex.raw(sql, [+listArgs.limit, +listArgs.offset, 1]);
+    const res = await finalQb; //knex.raw(sql, [+listArgs.limit, +listArgs.offset, 1]);
 
-    return res//.rows[0];
+    console.log(finalQb.toQuery());
+
+    return new PagedResponseImpl(res.list, {
+      count: +res.count,
+      limit: +listArgs.limit,
+      offset: +listArgs.offset,
+    }); //.rows[0];
   }
 
   generateNestedRowSelectQuery({
@@ -215,7 +222,7 @@ export class DataOptService {
     baseModel: BaseModelSqlv2;
   }) {
     for (const column of columns) {
-      if (allowedCols && !allowedCols[column.id]) continue;
+      if (column.pk || (allowedCols && !allowedCols[column.id])) continue;
       await this.extractColumn({
         column,
         knex,
@@ -310,7 +317,10 @@ export class DataOptService {
                 const parentColumn = await column.colOptions.getParentColumn();
 
                 const assocQb = knex(
-                  knex.raw('?? as ??', [assocModel.table_name, alias1]),
+                  knex.raw('?? as ??', [
+                    baseModel.getTnPath(assocModel),
+                    alias1,
+                  ]),
                 ).whereRaw(`??.?? = ??.??`, [
                   alias1,
                   mmChildColumn.column_name,
@@ -321,7 +331,7 @@ export class DataOptService {
                 const mmQb = knex(assocQb.as(alias4))
                   .leftJoin(
                     knex.raw(`?? as ?? on ??.?? = ??.??`, [
-                      parentModel.table_name,
+                      baseModel.getTnPath(parentModel),
                       alias2,
                       alias2,
                       parentColumn.column_name,
@@ -378,7 +388,7 @@ export class DataOptService {
                 const parentModel = await column.colOptions.getRelatedTable();
                 const childColumn = await column.colOptions.getChildColumn();
                 const parentColumn = await column.colOptions.getParentColumn();
-                const btQb = knex(parentModel.table_name)
+                const btQb = knex(baseModel.getTnPath(parentModel))
                   .select('*')
                   .where(
                     parentColumn.column_name,
@@ -428,7 +438,7 @@ export class DataOptService {
                 const childColumn = await column.colOptions.getChildColumn();
                 const parentColumn = await column.colOptions.getParentColumn();
 
-                const hmQb = knex(childModel.table_name)
+                const hmQb = knex(baseModel.getTnPath(childModel))
                   .select('*')
                   .where(
                     childColumn.column_name,
@@ -506,7 +516,10 @@ export class DataOptService {
                 const parentColumn = await relationColOpts.getParentColumn();
 
                 const assocQb = knex(
-                  knex.raw('?? as ??', [assocModel.table_name, alias1]),
+                  knex.raw('?? as ??', [
+                    baseModel.getTnPath(assocModel),
+                    alias1,
+                  ]),
                 ).whereRaw(`??.?? = ??.??`, [
                   alias1,
                   mmChildColumn.column_name,
@@ -516,7 +529,7 @@ export class DataOptService {
 
                 relQb = knex(assocQb.as(alias4)).leftJoin(
                   knex.raw(`?? as ?? on ??.?? = ??.??`, [
-                    parentModel.table_name,
+                    baseModel.getTnPath(parentModel),
                     relTableAlias,
                     relTableAlias,
                     parentColumn.column_name,
@@ -535,7 +548,10 @@ export class DataOptService {
                 const childColumn = await relationColOpts.getChildColumn();
                 const parentColumn = await relationColOpts.getParentColumn();
                 relQb = knex(
-                  knex.raw('?? as ??', [parentModel.table_name, relTableAlias]),
+                  knex.raw('?? as ??', [
+                    baseModel.getTnPath(parentModel),
+                    relTableAlias,
+                  ]),
                 ).where(
                   parentColumn.column_name,
                   knex.raw('??.??', [rootAlias, childColumn.column_name]),
@@ -549,7 +565,10 @@ export class DataOptService {
                 const childColumn = await relationColOpts.getChildColumn();
                 const parentColumn = await relationColOpts.getParentColumn();
                 relQb = knex(
-                  knex.raw('?? as ??', [childModel.table_name, relTableAlias]),
+                  knex.raw('?? as ??', [
+                    baseModel.getTnPath(childModel),
+                    relTableAlias,
+                  ]),
                 ).where(
                   childColumn.column_name,
                   knex.raw('??.??', [rootAlias, parentColumn.column_name]),
@@ -679,6 +698,24 @@ export class DataOptService {
         }
         break;
 
+      case UITypes.DateTime: {
+        // if there is no timezone info,
+        // convert to database timezone,
+        // then convert to UTC
+        if (
+          column.dt !== 'timestamp with time zone' &&
+          column.dt !== 'timestamptz'
+        ) {
+          qb.select(
+            knex.raw(
+              `(??.?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC') as ??`,
+              [rootAlias, column.column_name, column.title],
+            ),
+          );
+          break;
+        }
+      }
+      // eslint-disable-next-line no-fallthrough
       default:
         {
           qb.select(

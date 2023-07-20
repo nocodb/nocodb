@@ -165,7 +165,7 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Delete"):visible').click();
 
     await this.waitForResponse({
-      uiAction: () => this.dashboard.get().locator('button:has-text("Yes")').click(),
+      uiAction: () => this.dashboard.get().locator('button:has-text("Delete Table")').click(),
       httpMethodsToMatch: ['DELETE'],
       requestUrlPathToMatch: `/api/v1/db/meta/tables/`,
     });

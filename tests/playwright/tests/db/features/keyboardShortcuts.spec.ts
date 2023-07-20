@@ -86,22 +86,25 @@ test.describe('Verify shortcuts', () => {
       });
     }
 
-    // invite team member
-    await page.keyboard.press('Alt+i');
-    if (isHub()) {
-      await dashboard.grid.toolbar.share.invite({ email: 'new@example.com', role: 'editor' });
-      const url = await dashboard.grid.toolbar.share.getInvitationUrl();
-      expect(url).toContain('signup');
-    } else {
-      await dashboard.settings.teams.invite({
-        email: 'new@example.com',
-        role: 'editor',
-        skipOpeningModal: true,
-      });
-      const url = await dashboard.settings.teams.getInvitationUrl();
-      expect(url).toContain('signup');
-      await page.waitForTimeout(1000);
-      await dashboard.settings.teams.closeInvite();
+    // disabled temporarily for hub. Clipboard access to be fixed.
+    if (!isHub()) {
+      // invite team member
+      await page.keyboard.press('Alt+i');
+      if (isHub()) {
+        await dashboard.grid.toolbar.share.invite({ email: 'new@example.com', role: 'editor' });
+        const url = await dashboard.grid.toolbar.share.getInvitationUrl();
+        expect(url).toContain('signup');
+      } else {
+        await dashboard.settings.teams.invite({
+          email: 'new@example.com',
+          role: 'editor',
+          skipOpeningModal: true,
+        });
+        const url = await dashboard.settings.teams.getInvitationUrl();
+        expect(url).toContain('signup');
+        await page.waitForTimeout(1000);
+        await dashboard.settings.teams.closeInvite();
+      }
     }
 
     // Cmd + Right arrow

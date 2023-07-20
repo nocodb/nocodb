@@ -182,7 +182,7 @@ export class ContainerPage extends BasePage {
     await row.locator('td.ant-table-cell').nth(3).locator('.nc-icon').click();
     await this.rootPage.locator('.ant-dropdown-menu-item:has-text("Delete Project")').click();
     await this.waitForResponse({
-      uiAction: () => this.rootPage.locator('.ant-modal-confirm').locator('button:has-text("Delete Project")').click(),
+      uiAction: () => this.rootPage.locator('.ant-modal-content').locator('button:has-text("Delete Project")').click(),
       httpMethodsToMatch: ['DELETE'],
       requestUrlPathToMatch: `api/v1/db/meta/projects/`,
     });

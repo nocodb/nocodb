@@ -228,6 +228,12 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         return
       }
 
+      const specialCharsRegex = /[!@#$%^&*(),.?":{}|<>]/g
+      if (specialCharsRegex.test(formState.value.title)) {
+        message.error('Special characters are not allowed in the column name')
+        return
+      }
+
       try {
         formState.value.table_name = meta.value?.table_name
         // formState.value.title = formState.value.column_name
@@ -258,6 +264,10 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
           // Column created
           message.success(t('msg.success.columnCreated'))
+
+          if (specialCharsRegex.test(formState.value.title)) {
+            message.warning('Special characters are not allowed in the column name.')
+          }
 
           $e('a:column:add', { datatype: formState.value.uidt })
         }

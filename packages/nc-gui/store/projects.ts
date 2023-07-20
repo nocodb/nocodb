@@ -1,10 +1,10 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { BaseType, OracleUi, ProjectType, RequestParams, TableType } from 'nocodb-sdk'
+import type { BaseType, OracleUi, ProjectType, ProjectUserReqType, RequestParams, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { NcProjectType } from '~/utils'
 import { useWorkspace } from '~/store/workspace'
-import type { NcProject } from '~~/lib'
+import type { NcProject, User } from '~~/lib'
 
 // todo: merge with project store
 export const useProjects = defineStore('projectsStore', () => {
@@ -71,6 +71,14 @@ export const useProjects = defineStore('projectsStore', () => {
       users: response.users.list,
       totalRows,
     }
+  }
+
+  const createProjectUser = async (projectId: string, user: User) => {
+    await api.auth.projectUserAdd(projectId, user as ProjectUserReqType)
+  }
+
+  const updateProjectUser = async (projectId: string, user: User) => {
+    await api.auth.projectUserUpdate(projectId, user.id, user as ProjectUserReqType)
   }
 
   const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace') => {
@@ -287,6 +295,8 @@ export const useProjects = defineStore('projectsStore', () => {
     openedProjectBasesMap,
     roles,
     getProjectUsers,
+    createProjectUser,
+    updateProjectUser,
   }
 })
 

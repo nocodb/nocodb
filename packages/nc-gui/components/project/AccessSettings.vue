@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import type { WorkspaceUserType } from 'nocodb-sdk'
-import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { Empty } from 'ant-design-vue'
-import { storeToRefs, stringToColour, timeAgo, useWorkspace, useWorkspaceStoreOrThrow } from '#imports'
+import { storeToRefs, stringToColour, timeAgo } from '#imports'
 
 const rolesLabel = {
   [ProjectRole.Creator]: 'Creator',
@@ -12,16 +11,17 @@ const rolesLabel = {
   [ProjectRole.Viewer]: 'Viewer',
 }
 
-const workspaceStore = useWorkspace()
-
-const { removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
-const { getProjectUsers } = useProjects()
+const { getProjectUsers, createProjectUser, updateProjectUser } = useProjects()
 const { activeProjectId } = storeToRefs(useProjects())
 
 const collaborators = ref<WorkspaceUserType[]>([])
 const userSearchText = ref('')
 
+const isLoading = ref(false)
+
 const loadCollaborators = async () => {
+  isLoading.value = true
+
   try {
     const { users } = await getProjectUsers({
       projectId: activeProjectId.value!,
@@ -32,12 +32,14 @@ const loadCollaborators = async () => {
 
     collaborators.value = users.map((user: any) => ({
       ...user,
+      projectRoles: user.roles,
       roles: user.roles ?? user.workspace_roles,
-      workspace_roles: undefined,
     }))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
+
+  isLoading.value = false
 }
 
 onMounted(() => {
@@ -55,8 +57,11 @@ const getRolesLabel = (roles?: string) => {
 
 const updateCollaborator = async (collab) => {
   try {
-    await _updateCollaborator(collab.id, collab.roles)
-    message.success('Successfully updated user role')
+    if (collab.projectRoles) {
+      await updateProjectUser(activeProjectId.value!, collab)
+    } else {
+      await createProjectUser(activeProjectId.value!, collab)
+    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -65,108 +70,78 @@ const updateCollaborator = async (collab) => {
 
 <template>
   <div class="nc-collaborator-table-container mt-4">
-    <div class="w-full flex flex-row justify-between items-baseline mt-6.5 mb-2 pr-0.25 ml-2">
-      <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md" placeholder="Search collaborators">
-        <template #prefix>
-          <PhMagnifyingGlassBold class="!h-3.5 text-gray-500" />
-        </template>
-      </a-input>
+    <div v-if="isLoading" class="nc-collaborators-list items-center justify-center">
+      <GeneralLoader size="xlarge" />
     </div>
-    <div v-if="!collaborators?.length" class="w-full h-full flex flex-col items-center justify-center mt-36">
-      <Empty description="No collaborators found" />
-    </div>
-    <table v-else class="nc-collaborators-list-table !nc-scrollbar-md">
-      <thead>
-        <tr>
-          <th class="w-1/3">Users</th>
-          <th class="w-1/3">Date Joined</th>
-          <th class="w-1/3">Access</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(collab, i) of collaborators" :key="i" class="relative w-full nc-collaborators">
-          <td class="!py-0 w-1/3 email">
-            <div class="flex items-center gap-2">
-              <span class="color-band" :style="{ backgroundColor: stringToColour(collab.email) }">{{
-                collab.email.slice(0, 2)
-              }}</span>
-              {{ collab.email }}
-            </div>
-          </td>
-          <td class="text-gray-500 text-xs w-1/3 created-at">
-            {{ timeAgo(collab.created_at) }}
-          </td>
-          <td class="w-1/3 roles">
-            <span v-if="collab.roles === ProjectRole.Owner" class="text-xs text-gray-500">
-              {{ getRolesLabel(collab.roles) }}
-            </span>
+    <template v-else>
+      <div class="w-full flex flex-row justify-between items-baseline mt-6.5 mb-2 pr-0.25 ml-2">
+        <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md" placeholder="Search collaborators">
+          <template #prefix>
+            <PhMagnifyingGlassBold class="!h-3.5 text-gray-500" />
+          </template>
+        </a-input>
+      </div>
+      <div
+        v-if="!collaborators?.length"
+        class="nc-collaborators-list w-full h-full flex flex-col items-center justify-center mt-36"
+      >
+        <Empty description="No collaborators found" />
+      </div>
+      <div v-else class="nc-collaborators-list nc-scrollbar-md">
+        <div class="nc-collaborators-list-header">
+          <div class="flex w-1/2">Users</div>
+          <div class="flex w-1/4">Date Joined</div>
+          <div class="flex w-1/4">Access</div>
+        </div>
 
-            <div v-else class="nc-collaborator-role-select">
-              <a-select v-model:value="collab.roles" class="w-30 !rounded px-1" @change="updateCollaborator(collab)">
-                <template #suffixIcon>
-                  <MdiChevronDown />
-                </template>
-                <a-select-option :value="ProjectRole.Creator"> Creator</a-select-option>
-                <a-select-option :value="ProjectRole.Editor"> Editor</a-select-option>
-                <a-select-option :value="ProjectRole.Commenter"> Commenter</a-select-option>
-                <a-select-option :value="ProjectRole.Viewer"> Viewer</a-select-option>
-              </a-select>
+        <div class="flex flex-col nc-scrollbar-md">
+          <div v-for="(collab, i) of collaborators" :key="i" class="relative w-full nc-collaborators nc-collaborators-list-row">
+            <div class="!py-0 w-1/2 email">
+              <div class="flex items-center gap-2">
+                <span class="color-band" :style="{ backgroundColor: stringToColour(collab.email) }">{{
+                  collab.email.slice(0, 2)
+                }}</span>
+                {{ collab.email }}
+              </div>
             </div>
-          </td>
-          <td class="relative">
-            <div class="absolute -left-2.5 top-5">
-              <a-dropdown v-if="collab.roles !== ProjectRole.Owner" :trigger="['click']">
-                <MdiDotsVertical
-                  class="h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-gray-500 bg-gray-100)"
-                />
-                <template #overlay>
-                  <a-menu>
-                    <a-menu-item @click="removeCollaborator(collab.id)">
-                      <div class="flex flex-row items-center py-2 text-xs gap-1.5 text-red-500 cursor-pointer">
-                        <MaterialSymbolsDeleteOutlineRounded />
-                        Remove user
-                      </div>
-                    </a-menu-item>
-                  </a-menu>
-                </template>
-              </a-dropdown>
+            <div class="text-gray-500 text-xs w-1/4 created-at">
+              {{ timeAgo(collab.created_at) }}
             </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            <div class="w-1/4 roles">
+              <span v-if="collab.roles === ProjectRole.Owner" class="text-xs text-gray-500">
+                {{ getRolesLabel(collab.roles) }}
+              </span>
+
+              <div v-else class="nc-collaborator-role-select">
+                <a-select v-model:value="collab.roles" class="w-30 !rounded px-1" @change="updateCollaborator(collab)">
+                  <template #suffixIcon>
+                    <MdiChevronDown />
+                  </template>
+                  <a-select-option :value="ProjectRole.Creator"> Creator</a-select-option>
+                  <a-select-option :value="ProjectRole.Editor"> Editor</a-select-option>
+                  <a-select-option :value="ProjectRole.Commenter"> Commenter</a-select-option>
+                  <a-select-option :value="ProjectRole.Viewer"> Viewer</a-select-option>
+                </a-select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
 <style scoped lang="scss">
-.nc-collaborators-list-table {
-  @apply min-w-[700px] !w-full border-gray-100 mt-1;
+.nc-collaborators-list {
+  @apply border-gray-100 mt-1 flex flex-col w-full;
+  height: calc(100vh - calc(var(--topbar-height) + 9rem));
+}
 
-  th {
-    @apply .font-normal !text-gray-400 pb-4;
-    border-bottom: 1px solid #e3e3e3;
-  }
-
-  td {
-    @apply .font-normal pb-4;
-    border-bottom: 1px solid #f5f5f5;
-  }
-
-  th,
-  td {
-    @apply text-left p-4;
-  }
-
-  th:first-child,
-  td:first-child {
-    @apply pl-6;
-  }
-
-  th:last-child,
-  td:last-child {
-    @apply pr-1 w-5;
-  }
+.nc-collaborators-list-header {
+  @apply flex flex-row justify-between items-center min-h-13 border-b-1 border-gray-75 pl-4 text-gray-500;
+}
+.nc-collaborators-list-row {
+  @apply flex flex-row justify-between items-center min-h-16 border-b-1 border-gray-75 pl-4;
 }
 
 .color-band {
@@ -175,51 +150,5 @@ const updateCollaborator = async (collab) => {
 
 :deep(.nc-collaborator-role-select .ant-select-selector) {
   @apply !rounded;
-}
-
-table {
-  display: block;
-  width: 100%;
-}
-thead {
-  display: block;
-  width: 100%;
-}
-tr {
-  display: block;
-  width: 100%;
-}
-tbody {
-  display: block;
-  width: 100%;
-  height: calc(100vh - calc(var(--topbar-height) + 12.5rem));
-  overflow-y: overlay;
-
-  &::-webkit-scrollbar {
-    width: 4px;
-  }
-  &::-webkit-scrollbar-track {
-    background: #f6f6f600 !important;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: #f6f6f600;
-  }
-  &::-webkit-scrollbar-thumb:hover {
-    background: #f6f6f600;
-  }
-}
-tbody {
-  &::-webkit-scrollbar {
-    width: 4px;
-  }
-  &::-webkit-scrollbar-track {
-    background: #f6f6f600 !important;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: rgb(215, 215, 215);
-  }
-  &::-webkit-scrollbar-thumb:hover {
-    background: rgb(203, 203, 203);
-  }
 }
 </style>

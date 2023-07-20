@@ -443,7 +443,7 @@
     "nextRecord": "Next record",
     "previousRecord": "Previous record",
     "copyApiURL": "Copy API URL",
-    "createTable": "Create New Table",
+    "createTable": "Create Table",
     "createDashboard": "Create Dashboard",
     "createWorkspace": "Create Workspace",
     "refreshTable": "Tables Refresh",
@@ -704,6 +704,7 @@
       "enterTableName": "Enter table name",
       "enterLayoutName": "Enter Layout name",
       "enterDashboardName": "Enter Dashboard name",
+      "defaultColumns": "Default columns",
       "addDefaultColumns": "Add default columns",
       "tableNameInDb": "Table name as saved in database",
       "airtable": {

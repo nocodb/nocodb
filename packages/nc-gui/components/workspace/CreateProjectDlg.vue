@@ -29,14 +29,14 @@ const { createProject: _createProject } = projectsStore
 const nameValidationRules = [
   {
     required: true,
-    message: 'Project name is required',
+    message: 'Database name is required',
   },
   projectTitleValidator,
 ] as RuleObject[]
 
 const form = ref<typeof Form>()
 
-const formState = reactive({
+const formState = ref({
   title: '',
 })
 
@@ -47,7 +47,7 @@ const createProject = async () => {
   try {
     const project = await _createProject({
       type: props.type,
-      title: formState.title,
+      title: formState.value.title,
       workspaceId: activeWorkspace.value!.id!,
     })
 
@@ -61,7 +61,9 @@ const createProject = async () => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    creating.value = false
+    setTimeout(() => {
+      creating.value = false
+    }, 500)
   }
 }
 
@@ -69,7 +71,13 @@ const input: VNodeRef = ref<typeof Input>()
 
 watch(dialogShow, async (n, o) => {
   if (n === o && !n) return
-  formState.title = 'Untitled'
+
+  // Clear errors
+  form.value?.resetFields()
+
+  formState.value = {
+    title: 'Untitled Database',
+  }
   await nextTick()
   input.value?.$el?.focus()
   input.value?.$el?.select()
@@ -88,14 +96,15 @@ const typeLabel = computed(() => {
 </script>
 
 <template>
-  <general-modal v-model:visible="dialogShow" width="32rem">
-    <div class="px-8 py-5.5">
+  <NcModal v-model:visible="dialogShow" size="small">
+    <template #header>
       <!-- Create A New Table -->
-      <div class="flex flex-row prose-lg font-medium items-center mb-7">
+      <div class="flex flex-row items-center">
         <GeneralProjectIcon :type="props.type" class="mr-2.5 !text-lg !h-4" />
         Create {{ typeLabel }}
       </div>
-
+    </template>
+    <div class="mt-3">
       <a-form
         ref="form"
         :model="formState"
@@ -111,25 +120,25 @@ const typeLabel = computed(() => {
             ref="input"
             v-model:value="formState.title"
             name="title"
-            class="nc-metadb-project-name !rounded !py-1"
+            class="nc-metadb-project-name nc-input-md"
             placeholder="Title"
           />
         </a-form-item>
       </a-form>
 
-      <div class="flex flex-row justify-end mt-8">
-        <a-button
-          key="submit"
-          class="!rounded-md"
+      <div class="flex flex-row justify-end mt-7 gap-x-2">
+        <NcButton type="secondary" label="Cancel" @click="dialogShow = false" />
+        <NcButton
           data-testid="docs-create-proj-dlg-create-btn"
-          :disabled="creating"
+          :loading="creating"
           type="primary"
+          :label="`Create ${typeLabel}`"
+          :loading-label="`Creating ${typeLabel}`"
           @click="createProject"
-          >{{ $t('general.submit') }}
-        </a-button>
+        />
       </div>
     </div>
-  </general-modal>
+  </NcModal>
 </template>
 
 <style scoped lang="scss">

@@ -19,6 +19,7 @@ import TablerColumnInsertLeft from '~icons/tabler/column-insert-left'
 import TablerColumnInsertRight from '~icons/tabler/column-insert-right'
 import MdiEyeCircleOutline from '~icons/mdi/eye-circle-outline'
 import NcEye from '~icons/nc-icons/eye'
+import MsGroup from '~icons/material-symbols/groups-outline-rounded'
 import MsAddBoxOutline from '~icons/nc-icons/add-box'
 import MsDownloadRounded from '~icons/nc-icons/download'
 import LogosAirtable from '~icons/logos/airtable'
@@ -222,6 +223,7 @@ import Down from '~icons/material-symbols/keyboard-arrow-down-rounded'
 } as const */
 
 export const iconMap = {
+  workspaceDefault: MsGroup,
   info: h(MsInfo, {}, 'info'),
   inbox: h('span', { class: 'material-symbols' }, 'inbox'),
   addOutlineBox: MsAddBoxOutline,

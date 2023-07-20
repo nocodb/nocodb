@@ -15,6 +15,7 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 const { createWorkspace } = useWorkspace()
 
 const workspace = ref({})
+const isCreating = ref(false)
 
 const useForm = Form.useForm
 
@@ -45,12 +46,19 @@ const _createWorkspace = async () => {
     e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
     if (e.errorFields.length) return
   }
+
+  isCreating.value = true
+
   try {
     const workspaceRes = await createWorkspace(workspace.value)
     emit('success', workspaceRes)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
+
+  setTimeout(() => {
+    isCreating.value = false
+  }, 500)
 }
 
 const inputRef = ref()
@@ -60,7 +68,7 @@ watch(
   (val) => {
     if (!val) {
       workspace.value = {
-        title: 'Untitled',
+        title: 'Untitled Workspace',
       }
     } else {
       nextTick(() => {
@@ -87,21 +95,31 @@ watch(
 </script>
 
 <template>
-  <GeneralModal v-model:visible="dialogShow" @keydown.esc="dialogShow = false">
-    <div class="px-7 py-5">
-      <a-form :model="workspace" name="create-new-workspace-form" @keydown.enter="_createWorkspace">
-        <!-- Create A New Table -->
-        <div class="prose-xl font-bold self-center mb-5">{{ $t('activity.createWorkspace') }}</div>
-
-        <a-form-item v-bind="validateInfos.title">
-          <InputOrTags ref="inputRef" v-model="workspace.title" class="!rounded" />
-        </a-form-item>
-        <div class="flex flex-row justify-end mt-10">
-          <a-button key="submit" class="!rounded" size="large" type="primary" @click="_createWorkspace">{{
-            $t('general.submit')
-          }}</a-button>
+  <NcModal v-model:visible="dialogShow" size="small">
+    <template #header>
+      <div class="flex flex-row items-center gap-x-2">
+        <GeneralIcon icon="workspaceDefault" />
+        <div>
+          {{ $t('activity.createWorkspace') }}
         </div>
-        <!-- <a-form-item v-bind="validateInfos.description">
+      </div>
+    </template>
+    <a-form :model="workspace" name="create-new-workspace-form" class="!mt-2" @keydown.enter="_createWorkspace">
+      <a-form-item v-bind="validateInfos.title">
+        <InputOrTags ref="inputRef" v-model="workspace.title" class="nc-input-md" />
+      </a-form-item>
+      <div class="flex flex-row justify-end mt-7 gap-x-2">
+        <NcButton type="secondary" :label="$t('general.cancel')" @click="dialogShow = false" />
+        <NcButton
+          type="primary"
+          :label="$t('activity.createWorkspace')"
+          loading-label="Creating Workspace"
+          :loading="isCreating"
+          :disabled="validateInfos.title.validateStatus === 'error'"
+          @click="_createWorkspace"
+        />
+      </div>
+      <!-- <a-form-item v-bind="validateInfos.description">
           <a-textarea
             v-model:value="workspace.description"
             size="large"
@@ -110,9 +128,8 @@ watch(
             placeholder="Workspace description"
           />
         </a-form-item> -->
-      </a-form>
-    </div>
-  </GeneralModal>
+    </a-form>
+  </NcModal>
 </template>
 
 <style scoped lang="scss">

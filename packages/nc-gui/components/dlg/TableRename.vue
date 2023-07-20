@@ -167,9 +167,6 @@ const renameTable = async (undo = false) => {
 
     refreshCommandPalette()
 
-    // Table renamed successfully
-    message.success(t('msg.success.tableRenamed'))
-
     $e('a:table:rename')
 
     dialogShow.value = false
@@ -182,18 +179,20 @@ const renameTable = async (undo = false) => {
 </script>
 
 <template>
-  <GeneralModal v-model:visible="dialogShow">
-    <div class="p-6">
-      <div class="mb-4 text-gray-800 font-medium text-lg">
+  <NcModal v-model:visible="dialogShow" size="small">
+    <template #header>
+      <div class="flex flex-row items-center gap-x-2">
+        <GeneralIcon icon="table" />
         {{ $t('activity.renameTable') }}
       </div>
-
+    </template>
+    <div class="mt-2">
       <a-form :model="formState" name="create-new-table-form">
         <a-form-item v-bind="validateInfos.title">
           <a-input
             ref="inputEl"
             v-model:value="formState.title"
-            class="!rounded-lg"
+            class="nc-input-md"
             hide-details
             size="large"
             :placeholder="$t('msg.info.enterTableName')"
@@ -201,13 +200,19 @@ const renameTable = async (undo = false) => {
           />
         </a-form-item>
       </a-form>
-      <div class="flex flex-row justify-end gap-x-2 mt-3">
-        <a-button key="back" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
+      <div class="flex flex-row justify-end gap-x-2 mt-6">
+        <NcButton type="secondary" :label="$t('general.cancel')" @click="dialogShow = false" />
 
-        <a-button key="submit" class="!rounded-md" type="primary" :loading="loading" @click="renameTable()">{{
-          $t('general.rename')
-        }}</a-button>
+        <NcButton
+          key="submit"
+          type="primary"
+          :disabled="validateInfos.title.validateStatus === 'error'"
+          label="Rename Table"
+          loading-label="Renaming Table"
+          :loading="loading"
+          @click="renameTable"
+        />
       </div>
     </div>
-  </GeneralModal>
+  </NcModal>
 </template>

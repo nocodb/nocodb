@@ -189,7 +189,7 @@ const onTabChange = (tab: 'views' | 'developer') => {
       <template v-if="openedTab === 'views'">
         <LazySmartsheetSidebarMenuTop :views="views" @open-modal="onOpenModal" @deleted="loadViews" />
         <template v-if="isUIAllowed('virtualViewsCreateOrEdit')">
-          <div class="!my-3 w-full border-b-1 border-gray-75" />
+          <div class="!mb-3 w-full border-b-1 border-gray-75" />
 
           <LazySmartsheetSidebarMenuBottom @open-modal="onOpenModal" />
         </template>

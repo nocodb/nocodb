@@ -470,12 +470,12 @@
       "addOrEditStack": "Adicionar/Editar agrupamento"
     },
     "map": {
-      "mappedBy": "Mapped By",
-      "chooseMappingField": "Choose a Mapping Field",
-      "openInGoogleMaps": "Google Mapas",
-      "openInOpenStreetMap": "OSM"
+      "mappedBy": "Mapeado por",
+      "chooseMappingField": "Defina o campo de mapeamento",
+      "openInGoogleMaps": "Abrir no Google Maps",
+      "openInOpenStreetMap": "Abrir no Open Street Map"
     },
-    "toggleMobileMode": "Toggle Mobile Mode"
+    "toggleMobileMode": "Alternar Modo Mobile"
   },
   "tooltip": {
     "saveChanges": "Salvar alterações",

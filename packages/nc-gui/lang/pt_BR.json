@@ -532,14 +532,14 @@
       },
       "nonEditableFields": {
         "computedFieldUnableToClear": "Advertência: Campo calculado - incapaz de limpar texto",
-        "qrFieldsCannotBeDirectlyChanged": "Advertência: Os campos QR não podem ser directamente alterados."
+        "qrFieldsCannotBeDirectlyChanged": "Advertência: Os campos QR não podem ser diretamente alterados."
       }
     },
     "info": {
       "pasteNotSupported": "A operação de colar não é suportada na célula activa",
       "roles": {
-        "orgCreator": "O criador pode criar novos projectos e aceder a qualquer projecto convidado",
-        "orgViewer": "O espectador não está autorizado a criar novos projectos, mas pode aceder a qualquer projecto convidado."
+        "orgCreator": "O criador pode criar novos projetos e aceder a qualquer projeto convidado",
+        "orgViewer": "O espectador não está autorizado a criar novos projetos, mas pode aceder a qualquer projeto convidado."
       },
       "codeScanner": {
         "loadingScanner": "Loading the scanner..",
@@ -578,11 +578,11 @@
       "formDesc": "Adicionar Formulário Descrição",
       "beforeEnablePwd": "Restringir acesso com uma senha",
       "afterEnablePwd": "O acesso está protegido por uma senha",
-      "privateLink": "Esta vizualização é compartilhada através de uma conexão privada",
+      "privateLink": "Esta visualização é compartilhada através de uma conexão privada",
       "privateLinkAdditionalInfo": "As pessoas com acesso a conexão privada só podem ver as células visíveis nesta vizualização",
-      "afterFormSubmitted": "Após o formulário é submetido",
-      "apiOptions": "Acesse o projeto via",
-      "submitAnotherForm": "Mostrar 'enviar outro formulário' botão",
+      "afterFormSubmitted": "Após o formulário ser submetido",
+      "apiOptions": "Opções da API",
+      "submitAnotherForm": "Enviar novo formulário",
       "showBlankForm": "Mostre um formulário em branco após 5 segundos",
       "emailForm": "E-mail para",
       "showSysFields": "Mostrar campos do sistema",
@@ -623,11 +623,11 @@
       },
       "signUp": {
         "superAdmin": "Será o 'Super Administrador'",
-        "alreadyHaveAccount": "Já tem uma conta ?",
+        "alreadyHaveAccount": "Já possui uma conta?",
         "workEmail": "Insira o seu Email de trabalho",
-        "enterPassword": "Insira a sua senha",
-        "forgotPassword": "Esqueceu-se da senha ?",
-        "dontHaveAccount": "Não tem uma conta ?"
+        "enterPassword": "Insira sua senha",
+        "forgotPassword": "Esqueceu sua senha?",
+        "dontHaveAccount": "Não possui uma conta ?"
       },
       "addView": {
         "grid": "Adicionar vizualização de grade",
@@ -727,8 +727,8 @@
       "followingCharactersAreNotAllowed": "Os seguintes caracteres não são permitidos",
       "columnNameRequired": "O nome da coluna é obrigatório",
       "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
-      "projectNameExceeds50Characters": "O nome do projecto excede 50 caracteres",
-      "projectNameCannotStartWithSpace": "O nome do projecto não pode começar com espaço",
+      "projectNameExceeds50Characters": "O nome do projeto excede 50 caracteres",
+      "projectNameCannotStartWithSpace": "O nome do projeto não pode começar com espaço",
       "requiredField": "Campo obrigatório",
       "ipNotAllowed": "IP não permitido",
       "targetFileIsNotAnAcceptedFileType": "O ficheiro alvo não é um tipo de ficheiro aceite",
@@ -737,7 +737,7 @@
       "parameterKeyCannotBeEmpty": "A chave do parâmetro não pode estar vazia",
       "duplicateParameterKeysAreNotAllowed": "Não são permitidas chaves de parâmetros duplicadas",
       "fieldRequired": "{value} não pode estar vazio",
-      "projectNotAccessible": "Projecto não acessível",
+      "projectNotAccessible": "projeto não acessível",
       "copyToClipboardError": "Falha na cópia para a prancheta"
     },
     "toast": {
@@ -774,9 +774,9 @@
       "viewRenamed": "Vista renomeada com sucesso",
       "tokenGenerated": "Ficha gerada com sucesso",
       "tokenDeleted": "Ficha eliminada com sucesso",
-      "userAddedToProject": "Adicionou com sucesso um utilizador ao projecto",
+      "userAddedToProject": "Adicionou com sucesso um utilizador ao projeto",
       "userAdded": "Utilizador adicionado com sucesso",
-      "userDeletedFromProject": "Utilizador eliminado com sucesso do projecto",
+      "userDeletedFromProject": "Utilizador eliminado com sucesso do projeto",
       "inviteEmailSent": "Convidar Email enviado com sucesso",
       "inviteURLCopied": "Convidar URL copiado para a área de transferência",
       "commentCopied": "Comment copied to clipboard",

@@ -141,34 +141,34 @@ jobs:
             sleep 2
           done
           PLAYWRIGHT_HTML_REPORT=playwright-report-quick npm run test:quick
-      - uses: actions/upload-artifact@v3
-        if: ${{ inputs.db == 'sqlite' }}
-        with:
-          name: quick-backend-log-${{ inputs.shard }}
-          path: ./packages/nocodb/quick_${{ inputs.shard }}_test_backend.log
-          retention-days: 2
-      - uses: actions/upload-artifact@v3
-        if: ${{ inputs.db == 'sqlite' }}
-        with:
-          name: playwright-report-quick-${{ inputs.shard }}
-          path: ./tests/playwright/playwright-report-quick/
-          retention-days: 2
-
-      - uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: playwright-report-${{ inputs.db }}-${{ inputs.shard }}
-          path: ./tests/playwright/playwright-report/
-          retention-days: 2
-      - uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: playwright-report-stress-${{ inputs.db }}-${{ inputs.shard }}
-          path: ./tests/playwright/playwright-report-stress/
-          retention-days: 2
-      - uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: backend-logs-${{ inputs.db }}-${{ inputs.shard }}
-          path: ./packages/nocodb/${{ inputs.db }}_${{ inputs.shard }}_test_backend.log
-          retention-days: 2
+#      - uses: actions/upload-artifact@v3
+#        if: ${{ inputs.db == 'sqlite' }}
+#        with:
+#          name: quick-backend-log-${{ inputs.shard }}
+#          path: ./packages/nocodb/quick_${{ inputs.shard }}_test_backend.log
+#          retention-days: 2
+#      - uses: actions/upload-artifact@v3
+#        if: ${{ inputs.db == 'sqlite' }}
+#        with:
+#          name: playwright-report-quick-${{ inputs.shard }}
+#          path: ./tests/playwright/playwright-report-quick/
+#          retention-days: 2
+#
+#      - uses: actions/upload-artifact@v3
+#        if: always()
+#        with:
+#          name: playwright-report-${{ inputs.db }}-${{ inputs.shard }}
+#          path: ./tests/playwright/playwright-report/
+#          retention-days: 2
+#      - uses: actions/upload-artifact@v3
+#        if: always()
+#        with:
+#          name: playwright-report-stress-${{ inputs.db }}-${{ inputs.shard }}
+#          path: ./tests/playwright/playwright-report-stress/
+#          retention-days: 2
+#      - uses: actions/upload-artifact@v3
+#        if: always()
+#        with:
+#          name: backend-logs-${{ inputs.db }}-${{ inputs.shard }}
+#          path: ./packages/nocodb/${{ inputs.db }}_${{ inputs.shard }}_test_backend.log
+#          retention-days: 2

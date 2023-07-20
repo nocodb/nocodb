@@ -1446,7 +1446,7 @@ const onDraftRecordClick = () => {
               v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
               @click="deleteSelectedRows"
             >
-              <div v-e="['a:row:delete-bulk']" class="nc-project-menu-item text-red-500">
+              <div v-e="['a:row:delete-bulk']" class="nc-project-menu-item">
                 <component :is="iconMap.delete" />
                 <!-- Delete Selected Rows -->
                 {{ $t('activity.deleteSelectedRow') }}
@@ -1455,7 +1455,7 @@ const onDraftRecordClick = () => {
 
             <a-menu-item v-if="contextMenuTarget && selectedRange.isSingleCell()" @click="addEmptyRow(contextMenuTarget.row + 1)">
               <div v-e="['a:row:insert']" class="nc-project-menu-item">
-                <GeneralIcon icon="plus" class="text-gray-500 text-primary" />
+                <GeneralIcon icon="plus" />
                 <!-- Insert New Row -->
                 {{ $t('activity.insertRow') }}
               </div>
@@ -1463,7 +1463,7 @@ const onDraftRecordClick = () => {
 
             <a-menu-item v-if="contextMenuTarget" data-testid="context-menu-item-copy" @click="copyValue(contextMenuTarget)">
               <div v-e="['a:row:copy']" class="nc-project-menu-item">
-                <GeneralIcon icon="copy" class="text-gray-500 text-primary" />
+                <GeneralIcon icon="copy" />
                 <!-- Copy -->
                 {{ $t('general.copy') }}
               </div>
@@ -1479,7 +1479,7 @@ const onDraftRecordClick = () => {
               @click="clearCell(contextMenuTarget)"
             >
               <div v-e="['a:row:clear']" class="nc-project-menu-item">
-                <GeneralIcon icon="closeBox" class="text-gray-500 text-primary" />
+                <GeneralIcon icon="close" />
                 {{ $t('general.clear') }}
               </div>
             </a-menu-item>
@@ -1487,7 +1487,7 @@ const onDraftRecordClick = () => {
             <!--            Clear cell -->
             <a-menu-item v-else-if="contextMenuTarget" @click="clearSelectedRangeOfCells()">
               <div v-e="['a:row:clear-range']" class="nc-project-menu-item">
-                <GeneralIcon icon="closeBox" class="text-gray-500 text-primary" />
+                <GeneralIcon icon="closeBox" class="text-gray-500" />
                 Clear
               </div>
             </a-menu-item>
@@ -1507,7 +1507,7 @@ const onDraftRecordClick = () => {
               @click="confirmDeleteRow(contextMenuTarget.row)"
             >
               <div v-e="['a:row:delete']" class="nc-project-menu-item text-red-600">
-                <GeneralIcon icon="delete" class="text-gray-500 text-error" />
+                <GeneralIcon icon="delete" />
                 <!-- Delete Row -->
                 {{ $t('activity.deleteRow') }}
               </div>

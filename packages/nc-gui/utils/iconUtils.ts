@@ -14,6 +14,7 @@ import MdiFlag from '~icons/mdi/flag'
 import MdiFlagOutline from '~icons/mdi/flag-outline'
 import MdiTable from '~icons/mdi/table'
 import MsMove from '~icons/material-symbols/drive-file-move-outline'
+import MSCloseRounded from '~icons/material-symbols/close-rounded'
 import MdiTableLarge from '~icons/mdi/table-large'
 import TablerColumnInsertLeft from '~icons/tabler/column-insert-left'
 import TablerColumnInsertRight from '~icons/tabler/column-insert-right'
@@ -361,7 +362,7 @@ export const iconMap = {
   filter: CiFilter,
   closeCircle: h('span', { class: 'material-symbols' }, 'cancel'),
   closeBox: h('span', { class: 'material-symbols' }, 'close'),
-  close: h('span', { class: 'material-symbols' }, 'close'),
+  close: MSCloseRounded,
   openInNew: h('span', { class: 'material-symbols' }, 'open_in_new'),
   mm: h('span', { class: 'material-symbols' }, 'table_rows'),
   hm: h('span', { class: 'material-symbols' }, 'table_rows'),

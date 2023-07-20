@@ -357,13 +357,7 @@ watch(
         <div class="overflow-auto min-h-25 flex-grow" style="flex-basis: 0">
           <a-empty v-if="!workspacesList?.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
-          <a-menu
-            v-else
-            :ref="menu"
-            v-model:selected-keys="selectedWorkspaceIndex"
-            class="nc-workspace-list"
-            trigger-sub-menu-action="click"
-          >
+          <a-menu v-else v-model:selected-keys="selectedWorkspaceIndex" class="nc-workspace-list" trigger-sub-menu-action="click">
             <a-menu-item v-for="(workspace, i) of workspacesList" :key="i">
               <div class="nc-workspace-list-item flex items-center h-full group" :data-id="workspace.id">
                 <a-dropdown :trigger="['click']" trigger-sub-menu-action="click" @click.stop>
@@ -425,7 +419,7 @@ watch(
                   >
                 </div>
                 <div class="flex-grow"></div>
-                <IcBaselineDragIndicator class="outline-0 nc-workspace-drag-icon" />
+                <IcBaselineDragIndicator v-if="false" class="outline-0 nc-workspace-drag-icon" />
                 <a-dropdown
                   v-if="
                     isUIAllowed('workspaceRename', true, workspace.roles) || isUIAllowed('workspaceDelete', true, workspace.roles)
@@ -436,10 +430,10 @@ watch(
                     <MdiDotsHorizontal class="outline-0 nc-workspace-menu min-w-4 nc-click-transition" />
                   </div>
                   <template #overlay>
-                    <a-menu>
+                    <a-menu class="!py-0 rounded">
                       <a-menu-item v-if="isUIAllowed('workspaceRename', true, workspace.roles)" @click="enableEdit(i)">
                         <div class="nc-menu-item-wrapper">
-                          <MdiPencil class="text-gray-500 text-primary" />
+                          <GeneralIcon icon="edit" />
                           Rename Workspace
                         </div>
                       </a-menu-item>
@@ -448,7 +442,7 @@ watch(
                         @click="deleteWorkspace(workspace)"
                       >
                         <div class="nc-menu-item-wrapper text-red-600">
-                          <MdiDeleteOutline class="text-gray-500 text-error" />
+                          <GeneralIcon icon="delete" />
                           Delete Workspace
                         </div>
                       </a-menu-item>

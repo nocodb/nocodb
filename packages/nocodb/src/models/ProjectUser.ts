@@ -75,11 +75,13 @@ export default class ProjectUser {
   public static async getUsersList(
     {
       project_id,
+      workspace_id,
       limit = 25,
       offset = 0,
       query,
     }: {
       project_id: string;
+      workspace_id: string;
       limit: number;
       offset: number;
       query?: string;
@@ -95,6 +97,7 @@ export default class ProjectUser {
         `${MetaTable.USERS}.roles as main_roles`,
         `${MetaTable.PROJECT_USERS}.project_id`,
         `${MetaTable.PROJECT_USERS}.roles as roles`,
+        `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
       )
       .offset(offset)
       .limit(limit);
@@ -103,17 +106,29 @@ export default class ProjectUser {
       queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
     }
 
-    queryBuilder.leftJoin(MetaTable.PROJECT_USERS, function () {
-      this.on(
-        `${MetaTable.PROJECT_USERS}.fk_user_id`,
-        '=',
-        `${MetaTable.USERS}.id`,
-      ).andOn(
-        `${MetaTable.PROJECT_USERS}.project_id`,
-        '=',
-        ncMeta.knex.raw('?', [project_id]),
-      );
-    });
+    queryBuilder
+      .leftJoin(MetaTable.WORKSPACE_USER, function () {
+        this.on(
+          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+          '=',
+          `${MetaTable.USERS}.id`,
+        ).andOn(
+          `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+          '=',
+          ncMeta.knex.raw('?', [workspace_id]),
+        );
+      })
+      .leftJoin(MetaTable.PROJECT_USERS, function () {
+        this.on(
+          `${MetaTable.PROJECT_USERS}.fk_user_id`,
+          '=',
+          `${MetaTable.USERS}.id`,
+        ).andOn(
+          `${MetaTable.PROJECT_USERS}.project_id`,
+          '=',
+          ncMeta.knex.raw('?', [project_id]),
+        );
+      });
 
     return await queryBuilder;
   }

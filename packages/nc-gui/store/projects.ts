@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { BaseType, OracleUi, ProjectType, TableType } from 'nocodb-sdk'
+import type { BaseType, OracleUi, ProjectType, RequestParams, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { NcProjectType } from '~/utils'
@@ -45,6 +45,33 @@ export const useProjects = defineStore('projectsStore', () => {
   const { getBaseUrl } = $(useGlobal())
 
   const isProjectsLoading = ref(false)
+
+  async function getProjectUsers({
+    projectId,
+    limit,
+    page,
+    searchText,
+  }: {
+    projectId: string
+    limit: number
+    page: number
+    searchText: string | undefined
+  }) {
+    const response: any = await api.auth.projectUserList(projectId, {
+      query: {
+        limit,
+        offset: (page - 1) * limit,
+        query: searchText,
+      },
+    } as RequestParams)
+
+    const totalRows = response.users.pageInfo.totalRows ?? 0
+
+    return {
+      users: response.users.list,
+      totalRows,
+    }
+  }
 
   const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace') => {
     const activeWorkspace = workspaceStore.activeWorkspace
@@ -259,6 +286,7 @@ export const useProjects = defineStore('projectsStore', () => {
     openedProject,
     openedProjectBasesMap,
     roles,
+    getProjectUsers,
   }
 })
 

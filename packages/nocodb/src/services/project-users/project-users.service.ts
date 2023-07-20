@@ -30,10 +30,13 @@ export class ProjectUsersService {
   constructor(private appHooksService: AppHooksService) {}
 
   async userList(param: { projectId: string; query: any }) {
+    const project = await Project.get(param.projectId);
+
     return new PagedResponseImpl(
       await ProjectUser.getUsersList({
         ...param.query,
         project_id: param.projectId,
+        workspace_id: project?.fk_workspace_id,
       }),
       {
         ...param.query,

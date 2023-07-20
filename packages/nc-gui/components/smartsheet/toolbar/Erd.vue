@@ -32,7 +32,7 @@ const selectedView = inject(ActiveViewInj)
   >
     <div class="flex justify-between w-full items-start pb-4 border-b-1 border-gray-50 mb-4">
       <div class="select-none text-gray-900 font-medium text-lg">
-        {{ `${$t('title.erdView')}` }}
+        {{ `ERD for "${activeTable?.title}"` }}
       </div>
     </div>
 

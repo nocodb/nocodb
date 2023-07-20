@@ -784,6 +784,12 @@ export default class View implements ViewType {
         },
         existingCol.id,
       );
+
+      // on view column update, delete any optimised single query cache
+      await NocoCache.del(
+        `${CacheScope.SINGLE_QUERY}:${view.fk_model_id}:${view.id}`,
+      );
+
       return { ...existingCol, ...colData };
     } else {
       switch (view.type) {

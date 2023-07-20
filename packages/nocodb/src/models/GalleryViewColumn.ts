@@ -90,6 +90,14 @@ export default class GalleryViewColumn {
         `${CacheScope.GALLERY_VIEW_COLUMN}:${id}`,
       );
 
+    // on new view column, delete any optimised single query cache
+    {
+      const view = await View.get(column.fk_view_id, ncMeta);
+      await NocoCache.del(
+        `${CacheScope.SINGLE_QUERY}:${view.fk_model_id}:${view.id}`,
+      );
+    }
+
     return this.get(id, ncMeta);
   }
 

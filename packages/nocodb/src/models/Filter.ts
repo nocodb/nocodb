@@ -270,6 +270,18 @@ export default class Filter implements FilterType {
       }
       await Promise.all(p);
     }
+
+    // on new filter creation delete any optimised single query cache
+    {
+      // if not a view filter then no need to delete
+      if (filter.fk_view_id) {
+        const view = await View.get(filter.fk_view_id, ncMeta);
+        await NocoCache.del(
+          `${CacheScope.SINGLE_QUERY}:${view.fk_model_id}:${view.id}`,
+        );
+      }
+    }
+
     return new Filter(value);
   }
 
@@ -297,13 +309,27 @@ export default class Filter implements FilterType {
       await NocoCache.set(key, o);
     }
     // set meta
-    return await ncMeta.metaUpdate(
+    const res = await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.FILTER_EXP,
       updateObj,
       id,
     );
+
+    // on update delete any optimised single query cache
+    {
+      const filter = await this.get(id, ncMeta);
+      // if not a view filter then no need to delete
+      if (filter.fk_view_id) {
+        const view = await View.get(filter.fk_view_id, ncMeta);
+        await NocoCache.del(
+          `${CacheScope.SINGLE_QUERY}:${view.fk_model_id}:${view.id}`,
+        );
+      }
+    }
+
+    return res;
   }
 
   static async delete(id: string, ncMeta = Noco.ncMeta) {
@@ -321,6 +347,17 @@ export default class Filter implements FilterType {
       );
     };
     await deleteRecursively(filter);
+
+    // delete any optimised single query cache
+    {
+      // if not a view filter then no need to delete
+      if (filter.fk_view_id) {
+        const view = await View.get(filter.fk_view_id, ncMeta);
+        await NocoCache.del(
+          `${CacheScope.SINGLE_QUERY}:${view.fk_model_id}:${view.id}`,
+        );
+      }
+    }
   }
 
   public getColumn(): Promise<Column> {
@@ -469,6 +506,14 @@ export default class Filter implements FilterType {
       }
     };
     await deleteRecursively(filter);
+
+    // on update delete any optimised single query cache
+    {
+        const view = await View.get(viewId, ncMeta);
+        await NocoCache.del(
+          `${CacheScope.SINGLE_QUERY}:${view.fk_model_id}:${view.id}`,
+        );
+    }
   }
 
   static async deleteAllByHook(hookId: string, ncMeta = Noco.ncMeta) {

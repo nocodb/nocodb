@@ -10,6 +10,7 @@ import { extractProps } from '../helpers/extractProps';
 import Model from './Model';
 import Column from './Column';
 import type { SortType } from 'nocodb-sdk';
+import View from '~/models/View';
 
 export default class Sort {
   id: string;
@@ -33,6 +34,14 @@ export default class Sort {
     await ncMeta.metaDelete(null, null, MetaTable.SORT, {
       fk_view_id: viewId,
     });
+
+    // on delete, delete any optimised single query cache
+    {
+      const view = await View.get(viewId, ncMeta);
+      await NocoCache.del(
+        `${CacheScope.SINGLE_QUERY}:${view.fk_model_id}:${view.id}`,
+      );
+    }
   }
 
   public static async insert(
@@ -99,6 +108,15 @@ export default class Sort {
         `${CacheScope.SORT}:${row.id}`,
       );
     }
+
+    // on insert, delete any optimised single query cache
+    {
+      const view = await View.get(row.fk_view_id, ncMeta);
+      await NocoCache.del(
+        `${CacheScope.SINGLE_QUERY}:${view.fk_model_id}:${view.id}`,
+      );
+    }
+
     return this.get(row.id, ncMeta);
   }
 
@@ -146,7 +164,7 @@ export default class Sort {
       await NocoCache.set(key, o);
     }
     // set meta
-    return await ncMeta.metaUpdate(
+    const res = await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.SORT,
@@ -156,15 +174,35 @@ export default class Sort {
       },
       sortId,
     );
+
+    // on update, delete any optimised single query cache
+    {
+      const sort = await this.get(sortId, ncMeta);
+      const view = await View.get(sort.fk_view_id, ncMeta);
+      await NocoCache.del(
+        `${CacheScope.SINGLE_QUERY}:${view.fk_model_id}:${view.id}`,
+      );
+    }
+
+    return res;
   }
 
   public static async delete(sortId: string, ncMeta = Noco.ncMeta) {
+    const sort = await this.get(sortId, ncMeta);
     await NocoCache.deepDel(
       CacheScope.SORT,
       `${CacheScope.SORT}:${sortId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
     await ncMeta.metaDelete(null, null, MetaTable.SORT, sortId);
+
+    // on delete, delete any optimised single query cache
+    if (sort?.fk_view_id) {
+      const view = await View.get(sort.fk_view_id, ncMeta);
+      await NocoCache.del(
+        `${CacheScope.SINGLE_QUERY}:${view.fk_model_id}:${view.id}`,
+      );
+    }
   }
 
   public static async get(id: any, ncMeta = Noco.ncMeta) {

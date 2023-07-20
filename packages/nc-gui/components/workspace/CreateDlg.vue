@@ -96,7 +96,14 @@ watch(
 
 <template>
   <NcModal v-model:visible="dialogShow" size="small">
-    <template #header> {{ $t('activity.createWorkspace') }} </template>
+    <template #header>
+      <div class="flex flex-row items-center gap-x-2">
+        <GeneralIcon icon="workspaceDefault" />
+        <div>
+          {{ $t('activity.createWorkspace') }}
+        </div>
+      </div>
+    </template>
     <a-form :model="workspace" name="create-new-workspace-form" class="!mt-2" @keydown.enter="_createWorkspace">
       <a-form-item v-bind="validateInfos.title">
         <InputOrTags ref="inputRef" v-model="workspace.title" class="nc-input-md" />

@@ -219,7 +219,6 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
 //
 test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
   let dashboard: DashboardPage;
-  let context: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
@@ -291,7 +290,6 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
 
 test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
   let dashboard: DashboardPage;
-  let context: any;
 
   test.use({
     locale: 'zh-HK',
@@ -554,7 +552,6 @@ function getDateTimeInUTCTimeZone(dateString: string) {
 
 test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same as server timezone', async () => {
   let dashboard: DashboardPage;
-  let context: any;
 
   let counter = 0;
 
@@ -909,7 +906,6 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
 
 test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to HKT', async () => {
   let dashboard: DashboardPage;
-  let context: any;
 
   test.use({
     locale: 'zh-HK',
@@ -1045,7 +1041,6 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
 
 test.describe.serial('Timezone- ExtDB (MySQL Only) : DB Timezone configured as HKT', () => {
   let dashboard: DashboardPage;
-  let context: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });

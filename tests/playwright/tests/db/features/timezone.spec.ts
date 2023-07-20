@@ -8,6 +8,7 @@ import { isHub, isMysql, isPg, isSqlite } from '../../../setup/db';
 import { getKnexConfig } from '../../utils/config';
 import { getBrowserTimezoneOffset } from '../../utils/general';
 let api: Api<any>, records: any[];
+let context: any;
 
 const columns = [
   {
@@ -38,12 +39,10 @@ async function timezoneSuite(token: string, projectTitle: string, skipTableCreat
     },
   });
   // get current workspace information if in hub
-  let workspaceId = '';
+  const workspaceId = context.workspace.id;
   try {
     let projectList: ProjectListType;
     if (isHub()) {
-      const ws = await api.workspace.list();
-      workspaceId = ws.list[0].id;
       projectList = await api.workspaceProject.list(workspaceId);
     } else {
       projectList = await api.project.list();
@@ -114,7 +113,6 @@ async function connectToExtDb(context: any, dbName: string) {
 // serial : as we are creating an external db, we need to run the tests sequentially
 test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
   let dashboard: DashboardPage;
-  let context: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });

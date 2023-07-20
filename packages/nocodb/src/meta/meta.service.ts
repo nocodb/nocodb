@@ -287,6 +287,33 @@ export class MetaService {
     return insertObj;
   }
 
+  public async bulkMetaInsert(
+    project_id: string,
+    base_id: string,
+    target: string,
+    data: any[],
+    ignoreIdGeneration?: boolean,
+  ): Promise<any> {
+    const insertObj = [];
+    const at = this.now();
+    for (const d of data) {
+      const id = d?.id || this.genNanoid(target);
+      const tempObj = {
+        ...d,
+        ...(ignoreIdGeneration ? {} : { id }),
+        created_at: at,
+        updated_at: at,
+      };
+      if (base_id !== null) tempObj.base_id = base_id;
+      if (project_id !== null) tempObj.project_id = project_id;
+      insertObj.push(tempObj);
+    }
+
+    await this.knexConnection.batchInsert(target, insertObj);
+
+    return insertObj;
+  }
+
   public genNanoid(target: string) {
     let prefix;
     switch (target) {

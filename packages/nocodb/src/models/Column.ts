@@ -283,34 +283,33 @@ export default class Column<T = any> implements ColumnType {
             '#ede2fe',
             '#eeeeee',
           ];
+          const bulkOptions = [];
           for (const [i, option] of column.dtxp?.split(',').entries() ||
             [].entries()) {
-            await SelectOption.insert(
-              {
-                fk_column_id: colId,
-                title: option.replace(/^'/, '').replace(/'$/, ''),
-                order: i + 1,
-                color: selectColors[i % selectColors.length],
-              },
-              ncMeta,
-            );
+            bulkOptions.push({
+              fk_column_id: colId,
+              title: option.replace(/^'/, '').replace(/'$/, ''),
+              order: i + 1,
+              color: selectColors[i % selectColors.length],
+            });
           }
+          await SelectOption.bulkInsert(bulkOptions, ncMeta);
         } else {
+          const bulkOptions = [];
           for (const [i, option] of column.colOptions.options.entries() ||
             [].entries()) {
             // Trim end of enum/set
             if (column.dt === 'enum' || column.dt === 'set') {
               option.title = option.title.trimEnd();
             }
-            await SelectOption.insert(
-              {
-                ...option,
-                fk_column_id: colId,
-                order: i + 1,
-              },
-              ncMeta,
-            );
+            bulkOptions.push({
+              ...option,
+              fk_column_id: colId,
+              order: i + 1,
+            });
           }
+
+          await SelectOption.bulkInsert(bulkOptions, ncMeta);
         }
         break;
       }
@@ -328,34 +327,32 @@ export default class Column<T = any> implements ColumnType {
             '#ede2fe',
             '#eeeeee',
           ];
+          const bulkOptions = [];
           for (const [i, option] of column.dtxp?.split(',').entries() ||
             [].entries()) {
-            await SelectOption.insert(
-              {
-                fk_column_id: colId,
-                title: option.replace(/^'/, '').replace(/'$/, ''),
-                order: i + 1,
-                color: selectColors[i % selectColors.length],
-              },
-              ncMeta,
-            );
+            bulkOptions.push({
+              fk_column_id: colId,
+              title: option.replace(/^'/, '').replace(/'$/, ''),
+              order: i + 1,
+              color: selectColors[i % selectColors.length],
+            });
           }
+          await SelectOption.bulkInsert(bulkOptions, ncMeta);
         } else {
+          const bulkOptions = [];
           for (const [i, option] of column.colOptions.options.entries() ||
             [].entries()) {
             // Trim end of enum/set
             if (column.dt === 'enum' || column.dt === 'set') {
               option.title = option.title.trimEnd();
             }
-            await SelectOption.insert(
-              {
-                ...option,
-                fk_column_id: colId,
-                order: i + 1,
-              },
-              ncMeta,
-            );
+            bulkOptions.push({
+              ...option,
+              fk_column_id: colId,
+              order: i + 1,
+            });
           }
+          await SelectOption.bulkInsert(bulkOptions, ncMeta);
         }
         break;
       }

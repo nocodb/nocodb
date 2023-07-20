@@ -103,30 +103,30 @@
       "calendar": "Calendário",
       "map": "Mapa"
     },
-    "user": "Do utilizador",
-    "users": "Comercial",
+    "user": "Usuário",
+    "users": "Usuários",
     "role": "Função",
     "roles": "Papéis",
     "roleType": {
       "owner": "Proprietário",
-      "creator": "O Criador",
+      "creator": "Criador",
       "editor": "editor",
       "commenter": "Comentarista",
-      "viewer": "Viewer.",
-      "orgLevelCreator": "Nível de Organização Criador",
-      "orgLevelViewer": "Visor de Nível de Organização"
+      "viewer": "Visualizador.",
+      "orgLevelCreator": "Nível na Organização do Criador",
+      "orgLevelViewer": "Nível na Organização do Visualizador"
     },
-    "sqlVIew": "Vista SQL"
+    "sqlVIew": "Visão SQL"
   },
   "datatype": {
     "ID": "identificação",
     "ForeignKey": "Chave estrangeira",
     "SingleLineText": "Texto de linha única",
     "LongText": "Texto longo",
-    "Attachment": "Acessório",
+    "Attachment": "Anexo",
     "Checkbox": "Caixa de seleção.",
-    "MultiSelect": "Multi Select.",
-    "SingleSelect": "Solt Select.",
+    "MultiSelect": "Seleção Multipla",
+    "SingleSelect": "Seleção Única",
     "Collaborator": "Colaborador",
     "Date": "Encontro",
     "Year": "Ano",

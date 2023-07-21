@@ -6,20 +6,22 @@ import { WorkspacePage } from '../../../pages/WorkspacePage';
 import { Api } from 'nocodb-sdk';
 import { CollaborationPage } from '../../../pages/WorkspacePage/CollaborationPage';
 import { LoginPage } from '../../../pages/LoginPage';
+import { ProjectViewPage } from '../../../pages/Dashboard/ProjectView';
 
 let api: Api<any>;
 
 const roleDb = [
-  { email: 'pjt_creator@nocodb.com', role: 'creator' },
-  { email: 'pjt_editor@nocodb.com', role: 'editor' },
-  { email: 'pjt_commenter@nocodb.com', role: 'commenter' },
-  { email: 'pjt_viewer@nocodb.com', role: 'viewer' },
+  { email: 'pjt_creator@nocodb.com', role: 'Creator' },
+  { email: 'pjt_editor@nocodb.com', role: 'Editor' },
+  { email: 'pjt_commenter@nocodb.com', role: 'Commenter' },
+  { email: 'pjt_viewer@nocodb.com', role: 'Viewer' },
 ];
 
 test.describe('Project Collaboration', () => {
   let dashboard: DashboardPage;
   let workspacePage: WorkspacePage;
   let collaborationPage: CollaborationPage;
+  let projectViewPage: ProjectViewPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
@@ -27,6 +29,7 @@ test.describe('Project Collaboration', () => {
     dashboard = new DashboardPage(page, context.project);
     workspacePage = new WorkspacePage(page);
     collaborationPage = workspacePage.collaboration;
+    projectViewPage = dashboard.projectView;
 
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -60,7 +63,15 @@ test.describe('Project Collaboration', () => {
     await workspacePage.Container.projects.click();
     await workspacePage.projectOpen(context.project.title);
 
-    await dashboard.projectView.tab_accessSettings.click();
+    // tab access validation
+    await projectViewPage.verifyAccess('Owner');
+
+    await projectViewPage.tab_accessSettings.click();
+
+    // update roles
+    for (let i = 0; i < roleDb.length; i++) {
+      await projectViewPage.accessSettings.setRole(roleDb[i].email, roleDb[i].role);
+    }
 
     for (let i = 0; i < roleDb.length; i++) {
       await dashboard.signOut();

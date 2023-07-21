@@ -169,10 +169,7 @@ export default class ProjectUser {
     const user = await User.get(userId);
     if (user) {
       const email = user.email;
-      for (const key of [
-        `${CacheScope.USER}:${email}`,
-        `${CacheScope.USER}:${email}___${projectId}`,
-      ]) {
+      for (const key of [`${CacheScope.USER}:${email}___${projectId}`]) {
         const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
         if (o) {
           o.roles = roles;

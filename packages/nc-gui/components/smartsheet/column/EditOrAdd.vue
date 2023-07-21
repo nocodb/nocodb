@@ -284,6 +284,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
           />
 
           <LazySmartsheetColumnAdvancedOptions
+            v-if="formState.uidt !== UITypes.Attachment"
             v-model:value="formState"
             :advanced-db-options="advancedDbOptions || formState.uidt === UITypes.SpecificDBType"
           />

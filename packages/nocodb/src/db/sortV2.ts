@@ -16,6 +16,7 @@ export default async function sortV2(
   baseModelSqlv2: BaseModelSqlv2,
   sortList: Sort[],
   qb: Knex.QueryBuilder,
+  alias?: string,
 ) {
   const knex = baseModelSqlv2.dbDriver;
 
@@ -51,6 +52,7 @@ export default async function sortV2(
               baseModelSqlv2,
               knex,
               columnOptions: (await column.getColOptions()) as RollupColumn,
+              alias
             })
           ).builder;
 
@@ -65,7 +67,7 @@ export default async function sortV2(
               (
                 await column.getColOptions<FormulaColumn>()
               ).formula,
-              null,
+              alias,
               model,
               column,
             )

@@ -52,12 +52,12 @@ loadTokens()
 
 const deleteToken = async (token: string) => {
   Modal.confirm({
-    title: t('msg.info.deleteTokenConfirmation'),
+    title: 'Are you sure you want to delete this token?',
     type: 'warn',
     onOk: async () => {
       try {
         await api.orgTokens.delete(token)
-        message.success(t('msg.success.tokenDeleted'))
+        // message.success(t('msg.success.tokenDeleted'))
         await loadTokens()
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
@@ -72,7 +72,7 @@ const generateToken = async () => {
     await api.orgTokens.create(selectedTokenData)
     showNewTokenModal = false
     // Token generated successfully
-    message.success(t('msg.success.tokenGenerated'))
+    // message.success(t('msg.success.tokenGenerated'))
     selectedTokenData = {}
     await loadTokens()
   } catch (e: any) {

@@ -57,6 +57,8 @@ export function useViewData(
 
   const { t } = useI18n()
 
+  const optimisedQuery = ref(false)
+
   const { api, isLoading, error } = useApi()
 
   const router = useRouter()
@@ -212,7 +214,8 @@ export function useViewData(
           ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
           ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
           where: where?.value,
-        })
+          opt: optimisedQuery.value  ? 'true' : undefined,
+        } as any)
       : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
 
     formattedData.value = formatData(response.list)
@@ -1028,5 +1031,6 @@ export function useViewData(
     removeRowIfNew,
     navigateToSiblingRow,
     getExpandedRowIndex,
+    optimisedQuery,
   }
 }

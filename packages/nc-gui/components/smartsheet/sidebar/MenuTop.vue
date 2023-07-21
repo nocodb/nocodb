@@ -237,7 +237,7 @@ async function onRename(view: ViewType, originalTitle?: string, undo = false) {
     }
 
     // View renamed successfully
-    message.success(t('msg.success.viewRenamed'))
+    // message.success(t('msg.success.viewRenamed'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

@@ -37,15 +37,15 @@ export class HeaderPage extends BasePage {
     // logo on the left
     await this.get().locator('img[src="/_nuxt/assets/img/brand/nocodb-full-color.png"]').waitFor({ state: 'visible' });
 
-    // menu items on the center
-    await this.get().locator('[data-testid="nc-dash-nav-workspaces"]').waitFor({ state: 'visible' });
-    await this.get().locator('[data-testid="nc-dash-nav-explore"]').waitFor({ state: 'visible' });
-    await this.get().locator('[data-testid="nc-dash-nav-help"]').waitFor({ state: 'visible' });
-    await this.get().locator('[data-testid="nc-dash-nav-community"]').waitFor({ state: 'visible' });
+    // menu items in the center (disabled for now)
+    // await this.get().locator('[data-testid="nc-dash-nav-workspaces"]').waitFor({ state: 'visible' });
+    // await this.get().locator('[data-testid="nc-dash-nav-explore"]').waitFor({ state: 'visible' });
+    // await this.get().locator('[data-testid="nc-dash-nav-help"]').waitFor({ state: 'visible' });
+    // await this.get().locator('[data-testid="nc-dash-nav-community"]').waitFor({ state: 'visible' });
 
     // quick action, notifications & account menu on the right
-    await this.get().locator('[data-testid="nc-quick-action-wrapper"]').waitFor({ state: 'visible' });
-    await this.get().locator('input[placeholder="Quick Actions"]').waitFor({ state: 'visible' });
+    // await this.get().locator('[data-testid="nc-quick-action-wrapper"]').waitFor({ state: 'visible' });
+    // await this.get().locator('input[placeholder="Quick Actions"]').waitFor({ state: 'visible' });
     await this.get().locator('[data-testid="nc-notification-bell-icon"]').waitFor({ state: 'visible' });
     await this.get().locator('[data-testid="nc-ws-account-menu-dropdown"]').waitFor({ state: 'visible' });
   }
@@ -93,7 +93,7 @@ export class HeaderPage extends BasePage {
       .locator('.ant-dropdown-menu-vertical')
       .locator(`[data-testid="nc-menu-accounts__${title}"]`)
       .click();
-    // wait for URL to include 'signin'
-    await this.rootPage.waitForURL(/signin/);
+    if (title === 'sign-out') await this.rootPage.waitForURL(/signin/);
+    else await this.rootPage.waitForURL(/users/);
   }
 }

@@ -65,7 +65,7 @@ const setAsDisplayValue = async () => {
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
 
     // Successfully updated as primary column
-    message.success(t('msg.success.primaryColumnUpdated'))
+    // message.success(t('msg.success.primaryColumnUpdated'))
 
     $e('a:column:set-primary')
 
@@ -79,7 +79,7 @@ const setAsDisplayValue = async () => {
           eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
 
           // Successfully updated as primary column
-          message.success(t('msg.success.primaryColumnUpdated'))
+          // message.success(t('msg.success.primaryColumnUpdated'))
         },
         args: [column?.value?.id as string],
       },
@@ -92,7 +92,7 @@ const setAsDisplayValue = async () => {
           eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
 
           // Successfully updated as primary column
-          message.success(t('msg.success.primaryColumnUpdated'))
+          // message.success(t('msg.success.primaryColumnUpdated'))
         },
         args: [currentDisplayValue?.id],
       },
@@ -212,7 +212,7 @@ const duplicateColumn = async () => {
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     reloadDataHook?.trigger()
 
-    message.success(t('msg.success.columnDuplicated'))
+    // message.success(t('msg.success.columnDuplicated'))
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

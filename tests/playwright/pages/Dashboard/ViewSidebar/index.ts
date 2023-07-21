@@ -56,7 +56,7 @@ export class ViewSidebarPage extends BasePage {
     await this.rootPage.locator('input[id="form_item_title"]:visible').waitFor({ state: 'visible' });
     await this.rootPage.locator('input[id="form_item_title"]:visible').fill(title);
     const submitAction = () =>
-      this.rootPage.locator('.ant-modal-content').locator('button:has-text("Submit"):visible').click();
+      this.rootPage.locator('.ant-modal-content').locator('button.ant-btn.ant-btn-primary').click();
     await this.waitForResponse({
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: '/api/v1/db/meta/tables/',
@@ -131,14 +131,7 @@ export class ViewSidebarPage extends BasePage {
       .locator('.nc-view-delete-icon')
       .click();
 
-    await this.rootPage.locator('.nc-modal-view-delete').locator('button:has-text("Submit"):visible').click();
-
-    // waiting for button to get detached, we will miss toast
-    // await this.rootPage
-    //   .locator(".nc-modal-view-delete")
-    //   .locator('button:has-text("Submit")')
-    //   .waitFor({ state: "detached" });
-    await this.verifyToast({ message: 'View deleted successfully' });
+    await this.rootPage.locator('button:has-text("Delete View"):visible').click();
   }
 
   async renameView({ title, newTitle }: { title: string; newTitle: string }) {

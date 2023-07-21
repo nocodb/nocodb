@@ -134,7 +134,7 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.get().getByPlaceholder('Enter table name').fill(title);
 
     await this.waitForResponse({
-      uiAction: () => this.dashboard.get().locator('button:has-text("Submit")').click(),
+      uiAction: () => this.dashboard.get().locator('button:has-text("Create Table")').click(),
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: `/api/v1/db/meta/projects/`,
       responseJsonMatcher: json => json.title === title && json.type === 'table',
@@ -165,7 +165,7 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Delete"):visible').click();
 
     await this.waitForResponse({
-      uiAction: () => this.dashboard.get().locator('button:has-text("Yes")').click(),
+      uiAction: () => this.dashboard.get().locator('button:has-text("Delete Table")').click(),
       httpMethodsToMatch: ['DELETE'],
       requestUrlPathToMatch: `/api/v1/db/meta/tables/`,
     });
@@ -192,7 +192,7 @@ export class TreeViewPage extends BasePage {
     }
     await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Rename")').click();
     await this.dashboard.get().locator('[placeholder="Enter table name"]').fill(newTitle);
-    await this.dashboard.get().locator('button:has-text("Submit")').click();
+    await this.dashboard.get().locator('button:has-text("Rename Table")').click();
     await this.verifyToast({ message: 'Table renamed successfully' });
   }
 

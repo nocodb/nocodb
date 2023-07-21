@@ -25,7 +25,7 @@ test.describe('Project Collaboration', () => {
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
+    context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     workspacePage = new WorkspacePage(page);
     collaborationPage = workspacePage.collaboration;
@@ -87,6 +87,16 @@ test.describe('Project Collaboration', () => {
       await workspacePage.workspaceOpen({ title: context.workspace.title });
       await workspacePage.projectOpen({ title: context.project.title });
       await dashboard.projectView.verifyAccess(roleDb[i].role);
+
+      await dashboard.treeView.openTable({ title: 'Country' });
+      await dashboard.viewSidebar.validateRoleAccess({ role: roleDb[i].role });
+
+      // await dashboard.treeView.validateRoleAccess({ role: roleDb[i].role });
+      // await dashboard.grid.validateRoleAccess({ role: roleDb[i].role });
+      // await dashboard.grid.toolbar.validateRoleAccess({ role: roleDb[i].role });
+      //
+      // await dashboard.grid.openExpandedRow({ index: 0 });
+      // await dashboard.expandedForm.validateRoleAccess({ role: roleDb[i].role });
     }
   });
 });

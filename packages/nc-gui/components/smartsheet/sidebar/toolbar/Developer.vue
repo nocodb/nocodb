@@ -14,13 +14,17 @@ const showErd = ref(false)
     <div
       v-if="!isMobileMode"
       v-e="['c:erd:open']"
-      class="py-2 flex gap-2 items-center nc-view-action-erd button"
+      class="py-2 flex gap-2 items-center nc-view-sidebar-erd button"
       @click="showErd = true"
     >
       <component :is="iconMap.erd" class="text-gray-600" />
       {{ $t('title.erdView') }}
     </div>
-    <div v-e="['c:snippet:open']" class="py-2 flex gap-2 items-center button" @click="showApiSnippetDrawer = true">
+    <div
+      v-e="['c:snippet:open']"
+      class="py-2 flex gap-2 items-center button nc-view-sidebar-api-snippet"
+      @click="showApiSnippetDrawer = true"
+    >
       <component :is="iconMap.snippet" class="text-gray-600" />
       <!-- Get API Snippet -->
       {{ $t('activity.getApiSnippet') }}

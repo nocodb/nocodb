@@ -346,8 +346,9 @@ export class GridPage extends BasePage {
   async validateRoleAccess(param: { role: string }) {
     await this.column.verifyRoleAccess(param);
     await this.cell.verifyRoleAccess(param);
+    await this.toolbar.verifyRoleAccess(param);
     await expect(this.get().locator('.nc-grid-add-new-cell')).toHaveCount(
-      param.role === 'creator' || param.role === 'editor' ? 1 : 0
+      param.role.toLowerCase() === 'creator' || param.role.toLowerCase() === 'editor' ? 1 : 0
     );
   }
 

@@ -15,6 +15,10 @@ export class ViewSidebarPage extends BasePage {
   readonly createKanbanButton: Locator;
   readonly createMapButton: Locator;
 
+  readonly erdButton: Locator;
+  readonly apiSnippet: Locator;
+  readonly webhookButton: Locator;
+
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
@@ -24,7 +28,10 @@ export class ViewSidebarPage extends BasePage {
     this.createGridButton = this.get().locator('.nc-create-grid-view:visible');
     this.createFormButton = this.get().locator('.nc-create-form-view:visible');
     this.createKanbanButton = this.get().locator('.nc-create-kanban-view:visible');
-    this.createMapButton = this.get().locator('.nc-create-map-view:visible');
+
+    this.erdButton = this.get().locator('.nc-view-sidebar-erd');
+    this.apiSnippet = this.get().locator('.nc-view-sidebar-api-snippet');
+    this.webhookButton = this.get().locator('.nc-view-sidebar-webhook');
   }
 
   get() {
@@ -193,11 +200,16 @@ export class ViewSidebarPage extends BasePage {
   }
 
   async validateRoleAccess(param: { role: string }) {
-    const count = param.role === 'creator' ? 1 : 0;
+    const count = param.role.toLowerCase() === 'creator' ? 1 : 0;
     await expect(this.createGridButton).toHaveCount(count);
     await expect(this.createGalleryButton).toHaveCount(count);
     await expect(this.createFormButton).toHaveCount(count);
     await expect(this.createKanbanButton).toHaveCount(count);
+
+    await this.openDeveloperTab({});
+    await expect(this.erdButton).toHaveCount(1);
+    await expect(this.apiSnippet).toHaveCount(1);
+    await expect(this.webhookButton).toHaveCount(count);
   }
 
   async openDeveloperTab({ option }: { option?: string }) {

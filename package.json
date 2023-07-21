@@ -54,5 +54,10 @@
     "mysql2": "^2.3.3",
     "pg": "^8.7.3",
     "sqlite3": "^5.1.6"
+  },
+  "pnpm": {
+    "overrides": {
+      "vue": "latest"
+    }
   }
 }

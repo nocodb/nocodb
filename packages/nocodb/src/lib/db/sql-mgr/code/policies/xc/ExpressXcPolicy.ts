@@ -59,7 +59,7 @@ class ExpressXcMiddleware extends BaseRender {
       ? args.relations.filter((r) => r.rtn === args.tn)
       : [];
     if (hmRelations.length > 1)
-      hmRelations = uniqBy(hmRelations, function (e) {
+      hmRelations = uniqBy(hmRelations, function (e: any) {
         return [e.tn, e.rtn].join();
       });
     for (let i = 0; i < hmRelations.length; ++i) {
@@ -85,7 +85,7 @@ class ExpressXcMiddleware extends BaseRender {
       ? args.relations.filter((r) => r.tn === args.tn)
       : [];
     if (btRelations.length > 1)
-      btRelations = uniqBy(btRelations, function (e) {
+      btRelations = uniqBy(btRelations, function (e: any) {
         return [e.tn, e.rtn].join();
       });
     for (let i = 0; i < btRelations.length; ++i) {

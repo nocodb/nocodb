@@ -45,12 +45,17 @@
     "run": "ts-node src/run/docker",
     "watch:try": "nodemon -e ts,js -w ./src -x \"ts-node src/run/try --log-error --project tsconfig.json\"",
     "example:docker": "ts-node src/run/docker.ts",
-    "redoc": "nodemon -e ts,json -w ./src/schema -x \"ts-node src/run/redoc --log-error --project tsconfig.json\""
+    "redoc": "nodemon -e ts,json -w ./src/schema -x \"ts-node src/run/redoc --log-error --project tsconfig.json\"",
+    "typeorm": "node --require ts-node/register ./node_modules/typeorm/cli.js",
+    "migrate:run": "yarn run typeorm migration:run",
+    "migrate:revert": "yarn run typeorm migration:revert",
+    "migrate:generate": "yarn run typeorm migration:generate -n"
   },
   "engines": {
     "node": ">=8.9"
   },
   "dependencies": {
+    "@deep-consulting-solutions/incident-handling": "^0.0.25",
     "@deep-consulting-solutions/nc-lib-gui": "0.0.4",
     "@google-cloud/storage": "^5.7.2",
     "@graphql-tools/merge": "^6.0.12",
@@ -138,6 +143,7 @@
     "tedious": "^15.0.0",
     "tinycolor2": "^1.4.2",
     "twilio": "^3.55.1",
+    "typeorm": "v0.2.x",
     "unique-names-generator": "^4.3.1",
     "uuid": "^8.2.0",
     "validator": "^13.1.1",

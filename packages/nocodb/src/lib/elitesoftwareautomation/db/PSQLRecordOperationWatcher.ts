@@ -1,20 +1,21 @@
-import Connection from "mysql2/typings/mysql/lib/Connection";
-import { Base, Hook, Model, Project } from "../../models";
-import { XKnex } from "../../db/sql-data-mapper";
-import { merge, isEqual, pick } from "lodash";
-import EventEmitter from "events";
-import { MetaTable } from "../../utils/globals";
-import type NcMetaIO from "../../meta/NcMetaIO";
-import NcConnectionMgrv2 from "../../utils/common/NcConnectionMgrv2";
-import { HookType } from "nocodb-sdk";
-import getAst from "../../db/sql-data-mapper/lib/sql/helpers/getAst";
+import EventEmitter from 'events';
+import { isEqual, merge, pick } from 'lodash';
 import { nocoExecute } from 'nc-help';
-import { sanitize } from "../../db/sql-data-mapper/lib/sql/helpers/sanitize";
-import { invokeWebhook } from "../../meta/helpers/webhookHelpers";
+import { Hook, Model, Project } from '../../models';
+import { XKnex } from '../../db/sql-data-mapper';
+import { MetaTable } from '../../utils/globals';
+import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
+import getAst from '../../db/sql-data-mapper/lib/sql/helpers/getAst';
+import { sanitize } from '../../db/sql-data-mapper/lib/sql/helpers/sanitize';
+import { invokeWebhook } from '../../meta/helpers/webhookHelpers';
+import type NcMetaIO from '../../meta/NcMetaIO';
+import type { HookType } from 'nocodb-sdk';
+import type { Base } from '../../models';
+import type Connection from 'mysql2/typings/mysql/lib/Connection';
 
 export type PSQLRecordOperationEvent = {
   base: Base;
-  operation: 'delete' | 'create' | 'update',
+  operation: 'delete' | 'create' | 'update';
   model: Model;
   oldData: Record<string, any>;
   newData: Record<string, any>;
@@ -24,7 +25,7 @@ type IBaseData = {
   base: Base;
   models: Model[];
   knex: XKnex;
-  connectionOptions: {[k: string]: any; database: string;};
+  connectionOptions: { [k: string]: any; database: string };
   throttleTaskId?: ReturnType<typeof setTimeout> | null;
 };
 
@@ -45,31 +46,48 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
   // NOTE: the objects stored here are used for compare by reference in various parts of the program
   private readonly allBaseData: Map<string, IBaseData> = new Map();
 
-  constructor(private ncMeta: NcMetaIO){
+  constructor(private ncMeta: NcMetaIO) {
     super();
   }
 
-  private log(message: string, extraData?: any, level: 'log'|'error'|'warn'|'info' = 'log'){
-    console[level](`${PSQLRecordOperationWatcher.name} : ${message}`,extraData);
+  private log(
+    message: string,
+    extraData?: any,
+    level: 'log' | 'error' | 'warn' | 'info' = 'log'
+  ) {
+    console[level](
+      `${PSQLRecordOperationWatcher.name} : ${message}`,
+      extraData
+    );
   }
 
-  private throttleAndConsumeNotifications(baseData: IBaseData, delayMillis?: number){
-    if(baseData.throttleTaskId != undefined) return;
+  private throttleAndConsumeNotifications(
+    baseData: IBaseData,
+    delayMillis?: number
+  ) {
+    if (baseData.throttleTaskId != undefined) return;
 
-    baseData.throttleTaskId = setTimeout(()=>{
+    baseData.throttleTaskId = setTimeout(() => {
       this.consumeNotifications(baseData);
     }, delayMillis || this.throttleDelayMillis);
   }
 
-  private async convertDBDataToModelData( baseData: IBaseData, model: Model, dbData: Record<string, any> ){
+  private async convertDBDataToModelData(
+    baseData: IBaseData,
+    model: Model,
+    dbData: Record<string, any>
+  ) {
     const columns = await model.getColumns();
 
-    let modelData = columns.reduce( (modelData, column ) => ({
-      ...modelData,
-      [sanitize(column.title || column.column_name)]: sanitize(
-        dbData[column.column_name]
-      ),
-    }), {} as Record<string, any> );
+    let modelData = columns.reduce(
+      (modelData, column) => ({
+        ...modelData,
+        [sanitize(column.title || column.column_name)]: sanitize(
+          dbData[column.column_name]
+        ),
+      }),
+      {} as Record<string, any>
+    );
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
@@ -88,15 +106,20 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
   }
 
   // should be called by throttle task
-  private async consumeNotifications (baseData: IBaseData, forDestroy = false){
-    const notificationsTableName = this.createSqlIdentifier(baseData, 'notifications_table');
+  private async consumeNotifications(baseData: IBaseData, forDestroy = false) {
+    const notificationsTableName = this.createSqlIdentifier(
+      baseData,
+      'notifications_table'
+    );
 
     const perPage = this.consumptionBatchCount;
 
-    const countResult = await baseData.knex(notificationsTableName).count({count: '*'});
+    const countResult = await baseData
+      .knex(notificationsTableName)
+      .count({ count: '*' });
     const numOfRows = +countResult[0]?.count || 0;
 
-    if( numOfRows <= perPage ){
+    if (numOfRows <= perPage) {
       baseData.throttleTaskId = null;
     }
 
@@ -108,50 +131,70 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
       oldData?: Record<string, any> | null;
       newData?: Record<string, any> | null;
       numOfRows: number;
-    }[] = await baseData.knex(notificationsTableName)
-      .whereIn('id', baseData.knex(notificationsTableName).select('id').limit(perPage))
+    }[] = await baseData
+      .knex(notificationsTableName)
+      .whereIn(
+        'id',
+        baseData.knex(notificationsTableName).select('id').limit(perPage)
+      )
       .returning('*')
       .delete();
 
-    if(notifications.length){
-      this.log('consuming notifications : ', notifications.map(notification => pick(notification, ['nocodbModelId'])));
+    if (notifications.length) {
+      this.log(
+        'consuming notifications : ',
+        notifications.map((notification) =>
+          pick(notification, ['nocodbModelId'])
+        )
+      );
     }
 
-    if( numOfRows > perPage ){
+    if (numOfRows > perPage) {
       const consumeNotificationsPromise = this.consumeNotifications(baseData);
-      if(forDestroy) await consumeNotificationsPromise;
+      if (forDestroy) await consumeNotificationsPromise;
     }
 
     await Promise.all(
-      notifications.map( async ({
-        nocodbModelId,
-        operation,
-        oldData: oldDBData,
-        newData: newDBData,
-      }) => {
-        const model = baseData.models.find( model => model.id === nocodbModelId );
-        if(!model) {
-          // TODO: Log this error
-          return;
+      notifications.map(
+        async ({
+          nocodbModelId,
+          operation,
+          oldData: oldDBData,
+          newData: newDBData,
+        }) => {
+          const model = baseData.models.find(
+            (model) => model.id === nocodbModelId
+          );
+          if (!model) {
+            // TODO: Log this error
+            return;
+          }
+
+          const oldData = oldDBData
+            ? await this.convertDBDataToModelData(baseData, model, oldDBData)
+            : oldDBData;
+          const newData = newDBData
+            ? await this.convertDBDataToModelData(baseData, model, newDBData)
+            : newDBData;
+
+          const eventData: PSQLRecordOperationEvent = {
+            base: baseData.base,
+            oldData,
+            newData,
+            operation: operation as PSQLRecordOperationEvent['operation'],
+            model,
+          };
+
+          this.emit(this.recordOperationEventType, eventData);
         }
-        
-        const oldData = oldDBData ? await this.convertDBDataToModelData(baseData, model,oldDBData) : oldDBData;
-        const newData = newDBData ? await this.convertDBDataToModelData(baseData, model,newDBData) : newDBData;
-
-        const eventData: PSQLRecordOperationEvent = {
-          base: baseData.base,
-          oldData,
-          newData,
-          operation: operation as PSQLRecordOperationEvent['operation'],
-          model,
-        };
-
-        this.emit(this.recordOperationEventType, eventData);
-      })
+      )
     );
   }
 
-  private async registerListeners ( baseDataForRef: IBaseData, connection: Connection ) {
+  private async registerListeners(
+    baseDataForRef: IBaseData,
+    connection: Connection
+  ) {
     let rewatchHandled = false;
 
     const notificationChannel = this.getSqlNotificationChannel(baseDataForRef);
@@ -160,32 +203,33 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
     await connection.query(listeningQuery);
 
     connection.on('notification', (data: ISQLNotificationData) => {
-      const notificationChannel = this.getSqlNotificationChannel(baseDataForRef);
+      const notificationChannel =
+        this.getSqlNotificationChannel(baseDataForRef);
 
-      const {channel } = data;
+      const { channel } = data;
 
-      if( channel !== notificationChannel) return;
-  
+      if (channel !== notificationChannel) return;
+
       // get the current baseData, it might be different from what was used in last notification because it was updated in the bases map
       const baseData = this.allBaseData.get(baseDataForRef.base.id);
-  
-      if( !baseData ) return;
-  
-      // if not equal by reference, then do nothing. the baseData object that registered this listener has been replaced. Maybe the connection notification 
+
+      if (!baseData) return;
+
+      // if not equal by reference, then do nothing. the baseData object that registered this listener has been replaced. Maybe the connection notification
       // event still fired because the connection object is just starting to be destroyed
-      if( baseData !== baseDataForRef) return;
-  
+      if (baseData !== baseDataForRef) return;
+
       this.throttleAndConsumeNotifications(baseData);
     });
 
     const endListener = () => {
-      if(rewatchHandled) return;
+      if (rewatchHandled) return;
       rewatchHandled = true;
       const rewatch = () => {
         const baseData = this.allBaseData.get(baseDataForRef.base.id);
-      
+
         // if not equal by reference, then do nothing. the baseData object that registered this listener has been replaced.
-        if( baseData !== baseDataForRef ) return;
+        if (baseData !== baseDataForRef) return;
 
         this._watchBaseInternal(baseData.base, true).catch(() => {
           // TODO: Log this sensitive error and report as incident, this could cause events to be missed
@@ -200,24 +244,29 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
 
     connection.on('end', endListener);
     connection.on('error', endListener);
-  };
+  }
 
-  private getSqlNotificationChannel (baseData: IBaseData) {
+  private getSqlNotificationChannel(baseData: IBaseData) {
     return this.createSqlIdentifier(baseData, 'notification_channel');
   }
 
-  private createSqlIdentifierPrefix ( baseData: IBaseData) {
+  private createSqlIdentifierPrefix(baseData: IBaseData) {
     return `esa_nocodb__${baseData.connectionOptions.database}`.toLowerCase();
-  };
+  }
 
-  private createSqlIdentifier ( baseData: IBaseData, suffix: string,) {
-    return `${this.createSqlIdentifierPrefix(baseData)}__${suffix}`.toLowerCase();
-  };
+  private createSqlIdentifier(baseData: IBaseData, suffix: string) {
+    return `${this.createSqlIdentifierPrefix(
+      baseData
+    )}__${suffix}`.toLowerCase();
+  }
 
-  private async setupSQLResources (baseData: IBaseData, models: Model[]) {
+  private async setupSQLResources(baseData: IBaseData, models: Model[]) {
     const notificationChannel = this.getSqlNotificationChannel(baseData);
 
-    const notificationsTableName = this.createSqlIdentifier(baseData, 'notifications_table');
+    const notificationsTableName = this.createSqlIdentifier(
+      baseData,
+      'notifications_table'
+    );
 
     const notificationsTableCreateQuery = `
     CREATE TABLE IF NOT EXISTS "${notificationsTableName}" ( "id" SERIAL PRIMARY KEY, "operation" VARCHAR(20) NOT NULL, "nocodbModelId" VARCHAR(30) NOT NULL, "oldData" JSONB, "newData" JSONB, "createdAt" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP );
@@ -251,8 +300,11 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
     `;
     await baseData.knex.raw(procedureQuery);
 
-    for( const {id: modelId, table_name: tableName} of models){
-      const triggerName = this.createSqlIdentifier(baseData, `${tableName}__trigger`);
+    for (const { id: modelId, table_name: tableName } of models) {
+      const triggerName = this.createSqlIdentifier(
+        baseData,
+        `${tableName}__trigger`
+      );
 
       // postgressql does not have "create or replace" statement for function, hence that can be suffixed by first dropping it
       const dropTriggerQuery = `DROP TRIGGER IF EXISTS "${triggerName}" on "${tableName}"`;
@@ -270,14 +322,23 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
     }
   }
 
-  private async disposeSQLResourcesForModel (baseData: IBaseData, {table_name: tableName}: Model) {
-    const oldTriggerName = this.createSqlIdentifier(baseData, `${tableName}__trigger`);
+  private async disposeSQLResourcesForModel(
+    baseData: IBaseData,
+    { table_name: tableName }: Model
+  ) {
+    const oldTriggerName = this.createSqlIdentifier(
+      baseData,
+      `${tableName}__trigger`
+    );
     const dropOldTriggerQuery = `DROP TRIGGER IF EXISTS ${oldTriggerName} on ${tableName}`;
     await baseData.knex.raw(dropOldTriggerQuery);
   }
 
-  private async disposeSQLResources (baseData: IBaseData) {
-    const notificationsTableName = this.createSqlIdentifier(baseData, 'notifications_table');
+  private async disposeSQLResources(baseData: IBaseData) {
+    const notificationsTableName = this.createSqlIdentifier(
+      baseData,
+      'notifications_table'
+    );
     const notificationsTableCreateQuery = `
     DROP TABLE IF EXISTS "${notificationsTableName}";
     `;
@@ -287,57 +348,59 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
     const oldProcedureQuery = `DROP FUNCTION IF EXISTS ${oldProcedureName}`;
     await baseData.knex.raw(oldProcedureQuery);
 
-    for(const model of baseData.models){
+    for (const model of baseData.models) {
       await this.disposeSQLResourcesForModel(baseData, model);
     }
   }
 
   /**
    * should be called when a base is created OR when tables are created, updated or delete in a base.
-   * @param base 
+   * @param base
    */
-  async watchBase( base: Base ){
+  async watchBase(base: Base) {
     return this._watchBaseInternal(base, false);
   }
 
-  private async _watchBaseInternal( base: Base, rewatch: boolean ){
-    if(!base.id){
+  private async _watchBaseInternal(base: Base, rewatch: boolean) {
+    if (!base.id) {
       // TODO: Log this error and report as incident
       return;
     }
 
-    if( base.is_meta ){
+    if (base.is_meta) {
       return;
     }
 
     const foundModelData: Record<string, any>[] = await this.ncMeta.metaList2(
       base.project_id,
       base.id,
-      MetaTable.MODELS,
+      MetaTable.MODELS
     );
 
-    const models = foundModelData.map(foundModelDatum => new Model(foundModelDatum));
+    const models = foundModelData.map(
+      (foundModelDatum) => new Model(foundModelDatum)
+    );
 
     const obsoleteModels: Model[] = [];
-    
+
     let skippedModels: Model[] = [];
     let newModels: Model[] = [];
 
-    let baseData:IBaseData = this.allBaseData.get(base.id);
+    let baseData: IBaseData = this.allBaseData.get(base.id);
 
     const connectionOptions = (await base.getConnectionConfig()).connection;
 
-    const createNewBaseData = 
-      !baseData || 
+    const createNewBaseData =
+      !baseData ||
       // if connection options have changed which includes database name, port, host etc.
       !isEqual(connectionOptions, baseData.connectionOptions);
 
-    if(baseData && createNewBaseData){
+    if (baseData && createNewBaseData) {
       // will dispose all resources
       await this.unwatchBase(baseData.base);
     }
 
-    if(createNewBaseData){
+    if (createNewBaseData) {
       const knex = await this.createKnex(base);
       baseData = {
         base,
@@ -347,12 +410,15 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
       };
 
       newModels.push(...models);
-    }
-    else{
-      const modelIds = models.map(model => model.table_name);
-      obsoleteModels.push(...baseData.models.filter((model) => !modelIds.includes(model.id)));
-      const prevModelIds = baseData.models.map(model => model.id);
-      newModels.push(...models.filter((model) => !prevModelIds.includes(model.id)));
+    } else {
+      const modelIds = models.map((model) => model.table_name);
+      obsoleteModels.push(
+        ...baseData.models.filter((model) => !modelIds.includes(model.id))
+      );
+      const prevModelIds = baseData.models.map((model) => model.id);
+      newModels.push(
+        ...models.filter((model) => !prevModelIds.includes(model.id))
+      );
 
       baseData.base = base;
       baseData.models = models;
@@ -360,116 +426,160 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
 
     /**
      * WARNING: do not watch on table ( especially notification table ) created by this class to avoid exaustive loop of death because nocodb will also have a model for the table. If the model is
-     * watched( an sql trigger registered for it per se ), then a direct insert, update, delete action OR an insertion of notification event from trigger of other tables will cause a 
+     * watched( an sql trigger registered for it per se ), then a direct insert, update, delete action OR an insertion of notification event from trigger of other tables will cause a
      * notification event to be inserted again, which causes another insertion, hence an unending loop.
      */
-    [ newModels, skippedModels ] = newModels.reduce( (results,newModel) => {
-      results[ newModel.table_name.startsWith( this.createSqlIdentifierPrefix( baseData ) ) ? 1 : 0 ].push(newModel);
-      return results;
-    }, [[],[]] );
+    [newModels, skippedModels] = newModels.reduce(
+      (results, newModel) => {
+        results[
+          newModel.table_name.startsWith(
+            this.createSqlIdentifierPrefix(baseData)
+          )
+            ? 1
+            : 0
+        ].push(newModel);
+        return results;
+      },
+      [[], []]
+    );
 
-    const pickedFields = ['id', 'table_name','title'];
-    this.log(`watching base : ${base.id} , ${(await base.getConnectionConfig()).database} )`);
-    this.log(`watched models`, newModels.map(model => pick(model,pickedFields)));
-    this.log('skipped models', skippedModels.map(model => pick(model,pickedFields)));
-    this.log('obsolete models', obsoleteModels.map(model => pick(model,pickedFields)));
+    const pickedFields = ['id', 'table_name', 'title'];
+    this.log(
+      `watching base : ${base.id} , ${
+        (await base.getConnectionConfig()).database
+      } )`
+    );
+    this.log(
+      `watched models`,
+      newModels.map((model) => pick(model, pickedFields))
+    );
+    this.log(
+      'skipped models',
+      skippedModels.map((model) => pick(model, pickedFields))
+    );
+    this.log(
+      'obsolete models',
+      obsoleteModels.map((model) => pick(model, pickedFields))
+    );
 
     await this.setupSQLResources(baseData, newModels);
 
     void this.consumeNotifications(baseData);
 
-    if(createNewBaseData || rewatch){
+    if (createNewBaseData || rewatch) {
       const connection = await baseData.knex.client.acquireConnection();
 
       // start watching
       await this.registerListeners(baseData, connection);
     }
 
-    await Promise.all(obsoleteModels.map( obsoleteModel => this.disposeSQLResourcesForModel(baseData, obsoleteModel) ));
+    await Promise.all(
+      obsoleteModels.map((obsoleteModel) =>
+        this.disposeSQLResourcesForModel(baseData, obsoleteModel)
+      )
+    );
 
     this.allBaseData.set(base.id, baseData);
   }
 
-  async unwatchBase( base: Base){
+  async unwatchBase(base: Base) {
     const baseData = this.allBaseData.get(base.id);
-    if(baseData){
-      try{
-        if(baseData.throttleTaskId != undefined) {
+    if (baseData) {
+      try {
+        if (baseData.throttleTaskId != undefined) {
           clearTimeout(baseData.throttleTaskId);
           baseData.throttleTaskId = null;
         }
 
-        try{
+        try {
           await this.consumeNotifications(baseData, true);
-        }
-        catch{};
+        } catch {}
 
         // delete first before destroying all connections, so that a rewatch wont be attempted if connection.end event is fired
         this.allBaseData.delete(base.id);
         await this.disposeSQLResources(baseData);
-      }
-      finally{
+      } finally {
         await baseData.knex.destroy();
       }
     }
   }
 
-  async watchAllBases () {
+  async watchAllBases() {
     const projects = await Project.list({});
-    const bases = (await Promise.all(projects.map(project => project.getBases()))).flat();
-    const baseIds = bases.map( base => base.id );
+    const bases = (
+      await Promise.all(projects.map((project) => project.getBases()))
+    ).flat();
+    const baseIds = bases.map((base) => base.id);
 
-    const allObsoleteBaseData = Array.from(this.allBaseData.values()).filter( baseData => !baseIds.includes( baseData.base.id ) );
+    const allObsoleteBaseData = Array.from(this.allBaseData.values()).filter(
+      (baseData) => !baseIds.includes(baseData.base.id)
+    );
 
-    for( const base of bases ){
+    for (const base of bases) {
       await this.watchBase(base);
     }
 
-    for( const obsoleteBaseData of allObsoleteBaseData ){
+    for (const obsoleteBaseData of allObsoleteBaseData) {
       await this.unwatchBase(obsoleteBaseData.base);
     }
-  };
+  }
 
   private async createKnex(base: Base): Promise<XKnex> {
     const connectionConfig = await base.getConnectionConfig();
     const options = merge(connectionConfig, {
       pool: {
-        min: 0, max: 3,
-      }
+        min: 0,
+        max: 3,
+      },
     });
     return XKnex(options);
   }
 
   static defaultInstance: PSQLRecordOperationWatcher;
-  static async watchForWebhook( ncMeta: NcMetaIO ){
+  static async watchForWebhook(ncMeta: NcMetaIO) {
     const recordOperationWatcher = new PSQLRecordOperationWatcher(ncMeta);
     PSQLRecordOperationWatcher.defaultInstance = recordOperationWatcher;
 
-    recordOperationWatcher.on(recordOperationWatcher.recordOperationEventType, async ({model, operation, oldData, newData}: PSQLRecordOperationEvent)=>{
-      const theOperation = operation as HookType['operation'];
-      const event = 'after';
+    recordOperationWatcher.on(
+      recordOperationWatcher.recordOperationEventType,
+      async ({
+        model,
+        operation,
+        oldData,
+        newData,
+      }: PSQLRecordOperationEvent) => {
+        const theOperation = operation as HookType['operation'];
+        const event = 'after';
 
-      if( theOperation === 'delete' ){
-        newData = oldData;
-        oldData = null;
-      }
-
-      try {
-        const hooks = await Hook.list({
-          fk_model_id: model.id,
-          event,
-          operation: theOperation,
-        });
-        for (const hook of hooks) {
-          if (hook.active) {
-            invokeWebhook(hook, model, undefined, oldData, newData, undefined);
-          }
+        if (theOperation === 'delete') {
+          newData = oldData;
+          oldData = null;
         }
-      } catch (e) {
-        const hookName = `${event}.${operation}`;
-        console.log('PSQLRecordEvent : hooks :: error', hookName, e);
+
+        try {
+          const hooks = await Hook.list({
+            fk_model_id: model.id,
+            event,
+            operation: theOperation,
+          });
+          for (const hook of hooks) {
+            if (hook.active) {
+              invokeWebhook(
+                hook,
+                model,
+                undefined,
+                oldData,
+                newData,
+                undefined
+              );
+            }
+          }
+        } catch (e) {
+          const hookName = `${event}.${operation}`;
+          console.log('PSQLRecordEvent : hooks :: error', hookName, e);
+        }
       }
-    });
+    );
 
     await recordOperationWatcher.watchAllBases();
   }

@@ -610,14 +610,15 @@ export async function extractColumn({
   return result;
 }
 
-function getUniquePaceholders(
-  searchString: string,
+// generate a unique placeholder which is not present in the string
+function getUniquePlaceholders(
+  searchWithin: string,
   initialVal = '__nc_placeholder__',
 ) {
   let placeholder = initialVal;
   let i = 0;
-  while (searchString.includes(placeholder)) {
-    placeholder = placeholder + ++i;
+  while (searchWithin.includes(placeholder)) {
+    placeholder = initialVal + ++i;
   }
   return placeholder;
 }
@@ -747,7 +748,7 @@ export async function readByPk(ctx: {
     const { sql, bindings } = finalQb.toSQL();
 
     // get unique placeholder which is not present in the query
-    const idPlaceholder = getUniquePaceholders(finalQb.toQuery());
+    const idPlaceholder = getUniquePlaceholders(finalQb.toQuery());
 
     // bind all params and replace id  with placeholders
     // and in generated sql replace placeholders with bindings
@@ -928,7 +929,7 @@ export async function getListData(ctx: {
     const { sql, bindings } = finalQb.toSQL();
 
     // get unique placeholder for limit and offset which is not present in query
-    const placeholder = getUniquePaceholders(finalQb.toQuery());
+    const placeholder = getUniquePlaceholders(finalQb.toQuery());
 
     // bind all params and replace limit and offset with placeholders
     // and in generated sql replace placeholders with bindings

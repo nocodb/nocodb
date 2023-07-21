@@ -45,7 +45,8 @@ const loadCollaborators = async () => {
       ...users.map((user: any) => ({
         ...user,
         projectRoles: user.roles,
-        roles: user.roles ?? user.workspace_roles,
+        // TODO: Remove this hack and make the values consistent with the backend
+        roles: user.roles ?? (rolesLabel[user.workspace_roles] as string).toLowerCase(),
       })),
     ]
   } catch (e: any) {

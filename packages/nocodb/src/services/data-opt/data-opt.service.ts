@@ -14,7 +14,7 @@ import sortV2 from '~/db/sortV2';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
-import { extractColumns } from '~/services/data-opt.service/helpers';
+import { extractColumns } from '~/services/data-opt/helpers';
 import getAst from '~/helpers/getAst';
 
 @Injectable()
@@ -78,7 +78,7 @@ export class DataOptService {
     const baseModel = await Model.getBaseModelSQL({
       id: ctx.model.id,
       viewId: ctx.view?.id,
-      dbDriver: await NcConnectionMgrv2.get(ctx.base),
+      dbDriver: knex,
     });
 
     // load columns list
@@ -276,7 +276,7 @@ export class DataOptService {
     const baseModel = await Model.getBaseModelSQL({
       id: ctx.model.id,
       viewId: ctx.view?.id,
-      dbDriver: await NcConnectionMgrv2.get(ctx.base),
+      dbDriver: knex,
     });
 
     // load columns list

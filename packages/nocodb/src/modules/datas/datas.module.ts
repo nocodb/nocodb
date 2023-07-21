@@ -16,7 +16,7 @@ import { DataAliasNestedService } from '../../services/data-alias-nested.service
 import { OldDatasService } from '../../controllers/old-datas/old-datas.service';
 import { PublicDatasExportService } from '../../services/public-datas-export.service';
 import { PublicDatasService } from '../../services/public-datas.service';
-import { DataOptService } from '~/services/data-opt.service/data-opt.service';
+import { DataOptService } from '~/services/data-opt/data-opt.service';
 
 @Module({
   imports: [

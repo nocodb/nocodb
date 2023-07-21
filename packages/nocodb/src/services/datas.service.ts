@@ -16,7 +16,7 @@ import {
 import type { BaseModelSqlv2 } from '../db/BaseModelSqlv2';
 import type { PathParams } from '../modules/datas/helpers';
 import type { LinkToAnotherRecordColumn, LookupColumn } from '../models';
-import { DataOptService } from '~/services/data-opt.service/data-opt.service';
+import { DataOptService } from '~/services/data-opt/data-opt.service';
 
 @Injectable()
 export class DatasService {

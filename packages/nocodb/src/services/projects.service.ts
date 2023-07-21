@@ -1,11 +1,11 @@
-import {promisify} from 'util';
-import {Injectable} from '@nestjs/common';
+import { promisify } from 'util';
+import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
-import {customAlphabet} from 'nanoid';
-import {AppEvents, OrgUserRoles} from 'nocodb-sdk';
-import {populateMeta, validatePayload} from '../helpers';
-import {NcError} from '../helpers/catchError';
-import {extractPropsAndSanitize} from '../helpers/extractProps';
+import { customAlphabet } from 'nanoid';
+import { AppEvents, OrgUserRoles } from 'nocodb-sdk';
+import { populateMeta, validatePayload } from '../helpers';
+import { NcError } from '../helpers/catchError';
+import { extractPropsAndSanitize } from '../helpers/extractProps';
 import syncMigration from '../helpers/syncMigration';
 import {
   DashboardProjectDBProject,
@@ -15,16 +15,16 @@ import {
 } from '../models';
 import Noco from '../Noco';
 import extractRolesObj from '../utils/extractRolesObj';
-import {getToolDir} from '../utils/nc-config';
+import { getToolDir } from '../utils/nc-config';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import {AppHooksService} from './app-hooks/app-hooks.service';
+import { MetaService } from '../meta/meta.service';
+import { MetaTable } from '../utils/globals';
+import { AppHooksService } from './app-hooks/app-hooks.service';
 import type {
   ProjectReqType,
   ProjectUpdateReqType,
   UserType,
 } from 'nocodb-sdk';
-import {MetaService} from "../meta/meta.service";
-import {MetaTable} from "../utils/globals";
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -72,10 +72,10 @@ const validateUserHasReadPermissionsForLinkedDbProjects = async (
 
 @Injectable()
 export class ProjectsService {
-  constructor(private readonly appHooksService: AppHooksService,
-              private metaService: MetaService,
-  ) {
-  }
+  constructor(
+    private readonly appHooksService: AppHooksService,
+    private metaService: MetaService,
+  ) {}
 
   async projectList(param: {
     user: { id: string; roles: Record<string, boolean> };
@@ -96,7 +96,7 @@ export class ProjectsService {
   }
 
   sanitizeProject(project: any) {
-    const sanitizedProject = {...project};
+    const sanitizedProject = { ...project };
     sanitizedProject.bases?.forEach((b: any) => {
       ['config'].forEach((k) => delete b[k]);
     });

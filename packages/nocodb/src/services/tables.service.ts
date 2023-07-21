@@ -1,12 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
-import {
-  isLinksOrLTAR,
-  isVirtualCol,
-  ModelTypes,
-  UITypes,
-} from 'nocodb-sdk';
-import { AppEvents, } from 'nocodb-sdk';
+import { isLinksOrLTAR, isVirtualCol, ModelTypes, UITypes } from 'nocodb-sdk';
+import { AppEvents } from 'nocodb-sdk';
 import { T } from 'nc-help';
 import { Configuration, OpenAIApi } from 'openai';
 import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';

@@ -1,15 +1,11 @@
 // import ses from '../../v1-legacy/plugins/ses';
-import type {Knex} from 'knex';
-import {MetaTable} from "../../meta.service";
+import { MetaTable } from '../../meta.service';
+import type { Knex } from 'knex';
 
 const up = async (knex: Knex) => {
-
-
   await knex.schema.dropTable(MetaTable.TEAM_USERS);
 
-
   await knex.schema.dropTable(MetaTable.TEAMS);
-
 
   await knex.schema.dropTable(MetaTable.ORGS);
 };
@@ -40,4 +36,4 @@ const down = async (knex: Knex) => {
   });
 };
 
-export {up, down};
+export { up, down };

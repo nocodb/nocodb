@@ -94,7 +94,8 @@ export default class GalleryViewColumn {
     {
       const view = await View.get(column.fk_view_id, ncMeta);
       await NocoCache.delAll(
-        CacheScope.SINGLE_QUERY, `${view.fk_model_id}:${view.id}:*`,
+        CacheScope.SINGLE_QUERY,
+        `${view.fk_model_id}:${view.id}:*`,
       );
     }
 

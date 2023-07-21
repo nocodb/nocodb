@@ -23,9 +23,9 @@ import {
 } from '../../services/users/helpers';
 import { UsersService } from '../../services/users/users.service';
 import extractRolesObj from '../../utils/extractRolesObj';
-import type { AppConfig } from '../../interface/config';
 import NocoCache from '../../cache/NocoCache';
 import { CacheGetType } from '../../utils/globals';
+import type { AppConfig } from '../../interface/config';
 
 @Controller()
 export class UsersController {

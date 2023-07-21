@@ -117,13 +117,12 @@ export default class GridViewColumn implements GridColumnType {
 
     // on new view column, delete any optimised single query cache
     {
-        const view = await View.get(column.fk_view_id, ncMeta);
+      const view = await View.get(column.fk_view_id, ncMeta);
       await NocoCache.delAll(
-        CacheScope.SINGLE_QUERY, `${view.fk_model_id}:${view.id}:*`,
-        );
-      }
-
-
+        CacheScope.SINGLE_QUERY,
+        `${view.fk_model_id}:${view.id}:*`,
+      );
+    }
 
     return this.get(id, ncMeta);
   }
@@ -144,7 +143,7 @@ export default class GridViewColumn implements GridColumnType {
       await NocoCache.set(key, o);
     }
     // set meta
-    const res= await ncMeta.metaUpdate(
+    const res = await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.GRID_VIEW_COLUMNS,
@@ -157,7 +156,8 @@ export default class GridViewColumn implements GridColumnType {
       const gridCol = await this.get(columnId, ncMeta);
       const view = await View.get(gridCol.fk_view_id, ncMeta);
       await NocoCache.delAll(
-        CacheScope.SINGLE_QUERY, `${view.fk_model_id}:${view.id}:*`,
+        CacheScope.SINGLE_QUERY,
+        `${view.fk_model_id}:${view.id}:*`,
       );
     }
 

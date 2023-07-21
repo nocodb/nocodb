@@ -46,7 +46,7 @@ export default async function sortV2(
               baseModelSqlv2,
               knex,
               columnOptions: (await column.getColOptions()) as RollupColumn,
-              alias
+              alias,
             })
           ).builder;
 

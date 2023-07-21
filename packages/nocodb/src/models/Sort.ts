@@ -39,7 +39,8 @@ export default class Sort {
     {
       const view = await View.get(viewId, ncMeta);
       await NocoCache.delAll(
-        CacheScope.SINGLE_QUERY, `${view.fk_model_id}:${view.id}:*`,
+        CacheScope.SINGLE_QUERY,
+        `${view.fk_model_id}:${view.id}:*`,
       );
     }
   }
@@ -113,7 +114,8 @@ export default class Sort {
     {
       const view = await View.get(row.fk_view_id, ncMeta);
       await NocoCache.delAll(
-        CacheScope.SINGLE_QUERY, `${view.fk_model_id}:${view.id}:*`,
+        CacheScope.SINGLE_QUERY,
+        `${view.fk_model_id}:${view.id}:*`,
       );
     }
 
@@ -180,7 +182,8 @@ export default class Sort {
       const sort = await this.get(sortId, ncMeta);
       const view = await View.get(sort.fk_view_id, ncMeta);
       await NocoCache.delAll(
-        CacheScope.SINGLE_QUERY, `${view.fk_model_id}:${view.id}:*`,
+        CacheScope.SINGLE_QUERY,
+        `${view.fk_model_id}:${view.id}:*`,
       );
     }
 
@@ -200,7 +203,8 @@ export default class Sort {
     if (sort?.fk_view_id) {
       const view = await View.get(sort.fk_view_id, ncMeta);
       await NocoCache.delAll(
-        CacheScope.SINGLE_QUERY, `${view.fk_model_id}:${view.id}:*`,
+        CacheScope.SINGLE_QUERY,
+        `${view.fk_model_id}:${view.id}:*`,
       );
     }
   }

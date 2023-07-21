@@ -16,7 +16,6 @@ server.set('view engine', 'ejs');
 
 process.env[`DEBUG`] = 'xc*';
 
-
 // (async () => {
 //   await nocobuild(server);
 //   const httpServer = server.listen(process.env.PORT || 8080, async () => {

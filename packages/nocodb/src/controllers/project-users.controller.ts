@@ -41,7 +41,6 @@ export class ProjectUsersController {
     @Request() req,
     @Body() body: ProjectUserReqType,
   ): Promise<any> {
-
     // todo: move this to a service
     if (!body.email) {
       NcError.badRequest('Email is required');

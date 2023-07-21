@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
-  isLinksOrLTAR,
   AppEvents,
+  isLinksOrLTAR,
   isVirtualCol,
   ModelTypes,
   RelationTypes,

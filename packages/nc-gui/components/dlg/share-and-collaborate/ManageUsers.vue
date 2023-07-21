@@ -28,6 +28,7 @@ const loadListData = async ($state: any) => {
     return
   }
   $state.loading()
+  //
   // const oldPagesCount = currentPage.value || 0
 
   await loadUsers()

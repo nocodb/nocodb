@@ -1,7 +1,7 @@
 import { createConnection } from 'typeorm';
 import type { Connection } from 'typeorm';
 
-const ormConfig = require('../ormConfig');
+const ormConfig = require('./database/ormConfig');
 
 export const createDatabaseConnection = async (): Promise<Connection> => {
   return createConnection(ormConfig);

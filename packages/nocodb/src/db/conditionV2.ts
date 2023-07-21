@@ -52,12 +52,6 @@ const parseConditionV2 = async (
 ) => {
   const knex = baseModelSqlv2.dbDriver;
 
-  const schema = baseModelSqlv2.schema;
-
-  function getTnPath(tn: string) {
-    return `${schema ? `${schema}.${tn}` : tn}`;
-  }
-
   let filter: Filter;
   if (!Array.isArray(_filter)) {
     if (!(_filter instanceof Filter)) filter = new Filter(_filter as Filter);
@@ -120,12 +114,14 @@ const parseConditionV2 = async (
             }
           }
 
-          const selectHmCount = knex(getTnPath(childModel.table_name))
+          const selectHmCount = knex(
+            baseModelSqlv2.getTnPath(childModel.table_name),
+          )
             .count(childColumn.column_name)
             .where(
               childColumn.column_name,
               knex.raw('??.??', [
-                alias || getTnPath(parentModel.table_name),
+                alias || baseModelSqlv2.getTnPath(parentModel.table_name),
                 parentColumn.column_name,
               ]),
             );
@@ -138,9 +134,9 @@ const parseConditionV2 = async (
             }
           };
         }
-        const selectQb = knex(getTnPath(childModel.table_name)).select(
-          childColumn.column_name,
-        );
+        const selectQb = knex(
+          baseModelSqlv2.getTnPath(childModel.table_name),
+        ).select(childColumn.column_name);
         (
           await parseConditionV2(
             baseModelSqlv2,
@@ -176,12 +172,14 @@ const parseConditionV2 = async (
             }
           }
 
-          const selectBtCount = knex(getTnPath(parentModel.table_name))
+          const selectBtCount = knex(
+            baseModelSqlv2.getTnPath(parentModel.table_name),
+          )
             .count(parentColumn.column_name)
             .where(
               parentColumn.column_name,
               knex.raw('??.??', [
-                alias || getTnPath(childModel.table_name),
+                alias || baseModelSqlv2.getTnPath(childModel.table_name),
                 childColumn.column_name,
               ]),
             );
@@ -195,9 +193,9 @@ const parseConditionV2 = async (
           };
         }
 
-        const selectQb = knex(getTnPath(parentModel.table_name)).select(
-          parentColumn.column_name,
-        );
+        const selectQb = knex(
+          baseModelSqlv2.getTnPath(parentModel.table_name),
+        ).select(parentColumn.column_name);
         (
           await parseConditionV2(
             baseModelSqlv2,
@@ -237,12 +235,14 @@ const parseConditionV2 = async (
             }
           }
 
-          const selectMmCount = knex(getTnPath(mmModel.table_name))
+          const selectMmCount = knex(
+            baseModelSqlv2.getTnPath(mmModel.table_name),
+          )
             .count(mmChildColumn.column_name)
             .where(
               mmChildColumn.column_name,
               knex.raw('??.??', [
-                alias || getTnPath(childModel.table_name),
+                alias || baseModelSqlv2.getTnPath(childModel.table_name),
                 childColumn.column_name,
               ]),
             );
@@ -256,12 +256,16 @@ const parseConditionV2 = async (
           };
         }
 
-        const selectQb = knex(getTnPath(mmModel.table_name))
+        const selectQb = knex(baseModelSqlv2.getTnPath(mmModel.table_name))
           .select(mmChildColumn.column_name)
           .join(
-            getTnPath(parentModel.table_name),
-            `${getTnPath(mmModel.table_name)}.${mmParentColumn.column_name}`,
-            `${getTnPath(parentModel.table_name)}.${parentColumn.column_name}`,
+            baseModelSqlv2.getTnPath(parentModel.table_name),
+            `${baseModelSqlv2.getTnPath(mmModel.table_name)}.${
+              mmParentColumn.column_name
+            }`,
+            `${baseModelSqlv2.getTnPath(parentModel.table_name)}.${
+              parentColumn.column_name
+            }`,
           );
 
         (
@@ -812,12 +816,6 @@ async function generateLookupCondition(
   knex,
   aliasCount = { count: 0 },
 ): Promise<any> {
-  const schema = baseModelSqlv2.schema;
-
-  function getTnPath(tn: string) {
-    return `${schema ? `${schema}.${tn}` : tn}`;
-  }
-
   const colOptions = await col.getColOptions<LookupColumn>();
   const relationColumn = await colOptions.getRelationColumn();
   const relationColumnOptions =
@@ -835,7 +833,9 @@ async function generateLookupCondition(
     await parentModel.getColumns();
 
     if (relationColumnOptions.type === RelationTypes.HAS_MANY) {
-      qb = knex(`${getTnPath(childModel.table_name)} as ${alias}`);
+      qb = knex(
+        `${baseModelSqlv2.getTnPath(childModel.table_name)} as ${alias}`,
+      );
 
       qb.select(`${alias}.${childColumn.column_name}`);
 
@@ -870,7 +870,9 @@ async function generateLookupCondition(
         else qbP.whereIn(parentColumn.column_name, qb);
       };
     } else if (relationColumnOptions.type === RelationTypes.BELONGS_TO) {
-      qb = knex(`${getTnPath(parentModel.table_name)} as ${alias}`);
+      qb = knex(
+        `${baseModelSqlv2.getTnPath(parentModel.table_name)} as ${alias}`,
+      );
       qb.select(`${alias}.${parentColumn.column_name}`);
 
       if (filter.comparison_op === 'blank') {
@@ -910,10 +912,12 @@ async function generateLookupCondition(
 
       const childAlias = `__nc${aliasCount.count++}`;
 
-      qb = knex(`${getTnPath(mmModel.table_name)} as ${alias}`)
+      qb = knex(`${baseModelSqlv2.getTnPath(mmModel.table_name)} as ${alias}`)
         .select(`${alias}.${mmChildColumn.column_name}`)
         .join(
-          `${getTnPath(parentModel.table_name)} as ${childAlias}`,
+          `${baseModelSqlv2.getTnPath(
+            parentModel.table_name,
+          )} as ${childAlias}`,
           `${alias}.${mmParentColumn.column_name}`,
           `${childAlias}.${parentColumn.column_name}`,
         );
@@ -961,12 +965,6 @@ async function nestedConditionJoin(
   alias: string,
   aliasCount: { count: number },
 ) {
-  const schema = baseModelSqlv2.schema;
-
-  function getTnPath(tn: string) {
-    return `${schema ? `${schema}.${tn}` : tn}`;
-  }
-
   if (
     lookupColumn.uidt === UITypes.Lookup ||
     lookupColumn.uidt === UITypes.LinkToAnotherRecord
@@ -992,7 +990,9 @@ async function nestedConditionJoin(
         case RelationTypes.HAS_MANY:
           {
             qb.join(
-              `${getTnPath(childModel.table_name)} as ${relAlias}`,
+              `${baseModelSqlv2.getTnPath(
+                childModel.table_name,
+              )} as ${relAlias}`,
               `${alias}.${parentColumn.column_name}`,
               `${relAlias}.${childColumn.column_name}`,
             );
@@ -1001,7 +1001,9 @@ async function nestedConditionJoin(
         case RelationTypes.BELONGS_TO:
           {
             qb.join(
-              `${getTnPath(parentModel.table_name)} as ${relAlias}`,
+              `${baseModelSqlv2.getTnPath(
+                parentModel.table_name,
+              )} as ${relAlias}`,
               `${alias}.${childColumn.column_name}`,
               `${relAlias}.${parentColumn.column_name}`,
             );
@@ -1016,11 +1018,15 @@ async function nestedConditionJoin(
             const assocAlias = `__nc${aliasCount.count++}`;
 
             qb.join(
-              `${getTnPath(mmModel.table_name)} as ${assocAlias}`,
+              `${baseModelSqlv2.getTnPath(
+                mmModel.table_name,
+              )} as ${assocAlias}`,
               `${assocAlias}.${mmChildColumn.column_name}`,
               `${alias}.${childColumn.column_name}`,
             ).join(
-              `${getTnPath(parentModel.table_name)} as ${relAlias}`,
+              `${baseModelSqlv2.getTnPath(
+                parentModel.table_name,
+              )} as ${relAlias}`,
               `${relAlias}.${parentColumn.column_name}`,
               `${assocAlias}.${mmParentColumn.column_name}`,
             );

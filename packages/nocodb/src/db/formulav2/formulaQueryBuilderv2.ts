@@ -61,11 +61,6 @@ async function _formulaQueryBuilder(
 ) {
   const knex = baseModelSqlv2.dbDriver;
 
-  const schema = baseModelSqlv2.schema;
-
-  function getTnPath(tn: string) {
-    return `${schema ? `${schema}.${tn}` : tn}`;
-  }
   // formula may include double curly brackets in previous version
   // convert to single curly bracket here for compatibility
   const tree = jsep(_tree.replaceAll('{{', '{').replaceAll('}}', '}'));
@@ -118,26 +113,32 @@ async function _formulaQueryBuilder(
             switch (relation.type) {
               case 'bt':
                 selectQb = knex(
-                  `${getTnPath(parentModel.table_name)} as ${alias}`,
+                  `${baseModelSqlv2.getTnPath(
+                    parentModel.table_name,
+                  )} as ${alias}`,
                 ).where(
                   `${alias}.${parentColumn.column_name}`,
                   knex.raw(`??`, [
-                    `${tableAlias ?? getTnPath(childModel.table_name)}.${
-                      childColumn.column_name
-                    }`,
+                    `${
+                      tableAlias ??
+                      baseModelSqlv2.getTnPath(childModel.table_name)
+                    }.${childColumn.column_name}`,
                   ]),
                 );
                 break;
               case 'hm':
                 isMany = true;
                 selectQb = knex(
-                  `${getTnPath(childModel.table_name)} as ${alias}`,
+                  `${baseModelSqlv2.getTnPath(
+                    childModel.table_name,
+                  )} as ${alias}`,
                 ).where(
                   `${alias}.${childColumn.column_name}`,
                   knex.raw(`??`, [
-                    `${tableAlias ?? getTnPath(parentModel.table_name)}.${
-                      parentColumn.column_name
-                    }`,
+                    `${
+                      tableAlias ??
+                      baseModelSqlv2.getTnPath(parentModel.table_name)
+                    }.${parentColumn.column_name}`,
                   ]),
                 );
                 break;
@@ -150,19 +151,24 @@ async function _formulaQueryBuilder(
 
                   const assocAlias = `__nc${aliasCount++}`;
                   selectQb = knex(
-                    `${getTnPath(parentModel.table_name)} as ${alias}`,
+                    `${baseModelSqlv2.getTnPath(
+                      parentModel.table_name,
+                    )} as ${alias}`,
                   )
                     .join(
-                      `${getTnPath(mmModel.table_name)} as ${assocAlias}`,
+                      `${baseModelSqlv2.getTnPath(
+                        mmModel.table_name,
+                      )} as ${assocAlias}`,
                       `${assocAlias}.${mmParentColumn.column_name}`,
                       `${alias}.${parentColumn.column_name}`,
                     )
                     .where(
                       `${assocAlias}.${mmChildColumn.column_name}`,
                       knex.raw(`??`, [
-                        `${tableAlias ?? getTnPath(childModel.table_name)}.${
-                          childColumn.column_name
-                        }`,
+                        `${
+                          tableAlias ??
+                          baseModelSqlv2.getTnPath(childModel.table_name)
+                        }.${childColumn.column_name}`,
                       ]),
                     );
                 }
@@ -193,7 +199,9 @@ async function _formulaQueryBuilder(
                 case 'bt':
                   {
                     selectQb.join(
-                      `${getTnPath(parentModel.table_name)} as ${nestedAlias}`,
+                      `${baseModelSqlv2.getTnPath(
+                        parentModel.table_name,
+                      )} as ${nestedAlias}`,
                       `${prevAlias}.${childColumn.column_name}`,
                       `${nestedAlias}.${parentColumn.column_name}`,
                     );
@@ -203,7 +211,9 @@ async function _formulaQueryBuilder(
                   {
                     isMany = true;
                     selectQb.join(
-                      `${getTnPath(childModel.table_name)} as ${nestedAlias}`,
+                      `${baseModelSqlv2.getTnPath(
+                        childModel.table_name,
+                      )} as ${nestedAlias}`,
                       `${prevAlias}.${parentColumn.column_name}`,
                       `${nestedAlias}.${childColumn.column_name}`,
                     );
@@ -219,12 +229,16 @@ async function _formulaQueryBuilder(
 
                   selectQb
                     .join(
-                      `${getTnPath(mmModel.table_name)} as ${assocAlias}`,
+                      `${baseModelSqlv2.getTnPath(
+                        mmModel.table_name,
+                      )} as ${assocAlias}`,
                       `${assocAlias}.${mmChildColumn.column_name}`,
                       `${prevAlias}.${childColumn.column_name}`,
                     )
                     .join(
-                      `${getTnPath(parentModel.table_name)} as ${nestedAlias}`,
+                      `${baseModelSqlv2.getTnPath(
+                        parentModel.table_name,
+                      )} as ${nestedAlias}`,
                       `${nestedAlias}.${parentColumn.column_name}`,
                       `${assocAlias}.${mmParentColumn.column_name}`,
                     );
@@ -293,7 +307,7 @@ async function _formulaQueryBuilder(
                     case 'bt':
                       {
                         selectQb.join(
-                          `${getTnPath(
+                          `${baseModelSqlv2.getTnPath(
                             parentModel.table_name,
                           )} as ${nestedAlias}`,
                           `${alias}.${childColumn.column_name}`,
@@ -309,7 +323,7 @@ async function _formulaQueryBuilder(
                       {
                         isMany = true;
                         selectQb.join(
-                          `${getTnPath(
+                          `${baseModelSqlv2.getTnPath(
                             childModel.table_name,
                           )} as ${nestedAlias}`,
                           `${alias}.${parentColumn.column_name}`,
@@ -333,12 +347,14 @@ async function _formulaQueryBuilder(
 
                         selectQb
                           .join(
-                            `${getTnPath(mmModel.table_name)} as ${assocAlias}`,
+                            `${baseModelSqlv2.getTnPath(
+                              mmModel.table_name,
+                            )} as ${assocAlias}`,
                             `${assocAlias}.${mmChildColumn.column_name}`,
                             `${alias}.${childColumn.column_name}`,
                           )
                           .join(
-                            `${getTnPath(
+                            `${baseModelSqlv2.getTnPath(
                               parentModel.table_name,
                             )} as ${nestedAlias}`,
                             `${nestedAlias}.${parentColumn.column_name}`,
@@ -352,7 +368,9 @@ async function _formulaQueryBuilder(
                   }
 
                   selectQb.join(
-                    `${getTnPath(parentModel.table_name)} as ${nestedAlias}`,
+                    `${baseModelSqlv2.getTnPath(
+                      parentModel.table_name,
+                    )} as ${nestedAlias}`,
                     `${nestedAlias}.${parentColumn.column_name}`,
                     `${prevAlias}.${childColumn.column_name}`,
                   );
@@ -464,29 +482,31 @@ async function _formulaQueryBuilder(
 
           let selectQb;
           if (relation.type === 'bt') {
-            selectQb = knex(getTnPath(parentModel.table_name))
+            selectQb = knex(baseModelSqlv2.getTnPath(parentModel.table_name))
               .select(parentModel?.displayValue?.column_name)
               .where(
-                `${getTnPath(parentModel.table_name)}.${
+                `${baseModelSqlv2.getTnPath(parentModel.table_name)}.${
                   parentColumn.column_name
                 }`,
                 knex.raw(`??`, [
-                  `${tableAlias ?? getTnPath(childModel.table_name)}.${
-                    childColumn.column_name
-                  }`,
+                  `${
+                    tableAlias ??
+                    baseModelSqlv2.getTnPath(childModel.table_name)
+                  }.${childColumn.column_name}`,
                 ]),
               );
           } else if (relation.type == 'hm') {
-            const qb = knex(getTnPath(childModel.table_name))
+            const qb = knex(baseModelSqlv2.getTnPath(childModel.table_name))
               // .select(knex.raw(`GROUP_CONCAT(??)`, [childModel?.pv?.title]))
               .where(
-                `${getTnPath(childModel.table_name)}.${
+                `${baseModelSqlv2.getTnPath(childModel.table_name)}.${
                   childColumn.column_name
                 }`,
                 knex.raw(`??`, [
-                  `${tableAlias ?? getTnPath(parentModel.table_name)}.${
-                    parentColumn.column_name
-                  }`,
+                  `${
+                    tableAlias ??
+                    baseModelSqlv2.getTnPath(parentModel.table_name)
+                  }.${parentColumn.column_name}`,
                 ]),
               );
 
@@ -530,20 +550,25 @@ async function _formulaQueryBuilder(
             const mmParentColumn = await relation.getMMParentColumn();
             const mmChildColumn = await relation.getMMChildColumn();
 
-            const qb = knex(`${getTnPath(parentModel.table_name)} as ${alias}`)
+            const qb = knex(
+              `${baseModelSqlv2.getTnPath(parentModel.table_name)} as ${alias}`,
+            )
               .join(
-                `${getTnPath(mmModel.table_name)}`,
-                `${getTnPath(mmModel.table_name)}.${
+                `${baseModelSqlv2.getTnPath(mmModel.table_name)}`,
+                `${baseModelSqlv2.getTnPath(mmModel.table_name)}.${
                   mmParentColumn.column_name
                 }`,
                 `${alias}.${parentColumn.column_name}`,
               )
               .where(
-                `${getTnPath(mmModel.table_name)}.${mmChildColumn.column_name}`,
+                `${baseModelSqlv2.getTnPath(mmModel.table_name)}.${
+                  mmChildColumn.column_name
+                }`,
                 knex.raw(`??`, [
-                  `${tableAlias ?? getTnPath(childModel.table_name)}.${
-                    childColumn.column_name
-                  }`,
+                  `${
+                    tableAlias ??
+                    baseModelSqlv2.getTnPath(childModel.table_name)
+                  }.${childColumn.column_name}`,
                 ]),
               );
             selectQb = (fn) =>
@@ -895,30 +920,6 @@ async function _formulaQueryBuilder(
   return { builder };
 }
 
-function getTnPathDry(tb: Model, knex, tableAlias?: string) {
-  const schema = knex.searchPath?.();
-  if (knex.clientType() === 'mssql' && schema) {
-    return knex.raw(`??.??${tableAlias ? ' as ??' : ''}`, [
-      schema,
-      tb.table_name,
-      ...(tableAlias ? [tableAlias] : []),
-    ]);
-  } else if (knex.clientType() === 'snowflake') {
-    return (
-      [
-        knex.client.config.connection.database,
-        knex.client.config.connection.schema,
-        tb.table_name,
-      ].join('.') + (tableAlias ? ` as ${tableAlias}` : '')
-    );
-  } else {
-    return knex.raw(`??${tableAlias ? ' as ??' : ''}`, [
-      tb.table_name,
-      ...(tableAlias ? [tableAlias] : []),
-    ]);
-  }
-}
-
 export default async function formulaQueryBuilderv2(
   baseModelSqlv2: BaseModelSqlv2,
   _tree,
@@ -947,7 +948,7 @@ export default async function formulaQueryBuilderv2(
   try {
     // dry run qb.builder to see if it will break the grid view or not
     // if so, set formula error and show empty selectQb instead
-    await knex(getTnPathDry(model, knex, tableAlias))
+    await knex(baseModelSqlv2.getTnPath(model, tableAlias))
       .select(knex.raw(`?? as ??`, [qb.builder, '__dry_run_alias']))
       .as('dry-run-only');
 

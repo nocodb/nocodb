@@ -243,7 +243,7 @@ export class DatasService {
         view,
         params: param.query,
         base,
-        id: model.id,
+        id: param.rowId,
       });
     } else {
       const baseModel = await Model.getBaseModelSQL({

@@ -747,5 +747,7 @@ export async function readByPk(ctx: {
     await NocoCache.set(cacheKey, query);
   }
 
-  return await finalQb;
+  const res = await finalQb
+
+  return res;
 }

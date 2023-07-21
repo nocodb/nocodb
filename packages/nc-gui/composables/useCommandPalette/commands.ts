@@ -1,40 +1,17 @@
 import { navigateTo } from '#imports'
+import MdiHome from '~icons/mdi/home'
 
 export const homeCommands = [
   {
-    id: 'account_settings-users',
-    title: 'Users',
-    parent: 'account_settings',
-    children: ['User Management', 'Reset Password', 'Settings'],
-  },
-  {
-    id: 'account_settings-users-user_management',
-    title: 'User Management',
-    parent: 'account_settings-users',
-    handler: () => {
-      navigateTo('/account/users')
-    },
-  },
-  {
-    id: 'account_settings-users-reset_password',
-    title: 'Reset Password',
-    parent: 'account_settings-users',
-    handler: () => {
-      navigateTo('/account/users/password-reset')
-    },
-  },
-  {
-    id: 'account_settings-users-settings',
-    title: 'Settings',
-    parent: 'account_settings-users',
-    handler: () => {
-      navigateTo('/account/users/settings')
-    },
+    id: 'workspace',
+    title: 'Workspace',
+    icon: 'database',
   },
   {
     id: 'account_settings-tokens',
     title: 'Tokens',
     parent: 'account_settings',
+    icon: 'acl',
     handler: () => {
       navigateTo('/account/tokens')
     },
@@ -43,6 +20,7 @@ export const homeCommands = [
     id: 'account_settings-app_store',
     title: 'App Store',
     parent: 'account_settings',
+    icon: 'appStore',
     handler: () => {
       navigateTo('/account/apps')
     },
@@ -51,6 +29,7 @@ export const homeCommands = [
     id: 'account_settings-license',
     title: 'License',
     parent: 'account_settings',
+    icon: 'key',
     handler: () => {
       navigateTo('/account/license')
     },
@@ -58,15 +37,40 @@ export const homeCommands = [
   {
     id: 'account_settings',
     title: 'Account Settings',
-    children: ['account_settings-users', 'account_settings-tokens', 'account_settings-app_store', 'account_settings-license'],
+    icon: 'account',
+    section: 'Account',
   },
   {
     id: 'home',
     title: 'Navigate Home',
     hotkey: 'cmd+h',
+    icon: MdiHome,
+    section: 'Misc',
     handler: () => {
       navigateTo('/')
     },
+  },
+  {
+    id: 'workspaces',
+    title: 'Workspaces',
+  },
+  {
+    id: 'projects',
+    title: 'Projects',
+  },
+  {
+    id: 'tables',
+    title: 'Tables',
+    parent: 'workspace',
+    section: 'Workspace',
+    icon: 'table',
+  },
+  {
+    id: 'views',
+    title: 'Views',
+    parent: 'workspace',
+    section: 'Workspace',
+    icon: 'view',
   },
 ]
 
@@ -79,6 +83,9 @@ export const homeCommands = [
     - home (Navigate Home)
     + workspaces (Workspaces)
     + projects (Projects)
+    - workspace (Workspace)
+      + tables (Tables)
+      + views (Views)
     - account_settings (Account Settings)
       - account_settings-users (Users)
         - account_settings-users-user_management (User Management)
@@ -87,7 +94,4 @@ export const homeCommands = [
       - account_settings-tokens (Tokens)
       - account_settings-app_store (App Store)
       - account_settings-license (License)
-    - project (Project)
-      + tables (Tables)
-      + views (Views)
 */

@@ -1,4 +1,3 @@
-import type { NinjaKeys } from 'ninja-keys'
 import type { Ref } from 'vue'
 import { homeCommands } from './commands'
 
@@ -7,45 +6,34 @@ interface CmdAction {
   title: string
   hotkey?: string
   parent?: string
-  children?: string[]
   handler?: Function
-  icon?: string
+  icon?: VNode | string
   keywords?: string[]
   section?: string
 }
 
 export const useCommandPalette = createSharedComposable(() => {
-  const cmdPalette = ref<NinjaKeys>()
-
   const { $api } = useNuxtApp()
 
   const refreshCommandPalette = createEventHook<void>()
 
-  const lastScope: Ref<{ scope: string; data?: any }> = ref({ scope: 'workspace' })
+  const lastScope: Ref<{ scope: string; data?: any }> = ref({ scope: 'root' })
 
   const cmdLoading = ref(false)
 
-  function cmdOnSelected(_event: any) {
-    // console.log('selected', event.detail)
-  }
-
-  function cmdOnChange(_event: any) {
-    // console.log('change', event)
-  }
-
   const cmdPlaceholder = ref('Quick actions')
 
-  const commands = ref<Record<string, CmdAction[]>>({
+  const commands = ref({
     homeCommands,
     projectCommands: [],
-  })
+  } as Record<string, CmdAction[]>)
 
   const staticData = computed(() => {
     const rtData = commands.value.homeCommands
 
-    if (lastScope.value.scope === 'workspace') return rtData
+    if (lastScope.value.scope === 'root') return rtData
 
-    if (lastScope.value.scope === 'project') {
+    if (lastScope.value.scope === 'workspace') {
       rtData.push(...commands.value.projectCommands)
     }
 
@@ -72,11 +60,10 @@ export const useCommandPalette = createSharedComposable(() => {
   }
 
   const activeScope = computed(() => {
-    if (lastScope.value.scope === 'workspace') return ''
     return lastScope.value.scope
   })
 
-  async function loadScope(scope = 'workspace', data?: any) {
+  async function loadScope(scope = 'root', data?: any) {
     if (scope === 'disabled') {
       lastScope.value = { scope, data }
       return
@@ -101,13 +88,10 @@ export const useCommandPalette = createSharedComposable(() => {
   })
 
   return {
-    cmdPalette,
     cmdData,
     activeScope,
     loadScope,
     cmdPlaceholder,
-    cmdOnSelected,
-    cmdOnChange,
     refreshCommandPalette: refreshCommandPalette.trigger,
   }
 })

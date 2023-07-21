@@ -92,7 +92,7 @@ onMounted(async () => {
   toggleHasSidebar(true)
 
   await loadWorkspaces()
-  await loadScope('workspace')
+  await loadScope('root')
 
   loadWorkspacesWithInterval()
 

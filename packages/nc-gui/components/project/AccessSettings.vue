@@ -26,6 +26,7 @@ const userSearchText = ref('')
 const currentPage = ref(0)
 
 const isLoading = ref(false)
+const isSearching = ref(false)
 
 const loadCollaborators = async () => {
   try {
@@ -34,8 +35,8 @@ const loadCollaborators = async () => {
     const { users, totalRows } = await getProjectUsers({
       projectId: activeProjectId.value!,
       page: currentPage.value,
+      ...(!userSearchText.value ? {} : ({ searchText: userSearchText.value } as any)),
       limit: 20,
-      searchText: userSearchText.value,
     })
 
     totalCollaborators.value = totalRows
@@ -103,6 +104,29 @@ const updateCollaborator = async (collab, roles) => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+watchDebounced(
+  userSearchText,
+  async () => {
+    isSearching.value = true
+
+    currentPage.value = 0
+    totalCollaborators.value = 0
+    collaborators.value = []
+
+    try {
+      await loadCollaborators()
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      isSearching.value = false
+    }
+  },
+  {
+    debounce: 300,
+    maxWait: 600,
+  },
+)
 </script>
 
 <template>
@@ -118,8 +142,11 @@ const updateCollaborator = async (collab, roles) => {
           </template>
         </a-input>
       </div>
+      <div v-if="isSearching" class="nc-collaborators-list items-center justify-center">
+        <GeneralLoader size="xlarge" />
+      </div>
       <div
-        v-if="!collaborators?.length"
+        v-else-if="!collaborators?.length"
         class="nc-collaborators-list w-full h-full flex flex-col items-center justify-center mt-36"
       >
         <Empty description="No collaborators found" />

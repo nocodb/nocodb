@@ -47,8 +47,8 @@ export class WorkspacePage extends BasePage {
     await this.Container.verifyStaticElements();
   }
 
-  async workspaceCreate({ title, description }) {
-    await this.LeftSideBar.workspaceCreate({ title, description });
+  async workspaceCreate({ title }) {
+    await this.LeftSideBar.workspaceCreate({ title });
   }
 
   async workspaceRename({ title, newTitle }: { newTitle: string; title: string }) {

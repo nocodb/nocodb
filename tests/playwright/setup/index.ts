@@ -105,7 +105,8 @@ async function localInit({
   // Delete associated workspace
   const ws = await api.workspace.list();
   for (const w of ws.list) {
-    if (w.title === workspaceTitle) {
+    // check if w.title starts with workspaceTitle
+    if (w.title.startsWith(workspaceTitle)) {
       await api.workspace.delete(w.id);
     }
   }

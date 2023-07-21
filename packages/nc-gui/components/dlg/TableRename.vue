@@ -124,6 +124,7 @@ watchEffect(
 
 const renameTable = async (undo = false) => {
   if (!tableMeta) return
+  if (formState.title === tableMeta.title) return
 
   loading = true
   try {
@@ -196,7 +197,7 @@ const renameTable = async (undo = false) => {
             hide-details
             size="large"
             :placeholder="$t('msg.info.enterTableName')"
-            @keydown.enter="renameTable()"
+            @keydown.enter="() => renameTable()"
           />
         </a-form-item>
       </a-form>
@@ -206,11 +207,11 @@ const renameTable = async (undo = false) => {
         <NcButton
           key="submit"
           type="primary"
-          :disabled="validateInfos.title.validateStatus === 'error'"
+          :disabled="validateInfos.title.validateStatus === 'error' || formState.title === tableMeta.title"
           label="Rename Table"
           loading-label="Renaming Table"
           :loading="loading"
-          @click="renameTable"
+          @click="() => renameTable()"
         />
       </div>
     </div>

@@ -9,12 +9,16 @@ const props = defineProps<{
   emoji?: string | undefined
   size?: 'small' | 'medium' | 'large' | 'xlarge'
   readonly?: boolean
-  clearable?: boolean
+  disableClearing?: boolean
 }>()
 
 const emit = defineEmits(['emojiSelected'])
 
-const { emoji: initialEmoji, size = 'medium', readonly, clearable = true } = props
+const { emoji: initialEmoji, size = 'medium', readonly } = props
+
+const clearable = computed(() => {
+  return !props.disableClearing && !readonly
+})
 
 const isOpen = ref(false)
 const emojiIndex = new EmojiIndex(data, {
@@ -67,7 +71,7 @@ watch(isOpen, () => {
 })
 
 const showClearButton = computed(() => {
-  return !!emoji.value && clearable
+  return !!emoji.value && clearable.value
 })
 </script>
 

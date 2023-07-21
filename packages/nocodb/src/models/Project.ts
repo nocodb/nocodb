@@ -315,11 +315,14 @@ export default class Project implements ProjectType {
 
   // Todo: Remove the project entry from the connection pool in NcConnectionMgrv2
   static async delete(projectId, ncMeta = Noco.ncMeta): Promise<any> {
+    let project = await this.get(projectId);
     const users = await ProjectUser.getUsersList({
       project_id: projectId,
+      workspace_id: project.fk_workspace_id,
       offset: 0,
       limit: 1000,
     });
+
     for (const user of users) {
       await ProjectUser.delete(projectId, user.id);
     }
@@ -328,7 +331,7 @@ export default class Project implements ProjectType {
     for (const base of bases) {
       await base.delete(ncMeta);
     }
-    const project = await this.get(projectId);
+    project = await this.get(projectId);
 
     if (project) {
       // delete <scope>:<uuid>

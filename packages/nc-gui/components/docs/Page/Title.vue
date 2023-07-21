@@ -148,7 +148,6 @@ onMounted(() => {
       :emoji="openedPage.icon"
       :readonly="!isEditAllowed"
       size="xlarge"
-      clearable
       @emoji-selected="setIcon"
     >
       <template #default>

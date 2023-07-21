@@ -13,7 +13,7 @@ export class DataSourcePage extends BasePage {
   }
 
   get() {
-    return this.rootPage.locator('.create-base');
+    return this.rootPage.locator('.nc-data-sources-view');
   }
 
   async getDatabaseTypeList() {

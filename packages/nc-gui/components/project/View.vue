@@ -31,7 +31,7 @@ const baseSettingsState = ref('')
       <LazyGeneralShareProject />
     </div>
     <div
-      class="flex mx-12 my-8"
+      class="flex mx-12 my-8 nc-project-view-tab"
       :style="{
         height: 'calc(100% - var(--topbar-height))',
       }"
@@ -66,6 +66,15 @@ const baseSettingsState = ref('')
             </div>
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" />
+        </a-tab-pane>
+        <a-tab-pane v-if="isUIAllowed('shareProject')" key="accessSettings">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__access-settings">
+              <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
+              <div>Access Settings</div>
+            </div>
+          </template>
+          <ProjectAccessSettings />
         </a-tab-pane>
       </a-tabs>
     </div>

@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { UseAclMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import { UseAclMiddleware } from '../../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import { NcError } from '../../helpers/catchError';
 import { MetaTable } from '../../utils/globals';
 import { MetaService } from '../../meta/meta.service';
@@ -29,6 +29,7 @@ export class WorkspacesController {
   @Get('/api/v1/workspaces/')
   @UseAclMiddleware({
     permissionName: 'workspaceList',
+    workspaceMode: true,
   })
   async list(@Request() req) {
     return await this.workspacesService.list({

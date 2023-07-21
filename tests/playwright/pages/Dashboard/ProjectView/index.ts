@@ -1,13 +1,23 @@
-import { Locator } from '@playwright/test';
+import { expect, Locator } from '@playwright/test';
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { DataSourcePage } from './DataSourcePage';
+import { TablesViewPage } from './TablesViewPage';
+import { AccessSettingsPage } from './AccessSettingsPage';
 
 export class ProjectViewPage extends BasePage {
   readonly dashboard: DashboardPage;
+
+  // sub components
   readonly dataSources: DataSourcePage;
+  readonly tables: TablesViewPage;
+  readonly accessSettings: AccessSettingsPage;
+
+  // assets
   readonly tab_allTables: Locator;
   readonly tab_dataSources: Locator;
+  readonly tab_accessSettings: Locator;
+
   readonly btn_addNewTable: Locator;
   readonly btn_importData: Locator;
   readonly btn_addNewDataSource: Locator;
@@ -16,10 +26,15 @@ export class ProjectViewPage extends BasePage {
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
+
+    this.tables = new TablesViewPage(this);
     this.dataSources = new DataSourcePage(this);
+    this.accessSettings = new AccessSettingsPage(this);
 
     this.tab_allTables = this.get().locator('[data-testid="proj-view-tab__all-tables"]');
     this.tab_dataSources = this.get().locator('[data-testid="proj-view-tab__data-sources"]');
+    this.tab_accessSettings = this.get().locator('[data-testid="proj-view-tab__access-settings"]');
+
     this.btn_addNewTable = this.get().locator('[data-testid="proj-view-btn__add-new-table"]');
     this.btn_importData = this.get().locator('[data-testid="proj-view-btn__import-data"]');
     this.btn_addNewDataSource = this.get().locator('.nc-btn-new-datasource');
@@ -27,6 +42,17 @@ export class ProjectViewPage extends BasePage {
   }
 
   get() {
-    return this.dashboard.get().locator('.nc-project-view');
+    return this.dashboard.get().locator('.nc-project-view-tab');
+  }
+
+  async verifyAccess(role: string) {
+    expect(await this.tab_allTables.isVisible()).toBeTruthy();
+    if (role === 'creator' || role === 'owner') {
+      expect(await this.tab_dataSources.isVisible()).toBeTruthy();
+      expect(await this.tab_accessSettings.isVisible()).toBeTruthy();
+    } else {
+      expect(await this.tab_dataSources.isVisible()).toBeFalsy();
+      expect(await this.tab_accessSettings.isVisible()).toBeFalsy();
+    }
   }
 }

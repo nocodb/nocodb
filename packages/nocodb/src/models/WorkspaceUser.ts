@@ -201,6 +201,31 @@ export default class WorkspaceUser {
     return await queryBuilder;
   }
 
+  static async count({ workspaceId }: { workspaceId: any }) {
+    const key = `${CacheScope.WORKSPACE}:${workspaceId}:count`;
+    let count = await NocoCache.get(key, CacheGetType.TYPE_STRING);
+
+    if (!count) {
+      count = await Noco.ncMeta.metaCount(
+        null,
+        null,
+        MetaTable.WORKSPACE_USER,
+        {
+          condition: {
+            fk_workspace_id: workspaceId,
+          },
+          aggField: 'fk_workspace_id',
+        },
+      );
+
+      await NocoCache.set(key, count);
+    } else {
+      count = parseInt(count);
+    }
+
+    return count;
+  }
+
   static async update(
     workspaceId: any,
     userId: any,

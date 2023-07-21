@@ -110,54 +110,25 @@ const isMultiBase = computed(() => project.bases && project.bases.length > 1)
       <template #title>{{ table.table_name }}</template>
       <div class="table-context flex items-center gap-1 h-full" @contextmenu="setMenuContext('table', table)">
         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
-          <component
-            :is="isUIAllowed('tableIconCustomisation', false, projectRole) ? Dropdown : 'div'"
-            trigger="click"
-            destroy-popup-on-hide
-            class="flex items-center nc-table-icon"
-            @click.stop
-          >
-            <div class="flex items-center" @click.stop>
-              <component :is="isUIAllowed('tableIconCustomisation', false, projectRole) ? Tooltip : 'div'">
-                <GeneralEmojiPicker
-                  :key="table.meta?.icon"
-                  :emoji="table.meta?.icon"
-                  size="small"
-                  @emoji-selected="setIcon($event, table)"
-                >
-                  <template #default>
-                    <MdiTable
-                      class="w-5 !text-gray-500 text-sm"
-                      :class="{
-                        'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole),
-                        '!text-black': openedTableId === table.id,
-                      }"
-                    />
-                  </template>
-                </GeneralEmojiPicker>
-
-                <template v-if="isUIAllowed('tableIconCustomisation', false, projectRole)" #title>Change icon</template>
-              </component>
-            </div>
-            <template v-if="isUIAllowed('tableIconCustomisation', false, projectRole)" #overlay>
-              <GeneralEmojiPicker
-                :key="table.meta?.icon"
-                :emoji="table.meta?.icon"
-                size="small"
-                @emoji-selected="setIcon($event, table)"
-              >
-                <template #default>
-                  <MdiTable
-                    class="w-5 !text-gray-500"
-                    :class="{
-                      'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole),
-                      '!text-black': openedTableId === table.id,
-                    }"
-                  />
-                </template>
-              </GeneralEmojiPicker>
-            </template>
-          </component>
+          <div class="flex items-center nc-table-icon" @click.stop>
+            <GeneralEmojiPicker
+              :key="table.meta?.icon"
+              :emoji="table.meta?.icon"
+              size="small"
+              :readonly="!isUIAllowed('tableIconCustomisation', false, projectRole)"
+              @emoji-selected="setIcon($event, table)"
+            >
+              <template #default>
+                <MdiTable
+                  class="w-5 !text-gray-500 text-sm"
+                  :class="{
+                    'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole),
+                    '!text-black': openedTableId === table.id,
+                  }"
+                />
+              </template>
+            </GeneralEmojiPicker>
+          </div>
         </div>
 
         <span

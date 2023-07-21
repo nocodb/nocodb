@@ -285,7 +285,7 @@ const isEditBaseModalOpen = computed({
 </script>
 
 <template>
-  <div class="flex flex-row w-full h-full">
+  <div class="flex flex-row w-full h-full nc-data-sources-view">
     <div class="flex flex-col w-full overflow-auto">
       <div class="flex flex-row w-full justify-end mt-6 mb-5">
         <a-button

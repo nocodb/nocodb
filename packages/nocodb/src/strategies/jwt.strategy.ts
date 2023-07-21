@@ -84,6 +84,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       roles: extractRolesObj(
         [user.roles, workspaceOrProjectRoles].filter(Boolean).join(','),
       ),
+      workspaceRoles: workspaceRoles
+        ? extractRolesObj((workspaceRoles as any)?.split(',').filter(Boolean))
+        : null,
+      projectRoles: projectRoles
+        ? extractRolesObj((projectRoles as any)?.split(',').filter(Boolean))
+        : null,
     };
   }
 }

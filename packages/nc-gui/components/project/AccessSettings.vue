@@ -176,7 +176,7 @@ watchDebounced(
             </div>
             <div class="w-1/5 roles">
               <div v-if="collab.roles === ProjectRole.Owner" class="nc-collaborator-role-select">
-                <a-select v-model:value="collab.roles" class="w-30 !rounded px-1" disabled>
+                <a-select v-model:value="collab.roles" class="w-30 !rounded px-1 !capitalize" disabled>
                   <template #suffixIcon>
                     <MdiChevronDown />
                   </template>

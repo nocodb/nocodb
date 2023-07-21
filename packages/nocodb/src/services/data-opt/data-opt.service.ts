@@ -138,7 +138,7 @@ export class DataOptService {
 
     const qb = knex.from(rootQb.as(ROOT_ALIAS));
 
-    const allowedCols = null;
+    // const allowedCols = null;
 
     // const tableColumns = await ctx.model.getColumns();
     // if (ctx.view)
@@ -150,7 +150,7 @@ export class DataOptService {
     //     };
     //   }, {});
 
-    const { dependencyFields } = await getAst({
+    const { ast } = await getAst({
       query: ctx.params,
       model: ctx.model,
       view: ctx.view,
@@ -158,13 +158,12 @@ export class DataOptService {
 
     await extractColumns({
       columns,
-      allowedCols,
       knex,
       qb,
       getAlias,
-      dependencyFields,
       params: ctx.params,
       baseModel,
+      ast
     });
 
     if (skipCache) {
@@ -344,7 +343,7 @@ export class DataOptService {
         };
       }, {});
 
-    const { dependencyFields } = await getAst({
+    const { ast } = await getAst({
       query: ctx.params,
       model: ctx.model,
       view: ctx.view,
@@ -352,13 +351,12 @@ export class DataOptService {
 
     await extractColumns({
       columns,
-      allowedCols,
-      dependencyFields,
       knex,
       qb,
       getAlias,
       params: ctx.params,
       baseModel,
+      ast
     });
 
     // const dataAlias = getAlias();

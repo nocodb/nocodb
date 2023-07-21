@@ -49,7 +49,7 @@ const defaultConnectionOptions = {
   },
 };
 
-const knownQueryParams = [
+export const knownQueryParams = [
   {
     parameter: 'database',
     aliases: ['d', 'db'],

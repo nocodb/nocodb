@@ -34,6 +34,8 @@ import User from './models/User';
 import weAreHiring from './utils/weAreHiring';
 import getInstance from './utils/getInstance';
 import initAdminFromEnv from './services/user/initAdminFromEnv';
+import { PSQLRecordOperationWatcher } from './elitesoftwareautomation/db/PSQLRecordOperationWatcher';
+import { createIncidentLog } from './incidentLogger';
 import type * as http from 'http';
 import type NcMetaMgrv2 from './meta/NcMetaMgrv2';
 import type { RestApiBuilder } from './v1-legacy/rest/RestApiBuilder';
@@ -43,7 +45,6 @@ import type NcMetaIO from './meta/NcMetaIO';
 import type { GqlApiBuilder } from './v1-legacy/gql/GqlApiBuilder';
 import type { NcConfig } from '../interface/config';
 import type { Router } from 'express';
-import { PSQLRecordOperationWatcher } from './elitesoftwareautomation/db/PSQLRecordOperationWatcher';
 
 const log = debug('nc:app');
 require('dotenv').config();
@@ -267,8 +268,23 @@ export default class Noco {
     this.initSentryErrorHandler();
 
     /* catch error */
-    this.router.use((err, _req, res, next) => {
+    this.router.use(async (err, _req, res, next) => {
       if (err) {
+        try {
+          await createIncidentLog(
+            {
+              errorMessage: err?.message,
+              errorStackTrace: err.stack || '',
+              incidentTime: new Date(),
+            },
+            {},
+            (defaultTitle) => {
+              return `System triggered - ${defaultTitle}`;
+            }
+          );
+        } catch (incidentErr) {
+          return res.status(400).json({ msg: incidentErr.message });
+        }
         return res.status(400).json({ msg: err.message });
       }
       next();
@@ -280,19 +296,23 @@ export default class Noco {
     console.log(`App started successfully.\nVisit -> ${Noco.dashboardUrl}`);
     weAreHiring();
 
-    if( process.env.ESA_SKIP_DB_RECORD_ACTION_EVENT_WATCHER_FOR_WEBHOOK !== 'true' ){
-      try{
+    if (
+      process.env.ESA_SKIP_DB_RECORD_ACTION_EVENT_WATCHER_FOR_WEBHOOK !== 'true'
+    ) {
+      try {
         await PSQLRecordOperationWatcher.watchForWebhook(Noco._ncMeta);
-      }
-      catch(e){
+      } catch (e) {
         const message = `${PSQLRecordOperationWatcher.name} could not be setup`;
         // TODO: report as incident
 
-        process.stderr.write(`${message} : ${e?.message || e?.toString()}`, function () {
-          // this is critical, as events needs to be fired as quick as possible to meet business/app requirement though they will be in notifications table waiting to be picked.
-          // It is better the program is down so this should be taken more seriously.
-          process.exit(1);
-        });
+        process.stderr.write(
+          `${message} : ${e?.message || e?.toString()}`,
+          function () {
+            // this is critical, as events needs to be fired as quick as possible to meet business/app requirement though they will be in notifications table waiting to be picked.
+            // It is better the program is down so this should be taken more seriously.
+            process.exit(1);
+          }
+        );
       }
     }
 

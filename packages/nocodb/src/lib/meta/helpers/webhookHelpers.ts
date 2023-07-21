@@ -2,6 +2,7 @@ import Handlebars from 'handlebars';
 import { v4 as uuidv4 } from 'uuid';
 import Filter from '../../models/Filter';
 import HookLog from '../../models/HookLog';
+import { createIncidentLog } from '../../incidentLogger';
 import NcPluginMgrv2 from './NcPluginMgrv2';
 import type Model from '../../models/Model';
 import type View from '../../models/View';
@@ -183,7 +184,37 @@ export async function handleHttpWebHook(
     constructWebHookData(hook, model, view, prevData, newData)
   );
   req.headers['esa-key'] = process.env.NOCODB_ESA_KEY;
-  return require('axios')(req);
+  const res: any = await new Promise((resolve, reject) => {
+    return require('axios')(req)
+      .then((response) => resolve(response))
+      .catch(async (error: any) => {
+        try {
+          await createIncidentLog(
+            {
+              errorMessage: `Error occurred during a webhook call: ${error?.message}`,
+              errorStackTrace: error.stack || '',
+              incidentTime: new Date(),
+            },
+            {
+              hookId: hook.id,
+              modelId: model.id,
+              viewId: view.id,
+            },
+            (defaultTitle) => {
+              if (error?.response?.status !== 300) {
+                return `System triggered - ${defaultTitle}`;
+              }
+              return defaultTitle;
+            }
+          );
+        } catch (incidentError) {
+          reject(incidentError);
+          return;
+        }
+        reject(error);
+      });
+  });
+  return res;
 }
 
 export function axiosRequestMake(_apiMeta, _user, data) {

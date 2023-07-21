@@ -140,7 +140,7 @@ abstract class BaseGqlXcTsSchema extends BaseRender {
 
     let hasManyRelations = args.hasMany;
     if (hasManyRelations.length > 1) {
-      hasManyRelations = uniqBy(hasManyRelations, (e) => {
+      hasManyRelations = uniqBy(hasManyRelations, (e: any) => {
         return [e.tn, e.rtn].join();
       });
     }
@@ -159,7 +159,7 @@ abstract class BaseGqlXcTsSchema extends BaseRender {
 
     let belongsToRelations = args.belongsTo;
     if (belongsToRelations.length > 1) {
-      belongsToRelations = uniqBy(belongsToRelations, (e) => {
+      belongsToRelations = uniqBy(belongsToRelations, (e: any) => {
         return [e.tn, e.rtn].join();
       });
     }

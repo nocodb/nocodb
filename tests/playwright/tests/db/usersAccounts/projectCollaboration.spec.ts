@@ -16,7 +16,7 @@ const roleDb = [
   { email: 'pjt_viewer@nocodb.com', role: 'viewer' },
 ];
 
-test.describe.only('Project Collaboration', () => {
+test.describe('Project Collaboration', () => {
   let dashboard: DashboardPage;
   let workspacePage: WorkspacePage;
   let collaborationPage: CollaborationPage;

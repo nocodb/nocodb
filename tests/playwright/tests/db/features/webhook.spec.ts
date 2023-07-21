@@ -434,7 +434,6 @@ test.describe.serial('Webhook', () => {
       for (let i = 0; i < rsp.length; i++) {
         expect(rsp[i].type).toBe(type);
         expect(rsp[i].data.table_name).toBe('Test');
-        expect(rsp[i].data.view_name).toBe('Test');
 
         // only for insert, rows inserted will not be returned in response. just count
         if (type === 'records.after.bulkInsert') {

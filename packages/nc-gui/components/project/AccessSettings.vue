@@ -131,7 +131,7 @@ watchDebounced(
 </script>
 
 <template>
-  <div class="nc-collaborator-table-container mt-4">
+  <div class="nc-collaborator-table-container mt-4 nc-access-settings-view">
     <div v-if="isLoading" class="nc-collaborators-list items-center justify-center">
       <GeneralLoader size="xlarge" />
     </div>

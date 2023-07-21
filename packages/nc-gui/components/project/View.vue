@@ -31,7 +31,7 @@ const baseSettingsState = ref('')
       <LazyGeneralShareProject />
     </div>
     <div
-      class="flex mx-12 my-8"
+      class="flex mx-12 my-8 nc-project-view-tab"
       :style="{
         height: 'calc(100% - var(--topbar-height))',
       }"

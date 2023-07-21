@@ -8,10 +8,11 @@ import type {
   LinkToAnotherRecordColumn,
   LookupColumn,
   QrCodeColumn,
+  View,
 } from '~/models';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { Column, Filter, Model, View } from '~/models';
+import { Column, Filter, Model } from '~/models';
 import { getAliasGenerator, ROOT_ALIAS } from '~/utils';
 import {
   _wherePk,
@@ -82,7 +83,7 @@ export async function extractColumns({
   ast: Record<string, any>;
 }) {
   for (const column of columns) {
-    if (!ast?.[column.title]) continue;
+    if (!ast?.[column.title] && !column.pk) continue;
     await extractColumn({
       column,
       knex,
@@ -146,7 +147,7 @@ export async function extractColumn({
         const aliasColObjMap = await relatedModel.getAliasColObjMap();
 
         // todo: check if fields are allowed
-        let fields = [pkColumn, pvColumn];
+        let fields = [pkColumn, pvColumn].filter(Boolean);
 
         if (listArgs?.fields === '*') {
           fields = relatedModel.columns;
@@ -616,6 +617,8 @@ export async function readByPk(ctx: {
   params;
   id: string;
 }): Promise<PagedResponseImpl<Record<string, any>>> {
+  await ctx.model.getColumns();
+
   if (ctx.base.type !== 'pg') {
     throw new Error('Single query only supported in postgres');
   }
@@ -641,7 +644,9 @@ export async function readByPk(ctx: {
   // get knex connection
   const knex = await NcConnectionMgrv2.get(ctx.base);
 
-  const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${ctx.view.id}:read`;
+  const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
+    ctx.view?.id ?? 'default'
+  }:read`;
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
     if (cachedQuery) {
@@ -666,7 +671,6 @@ export async function readByPk(ctx: {
 
   rootQb.where(_wherePk(ctx.model.primaryKeys, ctx.id));
 
-
   const aliasColObjMap = await ctx.model.getAliasColObjMap();
   // let sorts = extractSortsObject(listArgs?.sort, aliasColObjMap);
   const queryFilterObj = extractFilterFromXwhere(
@@ -675,13 +679,17 @@ export async function readByPk(ctx: {
   );
 
   const aggrConditionObj = [
-    new Filter({
-      children:
-        (await Filter.rootFilterList({
-          viewId: ctx.view.id,
-        })) || [],
-      is_group: true,
-    }),
+    ...(ctx.view?.id
+      ? [
+          new Filter({
+            children:
+              (await Filter.rootFilterList({
+                viewId: ctx.view.id,
+              })) || [],
+            is_group: true,
+          }),
+        ]
+      : []),
     new Filter({
       children: ctx.params.filterArr || [],
       is_group: true,

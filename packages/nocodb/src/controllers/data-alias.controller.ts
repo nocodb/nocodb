@@ -33,7 +33,6 @@ export class DataAliasController {
     @Param('projectName') projectName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
-    @Query('opt') opt: string
   ) {
     const startTime = process.hrtime();
     const responseData = await this.datasService.dataList({
@@ -41,7 +40,6 @@ export class DataAliasController {
       projectName: projectName,
       tableName: tableName,
       viewName: viewName,
-      optimisedQuery: opt === 'true',
     });
     const elapsedSeconds = parseHrtimeToMilliSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);

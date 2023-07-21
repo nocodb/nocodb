@@ -22,12 +22,12 @@ import { DataOptService } from '~/services/data-opt/data-opt.service';
 export class DatasService {
   constructor(private readonly dataOptService: DataOptService) {}
 
-  async dataList(param: PathParams & { query: any; optimisedQuery: boolean }) {
+  async dataList(param: PathParams & { query: any }) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
     let responseData;
     const base = await Base.get(model.base_id);
-    if (param.optimisedQuery && base.type === 'pg') {
+    if (base.type === 'pg') {
       responseData = await this.dataOptService.list({
         model,
         view,
@@ -235,16 +235,28 @@ export class DatasService {
 
     const base = await Base.get(model.base_id);
 
-    const baseModel = await Model.getBaseModelSQL({
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
-    });
+    let row;
 
-    const row = await baseModel.readByPk(param.rowId, false, param.query);
+    if (base.type === 'pg') {
+      row = await this.dataOptService.read({
+        model,
+        view,
+        params: param.query,
+        base,
+        id: model.id,
+      });
+    } else {
+      const baseModel = await Model.getBaseModelSQL({
+        id: model.id,
+        viewId: view?.id,
+        dbDriver: await NcConnectionMgrv2.get(base),
+      });
 
-    if (!row) {
-      NcError.notFound('Row not found');
+      row = await baseModel.readByPk(param.rowId, false, param.query);
+
+      if (!row) {
+        NcError.notFound('Row not found');
+      }
     }
 
     return row;

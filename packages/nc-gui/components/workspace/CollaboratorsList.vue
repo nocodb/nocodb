@@ -63,15 +63,17 @@ const updateCollaborator = async (collab) => {
     <table v-else class="nc-collaborators-list-table !nc-scrollbar-md">
       <thead>
         <tr>
-          <th class="w-1/3">Users</th>
-          <th class="w-1/3">Date Joined</th>
-          <th class="w-1/3">Access</th>
+          <th class="w-1/5">Users</th>
+          <th class="w-1/5">Date Joined</th>
+          <th class="w-1/5">Access</th>
+          <th class="w-1/5"></th>
+          <th class="w-1/5"></th>
           <th></th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="(collab, i) of filterCollaborators" :key="i" class="relative w-full nc-collaborators">
-          <td class="!py-0 w-1/3 email">
+          <td class="!py-0 w-1/5 email">
             <div class="flex items-center gap-2">
               <span class="color-band" :style="{ backgroundColor: stringToColour(collab.email) }">{{
                 collab.email.slice(0, 2)
@@ -79,13 +81,18 @@ const updateCollaborator = async (collab) => {
               {{ collab.email }}
             </div>
           </td>
-          <td class="text-gray-500 text-xs w-1/3 created-at">
+          <td class="text-gray-500 text-xs w-1/5 created-at">
             {{ timeAgo(collab.created_at) }}
           </td>
-          <td class="w-1/3 roles">
-            <span v-if="collab.roles === WorkspaceUserRoles.OWNER" class="text-xs text-gray-500">
-              {{ getRolesLabel(collab.roles) }}
-            </span>
+          <td class="w-1/5 roles">
+            <div v-if="collab.roles === WorkspaceUserRoles.OWNER" class="nc-collaborator-role-select">
+              <a-select v-model:value="collab.roles" class="w-30 !rounded px-1" disabled>
+                <template #suffixIcon>
+                  <MdiChevronDown />
+                </template>
+                <a-select-option :value="WorkspaceUserRoles.OWNER"> Owner</a-select-option>
+              </a-select>
+            </div>
 
             <div v-else class="nc-collaborator-role-select">
               <a-select v-model:value="collab.roles" class="w-30 !rounded px-1" @change="updateCollaborator(collab)">
@@ -99,8 +106,8 @@ const updateCollaborator = async (collab) => {
               </a-select>
             </div>
           </td>
-          <td class="relative">
-            <div class="absolute -left-2.5 top-5">
+          <td class="w-1/5">
+            <div class="-left-2.5 top-5">
               <a-dropdown v-if="collab.roles !== WorkspaceUserRoles.OWNER" :trigger="['click']">
                 <MdiDotsVertical
                   class="h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-gray-500 bg-gray-100)"
@@ -108,7 +115,7 @@ const updateCollaborator = async (collab) => {
                 <template #overlay>
                   <a-menu>
                     <a-menu-item @click="removeCollaborator(collab.id)">
-                      <div class="flex flex-row items-center py-2 text-xs gap-1.5 text-red-500 cursor-pointer">
+                      <div class="flex flex-row items-center py-2 text-s gap-1.5 text-red-500 cursor-pointer">
                         <MaterialSymbolsDeleteOutlineRounded />
                         Remove user
                       </div>
@@ -118,6 +125,8 @@ const updateCollaborator = async (collab) => {
               </a-dropdown>
             </div>
           </td>
+          <td class="w-1/5 padding"></td>
+          <td class="w-1/5 padding"></td>
         </tr>
       </tbody>
     </table>

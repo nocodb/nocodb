@@ -2098,20 +2098,25 @@ class BaseModelSqlv2 {
     return _wherePk(this.model.primaryKeys, id);
   }
 
-  public getTnPath(tb: { table_name: string }) {
+  public getTnPath(tb: { table_name: string } | string, alias?: string) {
+    const tn = typeof tb === 'string' ? tb : tb.table_name;
     const schema = (this.dbDriver as any).searchPath?.();
-    if (this.isMssql && schema) {
-      return this.dbDriver.raw('??.??', [schema, tb.table_name]);
+    if (this.isPg && this.schema) {
+      return `${this.schema}.${tn}${alias ? ` as ${alias}` : ``}`;
+    } else if (this.isMssql && schema) {
+      return this.dbDriver.raw(`??.??${alias ? ' as ??' : ''}`, [
+        schema,
+        tn,
+        ...(alias ? [alias] : []),
+      ]);
     } else if (this.isSnowflake) {
-      return [
+      return `${[
         this.dbDriver.client.config.connection.database,
         this.dbDriver.client.config.connection.schema,
-        tb.table_name,
-      ].join('.');
-    } else if (this.schema) {
-      return `${this.schema}.${tb.table_name}`;
+        tn,
+      ].join('.')}${alias ? ` as ${alias}` : ``}`;
     } else {
-      return tb.table_name;
+      return `${tn}${alias ? ` as ${alias}` : ``}`;
     }
   }
 

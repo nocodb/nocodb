@@ -20,12 +20,6 @@ export default async function sortV2(
 ) {
   const knex = baseModelSqlv2.dbDriver;
 
-  const schema = baseModelSqlv2.schema;
-
-  function getTnPath(tn: string) {
-    return `${schema ? `${schema}.${tn}` : tn}`;
-  }
-
   if (!sortList?.length) {
     return;
   }
@@ -96,11 +90,13 @@ export default async function sortV2(
               await parentModel.getColumns();
 
               selectQb = knex(
-                `${getTnPath(parentModel.table_name)} as ${alias}`,
+                `${baseModelSqlv2.getTnPath(
+                  parentModel.table_name,
+                )} as ${alias}`,
               ).where(
                 `${alias}.${parentColumn.column_name}`,
                 knex.raw(`??`, [
-                  `${getTnPath(childModel.table_name)}.${
+                  `${baseModelSqlv2.getTnPath(childModel.table_name)}.${
                     childColumn.column_name
                   }`,
                 ]),
@@ -127,7 +123,9 @@ export default async function sortV2(
               await parentModel.getColumns();
 
               selectQb.join(
-                `${getTnPath(parentModel.table_name)} as ${nestedAlias}`,
+                `${baseModelSqlv2.getTnPath(
+                  parentModel.table_name,
+                )} as ${nestedAlias}`,
                 `${nestedAlias}.${parentColumn.column_name}`,
                 `${prevAlias}.${childColumn.column_name}`,
               );
@@ -169,7 +167,9 @@ export default async function sortV2(
 
                   selectQb
                     .join(
-                      `${getTnPath(parentModel.table_name)} as ${nestedAlias}`,
+                      `${baseModelSqlv2.getTnPath(
+                        parentModel.table_name,
+                      )} as ${nestedAlias}`,
                       `${nestedAlias}.${parentColumn.column_name}`,
                       `${prevAlias}.${childColumn.column_name}`,
                     )
@@ -220,14 +220,16 @@ export default async function sortV2(
           const parentModel = await parentColumn.getModel();
           await parentModel.getColumns();
 
-          const selectQb = knex(getTnPath(parentModel.table_name))
+          const selectQb = knex(
+            baseModelSqlv2.getTnPath(parentModel.table_name),
+          )
             .select(parentModel?.displayValue?.column_name)
             .where(
-              `${getTnPath(parentModel.table_name)}.${
+              `${baseModelSqlv2.getTnPath(parentModel.table_name)}.${
                 parentColumn.column_name
               }`,
               knex.raw(`??`, [
-                `${getTnPath(childModel.table_name)}.${
+                `${baseModelSqlv2.getTnPath(childModel.table_name)}.${
                   childColumn.column_name
                 }`,
               ]),

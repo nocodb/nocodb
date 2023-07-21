@@ -1,13 +1,10 @@
-import { knownQueryParams } from './src/lib/utils/NcConfigFactory';
+import { knownQueryParams } from '../lib/utils/NcConfigFactory';
 
-const entities = [
-  `${__dirname}/src/database/entities/*.ts`,
-  `${__dirname}/src/database/entities/*.js`,
-];
+const entities = [`${__dirname}/entities/*.ts`, `${__dirname}/entities/*.js`];
 
 const migrations = [
-  `${__dirname}/src/database/migrations/*.ts`,
-  `${__dirname}/src/database/migrations/*.js`,
+  `${__dirname}/migrations/*.ts`,
+  `${__dirname}/migrations/*.js`,
 ];
 
 const ormConfig = () => {

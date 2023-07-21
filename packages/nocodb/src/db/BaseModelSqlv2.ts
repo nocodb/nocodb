@@ -51,6 +51,7 @@ import type {
   SelectOption,
 } from '../models';
 import type { SortType } from 'nocodb-sdk';
+import { readByPk } from '~/services/data-opt/helpers';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -2068,7 +2069,16 @@ class BaseModelSqlv2 {
 
       await this.beforeUpdate(data, trx, cookie);
 
-      const prevData = await this.readByPk(id);
+      const view = await View.get(this.viewId)
+    const base = await Base.get(this.model.base_id)
+      // const prevData = await this.readByPk(id);
+      const prevData = await readByPk({
+        model: this.model,
+        view,
+        id,
+        params: {},
+        base,
+      });
 
       const query = this.dbDriver(this.tnPath)
         .update(updateObj)
@@ -2076,7 +2086,18 @@ class BaseModelSqlv2 {
 
       await this.execAndParse(query);
 
-      const newData = await this.readByPk(id);
+      // const newData = await this.readByPk(id);
+
+      // const prevData = await this.readByPk(id);
+
+      const newData =  await readByPk({
+        model: this.model,
+        view,
+        id,
+        params: {},
+        base,
+      });
+
       await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
       return newData;
     } catch (e) {

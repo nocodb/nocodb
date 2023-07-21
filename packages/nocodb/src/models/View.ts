@@ -1,4 +1,4 @@
-import { isSystemColumn, UITypes, ViewTypes } from 'nocodb-sdk';
+import {isSystemColumn, UITypes, ViewTypes} from 'nocodb-sdk';
 import Noco from '../Noco';
 import {
   CacheDelDirection,
@@ -6,9 +6,9 @@ import {
   CacheScope,
   MetaTable,
 } from '../utils/globals';
-import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
+import {parseMetaProp, stringifyMetaProp} from '../utils/modelUtils';
 import NocoCache from '../cache/NocoCache';
-import { extractProps } from '../helpers/extractProps';
+import {extractProps} from '../helpers/extractProps';
 import Model from './Model';
 import FormView from './FormView';
 import GridView from './GridView';
@@ -23,9 +23,9 @@ import KanbanViewColumn from './KanbanViewColumn';
 import Column from './Column';
 import MapView from './MapView';
 import MapViewColumn from './MapViewColumn';
-import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
+import type {BoolType, ColumnReqType, ViewType} from 'nocodb-sdk';
 
-const { v4: uuidv4 } = require('uuid');
+const {v4: uuidv4} = require('uuid');
 
 type ViewColumn =
   | GridViewColumn
@@ -53,13 +53,11 @@ export default class View implements ViewType {
   fk_model_id: string;
   model?: Model;
   view?: FormView | GridView | KanbanView | GalleryView | MapView;
-  columns?: Array<
-    | FormViewColumn
+  columns?: Array<| FormViewColumn
     | GridViewColumn
     | GalleryViewColumn
     | KanbanViewColumn
-    | MapViewColumn
-  >;
+    | MapViewColumn>;
 
   sorts: Sort[];
   filter: Filter;
@@ -74,14 +72,14 @@ export default class View implements ViewType {
 
   async getModel(ncMeta = Noco.ncMeta): Promise<Model> {
     return (this.model = await Model.getByIdOrName(
-      { id: this.fk_model_id },
+      {id: this.fk_model_id},
       ncMeta,
     ));
   }
 
   async getModelWithInfo(ncMeta = Noco.ncMeta): Promise<Model> {
     return (this.model = await Model.getWithInfo(
-      { id: this.fk_model_id },
+      {id: this.fk_model_id},
       ncMeta,
     ));
   }
@@ -149,7 +147,7 @@ export default class View implements ViewType {
   }
 
   public static async getByTitleOrId(
-    { fk_model_id, titleOrId }: { titleOrId: string; fk_model_id: string },
+    {fk_model_id, titleOrId}: { titleOrId: string; fk_model_id: string },
     ncMeta = Noco.ncMeta,
   ) {
     const viewId =
@@ -163,7 +161,7 @@ export default class View implements ViewType {
         null,
         null,
         MetaTable.VIEWS,
-        { fk_model_id },
+        {fk_model_id},
         null,
         {
           _or: [
@@ -229,8 +227,8 @@ export default class View implements ViewType {
 
   public static async list(modelId: string, ncMeta = Noco.ncMeta) {
     const cachedList = await NocoCache.getList(CacheScope.VIEW, [modelId]);
-    let { list: viewsList } = cachedList;
-    const { isNoneList } = cachedList;
+    let {list: viewsList} = cachedList;
+    const {isNoneList} = cachedList;
     if (!isNoneList && !viewsList.length) {
       viewsList = await ncMeta.metaList2(null, null, MetaTable.VIEWS, {
         condition: {
@@ -263,15 +261,15 @@ export default class View implements ViewType {
   }
 
   public async getSorts(ncMeta = Noco.ncMeta) {
-    return (this.sorts = await Sort.list({ viewId: this.id }, ncMeta));
+    return (this.sorts = await Sort.list({viewId: this.id}, ncMeta));
   }
 
   static async insert(
     view: Partial<View> &
       Partial<FormView | GridView | GalleryView | KanbanView | MapView> & {
-        copy_from_id?: string;
-        fk_grp_col_id?: string;
-      },
+      copy_from_id?: string;
+      fk_grp_col_id?: string;
+    },
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(view, [
@@ -300,7 +298,7 @@ export default class View implements ViewType {
 
     // get project and base id if missing
     if (!(view.project_id && view.base_id)) {
-      const model = await Model.getByIdOrName({ id: view.fk_model_id }, ncMeta);
+      const model = await Model.getByIdOrName({id: view.fk_model_id}, ncMeta);
       insertObj.project_id = model.project_id;
       insertObj.base_id = model.base_id;
     }
@@ -309,7 +307,7 @@ export default class View implements ViewType {
       view.copy_from_id && (await View.get(view.copy_from_id, ncMeta));
     await copyFromView?.getView();
 
-    const { id: view_id } = await ncMeta.metaInsert2(
+    const {id: view_id} = await ncMeta.metaInsert2(
       null,
       null,
       MetaTable.VIEWS,
@@ -323,7 +321,7 @@ export default class View implements ViewType {
     );
 
     let columns: any[] = await (
-      await Model.getByIdOrName({ id: view.fk_model_id }, ncMeta)
+      await Model.getByIdOrName({id: view.fk_model_id}, ncMeta)
     ).getColumns(ncMeta);
 
     // insert view metadata based on view type
@@ -479,7 +477,7 @@ export default class View implements ViewType {
 
         // if columns is list of virtual columns then get the parent column
         const col = vCol.fk_column_id
-          ? await Column.get({ colId: vCol.fk_column_id }, ncMeta)
+          ? await Column.get({colId: vCol.fk_column_id}, ncMeta)
           : vCol;
 
         if (isSystemColumn(col)) show = false;
@@ -519,7 +517,7 @@ export default class View implements ViewType {
     const views = await this.list(param.fk_model_id, ncMeta);
 
     for (const view of views) {
-      const modifiedInsertObj = { ...insertObj, fk_view_id: view.id };
+      const modifiedInsertObj = {...insertObj, fk_view_id: view.id};
 
       if (param.column_order?.view_id === view.id) {
         modifiedInsertObj.order = param.column_order?.order;
@@ -563,60 +561,55 @@ export default class View implements ViewType {
 
     let col;
     switch (view.type) {
-      case ViewTypes.GRID:
-        {
-          col = await GridViewColumn.insert(
-            {
-              ...param,
-              fk_view_id: view.id,
-            },
-            ncMeta,
-          );
-        }
+      case ViewTypes.GRID: {
+        col = await GridViewColumn.insert(
+          {
+            ...param,
+            fk_view_id: view.id,
+          },
+          ncMeta,
+        );
+      }
         break;
-      case ViewTypes.GALLERY:
-        {
-          col = await GalleryViewColumn.insert(
-            {
-              ...param,
-              fk_view_id: view.id,
-            },
-            ncMeta,
-          );
-        }
+      case ViewTypes.GALLERY: {
+        col = await GalleryViewColumn.insert(
+          {
+            ...param,
+            fk_view_id: view.id,
+          },
+          ncMeta,
+        );
+      }
         break;
-      case ViewTypes.MAP:
-        {
-          col = await MapViewColumn.insert(
-            {
-              ...param,
-              fk_view_id: view.id,
-            },
-            ncMeta,
-          );
-        }
+      case ViewTypes.MAP: {
+        col = await MapViewColumn.insert(
+          {
+            ...param,
+            fk_view_id: view.id,
+          },
+          ncMeta,
+        );
+      }
         break;
-      case ViewTypes.FORM:
-        {
-          col = await FormViewColumn.insert(
-            {
-              ...param,
-              fk_view_id: view.id,
-            },
-            ncMeta,
-          );
-        }
+      case ViewTypes.FORM: {
+        col = await FormViewColumn.insert(
+          {
+            ...param,
+            fk_view_id: view.id,
+          },
+          ncMeta,
+        );
+      }
         break;
-      case ViewTypes.KANBAN:
-        {
-          col = await KanbanViewColumn.insert(
-            {
-              ...param,
-              fk_view_id: view.id,
-            },
-            ncMeta,
-          );
-        }
+      case ViewTypes.KANBAN: {
+        col = await KanbanViewColumn.insert(
+          {
+            ...param,
+            fk_view_id: view.id,
+          },
+          ncMeta,
+        );
+      }
         break;
     }
 
@@ -634,15 +627,11 @@ export default class View implements ViewType {
   static async getColumns(
     viewId: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<
-    Array<
-      | GridViewColumn
-      | FormViewColumn
-      | GalleryViewColumn
-      | KanbanViewColumn
-      | MapViewColumn
-    >
-  > {
+  ): Promise<Array<| GridViewColumn
+    | FormViewColumn
+    | GalleryViewColumn
+    | KanbanViewColumn
+    | MapViewColumn>> {
     let columns: Array<GridViewColumn | any> = [];
     const view = await this.get(viewId, ncMeta);
 
@@ -741,12 +730,19 @@ export default class View implements ViewType {
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
     if (o) {
       // update data
-      o = { ...o, ...updateObj };
+      o = {...o, ...updateObj};
       // set cache
       await NocoCache.set(key, o);
     }
     // set meta
-    return await ncMeta.metaUpdate(null, null, table, updateObj, colId);
+    const res = await ncMeta.metaUpdate(null, null, table, updateObj, colId);
+
+    // on view column update, delete corresponding single query cache
+    await NocoCache.del(
+      `${CacheScope.SINGLE_QUERY}:${view.fk_model_id}:${view.id}`,
+    );
+
+    return res;
   }
 
   static async insertOrUpdateColumn(
@@ -757,14 +753,12 @@ export default class View implements ViewType {
       show?: BoolType;
     },
     ncMeta = Noco.ncMeta,
-  ): Promise<
-    | GridViewColumn
+  ): Promise<| GridViewColumn
     | FormViewColumn
     | GalleryViewColumn
     | KanbanViewColumn
     | MapViewColumn
-    | any
-  > {
+    | any> {
     const view = await this.get(viewId);
     const table = this.extractViewColumnsTableName(view);
 
@@ -790,7 +784,7 @@ export default class View implements ViewType {
         `${CacheScope.SINGLE_QUERY}:${view.fk_model_id}:${view.id}`,
       );
 
-      return { ...existingCol, ...colData };
+      return {...existingCol, ...colData};
     } else {
       switch (view.type) {
         case ViewTypes.GRID:
@@ -909,7 +903,7 @@ export default class View implements ViewType {
 
   static async passwordUpdate(
     viewId: string,
-    { password }: { password: string },
+    {password}: { password: string },
     ncMeta = Noco.ncMeta,
   ) {
     // get existing cache
@@ -981,7 +975,7 @@ export default class View implements ViewType {
     // get existing cache
     const key = `${CacheScope.VIEW}:${viewId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    let oldView = { ...o };
+    let oldView = {...o};
     if (o) {
       // update data
       o = {
@@ -1163,8 +1157,8 @@ export default class View implements ViewType {
 
     // get existing cache
     const cachedList = await NocoCache.getList(scope, [viewId]);
-    const { list: dataList } = cachedList;
-    const { isNoneList } = cachedList;
+    const {list: dataList} = cachedList;
+    const {isNoneList} = cachedList;
     if (!isNoneList && dataList?.length) {
       for (const o of dataList) {
         if (!ignoreColdIds?.length || !ignoreColdIds.includes(o.fk_column_id)) {
@@ -1185,7 +1179,7 @@ export default class View implements ViewType {
         await this.updateColumn(
           viewId,
           viewColumns[colIndex].id,
-          { show: true },
+          {show: true},
           ncMeta,
         );
       } else {
@@ -1251,8 +1245,8 @@ export default class View implements ViewType {
 
     // get existing cache
     const cachedList = await NocoCache.getList(scope, [viewId]);
-    const { list: dataList } = cachedList;
-    const { isNoneList } = cachedList;
+    const {list: dataList} = cachedList;
+    const {isNoneList} = cachedList;
 
     const colsEssentialForView =
       view.type === ViewTypes.MAP
@@ -1279,18 +1273,18 @@ export default class View implements ViewType {
       null,
       null,
       table,
-      { show: false },
+      {show: false},
       {
         fk_view_id: viewId,
       },
       mergedIgnoreColdIds?.length
         ? {
-            _not: {
-              fk_column_id: {
-                in: ignoreColdIds,
-              },
+          _not: {
+            fk_column_id: {
+              in: ignoreColdIds,
             },
-          }
+          },
+        }
         : null,
     );
   }
@@ -1301,8 +1295,8 @@ export default class View implements ViewType {
 
   static async shareViewList(tableId, ncMeta = Noco.ncMeta) {
     const cachedList = await NocoCache.getList(CacheScope.VIEW, [tableId]);
-    let { list: sharedViews } = cachedList;
-    const { isNoneList } = cachedList;
+    let {list: sharedViews} = cachedList;
+    const {isNoneList} = cachedList;
     if (!isNoneList && !sharedViews.length) {
       sharedViews = await ncMeta.metaList2(null, null, MetaTable.VIEWS, {
         xcCondition: {
@@ -1368,7 +1362,7 @@ export default class View implements ViewType {
           null,
           null,
           MetaTable.GRID_VIEW_COLUMNS,
-          { show: true },
+          {show: true},
           primary_value_column.id,
         );
         await NocoCache.set(
@@ -1396,7 +1390,7 @@ export default class View implements ViewType {
             null,
             null,
             MetaTable.GRID_VIEW_COLUMNS,
-            { order: i + 1 },
+            {order: i + 1},
             view_columns[i].id,
           );
           await NocoCache.set(

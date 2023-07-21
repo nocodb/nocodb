@@ -3867,7 +3867,7 @@ class BaseModelSqlv2 {
 export function extractSortsObject(
   _sorts: string | string[],
   aliasColObjMap: { [columnAlias: string]: Column },
-): Sort[] | void {
+): Sort[] {
   if (!_sorts?.length) return;
 
   let sorts = _sorts;

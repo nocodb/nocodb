@@ -10,6 +10,7 @@ import type {
   QrCodeColumn,
 } from '~/models';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type { DependantFields } from '~/helpers/getAst';
 import { Column } from '~/models';
 import { ROOT_ALIAS } from '~/utils';
 import {
@@ -59,6 +60,7 @@ export async function extractColumns({
   qb,
   getAlias,
   params,
+  dependencyFields,
   alias = ROOT_ALIAS,
   baseModel,
 }: {
@@ -70,10 +72,11 @@ export async function extractColumns({
   params: any;
   alias?: string;
   baseModel: BaseModelSqlv2;
+  dependencyFields: DependantFields;
 }) {
   for (const column of columns) {
-    if (column.pk || (allowedCols && !allowedCols[column.id])) continue;
-    await this.extractColumn({
+    if (!dependencyFields.fieldsSet.has(column.title)) continue;
+    await extractColumn({
       column,
       knex,
       rootAlias: alias,
@@ -81,6 +84,7 @@ export async function extractColumns({
       getAlias,
       params: params?.nested?.[column.title],
       baseModel,
+      dependencyFields: dependencyFields?.nested?.[column.title],
     });
   }
 }
@@ -95,6 +99,7 @@ export async function extractColumn({
   isLookup,
   getAlias,
   baseModel,
+  dependencyFields,
 }: {
   column: Column;
   qb: Knex.QueryBuilder;
@@ -104,6 +109,7 @@ export async function extractColumn({
   params?: any;
   getAlias: () => string;
   baseModel: BaseModelSqlv2;
+  dependencyFields: DependantFields;
 }) {
   const result = { isArray: false };
   // todo: check system field enabled / not
@@ -204,6 +210,7 @@ export async function extractColumn({
                 getAlias,
                 alias: alias5,
                 baseModel,
+                dependencyFields,
               });
 
               qb.joinRaw(
@@ -253,6 +260,7 @@ export async function extractColumn({
                 getAlias,
                 alias: alias3,
                 baseModel,
+                dependencyFields,
               });
 
               qb.joinRaw(
@@ -309,6 +317,7 @@ export async function extractColumn({
                 getAlias,
                 alias: alias3,
                 baseModel,
+                dependencyFields,
               });
 
               qb.joinRaw(
@@ -427,6 +436,7 @@ export async function extractColumn({
           getAlias,
           column: lookupColumn,
           baseModel,
+          dependencyFields,
         });
 
         if (!result.isArray) {
@@ -519,6 +529,7 @@ export async function extractColumn({
           isLookup,
           getAlias,
           baseModel,
+          dependencyFields,
         });
       }
       break;
@@ -536,6 +547,7 @@ export async function extractColumn({
           isLookup,
           getAlias,
           baseModel,
+          dependencyFields,
         });
       }
       break;

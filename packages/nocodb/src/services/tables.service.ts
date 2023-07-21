@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
 import {
-  AuditOperationSubTypes,
-  AuditOperationTypes,
   isLinksOrLTAR,
   isVirtualCol,
   ModelTypes,
@@ -17,7 +15,7 @@ import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
 import getColumnUiType from '../helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
 import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
-import { Audit, Column, Model, ModelRoleVisibility, Project } from '../models';
+import { Column, Model, ModelRoleVisibility, Project } from '../models';
 import Noco from '../Noco';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { validatePayload } from '../helpers';

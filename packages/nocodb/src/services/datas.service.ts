@@ -33,7 +33,6 @@ export class DatasService {
         view,
         params: param.query,
         base,
-        paramsHash: null,
       });
     } else {
       responseData = await this.getDataList({

@@ -70,7 +70,7 @@ const baseSettingsState = ref('')
         <a-tab-pane v-if="isUIAllowed('shareProject')" key="accessSettings">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__access-settings">
-              <GeneralIcon icon="users" />
+              <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
               <div>Access Settings</div>
             </div>
           </template>

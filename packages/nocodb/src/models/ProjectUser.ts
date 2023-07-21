@@ -98,6 +98,7 @@ export default class ProjectUser {
         `${MetaTable.PROJECT_USERS}.project_id`,
         `${MetaTable.PROJECT_USERS}.roles as roles`,
         `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
+        `${MetaTable.WORKSPACE_USER}.fk_workspace_id as workspace_id`,
       )
       .offset(offset)
       .limit(limit);
@@ -107,7 +108,7 @@ export default class ProjectUser {
     }
 
     queryBuilder
-      .leftJoin(MetaTable.WORKSPACE_USER, function () {
+      .innerJoin(MetaTable.WORKSPACE_USER, function () {
         this.on(
           `${MetaTable.WORKSPACE_USER}.fk_user_id`,
           '=',

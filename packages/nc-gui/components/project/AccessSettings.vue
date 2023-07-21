@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import type { WorkspaceUserType } from 'nocodb-sdk'
+import { WorkspaceUserRoles, type WorkspaceUserType } from 'nocodb-sdk'
 import { Empty } from 'ant-design-vue'
+import InfiniteLoading from 'v3-infinite-loading'
 import { storeToRefs, stringToColour, timeAgo } from '#imports'
 
 const rolesLabel = {
@@ -9,41 +10,76 @@ const rolesLabel = {
   [ProjectRole.Editor]: 'Editor',
   [ProjectRole.Commenter]: 'Commenter',
   [ProjectRole.Viewer]: 'Viewer',
+  [WorkspaceUserRoles.CREATOR]: 'Creator',
+  [WorkspaceUserRoles.OWNER]: 'Owner',
+  [WorkspaceUserRoles.EDITOR]: 'Editor',
+  [WorkspaceUserRoles.COMMENTER]: 'Commenter',
+  [WorkspaceUserRoles.VIEWER]: 'Viewer',
 }
 
 const { getProjectUsers, createProjectUser, updateProjectUser } = useProjects()
 const { activeProjectId } = storeToRefs(useProjects())
 
 const collaborators = ref<WorkspaceUserType[]>([])
+const totalCollaborators = ref(0)
 const userSearchText = ref('')
+const currentPage = ref(0)
 
 const isLoading = ref(false)
 
 const loadCollaborators = async () => {
-  isLoading.value = true
-
   try {
-    const { users } = await getProjectUsers({
+    currentPage.value += 1
+
+    const { users, totalRows } = await getProjectUsers({
       projectId: activeProjectId.value!,
-      page: 1,
-      limit: 100,
+      page: currentPage.value,
+      limit: 20,
       searchText: userSearchText.value,
     })
 
-    collaborators.value = users.map((user: any) => ({
-      ...user,
-      projectRoles: user.roles,
-      roles: user.roles ?? user.workspace_roles,
-    }))
+    totalCollaborators.value = totalRows
+    collaborators.value = [
+      ...collaborators.value,
+      ...users.map((user: any) => ({
+        ...user,
+        projectRoles: user.roles,
+        roles: user.roles ?? user.workspace_roles,
+      })),
+    ]
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
-
-  isLoading.value = false
 }
 
-onMounted(() => {
-  loadCollaborators()
+const loadListData = async ($state: any) => {
+  const prevUsersCount = collaborators.value?.length || 0
+  if (collaborators.value?.length === totalCollaborators.value) {
+    $state.complete()
+    return
+  }
+  $state.loading()
+  // const oldPagesCount = currentPage.value || 0
+
+  await loadCollaborators()
+
+  if (prevUsersCount === collaborators.value?.length) {
+    $state.complete()
+    return
+  }
+  $state.loaded()
+}
+
+onMounted(async () => {
+  isLoading.value = true
+  try {
+    await loadCollaborators()
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isLoading.value = false
+  }
+  console.log('collaborators', collaborators.value)
 })
 
 const getRolesLabel = (roles?: string) => {
@@ -55,12 +91,13 @@ const getRolesLabel = (roles?: string) => {
   )
 }
 
-const updateCollaborator = async (collab) => {
+const updateCollaborator = async (collab, roles) => {
   try {
     if (collab.projectRoles) {
       await updateProjectUser(activeProjectId.value!, collab)
     } else {
       await createProjectUser(activeProjectId.value!, collab)
+      collab.projectRoles = roles
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -99,7 +136,7 @@ const updateCollaborator = async (collab) => {
             <div class="!py-0 w-1/2 email">
               <div class="flex items-center gap-2">
                 <span class="color-band" :style="{ backgroundColor: stringToColour(collab.email) }">{{
-                  collab.email.slice(0, 2)
+                  collab?.email?.slice(0, 2)
                 }}</span>
                 {{ collab.email }}
               </div>
@@ -113,7 +150,12 @@ const updateCollaborator = async (collab) => {
               </span>
 
               <div v-else class="nc-collaborator-role-select">
-                <a-select v-model:value="collab.roles" class="w-30 !rounded px-1" @change="updateCollaborator(collab)">
+                <a-select
+                  v-model:value="collab.roles"
+                  class="w-30 !rounded px-1"
+                  :virtual="true"
+                  @change="(value) => updateCollaborator(collab, value)"
+                >
                   <template #suffixIcon>
                     <MdiChevronDown />
                   </template>
@@ -125,6 +167,16 @@ const updateCollaborator = async (collab) => {
               </div>
             </div>
           </div>
+          <InfiniteLoading v-bind="$attrs" @infinite="loadListData">
+            <template #spinner>
+              <div class="flex flex-row w-full justify-center mt-2">
+                <GeneralLoader />
+              </div>
+            </template>
+            <template #complete>
+              <span></span>
+            </template>
+          </InfiniteLoading>
         </div>
       </div>
     </template>

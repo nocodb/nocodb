@@ -16,7 +16,7 @@ import { NcError } from '../../helpers/catchError';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import { randomTokenString } from '../../helpers/stringHelpers';
-import { Audit, Project, ProjectUser, User } from '../../models';
+import { Audit, Project, ProjectUser, User, WorkspaceUser } from '../../models';
 
 import Noco from '../../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../../utils/globals';
@@ -40,7 +40,9 @@ export class ProjectUsersService {
       }),
       {
         ...param.query,
-        count: await ProjectUser.getUsersCount(param.query),
+        count: await WorkspaceUser.count({
+          workspaceId: project?.fk_workspace_id,
+        }),
       },
     );
   }

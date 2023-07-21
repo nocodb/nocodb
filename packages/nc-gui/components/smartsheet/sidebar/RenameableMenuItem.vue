@@ -174,24 +174,19 @@ function onStopEdit() {
     class="!min-h-8 !max-h-8 !mb-0.25 select-none group text-gray-700 !flex !items-center !mt-0 hover:(!bg-gray-75 !text-gray-900)"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @dblclick.stop="onDblClick"
-    @click.stop="onClick"
   >
     <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-1" data-testid="view-item">
-      <div class="flex w-auto min-w-5" :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`">
-        <a-dropdown :trigger="['click']" @click.stop>
-          <component :is="isUIAllowed('viewIconCustomisation') ? Tooltip : 'div'">
-            <GeneralViewIcon :meta="props.view" class="nc-view-icon"></GeneralViewIcon>
-            <template v-if="isUIAllowed('viewIconCustomisation')" #title>Change icon</template>
-          </component>
-
-          <template v-if="isUIAllowed('viewIconCustomisation')" #overlay>
-            <GeneralEmojiIcons
-              class="shadow bg-white p-2"
-              :show-reset="!!view.meta?.icon"
-              @select-icon="emits('selectIcon', $event)"
-            />
+      <div class="flex min-w-6" :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`">
+        <GeneralEmojiPicker
+          :emoji="props.view?.meta?.icon"
+          size="small"
+          :clearable="true"
+          @emoji-selected="emits('selectIcon', $event)"
+        >
+          <template #default>
+            <GeneralViewIcon :meta="props.view" class="nc-view-icon !w-4"></GeneralViewIcon>
           </template>
-        </a-dropdown>
+        </GeneralEmojiPicker>
       </div>
 
       <a-input

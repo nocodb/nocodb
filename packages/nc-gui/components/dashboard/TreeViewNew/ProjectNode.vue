@@ -392,13 +392,7 @@ onKeyStroke('Escape', () => {
               />
             </div>
           </div>
-          <component
-            :is="isUIAllowed('projectIconCustomisation', false, projectRole) ? Dropdown : 'div'"
-            trigger="click"
-            destroy-popup-on-hide
-            class="flex items-center mr-1"
-            @click.stop
-          >
+          <div class="flex items-center mr-1" @click.stop>
             <div class="flex items-center select-none w-6 h-full" @click.stop>
               <a-spin
                 v-if="project.isLoading"
@@ -409,8 +403,8 @@ onKeyStroke('Escape', () => {
               <GeneralEmojiPicker
                 :key="project.meta?.icon"
                 :emoji="project.meta?.icon"
+                :readonly="!isUIAllowed('projectIconCustomisation', false, projectRole)"
                 size="small"
-                readonly
                 @emoji-selected="setIcon($event, project)"
               >
                 <template #default>
@@ -418,15 +412,7 @@ onKeyStroke('Escape', () => {
                 </template>
               </GeneralEmojiPicker>
             </div>
-            <template v-if="isUIAllowed('projectIconCustomisation', false, projectRole)" #overlay>
-              <GeneralEmojiPicker
-                :key="project.meta?.icon"
-                :emoji="project.meta?.icon"
-                clearable
-                @emoji-selected="setIcon($event, project)"
-              />
-            </template>
-          </component>
+          </div>
 
           <input
             v-if="editMode"

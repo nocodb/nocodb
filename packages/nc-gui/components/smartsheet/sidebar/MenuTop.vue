@@ -308,7 +308,7 @@ const setIcon = async (icon: string, view: ViewType) => {
       :key="view.id"
       :view="view"
       :on-validate="validate"
-      class="nc-view-item !rounded-md !pl-2.75 !pr-2.25 !py-0.5 w-full transition-all ease-in duration-300"
+      class="nc-view-item !rounded-md !pl-1.25 !pr-2.25 !py-0.5 w-full transition-all ease-in duration-300"
       :class="{
         'bg-gray-100': isMarked === view.id,
         'active': activeView?.id === view.id,

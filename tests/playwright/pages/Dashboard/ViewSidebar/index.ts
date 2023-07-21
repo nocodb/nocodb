@@ -56,7 +56,7 @@ export class ViewSidebarPage extends BasePage {
     await this.rootPage.locator('input[id="form_item_title"]:visible').waitFor({ state: 'visible' });
     await this.rootPage.locator('input[id="form_item_title"]:visible').fill(title);
     const submitAction = () =>
-      this.rootPage.locator('.ant-modal-content').locator('button:has-text("Submit"):visible').click();
+      this.rootPage.locator('.ant-modal-content').locator('button.ant-btn.ant-btn-primary').click();
     await this.waitForResponse({
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: '/api/v1/db/meta/tables/',

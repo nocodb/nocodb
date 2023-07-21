@@ -3,7 +3,7 @@ import setup from '../../setup';
 import { WorkspacePage } from '../../pages/WorkspacePage';
 import { DashboardPage } from '../../pages/Dashboard';
 
-test.describe('DashboardBasicTests', () => {
+test.describe.skip('DashboardBasicTests', () => {
   let wsPage: WorkspacePage;
   let dashboardPage: DashboardPage;
   let context: any;

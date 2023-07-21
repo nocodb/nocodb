@@ -58,7 +58,7 @@ test.describe.serial('Test table', () => {
     grid = dashboard.grid;
 
     // create a new xcdb project
-    const xcdb = await createXcdb(context.token);
+    const xcdb = await createXcdb(context);
     await dashboard.clickHome();
     if (isHub()) {
       const workspacePage = new WorkspacePage(dashboard.rootPage);

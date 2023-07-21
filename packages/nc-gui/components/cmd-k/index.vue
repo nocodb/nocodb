@@ -45,7 +45,11 @@ const selected = ref<string>()
 const formattedData: ComputedRef<(CmdAction & { weight: number })[]> = computed(() => {
   const rt: (CmdAction & { weight: number })[] = []
   for (const el of props.data) {
-    rt.push({ ...el, parent: el.parent || 'root', keywords: el.keywords || [], weight: commandScore(el.title, cmdInput.value) })
+    rt.push({
+      ...el,
+      parent: el.parent || 'root',
+      weight: commandScore(`${el.title}${el.section}${el.keywords?.join()}`, cmdInput.value),
+    })
   }
   return rt
 })
@@ -149,11 +153,11 @@ const keys = useMagicKeys()
 const setAction = (action: string) => {
   selected.value = action
   nextTick(() => {
-    const actionIndex = actionList.value.findIndex((el) => el.id === action)
+    const actionIndex = searchedActionList.value.findIndex((el) => el.id === action)
     if (actionIndex === -1) return
     if (actionIndex === 0) {
       document.querySelector('.cmdk-actions')?.scrollTo({ top: 0, behavior: 'smooth' })
-    } else if (actionIndex === actionList.value.length - 1) {
+    } else if (actionIndex === searchedActionList.value.length - 1) {
       document.querySelector('.cmdk-actions')?.scrollTo({ top: 999999, behavior: 'smooth' })
     } else {
       document.querySelector('.cmdk-action.selected')?.scrollIntoView({
@@ -165,8 +169,8 @@ const setAction = (action: string) => {
 }
 
 const selectFirstAction = () => {
-  if (actionList.value.length > 0) {
-    setAction(actionList.value[0].id)
+  if (searchedActionList.value.length > 0) {
+    setAction(searchedActionList.value[0].id)
   } else {
     selected.value = undefined
   }
@@ -212,22 +216,22 @@ whenever(keys.Escape, () => {
 
 whenever(keys.arrowup, () => {
   if (vOpen.value) {
-    const idx = actionList.value.findIndex((el) => el.id === selected.value)
+    const idx = searchedActionList.value.findIndex((el) => el.id === selected.value)
     if (idx > 0) {
-      setAction(actionList.value[idx - 1].id)
+      setAction(searchedActionList.value[idx - 1].id)
     } else if (idx === 0) {
-      setAction(actionList.value[actionList.value.length - 1].id)
+      setAction(searchedActionList.value[searchedActionList.value.length - 1].id)
     }
   }
 })
 
 whenever(keys.arrowdown, () => {
   if (vOpen.value) {
-    const idx = actionList.value.findIndex((el) => el.id === selected.value)
-    if (idx < actionList.value.length - 1) {
-      setAction(actionList.value[idx + 1].id)
-    } else if (idx === actionList.value.length - 1) {
-      setAction(actionList.value[0].id)
+    const idx = searchedActionList.value.findIndex((el) => el.id === selected.value)
+    if (idx < searchedActionList.value.length - 1) {
+      setAction(searchedActionList.value[idx + 1].id)
+    } else if (idx === searchedActionList.value.length - 1) {
+      setAction(searchedActionList.value[0].id)
     }
   }
 })

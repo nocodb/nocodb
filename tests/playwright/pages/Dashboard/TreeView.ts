@@ -192,7 +192,7 @@ export class TreeViewPage extends BasePage {
     }
     await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Rename")').click();
     await this.dashboard.get().locator('[placeholder="Enter table name"]').fill(newTitle);
-    await this.dashboard.get().locator('button:has-text("Submit")').click();
+    await this.dashboard.get().locator('button:has-text("Rename Table")').click();
     await this.verifyToast({ message: 'Table renamed successfully' });
   }
 

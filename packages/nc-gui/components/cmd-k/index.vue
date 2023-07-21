@@ -48,7 +48,7 @@ const formattedData: ComputedRef<(CmdAction & { weight: number })[]> = computed(
     rt.push({
       ...el,
       parent: el.parent || 'root',
-      weight: commandScore(`${el.title}${el.section}${el.keywords?.join()}`, cmdInput.value),
+      weight: commandScore(`${el.section}${el.title}${el.keywords?.join()}`, cmdInput.value),
     })
   }
   return rt
@@ -514,11 +514,12 @@ defineExpose({
       transition: color 0s ease 0s;
       width: 100%;
       font-size: 0.9em;
+      border-left: 2px solid transparent;
 
       &.selected {
         cursor: pointer;
         background-color: rgb(248, 249, 251);
-        border-left: 2px solid pink;
+        border-left: 2px solid var(--ant-primary-color);
         outline: none;
       }
 

@@ -1,11 +1,12 @@
 import { navigateTo } from '#imports'
 import MdiHome from '~icons/mdi/home'
+import MdiFileOutline from '~icons/mdi/file-outline'
 
 export const homeCommands = [
   {
     id: 'workspace',
     title: 'Workspace',
-    icon: 'database',
+    icon: 'workspace',
   },
   {
     id: 'account_settings-tokens',
@@ -53,10 +54,12 @@ export const homeCommands = [
   {
     id: 'workspaces',
     title: 'Workspaces',
+    icon: 'workspace',
   },
   {
     id: 'projects',
     title: 'Projects',
+    icon: MdiFileOutline,
   },
   {
     id: 'tables',

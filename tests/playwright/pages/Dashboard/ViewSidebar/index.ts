@@ -131,14 +131,7 @@ export class ViewSidebarPage extends BasePage {
       .locator('.nc-view-delete-icon')
       .click();
 
-    await this.rootPage.locator('.nc-modal-view-delete').locator('button:has-text("Submit"):visible').click();
-
-    // waiting for button to get detached, we will miss toast
-    // await this.rootPage
-    //   .locator(".nc-modal-view-delete")
-    //   .locator('button:has-text("Submit")')
-    //   .waitFor({ state: "detached" });
-    await this.verifyToast({ message: 'View deleted successfully' });
+    await this.rootPage.locator('button:has-text("Delete View"):visible').click();
   }
 
   async renameView({ title, newTitle }: { title: string; newTitle: string }) {

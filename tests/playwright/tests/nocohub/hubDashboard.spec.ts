@@ -3,7 +3,7 @@ import setup from '../../setup';
 import { WorkspacePage } from '../../pages/WorkspacePage';
 import { DashboardPage } from '../../pages/Dashboard';
 
-test.describe.skip('DashboardBasicTests', () => {
+test.describe('DashboardBasicTests', () => {
   let wsPage: WorkspacePage;
   let dashboardPage: DashboardPage;
   let context: any;
@@ -14,6 +14,8 @@ test.describe.skip('DashboardBasicTests', () => {
   });
 
   test('Page load & static configurations verification', async () => {
+    await wsPage.workspaceOpen({ title: context.workspace.title });
+
     // verify static elements : fixed menu items, buttons, etc.
     await wsPage.verifyStaticElements();
 
@@ -22,7 +24,6 @@ test.describe.skip('DashboardBasicTests', () => {
 
     // first row
     await wsPage.Container.verifyDynamicElements({
-      icon: 'database',
       title: 'pgExtREST0',
       lastAccessed: 'a few seconds ago',
       role: 'Workspace Owner',
@@ -30,36 +31,36 @@ test.describe.skip('DashboardBasicTests', () => {
 
     // TODO: Once implemented, verify page navigation & page specific elements
     //
-    await wsPage.Header.openMenu({ title: 'Workspaces' });
-    await wsPage.Header.openMenu({ title: 'Explore' });
-    await wsPage.Header.openMenu({ title: 'Help' });
-    await wsPage.Header.openMenu({ title: 'Community' });
+    // await wsPage.Header.openMenu({ title: 'Workspaces' });
+    // await wsPage.Header.openMenu({ title: 'Explore' });
+    // await wsPage.Header.openMenu({ title: 'Help' });
+    // await wsPage.Header.openMenu({ title: 'Community' });
   });
 
   test('Workspace Basic CRUD', async () => {
+    const ws2Title = context.workspace.title + '1';
     const leftPanel = await wsPage.LeftSideBar;
     await wsPage.workspaceCreate({
-      title: 'ws_pgExtREST1',
-      description: 'some project description',
+      title: ws2Title,
     });
     await leftPanel.verifyDynamicElements([
-      { title: 'ws_pgExtREST0', role: 'owner' },
-      { title: 'ws_pgExtREST1', role: 'owner' },
+      { title: ws2Title, role: 'owner' },
+      { title: ws2Title, role: 'owner' },
     ]);
 
     // await leftPanel.workspaceList();
 
-    await wsPage.workspaceRename({ title: 'ws_pgExtREST1', newTitle: 'ws_pgExtREST2' });
+    await wsPage.workspaceRename({ title: ws2Title, newTitle: ws2Title + '2' });
     await leftPanel.verifyDynamicElements([
-      { title: 'ws_pgExtREST0', role: 'owner' },
-      { title: 'ws_pgExtREST2', role: 'owner' },
+      { title: ws2Title, role: 'owner' },
+      { title: ws2Title + '2', role: 'owner' },
     ]);
 
-    await wsPage.workspaceDelete({ title: 'ws_pgExtREST2' });
-    await leftPanel.verifyDynamicElements([{ title: 'ws_pgExtREST0', role: 'owner' }]);
+    await wsPage.workspaceDelete({ title: ws2Title + '2' });
+    await leftPanel.verifyDynamicElements([{ title: context.workspace.title, role: 'owner' }]);
   });
 
-  test('Cmd K : Quick action menu', async () => {
+  test.skip('Cmd K : Quick action menu', async () => {
     const header = await wsPage.Header;
     await header.navigateUsingCmdK({
       keySequence: ['Enter', 'ArrowDown', 'ArrowDown', 'Enter'],
@@ -77,7 +78,7 @@ test.describe.skip('DashboardBasicTests', () => {
     });
   });
 
-  test('Project CRUD + Move', async ({ page }) => {
+  test.skip('Project CRUD + Move', async ({ page }) => {
     const container = await wsPage.Container;
 
     // create a db project
@@ -109,7 +110,7 @@ test.describe.skip('DashboardBasicTests', () => {
 
     // move db project to another workspace
     // create another workspace to verify project move
-    await wsPage.workspaceCreate({ title: 'test', description: 'some project description' });
+    await wsPage.workspaceCreate({ title: 'test' });
     // go back to ws_pgExtREST0 workspace
     await wsPage.workspaceOpen({ title: 'ws_pgExtREST0' });
     // trigger move
@@ -136,7 +137,7 @@ test.describe.skip('DashboardBasicTests', () => {
     expect(await container.getProjectRowCount()).toEqual(2);
   });
 
-  test('WS Quick access: Recent, Shared, Favourites', async () => {
+  test.skip('WS Quick access: Recent, Shared, Favourites', async () => {
     const dbInfo = {
       icon: 'database',
       title: 'pgExtREST0',
@@ -168,7 +169,7 @@ test.describe.skip('DashboardBasicTests', () => {
     await header.accountMenuOpen({ title: 'user-settings' });
     expect(dashboardPage.rootPage.url()).toBe('http://localhost:3000/#/account/users');
 
-    await dashboardPage.clickHome();
+    await wsPage.rootPage.goto('http://localhost:3000/#/');
     await header.accountMenuOpen({ title: 'sign-out' });
     expect(dashboardPage.rootPage.url()).toBe('http://localhost:3000/#/signin');
   });

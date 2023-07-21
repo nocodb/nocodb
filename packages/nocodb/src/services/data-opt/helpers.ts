@@ -26,6 +26,8 @@ import { sanitize } from '~/helpers/sqlSanitize';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import getAst from '~/helpers/getAst';
+import { CacheGetType, CacheScope } from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
 
 export function generateNestedRowSelectQuery({
   knex,
@@ -639,27 +641,17 @@ export async function readByPk(ctx: {
   // get knex connection
   const knex = await NcConnectionMgrv2.get(ctx.base);
 
-  // const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${ctx.view.id}`;
-  // if (!skipCache) {
-  //   const cachedQuery = await NocoCache.get(
-  //     cacheKey,
-  //     CacheGetType.TYPE_STRING,
-  //   );
-  //   if (cachedQuery) {
-  //     const rawRes = await knex.raw(cachedQuery, [
-  //       +listArgs.limit,
-  //       +listArgs.offset,
-  //     ]);
-  //
-  //     const res = rawRes?.rows?.[0];
-  //
-  //     return new PagedResponseImpl(res.list, {
-  //       count: +res.count,
-  //       limit: +listArgs.limit,
-  //       offset: +listArgs.offset,
-  //     });
-  //   }
-  // }
+  const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${ctx.view.id}:read`;
+  if (!skipCache) {
+    const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
+    if (cachedQuery) {
+      const rawRes = await knex.raw(cachedQuery, [ctx.id]);
+
+      const res = rawRes?.rows?.[0];
+
+      return res;
+    }
+  }
 
   const baseModel = await Model.getBaseModelSQL({
     id: ctx.model.id,
@@ -674,8 +666,6 @@ export async function readByPk(ctx: {
 
   rootQb.where(_wherePk(ctx.model.primaryKeys, ctx.id));
 
-  // const countQb = knex(baseModel.getTnPath(ctx.model));
-  // countQb.count({ count: ctx.model.primaryKey?.column_name || '*' });
 
   const aliasColObjMap = await ctx.model.getAliasColObjMap();
   // let sorts = extractSortsObject(listArgs?.sort, aliasColObjMap);
@@ -683,12 +673,6 @@ export async function readByPk(ctx: {
     listArgs?.where,
     aliasColObjMap,
   );
-
-  // if (!sorts?.['length'] && ctx.params.sortArr?.length) {
-  //   sorts = ctx.params.sortArr;
-  // } else if (ctx.view) {
-  //   sorts = await Sort.list({ viewId: ctx.view.id });
-  // }
 
   const aggrConditionObj = [
     new Filter({
@@ -719,19 +703,6 @@ export async function readByPk(ctx: {
 
   const qb = knex.from(rootQb.as(ROOT_ALIAS));
 
-  let allowedCols = null;
-
-  const tableColumns = await ctx.model.getColumns();
-
-  if (ctx.view)
-    allowedCols = (await View.getColumns(ctx.view.id)).reduce((o, c) => {
-      const column = tableColumns.find((tc) => tc.id === c.fk_column_id);
-      return {
-        ...o,
-        [c.fk_column_id]: column.pk || (c.show && !column?.system),
-      };
-    }, {});
-
   const { ast } = await getAst({
     query: ctx.params,
     model: ctx.model,
@@ -752,34 +723,21 @@ export async function readByPk(ctx: {
 
   const finalQb = qb.first();
 
-  // let res: any;
-  // if (skipCache) {
-  //   res = await finalQb;
-  // } else {
-  //   const { sql, bindings } = finalQb.toSQL();
-  //
-  //   // bind all params and replace limit and offset with placeholders
-  //   // and in generated sql replace placeholders with bindings
-  //   const query = knex
-  //     .raw(sql, [...bindings.slice(0, -3), '__nc__limit', '__nc__offset', 1])
-  //     .toQuery()
-  //     .replace(
-  //       /\blimit '__nc__limit' offset '__nc__offset'(?!=[\s\S]*limit '__nc__limit' offset '__nc__offset')/i,
-  //       'limit ? offset ?',
-  //     );
-  //
-  //   // cache query for later use
-  //   await NocoCache.set(cacheKey, query);
-  //
-  //   // run the query with actual limit and offset
-  //   res = (await knex.raw(query, [+listArgs.limit, +listArgs.offset]))
-  //     .rows?.[0];
-  // }
-  // return new PagedResponseImpl(res.list, {
-  //   count: +res.count,
-  //   limit: +listArgs.limit,
-  //   offset: +listArgs.offset,
-  // });
+  if (!skipCache) {
+    const { sql, bindings } = finalQb.toSQL();
+
+    // bind all params and replace limit and offset with placeholders
+    // and in generated sql replace placeholders with bindings
+    const query = knex
+      .raw(sql, ['__nc_id', ...bindings.slice(1)])
+      .toQuery()
+      // escape any `?` in the query to avoid replacing them with bindings
+      .replace(/\?/g, '\\?')
+      .replace(/'__nc_id'/i, '?');
+
+    // cache query for later use
+    await NocoCache.set(cacheKey, query);
+  }
 
   return await finalQb;
 }

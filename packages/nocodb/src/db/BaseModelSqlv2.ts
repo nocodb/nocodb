@@ -2090,7 +2090,7 @@ class BaseModelSqlv2 {
 
       // const prevData = await this.readByPk(id);
 
-      const newData =  await readByPk({
+      const newData = await readByPk({
         model: this.model,
         view,
         id,

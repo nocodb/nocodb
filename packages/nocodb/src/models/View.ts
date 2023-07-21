@@ -738,8 +738,8 @@ export default class View implements ViewType {
     const res = await ncMeta.metaUpdate(null, null, table, updateObj, colId);
 
     // on view column update, delete corresponding single query cache
-    await NocoCache.del(
-      `${CacheScope.SINGLE_QUERY}:${view.fk_model_id}:${view.id}`,
+    await NocoCache.delAll(
+      CacheScope.SINGLE_QUERY, `${view.fk_model_id}:${view.id}:*`,
     );
 
     return res;
@@ -780,8 +780,8 @@ export default class View implements ViewType {
       );
 
       // on view column update, delete any optimised single query cache
-      await NocoCache.del(
-        `${CacheScope.SINGLE_QUERY}:${view.fk_model_id}:${view.id}`,
+      await NocoCache.delAll(
+        CacheScope.SINGLE_QUERY, `${view.fk_model_id}:${view.id}:*`,
       );
 
       return {...existingCol, ...colData};

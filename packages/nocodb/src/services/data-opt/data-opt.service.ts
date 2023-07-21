@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import type { Base } from '~/models';
-import { Filter, Model, Sort, View } from '~/models';
+import type { Base, View } from '~/models';
+import { Filter, Model, Sort } from '~/models';
 import {
   _wherePk,
   extractFilterFromXwhere,
@@ -14,7 +14,7 @@ import sortV2 from '~/db/sortV2';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
-import { extractColumns } from '~/services/data-opt/helpers';
+import { extractColumns, readByPk } from '~/services/data-opt/helpers';
 import getAst from '~/helpers/getAst';
 
 @Injectable()
@@ -53,7 +53,7 @@ export class DataOptService {
     // get knex connection
     const knex = await NcConnectionMgrv2.get(ctx.base);
 
-    const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${ctx.view.id}`;
+    const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${ctx.view.id}:list`;
     if (!skipCache) {
       const cachedQuery = await NocoCache.get(
         cacheKey,
@@ -163,7 +163,7 @@ export class DataOptService {
       getAlias,
       params: ctx.params,
       baseModel,
-      ast
+      ast,
     });
 
     if (skipCache) {
@@ -199,6 +199,8 @@ export class DataOptService {
       const query = knex
         .raw(sql, [...bindings.slice(0, -3), '__nc__limit', '__nc__offset', 1])
         .toQuery()
+        // escape any `?` in the query to avoid replacing them with bindings
+        .replace(/\?/g, '\\?')
         .replace(
           /\blimit '__nc__limit' offset '__nc__offset'(?!=[\s\S]*limit '__nc__limit' offset '__nc__offset')/i,
           'limit ? offset ?',
@@ -225,173 +227,6 @@ export class DataOptService {
     params;
     id: string;
   }): Promise<PagedResponseImpl<Record<string, any>>> {
-    if (ctx.base.type !== 'pg') {
-      throw new Error('Single query only supported in postgres');
-    }
-
-    let skipCache = false;
-
-    // skip using cached query if  filterArr is present since it will be different query
-    if (
-      'filterArr' in ctx.params ||
-      'filter' in ctx.params ||
-      'where' in ctx.params ||
-      'fields' in ctx.params ||
-      'f' in ctx.params ||
-      'nested' in ctx.params
-    ) {
-      skipCache = true;
-    }
-
-    const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
-
-    const getAlias = getAliasGenerator();
-
-    // get knex connection
-    const knex = await NcConnectionMgrv2.get(ctx.base);
-
-    // const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${ctx.view.id}`;
-    // if (!skipCache) {
-    //   const cachedQuery = await NocoCache.get(
-    //     cacheKey,
-    //     CacheGetType.TYPE_STRING,
-    //   );
-    //   if (cachedQuery) {
-    //     const rawRes = await knex.raw(cachedQuery, [
-    //       +listArgs.limit,
-    //       +listArgs.offset,
-    //     ]);
-    //
-    //     const res = rawRes?.rows?.[0];
-    //
-    //     return new PagedResponseImpl(res.list, {
-    //       count: +res.count,
-    //       limit: +listArgs.limit,
-    //       offset: +listArgs.offset,
-    //     });
-    //   }
-    // }
-
-    const baseModel = await Model.getBaseModelSQL({
-      id: ctx.model.id,
-      viewId: ctx.view?.id,
-      dbDriver: knex,
-    });
-
-    // load columns list
-    const columns = await ctx.model.getColumns();
-
-    const rootQb = knex(baseModel.getTnPath(ctx.model));
-
-    rootQb.where(_wherePk(ctx.model.primaryKeys, ctx.id));
-
-    // const countQb = knex(baseModel.getTnPath(ctx.model));
-    // countQb.count({ count: ctx.model.primaryKey?.column_name || '*' });
-
-    const aliasColObjMap = await ctx.model.getAliasColObjMap();
-    // let sorts = extractSortsObject(listArgs?.sort, aliasColObjMap);
-    const queryFilterObj = extractFilterFromXwhere(
-      listArgs?.where,
-      aliasColObjMap,
-    );
-
-    // if (!sorts?.['length'] && ctx.params.sortArr?.length) {
-    //   sorts = ctx.params.sortArr;
-    // } else if (ctx.view) {
-    //   sorts = await Sort.list({ viewId: ctx.view.id });
-    // }
-
-    const aggrConditionObj = [
-      new Filter({
-        children:
-          (await Filter.rootFilterList({
-            viewId: ctx.view.id,
-          })) || [],
-        is_group: true,
-      }),
-      new Filter({
-        children: ctx.params.filterArr || [],
-        is_group: true,
-        logical_op: 'and',
-      }),
-      new Filter({
-        children: queryFilterObj,
-        is_group: true,
-        logical_op: 'and',
-      }),
-    ];
-
-    // apply filters on root query and count query
-    await conditionV2(baseModel, aggrConditionObj, rootQb);
-    // await conditionV2(baseModel, aggrConditionObj, countQb);
-
-    // apply sort on root query
-    // if (sorts) await sortV2(baseModel, sorts, rootQb);
-
-    const qb = knex.from(rootQb.as(ROOT_ALIAS));
-
-    let allowedCols = null;
-
-    const tableColumns = await ctx.model.getColumns();
-
-    if (ctx.view)
-      allowedCols = (await View.getColumns(ctx.view.id)).reduce((o, c) => {
-        const column = tableColumns.find((tc) => tc.id === c.fk_column_id);
-        return {
-          ...o,
-          [c.fk_column_id]: column.pk || (c.show && !column?.system),
-        };
-      }, {});
-
-    const { ast } = await getAst({
-      query: ctx.params,
-      model: ctx.model,
-      view: ctx.view,
-    });
-
-    await extractColumns({
-      columns,
-      knex,
-      qb,
-      getAlias,
-      params: ctx.params,
-      baseModel,
-      ast
-    });
-
-    // const dataAlias = getAlias();
-
-    const finalQb = qb.first();
-
-    // let res: any;
-    // if (skipCache) {
-    //   res = await finalQb;
-    // } else {
-    //   const { sql, bindings } = finalQb.toSQL();
-    //
-    //   // bind all params and replace limit and offset with placeholders
-    //   // and in generated sql replace placeholders with bindings
-    //   const query = knex
-    //     .raw(sql, [...bindings.slice(0, -3), '__nc__limit', '__nc__offset', 1])
-    //     .toQuery()
-    //     .replace(
-    //       /\blimit '__nc__limit' offset '__nc__offset'(?!=[\s\S]*limit '__nc__limit' offset '__nc__offset')/i,
-    //       'limit ? offset ?',
-    //     );
-    //
-    //   // cache query for later use
-    //   await NocoCache.set(cacheKey, query);
-    //
-    //   // run the query with actual limit and offset
-    //   res = (await knex.raw(query, [+listArgs.limit, +listArgs.offset]))
-    //     .rows?.[0];
-    // }
-    // return new PagedResponseImpl(res.list, {
-    //   count: +res.count,
-    //   limit: +listArgs.limit,
-    //   offset: +listArgs.offset,
-    // });
-
-    return await finalQb;
+    return readByPk(ctx);
   }
 }

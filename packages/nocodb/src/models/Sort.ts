@@ -38,8 +38,8 @@ export default class Sort {
     // on delete, delete any optimised single query cache
     {
       const view = await View.get(viewId, ncMeta);
-      await NocoCache.del(
-        `${CacheScope.SINGLE_QUERY}:${view.fk_model_id}:${view.id}`,
+      await NocoCache.delAll(
+        CacheScope.SINGLE_QUERY, `${view.fk_model_id}:${view.id}:*`,
       );
     }
   }
@@ -112,8 +112,8 @@ export default class Sort {
     // on insert, delete any optimised single query cache
     {
       const view = await View.get(row.fk_view_id, ncMeta);
-      await NocoCache.del(
-        `${CacheScope.SINGLE_QUERY}:${view.fk_model_id}:${view.id}`,
+      await NocoCache.delAll(
+        CacheScope.SINGLE_QUERY, `${view.fk_model_id}:${view.id}:*`,
       );
     }
 
@@ -179,8 +179,8 @@ export default class Sort {
     {
       const sort = await this.get(sortId, ncMeta);
       const view = await View.get(sort.fk_view_id, ncMeta);
-      await NocoCache.del(
-        `${CacheScope.SINGLE_QUERY}:${view.fk_model_id}:${view.id}`,
+      await NocoCache.delAll(
+        CacheScope.SINGLE_QUERY, `${view.fk_model_id}:${view.id}:*`,
       );
     }
 
@@ -199,8 +199,8 @@ export default class Sort {
     // on delete, delete any optimised single query cache
     if (sort?.fk_view_id) {
       const view = await View.get(sort.fk_view_id, ncMeta);
-      await NocoCache.del(
-        `${CacheScope.SINGLE_QUERY}:${view.fk_model_id}:${view.id}`,
+      await NocoCache.delAll(
+        CacheScope.SINGLE_QUERY, `${view.fk_model_id}:${view.id}:*`,
       );
     }
   }

@@ -22,12 +22,14 @@ import { DataOptService } from '~/services/data-opt/data-opt.service';
 export class DatasService {
   constructor(private readonly dataOptService: DataOptService) {}
 
-  async dataList(param: PathParams & { query: any }) {
+  async dataList(
+    param: PathParams & { query: any; disableOptimization?: boolean },
+  ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
     let responseData;
     const base = await Base.get(model.base_id);
-    if (base.type === 'pg') {
+    if (base.type === 'pg' && !param.disableOptimization) {
       responseData = await this.dataOptService.list({
         model,
         view,
@@ -76,7 +78,13 @@ export class DatasService {
     return { count };
   }
 
-  async dataInsert(param: PathParams & { body: unknown; cookie: any }) {
+  async dataInsert(
+    param: PathParams & {
+      body: unknown;
+      cookie: any;
+      disableOptimization?: boolean;
+    },
+  ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
     const base = await Base.get(model.base_id);
@@ -91,7 +99,12 @@ export class DatasService {
   }
 
   async dataUpdate(
-    param: PathParams & { body: unknown; cookie: any; rowId: string },
+    param: PathParams & {
+      body: unknown;
+      cookie: any;
+      rowId: string;
+      disableOptimization?: boolean;
+    },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
     const base = await Base.get(model.base_id);
@@ -107,6 +120,7 @@ export class DatasService {
       param.body,
       null,
       param.cookie,
+      param.disableOptimization,
     );
   }
 
@@ -230,14 +244,20 @@ export class DatasService {
     });
   }
 
-  async dataRead(param: PathParams & { query: any; rowId: string }) {
+  async dataRead(
+    param: PathParams & {
+      query: any;
+      rowId: string;
+      disableOptimization?: boolean;
+    },
+  ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
     const base = await Base.get(model.base_id);
 
     let row;
 
-    if (base.type === 'pg') {
+    if (base.type === 'pg' && !param.disableOptimization) {
       row = await this.dataOptService.read({
         model,
         view,

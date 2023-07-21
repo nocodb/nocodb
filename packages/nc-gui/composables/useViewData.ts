@@ -214,8 +214,7 @@ export function useViewData(
           ...params,
           ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
           ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-          where: where?.value,
-          opt: optimisedQuery.value  ? 'true' : undefined,
+          where: where?.value
         } as any)
       : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
 

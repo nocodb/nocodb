@@ -802,7 +802,9 @@ export async function getListData(ctx: {
   // get knex connection
   const knex = await NcConnectionMgrv2.get(ctx.base);
 
-  const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${ctx.view.id}:list`;
+  const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
+    ctx.view?.id ?? 'default'
+  }:list`;
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
     if (cachedQuery) {

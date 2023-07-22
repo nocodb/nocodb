@@ -19,6 +19,8 @@ Apply Vazirmatn for rtl
 
 .rtl .v-application *:not(.material-icons) {
   font-family: Vazirmatn !important;
+  src: url('https://github.com/rastikerdar/vazirmatn/blob/master/fonts/ttf/Vazirmatn-Black.ttf') format('truetype');
+
 }
 
 .rtl .v-application .ml-n1 {

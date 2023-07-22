@@ -813,7 +813,7 @@ export async function singleQueryList(ctx: {
 
   const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
     ctx.view?.id ?? 'default'
-  }:list`;
+  }:queries`;
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
     if (cachedQuery) {

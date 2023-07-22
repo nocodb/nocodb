@@ -636,7 +636,7 @@ export async function readByPk(ctx: {
     throw new Error('Single query only supported in postgres');
   }
 
-  let skipCache = false;
+  let skipCache = process.env.NC_DISABLE_CACHE === 'true';
 
   // skip using cached query if  filterArr is present since it will be different query
   if (
@@ -650,10 +650,6 @@ export async function readByPk(ctx: {
     skipCache = true;
   }
 
-  const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
-
-  const getAlias = getAliasGenerator();
-
   // get knex connection
   const knex = await NcConnectionMgrv2.get(ctx.base);
 
@@ -663,13 +659,20 @@ export async function readByPk(ctx: {
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
     if (cachedQuery) {
-      const rawRes = await knex.raw(cachedQuery, [ctx.id]);
+      const rawRes = await knex.raw(
+        cachedQuery,
+        ctx.model.primaryKeys.length === 1 ? [ctx.id] : ctx.id.split('___'),
+      );
 
       const res = rawRes?.rows?.[0];
 
       return res;
     }
   }
+
+  const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
+
+  const getAlias = getAliasGenerator();
 
   const baseModel = await Model.getBaseModelSQL({
     id: ctx.model.id,
@@ -750,14 +753,17 @@ export async function readByPk(ctx: {
     // get unique placeholder which is not present in the query
     const idPlaceholder = getUniquePlaceholders(finalQb.toQuery());
 
+    // take care of composite primary key
+    const idPlaceholders = ctx.model.primaryKeys.map(() => idPlaceholder);
+
     // bind all params and replace id  with placeholders
     // and in generated sql replace placeholders with bindings
     const query = knex
-      .raw(sql, [idPlaceholder, ...bindings.slice(1)])
+      .raw(sql, [...idPlaceholders, ...bindings.slice(idPlaceholders.length)])
       .toQuery()
       // escape any `?` in the query to avoid replacing them with bindings
       .replace(/\?/g, '\\?')
-      .replace(`'${idPlaceholder}'`, '?');
+      .replaceAll(`'${idPlaceholder}'`, '?');
 
     // cache query for later use
     await NocoCache.set(cacheKey, query);
@@ -778,7 +784,7 @@ export async function getListData(ctx: {
     throw new Error('Single query only supported in postgres');
   }
 
-  let skipCache = false;
+  let skipCache = process.env.NC_DISABLE_CACHE === 'true';
 
   // skip using cached query if sortArr or filterArr is present since it will be different query
   if (

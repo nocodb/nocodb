@@ -34,6 +34,8 @@ const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
 
+useProvideKanbanViewStore(meta, view)
+
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj)

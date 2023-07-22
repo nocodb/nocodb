@@ -26,7 +26,7 @@ function remove_image() {
 function build_sdk(){
     # build nocodb-sdk
     cd ${SCRIPT_DIR}/packages/nocodb-sdk
-    pnpm install --no-frozen-lockfile || ERROR="sdk build failed"
+    pnpm install --frozen-lockfile || ERROR="sdk build failed"
     pnpm run build || ERROR="sdk build failed"
 }
 
@@ -35,7 +35,7 @@ function build_gui(){
     export NODE_OPTIONS="--max_old_space_size=16384"
     # generate static build of nc-gui
     cd ${SCRIPT_DIR}/packages/nc-gui
-    pnpm install --no-frozen-lockfile || ERROR="gui build failed"
+    pnpm install --frozen-lockfile || ERROR="gui build failed"
     pnpm run generate || ERROR="gui build failed"
 }
 
@@ -48,7 +48,7 @@ function package_nocodb(){
     #build nocodb
     # build nocodb ( pack nocodb-sdk and nc-gui )
     cd ${SCRIPT_DIR}/packages/nocodb
-    pnpm install --no-frozen-lockfile || ERROR="package_nocodb failed"
+    pnpm install --frozen-lockfile || ERROR="package_nocodb failed"
     EE=true ./node_modules/.bin/webpack --config webpack.local.config.js || ERROR="package_nocodb failed"
 }
 

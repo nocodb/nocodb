@@ -84,7 +84,7 @@ export async function extractColumns({
 }) {
   const extractColumnPromises = [];
   for (const column of columns) {
-    if (!ast?.[column.title] && !column.pk) continue;
+    if (!ast?.[column.title]) continue;
     extractColumnPromises.push(
       extractColumn({
         column,

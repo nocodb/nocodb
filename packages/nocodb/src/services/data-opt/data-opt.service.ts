@@ -11,7 +11,22 @@ export class DataOptService {
     base: Base;
     params;
   }): Promise<PagedResponseImpl<Record<string, any>>> {
-    return getListData(ctx);
+    const params = { ...(ctx.params || {}) };
+
+    // parse json filter/sort params if found
+    if (params) {
+      if (params.filterArrJson)
+        try {
+          params.filterArr = JSON.parse(params.filterArrJson);
+        } catch (e) {}
+
+      if (params.sortArrJson)
+        try {
+          params.sortArr = JSON.parse(params.sortArrJson);
+        } catch (e) {}
+    }
+
+    return getListData({ ...ctx, params });
   }
 
   async read(ctx: {

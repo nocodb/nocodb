@@ -82,20 +82,23 @@ export async function extractColumns({
   // dependencyFields: DependantFields;
   ast: Record<string, any>;
 }) {
+  const extractColumnPromises = [];
   for (const column of columns) {
     if (!ast?.[column.title] && !column.pk) continue;
-    await extractColumn({
-      column,
-      knex,
-      rootAlias: alias,
-      qb,
-      getAlias,
-      params: params?.nested?.[column.title],
-      baseModel,
-      // dependencyFields: dependencyFields?.nested?.[column.title],
-      ast: ast?.[column.title],
-    });
+    extractColumnPromises.push(
+      extractColumn({
+        column,
+        knex,
+        rootAlias: alias,
+        qb,
+        getAlias,
+        params: params?.nested?.[column.title],
+        baseModel,
+        ast: ast?.[column.title],
+      }),
+    );
   }
+  await Promise.all(extractColumnPromises);
 }
 
 export async function extractColumn({

@@ -1127,6 +1127,9 @@ export default class Column<T = any> implements ColumnType {
       colId,
     );
     await this.insertColOption(column, colId, ncMeta);
+
+    // on column update, delete any optimised single query cache
+    await NocoCache.delAll(CacheScope.SINGLE_QUERY, `${oldCol.fk_model_id}:*`);
   }
 
   static async updateAlias(

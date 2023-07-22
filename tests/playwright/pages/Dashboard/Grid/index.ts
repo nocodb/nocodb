@@ -352,9 +352,7 @@ export class GridPage extends BasePage {
   async validateRoleAccess(param: { role: string }) {
     await this.column.verifyRoleAccess(param);
     await this.cell.verifyRoleAccess(param);
-    // await expect(this.get().locator('.nc-grid-add-new-cell')).toHaveCount(
-    //   param.role.toLowerCase() === 'creator' || param.role.toLowerCase() === 'editor' ? 1 : 0
-    // );
+    await this.footbar.verifyRoleAccess(param);
   }
 
   async selectRange({ start, end }: { start: CellProps; end: CellProps }) {

@@ -583,7 +583,7 @@ export async function extractColumn({
         ) {
           qb.select(
             knex.raw(
-              `(??.?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC') as ??`,
+              `((??.?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC') || '+00:00') as ??`,
               [rootAlias, column.column_name, column.title],
             ),
           );

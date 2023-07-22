@@ -349,9 +349,10 @@ export class GridPage extends BasePage {
     ).toBeVisible();
   }
 
-  async validateRoleAccess(param: { role: string }) {
+  async verifyRoleAccess(param: { role: string }) {
     await this.column.verifyRoleAccess(param);
     await this.cell.verifyRoleAccess(param);
+    await this.toolbar.verifyRoleAccess(param);
     await this.footbar.verifyRoleAccess(param);
   }
 

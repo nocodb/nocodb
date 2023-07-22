@@ -104,7 +104,7 @@ test.describe('User roles', () => {
       role: roleDb[roleIdx].role,
     });
 
-    await dashboard.grid.toolbar.validateRoleAccess({
+    await dashboard.grid.toolbar.verifyRoleAccess({
       role: roleDb[roleIdx].role,
     });
 
@@ -112,7 +112,7 @@ test.describe('User roles', () => {
       role: roleDb[roleIdx].role,
     });
 
-    await dashboard.grid.validateRoleAccess({
+    await dashboard.grid.verifyRoleAccess({
       role: roleDb[roleIdx].role,
     });
 

@@ -1684,11 +1684,7 @@ class BaseModelSqlv2 {
             res[sanitize(column.title || column.column_name)] =
               this.dbDriver.raw(
                 `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
-                [
-                  `${sanitize(alias || this.model.table_name)}.${
-                    column.column_name
-                  }`,
-                ],
+                [`${sanitize(alias || this.tnPath)}.${column.column_name}`],
               );
             break;
           } else if (this.isPg) {
@@ -1702,11 +1698,7 @@ class BaseModelSqlv2 {
               res[sanitize(column.title || column.column_name)] = this.dbDriver
                 .raw(
                   `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
-                  [
-                    `${sanitize(alias || this.model.table_name)}.${
-                      column.column_name
-                    }`,
-                  ],
+                  [`${sanitize(alias || this.tnPath)}.${column.column_name}`],
                 )
                 .wrap('(', ')');
               break;
@@ -1719,17 +1711,13 @@ class BaseModelSqlv2 {
               res[sanitize(column.title || column.column_name)] =
                 this.dbDriver.raw(
                   `CONVERT(DATETIMEOFFSET, ?? AT TIME ZONE 'UTC')`,
-                  [
-                    `${sanitize(alias || this.model.table_name)}.${
-                      column.column_name
-                    }`,
-                  ],
+                  [`${sanitize(alias || this.tnPath)}.${column.column_name}`],
                 );
               break;
             }
           }
           res[sanitize(column.title || column.column_name)] = sanitize(
-            `${alias || this.model.table_name}.${column.column_name}`,
+            `${alias || this.tnPath}.${column.column_name}`,
           );
           break;
         case UITypes.LinkToAnotherRecord:
@@ -1848,7 +1836,7 @@ class BaseModelSqlv2 {
           break;
         default:
           res[sanitize(column.title || column.column_name)] = sanitize(
-            `${alias || this.model.table_name}.${column.column_name}`,
+            `${alias || this.tnPath}.${column.column_name}`,
           );
           break;
       }
@@ -1966,7 +1954,7 @@ class BaseModelSqlv2 {
               });
 
               execQueries.push((trx) =>
-                trx(mmTable.table_name)
+                trx(this.getTnPath(mmTable.table_name))
                   .del()
                   .where(mmParentColumn.column_name, id),
               );
@@ -1985,7 +1973,7 @@ class BaseModelSqlv2 {
               });
 
               execQueries.push((trx) =>
-                trx(relatedTable.table_name)
+                trx(this.getTnPath(relatedTable.table_name))
                   .update({
                     [childColumn.column_name]: null,
                   })
@@ -2039,7 +2027,7 @@ class BaseModelSqlv2 {
       let cnt = 0;
       if (colOptions.type === RelationTypes.HAS_MANY) {
         cnt = +(
-          await this.dbDriver(childModel.table_name)
+          await this.dbDriver(this.getTnPath(childModel.table_name))
             .count(childColumn.column_name, { as: 'cnt' })
             .where(childColumn.column_name, rowId)
         )[0].cnt;
@@ -2047,8 +2035,13 @@ class BaseModelSqlv2 {
         const mmModel = await colOptions.getMMModel();
         const mmChildColumn = await colOptions.getMMChildColumn();
         cnt = +(
-          await this.dbDriver(mmModel.table_name)
-            .where(`${mmModel.table_name}.${mmChildColumn.column_name}`, rowId)
+          await this.dbDriver(this.getTnPath(mmModel.table_name))
+            .where(
+              `${this.getTnPath(mmModel.table_name)}.${
+                mmChildColumn.column_name
+              }`,
+              rowId,
+            )
             .count(mmChildColumn.column_name, { as: 'cnt' })
         )[0].cnt;
       }
@@ -2201,7 +2194,7 @@ class BaseModelSqlv2 {
                 await childModel.getColumns();
 
                 postInsertOps.push(async () => {
-                  await this.dbDriver(childModel.table_name)
+                  await this.dbDriver(this.getTnPath(childModel.table_name))
                     .update({
                       [childCol.column_name]: rowId,
                     })
@@ -2226,7 +2219,9 @@ class BaseModelSqlv2 {
                   [parentMMCol.column_name]: r[parentModel.primaryKey.title],
                   [childMMCol.column_name]: rowId,
                 }));
-                await this.dbDriver(mmModel.table_name).insert(rows);
+                await this.dbDriver(this.getTnPath(mmModel.table_name)).insert(
+                  rows,
+                );
               });
             }
           }
@@ -2658,7 +2653,7 @@ class BaseModelSqlv2 {
               });
 
               execQueries.push((trx, ids) =>
-                trx(mmTable.table_name)
+                trx(this.getTnPath(mmTable.table_name))
                   .del()
                   .whereIn(mmParentColumn.column_name, ids),
               );
@@ -2677,7 +2672,7 @@ class BaseModelSqlv2 {
               });
 
               execQueries.push((trx, ids) =>
-                trx(relatedTable.table_name)
+                trx(this.getTnPath(relatedTable.table_name))
                   .update({
                     [childColumn.column_name]: null,
                   })

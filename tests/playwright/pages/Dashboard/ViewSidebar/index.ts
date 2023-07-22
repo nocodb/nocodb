@@ -213,7 +213,6 @@ export class ViewSidebarPage extends BasePage {
   }
 
   async openDeveloperTab({ option }: { option?: string }) {
-    console.log(await this.get().locator('.nc-tab').count());
     await this.get().locator('.nc-tab').nth(1).click();
     if (option === 'ERD') {
       await this.get().locator('.nc-view-action-erd.button').click();

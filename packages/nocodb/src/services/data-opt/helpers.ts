@@ -860,13 +860,17 @@ export async function singleQueryList(ctx: {
   }
 
   const aggrConditionObj = [
-    new Filter({
-      children:
-        (await Filter.rootFilterList({
-          viewId: ctx.view.id,
-        })) || [],
-      is_group: true,
-    }),
+    ...(ctx.view
+      ? [
+          new Filter({
+            children:
+              (await Filter.rootFilterList({
+                viewId: ctx.view.id,
+              })) || [],
+            is_group: true,
+          }),
+        ]
+      : []),
     new Filter({
       children: ctx.params.filterArr || [],
       is_group: true,

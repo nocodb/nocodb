@@ -51,7 +51,7 @@ import type {
   SelectOption,
 } from '../models';
 import type { SortType } from 'nocodb-sdk';
-import { readByPk } from '~/services/data-opt/helpers';
+import { singleQueryRead } from '~/services/data-opt/helpers';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -1886,7 +1886,7 @@ class BaseModelSqlv2 {
       if (ag) {
         if (!response) await this.execAndParse(query);
         response = await (base.type === 'pg' && !disableOptimization
-          ? readByPk({
+          ? singleQueryRead({
               model: this.model,
               view,
               id: data[ag.title],
@@ -1931,7 +1931,7 @@ class BaseModelSqlv2 {
           : response?.[ai.title];
         response =
           base.type === 'pg' && !disableOptimization
-            ? await readByPk({
+            ? await singleQueryRead({
                 model: this.model,
                 view,
                 id,
@@ -2092,7 +2092,7 @@ class BaseModelSqlv2 {
       const base = await Base.get(this.model.base_id);
       const prevData =
         base.type === 'pg' && !disableOptimization
-          ? await readByPk({
+          ? await singleQueryRead({
               model: this.model,
               view,
               id,
@@ -2113,7 +2113,7 @@ class BaseModelSqlv2 {
 
       const newData =
         base.type === 'pg' && !disableOptimization
-          ? await readByPk({
+          ? await singleQueryRead({
               model: this.model,
               view,
               id,

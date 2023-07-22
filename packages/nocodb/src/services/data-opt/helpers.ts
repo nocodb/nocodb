@@ -626,7 +626,7 @@ function getUniquePlaceholders(
   return placeholder;
 }
 
-export async function readByPk(ctx: {
+export async function singleQueryRead(ctx: {
   model: Model;
   view: View;
   base: Base;
@@ -777,7 +777,7 @@ export async function readByPk(ctx: {
   return res;
 }
 
-export async function getListData(ctx: {
+export async function singleQueryList(ctx: {
   model: Model;
   view: View;
   base: Base;

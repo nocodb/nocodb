@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Base, Model, View } from '~/models';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { getListData, readByPk } from '~/services/data-opt/helpers';
+import { singleQueryList, singleQueryRead } from '~/services/data-opt/helpers';
 
 @Injectable()
 export class DataOptService {
@@ -26,7 +26,7 @@ export class DataOptService {
         } catch (e) {}
     }
 
-    return getListData({ ...ctx, params });
+    return singleQueryList({ ...ctx, params });
   }
 
   async read(ctx: {
@@ -36,6 +36,6 @@ export class DataOptService {
     params;
     id: string;
   }): Promise<PagedResponseImpl<Record<string, any>>> {
-    return readByPk(ctx);
+    return singleQueryRead(ctx);
   }
 }

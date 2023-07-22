@@ -1,4 +1,4 @@
-import { navigateTo } from '#imports'
+import { navigateTo, shallowRef } from '#imports'
 import MdiHome from '~icons/mdi/home'
 import MdiFileOutline from '~icons/mdi/file-outline'
 
@@ -45,7 +45,7 @@ export const homeCommands = [
     id: 'home',
     title: 'Navigate Home',
     hotkey: 'cmd+h',
-    icon: MdiHome,
+    icon: shallowRef(MdiHome),
     section: 'Misc',
     handler: () => {
       navigateTo('/')
@@ -59,7 +59,7 @@ export const homeCommands = [
   {
     id: 'projects',
     title: 'Projects',
-    icon: MdiFileOutline,
+    icon: shallowRef(MdiFileOutline),
   },
   {
     id: 'tables',

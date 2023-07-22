@@ -254,7 +254,7 @@ export class ToolbarPage extends BasePage {
       role: role,
       mode: param.mode,
     });
-    if (!isHub()) await this.clickActions();
+    await this.clickActions();
 
     if (!isHub()) {
       const menuItems = {

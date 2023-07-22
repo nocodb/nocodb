@@ -117,7 +117,7 @@ test.describe('User roles', () => {
     });
 
     await dashboard.grid.openExpandedRow({ index: 0 });
-    await dashboard.expandedForm.validateRoleAccess({
+    await dashboard.expandedForm.verifyRoleAccess({
       role: roleDb[roleIdx].role,
     });
 

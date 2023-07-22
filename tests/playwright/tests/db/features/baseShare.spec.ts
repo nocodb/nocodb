@@ -44,7 +44,7 @@ test.describe.skip('Shared base', () => {
     });
 
     await dashboard.grid.openExpandedRow({ index: 0 });
-    await dashboard.expandedForm.validateRoleAccess({
+    await dashboard.expandedForm.verifyRoleAccess({
       role: role.toLowerCase(),
     });
   }

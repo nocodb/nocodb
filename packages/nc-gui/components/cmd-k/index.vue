@@ -3,7 +3,7 @@ import { useMagicKeys, whenever } from '@vueuse/core'
 // import { useNuxtApp } from '#app'
 import { commandScore } from './command-score'
 import type { ComputedRef, VNode } from '#imports'
-import { iconMap, onClickOutside } from '#imports' // useApi
+import { iconMap, onClickOutside } from '#imports'
 
 interface CmdAction {
   id: string
@@ -24,11 +24,9 @@ const props = defineProps<{
   hotkey?: string
 }>()
 
-const emits = defineEmits(['update:open'])
+const emits = defineEmits(['update:open', 'scope'])
 
 const vOpen = useVModel(props, 'open', emits)
-
-// const { api } = useApi()
 
 // const { $e } = useNuxtApp()
 
@@ -178,6 +176,9 @@ const selectFirstAction = () => {
 
 const setScope = (scope: string) => {
   activeScope.value = scope
+
+  emits('scope', scope)
+
   nextTick(() => {
     cmdInputEl.value?.focus()
     selectFirstAction()

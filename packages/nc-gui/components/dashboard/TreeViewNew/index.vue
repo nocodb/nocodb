@@ -62,6 +62,8 @@ const { activeTable: _activeTable } = storeToRefs(useTablesStore())
 
 const { activeTab } = storeToRefs(useTabs())
 
+const { refreshCommandPalette } = useCommandPalette()
+
 const keys = $ref<Record<string, number>>({})
 
 const menuRefs = $ref<HTMLElement[] | HTMLElement>()
@@ -203,6 +205,7 @@ const duplicateTable = async (table: TableType) => {
       $jobs.subscribe({ id: jobData.id }, undefined, async (status: string, data?: any) => {
         if (status === JobStatus.COMPLETED) {
           await loadTables()
+          refreshCommandPalette()
           const newTable = tables.value.find((el) => el.id === data?.result?.id)
           if (newTable) addTab({ title: newTable.title, id: newTable.id, type: newTable.type as TabType })
 

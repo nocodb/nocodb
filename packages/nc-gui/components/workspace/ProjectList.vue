@@ -24,6 +24,8 @@ const { $e, $api, $jobs } = useNuxtApp()
 
 const { isUIAllowed } = useUIPermission()
 
+const { refreshCommandPalette } = useCommandPalette()
+
 const showProjectDeleteModal = ref(false)
 const toBeDeletedProjectId = ref<string | undefined>()
 
@@ -209,6 +211,7 @@ useDialog(resolveComponent('DlgProjectDuplicate'), {
     $jobs.subscribe({ id: jobData.id }, undefined, async (status: string) => {
       if (status === JobStatus.COMPLETED) {
         await loadProjects('workspace')
+        refreshCommandPalette()
       } else if (status === JobStatus.FAILED) {
         message.error('Failed to duplicate project')
         await loadProjects('workspace')

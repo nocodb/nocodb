@@ -359,43 +359,30 @@ export class CellPageObject extends BasePage {
   }
 
   async verifyRoleAccess(param: { role: string }) {
+    const role = param.role.toLowerCase();
+    const count = role === 'creator' || role === 'editor' || role === 'owner' ? 1 : 0;
     // normal text cell
     const cell = await this.get({ index: 0, columnHeader: 'Country' });
     // editable cell
     await cell.dblclick();
-    await expect(await cell.locator(`input`)).toHaveCount(param.role === 'creator' || param.role === 'editor' ? 1 : 0);
+    await expect(await cell.locator(`input`)).toHaveCount(count);
 
     // press escape to close the input
     await cell.press('Escape');
     await cell.press('Escape');
 
     await cell.click({ button: 'right', clickCount: 1 });
-    await expect(await this.rootPage.locator(`.nc-dropdown-grid-context-menu:visible`)).toHaveCount(
-      param.role === 'creator' || param.role === 'editor' ? 1 : 0
-    );
+    await expect(await this.rootPage.locator(`.nc-dropdown-grid-context-menu:visible`)).toHaveCount(count);
 
     // virtual cell
     const vCell = await this.get({ index: 0, columnHeader: 'Cities' });
     await vCell.hover();
     // in-cell add
-    await expect(await vCell.locator('.nc-action-icon.nc-plus:visible')).toHaveCount(
-      param.role === 'creator' || param.role === 'editor' ? 1 : 0
-    );
+    await expect(await vCell.locator('.nc-action-icon.nc-plus:visible')).toHaveCount(count);
 
-    // in-cell expand (all have access)
-    // PR8504
-    // await expect(await vCell.locator('.nc-action-icon.nc-arrow-expand:visible')).toHaveCount(1);
+    // virtual cell link text
     const linkText = await getTextExcludeIconText(vCell);
     expect(linkText).toContain('1 City');
-
-    // PR8504
-    // await vCell.click();
-
-    // unlink
-    // PR8504
-    // await expect(await vCell.locator('.nc-icon.unlink-icon:visible')).toHaveCount(
-    //   param.role === 'creator' || param.role === 'editor' ? 1 : 0
-    // );
   }
 
   async copyToClipboard({ index, columnHeader }: CellProps, ...clickOptions: Parameters<Locator['click']>) {

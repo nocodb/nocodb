@@ -391,6 +391,7 @@ export class ColumnPageObject extends BasePage {
       await this.rootPage.locator('.nc-dropdown-grid-context-menu').waitFor({ state: 'visible' });
       await expect(this.rootPage.locator('.nc-dropdown-grid-context-menu')).toHaveCount(1);
       await this.rootPage.keyboard.press('Escape');
+      await (await this.getColumnHeaderByIndex({ index: 2 })).click();
     }
   }
 

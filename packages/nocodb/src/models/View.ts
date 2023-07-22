@@ -1027,6 +1027,12 @@ export default class View implements ViewType {
       }
     }
 
+    // on update, delete any optimised single query cache
+    await NocoCache.delAll(
+      CacheScope.SINGLE_QUERY,
+      `${view.fk_model_id}:${view.id}:*`,
+    );
+
     return view;
   }
 
@@ -1063,6 +1069,12 @@ export default class View implements ViewType {
     );
     await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.title}`);
     await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.id}`);
+
+    // on update, delete any optimised single query cache
+    await NocoCache.delAll(
+      CacheScope.SINGLE_QUERY,
+      `${view.fk_model_id}:${view.id}:*`,
+    );
   }
 
   private static extractViewColumnsTableName(view: View) {

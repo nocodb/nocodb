@@ -150,7 +150,10 @@ export async function extractColumn({
         const aliasColObjMap = await relatedModel.getAliasColObjMap();
 
         // todo: check if fields are allowed
-        let fields = [pkColumn, pvColumn].filter(Boolean);
+        let fields = [
+          pkColumn,
+          ...(pvColumn && pvColumn !== pkColumn ? [pvColumn] : []),
+        ];
 
         if (listArgs?.fields === '*') {
           fields = relatedModel.columns;
@@ -288,7 +291,7 @@ export async function extractColumn({
                       alias: alias2,
                       columns: fields,
                       title: column.title,
-                      isBt: true
+                      isBt: true,
                     }),
                   )
                   .toQuery()}) as ?? ON true`,

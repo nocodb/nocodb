@@ -150,7 +150,7 @@ const isMultiBase = computed(() => project.bases && project.bases.length > 1)
           @click.stop
         >
           <MdiDotsHorizontal
-            class="min-w-5.5 min-h-5.5 mt-0.2 mr-0.25 px-0.5 transition-opacity opacity-0 group-hover:opacity-100 outline-0 rounded-md hover:(bg-gray-300 bg-opacity-20 !text-black)"
+            class="min-w-5.75 min-h-5.75 mt-0.2 mr-0.25 px-0.5 transition-opacity opacity-0 group-hover:opacity-100 outline-0 rounded-md hover:(bg-gray-300 bg-opacity-20 !text-black)"
             :class="{
               '!text-gray-600': openedTableId !== table.id,
               '!text-black': openedTableId === table.id,

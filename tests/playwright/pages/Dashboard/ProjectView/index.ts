@@ -57,5 +57,7 @@ export class ProjectViewPage extends BasePage {
       expect(await this.tab_dataSources.isVisible()).toBeFalsy();
       expect(await this.tab_accessSettings.isVisible()).toBeFalsy();
     }
+
+    await this.tables.verifyAccess(role);
   }
 }

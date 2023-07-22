@@ -33,6 +33,8 @@ const { $state, $jobs } = useNuxtApp()
 
 const projectStore = useProject()
 
+const { refreshCommandPalette } = useCommandPalette()
+
 const { loadTables } = projectStore
 
 const { project } = storeToRefs(projectStore)
@@ -87,6 +89,7 @@ const onStatus = async (status: JobStatus, data?: any) => {
     showGoToDashboardButton.value = true
     await loadTables()
     pushProgress('Done!', status)
+    refreshCommandPalette()
     // TODO: add tab of the first table
   } else if (status === JobStatus.FAILED) {
     pushProgress(data.error.message, status)

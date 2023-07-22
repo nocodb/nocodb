@@ -13,6 +13,8 @@ const { closeTab } = useTabs()
 const { projects } = storeToRefs(useProjects())
 const { deleteProject } = useProjects()
 
+const { refreshCommandPalette } = useCommandPalette()
+
 const project = computed(() => projects.value.get(props.projectId))
 
 const isLoading = ref(false)
@@ -26,6 +28,8 @@ const onDelete = async () => {
   try {
     await deleteProject(toBeDeletedProject.id!)
     await closeTab(toBeDeletedProject.id as any)
+
+    refreshCommandPalette()
 
     visible.value = false
   } catch (e: any) {

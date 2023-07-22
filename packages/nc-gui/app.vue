@@ -5,11 +5,13 @@ const router = useRouter()
 
 const route = $(router.currentRoute)
 
+const cmdK = ref(false)
+
 const disableBaseLayout = computed(() => route.path.startsWith('/nc/view') || route.path.startsWith('/nc/form'))
 
 useTheme()
 
-const { cmdPalette, cmdData, cmdPlaceholder, cmdOnSelected, cmdOnChange, activeScope } = useCommandPalette()
+const { cmdData, cmdPlaceholder, activeScope } = useCommandPalette()
 
 applyNonSelectable()
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
@@ -49,29 +51,6 @@ if (typeof window !== 'undefined') {
   // @ts-expect-error using arbitrary window key
   window.__ncvue = true
 }
-
-function hookFunction(object: any, functionName: string, callback: Function) {
-  ;(function (originalFunction) {
-    object[functionName] = function (...args: any) {
-      const returnValue = originalFunction.apply(this, args)
-
-      callback.apply(this, [returnValue, originalFunction, args])
-
-      return returnValue
-    }
-  })(object[functionName])
-}
-
-onMounted(() => {
-  if (!cmdPalette.value) return
-  hookFunction(cmdPalette.value, 'open', () => {
-    if (activeScope.value === 'disabled') {
-      cmdPalette.value?.close()
-      return
-    }
-    cmdPalette.value?.setParent(activeScope.value)
-  })
-})
 </script>
 
 <template>
@@ -80,11 +59,5 @@ onMounted(() => {
       <NuxtPage :key="key" :transition="false" />
     </NuxtLayout>
   </a-config-provider>
-  <ninja-keys
-    ref="cmdPalette"
-    :data="cmdData"
-    :placeholder="cmdPlaceholder"
-    @selected="cmdOnSelected"
-    @change="cmdOnChange"
-  ></ninja-keys>
+  <CmdK v-model:open="cmdK" :scope="activeScope" :data="cmdData" :placeholder="cmdPlaceholder" />
 </template>

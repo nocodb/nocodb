@@ -122,9 +122,9 @@ watchEffect(
   { flush: 'post' },
 )
 
-const renameTable = async (undo = false) => {
+const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undefined) => {
   if (!tableMeta) return
-  if (formState.title === tableMeta.title) return
+  if (formState.title === tableMeta.title && !disableTitleDiffCheck) return
 
   loading = true
   try {
@@ -143,14 +143,14 @@ const renameTable = async (undo = false) => {
         redo: {
           fn: (t: string) => {
             formState.title = t
-            renameTable(true)
+            renameTable(true, true)
           },
           args: [formState.title],
         },
         undo: {
           fn: (t: string) => {
             formState.title = t
-            renameTable(true)
+            renameTable(true, true)
           },
           args: [tableMeta.title],
         },

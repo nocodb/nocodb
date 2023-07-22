@@ -50,8 +50,8 @@ npx create-nocodb-app
 ```bash
 git clone https://github.com/nocodb/nocodb-seed
 cd nocodb-seed
-pnpm install
-pnpm start
+npm install
+npm start
 ```
 
 ## Docker 部署

@@ -10,7 +10,7 @@ on:
 
 jobs:
   login:
-    runs-on: self-hosted
+    runs-on: [self-hosted, digital-ocean]
     steps:
       -
         name: Login to Docker Hub

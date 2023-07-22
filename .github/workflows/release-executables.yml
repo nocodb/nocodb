@@ -19,7 +19,7 @@ on:
         required: true
 jobs:
   build-executables:
-    runs-on: self-hosted
+    runs-on: [self-hosted, digital-ocean]
     steps:
       - uses: actions/checkout@v3
       - name: Cache node modules
@@ -142,7 +142,7 @@ jobs:
 
   publish-mac-executables-and-homebrew:
     needs: [sign-mac-executables,build-executables]
-    runs-on: self-hosted
+    runs-on: [self-hosted, digital-ocean]
     steps:
       - uses: actions/download-artifact@master
         with:

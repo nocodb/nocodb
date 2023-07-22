@@ -10,7 +10,7 @@ on:
 jobs:
   cache-compose-file:
     name: Cache Compose File
-    runs-on: self-hosted
+    runs-on: [self-hosted, digital-ocean]
     outputs:
       compose-file-cache-key: ${{ env.COMPOSE_FILE_HASH }}
       pr-number: ${{ env.PR_NUMBER }}

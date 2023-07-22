@@ -7,7 +7,7 @@ on:
   workflow_call:
 jobs:
   release:
-    runs-on: self-hosted
+    runs-on: [self-hosted, digital-ocean]
     steps:
       - name: Setup Node
         uses: actions/setup-node@v3

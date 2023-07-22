@@ -12,7 +12,7 @@ on:
 
 jobs:
   copy-file:
-    runs-on: self-hosted
+    runs-on: [self-hosted, digital-ocean]
     steps:
       - name: Checkout
         uses: actions/checkout@v3

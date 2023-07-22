@@ -926,6 +926,9 @@ export async function singleQueryList(ctx: {
   }
   const dataAlias = getAlias();
 
+  // apply the sort on final query to get the result in correct order
+  if (sorts?.length) await sortV2(baseModel, sorts, qb, ROOT_ALIAS);
+
   const finalQb = knex
     .from(qb.as(dataAlias))
     .select(

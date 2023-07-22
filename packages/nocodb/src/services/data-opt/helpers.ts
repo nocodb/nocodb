@@ -928,6 +928,11 @@ export async function singleQueryList(ctx: {
 
   // apply the sort on final query to get the result in correct order
   if (sorts?.length) await sortV2(baseModel, sorts, qb, ROOT_ALIAS);
+  else if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
+    qb.orderBy(`${ROOT_ALIAS}.${ctx.model.primaryKey.column_name}`);
+  } else if (ctx.model.columns.find((c) => c.column_name === 'created_at')) {
+    qb.orderBy(`${ROOT_ALIAS}.created_at`);
+  }
 
   const finalQb = knex
     .from(qb.as(dataAlias))

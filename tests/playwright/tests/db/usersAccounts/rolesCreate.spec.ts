@@ -34,8 +34,7 @@ test.describe('User roles', () => {
 
   test('Create role', async () => {
     if (isHub()) {
-      // ACL is not supported in Hub
-      // User role management UX needs to be frozen
+      // Hub related tests moved to projectCollaboration.spec.ts
       test.skip();
     }
 

@@ -139,7 +139,7 @@ export async function extractColumn({
         await relatedModel.getColumns();
         // @ts-ignore
         const pkColumn = relatedModel.primaryKey;
-        const pvColumn = relatedModel.primaryValue;
+        const pvColumn = relatedModel.displayValue;
 
         // extract nested query params
 
@@ -288,6 +288,7 @@ export async function extractColumn({
                       alias: alias2,
                       columns: fields,
                       title: column.title,
+                      isBt: true
                     }),
                   )
                   .toQuery()}) as ?? ON true`,

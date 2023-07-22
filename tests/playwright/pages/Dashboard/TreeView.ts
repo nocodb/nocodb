@@ -8,11 +8,17 @@ export class TreeViewPage extends BasePage {
   readonly project: any;
   readonly quickImportButton: Locator;
 
+  readonly btn_addNewTable: Locator;
+  readonly btn_projectContextMenu: Locator;
+
   constructor(dashboard: DashboardPage, project: any) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.project = project;
     this.quickImportButton = dashboard.get().locator('.nc-import-menu');
+
+    this.btn_addNewTable = dashboard.get().locator('[data-testid="nc-sidebar-add-project-entity"]');
+    this.btn_projectContextMenu = dashboard.get().locator('[data-testid="nc-sidebar-context-menu"]');
   }
 
   get() {
@@ -74,6 +80,10 @@ export class TreeViewPage extends BasePage {
     }
 
     await this.rootPage.waitForTimeout(2000);
+  }
+
+  async getTable({ index }: { index: number }) {
+    return this.get().locator('.nc-tree-item').nth(index);
   }
 
   // assumption: first view rendered is always GRID
@@ -205,9 +215,8 @@ export class TreeViewPage extends BasePage {
 
   async quickImport({ title }: { title: string }) {
     if (isHub()) {
-      const addProject: Locator = this.get().locator('[data-testid="nc-sidebar-context-menu"]');
-      await addProject.hover();
-      await addProject.click();
+      await this.btn_projectContextMenu.hover();
+      await this.btn_projectContextMenu.click();
       const importMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md');
       await importMenu.locator(`.ant-dropdown-menu-submenu:has-text("Quick Import From")`).click();
       await this.rootPage.locator(`.ant-dropdown-menu-item:has-text("${title}")`).waitFor();
@@ -289,23 +298,13 @@ export class TreeViewPage extends BasePage {
     }
   }
 
-  // todo: Break this into smaller methods
   async validateRoleAccess(param: { role: string }) {
-    // Add new table button
-    await expect(this.get().locator(`.nc-add-new-table:visible`)).toHaveCount(param.role === 'creator' ? 1 : 0);
-    // Import menu
-    await expect(this.get().locator(`.nc-import-menu:visible`)).toHaveCount(param.role === 'creator' ? 1 : 0);
-    if (isHub()) {
-      // Create project at bottom right of tree view (should be visible for everyone)
-      await expect(this.get().locator(`.nc-create-project-btn:visible`)).toHaveCount(1);
-    } else {
+    if (!isHub()) {
       // Team and Settings button
       await expect(this.get().locator(`.nc-new-base`)).toHaveCount(param.role === 'creator' ? 1 : 0);
-    }
 
-    // hub has 'reload' option across all 3 roles
-    // double check against options defined in nocodb
-    if (!isHub()) {
+      // hub has 'reload' option across all 3 roles
+      // double check against options defined in nocodb
       // Right click context menu
       await this.get().locator(`.nc-project-tree-tbl-Country`).click({
         button: 'right',
@@ -313,6 +312,19 @@ export class TreeViewPage extends BasePage {
       await expect(this.rootPage.locator(`.nc-dropdown-tree-view-context-menu:visible`)).toHaveCount(
         param.role === 'creator' ? 1 : 0
       );
+    } else {
+      const count = param.role.toLowerCase() === 'creator' || param.role.toLowerCase() === 'owner' ? 1 : 0;
+      const pjtNode = await this.getProject({ index: 0 });
+      await pjtNode.hover();
+
+      // add new table button & context menu is visible only for owner & creator
+      expect(await pjtNode.locator('[data-testid="nc-sidebar-add-project-entity"]').count()).toBe(count);
+      expect(await pjtNode.locator('[data-testid="nc-sidebar-context-menu"]').count()).toBe(count);
+
+      // table context menu
+      const tblNode = await this.getTable({ index: 0 });
+      await tblNode.hover();
+      expect(await tblNode.locator('.nc-tbl-context-menu').count()).toBe(count);
     }
   }
 
@@ -333,5 +345,9 @@ export class TreeViewPage extends BasePage {
     }
 
     await this.rootPage.waitForTimeout(1000);
+  }
+
+  private async getProject(param: { index: number }) {
+    return this.get().locator(`.project-title-node`).nth(param.index);
   }
 }

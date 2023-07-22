@@ -1,4 +1,4 @@
-import { expect } from '@playwright/test';
+import { expect, Locator } from '@playwright/test';
 import { GridPage } from '..';
 import BasePage from '../../../Base';
 import { SelectOptionColumnPageObject } from './SelectOptionColumn';
@@ -19,6 +19,10 @@ export class ColumnPageObject extends BasePage {
 
   get() {
     return this.rootPage.locator('form[data-testid="add-or-edit-column"]');
+  }
+
+  async getColumnHeaderByIndex({ index }: { index: number }) {
+    return this.grid.get().locator(`.nc-grid-header > th`).nth(index);
   }
 
   private getColumnHeader(title: string) {
@@ -359,13 +363,35 @@ export class ColumnPageObject extends BasePage {
   }
 
   async verifyRoleAccess(param: { role: string }) {
-    await expect(this.grid.get().locator('.nc-column-add:visible')).toHaveCount(param.role === 'creator' ? 1 : 0);
-    await expect(this.grid.get().locator('.nc-ui-dt-dropdown:visible')).toHaveCount(param.role === 'creator' ? 3 : 0);
+    const role = param.role.toLowerCase();
+    const count = role.toLowerCase() === 'creator' || role.toLowerCase() === 'owner' ? 1 : 0;
+    await expect(this.grid.get().locator('.nc-column-add:visible')).toHaveCount(count);
 
-    if (param.role === 'creator') {
-      await this.grid.get().locator('.nc-ui-dt-dropdown:visible').first().click();
+    // verify for first column, if edit dropdown exists
+    const columnHdr = await this.getColumnHeaderByIndex({ index: 1 });
+    await expect(await columnHdr.locator('.nc-ui-dt-dropdown:visible')).toHaveCount(count);
+
+    if (role === 'creator' || role === 'owner') {
+      // open edit dropdown menu
+      await columnHdr.locator('.nc-ui-dt-dropdown:visible').click();
       await expect(this.rootPage.locator('.nc-dropdown-column-operations')).toHaveCount(1);
-      await this.grid.get().locator('.nc-ui-dt-dropdown:visible').first().click();
+
+      // close edit dropdown menu
+      await columnHdr.locator('.nc-ui-dt-dropdown:visible').click();
+    }
+
+    // select all menu access
+    expect(
+      await this.grid.get().locator('[data-testid="nc-check-all"]').locator('input[type="checkbox"]').count()
+    ).toBe(role === 'creator' || role === 'owner' || role === 'editor' ? 1 : 0);
+
+    if (role === 'creator' || role === 'owner' || role === 'editor') {
+      await this.grid.selectAll();
+      await this.grid.openAllRowContextMenu();
+      await this.rootPage.locator('.nc-dropdown-grid-context-menu').waitFor({ state: 'visible' });
+      await expect(this.rootPage.locator('.nc-dropdown-grid-context-menu')).toHaveCount(1);
+      await this.rootPage.keyboard.press('Escape');
+      await (await this.getColumnHeaderByIndex({ index: 2 })).click();
     }
   }
 

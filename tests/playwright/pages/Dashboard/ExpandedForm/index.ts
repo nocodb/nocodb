@@ -2,23 +2,30 @@ import { expect, Locator } from '@playwright/test';
 import BasePage from '../../Base';
 import { DashboardPage } from '..';
 import { DateTimeCellPageObject } from '../common/Cell/DateTimeCell';
+import { isHub } from '../../../setup/db';
 
 export class ExpandedFormPage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly addNewTableButton: Locator;
-  readonly copyUrlButton: Locator;
-  readonly toggleCommentsButton: Locator;
   readonly duplicateRowButton: Locator;
   readonly deleteRowButton: Locator;
+
+  readonly btn_copyUrl: Locator;
+  readonly btn_save: Locator;
+  readonly btn_toggleComments: Locator;
+  readonly btn_moreActions: Locator;
 
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.addNewTableButton = this.dashboard.get().locator('.nc-add-new-table');
-    this.copyUrlButton = this.dashboard.get().locator('.nc-copy-row-url:visible');
-    this.toggleCommentsButton = this.dashboard.get().locator('.nc-toggle-comments:visible');
     this.duplicateRowButton = this.dashboard.get().locator('.nc-duplicate-row:visible');
     this.deleteRowButton = this.dashboard.get().locator('.nc-delete-row:visible');
+
+    this.btn_copyUrl = this.dashboard.get().locator('.nc-copy-row-url:visible');
+    this.btn_toggleComments = this.dashboard.get().locator('.nc-toggle-comments:visible');
+    this.btn_save = this.dashboard.get().locator('button.nc-expand-form-save-btn');
+    this.btn_moreActions = this.dashboard.get().locator('.nc-expand-form-more-actions');
   }
 
   get() {
@@ -58,7 +65,7 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async getShareRowUrl() {
-    await this.copyUrlButton.click();
+    await this.btn_copyUrl.click();
     await this.verifyToast({ message: 'Copied to clipboard' });
     return await this.getClipboardText();
   }
@@ -158,16 +165,53 @@ export class ExpandedFormPage extends BasePage {
     return await expect(this.rootPage.locator(`.nc-drawer-expanded-form .ant-drawer-content`)).toHaveCount(count);
   }
 
-  async validateRoleAccess(param: { role: string }) {
-    if (param.role === 'commenter' || param.role === 'viewer') {
+  async verifyRoleAccess(param: { role: string }) {
+    const role = param.role.toLowerCase();
+
+    if (isHub()) {
+      expect(await this.btn_copyUrl.count()).toBe(1);
+
+      expect(await this.btn_moreActions.count()).toBe(1);
+      await this.btn_moreActions.click();
+      const menu = await this.rootPage.locator('.ant-dropdown:visible');
+      await menu.waitFor({ state: 'visible' });
+      const menuItems = await menu.locator('.ant-dropdown-menu-item');
+      for (let i = 0; i < (await menuItems.count()); i++) {
+        if (role === 'owner' || role === 'editor' || role === 'creator') {
+          const menuText = ['Reload', 'Duplicate row', 'Delete row', 'Close'];
+          expect(await menuItems.nth(i).innerText()).toBe(menuText[i]);
+        } else {
+          const menuText = ['Reload', 'Close'];
+          expect(await menuItems.nth(i).innerText()).toBe(menuText[i]);
+        }
+      }
+
+      if (role === 'owner' || role === 'editor' || role === 'creator') {
+        expect(await this.btn_save.isEnabled()).toBeTruthy();
+      } else {
+        expect(await this.btn_save.isEnabled()).toBeFalsy();
+      }
+
+      if (role === 'viewer') {
+        expect(await this.btn_toggleComments.count()).toBe(0);
+      } else {
+        expect(await this.btn_toggleComments.count()).toBe(1);
+      }
+
+      // press escape to close the expanded form
+      await this.rootPage.keyboard.press('Escape');
+      return;
+    }
+
+    if (role === 'commenter' || role === 'viewer') {
       await expect(await this.get().locator('button:has-text("Save & Exit")')).toBeDisabled();
     } else {
       await expect(await this.get().locator('button:has-text("Save & Exit")')).toBeEnabled();
     }
-    if (param.role === 'viewer') {
-      await expect(await this.toggleCommentsButton).toHaveCount(0);
+    if (role === 'viewer') {
+      await expect(await this.btn_toggleComments).toHaveCount(0);
     } else {
-      await expect(await this.toggleCommentsButton).toHaveCount(1);
+      await expect(await this.btn_toggleComments).toHaveCount(1);
     }
     // press escape to close the expanded form
     await this.rootPage.keyboard.press('Escape');

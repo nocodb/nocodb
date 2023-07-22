@@ -34,8 +34,7 @@ test.describe('User roles', () => {
 
   test('Create role', async () => {
     if (isHub()) {
-      // ACL is not supported in Hub
-      // User role management UX needs to be frozen
+      // Hub related tests moved to projectCollaboration.spec.ts
       test.skip();
     }
 
@@ -104,7 +103,7 @@ test.describe('User roles', () => {
       role: roleDb[roleIdx].role,
     });
 
-    await dashboard.grid.toolbar.validateRoleAccess({
+    await dashboard.grid.toolbar.verifyRoleAccess({
       role: roleDb[roleIdx].role,
     });
 
@@ -112,12 +111,12 @@ test.describe('User roles', () => {
       role: roleDb[roleIdx].role,
     });
 
-    await dashboard.grid.validateRoleAccess({
+    await dashboard.grid.verifyRoleAccess({
       role: roleDb[roleIdx].role,
     });
 
     await dashboard.grid.openExpandedRow({ index: 0 });
-    await dashboard.expandedForm.validateRoleAccess({
+    await dashboard.expandedForm.verifyRoleAccess({
       role: roleDb[roleIdx].role,
     });
 

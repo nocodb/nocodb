@@ -46,13 +46,18 @@ export class ProjectViewPage extends BasePage {
   }
 
   async verifyAccess(role: string) {
+    await this.get().waitFor({ state: 'visible' });
+
     expect(await this.tab_allTables.isVisible()).toBeTruthy();
-    if (role === 'creator' || role === 'owner') {
+
+    if (role.toLowerCase() === 'creator' || role.toLowerCase() === 'owner') {
       expect(await this.tab_dataSources.isVisible()).toBeTruthy();
       expect(await this.tab_accessSettings.isVisible()).toBeTruthy();
     } else {
       expect(await this.tab_dataSources.isVisible()).toBeFalsy();
       expect(await this.tab_accessSettings.isVisible()).toBeFalsy();
     }
+
+    await this.tables.verifyAccess(role);
   }
 }

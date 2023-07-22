@@ -28,7 +28,7 @@ const { formStatus, showShareModal, invitationValid, invitationUsersData, isInvi
 const { resetData } = useShare()
 const { inviteUser } = useManageUsers()
 
-const expandedSharedType = ref<'none' | 'project' | 'page'>('project')
+const expandedSharedType = ref<'none' | 'project' | 'view'>('view')
 
 const pageTitle = computed(() => (openedPage.value ?? nestedPagesOfProjects.value[project.value.id!]?.[0])?.title)
 const dbViewTitle = computed(() => route.value.params.viewTitle)
@@ -122,7 +122,7 @@ watch(showShareModal, (val) => {
       <div class="flex flex-row justify-between items-center pb-1 mx-4 mt-3">
         <div class="flex text-base font-medium">Share</div>
       </div>
-      <a-collapse v-model:active-key="expandedSharedType" expand-icon-position="right" class="!mx-3" :accordion="true">
+      <!-- <a-collapse v-model:active-key="expandedSharedType" expand-icon-position="right" class="!mx-3" :accordion="true">
         <template #expandIcon="{ isActive }">
           <div class="h-5 w-5 flex flex-row items-center justify-center">
             <component
@@ -167,7 +167,7 @@ watch(showShareModal, (val) => {
               <GeneralViewIcon v-else :meta="view!" class="nc-view-icon"></GeneralViewIcon>
               <div data-testid="docs-share-dlg-share-view select-none">
                 <span> Share {{ project.type === NcProjectType.DOCS ? 'Page' : 'View' }} </span>
-                <span class="ml-6.25 py-1 px-2 rounded-md bg-gray-75 capitalize">{{
+                <span class="ml-2.75 py-1 px-2 rounded-md bg-gray-75 capitalize">{{
                   !viewTitle ? EMPTY_TITLE_PLACEHOLDER_DOCS : viewTitle
                 }}</span>
               </div>
@@ -175,33 +175,40 @@ watch(showShareModal, (val) => {
           </template>
           <SharePage />
         </a-collapse-panel>
-      </a-collapse>
-      <div class="flex flex-row justify-end mx-3 mt-6 mb-2 border-t-1 !border-gray-100 pt-4 gap-x-2">
-        <a-button
+      </a-collapse> -->
+      <div class="share-view">
+        <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
+          <IonDocumentOutline v-if="project.type === NcProjectType.DOCS" />
+          <GeneralViewIcon v-else :meta="view!" class="nc-view-icon"></GeneralViewIcon>
+          <div>Share {{ project.type === NcProjectType.DOCS ? 'Page' : 'View' }}</div>
+          <div
+            class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-gray-75 capitalize text-ellipsis overflow-hidden"
+            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
+          >
+            {{ !viewTitle ? EMPTY_TITLE_PLACEHOLDER_DOCS : viewTitle }}
+          </div>
+        </div>
+        <SharePage />
+      </div>
+      <div class="flex flex-row justify-end mx-3 mt-1 mb-2 !border-gray-100 pt-4 gap-x-2">
+        <NcButton
           v-if="formStatus === 'project-collaborate'"
-          type="text"
-          class="!border-1 !border-gray-200 !rounded-md"
+          type="secondary"
           data-testid="docs-cancel-btn"
+          label="Close"
           @click="showShareModal = false"
         >
-          Cancel
-        </a-button>
-        <a-button
+        </NcButton>
+        <!-- <a-button
           data-testid="docs-share-manage-access"
           type="text"
           class="!border-1 !border-gray-200 !rounded-md"
           @click="formStatus = 'manageCollaborators'"
           >Manage project access
-        </a-button>
-        <a-button
-          v-if="formStatus !== 'project-collaborate'"
-          type="text"
-          class="!border-1 !border-gray-200 !rounded-md"
-          @click="showShareModal = false"
-        >
-          Finish
-        </a-button>
-        <a-button
+        </a-button> -->
+        <NcButton v-if="formStatus !== 'project-collaborate'" type="secondary" label="Close" @click="showShareModal = false">
+        </NcButton>
+        <!-- <a-button
           v-if="formStatus === 'project-collaborate'"
           data-testid="docs-share-btn"
           class="!border-0 !rounded-md"
@@ -210,7 +217,7 @@ watch(showShareModal, (val) => {
           @click="onShare"
         >
           Share
-        </a-button>
+        </a-button> -->
       </div>
     </div>
   </a-modal>
@@ -232,8 +239,12 @@ watch(showShareModal, (val) => {
     top: 28vh !important;
   }
 
+  .share-view {
+    @apply !border-1 border-gray-100 mx-3 rounded-lg mt-3 px-1 py-1;
+  }
+
   .ant-collapse-item {
-    @apply !border-1 border-gray-200;
+    @apply !border-1 border-gray-100;
   }
 
   .ant-collapse-content {

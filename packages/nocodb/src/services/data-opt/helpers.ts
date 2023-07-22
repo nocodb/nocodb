@@ -592,14 +592,22 @@ export async function extractColumn({
             ),
           );
           break;
+        } else {
+          qb.select(
+            knex.raw(
+              `TO_CHAR(:alias:.:column:, 'YYYY-MM-DD HH24:MI:SS') ||
+                 CASE WHEN EXTRACT(TIMEZONE_HOUR FROM :alias:.:column:) >= 0 THEN '+' ELSE '-' END ||
+                 TO_CHAR(ABS(EXTRACT(TIMEZONE_HOUR FROM :alias:.:column:)), 'FM00') || ':' ||
+                 TO_CHAR(ABS(EXTRACT(TIMEZONE_MINUTE FROM :alias:.:column:)), 'FM00')   as :title:`,
+              {
+                alias: rootAlias,
+                column: column.column_name,
+                title: column.title,
+              },
+            ),
+          );
+          break;
         }
-        qb.select(
-          knex.raw(`??.?? as ??`, [
-            rootAlias,
-            column.column_name,
-            column.title,
-          ]),
-        );
       }
       break;
     default:

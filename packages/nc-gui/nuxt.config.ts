@@ -51,7 +51,7 @@ export default defineNuxtConfig({
           href: './favicon.ico',
         },
       ],
-    }
+    },
   },
 
   css: [

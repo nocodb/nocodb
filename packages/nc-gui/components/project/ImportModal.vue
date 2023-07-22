@@ -64,7 +64,7 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json') => {
 
 <template>
   <GeneralModal v-model:visible="visible" width="35rem">
-    <div class="flex flex-col pl-9 pt-6 pb-9">
+    <div class="flex flex-col px-8 pt-6 pb-9">
       <div class="text-lg font-medium mb-6">Import</div>
       <div class="row mb-10">
         <div class="nc-project-view-import-sub-btn" @click="onClick('airtable')">

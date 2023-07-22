@@ -13,10 +13,6 @@ jobs:
   copy-file:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -27,8 +23,8 @@ jobs:
       - name: Build prev docs
         run: |
           cd packages/noco-docs-prev
-          pnpm install
-          pnpm run generate
+          npm install
+          npm run generate
 
 
       - name: Pushes generated output

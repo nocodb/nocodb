@@ -68,12 +68,13 @@ export default defineNuxtConfig({
     },
   },
 
-  build: {
-    splitChunks: {
-      pages: true,
-      layouts: true,
-    },
-  },
+  // TODO: no longer valid
+  // build: {
+  //   splitChunks: {
+  //     pages: true,
+  //     layouts: true,
+  //   },
+  // },
 
   vite: {
     build: {

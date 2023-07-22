@@ -58,6 +58,15 @@ const baseSettingsState = ref('')
         <!-- <a-tab-pane v-if="defaultBase" key="erd" tab="Project ERD" force-render class="pt-4 pb-12">
           <ErdView :base-id="defaultBase!.id" class="!h-full" />
         </a-tab-pane> -->
+        <a-tab-pane v-if="isUIAllowed('shareProject')" key="accessSettings">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__access-settings">
+              <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
+              <div>Collaborators</div>
+            </div>
+          </template>
+          <ProjectAccessSettings />
+        </a-tab-pane>
         <a-tab-pane v-if="isUIAllowed('createBase')" key="dataSources">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__data-sources">
@@ -66,15 +75,6 @@ const baseSettingsState = ref('')
             </div>
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" />
-        </a-tab-pane>
-        <a-tab-pane v-if="isUIAllowed('shareProject')" key="accessSettings">
-          <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__access-settings">
-              <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
-              <div>Access Settings</div>
-            </div>
-          </template>
-          <ProjectAccessSettings />
         </a-tab-pane>
       </a-tabs>
     </div>

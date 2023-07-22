@@ -21,8 +21,8 @@
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "build": "nest build",
-    "build:obfuscate": "EE=true webpack  --config webpack.config.js",
-    "obfuscate:build:publish": "npm run build:obfuscate && npm publish .",
+    "build:obfuscate": "EE=true webpack --config webpack.config.js",
+    "obfuscate:build:publish": "pnpm run build:obfuscate && pnpm publish .",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",

@@ -36,13 +36,13 @@ jobs:
           cache: 'pnpm'
       - name: install dependencies nocodb-sdk
         working-directory: ./packages/nocodb-sdk
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
       - name: build nocodb-sdk
         working-directory: ./packages/nocodb-sdk
         run: pnpm run build:main
       - name: install dependencies nocodb
         working-directory: ./packages/nocodb
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
       - name: run unit tests
         working-directory: ./packages/nocodb
         run: pnpm run unit-test

@@ -149,13 +149,18 @@ class BaseModelSqlv2 {
     id?: any,
     validateFormula = false,
     query: any = {},
+    {
+      ignoreView = false,
+    }: {
+      ignoreView?: boolean;
+    } = {},
   ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
 
     const { ast, dependencyFields } = await getAst({
       query,
       model: this.model,
-      view: this.viewId && (await View.get(this.viewId)),
+      view: ignoreView ? null : this.viewId && (await View.get(this.viewId)),
     });
 
     await this.selectObject({
@@ -2018,7 +2023,7 @@ class BaseModelSqlv2 {
 
       await this.beforeUpdate(data, trx, cookie);
 
-      const prevData = await this.readByPk(id);
+      const prevData = await this.readByPk(id, false, {}, { ignoreView: true });
 
       const query = this.dbDriver(this.tnPath)
         .update(updateObj)
@@ -2026,7 +2031,7 @@ class BaseModelSqlv2 {
 
       await this.execAndParse(query);
 
-      const newData = await this.readByPk(id);
+      const newData = await this.readByPk(id, false, {}, { ignoreView: true });
       await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
       return newData;
     } catch (e) {

@@ -273,10 +273,10 @@ export class DatasService {
       });
 
       row = await baseModel.readByPk(param.rowId, false, param.query);
+    }
 
-      if (!row) {
-        NcError.notFound('Row not found');
-      }
+    if (!row) {
+      NcError.notFound('Row not found');
     }
 
     return row;

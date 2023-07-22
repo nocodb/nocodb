@@ -92,7 +92,7 @@ test.describe('Preview Mode', () => {
       role: role.toLowerCase(),
     });
 
-    await toolbar.validateRoleAccess({
+    await toolbar.verifyRoleAccess({
       role: role.toLowerCase(),
     });
 
@@ -100,12 +100,12 @@ test.describe('Preview Mode', () => {
       role: role.toLowerCase(),
     });
 
-    await dashboard.grid.validateRoleAccess({
+    await dashboard.grid.verifyRoleAccess({
       role: role.toLowerCase(),
     });
 
     await dashboard.grid.openExpandedRow({ index: 0 });
-    await dashboard.expandedForm.validateRoleAccess({
+    await dashboard.expandedForm.verifyRoleAccess({
       role: role.toLowerCase(),
     });
 

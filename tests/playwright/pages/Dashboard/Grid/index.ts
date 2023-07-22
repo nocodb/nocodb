@@ -217,6 +217,12 @@ export class GridPage extends BasePage {
     await this.rootPage.waitForTimeout(300);
   }
 
+  async openAllRowContextMenu() {
+    await this.get().locator('[data-testid="nc-check-all"]').nth(0).click({
+      button: 'right',
+    });
+  }
+
   async deleteSelectedRows() {
     await this.get().locator('[data-testid="nc-check-all"]').nth(0).click({
       button: 'right',
@@ -343,12 +349,11 @@ export class GridPage extends BasePage {
     ).toBeVisible();
   }
 
-  async validateRoleAccess(param: { role: string }) {
+  async verifyRoleAccess(param: { role: string }) {
     await this.column.verifyRoleAccess(param);
     await this.cell.verifyRoleAccess(param);
-    await expect(this.get().locator('.nc-grid-add-new-cell')).toHaveCount(
-      param.role === 'creator' || param.role === 'editor' ? 1 : 0
-    );
+    await this.toolbar.verifyRoleAccess(param);
+    await this.footbar.verifyRoleAccess(param);
   }
 
   async selectRange({ start, end }: { start: CellProps; end: CellProps }) {

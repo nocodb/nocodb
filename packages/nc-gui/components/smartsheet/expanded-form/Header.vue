@@ -132,7 +132,7 @@ const onConfirmDeleteRowClick = async () => {
     </a-button>
 
     <a-dropdown>
-      <component :is="iconMap.threeDotVertical" class="nc-icon-transition" />
+      <component :is="iconMap.threeDotVertical" class="nc-icon-transition nc-expand-form-more-actions" />
       <template #overlay>
         <a-menu>
           <a-menu-item v-if="!isNew" @click="loadRow()">

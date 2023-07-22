@@ -57,7 +57,8 @@
   },
   "pnpm": {
     "overrides": {
-      "vue": "latest"
+      "vue": "latest",
+      "typescript": "latest"
     }
   }
 }

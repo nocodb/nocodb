@@ -281,7 +281,7 @@ export class ToolbarPage extends BasePage {
   async getSharedViewUrl(surveyMode = false, password = '', download = false) {
     if (isHub()) {
       await this.clickShare();
-      await this.share.clickShareView();
+      // await this.share.clickShareView();
       await this.share.clickShareViewPublicAccess();
       await this.share.clickCopyLink();
       if (surveyMode) {

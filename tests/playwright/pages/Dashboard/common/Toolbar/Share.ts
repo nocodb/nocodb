@@ -34,7 +34,7 @@ export class ToolbarSharePage extends BasePage {
 
   async closeModal() {
     // await this.rootPage.keyboard.press('Escape');
-    await this.get().locator('[data-testid="docs-cancel-btn"]').click();
+    await this.get().locator('.ant-btn.ant-btn-secondary:has-text("Close")').click();
   }
 
   async clickShareViewWithPassword({ password }: { password: string }) {

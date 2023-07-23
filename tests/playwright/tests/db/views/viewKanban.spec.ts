@@ -320,13 +320,14 @@ test.describe('View', () => {
     // Share view
     await toolbar.fields.toggle({ title: 'Rating' });
     const sharedLink = await toolbar.getSharedViewUrl();
-    await toolbar.shareView.close();
+    // await toolbar.shareView.close();
 
     // sign-out
     await dashboard.signOut();
 
     // Open shared view & verify stack count
     await page.goto(sharedLink);
+    await page.reload();
     const kanban = dashboard.kanban;
     await kanban.verifyStackCount({ count: 6 });
   });

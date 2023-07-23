@@ -367,6 +367,7 @@ test.describe('Form view with LTAR', () => {
     await page.reload();
     await loginPage.signIn({ email: 'user@nocodb.com', password: getDefaultPwd(), withoutPrefix: true });
 
+    await wsPage.workspaceOpen({ title: context.workspace.title });
     await wsPage.projectOpen({ title: context.project.title });
 
     await dashboard.treeView.openTable({ title: 'Country' });

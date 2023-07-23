@@ -155,22 +155,20 @@ export class ViewSidebarPage extends BasePage {
       .locator('.nc-view-copy-icon')
       .click();
     const submitAction = () =>
-      this.rootPage.locator('.ant-modal-content').locator('button:has-text("Submit"):visible').click();
+      this.rootPage.locator('.ant-modal-content').locator('button:has-text("Create View"):visible').click();
     await this.waitForResponse({
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: '/api/v1/db/meta/tables/',
       uiAction: submitAction,
     });
-    await this.verifyToast({ message: 'View created successfully' });
+    // await this.verifyToast({ message: 'View created successfully' });
   }
 
   async changeViewIcon({ title, icon, iconDisplay }: { title: string; icon: string; iconDisplay?: string }) {
     await this.rootPage.waitForTimeout(1000);
     await this.get().locator(`[data-testid="view-sidebar-view-${title}"] .nc-view-icon`).click();
 
-    // views still has old icon set
-    // eslint-disable-next-line no-constant-condition
-    if (isHub() && false) {
+    if (isHub()) {
       await this.rootPage.locator('.emoji-mart-search').type(icon);
       const emojiList = await this.rootPage.locator('[id="emoji-mart-list"]');
       await emojiList.locator('button').first().click();

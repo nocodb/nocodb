@@ -48,6 +48,9 @@ export class ProjectViewPage extends BasePage {
   async verifyAccess(role: string) {
     await this.get().waitFor({ state: 'visible' });
 
+    // provide time for tabs to appear
+    await this.rootPage.waitForTimeout(1000);
+
     expect(await this.tab_allTables.isVisible()).toBeTruthy();
 
     if (role.toLowerCase() === 'creator' || role.toLowerCase() === 'owner') {

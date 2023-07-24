@@ -92,10 +92,6 @@ export default class CSVTemplateAdapter {
     if (['true', 'True', 'false', 'False', '1', '0', 'T', 'F', 'Y', 'N'].includes(v)) return UITypes.Checkbox
     if (v.length > 20) return UITypes.LongText
     return UITypes.SingleLineText
-    if (!isNaN(Number(v)) && !isNaN(parseFloat(v))) return UITypes.Number
-    if (validateDateWithUnknownFormat(v)) return UITypes.DateTime
-    if (['true', 'True', 'false', 'False', '1', '0', 'T', 'F', 'Y', 'N'].includes(v)) return UITypes.Checkbox
-    return UITypes.SingleLineText
   }
 
   detectColumnType(tableIdx: number, data: []) {

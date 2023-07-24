@@ -141,7 +141,7 @@ export class KanbanPage extends BasePage {
     await this.get().locator(`.nc-kanban-stack-head`).nth(param.index).click();
     const modal = await this.rootPage.locator(`.nc-dropdown-kanban-stack-context-menu`);
     await modal.locator('.ant-dropdown-menu-item:has-text("Delete Stack")').click();
-    const confirmationModal = await this.rootPage.locator(`.nc-modal-kanban-delete-stack`);
-    await confirmationModal.locator(`button:has-text("Delete")`).click();
+    const confirmationModal = await this.rootPage.locator(`div.ant-modal-content`);
+    await confirmationModal.locator(`button:has-text("Delete Stack")`).click();
   }
 }

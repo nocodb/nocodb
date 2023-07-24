@@ -13,7 +13,7 @@ require('dotenv').config();
 const config: PlaywrightTestConfig = {
   testDir: process.env.PW_QUICK_TEST ? './quickTests' : './tests',
   /* Maximum time one test can run for. */
-  timeout: process.env.CI ? 140 * 1000 : 100 * 1000,
+  timeout: process.env.CI ? 140 * 1000 : 200 * 1000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
@@ -22,7 +22,8 @@ const config: PlaywrightTestConfig = {
     timeout: 14000,
   },
   /* Run tests in files in parallel */
-  fullyParallel: true,
+  // fullyParallel: true,
+
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */

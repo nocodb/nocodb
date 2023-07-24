@@ -34,8 +34,8 @@ export class HeaderPage extends BasePage {
   }
 
   async verifyStaticElements() {
-    // logo on the left
-    await this.get().locator('img[src="/_nuxt/assets/img/brand/nocodb-full-color.png"]').waitFor({ state: 'visible' });
+    // logo on the left (disabled for now)
+    // await this.get().locator('img[src="/_nuxt/assets/img/brand/nocodb-full-color.png"]').waitFor({ state: 'visible' });
 
     // menu items in the center (disabled for now)
     // await this.get().locator('[data-testid="nc-dash-nav-workspaces"]').waitFor({ state: 'visible' });

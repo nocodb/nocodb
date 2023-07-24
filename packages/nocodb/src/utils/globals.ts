@@ -174,6 +174,7 @@ export enum CacheScope {
   COWRITER = 'cowriter',
   WORKSPACE = 'workspace',
   WORKSPACE_USER = 'workspaceUser',
+  SINGLE_QUERY = 'singleQuery',
 }
 
 export enum CacheGetType {

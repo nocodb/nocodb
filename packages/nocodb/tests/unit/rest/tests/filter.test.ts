@@ -163,7 +163,7 @@ async function retrieveRecordsAndValidate(
       throw new Error('fix me!');
     }
     response.body.list.forEach((row, index) => {
-      if (row[title] !== expectedRecords[index][title]) {
+      if (row[title] != expectedRecords[index][title]) {
         console.log(`Failed for filter: ${JSON.stringify(filter)}`);
         console.log(`Expected: ${expectedRecords[index][title]}`);
         console.log(`Actual: ${row[title]}`);

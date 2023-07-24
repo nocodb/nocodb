@@ -46,7 +46,7 @@ export default async function sortV2(
               baseModelSqlv2,
               knex,
               columnOptions: (await column.getColOptions()) as RollupColumn,
-              alias
+              alias,
             })
           ).builder;
 
@@ -71,6 +71,7 @@ export default async function sortV2(
         break;
       case UITypes.Lookup:
         {
+          const rootAlias = alias;
           {
             let aliasCount = 0,
               selectQb;
@@ -96,9 +97,9 @@ export default async function sortV2(
               ).where(
                 `${alias}.${parentColumn.column_name}`,
                 knex.raw(`??`, [
-                  `${baseModelSqlv2.getTnPath(childModel.table_name)}.${
-                    childColumn.column_name
-                  }`,
+                  `${
+                    rootAlias || baseModelSqlv2.getTnPath(childModel.table_name)
+                  }.${childColumn.column_name}`,
                 ]),
               );
             }
@@ -144,6 +145,7 @@ export default async function sortV2(
                       knex,
                       columnOptions:
                         (await lookupColumn.getColOptions()) as RollupColumn,
+                      alias: prevAlias,
                     })
                   ).builder;
                   selectQb.select(builder);

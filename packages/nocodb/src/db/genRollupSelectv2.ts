@@ -42,7 +42,7 @@ export default async function ({
           )
           .where(
             knex.ref(
-              `${baseModelSqlv2.getTnPath(alias || parentModel.table_name)}.${
+              `${alias || baseModelSqlv2.getTnPath(parentModel.table_name)}.${
                 parentCol.column_name
               }`,
             ),
@@ -82,7 +82,7 @@ export default async function ({
             ),
             '=',
             knex.ref(
-              `${baseModelSqlv2.getTnPath(alias || childModel.table_name)}.${
+              `${alias || baseModelSqlv2.getTnPath(childModel.table_name)}.${
                 childCol.column_name
               }`,
             ),

@@ -746,7 +746,15 @@ export default class View implements ViewType {
       await NocoCache.set(key, o);
     }
     // set meta
-    return await ncMeta.metaUpdate(null, null, table, updateObj, colId);
+    const res = await ncMeta.metaUpdate(null, null, table, updateObj, colId);
+
+    // on view column update, delete corresponding single query cache
+    await NocoCache.delAll(
+      CacheScope.SINGLE_QUERY,
+      `${view.fk_model_id}:${view.id}:*`,
+    );
+
+    return res;
   }
 
   static async insertOrUpdateColumn(
@@ -784,6 +792,13 @@ export default class View implements ViewType {
         },
         existingCol.id,
       );
+
+      // on view column update, delete any optimised single query cache
+      await NocoCache.delAll(
+        CacheScope.SINGLE_QUERY,
+        `${view.fk_model_id}:${view.id}:*`,
+      );
+
       return { ...existingCol, ...colData };
     } else {
       switch (view.type) {
@@ -1012,6 +1027,12 @@ export default class View implements ViewType {
       }
     }
 
+    // on update, delete any optimised single query cache
+    await NocoCache.delAll(
+      CacheScope.SINGLE_QUERY,
+      `${view.fk_model_id}:${view.id}:*`,
+    );
+
     return view;
   }
 
@@ -1048,6 +1069,12 @@ export default class View implements ViewType {
     );
     await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.title}`);
     await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.id}`);
+
+    // on update, delete any optimised single query cache
+    await NocoCache.delAll(
+      CacheScope.SINGLE_QUERY,
+      `${view.fk_model_id}:${view.id}:*`,
+    );
   }
 
   private static extractViewColumnsTableName(view: View) {

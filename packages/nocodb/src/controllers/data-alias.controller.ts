@@ -6,7 +6,8 @@ import {
   HttpCode,
   Param,
   Patch,
-  Post, Query,
+  Post,
+  Query,
   Request,
   Response,
   UseGuards,
@@ -33,7 +34,7 @@ export class DataAliasController {
     @Param('projectName') projectName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
-    @Query('opt') opt: string
+    @Query('opt') opt: string,
   ) {
     const startTime = process.hrtime();
     const responseData = await this.datasService.dataList({
@@ -41,7 +42,7 @@ export class DataAliasController {
       projectName: projectName,
       tableName: tableName,
       viewName: viewName,
-      optimisedQuery: opt === 'true',
+      disableOptimization: opt === 'false',
     });
     const elapsedSeconds = parseHrtimeToMilliSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);
@@ -120,6 +121,7 @@ export class DataAliasController {
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
     @Body() body: any,
+    @Query('opt') opt: string,
   ) {
     return await this.datasService.dataInsert({
       projectName: projectName,
@@ -127,6 +129,7 @@ export class DataAliasController {
       viewName: viewName,
       body: body,
       cookie: req,
+      disableOptimization: opt === 'false',
     });
   }
 
@@ -141,6 +144,7 @@ export class DataAliasController {
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
     @Param('rowId') rowId: string,
+    @Query('opt') opt: string,
   ) {
     return await this.datasService.dataUpdate({
       projectName: projectName,
@@ -149,6 +153,7 @@ export class DataAliasController {
       body: req.body,
       cookie: req,
       rowId: rowId,
+      disableOptimization: opt === 'false',
     });
   }
 
@@ -184,6 +189,7 @@ export class DataAliasController {
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
     @Param('rowId') rowId: string,
+    @Query('opt') opt: string,
   ) {
     return await this.datasService.dataRead({
       projectName: projectName,
@@ -191,6 +197,7 @@ export class DataAliasController {
       viewName: viewName,
       rowId: rowId,
       query: req.query,
+      disableOptimization: opt === 'false',
     });
   }
 

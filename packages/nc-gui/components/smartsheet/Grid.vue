@@ -1100,19 +1100,7 @@ const enableOptimisedQuery = () => {
     message.info('Optimised query disabled')
   } else {
     optimisedQuery.value = true
-    message.info(
-      h('span', [
-        'Optimised query',
-        h(
-          'span',
-          {
-            style: 'font-size: 0.8em;',
-          },
-          '(experimental)',
-        ),
-        ' enabled',
-      ]),
-    )
+    message.info('Optimised query enabled')
   }
 }
 </script>

@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { DataOptService } from './data-opt.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('DataOptService', () => {
   let service: DataOptService;

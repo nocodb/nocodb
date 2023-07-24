@@ -51,7 +51,9 @@ import { JobsEventService as FallbackJobsEventService } from './fallback/jobs-ev
       : [FallbackQueueService, FallbackJobsEventService]),
     {
       provide: 'JobsService',
-      useClass: process.env.NC_REDIS_JOB_URL ? JobsService : FallbackJobsService,
+      useClass: process.env.NC_REDIS_JOB_URL
+        ? JobsService
+        : FallbackJobsService,
     },
     JobsLogService,
     ExportService,

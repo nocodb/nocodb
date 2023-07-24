@@ -81,7 +81,7 @@ export class BasesService {
     this.appHooksService.emit(AppEvents.APIS_CREATED, {
       info,
     });
-    
+
     delete base.config;
 
     this.appHooksService.emit(AppEvents.BASE_CREATE, {

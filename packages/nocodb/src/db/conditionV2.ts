@@ -802,6 +802,7 @@ const parseConditionV2 = async (
 const negatedMapping = {
   nlike: { comparison_op: 'like' },
   neq: { comparison_op: 'eq' },
+  blank: { comparison_op: 'notblank' },
 };
 
 function getAlias(aliasCount: { count: number }) {
@@ -839,30 +840,20 @@ async function generateLookupCondition(
 
       qb.select(`${alias}.${childColumn.column_name}`);
 
-      if (filter.comparison_op === 'blank') {
-        return (qbP: Knex.QueryBuilder) => {
-          qbP.whereNotIn(childColumn.column_name, qb);
-        };
-      } else if (filter.comparison_op === 'notblank') {
-        return (qbP: Knex.QueryBuilder) => {
-          qbP.whereIn(childColumn.column_name, qb);
-        };
-      } else {
-        await nestedConditionJoin(
-          baseModelSqlv2,
-          {
-            ...filter,
-            ...(filter.comparison_op in negatedMapping
-              ? negatedMapping[filter.comparison_op]
-              : {}),
-          },
-          lookupColumn,
-          qb,
-          knex,
-          alias,
-          aliasCount,
-        );
-      }
+      await nestedConditionJoin(
+        baseModelSqlv2,
+        {
+          ...filter,
+          ...(filter.comparison_op in negatedMapping
+            ? negatedMapping[filter.comparison_op]
+            : {}),
+        },
+        lookupColumn,
+        qb,
+        knex,
+        alias,
+        aliasCount,
+      );
 
       return (qbP: Knex.QueryBuilder) => {
         if (filter.comparison_op in negatedMapping)
@@ -875,30 +866,20 @@ async function generateLookupCondition(
       );
       qb.select(`${alias}.${parentColumn.column_name}`);
 
-      if (filter.comparison_op === 'blank') {
-        return (qbP: Knex.QueryBuilder) => {
-          qbP.whereNotIn(childColumn.column_name, qb);
-        };
-      } else if (filter.comparison_op === 'notblank') {
-        return (qbP: Knex.QueryBuilder) => {
-          qbP.whereIn(childColumn.column_name, qb);
-        };
-      } else {
-        await nestedConditionJoin(
-          baseModelSqlv2,
-          {
-            ...filter,
-            ...(filter.comparison_op in negatedMapping
-              ? negatedMapping[filter.comparison_op]
-              : {}),
-          },
-          lookupColumn,
-          qb,
-          knex,
-          alias,
-          aliasCount,
-        );
-      }
+      await nestedConditionJoin(
+        baseModelSqlv2,
+        {
+          ...filter,
+          ...(filter.comparison_op in negatedMapping
+            ? negatedMapping[filter.comparison_op]
+            : {}),
+        },
+        lookupColumn,
+        qb,
+        knex,
+        alias,
+        aliasCount,
+      );
 
       return (qbP: Knex.QueryBuilder) => {
         if (filter.comparison_op in negatedMapping)
@@ -922,30 +903,20 @@ async function generateLookupCondition(
           `${childAlias}.${parentColumn.column_name}`,
         );
 
-      if (filter.comparison_op === 'blank') {
-        return (qbP: Knex.QueryBuilder) => {
-          qbP.whereNotIn(childColumn.column_name, qb);
-        };
-      } else if (filter.comparison_op === 'notblank') {
-        return (qbP: Knex.QueryBuilder) => {
-          qbP.whereIn(childColumn.column_name, qb);
-        };
-      } else {
-        await nestedConditionJoin(
-          baseModelSqlv2,
-          {
-            ...filter,
-            ...(filter.comparison_op in negatedMapping
-              ? negatedMapping[filter.comparison_op]
-              : {}),
-          },
-          lookupColumn,
-          qb,
-          knex,
-          childAlias,
-          aliasCount,
-        );
-      }
+      await nestedConditionJoin(
+        baseModelSqlv2,
+        {
+          ...filter,
+          ...(filter.comparison_op in negatedMapping
+            ? negatedMapping[filter.comparison_op]
+            : {}),
+        },
+        lookupColumn,
+        qb,
+        knex,
+        childAlias,
+        aliasCount,
+      );
 
       return (qbP: Knex.QueryBuilder) => {
         if (filter.comparison_op in negatedMapping)

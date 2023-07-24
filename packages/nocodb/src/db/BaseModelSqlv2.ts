@@ -3742,7 +3742,7 @@ class BaseModelSqlv2 {
     return d;
   }
 
-  private convertAttachmentType(data: Record<string, any>, childTable?: Model) {
+  public convertAttachmentType(data: Record<string, any>, childTable?: Model) {
     // attachment is stored in text and parse in UI
     // convertAttachmentType is used to convert the response in string to array of object in API response
     if (data) {
@@ -3888,7 +3888,7 @@ class BaseModelSqlv2 {
     return d;
   }
 
-  private convertDateFormat(data: Record<string, any>, childTable?: Model) {
+  public convertDateFormat(data: Record<string, any>, childTable?: Model) {
     // Show the date time in UTC format in API response
     // e.g. 2022-01-01 04:30:00+00:00
     if (data) {

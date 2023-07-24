@@ -1,3 +1,4 @@
+// eslint-disable-file no-fallthrough
 import { RelationTypes, UITypes } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
@@ -576,6 +577,17 @@ export async function extractColumn({
       }
       break;
 
+    case UITypes.Attachment:
+      {
+        qb.select(
+          knex.raw(`??.??::json as ??`, [
+            rootAlias,
+            column.column_name,
+            column.title,
+          ]),
+        );
+      }
+      break;
     case UITypes.DateTime: {
       // if there is no timezone info,
       // convert to database timezone,
@@ -663,19 +675,25 @@ export async function singleQueryRead(ctx: {
 
       const res = rawRes?.rows?.[0];
 
+      // update attachment fields
+      // res = baseModel.convertAttachmentType(res, ctx.model);
+
+      // update date time fields
+      // res = baseModel.convertDateFormat(res, ctx.model);
+
       return res;
     }
   }
-
-  const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
-
-  const getAlias = getAliasGenerator();
 
   const baseModel = await Model.getBaseModelSQL({
     id: ctx.model.id,
     viewId: ctx.view?.id,
     dbDriver: knex,
   });
+
+  const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
+
+  const getAlias = getAliasGenerator();
 
   // load columns list
   const columns = await ctx.model.getColumns();
@@ -768,6 +786,12 @@ export async function singleQueryRead(ctx: {
 
   const res = await finalQb;
 
+  // update attachment fields
+  // res = baseModel.convertAttachmentType(res, ctx.model);
+
+  // update date time fields
+  // res = baseModel.convertDateFormat(res, ctx.model);
+
   return res;
 }
 
@@ -808,6 +832,7 @@ export async function singleQueryList(ctx: {
   const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
     ctx.view?.id ?? 'default'
   }:queries`;
+
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
     if (cachedQuery) {
@@ -817,6 +842,12 @@ export async function singleQueryList(ctx: {
       ]);
 
       const res = rawRes?.rows;
+
+      // update attachment fields
+      // res = baseModel.convertAttachmentType(res, ctx.model);
+
+      // update date time fields
+      // res = baseModel.convertDateFormat(res, ctx.model);
 
       return new PagedResponseImpl(
         res.map(({ __nc_count, ...rest }) => rest),
@@ -828,6 +859,7 @@ export async function singleQueryList(ctx: {
       );
     }
   }
+
 
   const baseModel = await Model.getBaseModelSQL({
     id: ctx.model.id,
@@ -959,6 +991,13 @@ export async function singleQueryList(ctx: {
     // run the query with actual limit and offset
     res = (await knex.raw(query, [+listArgs.limit, +listArgs.offset])).rows;
   }
+
+  // update attachment fields
+  // res = baseModel.convertAttachmentType(res, ctx.model);
+
+  // update date time fields
+  // res = baseModel.convertDateFormat(res, ctx.model);
+
   return new PagedResponseImpl(
     res.map(({ __nc_count, ...rest }) => rest),
     {

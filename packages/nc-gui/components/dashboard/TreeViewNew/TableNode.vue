@@ -99,11 +99,11 @@ const isMultiBase = computed(() => project.bases && project.bases.length > 1)
     ]"
   >
     <GeneralTooltip
-      class="pl-11 pr-1.5 mb-0.25 rounded-md h-7.1"
+      class="pl-11 pr-0.75 mb-0.25 rounded-md h-7.1"
       :class="{
         'hover:bg-hover': openedTableId !== table.id,
-        'pl-16.75': baseIndex !== 0,
-        'pl-10.5': baseIndex === 0,
+        'pl-17.75': baseIndex !== 0,
+        'pl-12.25': baseIndex === 0,
       }"
       modifier-key="Alt"
     >
@@ -150,7 +150,7 @@ const isMultiBase = computed(() => project.bases && project.bases.length > 1)
           @click.stop
         >
           <MdiDotsHorizontal
-            class="min-w-6 transition-opacity opacity-0 group-hover:opacity-100 outline-0 nc-tbl-context-menu"
+            class="min-w-5.75 min-h-5.75 mt-0.2 mr-0.25 px-0.5 transition-opacity opacity-0 group-hover:opacity-100 nc-tbl-context-menu outline-0 rounded-md hover:(bg-gray-300 bg-opacity-20 !text-black)"
             :class="{
               '!text-gray-600': openedTableId !== table.id,
               '!text-black': openedTableId === table.id,
@@ -197,7 +197,7 @@ const isMultiBase = computed(() => project.bases && project.bases.length > 1)
           </template>
         </a-dropdown>
       </div>
-      <DlgTableDelete v-model:visible="isTableDeleteDialogVisible" :table-id="table.id" />
+      <DlgTableDelete v-model:visible="isTableDeleteDialogVisible" :table-id="table.id" :project-id="project?.id" />
     </GeneralTooltip>
   </div>
 </template>

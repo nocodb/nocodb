@@ -228,12 +228,16 @@ const addNewProjectChildEntity = async () => {
 // todo: temp
 const isSharedBase = ref(false)
 
-const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean) => {
+const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) => {
   if (!project) {
     return
   }
 
-  project.isExpanded = !project.isExpanded
+  if (toggleIsExpanded) {
+    project.isExpanded = !project.isExpanded
+  } else {
+    project.isExpanded = true
+  }
 
   const isProjectPopulated = projectsStore.isProjectPopulated(project.id!)
 
@@ -384,14 +388,16 @@ onKeyStroke('Escape', () => {
           :data-testid="`nc-sidebar-project-title-${project.title}`"
           class="project-title-node h-7.25 flex-grow rounded-md group flex items-center w-full"
         >
-          <div @click="onProjectClick(project, true)">
-            <div class="nc-sidebar-expand pl-2 pr-1">
-              <PhTriangleFill
-                class="invisible group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.25 w-1.75 text-gray-500 rotate-90"
-                :class="{ '!rotate-180': project.isExpanded, '!visible': isOptionsOpen }"
-              />
-            </div>
+          <div
+            class="nc-sidebar-expand ml-0.75 min-h-5.75 min-w-5.75 px-1.5 text-gray-500 hover:(hover:bg-gray-300 hover:bg-opacity-20 !text-black) rounded-md relative"
+            @click="onProjectClick(project, true, true)"
+          >
+            <PhTriangleFill
+              class="absolute top-2.25 left-2 invisible group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.75 rotate-90"
+              :class="{ '!rotate-180': project.isExpanded, '!visible': isOptionsOpen }"
+            />
           </div>
+
           <div class="flex items-center mr-1" @click.stop>
             <div class="flex items-center select-none w-6 h-full" @click.stop>
               <a-spin
@@ -438,7 +444,7 @@ onKeyStroke('Escape', () => {
 
           <a-dropdown v-if="isUIAllowed('tableCreate', false, projectRole)" v-model:visible="isOptionsOpen" trigger="click">
             <MdiDotsHorizontal
-              class="min-w-5 min-h-5 py-0.25 mr-1.5 !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 opacity-0 group-hover:(opacity-100) hover:text-black text-gray-600 rounded"
+              class="min-w-5.75 min-h-5.75 px-0.5 py-0.5 mr-0.25 !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 opacity-0 group-hover:(opacity-100) hover:text-black text-gray-600 rounded-md hover:(bg-gray-300 bg-opacity-20)"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
               data-testid="nc-sidebar-context-menu"
               @click.stop
@@ -526,7 +532,7 @@ onKeyStroke('Escape', () => {
 
           <div
             v-if="isUIAllowed('tableCreate', false, projectRole)"
-            class="mr-2 flex flex-row items-center gap-x-2 cursor-pointer hover:(text-black) text-gray-600 text-sm invisible !group-hover:visible rounded"
+            class="min-h-5.75 min-w-5.75 mr-1 flex flex-row items-center justify-center gap-x-2 cursor-pointer hover:(text-black) text-gray-600 text-sm invisible !group-hover:visible rounded-md hover:(bg-gray-300 bg-opacity-20)"
             data-testid="nc-sidebar-add-project-entity"
             :class="{ '!text-black !visible': isAddNewProjectChildEntityLoading, '!visible': isOptionsOpen }"
             @click.stop="addNewProjectChildEntity"
@@ -575,14 +581,14 @@ onKeyStroke('Escape', () => {
                     <template #expandIcon="{ isActive }">
                       <div class="flex flex-row items-center -mt-2">
                         <PhTriangleFill
-                          class="nc-sidebar-base-node-btns -mt-1 invisible cursor-pointer transform transition-transform duration-500 h-1.25 w-1.75 text-gray-500 rotate-90"
+                          class="nc-sidebar-base-node-btns -mt-0.75 invisible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.5 text-gray-500 rotate-90"
                           :class="{ '!rotate-180': isActive }"
                         />
                       </div>
                     </template>
                     <a-collapse-panel :key="`collapse-${base.id}`">
                       <template #header>
-                        <div class="w-full flex flex-row justify-between">
+                        <div class="w-full flex flex-row">
                           <div
                             v-if="baseIndex === 0"
                             class="base-context flex items-center gap-2 text-gray-800"
@@ -593,28 +599,35 @@ onKeyStroke('Escape', () => {
                           </div>
                           <div
                             v-else
-                            class="base-context flex items-center gap-1.75 text-gray-800"
+                            class="base-context flex items-center gap-1.75 text-gray-800 max-w-133/200"
                             @contextmenu="setMenuContext('base', base)"
                           >
-                            <GeneralBaseLogo :base-type="base.type" class="w-4" />
-                            <div class="flex capitalize" :data-testid="`nc-sidebar-project-${base.alias}`">
+                            <GeneralBaseLogo :base-type="base.type" class="min-w-4" />
+                            <div
+                              :data-testid="`nc-sidebar-project-${base.alias}`"
+                              class="flex capitalize text-ellipsis overflow-hidden select-none"
+                              :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+                            >
                               {{ base.alias || '' }}
                             </div>
                             <a-tooltip>
                               <template #title>External DB</template>
                               <div>
-                                <GeneralIcon icon="info" class="text-gray-400 -mt-0.5 hover:text-gray-700" />
+                                <GeneralIcon icon="info" class="text-gray-400 -mt-0.5 hover:text-gray-700 mr-1" />
                               </div>
                             </a-tooltip>
                           </div>
-                          <div v-if="isUIAllowed('tableCreate', false, projectRole)" class="flex flex-row items-center gap-x-1">
+                          <div
+                            v-if="isUIAllowed('tableCreate', false, projectRole)"
+                            class="flex flex-row items-center gap-x-0.25"
+                          >
                             <a-dropdown
                               :visible="isBasesOptionsOpen[base!.id!]"
                               trigger="click"
                               @update:visible="isBasesOptionsOpen[base!.id!] = $event"
                             >
                               <MdiDotsHorizontal
-                                class="invisible nc-sidebar-base-node-btns !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 hover:text-black py-0.25 h-5.5 w-5.5 px-0.5 mt-0.25 rounded text-gray-600"
+                                class="min-w-6 min-h-6 mt-0.15 invisible nc-sidebar-base-node-btns !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 hover:text-black py-0.25 px-0.5 rounded-md text-gray-600 hover:(bg-gray-300 bg-opacity-20)"
                                 :class="{ '!text-black !opacity-100': isBasesOptionsOpen[base!.id!] }"
                                 @click.stop="isBasesOptionsOpen[base!.id!] = !isBasesOptionsOpen[base!.id!]"
                               />
@@ -642,10 +655,10 @@ onKeyStroke('Escape', () => {
 
                             <div
                               v-if="isUIAllowed('tableCreate', false, projectRole)"
-                              class="flex invisible nc-sidebar-base-node-btns !focus:outline-0 text-gray-600 hover:text-gray-700 rounded px-0.35 mt-0.25"
+                              class="flex invisible nc-sidebar-base-node-btns !focus:outline-0 text-gray-600 hover:text-black px-0.35 rounded-md hover:(bg-gray-300 bg-opacity-20) min-h-6 mt-0.15 min-w-6"
                               @click.stop="openTableCreateDialog(baseIndex)"
                             >
-                              <component :is="iconMap.plus" class="text-inherit h-5.5 w-5.5 py-0.5 !focus:outline-0" />
+                              <component :is="iconMap.plus" class="text-inherit mt-0.25 h-5.5 w-5.5 py-0.5 !focus:outline-0" />
                             </div>
                           </div>
                         </div>
@@ -738,7 +751,11 @@ onKeyStroke('Escape', () => {
       </a-menu>
     </template>
   </a-dropdown>
-  <DlgTableDelete v-model:visible="isTableDeleteDialogVisible" :table-id="contextMenuTarget.value?.id" />
+  <DlgTableDelete
+    v-model:visible="isTableDeleteDialogVisible"
+    :table-id="contextMenuTarget.value?.id"
+    :project-id="project?.id"
+  />
   <DlgProjectDelete v-model:visible="isProjectDeleteDialogVisible" :project-id="project?.id" />
 </template>
 
@@ -748,7 +765,7 @@ onKeyStroke('Escape', () => {
 }
 
 :deep(.ant-collapse-header) {
-  @apply !mx-0 !pl-7 !pr-1 !py-0.75 hover:bg-gray-100 !rounded-md;
+  @apply !mx-0 !pl-8.75 !pr-1 !py-0.75 hover:bg-gray-100 !rounded-md;
 }
 
 :deep(.ant-collapse-header:hover .nc-sidebar-base-node-btns) {

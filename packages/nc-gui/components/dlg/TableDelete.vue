@@ -5,6 +5,7 @@ import { UITypes, isSystemColumn } from 'nocodb-sdk'
 const props = defineProps<{
   visible: boolean
   tableId: string
+  projectId: string
 }>()
 
 const emits = defineEmits(['update:visible'])
@@ -12,25 +13,30 @@ const emits = defineEmits(['update:visible'])
 const visible = useVModel(props, 'visible', emits)
 
 const { $e, $api } = useNuxtApp()
-const { t } = useI18n()
 const { closeTab } = useTabs()
 
 const { getMeta, removeMeta } = useMetas()
-const { activeProjectId } = storeToRefs(useProjects())
+
 const { loadTables, projectUrl, isXcdbBase } = useProject()
 const { refreshCommandPalette } = useCommandPalette()
 
-const { activeTables } = storeToRefs(useTablesStore())
+const { projectTables, activeTable } = storeToRefs(useTablesStore())
 const { openTable } = useTablesStore()
 
-const table = computed(() => activeTables.value.find((t) => t.id === props.tableId))
+const tables = computed(() => projectTables.value.get(props.projectId) ?? [])
+
+const table = computed(() => tables.value.find((t) => t.id === props.tableId))
 
 const isLoading = ref(false)
 
 const onDelete = async () => {
+  console.log('onDelete', props.tableId)
   if (!table.value) return
 
   const toBeDeletedTable = JSON.parse(JSON.stringify(table.value))
+  // As when table is deleted, activeTable is set to null
+  // But in post process logic we need to know the old active table id
+  const oldActiveTableId = activeTable.value?.id
 
   isLoading.value = true
   try {
@@ -69,17 +75,25 @@ const onDelete = async () => {
     // Deleted table successfully
     $e('a:table:delete')
 
-    // Navigate to project if no tables left or open first table
-    if (activeTables.value.length === 0) {
-      await navigateTo(
-        projectUrl({
-          id: activeProjectId.value!,
-          type: 'database',
-        }),
-      )
-    } else {
-      await openTable(activeTables.value[0])
+    if (oldActiveTableId === toBeDeletedTable.id) {
+      // Navigate to project if no tables left or open first table
+      if (tables.value.length === 0) {
+        await navigateTo(
+          projectUrl({
+            id: props.projectId,
+            type: 'database',
+          }),
+        )
+      } else {
+        await openTable(tables.value[0])
+      }
     }
+
+    const tableIndex = tables.value.findIndex((t) => t.id === toBeDeletedTable.id)
+    if (tableIndex > -1) {
+      tables.value.splice(tableIndex, 1)
+    }
+
     visible.value = false
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

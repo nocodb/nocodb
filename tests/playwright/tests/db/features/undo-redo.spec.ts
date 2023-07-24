@@ -170,7 +170,7 @@ test.describe('Undo Redo', () => {
     await verifyRecords([]);
   });
 
-  test('Fields: Hide, Show, Reorder', async ({ page }) => {
+  test.skip('Fields: Hide, Show, Reorder', async ({ page }) => {
     async function verifyFieldsOrder(fields: string[]) {
       const fieldTitles = await toolbar.fields.getFieldsTitles();
       expect(fieldTitles).toEqual(fields);

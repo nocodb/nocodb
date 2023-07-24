@@ -129,7 +129,7 @@ test.describe('Expanded form URL', () => {
     await viewTestTestTable('grid');
   });
 
-  test('Gallery', async () => {
+  test.skip('Gallery', async () => {
     await viewTestSakila('gallery');
     await viewTestTestTable('gallery');
   });

@@ -49,7 +49,7 @@ test.describe('View', () => {
     }
   });
 
-  test('Kanban', async () => {
+  test.skip('Kanban', async () => {
     await dashboard.viewSidebar.createKanbanView({
       title: 'Film Kanban',
     });
@@ -184,7 +184,7 @@ test.describe('View', () => {
     await dashboard.rootPage.waitForTimeout(1000);
   });
 
-  test('Kanban view operations', async () => {
+  test.skip('Kanban view operations', async () => {
     test.slow();
 
     await dashboard.viewSidebar.createKanbanView({

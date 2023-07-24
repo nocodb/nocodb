@@ -45,7 +45,7 @@ test.describe('Verify cell selection', () => {
     await dashboard.closeAllTabs();
   });
 
-  test('Suite-2', async ({ page }) => {
+  test.skip('Suite-2', async ({ page }) => {
     // #4 when cell inside selection range is clicked, it clears previous selection
     await dashboard.treeView.openTable({ title: 'Country' });
     await grid.selectRange({

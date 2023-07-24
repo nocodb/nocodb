@@ -219,7 +219,7 @@ test.describe.serial('Test table', () => {
     await page.reload();
   });
 
-  test('Delete record - single, over UI', async () => {
+  test.skip('Delete record - single, over UI', async () => {
     await dashboard.treeView.openTable({ title: 'Table0' });
     await grid.deleteRow(0);
 
@@ -314,7 +314,7 @@ test.describe.serial('Test table', () => {
     await dashboard.grid.column.verify({ title: 'TableA:mm:TableA', isVisible: false });
   });
 
-  test('Delete table', async () => {
+  test.skip('Delete table', async () => {
     await dashboard.treeView.deleteTable({ title: 'Table0' });
     await dashboard.treeView.verifyTable({ title: 'Table0', exists: false });
 

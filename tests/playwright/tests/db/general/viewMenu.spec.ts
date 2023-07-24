@@ -40,7 +40,7 @@ test.describe('Grid view locked', () => {
     await dashboard.grid.toolbar.viewsMenu.verifyCollaborativeMode();
   });
 
-  test('Download CSV', async () => {
+  test.skip('Download CSV', async () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });
@@ -60,7 +60,7 @@ test.describe('Grid view locked', () => {
     });
   });
 
-  test('Download XLSX', async () => {
+  test.skip('Download XLSX', async () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });

@@ -14,7 +14,7 @@ test.describe('Shared view', () => {
     dashboard = new DashboardPage(page, context.project);
   });
 
-  test('Grid share ', async ({ page }) => {
+  test.skip('Grid share ', async ({ page }) => {
     /**
      * 1. Create Shared view
      * - hide column

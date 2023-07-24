@@ -13,11 +13,11 @@ import type { BaseModelSql } from './BaseModelSql';
 types.setTypeParser(1082, (val) => val);
 // override timestamp
 types.setTypeParser(1114, (val) => {
-  return dayjs(val).format('YYYY-MM-DD HH:mm:ss');
+  return dayjs.utc(val).format('YYYY-MM-DD HH:mm:ssZ');
 });
 // override timestampz
 types.setTypeParser(1184, (val) => {
-  return dayjs(val).format('YYYY-MM-DD HH:mm:ssZ');
+  return dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
 });
 
 const opMappingGen = {

@@ -576,25 +576,22 @@ export async function extractColumn({
       }
       break;
 
-    case UITypes.DateTime:
-      {
-        // if there is no timezone info,
-        // convert to database timezone,
-        // then convert to UTC
-        if (
-          column.dt !== 'timestamp with time zone' &&
-          column.dt !== 'timestamptz'
-        ) {
-          qb.select(
-            knex.raw(
-              `??.?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC' as ??`,
-              [rootAlias, column.column_name, column.title],
-            ),
-          );
-          break;
-        }
+    case UITypes.DateTime: {
+      // if there is no timezone info,
+      // convert to database timezone,
+      // then convert to UTC
+      if (
+        column.dt !== 'timestamp with time zone' &&
+        column.dt !== 'timestamptz'
+      ) {
+        qb.select(
+          knex.raw(
+            `??.?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC' as ??`,
+            [rootAlias, column.column_name, column.title],
+          ),
+        );
       }
-      break;
+    }
     default:
       {
         qb.select(

@@ -602,6 +602,7 @@ export async function extractColumn({
             [rootAlias, column.column_name, column.title],
           ),
         );
+        break;
       }
     }
     default:

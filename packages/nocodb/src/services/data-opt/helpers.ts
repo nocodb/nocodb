@@ -587,23 +587,8 @@ export async function extractColumn({
         ) {
           qb.select(
             knex.raw(
-              `TO_CHAR(??.?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS+00:00') as ??`,
+              `??.?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC' as ??`,
               [rootAlias, column.column_name, column.title],
-            ),
-          );
-          break;
-        } else {
-          qb.select(
-            knex.raw(
-              `TO_CHAR(:alias:.:column:, 'YYYY-MM-DD HH24:MI:SS') ||
-                 CASE WHEN EXTRACT(TIMEZONE_HOUR FROM :alias:.:column:) >= 0 THEN '+' ELSE '-' END ||
-                 TO_CHAR(ABS(EXTRACT(TIMEZONE_HOUR FROM :alias:.:column:)), 'FM00') || ':' ||
-                 TO_CHAR(ABS(EXTRACT(TIMEZONE_MINUTE FROM :alias:.:column:)), 'FM00')   as :title:`,
-              {
-                alias: rootAlias,
-                column: column.column_name,
-                title: column.title,
-              },
             ),
           );
           break;
@@ -834,10 +819,10 @@ export async function singleQueryList(ctx: {
         +listArgs.offset,
       ]);
 
-      const res = rawRes?.rows?.[0];
+      const res = rawRes?.rows;
 
-      return new PagedResponseImpl(res.list, {
-        count: +res.count,
+      return new PagedResponseImpl(res, {
+        count: +res[0]?.__nc_count || 0,
         limit: +listArgs.limit,
         offset: +listArgs.offset,
       });
@@ -936,7 +921,6 @@ export async function singleQueryList(ctx: {
     rootQb.limit(9999);
     rootQb.offset(9999);
   }
-  const dataAlias = getAlias();
 
   // apply the sort on final query to get the result in correct order
   if (sorts?.length) await sortV2(baseModel, sorts, qb, ROOT_ALIAS);
@@ -946,16 +930,7 @@ export async function singleQueryList(ctx: {
     qb.orderBy(`${ROOT_ALIAS}.created_at`);
   }
 
-  const finalQb = knex
-    .from(qb.as(dataAlias))
-    .select(
-      knex.raw(`coalesce(json_agg(??.*),'[]'::json) as ??`, [
-        dataAlias,
-        'list',
-      ]),
-    )
-    .select(countQb.as('count'))
-    .first();
+  const finalQb = qb.select(countQb.as('__nc_count'));
 
   let res: any;
   if (skipCache) {
@@ -969,7 +944,7 @@ export async function singleQueryList(ctx: {
     // bind all params and replace limit and offset with placeholders
     // and in generated sql replace placeholders with bindings
     const query = knex
-      .raw(sql, [...bindings.slice(0, -3), placeholder, placeholder, 1])
+      .raw(sql, [...bindings.slice(0, -2), placeholder, placeholder])
       .toQuery()
       // escape any `?` in the query to avoid replacing them with bindings
       .replace(/\?/g, '\\?')
@@ -982,11 +957,10 @@ export async function singleQueryList(ctx: {
     await NocoCache.set(cacheKey, query);
 
     // run the query with actual limit and offset
-    res = (await knex.raw(query, [+listArgs.limit, +listArgs.offset]))
-      .rows?.[0];
+    res = (await knex.raw(query, [+listArgs.limit, +listArgs.offset])).rows;
   }
-  return new PagedResponseImpl(res.list, {
-    count: +res.count,
+  return new PagedResponseImpl(res, {
+    count: +res[0]?.__nc_count || 0,
     limit: +listArgs.limit,
     offset: +listArgs.offset,
   });

@@ -54,6 +54,7 @@ test.describe('Views CRUD Operations', () => {
     await dashboard.viewSidebar.changeViewIcon({
       title: 'CityGallery2',
       icon: 'american-football',
+      iconDisplay: '🏈',
     });
 
     // todo: Enable when view bug is fixed

@@ -306,7 +306,7 @@ test.describe('Clipboard support', () => {
     ];
 
     for (const { type, value, options } of responseTable) {
-      await dashboard.grid.cell.copyToClipboard(
+      await dashboard.grid.cell.copyCellToClipboard(
         {
           index: rowIndex,
           columnHeader: type,

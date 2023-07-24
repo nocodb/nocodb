@@ -385,7 +385,7 @@ export class CellPageObject extends BasePage {
     expect(linkText).toContain('1 City');
   }
 
-  async copyToClipboard({ index, columnHeader }: CellProps, ...clickOptions: Parameters<Locator['click']>) {
+  async copyCellToClipboard({ index, columnHeader }: CellProps, ...clickOptions: Parameters<Locator['click']>) {
     await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
     await this.get({ index, columnHeader }).click(...clickOptions);
     await (await this.get({ index, columnHeader }).elementHandle()).waitForElementState('stable');
@@ -400,5 +400,8 @@ export class CellPageObject extends BasePage {
     await (await this.get({ index, columnHeader }).elementHandle()).waitForElementState('stable');
 
     await this.get({ index, columnHeader }).press((await this.isMacOs()) ? 'Meta+V' : 'Control+V');
+
+    // kludge: wait for paste to complete
+    await this.rootPage.waitForTimeout(1000);
   }
 }

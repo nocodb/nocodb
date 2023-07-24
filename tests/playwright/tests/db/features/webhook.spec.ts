@@ -682,7 +682,6 @@ test.describe.serial('Webhook', () => {
       type: 'records.after.update',
       data: {
         table_name: 'Country',
-        view_name: 'Country',
         previous_rows: [
           {
             Id: 1,

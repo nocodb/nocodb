@@ -408,7 +408,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
 
     await dashboard.rootPage.reload();
     await dashboard.rootPage.waitForTimeout(1000);
-    await dashboard.grid.cell.copyToClipboard(
+    await dashboard.grid.cell.copyCellToClipboard(
       {
         index: 0,
         columnHeader: 'DateTime',
@@ -420,6 +420,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     await dashboard.grid.cell.pasteFromClipboard({ index: 1, columnHeader: 'DateTime' });
 
     records = await api.dbTableRow.list('noco', context.project.id, 'dateTimeTable', { limit: 10 });
+    expect(records.list.length).toBe(2);
     const readDate = records.list[1].DateTime;
     // skip seconds from readDate
     // stored value expected to be in UTC

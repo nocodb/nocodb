@@ -15,8 +15,8 @@
     "test:debug:watch": "npx nodemon -e ts -w ./ -x \"npm run test:debug\"",
     "test:debug:quick:sqlite": "./startPlayWrightServer.sh; PW_QUICK_TEST=1 PW_TEST_REUSE_CONTEXT=1 PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:31000/ PWDEBUG=console npx playwright test -c playwright.config.ts --headed --project=chromium --retries 0 --timeout 5 --workers 1 --max-failures=1",
     "ci:test": "npx playwright test --workers=2",
-    "ci:test:shard:1": "npx playwright test --shard=1/2 --workers=2",
-    "ci:test:shard:2": "npx playwright test --shard=2/2 --workers=2",
+    "ci:test:shard:1": "npx playwright test --shard=1/2 --workers=1",
+    "ci:test:shard:2": "npx playwright test --shard=2/2 --workers=1",
     "ci:test:mysql": "E2E_DB_TYPE=mysql npx playwright test --workers=2",
     "ci:test:pg": "E2E_DB_TYPE=pg npx playwright test --workers=2"
   },

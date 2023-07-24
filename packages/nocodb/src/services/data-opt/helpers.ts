@@ -821,11 +821,14 @@ export async function singleQueryList(ctx: {
 
       const res = rawRes?.rows;
 
-      return new PagedResponseImpl(res, {
-        count: +res[0]?.__nc_count || 0,
-        limit: +listArgs.limit,
-        offset: +listArgs.offset,
-      });
+      return new PagedResponseImpl(
+        res.map(({ __nc_count, ...rest }) => rest),
+        {
+          count: +res[0]?.__nc_count || 0,
+          limit: +listArgs.limit,
+          offset: +listArgs.offset,
+        },
+      );
     }
   }
 
@@ -959,9 +962,12 @@ export async function singleQueryList(ctx: {
     // run the query with actual limit and offset
     res = (await knex.raw(query, [+listArgs.limit, +listArgs.offset])).rows;
   }
-  return new PagedResponseImpl(res, {
-    count: +res[0]?.__nc_count || 0,
-    limit: +listArgs.limit,
-    offset: +listArgs.offset,
-  });
+  return new PagedResponseImpl(
+    res.map(({ __nc_count, ...rest }) => rest),
+    {
+      count: +res[0]?.__nc_count || 0,
+      limit: +listArgs.limit,
+      offset: +listArgs.offset,
+    },
+  );
 }

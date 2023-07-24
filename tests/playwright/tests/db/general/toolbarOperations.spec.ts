@@ -21,7 +21,7 @@ test.describe('Toolbar operations (GRID)', () => {
     toolbar = dashboard.grid.toolbar;
   });
 
-  test.skip('Hide, Sort, Filter', async () => {
+  test('Hide, Sort, Filter', async () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
 

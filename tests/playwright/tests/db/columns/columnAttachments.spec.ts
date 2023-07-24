@@ -16,7 +16,7 @@ test.describe('Attachment column', () => {
     accountLicensePage = new AccountLicensePage(accountPage);
   });
 
-  test.skip('Create and verify attachment column, verify it in shared form,', async ({ context }) => {
+  test('Create and verify attachment column, verify it in shared form,', async ({ context }) => {
     // run tests slowly
     test.slow();
 

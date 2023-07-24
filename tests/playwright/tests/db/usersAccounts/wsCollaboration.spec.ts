@@ -67,6 +67,8 @@ test.describe('Collaborators', () => {
         skipReload: true,
       });
 
+      await workspacePage.waitFor({ state: 'visible' });
+
       await workspacePage.workspaceOpen({ title: context.workspace.title });
       await workspacePage.verifyAccess(roleDb[i].role);
     }

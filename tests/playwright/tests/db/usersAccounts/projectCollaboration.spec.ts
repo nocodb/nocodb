@@ -84,6 +84,8 @@ test.describe('Project Collaboration', () => {
         skipReload: true,
       });
 
+      await workspacePage.waitFor({ state: 'visible' });
+
       await workspacePage.workspaceOpen({ title: context.workspace.title });
       await workspacePage.projectOpen({ title: context.project.title });
       await dashboard.projectView.verifyAccess(roleDb[i].role);

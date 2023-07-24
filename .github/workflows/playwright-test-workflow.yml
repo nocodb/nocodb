@@ -105,9 +105,9 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: ./tests/playwright
         run: npm install
-      # - name: Install Playwright Browsers
-      #   working-directory: ./tests/playwright
-      #   run: npx playwright install chromium --with-deps
+      - name: Install Playwright Browsers
+        working-directory: ./tests/playwright
+        run: npx playwright install chromium --with-deps
       - name: Wait for backend
         run: |
           while ! curl --output /dev/null --silent --head --fail http://localhost:8080; do

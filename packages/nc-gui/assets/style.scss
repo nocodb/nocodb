@@ -45,7 +45,7 @@ main {
 }
 
 .nc-scrollbar-md {
-  overflow-y: overlay;
+  overflow-y: scroll;
   overflow-x: hidden;
 
   &::-webkit-scrollbar {
@@ -163,9 +163,6 @@ a {
 
 // for highlighing toolbar kanban menu item
 
-.nc-kanban-btn > .ant-btn {
-  @apply bg-green-400 bg-opacity-20 hover:(bg-primary bg-opacity-20);
-}
 
 .nc-locked-overlay {
   @apply absolute h-full w-full z-2 top-0 left-0;
@@ -347,7 +344,7 @@ a {
 }
 
 .nc-toolbar-btn {
-  @apply !shadow-none rounded hover:(ring-1 ring-gray-100 ring-opacity-100 bg-gray-50 !text-gray-800) focus:(ring-1 ring-gray-100 ring-opacity-100 !text-gray-800 bg-gray-50) text-gray-600;
+  @apply !shadow-none rounded hover:(ring-1 ring-gray-100 ring-opacity-100 bg-gray-50 !text-gray-800) focus:(ring-1 ring-gray-100 ring-opacity-100 !text-gray-800 bg-gray-50) text-gray-600 text-xs font-medium px-2 border-0;
 }
 
 .nc-warning-info {

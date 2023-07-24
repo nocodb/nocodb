@@ -33,7 +33,7 @@ on:
 
 jobs:
   release:
-    runs-on: [self-hosted, digital-ocean]
+    runs-on: [self-hosted, aws]
     env:
       working-directory: ./packages/nocodb
     steps:

@@ -8,7 +8,7 @@ on:
 jobs:
   notify:
     name: 'Discord'
-    runs-on: [self-hosted, digital-ocean]
+    runs-on: [self-hosted, aws]
     steps:
       - name: Discord notify
         uses: rjstone/discord-webhook-notify@v1

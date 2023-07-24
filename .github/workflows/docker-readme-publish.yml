@@ -6,7 +6,7 @@ on: workflow_dispatch
 
 jobs:
   docker-description:
-    runs-on: [self-hosted, digital-ocean]
+    runs-on: [self-hosted, aws]
     steps:
       - name: Checkout
         uses: actions/checkout@v3

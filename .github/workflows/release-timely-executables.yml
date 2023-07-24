@@ -151,7 +151,7 @@ jobs:
 
   publish-mac-executables:
     needs: sign-mac-executables
-    runs-on: [self-hosted, digital-ocean]
+    runs-on: [self-hosted, aws]
     steps:
       - uses: actions/download-artifact@master
         with:

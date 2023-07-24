@@ -22,7 +22,7 @@ jobs:
   # enrich tag for pr release
   set-tag:
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action != 'closed' }}
-    runs-on: [self-hosted, digital-ocean]
+    runs-on: [self-hosted, aws]
     steps:
       - name: set-tag
         id: tag-step
@@ -84,7 +84,7 @@ jobs:
   # Add a comment for PR docker build
   leave-comment:
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action != 'closed' }}
-    runs-on: [self-hosted, digital-ocean]
+    runs-on: [self-hosted, aws]
     needs: [release-docker, set-tag]
     steps:
       - uses: peter-evans/commit-comment@v2
@@ -99,7 +99,7 @@ jobs:
   preview-pull-request:
     name: "Trigger Uffizzi Preview"
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action != 'closed' }}
-    runs-on: [self-hosted, digital-ocean]
+    runs-on: [self-hosted, aws]
     needs: [release-docker, set-tag]
     outputs:
       compose-file-cache-key:  ${{ env.COMPOSE_FILE_HASH }}
@@ -134,7 +134,7 @@ jobs:
   # Add a comment for PR executable build
   # leave-executable-comment:
   #   if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action != 'closed' }}
-  #   runs-on: [self-hosted, digital-ocean]
+  #   runs-on: [self-hosted, aws]
   #   needs: [release-executables, set-tag]
   #   steps:
   #     - uses: peter-evans/commit-comment@v2
@@ -170,7 +170,7 @@ jobs:
   # delete the uffizzi preview created off of this PR
   delete-uffizzi-preview:
     name: Call for Preview Deletion
-    runs-on: [self-hosted, digital-ocean]
+    runs-on: [self-hosted, aws]
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action == 'closed' }}
     steps:
       # If this PR is closing, we will not render a compose file nor pass it to the next workflow.

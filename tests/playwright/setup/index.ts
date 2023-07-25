@@ -100,15 +100,19 @@ async function localInit({
       },
     });
 
-    const workspaceTitle_old = `ws_pgExtREST${+workerId - 1}`;
+    // const workspaceTitle_old = `ws_pgExtREST${+workerId - 1}`;
     const workspaceTitle = `ws_pgExtREST${workerId}`;
     const projectTitle = `pgExtREST${workerId}`;
 
+    // console.log(process.env.TEST_WORKER_INDEX, process.env.TEST_PARALLEL_INDEX);
+
     // Delete associated workspace
+    // Note that: on worker error, entire thread is reset & worker ID numbering is reset too
+    // Hence, workspace delete is based on workerId prefix instead of just workerId
     const ws = await api.workspace.list();
     for (const w of ws.list) {
       // check if w.title starts with workspaceTitle
-      if (w.title.startsWith(workspaceTitle_old)) {
+      if (w.title.startsWith(`ws_pgExtREST${Math.floor(+workerId / 1000)}`)) {
         await api.workspace.delete(w.id);
       }
     }
@@ -169,6 +173,8 @@ const setup = async ({
   let response;
 
   const workerIndex = process.env.TEST_PARALLEL_INDEX;
+  // const workerId =
+  //   String(process.env.TEST_WORKER_INDEX) + String(process.env.TEST_PARALLEL_INDEX) + String(workerCount[workerIndex]);
   const workerId = String(workerCount[workerIndex]);
   workerCount[+workerIndex]++;
 

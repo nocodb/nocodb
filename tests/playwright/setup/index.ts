@@ -170,6 +170,8 @@ const setup = async ({
   workerCount[workerIndex]++;
   const workerId = String(Number(workerIndex) + Number(workerCount[workerIndex]) * 4);
 
+  console.log(process.env.TEST_PARALLEL_INDEX, '#Setup', workerId);
+
   try {
     // Localised reset logic
     if (enableLocalInit) {

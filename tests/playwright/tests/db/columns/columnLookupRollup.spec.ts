@@ -10,6 +10,9 @@ test.describe('Virtual columns', () => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
   });
+  test.afterEach(async () => {
+    console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
+  });
 
   test('Lookup', async () => {
     // close 'Team & Auth' tab

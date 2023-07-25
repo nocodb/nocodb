@@ -18,6 +18,9 @@ test.describe('Virtual Columns', () => {
     dashboard = new DashboardPage(page, context.project);
     grid = dashboard.grid;
   });
+  test.afterEach(async () => {
+    console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
+  });
 
   test.describe('QrCode Column', () => {
     async function qrCodeColumnVerify(qrColumnTitle: string, expectedQrCodeData: ExpectedQrCodeData[]) {

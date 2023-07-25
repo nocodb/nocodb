@@ -64,7 +64,9 @@ test.describe('DateTime Column', () => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
   });
-
+  test.afterEach(async () => {
+    console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
+  });
   test('Create DateTime Column', async () => {
     await dashboard.treeView.createTable({ title: 'test_datetime', projectTitle: context.project.title });
     // Create DateTime column

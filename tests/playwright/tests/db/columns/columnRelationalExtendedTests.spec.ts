@@ -10,6 +10,9 @@ test.describe('Relational Columns', () => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
   });
+  test.afterEach(async () => {
+    console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
+  });
 
   test('Relational columns: HM, BT, MM', async () => {
     // close 'Team & Auth' tab

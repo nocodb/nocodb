@@ -22,6 +22,9 @@ test.describe('Multi select', () => {
     });
     await grid.addNewRow({ index: 0, value: 'Row 0' });
   });
+  test.afterEach(async () => {
+    console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
+  });
 
   test('Select and clear options and rename options', async () => {
     await grid.cell.selectOption.select({
@@ -224,6 +227,9 @@ test.describe('Multi select - filters', () => {
     await grid.cell.selectOption.select({ index: 5, columnHeader: 'MultiSelect', option: 'foo', multiSelect: true });
     await grid.cell.selectOption.select({ index: 5, columnHeader: 'MultiSelect', option: 'bar', multiSelect: true });
     await grid.cell.selectOption.select({ index: 5, columnHeader: 'MultiSelect', option: 'baz', multiSelect: true });
+  });
+  test.afterEach(async () => {
+    console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
   });
 
   // define validateRowArray function

@@ -607,13 +607,23 @@ export async function extractColumn({
     }
     default:
       {
-        qb.select(
-          knex.raw(`??.?? as ??`, [
-            rootAlias,
-            column.column_name,
-            column.title,
-          ]),
-        );
+        if (column.dt === 'bytea') {
+          qb.select(
+            knex.raw(`encode(??.??, 'escape') as ??`, [
+              rootAlias,
+              column.column_name,
+              column.title,
+            ]),
+          );
+        } else {
+          qb.select(
+            knex.raw(`??.?? as ??`, [
+              rootAlias,
+              column.column_name,
+              column.title,
+            ]),
+          );
+        }
       }
       break;
   }
@@ -860,7 +870,6 @@ export async function singleQueryList(ctx: {
       );
     }
   }
-
 
   const baseModel = await Model.getBaseModelSQL({
     id: ctx.model.id,

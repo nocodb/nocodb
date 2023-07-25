@@ -1836,6 +1836,17 @@ class BaseModelSqlv2 {
           );
           break;
         default:
+          if (this.isPg) {
+            if (column.dt === 'bytea') {
+              res[sanitize(column.title || column.column_name)] =
+                this.dbDriver.raw(`encode(??.??, 'escape')`, [
+                  alias || this.model.table_name,
+                  column.column_name,
+                ]);
+              break;
+            }
+          }
+
           res[sanitize(column.title || column.column_name)] = sanitize(
             `${alias || this.tnPath}.${column.column_name}`,
           );

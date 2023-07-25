@@ -13,9 +13,14 @@ function message(){
 	curl -X POST -H "Content-type: application/json" --data "{\"text\":\"${@}\"}" https://hooks.slack.com/services/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
 }
 
+function log_and_exit(){
+    message "${ENVIRONMENT}: deployment failed. Check logs for details"
+    exit 1 
+}
+
 # expects ALL_SVS and CLUSTER variable to be set to check status
 function update_workspace(){    
-    if [[ ! "${CLUSTER}" || ! "${ALL_SVS}" ]]; then echo "CLUSTER and ALL_SVS variables must be set for update_workspace"; return ; fi
+    if [[ ! "${CLUSTER}" || ! "${ALL_SVS}" ]]; then echo "CLUSTER and ALL_SVS variables must be set for update_workspace"; log_and_exit ; fi
     for SVC in ${ALL_SVS}
     do
         if [[ ${EXCLUDED_SVC} =~ " ${SVC} " ]]
@@ -30,7 +35,7 @@ function update_workspace(){
 
 # expects ALL_SVS and CLUSTER variable to be set to check status
 function check_status_all_workspaces(){
-    if [[ ! "${CLUSTER}" || ! "${ALL_SVS}" ]]; then echo "CLUSTER and ALL_SVS variables must be set for check status"; return ; fi
+    if [[ ! "${CLUSTER}" || ! "${ALL_SVS}" ]]; then echo "CLUSTER and ALL_SVS variables must be set for check status"; log_and_exit  ; fi
     for SVC in ${ALL_SVS}
     do
         if [[ ${EXCLUDED_SVC} =~ " ${SVC} " ]]
@@ -45,7 +50,7 @@ function check_status_all_workspaces(){
 function checkStatus(){
     # check if all deployments in the service is set to COMPLETED
     local service=${1}
-    if [[ ! "${CLUSTER}" ]]; then echo "CLUSTER and service variable must be set for check status"; return ; fi
+    if [[ ! "${CLUSTER}" ]]; then echo "CLUSTER and service variable must be set for check status"; log_and_exit  ; fi
 
     local STATUS=$(aws ecs describe-services --cluster ${CLUSTER} --service ${service} --region us-east-2 | jq .services[].deployments[].rolloutState -r)        
     while [[ ${global_retry_count} -lt 20 &&  "${STATUS}" == *"IN_PROGRESS"* ]]
@@ -69,7 +74,7 @@ function checkStatus(){
 
 function perform_rollout(){
     PROMOTE_READY_BEFORE_ROLLOUT=${1:-false}
-    if [[ ! "${ENVIRONMENT}" || ! "${CLUSTER}" ]]; then echo "CLUSTER and ENVIRONMENT variables must be set for check status"; return ; fi
+    if [[ ! "${ENVIRONMENT}" || ! "${CLUSTER}" ]]; then echo "CLUSTER and ENVIRONMENT variables must be set for check status"; log_and_exit  ; fi
 
     # ENVIRONMENT="Staging"
     # PRE_REL_STAGE_TAG="ws-pre-release"

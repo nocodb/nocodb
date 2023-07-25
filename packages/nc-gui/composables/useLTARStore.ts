@@ -156,7 +156,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             NOCO,
             projectId,
             meta.value.id,
-            rowId.value,
+            encodeURIComponent(rowId.value),
             colOptions.type as 'mm' | 'hm',
             column?.value?.id,
             {
@@ -181,7 +181,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         if (isPublic) {
           childrenList.value = await $api.public.dataNestedList(
             sharedView.value?.uuid as string,
-            rowId.value,
+            encodeURIComponent(rowId.value),
             colOptions.type as 'mm' | 'hm',
             column?.value?.id,
             {
@@ -196,7 +196,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             NOCO,
             (project?.value?.id || (sharedView.value?.view as any)?.project_id) as string,
             meta.value.id,
-            rowId.value,
+            encodeURIComponent(rowId.value),
             colOptions.type as 'mm' | 'hm',
             column?.value?.id,
             {
@@ -223,7 +223,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               NOCO,
               projectId,
               relatedTableMeta.value.id as string,
-              id as string,
+              encodeURIComponent(id as string),
             )
 
             if (res.message) {
@@ -269,10 +269,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           NOCO,
           project.value.id as string,
           metaValue.id!,
-          rowId.value,
+          encodeURIComponent(rowId.value),
           colOptions.type as 'mm' | 'hm',
           column?.value?.id,
-          getRelatedTableRowId(row) as string,
+          encodeURIComponent(getRelatedTableRowId(row) as string),
         )
 
         if (!undo) {
@@ -315,10 +315,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           NOCO,
           project.value.id as string,
           metaValue.id as string,
-          rowId.value,
+          encodeURIComponent(rowId.value),
           colOptions.type as 'mm' | 'hm',
           column?.value?.id,
-          getRelatedTableRowId(row) as string,
+          encodeURIComponent(getRelatedTableRowId(row) as string) as string,
         )
         await loadChildrenList()
 

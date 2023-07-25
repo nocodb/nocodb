@@ -221,7 +221,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
             return message.info("Update not allowed for table which doesn't have primary Key")
           }
 
-          await $api.dbTableRow.update(NOCO, project.value.id as string, meta.value.id, id, updateOrInsertObj)
+          await $api.dbTableRow.update(NOCO, project.value.id as string, meta.value.id, encodeURIComponent(id), updateOrInsertObj)
 
           if (!undo) {
             const undoObject = [...changedColumns.value].reduce((obj, col) => {
@@ -232,7 +232,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
             addUndo({
               redo: {
                 fn: async (id: string, data: Record<string, any>) => {
-                  await $api.dbTableRow.update(NOCO, project.value.id as string, meta.value.id, id, data)
+                  await $api.dbTableRow.update(NOCO, project.value.id as string, meta.value.id, encodeURIComponent(id), data)
                   if (activeView.value?.type === ViewTypes.KANBAN) {
                     const { loadKanbanData } = useKanbanViewStoreOrThrow()
                     await loadKanbanData()
@@ -243,7 +243,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               },
               undo: {
                 fn: async (id: string, data: Record<string, any>) => {
-                  await $api.dbTableRow.update(NOCO, project.value.id as string, meta.value.id, id, data)
+                  await $api.dbTableRow.update(NOCO, project.value.id as string, meta.value.id, encodeURIComponent(id), data)
                   if (activeView.value?.type === ViewTypes.KANBAN) {
                     const { loadKanbanData } = useKanbanViewStoreOrThrow()
                     await loadKanbanData()
@@ -291,7 +291,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       // todo: project_id missing on view type
       (project?.value?.id || (sharedView.value?.view as any)?.project_id) as string,
       meta.value.id,
-      rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[]),
+      encodeURIComponent(rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])),
     )
 
     Object.assign(row.value, {

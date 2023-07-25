@@ -201,65 +201,6 @@ const coverImageColumnId = computed({
   },
 })
 
-const showAllColumns = computed({
-  get: () => {
-    return filteredFieldList.value?.every((field) => field.show)
-  },
-  set: async (val) => {
-    if (val) {
-      await showAll()
-    } else {
-      await hideAll()
-    }
-  },
-})
-
-const getIcon = (c: ColumnType) =>
-  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: c,
-  })
-
-const open = ref(false)
-
-const toggleFieldVisibility = (e: CheckboxChangeEvent, field: any, index: number) => {
-  addUndo({
-    undo: {
-      fn: (v: boolean) => {
-        field.show = !v
-        saveOrUpdate(field, index)
-      },
-      args: [e.target.checked],
-    },
-    redo: {
-      fn: (v: boolean) => {
-        field.show = v
-        saveOrUpdate(field, index)
-      },
-      args: [e.target.checked],
-    },
-    scope: defineViewScope({ view: activeView.value }),
-  })
-  saveOrUpdate(field, index)
-}
-
-const toggleSystemFields = (e: CheckboxChangeEvent) => {
-  addUndo({
-    undo: {
-      fn: (v: boolean) => {
-        showSystemFields.value = !v
-      },
-      args: [e.target.checked],
-    },
-    redo: {
-      fn: (v: boolean) => {
-        showSystemFields.value = v
-      },
-      args: [e.target.checked],
-    },
-    scope: defineViewScope({ view: activeView.value }),
-  })
-}
-
 const onShowAll = () => {
   addUndo({
     undo: {
@@ -296,6 +237,65 @@ const onHideAll = () => {
     scope: defineViewScope({ view: activeView.value }),
   })
   hideAll()
+}
+
+const showAllColumns = computed({
+  get: () => {
+    return filteredFieldList.value?.every((field) => field.show)
+  },
+  set: async (val) => {
+    if (val) {
+      await onShowAll()
+    } else {
+      await onHideAll()
+    }
+  },
+})
+
+const getIcon = (c: ColumnType) =>
+  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
+    columnMeta: c,
+  })
+
+const open = ref(false)
+
+const toggleFieldVisibility = (checked: boolean, field: any, index: number) => {
+  addUndo({
+    undo: {
+      fn: (v: boolean) => {
+        field.show = !v
+        saveOrUpdate(field, index)
+      },
+      args: [checked],
+    },
+    redo: {
+      fn: (v: boolean) => {
+        field.show = v
+        saveOrUpdate(field, index)
+      },
+      args: [checked],
+    },
+    scope: defineViewScope({ view: activeView.value }),
+  })
+  saveOrUpdate(field, index)
+}
+
+const toggleSystemFields = (checked: boolean) => {
+  addUndo({
+    undo: {
+      fn: (v: boolean) => {
+        showSystemFields.value = !v
+      },
+      args: [checked],
+    },
+    redo: {
+      fn: (v: boolean) => {
+        showSystemFields.value = v
+      },
+      args: [checked],
+    },
+    scope: defineViewScope({ view: activeView.value }),
+  })
 }
 
 useMenuCloseOnEsc(open)

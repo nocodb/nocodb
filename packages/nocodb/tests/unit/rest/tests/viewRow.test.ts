@@ -684,11 +684,7 @@ function viewRowTests() {
       throw new Error('Wrong filter');
     }
 
-    if (isPg(context)) {
-      expect(ascResponse.body.list[0]['Rentals']).to.equal('12');
-    } else {
-      expect(ascResponse.body.list[0]['Rentals']).to.equal(12);
-    }
+    expect(+ascResponse.body.list[0]['Rentals']).to.equal(12);
   };
 
   it('Get nested sorted filtered table with nested fields data list with a rollup column in customer table view grid', async () => {

@@ -26,8 +26,8 @@ concurrency:
 
 jobs:
     unit-tests-pg:
-      runs-on: [self-hosted, digital-ocean]
-      timeout-minutes: 40
+      runs-on: [self-hosted, aws]
+      timeout-minutes: 80
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node

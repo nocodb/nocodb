@@ -16,24 +16,25 @@ import {
 import type { BaseModelSqlv2 } from '../db/BaseModelSqlv2';
 import type { PathParams } from '../modules/datas/helpers';
 import type { LinkToAnotherRecordColumn, LookupColumn } from '../models';
-import { DataOptService } from '~/services/data-opt.service';
+import { DataOptService } from '~/services/data-opt/data-opt.service';
 
 @Injectable()
 export class DatasService {
-  constructor(private readonly DataOptionsService: DataOptService) {}
+  constructor(private readonly dataOptService: DataOptService) {}
 
-  async dataList(param: PathParams & { query: any; optimisedQuery: boolean }) {
+  async dataList(
+    param: PathParams & { query: any; disableOptimization?: boolean },
+  ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
     let responseData;
     const base = await Base.get(model.base_id);
-    if (param.optimisedQuery && base.type === 'pg') {
-      responseData = await this.DataOptionsService.populateSingleQuery({
+    if (base.type === 'pg' && !param.disableOptimization) {
+      responseData = await this.dataOptService.list({
         model,
         view,
         params: param.query,
         base,
-        paramsHash: null,
       });
     } else {
       responseData = await this.getDataList({
@@ -77,7 +78,13 @@ export class DatasService {
     return { count };
   }
 
-  async dataInsert(param: PathParams & { body: unknown; cookie: any }) {
+  async dataInsert(
+    param: PathParams & {
+      body: unknown;
+      cookie: any;
+      disableOptimization?: boolean;
+    },
+  ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
     const base = await Base.get(model.base_id);
@@ -92,7 +99,12 @@ export class DatasService {
   }
 
   async dataUpdate(
-    param: PathParams & { body: unknown; cookie: any; rowId: string },
+    param: PathParams & {
+      body: unknown;
+      cookie: any;
+      rowId: string;
+      disableOptimization?: boolean;
+    },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
     const base = await Base.get(model.base_id);
@@ -108,6 +120,7 @@ export class DatasService {
       param.body,
       null,
       param.cookie,
+      param.disableOptimization,
     );
   }
 
@@ -231,18 +244,36 @@ export class DatasService {
     });
   }
 
-  async dataRead(param: PathParams & { query: any; rowId: string }) {
+  async dataRead(
+    param: PathParams & {
+      query: any;
+      rowId: string;
+      disableOptimization?: boolean;
+    },
+  ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
     const base = await Base.get(model.base_id);
 
-    const baseModel = await Model.getBaseModelSQL({
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
-    });
+    let row;
 
-    const row = await baseModel.readByPk(param.rowId, false, param.query);
+    if (base.type === 'pg' && !param.disableOptimization) {
+      row = await this.dataOptService.read({
+        model,
+        view,
+        params: param.query,
+        base,
+        id: param.rowId,
+      });
+    } else {
+      const baseModel = await Model.getBaseModelSQL({
+        id: model.id,
+        viewId: view?.id,
+        dbDriver: await NcConnectionMgrv2.get(base),
+      });
+
+      row = await baseModel.readByPk(param.rowId, false, param.query);
+    }
 
     if (!row) {
       NcError.notFound('Row not found');

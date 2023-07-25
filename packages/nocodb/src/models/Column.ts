@@ -1,4 +1,8 @@
-import { AllowedColumnTypesForQrAndBarcodes, isLinksOrLTAR, UITypes } from 'nocodb-sdk'
+import {
+  AllowedColumnTypesForQrAndBarcodes,
+  isLinksOrLTAR,
+  UITypes,
+} from 'nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
 import {
   CacheDelDirection,
@@ -912,6 +916,11 @@ export default class Column<T = any> implements ColumnType {
       `${CacheScope.COLUMN}:${col.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+
+    // on column delete, delete any optimised single query cache
+    {
+      await NocoCache.delAll(CacheScope.SINGLE_QUERY, `${col.fk_model_id}:*`);
+    }
   }
 
   static async update(
@@ -1118,6 +1127,9 @@ export default class Column<T = any> implements ColumnType {
       colId,
     );
     await this.insertColOption(column, colId, ncMeta);
+
+    // on column update, delete any optimised single query cache
+    await NocoCache.delAll(CacheScope.SINGLE_QUERY, `${oldCol.fk_model_id}:*`);
   }
 
   static async updateAlias(

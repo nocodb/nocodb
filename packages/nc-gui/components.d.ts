@@ -125,6 +125,7 @@ declare module '@vue/runtime-core' {
     MaterialSymbolsMobileFriendly: typeof import('~icons/material-symbols/mobile-friendly')['default']
     MaterialSymbolsPublic: typeof import('~icons/material-symbols/public')['default']
     MaterialSymbolsRocketLaunchOutline: typeof import('~icons/material-symbols/rocket-launch-outline')['default']
+    MaterialSymbolsSearch: typeof import('~icons/material-symbols/search')['default']
     MaterialSymbolsSendOutline: typeof import('~icons/material-symbols/send-outline')['default']
     MaterialSymbolsSpaceDashboardOutlineRounded: typeof import('~icons/material-symbols/space-dashboard-outline-rounded')['default']
     MaterialSymbolsTranslate: typeof import('~icons/material-symbols/translate')['default']

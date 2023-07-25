@@ -209,7 +209,7 @@ type RequestQuery = {
   };
 };
 
-interface DependantFields {
+export interface DependantFields {
   fieldsSet?: Set<string>;
   nested?: DependantFields;
 }

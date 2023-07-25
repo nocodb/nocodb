@@ -36,6 +36,7 @@ import {
   useSharedView,
   useSmartsheetStoreOrThrow,
   useUIPermission,
+  useState
 } from '#imports'
 import type { Row, UndoRedoAction } from '~/lib'
 
@@ -57,7 +58,7 @@ export function useViewData(
 
   const { t } = useI18n()
 
-  const optimisedQuery = ref(false)
+  const optimisedQuery = useState('optimisedQuery', () => true)
 
   const { api, isLoading, error } = useApi()
 
@@ -213,8 +214,7 @@ export function useViewData(
           ...params,
           ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
           ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-          where: where?.value,
-          opt: optimisedQuery.value  ? 'true' : undefined,
+          where: where?.value
         } as any)
       : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
 

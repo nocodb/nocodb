@@ -16,7 +16,7 @@ on:
 jobs:
   unit-tests:
 
-    runs-on: [self-hosted, digital-ocean]
+    runs-on: [self-hosted, aws]
 
     strategy:
       matrix:

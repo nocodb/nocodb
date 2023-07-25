@@ -13,8 +13,8 @@ on:
 
 jobs:
   playwright:
-    runs-on: [self-hosted, digital-ocean]
-    timeout-minutes: 60
+    runs-on: [self-hosted, aws]
+    timeout-minutes: 100
     steps:
       # Reference: https://github.com/pierotofy/set-swap-space/blob/master/action.yml
       # - name: Set 5gb swap
@@ -42,11 +42,11 @@ jobs:
         with:
           # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-aws-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+            ${{ runner.os }}-aws-build-${{ env.cache-name }}-
+            ${{ runner.os }}-aws-build-
+            ${{ runner.os }}-aws
       - name: setup pg
         working-directory: ./
         run: docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &
@@ -75,6 +75,7 @@ jobs:
       - name: run frontend
         working-directory: ./packages/nc-gui
         run: npm run ci:run
+        timeout-minutes: 20
       - name: Run backend
         if: ${{ inputs.db == 'sqlite' }}
         working-directory: ./packages/nocodb
@@ -99,25 +100,25 @@ jobs:
         with:
           path: |
             **/tests/playwright/node_modules
-          key: cache-nc-playwright-${{ hashFiles('**/tests/playwright/package-lock.json') }}
+          key: cache-aws-nc-playwright-${{ hashFiles('**/tests/playwright/package-lock.json') }}
       - name: Install dependencies
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: ./tests/playwright
         run: npm install
-      # - name: Install Playwright Browsers
-      #   working-directory: ./tests/playwright
-      #   run: npx playwright install chromium --with-deps
+      - name: Install Playwright Browsers
+        working-directory: ./tests/playwright
+        run: npx playwright install chromium --with-deps
       - name: Wait for backend
         run: |
           while ! curl --output /dev/null --silent --head --fail http://localhost:8080; do
             printf '.'
             sleep 2
           done
-
+        timeout-minutes: 5
       - name: Run Playwright tests
         working-directory: ./tests/playwright
         run: E2E_DB_TYPE=${{ inputs.db }} npm run ci:test:shard:${{ inputs.shard }}
-
+        timeout-minutes: 60
       # Stress test added/modified tests
       - name: Fetch develop branch
         working-directory: ./tests/playwright

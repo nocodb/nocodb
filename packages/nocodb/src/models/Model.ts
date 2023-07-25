@@ -1,4 +1,10 @@
-import { isVirtualCol, ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
+import {
+  isLinksOrLTAR,
+  isVirtualCol,
+  ModelTypes,
+  UITypes,
+  ViewTypes,
+} from 'nocodb-sdk';
 import dayjs from 'dayjs';
 import { BaseModelSqlv2 } from '../db/BaseModelSqlv2';
 import Noco from '../Noco';
@@ -21,6 +27,7 @@ import Column from './Column';
 import Base from './Base';
 import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
 import type { XKnex } from '../db/CustomKnex';
+import type { LinkToAnotherRecordColumn } from '~/models/index';
 
 export default class Model implements TableType {
   copy_enabled: BoolType;
@@ -620,7 +627,7 @@ export default class Model implements TableType {
     );
 
     // set meta
-    return await ncMeta.metaUpdate(
+    const res = await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.MODELS,
@@ -630,6 +637,25 @@ export default class Model implements TableType {
       },
       tableId,
     );
+
+    // clear all the cached query under this model
+    await NocoCache.delAll(CacheScope.SINGLE_QUERY, `${tableId}:*`);
+
+    // clear all the cached query under related models
+    for (const col of await this.get(tableId).then((t) => t.getColumns())) {
+      if (!isLinksOrLTAR(col)) continue;
+
+      const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>();
+
+      if (colOptions.fk_related_model_id === tableId) continue;
+
+      await NocoCache.delAll(
+        CacheScope.SINGLE_QUERY,
+        `${colOptions.fk_related_model_id}:*`,
+      );
+    }
+
+    return res;
   }
 
   static async markAsMmTable(tableId, isMm = true, ncMeta = Noco.ncMeta) {

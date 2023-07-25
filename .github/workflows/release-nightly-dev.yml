@@ -10,7 +10,7 @@ on:
 jobs:
   # enrich tag for nightly auto release
   set-tag:
-    runs-on: [self-hosted, digital-ocean]
+    runs-on: [self-hosted, aws]
     steps:
       - name: Checkout
         uses: actions/checkout@v3

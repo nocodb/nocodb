@@ -15,6 +15,8 @@ interface CmdAction {
 export const useCommandPalette = createSharedComposable(() => {
   const { $api } = useNuxtApp()
 
+  const commandPalette = ref()
+
   const refreshCommandPalette = createEventHook<void>()
 
   const lastScope: Ref<{ scope: string; data?: any }> = ref({ scope: 'root' })
@@ -88,6 +90,7 @@ export const useCommandPalette = createSharedComposable(() => {
   })
 
   return {
+    commandPalette,
     cmdData,
     activeScope,
     loadScope,

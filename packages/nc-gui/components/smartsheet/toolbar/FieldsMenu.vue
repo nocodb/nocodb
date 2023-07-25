@@ -345,7 +345,7 @@ useMenuCloseOnEsc(open)
           v-if="!filterQuery && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
           class="flex flex-col gap-y-2 pr-6 mb-6"
         >
-          <div class="flex text-sm">Select cover image field</div>
+          <div class="flex text-sm select-none">Select cover image field</div>
           <a-select
             v-model:value="coverImageColumnId"
             class="w-full"
@@ -367,7 +367,7 @@ useMenuCloseOnEsc(open)
           v-if="!filterQuery"
           class="pl-8 pr-2 mr-6 mt-3 py-2 justify-between flex flex-row items-center border-1 rounded-lg mb-2 border-gray-75 bg-gray-50"
         >
-          <div class="ml-0.25">Show all fields</div>
+          <div class="ml-0.25 select-none">Show all fields</div>
           <NcSwitch v-model:checked="showAllColumns" />
         </div>
 
@@ -438,7 +438,7 @@ useMenuCloseOnEsc(open)
             </Draggable>
             <div v-if="!isPublic && !filterQuery" class="mt-4 p-2 py-1 flex nc-fields-show-system-fields !text-base" @click.stop>
               <NcCheckbox v-model:checked="showSystemFields" @change="toggleSystemFields">
-                <span> {{ $t('activity.showSystemFields') }}</span>
+                <span class="select-none"> {{ $t('activity.showSystemFields') }}</span>
               </NcCheckbox>
             </div>
           </div>

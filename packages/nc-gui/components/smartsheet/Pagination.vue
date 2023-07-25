@@ -4,6 +4,7 @@ import SidebarIcon from '~icons/nc-icons/sidebar'
 
 const props = defineProps<{
   alignCountOnRight?: boolean
+  hidePagination?: boolean
 }>()
 
 const { alignCountOnRight } = props
@@ -51,24 +52,26 @@ const page = computed({
       </span>
     </div>
 
-    <a-pagination
-      v-if="count !== Infinity"
-      v-model:current="page"
-      v-model:page-size="size"
-      size="small"
-      class="!text-xs !m-1 nc-pagination"
-      :total="count"
-      show-less-items
-      :show-size-changer="false"
-    />
-    <div v-else class="mx-auto flex items-center mt-n1" style="max-width: 250px">
-      <span class="text-xs" style="white-space: nowrap"> Change page:</span>
-      <a-input :value="page" size="small" class="ml-1 !text-xs" type="number" @keydown.enter="changePage(page)">
-        <template #suffix>
-          <component :is="iconMap.returnKey" class="mt-1" @click="changePage(page)" />
-        </template>
-      </a-input>
-    </div>
+    <template v-if="!hidePagination">
+      <a-pagination
+        v-if="count !== Infinity"
+        v-model:current="page"
+        v-model:page-size="size"
+        size="small"
+        class="!text-xs !m-1 nc-pagination"
+        :total="count"
+        show-less-items
+        :show-size-changer="false"
+      />
+      <div v-else class="mx-auto flex items-center mt-n1" style="max-width: 250px">
+        <span class="text-xs" style="white-space: nowrap"> Change page:</span>
+        <a-input :value="page" size="small" class="ml-1 !text-xs" type="number" @keydown.enter="changePage(page)">
+          <template #suffix>
+            <component :is="iconMap.returnKey" class="mt-1" @click="changePage(page)" />
+          </template>
+        </a-input>
+      </div>
+    </template>
 
     <div class="flex-1 text-right pr-2">
       <span

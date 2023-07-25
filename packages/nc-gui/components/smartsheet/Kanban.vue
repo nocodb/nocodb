@@ -33,6 +33,8 @@ interface Attachment {
 
 const INFINITY_SCROLL_THRESHOLD = 100
 
+provide(PaginationDataInj, ref())
+
 const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
@@ -365,8 +367,17 @@ watch(view, async (nextView) => {
 </script>
 
 <template>
-  <div class="flex h-full bg-white px-2" data-testid="nc-kanban-wrapper">
-    <div ref="kanbanContainerRef" class="nc-kanban-container flex my-4 px-3 overflow-x-scroll overflow-y-hidden">
+  <div
+    class="flex flex-col w-full bg-white"
+    data-testid="nc-kanban-wrapper"
+    :style="{
+      height: 'calc(100vh - var(--topbar-height))',
+    }"
+  >
+    <div
+      ref="kanbanContainerRef"
+      class="nc-kanban-container flex my-4 px-4 overflow-x-scroll overflow-y-hidden w-full nc-scrollbar-x-md"
+    >
       <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']" overlay-class-name="nc-dropdown-kanban-context-menu">
         <!-- Draggable Stack -->
         <Draggable
@@ -387,27 +398,34 @@ watch(view, async (nextView) => {
               <a-card
                 v-if="!stack.collapsed"
                 :key="stack.id"
-                class="mx-4 !bg-[#f0f2f5] flex flex-col w-[280px] h-full rounded-[12px]"
+                class="mx-4 !bg-gray-50 flex flex-col w-80 h-full !rounded-xl overflow-y-hidden"
                 :class="{
                   'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
                   '!cursor-default': isLocked || !hasEditPermission,
                 }"
                 :head-style="{ paddingBottom: '0px' }"
-                :body-style="{ padding: '0px', height: '100%' }"
+                :body-style="{ padding: '0px', height: '100%', borderRadius: '0.75rem !important', paddingBottom: '0rem' }"
               >
                 <!-- Header Color Bar -->
-                <div :style="`background-color: ${stack.color}`" class="nc-kanban-stack-head-color h-[10px]"></div>
+                <div
+                  :style="`background-color: ${stack.color}`"
+                  class="nc-kanban-stack-head-color h-[10px] mt-3 mx-3 rounded-full"
+                ></div>
 
                 <!-- Skeleton -->
                 <a-skeleton v-if="!formattedData.get(stack.title) || !countByStack" class="p-4" />
 
                 <!-- Stack -->
-                <a-layout v-else class="!bg-[#f0f2f5]">
+                <a-layout v-else class="!bg-gray-50">
                   <a-layout-header>
-                    <div class="nc-kanban-stack-head font-bold flex items-center px-[15px]">
-                      <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-kanban-stack-context-menu">
+                    <div class="nc-kanban-stack-head font-medium flex items-center">
+                      <a-dropdown
+                        :trigger="['click']"
+                        overlay-class-name="nc-dropdown-kanban-stack-context-menu"
+                        class="bg-white !rounded-lg"
+                      >
                         <div
-                          class="flex items-center w-full"
+                          class="flex items-center w-full mx-2 px-3 py-1"
                           :class="{ 'capitalize': stack.title === null, 'cursor-pointer': !isLocked }"
                         >
                           <LazyGeneralTruncateText>{{ stack.title ?? 'uncategorized' }}</LazyGeneralTruncateText>
@@ -454,8 +472,8 @@ watch(view, async (nextView) => {
                     </div>
                   </a-layout-header>
 
-                  <a-layout-content class="overflow-y-hidden">
-                    <div :ref="kanbanListRef" class="nc-kanban-list h-full overflow-y-auto" :data-stack-title="stack.title">
+                  <a-layout-content class="overflow-y-hidden mt-1" style="max-height: calc(100% - 11rem)">
+                    <div :ref="kanbanListRef" class="nc-kanban-list h-full nc-scrollbar-dark-md" :data-stack-title="stack.title">
                       <!-- Draggable Record Card -->
                       <Draggable
                         :list="formattedData.get(stack.title)"
@@ -469,12 +487,12 @@ watch(view, async (nextView) => {
                         @change="onMove($event, stack.title)"
                       >
                         <template #item="{ element: record }">
-                          <div class="nc-kanban-item py-2 px-[15px]">
+                          <div class="nc-kanban-item py-2 pl-3 pr-2">
                             <LazySmartsheetRow :row="record">
                               <a-card
                                 hoverable
                                 :data-stack="stack.title"
-                                class="!rounded-lg h-full overflow-hidden break-all max-w-[450px] shadow-lg"
+                                class="!rounded-xl h-full overflow-hidden break-all max-w-[450px]"
                                 :class="{
                                   'not-draggable': isLocked || !hasEditPermission || isPublic,
                                   '!cursor-default': isLocked || !hasEditPermission || isPublic,
@@ -538,20 +556,20 @@ watch(view, async (nextView) => {
 
                                     <!--  Smartsheet (Virtual) Cell -->
                                     <div
-                                      class="flex flex-row w-full items-center justify-start pl-[6px]"
-                                      :class="{ '!ml-[-12px]': col.uidt === UITypes.SingleSelect }"
+                                      class="flex flex-row w-full items-center justify-start"
+                                      :class="{ '!ml-[-12px] pl-3': col.uidt === UITypes.SingleSelect }"
                                     >
                                       <LazySmartsheetVirtualCell
                                         v-if="isVirtualCol(col)"
                                         v-model="record.row[col.title]"
-                                        class="text-sm pt-1"
+                                        class="text-sm pt-1 pl-5"
                                         :column="col"
                                         :row="record"
                                       />
                                       <LazySmartsheetCell
                                         v-else
                                         v-model="record.row[col.title]"
-                                        class="text-sm pt-1"
+                                        class="text-sm pt-1 pl-7.25"
                                         :column="col"
                                         :edit-enabled="false"
                                         :read-only="true"
@@ -567,27 +585,30 @@ watch(view, async (nextView) => {
                     </div>
                   </a-layout-content>
 
-                  <a-layout-footer>
-                    <div v-if="formattedData.get(stack.title) && countByStack.get(stack.title) >= 0" class="mt-5 text-center">
+                  <div class="!rounded-lg !px-3 pt-3">
+                    <div v-if="formattedData.get(stack.title) && countByStack.get(stack.title) >= 0" class="text-center">
                       <!-- Stack Title -->
-                      <component
-                        :is="iconMap.plus"
-                        v-if="!isPublic && !isLocked"
-                        class="text-pint-500 text-lg text-primary cursor-pointer"
+
+                      <!-- Record Count -->
+                      <div class="nc-kanban-data-count text-gray-500">
+                        {{ formattedData.get(stack.title).length }} / {{ countByStack.get(stack.title) }}
+                        {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
+                      </div>
+
+                      <div
+                        class="flex flex-row w-full mt-3 justify-between items-center cursor-pointer bg-white px-4 py-2 rounded-lg border-gray-100 border-1 shadow-sm shadow-gray-100"
                         @click="
                           () => {
                             selectedStackTitle = stack.title
                             openNewRecordFormHook.trigger(stack.title)
                           }
                         "
-                      />
-                      <!-- Record Count -->
-                      <div class="nc-kanban-data-count">
-                        {{ formattedData.get(stack.title).length }} / {{ countByStack.get(stack.title) }}
-                        {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
+                      >
+                        Add Record
+                        <component :is="iconMap.plus" v-if="!isPublic && !isLocked" class="" />
                       </div>
                     </div>
-                  </a-layout-footer>
+                  </div>
                 </a-layout>
               </a-card>
 
@@ -596,7 +617,7 @@ watch(view, async (nextView) => {
                 v-else
                 :key="`${stack.id}-collapsed`"
                 :style="`background-color: ${stack.color} !important`"
-                class="nc-kanban-collapsed-stack mx-4 flex items-center w-[300px] h-[50px] rounded-[12px] cursor-pointer h-full !pr-[10px]"
+                class="nc-kanban-collapsed-stack mx-4 flex items-center w-[300px] h-[50px] !rounded-xl cursor-pointer h-full !pr-[10px] overflow-hidden"
                 :class="{
                   'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
                 }"
@@ -650,9 +671,8 @@ watch(view, async (nextView) => {
         </template>
       </a-dropdown>
     </div>
+    <LazySmartsheetPagination align-count-on-right hide-pagination class="!py-4"> </LazySmartsheetPagination>
   </div>
-
-  <div class="flex-1" />
 
   <Suspense>
     <LazySmartsheetExpandedForm
@@ -696,7 +716,7 @@ watch(view, async (nextView) => {
 .a-layout,
 .ant-layout-header,
 .ant-layout-content {
-  @apply !bg-[#f0f2f5];
+  @apply !bg-gray-50;
 }
 
 .ant-layout-header {

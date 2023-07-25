@@ -65,7 +65,7 @@ function checkStatus(){
 
     if [[ "${STATUS}" == *"IN_PROGRESS"* ]]
     then
-        message "${ENVIRONMENT}: deployment status is IN_PROGRESS after waiting for about 10 mins for workspace ${service}. check status at https://us-east-2.console.aws.amazon.com/ecs/v2/clusters/${CLUSTER}/services/${svc}/tasks?region=us-east-2 "
+        message "${ENVIRONMENT}: deployment status is IN_PROGRESS after waiting for about 10 mins for workspace ${service}. check status at https://us-east-2.console.aws.amazon.com/ecs/v2/clusters/${CLUSTER}/services/${service}/tasks?region=us-east-2 "
     else
         message "${ENVIRONMENT}: deployment completed successfully for workspace : ${service}"    
     fi

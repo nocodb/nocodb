@@ -7,7 +7,7 @@ interface Props {
   onSubmit: () => Promise<void>
   disabled: boolean
   loading: boolean
-  type: ButtonType | 'danger' | undefined
+  type: ButtonType | undefined
   size: 'small' | 'medium' | 'large'
 }
 
@@ -29,7 +29,6 @@ const loading = useVModel(props, 'loading', emits)
     :type="type"
     class="!rounded-lg nc-button"
     :class="{
-      '!py-1 !h-8': size === 'small',
       '!py-2 !h-10': size === 'medium',
     }"
     @click="props.onSubmit"
@@ -39,12 +38,7 @@ const loading = useVModel(props, 'loading', emits)
 
       <slot v-else name="icon" />
 
-      <div
-        class="flex"
-        :class="{
-          'font-medium': type === 'primary' || type === 'danger',
-        }"
-      >
+      <div class="flex font-medium">
         <span v-if="loading && props.loadingLabel">{{ props.loadingLabel }}</span>
         <span v-else>{{ props.label }}</span>
       </div>

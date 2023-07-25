@@ -17,7 +17,7 @@ const { allowCSVDownload } = useSharedView()
 
 <template>
   <div
-    class="nc-table-toolbar h-20 py-1 flex gap-2 items-center pr-2 pl-2.5 border-b border-gray-75 overflow-hidden"
+    class="nc-table-toolbar h-20 w-full py-1 flex gap-2 items-center pr-2 pl-2.5 border-b border-gray-75 overflow-hidden"
     :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
     style="z-index: 7"
   >
@@ -25,11 +25,13 @@ const { allowCSVDownload } = useSharedView()
 
     <div v-if="!isMobileMode" class="flex-1" />
 
+    <LazySmartsheetToolbarStackedBy v-if="isKanban" />
+
+    <LazySmartsheetToolbarKanbanStackEditOrAdd v-if="isKanban" />
+
     <LazySmartsheetToolbarMappedBy v-if="isMap" />
 
     <GeneralApiLoader />
-
-    <LazySmartsheetToolbarStackedBy v-if="isKanban" />
 
     <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
 
@@ -55,6 +57,10 @@ const { allowCSVDownload } = useSharedView()
 </template>
 
 <style scoped>
+:deep(.nc-toolbar-btn) {
+  @apply border-0 !text-xs font-semibold px-2;
+}
+
 .nc-table-toolbar-mobile {
   @apply flex-wrap h-auto py-2;
 }

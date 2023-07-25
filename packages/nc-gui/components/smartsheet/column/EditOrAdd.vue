@@ -27,11 +27,6 @@ import MdiIdentifierIcon from '~icons/mdi/identifier'
 const props = defineProps<{
   preload?: Partial<ColumnType>
   columnPosition?: Pick<ColumnReqType, 'column_order'>
-  // Disable styles like border, shadow to be embedded on other components
-  embedMode?: boolean
-  // Will be used to show where ever text 'Column' is used.
-  // i.e 'Column Name' label in form, thus will be of form `${columnLabel} Name`
-  columnLabel?: string
 }>()
 
 const emit = defineEmits(['submit', 'cancel', 'mounted'])
@@ -42,8 +37,6 @@ const { formState, generateNewColumnMeta, addOrUpdate, onAlter, onUidtOrIdTypeCh
 const { getMeta } = useMetas()
 
 const { t } = useI18n()
-
-const columnLabel = computed(() => props.columnLabel || t('objects.column'))
 
 const { $api, $e } = useNuxtApp()
 
@@ -194,17 +187,13 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 
 <template>
   <div
-    class="w-[400px] bg-white overflow-auto"
-    :class="{
-      '!w-[600px]': formState.uidt === UITypes.Formula,
-      '!w-[500px]': formState.uidt === UITypes.Attachment,
-      'shadow-lg border-1 border-gray-50 shadow-gray-100 rounded-md p-6': !embedMode,
-    }"
+    class="w-[400px] bg-white shadow-lg shadow-gray-100 rounded-md p-4 overflow-auto border-1 border-gray-50"
+    :class="{ '!w-[600px]': formState.uidt === UITypes.Formula, '!w-[500px]': formState.uidt === UITypes.Attachment }"
     @click.stop
   >
     <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical" data-testid="add-or-edit-column">
       <div class="flex flex-col gap-2">
-        <a-form-item :label="`${columnLabel} ${$t('general.name')}`" v-bind="validateInfos.title" :required="false">
+        <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.title" :required="false">
           <a-input
             ref="antInput"
             v-model:value="formState.title"
@@ -218,7 +207,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
           <a-form-item
             v-if="!(isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
             class="flex-1"
-            :label="`${columnLabel} ${$t('general.type')}`"
+            :label="$t('labels.columnType')"
           >
             <div class="h-1 w-full"></div>
             <a-select
@@ -230,7 +219,6 @@ useEventListener('keydown', (e: KeyboardEvent) => {
               @change="onUidtOrIdTypeChange"
               @dblclick="showDeprecated = !showDeprecated"
             >
-              <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
               <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
                 <div class="flex gap-1 items-center">
                   <component :is="opt.icon" class="text-gray-700 mx-1" style="font-weight: 600; font-size: 1.1rem" />
@@ -305,21 +293,15 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 
       <a-form-item>
         <div class="flex justify-end gap-x-2 mt-2">
-          <!-- Cancel -->
-          <NcButton size="small" html-type="button" type="secondary" :label="`${$t('general.cancel')}`" @click="emit('cancel')">
-          </NcButton>
+          <a-button class="!rounded !px-3.5" html-type="button" @click="emit('cancel')">
+            <!-- Cancel -->
+            {{ $t('general.cancel') }}
+          </a-button>
 
-          <!-- Save -->
-          <NcButton
-            html-type="submit"
-            type="primary"
-            :loading="saving"
-            size="small"
-            :label="`${$t('general.save')} ${columnLabel}`"
-            :loading-label="`${$t('general.saving')} ${columnLabel}`"
-            @click.prevent="onSubmit"
-          >
-          </NcButton>
+          <a-button class="!rounded" html-type="submit" type="primary" :loading="saving" @click.prevent="onSubmit">
+            <!-- Save -->
+            {{ $t('general.save') }}
+          </a-button>
         </div>
       </a-form-item>
     </a-form>

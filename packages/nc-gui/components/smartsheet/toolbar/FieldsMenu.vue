@@ -330,11 +330,11 @@ useMenuCloseOnEsc(open)
 
     <template #overlay>
       <div
-        class="p-6 pr-0 bg-white min-w-96 rounded-2xl nc-table-toolbar-menu border-1 border-gray-50 shadow-lg"
+        class="p-6 pr-0 bg-white min-w-90 max-w-90 rounded-2xl nc-table-toolbar-menu border-1 border-gray-50 shadow-lg"
         data-testid="nc-fields-menu"
         @click.stop
       >
-        <div class="text-lg font-medium mb-4">
+        <div class="text-lg font-medium mb-6 select-none">
           <template v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY">
             Edit Cards (Fields)
           </template>
@@ -343,15 +343,9 @@ useMenuCloseOnEsc(open)
           </template>
         </div>
 
-        <div class="pr-6" @click.stop>
-          <a-input v-model:value="filterQuery" :placeholder="$t('placeholder.searchFields')" class="!rounded-lg">
-            <template #prefix> <img src="~/assets/nc-icons/search.svg" class="h-3.5 w-3.5 mr-1" /> </template
-          ></a-input>
-        </div>
-
         <div
           v-if="!filterQuery && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
-          class="flex flex-col gap-y-2 pr-6 mt-4"
+          class="flex flex-col gap-y-2 pr-6 mb-6"
         >
           <div class="flex text-sm">Select cover image field</div>
           <a-select
@@ -365,20 +359,25 @@ useMenuCloseOnEsc(open)
           </a-select>
         </div>
 
+        <div class="pr-6" @click.stop>
+          <a-input v-model:value="filterQuery" :placeholder="$t('placeholder.searchFields')" class="!rounded-lg">
+            <template #prefix> <img src="~/assets/nc-icons/search.svg" class="h-3.5 w-3.5 mr-1" /> </template
+          ></a-input>
+        </div>
+
         <div
           v-if="!filterQuery"
-          class="pl-8 pr-2 mr-6 mt-8 py-2 flex flex-row items-center border-1 rounded-lg mb-2 border-gray-75 bg-gray-50"
+          class="pl-8 pr-2 mr-6 mt-3 py-2 justify-between flex flex-row items-center border-1 rounded-lg mb-2 border-gray-75 bg-gray-50"
         >
-          <NcCheckbox v-model:checked="showAllColumns">
-            <div class="ml-0.75">All fields</div>
-          </NcCheckbox>
+          <div class="ml-0.5">Show all fields</div>
+          <NcSwitch v-model:checked="showAllColumns" />
         </div>
 
         <div v-if="!filterQuery" class="pr-6">
           <div class="pt-0.25 w-full bg-gray-50"></div>
         </div>
 
-        <div class="flex flex-col nc-scrollbar-md max-h-[40vh] pt-1 pr-5">
+        <div class="flex flex-col nc-scrollbar-md max-h-[35vh] pt-1 pr-5">
           <div class="nc-fields-list py-1">
             <div v-if="!fields?.filter((el) => el.title.includes(filterQuery)).length" class="px-3 py-2 text-gray-500">Empty</div>
             <Draggable v-model="fields" item-key="id" @change="onMove($event)">
@@ -395,18 +394,18 @@ useMenuCloseOnEsc(open)
                   @click.stop
                 >
                   <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
-                  <div class="flex flex-row items-center ml-1">
-                    <NcCheckbox
+                  <div class="flex flex-row items-center justify-between w-full ml-1">
+                    <div class="flex items-center -ml-0.75">
+                      <component :is="getIcon(metaColumnById[field.fk_column_id])" />
+                      <div>{{ field.title }}</div>
+                    </div>
+
+                    <NcSwitch
                       v-model:checked="field.show"
                       v-e="['a:fields:show-hide']"
                       :disabled="field.isViewEssentialField"
                       @change="toggleFieldVisibility($event, field, index)"
-                    >
-                      <div class="flex items-center -ml-0.75">
-                        <component :is="getIcon(metaColumnById[field.fk_column_id])" />
-                        <div>{{ field.title }}</div>
-                      </div>
-                    </NcCheckbox>
+                    />
                   </div>
 
                   <div class="flex-1" />
@@ -416,23 +415,25 @@ useMenuCloseOnEsc(open)
                 <div
                   v-if="gridDisplayValueField && filteredFieldList[0].title.includes(filterQuery)"
                   :key="`pv-${gridDisplayValueField.id}`"
-                  class="pl-8 pr-2 py-2 flex flex-row items-center border-1 rounded-lg mb-2 border-gray-75"
+                  class="pl-7.5 pr-2.1 py-2 flex flex-row items-center border-1 rounded-lg mb-2 border-gray-75"
                   :data-testid="`nc-fields-menu-${gridDisplayValueField.title}`"
                   @click.stop
                 >
-                  <NcCheckbox v-e="['a:fields:show-hide']" :disabled="true" :checked="true"> </NcCheckbox>
-                  <div class="flex flex-row items-center ml-1.75">
-                    <a-tooltip placement="bottom">
-                      <template #title>
-                        <span class="text-sm">Display Value</span>
-                      </template>
-                    </a-tooltip>
+                  <div class="flex flex-row items-center justify-between w-full">
+                    <div class="flex">
+                      <a-tooltip placement="bottom">
+                        <template #title>
+                          <span class="text-sm">Display Value</span>
+                        </template>
+                      </a-tooltip>
 
-                    <div class="flex items-center">
-                      <component :is="getIcon(metaColumnById[filteredFieldList[0].fk_column_id as string])" />
+                      <div class="flex items-center">
+                        <component :is="getIcon(metaColumnById[filteredFieldList[0].fk_column_id as string])" />
 
-                      <span>{{ filteredFieldList[0].title }}</span>
+                        <span>{{ filteredFieldList[0].title }}</span>
+                      </div>
                     </div>
+                    <NcSwitch v-e="['a:fields:show-hide']" :checked="true" :disabled="true" />
                   </div>
                 </div>
               </template>

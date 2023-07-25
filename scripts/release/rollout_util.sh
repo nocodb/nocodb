@@ -27,7 +27,7 @@ function update_workspace(){
         then
             echo "skip updating service : ${SVC}" 
         else
-            DEPLOY_OUT=$(aws ecs update-service --cluster ${cluster} --service ${SVC} --force-new-deployment --region=us-east-2 )
+            DEPLOY_OUT=$(aws ecs update-service --cluster ${CLUSTER} --service ${SVC} --force-new-deployment --region=us-east-2 )
             echo "updated service : ${SVC}"
         fi
     done

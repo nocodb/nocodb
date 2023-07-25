@@ -335,9 +335,7 @@ useMenuCloseOnEsc(open)
         @click.stop
       >
         <div class="text-lg font-medium mb-6 select-none">
-          <template v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY">
-            Edit Cards (Fields)
-          </template>
+          <template v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY"> Edit Cards </template>
           <template v-else>
             {{ $t('objects.fields') }}
           </template>

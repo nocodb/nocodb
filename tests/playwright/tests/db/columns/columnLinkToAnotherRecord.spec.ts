@@ -15,7 +15,7 @@ test.describe('LTAR create & update', () => {
     dashboard = new DashboardPage(page, context.project);
   });
   test.afterEach(async () => {
-    console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
+    // console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
   });
 
   test('LTAR', async () => {

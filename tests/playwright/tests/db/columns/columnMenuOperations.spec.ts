@@ -47,7 +47,7 @@ test.describe('Column menu operations', () => {
     dashboard = new DashboardPage(page, context.project);
   });
   test.afterEach(async () => {
-    console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
+    // console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
   });
 
   test('Duplicate fields', async () => {

@@ -90,7 +90,7 @@ test.describe('Checkbox - cell, filter, sort', () => {
     await page.reload();
   });
   test.afterEach(async () => {
-    console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
+    // console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
   });
   test('Checkbox', async () => {
     // close 'Team & Auth' tab

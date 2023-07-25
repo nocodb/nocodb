@@ -23,7 +23,7 @@ test.describe('Single select', () => {
     await grid.addNewRow({ index: 0, value: 'Row 0' });
   });
   test.afterEach(async () => {
-    console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
+    // console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
   });
 
   test('Select and clear options and rename options', async () => {
@@ -138,7 +138,7 @@ test.describe('Single select - filter & sort', () => {
     await grid.cell.selectOption.select({ index: 3, columnHeader: 'SingleSelect', option: 'baz', multiSelect: false });
   });
   test.afterEach(async () => {
-    console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
+    // console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
   });
 
   // define validateRowArray function

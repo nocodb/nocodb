@@ -63,6 +63,7 @@ const extPgProject = (workspaceId, title, parallelId, projectType) => ({
 });
 
 const workerCount = {};
+const workerStatus = {};
 
 export interface NcContext {
   project: ProjectType;
@@ -77,75 +78,94 @@ selectors.setTestIdAttribute('data-testid');
 
 async function localInit({
   parallelId = process.env.TEST_PARALLEL_INDEX,
+  workerId,
   isEmptyProject = false,
   projectType = ProjectTypes.DATABASE,
 }: {
   parallelId: string;
+  workerId: string;
   isEmptyProject?: boolean;
   projectType?: ProjectTypes;
 }) {
-  // Login as root user
-  const response = await axios.post('http://localhost:8080/api/v1/auth/user/signin', {
-    email: 'user@nocodb.com',
-    password: getDefaultPwd(),
-  });
-  const token = response.data.token;
-
-  // Init SDK using token
-  api = new Api({
-    baseURL: `http://localhost:8080/`,
-    headers: {
-      'xc-auth': token,
-    },
-  });
-
-  const workspaceTitle = `ws_pgExtREST${parallelId}`;
-  const projectTitle = `pgExtREST${parallelId}`;
-
-  // Delete associated workspace
-  const ws = await api.workspace.list();
-  for (const w of ws.list) {
-    // check if w.title starts with workspaceTitle
-    if (w.title.startsWith(workspaceTitle)) {
-      await api.workspace.delete(w.id);
+  try {
+    // wait till previous worker is done
+    while (workerStatus[parallelId] === 'processing') {
+      console.log(`waiting for previous worker to finish parallelId:${parallelId}`);
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
-  }
+    workerStatus[parallelId] = 'processing';
 
-  // DB reset
-  const pgknex = knex(config);
-  await pgknex.raw(`DROP DATABASE IF EXISTS sakila_${parallelId} WITH (FORCE)`);
-  await pgknex.raw(`CREATE DATABASE sakila_${parallelId}`);
-  await pgknex.destroy();
-
-  if (!isEmptyProject) {
-    await resetSakilaPg(parallelId);
-  }
-
-  // create a new workspace
-  const workspace = await api.workspace.create({
-    title: workspaceTitle,
-  });
-
-  let project;
-  if (isEmptyProject) {
-    // create a new project under the workspace we just created
-    project = await api.project.create({
-      title: projectTitle,
-      // @ts-expect-error
-      fk_workspace_id: workspace.id,
-      type: projectType,
+    // Login as root user
+    const response = await axios.post('http://localhost:8080/api/v1/auth/user/signin', {
+      email: 'user@nocodb.com',
+      password: getDefaultPwd(),
     });
-  } else {
-    if ('id' in workspace) {
-      // @ts-ignore
-      project = await api.project.create(extPgProject(workspace.id, projectTitle, parallelId, projectType));
+    const token = response.data.token;
+
+    // Init SDK using token
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': token,
+      },
+    });
+
+    const workspaceTitle = `ws_pgExtREST${parallelId}`;
+    const projectTitle = `pgExtREST${parallelId}`;
+
+    // Delete associated workspace
+    const ws = await api.workspace.list();
+    for (const w of ws.list) {
+      // check if w.title starts with workspaceTitle
+      if (w.title.startsWith(workspaceTitle)) {
+        await api.workspace.delete(w.id);
+      }
     }
+
+    // DB reset
+    const pgknex = knex(config);
+    try {
+      await pgknex.raw(`CREATE DATABASE sakila_${workerId}`);
+    } catch (e) {}
+
+    await pgknex.raw(`DROP DATABASE IF EXISTS sakila_${workerId} WITH (FORCE)`);
+    await pgknex.raw(`CREATE DATABASE sakila_${workerId}`);
+    await pgknex.destroy();
+
+    if (!isEmptyProject) {
+      await resetSakilaPg(workerId);
+    }
+
+    // create a new workspace
+    const workspace = await api.workspace.create({
+      title: workspaceTitle,
+    });
+
+    let project;
+    if (isEmptyProject) {
+      // create a new project under the workspace we just created
+      project = await api.project.create({
+        title: projectTitle,
+        // @ts-expect-error
+        fk_workspace_id: workspace.id,
+        type: projectType,
+      });
+    } else {
+      if ('id' in workspace) {
+        // @ts-ignore
+        project = await api.project.create(extPgProject(workspace.id, projectTitle, workerId, projectType));
+      }
+    }
+    workerStatus[parallelId] = 'completed';
+
+    // get current user information
+    const user = await api.auth.me();
+    return { data: { project, user, workspace, token }, status: 200 };
+  } catch (e) {
+    console.error(`Error resetting project: ${process.env.TEST_PARALLEL_INDEX}`, e);
+    workerStatus[parallelId] = 'error';
+    return { data: {}, status: 500 };
   }
-
-  // get current user information
-  const user = await api.auth.me();
-
-  return { data: { project, user, workspace, token }, status: 200 };
 }
 
 const setup = async ({
@@ -170,12 +190,17 @@ const setup = async ({
   workerCount[workerIndex]++;
   const workerId = String(Number(workerIndex) + Number(workerCount[workerIndex]) * 4);
 
-  console.log(process.env.TEST_PARALLEL_INDEX, '#Setup', workerId);
+  // console.log(process.env.TEST_PARALLEL_INDEX, '#Setup', workerId);
 
   try {
     // Localised reset logic
     if (enableLocalInit) {
-      response = await localInit({ parallelId: process.env.TEST_PARALLEL_INDEX, isEmptyProject, projectType });
+      response = await localInit({
+        parallelId: process.env.TEST_PARALLEL_INDEX,
+        workerId,
+        isEmptyProject,
+        projectType,
+      });
     }
     // Remote reset logic
     else {

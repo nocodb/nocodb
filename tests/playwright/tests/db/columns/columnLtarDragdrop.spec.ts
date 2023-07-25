@@ -64,7 +64,7 @@ test.describe.skip('Links', () => {
     await page.reload();
   });
   test.afterEach(async () => {
-    console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
+    // console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
   });
 
   test('drag drop for Link, lookup creation', async () => {

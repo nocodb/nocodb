@@ -14,7 +14,7 @@ test.describe('Virtual Columns', () => {
   let context: any;
 
   test.afterEach(async () => {
-    console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
+    // console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
   });
 
   test.beforeEach(async ({ page }) => {

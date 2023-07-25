@@ -19,7 +19,7 @@ test.describe('Virtual Columns', () => {
     grid = dashboard.grid;
   });
   test.afterEach(async () => {
-    console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
+    // console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
   });
 
   test.describe('QrCode Column', () => {

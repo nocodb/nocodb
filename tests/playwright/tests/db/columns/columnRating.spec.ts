@@ -42,7 +42,7 @@ test.describe('Rating - cell, filter, sort', () => {
     toolbar = dashboard.grid.toolbar;
   });
   test.afterEach(async () => {
-    console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
+    // console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
   });
 
   test('Rating', async () => {

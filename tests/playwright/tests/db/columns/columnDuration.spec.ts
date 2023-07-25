@@ -49,7 +49,7 @@ test.describe('Duration column', () => {
     dashboard = new DashboardPage(page, context.project);
   });
   test.afterEach(async () => {
-    console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
+    // console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
   });
 
   test('Create duration column', async () => {

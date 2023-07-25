@@ -20,7 +20,7 @@ test.describe('Geo Data column', () => {
     grid = dashboard.grid;
   });
   test.afterEach(async () => {
-    console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
+    // console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
   });
 
   test('creation, validation and deleting geo data column', async () => {

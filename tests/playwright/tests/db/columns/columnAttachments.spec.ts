@@ -17,7 +17,7 @@ test.describe('Attachment column', () => {
   });
 
   test.afterEach(async () => {
-    console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
+    // console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
   });
 
   test('Create and verify attachment column, verify it in shared form,', async ({ context }) => {

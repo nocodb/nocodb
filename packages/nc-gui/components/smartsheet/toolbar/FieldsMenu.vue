@@ -365,15 +365,9 @@ useMenuCloseOnEsc(open)
           </a-select>
         </div>
 
-        <div v-if="!isPublic && !filterQuery" class="mt-4 mb-3 p-2 py-1 flex nc-fields-show-system-fields !text-base" @click.stop>
-          <NcCheckbox v-model:checked="showSystemFields" @change="toggleSystemFields">
-            <span> {{ $t('activity.showSystemFields') }}</span>
-          </NcCheckbox>
-        </div>
-
         <div
           v-if="!filterQuery"
-          class="pl-8 pr-2 mr-6 py-2 flex flex-row items-center border-1 rounded-lg mb-2 border-gray-75 bg-gray-50"
+          class="pl-8 pr-2 mr-6 mt-8 py-2 flex flex-row items-center border-1 rounded-lg mb-2 border-gray-75 bg-gray-50"
         >
           <NcCheckbox v-model:checked="showAllColumns">
             <div class="ml-0.75">All fields</div>
@@ -443,6 +437,11 @@ useMenuCloseOnEsc(open)
                 </div>
               </template>
             </Draggable>
+            <div v-if="!isPublic && !filterQuery" class="mt-4 p-2 py-1 flex nc-fields-show-system-fields !text-base" @click.stop>
+              <NcCheckbox v-model:checked="showSystemFields" @change="toggleSystemFields">
+                <span> {{ $t('activity.showSystemFields') }}</span>
+              </NcCheckbox>
+            </div>
           </div>
         </div>
       </div>

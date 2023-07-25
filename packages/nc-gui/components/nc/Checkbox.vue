@@ -11,8 +11,8 @@ const emit = defineEmits(['change', 'update:checked'])
 
 const checked = useVModel(props, 'checked', emit)
 
-const onChange = () => {
-  emit('change', checked.value)
+const onChange = (e: Event) => {
+  emit('change', e, checked.value)
 }
 </script>
 

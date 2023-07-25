@@ -303,7 +303,7 @@ const setIcon = async (icon: string, view: ViewType) => {
   >
     <!-- Lazy load breaks menu item active styles, i.e. styles never change even when active item changes -->
     <SmartsheetSidebarRenameableMenuItem
-      v-for="view of views"
+      v-for="(view, index) of views"
       :id="view.id"
       :key="view.id"
       :view="view"
@@ -314,6 +314,7 @@ const setIcon = async (icon: string, view: ViewType) => {
         'active': activeView?.id === view.id,
         [`nc-${view.type ? viewTypeAlias[view.type] : undefined || view.type}-view-item`]: true,
       }"
+      :disabled="index === 0"
       @change-view="changeView"
       @open-modal="$emit('openModal', $event)"
       @delete="openDeleteDialog"

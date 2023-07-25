@@ -29,7 +29,11 @@ import MsSort from '~icons/material-symbols/sort'
 import MaterialSymbolsEdit from '~icons/material-symbols/edit-outline-rounded'
 import MaterialDuplicate from '~icons/material-symbols/file-copy-outline-rounded'
 import MaterialSymbolsWarningOutlineRounded from '~icons/material-symbols/warning-outline-rounded'
+import MaterialSymbolsDragIndicator from '~icons/ri/draggable'
+import NcSearch from '~icons/nc-icons/search'
+import NcCreditCard from '~icons/nc-icons/credit-card'
 
+import NcLayers from '~icons/nc-icons/layers'
 import NcUsers from '~icons/nc-icons/users'
 
 import PhLayout from '~icons/ph/layout'
@@ -228,6 +232,7 @@ import Down from '~icons/material-symbols/keyboard-arrow-down-rounded'
 
 export const iconMap = {
   workspaceDefault: MsGroup,
+  search: NcSearch,
   info: h(MsInfo, {}, 'info'),
   inbox: h('span', { class: 'material-symbols' }, 'inbox'),
   addOutlineBox: MsAddBoxOutline,
@@ -285,7 +290,6 @@ export const iconMap = {
   erd: Erd,
   plus: Plus,
   minus: Minus,
-  search: h('span', { class: 'material-symbols' }, 'search'),
   copy: Copy,
   duplicate: MaterialDuplicate,
   clipboard: h('span', { class: 'material-symbols' }, 'content_paste'),
@@ -377,17 +381,17 @@ export const iconMap = {
   dragVertical: h('span', { class: 'material-symbols' }, 'drag_indicator'),
   databaseSync: h('span', { class: 'material-symbols' }, 'sync_alt'),
   fileUpload: h('span', { class: 'material-symbols' }, 'cloud_upload'),
-  drag: h('span', { class: 'material-symbols' }, 'drag_handle'),
+  drag: MaterialSymbolsDragIndicator,
   comment: h('span', { class: 'material-symbols' }, 'comment'),
   doc: h('span', { class: 'material-symbols' }, 'menu_book'),
   move: MsMove,
-
+  creditCard: NcCreditCard,
   heightShort: NcIconsRowHeightShort,
   heightMedium: NcIconsRowHeightMedium,
   heightTall: NcIconsRowHeightTall,
   heightExtra: NcIconsRowHeightExtraTall,
   databaseSearch: MdiDatabaseSearch,
-
+  layers: NcLayers,
   magic: PhSparkleFill,
   magic1: MdiMagicStaff,
   workspace: h('span', { class: 'material-symbols' }, 'dataset'),

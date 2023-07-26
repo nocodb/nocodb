@@ -330,17 +330,10 @@ useMenuCloseOnEsc(open)
 
     <template #overlay>
       <div
-        class="p-6 pr-0 bg-white min-w-90 max-w-90 rounded-2xl nc-table-toolbar-menu border-1 border-gray-50 shadow-lg"
+        class="p-6 pr-0 bg-white w-90 rounded-2xl nc-table-toolbar-menu border-1 border-gray-50 shadow-lg"
         data-testid="nc-fields-menu"
         @click.stop
       >
-        <div class="text-lg font-medium mb-6 select-none">
-          <template v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY"> Edit Cards </template>
-          <template v-else>
-            {{ $t('objects.fields') }}
-          </template>
-        </div>
-
         <div
           v-if="!filterQuery && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
           class="flex flex-col gap-y-2 pr-6 mb-6"

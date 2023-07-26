@@ -121,7 +121,8 @@
     "move": "Move",
     "geoDataField": "GeoData Field",
     "type": "Type",
-    "name": "Name"
+    "name": "Name",
+    "changes": "Changes"
   },
   "objects": {
     "workspace": "Workspace",

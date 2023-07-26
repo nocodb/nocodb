@@ -32,6 +32,9 @@ const props = defineProps<{
   // Will be used to show where ever text 'Column' is used.
   // i.e 'Column Name' label in form, thus will be of form `${columnLabel} Name`
   columnLabel?: string
+  hideTitle?: boolean
+  hideType?: boolean
+  hideAdditionalOptions?: boolean
 }>()
 
 const emit = defineEmits(['submit', 'cancel', 'mounted'])
@@ -194,17 +197,23 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 
 <template>
   <div
-    class="w-[400px] bg-white overflow-auto"
+    class="bg-white overflow-auto"
     :class="{
-      '!w-[600px]': formState.uidt === UITypes.Formula,
-      '!w-[500px]': formState.uidt === UITypes.Attachment,
+      'w-[400px]': !props.embedMode,
+      '!w-[600px]': formState.uidt === UITypes.Formula && !props.embedMode,
+      '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode,
       'shadow-lg border-1 border-gray-50 shadow-gray-100 rounded-md p-6': !embedMode,
     }"
     @click.stop
   >
     <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical" data-testid="add-or-edit-column">
       <div class="flex flex-col gap-2">
-        <a-form-item :label="`${columnLabel} ${$t('general.name')}`" v-bind="validateInfos.title" :required="false">
+        <a-form-item
+          v-if="!props.hideTitle"
+          :label="`${columnLabel} ${$t('general.name')}`"
+          v-bind="validateInfos.title"
+          :required="false"
+        >
           <a-input
             ref="antInput"
             v-model:value="formState.title"
@@ -216,7 +225,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 
         <div class="flex items-center gap-1">
           <a-form-item
-            v-if="!(isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
+            v-if="!props.hideType && !(isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
             class="flex-1"
             :label="`${columnLabel} ${$t('general.type')}`"
           >
@@ -240,7 +249,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
               </a-select-option>
             </a-select>
           </a-form-item>
-          <div class="mt-2 cursor-pointer" @click="predictColumnType()">
+          <div v-if="!props.hideType" class="mt-2 cursor-pointer" @click="predictColumnType()">
             <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
           </div>
         </div>
@@ -269,7 +278,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
       </div>
 
       <div
-        v-if="!isVirtualCol(formState.uidt)"
+        v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt)"
         class="text-xs cursor-pointer text-gray-400 nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
         @click="advancedOptions = !advancedOptions"
         @dblclick="advancedDbOptions = !advancedDbOptions"
@@ -304,9 +313,23 @@ useEventListener('keydown', (e: KeyboardEvent) => {
       </Transition>
 
       <a-form-item>
-        <div class="flex justify-end gap-x-2 mt-2">
+        <div
+          class="flex gap-x-2"
+          :class="{
+            'mt-6': props.hideAdditionalOptions,
+            'mt-2': !props.hideAdditionalOptions,
+            'justify-end': !props.embedMode,
+          }"
+        >
           <!-- Cancel -->
-          <NcButton size="small" html-type="button" type="secondary" :label="`${$t('general.cancel')}`" @click="emit('cancel')">
+          <NcButton
+            class="w-full"
+            size="small"
+            html-type="button"
+            type="secondary"
+            :label="`${$t('general.cancel')}`"
+            @click="emit('cancel')"
+          >
           </NcButton>
 
           <!-- Save -->
@@ -315,6 +338,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             type="primary"
             :loading="saving"
             size="small"
+            class="w-full"
             :label="`${$t('general.save')} ${columnLabel}`"
             :loading-label="`${$t('general.saving')} ${columnLabel}`"
             @click.prevent="onSubmit"

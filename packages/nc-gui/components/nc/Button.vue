@@ -34,7 +34,7 @@ const loading = useVModel(props, 'loading', emits)
     }"
     @click="props.onSubmit"
   >
-    <div class="flex flex-row gap-x-2.5">
+    <div class="flex flex-row gap-x-2.5 justify-center">
       <GeneralLoader v-if="loading" size="medium" class="flex !text-white" loader-class="!text-white" />
 
       <slot v-else name="icon" />

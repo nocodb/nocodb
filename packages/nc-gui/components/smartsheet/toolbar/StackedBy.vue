@@ -121,15 +121,8 @@ const handleChange = () => {
       </a-button>
     </div>
     <template #overlay>
-      <div
-        v-if="open"
-        class="p-6 min-w-[280px] bg-white shadow-lg nc-table-toolbar-menu overflow-auto !border-1 border-gray-50 rounded-2xl"
-        @click.stop
-      >
-        <div class="text-base font-medium">
-          {{ $t('activity.kanban.stackedBy') }}
-        </div>
-        <div class="mt-4">Select a field to stack records by</div>
+      <div v-if="open" class="p-6 w-90 bg-white shadow-lg nc-table-toolbar-menu !border-1 border-gray-50 rounded-2xl" @click.stop>
+        <div>Select a field to stack records by</div>
         <div class="nc-fields-list py-2">
           <div class="grouping-field">
             <a-select
@@ -144,13 +137,16 @@ const handleChange = () => {
             ></a-select>
           </div>
         </div>
-        <div class="mt-4 border-1 p-6 border-gray-50 rounded-2xl">
-          <div class="text-base font-medium mb-4">Field Details</div>
+        <div class="mt-4 border-1 px-4 pt-4 pb-3 border-gray-50 rounded-2xl">
+          <div class="text-base font-medium mb-2">Options</div>
           <LazySmartsheetColumnEditOrAddProvider
             v-if="open"
             :column="groupingFieldColumn"
             embed-mode
-            :column-label="$t('objects.field')"
+            :column-label="$t('general.changes')"
+            hide-title
+            hide-type
+            hide-additional-options
             @cancel="open = false"
             @submit="handleChange"
             @click.stop

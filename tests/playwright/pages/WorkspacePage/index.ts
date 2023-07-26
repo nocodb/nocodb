@@ -48,6 +48,7 @@ export class WorkspacePage extends BasePage {
   }
 
   async workspaceCreate({ title }) {
+    await this.waitFor({ state: 'visible' });
     await this.LeftSideBar.workspaceCreate({ title });
   }
 
@@ -60,6 +61,7 @@ export class WorkspacePage extends BasePage {
   }
 
   async workspaceOpen({ title }) {
+    await this.waitFor({ state: 'visible' });
     await (await this.LeftSideBar.workspaceGetLocator(title)).click();
   }
 
@@ -68,6 +70,7 @@ export class WorkspacePage extends BasePage {
   }
 
   async projectCreate({ title, type }) {
+    await this.waitFor({ state: 'visible' });
     await this.Container.projectCreate({ title, type });
   }
 
@@ -76,6 +79,7 @@ export class WorkspacePage extends BasePage {
   }
 
   async projectOpen({ title }) {
+    await this.waitFor({ state: 'visible' });
     await this.Container.projectOpen({ title });
   }
 

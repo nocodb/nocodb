@@ -609,11 +609,12 @@ export async function extractColumn({
       {
         if (column.dt === 'bytea') {
           qb.select(
-            knex.raw(`encode(??.??, 'escape') as ??`, [
-              rootAlias,
-              column.column_name,
-              column.title,
-            ]),
+            knex.raw(
+              `encode(??.??, '${
+                column.meta?.format === 'hex' ? 'hex' : 'escape'
+              }') as ??`,
+              [rootAlias, column.column_name, column.title],
+            ),
           );
         } else {
           qb.select(

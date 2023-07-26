@@ -3130,5 +3130,22 @@ class PGClient extends KnexClient {
     }
     return result;
   }
+
+  // get default bytea output format
+  async getDefaultByteaOutputFormat() {
+    const func = this.getDefaultByteaOutputFormat.name;
+    const result = new Result<'hex' | 'escape'>();
+    log.api(`${func}:args:`, {});
+
+    try {
+      const data = await this.sqlClient.raw(`SHOW bytea_output;`);
+      result.data = data.rows?.[0]?.bytea_output;
+    } catch (e) {
+      result.data = 'escape';
+    } finally {
+      log.api(`${func} :result: ${result}`);
+    }
+    return result;
+  }
 }
 export default PGClient;

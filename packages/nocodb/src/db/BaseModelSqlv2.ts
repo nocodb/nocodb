@@ -1839,10 +1839,12 @@ class BaseModelSqlv2 {
           if (this.isPg) {
             if (column.dt === 'bytea') {
               res[sanitize(column.title || column.column_name)] =
-                this.dbDriver.raw(`encode(??.??, 'escape')`, [
-                  alias || this.model.table_name,
-                  column.column_name,
-                ]);
+                this.dbDriver.raw(
+                  `encode(??.??, '${
+                    column.meta?.format === 'hex' ? 'hex' : 'escape'
+                  }')`,
+                  [alias || this.model.table_name, column.column_name],
+                );
               break;
             }
           }
@@ -4087,6 +4089,21 @@ export function _wherePk(primaryKeys: Column[], id) {
   const ids = (id + '').split('___');
   const where = {};
   for (let i = 0; i < primaryKeys.length; ++i) {
+    if (primaryKeys[i].dt === 'bytea') {
+      // if column is bytea, then we need to encode the id to hex based on format
+      // where[primaryKeys[i].column_name] =
+      // (primaryKeys[i].meta?.format === 'hex' ? '\\x' : '') + ids[i];
+      return (qb) => {
+        qb.whereRaw(
+          `?? = decode(?, '${
+            primaryKeys[i].meta?.format === 'hex' ? 'hex' : 'escape'
+          }')`,
+          [primaryKeys[i].column_name, ids[i]],
+        );
+      };
+      continue;
+    }
+
     //Cast the id to string.
     const idAsString = ids[i] + '';
     // Check if the id is a UUID and the column is binary(16)

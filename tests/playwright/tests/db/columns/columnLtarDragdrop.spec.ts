@@ -63,9 +63,6 @@ test.describe.skip('Links', () => {
     // refresh page
     await page.reload();
   });
-  test.afterEach(async () => {
-    // console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
-  });
 
   test('drag drop for Link, lookup creation', async () => {
     await dashboard.treeView.openTable({ title: 'Table0' });

@@ -41,9 +41,6 @@ test.describe('Rating - cell, filter, sort', () => {
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
   });
-  test.afterEach(async () => {
-    // console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
-  });
 
   test('Rating', async () => {
     // close 'Team & Auth' tab

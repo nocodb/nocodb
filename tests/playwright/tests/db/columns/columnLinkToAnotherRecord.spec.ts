@@ -14,9 +14,6 @@ test.describe('LTAR create & update', () => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
   });
-  test.afterEach(async () => {
-    // console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
-  });
 
   test('LTAR', async () => {
     // close 'Team & Auth' tab

@@ -19,9 +19,6 @@ test.describe('Geo Data column', () => {
     dashboard = new DashboardPage(page, context.project);
     grid = dashboard.grid;
   });
-  test.afterEach(async () => {
-    // console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
-  });
 
   test('creation, validation and deleting geo data column', async () => {
     // close 'Team & Auth' tab

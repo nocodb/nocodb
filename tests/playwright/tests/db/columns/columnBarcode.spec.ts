@@ -13,10 +13,6 @@ test.describe('Virtual Columns', () => {
   let grid: GridPage;
   let context: any;
 
-  test.afterEach(async () => {
-    // console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
-  });
-
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);

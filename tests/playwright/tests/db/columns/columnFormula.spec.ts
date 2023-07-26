@@ -158,9 +158,6 @@ test.describe('Virtual Columns', () => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
   });
-  test.afterEach(async () => {
-    // console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
-  });
 
   async function formulaResultVerify({ title, result }: { title: string; result: string[] }) {
     for (let i = 0; i < result.length; i++) {

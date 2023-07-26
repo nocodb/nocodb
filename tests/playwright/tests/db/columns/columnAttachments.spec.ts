@@ -16,10 +16,6 @@ test.describe('Attachment column', () => {
     accountLicensePage = new AccountLicensePage(accountPage);
   });
 
-  test.afterEach(async () => {
-    // console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
-  });
-
   test('Create and verify attachment column, verify it in shared form,', async ({ context }) => {
     // run tests slowly
     test.slow();

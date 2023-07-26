@@ -31,7 +31,7 @@ const sakilaKnexConfig = (parallelId: string) => ({
   ...config,
   connection: {
     ...config.connection,
-    database: `sakila_${parallelId}`,
+    database: `sakila${parallelId}`,
   },
 });
 
@@ -51,7 +51,7 @@ const extPgProject = (workspaceId, title, parallelId, projectType) => ({
           port: '5432',
           user: 'postgres',
           password: 'password',
-          database: `sakila_${parallelId}`,
+          database: `sakila${parallelId}`,
         },
         searchPath: ['public'],
       },
@@ -62,7 +62,7 @@ const extPgProject = (workspaceId, title, parallelId, projectType) => ({
   external: true,
 });
 
-const workerCount = [1000, 2000, 3000, 4000, 5000, 6000];
+const workerCount = [0, 0, 0, 0, 0, 0];
 
 export interface NcContext {
   project: ProjectType;
@@ -112,7 +112,8 @@ async function localInit({
     const ws = await api.workspace.list();
     for (const w of ws.list) {
       // check if w.title starts with workspaceTitle
-      if (w.title.startsWith(`ws_pgExtREST${Math.floor(+workerId / 1000)}`)) {
+      if (w.title.startsWith(`ws_pgExtREST_p${process.env.TEST_PARALLEL_INDEX}`)) {
+        console.log(`Deleting workspace: ${w.title}`);
         await api.workspace.delete(w.id);
       }
     }
@@ -120,8 +121,8 @@ async function localInit({
     // DB reset
     if (!isEmptyProject) {
       const pgknex = knex(config);
-      await pgknex.raw(`DROP DATABASE IF EXISTS sakila_${workerId} WITH (FORCE)`);
-      await pgknex.raw(`CREATE DATABASE sakila_${workerId}`);
+      await pgknex.raw(`DROP DATABASE IF EXISTS sakila${workerId} WITH (FORCE)`);
+      await pgknex.raw(`CREATE DATABASE sakila${workerId}`);
       await pgknex.destroy();
 
       await resetSakilaPg(workerId);
@@ -172,11 +173,16 @@ const setup = async ({
   const dbType = 'pg';
   let response;
 
-  const workerIndex = process.env.TEST_PARALLEL_INDEX;
+  const workerIndex = process.env.TEST_WORKER_INDEX;
+  const parallelIndex = process.env.TEST_PARALLEL_INDEX;
+
+  const workerId = `_p${parallelIndex}_w${workerIndex}_c${(+workerIndex + 1) * 1000 + workerCount[parallelIndex]}`;
+  console.log(workerId);
+
   // const workerId =
   //   String(process.env.TEST_WORKER_INDEX) + String(process.env.TEST_PARALLEL_INDEX) + String(workerCount[workerIndex]);
-  const workerId = String(workerCount[workerIndex]);
-  workerCount[+workerIndex]++;
+  // const workerId = parallelIndex + String(+parallelIndex * workerCount[+parallelIndex]);
+  workerCount[+parallelIndex]++;
 
   // console.log(process.env.TEST_PARALLEL_INDEX, '#Setup', workerId);
 

@@ -1571,7 +1571,8 @@ const onNewRecordToFormClick = () => {
             <template #overlay>
               <div class="relative overflow-visible min-h-17 w-10">
                 <div
-                  class="absolute -top-19 flex flex-col h-35 w-70 bg-white shadow-lg border-1 border-gray-75 rounded-lg justify-start overflow-hidden"
+                  class="absolute -top-19 flex flex-col h-34.5 w-70 bg-white rounded-lg justify-start overflow-hidden"
+                  style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
                   :class="{
                     '-left-44': !isAddNewRecordGridMode,
                     '-left-32': isAddNewRecordGridMode,
@@ -1601,7 +1602,7 @@ const onNewRecordToFormClick = () => {
                     @click="onNewRecordToFormClick"
                   >
                     <div class="flex flex-row items-center justify-between w-full">
-                      <div class="flex flex-row items-center justify-start gap-x-3">
+                      <div class="flex flex-row items-center justify-start gap-x-2.5">
                         <GeneralIcon class="h-4.5 w-4.5 !text-gray-600" icon="article" />
                         New Record - Form
                       </div>
@@ -1609,7 +1610,7 @@ const onNewRecordToFormClick = () => {
                         <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" />
                       </div>
                     </div>
-                    <div class="flex flex-row text-xs text-gray-300 ml-7.25">Enter record data through a form</div>
+                    <div class="flex flex-row text-xs text-gray-300 ml-7.05">Enter record data through a form</div>
                   </div>
                 </div>
               </div>

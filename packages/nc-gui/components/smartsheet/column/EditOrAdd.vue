@@ -23,6 +23,7 @@ import {
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
+import {useProject} from "~/store/project";
 
 const props = defineProps<{
   preload?: Partial<ColumnType>
@@ -33,6 +34,8 @@ const emit = defineEmits(['submit', 'cancel', 'mounted'])
 
 const { formState, generateNewColumnMeta, addOrUpdate, onAlter, onUidtOrIdTypeChange, validateInfos, isEdit } =
   useColumnCreateStoreOrThrow()
+
+const {isPg} = useProject()
 
 const { getMeta } = useMetas()
 
@@ -233,6 +236,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
           </div>
         </div>
 
+        <LazySmartsheetColumnPgBinaryOptions v-if="isPg(meta.base_id) && formState.dt === 'bytea'" v-model:value="formState" />
         <LazySmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
         <LazySmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
         <LazySmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />

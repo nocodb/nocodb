@@ -569,6 +569,10 @@ export default class Model implements TableType {
           }
         }
         insertObj[sanitize(col.column_name)] = val;
+
+        if(clientMeta.isPg && col.dt === 'bytea' && col.meta?.format === 'hex') {
+          insertObj[sanitize(col.column_name)] = '\\x' + val
+        }
       }
     }
     return insertObj;

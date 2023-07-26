@@ -3,6 +3,8 @@ import { isDrawerOrModalExist, useEventListener } from '#imports'
 
 export const useProjectsShortcuts = defineStore('projectsShortcutsStore', () => {
   const { $e } = useNuxtApp()
+  const { isUIAllowed } = useUIPermission()
+
   const isMounted = ref(false)
 
   const isFullScreen = ref(false)
@@ -31,6 +33,21 @@ export const useProjectsShortcuts = defineStore('projectsShortcutsStore', () => 
 
               sidebarStore.isLeftSidebarOpen = !isFullScreen.value
               sidebarStore.isRightSidebarOpen = !isFullScreen.value
+            }
+            break
+          }
+          // 'ALT + ,'
+          case 188: {
+            if (isUIAllowed('settings') && !isDrawerOrModalExist()) {
+              $e('c:shortcut', { key: 'ALT + ,' })
+              const projectsStore = useProjects()
+
+              if (!projectsStore.activeProjectId) return
+
+              projectsStore.navigateToProject({
+                projectId: projectsStore.activeProjectId,
+                page: 'collaborators',
+              })
             }
             break
           }

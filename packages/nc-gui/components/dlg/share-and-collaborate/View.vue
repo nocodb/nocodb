@@ -12,6 +12,7 @@ const route = router.currentRoute
 const { copy } = useCopy()
 const { dashboardUrl } = $(useDashboard())
 const { project } = storeToRefs(useProject())
+const { navigateToProject } = useProjects()
 const { openedPage, nestedPagesOfProjects } = storeToRefs(useDocStore())
 
 let view
@@ -29,6 +30,7 @@ const { resetData } = useShare()
 const { inviteUser } = useManageUsers()
 
 const expandedSharedType = ref<'none' | 'project' | 'view'>('view')
+const isOpeningManageAccess = ref(false)
 
 const pageTitle = computed(() => (openedPage.value ?? nestedPagesOfProjects.value[project.value.id!]?.[0])?.title)
 const dbViewTitle = computed(() => route.value.params.viewTitle)
@@ -58,6 +60,19 @@ const copyInvitationLink = async () => {
   await copy(inviteUrl.value!)
 
   isInvitationLinkCopied.value = true
+}
+
+const openManageAccess = async () => {
+  isOpeningManageAccess.value = true
+  try {
+    await navigateToProject({ projectId: project.value.id!, page: 'collaborators' })
+    showShareModal.value = false
+  } catch (e) {
+    console.error(e)
+    message.error('Failed to open manage access')
+  } finally {
+    isOpeningManageAccess.value = false
+  }
 }
 
 watch(showShareModal, (val) => {
@@ -191,23 +206,15 @@ watch(showShareModal, (val) => {
         <SharePage />
       </div>
       <div class="flex flex-row justify-end mx-3 mt-1 mb-2 !border-gray-100 pt-4 gap-x-2">
+        <NcButton type="secondary" data-testid="docs-cancel-btn" label="Cancel" @click="showShareModal = false" />
         <NcButton
-          v-if="formStatus === 'project-collaborate'"
-          type="secondary"
-          data-testid="docs-cancel-btn"
-          label="Close"
-          @click="showShareModal = false"
-        >
-        </NcButton>
-        <!-- <a-button
           data-testid="docs-share-manage-access"
-          type="text"
-          class="!border-1 !border-gray-200 !rounded-md"
-          @click="formStatus = 'manageCollaborators'"
-          >Manage project access
-        </a-button> -->
-        <NcButton v-if="formStatus !== 'project-collaborate'" type="secondary" label="Close" @click="showShareModal = false">
-        </NcButton>
+          type="secondary"
+          label="Manage project access"
+          :loading="isOpeningManageAccess"
+          @click="openManageAccess"
+        />
+
         <!-- <a-button
           v-if="formStatus === 'project-collaborate'"
           data-testid="docs-share-btn"

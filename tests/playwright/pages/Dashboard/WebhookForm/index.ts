@@ -76,6 +76,7 @@ export class WebhookFormPage extends BasePage {
 
     await modal.locator(`button:has-text("Add Filter")`).click();
 
+    await modal.locator('.nc-filter-field-select').waitFor({ state: 'visible', timeout: 4000 });
     await modal.locator('.nc-filter-field-select').click();
     const modalField = await this.dashboard.rootPage.locator('.nc-dropdown-toolbar-field-list:visible');
     await modalField.locator(`.ant-select-item:has-text("${column}")`).click();

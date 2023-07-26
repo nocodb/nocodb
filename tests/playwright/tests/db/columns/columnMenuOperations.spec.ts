@@ -46,9 +46,6 @@ test.describe('Column menu operations', () => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
   });
-  test.afterEach(async () => {
-    // console.log(process.env.TEST_PARALLEL_INDEX, '#AfterEach', context.workerId);
-  });
 
   test('Duplicate fields', async () => {
     await dashboard.treeView.openTable({ title: 'Film' });

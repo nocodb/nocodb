@@ -570,8 +570,15 @@ export default class Model implements TableType {
         }
         insertObj[sanitize(col.column_name)] = val;
 
-        if(clientMeta.isPg && col.dt === 'bytea' && col.meta?.format === 'hex') {
-          insertObj[sanitize(col.column_name)] = '\\x' + val
+        if (clientMeta.isPg && col.dt === 'bytea') {
+          insertObj[sanitize(col.column_name)] = knex.raw(
+            `decode(?, '${col.meta?.format === 'hex' ? 'hex' : 'escape'}')`,
+            [
+              col.meta?.format === 'hex' && (val + '').length % 2 === 1
+                ? '0' + val
+                : val,
+            ],
+          );
         }
       }
     }

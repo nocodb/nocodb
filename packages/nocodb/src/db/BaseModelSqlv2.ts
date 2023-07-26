@@ -1839,10 +1839,12 @@ class BaseModelSqlv2 {
           if (this.isPg) {
             if (column.dt === 'bytea') {
               res[sanitize(column.title || column.column_name)] =
-                this.dbDriver.raw(`encode(??.??, '${column.meta?.format === 'hex' ? 'hex' : 'escape'}')`, [
-                  alias || this.model.table_name,
-                  column.column_name
-                ]);
+                this.dbDriver.raw(
+                  `encode(??.??, '${
+                    column.meta?.format === 'hex' ? 'hex' : 'escape'
+                  }')`,
+                  [alias || this.model.table_name, column.column_name],
+                );
               break;
             }
           }

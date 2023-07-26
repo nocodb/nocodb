@@ -8,7 +8,7 @@ const tabStore = useTabs()
 const { closeTab } = tabStore
 const { tabs, activeTabIndex, activeTab } = storeToRefs(tabStore)
 
-useShortcutsStore()
+useProjectsShortcuts()
 const { isLoading } = useGlobal()
 
 provide(TabMetaInj, activeTab)

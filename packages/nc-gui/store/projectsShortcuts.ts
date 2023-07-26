@@ -1,7 +1,7 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { isDrawerOrModalExist, useEventListener } from '#imports'
 
-export const useShortcutsStore = defineStore('shortcutsStore', () => {
+export const useProjectsShortcuts = defineStore('projectsShortcutsStore', () => {
   const { $e } = useNuxtApp()
   const isMounted = ref(false)
 
@@ -41,5 +41,5 @@ export const useShortcutsStore = defineStore('shortcutsStore', () => {
 })
 
 if (import.meta.hot) {
-  import.meta.hot.accept(acceptHMRUpdate(useShortcutsStore as any, import.meta.hot))
+  import.meta.hot.accept(acceptHMRUpdate(useProjectsShortcuts as any, import.meta.hot))
 }

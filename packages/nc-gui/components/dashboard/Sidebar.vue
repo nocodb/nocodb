@@ -12,6 +12,8 @@ const { activeWorkspace } = storeToRefs(workspaceStore)
 
 const { isUIAllowed } = useUIPermission()
 
+const { commandPalette } = useCommandPalette()
+
 const dialogOpen = ref(false)
 
 const openDialogKey = ref<string>('')
@@ -93,6 +95,18 @@ const navigateToHome = () => {
       <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-home-btn" @click="navigateToHome">
         <MaterialSymbolsHomeOutlineRounded class="!h-3.9" />
         <div>Home</div>
+      </div>
+      <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-search-btn" @click="commandPalette?.open()">
+        <MaterialSymbolsSearch class="!h-3.9" />
+        <div class="flex items-center gap-2">
+          Search
+          <div
+            class="inline-flex gap-1 justify-center text-xs px-[8px] py-[1px] uppercase border-1 border-solid rounded-md bg-slate-150 text-gray-500"
+          >
+            <kbd class="text-[16px] mt-[0.5px]">⌘</kbd>
+            <kbd>K</kbd>
+          </div>
+        </div>
       </div>
       <WorkspaceCreateProjectBtn
         v-if="isUIAllowed('createProject', false, activeWorkspace.roles)"

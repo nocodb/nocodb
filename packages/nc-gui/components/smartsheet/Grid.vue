@@ -1052,6 +1052,13 @@ watch(
   },
 )
 
+onMounted(() => {
+  const resizeObserver = new ResizeObserver(() => {
+    refreshFillHandle()
+  })
+  if (smartTable.value) resizeObserver.observe(smartTable.value)
+})
+
 useEventListener(gridWrapper, 'scroll', () => {
   refreshFillHandle()
 })

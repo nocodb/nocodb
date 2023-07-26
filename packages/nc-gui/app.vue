@@ -11,7 +11,7 @@ const disableBaseLayout = computed(() => route.path.startsWith('/nc/view') || ro
 
 useTheme()
 
-const { cmdData, cmdPlaceholder, activeScope } = useCommandPalette()
+const { commandPalette, cmdData, cmdPlaceholder, activeScope } = useCommandPalette()
 
 applyNonSelectable()
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
@@ -59,5 +59,5 @@ if (typeof window !== 'undefined') {
       <NuxtPage :key="key" :transition="false" />
     </NuxtLayout>
   </a-config-provider>
-  <CmdK v-model:open="cmdK" :scope="activeScope" :data="cmdData" :placeholder="cmdPlaceholder" />
+  <CmdK ref="commandPalette" v-model:open="cmdK" :scope="activeScope" :data="cmdData" :placeholder="cmdPlaceholder" />
 </template>

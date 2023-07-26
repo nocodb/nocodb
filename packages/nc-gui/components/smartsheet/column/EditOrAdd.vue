@@ -23,7 +23,7 @@ import {
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
-import {useProject} from "~/store/project";
+import { useProject } from '~/store/project'
 
 const props = defineProps<{
   preload?: Partial<ColumnType>
@@ -35,7 +35,7 @@ const emit = defineEmits(['submit', 'cancel', 'mounted'])
 const { formState, generateNewColumnMeta, addOrUpdate, onAlter, onUidtOrIdTypeChange, validateInfos, isEdit } =
   useColumnCreateStoreOrThrow()
 
-const {isPg} = useProject()
+const { isPg } = useProject()
 
 const { getMeta } = useMetas()
 

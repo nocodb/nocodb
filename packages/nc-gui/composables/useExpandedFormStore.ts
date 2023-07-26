@@ -193,7 +193,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
                   project.value.id as string,
                   meta.value?.id as string,
                   activeView.value?.id as string,
-                  id,
+                  encodeURIComponent(id),
                 )
                 if (res.message) {
                   throw new Error(res.message)

@@ -12,7 +12,7 @@ source ${SCRIPT_DIR}/rollout_util.sh
 
 ENVIRONMENT="Production"
 PRE_REL_STAGE_TAG="ws-pre-release"
-STAGE_TAG="ws-pre-release"
+STAGE_TAG="ws"
 EXCLUDED_SVC=" nocohub-service nocohub-001-prod nocohub-001-ingester nocohub-001-prod-ingester "
 CLUSTER="nocohub-001-a"
 

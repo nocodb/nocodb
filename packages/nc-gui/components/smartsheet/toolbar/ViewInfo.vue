@@ -11,7 +11,7 @@ const { activeTable } = storeToRefs(useTablesStore())
   <div class="flex flex-row font-medium ml-1.5 items-center border-gray-50 max-w-2/5">
     <MdiTable class="min-w-5 !text-gray-500 mb-0.25" :class="{}" />
     <span
-      class="text-ellipsis overflow-hidden pl-1 text-gray-400 max-w-1/2"
+      class="text-ellipsis overflow-hidden pl-1 text-gray-500 max-w-1/2"
       :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
     >
       {{ activeTable?.title }}

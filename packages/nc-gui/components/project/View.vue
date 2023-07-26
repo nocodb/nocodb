@@ -3,6 +3,8 @@ import NcLayout from '~icons/nc-icons/layout'
 const { openedProject } = storeToRefs(useProjects())
 const { activeTables } = storeToRefs(useTablesStore())
 
+const route = useRoute()
+
 const defaultBase = computed(() => {
   return openedProject.value?.bases?.[0]
 })
@@ -11,9 +13,25 @@ const { isUIAllowed } = useUIPermission()
 
 const { isMobileMode } = useGlobal()
 
-const activeKey = ref('allTables')
+const activeKey = ref<'allTables' | 'collaborators' | 'data-sources'>('allTables')
 
 const baseSettingsState = ref('')
+
+watch(
+  () => route.query.page,
+  (newVal, oldVal) => {
+    if (newVal && newVal !== oldVal) {
+      if (newVal === 'collaborators') {
+        activeKey.value = 'collaborators'
+      } else if (newVal === 'data-sources') {
+        activeKey.value = 'data-sources'
+      } else {
+        activeKey.value = 'allTables'
+      }
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -58,7 +76,7 @@ const baseSettingsState = ref('')
         <!-- <a-tab-pane v-if="defaultBase" key="erd" tab="Project ERD" force-render class="pt-4 pb-12">
           <ErdView :base-id="defaultBase!.id" class="!h-full" />
         </a-tab-pane> -->
-        <a-tab-pane v-if="isUIAllowed('shareProject')" key="accessSettings">
+        <a-tab-pane v-if="isUIAllowed('shareProject')" key="collaborators">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__access-settings">
               <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
@@ -67,7 +85,7 @@ const baseSettingsState = ref('')
           </template>
           <ProjectAccessSettings />
         </a-tab-pane>
-        <a-tab-pane v-if="isUIAllowed('createBase')" key="dataSources">
+        <a-tab-pane v-if="isUIAllowed('createBase')" key="data-sources">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__data-sources">
               <GeneralIcon icon="database" />

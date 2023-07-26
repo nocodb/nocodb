@@ -230,4 +230,8 @@ const onDecode = async (scannedCodeValue: string) => {
   @apply h-auto;
   @apply ml-1;
 }
+
+.nc-input {
+  @apply overflow-auto;
+}
 </style>

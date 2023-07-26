@@ -16,6 +16,8 @@ import type { RollupColumn } from '../models';
 import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
 import type Base from '../models/Base';
 import type Project from '../models/Project';
+import type PGClient from '~/db/sql-client/lib/pg/PgClient';
+
 export const IGNORE_TABLES = [
   'nc_models',
   'nc_roles',
@@ -68,6 +70,7 @@ async function isMMRelationExist(
   }
   return isExist;
 }
+
 // @ts-ignore
 export async function extractAndGenerateManyToManyRelations(
   modelsArr: Array<Model>,
@@ -238,6 +241,15 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
     r.rtitle = getTableNameAlias(r.rtn, project.prefix, base);
   });
 
+  let colMeta = null;
+
+  if (base.type === 'pg') {
+    colMeta = {
+      format: (await (sqlClient as PGClient).getDefaultByteaOutputFormat())
+        .data,
+    };
+  }
+
   // await this.syncRelations();
 
   const tableMetasInsert = tables.map((table) => {
@@ -324,6 +336,8 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
           title: getColumnNameAlias(column.cn, base),
           column_name: column.cn,
           order: colOrder++,
+          // if postgres and bytea then add format to meta
+          ...(colMeta && column.dt === 'bytea' ? { meta: colMeta } : {}),
         });
       }
       virtualColumnsInsert.push(async () => {

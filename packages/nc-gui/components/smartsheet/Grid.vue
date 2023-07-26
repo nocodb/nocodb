@@ -1114,7 +1114,6 @@ const enableOptimisedQuery = () => {
   }
 }
 
-const isNewRecordBtnVisible = ref(false)
 const onNewRecordToGridClick = () => {
   isAddNewRecordGridMode.value = true
   addEmptyRow()
@@ -1560,7 +1559,7 @@ const onNewRecordToFormClick = () => {
     <LazySmartsheetPagination align-count-on-right>
       <template #add-record>
         <div v-if="isAddingEmptyRowAllowed" class="flex ml-2">
-          <a-dropdown-button @click="addEmptyRow()">
+          <a-dropdown-button @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()">
             <div class="flex items-center px-2 text-gray-600 hover:text-black">
               <span>
                 <template v-if="isAddNewRecordGridMode"> New Record </template>

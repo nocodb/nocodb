@@ -206,7 +206,6 @@ export class ContainerPage extends BasePage {
     const count = await menuItems.count();
     const menuItemsText = [];
     for (let i = 0; i < count; i++) {
-      console.log(await menuItems.nth(i).innerText());
       menuItemsText.push(await menuItems.nth(i).innerText());
     }
     return menuItemsText;

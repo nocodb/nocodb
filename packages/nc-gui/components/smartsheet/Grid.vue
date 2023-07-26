@@ -1586,7 +1586,7 @@ const onNewRecordToFormClick = () => {
                   >
                     <div class="flex flex-row items-center justify-between w-full">
                       <div class="flex flex-row items-center justify-start gap-x-3">
-                        <GeneralViewIcon :meta="{ type: ViewTypes.GRID }" class="!text-gray-800" />
+                        <GeneralViewIcon :meta="{ type: ViewTypes.GRID }" />
                         New Record - Grid
                       </div>
                       <div class="h-4 w-4 flex flex-row items-center justify-center">
@@ -1603,7 +1603,7 @@ const onNewRecordToFormClick = () => {
                   >
                     <div class="flex flex-row items-center justify-between w-full">
                       <div class="flex flex-row items-center justify-start gap-x-2.5">
-                        <GeneralIcon class="h-4.5 w-4.5 !text-gray-600" icon="article" />
+                        <GeneralIcon class="h-4.5 w-4.5" icon="article" />
                         New Record - Form
                       </div>
                       <div class="h-4 w-4 flex flex-row items-center justify-center">

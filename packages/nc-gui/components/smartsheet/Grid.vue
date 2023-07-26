@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
 import type { ColumnReqType, ColumnType, GridType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
-import { UITypes, WorkspaceUserRoles, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, ViewTypes, WorkspaceUserRoles, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
@@ -91,6 +91,7 @@ const { xWhere, isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
 const visibleColLength = $computed(() => fields.value?.length)
 
 const addColumnDropdown = ref(false)
+const isAddNewRecordGridMode = ref(true)
 
 const _contextMenu = ref(false)
 const contextMenu = computed({
@@ -1098,7 +1099,9 @@ function openGenerateDialog(target: any) {
 }
 
 const onDraftRecordClick = () => {
-  if (!isLocked?.value) openNewRecordFormHook.trigger()
+  if (!isLocked?.value) {
+    openNewRecordFormHook.trigger()
+  }
 }
 
 const enableOptimisedQuery = () => {
@@ -1109,6 +1112,17 @@ const enableOptimisedQuery = () => {
     optimisedQuery.value = true
     message.info('Optimised query enabled')
   }
+}
+
+const isNewRecordBtnVisible = ref(false)
+const onNewRecordToGridClick = () => {
+  isAddNewRecordGridMode.value = true
+  addEmptyRow()
+}
+
+const onNewRecordToFormClick = () => {
+  isAddNewRecordGridMode.value = false
+  onDraftRecordClick()
 }
 </script>
 
@@ -1548,23 +1562,60 @@ const enableOptimisedQuery = () => {
         <div v-if="isAddingEmptyRowAllowed" class="flex ml-2">
           <a-dropdown-button @click="addEmptyRow()">
             <div class="flex items-center px-2 text-gray-600 hover:text-black">
-              <component :is="iconMap.plus" class="text-pint-500 text-xs" />
-              <span class="ml-1.5"> New Record </span>
+              <span>
+                <template v-if="isAddNewRecordGridMode"> New Record </template>
+                <template v-else> New Record - Form </template>
+              </span>
             </div>
 
             <template #overlay>
-              <div
-                v-e="['c:row:add:grid-top']"
-                :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
-                class="bg-white shadow-sm border-1 border-gray-100 rounded p-2 flex items-center justify-center select-none cursor-pointer hover:bg-gray-50 text-gray-600 nc-new-record-with-form"
-                @click="onDraftRecordClick"
-              >
-                <MaterialSymbolsEditOutlineRounded class="mr-2" />
-                New Record with Form
+              <div class="relative overflow-visible min-h-17 w-10">
+                <div
+                  class="absolute -top-19 flex flex-col h-35 w-70 bg-white shadow-lg border-1 border-gray-75 rounded-lg justify-start overflow-hidden"
+                  :class="{
+                    '-left-44': !isAddNewRecordGridMode,
+                    '-left-32': isAddNewRecordGridMode,
+                  }"
+                >
+                  <div
+                    v-e="['c:row:add:grid-top']"
+                    :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
+                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-50 text-gray-600 nc-new-record-with-grid"
+                    @click="onNewRecordToGridClick"
+                  >
+                    <div class="flex flex-row items-center justify-between w-full">
+                      <div class="flex flex-row items-center justify-start gap-x-3">
+                        <GeneralViewIcon :meta="{ type: ViewTypes.GRID }" class="!text-gray-800" />
+                        New Record - Grid
+                      </div>
+                      <div class="h-4 w-4 flex flex-row items-center justify-center">
+                        <GeneralIcon v-if="isAddNewRecordGridMode" icon="check" />
+                      </div>
+                    </div>
+                    <div class="flex flex-row text-xs text-gray-300 ml-7.25">Manually add data in grid view</div>
+                  </div>
+                  <div
+                    v-e="['c:row:add:expanded-form']"
+                    :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
+                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-50 text-gray-600 nc-new-record-with-form"
+                    @click="onNewRecordToFormClick"
+                  >
+                    <div class="flex flex-row items-center justify-between w-full">
+                      <div class="flex flex-row items-center justify-start gap-x-3">
+                        <GeneralIcon class="h-4.5 w-4.5 !text-gray-600" icon="article" />
+                        New Record - Form
+                      </div>
+                      <div class="h-4 w-4 flex flex-row items-center justify-center">
+                        <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" />
+                      </div>
+                    </div>
+                    <div class="flex flex-row text-xs text-gray-300 ml-7.25">Enter record data through a form</div>
+                  </div>
+                </div>
               </div>
             </template>
             <template #icon>
-              <component :is="iconMap.arrowUp" class="text-gray-600 h-3.75" />
+              <component :is="iconMap.arrowUp" class="text-gray-600 h-4" />
             </template>
           </a-dropdown-button>
         </div>
@@ -1617,16 +1668,16 @@ const enableOptimisedQuery = () => {
 <style lang="scss">
 .nc-pagination-wrapper .ant-dropdown-button {
   > .ant-btn {
-    @apply !p-0 !rounded-l-md hover:border-gray-300;
+    @apply !p-0 !rounded-l-lg hover:border-gray-300;
   }
 
   > .ant-dropdown-trigger {
-    @apply !rounded-r-md;
+    @apply !rounded-r-lg;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
   }
 
-  @apply !rounded-md;
+  @apply !rounded-lg;
 }
 </style>
 

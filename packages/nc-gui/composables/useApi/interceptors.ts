@@ -26,8 +26,8 @@ export function addAxiosInterceptors(api: Api<any>) {
       }
     }
 
-    if(!optimisedQuery.value) {
-      config.params = { ...(config.params ?? {}), opt: 'false'}
+    if (!optimisedQuery.value) {
+      config.params = { ...(config.params ?? {}), opt: 'false' }
     }
 
     return config

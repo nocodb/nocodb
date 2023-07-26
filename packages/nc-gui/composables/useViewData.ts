@@ -35,8 +35,8 @@ import {
   useRouter,
   useSharedView,
   useSmartsheetStoreOrThrow,
+  useState,
   useUIPermission,
-  useState
 } from '#imports'
 import type { Row, UndoRedoAction } from '~/lib'
 
@@ -214,7 +214,7 @@ export function useViewData(
           ...params,
           ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
           ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-          where: where?.value
+          where: where?.value,
         } as any)
       : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
 
@@ -616,10 +616,10 @@ export function useViewData(
         NOCO,
         project.value.title as string,
         metaValue?.title as string,
-        rowId,
+        encodeURIComponent(rowId),
         type as 'mm' | 'hm',
         column.title as string,
-        relatedRowId,
+        encodeURIComponent(relatedRowId),
       )
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
@@ -673,7 +673,7 @@ export function useViewData(
       project.value.id as string,
       metaValue?.id as string,
       viewMetaValue?.id as string,
-      id,
+      encodeURIComponent(id),
     )
 
     if (res.message) {

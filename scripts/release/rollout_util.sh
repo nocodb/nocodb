@@ -73,7 +73,7 @@ function checkStatus(){
 
 
 function perform_rollout(){
-    PROMOTE_READY_BEFORE_ROLLOUT=${1:-false}
+    PROMOTE_IMAGE_BEFORE_ROLLOUT=${1:-false}
     if [[ ! "${ENVIRONMENT}" || ! "${CLUSTER}" ]]; then echo "CLUSTER and ENVIRONMENT variables must be set for check status"; log_and_exit  ; fi
 
     # ENVIRONMENT="Staging"
@@ -85,7 +85,7 @@ function perform_rollout(){
 
     message "${ENVIRONMENT}: deployment started."
 
-    if [[ "${PROMOTE_READY_BEFORE_ROLLOUT}" == "true" && "${ENVIRONMENT}" == "Production" ]]
+    if [[ "${PROMOTE_IMAGE_BEFORE_ROLLOUT}" == "true" && "${ENVIRONMENT}" == "Production" ]]
     then    
         message "${ENVIRONMENT}: promoting ws-pre-release to ws before rollout."    
         ${SCRIPT_DIR}/image_promote.sh "${PRE_REL_STAGE_TAG}" "${STAGE_TAG}"

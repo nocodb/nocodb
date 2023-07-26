@@ -82,10 +82,10 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
           NOCO,
           project.value.id as string,
           metaValue?.id as string,
-          rowId,
+          encodeURIComponent(rowId),
           type as 'mm' | 'hm',
           column.id as string,
-          relatedRowId,
+          encodeURIComponent(relatedRowId),
         )
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
@@ -157,10 +157,10 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
                 NOCO,
                 project.value.id as string,
                 meta.value?.id as string,
-                extractPkFromRow(currentRow.value.row, meta.value?.columns as ColumnType[]),
+                encodeURIComponent(extractPkFromRow(currentRow.value.row, meta.value?.columns as ColumnType[])),
                 (<LinkToAnotherRecordType>column?.colOptions).type as 'hm' | 'mm',
                 column.id as string,
-                extractPkFromRow(link, relatedTableMeta?.columns as ColumnType[]),
+                encodeURIComponent(extractPkFromRow(link, relatedTableMeta?.columns as ColumnType[])),
               )
             }
             currentRow.value.row[column.title!] = []
@@ -176,7 +176,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
         NOCO,
         project.value?.id as string,
         meta.value?.title as string,
-        extractPkFromRow(unref(row)?.row, meta.value?.columns as ColumnType[]),
+        encodeURIComponent(extractPkFromRow(unref(row)?.row, meta.value?.columns as ColumnType[])),
       )
       Object.assign(unref(row), {
         row: record,

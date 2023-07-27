@@ -101,6 +101,8 @@ jobs:
           path: |
             **/tests/playwright/node_modules
           key: cache-aws-nc-playwright-${{ hashFiles('**/tests/playwright/package-lock.json') }}
+          restore-keys: |
+            cache-aws-nc-playwright-
       - name: Install dependencies
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: ./tests/playwright

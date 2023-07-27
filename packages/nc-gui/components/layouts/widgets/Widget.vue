@@ -34,7 +34,7 @@ const borderClass = computed(() => {
 
 <template v-slot:item="{ element: widget }">
   <div v-if="widget" class="nc-layout-ui-element" :class="borderClass">
-    <LayoutsWidgetsChart v-if="isChart" :widget-config="widget as ChartWidget" />
+    <LazyLayoutsWidgetsChart v-if="isChart" :widget-config="widget as ChartWidget" />
     <LayoutsWidgetsNumber v-else-if="isNumber" ref="widgetWithReloadDataSupportRef" :widget-config="widget as NumberWidget" />
     <LayoutsWidgetsText v-else-if="isStaticText" :widget-config="widget as StaticTextWidget" />
     <LayoutsWidgetsButton v-else-if="isButton" :widget-config="widget as ButtonWidget" />

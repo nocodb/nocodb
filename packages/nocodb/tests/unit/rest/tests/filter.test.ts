@@ -1,13 +1,13 @@
 import 'mocha';
+import { UITypes } from 'nocodb-sdk';
+import { expect } from 'chai';
+import request from 'supertest';
 import init from '../../init';
 import { createProject } from '../../factory/project';
 import Project from '../../../../src/models/Project';
 import { createTable } from '../../factory/table';
-import { UITypes } from 'nocodb-sdk';
-import { createBulkRows, rowMixedValue, listRow } from '../../factory/row';
+import { createBulkRows, listRow, rowMixedValue } from '../../factory/row';
 import Model from '../../../../src/models/Model';
-import { expect } from 'chai';
-import request from 'supertest';
 
 const debugMode = true;
 
@@ -245,9 +245,9 @@ function filterTextBased() {
 
     columns = await table.getColumns();
 
-    let rowAttributes = [];
+    const rowAttributes = [];
     for (let i = 0; i < 400; i++) {
-      let row = {
+      const row = {
         SingleLineText: rowMixedValue(columns[1], i),
         MultiLineText: rowMixedValue(columns[2], i),
         Email: rowMixedValue(columns[3], i),
@@ -270,7 +270,7 @@ function filterTextBased() {
   });
 
   it('Type: Single Line Text', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: 'Afghanistan' },
       { comparison_op: 'neq', value: 'Afghanistan' },
       { comparison_op: 'null', value: '' },
@@ -284,7 +284,7 @@ function filterTextBased() {
   });
 
   it('Type: Multi Line Text', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: 'Aberdeen, United Kingdom' },
       { comparison_op: 'neq', value: 'Aberdeen, United Kingdom' },
       { comparison_op: 'null', value: '' },
@@ -298,7 +298,7 @@ function filterTextBased() {
   });
 
   it('Type: Email', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: 'leota@hotmail.com' },
       { comparison_op: 'neq', value: 'leota@hotmail.com' },
       { comparison_op: 'null', value: '' },
@@ -312,7 +312,7 @@ function filterTextBased() {
   });
 
   it('Type: Phone', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: '504-621-8927' },
       { comparison_op: 'neq', value: '504-621-8927' },
       { comparison_op: 'null', value: '' },
@@ -326,7 +326,7 @@ function filterTextBased() {
   });
 
   it('Type: Url', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: 'https://www.youtube.com' },
       { comparison_op: 'neq', value: 'https://www.youtube.com' },
       { comparison_op: 'null', value: '' },
@@ -390,9 +390,9 @@ function filterNumberBased() {
 
     columns = await table.getColumns();
 
-    let rowAttributes = [];
+    const rowAttributes = [];
     for (let i = 0; i < 400; i++) {
-      let row = {
+      const row = {
         Number: rowMixedValue(columns[1], i),
         Decimal: rowMixedValue(columns[2], i),
         Currency: rowMixedValue(columns[3], i),
@@ -416,7 +416,7 @@ function filterNumberBased() {
   });
 
   it('Type: Number', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: '33' },
       { comparison_op: 'neq', value: '33' },
       { comparison_op: 'null', value: '' },
@@ -430,7 +430,7 @@ function filterNumberBased() {
   });
 
   it('Type: Decimal', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: '33.3' },
       { comparison_op: 'neq', value: '33.3' },
       { comparison_op: 'null', value: '' },
@@ -444,7 +444,7 @@ function filterNumberBased() {
   });
 
   it('Type: Currency', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: '33.3' },
       { comparison_op: 'neq', value: '33.3' },
       { comparison_op: 'null', value: '' },
@@ -458,7 +458,7 @@ function filterNumberBased() {
   });
 
   it('Type: Percent', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: '33' },
       { comparison_op: 'neq', value: '33' },
       { comparison_op: 'null', value: '' },
@@ -472,7 +472,7 @@ function filterNumberBased() {
   });
 
   it('Type: Duration', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: '10' },
       { comparison_op: 'neq', value: '10' },
       { comparison_op: 'null', value: '' },
@@ -486,7 +486,7 @@ function filterNumberBased() {
   });
 
   it('Type: Rating', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: '3' },
       { comparison_op: 'neq', value: '3' },
       { comparison_op: 'null', value: '' },
@@ -532,9 +532,9 @@ function filterSelectBased() {
 
     columns = await table.getColumns();
 
-    let rowAttributes = [];
+    const rowAttributes = [];
     for (let i = 0; i < 400; i++) {
-      let row = {
+      const row = {
         SingleSelect: rowMixedValue(columns[1], i),
         MultiSelect: rowMixedValue(columns[2], i),
       };
@@ -554,7 +554,7 @@ function filterSelectBased() {
   });
 
   it('Type: Single select', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: 'jan' },
       { comparison_op: 'neq', value: 'jan' },
       { comparison_op: 'null', value: '' },
@@ -568,7 +568,7 @@ function filterSelectBased() {
   });
 
   it('Type: Multi select', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: 'jan,feb,mar' },
       { comparison_op: 'neq', value: 'jan,feb,mar' },
       { comparison_op: 'null', value: '' },
@@ -629,9 +629,9 @@ function filterDateBased() {
 
     columns = await table.getColumns();
 
-    let rowAttributes = [];
+    const rowAttributes = [];
     for (let i = 0; i < 800; i++) {
-      let row = {
+      const row = {
         Date: rowMixedValue(columns[1], i),
       };
       rowAttributes.push(row);

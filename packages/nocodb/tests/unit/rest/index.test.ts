@@ -8,8 +8,8 @@ import tableRowTests from './tests/tableRow.test';
 import viewRowTests from './tests/viewRow.test';
 import attachmentTests from './tests/attachment.test';
 import filterTest from './tests/filter.test';
-import layoutTests from './tests/layout.test';
-import widgetTest from './tests/widget.test';
+// import layoutTests from './tests/layout.test';
+// import widgetTest from './tests/widget.test';
 
 function restTests() {
   authTests();

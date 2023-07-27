@@ -33,6 +33,7 @@
   },
   "scripts": {
     "lint:staged:playwright": "cd ./tests/playwright; npx lint-staged; cd -",
+    "start:nocodb": "cd ./packages/nocodb-sdk; npm install; npm run start:dev",
     "build:common": "cd ./packages/nocodb-sdk; npm install; npm run build",
     "install:common": "cd packages/nocodb-legacy; npm install ../nocodb-sdk; cd ../nc-gui; npm install ../nocodb-sdk",
     "start:web": "npm run build:common ; cd ./packages/nc-gui; npm install ../nocodb-sdk; npm install; ANT_MESSAGE_DURATION=0.5 npm run dev",

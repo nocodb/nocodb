@@ -34,7 +34,7 @@ export class LoginPage extends BasePage {
     await this.get().locator(`[data-testid="nc-form-signin__submit"]`).click();
 
     // todo: Login api can take some time to respond if server is under load
-    await expect(this.rootPage.locator('.nc-workspace-container')).toBeVisible();
+    await this.rootPage.locator('.nc-workspace-container').waitFor({ timeout: 10000 });
   }
 
   async signIn({

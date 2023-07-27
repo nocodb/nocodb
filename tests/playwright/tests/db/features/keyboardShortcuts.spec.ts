@@ -5,6 +5,7 @@ import setup from '../../../setup';
 import { Api, UITypes } from 'nocodb-sdk';
 import { isHub } from '../../../setup/db';
 import { getDefaultPwd } from '../../utils/general';
+import config from '../../../playwright.config';
 
 let api: Api<any>;
 
@@ -329,6 +330,11 @@ test.describe('Clipboard support', () => {
   });
 
   test('multiple cells - horizontal, all data types', async ({ page }) => {
+    // skip for local run (clipboard access issue in headless mode)
+    if (!process.env.CI && config.use.headless) {
+      test.skip();
+    }
+
     // click first cell, press `Ctrl A` and `Ctrl C`
     await grid.cell.click({ index: 0, columnHeader: 'Id' });
     await page.keyboard.press((await grid.isMacOs()) ? 'Meta+a' : 'Control+a');
@@ -351,6 +357,11 @@ test.describe('Clipboard support', () => {
   });
 
   test('multiple cells - vertical', async ({ page }) => {
+    // skip for local run (clipboard access issue in headless mode)
+    if (!process.env.CI && config.use.headless) {
+      test.skip();
+    }
+
     let cellText: string[] = ['aaa', 'bbb', 'ccc', 'ddd', 'eee'];
     for (let i = 1; i <= 5; i++) {
       await grid.addNewRow({ index: i, columnHeader: 'SingleLineText', value: cellText[i - 1] });

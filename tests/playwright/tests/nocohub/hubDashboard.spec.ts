@@ -14,6 +14,7 @@ test.describe('DashboardBasicTests', () => {
   });
 
   test('Page load & static configurations verification', async () => {
+    await wsPage.waitFor({ state: 'visible' });
     await wsPage.workspaceOpen({ title: context.workspace.title });
 
     // verify static elements : fixed menu items, buttons, etc.

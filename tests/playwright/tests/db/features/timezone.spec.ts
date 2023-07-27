@@ -7,6 +7,7 @@ import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { isHub, isMysql, isPg, isSqlite } from '../../../setup/db';
 import { getKnexConfig } from '../../utils/config';
 import { getBrowserTimezoneOffset } from '../../utils/general';
+import config from '../../../playwright.config';
 let api: Api<any>, records: any[];
 let context: any;
 
@@ -404,6 +405,11 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
    *
    */
   test('Copy paste', async () => {
+    // skip for local run (clipboard access issue in headless mode)
+    if (process.env.CI === undefined && config.use.headless) {
+      test.skip();
+      return;
+    }
     await dashboard.grid.addNewRow({ index: 1, columnHeader: 'Title', value: 'Copy paste test' });
 
     await dashboard.rootPage.reload();

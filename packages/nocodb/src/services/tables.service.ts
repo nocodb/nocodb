@@ -133,18 +133,18 @@ export class TablesService {
       );
     }
 
-    await Model.updateAliasAndTableName(
-      param.tableId,
-      param.table.title,
-      param.table.table_name,
-    );
-
     await sqlMgr.sqlOpPlus(base, 'tableRename', {
       ...param.table,
       tn: param.table.table_name,
       tn_old: model.table_name,
       schema: base.getConfig()?.schema,
     });
+
+    await Model.updateAliasAndTableName(
+      param.tableId,
+      param.table.title,
+      param.table.table_name,
+    );
 
     this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
       table: model,

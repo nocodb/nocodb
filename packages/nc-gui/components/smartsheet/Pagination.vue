@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import type { PaginatedType } from 'nocodb-sdk'
-import { ChangePageInj, computed, iconMap, inject, useViewsStore } from '#imports'
+import { computed, iconMap, inject, useViewsStore } from '#imports'
 import SidebarIcon from '~icons/nc-icons/sidebar'
 
 const props = defineProps<{
   paginationData: PaginatedType
+  changePage: (page: number) => void
   alignCountOnRight?: boolean
   hidePagination?: boolean
 }>()
@@ -13,15 +14,13 @@ const emits = defineEmits(['update:paginationData'])
 
 const vPaginationData = useVModel(props, 'paginationData', emits)
 
-const { alignCountOnRight } = props
+const { alignCountOnRight, changePage } = props
 
 const isPublic = inject(IsPublicInj, ref(false))
 
 const { isLeftSidebarOpen, isRightSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { isPaginationLoading } = storeToRefs(useViewsStore())
-
-const changePage = inject(ChangePageInj)!
 
 const count = computed(() => vPaginationData.value?.totalRows ?? Infinity)
 

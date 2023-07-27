@@ -2,7 +2,6 @@
 import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
-  ChangePageInj,
   FieldsInj,
   IsFormInj,
   IsGalleryInj,
@@ -61,7 +60,6 @@ const {
 provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(true))
 provide(IsGridInj, ref(false))
-provide(ChangePageInj, changePage)
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -329,7 +327,7 @@ watch(
     </div>
   </a-dropdown>
 
-  <LazySmartsheetPagination v-model:pagination-data="paginationData" />
+  <LazySmartsheetPagination v-model:pagination-data="paginationData" :change-page="changePage" />
   <Suspense>
     <LazySmartsheetExpandedForm
       v-if="expandedFormRow && expandedFormDlg"

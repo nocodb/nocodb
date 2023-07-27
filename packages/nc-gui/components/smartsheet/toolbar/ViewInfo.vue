@@ -8,7 +8,13 @@ const { activeTable } = storeToRefs(useTablesStore())
 </script>
 
 <template>
-  <div class="flex flex-row font-medium ml-1.5 items-center border-gray-50 max-w-2/5">
+  <div
+    class="flex flex-row font-medium ml-1.5 items-center border-gray-50"
+    :class="{
+      'max-w-2/5': selectedView?.type !== ViewTypes.KANBAN,
+      'max-w-1/4': selectedView?.type === ViewTypes.KANBAN,
+    }"
+  >
     <MdiTable class="min-w-5 !text-gray-500 mb-0.25" :class="{}" />
     <span
       class="text-ellipsis overflow-hidden pl-1 text-gray-500 max-w-1/2"

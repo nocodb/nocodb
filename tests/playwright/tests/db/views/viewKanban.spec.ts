@@ -61,8 +61,11 @@ test.describe('View', () => {
     // configure stack-by field
     await toolbar.clickStackByField();
     await toolbar.stackBy.click({ title: 'Rating' });
+
+    // menu overlaps the stack-by field; use escape key to close instead of clicking it explicitly
     // click again to close menu
-    await toolbar.clickStackByField();
+    // await toolbar.clickStackByField();
+    await toolbar.rootPage.keyboard.press('Escape');
 
     const kanban = dashboard.kanban;
     await kanban.verifyStackCount({ count: 6 });
@@ -77,7 +80,8 @@ test.describe('View', () => {
     });
 
     // hide fields
-    await toolbar.fields.hideAll();
+    await toolbar.fields.toggleShowAllFields();
+    await toolbar.fields.toggleShowAllFields();
     await toolbar.fields.toggle({ title: 'Title' });
     await kanban.verifyCardCount({
       count: [0, 25, 25, 25, 25, 25],
@@ -210,7 +214,8 @@ test.describe('View', () => {
     });
     await toolbar.clickFilter();
 
-    await toolbar.fields.hideAll();
+    await toolbar.fields.toggleShowAllFields();
+    await toolbar.fields.toggleShowAllFields();
     await toolbar.fields.toggle({ title: 'Title' });
 
     await dashboard.viewSidebar.copyView({ title: 'Film Kanban' });
@@ -267,7 +272,8 @@ test.describe('View', () => {
     await kanban.verifyCollapseStackCount({ count: 0 });
 
     // add record to stack & verify
-    await toolbar.fields.hideAll();
+    await toolbar.fields.toggleShowAllFields();
+    await toolbar.fields.toggleShowAllFields();
     await toolbar.fields.toggleShowSystemFields();
     await toolbar.fields.toggle({ title: 'LanguageId' });
     await toolbar.fields.toggle({ title: 'Title' });

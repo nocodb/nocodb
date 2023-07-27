@@ -21,10 +21,10 @@ function restTests() {
   columnTypeSpecificTests();
   attachmentTests();
   filterTest();
-  layoutTests();
 
   // Enable for dashboard feature
   // widgetTest();
+  // layoutTests();
 }
 
 export default function () {

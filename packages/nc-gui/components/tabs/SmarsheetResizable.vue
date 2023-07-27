@@ -61,12 +61,6 @@ watch(isRightSidebarOpen, () => {
 function handleMouseMove(e: MouseEvent) {
   if (!wrapperRef.value) return
 
-  console.log('handleMouseMove', {
-    isRightSidebarOpen: isRightSidebarOpen.value,
-    isSidebarHidden: isSidebarHidden.value,
-    isMouseOverShowSidebarZone: isMouseOverShowSidebarZone.value,
-  })
-
   if (isRightSidebarOpen.value && !isSidebarHidden.value && !isMouseOverShowSidebarZone.value) return
   if (isRightSidebarOpen.value) {
     isSidebarHidden.value = false

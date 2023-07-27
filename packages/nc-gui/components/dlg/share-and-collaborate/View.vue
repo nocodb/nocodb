@@ -206,7 +206,7 @@ watch(showShareModal, (val) => {
         <SharePage />
       </div>
       <div class="flex flex-row justify-end mx-3 mt-1 mb-2 !border-gray-100 pt-4 gap-x-2">
-        <NcButton type="secondary" data-testid="docs-cancel-btn" label="Cancel" @click="showShareModal = false" />
+        <NcButton type="secondary" data-testid="docs-cancel-btn" label="Close" @click="showShareModal = false" />
         <NcButton
           data-testid="docs-share-manage-access"
           type="secondary"

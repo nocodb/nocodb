@@ -1123,6 +1123,23 @@ const onNewRecordToFormClick = () => {
   isAddNewRecordGridMode.value = false
   onDraftRecordClick()
 }
+
+useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+
+  if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
+    switch (e.keyCode) {
+      case 78: {
+        // ALT + N
+        if (isAddingEmptyRowAllowed) {
+          addEmptyRow()
+        }
+
+        break
+      }
+    }
+  }
+})
 </script>
 
 <template>

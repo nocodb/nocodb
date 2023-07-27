@@ -182,19 +182,6 @@ function openKeyboardShortcutDialog() {
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
-  if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
-    switch (e.keyCode) {
-      case 188: {
-        // ALT + ,
-        if (isUIAllowed('settings') && !isDrawerOrModalExist()) {
-          e.preventDefault()
-          $e('c:shortcut', { key: 'ALT + ,' })
-          toggleDialog(true, 'teamAndAuth', null, projectId)
-        }
-        break
-      }
-    }
-  }
   if (cmdOrCtrl) {
     switch (e.key) {
       case '/':

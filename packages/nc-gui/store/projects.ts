@@ -274,6 +274,19 @@ export const useProjects = defineStore('projectsStore', () => {
     projects.value.clear()
   }
 
+  const navigateToProject = async ({ projectId, page }: { projectId: string; page?: 'collaborators' }) => {
+    if (!projectId) return
+
+    const project = projects.value.get(projectId)
+    if (!project) return
+
+    if (page) {
+      return await navigateTo(`/ws/${project.fk_workspace_id}/nc/${projectId}?page=${page}`)
+    }
+
+    await navigateTo(`/ws/${project.fk_workspace_id}/nc/${projectId}`)
+  }
+
   return {
     projects,
     projectsList,
@@ -297,6 +310,7 @@ export const useProjects = defineStore('projectsStore', () => {
     getProjectUsers,
     createProjectUser,
     updateProjectUser,
+    navigateToProject,
   }
 })
 

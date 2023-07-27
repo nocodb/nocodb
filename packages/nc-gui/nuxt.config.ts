@@ -46,8 +46,18 @@ export default defineNuxtConfig({
           type: 'image/x-icon',
           href: './favicon.ico',
         },
+
         ...(process.env.NC_CDN_URL
-          ? [{ rel: 'stylesheet', href: new URL('/shared/style/fonts.css', process.env.NC_CDN_URL).href }]
+          ? [
+              {
+                rel: 'preload',
+                as: 'font',
+                href: new URL('/shared/style/material.woff2', process.env.NC_CDN_URL).href,
+                type: 'font/woff2',
+                crossorigin: 'anonymous',
+              } as any,
+              { rel: 'stylesheet', href: new URL('/shared/style/fonts.css', process.env.NC_CDN_URL).href },
+            ]
           : []),
       ],
       meta: [

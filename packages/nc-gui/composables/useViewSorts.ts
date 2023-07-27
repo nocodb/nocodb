@@ -149,6 +149,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
       const data: any = await $api.dbTableSort.create(view.value?.id as string, {
         fk_column_id: column!.id,
         direction,
+        push_to_top: true,
       })
 
       sorts.value = [...sorts.value.filter((_, index) => index !== existingSortIndex), data as SortType]

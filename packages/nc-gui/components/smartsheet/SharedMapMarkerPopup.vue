@@ -10,7 +10,6 @@ import {
   IsFormInj,
   IsGridInj,
   MetaInj,
-  PaginationDataInj,
   ReloadRowDataHookInj,
   ReloadViewDataHookInj,
   inject,
@@ -31,11 +30,10 @@ const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
-const { loadData, paginationData, changePage } = useViewData(meta, view)
+const { loadData, changePage } = useViewData(meta, view)
 
 provide(IsFormInj, ref(false))
 provide(IsGridInj, ref(false))
-provide(PaginationDataInj, paginationData)
 provide(ChangePageInj, changePage)
 
 const fields = inject(FieldsInj, ref([]))

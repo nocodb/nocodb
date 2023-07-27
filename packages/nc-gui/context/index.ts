@@ -1,4 +1,4 @@
-import type { ColumnType, ProjectType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import type { useViewData } from '#imports'
@@ -10,8 +10,6 @@ export const RowInj: InjectionKey<Ref<Row>> = Symbol('row')
 export const ColumnInj: InjectionKey<Ref<ColumnType>> = Symbol('column-injection')
 export const MetaInj: InjectionKey<ComputedRef<TableType> | Ref<TableType>> = Symbol('meta-injection')
 export const TabMetaInj: InjectionKey<ComputedRef<TabItem> | Ref<TabItem>> = Symbol('tab-meta-injection')
-export const PaginationDataInj: InjectionKey<ReturnType<typeof useViewData>['paginationData']> =
-  Symbol('pagination-data-injection')
 export const ChangePageInj: InjectionKey<ReturnType<typeof useViewData>['changePage']> = Symbol('pagination-data-injection')
 export const IsFormInj: InjectionKey<Ref<boolean>> = Symbol('is-form-injection')
 export const IsSurveyFormInj: InjectionKey<Ref<boolean>> = Symbol('is-survey-form-injection')

@@ -14,7 +14,6 @@ import {
   MetaInj,
   NavigateDir,
   OpenNewRecordFormHookInj,
-  PaginationDataInj,
   ReadonlyInj,
   ReloadRowDataHookInj,
   ReloadViewDataHookInj,
@@ -450,8 +449,6 @@ provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(false))
 
 provide(IsGridInj, ref(true))
-
-provide(PaginationDataInj, paginationData)
 
 provide(ChangePageInj, changePage)
 
@@ -1634,7 +1631,7 @@ const dummyDataForLoading = computed(() => {
     <div v-if="isViewDataLoading" class="flex flex-row justify-center item-center min-h-10 border-t-1 border-gray-75">
       <a-skeleton :active="true" :title="true" :paragraph="false" class="-mt-1 max-w-60" />
     </div>
-    <LazySmartsheetPagination v-else align-count-on-right>
+    <LazySmartsheetPagination v-else v-model:pagination-data="paginationData" align-count-on-right>
       <template #add-record>
         <div v-if="isAddingEmptyRowAllowed" class="flex ml-2">
           <a-dropdown-button @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()">
@@ -1732,6 +1729,7 @@ const dummyDataForLoading = computed(() => {
       <LazyDlgBulkUpdate
         v-if="bulkUpdateDlg"
         v-model="bulkUpdateDlg"
+        :pagination-data="paginationData"
         :meta="meta"
         :view="view"
         :bulk-update-rows="bulkUpdateRows"

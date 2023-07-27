@@ -1,23 +1,14 @@
 <script setup lang="ts">
-import type { TableType, ViewType } from 'nocodb-sdk'
+import type { PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
-import {
-  CellClickHookInj,
-  IsExpandedFormOpenInj,
-  IsFormInj,
-  MetaInj,
-  PaginationDataInj,
-  provide,
-  ref,
-  toRef,
-  useVModel,
-} from '#imports'
+import { CellClickHookInj, IsExpandedFormOpenInj, IsFormInj, MetaInj, provide, ref, toRef, useVModel } from '#imports'
 import type { Row } from '~/lib'
 
 interface Props {
   modelValue: boolean
   meta: TableType
+  paginationData: PaginatedType
   view?: ViewType
   bulkUpdateRows?: Function
   bulkUpdateView?: Function
@@ -78,13 +69,11 @@ const fields = computed(() => {
   )
 })
 
-const paginatedData = inject(PaginationDataInj)!
-
 const editCount = computed(() => {
   if (updateMode.value === BulkUpdateMode.SELECTED) {
     return props.rows!.length
   } else {
-    return paginatedData.value?.totalRows ?? Infinity
+    return props.paginationData.totalRows ?? Infinity
   }
 })
 

@@ -276,11 +276,11 @@ onClickOutside(wrapperRef, () => {
             @click="() => onPageClick(page)"
             @mouseenter="($event) => onMouseOver($event, index)"
           >
-            <GeneralEmojiPicker :key="page.icon" :emoji="page.icon" size="small" :readonly="true">
+            <LazyGeneralEmojiPicker :key="page.icon" :emoji="page.icon" size="small" :readonly="true">
               <template #default>
                 <MdiFileDocumentOutline class="text-gray-600 text-sm" />
               </template>
-            </GeneralEmojiPicker>
+            </LazyGeneralEmojiPicker>
 
             <div class="flex">
               {{ page.title }}

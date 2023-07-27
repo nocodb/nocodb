@@ -138,9 +138,9 @@ watch(
       >
         <div class="flex w-full flex-row py-1.5 px-2.5 hover:bg-gray-50 items-center gap-x-2.5 cursor-pointer group">
           <div class="relative">
-            <GeneralEmojiPicker :key="page.icon" :emoji="page.icon" :readonly="true" size="small">
+            <LazyGeneralEmojiPicker :key="page.icon" :emoji="page.icon" :readonly="true" size="small">
               <MdiFileDocumentOutline class="text-black -mt-0.5 text-md" />
-            </GeneralEmojiPicker>
+            </LazyGeneralEmojiPicker>
 
             <div
               class="absolute -right-2"

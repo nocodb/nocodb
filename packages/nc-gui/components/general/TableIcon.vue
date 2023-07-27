@@ -8,7 +8,7 @@ const { meta: tableMeta } = defineProps<{
 </script>
 
 <template>
-  <GeneralEmojiPicker
+  <LazyGeneralEmojiPicker
     v-if="tableMeta.meta?.icon"
     :data-testid="`nc-emoji-${tableMeta.meta?.icon}`"
     class="text-lg"

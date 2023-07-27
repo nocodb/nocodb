@@ -406,7 +406,7 @@ onKeyStroke('Escape', () => {
                 :indicator="indicator"
               />
 
-              <GeneralEmojiPicker
+              <LazyGeneralEmojiPicker
                 :key="project.meta?.icon"
                 :emoji="project.meta?.icon"
                 :readonly="!isUIAllowed('projectIconCustomisation', false, projectRole)"
@@ -416,7 +416,7 @@ onKeyStroke('Escape', () => {
                 <template #default>
                   <GeneralProjectIcon :type="project.type" />
                 </template>
-              </GeneralEmojiPicker>
+              </LazyGeneralEmojiPicker>
             </div>
           </div>
 

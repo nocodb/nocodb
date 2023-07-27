@@ -314,7 +314,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
         <template v-if="column.dataIndex === 'title'">
           <div class="flex items-center nc-project-title gap-2.5 max-w-full -ml-1.5">
             <div class="flex items-center gap-2 text-center">
-              <GeneralEmojiPicker
+              <LazyGeneralEmojiPicker
                 :key="record.id"
                 :emoji="record.meta?.icon"
                 size="small"
@@ -322,7 +322,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                 @emoji-selected="setIcon($event, record)"
               >
                 <GeneralProjectIcon :type="record.type" />
-              </GeneralEmojiPicker>
+              </LazyGeneralEmojiPicker>
               <!-- todo: replace with switch -->
             </div>
 

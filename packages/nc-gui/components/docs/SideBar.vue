@@ -199,7 +199,7 @@ function onExpandClick(id: string, expanded: boolean) {
                   color="#000000"
                 >
                   <template #content> Change Icon </template>
-                  <GeneralEmojiPicker
+                  <LazyGeneralEmojiPicker
                     :key="page.icon"
                     :emoji="page.icon"
                     size="small"
@@ -215,7 +215,7 @@ function onExpandClick(id: string, expanded: boolean) {
                         }"
                       />
                     </template>
-                  </GeneralEmojiPicker>
+                  </LazyGeneralEmojiPicker>
                 </a-popover>
               </div>
               <span

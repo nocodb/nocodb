@@ -42,11 +42,11 @@ jobs:
         with:
           # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/.npm
-          key: ${{ runner.os }}-aws-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-hetzner-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-aws-build-${{ env.cache-name }}-
-            ${{ runner.os }}-aws-build-
-            ${{ runner.os }}-aws
+            ${{ runner.os }}-hetzner-build-${{ env.cache-name }}-
+            ${{ runner.os }}-hetzner-build-
+            ${{ runner.os }}-hetzner
       - name: setup pg
         working-directory: ./
         run: docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &
@@ -100,9 +100,9 @@ jobs:
         with:
           path: |
             **/tests/playwright/node_modules
-          key: cache-aws-nc-playwright-${{ hashFiles('**/tests/playwright/package-lock.json') }}
+          key: cache-hetzner-nc-playwright-${{ hashFiles('**/tests/playwright/package-lock.json') }}
           restore-keys: |
-            cache-aws-nc-playwright-
+            cache-hetzner-nc-playwright-
       - name: Install dependencies
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: ./tests/playwright

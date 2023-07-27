@@ -67,21 +67,21 @@ jobs:
         - name: run unit tests
           working-directory: ./packages/nocodb
           run: npm run test:unit:pg
-#    playwright-pg-shard-1:
-#      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-#      uses: ./.github/workflows/playwright-test-workflow.yml
-#      with:
-#        db: pg
-#        shard: 1
-#    playwright-pg-shard-2:
-#      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-#      uses: ./.github/workflows/playwright-test-workflow.yml
-#      with:
-#        db: pg
-#        shard: 2
-#    playwright-pg-shard-3:
-#      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-#      uses: ./.github/workflows/playwright-test-workflow.yml
-#      with:
-#        db: pg
-#        shard: 3
+    playwright-pg-shard-1:
+      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+      uses: ./.github/workflows/playwright-test-workflow.yml
+      with:
+        db: pg
+        shard: 1
+    playwright-pg-shard-2:
+      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+      uses: ./.github/workflows/playwright-test-workflow.yml
+      with:
+        db: pg
+        shard: 2
+    playwright-pg-shard-3:
+      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+      uses: ./.github/workflows/playwright-test-workflow.yml
+      with:
+        db: pg
+        shard: 3

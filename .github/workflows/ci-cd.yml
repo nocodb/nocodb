@@ -18,6 +18,7 @@ on:
             - "packages/nc-gui/**"
             - "packages/nocodb/**"
             - ".github/workflows/ci-cd.yml"
+            - ".github/workflows/playwright-test-workflow.yml"            
             - "tests/playwright/**"
 
 concurrency:

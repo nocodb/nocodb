@@ -77,7 +77,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
     const projectType = (route.params.projectType as string) || 'nc'
 
     await navigateTo({
-      path: `/ws/${workspaceId}/${projectType}/${project.id!}/table/${table?.id}${table.title ? `/${table.title}` : ''}`,
+      path: `/ws/${workspaceId}/${projectType}/${project.id!}/table/${table?.id}`,
       query: route.query,
     })
   }

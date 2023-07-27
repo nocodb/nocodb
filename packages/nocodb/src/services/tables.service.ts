@@ -71,7 +71,7 @@ export class TablesService {
       );
     }
 
-    if (base.is_meta && project.prefix) {
+    if (base.is_meta && project.prefix && !base.is_local) {
       if (!param.table.table_name.startsWith(project.prefix)) {
         param.table.table_name = `${project.prefix}${param.table.table_name}`;
       }
@@ -143,6 +143,7 @@ export class TablesService {
       ...param.table,
       tn: param.table.table_name,
       tn_old: model.table_name,
+      schema: base.getConfig()?.schema,
     });
 
     this.appHooksService.emit(AppEvents.TABLE_UPDATE, {

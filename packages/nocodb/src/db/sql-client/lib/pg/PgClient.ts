@@ -3147,5 +3147,63 @@ class PGClient extends KnexClient {
     }
     return result;
   }
+
+  /**
+   *
+   * @param {Object} - args
+   * @param {String} - args.tn
+   * @param {String} - args.tn_old
+   * @returns {Promise<{upStatement, downStatement}>}
+   */
+  async tableRename(args) {
+    const _func = this.tableCreate.name;
+    const result = new Result();
+    log.api(`${_func}:args:`, args);
+
+    try {
+      args.table = args.tn;
+
+      /** ************** create table *************** */
+      await this.sqlClient.schema.renameTable(
+        this.sqlClient.raw('??.??', [args.schema || this.schema, args.tn_old]),
+        args.tn,
+      );
+
+      /** ************** create up & down statements *************** */
+      const upStatement =
+        this.querySeparator() +
+        this.sqlClient.schema
+          .renameTable(
+            this.sqlClient.raw('??.??', [args.schema || this.schema, args.tn]),
+            args.tn_old,
+          )
+          .toQuery();
+
+      this.emit(`Success : ${upStatement}`);
+
+      const downStatement =
+        this.querySeparator() +
+        this.sqlClient.schema
+          .renameTable(
+            this.sqlClient.raw('??.??', [
+              args.schema || this.schema,
+              args.tn_old,
+            ]),
+            args.tn,
+          )
+          .toQuery();
+
+      /** ************** return files *************** */
+      result.data.object = {
+        upStatement: [{ sql: upStatement }],
+        downStatement: [{ sql: downStatement }],
+      };
+    } catch (e) {
+      log.ppe(e, _func);
+      throw e;
+    }
+
+    return result;
+  }
 }
 export default PGClient;

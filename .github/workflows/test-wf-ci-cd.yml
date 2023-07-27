@@ -11,13 +11,13 @@ on:
       before_cache_wait_time:
         description: 'waiting time before caching, used for debugging'
         required: false
-        type: number
-        default: 600
+        type: string
+        default: '600'
       after_cache_wait_time:
         description: 'waiting time after caching, used for debugging'
         required: false
-        type: number
-        default: 600
+        type: string
+        default: '600'
       run_ut:
         description: 'run unit tests or skip'
         required: false
@@ -84,6 +84,8 @@ jobs:
       with:
         db: pg
         shard: 1
+        after_cache_wait_time: ${{ inputs.after_cache_wait_time }}
+        before_cache_wait_time: ${{ inputs.before_cache_wait_time }}        
     playwright-pg-shard-2:
       if: ${{ inputs.run_s2 == 'true' }}
       uses: ./.github/workflows/test-playwright-test-workflow.yml

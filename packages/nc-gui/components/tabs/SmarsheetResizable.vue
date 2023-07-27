@@ -2,19 +2,21 @@
 import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 
-const { isRightSidebarOpen, isLeftSidebarOpen, leftSidebarWidthPercent } = storeToRefs(useSidebarStore())
+const {
+  isRightSidebarOpen,
+  isLeftSidebarOpen,
+  leftSidebarWidthPercent,
+  rightSidebarSize: sideBarSize,
+} = storeToRefs(useSidebarStore())
 const wrapperRef = ref<HTMLDivElement>()
 const splitpaneWrapperRef = ref()
-const sideBarSize = ref({
-  old: 20,
-  current: 20,
-})
+
 const contentSize = computed(() => 100 - sideBarSize.value.current)
-const isSidebarShort = ref(false)
+const isSidebarShort = ref(!isRightSidebarOpen.value)
 const animationDuration = 300
 const contentDomWidth = ref(window.innerWidth)
 const isMouseOverShowSidebarZone = ref(false)
-const isAnimationEndAfterSidebarHide = ref(false)
+const isAnimationEndAfterSidebarHide = ref(!isRightSidebarOpen.value)
 const isStartHideSidebarAnimation = ref(false)
 const isLeftSidebarAnimating = ref(false)
 
@@ -27,7 +29,7 @@ const currentSidebarSize = computed({
   },
 })
 
-const isSidebarHidden = ref(false)
+const isSidebarHidden = ref(!isRightSidebarOpen.value)
 
 watch(isRightSidebarOpen, () => {
   sideBarSize.value.current = sideBarSize.value.old
@@ -58,6 +60,7 @@ watch(isRightSidebarOpen, () => {
 
 function handleMouseMove(e: MouseEvent) {
   if (!wrapperRef.value) return
+
   if (isRightSidebarOpen.value && !isSidebarHidden.value && !isMouseOverShowSidebarZone.value) return
   if (isRightSidebarOpen.value) {
     isSidebarHidden.value = false

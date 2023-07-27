@@ -1,4 +1,4 @@
-import { expect } from '@playwright/test';
+import { expect, Locator } from '@playwright/test';
 import BasePage from '../../../Base';
 import { ToolbarFieldsPage } from './Fields';
 import { ToolbarSortPage } from './Sort';
@@ -205,7 +205,7 @@ export class ToolbarPage extends BasePage {
   }
 
   async clickAddEditStack() {
-    await this.get().locator(`.nc-kanban-add-edit-stack-menu-btn`).click();
+    await this.get().locator(`.nc-kanban-stacked-by-menu-btn`).click();
   }
 
   async validateViewsMenu(param: { role: string; mode?: string }) {

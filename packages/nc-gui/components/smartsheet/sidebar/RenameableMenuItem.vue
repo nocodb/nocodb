@@ -18,6 +18,7 @@ import {
 interface Props {
   view: ViewType
   onValidate: (view: ViewType) => boolean | string
+  disabled: boolean
 }
 
 interface Emits {
@@ -48,8 +49,16 @@ const activeView = inject(ActiveViewInj, ref())
 
 const isLocked = inject(IsLockedInj, ref(false))
 
+const _isEditing = ref(false)
 /** Is editing the view name enabled */
-let isEditing = $ref<boolean>(false)
+const isEditing = computed({
+  get: () => !props.disabled && _isEditing.value,
+  set: (value) => {
+    if (props.disabled) return
+
+    _isEditing.value = value
+  },
+})
 
 /** Helper to check if editing was disabled before the view navigation timeout triggers */
 let isStopped = $ref(false)
@@ -59,7 +68,7 @@ let originalTitle = $ref<string | undefined>()
 
 /** Debounce click handler, so we can potentially enable editing view name {@see onDblClick} */
 const onClick = useDebounceFn(() => {
-  if (isEditing || isStopped) return
+  if (isEditing.value || isStopped) return
 
   emits('changeView', vModel.value)
 }, 250)
@@ -67,9 +76,10 @@ const onClick = useDebounceFn(() => {
 /** Enable editing view name on dbl click */
 function onDblClick() {
   if (!isUIAllowed('virtualViewsCreateOrEdit')) return
+  if (props.disabled) return
 
-  if (!isEditing) {
-    isEditing = true
+  if (!isEditing.value) {
+    isEditing.value = true
     originalTitle = vModel.value.title
     $e('c:view:rename', { view: vModel.value?.type })
   }
@@ -101,7 +111,7 @@ function onKeyEsc(event: KeyboardEvent) {
 }
 
 onKeyStroke('Enter', (event) => {
-  if (isEditing) {
+  if (isEditing.value) {
     onKeyEnter(event)
   }
 })
@@ -128,7 +138,7 @@ async function onDelete() {
 
 /** Rename a view */
 async function onRename() {
-  if (!isEditing) return
+  if (!isEditing.value) return
 
   const isValid = props.onValidate(vModel.value)
 
@@ -151,7 +161,7 @@ async function onRename() {
 
 /** Cancel renaming view */
 function onCancel() {
-  if (!isEditing) return
+  if (!isEditing.value) return
 
   vModel.value.title = originalTitle || ''
   onStopEdit()
@@ -160,7 +170,7 @@ function onCancel() {
 /** Stop editing view name, timeout makes sure that view navigation (click trigger) does not pick up before stop is done */
 function onStopEdit() {
   isStopped = true
-  isEditing = false
+  isEditing.value = false
   originalTitle = ''
 
   setTimeout(() => {
@@ -192,7 +202,7 @@ function onStopEdit() {
       </div>
 
       <a-input
-        v-if="isEditing"
+        v-if="isEditing && !props.disabled"
         :ref="focusInput"
         v-model:value="vModel.title"
         class="!bg-transparent !text-xs !border-0 !ring-0 !outline-transparent !border-transparent"

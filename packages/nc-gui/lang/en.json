@@ -52,6 +52,7 @@
     "edit": "Edit",
     "remove": "Remove",
     "save": "Save",
+    "saving": "Saving",
     "cancel": "Cancel",
     "clear": "Clear",
     "submit": "Submit",
@@ -118,7 +119,10 @@
     "sortAsc": "Sort Ascending",
     "sortDesc": "Sort Descending",
     "move": "Move",
-    "geoDataField": "GeoData Field"
+    "geoDataField": "GeoData Field",
+    "type": "Type",
+    "name": "Name",
+    "changes": "Changes"
   },
   "objects": {
     "workspace": "Workspace",

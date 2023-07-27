@@ -12,10 +12,10 @@ on:
         type: string
       after_cache_wait_time:
         required: true
-        type: number
+        type: string
       before_cache_wait_time:
         required: true
-        type: number
+        type: string
 
 jobs:
   playwright:
@@ -40,6 +40,11 @@ jobs:
           node-version: 16.15.0
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Custom LOG Messages Before Run
+        run: |
+          echo node version : $(node -v) located at $(which node)
+          echo npm version : $(npm -v) located at $(which npm)    
+          echo "cache size $(npm cache ls | wc -l)"
       - name: Pause Before Cache
         run: sleep ${{ inputs.before_cache_wait_time }}
       - name: Cache node modules
@@ -62,11 +67,16 @@ jobs:
         run: export CI=true
       - name: Set Node env
         run: export NODE_OPTIONS=\"--max_old_space_size=16384\";
+      - name: Custom LOG Messages Before Run
+        run: |
+          echo "cache size $(npm cache ls | wc -l)"       
       - name: install dependencies nocodb-sdk
         working-directory: ./packages/nocodb-sdk
         run: npm install
       - name: Pause After Cache
-        run: sleep ${{ inputs.before_cache_wait_time }}        
+        run: |
+          echo "cache size $(npm cache ls | wc -l)"
+          sleep ${{ inputs.after_cache_wait_time }}        
       - name: build nocodb-sdk
         working-directory: ./packages/nocodb-sdk
         run: npm run build
@@ -89,9 +99,14 @@ jobs:
       - name: Run backend
         if: ${{ inputs.db == 'sqlite' }}
         working-directory: ./packages/nocodb
-        run: |
+        run: |          
           npm install
           npm run watch:run:playwright > ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+      - name: Custom LOG Messages 
+        run: |
+          echo node version : $(node -v) located at $(which node)
+          echo npm version : $(npm -v) located at $(which npm)    
+          echo "cache size $(npm cache ls | wc -l)"        
       - name: Run backend:mysql
         if: ${{ inputs.db == 'mysql' }}
         working-directory: ./packages/nocodb
@@ -111,6 +126,11 @@ jobs:
           path: |
             **/tests/playwright/node_modules
           key: cache-aws-nc-playwright-${{ hashFiles('**/tests/playwright/package-lock.json') }}
+          restore-keys: |
+            cache-aws-nc-playwright-          
+      - name: Custom LOG Messages 
+        run: |
+          echo "cache size $(npm cache ls | wc -l)"                
       - name: Install dependencies
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: ./tests/playwright
@@ -127,7 +147,10 @@ jobs:
         timeout-minutes: 5
       - name: Run Playwright tests
         working-directory: ./tests/playwright
-        run: E2E_DB_TYPE=${{ inputs.db }} npm run ci:test:shard:${{ inputs.shard }}
+        run: |
+          echo "checking log file existence"
+          ls -ltr pw_tests.log || echo "pw_tests.log does not exists"
+          E2E_DB_TYPE=${{ inputs.db }} npm run ci:test:shard:${{ inputs.shard }} --verbose | tee pw_tests.log          
         timeout-minutes: 60
       # Stress test added/modified tests
       - name: Fetch develop branch

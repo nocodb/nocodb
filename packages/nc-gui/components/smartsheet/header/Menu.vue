@@ -42,6 +42,8 @@ const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
 
+const { insertSort } = useViewSorts(view, () => reloadDataHook?.trigger())
+
 const isLocked = inject(IsLockedInj)
 
 const { $api, $e } = useNuxtApp()
@@ -104,44 +106,11 @@ const setAsDisplayValue = async () => {
 }
 
 const sortByColumn = async (direction: 'asc' | 'desc') => {
-  try {
-    $e('a:sort:add', { from: 'column-menu' })
-    const data: any = await $api.dbTableSort.create(view.value?.id as string, {
-      fk_column_id: column!.value.id,
-      direction,
-      push_to_top: true,
-    })
-
-    addUndo({
-      redo: {
-        fn: async function redo(this: UndoRedoAction) {
-          const data: any = await $api.dbTableSort.create(view.value?.id as string, {
-            fk_column_id: column!.value.id,
-            direction,
-            push_to_top: true,
-          })
-          this.undo.args = [data.id]
-          eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
-          reloadDataHook?.trigger()
-        },
-        args: [],
-      },
-      undo: {
-        fn: async function undo(id: string) {
-          await $api.dbTableSort.delete(id)
-          eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
-          reloadDataHook?.trigger()
-        },
-        args: [data.id],
-      },
-      scope: defineViewScope({ view: view.value }),
-    })
-
-    eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
-    reloadDataHook?.trigger()
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
+  await insertSort({
+    column: column!.value,
+    direction,
+    reloadDataHook,
+  })
 }
 
 const duplicateColumn = async () => {

@@ -21,6 +21,8 @@ const { showNull } = useGlobal()
 
 const editEnabled = inject(EditModeInj)
 
+const column = inject(ColumnInj, null)!
+
 const _vModel = useVModel(props, 'modelValue', emits)
 
 const vModel = computed({
@@ -39,6 +41,13 @@ const vModel = computed({
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
+
+const precision = computed(() => {
+  const meta = typeof column?.value.meta === 'string' ? JSON.parse(column.value.meta) : column?.value.meta ?? {}
+  const _precision = meta.precision ?? 1
+
+  return Number(0.1 ** _precision).toFixed(_precision)
+})
 </script>
 
 <template>
@@ -48,7 +57,7 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputEle
     v-model="vModel"
     class="outline-none px-2 border-none w-full h-full text-sm"
     type="number"
-    step="0.1"
+    :step="precision"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

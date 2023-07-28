@@ -33,7 +33,7 @@ const page = computed({
   <div class="flex items-center border-t-1 border-gray-75 h-10 nc-pagination-wrapper">
     <NcTooltip v-if="!isPublic" class="ml-2" placement="topLeft" hide-on-click>
       <template #title>
-        {{ isLeftSidebarOpen ? 'Hide Sidebar' : 'Show Sidebar' }}
+        {{ isLeftSidebarOpen ? 'Hide sidebar' : 'Show sidebar' }}
       </template>
       <div
         class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) hover:(bg-gray-50 border-gray-200) border-gray-100 group flex items-center justify-center rounded-md h-full px-2 h-7 cursor-pointer text-gray-400 hover:text-gray-700"

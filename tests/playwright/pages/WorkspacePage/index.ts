@@ -57,6 +57,7 @@ export class WorkspacePage extends BasePage {
   }
 
   async workspaceDelete({ title }) {
+    await this.waitFor({ state: 'visible' });
     await this.LeftSideBar.workspaceDelete({ title });
   }
 

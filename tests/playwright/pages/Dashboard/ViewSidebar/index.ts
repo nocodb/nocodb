@@ -88,6 +88,8 @@ export class ViewSidebarPage extends BasePage {
   }
 
   async openView({ title }: { title: string }) {
+    await this.get().waitFor({ state: 'visible' });
+    await this.get().locator(`[data-testid="view-sidebar-view-${title}"]`).waitFor({ state: 'visible' });
     await this.get().locator(`[data-testid="view-sidebar-view-${title}"]`).click();
   }
 

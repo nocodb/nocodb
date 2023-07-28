@@ -41,6 +41,7 @@ export class CollaborationPage extends BasePage {
 
     // role
     await this.selector_role.click();
+    await this.rootPage.waitForTimeout(500);
     await this.rootPage.locator(`.ant-select-item-option-content:has-text("${role}"):visible`).click();
 
     // submit

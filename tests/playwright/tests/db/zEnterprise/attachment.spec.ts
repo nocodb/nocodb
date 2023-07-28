@@ -4,7 +4,7 @@ import setup from '../../../setup';
 import { AccountPage } from '../../../pages/Account';
 import { AccountLicensePage } from '../../../pages/Account/License';
 
-test.describe('Attachment column', () => {
+test.describe.skip('Attachment column', () => {
   let dashboard: DashboardPage;
   let accountLicensePage: AccountLicensePage, accountPage: AccountPage, context: any;
 

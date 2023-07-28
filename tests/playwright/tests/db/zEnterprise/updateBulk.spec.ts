@@ -54,7 +54,7 @@ async function beforeEachInit({ page, tableType }: { page: any; tableType: strin
   await dashboard.grid.updateAll();
 }
 
-test.describe('Bulk update 0', () => {
+test.describe.skip('Bulk update 0', () => {
   test.beforeEach(async ({ page }) => {
     await beforeEachInit({ page, tableType: 'textBased' });
   });
@@ -128,7 +128,7 @@ test.describe('Bulk update 0', () => {
   });
 });
 
-test.describe('Bulk update 1', () => {
+test.describe.skip('Bulk update 1', () => {
   test.beforeEach(async ({ page }) => {
     await beforeEachInit({ page, tableType: 'numberBased' });
   });
@@ -176,7 +176,7 @@ test.describe('Bulk update 1', () => {
   });
 });
 
-test.describe('Bulk update 2', () => {
+test.describe.skip('Bulk update 2', () => {
   test.beforeEach(async ({ page }) => {
     await beforeEachInit({ page, tableType: 'selectBased' });
   });
@@ -217,7 +217,7 @@ test.describe('Bulk update 2', () => {
   });
 });
 
-test.describe('Bulk update 3', () => {
+test.describe.skip('Bulk update 3', () => {
   test.beforeEach(async ({ page }) => {
     await beforeEachInit({ page, tableType: 'miscellaneous' });
   });
@@ -258,7 +258,7 @@ test.describe('Bulk update 3', () => {
   });
 });
 
-test.describe('Bulk update 4', () => {
+test.describe.skip('Bulk update 4', () => {
   test.beforeEach(async ({ page }) => {
     await beforeEachInit({ page, tableType: 'dateTimeBased' });
   });

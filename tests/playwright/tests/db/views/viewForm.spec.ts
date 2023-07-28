@@ -435,6 +435,7 @@ test.describe('Form view', () => {
     });
 
     await dashboard.rootPage.reload();
+    await dashboard.rootPage.waitForTimeout(100);
 
     await dashboard.treeView.openTable({ title: 'selectBased' });
     const url = dashboard.rootPage.url();
@@ -476,7 +477,8 @@ test.describe('Form view', () => {
       multiSelect: false,
     });
 
-    await dashboard.grid.cell.selectOption.verifyOptions({
+    await dashboard.grid.cell.selectOption.verifySelectedOptions({
+      index: 0,
       columnHeader: 'MultiSelect',
       options: ['jan', 'feb', 'mar'],
     });

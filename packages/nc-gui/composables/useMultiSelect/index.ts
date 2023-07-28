@@ -232,7 +232,6 @@ export function useMultiSelect(
   }
 
   async function copyValue(ctx?: Cell) {
-    console.log('copyValue', ctx)
     try {
       if (selectedRange.start !== null && selectedRange.end !== null && !selectedRange.isSingleCell()) {
         const cprows = unref(data).slice(selectedRange.start.row, selectedRange.end.row + 1) // slice the selected rows for copy
@@ -731,12 +730,13 @@ export function useMultiSelect(
 
     e.preventDefault()
 
+    // Replace \" with " in clipboard data
     const clipboardData = e.clipboardData?.getData('text/plain') || ''
 
     try {
       if (clipboardData?.includes('\n') || clipboardData?.includes('\t')) {
         // if the clipboard data contains new line or tab, then it is a matrix or LongText
-        const parsedClipboard = parse(clipboardData, { delimiter: '\t' })
+        const parsedClipboard = parse(clipboardData, { delimiter: '\t', escapeChar: '\\' })
 
         if (parsedClipboard.errors.length > 0) {
           throw new Error(parsedClipboard.errors[0].message)
@@ -894,6 +894,7 @@ export function useMultiSelect(
         }
       }
     } catch (error: any) {
+      console.error(error)
       message.error(await extractSdkResponseErrorMsg(error))
     }
   }

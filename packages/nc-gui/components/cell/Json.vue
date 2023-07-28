@@ -66,8 +66,15 @@ const clear = () => {
 
 const formatJson = (json: string) => {
   try {
-    return JSON.stringify(JSON.parse(json), null, 2)
+    json = json
+      .trim()
+      .replace(/^\{\s*|\s*\}$/g, '')
+      .replace(/\n\s*/g, '')
+    json = `{${json}}`
+
+    return json
   } catch (e) {
+    console.log(e)
     return json
   }
 }
@@ -85,18 +92,23 @@ const onSave = () => {
 watch(
   vModel,
   (val) => {
-    localValue.value = val
+    try {
+      localValue.value = typeof val === 'string' ? JSON.stringify(JSON.parse(val), null, 2) : val
+    } catch (e) {
+      localValue.value = val
+    }
   },
   { immediate: true },
 )
 
-watch(localValue, (val) => {
+watch([localValue, editEnabled], () => {
   try {
-    JSON.parse(JSON.stringify(val as string))
+    JSON.parse(localValue.value as string)
 
     error = undefined
   } catch (e: any) {
-    console.error(e)
+    if (localValue.value === undefined) return
+
     error = e
   }
 })

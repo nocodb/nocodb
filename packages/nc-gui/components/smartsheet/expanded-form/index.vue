@@ -3,6 +3,7 @@ import type { TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import {
+  ActiveViewInj,
   CellClickHookInj,
   FieldsInj,
   IsExpandedFormOpenInj,
@@ -20,7 +21,9 @@ import {
   useProvideExpandedFormStore,
   useProvideSmartsheetStore,
   useRouter,
+  useSmartsheetStoreOrThrow,
   useVModel,
+  useViewData,
   watch,
 } from '#imports'
 import { useActiveKeyupListener } from '~/composables/useSelectedCellKeyupListener'
@@ -204,6 +207,52 @@ const addNewRow = () => {
   }, 500)
 }
 
+const view = inject(ActiveViewInj, ref())
+const { xWhere } = useSmartsheetStoreOrThrow()
+
+const { loadData: loadFullData, formattedData } = useViewData(meta, view, xWhere)
+
+loadFullData()
+
+const checkIfValidUUID = (str: string): boolean => {
+  // Regular expression to check if string is a valid UUID
+  const regexExp = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi
+
+  return regexExp.test(str)
+}
+
+const generateUUID = () => {
+  let uuid = ''
+
+  for (let i = 0; i < 32; i++) {
+    const randomNumber = (Math.random() * 16) | 0
+    const value = i === 8 || i === 12 || i === 16 || i === 20 ? '-' : ''
+    uuid += (i === 12 ? 4 : i === 16 ? (randomNumber & 3) | 8 : randomNumber).toString(16) + value
+  }
+
+  return uuid
+}
+
+const uuidColTitle = ref()
+
+watch([formattedData], () => {
+  if (formattedData) {
+    uuidColTitle.value = [
+      ...new Set(
+        formattedData.value
+          .map((item: any) => {
+            const keys = Object.keys(item.row)
+            return keys.filter((key) => checkIfValidUUID(item.row[key]))
+          })
+          .flat(),
+      ),
+    ]
+    uuidColTitle.value.forEach((title: string) => {
+      row.value.row[title] = generateUUID()
+    })
+  }
+})
+
 // attach keyboard listeners to switch between rows
 // using alt + left/right arrow keys
 useActiveKeyupListener(
@@ -348,6 +397,12 @@ export default {
                   :active="true"
                   @update:model-value="changedColumns.add(col.title)"
                 />
+                <!-- {{ 
+                  formattedData && (
+                    formattedData.filter((item) => item.)
+                  )
+                  JSON.stringify({ isUuid: formattedData.ma })
+                }} -->
               </LazySmartsheetDivDataCell>
             </div>
           </div>

@@ -477,7 +477,8 @@ test.describe('Form view', () => {
       multiSelect: false,
     });
 
-    await dashboard.grid.cell.selectOption.verifyOptions({
+    await dashboard.grid.cell.selectOption.verifySelectedOptions({
+      index: 0,
       columnHeader: 'MultiSelect',
       options: ['jan', 'feb', 'mar'],
     });

@@ -122,19 +122,10 @@ export class SelectOptionCellPageObject extends BasePage {
     }
 
     await this.get({ index, columnHeader }).click();
+    await this.rootPage.waitForTimeout(500);
 
     let counter = 0;
     for (const option of options) {
-      let retryCounter = 0;
-      while (retryCounter < 5) {
-        await this.rootPage.locator(`div.ant-select-item-option`).waitFor({ state: 'visible' });
-        await this.rootPage.locator(`div.ant-select-item-option`).nth(counter).waitFor({ state: 'visible' });
-        const optionText = await this.rootPage.locator(`div.ant-select-item-option`).nth(counter).innerText();
-        if (optionText.includes(option)) break;
-        retryCounter++;
-        await this.rootPage.waitForTimeout(100 * retryCounter);
-      }
-
       await expect(this.rootPage.locator(`div.ant-select-item-option`).nth(counter)).toHaveText(option);
       counter++;
     }
@@ -186,6 +177,7 @@ export class SelectOptionCellPageObject extends BasePage {
     index: number;
   }) {
     const selectCell = this.get({ index, columnHeader });
+    await selectCell.click();
 
     let counter = 0;
     for (const option of options) {

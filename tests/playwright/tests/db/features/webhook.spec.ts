@@ -50,7 +50,7 @@ async function verifyHookTrigger(count: number, value: string, request, expected
     if ((await response.json()) === count) {
       break;
     }
-    await new Promise(resolve => setTimeout(resolve, 150));
+    await new Promise(resolve => setTimeout(resolve, 300));
   }
   await expect(await response.json()).toBe(count);
 
@@ -61,10 +61,10 @@ async function verifyHookTrigger(count: number, value: string, request, expected
     for (let i = 0; i < 20; i++) {
       response = await request.get(hookPath + '/last');
       const rspJson = await response.json();
-      if (rspJson.data.rows[0].Title === value) {
+      if (rspJson?.data?.rows[0]?.Title === value) {
         break;
       }
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise(resolve => setTimeout(resolve, 300));
     }
     const rspJson = await response.json();
     await expect(rspJson?.data?.rows[0]?.Title).toBe(value);

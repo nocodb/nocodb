@@ -92,15 +92,11 @@ watch(
 
 watch(localValue, (val) => {
   try {
-    JSON.parse(val as string)
-
-    // To handle copy paste which will be string
-    if (typeof val === 'string') {
-      vModel.value = JSON.parse(val)
-    }
+    JSON.parse(JSON.stringify(val as string))
 
     error = undefined
   } catch (e: any) {
+    console.error(e)
     error = e
   }
 })

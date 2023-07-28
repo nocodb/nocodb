@@ -187,6 +187,16 @@ export default function convertCellData(
 
       return validVals.join(',')
     }
+    case UITypes.JSON: {
+      if (typeof value === 'string') {
+        try {
+          return JSON.parse(value)
+        } catch {}
+
+        return value
+      }
+      break
+    }
     case UITypes.LinkToAnotherRecord:
     case UITypes.Lookup:
     case UITypes.Rollup:

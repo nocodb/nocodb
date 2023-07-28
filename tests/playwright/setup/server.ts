@@ -7,7 +7,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 
 let request = [];
-const debugLog = true;
+const debugLog = false;
 
 async function makeServer() {
   const app = express();

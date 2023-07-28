@@ -1385,30 +1385,25 @@ class BaseModelSqlv2 {
 
             if (colOptions?.type === 'hm') {
               const listLoader = new DataLoader(async (ids: string[]) => {
-                try {
-                  if (ids.length > 1) {
-                    const data = await this.multipleHmList(
+                if (ids.length > 1) {
+                  const data = await this.multipleHmList(
+                    {
+                      colId: column.id,
+                      ids,
+                    },
+                    (listLoader as any).args,
+                  );
+                  return ids.map((id: string) => (data[id] ? data[id] : []));
+                } else {
+                  return [
+                    await this.hmList(
                       {
                         colId: column.id,
-                        ids,
+                        id: ids[0],
                       },
                       (listLoader as any).args,
-                    );
-                    return ids.map((id: string) => (data[id] ? data[id] : []));
-                  } else {
-                    return [
-                      await this.hmList(
-                        {
-                          colId: column.id,
-                          id: ids[0],
-                        },
-                        (listLoader as any).args,
-                      ),
-                    ];
-                  }
-                } catch (e) {
-                  console.log(e);
-                  return [];
+                    ),
+                  ];
                 }
               });
               const self: BaseModelSqlv2 = this;
@@ -1429,31 +1424,26 @@ class BaseModelSqlv2 {
               // });
             } else if (colOptions.type === 'mm') {
               const listLoader = new DataLoader(async (ids: string[]) => {
-                try {
-                  if (ids?.length > 1) {
-                    const data = await this.multipleMmList(
+                if (ids?.length > 1) {
+                  const data = await this.multipleMmList(
+                    {
+                      parentIds: ids,
+                      colId: column.id,
+                    },
+                    (listLoader as any).args,
+                  );
+
+                  return data;
+                } else {
+                  return [
+                    await this.mmList(
                       {
-                        parentIds: ids,
+                        parentId: ids[0],
                         colId: column.id,
                       },
                       (listLoader as any).args,
-                    );
-
-                    return data;
-                  } else {
-                    return [
-                      await this.mmList(
-                        {
-                          parentId: ids[0],
-                          colId: column.id,
-                        },
-                        (listLoader as any).args,
-                      ),
-                    ];
-                  }
-                } catch (e) {
-                  console.log(e);
-                  return [];
+                    ),
+                  ];
                 }
               });
 
@@ -1476,26 +1466,21 @@ class BaseModelSqlv2 {
                 colId: colOptions.fk_child_column_id,
               });
               const readLoader = new DataLoader(async (ids: string[]) => {
-                try {
-                  const data = await (
-                    await Model.getBaseModelSQL({
-                      id: pCol.fk_model_id,
-                      dbDriver: this.dbDriver,
-                    })
-                  ).list(
-                    {
-                      // limit: ids.length,
-                      where: `(${pCol.column_name},in,${ids.join(',')})`,
-                      fieldsSet: (readLoader as any).args?.fieldsSet,
-                    },
-                    true,
-                  );
-                  const gs = groupBy(data, pCol.title);
-                  return ids.map(async (id: string) => gs?.[id]?.[0]);
-                } catch (e) {
-                  console.log(e);
-                  return [];
-                }
+                const data = await (
+                  await Model.getBaseModelSQL({
+                    id: pCol.fk_model_id,
+                    dbDriver: this.dbDriver,
+                  })
+                ).list(
+                  {
+                    // limit: ids.length,
+                    where: `(${pCol.column_name},in,${ids.join(',')})`,
+                    fieldsSet: (readLoader as any).args?.fieldsSet,
+                  },
+                  true,
+                );
+                const gs = groupBy(data, pCol.title);
+                return ids.map(async (id: string) => gs?.[id]?.[0]);
               });
 
               // defining HasMany count method within GQL Type class

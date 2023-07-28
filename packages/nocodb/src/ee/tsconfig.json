@@ -23,7 +23,7 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "paths": {
-      "app.module" : ["./src/app.module.ts"],
+      "app.module" : ["./src/ee/app.module.ts"],
       "src/*": ["./src/*"],
       "~/*": ["./src/*"],
       "@/*": ["./src/*"]

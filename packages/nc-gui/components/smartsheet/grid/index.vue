@@ -16,6 +16,7 @@ import {
   message,
   provide,
   ref,
+  useProvideGridViewColumnWidth,
   useSmartsheetStoreOrThrow,
   useViewData,
 } from '#imports'
@@ -81,6 +82,8 @@ const rowHeight = computed(() => {
     }
   }
 })
+
+useProvideGridViewColumnWidth(view)
 
 provide(IsFormInj, ref(false))
 

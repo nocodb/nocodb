@@ -13,88 +13,100 @@ import {
   watch,
 } from '#imports'
 
-export function useGridViewColumnWidth(view: Ref<(ViewType & { columns?: GridColumnType[] }) | undefined>) {
-  const { css, load: loadCss, unload: unloadCss } = useStyleTag('')
+const [useProvideGridViewColumnWidth, useGridViewColumnWidth] = useInjectionState(
+  (view: Ref<(ViewType & { columns?: GridColumnType[] }) | undefined>) => {
+    const { css, load: loadCss, unload: unloadCss } = useStyleTag('')
 
-  const { isUIAllowed } = useUIPermission()
+    const { isUIAllowed } = useUIPermission()
 
-  const { $api } = useNuxtApp()
+    const { $api } = useNuxtApp()
 
-  const { metas } = useMetas()
+    const { metas } = useMetas()
 
-  const { addUndo, defineViewScope } = useUndoRedo()
+    const { addUndo, defineViewScope } = useUndoRedo()
 
-  const gridViewCols = ref<Record<string, GridColumnType>>({})
-  const resizingCol = ref<string | null>('')
-  const resizingColWidth = ref('200px')
-  const isPublic = inject(IsPublicInj, ref(false))
+    const gridViewCols = ref<Record<string, GridColumnType>>({})
+    const resizingCol = ref<string | null>('')
+    const resizingColWidth = ref('200px')
+    const isPublic = inject(IsPublicInj, ref(false))
 
-  const columns = computed<ColumnType[]>(() => metas.value?.[view.value?.fk_model_id as string]?.columns || [])
+    const columns = computed<ColumnType[]>(() => metas.value?.[view.value?.fk_model_id as string]?.columns || [])
 
-  watch(
-    [gridViewCols, resizingCol, resizingColWidth],
-    () => {
-      let style = ''
-      for (const c of columns?.value || []) {
-        const val = gridViewCols?.value?.[c?.id as string]?.width || '200px'
+    watch(
+      [gridViewCols, resizingCol, resizingColWidth],
+      () => {
+        let style = ''
+        for (const c of columns?.value || []) {
+          const val = gridViewCols?.value?.[c?.id as string]?.width || '200px'
 
-        if (val && c.title !== resizingCol?.value) {
-          style += `[data-col="${c.id}"]{min-width:${val};max-width:${val};width: ${val};}`
-        } else {
-          style += `[data-col="${c.id}"]{min-width:${resizingColWidth?.value};max-width:${resizingColWidth?.value};width: ${resizingColWidth?.value};}`
+          if (val && c.title !== resizingCol?.value) {
+            style += `[data-col="${c.id}"]{min-width:${val};max-width:${val};width: ${val};}`
+          } else {
+            style += `[data-col="${c.id}"]{min-width:${resizingColWidth?.value};max-width:${resizingColWidth?.value};width: ${resizingColWidth?.value};}`
+          }
         }
-      }
-      css.value = style
-    },
-    { deep: true, immediate: true },
-  )
-
-  const loadGridViewColumns = async () => {
-    if (!view.value?.id && !isPublic.value) return
-
-    const colsData: GridColumnType[] =
-      (isPublic.value ? view.value?.columns : await $api.dbView.gridColumnsList(view.value!.id!)) ?? []
-
-    gridViewCols.value = colsData.reduce<Record<string, GridColumnType>>(
-      (o, col) => ({
-        ...o,
-        [col.fk_column_id as string]: col,
-      }),
-      {},
+        css.value = style
+      },
+      { deep: true, immediate: true },
     )
-    loadCss()
-  }
 
-  /** when columns changes(create/delete) reload grid columns
-   * or when view changes reload columns width  */
-  watch([() => columns.value?.length, () => view?.value?.id], loadGridViewColumns)
+    const loadGridViewColumns = async () => {
+      if (!view.value?.id && !isPublic.value) return
 
-  const updateWidth = async (id: string, width: string, undo = false) => {
-    if (!undo) {
-      addUndo({
-        redo: {
-          fn: (w: string) => updateWidth(id, w, true),
-          args: [width],
-        },
-        undo: {
-          fn: (w: string) => updateWidth(id, w, true),
-          args: [gridViewCols.value[id].width],
-        },
-        scope: defineViewScope({ view: view.value }),
-      })
+      const colsData: GridColumnType[] =
+        (isPublic.value ? view.value?.columns : await $api.dbView.gridColumnsList(view.value!.id!)) ?? []
+
+      gridViewCols.value = colsData.reduce<Record<string, GridColumnType>>(
+        (o, col) => ({
+          ...o,
+          [col.fk_column_id as string]: col,
+        }),
+        {},
+      )
+      loadCss()
     }
 
-    if (gridViewCols?.value?.[id]) {
-      gridViewCols.value[id].width = width
+    /** when columns changes(create/delete) reload grid columns
+     * or when view changes reload columns width  */
+    watch([() => columns.value?.length, () => view?.value?.id], loadGridViewColumns)
+
+    const updateWidth = async (id: string, width: string, undo = false) => {
+      if (!undo) {
+        addUndo({
+          redo: {
+            fn: (w: string) => updateWidth(id, w, true),
+            args: [width],
+          },
+          undo: {
+            fn: (w: string) => updateWidth(id, w, true),
+            args: [gridViewCols.value[id].width],
+          },
+          scope: defineViewScope({ view: view.value }),
+        })
+      }
+
+      if (gridViewCols?.value?.[id]) {
+        gridViewCols.value[id].width = width
+      }
+
+      // sync with server if allowed
+      if (!isPublic.value && isUIAllowed('gridColUpdate') && gridViewCols.value[id]?.id) {
+        await $api.dbView.gridColumnUpdate(gridViewCols.value[id].id as string, {
+          width,
+        })
+      }
     }
 
-    // sync with server if allowed
-    if (!isPublic.value && isUIAllowed('gridColUpdate') && gridViewCols.value[id]?.id) {
-      await $api.dbView.gridColumnUpdate(gridViewCols.value[id].id as string, {
-        width,
-      })
-    }
-  }
+    return { loadGridViewColumns, updateWidth, resizingCol, resizingColWidth, loadCss, unloadCss }
+  },
+  'useGridViewColumnWidth',
+)
 
-  return { loadGridViewColumns, updateWidth, resizingCol, resizingColWidth, loadCss, unloadCss }
+export { useProvideGridViewColumnWidth }
+
+export function useGridViewColumnWidthOrThrow() {
+  const gridViewColumnWidth = useGridViewColumnWidth()
+  if (gridViewColumnWidth == null)
+    throw new Error('Please call `useProvideGridViewColumnWidth` on the appropriate parent component')
+  return gridViewColumnWidth
 }

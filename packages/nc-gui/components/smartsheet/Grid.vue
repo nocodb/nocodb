@@ -933,10 +933,10 @@ const refreshFillHandle = () => {
       cell.dataset.colIndex === String(isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col),
   )
   if (cellRef) {
-    const cellRect = useElementBounding(cellRef)
+    const cellRect = cellRef.getBoundingClientRect()
     if (!cellRect || !gridWrapper.value) return
-    fillHandleTop.value = cellRect.top.value + cellRect.height.value - gridRect.top.value + gridWrapper.value.scrollTop
-    fillHandleLeft.value = cellRect.left.value + cellRect.width.value - gridRect.left.value + gridWrapper.value.scrollLeft
+    fillHandleTop.value = cellRect.top + cellRect.height - gridRect.top.value + gridWrapper.value.scrollTop
+    fillHandleLeft.value = cellRect.left + cellRect.width - gridRect.left.value + gridWrapper.value.scrollLeft
   }
 }
 

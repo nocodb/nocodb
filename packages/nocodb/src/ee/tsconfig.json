@@ -11,8 +11,8 @@
     "allowSyntheticDefaultImports": true,
     "target": "es2017",
     "sourceMap": true,
-    "outDir": "./dist",
-    "baseUrl": "./",
+    "outDir": "../../dist",
+    "baseUrl": "../../",
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
@@ -23,7 +23,7 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "paths": {
-      "app.module" : ["./src/ee/app.module.ts"],
+      "~~/common/*": ["./src/ee/*"],
       "src/*": ["./src/*"],
       "~/*": ["./src/*"],
       "@/*": ["./src/*"]

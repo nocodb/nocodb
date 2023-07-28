@@ -89,8 +89,8 @@ import { CommandPaletteController } from '../../controllers/command-palette.cont
 import { CommandPaletteService } from '../../services/command-palette.service';
 import { NotificationsController } from '../../controllers/notifications.controller';
 import { NotificationsService } from '../../services/notifications.service';
-import { WorkspacesModule } from '../workspaces/workspaces.module';
-import { WorkspaceUsersModule } from '../workspace-users/workspace-users.module';
+// import { WorkspacesModule } from '../workspaces/workspaces.module';
+// import { WorkspaceUsersModule } from '../workspace-users/workspace-users.module';
 import { NotificationsGateway } from '../../gateways/notifications/notifications.gateway';
 import { ClickhouseService } from '../../services/clickhouse/clickhouse.service';
 import { ThrottlerExpiryListenerService } from '../../services/throttler/throttler-expiry-listener.service';
@@ -110,8 +110,8 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
       },
     }),
     GlobalModule,
-    WorkspacesModule,
-    WorkspaceUsersModule,
+    // WorkspacesModule,
+    // WorkspaceUsersModule,
   ],
   controllers: [
     ...(process.env.NC_WORKER_CONTAINER !== 'true'

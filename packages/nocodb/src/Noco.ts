@@ -11,7 +11,6 @@ import dotenv from 'dotenv';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import requestIp from 'request-ip';
 import cookieParser from 'cookie-parser';
-import { AppModule } from 'app.module';
 import { NC_LICENSE_KEY } from './constants';
 import Store from './models/Store';
 import { MetaTable } from './utils/globals';
@@ -21,6 +20,7 @@ import type { Express } from 'express';
 // import type * as http from 'http';
 
 import type http from 'http';
+import { AppModule } from '~~/common/app.module';
 
 dotenv.config();
 

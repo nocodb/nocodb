@@ -16,8 +16,8 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { AuthTokenStrategy } from './strategies/authtoken.strategy/authtoken.strategy';
 import { BaseViewStrategy } from './strategies/base-view.strategy/base-view.strategy';
 import { MetasModule } from './modules/metas/metas.module';
-import { WorkspacesModule } from './modules/workspaces/workspaces.module';
-import { WorkspaceUsersModule } from './modules/workspace-users/workspace-users.module';
+// import { WorkspacesModule } from './modules/workspaces/workspaces.module';
+// import { WorkspaceUsersModule } from './modules/workspace-users/workspace-users.module';
 import { JobsModule } from './modules/jobs/jobs.module';
 import { ThrottlerConfigService } from './services/throttler/throttler-config.service';
 import { CustomApiLimiterGuard } from './guards/custom-api-limiter.guard';
@@ -33,7 +33,7 @@ import type { MiddlewareConsumer } from '@nestjs/common';
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
 
-@Module({
+export const ceModuleConfig = {
   imports: [
     GlobalModule,
     UsersModule,
@@ -45,24 +45,24 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     NestJsEventEmitter.forRoot(),
 
     // todo:combine and move to meta module
-    WorkspacesModule,
-    WorkspaceUsersModule,
+    // WorkspacesModule,
+    // WorkspaceUsersModule,
     ConfigModule.forRoot({
       load: [() => appConfig],
       isGlobal: true,
     }),
     ...(enableThrottler
       ? [
-          ThrottlerModule.forRootAsync({
-            useClass: ThrottlerConfigService,
-            imports: [
-              ConfigModule.forRoot({
-                isGlobal: true,
-                load: [() => appConfig],
-              }),
-            ],
-          }),
-        ]
+        ThrottlerModule.forRootAsync({
+          useClass: ThrottlerConfigService,
+          imports: [
+            ConfigModule.forRoot({
+              isGlobal: true,
+              load: [() => appConfig],
+            }),
+          ],
+        }),
+      ]
       : []),
     TestModule,
   ],
@@ -88,7 +88,9 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     HookHandlerService,
     BasicStrategy,
   ],
-})
+}
+
+@Module(ceModuleConfig)
 export class AppModule {
   // Global Middleware
   configure(consumer: MiddlewareConsumer) {

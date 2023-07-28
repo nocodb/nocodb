@@ -18,7 +18,7 @@
     "ci:test": "npx playwright test --workers=2",
     "ci:test:shard:1": "npx playwright test --shard=1/3 --workers=4",
     "ci:test:shard:2": "npx playwright test --shard=2/3 --workers=4",
-    "ci:test:shard:3": "npx playwright test --shard=3/3 --workers=2",
+    "ci:test:shard:3": "npx playwright test --shard=3/3 --workers=3",
     "ci:test:mysql": "E2E_DB_TYPE=mysql npx playwright test --workers=2",
     "ci:test:pg": "E2E_DB_TYPE=pg npx playwright test --workers=2"
   },

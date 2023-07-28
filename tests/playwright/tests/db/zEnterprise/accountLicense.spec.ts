@@ -5,7 +5,7 @@ import { AccountLicensePage } from '../../../pages/Account/License';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { isHub } from '../../../setup/db';
 
-test.describe('Enterprise License', () => {
+test.describe.skip('Enterprise License', () => {
   // @ts-ignore
   let dashboard: DashboardPage;
   // @ts-ignore

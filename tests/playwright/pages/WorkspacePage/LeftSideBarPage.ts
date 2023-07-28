@@ -157,7 +157,13 @@ export class LeftSideBarPage extends BasePage {
 
     // GET will be triggered after DELETE
     await this.waitForResponse({
-      uiAction: () => this.rootPage.locator('button:has-text("Delete Workspace")').click(),
+      uiAction: () => {
+        // Create a promise that resolves after 1 second
+        const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+        // Returning a promise that resolves with the result after the 1-second delay
+        return delay(500).then(() => this.rootPage.locator('button:has-text("Delete Workspace")').click());
+      },
+      // uiAction: () => this.rootPage.locator('button:has-text("Delete Workspace")').click(),
       httpMethodsToMatch: ['GET'],
       requestUrlPathToMatch: `api/v1/workspaces/`,
     });

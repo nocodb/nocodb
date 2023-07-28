@@ -41,6 +41,12 @@ jobs:
       if: ${{ inputs.run_ut == 'true' }}
       timeout-minutes: 80
       steps:
+      - name: Custom LOG Messages 
+        run: |
+          echo "github.run_id : ${{ github.run_id }} "
+          echo "github.job_id : ${{ github.job_id }} "
+          echo "Job ID: $GITHUB_JOB"
+          echo "Run ID: $GITHUB_RUN_ID"
         - name: Setup Node
           uses: actions/setup-node@v3
           with:

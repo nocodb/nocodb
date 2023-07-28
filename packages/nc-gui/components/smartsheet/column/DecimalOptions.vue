@@ -7,7 +7,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:value'])
 
-const precisionFormats = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+const precisionFormats = [1, 2, 3, 4, 5, 6, 7, 8]
 
 const precisionFormatsDisplay = {
   1: '1.0',
@@ -18,7 +18,6 @@ const precisionFormatsDisplay = {
   6: '1.000000',
   7: '1.0000000',
   8: '1.00000000',
-  9: '1.000000000',
 }
 
 const vModel = useVModel(props, 'value', emit)

@@ -122,6 +122,8 @@ p {
 
         &.nc-cell-longtext {
           @apply !p-0.5rem h-auto;
+          word-break: break-all;
+          white-space: pre-line;
         }
 
         textarea {

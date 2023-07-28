@@ -21,6 +21,7 @@ import {
   onBeforeUnmount,
   provide,
   useAttachment,
+  useDebounceFn,
   useKanbanViewStoreOrThrow,
   useUndoRedo,
 } from '#imports'
@@ -29,6 +30,8 @@ import type { Row as RowType } from '~/lib'
 interface Attachment {
   url: string
 }
+
+const INFINITY_SCROLL_THRESHOLD = 100
 
 const meta = inject(MetaInj, ref())
 
@@ -275,14 +278,14 @@ async function onMove(event: any, stackKey: string) {
   }
 }
 
-const kanbanListScrollHandler = async (e: any) => {
-  if (e.target.scrollTop + e.target.clientHeight >= e.target.scrollHeight) {
+const kanbanListScrollHandler = useDebounceFn(async (e: any) => {
+  if (e.target.scrollTop + e.target.clientHeight + INFINITY_SCROLL_THRESHOLD >= e.target.scrollHeight) {
     const stackTitle = e.target.getAttribute('data-stack-title')
     const pageSize = appInfo.defaultLimit || 25
     const page = Math.ceil(formattedData.value.get(stackTitle)!.length / pageSize)
     await loadMoreKanbanData(stackTitle, { offset: page * pageSize })
   }
-}
+})
 
 const kanbanListRef = (kanbanListElement: HTMLElement) => {
   if (kanbanListElement) {

@@ -149,13 +149,18 @@ class BaseModelSqlv2 {
     id?: any,
     validateFormula = false,
     query: any = {},
+    {
+      ignoreView = false,
+    }: {
+      ignoreView?: boolean;
+    } = {},
   ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
 
     const { ast, dependencyFields } = await getAst({
       query,
       model: this.model,
-      view: this.viewId && (await View.get(this.viewId)),
+      view: ignoreView ? null : this.viewId && (await View.get(this.viewId)),
     });
 
     await this.selectObject({
@@ -1385,30 +1390,25 @@ class BaseModelSqlv2 {
 
             if (colOptions?.type === 'hm') {
               const listLoader = new DataLoader(async (ids: string[]) => {
-                try {
-                  if (ids.length > 1) {
-                    const data = await this.multipleHmList(
+                if (ids.length > 1) {
+                  const data = await this.multipleHmList(
+                    {
+                      colId: column.id,
+                      ids,
+                    },
+                    (listLoader as any).args,
+                  );
+                  return ids.map((id: string) => (data[id] ? data[id] : []));
+                } else {
+                  return [
+                    await this.hmList(
                       {
                         colId: column.id,
-                        ids,
+                        id: ids[0],
                       },
                       (listLoader as any).args,
-                    );
-                    return ids.map((id: string) => (data[id] ? data[id] : []));
-                  } else {
-                    return [
-                      await this.hmList(
-                        {
-                          colId: column.id,
-                          id: ids[0],
-                        },
-                        (listLoader as any).args,
-                      ),
-                    ];
-                  }
-                } catch (e) {
-                  console.log(e);
-                  return [];
+                    ),
+                  ];
                 }
               });
               const self: BaseModelSqlv2 = this;
@@ -1429,31 +1429,26 @@ class BaseModelSqlv2 {
               // });
             } else if (colOptions.type === 'mm') {
               const listLoader = new DataLoader(async (ids: string[]) => {
-                try {
-                  if (ids?.length > 1) {
-                    const data = await this.multipleMmList(
+                if (ids?.length > 1) {
+                  const data = await this.multipleMmList(
+                    {
+                      parentIds: ids,
+                      colId: column.id,
+                    },
+                    (listLoader as any).args,
+                  );
+
+                  return data;
+                } else {
+                  return [
+                    await this.mmList(
                       {
-                        parentIds: ids,
+                        parentId: ids[0],
                         colId: column.id,
                       },
                       (listLoader as any).args,
-                    );
-
-                    return data;
-                  } else {
-                    return [
-                      await this.mmList(
-                        {
-                          parentId: ids[0],
-                          colId: column.id,
-                        },
-                        (listLoader as any).args,
-                      ),
-                    ];
-                  }
-                } catch (e) {
-                  console.log(e);
-                  return [];
+                    ),
+                  ];
                 }
               });
 
@@ -1476,26 +1471,21 @@ class BaseModelSqlv2 {
                 colId: colOptions.fk_child_column_id,
               });
               const readLoader = new DataLoader(async (ids: string[]) => {
-                try {
-                  const data = await (
-                    await Model.getBaseModelSQL({
-                      id: pCol.fk_model_id,
-                      dbDriver: this.dbDriver,
-                    })
-                  ).list(
-                    {
-                      // limit: ids.length,
-                      where: `(${pCol.column_name},in,${ids.join(',')})`,
-                      fieldsSet: (readLoader as any).args?.fieldsSet,
-                    },
-                    true,
-                  );
-                  const gs = groupBy(data, pCol.title);
-                  return ids.map(async (id: string) => gs?.[id]?.[0]);
-                } catch (e) {
-                  console.log(e);
-                  return [];
-                }
+                const data = await (
+                  await Model.getBaseModelSQL({
+                    id: pCol.fk_model_id,
+                    dbDriver: this.dbDriver,
+                  })
+                ).list(
+                  {
+                    // limit: ids.length,
+                    where: `(${pCol.column_name},in,${ids.join(',')})`,
+                    fieldsSet: (readLoader as any).args?.fieldsSet,
+                  },
+                  true,
+                );
+                const gs = groupBy(data, pCol.title);
+                return ids.map(async (id: string) => gs?.[id]?.[0]);
               });
 
               // defining HasMany count method within GQL Type class
@@ -1836,7 +1826,12 @@ class BaseModelSqlv2 {
       // handle if autogenerated primary key is used
       if (ag) {
         if (!response) await this.execAndParse(query);
-        response = await this.readByPk(data[ag.title]);
+        response = await this.readByPk(
+          data[ag.title],
+          false,
+          {},
+          { ignoreView: true },
+        );
       } else if (
         !response ||
         (typeof response?.[0] !== 'object' && response?.[0] !== null)
@@ -1864,7 +1859,7 @@ class BaseModelSqlv2 {
               })) as any
             )[0].id;
           }
-          response = await this.readByPk(id);
+          response = await this.readByPk(id, false, {}, { ignoreView: true });
         } else {
           response = data;
         }
@@ -1873,6 +1868,9 @@ class BaseModelSqlv2 {
           Array.isArray(response)
             ? response?.[0]?.[ai.title]
             : response?.[ai.title],
+          false,
+          {},
+          { ignoreView: true },
         );
       }
 
@@ -1889,7 +1887,7 @@ class BaseModelSqlv2 {
     let trx: Transaction = _trx;
     try {
       // retrieve data for handling params in hook
-      const data = await this.readByPk(id);
+      const data = await this.readByPk(id, false, {}, { ignoreView: true });
       await this.beforeDelete(id, trx, cookie);
 
       const execQueries: ((trx: Transaction) => Promise<any>)[] = [];
@@ -2018,7 +2016,7 @@ class BaseModelSqlv2 {
 
       await this.beforeUpdate(data, trx, cookie);
 
-      const prevData = await this.readByPk(id);
+      const prevData = await this.readByPk(id, false, {}, { ignoreView: true });
 
       const query = this.dbDriver(this.tnPath)
         .update(updateObj)
@@ -2026,7 +2024,7 @@ class BaseModelSqlv2 {
 
       await this.execAndParse(query);
 
-      const newData = await this.readByPk(id);
+      const newData = await this.readByPk(id, false, {}, { ignoreView: true });
       await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
       return newData;
     } catch (e) {
@@ -2210,7 +2208,7 @@ class BaseModelSqlv2 {
               })) as any
             ).rows[0].id;
           }
-          response = await this.readByPk(id);
+          response = await this.readByPk(id, false, {}, { ignoreView: true });
         } else {
           response = data;
         }
@@ -2478,7 +2476,9 @@ class BaseModelSqlv2 {
 
       if (!raw) {
         for (const pkValues of updatePkValues) {
-          newData.push(await this.readByPk(pkValues));
+          newData.push(
+            await this.readByPk(pkValues, false, {}, { ignoreView: true }),
+          );
         }
       }
 
@@ -2570,7 +2570,9 @@ class BaseModelSqlv2 {
           // pk not specified - bypass
           continue;
         }
-        deleted.push(await this.readByPk(pkValues));
+        deleted.push(
+          await this.readByPk(pkValues, false, {}, { ignoreView: true }),
+        );
         res.push(d);
       }
 
@@ -3227,7 +3229,12 @@ class BaseModelSqlv2 {
         break;
     }
 
-    const response = await this.readByPk(rowId);
+    const response = await this.readByPk(
+      rowId,
+      false,
+      {},
+      { ignoreView: true },
+    );
     await this.afterInsert(response, this.dbDriver, cookie);
     await this.afterAddChild(rowId, childId, cookie);
   }
@@ -3276,7 +3283,12 @@ class BaseModelSqlv2 {
     const childTn = this.getTnPath(childTable);
     const parentTn = this.getTnPath(parentTable);
 
-    const prevData = await this.readByPk(rowId);
+    const prevData = await this.readByPk(
+      rowId,
+      false,
+      {},
+      { ignoreView: true },
+    );
 
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:
@@ -3329,7 +3341,7 @@ class BaseModelSqlv2 {
         break;
     }
 
-    const newData = await this.readByPk(rowId);
+    const newData = await this.readByPk(rowId, false, {}, { ignoreView: true });
     await this.afterUpdate(prevData, newData, this.dbDriver, cookie);
     await this.afterRemoveChild(rowId, childId, cookie);
   }

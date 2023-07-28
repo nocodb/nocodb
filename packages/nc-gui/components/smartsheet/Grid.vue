@@ -112,7 +112,7 @@ const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
 const gridWrapper = ref<HTMLElement>()
 const tableHeadEl = ref<HTMLElement>()
-const tableBodyEl = ref<HTMLElement>()
+const tableBodyEl = ref<HTMLTableSectionElement>()
 const fillHandle = ref<HTMLElement>()
 
 const gridRect = useElementBounding(gridWrapper)
@@ -917,8 +917,6 @@ function addEmptyRow(row?: number) {
 const fillHandleTop = ref()
 const fillHandleLeft = ref()
 
-const cellRefs = ref<{ el: HTMLElement }[]>([])
-
 const showFillHandle = computed(
   () =>
     !readOnly.value &&
@@ -929,17 +927,15 @@ const showFillHandle = computed(
 )
 
 const refreshFillHandle = () => {
-  const cellRef = cellRefs.value.find(
-    (cell) =>
-      cell.el.dataset.rowIndex === String(isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) &&
-      cell.el.dataset.colIndex === String(isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col),
-  )
-  if (cellRef) {
-    const cellRect = useElementBounding(cellRef.el)
-    if (!cellRect || !gridWrapper.value) return
-    fillHandleTop.value = cellRect.top.value + cellRect.height.value - gridRect.top.value + gridWrapper.value.scrollTop
-    fillHandleLeft.value = cellRect.left.value + cellRect.width.value - gridRect.left.value + gridWrapper.value.scrollLeft
-  }
+  nextTick(() => {
+    const cellRef = document.querySelector('.last-cell')
+    if (cellRef) {
+      const cellRect = cellRef.getBoundingClientRect()
+      if (!cellRect || !gridWrapper.value) return
+      fillHandleTop.value = cellRect.top + cellRect.height - gridRect.top.value + gridWrapper.value.scrollTop
+      fillHandleLeft.value = cellRect.left + cellRect.width - gridRect.left.value + gridWrapper.value.scrollLeft
+    }
+  })
 }
 
 const addRowExpandOnClose = (row: Row) => {
@@ -1132,7 +1128,6 @@ useEventListener(document, 'mouseup', () => {
                     <SmartsheetTableDataCell
                       v-for="(columnObj, colIndex) of fields"
                       :key="columnObj.id"
-                      ref="cellRefs"
                       class="cell relative nc-grid-cell"
                       :class="{
                         'cursor-pointer': hasEditPermission,
@@ -1141,6 +1136,9 @@ useEventListener(document, 'mouseup', () => {
                           hasEditPermission &&
                           ((activeCell.row === rowIndex && activeCell.col === colIndex) ||
                             (selectedRange._start?.row === rowIndex && selectedRange._start?.col === colIndex)),
+                        'last-cell':
+                          rowIndex === (isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) &&
+                          colIndex === (isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col),
                         'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
                         'align-middle': !rowHeight || rowHeight === 1,
                         'align-top': rowHeight && rowHeight !== 1,

@@ -112,6 +112,15 @@ export function useMultiSelect(
       textToCopy = !!textToCopy
     }
 
+    if (columnObj.uidt === UITypes.JSON) {
+      try {
+        if (typeof textToCopy === 'string') textToCopy = JSON.parse(JSON.stringify(textToCopy))
+        textToCopy = JSON.stringify(textToCopy)
+      } catch (e) {
+        console.log('JSON parse error', e)
+      }
+    }
+
     if (typeof textToCopy === 'object') {
       textToCopy = JSON.stringify(textToCopy)
     }
@@ -223,6 +232,7 @@ export function useMultiSelect(
   }
 
   async function copyValue(ctx?: Cell) {
+    console.log('copyValue', ctx)
     try {
       if (selectedRange.start !== null && selectedRange.end !== null && !selectedRange.isSingleCell()) {
         const cprows = unref(data).slice(selectedRange.start.row, selectedRange.end.row + 1) // slice the selected rows for copy

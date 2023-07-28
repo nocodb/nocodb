@@ -94,6 +94,11 @@ watch(localValue, (val) => {
   try {
     JSON.parse(val as string)
 
+    // To handle copy paste which will be string
+    if (typeof val === 'string') {
+      vModel.value = JSON.parse(val)
+    }
+
     error = undefined
   } catch (e: any) {
     error = e

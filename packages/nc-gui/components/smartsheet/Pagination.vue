@@ -8,13 +8,15 @@ const props = defineProps<{
   changePage: (page: number) => void
   alignCountOnRight?: boolean
   hidePagination?: boolean
+  hideSidebars?: boolean
+  customLabel?: string
 }>()
 
 const emits = defineEmits(['update:paginationData'])
 
 const vPaginationData = useVModel(props, 'paginationData', emits)
 
-const { alignCountOnRight, changePage } = props
+const { alignCountOnRight, customLabel, changePage } = props
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -43,7 +45,7 @@ const page = computed({
 
 <template>
   <div class="flex items-center border-t-1 border-gray-75 h-10 nc-pagination-wrapper">
-    <NcTooltip v-if="!isPublic" class="ml-2" placement="topLeft" hide-on-click>
+    <NcTooltip v-if="!isPublic && hideSidebars !== true" class="ml-2" placement="topLeft" hide-on-click>
       <template #title>
         {{ isLeftSidebarOpen ? 'Hide sidebar' : 'Show sidebar' }}
       </template>
@@ -64,7 +66,7 @@ const page = computed({
         class="caption ml-2.5 text-gray-500 text-xs"
         data-testid="grid-pagination"
       >
-        {{ count }} {{ count !== 1 ? $t('objects.records') : $t('objects.record') }}
+        {{ count }} {{ customLabel ? customLabel : count !== 1 ? $t('objects.records') : $t('objects.record') }}
       </span>
     </div>
 
@@ -95,11 +97,11 @@ const page = computed({
         class="caption mr-2.5 text-gray-500 text-xs"
         data-testid="grid-pagination"
       >
-        {{ count }} {{ count !== 1 ? $t('objects.records') : $t('objects.record') }}
+        {{ count }} {{ customLabel ? customLabel : count !== 1 ? $t('objects.records') : $t('objects.record') }}
       </span>
     </div>
 
-    <NcTooltip v-if="!isPublic" placement="topRight" hide-on-click>
+    <NcTooltip v-if="!isPublic && hideSidebars !== true" placement="topRight" hide-on-click>
       <template #title>
         {{ isRightSidebarOpen ? 'Hide Sidebar' : 'Show Sidebar' }}
       </template>

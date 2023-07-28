@@ -483,7 +483,7 @@ class BaseModelSqlv2 {
     return await qb;
   }
 
-  // todo: add support for sortArrJson and filterArrJson
+  // todo: add support for sortArrJson
   async groupBy(
     args: {
       where?: string;
@@ -491,15 +491,28 @@ class BaseModelSqlv2 {
       limit?;
       offset?;
       sort?: string | string[];
+      filterArr?: Filter[];
     } = {
       column_name: '',
     },
   ) {
     const { where, ...rest } = this._getListArgs(args as any);
 
+    const groupByColumns = await this.model.getColumns().then((cols) =>
+      args.column_name.split(',').map((col) => {
+        const column = cols.find(
+          (c) => c.column_name === col || c.title === col,
+        );
+        if (!column) {
+          throw NcError.notFound('Column not found');
+        }
+        return column.column_name;
+      }),
+    );
+
     const qb = this.dbDriver(this.tnPath);
     qb.count(`${this.model.primaryKey?.column_name || '*'} as count`);
-    qb.select(args.column_name);
+    qb.select(...groupByColumns);
 
     if (+rest?.shuffle) {
       await this.shuffle({ qb });
@@ -513,6 +526,20 @@ class BaseModelSqlv2 {
     await conditionV2(
       this,
       [
+        ...(this.viewId
+          ? [
+              new Filter({
+                children:
+                  (await Filter.rootFilterList({ viewId: this.viewId })) || [],
+                is_group: true,
+              }),
+            ]
+          : []),
+        new Filter({
+          children: args.filterArr || [],
+          is_group: true,
+          logical_op: 'and',
+        }),
         new Filter({
           children: filterObj,
           is_group: true,
@@ -521,10 +548,81 @@ class BaseModelSqlv2 {
       ],
       qb,
     );
-    qb.groupBy(args.column_name);
+
+    qb.groupBy(...groupByColumns);
     if (sorts) await sortV2(this, sorts, qb);
     applyPaginate(qb, rest);
     return await qb;
+  }
+
+  async groupByCount(
+    args: {
+      where?: string;
+      column_name: string;
+      limit?;
+      offset?;
+      sort?: string | string[];
+      filterArr?: Filter[];
+    } = {
+      column_name: '',
+    },
+  ) {
+    const { where, ...rest } = this._getListArgs(args as any);
+
+    const groupByColumns = await this.model.getColumns().then((cols) =>
+      args.column_name.split(',').map((col) => {
+        const column = cols.find(
+          (c) => c.column_name === col || c.title === col,
+        );
+        if (!column) {
+          throw NcError.notFound('Column not found');
+        }
+        return column.column_name;
+      }),
+    );
+
+    const qb = this.dbDriver(this.tnPath);
+    qb.count(`${this.model.primaryKey?.column_name || '*'} as count`);
+    qb.select(...groupByColumns);
+
+    const aliasColObjMap = await this.model.getAliasColObjMap();
+
+    const sorts = extractSortsObject(rest?.sort, aliasColObjMap);
+
+    const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
+    await conditionV2(
+      this,
+      [
+        ...(this.viewId
+          ? [
+              new Filter({
+                children:
+                  (await Filter.rootFilterList({ viewId: this.viewId })) || [],
+                is_group: true,
+              }),
+            ]
+          : []),
+        new Filter({
+          children: args.filterArr || [],
+          is_group: true,
+          logical_op: 'and',
+        }),
+        new Filter({
+          children: filterObj,
+          is_group: true,
+          logical_op: 'and',
+        }),
+      ],
+      qb,
+    );
+
+    qb.groupBy(...groupByColumns);
+    if (sorts) await sortV2(this, sorts, qb);
+
+    const qbP = this.dbDriver
+      .count('*', { as: 'count' })
+      .from(qb.as('groupby'));
+    return (await qbP.first())?.count;
   }
 
   async multipleHmList(

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnType, GridType } from 'nocodb-sdk'
 import Table from './Table.vue'
+import GroupBy from './GroupBy.vue'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -64,6 +65,7 @@ const {
   bulkUpdateRows,
   bulkUpdateView,
   optimisedQuery,
+  deleteRowById,
 } = useViewData(meta, view, xWhere)
 
 const rowHeight = computed(() => {
@@ -173,6 +175,9 @@ const toggleOptimisedQuery = () => {
     message.info('Optimised query enabled')
   }
 }
+
+const { rootGroup, groupBy, isGroupBy, loadGroups, loadGroupData, loadGroupPage, groupWrapperChangePage, redistributeRows } =
+  useViewGroupBy(view, xWhere)
 </script>
 
 <template>
@@ -188,6 +193,7 @@ const toggleOptimisedQuery = () => {
     </general-overlay>
 
     <Table
+      v-if="!isGroupBy"
       ref="tableRef"
       :data="data"
       :pagination-data="paginationData"
@@ -204,6 +210,19 @@ const toggleOptimisedQuery = () => {
       :selected-all-records="selectedAllRecords"
       @toggle-optimised-query="toggleOptimisedQuery"
       @bulk-update-dlg="bulkUpdateDlg = true"
+    />
+
+    <GroupBy
+      v-else
+      :group="rootGroup"
+      :load-groups="loadGroups"
+      :load-group-data="loadGroupData"
+      :load-group-page="loadGroupPage"
+      :group-wrapper-change-page="groupWrapperChangePage"
+      :row-height="rowHeight"
+      :max-depth="groupBy.length"
+      :redistribute-rows="redistributeRows"
+      :expand-form="expandForm"
     />
 
     <Suspense>

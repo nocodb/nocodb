@@ -125,6 +125,14 @@ export class SelectOptionCellPageObject extends BasePage {
 
     let counter = 0;
     for (const option of options) {
+      let retryCounter = 0;
+      while (retryCounter < 5) {
+        const optionText = await this.rootPage.locator(`div.ant-select-item-option`).nth(counter).innerText();
+        if (optionText.includes(option)) break;
+        retryCounter++;
+        await this.rootPage.waitForTimeout(100 * retryCounter);
+      }
+
       await expect(this.rootPage.locator(`div.ant-select-item-option`).nth(counter)).toHaveText(option);
       counter++;
     }

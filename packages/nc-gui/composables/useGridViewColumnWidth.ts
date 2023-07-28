@@ -25,7 +25,7 @@ export function useGridViewColumnWidth(view: Ref<(ViewType & { columns?: GridCol
   const { addUndo, defineViewScope } = useUndoRedo()
 
   const gridViewCols = ref<Record<string, GridColumnType>>({})
-  const resizingCol = ref('')
+  const resizingCol = ref<string | null>('')
   const resizingColWidth = ref('200px')
   const isPublic = inject(IsPublicInj, ref(false))
 

@@ -58,7 +58,7 @@ export default defineConfig({
         accent: 'rgba(var(--color-accent), var(--tw-text-opacity))',
       },
       borderColor: {
-        primary: 'rgba(var(--color-primary), var(--tw-border-opacity))',
+        primary: 'rgba(51, 102, 255, 1)',
         accent: 'rgba(var(--color-accent), var(--tw-border-opacity))',
       },
       backgroundColor: {

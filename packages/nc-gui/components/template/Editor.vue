@@ -75,6 +75,8 @@ const { addTab } = useTabs()
 const projectStrore = useProject()
 const { loadTables } = projectStrore
 const { sqlUis, project } = storeToRefs(projectStrore)
+const { openTable } = useTablesStore()
+const { projectTables } = storeToRefs(useTablesStore())
 
 const sqlUi = ref(sqlUis.value[baseId] || Object.values(sqlUis.value)[0])
 
@@ -583,6 +585,14 @@ async function importTemplate() {
       isImporting.value = false
     }
   }
+
+  if (!data.tables?.length) return
+
+  const tables = projectTables.value.get(project.value!.id!)
+  const toBeNavigatedTable = tables?.find((t) => t.id === data.tables[0].id)
+  if (!toBeNavigatedTable) return
+
+  openTable(toBeNavigatedTable)
 }
 
 function mapDefaultColumns() {

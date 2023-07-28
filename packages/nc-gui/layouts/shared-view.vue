@@ -33,7 +33,7 @@ onMounted(() => {
 
   // handle meta title
   if (sharedView.value?.title) {
-    document.title = `${sharedView.value.title} | NocoDB`
+    document.title = `${sharedView.value.title}`
   } else {
     document.title = 'NocoDB'
   }

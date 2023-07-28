@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { useTitle } from '@vueuse/core'
+
 import {
   ActiveViewInj,
   FieldsInj,
@@ -55,6 +57,9 @@ const meta = computed<TableType | undefined>(() => {
 const { isGallery, isGrid, isForm, isKanban, isLocked, isMap } = useProvideSmartsheetStore(activeView, meta)
 
 useSqlEditor()
+
+const { openedProject } = storeToRefs(useProjects())
+const { activeTable } = storeToRefs(useTablesStore())
 
 const reloadEventHook = createEventHook<void | boolean>()
 
@@ -140,6 +145,10 @@ const onDrop = async (event: DragEvent) => {
     console.log('error', e)
   }
 }
+
+onMounted(() => {
+  useTitle(`${openedProject.value?.title}: ${activeTable.value?.title}`)
+})
 </script>
 
 <template>

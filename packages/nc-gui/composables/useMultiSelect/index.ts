@@ -112,15 +112,6 @@ export function useMultiSelect(
       textToCopy = !!textToCopy
     }
 
-    if (columnObj.uidt === UITypes.JSON) {
-      try {
-        if (typeof textToCopy === 'string') textToCopy = JSON.parse(JSON.stringify(textToCopy))
-        textToCopy = JSON.stringify(textToCopy)
-      } catch (e) {
-        console.log('JSON parse error', e)
-      }
-    }
-
     if (typeof textToCopy === 'object') {
       textToCopy = JSON.stringify(textToCopy)
     }

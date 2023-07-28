@@ -61,6 +61,8 @@ async function verifyHookTrigger(count: number, value: string, request, expected
     for (let i = 0; i < 20; i++) {
       response = await request.get(hookPath + '/last');
       const rspJson = await response.json();
+      console.log('verifyHookTrigger response', value, rspJson);
+
       if (rspJson?.data?.rows[0]?.Title === value) {
         break;
       }

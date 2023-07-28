@@ -112,7 +112,7 @@ const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
 const gridWrapper = ref<HTMLElement>()
 const tableHeadEl = ref<HTMLElement>()
-const tableBodyEl = ref<HTMLElement>()
+const tableBodyEl = ref<HTMLTableSectionElement>()
 const fillHandle = ref<HTMLElement>()
 
 const gridRect = useElementBounding(gridWrapper)
@@ -917,8 +917,6 @@ function addEmptyRow(row?: number) {
 const fillHandleTop = ref()
 const fillHandleLeft = ref()
 
-const cellRefs = ref<{ el: HTMLElement }[]>([])
-
 const showFillHandle = computed(
   () =>
     !readOnly.value &&
@@ -929,13 +927,13 @@ const showFillHandle = computed(
 )
 
 const refreshFillHandle = () => {
-  const cellRef = cellRefs.value.find(
+  const cellRef = [...(tableBodyEl.value?.querySelectorAll<HTMLTableCellElement>('td[data-row-index]') || [])].find(
     (cell) =>
-      cell.el.dataset.rowIndex === String(isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) &&
-      cell.el.dataset.colIndex === String(isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col),
+      cell.dataset.rowIndex === String(isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) &&
+      cell.dataset.colIndex === String(isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col),
   )
   if (cellRef) {
-    const cellRect = useElementBounding(cellRef.el)
+    const cellRect = useElementBounding(cellRef)
     if (!cellRect || !gridWrapper.value) return
     fillHandleTop.value = cellRect.top.value + cellRect.height.value - gridRect.top.value + gridWrapper.value.scrollTop
     fillHandleLeft.value = cellRect.left.value + cellRect.width.value - gridRect.left.value + gridWrapper.value.scrollLeft
@@ -1132,7 +1130,6 @@ useEventListener(document, 'mouseup', () => {
                     <SmartsheetTableDataCell
                       v-for="(columnObj, colIndex) of fields"
                       :key="columnObj.id"
-                      ref="cellRefs"
                       class="cell relative nc-grid-cell"
                       :class="{
                         'cursor-pointer': hasEditPermission,

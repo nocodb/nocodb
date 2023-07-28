@@ -84,19 +84,21 @@ const onSave = () => {
 
   editEnabled.value = false
 
-  localValue.value = localValue ? formatJson(localValue.value as string) : localValue
+  vModel.value = localValue ? formatJson(localValue.value as string) : localValue
+}
 
-  vModel.value = localValue.value
+const setLocalValue = (val: any) => {
+  try {
+    localValue.value = typeof val === 'string' ? JSON.stringify(JSON.parse(val), null, 2) : val
+  } catch (e) {
+    localValue.value = val
+  }
 }
 
 watch(
   vModel,
   (val) => {
-    try {
-      localValue.value = typeof val === 'string' ? JSON.stringify(JSON.parse(val), null, 2) : val
-    } catch (e) {
-      localValue.value = val
-    }
+    setLocalValue(val)
   },
   { immediate: true },
 )
@@ -116,7 +118,7 @@ watch([localValue, editEnabled], () => {
 watch(editEnabled, () => {
   isExpanded = false
 
-  localValue.value = vModel.value
+  setLocalValue(vModel.value)
 })
 
 useSelectedCellKeyupListener(active, (e) => {

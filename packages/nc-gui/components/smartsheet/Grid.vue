@@ -927,17 +927,15 @@ const showFillHandle = computed(
 )
 
 const refreshFillHandle = () => {
-  const cellRef = [...(tableBodyEl.value?.querySelectorAll<HTMLTableCellElement>('td[data-row-index]') || [])].find(
-    (cell) =>
-      cell.dataset.rowIndex === String(isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) &&
-      cell.dataset.colIndex === String(isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col),
-  )
-  if (cellRef) {
-    const cellRect = cellRef.getBoundingClientRect()
-    if (!cellRect || !gridWrapper.value) return
-    fillHandleTop.value = cellRect.top + cellRect.height - gridRect.top.value + gridWrapper.value.scrollTop
-    fillHandleLeft.value = cellRect.left + cellRect.width - gridRect.left.value + gridWrapper.value.scrollLeft
-  }
+  nextTick(() => {
+    const cellRef = document.querySelector('.last-cell')
+    if (cellRef) {
+      const cellRect = cellRef.getBoundingClientRect()
+      if (!cellRect || !gridWrapper.value) return
+      fillHandleTop.value = cellRect.top + cellRect.height - gridRect.top.value + gridWrapper.value.scrollTop
+      fillHandleLeft.value = cellRect.left + cellRect.width - gridRect.left.value + gridWrapper.value.scrollLeft
+    }
+  })
 }
 
 const addRowExpandOnClose = (row: Row) => {
@@ -1138,6 +1136,9 @@ useEventListener(document, 'mouseup', () => {
                           hasEditPermission &&
                           ((activeCell.row === rowIndex && activeCell.col === colIndex) ||
                             (selectedRange._start?.row === rowIndex && selectedRange._start?.col === colIndex)),
+                        'last-cell':
+                          rowIndex === (isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) &&
+                          colIndex === (isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col),
                         'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
                         'align-middle': !rowHeight || rowHeight === 1,
                         'align-top': rowHeight && rowHeight !== 1,

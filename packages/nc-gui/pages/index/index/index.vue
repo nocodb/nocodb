@@ -129,21 +129,17 @@ watch(
   },
 )
 
-useDialog(resolveComponent('WorkspaceCreateDlg'), {
-  'modelValue': isCreateDlgOpen,
-  'onUpdate:modelValue': (isOpen: boolean) => (isCreateDlgOpen.value = isOpen),
-  'onSuccess': async () => {
-    isCreateDlgOpen.value = false
-    await loadWorkspaces()
-    await nextTick(() => {
-      ;[...menuEl?.value?.$el?.querySelectorAll('li.ant-menu-item')]?.pop()?.scrollIntoView({
-        block: 'nearest',
-        inline: 'nearest',
-      })
-      selectedWorkspaceIndex.value = [workspacesList.value?.length - 1]
+const WorkspaceCreateDlgOnSuccess = async () => {
+  isCreateDlgOpen.value = false
+  await loadWorkspaces()
+  await nextTick(() => {
+    ;[...menuEl?.value?.$el?.querySelectorAll('li.ant-menu-item')]?.pop()?.scrollIntoView({
+      block: 'nearest',
+      inline: 'nearest',
     })
-  },
-})
+    selectedWorkspaceIndex.value = [workspacesList.value?.length - 1]
+  })
+}
 
 const deleteWorkspace = (workspace: WorkspaceType) => {
   toBeDeletedWorkspaceId.value = workspace.id!
@@ -546,6 +542,7 @@ watch(
         v-model:visible="showDeleteWorkspace"
         :workspace-id="toBeDeletedWorkspaceId"
       />
+      <WorkspaceCreateDlg v-model="isCreateDlgOpen" @success="WorkspaceCreateDlgOnSuccess" />
     </div>
   </NuxtLayout>
 </template>

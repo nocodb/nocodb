@@ -754,7 +754,7 @@ onKeyStroke('Escape', () => {
     </template>
   </a-dropdown>
   <DlgTableDelete
-    v-if="project?.id"
+    v-if="contextMenuTarget.value?.id && project?.id"
     v-model:visible="isTableDeleteDialogVisible"
     :table-id="contextMenuTarget.value?.id"
     :project-id="project?.id"

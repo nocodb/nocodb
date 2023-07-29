@@ -11,7 +11,7 @@ import { storeToRefs, useCommandPalette, useNuxtApp, useProject } from '#imports
 
 interface Props {
   state: string
-  reload: boolean
+  reload?: boolean
 }
 
 const props = defineProps<Props>()

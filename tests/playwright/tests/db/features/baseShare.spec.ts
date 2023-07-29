@@ -4,7 +4,7 @@ import setup from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { LoginPage } from '../../../pages/LoginPage';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
-import { getDefaultPwd } from '../../utils/general';
+import { getDefaultPwd } from '~/utils/general';
 import { isHub } from '../../../setup/db';
 
 // To be enabled after shared base is implemented

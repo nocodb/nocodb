@@ -6,7 +6,7 @@ import { SignupPage } from '../../../pages/SignupPage';
 import setup from '../../../setup';
 import { isHub } from '../../../setup/db';
 import { WorkspacePage } from '../../../pages/WorkspacePage';
-import { getDefaultPwd } from '../../utils/general';
+import { getDefaultPwd } from '~/utils/general';
 
 const roleDb = [
   { email: 'creator@nocodb.com', role: 'Organization Level Creator', url: '' },

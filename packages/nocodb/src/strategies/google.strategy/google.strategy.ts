@@ -3,9 +3,9 @@ import { Injectable, Optional } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-google-oauth20';
 import bcrypt from 'bcryptjs';
-import { Plugin, ProjectUser, User } from '../../models';
+import { Plugin, ProjectUser, User } from '~/models';
 import Noco from '../../Noco';
-import { UsersService } from '../../services/users/users.service';
+import { UsersService } from '~/services/users/users.service';
 import type { VerifyCallback } from 'passport-google-oauth20';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
 

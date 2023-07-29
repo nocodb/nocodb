@@ -15,11 +15,11 @@ import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
 import { NC_APP_SETTINGS } from '../../constants';
 import { validatePayload } from '../../helpers';
-import { NcError } from '../../helpers/catchError';
-import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
-import { randomTokenString } from '../../helpers/stringHelpers';
+import { NcError } from '~/helpers/catchError';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import { randomTokenString } from '~/helpers/stringHelpers';
 import { MetaService, MetaTable } from '../../meta/meta.service';
-import { Store, User, Workspace, WorkspaceUser } from '../../models';
+import { Store, User, Workspace, WorkspaceUser } from '~/models';
 import Noco from '../../Noco';
 import { AppHooksService } from '../app-hooks/app-hooks.service';
 import { genJwt, setTokenCookie } from './helpers';
@@ -216,7 +216,7 @@ export class UsersService {
       try {
         const template = (
           await import(
-            '../../controllers/users/ui/emailTemplates/forgotPassword'
+            '~/controllers/users/ui/emailTemplates/forgotPassword'
           )
         ).default;
         await NcPluginMgrv2.emailAdapter().then((adapter) =>
@@ -469,7 +469,7 @@ export class UsersService {
 
     try {
       const template = (
-        await import('../../controllers/users/ui/emailTemplates/verify')
+        await import('~/controllers/users/ui/emailTemplates/verify')
       ).default;
       await (
         await NcPluginMgrv2.emailAdapter()

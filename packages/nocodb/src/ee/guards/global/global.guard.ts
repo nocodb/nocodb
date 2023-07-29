@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { lastValueFrom, Observable } from 'rxjs';
 import { JwtStrategy } from '../../strategies/jwt.strategy';
-import extractRolesObj from '../../utils/extractRolesObj';
+import extractRolesObj from '~/utils/extractRolesObj';
 import type { ExecutionContext } from '@nestjs/common';
 
 @Injectable()

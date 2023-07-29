@@ -4,7 +4,7 @@ import setup from '../../../setup';
 import { SettingsPage, SettingTab } from '../../../pages/Dashboard/Settings';
 import { SignupPage } from '../../../pages/SignupPage';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
-import { getDefaultPwd } from '../../utils/general';
+import { getDefaultPwd } from '~/utils/general';
 import { WorkspacePage } from '../../../pages/WorkspacePage';
 import { isHub } from '../../../setup/db';
 

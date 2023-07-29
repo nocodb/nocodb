@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { tap } from 'rxjs';
 import Client from 'ioredis';
 import { ConfigService } from '@nestjs/config';
-import { Producer } from '../../services/producer/producer';
+import { Producer } from '~/services/producer/producer';
 import type {
   CallHandler,
   ExecutionContext,

@@ -9,7 +9,7 @@ import {
   metaUrlToDbConfig,
 } from '../nc-config';
 import Noco from '../../Noco';
-import type Base from '../../models/Base';
+import type Base from '~/models/Base';
 import type { Knex } from 'knex';
 
 export default class NcConnectionMgrv2 {

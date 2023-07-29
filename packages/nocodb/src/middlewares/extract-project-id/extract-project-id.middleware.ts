@@ -15,9 +15,9 @@ import {
   Sort,
   View,
   Widget,
-} from '../../models';
-import extractRolesObj from '../../utils/extractRolesObj';
-import projectAcl from '../../utils/projectAcl';
+} from '~/models';
+import extractRolesObj from '~/utils/extractRolesObj';
+import projectAcl from '~/utils/projectAcl';
 import { NcError } from '../catchError';
 import { getRolesLabels } from '../extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import type { Observable } from 'rxjs';

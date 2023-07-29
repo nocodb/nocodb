@@ -2,9 +2,9 @@ import { expect, test } from '@playwright/test';
 import { Api, TableListType, TableType } from 'nocodb-sdk';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { SettingsPage, SettingTab } from '../../../pages/Dashboard/Settings';
-import { deepCompare } from '../../utils/objectCompareUtil';
+import { deepCompare } from '~/utils/objectCompareUtil';
 import setup from '../../../setup';
-import { ProjectInfoApiUtil, TableInfo } from '../../utils/projectInfoApiUtil';
+import { ProjectInfoApiUtil, TableInfo } from '~/utils/projectInfoApiUtil';
 import { isHub } from '../../../setup/db';
 
 test.describe('Table Operations', () => {

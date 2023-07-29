@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { NcError } from '../../helpers/catchError';
-import { Model, Project } from '../../models';
+import { NcError } from '~/helpers/catchError';
+import { Model, Project } from '~/models';
 import getSwaggerJSON from './swagger/getSwaggerJSON';
 
 @Injectable()

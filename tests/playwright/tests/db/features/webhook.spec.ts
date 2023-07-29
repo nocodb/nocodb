@@ -3,7 +3,7 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { NcContext } from '../../../setup';
 import makeServer from '../../../setup/server';
 import { WebhookFormPage } from '../../../pages/Dashboard/WebhookForm';
-import { isSubset } from '../../utils/general';
+import { isSubset } from '~/utils/general';
 import { Api, UITypes } from 'nocodb-sdk';
 import { isMysql, isSqlite } from '../../../setup/db';
 

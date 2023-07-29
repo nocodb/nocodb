@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-custom';
-import { Project } from '../../models';
-import extractRolesObj from '../../utils/extractRolesObj';
+import { Project } from '~/models';
+import extractRolesObj from '~/utils/extractRolesObj';
 
 @Injectable()
 export class BaseViewStrategy extends PassportStrategy(Strategy, 'base-view') {

@@ -5,8 +5,8 @@ import setup from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { Api, ProjectListType } from 'nocodb-sdk';
-import { ProjectInfo, ProjectInfoApiUtil } from '../../utils/projectInfoApiUtil';
-import { deepCompare } from '../../utils/objectCompareUtil';
+import { ProjectInfo, ProjectInfoApiUtil } from '~/utils/projectInfoApiUtil';
+import { deepCompare } from '~/utils/objectCompareUtil';
 import { isHub } from '../../../setup/db';
 
 test.describe('Project operations', () => {

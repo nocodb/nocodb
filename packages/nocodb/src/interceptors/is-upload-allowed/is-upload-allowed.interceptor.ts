@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
-import { NcError } from '../../helpers/catchError';
+import { NcError } from '~/helpers/catchError';
 import Noco from '../../Noco';
-import extractRolesObj from '../../utils/extractRolesObj';
-import { MetaTable } from '../../utils/globals';
+import extractRolesObj from '~/utils/extractRolesObj';
+import { MetaTable } from '~/utils/globals';
 import type { Observable } from 'rxjs';
 import type {
   CallHandler,

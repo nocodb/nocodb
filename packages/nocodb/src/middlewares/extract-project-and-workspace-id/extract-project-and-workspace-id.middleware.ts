@@ -22,9 +22,9 @@ import {
   View,
   Widget,
   Workspace,
-} from '../../models';
-import extractRolesObj from '../../utils/extractRolesObj';
-import projectAcl from '../../utils/projectAcl';
+} from '~/models';
+import extractRolesObj from '~/utils/extractRolesObj';
+import projectAcl from '~/utils/projectAcl';
 import { NcError } from '../catchError';
 import type { Observable } from 'rxjs';
 import type {

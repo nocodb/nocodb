@@ -12,10 +12,10 @@ import {
   Response,
   UseGuards,
 } from '@nestjs/common';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { parseHrtimeToMilliSeconds } from '../helpers';
-import { Acl } from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { DatasService } from '../services/datas.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { parseHrtimeToMilliSeconds } from '~/helpers';
+import { Acl } from '~/middlewares/extract-project-id/extract-project-id.middleware';
+import { DatasService } from '~/services/datas.service';
 
 @Controller()
 @UseGuards(GlobalGuard)

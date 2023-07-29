@@ -2,7 +2,7 @@ import debug from 'debug';
 import { Router } from 'express';
 import inflection from 'inflection';
 import ModelXcMetaFactory from '../../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
-import NcConnectionMgr from '../../utils/common/NcConnectionMgr';
+import NcConnectionMgr from '~/utils/common/NcConnectionMgr';
 import ncModelsOrderUpgrader from './jobs/ncModelsOrderUpgrader';
 import ncParentModelTitleUpgrader from './jobs/ncParentModelTitleUpgrader';
 import ncRemoveDuplicatedRelationRows from './jobs/ncRemoveDuplicatedRelationRows';

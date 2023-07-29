@@ -1,16 +1,16 @@
 import { T } from 'nc-help';
-import { populatePluginsForCloud } from '../../utils/cloud/populateCloudPlugins';
-import { MetaService } from '../../meta/meta.service';
-import Noco from '../../Noco';
-import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
-import NcUpgrader from '../../version-upgrader/NcUpgrader';
-import NocoCache from '../../cache/NocoCache';
-import getInstance from '../../utils/getInstance';
-import initAdminFromEnv from '../../helpers/initAdminFromEnv';
-import { User } from '../../models';
-import { NcConfig, prepareEnv } from '../../utils/nc-config';
 import type { Provider } from '@nestjs/common';
-import type { IEventEmitter } from '../event-emitter/event-emitter.interface';
+import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
+import { populatePluginsForCloud } from '~/utils/cloud/populateCloudPlugins';
+import { MetaService } from '~/meta/meta.service';
+import Noco from '~/Noco';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import NcUpgrader from '~/version-upgrader/NcUpgrader';
+import NocoCache from '~/cache/NocoCache';
+import getInstance from '~/utils/getInstance';
+import initAdminFromEnv from '~/helpers/initAdminFromEnv';
+import { User } from '~/models';
+import { NcConfig, prepareEnv } from '~/utils/nc-config';
 
 export const InitMetaServiceProvider: Provider = {
   // initialize app,

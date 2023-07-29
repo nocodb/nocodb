@@ -1,13 +1,15 @@
 import { Module } from '@nestjs/common';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { AppModule as AppCeModule, ceModuleConfig } from '../app.module';
 import { WorkspacesModule } from './modules/workspaces/workspaces.module';
+import { CustomApiLimiterGuard } from '~/guards/custom-api-limiter.guard';
 import { WorkspaceUsersModule } from '~/modules/workspace-users/workspace-users.module';
 import { ThrottlerConfigService } from '~/services/throttler/throttler-config.service';
 import appConfig from '~/app.config';
 import { Model } from '~/models';
-
+import { ExtractProjectAndWorkspaceIdMiddleware } from '~/middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 
 console.log(Model);
 
@@ -33,6 +35,20 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
           }),
         ]
       : []),
+  ],
+
+  providers: [
+    ...ceModuleConfig.providers.map((x) => {
+      if (x && x['provide'] === APP_GUARD) {
+        return {
+          provide: APP_GUARD,
+          useClass: enableThrottler
+            ? CustomApiLimiterGuard
+            : ExtractProjectAndWorkspaceIdMiddleware,
+        };
+      }
+      return x;
+    }),
   ],
 })
 export class AppModule extends AppCeModule {

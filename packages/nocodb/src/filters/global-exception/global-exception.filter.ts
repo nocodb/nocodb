@@ -1,4 +1,6 @@
 import { Catch, Logger } from '@nestjs/common';
+import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
+import type { Response } from 'express';
 import {
   AjvError,
   BadRequest,
@@ -9,9 +11,7 @@ import {
   NotImplemented,
   Unauthorized,
   UnprocessableEntity,
-} from '../../helpers/catchError';
-import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
-import type { Response } from 'express';
+} from '~/helpers/catchError';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {

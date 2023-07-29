@@ -1,4 +1,4 @@
-import type { SyncSource } from '../../models';
+import type { SyncSource } from '~/models';
 import type {
   ApiTokenReqType,
   BaseType,

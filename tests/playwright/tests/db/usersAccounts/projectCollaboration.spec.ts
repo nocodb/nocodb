@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup from '../../../setup';
-import { getDefaultPwd } from '../../utils/general';
+import { getDefaultPwd } from '~/utils/general';
 import { WorkspacePage } from '../../../pages/WorkspacePage';
 import { Api } from 'nocodb-sdk';
 import { CollaborationPage } from '../../../pages/WorkspacePage/CollaborationPage';

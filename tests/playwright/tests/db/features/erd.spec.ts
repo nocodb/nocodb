@@ -5,7 +5,7 @@ import {
   pgSakilaSqlViews,
   pgSakilaTables,
   sqliteSakilaSqlViews,
-} from '../../utils/sakila';
+} from '~/utils/sakila';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { SettingsSubTab, SettingTab } from '../../../pages/Dashboard/Settings';
 import setup from '../../../setup';

@@ -14,8 +14,8 @@ import {
   ExtractProjectIdMiddleware,
   UseAclMiddleware,
 } from '../../middlewares/extract-project-id/extract-project-id.middleware';
-import { PagedResponseImpl } from '../../helpers/PagedResponse';
-import { LayoutFilterService } from '../../services/dashboards/layoutFilter.service';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { LayoutFilterService } from '~/services/dashboards/layoutFilter.service';
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)

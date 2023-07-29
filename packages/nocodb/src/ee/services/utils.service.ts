@@ -4,10 +4,10 @@ import { Configuration, OpenAIApi } from 'openai';
 import JSON5 from 'json5';
 import { identify } from 'sql-query-identifier';
 import { ConfigService } from '@nestjs/config';
-import { NcError } from '../helpers/catchError';
-import { Base, } from '../models';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import type { AppConfig } from '../interface/config';
+import { NcError } from '~/helpers/catchError';
+import { Base, } from '~/models';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import type { AppConfig } from '~/interface/config';
 
 
 const configuration = new Configuration({

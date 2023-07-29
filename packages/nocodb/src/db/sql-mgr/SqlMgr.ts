@@ -10,7 +10,7 @@ import { T } from 'nc-help';
 import { customAlphabet } from 'nanoid';
 import SqlClientFactory from '../sql-client/lib/SqlClientFactory';
 import KnexMigrator from '../sql-migrator/lib/KnexMigrator';
-import NcConnectionMgr from '../../utils/common/NcConnectionMgr';
+import NcConnectionMgr from '~/utils/common/NcConnectionMgr';
 import Debug from '../util/Debug';
 import Result from '../util/Result';
 import type MssqlClient from '../sql-client/lib/mssql/MssqlClient';

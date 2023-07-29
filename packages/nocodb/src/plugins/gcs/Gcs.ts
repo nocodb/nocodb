@@ -5,7 +5,7 @@ import request from 'request';
 import {
   generateTempFilePath,
   waitForStreamClose,
-} from '../../utils/pluginUtils';
+} from '~/utils/pluginUtils';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import type { Readable } from 'stream';
 import type { StorageOptions } from '@google-cloud/storage';

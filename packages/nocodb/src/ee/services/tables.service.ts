@@ -2,12 +2,12 @@ import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
 import { AppEvents } from 'nocodb-sdk';
 import { Configuration, OpenAIApi } from 'openai';
-import { NcError } from '../../helpers/catchError';
-import getTableNameAlias from '../../helpers/getTableName';
-import { Model, Project } from '../../models';
-import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
-import { MetaDiffsService } from '../../services/meta-diffs.service';
-import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
+import { NcError } from '~/helpers/catchError';
+import getTableNameAlias from '~/helpers/getTableName';
+import { Model, Project } from '~/models';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { MetaDiffsService } from '~/services/meta-diffs.service';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import type { UserType } from 'nocodb-sdk';
 
 const configuration = new Configuration({

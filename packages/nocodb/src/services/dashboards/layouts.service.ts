@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { Model } from 'src/models';
 import Widget from 'src/models/Widget';
 import { validatePayload } from '../../helpers';
-import Layout from '../../models/Layout';
+import Layout from '~/models/Layout';
 import Noco from '../../Noco';
 import type User from 'src/models/User';
 import type { LayoutReqType, LayoutUpdateReqType } from 'nocodb-sdk';

@@ -15,8 +15,8 @@ import {
   useSmartsheetStoreOrThrow,
 } from '#imports'
 
-const primaryGroupingUidt = [UITypes.SingleSelect, UITypes.MultiSelect]
-const secondaryGroupingUidt = [UITypes.SingleLineText, UITypes.Date, UITypes.Number]
+const primaryGroupingUidt = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.Checkbox, UITypes.Date]
+const secondaryGroupingUidt = [UITypes.SingleLineText, UITypes.Number]
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())

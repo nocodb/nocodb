@@ -2,6 +2,7 @@ import { type ColumnType, type SelectOptionsType, UITypes, type ViewType } from 
 import type { Ref } from 'vue'
 import { ref, storeToRefs, useApi, useProject } from '#imports'
 import type { Group, Row } from '~/lib'
+import { GROUP_BY_VARS } from '~/lib'
 
 export const useViewGroupBy = createSharedComposable(
   (view: Ref<ViewType | undefined>, where?: ComputedRef<string | undefined>, _reloadData?: () => void) => {
@@ -54,6 +55,13 @@ export const useViewGroupBy = createSharedComposable(
         rowMeta: {},
       }))
 
+    const valueToTitle = (value: string, col: ColumnType) => {
+      if (col.uidt === UITypes.Checkbox) {
+        return value ? GROUP_BY_VARS.TRUE : GROUP_BY_VARS.FALSE
+      }
+      return value ?? GROUP_BY_VARS.NULL
+    }
+
     const colors = $ref(enumColor.light)
 
     const nextGroupColor = ref(colors[0])
@@ -99,8 +107,10 @@ export const useViewGroupBy = createSharedComposable(
       existing = '',
     ) => {
       return nestedIn.reduce((acc, curr) => {
-        if (curr.value === '__nc_null__') {
+        if (curr.value === GROUP_BY_VARS.NULL) {
           acc += `${acc.length ? '~and' : ''}(${curr.title},is,null)`
+        } else if (curr.column_uidt === UITypes.Checkbox) {
+          acc += `${acc.length ? '~and' : ''}(${curr.title},${curr.value === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked'})`
         } else if ([UITypes.Date, UITypes.DateTime].includes(curr.column_uidt as UITypes)) {
           acc += `${acc.length ? '~and' : ''}(${curr.title},eq,${curr.value},exactDate)`
         } else {
@@ -142,21 +152,27 @@ export const useViewGroupBy = createSharedComposable(
       } as any)
 
       group.children = response.list.reduce((acc: Group[], curr: any) => {
+        const keyExists = acc.find((a) => a.key === valueToTitle(curr[groupby.column_name!], groupby))
+        if (keyExists) {
+          keyExists.count += +curr.count
+          keyExists.paginationData = { page: 1, pageSize: appInfoDefaultLimit, totalRows: keyExists.count }
+          return acc
+        }
         acc.push({
-          key: curr[groupby.column_name!] || '__nc_null__',
+          key: valueToTitle(curr[groupby.column_name!], groupby),
           column: groupby,
-          count: curr.count,
-          color: curr[groupby.column_name!] ? findKeyColor(curr[groupby.column_name!], groupby) : 'gray',
+          count: +curr.count,
+          color: (curr[groupby.column_name!] ? findKeyColor(curr[groupby.column_name!], groupby) : 'gray') || 'white',
           nestedIn: [
             ...group!.nestedIn,
             {
               title: groupby.title,
               column_name: groupby.column_name!,
-              value: curr[groupby.column_name!] || '__nc_null__',
+              value: valueToTitle(curr[groupby.column_name!], groupby),
               column_uidt: groupby.uidt,
             },
           ],
-          paginationData: { page: 1, pageSize: appInfoDefaultLimit, totalRows: curr.count },
+          paginationData: { page: 1, pageSize: appInfoDefaultLimit, totalRows: +curr.count },
           nested: group!.nestedIn.length < groupBy.value.length - 1,
         })
         return acc
@@ -228,7 +244,9 @@ export const useViewGroupBy = createSharedComposable(
     const findGroupForRow = (row: Row, group?: Group, nestLevel = 0): { found: boolean; group: Group } => {
       group = group || rootGroup.value
       if (group.nested) {
-        const child = group.children?.find((g) => g.key === (row.row[groupBy.value[nestLevel].column_name] ?? '__nc_null__'))
+        const child = group.children?.find(
+          (g) => g.key === valueToTitle(row.row[groupBy.value[nestLevel].column_name], groupBy.value[nestLevel]),
+        )
         if (child) {
           return findGroupForRow(row, child, nestLevel + 1)
         }

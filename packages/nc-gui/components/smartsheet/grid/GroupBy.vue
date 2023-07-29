@@ -4,6 +4,7 @@ import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
 import GroupByTable from './GroupByTable.vue'
 import { computed, ref } from '#imports'
+import { GROUP_BY_VARS } from '~/lib'
 import type { Group, Row } from '~/lib'
 
 const props = defineProps<{
@@ -155,7 +156,7 @@ reloadViewDataHook?.on(reloadViewDataHandler)
                               'font-size': '13px',
                             }"
                           >
-                            {{ tag === '__nc_null__' ? 'Empty' : tag }}
+                            {{ tag in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[tag] : tag }}
                           </span>
                         </a-tag>
                       </template>
@@ -177,7 +178,7 @@ reloadViewDataHook?.on(reloadViewDataHandler)
                             'font-size': '13px',
                           }"
                         >
-                          {{ grp.key === '__nc_null__' ? 'Empty' : grp.key }}
+                          {{ grp.key in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[grp.key] : grp.key }}
                         </span>
                       </a-tag>
                     </div>

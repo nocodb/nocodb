@@ -10,13 +10,15 @@ const props = defineProps<{
   hidePagination?: boolean
   hideSidebars?: boolean
   customLabel?: string
+  fixedSize?: number
+  sticky?: boolean
 }>()
 
 const emits = defineEmits(['update:paginationData'])
 
 const vPaginationData = useVModel(props, 'paginationData', emits)
 
-const { alignCountOnRight, customLabel, changePage } = props
+const { alignCountOnRight, customLabel, changePage, sticky, fixedSize } = props
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -44,7 +46,10 @@ const page = computed({
 </script>
 
 <template>
-  <div class="flex items-center border-t-1 border-gray-75 h-10 nc-pagination-wrapper">
+  <div
+    class="flex items-center border-t-1 border-gray-75 h-10 nc-pagination-wrapper"
+    :style="`${sticky === true ? 'position: sticky; left: 0;' : ''}${fixedSize ? `width: ${fixedSize - 20}px;` : ''}`"
+  >
     <NcTooltip v-if="!isPublic && hideSidebars !== true" class="ml-2" placement="topLeft" hide-on-click>
       <template #title>
         {{ isLeftSidebarOpen ? 'Hide sidebar' : 'Show sidebar' }}

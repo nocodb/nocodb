@@ -18,6 +18,11 @@ const props = defineProps<{
 
   rowHeight?: number
   expandForm?: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
+  pagination?: {
+    fixedSize?: number
+    sticky?: boolean
+    hideSidebars?: boolean
+  }
 }>()
 
 const emits = defineEmits(['update:paginationData'])
@@ -80,13 +85,13 @@ const { deleteRow, deleteSelectedRows, deleteRangeOfRows, updateOrSaveRow, bulkU
     :expand-form="props.expandForm"
     :row-height="rowHeight"
     :selected-all-records="selectedAllRecords"
-    :hide-pagination-sidebars="true"
     :delete-row="deleteRow"
     :delete-selected-rows="deleteSelectedRows"
     :delete-range-of-rows="deleteRangeOfRows"
     :update-or-save-row="updateOrSaveRow"
     :bulk-update-rows="bulkUpdateRows"
     :hide-header="true"
+    :pagination="props.pagination"
   />
 </template>
 

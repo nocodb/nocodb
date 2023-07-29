@@ -65,7 +65,6 @@ const {
   bulkUpdateRows,
   bulkUpdateView,
   optimisedQuery,
-  deleteRowById,
 } = useViewData(meta, view, xWhere)
 
 const rowHeight = computed(() => {
@@ -178,10 +177,26 @@ const toggleOptimisedQuery = () => {
 
 const { rootGroup, groupBy, isGroupBy, loadGroups, loadGroupData, loadGroupPage, groupWrapperChangePage, redistributeRows } =
   useViewGroupBy(view, xWhere)
+
+const coreWrapperRef = ref<HTMLElement>()
+
+const viewWidth = ref(0)
+
+onMounted(() => {
+  until(coreWrapperRef)
+    .toBeTruthy()
+    .then(() => {
+      const resizeObserver = new ResizeObserver(() => {
+        viewWidth.value = coreWrapperRef.value?.clientWidth || 0
+      })
+      if (coreWrapperRef.value) resizeObserver.observe(coreWrapperRef.value)
+    })
+})
 </script>
 
 <template>
   <div
+    ref="coreWrapperRef"
     class="relative flex flex-col h-full min-h-0 w-full"
     data-testid="nc-grid-wrapper"
     style="background-color: var(--nc-grid-bg)"
@@ -223,6 +238,7 @@ const { rootGroup, groupBy, isGroupBy, loadGroups, loadGroupData, loadGroupPage,
       :max-depth="groupBy.length"
       :redistribute-rows="redistributeRows"
       :expand-form="expandForm"
+      :view-width="viewWidth"
     />
 
     <Suspense>

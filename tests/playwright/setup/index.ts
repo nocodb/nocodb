@@ -96,7 +96,7 @@ async function localInit({
   try {
     // Login as root user
     const response = await axios.post('http://localhost:8080/api/v1/auth/user/signin', {
-      email: 'user@nocodb.com',
+      email: `user-${parallelId}@nocodb.com`,
       password: getDefaultPwd(),
     });
     const token = response.data.token;

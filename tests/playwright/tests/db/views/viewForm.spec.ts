@@ -365,7 +365,11 @@ test.describe('Form view with LTAR', () => {
 
     await page.goto(url);
     await page.reload();
-    await loginPage.signIn({ email: 'user@nocodb.com', password: getDefaultPwd(), withoutPrefix: true });
+    await loginPage.signIn({
+      email: `user-${process.env.TEST_PARALLEL_INDEX}@nocodb.com`,
+      password: getDefaultPwd(),
+      withoutPrefix: true,
+    });
 
     await wsPage.waitFor({ state: 'visible' });
 

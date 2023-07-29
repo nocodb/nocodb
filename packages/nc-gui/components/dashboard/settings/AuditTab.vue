@@ -8,7 +8,7 @@ const { $api } = useNuxtApp()
 
 const { project } = storeToRefs(useProject())
 
-const _projectId = $(inject(ProjectIdInj))
+const _projectId = $(inject(ProjectIdInj, undefined))
 const projectId = $computed(() => _projectId ?? project.value?.id)
 
 const { t } = useI18n()

@@ -164,6 +164,8 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
     baseId = project.value!.bases?.[baseIndex].id
   }
 
+  if (!baseId || !project.value?.id) return
+
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
     baseId, // || bases.value[0].id,
@@ -752,6 +754,7 @@ onKeyStroke('Escape', () => {
     </template>
   </a-dropdown>
   <DlgTableDelete
+    v-if="contextMenuTarget.value?.id && project?.id"
     v-model:visible="isTableDeleteDialogVisible"
     :table-id="contextMenuTarget.value?.id"
     :project-id="project?.id"

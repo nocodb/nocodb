@@ -40,7 +40,6 @@ import NcCheck from '~icons/nc-icons/check'
 import PhLayout from '~icons/ph/layout'
 import Copy from '~icons/material-symbols/content-copy-outline'
 import Delete from '~icons/material-symbols/delete-outline-rounded'
-import PhEye from '~icons/ph/eye'
 import CiFilter from '~icons/mdi/filter-outline'
 import Gallery from '~icons/ph/image-square-bold'
 import Plus from '~icons/material-symbols/add-rounded'
@@ -235,7 +234,7 @@ import Down from '~icons/material-symbols/keyboard-arrow-down-rounded'
 export const iconMap = {
   workspaceDefault: MsGroup,
   search: NcSearch,
-  info: h(MsInfo, {}, 'info'),
+  info: h(MsInfo, {}, () => 'info'),
   inbox: h('span', { class: 'material-symbols' }, 'inbox'),
   addOutlineBox: MsAddBoxOutline,
   loading: h('span', { class: 'material-symbols' }, 'autorenew'),
@@ -314,7 +313,7 @@ export const iconMap = {
   excel: PhExcelThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
   csv: PhCsvThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
   code: Code,
-  palette: h(Palette, {}, 'palette'),
+  palette: h(Palette, {}, () => 'palette'),
   delete: Delete,
   import: h('span', { class: 'material-symbols' }, 'system_update_alt'),
   edit: MaterialSymbolsEdit,

@@ -136,7 +136,7 @@ export const useTabs = defineStore('tabStore', () => {
   //   previousActiveTabIndex.value = old
   // })
 
-  const activeTab = computed(() => tabs.value?.[activeTabIndex.value])
+  const activeTab = computed(() => ({} as TabItem))
 
   const addTab = async (tabMeta: TabItem) => {
     return

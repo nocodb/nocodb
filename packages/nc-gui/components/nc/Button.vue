@@ -3,21 +3,25 @@ import type { ButtonType } from 'ant-design-vue/lib/button'
 
 interface Props {
   label: string
-  loadingLabel: string | null
-  onSubmit: () => Promise<void>
-  disabled: boolean
-  loading: boolean
-  type: ButtonType | 'danger' | undefined
-  size: 'small' | 'medium' | 'large'
+  loading?: boolean
+  loadingLabel?: string | undefined
+  onSubmit?: () => Promise<void>
+  disabled?: boolean
+  type?: ButtonType | 'danger' | undefined
+  size?: 'small' | 'medium' | 'large'
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  disabled: false,
+  size: 'medium',
+  type: 'primary',
+})
 
 const emits = defineEmits(['update:loading'])
 
-const size = computed(() => props.size || 'medium')
+const size = computed(() => props.size)
 
-const type = computed(() => props.type || 'primary')
+const type = computed(() => props.type)
 
 const loading = useVModel(props, 'loading', emits)
 </script>

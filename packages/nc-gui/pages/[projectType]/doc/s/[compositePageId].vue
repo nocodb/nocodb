@@ -84,7 +84,7 @@ watch(
 </script>
 
 <template>
-  <NuxtLayout id="content" :key="route.params.projectId as string" name="dashboard">
+  <NuxtLayout id="content" :key="`${route.params.projectId as string}`" name="dashboard">
     <template #sidebar>
       <DocsSideBar v-if="isSidebarOpen && !isFetching" :project="project" />
     </template>

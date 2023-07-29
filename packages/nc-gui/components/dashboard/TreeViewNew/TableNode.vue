@@ -204,7 +204,12 @@ const isMultiBase = computed(() => project.bases && project.bases.length > 1)
           </template>
         </a-dropdown>
       </div>
-      <DlgTableDelete v-model:visible="isTableDeleteDialogVisible" :table-id="table.id" :project-id="project?.id" />
+      <DlgTableDelete
+        v-if="table.id && project?.id"
+        v-model:visible="isTableDeleteDialogVisible"
+        :table-id="table.id"
+        :project-id="project.id"
+      />
     </GeneralTooltip>
   </div>
 </template>

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { defineProps, toRef } from '@vue/runtime-core'
 import type { ProjectType, TableType } from 'nocodb-sdk'
 import { storeToRefs } from 'pinia'
 import Sortable from 'sortablejs'
 import TableNode from './TableNode.vue'
 import { useNuxtApp } from '#app'
+import { toRef } from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -40,10 +40,6 @@ let sortable: Sortable
 
 // todo: replace with vuedraggable
 const initSortable = (el: Element) => {
-  console.log(el)
-
-  // const base_id = el.getAttribute('nc-base')
-  // if (!base_id) return
   if (sortable) sortable.destroy()
   Sortable.create(el as HTMLLIElement, {
     onEnd: async (evt) => {

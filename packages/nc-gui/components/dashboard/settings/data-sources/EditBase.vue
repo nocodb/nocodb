@@ -36,7 +36,7 @@ const projectStore = useProject()
 const projectsStore = useProjects()
 const { project } = storeToRefs(projectStore)
 
-const _projectId = inject(ProjectIdInj)
+const _projectId = inject(ProjectIdInj, undefined)
 const projectId = computed(() => _projectId?.value ?? project.value?.id)
 
 const useForm = Form.useForm

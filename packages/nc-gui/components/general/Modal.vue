@@ -1,10 +1,16 @@
 <script lang="ts" setup>
-const props = defineProps<{
-  visible: boolean
-  width?: string | number
-  size: 'small' | 'medium' | 'large'
-  destroyOnClose: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    visible: boolean
+    width?: string | number
+    size?: 'small' | 'medium' | 'large'
+    destroyOnClose?: boolean
+  }>(),
+  {
+    size: 'medium',
+    destroyOnClose: true,
+  },
+)
 
 const emits = defineEmits(['update:visible'])
 

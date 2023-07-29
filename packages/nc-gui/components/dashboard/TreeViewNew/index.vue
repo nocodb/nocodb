@@ -156,6 +156,8 @@ const setMenuContext = (type: 'project' | 'base' | 'table' | 'main' | 'layout', 
 }
 
 function openRenameTableDialog(table: TableType, rightClick = false) {
+  if (!table || !table.base_id) return
+
   $e(rightClick ? 'c:table:rename:navdraw:right-click' : 'c:table:rename:navdraw:options')
 
   const isOpen = ref(true)
@@ -175,6 +177,8 @@ function openRenameTableDialog(table: TableType, rightClick = false) {
 }
 
 function openTableCreateDialog(baseId?: string, projectId?: string) {
+  if (!baseId && !(projectId || projectsList.value[0].id)) return
+
   $e('c:table:create:navdraw')
 
   const isOpen = ref(true)

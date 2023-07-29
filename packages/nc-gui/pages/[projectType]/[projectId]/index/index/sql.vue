@@ -278,6 +278,8 @@ const runSQL = async () => {
 }
 
 function openSqlViewCreateDialog(baseId?: string) {
+  if (!baseId && !bases.value.length) return
+
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgSqlViewCreate'), {

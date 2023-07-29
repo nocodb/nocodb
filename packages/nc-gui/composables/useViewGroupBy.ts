@@ -94,17 +94,20 @@ export const useViewGroupBy = createSharedComposable(
       }
     }
 
-    const calculateNestedWhere = (nestedIn: { title: string; column_name: string; value: string; column_uidt: string }[]) => {
+    const calculateNestedWhere = (
+      nestedIn: { title: string; column_name: string; value: string; column_uidt: string }[],
+      existing = '',
+    ) => {
       return nestedIn.reduce((acc, curr) => {
         if (curr.value === '__nc_null__') {
-          acc += `~and(${curr.column_name},is,null)`
+          acc += `${acc.length ? '~and' : ''}(${curr.title},is,null)`
         } else if ([UITypes.Date, UITypes.DateTime].includes(curr.column_uidt as UITypes)) {
-          acc += `~and(${curr.column_name},eq,${curr.value},exactDate)`
+          acc += `${acc.length ? '~and' : ''}(${curr.title},eq,${curr.value},exactDate)`
         } else {
-          acc += `~and(${curr.column_name},eq,${curr.value})`
+          acc += `${acc.length ? '~and' : ''}(${curr.title},eq,${curr.value})`
         }
         return acc
-      }, '')
+      }, existing)
     }
 
     async function loadGroups(params: any = {}, group?: Group) {
@@ -123,7 +126,7 @@ export const useViewGroupBy = createSharedComposable(
 
       const groupby = groupBy.value[group.nestedIn.length]
 
-      const nestedWhere = calculateNestedWhere(group.nestedIn)
+      const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
 
       if (!groupby || !groupby?.column_name) return
 
@@ -133,8 +136,8 @@ export const useViewGroupBy = createSharedComposable(
         ...params,
         ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
         ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-        where: `${where?.value}${nestedWhere}`,
-        sort: `${params.sort?.value === 'desc' ? '-' : ''}${groupby.column_name}`,
+        where: `${nestedWhere}`,
+        sort: `${params.sort?.value === 'desc' ? '-' : ''}${groupby.title}`,
         column_name: groupby.column_name,
       } as any)
 
@@ -178,18 +181,12 @@ export const useViewGroupBy = createSharedComposable(
         group.paginationData = { page: 1, pageSize: appInfoDefaultLimit }
       }
 
-      const nestedWhere = calculateNestedWhere(group.nestedIn)
+      const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
 
       const query = {
         offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? appInfoDefaultLimit),
         limit: group.paginationData.pageSize ?? appInfoDefaultLimit,
-        where: `${where?.value ?? ''}${nestedWhere}~and${
-          group.key === '__nc_null__'
-            ? `(${group.column.column_name},is,null)`
-            : `(${group.column.column_name},eq${
-                [UITypes.Date, UITypes.DateTime].includes(group.column.uidt as UITypes) ? ',exactDate' : ''
-              },${group.key})`
-        }`,
+        where: `${nestedWhere}`,
       }
 
       const response = await api.dbViewRow.list('noco', project.value.id, view.value.fk_model_id, view.value.id, {

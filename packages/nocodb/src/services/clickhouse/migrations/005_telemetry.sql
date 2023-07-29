@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS usage_telemetry (
     package_id String(255),
     client_id String(255),
 
-    properties JSON,
+    properties String,
 
     PRIMARY KEY (id)
   ) ENGINE = MergeTree;

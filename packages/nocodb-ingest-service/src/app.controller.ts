@@ -235,7 +235,7 @@ export class AppController {
             // escape single quotes
             (key, val) => {
               if (typeof val === 'string') {
-                return val.replace(/'/g, "'");
+                return val.replace(/'/g, "''");
               }
               return val;
             },

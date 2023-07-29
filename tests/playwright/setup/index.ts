@@ -188,7 +188,7 @@ const setup = async ({
   const parallelIndex = process.env.TEST_PARALLEL_INDEX;
 
   const workerId = `_p${parallelIndex}_w${workerIndex}_c${(+workerIndex + 1) * 1000 + workerCount[parallelIndex]}`;
-  console.log(workerId);
+  // console.log(workerId);
 
   // const workerId =
   //   String(process.env.TEST_WORKER_INDEX) + String(process.env.TEST_PARALLEL_INDEX) + String(workerCount[workerIndex]);

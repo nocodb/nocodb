@@ -61,7 +61,7 @@ const extPgProject = (workspaceId, title, parallelId, projectType) => ({
   external: true,
 });
 
-const workerCount = [0, 0, 0, 0, 0, 0];
+const workerCount = [0, 0, 0, 0, 0, 0, 0, 0];
 
 export interface NcContext {
   project: ProjectType;

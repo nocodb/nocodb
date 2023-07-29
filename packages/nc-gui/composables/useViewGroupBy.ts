@@ -108,11 +108,11 @@ export const useViewGroupBy = createSharedComposable(
     ) => {
       return nestedIn.reduce((acc, curr) => {
         if (curr.value === GROUP_BY_VARS.NULL) {
-          acc += `${acc.length ? '~and' : ''}(${curr.title},is,null)`
+          acc += `${acc.length ? '~and' : ''}(${curr.title},blank)`
         } else if (curr.column_uidt === UITypes.Checkbox) {
           acc += `${acc.length ? '~and' : ''}(${curr.title},${curr.value === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked'})`
         } else if ([UITypes.Date, UITypes.DateTime].includes(curr.column_uidt as UITypes)) {
-          acc += `${acc.length ? '~and' : ''}(${curr.title},eq,${curr.value},exactDate)`
+          acc += `${acc.length ? '~and' : ''}(${curr.title},eq,exactDate,${curr.value})`
         } else {
           acc += `${acc.length ? '~and' : ''}(${curr.title},eq,${curr.value})`
         }

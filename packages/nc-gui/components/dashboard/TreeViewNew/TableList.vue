@@ -19,6 +19,8 @@ const props = withDefaults(
 const project = toRef(props, 'project')
 const baseIndex = toRef(props, 'baseIndex')
 
+const base = computed(() => project.value?.bases?.[baseIndex.value])
+
 const { projectTables } = storeToRefs(useTablesStore())
 const tables = computed(() => projectTables.value.get(project.value.id!) ?? [])
 
@@ -35,24 +37,29 @@ const tablesById = $computed(() =>
     return acc
   }, {}),
 )
-let key = $ref(0)
-let sortable: Sortable
+
+const keys = $ref<Record<string, number>>({})
+
+const menuRefs = $ref<HTMLElement[] | HTMLElement>()
+
+const sortables: Record<string, Sortable> = {}
 
 // todo: replace with vuedraggable
 const initSortable = (el: Element) => {
-  console.log(el)
+  const base_id = el.getAttribute('nc-base')
+  if (!base_id) return
 
-  // const base_id = el.getAttribute('nc-base')
-  // if (!base_id) return
-  if (sortable) sortable.destroy()
+  if (sortables[base_id]) sortables[base_id].destroy()
   Sortable.create(el as HTMLLIElement, {
     onEnd: async (evt) => {
-      const offset = tables.value.findIndex((table) => table.base_id === project.value.bases![baseIndex.value].id)
+      const offset = tables.value.findIndex((table) => table.base_id === base_id)
 
       const { newIndex = 0, oldIndex = 0 } = evt
 
+      if (newIndex === oldIndex) return
+
       const itemEl = evt.item as HTMLLIElement
-      const item = tablesById[itemEl.dataset.id as string]!
+      const item = tablesById[itemEl.dataset.id as string]
 
       // get the html collection of all list items
       const children: HTMLCollection = evt.to.children
@@ -77,12 +84,15 @@ const initSortable = (el: Element) => {
         item.order = ((itemBefore.order as number) + (itemAfter.order as number)) / 2
       }
 
-      // todo: move to action
       // update the order of the moved item
-      tables.value?.splice(newIndex + offset, 0, ...tables.value!.splice(oldIndex + offset, 1))
+      tables.value?.splice(newIndex + offset, 0, ...tables.value?.splice(oldIndex + offset, 1))
 
       // force re-render the list
-      key++
+      if (keys[base_id]) {
+        keys[base_id] = keys[base_id] + 1
+      } else {
+        keys[base_id] = 1
+      }
 
       // update the item order
       await $api.dbTable.reorder(item.id as string, {
@@ -90,14 +100,30 @@ const initSortable = (el: Element) => {
       })
     },
     animation: 150,
+    setData(dataTransfer, dragEl) {
+      dataTransfer.setData(
+        'text/json',
+        JSON.stringify({
+          id: dragEl.dataset.id,
+          title: dragEl.dataset.title,
+          type: dragEl.dataset.type,
+          baseId: dragEl.dataset.baseId,
+        }),
+      )
+    },
+    revertOnSpill: true,
   })
 }
 
-const menuRef = (divEl: HTMLDivElement) => {
-  if (divEl) {
-    initSortable(divEl)
+watchEffect(() => {
+  if (menuRefs) {
+    if (menuRefs instanceof HTMLElement) {
+      initSortable(menuRefs)
+    } else {
+      menuRefs.forEach((el) => initSortable(el))
+    }
   }
-}
+})
 
 const availableTables = computed(() => {
   return tables.value.filter((table) => table.base_id === project.value?.bases?.[baseIndex.value].id)
@@ -108,37 +134,38 @@ const availableTables = computed(() => {
   <div class="border-none sortable-list">
     <template v-if="project">
       <div
-        v-if="project.bases?.[baseIndex] && project!.bases[baseIndex].enabled"
-        :ref="menuRef"
-        :key="key"
-        :nc-base="project.bases[baseIndex].id"
+        v-if="availableTables.length === 0"
+        class="py-0.5 text-gray-500"
+        :class="{
+          'ml-13.55': baseIndex === 0,
+          'ml-19': baseIndex !== 0,
+        }"
       >
-        <div
-          v-if="availableTables.length === 0"
-          class="py-0.5 text-gray-500"
-          :class="{
-            'ml-13.55': baseIndex === 0,
-            'ml-19': baseIndex !== 0,
-          }"
+        Empty
+      </div>
+      <div
+        v-if="project.bases?.[baseIndex] && project!.bases[baseIndex].enabled"
+        ref="menuRefs"
+        :key="`sortable-${base?.id}-${base?.id && base?.id in keys ? keys[base?.id] : '0'}`"
+        :nc-base="base?.id"
+      >
+        <TableNode
+          v-for="table of availableTables"
+          :key="table.id"
+          v-e="['a:table:open']"
+          class="nc-tree-item text-sm cursor-pointer group"
+          :data-order="table.order"
+          :data-id="table.id"
+          :data-testid="`tree-view-table-${table.title}`"
+          :table="table"
+          :project="project"
+          :base-index="baseIndex"
+          :data-title="table.title"
+          :data-base-id="base?.id"
+          :data-type="table.type"
+          @click="openTable(table)"
         >
-          Empty
-        </div>
-        <template v-else>
-          <TableNode
-            v-for="table of availableTables"
-            :key="table.id"
-            v-e="['a:table:open']"
-            class="nc-tree-item text-sm cursor-pointer group"
-            :data-order="table.order"
-            :data-id="table.id"
-            :data-testid="`tree-view-table-${table.title}`"
-            :table="table"
-            :project="project"
-            :base-index="baseIndex"
-            @click="openTable(table)"
-          >
-          </TableNode>
-        </template>
+        </TableNode>
       </div>
     </template>
   </div>

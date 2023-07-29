@@ -95,7 +95,10 @@ const onDrop = async (event: DragEvent) => {
     // Do something with the received data
 
     // if dragged item is not from the same base, return
-    if (data.baseId !== meta.value?.base_id) return
+    if (data.baseId !== meta.value?.base_id) {
+      message.error('Cannot link to a table from another base')
+      return
+    }
 
     // if dragged item or opened view is not a table, return
     if (data.type !== 'table' || meta.value?.type !== 'table') return
@@ -125,6 +128,16 @@ const onDrop = async (event: DragEvent) => {
         fk_lookup_column_id: lookupCol?.id,
       })
     } else {
+      if (!parentPkCol) {
+        message.error('Parent table does not have a primary key column')
+        return
+      }
+
+      if (!childPkCol) {
+        message.error('Child table does not have a primary key column')
+        return
+      }
+
       grid.value?.openColumnCreate({
         uidt: UITypes.Links,
         title: `${data.title}`,

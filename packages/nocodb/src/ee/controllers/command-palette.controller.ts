@@ -1,7 +1,7 @@
 import { Controller, HttpCode, Post, Request, UseGuards } from '@nestjs/common';
 import { Acl } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { GlobalGuard } from '../guards/global/global.guard';
-import { CommandPaletteService } from '../services/command-palette.service';
+import { CommandPaletteService } from '~/services/command-palette.service';
 import type { UserType } from 'nocodb-sdk';
 
 @Controller()

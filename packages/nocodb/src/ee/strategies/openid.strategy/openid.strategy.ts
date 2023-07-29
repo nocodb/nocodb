@@ -5,11 +5,11 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy as OpenIDConnectStrategy } from '@techpass/passport-openidconnect';
 import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
-import { User } from '../../models';
-import Noco from '../../Noco';
-import NocoCache from '../../cache/NocoCache';
-import { CacheGetType } from '../../utils/globals';
-import { UsersService } from '../../services/users/users.service';
+import { User } from '~/models';
+import Noco from '~/Noco';
+import NocoCache from '~/cache/NocoCache';
+import { CacheGetType } from '~/utils/globals';
+import { UsersService } from '~/services/users/users.service';
 import type { AppConfig } from 'aws-sdk';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
 

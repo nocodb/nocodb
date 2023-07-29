@@ -11,9 +11,8 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import {
-  ExtractProjectIdMiddleware,
   UseAclMiddleware,
-} from '../../middlewares/extract-project-id/extract-project-id.middleware';
+} from '~/middlewares/extract-project-id/extract-project-id.middleware';
 import { WorkspaceUsersService } from './workspace-users.service';
 
 @Controller()

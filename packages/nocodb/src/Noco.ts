@@ -20,7 +20,7 @@ import type { Express } from 'express';
 // import type * as http from 'http';
 
 import type http from 'http';
-import { AppModule } from '~~/common/app.module';
+import { AppModule } from '~/app.module';
 
 dotenv.config();
 

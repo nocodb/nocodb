@@ -4,14 +4,14 @@ import { GoogleStrategyProvider } from '../../strategies/google.strategy/google.
 import { GlobalModule } from '../global/global.module';
 import { UsersService } from '../../services/users/users.service';
 import { UsersController } from '../../controllers/users/users.controller';
-import { OpenidStrategyProvider } from '../../strategies/openid.strategy/openid.strategy';
+// import { OpenidStrategyProvider } from '../../strategies/openid.strategy/openid.strategy';
 
 @Module({
   imports: [GlobalModule, PassportModule],
   controllers: [
     ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [UsersController] : []),
   ],
-  providers: [UsersService, GoogleStrategyProvider, OpenidStrategyProvider],
+  providers: [UsersService, GoogleStrategyProvider],
   exports: [UsersService],
 })
 export class UsersModule {}

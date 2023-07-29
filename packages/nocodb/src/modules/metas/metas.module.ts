@@ -84,22 +84,22 @@ import { ApiDocsService } from '../../services/api-docs/api-docs.service';
 import { GlobalModule } from '../global/global.module';
 import { ProjectUsersController } from '../../controllers/project-users.controller';
 import { ProjectUsersService } from '../../services/project-users/project-users.service';
-import { DatasModule } from '../datas/datas.module';
-import { CommandPaletteController } from '../../controllers/command-palette.controller';
-import { CommandPaletteService } from '../../services/command-palette.service';
+// import { DatasModule } from '../datas/datas.module';
+// import { CommandPaletteController } from '../../controllers/command-palette.controller';
+// import { CommandPaletteService } from '../../services/command-palette.service';
 import { NotificationsController } from '../../controllers/notifications.controller';
 import { NotificationsService } from '../../services/notifications.service';
 // import { WorkspacesModule } from '../workspaces/workspaces.module';
 // import { WorkspaceUsersModule } from '../workspace-users/workspace-users.module';
 import { NotificationsGateway } from '../../gateways/notifications/notifications.gateway';
 import { ClickhouseService } from '../../services/clickhouse/clickhouse.service';
-import { ThrottlerExpiryListenerService } from '../../services/throttler/throttler-expiry-listener.service';
+// import { ThrottlerExpiryListenerService } from '../../services/throttler/throttler-expiry-listener.service';
 import { LayoutFilterController } from '../../controllers/dashboards/layoutFilter.controller';
 import { LayoutFilterService } from '../../services/dashboards/layoutFilter.service';
 import { TelemetryController } from '../../controllers/telemetry.controller';
 
 // todo: refactor to use config service
-const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
+// const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
 
 @Module({
   imports: [
@@ -151,7 +151,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
           SyncController,
           SortsController,
           SharedBasesController,
-          CommandPaletteController,
+          // CommandPaletteController,
           NotificationsController,
           DocsPagesHistoryController,
           DocsPagesController,
@@ -205,7 +205,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     SortsService,
     SharedBasesService,
     BulkDataAliasService,
-    CommandPaletteService,
+    // CommandPaletteService,
     NotificationsService,
     NotificationsGateway,
     ClickhouseService,
@@ -213,7 +213,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     DocsPageHistoryService,
     DocsPagesUpdateService,
     PublicDocsService,
-    ...(enableThrottler ? [ThrottlerExpiryListenerService] : []),
+    // ...(enableThrottler ? [ThrottlerExpiryListenerService] : []),
   ],
   exports: [
     TablesService,

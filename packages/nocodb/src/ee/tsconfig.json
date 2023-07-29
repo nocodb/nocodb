@@ -1,32 +1,12 @@
 {
-  "ts-node": {
-    "require": ["tsconfig-paths/register"]
-  },
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "declaration": true,
-    "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
-    "target": "es2017",
-    "sourceMap": true,
     "outDir": "../../dist",
     "baseUrl": "../../",
-    "incremental": true,
-    "skipLibCheck": true,
-    "strictNullChecks": false,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false,
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
     "paths": {
-      "~~/common/*": ["./src/ee/*"],
-      "src/*": ["./src/*"],
-      "~/*": ["./src/*"],
-      "@/*": ["./src/*"]
+      "src/*": ["./src/ee/*", "./src/*"],
+      "~/*": ["./src/ee/*", "./src/*"],
+      "@/*": ["./src/ee/*", "./src/*"]
     }
   }
 }

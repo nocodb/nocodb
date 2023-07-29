@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ThrottlerStorageRedisService } from 'nestjs-throttler-storage-redis';
 import { ConfigService } from '@nestjs/config';
-import type { AppConfig } from '../../interface/config';
+import type { AppConfig } from '~/interface/config';
 import type {
   ThrottlerModuleOptions,
   ThrottlerOptionsFactory,

@@ -3,16 +3,16 @@ import validator from 'validator';
 import { v4 as uuidv4 } from 'uuid';
 import { AppEvents, WorkspaceUserRoles } from 'nocodb-sdk';
 import * as ejs from 'ejs';
-import WorkspaceUser from '../../models/WorkspaceUser';
-import { PagedResponseImpl } from '../../helpers/PagedResponse';
-import validateParams from '../../helpers/validateParams';
-import { NcError } from '../../helpers/catchError';
-import { Project, ProjectUser, User } from '../../models';
-import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
-import Workspace from '../../models/Workspace';
-import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
-import { getWorkspaceSiteUrl } from '../../utils';
-import { rolesLabel } from '../../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
+import WorkspaceUser from '~/models/WorkspaceUser';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import validateParams from '~/helpers/validateParams';
+import { NcError } from '~/helpers/catchError';
+import { Project, ProjectUser, User } from '~/models';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import Workspace from '~/models/Workspace';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import { getWorkspaceSiteUrl } from '~/utils';
+import { rolesLabel } from '~/middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
 
 @Injectable()

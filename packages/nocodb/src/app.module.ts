@@ -1,6 +1,5 @@
 import { Module, RequestMethod } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule as NestJsEventEmitter } from '@nestjs/event-emitter';
 import { GlobalExceptionFilter } from './filters/global-exception/global-exception.filter';
@@ -9,7 +8,6 @@ import { GuiMiddleware } from './middlewares/gui/gui.middleware';
 import { DatasModule } from './modules/datas/datas.module';
 import { EventEmitterModule } from './modules/event-emitter/event-emitter.module';
 import { AuthService } from './services/auth.service';
-import { UsersModule } from './modules/users/users.module';
 import { TestModule } from './modules/test/test.module';
 import { GlobalModule } from './modules/global/global.module';
 import { LocalStrategy } from './strategies/local.strategy';
@@ -19,7 +17,6 @@ import { MetasModule } from './modules/metas/metas.module';
 // import { WorkspacesModule } from './modules/workspaces/workspaces.module';
 // import { WorkspaceUsersModule } from './modules/workspace-users/workspace-users.module';
 import { JobsModule } from './modules/jobs/jobs.module';
-import { ThrottlerConfigService } from './services/throttler/throttler-config.service';
 import { CustomApiLimiterGuard } from './guards/custom-api-limiter.guard';
 
 import appConfig from './app.config';
@@ -29,6 +26,7 @@ import { ExecutionTimeCalculatorInterceptor } from './interceptors/execution-tim
 import { HookHandlerService } from './services/hook-handler.service';
 import { BasicStrategy } from './strategies/basic.strategy/basic.strategy';
 import type { MiddlewareConsumer } from '@nestjs/common';
+import { UsersModule } from '~/modules/users/users.module';
 
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
@@ -51,19 +49,6 @@ export const ceModuleConfig = {
       load: [() => appConfig],
       isGlobal: true,
     }),
-    ...(enableThrottler
-      ? [
-        ThrottlerModule.forRootAsync({
-          useClass: ThrottlerConfigService,
-          imports: [
-            ConfigModule.forRoot({
-              isGlobal: true,
-              load: [() => appConfig],
-            }),
-          ],
-        }),
-      ]
-      : []),
     TestModule,
   ],
   providers: [
@@ -88,7 +73,7 @@ export const ceModuleConfig = {
     HookHandlerService,
     BasicStrategy,
   ],
-}
+};
 
 @Module(ceModuleConfig)
 export class AppModule {

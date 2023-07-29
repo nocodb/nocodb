@@ -179,6 +179,7 @@ const isMoveDlgOpen = ref(false)
 const selectedProjectToMove = ref()
 
 useDialog(resolveComponent('WorkspaceMoveProjectDlg'), {
+  'v-if': selectedProjectToMove,
   'modelValue': isMoveDlgOpen,
   'project': selectedProjectToMove,
   'onUpdate:modelValue': (isOpen: boolean) => (isMoveDlgOpen.value = isOpen),
@@ -202,6 +203,7 @@ const isDuplicateDlgOpen = ref(false)
 const selectedProjectToDuplicate = ref()
 
 useDialog(resolveComponent('DlgProjectDuplicate'), {
+  'v-if': selectedProjectToDuplicate,
   'modelValue': isDuplicateDlgOpen,
   'project': selectedProjectToDuplicate,
   'onUpdate:modelValue': (isOpen: boolean) => (isDuplicateDlgOpen.value = isOpen),

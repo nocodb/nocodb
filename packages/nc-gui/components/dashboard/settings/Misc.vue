@@ -10,7 +10,7 @@ const projectStore = useProject()
 const projectsStore = useProjects()
 const { loadTables, hasEmptyOrNullFilters } = projectStore
 const { project } = storeToRefs(projectStore)
-const _projectId = inject(ProjectIdInj)
+const _projectId = inject(ProjectIdInj, undefined)
 const projectId = computed(() => _projectId?.value ?? project.value?.id)
 
 watch(includeM2M, async () => await loadTables())

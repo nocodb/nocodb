@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { Menu } from 'ant-design-vue'
-import { Empty, Modal } from 'ant-design-vue'
+import { Empty } from 'ant-design-vue'
 import type { WorkspaceType } from 'nocodb-sdk'
-import { nextTick, onUnmounted } from '@vue/runtime-core'
+import { nextTick } from '@vue/runtime-core'
 import { WorkspaceStatus, WorkspaceUserRoles } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import Sortable from 'sortablejs'
@@ -11,6 +11,7 @@ import {
   extractSdkResponseErrorMsg,
   message,
   onMounted,
+  onUnmounted,
   parseProp,
   projectThemeColors,
   storeToRefs,
@@ -69,11 +70,17 @@ const selectedWorkspaceIndex = computed<number[]>({
 // create a new sidebar state
 const { toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
 
+let timerRef: any
+
+onUnmounted(() => {
+  if (timerRef) clearTimeout(timerRef)
+})
+
 const isCreateDlgOpen = ref(false)
 
 const isCreateProjectOpen = ref(false)
 
-const menuEl = ref<Menu | null>(null)
+const menuEl = ref<typeof Menu | null>(null)
 
 const toBeDeletedWorkspaceId = ref<string | null>(null)
 const showDeleteWorkspace = ref(false)
@@ -269,8 +276,6 @@ watch(activeWorkspaceId, async () => {
   await loadProjects(activePage.value)
 })
 
-let timerRef: any
-
 // todo: do it in a better way
 function loadWorkspacesWithInterval() {
   timerRef = setTimeout(async () => {
@@ -280,10 +285,6 @@ function loadWorkspacesWithInterval() {
     loadWorkspacesWithInterval()
   }, 10000)
 }
-
-onUnmounted(() => {
-  if (timerRef) clearTimeout(timerRef)
-})
 
 watch(
   () => activeWorkspace.value?.status,
@@ -540,7 +541,11 @@ watch(
 
         <WorkspaceProjectList class="min-h-20 grow" />
       </div>
-      <DlgWorkspaceDelete v-model:visible="showDeleteWorkspace" :workspace-id="toBeDeletedWorkspaceId" />
+      <DlgWorkspaceDelete
+        v-if="toBeDeletedWorkspaceId"
+        v-model:visible="showDeleteWorkspace"
+        :workspace-id="toBeDeletedWorkspaceId"
+      />
     </div>
   </NuxtLayout>
 </template>

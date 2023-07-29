@@ -37,10 +37,12 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
     baseId = openedProject.value!.bases?.[baseIndex].id
   }
 
+  if (!baseId || !openedProject.value?.id) return
+
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
     baseId, // || bases.value[0].id,
-    'projectId': openedProject.value!.id,
+    'projectId': openedProject.value.id,
     'onCreate': closeDialog,
     'onUpdate:modelValue': () => closeDialog(),
   })

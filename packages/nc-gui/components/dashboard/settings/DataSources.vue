@@ -328,7 +328,7 @@ const isEditBaseModalOpen = computed({
                       </template>
                       <a-switch
                         :checked="sources[0].enabled ? true : false"
-                        size="medium"
+                        size="default"
                         @change="toggleBase(sources[0], $event)"
                       />
                     </a-tooltip>

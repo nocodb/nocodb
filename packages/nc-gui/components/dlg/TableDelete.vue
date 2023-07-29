@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -30,7 +30,6 @@ const table = computed(() => tables.value.find((t) => t.id === props.tableId))
 const isLoading = ref(false)
 
 const onDelete = async () => {
-  console.log('onDelete', props.tableId)
   if (!table.value) return
 
   const toBeDeletedTable = JSON.parse(JSON.stringify(table.value))

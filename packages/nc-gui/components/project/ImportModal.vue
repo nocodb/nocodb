@@ -15,6 +15,8 @@ const visible = useVModel(props, 'visible', emits)
 const { $e } = useNuxtApp()
 
 function openAirtableImportDialog(baseId?: string) {
+  if (!baseId) return
+
   $e('a:actions:import-airtable')
 
   const isOpen = ref(true)
@@ -33,6 +35,8 @@ function openAirtableImportDialog(baseId?: string) {
 }
 
 function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
+  if (!base.value.id) return
+
   $e(`a:actions:import-${type}`)
 
   const isOpen = ref(true)

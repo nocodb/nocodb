@@ -446,7 +446,7 @@ watch(
       }
     }
     if (project.value.title && tableTitle) {
-      document.title = `${project.value.title}: ${tableTitle} | NocoDB`
+      document.title = `${project.value.title}: ${tableTitle}`
     } else {
       document.title = 'NocoDB'
     }

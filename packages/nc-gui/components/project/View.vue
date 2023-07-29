@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { useTitle } from '@vueuse/core'
 import NcLayout from '~icons/nc-icons/layout'
 const { openedProject } = storeToRefs(useProjects())
 const { activeTables } = storeToRefs(useTablesStore())
@@ -32,6 +33,10 @@ watch(
   },
   { immediate: true },
 )
+
+onMounted(() => {
+  useTitle(`${openedProject.value?.title}`)
+})
 </script>
 
 <template>

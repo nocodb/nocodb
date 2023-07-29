@@ -3,6 +3,7 @@ import { nextTick } from '@vue/runtime-core'
 import { Dropdown, message } from 'ant-design-vue'
 import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
+import { useTitle } from '@vueuse/core'
 import TableList from './TableList.vue'
 import { openLink, useProjects } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
@@ -100,12 +101,18 @@ const enableEditMode = () => {
 }
 
 const updateProjectTitle = async () => {
+  if (!tempTitle.value) return
+
   try {
     await updateProject(project.value.id!, {
       title: tempTitle.value,
     })
     editMode.value = false
     tempTitle.value = ''
+
+    $e('a:project:rename')
+
+    useTitle(`${project.value?.title}`)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

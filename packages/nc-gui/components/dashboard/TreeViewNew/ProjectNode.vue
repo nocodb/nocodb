@@ -398,8 +398,8 @@ onKeyStroke('Escape', () => {
             />
           </div>
 
-          <div class="flex items-center mr-1" @click.stop>
-            <div class="flex items-center select-none w-6 h-full" @click.stop>
+          <div class="flex items-center mr-1" @click="onProjectClick(project)">
+            <div class="flex items-center select-none w-6 h-full">
               <a-spin
                 v-if="project.isLoading"
                 class="nc-sidebar-icon !flex !flex-row !items-center !my-0.5 !mx-1.5 w-8"
@@ -409,7 +409,7 @@ onKeyStroke('Escape', () => {
               <GeneralEmojiPicker
                 :key="project.meta?.icon"
                 :emoji="project.meta?.icon"
-                :readonly="!isUIAllowed('projectIconCustomisation', false, projectRole)"
+                :readonly="true"
                 size="small"
                 @emoji-selected="setIcon($event, project)"
               >

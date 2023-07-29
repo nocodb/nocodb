@@ -43,8 +43,10 @@ const isUnicodeEmoji = computed(() => {
   return emoji.value?.match(/\p{Extended_Pictographic}/gu)
 })
 
-const onClick = () => {
+const onClick = (e: Event) => {
   if (readonly) return
+
+  e.stopPropagation()
 
   isOpen.value = !isOpen.value
 }
@@ -87,7 +89,7 @@ const showClearButton = computed(() => {
         'h-10 w-10 text-2xl': size === 'large',
         'h-14 w-16 text-5xl': size === 'xlarge',
       }"
-      @click.stop="onClick"
+      @click="onClick"
     >
       <template v-if="!emoji">
         <slot name="default" />

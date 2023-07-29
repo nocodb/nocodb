@@ -4,7 +4,6 @@ import { Api, ProjectType, ProjectTypes, UserType, WorkspaceType } from 'nocodb-
 import { getDefaultPwd } from '../tests/utils/general';
 import { knex } from 'knex';
 import { promises as fs } from 'fs';
-let api: Api<any>;
 
 // Use local reset logic instead of remote
 const enableLocalInit = true;
@@ -74,6 +73,7 @@ export interface NcContext {
 }
 
 selectors.setTestIdAttribute('data-testid');
+const workerStatus = {};
 
 async function localInit({
   workerId,
@@ -84,6 +84,15 @@ async function localInit({
   isEmptyProject?: boolean;
   projectType?: ProjectTypes;
 }) {
+  const parallelId = process.env.TEST_PARALLEL_INDEX;
+  // wait till previous worker is done
+  while (workerStatus[parallelId] === 'processing') {
+    console.log(`waiting for previous worker to finish parrelelId:${parallelId}`);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+
+  workerStatus[parallelId] = 'processing';
+
   try {
     // Login as root user
     const response = await axios.post('http://localhost:8080/api/v1/auth/user/signin', {
@@ -93,7 +102,7 @@ async function localInit({
     const token = response.data.token;
 
     // Init SDK using token
-    api = new Api({
+    const api = new Api({
       baseURL: `http://localhost:8080/`,
       headers: {
         'xc-auth': token,
@@ -147,12 +156,15 @@ async function localInit({
         project = await api.project.create(extPgProject(workspace.id, projectTitle, workerId, projectType));
       }
     }
+    workerStatus[parallelId] = 'complete';
 
     // get current user information
     const user = await api.auth.me();
     return { data: { project, user, workspace, token }, status: 200 };
   } catch (e) {
-    console.error(`Error resetting project: ${process.env.TEST_PARALLEL_INDEX}`, e);
+    workerStatus[parallelId] = 'errored';
+
+    console.error(`Error resetting project: ${process.env.TEST_PARALLEL_INDEX}`);
     return { data: {}, status: 500 };
   }
 }
@@ -217,7 +229,8 @@ const setup = async ({
   try {
     await axios.post(`http://localhost:8080/api/v1/license`, { key: '' }, { headers: { 'xc-auth': token } });
   } catch (e) {
-    console.error(`Error resetting project: ${process.env.TEST_PARALLEL_INDEX}`, e);
+    // ignore error: some roles will not have permission for license reset
+    // console.error(`Error resetting project: ${process.env.TEST_PARALLEL_INDEX}`, e);
   }
 
   await page.addInitScript(
@@ -237,7 +250,7 @@ const setup = async ({
           })
         );
       } catch (e) {
-        window.console.log(e);
+        window.console.log('initialLocalStorage error');
       }
     },
     { token: token }

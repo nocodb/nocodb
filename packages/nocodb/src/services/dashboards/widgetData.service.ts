@@ -1,10 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DataSourceType, WidgetTypeType } from 'nocodb-sdk';
 import { getViewAndModelByAliasOrId } from '../../modules/datas/helpers';
-import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import Widget from '~/models/Widget';
-import { Base, Column, Filter, Model, View } from '~/models';
 import { WidgetsService } from './widgets.service';
 import type { PathParams } from '../../modules/datas/helpers';
 import type {
@@ -18,6 +14,10 @@ import type {
   NumberWidgetDataResult,
   WidgetType,
 } from 'nocodb-sdk';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import Widget from '~/models/Widget';
+import { Base, Column, Filter, Model, View } from '~/models';
 
 const _parseWidgetFromAPI = (widgetFromAPI: WidgetType): Widget => {
   // TODO: improve parsing, e.g. via 3rd party library (is AJV a candidate here?)

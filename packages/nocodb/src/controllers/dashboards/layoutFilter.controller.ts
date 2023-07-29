@@ -11,14 +11,14 @@ import {
 import { FilterReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '../../guards/global/global.guard';
 import {
-  ExtractProjectIdMiddleware,
+  ExtractIdsMiddleware,
   UseAclMiddleware,
-} from '../../middlewares/extract-project-id/extract-project-id.middleware';
+} from '~/middlewares/extract-ids/extract-ids.middleware';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { LayoutFilterService } from '~/services/dashboards/layoutFilter.service';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(ExtractIdsMiddleware, GlobalGuard)
 export class LayoutFilterController {
   constructor(private readonly dashboardFilterService: LayoutFilterService) {}
 

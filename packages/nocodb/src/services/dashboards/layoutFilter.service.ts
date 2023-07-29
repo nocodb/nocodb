@@ -1,12 +1,12 @@
 import { T } from 'nc-help';
 import { Injectable } from '@nestjs/common';
 import { validatePayload } from '../../helpers';
-import Filter from '~/models/Filter';
 import type {
   FilterReqType,
   WidgetReqType,
   WidgetUpdateReqType,
 } from 'nocodb-sdk';
+import Filter from '~/models/Filter';
 
 Injectable();
 export class LayoutFilterService {

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { NcError } from '../../../helpers/catchError';
-import { Project } from '../../../models';
-import { PageDao } from '../../../daos/page.dao';
 import type { DocsPageType } from 'nocodb-sdk';
+import { NcError } from '~/helpers/catchError';
+import { Project } from '~/models';
+import { PageDao } from '~/daos/page.dao';
 
 @Injectable()
 export class PublicDocsService {

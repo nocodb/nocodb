@@ -1,5 +1,8 @@
 import { Global, Module } from '@nestjs/common';
 import { ExtractJwt } from 'passport-jwt';
+import { EventEmitterModule } from '../event-emitter/event-emitter.module';
+import { InitMetaServiceProvider } from './init-meta-service.provider';
+import type { Provider } from '@nestjs/common';
 import { SocketGateway } from '~/gateways/socket.gateway';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaService } from '~/meta/meta.service';
@@ -9,11 +12,8 @@ import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { UsersService } from '~/services/users/users.service';
 import { Producer } from '~/services/producer/producer';
 import { ProducerProvider } from '~/services/producer';
-import { EventEmitterModule } from '../event-emitter/event-emitter.module';
 import { TelemetryService } from '~/services/telemetry.service';
 import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
-import { InitMetaServiceProvider } from './init-meta-service.provider';
-import type { Provider } from '@nestjs/common';
 
 export const JwtStrategyProvider: Provider = {
   provide: JwtStrategy,

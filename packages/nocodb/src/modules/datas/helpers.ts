@@ -2,6 +2,9 @@ import { nocoExecute } from 'nc-help';
 import { isSystemColumn, UITypes } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import papaparse from 'papaparse';
+import type { BaseModelSqlv2 } from '../../db/BaseModelSqlv2';
+import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
+import type LookupColumn from '~/models/LookupColumn';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { Model, View } from '~/models';
@@ -9,9 +12,6 @@ import Base from '~/models/Base';
 import Column from '~/models/Column';
 import Project from '~/models/Project';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import type { BaseModelSqlv2 } from '../../db/BaseModelSqlv2';
-import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
-import type LookupColumn from '~/models/LookupColumn';
 
 export interface PathParams {
   projectName: string;

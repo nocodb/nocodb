@@ -1,9 +1,9 @@
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
-import { MetaService } from '../../meta/meta.service';
-
-import { PageDao } from '../../daos/page.dao';
 import { DocsPageHistoryService } from './history/docs-page-history.service';
 import type { DocsPageType, UserType } from 'nocodb-sdk';
+import { MetaService } from '~/meta/meta.service';
+
+import { PageDao } from '~/daos/page.dao';
 
 @Injectable()
 export class DocsPagesUpdateService {

@@ -1,6 +1,7 @@
-import {Controller, Post, UseGuards} from "@nestjs/common";
-import {Acl} from "../../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware";
-
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { UtilsService } from '~/services/utils.service';
 
 @Controller()
 export class UtilsController {

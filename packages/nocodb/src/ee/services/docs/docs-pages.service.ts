@@ -4,12 +4,12 @@ import JSON5 from 'json5';
 import axios from 'axios';
 import listContent from 'list-github-dir-content';
 import { marked } from 'marked';
-import { Project } from '~/models';
 
-import { NcError } from '~/helpers/catchError';
 import { PageDao } from '../../daos/page.dao';
 import { DocsPagesUpdateService } from './docs-page-update.service';
 import type { DocsPageType, UserType } from 'nocodb-sdk';
+import { NcError } from '~/helpers/catchError';
+import { Project } from '~/models';
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,

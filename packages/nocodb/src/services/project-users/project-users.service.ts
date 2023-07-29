@@ -12,18 +12,18 @@ import * as ejs from 'ejs';
 import validator from 'validator';
 import NocoCache from '../../cache/NocoCache';
 import { validatePayload } from '../../helpers';
+import Noco from '../../Noco';
+import { AppHooksService } from '../app-hooks/app-hooks.service';
+import { ProjectUserUpdateEvent } from '../app-hooks/interfaces';
+import type { ProjectUserReqType, UserType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { Audit, Project, ProjectUser, User, WorkspaceUser } from '~/models';
 
-import Noco from '../../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
-import { AppHooksService } from '../app-hooks/app-hooks.service';
-import { ProjectUserUpdateEvent } from '../app-hooks/interfaces';
 import { extractProps } from '~/helpers/extractProps';
-import type { ProjectUserReqType, UserType } from 'nocodb-sdk';
 
 @Injectable()
 export class ProjectUsersService {

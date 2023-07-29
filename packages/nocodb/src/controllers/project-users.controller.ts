@@ -12,10 +12,10 @@ import {
 } from '@nestjs/common';
 import { ProjectUserReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '../guards/global/global.guard';
-import { Acl } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { ProjectUsersService } from '../services/project-users/project-users.service';
 import { User, WorkspaceUser } from '../models';
 import { NcError } from '../helpers/catchError';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @UseGuards(GlobalGuard)
 @Controller()

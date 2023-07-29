@@ -13,19 +13,16 @@ import { AuthGuard } from '@nestjs/passport';
 import * as ejs from 'ejs';
 import { ConfigService } from '@nestjs/config';
 import { GlobalGuard } from '../../guards/global/global.guard';
+import NocoCache from '../../cache/NocoCache';
+import type { AppConfig } from '../../interface/config';
 import { NcError } from '~/helpers/catchError';
-import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { User } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import {
-  randomTokenString,
-  setTokenCookie,
-} from '~/services/users/helpers';
+import { randomTokenString, setTokenCookie } from '~/services/users/helpers';
 import { UsersService } from '~/services/users/users.service';
 import extractRolesObj from '~/utils/extractRolesObj';
-import NocoCache from '../../cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';
-import type { AppConfig } from '../../interface/config';
 
 @Controller()
 export class UsersController {

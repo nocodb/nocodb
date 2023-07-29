@@ -2,29 +2,28 @@ import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
 import { isLinksOrLTAR, isVirtualCol, ModelTypes, UITypes } from 'nocodb-sdk';
 import { AppEvents } from 'nocodb-sdk';
-import { T } from 'nc-help';
 import { Configuration, OpenAIApi } from 'openai';
-import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
-import { NcError } from '../helpers/catchError';
-import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
-import getColumnUiType from '../helpers/getColumnUiType';
-import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
-import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
-import { Column, Model, ModelRoleVisibility, Project } from '../models';
-import Noco from '../Noco';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import { validatePayload } from '../helpers';
 import { MetaDiffsService } from './meta-diffs.service';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import { ColumnsService } from './columns.service';
-import type { MetaService } from '../meta/meta.service';
-import type { LinkToAnotherRecordColumn, User, View } from '../models';
+import type { MetaService } from '~/meta/meta.service';
+import type { LinkToAnotherRecordColumn, User, View } from '~/models';
 import type {
   ColumnType,
   NormalColumnRequestType,
   TableReqType,
   UserType,
 } from 'nocodb-sdk';
+import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
+import { NcError } from '~/helpers/catchError';
+import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
+import getColumnUiType from '~/helpers/getColumnUiType';
+import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
+import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
+import { Column, Model, ModelRoleVisibility, Project } from '~/models';
+import Noco from '~/Noco';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { validatePayload } from '~/helpers';
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,

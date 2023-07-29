@@ -1,21 +1,15 @@
 import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
+import { GlobalModule } from '~/modules/global/global.module';
+import { NotificationsGateway } from '~/gateways/notifications/notifications.gateway';
 import { WidgetDataService } from '~/services/dashboards/widgetData.service';
 import { WidgetsService } from '~/services/dashboards/widgets.service';
 import { LayoutsService } from '~/services/dashboards/layouts.service';
 import { WidgetsController } from '~/controllers/dashboards/widgets.controller';
 import { LayoutsController } from '~/controllers/dashboards/layouts.controller';
-import { DocsPagesHistoryController } from '~/controllers/docs/docs-pages-history.controller';
-import { DocsPagesController } from '~/controllers/docs/docs-pages.controller';
-import { DocsPageHistoryService } from '~/services/docs/history/docs-page-history.service';
-import { PageDao } from '../../daos/page.dao';
-import { DocsPagesService } from '~/services/docs/docs-pages.service';
-import { DocsPagesUpdateService } from '~/services/docs/docs-page-update.service';
-import { DocsPublicController } from '~/controllers/docs/public/docs-public.controller';
-import { PublicDocsService } from '~/services/docs/public/public-docs.service';
-import { PageSnapshotDao } from '../../daos/page-snapshot.dao';
-import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
+// import { PageSnapshotDao } from '~/daos/page-snapshot.dao';
+import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 import { ApiDocsController } from '~/controllers/api-docs/api-docs.controller';
 import { ApiTokensController } from '~/controllers/api-tokens.controller';
 import { AttachmentsController } from '~/controllers/attachments.controller';
@@ -47,7 +41,7 @@ import { TablesController } from '~/controllers/tables.controller';
 import { UtilsController } from '~/controllers/utils.controller';
 import { ViewColumnsController } from '~/controllers/view-columns.controller';
 import { ViewsController } from '~/controllers/views.controller';
-import { ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { ApiTokensService } from '~/services/api-tokens.service';
 import { AttachmentsService } from '~/services/attachments.service';
 import { AuditsService } from '~/services/audits.service';
@@ -81,7 +75,6 @@ import { UtilsService } from '~/services/utils.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import { ViewsService } from '~/services/views.service';
 import { ApiDocsService } from '~/services/api-docs/api-docs.service';
-import { GlobalModule } from '../global/global.module';
 import { ProjectUsersController } from '~/controllers/project-users.controller';
 import { ProjectUsersService } from '~/services/project-users/project-users.service';
 // import { DatasModule } from '../datas/datas.module';
@@ -91,7 +84,6 @@ import { NotificationsController } from '~/controllers/notifications.controller'
 import { NotificationsService } from '~/services/notifications.service';
 // import { WorkspacesModule } from '../workspaces/workspaces.module';
 // import { WorkspaceUsersModule } from '../workspace-users/workspace-users.module';
-import { NotificationsGateway } from '../../gateways/notifications/notifications.gateway';
 import { ClickhouseService } from '~/services/clickhouse/clickhouse.service';
 // import { ThrottlerExpiryListenerService } from '~/services/throttler/throttler-expiry-listener.service';
 import { LayoutFilterController } from '~/controllers/dashboards/layoutFilter.controller';
@@ -101,7 +93,7 @@ import { TelemetryController } from '~/controllers/telemetry.controller';
 // todo: refactor to use config service
 // const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
 
-@Module({
+export const metaModuleMetadata = {
   imports: [
     MulterModule.register({
       storage: multer.diskStorage({}),
@@ -153,17 +145,17 @@ import { TelemetryController } from '~/controllers/telemetry.controller';
           SharedBasesController,
           // CommandPaletteController,
           NotificationsController,
-          DocsPagesHistoryController,
-          DocsPagesController,
-          DocsPublicController,
+          // DocsPagesHistoryController,
+          // DocsPagesController,
+          // DocsPublicController,
           TelemetryController,
         ]
       : []),
   ],
   providers: [
     /** DAOs */
-    PageDao,
-    PageSnapshotDao,
+    // PageDao,
+    // PageSnapshotDao,
     /** Services */
     ApiDocsService,
     ApiTokensService,
@@ -193,7 +185,7 @@ import { TelemetryController } from '~/controllers/telemetry.controller';
     PluginsService,
     ProjectUsersService,
     ProjectsService,
-    ExtractProjectIdMiddleware,
+    ExtractIdsMiddleware,
     PublicMetasService,
     ViewsService,
     ViewColumnsService,
@@ -209,11 +201,6 @@ import { TelemetryController } from '~/controllers/telemetry.controller';
     NotificationsService,
     NotificationsGateway,
     ClickhouseService,
-    DocsPagesService,
-    DocsPageHistoryService,
-    DocsPagesUpdateService,
-    PublicDocsService,
-    // ...(enableThrottler ? [ThrottlerExpiryListenerService] : []),
   ],
   exports: [
     TablesService,
@@ -233,5 +220,7 @@ import { TelemetryController } from '~/controllers/telemetry.controller';
     ProjectUsersService,
     HooksService,
   ],
-})
+};
+
+@Module(metaModuleMetadata)
 export class MetasModule {}

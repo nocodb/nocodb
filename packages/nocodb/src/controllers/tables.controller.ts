@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   Param,
+  Patch,
   Post,
   Query,
   Request,
@@ -13,7 +14,7 @@ import {
 import { TableReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { TablesService } from '~/services/tables.service';
-import { UseAclMiddleware } from '~/middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
+import { UseAclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import extractRolesObj from '~/utils/extractRolesObj';
 

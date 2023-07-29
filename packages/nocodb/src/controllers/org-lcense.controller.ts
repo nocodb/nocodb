@@ -8,8 +8,8 @@ import {
 } from '@nestjs/common';
 import { OrgUserRoles } from 'nocodb-sdk';
 import { GlobalGuard } from '../guards/global/global.guard';
-import { Acl } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { OrgLcenseService } from '../services/org-lcense.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
 @UseGuards(GlobalGuard)

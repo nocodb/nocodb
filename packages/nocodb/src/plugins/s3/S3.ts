@@ -2,12 +2,9 @@ import fs from 'fs';
 import { promisify } from 'util';
 import AWS from 'aws-sdk';
 import request from 'request';
-import {
-  generateTempFilePath,
-  waitForStreamClose,
-} from '~/utils/pluginUtils';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import type { Readable } from 'stream';
+import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
 
 export default class S3 implements IStorageAdapterV2 {
   private s3Client: AWS.S3;

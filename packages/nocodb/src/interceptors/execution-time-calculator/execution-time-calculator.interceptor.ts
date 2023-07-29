@@ -2,7 +2,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import { tap } from 'rxjs';
 import Client from 'ioredis';
 import { ConfigService } from '@nestjs/config';
-import { Producer } from '~/services/producer/producer';
 import type {
   CallHandler,
   ExecutionContext,
@@ -11,6 +10,7 @@ import type {
 import type { Observable } from 'rxjs';
 import type Redis from 'ioredis';
 import type { AppConfig } from '../../interface/config';
+import { Producer } from '~/services/producer/producer';
 
 @Injectable()
 export class ExecutionTimeCalculatorInterceptor implements NestInterceptor {

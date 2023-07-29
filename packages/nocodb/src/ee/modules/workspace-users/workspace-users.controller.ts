@@ -10,10 +10,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import {
-  UseAclMiddleware,
-} from '~/middlewares/extract-project-id/extract-project-id.middleware';
 import { WorkspaceUsersService } from './workspace-users.service';
+import { UseAclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
 @UseGuards(AuthGuard('jwt'))

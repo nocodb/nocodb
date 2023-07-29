@@ -4,11 +4,10 @@ import { Configuration, OpenAIApi } from 'openai';
 import JSON5 from 'json5';
 import { identify } from 'sql-query-identifier';
 import { ConfigService } from '@nestjs/config';
-import { NcError } from '~/helpers/catchError';
-import { Base, } from '~/models';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import type { AppConfig } from '~/interface/config';
-
+import { NcError } from '~/helpers/catchError';
+import { Base } from '~/models';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -55,7 +54,6 @@ interface AllMeta {
 @Injectable()
 export class UtilsService {
   constructor(private readonly configService: ConfigService<AppConfig>) {}
-
 
   async _axiosRequestMake(param: {
     body: {
@@ -133,8 +131,6 @@ export class UtilsService {
       body: param.body,
     });
   }
-
-
 
   extractResultOrNull = (results: PromiseSettledResult<any>[]) => {
     return results.map((result) => {

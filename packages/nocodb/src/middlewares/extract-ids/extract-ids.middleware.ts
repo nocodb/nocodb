@@ -8,6 +8,14 @@ import {
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { map } from 'rxjs';
+import type { Observable } from 'rxjs';
+import type {
+  CallHandler,
+  CanActivate,
+  ExecutionContext,
+  NestInterceptor,
+  NestMiddleware,
+} from '@nestjs/common';
 import {
   Column,
   Filter,
@@ -25,15 +33,7 @@ import {
 } from '~/models';
 import extractRolesObj from '~/utils/extractRolesObj';
 import projectAcl from '~/utils/projectAcl';
-import { NcError } from '../catchError';
-import type { Observable } from 'rxjs';
-import type {
-  CallHandler,
-  CanActivate,
-  ExecutionContext,
-  NestInterceptor,
-  NestMiddleware,
-} from '@nestjs/common';
+import { NcError } from '~/middlewares/catchError';
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
@@ -66,9 +66,7 @@ export function getRolesLabels(
 
 // todo: refactor name since we are using it as auth guard
 @Injectable()
-export class ExtractProjectAndWorkspaceIdMiddleware
-  implements NestMiddleware, CanActivate
-{
+export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
   async use(req, res, next): Promise<any> {
     const { params } = req;
 
@@ -273,11 +271,7 @@ export class AclMiddleware implements NestInterceptor {
 
 export const UseProjectIdAndWorkspaceIdMiddleware =
   () => (target: any, key?: string, descriptor?: PropertyDescriptor) => {
-    UseInterceptors(ExtractProjectAndWorkspaceIdMiddleware)(
-      target,
-      key,
-      descriptor,
-    );
+    UseInterceptors(ExtractIdsMiddleware)(target, key, descriptor);
   };
 
 export const UseAclMiddleware =
@@ -302,7 +296,6 @@ export const UseAclMiddleware =
     );
     SetMetadata('workspaceMode', workspaceMode)(target, key, descriptor);
 
-    // UseInterceptors(ExtractProjectIdMiddleware)(target, key, descriptor);
     UseInterceptors(AclMiddleware)(target, key, descriptor);
   };
 export const Acl =
@@ -324,6 +317,5 @@ export const Acl =
       key,
       descriptor,
     );
-    // UseInterceptors(ExtractProjectIdMiddleware)(target, key, descriptor);
     UseInterceptors(AclMiddleware)(target, key, descriptor);
   };

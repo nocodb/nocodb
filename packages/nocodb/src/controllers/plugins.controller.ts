@@ -10,8 +10,8 @@ import {
 } from '@nestjs/common';
 import { GlobalGuard } from '../guards/global/global.guard';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
-import { Acl } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { PluginsService } from '../services/plugins.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 // todo: move to a interceptor
 // const blockInCloudMw = (_req, res, next) => {

@@ -1,20 +1,12 @@
 import slugify from 'slug';
 import { Injectable } from '@nestjs/common';
-import { Project } from '../models';
-import { NcError } from '../helpers/catchError';
-
-import {
-  CacheDelDirection,
-  CacheGetType,
-  CacheScope,
-  MetaTable,
-} from '../utils/globals';
-import NocoCache from '../cache/NocoCache';
-
-import { MetaService } from '../meta/meta.service';
 import type { DocsPageSnapshotType, DocsPageType, UserType } from 'nocodb-sdk';
+import { Project } from '~/models';
 
-const { v4: uuidv4 } = require('uuid');
+import NocoCache from '~/cache/NocoCache';
+import { CacheDelDirection, CacheGetType, CacheScope } from '~/utils/globals';
+
+import { MetaService } from '~/meta/meta.service';
 
 @Injectable()
 export class PageDao {

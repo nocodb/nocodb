@@ -2,13 +2,15 @@ import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
 import { AppEvents } from 'nocodb-sdk';
 import { Configuration, OpenAIApi } from 'openai';
+import { TablesService as TableServiceCE } from 'src/services/tables.service';
+import type { UserType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import getTableNameAlias from '~/helpers/getTableName';
 import { Model, Project } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import type { UserType } from 'nocodb-sdk';
+import { ColumnsService } from '~/services/columns.service';
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -17,11 +19,14 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 @Injectable()
-export class TablesServiceEe {
+export class TablesService extends TableServiceCE {
   constructor(
-    private metaDiffService: MetaDiffsService,
-    private appHooksService: AppHooksService,
-  ) {}
+    private metaDiffServiceEE: MetaDiffsService,
+    private appHooksServiceEE: AppHooksService,
+    private readonly columnsServiceEE: ColumnsService,
+  ) {
+    super(metaDiffServiceEE, appHooksServiceEE, columnsServiceEE);
+  }
 
   async tableCreateMagic(param: {
     projectId: string;
@@ -133,7 +138,7 @@ export class TablesServiceEe {
       await sqlClient.raw(sql);
     }
 
-    await this.metaDiffService.baseMetaDiffSync({
+    await this.metaDiffServiceEE.baseMetaDiffSync({
       projectId: project.id,
       baseId: base.id,
     });
@@ -144,7 +149,7 @@ export class TablesServiceEe {
       table_name: param.tableName,
     });
 
-    this.appHooksService.emit(AppEvents.TABLE_CREATE, {
+    this.appHooksServiceEE.emit(AppEvents.TABLE_CREATE, {
       table,
       user: param.user,
     });
@@ -255,7 +260,7 @@ export class TablesServiceEe {
         await sqlClient.raw(sql);
       }
 
-      await this.metaDiffService.baseMetaDiffSync({
+      await this.metaDiffServiceEE.baseMetaDiffSync({
         projectId: project.id,
         baseId: base.id,
       });

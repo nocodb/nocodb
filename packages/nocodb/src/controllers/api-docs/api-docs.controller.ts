@@ -7,13 +7,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { GlobalGuard } from '../../guards/global/global.guard';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../../middlewares/extract-project-id/extract-project-id.middleware';
-import { ApiDocsService } from '~/services/api-docs/api-docs.service';
 import getSwaggerHtml from './template/swaggerHtml';
 import getRedocHtml from './template/redocHtml';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { ApiDocsService } from '~/services/api-docs/api-docs.service';
 
 @Controller()
 export class ApiDocsController {

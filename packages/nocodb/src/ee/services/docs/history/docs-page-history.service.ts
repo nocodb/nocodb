@@ -2,12 +2,12 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import HTMLParser, { JSONToHTML } from 'html-to-json-parser';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import { PageSnapshotDao } from '../../../daos/page-snapshot.dao';
-import { PageDao } from '../../../daos/page.dao';
 import { DocsPagesUpdateService } from '../docs-page-update.service';
 import diff from './htmlDiff';
 import type { JSONContent } from 'html-to-json-parser/dist/types';
 import type { DocsPageSnapshotType, DocsPageType } from 'nocodb-sdk';
+import { PageDao } from '~/daos/page.dao';
+import { PageSnapshotDao } from '~/daos/page-snapshot.dao';
 
 dayjs.extend(utc);
 

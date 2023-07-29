@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { DocsPageHistoryService } from '~/services/docs/history/docs-page-history.service';
-import { UseAclMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import { UseAclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DocsPagesService } from '~/services/docs/docs-pages.service';
 
 @Controller()

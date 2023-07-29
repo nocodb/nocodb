@@ -3,9 +3,9 @@ import Client from 'ioredis';
 import Redlock from 'redlock';
 import { ConfigService } from '@nestjs/config';
 import { ClickhouseTables } from 'nocodb-sdk';
-import { ClickhouseService } from '../clickhouse/clickhouse.service';
 import type { OnModuleInit } from '@nestjs/common';
-import type { AppConfig } from '../../interface/config';
+import type { AppConfig } from '~/interface/config';
+import { ClickhouseService } from '~/services/clickhouse/clickhouse.service';
 
 @Injectable()
 export class ThrottlerExpiryListenerService implements OnModuleInit {

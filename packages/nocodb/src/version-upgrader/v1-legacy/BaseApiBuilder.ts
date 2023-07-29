@@ -2,7 +2,6 @@ import debug from 'debug';
 import { Router } from 'express';
 import inflection from 'inflection';
 import ModelXcMetaFactory from '../../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
-import NcConnectionMgr from '~/utils/common/NcConnectionMgr';
 import ncModelsOrderUpgrader from './jobs/ncModelsOrderUpgrader';
 import ncParentModelTitleUpgrader from './jobs/ncParentModelTitleUpgrader';
 import ncRemoveDuplicatedRelationRows from './jobs/ncRemoveDuplicatedRelationRows';
@@ -13,6 +12,7 @@ import type { MetaService } from '../../meta/meta.service';
 import type Noco from '../../Noco';
 import type NcProjectBuilder from './NcProjectBuilder';
 import type { MysqlClient, PgClient, SqlClient } from 'nc-help';
+import NcConnectionMgr from '~/utils/common/NcConnectionMgr';
 
 const log = debug('nc:api:base');
 

@@ -2,6 +2,7 @@ import { Module, RequestMethod } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule as NestJsEventEmitter } from '@nestjs/event-emitter';
+import type { MiddlewareConsumer } from '@nestjs/common';
 import { GlobalExceptionFilter } from '~/filters/global-exception/global-exception.filter';
 import { GlobalMiddleware } from '~/middlewares/global/global.middleware';
 import { GuiMiddleware } from '~/middlewares/gui/gui.middleware';
@@ -19,12 +20,11 @@ import { MetasModule } from '~/modules/metas/metas.module';
 import { JobsModule } from '~/modules/jobs/jobs.module';
 
 import appConfig from '~/app.config';
-import { ExtractProjectAndWorkspaceIdMiddleware } from '~/middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
+import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { ExecutionTimeCalculatorInterceptor } from '~/interceptors/execution-time-calculator/execution-time-calculator.interceptor';
 
 import { HookHandlerService } from '~/services/hook-handler.service';
 import { BasicStrategy } from '~/strategies/basic.strategy/basic.strategy';
-import type { MiddlewareConsumer } from '@nestjs/common';
 import { UsersModule } from '~/modules/users/users.module';
 
 export const ceModuleConfig = {
@@ -55,7 +55,7 @@ export const ceModuleConfig = {
     },
     {
       provide: APP_GUARD,
-      useClass:  ExtractProjectAndWorkspaceIdMiddleware,
+      useClass: ExtractIdsMiddleware,
     },
     {
       provide: APP_INTERCEPTOR,

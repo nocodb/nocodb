@@ -8,8 +8,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { PageDao } from '../../daos/page.dao';
-import { UseAclMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import { PageDao } from '~/daos/page.dao';
+import { UseAclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DocsPageHistoryService } from '~/services/docs/history/docs-page-history.service';
 
 @Controller()

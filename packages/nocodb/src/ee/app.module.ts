@@ -9,7 +9,7 @@ import { WorkspaceUsersModule } from '~/modules/workspace-users/workspace-users.
 import { ThrottlerConfigService } from '~/services/throttler/throttler-config.service';
 import appConfig from '~/app.config';
 import { Model } from '~/models';
-import { ExtractProjectAndWorkspaceIdMiddleware } from '~/middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
+import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 console.log(Model);
 
@@ -44,7 +44,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
           provide: APP_GUARD,
           useClass: enableThrottler
             ? CustomApiLimiterGuard
-            : ExtractProjectAndWorkspaceIdMiddleware,
+            : ExtractIdsMiddleware,
         };
       }
       return x;

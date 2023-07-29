@@ -1,26 +1,23 @@
 import {
   Body,
   Controller,
-  Delete,
-  Get,
-  HttpCode,
   Param,
-  Patch,
   Post,
-  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
 import { TableReqType } from 'nocodb-sdk';
-import {GlobalGuard} from "../../guards/global/global.guard";
-import {TablesServiceEe} from "../services/tables.service";
-import {Acl} from "../../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware";
-
+import { TablesController as TablesControllerCE } from 'src/controllers/tables.controller';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { TablesService } from '~/services/tables.service';
 
 @Controller()
 @UseGuards(GlobalGuard)
-export class TablesControllerEe {
-  constructor(private readonly tablesService: TablesServiceEe) {}
+export class TablesController extends TablesControllerCE {
+  constructor(private readonly tablesServiceEE: TablesService) {
+    super(tablesServiceEE);
+  }
 
   @Post('/api/v1/db/meta/projects/:projectId/:baseId/tables/magic')
   @Acl('tableCreateMagic')
@@ -30,7 +27,7 @@ export class TablesControllerEe {
     @Body() body: TableReqType,
     @Request() req,
   ) {
-    return await this.tablesService.tableCreateMagic({
+    return await this.tablesServiceEE.tableCreateMagic({
       projectId,
       baseId,
       title: body.title,
@@ -46,7 +43,7 @@ export class TablesControllerEe {
     @Param('baseId') baseId: string,
     @Body() body: any,
   ) {
-    return await this.tablesService.schemaMagic({
+    return await this.tablesServiceEE.schemaMagic({
       projectId: projectId,
       baseId: baseId,
       title: body.title,

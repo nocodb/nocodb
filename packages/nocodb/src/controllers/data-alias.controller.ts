@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
-import { Acl } from '~/middlewares/extract-project-id/extract-project-id.middleware';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DatasService } from '~/services/datas.service';
 
 @Controller()

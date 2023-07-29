@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import getSwaggerJSON from './swagger/getSwaggerJSON';
 import { NcError } from '~/helpers/catchError';
 import { Model, Project } from '~/models';
-import getSwaggerJSON from './swagger/getSwaggerJSON';
 
 @Injectable()
 export class ApiDocsService {

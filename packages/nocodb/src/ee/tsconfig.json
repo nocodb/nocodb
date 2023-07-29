@@ -4,7 +4,7 @@
     "outDir": "../../dist",
     "baseUrl": "../../",
     "paths": {
-      "src/*": ["./src/ee/*", "./src/*"],
+      "src/*": ["./src/*"],
       "~/*": ["./src/ee/*", "./src/*"],
       "@/*": ["./src/ee/*", "./src/*"]
     }

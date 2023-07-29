@@ -14,10 +14,6 @@ import { AISelection } from '~~/utils/tiptapExtensions/AISelection'
 
 const { editor } = defineProps<Props>()
 
-const { project } = storeToRefs(useProject())
-
-const { gptPageExpand } = useDocStore()
-
 interface Props {
   editor: Editor
 }
@@ -100,8 +96,6 @@ const expandText = async () => {
 
   const fromSec = getPositionOfSection(editor.state, selection.from + 1, 'start')
   const toSec = getPositionOfNextSection(editor.state, selection.to - 1, 'start') ?? editor.state.doc.content.size
-    const markdown = converter.makeMarkdown(selectedHtml)
-    const response: any = await gptPageExpand({ text: markdown, projectId: project.value.id! })
 
   tr.setSelection(AISelection.create(editor.state.doc, fromSec, toSec - 2))
   editor.view.dispatch(tr)
@@ -218,7 +212,7 @@ onUnmounted(() => {
         </a-button>
         <div class="divider"></div>
       </template>
-    <div v-if="showMenuDebounced" class="bubble-menu flex flex-row gap-x-1 py-1 rounded-lg px-1">
+
       <a-button
         type="text"
         :class="{ 'is-active': editor.isActive('bold') }"

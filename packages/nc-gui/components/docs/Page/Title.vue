@@ -136,7 +136,7 @@ onMounted(() => {
 
 <template>
   <div
-    class="flex flex-row gap-x-2 items-end ml-7.5 mb-3.5 nc-page-title-wrapper"
+    class="flex flex-row gap-x-2 items-end ml-7.15 mb-3.5 nc-page-title-wrapper"
     :class="{
       empty: title?.length === 0,
     }"

@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { TabType } from '~/lib'
 
 const route = useRoute()
 
-const { bases } = storeToRefs(useProject())
+const { project, bases } = storeToRefs(useProject())
 
 useMetas()
 
 const tabStore = useTabs()
-const { addTab } = tabStore
+const { addErdTab } = tabStore
 const { activeTab } = storeToRefs(tabStore)
 
 watch(
@@ -19,12 +18,7 @@ watch(
       .toMatch((bases) => bases.length > 0)
       .then(() => {
         const base = bases.value.find((el) => el.id === route.params?.baseId) || bases.value.filter((el) => el.enabled)[0]
-        addTab({
-          id: `${TabType.ERD}-${base?.id}`,
-          type: TabType.ERD,
-          title: `ERD${base?.alias ? ` (${base.alias})` : ''}`,
-          tabMeta: { base },
-        })
+        addErdTab(base, project.value.title)
       })
   },
   { immediate: true },

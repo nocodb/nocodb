@@ -4,11 +4,16 @@ import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import Noco from '../../../Noco';
 import User from '../../../models/User';
 import NocoCache from '../../../cache/NocoCache';
-import { CacheScope } from '../../../utils/globals';
+import {
+  CacheDelDirection,
+  CacheScope,
+  MetaTable,
+} from '../../../utils/globals';
 import ProjectUser from '../../../models/ProjectUser';
 import resetPgSakilaProject from './resetPgSakilaProject';
 import resetMysqlSakilaProject from './resetMysqlSakilaProject';
 import resetMetaSakilaSqliteProject from './resetMetaSakilaSqliteProject';
+import type ApiToken from '../../../models/ApiToken';
 
 const workerStatus = {};
 
@@ -80,6 +85,7 @@ export class TestResetService {
       try {
         await removeAllProjectCreatedByTheTest(this.parallelId);
         await removeAllPrefixedUsersExceptSuper(this.parallelId);
+        await removeAllTokensCreatedByTheTest(this.parallelId);
       } catch (e) {
         console.log(`Error in cleaning up project: ${this.parallelId}`, e);
       }
@@ -110,14 +116,19 @@ export class TestResetService {
     if (project) {
       await removeProjectUsersFromCache(project);
 
-      const bases = await project.getBases();
+      // Kludge: Soft reset to support PG as root DB in PW tests
+      // Revisit to fix this later
 
-      for (const base of bases) {
-        await NcConnectionMgrv2.deleteAwait(base);
-        await base.delete(Noco.ncMeta, { force: true });
-      }
+      // const bases = await project.getBases();
+      //
+      // for (const base of bases) {
+      //   await NcConnectionMgrv2.deleteAwait(base);
+      //   await base.delete(Noco.ncMeta, { force: true });
+      // }
+      //
+      // await Project.delete(project.id);
 
-      await Project.delete(project.id);
+      await Project.softDelete(project.id);
     }
 
     if (dbType == 'sqlite') {
@@ -174,11 +185,34 @@ const removeAllPrefixedUsersExceptSuper = async (parallelId: string) => {
   }
 };
 
+const removeAllTokensCreatedByTheTest = async (parallelId: string) => {
+  const tokens: ApiToken[] = await Noco.ncMeta.metaList(
+    null,
+    null,
+    MetaTable.API_TOKENS,
+  );
+
+  for (const token of tokens) {
+    if (token.description.startsWith(`nc_test_${parallelId}`)) {
+      await NocoCache.deepDel(
+        CacheScope.API_TOKEN,
+        `${CacheScope.API_TOKEN}:${token.token}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
+
+      await Noco.ncMeta.metaDelete(null, null, MetaTable.API_TOKENS, {
+        token: token.token,
+      });
+    }
+  }
+};
+
 // todo: Remove this once user deletion improvement PR is merged
 const removeProjectUsersFromCache = async (project: Project) => {
   const projectUsers: ProjectUser[] = await ProjectUser.getUsersList({
     project_id: project.id,
     limit: 1000,
+    workspace_id: project.fk_workspace_id,
     offset: 0,
   });
 

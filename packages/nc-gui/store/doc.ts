@@ -21,7 +21,6 @@ export const useDocStore = defineStore('docStore', () => {
   const isNestedFetchErrored = ref<boolean>(false)
 
   const nestedPagesOfProjects = ref<Record<string, PageSidebarNode[]>>({})
-  const openedTabsOfProjects = ref<Record<string, string[]>>({})
 
   const openedPage = ref<PageSidebarNode | undefined>(undefined)
 
@@ -128,22 +127,10 @@ export const useDocStore = defineStore('docStore', () => {
 
   watch(
     openedPageId,
-    async (_, oldId) => {
+    async () => {
       if (!openedPageId.value) {
         openedPage.value = undefined
         return
-      }
-
-      // if the page is new, don't fetch it
-      if (openedPage.value?.new && openedPage.value.id === openedPageId.value) return
-
-      const nestedPages = nestedPagesOfProjects.value[openedProjectId.value]
-
-      if (oldId) {
-        const page = findPage(nestedPages, oldId)
-        if (page?.new) {
-          page.new = false
-        }
       }
 
       isPageFetching.value = true
@@ -178,10 +165,6 @@ export const useDocStore = defineStore('docStore', () => {
     () => {
       if (!openedPage.value) return
       if (isPublic.value) return
-      if (openedPage.value?.new) {
-        openedPage.value.icon = openedPageInSidebar.value?.icon
-        return
-      }
 
       openedPage.value = {
         ...openedPage.value,
@@ -290,6 +273,14 @@ export const useDocStore = defineStore('docStore', () => {
    *
    */
 
+  async function populatedNestedPages({ projectId }: { projectId: string }) {
+    if (!projectId) return
+
+    if (nestedPagesOfProjects.value[projectId]) return
+
+    await fetchNestedPages({ projectId })
+  }
+
   async function fetchNestedPages({ withoutLoading, projectId }: { projectId: string; withoutLoading?: boolean }) {
     if (!withoutLoading) isNestedPageFetching.value[projectId] = true
     try {
@@ -312,7 +303,6 @@ export const useDocStore = defineStore('docStore', () => {
       traverse(undefined, nestedDocTree as any, 0)
 
       nestedPagesOfProjects.value[projectId] = nestedDocTree as any
-      openedTabsOfProjects.value[projectId] = flattenedNestedPages.value.map((p) => p.id) as any
 
       return nestedDocTree
     } catch (e) {
@@ -414,7 +404,7 @@ export const useDocStore = defineStore('docStore', () => {
     projectId,
   }: {
     page: DocsPageType
-    nodeOverrides?: Record<string, any>
+    nodeOverrides?: Partial<PageSidebarNode>
     projectId: string
   }) {
     const nestedPages = nestedPagesOfProjects.value[projectId]
@@ -458,20 +448,15 @@ export const useDocStore = defineStore('docStore', () => {
       openedPage.value = findPage(nestedPages, createdPageData.id!)
       await navigateTo(nestedUrl({ id: createdPageData.id!, projectId: projectId! }))
 
-      const openedTabs = openedTabsOfProjects.value[projectId]
-      if (!openedTabs.includes(createdPageData.id!)) {
-        openedTabs.push(createdPageData.id!)
-      }
-
       if (isPublic.value) return
-      const { addTab } = useTabs()
+      // const { addTab } = useTabs()
 
-      addTab({
-        id: createdPageData.id!,
-        title: createdPageData.title,
-        type: TabType.DOCUMENT,
-        projectId,
-      })
+      // addTab({
+      //   id: createdPageData.id!,
+      //   title: createdPageData.title,
+      //   type: TabType.DOCUMENT,
+      //   projectId,
+      // })
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
@@ -481,26 +466,12 @@ export const useDocStore = defineStore('docStore', () => {
   }
 
   const addNewPage = async ({ parentPageId, projectId }: { parentPageId?: string; projectId: string }) => {
-    const nestedPages = nestedPagesOfProjects.value[projectId]
-    let dummyTitle = 'Page'
-    let conflictCount = 0
-    const parentPage = parentPageId && findPage(nestedPages, parentPageId)
-    const _pages = parentPage ? parentPage.children : nestedPages
-
-    while (_pages?.find((page) => page.title === dummyTitle)) {
-      conflictCount++
-      dummyTitle = `Page ${conflictCount}`
-    }
-
     await createPage({
       projectId,
       page: {
-        title: dummyTitle,
+        title: '',
         parent_page_id: parentPageId,
         content: '',
-      },
-      nodeOverrides: {
-        new: true,
       },
     })
   }
@@ -516,13 +487,14 @@ export const useDocStore = defineStore('docStore', () => {
       const { closeTab } = useTabs()
       await closeTab({ id: pageId })
 
+      let toBeRedirectedPageId: string | undefined
       if (page?.parent_page_id) {
         const parentPage = findPage(nestedPages, page.parent_page_id)
         if (!parentPage) return
 
         parentPage.children = parentPage.children?.filter((p) => p.id !== pageId)
         parentPage.isLeaf = parentPage.children?.length === 0
-        navigateTo(nestedUrl({ id: page?.parent_page_id, projectId }))
+        toBeRedirectedPageId = page?.parent_page_id
       } else {
         nestedPagesOfProjects.value[projectId!] = nestedPages.filter((p) => p.id !== pageId)
         const updatedNestedPages = nestedPagesOfProjects.value[projectId!]
@@ -530,8 +502,13 @@ export const useDocStore = defineStore('docStore', () => {
         if (updatedNestedPages.length === 0) return navigateTo(projectUrl(projectId))
 
         const siblingPage = updatedNestedPages[0]
-        navigateTo(nestedUrl({ id: siblingPage.id!, projectId }))
+        toBeRedirectedPageId = siblingPage.id!
       }
+
+      // Don't redirect if the deleted page is not the opened page
+      if (pageId !== openedPageId.value) return
+
+      navigateTo(nestedUrl({ id: toBeRedirectedPageId, projectId }))
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
@@ -552,8 +529,6 @@ export const useDocStore = defineStore('docStore', () => {
     const nestedPages = nestedPagesOfProjects.value[projectId!]
 
     const foundPage = findPage(nestedPages, pageId)!
-    if (page.title) foundPage.title = page.title
-    if (page?.title?.length === 0) page.title = foundPage.title
 
     const updatedPage = await $api.nocoDocs.updatePage(projectId, pageId, {
       attributes: page as any,
@@ -564,8 +539,6 @@ export const useDocStore = defineStore('docStore', () => {
       foundPage.slug = updatedPage.slug
       foundPage.updated_at = updatedPage.updated_at
       foundPage.last_updated_by_id = updatedPage.last_updated_by_id
-
-      if (foundPage.new) foundPage.new = false
 
       await navigateTo(nestedUrl({ projectId, id: updatedPage.id! }))
     } else if (!disableLocalSync) {
@@ -632,14 +605,6 @@ export const useDocStore = defineStore('docStore', () => {
     })
 
     navigateTo(nestedUrl({ id: node.id!, projectId }))
-    const openedPages = [...getPageWithParents({ page: node, projectId }), node]
-    const openedTabs = openedTabsOfProjects.value[projectId]
-
-    for (const page of openedPages) {
-      if (!openedTabs.includes(page.id!)) {
-        openedTabs.push(page.id!)
-      }
-    }
   }
 
   function getPageWithParents({ page, projectId }: { page: PageSidebarNode; projectId: string }): PageSidebarNode[] {
@@ -657,20 +622,6 @@ export const useDocStore = defineStore('docStore', () => {
     return parents
   }
 
-  function expandTabOfOpenedPage({ projectId }: { projectId: string }) {
-    if (!openedPageInSidebar.value) throw new Error('openedPage is not defined')
-
-    const pagesWithParents = getPageWithParents({ page: openedPageInSidebar.value, projectId })
-    const openedTabs = openedTabsOfProjects.value[projectId] || []
-
-    for (const page of pagesWithParents) {
-      if (!openedTabs.includes(page.id!)) {
-        openedTabs.push(page.id!)
-      }
-    }
-    openedTabsOfProjects.value[projectId] = [...openedTabs]
-  }
-
   function getChildrenOfPage({ pageId, projectId }: { pageId?: string; projectId: string }) {
     const nestedPages = nestedPagesOfProjects.value[projectId]
     if (!pageId) return nestedPages
@@ -681,10 +632,26 @@ export const useDocStore = defineStore('docStore', () => {
     return page.children || []
   }
 
-  const createMagic = async ({ title, projectId }: { title: string; projectId: string }) => {
+  function getAllChildrenOfPage({ pageId, projectId }: { pageId?: string; projectId: string }) {
+    if (!pageId) return []
+    const nestedPages = nestedPagesOfProjects.value[projectId]
+
+    const page = findPage(nestedPages, pageId!)
+    if (!page) return []
+
+    let children: PageSidebarNode[] = []
+    for (const child of page.children || []) {
+      children.push(child)
+      children = children.concat(getAllChildrenOfPage({ pageId: child.id, projectId }))
+    }
+
+    return children
+  }
+
+  const createPagesGpt = async ({ text, projectId }: { text: string; projectId: string }) => {
     try {
-      await $api.nocoDocs.createNestedPagesMagic(projectId, {
-        title,
+      await $api.nocoDocs.docsGpt(projectId, {
+        text,
       })
     } catch (e) {
       message.warning('Something went wrong')
@@ -720,19 +687,6 @@ export const useDocStore = defineStore('docStore', () => {
     await navigateTo(url)
   }
 
-  const openChildPageTabsOfRootPages = async ({ projectId }: { projectId: string }) => {
-    const nestedPages = nestedPagesOfProjects.value[projectId]
-    const openedTabs = openedTabsOfProjects.value[projectId]
-
-    for (const page of nestedPages) {
-      if (!page.is_parent) continue
-
-      if (!openedTabs.includes(page.id!)) {
-        openedTabs.push(page.id!)
-      }
-    }
-  }
-
   const getParentOfPage = ({ pageId, projectId }: { pageId: string; projectId: string }) => {
     const nestedPages = nestedPagesOfProjects.value[projectId]
 
@@ -758,11 +712,18 @@ export const useDocStore = defineStore('docStore', () => {
     return slugs
   }
 
-  const magicExpand = async ({ projectId, text, pageId }: { text: string; pageId?: string; projectId: string }) => {
+  const gptPageExpand = async ({ projectId, text, pageId }: { text: string; pageId?: string; projectId: string }) => {
     const id = pageId || openedPageInSidebar.value!.id!
-    const response = await $api.nocoDocs.magicExpandText(projectId, id, {
-      text,
-    })
+    const response = await $api.nocoDocs.docsPageGpt(
+      projectId,
+      id,
+      {
+        type: 'expand',
+      },
+      {
+        text,
+      },
+    )
     return response
   }
 
@@ -804,9 +765,18 @@ export const useDocStore = defineStore('docStore', () => {
     }
   }
 
-  const magicOutline = async ({ pageId, projectId }: { pageId?: string; projectId: string }) => {
+  const gptPageOutline = async ({ pageId, projectId }: { pageId?: string; projectId: string }) => {
     const id = pageId || openedPageInSidebar.value!.id!
-    const response = await $api.nocoDocs.magicOutlinePage(projectId, id)
+    const response = await $api.nocoDocs.docsPageGpt(
+      projectId,
+      id,
+      {
+        type: 'outline',
+      },
+      {
+        text: '',
+      },
+    )
     return response
   }
 
@@ -855,7 +825,6 @@ export const useDocStore = defineStore('docStore', () => {
     openedPageId,
     openedProjectId,
     nestedUrl,
-    openedTabsOfProjects,
     deletePage,
     projectUrl,
     reorderPages,
@@ -864,12 +833,11 @@ export const useDocStore = defineStore('docStore', () => {
     addNewPage,
     createPage,
     isEditAllowed,
-    expandTabOfOpenedPage,
+    getPageWithParents,
     getChildrenOfPage,
-    createMagic,
+    createPagesGpt,
     createImport,
     openPage,
-    openChildPageTabsOfRootPages,
     isPageFetching,
     openedPageWithParents,
     openedPage,
@@ -877,15 +845,17 @@ export const useDocStore = defineStore('docStore', () => {
     getParentOfPage,
     flattenedNestedPages,
     nestedSlugsFromPageId,
-    magicExpand,
+    gptPageExpand,
     uploadFile,
     loadPublicPageAndProject,
     isNestedPublicPage,
     isOpenedNestedPageLoading,
-    magicOutline,
+    gptPageOutline,
     navigateToFirstPage,
     isNestedFetchErrored,
     isPageErrored,
+    populatedNestedPages,
+    getAllChildrenOfPage,
   }
 })
 

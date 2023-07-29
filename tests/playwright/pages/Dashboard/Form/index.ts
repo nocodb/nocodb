@@ -124,8 +124,11 @@ export class FormPage extends BasePage {
 
   async addField({ field, mode }: { mode: string; field: string }) {
     if (mode === 'dragDrop') {
-      const src = await this.get().locator(`[data-testid="nc-form-hidden-column-${field}"]`);
-      const dst = await this.get().locator(`.nc-form-drag-Country`);
+      const src = await this.get().locator(`[data-testid="nc-form-hidden-column-${field}"] > div.ant-card-body`);
+      const dst = await this.get().locator(`[data-testid="nc-form-input-Country"]`);
+      await src.waitFor({ state: 'visible' });
+      await dst.waitFor({ state: 'visible' });
+      await src.dragTo(dst, { trial: true });
       await src.dragTo(dst);
     } else if (mode === 'clickField') {
       const src = await this.get().locator(`[data-testid="nc-form-hidden-column-${field}"]`);
@@ -217,6 +220,15 @@ export class FormPage extends BasePage {
 
   async verifyStatePostSubmit(param: { message?: string; submitAnotherForm?: boolean; showBlankForm?: boolean }) {
     if (undefined !== param.message) {
+      let retryCounter = 0;
+      while (retryCounter <= 5) {
+        const msg = await this.getFormAfterSubmit().innerText();
+        if (msg.includes('Form submitted successfully')) {
+          break;
+        }
+        await this.rootPage.waitForTimeout(100 * retryCounter);
+        retryCounter++;
+      }
       await expect(await this.getFormAfterSubmit()).toContainText(param.message);
     }
     if (true === param.submitAnotherForm) {

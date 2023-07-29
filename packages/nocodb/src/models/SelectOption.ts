@@ -43,6 +43,42 @@ export default class SelectOption implements SelectOptionType {
     return this.get(id, ncMeta);
   }
 
+  public static async bulkInsert(
+    data: Partial<SelectOption>[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    const insertObj = [];
+
+    for (const d of data) {
+      const tempObj = extractProps(d, [
+        'id',
+        'title',
+        'fk_column_id',
+        'color',
+        'order',
+      ]);
+      insertObj.push(tempObj);
+    }
+
+    const bulkData = await ncMeta.bulkMetaInsert(
+      null,
+      null,
+      MetaTable.COL_SELECT_OPTIONS,
+      insertObj,
+    );
+
+    for (const d of bulkData) {
+      await NocoCache.appendToList(
+        CacheScope.COL_SELECT_OPTION,
+        [d.fk_column_id],
+        `${CacheScope.COL_SELECT_OPTION}:${d.id}`,
+      );
+      await NocoCache.set(`${CacheScope.COL_SELECT_OPTION}:${d.id}`, d);
+    }
+
+    return true;
+  }
+
   public static async get(
     selectOptionId: string,
     ncMeta = Noco.ncMeta,

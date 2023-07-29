@@ -1613,7 +1613,7 @@ class BaseModelSql extends BaseModel {
     }
   }
 
-  async nestedRead(id, { where, fields: fields1, f, ...rest }, trx = null) {
+  async nestedRead(id, { fields: fields1, f, ...rest }, trx = null) {
     rest = Object.assign({}, this.defaultNestedQueryParams, rest);
 
     const { hm: childs = '', bt: parents = '', mm: many = '' } = rest;
@@ -1852,7 +1852,7 @@ class BaseModelSql extends BaseModel {
       return null;
     }
     // @ts-ignore
-    const { tn, cn, vtn, vcn, vrcn, rtn, rcn } =
+    const { vtn, vcn, vrcn, rtn, rcn } =
       this.manyToManyRelations.find(({ vtn }) => assoc === vtn) || {};
     const childModel = this.dbModels[rtn];
 
@@ -1894,7 +1894,7 @@ class BaseModelSql extends BaseModel {
       return null;
     }
     // @ts-ignore
-    const { tn, cn, vtn, vcn, vrcn, rtn, rcn } =
+    const { vtn, vcn, vrcn, rtn, rcn } =
       this.manyToManyRelations.find(({ vtn }) => assoc === vtn) || {};
     const childModel = this.dbModels[rtn];
 

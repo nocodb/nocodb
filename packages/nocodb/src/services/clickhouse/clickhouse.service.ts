@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import path from 'path';
+import { Injectable, Logger } from '@nestjs/common';
 import { ClickHouse } from 'clickhouse';
-import NcConfigFactory from '../../utils/NcConfigFactory';
-import * as nc_001_notification from './migrations/nc_001_notification';
-import * as nc_002_page_snapshot from './migrations/nc_002_page_snapshot';
-import * as nc_003_api_count from './migrations/nc_003_api_count';
+import { migration } from 'clickhouse-migrations/lib/migrate';
+import { metaUrlToDbConfig } from '../../utils/nc-config';
+import RedlockWrapper from './redlock-wrapper';
+import ClickhouseLock from './clickhouse-lock';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 
 @Injectable()
@@ -16,6 +17,7 @@ export class ClickhouseService implements OnModuleInit, OnModuleDestroy {
     port?: number;
     database?: string;
   };
+  private logger = new Logger(ClickhouseService.name);
 
   async execute(query: string, isInsert = false): Promise<any> {
     if (!this.client) return;
@@ -32,7 +34,7 @@ export class ClickhouseService implements OnModuleInit, OnModuleDestroy {
       return;
     }
 
-    const { connection, client } = await NcConfigFactory.metaUrlToDbConfig(
+    const { connection, client } = await metaUrlToDbConfig(
       process.env.NC_CLICKHOUSE,
     );
 
@@ -44,16 +46,48 @@ export class ClickhouseService implements OnModuleInit, OnModuleDestroy {
       database: connection.database ?? 'nc',
     };
 
-    // Create a new ClickHouse client instance
-    const clickhouse = new ClickHouse({ ...this.config, database: undefined });
-    for (const { up } of [
-      nc_001_notification,
-      nc_002_page_snapshot,
-      nc_003_api_count,
-    ]) {
-      await up(clickhouse, this.config);
-    }
+    try {
+      const clickhouseLock = new ClickhouseLock(this.config);
 
+      await clickhouseLock.executeWithLock(
+        async () => {
+          await migration(
+            path.join(__dirname, 'migrations'),
+            `${this.config.host}:${this.config.port}`,
+            this.config.username,
+            this.config.password,
+            this.config.database,
+          );
+        },
+        120000,
+        2000,
+      );
+
+      // const redlock = new RedlockWrapper({
+      //   retryCount: 10,
+      //   retryDelay: 1000,
+      //   retryJitter: 200,
+      //   driftFactor: 0.01,
+      //   automaticExtensionThreshold: 500, // time in ms
+      // });
+      //
+      // await redlock.executeWithLock(
+      //   ['nc-clickhouse-migration'],
+      //   10000,
+      //   async () => {
+      //     await migration(
+      //       path.join(__dirname, 'migrations'),
+      //       `${this.config.host}:${this.config.port}`,
+      //       this.config.username,
+      //       this.config.password,
+      //       this.config.database,
+      //     );
+      //   },
+      // );
+    } catch (e) {
+      this.logger.error('Check Clickhouse configuration');
+      throw e;
+    }
     this.client = new ClickHouse(this.config);
   }
 }

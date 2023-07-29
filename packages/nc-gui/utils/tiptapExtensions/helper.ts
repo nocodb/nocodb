@@ -16,6 +16,14 @@ export const nodeTypesContainingSection = [
   TiptapNodesTypes.collapsableContent,
   TiptapNodesTypes.column,
   TiptapNodesTypes.columnContent,
+  TiptapNodesTypes.callout,
+]
+
+export const nodeTypesContainingListItems = [
+  ...nodeTypesContainingSection,
+  TiptapNodesTypes.table,
+  TiptapNodesTypes.tableRow,
+  TiptapNodesTypes.tableCell,
 ]
 
 export const tiptapTextColor = {
@@ -30,18 +38,49 @@ export const tiptapTextColor = {
   red: 'rgba(212, 76, 71, 1)',
 }
 
-export const emptyDocContent = {
-  type: TiptapNodesTypes.doc,
+export const tiptapBgColor = {
+  gray: 'gray',
+  brown: 'brown',
+  orange: 'orange',
+  yellow: 'yellow',
+  green: 'green',
+  blue: 'blue',
+  purple: 'purple',
+  pink: 'pink',
+  red: 'red',
+}
+
+export const paragraphContent = (text = '') => ({
+  type: TiptapNodesTypes.sec,
   content: [
     {
-      type: TiptapNodesTypes.sec,
-      content: [
-        {
-          type: TiptapNodesTypes.paragraph,
-        },
-      ],
+      type: TiptapNodesTypes.paragraph,
+      ...(text.length > 0
+        ? {
+            content: [
+              {
+                type: TiptapNodesTypes.text,
+                text,
+              },
+            ],
+          }
+        : {}),
     },
   ],
+})
+
+export const emptySectionContent = {
+  type: TiptapNodesTypes.sec,
+  content: [
+    {
+      type: TiptapNodesTypes.paragraph,
+    },
+  ],
+}
+
+export const emptyDocContent = {
+  type: TiptapNodesTypes.doc,
+  content: [emptySectionContent],
 }
 
 /**

@@ -10,7 +10,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { BaseReqType } from 'nocodb-sdk';
-import { AuthGuard } from '@nestjs/passport';
 import { GlobalGuard } from '../guards/global/global.guard';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import {
@@ -30,6 +29,10 @@ export class BasesController {
     const base = await this.basesService.baseGetWithConfig({
       baseId,
     });
+
+    if (base?.is_meta || base?.is_local) {
+      delete base.config;
+    }
 
     return base;
   }
@@ -57,6 +60,12 @@ export class BasesController {
       projectId,
     });
 
+    for (const base of bases) {
+      if (base?.is_meta || base?.is_local) {
+        delete base.config;
+      }
+    }
+
     return new PagedResponseImpl(bases, {
       count: bases.length,
       limit: bases.length,
@@ -83,6 +92,10 @@ export class BasesController {
       projectId,
       base: body,
     });
+
+    if (base?.is_meta || base?.is_local) {
+      delete base.config;
+    }
 
     return base;
   }

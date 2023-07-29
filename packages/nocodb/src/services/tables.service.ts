@@ -1,13 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
-import {
-  AppEvents,
-  AuditOperationSubTypes,
-  AuditOperationTypes,
-  isVirtualCol,
-  ModelTypes,
-  UITypes,
-} from 'nocodb-sdk';
+import { isLinksOrLTAR, isVirtualCol, ModelTypes, UITypes } from 'nocodb-sdk';
+import { AppEvents } from 'nocodb-sdk';
 import { T } from 'nc-help';
 import { Configuration, OpenAIApi } from 'openai';
 import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
@@ -16,11 +10,14 @@ import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
 import getColumnUiType from '../helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
 import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
-import { Audit, Column, Model, ModelRoleVisibility, Project } from '../models';
+import { Column, Model, ModelRoleVisibility, Project } from '../models';
+import Noco from '../Noco';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { validatePayload } from '../helpers';
 import { MetaDiffsService } from './meta-diffs.service';
 import { AppHooksService } from './app-hooks/app-hooks.service';
+import { ColumnsService } from './columns.service';
+import type { MetaService } from '../meta/meta.service';
 import type { LinkToAnotherRecordColumn, User, View } from '../models';
 import type {
   ColumnType,
@@ -40,6 +37,7 @@ export class TablesService {
   constructor(
     private metaDiffService: MetaDiffsService,
     private appHooksService: AppHooksService,
+    private readonly columnsService: ColumnsService,
   ) {}
 
   async tableUpdate(param: {
@@ -73,7 +71,7 @@ export class TablesService {
       );
     }
 
-    if (base.is_meta && project.prefix) {
+    if (base.is_meta && project.prefix && !base.is_local) {
       if (!param.table.table_name.startsWith(project.prefix)) {
         param.table.table_name = `${project.prefix}${param.table.table_name}`;
       }
@@ -135,24 +133,24 @@ export class TablesService {
       );
     }
 
+    await sqlMgr.sqlOpPlus(base, 'tableRename', {
+      ...param.table,
+      tn: param.table.table_name,
+      tn_old: model.table_name,
+      schema: base.getConfig()?.schema,
+    });
+
     await Model.updateAliasAndTableName(
       param.tableId,
       param.table.title,
       param.table.table_name,
     );
 
-    await sqlMgr.sqlOpPlus(base, 'tableRename', {
-      ...param.table,
-      tn: param.table.table_name,
-      tn_old: model.table_name,
-    });
-
     this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
       table: model,
       user: param.user,
     });
 
-    T.emit('evt', { evt_type: 'table:updated' });
     return true;
   }
 
@@ -164,11 +162,12 @@ export class TablesService {
     const table = await Model.getByIdOrName({ id: param.tableId });
     await table.getColumns();
 
-    const relationColumns = table.columns.filter(
-      (c) => c.uidt === UITypes.LinkToAnotherRecord,
-    );
+    const project = await Project.getWithInfo(table.project_id);
+    const base = project.bases.find((b) => b.id === table.base_id);
 
-    if (relationColumns?.length) {
+    const relationColumns = table.columns.filter((c) => isLinksOrLTAR(c));
+
+    if (relationColumns?.length && !base.is_meta && !base.is_local) {
       const referredTables = await Promise.all(
         relationColumns.map(async (c) =>
           c
@@ -184,42 +183,61 @@ export class TablesService {
       );
     }
 
-    const project = await Project.getWithInfo(table.project_id);
-    const base = project.bases.find((b) => b.id === table.base_id);
-    const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
-    (table as any).tn = table.table_name;
-    table.columns = table.columns.filter((c) => !isVirtualCol(c));
-    table.columns.forEach((c) => {
-      (c as any).cn = c.column_name;
-    });
+    // start a transaction
+    const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
+    let result;
+    try {
+      // delete all relations
+      for (const c of relationColumns) {
+        // skip if column is hasmany relation to mm table
+        if (c.system) {
+          continue;
+        }
 
-    if (table.type === ModelTypes.TABLE) {
-      await sqlMgr.sqlOpPlus(base, 'tableDelete', table);
-    } else if (table.type === ModelTypes.VIEW) {
-      await sqlMgr.sqlOpPlus(base, 'viewDelete', {
-        ...table,
-        view_name: table.table_name,
+        // verify column exist or not and based on that delete the column
+        if (!(await Column.get({ colId: c.id }, ncMeta))) {
+          continue;
+        }
+
+        await this.columnsService.columnDelete(
+          {
+            req: param.req,
+            columnId: c.id,
+            user: param.user,
+          },
+          ncMeta,
+        );
+      }
+
+      const sqlMgr = await ProjectMgrv2.getSqlMgr(project, ncMeta);
+      (table as any).tn = table.table_name;
+      table.columns = table.columns.filter((c) => !isVirtualCol(c));
+      table.columns.forEach((c) => {
+        (c as any).cn = c.column_name;
       });
+
+      if (table.type === ModelTypes.TABLE) {
+        await sqlMgr.sqlOpPlus(base, 'tableDelete', table);
+      } else if (table.type === ModelTypes.VIEW) {
+        await sqlMgr.sqlOpPlus(base, 'viewDelete', {
+          ...table,
+          view_name: table.table_name,
+        });
+      }
+
+      this.appHooksService.emit(AppEvents.TABLE_DELETE, {
+        table,
+        user: param.user,
+        ip: param.req?.clientIp,
+      });
+
+      result = await table.delete(ncMeta);
+      await ncMeta.commit();
+    } catch (e) {
+      await ncMeta.rollback();
+      throw e;
     }
-
-    await Audit.insert({
-      project_id: project.id,
-      base_id: base.id,
-      op_type: AuditOperationTypes.TABLE,
-      op_sub_type: AuditOperationSubTypes.DELETE,
-      user: param.user?.email,
-      description: `Deleted ${table.type} ${table.table_name} with alias ${table.title}  `,
-      ip: param.req?.clientIp,
-    }).then(() => {});
-
-    T.emit('evt', { evt_type: 'table:deleted' });
-
-    this.appHooksService.emit(AppEvents.TABLE_DELETE, {
-      table,
-      user: param.user,
-    });
-
-    return table.delete();
+    return result;
   }
 
   async getTableWithAccessibleViews(param: {
@@ -229,6 +247,10 @@ export class TablesService {
     const table = await Model.getWithInfo({
       id: param.tableId,
     });
+
+    if (!table) {
+      NcError.notFound('Table not found');
+    }
 
     // todo: optimise
     const viewList = <View[]>(
@@ -458,27 +480,19 @@ export class TablesService {
         cn: string;
         system?: boolean;
       }
-    > = (await sqlClient.columnList({ tn: tableCreatePayLoad.table_name }))
-      ?.data?.list;
+    > = (
+      await sqlClient.columnList({
+        tn: tableCreatePayLoad.table_name,
+        schema: base.getConfig()?.schema,
+      })
+    )?.data?.list;
 
     const tables = await Model.list({
       project_id: project.id,
       base_id: base.id,
     });
 
-    await Audit.insert({
-      project_id: project.id,
-      base_id: base.id,
-      op_type: AuditOperationTypes.TABLE,
-      op_sub_type: AuditOperationSubTypes.CREATE,
-      user: param.user?.email,
-      description: `Table ${tableCreatePayLoad.table_name} with alias ${tableCreatePayLoad.title} has been created`,
-      ip: param.req?.clientIp,
-    }).then(() => {});
-
     mapDefaultDisplayValue(param.table.columns);
-
-    T.emit('evt', { evt_type: 'table:created' });
 
     // todo: type correction
     const result = await Model.insert(project.id, base.id, {
@@ -507,6 +521,7 @@ export class TablesService {
     this.appHooksService.emit(AppEvents.TABLE_CREATE, {
       table: result,
       user: param.user,
+      ip: param.req?.clientIp,
     });
 
     return result;

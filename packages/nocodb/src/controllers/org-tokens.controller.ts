@@ -59,7 +59,6 @@ export class OrgTokensController {
     blockApiTokenAccess: true,
   })
   async apiTokenDelete(@Request() req, @Param('token') token: string) {
-    return;
     await this.orgTokensService.apiTokenDelete({
       token,
       user: req['user'],

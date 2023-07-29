@@ -1,18 +1,33 @@
-import { Injectable } from '@nestjs/common';
-import { AppEvents, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import { Injectable, Logger } from '@nestjs/common';
+import {
+  AppEvents,
+  ProjectRoles,
+  WorkspacePlan,
+  WorkspaceStatus,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
+import AWS from 'aws-sdk';
+import { ConfigService } from '@nestjs/config';
 import WorkspaceUser from '../../models/WorkspaceUser';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import Workspace from '../../models/Workspace';
 import validateParams from '../../helpers/validateParams';
 import { NcError } from '../../helpers/catchError';
 import { Project, ProjectUser } from '../../models';
-import { parseMetaProp } from '../../utils/modelUtils';
 import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
+import { extractProps } from '../../helpers/extractProps';
+import extractRolesObj from '../../utils/extractRolesObj';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
+import type { AppConfig } from '../../interface/config';
 
 @Injectable()
 export class WorkspacesService {
-  constructor(private appHooksService: AppHooksService) {}
+  private logger = new Logger(WorkspacesService.name);
+
+  constructor(
+    private appHooksService: AppHooksService,
+    private configService: ConfigService<AppConfig>,
+  ) {}
 
   async list(param: {
     user: {
@@ -50,7 +65,12 @@ export class WorkspacesService {
         title: workspacePayload.title.trim(),
         // todo : extend request type
         fk_user_id: param.user.id,
+        status: WorkspaceStatus.CREATED,
+        plan: WorkspacePlan.FREE,
       });
+
+      // todo: error handling
+      // await this.createWorkspaceSubdomain({ titleOrId: workspace.id });
 
       await WorkspaceUser.insert({
         fk_workspace_id: workspace.id,
@@ -82,6 +102,34 @@ export class WorkspacesService {
     return workspace;
   }
 
+  async upgrade(param: {
+    user: {
+      email: string;
+      id: string;
+      roles: string[];
+    };
+    workspaceId: string;
+  }) {
+    const workspace = await Workspace.get(param.workspaceId);
+
+    if (!workspace) NcError.notFound('Workspace not found');
+
+    if (workspace.plan !== WorkspacePlan.FREE)
+      NcError.notFound('Workspace is already upgraded');
+
+    await this.createWorkspaceSubdomain({
+      titleOrId: workspace.id,
+      user: param.user?.email ?? param.user?.id,
+    });
+
+    await Workspace.updateStatusAndPlan(param.workspaceId, {
+      plan: WorkspacePlan.PAID,
+      status: WorkspaceStatus.CREATING,
+    });
+
+    return workspace;
+  }
+
   async update(param: {
     user: UserType;
     workspaceId: string;
@@ -93,8 +141,6 @@ export class WorkspacesService {
 
     if (!existingWorkspace) NcError.badRequest('Workspace not found');
 
-    // todo: allow order update for all user
-    //       and block rest of the options
     if ('order' in workspace) {
       existingWorkspace.order = workspace.order;
       await WorkspaceUser.update(workspaceId, user.id, {
@@ -103,10 +149,14 @@ export class WorkspacesService {
       delete workspace.order;
     }
 
-    // todo: validate params
-    // validateParams(['title', 'description'], req.body);
+    const roles = extractRolesObj(user.roles);
+    // allow only owner and creator to update anything other that order
+    if (!roles[WorkspaceUserRoles.OWNER] && !roles[WorkspaceUserRoles.CREATOR])
+      return;
 
-    const updatedWorkspace = await Workspace.update(workspaceId, workspace);
+    const updateObj = extractProps(workspace, ['title', 'description', 'meta']);
+
+    const updatedWorkspace = await Workspace.update(workspaceId, updateObj);
 
     this.appHooksService.emit(AppEvents.WORKSPACE_UPDATE, {
       workspace: {
@@ -189,13 +239,60 @@ export class WorkspacesService {
     const { workspaceId, user } = param;
     const projects = await Project.listByWorkspaceAndUser(workspaceId, user.id);
 
-    // parse meta
-    for (const project of projects) {
-      project.meta = parseMetaProp(project);
-    }
-
     return new PagedResponseImpl<WorkspaceType>(projects, {
       count: projects.length,
     });
+  }
+
+  // todo: handle error case
+  private async createWorkspaceSubdomain(param: {
+    titleOrId: string;
+    user: string;
+  }) {
+    const snsConfig = this.configService.get('workspace.sns', {
+      infer: true,
+    });
+
+    if (
+      !snsConfig.topicArn ||
+      !snsConfig.credentials ||
+      !snsConfig.credentials.secretAccessKey ||
+      !snsConfig.credentials.accessKeyId
+    ) {
+      this.logger.error('SNS is not configured');
+      NcError.notImplemented('Not available');
+    }
+
+    // Create publish parameters
+    const params = {
+      Message: JSON.stringify({
+        WS_NAME: param.titleOrId,
+        user: param.user,
+      }) /* required */,
+      TopicArn: snsConfig.topicArn,
+    };
+
+    // Create promise and SNS service object
+    const publishTextPromise = new AWS.SNS({
+      apiVersion: snsConfig.apiVersion,
+      region: snsConfig.region,
+      credentials: {
+        accessKeyId: snsConfig.credentials.accessKeyId,
+        secretAccessKey: snsConfig.credentials.secretAccessKey,
+      },
+    })
+      .publish(params)
+      .promise();
+    try {
+      // Handle promise's fulfilled/rejected states
+      const data = await publishTextPromise;
+      this.logger.log(
+        `Message ${params.Message} sent to the topic ${params.TopicArn}`,
+      );
+      this.logger.log('MessageID is ' + data.MessageId);
+    } catch (err) {
+      console.error(err, err.stack);
+      NcError.internalServerError('Error while upgrading workspace');
+    }
   }
 }

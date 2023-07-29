@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Collaborate from './Collaborate.vue'
 import PublicProject from './PublicProject.vue'
+import ShareBase from './ShareBase.vue'
 
 const { formStatus } = storeToRefs(useShare())
 
@@ -21,7 +22,7 @@ onMounted(async () => {
         </template>
         <Collaborate />
       </a-tab-pane>
-      <a-tab-pane key="project-public">
+      <!-- <a-tab-pane key="project-public">
         <template #tab>
           <div class="flex flex-row items-center text-xs px-2">
             <MdiEarth class="mr-1" />
@@ -29,6 +30,15 @@ onMounted(async () => {
           </div>
         </template>
         <PublicProject />
+      </a-tab-pane> -->
+      <a-tab-pane key="share-base" :disabled="true">
+        <template #tab>
+          <div class="flex flex-row items-center text-xs px-2">
+            <MdiEarth class="mr-1" />
+            <div data-testid="db-share-base">Share Base</div>
+          </div>
+        </template>
+        <ShareBase />
       </a-tab-pane>
     </a-tabs>
   </div>

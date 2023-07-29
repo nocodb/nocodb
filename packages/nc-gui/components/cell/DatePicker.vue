@@ -2,6 +2,7 @@
 import dayjs from 'dayjs'
 import {
   ActiveCellInj,
+  CellClickHookInj,
   ColumnInj,
   EditModeInj,
   ReadonlyInj,
@@ -28,6 +29,8 @@ const { showNull } = useGlobal()
 const columnMeta = inject(ColumnInj, null)!
 
 const readOnly = inject(ReadonlyInj, ref(false))
+
+const isLockedMode = inject(IsLockedInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
 
@@ -69,6 +72,8 @@ watch(
   (next) => {
     if (next) {
       onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, () => (open.value = false))
+    } else {
+      editable.value = false
     }
   },
   { flush: 'post' },
@@ -165,6 +170,31 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
       break
   }
 })
+
+// use the default date picker open sync only to close the picker
+const updateOpen = (next: boolean) => {
+  if (open.value && !next) {
+    open.value = false
+  }
+}
+
+const cellClickHook = inject(CellClickHookInj, null)
+const cellClickHandler = () => {
+  open.value = (active.value || editable.value) && !open.value
+}
+onMounted(() => {
+  cellClickHook?.on(cellClickHandler)
+})
+onUnmounted(() => {
+  cellClickHook?.on(cellClickHandler)
+})
+
+const clickHandler = () => {
+  if (cellClickHook) {
+    return
+  }
+  cellClickHandler()
+}
 </script>
 
 <template>
@@ -178,8 +208,9 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
     :dropdown-class-name="`${randomClass} nc-picker-date ${open ? 'active' : ''}`"
-    :open="(readOnly || (localState && isPk)) && !active && !editable ? false : open"
-    @click="open = (active || editable) && !open"
+    :open="((readOnly || (localState && isPk)) && !active && !editable) || isLockedMode ? false : open"
+    @click="clickHandler"
+    @update:open="updateOpen"
   >
     <template #suffixIcon></template>
   </a-date-picker>

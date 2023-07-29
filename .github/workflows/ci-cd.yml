@@ -18,6 +18,7 @@ on:
             - "packages/nc-gui/**"
             - "packages/nocodb/**"
             - ".github/workflows/ci-cd.yml"
+            - ".github/workflows/playwright-test-workflow.yml"            
             - "tests/playwright/**"
 
 concurrency:
@@ -26,8 +27,8 @@ concurrency:
 
 jobs:
     unit-tests-pg:
-      runs-on: self-hosted
-      timeout-minutes: 40
+      runs-on: [self-hosted, aws]
+      timeout-minutes: 80
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
@@ -38,6 +39,10 @@ jobs:
           uses: actions/checkout@v3
           with:
             fetch-depth: 0
+        - name: Set CI env
+          run: export CI=true
+        - name: Set Node env
+          run: export NODE_OPTIONS=\"--max_old_space_size=16384\";
         - name: Cache node modules
           uses: actions/cache@v3
           env:
@@ -51,9 +56,6 @@ jobs:
               ${{ runner.os }}-build-${{ env.cache-name }}-
               ${{ runner.os }}-build-
               ${{ runner.os }}-
-        - name: setup pg
-          working-directory: ./
-          run: docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &
         - name: install dependencies nocodb-sdk
           working-directory: ./packages/nocodb-sdk
           run: npm install
@@ -78,3 +80,9 @@ jobs:
       with:
         db: pg
         shard: 2
+    playwright-pg-shard-3:
+      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+      uses: ./.github/workflows/playwright-test-workflow.yml
+      with:
+        db: pg
+        shard: 3

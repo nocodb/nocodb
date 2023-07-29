@@ -1,5 +1,6 @@
 import SqlMgrv2 from './SqlMgrv2';
 import SqlMgrv2Trans from './SqlMgrv2Trans';
+import type { MetaService } from '../../../meta/meta.service';
 // import type NcMetaIO from '../../../meta/NcMetaIO';
 import type Base from '../../../models/Base';
 
@@ -8,7 +9,12 @@ export default class ProjectMgrv2 {
     [key: string]: SqlMgrv2;
   } = {};
 
-  public static getSqlMgr(project: { id: string }): SqlMgrv2 {
+  public static getSqlMgr(
+    project: { id: string },
+    ncMeta: MetaService = null,
+  ): SqlMgrv2 {
+    if (ncMeta) return new SqlMgrv2(project, ncMeta);
+
     if (!this.sqlMgrMap[project.id]) {
       this.sqlMgrMap[project.id] = new SqlMgrv2(project);
     }

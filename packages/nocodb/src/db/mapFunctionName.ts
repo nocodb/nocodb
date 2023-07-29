@@ -20,7 +20,7 @@ export interface MapFnArgs {
 }
 
 const mapFunctionName = async (args: MapFnArgs): Promise<any> => {
-  const name = args.pt.callee.name;
+  const name = args.pt.callee.name.toUpperCase();
   let val;
 
   switch (args.knex.clientType()) {

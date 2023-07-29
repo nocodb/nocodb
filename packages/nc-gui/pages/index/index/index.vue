@@ -2,16 +2,14 @@
 import type { Menu } from 'ant-design-vue'
 import { Empty, Modal } from 'ant-design-vue'
 import type { WorkspaceType } from 'nocodb-sdk'
-import { nextTick } from '@vue/runtime-core'
-import { WorkspaceUserRoles } from 'nocodb-sdk'
+import { nextTick, onUnmounted } from '@vue/runtime-core'
+import { WorkspaceStatus, WorkspaceUserRoles } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import Sortable from 'sortablejs'
-import { useRoute } from 'vue-router'
 import {
   computed,
   extractSdkResponseErrorMsg,
   message,
-  navigateTo,
   onMounted,
   parseProp,
   projectThemeColors,
@@ -24,6 +22,8 @@ import {
 
 const router = useRouter()
 
+const { isUIAllowed } = useUIPermission()
+
 const roleAlias = {
   [WorkspaceUserRoles.OWNER]: 'Owner',
   [WorkspaceUserRoles.VIEWER]: 'Viewer',
@@ -32,9 +32,21 @@ const roleAlias = {
 
 const workspaceStore = useWorkspace()
 
-const { deleteWorkspace: _deleteWorkspace, loadWorkspaceList, updateWorkspace } = workspaceStore
+const { deleteWorkspace: _deleteWorkspace, loadWorkspaces, updateWorkspace, populateWorkspace } = workspaceStore
 
-const { workspaces, activeWorkspace, isWorkspaceOwner, activePage } = storeToRefs(workspaceStore)
+const projectsStore = useProjects()
+
+const {
+  workspacesList,
+  activeWorkspace,
+  isWorkspaceOwnerOrCreator,
+  isWorkspaceOwner,
+  activePage,
+  collaborators,
+  activeWorkspaceId,
+} = storeToRefs(workspaceStore)
+
+const { loadProjects } = useProjects()
 
 const { $e } = useNuxtApp()
 
@@ -42,12 +54,12 @@ const route = $(router.currentRoute)
 
 const selectedWorkspaceIndex = computed<number[]>({
   get() {
-    const index = workspaces?.value?.findIndex((workspace) => workspace.id === (route.query?.workspaceId as string))
+    const index = workspacesList?.value?.findIndex((workspace) => workspace.id === (route.query?.workspaceId as string))
     return activePage?.value === 'workspace' ? [index === -1 ? 0 : index] : []
   },
   set(index: number[]) {
     if (index?.length) {
-      router.push({ query: { workspaceId: workspaces.value?.[index[0]]?.id, page: 'workspace' } })
+      router.push({ query: { workspaceId: workspacesList.value?.[index[0]]?.id, page: 'workspace' } })
     } else {
       router.push({ query: {} })
     }
@@ -59,7 +71,12 @@ const { toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar:
 
 const isCreateDlgOpen = ref(false)
 
+const isCreateProjectOpen = ref(false)
+
 const menuEl = ref<Menu | null>(null)
+
+const toBeDeletedWorkspaceId = ref<string | null>(null)
+const showDeleteWorkspace = ref(false)
 
 const menu = (el?: typeof Menu) => {
   if (el) {
@@ -68,44 +85,62 @@ const menu = (el?: typeof Menu) => {
   }
 }
 
+const { loadScope } = useCommandPalette()
+
+onMounted(async () => {
+  toggle(true)
+  toggleHasSidebar(true)
+
+  await loadWorkspaces()
+  await loadScope('root')
+
+  loadWorkspacesWithInterval()
+
+  if (!route.query.workspaceId && workspacesList.value?.length) {
+    await router.push({ query: { workspaceId: workspacesList.value[0].id, page: 'workspace' } })
+  } else {
+    selectedWorkspaceIndex.value = [workspacesList.value?.findIndex((workspace) => workspace.id === route.query.workspaceId)]
+  }
+
+  if (activeWorkspace.value && activeWorkspace.value.status !== WorkspaceStatus.CREATING) await loadProjects()
+})
+
+watch(
+  () => route.query.workspaceId,
+  async (newId, oldId) => {
+    if (!newId || (oldId !== newId && oldId)) {
+      projectsStore.clearProjects()
+      collaborators.value = []
+    }
+
+    if (newId) {
+      populateWorkspace()
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
 useDialog(resolveComponent('WorkspaceCreateDlg'), {
   'modelValue': isCreateDlgOpen,
   'onUpdate:modelValue': (isOpen: boolean) => (isCreateDlgOpen.value = isOpen),
   'onSuccess': async () => {
     isCreateDlgOpen.value = false
-    await loadWorkspaceList()
+    await loadWorkspaces()
     await nextTick(() => {
       ;[...menuEl?.value?.$el?.querySelectorAll('li.ant-menu-item')]?.pop()?.scrollIntoView({
         block: 'nearest',
         inline: 'nearest',
       })
-      selectedWorkspaceIndex.value = [workspaces.value?.length - 1]
+      selectedWorkspaceIndex.value = [workspacesList.value?.length - 1]
     })
   },
 })
 
-const { loadScope } = useCommandPalette()
-
-// TODO
-loadWorkspaceList()
-
-loadScope('workspace')
-
-onMounted(async () => {
-  toggle(true)
-  toggleHasSidebar(true)
-  await loadWorkspaceList()
-})
-
 const deleteWorkspace = (workspace: WorkspaceType) => {
-  Modal.confirm({
-    title: 'Are you sure you want to delete this workspace?',
-    type: 'warn',
-    onOk: async () => {
-      await _deleteWorkspace(workspace.id!)
-      await loadWorkspaceList()
-    },
-  })
+  toBeDeletedWorkspaceId.value = workspace.id!
+  showDeleteWorkspace.value = true
 }
 
 const updateWorkspaceTitle = async (workspace: WorkspaceType & { edit: boolean; temp_title: string }) => {
@@ -119,7 +154,7 @@ const updateWorkspaceTitle = async (workspace: WorkspaceType & { edit: boolean; 
 }
 
 const handleWorkspaceColor = async (workspaceId: string, color: string) => {
-  const workspace = workspaces.value?.find((w) => w.id === workspaceId)
+  const workspace = workspacesList.value?.find((w) => w.id === workspaceId)
 
   if (!workspace) return
 
@@ -152,7 +187,7 @@ function getIdFromEl(previousEl: HTMLElement) {
 function initSortable(el: Element) {
   Sortable.create(el as HTMLLIElement, {
     onEnd: async (evt) => {
-      if (workspaces.value?.length < 2) return
+      if (workspacesList.value?.length < 2) return
 
       const { newIndex = 0, oldIndex = 0 } = evt
 
@@ -163,17 +198,17 @@ function initSortable(el: Element) {
       const previousEl = children[newIndex - 1]
       const nextEl = children[newIndex + 1]
 
-      const currentItem = workspaces.value.find((v) => v.id === getIdFromEl(evt.item))
+      const currentItem = workspacesList.value.find((v) => v.id === getIdFromEl(evt.item))
 
       if (!currentItem || !currentItem.id) return
 
-      const previousItem = (previousEl ? workspaces.value.find((v) => v.id === getIdFromEl(previousEl)) : {}) as WorkspaceType
-      const nextItem = (nextEl ? workspaces.value.find((v) => v.id === getIdFromEl(nextEl)) : {}) as WorkspaceType
+      const previousItem = (previousEl ? workspacesList.value.find((v) => v.id === getIdFromEl(previousEl)) : {}) as WorkspaceType
+      const nextItem = (nextEl ? workspacesList.value.find((v) => v.id === getIdFromEl(nextEl)) : {}) as WorkspaceType
 
       let nextOrder: number
 
       // set new order value based on the new order of the items
-      if (workspaces.value.length - 1 === newIndex) {
+      if (workspacesList.value.length - 1 === newIndex) {
         nextOrder = parseFloat(String(previousItem.order)) + 1
       } else if (newIndex === 0) {
         nextOrder = parseFloat(String(nextItem.order)) / 2
@@ -204,16 +239,16 @@ const tab = computed({
 
 const renameInput = ref<HTMLInputElement[]>()
 const enableEdit = (index: number) => {
-  workspaces.value[index].temp_title = workspaces.value[index].title
-  workspaces.value[index].edit = true
+  workspacesList.value[index].temp_title = workspacesList.value[index].title
+  workspacesList.value[index].edit = true
   nextTick(() => {
     renameInput.value?.[0]?.focus()
     renameInput.value?.[0]?.select()
   })
 }
 const disableEdit = (index: number) => {
-  workspaces.value[index].temp_title = null
-  workspaces.value[index].edit = false
+  workspacesList.value[index].temp_title = null
+  workspacesList.value[index].edit = false
 }
 
 const projectListType = computed(() => {
@@ -223,82 +258,107 @@ const projectListType = computed(() => {
     case 'shared':
       return 'Shared With Me'
     case 'starred':
-      return 'Favourite'
+      return 'Starred'
     default:
       return '='
   }
 })
+
+watch(activeWorkspaceId, async () => {
+  if (activeWorkspace.value?.status !== WorkspaceStatus.CREATED) return
+  await loadProjects(activePage.value)
+})
+
+let timerRef: any
+
+// todo: do it in a better way
+function loadWorkspacesWithInterval() {
+  timerRef = setTimeout(async () => {
+    if (!workspacesList.value || workspacesList.value.some((workspace) => workspace.status === WorkspaceStatus.CREATING)) {
+      await loadWorkspaces()
+    }
+    loadWorkspacesWithInterval()
+  }, 10000)
+}
+
+onUnmounted(() => {
+  if (timerRef) clearTimeout(timerRef)
+})
+
+watch(
+  () => activeWorkspace.value?.status,
+  async (status) => {
+    if (status === WorkspaceStatus.CREATED) {
+      await loadProjects()
+    }
+  },
+)
 </script>
 
 <template>
   <NuxtLayout name="new">
     <template #sidebar>
       <div class="h-full flex flex-col min-h-[400px] overflow-auto">
-        <div class="nc-workspace-group overflow-auto mt-2">
-          <div
-            class="nc-workspace-group-item"
-            :class="{ active: activePage === 'recent' }"
-            @click="
-              navigateTo({
-                query: {
-                  page: 'recent',
-                },
-              })
-            "
-          >
-            <MaterialSymbolsNestClockFarsightAnalogOutlineRounded class="nc-icon" />
-            <span>Recent</span>
-          </div>
-          <div
-            class="nc-workspace-group-item"
-            :class="{ active: activePage === 'shared' }"
-            @click="
-              navigateTo({
-                query: {
-                  page: 'shared',
-                },
-              })
-            "
-          >
-            <MaterialSymbolsGroupsOutline class="nc-icon" />
-            <span>Shared with me</span>
-          </div>
-          <div
-            class="nc-workspace-group-item"
-            :class="{ active: activePage === 'starred' }"
-            @click="
-              navigateTo({
-                query: {
-                  page: 'starred',
-                },
-              })
-            "
-          >
-            <MaterialSymbolsStarOutline class="nc-icon" />
-            <span>Favourites</span>
-          </div>
-        </div>
-        <div class="flex items-center uppercase !text-gray-400 text-xs font-weight-bold pt-2 px-4 pb-2 h-10">
-          All workspaces
+        <!--        <div class="nc-workspace-group overflow-auto mt-8.5"> -->
+        <!--          <div class="flex text-sm font-medium text-gray-400 mx-4.5 mb-2">All Projects</div> -->
+        <!--          <div -->
+        <!--            class="nc-workspace-group-item" -->
+        <!--            :class="{ active: activePage === 'recent' }" -->
+        <!--            @click=" -->
+        <!--              navigateTo({ -->
+        <!--                query: { -->
+        <!--                  page: 'recent', -->
+        <!--                }, -->
+        <!--              }) -->
+        <!--            " -->
+        <!--          > -->
+        <!--            <IcOutlineAccessTime class="nc-icon" /> -->
+        <!--            <span>Recent</span> -->
+        <!--          </div> -->
+        <!--          <div -->
+        <!--            class="nc-workspace-group-item" -->
+        <!--            :class="{ active: activePage === 'shared' }" -->
+        <!--            @click=" -->
+        <!--              navigateTo({ -->
+        <!--                query: { -->
+        <!--                  page: 'shared', -->
+        <!--                }, -->
+        <!--              }) -->
+        <!--            " -->
+        <!--          > -->
+        <!--            <MaterialSymbolsGroupOutlineRounded class="nc-icon" /> -->
+        <!--            <span>Shared with me</span> -->
+        <!--          </div> -->
+        <!--          <div -->
+        <!--            class="nc-workspace-group-item" -->
+        <!--            :class="{ active: activePage === 'starred' }" -->
+        <!--            @click=" -->
+        <!--              navigateTo({ -->
+        <!--                query: { -->
+        <!--                  page: 'starred', -->
+        <!--                }, -->
+        <!--              }) -->
+        <!--            " -->
+        <!--          > -->
+        <!--            <IcRoundStarBorder class="nc-icon !h-5" /> -->
+        <!--            <span>Starred</span> -->
+        <!--          </div> -->
+        <!--        </div> -->
+        <div class="flex items-center !text-gray-400 text-xs pt-2 px-4 pb-2 h-10">
+          <div class="flex text-sm font-medium">Workspaces</div>
           <div class="flex-grow"></div>
           <MdiPlus
-            class="!text-gray-400 text-lg cursor-pointer"
+            class="!text-gray-400 text-base cursor-pointer"
             data-testid="nc-create-workspace"
             @click="isCreateDlgOpen = true"
           />
         </div>
 
         <div class="overflow-auto min-h-25 flex-grow" style="flex-basis: 0">
-          <a-empty v-if="!workspaces?.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
+          <a-empty v-if="!workspacesList?.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
-          <a-menu
-            v-else
-            :ref="menu"
-            v-model:selected-keys="selectedWorkspaceIndex"
-            class="nc-workspace-list"
-            trigger-sub-menu-action="click"
-          >
-            <a-menu-item v-for="(workspace, i) of workspaces" :key="i">
+          <a-menu v-else v-model:selected-keys="selectedWorkspaceIndex" class="nc-workspace-list" trigger-sub-menu-action="click">
+            <a-menu-item v-for="(workspace, i) of workspacesList" :key="i">
               <div class="nc-workspace-list-item flex items-center h-full group" :data-id="workspace.id">
                 <a-dropdown :trigger="['click']" trigger-sub-menu-action="click" @click.stop>
                   <div>
@@ -319,7 +379,7 @@ const projectListType = computed(() => {
                         :colors="projectThemeColors"
                         :row-size="9"
                         :advanced="false"
-                        @input="handleWorkspaceColor(workspace.id, $event)"
+                        @input="handleWorkspaceColor(workspace.id!, $event)"
                       />
                       <a-sub-menu key="pick-primary">
                         <template #title>
@@ -331,13 +391,13 @@ const projectListType = computed(() => {
 
                         <template #expandIcon></template>
 
-                        <LazyGeneralChromeWrapper @input="handleWorkspaceColor(workspace.id, $event)" />
+                        <LazyGeneralChromeWrapper @input="handleWorkspaceColor(workspace.id!, $event)" />
                       </a-sub-menu>
                     </a-menu>
                   </template>
                 </a-dropdown>
                 <input
-                  v-if="workspace.edit"
+                  v-if="workspace.edit && isUIAllowed('workspaceUpdate', false, activeWorkspace.roles)"
                   ref="renameInput"
                   v-model="workspace.temp_title"
                   class="!leading-none outline-none bg-transparent"
@@ -359,22 +419,30 @@ const projectListType = computed(() => {
                   >
                 </div>
                 <div class="flex-grow"></div>
-                <MdiDragVertical class="outline-0 nc-workspace-drag-icon" />
-                <a-dropdown :trigger="['click']">
+                <IcBaselineDragIndicator v-if="false" class="outline-0 nc-workspace-drag-icon" />
+                <a-dropdown
+                  v-if="
+                    isUIAllowed('workspaceRename', true, workspace.roles) || isUIAllowed('workspaceDelete', true, workspace.roles)
+                  "
+                  :trigger="['click']"
+                >
                   <div class="w-4">
                     <MdiDotsHorizontal class="outline-0 nc-workspace-menu min-w-4 nc-click-transition" />
                   </div>
                   <template #overlay>
-                    <a-menu>
-                      <a-menu-item @click="enableEdit(i)">
+                    <a-menu class="!py-0 rounded">
+                      <a-menu-item v-if="isUIAllowed('workspaceRename', true, workspace.roles)" @click="enableEdit(i)">
                         <div class="nc-menu-item-wrapper">
-                          <MdiPencil class="text-gray-500" />
+                          <GeneralIcon icon="edit" />
                           Rename Workspace
                         </div>
                       </a-menu-item>
-                      <a-menu-item @click="deleteWorkspace(workspace)">
-                        <div class="nc-menu-item-wrapper">
-                          <MdiDeleteOutline class="text-gray-500" />
+                      <a-menu-item
+                        v-if="isUIAllowed('workspaceDelete', true, workspace.roles)"
+                        @click="deleteWorkspace(workspace)"
+                      >
+                        <div class="nc-menu-item-wrapper text-red-600">
+                          <GeneralIcon icon="delete" />
                           Delete Workspace
                         </div>
                       </a-menu-item>
@@ -388,35 +456,83 @@ const projectListType = computed(() => {
       </div>
     </template>
 
-    <div class="w-full h-full overflow-auto nc-workspace-container">
-      <div v-if="activeWorkspace" class="h-full flex flex-col pt-6">
-        <div class="px-6 flex items-center">
-          <div class="flex gap-2 items-center mb-4">
+    <div class="h-full nc-workspace-container overflow-x-hidden" style="width: calc(100vw - 250px)">
+      <div
+        v-if="activeWorkspace && activeWorkspace.status !== WorkspaceStatus.CREATED"
+        class="h-full w-full flex flex-col gap-3 items-center justify-center"
+      >
+        <a-spin size="large" />
+        <div class="text-gray-300 text-lg">Please wait while we set up your workspace</div>
+      </div>
+      <div v-else-if="activeWorkspace" class="flex flex-col pt-7">
+        <div class="pl-8 pr-7 flex items-center mb-7 h-8 max-w-full">
+          <div class="flex gap-2 items-center min-w-0">
             <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
               {{ activeWorkspace?.title?.slice(0, 2) }}
             </span>
-            <h1 class="text-3xl font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title">{{ activeWorkspace?.title }}</h1>
+            <h1 class="text-3xl font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title truncate min-w-10">
+              {{ activeWorkspace?.title }}
+            </h1>
           </div>
-          <div class="flex-grow"></div>
-          <WorkspaceCreateProjectBtn v-if="isWorkspaceOwner" :active-workspace-id="activeWorkspace?.id" />
+          <div class="flex-grow min-w-10"></div>
+          <WorkspaceCreateProjectBtn
+            v-if="isUIAllowed('createProject', false, activeWorkspace.roles) && tab === 'projects'"
+            v-model:is-open="isCreateProjectOpen"
+            class="mt-0.75"
+            type="primary"
+            :active-workspace-id="activeWorkspace?.id"
+            modal
+          >
+            <div
+              class="gap-x-2 flex flex-row w-full items-center rounded py-1.5 pl-2 pr-2.75"
+              :class="{
+                '!bg-opacity-10': isCreateProjectOpen,
+              }"
+            >
+              <MdiPlus class="!h-4.2" />
+
+              <div class="flex">New Project</div>
+            </div>
+          </WorkspaceCreateProjectBtn>
         </div>
 
         <a-tabs v-model:activeKey="tab">
-          <a-tab-pane key="projects" tab="All Projects" class="w-full">
-            <WorkspaceProjectList class="h-full" />
+          <a-tab-pane key="projects" class="w-full">
+            <template #tab>
+              <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
+                <MdiFileOutline />
+                Projects
+              </div>
+            </template>
+            <WorkspaceProjectList class="h-full mt-4 px-6" />
           </a-tab-pane>
+          <template v-if="isWorkspaceOwnerOrCreator">
+            <a-tab-pane key="collab" class="w-full">
+              <template #tab>
+                <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
+                  <PhUsersBold />
+                  Collaborators
+                </div>
+              </template>
+              <WorkspaceCollaboratorsList />
+            </a-tab-pane>
+          </template>
+
           <template v-if="isWorkspaceOwner">
-            <a-tab-pane key="collab" tab="Collaborators" class="w-full">
-              <WorkspaceCollaboratorsList class="h-full overflow-auto" />
+            <a-tab-pane key="billing" class="w-full">
+              <template #tab>
+                <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
+                  <MaterialSymbolsCreditCardOutline />
+                  Billing
+                </div>
+              </template>
+              <WorkspaceBilling />
             </a-tab-pane>
           </template>
         </a-tabs>
       </div>
-      <div v-else-if="activePage !== 'workspace'" class="h-full flex flex-col px-6 my-3">
-        <div class="flex items-center gap-2 mb-6 mt-3 text-xl">
-          <MaterialSymbolsNestClockFarsightAnalogOutlineRounded v-if="activePage === 'recent'" class="h-8" />
-          <MaterialSymbolsGroupsOutline v-else-if="activePage === 'shared'" />
-          <MaterialSymbolsStarOutline v-else-if="activePage === 'starred'" />
+      <div v-else-if="activePage !== 'workspace'" class="h-full flex flex-col px-6 mt-3">
+        <div class="flex items-center gap-2 mb-5.5 mt-4 text-xl ml-5.5">
           <h2 class="text-3xl font-weight-bold tracking-[0.5px] mb-0">
             {{ projectListType }}
           </h2>
@@ -424,6 +540,7 @@ const projectListType = computed(() => {
 
         <WorkspaceProjectList class="min-h-20 grow" />
       </div>
+      <DlgWorkspaceDelete v-model:visible="showDeleteWorkspace" :workspace-id="toBeDeletedWorkspaceId" />
     </div>
   </NuxtLayout>
 </template>
@@ -507,7 +624,7 @@ const projectListType = computed(() => {
 }
 
 :deep(.ant-tabs-nav-list) {
-  @apply ml-6;
+  @apply !ml-6;
 }
 
 .ant-layout-header {

@@ -43,7 +43,7 @@ export default defineConfig({
   shortcuts: {
     'color-transition': 'transition-color duration-100 ease-in',
     'scrollbar-thin-primary': 'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-primary scrollbar-track-white',
-    'scrollbar-thin-dull': 'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-300 scrollbar-track-white',
+    'scrollbar-thin-dull': 'scrollbar scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-gray-100 scrollbar-track-white',
   },
 
   theme: {
@@ -73,6 +73,20 @@ export default defineConfig({
         ...windiColors,
         ...themeColors,
         ...themeV2Colors,
+        gray: {
+          10: '#FCFCFC',
+          50: '#F2F4F7',
+          75: '#EDEDED',
+          100: '#E1E3E6',
+          200: '#C4C7CC',
+          300: '#A6AAB3',
+          400: '#898E99',
+          500: '#6B7280',
+          600: '#565B66',
+          700: '#40444D',
+          800: '#2B2E33',
+          900: '#15171A',
+        },
         primary: 'rgba(var(--color-primary), var(--tw-bg-opacity))',
         accent: 'rgba(var(--color-accent), var(--tw-bg-opacity))',
         dark: colors.dark,

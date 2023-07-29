@@ -52,7 +52,7 @@ export const onEnter = (editor: Editor, nodeType: ListNodeType) => {
       {
         type: nodeType,
         attrs: {
-          number: nodeType === 'ordered' ? String(Number(currentListNode.attrs.number) + 1) : undefined,
+          number: nodeType === 'ordered' ? 1 : undefined,
           checked: nodeType === 'task' ? false : undefined,
           level,
         },
@@ -76,7 +76,8 @@ export const onEnter = (editor: Editor, nodeType: ListNodeType) => {
         : {
             type: nodeType,
             attrs: {
-              number: nodeType === 'ordered' ? String(Number(currentListNode.attrs.number) + 1) : undefined,
+              // For ordered list, we fix the ordered list numbering on each page update
+              number: nodeType === 'ordered' ? 1 : undefined,
               checked: nodeType === 'task' ? false : undefined,
               level,
             },
@@ -92,11 +93,7 @@ export const onEnter = (editor: Editor, nodeType: ListNodeType) => {
     .deleteRange({ from: selection.from, to: currentParaNodeEndPos })
     .run()
 
-  if (isOnEndOfLine && currentSectionNode.type.name !== 'sec') {
-    return false
-  }
-
-  if (isOnEndOfLine) {
+  if (isOnEndOfLine && currentSectionNode.type.name === 'sec') {
     // TODO: Remove hard coding
     const pos = currentParaNodeEndPos + 6
     editor.chain().focus().setTextSelection(pos).run()

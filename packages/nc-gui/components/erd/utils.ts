@@ -1,5 +1,5 @@
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import dagre from 'dagre'
 import type { Edge, EdgeMarker, Elements, Node } from '@vue-flow/core'
 import type { MaybeRef } from '@vueuse/core'
@@ -73,8 +73,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
   const relations = computed(() =>
     erdTables.value.reduce((acc, table) => {
       const meta = metasWithIdAsKey.value[table.id!]
-      const columns =
-        meta.columns?.filter((column: ColumnType) => column.uidt === UITypes.LinkToAnotherRecord && column.system !== 1) || []
+      const columns = meta.columns?.filter((column: ColumnType) => isLinksOrLTAR(column) && column.system !== 1) || []
 
       for (const column of columns) {
         const colOptions = column.colOptions as LinkToAnotherRecordType
@@ -177,7 +176,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
 
       const columns =
         metasWithIdAsKey.value[table.id].columns?.filter(
-          (col) => config.showAllColumns || (!config.showAllColumns && col.uidt === UITypes.LinkToAnotherRecord),
+          (col) => config.showAllColumns || (!config.showAllColumns && isLinksOrLTAR(col)),
         ) || []
 
       const pkAndFkColumns = columns.filter(() => config.showPkAndFk).filter((col) => col.pk || col.uidt === UITypes.ForeignKey)
@@ -250,10 +249,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
     }, [])
   }
 
-  const boxShadow = (skeleton: boolean, color: string) => ({
-    border: 'none !important',
-    boxShadow: `0 0 0 ${skeleton ? '12' : '2'}px ${color}`,
-  })
+  const boxShadow = (skeleton: boolean, color: string) => ({})
 
   const layout = async (skeleton = false): Promise<void> => {
     return new Promise((resolve) => {
@@ -286,7 +282,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
           el.targetPosition = Position.Left
           el.sourcePosition = Position.Right
           el.position = { x: nodeWithPosition.x, y: nodeWithPosition.y }
-          el.class = ['rounded-lg'].join(' ')
+          el.class = ['rounded-lg border-1 border-gray-100 shadow-lg'].join(' ')
           el.data.color = color
 
           el.style = (n) => {

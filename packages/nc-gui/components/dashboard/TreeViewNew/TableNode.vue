@@ -1,16 +1,14 @@
 <script lang="ts" setup>
 import type { ProjectType, TableType } from 'nocodb-sdk'
 import { toRef } from '@vue/reactivity'
-import { Icon as IconifyIcon } from '@iconify/vue'
 import { Dropdown, Tooltip, message } from 'ant-design-vue'
 import { storeToRefs } from 'pinia'
 import { useUIPermission } from '~/composables/useUIPermission'
 
-import MdiView from '~icons/mdi/eye-circle-outline'
-import PhTableThin from '~icons/ph/table-thin'
 import { useTabs } from '~/store/tab'
 import { useNuxtApp } from '#app'
 import { ProjectRoleInj } from '~/context'
+import { TreeViewInj } from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -31,7 +29,7 @@ const { isUIAllowed } = useUIPermission()
 
 const tabStore = useTabs()
 const { updateTab } = tabStore
-const { activeTab } = storeToRefs(tabStore)
+
 const { $e, $api } = useNuxtApp()
 
 const { deleteTable } = useTableNew({
@@ -40,10 +38,15 @@ const { deleteTable } = useTableNew({
 
 const projectRole = inject(ProjectRoleInj)
 
+const { setMenuContext, openRenameTableDialog, duplicateTable } = inject(TreeViewInj)!
+
 // todo: temp
-const { projectTableList } = storeToRefs(useProjects())
+const { projectTables } = storeToRefs(useTablesStore())
+const tables = computed(() => projectTables.value.get(project.id!) ?? [])
 
 const openedTableId = computed(() => route.params.viewId)
+
+const isTableDeleteDialogVisible = ref(false)
 
 const icon = (table: TableType) => {
   if (table.type === 'table') {
@@ -60,7 +63,7 @@ const setIcon = async (icon: string, table: TableType) => {
       ...((table.meta as object) || {}),
       icon,
     }
-    projectTableList.value[project.id!].splice(projectTableList.value[project.id!].indexOf(table), 1, { ...table })
+    tables.value.splice(tables.value.indexOf(table), 1, { ...table })
 
     updateTab({ id: table.id }, { meta: table.meta })
 
@@ -74,37 +77,20 @@ const setIcon = async (icon: string, table: TableType) => {
   }
 }
 
-function openRenameTableDialog(table: TableType, baseId?: string, rightClick = false) {
-  $e(rightClick ? 'c:table:rename:navdraw:right-click' : 'c:table:rename:navdraw:options')
-
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgTableRename'), {
-    'modelValue': isOpen,
-    'tableMeta': table,
-    'baseId': baseId,
-    'onUpdate:modelValue': closeDialog,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
 // Todo: temp
 
 const { isSharedBase } = useProject()
+
+const isMultiBase = computed(() => project.bases && project.bases.length > 1)
 </script>
 
 <template>
   <div
-    v-e="['a:table:open']"
-    class="nc-tree-item text-sm cursor-pointer group"
+    class="nc-tree-item text-sm cursor-pointer group select-none"
     :data-order="table.order"
     :data-id="table.id"
     :data-testid="`tree-view-table-${table.title}`"
+    :data-table-id="table.id"
     :class="[
       // todo: table filter
       // { hidden: !filteredTables?.includes(table), active: openedTableId === table.id },
@@ -113,53 +99,55 @@ const { isSharedBase } = useProject()
     ]"
   >
     <GeneralTooltip
-      class="pl-4 pr-3 py-1.5 mt-0.65 rounded-md"
+      class="pl-11 pr-0.75 mb-0.25 rounded-md h-7.1"
       :class="{
-        'hover:bg-gray-200': openedTableId !== table.id,
+        'hover:bg-hover': openedTableId !== table.id,
+        'pl-17.75': baseIndex !== 0,
+        'pl-12.25': baseIndex === 0,
       }"
       modifier-key="Alt"
     >
       <template #title>{{ table.table_name }}</template>
-      <div class="table-context flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
+      <div class="table-context flex items-center gap-1 h-full" @contextmenu="setMenuContext('table', table)">
         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
-          <component
-            :is="isUIAllowed('tableIconCustomisation', false, projectRole) ? Dropdown : 'div'"
-            trigger="click"
-            destroy-popup-on-hide
-            class="flex items-center"
-            @click.stop
-          >
-            <div class="flex items-center" @click.stop>
-              <component :is="isUIAllowed('tableIconCustomisation', false, projectRole) ? Tooltip : 'div'">
-                <span v-if="table.meta?.icon" :key="table.meta?.icon" class="nc-table-icon flex items-center">
-                  <IconifyIcon
-                    :key="table.meta?.icon"
-                    :data-testid="`nc-icon-${table.meta?.icon}`"
-                    class="text-xl"
-                    :icon="table.meta?.icon"
-                  ></IconifyIcon>
-                </span>
-                <component
-                  :is="icon(table)"
-                  v-else
-                  class="nc-table-icon nc-view-icon w-5"
-                  :class="{ 'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole) }"
-                />
-
-                <template v-if="isUIAllowed('tableIconCustomisation', false, projectRole)" #title>Change icon</template>
-              </component>
-            </div>
-            <template v-if="isUIAllowed('tableIconCustomisation', false, projectRole)" #overlay>
-              <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon($event, table)" />
-            </template>
-          </component>
+          <div class="flex items-center nc-table-icon" @click.stop>
+            <GeneralEmojiPicker
+              :key="table.meta?.icon"
+              :emoji="table.meta?.icon"
+              size="small"
+              :readonly="!isUIAllowed('tableIconCustomisation', false, projectRole)"
+              @emoji-selected="setIcon($event, table)"
+            >
+              <template #default>
+                <NcTooltip class="ml-2" placement="topLeft" hide-on-click>
+                  <template #title>
+                    {{ 'Change icon' }}
+                  </template>
+                  <div>
+                    <MdiTable
+                      class="w-5 !text-gray-500 text-sm"
+                      :class="{
+                        'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole),
+                        '!text-black': openedTableId === table.id,
+                      }"
+                    />
+                  </div>
+                </NcTooltip>
+              </template>
+            </GeneralEmojiPicker>
+          </div>
         </div>
 
-        <div class="nc-tbl-title flex-1">
-          <GeneralTruncateText :key="table.title" :length="openedTableId === table.id ? 18 : 20"
-            >{{ table.title }}
-          </GeneralTruncateText>
-        </div>
+        <span
+          class="nc-tbl-title capitalize text-ellipsis overflow-hidden select-none"
+          :class="{
+            'text-black !font-semibold': openedTableId === table.id,
+          }"
+          :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+        >
+          {{ table.title }}
+        </span>
+        <div class="flex flex-grow h-full"></div>
 
         <a-dropdown
           v-if="
@@ -168,11 +156,11 @@ const { isSharedBase } = useProject()
           :trigger="['click']"
           @click.stop
         >
-          <GeneralIcon
-            icon="threeDotVertical"
-            class="transition-opacity opacity-0 group-hover:opacity-100 outline-0"
+          <MdiDotsHorizontal
+            class="min-w-5.75 min-h-5.75 mt-0.2 mr-0.25 px-0.5 transition-opacity opacity-0 group-hover:opacity-100 nc-tbl-context-menu outline-0 rounded-md hover:(bg-gray-300 bg-opacity-20 !text-black)"
             :class="{
               '!text-gray-600': openedTableId !== table.id,
+              '!text-black': openedTableId === table.id,
             }"
           />
 
@@ -183,16 +171,32 @@ const { isSharedBase } = useProject()
                 @click="openRenameTableDialog(table, project.bases[baseIndex].id)"
               >
                 <div class="nc-project-menu-item" :data-testid="`sidebar-table-rename-${table.title}`">
+                  <GeneralIcon icon="edit" class="text-gray-700" />
                   {{ $t('general.rename') }}
+                </div>
+              </a-menu-item>
+
+              <a-menu-item
+                v-if="
+                  isUIAllowed('table-duplicate') &&
+                  project.bases?.[baseIndex] &&
+                  (project.bases[baseIndex].is_meta || project.bases[baseIndex].is_local)
+                "
+                @click="duplicateTable(table)"
+              >
+                <div class="nc-project-menu-item" :data-testid="`sidebar-table-duplicate-${table.title}`">
+                  <GeneralIcon icon="duplicate" class="text-gray-700" />
+                  {{ $t('general.duplicate') }}
                 </div>
               </a-menu-item>
 
               <a-menu-item
                 v-if="isUIAllowed('table-delete', false, projectRole)"
                 :data-testid="`sidebar-table-delete-${table.title}`"
-                @click="deleteTable(table)"
+                @click="isTableDeleteDialogVisible = true"
               >
-                <div class="nc-project-menu-item">
+                <div class="nc-project-menu-item text-red-600">
+                  <GeneralIcon icon="delete" />
                   {{ $t('general.delete') }}
                 </div>
               </a-menu-item>
@@ -200,13 +204,14 @@ const { isSharedBase } = useProject()
           </template>
         </a-dropdown>
       </div>
+      <DlgTableDelete v-model:visible="isTableDeleteDialogVisible" :table-id="table.id" :project-id="project?.id" />
     </GeneralTooltip>
   </div>
 </template>
 
 <style scoped lang="scss">
 .nc-tree-item {
-  @apply mr-2 relative cursor-pointer after:(pointer-events-none content-[''] rounded absolute top-0 left-0  w-full h-full right-0 !bg-current transition transition-opactity duration-100 opacity-0);
+  @apply relative cursor-pointer after:(pointer-events-none content-[''] rounded absolute top-0 left-0  w-full h-full right-0 !bg-current transition transition-opactity duration-100 opacity-0);
 }
 
 .nc-tree-item svg {
@@ -214,7 +219,7 @@ const { isSharedBase } = useProject()
 }
 
 .nc-tree-item.active {
-  @apply !bg-primary-selected-sidebar font-weight-bold rounded-md;
+  @apply !bg-primary-selected rounded-md;
   //@apply border-r-3 border-primary;
 
   svg {

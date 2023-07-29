@@ -17,6 +17,7 @@ import { GlobalGuard } from '../guards/global/global.guard';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import {
   Acl,
+  ExtractProjectIdMiddleware,
   UseAclMiddleware,
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import Noco from '../Noco';
@@ -24,14 +25,12 @@ import { packageVersion } from '../utils/packageVersion';
 import { ProjectsService } from '../services/projects.service';
 import type { ProjectType } from 'nocodb-sdk';
 
-@UseGuards(GlobalGuard)
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 @Controller()
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  @UseAclMiddleware({
-    permissionName: 'projectList',
-  })
+  @Acl('projectList')
   @Get('/api/v1/db/meta/projects/')
   async list(@Query() queryParams: Record<string, any>, @Request() req) {
     const projects = await this.projectsService.projectList({
@@ -56,7 +55,7 @@ export class ProjectsController {
       PackageVersion: packageVersion,
     };
   }
-
+  @Acl('projectGet')
   @Get('/api/v1/db/meta/projects/:projectId')
   @Acl('projectGet')
   async projectGet(@Param('projectId') projectId: string) {
@@ -68,7 +67,7 @@ export class ProjectsController {
 
     return project;
   }
-
+  @Acl('projectUpdate')
   @Patch('/api/v1/db/meta/projects/:projectId')
   @Acl('projectUpdate')
   async projectUpdate(
@@ -85,6 +84,7 @@ export class ProjectsController {
     return project;
   }
 
+  @Acl('projectDelete')
   @Delete('/api/v1/db/meta/projects/:projectId')
   @Acl('projectDelete')
   async projectDelete(@Param('projectId') projectId: string, @Request() req) {
@@ -96,6 +96,7 @@ export class ProjectsController {
     return deleted;
   }
 
+  @Acl('projectCreate')
   @Post('/api/v1/db/meta/projects')
   @HttpCode(200)
   @Acl('projectCreate')
@@ -108,66 +109,3 @@ export class ProjectsController {
     return project;
   }
 }
-
-/*
-// // Project CRUD
-
-
-
-export async function projectCost(req, res) {
-  let cost = 0;
-  const project = await Project.getWithInfo(req.params.projectId);
-
-  for (const base of project.bases) {
-    const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
-    const userCount = await ProjectUser.getUsersCount(req.query);
-    const recordCount = (await sqlClient.totalRecords())?.data.TotalRecords;
-
-    if (recordCount > 100000) {
-      // 36,000 or $79/user/month
-      cost = Math.max(36000, 948 * userCount);
-    } else if (recordCount > 50000) {
-      // $36,000 or $50/user/month
-      cost = Math.max(36000, 600 * userCount);
-    } else if (recordCount > 10000) {
-      // $240/user/yr
-      cost = Math.min(240 * userCount, 36000);
-    } else if (recordCount > 1000) {
-      // $120/user/yr
-      cost = Math.min(120 * userCount, 36000);
-    }
-  }
-
-  T.event({
-    event: 'a:project:cost',
-    data: {
-      cost,
-    },
-  });
-
-  res.json({ cost });
-}
-
-export async function hasEmptyOrNullFilters(req, res) {
-  res.json(await Filter.hasEmptyOrNullFilters(req.params.projectId));
-}
-
-export default (router) => {
-
-
-  router.get(
-    '/api/v1/db/meta/projects/:projectId/cost',
-    metaApiMetrics,
-    ncMetaAclMw(projectCost, 'projectCost')
-  );
-
-
-
-  router.get(
-    '/api/v1/db/meta/projects/:projectId/has-empty-or-null-filters',
-    metaApiMetrics,
-    ncMetaAclMw(hasEmptyOrNullFilters, 'hasEmptyOrNullFilters')
-  );
-};
-
-* */

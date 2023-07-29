@@ -1,5 +1,5 @@
 import Table from '@tiptap/extension-table'
-import { columnResizing, tableEditing } from '@tiptap/prosemirror-tables'
+import { CellSelection, columnResizing, tableEditing } from '@tiptap/pm/tables'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { TableNodeView } from './TableNodeView'
@@ -13,6 +13,37 @@ export default Table.extend({
 
   addNodeView() {
     return VueNodeViewRenderer(TableComponent)
+  },
+
+  addKeyboardShortcuts() {
+    return {
+      Backspace: () => {
+        const selection = this.editor.state.selection
+
+        if (selection instanceof CellSelection) {
+          let from = selection.ranges[0].$from.pos
+          for (const range of selection.ranges) {
+            if (range.$from.pos < from) {
+              from = range.$from.pos
+            }
+          }
+
+          if (selection.isRowSelection()) {
+            this.editor
+              .chain()
+              .deleteRow()
+              .setTextSelection(from - 4)
+              .run()
+          } else {
+            this.editor.chain().deleteColumn().setTextSelection(from).run()
+          }
+
+          return true
+        }
+
+        return false
+      },
+    }
   },
 
   addProseMirrorPlugins() {

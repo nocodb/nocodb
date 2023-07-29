@@ -7,6 +7,12 @@ import * as nc_006_shared_erd from './v3/nc_006_shared_erd';
 import * as nc_007_add_last_snapshot_at_and_content_html_to_page from './v3/nc_007_add_last_snapshot_at_and_content_html_to_page';
 import * as nc_008_dashboard from './v3/nc_008_dashboard';
 import * as nc_009_add_last_snapshot_to_page from './v3/nc_009_add_last_snapshot_to_page';
+import * as nc_010_add_appearance_config_to_layouts from './v3/nc_010_add_appearance_config_to_layouts';
+import * as nc_011_workspace_infra_cols from './v3/nc_011_workspace_infra_cols';
+import * as nc_012_pg_minimal_dbs from './v3/nc_012_pg_minimal_dbs';
+import * as nc_013_remove_fk_and_add_idx from './v3/nc_013_remove_fk_and_add_idx';
+import * as nc_014_notification from './v3/nc_014_notification';
+import * as nc_015_filter_value from './v3/nc_015_filter_value';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev3 {
@@ -25,6 +31,12 @@ export default class XcMigrationSourcev3 {
       'nc_007_add_last_snapshot_at_and_content_html_to_page',
       'nc_008_dashboard',
       'nc_009_add_last_snapshot_to_page',
+      'nc_010_add_appearance_config_to_layouts',
+      'nc_011_workspace_infra_cols',
+      'nc_012_pg_minimal_dbs',
+      'nc_013_remove_fk_and_add_idx',
+      'nc_014_notification',
+      'nc_015_filter_value',
     ]);
   }
 
@@ -52,6 +64,18 @@ export default class XcMigrationSourcev3 {
         return nc_008_dashboard;
       case 'nc_009_add_last_snapshot_to_page':
         return nc_009_add_last_snapshot_to_page;
+      case 'nc_010_add_appearance_config_to_layouts':
+        return nc_010_add_appearance_config_to_layouts;
+      case 'nc_011_workspace_infra_cols':
+        return nc_011_workspace_infra_cols;
+      case 'nc_012_pg_minimal_dbs':
+        return nc_012_pg_minimal_dbs;
+      case 'nc_013_remove_fk_and_add_idx':
+        return nc_013_remove_fk_and_add_idx;
+      case 'nc_014_notification':
+        return nc_014_notification;
+      case 'nc_015_filter_value':
+        return nc_015_filter_value;
     }
   }
 }

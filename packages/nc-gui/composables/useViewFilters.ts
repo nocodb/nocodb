@@ -29,6 +29,7 @@ export function useViewFilters(
   reloadData?: () => void,
   _currentFilters?: Filter[],
   isNestedRoot?: boolean,
+  isWebhook?: boolean,
 ) {
   let currentFilters = $ref(_currentFilters)
 
@@ -52,8 +53,6 @@ export function useViewFilters(
 
   const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterSync') || !isUIAllowed('filterChildrenRead'))
 
-  const tabMeta = inject(TabMetaInj, ref({ filterState: new Map(), sortsState: new Map() } as TabItem))
-
   const filters = computed<Filter[]>({
     get: () => {
       return nestedMode.value ? currentFilters! : _filters.value
@@ -63,7 +62,6 @@ export function useViewFilters(
         currentFilters = value
         if (isNestedRoot) {
           nestedFilters.value = value
-          tabMeta.value.filterState!.set(view.value!.id!, nestedFilters.value)
         }
         nestedFilters.value = [...nestedFilters.value]
         reloadHook?.trigger()
@@ -189,7 +187,6 @@ export function useViewFilters(
   const loadFilters = async (hookId?: string) => {
     if (nestedMode.value) {
       // ignore restoring if not root filter group
-      if (isNestedRoot) filters.value = tabMeta.value.filterState!.get(view.value!.id!) || []
       return
     }
 
@@ -238,7 +235,7 @@ export function useViewFilters(
         }
       }
 
-      reloadData?.()
+      if (!isWebhook) reloadData?.()
     } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -308,7 +305,7 @@ export function useViewFilters(
 
     lastFilters.value = clone(filters.value)
 
-    reloadData?.()
+    if (!isWebhook) reloadData?.()
   }
 
   const deleteFilter = async (filter: Filter, i: number, undo = false) => {
@@ -335,7 +332,7 @@ export function useViewFilters(
     if (nestedMode.value) {
       filters.value.splice(i, 1)
       filters.value = [...filters.value]
-      reloadData?.()
+      if (!isWebhook) reloadData?.()
     } else {
       if (filter.id) {
         // if auto-apply disabled mark it as disabled
@@ -346,7 +343,7 @@ export function useViewFilters(
         } else {
           try {
             await $api.dbTableFilter.delete(filter.id)
-            reloadData?.()
+            if (!isWebhook) reloadData?.()
             filters.value.splice(i, 1)
           } catch (e: any) {
             console.log(e)

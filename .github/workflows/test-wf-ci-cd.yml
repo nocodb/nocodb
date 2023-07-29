@@ -1,0 +1,102 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+# Trigger configuration : https://gist.github.com/myobie/671d2f2a1e503efa0c05e7b865c26a9d
+
+name: "test-wf-ci-cd"
+
+on:
+  # Triggered manually
+  workflow_dispatch:
+    inputs:
+      before_cache_wait_time:
+        description: 'waiting time before caching, used for debugging'
+        required: false
+        type: string
+        default: '1'
+      after_cache_wait_time:
+        description: 'waiting time after caching, used for debugging'
+        required: false
+        type: string
+        default: '1'
+      run_ut:
+        description: 'run unit tests or skip'
+        required: false
+        default: 'false'   
+      run_s1:
+        description: 'run shard 1 tests or skip'
+        required: false
+        default: 'true'                
+      run_s2:
+        description: 'run shard 1 tests or skip'
+        required: false
+        default: 'false'                        
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+    unit-tests-pg:
+      runs-on: [self-hosted, aws_debug]
+      if: ${{ inputs.run_ut == 'true' }}
+      timeout-minutes: 80
+      steps:
+        - name: Custom LOG Messages 
+          run: |
+            echo "github.run_id : ${{ github.run_id }} "
+            echo "github.job_id : ${{ github.job_id }} "
+            echo "Job ID: $GITHUB_JOB "
+            echo "Run ID: $GITHUB_RUN_ID "
+        - name: Setup Node
+          uses: actions/setup-node@v3
+          with:
+            node-version: 16.15.0
+        - name: Checkout
+          uses: actions/checkout@v3
+          with:
+            fetch-depth: 0
+        - name: Set CI env
+          run: export CI=true
+        - name: Set Node env
+          run: export NODE_OPTIONS=\"--max_old_space_size=16384\";
+        - name: Cache node modules
+          uses: actions/cache@v3
+          env:
+            cache-name: cache-node-modules
+
+          with:
+            # npm cache files are stored in `~/.npm` on Linux/macOS
+            path: ~/.npm
+            key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+            restore-keys: |
+              ${{ runner.os }}-build-${{ env.cache-name }}-
+              ${{ runner.os }}-build-
+              ${{ runner.os }}-
+        - name: install dependencies nocodb-sdk
+          working-directory: ./packages/nocodb-sdk
+          run: npm install
+        - name: build nocodb-sdk
+          working-directory: ./packages/nocodb-sdk
+          run: npm run build:main
+        - name: Install dependencies
+          working-directory: ./packages/nocodb
+          run: npm install
+        - name: run unit tests
+          working-directory: ./packages/nocodb
+          run: npm run test:unit:pg
+    playwright-pg-shard-1:
+      if: ${{ inputs.run_s1 == 'true' }}
+      uses: ./.github/workflows/test-playwright-test-workflow.yml
+      with:
+        db: pg
+        shard: 1
+        after_cache_wait_time: ${{ inputs.after_cache_wait_time }}
+        before_cache_wait_time: ${{ inputs.before_cache_wait_time }}        
+    playwright-pg-shard-2:
+      if: ${{ inputs.run_s2 == 'true' }}
+      uses: ./.github/workflows/test-playwright-test-workflow.yml
+      with:
+        db: pg
+        shard: 2
+        after_cache_wait_time: ${{ inputs.after_cache_wait_time }}
+        before_cache_wait_time: ${{ inputs.before_cache_wait_time }}

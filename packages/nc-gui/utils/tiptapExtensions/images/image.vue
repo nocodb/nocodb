@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
 import { LoadingOutlined } from '@ant-design/icons-vue'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 
 const { node, editor, getPos } = defineProps(nodeViewProps)
 
@@ -65,7 +66,8 @@ const selectNode = () => {
 
 <template>
   <NodeViewWrapper
-    class="vue-component image-wrapper"
+    class="tiptap-vue-component image-wrapper"
+    :data-type="TiptapNodesTypes.image"
     :data-diff-node="node.attrs.isInsertedHistory ? 'ins' : node.attrs.isDeletedHistory ? 'del' : null"
   >
     <div v-if="!isEditAllowed">

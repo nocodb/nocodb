@@ -4,9 +4,14 @@ on:
   # Triggered manually
   workflow_dispatch:
     inputs:
-      tag:
-        description: "Tag"
+      staging:
+        description: 'Staging (ws-pre-release)'
         required: false
+        default: 'false'
+      tag:
+        description: "Any additional Tag"
+        required: false
+
 
 jobs:
   cloud-docker-build:
@@ -67,7 +72,12 @@ jobs:
         run: |
           mkdir -p packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
           mv packages/nc-gui/dist/* packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
-
+          echo "User: ${{ github.actor }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          echo "Commit: ${{ github.sha }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          echo "Branch: ${{ github.ref }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          echo "Action ID: ${{ github.run_id }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          date >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          cp packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt ./packages/nocodb/src/public/
 
       - name: Deploy
         uses: pranavxc/s3-deploy@2cdf96df65b6c97ee09a5771958582b77f22b738
@@ -87,13 +97,26 @@ jobs:
           ECR_REPOSITORY: nocohub
           IMAGE_TAG: ${{ github.event.inputs.tag }}
           CUSTOM_IMAGE_TAG_ARG: ${{ github.event.inputs.tag && format('-t {0}/nocohub:{1}', steps.login-ecr.outputs.registry, github.event.inputs.tag) || '' }}
+          STAGING_IMAGE_TAG_ARG: ${{ github.event.inputs.staging == 'true' && format('-t {0}/nocohub:ws-pre-release', steps.login-ecr.outputs.registry) || '' }}
           COMMIT_HASH: ${{ github.sha }}
         run: |
           cd packages/nocodb &&
-          docker build -f Dockerfile-cloud $CUSTOM_IMAGE_TAG_ARG -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker build -f Dockerfile-cloud $CUSTOM_IMAGE_TAG_ARG $STAGING_IMAGE_TAG_ARG  -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH .
           [[ ! -z "$IMAGE_TAG" ]] && docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Push staging image to ECR
+        if: ${{ github.event.inputs.staging == 'true' }}
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: nocohub
+        run: |
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:ws-pre-release
+      - name: Publish to staging
+        if: ${{ github.event.inputs.staging == 'true' }}
+        run: |
+           ./scripts/release/staging.sh
 
   microservice-cloud-docker-build:
     runs-on: ubuntu-latest
@@ -130,7 +153,7 @@ jobs:
           COMMIT_HASH: ${{ github.sha }}
         run: |
           cd packages/nocodb-ingest-service &&
-          docker build -f Dockerfile $CUSTOM_IMAGE_TAG_ARG -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker build -f Dockerfile $CUSTOM_IMAGE_TAG_ARG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH .
           [[ ! -z "$IMAGE_TAG" ]] && docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest

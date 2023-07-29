@@ -23,9 +23,7 @@ import { History } from './history'
 import suggestion from './commands/suggestion'
 import { createImageExtension } from './images/node'
 import Commands from './commands'
-import { InfoCallout } from './callouts/info'
-import { WarningCallout } from './callouts/warning'
-import { TipCallout } from './callouts/tip'
+import { Callout } from './callouts'
 import { SectionBlock } from './section'
 import { Document } from './document'
 import { Embed } from './embed'
@@ -86,9 +84,7 @@ const tiptapExtensions = (isPublic: boolean): Extensions => {
     Underline,
     History,
     Quote,
-    InfoCallout,
-    WarningCallout,
-    TipCallout,
+    Callout,
     Table.configure({
       resizable: !isPublic,
     }),

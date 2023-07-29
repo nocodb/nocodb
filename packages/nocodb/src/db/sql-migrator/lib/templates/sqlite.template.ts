@@ -2,7 +2,7 @@ import path from 'path';
 
 const { DOCKER_DB_FILE } = process.env;
 
-module.exports = {
+export default {
   title: 'default',
   envs: {
     _noco: {

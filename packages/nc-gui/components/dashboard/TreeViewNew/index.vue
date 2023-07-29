@@ -1,16 +1,14 @@
 <script setup lang="ts">
-import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
+import type { TableType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import Sortable from 'sortablejs'
-import { nextTick } from '@vue/runtime-core'
-import AddNewTableNode from './AddNewTableNode'
-import TableList from './TableList'
+
 import ProjectWrapper from './ProjectWrapper.vue'
 
 import {
   TabType,
+  TreeViewInj,
   computed,
-  extractSdkResponseErrorMsg,
   isDrawerOrModalExist,
   isMac,
   reactive,
@@ -21,123 +19,65 @@ import {
   useNuxtApp,
   useProject,
   useProjects,
-  useTable,
+  useTablesStore,
   useTabs,
-  useToggle,
   useUIPermission,
-  useWorkspace,
   watchEffect,
 } from '#imports'
 
 import { useRouter } from '#app'
+import { isElementInvisible } from '~~/utils/domUtils'
 
-const { addTab, updateTab } = useTabs()
+const emit = defineEmits<{
+  (event: 'onScrollTop', type: boolean): void
+}>()
 
-const { $api, $e } = useNuxtApp()
+const { isUIAllowed } = useUIPermission()
+
+const { addTab } = useTabs()
+
+const { $api, $e, $jobs } = useNuxtApp()
 
 const router = useRouter()
 
 const route = $(router.currentRoute)
 
-const workspaceStore = useWorkspace()
-
-const { projects: workspaceProjects } = storeToRefs(workspaceStore)
-
-const { projectUrl } = useProject()
-
 const projectsStore = useProjects()
 
-const { loadProjectTables, loadProject, createProject: _createProject } = projectsStore
+const { createProject: _createProject } = projectsStore
 
-const { projectTableList, projects } = storeToRefs(projectsStore)
+const { projects, projectsList, activeProjectId } = storeToRefs(projectsStore)
 
-const activeProjectId = computed(() => route.params.projectId as string | undefined)
+const { projectTables } = storeToRefs(useTablesStore())
 
-const projectElRefs = ref()
-
-const { projectUrl: docsProjectUrl } = useDocStore()
-
-const loadProjectAndTableList = async (project: ProjectType, projIndex: number) => {
-  if (!project) {
-    return
-  }
-
-  nextTick(() => {
-    const el = projectElRefs.value[projIndex]
-
-    if (el) {
-      el.scrollIntoView({ block: 'nearest' })
-    }
-  })
-
-  if (project.type === 'database') {
-    await navigateTo(
-      projectUrl({
-        id: project.id!,
-        type: 'database',
-      }),
-    )
-    return
-  }
-
-  // if document project, add a document tab and route to the page
-  switch (project.type) {
-    case 'documentation':
-      addTab({
-        id: project.id,
-        title: project.title,
-        type: TabType.DOCUMENT,
-        projectId: project.id,
-      })
-      console.log('open doc', project.id)
-      $e('c:document:open', project.id)
-      navigateTo(docsProjectUrl(project.id!))
-      break
-    default:
-      await loadProject(project.id!)
-      await loadProjectTables(project.id!)
-      break
-  }
-}
+const { openTable } = useTablesStore()
 
 const projectStore = useProject()
-//
-// const { loadTables } = projectStore
-const { isSharedBase } = storeToRefs(projectStore)
+
+const { loadTables } = projectStore
+
+const { tables } = storeToRefs(projectStore)
+
+const { activeTable: _activeTable } = storeToRefs(useTablesStore())
 
 const { activeTab } = storeToRefs(useTabs())
 
-const { deleteTable } = useTable()
-
-const { isUIAllowed } = useUIPermission()
-
-const [searchActive, toggleSearchActive] = useToggle()
+const { refreshCommandPalette } = useCommandPalette()
 
 const keys = $ref<Record<string, number>>({})
 
-const activeKey = ref<string[]>([])
-
 const menuRefs = $ref<HTMLElement[] | HTMLElement>()
-
-const filterQuery = $ref('')
 
 const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
 
 const tablesById = $computed(() =>
-  Object.values(projectTableList.value)
+  Object.values(projectTables.value.get(activeProjectId.value!) || {})
     .flat()
     ?.reduce<Record<string, TableType>>((acc, table) => {
       acc[table.id!] = table
 
       return acc
     }, {}),
-)
-
-const filteredTables = $computed(
-  () => [],
-  // tables.value?.filter(
-  //   (table) => !searchActive.value || !filterQuery || table.title.toLowerCase().includes(filterQuery.toLowerCase()),
-  // ),
 )
 
 const sortables: Record<string, Sortable> = {}
@@ -208,20 +148,14 @@ watchEffect(() => {
   }
 })
 
-const contextMenuTarget = reactive<{ type?: 'base' | 'table' | 'main'; value?: any }>({})
+const contextMenuTarget = reactive<{ type?: 'project' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
 
-const setMenuContext = (type: 'base' | 'table' | 'main', value?: any) => {
+const setMenuContext = (type: 'project' | 'base' | 'table' | 'main' | 'layout', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
 }
 
-const reloadTables = async () => {
-  $e('a:table:refresh:navdraw')
-
-  // await loadTables()
-}
-
-function openRenameTableDialog(table: TableType, baseId?: string, rightClick = false) {
+function openRenameTableDialog(table: TableType, rightClick = false) {
   $e(rightClick ? 'c:table:rename:navdraw:right-click' : 'c:table:rename:navdraw:options')
 
   const isOpen = ref(true)
@@ -229,44 +163,7 @@ function openRenameTableDialog(table: TableType, baseId?: string, rightClick = f
   const { close } = useDialog(resolveComponent('DlgTableRename'), {
     'modelValue': isOpen,
     'tableMeta': table,
-    'baseId': baseId, // || bases.value[0].id,
-    'onUpdate:modelValue': closeDialog,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
-function openQuickImportDialog(type: string, baseId?: string) {
-  $e(`a:actions:import-${type}`)
-
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgQuickImport'), {
-    'modelValue': isOpen,
-    'importType': type,
-    'baseId': baseId, // || bases.value[0].id,
-    'onUpdate:modelValue': closeDialog,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
-function openAirtableImportDialog(baseId?: string) {
-  $e('a:actions:import-airtable')
-
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgAirtableImport'), {
-    'modelValue': isOpen,
-    'baseId': baseId, // || bases.value[0].id,
+    'baseId': table.base_id, // || bases.value[0].id,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -285,7 +182,7 @@ function openTableCreateDialog(baseId?: string, projectId?: string) {
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
     'baseId': baseId, // || bases.value[0].id,
-    'projectId': projectId || projects.value[0].id,
+    'projectId': projectId || projectsList.value[0].id,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -296,14 +193,31 @@ function openTableCreateDialog(baseId?: string, projectId?: string) {
   }
 }
 
-function openTableCreateMagicDialog(baseId?: string) {
-  $e('c:table:create:navdraw')
+const duplicateTable = async (table: TableType) => {
+  if (!table || !table.id || !table.project_id) return
 
   const isOpen = ref(true)
 
-  const { close } = useDialog(resolveComponent('DlgTableMagic'), {
+  const { close } = useDialog(resolveComponent('DlgTableDuplicate'), {
     'modelValue': isOpen,
-    'baseId': baseId, // || bases.value[0].id,
+    'table': table,
+    'onOk': async (jobData: { id: string }) => {
+      $jobs.subscribe({ id: jobData.id }, undefined, async (status: string, data?: any) => {
+        if (status === JobStatus.COMPLETED) {
+          await loadTables()
+          refreshCommandPalette()
+          const newTable = tables.value.find((el) => el.id === data?.result?.id)
+          if (newTable) addTab({ title: newTable.title, id: newTable.id, type: newTable.type as TabType })
+
+          openTable(newTable!)
+        } else if (status === JobStatus.FAILED) {
+          message.error('Failed to duplicate table')
+          await loadTables()
+        }
+      })
+
+      $e('a:table:duplicate')
+    },
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -313,51 +227,6 @@ function openTableCreateMagicDialog(baseId?: string) {
     close(1000)
   }
 }
-
-function openSchemaMagicDialog(baseId?: string) {
-  $e('c:table:create:navdraw')
-
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgSchemaMagic'), {
-    'modelValue': isOpen,
-    'baseId': baseId, // || bases.value[0].id,
-    'onUpdate:modelValue': closeDialog,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
-function openSqlEditor(base?: BaseType) {
-  // if (!base) base = bases.value?.filter((base: BaseType) => base.enabled)[0]
-  // selectedBase.value = base.id
-  // navigateTo(`/${route.params.projectType}/${route.params.projectId}/sql`)
-}
-
-function openErdView(base?: BaseType) {
-  // if (!base) base = bases.value?.filter((base: BaseType) => base.enabled)[0]
-  // navigateTo(`/${route.params.projectType}/${route.params.projectId}/erd/${base.id}`)
-}
-
-// const searchInputRef: VNodeRef = (vnode: typeof Input) => vnode?.$el?.focus()
-
-const beforeSearch = ref<string[]>([])
-//
-// const onSearchCloseIconClick = () => {
-//   filterQuery = ''
-//   toggleSearchActive(false)
-//   activeKey.value = beforeSearch.value
-// }
-//
-// const onSearchIconClick = () => {
-//   beforeSearch.value = activeKey.value
-//   toggleSearchActive(true)
-//   activeKey.value = bases.value.filter((el) => el.enabled).map((el) => `collapse-${el.id}`)
-// }
 
 const isCreateTableAllowed = computed(
   () =>
@@ -380,7 +249,10 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           e.preventDefault()
           $e('c:shortcut', { key: 'ALT + T' })
           const projectId = activeProjectId.value
-          if (projectId) openTableCreateDialog(projects.value?.[projectId]?.bases?.[0].id, projectId)
+          const project = projectId ? projects.value.get(projectId) : undefined
+          if (!project) return
+
+          if (projectId) openTableCreateDialog(project.bases?.[0].id, projectId)
         }
         break
       }
@@ -400,248 +272,125 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
-watch(
-  activeTable,
-  (value, oldValue) => {
-    if (value) {
-      if (value !== oldValue) {
-        // const fndTable = tables.value.find((el) => el.id === value)
-        // if (fndTable) {
-        //   activeKey.value = [`collapse-${fndTable.base_id}`]
-        // }
-      }
-    } else {
-      // if (bases.value.filter((el) => el.enabled)[0]?.id)
-      //   activeKey.value = [`collapse-${bases.value.filter((el) => el.enabled)[0].id}`]
-    }
-  },
-  { immediate: true },
-)
-
-const setIcon = async (icon: string, table: TableType) => {
-  try {
-    table.meta = {
-      ...(table.meta || {}),
-      icon,
-    }
-    tables.value.splice(tables.value.indexOf(table), 1, { ...table })
-
-    updateTab({ id: table.id }, { meta: table.meta })
-
-    $api.dbTable.update(table.id as string, {
-      meta: table.meta,
-    })
-
-    $e('a:table:icon:navdraw', { icon })
-  } catch (e) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
 const handleContext = (e: MouseEvent) => {
   if (!document.querySelector('.base-context, .table-context')?.contains(e.target as Node)) {
     setMenuContext('main')
   }
 }
 
+provide(TreeViewInj, {
+  setMenuContext,
+  duplicateTable,
+  openRenameTableDialog,
+  contextMenuTarget,
+})
+
 useEventListener(document, 'contextmenu', handleContext, true)
 
-watch(
-  () => route.params.projectId,
-  async (newId, oldId) => {
-    if (newId && newId !== oldId) {
-      await loadProject(newId as string)
-      await loadProjectTables(newId as string)
+const treeViewDom = ref<HTMLElement>()
+
+const checkScrollTopMoreThanZero = () => {
+  if (treeViewDom.value) {
+    if (treeViewDom.value.scrollTop > 0) {
+      emit('onScrollTop', true)
+    } else {
+      emit('onScrollTop', false)
     }
+  }
+  return false
+}
+
+const scrollTableNode = () => {
+  const activeTableDom = document.querySelector(`.nc-treeview [data-table-id="${_activeTable.value?.id}"]`)
+  if (!activeTableDom) return
+
+  if (isElementInvisible(activeTableDom)) {
+    // Scroll to the table node
+    activeTableDom?.scrollIntoView({ behavior: 'smooth' })
+  }
+}
+
+watch(
+  () => _activeTable.value?.id,
+  () => {
+    if (!_activeTable.value?.id) return
+
+    // TODO: Find a better way to scroll to the table node
+    setTimeout(() => {
+      scrollTableNode()
+    }, 1000)
   },
-  { immediate: true },
+  {
+    immediate: true,
+  },
 )
 
-const isClearMode = computed(() => route.query.clear === '1' && route.params.projectId)
+watch(
+  activeProjectId,
+  () => {
+    const activeProjectDom = document.querySelector(`.nc-treeview [data-project-id="${activeProjectId.value}"]`)
+    if (!activeProjectDom) return
+
+    if (isElementInvisible(activeProjectDom)) {
+      // Scroll to the table node
+      activeProjectDom?.scrollIntoView({ behavior: 'smooth' })
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
+onMounted(() => {
+  treeViewDom.value?.addEventListener('scroll', checkScrollTopMoreThanZero)
+})
+
+onUnmounted(() => {
+  treeViewDom.value?.removeEventListener('scroll', checkScrollTopMoreThanZero)
+})
 </script>
 
 <template>
-  <div class="nc-treeview-container flex flex-col">
-    <div mode="inline" class="flex-grow min-h-50 overflow-y-auto overflow-x-hidden">
-      <ProjectWrapper
-        v-for="(project, i) of workspaceProjects.filter((p) => !isClearMode || p.id === activeProjectId)"
-        v-if="workspaceProjects.length"
-        :key="project.id"
-        :project-role="[project.project_role, project.role]"
-        :project="projects[project.id] ?? project"
-      >
-        <div
-          ref="projectElRefs"
-          class="m-2 py-1 nc-project-sub-menu hover:bg-gray-100 rounded-md"
-          :class="{ active: project.id === activeProjectId }"
+  <div class="nc-treeview-container flex flex-col justify-between select-none">
+    <div ref="treeViewDom" mode="inline" class="nc-treeview pb-0.5 flex-grow min-h-50 overflow-x-hidden">
+      <template v-if="projectsList?.length">
+        <ProjectWrapper
+          v-for="project of projectsList"
+          :key="project.id"
+          :project-role="[project.project_role || project.workspace_role]"
+          :project="project"
         >
-          <div class="flex items-center gap-2 py-0.5 cursor-pointer" @click="loadProjectAndTableList(project, i)">
-            <DashboardTreeViewNewProjectNode ref="projectNodeRefs" class="flex-grow" />
-          </div>
-
-          <div
-            key="g1"
-            class="overflow-y-auto overflow-x-hidden transition-max-height"
-            :class="{ 'max-h-0': activeProjectId !== project.id, 'max-h-500': activeProjectId === project.id }"
-          >
-            <div v-if="project.type === 'documentation'">
-              <DocsSideBar v-if="activeProjectId === project.id" :project="project" />
-            </div>
-            <a-dropdown
-              v-else-if="project && projects[project.id] && projects[project.id].bases"
-              :trigger="['contextmenu']"
-              overlay-class-name="nc-dropdown-tree-view-context-menu"
-            >
-              <div class="pt-1.5 pl-1 pb-1 flex-1 overflow-y-auto flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
-                <div
-                  v-if="
-                    projects[project.id].bases[0] &&
-                    projects[project.id].bases[0].enabled &&
-                    !projects[project.id].bases.slice(1).filter((el) => el.enabled)?.length
-                  "
-                  class="flex-1 ml-1"
-                >
-                  <AddNewTableNode
-                    :project="projects[project.id]"
-                    :base-index="0"
-                    @open-table-create-dialog="openTableCreateDialog(projects[project.id].bases[0].id, project.id)"
-                  />
-
-                  <div class="transition-height duration-200">
-                    <TableList :project="projects[project.id]" :base-index="0" />
-                  </div>
-
-                  <div
-                    v-if="!projectTableList[project.id]?.length"
-                    class="mt-0.5 pt-16 mx-3 flex flex-col items-center border-t-1 border-gray-50"
-                  >
-                    <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="Empty Database" />
-                  </div>
-                </div>
-
-                <div v-else class="transition-height duration-200">
-                  <div class="border-none sortable-list">
-                    <div v-for="(base, baseIndex) of projects[project.id].bases" :key="`base-${base.id}`">
-                      <a-collapse
-                        v-if="base && base.enabled"
-                        v-model:activeKey="activeKey"
-                        :class="[
-                          { hidden: searchActive && !!filterQuery && !filteredTables?.find((el) => el.base_id === base.id) },
-                        ]"
-                        expand-icon-position="right"
-                        :bordered="false"
-                        :accordion="!searchActive"
-                        ghost
-                      >
-                        <a-collapse-panel :key="`collapse-${base.id}`">
-                          <template #header>
-                            <div
-                              v-if="baseIndex === '0'"
-                              class="base-context flex items-center gap-2 text-gray-500 font-bold"
-                              @contextmenu="setMenuContext('base', base)"
-                            >
-                              <GeneralBaseLogo :base-type="base.type" />
-                              Default ({{
-                                projectTableList[project.id]?.filter((table) => table.base_id === base.id).length || '0'
-                              }})
-                            </div>
-                            <div
-                              v-else
-                              class="base-context flex items-center gap-2 text-gray-500 font-bold"
-                              @contextmenu="setMenuContext('base', base)"
-                            >
-                              <GeneralBaseLogo :base-type="base.type" />
-                              {{ base.alias || '' }}
-                              ({{ projectTableList[project.id]?.filter((table) => table.base_id === base.id).length || '0' }})
-                            </div>
-                          </template>
-                          <AddNewTableNode
-                            :project="projects[project.id]"
-                            :base-index="baseIndex"
-                            @open-table-create-dialog="openTableCreateDialog(base.id, project.id)"
-                          />
-
-                          <div
-                            ref="menuRefs"
-                            :key="`sortable-${base.id}-${base.id && base.id in keys ? keys[base.id] : '0'}`"
-                            :nc-base="base.id"
-                          >
-                            <TableList class="pl-2" :project="projects[project.id]" :base-index="baseIndex" />
-                          </div>
-                        </a-collapse-panel>
-                      </a-collapse>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <template v-if="!isSharedBase" #overlay>
-                <a-menu class="!py-0 rounded text-sm">
-                  <template v-if="contextMenuTarget.type === 'base'">
-                    <a-menu-item v-if="isUIAllowed('sqlEditor')" @click="openSqlEditor(contextMenuTarget.value)">
-                      <div class="nc-project-menu-item">SQL Editor</div>
-                    </a-menu-item>
-
-                    <a-menu-item @click="openErdView(contextMenuTarget.value)">
-                      <div class="nc-project-menu-item">ERD View</div>
-                    </a-menu-item>
-                  </template>
-
-                  <template v-else-if="contextMenuTarget.type === 'table'">
-                    <a-menu-item
-                      v-if="isUIAllowed('table-rename')"
-                      @click="openRenameTableDialog(contextMenuTarget.value, projects[project.id].bases[0].id, true)"
-                    >
-                      <div class="nc-project-menu-item">
-                        {{ $t('general.rename') }}
-                      </div>
-                    </a-menu-item>
-
-                    <a-menu-item v-if="isUIAllowed('table-delete')" @click="deleteTable(contextMenuTarget.value)">
-                      <div class="nc-project-menu-item">
-                        {{ $t('general.delete') }}
-                      </div>
-                    </a-menu-item>
-                  </template>
-
-                  <template v-else>
-                    <a-menu-item @click="reloadTables">
-                      <div class="nc-project-menu-item">
-                        {{ $t('general.reload') }}
-                      </div>
-                    </a-menu-item>
-                  </template>
-                </a-menu>
-              </template>
-            </a-dropdown>
-          </div>
-        </div>
-      </ProjectWrapper>
+          <DashboardTreeViewNewProjectNode />
+        </ProjectWrapper>
+      </template>
 
       <WorkspaceEmptyPlaceholder v-else />
     </div>
 
-    <a-divider class="!my-0" />
-    <div class="flex items-center mt-4 justify-center mx-2">
-      <WorkspaceCreateProjectBtn
-        modal
-        type="ghost"
-        class="h-auto w-full nc-create-project-btn"
-        :active-workspace-id="route.params.workspaceId"
-      >
-        <PhPlusThin />
-        Add New
-      </WorkspaceCreateProjectBtn>
-    </div>
-    <div class="flex items-start flex-col justify-start px-2 py-3 gap-2">
-      <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
-    </div>
+    <!-- <div class="flex flex-col border-t-1 border-gray-100">
+      <div class="flex items-center mt-3 justify-center mx-2">
+        <WorkspaceCreateProjectBtn
+          modal
+          type="ghost"
+          class="h-auto w-full nc-create-project-btn !rounded-lg"
+          :active-workspace-id="route.params.workspaceId"
+        >
+          <div class="flex flex-row justify-between w-full items-center">
+            <div class="flex">Create new Project</div>
+            <MaterialSymbolsAddRounded />
+          </div>
+        </WorkspaceCreateProjectBtn>
+      </div>
+      <div class="flex items-start flex-row justify-center px-2 pt-1 pb-1.5 gap-2">
+        <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
+      </div>
+    </div> -->
   </div>
 </template>
 
 <style scoped lang="scss">
 .nc-treeview-container {
-  @apply h-[calc(100vh_-_var(--header-height))];
+  height: calc(100% - var(--sidebar-top-height));
 }
 
 .nc-treeview-footer-item {
@@ -740,16 +489,31 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
 }
 
 :deep(.nc-project-sub-menu.active) {
-  @apply !bg-gray-400 bg-opacity-8 rounded-lg;
 }
 
 .nc-create-project-btn {
   @apply px-2;
   :deep(.ant-btn) {
-    @apply w-full !text-center justify-center h-auto rounded py-2 px-4 border-gray-200;
+    @apply w-full !text-center justify-center h-auto rounded-lg py-2 px-4 border-gray-100 bg-white;
     & > div {
       @apply !justify-center;
     }
+  }
+}
+
+.nc-treeview {
+  overflow-y: overlay;
+  &::-webkit-scrollbar {
+    width: 3px;
+  }
+  &::-webkit-scrollbar-track {
+    @apply bg-inherit;
+  }
+  &::-webkit-scrollbar-thumb {
+    @apply bg-scrollbar;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    @apply bg-scrollbar-hover;
   }
 }
 </style>

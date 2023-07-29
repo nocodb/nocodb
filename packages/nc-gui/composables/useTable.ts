@@ -1,5 +1,5 @@
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes, isSystemColumn } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import {
   Modal,
   SYSTEM_COLUMNS,
@@ -31,7 +31,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
 
   const { getMeta, removeMeta } = useMetas()
 
-  const { loadTables } = useProject()
+  const { loadTables, isXcdbBase } = useProject()
 
   const { closeTab } = useTabs()
 
@@ -150,9 +150,11 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
       async onOk() {
         try {
           const meta = (await getMeta(table.id as string, true)) as TableType
-          const relationColumns = meta?.columns?.filter((c) => c.uidt === UITypes.LinkToAnotherRecord && !isSystemColumn(c))
+          const relationColumns = meta?.columns?.filter((c) => isLinksOrLTAR(c) && !isSystemColumn(c))
 
-          if (relationColumns?.length) {
+          // Check if table has any relation columns and show notification
+          // skip for xcdb base
+          if (relationColumns?.length && !isXcdbBase(table.base_id)) {
             const refColMsgs = await Promise.all(
               relationColumns.map(async (c, i) => {
                 const refMeta = (await getMeta(

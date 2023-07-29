@@ -474,7 +474,8 @@ class PGClient extends KnexClient {
         ]);
       }
 
-      const schemaName = this.connectionConfig.searchPath?.[0] || 'public';
+      const schemaName =
+        args.schema || this.connectionConfig.searchPath?.[0] || 'public';
 
       // Check schemaExists because `CREATE SCHEMA IF NOT EXISTS` requires permissions of `CREATE ON DATABASE`
       const schemaExists = !!(
@@ -549,7 +550,7 @@ class PGClient extends KnexClient {
       const exists = await this.sqlClient.raw(
         `SELECT table_schema,table_name as tn, table_catalog FROM information_schema.tables where table_schema=? and
          table_name = '${args.tn}' and table_catalog = '${this.connectionConfig.connection.database}'`,
-        [this.schema],
+        [args.schema || this.schema],
       );
 
       if (exists.rows.length === 0) {
@@ -611,7 +612,7 @@ class PGClient extends KnexClient {
     try {
       const { rows } = await this.sqlClient.raw(
         `SELECT table_schema,table_name as tn, table_catalog FROM information_schema.tables where table_schema=? and table_name = '${args.tn}' and table_catalog = '${this.connectionConfig.connection.database}'`,
-        [this.schema],
+        [args.schema || this.schema],
       );
       result.data.value = rows.length > 0;
     } catch (e) {
@@ -688,7 +689,7 @@ class PGClient extends KnexClient {
               FROM information_schema.tables
               where table_schema = ?
               ORDER BY table_schema, table_name`,
-        [this.schema],
+        [args.schema || this.schema],
       );
 
       result.data.list = rows.filter(
@@ -774,8 +775,10 @@ class PGClient extends KnexClient {
                     c.generation_expression,
                     c.character_octet_length,
                     c.character_set_name as csn,
-                    -- c.collation_name as clnn,
-                    pk.ordinal_position as pk_ordinal_position, pk.constraint_name as pk_constraint_name,
+                    pk.ordinal_position as pk_ordinal_position,
+                    pk.constraint_name as pk_constraint_name,
+                    pk1.ordinal_position as pk_ordinal_position1,
+                    pk1.constraint_name as pk_constraint_name1,
                     c.udt_name,
 
        (SELECT count(*)
@@ -794,23 +797,58 @@ class PGClient extends KnexClient {
         INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
         WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
                 ) enum_values
-
-
             from information_schema.columns c
+                          LEFT JOIN (
+                     SELECT
+                            kc.constraint_name,
+                            kc.table_name,
+                            kc.column_name,
+                            kc.ordinal_position,
+                            tc.constraint_type
+                     FROM
+                            information_schema.key_column_usage kc
+                            INNER JOIN information_schema.table_constraints AS tc ON kc.constraint_name = tc.constraint_name
+                                   AND kc.constraint_schema = tc.constraint_schema
+                                   AND tc.constraint_type in('PRIMARY KEY')
+                     WHERE
+                            kc.table_catalog = :database
+                            AND kc.table_schema = :schema) pk1 ON pk1.table_name = c.table_name
+              AND pk1.column_name = c.column_name
+           
               left join
-                ( select kc.constraint_name, kc.table_name,kc.column_name, kc.ordinal_position,tc.constraint_type
-                  from information_schema.key_column_usage kc
-                    inner join information_schema.table_constraints as tc
-                      on kc.constraint_name = tc.constraint_name 
-                      and kc.constraint_schema=tc.constraint_schema and tc.constraint_type in ('PRIMARY KEY')
-                  where kc.table_catalog='${args.databaseName}' and kc.table_schema= ?
-                  order by table_name,ordinal_position ) pk
+                ( 
+                    select 
+                      pc.conrelid::regclass::text AS table_name,
+                      pc.conname as constraint_name,
+                      col.attname as column_name,
+                      pc.contype as constraint_type,
+                      kc.ordinal_position as ordinal_position
+                    from
+                        pg_constraint pc
+                    JOIN pg_namespace n
+                        ON n.oid = pc.connamespace
+                    INNER JOIN pg_catalog.pg_class rel
+                         ON rel.oid = pc.conrelid
+                    LEFT JOIN LATERAL UNNEST(pc.conkey)  WITH ORDINALITY AS u(attnum, attposition)   ON TRUE
+                    LEFT JOIN pg_attribute col ON (col.attrelid = pc.conrelid AND col.attnum = u.attnum)
+                    left join information_schema.key_column_usage as kc
+                      on pc.conname = kc.constraint_name 
+                      and col.attname = kc.column_name
+                      and pc.conrelid::regclass::text = kc.table_name
+                    WHERE n.nspname = :schema
+                      AND rel.relname = :table 
+                      and pc.contype = 'p' and pc.conrelid::regclass::text = :table
+                 ) pk
                 on
                 pk.table_name = c.table_name and pk.column_name=c.column_name
-                left join information_schema.triggers trg on trg.event_object_table = c.table_name and trg.trigger_name = CONCAT('xc_trigger_' , '${args.tn}' , '_' , c.column_name)
-              where c.table_catalog='${args.databaseName}' and c.table_schema=? and c.table_name='${args.tn}'
+                left join information_schema.triggers trg on trg.event_object_table = c.table_name and trg.trigger_name = CONCAT('xc_trigger_' , 'scans' , '_' , c.column_name)
+              where c.table_catalog=:database and c.table_schema=:schema and c.table_name=:table
               order by c.table_name, c.ordinal_position`,
-        [this.schema, this.schema],
+        {
+          schema: args.schema || this.schema,
+          table: args.tn,
+          database: args.databaseName,
+        },
       );
 
       const columns = [];
@@ -831,7 +869,9 @@ class PGClient extends KnexClient {
         // todo : there are lot of types in pg - handle them
         //column.dtx = this.getKnexDataType(column.dt);
         column.dtx = response.rows[i].dt;
-        column.pk = response.rows[i].pk_constraint_name !== null;
+        column.pk =
+          response.rows[i].pk_constraint_name !== null ||
+          response.rows[i].pk_constraint_name1 !== null;
 
         column.nrqd = response.rows[i].nrqd !== 'NO';
         column.not_nullable = !column.nrqd;
@@ -955,7 +995,7 @@ class PGClient extends KnexClient {
       and i.oid<>0
       AND f.attnum > 0
       ORDER BY i.relname, f.attnum;`,
-        [this.schema, args.tn],
+        [args.schema || this.schema, args.tn],
       );
       result.data.list = rows;
     } catch (e) {
@@ -964,6 +1004,277 @@ class PGClient extends KnexClient {
     }
 
     log.api(`${_func}: result`, result);
+
+    return result;
+  }
+
+  /**
+   *
+   * @param {Object} - args
+   * @param {String} - args.tn
+   * @param {String} - args.indexName
+   * @param {String} - args.non_unique
+   * @param {String[]} - args.columns
+   * @returns {Promise<{upStatement, downStatement}>}
+   */
+  async indexCreate(args) {
+    const _func = this.indexCreate.name;
+    const result = new Result();
+    log.api(`${_func}:args:`, args);
+
+    const indexName = args.indexName || null;
+
+    try {
+      args.table = args.schema ? `${args.schema}.${args.tn}` : args.tn;
+
+      // s = await this.sqlClient.schema.index(Object.keys(args.columns));
+      await this.sqlClient.schema.table(args.table, function (table) {
+        if (args.non_unique) {
+          table.index(args.columns, indexName);
+        } else {
+          table.unique(args.columns, indexName);
+        }
+      });
+
+      const upStatement =
+        this.querySeparator() +
+        this.sqlClient.schema
+          .table(args.table, function (table) {
+            if (args.non_unique) {
+              table.index(args.columns, indexName);
+            } else {
+              table.unique(args.columns, indexName);
+            }
+          })
+          .toQuery();
+
+      this.emit(`Success : ${upStatement}`);
+
+      const downStatement =
+        this.querySeparator() +
+        this.sqlClient.schema
+          .table(args.table, function (table) {
+            if (args.non_unique) {
+              table.dropIndex(args.columns, indexName);
+            } else {
+              table.dropUnique(args.columns, indexName);
+            }
+          })
+          .toQuery();
+
+      result.data.object = {
+        upStatement: [{ sql: upStatement }],
+        downStatement: [{ sql: downStatement }],
+      };
+
+      // result.data.object = {
+      //   upStatement,
+      //   downStatement
+      // };
+    } catch (e) {
+      log.ppe(e, _func);
+      throw e;
+    }
+
+    return result;
+  }
+
+  /**
+   *
+   * @param {Object} - args
+   * @param {String} - args.tn
+   * @param {String[]} - args.columns
+   * @param {String} - args.indexName
+   * @param {String} - args.non_unique
+   * @returns {Promise<{upStatement, downStatement}>}
+   */
+  async indexDelete(args) {
+    const _func = this.indexDelete.name;
+    const result = new Result();
+    log.api(`${_func}:args:`, args);
+
+    const indexName = args.indexName || null;
+
+    try {
+      args.table = args.schema ? `${args.schema}.${args.tn}` : args.tn;
+
+      // s = await this.sqlClient.schema.index(Object.keys(args.columns));
+      await this.sqlClient.schema.table(args.table, function (table) {
+        if (args.non_unique_original) {
+          table.dropIndex(args.columns, indexName);
+        } else {
+          table.dropUnique(args.columns, indexName);
+        }
+      });
+
+      const upStatement =
+        this.querySeparator() +
+        this.sqlClient.schema
+          .table(args.table, function (table) {
+            if (args.non_unique_original) {
+              table.dropIndex(args.columns, indexName);
+            } else {
+              table.dropUnique(args.columns, indexName);
+            }
+          })
+          .toQuery();
+
+      this.emit(`Success : ${upStatement}`);
+
+      const downStatement =
+        this.querySeparator() +
+        this.sqlClient.schema
+          .table(args.table, function (table) {
+            if (args.non_unique_original) {
+              table.index(args.columns, indexName);
+            } else {
+              table.unique(args.columns, indexName);
+            }
+          })
+          .toQuery();
+
+      result.data.object = {
+        upStatement: [{ sql: upStatement }],
+        downStatement: [{ sql: downStatement }],
+      };
+    } catch (e) {
+      log.ppe(e, _func);
+      throw e;
+    }
+
+    return result;
+  }
+
+  /**
+   *
+   * @param {Object} - args
+   * @param {String} - args.parentTable
+   * @param {String} - args.parentColumn
+   * @param {String} - args.childColumn
+   * @param {String} - args.childTable
+   * @returns {Promise<{upStatement, downStatement}>}
+   */
+  async relationCreate(args) {
+    const _func = this.relationCreate.name;
+    const result = new Result();
+    log.api(`${_func}:args:`, args);
+
+    const foreignKeyName = args.foreignKeyName || null;
+
+    args.childTableWithSchema = args.schema
+      ? `${args.schema}.${args.childTable}`
+      : args.childTable;
+
+    args.parentTableWithSchema = args.schema
+      ? `${args.schema}.${args.parentTable}`
+      : args.parentTable;
+
+    try {
+      const upQb = this.sqlClient.schema.table(
+        args.childTableWithSchema,
+        function (table) {
+          table = table
+            .foreign(args.childColumn, foreignKeyName)
+            .references(args.parentColumn)
+            .on(args.parentTableWithSchema);
+
+          if (args.onUpdate) {
+            table = table.onUpdate(args.onUpdate);
+          }
+          if (args.onDelete) {
+            table.onDelete(args.onDelete);
+          }
+        },
+      );
+
+      await upQb;
+
+      const upStatement = this.querySeparator() + upQb.toQuery();
+
+      this.emit(`Success : ${upStatement}`);
+
+      const downStatement =
+        this.querySeparator() +
+        this.sqlClient.schema
+          .table(args.childTableWithSchema, function (table) {
+            table.dropForeign(args.childColumn, foreignKeyName);
+          })
+          .toQuery();
+
+      result.data.object = {
+        upStatement: [{ sql: upStatement }],
+        downStatement: [{ sql: downStatement }],
+      };
+    } catch (e) {
+      log.ppe(e, _func);
+      throw e;
+    }
+
+    return result;
+  }
+
+  /**
+   *
+   * @param {Object} - args
+   * @param {String} - args.parentTable
+   * @param {String} - args.parentColumn
+   * @param {String} - args.childColumn
+   * @param {String} - args.childTable
+   * @param {String} - args.foreignKeyName
+   * @returns {Promise<{upStatement, downStatement}>}
+   */
+  async relationDelete(args) {
+    const _func = this.relationDelete.name;
+    const result = new Result();
+    log.api(`${_func}:args:`, args);
+
+    const foreignKeyName = args.foreignKeyName || null;
+
+    args.childTableWithSchema = args.schema
+      ? `${args.schema}.${args.childTable}`
+      : args.childTable;
+
+    args.parentTableWithSchema = args.schema
+      ? `${args.schema}.${args.parentTable}`
+      : args.parentTable;
+
+    try {
+      // const self = this;
+
+      await this.sqlClient.schema.table(
+        args.childTableWithSchema,
+        function (table) {
+          table.dropForeign(args.childColumn, foreignKeyName);
+        },
+      );
+
+      const upStatement =
+        this.querySeparator() +
+        this.sqlClient.schema
+          .table(args.childTableWithSchema, function (table) {
+            table.dropForeign(args.childColumn, foreignKeyName);
+          })
+          .toQuery();
+
+      const downStatement =
+        this.querySeparator() +
+        (await this.sqlClient.schema
+          .table(args.childTableWithSchema, function (table) {
+            table
+              .foreign(args.childColumn, foreignKeyName)
+              .references(args.parentColumn)
+              .on(args.parentTableWithSchema);
+          })
+          .toQuery());
+
+      result.data.object = {
+        upStatement: [{ sql: upStatement }],
+        downStatement: [{ sql: downStatement }],
+      };
+    } catch (e) {
+      log.ppe(e, _func);
+      throw e;
+    }
 
     return result;
   }
@@ -1058,29 +1369,33 @@ class PGClient extends KnexClient {
     const result = new Result();
     log.api(`${_func}:args:`, args);
     try {
+      // The relationList & relationListAll queries is may look needlessly long, but it is a way
+      // to get relationships without the `information_schema.constraint_column_usage` table (view).
+      // As that view only returns fk relations if the pg user is the table owner.
+      // Resource: https://dba.stackexchange.com/a/218969
+      // Remove clause `WHERE clause: AND f_sch.nspname = sch.nspname` for x-schema relations.
       const { rows } = await this.sqlClient.raw(
-        `SELECT distinct
-                                  tc.table_schema as ts,
-                                  tc.constraint_name as cstn,
-                                  tc.table_name as tn,
-                                  kcu.column_name as cn,
-                                  ccu.table_schema AS foreign_table_schema,
-                                  ccu.table_name AS rtn,
-                                  ccu.column_name AS rcn,
-                                  pc.confupdtype as ur, pc.confdeltype as dr
-                          FROM
-                              information_schema.table_constraints AS tc
-                              JOIN information_schema.key_column_usage AS kcu
-                                ON tc.constraint_name = kcu.constraint_name
-                                AND tc.table_schema = kcu.table_schema
-                              JOIN information_schema.constraint_column_usage AS ccu
-                                ON ccu.constraint_name = tc.constraint_name
-                                AND ccu.table_schema = tc.table_schema
-                              join (select conname,confupdtype,confdeltype from pg_catalog.pg_constraint) pc
-                              on pc.conname = tc.constraint_name
-                          WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema=? and tc.table_name='${args.tn}'
-                          order by tc.table_name;`,
-        [this.schema],
+        `SELECT 
+          sch.nspname    AS ts,
+          pc.conname     AS cstn,
+          tbl.relname    AS tn,
+          col.attname    AS cn,
+          f_sch.nspname  AS foreign_table_schema,
+          f_tbl.relname  AS rtn,
+          f_col.attname  AS rcn,
+          pc.confupdtype AS ur,
+          pc.confdeltype AS dr
+        FROM pg_constraint pc
+          LEFT JOIN LATERAL UNNEST(pc.conkey)  WITH ORDINALITY AS u(attnum, attposition)   ON TRUE
+          LEFT JOIN LATERAL UNNEST(pc.confkey) WITH ORDINALITY AS f_u(attnum, attposition) ON f_u.attposition = u.attposition
+          JOIN pg_class tbl ON tbl.oid = pc.conrelid
+          JOIN pg_namespace sch ON sch.oid = tbl.relnamespace
+          LEFT JOIN pg_attribute col ON (col.attrelid = tbl.oid AND col.attnum = u.attnum)
+          LEFT JOIN pg_class f_tbl ON f_tbl.oid = pc.confrelid
+          LEFT JOIN pg_namespace f_sch ON f_sch.oid = f_tbl.relnamespace
+          LEFT JOIN pg_attribute f_col ON (f_col.attrelid = f_tbl.oid AND f_col.attnum = f_u.attnum)
+        WHERE pc.contype = 'f' AND sch.nspname = ? AND f_sch.nspname = sch.nspname AND tbl.relname='${args.tn}';`,
+        [args.schema || this.schema],
       );
 
       const ruleMapping = {
@@ -1129,29 +1444,28 @@ class PGClient extends KnexClient {
     log.api(`${_func}:args:`, args);
     try {
       const { rows } = await this.sqlClient.raw(
-        `SELECT DISTINCT tc.table_schema as ts,
-                                                      tc.constraint_name as cstn,
-                                                      tc.table_name as tn,
-                                                      kcu.column_name as cn,
-                                                      ccu.table_schema AS foreign_table_schema,
-                                                      ccu.table_name   AS rtn,
-                                                      ccu.column_name  AS rcn,
-                                                      pc.confupdtype   as ur,
-                                                      pc.confdeltype   as dr
-                                               FROM information_schema.table_constraints AS tc
-                                                      JOIN information_schema.key_column_usage AS kcu
-                                                           ON tc.constraint_name = kcu.constraint_name
-                                                             AND tc.table_schema = kcu.table_schema
-                                                      JOIN information_schema.constraint_column_usage AS ccu
-                                                           ON ccu.constraint_name = tc.constraint_name
-                                                             AND ccu.table_schema = tc.table_schema
-                                                      join (select conname, confupdtype, confdeltype
-                                                            from pg_catalog.pg_constraint) pc
-                                                           on pc.conname = tc.constraint_name
-                                               WHERE tc.constraint_type = 'FOREIGN KEY'
-                                                 AND tc.table_schema = ?
-                                               order by tc.table_name;`,
-        [this.schema],
+        `SELECT 
+          sch.nspname    AS ts,
+          pc.conname     AS cstn,
+          tbl.relname    AS tn,
+          col.attname    AS cn,
+          f_sch.nspname  AS foreign_table_schema,
+          f_tbl.relname  AS rtn,
+          f_col.attname  AS rcn,
+          pc.confupdtype AS ur,
+          pc.confdeltype AS dr
+        FROM pg_constraint pc
+          LEFT JOIN LATERAL UNNEST(pc.conkey)  WITH ORDINALITY AS u(attnum, attposition)   ON TRUE
+          LEFT JOIN LATERAL UNNEST(pc.confkey) WITH ORDINALITY AS f_u(attnum, attposition) ON f_u.attposition = u.attposition
+          JOIN pg_class tbl ON tbl.oid = pc.conrelid
+          JOIN pg_namespace sch ON sch.oid = tbl.relnamespace
+          LEFT JOIN pg_attribute col ON (col.attrelid = tbl.oid AND col.attnum = u.attnum)
+          LEFT JOIN pg_class f_tbl ON f_tbl.oid = pc.confrelid
+          LEFT JOIN pg_namespace f_sch ON f_sch.oid = f_tbl.relnamespace
+          LEFT JOIN pg_attribute f_col ON (f_col.attrelid = f_tbl.oid AND f_col.attnum = f_u.attnum)
+        WHERE pc.contype = 'f' AND sch.nspname = ?
+        ORDER BY tn;`,
+        [args.schema || this.schema],
       );
 
       const ruleMapping = {
@@ -1204,7 +1518,7 @@ class PGClient extends KnexClient {
 
       const { rows } = await this.sqlClient.raw(
         `select * from information_schema.triggers where trigger_schema=? and event_object_table='${args.tn}'`,
-        [this.schema],
+        [args.schema || this.schema],
       );
 
       for (let i = 0; i < rows.length; ++i) {
@@ -1254,7 +1568,7 @@ class PGClient extends KnexClient {
                      JOIN pg_catalog.pg_proc p
                           ON pronamespace = n.oid
               WHERE nspname = ?;`,
-        [this.schema],
+        [args.schema || this.schema],
       );
       const functionRows = [];
       for (let i = 0; i < rows.length; ++i) {
@@ -1309,7 +1623,7 @@ class PGClient extends KnexClient {
                      JOIN pg_catalog.pg_proc p
                           ON pronamespace = n.oid
               WHERE nspname = ?;`,
-        [this.schema],
+        [args.schema || this.schema],
       );
       const procedureRows = [];
       for (let i = 0; i < rows.length; ++i) {
@@ -1350,7 +1664,8 @@ class PGClient extends KnexClient {
       const { rows } = await this.sqlClient.raw(
         `select *
            from INFORMATION_SCHEMA.views
-           WHERE table_schema = ANY (current_schemas(false));`,
+           WHERE table_schema = ?;`,
+        [args.schema || this.schema],
       );
 
       for (let i = 0; i < rows.length; ++i) {
@@ -1388,7 +1703,7 @@ class PGClient extends KnexClient {
         `SELECT format('%I.%I(%s)', ns.nspname, p.proname, oidvectortypes(p.proargtypes)) as function_declaration, pg_get_functiondef(p.oid) as create_function
                 FROM pg_proc p INNER JOIN pg_namespace ns ON (p.pronamespace = ns.oid)
             WHERE ns.nspname = ? and p.proname = '${args.function_name}';`,
-        [this.schema],
+        [args.schema || this.schema],
       );
 
       // log.debug(response);
@@ -2074,8 +2389,12 @@ class PGClient extends KnexClient {
     for (let i = 0; i < args.columns.length; i++) {
       const column = args.columns[i];
       if (column.au) {
-        const triggerFnName = `xc_au_${args.tn}_${column.cn}`;
-        const triggerName = `xc_trigger_${args.tn}_${column.cn}`;
+        const triggerFnName = args.schema
+          ? `xc_au_${args.schema}_${args.tn}_${column.cn}`
+          : `xc_au_${args.tn}_${column.cn}`;
+        const triggerName = args.schema
+          ? `xc_trigger_${args.schema}_${args.tn}_${column.cn}`
+          : `xc_trigger_${args.tn}_${column.cn}`;
 
         const triggerFnQuery = this.genQuery(
           `CREATE OR REPLACE FUNCTION ??()
@@ -2097,14 +2416,18 @@ class PGClient extends KnexClient {
             BEFORE UPDATE ON ??
             FOR EACH ROW
             EXECUTE PROCEDURE ??();`,
-            [triggerName, args.tn, triggerFnName],
+            [
+              triggerName,
+              args.schema ? `${args.schema}.${args.tn}` : args.tn,
+              triggerFnName,
+            ],
           );
 
         downQuery +=
           this.querySeparator() +
           this.genQuery(`DROP TRIGGER IF EXISTS ?? ON ??;`, [
             triggerName,
-            args.tn,
+            args.schema ? `${args.schema}.${args.tn}` : args.tn,
           ]) +
           this.querySeparator() +
           this.genQuery(`DROP FUNCTION IF EXISTS ??()`, [triggerFnName]);
@@ -2125,8 +2448,12 @@ class PGClient extends KnexClient {
     for (let i = 0; i < args.columns.length; i++) {
       const column = args.columns[i];
       if (column.au && column.altered === 1) {
-        const triggerFnName = `xc_au_${args.tn}_${column.cn}`;
-        const triggerName = `xc_trigger_${args.tn}_${column.cn}`;
+        const triggerFnName = args.schema
+          ? `xc_au_${args.schema}_${args.tn}_${column.cn}`
+          : `xc_au_${args.tn}_${column.cn}`;
+        const triggerName = args.schema
+          ? `xc_trigger_${args.schema}_${args.tn}_${column.cn}`
+          : `xc_trigger_${args.tn}_${column.cn}`;
 
         const triggerFnQuery = this.genQuery(
           `CREATE OR REPLACE FUNCTION ??()
@@ -2148,7 +2475,11 @@ class PGClient extends KnexClient {
             BEFORE UPDATE ON ??
             FOR EACH ROW
             EXECUTE PROCEDURE ??();`,
-            [triggerName, args.tn, triggerFnName],
+            [
+              triggerName,
+              args.schema ? `${args.schema}.${args.tn}` : args.tn,
+              triggerFnName,
+            ],
           );
 
         downQuery +=
@@ -2201,7 +2532,7 @@ class PGClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      args.table = args.tn;
+      args.table = args.schema ? `${args.schema}.${args.tn}` : args.tn;
       const originalColumns = args.originalColumns;
       args.connectionConfig = this._connectionConfig;
       args.sqlClient = this.sqlClient;
@@ -2322,7 +2653,9 @@ class PGClient extends KnexClient {
       /** ************** create up & down statements *************** */
       const upStatement =
         this.querySeparator() +
-        this.sqlClient.schema.dropTable(args.tn).toString();
+        this.sqlClient.schema
+          .dropTable(args.schema ? `${args.schema}.${args.tn}` : args.tn)
+          .toString();
       let downQuery = this.createTable(args.tn, args);
 
       /**
@@ -2403,7 +2736,9 @@ class PGClient extends KnexClient {
       this.emit(`Success : ${upStatement}`);
 
       /** ************** drop tn *************** */
-      await this.sqlClient.schema.dropTable(args.tn);
+      await this.sqlClient.schema.dropTable(
+        args.schema ? `${args.schema}.${args.tn}` : args.tn,
+      );
 
       /** ************** return files *************** */
       result.data.object = {
@@ -2677,7 +3012,9 @@ class PGClient extends KnexClient {
 
     query += this.alterTablePK(table, args.columns, [], query, true);
 
-    query = this.genQuery(`CREATE TABLE ?? (${query});`, [args.tn]);
+    query = this.genQuery(`CREATE TABLE ?? (${query});`, [
+      args.schema ? `${args.schema}.${args.tn}` : args.tn,
+    ]);
 
     return query;
   }
@@ -2685,7 +3022,7 @@ class PGClient extends KnexClient {
   alterTableColumn(t, n, o, existingQuery, change = 2) {
     let query = '';
 
-    const defaultValue = getDefaultValue(n);
+    const defaultValue = this.sanitiseDefaultValue(n.cdf);
     const shouldSanitize = true;
 
     if (change === 0) {
@@ -2699,12 +3036,20 @@ class PGClient extends KnexClient {
           query += this.genQuery(` ?? serial`, [n.cn], shouldSanitize);
         }
       } else {
-        query += this.genQuery(` ?? ${n.dt}`, [n.cn], shouldSanitize);
+        query += this.genQuery(
+          ` ?? ${this.sanitiseDataType(n.dt)}`,
+          [n.cn],
+          shouldSanitize,
+        );
         query += n.rqd ? ' NOT NULL' : ' NULL';
         query += defaultValue ? ` DEFAULT ${defaultValue}` : '';
       }
     } else if (change === 1) {
-      query += this.genQuery(` ADD ?? ${n.dt}`, [n.cn], shouldSanitize);
+      query += this.genQuery(
+        ` ADD ?? ${this.sanitiseDataType(n.dt)}`,
+        [n.cn],
+        shouldSanitize,
+      );
       query += n.rqd ? ' NOT NULL' : ' NULL';
       query += defaultValue ? ` DEFAULT ${defaultValue}` : '';
       query = this.genQuery(`ALTER TABLE ?? ${query};`, [t], shouldSanitize);
@@ -2719,7 +3064,9 @@ class PGClient extends KnexClient {
 
       if (n.dt !== o.dt) {
         query += this.genQuery(
-          `\nALTER TABLE ?? ALTER COLUMN ?? TYPE ${n.dt} USING ??::${n.dt};\n`,
+          `\nALTER TABLE ?? ALTER COLUMN ?? TYPE ${this.sanitiseDataType(
+            n.dt,
+          )} USING ??::${this.sanitiseDataType(n.dt)};\n`,
           [t, n.cn, n.cn],
           shouldSanitize,
         );
@@ -2740,7 +3087,9 @@ class PGClient extends KnexClient {
           [t, n.cn],
           shouldSanitize,
         );
-        query += n.cdf ? ` SET DEFAULT ${n.cdf};\n` : ` DROP DEFAULT;\n`;
+        query += n.cdf
+          ? ` SET DEFAULT ${this.sanitiseDefaultValue(n.cdf)};\n`
+          : ` DROP DEFAULT;\n`;
       }
     }
     return query;
@@ -2781,58 +3130,80 @@ class PGClient extends KnexClient {
     }
     return result;
   }
-}
 
-function getDefaultValue(n) {
-  if (n.cdf === undefined || n.cdf === null) return n.cdf;
-  switch (n.dt) {
-    case 'serial':
-    case 'bigserial':
-    case 'smallserial':
-      return '';
-      break;
-    case 'boolean':
-    case 'bool':
-    case 'tinyint':
-    case 'int':
-    case 'samllint':
-    case 'bigint':
-    case 'integer':
-    case 'mediumint':
-    case 'int2':
-    case 'int4':
-    case 'int8':
-    case 'long':
-    case 'number':
-    case 'float':
-    case 'double':
-    case 'decimal':
-    case 'numeric':
-    case 'real':
-    case 'double precision':
-    case 'money':
-    case 'smallmoney':
-    case 'dec':
-      return n.cdf;
-      break;
+  // get default bytea output format
+  async getDefaultByteaOutputFormat() {
+    const func = this.getDefaultByteaOutputFormat.name;
+    const result = new Result<'hex' | 'escape'>();
+    log.api(`${func}:args:`, {});
 
-    case 'datetime':
-    case 'timestamp':
-    case 'date':
-    case 'time':
-      if (
-        n.cdf.indexOf('CURRENT_TIMESTAMP') > -1 ||
-        /\(([\d\w'", ]*)\)$/.test(n.cdf)
-      ) {
-        return n.cdf;
-      }
-      // return JSON.stringify(n.cdf);
-      break;
-    default:
-      // return JSON.stringify(n.cdf);
-      break;
+    try {
+      const data = await this.sqlClient.raw(`SHOW bytea_output;`);
+      result.data = data.rows?.[0]?.bytea_output;
+    } catch (e) {
+      result.data = 'escape';
+    } finally {
+      log.api(`${func} :result: ${result}`);
+    }
+    return result;
   }
-  return n.cdf;
-}
 
+  /**
+   *
+   * @param {Object} - args
+   * @param {String} - args.tn
+   * @param {String} - args.tn_old
+   * @returns {Promise<{upStatement, downStatement}>}
+   */
+  async tableRename(args) {
+    const _func = this.tableCreate.name;
+    const result = new Result();
+    log.api(`${_func}:args:`, args);
+
+    try {
+      args.table = args.tn;
+
+      /** ************** create table *************** */
+      await this.sqlClient.schema.renameTable(
+        this.sqlClient.raw('??.??', [args.schema || this.schema, args.tn_old]),
+        args.tn,
+      );
+
+      /** ************** create up & down statements *************** */
+      const upStatement =
+        this.querySeparator() +
+        this.sqlClient.schema
+          .renameTable(
+            this.sqlClient.raw('??.??', [args.schema || this.schema, args.tn]),
+            args.tn_old,
+          )
+          .toQuery();
+
+      this.emit(`Success : ${upStatement}`);
+
+      const downStatement =
+        this.querySeparator() +
+        this.sqlClient.schema
+          .renameTable(
+            this.sqlClient.raw('??.??', [
+              args.schema || this.schema,
+              args.tn_old,
+            ]),
+            args.tn,
+          )
+          .toQuery();
+
+      /** ************** return files *************** */
+      result.data.object = {
+        upStatement: [{ sql: upStatement }],
+        downStatement: [{ sql: downStatement }],
+      };
+    } catch (e) {
+      log.ppe(e, _func);
+      throw e;
+    }
+
+    return result;
+  }
+}
 export default PGClient;

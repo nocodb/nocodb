@@ -10,14 +10,12 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { FilterReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '../guards/global/global.guard';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import {
   Acl,
   ExtractProjectIdMiddleware,
-  UseAclMiddleware,
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { FiltersService } from '../services/filters.service';
 
@@ -76,7 +74,7 @@ export class FiltersController {
 
   @Get('/api/v1/db/meta/filters/:filterParentId/children')
   @Acl('filterChildrenList')
-  async filterChildrenRead(filterParentId: string) {
+  async filterChildrenRead(@Param('filterParentId') filterParentId: string) {
     return new PagedResponseImpl(
       await this.filtersService.filterChildrenList({
         filterId: filterParentId,
@@ -104,7 +102,6 @@ export class FiltersController {
   async filterDelete(@Param('filterId') filterId: string, @Req() req) {
     const filter = await this.filtersService.filterDelete({
       filterId,
-      user: req.user,
     });
     return filter;
   }

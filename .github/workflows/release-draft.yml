@@ -37,7 +37,7 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: [self-hosted, aws]
     steps:
       - uses: actions/checkout@v3
         with:

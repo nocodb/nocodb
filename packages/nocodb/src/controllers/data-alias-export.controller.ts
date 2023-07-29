@@ -1,11 +1,7 @@
 import { Controller, Get, Request, Response, UseGuards } from '@nestjs/common';
 import * as XLSX from 'xlsx';
-import { AuthGuard } from '@nestjs/passport';
 import { GlobalGuard } from '../guards/global/global.guard';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
+import { Acl } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { View } from '../models';
 import { DatasService } from '../services/datas.service';
 import { extractCsvData, extractXlsxData } from '../modules/datas/helpers';

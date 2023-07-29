@@ -41,7 +41,7 @@ on:
 
 jobs:
   buildx:
-    runs-on: self-hosted
+    runs-on: [self-hosted, aws]
     env:
       working-directory: ./packages/nocodb
     steps:

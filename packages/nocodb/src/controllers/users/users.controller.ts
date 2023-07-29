@@ -1,5 +1,3 @@
-import { promisify } from 'util';
-import { AuditOperationSubTypes, AuditOperationTypes } from 'nocodb-sdk';
 import {
   Body,
   Controller,
@@ -11,24 +9,31 @@ import {
   Response,
   UseGuards,
 } from '@nestjs/common';
-import * as ejs from 'ejs';
 import { AuthGuard } from '@nestjs/passport';
+import * as ejs from 'ejs';
+import { ConfigService } from '@nestjs/config';
 import { GlobalGuard } from '../../guards/global/global.guard';
 import { NcError } from '../../helpers/catchError';
 import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
-import Noco from '../../Noco';
-import extractRolesObj from '../../utils/extractRolesObj';
-import { Audit, User } from '../../models';
+import { User } from '../../models';
+import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
 import {
-  genJwt,
   randomTokenString,
   setTokenCookie,
 } from '../../services/users/helpers';
 import { UsersService } from '../../services/users/users.service';
+import extractRolesObj from '../../utils/extractRolesObj';
+import NocoCache from '../../cache/NocoCache';
+import { CacheGetType } from '../../utils/globals';
+import type { AppConfig } from '../../interface/config';
 
 @Controller()
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly appHooksService: AppHooksService,
+    private readonly config: ConfigService<AppConfig>,
+  ) {}
 
   @Post([
     '/auth/user/signup',
@@ -37,6 +42,9 @@ export class UsersController {
   ])
   @HttpCode(200)
   async signup(@Request() req: any, @Response() res: any): Promise<any> {
+    if (this.config.get('auth', { infer: true }).disableEmailAuth) {
+      NcError.forbidden('Email authentication is disabled');
+    }
     res.json(
       await this.usersService.signup({
         body: req.body,
@@ -52,56 +60,14 @@ export class UsersController {
     '/api/v1/auth/token/refresh',
   ])
   @HttpCode(200)
-  async refreshToken(@Request() req: any, @Request() res: any): Promise<any> {
-    return await this.usersService.refreshToken({
-      body: req.body,
-      req,
-      res,
-    });
-  }
-
-  async successfulSignIn({ user, err, info, req, res, auditDescription }) {
-    try {
-      if (!user || !user.email) {
-        if (err) {
-          return res.status(400).send(err);
-        }
-        if (info) {
-          return res.status(400).send(info);
-        }
-        return res.status(400).send({ msg: 'Your signin has failed' });
-      }
-
-      await promisify((req as any).login.bind(req))(user);
-
-      const refreshToken = randomTokenString();
-
-      if (!user.token_version) {
-        user.token_version = randomTokenString();
-      }
-
-      await User.update(user.id, {
-        refresh_token: refreshToken,
-        email: user.email,
-        token_version: user.token_version,
-      });
-      setTokenCookie(res, refreshToken);
-
-      await Audit.insert({
-        op_type: AuditOperationTypes.AUTHENTICATION,
-        op_sub_type: AuditOperationSubTypes.SIGNIN,
-        user: user.email,
-        ip: req.clientIp,
-        description: auditDescription,
-      });
-
-      res.json({
-        token: genJwt(user, Noco.getConfig()),
-      } as any);
-    } catch (e) {
-      console.log(e);
-      throw e;
-    }
+  async refreshToken(@Request() req: any, @Response() res: any): Promise<any> {
+    res.json(
+      await this.usersService.refreshToken({
+        body: req.body,
+        req,
+        res,
+      }),
+    );
   }
 
   @Post([
@@ -111,15 +77,23 @@ export class UsersController {
   ])
   @UseGuards(AuthGuard('local'))
   @HttpCode(200)
-  async signin(@Request() req) {
-    return this.usersService.login(req.user);
+  async signin(@Request() req, @Response() res) {
+    if (this.config.get('auth', { infer: true }).disableEmailAuth) {
+      NcError.forbidden('Email authentication is disabled');
+    }
+    await this.setRefreshToken({ req, res });
+    res.json(this.usersService.login(req.user));
   }
 
+  @UseGuards(GlobalGuard)
   @Post('/api/v1/auth/user/signout')
   @HttpCode(200)
-  async signout(@Request() req, @Response() res): Promise<any> {
+  async signOut(@Request() req, @Response() res): Promise<any> {
+    if (!(req as any).isAuthenticated()) {
+      NcError.forbidden('Not allowed');
+    }
     res.json(
-      await this.usersService.signout({
+      await this.usersService.signOut({
         req,
         res,
       }),
@@ -129,13 +103,14 @@ export class UsersController {
   @Post(`/auth/google/genTokenByCode`)
   @HttpCode(200)
   @UseGuards(AuthGuard('google'))
-  async googleSignin(@Request() req) {
-    return this.usersService.login(req.user);
+  async googleSignin(@Request() req, @Response() res) {
+    await this.setRefreshToken({ req, res });
+    res.json(this.usersService.login(req.user));
   }
 
   @Get('/auth/google')
   @UseGuards(AuthGuard('google'))
-  googleAuthenticate(@Request() req) {
+  googleAuthenticate() {
     // google strategy will take care the request
   }
 
@@ -157,7 +132,7 @@ export class UsersController {
   @UseGuards(GlobalGuard)
   @Acl('passwordChange')
   @HttpCode(200)
-  async passwordChange(@Request() req: any, @Body() body: any): Promise<any> {
+  async passwordChange(@Request() req: any): Promise<any> {
     if (!(req as any).isAuthenticated()) {
       NcError.forbidden('Not allowed');
     }
@@ -177,7 +152,7 @@ export class UsersController {
     '/api/v1/auth/password/forgot',
   ])
   @HttpCode(200)
-  async passwordForgot(@Request() req: any, @Body() body: any): Promise<any> {
+  async passwordForgot(@Request() req: any): Promise<any> {
     await this.usersService.passwordForgot({
       siteUrl: (req as any).ncSiteUrl,
       body: req.body,
@@ -259,17 +234,54 @@ export class UsersController {
     }
   }
 
+  async setRefreshToken({ res, req }) {
+    const userId = req.user?.id;
+
+    if (!userId) return;
+
+    const user = await User.get(userId);
+
+    if (!user) return;
+
+    const refreshToken = randomTokenString();
+
+    if (!user['token_version']) {
+      user['token_version'] = randomTokenString();
+    }
+
+    await User.update(user.id, {
+      refresh_token: refreshToken,
+      email: user.email,
+      token_version: user['token_version'],
+    });
+    setTokenCookie(res, refreshToken);
+  }
+
   /* OpenID Connect auth apis */
   /* OpenID Connect APIs */
   @Post('/auth/oidc/genTokenByCode')
   @UseGuards(AuthGuard('openid'))
-  async oidcSignin(@Request() req) {
-    return this.usersService.login(req.user);
+  async oidcSignin(@Request() req, @Response() res) {
+    await this.setRefreshToken({ req, res });
+    res.json(this.usersService.login(req.user));
   }
 
   @Get('/auth/oidc')
   @UseGuards(AuthGuard('openid'))
   openidAuth() {
     // openid strategy will take care the request
+  }
+
+  @Get('/auth/oidc/redirect')
+  async redirect(@Request() req, @Response() res) {
+    const key = `oidc:${req.query.state}`;
+    const state = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    if (!state) {
+      NcError.forbidden('Unable to verify authorization request state.');
+    }
+
+    res.redirect(
+      `https://${state.host}/dashboard?code=${req.query.code}&state=${req.query.state}`,
+    );
   }
 }

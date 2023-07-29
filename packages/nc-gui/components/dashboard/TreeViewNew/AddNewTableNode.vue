@@ -202,7 +202,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
 
           <a-menu-divider class="my-0" />
 
-          <a-menu-item-group title="Connect to new datasource" class="!px-0 !mx-0">
+          <!-- <a-menu-item-group title="Connect to new datasource" class="!px-0 !mx-0">
             <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MYSQL, project.id)">
               <div class="color-transition nc-project-menu-item group">
                 <LogosMysqlIcon class="group-hover:text-accent" />
@@ -239,7 +239,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
             </a-menu-item>
           </a-menu-item-group>
 
-          <a-menu-divider class="my-0" />
+          <a-menu-divider class="my-0" /> -->
 
           <a-menu-item v-if="isUIAllowed('importRequest', false, projectRole)" key="add-new-table" class="py-1 rounded-b">
             <a

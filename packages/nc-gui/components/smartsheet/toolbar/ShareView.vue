@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
-import { isString } from '@vueuse/core'
+import { isString } from '@vue/shared'
 import tinycolor from 'tinycolor2'
 import {
   computed,
@@ -92,6 +92,8 @@ const genShareLink = async () => {
   const response = (await $api.dbViewShare.create(view.value.id)) as SharedView
 
   const meta = isString(response.meta) ? JSON.parse(response.meta) : response.meta
+
+  console.log('genShareLink', response, meta)
 
   shared.value = { ...response, meta }
 
@@ -238,6 +240,10 @@ const copyIframeCode = async () => {
     }
   }
 }
+
+watch(shared, () => {
+  console.log('shared', shared.value)
+})
 </script>
 
 <template>

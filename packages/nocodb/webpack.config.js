@@ -4,6 +4,7 @@ const webpack = require('webpack');
 const CopyPlugin = require('copy-webpack-plugin');
 //
 const TerserPlugin = require('terser-webpack-plugin');
+const {resolveTsAliases} = require("resolve-ts-aliases");
 
 module.exports = {
   entry: './src/index.ts',
@@ -30,7 +31,9 @@ module.exports = {
   externals: [nodeExternals()],
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json'],
+    alias: resolveTsAliases(path.resolve('tsconfig.json')),
   },
+  mode: 'production',
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
@@ -44,7 +47,7 @@ module.exports = {
   plugins: [
     new webpack.EnvironmentPlugin(['EE']),
     new CopyPlugin({
-      patterns: [{ from: 'public', to: 'public' }],
+      patterns: [{ from: 'src/public', to: 'public' }],
     }),
   ],
 

@@ -7,6 +7,7 @@ export function addAxiosInterceptors(api: Api<any>) {
   const state = useGlobal()
   const router = useRouter()
   const route = $(router.currentRoute)
+  const optimisedQuery = useState('optimisedQuery', () => true)
 
   api.instance.interceptors.request.use((config) => {
     config.headers['xc-gui'] = 'true'
@@ -23,6 +24,10 @@ export function addAxiosInterceptors(api: Api<any>) {
       } else if (route && route.params && route.params.projectType === 'ERD') {
         config.headers['xc-shared-erd-id'] = route.params.erdUuid
       }
+    }
+
+    if (!optimisedQuery.value) {
+      config.params = { ...(config.params ?? {}), opt: 'false' }
     }
 
     return config
@@ -70,9 +75,8 @@ export function addAxiosInterceptors(api: Api<any>) {
         })
         .catch(async (error) => {
           await state.signOut()
-          // todo: handle new user
 
-          navigateTo('/signIn')
+          if (!route.meta.public) navigateTo('/signIn')
 
           return Promise.reject(error)
         })

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { SelectProps } from 'ant-design-vue'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { ActiveViewInj, MetaInj, computed, inject, ref, resolveComponent, useViewColumns } from '#imports'
 
 const { modelValue, isSort } = defineProps<{
@@ -25,6 +25,9 @@ const { showSystemFields, metaColumnById } = useViewColumns(activeView, meta)
 const options = computed<SelectProps['options']>(() =>
   meta.value?.columns
     ?.filter((c: ColumnType) => {
+      if (c.uidt === UITypes.Links) {
+        return true
+      }
       if (isSystemColumn(metaColumnById?.value?.[c.id!])) {
         return (
           /** if the field is used in filter, then show it anyway */
@@ -36,9 +39,7 @@ const options = computed<SelectProps['options']>(() =>
         return false
       } else if (isSort) {
         /** ignore hasmany and manytomany relations if it's using within sort menu */
-        return !(
-          c.uidt === UITypes.LinkToAnotherRecord && (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO
-        )
+        return !(isLinksOrLTAR(c) && (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO)
         /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
       } else {
         const isVirtualSystemField = c.colOptions && c.system
@@ -88,5 +89,15 @@ if (!localValue.value) {
 <style lang="scss">
 .ant-select-selection-search-input {
   box-shadow: none !important;
+}
+::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 7px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 1px rgba(255, 255, 255, 0.5);
 }
 </style>

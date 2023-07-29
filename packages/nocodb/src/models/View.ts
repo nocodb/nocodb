@@ -26,6 +26,19 @@ import MapViewColumn from './MapViewColumn';
 import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
 
 const { v4: uuidv4 } = require('uuid');
+
+type ViewColumn =
+  | GridViewColumn
+  | FormViewColumn
+  | GalleryViewColumn
+  | KanbanViewColumn
+  | MapViewColumn;
+
+type ViewColumnEnrichedWithTitleAndName = ViewColumn & {
+  title: string;
+  name: string;
+  dt: string;
+};
 export default class View implements ViewType {
   id?: string;
   title: string;
@@ -126,8 +139,10 @@ export default class View implements ViewType {
       ));
     if (!view) {
       view = await ncMeta.metaGet2(null, null, MetaTable.VIEWS, viewId);
-      view.meta = parseMetaProp(view);
-      await NocoCache.set(`${CacheScope.VIEW}:${view.id}`, view);
+      if (view) {
+        view.meta = parseMetaProp(view);
+        await NocoCache.set(`${CacheScope.VIEW}:${view.id}`, view);
+      }
     }
 
     return view && new View(view);
@@ -165,13 +180,19 @@ export default class View implements ViewType {
           ],
         },
       );
-      view.meta = parseMetaProp(view);
-      // todo: cache - titleOrId can be viewId so we need a different scope here
-      await NocoCache.set(
-        `${CacheScope.VIEW}:${fk_model_id}:${titleOrId}`,
-        view.id,
-      );
-      await NocoCache.set(`${CacheScope.VIEW}:${fk_model_id}:${view.id}`, view);
+
+      if (view) {
+        await NocoCache.set(
+          `${CacheScope.VIEW}:${fk_model_id}:${view.id}`,
+          view,
+        );
+        view.meta = parseMetaProp(view);
+        // todo: cache - titleOrId can be viewId so we need a different scope here
+        await NocoCache.set(
+          `${CacheScope.VIEW}:${fk_model_id}:${titleOrId}`,
+          view.id,
+        );
+      }
       return view && new View(view);
     }
     return viewId && this.get(viewId?.id || viewId);
@@ -198,8 +219,10 @@ export default class View implements ViewType {
         },
         null,
       );
-      view.meta = parseMetaProp(view);
-      await NocoCache.set(`${CacheScope.VIEW}:${fk_model_id}:default`, view);
+      if (view) {
+        view.meta = parseMetaProp(view);
+        await NocoCache.set(`${CacheScope.VIEW}:${fk_model_id}:default`, view);
+      }
     }
     return view && new View(view);
   }
@@ -723,7 +746,15 @@ export default class View implements ViewType {
       await NocoCache.set(key, o);
     }
     // set meta
-    return await ncMeta.metaUpdate(null, null, table, updateObj, colId);
+    const res = await ncMeta.metaUpdate(null, null, table, updateObj, colId);
+
+    // on view column update, delete corresponding single query cache
+    await NocoCache.delAll(
+      CacheScope.SINGLE_QUERY,
+      `${view.fk_model_id}:${view.id}:*`,
+    );
+
+    return res;
   }
 
   static async insertOrUpdateColumn(
@@ -761,6 +792,13 @@ export default class View implements ViewType {
         },
         existingCol.id,
       );
+
+      // on view column update, delete any optimised single query cache
+      await NocoCache.delAll(
+        CacheScope.SINGLE_QUERY,
+        `${view.fk_model_id}:${view.id}:*`,
+      );
+
       return { ...existingCol, ...colData };
     } else {
       switch (view.type) {
@@ -952,6 +990,7 @@ export default class View implements ViewType {
     // get existing cache
     const key = `${CacheScope.VIEW}:${viewId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    let oldView = { ...o };
     if (o) {
       // update data
       o = {
@@ -963,7 +1002,14 @@ export default class View implements ViewType {
       }
       // set cache
       await NocoCache.set(key, o);
+    } else {
+      oldView = await this.get(viewId);
     }
+
+    // reset alias cache
+    await NocoCache.del(
+      `${CacheScope.VIEW}:${oldView.fk_model_id}:${oldView.title}`,
+    );
 
     // if meta data defined then stringify it
     if ('meta' in updateObj) {
@@ -981,14 +1027,20 @@ export default class View implements ViewType {
       }
     }
 
+    // on update, delete any optimised single query cache
+    await NocoCache.delAll(
+      CacheScope.SINGLE_QUERY,
+      `${view.fk_model_id}:${view.id}:*`,
+    );
+
     return view;
   }
 
   // @ts-ignore
   static async delete(viewId, ncMeta = Noco.ncMeta) {
-    const view = await this.get(viewId);
-    await Sort.deleteAll(viewId);
-    await Filter.deleteAll(viewId);
+    const view = await this.get(viewId, ncMeta);
+    await Sort.deleteAll(viewId, ncMeta);
+    await Filter.deleteAll(viewId, ncMeta);
     const table = this.extractViewTableName(view);
     const tableScope = this.extractViewTableNameScope(view);
     const columnTable = this.extractViewColumnsTableName(view);
@@ -1017,6 +1069,12 @@ export default class View implements ViewType {
     );
     await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.title}`);
     await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.id}`);
+
+    // on update, delete any optimised single query cache
+    await NocoCache.delAll(
+      CacheScope.SINGLE_QUERY,
+      `${view.fk_model_id}:${view.id}:*`,
+    );
   }
 
   private static extractViewColumnsTableName(view: View) {
@@ -1258,8 +1316,8 @@ export default class View implements ViewType {
     );
   }
 
-  async delete() {
-    await View.delete(this.id);
+  async delete(ncMeta = Noco.ncMeta) {
+    await View.delete(this.id, ncMeta);
   }
 
   static async shareViewList(tableId, ncMeta = Noco.ncMeta) {

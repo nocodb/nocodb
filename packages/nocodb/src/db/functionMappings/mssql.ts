@@ -130,15 +130,15 @@ const mssql = {
         )}, 
         ${dateIN > 0 ? '+' : ''}${(await fn(pt.arguments[1])).builder}, ${
           (await fn(pt.arguments[0])).builder
-        }), 'yyyy-MM-dd HH:mm')
+        }), 'yyyy-MM-dd HH:mm:ss')
       ELSE
        FORMAT(DATEADD(${String((await fn(pt.arguments[2])).builder).replace(
          /["']/g,
          '',
        )}, 
-       ${dateIN > 0 ? '+' : ''}${(await fn(pt.arguments[1])).builder}, ${fn(
-          pt.arguments[0],
-        )}), 'yyyy-MM-dd')
+       ${dateIN > 0 ? '+' : ''}${(await fn(pt.arguments[1])).builder}, ${
+          (await fn(pt.arguments[0])).builder
+        }), 'yyyy-MM-dd')
       END${colAlias}`,
       ),
     };

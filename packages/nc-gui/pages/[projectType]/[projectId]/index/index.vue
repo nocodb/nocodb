@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { Icon as IconifyIcon } from '@iconify/vue'
 import type { TabItem } from '~/lib'
 import { TabType } from '~/lib'
 import { TabMetaInj, iconMap, provide, storeToRefs, useGlobal, useSidebar, useTabs } from '#imports'
@@ -44,7 +44,7 @@ const hideSidebarOnClickOrTouchIfMobileMode = () => {
 <template>
   <div class="h-full w-full nc-container">
     <div class="h-full w-full flex flex-col">
-      <div class="flex items-end !min-h-[var(--header-height)] !bg-white-500 nc-tab-bar">
+      <div class="flex items-end !min-h-[var(--sidebar-top-height)] !bg-white-500 nc-tab-bar">
         <div
           v-if="!isOpen"
           class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3"
@@ -63,7 +63,7 @@ const hideSidebarOnClickOrTouchIfMobileMode = () => {
             <template #tab>
               <div class="flex items-center gap-2" data-testid="nc-tab-title">
                 <div class="flex items-center">
-                  <Icon
+                  <IconifyIcon
                     v-if="tab.meta?.icon"
                     :icon="tab.meta?.icon"
                     class="text-xl"

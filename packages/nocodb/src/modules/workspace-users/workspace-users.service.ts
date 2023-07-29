@@ -2,13 +2,17 @@ import { Injectable } from '@nestjs/common';
 import validator from 'validator';
 import { v4 as uuidv4 } from 'uuid';
 import { AppEvents, WorkspaceUserRoles } from 'nocodb-sdk';
+import * as ejs from 'ejs';
 import WorkspaceUser from '../../models/WorkspaceUser';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import validateParams from '../../helpers/validateParams';
 import { NcError } from '../../helpers/catchError';
-import { User } from '../../models';
+import { Project, ProjectUser, User } from '../../models';
 import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
 import Workspace from '../../models/Workspace';
+import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
+import { getWorkspaceSiteUrl } from '../../utils';
+import { rolesLabel } from '../../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
 
 @Injectable()
@@ -38,20 +42,76 @@ export class WorkspaceUsersService {
     workspaceId: string;
     userId: string;
     roles: WorkspaceUserRoles;
+    siteUrl: string;
   }) {
-    const user = await WorkspaceUser.get(param.workspaceId, param.userId);
+    const workspaceUser = await WorkspaceUser.get(
+      param.workspaceId,
+      param.userId,
+    );
+
+    if (!workspaceUser)
+      NcError.notFound('User is not a member of this workspace');
+
+    const user = await User.get(param.userId);
 
     if (!user) NcError.notFound('User not found');
+
+    const workspace = await Workspace.get(param.workspaceId);
+
+    if (!workspace) NcError.notFound('Workspace not found');
+
+    if (workspaceUser.roles === WorkspaceUserRoles.OWNER)
+      NcError.badRequest('Owner cannot be updated');
+
+    if (
+      ![
+        WorkspaceUserRoles.CREATOR,
+        WorkspaceUserRoles.VIEWER,
+        WorkspaceUserRoles.EDITOR,
+        WorkspaceUserRoles.COMMENTER,
+      ].includes(param.roles)
+    ) {
+      NcError.badRequest('Invalid role');
+    }
 
     await WorkspaceUser.update(param.workspaceId, param.userId, {
       roles: param.roles,
     });
 
-    return user;
+    this.sendRoleUpdateEmail({
+      workspace,
+      user,
+      roles: param.roles,
+      siteUrl: getWorkspaceSiteUrl({
+        siteUrl: param.siteUrl,
+        workspaceId: workspace.id,
+      }),
+    }).then(() => {
+      /* ignore */
+    });
+
+    return workspaceUser;
   }
 
   async delete(param: { workspaceId: string; userId: string }) {
     const { workspaceId, userId } = param;
+
+    const user = await WorkspaceUser.get(workspaceId, userId);
+
+    if (!user) NcError.notFound('User not found');
+
+    if (user.roles === WorkspaceUserRoles.OWNER)
+      NcError.badRequest('Owner cannot be deleted');
+
+    // get all projects user is part of and delete them
+    const workspaceProjects = await Project.listByWorkspaceAndUser(
+      workspaceId,
+      userId,
+    );
+
+    for (const project of workspaceProjects) {
+      await ProjectUser.delete(project.id, userId);
+    }
 
     return await WorkspaceUser.delete(workspaceId, userId);
   }
@@ -60,6 +120,7 @@ export class WorkspaceUsersService {
     workspaceId: string;
     body: any;
     invitedBy?: UserType;
+    siteUrl: string;
   }) {
     validateParams(['email', 'roles'], param.body);
 
@@ -79,8 +140,12 @@ export class WorkspaceUsersService {
     }
 
     if (
-      roles !== WorkspaceUserRoles.CREATOR &&
-      roles !== WorkspaceUserRoles.VIEWER
+      ![
+        WorkspaceUserRoles.CREATOR,
+        WorkspaceUserRoles.VIEWER,
+        WorkspaceUserRoles.EDITOR,
+        WorkspaceUserRoles.COMMENTER,
+      ].includes(roles)
     ) {
       NcError.badRequest('Invalid role');
     }
@@ -121,6 +186,22 @@ export class WorkspaceUsersService {
           roles: roles || 'editor',
         });
 
+        this.sendInviteEmail({
+          workspace,
+          user,
+          roles: roles || 'viewer',
+          siteUrl: getWorkspaceSiteUrl({
+            siteUrl: param.siteUrl,
+            workspaceId: workspace.id,
+          }),
+        })
+          .then(() => {
+            /* ignore */
+          })
+          .catch((e) => {
+            console.error(e);
+          });
+
         this.appHooksService.emit(AppEvents.WORKSPACE_INVITE, {
           workspace,
           user,
@@ -128,7 +209,7 @@ export class WorkspaceUsersService {
         });
       } else {
         // todo: send invite email
-        NcError.badRequest(`${email} is not registerd in noco`);
+        NcError.badRequest(`${email} is not registered in Noco`);
       }
     }
 
@@ -177,5 +258,95 @@ export class WorkspaceUsersService {
         invite_token: null,
       },
     );
+  }
+
+  private async sendInviteEmail({
+    user,
+    workspace,
+    roles,
+    siteUrl,
+  }: {
+    workspace: Workspace;
+    roles: any;
+    user: any;
+    siteUrl: string;
+  }) {
+    try {
+      const template = (await import('./emailTemplates/invite')).default;
+      await NcPluginMgrv2.emailAdapter()
+        .then((adapter) => {
+          if (!adapter)
+            return Promise.reject(
+              'Email Plugin is not found. Please contact administrators to configure it in App Store first.',
+            );
+          adapter
+            .mailSend({
+              to: user.email,
+              subject: "You've been invited to a Noco Cloud Workspace\n",
+              text: `Visit following link to access the workspace : ${siteUrl}/dashboard/#/ws/${workspace.id}`,
+              html: ejs.render(template, {
+                workspaceLink: siteUrl + `/dashboard/#/ws/${workspace.id}`,
+                workspaceName: workspace.title,
+                roles: rolesLabel[roles],
+              }),
+            })
+            .catch((e) => {
+              console.error(e);
+            });
+        })
+        .catch((e) => {
+          console.error(e);
+        });
+    } catch (e) {
+      console.log(e);
+      return NcError.badRequest(
+        'Email Plugin is not found. Please contact administrators to configure it in App Store first.',
+      );
+    }
+  }
+
+  private async sendRoleUpdateEmail({
+    user,
+    workspace,
+    roles,
+    siteUrl,
+  }: {
+    workspace: Workspace;
+    roles: any;
+    user: any;
+    siteUrl: string;
+  }) {
+    try {
+      const template = (await import('./emailTemplates/roleUpdate')).default;
+      await NcPluginMgrv2.emailAdapter()
+        .then((adapter) => {
+          if (!adapter)
+            return Promise.reject(
+              'Email Plugin is not found. Please contact administrators to configure it in App Store first.',
+            );
+          adapter
+            .mailSend({
+              to: user.email,
+              subject: 'Your workspace role has been updated',
+              text: `Your role in workspace ${workspace.title} has been updated to ${rolesLabel[roles]}`,
+              html: ejs.render(template, {
+                workspaceLink: siteUrl + `/dashboard/#/ws/${workspace.id}`,
+                workspaceName: workspace.title,
+                roles: rolesLabel[roles],
+              }),
+            })
+            .catch((e) => {
+              console.error(e);
+            });
+        })
+        .catch((e) => {
+          console.error(e);
+        });
+    } catch (e) {
+      console.log(e);
+      return NcError.badRequest(
+        'Email Plugin is not found. Please contact administrators to configure it in App Store first.',
+      );
+    }
   }
 }

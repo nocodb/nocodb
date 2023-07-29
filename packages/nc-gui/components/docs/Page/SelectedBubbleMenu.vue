@@ -3,7 +3,8 @@ import { defineProps } from 'vue'
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3'
 import type { Mark } from 'prosemirror-model'
-import { CellSelection } from '@tiptap/prosemirror-tables'
+import { CellSelection } from '@tiptap/pm/tables'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import MdiFormatBulletList from '~icons/mdi/format-list-bulleted'
 import MdiFormatStrikeThrough from '~icons/mdi/format-strikethrough'
 import MdiFormatListNumber from '~icons/mdi/format-list-numbered'
@@ -12,6 +13,10 @@ import { tiptapTextColor } from '~/utils/tiptapExtensions/helper'
 import { AISelection } from '~~/utils/tiptapExtensions/AISelection'
 
 const { editor } = defineProps<Props>()
+
+const { project } = storeToRefs(useProject())
+
+const { gptPageExpand } = useDocStore()
 
 interface Props {
   editor: Editor
@@ -28,6 +33,30 @@ const isImageNode = computed(() => {
   return activeNode?.type?.name === 'image'
 })
 const isImageNodeDebounced = ref(isImageNode.value)
+
+const parentIsTableCell = computed(() => {
+  if (!editor) return false
+
+  let parent = editor.state.selection.$from.node(-1)
+  parent =
+    parent?.type.name === TiptapNodesTypes.tableCell && editor.state.selection.$from.depth > 4
+      ? parent
+      : editor.state.selection.$from.node(-2)
+
+  return parent?.type.name === TiptapNodesTypes.tableCell
+})
+
+const parentIsCallout = computed(() => {
+  if (!editor) return false
+
+  let parent = editor.state.selection.$from.node(-1)
+  parent =
+    parent?.type.name === TiptapNodesTypes.tableCell && editor.state.selection.$from.depth > 4
+      ? parent
+      : editor.state.selection.$from.node(-2)
+
+  return parent?.type.name === TiptapNodesTypes.callout
+})
 
 const isTableCellSelected = computed(() => {
   if (!editor) return false
@@ -71,6 +100,8 @@ const expandText = async () => {
 
   const fromSec = getPositionOfSection(editor.state, selection.from + 1, 'start')
   const toSec = getPositionOfNextSection(editor.state, selection.to - 1, 'start') ?? editor.state.doc.content.size
+    const markdown = converter.makeMarkdown(selectedHtml)
+    const response: any = await gptPageExpand({ text: markdown, projectId: project.value.id! })
 
   tr.setSelection(AISelection.create(editor.state.doc, fromSec, toSec - 2))
   editor.view.dispatch(tr)
@@ -139,7 +170,7 @@ const handleEditorMouseDown = (e: MouseEvent) => {
   const isBubble = domsInEvent.some((dom) => dom?.classList?.contains('bubble-menu'))
   if (isBubble) return
 
-  const pageContent = document.querySelector('.nc-docs-page')
+  const pageContent = document.querySelector('.nc-docs-page-wrapper')
   pageContent?.classList.add('bubble-menu-hidden')
 }
 
@@ -149,7 +180,7 @@ const handleEditorMouseUp = (e: MouseEvent) => {
   if (isBubble) return
 
   setTimeout(() => {
-    const pageContent = document.querySelector('.nc-docs-page')
+    const pageContent = document.querySelector('.nc-docs-page-wrapper')
     pageContent?.classList.remove('bubble-menu-hidden')
   }, 100)
 }
@@ -187,6 +218,7 @@ onUnmounted(() => {
         </a-button>
         <div class="divider"></div>
       </template>
+    <div v-if="showMenuDebounced" class="bubble-menu flex flex-row gap-x-1 py-1 rounded-lg px-1">
       <a-button
         type="text"
         :class="{ 'is-active': editor.isActive('bold') }"
@@ -284,7 +316,7 @@ onUnmounted(() => {
           <MaterialSymbolsKeyboardArrowDownRounded class="!h-3 !w-3" />
         </div>
         <template #overlay>
-          <div v-if="showMenuDebounced" class="mt-1 shadow-sm flex flex-col bg-gray-100 rounded-md p-1 gap-y-1 w-40">
+          <div v-if="showMenuDebounced" class="bubble-menu mt-1 flex flex-col rounded-md p-1 gap-y-1 w-40">
             <div class="flex my-1 ml-2 text-xs text-gray-600">Color</div>
             <div class="flex bubble-text-format-button" @click="editor!.chain().focus().unsetColor().run()">
               <div class="bubble-text-format-button-icon">A</div>
@@ -329,6 +361,27 @@ onUnmounted(() => {
           </div>
         </template>
       </a-dropdown>
+
+      <template v-if="!isTableCellSelected && !parentIsTableCell && !parentIsCallout">
+        <div class="divider"></div>
+
+        <a-button
+          type="text"
+          :loading="isMagicExpandLoading"
+          class="menu-button !flex !flex-row !items-center"
+          :class="{
+            '!hover:bg-inherit !cursor-not-allowed': isMagicExpandLoading,
+          }"
+          :aria-active="isMagicExpandLoading"
+          data-testid="nc-docs-editor-expand-button"
+          @click="expandText"
+        >
+          <div class="flex flex-row items-center pr-0.5">
+            <GeneralIcon v-if="!isMagicExpandLoading" icon="magic" class="text-orange-400 h-3.5" />
+            <div class="!text-xs !ml-1">Expand</div>
+          </div>
+        </a-button>
+      </template>
     </div>
   </BubbleMenu>
 </template>
@@ -337,6 +390,10 @@ onUnmounted(() => {
 .bubble-menu-hidden {
   [data-tippy-root] {
     opacity: 0;
+    height: 0;
+    overflow: hidden;
+    z-index: -1;
+    user-select: none;
   }
 }
 
@@ -346,31 +403,23 @@ onUnmounted(() => {
   font-weight: 600;
 }
 .bubble-text-format-button {
-  @apply rounded-md py-1 my-0 pl-2.5 pr-3 cursor-pointer items-center gap-x-2.5;
-
-  &:hover {
-    background-color: #e5e5e5;
-  }
+  @apply rounded-md py-1 my-0 pl-2.5 pr-3 cursor-pointer items-center gap-x-2.5 hover:bg-gray-100;
 }
 
 .bubble-menu {
   // shadow
-  @apply shadow-gray-200 shadow-sm;
+  @apply border-gray-100 bg-white;
+  border-width: 1px;
+  box-shadow: 0px 0px 1.2rem 0 rgb(230, 230, 230) !important;
 
   .is-active {
-    @apply border-1;
-    border-color: rgb(216, 216, 216);
-    background-color: #dddddd !important;
+    @apply border-1 !hover:bg-gray-200 border-1 border-gray-200 bg-gray-100;
   }
   .menu-button {
-    @apply rounded-md !py-0 !my-0 !px-1.5 !h-8;
-
-    &:hover {
-      background-color: #e5e5e5;
-    }
+    @apply rounded-md !py-0 !my-0 !px-1.5 !h-8 hover:bg-gray-100;
   }
   .divider {
-    @apply border-r border-gray-200 !h-6 !mx-0.5 my-1;
+    @apply border-r-1 border-gray-200 !h-6 !mx-0.5 my-1;
   }
   .ant-select-selector {
     @apply !rounded-md;

@@ -10,7 +10,7 @@ import {
   addRowBefore,
   deleteColumn as deleteColumnTiptap,
   goToNextCell,
-} from '@tiptap/prosemirror-tables'
+} from '@tiptap/pm/tables'
 
 const { getPos, editor } = defineProps(nodeViewProps)
 
@@ -160,11 +160,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <NodeViewWrapper class="vue-component group relative p-0" as="td">
+  <NodeViewWrapper class="tiptap-vue-component group relative p-0" as="td">
     <div ref="cellRef" class="group tiptap-table-cell overflow-visible flex">
       <div
         v-if="isFirstCell && !isPublic && !isFirstRowCell"
-        class="flex flex-col justify-center absolute h-full -left-3 z-50 min-w-4 min-h-4 !group-[.tiptap-table-cell]:hover:opacity-100"
+        class="flex flex-col justify-center absolute h-full -left-3 top-0 z-50 min-w-4 min-h-4 !group-[.tiptap-table-cell]:hover:opacity-100"
       >
         <div
           class="absolute flex border-gray-200 border-1 bg-white hover:bg-gray-100 py-0.5 rounded-md row-drag-handle hidden cursor-pointer"
@@ -205,7 +205,7 @@ onMounted(() => {
       </div>
       <div
         v-if="isFirstRowCell && !isPublic && !isSingleColumn"
-        class="flex flex-row justify-center absolute h-8 z-50 -top-4 !w-full justify-center min-w-4 min-h-4 !group-[.tiptap-table-cell]:hover:opacity-100"
+        class="flex flex-row justify-center absolute h-8 z-50 left-0 -top-4 !w-full justify-center min-w-4 min-h-4 !group-[.tiptap-table-cell]:hover:opacity-100"
       >
         <div
           class="flex flex-row absolute tiptap-column-options mt-1.5"
@@ -249,7 +249,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <NodeViewContent class="node-view-content py-1.5 px-3 !w-full" />
+      <NodeViewContent class="node-view-content !w-full" />
     </div>
   </NodeViewWrapper>
 </template>
@@ -264,52 +264,5 @@ onMounted(() => {
 }
 .tiptap-column-options {
   color: rgb(184, 184, 184);
-}
-</style>
-
-<style lang="scss">
-.tiptap-table-wrapper {
-  // First cell
-  tr:hover > td:first-child .row-drag-handle {
-    display: block;
-  }
-
-  tr:first-child > td:hover .tiptap-column-options {
-    display: flex;
-  }
-
-  tr:first-child > td:only-child:hover .tiptap-column-options {
-    display: none;
-  }
-}
-
-.selectedCell {
-  @apply !bg-primary-selected;
-
-  .tiptap-column-options {
-    display: none !important;
-  }
-  .row-drag-handle {
-    display: none !important;
-  }
-}
-
-.docs-table-row-options {
-  @apply !shadow-none;
-  .ant-popover-inner-content {
-    @apply !shadow-none !p-0;
-  }
-  .ant-popover-arrow {
-    @apply !shadow-none;
-    .ant-popover-arrow-content {
-      @apply !shadow-none !bg-gray-100;
-    }
-  }
-  .ant-popover-inner {
-    @apply !shadow-none !bg-gray-100 !p-1 !rounded-md;
-  }
-}
-.tiptap-table-cell {
-  @apply w-full;
 }
 </style>

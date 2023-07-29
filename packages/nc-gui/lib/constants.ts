@@ -5,6 +5,8 @@ export const NOCO = 'noco'
 
 export const SYSTEM_COLUMNS = ['id', 'title', 'created_at', 'updated_at']
 
+export const EMPTY_TITLE_PLACEHOLDER_DOCS = 'Untitled'
+
 export const BASE_FALLBACK_URL = process.env.NODE_ENV === 'production' ? '..' : 'http://localhost:8080'
 /**
  * Each permission value means the following
@@ -35,6 +37,7 @@ const rolePermissions = {
       superAdminAppSettings: true,
       appLicense: true,
       moveProject: true,
+      projectDelete: true,
     },
   },
   [ProjectRole.Owner]: {
@@ -64,6 +67,9 @@ const rolePermissions = {
       apiDocs: true,
       projectSettings: true,
       newUser: false,
+      commentEditable: true,
+      commentList: true,
+      commentsCount: true,
     },
   },
   [ProjectRole.Commenter]: {
@@ -72,6 +78,9 @@ const rolePermissions = {
       column: true,
       rowComments: true,
       projectSettings: true,
+      commentEditable: true,
+      commentList: true,
+      commentsCount: true,
     },
   },
   [ProjectRole.Viewer]: {
@@ -85,7 +94,14 @@ const rolePermissions = {
 
 // todo: fix type error
 rolePermissions[WorkspaceUserRoles.OWNER] = rolePermissions[ProjectRole.Owner]
-rolePermissions[WorkspaceUserRoles.CREATOR] = rolePermissions[ProjectRole.Creator]
+rolePermissions[WorkspaceUserRoles.CREATOR] = {
+  exclude: {
+    ...rolePermissions[ProjectRole.Creator].exclude,
+    workspaceDelete: true,
+  },
+}
 rolePermissions[WorkspaceUserRoles.VIEWER] = rolePermissions[ProjectRole.Viewer]
+rolePermissions[WorkspaceUserRoles.EDITOR] = rolePermissions[ProjectRole.Editor]
+rolePermissions[WorkspaceUserRoles.COMMENTER] = rolePermissions[ProjectRole.Commenter]
 
 export { rolePermissions }

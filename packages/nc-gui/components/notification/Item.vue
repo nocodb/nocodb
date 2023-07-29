@@ -14,7 +14,7 @@ const { markAsRead } = notificationStore
 </script>
 
 <template>
-  <div class="select-none" @click.stop="markAsRead(item)">
+  <div class="select-none" @click="markAsRead(item)">
     <NotificationItemWelcome v-if="item.type === AppEvents.WELCOME" :item="item" />
     <NotificationItemProjectInvite v-else-if="item.type === AppEvents.PROJECT_INVITE" :item="item" />
     <NotificationItemWorkspaceInvite v-else-if="item.type === AppEvents.WORKSPACE_INVITE" :item="item" />

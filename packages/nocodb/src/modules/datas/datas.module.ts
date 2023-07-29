@@ -16,6 +16,7 @@ import { DataAliasNestedService } from '../../services/data-alias-nested.service
 import { OldDatasService } from '../../controllers/old-datas/old-datas.service';
 import { PublicDatasExportService } from '../../services/public-datas-export.service';
 import { PublicDatasService } from '../../services/public-datas.service';
+import { DataOptService } from '~/services/data-opt/data-opt.service';
 
 @Module({
   imports: [
@@ -27,14 +28,18 @@ import { PublicDatasService } from '../../services/public-datas.service';
     }),
   ],
   controllers: [
-    DatasController,
-    BulkDataAliasController,
-    DataAliasController,
-    DataAliasNestedController,
-    DataAliasExportController,
-    OldDatasController,
-    PublicDatasController,
-    PublicDatasExportController,
+    ...(process.env.NC_WORKER_CONTAINER !== 'true'
+      ? [
+          DatasController,
+          BulkDataAliasController,
+          DataAliasController,
+          DataAliasNestedController,
+          DataAliasExportController,
+          OldDatasController,
+          PublicDatasController,
+          PublicDatasExportController,
+        ]
+      : []),
   ],
   providers: [
     DatasService,
@@ -43,6 +48,7 @@ import { PublicDatasService } from '../../services/public-datas.service';
     OldDatasService,
     PublicDatasService,
     PublicDatasExportService,
+    DataOptService,
   ],
   exports: [
     DatasService,
@@ -51,6 +57,7 @@ import { PublicDatasService } from '../../services/public-datas.service';
     OldDatasService,
     PublicDatasService,
     PublicDatasExportService,
+    DataOptService,
   ],
 })
 export class DatasModule {}

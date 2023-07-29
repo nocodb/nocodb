@@ -58,6 +58,7 @@ const toggleListItemInSliceJson = ({ content, type }: { content: any[]; type: Li
 }
 
 export const toggleItem = ({ chain, type, state }: { chain: () => ChainedCommands; state: EditorState; type: ListNodeType }) => {
+  console.log('toggleItem')
   const selection = state.selection
   const _currentSecNodePos = getPositionOfSection(state)
   const _nextSecNodeEndPos = getPositionOfSection(state, state.selection.to - 1, 'end')
@@ -102,6 +103,8 @@ export const toggleItem = ({ chain, type, state }: { chain: () => ChainedCommand
   }
 
   const newSlice = Slice.fromJSON(state.schema, sliceJson)
+
+  console.log('newSlice', newSlice)
 
   return chain()
     .command(() => {

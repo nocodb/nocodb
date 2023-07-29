@@ -2,7 +2,7 @@ import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import { Plugin, PluginKey } from 'prosemirror-state'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import type { ListNodeType } from './helper'
-import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspaceWithNestedList, onEnter, toggleItem } from './helper'
+import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspace, onEnter, toggleItem } from './helper'
 
 export interface ListOptions {
   HTMLAttributes: Record<string, any>
@@ -53,35 +53,56 @@ export const Bullet = Node.create<ListOptions>({
         style: 'list-style-type: disc',
       },
       {
-        tag: 'div[data-type="bullet"]',
+        tag: 'li[data-type="bullet"]',
         attrs: { 'data-type': 'bullet' },
+        contentElement: '.tiptap-list-item-content',
       },
     ]
   },
 
   renderHTML({ node, HTMLAttributes }) {
+    let diskContent = '•'
     let diskStyle = 'disc'
     switch (Number(node.attrs.level) % 3) {
       case 0:
         diskStyle = 'disc'
+        diskContent = '•'
         break
       case 1:
         diskStyle = 'circle'
+        diskContent = '◦'
         break
       case 2:
         diskStyle = 'square'
+        // Square unicode
+        diskContent = '▪'
         break
     }
 
     return [
-      'div',
+      'li',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
+        'data-group-type': 'list-item',
         'data-type': node.type.name,
         'data-level': node.attrs.level,
         'data-disc-style': diskStyle,
         'style': `padding-left: ${Number(node.attrs.level)}rem;`,
       }),
-      ['div', { class: 'tiptap-list-item-content' }, 0],
+      [
+        'div',
+        {
+          contenteditable: false,
+          class: 'tiptap-list-item-start',
+        },
+        diskContent,
+      ],
+      [
+        'div',
+        {
+          class: 'tiptap-list-item-content',
+        },
+        0,
+      ],
     ]
   },
 
@@ -116,7 +137,7 @@ export const Bullet = Node.create<ListOptions>({
         return changeLevel(this.editor as any, this.name as ListNodeType, 'backward')
       },
       'Backspace': () => {
-        return onBackspaceWithNestedList(this.editor as any, this.name as any)
+        return onBackspace(this.editor as any, this.name as any)
       },
     }
   },

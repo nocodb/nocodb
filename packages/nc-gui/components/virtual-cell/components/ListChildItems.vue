@@ -16,10 +16,9 @@ import {
   useLTARStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
   useVModel,
-  watch,
 } from '#imports'
 
-const props = defineProps<{ modelValue?: boolean; cellValue: any }>()
+const props = defineProps<{ modelValue?: boolean; cellValue: any; column: any }>()
 
 const emit = defineEmits(['update:modelValue', 'attachRecord'])
 
@@ -40,7 +39,6 @@ const {
   childrenListPagination,
   relatedTableDisplayValueProp,
   unlink,
-  getRelatedTableRowId,
   relatedTableMeta,
 } = useLTARStoreOrThrow()
 
@@ -109,9 +107,8 @@ const onClick = (row: Row) => {
     :body-style="{ padding: 0 }"
     wrap-class-name="nc-modal-child-list"
   >
-    <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col py-6">
+    <div class="py-6 nc-scrollbar-md">
       <div class="flex mb-4 items-center gap-2 px-12">
-        <div class="flex-1" />
         <component
           :is="iconMap.reload"
           v-if="!isForm"
@@ -120,17 +117,9 @@ const onClick = (row: Row) => {
           @click="loadChildrenList"
         />
 
-        <a-button
-          v-if="!readonly"
-          type="primary"
-          ghost
-          class="!text-xs"
-          data-testid="nc-child-list-button-link-to"
-          size="small"
-          @click="emit('attachRecord')"
-        >
+        <a-button v-if="!readonly" type="primary" ghost data-testid="nc-child-list-button-link-to" @click="emit('attachRecord')">
           <div class="flex items-center gap-1">
-            <component :is="iconMap.link" class="text-xs" type="primary" />
+            <component :is="iconMap.link" type="primary" />
             Link to '
             <GeneralTableIcon :meta="relatedTableMeta" class="-mx-1 w-5" />
             {{ relatedTableMeta.title }}'
@@ -139,38 +128,45 @@ const onClick = (row: Row) => {
       </div>
 
       <template v-if="(isNew && state?.[colTitle]?.length) || childrenList?.pageInfo?.totalRows">
-        <div class="flex-1 overflow-auto min-h-0 scrollbar-thin-dull px-12 cursor-pointer">
-          <a-card
-            v-for="(row, i) of childrenList?.list ?? state?.[colTitle] ?? []"
-            :key="i"
-            class="!my-4 hover:(!bg-gray-200/50 shadow-md)"
-            @click="onClick(row)"
-          >
-            <div class="flex items-center">
-              <div class="flex-1 overflow-hidden min-w-0">
-                {{ row[relatedTableDisplayValueProp] }}
-                <span class="text-gray-400 text-[11px] ml-1">(Primary key : {{ getRelatedTableRowId(row) }})</span>
-              </div>
+        <div class="nc-scrollbar-md">
+          <div class="flex flex-col">
+            <div class="px-12 cursor-pointer">
+              <a-card
+                v-for="(row, i) of childrenList?.list ?? state?.[colTitle] ?? []"
+                :key="i"
+                class="nc-nested-list-item !my-2 hover:(!bg-gray-200/50 shadow-md)"
+                @click="onClick(row)"
+              >
+                <div class="flex items-center">
+                  <div class="flex-1 overflow-hidden min-w-0">
+                    <VirtualCellComponentsItemChip
+                      :border="false"
+                      :item="row"
+                      :value="row[relatedTableDisplayValueProp]"
+                      :column="props.column"
+                    />
+                  </div>
 
-              <div v-if="!readonly" class="flex gap-2">
-                <component
-                  :is="iconMap.linkRemove"
-                  class="text-xs text-grey hover:(!text-red-500) cursor-pointer"
-                  data-testid="nc-child-list-icon-unlink"
-                  @click.stop="unlinkRow(row)"
-                />
-                <component
-                  :is="iconMap.delete"
-                  v-if="!readonly && !isPublic"
-                  class="text-xs text-grey hover:(!text-red-500) cursor-pointer"
-                  data-testid="nc-child-list-icon-delete"
-                  @click.stop="deleteRelatedRow(row, unlinkIfNewRow)"
-                />
-              </div>
+                  <div v-if="!readonly" class="flex gap-2">
+                    <component
+                      :is="iconMap.linkRemove"
+                      class="!text-base text-grey hover:(!text-red-500) cursor-pointer nc-icon-transition"
+                      data-testid="nc-child-list-icon-unlink"
+                      @click.stop="unlinkRow(row)"
+                    />
+                    <component
+                      :is="iconMap.delete"
+                      v-if="!readonly && !isPublic"
+                      class="!text-base text-grey hover:(!text-red-500) cursor-pointer nc-icon-transition"
+                      data-testid="nc-child-list-icon-delete"
+                      @click.stop="deleteRelatedRow(row, unlinkIfNewRow)"
+                    />
+                  </div>
+                </div>
+              </a-card>
             </div>
-          </a-card>
+          </div>
         </div>
-
         <div class="flex justify-center mt-6">
           <a-pagination
             v-if="!isNew && childrenList?.pageInfo"
@@ -183,12 +179,8 @@ const onClick = (row: Row) => {
           />
         </div>
       </template>
-      <a-empty
-        v-else
-        :class="{ 'my-10': !isForm, 'my-1 !text-xs': isForm }"
-        :image="Empty.PRESENTED_IMAGE_SIMPLE"
-        :image-style="isForm ? { height: '20px' } : {}"
-      />
+
+      <div v-else class="ml-12 text-gray-500">No Links</div>
     </div>
 
     <Suspense>
@@ -207,5 +199,9 @@ const onClick = (row: Row) => {
 <style scoped lang="scss">
 :deep(.ant-pagination-item a) {
   line-height: 21px !important;
+}
+
+:deep(.nc-nested-list-item .ant-card-body) {
+  @apply !px-1 !py-0;
 }
 </style>

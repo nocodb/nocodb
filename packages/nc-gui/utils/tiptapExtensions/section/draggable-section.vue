@@ -5,7 +5,7 @@ import { dragOptionStyle } from './dragOptionStyle'
 
 const { node, getPos, editor } = defineProps(nodeViewProps)
 
-const isPublic = !editor.view.editable
+const isEditable = !editor.view.editable
 
 const dragClicked = ref(false)
 const optionsPopoverRef = ref()
@@ -71,7 +71,7 @@ const createNodeAfter = () => {
 const onDragClick = () => {
   dragClicked.value = !dragClicked.value
 
-  editor.view.dispatch(editor.state.tr.setSelection(NodeSelection.create(editor.state.doc, pos.value)))
+  editor.view.dispatch(editor.state.tr.setSelection(NodeSelection.create(editor.state.doc, getPos())))
 }
 
 onClickOutside(optionsPopoverRef, () => {
@@ -126,13 +126,13 @@ editor.on('update', () => {
 
 <template>
   <NodeViewWrapper
-    class="vue-component draggable-block-wrapper"
+    class="tiptap-vue-component draggable-block-wrapper"
     :data-diff-node="node.attrs.isInsertedHistory ? 'ins' : node.attrs.isDeletedHistory ? 'del' : null"
     :data-is-diff="!!node.attrs.isInsertedHistory || !!node.attrs.isDeletedHistory"
     :pos="pos"
   >
     <div
-      v-if="!isPublic"
+      v-if="!isEditable"
       ref="dragDomRef"
       class="flex flex-row gap-0.5 w-full items-start"
       tiptap-draghandle-wrapper="true"
@@ -189,7 +189,7 @@ editor.on('update', () => {
 
       <NodeViewContent class="node-view-drag-content w-full" :data-testid="`nc-docs-tiptap-wrapper-${childNodeType}`" />
     </div>
-    <div v-else class="ml-7.5">
+    <div v-else class="ml-7.75">
       <NodeViewContent
         class="node-view-drag-content mb-2"
         :class="{

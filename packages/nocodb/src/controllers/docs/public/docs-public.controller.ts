@@ -5,7 +5,7 @@ import { PublicDocsService } from '../../../services/docs/public/public-docs.ser
 export class DocsPublicController {
   constructor(private readonly publicDocsService: PublicDocsService) {}
 
-  @Get('/api/v1/public/docs/project/:projectId/page/:id')
+  @Get('/api/v1/public/docs/:projectId/pages/:id')
   async getPublicPageAndProject(
     @Param('projectId') projectId: string,
     @Param('id') id: string,
@@ -16,7 +16,7 @@ export class DocsPublicController {
     });
   }
 
-  @Get('/api/v1/public/docs/project/:projectId/pages/:parentPageId')
+  @Get('/api/v1/public/docs/:projectId/pages/:parentPageId/nested')
   async listPublicPages(
     @Param('projectId') projectId: string,
     @Param('parentPageId') parentPageId: string,

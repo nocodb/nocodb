@@ -27,7 +27,6 @@ export const dragOptionStyle = ({
   } else if (nodeType === TiptapNodesTypes.bullet) {
     style = {
       marginTop: '0.2rem',
-      marginRight: '1.1rem',
     }
   } else if (nodeType === TiptapNodesTypes.ordered) {
     style = {
@@ -65,13 +64,9 @@ export const dragOptionStyle = ({
     style = {
       marginTop: '1.2rem',
     }
-  } else if (
-    nodeType === TiptapNodesTypes.infoCallout ||
-    nodeType === TiptapNodesTypes.warningCallout ||
-    nodeType === TiptapNodesTypes.tipCallout
-  ) {
+  } else if (nodeType === TiptapNodesTypes.callout) {
     style = {
-      marginTop: '1.25rem',
+      marginTop: '1.3rem',
     }
   } else if (nodeType === TiptapNodesTypes.divider) {
     style = {

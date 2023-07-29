@@ -2,9 +2,9 @@
 import { ref } from 'vue'
 import type { TreeProps } from 'ant-design-vue'
 import type { AntTreeNodeDropEvent } from 'ant-design-vue/lib/tree'
-import { Icon as IconifyIcon } from '@iconify/vue'
 import type { ProjectType } from 'nocodb-sdk'
-import { onMounted, toRef } from '@vue/runtime-core'
+import { toRef } from '@vue/runtime-core'
+import type { PageSidebarNode } from '~~/lib'
 
 const props = defineProps<{
   project: ProjectType
@@ -12,28 +12,24 @@ const props = defineProps<{
 
 const project = toRef(props, 'project')
 
-const MAX_NESTED_LEVEL = 5
-
-const { isPublic, openedPageInSidebar, nestedPagesOfProjects, isEditAllowed, openedTabsOfProjects } = storeToRefs(useDocStore())
+const { openedPageInSidebar, nestedPagesOfProjects, isEditAllowed, openedPage } = storeToRefs(useDocStore())
 
 const {
-  fetchNestedPages,
-  nestedUrl,
   deletePage,
   reorderPages,
   updatePage,
   addNewPage,
-  expandTabOfOpenedPage,
+  getPageWithParents,
   getChildrenOfPage,
-  openChildPageTabsOfRootPages,
   openPage,
+  getAllChildrenOfPage,
 } = useDocStore()
 
 const nestedPages = computed(() => nestedPagesOfProjects.value[project.value.id!])
 
 const openedTabs = ref<string[]>([])
 
-const deleteModalOpen = ref(false)
+const isDeleteModalOpen = ref(false)
 const selectedPageId = ref()
 
 const onLoadData: TreeProps['loadData'] = async (treeNode) => {
@@ -49,17 +45,11 @@ const openPageTabKeys = computed({
   set: () => {},
 })
 
-const openDeleteModal = ({ pageId }: { pageId: string }) => {
-  selectedPageId.value = pageId
-
-  deleteModalOpen.value = true
-}
-
 const onDeletePage = async () => {
   await deletePage({ pageId: selectedPageId.value })
 
   selectedPageId.value = undefined
-  deleteModalOpen.value = false
+  isDeleteModalOpen.value = false
 }
 
 const onDragEnter = () => {
@@ -91,25 +81,15 @@ const onDrop = async (info: AntTreeNodeDropEvent) => {
   })
 }
 
-const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: any; event: any; nativeEvent: any }) => {
-  if (!e.selected) return
-  const eventBubblePath: any[] = e.nativeEvent?.path ?? []
-  if (
-    eventBubblePath.some((el: any) => {
-      if (typeof el?.classList?.contains === 'function') {
-        return el.classList.contains('nc-docs-sidebar-page-options')
-      }
-
-      return false
-    })
-  ) {
-    return
-  }
+const onTabSelect = (page: PageSidebarNode) => {
+  if (openedPage.value?.id === page.id) return
 
   openPage({
-    page: e.node.dataRef,
+    page,
     projectId: project.value.id!,
   })
+
+  onExpandClick(page.id!, true)
 }
 
 const setIcon = async (id: string, icon: string) => {
@@ -122,61 +102,52 @@ const setIcon = async (id: string, icon: string) => {
 
 watch(
   openedPageInSidebar,
-  () => {
+  (newPage, prevPage) => {
     if (!openedPageInSidebar.value) return
 
-    expandTabOfOpenedPage({
-      projectId: project.value.id!,
-    })
-  },
-  {
-    immediate: true,
-  },
-)
+    if (newPage?.id === prevPage?.id) return
 
-watch(
-  () => openedTabsOfProjects.value[project.value.id!],
-  (val) => {
-    openedTabs.value = val ?? []
+    const pageWithParents = getPageWithParents({
+      page: openedPageInSidebar.value,
+      projectId: project.value.id!,
+    }).reverse()
+
+    for (const page of pageWithParents) {
+      if (!openedTabs.value.includes(page.id!)) {
+        openedTabs.value.push(page.id!)
+      }
+    }
   },
   {
     immediate: true,
-    deep: true,
   },
 )
 
 onKeyStroke('Enter', () => {
-  if (deleteModalOpen.value) {
+  if (isDeleteModalOpen.value) {
     onDeletePage()
   }
 })
 
-onMounted(async () => {
-  if (isPublic.value) return
+function onExpandClick(id: string, expanded: boolean) {
+  if (expanded) {
+    if (!openedTabs.value.includes(id)) {
+      openedTabs.value.push(id)
+    }
+  } else {
+    const children = getAllChildrenOfPage({ pageId: id, projectId: project.value.id! })
+    const pageIdWithChildrenId = [id, ...children.map((child) => child.id)]
 
-  await fetchNestedPages({ projectId: project.value.id! })
-
-  await openChildPageTabsOfRootPages({
-    projectId: project.value.id!,
-  })
-})
+    setTimeout(() => {
+      openedTabs.value = openedTabs.value.filter((tab) => !pageIdWithChildrenId.includes(tab))
+    }, 0)
+  }
+}
 </script>
 
 <template>
   <template v-if="nestedPages">
-    <a-layout-sider
-      :collapsed="false"
-      collapsed-width="50"
-      class="relative h-full z-1 nc-docs-left-sidebar !min-w-56.5 pb-1 !bg-inherit pl-2"
-      :class="{
-        'px-1 !min-w-61.5': isPublic,
-        '!min-w-56.5': !isPublic,
-      }"
-      :data-testid="`docs-sidebar-${project.title}`"
-      :trigger="null"
-      collapsible
-      theme="light"
-    >
+    <div class="nc-docs-sidebar">
       <a-tree
         v-model:expanded-keys="openedTabs"
         v-model:selectedKeys="openPageTabKeys"
@@ -186,18 +157,40 @@ onMounted(async () => {
         :on-drop="onDrop"
         class="!w-full h-full overflow-y-scroll !overflow-x-hidden !bg-inherit"
         @dragenter="onDragEnter"
-        @select="onTabSelect"
       >
-        <template #title="{ title, id, icon, level }">
+        <template #switcherIcon="{ expanded, children, key }">
           <div
-            class="flex flex-row items-center justify-between group pt-1"
-            :data-testid="`docs-sidebar-page-${project.title}-${title}`"
-            :data-level="level"
+            class="flex flex-row nc-sidebar-expand h-full items-center justify-end"
+            :style="{
+              width: children.length > 0 ? `${(children[0].level - 1) * 2.5 + 3.5}rem` : undefined,
+              marginLeft: children.length > 0 ? '-1.25rem' : undefined,
+            }"
+            @click="() => onExpandClick(key, !expanded)"
           >
+            <PhTriangleFill
+              class="cursor-pointer transform transition-transform duration-500 h-1.25 text-gray-500"
+              :class="{ 'rotate-180': expanded, 'rotate-90': !expanded }"
+            />
+          </div>
+        </template>
+        <template #title="page">
+          <div
+            class="flex flex-row items-center justify-between group"
+            :data-testid="`docs-sidebar-page-${project.title}-${page.title}`"
+            :data-level="page.level"
+          >
+            <div
+              class="flex h-6"
+              :style="{
+                width: !page.children || page.children.length === 0 ? `${page.level * 2.5 + 2.25}rem` : undefined,
+              }"
+              @click="onTabSelect(page)"
+            ></div>
             <div
               class="flex flex-row gap-x-1 text-ellipsis overflow-clip min-w-0 transition-all duration-200 ease-in-out"
               :class="{}"
             >
+              <div class="nc-docs-sidebar-spacer"></div>
               <div class="flex flex-shrink-0">
                 <a-popover
                   :visible="isEditAllowed ? undefined : false"
@@ -206,96 +199,51 @@ onMounted(async () => {
                   color="#000000"
                 >
                   <template #content> Change Icon </template>
-                  <a-dropdown placement="bottom" trigger="click" :disabled="!isEditAllowed">
-                    <div
-                      class="flex px-0.75 pt-0.75 text-gray-500 rounded-md"
-                      :class="{
-                        'hover:bg-gray-300 cursor-pointer': isEditAllowed,
-                      }"
-                      data-testid="docs-sidebar-emoji-selector"
-                    >
-                      <IconifyIcon
-                        v-if="icon"
-                        :key="icon"
-                        :data-testid="`nc-doc-page-icon-${icon}`"
-                        class="text-lg"
-                        :icon="icon"
-                      ></IconifyIcon>
-                      <MdiFileDocumentOutline v-else />
-                    </div>
-                    <template #overlay>
-                      <div class="flex flex-col p-1 bg-gray-50 rounded-md">
-                        <GeneralEmojiIcons class="shadow p-2" @select-icon="setIcon(id, $event)" />
-                      </div>
+                  <GeneralEmojiPicker
+                    :key="page.icon"
+                    :emoji="page.icon"
+                    size="small"
+                    clearable
+                    :readonly="!isEditAllowed"
+                    @emoji-selected="setIcon(page.id, $event)"
+                  >
+                    <template #default>
+                      <MdiFileDocumentOutline
+                        class="text-gray-600 text-sm"
+                        :class="{
+                          'text-black': openedPage?.id === page.id,
+                        }"
+                      />
                     </template>
-                  </a-dropdown>
+                  </GeneralEmojiPicker>
                 </a-popover>
               </div>
               <span
                 class="text-ellipsis overflow-hidden nc-docs-sidebar-page-title"
                 :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+                @click="() => onTabSelect(page)"
               >
-                {{ title }}
+                {{ !page.title ? EMPTY_TITLE_PLACEHOLDER_DOCS : page.title }}
               </span>
             </div>
-            <div v-if="isEditAllowed" class="flex flex-row justify-start items-center pl-2 gap-x-1 h-3">
-              <a-dropdown placement="bottom" trigger="click">
-                <div
-                  class="nc-docs-sidebar-page-options flex px-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
-                  data-testid="docs-sidebar-page-options"
-                >
-                  <MdiDotsHorizontal />
-                </div>
-                <template #overlay>
-                  <div class="flex flex-col p-1 bg-gray-50 rounded-md w-28 gap-y-0.5 border-1 border-gray-100">
-                    <div
-                      class="flex items-center cursor-pointer select-none px-1.5 py-1.5 text-xs gap-x-2.5 hover:bg-gray-100 rounded-md !text-red-500"
-                      data-testid="docs-sidebar-page-delete"
-                      @click="() => openDeleteModal({ pageId: id })"
-                    >
-                      <MdiDeleteOutline class="h-3.5" />
-                      <div class="flex font-semibold">Delete</div>
-                    </div>
-                  </div>
-                  <a-menu>
-                    <a-menu-item class="!py-2">
-                      <div
-                        class="flex flex-row items-center space-x-2 text-red-500"
-                        @click="() => openDeleteModal({ pageId: id })"
-                      >
-                        <MdiDeleteOutline class="flex" />
-                        <div class="flex">Delete</div>
-                      </div>
-                    </a-menu-item>
-                  </a-menu>
-                </template>
-              </a-dropdown>
-              <div
-                v-if="level < MAX_NESTED_LEVEL"
-                class="nc-docs-add-child-page flex px-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
-                @click="() => addNewPage({parentPageId: id, projectId: project.id!})"
-              >
-                <MdiPlus />
-              </div>
-            </div>
+            <!-- Select page when clicked on the empty area in the sidebar node -->
+            <div class="flex flex-grow h-6" @click="() => onTabSelect(page)"></div>
+            <DocsSidebarPageOption
+              :level="page.level"
+              @open-delete-modal="isDeleteModalOpen = true"
+              @update-selected-page-id="selectedPageId = page.id"
+              @add-new-page="() => addNewPage({ parentPageId: page.id, projectId: project.id! })"
+            />
           </div>
         </template>
       </a-tree>
-      <div
-        v-if="isEditAllowed"
-        class="py-1 flex flex-row pl-7 items-center gap-x-2 cursor-pointer hover:text-black text-gray-600 text-sm"
-        data-testid="nc-docs-sidebar-add-page"
-        @click="() => addNewPage({parentPageId: undefined, projectId: project.id!})"
-      >
-        <MdiPlus />
-        <div class="flex">Create New Page</div>
-      </div>
-    </a-layout-sider>
-    <a-modal v-model:visible="deleteModalOpen" centered :closable="false" :footer="false">
+    </div>
+
+    <a-modal v-model:visible="isDeleteModalOpen" centered :closable="false" :footer="false">
       <div class="flex flex-col ml-2">
         <div class="flex ml-1">Are you sure you want to delete this page?</div>
         <div class="flex flex-row mt-4 space-x-3">
-          <a-button type="text" @click="deleteModalOpen = false">Cancel</a-button>
+          <a-button type="text" @click="isDeleteModalOpen = false">Cancel</a-button>
           <a-button type="danger" data-testid="docs-page-delete-confirmation" @click="onDeletePage">Delete</a-button>
         </div>
       </div>
@@ -309,111 +257,89 @@ onMounted(async () => {
   background: transparent !important;
 }
 
-.docs-page-icon-change-popover {
-  .ant-popover-inner {
-    padding: 0 !important;
+.ant-tree-node-content-wrapper {
+  min-width: 0 !important;
+}
+
+.ant-tree {
+  // scrollbar reduce width and gray color
+  overflow: overlay;
+  &::-webkit-scrollbar {
+    width: 4px;
   }
-  .ant-popover-inner-content {
-    @apply !px-1.5 !py-1 text-xs text-white bg-black;
+
+  /* Track */
+  &::-webkit-scrollbar-track {
+    background: #f6f6f600 !important;
+  }
+
+  /* Handle */
+  &::-webkit-scrollbar-thumb {
+    background: #f6f6f600;
+  }
+
+  /* Handle on hover */
+  &::-webkit-scrollbar-thumb:hover {
+    background: #f6f6f600;
+  }
+}
+.ant-tree:hover {
+  // scrollbar reduce width and gray color
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  /* Track */
+  &::-webkit-scrollbar-track {
+    background: #f6f6f600 !important;
+  }
+
+  /* Handle */
+  &::-webkit-scrollbar-thumb {
+    background: rgb(234, 234, 234);
+  }
+
+  /* Handle on hover */
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgb(203, 203, 203);
   }
 }
 
-.nc-docs-left-sidebar {
-  .ant-tree-node-content-wrapper {
-    min-width: 0 !important;
+.ant-tree-treenode {
+  @apply flex flex-row items-center w-full rounded-md pb-0 h-7.25 hover:bg-hover mb-0.25 !important;
+  transition: none !important;
+}
+
+.ant-tree-treenode:hover {
+  .nc-sidebar-expand {
+    @apply !text-gray-500;
   }
+}
+.ant-tree-treenode:last-child {
+  @apply !mb-0;
+}
+.ant-tree-node-content-wrapper {
+  @apply w-full mr-0.5 pl-0.5 bg-inherit transition-none !important;
+  transition: none !important;
+}
 
-  .ant-tree {
-    // scrollbar reduce width and gray color
-    overflow: overlay;
-    &::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    /* Track */
-    &::-webkit-scrollbar-track {
-      background: #f6f6f600 !important;
-    }
-
-    /* Handle */
-    &::-webkit-scrollbar-thumb {
-      background: #f6f6f600;
-    }
-
-    /* Handle on hover */
-    &::-webkit-scrollbar-thumb:hover {
-      background: #f6f6f600;
-    }
-  }
-  .ant-tree:hover {
-    // scrollbar reduce width and gray color
-    &::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    /* Track */
-    &::-webkit-scrollbar-track {
-      background: #f6f6f600 !important;
-    }
-
-    /* Handle */
-    &::-webkit-scrollbar-thumb {
-      background: rgb(234, 234, 234);
-    }
-
-    /* Handle on hover */
-    &::-webkit-scrollbar-thumb:hover {
-      background: rgb(203, 203, 203);
-    }
-  }
-  .ant-tree-treenode {
-    @apply w-full rounded-md mt-0.65 !important;
-  }
-  .ant-tree-node-content-wrapper {
-    @apply w-full mr-2 pl-0.5 bg-inherit transition-none !important;
+.ant-tree-list {
+  .ant-tree-treenode-selected {
+    @apply !bg-primary-selected;
     transition: none !important;
   }
-  .ant-tree-list {
-    @apply pt-0.5 last:pb-1;
-    .ant-tree-switcher {
-      @apply mt-1 !important;
-    }
-    .ant-tree-switcher-icon {
-      @apply !text-gray-300;
-    }
-    .ant-tree-treenode {
-      @apply !hover:bg-gray-200;
-      transition: none !important;
-    }
-    .ant-tree-treenode-selected {
-      @apply !bg-primary-selected-sidebar !hover:bg-primary-selected-sidebar;
-      transition: none !important;
-    }
-    .ant-tree-node-selected {
-      transition: none !important;
-      @apply !bg-primary-selected-sidebar !hover:bg-primary-selected-sidebar;
-    }
-    // .ant-tree-treenode-selected {
-    //   @apply !bg-primary-selected-sidebar;
-    // }
-    .ant-tree-indent-unit {
-      @apply w-4 !important;
-    }
+  .ant-tree-node-selected {
+    transition: none !important;
+    @apply !bg-primary-selected !hover:bg-primary-selected font-semibold;
   }
-
-  .nc-docs-menu .ant-dropdown-menu-item {
-    @apply p-0 !important;
+  .ant-tree-indent-unit {
+    @apply w-0 !important;
   }
-
-  // .page-search {
-  //   @apply !rounded-md !bg-gray-100;
-  //   input.ant-input {
-  //     @apply !bg-gray-100;
-  //     // placeholder
-  //     &::placeholder {
-  //       @apply !text-black text-xs pl-1;
-  //     }
-  //   }
-  // }
+}
+.ant-tree-switcher {
+  width: fit-content;
+}
+.nc-docs-menu .ant-dropdown-menu-item {
+  @apply p-0 !important;
 }
 </style>

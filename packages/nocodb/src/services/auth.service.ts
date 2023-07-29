@@ -5,18 +5,13 @@ import * as bcrypt from 'bcryptjs';
 
 import { v4 as uuidv4 } from 'uuid';
 import Noco from '../Noco';
-import { Connection } from '../connection/connection';
 import { genJwt } from './users/helpers';
 import { UsersService } from './users/users.service';
 import type { CreateUserDto } from '../controllers/auth.controller';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private usersService: UsersService,
-    // private jwtService: JwtService,
-    private connection: Connection,
-  ) {}
+  constructor(private usersService: UsersService) {}
 
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.usersService.findOne(email);
@@ -145,14 +140,6 @@ export class AuthService {
     // setTokenCookie(param.res, refreshToken);
     //
     // user = (param.req as any).user;
-
-    // await Audit.insert({
-    //   op_type: 'AUTHENTICATION',
-    //   op_sub_type: 'SIGNUP',
-    //   user: user.email,
-    //   description: `signed up `,
-    //   ip: (param.req as any).clientIp,
-    // });
 
     return this.login(user);
   }

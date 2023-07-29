@@ -1,9 +1,17 @@
 import { Injectable } from '@nestjs/common';
+import { type UserType, ViewTypes } from 'nocodb-sdk';
 import WorkspaceUser from '../models/WorkspaceUser';
 import { Project } from '../models';
 import { NcError } from '../helpers/catchError';
 import { TablesService } from './tables.service';
-import type { UserType } from 'nocodb-sdk';
+
+const viewTypeAlias: Record<number, string> = {
+  [ViewTypes.GRID]: 'grid',
+  [ViewTypes.FORM]: 'form',
+  [ViewTypes.GALLERY]: 'gallery',
+  [ViewTypes.KANBAN]: 'kanban',
+  [ViewTypes.MAP]: 'map',
+};
 
 @Injectable()
 export class CommandPaletteService {
@@ -14,19 +22,11 @@ export class CommandPaletteService {
     try {
       const { scope, data } = param.body;
       switch (scope) {
-        case 'workspace':
+        case 'root':
           {
             const workspaces = await WorkspaceUser.workspaceList({
               fk_user_id: param.user?.id,
             });
-
-            if (workspaces.length) {
-              cmdData.push({
-                id: 'workspaces',
-                title: 'Workspaces',
-                children: [...workspaces.map((w) => `ws-${w.id}`)],
-              });
-            }
 
             const allProjects = [];
 
@@ -35,6 +35,7 @@ export class CommandPaletteService {
                 id: `ws-${workspace.id}`,
                 title: workspace.title,
                 parent: 'workspaces',
+                icon: 'workspace',
                 handler: {
                   type: 'navigate',
                   payload: `/?workspaceId=${workspace.id}&page=workspace`,
@@ -49,38 +50,44 @@ export class CommandPaletteService {
               allProjects.push(...projects);
             }
 
-            if (allProjects.length) {
-              cmdData.push({
-                id: 'projects',
-                title: 'Projects',
-                children: [...allProjects.map((p) => `p-${p.id}`)],
-              });
-            }
-
             for (const project of allProjects) {
               cmdData.push({
                 id: `p-${project.id}`,
                 title: project.title,
                 parent: 'projects',
+                icon: 'database',
                 handler: {
                   type: 'navigate',
-                  payload: `/nc/${project.id}`,
+                  payload: `/ws/${project.fk_workspace_id}/project/${project.id}`,
                 },
               });
             }
           }
           break;
-        case 'project':
+        case 'workspace':
           {
-            const viewList = (
-              (await this.tablesService.xcVisibilityMetaGet(
-                data.project_id,
-              )) as any[]
-            ).filter((v) => {
-              return Object.keys(param.user.roles).some(
-                (role) => param.user.roles[role] && !v.disabled[role],
+            const projects = await Project.listByWorkspaceAndUser(
+              data.workspace_id,
+              param.user?.id,
+            );
+
+            const viewList = [];
+
+            for (const project of projects) {
+              viewList.push(
+                ...(
+                  (await this.tablesService.xcVisibilityMetaGet(
+                    project.id,
+                    null,
+                    false,
+                  )) as any[]
+                ).filter((v) => {
+                  return Object.keys(param.user.roles).some(
+                    (role) => param.user.roles[role] && !v.disabled[role],
+                  );
+                }),
               );
-            });
+            }
 
             const tableList = [];
             const vwList = [];
@@ -91,45 +98,33 @@ export class CommandPaletteService {
                   id: `tbl-${v.fk_model_id}`,
                   title: v._ptn,
                   parent: 'tables',
+                  icon: 'table',
+                  section: projects.find((el) => el.id === v.project_id)?.title,
                   handler: {
                     type: 'navigate',
-                    payload: `/nc/${data.project_id}/table/${v.fk_model_id}`,
+                    payload: `/ws/${data.workspace_id}/project/${v.project_id}/table/${v.fk_model_id}`,
                   },
                 });
               }
               vwList.push({
                 id: `vw-${v.id}`,
-                title: `${v._ptn}: ${v.title}`,
+                title: `${v.title}`,
                 parent: 'views',
+                icon: viewTypeAlias[v.type] || 'table',
+                section: `${
+                  projects.find((el) => el.id === v.project_id)?.title
+                } / ${v._ptn}`,
                 handler: {
                   type: 'navigate',
-                  payload: `/nc/${data.project_id}/table/${
-                    v.fk_model_id
-                  }/${encodeURIComponent(v.title)}`,
+                  payload: `/ws/${data.workspace_id}/project/${
+                    v.project_id
+                  }/table/${v.fk_model_id}/${encodeURIComponent(v.title)}`,
                 },
               });
             }
 
             cmdData.push(...tableList);
             cmdData.push(...vwList);
-
-            if (tableList.length) {
-              cmdData.push({
-                id: 'tables',
-                title: 'Tables',
-                parent: scope,
-                children: [...tableList.map((w) => `tbl-${w.id}`)],
-              });
-            }
-
-            if (vwList.length) {
-              cmdData.push({
-                id: 'views',
-                title: 'Views',
-                parent: scope,
-                children: [...vwList.map((w) => `vw-${w.id}`)],
-              });
-            }
           }
           break;
       }

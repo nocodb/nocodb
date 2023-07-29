@@ -23,7 +23,7 @@ on:
         type: string
 jobs:
   close-issues:
-    runs-on: self-hosted
+    runs-on: [self-hosted, aws]
     steps:
       - uses: actions/checkout@master
       - name: close-resolved-issues

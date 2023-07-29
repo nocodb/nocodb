@@ -7,7 +7,7 @@ on:
   workflow_call:
 jobs:
   release:
-    runs-on: self-hosted
+    runs-on: [self-hosted, aws]
     steps:
       - name: Setup Node
         uses: actions/setup-node@v3

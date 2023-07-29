@@ -5,15 +5,18 @@ const props = defineProps<{
   activeWorkspaceId: string
   modal?: boolean
   type?: string
+  isOpen: boolean
 }>()
 
-const emit = defineEmits<{
-  (event: 'createProject', type: NcProjectType): void
-}>()
+const emits = defineEmits(['update:isOpen'])
 
 const router = useRouter()
 
+// v-model for isOpen
+const isOpen = useVModel(props, 'isOpen', emits)
+
 const projectCreateDlg = ref(false)
+const dashboardProjectCreateDlg = ref(false)
 const projectType = ref(NcProjectType.DB)
 
 const navigateToCreateProject = (type: NcProjectType) => {
@@ -33,6 +36,10 @@ const navigateToCreateProject = (type: NcProjectType) => {
       })
     }
   }
+}
+
+const openCreateDashboardProjectOverlay = () => {
+  dashboardProjectCreateDlg.value = true
 }
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
@@ -58,46 +65,47 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <template>
   <div>
-    <a-dropdown>
-      <a-button :type="props.type ?? 'primary'">
-        <div class="flex items-center gap-2">
-          <slot>New Project <MdiMenuDown /></slot>
-        </div>
-      </a-button>
+    <a-button
+      class="!py-0 !px-0 !border-0 !h-full !rounded-md w-full hover:bg-gray-100 text-sm select-none cursor-pointer"
+      :type="props.type ?? 'primary'"
+      @click="navigateToCreateProject(NcProjectType.DB)"
+    >
+      <div class="flex w-full items-center gap-2">
+        <slot>New Project <MdiMenuDown /></slot>
+      </div>
+    </a-button>
+    <!-- <a-dropdown v-model:visible="isOpen" class="w-full">
       <template #overlay>
         <a-menu>
           <a-menu-item @click="navigateToCreateProject(NcProjectType.DB)">
-            <div class="py-4 px-1 flex items-center gap-4 nc-create-project-btn-db">
+            <div class="py-4 px-1 flex items-center gap-2 nc-create-project-btn-db">
               <GeneralProjectIcon :type="NcProjectType.DB" class="text-[#2824FB] text-lg" />
               Database
               <span class="flex-grow" />
               <GeneralShortcutLabel class="justify-center" :keys="['Alt', 'D']" />
             </div>
           </a-menu-item>
+          <a-menu-item @click="openCreateDashboardProjectOverlay()">
+            <div class="py-4 px-1 flex items-center gap-2">
+              <GeneralProjectIcon :type="NcProjectType.DASHBOARD" class="text-[#2824FB] text-lg" />
+              Dashboard
+              <span class="flex-grow" />
+              <GeneralShortcutLabel class="justify-center" :keys="['Alt', 'D']" />
+            </div>
+          </a-menu-item>
           <a-menu-item @click="navigateToCreateProject(NcProjectType.DOCS)">
-            <div class="py-4 px-1 flex items-center gap-4 nc-create-project-btn-docs">
+            <div class="py-4 px-1 flex items-center gap-2 nc-create-project-btn-docs">
               <GeneralProjectIcon :type="NcProjectType.DOCS" class="text-[#247727] text-lg" />
               Documentation
               <span class="flex-grow" />
               <GeneralShortcutLabel class="justify-center" :keys="['Alt', 'B']" />
             </div>
           </a-menu-item>
-          <!--          <a-menu-item @click="navigateToCreateProject(NcProjectType.AUTOMATION)">
-            <div class="py-4 px-1 flex items-center gap-4">
-              <GeneralProjectIcon :type="NcProjectType.AUTOMATION" class="text-[#DDB00F] text-lg" />
-              Automation
-            </div>
-          </a-menu-item>
-          <a-menu-item @click="navigateToCreateProject(NcProjectType.COWRITER)">
-            <div class="py-4 px-1 flex items-center gap-4">
-              <GeneralProjectIcon :type="NcProjectType.COWRITER" class="text-[#8626FF] text-lg" />
-              Cowriter
-            </div>
-          </a-menu-item> -->
         </a-menu>
       </template>
-    </a-dropdown>
+    </a-dropdown> -->
     <WorkspaceCreateProjectDlg v-model="projectCreateDlg" :type="projectType" />
+    <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
   </div>
 </template>
 

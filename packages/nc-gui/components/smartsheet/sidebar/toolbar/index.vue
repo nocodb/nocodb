@@ -13,8 +13,6 @@ const onClick = () => {
   <div class="flex gap-2 justify-start" @click="onClick">
     <slot name="start" />
 
-    <LazySmartsheetSidebarToolbarToggleDrawer />
-
     <span></span>
 
     <template v-if="debug">

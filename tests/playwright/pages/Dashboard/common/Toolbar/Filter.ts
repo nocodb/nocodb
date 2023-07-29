@@ -37,6 +37,75 @@ export class ToolbarFilterPage extends BasePage {
     await this.get().locator(`button:has-text("Add Filter")`).first().click();
   }
 
+  // can reuse code for addFilterGroup and addFilter
+  // support for subOperation & datatype specific filter operations not supported yet
+  async addFilterGroup({
+    title,
+    operation,
+    _subOperation: _subOperation,
+    value,
+    _locallySaved: _locallySaved = false,
+    _dataType: _dataType,
+    _openModal: _openModal = false,
+    _skipWaitingResponse: _skipWaitingResponse = false, // used for undo (single request, less stable)
+    filterGroupIndex = 0,
+    filterLogicalOperator = 'AND',
+  }: {
+    title: string;
+    operation: string;
+    _subOperation?: string; // for date datatype
+    value?: string;
+    _locallySaved?: boolean;
+    _dataType?: string;
+    _openModal?: boolean;
+    _skipWaitingResponse?: boolean;
+    filterGroupIndex?: number;
+    filterLogicalOperator?: string;
+  }) {
+    await this.get().locator(`button:has-text("Add Filter Group")`).last().click();
+    const filterDropdown = await this.get().locator('.menu-filter-dropdown').nth(filterGroupIndex);
+    await filterDropdown.waitFor({ state: 'visible' });
+    await filterDropdown.locator(`button:has-text("Add Filter")`).first().click();
+    const selectField = await filterDropdown.locator('.nc-filter-field-select').last();
+    const selectOperation = await filterDropdown.locator('.nc-filter-operation-select').last();
+    const selectValue = await filterDropdown.locator('.nc-filter-value-select > input').last();
+
+    await selectField.waitFor({ state: 'visible' });
+    await selectField.click();
+    const fieldDropdown = await this.rootPage
+      .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
+      .last()
+      .locator(`div[label="${title}"]:visible`);
+    await fieldDropdown.waitFor({ state: 'visible' });
+    await fieldDropdown.click();
+
+    await selectOperation.waitFor({ state: 'visible' });
+    await selectOperation.click();
+    const operationDropdown = await this.rootPage
+      .locator('div.ant-select-dropdown.nc-dropdown-filter-comp-op')
+      .last()
+      .locator(`.ant-select-item:has-text("${operation}")`);
+    await operationDropdown.waitFor({ state: 'visible' });
+    await operationDropdown.click();
+
+    await selectValue.waitFor({ state: 'visible' });
+    await selectValue.fill(value);
+
+    if (filterGroupIndex) {
+      if (filterLogicalOperator === 'OR') {
+        const logicalButton = await this.rootPage.locator('div.flex.bob').nth(filterGroupIndex - 1);
+        await logicalButton.waitFor({ state: 'visible' });
+        await logicalButton.click();
+
+        const logicalDropdown = await this.rootPage.locator(
+          'div.ant-select-dropdown.nc-dropdown-filter-logical-op-group'
+        );
+        await logicalDropdown.waitFor({ state: 'visible' });
+        await logicalDropdown.locator(`.ant-select-item:has-text("${filterLogicalOperator}")`).click();
+      }
+    }
+  }
+
   async add({
     title,
     operation,
@@ -45,6 +114,7 @@ export class ToolbarFilterPage extends BasePage {
     locallySaved = false,
     dataType,
     openModal = false,
+    skipWaitingResponse = false, // used for undo (single request, less stable)
   }: {
     title: string;
     operation: string;
@@ -53,27 +123,59 @@ export class ToolbarFilterPage extends BasePage {
     locallySaved?: boolean;
     dataType?: string;
     openModal?: boolean;
+    skipWaitingResponse?: boolean;
   }) {
     if (!openModal) await this.get().locator(`button:has-text("Add Filter")`).first().click();
 
-    const selectedField = await getTextExcludeIconText(await this.rootPage.locator('.nc-filter-field-select'));
+    const selectedField = await getTextExcludeIconText(
+      await this.rootPage.locator('.nc-filter-field-select .ant-select-selection-item')
+    );
     if (selectedField !== title) {
       await this.rootPage.locator('.nc-filter-field-select').last().click();
-      await this.rootPage
-        .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
-        .locator(`div[label="${title}"]:visible`)
-        .click();
+
+      if (skipWaitingResponse) {
+        await this.rootPage
+          .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
+          .locator(`div[label="${title}"]:visible`)
+          .click()
+          .then(() => {});
+      } else {
+        await this.waitForResponse({
+          uiAction: () =>
+            this.rootPage
+              .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
+              .locator(`div[label="${title}"]:visible`)
+              .click(),
+          httpMethodsToMatch: ['GET'],
+          requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+        });
+      }
     }
 
     const selectedOpType = await getTextExcludeIconText(await this.rootPage.locator('.nc-filter-operation-select'));
     if (selectedOpType !== operation) {
       await this.rootPage.locator('.nc-filter-operation-select').click();
       // first() : filter list has >, >=
-      await this.rootPage
-        .locator('.nc-dropdown-filter-comp-op')
-        .locator(`.ant-select-item:has-text("${operation}")`)
-        .first()
-        .click();
+
+      if (skipWaitingResponse) {
+        await this.rootPage
+          .locator('.nc-dropdown-filter-comp-op')
+          .locator(`.ant-select-item:has-text("${operation}")`)
+          .first()
+          .click()
+          .then(() => {});
+      } else {
+        await this.waitForResponse({
+          uiAction: () =>
+            this.rootPage
+              .locator('.nc-dropdown-filter-comp-op')
+              .locator(`.ant-select-item:has-text("${operation}")`)
+              .first()
+              .click(),
+          httpMethodsToMatch: ['GET'],
+          requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+        });
+      }
     }
 
     // subtype for date
@@ -84,11 +186,25 @@ export class ToolbarFilterPage extends BasePage {
       if (selectedSubType !== subOperation) {
         await this.rootPage.locator('.nc-filter-sub_operation-select').click();
         // first() : filter list has >, >=
-        await this.rootPage
-          .locator('.nc-dropdown-filter-comp-sub-op')
-          .locator(`.ant-select-item:has-text("${subOperation}")`)
-          .first()
-          .click();
+
+        if (skipWaitingResponse) {
+          await this.rootPage
+            .locator('.nc-dropdown-filter-comp-sub-op')
+            .locator(`.ant-select-item:has-text("${subOperation}")`)
+            .first()
+            .click();
+        } else {
+          await this.waitForResponse({
+            uiAction: () =>
+              this.rootPage
+                .locator('.nc-dropdown-filter-comp-sub-op')
+                .locator(`.ant-select-item:has-text("${subOperation}")`)
+                .first()
+                .click(),
+            httpMethodsToMatch: ['GET'],
+            requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+          });
+        }
       }
     }
 
@@ -120,7 +236,16 @@ export class ToolbarFilterPage extends BasePage {
           if (subOperation === 'exact date') {
             await this.get().locator('.nc-filter-value-select').click();
             await this.rootPage.locator(`.ant-picker-dropdown:visible`);
-            await this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click();
+
+            if (skipWaitingResponse) {
+              await this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click();
+            } else {
+              await this.waitForResponse({
+                uiAction: () => this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click(),
+                httpMethodsToMatch: ['GET'],
+                requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+              });
+            }
           } else {
             fillFilter = () => this.rootPage.locator('.nc-filter-value-select > input').last().fill(value);
             await this.waitForResponse({
@@ -133,7 +258,15 @@ export class ToolbarFilterPage extends BasePage {
           }
           break;
         case UITypes.Duration:
-          await this.get().locator('.nc-filter-value-select').locator('input').fill(value);
+          if (skipWaitingResponse) {
+            await this.get().locator('.nc-filter-value-select').locator('input').fill(value);
+          } else {
+            await this.waitForResponse({
+              uiAction: () => this.get().locator('.nc-filter-value-select').locator('input').fill(value),
+              httpMethodsToMatch: ['GET'],
+              requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+            });
+          }
           break;
         case UITypes.Rating:
           await this.get()

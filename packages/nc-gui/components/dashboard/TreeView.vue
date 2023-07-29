@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { nextTick } from '@vue/runtime-core'
 import type { BaseType, TableType } from 'nocodb-sdk'
 import type { Input } from 'ant-design-vue'
 import { Dropdown, Tooltip, message } from 'ant-design-vue'
@@ -9,6 +10,7 @@ import type { VNodeRef } from '#imports'
 import {
   ClientType,
   Empty,
+  JobStatus,
   TabType,
   computed,
   extractSdkResponseErrorMsg,
@@ -38,7 +40,7 @@ const { isMobileMode } = useGlobal()
 
 const { addTab, updateTab } = useTabs()
 
-const { $api, $e } = useNuxtApp()
+const { $api, $e, $jobs } = useNuxtApp()
 
 const projectStore = useProject()
 
@@ -57,7 +59,7 @@ const [searchActive, toggleSearchActive] = useToggle()
 
 const { appInfo } = useGlobal()
 
-const { selectedBase } = useSqlEditor()
+const { selectBase } = useSqlEditor()
 
 const { addUndo, defineProjectScope } = useUndoRedo()
 
@@ -97,6 +99,8 @@ const initSortable = (el: Element) => {
   Sortable.create(el as HTMLLIElement, {
     onEnd: async (evt) => {
       const { newIndex = 0, oldIndex = 0 } = evt
+
+      if (newIndex === oldIndex) return
 
       const itemEl = evt.item as HTMLLIElement
       const item = tablesById[itemEl.dataset.id as string]
@@ -186,6 +190,18 @@ const initSortable = (el: Element) => {
       })
     },
     animation: 150,
+    setData(dataTransfer, dragEl) {
+      dataTransfer.setData(
+        'text/json',
+        JSON.stringify({
+          id: dragEl.dataset.id,
+          title: dragEl.dataset.title,
+          type: dragEl.dataset.type,
+          baseId: dragEl.dataset.baseId,
+        }),
+      )
+    },
+    revertOnSpill: true,
   })
 }
 
@@ -208,7 +224,7 @@ const icon = (table: TableType) => {
   }
 }
 
-const contextMenuTarget = reactive<{ type?: 'base' | 'table' | 'main'; value?: any }>({})
+const contextMenuTarget = reactive<{ type?: 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
 
 const setMenuContext = (type: 'base' | 'table' | 'main', value?: any) => {
   contextMenuTarget.type = type
@@ -281,6 +297,15 @@ function openAirtableImportDialog(baseId?: string) {
   }
 }
 
+function scrollToTable(table: TableType) {
+  // get the table node in the tree view using the data-id attribute
+  const el = document.querySelector(`.nc-tree-item[data-id="${table?.id}"]`)
+  // scroll to the table node if found
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth' })
+  }
+}
+
 function openTableCreateDialog(baseId?: string) {
   $e('c:table:create:navdraw')
 
@@ -290,6 +315,12 @@ function openTableCreateDialog(baseId?: string) {
     'modelValue': isOpen,
     'baseId': baseId || bases.value[0].id,
     'onUpdate:modelValue': closeDialog,
+    'onCreate': (table: TableType) => {
+      // on new table created scroll to the table in the tree view
+      nextTick(() => {
+        scrollToTable(table)
+      })
+    },
   })
 
   function closeDialog() {
@@ -337,7 +368,7 @@ function openSchemaMagicDialog(baseId?: string) {
 
 function openSqlEditor(base?: BaseType) {
   if (!base) base = bases.value?.filter((base: BaseType) => base.enabled)[0]
-  selectedBase.value = base.id
+  selectBase(project.value.id!, base.id!)
   navigateTo(`/${route.params.projectType}/${route.params.projectId}/sql`)
 }
 
@@ -447,6 +478,41 @@ const handleContext = (e: MouseEvent) => {
 }
 
 useEventListener(document, 'contextmenu', handleContext, true)
+
+const duplicateTable = async (table: TableType) => {
+  if (!table || !table.id || !table.project_id) return
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgTableDuplicate'), {
+    'modelValue': isOpen,
+    'table': table,
+    'onOk': async (jobData: { id: string }) => {
+      $jobs.subscribe({ id: jobData.id }, undefined, async (status: string, data?: any) => {
+        if (status === JobStatus.COMPLETED) {
+          await loadTables()
+          const newTable = tables.value.find((el) => el.id === data?.result?.id)
+          if (newTable) addTableTab(newTable)
+          await nextTick(() => {
+            scrollToTable(newTable)
+          })
+        } else if (status === JobStatus.FAILED) {
+          message.error('Failed to duplicate table')
+          await loadTables()
+        }
+      })
+
+      $e('a:table:duplicate')
+    },
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
 </script>
 
 <template>
@@ -551,7 +617,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
                     </div>
                   </a-menu-item>
                   <a-menu-item
-                    v-if="appInfo.ee"
+                    v-if="appInfo.ee && false"
                     key="connect-new-source"
                     @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)"
                   >
@@ -697,7 +763,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
                       </div>
                     </a-menu-item>
                     <a-menu-item
-                      v-if="appInfo.ee"
+                      v-if="appInfo.ee && false"
                       key="connect-new-source"
                       @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)"
                     >
@@ -747,6 +813,9 @@ useEventListener(document, 'contextmenu', handleContext, true)
                     class="nc-tree-item text-sm cursor-pointer group"
                     :data-order="table.order"
                     :data-id="table.id"
+                    :data-base-id="bases[0].id"
+                    :data-type="table.type"
+                    :data-title="table.title"
                     :data-testid="`tree-view-table-${table.title}`"
                     @click="addTableTab(table)"
                   >
@@ -812,6 +881,12 @@ useEventListener(document, 'contextmenu', handleContext, true)
                               <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(table, bases[0].id)">
                                 <div class="nc-project-menu-item" :data-testid="`sidebar-table-rename-${table.title}`">
                                   {{ $t('general.rename') }}
+                                </div>
+                              </a-menu-item>
+
+                              <a-menu-item v-if="isUIAllowed('table-duplicate')" @click="duplicateTable(table)">
+                                <div class="nc-project-menu-item" :data-testid="`sidebar-table-duplicate-${table.title}`">
+                                  {{ $t('general.duplicate') }}
                                 </div>
                               </a-menu-item>
 
@@ -1115,6 +1190,9 @@ useEventListener(document, 'contextmenu', handleContext, true)
                       class="nc-tree-item text-sm cursor-pointer group"
                       :data-order="table.order"
                       :data-id="table.id"
+                      :data-title="table.title"
+                      :data-base-id="base.id"
+                      :data-type="table.type"
                       :data-testid="`tree-view-table-${table.title}`"
                       @click="addTableTab(table)"
                     >
@@ -1185,6 +1263,12 @@ useEventListener(document, 'contextmenu', handleContext, true)
                                   </div>
                                 </a-menu-item>
 
+                                <a-menu-item v-if="isUIAllowed('table-duplicate') && !table.mm" @click="duplicateTable(table)">
+                                  <div class="nc-project-menu-item">
+                                    {{ $t('general.duplicate') }}
+                                  </div>
+                                </a-menu-item>
+
                                 <a-menu-item
                                   v-if="isUIAllowed('table-delete')"
                                   :data-testid="`sidebar-table-delete-${table.title}`"
@@ -1211,6 +1295,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
       <template v-if="!isSharedBase" #overlay>
         <a-menu class="!py-0 rounded text-sm">
           <template v-if="contextMenuTarget.type === 'base'">
+            <!--
             <a-menu-item v-if="isUIAllowed('sqlEditor')" @click="openSqlEditor(contextMenuTarget.value)">
               <div class="nc-project-menu-item">SQL Editor</div>
             </a-menu-item>
@@ -1218,6 +1303,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
             <a-menu-item @click="openErdView(contextMenuTarget.value)">
               <div class="nc-project-menu-item">ERD View</div>
             </a-menu-item>
+            -->
           </template>
 
           <template v-else-if="contextMenuTarget.type === 'table'">
@@ -1227,6 +1313,15 @@ useEventListener(document, 'contextmenu', handleContext, true)
             >
               <div class="nc-project-menu-item">
                 {{ $t('general.rename') }}
+              </div>
+            </a-menu-item>
+
+            <a-menu-item
+              v-if="isUIAllowed('table-duplicate') && !contextMenuTarget.value.mm"
+              @click="duplicateTable(contextMenuTarget.value)"
+            >
+              <div class="nc-project-menu-item">
+                {{ $t('general.duplicate') }}
               </div>
             </a-menu-item>
 
@@ -1281,7 +1376,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
 
 <style scoped lang="scss">
 .nc-treeview-container {
-  @apply h-[calc(100vh_-_var(--header-height))];
+  // @apply h-[calc(100vh_-_var(--sidebar-top-height))];
   border-right: 1px solid var(--navbar-border) !important;
 }
 

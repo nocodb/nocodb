@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
-import { Icon as IconifyIcon } from '@iconify/vue'
 import type { DocsPageType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 
@@ -67,7 +66,7 @@ watch(
 </script>
 
 <template>
-  <NodeViewWrapper class="vue-component link-to-page-wrapper relative rounded-sm my-1">
+  <NodeViewWrapper class="tiptap-vue-component link-to-page-wrapper relative rounded-sm my-1">
     <div
       v-if="!node.attrs.pageId"
       class="absolute w-full top-0 link-to-page-placeholder"
@@ -137,16 +136,12 @@ watch(
         }"
         :href="`#${nestedUrl({ id: page.id!, projectId: openedProjectId })}`"
       >
-        <div class="flex w-full flex-row py-1.5 px-2.5 hover:bg-gray-100 items-center gap-x-2.5 cursor-pointer group">
+        <div class="flex w-full flex-row py-1.5 px-2.5 hover:bg-gray-50 items-center gap-x-2.5 cursor-pointer group">
           <div class="relative">
-            <IconifyIcon
-              v-if="page.icon"
-              :key="page.icon"
-              :data-testid="`nc-doc-page-icon-${page.icon}`"
-              class="text-lg"
-              :icon="page.icon"
-            ></IconifyIcon>
-            <MdiFileDocumentOutline v-else class="text-black -mt-0.5 text-md" />
+            <GeneralEmojiPicker :key="page.icon" :emoji="page.icon" :readonly="true" size="small">
+              <MdiFileDocumentOutline class="text-black -mt-0.5 text-md" />
+            </GeneralEmojiPicker>
+
             <div
               class="absolute -right-2"
               :class="{

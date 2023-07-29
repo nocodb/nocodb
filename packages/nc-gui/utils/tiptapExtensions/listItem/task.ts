@@ -4,7 +4,7 @@ import { TiptapNodesTypes } from 'nocodb-sdk'
 
 import { Plugin, PluginKey } from 'prosemirror-state'
 import type { ListNodeType } from './helper'
-import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspaceWithNestedList, onEnter, toggleItem } from './helper'
+import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspace, onEnter, toggleItem } from './helper'
 
 export interface TaskOptions {
   HTMLAttributes: Record<string, any>
@@ -72,22 +72,35 @@ export const Task = Node.create<TaskOptions>({
     return [
       'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
+        'data-group-type': 'list-item',
         'data-type': this.name,
         'data-level': node.attrs.level,
         'style': `padding-left: ${Number(node.attrs.level)}rem;`,
       }),
       [
-        'label',
+        'div',
+        {
+          class: 'tiptap-list-item-start',
+        },
         [
-          'input',
-          {
-            type: 'checkbox',
-            checked: node.attrs.checked ? 'checked' : 'unchecked',
-          },
+          'label',
+          [
+            'input',
+            {
+              type: 'checkbox',
+              ...(node.attrs.checked ? { checked: true } : {}),
+            },
+          ],
+          ['span'],
         ],
-        ['span'],
       ],
-      ['div', 0],
+      [
+        'div',
+        {
+          class: 'tiptap-list-item-content',
+        },
+        0,
+      ],
     ]
   },
 
@@ -155,7 +168,7 @@ export const Task = Node.create<TaskOptions>({
   addKeyboardShortcuts() {
     return {
       'Backspace': () => {
-        if (onBackspaceWithNestedList(this.editor as any, this.name as any)) return true
+        if (onBackspace(this.editor as any, this.name as any)) return true
 
         return false
       },
@@ -224,14 +237,20 @@ export const Task = Node.create<TaskOptions>({
   addNodeView() {
     return ({ node, HTMLAttributes, getPos, editor }) => {
       const listItem = document.createElement('div')
+      listItem.setAttribute('data-group-type', 'list-item')
       listItem.setAttribute('data-type', 'task')
       listItem.setAttribute('data-level', node.attrs.level?.toString())
       listItem.style.paddingLeft = `${Number(node.attrs.level)}rem`
+
+      const checkboxWrapperWrapper = document.createElement('div')
+      checkboxWrapperWrapper.setAttribute('class', 'tiptap-list-item-start')
+      checkboxWrapperWrapper.contentEditable = 'false'
 
       const checkboxWrapper = document.createElement('label')
       const checkboxSpan = document.createElement('span')
       const checkboxInput = document.createElement('input')
       const content = document.createElement('div')
+      content.setAttribute('class', 'tiptap-list-item-content')
 
       checkboxWrapper.contentEditable = 'false'
       checkboxInput.type = 'checkbox'
@@ -267,7 +286,11 @@ export const Task = Node.create<TaskOptions>({
         if (!editor.isEditable && this.options.onReadOnlyChecked) {
           // Reset state if onReadOnlyChecked returns false
           if (!this.options.onReadOnlyChecked(node, checked)) {
-            checkboxInput.checked = !checkboxInput.checked
+            if (checkboxInput.checked) {
+              checkboxInput.removeAttribute('checked')
+            } else {
+              checkboxInput.setAttribute('checked', 'true')
+            }
           }
         }
       })
@@ -278,11 +301,12 @@ export const Task = Node.create<TaskOptions>({
 
       listItem.dataset.checked = node.attrs.checked
       if (node.attrs.checked) {
-        checkboxInput.setAttribute('checked', 'checked')
+        checkboxInput.setAttribute('checked', 'true')
       }
 
       checkboxWrapper.append(checkboxInput, checkboxSpan)
-      listItem.append(checkboxWrapper, content)
+      checkboxWrapperWrapper.append(checkboxWrapper)
+      listItem.append(checkboxWrapperWrapper, content)
 
       Object.entries(HTMLAttributes).forEach(([key, value]) => {
         listItem.setAttribute(key, value)
@@ -298,7 +322,7 @@ export const Task = Node.create<TaskOptions>({
 
           listItem.dataset.checked = updatedNode.attrs.checked
           if (updatedNode.attrs.checked) {
-            checkboxInput.setAttribute('checked', 'checked')
+            checkboxInput.setAttribute('checked', 'true')
           } else {
             checkboxInput.removeAttribute('checked')
           }

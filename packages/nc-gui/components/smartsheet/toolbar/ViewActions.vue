@@ -49,7 +49,7 @@ type QuickImportDialogType = 'csv' | 'excel' | 'json'
 // TODO: add 'json' when it's ready
 const quickImportDialogTypes: QuickImportDialogType[] = ['csv', 'excel']
 
-const quickImportDialogs: Record<typeof quickImportDialogTypes[number], Ref<boolean>> = quickImportDialogTypes.reduce(
+const quickImportDialogs: Record<(typeof quickImportDialogTypes)[number], Ref<boolean>> = quickImportDialogTypes.reduce(
   (acc: any, curr) => {
     acc[curr] = ref(false)
     return acc
@@ -107,26 +107,16 @@ useMenuCloseOnEsc(open)
 
 <template>
   <div>
-    <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
-      <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
-        <div class="flex gap-2 items-center">
-          <GeneralViewIcon :meta="selectedView"></GeneralViewIcon>
-
-          <span class="!text-xs font-weight-normal">
-            <GeneralTruncateText :key="selectedView?.title">{{ selectedView?.title }}</GeneralTruncateText>
-          </span>
-
-          <component :is="Icon" class="text-gray-500" :class="`nc-icon-${selectedView?.lock_type}`" />
-
-          <component :is="iconMap.arrowDown" class="text-grey" />
-        </div>
+    <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu" placement="bottomLeft">
+      <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn !border-0 !rounded-md !py-1 !px-2">
+        <MdiDotsHorizontal class="!w-4 !h-4" />
       </a-button>
 
       <template #overlay>
         <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded" data-testid="toolbar-actions" @click="open = false">
           <a-menu-item-group>
             <a-sub-menu
-              v-if="isUIAllowed('view-type')"
+              v-if="isUIAllowed('view-type') && false"
               key="lock-type"
               class="scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !py-0"
             >
@@ -134,7 +124,7 @@ useMenuCloseOnEsc(open)
                 <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group px-0 !py-0">
                   <LazySmartsheetToolbarLockType hide-tick :type="lockType" />
 
-                  <component :is="iconMap.arrowRight" class="transform group-hover:(scale-115 text-accent) text-gray-400" />
+                  <component :is="iconMap.arrowRight" class="transform group-hover:(scale-115 ) text-gray-400" />
                 </div>
               </template>
 
@@ -158,11 +148,11 @@ useMenuCloseOnEsc(open)
               <template #title>
                 <!--                Download -->
                 <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group">
-                  <component :is="iconMap.download" class="group-hover:text-accent text-gray-500" />
+                  <component :is="iconMap.cloudDownload" class="text-gray-500 group-hover:text-accent" />
                   {{ $t('general.download') }}
                   <div class="flex-1" />
 
-                  <component :is="iconMap.arrowRight" class="transform group-hover:(scale-115 text-accent) text-gray-400" />
+                  <component :is="iconMap.arrowRight" class="transform group-hover:(scale-115 ) text-gray-400" />
                 </div>
               </template>
 
@@ -176,11 +166,11 @@ useMenuCloseOnEsc(open)
                 <!--                Upload -->
                 <template #title>
                   <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group">
-                    <component :is="iconMap.upload" class="group-hover:text-accent text-gray-500" />
+                    <component :is="iconMap.upload" class="text-gray-500 group-hover:text-accent" />
                     {{ $t('general.upload') }}
                     <div class="flex-1" />
 
-                    <component :is="iconMap.arrowRight" class="transform group-hover:(scale-115 text-accent) text-gray-400" />
+                    <component :is="iconMap.arrowRight" class="transform group-hover:(scale-115 ) text-gray-400" />
                   </div>
                 </template>
 
@@ -201,48 +191,6 @@ useMenuCloseOnEsc(open)
                 </template>
               </a-sub-menu>
             </template>
-
-            <a-menu-divider />
-
-            <a-menu-item v-if="isUIAllowed('SharedViewList') && !isView && !isPublicView">
-              <div v-e="['a:actions:shared-view-list']" class="py-2 flex gap-2 items-center" @click="sharedViewListDlg = true">
-                <component :is="iconMap.list" class="text-gray-500" />
-                <!-- Shared View List -->
-                {{ $t('activity.listSharedView') }}
-              </div>
-            </a-menu-item>
-
-            <a-menu-item v-if="!isSqlView && !isMobileMode">
-              <div
-                v-if="isUIAllowed('webhook') && !isView && !isPublicView"
-                v-e="['c:actions:webhook']"
-                class="py-2 flex gap-2 items-center"
-                @click="showWebhookDrawer = true"
-              >
-                <component :is="iconMap.hook" class="text-gray-500" />
-                {{ $t('objects.webhooks') }}
-              </div>
-            </a-menu-item>
-
-            <a-menu-item v-if="!isSharedBase && !isPublicView && !isMobileMode">
-              <div v-e="['c:snippet:open']" class="py-2 flex gap-2 items-center" @click="showApiSnippetDrawer = true">
-                <component :is="iconMap.snippet" class="text-gray-500" />
-                <!-- Get API Snippet -->
-                {{ $t('activity.getApiSnippet') }}
-              </div>
-            </a-menu-item>
-
-            <a-menu-item>
-              <div
-                v-if="!isMobileMode"
-                v-e="['c:erd:open']"
-                class="py-2 flex gap-2 items-center nc-view-action-erd"
-                @click="showErd = true"
-              >
-                <component :is="iconMap.erd" class="text-gray-500" />
-                {{ $t('title.erdView') }}
-              </div>
-            </a-menu-item>
           </a-menu-item-group>
         </a-menu>
       </template>

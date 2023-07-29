@@ -10,6 +10,7 @@ export enum ProjectTypes {
   DATABASE = 'database',
   DOCUMENTATION = 'documentation',
   COWRITER = 'cowriter',
+  DASHBOARD = 'dashboard',
 }
 
 export enum RelationTypes {
@@ -79,6 +80,10 @@ export enum ModelTypes {
   VIEW = 'view',
 }
 
+export enum ProjectStatus {
+  JOB = 'job',
+}
+
 export enum TiptapNodesTypes {
   doc = 'doc',
   sec = 'sec',
@@ -92,9 +97,7 @@ export enum TiptapNodesTypes {
   divider = 'divider',
   codeBlock = 'codeBlock',
   image = 'image',
-  attachment = 'attachment',
-  infoCallout = 'infoCallout',
-  warningCallout = 'warningCallout',
+  callout = 'callout',
   tipCallout = 'tipCallout',
   table = 'table',
   tableRow = 'tableRow',
@@ -106,6 +109,7 @@ export enum TiptapNodesTypes {
   column = 'column',
   columnContent = 'columnContent',
   linkToPage = 'linkToPage',
+  attachment = 'attachment',
 }
 
 export enum TiptapMarksTypes {

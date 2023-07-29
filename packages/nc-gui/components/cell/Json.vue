@@ -66,8 +66,15 @@ const clear = () => {
 
 const formatJson = (json: string) => {
   try {
-    return JSON.stringify(JSON.parse(json), null, 2)
+    json = json
+      .trim()
+      .replace(/^\{\s*|\s*\}$/g, '')
+      .replace(/\n\s*/g, '')
+    json = `{${json}}`
+
+    return json
   } catch (e) {
+    console.log(e)
     return json
   }
 }
@@ -77,25 +84,33 @@ const onSave = () => {
 
   editEnabled.value = false
 
-  localValue.value = localValue ? formatJson(localValue.value as string) : localValue
+  vModel.value = localValue ? formatJson(localValue.value as string) : localValue
+}
 
-  vModel.value = localValue.value
+const setLocalValue = (val: any) => {
+  try {
+    localValue.value = typeof val === 'string' ? JSON.stringify(JSON.parse(val), null, 2) : val
+  } catch (e) {
+    localValue.value = val
+  }
 }
 
 watch(
   vModel,
   (val) => {
-    localValue.value = val
+    setLocalValue(val)
   },
   { immediate: true },
 )
 
-watch(localValue, (val) => {
+watch([localValue, editEnabled], () => {
   try {
-    JSON.parse(val as string)
+    JSON.parse(localValue.value as string)
 
     error = undefined
   } catch (e: any) {
+    if (localValue.value === undefined) return
+
     error = e
   }
 })
@@ -103,7 +118,7 @@ watch(localValue, (val) => {
 watch(editEnabled, () => {
   isExpanded = false
 
-  localValue.value = vModel.value
+  setLocalValue(vModel.value)
 })
 
 useSelectedCellKeyupListener(active, (e) => {

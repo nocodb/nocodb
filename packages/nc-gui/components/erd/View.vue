@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { BaseType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { isLinksOrLTAR } from 'nocodb-sdk'
 import type { ERDConfig } from './utils'
 import { reactive, ref, storeToRefs, useMetas, useProject, watch } from '#imports'
 
@@ -41,11 +41,9 @@ const populateTables = async () => {
     localTables = projectTables.value.filter(
       (t) =>
         t.id === props.table?.id ||
-        props.table?.columns?.find(
-          (column) =>
-            column.uidt === UITypes.LinkToAnotherRecord &&
-            (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id === t.id,
-        ),
+        metas.value[props.table!.id!].columns?.find((column) => {
+          return isLinksOrLTAR(column.uidt) && (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id === t.id
+        }),
     )
   } else {
     localTables = projectTables.value
@@ -96,7 +94,7 @@ watch(
 
 <template>
   <div
-    class="w-full bg-white"
+    class="w-full bg-white border-1 border-gray-100 rounded-lg"
     :class="{
       'z-100 h-screen w-screen fixed top-0 left-0 right-0 bottom-0': config.isFullScreen,
       'nc-erd-vue-flow-single-table': config.singleTableMode,

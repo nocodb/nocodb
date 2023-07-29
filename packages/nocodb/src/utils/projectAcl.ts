@@ -14,7 +14,7 @@ const viewerPermissions = {
     dataExist: true,
     dataFindOne: true,
     dataGroupBy: true,
-    commentsCount: true,
+    // commentsCount: process.env.NC_CLOUD !== 'true',
     exportCsv: true,
     exportExcel: true,
 
@@ -30,7 +30,7 @@ const viewerPermissions = {
 
     mmList: true,
     hmList: true,
-    commentList: true,
+    // commentList: process.env.NC_CLOUD !== 'true',
     commentRow: false,
 
     xcTableAndViewList: true,
@@ -64,6 +64,14 @@ const viewerPermissions = {
     pageSearch: true,
     pageParents: true,
     pagePaginate: true,
+    trackEvents: true,
+
+    // dashboards
+    layoutGet: true,
+    layoutList: true,
+    widgetsList: true,
+    widgetGet: true,
+    widgetFilterList: true,
   },
 };
 const rolePermissions = {
@@ -90,6 +98,7 @@ const rolePermissions = {
       workspaceInvitationAccept: true,
       workspaceInvitationReject: true,
       workspaceInvitationTokenRead: true,
+      createBase: true,
     },
   },
   creator: {
@@ -116,6 +125,7 @@ const rolePermissions = {
       workspaceInvitationAccept: true,
       workspaceInvitationReject: true,
       workspaceInvitationTokenRead: true,
+      createBase: true,
     },
   },
   guest: {},
@@ -269,11 +279,23 @@ const rolePermissions = {
       pageCreate: true,
       pageUpdate: true,
       pageDelete: true,
-      pageMagicExpand: true,
-      pageMagicOutline: true,
+      pageGpt: true,
       pagePaginate: true,
       pageDirectoryImport: true,
       docsMagicCreatePages: true,
+      trackEvents: true,
+
+      // dashboards
+      layoutGet: true,
+      layoutList: true,
+      layoutCreate: true,
+      widgetsList: true,
+      widgetGet: true,
+      widgetCreate: true,
+      widgetUpdate: true,
+      widgetDelete: true,
+      widgetFilterList: true,
+      widgetFilterCreate: true,
     },
   },
   commenter: {
@@ -337,6 +359,7 @@ const rolePermissions = {
       swaggerJson: true,
 
       commandPalette: true,
+      trackEvents: true,
     },
   },
   viewer: viewerPermissions,
@@ -352,6 +375,9 @@ const rolePermissions = {
       workspaceGet: true,
       workspaceCreate: true,
       commandPalette: true,
+      trackEvents: true,
+      // allow only in cloud
+      testConnection: true,
     },
   },
   [OrgUserRoles.SUPER_ADMIN]: '*',
@@ -392,11 +418,24 @@ const rolePermissions = {
       pageCreate: true,
       pageUpdate: true,
       pageDelete: true,
-      pageMagicExpand: true,
-      pageMagicOutline: true,
+      pageGpt: true,
+      docsMagicCreatePages: true,
       pagePaginate: true,
-      pageMagicCreate: true,
       pageDirectoryImport: true,
+
+      trackEvents: true,
+
+      // dashboards
+      layoutGet: true,
+      layoutList: true,
+      layoutCreate: true,
+      widgetsList: true,
+      widgetGet: true,
+      widgetCreate: true,
+      widgetUpdate: true,
+      widgetDelete: true,
+      widgetFilterList: true,
+      widgetFilterCreate: true,
     },
   },
 
@@ -413,11 +452,32 @@ const rolePermissions = {
       pluginRead: true,
       pluginUpdate: true,
       isPluginActive: true,
+      projectDelete: true,
+      createBase: true,
+      workspaceDelete: true,
     },
   },
   [WorkspaceUserRoles.VIEWER]: {
     include: {
       ...viewerPermissions.include,
+      workspaceList: true,
+      projectUserMetaUpdate: true,
+      workspaceGet: true,
+      workspaceDelete: true,
+      commandPalette: true,
+    },
+  },
+  [WorkspaceUserRoles.COMMENTER]: {
+    include: {
+      workspaceList: true,
+      projectUserMetaUpdate: true,
+      workspaceGet: true,
+      workspaceDelete: true,
+      commandPalette: true,
+    },
+  },
+  [WorkspaceUserRoles.EDITOR]: {
+    include: {
       workspaceList: true,
       projectUserMetaUpdate: true,
       workspaceGet: true,
@@ -442,5 +502,20 @@ Object.assign(
   rolePermissions[WorkspaceUserRoles.VIEWER].include,
   rolePermissions['viewer'].include,
 );
+// include editor project role permissions
+Object.assign(
+  rolePermissions[WorkspaceUserRoles.EDITOR].include,
+  rolePermissions['editor'].include,
+);
+
+// include editor project role permissions
+Object.assign(
+  rolePermissions[WorkspaceUserRoles.COMMENTER].include,
+  rolePermissions['commenter'].include,
+);
+
+// todo: remove org level roles in cloud
+// in cloud there is no org user roles, all user can create project and we can give all permissions
+rolePermissions[OrgUserRoles.VIEWER] = rolePermissions[OrgUserRoles.CREATOR];
 
 export default rolePermissions;

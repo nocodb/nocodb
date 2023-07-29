@@ -37,6 +37,7 @@ export const CollapsableHeaderNode = Node.create({
       'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
         'data-type': TiptapNodesTypes.collapsableHeader,
+        'data-tiptap-heading-group': true,
         'data-is-empty': node.textContent.length === 0 ? 'true' : 'false',
       }),
       0,

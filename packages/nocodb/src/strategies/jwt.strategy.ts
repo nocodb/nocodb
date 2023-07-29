@@ -33,7 +33,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     const user = await User.getByEmail(jwtPayload?.email);
-    // .then(async (user) =>
 
     if (
       !user.token_version ||
@@ -76,11 +75,21 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       }),
     ]);
 
+    // override workspace level role with project level role if exists
+    // since project level role is more specific
+    const workspaceOrProjectRoles = projectRoles || workspaceRoles;
+
     return {
       ...user,
       roles: extractRolesObj(
-        [user.roles, workspaceRoles, projectRoles].filter(Boolean).join(','),
+        [user.roles, workspaceOrProjectRoles].filter(Boolean).join(','),
       ),
+      workspaceRoles: workspaceRoles
+        ? extractRolesObj((workspaceRoles as any)?.split(',').filter(Boolean))
+        : null,
+      projectRoles: projectRoles
+        ? extractRolesObj((projectRoles as any)?.split(',').filter(Boolean))
+        : null,
     };
   }
 }

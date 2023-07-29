@@ -64,6 +64,7 @@ const {
   () => reloadDataHook.trigger(showLoading),
   modelValue || nestedFilters.value,
   !modelValue,
+  webHook,
 )
 
 const localNestedFilters = ref()
@@ -198,7 +199,7 @@ defineExpose({
 
 <template>
   <div
-    class="p-4 menu-filter-dropdown bg-gray-50 !border"
+    class="p-4 bg-white rounded-md overflow-auto border-1 border-gray-50 shadow-lg menu-filter-dropdown"
     :class="{
       'min-w-[430px]': filters.length,
       'shadow max-h-[max(80vh,500px)] overflow-auto': !nested,
@@ -224,7 +225,8 @@ defineExpose({
             />
             <span v-else :key="`${i}dummy`" />
 
-            <div :key="`${i}nested`" class="flex">
+            <span v-if="!i" class="flex items-center">{{ $t('labels.where') }}</span>
+            <div v-else :key="`${i}nested`" class="flex bob">
               <a-select
                 v-model:value="filter.logical_op"
                 :dropdown-match-select-width="false"
@@ -249,6 +251,7 @@ defineExpose({
                 :parent-id="filter.id"
                 nested
                 :auto-save="autoSave"
+                :web-hook="webHook"
               />
             </div>
           </template>
@@ -352,7 +355,7 @@ defineExpose({
 
             <LazySmartsheetToolbarFilterInput
               v-else
-              class="nc-filter-value-select min-w-[120px]"
+              class="nc-filter-value-select min-w-[120px] rounded-md"
               :column="getColumn(filter)"
               :filter="filter"
               @update-filter-value="(value) => updateFilterValue(value, filter, i)"

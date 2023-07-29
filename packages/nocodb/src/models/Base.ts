@@ -34,6 +34,7 @@ export default class Base implements BaseType {
   alias?: string;
   type?: (typeof DB_TYPES)[number];
   is_meta?: BoolType;
+  is_local?: BoolType;
   config?: string;
   inflection_column?: string;
   inflection_table?: string;
@@ -55,6 +56,7 @@ export default class Base implements BaseType {
       'config',
       'type',
       'is_meta',
+      'is_local',
       'inflection_column',
       'inflection_table',
       'order',
@@ -91,6 +93,7 @@ export default class Base implements BaseType {
     base: BaseType & {
       id: string;
       projectId: string;
+      skipReorder?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -144,7 +147,8 @@ export default class Base implements BaseType {
     // call before reorder to update cache
     const returnBase = await this.get(oldBase.id, ncMeta);
 
-    await this.reorderBases(base.projectId, returnBase.id, ncMeta);
+    if (!base.skipReorder)
+      await this.reorderBases(base.projectId, returnBase.id, ncMeta);
 
     return returnBase;
   }
@@ -253,7 +257,7 @@ export default class Base implements BaseType {
   }
 
   public async getConnectionConfig(): Promise<any> {
-    if (this.is_meta) {
+    if (this.is_meta || this.is_local) {
       const metaConfig = await NcConnectionMgrv2.getDataConfig();
       const config = { ...metaConfig };
       if (config.client === 'sqlite3') {
@@ -262,18 +266,24 @@ export default class Base implements BaseType {
       return config;
     }
 
-    const config = JSON.parse(
-      CryptoJS.AES.decrypt(
-        this.config,
-        Noco.getConfig()?.auth?.jwt?.secret,
-      ).toString(CryptoJS.enc.Utf8),
-    );
+    const config = this.getConfig();
 
     // todo: update sql-client args
     if (config?.client === 'sqlite3') {
       config.connection.filename =
         config.connection.filename || config.connection?.connection.filename;
     }
+
+    return config;
+  }
+
+  public getConfig(): any {
+    const config = JSON.parse(
+      CryptoJS.AES.decrypt(
+        this.config,
+        Noco.getConfig()?.auth?.jwt?.secret,
+      ).toString(CryptoJS.enc.Utf8),
+    );
 
     return config;
   }

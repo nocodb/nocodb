@@ -11,13 +11,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ProjectUserReqType } from 'nocodb-sdk';
-import { AuthGuard } from '@nestjs/passport';
 import { GlobalGuard } from '../guards/global/global.guard';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
+import { Acl } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { ProjectUsersService } from '../services/project-users/project-users.service';
+import { User, WorkspaceUser } from '../models';
+import { NcError } from '../helpers/catchError';
 
 @UseGuards(GlobalGuard)
 @Controller()
@@ -43,6 +41,23 @@ export class ProjectUsersController {
     @Request() req,
     @Body() body: ProjectUserReqType,
   ): Promise<any> {
+    // todo: move this to a service
+    if (!body.email) {
+      NcError.badRequest('Email is required');
+    }
+
+    const user = await User.getByEmail(body.email);
+
+    if (!user) {
+      NcError.badRequest('Only user belonging to the workspace can be invited');
+    }
+
+    const workspaceUser = await WorkspaceUser.get(req.ncWorkspaceId, user.id);
+
+    if (!workspaceUser) {
+      NcError.badRequest('Only user belonging to the workspace can be invited');
+    }
+
     return await this.projectUsersService.userInvite({
       projectId,
       projectUser: body,
@@ -106,5 +121,19 @@ export class ProjectUsersController {
     return {
       msg: 'The invitation has been sent to the user',
     };
+  }
+
+  @Patch('/api/v1/db/meta/projects/:projectId/user')
+  @Acl('projectUserMetaUpdate')
+  async projectUserMetaUpdate(
+    @Param('projectId') projectId: string,
+    @Request() req,
+    @Body() body: ProjectUserReqType,
+  ): Promise<any> {
+    return await this.projectUsersService.projectUserMetaUpdate({
+      projectId,
+      body,
+      user: req.user,
+    });
   }
 }

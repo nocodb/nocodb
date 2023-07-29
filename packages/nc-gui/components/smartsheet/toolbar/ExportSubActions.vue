@@ -54,7 +54,7 @@ const exportFile = async (exportType: ExportTypes) => {
       } else {
         res = await $api.dbViewRow.export(
           'noco',
-          project.value?.id as string,
+          project?.id as string,
           meta.value?.id as string,
           selectedView?.value.id as string,
           exportType,

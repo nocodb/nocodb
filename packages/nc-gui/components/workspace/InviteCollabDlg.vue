@@ -226,6 +226,26 @@ const emailInput = ref((el) => {
                           {{ $t('msg.info.roles.workspaceLevelCreator') }}
                         </span>
                       </a-select-option>
+                      <a-select-option
+                        class="nc-role-option"
+                        :value="WorkspaceUserRoles.EDITOR"
+                        :label="$t(`objects.roleType.workspaceLevelEditor`)"
+                      >
+                        <div>{{ $t(`objects.roleType.workspaceLevelEditor`) }}</div>
+                        <span class="text-gray-500 text-xs whitespace-normal">
+                          {{ $t('msg.info.roles.workspaceLevelEditor') }}
+                        </span>
+                      </a-select-option>
+                      <a-select-option
+                        class="nc-role-option"
+                        :value="WorkspaceUserRoles.COMMENTER"
+                        :label="$t(`objects.roleType.workspaceLevelCommenter`)"
+                      >
+                        <div>{{ $t(`objects.roleType.workspaceLevelCommenter`) }}</div>
+                        <span class="text-gray-500 text-xs whitespace-normal">
+                          {{ $t('msg.info.roles.workspaceLevelCommenter') }}
+                        </span>
+                      </a-select-option>
 
                       <a-select-option
                         class="nc-role-option"

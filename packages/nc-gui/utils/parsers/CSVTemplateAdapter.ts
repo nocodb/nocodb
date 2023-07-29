@@ -4,14 +4,13 @@ import { UITypes } from 'nocodb-sdk'
 import {
   extractMultiOrSingleSelectProps,
   getCheckboxValue,
-  getDateFormat,
   isCheckboxType,
   isDecimalType,
   isEmailType,
   isMultiLineTextType,
   isUrlType,
-  validateDateWithUnknownFormat,
-} from '#imports'
+} from './parserHelpers'
+import { getDateFormat, validateDateWithUnknownFormat } from '~/utils/dateTimeUtils'
 
 export default class CSVTemplateAdapter {
   config: Record<string, any>
@@ -27,7 +26,9 @@ export default class CSVTemplateAdapter {
   data: Record<string, any> = {}
   columnValues: Record<number, []>
 
-  constructor(source: UploadFile[] | string, parserConfig = {}) {
+  private progressCallback?: (msg: string) => void
+
+  constructor(source: UploadFile[] | string, parserConfig = {}, progressCallback?: (msg: string) => void) {
     this.config = parserConfig
     this.source = source
     this.project = {
@@ -38,6 +39,7 @@ export default class CSVTemplateAdapter {
     this.headers = {}
     this.columnValues = {}
     this.tables = {}
+    this.progressCallback = progressCallback
   }
 
   async init() {}
@@ -204,11 +206,14 @@ export default class CSVTemplateAdapter {
       const that = this
       let steppers = 0
       if (that.config.shouldImportData) {
+        that.progress(`Processing ${tn} data`)
+
         steppers = 0
         const parseSource = (this.config.importFromURL ? (source as string) : (source as UploadFile).originFileObj)!
+
         parse(parseSource, {
           download: that.config.importFromURL,
-          worker: true,
+          // worker: true,
           skipEmptyLines: 'greedy',
           step(row) {
             steppers += 1
@@ -229,8 +234,13 @@ export default class CSVTemplateAdapter {
               }
               that.data[tn].push(rowData)
             }
+
+            if (steppers % 1000 === 0) {
+              that.progress(`Processed ${steppers} rows of ${tn}`)
+            }
           },
           complete() {
+            that.progress(`Processed ${tn} data`)
             resolve(true)
           },
           error(e: Error) {
@@ -254,7 +264,6 @@ export default class CSVTemplateAdapter {
       const parseSource = (this.config.importFromURL ? (source as string) : (source as UploadFile).originFileObj)!
       parse(parseSource, {
         download: that.config.importFromURL,
-        worker: true,
         skipEmptyLines: 'greedy',
         step(row) {
           steppers += 1
@@ -286,6 +295,7 @@ export default class CSVTemplateAdapter {
         async complete() {
           that.updateTemplate(tableIdx)
           that.project.tables.push(that.tables[tableIdx])
+          that.progress(`Processed ${tn} metadata`)
           await that._parseTableData(tableIdx, source, tn)
           resolve(true)
         },
@@ -303,6 +313,7 @@ export default class CSVTemplateAdapter {
       await Promise.all(
         (this.source as UploadFile[]).map((file: UploadFile, tableIdx: number) =>
           (async (f, idx) => {
+            this.progress(`Parsing ${f.name}`)
             await this._parseTableMeta(idx, f)
           })(file, tableIdx),
         ),
@@ -320,5 +331,9 @@ export default class CSVTemplateAdapter {
 
   getTemplate() {
     return this.project
+  }
+
+  progress(msg: string) {
+    this.progressCallback?.(msg)
   }
 }

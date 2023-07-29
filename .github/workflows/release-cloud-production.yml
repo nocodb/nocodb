@@ -1,0 +1,26 @@
+name: "Release cloud production"
+
+on:
+  # Triggered manually
+  workflow_dispatch:
+    inputs:
+      promote:
+        description: 'Promote ws-pre-release(staging) to ws'
+        required: false
+        default: 'false'
+
+
+jobs:
+  promote-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-east-2
+      PROMOTE_READY_BEFORE_ROLLOUT: ${{ github.event.inputs.promote }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Run promote script
+        run: |
+            ./scripts/release/production.sh ${{ github.event.inputs.promote }}

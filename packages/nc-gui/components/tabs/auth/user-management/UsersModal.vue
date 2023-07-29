@@ -160,32 +160,12 @@ watch(
 </script>
 
 <template>
-  <a-modal
-    :footer="null"
-    centered
-    :visible="show"
-    :class="{ active: show }"
-    :closable="false"
-    width="max(50vw, 44rem)"
-    wrap-class-name="nc-modal-invite-user-and-share-base"
-    @cancel="close"
-  >
-    <div class="flex flex-col" data-testid="invite-user-and-share-base-modal">
-      <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
-        <a-typography-title v-if="!isMobileMode" class="select-none" :level="4">
-          {{ $t('activity.share') }}: {{ project.title }}
-        </a-typography-title>
-
-        <a-button
-          type="text"
-          class="!rounded-md mr-1 -mt-1.5"
-          data-testid="invite-user-and-share-base-modal-close-btn"
-          @click="close"
-        >
-          <template #icon>
-            <MaterialSymbolsCloseRounded class="flex mx-auto" />
-          </template>
-        </a-button>
+  <GeneralModal centered :visible="show" @cancel="close">
+    <div class="flex flex-col p-6" data-testid="invite-user-and-share-base-modal">
+      <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 border-gray-75 w-full">
+        <div v-if="!isMobileMode" class="select-none font-medium">
+          {{ $t('activity.share') }}
+        </div>
       </div>
 
       <div class="px-2 mt-1.5">
@@ -230,19 +210,13 @@ watch(
         </template>
 
         <div v-else class="flex flex-col pb-4">
-          <div class="flex flex-row items-center pl-2 pb-1 h-[1rem]">
+          <div v-if="selectedUser" class="flex flex-row items-center pl-2 pb-1 h-[1rem]">
             <component :is="iconMap.account" />
             <div class="text-xs ml-0.5 mt-0.5">{{ selectedUser ? $t('activity.editUser') : $t('activity.inviteTeam') }}</div>
           </div>
 
-          <div class="border-1 py-3 px-4 rounded-md mt-1">
-            <a-form
-              ref="formRef"
-              :validate-on-rule-change="false"
-              :model="usersData"
-              validate-trigger="onBlur"
-              @finish="saveUser"
-            >
+          <a-form ref="formRef" :validate-on-rule-change="false" :model="usersData" validate-trigger="onBlur" @finish="saveUser">
+            <div class="border-1 py-3 px-4 rounded-md mt-1">
               <div class="flex flex-row space-x-4">
                 <div class="flex flex-col w-3/4">
                   <a-form-item
@@ -256,6 +230,7 @@ watch(
                     <a-input
                       ref="emailField"
                       v-model:value="usersData.emails"
+                      size="middle"
                       validate-trigger="onBlur"
                       :placeholder="$t('labels.email')"
                       :disabled="!!selectedUser"
@@ -267,11 +242,16 @@ watch(
                   <a-form-item name="role" :rules="[{ required: true, message: 'Role required' }]">
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('labels.selectUserRole') }}</div>
 
-                    <a-select v-model:value="usersData.role" class="nc-user-roles" dropdown-class-name="nc-dropdown-user-role">
+                    <a-select
+                      v-model:value="usersData.role"
+                      size="middle"
+                      class="nc-user-roles !rounded-md"
+                      dropdown-class-name="nc-dropdown-user-role"
+                    >
                       <a-select-option v-for="(role, index) in projectRoles" :key="index" :value="role" class="nc-role-option">
                         <div class="flex flex-row h-full justify-start items-center">
                           <div
-                            class="px-2 py-1 flex rounded-full text-xs"
+                            class="px-3 py-1 flex rounded-full text-xs"
                             :style="{ backgroundColor: projectRoleTagColors[role] }"
                           >
                             {{ role }}
@@ -283,8 +263,8 @@ watch(
                 </div>
               </div>
 
-              <div class="flex flex-row justify-center">
-                <a-button type="primary" html-type="submit">
+              <div class="flex flex-row justify-end">
+                <a-button type="primary" html-type="submit" class="!rounded-md">
                   <div v-if="selectedUser">{{ $t('general.save') }}</div>
 
                   <div v-else class="flex flex-row justify-center items-center space-x-1.5">
@@ -293,14 +273,20 @@ watch(
                   </div>
                 </a-button>
               </div>
-            </a-form>
-          </div>
+            </div>
+          </a-form>
         </div>
 
-        <div class="flex mt-4">
+        <div class="flex">
           <LazyTabsAuthUserManagementShareBase />
         </div>
       </div>
+
+      <div class="flex flex-row justify-end gap-x-2 border-t-1 border-gray-75 pt-3">
+        <a-button key="back" class="!rounded-md" @click="cancel">Cancel</a-button>
+        <a-button class="!rounded-md">Manage project access</a-button>
+        <a-button key="submit" class="!rounded-md" type="primary" :loading="loading">Share</a-button>
+      </div>
     </div>
-  </a-modal>
+  </GeneralModal>
 </template>

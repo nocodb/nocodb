@@ -47,4 +47,15 @@ export class AwsKafkaProducer extends NcProducer {
       this.logger.error(`Error pushing data: ${error}`);
     }
   }
+
+  async sendMessages(topic: string, messages: string[]): Promise<void> {
+    try {
+      await this.producer.send({
+        topic,
+        messages: messages.map((message) => ({ value: message })),
+      });
+    } catch (error) {
+      this.logger.error(`Error pushing data: ${error}`);
+    }
+  }
 }

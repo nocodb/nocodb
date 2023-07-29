@@ -13,18 +13,37 @@ import {
   getViewAndModelByAliasOrId,
   serializeCellValue,
 } from '../modules/datas/helpers';
+import type { BaseModelSqlv2 } from '../db/BaseModelSqlv2';
 import type { PathParams } from '../modules/datas/helpers';
 import type { LinkToAnotherRecordColumn, LookupColumn } from '../models';
+import { DataOptService } from '~/services/data-opt/data-opt.service';
 
 @Injectable()
 export class DatasService {
-  async dataList(param: PathParams & { query: any }) {
+  constructor(private readonly dataOptService: DataOptService) {}
+
+  async dataList(
+    param: PathParams & { query: any; disableOptimization?: boolean },
+  ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
-    const responseData = await this.getDataList({
-      model,
-      view,
-      query: param.query,
-    });
+
+    let responseData;
+    const base = await Base.get(model.base_id);
+    if (base.type === 'pg' && !param.disableOptimization) {
+      responseData = await this.dataOptService.list({
+        model,
+        view,
+        params: param.query,
+        base,
+      });
+    } else {
+      responseData = await this.getDataList({
+        model,
+        view,
+        query: param.query,
+      });
+    }
+
     return responseData;
   }
 
@@ -59,7 +78,13 @@ export class DatasService {
     return { count };
   }
 
-  async dataInsert(param: PathParams & { body: unknown; cookie: any }) {
+  async dataInsert(
+    param: PathParams & {
+      body: unknown;
+      cookie: any;
+      disableOptimization?: boolean;
+    },
+  ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
     const base = await Base.get(model.base_id);
@@ -74,7 +99,12 @@ export class DatasService {
   }
 
   async dataUpdate(
-    param: PathParams & { body: unknown; cookie: any; rowId: string },
+    param: PathParams & {
+      body: unknown;
+      cookie: any;
+      rowId: string;
+      disableOptimization?: boolean;
+    },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
     const base = await Base.get(model.base_id);
@@ -90,6 +120,7 @@ export class DatasService {
       param.body,
       null,
       param.cookie,
+      param.disableOptimization,
     );
   }
 
@@ -102,24 +133,35 @@ export class DatasService {
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
-    // todo: Should have error http status code
-    const message = await baseModel.hasLTARData(param.rowId, model);
-    if (message.length) {
-      return { message };
+    // if xcdb project skip checking for LTAR
+    if (!base.is_meta && !base.is_local) {
+      // todo: Should have error http status code
+      const message = await baseModel.hasLTARData(param.rowId, model);
+      if (message.length) {
+        NcError.badRequest(message);
+      }
     }
+
     return await baseModel.delByPk(param.rowId, null, param.cookie);
   }
 
-  async getDataList(param: { model: Model; view: View; query: any }) {
+  async getDataList(param: {
+    model: Model;
+    view: View;
+    query: any;
+    baseModel?: BaseModelSqlv2;
+  }) {
     const { model, view, query = {} } = param;
 
     const base = await Base.get(model.base_id);
 
-    const baseModel = await Model.getBaseModelSQL({
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
-    });
+    const baseModel =
+      param.baseModel ||
+      (await Model.getBaseModelSQL({
+        id: model.id,
+        viewId: view?.id,
+        dbDriver: await NcConnectionMgrv2.get(base),
+      }));
 
     const { ast, dependencyFields } = await getAst({ model, query, view });
 
@@ -177,8 +219,8 @@ export class DatasService {
       view,
     });
 
-    const data = await baseModel.findOne({ ...args, dependencyFields });
-    return data ? await nocoExecute(ast, data, {}, {}) : {};
+    const data = await baseModel.findOne({ ...args, ...dependencyFields });
+    return data ? await nocoExecute(ast, data, {}, dependencyFields) : {};
   }
 
   async getDataGroupBy(param: { model: Model; view: View; query?: any }) {
@@ -202,26 +244,42 @@ export class DatasService {
     });
   }
 
-  async dataRead(param: PathParams & { query: any; rowId: string }) {
+  async dataRead(
+    param: PathParams & {
+      query: any;
+      rowId: string;
+      disableOptimization?: boolean;
+    },
+  ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
     const base = await Base.get(model.base_id);
 
-    const baseModel = await Model.getBaseModelSQL({
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
-    });
+    let row;
 
-    const row = await baseModel.readByPk(param.rowId);
+    if (base.type === 'pg' && !param.disableOptimization) {
+      row = await this.dataOptService.read({
+        model,
+        view,
+        params: param.query,
+        base,
+        id: param.rowId,
+      });
+    } else {
+      const baseModel = await Model.getBaseModelSQL({
+        id: model.id,
+        viewId: view?.id,
+        dbDriver: await NcConnectionMgrv2.get(base),
+      });
+
+      row = await baseModel.readByPk(param.rowId, false, param.query);
+    }
 
     if (!row) {
       NcError.notFound('Row not found');
     }
 
-    const { ast } = await getAst({ model, query: param.query, view });
-
-    return await nocoExecute(ast, row, {}, param.query);
+    return row;
   }
 
   async dataExist(param: PathParams & { rowId: string; query: any }) {
@@ -266,9 +324,9 @@ export class DatasService {
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
-    const { ast } = await getAst({ model, query, view });
+    const { ast, dependencyFields } = await getAst({ model, query, view });
 
-    const listArgs: any = { ...query };
+    const listArgs: any = { ...dependencyFields };
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
     } catch (e) {}
@@ -629,13 +687,16 @@ export class DatasService {
         dbDriver: await NcConnectionMgrv2.get(base),
       });
 
-      const { ast } = await getAst({ model, query: param.query });
+      const { ast, dependencyFields } = await getAst({
+        model,
+        query: param.query,
+      });
 
       return await nocoExecute(
         ast,
-        await baseModel.readByPk(param.rowId),
+        await baseModel.readByPk(param.rowId, false),
         {},
-        {},
+        dependencyFields,
       );
     } catch (e) {
       console.log(e);

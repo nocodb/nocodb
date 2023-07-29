@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import { useGlobal, useI18n, useRoute, useSidebar } from '#imports'
+import { useGlobal, useI18n, useRoute } from '#imports'
 
 const route = useRoute()
 
@@ -8,9 +8,13 @@ useShare()
 
 const { te, t } = useI18n()
 
-const { hasSidebar, isOpen } = useSidebar('nc-left-sidebar')
+// todo: fix this
+// const { hasSidebar, isOpen } = useSidebar('nc-left-sidebar')
+const hasSidebar = ref(true)
+const isOpen = ref(true)
 
 const { signOut, user } = useGlobal()
+const { clearWorkspaces } = useWorkspace()
 
 const email = computed(() => user.value?.email ?? '---')
 
@@ -31,9 +35,10 @@ watch(hasSidebar, (val) => {
   }
 })
 
-const logout = () => {
-  signOut()
-  navigateTo('/signin')
+const logout = async () => {
+  await signOut()
+  await navigateTo('/signin')
+  await clearWorkspaces()
 }
 </script>
 
@@ -54,21 +59,20 @@ export default {
         </div>
 
         <div v-if="$route.name === 'index-index'" class="flex gap-1">
-          <a-button ghost class="!text-inherit" data-testid="nc-dash-nav-workspaces"> Workspaces</a-button>
-          <a-button ghost class="!text-inherit" data-testid="nc-dash-nav-explore"> Explore</a-button>
-          <a-button ghost class="!text-inherit" data-testid="nc-dash-nav-help"> Help</a-button>
-          <a-button ghost class="!text-inherit" data-testid="nc-dash-nav-community"> Community</a-button>
+          <!-- <a-button class="!text-inherit" data-testid="nc-dash-nav-workspaces"> Projects</a-button -->
+          <!-- <a-button ghost class="!text-inherit" data-testid="nc-dash-nav-explore"> Template</a-button>
+          <a-button ghost class="!text-inherit" data-testid="nc-dash-nav-help"> Help</a-button> -->
         </div>
         <div class="flex-1 min-w-0 flex justify-end gap-2">
           <div class="flex flex-row flex-grow">
             <slot name="navbar" />
           </div>
-          <div v-if="isHomeScreen" class="nc-quick-action-wrapper" data-testid="nc-quick-action-wrapper">
+          <!-- <div v-if="isHomeScreen" class="nc-quick-action-wrapper" data-testid="nc-quick-action-wrapper">
             <MaterialSymbolsSearch class="nc-quick-action-icon" />
             <input class="" placeholder="Quick Actions" />
 
             <span class="nc-quick-action-shortcut">⌘ K</span>
-          </div>
+          </div> -->
 
           <div v-if="!isPublic" class="flex items-center">
             <NotificationMenu class="mr-2" data-testid="nc-notification-bell-icon" />
@@ -132,7 +136,6 @@ export default {
         </div>
       </div>
     </a-layout-header>
-
     <!--    todo: change class name -->
     <a-layout class="nc-root">
       <a-layout-sider
@@ -141,14 +144,14 @@ export default {
         :collapsed="!isOpen"
         width="250"
         collapsed-width="50"
-        class="relative shadow-md h-full z-1 nc-left-sidebar h-[calc(100vh_-_var(--new-header-height))] overflow-auto !shadow-none border-gray-100 border-r-1 !overflow-x-hidden"
+        class="relative shadow-md h-full z-1 nc-left-sidebar h-[calc(100vh_-_var(--new-header-height))] !shadow-none border-gray-100 border-r-1 !overflow-x-hidden"
         :trigger="null"
         collapsible
         theme="light"
       >
         <slot name="sidebar" />
       </a-layout-sider>
-      <div class="w-full h-[calc(100vh_-_var(--new-header-height))] overflow-auto">
+      <div class="w-full h-[calc(100vh_-_var(--new-header-height))]">
         <slot></slot>
       </div>
     </a-layout>

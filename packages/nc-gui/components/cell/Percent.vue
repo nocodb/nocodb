@@ -27,9 +27,9 @@ const vModel = computed({
   },
 })
 
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj)!
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
@@ -46,6 +46,8 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen && (el as HTMLInputElement)?
     @keydown.right.stop
     @keydown.up.stop
     @keydown.delete.stop
+    @keydown.ctrl.z.stop
+    @keydown.meta.z.stop
     @selectstart.capture.stop
     @mousedown.stop
   />

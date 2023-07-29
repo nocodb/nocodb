@@ -2,10 +2,11 @@ import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
-  AuditOperationSubTypes,
-  AuditOperationTypes,
   OrgUserRoles,
-  validatePassword, WorkspaceUserRoles,
+  validatePassword,
+  WorkspacePlan,
+  WorkspaceStatus,
+  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { isEmail } from 'validator';
@@ -18,7 +19,7 @@ import { NcError } from '../../helpers/catchError';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
 import { randomTokenString } from '../../helpers/stringHelpers';
 import { MetaService, MetaTable } from '../../meta/meta.service';
-import {Audit, Store, User, Workspace, WorkspaceUser} from '../../models';
+import { Store, User, Workspace, WorkspaceUser } from '../../models';
 import Noco from '../../Noco';
 import { AppHooksService } from '../app-hooks/app-hooks.service';
 import { genJwt, setTokenCookie } from './helpers';
@@ -37,7 +38,19 @@ export class UsersService {
     private appHooksService: AppHooksService,
   ) {}
 
-  async findOne(email: string) {
+  // allow signup/signin only if email matches against pattern
+  validateEmailPattern(email: string) {
+    const emailPattern = process.env.NC_AUTH_EMAIL_PATTERN;
+    if (emailPattern) {
+      const regex = new RegExp(emailPattern);
+      if (!regex.test(email)) {
+        NcError.forbidden('Not allowed to signup/signin with this email');
+      }
+    }
+  }
+
+  async findOne(_email: string) {
+    const email = _email.toLowerCase();
     const user = await this.metaService.metaGet(null, null, MetaTable.USERS, {
       email,
     });
@@ -55,7 +68,10 @@ export class UsersService {
     email: string;
     lastname: any;
   }) {
-    return this.metaService.metaInsert2(null, null, MetaTable.USERS, param);
+    return this.metaService.metaInsert2(null, null, MetaTable.USERS, {
+      ...param,
+      email: param.email?.toLowerCase(),
+    });
   }
 
   async registerNewUserIfAllowed({
@@ -75,9 +91,11 @@ export class UsersService {
     password;
     email_verification_token;
   }) {
+    this.validateEmailPattern(email);
+
     let roles: string = OrgUserRoles.CREATOR;
 
-    if (await User.isFirst()) {
+    if ((await User.isFirst()) && process.env.NC_CLOUD !== 'true') {
       roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
       // todo: update in nc_store
       // roles = 'owner,creator,editor'
@@ -110,6 +128,8 @@ export class UsersService {
       roles,
       token_version,
     });
+
+    await this.createDefaultWorkspace(user);
 
     return user;
   }
@@ -158,11 +178,8 @@ export class UsersService {
       token_version: null,
     });
 
-    await Audit.insert({
-      op_type: AuditOperationTypes.AUTHENTICATION,
-      op_sub_type: AuditOperationSubTypes.PASSWORD_CHANGE,
-      user: user.email,
-      description: `Password has been changed`,
+    this.appHooksService.emit(AppEvents.USER_PASSWORD_CHANGE, {
+      user: user,
       ip: param.req?.clientIp,
     });
 
@@ -219,11 +236,8 @@ export class UsersService {
         );
       }
 
-      await Audit.insert({
-        op_type: AuditOperationTypes.AUTHENTICATION,
-        op_sub_type: AuditOperationSubTypes.PASSWORD_FORGOT,
-        user: user.email,
-        description: `Password Reset has been requested`,
+      this.appHooksService.emit(AppEvents.USER_PASSWORD_FORGOT, {
+        user: user,
         ip: param.req?.clientIp,
       });
     } else {
@@ -295,12 +309,9 @@ export class UsersService {
       token_version: null,
     });
 
-    await Audit.insert({
-      op_type: AuditOperationTypes.AUTHENTICATION,
-      op_sub_type: AuditOperationSubTypes.PASSWORD_RESET,
-      user: user.email,
-      description: `Password has been reset`,
-      ip: req.clientIp,
+    this.appHooksService.emit(AppEvents.USER_PASSWORD_RESET, {
+      user: user,
+      ip: param.req?.clientIp,
     });
 
     return true;
@@ -327,12 +338,9 @@ export class UsersService {
       email_verified: true,
     });
 
-    await Audit.insert({
-      op_type: AuditOperationTypes.AUTHENTICATION,
-      op_sub_type: AuditOperationSubTypes.EMAIL_VERIFICATION,
-      user: user.email,
-      description: `Email has been verified`,
-      ip: req.clientIp,
+    this.appHooksService.emit(AppEvents.USER_EMAIL_VERIFICATION, {
+      user: user,
+      ip: param.req?.clientIp,
     });
 
     return true;
@@ -402,6 +410,8 @@ export class UsersService {
     }
 
     const email = _email.toLowerCase();
+
+    this.validateEmailPattern(email);
 
     let user = await User.getByEmail(email);
 
@@ -487,42 +497,35 @@ export class UsersService {
 
     setTokenCookie(param.res, refreshToken);
 
-    await this.createDefaultWorkspace(user);
-
-    await Audit.insert({
-      op_type: AuditOperationTypes.AUTHENTICATION,
-      op_sub_type: AuditOperationSubTypes.SIGNUP,
-      user: user.email,
-      description: `User has signed up`,
-      ip: (param.req as any).clientIp,
+    this.appHooksService.emit(AppEvents.USER_SIGNUP, {
+      user: user,
+      ip: param.req?.clientIp,
     });
 
     this.appHooksService.emit(AppEvents.WELCOME, {
-      user,
-    });
-    this.appHooksService.emit(AppEvents.USER_SIGNUP, {
       user,
     });
 
     return this.login(user);
   }
 
-  async login(user: any) {
+  login(user: UserType) {
     this.appHooksService.emit(AppEvents.USER_SIGNIN, {
       user,
     });
     return {
-      token: genJwt(user, Noco.getConfig()), //this.jwtService.sign(payload),
+      token: genJwt(user, Noco.getConfig()),
     };
   }
 
-  async signout(param: { res: any; req: any }) {
+  async signOut(param: { res: any; req: any }) {
     try {
       param.res.clearCookie('refresh_token');
       const user = (param.req as any).user;
-      if (user) {
+      if (user?.id) {
         await User.update(user.id, {
           refresh_token: null,
+          token_version: randomTokenString(),
         });
       }
       return { msg: 'Signed out successfully' };
@@ -531,7 +534,6 @@ export class UsersService {
     }
   }
 
-
   private async createDefaultWorkspace(user: User) {
     const title = `${user.email?.split('@')?.[0]}`;
     // create new workspace for user
@@ -539,6 +541,8 @@ export class UsersService {
       title,
       description: 'Default workspace',
       fk_user_id: user.id,
+      plan: WorkspacePlan.FREE,
+      status: WorkspaceStatus.CREATED,
     });
 
     await WorkspaceUser.insert({
@@ -549,5 +553,4 @@ export class UsersService {
 
     return workspace;
   }
-
 }

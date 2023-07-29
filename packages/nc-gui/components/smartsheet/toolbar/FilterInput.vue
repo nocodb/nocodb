@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { UITypes } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 import {
+  ActiveCellInj,
   ColumnInj,
-  EditModeInj,
+  IsFormInj,
   ReadonlyInj,
   computed,
   isBoolean,
@@ -79,6 +81,7 @@ const checkTypeFunctions = {
   isInt,
   isFloat,
   isTextArea,
+  isLinks: (col: ColumnType) => col.uidt === UITypes.Links,
 }
 
 type FilterType = keyof typeof checkTypeFunctions
@@ -144,6 +147,7 @@ const componentMap: Partial<Record<FilterType, any>> = $computed(() => {
     isDecimal: Decimal,
     isInt: Integer,
     isFloat: Float,
+    isLinks: Integer,
   }
 })
 
@@ -160,6 +164,7 @@ const componentProps = $computed(() => {
     case 'isPercent':
     case 'isDecimal':
     case 'isFloat':
+    case 'isLinks':
     case 'isInt': {
       return { class: 'h-32px' }
     }
@@ -175,13 +180,18 @@ const componentProps = $computed(() => {
 const hasExtraPadding = $computed(() => {
   return (
     column.value &&
-    (isInt(column.value, abstractType) ||
+    (column.value?.uidt === UITypes.Links ||
+      isInt(column.value, abstractType) ||
       isDate(column.value, abstractType) ||
       isDateTime(column.value, abstractType) ||
       isTime(column.value, abstractType) ||
       isYear(column.value, abstractType))
   )
 })
+
+// provide the following to override the default behavior and enable input fields like in form
+provide(ActiveCellInj, ref(true))
+provide(IsFormInj, ref(true))
 </script>
 
 <template>

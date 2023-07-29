@@ -167,10 +167,14 @@ export enum CacheScope {
   API_TOKEN = 'apiToken',
   INSTANCE_META = 'instanceMeta',
   USER_PROJECT = 'userProject',
+  DASHBOARD_PROJECT_DB_PROJECT_LINKING = 'dashboardProjectDBProjectLinking',
   FOLLOWER = 'follower',
   DOCS_PAGE = 'page',
   BOOK = 'book',
   COWRITER = 'cowriter',
+  WORKSPACE = 'workspace',
+  WORKSPACE_USER = 'workspaceUser',
+  SINGLE_QUERY = 'singleQuery',
 }
 
 export enum CacheGetType {

@@ -22,7 +22,8 @@ class SqliteClient extends KnexClient {
     // sqlite does not support inserting default values and knex fires a warning without this flag
     connectionConfig.connection.useNullAsDefault = true;
     super(connectionConfig);
-    this.sqlClient = knex(connectionConfig.connection);
+    this.sqlClient =
+      connectionConfig?.knex || knex(connectionConfig.connection);
     this.queries = queries;
     this._version = {};
   }
@@ -409,7 +410,7 @@ class SqliteClient extends KnexClient {
         response[i].not_nullable = response[i].notnull === 1;
         response[i].rqd = response[i].notnull === 1;
         response[i].cdf = response[i].dflt_value;
-        response[i].pk = response[i].pk === 1;
+        response[i].pk = response[i].pk > 0;
         response[i].cop = response[i].cid;
 
         // https://stackoverflow.com/a/7906029
@@ -1557,7 +1558,13 @@ class SqliteClient extends KnexClient {
         upQuery,
       );
 
-      await this.sqlClient.raw('PRAGMA foreign_keys = OFF;');
+      const fkCheckEnabled = (
+        await this.sqlClient.raw('PRAGMA foreign_keys;')
+      )?.[0]?.foreign_keys;
+
+      if (fkCheckEnabled)
+        await this.sqlClient.raw('PRAGMA foreign_keys = OFF;');
+
       await this.sqlClient.raw('PRAGMA legacy_alter_table = ON;');
 
       const trx = await this.sqlClient.transaction();
@@ -1594,7 +1601,8 @@ class SqliteClient extends KnexClient {
         log.ppe(e, _func);
         throw e;
       } finally {
-        await this.sqlClient.raw('PRAGMA foreign_keys = ON;');
+        if (fkCheckEnabled)
+          await this.sqlClient.raw('PRAGMA foreign_keys = ON;');
         await this.sqlClient.raw('PRAGMA legacy_alter_table = OFF;');
       }
 
@@ -2001,8 +2009,6 @@ class SqliteClient extends KnexClient {
 
   alterTableColumn(t, n, o, existingQuery, change = 2) {
     let query = '';
-    // @ts-ignore
-    const defaultValue = getDefaultValue(n);
     let shouldSanitize = true;
     if (change === 2) {
       const suffix = nanoid();
@@ -2015,13 +2021,13 @@ class SqliteClient extends KnexClient {
 
       let addNewColumnQuery = '';
       addNewColumnQuery += this.genQuery(
-        ` ADD ?? ${n.dt}`,
+        ` ADD ?? ${this.sanitiseDataType(n.dt)}`,
         [n.cn],
         shouldSanitize,
       );
       addNewColumnQuery += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
       addNewColumnQuery += n.cdf
-        ? ` DEFAULT ${n.cdf}`
+        ? ` DEFAULT ${this.sanitiseDefaultValue(n.cdf)}`
         : !n.rqd
         ? ' '
         : ` DEFAULT ''`;
@@ -2047,15 +2053,27 @@ class SqliteClient extends KnexClient {
       query = `${backupOldColumnQuery}${addNewColumnQuery}${updateNewColumnQuery}${dropOldColumnQuery}`;
     } else if (change === 0) {
       query = existingQuery ? ',' : '';
-      query += this.genQuery(`?? ${n.dt}`, [n.cn], shouldSanitize);
+      query += this.genQuery(
+        `?? ${this.sanitiseDataType(n.dt)}`,
+        [n.cn],
+        shouldSanitize,
+      );
       query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
-      query += n.cdf ? ` DEFAULT ${n.cdf}` : ' ';
+      query += n.cdf ? ` DEFAULT ${this.sanitiseDefaultValue(n.cdf)}` : ' ';
       query += n.rqd ? ` NOT NULL` : ' ';
     } else if (change === 1) {
       shouldSanitize = true;
-      query += this.genQuery(` ADD ?? ${n.dt}`, [n.cn], shouldSanitize);
+      query += this.genQuery(
+        ` ADD ?? ${this.sanitiseDataType(n.dt)}`,
+        [n.cn],
+        shouldSanitize,
+      );
       query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
-      query += n.cdf ? ` DEFAULT ${n.cdf}` : !n.rqd ? ' ' : ` DEFAULT ''`;
+      query += n.cdf
+        ? ` DEFAULT ${this.sanitiseDefaultValue(n.cdf)}`
+        : !n.rqd
+        ? ' '
+        : ` DEFAULT ''`;
       query += n.rqd ? ` NOT NULL` : ' ';
       query = this.genQuery(`ALTER TABLE ?? ${query};`, [t], shouldSanitize);
     } else {
@@ -2116,56 +2134,6 @@ class SqliteClient extends KnexClient {
       log.api(`${func} :result: ${result}`);
     }
     return result;
-  }
-}
-
-function getDefaultValue(n) {
-  if (n.cdf === undefined || n.cdf === null) return n.cdf;
-  switch (n.dt) {
-    case 'boolean':
-    case 'bool':
-    case 'tinyint':
-    case 'int':
-    case 'samllint':
-    case 'bigint':
-    case 'integer':
-    case 'smallint':
-    case 'mediumint':
-    case 'int2':
-    case 'int4':
-    case 'int8':
-    case 'long':
-    case 'serial':
-    case 'bigserial':
-    case 'smallserial':
-    case 'number':
-    case 'float':
-    case 'double':
-    case 'decimal':
-    case 'numeric':
-    case 'real':
-    case 'double precision':
-    case 'money':
-    case 'smallmoney':
-    case 'dec':
-      return n.cdf;
-      break;
-
-    case 'datetime':
-    case 'timestamp':
-    case 'date':
-    case 'time':
-      if (
-        n.cdf.indexOf('CURRENT_TIMESTAMP') > -1 ||
-        /\(([\d\w'", ]*)\)$/.test(n.cdf)
-      ) {
-        return n.cdf;
-      }
-      return JSON.stringify(n.cdf);
-      break;
-    default:
-      return JSON.stringify(n.cdf);
-      break;
   }
 }
 

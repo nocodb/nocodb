@@ -388,6 +388,14 @@ export default class KnexMigratorv2 {
       await sqlClient.createDatabaseIfNotExists({
         database: connectionConfig.connection.user,
       });
+    } else if (base.is_local && base.type === 'pg') {
+      this.emit(
+        `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.database}`,
+      );
+      await sqlClient.createDatabaseIfNotExists({
+        database: connectionConfig.connection.database,
+        schema: base.getConfig()?.schema,
+      });
     } else if (connectionConfig.client !== 'sqlite3') {
       this.emit(
         `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.database}`,
@@ -406,11 +414,11 @@ export default class KnexMigratorv2 {
 
     // this.emit(`Creating Table if not exists in ${connectionConfig.meta.tn}`);
 
-    if (!('NC_MIGRATIONS_DISABLED' in process.env)) {
-      await sqlClient.createTableIfNotExists({
-        tn: 'nc_evolutions',
-      });
-    }
+    // if (!('NC_MIGRATIONS_DISABLED' in process.env)) {
+    //   await sqlClient.createTableIfNotExists({
+    //     tn: 'nc_evolutions',
+    //   });
+    // }
     // if (connectionConfig.client === "pg") {
     //   this.emit(
     //     `Creating Function 'xc_trigger_update_timestamp' if not exists in ${connectionConfig.connection.databaseName}`

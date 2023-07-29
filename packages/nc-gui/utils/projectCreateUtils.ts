@@ -1,10 +1,11 @@
-import { ClientType } from '~/lib'
+import { ClientType } from '../lib'
 
 // todo: move to noco-sdk
 export enum NcProjectType {
   DB = 'database',
   DOCS = 'documentation',
   AUTOMATION = 'automation',
+  DASHBOARD = 'dashboard',
   COWRITER = 'cowriter',
 }
 
@@ -84,7 +85,7 @@ export const clientTypes = [
     value: ClientType.SQLITE,
   },
   {
-    text: 'SnowFlake',
+    text: 'Snowflake',
     value: ClientType.SNOWFLAKE,
   },
 ]

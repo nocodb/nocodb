@@ -1,8 +1,8 @@
-import type { DocsPageType, FilterType, MetaType, ViewTypes } from 'nocodb-sdk'
+import type { DocsPageType, FilterType, LayoutType, MetaType, ProjectType, ViewTypes } from 'nocodb-sdk'
 import type { I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
-import type { ProjectRole, Role, TabType } from './enums'
+import type { ImportSource, ImportType, ProjectRole, Role, TabType } from './enums'
 import type { rolePermissions } from './constants'
 
 export interface User {
@@ -60,6 +60,8 @@ export interface Row {
     commentCount?: number
     changed?: boolean
     saving?: boolean
+    // use in datetime picker component
+    isUpdatedFromCopyNPaste?: Record<string, boolean>
   }
 }
 
@@ -112,8 +114,6 @@ export interface AntSidebarNode {
   isLeaf: boolean
   key: string
   style?: string | Record<string, string>
-  // If `new` is set, the page will have the title on focus
-  new?: boolean
   isBook?: boolean
   children?: PageSidebarNode[]
   level?: number
@@ -121,10 +121,35 @@ export interface AntSidebarNode {
 }
 
 export type PageSidebarNode = DocsPageType & AntSidebarNode
+export type LayoutSidebarNode = Omit<LayoutType, 'meta'> & AntSidebarNode
 export type PublishTreeNode = PageSidebarNode & { isSelected: boolean; key: string }
+
+/**
+ * @description: Project type for frontend
+ */
+export type NcProject = ProjectType & {
+  /**
+   * When project is expanded in sidebar
+   * */
+  isExpanded?: boolean
+  /**
+   * When project's content is being fetched i.e tables, views, etc
+   */
+  isLoading?: boolean
+  temp_title?: string
+  edit?: boolean
+  starred?: boolean
+}
 
 export interface UndoRedoAction {
   undo: { fn: Function; args: any[] }
   redo: { fn: Function; args: any[] }
   scope?: { key: string; param: string }[]
+}
+
+export interface ImportWorkerPayload {
+  importType: ImportType
+  importSource: ImportSource
+  value: any
+  config: Record<string, any>
 }

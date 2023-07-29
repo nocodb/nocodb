@@ -156,9 +156,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             NOCO,
             projectId,
             meta.value.id,
-            rowId.value,
+            encodeURIComponent(rowId.value),
             colOptions.type as 'mm' | 'hm',
-            encodeURIComponent(column?.value?.title),
+            column?.value?.id,
             {
               limit: String(childrenExcludedListPagination.size),
               offset: String(childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1)),
@@ -181,9 +181,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         if (isPublic) {
           childrenList.value = await $api.public.dataNestedList(
             sharedView.value?.uuid as string,
-            rowId.value,
+            encodeURIComponent(rowId.value),
             colOptions.type as 'mm' | 'hm',
-            encodeURIComponent(column?.value?.id),
+            column?.value?.id,
             {
               limit: String(childrenListPagination.size),
               offset: String(childrenListPagination.size * (childrenListPagination.page - 1)),
@@ -196,9 +196,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             NOCO,
             (project?.value?.id || (sharedView.value?.view as any)?.project_id) as string,
             meta.value.id,
-            rowId.value,
+            encodeURIComponent(rowId.value),
             colOptions.type as 'mm' | 'hm',
-            encodeURIComponent(column?.value?.title),
+            column?.value?.id,
             {
               limit: String(childrenListPagination.size),
               offset: String(childrenListPagination.size * (childrenListPagination.page - 1)),
@@ -219,11 +219,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         onOk: async () => {
           const id = getRelatedTableRowId(row)
           try {
-            const res: { message?: string[] } = await $api.dbTableRow.delete(
+            const res: { message?: string[] } | number = await $api.dbTableRow.delete(
               NOCO,
               projectId,
               relatedTableMeta.value.id as string,
-              id as string,
+              encodeURIComponent(id as string),
             )
 
             if (res.message) {
@@ -267,12 +267,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         // todo: audit
         await $api.dbTableRow.nestedRemove(
           NOCO,
-          project.value.title as string,
-          metaValue.title,
-          rowId.value,
+          project.value.id as string,
+          metaValue.id!,
+          encodeURIComponent(rowId.value),
           colOptions.type as 'mm' | 'hm',
-          encodeURIComponent(column?.value?.title),
-          getRelatedTableRowId(row) as string,
+          column?.value?.id,
+          encodeURIComponent(getRelatedTableRowId(row) as string),
         )
 
         if (!undo) {
@@ -313,12 +313,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       try {
         await $api.dbTableRow.nestedAdd(
           NOCO,
-          project.value.title as string,
-          metaValue.title as string,
-          rowId.value,
+          project.value.id as string,
+          metaValue.id as string,
+          encodeURIComponent(rowId.value),
           colOptions.type as 'mm' | 'hm',
-          encodeURIComponent(column?.value?.title),
-          getRelatedTableRowId(row) as string,
+          column?.value?.id,
+          encodeURIComponent(getRelatedTableRowId(row) as string) as string,
         )
         await loadChildrenList()
 

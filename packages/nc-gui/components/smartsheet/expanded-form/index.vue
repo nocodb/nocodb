@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableType, ViewType } from 'nocodb-sdk'
-import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import {
   CellClickHookInj,
@@ -55,6 +55,8 @@ const state = toRef(props, 'state')
 const meta = toRef(props, 'meta')
 
 const router = useRouter()
+
+const { isUIAllowed } = useUIPermission()
 
 // override cell click hook to avoid unexpected behavior at form fields
 provide(CellClickHookInj, null)
@@ -288,7 +290,7 @@ export default {
   <a-drawer
     v-model:visible="isExpanded"
     :footer="null"
-    :width="commentsDrawer ? 'min(90vw,900px)' : 'min(90vw,700px)'"
+    :width="commentsDrawer && isUIAllowed('commentList') ? 'min(90vw,900px)' : 'min(90vw,700px)'"
     :body-style="{ 'padding': 0, 'display': 'flex', 'flex-direction': 'column' }"
     :closable="false"
     class="nc-drawer-expanded-form"
@@ -296,7 +298,7 @@ export default {
   >
     <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" @duplicate-row="onDuplicateRow" />
 
-    <div :key="key" class="!bg-gray-100 rounded flex-1">
+    <div :key="key" class="!bg-gray-50 rounded flex-1">
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
         <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container relative">
           <template v-if="props.showNextPrevIcons">
@@ -324,7 +326,7 @@ export default {
             <div
               v-for="(col, i) of fields"
               v-else
-              v-show="!isVirtualCol(col) || !isNew || col.uidt === UITypes.LinkToAnotherRecord"
+              v-show="!isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
               :key="col.title"
               class="mt-2 py-2"
               :class="`nc-expand-col-${col.title}`"
@@ -353,9 +355,13 @@ export default {
           </div>
         </div>
 
-        <div v-if="!isNew" class="nc-comments-drawer min-w-0 min-h-full max-h-full" :class="{ active: commentsDrawer }">
+        <div
+          v-if="!isNew"
+          class="nc-comments-drawer min-w-0 min-h-full max-h-full"
+          :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
+        >
           <div class="h-full">
-            <LazySmartsheetExpandedFormComments v-if="commentsDrawer" />
+            <LazySmartsheetExpandedFormComments v-if="commentsDrawer && isUIAllowed('commentList')" />
           </div>
         </div>
       </div>
@@ -369,7 +375,7 @@ export default {
 }
 
 :deep(.ant-modal-body) {
-  @apply !bg-gray-100;
+  @apply !bg-gray-50;
 }
 
 .nc-comments-drawer {

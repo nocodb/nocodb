@@ -3,6 +3,7 @@ import type { WritableComputedRef } from '@vue/reactivity'
 import type { JwtPayload } from 'jwt-decode'
 import type { Language, ProjectRole, User } from '~/lib'
 import type { useCounter } from '#imports'
+import type { NcProjectType } from '~/utils'
 
 export interface AppInfo {
   ncSiteUrl: string
@@ -26,6 +27,9 @@ export interface AppInfo {
   ncMaxAttachmentsAllowed: number
   isCloud: boolean
   automationLogLevel: 'OFF' | 'ERROR' | 'ALL'
+  baseHostName?: string
+  disableEmailAuth: boolean
+  mainSubDomain?: string
 }
 
 export interface StoredState {
@@ -64,6 +68,8 @@ export interface Actions {
   refreshToken: () => void
   loadAppInfo: () => void
   setIsMobileMode: (isMobileMode: boolean) => void
+  navigateToProject: (params: { workspaceId: string; projectId?: string; type?: NcProjectType }) => void
+  getBaseUrl: (workspaceId: string) => string | undefined
 }
 
 export type ReadonlyState = Readonly<Pick<State, 'token' | 'user'>> & Omit<State, 'token' | 'user'>

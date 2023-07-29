@@ -1,7 +1,7 @@
 import type { BaseType, OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
-import { isString } from '@vueuse/core'
-import { defineStore } from 'pinia'
+import { isString } from '@vue/shared'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import {
   ClientType,
   computed,
@@ -14,7 +14,7 @@ import {
   useRouter,
   useTheme,
 } from '#imports'
-import type { ProjectMetaInfo, ThemeConfig } from '~/lib'
+import type { NcProject, ProjectMetaInfo, ThemeConfig } from '~/lib'
 import { useProjects } from '~/store/projects'
 
 export const useProject = defineStore('projectStore', () => {
@@ -38,12 +38,16 @@ export const useProject = defineStore('projectStore', () => {
 
   const projectsStore = useProjects()
 
+  const tablesStore = useTablesStore()
+
   // todo: refactor
   let sharedProject = $ref<ProjectType>()
 
+  const openedProject = computed(() => projectsStore.projects.get(projectId.value))
+
   // todo: new-layout
-  const project = computed<ProjectType>(() => projectsStore.projects[projectId.value] || sharedProject || {})
-  const tables = computed<TableType[]>(() => projectsStore.projectTableList[projectId.value] || [])
+  const project = computed<NcProject>(() => projectsStore.projects.get(projectId.value) || sharedProject || {})
+  const tables = computed<TableType[]>(() => tablesStore.projectTables.get(projectId.value) || [])
 
   const projectLoadedHook = createEventHook<ProjectType>()
 
@@ -72,7 +76,7 @@ export const useProject = defineStore('projectStore', () => {
     for (const base of bases.value) {
       if (base.id) {
         temp[base.id] = SqlUiFactory.create({ client: base.type }) as Exclude<
-          ReturnType<typeof SqlUiFactory['create']>,
+          ReturnType<(typeof SqlUiFactory)['create']>,
           typeof OracleUi
         >
       }
@@ -88,6 +92,10 @@ export const useProject = defineStore('projectStore', () => {
     return ['mysql', ClientType.MYSQL].includes(getBaseType(baseId))
   }
 
+  function isSqlite(baseId?: string) {
+    return getBaseType(baseId) === ClientType.SQLITE
+  }
+
   function isMssql(baseId?: string) {
     return getBaseType(baseId) === 'mssql'
   }
@@ -97,7 +105,8 @@ export const useProject = defineStore('projectStore', () => {
   }
 
   function isXcdbBase(baseId?: string) {
-    return bases.value.find((base) => base.id === baseId)?.is_meta
+    const base = bases.value.find((base) => base.id === baseId)
+    return (base?.is_meta as boolean) || (base?.is_local as boolean) || false
   }
 
   const isSharedBase = computed(() => projectType === 'base')
@@ -113,7 +122,7 @@ export const useProject = defineStore('projectStore', () => {
   // todo: add force parameter
   async function loadTables() {
     if (project.value.id) {
-      await projectsStore.loadProjectTables(project.value.id, true)
+      await tablesStore.loadProjectTables(project.value.id, true)
       // tables.value = projectsStore.projectTableList[project.value.id]
       //   await api.dbTable.list(project.value.id, {
       //   includeM2M: includeM2M.value,
@@ -229,6 +238,17 @@ export const useProject = defineStore('projectStore', () => {
     { immediate: true },
   )
 
+  watch(
+    () => openedProject.value?.id,
+    () => {
+      if (!openedProject.value) return
+
+      if (openedProject.value.isExpanded) return
+
+      openedProject.value.isExpanded = true
+    },
+  )
+
   return {
     project,
     bases,
@@ -240,6 +260,7 @@ export const useProject = defineStore('projectStore', () => {
     isMysql,
     isMssql,
     isPg,
+    isSqlite,
     sqlUis,
     isSharedBase,
     isSharedErd,
@@ -255,5 +276,10 @@ export const useProject = defineStore('projectStore', () => {
     hasEmptyOrNullFilters,
     setProject,
     projectUrl,
+    getBaseType,
   }
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useProject as any, import.meta.hot))
+}

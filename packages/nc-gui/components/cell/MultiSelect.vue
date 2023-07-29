@@ -4,12 +4,15 @@ import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType, SelectOptionsType } from 'nocodb-sdk'
+import { WorkspaceUserRoles } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   CellClickHookInj,
   ColumnInj,
+  EditModeInj,
   IsKanbanInj,
   ReadonlyInj,
+  RowHeightInj,
   computed,
   enumColor,
   extractSdkResponseErrorMsg,
@@ -44,13 +47,21 @@ const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj)!
 
-const active = inject(ActiveCellInj, ref(false))
+const isLockedMode = inject(IsLockedInj, ref(false))
 
-const editable = inject(EditModeInj, ref(false))
+const isEditable = inject(EditModeInj, ref(false))
+
+const activeCell = inject(ActiveCellInj, ref(false))
+
+// use both ActiveCellInj or EditModeInj to determine the active state
+// since active will be false in case of form view
+const active = computed(() => activeCell.value || isEditable.value)
 
 const isPublic = inject(IsPublicInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
+
+const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const selectedIds = ref<string[]>([])
 
@@ -91,9 +102,17 @@ const isOptionMissing = computed(() => {
   return (options.value ?? []).every((op) => op.title !== searchVal.value)
 })
 
-const hasEditRoles = computed(() => hasRole('owner', true) || hasRole('creator', true) || hasRole('editor', true))
+const hasEditRoles = computed(
+  () =>
+    hasRole('owner', true) ||
+    hasRole('creator', true) ||
+    hasRole('editor', true) ||
+    hasRole(WorkspaceUserRoles.OWNER, true) ||
+    hasRole(WorkspaceUserRoles.CREATOR, true) ||
+    hasRole(WorkspaceUserRoles.EDITOR, true),
+)
 
-const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && (active.value || editable.value))
+const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && active.value)
 
 const vModel = computed({
   get: () => {
@@ -172,7 +191,7 @@ watch(isOpen, (n, _o) => {
   }
 })
 
-useSelectedCellKeyupListener(active, (e) => {
+useSelectedCellKeyupListener(activeCell, (e) => {
   switch (e.key) {
     case 'Escape':
       isOpen.value = false
@@ -315,10 +334,10 @@ const handleClose = (e: MouseEvent) => {
 useEventListener(document, 'click', handleClose, true)
 
 const selectedOpts = computed(() => {
-  return options.value.reduce<(SelectOptionType & { index: number })[]>((selectedOptions, option) => {
-    const index = vModel.value.indexOf(option.value!)
-    if (index !== -1) {
-      selectedOptions.push({ ...option, index })
+  return vModel.value.reduce<SelectOptionType[]>((selectedOptions, option) => {
+    const selectedOption = options.value.find((o) => o.value === option)
+    if (selectedOption) {
+      selectedOptions.push(selectedOption)
     }
     return selectedOptions
   }, [])
@@ -326,10 +345,24 @@ const selectedOpts = computed(() => {
 </script>
 
 <template>
-  <div class="nc-multi-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
-    <div v-if="!editable && !active" class="flex flex-nowrap">
+  <div
+    class="nc-multi-select h-full w-full flex items-center"
+    :class="{ 'read-only': readOnly || isLockedMode }"
+    @click="toggleMenu"
+  >
+    <div
+      v-if="!active"
+      class="flex flex-wrap"
+      :style="{
+        'display': '-webkit-box',
+        'max-width': '100%',
+        '-webkit-line-clamp': rowHeight || 1,
+        '-webkit-box-orient': 'vertical',
+        'overflow': 'hidden',
+      }"
+    >
       <template v-for="selectedOpt of selectedOpts" :key="selectedOpt.value">
-        <a-tag class="rounded-tag" :color="selectedOpt.color" :style="{ order: selectedOpt.index }">
+        <a-tag class="rounded-tag" :color="selectedOpt.color">
           <span
             :style="{
               'color': tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
@@ -354,9 +387,9 @@ const selectedOpts = computed(() => {
       :bordered="false"
       clear-icon
       show-search
-      :show-arrow="editAllowed && !readOnly"
+      :show-arrow="editAllowed && !(readOnly || isLockedMode)"
       :open="isOpen && editAllowed"
-      :disabled="readOnly || !editAllowed"
+      :disabled="readOnly || !editAllowed || isLockedMode"
       :class="{ 'caret-transparent': !hasEditRoles }"
       :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
       @search="search"
@@ -391,7 +424,10 @@ const selectedOpts = computed(() => {
           isOptionMissing &&
           !isPublic &&
           !disableOptionCreation &&
-          (hasRole('owner', true) || hasRole('creator', true))
+          (hasRole('owner', true) ||
+            hasRole('creator', true) ||
+            hasRole(WorkspaceUserRoles.OWNER, true) ||
+            hasRole(WorkspaceUserRoles.CREATOR, true))
         "
         :key="searchVal"
         :value="searchVal"
@@ -461,6 +497,12 @@ const selectedOpts = computed(() => {
 
 .ms-close-icon:hover {
   color: rgba(0, 0, 0, 0.45);
+}
+
+.read-only {
+  .ms-close-icon {
+    display: none;
+  }
 }
 
 .rounded-tag {

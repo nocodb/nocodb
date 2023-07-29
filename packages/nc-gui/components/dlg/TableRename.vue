@@ -14,7 +14,7 @@ import {
   useMetas,
   useNuxtApp,
   useProject,
-  useProjects,
+  useTablesStore,
   useTabs,
   useUndoRedo,
   useVModel,
@@ -42,7 +42,7 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const { updateTab } = useTabs()
 
-const projectsStore = useProjects()
+const { loadProjectTables } = useTablesStore()
 
 const projectStore = useProject()
 const { loadTables, isMysql, isMssql, isPg } = projectStore
@@ -122,8 +122,9 @@ watchEffect(
   { flush: 'post' },
 )
 
-const renameTable = async (undo = false) => {
+const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undefined) => {
   if (!tableMeta) return
+  if (formState.title === tableMeta.title && !disableTitleDiffCheck) return
 
   loading = true
   try {
@@ -135,21 +136,21 @@ const renameTable = async (undo = false) => {
 
     dialogShow.value = false
 
-    await projectsStore.loadProjectTables(tableMeta.project_id!, true)
+    await loadProjectTables(tableMeta.project_id!, true)
 
     if (!undo) {
       addUndo({
         redo: {
           fn: (t: string) => {
             formState.title = t
-            renameTable(true)
+            renameTable(true, true)
           },
           args: [formState.title],
         },
         undo: {
           fn: (t: string) => {
             formState.title = t
-            renameTable(true)
+            renameTable(true, true)
           },
           args: [tableMeta.title],
         },
@@ -167,9 +168,6 @@ const renameTable = async (undo = false) => {
 
     refreshCommandPalette()
 
-    // Table renamed successfully
-    message.success(t('msg.success.tableRenamed'))
-
     $e('a:table:rename')
 
     dialogShow.value = false
@@ -182,36 +180,40 @@ const renameTable = async (undo = false) => {
 </script>
 
 <template>
-  <a-modal
-    v-model:visible="dialogShow"
-    :class="{ active: dialogShow }"
-    :title="$t('activity.renameTable')"
-    :mask-closable="false"
-    wrap-class-name="nc-modal-table-rename"
-    @keydown.esc="dialogShow = false"
-    @finish="renameTable"
-  >
-    <template #footer>
-      <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
-
-      <a-button key="submit" type="primary" :loading="loading" @click="renameTable()">{{ $t('general.submit') }}</a-button>
+  <NcModal v-model:visible="dialogShow" size="small">
+    <template #header>
+      <div class="flex flex-row items-center gap-x-2">
+        <GeneralIcon icon="table" />
+        {{ $t('activity.renameTable') }}
+      </div>
     </template>
-
-    <div class="pl-10 pr-10 pt-5">
+    <div class="mt-2">
       <a-form :model="formState" name="create-new-table-form">
-        <!-- hint="Enter table name" -->
-        <div class="mb-2">{{ $t('msg.info.enterTableName') }}</div>
-
         <a-form-item v-bind="validateInfos.title">
           <a-input
             ref="inputEl"
             v-model:value="formState.title"
+            class="nc-input-md"
             hide-details
+            size="large"
             :placeholder="$t('msg.info.enterTableName')"
-            @keydown.enter="renameTable()"
+            @keydown.enter="() => renameTable()"
           />
         </a-form-item>
       </a-form>
+      <div class="flex flex-row justify-end gap-x-2 mt-6">
+        <NcButton type="secondary" :label="$t('general.cancel')" @click="dialogShow = false" />
+
+        <NcButton
+          key="submit"
+          type="primary"
+          :disabled="validateInfos.title.validateStatus === 'error' || formState.title === tableMeta.title"
+          label="Rename Table"
+          loading-label="Renaming Table"
+          :loading="loading"
+          @click="() => renameTable()"
+        />
+      </div>
     </div>
-  </a-modal>
+  </NcModal>
 </template>

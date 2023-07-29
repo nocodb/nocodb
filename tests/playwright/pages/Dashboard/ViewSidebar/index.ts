@@ -2,9 +2,12 @@ import { expect, Locator } from '@playwright/test';
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { isHub } from '../../../setup/db';
+import { WebhookPage } from './WebhookPage';
 
 export class ViewSidebarPage extends BasePage {
   readonly project: any;
+  readonly webhook: WebhookPage;
+
   readonly dashboard: DashboardPage;
   readonly createGalleryButton: Locator;
   readonly createGridButton: Locator;
@@ -12,14 +15,23 @@ export class ViewSidebarPage extends BasePage {
   readonly createKanbanButton: Locator;
   readonly createMapButton: Locator;
 
+  readonly erdButton: Locator;
+  readonly apiSnippet: Locator;
+  readonly webhookButton: Locator;
+
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
+    this.webhook = new WebhookPage(this);
+
     this.createGalleryButton = this.get().locator('.nc-create-gallery-view:visible');
     this.createGridButton = this.get().locator('.nc-create-grid-view:visible');
     this.createFormButton = this.get().locator('.nc-create-form-view:visible');
     this.createKanbanButton = this.get().locator('.nc-create-kanban-view:visible');
-    this.createMapButton = this.get().locator('.nc-create-map-view:visible');
+
+    this.erdButton = this.get().locator('.nc-view-sidebar-erd');
+    this.apiSnippet = this.get().locator('.nc-view-sidebar-api-snippet');
+    this.webhookButton = this.get().locator('.nc-view-sidebar-webhook');
   }
 
   get() {
@@ -51,7 +63,7 @@ export class ViewSidebarPage extends BasePage {
     await this.rootPage.locator('input[id="form_item_title"]:visible').waitFor({ state: 'visible' });
     await this.rootPage.locator('input[id="form_item_title"]:visible').fill(title);
     const submitAction = () =>
-      this.rootPage.locator('.ant-modal-content').locator('button:has-text("Submit"):visible').click();
+      this.rootPage.locator('.ant-modal-content').locator('button.ant-btn.ant-btn-primary').click();
     await this.waitForResponse({
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: '/api/v1/db/meta/tables/',
@@ -76,6 +88,8 @@ export class ViewSidebarPage extends BasePage {
   }
 
   async openView({ title }: { title: string }) {
+    await this.get().waitFor({ state: 'visible' });
+    await this.get().locator(`[data-testid="view-sidebar-view-${title}"]`).waitFor({ state: 'visible' });
     await this.get().locator(`[data-testid="view-sidebar-view-${title}"]`).click();
   }
 
@@ -93,11 +107,11 @@ export class ViewSidebarPage extends BasePage {
     await this.get()
       .locator('[data-testid="view-item"]')
       .nth(index)
-      .locator('[data-testid="truncate-label"]')
+      .locator('[data-testid="sidebar-view-title"]')
       .waitFor({ state: 'visible' });
 
     await expect(
-      this.get().locator('[data-testid="view-item"]').nth(index).locator('[data-testid="truncate-label"]')
+      this.get().locator('[data-testid="view-item"]').nth(index).locator('[data-testid="sidebar-view-title"]')
     ).toHaveText(title, { ignoreCase: true });
   }
 
@@ -126,14 +140,7 @@ export class ViewSidebarPage extends BasePage {
       .locator('.nc-view-delete-icon')
       .click();
 
-    await this.rootPage.locator('.nc-modal-view-delete').locator('button:has-text("Submit"):visible').click();
-
-    // waiting for button to get detached, we will miss toast
-    // await this.rootPage
-    //   .locator(".nc-modal-view-delete")
-    //   .locator('button:has-text("Submit")')
-    //   .waitFor({ state: "detached" });
-    await this.verifyToast({ message: 'View deleted successfully' });
+    await this.rootPage.locator('button:has-text("Delete View"):visible').click();
   }
 
   async renameView({ title, newTitle }: { title: string; newTitle: string }) {
@@ -150,26 +157,37 @@ export class ViewSidebarPage extends BasePage {
       .locator('.nc-view-copy-icon')
       .click();
     const submitAction = () =>
-      this.rootPage.locator('.ant-modal-content').locator('button:has-text("Submit"):visible').click();
+      this.rootPage.locator('.ant-modal-content').locator('button:has-text("Create View"):visible').click();
     await this.waitForResponse({
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: '/api/v1/db/meta/tables/',
       uiAction: submitAction,
     });
-    await this.verifyToast({ message: 'View created successfully' });
+    // await this.verifyToast({ message: 'View created successfully' });
   }
 
-  async changeViewIcon({ title, icon }: { title: string; icon: string }) {
+  async changeViewIcon({ title, icon, iconDisplay }: { title: string; icon: string; iconDisplay?: string }) {
     await this.rootPage.waitForTimeout(1000);
     await this.get().locator(`[data-testid="view-sidebar-view-${title}"] .nc-view-icon`).click();
 
-    await this.rootPage.getByTestId('nc-emoji-filter').type(icon);
-    await this.rootPage.getByTestId('nc-emoji-container').locator(`.nc-emoji-item >> svg`).first().click();
+    if (isHub()) {
+      await this.rootPage.locator('.emoji-mart-search').type(icon);
+      const emojiList = await this.rootPage.locator('[id="emoji-mart-list"]');
+      await emojiList.locator('button').first().click();
+      await expect(
+        this.get()
+          .locator(`[data-testid="view-sidebar-view-${title}"]`)
+          .locator(`.nc-table-icon:has-text("${iconDisplay}")`)
+      ).toHaveCount(1);
+    } else {
+      await this.rootPage.getByTestId('nc-emoji-filter').type(icon);
+      await this.rootPage.getByTestId('nc-emoji-container').locator(`.nc-emoji-item >> svg`).first().click();
 
-    await this.rootPage.getByTestId('nc-emoji-container').isHidden();
-    await expect(
-      this.get().locator(`[data-testid="view-sidebar-view-${title}"] [data-testid="nc-icon-emojione:${icon}"]`)
-    ).toHaveCount(1);
+      await this.rootPage.getByTestId('nc-emoji-container').isHidden();
+      await expect(
+        this.get().locator(`[data-testid="view-sidebar-view-${title}"] [data-testid="nc-icon-emojione:${icon}"]`)
+      ).toHaveCount(1);
+    }
   }
 
   async verifyTabIcon({ title, icon }: { title: string; icon: string }) {
@@ -182,10 +200,28 @@ export class ViewSidebarPage extends BasePage {
   }
 
   async validateRoleAccess(param: { role: string }) {
-    const count = param.role === 'creator' ? 1 : 0;
+    const count = param.role.toLowerCase() === 'creator' ? 1 : 0;
     await expect(this.createGridButton).toHaveCount(count);
     await expect(this.createGalleryButton).toHaveCount(count);
     await expect(this.createFormButton).toHaveCount(count);
     await expect(this.createKanbanButton).toHaveCount(count);
+
+    await this.openDeveloperTab({});
+    await expect(this.erdButton).toHaveCount(1);
+    await expect(this.apiSnippet).toHaveCount(1);
+    await expect(this.webhookButton).toHaveCount(count);
+  }
+
+  async openDeveloperTab({ option }: { option?: string }) {
+    await this.get().locator('.nc-tab').nth(1).click();
+    if (option === 'ERD') {
+      await this.get().locator('.nc-view-action-erd.button').click();
+    } else if (option?.toLowerCase() === 'webhook') {
+      await this.get().locator('.nc-view-sidebar-webhook').click();
+    }
+  }
+
+  async openViewsTab() {
+    await this.get().locator(',nc-tab').nth(0).click();
   }
 }

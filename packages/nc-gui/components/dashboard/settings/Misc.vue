@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
-import { isString } from '@vueuse/core'
 import { onMounted } from '@vue/runtime-core'
 import { storeToRefs, useGlobal, useProject, watch } from '#imports'
 import { ProjectIdInj } from '~/context'
@@ -24,7 +23,8 @@ onMounted(async () => {
 })
 
 async function showNullAndEmptyInFilterOnChange(evt: CheckboxChangeEvent) {
-  const project = projectsStore.projects[projectId.value!]
+  const project = projectsStore.projects.get(projectId.value!)
+  if (!project) throw new Error(`Project ${projectId.value} not found`)
 
   const meta = projectsStore.getProjectMeta(projectId.value!) ?? {}
 

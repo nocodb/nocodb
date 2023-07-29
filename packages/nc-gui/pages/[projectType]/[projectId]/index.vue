@@ -200,7 +200,7 @@ const { loadScope } = useCommandPalette()
 onMounted(() => {
   toggle(true)
   toggleHasSidebar(true)
-  loadScope('project', { project_id: route.params.projectId })
+  loadScope('workspace', { project_id: route.params.projectId })
 })
 
 onBeforeUnmount(() => {
@@ -266,7 +266,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         theme="light"
       >
         <div
-          style="height: var(--header-height); border-bottom-width: 1px"
+          style="height: var(--sidebar-top-height); border-bottom-width: 1px"
           :class="isOpen ? 'pl-4' : ''"
           class="flex items-center text-primary px-1 gap-1 nc-sidebar-header"
         >

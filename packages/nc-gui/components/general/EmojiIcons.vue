@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Icon } from '@iconify/vue'
+import { Icon as IconifyIcon } from '@iconify/vue'
 import InfiniteLoading from 'v3-infinite-loading'
 import { emojiIcons } from '#imports'
 
@@ -48,7 +48,7 @@ const selectIcon = (icon?: string) => {
       <div class="flex gap-1 flex-wrap w-full flex-shrink overflow-y-auto scrollbar-thin-dull">
         <div v-for="icon of filteredIcons" :key="icon" @click="selectIcon(icon)">
           <span class="cursor-pointer nc-emoji-item">
-            <Icon class="text-xl iconify" :icon="`emojione:${icon}`"></Icon>
+            <IconifyIcon class="text-xl iconify" :icon="`emojione:${icon}`"></IconifyIcon>
           </span>
         </div>
         <InfiniteLoading @infinite="load"><span /></InfiniteLoading>

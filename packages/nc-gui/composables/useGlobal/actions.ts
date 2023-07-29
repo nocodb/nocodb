@@ -1,5 +1,7 @@
 import type { Actions, AppInfo, State } from './types'
 import { message, useNuxtApp } from '#imports'
+import { NcProjectType } from '~/utils'
+import { navigateTo } from '#app'
 
 export function useGlobalActions(state: State): Actions {
   const setIsMobileMode = (isMobileMode: boolean) => {
@@ -8,12 +10,14 @@ export function useGlobalActions(state: State): Actions {
 
   /** Sign out by deleting the token from localStorage */
   const signOut: Actions['signOut'] = async () => {
-    state.token.value = null
-    state.user.value = null
     try {
       const nuxtApp = useNuxtApp()
       await nuxtApp.$api.auth.signout()
-    } catch {}
+    } catch {
+    } finally {
+      state.token.value = null
+      state.user.value = null
+    }
   }
 
   /** Sign in by setting the token in localStorage */
@@ -65,5 +69,40 @@ export function useGlobalActions(state: State): Actions {
     }
   }
 
-  return { signIn, signOut, refreshToken, loadAppInfo, setIsMobileMode }
+  const navigateToProject = ({
+    workspaceId,
+    type,
+    projectId,
+  }: {
+    workspaceId: string
+    projectId?: string
+    type?: NcProjectType
+  }) => {
+    let path: string
+    if (projectId)
+      switch (type) {
+        case NcProjectType.DOCS:
+          path = `/ws/${workspaceId}/nc/${projectId}/doc`
+          break
+        default:
+          path = `/ws/${workspaceId}/project/${projectId}`
+          break
+      }
+    else path = `/ws/${workspaceId}`
+
+    if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
+      location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}/dashboard/#${path}`
+    } else {
+      navigateTo(path)
+    }
+  }
+
+  const getBaseUrl = (workspaceId: string) => {
+    if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
+      return `https://${workspaceId}.${state.appInfo.value.baseHostName}`
+    }
+    return undefined
+  }
+
+  return { signIn, signOut, refreshToken, loadAppInfo, setIsMobileMode, navigateToProject, getBaseUrl }
 }

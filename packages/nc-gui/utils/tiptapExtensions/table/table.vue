@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
 import type { EditorState } from 'prosemirror-state'
-import { NodeSelection } from 'prosemirror-state'
-import { CellSelection, addColumnAfter, addRowAfter } from '@tiptap/prosemirror-tables'
+import { NodeSelection, TextSelection } from 'prosemirror-state'
+import { CellSelection, addColumn, addRow, selectedRect } from '@tiptap/pm/tables'
 
 const { getPos, editor } = defineProps(nodeViewProps)
 const isPublic = !editor.view.editable
@@ -31,22 +31,20 @@ const createRow = () => {
 
   // Select the first cell of the last added row
   setTimeout(() => {
-    addRowAfter(editor.state, editor.view.dispatch)
+    const state = editor.state
+    const tr = state.tr
+    const rect = selectedRect(state)
+    addRow(tr, rect, rect.bottom)
 
-    setTimeout(() => {
-      editor
-        .chain()
-        .command(({ state, commands }) => {
-          const tableNodePos = getPos()
-          const tableNode = state.doc.nodeAt(tableNodePos)!
-          const lastRowNode = tableNode.lastChild!
-          const lastRowNodePos = tableNodePos + tableNode.nodeSize - lastRowNode.nodeSize
+    const tableNodePos = getPos()
+    const tableNode = tr.doc.nodeAt(tableNodePos)!
+    const lastRowNode = tableNode.lastChild!
+    const lastRowNodePos = tableNodePos + tableNode.nodeSize - lastRowNode.nodeSize
 
-          return commands.setTextSelection(lastRowNodePos + 2)
-        })
-        .run()
-    }, 0)
-  }, 0)
+    tr.setSelection(TextSelection.create(tr.doc, lastRowNodePos + 2))
+
+    editor.view.dispatch(tr)
+  })
 }
 
 const selectColumn = () => {
@@ -76,21 +74,19 @@ const appendColumn = () => {
 
   // Select the header cell of the first added column
   setTimeout(() => {
-    addColumnAfter(editor.state, editor.view.dispatch)
+    const state = editor.state
+    const rect = selectedRect(state)
+    const tr = state.tr
+    addColumn(tr, rect, rect.right)
 
-    const tableNode = editor.state.doc.nodeAt(getPos())!
+    const tableNode = tr.doc.nodeAt(getPos())!
     const firstHeader = tableNode.firstChild!
     const firstHeaderLastCell = firstHeader.lastChild!
     const firstHeaderLastCellPos = getPos() + firstHeader.nodeSize - firstHeaderLastCell.nodeSize + 1
 
-    setTimeout(() => {
-      editor
-        .chain()
-        .command(({ commands }) => {
-          return commands.setTextSelection(firstHeaderLastCellPos)
-        })
-        .run()
-    }, 0)
+    tr.setSelection(TextSelection.create(tr.doc, firstHeaderLastCellPos))
+
+    editor.view.dispatch(tr)
   }, 0)
 }
 </script>
@@ -129,73 +125,5 @@ const appendColumn = () => {
   color: rgb(203, 203, 203);
   padding-top: 0.25rem;
   padding-bottom: 0.25rem;
-}
-</style>
-
-<style lang="scss">
-.tiptap-table-wrapper {
-  @apply !pb-4 !pt-4;
-
-  table {
-    border-collapse: collapse;
-    table-layout: fixed;
-    width: 100%;
-    padding-top: 2rem;
-    padding-bottom: 2rem;
-    overflow: visible;
-    tbody {
-      overflow: visible;
-    }
-    td {
-      position: relative;
-      min-width: 1em;
-      border: 1px solid #e5e5e5;
-      overflow: visible !important;
-      height: 20px;
-    }
-
-    td {
-      overflow: visible !important;
-      border-top: 0;
-    }
-
-    // First row's td
-    tr:first-child {
-      td {
-        border-top: 1px solid #e5e5e5 !important;
-        background-color: #fafbfb;
-        p {
-          font-weight: 500;
-        }
-      }
-    }
-
-    th {
-      @apply font-semibold;
-      background-color: #fafbfb;
-    }
-
-    .column-resize-handle {
-      position: absolute;
-      right: -2px;
-      top: 0;
-      bottom: 0px;
-      margin-top: 1px;
-      margin-bottom: 1px;
-      width: 8px;
-      outline: 1px solid #e3e5ff;
-    }
-
-    p {
-      margin: 0;
-    }
-
-    .column-resize-handle {
-      background-color: #e3e5ff !important;
-      width: 3px;
-      cursor: col-resize;
-      z-index: 1;
-    }
-  }
 }
 </style>

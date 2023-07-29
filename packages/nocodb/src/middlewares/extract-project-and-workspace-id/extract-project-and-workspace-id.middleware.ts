@@ -1,10 +1,13 @@
-import { promisify } from 'util';
 import { Injectable, SetMetadata, UseInterceptors } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { NextFunction, Request, Response } from 'express';
-import { OrgUserRoles } from 'nocodb-sdk';
-import passport from 'passport';
-import { map, throwError } from 'rxjs';
+import {
+  OrgUserRoles,
+  ProjectRoles,
+  WorkspacePlan,
+  WorkspaceStatus,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
+import { map } from 'rxjs';
 import {
   Column,
   Filter,
@@ -12,15 +15,17 @@ import {
   GalleryViewColumn,
   GridViewColumn,
   Hook,
+  Layout,
   Model,
   Project,
   Sort,
   View,
+  Widget,
+  Workspace,
 } from '../../models';
 import extractRolesObj from '../../utils/extractRolesObj';
 import projectAcl from '../../utils/projectAcl';
-import catchError, { NcError } from '../catchError';
-import extractProjectIdAndAuthenticate from '../extractProjectIdAndAuthenticate';
+import { NcError } from '../catchError';
 import type { Observable } from 'rxjs';
 import type {
   CallHandler,
@@ -30,99 +35,144 @@ import type {
   NestMiddleware,
 } from '@nestjs/common';
 
+export const rolesLabel = {
+  [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
+  [OrgUserRoles.CREATOR]: 'Org Creator',
+  [OrgUserRoles.VIEWER]: 'Org Viewer',
+  [WorkspaceUserRoles.OWNER]: 'Workspace Owner',
+  [WorkspaceUserRoles.CREATOR]: 'Workspace Creator',
+  [WorkspaceUserRoles.VIEWER]: 'Workspace Viewer',
+  [WorkspaceUserRoles.EDITOR]: 'Workspace Editor',
+  [WorkspaceUserRoles.COMMENTER]: 'Workspace Commenter',
+  [ProjectRoles.OWNER]: 'Project Owner',
+  [ProjectRoles.CREATOR]: 'Project Creator',
+  [ProjectRoles.VIEWER]: 'Project Viewer',
+  [ProjectRoles.EDITOR]: 'Project Editor',
+  [ProjectRoles.COMMENTER]: 'Project Commenter',
+};
+
+export function getRolesLabels(
+  roles: (OrgUserRoles | WorkspaceUserRoles | ProjectRoles | string)[],
+) {
+  return roles
+    .filter(
+      (role) =>
+        ![OrgUserRoles.CREATOR, OrgUserRoles.VIEWER].includes(
+          role as OrgUserRoles,
+        ),
+    )
+    .map((role) => rolesLabel[role]);
+}
+
 // todo: refactor name since we are using it as auth guard
 @Injectable()
 export class ExtractProjectAndWorkspaceIdMiddleware
   implements NestMiddleware, CanActivate
 {
   async use(req, res, next): Promise<any> {
-    try {
-      const { params } = req;
+    const { params } = req;
 
-      // extract project id based on request path params
-      if (params.projectName) {
-        const project = await Project.getByTitleOrId(params.projectName);
+    // extract project id based on request path params
+    if (params.projectName) {
+      const project = await Project.getByTitleOrId(params.projectName);
+      if (project) {
         req.ncProjectId = project.id;
         res.locals.project = project;
       }
-      if (params.projectId) {
-        req.ncProjectId = params.projectId;
-      } else if (req.query.project_id) {
-        req.ncProjectId = req.query.project_id;
-      } else if (
-        params.tableId ||
-        req.query.fk_model_id ||
-        req.body?.fk_model_id
-      ) {
-        const model = await Model.getByIdOrName({
-          id: params.tableId || req.query?.fk_model_id || req.body?.fk_model_id,
-        });
-        req.ncProjectId = model?.project_id;
-      } else if (params.viewId) {
-        const view =
-          (await View.get(params.viewId)) || (await Model.get(params.viewId));
-        req.ncProjectId = view?.project_id;
-      } else if (
+    }
+    if (params.projectId) {
+      req.ncProjectId = params.projectId;
+    } else if (req.query.project_id) {
+      req.ncProjectId = req.query.project_id;
+    } else if (params.dashboardId) {
+      req.ncProjectId = params.dashboardId;
+    } else if (
+      params.tableId ||
+      req.query.fk_model_id ||
+      req.body?.fk_model_id
+    ) {
+      const model = await Model.getByIdOrName({
+        id: params.tableId || req.query?.fk_model_id || req.body?.fk_model_id,
+      });
+      req.ncProjectId = model?.project_id;
+    } else if (params.viewId) {
+      const view =
+        (await View.get(params.viewId)) || (await Model.get(params.viewId));
+      req.ncProjectId = view?.project_id;
+    } else if (
+      params.formViewId ||
+      params.gridViewId ||
+      params.kanbanViewId ||
+      params.galleryViewId
+    ) {
+      const view = await View.get(
         params.formViewId ||
-        params.gridViewId ||
-        params.kanbanViewId ||
-        params.galleryViewId
-      ) {
-        const view = await View.get(
-          params.formViewId ||
-            params.gridViewId ||
-            params.kanbanViewId ||
-            params.galleryViewId,
-        );
-        req.ncProjectId = view?.project_id;
-      } else if (params.publicDataUuid) {
-        const view = await View.getByUUID(req.params.publicDataUuid);
-        req.ncProjectId = view?.project_id;
-      } else if (params.hookId) {
-        const hook = await Hook.get(params.hookId);
-        req.ncProjectId = hook?.project_id;
-      } else if (params.gridViewColumnId) {
-        const gridViewColumn = await GridViewColumn.get(
-          params.gridViewColumnId,
-        );
-        req.ncProjectId = gridViewColumn?.project_id;
-      } else if (params.formViewColumnId) {
-        const formViewColumn = await FormViewColumn.get(
-          params.formViewColumnId,
-        );
-        req.ncProjectId = formViewColumn?.project_id;
-      } else if (params.galleryViewColumnId) {
-        const galleryViewColumn = await GalleryViewColumn.get(
-          params.galleryViewColumnId,
-        );
-        req.ncProjectId = galleryViewColumn?.project_id;
-      } else if (params.columnId) {
-        const column = await Column.get({ colId: params.columnId });
-        req.ncProjectId = column?.project_id;
-      } else if (params.filterId) {
-        const filter = await Filter.get(params.filterId);
-        req.ncProjectId = filter?.project_id;
-      } else if (params.filterParentId) {
-        const filter = await Filter.get(params.filterParentId);
-        req.ncProjectId = filter?.project_id;
-      } else if (params.sortId) {
-        const sort = await Sort.get(params.sortId);
-        req.ncProjectId = sort?.project_id;
+          params.gridViewId ||
+          params.kanbanViewId ||
+          params.galleryViewId,
+      );
+      req.ncProjectId = view?.project_id;
+    } else if (params.publicDataUuid) {
+      const view = await View.getByUUID(req.params.publicDataUuid);
+      req.ncProjectId = view?.project_id;
+    } else if (params.hookId) {
+      const hook = await Hook.get(params.hookId);
+      req.ncProjectId = hook?.project_id;
+    } else if (params.gridViewColumnId) {
+      const gridViewColumn = await GridViewColumn.get(params.gridViewColumnId);
+      req.ncProjectId = gridViewColumn?.project_id;
+    } else if (params.formViewColumnId) {
+      const formViewColumn = await FormViewColumn.get(params.formViewColumnId);
+      req.ncProjectId = formViewColumn?.project_id;
+    } else if (params.galleryViewColumnId) {
+      const galleryViewColumn = await GalleryViewColumn.get(
+        params.galleryViewColumnId,
+      );
+      req.ncProjectId = galleryViewColumn?.project_id;
+    } else if (params.columnId) {
+      const column = await Column.get({ colId: params.columnId });
+      req.ncProjectId = column?.project_id;
+    } else if (params.filterId) {
+      const filter = await Filter.get(params.filterId);
+      req.ncProjectId = filter?.project_id;
+    } else if (params.filterParentId) {
+      const filter = await Filter.get(params.filterParentId);
+      req.ncProjectId = filter?.project_id;
+    } else if (params.sortId) {
+      const sort = await Sort.get(params.sortId);
+      req.ncProjectId = sort?.project_id;
+    } else if (params.layoutId) {
+      const layout = await Layout.get(params.layoutId);
+      req.ncProjectId = layout?.project_id;
+    } else if (params.widgetId) {
+      const widget = await Widget.get(params.widgetId);
+      const layout = await Layout.get(widget.layout_id);
+      req.ncProjectId = layout?.project_id;
+    }
+
+    // todo:  verify all scenarios
+    // extract workspace id based on request path params or projectId
+    if (req.ncProjectId) {
+      req.ncWorkspaceId = (await Project.get(req.ncProjectId))?.fk_workspace_id;
+    } else if (req.params.workspaceId) {
+      req.ncWorkspaceId = req.params.workspaceId;
+    } else if (req.body.fk_workspace_id) {
+      req.ncWorkspaceId = req.body.fk_workspace_id;
+    }
+
+    if (req.ncWorkspaceId && process.env.NC_WORKSPACE_ID) {
+      if (req.ncWorkspaceId !== process.env.NC_WORKSPACE_ID) {
+        NcError.badRequest('Invalid workspace id');
+      }
+    } else if (req.ncWorkspaceId) {
+      const workspace = await Workspace.get(req.ncWorkspaceId);
+      if (!workspace) {
+        NcError.badRequest('Invalid workspace id');
       }
 
-      // todo:  verify all scenarios
-      // extract workspace id based on request path params or projectId
-      if (req.ncProjectId) {
-        req.ncWorkspaceId = (
-          await Project.get(req.ncProjectId)
-        )?.fk_workspace_id;
-      } else if (req.params.workspaceId) {
-        req.ncWorkspaceId = req.params.workspaceId;
-      } else if (req.body.fk_workspace_id) {
-        req.ncWorkspaceId = req.body.fk_workspace_id;
+      if (workspace.plan && workspace.plan !== WorkspacePlan.FREE) {
+        NcError.badRequest('invalid workspace id');
       }
-    } catch (e) {
-      console.log(e);
     }
     next();
   }
@@ -157,12 +207,20 @@ export class AclMiddleware implements NestInterceptor {
       'blockApiTokenAccess',
       context.getHandler(),
     );
+    const workspaceMode = this.reflector.get<boolean>(
+      'workspaceMode',
+      context.getHandler(),
+    );
 
     const req = context.switchToHttp().getRequest();
     const res = context.switchToHttp().getResponse();
     req.customProperty = 'This is a custom property';
 
-    const roles: Record<string, boolean> = extractRolesObj(req.user?.roles);
+    const roles: Record<string, boolean> = extractRolesObj(
+      workspaceMode
+        ? req.user?.workspaceRoles ?? req.user?.roles
+        : req.user?.roles,
+    );
 
     if (req?.user?.is_api_token && blockApiTokenAccess) {
       NcError.forbidden('Not allowed with API token');
@@ -199,8 +257,8 @@ export class AclMiddleware implements NestInterceptor {
       });
     if (!isAllowed) {
       NcError.forbidden(
-        `${permissionName} - ${Object.keys(roles).filter(
-          (k) => roles[k],
+        `${permissionName} - ${getRolesLabels(
+          Object.keys(roles).filter((k) => roles[k]),
         )} : Not allowed`,
       );
     }
@@ -226,9 +284,11 @@ export const UseAclMiddleware =
   ({
     permissionName,
     allowedRoles,
+    workspaceMode,
     blockApiTokenAccess,
   }: {
     permissionName: string;
+    workspaceMode?: boolean;
     allowedRoles?: (OrgUserRoles | string)[];
     blockApiTokenAccess?: boolean;
   }) =>
@@ -240,6 +300,8 @@ export const UseAclMiddleware =
       key,
       descriptor,
     );
+    SetMetadata('workspaceMode', workspaceMode)(target, key, descriptor);
+
     // UseInterceptors(ExtractProjectIdMiddleware)(target, key, descriptor);
     UseInterceptors(AclMiddleware)(target, key, descriptor);
   };

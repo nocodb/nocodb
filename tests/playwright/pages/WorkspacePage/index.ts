@@ -1,8 +1,9 @@
-import { expect, Page } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 import BasePage from '../Base';
 import { HeaderPage } from './HeaderPage';
 import { LeftSideBarPage } from './LeftSideBarPage';
 import { ContainerPage } from './ContainerPage';
+import { CollaborationPage } from './CollaborationPage';
 
 /*
   Workspace page
@@ -19,12 +20,14 @@ export class WorkspacePage extends BasePage {
   readonly Header: HeaderPage;
   readonly LeftSideBar: LeftSideBarPage;
   readonly Container: ContainerPage;
+  readonly collaboration: CollaborationPage;
 
   constructor(rootPage: Page) {
     super(rootPage);
     this.Header = new HeaderPage(this);
     this.LeftSideBar = new LeftSideBarPage(this);
     this.Container = new ContainerPage(this);
+    this.collaboration = new CollaborationPage(this);
   }
 
   get() {
@@ -44,8 +47,9 @@ export class WorkspacePage extends BasePage {
     await this.Container.verifyStaticElements();
   }
 
-  async workspaceCreate({ title, description }) {
-    await this.LeftSideBar.workspaceCreate({ title, description });
+  async workspaceCreate({ title }) {
+    await this.waitFor({ state: 'visible' });
+    await this.LeftSideBar.workspaceCreate({ title });
   }
 
   async workspaceRename({ title, newTitle }: { newTitle: string; title: string }) {
@@ -53,10 +57,12 @@ export class WorkspacePage extends BasePage {
   }
 
   async workspaceDelete({ title }) {
+    await this.waitFor({ state: 'visible' });
     await this.LeftSideBar.workspaceDelete({ title });
   }
 
   async workspaceOpen({ title }) {
+    await this.waitFor({ state: 'visible' });
     await (await this.LeftSideBar.workspaceGetLocator(title)).click();
   }
 
@@ -65,6 +71,7 @@ export class WorkspacePage extends BasePage {
   }
 
   async projectCreate({ title, type }) {
+    await this.waitFor({ state: 'visible' });
     await this.Container.projectCreate({ title, type });
   }
 
@@ -73,6 +80,7 @@ export class WorkspacePage extends BasePage {
   }
 
   async projectOpen({ title }) {
+    await this.waitFor({ state: 'visible' });
     await this.Container.projectOpen({ title });
   }
 
@@ -117,5 +125,35 @@ export class WorkspacePage extends BasePage {
 
   async waitForRender() {
     await this.Header.verifyStaticElements();
+  }
+
+  async verifyAccess(role: string) {
+    const addWs = await this.LeftSideBar.createWorkspace;
+    const addProject = await this.Container.newProjectButton;
+    const collaborators = await this.Container.collaborators;
+    const billing = await this.Container.billing;
+    const moreActions = await this.Container.moreActions;
+
+    if (role === 'owner') expect(await billing.isVisible()).toBeTruthy();
+    else expect(await billing.isVisible()).toBeFalsy();
+
+    expect(await addWs.isVisible()).toBeTruthy();
+
+    if (role === 'creator' || role === 'owner') {
+      expect(await collaborators.isVisible()).toBeTruthy();
+      expect(await addProject.isVisible()).toBeTruthy();
+      expect(await moreActions.isVisible()).toBeTruthy();
+
+      const menuItems = await this.Container.getMoreActionsSubMenuDetails();
+      if (role === 'creator') {
+        expect(menuItems).toEqual(['Rename Project', 'Duplicate Project']);
+      } else {
+        expect(menuItems).toEqual(['Rename Project', 'Duplicate Project', 'Move Project', 'Delete Project']);
+      }
+    } else {
+      expect(await collaborators.isVisible()).toBeFalsy();
+      expect(await billing.isVisible()).toBeFalsy();
+      expect(await addProject.isVisible()).toBeFalsy();
+    }
   }
 }

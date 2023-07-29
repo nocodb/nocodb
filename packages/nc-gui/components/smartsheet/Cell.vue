@@ -193,7 +193,7 @@ onUnmounted(() => {
       `nc-cell-${(column?.uidt || 'default').toLowerCase()}`,
       { 'text-blue-600': isPrimary(column) && !props.virtual && !isForm },
       { 'nc-grid-numeric-cell': isGrid && !isForm && isNumericField },
-      { 'h-[40px]': !props.editEnabled && isForm && !isSurveyForm && !isAttachment(column) },
+      { 'h-[40px]': !props.editEnabled && isForm && !isSurveyForm && !isAttachment(column) && !props.virtual },
     ]"
     @keydown.enter.exact="navigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="navigate(NavigateDir.PREV, $event)"
@@ -209,7 +209,12 @@ onUnmounted(() => {
         <LazyCellMultiSelect v-else-if="isMultiSelect(column)" v-model="vModel" :row-index="props.rowIndex" />
         <LazyCellDatePicker v-else-if="isDate(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
         <LazyCellYearPicker v-else-if="isYear(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
-        <LazyCellDateTimePicker v-else-if="isDateTime(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
+        <LazyCellDateTimePicker
+          v-else-if="isDateTime(column, abstractType)"
+          v-model="vModel"
+          :is-pk="isPrimaryKey(column)"
+          :is-updated-from-copy-n-paste="currentRow.rowMeta.isUpdatedFromCopyNPaste"
+        />
         <LazyCellTimePicker v-else-if="isTime(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
         <LazyCellRating v-else-if="isRating(column)" v-model="vModel" />
         <LazyCellDuration v-else-if="isDuration(column)" v-model="vModel" />
@@ -227,8 +232,6 @@ onUnmounted(() => {
         <div
           v-if="(isLocked || (isPublic && readOnly && !isForm) || isSystemColumn(column)) && !isAttachment(column)"
           class="nc-locked-overlay"
-          @click.stop.prevent
-          @dblclick.stop.prevent
         />
       </template>
     </template>

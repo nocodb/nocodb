@@ -9,6 +9,8 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue'])
 
+const { activeTable } = storeToRefs(useTablesStore())
+
 const meta = inject(MetaInj)
 
 const vModel = useVModel(props, 'modelValue', emits)
@@ -28,18 +30,14 @@ const selectedView = inject(ActiveViewInj)
     transition-name="fade"
     :destroy-on-close="true"
   >
-    <div class="flex justify-between w-full items-start px-[24px] pt-6 pb-4 border-b-1">
-      <div class="select-none text-slate-500 font-semibold">
-        {{ `${$t('title.erdView')}: ${selectedView?.title}` }}
-      </div>
-
-      <div class="flex h-full items-center justify-center rounded group" @click="vModel = false">
-        <component :is="iconMap.close" class="cursor-pointer mt-1 nc-modal-close group-hover:text-accent text-opacity-100" />
+    <div class="flex justify-between w-full items-start pb-4 border-b-1 border-gray-50 mb-4">
+      <div class="select-none text-gray-900 font-medium text-lg">
+        {{ `ERD for "${activeTable?.title}"` }}
       </div>
     </div>
 
     <div class="w-full h-70vh">
-      <LazyErdView :table="meta" />
+      <LazyErdView :table="activeTable" :base-id="activeTable?.base_id" />
     </div>
   </a-modal>
 </template>

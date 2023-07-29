@@ -4,9 +4,6 @@ import type { ProjectType, TableType } from 'nocodb-sdk'
 import { storeToRefs } from 'pinia'
 import Sortable from 'sortablejs'
 import TableNode from './TableNode.vue'
-import { useTabs } from '~/store/tab'
-import type { TabType } from '~/lib'
-import { useProjects } from '~/store/projects'
 import { useNuxtApp } from '#app'
 
 const props = withDefaults(
@@ -22,11 +19,8 @@ const props = withDefaults(
 const project = toRef(props, 'project')
 const baseIndex = toRef(props, 'baseIndex')
 
-const { addTab } = useTabs()
-
-const projectsStore = useProjects()
-
-const { projectTableList } = storeToRefs(projectsStore)
+const { projectTables } = storeToRefs(useTablesStore())
+const tables = computed(() => projectTables.value.get(project.value.id!) ?? [])
 
 const { $api } = useNuxtApp()
 
@@ -35,7 +29,7 @@ const { openTable } = useTableNew({
 })
 
 const tablesById = $computed(() =>
-  projectTableList.value[project.value.id!]?.reduce<Record<string, TableType>>((acc, table) => {
+  tables.value.reduce<Record<string, TableType>>((acc, table) => {
     acc[table.id!] = table
 
     return acc
@@ -53,14 +47,12 @@ const initSortable = (el: Element) => {
   if (sortable) sortable.destroy()
   Sortable.create(el as HTMLLIElement, {
     onEnd: async (evt) => {
-      const offset = projectTableList.value[project.value.id!].findIndex(
-        (table) => table.base_id === project.value.bases![baseIndex.value].id,
-      )
+      const offset = tables.value.findIndex((table) => table.base_id === project.value.bases![baseIndex.value].id)
 
       const { newIndex = 0, oldIndex = 0 } = evt
 
       const itemEl = evt.item as HTMLLIElement
-      const item = tablesById[itemEl.dataset.id as string]
+      const item = tablesById[itemEl.dataset.id as string]!
 
       // get the html collection of all list items
       const children: HTMLCollection = evt.to.children
@@ -87,11 +79,7 @@ const initSortable = (el: Element) => {
 
       // todo: move to action
       // update the order of the moved item
-      projectTableList.value[project.value.id!]?.splice(
-        newIndex + offset,
-        0,
-        ...projectTableList.value[project.value.id!]?.splice(oldIndex + offset, 1),
-      )
+      tables.value?.splice(newIndex + offset, 0, ...tables.value!.splice(oldIndex + offset, 1))
 
       // force re-render the list
       key++
@@ -110,30 +98,48 @@ const menuRef = (divEl: HTMLDivElement) => {
     initSortable(divEl)
   }
 }
+
+const availableTables = computed(() => {
+  return tables.value.filter((table) => table.base_id === project.value?.bases?.[baseIndex.value].id)
+})
 </script>
 
 <template>
   <div class="border-none sortable-list">
-    <div
-      v-if="project.bases[baseIndex] && project.bases[baseIndex].enabled"
-      :ref="menuRef"
-      :key="key"
-      :nc-base="project.bases[baseIndex].id"
-    >
-      <TableNode
-        v-for="table of (projectTableList[project.id] ?? []).filter((table) => table.base_id === project.bases[baseIndex].id)"
-        :key="table.id"
-        v-e="['a:table:open']"
-        class="nc-tree-item text-sm cursor-pointer group"
-        :data-order="table.order"
-        :data-id="table.id"
-        :data-testid="`tree-view-table-${table.title}`"
-        :table="table"
-        :project="project"
-        :base-index="baseIndex"
-        @click="openTable(table)"
+    <template v-if="project">
+      <div
+        v-if="project.bases?.[baseIndex] && project!.bases[baseIndex].enabled"
+        :ref="menuRef"
+        :key="key"
+        :nc-base="project.bases[baseIndex].id"
       >
-      </TableNode>
-    </div>
+        <div
+          v-if="availableTables.length === 0"
+          class="py-0.5 text-gray-500"
+          :class="{
+            'ml-13.55': baseIndex === 0,
+            'ml-19': baseIndex !== 0,
+          }"
+        >
+          Empty
+        </div>
+        <template v-else>
+          <TableNode
+            v-for="table of availableTables"
+            :key="table.id"
+            v-e="['a:table:open']"
+            class="nc-tree-item text-sm cursor-pointer group"
+            :data-order="table.order"
+            :data-id="table.id"
+            :data-testid="`tree-view-table-${table.title}`"
+            :table="table"
+            :project="project"
+            :base-index="baseIndex"
+            @click="openTable(table)"
+          >
+          </TableNode>
+        </template>
+      </div>
+    </template>
   </div>
 </template>

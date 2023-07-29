@@ -20,8 +20,8 @@ const groupType = computed({
 </script>
 
 <template>
-  <div class="min-w-[350px] max-w-[350px] min-h-[400px] !rounded-2xl bg-white rounded-xl nc-card" @click.stop>
-    <div class="p-3">
+  <div class="min-w-[350px] max-w-[350px] min-h-[400px] !rounded-2xl bg-white rounded-xl nc-card">
+    <div class="p-3" @click.stop>
       <div class="flex items-center">
         <span class="text-md font-medium text-[#212121]">
           <!-- todo: i18n -->
@@ -44,7 +44,6 @@ const groupType = computed({
       :class="{
         'flex items-center justify-center': !notifications?.length,
       }"
-      @click.stop
     >
       <template v-if="!notifications?.length">
         <div class="flex flex-col gap-2 items-center justify-center">

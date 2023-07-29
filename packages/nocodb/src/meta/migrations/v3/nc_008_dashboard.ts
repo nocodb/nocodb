@@ -31,9 +31,13 @@ const up = async (knex: Knex) => {
       table.string('dashboard_project_id', 20).notNullable();
       table
         .foreign('dashboard_project_id')
-        .references(`${MetaTable.PROJECT}.id`);
+        .references(`${MetaTable.PROJECT}.id`)
+        .withKeyName('nc_ds_dashboard_to_db_project__dashboard_id');
       table.string('db_project_id', 20).notNullable();
-      table.foreign('db_project_id').references(`${MetaTable.PROJECT}.id`);
+      table
+        .foreign('db_project_id')
+        .references(`${MetaTable.PROJECT}.id`)
+        .withKeyName('nc_ds_dashboard_to_db_project__db_id');
       table.timestamps(true, true);
     },
   );

@@ -30,7 +30,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
   const { $e, $api } = useNuxtApp()
 
-  const { getMeta, removeMeta, metas } = useMetas()
+  const { getMeta, removeMeta } = useMetas()
 
   const { closeTab } = useTabs()
 
@@ -42,14 +42,17 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
   const projectsStore = useProjects()
 
-  const { projects, projectTableList } = storeToRefs(projectsStore)
+  const { projects } = storeToRefs(projectsStore)
+  const { projectTables } = storeToRefs(useTablesStore())
 
-  const { loadTables, projectUrl } = useProject()
+  const { loadProjectTables } = useTablesStore()
+
+  const { loadTables, projectUrl, isXcdbBase } = useProject()
 
   const workspaceId = $computed(() => route.params.workspaceId as string)
 
-  const tables = computed(() => projectTableList.value[param.projectId] || [])
-  const project = computed(() => projects.value[param.projectId] || {})
+  const tables = computed(() => projectTables.value.get(param.projectId) || [])
+  const project = computed(() => projects.value.get(param.projectId))
 
   // const projectStore = useProject()
 
@@ -60,12 +63,13 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
   const openTable = async (table: TableType) => {
     if (!table.project_id) return
 
-    let project = projects.value[table.project_id]
+    let project = projects.value.get(table.project_id)
     if (!project) {
       await projectsStore.loadProject(table.project_id)
-      await projectsStore.loadProjectTables(table.project_id)
+      await loadProjectTables(table.project_id)
 
-      project = projects.value[table.project_id]
+      project = projects.value.get(table.project_id)
+      if (!project) throw new Error('Project not found')
     }
 
     await getMeta(table.id as string)
@@ -73,20 +77,22 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
     const projectType = (route.params.projectType as string) || 'nc'
 
     await navigateTo({
-      path: `/ws/${workspaceId}/${projectType}/${project.id!}/table/${table?.id}${table.title ? `/${table.title}` : ''}`,
+      path: `/ws/${workspaceId}/${projectType}/${project.id!}/table/${table?.id}`,
       query: route.query,
     })
   }
 
   const createTable = async () => {
-    let { onTableCreate, projectId, baseId } = param
+    const { onTableCreate, projectId } = param
+    let { baseId } = param
 
     if (!(projectId in projects.value)) {
       await projectsStore.loadProject(projectId)
     }
 
     if (!baseId) {
-      baseId = projects.value[projectId]?.bases?.[0].id
+      baseId = projects.value.get(projectId)?.bases?.[0].id
+      if (!baseId) throw new Error('Base not found')
     }
 
     const sqlUi = await projectsStore.getSqlUi(projectId, baseId)
@@ -176,7 +182,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
   )
 
   const generateUniqueTitle = () => {
-    table.title = generateTitle('Sheet', tables.value, 'title')
+    table.title = generateTitle('Untitled Table', tables.value, 'title')
   }
 
   const deleteTable = (table: TableType) => {
@@ -194,7 +200,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
           const meta = (await getMeta(table.id as string, true)) as TableType
           const relationColumns = meta?.columns?.filter((c) => c.uidt === UITypes.LinkToAnotherRecord && !isSystemColumn(c))
 
-          if (relationColumns?.length) {
+          if (relationColumns?.length && !isXcdbBase(table.base_id)) {
             const refColMsgs = await Promise.all(
               relationColumns.map(async (c, i) => {
                 const refMeta = (await getMeta(
@@ -233,7 +239,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
           if (tables.value.length === 0) {
             await navigateTo(
               projectUrl({
-                id: project.value.id!,
+                id: project.value!.id!,
                 type: 'database',
               }),
             )

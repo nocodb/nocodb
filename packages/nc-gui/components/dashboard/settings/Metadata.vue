@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { inject } from '@vue/runtime-core'
 import { Empty, extractSdkResponseErrorMsg, h, iconMap, message, storeToRefs, useI18n, useNuxtApp, useProject } from '#imports'
-import { ProjectIdInj } from '~/context'
 
 const props = defineProps<{
   baseId: string
@@ -14,8 +12,6 @@ const { $api } = useNuxtApp()
 const projectStore = useProject()
 const { loadTables } = projectStore
 const { project } = storeToRefs(projectStore)
-const _projectId = $(inject(ProjectIdInj))
-const projectId = $computed(() => _projectId ?? project.value?.id)
 
 const { t } = useI18n()
 
@@ -27,11 +23,11 @@ let metadiff = $ref<any[]>([])
 
 async function loadMetaDiff() {
   try {
-    if (!projectId) return
+    if (!project.value?.id) return
 
     isLoading = true
     isDifferent = false
-    metadiff = await $api.base.metaDiffGet(projectId, props.baseId)
+    metadiff = await $api.base.metaDiffGet(project.value?.id, props.baseId)
     for (const model of metadiff) {
       if (model.detectedChanges?.length > 0) {
         model.syncState = model.detectedChanges.map((el: any) => el?.msg).join(', ')
@@ -47,10 +43,10 @@ async function loadMetaDiff() {
 
 async function syncMetaDiff() {
   try {
-    if (!projectId || !isDifferent) return
+    if (!project.value?.id || !isDifferent) return
 
     isLoading = true
-    await $api.base.metaDiffSync(projectId, props.baseId)
+    await $api.base.metaDiffSync(project.value?.id, props.baseId)
     // Table metadata recreated successfully
     message.info(t('msg.info.metaDataRecreated'))
     await loadTables()
@@ -90,11 +86,32 @@ const columns = [
 </script>
 
 <template>
-  <div class="flex flex-row w-full">
-    <div class="flex flex-col w-3/5">
-      <div class="flex flex-row justify-end items-center w-full mb-4">
+  <div class="flex flex-col w-full">
+    <div class="flex flex-col">
+      <div class="flex flex-row justify-between items-center w-full mb-4">
+        <div class="flex">
+          <div v-if="isDifferent">
+            <a-button v-e="['a:proj-meta:meta-data:sync']" class="nc-btn-metasync-sync-now" type="primary" @click="syncMetaDiff">
+              <div class="flex items-center gap-2">
+                <component :is="iconMap.databaseSync" />
+                {{ $t('activity.metaSync') }}
+              </div>
+            </a-button>
+          </div>
+
+          <div v-else>
+            <!--        Tables metadata is in sync -->
+            <span>
+              <a-alert :message="$t('msg.info.tablesMetadataInSync')" type="success" show-icon />
+            </span>
+          </div>
+        </div>
         <!--        Reload -->
-        <a-button v-e="['a:proj-meta:meta-data:reload']" class="self-start nc-btn-metasync-reload" @click="loadMetaDiff">
+        <a-button
+          v-e="['a:proj-meta:meta-data:reload']"
+          class="self-start !rounded-md nc-btn-metasync-reload"
+          @click="loadMetaDiff"
+        >
           <div class="flex items-center gap-2 text-gray-600 font-light">
             <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
             {{ $t('general.reload') }}
@@ -134,23 +151,8 @@ const columns = [
       </div>
     </div>
 
-    <div class="flex place-content-center w-2/5">
+    <div class="flex place-content-center item-center">
       <!--      Sync Now -->
-      <div v-if="isDifferent">
-        <a-button v-e="['a:proj-meta:meta-data:sync']" class="nc-btn-metasync-sync-now" type="primary" @click="syncMetaDiff">
-          <div class="flex items-center gap-2">
-            <component :is="iconMap.databaseSync" />
-            {{ $t('activity.metaSync') }}
-          </div>
-        </a-button>
-      </div>
-
-      <div v-else>
-        <!--        Tables metadata is in sync -->
-        <span>
-          <a-alert :message="$t('msg.info.tablesMetadataInSync')" type="success" show-icon />
-        </span>
-      </div>
     </div>
   </div>
 </template>

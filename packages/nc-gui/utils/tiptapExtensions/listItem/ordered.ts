@@ -2,8 +2,9 @@ import type { ChainedCommands } from '@tiptap/core'
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import { Plugin, PluginKey } from 'prosemirror-state'
 import { TiptapNodesTypes } from 'nocodb-sdk'
+import { nodeTypesContainingListItems } from '../helper'
 import type { ListNodeType } from './helper'
-import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspaceWithNestedList, onEnter } from './helper'
+import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspace, onEnter } from './helper'
 export interface OrderItemsOptions {
   number: string
   HTMLAttributes: Record<string, any>
@@ -151,7 +152,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
         return changeLevel(this.editor as any, this.name as ListNodeType, 'backward')
       },
       'Backspace': () => {
-        return onBackspaceWithNestedList(this.editor as any, this.name as any)
+        return onBackspace(this.editor as any, this.name as any)
       },
     }
   },
@@ -186,6 +187,40 @@ export const Ordered = Node.create<OrderItemsOptions>({
     return [
       new Plugin({
         key: plugin,
+        // Fix the order number of ordered list when page is updated
+        appendTransaction(_, __, newState) {
+          const tr = newState.tr
+          const { doc } = newState
+          let currentNumber = 1
+          let found = false
+
+          doc.descendants((node, pos) => {
+            if (
+              nodeTypesContainingListItems.includes(node.type.name as TiptapNodesTypes) ||
+              node.type.name === TiptapNodesTypes.ordered
+            ) {
+              if (node.type.name === TiptapNodesTypes.ordered) {
+                const number = node.attrs.number
+                if (String(number) !== String(currentNumber)) {
+                  found = true
+                  tr.setNodeMarkup(pos, undefined, {
+                    number: String(currentNumber),
+                  })
+                }
+                currentNumber++
+              }
+
+              // Should to traverse deeper in tree if the node is not a nodeTypesContainingListItems
+              return node.type.name !== TiptapNodesTypes.ordered
+            } else {
+              // Reset the current number as ordered list group is over i.e current node is a normal paragraph
+              currentNumber = 1
+              return false
+            }
+          })
+
+          return found ? tr : undefined
+        },
         state: {
           init() {
             return {

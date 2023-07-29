@@ -4,11 +4,13 @@ import bcrypt from 'bcryptjs';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy as OpenIDConnectStrategy } from '@techpass/passport-openidconnect';
 import { v4 as uuidv4 } from 'uuid';
+import { ConfigService } from '@nestjs/config';
 import { User } from '../../models';
 import Noco from '../../Noco';
 import NocoCache from '../../cache/NocoCache';
 import { CacheGetType } from '../../utils/globals';
 import { UsersService } from '../../services/users/users.service';
+import type { AppConfig } from 'aws-sdk';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
 
 @Injectable()
@@ -18,6 +20,7 @@ export class OpenidStrategy extends PassportStrategy(
 ) {
   constructor(
     @Optional() clientConfig: any,
+    private configService: ConfigService<AppConfig>,
     private usersService: UsersService,
   ) {
     super(clientConfig, (_issuer, _subject, profile, done) =>
@@ -62,18 +65,31 @@ export class OpenidStrategy extends PassportStrategy(
   }
 
   async authenticate(req: any, options?: any): Promise<void> {
+    let callbackURL = req.ncSiteUrl + Noco.getConfig().dashboardPath;
+    if (process.env.NC_BASE_APP_URL) {
+      const url = new URL(req.ncSiteUrl);
+      const baseAppUrl = new URL(process.env.NC_BASE_APP_URL);
+
+      if (baseAppUrl.host !== url.host) {
+        callbackURL = process.env.NC_BASE_APP_URL + '/auth/oidc/redirect';
+      }
+    }
+
     return super.authenticate(req, {
       ...options,
       scope: ['profile', 'email'],
-      callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath,
+      callbackURL,
     });
   }
 }
 
 export const OpenidStrategyProvider: FactoryProvider = {
   provide: OpenidStrategy,
-  inject: [UsersService],
-  useFactory: async (usersService: UsersService) => {
+  inject: [UsersService, ConfigService<AppConfig>],
+  useFactory: async (
+    usersService: UsersService,
+    config: ConfigService<AppConfig>,
+  ) => {
     // OpenID Connect
     if (
       process.env.NC_OIDC_ISSUER &&
@@ -94,10 +110,12 @@ export const OpenidStrategyProvider: FactoryProvider = {
 
         // cache based store for managing the state of the authorization request
         store: {
-          store: async (_req, meta, callback) => {
+          store: async (req, meta, callback) => {
             const handle = `oidc_${uuidv4()}`;
 
-            const state = { handle };
+            const url = new URL(req.ncSiteUrl);
+
+            const state = { handle, host: url.host };
             for (const key in meta) {
               state[key] = meta[key];
             }
@@ -106,7 +124,7 @@ export const OpenidStrategyProvider: FactoryProvider = {
               .then(() => callback(null, handle))
               .catch((err) => callback(err));
           },
-          verify: (_req, providedState, callback) => {
+          verify: (req, providedState, callback) => {
             const key = `oidc:${providedState}`;
             NocoCache.get(key, CacheGetType.TYPE_OBJECT)
               .then(async (state) => {
@@ -116,6 +134,8 @@ export const OpenidStrategyProvider: FactoryProvider = {
                   });
                 }
 
+                req.ncRedirectHost = state.host;
+
                 await NocoCache.del(key);
                 return callback(null, true, state);
               })
@@ -124,7 +144,7 @@ export const OpenidStrategyProvider: FactoryProvider = {
         },
       };
 
-      return new OpenidStrategy(clientConfig, usersService);
+      return new OpenidStrategy(clientConfig, config, usersService);
     }
     return null;
   },

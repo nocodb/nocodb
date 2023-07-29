@@ -1,10 +1,7 @@
-import { promisify } from 'util';
 import { Injectable, SetMetadata, UseInterceptors } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { NextFunction, Request, Response } from 'express';
 import { OrgUserRoles } from 'nocodb-sdk';
-import passport from 'passport';
-import { map, throwError } from 'rxjs';
+import { map } from 'rxjs';
 import {
   Column,
   Filter,
@@ -12,15 +9,17 @@ import {
   GalleryViewColumn,
   GridViewColumn,
   Hook,
+  Layout,
   Model,
   Project,
   Sort,
   View,
+  Widget,
 } from '../../models';
 import extractRolesObj from '../../utils/extractRolesObj';
 import projectAcl from '../../utils/projectAcl';
-import catchError, { NcError } from '../catchError';
-import extractProjectIdAndAuthenticate from '../extractProjectIdAndAuthenticate';
+import { NcError } from '../catchError';
+import { getRolesLabels } from '../extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import type { Observable } from 'rxjs';
 import type {
   CallHandler,
@@ -41,6 +40,7 @@ export class ExtractProjectIdMiddleware implements NestMiddleware, CanActivate {
       // extract project id based on request path params
       if (params.projectName) {
         const project = await Project.getByTitleOrId(params.projectName);
+        if (!project) NcError.notFound('Project not found');
         req.ncProjectId = project.id;
         res.locals.project = project;
       }
@@ -107,6 +107,13 @@ export class ExtractProjectIdMiddleware implements NestMiddleware, CanActivate {
       } else if (params.sortId) {
         const sort = await Sort.get(params.sortId);
         req.ncProjectId = sort?.project_id;
+      } else if (params.layoutId) {
+        const layout = await Layout.get(params.layoutId);
+        req.ncProjectId = layout?.project_id;
+      } else if (params.widgetId) {
+        const widget = await Widget.get(params.widgetId);
+        const layout = await Layout.get(widget.layout_id);
+        req.ncProjectId = layout?.project_id;
       }
 
       // const user = await new Promise((resolve, _reject) => {
@@ -216,7 +223,6 @@ export class AclMiddleware implements NestInterceptor {
     );
 
     const req = context.switchToHttp().getRequest();
-    const res = context.switchToHttp().getResponse();
     req.customProperty = 'This is a custom property';
 
     const roles: Record<string, boolean> = extractRolesObj(req.user?.roles);
@@ -256,8 +262,8 @@ export class AclMiddleware implements NestInterceptor {
       });
     if (!isAllowed) {
       NcError.forbidden(
-        `${permissionName} - ${Object.keys(roles).filter(
-          (k) => roles[k],
+        `${permissionName} - ${getRolesLabels(
+          Object.keys(roles).filter((k) => roles[k]),
         )} : Not allowed`,
       );
     }
@@ -275,17 +281,16 @@ export const UseProjectIdMiddleware =
     UseInterceptors(ExtractProjectIdMiddleware)(target, key, descriptor);
   };
 
-export const UseAclMiddleware =
-  ({
-    permissionName,
-    allowedRoles,
-    blockApiTokenAccess,
-  }: {
-    permissionName: string;
-    allowedRoles?: (OrgUserRoles | string)[];
-    blockApiTokenAccess?: boolean;
-  }) =>
-  (target: any, key?: string, descriptor?: PropertyDescriptor) => {
+export const UseAclMiddleware = ({
+  permissionName,
+  allowedRoles,
+  blockApiTokenAccess,
+}: {
+  permissionName: string;
+  allowedRoles?: (OrgUserRoles | string)[];
+  blockApiTokenAccess?: boolean;
+}) => {
+  return (target: any, key?: string, descriptor?: PropertyDescriptor) => {
     SetMetadata('permission', permissionName)(target, key, descriptor);
     SetMetadata('allowedRoles', allowedRoles)(target, key, descriptor);
     SetMetadata('blockApiTokenAccess', blockApiTokenAccess)(
@@ -296,6 +301,7 @@ export const UseAclMiddleware =
     // UseInterceptors(ExtractProjectIdMiddleware)(target, key, descriptor);
     UseInterceptors(AclMiddleware)(target, key, descriptor);
   };
+};
 export const Acl =
   (
     permissionName: string,

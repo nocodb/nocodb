@@ -10,7 +10,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { SortReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '../guards/global/global.guard';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
@@ -50,7 +49,6 @@ export class SortsController {
     const sort = await this.sortsService.sortCreate({
       sort: body,
       viewId,
-      user: req.user,
     });
     return sort;
   }
@@ -78,7 +76,6 @@ export class SortsController {
     const sort = await this.sortsService.sortUpdate({
       sortId,
       sort: body,
-      user: req.user,
     });
     return sort;
   }
@@ -87,7 +84,6 @@ export class SortsController {
   async sortDelete(@Param('sortId') sortId: string, @Req() req) {
     const sort = await this.sortsService.sortDelete({
       sortId,
-      user: req.user,
     });
     return sort;
   }

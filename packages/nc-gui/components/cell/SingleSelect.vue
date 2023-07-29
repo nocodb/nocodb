@@ -4,6 +4,7 @@ import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
+import { WorkspaceUserRoles } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   CellClickHookInj,
@@ -40,9 +41,15 @@ const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj)!
 
-const active = inject(ActiveCellInj, ref(false))
+const isLockedMode = inject(IsLockedInj, ref(false))
 
-const editable = inject(EditModeInj, ref(false))
+const isEditable = inject(EditModeInj, ref(false))
+
+const activeCell = inject(ActiveCellInj, ref(false))
+
+// use both ActiveCellInj or EditModeInj to determine the active state
+// since active will be false in case of form view
+const active = computed(() => activeCell.value || isEditable.value)
 
 const aselect = ref<typeof AntSelect>()
 
@@ -68,6 +75,16 @@ const { isPg, isMysql } = useProject()
 // temporary until it's add the option to column meta
 const tempSelectedOptState = ref<string>()
 
+const isNewOptionCreateEnabled = computed(
+  () =>
+    !isPublic.value &&
+    !disableOptionCreation &&
+    (hasRole('owner', true) ||
+      hasRole('creator', true) ||
+      hasRole(WorkspaceUserRoles.OWNER, true) ||
+      hasRole(WorkspaceUserRoles.CREATOR, true)),
+)
+
 const options = computed<(SelectOptionType & { value: string })[]>(() => {
   if (column?.value.colOptions) {
     const opts = column.value.colOptions
@@ -86,18 +103,24 @@ const isOptionMissing = computed(() => {
   return (options.value ?? []).every((op) => op.title !== searchVal.value)
 })
 
-const hasEditRoles = computed(() => hasRole('owner', true) || hasRole('creator', true) || hasRole('editor', true))
+const hasEditRoles = computed(
+  () =>
+    hasRole('owner', true) ||
+    hasRole('creator', true) ||
+    hasRole('editor', true) ||
+    hasRole(WorkspaceUserRoles.OWNER, true) ||
+    hasRole(WorkspaceUserRoles.CREATOR, true) ||
+    hasRole(WorkspaceUserRoles.EDITOR, true),
+)
 
-const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && (active.value || editable.value))
+const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && active.value)
 
 const vModel = computed({
   get: () => tempSelectedOptState.value ?? modelValue,
   set: (val) => {
-    if (isOptionMissing.value && val === searchVal.value) {
+    if (val && isNewOptionCreateEnabled.value && (options.value ?? []).every((op) => op.title !== val)) {
       tempSelectedOptState.value = val
-      return addIfMissingAndSave().finally(() => {
-        tempSelectedOptState.value = undefined
-      })
+      return addIfMissingAndSave()
     }
     emit('update:modelValue', val || null)
   },
@@ -113,7 +136,7 @@ watch(isOpen, (n, _o) => {
   }
 })
 
-useSelectedCellKeyupListener(active, (e) => {
+useSelectedCellKeyupListener(activeCell, (e) => {
   switch (e.key) {
     case 'Escape':
       isOpen.value = false
@@ -146,10 +169,11 @@ useSelectedCellKeyupListener(isOpen, (e) => {
 })
 
 async function addIfMissingAndSave() {
-  if (!searchVal.value || isPublic.value) return false
+  if (!tempSelectedOptState.value || isPublic.value) return false
 
-  const newOptValue = searchVal.value
+  const newOptValue = tempSelectedOptState.value
   searchVal.value = ''
+  tempSelectedOptState.value = undefined
 
   if (newOptValue && !options.value.some((o) => o.title === newOptValue)) {
     try {
@@ -197,7 +221,7 @@ const search = () => {
 
 // prevent propagation of keydown event if select is open
 const onKeydown = (e: KeyboardEvent) => {
-  if (isOpen.value && (active.value || editable.value)) {
+  if (isOpen.value && active.value) {
     e.stopPropagation()
   }
   if (e.key === 'Enter') {
@@ -249,8 +273,12 @@ const selectedOpt = computed(() => {
 </script>
 
 <template>
-  <div class="h-full w-full flex items-center nc-single-select" :class="{ 'read-only': readOnly }" @click="toggleMenu">
-    <div v-if="!editable && !active">
+  <div
+    class="h-full w-full flex items-center nc-single-select"
+    :class="{ 'read-only': readOnly || isLockedMode }"
+    @click="toggleMenu"
+  >
+    <div v-if="!(active || isEditable)">
       <a-tag v-if="selectedOpt" class="rounded-tag" :color="selectedOpt.color">
         <span
           :style="{
@@ -275,10 +303,10 @@ const selectedOpt = computed(() => {
       :allow-clear="!column.rqd && editAllowed"
       :bordered="false"
       :open="isOpen && editAllowed"
-      :disabled="readOnly || !editAllowed"
-      :show-arrow="hasEditRoles && !readOnly && (editable || (active && vModel === null))"
-      :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen && (active || editable) ? 'active' : ''}`"
-      :show-search="isOpen && (active || editable)"
+      :disabled="readOnly || !editAllowed || isLockedMode"
+      :show-arrow="hasEditRoles && !(readOnly || isLockedMode) && active && vModel === null"
+      :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen && active ? 'active' : ''}`"
+      :show-search="isOpen && active"
       @select="onSelect"
       @keydown="onKeydown($event)"
       @search="search"
@@ -305,17 +333,7 @@ const selectedOpt = computed(() => {
           </span>
         </a-tag>
       </a-select-option>
-      <a-select-option
-        v-if="
-          searchVal &&
-          isOptionMissing &&
-          !isPublic &&
-          !disableOptionCreation &&
-          (hasRole('owner', true) || hasRole('creator', true))
-        "
-        :key="searchVal"
-        :value="searchVal"
-      >
+      <a-select-option v-if="searchVal && isOptionMissing && isNewOptionCreateEnabled" :key="searchVal" :value="searchVal">
         <div class="flex gap-2 text-gray-500 items-center h-full">
           <component :is="iconMap.plusThick" class="min-w-4" />
           <div class="text-xs whitespace-normal">
@@ -333,7 +351,7 @@ const selectedOpt = computed(() => {
 }
 
 :deep(.ant-tag) {
-  @apply "rounded-tag";
+  @apply "rounded-tag" my-[2px];
 }
 
 :deep(.ant-select-clear) {
@@ -349,12 +367,6 @@ const selectedOpt = computed(() => {
 
 :deep(.ant-select-selector) {
   @apply !px-0;
-}
-
-:deep(.ant-select-selection-search) {
-  // following a-select with mode = multiple | tags
-  // initial width will block @mouseover in Grid.vue
-  @apply !w-[5px];
 }
 
 :deep(.ant-select-selection-search-input) {

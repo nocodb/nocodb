@@ -198,10 +198,10 @@ watch(inputs, () => {
 
 <template>
   <div class="w-full">
-    <div class="max-h-[250px] overflow-x-auto scrollbar-thin-dull pr-3">
+    <div class="max-h-[250px] overflow-x-auto scrollbar-thin-dull">
       <Draggable :list="renderedOptions" item-key="id" handle=".nc-child-draggable-icon" @change="syncOptions">
         <template #item="{ element, index }">
-          <div class="flex p-1 items-center nc-select-option">
+          <div class="flex py-1 items-center nc-select-option">
             <div
               class="flex items-center w-full"
               :data-testid="`select-column-option-${index}`"
@@ -236,7 +236,7 @@ watch(inputs, () => {
               <a-input
                 ref="inputs"
                 v-model:value="element.title"
-                class="caption"
+                class="caption !rounded-lg"
                 :data-testid="`select-column-option-input-${index}`"
                 :disabled="element.status === 'remove'"
                 @keydown.enter.prevent="element.title?.trim() && addNewOption()"
@@ -244,13 +244,14 @@ watch(inputs, () => {
               />
             </div>
 
-            <component
-              :is="iconMap.close"
+            <div
               v-if="element.status !== 'remove'"
-              class="ml-2 hover:!text-black-500 text-gray-500 cursor-pointer"
               :data-testid="`select-column-option-remove-${index}`"
+              class="ml-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-50 py-1 px-1.5 rounded-md"
               @click="removeRenderedOption(index)"
-            />
+            >
+              <component :is="iconMap.close" class="-mt-0.25" />
+            </div>
 
             <MdiArrowULeftBottom
               v-else

@@ -3,16 +3,33 @@
 @import '@vue-flow/core/dist/theme-default.css';
 
 :root {
-  --header-height: 48px;
-  --new-header-height: 58px;
-  --toolbar-height: 48px;
+  --sidebar-top-height: 11.50rem;
+  --topbar-height: 3.1rem;
+  --new-header-height: 3.5rem;
   --tw-text-opacity: 1;
   --navbar-bg: #FAFAFA;
   --navbar-border: #e0e0e0;
+  --nc-grid-bg: #fdfdfd;
+}
+
+::-moz-selection {
+  /* Code for Firefox */
+  color: inherit;
+  background-color: #3366ff20;
+}
+
+::selection {
+  color: inherit;
+  background-color: #3366ff20;
+}
+
+.ant-layout-content {
+  overflow-x: visible !important;
+  overflow-y: visible !important;
 }
 
 .ant-layout-header {
-  height: var(--header-height) !important;
+  height: var(--topbar-height) !important;
 }
 
 html,
@@ -22,6 +39,79 @@ body,
 main {
   @apply m-0 h-full w-full bg-white;
 }
+
+.nc-input-md {
+  @apply !rounded-lg !py-2 !px-3 mb-1;
+}
+
+.nc-scrollbar-md {
+  overflow-y: scroll;
+  overflow-x: hidden;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  &::-webkit-scrollbar-track-piece {
+    width: 0px;
+  }
+  &::-webkit-scrollbar {
+    @apply bg-transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    width: 4px;
+    @apply bg-gray-100 ;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-200;
+  }
+}
+
+.nc-scrollbar-dark-md {
+  overflow-y: scroll;
+  overflow-x: hidden;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  &::-webkit-scrollbar-track-piece {
+    width: 0px;
+  }
+  &::-webkit-scrollbar {
+    @apply bg-transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    width: 4px;
+    @apply bg-gray-200 ;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-300;
+  }
+}
+
+.nc-scrollbar-x-md {
+  overflow-x: hidden;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  &::-webkit-scrollbar-track-piece {
+    width: 0px;
+  }
+  &::-webkit-scrollbar {
+    @apply bg-transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    width: 4px;
+    @apply bg-gray-100 ;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-200;
+  }
+}
+
 
 html {
   overflow-y: auto !important;
@@ -40,6 +130,13 @@ a {
   @apply color-transition inline;
 }
 
+.ant-select {
+  @apply !rounded-md;
+  .ant-select-selector {
+    @apply !rounded-md;
+  }
+}
+
 // menu item styling
 .nc-menu-item {
   @apply cursor-pointer text-xs flex items-center gap-2 px-4 py-3 relative after:(content-[''] absolute top-0 left-0 bottom-0 w-full h-full right-0 bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
@@ -50,13 +147,13 @@ a {
 }
 
 .nc-project-menu-item {
-  @apply cursor-pointer flex items-center gap-2 py-2 hover:text-primary after:(content-[''] absolute top-0 left-0 bottom-0 right-0 w-full h-full bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
+  @apply cursor-pointer flex items-center gap-2 py-2 after:(content-[''] absolute top-0 left-0 bottom-0 right-0 w-full h-full bg-current opacity-0 transition transition-opacity duration-100) hover:(after:(opacity-5));
 
-  &:hover {
-    .nc-icon {
-      @apply text-accent;
-    }
-  }
+  // &:hover {
+  //   .nc-icon {
+  //     @apply text-accent;
+  //   }
+  // }
 }
 
 .nc-workspace-menu-item {
@@ -101,19 +198,16 @@ a {
 
 // badge with count
 .nc-count-badge {
-  @apply absolute flex items-center top-[-6px] right-[-6px] px-1 min-w-[14px] h-[14px] rounded-full bg-primary bg-opacity-100 text-white !text-[9px] !z-21;
+  @apply absolute flex items-center top-[-6px] right-[-6px] px-1 min-w-[14px] h-[14px] rounded-full bg-gray-500 !text-[9px] text-white !z-21;
 }
 
 // for highlighting toolbar menu item
 .nc-active-btn > .ant-btn {
-  @apply bg-primary bg-opacity-20 hover:(bg-primary bg-opacity-20);
+  @apply bg-gray-200 bg-opacity-20;
 }
 
 // for highlighing toolbar kanban menu item
 
-.nc-kanban-btn > .ant-btn {
-  @apply bg-green-400 bg-opacity-20 hover:(bg-primary bg-opacity-20);
-}
 
 .nc-locked-overlay {
   @apply absolute h-full w-full z-2 top-0 left-0;
@@ -295,7 +389,7 @@ a {
 }
 
 .nc-toolbar-btn {
-  @apply !shadow-none rounded hover:(ring-1 ring-primary ring-opacity-100) focus:(ring-1 ring-accent ring-opacity-100);
+  @apply !shadow-none rounded hover:(ring-1 ring-gray-100 ring-opacity-100 bg-gray-50 !text-gray-800) focus:(ring-1 ring-gray-100 ring-opacity-100 !text-gray-800 bg-gray-50) text-gray-600 text-xs font-medium px-2 border-0;
 }
 
 .nc-warning-info {
@@ -306,7 +400,8 @@ a {
   @apply !top-[50px] ;
 }
 .ant-modal-content {
-  @apply !rounded-md !px-4 py-4.5;
+  @apply  !p-6;
+  border-radius: 1rem;
 }
 .ant-modal-body {
   @apply !p-0;
@@ -351,7 +446,7 @@ a {
 
 
 .nc-icon-transition {
-  @apply transform transition-transform !hover:(scale-115) !active:(scale-100)
+  @apply transform transition-transform !hover:(scale-115 text-shadow-sm) !active:(scale-100)
 }
 
 .nc-animation-pulse {
@@ -372,7 +467,7 @@ a {
 
 
 .nc-menu-item-wrapper {
-  @apply flex flex-row items-center py-3 gap-2 text-xs;
+  @apply flex flex-row items-center py-3 gap-2;
 }
 
 .nc-click-transition {
@@ -381,10 +476,6 @@ a {
 
 .nc-click-transition-1 {
   @apply transform transition-transform !hover:(scale-120) !active:(scale-100)
-}
-
-ninja-keys {
-  --ninja-z-index: 1000;
 }
 
 @keyframes pop-in {
@@ -408,6 +499,17 @@ ninja-keys {
 // button
 .nc-btn{
   @apply rounded py-2 px-4 border-gray-200 h-auto
+}
+
+.ant-popover-inner {
+  padding: 0 !important;
+}
+.ant-popover-inner-content {
+  @apply !px-1.5 !py-1 text-xs text-white bg-black;
+}
+.ant-tooltip-inner {
+  @apply !px-1.5 !py-1 text-xs text-white bg-black;
+  min-height: 0 !important;
 }
 
 

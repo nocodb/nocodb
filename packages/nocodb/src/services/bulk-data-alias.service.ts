@@ -1,8 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { isSystemColumn, UITypes } from 'nocodb-sdk';
-import * as XLSX from 'xlsx';
-import { NcError } from '../helpers/catchError';
-import { Base, Column, Model, Project, View } from '../models';
+import { Base, Model } from '../models';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { getViewAndModelByAliasOrId } from '../modules/datas/helpers';
 import type { PathParams } from '../modules/datas/helpers';
@@ -44,12 +41,24 @@ export class BulkDataAliasService {
     param: PathParams & {
       body: any;
       cookie: any;
+      chunkSize?: number;
+      foreign_key_checks?: boolean;
+      skip_hooks?: boolean;
+      raw?: boolean;
     },
   ) {
     return await this.executeBulkOperation({
       ...param,
       operation: 'bulkInsert',
-      options: [param.body, { cookie: param.cookie }],
+      options: [
+        param.body,
+        {
+          cookie: param.cookie,
+          foreign_key_checks: param.foreign_key_checks,
+          skip_hooks: param.skip_hooks,
+          raw: param.raw,
+        },
+      ],
     });
   }
 
@@ -58,12 +67,13 @@ export class BulkDataAliasService {
     param: PathParams & {
       body: any;
       cookie: any;
+      raw?: boolean;
     },
   ) {
     return await this.executeBulkOperation({
       ...param,
       operation: 'bulkUpdate',
-      options: [param.body, { cookie: param.cookie }],
+      options: [param.body, { cookie: param.cookie, raw: param.raw }],
     });
   }
 

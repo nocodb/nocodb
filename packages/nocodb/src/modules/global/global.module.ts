@@ -1,21 +1,26 @@
 import { Global, Module } from '@nestjs/common';
 import { ExtractJwt } from 'passport-jwt';
-import { Connection } from '../../connection/connection';
+import { SocketGateway } from '../../gateways/socket.gateway';
 import { GlobalGuard } from '../../guards/global/global.guard';
 import { MetaService } from '../../meta/meta.service';
-import { SocketService } from '../../services/socket.service';
-import { JwtStrategy } from '../../strategies/jwt.strategy';
-import NcConfigFactory from '../../utils/NcConfigFactory';
-import { UsersService } from '../../services/users/users.service';
+import Noco from '../../Noco';
 import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
+import { JwtStrategy } from '../../strategies/jwt.strategy';
+import { UsersService } from '../../services/users/users.service';
 import { Producer } from '../../services/producer/producer';
 import { ProducerProvider } from '../../services/producer';
+import { EventEmitterModule } from '../event-emitter/event-emitter.module';
+import { TelemetryService } from '../../services/telemetry.service';
+import { AppHooksListenerService } from '../../services/app-hooks-listener.service';
+import { InitMetaServiceProvider } from './init-meta-service.provider';
 import type { Provider } from '@nestjs/common';
 
 export const JwtStrategyProvider: Provider = {
   provide: JwtStrategy,
-  useFactory: async (usersService: UsersService) => {
-    const config = await NcConfigFactory.make();
+  useFactory: async (usersService: UsersService, metaService: MetaService) => {
+    const config = metaService.config;
+
+    await Noco.initJwt();
 
     const options = {
       // ignoreExpiration: false,
@@ -28,30 +33,34 @@ export const JwtStrategyProvider: Provider = {
 
     return new JwtStrategy(options, usersService);
   },
-  inject: [UsersService],
+  inject: [UsersService, MetaService],
 };
 
 @Global()
 @Module({
+  imports: [EventEmitterModule],
   providers: [
-    Connection,
-    MetaService,
+    InitMetaServiceProvider,
+    AppHooksService,
     UsersService,
     JwtStrategyProvider,
     GlobalGuard,
-    SocketService,
+    SocketGateway,
     AppHooksService,
     ProducerProvider,
+    AppHooksListenerService,
+    TelemetryService,
   ],
   exports: [
-    Connection,
     MetaService,
     JwtStrategyProvider,
     UsersService,
     GlobalGuard,
-    SocketService,
     AppHooksService,
     Producer,
+    AppHooksListenerService,
+    TelemetryService,
+    ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [SocketGateway] : []),
   ],
 })
 export class GlobalModule {}

@@ -27,6 +27,14 @@ import MdiIdentifierIcon from '~icons/mdi/identifier'
 const props = defineProps<{
   preload?: Partial<ColumnType>
   columnPosition?: Pick<ColumnReqType, 'column_order'>
+  // Disable styles like border, shadow to be embedded on other components
+  embedMode?: boolean
+  // Will be used to show where ever text 'Column' is used.
+  // i.e 'Column Name' label in form, thus will be of form `${columnLabel} Name`
+  columnLabel?: string
+  hideTitle?: boolean
+  hideType?: boolean
+  hideAdditionalOptions?: boolean
 }>()
 
 const emit = defineEmits(['submit', 'cancel', 'mounted'])
@@ -37,6 +45,8 @@ const { formState, generateNewColumnMeta, addOrUpdate, onAlter, onUidtOrIdTypeCh
 const { getMeta } = useMetas()
 
 const { t } = useI18n()
+
+const columnLabel = computed(() => props.columnLabel || t('objects.column'))
 
 const { $api, $e } = useNuxtApp()
 
@@ -58,7 +68,7 @@ const advancedDbOptions = ref(false)
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
-const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup]
+const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup, UITypes.Links]
 
 const loadMagic = ref(false)
 
@@ -66,9 +76,11 @@ const geoDataToggleCondition = (t: { name: UITypes }) => {
   return betaFeatureToggleState.show ? betaFeatureToggleState.show : !t.name.includes(UITypes.GeoData)
 }
 
+const showDeprecated = $ref(false)
+
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
-    ...uiTypes.filter((t) => geoDataToggleCondition(t) && (!isEdit.value || !t.virtual)),
+    ...uiTypes.filter((t) => geoDataToggleCondition(t) && (!isEdit.value || !t.virtual) && (!t.deprecated || showDeprecated)),
     ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
       ? [
           {
@@ -185,17 +197,27 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 
 <template>
   <div
-    class="w-[400px] bg-gray-50 shadow p-4 overflow-auto border"
-    :class="{ '!w-[600px]': formState.uidt === UITypes.Formula, '!w-[500px]': formState.uidt === UITypes.Attachment }"
+    class="bg-white overflow-auto"
+    :class="{
+      'w-[400px]': !props.embedMode,
+      '!w-[600px]': formState.uidt === UITypes.Formula && !props.embedMode,
+      '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode,
+      'shadow-lg border-1 border-gray-50 shadow-gray-100 rounded-md p-6': !embedMode,
+    }"
     @click.stop
   >
     <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical" data-testid="add-or-edit-column">
       <div class="flex flex-col gap-2">
-        <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.title">
+        <a-form-item
+          v-if="!props.hideTitle"
+          :label="`${columnLabel} ${$t('general.name')}`"
+          v-bind="validateInfos.title"
+          :required="false"
+        >
           <a-input
             ref="antInput"
             v-model:value="formState.title"
-            class="nc-column-name-input"
+            class="nc-column-name-input !rounded !mt-1"
             :disabled="isKanban"
             @input="onAlter(8)"
           />
@@ -203,27 +225,31 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 
         <div class="flex items-center gap-1">
           <a-form-item
-            v-if="!(isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
+            v-if="!props.hideType && !(isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
             class="flex-1"
-            :label="$t('labels.columnType')"
+            :label="`${columnLabel} ${$t('general.type')}`"
           >
+            <div class="h-1 w-full"></div>
             <a-select
               v-model:value="formState.uidt"
               show-search
-              class="nc-column-type-input"
+              class="nc-column-type-input !rounded"
               :disabled="isKanban"
-              dropdown-class-name="nc-dropdown-column-type"
+              dropdown-class-name="nc-dropdown-column-type "
               @change="onUidtOrIdTypeChange"
+              @dblclick="showDeprecated = !showDeprecated"
             >
+              <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
               <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
                 <div class="flex gap-1 items-center">
-                  <component :is="opt.icon" class="text-grey" />
+                  <component :is="opt.icon" class="text-gray-700 mx-1" style="font-weight: 600; font-size: 1.1rem" />
                   {{ opt.name }}
+                  <span v-if="opt.deprecated" class="!text-xs !text-gray-300">(Deprecated)</span>
                 </div>
               </a-select-option>
             </a-select>
           </a-form-item>
-          <div class="mt-2 cursor-pointer" @click="predictColumnType()">
+          <div v-if="!props.hideType" class="mt-2 cursor-pointer" @click="predictColumnType()">
             <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
           </div>
         </div>
@@ -232,7 +258,6 @@ useEventListener('keydown', (e: KeyboardEvent) => {
         <LazySmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
         <LazySmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />
         <LazySmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
-        <LazySmartsheetColumnGeoDataOptions v-if="formState.uidt === UITypes.GeoData" v-model:value="formState" />
         <LazySmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
         <LazySmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
         <LazySmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
@@ -241,9 +266,10 @@ useEventListener('keydown', (e: KeyboardEvent) => {
         <LazySmartsheetColumnDateTimeOptions v-if="formState.uidt === UITypes.DateTime" v-model:value="formState" />
         <LazySmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />
         <LazySmartsheetColumnLinkedToAnotherRecordOptions
-          v-if="!isEdit && formState.uidt === UITypes.LinkToAnotherRecord"
+          v-if="!isEdit && (formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links)"
           v-model:value="formState"
         />
+        <LazySmartsheetColumnLinkOptions v-if="isEdit && formState.uidt === UITypes.Links" v-model:value="formState" />
         <LazySmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
         <LazySmartsheetColumnSelectOptions
           v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
@@ -252,7 +278,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
       </div>
 
       <div
-        v-if="!isVirtualCol(formState.uidt)"
+        v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt)"
         class="text-xs cursor-pointer text-gray-400 nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
         @click="advancedOptions = !advancedOptions"
         @dblclick="advancedDbOptions = !advancedDbOptions"
@@ -279,6 +305,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
           />
 
           <LazySmartsheetColumnAdvancedOptions
+            v-if="formState.uidt !== UITypes.Attachment"
             v-model:value="formState"
             :advanced-db-options="advancedDbOptions || formState.uidt === UITypes.SpecificDBType"
           />
@@ -286,21 +313,50 @@ useEventListener('keydown', (e: KeyboardEvent) => {
       </Transition>
 
       <a-form-item>
-        <div class="flex justify-end gap-1 mt-4">
-          <a-button html-type="button" @click="emit('cancel')">
-            <!-- Cancel -->
-            {{ $t('general.cancel') }}
-          </a-button>
+        <div
+          class="flex gap-x-2"
+          :class="{
+            'mt-6': props.hideAdditionalOptions,
+            'mt-2': !props.hideAdditionalOptions,
+            'justify-end': !props.embedMode,
+          }"
+        >
+          <!-- Cancel -->
+          <NcButton
+            class="w-full"
+            size="small"
+            html-type="button"
+            type="secondary"
+            :label="`${$t('general.cancel')}`"
+            @click="emit('cancel')"
+          >
+          </NcButton>
 
-          <a-button html-type="submit" type="primary" :loading="saving" @click.prevent="onSubmit">
-            <!-- Save -->
-            {{ $t('general.save') }}
-          </a-button>
+          <!-- Save -->
+          <NcButton
+            html-type="submit"
+            type="primary"
+            :loading="saving"
+            size="small"
+            class="w-full"
+            :label="`${$t('general.save')} ${columnLabel}`"
+            :loading-label="`${$t('general.saving')} ${columnLabel}`"
+            @click.prevent="onSubmit"
+          >
+          </NcButton>
         </div>
       </a-form-item>
     </a-form>
   </div>
 </template>
+
+<style lang="scss">
+.nc-column-type-input {
+  .ant-select-selector {
+    @apply !rounded;
+  }
+}
+</style>
 
 <style scoped>
 :deep(.ant-form-item-label > label) {

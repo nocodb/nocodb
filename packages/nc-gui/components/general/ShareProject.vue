@@ -1,9 +1,20 @@
 <script setup lang="ts">
 import { isDrawerOrModalExist, isMac, useNuxtApp } from '#imports'
 
+interface Props {
+  disabled?: boolean
+  isViewToolbar?: boolean
+}
+
+const { disabled, isViewToolbar } = defineProps<Props>()
+
 const { visibility, showShareModal } = storeToRefs(useShare())
 
+const { activeTable } = storeToRefs(useTablesStore())
+
 const { $e } = useNuxtApp()
+
+const { isUIAllowed } = useUIPermission()
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
@@ -24,25 +35,21 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <template>
   <div
-    v-if="visibility !== 'hidden'"
-    class="flex flex-col justify-center h-full mr-1"
+    v-if="isUIAllowed('shareProject') && visibility !== 'hidden' && activeTable"
+    class="flex flex-col justify-center h-full"
     data-testid="share-project-button"
     :data-sharetype="visibility"
   >
-    <div
-      class="flex flex-row items-center gap-x-1.5 bg-primary text-white hover:bg-opacity-80 py-1 px-2.5 rounded-md cursor-pointer z-10"
-      :class="{
-        '!pl-3': visibility === 'none',
-      }"
-      @click="showShareModal = true"
-    >
-      <MaterialSymbolsPublic v-if="visibility === 'public'" class="h-3.5" />
-      <MaterialSymbolsLockOutline v-else-if="visibility === 'private'" class="h-3.5" />
-      <div class="flex">Share</div>
-    </div>
+    <a-button class="z-10 !rounded-lg !px-2" type="primary" :disabled="disabled" @click="showShareModal = true">
+      <div class="flex flex-row items-center w-full gap-x-1">
+        <MaterialSymbolsPublic v-if="visibility === 'public'" class="h-3.5" />
+        <MaterialSymbolsLockOutline v-else-if="visibility === 'private'" class="h-3.5" />
+        <div class="flex">Share</div>
+      </div>
+    </a-button>
   </div>
 
-  <LazyDlgShareAndCollaborateView />
+  <LazyDlgShareAndCollaborateView :is-view-toolbar="isViewToolbar" />
 </template>
 
 <style lang="scss">

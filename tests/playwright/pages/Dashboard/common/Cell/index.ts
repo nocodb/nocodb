@@ -9,6 +9,9 @@ import { RatingCellPageObject } from './RatingCell';
 import { DateCellPageObject } from './DateCell';
 import { DateTimeCellPageObject } from './DateTimeCell';
 import { GeoDataCellPageObject } from './GeoDataCell';
+import { getTextExcludeIconText } from '../../../../tests/utils/general';
+import { YearCellPageObject } from './YearCell';
+import { TimeCellPageObject } from './TimeCell';
 
 export interface CellProps {
   index?: number;
@@ -21,6 +24,8 @@ export class CellPageObject extends BasePage {
   readonly attachment: AttachmentCellPageObject;
   readonly checkbox: CheckboxCellPageObject;
   readonly rating: RatingCellPageObject;
+  readonly year: YearCellPageObject;
+  readonly time: TimeCellPageObject;
   readonly geoData: GeoDataCellPageObject;
   readonly date: DateCellPageObject;
   readonly dateTime: DateTimeCellPageObject;
@@ -32,6 +37,8 @@ export class CellPageObject extends BasePage {
     this.attachment = new AttachmentCellPageObject(this);
     this.checkbox = new CheckboxCellPageObject(this);
     this.rating = new RatingCellPageObject(this);
+    this.year = new YearCellPageObject(this);
+    this.time = new TimeCellPageObject(this);
     this.geoData = new GeoDataCellPageObject(this);
     this.date = new DateCellPageObject(this);
     this.dateTime = new DateTimeCellPageObject(this);
@@ -39,9 +46,9 @@ export class CellPageObject extends BasePage {
 
   get({ index, columnHeader }: CellProps): Locator {
     if (this.parent instanceof SharedFormPage) {
-      return this.parent.get().locator(`[data-testid="nc-form-input-cell-${columnHeader}"]`);
+      return this.parent.get().locator(`[data-testid="nc-form-input-cell-${columnHeader}"]`).first();
     } else {
-      return this.parent.get().locator(`td[data-testid="cell-${columnHeader}-${index}"]`);
+      return this.parent.get().locator(`td[data-testid="cell-${columnHeader}-${index}"]`).first();
     }
   }
 
@@ -76,9 +83,9 @@ export class CellPageObject extends BasePage {
   }
 
   async inCellExpand({ index, columnHeader }: CellProps) {
-    await this.get({ index, columnHeader }).hover();
+    // await this.get({ index, columnHeader }).hover();
     await this.waitForResponse({
-      uiAction: () => this.get({ index, columnHeader }).locator('.nc-action-icon >> nth=0').click(),
+      uiAction: () => this.get({ index, columnHeader }).locator('.nc-datatype-link').click(),
       requestUrlPathToMatch: '/api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
     });
@@ -114,6 +121,11 @@ export class CellPageObject extends BasePage {
       // if text is found, return
       // if text is not found, throw error
       let count = 0;
+
+      if (!(this.parent instanceof SharedFormPage)) {
+        await this.rootPage.locator(`td[data-testid="cell-${columnHeader}-${index}"]`).waitFor({ state: 'visible' });
+      }
+
       await this.get({
         index,
         columnHeader,
@@ -262,36 +274,54 @@ export class CellPageObject extends BasePage {
   async verifyVirtualCell({
     index,
     columnHeader,
+    type,
     count,
     value,
     verifyChildList = false,
+    options,
   }: CellProps & {
     count?: number;
-    value: string[];
+    type?: string;
+    value?: string[];
     verifyChildList?: boolean;
+    options?: { singular?: string; plural?: string };
   }) {
-    // const count = value.length;
     const cell = await this.get({ index, columnHeader });
-    const chips = cell.locator('.chips > .chip');
+    const linkText = await cell.locator('.nc-datatype-link');
 
-    await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
+    await cell.scrollIntoViewIfNeeded();
+
+    // lazy load- give enough time for cell to load
+    await this.rootPage.waitForTimeout(1000);
+
+    if (type === 'bt') {
+      const chips = cell.locator('.chips > .chip');
+      await expect(await chips.count()).toBe(count);
+
+      for (let i = 0; i < value.length; ++i) {
+        await chips.nth(i).locator('.name').waitFor({ state: 'visible' });
+        await chips.nth(i).locator('.name').scrollIntoViewIfNeeded();
+        await expect(await chips.nth(i).locator('.name')).toHaveText(value[i]);
+      }
+      return;
+    }
 
     // verify chip count & contents
-    if (count) await expect(chips).toHaveCount(count);
-
-    // verify only the elements that are passed in
-    for (let i = 0; i < value.length; ++i) {
-      await expect(await chips.nth(i).locator('.name')).toHaveText(value[i]);
+    if (count) {
+      await expect(await cell.innerText()).toContain(`${count} ${count === 1 ? options.singular : options.plural}`);
     }
 
     if (verifyChildList) {
       // open child list
       await this.get({ index, columnHeader }).hover();
-      const arrow_expand = await this.get({ index, columnHeader }).locator('.nc-arrow-expand');
 
       // arrow expand doesn't exist for bt columns
-      if (await arrow_expand.count()) {
-        await arrow_expand.click();
+      if (await linkText.count()) {
+        await this.waitForResponse({
+          uiAction: () => linkText.click(),
+          requestUrlPathToMatch: '/api/v1/db',
+          httpMethodsToMatch: ['GET'],
+        });
 
         // wait for child list to open
         await this.rootPage.waitForSelector('.nc-modal-child-list:visible');
@@ -308,48 +338,70 @@ export class CellPageObject extends BasePage {
 
   async unlinkVirtualCell({ index, columnHeader }: CellProps) {
     const cell = this.get({ index, columnHeader });
-    await cell.click();
-    await cell.locator('.unlink-icon').first().click();
+    const isLink = await cell.locator('.nc-datatype-link').count();
+
+    // Count will be 0 for BT columns
+    if (!isLink) {
+      await cell.click();
+      await cell.locator('.nc-icon.unlink-icon').click();
+    }
+
+    // For HM/MM columns
+    else {
+      await cell.locator('.nc-datatype-link').click();
+      await this.waitForResponse({
+        uiAction: () => this.rootPage.locator(`[data-testid="nc-child-list-icon-unlink"]`).first().click(),
+        requestUrlPathToMatch: '/api/v1/db/data/noco/',
+        httpMethodsToMatch: ['GET'],
+      });
+      await this.rootPage.keyboard.press('Escape');
+    }
   }
 
   async verifyRoleAccess(param: { role: string }) {
+    const role = param.role.toLowerCase();
+    const count = role === 'creator' || role === 'editor' || role === 'owner' ? 1 : 0;
     // normal text cell
     const cell = await this.get({ index: 0, columnHeader: 'Country' });
     // editable cell
     await cell.dblclick();
-    await expect(await cell.locator(`input`)).toHaveCount(param.role === 'creator' || param.role === 'editor' ? 1 : 0);
+    await expect(await cell.locator(`input`)).toHaveCount(count);
 
     // press escape to close the input
     await cell.press('Escape');
     await cell.press('Escape');
 
     await cell.click({ button: 'right', clickCount: 1 });
-    await expect(await this.rootPage.locator(`.nc-dropdown-grid-context-menu:visible`)).toHaveCount(
-      param.role === 'creator' || param.role === 'editor' ? 1 : 0
-    );
+    await expect(await this.rootPage.locator(`.nc-dropdown-grid-context-menu:visible`)).toHaveCount(count);
 
     // virtual cell
-    const vCell = await this.get({ index: 0, columnHeader: 'City List' });
+    const vCell = await this.get({ index: 0, columnHeader: 'Cities' });
     await vCell.hover();
     // in-cell add
-    await expect(await vCell.locator('.nc-action-icon.nc-plus:visible')).toHaveCount(
-      param.role === 'creator' || param.role === 'editor' ? 1 : 0
-    );
-    // in-cell expand (all have access)
-    await expect(await vCell.locator('.nc-action-icon.nc-arrow-expand:visible')).toHaveCount(1);
-    await vCell.click();
-    // unlink
-    await expect(await vCell.locator('.nc-icon.unlink-icon:visible')).toHaveCount(
-      param.role === 'creator' || param.role === 'editor' ? 1 : 0
-    );
+    await expect(await vCell.locator('.nc-action-icon.nc-plus:visible')).toHaveCount(count);
+
+    // virtual cell link text
+    const linkText = await getTextExcludeIconText(vCell);
+    expect(linkText).toContain('1 City');
   }
 
-  async copyToClipboard({ index, columnHeader }: CellProps, ...clickOptions: Parameters<Locator['click']>) {
+  async copyCellToClipboard({ index, columnHeader }: CellProps, ...clickOptions: Parameters<Locator['click']>) {
     await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
     await this.get({ index, columnHeader }).click(...clickOptions);
     await (await this.get({ index, columnHeader }).elementHandle()).waitForElementState('stable');
 
     await this.get({ index, columnHeader }).press((await this.isMacOs()) ? 'Meta+C' : 'Control+C');
     await this.verifyToast({ message: 'Copied to clipboard' });
+  }
+
+  async pasteFromClipboard({ index, columnHeader }: CellProps, ...clickOptions: Parameters<Locator['click']>) {
+    await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
+    await this.get({ index, columnHeader }).click(...clickOptions);
+    await (await this.get({ index, columnHeader }).elementHandle()).waitForElementState('stable');
+
+    await this.get({ index, columnHeader }).press((await this.isMacOs()) ? 'Meta+V' : 'Control+V');
+
+    // kludge: wait for paste to complete
+    await this.rootPage.waitForTimeout(1000);
   }
 }

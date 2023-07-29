@@ -152,7 +152,7 @@ export const Document = Node.create({
               (prevSecPos ? document.querySelector(`.ProseMirror .draggable-block-wrapper[pos="${prevSecPos}"]`) : null)
             if (!domOfCurrentSection) return null
 
-            const pageContentDom = document.querySelector('.nc-docs-page-content')
+            const pageContentDom = document.querySelector('.nc-docs-page')
             if (!pageContentDom) return null
 
             // If dom is at the bottom of the editor, then scroll to the bottom

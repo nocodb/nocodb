@@ -2,6 +2,7 @@ import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../helpers/extractProps';
+import { Column } from '~/models/index';
 
 export default class BarcodeColumn {
   id: string;
@@ -66,5 +67,11 @@ export default class BarcodeColumn {
     }
     // set meta
     await ncMeta.metaUpdate(null, null, MetaTable.COL_BARCODE, updateObj, id);
+  }
+
+  async getValueColumn() {
+    return Column.get({
+      colId: this.fk_barcode_value_column_id,
+    });
   }
 }

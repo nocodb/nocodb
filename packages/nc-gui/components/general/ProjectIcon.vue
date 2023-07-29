@@ -1,26 +1,58 @@
 <script lang="ts" setup>
 import { NcProjectType } from '#imports'
 
-const { type } = defineProps<{
+const { type, hoverable } = defineProps<{
   type?: NcProjectType | string
+  hoverable?: boolean
 }>()
 </script>
 
 <template>
-  <GeneralIcon
+  <img
     v-if="type === NcProjectType.DOCS"
-    icon="doc"
-    class="text-[#247727] bg-[#247727] text-lg p-1px rounded bg-opacity-5 !px-1"
+    src="~/assets/nc-icons/docs.svg"
+    class="text-[#247727] nc-project-icon"
+    :class="{
+      'nc-project-icon-hoverable': hoverable,
+    }"
   />
   <PhPencilCircleThin
     v-else-if="type === NcProjectType.COWRITER"
-    class="text-[#8626FF] bg-[#8626FF] text-lg p-2px rounded bg-opacity-5"
+    class="text-[#8626FF] nc-project-icon"
+    :class="{
+      'nc-project-icon-hoverable': hoverable,
+    }"
   />
   <PhFlowArrowThin
     v-else-if="type === NcProjectType.AUTOMATION"
-    class="text-[#DDB00F] bg-[#DDB00F] text-lg p-2px rounded bg-opacity-5"
+    class="text-[#DDB00F] nc-project-icon"
+    :class="{
+      'nc-project-icon-hoverable': hoverable,
+    }"
   />
-  <GeneralIcon v-else icon="database" class="text-[#2824FB] bg-[#2824FB] text-lg p-1px rounded bg-opacity-5 !px-1" />
+  <img
+    v-else-if="type === NcProjectType.DASHBOARD"
+    src="~/assets/nc-icons/dashboard.svg"
+    class="text-[#DDB00F] nc-project-icon"
+    :class="{
+      'nc-project-icon-hoverable': hoverable,
+    }"
+  />
+  <img
+    v-else
+    src="~/assets/nc-icons/database.svg"
+    class="text-[#2824FB] nc-project-icon"
+    :class="{
+      'nc-project-icon-hoverable': hoverable,
+    }"
+  />
 </template>
 
-<style scoped></style>
+<style scoped>
+.nc-project-icon {
+  @apply text-xl;
+}
+.nc-project-icon-hoverable {
+  @apply cursor-pointer !hover:bg-gray-200 !hover:bg-opacity-50;
+}
+</style>

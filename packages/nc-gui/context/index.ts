@@ -2,7 +2,7 @@ import type { ColumnType, ProjectType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import type { useViewData } from '#imports'
-import type { PageSidebarNode, Row, TabItem } from '~/lib'
+import type { NcProject, PageSidebarNode, Row, TabItem } from '~/lib'
 
 export const ActiveCellInj: InjectionKey<Ref<boolean>> = Symbol('active-cell')
 export const IsPublicInj: InjectionKey<Ref<boolean>> = Symbol('is-public')
@@ -23,7 +23,7 @@ export const IsExpandedFormOpenInj: InjectionKey<Ref<boolean>> = Symbol('is-expa
 export const CellValueInj: InjectionKey<Ref<any>> = Symbol('cell-value-injection')
 export const ActiveViewInj: InjectionKey<Ref<ViewType>> = Symbol('active-view-injection')
 export const ReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('readonly-injection')
-export const RowHeightInj: InjectionKey<ComputedRef<1 | 2 | 4 | 6 | undefined>> = Symbol('row-height-injection')
+export const RowHeightInj: InjectionKey<Ref<1 | 2 | 4 | 6 | undefined>> = Symbol('row-height-injection')
 /** when bool is passed, it indicates if a loading spinner should be visible while reloading */
 export const ReloadViewDataHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-data-injection')
 export const ReloadViewMetaHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-meta-injection')
@@ -38,7 +38,14 @@ export const ToggleDialogInj: InjectionKey<Function> = Symbol('toggle-dialog-inj
 export const CellClickHookInj: InjectionKey<EventHook<MouseEvent> | undefined> = Symbol('cell-click-injection')
 export const SaveRowInj: InjectionKey<(() => void) | undefined> = Symbol('save-row-injection')
 export const CurrentCellInj: InjectionKey<Ref<Element | undefined>> = Symbol('current-cell-injection')
+export const IsUnderLookupInj: InjectionKey<Ref<boolean>> = Symbol('is-under-lookup-injection')
 export const DocsLocalPageInj: InjectionKey<Ref<PageSidebarNode | undefined>> = Symbol('docs-local-page-injection')
 export const ProjectRoleInj: InjectionKey<Ref<string>> = Symbol('project-roles-injection')
-export const ProjectInj: InjectionKey<Ref<ProjectType>> = Symbol('project-injection')
+export const ProjectInj: InjectionKey<Ref<NcProject>> = Symbol('project-injection')
 export const ProjectIdInj: InjectionKey<Ref<string>> = Symbol('project-id-injection')
+export const TreeViewInj: InjectionKey<{
+  setMenuContext: (type: 'project' | 'base' | 'table' | 'main' | 'layout', value?: any) => void
+  duplicateTable: (table: TableType) => void
+  openRenameTableDialog: (table: TableType, rightClick: boolean) => void
+  contextMenuTarget: { type?: 'project' | 'base' | 'table' | 'main' | 'layout'; value?: any }
+}> = Symbol('tree-view-functions-injection')

@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { Users } from '~~/lib'
 
 export const useShare = defineStore('share', () => {
@@ -25,6 +25,7 @@ export const useShare = defineStore('share', () => {
     | 'none'
   >('none')
   const invitationValid = ref(false)
+  const isInvitationLinkCopied = ref(false)
 
   const showShareModal = ref(false)
 
@@ -43,6 +44,13 @@ export const useShare = defineStore('share', () => {
     { immediate: true, deep: true },
   )
 
+  const resetData = () => {
+    formStatus.value = 'project-collaborate'
+    invitationValid.value = false
+    invitationUsersData.value = { emails: undefined, role: ProjectRole.Viewer, invitationToken: undefined }
+    isInvitationLinkCopied.value = false
+  }
+
   return {
     visibility,
     showShareModal,
@@ -50,5 +58,11 @@ export const useShare = defineStore('share', () => {
     invitationValid,
     invitationUsersData,
     isProjectPublic,
+    resetData,
+    isInvitationLinkCopied,
   }
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useShare as any, import.meta.hot))
+}

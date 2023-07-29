@@ -4,21 +4,25 @@ import { createGlobalState } from '#imports'
 
 export const useSqlEditor = createGlobalState(() => {
   const storageSqlEditor: RemovableRef<{
-    promptHistory: { baseId: number; prompt: string; query: string; status: boolean | null; error: string }[]
+    promptHistory: { baseId: string; prompt: string; query: string; status: boolean | null; error: string }[]
   }> = useStorage('nc-sql-editor', {
     promptHistory: [],
   })
 
-  const rawSql = ref('')
+  const sqlEditors = ref<Record<string, { rawSql: string; sqlPrompt: string }>>({})
 
-  const sqlPrompt = ref<string>('')
-
-  const selectedBase = ref()
+  const selectBase = (baseId: string) => {
+    if (!sqlEditors.value[baseId]) {
+      sqlEditors.value[baseId] = {
+        rawSql: '',
+        sqlPrompt: '',
+      }
+    }
+  }
 
   return {
-    rawSql,
-    sqlPrompt,
-    selectedBase,
+    sqlEditors,
+    selectBase,
     promptHistory: storageSqlEditor.value.promptHistory,
   }
 })

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import { ClickhouseTables } from 'nocodb-sdk';
 import { ClickhouseService } from '../services/clickhouse/clickhouse.service';
 import { MetaService } from '../meta/meta.service';
 import type { DocsPageSnapshotType, DocsPageType } from 'nocodb-sdk';
@@ -54,7 +55,7 @@ export class PageSnapshotDao {
     };
 
     const query = `
-    INSERT INTO docs_page_snapshot (id, fk_workspace_id, fk_project_id, fk_page_id, last_updated_by_id, created_at, page_json, diff, type)
+    INSERT INTO ${ClickhouseTables.PAGE_SNAPSHOT} (id, fk_workspace_id, fk_project_id, fk_page_id, last_updated_by_id, created_at, page_json, diff, type)
     VALUES ('${snapshot.id}', '${snapshot.fk_workspace_id}', '${snapshot.fk_project_id}', '${snapshot.fk_page_id}', '${snapshot.last_updated_by_id}', toDateTime('${snapshot.created_at}'), '${snapshot.page_json}', '${snapshot.diff}', '${snapshot.type}')
   `;
 
@@ -72,7 +73,9 @@ export class PageSnapshotDao {
     snapshot.diff = Buffer.from(snapshot.diff, 'base64')
       .toString('utf-8')
       // As this will be wrapped with quotes, we need to remove them
-      .slice(1, -1);
+      .slice(1, -1)
+      // And then escape the quotes
+      .replaceAll('\\"', '"');
 
     return snapshot;
   }
@@ -80,7 +83,7 @@ export class PageSnapshotDao {
   async get({ id }: { id: string }): Promise<DocsPageSnapshotType | undefined> {
     let snapshot = (
       await this.clickhouseService.execute(
-        `SELECT * FROM docs_page_snapshot WHERE id = '${id}'`,
+        `SELECT * FROM ${ClickhouseTables.PAGE_SNAPSHOT} WHERE id = '${id}'`,
       )
     )[0] as DocsPageSnapshotType;
 
@@ -113,7 +116,7 @@ export class PageSnapshotDao {
     diff,
     created_at,
     type
-  FROM docs_page_snapshot
+  FROM ${ClickhouseTables.PAGE_SNAPSHOT}
   WHERE fk_project_id = '${projectId}' AND fk_page_id = '${pageId}'
   ORDER BY created_at DESC
   

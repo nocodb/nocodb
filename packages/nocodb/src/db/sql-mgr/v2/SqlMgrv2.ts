@@ -5,12 +5,14 @@ import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import SqlClientFactory from '../../sql-client/lib/SqlClientFactory';
 import KnexMigratorv2 from '../../sql-migrator/lib/KnexMigratorv2';
 import Debug from '../../util/Debug';
+import type { MetaService } from '../../../meta/meta.service';
 import type Base from '../../../models/Base';
 
 const log = new Debug('SqlMgr');
 
 export default class SqlMgrv2 {
   protected _migrator: KnexMigratorv2;
+  protected ncMeta?: MetaService;
   // @ts-ignore
   private currentProjectFolder: any;
 
@@ -20,18 +22,18 @@ export default class SqlMgrv2 {
    * @param {String} args.toolDbPath - path to sqlite file that sql mgr will use
    * @memberof SqlMgr
    */
-  constructor(args: { id: string }) {
+  constructor(args: { id: string }, ncMeta = null) {
     const func = 'constructor';
     log.api(`${func}:args:`, args);
     // this.metaDb = args.metaDb;
     this._migrator = new KnexMigratorv2(args);
-
-    return this;
+    this.ncMeta = ncMeta;
   }
 
   public async migrator(_base: Base) {
     return this._migrator;
   }
+
   public static async testConnection(args = {}) {
     const client = await SqlClientFactory.create(args);
     return client.testConnection();
@@ -74,15 +76,18 @@ export default class SqlMgrv2 {
     const func = this.sqlOpPlus.name;
     log.api(`${func}:args:`, base, op, opArgs);
 
+    if (base.getConfig()?.schema) {
+      opArgs = {
+        ...opArgs,
+        schema: base.getConfig().schema,
+      };
+    }
+
     // create sql client for this operation
     const sqlClient = await this.getSqlClient(base); //await this.projectGetSqlClient(args);
 
     // do sql operation
     const sqlMigrationStatements = await sqlClient[op](opArgs);
-    console.log(
-      `Sql Migration Statement for '${op}'`,
-      sqlMigrationStatements.data.object,
-    );
 
     /* // create sql migration files
     const sqlMigrationFiles = await this.sql-migrator(base).migrationsCreate(base);
@@ -119,6 +124,10 @@ export default class SqlMgrv2 {
   }
 
   protected async getSqlClient(base: Base) {
+    if (base.is_meta && this.ncMeta) {
+      return NcConnectionMgrv2.getSqlClient(base, this.ncMeta.knex);
+    }
+
     return NcConnectionMgrv2.getSqlClient(base);
   }
 }

@@ -15,18 +15,23 @@ const props = defineProps<Props>()
 
 const { tables, config } = toRefs(props)
 
-const { $destroy, fitView, viewport, onNodeDoubleClick } = useVueFlow({ minZoom: 0.05, maxZoom: 2 })
+const {
+  $destroy,
+  fitView,
+  viewport,
+  onNodeDoubleClick,
+  zoomIn: internalZoomIn,
+  zoomOut: internalZoomOut,
+} = useVueFlow({ minZoom: 0.05, maxZoom: 2 })
 
 const { layout, elements } = useErdElements(tables, config)
 
 const showSkeleton = computed(() => viewport.value.zoom < 0.15)
 
 async function init() {
-  await layout(showSkeleton.value).then(() => {
-    setTimeout(() => {
-      fitView({ duration: 0, minZoom: 0.2 })
-    }, 250)
-  })
+  // TODO fit view after first render
+  fitView({ duration: 0, minZoom: 0.2 })
+  layout(showSkeleton.value)
 }
 
 function zoomIn(nodeId?: string) {
@@ -41,9 +46,10 @@ onNodeDoubleClick(({ node }) => {
   }, 250)
 })
 
-watch(tables, init, { flush: 'post' })
+watch(tables, init, { flush: 'post', immediate: true })
 watch(showSkeleton, async (isSkeleton) => {
-  await layout(isSkeleton).then(() => {
+  layout(isSkeleton).then(() => {
+    if (!isSkeleton) return
     fitView({
       duration: 300,
       minZoom: isSkeleton ? undefined : viewport.value.zoom,
@@ -57,7 +63,23 @@ onScopeDispose($destroy)
 
 <template>
   <VueFlow v-model="elements">
-    <Controls class="rounded" :position="PanelPosition.BottomLeft" :show-fit-view="false" :show-interactive="false" />
+    <Controls
+      class="bg-transparent rounded-lg"
+      :position="PanelPosition.BottomLeft"
+      :show-fit-view="false"
+      :show-interactive="false"
+    >
+      <template #control-zoom-in>
+        <div class="nc-erd-zoom-btn rounded-t-md" @click="internalZoomIn">
+          <GeneralIcon icon="plus" />
+        </div>
+      </template>
+      <template #control-zoom-out>
+        <div class="nc-erd-zoom-btn border-t-1 border-gray-100 rounded-b-lg" @click="internalZoomOut">
+          <GeneralIcon icon="minus" />
+        </div>
+      </template>
+    </Controls>
 
     <template #node-custom="{ data, dragging }">
       <ErdTableNode :data="data" :dragging="dragging" :show-skeleton="showSkeleton" />
@@ -86,11 +108,11 @@ onScopeDispose($destroy)
 </template>
 
 <style>
-.vue-flow__controls-zoomin {
-  @apply rounded-t;
+.vue-flow__controls {
+  @apply !bg-transparent;
 }
 
-.vue-flow__controls-zoomout {
-  @apply rounded-b;
+.nc-erd-zoom-btn {
+  @apply bg-white px-1.5 py-1 hover:(bg-gray-50 text-gray-800) cursor-pointer text-gray-600;
 }
 </style>

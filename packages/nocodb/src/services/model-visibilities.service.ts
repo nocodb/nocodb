@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
+import { AppEvents } from 'nocodb-sdk';
 import { validatePayload } from '../helpers';
 import { NcError } from '../helpers/catchError';
-import { Model, ModelRoleVisibility, View } from '../models';
+import { Model, ModelRoleVisibility, Project, View } from '../models';
+import { AppHooksService } from './app-hooks/app-hooks.service';
 import type { VisibilityRuleReqType } from 'nocodb-sdk';
 
 @Injectable()
 export class ModelVisibilitiesService {
+  constructor(private readonly appHooksService: AppHooksService) {}
+
   async xcVisibilityMetaSetAll(param: {
     visibilityRule: VisibilityRuleReqType;
     projectId: string;
@@ -15,7 +19,13 @@ export class ModelVisibilitiesService {
       'swagger.json#/components/schemas/VisibilityRuleReq',
       param.visibilityRule,
     );
-    T.emit('evt', { evt_type: 'uiAcl:updated' });
+
+    const project = await Project.getWithInfo(param.projectId);
+
+    if (!project) {
+      NcError.badRequest('Project not found');
+    }
+
     for (const d of param.visibilityRule) {
       for (const role of Object.keys(d.disabled)) {
         const view = await View.get(d.id);
@@ -47,7 +57,9 @@ export class ModelVisibilitiesService {
         }
       }
     }
-    T.emit('evt', { evt_type: 'uiAcl:updated' });
+    this.appHooksService.emit(AppEvents.UI_ACL_UPDATE, {
+      project,
+    });
 
     return true;
   }

@@ -33,7 +33,7 @@ export default class KinesisConsumerServer
         accessKeyId: process.env.AWS_KINESIS_CLIENT_ID,
         secretAccessKey: process.env.AWS_KINESIS_CLIENT_SECRET,
       },
-    })
+    });
   }
 
   /**

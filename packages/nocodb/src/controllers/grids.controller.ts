@@ -9,7 +9,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ViewCreateReqType } from 'nocodb-sdk';
-import { AuthGuard } from '@nestjs/passport';
 import { GlobalGuard } from '../guards/global/global.guard';
 import {
   Acl,
@@ -36,7 +35,6 @@ export class GridsController {
     const view = await this.gridsService.gridViewCreate({
       grid: body,
       tableId,
-      user: req.user,
     });
     return view;
   }

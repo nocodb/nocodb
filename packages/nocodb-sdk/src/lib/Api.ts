@@ -231,6 +231,8 @@ export interface BaseType {
   inflection_table?: string;
   /** Is the data source connected externally */
   is_meta?: BoolType;
+  /** Is the data source minimal db */
+  is_local?: BoolType;
   /**
    * The order of the list of bases
    * @example 1
@@ -285,6 +287,8 @@ export interface BaseReqType {
   inflection_table?: string;
   /** Is the data source connected externally */
   is_meta?: boolean;
+  /** Is the data source minimal db */
+  is_local?: boolean;
   /** DB Type */
   type?:
     | 'mssql'
@@ -433,7 +437,8 @@ export interface ColumnType {
     | 'Time'
     | 'URL'
     | 'Year'
-    | 'QrCode';
+    | 'QrCode'
+    | 'Links';
   /** Is Unsigned? */
   un?: BoolType;
   /** Is unique? */
@@ -627,7 +632,39 @@ export interface FilterType {
     | 'notchecked'
     | 'notempty'
     | 'notnull'
-    | 'null';
+    | 'null'
+    | null
+    | (
+        | 'allof'
+        | 'anyof'
+        | 'blank'
+        | 'btw'
+        | 'checked'
+        | 'empty'
+        | 'eq'
+        | 'ge'
+        | 'gt'
+        | 'gte'
+        | 'in'
+        | 'is'
+        | 'isWithin'
+        | 'isnot'
+        | 'le'
+        | 'like'
+        | 'lt'
+        | 'lte'
+        | 'nallof'
+        | 'nanyof'
+        | 'nbtw'
+        | 'neq'
+        | 'nlike'
+        | 'not'
+        | 'notblank'
+        | 'notchecked'
+        | 'notempty'
+        | 'notnull'
+        | ('null' & null)
+      );
   /** Comparison Sub-Operator */
   comparison_sub_op?:
     | 'daysAgo'
@@ -670,7 +707,7 @@ export interface FilterType {
         | ('yesterday' & null)
       );
   /** Foreign Key to Column */
-  fk_column_id?: IdType;
+  fk_column_id?: StringOrNullType;
   /** Foreign Key to Hook */
   fk_hook_id?: StringOrNullType;
   /** Foreign Key to Widget */
@@ -747,7 +784,39 @@ export interface FilterReqType {
     | 'notchecked'
     | 'notempty'
     | 'notnull'
-    | 'null';
+    | 'null'
+    | null
+    | (
+        | 'allof'
+        | 'anyof'
+        | 'blank'
+        | 'btw'
+        | 'checked'
+        | 'empty'
+        | 'eq'
+        | 'ge'
+        | 'gt'
+        | 'gte'
+        | 'in'
+        | 'is'
+        | 'isWithin'
+        | 'isnot'
+        | 'le'
+        | 'like'
+        | 'lt'
+        | 'lte'
+        | 'nallof'
+        | 'nanyof'
+        | 'nbtw'
+        | 'neq'
+        | 'nlike'
+        | 'not'
+        | 'notblank'
+        | 'notchecked'
+        | 'notempty'
+        | 'notnull'
+        | ('null' & null)
+      );
   /** Comparison Sub-Operator */
   comparison_sub_op?:
     | 'daysAgo'
@@ -790,7 +859,7 @@ export interface FilterReqType {
         | ('yesterday' & null)
       );
   /** Foreign Key to Column */
-  fk_column_id?: IdType;
+  fk_column_id?: StringOrNullType;
   /** Belong to which filter ID */
   fk_parent_id?: StringOrNullType;
   /** Is this filter grouped? */
@@ -1204,6 +1273,21 @@ export interface LayoutType {
    * @example My Layout
    */
   title?: string;
+  /**
+   * Layout Grid's horizontal padding
+   * @example 20px
+   */
+  grid_padding_horizontal?: string;
+  /**
+   * Layout Grid's vertical padding
+   * @example 20px
+   */
+  grid_padding_vertical?: string;
+  /**
+   * Layout Grid's gap
+   * @example 20px
+   */
+  grid_gap?: string;
   /** The order of this Layout in the list of Layouts */
   order?: number;
 }
@@ -1289,6 +1373,8 @@ export enum WidgetTypeType {
   PieChart = 'pie_chart',
   ScatterPlot = 'scatter_plot',
   Button = 'button',
+  Image = 'image',
+  Divider = 'divider',
 }
 
 /**
@@ -1636,7 +1722,7 @@ export interface LinkToAnotherColumnReqType {
   /** The type of the relationship */
   type: 'bt' | 'hm' | 'mm';
   /** Abstract type of the relationship */
-  uidt: 'LinkToAnotherRecord';
+  uidt: 'LinkToAnotherRecord' | 'Links';
   /** Is this relationship virtual? */
   virtual?: BoolType;
 }
@@ -1835,7 +1921,7 @@ export interface NormalColumnRequestType {
   /** Data Type Extra */
   dtx?: StringOrNullType;
   /** Data Type Extra Precision */
-  dtxp?: StringOrNullType | number;
+  dtxp?: string | number | null;
   /** Data Type Extra Scale */
   dtxs?: StringOrNullType | number;
   /** Numeric Precision */
@@ -1888,7 +1974,8 @@ export interface NormalColumnRequestType {
     | 'Time'
     | 'URL'
     | 'Year'
-    | 'QrCode';
+    | 'QrCode'
+    | 'Links';
   /** Is this column unique? */
   un?: BoolType;
   /** Is this column unique? */
@@ -2036,7 +2123,7 @@ export interface PluginReqType {
   /** Is Plugin Active? */
   active?: BoolType;
   /** Plugin Input */
-  input?: StringOrNullType;
+  input?: string | null;
 }
 
 /**
@@ -2127,8 +2214,16 @@ export interface ProjectReqType {
    * @example My Project
    */
   title: string;
+  /**
+   * Project Status
+   * @example locked
+   */
+  status?: StringOrNullType;
+  type?: string;
   /** List of Linked Database Project IDs (only used for Dashboard Projects so far) */
   linked_db_project_ids?: string[];
+  /** Workspace ID */
+  fk_workspace_id?: string;
 }
 
 /**
@@ -2147,6 +2242,11 @@ export interface ProjectUpdateReqType {
    * @example My Project
    */
   title?: string;
+  /**
+   * Project Status
+   * @example locked
+   */
+  status?: StringOrNullType;
   /** List of Linked Database Project IDs (only used for Dashboard Projects so far) */
   linked_db_project_ids?: string[];
 }
@@ -2494,6 +2594,8 @@ export interface UserType {
   location?: string;
   website?: string;
   avatar?: string;
+  /** Access token version */
+  token_version?: string;
 }
 
 /**
@@ -3276,7 +3378,7 @@ export class Api<
  * @tags Dashboard
  * @name WidgetFilterRead
  * @summary Get Widget Filter
- * @request GET:/api/v1/layouts/:layoutId/widgets/:widgetId/filters
+ * @request GET:/api/v1/dashboards/{dashboardId}/layouts/{layoutId}/widgets/{widgetId}/filters
  * @response `200` `FilterListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -3285,6 +3387,7 @@ export class Api<
 }`
  */
     widgetFilterRead: (
+      dashboardId: string,
       layoutId: string,
       widgetId: string,
       params: RequestParams = {}
@@ -3296,7 +3399,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/layouts/${layoutId}/widgets/${widgetId}/filters`,
+        path: `/api/v1/dashboards/${dashboardId}/layouts/${layoutId}/widgets/${widgetId}/filters`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3308,7 +3411,7 @@ export class Api<
  * @tags Dashboard
  * @name WidgetFilterCreate
  * @summary Create Widget Filter
- * @request POST:/api/v1/layouts/:layoutId/widgets/:widgetId/filters
+ * @request POST:/api/v1/dashboards/{dashboardId}/layouts/{layoutId}/widgets/{widgetId}/filters
  * @response `200` `FilterType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -3317,6 +3420,7 @@ export class Api<
 }`
  */
     widgetFilterCreate: (
+      dashboardId: string,
       layoutId: string,
       widgetId: string,
       data: FilterReqType,
@@ -3329,7 +3433,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/layouts/${layoutId}/widgets/${widgetId}/filters`,
+        path: `/api/v1/dashboards/${dashboardId}/layouts/${layoutId}/widgets/${widgetId}/filters`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -3405,7 +3509,7 @@ export class Api<
      * @tags Noco docs
      * @name ListPublicPages
      * @summary List tree of public pages of given parent page and its children. If the given parent page is published under a different parent page, the tree's top level will be that parent page
-     * @request GET:api/v1/public/docs/project/{projectId}/pages/{parentPageId}
+     * @request GET:api/v1/public/docs/{projectId}/pages/{parentPageId}/nested
      * @response `200` `(DocsPageType)[]` OK
      */
     listPublicPages: (
@@ -3414,7 +3518,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<DocsPageType[], any>({
-        path: `api/v1/public/docs/project/${projectId}/pages/${parentPageId}`,
+        path: `api/v1/public/docs/${projectId}/pages/${parentPageId}/nested`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3426,7 +3530,7 @@ export class Api<
  * @tags Noco docs
  * @name GetPublicPageAndProject
  * @summary Get public page and its project
- * @request GET:/api/v1/public/docs/project/{projectId}/page/{id}
+ * @request GET:/api/v1/public/docs/{projectId}/pages/{id}
  * @response `200` `{
   \** Page of Noco docs *\
   page?: DocsPageType,
@@ -3449,7 +3553,7 @@ export class Api<
         },
         any
       >({
-        path: `/api/v1/public/docs/project/${projectId}/page/${id}`,
+        path: `/api/v1/public/docs/${projectId}/pages/${id}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3461,13 +3565,39 @@ export class Api<
      * @tags Noco docs
      * @name ListPages
      * @summary List all pages
-     * @request GET:/api/v1/docs/project/{projectId}/pages
+     * @request GET:/api/v1/docs/{projectId}/pages
      * @response `200` `(DocsPageType)[]` OK
      */
     listPages: (projectId: string, params: RequestParams = {}) =>
       this.request<DocsPageType[], any>({
-        path: `/api/v1/docs/project/${projectId}/pages`,
+        path: `/api/v1/docs/${projectId}/pages`,
         method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Create page
+     *
+     * @tags Noco docs
+     * @name CreatePage
+     * @summary Create page
+     * @request POST:/api/v1/docs/{projectId}/pages
+     * @response `200` `DocsPageType` OK
+     */
+    createPage: (
+      projectId: string,
+      data: {
+        /** Page of Noco docs */
+        attributes?: DocsPageType;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<DocsPageType, any>({
+        path: `/api/v1/docs/${projectId}/pages`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),
@@ -3478,12 +3608,12 @@ export class Api<
      * @tags Noco docs
      * @name GetPage
      * @summary Get page by id
-     * @request GET:/api/v1/docs/project/{projectId}/page/{id}
+     * @request GET:/api/v1/docs/{projectId}/pages/{id}
      * @response `200` `DocsPageType` OK
      */
     getPage: (projectId: string, id: string, params: RequestParams = {}) =>
       this.request<DocsPageType, any>({
-        path: `/api/v1/docs/project/${projectId}/page/${id}`,
+        path: `/api/v1/docs/${projectId}/pages/${id}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3495,12 +3625,12 @@ export class Api<
      * @tags Noco docs
      * @name DeletePage
      * @summary Delete page
-     * @request DELETE:/api/v1/docs/project/{projectId}/page/{id}
+     * @request DELETE:/api/v1/docs/{projectId}/pages/{id}
      * @response `200` `void` OK
      */
     deletePage: (projectId: string, id: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/api/v1/docs/project/${projectId}/page/${id}`,
+        path: `/api/v1/docs/${projectId}/pages/${id}`,
         method: 'DELETE',
         ...params,
       }),
@@ -3511,7 +3641,7 @@ export class Api<
      * @tags Noco docs
      * @name UpdatePage
      * @summary Update page
-     * @request PUT:/api/v1/docs/project/{projectId}/page/{id}
+     * @request PUT:/api/v1/docs/{projectId}/pages/{id}
      * @response `200` `DocsPageType` OK
      */
     updatePage: (
@@ -3524,7 +3654,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<DocsPageType, any>({
-        path: `/api/v1/docs/project/${projectId}/page/${id}`,
+        path: `/api/v1/docs/${projectId}/pages/${id}`,
         method: 'PUT',
         body: data,
         type: ContentType.Json,
@@ -3533,43 +3663,21 @@ export class Api<
       }),
 
     /**
-     * @description Create page
+     * @description Page gpt
      *
      * @tags Noco docs
-     * @name CreatePage
-     * @summary Create page
-     * @request POST:/api/v1/docs/project/{projectId}/page
-     * @response `200` `DocsPageType` OK
-     */
-    createPage: (
-      projectId: string,
-      data: {
-        /** Page of Noco docs */
-        attributes?: DocsPageType;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<DocsPageType, any>({
-        path: `/api/v1/docs/project/${projectId}/page`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * @description Magic page content
-     *
-     * @tags Noco docs
-     * @name MagicExpandText
-     * @summary Returns ai suggested page content using its title, parent page's and project's tiles. Does not update page content.
-     * @request POST:/api/v1/docs/project/{projectId}/page/{id}/magic-expand
+     * @name DocsPageGpt
+     * @summary Returns ai suggested page content. Does not update page content.
+     * @request POST:/api/v1/docs/{projectId}/pages/{id}/gpt
      * @response `200` `object` OK
      */
-    magicExpandText: (
+    docsPageGpt: (
       projectId: string,
       id: string,
+      query: {
+        /** Gpt type, expand is for expanding the page content, outline is for generating page outline */
+        type: 'expand' | 'outline';
+      },
       data: {
         /** Text */
         text: string;
@@ -3577,8 +3685,9 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<object, any>({
-        path: `/api/v1/docs/project/${projectId}/page/${id}/magic-expand`,
+        path: `/api/v1/docs/${projectId}/pages/${id}/gpt`,
         method: 'POST',
+        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -3589,20 +3698,24 @@ export class Api<
      * No description
      *
      * @tags Noco docs
-     * @name MagicOutlinePage
-     * @summary Gives ai suggested page outline/skeleton (subheadings) for the page based on its, parent page's and project's title
-     * @request POST:/api/v1/docs/project/{projectId}/page/{id}/magic-outline
-     * @response `200` `object` OK
+     * @name DocsGpt
+     * @summary Create nested pages using AI with project title. Will create and insert pages in the project
+     * @request POST:/api/v1/docs/{projectId}/pages/gpt
+     * @response `200` `void` OK
      */
-    magicOutlinePage: (
+    docsGpt: (
       projectId: string,
-      id: string,
+      data: {
+        /** Prompt text */
+        text: string;
+      },
       params: RequestParams = {}
     ) =>
-      this.request<object, any>({
-        path: `/api/v1/docs/project/${projectId}/page/${id}/magic-outline`,
+      this.request<void, any>({
+        path: `/api/v1/docs/${projectId}/pages/gpt`,
         method: 'POST',
-        format: 'json',
+        body: data,
+        type: ContentType.Json,
         ...params,
       }),
 
@@ -3612,7 +3725,7 @@ export class Api<
      * @tags Noco docs
      * @name ImportPages
      * @summary Import pages
-     * @request POST:/api/v1/docs/project/{projectId}/page/import
+     * @request POST:/api/v1/docs/{projectId}/pages/import
      * @response `200` `void` OK
      */
     importPages: (
@@ -3632,32 +3745,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/api/v1/docs/project/${projectId}/page/import`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Noco docs
-     * @name CreateNestedPagesMagic
-     * @summary Create nested pages using AI with project title. Will create and insert pages in the project
-     * @request POST:/api/v1/docs/project/{projectId}/pages/magic-create-pages
-     * @response `200` `void` OK
-     */
-    createNestedPagesMagic: (
-      projectId: string,
-      data: {
-        /** Title */
-        title: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/docs/project/${projectId}/pages/magic-create-pages`,
+        path: `/api/v1/docs/${projectId}/pages/import`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -3669,8 +3757,8 @@ export class Api<
      *
      * @tags Noco docs
      * @name SyncPageHistory
-     * @summary Sync page history
-     * @request POST:/api/v1/docs/project/{projectId}/page/{pageId}/history-sync
+     * @summary When called will snapshot the page if there is any page change needed to be snapshoted
+     * @request POST:/api/v1/docs/{projectId}/pages/{pageId}/history/sync
      * @response `200` `void` OK
      */
     syncPageHistory: (
@@ -3679,19 +3767,19 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/api/v1/docs/project/${projectId}/page/${pageId}/history-sync`,
+        path: `/api/v1/docs/${projectId}/pages/${pageId}/history/sync`,
         method: 'POST',
         format: 'json',
         ...params,
       }),
 
     /**
- * @description List page history
+ * No description
  * 
  * @tags Noco docs
  * @name ListPageHistory
- * @summary List page history
- * @request GET:/api/v1/docs/project/{projectId}/page/{pageId}/history
+ * @summary List snapshots of the page (paginated)
+ * @request GET:/api/v1/docs/{projectId}/pages/{pageId}/history
  * @response `200` `{
   snapshots?: (DocsPageSnapshotType)[],
 
@@ -3714,7 +3802,7 @@ export class Api<
         },
         any
       >({
-        path: `/api/v1/docs/project/${projectId}/page/${pageId}/history`,
+        path: `/api/v1/docs/${projectId}/pages/${pageId}/history`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -3722,12 +3810,12 @@ export class Api<
       }),
 
     /**
-     * @description Restore page history
+     * No description
      *
      * @tags Noco docs
      * @name RestorePageHistory
-     * @summary Restore page history
-     * @request POST:/api/v1/docs/project/{projectId}/page/{pageId}/history/{snapshotId}/restore
+     * @summary Restore page to a given snapshot
+     * @request POST:/api/v1/docs/{projectId}/pages/{pageId}/history/{snapshotId}/restore
      * @response `200` `void` OK
      */
     restorePageHistory: (
@@ -3737,7 +3825,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/api/v1/docs/project/${projectId}/page/${pageId}/history/${snapshotId}/restore`,
+        path: `/api/v1/docs/${projectId}/pages/${pageId}/history/${snapshotId}/restore`,
         method: 'POST',
         ...params,
       }),
@@ -5318,6 +5406,103 @@ export class Api<
       }),
 
     /**
+ * @description Duplicate a project
+ * 
+ * @tags Project
+ * @name BaseDuplicate
+ * @summary Duplicate Project Base
+ * @request POST:/api/v1/db/meta/duplicate/{projectId}/{baseId}
+ * @response `200` `{
+  name?: string,
+  id?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    baseDuplicate: (
+      projectId: IdType,
+      data: {
+        options?: {
+          excludeData?: boolean;
+          excludeViews?: boolean;
+          excludeHooks?: boolean;
+        };
+        project?: object;
+      },
+      baseId?: IdType,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          name?: string;
+          id?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/duplicate/${projectId}/${baseId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Duplicate a project
+ * 
+ * @tags Project
+ * @name Duplicate
+ * @summary Duplicate Project
+ * @request POST:/api/v1/db/meta/duplicate/{projectId}
+ * @response `200` `{
+  name?: string,
+  id?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    duplicate: (
+      projectId: IdType,
+      data: {
+        options?: {
+          excludeData?: boolean;
+          excludeViews?: boolean;
+          excludeHooks?: boolean;
+        };
+        project?: object;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          name?: string;
+          id?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/duplicate/${projectId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Get the info of a given project
  * 
  * @tags Project
@@ -6444,6 +6629,54 @@ export class Api<
       >({
         path: `/api/v1/db/meta/tables/${tableId}`,
         method: 'DELETE',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Duplicate a table
+ * 
+ * @tags DB Table
+ * @name Duplicate
+ * @summary Duplicate Table
+ * @request POST:/api/v1/db/meta/duplicate/{projectId}/table/{tableId}
+ * @response `200` `{
+  name?: string,
+  id?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    duplicate: (
+      projectId: IdType,
+      tableId: IdType,
+      data: {
+        options?: {
+          excludeData?: boolean;
+          excludeViews?: boolean;
+          excludeHooks?: boolean;
+        };
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          name?: string;
+          id?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/duplicate/${projectId}/table/${tableId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),
@@ -8481,6 +8714,7 @@ export class Api<
       data: object,
       query?: {
         where?: string;
+        viewId?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -8521,6 +8755,7 @@ export class Api<
       data: object,
       query?: {
         where?: string;
+        viewId?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -11160,6 +11395,23 @@ export class Api<
       this.request<void, any>({
         path: `/api/v1/workspaces/${workspaceId}`,
         method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * @description Upgrade workspace
+     *
+     * @tags Workspace
+     * @name Upgrade
+     * @summary Upgrade workspace
+     * @request POST:/api/v1/workspaces/{workspaceId}/upgrade
+     * @response `200` `any` OK
+     */
+    upgrade: (workspaceId: string, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/workspaces/${workspaceId}/upgrade`,
+        method: 'POST',
+        format: 'json',
         ...params,
       }),
   };

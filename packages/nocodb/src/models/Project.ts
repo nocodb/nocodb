@@ -1,3 +1,4 @@
+import { ProjectTypes } from 'nocodb-sdk';
 import Noco from '../Noco';
 import {
   CacheDelDirection,
@@ -7,9 +8,12 @@ import {
 } from '../utils/globals';
 import { extractProps } from '../helpers/extractProps';
 import NocoCache from '../cache/NocoCache';
+import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
 import Base from './/Base';
+import DashboardProjectDBProject from './DashboardProjectDBProject';
+import { ProjectUser } from './index';
 import type { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
-import type { DB_TYPES } from './/Base';
+import type { DB_TYPES } from './Base';
 
 export default class Project implements ProjectType {
   public id: string;
@@ -23,6 +27,7 @@ export default class Project implements ProjectType {
   public order: number;
   public is_meta = false;
   public bases?: Base[];
+  public linked_db_projects?: Project[];
   public type: string;
   public fk_workspace_id?: string;
 
@@ -45,6 +50,7 @@ export default class Project implements ProjectType {
       'prefix',
       'description',
       'is_meta',
+      'status',
       'type',
       'fk_workspace_id',
       'meta',
@@ -128,7 +134,10 @@ export default class Project implements ProjectType {
         id: projectId,
         deleted: false,
       });
-      await NocoCache.set(`${CacheScope.PROJECT}:${projectId}`, projectData);
+      if (projectData) {
+        projectData.meta = parseMetaProp(projectData);
+        await NocoCache.set(`${CacheScope.PROJECT}:${projectId}`, projectData);
+      }
     } else {
       if (projectData.deleted) {
         projectData = null;
@@ -139,6 +148,16 @@ export default class Project implements ProjectType {
 
   async getBases(ncMeta = Noco.ncMeta): Promise<Base[]> {
     return (this.bases = await Base.list({ projectId: this.id }, ncMeta));
+  }
+
+  async getLinkedDbProjects(ncMeta = Noco.ncMeta): Promise<Project[]> {
+    return (this.linked_db_projects =
+      await DashboardProjectDBProject.getDbProjectsList(
+        {
+          dashboard_project_id: this.id,
+        },
+        ncMeta,
+      ));
   }
 
   // todo: hide credentials
@@ -158,7 +177,10 @@ export default class Project implements ProjectType {
         id: projectId,
         deleted: false,
       });
-      await NocoCache.set(`${CacheScope.PROJECT}:${projectId}`, projectData);
+      if (projectData) {
+        projectData.meta = parseMetaProp(projectData);
+        await NocoCache.set(`${CacheScope.PROJECT}:${projectId}`, projectData);
+      }
       if (projectData?.uuid) {
         await NocoCache.set(
           `${CacheScope.PROJECT}:${projectData.uuid}`,
@@ -173,6 +195,9 @@ export default class Project implements ProjectType {
     if (projectData) {
       const project = new Project(projectData);
       await project.getBases(ncMeta);
+      if (project.type === ProjectTypes.DASHBOARD) {
+        await project.getLinkedDbProjects(ncMeta);
+      }
       return project;
     }
     return null;
@@ -272,6 +297,12 @@ export default class Project implements ProjectType {
       // set cache
       await NocoCache.set(key, o);
     }
+
+    // stringify meta
+    if (updateObj.meta) {
+      updateObj.meta = stringifyMetaProp(updateObj);
+    }
+
     // set meta
     return await ncMeta.metaUpdate(
       null,
@@ -284,11 +315,23 @@ export default class Project implements ProjectType {
 
   // Todo: Remove the project entry from the connection pool in NcConnectionMgrv2
   static async delete(projectId, ncMeta = Noco.ncMeta): Promise<any> {
+    let project = await this.get(projectId);
+    const users = await ProjectUser.getUsersList({
+      project_id: projectId,
+      workspace_id: project.fk_workspace_id,
+      offset: 0,
+      limit: 1000,
+    });
+
+    for (const user of users) {
+      await ProjectUser.delete(projectId, user.id);
+    }
+
     const bases = await Base.list({ projectId });
     for (const base of bases) {
       await base.delete(ncMeta);
     }
-    const project = await this.get(projectId);
+    project = await this.get(projectId);
 
     if (project) {
       // delete <scope>:<uuid>
@@ -307,6 +350,11 @@ export default class Project implements ProjectType {
       `${CacheScope.PROJECT}:${projectId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+
+    await ncMeta.metaDelete(null, null, MetaTable.AUDIT, {
+      project_id: projectId,
+    });
+
     return await ncMeta.metaDelete(null, null, MetaTable.PROJECT, projectId);
   }
 
@@ -322,7 +370,10 @@ export default class Project implements ProjectType {
       projectData = await Noco.ncMeta.metaGet2(null, null, MetaTable.PROJECT, {
         uuid,
       });
-      await NocoCache.set(`${CacheScope.PROJECT}:${uuid}`, projectData?.id);
+      if (projectData) {
+        projectData.meta = parseMetaProp(projectData);
+        await NocoCache.set(`${CacheScope.PROJECT}:${uuid}`, projectData?.id);
+      }
     } else {
       return this.get(projectId);
     }
@@ -349,7 +400,10 @@ export default class Project implements ProjectType {
         title,
         deleted: false,
       });
-      await NocoCache.set(`${CacheScope.PROJECT}:${title}`, projectData?.id);
+      if (projectData) {
+        projectData.meta = parseMetaProp(projectData);
+        await NocoCache.set(`${CacheScope.PROJECT}:${title}`, projectData?.id);
+      }
     } else {
       return this.get(projectId);
     }
@@ -388,10 +442,16 @@ export default class Project implements ProjectType {
           ],
         },
       );
-      await NocoCache.set(
-        `${CacheScope.PROJECT}:ref:${titleOrId}`,
-        projectData?.id,
-      );
+
+      if (projectData) {
+        // parse meta
+        projectData.meta = parseMetaProp(projectData);
+
+        await NocoCache.set(
+          `${CacheScope.PROJECT}:ref:${titleOrId}`,
+          projectData?.id,
+        );
+      }
     } else {
       return this.get(projectId);
     }
@@ -400,6 +460,10 @@ export default class Project implements ProjectType {
 
   static async getWithInfoByTitleOrId(titleOrId: string, ncMeta = Noco.ncMeta) {
     const project = await this.getByTitleOrId(titleOrId, ncMeta);
+
+    // parse meta
+    project.meta = parseMetaProp(project);
+
     if (project) await project.getBases(ncMeta);
 
     return project;
@@ -457,6 +521,13 @@ export default class Project implements ProjectType {
       })
       .where(`${MetaTable.PROJECT}.deleted`, false);
 
-    return await projectListQb;
+    const projects = await projectListQb;
+
+    // parse meta
+    for (const project of projects) {
+      project.meta = parseMetaProp(project);
+    }
+
+    return projects;
   }
 }

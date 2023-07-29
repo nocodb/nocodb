@@ -270,7 +270,7 @@ class MssqlClient extends KnexClient {
    * @param {String} args.database
    * @returns {Result}
    */
-  async createDatabaseIfNotExists(args: { database: string }) {
+  async createDatabaseIfNotExists(args: { database: string; schema?: string }) {
     const _func = this.createDatabaseIfNotExists.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -527,6 +527,7 @@ class MssqlClient extends KnexClient {
     tn: string;
     columns?: ColumnType[];
     databaseName?: string;
+    schema?: string;
   }) {
     const _func = this.columnList.name;
     const result = new Result();
@@ -1118,8 +1119,9 @@ class MssqlClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const response = await this.sqlClient.raw(
-        `SELECT v.name AS view_name,v.*,m.* FROM sys.views v INNER JOIN sys.schemas s ON s.schema_id = v.schema_id
+        `SELECT v.name AS view_name,v.*,m.* FROM sys.views v INNER JOIN sys.schemas s ON s.schema_id = v.schema_id AND schema_name(v.schema_id) = ?
         INNER JOIN sys.sql_modules AS m ON m.object_id = v.object_id`,
+        [this.schema || 'dbo'],
       );
 
       result.data.list = response;
@@ -2577,7 +2579,7 @@ class MssqlClient extends KnexClient {
   alterTableColumn(t, n, o, existingQuery, change = 2) {
     let query = '';
 
-    const defaultValue = getDefaultValue(n);
+    const defaultValue = this.sanitiseDefaultValue(n.cdf);
     const shouldSanitize = true;
     const scaleAndPrecision =
       !getDefaultLengthIsDisabled(n.dt) && n.dtxp
@@ -2586,7 +2588,11 @@ class MssqlClient extends KnexClient {
 
     if (change === 0) {
       query = existingQuery ? ',' : '';
-      query += this.genQuery(`?? ${n.dt}`, [n.cn], shouldSanitize);
+      query += this.genQuery(
+        `?? ${this.sanitiseDataType(n.dt)}`,
+        [n.cn],
+        shouldSanitize,
+      );
       query += scaleAndPrecision;
       query += n.rqd ? ' NOT NULL' : ' NULL';
       query += n.ai ? ' IDENTITY(1,1)' : ' ';
@@ -2601,7 +2607,11 @@ class MssqlClient extends KnexClient {
         n.default_constraint_name = `DF_${t}_${n.cn}`;
       }
     } else if (change === 1) {
-      query += this.genQuery(` ADD ?? ${n.dt}`, [n.cn], shouldSanitize);
+      query += this.genQuery(
+        ` ADD ?? ${this.sanitiseDataType(n.dt)}`,
+        [n.cn],
+        shouldSanitize,
+      );
       query += scaleAndPrecision;
       query += n.rqd ? ' NOT NULL' : ' NULL';
       query += n.ai ? ' IDENTITY(1,1)' : ' ';
@@ -2639,7 +2649,9 @@ class MssqlClient extends KnexClient {
         n.rqd !== o.rqd
       ) {
         query += this.genQuery(
-          `\nALTER TABLE ?? ALTER COLUMN ?? ${n.dt}${scaleAndPrecision}`,
+          `\nALTER TABLE ?? ALTER COLUMN ?? ${this.sanitiseDataType(
+            n.dt,
+          )}${scaleAndPrecision}`,
           [this.getTnPath(t), n.cn],
           shouldSanitize,
         );
@@ -2655,7 +2667,9 @@ class MssqlClient extends KnexClient {
           );
         if (n.cdf) {
           query += this.genQuery(
-            `\nALTER TABLE ??  ADD CONSTRAINT ?? DEFAULT ${n.cdf} FOR ??;`,
+            `\nALTER TABLE ??  ADD CONSTRAINT ?? DEFAULT ${this.sanitiseDefaultValue(
+              n.cdf,
+            )} FOR ??;`,
             [this.getTnPath(t), `DF_${n.tn}_${n.cn}`, n.cn],
             shouldSanitize,
           );
@@ -2705,60 +2719,6 @@ class MssqlClient extends KnexClient {
       log.api(`${func} :result: ${result}`);
     }
     return result;
-  }
-}
-
-function getDefaultValue(n) {
-  if (n.cdf === undefined || n.cdf === null) return n.cdf;
-  switch (n.dt) {
-    case 'boolean':
-    case 'bool':
-    case 'tinyint':
-    case 'int':
-    case 'samllint':
-    case 'bigint':
-    case 'integer':
-    case 'smallint':
-    case 'mediumint':
-    case 'int2':
-    case 'int4':
-    case 'int8':
-    case 'long':
-    case 'serial':
-    case 'bigserial':
-    case 'smallserial':
-    case 'number':
-    case 'float':
-    case 'double':
-    case 'decimal':
-    case 'numeric':
-    case 'real':
-    case 'double precision':
-    case 'money':
-    case 'smallmoney':
-    case 'dec':
-      return n.cdf;
-      break;
-
-    case 'datetime':
-    case 'timestamp':
-    case 'date':
-    case 'time':
-      if (
-        n.cdf.toLowerCase().indexOf('getdate') > -1 ||
-        /\(([\d\w'", ]*)\)$/.test(n.cdf)
-      ) {
-        return n.cdf;
-      }
-      return JSON.stringify(n.cdf);
-      break;
-    case 'text':
-    case 'ntext':
-      return `'${n.cdf}'`;
-      break;
-    default:
-      return JSON.stringify(n.cdf);
-      break;
   }
 }
 

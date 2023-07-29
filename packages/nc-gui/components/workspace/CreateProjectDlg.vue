@@ -4,9 +4,10 @@ import type { Form, Input } from 'ant-design-vue'
 import type { VNodeRef } from '@vue/runtime-core'
 import { computed } from '@vue/reactivity'
 import { NcProjectType, extractSdkResponseErrorMsg } from '~/utils'
-import { ref, useVModel } from '#imports'
+import { projectTitleValidator, ref, useVModel } from '#imports'
 import { useWorkspace } from '~/store/workspace'
 import { navigateTo } from '#app'
+import { useGlobal } from '~/composables/useGlobal'
 
 const props = defineProps<{
   modelValue: boolean
@@ -20,24 +21,25 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 const projectsStore = useProjects()
 
 const workspaceStore = useWorkspace()
-
+const { activeWorkspace } = storeToRefs(workspaceStore)
+const { loadProjects } = useProjects()
+const { navigateToProject } = $(useGlobal())
 const { createProject: _createProject } = projectsStore
 
 const nameValidationRules = [
   {
     required: true,
-    message: 'Project name is required',
+    message: 'Database name is required',
   },
   projectTitleValidator,
 ] as RuleObject[]
 
 const form = ref<typeof Form>()
 
-const formState = reactive({
+const formState = ref({
   title: '',
 })
 
-const route = useRoute()
 const creating = ref(false)
 
 const createProject = async () => {
@@ -45,33 +47,23 @@ const createProject = async () => {
   try {
     const project = await _createProject({
       type: props.type,
-      title: formState.title,
-      workspaceId: workspaceStore.workspace!.id!,
+      title: formState.value.title,
+      workspaceId: activeWorkspace.value!.id!,
     })
 
-    await workspaceStore.loadProjects()
+    await loadProjects()
     navigateToProject({
       projectId: project.id!,
-      workspaceId: workspaceStore.workspace!.id!,
+      workspaceId: activeWorkspace.value!.id!,
       type: props.type,
     })
     dialogShow.value = false
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    creating.value = false
-  }
-}
-
-// todo: move to utils
-function navigateToProject(param: { projectId: string; workspaceId: string; type: NcProjectType }) {
-  switch (param.type) {
-    case NcProjectType.DOCS:
-      navigateTo(`/ws/${param.workspaceId}/nc/${param.projectId}/doc`)
-      break
-    default:
-      navigateTo(`/ws/${param.workspaceId}/project/${param.projectId}`)
-      break
+    setTimeout(() => {
+      creating.value = false
+    }, 500)
   }
 }
 
@@ -79,7 +71,13 @@ const input: VNodeRef = ref<typeof Input>()
 
 watch(dialogShow, async (n, o) => {
   if (n === o && !n) return
-  formState.title = await generateUniqueName()
+
+  // Clear errors
+  form.value?.resetFields()
+
+  formState.value = {
+    title: 'Untitled Database',
+  }
   await nextTick()
   input.value?.$el?.focus()
   input.value?.$el?.select()
@@ -98,32 +96,15 @@ const typeLabel = computed(() => {
 </script>
 
 <template>
-  <a-modal
-    v-model:visible="dialogShow"
-    :class="{ active: dialogShow }"
-    width="max(30vw, 600px)"
-    centered
-    wrap-class-name="nc-modal-project-create"
-    @keydown.esc="dialogShow = false"
-  >
-    <template #footer>
-      <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
-
-      <a-button
-        key="submit"
-        data-testid="docs-create-proj-dlg-create-btn"
-        :disabled="creating"
-        size="large"
-        type="primary"
-        @click="createProject"
-        >{{ $t('general.create') }}
-      </a-button>
-    </template>
-
-    <div class="pl-10 pr-10 pt-5">
+  <NcModal v-model:visible="dialogShow" size="small">
+    <template #header>
       <!-- Create A New Table -->
-      <div class="prose-xl font-bold self-center my-4">Create {{ typeLabel }} Project</div>
-
+      <div class="flex flex-row items-center">
+        <GeneralProjectIcon :type="props.type" class="mr-2.5 !text-lg !h-4" />
+        Create {{ typeLabel }}
+      </div>
+    </template>
+    <div class="mt-3">
       <a-form
         ref="form"
         :model="formState"
@@ -134,12 +115,34 @@ const typeLabel = computed(() => {
         autocomplete="off"
         @finish="createProject"
       >
-        <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="m-10">
-          <a-input ref="input" v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
+        <a-form-item name="title" :rules="nameValidationRules" class="m-10">
+          <a-input
+            ref="input"
+            v-model:value="formState.title"
+            name="title"
+            class="nc-metadb-project-name nc-input-md"
+            placeholder="Title"
+          />
         </a-form-item>
       </a-form>
+
+      <div class="flex flex-row justify-end mt-7 gap-x-2">
+        <NcButton type="secondary" label="Cancel" @click="dialogShow = false" />
+        <NcButton
+          data-testid="docs-create-proj-dlg-create-btn"
+          :loading="creating"
+          type="primary"
+          :label="`Create ${typeLabel}`"
+          :loading-label="`Creating ${typeLabel}`"
+          @click="createProject"
+        />
+      </div>
     </div>
-  </a-modal>
+  </NcModal>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+:deep(.ant-modal-content) {
+  @apply !p-0;
+}
+</style>

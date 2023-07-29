@@ -12,7 +12,6 @@ import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import type { BaseModelSqlv2 } from '../../db/BaseModelSqlv2';
 import type LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
 import type LookupColumn from '../../models/LookupColumn';
-import type { Request } from 'express';
 
 export interface PathParams {
   projectName: string;
@@ -44,6 +43,7 @@ export async function getViewAndModelByAliasOrId(param: {
       fk_model_id: model.id,
     }));
   if (!model) NcError.notFound('Table not found');
+  if (param.viewName && !view) NcError.notFound('View not found');
   return { model, view };
 }
 

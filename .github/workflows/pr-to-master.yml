@@ -28,7 +28,7 @@ on:
         
 jobs:
   pr-to-master:
-    runs-on: self-hosted
+    runs-on: [self-hosted, aws]
     steps:
       - run: |
           echo 'triggering pr-to-master'

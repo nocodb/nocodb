@@ -16,6 +16,8 @@ import {
   watch,
 } from '#imports'
 
+import FilterIcon from '~icons/nc-icons/filter'
+
 const isLocked = inject(IsLockedInj, ref(false))
 
 const activeView = inject(ActiveViewInj, ref())
@@ -74,11 +76,11 @@ useMenuCloseOnEsc(open)
   <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-filter-menu">
     <div :class="{ 'nc-active-btn': filtersLength }">
       <a-button v-e="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm" :disabled="isLocked">
-        <div class="flex items-center gap-1">
-          <component :is="iconMap.filter" />
+        <div class="flex items-center gap-2">
+          <FilterIcon class="h-4 w-4" />
+
           <!-- Filter -->
-          <span v-if="!isMobileMode" class="text-capitalize !text-xs font-weight-normal">{{ $t('activity.filter') }}</span>
-          <component :is="iconMap.arrowDown" class="text-grey" />
+          <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.filter') }}</span>
 
           <span v-if="filtersLength" class="nc-count-badge">{{ filtersLength }}</span>
         </div>

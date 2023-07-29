@@ -3,18 +3,20 @@ import BasePage from '../Base';
 import { GridPage } from './Grid';
 import { FormPage } from './Form';
 import { ExpandedFormPage } from './ExpandedForm';
+import { BulkUpdatePage } from './BulkUpdate';
 import { ChildList } from './Grid/Column/LTAR/ChildList';
 import { LinkRecord } from './Grid/Column/LTAR/LinkRecord';
 import { TreeViewPage } from './TreeView';
 import { SettingsPage } from './Settings';
 import { ViewSidebarPage } from './ViewSidebar';
+import { LeftSidebarPage } from './LeftSidebar';
+import { ProjectViewPage } from './ProjectView';
 import { GalleryPage } from './Gallery';
 import { KanbanPage } from './Kanban';
 import { MapPage } from './Map';
 import { ImportAirtablePage } from './Import/Airtable';
 import { ImportTemplatePage } from './Import/ImportTemplate';
 import { WebhookFormPage } from './WebhookForm';
-import { ProjectsPage } from '../ProjectsPage';
 import { FindRowByScanOverlay } from './FindRowByScanOverlay';
 import { SidebarPage } from './Sidebar';
 import { DocsPageGroup } from './Docs';
@@ -36,12 +38,15 @@ export class DashboardPage extends BasePage {
   readonly kanban: KanbanPage;
   readonly map: MapPage;
   readonly expandedForm: ExpandedFormPage;
+  readonly bulkUpdateForm: BulkUpdatePage;
   readonly webhookForm: WebhookFormPage;
   readonly findRowByScanOverlay: FindRowByScanOverlay;
   readonly childList: ChildList;
   readonly linkRecord: LinkRecord;
   readonly settings: SettingsPage;
   readonly viewSidebar: ViewSidebarPage;
+  readonly leftSidebar: LeftSidebarPage;
+  readonly projectView: ProjectViewPage;
   readonly importAirtable: ImportAirtablePage;
   readonly importTemplate = new ImportTemplatePage(this);
   readonly docs: DocsPageGroup;
@@ -66,12 +71,15 @@ export class DashboardPage extends BasePage {
     this.kanban = new KanbanPage(this);
     this.map = new MapPage(this);
     this.expandedForm = new ExpandedFormPage(this);
+    this.bulkUpdateForm = new BulkUpdatePage(this);
     this.webhookForm = new WebhookFormPage(this);
     this.findRowByScanOverlay = new FindRowByScanOverlay(this);
     this.childList = new ChildList(this);
     this.linkRecord = new LinkRecord(this);
     this.settings = new SettingsPage(this);
     this.viewSidebar = new ViewSidebarPage(this);
+    this.leftSidebar = new LeftSidebarPage(this);
+    this.projectView = new ProjectViewPage(this);
     this.importAirtable = new ImportAirtablePage(this);
     this.sidebar = new SidebarPage(this);
     this.docs = new DocsPageGroup(this);
@@ -107,7 +115,7 @@ export class DashboardPage extends BasePage {
 
   async gotoSettings() {
     await this.projectMenuLink.click();
-    await this.rootPage.locator('div.nc-project-menu-item:has-text(" Team & Settings")').click();
+    await this.rootPage.locator('div.nc-project-menu-item:has-text("Settings")').click();
   }
 
   async gotoProjectSubMenu({ title }: { title: string }) {
@@ -120,7 +128,7 @@ export class DashboardPage extends BasePage {
   }
 
   async closeTab({ title }: { title: string }) {
-    if (title === 'Team & Auth' && isHub()) {
+    if (isHub()) {
       return;
     }
 
@@ -133,48 +141,14 @@ export class DashboardPage extends BasePage {
   }
 
   async clickHome() {
-    await this.rootPage.getByTestId('nc-noco-brand-icon').click();
-
+    if (isHub()) {
+      await this.leftSidebar.clickHome();
+    } else {
+      await this.rootPage.getByTestId('nc-noco-brand-icon').click();
+    }
     // wait for workspace page to render
     const workspacePage = new WorkspacePage(this.rootPage);
     await workspacePage.waitFor({ state: 'visible' });
-  }
-
-  private async _waitForDBTabRender({ title, mode }: { title: string; mode: string }) {
-    if (title === 'Team & Auth') {
-      await this.get()
-        .locator('div[role="tab"]', {
-          hasText: 'Users Management',
-        })
-        .waitFor({
-          state: 'visible',
-        });
-    } else {
-      await this.get().getByTestId('grid-id-column').waitFor({
-        state: 'visible',
-      });
-    }
-
-    await this.tabBar.locator(`.ant-tabs-tab-active:has-text("${title}")`).waitFor();
-
-    // wait active tab animation to finish
-    await expect
-      .poll(async () => {
-        return await this.tabBar.getByTestId(`nc-root-tabs-${title}`).evaluate(el => {
-          return window.getComputedStyle(el).getPropertyValue('color');
-        });
-      })
-      .toBe('rgb(67, 81, 232)'); // active tab text color
-
-    await this.get().getByTestId('grid-load-spinner').waitFor({ state: 'hidden' });
-
-    if (mode === 'standard') {
-      if (title === 'Team & Auth') {
-        await expect(this.rootPage).toHaveURL(`/nc/${this.project.id}/auth`);
-      } else {
-        await expect(this.rootPage).toHaveURL(new RegExp(`/nc/${this.project.id}/table/md_.{14}`));
-      }
-    }
   }
 
   async verifyOpenedTab({ title, mode = 'standard', emoji }: { title: string; mode?: string; emoji?: string }) {
@@ -217,8 +191,13 @@ export class DashboardPage extends BasePage {
     mode?: string;
     type?: ProjectTypes;
   }) {
+    // tabs disabled
+    if (isHub()) {
+      return;
+    }
+
     if (type === ProjectTypes.DATABASE) {
-      await this._waitForDBTabRender({ title, mode });
+      // 0523: Tabs are disabled & hence below checks are not required
     } else if (type === ProjectTypes.DOCUMENTATION) {
       await this._waitForDocsTabRender({ title, mode });
     }

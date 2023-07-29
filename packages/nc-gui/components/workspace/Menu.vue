@@ -13,9 +13,12 @@ const props = defineProps<{
 const workspaceStore = useWorkspace()
 
 const { saveTheme } = workspaceStore
-const { workspace, workspaces, isWorkspaceOwner } = storeToRefs(workspaceStore)
+const { activeWorkspace, workspacesList, isWorkspaceOwner } = storeToRefs(workspaceStore)
+const { loadWorkspaces } = workspaceStore
 
-const { appInfo, token, signOut, signedIn, user, currentVersion } = useGlobal()
+const { signOut, signedIn, user, token } = useGlobal()
+
+const { copy } = useCopy(true)
 
 const email = computed(() => user.value?.email ?? '---')
 
@@ -24,22 +27,24 @@ const { isUIAllowed } = useUIPermission()
 const { theme, defaultTheme } = useTheme()
 
 onMounted(async () => {
-  await workspaceStore.loadWorkspaceList()
+  await loadWorkspaces()
 })
 
 const workspaceModalVisible = ref(false)
+const isWorkspaceDropdownOpen = ref(false)
+const isAuthTokenCopied = ref(false)
 
 const createDlg = ref(false)
 
 const onWorkspaceCreate = async (workspace: WorkspaceType) => {
   createDlg.value = false
-  await workspaceStore.loadWorkspaceList()
+  await loadWorkspaces()
   navigateTo(`/ws/${workspace.id}`)
 }
 
 const updateWorkspaceTitle = useDebounceFn(async () => {
-  await workspaceStore.updateWorkspace(workspace.value!.id!, {
-    title: workspace.value!.title,
+  await workspaceStore.updateWorkspace(activeWorkspace.value!.id!, {
+    title: activeWorkspace.value!.title,
   })
 }, 500)
 
@@ -92,11 +97,28 @@ const logout = async () => {
 // todo: temp
 const isSharedBase = false
 const modalVisible = false
+
+const copyAuthToken = async () => {
+  try {
+    await copy(token.value!)
+    isAuthTokenCopied.value = true
+  } catch (e: any) {
+    console.error(e)
+    message.error(e.message)
+  }
+}
+
+onKeyStroke('Escape', () => {
+  if (isWorkspaceDropdownOpen.value) {
+    isWorkspaceDropdownOpen.value = false
+  }
+})
 </script>
 
 <template>
   <div class="flex-grow min-w-20">
     <a-dropdown
+      v-model:visible="isWorkspaceDropdownOpen"
       class="h-full min-w-0 flex-1"
       :trigger="['click']"
       placement="bottom"
@@ -106,20 +128,21 @@ const modalVisible = false
         :style="{ width: props.isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
         :class="[props.isOpen ? '' : 'justify-center']"
         data-testid="nc-workspace-menu"
-        class="group cursor-pointer flex gap-1 items-center nc-workspace-menu overflow-hidden"
+        class="group cursor-pointer flex gap-1 items-center nc-workspace-menu overflow-hidden py-1.25 pr-0.25"
       >
+        <slot name="brandIcon" />
         <template v-if="props.isOpen">
-          <div class="flex-grow min-w-10">
-            <a-tooltip v-if="workspace?.title?.length > 12" placement="bottom">
-              <div class="text-md truncate">{{ workspace.title }}</div>
+          <div v-if="activeWorkspace" class="flex-grow min-w-10 font-semibold text-base">
+            <a-tooltip v-if="activeWorkspace!.title!.length > 12" placement="bottom">
+              <div class="text-md truncate capitalize min-w-0">{{ activeWorkspace!.title }}</div>
               <template #title>
-                <div class="text-sm !text-red-500">{{ workspace?.title }}</div>
+                <div class="text-sm !text-red-500">{{ activeWorkspace?.title }}</div>
               </template>
             </a-tooltip>
-            <div v-else class="text-md truncate capitalize">{{ workspace?.title }}</div>
+            <div v-else class="text-md truncate capitalize">{{ activeWorkspace?.title }}</div>
           </div>
 
-          <PhCodeSimpleThin class="min-w-[17px] text-md transform rotate-90" />
+          <MdiCodeTags class="min-w-[17px] text-md transform rotate-90" />
         </template>
 
         <template v-else>
@@ -128,61 +151,78 @@ const modalVisible = false
       </div>
 
       <template #overlay>
-        <a-menu class="!ml-4 !w-[300px]">
-          <a-menu-item-group>
+        <a-menu class="" @click="isWorkspaceDropdownOpen = false">
+          <a-menu-item-group class="!border-t-0">
             <!--  <div class="nc-menu-sub-head">Current Workspace</div> -->
-            <div class="group select-none flex items-center gap-4 p-2 pb-0">
-              <input v-model="workspace.title" class="nc-workspace-title-input text-current" @input="updateWorkspaceTitle" />
+            <div class="group select-none flex items-center gap-4 p-2 pb-1 !border-t-0">
+              <input
+                v-model="activeWorkspace!.title"
+                :readonly="!isUIAllowed('workspaceUpdate', false, activeWorkspace.roles)"
+                class="nc-workspace-title-input text-current capitalize group-hover:text-accent"
+                @input="updateWorkspaceTitle"
+              />
             </div>
 
-            <a-menu-item @click="workspaceModalVisible = true">
-              <div class="nc-workspace-menu-item group">
-                <PhUserCircleThin />
-                Collaborators
-              </div>
-            </a-menu-item>
-            <a-menu-item @click="workspaceModalVisible = true">
+            <!-- <a-menu-item @click="workspaceModalVisible = true">
               <div class="nc-workspace-menu-item group">
                 <PhFadersThin />
                 Settings
               </div>
-            </a-menu-item>
+            </a-menu-item> -->
 
             <a-menu-divider />
 
             <div class="nc-menu-sub-head">Workspaces</div>
 
-            <div class="max-h-300px overflow-y-auto">
-              <a-menu-item v-for="workspace of workspaces" @click="navigateTo(`/ws/${workspace.id}`)">
-                <div class="nc-workspace-menu-item group">
-                  <GeneralIcon icon="workspace" />
-
-                  {{ workspace.title }}
+            <div class="max-h-300px nc-scrollbar-md">
+              <a-menu-item v-for="workspace of workspacesList" :key="workspace.id!" @click="navigateTo(`/ws/${workspace.id}`)">
+                <div class="nc-workspace-menu-item group capitalize max-w-300px flex">
+                  <GeneralIcon icon="workspace" class="group-hover:text-accent" />
+                  <span class="truncate min-w-10 flex-shrink">
+                    {{ workspace.title }}
+                  </span>
                 </div>
               </a-menu-item>
             </div>
-            <a-menu-divider />
-
             <a-menu-item @click="createDlg = true">
-              <div class="nc-workspace-menu-item group">
-                <GeneralIcon icon="plus" />
+              <div class="nc-workspace-menu-item group text-gray-700 group-hover:text-black">
+                <GeneralIcon icon="plus" class="mr-1" />
 
-                Add new workspace
+                <div class="">Add new workspace</div>
               </div>
             </a-menu-item>
+            <a-menu-divider />
+
+            <!-- <a-menu-item @click="workspaceModalVisible = true">
+              <div class="nc-workspace-menu-item group">
+                <GeneralIcon icon="users" />
+                Collaborators
+              </div>
+            </a-menu-item> -->
+
             <template v-if="!isSharedBase">
               <!-- Copy Auth Token -->
               <a-menu-item key="copy">
-                <div v-e="['a:navbar:user:copy-auth-token']" class="nc-workspace-menu-item group" @click.stop="copyAuthToken">
-                  <GeneralIcon icon="copy" class="group-hover:text-accent" />
-                  {{ $t('activity.account.authToken') }}
+                <div
+                  v-e="['a:navbar:user:copy-auth-token']"
+                  class="nc-workspace-menu-item group !gap-x-3"
+                  @click.stop="copyAuthToken"
+                >
+                  <GeneralIcon v-if="isAuthTokenCopied" icon="check" class="group-hover:text-black" />
+                  <GeneralIcon v-else icon="copy" class="group-hover:text-black" />
+                  <div v-if="isAuthTokenCopied">
+                    {{ $t('activity.account.authTokenCopied') }}
+                  </div>
+                  <div v-else>
+                    {{ $t('activity.account.authToken') }}
+                  </div>
                 </div>
               </a-menu-item>
 
-              <a-menu-divider />
+              <a-menu-divider v-if="false" />
 
               <!-- Theme -->
-              <template v-if="isUIAllowed('projectTheme')">
+              <template v-if="isUIAllowed('projectTheme') && false">
                 <a-sub-menu key="theme">
                   <template #title>
                     <div class="nc-workspace-menu-item group">
@@ -228,7 +268,7 @@ const modalVisible = false
                     <a-sub-menu key="pick-primary">
                       <template #title>
                         <div class="nc-workspace-menu-item group">
-                          <ClarityColorPickerSolid class="group-hover:text-accent" />
+                          <ClarityColorPickerSolid class="group-hover:text-black" />
                           {{ $t('labels.primaryColor') }}
                         </div>
                       </template>
@@ -242,7 +282,7 @@ const modalVisible = false
                     <a-sub-menu key="pick-accent">
                       <template #title>
                         <div class="nc-workspace-menu-item group">
-                          <ClarityColorPickerSolid class="group-hover:text-accent" />
+                          <ClarityColorPickerSolid class="group-hover:text-black" />
                           {{ $t('labels.accentColor') }}
                         </div>
                       </template>
@@ -255,13 +295,13 @@ const modalVisible = false
                 </a-sub-menu>
               </template>
 
-              <a-menu-divider />
+              <a-menu-divider v-if="false" />
 
               <!-- Preview As -->
-              <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as">
+              <a-sub-menu v-if="isUIAllowed('previewAs') && false" key="preview-as">
                 <template #title>
                   <div v-e="['c:navdraw:preview-as']" class="nc-workspace-menu-item group">
-                    <GeneralIcon icon="preview" class="group-hover:text-accent" />
+                    <GeneralIcon icon="preview" class="group-hover:text-black" />
                     {{ $t('activity.previewAs') }}
 
                     <div class="flex-1" />
@@ -279,13 +319,14 @@ const modalVisible = false
             </template>
             <!-- Language -->
             <a-sub-menu
+              v-if="false"
               key="language"
               class="lang-menu !py-0"
               popup-class-name="scrollbar-thin-dull min-w-50 max-h-90vh !overflow-auto"
             >
               <template #title>
                 <div class="nc-workspace-menu-item group">
-                  <GeneralIcon icon="translate" class="group-hover:text-accent nc-language" />
+                  <GeneralIcon icon="translate" class="group-hover:text-black nc-language" />
                   {{ $t('labels.language') }}
                   <div class="flex items-center text-gray-400 text-xs">(Community Translated)</div>
                   <div class="flex-1" />
@@ -343,18 +384,25 @@ const modalVisible = false
         </a-menu>
       </template>
     </a-dropdown>
-    <a-modal v-model:visible="workspaceModalVisible" :class="{ active: modalVisible }" width="80%" :footer="null">
-      <a-tabs v-model:activeKey="tab">
-        <template v-if="isWorkspaceOwner">
-          <a-tab-pane key="collab" tab="Collaborators" class="w-full">
-            <WorkspaceCollaboratorsList class="h-full overflow-auto" />
-          </a-tab-pane>
-          <a-tab-pane key="settings" tab="Settings" class="w-full">
-            <div class="min-h-50 flex items-center justify-center">Not available</div>
-          </a-tab-pane>
-        </template>
-      </a-tabs>
-    </a-modal>
+    <GeneralModal v-model:visible="workspaceModalVisible" :class="{ active: modalVisible }" width="80%" :footer="null">
+      <div class="relative flex flex-col px-6 py-2">
+        <div class="absolute right-4 top-4 z-20">
+          <a-button type="text" class="!p-1 !h-7 !rounded" @click="workspaceModalVisible = false">
+            <component :is="iconMap.close" />
+          </a-button>
+        </div>
+        <a-tabs v-model:activeKey="tab">
+          <template v-if="isWorkspaceOwner">
+            <a-tab-pane key="collab" tab="Collaborators" class="w-full">
+              <WorkspaceCollaboratorsList class="h-full" />
+            </a-tab-pane>
+            <!-- <a-tab-pane key="settings" tab="Settings" class="w-full">
+              <div class="min-h-50 flex items-center justify-center">Not available</div>
+            </a-tab-pane> -->
+          </template>
+        </a-tabs>
+      </div>
+    </GeneralModal>
 
     <WorkspaceCreateDlg v-model="createDlg" @success="onWorkspaceCreate" />
   </div>
@@ -362,7 +410,7 @@ const modalVisible = false
 
 <style scoped lang="scss">
 .nc-workspace-title-input {
-  @apply flex-grow py-2 px-3 outline-none hover:(bg-gray-100) focus:(bg-gray-100) rounded text-md text-defaault;
+  @apply flex-grow py-2 px-3 outline-none hover:(bg-gray-50) focus:(bg-gray-50) font-medium rounded text-md text-defaault;
 }
 
 .nc-menu-sub-head {
@@ -370,7 +418,15 @@ const modalVisible = false
 }
 
 .nc-workspace-menu-item {
-  @apply flex items-center pl-2 py-2 gap-2 text-sm;
+  @apply flex items-center pl-2 py-2 gap-2 text-sm hover:text-black;
+}
+
+:deep(.ant-dropdown-menu-item-group-title) {
+  @apply hidden;
+}
+
+:deep(.ant-tabs-nav) {
+  @apply !mb-0;
 }
 
 :deep(.ant-dropdown-menu-submenu-title) {

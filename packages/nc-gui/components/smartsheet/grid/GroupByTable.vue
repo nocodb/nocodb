@@ -77,6 +77,7 @@ const { deleteRow, deleteSelectedRows, deleteRangeOfRows, updateOrSaveRow, bulkU
 <template>
   <Table
     v-if="vGroup.rows"
+    v-model:selected-all-records="selectedAllRecords"
     :data="vGroup.rows"
     :pagination-data="vGroup.paginationData"
     :load-data="() => props.loadGroupData(vGroup, true)"
@@ -84,7 +85,6 @@ const { deleteRow, deleteSelectedRows, deleteRangeOfRows, updateOrSaveRow, bulkU
     :call-add-empty-row="(addAfter?: number) => addEmptyRow(vGroup, addAfter)"
     :expand-form="props.expandForm"
     :row-height="rowHeight"
-    :selected-all-records="selectedAllRecords"
     :delete-row="deleteRow"
     :delete-selected-rows="deleteSelectedRows"
     :delete-range-of-rows="deleteRangeOfRows"

@@ -215,6 +215,7 @@ onMounted(() => {
     <Table
       v-if="!isGroupBy"
       ref="tableRef"
+      v-model:selected-all-records="selectedAllRecords"
       :data="data"
       :pagination-data="paginationData"
       :load-data="loadData"
@@ -227,7 +228,6 @@ onMounted(() => {
       :bulk-update-rows="bulkUpdateRows"
       :expand-form="expandForm"
       :row-height="rowHeight"
-      :selected-all-records="selectedAllRecords"
       @toggle-optimised-query="toggleOptimisedQuery"
       @bulk-update-dlg="bulkUpdateDlg = true"
     />

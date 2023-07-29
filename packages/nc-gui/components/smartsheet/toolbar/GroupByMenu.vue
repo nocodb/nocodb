@@ -138,7 +138,7 @@ const addFieldToGroupBy = (field: ColumnType) => {
           </div>
 
           <a-button
-            v-if="possibleFieldCount > groupBy.length"
+            v-if="possibleFieldCount"
             class="text-capitalize mb-1 mt-2 mx-2 text-sm"
             type="primary"
             ghost

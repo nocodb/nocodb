@@ -415,7 +415,7 @@ onKeyStroke('Escape', () => {
                 :indicator="indicator"
               />
 
-              <GeneralEmojiPicker
+              <LazyGeneralEmojiPicker
                 :key="project.meta?.icon"
                 :emoji="project.meta?.icon"
                 :readonly="true"
@@ -425,7 +425,7 @@ onKeyStroke('Escape', () => {
                 <template #default>
                   <GeneralProjectIcon :type="project.type" />
                 </template>
-              </GeneralEmojiPicker>
+              </LazyGeneralEmojiPicker>
             </div>
           </div>
 
@@ -561,7 +561,7 @@ onKeyStroke('Escape', () => {
         :class="{ 'max-h-0': !project.isExpanded }"
       >
         <div v-if="project.type === 'documentation'">
-          <DocsSideBar v-if="project.isExpanded" :project="project" />
+          <LazyDocsSideBar v-if="project.isExpanded" :project="project" />
         </div>
         <div v-else-if="project.type === 'dashboard'">
           <LayoutsSideBar v-if="project.isExpanded" :project="project" />

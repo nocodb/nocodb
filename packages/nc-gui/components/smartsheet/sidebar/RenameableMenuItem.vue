@@ -188,7 +188,7 @@ function onStopEdit() {
   >
     <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-1" data-testid="view-item">
       <div class="flex min-w-6" :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`">
-        <GeneralEmojiPicker
+        <LazyGeneralEmojiPicker
           class="nc-table-icon"
           :emoji="props.view?.meta?.icon"
           size="small"
@@ -198,7 +198,7 @@ function onStopEdit() {
           <template #default>
             <GeneralViewIcon :meta="props.view" class="nc-view-icon !w-4"></GeneralViewIcon>
           </template>
-        </GeneralEmojiPicker>
+        </LazyGeneralEmojiPicker>
       </div>
 
       <a-input

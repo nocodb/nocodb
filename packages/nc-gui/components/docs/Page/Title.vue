@@ -142,7 +142,7 @@ onMounted(() => {
     }"
     data-testid="docs-page-title-wrapper"
   >
-    <GeneralEmojiPicker
+    <LazyGeneralEmojiPicker
       v-if="openedPage?.icon"
       :key="openedPage.icon"
       :emoji="openedPage.icon"
@@ -153,7 +153,7 @@ onMounted(() => {
       <template #default>
         <MdiFileDocumentOutline class="text-gray-600 text-sm" />
       </template>
-    </GeneralEmojiPicker>
+    </LazyGeneralEmojiPicker>
     <div
       ref="titleInputRef"
       :contenteditable="isEditAllowed && !propTitle"

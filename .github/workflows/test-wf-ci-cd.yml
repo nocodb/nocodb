@@ -12,12 +12,12 @@ on:
         description: 'waiting time before caching, used for debugging'
         required: false
         type: string
-        default: '600'
+        default: '1'
       after_cache_wait_time:
         description: 'waiting time after caching, used for debugging'
         required: false
         type: string
-        default: '600'
+        default: '1'
       run_ut:
         description: 'run unit tests or skip'
         required: false

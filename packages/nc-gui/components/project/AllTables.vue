@@ -117,7 +117,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
         </div>
       </div>
     </div>
-    <ProjectImportModal v-model:visible="isImportModalOpen" :base="defaultBase" />
+    <ProjectImportModal v-if="defaultBase" v-model:visible="isImportModalOpen" :base="defaultBase" />
   </div>
 </template>
 

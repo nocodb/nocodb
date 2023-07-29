@@ -27,6 +27,8 @@ const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
 
+const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+
 // keep a root fields variable and will get modified from
 // fields menu and get used in grid and gallery
 const fields = inject(FieldsInj, ref([]))
@@ -93,6 +95,9 @@ provide(IsGalleryInj, ref(false))
 provide(IsGridInj, ref(true))
 
 provide(RowHeightInj, rowHeight)
+
+// reload table data reload hook as fallback to rowdatareload
+provide(ReloadRowDataHookInj, reloadViewDataHook)
 
 const skipRowRemovalOnCancel = ref(false)
 

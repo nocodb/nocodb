@@ -1,0 +1,12 @@
+{
+"schemaVersion": 2,
+"dockerfileLines": [
+"FROM node:16.17.0-alpine3.15",
+"RUN apk update && apk add --no-cache g++ make",
+"WORKDIR /app",
+"COPY . .",
+"RUN npm run install:local-sdk",
+"RUN sh build-local-docker-image.sh",
+"CMD [\"node\", \"packages/nocodb/docker/main.js\"]"
+]
+}

@@ -5,6 +5,7 @@
 "RUN apk update && apk add --no-cache g++ make",
 "WORKDIR /app",
 "COPY . .",
+"RUN npm run install:local-sdk",
 "RUN cd ./packages/nc-gui && npm run generate",
 "COPY ./packages/nc-gui ./packages/nocodb/docker/nc-gui/",
 "RUN cd ./packages/nocodb && EE=true ./node_modules/.bin/webpack --config webpack.local.config.js",

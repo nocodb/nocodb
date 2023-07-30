@@ -79,10 +79,12 @@ async function localInit({
   workerId,
   isEmptyProject = false,
   projectType = ProjectTypes.DATABASE,
+  isSuperUser = false,
 }: {
   workerId: string;
   isEmptyProject?: boolean;
   projectType?: ProjectTypes;
+  isSuperUser?: boolean;
 }) {
   const parallelId = process.env.TEST_PARALLEL_INDEX;
   // wait till previous worker is done
@@ -94,11 +96,20 @@ async function localInit({
   workerStatus[parallelId] = 'processing';
 
   try {
+    let response;
     // Login as root user
-    const response = await axios.post('http://localhost:8080/api/v1/auth/user/signin', {
-      email: `user-${parallelId}@nocodb.com`,
-      password: getDefaultPwd(),
-    });
+    if (isSuperUser) {
+      // required for configuring license key settings
+      response = await axios.post('http://localhost:8080/api/v1/auth/user/signin', {
+        email: `user@nocodb.com`,
+        password: getDefaultPwd(),
+      });
+    } else {
+      response = await axios.post('http://localhost:8080/api/v1/auth/user/signin', {
+        email: `user-${parallelId}@nocodb.com`,
+        password: getDefaultPwd(),
+      });
+    }
     const token = response.data.token;
 
     // Init SDK using token
@@ -173,11 +184,13 @@ const setup = async ({
   projectType = ProjectTypes.DATABASE,
   page,
   isEmptyProject = false,
+  isSuperUser = false,
   url,
 }: {
   projectType?: ProjectTypes;
   page: Page;
   isEmptyProject?: boolean;
+  isSuperUser?: boolean;
   url?: string;
 }): Promise<NcContext> => {
   // on noco-hub, only PG is supported
@@ -204,6 +217,7 @@ const setup = async ({
         workerId,
         isEmptyProject,
         projectType,
+        isSuperUser,
       });
     }
     // Remote reset logic

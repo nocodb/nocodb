@@ -5,14 +5,14 @@ import { AccountLicensePage } from '../../../pages/Account/License';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { isHub } from '../../../setup/db';
 
-test.describe.skip('Enterprise License', () => {
+test.describe('Enterprise License', () => {
   // @ts-ignore
   let dashboard: DashboardPage;
   // @ts-ignore
   let accountLicensePage: AccountLicensePage, accountPage: AccountPage, context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
+    context = await setup({ page, isEmptyProject: true, isSuperUser: true });
     accountPage = new AccountPage(page);
     accountLicensePage = new AccountLicensePage(accountPage);
     dashboard = new DashboardPage(page, context.project);

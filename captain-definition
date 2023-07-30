@@ -8,7 +8,7 @@
 "RUN cd ./packages/nc-gui && npm run generate",
 "COPY ./packages/nc-gui ./packages/nocodb/docker/nc-gui/",
 "RUN cd ./packages/nocodb && EE=true ./node_modules/.bin/webpack --config webpack.local.config.js",
-"RUN ls"
+"RUN ls",
 "CMD [\"node\", \"packages/nocodb/docker/main.js\"]"
 ]
 }

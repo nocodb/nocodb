@@ -1,11 +1,14 @@
 <script lang="ts" setup>
 interface Props {
   checked: boolean
-  size: 'small' | 'default' | 'large'
-  disabled: boolean
+  size?: 'small' | 'default' | 'large'
+  disabled?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  size: 'default',
+  disabled: false,
+})
 
 const emit = defineEmits(['change', 'update:checked'])
 

@@ -4,12 +4,12 @@ import setup from '../../../setup';
 import { AccountPage } from '../../../pages/Account';
 import { AccountLicensePage } from '../../../pages/Account/License';
 
-test.describe.skip('Attachment column', () => {
+test.describe('Attachment column', () => {
   let dashboard: DashboardPage;
   let accountLicensePage: AccountLicensePage, accountPage: AccountPage, context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: false });
+    context = await setup({ page, isEmptyProject: false, isSuperUser: true });
     dashboard = new DashboardPage(page, context.project);
     accountPage = new AccountPage(page);
     accountLicensePage = new AccountLicensePage(accountPage);

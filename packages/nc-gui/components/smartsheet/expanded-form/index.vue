@@ -397,12 +397,6 @@ export default {
                   :active="true"
                   @update:model-value="changedColumns.add(col.title)"
                 />
-                <!-- {{ 
-                  formattedData && (
-                    formattedData.filter((item) => item.)
-                  )
-                  JSON.stringify({ isUuid: formattedData.ma })
-                }} -->
               </LazySmartsheetDivDataCell>
             </div>
           </div>

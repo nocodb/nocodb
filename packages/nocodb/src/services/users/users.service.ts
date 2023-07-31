@@ -51,7 +51,10 @@ export class UsersService {
     email: string;
     lastname: any;
   }) {
-    return this.metaService.metaInsert2(null, null, MetaTable.USERS, { ...param, email: param.email?.toLowerCase() });
+    return this.metaService.metaInsert2(null, null, MetaTable.USERS, {
+      ...param,
+      email: param.email?.toLowerCase(),
+    });
   }
 
   async registerNewUserIfAllowed({
@@ -500,7 +503,7 @@ export class UsersService {
       if (user?.id) {
         await User.update(user.id, {
           refresh_token: null,
-          token_version: null,
+          token_version: randomTokenString(),
         });
       }
       return { msg: 'Signed out successfully' };

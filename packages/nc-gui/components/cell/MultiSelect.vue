@@ -8,6 +8,7 @@ import {
   ActiveCellInj,
   CellClickHookInj,
   ColumnInj,
+  EditModeInj,
   IsKanbanInj,
   ReadonlyInj,
   RowHeightInj,
@@ -45,7 +46,13 @@ const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj)!
 
-const active = inject(ActiveCellInj, ref(false))
+const isEditable = inject(EditModeInj, ref(false))
+
+const activeCell = inject(ActiveCellInj, ref(false))
+
+// use both ActiveCellInj or EditModeInj to determine the active state
+// since active will be false in case of form view
+const active = computed(() => activeCell.value || isEditable.value)
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -173,7 +180,7 @@ watch(isOpen, (n, _o) => {
   }
 })
 
-useSelectedCellKeyupListener(active, (e) => {
+useSelectedCellKeyupListener(activeCell, (e) => {
   switch (e.key) {
     case 'Escape':
       isOpen.value = false
@@ -316,10 +323,10 @@ const handleClose = (e: MouseEvent) => {
 useEventListener(document, 'click', handleClose, true)
 
 const selectedOpts = computed(() => {
-  return options.value.reduce<(SelectOptionType & { index: number })[]>((selectedOptions, option) => {
-    const index = vModel.value.indexOf(option.value!)
-    if (index !== -1) {
-      selectedOptions.push({ ...option, index })
+  return vModel.value.reduce<SelectOptionType[]>((selectedOptions, option) => {
+    const selectedOption = options.value.find((o) => o.value === option)
+    if (selectedOption) {
+      selectedOptions.push(selectedOption)
     }
     return selectedOptions
   }, [])
@@ -340,7 +347,7 @@ const selectedOpts = computed(() => {
       }"
     >
       <template v-for="selectedOpt of selectedOpts" :key="selectedOpt.value">
-        <a-tag class="rounded-tag" :color="selectedOpt.color" :style="{ order: selectedOpt.index }">
+        <a-tag class="rounded-tag" :color="selectedOpt.color">
           <span
             :style="{
               'color': tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })

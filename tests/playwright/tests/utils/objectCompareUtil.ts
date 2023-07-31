@@ -20,9 +20,10 @@ export function deepCompare(
   obj2: any,
   ignoredFields?: Set<string>,
   ignoredKeys?: Set<string>,
-  keyId = '',
+  rootKeyId = '',
   breakAtFirstMismatch = true
 ): boolean {
+  let keyId = rootKeyId;
   if (ignoredKeys !== undefined && ignoredKeys.has(keyId)) {
     return true;
   }
@@ -51,11 +52,12 @@ export function deepCompare(
   for (const key of keys1) {
     if (
       (ignoredFields !== undefined && ignoredFields.has(key)) ||
-      key.endsWith(' List') /* temp hack to avoid fields like */
+      key.endsWith(' List') /* temp hack to avoid fields like */ ||
+      key.includes('___')
     ) {
       // console.log(`${keyId} ignored in comparison`)
     } else {
-      keyId = keyId + '.' + key;
+      keyId = rootKeyId + '.' + key;
       if (!deepCompare(obj1[key], obj2[key], ignoredFields, ignoredKeys, keyId, breakAtFirstMismatch)) {
         return !breakAtFirstMismatch;
         // return false;

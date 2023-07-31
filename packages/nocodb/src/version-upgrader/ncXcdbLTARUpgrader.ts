@@ -31,6 +31,7 @@ async function upgradeModelRelations({
     rtn: string;
     cn: string;
     rcn: string;
+    cstn?: string;
   }[];
 }) {
   // Iterate over each column and upgrade LTAR
@@ -42,6 +43,11 @@ async function upgradeModelRelations({
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
       ncMeta,
     );
+
+    // if colOptions not found then skip
+    if (!colOptions) {
+      continue;
+    }
 
     switch (colOptions.type) {
       case RelationTypes.HAS_MANY:
@@ -74,18 +80,19 @@ async function upgradeModelRelations({
               childColumn: relation.cn,
               parentTable: relation.rtn,
               childTable: relation.tn,
+              foreignKeyName: relation.cstn,
             });
-          }
 
-          // skip postgres since we were already creating the index while creating the relation
-          if (ncMeta.knex.clientType() !== 'pg') {
-            // create a new index for the column
-            const indexArgs = {
-              columns: [relation.cn],
-              tn: relation.tn,
-              non_unique: true,
-            };
-            await sqlClient.indexCreate(indexArgs);
+            // skip postgres since we were already creating the index while creating the relation
+            if (ncMeta.knex.clientType() !== 'pg') {
+              // create a new index for the column
+              const indexArgs = {
+                columns: [relation.cn],
+                tn: relation.tn,
+                non_unique: true,
+              };
+              await sqlClient.indexCreate(indexArgs);
+            }
           }
         }
         break;
@@ -119,16 +126,13 @@ async function upgradeModelRelations({
 async function upgradeBaseRelations({
   ncMeta,
   base,
+  relations,
 }: {
   ncMeta: MetaService;
   base: any;
+  relations: any;
 }) {
-  // const sqlMgr = ProjectMgrv2.getSqlMgr({ id: base.project_id }, ncMeta);
-
   const sqlClient = await NcConnectionMgrv2.getSqlClient(base, ncMeta.knex);
-
-  // get all relations
-  const relations = (await sqlClient.relationListAll())?.data?.list;
 
   // get models for the base
   const models = await ncMeta.metaList2(null, base.id, MetaTable.MODELS);
@@ -154,11 +158,22 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
     orderBy: {},
   });
 
+  if (!bases.length) return;
+
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(
+    new Base(bases[0]),
+    ncMeta.knex,
+  );
+
+  // get all relations
+  const relations = (await sqlClient.relationListAll())?.data?.list;
+
   // iterate and upgrade each base
   for (const base of bases) {
     await upgradeBaseRelations({
       ncMeta,
       base: new Base(base),
+      relations,
     });
   }
 }

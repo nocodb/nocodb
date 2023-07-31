@@ -32,9 +32,9 @@ const meta = computed(() => {
 const _vModel = useVModel(props, 'modelValue', emits)
 
 const displayValue = computed(() => {
-  if (isNaN(Number(_vModel.value))) {
-    return null
-  }
+  if (_vModel.value === null) return null
+
+  if (isNaN(Number(_vModel.value))) return null
 
   return Number(_vModel.value).toFixed(meta.value.precision ?? 1)
 })

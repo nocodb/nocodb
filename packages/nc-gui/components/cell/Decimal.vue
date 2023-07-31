@@ -32,7 +32,7 @@ const meta = computed(() => {
 const _vModel = useVModel(props, 'modelValue', emits)
 
 const displayValue = computed(() => {
-  if (_vModel.value === null) {
+  if (isNaN(Number(_vModel.value))) {
     return null
   }
 

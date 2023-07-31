@@ -3,6 +3,7 @@ import path from 'path';
 import { promisify } from 'util';
 import mkdirp from 'mkdirp';
 import axios from 'axios';
+import { NcError } from '../../helpers/catchError';
 import { getToolDir } from '../../utils/nc-config';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import type { Readable } from 'stream';
@@ -102,9 +103,20 @@ export default class Local implements IStorageAdapterV2 {
 
   public async fileRead(filePath: string): Promise<any> {
     try {
-      const fileData = await fs.promises.readFile(
+      // Get the absolute path to the base directory
+      const absoluteBasePath = path.resolve(getToolDir());
+
+      // Get the absolute path to the file
+      const absolutePath = path.resolve(
         path.join(getToolDir(), ...filePath.split('/')),
       );
+
+      // Check if the resolved path is within the intended directory
+      if (!absolutePath.startsWith(absoluteBasePath)) {
+        NcError.notFound('Invalid path');
+      }
+
+      const fileData = await fs.promises.readFile(absolutePath);
       return fileData;
     } catch (e) {
       throw e;

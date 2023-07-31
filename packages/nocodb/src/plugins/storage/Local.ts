@@ -12,7 +12,7 @@ export default class Local implements IStorageAdapterV2 {
   constructor() {}
 
   public async fileCreate(key: string, file: XcFile): Promise<any> {
-    const destPath = path.join(getToolDir(), ...key.split('/'));
+    const destPath = this.validateAndNormalisePath(key);
     try {
       await mkdirp(path.dirname(destPath));
       const data = await promisify(fs.readFile)(file.path);
@@ -25,7 +25,7 @@ export default class Local implements IStorageAdapterV2 {
   }
 
   async fileCreateByUrl(key: string, url: string): Promise<any> {
-    const destPath = path.join(getToolDir(), ...key.split('/'));
+    const destPath = this.validateAndNormalisePath(key);
     return new Promise((resolve, reject) => {
       axios
         .get(url, {
@@ -72,7 +72,7 @@ export default class Local implements IStorageAdapterV2 {
     stream: Readable,
   ): Promise<void> {
     return new Promise((resolve, reject) => {
-      const destPath = path.join(getToolDir(), ...key.split('/'));
+      const destPath = this.validateAndNormalisePath(key);
       try {
         mkdirp(path.dirname(destPath)).then(() => {
           const writableStream = fs.createWriteStream(destPath);
@@ -87,12 +87,12 @@ export default class Local implements IStorageAdapterV2 {
   }
 
   public async fileReadByStream(key: string): Promise<Readable> {
-    const srcPath = path.join(getToolDir(), ...key.split('/'));
+    const srcPath = this.validateAndNormalisePath(key);
     return fs.createReadStream(srcPath, { encoding: 'utf8' });
   }
 
   public async getDirectoryList(key: string): Promise<string[]> {
-    const destDir = path.join(getToolDir(), ...key.split('/'));
+    const destDir = this.validateAndNormalisePath(key);
     return fs.promises.readdir(destDir);
   }
 
@@ -103,20 +103,9 @@ export default class Local implements IStorageAdapterV2 {
 
   public async fileRead(filePath: string): Promise<any> {
     try {
-      // Get the absolute path to the base directory
-      const absoluteBasePath = path.resolve(getToolDir());
-
-      // Get the absolute path to the file
-      const absolutePath = path.resolve(
-        path.join(getToolDir(), ...filePath.split('/')),
+      const fileData = await fs.promises.readFile(
+        this.validateAndNormalisePath(filePath, true),
       );
-
-      // Check if the resolved path is within the intended directory
-      if (!absolutePath.startsWith(absoluteBasePath)) {
-        NcError.notFound('Invalid path');
-      }
-
-      const fileData = await fs.promises.readFile(absolutePath);
       return fileData;
     } catch (e) {
       throw e;
@@ -129,5 +118,30 @@ export default class Local implements IStorageAdapterV2 {
 
   test(): Promise<boolean> {
     return Promise.resolve(false);
+  }
+
+  // method for validate/normalise the path for avoid path traversal attack
+  protected validateAndNormalisePath(
+    fileOrFolderPath: string,
+    throw404 = false,
+  ): string {
+    // Get the absolute path to the base directory
+    const absoluteBasePath = path.resolve(getToolDir());
+
+    // Get the absolute path to the file
+    const absolutePath = path.resolve(
+      path.join(getToolDir(), ...fileOrFolderPath.split('/')),
+    );
+
+    // Check if the resolved path is within the intended directory
+    if (!absolutePath.startsWith(absoluteBasePath)) {
+      if (throw404) {
+        NcError.notFound();
+      } else {
+        NcError.badRequest('Invalid path');
+      }
+    }
+
+    return absolutePath;
   }
 }

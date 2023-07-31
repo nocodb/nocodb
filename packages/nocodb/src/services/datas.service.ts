@@ -239,6 +239,9 @@ export class DatasService {
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
     } catch (e) {}
+    try {
+      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+    } catch (e) {}
 
     const data = await baseModel.groupBy(listArgs);
     const count = await baseModel.groupByCount(listArgs);

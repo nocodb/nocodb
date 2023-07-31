@@ -483,7 +483,6 @@ class BaseModelSqlv2 {
     return await qb;
   }
 
-  // todo: add support for sortArrJson
   async groupBy(
     args: {
       where?: string;
@@ -492,6 +491,7 @@ class BaseModelSqlv2 {
       offset?;
       sort?: string | string[];
       filterArr?: Filter[];
+      sortArr?: Sort[];
     } = {
       column_name: '',
     },
@@ -520,7 +520,7 @@ class BaseModelSqlv2 {
 
     const aliasColObjMap = await this.model.getAliasColObjMap();
 
-    const sorts = extractSortsObject(rest?.sort, aliasColObjMap);
+    let sorts = extractSortsObject(rest?.sort, aliasColObjMap);
 
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
     await conditionV2(
@@ -550,6 +550,12 @@ class BaseModelSqlv2 {
     );
 
     qb.groupBy(...groupByColumns);
+
+    if (!sorts)
+      sorts = args.sortArr?.length
+        ? args.sortArr
+        : await Sort.list({ viewId: this.viewId });
+
     if (sorts) await sortV2(this, sorts, qb);
     applyPaginate(qb, rest);
     return await qb;
@@ -561,13 +567,15 @@ class BaseModelSqlv2 {
       column_name: string;
       limit?;
       offset?;
-      sort?: string | string[];
       filterArr?: Filter[];
+      // skip sort for count
+      // sort?: string | string[];
+      // sortArr?: Sort[];
     } = {
       column_name: '',
     },
   ) {
-    const { where, ...rest } = this._getListArgs(args as any);
+    const { where, ..._rest } = this._getListArgs(args as any);
 
     const groupByColumns = await this.model.getColumns().then((cols) =>
       args.column_name.split(',').map((col) => {
@@ -587,8 +595,6 @@ class BaseModelSqlv2 {
 
     const aliasColObjMap = await this.model.getAliasColObjMap();
 
-    const sorts = extractSortsObject(rest?.sort, aliasColObjMap);
-
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
     await conditionV2(
       this,
@@ -617,7 +623,6 @@ class BaseModelSqlv2 {
     );
 
     qb.groupBy(...groupByColumns);
-    if (sorts) await sortV2(this, sorts, qb);
 
     const qbP = this.dbDriver
       .count('*', { as: 'count' })

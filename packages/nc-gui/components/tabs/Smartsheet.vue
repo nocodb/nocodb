@@ -126,7 +126,7 @@ const onDrop = async (event: DragEvent) => {
       const lookupCol = childMeta.columns?.find((c) => c.pv) ?? childMeta.columns?.[0]
       grid.value?.openColumnCreate({
         uidt: UITypes.Lookup,
-        title: `${data.title}Lookup`,
+        title: `${data.title} Lookup`,
         fk_relation_column_id: relationCol.id,
         fk_lookup_column_id: lookupCol?.id,
       })

@@ -1,5 +1,3 @@
-SET allow_experimental_object_type = 1;
-
 CREATE TABLE IF NOT EXISTS usage_telemetry (
     id UUID,
     created_at DateTime,

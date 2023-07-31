@@ -10,6 +10,8 @@ export const useViewGroupBy = createSharedComposable(
 
     const { project } = storeToRefs(useProject())
 
+    const { sharedView, fetchSharedViewData } = useSharedView()
+
     const groupBy = ref<any[]>([])
 
     const isGroupBy = computed(() => !!groupBy.value.length)
@@ -19,6 +21,8 @@ export const useViewGroupBy = createSharedComposable(
     const { isUIAllowed } = useUIPermission()
 
     const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
+
+    const isPublic = inject(IsPublicInj, ref(false))
 
     const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
@@ -139,16 +143,31 @@ export const useViewGroupBy = createSharedComposable(
 
       if (!groupby || !groupby?.column_name) return
 
-      const response = await api.dbViewRow.groupBy('noco', project.value.id, view.value.fk_model_id, view.value.id, {
-        offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? appInfoDefaultLimit),
-        limit: group.paginationData.pageSize ?? appInfoDefaultLimit,
-        ...params,
-        ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-        ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-        where: `${nestedWhere}`,
-        sort: `${params.sort?.value === 'desc' ? '-' : ''}${groupby.title}`,
-        column_name: groupby.column_name,
-      } as any)
+      if (isPublic.value && !sharedView.value?.uuid) {
+        return
+      }
+
+      const response = !isPublic.value
+        ? await api.dbViewRow.groupBy('noco', project.value.id, view.value.fk_model_id, view.value.id, {
+            offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? appInfoDefaultLimit),
+            limit: group.paginationData.pageSize ?? appInfoDefaultLimit,
+            ...params,
+            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+            where: `${nestedWhere}`,
+            sort: `${params.sort?.value === 'desc' ? '-' : ''}${groupby.title}`,
+            column_name: groupby.column_name,
+          } as any)
+        : await api.public.dataGroupBy(sharedView.value!.uuid!, {
+            offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? appInfoDefaultLimit),
+            limit: group.paginationData.pageSize ?? appInfoDefaultLimit,
+            ...params,
+            where: nestedWhere,
+            sort: `${params.sort?.value === 'desc' ? '-' : ''}${groupby.title}`,
+            column_name: groupby.column_name,
+            sortsArr: sorts.value,
+            filtersArr: nestedFilters.value,
+          })
 
       const tempList: Group[] = response.list.reduce((acc: Group[], curr: Record<string, any>) => {
         const keyExists = acc.find((a) => a.key === valueToTitle(curr[groupby.column_name!], groupby))
@@ -225,11 +244,13 @@ export const useViewGroupBy = createSharedComposable(
         where: `${nestedWhere}`,
       }
 
-      const response = await api.dbViewRow.list('noco', project.value.id, view.value.fk_model_id, view.value.id, {
-        ...query,
-        ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-        ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-      } as any)
+      const response = !isPublic.value
+        ? await api.dbViewRow.list('noco', project.value.id, view.value.fk_model_id, view.value.id, {
+            ...query,
+            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+          } as any)
+        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, ...query })
 
       group.count = response.pageInfo.totalRows ?? 0
       group.rows = formatData(response.list)

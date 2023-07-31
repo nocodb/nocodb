@@ -483,20 +483,18 @@ class BaseModelSqlv2 {
     return await qb;
   }
 
-  async groupBy(
-    args: {
-      where?: string;
-      column_name: string;
-      limit?;
-      offset?;
-      sort?: string | string[];
-      filterArr?: Filter[];
-      sortArr?: Sort[];
-    } = {
-      column_name: '',
-    },
-  ) {
+  async groupBy(args: {
+    where?: string;
+    column_name: string;
+    limit?;
+    offset?;
+    sort?: string | string[];
+    filterArr?: Filter[];
+    sortArr?: Sort[];
+  }) {
     const { where, ...rest } = this._getListArgs(args as any);
+
+    args.column_name = args.column_name || '';
 
     const groupByColumns = await this.model.getColumns().then((cols) =>
       args.column_name.split(',').map((col) => {
@@ -561,21 +559,19 @@ class BaseModelSqlv2 {
     return await qb;
   }
 
-  async groupByCount(
-    args: {
-      where?: string;
-      column_name: string;
-      limit?;
-      offset?;
-      filterArr?: Filter[];
-      // skip sort for count
-      // sort?: string | string[];
-      // sortArr?: Sort[];
-    } = {
-      column_name: '',
-    },
-  ) {
+  async groupByCount(args: {
+    where?: string;
+    column_name: string;
+    limit?;
+    offset?;
+    filterArr?: Filter[];
+    // skip sort for count
+    // sort?: string | string[];
+    // sortArr?: Sort[];
+  }) {
     const { where, ..._rest } = this._getListArgs(args as any);
+
+    args.column_name = args.column_name || '';
 
     const groupByColumns = await this.model.getColumns().then((cols) =>
       args.column_name.split(',').map((col) => {

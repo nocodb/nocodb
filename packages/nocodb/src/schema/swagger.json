@@ -12906,6 +12906,129 @@
         "description": "Create a new row for the target shared view"
       }
     },
+    "/api/v1/db/public/shared-view/{sharedViewUuid}/groupby": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "List Shared View Rows",
+        "operationId": "public-data-group-by",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedViewList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields",
+            "description": "Which fields to be shown"
+          },
+          {
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "sort",
+            "description": "The result will be sorted based on `sort` query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset",
+            "description": "Offset in rows"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "Limit in rows"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sortArrJson",
+            "description": "Used for multiple sort queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "column_name",
+            "description": "Columns to group by"
+          }
+        ],
+        "description": "List all shared view rows grouped by a column"
+      }
+    },
     "/api/v1/db/public/shared-view/{sharedViewUuid}/rows/{rowId}/{relationType}/{columnName}": {
       "parameters": [
         {

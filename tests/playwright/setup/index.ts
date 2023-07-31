@@ -133,7 +133,11 @@ async function localInit({
     for (const w of ws.list) {
       // check if w.title starts with workspaceTitle
       if (w.title.startsWith(`ws_pgExtREST_p${process.env.TEST_PARALLEL_INDEX}`)) {
-        await api.workspace.delete(w.id);
+        try {
+          await api.workspace.delete(w.id);
+        } catch (e) {
+          console.log(`Error deleting workspace: ${w.id}`, `user-${parallelId}@nocodb.com`, isSuperUser);
+        }
       }
     }
 

@@ -23,6 +23,8 @@ const { search, loadFieldQuery } = useFieldQuery()
 
 const isDropdownOpen = ref(false)
 
+const isFocused = ref(false)
+
 const searchDropdown = ref(null)
 
 onClickOutside(searchDropdown, () => (isDropdownOpen.value = false))
@@ -77,10 +79,13 @@ watchDebounced(
 </script>
 
 <template>
-  <div class="flex flex-row border-1 border-gray-200 rounded-md h-8 ml-1">
+  <div
+    class="flex flex-row border-1 rounded-lg h-8 ml-1 border-gray-200"
+    :class="{ '!border-primary': search.query.length !== 0 || isFocused }"
+  >
     <div
       ref="searchDropdown"
-      class="flex items-center relative px-2 cursor-pointer border-r-1 rounded-l-md"
+      class="flex items-center relative px-2 cursor-pointer border-r-1 border-gray-200 rounded-l-lg"
       :class="{ '!bg-gray-50 ': isDropdownOpen }"
       @click="isDropdownOpen = !isDropdownOpen"
     >
@@ -116,6 +121,8 @@ watchDebounced(
       :bordered="false"
       data-testid="search-data-input"
       @press-enter="onPressEnter"
+      @focus="isFocused = true"
+      @blur="isFocused = false"
     >
       <template #addonBefore> </template>
     </a-input>

@@ -183,6 +183,7 @@ jobs:
           done
           PLAYWRIGHT_HTML_REPORT=playwright-report-quick npm run test:quick
       - name: Copy Artifacts to Local Artifacts Dir
+        if: always()
         working-directory: ./
         run: |
           # expects the variables to be available in runner context.

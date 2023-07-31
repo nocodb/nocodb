@@ -4,379 +4,406 @@ import { ref, storeToRefs, useApi, useProject } from '#imports'
 import type { Group, GroupNestedIn, Row } from '~/lib'
 import { GROUP_BY_VARS } from '~/lib'
 
-export const useViewGroupBy = createSharedComposable(
-  (view: Ref<ViewType | undefined>, where?: ComputedRef<string | undefined>, _reloadData?: () => void) => {
-    const { api } = useApi()
+export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: ComputedRef<string | undefined>) => {
+  const { api } = useApi()
 
-    const { project } = storeToRefs(useProject())
+  const { project } = storeToRefs(useProject())
 
-    const { sharedView, fetchSharedViewData } = useSharedView()
+  const { sharedView, fetchSharedViewData } = useSharedView()
 
-    const groupBy = ref<any[]>([])
+  const fields = inject(FieldsInj, ref([]))
 
-    const isGroupBy = computed(() => !!groupBy.value.length)
+  const { gridViewCols, loadGridViewColumns } = useGridViewColumnOrThrow()
 
-    const { appInfo } = $(useGlobal())
-
-    const { isUIAllowed } = useUIPermission()
-
-    const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
-
-    const isPublic = inject(IsPublicInj, ref(false))
-
-    const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
-
-    const appInfoDefaultLimit = appInfo.defaultLimit || 25
-
-    const rootGroup = ref<Group>({
-      key: 'root',
-      color: 'root',
-      count: 0,
-      column: groupBy.value[0],
-      nestedIn: [],
-      paginationData: { page: 1, pageSize: appInfoDefaultLimit },
-      nested: true,
-      children: [],
-      root: true,
-    })
-
-    async function groupWrapperChangePage(page: number, groupWrapper?: Group) {
-      groupWrapper = groupWrapper || rootGroup.value
-
-      if (!groupWrapper) return
-
-      groupWrapper.paginationData.page = page
-      await loadGroups(
-        {
-          offset: (page - 1) * (groupWrapper.paginationData.pageSize || appInfoDefaultLimit),
-        } as any,
-        groupWrapper,
-      )
-    }
-
-    const formatData = (list: Record<string, any>[]) =>
-      list.map((row) => ({
-        row: { ...row },
-        oldRow: { ...row },
-        rowMeta: {},
-      }))
-
-    const valueToTitle = (value: string, col: ColumnType) => {
-      if (col.uidt === UITypes.Checkbox) {
-        return value ? GROUP_BY_VARS.TRUE : GROUP_BY_VARS.FALSE
-      }
-      return value ?? GROUP_BY_VARS.NULL
-    }
-
-    const colors = $ref(enumColor.light)
-
-    const nextGroupColor = ref(colors[0])
-
-    const getNextColor = () => {
-      const tempColor = nextGroupColor.value
-      const index = colors.indexOf(nextGroupColor.value)
-      if (index === colors.length - 1) {
-        nextGroupColor.value = colors[0]
-      } else {
-        nextGroupColor.value = colors[index + 1]
-      }
-      return tempColor
-    }
-
-    const findKeyColor = (key: string, col: ColumnType) => {
-      switch (col.uidt) {
-        case UITypes.MultiSelect: {
-          const keys = key.split(',')
-          const colors = []
-          for (const k of keys) {
-            const option = (col.colOptions as SelectOptionsType).options?.find((o) => o.title === k)
-            if (option) {
-              colors.push(option.color)
-            }
-          }
-          return colors.join(',')
-        }
-        case UITypes.SingleSelect: {
-          const option = (col.colOptions as SelectOptionsType).options?.find((o) => o.title === key)
-          if (option) {
-            return option.color
-          }
-          return getNextColor()
-        }
-        default:
-          return getNextColor()
-      }
-    }
-
-    const calculateNestedWhere = (nestedIn: GroupNestedIn[], existing = '') => {
-      return nestedIn.reduce((acc, curr) => {
-        if (curr.key === GROUP_BY_VARS.NULL) {
-          acc += `${acc.length ? '~and' : ''}(${curr.title},blank)`
-        } else if (curr.column_uidt === UITypes.Checkbox) {
-          acc += `${acc.length ? '~and' : ''}(${curr.title},${curr.key === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked'})`
-        } else if ([UITypes.Date, UITypes.DateTime].includes(curr.column_uidt as UITypes)) {
-          acc += `${acc.length ? '~and' : ''}(${curr.title},eq,exactDate,${curr.key})`
-        } else {
-          acc += `${acc.length ? '~and' : ''}(${curr.title},eq,${curr.key})`
-        }
-        return acc
-      }, existing)
-    }
-
-    async function loadGroups(params: any = {}, group?: Group) {
-      group = group || rootGroup.value
-
-      if (!project?.value?.id || !view.value?.id || !view.value?.fk_model_id || !group) return
-
-      if (groupBy.value.length === 0) {
-        group.children = []
-        return
-      }
-
-      if (group.nestedIn.length > groupBy.value.length) return
-
-      if (group.nestedIn.length === 0) nextGroupColor.value = colors[0]
-
-      const groupby = groupBy.value[group.nestedIn.length]
-
-      const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
-
-      if (!groupby || !groupby?.column_name) return
-
-      if (isPublic.value && !sharedView.value?.uuid) {
-        return
-      }
-
-      const response = !isPublic.value
-        ? await api.dbViewRow.groupBy('noco', project.value.id, view.value.fk_model_id, view.value.id, {
-            offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? appInfoDefaultLimit),
-            limit: group.paginationData.pageSize ?? appInfoDefaultLimit,
-            ...params,
-            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-            where: `${nestedWhere}`,
-            sort: `${params.sort?.value === 'desc' ? '-' : ''}${groupby.title}`,
-            column_name: groupby.column_name,
-          } as any)
-        : await api.public.dataGroupBy(sharedView.value!.uuid!, {
-            offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? appInfoDefaultLimit),
-            limit: group.paginationData.pageSize ?? appInfoDefaultLimit,
-            ...params,
-            where: nestedWhere,
-            sort: `${params.sort?.value === 'desc' ? '-' : ''}${groupby.title}`,
-            column_name: groupby.column_name,
-            sortsArr: sorts.value,
-            filtersArr: nestedFilters.value,
+  const groupBy = computed<{ column: ColumnType; sort: string; order?: number }[]>(() => {
+    const tempGroupBy: { column: ColumnType; sort: string; order?: number }[] = []
+    Object.values(gridViewCols.value).forEach((col) => {
+      if (col.group_by) {
+        const column = fields.value.find((f) => f.id === col.fk_column_id)
+        if (column) {
+          tempGroupBy.push({
+            column,
+            sort: col.group_by_sort || 'asc',
+            order: col.group_by_order || 1,
           })
-
-      const tempList: Group[] = response.list.reduce((acc: Group[], curr: Record<string, any>) => {
-        const keyExists = acc.find((a) => a.key === valueToTitle(curr[groupby.column_name!], groupby))
-        if (keyExists) {
-          keyExists.count += +curr.count
-          keyExists.paginationData = { page: 1, pageSize: appInfoDefaultLimit, totalRows: keyExists.count }
-          return acc
         }
+      }
+    })
+    tempGroupBy.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
+    return tempGroupBy
+  })
+
+  const isGroupBy = computed(() => !!groupBy.value.length)
+
+  const { appInfo } = $(useGlobal())
+
+  const { isUIAllowed } = useUIPermission()
+
+  const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
+
+  const isPublic = inject(IsPublicInj, ref(false))
+
+  const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+
+  const appInfoDefaultLimit = appInfo.defaultLimit || 25
+
+  const rootGroup = ref<Group>({
+    key: 'root',
+    color: 'root',
+    count: 0,
+    column: {} as any,
+    nestedIn: [],
+    paginationData: { page: 1, pageSize: appInfoDefaultLimit },
+    nested: true,
+    children: [],
+    root: true,
+  })
+
+  async function groupWrapperChangePage(page: number, groupWrapper?: Group) {
+    groupWrapper = groupWrapper || rootGroup.value
+
+    if (!groupWrapper) return
+
+    groupWrapper.paginationData.page = page
+    await loadGroups(
+      {
+        offset: (page - 1) * (groupWrapper.paginationData.pageSize || appInfoDefaultLimit),
+      } as any,
+      groupWrapper,
+    )
+  }
+
+  const formatData = (list: Record<string, any>[]) =>
+    list.map((row) => ({
+      row: { ...row },
+      oldRow: { ...row },
+      rowMeta: {},
+    }))
+
+  const valueToTitle = (value: string, col: ColumnType) => {
+    if (col.uidt === UITypes.Checkbox) {
+      return value ? GROUP_BY_VARS.TRUE : GROUP_BY_VARS.FALSE
+    }
+    return value ?? GROUP_BY_VARS.NULL
+  }
+
+  const colors = $ref(enumColor.light)
+
+  const nextGroupColor = ref(colors[0])
+
+  const getNextColor = () => {
+    const tempColor = nextGroupColor.value
+    const index = colors.indexOf(nextGroupColor.value)
+    if (index === colors.length - 1) {
+      nextGroupColor.value = colors[0]
+    } else {
+      nextGroupColor.value = colors[index + 1]
+    }
+    return tempColor
+  }
+
+  const findKeyColor = (key: string, col: ColumnType) => {
+    switch (col.uidt) {
+      case UITypes.MultiSelect: {
+        const keys = key.split(',')
+        const colors = []
+        for (const k of keys) {
+          const option = (col.colOptions as SelectOptionsType).options?.find((o) => o.title === k)
+          if (option) {
+            colors.push(option.color)
+          }
+        }
+        return colors.join(',')
+      }
+      case UITypes.SingleSelect: {
+        const option = (col.colOptions as SelectOptionsType).options?.find((o) => o.title === key)
+        if (option) {
+          return option.color
+        }
+        return getNextColor()
+      }
+      default:
+        return getNextColor()
+    }
+  }
+
+  const calculateNestedWhere = (nestedIn: GroupNestedIn[], existing = '') => {
+    return nestedIn.reduce((acc, curr) => {
+      if (curr.key === GROUP_BY_VARS.NULL) {
+        acc += `${acc.length ? '~and' : ''}(${curr.title},blank)`
+      } else if (curr.column_uidt === UITypes.Checkbox) {
+        acc += `${acc.length ? '~and' : ''}(${curr.title},${curr.key === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked'})`
+      } else if ([UITypes.Date, UITypes.DateTime].includes(curr.column_uidt as UITypes)) {
+        acc += `${acc.length ? '~and' : ''}(${curr.title},eq,exactDate,${curr.key})`
+      } else {
+        acc += `${acc.length ? '~and' : ''}(${curr.title},eq,${curr.key})`
+      }
+      return acc
+    }, existing)
+  }
+
+  async function loadGroups(params: any = {}, group?: Group) {
+    group = group || rootGroup.value
+
+    if (!project?.value?.id || !view.value?.id || !view.value?.fk_model_id || !group) return
+
+    if (groupBy.value.length === 0) {
+      group.children = []
+      return
+    }
+
+    if (group.nestedIn.length > groupBy.value.length) return
+
+    if (group.nestedIn.length === 0) nextGroupColor.value = colors[0]
+
+    const groupby = groupBy.value[group.nestedIn.length]
+
+    const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
+
+    if (!groupby || !groupby.column.column_name) return
+
+    if (isPublic.value && !sharedView.value?.uuid) {
+      return
+    }
+
+    const response = !isPublic.value
+      ? await api.dbViewRow.groupBy('noco', project.value.id, view.value.fk_model_id, view.value.id, {
+          offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? appInfoDefaultLimit),
+          limit: group.paginationData.pageSize ?? appInfoDefaultLimit,
+          ...params,
+          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+          where: `${nestedWhere}`,
+          sort: `${groupby.sort === 'desc' ? '-' : ''}${groupby.column.title}`,
+          column_name: groupby.column.column_name,
+        } as any)
+      : await api.public.dataGroupBy(sharedView.value!.uuid!, {
+          offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? appInfoDefaultLimit),
+          limit: group.paginationData.pageSize ?? appInfoDefaultLimit,
+          ...params,
+          where: nestedWhere,
+          sort: `${groupby.sort === 'desc' ? '-' : ''}${groupby.column.title}`,
+          column_name: groupby.column.column_name,
+          sortsArr: sorts.value,
+          filtersArr: nestedFilters.value,
+        })
+
+    const tempList: Group[] = response.list.reduce((acc: Group[], curr: Record<string, any>) => {
+      const keyExists = acc.find((a) => a.key === valueToTitle(curr[groupby.column.column_name!], groupby))
+      if (keyExists) {
+        keyExists.count += +curr.count
+        keyExists.paginationData = { page: 1, pageSize: appInfoDefaultLimit, totalRows: keyExists.count }
+        return acc
+      }
+      if (groupby.column.title && groupby.column.column_name && groupby.column.uidt) {
         acc.push({
-          key: valueToTitle(curr[groupby.column_name!], groupby),
-          column: groupby,
+          key: valueToTitle(curr[groupby.column.column_name!], groupby),
+          column: groupby.column,
           count: +curr.count,
-          color: (curr[groupby.column_name!] ? findKeyColor(curr[groupby.column_name!], groupby) : 'gray') || 'white',
+          color:
+            (curr[groupby.column.column_name!] ? findKeyColor(curr[groupby.column.column_name!], groupby) : 'gray') || 'white',
           nestedIn: [
             ...group!.nestedIn,
             {
-              title: groupby.title,
-              column_name: groupby.column_name!,
-              key: valueToTitle(curr[groupby.column_name!], groupby),
-              column_uidt: groupby.uidt,
+              title: groupby.column.title,
+              column_name: groupby.column.column_name!,
+              key: valueToTitle(curr[groupby.column.column_name!], groupby),
+              column_uidt: groupby.column.uidt,
             },
           ],
           paginationData: { page: 1, pageSize: appInfoDefaultLimit, totalRows: +curr.count },
           nested: group!.nestedIn.length < groupBy.value.length - 1,
         })
-        return acc
-      }, [])
+      }
+      return acc
+    }, [])
 
-      if (!group.children) group.children = []
+    if (!group.children) group.children = []
 
-      for (const temp of tempList) {
-        const keyExists = group.children?.find((a) => a.key === temp.key)
-        if (keyExists) {
-          temp.paginationData = {
-            page: keyExists.paginationData.page || temp.paginationData.page,
-            pageSize: keyExists.paginationData.pageSize || temp.paginationData.pageSize,
-            totalRows: temp.count,
-          }
-          temp.color = keyExists.color
-          // update group
-          Object.assign(keyExists, temp)
-          continue
+    for (const temp of tempList) {
+      const keyExists = group.children?.find((a) => a.key === temp.key)
+      if (keyExists) {
+        temp.paginationData = {
+          page: keyExists.paginationData.page || temp.paginationData.page,
+          pageSize: keyExists.paginationData.pageSize || temp.paginationData.pageSize,
+          totalRows: temp.count,
         }
-        group.children.push(temp)
+        temp.color = keyExists.color
+        // update group
+        Object.assign(keyExists, temp)
+        continue
       }
-
-      // clear rest of the children
-      group.children = group.children.filter((c) => tempList.find((t) => t.key === c.key))
-
-      group.paginationData = response.pageInfo
-
-      // to cater the case like when querying with a non-zero offset
-      // the result page may point to the target page where the actual returned data don't display on
-      const expectedPage = Math.max(1, Math.ceil(group.paginationData.totalRows! / group.paginationData.pageSize!))
-      if (expectedPage < group.paginationData.page!) {
-        await groupWrapperChangePage(expectedPage, group)
-      }
+      group.children.push(temp)
     }
 
-    async function loadGroupData(group: Group, force = false) {
-      if (!project?.value?.id || !view.value?.id || !view.value?.fk_model_id) return
+    // clear rest of the children
+    group.children = group.children.filter((c) => tempList.find((t) => t.key === c.key))
 
-      if (group.children && !force) return
+    group.paginationData = response.pageInfo
 
-      if (!group.paginationData) {
-        group.paginationData = { page: 1, pageSize: appInfoDefaultLimit }
-      }
+    // to cater the case like when querying with a non-zero offset
+    // the result page may point to the target page where the actual returned data don't display on
+    const expectedPage = Math.max(1, Math.ceil(group.paginationData.totalRows! / group.paginationData.pageSize!))
+    if (expectedPage < group.paginationData.page!) {
+      await groupWrapperChangePage(expectedPage, group)
+    }
+  }
 
-      const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
+  async function loadGroupData(group: Group, force = false) {
+    if (!project?.value?.id || !view.value?.id || !view.value?.fk_model_id) return
 
-      const query = {
-        offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? appInfoDefaultLimit),
-        limit: group.paginationData.pageSize ?? appInfoDefaultLimit,
-        where: `${nestedWhere}`,
-      }
+    if (group.children && !force) return
 
-      const response = !isPublic.value
-        ? await api.dbViewRow.list('noco', project.value.id, view.value.fk_model_id, view.value.id, {
-            ...query,
-            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-          } as any)
-        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, ...query })
-
-      group.count = response.pageInfo.totalRows ?? 0
-      group.rows = formatData(response.list)
-      group.paginationData = response.pageInfo
+    if (!group.paginationData) {
+      group.paginationData = { page: 1, pageSize: appInfoDefaultLimit }
     }
 
-    const loadGroupPage = async (group: Group, p: number) => {
-      if (!group.paginationData) {
-        group.paginationData = { page: 1, pageSize: appInfoDefaultLimit }
-      }
-      group.paginationData.page = p
-      await loadGroupData(group, true)
+    const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
+
+    const query = {
+      offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? appInfoDefaultLimit),
+      limit: group.paginationData.pageSize ?? appInfoDefaultLimit,
+      where: `${nestedWhere}`,
     }
 
-    const refreshNested = (group?: Group, nestLevel = 0) => {
-      group = group || rootGroup.value
-      if (!group) return
+    const response = !isPublic.value
+      ? await api.dbViewRow.list('noco', project.value.id, view.value.fk_model_id, view.value.id, {
+          ...query,
+          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+        } as any)
+      : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, ...query })
 
-      if (nestLevel < groupBy.value.length) {
-        group.nested = true
-      } else {
-        group.nested = false
-      }
+    group.count = response.pageInfo.totalRows ?? 0
+    group.rows = formatData(response.list)
+    group.paginationData = response.pageInfo
+  }
 
-      if (group.nested) {
-        if (group?.rows) {
-          group.rows = []
-        }
-      } else {
-        if (group?.children) {
-          group.children = []
-        }
-      }
-      if (nestLevel > groupBy.value.length) return
-      for (const child of group.children || []) {
-        refreshNested(child, nestLevel + 1)
-      }
+  const loadGroupPage = async (group: Group, p: number) => {
+    if (!group.paginationData) {
+      group.paginationData = { page: 1, pageSize: appInfoDefaultLimit }
+    }
+    group.paginationData.page = p
+    await loadGroupData(group, true)
+  }
+
+  const refreshNested = (group?: Group, nestLevel = 0) => {
+    group = group || rootGroup.value
+    if (!group) return
+
+    if (nestLevel < groupBy.value.length) {
+      group.nested = true
+    } else {
+      group.nested = false
     }
 
-    watch(
-      () => groupBy.value.length,
-      async () => {
-        rootGroup.value.paginationData = { page: 1, pageSize: appInfoDefaultLimit }
-        rootGroup.value.column = groupBy.value[0]
-        await loadGroups()
-        refreshNested()
-        nextTick(() => reloadViewDataHook?.trigger())
-      },
-    )
+    if (group.nested) {
+      if (group?.rows) {
+        group.rows = []
+      }
+    } else {
+      if (group?.children) {
+        group.children = []
+      }
+    }
+    if (nestLevel > groupBy.value.length) return
+    for (const child of group.children || []) {
+      refreshNested(child, nestLevel + 1)
+    }
+  }
 
-    const findGroupByNestedIn = (nestedIn: GroupNestedIn[], group?: Group, nestLevel = 0): Group => {
-      group = group || rootGroup.value
-      if (nestLevel >= nestedIn.length) return group
-      const child = group.children?.find((g) => g.key === nestedIn[nestLevel].key)
+  watch(
+    () => groupBy.value.length,
+    async () => {
+      rootGroup.value.paginationData = { page: 1, pageSize: appInfoDefaultLimit }
+      rootGroup.value.column = groupBy.value[0]
+      await loadGroups()
+      refreshNested()
+      nextTick(() => reloadViewDataHook?.trigger())
+    },
+    { immediate: true },
+  )
+
+  const findGroupByNestedIn = (nestedIn: GroupNestedIn[], group?: Group, nestLevel = 0): Group => {
+    group = group || rootGroup.value
+    if (nestLevel >= nestedIn.length) return group
+    const child = group.children?.find((g) => g.key === nestedIn[nestLevel].key)
+    if (child) {
+      if (child.nested) {
+        return findGroupByNestedIn(nestedIn, child, nestLevel + 1)
+      }
+      return child
+    }
+    return group
+  }
+
+  const parentGroup = (group: Group) => {
+    const parent = findGroupByNestedIn(group.nestedIn.slice(0, -1))
+    return parent
+  }
+
+  const modifyCount = (group: Group, countEffect: number) => {
+    if (!group) return
+    group.count += countEffect
+    // remove group if count is 0
+    if (group.count === 0) {
+      const parent = parentGroup(group)
+      if (parent) {
+        parent.children = parent.children?.filter((c) => c.key !== group.key)
+      }
+    }
+    if (group.root) return
+    modifyCount(parentGroup(group), countEffect)
+  }
+
+  const findGroupForRow = (row: Row, group?: Group, nestLevel = 0): { found: boolean; group: Group } => {
+    group = group || rootGroup.value
+    if (group.nested) {
+      const child = group.children?.find((g) => {
+        if (!groupBy.value[nestLevel].column.title) return undefined
+        return g.key === valueToTitle(row.row[groupBy.value[nestLevel].column.title!], groupBy.value[nestLevel])
+      })
       if (child) {
-        if (child.nested) {
-          return findGroupByNestedIn(nestedIn, child, nestLevel + 1)
-        }
-        return child
+        return findGroupForRow(row, child, nestLevel + 1)
       }
-      return group
+      return { found: false, group }
     }
+    return { found: true, group }
+  }
 
-    const parentGroup = (group: Group) => {
-      const parent = findGroupByNestedIn(group.nestedIn.slice(0, -1))
-      return parent
-    }
-
-    const modifyCount = (group: Group, countEffect: number) => {
-      if (!group) return
-      group.count += countEffect
-      // remove group if count is 0
-      if (group.count === 0) {
-        const parent = parentGroup(group)
-        if (parent) {
-          parent.children = parent.children?.filter((c) => c.key !== group.key)
-        }
-      }
-      if (group.root) return
-      modifyCount(parentGroup(group), countEffect)
-    }
-
-    const findGroupForRow = (row: Row, group?: Group, nestLevel = 0): { found: boolean; group: Group } => {
-      group = group || rootGroup.value
-      if (group.nested) {
-        const child = group.children?.find(
-          (g) => g.key === valueToTitle(row.row[groupBy.value[nestLevel].title], groupBy.value[nestLevel]),
-        )
-        if (child) {
-          return findGroupForRow(row, child, nestLevel + 1)
-        }
-        return { found: false, group }
-      }
-      return { found: true, group }
-    }
-
-    const redistributeRows = (group?: Group) => {
-      group = group || rootGroup.value
-      if (!group) return
-      if (!group.nested && group.rows) {
-        group.rows.forEach((row) => {
-          const properGroup = findGroupForRow(row)
-          if (properGroup.found) {
-            if (properGroup.group !== group) {
-              if (properGroup.group) {
-                properGroup.group.rows?.push(row)
-                modifyCount(properGroup.group, 1)
-              }
-              if (group) {
-                group.rows?.splice(group!.rows.indexOf(row), 1)
-                modifyCount(group, -1)
-              }
+  const redistributeRows = (group?: Group) => {
+    group = group || rootGroup.value
+    if (!group) return
+    if (!group.nested && group.rows) {
+      group.rows.forEach((row) => {
+        const properGroup = findGroupForRow(row)
+        if (properGroup.found) {
+          if (properGroup.group !== group) {
+            if (properGroup.group) {
+              properGroup.group.rows?.push(row)
+              modifyCount(properGroup.group, 1)
             }
-          } else {
             if (group) {
               group.rows?.splice(group!.rows.indexOf(row), 1)
               modifyCount(group, -1)
             }
-            if (properGroup.group?.children) loadGroups({}, properGroup.group)
           }
-        })
-      } else {
-        group.children?.forEach((g) => redistributeRows(g))
-      }
+        } else {
+          if (group) {
+            group.rows?.splice(group!.rows.indexOf(row), 1)
+            modifyCount(group, -1)
+          }
+          if (properGroup.group?.children) loadGroups({}, properGroup.group)
+        }
+      })
+    } else {
+      group.children?.forEach((g) => redistributeRows(g))
     }
+  }
 
-    return { rootGroup, groupBy, isGroupBy, loadGroups, loadGroupData, loadGroupPage, groupWrapperChangePage, redistributeRows }
-  },
-)
+  onMounted(() => {
+    loadGridViewColumns()
+  })
+
+  return { rootGroup, groupBy, isGroupBy, loadGroups, loadGroupData, loadGroupPage, groupWrapperChangePage, redistributeRows }
+}

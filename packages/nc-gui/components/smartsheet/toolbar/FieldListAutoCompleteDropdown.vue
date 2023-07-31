@@ -4,12 +4,18 @@ import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { ActiveViewInj, MetaInj, computed, inject, ref, resolveComponent, useViewColumns } from '#imports'
 
-const { modelValue, isSort } = defineProps<{
+const props = defineProps<{
   modelValue?: string
   isSort?: boolean
+  columns?: ColumnType[]
+  allowEmpty?: boolean
 }>()
 
 const emit = defineEmits(['update:modelValue'])
+
+const { modelValue, isSort, allowEmpty } = props
+
+const customColumns = toRef(props, 'columns')
 
 const meta = inject(MetaInj, ref())
 
@@ -23,8 +29,9 @@ const activeView = inject(ActiveViewInj, ref())
 const { showSystemFields, metaColumnById } = useViewColumns(activeView, meta)
 
 const options = computed<SelectProps['options']>(() =>
-  meta.value?.columns
-    ?.filter((c: ColumnType) => {
+  (
+    customColumns.value ||
+    meta.value?.columns?.filter((c: ColumnType) => {
       if (c.uidt === UITypes.Links) {
         return true
       }
@@ -46,23 +53,23 @@ const options = computed<SelectProps['options']>(() =>
         return !isVirtualSystemField
       }
     })
-    .map((c: ColumnType) => ({
-      value: c.id,
-      label: c.title,
-      icon: h(
-        isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'),
-        {
-          columnMeta: c,
-        },
-      ),
-      c,
-    })),
+  )?.map((c: ColumnType) => ({
+    value: c.id,
+    label: c.title,
+    icon: h(
+      isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'),
+      {
+        columnMeta: c,
+      },
+    ),
+    c,
+  })),
 )
 
 const filterOption = (input: string, option: any) => option.label.toLowerCase()?.includes(input.toLowerCase())
 
 // when a new filter is created, select a field by default
-if (!localValue.value) {
+if (!localValue.value && allowEmpty !== true) {
   localValue.value = (options.value?.[0].value as string) || ''
 }
 </script>

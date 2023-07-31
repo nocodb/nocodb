@@ -1198,6 +1198,18 @@ export interface GridColumnType {
   width?: string;
   /** Column Help Text */
   help?: StringOrNullType;
+  /** Group By */
+  group_by?: BoolType;
+  /**
+   * Group By Order
+   * @example 1
+   */
+  group_by_order?: number;
+  /**
+   * Group By Sort
+   * @example asc
+   */
+  group_by_sort?: StringOrNullType;
 }
 
 /**
@@ -1218,6 +1230,18 @@ export interface GridColumnReqType {
    * @example 200px
    */
   width?: string;
+  /** Group By */
+  group_by?: BoolType;
+  /**
+   * Group By Order
+   * @example 1
+   */
+  group_by_order?: number;
+  /**
+   * Group By Sort
+   * @example asc
+   */
+  group_by_sort?: StringOrNullType;
 }
 
 /**

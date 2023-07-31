@@ -17,7 +17,6 @@ import {
   message,
   provide,
   ref,
-  useProvideGridViewColumnWidth,
   useSmartsheetStoreOrThrow,
   useViewData,
 } from '#imports'
@@ -37,7 +36,7 @@ const router = useRouter()
 
 const route = $(router.currentRoute)
 
-const { xWhere } = useSmartsheetStoreOrThrow()
+const { xWhere, eventBus } = useSmartsheetStoreOrThrow()
 
 const bulkUpdateDlg = ref(false)
 
@@ -85,8 +84,6 @@ const rowHeight = computed(() => {
     }
   }
 })
-
-useProvideGridViewColumnWidth(view)
 
 provide(IsFormInj, ref(false))
 
@@ -186,6 +183,12 @@ const { rootGroup, groupBy, isGroupBy, loadGroups, loadGroupData, loadGroupPage,
 const coreWrapperRef = ref<HTMLElement>()
 
 const viewWidth = ref(0)
+
+eventBus.on((event) => {
+  if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD) {
+    reloadViewDataHook?.trigger()
+  }
+})
 
 onMounted(() => {
   until(coreWrapperRef)

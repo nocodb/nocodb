@@ -69,6 +69,7 @@ const openNewRecordFormHook = createEventHook<void>()
 
 useProvideKanbanViewStore(meta, activeView)
 useProvideMapViewStore(meta, activeView)
+useProvideGridViewColumn(activeView)
 
 // todo: move to store
 provide(MetaInj, meta)

@@ -129,7 +129,7 @@ reloadViewDataHook?.on(reloadViewDataHandler)
                 <div class="flex items-center">
                   <div class="flex flex-col">
                     <div class="flex gap-2">
-                      <div class="text-xs">{{ grp.column.column_name }}</div>
+                      <div class="text-xs">{{ grp.column.title }}</div>
                       <div class="text-xs text-gray-400">(Count: {{ grp.count }})</div>
                     </div>
                     <div class="flex mt-1">

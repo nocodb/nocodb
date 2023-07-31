@@ -1,4 +1,4 @@
-import type { ColumnType, GridColumnType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, GridColumnReqType, GridColumnType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import {
   IsPublicInj,
@@ -13,7 +13,7 @@ import {
   watch,
 } from '#imports'
 
-const [useProvideGridViewColumnWidth, useGridViewColumnWidth] = useInjectionState(
+const [useProvideGridViewColumn, useGridViewColumn] = useInjectionState(
   (view: Ref<(ViewType & { columns?: GridColumnType[] }) | undefined>) => {
     const { css, load: loadCss, unload: unloadCss } = useStyleTag('')
 
@@ -70,43 +70,51 @@ const [useProvideGridViewColumnWidth, useGridViewColumnWidth] = useInjectionStat
      * or when view changes reload columns width  */
     watch([() => columns.value?.length, () => view?.value?.id], loadGridViewColumns)
 
-    const updateWidth = async (id: string, width: string, undo = false) => {
+    const updateGridViewColumn = async (id: string, props: Partial<GridColumnReqType>, undo = false) => {
       if (!undo) {
+        const oldProps = Object.keys(props).reduce<Partial<GridColumnReqType>>((o: any, k) => {
+          if (gridViewCols.value[id][k as keyof GridColumnType]) {
+            o[k] = gridViewCols.value[id][k as keyof GridColumnType]
+          }
+          return o
+        }, {})
         addUndo({
           redo: {
-            fn: (w: string) => updateWidth(id, w, true),
-            args: [width],
+            fn: (w: Partial<GridColumnReqType>) => updateGridViewColumn(id, w, true),
+            args: [props],
           },
           undo: {
-            fn: (w: string) => updateWidth(id, w, true),
-            args: [gridViewCols.value[id].width],
+            fn: (w: Partial<GridColumnReqType>) => updateGridViewColumn(id, w, true),
+            args: [oldProps],
           },
           scope: defineViewScope({ view: view.value }),
         })
       }
 
       if (gridViewCols?.value?.[id]) {
-        gridViewCols.value[id].width = width
+        gridViewCols.value[id] = {
+          ...gridViewCols.value[id],
+          ...props,
+        }
       }
 
       // sync with server if allowed
       if (!isPublic.value && isUIAllowed('gridColUpdate') && gridViewCols.value[id]?.id) {
         await $api.dbView.gridColumnUpdate(gridViewCols.value[id].id as string, {
-          width,
+          ...props,
         })
       }
     }
 
-    return { loadGridViewColumns, updateWidth, resizingCol, resizingColWidth, loadCss, unloadCss }
+    return { loadGridViewColumns, updateGridViewColumn, resizingCol, resizingColWidth, gridViewCols, loadCss, unloadCss }
   },
-  'useGridViewColumnWidth',
+  'useGridViewColumn',
 )
 
-export { useProvideGridViewColumnWidth }
+export { useProvideGridViewColumn }
 
-export function useGridViewColumnWidthOrThrow() {
-  const gridViewColumnWidth = useGridViewColumnWidth()
-  if (gridViewColumnWidth == null)
-    throw new Error('Please call `useProvideGridViewColumnWidth` on the appropriate parent component')
-  return gridViewColumnWidth
+export function useGridViewColumnOrThrow() {
+  const gridViewColumn = useGridViewColumn()
+  if (gridViewColumn == null) throw new Error('Please call `useProvideGridViewColumn` on the appropriate parent component')
+  return gridViewColumn
 }

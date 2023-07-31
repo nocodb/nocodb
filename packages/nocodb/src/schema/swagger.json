@@ -19607,7 +19607,10 @@
             "show": 0,
             "order": 1,
             "width": "200px",
-            "help": null
+            "help": null,
+            "group_by": 0,
+            "group_by_order": null,
+            "group_by_sort": null
           }
         ],
         "title": "Grid Column Model",
@@ -19673,6 +19676,20 @@
             "x-stoplight": {
               "id": "azwh6zn37qzkc"
             }
+          },
+          "group_by": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Group By"
+          },
+          "group_by_order": {
+            "type": "number",
+            "description": "Group By Order",
+            "example": 1
+          },
+          "group_by_sort": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Group By Sort",
+            "example": "asc"
           }
         },
         "x-stoplight": {
@@ -19709,6 +19726,20 @@
             "maxLength": 255,
             "pattern": "^[0-9]+(px|%)$",
             "type": "string"
+          },
+          "group_by": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Group By"
+          },
+          "group_by_order": {
+            "type": "number",
+            "description": "Group By Order",
+            "example": 1
+          },
+          "group_by_sort": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Group By Sort",
+            "example": "asc"
           }
         },
         "title": "Grid Column Request Model",

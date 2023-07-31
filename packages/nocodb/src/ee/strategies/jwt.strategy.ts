@@ -2,8 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
 import { OrgUserRoles } from 'nocodb-sdk';
-import { ProjectUser, User } from '../models';
+import { ProjectUser, User } from '~/models';
 import { UsersService } from '~/services/users/users.service';
+import WorkspaceUser from '~/models/WorkspaceUser';
 import extractRolesObj from '~/utils/extractRolesObj';
 
 @Injectable()
@@ -44,17 +45,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const [workspaceRoles, projectRoles] = await Promise.all([
       // extract workspace evel roles
       new Promise((resolve) => {
-        // if (req.ncWorkspaceId) {
-        //   // todo: cache
-        //   // extract workspace role
-        //   WorkspaceUser.get(req.ncWorkspaceId, user.id)
-        //     .then((workspaceUser) => {
-        //       resolve(workspaceUser?.roles);
-        //     })
-        //     .catch(() => resolve(null));
-        // } else {
+        if (req.ncWorkspaceId) {
+          // todo: cache
+          // extract workspace role
+          WorkspaceUser.get(req.ncWorkspaceId, user.id)
+            .then((workspaceUser) => {
+              resolve(workspaceUser?.roles);
+            })
+            .catch(() => resolve(null));
+        } else {
           resolve(null);
-        // }
+        }
       }),
       // extract project level roles
       new Promise((resolve) => {

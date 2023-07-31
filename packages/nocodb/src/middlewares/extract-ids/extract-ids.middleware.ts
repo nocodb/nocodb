@@ -3,8 +3,6 @@ import { Reflector } from '@nestjs/core';
 import {
   OrgUserRoles,
   ProjectRoles,
-  WorkspacePlan,
-  WorkspaceStatus,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { map } from 'rxjs';
@@ -23,13 +21,10 @@ import {
   GalleryViewColumn,
   GridViewColumn,
   Hook,
-  Layout,
   Model,
   Project,
   Sort,
   View,
-  Widget,
-  Workspace,
 } from '~/models';
 import extractRolesObj from '~/utils/extractRolesObj';
 import projectAcl from '~/utils/projectAcl';
@@ -139,13 +134,6 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     } else if (params.sortId) {
       const sort = await Sort.get(params.sortId);
       req.ncProjectId = sort?.project_id;
-    } else if (params.layoutId) {
-      const layout = await Layout.get(params.layoutId);
-      req.ncProjectId = layout?.project_id;
-    } else if (params.widgetId) {
-      const widget = await Widget.get(params.widgetId);
-      const layout = await Layout.get(widget.layout_id);
-      req.ncProjectId = layout?.project_id;
     }
 
     // todo:  verify all scenarios
@@ -158,20 +146,6 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncWorkspaceId = req.body.fk_workspace_id;
     }
 
-    if (req.ncWorkspaceId && process.env.NC_WORKSPACE_ID) {
-      if (req.ncWorkspaceId !== process.env.NC_WORKSPACE_ID) {
-        NcError.badRequest('Invalid workspace id');
-      }
-    } else if (req.ncWorkspaceId) {
-      const workspace = await Workspace.get(req.ncWorkspaceId);
-      if (!workspace) {
-        NcError.badRequest('Invalid workspace id');
-      }
-
-      if (workspace.plan && workspace.plan !== WorkspacePlan.FREE) {
-        NcError.badRequest('invalid workspace id');
-      }
-    }
     next();
   }
 
@@ -211,7 +185,7 @@ export class AclMiddleware implements NestInterceptor {
     );
 
     const req = context.switchToHttp().getRequest();
-    const res = context.switchToHttp().getResponse();
+    // const res = context.switchToHttp().getResponse();
     req.customProperty = 'This is a custom property';
 
     const roles: Record<string, boolean> = extractRolesObj(

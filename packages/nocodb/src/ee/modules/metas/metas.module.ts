@@ -5,6 +5,11 @@ import { PageSnapshotDao } from '~/daos/page-snapshot.dao';
 import { DocsPagesHistoryController } from '~/controllers/docs/docs-pages-history.controller';
 import { DocsPagesController } from '~/controllers/docs/docs-pages.controller';
 import { DocsPageHistoryService } from '~/services/docs/history/docs-page-history.service';
+import { WidgetDataService } from '~/services/dashboards/widgetData.service';
+import { WidgetsService } from '~/services/dashboards/widgets.service';
+import { LayoutsService } from '~/services/dashboards/layouts.service';
+import { LayoutFilterService } from '~/services/dashboards/layoutFilter.service';
+
 // import { PageDao } from '../../daos/page.dao';
 import { DocsPagesService } from '~/services/docs/docs-pages.service';
 import { DocsPagesUpdateService } from '~/services/docs/docs-page-update.service';
@@ -28,6 +33,10 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     DocsPagesService,
     DocsPagesUpdateService,
     PublicDocsService,
+    WidgetDataService,
+    WidgetsService,
+    LayoutsService,
+    LayoutFilterService,
     ...(enableThrottler ? [ThrottlerExpiryListenerService] : []),
   ],
   controllers: [

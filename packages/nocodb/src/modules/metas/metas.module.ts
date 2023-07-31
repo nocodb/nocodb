@@ -3,9 +3,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
 import { GlobalModule } from '~/modules/global/global.module';
 import { NotificationsGateway } from '~/gateways/notifications/notifications.gateway';
-import { WidgetDataService } from '~/services/dashboards/widgetData.service';
-import { WidgetsService } from '~/services/dashboards/widgets.service';
-import { LayoutsService } from '~/services/dashboards/layouts.service';
+
 import { WidgetsController } from '~/controllers/dashboards/widgets.controller';
 import { LayoutsController } from '~/controllers/dashboards/layouts.controller';
 // import { PageSnapshotDao } from '~/daos/page-snapshot.dao';
@@ -87,7 +85,6 @@ import { NotificationsService } from '~/services/notifications.service';
 import { ClickhouseService } from '~/services/clickhouse/clickhouse.service';
 // import { ThrottlerExpiryListenerService } from '~/services/throttler/throttler-expiry-listener.service';
 import { LayoutFilterController } from '~/controllers/dashboards/layoutFilter.controller';
-import { LayoutFilterService } from '~/services/dashboards/layoutFilter.service';
 import { TelemetryController } from '~/controllers/telemetry.controller';
 
 // todo: refactor to use config service
@@ -164,7 +161,7 @@ export const metaModuleMetadata = {
     BasesService,
     CachesService,
     ColumnsService,
-    LayoutFilterService,
+    // LayoutFilterService,
     FiltersService,
     FormColumnsService,
     FormsService,
@@ -173,7 +170,6 @@ export const metaModuleMetadata = {
     GridsService,
     HooksService,
     KanbansService,
-    LayoutsService,
     MapsService,
     MetaDiffsService,
     ModelVisibilitiesService,
@@ -189,8 +185,6 @@ export const metaModuleMetadata = {
     PublicMetasService,
     ViewsService,
     ViewColumnsService,
-    WidgetsService,
-    WidgetDataService,
     UtilsService,
     TablesService,
     SyncService,

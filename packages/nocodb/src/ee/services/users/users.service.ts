@@ -26,7 +26,7 @@ import type {
   SignUpReqType,
   UserType,
 } from 'nocodb-sdk';
-import { Store, User } from '~/models';
+import { Store, User, Workspace, WorkspaceUser } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
@@ -128,6 +128,8 @@ export class UsersService {
       roles,
       token_version,
     });
+
+    await this.createDefaultWorkspace(user);
 
     return user;
   }
@@ -271,7 +273,7 @@ export class UsersService {
       param.body,
     );
 
-    const { token, body } = param;
+    const { token, body, req } = param;
 
     const user = await Noco.ncMeta.metaGet(null, null, MetaTable.USERS, {
       reset_password_token: token,
@@ -528,5 +530,25 @@ export class UsersService {
     } catch (e) {
       NcError.badRequest(e.message);
     }
+  }
+
+  private async createDefaultWorkspace(user: User) {
+    const title = `${user.email?.split('@')?.[0]}`;
+    // create new workspace for user
+    const workspace = await Workspace.insert({
+      title,
+      description: 'Default workspace',
+      fk_user_id: user.id,
+      plan: WorkspacePlan.FREE,
+      status: WorkspaceStatus.CREATED,
+    });
+
+    await WorkspaceUser.insert({
+      fk_user_id: user.id,
+      fk_workspace_id: workspace.id,
+      roles: WorkspaceUserRoles.OWNER,
+    });
+
+    return workspace;
   }
 }

@@ -13,7 +13,6 @@ import Model from './Model';
 import Column from './Column';
 import Hook from './Hook';
 import View from './View';
-import Widget from './Widget';
 import type { BoolType, FilterType } from 'nocodb-sdk';
 
 export const COMPARISON_OPS = <const>[

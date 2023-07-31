@@ -21,9 +21,8 @@ const secondaryGroupingUidt = [UITypes.SingleLineText, UITypes.Number]
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 const isLocked = inject(IsLockedInj, ref(false))
-const reloadDataHook = inject(ReloadViewDataHookInj)
 
-const { groupBy } = useViewGroupBy(view, undefined, () => reloadDataHook?.trigger())
+const { groupBy } = useViewGroupBy(view, undefined)
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
@@ -98,6 +97,10 @@ const addFieldToGroupBy = (field: ColumnType) => {
   addMode.value = false
   open.value = false
 }
+
+const removeFieldFromGroupBy = (field: ColumnType) => {
+  groupBy.value = groupBy.value.filter((el) => el.id !== field.id)
+}
 </script>
 
 <template>
@@ -130,7 +133,7 @@ const addFieldToGroupBy = (field: ColumnType) => {
               ref="removeIcon"
               class="nc-group-by-item-remove-btn text-grey self-center"
               small
-              @click.stop="groupBy.splice(groupBy.indexOf(field), 1)"
+              @click.stop="removeFieldFromGroupBy(field)"
             />
             <SmartsheetHeaderVirtualCellIcon v-if="isVirtualCol(field)" :column-meta="field" />
             <SmartsheetHeaderCellIcon v-else :column-meta="field" />

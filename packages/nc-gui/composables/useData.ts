@@ -154,6 +154,7 @@ export function useData(args: {
       message.error(await extractSdkResponseErrorMsg(error))
     } finally {
       if (currentRow.rowMeta) currentRow.rowMeta.saving = false
+      await callbacks?.globalCallback?.()
     }
   }
 
@@ -255,6 +256,8 @@ export function useData(args: {
         )
         Object.assign(toUpdate.oldRow, updatedRowData)
       }
+
+      await callbacks?.globalCallback?.()
 
       return updatedRowData
     } catch (e: any) {
@@ -402,6 +405,8 @@ export function useData(args: {
 
       if (row.rowMeta) row.rowMeta.saving = false
     }
+
+    await callbacks?.globalCallback?.()
   }
 
   async function bulkUpdateView(
@@ -415,6 +420,7 @@ export function useData(args: {
     })
 
     await callbacks?.loadData?.()
+    await callbacks?.globalCallback?.()
   }
 
   const linkRecord = async (
@@ -560,6 +566,8 @@ export function useData(args: {
     } catch (e: any) {
       message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
+
+    await callbacks?.globalCallback?.()
   }
 
   async function deleteSelectedRows() {
@@ -632,6 +640,7 @@ export function useData(args: {
 
     await callbacks?.syncCount?.()
     await callbacks?.syncPagination?.()
+    await callbacks?.globalCallback?.()
   }
 
   async function deleteRangeOfRows(cellRange: CellRange) {
@@ -708,6 +717,7 @@ export function useData(args: {
 
     await callbacks?.syncCount?.()
     await callbacks?.syncPagination?.()
+    await callbacks?.globalCallback?.()
   }
 
   return {

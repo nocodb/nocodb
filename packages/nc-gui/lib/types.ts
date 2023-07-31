@@ -168,10 +168,17 @@ export interface Group {
   column: ColumnType
   color: string
   count: number
-  nestedIn: { title: string; column_name: string; value: string; column_uidt: string }[]
+  nestedIn: GroupNestedIn[]
   paginationData: PaginatedType
   nested: boolean
   children?: Group[]
   rows?: Row[]
   root?: boolean
+}
+
+export interface GroupNestedIn {
+  title: string
+  column_name: string
+  key: string
+  column_uidt: string
 }

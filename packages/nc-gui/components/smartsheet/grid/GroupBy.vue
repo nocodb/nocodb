@@ -66,12 +66,8 @@ const findAndLoadSubGroup = (key: any) => {
 
 const reloadViewDataHandler = () => {
   if (vGroup.value.nested) {
-    _activeGroupKeys.value = []
-    oldActiveGroups.value = []
     props.loadGroups({}, vGroup.value)
   } else {
-    _activeGroupKeys.value = []
-    oldActiveGroups.value = []
     props.loadGroupData(vGroup.value, true)
   }
 }
@@ -205,10 +201,11 @@ reloadViewDataHook?.on(reloadViewDataHandler)
               :load-group-data="props.loadGroupData"
               :load-group-page="props.loadGroupPage"
               :group-wrapper-change-page="props.groupWrapperChangePage"
-              :depth="_depth + 1"
-              :expand-form="props.expandForm"
               :row-height="props.rowHeight"
+              :redistribute-rows="redistributeRows"
+              :expand-form="props.expandForm"
               :view-width="props.viewWidth"
+              :depth="_depth + 1"
             />
           </a-collapse-panel>
         </a-collapse>

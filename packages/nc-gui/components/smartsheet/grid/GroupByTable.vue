@@ -33,13 +33,15 @@ const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
 
+const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+
 function addEmptyRow(group: Group, addAfter?: number) {
   if (group.nested || !group.rows) return
 
   addAfter = addAfter ?? group.rows.length
 
   const setGroup = group.nestedIn.reduce((acc, curr) => {
-    if (curr.value !== '__nc_null__') acc[curr.title] = curr.value
+    if (curr.key !== '__nc_null__') acc[curr.title] = curr.key
     return acc
   }, {} as Record<string, any>)
 
@@ -72,6 +74,17 @@ const { deleteRow, deleteSelectedRows, deleteRangeOfRows, updateOrSaveRow, bulkU
     globalCallback: () => props.redistributeRows?.(),
   },
 })
+
+const reloadTableData = async () => {
+  await props.loadGroupData(vGroup.value, true)
+}
+
+onBeforeUnmount(async () => {
+  // reset hooks
+  reloadViewDataHook?.off(reloadTableData)
+})
+
+reloadViewDataHook?.on(reloadTableData)
 </script>
 
 <template>
@@ -80,7 +93,7 @@ const { deleteRow, deleteSelectedRows, deleteRangeOfRows, updateOrSaveRow, bulkU
     v-model:selected-all-records="selectedAllRecords"
     :data="vGroup.rows"
     :pagination-data="vGroup.paginationData"
-    :load-data="() => props.loadGroupData(vGroup, true)"
+    :load-data="async () => {}"
     :change-page="(p: number) => props.loadGroupPage(vGroup, p)"
     :call-add-empty-row="(addAfter?: number) => addEmptyRow(vGroup, addAfter)"
     :expand-form="props.expandForm"

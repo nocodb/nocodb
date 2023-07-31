@@ -1,7 +1,7 @@
 import { type ColumnType, type SelectOptionsType, UITypes, type ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { ref, storeToRefs, useApi, useProject } from '#imports'
-import type { Group, Row } from '~/lib'
+import type { Group, GroupNestedIn, Row } from '~/lib'
 import { GROUP_BY_VARS } from '~/lib'
 
 export const useViewGroupBy = createSharedComposable(
@@ -102,19 +102,16 @@ export const useViewGroupBy = createSharedComposable(
       }
     }
 
-    const calculateNestedWhere = (
-      nestedIn: { title: string; column_name: string; value: string; column_uidt: string }[],
-      existing = '',
-    ) => {
+    const calculateNestedWhere = (nestedIn: GroupNestedIn[], existing = '') => {
       return nestedIn.reduce((acc, curr) => {
-        if (curr.value === GROUP_BY_VARS.NULL) {
+        if (curr.key === GROUP_BY_VARS.NULL) {
           acc += `${acc.length ? '~and' : ''}(${curr.title},blank)`
         } else if (curr.column_uidt === UITypes.Checkbox) {
-          acc += `${acc.length ? '~and' : ''}(${curr.title},${curr.value === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked'})`
+          acc += `${acc.length ? '~and' : ''}(${curr.title},${curr.key === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked'})`
         } else if ([UITypes.Date, UITypes.DateTime].includes(curr.column_uidt as UITypes)) {
-          acc += `${acc.length ? '~and' : ''}(${curr.title},eq,exactDate,${curr.value})`
+          acc += `${acc.length ? '~and' : ''}(${curr.title},eq,exactDate,${curr.key})`
         } else {
-          acc += `${acc.length ? '~and' : ''}(${curr.title},eq,${curr.value})`
+          acc += `${acc.length ? '~and' : ''}(${curr.title},eq,${curr.key})`
         }
         return acc
       }, existing)
@@ -151,7 +148,7 @@ export const useViewGroupBy = createSharedComposable(
         column_name: groupby.column_name,
       } as any)
 
-      group.children = response.list.reduce((acc: Group[], curr: any) => {
+      const tempList: Group[] = response.list.reduce((acc: Group[], curr: Record<string, any>) => {
         const keyExists = acc.find((a) => a.key === valueToTitle(curr[groupby.column_name!], groupby))
         if (keyExists) {
           keyExists.count += +curr.count
@@ -168,7 +165,7 @@ export const useViewGroupBy = createSharedComposable(
             {
               title: groupby.title,
               column_name: groupby.column_name!,
-              value: valueToTitle(curr[groupby.column_name!], groupby),
+              key: valueToTitle(curr[groupby.column_name!], groupby),
               column_uidt: groupby.uidt,
             },
           ],
@@ -177,6 +174,27 @@ export const useViewGroupBy = createSharedComposable(
         })
         return acc
       }, [])
+
+      if (!group.children) group.children = []
+
+      for (const temp of tempList) {
+        const keyExists = group.children?.find((a) => a.key === temp.key)
+        if (keyExists) {
+          temp.paginationData = {
+            page: keyExists.paginationData.page || temp.paginationData.page,
+            pageSize: keyExists.paginationData.pageSize || temp.paginationData.pageSize,
+            totalRows: temp.count,
+          }
+          temp.color = keyExists.color
+          // update group
+          Object.assign(keyExists, temp)
+          continue
+        }
+        group.children.push(temp)
+      }
+
+      // clear rest of the children
+      group.children = group.children.filter((c) => tempList.find((t) => t.key === c.key))
 
       group.paginationData = response.pageInfo
 
@@ -211,6 +229,7 @@ export const useViewGroupBy = createSharedComposable(
         ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
       } as any)
 
+      group.count = response.pageInfo.totalRows ?? 0
       group.rows = formatData(response.list)
       group.paginationData = response.pageInfo
     }
@@ -223,29 +242,66 @@ export const useViewGroupBy = createSharedComposable(
       await loadGroupData(group, true)
     }
 
+    const refreshNested = (group?: Group, nestLevel = 0) => {
+      group = group || rootGroup.value
+      if (!group) return
+      if (group.nested) {
+        loadGroups({}, group)
+      } else {
+        loadGroupData(group, true)
+      }
+      if (nestLevel >= groupBy.value.length) return
+      for (const child of group.children || []) {
+        refreshNested(child, nestLevel + 1)
+      }
+    }
+
     watch(
       () => groupBy.value.length,
       () => {
-        rootGroup.value = {
-          key: 'root',
-          color: 'root',
-          count: 0,
-          column: groupBy.value[0],
-          nestedIn: [],
-          paginationData: { page: 1, pageSize: appInfoDefaultLimit },
-          nested: true,
-          children: [],
-          root: true,
-        }
-        loadGroups()
+        rootGroup.value.paginationData = { page: 1, pageSize: appInfoDefaultLimit }
+        rootGroup.value.column = groupBy.value[0]
+        refreshNested()
       },
     )
+
+    const findGroupByNestedIn = (nestedIn: GroupNestedIn[], group?: Group, nestLevel = 0): Group => {
+      group = group || rootGroup.value
+      if (nestLevel >= nestedIn.length) return group
+      const child = group.children?.find((g) => g.key === nestedIn[nestLevel].key)
+      if (child) {
+        if (child.nested) {
+          return findGroupByNestedIn(nestedIn, child, nestLevel + 1)
+        }
+        return child
+      }
+      return group
+    }
+
+    const parentGroup = (group: Group) => {
+      const parent = findGroupByNestedIn(group.nestedIn.slice(0, -1))
+      return parent
+    }
+
+    const modifyCount = (group: Group, countEffect: number) => {
+      if (!group) return
+      group.count += countEffect
+      // remove group if count is 0
+      if (group.count === 0) {
+        const parent = parentGroup(group)
+        if (parent) {
+          parent.children = parent.children?.filter((c) => c.key !== group.key)
+        }
+      }
+      if (group.root) return
+      modifyCount(parentGroup(group), countEffect)
+    }
 
     const findGroupForRow = (row: Row, group?: Group, nestLevel = 0): { found: boolean; group: Group } => {
       group = group || rootGroup.value
       if (group.nested) {
         const child = group.children?.find(
-          (g) => g.key === valueToTitle(row.row[groupBy.value[nestLevel].column_name], groupBy.value[nestLevel]),
+          (g) => g.key === valueToTitle(row.row[groupBy.value[nestLevel].title], groupBy.value[nestLevel]),
         )
         if (child) {
           return findGroupForRow(row, child, nestLevel + 1)
@@ -263,11 +319,20 @@ export const useViewGroupBy = createSharedComposable(
           const properGroup = findGroupForRow(row)
           if (properGroup.found) {
             if (properGroup.group !== group) {
-              properGroup.group.rows?.push(row)
-              group?.rows?.splice(group!.rows.indexOf(row), 1)
+              if (properGroup.group) {
+                properGroup.group.rows?.push(row)
+                modifyCount(properGroup.group, 1)
+              }
+              if (group) {
+                group.rows?.splice(group!.rows.indexOf(row), 1)
+                modifyCount(group, -1)
+              }
             }
           } else {
-            group?.rows?.splice(group!.rows.indexOf(row), 1)
+            if (group) {
+              group.rows?.splice(group!.rows.indexOf(row), 1)
+              modifyCount(group, -1)
+            }
             if (properGroup.group?.children) loadGroups({}, properGroup.group)
           }
         })

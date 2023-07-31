@@ -1,7 +1,6 @@
 import BasePage from '../Base';
 import { WorkspacePage } from './';
 import { expect, Locator } from '@playwright/test';
-import { getWorkspaceId } from '../../setup';
 
 /*
   nc-left-sidebar
@@ -88,7 +87,6 @@ export class LeftSideBarPage extends BasePage {
 
   async workspaceGetLocator(title: string) {
     // get workspace id
-    // const wsId = await getWorkspaceId(title);
     // return this.get().locator('[data-id="' + wsId + '"]');
     const list = await this.get().locator(`.nc-workspace-list-item`);
     for (let i = 0; i < (await list.count()); i++) {

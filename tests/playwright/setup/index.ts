@@ -241,7 +241,11 @@ const setup = async ({
   const token = response.data.token;
 
   try {
-    await axios.post(`http://localhost:8080/api/v1/license`, { key: '' }, { headers: { 'xc-auth': token } });
+    const admin = await axios.post('http://localhost:8080/api/v1/auth/user/signin', {
+      email: `user@nocodb.com`,
+      password: getDefaultPwd(),
+    });
+    await axios.post(`http://localhost:8080/api/v1/license`, { key: '' }, { headers: { 'xc-auth': admin.data.token } });
   } catch (e) {
     // ignore error: some roles will not have permission for license reset
     // console.error(`Error resetting project: ${process.env.TEST_PARALLEL_INDEX}`, e);
@@ -316,20 +320,5 @@ const resetSakilaPg = async (parallelId: string) => {
 
 // General purpose API based routines
 //
-async function getWorkspaceId(title: string) {
-  try {
-    const ws = await api.workspace.list();
-
-    for (const w of ws.list) {
-      if (w.title === title) {
-        return w.id;
-      }
-    }
-  } catch (e) {
-    console.error(`Error getting workspace id: ${title}`);
-  }
-  return null;
-}
 
 export default setup;
-export { getWorkspaceId };

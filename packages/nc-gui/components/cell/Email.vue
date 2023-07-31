@@ -10,6 +10,8 @@ const { modelValue: value } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
+const rowHeight = inject(RowHeightInj, ref(undefined))
+
 const { t } = useI18n()
 
 const { showNull } = useGlobal()
@@ -73,8 +75,8 @@ watch(
   <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
 
   <a v-else-if="validEmail" class="text-sm underline hover:opacity-75" :href="`mailto:${vModel}`" target="_blank">
-    {{ vModel }}
+    <LazyCellClampedText :value="vModel" :lines="rowHeight" />
   </a>
 
-  <span v-else>{{ vModel }}</span>
+  <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" />
 </template>

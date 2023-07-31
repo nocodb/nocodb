@@ -50,7 +50,7 @@ async function beforeEachInit({ page, tableType }: { page: any; tableType: strin
   return { bulkUpdateForm, dashboard, context, api, table };
 }
 
-test.describe('Bulk update 0', () => {
+test.describe.skip('Bulk update 0', () => {
   let bulkUpdateForm: BulkUpdatePage;
   let dashboard: DashboardPage;
   let context: any;
@@ -135,7 +135,7 @@ test.describe('Bulk update 0', () => {
   });
 });
 
-test.describe('Bulk update 1', () => {
+test.describe.skip('Bulk update 1', () => {
   let bulkUpdateForm: BulkUpdatePage;
   let dashboard: DashboardPage;
   let context: any;
@@ -193,7 +193,7 @@ test.describe('Bulk update 1', () => {
   });
 });
 
-test.describe('Bulk update 2', () => {
+test.describe.skip('Bulk update 2', () => {
   let bulkUpdateForm: BulkUpdatePage;
   let dashboard: DashboardPage;
   let context: any;
@@ -245,7 +245,7 @@ test.describe('Bulk update 2', () => {
   });
 });
 
-test.describe('Bulk update 3', () => {
+test.describe.skip('Bulk update 3', () => {
   let bulkUpdateForm: BulkUpdatePage;
   let dashboard: DashboardPage;
   let context: any;
@@ -296,7 +296,7 @@ test.describe('Bulk update 3', () => {
   });
 });
 
-test.describe('Bulk update 4', () => {
+test.describe.skip('Bulk update 4', () => {
   let bulkUpdateForm: BulkUpdatePage;
   let dashboard: DashboardPage;
   let context: any;

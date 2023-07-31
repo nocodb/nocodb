@@ -45,7 +45,6 @@ export class CollaborationPage extends BasePage {
     // submit
 
     // allow button to be enabled
-    // await this.button_addUser.waitFor({ state: 'enabled' });
     await this.rootPage.waitForTimeout(500);
 
     await this.button_addUser.click();

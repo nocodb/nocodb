@@ -177,3 +177,10 @@
   font-size: 1.25rem;
   user-select: none;
 }
+
+.nc-fonts-not-loaded {
+  .material-symbols {
+    opacity: 0;
+    width: 0 !important;
+  }
+}

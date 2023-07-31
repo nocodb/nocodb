@@ -104,6 +104,17 @@ export const getPositionOfSection = (state: EditorState, pos?: number, type: 'st
   if (type === 'end') {
     const sectionNode = state.doc.nodeAt(sectionPos)!
 
+    const pos = sectionPos + sectionNode?.nodeSize - 1
+    if (pos > state.doc.nodeSize) {
+      console.error('Invalid position', {
+        pos,
+        sectionPos,
+        docSize: state.doc.nodeSize,
+      })
+
+      return state.doc.nodeSize
+    }
+
     return sectionPos + sectionNode?.nodeSize - 1
   }
 

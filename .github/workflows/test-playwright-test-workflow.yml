@@ -60,9 +60,9 @@ jobs:
             ${{ runner.os }}-aws-build-${{ env.cache-name }}-
             ${{ runner.os }}-aws-build-
             ${{ runner.os }}-aws
-      - name: setup pg
-        working-directory: ./
-        run: docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &
+      # - name: setup pg
+      #   working-directory: ./
+      #   run: docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &
       - name: Set CI env
         run: export CI=true
       - name: Set Node env
@@ -182,6 +182,23 @@ jobs:
             sleep 2
           done
           PLAYWRIGHT_HTML_REPORT=playwright-report-quick npm run test:quick
+      - name: Copy Artifacts to Local Artifacts Dir
+        if: always()
+        working-directory: ./
+        run: |
+          # expects the variables to be available in runner context.
+          path="gh-artifacts/runs/${GITHUB_RUN_ID}/run-attempt/${GITHUB_RUN_ATTEMPT}/job_name/"${GITHUB_JOB}"-${{ inputs.shard }}/${RANDOM}-$(date +%s)"
+          target_dir="/mnt/${path}"
+          mkdir -p ${target_dir}
+          ls ./tests/playwright/playwright-report/*
+
+          # start : add any artifacts to be copied here
+          cp -r ./tests/playwright/playwright-report ${target_dir}/  
+          # end: artifacts copy
+
+          SUMMARY='[Artifacts for '${GITHUB_JOB}'-'${{ inputs.shard }}'](http://65.21.27.147/'${path}')'
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY     
+
 #      - uses: actions/upload-artifact@v3
 #        if: ${{ inputs.db == 'sqlite' }}
 #        with:

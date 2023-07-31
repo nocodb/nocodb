@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { defineProps, toRef } from '@vue/runtime-core'
 import type { ProjectType, TableType } from 'nocodb-sdk'
 import { storeToRefs } from 'pinia'
 import Sortable from 'sortablejs'
 import TableNode from './TableNode.vue'
 import { useNuxtApp } from '#app'
+import { toRef } from '#imports'
 
 const props = withDefaults(
   defineProps<{

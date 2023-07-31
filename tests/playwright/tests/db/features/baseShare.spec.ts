@@ -86,7 +86,7 @@ test.describe.skip('Shared base', () => {
     await roleTest('editor');
 
     await loginPage.signIn({
-      email: 'user@nocodb.com',
+      email: `user-${process.env.TEST_PARALLEL_INDEX}@nocodb.com`,
       password: getDefaultPwd(),
       withoutPrefix: true,
     });

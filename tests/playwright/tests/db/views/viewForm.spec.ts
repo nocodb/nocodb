@@ -10,7 +10,6 @@ import { LoginPage } from '../../../pages/LoginPage';
 import { getDefaultPwd } from '../../utils/general';
 import { WorkspacePage } from '../../../pages/WorkspacePage';
 import { isHub } from '../../../setup/db';
-let api: Api<any>;
 
 // todo: Move most of the ui actions to page object and await on the api response
 test.describe('Form view', () => {
@@ -256,6 +255,7 @@ test.describe('Form view with LTAR', () => {
   let loginPage: LoginPage;
   let wsPage: WorkspacePage;
   let context: any;
+  let api: Api<any>;
 
   let cityTable: any, countryTable: any;
 
@@ -365,7 +365,11 @@ test.describe('Form view with LTAR', () => {
 
     await page.goto(url);
     await page.reload();
-    await loginPage.signIn({ email: 'user@nocodb.com', password: getDefaultPwd(), withoutPrefix: true });
+    await loginPage.signIn({
+      email: `user-${process.env.TEST_PARALLEL_INDEX}@nocodb.com`,
+      password: getDefaultPwd(),
+      withoutPrefix: true,
+    });
 
     await wsPage.waitFor({ state: 'visible' });
 
@@ -393,6 +397,7 @@ test.describe('Form view with LTAR', () => {
 test.describe('Form view', () => {
   let dashboard: DashboardPage;
   let context: any;
+  let api: Api<any>;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
@@ -435,6 +440,7 @@ test.describe('Form view', () => {
     });
 
     await dashboard.rootPage.reload();
+    await dashboard.rootPage.waitForTimeout(100);
 
     await dashboard.treeView.openTable({ title: 'selectBased' });
     const url = dashboard.rootPage.url();
@@ -476,7 +482,8 @@ test.describe('Form view', () => {
       multiSelect: false,
     });
 
-    await dashboard.grid.cell.selectOption.verifyOptions({
+    await dashboard.grid.cell.selectOption.verifySelectedOptions({
+      index: 0,
       columnHeader: 'MultiSelect',
       options: ['jan', 'feb', 'mar'],
     });

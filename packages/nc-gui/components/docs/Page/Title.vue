@@ -136,13 +136,13 @@ onMounted(() => {
 
 <template>
   <div
-    class="flex flex-row gap-x-2 items-end ml-7.5 mb-3.5 nc-page-title-wrapper"
+    class="flex flex-row gap-x-2 items-end ml-7.15 mb-3.5 nc-page-title-wrapper"
     :class="{
       empty: title?.length === 0,
     }"
     data-testid="docs-page-title-wrapper"
   >
-    <GeneralEmojiPicker
+    <LazyGeneralEmojiPicker
       v-if="openedPage?.icon"
       :key="openedPage.icon"
       :emoji="openedPage.icon"
@@ -153,7 +153,7 @@ onMounted(() => {
       <template #default>
         <MdiFileDocumentOutline class="text-gray-600 text-sm" />
       </template>
-    </GeneralEmojiPicker>
+    </LazyGeneralEmojiPicker>
     <div
       ref="titleInputRef"
       :contenteditable="isEditAllowed && !propTitle"

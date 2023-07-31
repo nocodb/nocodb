@@ -1,16 +1,14 @@
-import type { Socket } from 'socket.io-client'
-import io from 'socket.io-client'
-import FingerprintJS from '@fingerprintjs/fingerprintjs'
 import { useDebounceFn } from '@vueuse/core'
-import type { useGlobal } from '#imports'
-import { defineNuxtPlugin, useRouter, watch } from '#imports'
+import { defineNuxtPlugin, useRouter } from '#imports'
 import type { NuxtApp } from '#app'
 
 let clientId: string
-// Initialize an agent at application startup.
-const fpPromise = FingerprintJS.load()
-
 ;(async () => {
+  const { default: FingerprintJS } = await import('@fingerprintjs/fingerprintjs')
+
+  // Initialize an agent at application startup.
+  const fpPromise = FingerprintJS.load()
+
   // Get the visitor identifier when you need it.
   const fp = await fpPromise
   const result = await fp.get()

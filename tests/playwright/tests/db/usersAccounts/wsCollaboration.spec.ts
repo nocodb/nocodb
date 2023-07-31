@@ -7,8 +7,6 @@ import { Api } from 'nocodb-sdk';
 import { CollaborationPage } from '../../../pages/WorkspacePage/CollaborationPage';
 import { LoginPage } from '../../../pages/LoginPage';
 
-let api: Api<any>;
-
 const roleDb = [
   { email: 'ws_creator@nocodb.com', role: 'creator' },
   { email: 'ws_editor@nocodb.com', role: 'editor' },
@@ -21,6 +19,7 @@ test.describe('Collaborators', () => {
   let workspacePage: WorkspacePage;
   let collaborationPage: CollaborationPage;
   let context: any;
+  let api: Api<any>;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });

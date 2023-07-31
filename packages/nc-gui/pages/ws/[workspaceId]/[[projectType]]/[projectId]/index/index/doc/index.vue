@@ -22,7 +22,7 @@ onMounted(async () => {
 
 <template>
   <NuxtLayout>
-    <DocsBookView v-if="!route.params.pageId" />
+    <LazyDocsBookView v-if="!route.params.pageId" />
     <NuxtPage v-else />
   </NuxtLayout>
 </template>

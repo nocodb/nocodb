@@ -178,20 +178,15 @@ const columns = computed(() => [
 const isMoveDlgOpen = ref(false)
 const selectedProjectToMove = ref()
 
-useDialog(resolveComponent('WorkspaceMoveProjectDlg'), {
-  'modelValue': isMoveDlgOpen,
-  'project': selectedProjectToMove,
-  'onUpdate:modelValue': (isOpen: boolean) => (isMoveDlgOpen.value = isOpen),
-  'onSuccess': async (workspaceId: string) => {
-    isMoveDlgOpen.value = false
-    navigateTo({
-      query: {
-        workspaceId,
-        page: 'workspace',
-      },
-    })
-  },
-})
+const workspaceMoveProjectOnSuccess = async (workspaceId: string) => {
+  isMoveDlgOpen.value = false
+  navigateTo({
+    query: {
+      workspaceId,
+      page: 'workspace',
+    },
+  })
+}
 
 const moveProject = (project: ProjectType) => {
   selectedProjectToMove.value = project
@@ -201,26 +196,21 @@ const moveProject = (project: ProjectType) => {
 const isDuplicateDlgOpen = ref(false)
 const selectedProjectToDuplicate = ref()
 
-useDialog(resolveComponent('DlgProjectDuplicate'), {
-  'modelValue': isDuplicateDlgOpen,
-  'project': selectedProjectToDuplicate,
-  'onUpdate:modelValue': (isOpen: boolean) => (isDuplicateDlgOpen.value = isOpen),
-  'onOk': async (jobData: { id: string }) => {
-    await loadProjects('workspace')
+const DlgProjectDuplicateOnOk = async (jobData: { id: string }) => {
+  await loadProjects('workspace')
 
-    $jobs.subscribe({ id: jobData.id }, undefined, async (status: string) => {
-      if (status === JobStatus.COMPLETED) {
-        await loadProjects('workspace')
-        refreshCommandPalette()
-      } else if (status === JobStatus.FAILED) {
-        message.error('Failed to duplicate project')
-        await loadProjects('workspace')
-      }
-    })
+  $jobs.subscribe({ id: jobData.id }, undefined, async (status: string) => {
+    if (status === JobStatus.COMPLETED) {
+      await loadProjects('workspace')
+      refreshCommandPalette()
+    } else if (status === JobStatus.FAILED) {
+      message.error('Failed to duplicate project')
+      await loadProjects('workspace')
+    }
+  })
 
-    $e('a:project:duplicate')
-  },
-})
+  $e('a:project:duplicate')
+}
 
 const duplicateProject = (project: ProjectType) => {
   selectedProjectToDuplicate.value = project
@@ -314,7 +304,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
         <template v-if="column.dataIndex === 'title'">
           <div class="flex items-center nc-project-title gap-2.5 max-w-full -ml-1.5">
             <div class="flex items-center gap-2 text-center">
-              <GeneralEmojiPicker
+              <LazyGeneralEmojiPicker
                 :key="record.id"
                 :emoji="record.meta?.icon"
                 size="small"
@@ -322,7 +312,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                 @emoji-selected="setIcon($event, record)"
               >
                 <GeneralProjectIcon :type="record.type" />
-              </GeneralEmojiPicker>
+              </LazyGeneralEmojiPicker>
               <!-- todo: replace with switch -->
             </div>
 
@@ -444,7 +434,19 @@ const setIcon = async (icon: string, project: ProjectType) => {
         </template>
       </template>
     </a-table>
-    <DlgProjectDelete v-model:visible="showProjectDeleteModal" :project-id="toBeDeletedProjectId" />
+    <DlgProjectDelete v-if="toBeDeletedProjectId" v-model:visible="showProjectDeleteModal" :project-id="toBeDeletedProjectId" />
+    <WorkspaceMoveProjectDlg
+      v-if="selectedProjectToMove"
+      v-model="isMoveDlgOpen"
+      :project="selectedProjectToMove"
+      @success="workspaceMoveProjectOnSuccess"
+    />
+    <DlgProjectDuplicate
+      v-if="selectedProjectToDuplicate"
+      v-model="isDuplicateDlgOpen"
+      :project="selectedProjectToDuplicate"
+      :on-ok="DlgProjectDuplicateOnOk"
+    />
   </div>
 </template>
 

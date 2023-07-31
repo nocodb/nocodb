@@ -47,7 +47,9 @@ async function undo({ page }: { page: Page }) {
     });
   } else {
     await page.keyboard.press(isMac ? 'Meta+z' : 'Control+z');
-    await page.waitForTimeout(100);
+
+    // allow time for undo to complete rendering
+    await page.waitForTimeout(500);
   }
 }
 

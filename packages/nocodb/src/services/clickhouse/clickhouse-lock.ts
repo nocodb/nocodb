@@ -92,8 +92,10 @@ class ClickhouseLock {
 
     try {
       await callback();
-    } finally {
       await this.releaseLock();
+    } catch (e) {
+      await this.releaseLock();
+      throw e;
     }
   }
 }

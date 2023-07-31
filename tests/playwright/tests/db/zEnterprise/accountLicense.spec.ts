@@ -12,7 +12,7 @@ test.describe.skip('Enterprise License', () => {
   let accountLicensePage: AccountLicensePage, accountPage: AccountPage, context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
+    context = await setup({ page, isEmptyProject: true, isSuperUser: true });
     accountPage = new AccountPage(page);
     accountLicensePage = new AccountLicensePage(accountPage);
     dashboard = new DashboardPage(page, context.project);

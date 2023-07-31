@@ -63,7 +63,13 @@ export default abstract class BasePage {
       return found;
     });
 
-    await Promise.all([waitForResponsePromise, uiAction()]);
+    const uiActionWithDelay = () => {
+      // Create a promise that resolves after a delay
+      const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+      // Returning a promise that resolves with the result after the a delay
+      return delay(100).then(() => uiAction());
+    };
+    await Promise.all([waitForResponsePromise, uiActionWithDelay()]);
   }
 
   async attachFile({ filePickUIAction, filePath }: { filePickUIAction: Promise<any>; filePath: string[] }) {

@@ -5,5 +5,5 @@ const { openedPageId } = storeToRefs(useDocStore())
 </script>
 
 <template>
-  <DocsPageView v-if="project?.id && openedPageId" />
+  <LazyDocsPageView v-if="project?.id && openedPageId" />
 </template>

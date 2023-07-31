@@ -90,51 +90,86 @@ export class DocsPagesService {
   async magicExpand(param: {
     projectId: string;
     pageId: string;
-    text: string;
+    promptText: string;
+    selectedPageText: string;
+    response: any;
   }) {
-    let response;
-
+    const response = param.response;
     const project = await Project.getByTitleOrId(param.projectId);
     if (!project) NcError.notFound('Project not found');
 
-    const parentPagesTitles = (
-      await this.pagesDao.parents({
-        pageId: param.pageId,
-        projectId: param.projectId,
-      })
-    ).map((p) => p.title);
+    const { promptText, selectedPageText } = param;
 
     const page = await this.pagesDao.get({
       id: param.pageId,
       projectId: param.projectId,
     });
+    const parentPage = page.parent_page_id
+      ? await this.pagesDao.get({
+          id: page.parent_page_id,
+          projectId: param.projectId,
+        })
+      : null;
 
-    const markDownText = param.text;
+    const pageParentInfo = `which is under a '${
+      parentPage ? `parent page '${parentPage.title} and ` : ''
+    }' project '${project.title}'`;
+
+    let prompt;
+    if (selectedPageText) {
+      prompt = `On a page named '${page.title}', ${pageParentInfo}, 
+      
+      Output should be in markdown format.
+      ${promptText} is given as prompt input.
+      As an expert concise writer, what will you write which should convey the following information: 
+      '${selectedPageText}'`;
+    } else {
+      prompt = `On a page named '${page.title}', ${pageParentInfo}, 
+      
+      Output should be in markdown format.
+      ${promptText} is given as prompt input.
+      Expand on this. `;
+    }
 
     try {
-      response = await openai.createCompletion({
-        model: 'text-davinci-003',
-        prompt: `On a page named '${page.title}', with categories as '${
-          project.title
-        }/${parentPagesTitles.join(
-          '/',
-        )}', expand on the following text(given in markdown) and output(should be in markdown): '${markDownText}'`,
-        temperature: 0.7,
-        max_tokens: 1500,
-        top_p: 1,
-        frequency_penalty: 0,
-        presence_penalty: 0,
-      });
+      const aiRes: any = await openai.createCompletion(
+        {
+          model: 'text-davinci-003',
+          prompt: prompt,
+          temperature: 0.7,
+          max_tokens: 1500,
+          top_p: 1,
+          frequency_penalty: 0,
+          presence_penalty: 0,
+          stream: true,
+        },
+        {
+          responseType: 'stream',
+        },
+      );
 
-      if (response.data.choices.length === 0)
-        NcError.badRequest('Could not generate data');
+      new Promise((resolve) => {
+        aiRes.data.on('end', () => {
+          resolve(true);
+        });
+
+        aiRes.data.on('data', (chunk) => {
+          if (chunk === '[DONE]') {
+            resolve(true); // Stream finished
+          }
+
+          chunk = chunk.toString();
+          response.write(chunk);
+        });
+      }).then(() => {
+        response.end();
+      });
     } catch (e) {
-      console.log(response?.data?.choices[0]?.text);
       console.log(e);
       NcError.badRequest('Could not generate data');
     }
 
-    return { text: response.data?.choices[0]?.text };
+    return response;
   }
 
   async magicOutline(param: { projectId: string; pageId: string }) {

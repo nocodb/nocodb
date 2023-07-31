@@ -304,7 +304,7 @@ watch(
                   :data-testid="`nc-doc-page-breadcrumb-${index}`"
                 >
                   <div class="flex flex-row items-center gap-x-1.5">
-                    <GeneralEmojiPicker v-if="icon" :key="icon" :emoji="icon" :readonly="true" size="small"> </GeneralEmojiPicker>
+                    <LazyGeneralEmojiPicker v-if="icon" :key="icon" :emoji="icon" :readonly="true" size="small"> </LazyGeneralEmojiPicker>
                     <div class="pop-in-animation">
                       {{ !title ? EMPTY_TITLE_PLACEHOLDER_DOCS : title }}
                     </div>
@@ -413,6 +413,7 @@ watch(
             />
 
             <DocsPageLinkToPageSearch v-if="editor" :editor="editor" />
+            <DocsPageAiOptions v-if="editor" :editor="editor" />
             <DocsPageSelectedBubbleMenu
               v-if="editor"
               :editor="editor"
@@ -450,8 +451,8 @@ watch(
                 }"
                 @click="openPage({ page, projectId: project.id! })"
               >
-                <GeneralEmojiPicker v-if="page.icon" :key="page.icon" :emoji="page.icon" :readonly="true" size="small">
-                </GeneralEmojiPicker>
+                <LazyGeneralEmojiPicker v-if="page.icon" :key="page.icon" :emoji="page.icon" :readonly="true" size="small">
+                </LazyGeneralEmojiPicker>
                 <MdiFileDocumentOutline v-else class="flex pop-in-animation ml-1" />
                 <div class="font-semibold text-base pop-in-animation">
                   {{ page.title }}

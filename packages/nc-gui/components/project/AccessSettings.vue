@@ -81,7 +81,6 @@ onMounted(async () => {
   } finally {
     isLoading.value = false
   }
-  console.log('collaborators', collaborators.value)
 })
 
 const getRolesLabel = (roles?: string) => {

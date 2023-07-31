@@ -10,7 +10,7 @@ const { hasSidebar } = useSidebar('nc-left-sidebar')
 
 const refreshSidebar = ref(false)
 
-useTitle(route.meta?.title && te(route.meta.title) ? `${t(route.meta.title)} | NocoDB` : 'NocoDB')
+useTitle(route.meta?.title && te(route.meta.title) ? `${t(route.meta.title)}` : 'NocoDB')
 
 watch(hasSidebar, (val) => {
   if (!val) {

@@ -71,7 +71,7 @@ const navigateToHome = () => {
               <template #title>
                 {{ currentVersion }}
               </template>
-              <img width="25" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+              <img width="25" alt="NocoDB" src="~/assets/img/icons/256x256-trans.png" />
             </a-tooltip>
           </a>
 
@@ -83,7 +83,7 @@ const navigateToHome = () => {
                 data-testid="nc-noco-brand-icon"
                 class="w-[29px] min-w-[29px] nc-noco-brand-icon"
               >
-                <img width="25" class="mr-0" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
+                <img width="25" class="mr-0" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
               </div>
             </template>
           </WorkspaceMenu>

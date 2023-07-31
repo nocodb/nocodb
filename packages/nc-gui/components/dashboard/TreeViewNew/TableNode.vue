@@ -111,7 +111,7 @@ const isMultiBase = computed(() => project.bases && project.bases.length > 1)
       <div class="table-context flex items-center gap-1 h-full" @contextmenu="setMenuContext('table', table)">
         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
           <div class="flex items-center nc-table-icon" @click.stop>
-            <GeneralEmojiPicker
+            <LazyGeneralEmojiPicker
               :key="table.meta?.icon"
               :emoji="table.meta?.icon"
               size="small"
@@ -119,15 +119,21 @@ const isMultiBase = computed(() => project.bases && project.bases.length > 1)
               @emoji-selected="setIcon($event, table)"
             >
               <template #default>
-                <MdiTable
-                  class="w-5 !text-gray-500 text-sm"
-                  :class="{
-                    'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole),
-                    '!text-black': openedTableId === table.id,
-                  }"
-                />
+                <NcTooltip class="flex" placement="topLeft" hide-on-click>
+                  <template #title>
+                    {{ 'Change icon' }}
+                  </template>
+
+                  <MdiTable
+                    class="flex w-5 !text-gray-500 text-sm"
+                    :class="{
+                      'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole),
+                      '!text-black': openedTableId === table.id,
+                    }"
+                  />
+                </NcTooltip>
               </template>
-            </GeneralEmojiPicker>
+            </LazyGeneralEmojiPicker>
           </div>
         </div>
 
@@ -197,7 +203,12 @@ const isMultiBase = computed(() => project.bases && project.bases.length > 1)
           </template>
         </a-dropdown>
       </div>
-      <DlgTableDelete v-model:visible="isTableDeleteDialogVisible" :table-id="table.id" :project-id="project?.id" />
+      <DlgTableDelete
+        v-if="table.id && project?.id"
+        v-model:visible="isTableDeleteDialogVisible"
+        :table-id="table.id"
+        :project-id="project.id"
+      />
     </GeneralTooltip>
   </div>
 </template>

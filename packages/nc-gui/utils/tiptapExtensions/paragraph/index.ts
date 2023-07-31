@@ -1,6 +1,7 @@
 import TiptapParagraph from '@tiptap/extension-paragraph'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { getPositionOfSection } from '../helper'
+import { AISelection } from '../AISelection'
 
 export const Paragraph = TiptapParagraph.extend({
   addKeyboardShortcuts() {
@@ -72,6 +73,31 @@ export const Paragraph = TiptapParagraph.extend({
         }
 
         return false
+      },
+      // Set AISelection when space is pressed on an empty paragraph of a section
+      Space: ({ editor }) => {
+        if (!editor.view.editable) {
+          return false
+        }
+
+        const selection = editor.state.selection
+        const currentNode = selection.$anchor.node()
+        const parentNode = selection.$anchor.node(-1)
+
+        if (
+          parentNode.type.name !== TiptapNodesTypes.sec ||
+          parentNode.childCount !== 1 ||
+          currentNode.type.name !== TiptapNodesTypes.paragraph ||
+          currentNode.childCount !== 0
+        ) {
+          return false
+        }
+
+        const tr = editor.state.tr
+        tr.setSelection(AISelection.create(editor.state.doc, selection.$anchor.pos, selection.$anchor.pos))
+        editor.view.dispatch(tr)
+
+        return true
       },
     }
   },

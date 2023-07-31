@@ -7,13 +7,7 @@ import { BulkUpdatePage } from '../../../pages/Dashboard/BulkUpdate';
 import { AccountLicensePage } from '../../../pages/Account/License';
 import { AccountPage } from '../../../pages/Account';
 
-let bulkUpdateForm: BulkUpdatePage;
-let dashboard: DashboardPage;
-let context: any;
-let api: Api<any>;
-let table;
-
-async function updateBulkFields(fields) {
+async function updateBulkFields(bulkUpdateForm, fields) {
   // move all fields to active
   for (let i = 0; i < fields.length; i++) {
     await bulkUpdateForm.addField(0);
@@ -29,20 +23,20 @@ async function updateBulkFields(fields) {
 }
 
 async function beforeEachInit({ page, tableType }: { page: any; tableType: string }) {
-  context = await setup({ page, isEmptyProject: true });
-  dashboard = new DashboardPage(page, context.project);
-  bulkUpdateForm = dashboard.bulkUpdateForm;
+  const context = await setup({ page, isEmptyProject: true, isSuperUser: true });
+  const dashboard = new DashboardPage(page, context.project);
+  const bulkUpdateForm = dashboard.bulkUpdateForm;
   const accountPage: AccountPage = new AccountPage(page);
   const accountLicensePage: AccountLicensePage = new AccountLicensePage(accountPage);
 
-  api = new Api({
+  const api = new Api({
     baseURL: `http://localhost:8080/`,
     headers: {
       'xc-auth': context.token,
     },
   });
 
-  table = await createDemoTable({ context, type: tableType, recordCnt: 50 });
+  const table = await createDemoTable({ context, type: tableType, recordCnt: 50 });
 
   await accountLicensePage.goto();
   await accountLicensePage.saveLicenseKey('1234567890');
@@ -52,11 +46,24 @@ async function beforeEachInit({ page, tableType }: { page: any; tableType: strin
 
   // Open bulk update form
   await dashboard.grid.updateAll();
+
+  return { bulkUpdateForm, dashboard, context, api, table };
 }
 
 test.describe.skip('Bulk update 0', () => {
+  let bulkUpdateForm: BulkUpdatePage;
+  let dashboard: DashboardPage;
+  let context: any;
+  let api: Api<any>;
+  let table;
+
   test.beforeEach(async ({ page }) => {
-    await beforeEachInit({ page, tableType: 'textBased' });
+    const initRsp = await beforeEachInit({ page, tableType: 'textBased' });
+    bulkUpdateForm = initRsp.bulkUpdateForm;
+    dashboard = initRsp.dashboard;
+    context = initRsp.context;
+    api = initRsp.api;
+    table = initRsp.table;
   });
 
   test('General- Click to add & remove', async () => {
@@ -111,7 +118,7 @@ test.describe.skip('Bulk update 0', () => {
       },
     ];
 
-    await updateBulkFields(fields);
+    await updateBulkFields(bulkUpdateForm, fields);
 
     // verify data on grid
     for (let i = 0; i < fields.length; i++) {
@@ -129,10 +136,20 @@ test.describe.skip('Bulk update 0', () => {
 });
 
 test.describe.skip('Bulk update 1', () => {
-  test.beforeEach(async ({ page }) => {
-    await beforeEachInit({ page, tableType: 'numberBased' });
-  });
+  let bulkUpdateForm: BulkUpdatePage;
+  let dashboard: DashboardPage;
+  let context: any;
+  let api: Api<any>;
+  let table;
 
+  test.beforeEach(async ({ page }) => {
+    const initRsp = await beforeEachInit({ page, tableType: 'numberBased' });
+    bulkUpdateForm = initRsp.bulkUpdateForm;
+    dashboard = initRsp.dashboard;
+    context = initRsp.context;
+    api = initRsp.api;
+    table = initRsp.table;
+  });
   test('Number based', async () => {
     const fields = [
       { title: 'Number', value: '1', type: 'text' },
@@ -145,7 +162,7 @@ test.describe.skip('Bulk update 1', () => {
       { title: 'Time', value: '10:10', type: 'time' },
     ];
 
-    await updateBulkFields(fields);
+    await updateBulkFields(bulkUpdateForm, fields);
 
     // verify data on grid
     for (let i = 0; i < fields.length; i++) {
@@ -177,8 +194,19 @@ test.describe.skip('Bulk update 1', () => {
 });
 
 test.describe.skip('Bulk update 2', () => {
+  let bulkUpdateForm: BulkUpdatePage;
+  let dashboard: DashboardPage;
+  let context: any;
+  let api: Api<any>;
+  let table;
+
   test.beforeEach(async ({ page }) => {
-    await beforeEachInit({ page, tableType: 'selectBased' });
+    const initRsp = await beforeEachInit({ page, tableType: 'selectBased' });
+    bulkUpdateForm = initRsp.bulkUpdateForm;
+    dashboard = initRsp.dashboard;
+    context = initRsp.context;
+    api = initRsp.api;
+    table = initRsp.table;
   });
 
   test('Select based', async () => {
@@ -187,7 +215,7 @@ test.describe.skip('Bulk update 2', () => {
       { title: 'MultiSelect', value: 'jan,feb,mar', type: 'multiSelect' },
     ];
 
-    await updateBulkFields(fields);
+    await updateBulkFields(bulkUpdateForm, fields);
 
     // verify data on grid
     const displayOptions = ['jan', 'feb', 'mar'];
@@ -218,17 +246,27 @@ test.describe.skip('Bulk update 2', () => {
 });
 
 test.describe.skip('Bulk update 3', () => {
-  test.beforeEach(async ({ page }) => {
-    await beforeEachInit({ page, tableType: 'miscellaneous' });
-  });
+  let bulkUpdateForm: BulkUpdatePage;
+  let dashboard: DashboardPage;
+  let context: any;
+  let api: Api<any>;
+  let table;
 
+  test.beforeEach(async ({ page }) => {
+    const initRsp = await beforeEachInit({ page, tableType: 'miscellaneous' });
+    bulkUpdateForm = initRsp.bulkUpdateForm;
+    dashboard = initRsp.dashboard;
+    context = initRsp.context;
+    api = initRsp.api;
+    table = initRsp.table;
+  });
   test('Miscellaneous (Checkbox, attachment)', async () => {
     const fields = [
       { title: 'Checkbox', value: 'true', type: 'checkbox' },
       { title: 'Attachment', value: `${process.cwd()}/fixtures/sampleFiles/1.json`, type: 'attachment' },
     ];
 
-    await updateBulkFields(fields);
+    await updateBulkFields(bulkUpdateForm, fields);
 
     // verify data on grid
     for (let i = 0; i < fields.length; i++) {
@@ -259,14 +297,25 @@ test.describe.skip('Bulk update 3', () => {
 });
 
 test.describe.skip('Bulk update 4', () => {
+  let bulkUpdateForm: BulkUpdatePage;
+  let dashboard: DashboardPage;
+  let context: any;
+  let api: Api<any>;
+  let table;
+
   test.beforeEach(async ({ page }) => {
-    await beforeEachInit({ page, tableType: 'dateTimeBased' });
+    const initRsp = await beforeEachInit({ page, tableType: 'dateTimeBased' });
+    bulkUpdateForm = initRsp.bulkUpdateForm;
+    dashboard = initRsp.dashboard;
+    context = initRsp.context;
+    api = initRsp.api;
+    table = initRsp.table;
   });
 
   test('Date Time Based', async () => {
     const fields = [{ title: 'Date', value: '2024-08-04', type: 'date' }];
 
-    await updateBulkFields(fields);
+    await updateBulkFields(bulkUpdateForm, fields);
 
     // verify data on grid
     for (let i = 0; i < fields.length; i++) {

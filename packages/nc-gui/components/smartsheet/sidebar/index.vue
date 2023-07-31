@@ -49,13 +49,11 @@ const route = useRoute()
 
 const { $e } = useNuxtApp()
 
-/** Sidebar visible */
-const { isOpen } = useSidebar('nc-right-sidebar')
+const { rightSidebarSize } = storeToRefs(useSidebarStore())
 
-const sidebarCollapsed = computed(() => !isOpen.value)
+const tabBtnsContainerRef = ref<HTMLElement | null>(null)
 
-/** Sidebar ref */
-const sidebar: Ref<Element | null> = ref(null)
+const minimalMode = ref(false)
 
 /** Watch route param and change active view based on `viewTitle` */
 watch(
@@ -146,11 +144,40 @@ function onOpenModal({
 const onTabChange = (tab: 'views' | 'developer') => {
   openedTab.value = tab
 }
+
+const onResize = () => {
+  if (!tabBtnsContainerRef?.value) return
+
+  const remToPx = parseFloat(getComputedStyle(document.documentElement).fontSize)
+
+  if (tabBtnsContainerRef?.value?.offsetWidth < 13 * remToPx) {
+    minimalMode.value = true
+  } else {
+    minimalMode.value = false
+  }
+}
+
+watch(
+  () => rightSidebarSize.value?.current,
+  () => {
+    onResize()
+  },
+)
+
+onMounted(() => {
+  window.addEventListener('resize', onResize)
+
+  onResize()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', onResize)
+})
 </script>
 
 <template>
   <div class="relative nc-view-sidebar flex flex-col border-l-1 border-gray-75 relative h-full w-full bg-white">
-    <div class="flex flex-row p-1 mx-3 mt-3 mb-3 bg-gray-50 rounded-md gap-x-2 nc-view-sidebar-tab">
+    <div ref="tabBtnsContainerRef" class="flex flex-row p-1 mx-3 mt-3 mb-3 bg-gray-50 rounded-md gap-x-2 nc-view-sidebar-tab">
       <div
         class="tab"
         :class="{
@@ -158,8 +185,14 @@ const onTabChange = (tab: 'views' | 'developer') => {
         }"
         @click="onTabChange('views')"
       >
-        <FieldIcon class="h-3.5 w-3.5" />
-        <div class="tab-title nc-tab">Views</div>
+        <FieldIcon
+          class="tab-icon"
+          :class="{
+            'h-3.5 w-3.5': !minimalMode,
+            'h-4 w-5': minimalMode,
+          }"
+        />
+        <div v-if="!minimalMode" class="tab-title nc-tab">Views</div>
       </div>
       <div
         class="tab"
@@ -170,12 +203,16 @@ const onTabChange = (tab: 'views' | 'developer') => {
       >
         <component
           :is="iconMap.code"
-          class="text-gray-500 h-3.5 w-3.5"
+          class="tab-icon"
+          :class="{
+            'h-3.5 w-3.5': !minimalMode,
+            'h-4 w-5': minimalMode,
+          }"
           :style="{
             fontWeight: 600,
           }"
         />
-        <div class="tab-title nc-tab">Developer</div>
+        <div v-if="!minimalMode" class="tab-title nc-tab">Developer</div>
       </div>
     </div>
 
@@ -209,7 +246,11 @@ const onTabChange = (tab: 'views' | 'developer') => {
 }
 
 .tab {
-  @apply flex flex-row items-center justify-center w-1/2 py-1 bg-gray-50 rounded-md gap-x-1.5 text-gray-500 cursor-pointer transition-all duration-300 select-none;
+  @apply flex flex-row items-center h-7.5 justify-center w-1/2 py-1 bg-gray-50 rounded-md gap-x-1.5 text-gray-500 cursor-pointer transition-all duration-300 select-none;
+}
+
+.tab-icon {
+  @apply transition-all duration-300;
 }
 .tab .tab-title {
   @apply min-w-0;

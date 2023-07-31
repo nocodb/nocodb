@@ -26,7 +26,7 @@ const { $api, $e } = useNuxtApp()
 
 const { project } = storeToRefs(useProject())
 
-const _projectId = $(inject(ProjectIdInj))
+const _projectId = $(inject(ProjectIdInj, undefined))
 const projectId = $computed(() => _projectId ?? project.value?.id)
 
 const { includeM2M } = useGlobal()

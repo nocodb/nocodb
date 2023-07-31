@@ -364,7 +364,7 @@ defineExpose({
           </div>
         </div>
         <div class="cmdk-footer-right">
-          Powered by <img width="25" class="nc-brand-icon" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
+          Powered by <img width="25" class="nc-brand-icon" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
         </div>
       </div>
     </div>

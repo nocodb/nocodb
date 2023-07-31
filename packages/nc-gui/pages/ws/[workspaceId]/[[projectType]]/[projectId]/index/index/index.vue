@@ -131,11 +131,13 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
 }
 
 function openCreateTable() {
+  if (!bases.value?.length) return
+
   const isOpen = ref(true)
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
     'onUpdate:modelValue': closeDialog,
-    'baseId': bases.value?.filter((base: BaseType) => base.enabled)[0].id,
+    'baseId': bases.value.filter((base: BaseType) => base.enabled)[0].id,
     'projectId': project.value.id,
   })
 

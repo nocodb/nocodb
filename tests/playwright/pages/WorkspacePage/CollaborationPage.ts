@@ -1,8 +1,6 @@
 import BasePage from '../Base';
 import { WorkspacePage } from './';
-import { expect } from '@playwright/test';
-import { Locator } from 'playwright';
-import { getIconText, getTextExcludeIconText } from '../../tests/utils/general';
+import { Locator } from '@playwright/test';
 
 /*
   nc-workspace-container
@@ -45,6 +43,10 @@ export class CollaborationPage extends BasePage {
     await this.rootPage.locator(`.ant-select-item-option-content:has-text("${role}"):visible`).click();
 
     // submit
+
+    // allow button to be enabled
+    await this.rootPage.waitForTimeout(500);
+
     await this.button_addUser.click();
     await this.verifyToast({ message: 'Invitation sent successfully' });
     await this.rootPage.waitForTimeout(500);

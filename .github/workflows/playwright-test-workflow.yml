@@ -47,9 +47,9 @@ jobs:
             ${{ runner.os }}-hetzner-build-${{ env.cache-name }}-
             ${{ runner.os }}-hetzner-build-
             ${{ runner.os }}-hetzner
-      - name: setup pg
-        working-directory: ./
-        run: docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &
+      # - name: setup pg
+      #   working-directory: ./
+      #   run: docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &
       - name: Set CI env
         run: export CI=true
       - name: Set Node env
@@ -57,18 +57,18 @@ jobs:
       - name: install dependencies nocodb-sdk
         working-directory: ./packages/nocodb-sdk
         run: npm install
-      - name: build nocodb-sdk
+      - name: Build nocodb-sdk
         working-directory: ./packages/nocodb-sdk
         run: npm run build
-      - name: setup mysql
+      - name: Setup mysql
         if: ${{ inputs.db == 'mysql' }}
         working-directory: ./
         run: docker-compose -f ./tests/playwright/scripts/docker-compose-mysql-playwright.yml up -d &
-      - name: setup pg
-        if: ${{ inputs.db == 'pg' }}
-        working-directory: ./
-        run: docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &
-      - name: setup pg for quick tests
+      # - name: Setup pg
+      #   if: ${{ inputs.db == 'pg' }}
+      #   working-directory: ./
+      #   run: docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &
+      - name: Setup pg for quick tests
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '1' }}
         working-directory: ./
         run: docker-compose -f ./tests/playwright/scripts/docker-compose-pg-pw-quick.yml up -d &
@@ -117,7 +117,7 @@ jobs:
             sleep 2
           done
         timeout-minutes: 5
-      - name: Run Playwright tests
+      - name: Run Playwright Tests
         working-directory: ./tests/playwright
         run: E2E_DB_TYPE=${{ inputs.db }} npm run ci:test:shard:${{ inputs.shard }}
         timeout-minutes: 60
@@ -151,6 +151,22 @@ jobs:
             sleep 2
           done
           PLAYWRIGHT_HTML_REPORT=playwright-report-quick npm run test:quick
+      - name: Copy Artifacts to Local Artifacts Dir
+        working-directory: ./
+        run: |
+          # expects the variables to be available in runner context.
+          path="gh-artifacts/runs/${GITHUB_RUN_ID}/run-attempt/${GITHUB_RUN_ATTEMPT}/job_name/"${GITHUB_JOB}"-${{ inputs.shard }}/${RANDOM}-$(date +%s)"
+          target_dir="/mnt/${path}"
+          mkdir -p ${target_dir}
+          ls ./tests/playwright/playwright-report/*
+
+          # start : add any artifacts to be copied here
+          cp -r ./tests/playwright/playwright-report ${target_dir}/  
+          # end: artifacts copy
+
+          SUMMARY='[Artifacts](http://65.21.27.147/'${path}')
+          [playwright-report](http://65.21.27.147/'${path}'/playwright-report)'
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY     
 #      - uses: actions/upload-artifact@v3
 #        if: ${{ inputs.db == 'sqlite' }}
 #        with:

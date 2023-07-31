@@ -281,7 +281,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
               <template #title>
                 {{ currentVersion }}
               </template>
-              <img width="25" class="-mr-1" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
+              <img width="25" class="-mr-1" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
             </a-tooltip>
           </div>
 
@@ -295,7 +295,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
               <template #title>
                 {{ currentVersion }}
               </template>
-              <img width="25" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+              <img width="25" alt="NocoDB" src="~/assets/img/icons/256x256-trans.png" />
             </a-tooltip>
           </a>
 

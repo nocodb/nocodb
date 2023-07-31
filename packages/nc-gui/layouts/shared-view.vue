@@ -33,7 +33,7 @@ onMounted(() => {
 
   // handle meta title
   if (sharedView.value?.title) {
-    document.title = `${sharedView.value.title} | NocoDB`
+    document.title = `${sharedView.value.title}`
   } else {
     document.title = 'NocoDB'
   }
@@ -55,7 +55,7 @@ export default {
             <template #title>
               {{ appInfo.version }}
             </template>
-            <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+            <img width="35" alt="NocoDB" src="~/assets/img/icons/256x256-trans.png" />
           </a-tooltip>
         </div>
 

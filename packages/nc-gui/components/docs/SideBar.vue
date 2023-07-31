@@ -147,7 +147,7 @@ function onExpandClick(id: string, expanded: boolean) {
 
 <template>
   <template v-if="nestedPages">
-    <div class="nc-docs-sidebar">
+    <div class="nc-docs-sidebar ml-1.5">
       <a-tree
         v-model:expanded-keys="openedTabs"
         v-model:selectedKeys="openPageTabKeys"
@@ -199,7 +199,7 @@ function onExpandClick(id: string, expanded: boolean) {
                   color="#000000"
                 >
                   <template #content> Change Icon </template>
-                  <GeneralEmojiPicker
+                  <LazyGeneralEmojiPicker
                     :key="page.icon"
                     :emoji="page.icon"
                     size="small"
@@ -215,7 +215,7 @@ function onExpandClick(id: string, expanded: boolean) {
                         }"
                       />
                     </template>
-                  </GeneralEmojiPicker>
+                  </LazyGeneralEmojiPicker>
                 </a-popover>
               </div>
               <span

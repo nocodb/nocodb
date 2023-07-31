@@ -84,17 +84,17 @@ watch(
 </script>
 
 <template>
-  <NuxtLayout id="content" :key="route.params.projectId as string" name="dashboard">
+  <NuxtLayout id="content" :key="`${route.params.projectId as string}`" name="dashboard">
     <template #sidebar>
-      <DocsSideBar v-if="isSidebarOpen && !isFetching" :project="project" />
+      <LazyDocsSideBar v-if="isSidebarOpen && !isFetching" :project="project" />
     </template>
     <template #content>
       <div class="flex flex-row">
         <div v-if="isErrored">
-          <DocsError />
+          <LazyDocsError />
         </div>
         <template v-else>
-          <DocsPageView />
+          <LazyDocsPageView />
         </template>
       </div>
     </template>

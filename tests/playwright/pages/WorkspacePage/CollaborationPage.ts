@@ -49,7 +49,11 @@ export class CollaborationPage extends BasePage {
     await this.rootPage.locator(`.ant-select-item-option-content:has-text("${role}"):visible`).click();
 
     // submit
-    await this.button_addUser.waitFor({ state: 'enabled' });
+
+    // allow button to be enabled
+    // await this.button_addUser.waitFor({ state: 'enabled' });
+    await this.rootPage.waitForTimeout(500);
+
     await this.button_addUser.click();
     await this.verifyToast({ message: 'Invitation sent successfully' });
     await this.rootPage.waitForTimeout(500);

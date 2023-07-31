@@ -179,7 +179,7 @@ async function localInit({
   } catch (e) {
     workerStatus[parallelId] = 'errored';
 
-    console.error(`Error resetting project: ${process.env.TEST_PARALLEL_INDEX}`);
+    console.error(`Error resetting project: ${process.env.TEST_PARALLEL_INDEX}`, e);
     return { data: {}, status: 500 };
   }
 }

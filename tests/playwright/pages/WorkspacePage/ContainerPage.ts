@@ -1,8 +1,8 @@
 import BasePage from '../Base';
 import { WorkspacePage } from './';
 import { expect } from '@playwright/test';
-import { Locator } from 'playwright';
-import { getIconText, getTextExcludeIconText } from '../../tests/utils/general';
+import { Locator } from '@playwright/test';
+import { getTextExcludeIconText } from '../../tests/utils/general';
 
 /*
   nc-workspace-container

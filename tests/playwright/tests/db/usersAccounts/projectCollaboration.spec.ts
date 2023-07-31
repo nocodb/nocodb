@@ -8,8 +8,6 @@ import { CollaborationPage } from '../../../pages/WorkspacePage/CollaborationPag
 import { LoginPage } from '../../../pages/LoginPage';
 import { ProjectViewPage } from '../../../pages/Dashboard/ProjectView';
 
-let api: Api<any>;
-
 const roleDb = [
   { email: 'pjt_creator@nocodb.com', role: 'Creator' },
   { email: 'pjt_editor@nocodb.com', role: 'Editor' },
@@ -23,6 +21,7 @@ test.describe('Project Collaboration', () => {
   let collaborationPage: CollaborationPage;
   let projectViewPage: ProjectViewPage;
   let context: any;
+  let api: Api<any>;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });

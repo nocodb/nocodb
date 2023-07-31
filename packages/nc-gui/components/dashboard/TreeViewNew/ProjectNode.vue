@@ -597,7 +597,7 @@ onKeyStroke('Escape', () => {
                     </template>
                     <a-collapse-panel :key="`collapse-${base.id}`">
                       <template #header>
-                        <div class="w-full flex flex-row">
+                        <div class="min-w-20 w-full flex flex-row">
                           <div
                             v-if="baseIndex === 0"
                             class="base-context flex items-center gap-2 text-gray-800"
@@ -608,7 +608,7 @@ onKeyStroke('Escape', () => {
                           </div>
                           <div
                             v-else
-                            class="base-context flex items-center gap-1.75 text-gray-800 max-w-133/200"
+                            class="base-context flex flex-grow items-center gap-1.75 text-gray-800 min-w-1/20 max-w-full"
                             @contextmenu="setMenuContext('base', base)"
                           >
                             <GeneralBaseLogo :base-type="base.type" class="min-w-4" />
@@ -628,7 +628,7 @@ onKeyStroke('Escape', () => {
                           </div>
                           <div
                             v-if="isUIAllowed('tableCreate', false, projectRole)"
-                            class="flex flex-row items-center gap-x-0.25"
+                            class="flex flex-row items-center gap-x-0.25 w-12.25"
                           >
                             <a-dropdown
                               :visible="isBasesOptionsOpen[base!.id!]"

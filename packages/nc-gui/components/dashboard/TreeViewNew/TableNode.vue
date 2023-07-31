@@ -119,19 +119,18 @@ const isMultiBase = computed(() => project.bases && project.bases.length > 1)
               @emoji-selected="setIcon($event, table)"
             >
               <template #default>
-                <NcTooltip class="ml-2" placement="topLeft" hide-on-click>
+                <NcTooltip class="flex" placement="topLeft" hide-on-click>
                   <template #title>
                     {{ 'Change icon' }}
                   </template>
-                  <div>
-                    <MdiTable
-                      class="w-5 !text-gray-500 text-sm"
-                      :class="{
-                        'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole),
-                        '!text-black': openedTableId === table.id,
-                      }"
-                    />
-                  </div>
+
+                  <MdiTable
+                    class="flex w-5 !text-gray-500 text-sm"
+                    :class="{
+                      'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole),
+                      '!text-black': openedTableId === table.id,
+                    }"
+                  />
                 </NcTooltip>
               </template>
             </LazyGeneralEmojiPicker>

@@ -69,7 +69,7 @@ const tiptapExtensions = (isPublic: boolean): Extensions => {
         if (node.type.name === TiptapNodesTypes.heading) {
           return `Heading ${node.attrs.level}`
         }
-        return 'Press / to open the command menu or start writing'
+        return 'Press / to open command list or space for AI'
       },
     }),
     Task,

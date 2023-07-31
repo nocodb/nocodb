@@ -147,7 +147,7 @@ function onExpandClick(id: string, expanded: boolean) {
 
 <template>
   <template v-if="nestedPages">
-    <div class="nc-docs-sidebar">
+    <div class="nc-docs-sidebar ml-1.5">
       <a-tree
         v-model:expanded-keys="openedTabs"
         v-model:selectedKeys="openPageTabKeys"

@@ -413,6 +413,7 @@ watch(
             />
 
             <DocsPageLinkToPageSearch v-if="editor" :editor="editor" />
+            <DocsPageAiOptions v-if="editor" :editor="editor" />
             <DocsPageSelectedBubbleMenu
               v-if="editor"
               :editor="editor"

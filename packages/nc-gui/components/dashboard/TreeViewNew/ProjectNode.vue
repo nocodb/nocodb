@@ -566,7 +566,7 @@ onKeyStroke('Escape', () => {
         <div v-else-if="project.type === 'dashboard'">
           <LayoutsSideBar v-if="project.isExpanded" :project="project" />
         </div>
-        <template v-if="project && project?.bases">
+        <template v-else-if="project && project?.bases">
           <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
             <div v-if="project?.bases?.[0]?.enabled" class="flex-1">
               <div class="transition-height duration-200">

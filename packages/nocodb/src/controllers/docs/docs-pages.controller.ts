@@ -9,6 +9,7 @@ import {
   Put,
   Query,
   Request,
+  Response,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -112,23 +113,38 @@ export class DocsPagesController {
   async gpt(
     @Param('id') id: string,
     @Param('projectId') projectId: string,
-    @Body() body: { text: string },
-    @Query('type') type: 'outline' | 'expand',
+    @Response() response,
+    @Request() req,
   ) {
-    if (type === 'expand') {
-      return await this.pagesService.magicExpand({
-        text: body.text,
-        pageId: id,
-        projectId,
-      });
-    } else if (type === 'outline') {
-      return await this.pagesService.magicOutline({
-        pageId: id,
-        projectId,
-      });
-    }
+    let body: {
+      promptText: string;
+      selectedPageText?: string;
+    } = {
+      promptText: '',
+    };
 
-    throw new Error('Invalid type');
+    await new Promise((resolve) => {
+      req.on('data', (chunk) => {
+        try {
+          const bodyChunk = JSON.parse(chunk.toString());
+          body = { ...body, ...bodyChunk };
+        } catch (e) {
+          console.error(e);
+        }
+      });
+
+      req.on('end', () => {
+        resolve(true);
+      });
+    });
+
+    return await this.pagesService.magicExpand({
+      promptText: body.promptText,
+      selectedPageText: body.selectedPageText,
+      pageId: id,
+      projectId,
+      response,
+    });
   }
 
   @Post('/api/v1/docs/:projectId/gpt')

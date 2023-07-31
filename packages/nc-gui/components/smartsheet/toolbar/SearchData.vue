@@ -23,6 +23,8 @@ const { search, loadFieldQuery } = useFieldQuery()
 
 const isDropdownOpen = ref(false)
 
+const isFocused = ref(false)
+
 const searchDropdown = ref(null)
 
 onClickOutside(searchDropdown, () => (isDropdownOpen.value = false))
@@ -74,12 +76,13 @@ watchDebounced(
     maxWait: 600,
   },
 )
-
-const isFocused = ref(false)
 </script>
 
 <template>
-  <div class="flex flex-row border-1 rounded-lg h-8 ml-1" :class="{ 'border-primary': isFocused, 'border-gray-200': !isFocused }">
+  <div
+    class="flex flex-row border-1 rounded-lg h-8 ml-1 border-gray-200"
+    :class="{ '!border-primary': search.query.length !== 0 || isFocused }"
+  >
     <div
       ref="searchDropdown"
       class="flex items-center relative px-2 cursor-pointer border-r-1 border-gray-200 rounded-l-lg"

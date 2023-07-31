@@ -10,6 +10,10 @@ import { WidgetsService } from '~/services/dashboards/widgets.service';
 import { LayoutsService } from '~/services/dashboards/layouts.service';
 import { LayoutFilterService } from '~/services/dashboards/layoutFilter.service';
 
+import { WidgetsController } from '~/controllers/dashboards/widgets.controller';
+import { LayoutsController } from '~/controllers/dashboards/layouts.controller';
+import { LayoutFilterController } from '~/controllers/dashboards/layoutFilter.controller';
+
 // import { PageDao } from '../../daos/page.dao';
 import { DocsPagesService } from '~/services/docs/docs-pages.service';
 import { DocsPagesUpdateService } from '~/services/docs/docs-page-update.service';
@@ -45,6 +49,10 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     DocsPagesHistoryController,
     DocsPagesController,
     DocsPublicController,
+
+    WidgetsController,
+    LayoutsController,
+    LayoutFilterController
   ],
 })
 export class MetasModule {}

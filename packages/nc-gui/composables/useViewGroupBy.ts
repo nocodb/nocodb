@@ -20,6 +20,8 @@ export const useViewGroupBy = createSharedComposable(
 
     const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
+    const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+
     const appInfoDefaultLimit = appInfo.defaultLimit || 25
 
     const rootGroup = ref<Group>({
@@ -245,12 +247,23 @@ export const useViewGroupBy = createSharedComposable(
     const refreshNested = (group?: Group, nestLevel = 0) => {
       group = group || rootGroup.value
       if (!group) return
-      if (group.nested) {
-        loadGroups({}, group)
+
+      if (nestLevel < groupBy.value.length) {
+        group.nested = true
       } else {
-        loadGroupData(group, true)
+        group.nested = false
       }
-      if (nestLevel >= groupBy.value.length) return
+
+      if (group.nested) {
+        if (group?.rows) {
+          group.rows = []
+        }
+      } else {
+        if (group?.children) {
+          group.children = []
+        }
+      }
+      if (nestLevel > groupBy.value.length) return
       for (const child of group.children || []) {
         refreshNested(child, nestLevel + 1)
       }
@@ -258,10 +271,12 @@ export const useViewGroupBy = createSharedComposable(
 
     watch(
       () => groupBy.value.length,
-      () => {
+      async () => {
         rootGroup.value.paginationData = { page: 1, pageSize: appInfoDefaultLimit }
         rootGroup.value.column = groupBy.value[0]
+        await loadGroups()
         refreshNested()
+        nextTick(() => reloadViewDataHook?.trigger())
       },
     )
 

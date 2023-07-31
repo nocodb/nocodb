@@ -95,6 +95,7 @@ reloadViewDataHook?.on(reloadViewDataHandler)
           v-model:activeKey="_activeGroupKeys"
           class="!bg-transparent w-full"
           :bordered="false"
+          destroy-inactive-panel
           @change="findAndLoadSubGroup"
         >
           <a-collapse-panel

@@ -1,29 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
+  AuditOperationSubTypes,
+  AuditOperationTypes,
   OrgUserRoles,
   PluginCategory,
 } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import { v4 as uuidv4 } from 'uuid';
 import * as ejs from 'ejs';
 import validator from 'validator';
-import NocoCache from '~/cache/NocoCache';
-import { validatePayload } from '~/helpers';
-import Noco from '~/Noco';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import NocoCache from '../../cache/NocoCache';
+import { validatePayload } from '../../helpers';
+import Noco from '../../Noco';
+import { AppHooksService } from '../app-hooks/app-hooks.service';
 import type { ProjectUserReqType, UserType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { randomTokenString } from '~/helpers/stringHelpers';
-import { Project, ProjectUser, User } from '~/models';
+import { Project, ProjectUser, User, WorkspaceUser } from '~/models';
 
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 
 @Injectable()
 export class ProjectUsersService {
-  constructor(protected appHooksService: AppHooksService) {}
+  constructor(private appHooksService: AppHooksService) {}
 
   async userList(param: { projectId: string; query: any }) {
     const project = await Project.get(param.projectId);
@@ -34,6 +37,12 @@ export class ProjectUsersService {
         project_id: param.projectId,
         workspace_id: project?.fk_workspace_id,
       }),
+      {
+        ...param.query,
+        count: await WorkspaceUser.count({
+          workspaceId: project?.fk_workspace_id,
+        }),
+      },
     );
   }
 

@@ -11,16 +11,16 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ProjectUserReqType } from 'nocodb-sdk';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { ProjectUsersService } from '../services/project-users/project-users.service';
-import { User, WorkspaceUser } from '../models';
-import { NcError } from '../helpers/catchError';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { ProjectUsersService } from '~/services/project-users/project-users.service';
+import { User } from '~/models';
+import { NcError } from '~/helpers/catchError';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @UseGuards(GlobalGuard)
 @Controller()
 export class ProjectUsersController {
-  constructor(private readonly projectUsersService: ProjectUsersService) {}
+  constructor(protected readonly projectUsersService: ProjectUsersService) {}
 
   @Get('/api/v1/db/meta/projects/:projectId/users')
   @Acl('userList')
@@ -49,12 +49,6 @@ export class ProjectUsersController {
     const user = await User.getByEmail(body.email);
 
     if (!user) {
-      NcError.badRequest('Only user belonging to the workspace can be invited');
-    }
-
-    const workspaceUser = await WorkspaceUser.get(req.ncWorkspaceId, user.id);
-
-    if (!workspaceUser) {
       NcError.badRequest('Only user belonging to the workspace can be invited');
     }
 

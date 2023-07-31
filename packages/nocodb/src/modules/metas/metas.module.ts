@@ -3,8 +3,6 @@ import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
 import { GlobalModule } from '~/modules/global/global.module';
 import { NotificationsGateway } from '~/gateways/notifications/notifications.gateway';
-
-// import { PageSnapshotDao } from '~/daos/page-snapshot.dao';
 import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 import { ApiDocsController } from '~/controllers/api-docs/api-docs.controller';
 import { ApiTokensController } from '~/controllers/api-tokens.controller';
@@ -73,19 +71,10 @@ import { ViewsService } from '~/services/views.service';
 import { ApiDocsService } from '~/services/api-docs/api-docs.service';
 import { ProjectUsersController } from '~/controllers/project-users.controller';
 import { ProjectUsersService } from '~/services/project-users/project-users.service';
-// import { DatasModule } from '../datas/datas.module';
-// import { CommandPaletteController } from '~/controllers/command-palette.controller';
-// import { CommandPaletteService } from '~/services/command-palette.service';
 import { NotificationsController } from '~/controllers/notifications.controller';
 import { NotificationsService } from '~/services/notifications.service';
-// import { WorkspacesModule } from '../workspaces/workspaces.module';
-// import { WorkspaceUsersModule } from '../workspace-users/workspace-users.module';
 import { ClickhouseService } from '~/services/clickhouse/clickhouse.service';
-// import { ThrottlerExpiryListenerService } from '~/services/throttler/throttler-expiry-listener.service';
 import { TelemetryController } from '~/controllers/telemetry.controller';
-
-// todo: refactor to use config service
-// const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
 
 export const metaModuleMetadata = {
   imports: [
@@ -96,8 +85,6 @@ export const metaModuleMetadata = {
       },
     }),
     GlobalModule,
-    // WorkspacesModule,
-    // WorkspaceUsersModule,
   ],
   controllers: [
     ...(process.env.NC_WORKER_CONTAINER !== 'true'
@@ -134,19 +121,12 @@ export const metaModuleMetadata = {
           SyncController,
           SortsController,
           SharedBasesController,
-          // CommandPaletteController,
           NotificationsController,
-          // DocsPagesHistoryController,
-          // DocsPagesController,
-          // DocsPublicController,
           TelemetryController,
         ]
       : []),
   ],
   providers: [
-    /** DAOs */
-    // PageDao,
-    // PageSnapshotDao,
     /** Services */
     ApiDocsService,
     ApiTokensService,
@@ -155,7 +135,6 @@ export const metaModuleMetadata = {
     BasesService,
     CachesService,
     ColumnsService,
-    // LayoutFilterService,
     FiltersService,
     FormColumnsService,
     FormsService,
@@ -185,7 +164,6 @@ export const metaModuleMetadata = {
     SortsService,
     SharedBasesService,
     BulkDataAliasService,
-    // CommandPaletteService,
     NotificationsService,
     NotificationsGateway,
     ClickhouseService,

@@ -310,8 +310,8 @@ export default class ProjectUser {
       .select(`${MetaTable.PROJECT}.is_meta`)
       .select(`${MetaTable.PROJECT}.created_at`)
       .select(`${MetaTable.PROJECT}.updated_at`)
-      // .select(`${MetaTable.WORKSPACE_USER}.roles as workspace_role`)
-      // .select(`${MetaTable.WORKSPACE}.title as workspace_title`)
+      .select(`${MetaTable.WORKSPACE_USER}.roles as workspace_role`)
+      .select(`${MetaTable.WORKSPACE}.title as workspace_title`)
       .select(`${MetaTable.PROJECT_USERS}.starred`)
       .select(`${MetaTable.PROJECT_USERS}.roles as project_role`)
       .select(`${MetaTable.PROJECT_USERS}.updated_at as last_accessed`)
@@ -325,10 +325,31 @@ export default class ProjectUser {
           ncMeta.knex.raw('?', [userId]),
         );
       })
-      .where(
+      .leftJoin(MetaTable.WORKSPACE_USER, function () {
+        this.on(
+          `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+          `${MetaTable.PROJECT}.fk_workspace_id`,
+        );
+        this.andOn(
+          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+          ncMeta.knex.raw('?', [userId]),
+        );
+      })
+      .leftJoin(MetaTable.WORKSPACE, function () {
+        this.on(
+          `${MetaTable.WORKSPACE}.id`,
+          `${MetaTable.PROJECT}.fk_workspace_id`,
+        );
+      })
+      .where(function () {
+        this.where(
+          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+          ncMeta.knex.raw('?', [userId]),
+        ).orWhere(
           `${MetaTable.PROJECT_USERS}.fk_user_id`,
           ncMeta.knex.raw('?', [userId]),
-      )
+        );
+      })
       .where(function () {
         this.where(`${MetaTable.PROJECT}.deleted`, false).orWhereNull(
           `${MetaTable.PROJECT}.deleted`,
@@ -349,6 +370,15 @@ export default class ProjectUser {
             .whereNot(`${MetaTable.PROJECT_USERS}.roles`, ProjectRoles.OWNER)
             .whereNotNull(`${MetaTable.PROJECT_USERS}.roles`);
         })
+          // include projects belongs workspace in which user is not owner
+          .orWhere(function () {
+            this.where(`${MetaTable.WORKSPACE_USER}.fk_user_id`, userId)
+              .whereNot(
+                `${MetaTable.WORKSPACE_USER}.roles`,
+                WorkspaceUserRoles.OWNER,
+              )
+              .whereNotNull(`${MetaTable.WORKSPACE_USER}.roles`);
+          });
       });
     }
 

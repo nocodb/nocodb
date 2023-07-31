@@ -514,5 +514,8 @@ Object.assign(
   rolePermissions['commenter'].include,
 );
 
+// todo: remove org level roles in cloud
+// in cloud there is no org user roles, all user can create project and we can give all permissions
+rolePermissions[OrgUserRoles.VIEWER] = rolePermissions[OrgUserRoles.CREATOR];
 
 export default rolePermissions;

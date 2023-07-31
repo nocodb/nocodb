@@ -110,7 +110,7 @@ const onDrop = async (event: DragEvent) => {
 
     // if already a link column exists, create a new Lookup column
     const relationCol = parentMeta.columns?.find((c: ColumnType) => {
-      if (c.uidt !== UITypes.LinkToAnotherRecord) return false
+      if (!isLinksOrLTAR(c)) return false
 
       const ltarOptions = c.colOptions as LinkToAnotherRecordType
 
@@ -147,7 +147,7 @@ const onDrop = async (event: DragEvent) => {
       }
 
       grid.value?.openColumnCreate({
-        uidt: UITypes.LinkToAnotherRecord,
+        uidt: UITypes.Links,
         title: `${data.title}List`,
         parentId: parentMeta.id,
         childId: childMeta.id,

@@ -102,29 +102,38 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     return tempColor
   }
 
-  const findKeyColor = (key: string, col: ColumnType) => {
-    switch (col.uidt) {
-      case UITypes.MultiSelect: {
-        const keys = key.split(',')
-        const colors = []
-        for (const k of keys) {
-          const option = (col.colOptions as SelectOptionsType).options?.find((o) => o.title === k)
-          if (option) {
-            colors.push(option.color)
+  const findKeyColor = (key?: string, col?: ColumnType): string => {
+    if (col) {
+      switch (col.uidt) {
+        case UITypes.MultiSelect: {
+          const keys = key?.split(',') || []
+          const colors = []
+          for (const k of keys) {
+            const option = (col.colOptions as SelectOptionsType).options?.find((o) => o.title === k)
+            if (option) {
+              colors.push(option.color)
+            }
           }
+          return colors.join(',')
         }
-        return colors.join(',')
-      }
-      case UITypes.SingleSelect: {
-        const option = (col.colOptions as SelectOptionsType).options?.find((o) => o.title === key)
-        if (option) {
-          return option.color
+        case UITypes.SingleSelect: {
+          const option = (col.colOptions as SelectOptionsType).options?.find((o) => o.title === key)
+          if (option) {
+            return option.color || getNextColor()
+          }
+          return 'gray'
         }
-        return getNextColor()
+        case UITypes.Checkbox: {
+          if (key) {
+            return themeColors.success
+          }
+          return themeColors.error
+        }
+        default:
+          return key ? getNextColor() : 'gray'
       }
-      default:
-        return getNextColor()
     }
+    return key ? getNextColor() : 'gray'
   }
 
   const calculateNestedWhere = (nestedIn: GroupNestedIn[], existing = '') => {
@@ -189,7 +198,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
         })
 
     const tempList: Group[] = response.list.reduce((acc: Group[], curr: Record<string, any>) => {
-      const keyExists = acc.find((a) => a.key === valueToTitle(curr[groupby.column.column_name!], groupby))
+      const keyExists = acc.find((a) => a.key === valueToTitle(curr[groupby.column.column_name!], groupby.column))
       if (keyExists) {
         keyExists.count += +curr.count
         keyExists.paginationData = { page: 1, pageSize: appInfoDefaultLimit, totalRows: keyExists.count }
@@ -197,17 +206,16 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
       }
       if (groupby.column.title && groupby.column.column_name && groupby.column.uidt) {
         acc.push({
-          key: valueToTitle(curr[groupby.column.column_name!], groupby),
+          key: valueToTitle(curr[groupby.column.column_name!], groupby.column),
           column: groupby.column,
           count: +curr.count,
-          color:
-            (curr[groupby.column.column_name!] ? findKeyColor(curr[groupby.column.column_name!], groupby) : 'gray') || 'white',
+          color: findKeyColor(curr[groupby.column.column_name!], groupby.column),
           nestedIn: [
             ...group!.nestedIn,
             {
               title: groupby.column.title,
               column_name: groupby.column.column_name!,
-              key: valueToTitle(curr[groupby.column.column_name!], groupby),
+              key: valueToTitle(curr[groupby.column.column_name!], groupby.column),
               column_uidt: groupby.column.uidt,
             },
           ],
@@ -240,11 +248,11 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     group.children = group.children.filter((c) => tempList.find((t) => t.key === c.key))
 
     if (group.count <= (group.paginationData.pageSize ?? appInfoDefaultLimit)) {
-      if (groupby.sort === 'asc') {
-        group.children.sort((a, b) => (a.key > b.key ? 1 : -1))
-      } else {
-        group.children.sort((a, b) => (a.key < b.key ? 1 : -1))
-      }
+      group.children.sort((a, b) => {
+        const orderA = tempList.findIndex((t) => t.key === a.key)
+        const orderB = tempList.findIndex((t) => t.key === b.key)
+        return orderA - orderB
+      })
     }
 
     group.paginationData = response.pageInfo
@@ -370,7 +378,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     if (group.nested) {
       const child = group.children?.find((g) => {
         if (!groupBy.value[nestLevel].column.title) return undefined
-        return g.key === valueToTitle(row.row[groupBy.value[nestLevel].column.title!], groupBy.value[nestLevel])
+        return g.key === valueToTitle(row.row[groupBy.value[nestLevel].column.title!], groupBy.value[nestLevel].column)
       })
       if (child) {
         return findGroupForRow(row, child, nestLevel + 1)

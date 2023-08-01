@@ -118,8 +118,15 @@ const addFieldToGroupBy = async () => {
 }
 
 const removeFieldFromGroupBy = async (index: string | number) => {
+  if (groupedByColumnIds.value.length === 0) {
+    open.value = false
+    return
+  }
   _groupBy.value.splice(+index, 1)
   await saveGroupBy()
+  if (_groupBy.value.length === 0) {
+    addFieldToGroupBy()
+  }
 }
 
 watch(open, () => {
@@ -183,11 +190,13 @@ watch(open, () => {
               </a-select-option>
             </a-select>
             <div class="flex items-center">
-              <GeneralIcon
-                icon="delete"
-                class="nc-group-by-item-remove-btn text-grey self-center cursor-pointer hover:text-red-500"
-                @click.stop="removeFieldFromGroupBy(i)"
-              />
+              <a-tooltip placement="right" title="Remove">
+                <GeneralIcon
+                  icon="close"
+                  class="nc-group-by-item-remove-btn text-grey self-center cursor-pointer hover:text-red-500"
+                  @click.stop="removeFieldFromGroupBy(i)"
+                />
+              </a-tooltip>
             </div>
           </template>
         </div>

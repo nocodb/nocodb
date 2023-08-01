@@ -20,6 +20,8 @@ on:
             - ".github/workflows/ci-cd.yml"
             - ".github/workflows/playwright-test-workflow.yml"            
             - "tests/playwright/**"
+    # Triggered manually
+    workflow_dispatch:    
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}

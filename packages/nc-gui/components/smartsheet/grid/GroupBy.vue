@@ -97,7 +97,7 @@ watch(
   <div class="flex flex-col h-full w-full">
     <div ref="wrapper" class="flex flex-col h-full w-full scrollbar-thin-dull overflow-auto">
       <div class="flex flex-col my-2 h-full" :style="`${vGroup.root === true ? 'width: fit-content' : 'width: 100%'}`">
-        <div v-if="vGroup.root === true" class="flex">
+        <div v-if="vGroup.root === true" class="flex sticky top-0 z-5">
           <div
             class="bumper mb-2"
             style="background-color: rgb(252, 252, 252); border-color: rgb(242, 244, 247); border-bottom-width: 1px"

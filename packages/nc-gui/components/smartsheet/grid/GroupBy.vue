@@ -119,14 +119,14 @@ provide(ScrollParentInj, wrapper)
           <a-collapse-panel
             v-for="[i, grp] of Object.entries(vGroup?.children ?? [])"
             :key="`group-panel-${i}`"
-            class="!border-0 rounded-md mb-4"
+            class="!border-1 rounded-[12px] mb-4"
             :class="{ 'ml-[12px]': vGroup.root === true }"
             :style="`background: rgb(${245 - _depth * 10}, ${245 - _depth * 10}, ${245 - _depth * 10})`"
             :show-arrow="false"
           >
             <template #header>
               <div class="flex !sticky left-[15px]">
-                <div>
+                <div class="flex items-center">
                   <span role="img" aria-label="right" class="anticon anticon-right ant-collapse-arrow">
                     <svg
                       focusable="false"
@@ -168,7 +168,8 @@ provide(ScrollParentInj, wrapper)
                                 : tinycolor
                                     .mostReadable(grp.color.split(',')[+tagIndex] || '#ccc', ['#0b1d05', '#fff'])
                                     .toHex8String(),
-                              'font-size': '13px',
+                              'font-size': '14px',
+                              'font-weight': 500,
                             }"
                           >
                             {{ tag in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[tag] : tag }}
@@ -190,7 +191,8 @@ provide(ScrollParentInj, wrapper)
                             })
                               ? '#fff'
                               : tinycolor.mostReadable(grp.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                            'font-size': '13px',
+                            'font-size': '14px',
+                            'font-weight': 500,
                           }"
                         >
                           {{ grp.key in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[grp.key] : grp.key }}
@@ -257,5 +259,25 @@ provide(ScrollParentInj, wrapper)
 <style scoped lang="scss">
 :deep(.ant-collapse-content > .ant-collapse-content-box) {
   padding: 12px !important;
+  border-radius: 0 0 12px 12px !important;
+}
+
+:deep(.ant-collapse-item > .ant-collapse-header) {
+  border-radius: 12px !important;
+  background: white;
+}
+
+:deep(.ant-collapse-item-active > .ant-collapse-header) {
+  border-radius: 12px 12px 0 0 !important;
+  background: white;
+  border-bottom: solid 1px lightgray;
+}
+
+:deep(.ant-collapse-borderless > .ant-collapse-item:last-child) {
+  border-radius: 12px !important;
+}
+
+:deep(.ant-collapse > .ant-collapse-item:last-child) {
+  border-radius: 12px !important;
 }
 </style>

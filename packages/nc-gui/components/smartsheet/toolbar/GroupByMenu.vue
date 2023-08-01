@@ -107,8 +107,6 @@ const saveGroupBy = async () => {
       }
 
       eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
-
-      open.value = false
     } catch (e) {
       message.error('There was an error while updating view!')
     }

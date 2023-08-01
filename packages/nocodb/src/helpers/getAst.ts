@@ -118,7 +118,7 @@ const getAst = async ({
     }
     let isRequested;
     if (getHiddenColumn) {
-      isRequested = !isSystemColumn(col);
+      isRequested = !isSystemColumn(col) || col.pk;
     } else {
       isRequested =
         allowedCols && (!includePkByDefault || !col.pk)

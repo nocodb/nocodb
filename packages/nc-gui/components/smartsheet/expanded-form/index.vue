@@ -138,10 +138,12 @@ const onClose = () => {
 
 const onDuplicateRow = () => {
   duplicatingRowInProgress.value = true
+  const oldRow = row.value.row
+  delete oldRow.ncRecordId
   const newRow = Object.assign(
     {},
     {
-      row: row.value.row,
+      row: oldRow,
       oldRow: {},
       rowMeta: { new: true },
     },

@@ -69,7 +69,7 @@ const fields = computedInject(FieldsInj, (_fields) => {
 })
 
 const hiddenFields = computed(() => {
-  return (meta.value.columns ?? []).filter((col) => !fields.value?.includes(col) || !isSystemColumn(col))
+  return (meta.value.columns ?? []).filter((col) => !fields.value?.includes(col)).filter((col) => !isSystemColumn(col))
 })
 
 const showHiddenFields = ref(false)
@@ -362,7 +362,7 @@ export default {
                 />
               </LazySmartsheetDivDataCell>
             </div>
-            <div class="my-8">
+            <div v-if="hiddenFields.length > 0" class="my-8">
               <div class="flex flex-row justify-center">
                 <a-button class="!rounded-md" @click="toggleHiddenFields">
                   {{ showHiddenFields ? 'Hide Hidden Fields' : 'Show Hidden Fields' }}

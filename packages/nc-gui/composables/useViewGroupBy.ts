@@ -239,6 +239,14 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     // clear rest of the children
     group.children = group.children.filter((c) => tempList.find((t) => t.key === c.key))
 
+    if (group.count <= (group.paginationData.pageSize ?? appInfoDefaultLimit)) {
+      if (groupby.sort === 'asc') {
+        group.children.sort((a, b) => (a.key > b.key ? 1 : -1))
+      } else {
+        group.children.sort((a, b) => (a.key < b.key ? 1 : -1))
+      }
+    }
+
     group.paginationData = response.pageInfo
 
     // to cater the case like when querying with a non-zero offset
@@ -323,7 +331,6 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
       refreshNested()
       nextTick(() => reloadViewDataHook?.trigger())
     },
-    { immediate: true },
   )
 
   const findGroupByNestedIn = (nestedIn: GroupNestedIn[], group?: Group, nestLevel = 0): Group => {

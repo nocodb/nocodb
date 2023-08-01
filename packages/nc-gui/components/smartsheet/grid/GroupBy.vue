@@ -77,6 +77,20 @@ onBeforeUnmount(async () => {
 })
 
 reloadViewDataHook?.on(reloadViewDataHandler)
+
+watch(
+  [() => vGroup.value.key],
+  (n, o) => {
+    if (n !== o) {
+      if (vGroup.value.nested) {
+        props.loadGroups({}, vGroup.value)
+      } else {
+        props.loadGroupData(vGroup.value, true)
+      }
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>

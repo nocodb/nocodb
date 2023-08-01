@@ -35,8 +35,6 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
 
   const isGroupBy = computed(() => !!groupBy.value.length)
 
-  const { appInfo } = $(useGlobal())
-
   const { isUIAllowed } = useUIPermission()
 
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
@@ -45,7 +43,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
 
   const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
-  const appInfoDefaultLimit = appInfo.defaultLimit || 25
+  const groupByLimit = 10
 
   const rootGroup = ref<Group>({
     key: 'root',
@@ -53,7 +51,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     count: 0,
     column: {} as any,
     nestedIn: [],
-    paginationData: { page: 1, pageSize: appInfoDefaultLimit },
+    paginationData: { page: 1, pageSize: groupByLimit },
     nested: true,
     children: [],
     root: true,
@@ -67,7 +65,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     groupWrapper.paginationData.page = page
     await loadGroups(
       {
-        offset: (page - 1) * (groupWrapper.paginationData.pageSize || appInfoDefaultLimit),
+        offset: (page - 1) * (groupWrapper.paginationData.pageSize || groupByLimit),
       } as any,
       groupWrapper,
     )
@@ -177,8 +175,8 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
 
     const response = !isPublic.value
       ? await api.dbViewRow.groupBy('noco', project.value.id, view.value.fk_model_id, view.value.id, {
-          offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? appInfoDefaultLimit),
-          limit: group.paginationData.pageSize ?? appInfoDefaultLimit,
+          offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByLimit),
+          limit: group.paginationData.pageSize ?? groupByLimit,
           ...params,
           ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
           ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
@@ -187,8 +185,8 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
           column_name: groupby.column.column_name,
         } as any)
       : await api.public.dataGroupBy(sharedView.value!.uuid!, {
-          offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? appInfoDefaultLimit),
-          limit: group.paginationData.pageSize ?? appInfoDefaultLimit,
+          offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByLimit),
+          limit: group.paginationData.pageSize ?? groupByLimit,
           ...params,
           where: nestedWhere,
           sort: `${groupby.sort === 'desc' ? '-' : ''}${groupby.column.title}`,
@@ -201,7 +199,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
       const keyExists = acc.find((a) => a.key === valueToTitle(curr[groupby.column.column_name!], groupby.column))
       if (keyExists) {
         keyExists.count += +curr.count
-        keyExists.paginationData = { page: 1, pageSize: appInfoDefaultLimit, totalRows: keyExists.count }
+        keyExists.paginationData = { page: 1, pageSize: groupByLimit, totalRows: keyExists.count }
         return acc
       }
       if (groupby.column.title && groupby.column.column_name && groupby.column.uidt) {
@@ -219,7 +217,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
               column_uidt: groupby.column.uidt,
             },
           ],
-          paginationData: { page: 1, pageSize: appInfoDefaultLimit, totalRows: +curr.count },
+          paginationData: { page: 1, pageSize: groupByLimit, totalRows: +curr.count },
           nested: group!.nestedIn.length < groupBy.value.length - 1,
         })
       }
@@ -247,7 +245,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     // clear rest of the children
     group.children = group.children.filter((c) => tempList.find((t) => t.key === c.key))
 
-    if (group.count <= (group.paginationData.pageSize ?? appInfoDefaultLimit)) {
+    if (group.count <= (group.paginationData.pageSize ?? groupByLimit)) {
       group.children.sort((a, b) => {
         const orderA = tempList.findIndex((t) => t.key === a.key)
         const orderB = tempList.findIndex((t) => t.key === b.key)
@@ -271,14 +269,14 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     if (group.children && !force) return
 
     if (!group.paginationData) {
-      group.paginationData = { page: 1, pageSize: appInfoDefaultLimit }
+      group.paginationData = { page: 1, pageSize: groupByLimit }
     }
 
     const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
 
     const query = {
-      offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? appInfoDefaultLimit),
-      limit: group.paginationData.pageSize ?? appInfoDefaultLimit,
+      offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByLimit),
+      limit: group.paginationData.pageSize ?? groupByLimit,
       where: `${nestedWhere}`,
     }
 
@@ -297,7 +295,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
 
   const loadGroupPage = async (group: Group, p: number) => {
     if (!group.paginationData) {
-      group.paginationData = { page: 1, pageSize: appInfoDefaultLimit }
+      group.paginationData = { page: 1, pageSize: groupByLimit }
     }
     group.paginationData.page = p
     await loadGroupData(group, true)
@@ -333,7 +331,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
   watch(
     () => groupBy.value.length,
     async () => {
-      rootGroup.value.paginationData = { page: 1, pageSize: appInfoDefaultLimit }
+      rootGroup.value.paginationData = { page: 1, pageSize: groupByLimit }
       rootGroup.value.column = {} as any
       await loadGroups()
       refreshNested()

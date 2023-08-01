@@ -120,22 +120,15 @@ const getAst = async ({
     if (getHiddenColumn) {
       isRequested = true;
     } else {
-      if (allowedCols && (!includePkByDefault || !col.pk)) {
-        if (
-          allowedCols[col.id] &&
-          (!isSystemColumn(col) || view.show_system_fields || col.pv) &&
-          (!fields?.length || fields.includes(col.title)) &&
-          value
-        ) {
-          isRequested = value;
-        }
-      } else {
-        if (fields?.length && fields.includes(col.title) && value) {
-          isRequested = value;
-        } else {
-          isRequested = value;
-        }
-      }
+      isRequested =
+        allowedCols && (!includePkByDefault || !col.pk)
+          ? allowedCols[col.id] &&
+            (!isSystemColumn(col) || view.show_system_fields || col.pv) &&
+            (!fields?.length || fields.includes(col.title)) &&
+            value
+          : fields?.length
+          ? fields.includes(col.title) && value
+          : value;
     }
     if (isRequested || col.pk) await extractDependencies(col, dependencyFields);
 

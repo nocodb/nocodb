@@ -126,7 +126,7 @@ export default class Local implements IStorageAdapterV2 {
     throw404 = false,
   ): string {
     // Get the absolute path to the base directory
-    const absoluteBasePath = path.resolve(getToolDir());
+    const absoluteBasePath = path.resolve(getToolDir(), 'nc');
 
     // Get the absolute path to the file
     const absolutePath = path.resolve(

@@ -1,10 +1,6 @@
 import { Injectable, SetMetadata, UseInterceptors } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import {
-  OrgUserRoles,
-  ProjectRoles,
-  WorkspaceUserRoles,
-} from 'nocodb-sdk';
+import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import { map } from 'rxjs';
 import type { Observable } from 'rxjs';
 import type {

@@ -326,8 +326,8 @@ export default class ProjectUser {
         );
       })
       .where(
-          `${MetaTable.PROJECT_USERS}.fk_user_id`,
-          ncMeta.knex.raw('?', [userId]),
+        `${MetaTable.PROJECT_USERS}.fk_user_id`,
+        ncMeta.knex.raw('?', [userId]),
       )
       .where(function () {
         this.where(`${MetaTable.PROJECT}.deleted`, false).orWhereNull(
@@ -348,7 +348,7 @@ export default class ProjectUser {
           this.where(`${MetaTable.PROJECT_USERS}.fk_user_id`, userId)
             .whereNot(`${MetaTable.PROJECT_USERS}.roles`, ProjectRoles.OWNER)
             .whereNotNull(`${MetaTable.PROJECT_USERS}.roles`);
-        })
+        });
       });
     }
 

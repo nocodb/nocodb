@@ -53,7 +53,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         //     })
         //     .catch(() => resolve(null));
         // } else {
-          resolve(null);
+        resolve(null);
         // }
       }),
       // extract project level roles

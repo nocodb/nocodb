@@ -8,6 +8,16 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
+import { AppHooksService } from './app-hooks/app-hooks.service';
+import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
+import type { LinkToAnotherRecordColumn, Project } from '~/models';
+import type {
+  ColumnReqType,
+  LinkToAnotherColumnReqType,
+  LinkToAnotherRecordType,
+  RelationTypes,
+  UserType,
+} from 'nocodb-sdk';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import {
@@ -32,16 +42,6 @@ import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
-import { AppHooksService } from './app-hooks/app-hooks.service';
-import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
-import type { LinkToAnotherRecordColumn, Project } from '~/models';
-import type {
-  ColumnReqType,
-  LinkToAnotherColumnReqType,
-  LinkToAnotherRecordType,
-  RelationTypes,
-  UserType,
-} from 'nocodb-sdk';
 
 // todo: move
 export enum Altered {

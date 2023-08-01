@@ -1,8 +1,8 @@
 import { ProjectTypes } from 'nocodb-sdk';
+import type { ProjectType } from 'nocodb-sdk';
 import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
-import type { ProjectType } from 'nocodb-sdk';
 
 export default class DashboardProjectDBProject {
   dashboard_project_id: string;

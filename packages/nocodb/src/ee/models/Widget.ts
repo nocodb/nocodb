@@ -1,6 +1,3 @@
-import { extractProps } from '~/helpers/extractProps';
-import { MetaTable } from '~/utils/globals';
-import Noco from '~/Noco';
 import type {
   AppearanceConfig,
   DataConfig,
@@ -9,6 +6,9 @@ import type {
   WidgetType,
   WidgetTypeType,
 } from 'nocodb-sdk';
+import { extractProps } from '~/helpers/extractProps';
+import { MetaTable } from '~/utils/globals';
+import Noco from '~/Noco';
 
 export type JSONStringOrObject = string | Record<string, unknown> | any;
 

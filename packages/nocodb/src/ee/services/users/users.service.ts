@@ -13,11 +13,6 @@ import { isEmail } from 'validator';
 import { T } from 'nc-help';
 import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
-import { NC_APP_SETTINGS } from '~/constants';
-import { validatePayload } from '~/helpers';
-import { MetaService, MetaTable } from '~/meta/meta.service';
-import Noco from '~/Noco';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { genJwt, setTokenCookie } from './helpers';
 import type {
   PasswordChangeReqType,
@@ -26,6 +21,11 @@ import type {
   SignUpReqType,
   UserType,
 } from 'nocodb-sdk';
+import { NC_APP_SETTINGS } from '~/constants';
+import { validatePayload } from '~/helpers';
+import { MetaService, MetaTable } from '~/meta/meta.service';
+import Noco from '~/Noco';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { Store, User, Workspace, WorkspaceUser } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';

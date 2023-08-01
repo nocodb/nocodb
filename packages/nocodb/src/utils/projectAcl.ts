@@ -514,5 +514,4 @@ Object.assign(
   rolePermissions['commenter'].include,
 );
 
-
 export default rolePermissions;

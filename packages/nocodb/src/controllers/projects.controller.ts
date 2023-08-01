@@ -13,12 +13,12 @@ import {
 } from '@nestjs/common';
 import isDocker from 'is-docker';
 import { ProjectReqType } from 'nocodb-sdk';
+import type { ProjectType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import Noco from '~/Noco';
 import { packageVersion } from '~/utils/packageVersion';
 import { ProjectsService } from '~/services/projects.service';
-import type { ProjectType } from 'nocodb-sdk';
 import {
   Acl,
   ExtractIdsMiddleware,

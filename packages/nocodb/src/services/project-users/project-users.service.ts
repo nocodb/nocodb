@@ -1,17 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import {
-  AppEvents,
-  OrgUserRoles,
-  PluginCategory,
-} from 'nocodb-sdk';
+import { AppEvents, OrgUserRoles, PluginCategory } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import * as ejs from 'ejs';
 import validator from 'validator';
+import type { ProjectUserReqType, UserType } from 'nocodb-sdk';
 import NocoCache from '~/cache/NocoCache';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import type { ProjectUserReqType, UserType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';

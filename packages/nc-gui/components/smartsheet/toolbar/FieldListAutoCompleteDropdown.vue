@@ -4,7 +4,7 @@ import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { ActiveViewInj, MetaInj, computed, inject, ref, resolveComponent, useViewColumns } from '#imports'
 
-const props = defineProps<{
+const { modelValue, isSort, allowEmpty, ...restProps } = defineProps<{
   modelValue?: string
   isSort?: boolean
   columns?: ColumnType[]
@@ -13,9 +13,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
-const { modelValue, isSort, allowEmpty } = props
-
-const customColumns = toRef(props, 'columns')
+const customColumns = toRef(restProps, 'columns')
 
 const meta = inject(MetaInj, ref())
 

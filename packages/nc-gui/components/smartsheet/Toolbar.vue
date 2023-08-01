@@ -31,7 +31,7 @@ const { allowCSVDownload } = useSharedView()
     style="z-index: 7"
   >
     <template v-if="isViewsLoading">
-      <a-skeleton-input :active="true" class="!w-40 !h-4 !rounded overflow-hidden" />
+      <a-skeleton-input :active="true" class="!w-44 !h-4 ml-2 !rounded overflow-hidden" />
     </template>
     <template v-else>
       <LazySmartsheetToolbarViewInfo v-if="!isPublic" />

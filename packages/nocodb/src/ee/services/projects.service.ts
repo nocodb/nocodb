@@ -19,7 +19,7 @@ import { getToolDir } from '~/utils/nc-config';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable } from '~/utils/globals';
-import { AppHooksService } from './app-hooks/app-hooks.service';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import type {
   ProjectReqType,
   ProjectUpdateReqType,

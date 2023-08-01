@@ -1,13 +1,13 @@
-import { extractProps } from '../helpers/extractProps';
-import Noco from '../Noco';
-import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-
-import { NcError } from '../helpers/catchError';
-import NocoCache from '../cache/NocoCache';
-import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
-import Page from './Page';
 import type { WorkspaceType } from 'nocodb-sdk';
 import type { WorkspacePlan, WorkspaceStatus } from 'nocodb-sdk';
+import { extractProps } from '~/helpers/extractProps';
+import Noco from '~/Noco';
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+
+import { NcError } from '~/helpers/catchError';
+import NocoCache from '~/cache/NocoCache';
+import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import Page from '~/models/Page';
 
 export default class Workspace implements WorkspaceType {
   id?: string;

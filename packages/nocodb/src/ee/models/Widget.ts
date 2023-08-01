@@ -1,6 +1,6 @@
-import { extractProps } from '../helpers/extractProps';
-import { MetaTable } from '../utils/globals';
-import Noco from '../Noco';
+import { extractProps } from '~/helpers/extractProps';
+import { MetaTable } from '~/utils/globals';
+import Noco from '~/Noco';
 import type {
   AppearanceConfig,
   DataConfig,

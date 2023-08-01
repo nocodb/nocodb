@@ -1,11 +1,7 @@
 import { T } from 'nc-help';
 import { Injectable } from '@nestjs/common';
-import { validatePayload } from '../../helpers';
-import type {
-  FilterReqType,
-  WidgetReqType,
-  WidgetUpdateReqType,
-} from 'nocodb-sdk';
+import type { FilterReqType } from 'nocodb-sdk';
+import { validatePayload } from '~/helpers';
 import Filter from '~/models/Filter';
 
 Injectable();

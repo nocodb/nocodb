@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { DataSourceType, WidgetTypeType } from 'nocodb-sdk';
-import { getViewAndModelByAliasOrId } from '../../modules/datas/helpers';
+import { getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
 import { WidgetsService } from './widgets.service';
-import type { PathParams } from '../../modules/datas/helpers';
+import type { PathParams } from '~/modules/datas/helpers';
 import type {
   AppearanceConfig,
   ChartWidget,

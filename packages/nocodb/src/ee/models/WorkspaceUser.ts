@@ -1,7 +1,7 @@
-import Noco from '../Noco';
-import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import { extractProps } from '../helpers/extractProps';
-import NocoCache from '../cache/NocoCache';
+import Noco from '~/Noco';
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import { extractProps } from '~/helpers/extractProps';
+import NocoCache from '~/cache/NocoCache';
 
 export default class WorkspaceUser {
   fk_workspace_id: string;

@@ -52,7 +52,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
 
     WidgetsController,
     LayoutsController,
-    LayoutFilterController
+    LayoutFilterController,
   ],
 })
 export class MetasModule {}

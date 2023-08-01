@@ -1,7 +1,7 @@
 import { T } from 'nc-help';
 import { Injectable } from '@nestjs/common';
 import { DataSourceType } from 'nocodb-sdk';
-import { validatePayload } from '../../helpers';
+import { validatePayload } from '~/helpers';
 import type { WidgetReqType, WidgetUpdateReqType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import Layout from '~/models/Layout';
@@ -17,7 +17,7 @@ export class WidgetsService {
     const layoutOfWidget = await Layout.get(layoutIdOfWidget);
     const dashboardProject = await Project.get(layoutOfWidget.project_id);
     const linkedDbProjectIds = (
-      await dashboardProject.getLinkedDbProjects()
+      await (dashboardProject as Project).getLinkedDbProjects()
     ).map((linkedDbProject) => linkedDbProject.id);
     const parsedDataSource =
       typeof dataSource === 'object' ? dataSource : JSON.parse(dataSource);

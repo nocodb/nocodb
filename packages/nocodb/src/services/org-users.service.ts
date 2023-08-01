@@ -1,27 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { T } from 'nc-help';
-import {
-  AppEvents,
-  AuditOperationSubTypes,
-  AuditOperationTypes,
-  OrgUserRoles,
-  PluginCategory,
-} from 'nocodb-sdk';
+import { AppEvents, OrgUserRoles, PluginCategory } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
-import { NC_APP_SETTINGS } from '../constants';
-import { validatePayload } from '../helpers';
-import { NcError } from '../helpers/catchError';
-import { extractProps } from '../helpers/extractProps';
-import { randomTokenString } from '../helpers/stringHelpers';
-import { Audit, ProjectUser, Store, SyncSource, User } from '../models';
-
-import Noco from '../Noco';
-import extractRolesObj from '../utils/extractRolesObj';
-import { MetaTable } from '../utils/globals';
-import { AppHooksService } from './app-hooks/app-hooks.service';
-import { ProjectUsersService } from './project-users/project-users.service';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { ProjectUsersService } from '~/services/project-users/project-users.service';
 import type { UserType } from 'nocodb-sdk';
+import { NC_APP_SETTINGS } from '~/constants';
+import { validatePayload } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
+import { extractProps } from '~/helpers/extractProps';
+import { randomTokenString } from '~/helpers/stringHelpers';
+import { ProjectUser, Store, SyncSource, User } from '~/models';
+
+import Noco from '~/Noco';
+import extractRolesObj from '~/utils/extractRolesObj';
+import { MetaTable } from '~/utils/globals';
 
 @Injectable()
 export class OrgUsersService {

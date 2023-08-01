@@ -1,7 +1,7 @@
 import { ProjectTypes } from 'nocodb-sdk';
-import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import Noco from '../Noco';
-import { extractProps } from '../helpers/extractProps';
+import { MetaTable } from '~/utils/globals';
+import Noco from '~/Noco';
+import { extractProps } from '~/helpers/extractProps';
 import type { ProjectType } from 'nocodb-sdk';
 
 export default class DashboardProjectDBProject {

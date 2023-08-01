@@ -1,8 +1,8 @@
-import { extractProps } from '../helpers/extractProps';
-import { MetaTable } from '../utils/globals';
-import Noco from '../Noco';
-import Widget from './Widget';
 import type { LayoutReqType, LayoutType } from 'nocodb-sdk';
+import { extractProps } from '~/helpers/extractProps';
+import { MetaTable } from '~/utils/globals';
+import Noco from '~/Noco';
+import Widget from '~/models/Widget';
 
 export default class Layout implements LayoutType {
   id?: string;

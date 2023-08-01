@@ -101,7 +101,7 @@ watch(
           <div
             class="bumper mb-2"
             style="background-color: rgb(252, 252, 252); border-color: rgb(242, 244, 247); border-bottom-width: 1px"
-            :style="{ 'padding-left': `${(maxDepth || 1) * 16}px` }"
+            :style="{ 'padding-left': `${(maxDepth || 1) * 12 + 12}px` }"
           ></div>
           <Table class="mb-2" :data="[]" :header-only="true" />
         </div>

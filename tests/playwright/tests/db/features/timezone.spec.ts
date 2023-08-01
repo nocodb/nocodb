@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
+import setup, { NcContext } from '../../../setup';
 import { knex } from 'knex';
 import { Api, ProjectListType, UITypes } from 'nocodb-sdk';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
@@ -8,8 +8,8 @@ import { isHub, isMysql, isPg, isSqlite } from '../../../setup/db';
 import { getKnexConfig } from '../../utils/config';
 import { getBrowserTimezoneOffset } from '../../utils/general';
 import config from '../../../playwright.config';
-let api: Api<any>, records: any[];
-let context: any;
+// let api: Api<any>, records: any[];
+// let context: any;
 
 const columns = [
   {
@@ -32,11 +32,11 @@ const rowAttributes = [
   { Id: 3, DateTime: '2020-12-31 20:00:00-04:00' },
 ];
 
-async function timezoneSuite(token: string, projectTitle: string, skipTableCreate?: boolean) {
-  api = new Api({
+async function timezoneSuite(projectTitle: string, context: NcContext, skipTableCreate?: boolean) {
+  const api = new Api({
     baseURL: `http://localhost:8080/`,
     headers: {
-      'xc-auth': token,
+      'xc-auth': context.token,
     },
   });
   // get current workspace information if in hub
@@ -60,18 +60,18 @@ async function timezoneSuite(token: string, projectTitle: string, skipTableCreat
 
   const project = await api.project.create({ title: projectTitle, fk_workspace_id: workspaceId, type: 'database' });
 
-  if (skipTableCreate) return { project };
+  if (skipTableCreate) return { project, api };
   const table = await api.base.tableCreate(project.id, project.bases?.[0].id, {
     table_name: 'dateTimeTable',
     title: 'dateTimeTable',
     columns: columns,
   });
-  return { project, table };
+  return { project, table, api };
 }
 
 // with appropriate credentials, connect to external db
 //
-async function connectToExtDb(context: any, dbName: string) {
+async function connectToExtDb(context: any, dbName: string, api: Api<any>) {
   if (isPg(context)) {
     await api.base.create(context.project.id, {
       alias: dbName,
@@ -114,14 +114,15 @@ async function connectToExtDb(context: any, dbName: string) {
 // serial : as we are creating an external db, we need to run the tests sequentially
 test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
   let dashboard: DashboardPage;
-
+  let api: Api<any>, records: any[];
+  let context: any;
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     if (!isSqlite(context) && !isHub()) return;
 
     try {
-      const { project, table } = await timezoneSuite(context.token, 'xcdb0');
+      const { project, table, api } = await timezoneSuite('xcdb0', context);
 
       await api.dbTableRow.bulkCreate('noco', project.id, table.id, rowAttributes);
       records = await api.dbTableRow.list('noco', project.id, table.id, { limit: 10 });
@@ -220,13 +221,13 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
 //
 test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
   let dashboard: DashboardPage;
-
+  let context: any;
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
 
     try {
-      const { project, table } = await timezoneSuite(context.token, 'xcdb1');
+      const { project, table, api } = await timezoneSuite('xcdb1', context);
       await dashboard.rootPage.reload();
 
       await api.dbTableRow.bulkCreate('noco', project.id, table.id, rowAttributes);
@@ -291,7 +292,8 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
 
 test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
   let dashboard: DashboardPage;
-
+  let gApi: Api<any>, records: any[];
+  let context: any;
   test.use({
     locale: 'zh-HK',
     timezoneId: 'Asia/Hong_Kong',
@@ -301,7 +303,8 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
 
-    const { project } = await timezoneSuite(context.token, 'xcdb2', true);
+    const { project, api } = await timezoneSuite('xcdb2', context, true);
+    gApi = api;
     await dashboard.rootPage.reload();
 
     context.project = project;
@@ -317,7 +320,12 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
       await projectsPage.openProject({ title: 'xcdb2', withoutPrefix: true });
     }
 
-    await dashboard.treeView.createTable({ title: 'dateTimeTable', mode: 'Xcdb', projectTitle: context.project.title });
+    await dashboard.treeView.createTable({
+      title: 'dateTimeTable',
+      mode: 'Xcdb',
+      projectTitle: context.project.title,
+      skipOpeningModal: false,
+    });
     await dashboard.grid.column.create({
       title: 'DateTime',
       type: 'DateTime',
@@ -346,7 +354,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
    */
   test('Cell insert', async () => {
     // Verify stored value in database is UTC
-    records = await api.dbTableRow.list('noco', context.project.id, 'dateTimeTable', { limit: 10 });
+    records = await gApi.dbTableRow.list('noco', context.project.id, 'dateTimeTable', { limit: 10 });
 
     const readDate = records.list[0].DateTime;
     // skip seconds from readDate
@@ -380,7 +388,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     });
     await dashboard.expandedForm.save();
 
-    records = await api.dbTableRow.list('noco', context.project.id, 'dateTimeTable', { limit: 10 });
+    records = await gApi.dbTableRow.list('noco', context.project.id, 'dateTimeTable', { limit: 10 });
     const readDate = records.list[0].DateTime;
     // skip seconds from readDate
     // stored value expected to be in UTC
@@ -425,7 +433,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     expect(await dashboard.grid.cell.getClipboardText()).toBe('2021-01-01 08:00');
     await dashboard.grid.cell.pasteFromClipboard({ index: 1, columnHeader: 'DateTime' });
 
-    records = await api.dbTableRow.list('noco', context.project.id, 'dateTimeTable', { limit: 10 });
+    records = await gApi.dbTableRow.list('noco', context.project.id, 'dateTimeTable', { limit: 10 });
     expect(records.list.length).toBe(2);
     const readDate = records.list[1].DateTime;
     // skip seconds from readDate
@@ -559,7 +567,8 @@ function getDateTimeInUTCTimeZone(dateString: string) {
 
 test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same as server timezone', async () => {
   let dashboard: DashboardPage;
-
+  let api: Api<any>;
+  let context: any;
   let counter = 0;
 
   const expectedDisplayValues = {
@@ -619,7 +628,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
   //  - verify API response value
   //
   test('Formula, verify display value', async () => {
-    await connectToExtDb(context, `datetimetable01${counter}`);
+    await connectToExtDb(context, `datetimetable01${counter}`, api);
     await dashboard.rootPage.reload();
     await dashboard.rootPage.waitForTimeout(2000);
 
@@ -779,7 +788,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
   });
 
   test('Verify display value, UI insert, API response', async () => {
-    await connectToExtDb(context, `datetimetable01${counter}`);
+    await connectToExtDb(context, `datetimetable01${counter}`, api);
     await dashboard.rootPage.reload();
     await dashboard.rootPage.waitForTimeout(2000);
 
@@ -913,7 +922,8 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
 
 test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to HKT', async () => {
   let dashboard: DashboardPage;
-
+  let api: Api<any>;
+  let context: any;
   test.use({
     locale: 'zh-HK',
     timezoneId: 'Asia/Hong_Kong',
@@ -938,7 +948,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
   //  - verify API response value
   //
   test('Formula, verify display value', async () => {
-    await connectToExtDb(context, 'datetimetable02');
+    await connectToExtDb(context, 'datetimetable02', api);
     await dashboard.rootPage.reload();
     await dashboard.rootPage.waitForTimeout(2000);
 
@@ -1048,7 +1058,8 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
 
 test.describe.serial('Timezone- ExtDB (MySQL Only) : DB Timezone configured as HKT', () => {
   let dashboard: DashboardPage;
-
+  let api: Api<any>;
+  let context: any;
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
@@ -1088,7 +1099,7 @@ test.describe.serial('Timezone- ExtDB (MySQL Only) : DB Timezone configured as H
     const formattedOffset = getBrowserTimezoneOffset();
 
     // connect after timezone is set
-    await connectToExtDb(context, 'datetimetable03');
+    await connectToExtDb(context, 'datetimetable03', api);
 
     await dashboard.rootPage.reload();
     await dashboard.rootPage.waitForTimeout(2000);

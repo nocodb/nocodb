@@ -11,7 +11,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
 
   const { sharedView, fetchSharedViewData } = useSharedView()
 
-  const fields = inject(FieldsInj, ref([]))
+  const meta = inject(MetaInj)
 
   const { gridViewCols } = useGridViewColumnOrThrow()
 
@@ -19,7 +19,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     const tempGroupBy: { column: ColumnType; sort: string; order?: number }[] = []
     Object.values(gridViewCols.value).forEach((col) => {
       if (col.group_by) {
-        const column = fields.value.find((f) => f.id === col.fk_column_id)
+        const column = meta?.value.columns?.find((f) => f.id === col.fk_column_id)
         if (column) {
           tempGroupBy.push({
             column,
@@ -326,7 +326,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     () => groupBy.value.length,
     async () => {
       rootGroup.value.paginationData = { page: 1, pageSize: appInfoDefaultLimit }
-      rootGroup.value.column = groupBy.value[0]
+      rootGroup.value.column = {} as any
       await loadGroups()
       refreshNested()
       nextTick(() => reloadViewDataHook?.trigger())

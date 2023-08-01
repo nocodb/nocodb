@@ -16,7 +16,7 @@ import {
   useRouter,
   useSidebar,
   useUIPermission,
-  useViews,
+  useViewsStore,
   watch,
 } from '#imports'
 import FieldIcon from '~icons/nc-icons/eye'
@@ -31,9 +31,8 @@ const activeView = inject(ActiveViewInj, ref())
 
 const { activeTab } = storeToRefs(useTabs())
 
-const { views, loadViews } = useViews(meta)
-
-const { isViewsLoading } = storeToRefs(useViewsStore())
+const { isViewsLoading, views } = storeToRefs(useViewsStore())
+const { loadViews } = useViewsStore()
 
 const { lastOpenedViewMap } = storeToRefs(useProject())
 
@@ -152,6 +151,8 @@ const onResize = () => {
 
   const remToPx = parseFloat(getComputedStyle(document.documentElement).fontSize)
 
+  if (!tabBtnsContainerRef?.value?.offsetWidth) return
+
   if (tabBtnsContainerRef?.value?.offsetWidth < 13 * remToPx) {
     minimalMode.value = true
   } else {
@@ -185,7 +186,7 @@ onUnmounted(() => {
     <div
       v-else
       ref="tabBtnsContainerRef"
-      class="flex flex-row p-1 mx-3 mt-3 mb-3 bg-gray-50 rounded-md gap-x-2 nc-view-sidebar-tab"
+      class="flex flex-row p-1 mx-3 mt-3 mb-3 bg-gray-50 rounded-md gap-x-2 nc-view-sidebar-tab f"
     >
       <div
         class="tab"
@@ -284,12 +285,14 @@ onUnmounted(() => {
       </div>
       <template v-else>
         <template v-if="openedTab === 'views'">
-          <LazySmartsheetSidebarMenuTop :views="views" @open-modal="onOpenModal" @deleted="loadViews" />
-          <template v-if="isUIAllowed('virtualViewsCreateOrEdit')">
-            <div class="!mb-3 w-full border-b-1 border-gray-75" />
+          <div class="flex flex-col h-full justify-between">
+            <LazySmartsheetSidebarMenuTop :views="views" @open-modal="onOpenModal" @deleted="loadViews" />
+            <template v-if="isUIAllowed('virtualViewsCreateOrEdit')">
+              <div class="!mb-3 w-full border-b-1 border-gray-75" />
 
-            <LazySmartsheetSidebarMenuBottom @open-modal="onOpenModal" />
-          </template>
+              <LazySmartsheetSidebarMenuBottom @open-modal="onOpenModal" />
+            </template>
+          </div>
         </template>
         <LazySmartsheetSidebarToolbarDeveloper v-if="openedTab === 'developer'" />
       </template>

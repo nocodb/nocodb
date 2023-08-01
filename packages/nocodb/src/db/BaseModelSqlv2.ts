@@ -129,6 +129,7 @@ class BaseModelSqlv2 {
     id?: any,
     validateFormula = false,
     query: any = {},
+    getHiddenColumn = false,
   ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
 
@@ -136,6 +137,7 @@ class BaseModelSqlv2 {
       query,
       model: this.model,
       view: this.viewId && (await View.get(this.viewId)),
+      getHiddenColumn,
     });
 
     await this.selectObject({

@@ -68,6 +68,16 @@ const fields = computedInject(FieldsInj, (_fields) => {
   return _fields?.value ?? []
 })
 
+const hiddenFields = computed(() => {
+  return (meta.value.columns ?? []).filter((col) => !fields.value?.includes(col) || !isSystemColumn(col))
+})
+
+const showHiddenFields = ref(false)
+
+const toggleHiddenFields = () => {
+  showHiddenFields.value = !showHiddenFields.value
+}
+
 const isKanban = inject(IsKanbanInj, ref(false))
 
 provide(MetaInj, meta)
@@ -351,6 +361,39 @@ export default {
                   @update:model-value="changedColumns.add(col.title)"
                 />
               </LazySmartsheetDivDataCell>
+            </div>
+            <div class="my-8">
+              <div class="flex flex-row justify-center">
+                <a-button type="primary" @click="toggleHiddenFields"> Show Hidden Fields </a-button>
+              </div>
+              <div
+                v-for="(col, i) of hiddenFields"
+                v-show="(!isVirtualCol(col) || !isNew || isLinksOrLTAR(col)) && showHiddenFields"
+                :key="col.title"
+                class="mt-2 py-2"
+                :class="`nc-expand-col-${col.title}`"
+                :data-testid="`nc-expand-col-${col.title}`"
+              >
+                <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
+
+                <LazySmartsheetHeaderCell v-else :column="col" />
+
+                <LazySmartsheetDivDataCell
+                  :ref="i ? null : (el) => (cellWrapperEl = el)"
+                  class="!bg-white rounded px-1 min-h-[35px] flex items-center mt-2 relative"
+                >
+                  <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
+
+                  <LazySmartsheetCell
+                    v-else
+                    v-model="row.row[col.title]"
+                    :column="col"
+                    :edit-enabled="true"
+                    :active="true"
+                    @update:model-value="changedColumns.add(col.title)"
+                  />
+                </LazySmartsheetDivDataCell>
+              </div>
             </div>
           </div>
         </div>

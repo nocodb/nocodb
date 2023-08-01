@@ -18,6 +18,7 @@ const getAst = async ({
     nested: { ...(query?.nested || {}) },
     fieldsSet: new Set(),
   },
+  getHiddenColumn = false,
 }: {
   query?: RequestQuery;
   extractOnlyPrimaries?: boolean;
@@ -25,6 +26,7 @@ const getAst = async ({
   model: Model;
   view?: View;
   dependencyFields?: DependantFields;
+  getHiddenColumn?: boolean;
 }) => {
   // set default values of dependencyFields and nested
   dependencyFields.nested = dependencyFields.nested || {};
@@ -114,16 +116,27 @@ const getAst = async ({
         })
       ).ast;
     }
-
-    const isRequested =
-      allowedCols && (!includePkByDefault || !col.pk)
-        ? allowedCols[col.id] &&
+    let isRequested;
+    if (getHiddenColumn) {
+      isRequested = true;
+    } else {
+      if (allowedCols && (!includePkByDefault || !col.pk)) {
+        if (
+          allowedCols[col.id] &&
           (!isSystemColumn(col) || view.show_system_fields || col.pv) &&
           (!fields?.length || fields.includes(col.title)) &&
           value
-        : fields?.length
-        ? fields.includes(col.title) && value
-        : value;
+        ) {
+          isRequested = value;
+        }
+      } else {
+        if (fields?.length && fields.includes(col.title) && value) {
+          isRequested = value;
+        } else {
+          isRequested = value;
+        }
+      }
+    }
     if (isRequested || col.pk) await extractDependencies(col, dependencyFields);
 
     return {

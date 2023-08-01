@@ -34,9 +34,12 @@ watch(
   { immediate: true },
 )
 
-onMounted(() => {
-  useTitle(`${openedProject.value?.title}`)
-})
+watch(
+  () => openedProject.value?.title,
+  () => {
+    useTitle(`${openedProject.value?.title}`)
+  },
+)
 </script>
 
 <template>

@@ -46,6 +46,7 @@ import {
   useUIPermission,
   useUndoRedo,
   useViewData,
+  useViewsStore,
   watch,
 } from '#imports'
 import type { Row } from '~/lib'
@@ -87,6 +88,8 @@ const { appInfo } = useGlobal()
 const isPublicView = inject(IsPublicInj, ref(false))
 
 const { xWhere, isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
+
+const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
 const visibleColLength = $computed(() => fields.value?.length)
 
@@ -915,8 +918,6 @@ provide(ReloadRowDataHookInj, reloadViewDataHook)
 
 const switchingTab = ref(false)
 
-const isViewDataLoading = ref(false)
-
 watch(
   () => route.params.viewId,
   () => {
@@ -1193,7 +1194,7 @@ const dummyDataForLoading = computed(() => {
             @contextmenu="showContextMenu"
           >
             <thead ref="tableHeadEl">
-              <tr v-if="isViewDataLoading">
+              <tr v-if="isViewDataLoading || isPaginationLoading">
                 <td
                   v-for="(col, colIndex) of dummyDataForLoading"
                   :key="colIndex"
@@ -1352,7 +1353,7 @@ const dummyDataForLoading = computed(() => {
               </tr>
             </thead>
             <tbody ref="tableBodyEl">
-              <template v-if="isViewDataLoading">
+              <template v-if="isViewDataLoading || isPaginationLoading">
                 <tr v-for="(row, rowIndex) of dummyDataForLoading" :key="rowIndex">
                   <td
                     v-for="(col, colIndex) of dummyDataForLoading"
@@ -1462,7 +1463,7 @@ const dummyDataForLoading = computed(() => {
                         @dblclick="makeEditable(row, columnObj)"
                         @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
                       >
-                        <div v-if="!switchingTab && !isViewDataLoading" class="w-full h-full">
+                        <div v-if="!switchingTab" class="w-full h-full">
                           <LazySmartsheetVirtualCell
                             v-if="isVirtualCol(columnObj)"
                             v-model="row.row[columnObj.title]"

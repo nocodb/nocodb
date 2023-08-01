@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChangePageInj, PaginationDataInj, computed, iconMap, inject } from '#imports'
+import { ChangePageInj, PaginationDataInj, computed, iconMap, inject, useViewsStore } from '#imports'
 import SidebarIcon from '~icons/nc-icons/sidebar'
 
 const props = defineProps<{
@@ -13,6 +13,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { isLeftSidebarOpen, isRightSidebarOpen } = storeToRefs(useSidebarStore())
 
+const { isPaginationLoading } = storeToRefs(useViewsStore())
+
 const paginatedData = inject(PaginationDataInj)!
 
 const changePage = inject(ChangePageInj)!
@@ -23,8 +25,15 @@ const size = computed(() => paginatedData.value?.pageSize ?? 25)
 
 const page = computed({
   get: () => paginatedData?.value?.page ?? 1,
-  set: (p) => {
-    changePage?.(p)
+  set: async (p) => {
+    isPaginationLoading.value = true
+    try {
+      await changePage?.(p)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      isPaginationLoading.value = false
+    }
   },
 })
 </script>

@@ -94,7 +94,7 @@ watch(
   { immediate: true },
 )
 
-provide(ScrollParentInj, wrapper)
+if (vGroup.value.root === true) provide(ScrollParentInj, wrapper)
 </script>
 
 <template>

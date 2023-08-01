@@ -11220,6 +11220,15 @@
           "in": "path",
           "required": true,
           "description": "Unique Row ID"
+        },
+        {
+          "name": "getHiddenColumn",
+          "in": "query",
+          "description": "To get Hidden Columns",
+          "required": false,
+          "schema": {
+            "type": "boolean"
+          }
         }
       ],
       "get": {

@@ -8,7 +8,6 @@ import { Api, UITypes } from 'nocodb-sdk';
 import { isMysql, isSqlite } from '../../../setup/db';
 
 const hookPath = 'http://localhost:9090/hook';
-let api: Api<any>;
 
 // clear server data
 async function clearServerData({ request }) {
@@ -104,6 +103,8 @@ async function buildExpectedResponseData(type, value, oldValue?) {
 }
 
 test.describe.serial('Webhook', () => {
+  let api: Api<any>;
+
   // start a server locally for webhook tests
 
   let dashboard: DashboardPage, webhook: WebhookFormPage;
@@ -653,7 +654,7 @@ test.describe.serial('Webhook', () => {
       await api.dbTableRow.nestedAdd('noco', context.project.id, countryTable.title, 3, 'hm', 'CityList', '4');
       //
       // create formula column
-      countryTable = await api.dbTableColumn.create(countryTable.id, {
+      await api.dbTableColumn.create(countryTable.id, {
         column_name: 'CityCodeFormula',
         title: 'CityCodeFormula',
         uidt: UITypes.Formula,

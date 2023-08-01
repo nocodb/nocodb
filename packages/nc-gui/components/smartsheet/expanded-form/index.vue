@@ -364,7 +364,9 @@ export default {
             </div>
             <div class="my-8">
               <div class="flex flex-row justify-center">
-                <a-button type="primary" @click="toggleHiddenFields"> Show Hidden Fields </a-button>
+                <a-button class="!rounded-md" @click="toggleHiddenFields">
+                  {{ showHiddenFields ? 'Hide Hidden Fields' : 'Show Hidden Fields' }}
+                </a-button>
               </div>
               <div
                 v-for="(col, i) of hiddenFields"

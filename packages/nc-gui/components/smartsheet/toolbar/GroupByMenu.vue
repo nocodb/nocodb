@@ -81,7 +81,6 @@ useMenuCloseOnEsc(open)
 const saveGroupBy = async () => {
   if (view.value?.id) {
     try {
-      console.log('saveGroupBy', _groupBy.value)
       for (const gby of _groupBy.value) {
         if (!gby.fk_column_id) continue
         const col = gridViewCols.value[gby.fk_column_id]

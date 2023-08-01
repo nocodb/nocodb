@@ -14,7 +14,7 @@ import {
 } from '#imports'
 
 const [useProvideGridViewColumn, useGridViewColumn] = useInjectionState(
-  (view: Ref<(ViewType & { columns?: GridColumnType[] }) | undefined>) => {
+  (view: Ref<(ViewType & { columns?: GridColumnType[] }) | undefined>, statePublic = false) => {
     const { css, load: loadCss, unload: unloadCss } = useStyleTag('')
 
     const { isUIAllowed } = useUIPermission()
@@ -28,7 +28,7 @@ const [useProvideGridViewColumn, useGridViewColumn] = useInjectionState(
     const gridViewCols = ref<Record<string, GridColumnType>>({})
     const resizingCol = ref<string | null>('')
     const resizingColWidth = ref('200px')
-    const isPublic = inject(IsPublicInj, ref(false))
+    const isPublic = inject(IsPublicInj, ref(statePublic))
 
     const columns = computed<ColumnType[]>(() => metas.value?.[view.value?.fk_model_id as string]?.columns || [])
 
@@ -63,6 +63,7 @@ const [useProvideGridViewColumn, useGridViewColumn] = useInjectionState(
         }),
         {},
       )
+
       loadCss()
     }
 
@@ -92,10 +93,10 @@ const [useProvideGridViewColumn, useGridViewColumn] = useInjectionState(
       }
 
       if (gridViewCols?.value?.[id]) {
-        gridViewCols.value[id] = {
+        Object.assign(gridViewCols.value[id], {
           ...gridViewCols.value[id],
           ...props,
-        }
+        })
       }
 
       // sync with server if allowed

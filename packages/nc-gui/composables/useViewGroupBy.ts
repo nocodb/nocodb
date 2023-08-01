@@ -13,7 +13,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
 
   const fields = inject(FieldsInj, ref([]))
 
-  const { gridViewCols, loadGridViewColumns } = useGridViewColumnOrThrow()
+  const { gridViewCols } = useGridViewColumnOrThrow()
 
   const groupBy = computed<{ column: ColumnType; sort: string; order?: number }[]>(() => {
     const tempGroupBy: { column: ColumnType; sort: string; order?: number }[] = []
@@ -306,7 +306,9 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
         group.children = []
       }
     }
+
     if (nestLevel > groupBy.value.length) return
+
     for (const child of group.children || []) {
       refreshNested(child, nestLevel + 1)
     }
@@ -400,10 +402,6 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
       group.children?.forEach((g) => redistributeRows(g))
     }
   }
-
-  onMounted(() => {
-    loadGridViewColumns()
-  })
 
   return { rootGroup, groupBy, isGroupBy, loadGroups, loadGroupData, loadGroupPage, groupWrapperChangePage, redistributeRows }
 }

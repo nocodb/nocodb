@@ -35,6 +35,8 @@ provide(FieldsInj, ref(meta.value?.columns || []))
 provide(IsPublicInj, ref(true))
 provide(IsLockedInj, isLocked)
 
+useProvideGridViewColumn(sharedView, true)
+
 if (signedIn.value) {
   try {
     await loadProject()

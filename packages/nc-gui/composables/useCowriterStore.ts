@@ -110,7 +110,8 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
 
   async function loadCowriterView() {
     try {
-      const { views, loadViews } = useViews(cowriterTable.value as TableInfoType)
+      const { views } = storeToRefs(useViewsStore())
+      const { loadViews } = useViewsStore()
       await loadViews()
       if (views.value.length === 1) {
         // no form view, create one

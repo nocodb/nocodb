@@ -153,4 +153,8 @@ const page = computed({
 :deep(.ant-pagination-item-link) {
   @apply text-gray-800 flex items-center justify-center;
 }
+
+:deep(.ant-pagination-item.ant-pagination-item-active) {
+  @apply !bg-transparent;
+}
 </style>

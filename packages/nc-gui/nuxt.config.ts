@@ -9,6 +9,7 @@ import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfil
 import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 
 import PurgeIcons from 'vite-plugin-purge-icons'
+import type { NuxtPage } from '@nuxt/schema'
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
@@ -208,4 +209,41 @@ export default defineNuxtConfig({
       { name: 'storeToRefs', from: 'pinia' },
     ],
   },
+
+  extends: ['./ee', './core'],
+
+  hooks: {
+    'pages:extend': function (pages) {
+      console.log('====================================================test')
+
+      for (const page of pages) {
+        console.log(`${page.name} - ${page.path} - ${page.file}`)
+      }
+
+      // // add a route
+      // pages.push({
+      //   name: 'profile',
+      //   path: '/profile',
+      //   file: '~/extra-pages/profile.vue',
+      // })
+      //
+      // console.log(JSON.stringify(pages, null, 2))
+
+      // remove routes
+      function removePagesMatching(pattern: RegExp, pages: NuxtPage[] = []) {
+        const pagesToRemove = []
+        for (const page of pages) {
+          if (pattern.test(page.file)) {
+            pagesToRemove.push(page)
+          } else {
+            removePagesMatching(pattern, page.children)
+          }
+        }
+        for (const page of pagesToRemove) {
+          pages.splice(pages.indexOf(page), 1)
+        }
+      }
+      removePagesMatching(/\.ts$/, pages)
+    },
+  }
 })

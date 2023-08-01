@@ -158,6 +158,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
     activeTables,
     openTable,
     updateTable,
+    activeTableId,
   }
 })
 

@@ -8,6 +8,16 @@ export const useViewsStore = defineStore('viewsStore', () => {
   // Used for Grid View Pagination
   const isPaginationLoading = ref(false)
 
+  const tableStore = useTablesStore()
+
+  watch(
+    () => tableStore.activeTableId,
+    () => {
+      isViewsLoading.value = true
+      isViewDataLoading.value = true
+    },
+  )
+
   return {
     isViewsLoading,
     isViewDataLoading,

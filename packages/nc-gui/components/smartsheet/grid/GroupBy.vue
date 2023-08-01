@@ -33,6 +33,8 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
 const _depth = props.depth ?? 0
 
+const wrapper = ref<HTMLElement | undefined>()
+
 const _activeGroupKeys = ref<string[] | string>()
 
 const activeGroups = computed<string[]>(() => {
@@ -91,6 +93,8 @@ watch(
   },
   { immediate: true },
 )
+
+provide(ScrollParentInj, wrapper)
 </script>
 
 <template>

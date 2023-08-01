@@ -116,7 +116,7 @@ jobs:
             printf '.'
             sleep 2
           done
-        timeout-minutes: 5
+        timeout-minutes: 2
       - name: Run Playwright Tests
         working-directory: ./tests/playwright
         run: E2E_DB_TYPE=${{ inputs.db }} npm run ci:test:shard:${{ inputs.shard }}
@@ -159,10 +159,11 @@ jobs:
           path="gh-artifacts/runs/${GITHUB_RUN_ID}/run-attempt/${GITHUB_RUN_ATTEMPT}/job_name/"${GITHUB_JOB}"-${{ inputs.shard }}/${RANDOM}-$(date +%s)"
           target_dir="/mnt/${path}"
           mkdir -p ${target_dir}
-          ls ./tests/playwright/playwright-report/*
+          mkdir -p ${target_dir}/playwright-report
 
           # start : add any artifacts to be copied here
-          cp -r ./tests/playwright/playwright-report ${target_dir}/  
+          cp -r ./tests/playwright/playwright-report ${target_dir}/  || echo "playwright reports directory does not exists" >>  ${target_dir}/playwright-report/index.html
+          cp ./packages/nocodb/${{ inputs.db }}_${{ inputs.shard }}_test_backend.log ${target_dir}/ || echo "backend logs file does not exists" >> ${target_dir}/index.html
           # end: artifacts copy
 
           SUMMARY='[Artifacts](http://65.21.27.147/'${path}')

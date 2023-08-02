@@ -139,7 +139,7 @@ const onClose = () => {
 
 const onDuplicateRow = () => {
   duplicatingRowInProgress.value = true
-  const oldRow = row.value.row
+  const oldRow = { ...row.value.row }
   delete oldRow.ncRecordId
   const newRow = Object.assign(
     {},

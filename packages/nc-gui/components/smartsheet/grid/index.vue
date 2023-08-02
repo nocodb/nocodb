@@ -19,6 +19,7 @@ import {
   ref,
   useSmartsheetStoreOrThrow,
   useViewData,
+  useViewGroupBy,
 } from '#imports'
 import type { Row } from '~/lib'
 

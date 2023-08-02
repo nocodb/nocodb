@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-import Sortable from 'sortablejs'
 
 import ProjectWrapper from './ProjectWrapper.vue'
 
+import type { TabType } from '#imports'
+
 import {
-  TabType,
   TreeViewInj,
   computed,
   isDrawerOrModalExist,
@@ -22,7 +22,6 @@ import {
   useTablesStore,
   useTabs,
   useUIPermission,
-  watchEffect,
 } from '#imports'
 
 import { useRouter } from '#app'
@@ -36,7 +35,7 @@ const { isUIAllowed } = useUIPermission()
 
 const { addTab } = useTabs()
 
-const { $api, $e, $jobs } = useNuxtApp()
+const { $e, $jobs } = useNuxtApp()
 
 const router = useRouter()
 
@@ -48,8 +47,6 @@ const { createProject: _createProject } = projectsStore
 
 const { projects, projectsList, activeProjectId } = storeToRefs(projectsStore)
 
-const { projectTables } = storeToRefs(useTablesStore())
-
 const { openTable } = useTablesStore()
 
 const projectStore = useProject()
@@ -60,93 +57,7 @@ const { tables } = storeToRefs(projectStore)
 
 const { activeTable: _activeTable } = storeToRefs(useTablesStore())
 
-const { activeTab } = storeToRefs(useTabs())
-
 const { refreshCommandPalette } = useCommandPalette()
-
-const keys = $ref<Record<string, number>>({})
-
-const menuRefs = $ref<HTMLElement[] | HTMLElement>()
-
-const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
-
-const tablesById = $computed(() =>
-  Object.values(projectTables.value.get(activeProjectId.value!) || {})
-    .flat()
-    ?.reduce<Record<string, TableType>>((acc, table) => {
-      acc[table.id!] = table
-
-      return acc
-    }, {}),
-)
-
-const sortables: Record<string, Sortable> = {}
-
-// todo: replace with vuedraggable
-const initSortable = (el: Element) => {
-  const base_id = el.getAttribute('nc-base')
-  if (!base_id) return
-  if (sortables[base_id]) sortables[base_id].destroy()
-  Sortable.create(el as HTMLLIElement, {
-    onEnd: async (evt) => {
-      const offset = tables.value.findIndex((table) => table.base_id === base_id)
-
-      const { newIndex = 0, oldIndex = 0 } = evt
-
-      const itemEl = evt.item as HTMLLIElement
-      const item = tablesById[itemEl.dataset.id as string]
-
-      // get the html collection of all list items
-      const children: HTMLCollection = evt.to.children
-
-      // skip if children count is 1
-      if (children.length < 2) return
-
-      // get items before and after the moved item
-      const itemBeforeEl = children[newIndex - 1] as HTMLLIElement
-      const itemAfterEl = children[newIndex + 1] as HTMLLIElement
-
-      // get items meta of before and after the moved item
-      const itemBefore = itemBeforeEl && tablesById[itemBeforeEl.dataset.id as string]
-      const itemAfter = itemAfterEl && tablesById[itemAfterEl.dataset.id as string]
-
-      // set new order value based on the new order of the items
-      if (children.length - 1 === evt.newIndex) {
-        item.order = (itemBefore.order as number) + 1
-      } else if (newIndex === 0) {
-        item.order = (itemAfter.order as number) / 2
-      } else {
-        item.order = ((itemBefore.order as number) + (itemAfter.order as number)) / 2
-      }
-
-      // update the order of the moved item
-      tables.value?.splice(newIndex + offset, 0, ...tables.value?.splice(oldIndex + offset, 1))
-
-      // force re-render the list
-      if (keys[base_id]) {
-        keys[base_id] = keys[base_id] + 1
-      } else {
-        keys[base_id] = 1
-      }
-
-      // update the item order
-      await $api.dbTable.reorder(item.id as string, {
-        order: item.order,
-      })
-    },
-    animation: 150,
-  })
-}
-
-watchEffect(() => {
-  if (menuRefs) {
-    if (menuRefs instanceof HTMLElement) {
-      initSortable(menuRefs)
-    } else {
-      menuRefs.forEach((el) => initSortable(el))
-    }
-  }
-})
 
 const contextMenuTarget = reactive<{ type?: 'project' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
 

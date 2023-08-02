@@ -10,9 +10,11 @@ definePageMeta({
 const route = useRoute()
 
 const { loadSharedView } = useSharedView()
+const { isViewDataLoading } = storeToRefs(useViewsStore())
 
 const showPassword = ref(false)
 
+isViewDataLoading.value = true
 try {
   await loadSharedView(route.params.viewId as string)
 } catch (e: any) {
@@ -22,6 +24,8 @@ try {
     console.error(e)
     message.error(await extractSdkResponseErrorMsg(e))
   }
+} finally {
+  isViewDataLoading.value = false
 }
 </script>
 

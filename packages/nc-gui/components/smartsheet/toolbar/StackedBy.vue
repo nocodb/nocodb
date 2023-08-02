@@ -93,6 +93,13 @@ const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
     })
 })
 
+const onSubmit = async () => {
+  open.value = false
+
+  await loadKanbanMeta()
+  await loadKanbanData()
+}
+
 const handleChange = () => {
   open.value = false
 }
@@ -148,7 +155,7 @@ const handleChange = () => {
             hide-type
             hide-additional-options
             @cancel="open = false"
-            @submit="handleChange"
+            @submit="onSubmit"
             @click.stop
             @keydown.stop
           />

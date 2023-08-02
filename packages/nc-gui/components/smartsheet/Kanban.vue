@@ -378,10 +378,10 @@ watch(
   >
     <div
       ref="kanbanContainerRef"
-      class="nc-kanban-container flex my-4 px-4 overflow-x-scroll overflow-y-hidden w-full nc-scrollbar-x-md"
+      class="nc-kanban-container flex mt-4 pb-4 px-4 overflow-y-hidden w-full nc-scrollbar-x-md"
       :style="{
-        minHeight: 'calc(100vh - var(--topbar-height) - 4.5rem)',
-        maxHeight: 'calc(100vh - var(--topbar-height) - 4.5rem)',
+        minHeight: 'calc(100vh - var(--topbar-height) - 3.5rem)',
+        maxHeight: 'calc(100vh - var(--topbar-height) - 3.5rem)',
       }"
     >
       <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']" overlay-class-name="nc-dropdown-kanban-context-menu">

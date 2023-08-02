@@ -140,7 +140,9 @@ test.describe('Form view', () => {
     });
 
     // submit custom form validation
-    await dashboard.viewSidebar.openView({ title: 'CountryForm' });
+    await form.submitAnotherForm().waitFor();
+    await form.submitAnotherForm().click();
+
     await form.configureSubmitMessage({
       message: 'Custom submit message',
     });
@@ -151,7 +153,9 @@ test.describe('Form view', () => {
     });
 
     // enable 'submit another form' option
-    await dashboard.viewSidebar.openView({ title: 'CountryForm' });
+    await form.submitAnotherForm().waitFor();
+    await form.submitAnotherForm().click();
+
     await form.showAnotherFormRadioButton.click();
     await form.fillForm([{ field: 'Country', value: '_abc' }]);
     await form.submitForm();

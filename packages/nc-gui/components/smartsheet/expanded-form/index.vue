@@ -339,7 +339,7 @@ export default {
             <div
               v-for="(col, i) of fields"
               v-else
-              v-show="!isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
+              v-show="isFormula(col) || !isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
               :key="col.title"
               class="mt-2 py-2"
               :class="`nc-expand-col-${col.title}`"

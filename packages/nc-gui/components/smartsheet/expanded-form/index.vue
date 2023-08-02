@@ -367,9 +367,9 @@ export default {
             </div>
             <div v-if="hiddenFields.length > 0" class="my-4">
               <div class="flex items-center py-4">
-                <div class="flex-grow h-px mr-1 bg-gray-200"></div>
+                <div class="flex-grow h-px mr-1 bg-gray-100"></div>
                 <a-button
-                  class="!rounded-md flex items-center flex-shrink-1 text-gray hover:text-blue"
+                  class="!rounded-md flex items-center flex-shrink-1 focus:!border-[#d9d9d9] focus:!text-gray-500 hover:text-blue"
                   @click="toggleHiddenFields"
                 >
                   {{
@@ -377,7 +377,7 @@ export default {
                   }}
                   <MdiChevronDown class="ml-1" :class="showHiddenFields ? 'transform rotate-180' : ''" />
                 </a-button>
-                <div class="flex-grow ml-1 h-px bg-gray-200"></div>
+                <div class="flex-grow ml-1 h-px bg-gray-100"></div>
               </div>
               <div
                 v-for="(col, i) of hiddenFields"

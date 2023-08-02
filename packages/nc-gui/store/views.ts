@@ -26,13 +26,19 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   watch(
     () => tablesStore.activeTableId,
-    (newId, oldId) => {
+    async (newId, oldId) => {
       if (newId === oldId) return
 
       isViewsLoading.value = true
       isViewDataLoading.value = true
 
-      loadViews()
+      try {
+        await loadViews()
+      } catch (e) {
+        console.error(e)
+      } finally {
+        isViewsLoading.value = false
+      }
     },
     { immediate: true },
   )

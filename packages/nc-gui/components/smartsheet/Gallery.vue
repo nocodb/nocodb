@@ -41,6 +41,8 @@ const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
+const { isViewDataLoading } = storeToRefs(useViewsStore())
+
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
 const expandedFormRowState = ref<Record<string, any>>()
@@ -190,21 +192,26 @@ reloadViewDataHook?.on(async () => {
   await loadData()
 })
 
-onMounted(async () => {
-  await loadData()
-
-  await loadGalleryData()
-})
-
 // provide view data reload hook as fallback to row data reload
 provide(ReloadRowDataHookInj, reloadViewDataHook)
 
-watch(view, async (nextView) => {
-  if (nextView?.type === ViewTypes.GALLERY) {
-    await loadData()
-    await loadGalleryData()
-  }
-})
+watch(
+  view,
+  async (nextView) => {
+    isViewDataLoading.value = true
+    try {
+      if (nextView?.type === ViewTypes.GALLERY) {
+        await loadData()
+        await loadGalleryData()
+      }
+    } finally {
+      isViewDataLoading.value = false
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -231,8 +238,19 @@ watch(view, async (nextView) => {
       </a-menu>
     </template>
 
-    <div class="flex flex-col h-full w-full overflow-auto nc-gallery" data-testid="nc-gallery-wrapper">
-      <div class="nc-gallery-container grid gap-2 my-4 px-3">
+    <div
+      class="flex flex-col h-full w-full nc-gallery nc-scrollbar-md"
+      data-testid="nc-gallery-wrapper"
+      :class="{
+        '!overflow-hidden': isViewDataLoading,
+      }"
+    >
+      <div v-if="isViewDataLoading" class="flex flex-col h-full">
+        <div class="flex flex-row p-3 !pr-1 gap-x-2 flex-wrap gap-y-2">
+          <a-skeleton-input v-for="index of Array(20)" :key="index" class="!min-w-60.5 !h-96 !rounded-md overflow-hidden" />
+        </div>
+      </div>
+      <div v-else class="nc-gallery-container grid gap-2 my-4 px-3">
         <div v-for="(record, rowIndex) in data" :key="`record-${record.row.id}`">
           <LazySmartsheetRow :row="record">
             <a-card

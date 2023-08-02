@@ -148,7 +148,6 @@ async function localInit({
         pgknex = knex(config);
         await pgknex.raw(`DROP DATABASE IF EXISTS sakila${workerId} WITH (FORCE)`);
         await pgknex.raw(`CREATE DATABASE sakila${workerId}`);
-        await pgknex.destroy();
       } catch (e) {
         console.error(`Error resetting pg sakila db: Worker ${workerId}`);
       } finally {
@@ -322,7 +321,6 @@ const resetSakilaPg = async (parallelId: string) => {
     const dataFile = await fs.readFile(`${testsDir}/pg-sakila-db/02-postgres-sakila-insert-data.sql`);
     await trx.raw(dataFile.toString());
     await trx.commit();
-    await sakilaKnex.destroy();
   } catch (e) {
     console.error(`Error resetting pg sakila db: Worker ${parallelId}`);
     throw Error(`Error resetting pg sakila db: Worker ${parallelId}`);

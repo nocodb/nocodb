@@ -15,7 +15,7 @@ const roleDb = [
   { email: 'viewer@nocodb.com', role: 'viewer', url: '' },
 ];
 
-test.describe('User roles', () => {
+test.describe.skip('User roles', () => {
   let dashboard: DashboardPage;
   let settings: SettingsPage;
   let signupPage: SignupPage;

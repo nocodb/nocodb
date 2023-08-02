@@ -1,8 +1,6 @@
 import BasePage from '../Base';
 import { WorkspacePage } from './';
-import { expect } from '@playwright/test';
-import { Locator } from 'playwright';
-import { getIconText, getTextExcludeIconText } from '../../tests/utils/general';
+import { Locator } from '@playwright/test';
 
 /*
   nc-workspace-container
@@ -19,13 +17,9 @@ export class CollaborationPage extends BasePage {
   constructor(workspace: WorkspacePage) {
     super(workspace.rootPage);
     this.workspace = workspace;
-    // @ts-ignore
     this.button_addUser = this.get().locator('button.ant-btn.ant-btn-primary');
-    // @ts-ignore
     this.input_email = this.get().locator('input[id="email"]');
-    // @ts-ignore
     this.selector_role = this.get().locator('[data-testid="invite"] >> [data-testid="roles"]');
-    // @ts-ignore
     this.list_collaborators = this.get().locator('.nc-collaborators-list-table');
   }
 
@@ -49,7 +43,10 @@ export class CollaborationPage extends BasePage {
     await this.rootPage.locator(`.ant-select-item-option-content:has-text("${role}"):visible`).click();
 
     // submit
-    await this.button_addUser.waitFor({ state: 'visible' });
+
+    // allow button to be enabled
+    await this.rootPage.waitForTimeout(500);
+
     await this.button_addUser.click();
     await this.verifyToast({ message: 'Invitation sent successfully' });
     await this.rootPage.waitForTimeout(500);

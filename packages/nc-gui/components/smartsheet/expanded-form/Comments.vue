@@ -122,11 +122,13 @@ watch(
       <a-skeleton v-if="isCommentsLoading" type="list-item-avatar-two-line@8" />
       <template v-else-if="commentsAndLogs.length === 0">
         <div class="flex flex-col text-center justify-center h-full">
-          <div class="text-center text-3xl">
+          <div class="text-center text-3xl text-gray-300">
             <MdiChatProcessingOutline />
           </div>
-          <div class="font-bold text-center my-1">Start a conversation</div>
-          <div>NocoDB allows you to inquire, monitor progress updates, and collaborate with your team members.</div>
+          <div class="font-bold text-center my-1 text-gray-400">Start a conversation</div>
+          <div class="text-gray-400">
+            NocoDB allows you to inquire, monitor progress updates, and collaborate with your team members.
+          </div>
         </div>
       </template>
       <template v-else>

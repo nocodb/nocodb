@@ -372,9 +372,8 @@ export default {
                   class="!rounded-md flex items-center flex-shrink-1 focus:!border-[#d9d9d9] focus:!text-gray-500 hover:text-blue"
                   @click="toggleHiddenFields"
                 >
-                  {{
-                    showHiddenFields ? `Hide ${hiddenFields.length} hidden fields` : `Show ${hiddenFields.length} hidden fields`
-                  }}
+                  {{ showHiddenFields ? `Hide ${hiddenFields.length} hidden` : `Show ${hiddenFields.length} hidden` }}
+                  {{ hiddenFields.length > 1 ? `fields` : `field` }}
                   <MdiChevronDown class="ml-1" :class="showHiddenFields ? 'transform rotate-180' : ''" />
                 </a-button>
                 <div class="flex-grow ml-1 h-px bg-gray-100"></div>

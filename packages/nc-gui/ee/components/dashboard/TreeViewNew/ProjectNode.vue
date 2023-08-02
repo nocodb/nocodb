@@ -3,7 +3,6 @@ import { nextTick } from '@vue/runtime-core'
 import { Dropdown, message } from 'ant-design-vue'
 import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
-import { useTitle } from '@vueuse/core'
 import TableList from './TableList.vue'
 import { openLink, useProjects } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
@@ -34,6 +33,7 @@ const workspaceStore = useWorkspace()
 const { loadProject, createProject: _createProject, updateProject, getProjectMetaInfo } = projectsStore
 const { projects } = storeToRefs(projectsStore)
 
+const { activeWorkspace } = storeToRefs(workspaceStore)
 
 const { loadProjectTables } = useTablesStore()
 const { activeTable } = storeToRefs(useTablesStore())
@@ -100,18 +100,12 @@ const enableEditMode = () => {
 }
 
 const updateProjectTitle = async () => {
-  if (!tempTitle.value) return
-
   try {
     await updateProject(project.value.id!, {
       title: tempTitle.value,
     })
     editMode.value = false
     tempTitle.value = ''
-
-    $e('a:project:rename')
-
-    useTitle(`${project.value?.title}`)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -169,8 +163,6 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
   if (typeof baseIndex === 'number') {
     baseId = project.value!.bases?.[baseIndex].id
   }
-
-  if (!baseId || !project.value?.id) return
 
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
@@ -391,13 +383,13 @@ onKeyStroke('Escape', () => {
           ref="projectNodeRefs"
           :class="{
             'bg-primary-selected': activeProjectId === project.id && projectViewOpen,
-            'hover:bg-gray-200': !(activeProjectId === project.id && projectViewOpen),
+            'hover:bg-hover': !(activeProjectId === project.id && projectViewOpen),
           }"
           :data-testid="`nc-sidebar-project-title-${project.title}`"
           class="project-title-node h-7.25 flex-grow rounded-md group flex items-center w-full"
         >
           <div
-            class="nc-sidebar-expand ml-0.75 min-h-5.75 min-w-5.75 px-1.5 text-gray-500 hover:(hover:bg-gray-500 hover:bg-opacity-15 !text-black) rounded-md relative"
+            class="nc-sidebar-expand ml-0.75 min-h-5.75 min-w-5.75 px-1.5 text-gray-500 hover:(hover:bg-gray-300 hover:bg-opacity-20 !text-black) rounded-md relative"
             @click="onProjectClick(project, true, true)"
           >
             <PhTriangleFill
@@ -406,25 +398,25 @@ onKeyStroke('Escape', () => {
             />
           </div>
 
-          <div class="flex items-center mr-1" @click="onProjectClick(project)">
-            <div class="flex items-center select-none w-6 h-full">
+          <div class="flex items-center mr-1" @click.stop>
+            <div class="flex items-center select-none w-6 h-full" @click.stop>
               <a-spin
                 v-if="project.isLoading"
                 class="nc-sidebar-icon !flex !flex-row !items-center !my-0.5 !mx-1.5 w-8"
                 :indicator="indicator"
               />
 
-              <LazyGeneralEmojiPicker
+              <GeneralEmojiPicker
                 :key="project.meta?.icon"
                 :emoji="project.meta?.icon"
-                :readonly="true"
+                :readonly="!isUIAllowed('projectIconCustomisation', false, projectRole)"
                 size="small"
                 @emoji-selected="setIcon($event, project)"
               >
                 <template #default>
                   <GeneralProjectIcon :type="project.type" />
                 </template>
-              </LazyGeneralEmojiPicker>
+              </GeneralEmojiPicker>
             </div>
           </div>
 
@@ -452,7 +444,7 @@ onKeyStroke('Escape', () => {
 
           <a-dropdown v-if="isUIAllowed('tableCreate', false, projectRole)" v-model:visible="isOptionsOpen" trigger="click">
             <MdiDotsHorizontal
-              class="min-w-5.75 min-h-5.75 px-0.5 py-0.5 mr-0.25 !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 opacity-0 group-hover:(opacity-100) hover:text-black text-gray-600 rounded-md hover:(bg-gray-500 bg-opacity-15)"
+              class="min-w-5.75 min-h-5.75 px-0.5 py-0.5 mr-0.25 !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 opacity-0 group-hover:(opacity-100) hover:text-black text-gray-600 rounded-md hover:(bg-gray-300 bg-opacity-20)"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
               data-testid="nc-sidebar-context-menu"
               @click.stop
@@ -526,7 +518,7 @@ onKeyStroke('Escape', () => {
                 <a-menu-divider v-if="false" />
 
                 <a-menu-item
-                  v-if="isUIAllowed('projectDelete', false, true)"
+                  v-if="isUIAllowed('projectDelete', false, [activeWorkspace.roles], true)"
                   @click="isProjectDeleteDialogVisible = true"
                 >
                   <div class="nc-project-menu-item group text-red-500">
@@ -540,7 +532,7 @@ onKeyStroke('Escape', () => {
 
           <div
             v-if="isUIAllowed('tableCreate', false, projectRole)"
-            class="min-h-5.75 min-w-5.75 mr-1 flex flex-row items-center justify-center gap-x-2 cursor-pointer hover:(text-black) text-gray-600 text-sm invisible !group-hover:visible rounded-md hover:(bg-gray-500 bg-opacity-15)"
+            class="min-h-5.75 min-w-5.75 mr-1 flex flex-row items-center justify-center gap-x-2 cursor-pointer hover:(text-black) text-gray-600 text-sm invisible !group-hover:visible rounded-md hover:(bg-gray-300 bg-opacity-20)"
             data-testid="nc-sidebar-add-project-entity"
             :class="{ '!text-black !visible': isAddNewProjectChildEntityLoading, '!visible': isOptionsOpen }"
             @click.stop="addNewProjectChildEntity"
@@ -560,12 +552,12 @@ onKeyStroke('Escape', () => {
         :class="{ 'max-h-0': !project.isExpanded }"
       >
         <div v-if="project.type === 'documentation'">
-          <LazyDocsSideBar v-if="project.isExpanded" :project="project" />
+          <DocsSideBar v-if="project.isExpanded" :project="project" />
         </div>
         <div v-else-if="project.type === 'dashboard'">
           <LayoutsSideBar v-if="project.isExpanded" :project="project" />
         </div>
-        <template v-else-if="project && project?.bases">
+        <template v-if="project && project?.bases">
           <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
             <div v-if="project?.bases?.[0]?.enabled" class="flex-1">
               <div class="transition-height duration-200">
@@ -596,7 +588,7 @@ onKeyStroke('Escape', () => {
                     </template>
                     <a-collapse-panel :key="`collapse-${base.id}`">
                       <template #header>
-                        <div class="min-w-20 w-full flex flex-row">
+                        <div class="w-full flex flex-row">
                           <div
                             v-if="baseIndex === 0"
                             class="base-context flex items-center gap-2 text-gray-800"
@@ -607,7 +599,7 @@ onKeyStroke('Escape', () => {
                           </div>
                           <div
                             v-else
-                            class="base-context flex flex-grow items-center gap-1.75 text-gray-800 min-w-1/20 max-w-full"
+                            class="base-context flex items-center gap-1.75 text-gray-800 max-w-133/200"
                             @contextmenu="setMenuContext('base', base)"
                           >
                             <GeneralBaseLogo :base-type="base.type" class="min-w-4" />
@@ -627,7 +619,7 @@ onKeyStroke('Escape', () => {
                           </div>
                           <div
                             v-if="isUIAllowed('tableCreate', false, projectRole)"
-                            class="flex flex-row items-center gap-x-0.25 w-12.25"
+                            class="flex flex-row items-center gap-x-0.25"
                           >
                             <a-dropdown
                               :visible="isBasesOptionsOpen[base!.id!]"
@@ -635,7 +627,7 @@ onKeyStroke('Escape', () => {
                               @update:visible="isBasesOptionsOpen[base!.id!] = $event"
                             >
                               <MdiDotsHorizontal
-                                class="min-w-6 min-h-6 mt-0.15 invisible nc-sidebar-base-node-btns !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 hover:text-black py-0.25 px-0.5 rounded-md text-gray-600 hover:(bg-gray-400 bg-opacity-20)"
+                                class="min-w-6 min-h-6 mt-0.15 invisible nc-sidebar-base-node-btns !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 hover:text-black py-0.25 px-0.5 rounded-md text-gray-600 hover:(bg-gray-300 bg-opacity-20)"
                                 :class="{ '!text-black !opacity-100': isBasesOptionsOpen[base!.id!] }"
                                 @click.stop="isBasesOptionsOpen[base!.id!] = !isBasesOptionsOpen[base!.id!]"
                               />
@@ -663,7 +655,7 @@ onKeyStroke('Escape', () => {
 
                             <div
                               v-if="isUIAllowed('tableCreate', false, projectRole)"
-                              class="flex invisible nc-sidebar-base-node-btns !focus:outline-0 text-gray-600 hover:text-black px-0.35 rounded-md hover:(bg-gray-500 bg-opacity-15) min-h-6 mt-0.15 min-w-6"
+                              class="flex invisible nc-sidebar-base-node-btns !focus:outline-0 text-gray-600 hover:text-black px-0.35 rounded-md hover:(bg-gray-300 bg-opacity-20) min-h-6 mt-0.15 min-w-6"
                               @click.stop="openTableCreateDialog(baseIndex)"
                             >
                               <component :is="iconMap.plus" class="text-inherit mt-0.25 h-5.5 w-5.5 py-0.5 !focus:outline-0" />
@@ -760,7 +752,6 @@ onKeyStroke('Escape', () => {
     </template>
   </a-dropdown>
   <DlgTableDelete
-    v-if="contextMenuTarget.value?.id && project?.id"
     v-model:visible="isTableDeleteDialogVisible"
     :table-id="contextMenuTarget.value?.id"
     :project-id="project?.id"

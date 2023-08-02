@@ -19,7 +19,9 @@
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
+    "dev:cloud": "EE=true nuxt dev",
     "generate": "nuxt generate",
+    "generate:cloud": "EE=true nuxt generate",
     "start": "node .output/server/index.mjs",
     "lint": "eslint --ext \".js,.jsx,.ts,.tsx,.vue\" --fix --ignore-path .gitignore .",
     "test": "vitest -c test/vite.config.ts",

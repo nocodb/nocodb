@@ -133,7 +133,7 @@ const navigateToHome = () => {
           </div>
         </div>
         <WorkspaceCreateProjectBtn
-          v-if="isUIAllowed('createProject', false, activeWorkspace.roles)"
+        v-if="isUIAllowed('createProject', false, activeWorkspace?.roles)"
           v-model:is-open="isCreateProjectOpen"
           modal
           type="text"

@@ -98,18 +98,20 @@ onMounted(async () => {
   toggle(true)
   toggleHasSidebar(true)
 
-  await loadWorkspaces()
-  await loadScope('root')
+  loadProjects('recent')
 
-  loadWorkspacesWithInterval()
+  // await loadWorkspaces()
+  // await loadScope('root')
 
-  if (!route.query.workspaceId && workspacesList.value?.length) {
-    await router.push({ query: { workspaceId: workspacesList.value[0].id, page: 'workspace' } })
-  } else {
-    selectedWorkspaceIndex.value = [workspacesList.value?.findIndex((workspace) => workspace.id === route.query.workspaceId)]
-  }
+  // loadWorkspacesWithInterval()
 
-  if (activeWorkspace.value && activeWorkspace.value.status !== WorkspaceStatus.CREATING) await loadProjects()
+  // if (!route.query.workspaceId && workspacesList.value?.length) {
+  //   await router.push({ query: { workspaceId: workspacesList.value[0].id, page: 'workspace' } })
+  // } else {
+  //   selectedWorkspaceIndex.value = [workspacesList.value?.findIndex((workspace) => workspace.id === route.query.workspaceId)]
+  // }
+  //
+  // if (activeWorkspace.value && activeWorkspace.value.status !== WorkspaceStatus.CREATING) await loadProjects()
 })
 
 watch(
@@ -296,159 +298,50 @@ watch(
   <NuxtLayout name="new">
     <template #sidebar>
       <div class="h-full flex flex-col min-h-[400px] overflow-auto">
-        <!--        <div class="nc-workspace-group overflow-auto mt-8.5"> -->
-        <!--          <div class="flex text-sm font-medium text-gray-400 mx-4.5 mb-2">All Projects</div> -->
-        <!--          <div -->
-        <!--            class="nc-workspace-group-item" -->
-        <!--            :class="{ active: activePage === 'recent' }" -->
-        <!--            @click=" -->
-        <!--              navigateTo({ -->
-        <!--                query: { -->
-        <!--                  page: 'recent', -->
-        <!--                }, -->
-        <!--              }) -->
-        <!--            " -->
-        <!--          > -->
-        <!--            <IcOutlineAccessTime class="nc-icon" /> -->
-        <!--            <span>Recent</span> -->
-        <!--          </div> -->
-        <!--          <div -->
-        <!--            class="nc-workspace-group-item" -->
-        <!--            :class="{ active: activePage === 'shared' }" -->
-        <!--            @click=" -->
-        <!--              navigateTo({ -->
-        <!--                query: { -->
-        <!--                  page: 'shared', -->
-        <!--                }, -->
-        <!--              }) -->
-        <!--            " -->
-        <!--          > -->
-        <!--            <MaterialSymbolsGroupOutlineRounded class="nc-icon" /> -->
-        <!--            <span>Shared with me</span> -->
-        <!--          </div> -->
-        <!--          <div -->
-        <!--            class="nc-workspace-group-item" -->
-        <!--            :class="{ active: activePage === 'starred' }" -->
-        <!--            @click=" -->
-        <!--              navigateTo({ -->
-        <!--                query: { -->
-        <!--                  page: 'starred', -->
-        <!--                }, -->
-        <!--              }) -->
-        <!--            " -->
-        <!--          > -->
-        <!--            <IcRoundStarBorder class="nc-icon !h-5" /> -->
-        <!--            <span>Starred</span> -->
-        <!--          </div> -->
-        <!--        </div> -->
-        <div class="flex items-center !text-gray-400 text-xs pt-2 px-4 pb-2 h-10">
-          <div class="flex text-sm font-medium">Workspaces</div>
-          <div class="flex-grow"></div>
-          <MdiPlus
-            class="!text-gray-400 text-base cursor-pointer"
-            data-testid="nc-create-workspace"
-            @click="isCreateDlgOpen = true"
-          />
-        </div>
-
-        <div class="overflow-auto min-h-25 flex-grow" style="flex-basis: 0">
-          <a-empty v-if="!workspacesList?.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
-
-          <a-menu v-else v-model:selected-keys="selectedWorkspaceIndex" class="nc-workspace-list" trigger-sub-menu-action="click">
-            <a-menu-item v-for="(workspace, i) of workspacesList" :key="i">
-              <div class="nc-workspace-list-item flex items-center h-full group" :data-id="workspace.id">
-                <a-dropdown :trigger="['click']" trigger-sub-menu-action="click" @click.stop>
-                  <div>
-                    <span class="color-band" :style="{ backgroundColor: getWorkspaceColor(workspace) }" />
-                    <div
-                      :key="workspace.meta?.color"
-                      class="nc-workspace-avatar nc-click-transition-1"
-                      :style="{ backgroundColor: getWorkspaceColor(workspace) }"
-                    >
-                      {{ workspace.title?.slice(0, 2) }}
-                    </div>
-                  </div>
-
-                  <template #overlay>
-                    <a-menu trigger-sub-menu-action="click">
-                      <LazyGeneralColorPicker
-                        :model-value="getWorkspaceColor(workspace)"
-                        :colors="projectThemeColors"
-                        :row-size="9"
-                        :advanced="false"
-                        @input="handleWorkspaceColor(workspace.id!, $event)"
-                      />
-                      <a-sub-menu key="pick-primary">
-                        <template #title>
-                          <div class="nc-project-menu-item group !py-0">
-                            <ClarityColorPickerSolid class="group-hover:text-accent" />
-                            Custom Color
-                          </div>
-                        </template>
-
-                        <template #expandIcon></template>
-
-                        <LazyGeneralChromeWrapper @input="handleWorkspaceColor(workspace.id!, $event)" />
-                      </a-sub-menu>
-                    </a-menu>
-                  </template>
-                </a-dropdown>
-                <input
-                  v-if="workspace.edit && isUIAllowed('workspaceUpdate', false, activeWorkspace.roles)"
-                  ref="renameInput"
-                  v-model="workspace.temp_title"
-                  class="!leading-none outline-none bg-transparent"
-                  autofocus
-                  @blur="disableEdit(i)"
-                  @keydown.enter="updateWorkspaceTitle(workspace)"
-                  @keydown.esc="disableEdit(i)"
-                />
-                <div v-else class="nc-workspace-title shrink min-w-4 flex items-center gap-1">
-                  <span
-                    class="shrink min-w-0 overflow-ellipsis overflow-hidden"
-                    :class="{ '!font-weight-bold': selectedWorkspaceIndex[0] === i }"
-                    :title="workspace.title"
-                    @dblclick="enableEdit(i)"
-                    >{{ workspace.title }}</span
-                  >
-                  <span v-if="workspace.roles" class="text-[0.7rem] text-gray-500 hidden group-hover:inline"
-                    >({{ roleAlias[workspace.roles] }})</span
-                  >
-                </div>
-                <div class="flex-grow"></div>
-                <IcBaselineDragIndicator v-if="false" class="outline-0 nc-workspace-drag-icon" />
-                <a-dropdown
-                  v-if="
-                    isUIAllowed('workspaceRename', true, workspace.roles) || isUIAllowed('workspaceDelete', true, workspace.roles)
-                  "
-                  :trigger="['click']"
-                >
-                  <div class="w-4">
-                    <MdiDotsHorizontal class="outline-0 nc-workspace-menu min-w-4 nc-click-transition" />
-                  </div>
-                  <template #overlay>
-                    <a-menu class="!py-0 rounded">
-                      <a-menu-item v-if="isUIAllowed('workspaceRename', true, workspace.roles)" @click="enableEdit(i)">
-                        <div class="nc-menu-item-wrapper">
-                          <GeneralIcon icon="edit" />
-                          Rename Workspace
-                        </div>
-                      </a-menu-item>
-                      <a-menu-item
-                        v-if="isUIAllowed('workspaceDelete', true, workspace.roles)"
-                        @click="deleteWorkspace(workspace)"
-                      >
-                        <div class="nc-menu-item-wrapper text-red-600">
-                          <GeneralIcon icon="delete" />
-                          Delete Workspace
-                        </div>
-                      </a-menu-item>
-                    </a-menu>
-                  </template>
-                </a-dropdown>
-              </div>
-            </a-menu-item>
-          </a-menu>
+        <div class="nc-workspace-group overflow-auto mt-8.5">
+          <div class="flex text-sm font-medium text-gray-400 mx-4.5 mb-2">All Projects</div>
+          <div
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'recent' }"
+            @click="
+              navigateTo({
+                query: {
+                  page: 'recent',
+                },
+              })
+            "
+          >
+            <IcOutlineAccessTime class="nc-icon" />
+            <span>Recent</span>
+          </div>
+          <div
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'shared' }"
+            @click="
+              navigateTo({
+                query: {
+                  page: 'shared',
+                },
+              })
+            "
+          >
+            <MaterialSymbolsGroupOutlineRounded class="nc-icon" />
+            <span>Shared with me</span>
+          </div>
+          <div
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'starred' }"
+            @click="
+              navigateTo({
+                query: {
+                  page: 'starred',
+                },
+              })
+            "
+          >
+            <IcRoundStarBorder class="nc-icon !h-5" />
+            <span>Starred</span>
+          </div>
         </div>
       </div>
     </template>

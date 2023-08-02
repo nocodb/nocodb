@@ -301,6 +301,7 @@ export default class ProjectUser {
 
     const qb = ncMeta
       .knex(MetaTable.PROJECT)
+      .select(`${MetaTable.PROJECT}.id`)
       .select(`${MetaTable.PROJECT}.title`)
       .select(`${MetaTable.PROJECT}.prefix`)
       .select(`${MetaTable.PROJECT}.status`)
@@ -308,6 +309,7 @@ export default class ProjectUser {
       .select(`${MetaTable.PROJECT}.meta`)
       .select(`${MetaTable.PROJECT}.color`)
       .select(`${MetaTable.PROJECT}.is_meta`)
+      .select(`${MetaTable.PROJECT}.type`)
       .select(`${MetaTable.PROJECT}.created_at`)
       .select(`${MetaTable.PROJECT}.updated_at`)
       // .select(`${MetaTable.WORKSPACE_USER}.roles as workspace_role`)

@@ -47,12 +47,14 @@ const createProject = async () => {
   try {
     const project = await _createProject({
       type: props.type,
-      title: formState.value.title
+      title: formState.value.title,
+      workspaceId: activeWorkspace.value!.id!,
     })
 
     await loadProjects()
     navigateToProject({
       projectId: project.id!,
+      workspaceId: activeWorkspace.value!.id!,
       type: props.type,
     })
     dialogShow.value = false

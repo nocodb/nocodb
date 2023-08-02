@@ -198,7 +198,14 @@ export default defineNuxtConfig({
   },
 
   imports: {
-    dirs: ['./context', './utils/**', './lib', './composables/**', './store/**'],
+    dirs: [
+      ...(process.env.EE ? ['./ee/utils/**', './ee/context/**', './ee/lib', './ee/composables/**', './ee/store/*'] : []),
+      './context',
+      './utils/**',
+      './lib',
+      './composables/**',
+      './store/**',
+    ],
     imports: [
       { name: 'useI18n', from: 'vue-i18n' },
       { name: 'message', from: 'ant-design-vue/es' },
@@ -210,7 +217,14 @@ export default defineNuxtConfig({
     ],
   },
 
-  extends: ['./ee', './core'],
+  extends: [...(process.env.EE ? ['./ee'] : []), './core'],
+
+  // components: {
+  //   dirs: [
+  //     '~/components',
+  //     // '~/ee/components'
+  //   ]
+  // },
 
   hooks: {
     'pages:extend': function (pages) {
@@ -243,7 +257,8 @@ export default defineNuxtConfig({
           pages.splice(pages.indexOf(page), 1)
         }
       }
+
       removePagesMatching(/\.ts$/, pages)
     },
-  }
+  },
 })

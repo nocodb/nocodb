@@ -13,6 +13,7 @@ interface CmdAction {
 }
 
 export const useCommandPalette = createSharedComposable(() => {
+  const { $api } = useNuxtApp()
 
   const commandPalette = ref()
 
@@ -51,12 +52,42 @@ export const useCommandPalette = createSharedComposable(() => {
     }
   })
 
+  function processHandler(handler: { type: string; payload: string }) {
+    switch (handler.type) {
+      case 'navigate':
+        return () => navigateTo(handler.payload)
+      default:
+        break
+    }
+  }
+
   const activeScope = computed(() => {
     return lastScope.value.scope
   })
 
   async function loadScope(scope = 'root', data?: any) {
+    if (scope === 'disabled') {
+      lastScope.value = { scope, data }
+      return
+    }
+    dynamicData.value = []
+    cmdLoading.value = true
+    lastScope.value = { scope, data }
+    $api.utils
+      .commandPalette(lastScope.value)
+      .then((res) => {
+        dynamicData.value = res.map((item: any) => {
+          if (item.handler) item.handler = processHandler(item.handler)
+          return item
+        })
+        cmdLoading.value = false
+      })
+      .catch(() => (cmdLoading.value = false))
   }
+
+  refreshCommandPalette.on(() => {
+    loadScope(lastScope.value.scope, lastScope.value?.data)
+  })
 
   return {
     commandPalette,

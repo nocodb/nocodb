@@ -81,7 +81,7 @@ export const useProjects = defineStore('projectsStore', () => {
     await api.auth.projectUserUpdate(projectId, user.id, user as ProjectUserReqType)
   }
 
-  const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace') => {
+  const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace' = 'recent') => {
     const activeWorkspace = workspaceStore.activeWorkspace
     const workspace = workspaceStore.workspace
 
@@ -212,7 +212,7 @@ export const useProjects = defineStore('projectsStore', () => {
 
   const createProject = async (projectPayload: {
     title: string
-    workspaceId: string
+    workspaceId?: string
     type: string
     linkedDbProjectIds?: string[]
   }) => {

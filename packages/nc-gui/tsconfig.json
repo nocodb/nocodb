@@ -18,9 +18,6 @@
       "vite/client",
       "@nuxt/image-edge"
     ],
-//    "paths": {
-//      "~/*" : ["./ee/*", "./*"]
-//    }
   },
   "exclude": ["node_modules", "dist", ".output"]
 }

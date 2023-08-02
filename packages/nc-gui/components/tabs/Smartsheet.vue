@@ -162,9 +162,12 @@ const onDrop = async (event: DragEvent) => {
   }
 }
 
-onMounted(() => {
-  useTitle(`${openedProject.value?.title}: ${activeTable.value?.title}`)
-})
+watch(
+  () => `${openedProject.value?.title}: ${activeTable.value?.title}`,
+  () => {
+    useTitle(`${openedProject.value?.title}: ${activeTable.value?.title}`)
+  },
+)
 </script>
 
 <template>

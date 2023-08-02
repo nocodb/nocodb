@@ -91,7 +91,7 @@ main {
 }
 
 .nc-scrollbar-x-md {
-  overflow-x: hidden;
+  overflow-x: scroll;
 
   &::-webkit-scrollbar {
     width: 4px;
@@ -513,3 +513,6 @@ a {
 }
 
 
+.ant-skeleton-input {
+  @apply !h-full;
+}

@@ -3,6 +3,7 @@ import { ReloadViewDataHookInj, iconMap, inject, ref, useNuxtApp, watch } from '
 
 const { $e, $state } = useNuxtApp()
 
+const { isPaginationLoading } = storeToRefs(useViewsStore())
 const reloadHook = inject(ReloadViewDataHookInj)!
 
 const isReloading = ref(false)
@@ -19,6 +20,10 @@ const onClick = () => {
     }
   })
 }
+
+watch(isReloading, () => {
+  isPaginationLoading.value = isReloading.value
+})
 </script>
 
 <template>

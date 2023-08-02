@@ -88,6 +88,8 @@ const {
   moveHistory,
 } = useKanbanViewStoreOrThrow()
 
+const { isViewDataLoading } = storeToRefs(useViewsStore())
+
 const { isUIAllowed } = useUIPermission()
 
 const { appInfo } = $(useGlobal())
@@ -330,11 +332,6 @@ const openNewRecordFormHookHandler = async () => {
 
 openNewRecordFormHook?.on(openNewRecordFormHookHandler)
 
-onBeforeMount(async () => {
-  await loadKanbanMeta()
-  await loadKanbanData()
-})
-
 // remove openNewRecordFormHookHandler before unmounting
 // so that it won't be triggered multiple times
 onBeforeUnmount(() => openNewRecordFormHook.off(openNewRecordFormHookHandler))
@@ -346,24 +343,43 @@ watch(contextMenu, () => {
   }
 })
 
-watch(view, async (nextView) => {
-  if (nextView?.type === ViewTypes.KANBAN) {
-    // load kanban meta
-    await loadKanbanMeta()
-    // load kanban data
-    await loadKanbanData()
-    // horizontally scroll to the end of the kanban container
-    // when a new option is added within kanban view
-    if (shouldScrollToRight.value) {
-      kanbanContainerRef.value.scrollTo({
-        left: kanbanContainerRef.value.scrollWidth,
-        behavior: 'smooth',
-      })
-      // reset shouldScrollToRight
-      shouldScrollToRight.value = false
+watch(
+  view,
+  async (nextView) => {
+    if (nextView?.type === ViewTypes.KANBAN) {
+      isViewDataLoading.value = true
+
+      try {
+        // load kanban meta
+        await loadKanbanMeta()
+
+        isViewDataLoading.value = false
+
+        // load kanban data
+        await loadKanbanData()
+
+        // horizontally scroll to the end of the kanban container
+        // when a new option is added within kanban view
+        nextTick(() => {
+          if (shouldScrollToRight.value) {
+            kanbanContainerRef.value.scrollTo({
+              left: kanbanContainerRef.value.scrollWidth,
+              behavior: 'smooth',
+            })
+            // reset shouldScrollToRight
+            shouldScrollToRight.value = false
+          }
+        })
+      } catch (error) {
+        console.error(error)
+        isViewDataLoading.value = false
+      }
     }
-  }
-})
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -376,13 +392,21 @@ watch(view, async (nextView) => {
   >
     <div
       ref="kanbanContainerRef"
-      class="nc-kanban-container flex my-4 px-4 overflow-x-scroll overflow-y-hidden w-full nc-scrollbar-x-md"
+      class="nc-kanban-container flex mt-4 pb-4 px-4 overflow-y-hidden w-full nc-scrollbar-x-md"
       :style="{
-        minHeight: 'calc(100vh - var(--topbar-height) - 4.5rem)',
-        maxHeight: 'calc(100vh - var(--topbar-height) - 4.5rem)',
+        minHeight: 'calc(100vh - var(--topbar-height) - 3.5rem)',
+        maxHeight: 'calc(100vh - var(--topbar-height) - 3.5rem)',
       }"
     >
-      <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']" overlay-class-name="nc-dropdown-kanban-context-menu">
+      <div v-if="isViewDataLoading" class="flex flex-row min-h-full gap-x-2">
+        <a-skeleton-input v-for="index of Array(20)" :key="index" class="!min-w-80 !min-h-full !rounded-xl overflow-hidden" />
+      </div>
+      <a-dropdown
+        v-else
+        v-model:visible="contextMenu"
+        :trigger="['contextmenu']"
+        overlay-class-name="nc-dropdown-kanban-context-menu"
+      >
         <!-- Draggable Stack -->
         <Draggable
           v-model="groupingFieldColOptions"
@@ -417,7 +441,9 @@ watch(view, async (nextView) => {
                 ></div>
 
                 <!-- Skeleton -->
-                <a-skeleton v-if="!formattedData.get(stack.title) || !countByStack" class="p-4" />
+                <div v-if="!formattedData.get(stack.title) || !countByStack" class="mt-2.5 px-3 !w-full">
+                  <a-skeleton-input :active="true" class="!w-full !h-9.75 !rounded-lg overflow-hidden" />
+                </div>
 
                 <!-- Stack -->
                 <a-layout v-else class="!bg-gray-50">
@@ -628,13 +654,9 @@ watch(view, async (nextView) => {
                 :body-style="{ padding: '0px', height: '100%', width: '100%', background: '#f0f2f5 !important' }"
               >
                 <div class="items-center justify-between" @click="handleCollapseStack(stackIdx)">
-                  <!-- Skeleton -->
-                  <a-skeleton
-                    v-if="!formattedData.get(stack.title) || !countByStack"
-                    class="!w-[150px] pl-5"
-                    :paragraph="false"
-                  />
-
+                  <div v-if="!formattedData.get(stack.title) || !countByStack" class="mt-4 px-3 !w-full">
+                    <a-skeleton-input :active="true" class="!w-full !h-4 !rounded-lg overflow-hidden" />
+                  </div>
                   <div v-else class="nc-kanban-data-count mt-[12px] mx-[10px]">
                     <!--  Stack title -->
                     <div

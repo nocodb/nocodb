@@ -138,7 +138,7 @@ const availableTables = computed(() => {
         class="py-0.5 text-gray-500"
         :class="{
           'ml-13.55': baseIndex === 0,
-          'ml-19': baseIndex !== 0,
+          'ml-19.25': baseIndex !== 0,
         }"
       >
         Empty

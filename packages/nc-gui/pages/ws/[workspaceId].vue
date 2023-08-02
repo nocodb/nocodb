@@ -25,6 +25,5 @@ watch(
 </script>
 
 <template>
-  <div v-if="isWorkspaceLoading"></div>
-  <NuxtPage v-else :page-key="route.params.workspaceId" />
+  <NuxtPage :page-key="route.params.workspaceId" />
 </template>

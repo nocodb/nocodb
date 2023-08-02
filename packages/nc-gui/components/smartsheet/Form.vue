@@ -54,6 +54,8 @@ const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(meta, view)
 
 const reloadEventHook = createEventHook<boolean | void>()
@@ -398,7 +400,7 @@ watch(view, (nextView) => {
           New form will be loaded after {{ secondsRemain }} seconds
         </div>
 
-        <div v-if="formViewData.submit_another_form" class="text-center mt-4">
+        <div v-if="formViewData.submit_another_form || !isPublic" class="text-center mt-4">
           <a-button type="primary" size="large" @click="submitted = false"> Submit Another Form</a-button>
         </div>
       </div>

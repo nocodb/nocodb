@@ -380,7 +380,7 @@ export default {
               </div>
               <div
                 v-for="(col, i) of hiddenFields"
-                v-show="(!isVirtualCol(col) || !isNew || isLinksOrLTAR(col)) && showHiddenFields"
+                v-show="(isFormula(col) || !isVirtualCol(col) || !isNew || isLinksOrLTAR(col)) && showHiddenFields"
                 :key="col.title"
                 class="mt-2 py-2"
                 :class="`nc-expand-col-${col.title}`"

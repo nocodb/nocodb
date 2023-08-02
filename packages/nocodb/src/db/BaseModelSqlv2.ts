@@ -2114,7 +2114,7 @@ class BaseModelSqlv2 {
               params: {},
               base,
             })
-          : await this.readByPk(id);
+          : await this.readByPk(id, false, {}, true);
 
       const query = this.dbDriver(this.tnPath)
         .update(updateObj)
@@ -2135,7 +2135,7 @@ class BaseModelSqlv2 {
               params: {},
               base,
             })
-          : await this.readByPk(id);
+          : await this.readByPk(id, false, {}, true);
 
       await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
       return newData;

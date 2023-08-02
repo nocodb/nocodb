@@ -929,7 +929,7 @@ watch(
   view,
   async (next, old) => {
     try {
-      if (next && next.id !== old?.id && next.fk_model_id === route.params.viewId) {
+      if (next && next.id !== old?.id && (next.fk_model_id === route.params.viewId || isPublicView.value)) {
         switchingTab.value = true
         // whenever tab changes or view changes save any unsaved data
         if (old?.id) {
@@ -945,7 +945,6 @@ watch(
         isViewDataLoading.value = true
         try {
           await loadData()
-          await new Promise((resolve) => setTimeout(resolve, 500))
         } catch (e) {
           console.log(e)
           message.error('Error loading data')

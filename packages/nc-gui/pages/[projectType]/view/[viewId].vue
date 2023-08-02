@@ -14,19 +14,21 @@ const { isViewDataLoading } = storeToRefs(useViewsStore())
 
 const showPassword = ref(false)
 
-isViewDataLoading.value = true
-try {
-  await loadSharedView(route.params.viewId as string)
-} catch (e: any) {
-  if (e?.response?.status === 403) {
-    showPassword.value = true
-  } else {
-    console.error(e)
-    message.error(await extractSdkResponseErrorMsg(e))
+onMounted(async () => {
+  isViewDataLoading.value = true
+  try {
+    await loadSharedView(route.params.viewId as string)
+  } catch (e: any) {
+    if (e?.response?.status === 403) {
+      showPassword.value = true
+    } else {
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  } finally {
+    isViewDataLoading.value = false
   }
-} finally {
-  isViewDataLoading.value = false
-}
+})
 </script>
 
 <template>

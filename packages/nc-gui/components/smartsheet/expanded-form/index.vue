@@ -2,6 +2,7 @@
 import type { TableType, ViewType } from 'nocodb-sdk'
 import { isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import MdiChevronDown from '~icons/mdi/chevron-down'
 import {
   CellClickHookInj,
   FieldsInj,
@@ -364,11 +365,19 @@ export default {
                 />
               </LazySmartsheetDivDataCell>
             </div>
-            <div v-if="hiddenFields.length > 0" class="my-8">
-              <div class="flex flex-row justify-center">
-                <a-button class="!rounded-md" @click="toggleHiddenFields">
-                  {{ showHiddenFields ? 'Hide Hidden Fields' : 'Show Hidden Fields' }}
+            <div v-if="hiddenFields.length > 0" class="my-4">
+              <div class="flex items-center py-4">
+                <div class="flex-grow h-px mr-1 bg-gray-200"></div>
+                <a-button
+                  class="!rounded-md flex items-center flex-shrink-1 text-gray hover:text-blue"
+                  @click="toggleHiddenFields"
+                >
+                  {{
+                    showHiddenFields ? `Hide ${hiddenFields.length} hidden fields` : `Show ${hiddenFields.length} hidden fields`
+                  }}
+                  <MdiChevronDown class="ml-1" :class="showHiddenFields ? 'transform rotate-180' : ''" />
                 </a-button>
+                <div class="flex-grow ml-1 h-px bg-gray-200"></div>
               </div>
               <div
                 v-for="(col, i) of hiddenFields"

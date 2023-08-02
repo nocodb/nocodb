@@ -5,8 +5,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const views = ref<ViewType[]>([])
   const { $api } = useNuxtApp()
 
+  const route = useRoute()
+
   const isViewsLoading = ref(true)
   const isViewDataLoading = ref(true)
+  const isPublic = computed(() => route.meta?.public)
 
   // Used for Grid View Pagination
   const isPaginationLoading = ref(false)
@@ -28,6 +31,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
     () => tablesStore.activeTableId,
     async (newId, oldId) => {
       if (newId === oldId) return
+      if (isPublic.value) {
+        isViewsLoading.value = false
+        return
+      }
 
       isViewsLoading.value = true
       isViewDataLoading.value = true

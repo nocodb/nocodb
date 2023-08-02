@@ -36,6 +36,8 @@ const { loadViews } = useViewsStore()
 
 const { lastOpenedViewMap } = storeToRefs(useProject())
 
+const { activeTable } = storeToRefs(useTablesStore())
+
 const setLastOpenedViewId = (viewId?: string) => {
   if (viewId && activeTab.value?.id) {
     lastOpenedViewMap.value[activeTab.value?.id] = viewId
@@ -249,7 +251,7 @@ onUnmounted(() => {
           <div v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="flex flex-col">
             <div class="!mb-3 w-full border-b-1 border-gray-75" />
 
-            <div v-if="isViewsLoading" class="flex flex-col pt-2 pb-5 px-6">
+            <div v-if="!activeTable" class="flex flex-col pt-2 pb-5 px-6">
               <a-skeleton-input :active="true" class="!w-3/5 !h-4 !rounded overflow-hidden" />
               <div class="flex flex-row justify-between items-center w-full mt-4.75">
                 <div class="flex flex-row items-center flex-grow gap-x-3">

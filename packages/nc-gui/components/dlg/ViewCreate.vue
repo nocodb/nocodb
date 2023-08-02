@@ -179,6 +179,8 @@ async function onSubmit() {
     try {
       let data: GridType | KanbanType | GalleryType | FormType | MapType | null = null
 
+      isViewCreating.value = true
+
       switch (form.type) {
         case ViewTypes.GRID:
           data = await api.dbView.gridCreate(_meta.id, form)

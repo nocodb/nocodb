@@ -8460,6 +8460,10 @@ export class Api<
       projectName: string,
       tableName: string,
       rowId: any,
+      query?: {
+        /** To get Hidden Columns */
+        getHiddenColumn?: boolean;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -8471,6 +8475,7 @@ export class Api<
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}`,
         method: 'GET',
+        query: query,
         format: 'json',
         ...params,
       }),
@@ -8495,6 +8500,10 @@ export class Api<
       tableName: string,
       rowId: any,
       data: object,
+      query?: {
+        /** To get Hidden Columns */
+        getHiddenColumn?: boolean;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -8506,6 +8515,7 @@ export class Api<
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}`,
         method: 'PATCH',
+        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -8531,6 +8541,10 @@ export class Api<
       projectName: string,
       tableName: string,
       rowId: any,
+      query?: {
+        /** To get Hidden Columns */
+        getHiddenColumn?: boolean;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -8542,6 +8556,7 @@ export class Api<
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}`,
         method: 'DELETE',
+        query: query,
         format: 'json',
         ...params,
       }),

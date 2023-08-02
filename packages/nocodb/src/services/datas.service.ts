@@ -249,6 +249,7 @@ export class DatasService {
       query: any;
       rowId: string;
       disableOptimization?: boolean;
+      getHiddenColumn?: boolean;
     },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
@@ -271,8 +272,12 @@ export class DatasService {
         viewId: view?.id,
         dbDriver: await NcConnectionMgrv2.get(base),
       });
-
-      row = await baseModel.readByPk(param.rowId, false, param.query);
+      row = await baseModel.readByPk(
+        param.rowId,
+        false,
+        param.query,
+        param.getHiddenColumn,
+      );
     }
 
     if (!row) {

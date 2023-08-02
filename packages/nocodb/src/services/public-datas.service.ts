@@ -343,7 +343,7 @@ export class PublicDatasService {
         {},
         dependencyFields,
       );
-      count = await baseModel.count(dependencyFields);
+      count = await baseModel.count(dependencyFields as any);
     } catch (e) {
       console.log(e);
       NcError.internalServerError('Please check server log for more details');

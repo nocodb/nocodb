@@ -129,6 +129,7 @@ class BaseModelSqlv2 {
     id?: any,
     validateFormula = false,
     query: any = {},
+    getHiddenColumn = false,
   ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
 
@@ -136,6 +137,7 @@ class BaseModelSqlv2 {
       query,
       model: this.model,
       view: this.viewId && (await View.get(this.viewId)),
+      getHiddenColumn,
     });
 
     await this.selectObject({
@@ -2112,7 +2114,7 @@ class BaseModelSqlv2 {
               params: {},
               base,
             })
-          : await this.readByPk(id);
+          : await this.readByPk(id, false, {}, true);
 
       const query = this.dbDriver(this.tnPath)
         .update(updateObj)
@@ -2133,7 +2135,7 @@ class BaseModelSqlv2 {
               params: {},
               base,
             })
-          : await this.readByPk(id);
+          : await this.readByPk(id, false, {}, true);
 
       await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
       return newData;

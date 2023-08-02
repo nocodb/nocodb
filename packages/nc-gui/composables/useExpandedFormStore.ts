@@ -292,6 +292,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       (project?.value?.id || (sharedView.value?.view as any)?.project_id) as string,
       meta.value.id,
       encodeURIComponent(rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])),
+      {
+        getHiddenColumn: true,
+      },
     )
 
     Object.assign(row.value, {

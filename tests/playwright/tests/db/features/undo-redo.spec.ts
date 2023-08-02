@@ -7,16 +7,6 @@ import { GridPage } from '../../../pages/Dashboard/Grid';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { isSqlite } from '../../../setup/db';
 
-let dashboard: DashboardPage,
-  grid: GridPage,
-  toolbar: ToolbarPage,
-  context: any,
-  api: Api<any>,
-  records: Record<string, any>,
-  table: any,
-  cityTable: any,
-  countryTable: any;
-
 const validateResponse = false;
 
 /**
@@ -35,8 +25,8 @@ const validateResponse = false;
  Table	      Rename
 
  **/
-async function undo({ page }: { page: Page }) {
-  const isMac = await grid.isMacOs();
+async function undo({ page, dashboard }: { page: Page; dashboard: DashboardPage }) {
+  const isMac = await dashboard.grid.isMacOs();
 
   if (validateResponse) {
     await dashboard.grid.waitForResponse({
@@ -54,6 +44,8 @@ async function undo({ page }: { page: Page }) {
 }
 
 test.describe('Undo Redo', () => {
+  let dashboard: DashboardPage, grid: GridPage, toolbar: ToolbarPage, context: any, api: Api<any>, table: any;
+
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
@@ -109,7 +101,6 @@ test.describe('Undo Redo', () => {
       }
 
       await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, rowAttributes);
-      records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 100 });
     } catch (e) {
       console.log(e);
     }
@@ -154,21 +145,21 @@ test.describe('Undo Redo', () => {
     await verifyRecords([]);
 
     // Undo : Row.Delete
-    await undo({ page });
+    await undo({ page, dashboard });
     await verifyRecords([666]);
-    await undo({ page });
+    await undo({ page, dashboard });
     await verifyRecords([555, 666]);
 
     // Undo : Row.Update
-    await undo({ page });
+    await undo({ page, dashboard });
     await verifyRecords([555, 444]);
-    await undo({ page });
+    await undo({ page, dashboard });
     await verifyRecords([333, 444]);
 
     // Undo : Row.Create
-    await undo({ page });
+    await undo({ page, dashboard });
     await verifyRecords([333]);
-    await undo({ page });
+    await undo({ page, dashboard });
     await verifyRecords([]);
   });
 
@@ -204,19 +195,19 @@ test.describe('Undo Redo', () => {
     await verifyFieldsOrder(['Number', 'Decimal', 'Currency']);
 
     // Undo : un hide Currency
-    await undo({ page });
+    await undo({ page, dashboard });
     await verifyFieldsOrder(['Number', 'Decimal']);
 
     // Undo : un hide Decimal
-    await undo({ page });
+    await undo({ page, dashboard });
     await verifyFieldsOrder(['Number']);
 
     // Undo : hide Currency
-    await undo({ page });
+    await undo({ page, dashboard });
     await verifyFieldsOrder(['Number', 'Currency']);
 
     // Undo : hide Decimal
-    await undo({ page });
+    await undo({ page, dashboard });
     await verifyFieldsOrder(['Number', 'Decimal', 'Currency']);
 
     // reorder test
@@ -224,7 +215,7 @@ test.describe('Undo Redo', () => {
     await verifyFieldsOrder(['Number', 'Currency', 'Decimal']);
 
     // Undo : reorder
-    await undo({ page });
+    await undo({ page, dashboard });
     await verifyFieldsOrder(['Number', 'Decimal', 'Currency']);
   });
 
@@ -252,9 +243,9 @@ test.describe('Undo Redo', () => {
     await toolbar.sort.reset();
     await verifyRecords({ sorted: false });
 
-    await undo({ page });
+    await undo({ page, dashboard });
     await verifyRecords({ sorted: true });
-    await undo({ page });
+    await undo({ page, dashboard });
     await verifyRecords({ sorted: false });
   });
 
@@ -288,12 +279,12 @@ test.describe('Undo Redo', () => {
     await verifyRecords({ filtered: false });
 
     // undo: remove filter
-    await undo({ page });
+    await undo({ page, dashboard });
     await verifyRecords({ filtered: true });
     // undo: update filter
-    await undo({ page });
+    await undo({ page, dashboard });
     // undo: add filter
-    await undo({ page });
+    await undo({ page, dashboard });
     await verifyRecords({ filtered: false });
   });
 
@@ -323,11 +314,11 @@ test.describe('Undo Redo', () => {
     await new Promise(resolve => setTimeout(resolve, timeOut));
     await verifyRowHeight({ height: '3.6rem' });
 
-    await undo({ page });
+    await undo({ page, dashboard });
     await new Promise(resolve => setTimeout(resolve, timeOut));
     await verifyRowHeight({ height: '7.2rem' });
 
-    await undo({ page });
+    await undo({ page, dashboard });
     await new Promise(resolve => setTimeout(resolve, timeOut));
     await verifyRowHeight({ height: '1.8rem' });
   });
@@ -345,17 +336,17 @@ test.describe('Undo Redo', () => {
     const modifiedWidth = await dashboard.grid.column.getWidth({ title: 'Number' });
     expect(modifiedWidth).toBeGreaterThan(originalWidth);
 
-    await undo({ page });
+    await undo({ page, dashboard });
     expect(await dashboard.grid.column.getWidth({ title: 'Number' })).toBe(originalWidth);
   });
 });
 
 test.describe('Undo Redo - Table & view rename operations', () => {
+  let dashboard: DashboardPage, context: any, api: Api<any>, table: any;
+
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
-    grid = dashboard.grid;
-    toolbar = dashboard.grid.toolbar;
 
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -401,7 +392,6 @@ test.describe('Undo Redo - Table & view rename operations', () => {
       }
 
       await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, rowAttributes);
-      records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 100 });
     } catch (e) {
       console.log(e);
     }
@@ -420,7 +410,7 @@ test.describe('Undo Redo - Table & view rename operations', () => {
     await dashboard.treeView.verifyTable({ title: 'newNameForTest' });
     await dashboard.rootPage.waitForTimeout(100);
 
-    await undo({ page });
+    await undo({ page, dashboard });
     await dashboard.rootPage.waitForTimeout(100);
     await dashboard.treeView.verifyTable({ title: 'selectBased' });
 
@@ -454,7 +444,7 @@ test.describe('Undo Redo - Table & view rename operations', () => {
       await dashboard.viewSidebar.renameView({ title: viewTypes[i], newTitle: 'newNameForTest' });
       await dashboard.viewSidebar.verifyView({ title: 'newNameForTest', index: 1 });
       await new Promise(resolve => setTimeout(resolve, 100));
-      await undo({ page });
+      await undo({ page, dashboard });
       await dashboard.viewSidebar.verifyView({ title: viewTypes[i], index: 1 });
       await dashboard.viewSidebar.deleteView({ title: viewTypes[i] });
     }
@@ -462,6 +452,7 @@ test.describe('Undo Redo - Table & view rename operations', () => {
 });
 
 test.describe('Undo Redo - LTAR', () => {
+  let dashboard: DashboardPage, grid: GridPage, context: any, api: Api<any>, cityTable: any, countryTable: any;
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
@@ -638,10 +629,11 @@ test.describe('Undo Redo - LTAR', () => {
 });
 
 test.describe('Undo Redo - Select based', () => {
+  let dashboard: DashboardPage, /*grid: GridPage,*/ context: any, api: Api<any>, table: any;
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
-    grid = dashboard.grid;
+    // grid = dashboard.grid;
 
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -716,7 +708,7 @@ test.describe('Undo Redo - Select based', () => {
       order: ['Uncategorized', 'feb', 'jan', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'],
     });
     // undo drag drop stack
-    await undo({ page });
+    await undo({ page, dashboard });
     await kanban.verifyStackOrder({
       order: ['Uncategorized', 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'],
     });
@@ -730,7 +722,7 @@ test.describe('Undo Redo - Select based', () => {
       count: [0, 1, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     });
     // undo drag drop card
-    await undo({ page });
+    await undo({ page, dashboard });
     await kanban.verifyCardCount({
       count: [0, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     });

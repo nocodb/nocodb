@@ -239,8 +239,9 @@ watch(
     </template>
 
     <div
-      class="flex flex-col h-full w-full nc-gallery nc-scrollbar-md"
+      class="flex flex-col w-full nc-gallery nc-scrollbar-md"
       data-testid="nc-gallery-wrapper"
+      style="height: calc(100% - var(--topbar-height) + 0.7rem)"
       :class="{
         '!overflow-hidden': isViewDataLoading,
       }"
@@ -327,13 +328,10 @@ watch(
           </LazySmartsheetRow>
         </div>
       </div>
-
-      <div class="flex-1" />
-
-      <LazySmartsheetPagination />
     </div>
   </a-dropdown>
 
+  <LazySmartsheetPagination />
   <Suspense>
     <LazySmartsheetExpandedForm
       v-if="expandedFormRow && expandedFormDlg"

@@ -219,12 +219,9 @@ export default defineNuxtConfig({
 
   extends: [...(process.env.EE ? ['./ee'] : []), './core'],
 
-  // components: {
-  //   dirs: [
-  //     '~/components',
-  //     // '~/ee/components'
-  //   ]
-  // },
+  components: {
+    dirs: [...(process.env.EE ? ['~/ee/components'] : []), '~/components'],
+  },
 
   hooks: {
     'pages:extend': function (pages) {

@@ -116,9 +116,13 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) 
   }
 }
 
+const exposeOpenColumnCreate = (data: any) => {
+  tableRef.value?.openColumnCreate(data)
+}
+
 defineExpose({
   loadData,
-  openColumnCreate: tableRef.value?.openColumnCreate,
+  openColumnCreate: exposeOpenColumnCreate,
 })
 
 const expandedFormOnRowIdDlg = computed({

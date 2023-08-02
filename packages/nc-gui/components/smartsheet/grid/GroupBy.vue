@@ -218,14 +218,14 @@ if (vGroup.value.root === true) provide(ScrollParentInj, wrapper)
             <GroupBy
               v-else
               :group="grp"
-              :load-groups="props.loadGroups"
-              :load-group-data="props.loadGroupData"
-              :load-group-page="props.loadGroupPage"
-              :group-wrapper-change-page="props.groupWrapperChangePage"
-              :row-height="props.rowHeight"
+              :load-groups="loadGroups"
+              :load-group-data="loadGroupData"
+              :load-group-page="loadGroupPage"
+              :group-wrapper-change-page="groupWrapperChangePage"
+              :row-height="rowHeight"
               :redistribute-rows="redistributeRows"
-              :expand-form="props.expandForm"
-              :view-width="props.viewWidth"
+              :expand-form="expandForm"
+              :view-width="viewWidth"
               :depth="_depth + 1"
             />
           </a-collapse-panel>

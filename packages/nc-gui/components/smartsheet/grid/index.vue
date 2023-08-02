@@ -139,11 +139,7 @@ const expandedFormOnRowIdDlg = computed({
 
 const addRowExpandOnClose = (row: Row) => {
   if (!skipRowRemovalOnCancel.value) {
-    const removed = removeRowIfNew(row)
-
-    if (removed) {
-      tableRef.value?.clearSelection()
-    }
+    eventBus.emit(SmartsheetStoreEvents.CLEAR_NEW_ROW, row)
   }
 }
 
@@ -230,6 +226,7 @@ onMounted(() => {
       :delete-selected-rows="deleteSelectedRows"
       :delete-range-of-rows="deleteRangeOfRows"
       :bulk-update-rows="bulkUpdateRows"
+      :remove-row-if-new="removeRowIfNew"
       :expand-form="expandForm"
       :row-height="rowHeight"
       @toggle-optimised-query="toggleOptimisedQuery"

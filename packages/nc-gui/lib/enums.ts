@@ -100,6 +100,7 @@ export enum SmartsheetStoreEvents {
   FIELD_RELOAD = 'field-reload',
   FIELD_ADD = 'field-add',
   MAPPED_BY_COLUMN_CHANGE = 'mapped-by-column-change',
+  CLEAR_NEW_ROW = 'clear-new-row',
 }
 
 export enum DataSourcesSubTab {

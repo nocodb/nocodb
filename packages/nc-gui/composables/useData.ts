@@ -720,6 +720,16 @@ export function useData(args: {
     await callbacks?.globalCallback?.()
   }
 
+  const removeRowIfNew = (row: Row) => {
+    const index = formattedData.value.indexOf(row)
+
+    if (index > -1 && row.rowMeta.new) {
+      formattedData.value.splice(index, 1)
+      return true
+    }
+    return false
+  }
+
   return {
     insertRow,
     updateRowProperty,
@@ -732,5 +742,6 @@ export function useData(args: {
     bulkUpdateRows,
     bulkUpdateView,
     selectedAllRecords,
+    removeRowIfNew,
   }
 }

@@ -97,14 +97,6 @@ export function useViewData(
     where: where?.value ?? '',
   }))
 
-  function removeLastEmptyRow() {
-    const lastRow = formattedData.value[formattedData.value.length - 1]
-
-    if (lastRow.rowMeta.new) {
-      formattedData.value.pop()
-    }
-  }
-
   async function syncCount() {
     const { count } = await $api.dbViewRow.count(
       NOCO,
@@ -222,6 +214,7 @@ export function useViewData(
     bulkUpdateRows,
     bulkUpdateView,
     selectedAllRecords,
+    removeRowIfNew,
   } = useData({
     meta,
     viewMeta,
@@ -274,16 +267,6 @@ export function useViewData(
     } catch (e: any) {
       return message.error(`${t('msg.error.formViewUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
-  }
-
-  const removeRowIfNew = (row: Row) => {
-    const index = formattedData.value.indexOf(row)
-
-    if (index > -1 && row.rowMeta.new) {
-      formattedData.value.splice(index, 1)
-      return true
-    }
-    return false
   }
 
   // get current expanded row index
@@ -365,7 +348,6 @@ export function useViewData(
     updateFormView,
     aggCommentCount,
     loadAggCommentsCount,
-    removeLastEmptyRow,
     removeRowIfNew,
     navigateToSiblingRow,
     getExpandedRowIndex,

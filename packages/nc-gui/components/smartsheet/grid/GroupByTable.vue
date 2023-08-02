@@ -63,17 +63,18 @@ const formattedData = computed(() => {
   return [] as Row[]
 })
 
-const { deleteRow, deleteSelectedRows, deleteRangeOfRows, updateOrSaveRow, bulkUpdateRows, selectedAllRecords } = useData({
-  meta,
-  viewMeta: view,
-  formattedData,
-  paginationData: ref(vGroup.value.paginationData),
-  callbacks: {
-    changePage: (p: number) => props.loadGroupPage(vGroup.value, p),
-    loadData: () => props.loadGroupData(vGroup.value, true),
-    globalCallback: () => props.redistributeRows?.(),
-  },
-})
+const { deleteRow, deleteSelectedRows, deleteRangeOfRows, updateOrSaveRow, bulkUpdateRows, selectedAllRecords, removeRowIfNew } =
+  useData({
+    meta,
+    viewMeta: view,
+    formattedData,
+    paginationData: ref(vGroup.value.paginationData),
+    callbacks: {
+      changePage: (p: number) => props.loadGroupPage(vGroup.value, p),
+      loadData: () => props.loadGroupData(vGroup.value, true),
+      globalCallback: () => props.redistributeRows?.(),
+    },
+  })
 
 const reloadTableData = async () => {
   await props.loadGroupData(vGroup.value, true)
@@ -102,6 +103,7 @@ reloadViewDataHook?.on(reloadTableData)
     :delete-selected-rows="deleteSelectedRows"
     :delete-range-of-rows="deleteRangeOfRows"
     :update-or-save-row="updateOrSaveRow"
+    :remove-row-if-new="removeRowIfNew"
     :bulk-update-rows="bulkUpdateRows"
     :hide-header="true"
     :pagination="props.pagination"

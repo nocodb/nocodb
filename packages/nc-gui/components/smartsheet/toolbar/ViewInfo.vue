@@ -15,7 +15,10 @@ const { activeTable } = storeToRefs(useTablesStore())
       'max-w-1/4': selectedView?.type === ViewTypes.KANBAN,
     }"
   >
-    <MdiTable class="min-w-5 !text-gray-500 mb-0.25" :class="{}" />
+    <div v-if="activeTable?.meta?.icon" class="text-lg mr-0.5">
+      {{ activeTable?.meta?.icon }}
+    </div>
+    <MdiTable v-else class="min-w-5 !text-gray-500 mb-0.25" :class="{}" />
     <span
       class="text-ellipsis overflow-hidden pl-1 text-gray-500 max-w-1/2"
       :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
@@ -24,7 +27,10 @@ const { activeTable } = storeToRefs(useTablesStore())
     </span>
 
     <div class="px-2 text-gray-500">/</div>
-    <component :is="viewIcons[ViewTypes.GRID].icon" class="min-w-5 flex text-gray-700 mb-0.25" />
+    <div v-if="selectedView?.meta?.icon" class="text-lg mr-0.5">
+      {{ selectedView?.meta?.icon }}
+    </div>
+    <component :is="viewIcons[ViewTypes.GRID].icon" v-else class="min-w-5 flex text-gray-700 mb-0.25" />
     <span
       class="text-ellipsis overflow-hidden pl-1.5 text-gray-700 max-w-1/2"
       :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline', fontSize: '0.9rem' }"

@@ -47,9 +47,9 @@ jobs:
             ${{ runner.os }}-hetzner-build-${{ env.cache-name }}-
             ${{ runner.os }}-hetzner-build-
             ${{ runner.os }}-hetzner
-      # - name: setup pg
-      #   working-directory: ./
-      #   run: docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &
+      - name: setup pg
+        working-directory: ./
+        run:  cd /var/lib/postgresql/ && sudo -u postgres psql -c "SELECT 'dropdb '||datname||'' FROM pg_database WHERE datistemplate = false AND datallowconn = true And datname NOT IN ('postgres')" |grep ' dropdb ' |  sudo -u postgres /bin/bash ; cd
       - name: Set CI env
         run: export CI=true
       - name: Set Node env
@@ -81,19 +81,19 @@ jobs:
         working-directory: ./packages/nocodb
         run: |
           npm install
-          npm run watch:run:playwright > ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+          npm run watch:run:playwright &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
       - name: Run backend:mysql
         if: ${{ inputs.db == 'mysql' }}
         working-directory: ./packages/nocodb
         run: |
           npm install
-          npm run watch:run:playwright:mysql > ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+          npm run watch:run:playwright:mysql &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
       - name: Run backend:pg
         if: ${{ inputs.db == 'pg' }}
         working-directory: ./packages/nocodb
         run: |
           npm install
-          npm run watch:run:playwright:pg > ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+          npm run watch:run:playwright:pg &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
       - name: Cache playwright npm modules
         uses: actions/cache@v3
         id: playwright-cache
@@ -116,7 +116,7 @@ jobs:
             printf '.'
             sleep 2
           done
-        timeout-minutes: 5
+        timeout-minutes: 2
       - name: Run Playwright Tests
         working-directory: ./tests/playwright
         run: E2E_DB_TYPE=${{ inputs.db }} npm run ci:test:shard:${{ inputs.shard }}
@@ -152,16 +152,18 @@ jobs:
           done
           PLAYWRIGHT_HTML_REPORT=playwright-report-quick npm run test:quick
       - name: Copy Artifacts to Local Artifacts Dir
+        if: always()
         working-directory: ./
         run: |
           # expects the variables to be available in runner context.
           path="gh-artifacts/runs/${GITHUB_RUN_ID}/run-attempt/${GITHUB_RUN_ATTEMPT}/job_name/"${GITHUB_JOB}"-${{ inputs.shard }}/${RANDOM}-$(date +%s)"
           target_dir="/mnt/${path}"
           mkdir -p ${target_dir}
-          ls ./tests/playwright/playwright-report/*
+          mkdir -p ${target_dir}/playwright-report
 
           # start : add any artifacts to be copied here
-          cp -r ./tests/playwright/playwright-report ${target_dir}/  
+          cp -r ./tests/playwright/playwright-report ${target_dir}/  || echo "playwright reports directory does not exists" >>  ${target_dir}/playwright-report/index.html
+          cp ./packages/nocodb/${{ inputs.db }}_${{ inputs.shard }}_test_backend.log ${target_dir}/ || echo "backend logs file does not exists" >> ${target_dir}/index.html
           # end: artifacts copy
 
           SUMMARY='[Artifacts](http://65.21.27.147/'${path}')

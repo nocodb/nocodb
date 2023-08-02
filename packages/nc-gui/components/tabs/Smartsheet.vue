@@ -90,13 +90,8 @@ const grid = ref()
 const onDrop = async (event: DragEvent) => {
   event.preventDefault()
   try {
-    // extract the data from the event's data transfer object
-    const textData = event.dataTransfer?.getData('text/json')
-
-    if (!textData) return
-
-    // parse the data
-    const data = JSON.parse(textData)
+    // Access the dropped data
+    const data = JSON.parse(event.dataTransfer?.getData('text/json')!)
     // Do something with the received data
 
     // if dragged item is not from the same base, return
@@ -119,20 +114,41 @@ const onDrop = async (event: DragEvent) => {
 
       const ltarOptions = c.colOptions as LinkToAnotherRecordType
 
-      return ltarOptions.fk_related_model_id === childMeta.id
+      if (ltarOptions.type !== 'mm') {
+        return false
+      }
+
+      if (c.system) return false
+
+      if (ltarOptions.fk_related_model_id === childMeta.id) {
+        return true
+      }
+
+      return false
     })
+
     if (relationCol) {
       const lookupCol = childMeta.columns?.find((c) => c.pv) ?? childMeta.columns?.[0]
       grid.value?.openColumnCreate({
         uidt: UITypes.Lookup,
-        title: `${relationCol.title}Lookup`,
+        title: `${data.title} Lookup`,
         fk_relation_column_id: relationCol.id,
         fk_lookup_column_id: lookupCol?.id,
       })
     } else {
+      if (!parentPkCol) {
+        message.error('Parent table does not have a primary key column')
+        return
+      }
+
+      if (!childPkCol) {
+        message.error('Child table does not have a primary key column')
+        return
+      }
+
       grid.value?.openColumnCreate({
         uidt: UITypes.Links,
-        title: `${data.title}`,
+        title: `${data.title}List`,
         parentId: parentMeta.id,
         childId: childMeta.id,
         parentTable: parentMeta.title,

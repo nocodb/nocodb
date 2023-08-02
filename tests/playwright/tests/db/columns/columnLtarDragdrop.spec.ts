@@ -7,7 +7,7 @@ import { getTextExcludeIconText } from '../../utils/general';
 let api: Api<any>;
 const recordCount = 10;
 
-test.describe.skip('Links', () => {
+test.describe('Links', () => {
   let context: any;
   let dashboard: DashboardPage;
   let grid: GridPage;
@@ -85,7 +85,7 @@ test.describe.skip('Links', () => {
       await columnAddModal.locator(`.ant-btn-primary`).click();
 
       // verify if column is created
-      await grid.column.verify({ title: 'Table1', isVisible: true });
+      await grid.column.verify({ title: 'Table1List', isVisible: true });
     }
 
     // drag drop for lookup column creation
@@ -103,14 +103,14 @@ test.describe.skip('Links', () => {
 
       // validate
       expect(columnType).toContain('Lookup');
-      expect(linkField).toContain('Table1');
+      expect(linkField).toContain('Table1List');
       expect(childColumn).toContain('Title');
 
       // save
       await columnAddModal.locator(`.ant-btn-primary`).click();
 
       // verify if column is created
-      await grid.column.verify({ title: 'Table1Lookup', isVisible: true });
+      await grid.column.verify({ title: 'Table1 Lookup', isVisible: true });
     }
   });
 });

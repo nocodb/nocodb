@@ -98,7 +98,11 @@ watch(
 
 <template>
   <div class="flex flex-col mt-2 pt-1 border-t-1 border-gray-50 px-2 nc-view-sidebar-webhook">
-    <div v-e="['c:actions:webhook']" class="py-2 flex gap-2 items-center justify-between text-gray-700" @click="openEditor()">
+    <div
+      v-e="['c:actions:webhook']"
+      class="py-2 flex gap-2 items-center justify-between button text-gray-700"
+      @click="openEditor()"
+    >
       <div class="flex flex-row items-center gap-x-2 nc-view-sidebar-webhook-label">
         <component :is="iconMap.hook" class="text-gray-600" />
         {{ $t('objects.webhooks') }}
@@ -107,7 +111,7 @@ watch(
         <component :is="iconMap.plus" class="text-primary-600 nc-view-sidebar-webhook-plus-icon" />
       </div>
     </div>
-    <div v-if="hooks.length === 0" class="flex flex-col ml-6.5 text-gray-500">Empty</div>
+    <div v-if="hooks.length === 0" class="flex flex-col px-1.5 py-2.5 ml-6.5 text-gray-500">Empty</div>
     <div v-else class="flex flex-col ml-6">
       <div
         v-for="hook in hooks"
@@ -204,6 +208,10 @@ watch(
   background-color: #ffffff;
   border-radius: 50%;
   position: relative;
+}
+
+.button {
+  @apply px-2 cursor-pointer hover:bg-gray-50 text-gray-700 rounded hover:text-black;
 }
 
 .dot {

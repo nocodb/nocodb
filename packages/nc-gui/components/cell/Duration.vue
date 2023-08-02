@@ -15,7 +15,7 @@ import {
 
 interface Props {
   modelValue: number | string | null | undefined
-  showValidationError: boolean
+  showValidationError?: boolean
 }
 
 const { modelValue, showValidationError = true } = defineProps<Props>()

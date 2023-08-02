@@ -35,6 +35,8 @@ provide(FieldsInj, ref(meta.value?.columns || []))
 provide(IsPublicInj, ref(true))
 provide(IsLockedInj, isLocked)
 
+const { loadGridViewColumns } = useProvideGridViewColumn(sharedView, true)
+
 if (signedIn.value) {
   try {
     await loadProject()
@@ -43,6 +45,8 @@ if (signedIn.value) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+onMounted(loadGridViewColumns)
 </script>
 
 <template>

@@ -16,6 +16,10 @@ export default class GridViewColumn implements GridColumnType {
   project_id?: string;
   base_id?: string;
 
+  group_by?: BoolType;
+  group_by_order?: number;
+  group_by_sort?: string;
+
   constructor(data: GridViewColumn) {
     Object.assign(this, data);
   }
@@ -79,6 +83,9 @@ export default class GridViewColumn implements GridColumnType {
       'base_id',
       'order',
       'width',
+      'group_by',
+      'group_by_order',
+      'group_by_sort',
     ]);
 
     insertObj.order =
@@ -132,7 +139,14 @@ export default class GridViewColumn implements GridColumnType {
     body: Partial<GridViewColumn>,
     ncMeta = Noco.ncMeta,
   ) {
-    const updateObj = extractProps(body, ['order', 'show', 'width']);
+    const updateObj = extractProps(body, [
+      'order',
+      'show',
+      'width',
+      'group_by',
+      'group_by_order',
+      'group_by_sort',
+    ]);
     // get existing cache
     const key = `${CacheScope.GRID_VIEW_COLUMN}:${columnId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);

@@ -1,4 +1,13 @@
-import type { DocsPageType, FilterType, LayoutType, MetaType, ProjectType, ViewTypes } from 'nocodb-sdk'
+import type {
+  ColumnType,
+  DocsPageType,
+  FilterType,
+  LayoutType,
+  MetaType,
+  PaginatedType,
+  ProjectType,
+  ViewTypes,
+} from 'nocodb-sdk'
 import type { I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
@@ -152,4 +161,24 @@ export interface ImportWorkerPayload {
   importSource: ImportSource
   value: any
   config: Record<string, any>
+}
+
+export interface Group {
+  key: string
+  column: ColumnType
+  color: string
+  count: number
+  nestedIn: GroupNestedIn[]
+  paginationData: PaginatedType
+  nested: boolean
+  children?: Group[]
+  rows?: Row[]
+  root?: boolean
+}
+
+export interface GroupNestedIn {
+  title: string
+  column_name: string
+  key: string
+  column_uidt: string
 }

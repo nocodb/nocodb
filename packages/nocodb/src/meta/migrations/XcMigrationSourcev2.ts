@@ -19,6 +19,7 @@ import * as nc_028_add_enable_scanner_in_form_columns_meta_table from './v2/nc_0
 import * as nc_029_webhook from './v2/nc_029_webhook';
 import * as nc_030_add_description_field from './v2/nc_030_add_description_field';
 import * as nc_031_remove_fk_and_add_idx from './v2/nc_031_remove_fk_and_add_idx';
+import * as nc_033_add_group_by from './v2/nc_033_add_group_by';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -49,6 +50,7 @@ export default class XcMigrationSourcev2 {
       'nc_029_webhook',
       'nc_030_add_description_field',
       'nc_031_remove_fk_and_add_idx',
+      'nc_033_add_group_by',
     ]);
   }
 
@@ -100,6 +102,8 @@ export default class XcMigrationSourcev2 {
         return nc_030_add_description_field;
       case 'nc_031_remove_fk_and_add_idx':
         return nc_031_remove_fk_and_add_idx;
+      case 'nc_033_add_group_by':
+        return nc_033_add_group_by;
     }
   }
 }

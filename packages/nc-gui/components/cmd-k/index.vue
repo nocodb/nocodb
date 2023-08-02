@@ -265,7 +265,7 @@ defineExpose({
 </script>
 
 <template>
-  <div v-show="vOpen" class="cmdk-modal">
+  <div v-show="vOpen" class="cmdk-modal" :class="{ 'cmdk-modal-active': vOpen }">
     <div ref="modalEl" class="cmdk-modal-content">
       <div class="cmdk-header">
         <div class="cmdk-breadcrumbs">

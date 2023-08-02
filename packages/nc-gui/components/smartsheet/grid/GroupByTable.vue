@@ -107,6 +107,7 @@ reloadViewDataHook?.on(reloadTableData)
     :bulk-update-rows="bulkUpdateRows"
     :hide-header="true"
     :pagination="props.pagination"
+    :disable-skeleton="true"
   />
 </template>
 

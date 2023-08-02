@@ -50,7 +50,6 @@ const expandedFormRowState = ref<Record<string, any>>()
 const tableRef = ref<typeof Table>()
 
 const {
-  isLoading,
   loadData,
   paginationData,
   formattedData: data,
@@ -206,12 +205,6 @@ onMounted(() => {
     data-testid="nc-grid-wrapper"
     style="background-color: var(--nc-grid-bg)"
   >
-    <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15" data-testid="grid-load-spinner">
-      <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
-        <a-spin size="large" />
-      </div>
-    </general-overlay>
-
     <Table
       v-if="!isGroupBy"
       ref="tableRef"

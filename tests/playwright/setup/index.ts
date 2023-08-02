@@ -143,10 +143,17 @@ async function localInit({
 
     // DB reset
     if (!isEmptyProject) {
-      const pgknex = knex(config);
-      await pgknex.raw(`DROP DATABASE IF EXISTS sakila${workerId} WITH (FORCE)`);
-      await pgknex.raw(`CREATE DATABASE sakila${workerId}`);
-      await pgknex.destroy();
+      let pgknex;
+      try {
+        pgknex = knex(config);
+        await pgknex.raw(`DROP DATABASE IF EXISTS sakila${workerId} WITH (FORCE)`);
+        await pgknex.raw(`CREATE DATABASE sakila${workerId}`);
+        await pgknex.destroy();
+      } catch (e) {
+        console.error(`Error resetting pg sakila db: Worker ${workerId}`);
+      } finally {
+        if (pgknex) await pgknex.destroy();
+      }
 
       await resetSakilaPg(workerId);
     }
@@ -305,8 +312,9 @@ const setup = async ({
 const resetSakilaPg = async (parallelId: string) => {
   const testsDir = __dirname.replace('/tests/playwright/setup', '/packages/nocodb/tests');
 
+  let sakilaKnex;
   try {
-    const sakilaKnex = knex(sakilaKnexConfig(parallelId));
+    sakilaKnex = knex(sakilaKnexConfig(parallelId));
     const schemaFile = await fs.readFile(`${testsDir}/pg-sakila-db/01-postgres-sakila-schema.sql`);
     await sakilaKnex.raw(schemaFile.toString());
 
@@ -314,11 +322,12 @@ const resetSakilaPg = async (parallelId: string) => {
     const dataFile = await fs.readFile(`${testsDir}/pg-sakila-db/02-postgres-sakila-insert-data.sql`);
     await trx.raw(dataFile.toString());
     await trx.commit();
-
     await sakilaKnex.destroy();
   } catch (e) {
     console.error(`Error resetting pg sakila db: Worker ${parallelId}`);
     throw Error(`Error resetting pg sakila db: Worker ${parallelId}`);
+  } finally {
+    if (sakilaKnex) await sakilaKnex.destroy();
   }
 };
 

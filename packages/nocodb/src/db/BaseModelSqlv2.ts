@@ -43,6 +43,7 @@ import genRollupSelectv2 from './genRollupSelectv2';
 import conditionV2 from './conditionV2';
 import sortV2 from './sortV2';
 import { customValidators } from './util/customValidators';
+import Transaction = Knex.Transaction;
 import type { XKnex } from './CustomKnex';
 import type {
   XcFilter,
@@ -58,7 +59,6 @@ import type {
   SelectOption,
 } from '../models';
 import type { SortType } from 'nocodb-sdk';
-import Transaction = Knex.Transaction;
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -2706,18 +2706,16 @@ class BaseModelSqlv2 {
         await parentTable.getColumns();
 
         const childTn = this.getTnPath(childTable);
-        const parentTn = this.getTnPath(parentTable);
 
         switch (colOptions.type) {
           case 'mm':
             {
               const vChildCol = await colOptions.getMMChildColumn();
-              const vParentCol = await colOptions.getMMParentColumn();
               const vTable = await colOptions.getMMModel();
 
               const vTn = this.getTnPath(vTable);
 
-              execQueries.push((trx, qb) =>
+              execQueries.push(() =>
                 this.dbDriver(vTn)
                   .where({
                     [vChildCol.column_name]: this.dbDriver(childTn)
@@ -2977,104 +2975,12 @@ class BaseModelSqlv2 {
       modelId: this.model.id,
       tnPath: this.tnPath,
     });
-
-    /*
-    const view = await View.get(this.viewId);
-
-    // handle form view data submission
-    if (
-      (hookName === 'after.insert' || hookName === 'after.bulkInsert') &&
-      view.type === ViewTypes.FORM
-    ) {
-      try {
-        const formView = await view.getView<FormView>();
-        const { columns } = await FormView.getWithInfo(formView.fk_view_id);
-        const allColumns = await this.model.getColumns();
-        const fieldById = columns.reduce(
-          (o: Record<string, any>, f: Record<string, any>) => ({
-            ...o,
-            [f.fk_column_id]: f,
-          }),
-          {},
-        );
-        let order = 1;
-        const filteredColumns = allColumns
-          ?.map((c: Record<string, any>) => ({
-            ...c,
-            fk_column_id: c.id,
-            fk_view_id: formView.fk_view_id,
-            ...(fieldById[c.id] ? fieldById[c.id] : {}),
-            order: (fieldById[c.id] && fieldById[c.id].order) || order++,
-            id: fieldById[c.id] && fieldById[c.id].id,
-          }))
-          .sort(
-            (a: Record<string, any>, b: Record<string, any>) =>
-              a.order - b.order,
-          )
-          .filter(
-            (f: Record<string, any>) =>
-              f.show &&
-              f.uidt !== UITypes.Rollup &&
-              f.uidt !== UITypes.Lookup &&
-              f.uidt !== UITypes.Formula &&
-              f.uidt !== UITypes.QrCode &&
-              f.uidt !== UITypes.Barcode &&
-              f.uidt !== UITypes.SpecificDBType,
-          )
-          .sort(
-            (a: Record<string, any>, b: Record<string, any>) =>
-              a.order - b.order,
-          )
-          .map((c: Record<string, any>) => ({
-            ...c,
-            required: !!(c.required || 0),
-          }));
-
-        const emails = Object.entries(JSON.parse(formView?.email) || {})
-          .filter((a) => a[1])
-          .map((a) => a[0]);
-        if (emails?.length) {
-          const transformedData = _transformSubmittedFormDataForEmail(
-            newData,
-            formView,
-            filteredColumns,
-          );
-          (await NcPluginMgrv2.emailAdapter(false))?.mailSend({
-            to: emails.join(','),
-            subject: 'NocoDB Form',
-            html: ejs.render(formSubmissionEmailTemplate, {
-              data: transformedData,
-              tn: this.tnPath,
-              _tn: this.model.title,
-            }),
-          });
-        }
-      } catch (e) {
-        console.log(e);
-      }
-    }
-
-    try {
-      const [event, operation] = hookName.split('.');
-      const hooks = await Hook.list({
-        fk_model_id: this.model.id,
-        event,
-        operation,
-      });
-      for (const hook of hooks) {
-        if (hook.active) {
-          invokeWebhook(hook, this.model, view, prevData, newData, req?.user);
-        }
-      }
-    } catch (e) {
-      console.log('hooks :: error', hookName, e);
-    }*/
   }
 
-  // @ts-ignore
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async errorInsert(e, data, trx, cookie) {}
 
-  // @ts-ignore
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async errorUpdate(e, data, trx, cookie) {}
 
   // todo: handle composite primary key
@@ -3088,7 +2994,7 @@ class BaseModelSqlv2 {
     );
   }
 
-  // @ts-ignore
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async errorDelete(e, id, trx, cookie) {}
 
   async validate(columns) {

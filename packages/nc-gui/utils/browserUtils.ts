@@ -2,3 +2,4 @@
 export const isMac = () => /Mac/i.test(navigator.platform)
 export const isDrawerExist = () => document.querySelector('.ant-drawer-open')
 export const isDrawerOrModalExist = () => document.querySelector('.ant-modal.active, .ant-drawer-open')
+export const cmdKActive = () => document.querySelector('.cmdk-modal-active')

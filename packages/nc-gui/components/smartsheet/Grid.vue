@@ -20,6 +20,7 @@ import {
   ReloadViewDataHookInj,
   RowHeightInj,
   SmartsheetStoreEvents,
+  cmdKActive,
   computed,
   createEventHook,
   enumColor,
@@ -241,6 +242,10 @@ const {
     )
     if (activePickerOrDropdownEl) {
       e.preventDefault()
+      return true
+    }
+
+    if (cmdKActive()) {
       return true
     }
 

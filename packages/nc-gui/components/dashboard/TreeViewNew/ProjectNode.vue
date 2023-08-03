@@ -4,12 +4,11 @@ import { Dropdown, message } from 'ant-design-vue'
 import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import { useTitle } from '@vueuse/core'
-import { openLink, useProjects } from '#imports'
+import { openLink, useProjects, useWorkspace } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import { ProjectInj, ProjectRoleInj, ToggleDialogInj } from '~/context'
 import type { NcProject } from '~~/lib'
 import { isElementInvisible } from '~~/utils/domUtils'
-import { useWorkspace } from '#imports'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
@@ -33,11 +32,8 @@ const workspaceStore = useWorkspace()
 const { loadProject, createProject: _createProject, updateProject, getProjectMetaInfo } = projectsStore
 const { projects } = storeToRefs(projectsStore)
 
-
 const { loadProjectTables } = useTablesStore()
 const { activeTable } = storeToRefs(useTablesStore())
-
-const { addNewLayout } = useDashboardStore()
 
 const { appInfo } = useGlobal()
 
@@ -59,13 +55,7 @@ const { projectUrl } = useProject()
 
 const toggleDialog = inject(ToggleDialogInj, () => {})
 
-const { addNewPage, populatedNestedPages } = useDocStore()
-
-const { getDashboardProjectUrl: dashboardProjectUrl, populateLayouts } = useDashboardStore()
-
 const activeProjectId = computed(() => route.params.projectId as string | undefined)
-
-const { projectUrl: docsProjectUrl } = useDocStore()
 
 const { $e } = useNuxtApp()
 
@@ -210,19 +200,7 @@ const addNewProjectChildEntity = async () => {
 
   isAddNewProjectChildEntityLoading.value = true
   try {
-    switch (project.value.type) {
-      case NcProjectType.DASHBOARD:
-        await populateLayouts({ projectId: project.value.id! })
-        await addNewLayout({ projectId: project.value!.id! })
-        break
-      case NcProjectType.DOCS:
-        await populatedNestedPages({ projectId: project.value.id! })
-        await addNewPage({ parentPageId: undefined, projectId: project.value!.id! })
-        break
-      case NcProjectType.DB:
-        openTableCreateDialog()
-        break
-    }
+    openTableCreateDialog()
 
     if (!project.value.isExpanded) {
       project.value.isExpanded = true
@@ -252,26 +230,6 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
 
   // if dashboard or document project, add a document tab and route to the respective page
   switch (project.type) {
-    case 'dashboard':
-      $e('c:dashboard:open', project.id)
-      await populateLayouts({ projectId: project.id! })
-      if (!ignoreNavigation) {
-        await navigateTo(dashboardProjectUrl(project.id!))
-      }
-      break
-    case 'documentation':
-      // addTab({
-      //   id: project.id,
-      //   title: project.title!,
-      //   type: TabType.DOCUMENT,
-      //   projectId: project.id,
-      // })
-      $e('c:document:open', project.id)
-      await populatedNestedPages({ projectId: project.id! })
-      if (!ignoreNavigation) {
-        await navigateTo(docsProjectUrl(project.id!))
-      }
-      break
     case 'database':
       if (!ignoreNavigation) {
         await navigateTo(
@@ -524,10 +482,7 @@ onKeyStroke('Escape', () => {
 
                 <a-menu-divider v-if="false" />
 
-                <a-menu-item
-                  v-if="isUIAllowed('projectDelete', false, true)"
-                  @click="isProjectDeleteDialogVisible = true"
-                >
+                <a-menu-item v-if="isUIAllowed('projectDelete', false, true)" @click="isProjectDeleteDialogVisible = true">
                   <div class="nc-project-menu-item group text-red-500">
                     <GeneralIcon icon="delete" />
                     {{ $t('general.delete') }}

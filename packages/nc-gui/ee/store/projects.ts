@@ -134,19 +134,39 @@ export const useProjects = defineStore('projectsStore', () => {
   function isProjectEmpty(projectId: string) {
     if (!isProjectPopulated(projectId)) return true
 
+    const dashboardStore = useDashboardStore()
+    const docsStore = useDocStore()
+
     const project = projects.value.get(projectId)
     if (!project) return false
 
-    return tableStore.projectTables.get(projectId)!.length === 0
+    switch (project.type) {
+      case NcProjectType.DB:
+        return tableStore.projectTables.get(projectId)!.length === 0
+      case NcProjectType.DOCS:
+        return docsStore.nestedPagesOfProjects[projectId]!.length === 0
+      case NcProjectType.DASHBOARD:
+        return dashboardStore.layoutsOfProjects[projectId]!.length === 0
+    }
 
     return false
   }
 
   function isProjectPopulated(projectId: string) {
+    const dashboardStore = useDashboardStore()
+    const docsStore = useDocStore()
+
     const project = projects.value.get(projectId)
     if (!project) return false
 
-    return !!(project.bases && tableStore.projectTables.get(projectId))
+    switch (project.type) {
+      case NcProjectType.DB:
+        return !!(project.bases && tableStore.projectTables.get(projectId))
+      case NcProjectType.DOCS:
+        return !!docsStore.nestedPagesOfProjects[projectId]
+      case NcProjectType.DASHBOARD:
+        return !!dashboardStore.layoutsOfProjects[projectId]
+    }
   }
 
   // actions

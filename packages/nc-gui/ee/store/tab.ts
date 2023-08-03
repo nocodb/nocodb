@@ -23,6 +23,9 @@ export const useTabs = defineStore('tabStore', () => {
 
   const { isUIAllowed } = useUIPermission()
 
+  const { openedPageId } = storeToRefs(useDocStore())
+  const { nestedUrl, projectUrl: docsProjectUrl } = useDocStore()
+
   const projectsStore = useProjects()
 
   const projectStore = useProject()
@@ -40,6 +43,9 @@ export const useTabs = defineStore('tabStore', () => {
       return 0
       const routeName = route.name as string
 
+      if (routeName.includes('doc-index-pageId')) {
+        return tabs.value.findIndex((tab) => tab.id === openedPageId.value)
+      }
 
       if (routeName === 'ws-workspaceId-projectType-projectId-index-index') {
         return tabs.value.findIndex((tab) => tab.type === TabType.DB && tab.projectId === project?.id)
@@ -90,6 +96,8 @@ export const useTabs = defineStore('tabStore', () => {
         return tabs.value.findIndex((t) => t.id === `${TabType.SQL}-${route.params.projectId}`)
       } else if (routeName.includes('projectType-projectId-index-index-erd-baseId')) {
         return tabs.value.findIndex((t) => t.id === `${TabType.ERD}-${route.params.baseId}`)
+      } else if (routeName.includes('projectType-projectId-index-index-doc')) {
+        return tabs.value.findIndex((t) => t.id === route.params.projectId)
       }
 
       // by default, it's showing Team & Auth
@@ -247,7 +255,18 @@ export const useTabs = defineStore('tabStore', () => {
           path: `/ws/${workspaceId}/${projectType}/${tab.projectId}/erd/${tab?.tabMeta?.base.id}`,
           query: route.query,
         })
+      case TabType.DOCUMENT:
+        if (tab.id === tab.projectId) {
+          return navigateTo(docsProjectUrl(tab.projectId!))
+        }
 
+        return navigateTo({
+          path: nestedUrl({
+            projectId: tab.projectId!,
+            id: tab.id!,
+          }),
+          query: route.query,
+        })
       case TabType.DB:
         return navigateTo(
           projectUrl({

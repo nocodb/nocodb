@@ -1,9 +1,11 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { Users } from '~~/lib'
+import { useDocStore } from '#imports'
 
 export const useShare = defineStore('share', () => {
   const visibility = ref<'public' | 'private' | 'none' | 'hidden'>('none')
   const { project } = toRefs(useProject())
+  const { openedPage, isEditAllowed } = toRefs(useDocStore())
 
   const isProjectPublic = computed(() => {
     if (typeof project.value?.meta === 'string') {
@@ -31,9 +33,14 @@ export const useShare = defineStore('share', () => {
   const invitationUsersData = ref<Users>({ emails: undefined, role: ProjectRole.Viewer, invitationToken: undefined })
 
   watch(
-    [isProjectPublic],
+    [openedPage, isEditAllowed, isProjectPublic],
     () => {
-      visibility.value = isProjectPublic.value ? 'public' : 'private'
+      if (!isEditAllowed.value) {
+        visibility.value = 'hidden'
+        return
+      }
+
+      visibility.value = openedPage.value?.is_published || isProjectPublic.value ? 'public' : 'private'
     },
     { immediate: true, deep: true },
   )

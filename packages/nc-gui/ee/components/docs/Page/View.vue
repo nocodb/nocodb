@@ -7,6 +7,7 @@ import tiptapExtensions from '~~/utils/tiptapExtensions'
 import AlignRightIcon from '~icons/tabler/align-right'
 import { emptySectionContent, removeUploadingPlaceHolderAndEmptyLinkNode } from '~~/utils/tiptapExtensions/helper'
 import '~/assets/docsPage.scss'
+import { useDocStore } from '#imports'
 
 const { project } = useProject()
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())

@@ -206,5 +206,12 @@ const showClearButton = computed(() => {
       background: rgb(203, 203, 203);
     }
   }
+
+  .emoji-mart-emoji {
+    @apply !px-1 !py-0.75 !m-0.5;
+  }
+  .emoji-mart-emoji:hover:before {
+    @apply !rounded-md;
+  }
 }
 </style>

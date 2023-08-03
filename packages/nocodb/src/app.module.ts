@@ -29,7 +29,6 @@ import type { MiddlewareConsumer } from '@nestjs/common';
     JobsModule,
     NestJsEventEmitter.forRoot(),
   ],
-  controllers: [],
   providers: [
     AuthService,
     {

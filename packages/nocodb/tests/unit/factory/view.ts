@@ -1,11 +1,19 @@
 import { ViewTypes } from 'nocodb-sdk';
 import request from 'supertest';
-import Model from '../../../src/models/Model';
 import View from '../../../src/models/View';
+import type Model from '../../../src/models/Model';
 
 const createView = async (
   context,
-  { title, table, type }: { title: string; table: Model; type: ViewTypes },
+  {
+    title,
+    table,
+    type,
+  }: {
+    title: string;
+    table: Model;
+    type: ViewTypes;
+  },
 ) => {
   const viewTypeStr = (type) => {
     switch (type) {
@@ -30,15 +38,69 @@ const createView = async (
       type,
     });
   if (response.status !== 200) {
-    throw new Error(response.body.message);
+    throw new Error('createView', response.body.message);
   }
 
   const view = (await View.getByTitleOrId({
     fk_model_id: table.id,
     titleOrId: title,
   })) as View;
-
   return view;
 };
 
-export { createView };
+const updateView = async (
+  context,
+  {
+    table,
+    view,
+    filter = [],
+    sort = [],
+    field = [],
+  }: {
+    table: Model;
+    view: View;
+    filter?: any[];
+    sort?: any[];
+    field?: any[];
+  },
+) => {
+  if (filter.length) {
+    for (let i = 0; i < filter.length; i++) {
+      await request(context.app)
+        .post(`/api/v1/db/meta/views/${view.id}/filters`)
+        .set('xc-auth', context.token)
+        .send(filter[i])
+        .expect(200);
+    }
+  }
+
+  if (sort.length) {
+    for (let i = 0; i < sort.length; i++) {
+      await request(context.app)
+        .post(`/api/v1/db/meta/views/${view.id}/sorts`)
+        .set('xc-auth', context.token)
+        .send(sort[i])
+        .expect(200);
+    }
+  }
+
+  if (field.length) {
+    for (let i = 0; i < field.length; i++) {
+      const columns = await table.getColumns();
+      const viewColumns = await view.getColumns();
+
+      const columnId = columns.find((c) => c.title === field[i]).id;
+      const viewColumnId = viewColumns.find(
+        (c) => c.fk_column_id === columnId,
+      ).id;
+      // configure view to hide selected fields
+      await request(context.app)
+        .patch(`/api/v1/db/meta/views/${view.id}/columns/${viewColumnId}`)
+        .set('xc-auth', context.token)
+        .send({ show: false })
+        .expect(200);
+    }
+  }
+};
+
+export { createView, updateView };

@@ -1503,6 +1503,7 @@ abstract class BaseModel {
 
 export interface XcFilter {
   where?: string;
+  filter?: string;
   having?: string;
   condition?: any;
   conditionGraph?: any;

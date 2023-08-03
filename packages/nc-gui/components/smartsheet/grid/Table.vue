@@ -1248,11 +1248,11 @@ defineExpose({
                       @visible-change="persistMenu = altModifier"
                     >
                       <div class="h-full w-[60px] flex items-center justify-center">
-                        <GeneralIcon v-if="altModifier || persistMenu" icon="magic" class="text-sm text-orange-400" />
+                        <GeneralIcon v-if="isEeUI && (altModifier || persistMenu)" icon="magic" class="text-sm text-orange-400" />
                         <component :is="iconMap.plus" class="text-sm nc-column-add text-gray-500 !group-hover:text-black" />
                       </div>
 
-                      <template v-if="persistMenu" #overlay>
+                      <template v-if="isEeUI && persistMenu" #overlay>
                         <a-menu>
                           <a-sub-menu v-if="predictedNextColumn?.length" key="predict-column">
                             <template #title>

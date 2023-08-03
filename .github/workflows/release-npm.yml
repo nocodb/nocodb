@@ -55,7 +55,7 @@ jobs:
       - run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js &&
-          pnpm install --frozen-lockfile
+          pnpm --filter=!playwright install --frozen-lockfile
           cd packages/nocodb-sdk && pnpm run build && pnpm publish --no-git-checks &&
           cd ../.. &&
           sleep 60 &&

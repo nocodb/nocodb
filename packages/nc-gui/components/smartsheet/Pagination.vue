@@ -2,9 +2,11 @@
 import { ChangePageInj, PaginationDataInj, computed, iconMap, inject, isRtlLang, useI18n } from '#imports'
 import type { Language } from '~/lib'
 
-const props = defineProps<{
+interface Props {
   alignCountOnRight?: boolean
-}>()
+}
+
+const { alignCountOnRight } = defineProps<Props>()
 
 const { locale } = useI18n()
 

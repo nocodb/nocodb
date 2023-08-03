@@ -9,7 +9,6 @@ import {
   inject,
   isAttachment,
   ref,
-  renderValue,
   useExpandedFormDetached,
   useLTARStoreOrThrow,
 } from '#imports'

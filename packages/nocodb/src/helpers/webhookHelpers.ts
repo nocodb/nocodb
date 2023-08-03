@@ -271,7 +271,7 @@ export async function invokeWebhook(
       return;
     }
 
-    if (hook.condition) {
+    if (hook.condition && !testHook) {
       if (isBulkOperation) {
         const filteredData = [];
         for (const data of newData) {

@@ -12,7 +12,6 @@ import {
   inject,
   isDrawerExist,
   ref,
-  renderValue,
   useLTARStoreOrThrow,
   useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,

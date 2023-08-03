@@ -2684,6 +2684,7 @@ class BaseModelSqlv2 {
     args: { where?: string; filterArr?: Filter[] } = {},
     { cookie }: { cookie?: any } = {},
   ) {
+    let trx: Transaction;
     try {
       await this.model.getColumns();
       const { where } = this._getListArgs(args);
@@ -2707,9 +2708,18 @@ class BaseModelSqlv2 {
         qb,
         this.dbDriver,
       );
+      const execQueries: ((trx: Transaction, qb: any) => Promise<any>)[] = [];
+      // qb.del();
 
-      qb.del();
+      for (const column of this.model.columns) {
+        if (column.uidt !== UITypes.LinkToAnotherRecord) continue;
 
+        const colOptions =
+          await column.getColOptions<LinkToAnotherRecordColumn>();
+
+        if (colOptions.type === 'bt') {
+          continue;
+        }
 
         const childColumn = await colOptions.getChildColumn();
         const parentColumn = await colOptions.getParentColumn();

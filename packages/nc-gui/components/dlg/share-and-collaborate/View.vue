@@ -194,7 +194,12 @@ watch(showShareModal, (val) => {
       <div class="share-view">
         <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
           <IonDocumentOutline v-if="project.type === NcProjectType.DOCS" />
-          <component :is="viewIcons[view?.type]?.icon" v-else class="nc-view-icon group-hover" />
+          <component
+            :is="viewIcons[view?.type]?.icon"
+            v-else
+            class="nc-view-icon group-hover"
+            :style="{ color: viewIcons[view?.type]?.color }"
+          />
           <div>Share {{ project.type === NcProjectType.DOCS ? 'Page' : 'View' }}</div>
           <div
             class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-gray-100 capitalize text-ellipsis overflow-hidden"

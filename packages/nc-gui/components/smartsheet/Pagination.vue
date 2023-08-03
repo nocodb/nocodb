@@ -39,13 +39,13 @@ const page = computed({
 </script>
 
 <template>
-  <div class="flex items-center border-t-1 border-gray-75 h-10 nc-pagination-wrapper">
+  <div class="flex items-center border-t-1 border-gray-200 h-10 nc-pagination-wrapper">
     <NcTooltip v-if="!isPublic" class="ml-2" placement="topLeft" hide-on-click>
       <template #title>
         {{ isLeftSidebarOpen ? 'Hide sidebar' : 'Show sidebar' }}
       </template>
       <div
-        class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) hover:(bg-gray-50 border-gray-200) border-gray-100 group flex items-center justify-center rounded-md h-full px-2 h-7 cursor-pointer text-gray-400 hover:text-gray-700"
+        class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) hover:(bg-gray-100 border-gray-200) border-gray-200 group flex items-center justify-center rounded-md h-full px-1.75 h-7 cursor-pointer text-gray-400 hover:text-gray-700"
         :class="{
           'bg-gray-50': !isLeftSidebarOpen,
         }"
@@ -102,9 +102,9 @@ const page = computed({
       </template>
 
       <div
-        class="flex flex-row items-center justify-center !rounded-md !p-1.75 border-gray-100 cursor-pointer bg-white hover:bg-gray-50 text-gray-400 hover:text-gray-700 nc-sidebar-right-toggle-icon"
+        class="flex flex-row items-center justify-center !rounded-md !p-1.75 border-gray-100 cursor-pointer bg-white hover:bg-gray-100 text-gray-400 hover:text-gray-700 nc-sidebar-right-toggle-icon"
         :class="{
-          'bg-gray-75': !isRightSidebarOpen,
+          'bg-gray-100': !isRightSidebarOpen,
         }"
         type="ghost"
         @click="isRightSidebarOpen = !isRightSidebarOpen"

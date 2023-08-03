@@ -392,13 +392,13 @@ onKeyStroke('Escape', () => {
           ref="projectNodeRefs"
           :class="{
             'bg-primary-selected': activeProjectId === project.id && projectViewOpen,
-            'hover:bg-hover': !(activeProjectId === project.id && projectViewOpen),
+            'hover:bg-gray-200': !(activeProjectId === project.id && projectViewOpen),
           }"
           :data-testid="`nc-sidebar-project-title-${project.title}`"
           class="project-title-node h-7.25 flex-grow rounded-md group flex items-center w-full"
         >
           <div
-            class="nc-sidebar-expand ml-0.75 min-h-5.75 min-w-5.75 px-1.5 text-gray-500 hover:(hover:bg-gray-300 hover:bg-opacity-20 !text-black) rounded-md relative"
+            class="nc-sidebar-expand ml-0.75 min-h-5.75 min-w-5.75 px-1.5 text-gray-500 hover:(hover:bg-gray-500 hover:bg-opacity-15 !text-black) rounded-md relative"
             @click="onProjectClick(project, true, true)"
           >
             <PhTriangleFill
@@ -453,7 +453,7 @@ onKeyStroke('Escape', () => {
 
           <a-dropdown v-if="isUIAllowed('tableCreate', false, projectRole)" v-model:visible="isOptionsOpen" trigger="click">
             <MdiDotsHorizontal
-              class="min-w-5.75 min-h-5.75 px-0.5 py-0.5 mr-0.25 !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 opacity-0 group-hover:(opacity-100) hover:text-black text-gray-600 rounded-md hover:(bg-gray-300 bg-opacity-20)"
+              class="min-w-5.75 min-h-5.75 px-0.5 py-0.5 mr-0.25 !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 opacity-0 group-hover:(opacity-100) hover:text-black text-gray-600 rounded-md hover:(bg-gray-500 bg-opacity-15)"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
               data-testid="nc-sidebar-context-menu"
               @click.stop
@@ -541,7 +541,7 @@ onKeyStroke('Escape', () => {
 
           <div
             v-if="isUIAllowed('tableCreate', false, projectRole)"
-            class="min-h-5.75 min-w-5.75 mr-1 flex flex-row items-center justify-center gap-x-2 cursor-pointer hover:(text-black) text-gray-600 text-sm invisible !group-hover:visible rounded-md hover:(bg-gray-300 bg-opacity-20)"
+            class="min-h-5.75 min-w-5.75 mr-1 flex flex-row items-center justify-center gap-x-2 cursor-pointer hover:(text-black) text-gray-600 text-sm invisible !group-hover:visible rounded-md hover:(bg-gray-500 bg-opacity-15)"
             data-testid="nc-sidebar-add-project-entity"
             :class="{ '!text-black !visible': isAddNewProjectChildEntityLoading, '!visible': isOptionsOpen }"
             @click.stop="addNewProjectChildEntity"
@@ -636,7 +636,7 @@ onKeyStroke('Escape', () => {
                               @update:visible="isBasesOptionsOpen[base!.id!] = $event"
                             >
                               <MdiDotsHorizontal
-                                class="min-w-6 min-h-6 mt-0.15 invisible nc-sidebar-base-node-btns !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 hover:text-black py-0.25 px-0.5 rounded-md text-gray-600 hover:(bg-gray-300 bg-opacity-20)"
+                                class="min-w-6 min-h-6 mt-0.15 invisible nc-sidebar-base-node-btns !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 hover:text-black py-0.25 px-0.5 rounded-md text-gray-600 hover:(bg-gray-400 bg-opacity-20)"
                                 :class="{ '!text-black !opacity-100': isBasesOptionsOpen[base!.id!] }"
                                 @click.stop="isBasesOptionsOpen[base!.id!] = !isBasesOptionsOpen[base!.id!]"
                               />
@@ -664,7 +664,7 @@ onKeyStroke('Escape', () => {
 
                             <div
                               v-if="isUIAllowed('tableCreate', false, projectRole)"
-                              class="flex invisible nc-sidebar-base-node-btns !focus:outline-0 text-gray-600 hover:text-black px-0.35 rounded-md hover:(bg-gray-300 bg-opacity-20) min-h-6 mt-0.15 min-w-6"
+                              class="flex invisible nc-sidebar-base-node-btns !focus:outline-0 text-gray-600 hover:text-black px-0.35 rounded-md hover:(bg-gray-500 bg-opacity-15) min-h-6 mt-0.15 min-w-6"
                               @click.stop="openTableCreateDialog(baseIndex)"
                             >
                               <component :is="iconMap.plus" class="text-inherit mt-0.25 h-5.5 w-5.5 py-0.5 !focus:outline-0" />

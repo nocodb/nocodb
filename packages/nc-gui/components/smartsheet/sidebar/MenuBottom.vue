@@ -143,7 +143,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
 <style lang="scss" scoped>
 :deep(.nc-create-view) {
-  @apply !py-0 !h-8 mx-3.75 rounded-md hover:(text-gray-800 bg-gray-75);
+  @apply !py-0 !h-8 mx-3.75 rounded-md hover:(text-gray-800 bg-gray-100);
 }
 :deep(.nc-create-view.ant-menu-item) {
   @apply px-2.25;

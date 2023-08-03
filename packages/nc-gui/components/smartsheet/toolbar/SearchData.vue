@@ -80,16 +80,16 @@ watchDebounced(
 
 <template>
   <div
-    class="flex flex-row border-1 rounded-lg h-8 ml-1 border-gray-200"
+    class="flex flex-row border-1 rounded-lg h-8 ml-1 border-gray-200 overflow-hidden"
     :class="{ '!border-primary': search.query.length !== 0 || isFocused }"
   >
     <div
       ref="searchDropdown"
-      class="flex items-center relative px-2 cursor-pointer border-r-1 border-gray-200 rounded-l-lg"
+      class="flex items-center group relative px-2 cursor-pointer border-r-1 border-gray-200 hover:bg-gray-100"
       :class="{ '!bg-gray-50 ': isDropdownOpen }"
       @click="isDropdownOpen = !isDropdownOpen"
     >
-      <img src="~/assets/nc-icons/search.svg" class="ml-1 h-3.5 w-3.5" />
+      <GeneralIcon icon="search" class="ml-1 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
 
       <component :is="iconMap.arrowDown" class="ml-1 text-gray-400 !text-sm" />
 

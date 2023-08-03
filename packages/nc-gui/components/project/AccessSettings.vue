@@ -225,10 +225,10 @@ watchDebounced(
 }
 
 .nc-collaborators-list-header {
-  @apply flex flex-row justify-between items-center min-h-13 border-b-1 border-gray-75 pl-4 text-gray-500;
+  @apply flex flex-row justify-between items-center min-h-13 border-b-1 border-gray-100 pl-4 text-gray-500;
 }
 .nc-collaborators-list-row {
-  @apply flex flex-row justify-between items-center min-h-16 border-b-1 border-gray-75 pl-4;
+  @apply flex flex-row justify-between items-center min-h-16 border-b-1 border-gray-100 pl-4;
 }
 
 .color-band {

@@ -19,7 +19,7 @@ const toggleFullScreen = () => {
 
 <template>
   <Panel
-    class="text-xs bg-white border-1 rounded-md p-2 border-gray-100 z-50 nc-erd-histogram cursor-pointer hover:bg-gray-100 shadow-md"
+    class="text-xs bg-white border-1 rounded-md p-2 border-gray-200 z-50 nc-erd-histogram cursor-pointer hover:bg-gray-100 shadow-md"
     :position="PanelPosition.BottomRight"
   >
     <div class="flex">

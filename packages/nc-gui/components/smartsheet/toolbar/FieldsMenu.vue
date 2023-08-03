@@ -358,7 +358,7 @@ useMenuCloseOnEsc(open)
 
         <div
           v-if="!filterQuery"
-          class="pl-8 pr-2 mr-6 mt-3 py-2 justify-between flex flex-row items-center border-1 rounded-lg mb-2 border-gray-75 bg-gray-50"
+          class="pl-8 pr-2 mr-6 mt-3 py-2 justify-between flex flex-row items-center border-1 rounded-lg mb-2 border-gray-100 bg-gray-50"
         >
           <div class="ml-0.25 select-none">Show all fields</div>
           <NcSwitch v-model:checked="showAllColumns" />
@@ -380,7 +380,7 @@ useMenuCloseOnEsc(open)
                       .includes(field)
                   "
                   :key="field.id"
-                  class="px-2 py-2 flex flex-row items-center border-1 rounded-lg mb-2 border-gray-75"
+                  class="px-2 py-2 flex flex-row items-center border-1 rounded-lg mb-2 border-gray-100"
                   :data-testid="`nc-fields-menu-${field.title}`"
                   @click.stop
                 >
@@ -406,7 +406,7 @@ useMenuCloseOnEsc(open)
                 <div
                   v-if="gridDisplayValueField && filteredFieldList[0].title.includes(filterQuery)"
                   :key="`pv-${gridDisplayValueField.id}`"
-                  class="pl-7.5 pr-2.1 py-2 flex flex-row items-center border-1 rounded-lg mb-2 border-gray-75"
+                  class="pl-7.5 pr-2.1 py-2 flex flex-row items-center border-1 rounded-lg mb-2 border-gray-100"
                   :data-testid="`nc-fields-menu-${gridDisplayValueField.title}`"
                   @click.stop
                 >

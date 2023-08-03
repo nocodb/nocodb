@@ -181,14 +181,14 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="relative nc-view-sidebar flex flex-col border-l-1 border-gray-75 relative h-full w-full bg-white">
+  <div class="relative nc-view-sidebar flex flex-col border-l-1 border-gray-200 relative h-full w-full bg-white">
     <template v-if="isViewsLoading">
       <a-skeleton-input :active="true" class="!h-8 !rounded overflow-hidden ml-3 mr-3 mt-3.75 mb-3.75" />
     </template>
     <div
       v-else
       ref="tabBtnsContainerRef"
-      class="flex flex-row p-1 mx-3 mt-3 mb-3 bg-gray-50 rounded-md gap-x-2 nc-view-sidebar-tab f"
+      class="flex flex-row p-1 mx-3 mt-3 mb-3 bg-gray-100 rounded-md gap-x-2 nc-view-sidebar-tab f"
     >
       <div
         class="tab"
@@ -249,7 +249,7 @@ onUnmounted(() => {
             <LazySmartsheetSidebarMenuTop v-else :views="views" @open-modal="onOpenModal" @deleted="loadViews" />
           </div>
           <div v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="flex flex-col">
-            <div class="!mb-3 w-full border-b-1 border-gray-75" />
+            <div class="!mb-3 w-full border-b-1 border-gray-200" />
 
             <div v-if="!activeTable" class="flex flex-col pt-2 pb-5 px-6">
               <a-skeleton-input :active="true" class="!w-3/5 !h-4 !rounded overflow-hidden" />
@@ -309,7 +309,7 @@ onUnmounted(() => {
 }
 
 .tab {
-  @apply flex flex-row items-center h-7.5 justify-center w-1/2 py-1 bg-gray-50 rounded-md gap-x-1.5 text-gray-500 cursor-pointer transition-all duration-300 select-none;
+  @apply flex flex-row items-center h-7.5 justify-center w-1/2 py-1 bg-gray-100 rounded-md gap-x-1.5 text-gray-500 hover:text-black cursor-pointer transition-all duration-300 select-none;
 }
 
 .tab-icon {

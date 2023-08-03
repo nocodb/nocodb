@@ -1176,7 +1176,7 @@ const dummyDataForLoading = computed(() => {
   >
     <div
       ref="gridWrapper"
-      class="nc-grid-wrapper min-h-0 flex-1 nc-scrollbar-md scrollbar-thin-dull relative"
+      class="nc-grid-wrapper min-h-0 flex-1 nc-scrollbar-md relative"
       :class="{
         '!overflow-hidden': isViewDataLoading,
       }"
@@ -1516,7 +1516,7 @@ const dummyDataForLoading = computed(() => {
                     <component :is="iconMap.plus" class="text-pint-500 text-xs ml-2 text-gray-600 group-hover:text-black" />
                   </div>
                 </td>
-                <td class="!border-gray-50" :colspan="visibleColLength"></td>
+                <td class="!border-gray-100" :colspan="visibleColLength"></td>
               </tr>
             </tbody>
           </table>
@@ -1631,7 +1631,7 @@ const dummyDataForLoading = computed(() => {
       </a-dropdown>
     </div>
 
-    <div v-if="isViewDataLoading" class="flex flex-row justify-center item-center min-h-10 border-t-1 border-gray-75">
+    <div v-if="isViewDataLoading" class="flex flex-row justify-center item-center min-h-10 border-t-1 border-gray-100">
       <a-skeleton :active="true" :title="true" :paragraph="false" class="-mt-1 max-w-60" />
     </div>
     <LazySmartsheetPagination v-else align-count-on-right>
@@ -1658,7 +1658,7 @@ const dummyDataForLoading = computed(() => {
                   <div
                     v-e="['c:row:add:grid-top']"
                     :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
-                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-50 text-gray-600 nc-new-record-with-grid"
+                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-grid"
                     @click="onNewRecordToGridClick"
                   >
                     <div class="flex flex-row items-center justify-between w-full">
@@ -1670,12 +1670,12 @@ const dummyDataForLoading = computed(() => {
                         <GeneralIcon v-if="isAddNewRecordGridMode" icon="check" />
                       </div>
                     </div>
-                    <div class="flex flex-row text-xs text-gray-300 ml-7.25">Manually add data in grid view</div>
+                    <div class="flex flex-row text-xs text-gray-400 ml-7.25">Manually add data in grid view</div>
                   </div>
                   <div
                     v-e="['c:row:add:expanded-form']"
                     :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
-                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-50 text-gray-600 nc-new-record-with-form"
+                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-form"
                     @click="onNewRecordToFormClick"
                   >
                     <div class="flex flex-row items-center justify-between w-full">
@@ -1687,7 +1687,7 @@ const dummyDataForLoading = computed(() => {
                         <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" />
                       </div>
                     </div>
-                    <div class="flex flex-row text-xs text-gray-300 ml-7.05">Enter record data through a form</div>
+                    <div class="flex flex-row text-xs text-gray-400 ml-7.05">Enter record data through a form</div>
                   </div>
                 </div>
               </div>
@@ -1746,7 +1746,7 @@ const dummyDataForLoading = computed(() => {
 <style lang="scss">
 .nc-pagination-wrapper .ant-dropdown-button {
   > .ant-btn {
-    @apply !p-0 !rounded-l-lg hover:border-gray-300;
+    @apply !p-0 !rounded-l-lg hover:border-gray-400;
   }
 
   > .ant-dropdown-trigger {
@@ -1773,7 +1773,7 @@ const dummyDataForLoading = computed(() => {
 
   td,
   th {
-    @apply border-gray-50 border-solid border-r bg-gray-50;
+    @apply border-gray-100 border-solid border-r bg-gray-50;
     background-color: rgb(252, 252, 252);
     min-height: 41px !important;
     height: 41px !important;
@@ -1781,7 +1781,7 @@ const dummyDataForLoading = computed(() => {
   }
 
   th {
-    @apply border-b-1 border-gray-50;
+    @apply border-b-1 border-gray-100;
   }
 
   .nc-grid-header th:last-child {
@@ -1867,7 +1867,7 @@ const dummyDataForLoading = computed(() => {
     position: sticky !important;
     left: 85px;
     z-index: 5;
-    @apply border-r-1 border-r-gray-75;
+    @apply border-r-1 border-r-gray-100;
   }
 
   tbody td:nth-child(2) {
@@ -1875,7 +1875,7 @@ const dummyDataForLoading = computed(() => {
     left: 85px;
     z-index: 4;
     background: white;
-    @apply border-r-1 border-r-gray-75;
+    @apply border-r-1 border-r-gray-100;
   }
 
   .nc-grid-skelton-loader {

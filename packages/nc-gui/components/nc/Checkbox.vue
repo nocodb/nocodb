@@ -30,7 +30,7 @@ const onChange = (e: Event) => {
   @apply flex flex-row !items-center;
 }
 .nc-checkbox > .ant-checkbox {
-  @apply flex !border-0 !p-0 !h-4 !w-4 !rounded !-mt-1.5 mr-0.75 shadow-sm shadow-gray-75;
+  @apply flex !border-0 !p-0 !h-4 !w-4 !rounded !-mt-1.5 mr-0.75 shadow-sm shadow-gray-100;
 }
 .nc-checkbox > .ant-checkbox > .ant-checkbox-input {
   @apply !p-0 !h-4 !w-4 !border-0;

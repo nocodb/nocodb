@@ -5,7 +5,7 @@ import { iconMap } from '#imports'
 
 <template>
   <Panel
-    class="text-xs bg-white border-1 rounded border-gray-100 shadow-md p-1.5 z-50 nc-erd-histogram"
+    class="text-xs bg-white border-1 rounded border-gray-200 shadow-md p-1.5 z-50 nc-erd-histogram"
     :position="PanelPosition.TopLeft"
   >
     <div class="flex flex-col">

@@ -310,7 +310,7 @@ const setIcon = async (icon: string, view: ViewType) => {
       :on-validate="validate"
       class="nc-view-item !rounded-md !pl-1.25 !pr-2.25 !py-0.5 w-full transition-all ease-in duration-300"
       :class="{
-        'bg-gray-100': isMarked === view.id,
+        'bg-gray-200': isMarked === view.id,
         'active': activeView?.id === view.id,
         [`nc-${view.type ? viewTypeAlias[view.type] : undefined || view.type}-view-item`]: true,
       }"
@@ -349,11 +349,11 @@ const setIcon = async (icon: string, view: ViewType) => {
   }
 
   .sortable-chosen {
-    @apply !bg-gray-75 bg-opacity-60;
+    @apply !bg-gray-100 bg-opacity-60;
   }
 
   .active {
-    @apply bg-gray-75 bg-opacity-60 font-medium;
+    @apply bg-gray-200 bg-opacity-60 font-medium;
   }
 }
 </style>

@@ -181,7 +181,7 @@ function onStopEdit() {
 
 <template>
   <a-menu-item
-    class="!min-h-8 !max-h-8 !mb-0.25 select-none group text-gray-700 !flex !items-center !mt-0 hover:(!bg-gray-75 !text-gray-900)"
+    class="!min-h-8 !max-h-8 !mb-0.25 select-none group text-gray-700 !flex !items-center !mt-0 hover:(!bg-gray-100 !text-gray-900)"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @dblclick.stop="onDblClick"
     @click="onClick"

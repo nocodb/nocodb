@@ -320,7 +320,7 @@ const isPublicShareDisabled = computed(() => {
 
 <template>
   <div class="flex flex-col py-2 px-3 mb-1">
-    <div class="flex flex-col w-full mt-2.5 px-3 py-2.5 border-gray-100 border-1 rounded-md gap-y-2">
+    <div class="flex flex-col w-full mt-2.5 px-3 py-2.5 border-gray-200 border-1 rounded-md gap-y-2">
       <div class="flex flex-row w-full justify-between py-0.5">
         <div class="flex" :style="{ fontWeight: 500 }">Enable public viewing</div>
         <a-switch
@@ -349,7 +349,7 @@ const isPublicShareDisabled = computed(() => {
         </div>
       </template>
       <template v-if="isPublicShared">
-        <div class="mt-0.5 border-t-1 border-gray-75 pt-3">
+        <div class="mt-0.5 border-t-1 border-gray-100 pt-3">
           <GeneralCopyUrl v-model:url="url" />
         </div>
         <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-gray-50 rounded-md">

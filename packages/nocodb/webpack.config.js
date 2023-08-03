@@ -2,7 +2,6 @@ const path = require('path');
 const nodeExternals = require('webpack-node-externals');
 const webpack = require('webpack');
 const CopyPlugin = require('copy-webpack-plugin');
-//
 const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = {
@@ -24,7 +23,13 @@ module.exports = {
 
   optimization: {
     minimize: true, //Update this to true or false
-    minimizer: [new TerserPlugin()],
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          keep_classnames: true,
+        },
+      }),
+    ],
     nodeEnv: false,
   },
   externals: [nodeExternals()],

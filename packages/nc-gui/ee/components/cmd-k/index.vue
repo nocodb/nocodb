@@ -270,22 +270,22 @@ defineExpose({
       <div class="cmdk-header">
         <div class="cmdk-breadcrumbs">
           <div
-              v-for="el of nestedScope"
-              :key="`cmdk-breadcrumb-${el.id}`"
-              :class="`cmdk-breadcrumb-item${activeScope === el.id ? ' is-active' : ''}`"
-              @click="setScope(el.id)"
+            v-for="el of nestedScope"
+            :key="`cmdk-breadcrumb-${el.id}`"
+            :class="`cmdk-breadcrumb-item${activeScope === el.id ? ' is-active' : ''}`"
+            @click="setScope(el.id)"
           >
             {{ el.label }}
           </div>
         </div>
         <div class="cmdk-input-wrapper">
           <input
-              ref="cmdInputEl"
-              v-model="cmdInput"
-              class="cmdk-input"
-              type="text"
-              :placeholder="props.placeholder"
-              @input="selectFirstAction"
+            ref="cmdInputEl"
+            v-model="cmdInput"
+            class="cmdk-input"
+            type="text"
+            :placeholder="props.placeholder"
+            @input="selectFirstAction"
           />
         </div>
       </div>
@@ -298,25 +298,25 @@ defineExpose({
           </div>
           <template v-else>
             <div
-                v-for="[title, section] of Object.entries(actionListGroupedBySection)"
-                :key="`cmdk-section-${title}`"
-                class="cmdk-action-section"
+              v-for="[title, section] of Object.entries(actionListGroupedBySection)"
+              :key="`cmdk-section-${title}`"
+              class="cmdk-action-section"
             >
               <div v-if="title !== 'default'" class="cmdk-action-section-header">{{ title }}</div>
               <div class="cmdk-action-section-body">
                 <div
-                    v-for="act of section"
-                    :key="act.id"
-                    class="cmdk-action"
-                    :class="{ selected: selected === act.id }"
-                    @mouseenter="setAction(act.id)"
-                    @click="fireAction(act)"
+                  v-for="act of section"
+                  :key="act.id"
+                  class="cmdk-action"
+                  :class="{ selected: selected === act.id }"
+                  @mouseenter="setAction(act.id)"
+                  @click="fireAction(act)"
                 >
                   <div class="cmdk-action-content">
                     <component
-                        :is="(iconMap as any)[act.icon]"
-                        v-if="act.icon && typeof act.icon === 'string' && (iconMap as any)[act.icon]"
-                        class="cmdk-action-icon"
+                      :is="(iconMap as any)[act.icon]"
+                      v-if="act.icon && typeof act.icon === 'string' && (iconMap as any)[act.icon]"
+                      class="cmdk-action-icon"
                     />
                     <component :is="act.icon" v-else-if="act.icon" class="cmdk-action-icon" />
                     {{ act.title }}
@@ -356,7 +356,7 @@ defineExpose({
             <svg class="cmdk-key" width="20" height="20" viewBox="0 0 20 20" aria-label="Backspace" role="img">
               <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2">
                 <path
-                    d="M6.707 4.879A3 3 0 018.828 4H15a3 3 0 013 3v6a3 3 0 01-3 3H8.828a3 3 0 01-2.12-.879l-4.415-4.414a1 1 0 010-1.414l4.414-4.414zm4 2.414a1 1 0 00-1.414 1.414L10.586 10l-1.293 1.293a1 1 0 101.414 1.414L12 11.414l1.293 1.293a1 1 0 001.414-1.414L13.414 10l1.293-1.293a1 1 0 00-1.414-1.414L12 8.586l-1.293-1.293z"
+                  d="M6.707 4.879A3 3 0 018.828 4H15a3 3 0 013 3v6a3 3 0 01-3 3H8.828a3 3 0 01-2.12-.879l-4.415-4.414a1 1 0 010-1.414l4.414-4.414zm4 2.414a1 1 0 00-1.414 1.414L10.586 10l-1.293 1.293a1 1 0 101.414 1.414L12 11.414l1.293 1.293a1 1 0 001.414-1.414L13.414 10l1.293-1.293a1 1 0 00-1.414-1.414L12 8.586l-1.293-1.293z"
                 />
               </g>
             </svg>

@@ -144,7 +144,6 @@ onKeyStroke('Escape', () => {
       <template #overlay>
         <a-menu class="" @click="isWorkspaceDropdownOpen = false">
           <a-menu-item-group class="!border-t-0">
-
             <a-menu-divider />
 
             <template v-if="!isSharedBase">

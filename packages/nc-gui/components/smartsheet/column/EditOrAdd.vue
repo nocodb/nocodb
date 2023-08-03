@@ -8,6 +8,7 @@ import {
   ReloadViewDataHookInj,
   computed,
   inject,
+  isEeUI,
   message,
   onMounted,
   ref,
@@ -19,7 +20,6 @@ import {
   useMetas,
   useNuxtApp,
   watchEffect,
-  isEeUI
 } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'

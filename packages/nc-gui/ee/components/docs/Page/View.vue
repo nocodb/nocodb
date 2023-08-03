@@ -305,7 +305,8 @@ watch(
                   :data-testid="`nc-doc-page-breadcrumb-${index}`"
                 >
                   <div class="flex flex-row items-center gap-x-1.5">
-                    <LazyGeneralEmojiPicker v-if="icon" :key="icon" :emoji="icon" :readonly="true" size="small"> </LazyGeneralEmojiPicker>
+                    <LazyGeneralEmojiPicker v-if="icon" :key="icon" :emoji="icon" :readonly="true" size="small">
+                    </LazyGeneralEmojiPicker>
                     <div class="pop-in-animation">
                       {{ !title ? EMPTY_TITLE_PLACEHOLDER_DOCS : title }}
                     </div>

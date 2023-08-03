@@ -8,8 +8,7 @@ import type { ComputedRef } from 'nuxt/dist/app/compat/capi'
 import Fuse from 'fuse.js'
 import type { IdAndTitle } from '../layouts/types'
 import { NcProjectType, extractSdkResponseErrorMsg } from '~/utils'
-import { projectTitleValidator, ref, useVModel } from '#imports'
-import { useWorkspace } from '#imports'
+import { projectTitleValidator, ref, useVModel, useWorkspace } from '#imports'
 import { navigateTo } from '#app'
 
 const props = defineProps<{

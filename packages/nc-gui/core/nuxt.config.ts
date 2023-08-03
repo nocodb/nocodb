@@ -1,12 +1,6 @@
 export default defineNuxtConfig({
   imports: {
-    dirs: [
-      '../context',
-      '../utils/**',
-      '../lib',
-      '../composables/**',
-      '../store/**',
-    ],
+    dirs: ['../context', '../utils/**', '../lib', '../composables/**', '../store/**'],
     imports: [
       { name: 'useI18n', from: 'vue-i18n' },
       { name: 'message', from: 'ant-design-vue/es' },

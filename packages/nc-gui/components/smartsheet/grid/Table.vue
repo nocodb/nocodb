@@ -17,6 +17,7 @@ import {
   inject,
   isColumnRequiredAndNull,
   isDrawerOrModalExist,
+  isEeUI,
   isMac,
   message,
   onClickOutside,
@@ -35,7 +36,6 @@ import {
   useUndoRedo,
   useViewsStore,
   watch,
-  isEeUI
 } from '#imports'
 import type { CellRange } from '#imports'
 import type { Row } from '~/lib'

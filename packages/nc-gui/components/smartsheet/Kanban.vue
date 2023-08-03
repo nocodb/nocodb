@@ -697,7 +697,8 @@ watch(
         </template>
       </a-dropdown>
     </div>
-    <LazySmartsheetPagination v-model:pagination-data="emptyPagination" align-count-on-right hide-pagination class="!py-4"> </LazySmartsheetPagination>
+    <LazySmartsheetPagination v-model:pagination-data="emptyPagination" align-count-on-right hide-pagination class="!py-4">
+    </LazySmartsheetPagination>
   </div>
 
   <Suspense>

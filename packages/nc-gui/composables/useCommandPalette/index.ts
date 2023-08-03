@@ -13,7 +13,6 @@ interface CmdAction {
 }
 
 export const useCommandPalette = createSharedComposable(() => {
-
   const commandPalette = ref()
 
   const refreshCommandPalette = createEventHook<void>()
@@ -55,8 +54,7 @@ export const useCommandPalette = createSharedComposable(() => {
     return lastScope.value.scope
   })
 
-  async function loadScope(scope = 'root', data?: any) {
-  }
+  async function loadScope(scope = 'root', data?: any) {}
 
   return {
     commandPalette,

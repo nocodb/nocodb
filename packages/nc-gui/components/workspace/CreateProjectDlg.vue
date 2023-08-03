@@ -4,8 +4,7 @@ import type { Form, Input } from 'ant-design-vue'
 import type { VNodeRef } from '@vue/runtime-core'
 import { computed } from '@vue/reactivity'
 import { NcProjectType, extractSdkResponseErrorMsg } from '~/utils'
-import { projectTitleValidator, ref, useVModel } from '#imports'
-import { useWorkspace } from '#imports'
+import { projectTitleValidator, ref, useVModel, useWorkspace } from '#imports'
 import { navigateTo } from '#app'
 import { useGlobal } from '~/composables/useGlobal'
 
@@ -47,7 +46,7 @@ const createProject = async () => {
   try {
     const project = await _createProject({
       type: props.type,
-      title: formState.value.title
+      title: formState.value.title,
     })
 
     await loadProjects()

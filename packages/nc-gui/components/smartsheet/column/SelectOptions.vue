@@ -1,7 +1,17 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { UITypes } from 'nocodb-sdk'
-import { isEeUI, IsKanbanInj, enumColor, iconMap, onMounted, storeToRefs, useColumnCreateStoreOrThrow, useVModel, watch } from '#imports'
+import {
+  IsKanbanInj,
+  enumColor,
+  iconMap,
+  isEeUI,
+  onMounted,
+  storeToRefs,
+  useColumnCreateStoreOrThrow,
+  useVModel,
+  watch,
+} from '#imports'
 
 interface Option {
   color: string

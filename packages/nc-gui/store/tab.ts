@@ -40,7 +40,6 @@ export const useTabs = defineStore('tabStore', () => {
       return 0
       const routeName = route.name as string
 
-
       if (routeName === 'ws-workspaceId-projectType-projectId-index-index') {
         return tabs.value.findIndex((tab) => tab.type === TabType.DB && tab.projectId === project?.id)
       }

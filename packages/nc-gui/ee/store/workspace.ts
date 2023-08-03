@@ -89,7 +89,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   /** actions */
   const loadWorkspaces = async () => {
     try {
-
       // todo: pagination
       const { list, pageInfo: _ } = await $api.workspace.list()
       for (const workspace of list ?? []) {

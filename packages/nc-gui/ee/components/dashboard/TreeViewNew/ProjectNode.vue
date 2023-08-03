@@ -3,12 +3,11 @@ import { nextTick } from '@vue/runtime-core'
 import { Dropdown, message } from 'ant-design-vue'
 import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
-import { openLink, useProjects } from '#imports'
+import { openLink, useProjects, useWorkspace } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import { ProjectInj, ProjectRoleInj, ToggleDialogInj } from '~/context'
 import type { NcProject } from '~~/lib'
 import { isElementInvisible } from '~~/utils/domUtils'
-import { useWorkspace } from '#imports'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',

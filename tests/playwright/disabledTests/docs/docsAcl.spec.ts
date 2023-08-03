@@ -4,7 +4,7 @@ import { DashboardPage } from '../../pages/Dashboard';
 import { SignupPage } from '../../pages/SignupPage';
 import { WorkspacePage } from '../../pages/WorkspacePage';
 import setup, { NcContext } from '../../setup';
-import { getDefaultPwd } from '../utils/general';
+import { getDefaultPwd } from '../../tests/utils/general';
 
 test.describe('Docs ACL', () => {
   let dashboard: DashboardPage;

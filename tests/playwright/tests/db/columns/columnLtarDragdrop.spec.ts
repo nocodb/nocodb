@@ -3,7 +3,7 @@ import setup from '../../../setup';
 import { Api, UITypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { GridPage } from '../../../pages/Dashboard/Grid';
-import { getTextExcludeIconText } from '~/utils/general';
+import { getTextExcludeIconText } from '../../../tests/utils/general';
 let api: Api<any>;
 const recordCount = 10;
 

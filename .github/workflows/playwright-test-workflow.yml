@@ -74,7 +74,7 @@ jobs:
         run: docker-compose -f ./tests/playwright/scripts/docker-compose-pg-pw-quick.yml up -d &
       - name: run frontend
         working-directory: ./packages/nc-gui
-        run: npm run ci:run
+        run: npm run ci:run:ee
         timeout-minutes: 20
       - name: Run backend
         if: ${{ inputs.db == 'sqlite' }}

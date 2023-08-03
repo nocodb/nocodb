@@ -9,15 +9,15 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { UtilsService } from '../services/utils.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { UtilsService } from '~/services/utils.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
 export class UtilsController {
   private version: string;
 
-  constructor(private readonly utilsService: UtilsService) {}
+  constructor(protected readonly utilsService: UtilsService) {}
 
   @Get('/api/v1/version')
   async getVersion() {

@@ -76,13 +76,4 @@ export class UtilsController {
     // todo: refactor
     return (await this.utilsService.aggregatedMetaInfo()) as any;
   }
-
-  @Post('/api/v1/db/meta/magic')
-  @UseGuards(GlobalGuard)
-  @Acl('genericGPT')
-  async genericGPT(@Body() body: any) {
-    return await this.utilsService.genericGPT({
-      body,
-    });
-  }
 }

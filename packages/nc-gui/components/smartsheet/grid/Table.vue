@@ -1720,17 +1720,15 @@ defineExpose({
   @apply h-full w-full;
 
   .nc-grid-add-edit-column {
-    background-color: rgb(252, 252, 252);
+    @apply bg-gray-10;
   }
   .nc-grid-add-new-cell:hover td {
-    background-color: rgb(252, 252, 252);
-    @apply text-black;
+    @apply text-black bg-gray-10;
   }
 
   td,
   th {
-    @apply border-gray-100 border-solid border-r bg-gray-50;
-    background-color: rgb(252, 252, 252);
+    @apply border-gray-100 border-solid border-r bg-gray-10;
     min-height: 41px !important;
     height: 41px !important;
     position: relative;

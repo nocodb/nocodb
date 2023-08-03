@@ -76,7 +76,6 @@ export default defineConfig({
         gray: {
           10: '#FCFCFC',
           50: '#F9F9FA',
-          75: '#F9F9FA',
           100: '#F4F4F5',
           200: '#E7E7E9',
           300: '#D5D5D9',

@@ -156,7 +156,7 @@
 @font-face {
   font-family: 'Material Symbols';
   font-style: normal;
-  font-weight: 200;
+  font-weight: 300;
   src: url(./material.woff2) format('woff2');
 }
 
@@ -171,10 +171,10 @@
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
-  font-weight: 500;
+  font-weight: 300;
   -webkit-font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
-  font-size: 1.25rem;
+  font-size: 1rem;
   user-select: none;
 }
 

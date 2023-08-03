@@ -17,7 +17,12 @@ const viewMeta = toRef(props, 'meta')
     class="text-[16px]"
     :icon="viewMeta?.meta?.icon"
   />
-  <component :is="viewIcons[viewMeta.type]?.icon" v-else-if="viewMeta?.type" class="nc-view-icon group-hover" />
+  <component
+    :is="viewIcons[viewMeta.type]?.icon"
+    v-else-if="viewMeta?.type"
+    class="nc-view-icon group-hover"
+    :style="{ color: viewIcons[viewMeta.type]?.color }"
+  />
 </template>
 
 <style scoped></style>

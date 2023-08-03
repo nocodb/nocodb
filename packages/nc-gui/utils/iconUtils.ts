@@ -41,13 +41,10 @@ import PhLayout from '~icons/ph/layout'
 import Copy from '~icons/material-symbols/content-copy-outline'
 import Delete from '~icons/material-symbols/delete-outline-rounded'
 import CiFilter from '~icons/mdi/filter-outline'
-import Gallery from '~icons/ph/image-square-bold'
 import Plus from '~icons/material-symbols/add-rounded'
 import Minus from '~icons/material-symbols/remove-rounded'
 import Code from '~icons/material-symbols/code-rounded'
 import Palette from '~icons/material-symbols/palette-outline'
-import Form from '~icons/material-symbols/assignment-outline'
-import Kanban from '~icons/material-symbols/view-kanban-outline'
 import Erd from '~icons/material-symbols/account-tree-outline-rounded'
 import MsSync from '~icons/material-symbols/sync-rounded'
 import MdiRefresh from '~icons/mdi/refresh'
@@ -318,7 +315,7 @@ export const iconMap = {
   import: h('span', { class: 'material-symbols' }, 'system_update_alt'),
   edit: MaterialSymbolsEdit,
   lookup: h('span', { class: 'material-symbols' }, 'search'),
-  text: h('span', { class: 'material-symbols', style: 'font-weight: 600' }, 'text_fields'),
+  text: h('span', { class: 'material-symbols' }, 'text_fields'),
   longText: h('span', { class: 'material-symbols' }, 'text_format'),
   clock: h('span', { class: 'material-symbols' }, 'access_time'),
   web: h('span', { class: 'material-symbols' }, 'web'),
@@ -360,11 +357,11 @@ export const iconMap = {
   xml: h('span', { class: 'material-symbols' }, 'code'),
   airtable: LogosAirtable,
   excelColored: VscodeIconsExcelColored,
-  grid: Grid,
-  gallery: Gallery,
-  form: Form,
+  grid: h('span', { class: 'material-symbols' }, 'grid_view'),
+  gallery: h('span', { class: 'material-symbols' }, 'image'),
+  form: h('span', { class: 'material-symbols' }, 'article'),
   map: h('span', { class: 'material-symbols' }, 'map'),
-  kanban: Kanban,
+  kanban: h('span', { class: 'material-symbols' }, 'view_kanban'),
   view: h('span', { class: 'material-symbols' }, 'visibility'),
   // rowHeight: h('span', { class: 'material-symbols' }, 'height'),
   rowHeight: h(PhSplitVerticalThin, { style: { fontSize: '14px' } }),

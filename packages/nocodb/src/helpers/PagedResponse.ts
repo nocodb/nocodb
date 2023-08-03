@@ -31,7 +31,7 @@ export class PagedResponseImpl<T> {
         (Math.ceil(this.pageInfo.totalRows / this.pageInfo.pageSize) || 1);
     }
 
-    if (offset && offset >= count) {
+    if (offset && offset >= +count) {
       this.errors = [
         {
           message: 'Offset is beyond the total number of rows',

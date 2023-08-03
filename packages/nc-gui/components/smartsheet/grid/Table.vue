@@ -1660,7 +1660,7 @@ defineExpose({
                   >
                     <div class="flex flex-row items-center justify-between w-full">
                       <div class="flex flex-row items-center justify-start gap-x-3">
-                        <GeneralViewIcon :meta="{ type: ViewTypes.GRID }" />
+                        <component :is="viewIcons[ViewTypes.GRID]?.icon" class="nc-view-icon text-inherit" />
                         New Record - Grid
                       </div>
                       <div class="h-4 w-4 flex flex-row items-center justify-center">

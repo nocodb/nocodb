@@ -47,7 +47,7 @@ const page = computed({
 
 <template>
   <div
-    class="flex items-center border-t-1 border-gray-200 h-10 nc-pagination-wrapper"
+    class="flex items-center bg-white border-t-1 border-gray-200 h-10 nc-pagination-wrapper"
     :style="`${sticky === true ? 'position: sticky; left: 0;' : ''}${fixedSize ? `width: ${fixedSize - 20}px;` : ''}`"
   >
     <NcTooltip v-if="!isPublic && hideSidebars !== true" class="ml-2" placement="topLeft" hide-on-click>

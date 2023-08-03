@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
-import { AppModule as AppCeModule, ceModuleConfig } from '../app.module';
+import { AppModule as AppCeModule, ceModuleConfig } from 'src/app.module';
 import { WorkspacesModule } from './modules/workspaces/workspaces.module';
 import { CustomApiLimiterGuard } from '~/guards/custom-api-limiter.guard';
 import { WorkspaceUsersModule } from '~/modules/workspace-users/workspace-users.module';

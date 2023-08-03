@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { UITypes } from 'nocodb-sdk'
-import { IsKanbanInj, enumColor, iconMap, onMounted, storeToRefs, useColumnCreateStoreOrThrow, useVModel, watch } from '#imports'
+import { isEeUI, IsKanbanInj, enumColor, iconMap, onMounted, storeToRefs, useColumnCreateStoreOrThrow, useVModel, watch } from '#imports'
 
 interface Option {
   color: string
@@ -273,7 +273,7 @@ watch(inputs, () => {
         <span class="flex-auto">Add option</span>
       </div>
     </a-button>
-    <div class="w-full cursor-pointer" @click="optionsMagic()">
+    <div v-if="isEeUI" class="w-full cursor-pointer" @click="optionsMagic()">
       <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
     </div>
   </div>

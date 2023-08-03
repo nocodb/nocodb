@@ -70,7 +70,7 @@ export function useGlobalActions(state: State): Actions {
   }
 
   const navigateToProject = ({
-    workspaceId,
+    workspaceId: _workspaceId,
     type,
     projectId,
   }: {
@@ -78,6 +78,7 @@ export function useGlobalActions(state: State): Actions {
     projectId?: string
     type?: NcProjectType
   }) => {
+    const workspaceId = _workspaceId || 'default'
     let path: string
     if (projectId)
       switch (type) {

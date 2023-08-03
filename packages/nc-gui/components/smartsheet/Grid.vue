@@ -1218,7 +1218,7 @@ const dummyDataForLoading = computed(() => {
                 <th class="w-[85px] min-w-[85px]" data-testid="grid-id-column" @dblclick="enableOptimisedQuery">
                   <div class="w-full h-full flex pl-5 pr-1 items-center" data-testid="nc-check-all">
                     <template v-if="!readOnly">
-                      <div class="nc-no-label text-gray-400" :class="{ hidden: selectedAllRecords }">#</div>
+                      <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
                       <div
                         :class="{ hidden: !selectedAllRecords, flex: selectedAllRecords }"
                         class="nc-check-all w-full items-center"
@@ -1257,7 +1257,7 @@ const dummyDataForLoading = computed(() => {
                   }"
                   @click.stop="addColumnDropdown = true"
                 >
-                  <div class="absolute top-0 left-0 h-10.25 border-b-1 border-r-1 border-gray-50 nc-grid-add-edit-column group">
+                  <div class="absolute top-0 left-0 h-10.25 border-b-1 border-r-1 border-gray-100 nc-grid-add-edit-column group">
                     <a-dropdown
                       v-model:visible="addColumnDropdown"
                       :trigger="['click']"

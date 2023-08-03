@@ -426,7 +426,7 @@ watch(
               <a-card
                 v-if="!stack.collapsed"
                 :key="stack.id"
-                class="mx-4 !bg-gray-50 flex flex-col w-80 h-full !rounded-xl overflow-y-hidden"
+                class="mx-4 !bg-gray-100 flex flex-col w-80 h-full !rounded-xl overflow-y-hidden"
                 :class="{
                   'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
                   '!cursor-default': isLocked || !hasEditPermission,
@@ -446,7 +446,7 @@ watch(
                 </div>
 
                 <!-- Stack -->
-                <a-layout v-else class="!bg-gray-50">
+                <a-layout v-else class="!bg-gray-100">
                   <a-layout-header>
                     <div class="nc-kanban-stack-head font-medium flex items-center">
                       <a-dropdown
@@ -725,7 +725,7 @@ watch(
 
   <GeneralDeleteModal v-model:visible="deleteStackVModel" entity-name="Stack" :on-delete="handleDeleteStackConfirmClick">
     <template #entity-preview>
-      <div v-if="stackToBeDeleted" class="flex flex-row items-center py-2 px-2.25 bg-gray-50 rounded-lg text-gray-700 mb-4">
+      <div v-if="stackToBeDeleted" class="flex flex-row items-center py-2 px-2.25 bg-gray-100 rounded-lg text-gray-700 mb-4">
         <div
           class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
@@ -742,7 +742,7 @@ watch(
 .a-layout,
 .ant-layout-header,
 .ant-layout-content {
-  @apply !bg-gray-50;
+  @apply !bg-gray-100;
 }
 
 .ant-layout-header {

@@ -271,6 +271,6 @@ watch(
   transform: translateX(-100%);
 }
 .nc-smartsheet-sidebar-wrapper.smartsheet-sidebar-short > * {
-  @apply !(rounded-l-lg border-1 border-gray-100 shadow-lg);
+  @apply !(rounded-l-lg border-1 border-gray-200 shadow-lg);
 }
 </style>

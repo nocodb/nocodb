@@ -5,7 +5,7 @@ import type { VNodeRef } from '@vue/runtime-core'
 import { computed } from '@vue/reactivity'
 import { NcProjectType, extractSdkResponseErrorMsg } from '~/utils'
 import { projectTitleValidator, ref, useVModel } from '#imports'
-import { useWorkspace } from '~/store/workspace'
+import { useWorkspace } from '#imports'
 import { navigateTo } from '#app'
 import { useGlobal } from '~/composables/useGlobal'
 

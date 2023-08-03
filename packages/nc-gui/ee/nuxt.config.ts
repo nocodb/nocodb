@@ -1,9 +1,8 @@
 export default defineNuxtConfig({
   imports: {
     dirs: [
-      ...(process.env.EE ? ['./ee/utils/**', './ee/context/**', './ee/lib', './ee/composables/**', './ee/store/*'] : []),
-      './context',
       './utils/**',
+      './context/**',
       './lib',
       './composables/**',
       './store/**',

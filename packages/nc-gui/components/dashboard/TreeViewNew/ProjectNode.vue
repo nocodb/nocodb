@@ -4,13 +4,12 @@ import { Dropdown, message } from 'ant-design-vue'
 import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import { useTitle } from '@vueuse/core'
-import TableList from './TableList.vue'
 import { openLink, useProjects } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import { ProjectInj, ProjectRoleInj, ToggleDialogInj } from '~/context'
 import type { NcProject } from '~~/lib'
 import { isElementInvisible } from '~~/utils/domUtils'
-import { useWorkspace } from '~/store/workspace'
+import { useWorkspace } from '#imports'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
@@ -569,7 +568,7 @@ onKeyStroke('Escape', () => {
           <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
             <div v-if="project?.bases?.[0]?.enabled" class="flex-1">
               <div class="transition-height duration-200">
-                <TableList :project="project" :base-index="0" />
+                <DashboardTreeViewNewTableList :project="project" :base-index="0" />
               </div>
             </div>
 
@@ -681,7 +680,7 @@ onKeyStroke('Escape', () => {
                         :key="`sortable-${base.id}-${base.id && base.id in keys ? keys[base.id] : '0'}`"
                         :nc-base="base.id"
                       >
-                        <TableList :project="project" :base-index="baseIndex" />
+                        <DashboardTreeViewNewTableList :project="project" :base-index="baseIndex" />
                       </div>
                     </a-collapse-panel>
                   </a-collapse>

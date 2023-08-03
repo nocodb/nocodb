@@ -1,4 +1,5 @@
 import { dirname, resolve } from 'node:path'
+import path from 'path'
 import vueI18n from '@intlify/unplugin-vue-i18n/vite'
 import Icons from 'unplugin-icons/vite'
 import IconsResolver from 'unplugin-icons/resolver'
@@ -7,9 +8,9 @@ import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 import monacoEditorPlugin from 'vite-plugin-monaco-editor'
 import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill'
 import { FileSystemIconLoader } from 'unplugin-icons/loaders'
-
 import PurgeIcons from 'vite-plugin-purge-icons'
-import generateEePaths from './build-utils/generateEePaths'
+
+const isEE = process.env.EE === 'true'
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
@@ -198,14 +199,6 @@ export default defineNuxtConfig({
   },
 
   imports: {
-    dirs: [
-      ...(process.env.EE ? ['./ee/utils/**', './ee/context/**', './ee/lib', './ee/composables/**', './ee/store/*'] : []),
-      './context',
-      './utils/**',
-      './lib',
-      './composables/**',
-      './store/**',
-    ],
     imports: [
       { name: 'useI18n', from: 'vue-i18n' },
       { name: 'message', from: 'ant-design-vue/es' },
@@ -217,16 +210,22 @@ export default defineNuxtConfig({
     ],
   },
 
-  extends: [...(process.env.EE ? ['./ee'] : []), './core'],
+  extends: [...(isEE ? ['./ee'] : []), './core'],
 
   components: {
-    dirs: [...(process.env.EE ? ['~/ee/components'] : []), '~/components'],
+    dirs: [...(isEE ? ['~/ee/components'] : []), '~/components'],
   },
-  // typescript: {
-  //   tsConfig: {
-  //     compilerOptions: {
-  //       paths: generateEePaths(),
-  //     },
-  //   },
-  // },
+  hooks: {
+    // update priority of ee modules
+    'imports:extend': (imports) => {
+      if (!isEE) return
+      for (const importItem of imports) {
+        if (importItem.from?.includes(path.resolve('ee'))) {
+          importItem.priority = 0
+        } else {
+          importItem.priority = (importItem.priority || 0) - 1
+        }
+      }
+    },
+  },
 })

@@ -3,7 +3,7 @@ import type { BaseType, OracleUi, ProjectType, ProjectUserReqType, RequestParams
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { NcProjectType } from '~/utils'
-import { useWorkspace } from '~/store/workspace'
+import { useWorkspace } from '#imports'
 import type { NcProject, User } from '~~/lib'
 
 // todo: merge with project store

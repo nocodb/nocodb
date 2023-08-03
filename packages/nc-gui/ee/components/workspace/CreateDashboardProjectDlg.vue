@@ -9,7 +9,7 @@ import Fuse from 'fuse.js'
 import type { IdAndTitle } from '../layouts/types'
 import { NcProjectType, extractSdkResponseErrorMsg } from '~/utils'
 import { projectTitleValidator, ref, useVModel } from '#imports'
-import { useWorkspace } from '~/store/workspace'
+import { useWorkspace } from '#imports'
 import { navigateTo } from '#app'
 
 const props = defineProps<{

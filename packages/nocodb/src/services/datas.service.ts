@@ -117,7 +117,7 @@ export class DatasService {
 
   async getDataList(param: {
     model: Model;
-    view: View;
+    view?: View;
     query: any;
     baseModel?: BaseModelSqlv2;
   }) {

@@ -1999,12 +1999,7 @@ class BaseModelSqlv2 {
               params: {},
               base,
             })
-          : this.readByPk(
-          data[ag.title],
-          false,
-          {},
-          { ignoreView: true },
-        ));
+          : this.readByPk(data[ag.title], false, {}, { ignoreView: true }));
       } else if (
         !response ||
         (typeof response?.[0] !== 'object' && response?.[0] !== null)
@@ -2050,11 +2045,11 @@ class BaseModelSqlv2 {
                 base,
               })
             : await this.readByPk(
-              id
-              false,
-              {},
-              { ignoreView: true, getHiddenColumn: true },
-            );
+                id,
+                false,
+                {},
+                { ignoreView: true, getHiddenColumn: true },
+              );
       }
 
       await this.afterInsert(response, trx, cookie);
@@ -2215,7 +2210,12 @@ class BaseModelSqlv2 {
               params: {},
               base,
             })
-          : await this.readByPk(id, false, {}, , { ignoreView: true, getHiddenColumn: true  });
+          : await this.readByPk(
+              id,
+              false,
+              {},
+              { ignoreView: true, getHiddenColumn: true },
+            );
 
       const query = this.dbDriver(this.tnPath)
         .update(updateObj)
@@ -2236,7 +2236,12 @@ class BaseModelSqlv2 {
               params: {},
               base,
             })
-          : await this.readByPk(id, false, {}, true);
+          : await this.readByPk(
+              id,
+              false,
+              {},
+              { ignoreView: true, getHiddenColumn: true },
+            );
       await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
       return newData;
     } catch (e) {

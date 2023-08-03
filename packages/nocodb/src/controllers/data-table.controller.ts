@@ -13,12 +13,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { GlobalGuard } from '../guards/global/global.guard';
-import { parseHrtimeToSeconds } from '../helpers';
 import {
   Acl,
   ExtractProjectIdMiddleware,
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { DataTableService } from '../services/data-table.service';
+import { parseHrtimeToMilliSeconds } from '~/helpers';
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
@@ -40,7 +40,7 @@ export class DataTableController {
       modelId: modelId,
       viewId: viewId,
     });
-    const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
+    const elapsedSeconds = parseHrtimeToMilliSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);
     res.json(responseData);
   }

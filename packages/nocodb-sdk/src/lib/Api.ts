@@ -1198,6 +1198,18 @@ export interface GridColumnType {
   width?: string;
   /** Column Help Text */
   help?: StringOrNullType;
+  /** Group By */
+  group_by?: BoolType;
+  /**
+   * Group By Order
+   * @example 1
+   */
+  group_by_order?: number;
+  /**
+   * Group By Sort
+   * @example asc
+   */
+  group_by_sort?: StringOrNullType;
 }
 
 /**
@@ -1218,6 +1230,18 @@ export interface GridColumnReqType {
    * @example 200px
    */
   width?: string;
+  /** Group By */
+  group_by?: BoolType;
+  /**
+   * Group By Order
+   * @example 1
+   */
+  group_by_order?: number;
+  /**
+   * Group By Sort
+   * @example asc
+   */
+  group_by_sort?: StringOrNullType;
 }
 
 /**
@@ -9622,6 +9646,62 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.FormData,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description List all shared view rows grouped by a column
+ * 
+ * @tags Public
+ * @name DataGroupBy
+ * @summary List Shared View Rows
+ * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/groupby
+ * @response `200` `SharedViewListType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dataGroupBy: (
+      sharedViewUuid: string,
+      query?: {
+        /** Which fields to be shown */
+        fields?: any[];
+        /** The result will be sorted based on `sort` query */
+        sort?: string[] | string;
+        /** Extra filtering */
+        where?: string;
+        /**
+         * Offset in rows
+         * @min 0
+         */
+        offset?: number;
+        /**
+         * Limit in rows
+         * @min 1
+         */
+        limit?: number;
+        /** Used for multiple sort queries */
+        sortArrJson?: string;
+        /** Used for multiple filter queries */
+        filterArrJson?: string;
+        /** Columns to group by */
+        column_name?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        SharedViewListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/groupby`,
+        method: 'GET',
+        query: query,
         format: 'json',
         ...params,
       }),

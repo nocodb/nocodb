@@ -60,7 +60,7 @@ const router = useRouter()
 const { isUIAllowed } = useUIPermission()
 
 // override cell click hook to avoid unexpected behavior at form fields
-provide(CellClickHookInj, null)
+provide(CellClickHookInj, undefined)
 
 const fields = computedInject(FieldsInj, (_fields) => {
   if (props.useMetaFields) {
@@ -88,7 +88,7 @@ const {
   changedColumns,
   state: rowState,
   isNew,
-  loadRow,
+  loadRow: _loadRow,
   saveRowAndStay,
   syncLTARRefs,
   save,
@@ -97,12 +97,12 @@ const {
 const duplicatingRowInProgress = ref(false)
 
 if (props.loadRow) {
-  await loadRow()
+  await _loadRow()
 }
 
 if (props.rowId) {
   try {
-    await loadRow(props.rowId)
+    await _loadRow(props.rowId)
   } catch (e: any) {
     if (e.response?.status === 404) {
       // todo: i18n
@@ -183,7 +183,7 @@ const reloadHook = createEventHook()
 reloadHook.on(() => {
   reloadParentRowHook?.trigger(false)
   if (isNew.value) return
-  loadRow()
+  _loadRow()
 })
 provide(ReloadRowDataHookInj, reloadHook)
 
@@ -350,7 +350,8 @@ export default {
               <LazySmartsheetHeaderCell v-else :column="col" />
 
               <LazySmartsheetDivDataCell
-                :ref="i ? null : (el) => (cellWrapperEl = el)"
+                v-if="col.title"
+                :ref="i ? null : (el: any) => (cellWrapperEl = el)"
                 class="!bg-white rounded px-1 min-h-[35px] flex items-center mt-2 relative"
               >
                 <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />

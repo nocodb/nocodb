@@ -33,7 +33,7 @@ interface Attachment {
 
 const INFINITY_SCROLL_THRESHOLD = 100
 
-provide(PaginationDataInj, ref())
+const emptyPagination = ref()
 
 const meta = inject(MetaInj, ref())
 
@@ -697,7 +697,7 @@ watch(
         </template>
       </a-dropdown>
     </div>
-    <LazySmartsheetPagination align-count-on-right hide-pagination class="!py-4"> </LazySmartsheetPagination>
+    <LazySmartsheetPagination v-model:pagination-data="emptyPagination" align-count-on-right hide-pagination class="!py-4"> </LazySmartsheetPagination>
   </div>
 
   <Suspense>

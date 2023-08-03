@@ -95,10 +95,12 @@ export enum TabType {
 export enum SmartsheetStoreEvents {
   SORT_RELOAD = 'sort-reload',
   FILTER_RELOAD = 'filter-reload',
+  GROUP_BY_RELOAD = 'group-by-reload',
   DATA_RELOAD = 'data-reload',
   FIELD_RELOAD = 'field-reload',
   FIELD_ADD = 'field-add',
   MAPPED_BY_COLUMN_CHANGE = 'mapped-by-column-change',
+  CLEAR_NEW_ROW = 'clear-new-row',
 }
 
 export enum DataSourcesSubTab {

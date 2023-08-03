@@ -320,7 +320,7 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.locator('li[role="menuitem"]:has-text("Duplicate"):visible').click();
 
     await this.verifyToast({ message: 'Column duplicated successfully' });
-    await this.grid.get().locator(`th[data-title="${expectedTitle}"]`).isVisible();
+    await this.grid.get().locator(`th[data-title="${expectedTitle}"]`).waitFor({ state: 'visible' });
   }
 
   async hideColumn({ title, isDisplayValue = false }: { title: string; isDisplayValue?: boolean }) {

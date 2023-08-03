@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { Menu } from 'ant-design-vue'
-import { Empty } from 'ant-design-vue'
+import { Empty, Modal } from 'ant-design-vue'
 import type { WorkspaceType } from 'nocodb-sdk'
-import { nextTick } from '@vue/runtime-core'
+import { nextTick, onUnmounted } from '@vue/runtime-core'
 import { WorkspaceStatus, WorkspaceUserRoles } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import Sortable from 'sortablejs'
@@ -11,7 +11,6 @@ import {
   extractSdkResponseErrorMsg,
   message,
   onMounted,
-  onUnmounted,
   parseProp,
   projectThemeColors,
   storeToRefs,
@@ -70,12 +69,6 @@ const selectedWorkspaceIndex = computed<number[]>({
 // create a new sidebar state
 const { toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
 
-let timerRef: any
-
-onUnmounted(() => {
-  if (timerRef) clearTimeout(timerRef)
-})
-
 const isCreateDlgOpen = ref(false)
 
 const isCreateProjectOpen = ref(false)
@@ -131,17 +124,21 @@ watch(
   },
 )
 
-const WorkspaceCreateDlgOnSuccess = async () => {
-  isCreateDlgOpen.value = false
-  await loadWorkspaces()
-  await nextTick(() => {
-    ;[...menuEl?.value?.$el?.querySelectorAll('li.ant-menu-item')]?.pop()?.scrollIntoView({
-      block: 'nearest',
-      inline: 'nearest',
+useDialog(resolveComponent('WorkspaceCreateDlg'), {
+  'modelValue': isCreateDlgOpen,
+  'onUpdate:modelValue': (isOpen: boolean) => (isCreateDlgOpen.value = isOpen),
+  'onSuccess': async () => {
+    isCreateDlgOpen.value = false
+    await loadWorkspaces()
+    await nextTick(() => {
+      ;[...menuEl?.value?.$el?.querySelectorAll('li.ant-menu-item')]?.pop()?.scrollIntoView({
+        block: 'nearest',
+        inline: 'nearest',
+      })
+      selectedWorkspaceIndex.value = [workspacesList.value?.length - 1]
     })
-    selectedWorkspaceIndex.value = [workspacesList.value?.length - 1]
-  })
-}
+  },
+})
 
 const deleteWorkspace = (workspace: WorkspaceType) => {
   toBeDeletedWorkspaceId.value = workspace.id!
@@ -347,26 +344,15 @@ watch(
     </template>
 
     <div class="h-full nc-workspace-container overflow-x-hidden" style="width: calc(100vw - 250px)">
-      <div
-        v-if="activeWorkspace && activeWorkspace.status !== WorkspaceStatus.CREATED"
-        class="h-full w-full flex flex-col gap-3 items-center justify-center"
-      >
-        <a-spin size="large" />
-        <div class="text-gray-300 text-lg">Please wait while we set up your workspace</div>
-      </div>
-      <div v-else-if="activeWorkspace" class="flex flex-col pt-7">
-        <div class="pl-8 pr-7 flex items-center mb-7 h-8 max-w-full">
-          <div class="flex gap-2 items-center min-w-0">
-            <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
-              {{ activeWorkspace?.title?.slice(0, 2) }}
-            </span>
-            <h1 class="text-3xl font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title truncate min-w-10">
-              {{ activeWorkspace?.title }}
-            </h1>
-          </div>
+      <div class="h-full flex flex-col px-6 mt-3">
+        <div class="flex items-center gap-2 mb-5.5 mt-4 text-xl ml-5.5">
+          <h2 class="text-3xl font-weight-bold tracking-[0.5px] mb-0">
+            {{ projectListType }}
+          </h2>
+
           <div class="flex-grow min-w-10"></div>
           <WorkspaceCreateProjectBtn
-            v-if="isUIAllowed('createProject', false, activeWorkspace.roles) && tab === 'projects'"
+            v-if="isUIAllowed('createProject', false) && tab === 'projects'"
             v-model:is-open="isCreateProjectOpen"
             class="mt-0.75"
             type="primary"
@@ -386,56 +372,8 @@ watch(
           </WorkspaceCreateProjectBtn>
         </div>
 
-        <a-tabs v-model:activeKey="tab">
-          <a-tab-pane key="projects" class="w-full">
-            <template #tab>
-              <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
-                <MdiFileOutline />
-                Projects
-              </div>
-            </template>
-            <WorkspaceProjectList class="h-full mt-4 px-6" />
-          </a-tab-pane>
-          <template v-if="isWorkspaceOwnerOrCreator">
-            <a-tab-pane key="collab" class="w-full">
-              <template #tab>
-                <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
-                  <PhUsersBold />
-                  Collaborators
-                </div>
-              </template>
-              <WorkspaceCollaboratorsList />
-            </a-tab-pane>
-          </template>
-
-          <template v-if="isWorkspaceOwner">
-            <a-tab-pane key="billing" class="w-full">
-              <template #tab>
-                <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
-                  <MaterialSymbolsCreditCardOutline />
-                  Billing
-                </div>
-              </template>
-              <WorkspaceBilling />
-            </a-tab-pane>
-          </template>
-        </a-tabs>
-      </div>
-      <div v-else-if="activePage !== 'workspace'" class="h-full flex flex-col px-6 mt-3">
-        <div class="flex items-center gap-2 mb-5.5 mt-4 text-xl ml-5.5">
-          <h2 class="text-3xl font-weight-bold tracking-[0.5px] mb-0">
-            {{ projectListType }}
-          </h2>
-        </div>
-
         <WorkspaceProjectList class="min-h-20 grow" />
       </div>
-      <DlgWorkspaceDelete
-        v-if="toBeDeletedWorkspaceId"
-        v-model:visible="showDeleteWorkspace"
-        :workspace-id="toBeDeletedWorkspaceId"
-      />
-      <WorkspaceCreateDlg v-model="isCreateDlgOpen" @success="WorkspaceCreateDlgOnSuccess" />
     </div>
   </NuxtLayout>
 </template>

@@ -4,6 +4,7 @@ import { Configuration, OpenAIApi } from 'openai';
 import JSON5 from 'json5';
 import { identify } from 'sql-query-identifier';
 import { ConfigService } from '@nestjs/config';
+import { UtilsService as UtilsServiceCE } from 'src/services/utils.service';
 import type { AppConfig } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { Base } from '~/models';
@@ -52,8 +53,10 @@ interface AllMeta {
 }
 
 @Injectable()
-export class UtilsService {
-  constructor(private readonly configService: ConfigService<AppConfig>) {}
+export class UtilsService extends UtilsServiceCE {
+  constructor(protected readonly configService: ConfigService<AppConfig>) {
+    super(configService);
+  }
 
   async _axiosRequestMake(param: {
     body: {

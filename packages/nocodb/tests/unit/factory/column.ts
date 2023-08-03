@@ -46,6 +46,122 @@ const defaultColumns = function (context) {
   ];
 };
 
+const customColumns = function (type: string, options: any = {}) {
+  switch (type) {
+    case 'textBased':
+      return [
+        {
+          column_name: 'Id',
+          title: 'Id',
+          uidt: UITypes.ID,
+        },
+        {
+          column_name: 'SingleLineText',
+          title: 'SingleLineText',
+          uidt: UITypes.SingleLineText,
+        },
+        {
+          column_name: 'MultiLineText',
+          title: 'MultiLineText',
+          uidt: UITypes.LongText,
+        },
+        {
+          column_name: 'Email',
+          title: 'Email',
+          uidt: UITypes.Email,
+        },
+        {
+          column_name: 'Phone',
+          title: 'Phone',
+          uidt: UITypes.PhoneNumber,
+        },
+        {
+          column_name: 'Url',
+          title: 'Url',
+          uidt: UITypes.URL,
+        },
+      ];
+    case 'numberBased':
+      return [
+        {
+          column_name: 'Id',
+          title: 'Id',
+          uidt: UITypes.ID,
+        },
+        {
+          column_name: 'Number',
+          title: 'Number',
+          uidt: UITypes.Number,
+        },
+        {
+          column_name: 'Decimal',
+          title: 'Decimal',
+          uidt: UITypes.Decimal,
+        },
+        {
+          column_name: 'Currency',
+          title: 'Currency',
+          uidt: UITypes.Currency,
+        },
+        {
+          column_name: 'Percent',
+          title: 'Percent',
+          uidt: UITypes.Percent,
+        },
+        {
+          column_name: 'Duration',
+          title: 'Duration',
+          uidt: UITypes.Duration,
+        },
+        {
+          column_name: 'Rating',
+          title: 'Rating',
+          uidt: UITypes.Rating,
+        },
+      ];
+    case 'dateBased':
+      return [
+        {
+          column_name: 'Id',
+          title: 'Id',
+          uidt: UITypes.ID,
+        },
+        {
+          column_name: 'Date',
+          title: 'Date',
+          uidt: UITypes.Date,
+        },
+        {
+          column_name: 'DateTime',
+          title: 'DateTime',
+          uidt: UITypes.DateTime,
+        },
+      ];
+    case 'selectBased':
+      return [
+        {
+          column_name: 'Id',
+          title: 'Id',
+          uidt: UITypes.ID,
+        },
+        {
+          column_name: 'SingleSelect',
+          title: 'SingleSelect',
+          uidt: UITypes.SingleSelect,
+          dtxp: "'jan','feb','mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'",
+        },
+        {
+          column_name: 'MultiSelect',
+          title: 'MultiSelect',
+          uidt: UITypes.MultiSelect,
+          dtxp: "'jan','feb','mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'",
+        },
+      ];
+    case 'custom':
+      return [{ title: 'Id', column_name: 'Id', uidt: UITypes.ID }, ...options];
+  }
+};
+
 const createColumn = async (context, table, columnAttr) => {
   await request(context.app)
     .post(`/api/v1/db/meta/tables/${table.id}/columns`)
@@ -261,6 +377,7 @@ const updateViewColumn = async (
 };
 
 export {
+  customColumns,
   defaultColumns,
   createColumn,
   createQrCodeColumn,

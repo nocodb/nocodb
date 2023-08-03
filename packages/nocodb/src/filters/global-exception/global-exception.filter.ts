@@ -8,6 +8,7 @@ import {
   NotFound,
   NotImplemented,
   Unauthorized,
+  UnprocessableEntity,
 } from '../../helpers/catchError';
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import type { Response } from 'express';
@@ -15,6 +16,7 @@ import type { Response } from 'express';
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   private logger = new Logger(GlobalExceptionFilter.name);
+
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -58,6 +60,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       return response
         .status(400)
         .json({ msg: exception.message, errors: exception.errors });
+    } else if (exception instanceof UnprocessableEntity) {
+      return response.status(422).json({ msg: exception.message });
     }
 
     // handle different types of exceptions

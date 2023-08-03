@@ -65,7 +65,7 @@ export class AtImportController {
 
   @Post('/api/v1/db/meta/syncs/:syncId/abort')
   @HttpCode(200)
-  async abortImport(@Request() req) {
+  async abortImport(@Request() _) {
     return {};
   }
 }

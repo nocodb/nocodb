@@ -1,10 +1,5 @@
+import { extractLimitAndOffset } from '.';
 import type { PaginatedType } from 'nocodb-sdk';
-
-const config: any = {
-  limitDefault: Math.max(+process.env.DB_QUERY_LIMIT_DEFAULT || 25, 1),
-  limitMin: Math.max(+process.env.DB_QUERY_LIMIT_MIN || 1, 1),
-  limitMax: Math.max(+process.env.DB_QUERY_LIMIT_MAX || 1000, 1),
-};
 
 export class PagedResponseImpl<T> {
   constructor(
@@ -18,12 +13,7 @@ export class PagedResponseImpl<T> {
     } = {},
     additionalProps?: Record<string, any>,
   ) {
-    const limit = Math.max(
-      Math.min(args.limit || args.l || config.limitDefault, config.limitMax),
-      config.limitMin,
-    );
-
-    const offset = Math.max(+(args.offset || args.o) || 0, 0);
+    const { offset, limit } = extractLimitAndOffset(args);
 
     let count = args.count ?? null;
 
@@ -43,8 +33,17 @@ export class PagedResponseImpl<T> {
     }
 
     if (additionalProps) Object.assign(this, additionalProps);
+
+    if (offset && offset >= count) {
+      this.errors = [
+        {
+          message: 'Offset is beyond the total number of rows',
+        },
+      ];
+    }
   }
 
   list: Array<T>;
   pageInfo: PaginatedType;
+  errors?: any[];
 }

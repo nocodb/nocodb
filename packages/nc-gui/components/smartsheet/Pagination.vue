@@ -2,8 +2,10 @@
 import type { PaginatedType } from 'nocodb-sdk'
 import { computed, iconMap, inject, useViewsStore } from '#imports'
 import SidebarIcon from '~icons/nc-icons/sidebar'
+import { ChangePageInj, PaginationDataInj, computed, iconMap, inject, isRtlLang, useI18n } from '#imports'
+import type { Language } from '~/lib'
 
-const props = defineProps<{
+interface Props {
   paginationData: PaginatedType
   changePage: (page: number) => void
   alignCountOnRight?: boolean
@@ -12,7 +14,11 @@ const props = defineProps<{
   customLabel?: string
   fixedSize?: number
   sticky?: boolean
-}>()
+}
+
+const { alignCountOnRight } = defineProps<Props>()
+
+const { locale } = useI18n()
 
 const emits = defineEmits(['update:paginationData'])
 
@@ -43,6 +49,8 @@ const page = computed({
     }
   },
 })
+
+const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Language))
 </script>
 
 <template>
@@ -82,6 +90,7 @@ const page = computed({
         v-model:page-size="size"
         size="small"
         class="!text-xs !m-1 nc-pagination"
+      :class="{ 'rtl-pagination': isRTLLanguage }"
         :total="count"
         show-less-items
         :show-size-changer="false"
@@ -156,5 +165,10 @@ const page = computed({
 
 :deep(.ant-pagination-item.ant-pagination-item-active) {
   @apply !bg-transparent;
+}
+
+:deep(.rtl-pagination .ant-pagination-prev .ant-pagination-item-link),
+:deep(.rtl-pagination .ant-pagination-next .ant-pagination-item-link) {
+  @apply transform rotate-180;
 }
 </style>

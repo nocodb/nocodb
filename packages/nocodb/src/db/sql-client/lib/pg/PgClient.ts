@@ -2359,7 +2359,7 @@ class PGClient extends KnexClient {
                 table = table.onUpdate(relation.ur);
               }
               if (relation.dr) {
-                table = table.onDelete(relation.dr);
+                table.onDelete(relation.dr);
               }
             })
             .toQuery());

@@ -65,6 +65,7 @@ export default class Model implements TableType {
   }
 
   // @ts-ignore
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async getViews(force = false, ncMeta = Noco.ncMeta): Promise<View[]> {
     this.views = await View.listWithInfo(this.id, ncMeta);
     return this.views;

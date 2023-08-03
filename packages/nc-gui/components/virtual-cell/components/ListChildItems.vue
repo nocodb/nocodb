@@ -13,7 +13,6 @@ import {
   iconMap,
   inject,
   ref,
-  renderValue,
   useLTARStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
   useVModel,

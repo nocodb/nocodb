@@ -35,6 +35,7 @@ import {
   useUndoRedo,
   useViewsStore,
   watch,
+  isEeUI
 } from '#imports'
 import type { CellRange } from '#imports'
 import type { Row } from '~/lib'
@@ -1524,7 +1525,7 @@ defineExpose({
         <template v-if="!isLocked && hasEditPermission" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
             <a-menu-item
-              v-if="appInfo.ee && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
+              v-if="isEeUI && appInfo.ee && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
               @click="emits('bulkUpdateDlg')"
             >
               <div v-e="['a:row:update-bulk']" class="nc-project-menu-item">

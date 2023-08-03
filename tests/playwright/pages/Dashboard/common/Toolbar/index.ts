@@ -19,12 +19,14 @@ import { MapPage } from '../../Map';
 import { getTextExcludeIconText } from '../../../../tests/utils/general';
 import { isHub } from '../../../../setup/db';
 import { ToolbarSharePage } from './Share';
+import {ToolbarGroupByPage} from "./Groupby";
 
 export class ToolbarPage extends BasePage {
   readonly parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage;
   readonly fields: ToolbarFieldsPage;
   readonly sort: ToolbarSortPage;
   readonly filter: ToolbarFilterPage;
+  readonly groupBy: ToolbarGroupByPage
   readonly shareView: ToolbarShareViewPage;
   readonly viewsMenu: ToolbarViewMenuPage;
   readonly actions: ToolbarActionsPage;
@@ -118,6 +120,16 @@ export class ToolbarPage extends BasePage {
 
     // icons count within fields menu button
     expect(await this.get().locator(`button.nc-fields-menu-btn`).locator(`.material-symbols`).count()).toBe(2);
+  }
+
+  async clickGroupBy() {
+    const menuOpen = this.groupBy.get().isVisible();
+    const clickGroupByAction = () => this.get().locator(`button.nc-group-by-menu-btn`).click();
+      await clickGroupByAction()
+    if (menuOpen) {
+      await this.groupBy.get().waitFor({state: 'hidden'});
+
+    }
   }
 
   async clickFilter({

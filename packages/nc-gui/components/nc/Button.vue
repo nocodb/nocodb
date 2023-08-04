@@ -2,6 +2,17 @@
 import type { ButtonType } from 'ant-design-vue/lib/button'
 import { useSlots } from 'vue'
 
+/**
+ * @description
+ * Button component
+ *
+ * @example
+ * <NcButton type="primary" size="medium" :loading="loading" @click="onClick">
+ *  Save
+ *  <template #loading> Saving </template>
+ * </NcButton>
+ */
+
 interface Props {
   loading?: boolean
   disabled?: boolean

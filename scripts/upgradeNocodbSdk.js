@@ -20,9 +20,9 @@ const replacePackageName = (filePath) => {
 
 const bumbVersionAndSave = () => {
     // upgrade nocodb-sdk version in nocodb
-    execSync(`cd packages/nocodb && npm install --save --save-exact ${nocodbSdkPackage.name}@${nocodbSdkPackage.version}`, {});
+    execSync(`pnpm --filter=nocodb install ${nocodbSdkPackage.name}@${nocodbSdkPackage.version}`, {});
     // upgrade nocodb-sdk version in nc-gui
-    execSync(`cd packages/nc-gui && npm install --save --save-exact ${nocodbSdkPackage.name}@${nocodbSdkPackage.version}`, {});
+    execSync(`pnpm --filter=nc-gui install ${nocodbSdkPackage.name}@${nocodbSdkPackage.version}`, {});
 }
 
 const dfs = function(dir) {

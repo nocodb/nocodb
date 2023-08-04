@@ -17,7 +17,7 @@ interface Props {
   loading?: boolean
   disabled?: boolean
   type?: ButtonType | 'danger' | undefined
-  size?: 'small' | 'medium' | 'large'
+  size?: 'xsmall' | 'small' | 'medium' | 'large'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -68,7 +68,69 @@ const loading = useVModel(props, 'loading', emits)
 </template>
 
 <style lang="scss">
-.nc-button > .ant-btn-loading-icon {
-  display: none !important;
+.nc-button {
+  > .ant-btn-loading-icon {
+    display: none !important;
+  }
+}
+
+.ant-btn {
+  box-shadow: 0px 5px 3px -2px rgba(0, 0, 0, 0.02), 0px 3px 1px -2px rgba(0, 0, 0, 0.06);
+
+  &:focus {
+    box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+  }
+}
+
+.nc-button.ant-btn[disabled] {
+  box-shadow: none !important;
+  @apply bg-gray-50 hover:bg-gray-50 border-0 text-gray-300;
+}
+
+.ant-btn.ant-btn-secondary[disabled] {
+  @apply bg-white hover:bg-white border-1 border-gray-100 text-gray-300;
+}
+
+.ant-btn.ant-btn-primary {
+  @apply bg-brand-500 !border-0;
+
+  &:hover {
+    @apply bg-brand-600 !border-0;
+  }
+
+  &:focus {
+    @apply bg-brand-500 !border-0;
+  }
+}
+
+.ant-btn.ant-btn-secondary {
+  @apply bg-white border-1 border-gray-200 text-gray-700;
+
+  &:hover {
+    @apply !bg-gray-50;
+  }
+}
+
+.ant-btn.ant-btn-danger {
+  @apply bg-red-500 border-0;
+
+  &:hover {
+    @apply bg-red-600 border-0;
+  }
+
+  &:focus {
+    @apply bg-red-500 border-0;
+  }
+}
+
+.ant-btn.ant-btn-text {
+  box-shadow: none;
+
+  @apply bg-white border-0 text-gray-700 hover:bg-gray-50;
+
+  &:focus {
+    box-shadow: none;
+    @apply text-brand-500;
+  }
 }
 </style>

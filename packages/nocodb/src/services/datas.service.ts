@@ -147,7 +147,7 @@ export class DatasService {
 
   async getDataList(param: {
     model: Model;
-    view: View;
+    view?: View;
     query: any;
     baseModel?: BaseModelSqlv2;
   }) {
@@ -280,12 +280,9 @@ export class DatasService {
         viewId: view?.id,
         dbDriver: await NcConnectionMgrv2.get(base),
       });
-      row = await baseModel.readByPk(
-        param.rowId,
-        false,
-        param.query,
-        param.getHiddenColumn,
-      );
+      row = await baseModel.readByPk(param.rowId, false, param.query, {
+        getHiddenColumn: param.getHiddenColumn,
+      });
     }
 
     if (!row) {

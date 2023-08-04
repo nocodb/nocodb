@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { type UserType, ViewTypes } from 'nocodb-sdk';
-import WorkspaceUser from '../models/WorkspaceUser';
-import { Project } from '../models';
-import { NcError } from '../helpers/catchError';
-import { TablesService } from './tables.service';
+import WorkspaceUser from '~/models/WorkspaceUser';
+import { Project } from '~/models';
+import { NcError } from '~/helpers/catchError';
+import { TablesService } from '~/services/tables.service';
 
 const viewTypeAlias: Record<number, string> = {
   [ViewTypes.GRID]: 'grid',

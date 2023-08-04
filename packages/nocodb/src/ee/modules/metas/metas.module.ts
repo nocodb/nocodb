@@ -20,6 +20,8 @@ import { DocsPagesUpdateService } from '~/services/docs/docs-page-update.service
 import { DocsPublicController } from '~/controllers/docs/public/docs-public.controller';
 import { PublicDocsService } from '~/services/docs/public/public-docs.service';
 import { ThrottlerExpiryListenerService } from '~/services/throttler/throttler-expiry-listener.service';
+import { CommandPaletteService } from '~/services/command-palette.service';
+import { CommandPaletteController } from '~/controllers/command-palette.controller';
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
 
@@ -41,6 +43,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     WidgetsService,
     LayoutsService,
     LayoutFilterService,
+    CommandPaletteService,
     ...(enableThrottler ? [ThrottlerExpiryListenerService] : []),
   ],
   controllers: [
@@ -53,6 +56,8 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     WidgetsController,
     LayoutsController,
     LayoutFilterController,
+
+    CommandPaletteController,
   ],
 })
 export class MetasModule {}

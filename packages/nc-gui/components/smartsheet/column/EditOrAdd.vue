@@ -323,14 +323,8 @@ useEventListener('keydown', (e: KeyboardEvent) => {
           }"
         >
           <!-- Cancel -->
-          <NcButton
-            class="w-full"
-            size="small"
-            html-type="button"
-            type="secondary"
-            :label="`${$t('general.cancel')}`"
-            @click="emit('cancel')"
-          >
+          <NcButton class="w-full" size="small" html-type="button" type="secondary" @click="emit('cancel')">
+            {{ $t('general.cancel') }}
           </NcButton>
 
           <!-- Save -->
@@ -344,6 +338,8 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             :loading-label="`${$t('general.saving')} ${columnLabel}`"
             @click.prevent="onSubmit"
           >
+            {{ $t('general.save') }} {{ columnLabel }}
+            <template #loading> {{ $t('general.saving') }} {{ columnLabel }} </template>
           </NcButton>
         </div>
       </a-form-item>

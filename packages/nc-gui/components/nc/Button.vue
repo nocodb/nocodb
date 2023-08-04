@@ -1,11 +1,9 @@
 <script lang="ts" setup>
 import type { ButtonType } from 'ant-design-vue/lib/button'
+import { useSlots } from 'vue'
 
 interface Props {
-  label: string
   loading?: boolean
-  loadingLabel?: string | undefined
-  onSubmit?: () => Promise<void>
   disabled?: boolean
   type?: ButtonType | 'danger' | undefined
   size?: 'small' | 'medium' | 'large'
@@ -18,6 +16,8 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emits = defineEmits(['update:loading'])
+
+const slots = useSlots()
 
 const size = computed(() => props.size)
 
@@ -36,7 +36,6 @@ const loading = useVModel(props, 'loading', emits)
       '!py-1 !h-8': size === 'small',
       '!py-2 !h-10': size === 'medium',
     }"
-    @click="props.onSubmit"
   >
     <div class="flex flex-row gap-x-2.5 justify-center">
       <GeneralLoader v-if="loading" size="medium" class="flex !text-white" loader-class="!text-white" />
@@ -49,8 +48,9 @@ const loading = useVModel(props, 'loading', emits)
           'font-medium': type === 'primary' || type === 'danger',
         }"
       >
-        <span v-if="loading && props.loadingLabel">{{ props.loadingLabel }}</span>
-        <span v-else>{{ props.label }}</span>
+        <slot v-if="loading && slots.loading" name="loading" />
+
+        <slot v-else />
       </div>
     </div>
   </a-button>

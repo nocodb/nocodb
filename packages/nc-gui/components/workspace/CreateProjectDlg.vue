@@ -127,7 +127,7 @@ const typeLabel = computed(() => {
       </a-form>
 
       <div class="flex flex-row justify-end mt-7 gap-x-2">
-        <NcButton type="secondary" label="Cancel" @click="dialogShow = false" />
+        <NcButton type="secondary" @click="dialogShow = false">Cancel</NcButton>
         <NcButton
           data-testid="docs-create-proj-dlg-create-btn"
           :loading="creating"
@@ -135,7 +135,12 @@ const typeLabel = computed(() => {
           :label="`Create ${typeLabel}`"
           :loading-label="`Creating ${typeLabel}`"
           @click="createProject"
-        />
+        >
+          {{ `Create ${typeLabel}` }}
+          <template #loading>
+            {{ `Creating ${typeLabel}` }}
+          </template>
+        </NcButton>
       </div>
     </div>
   </NcModal>

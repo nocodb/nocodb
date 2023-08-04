@@ -109,15 +109,18 @@ watch(
         <InputOrTags ref="inputRef" v-model="workspace.title" class="nc-input-md" />
       </a-form-item>
       <div class="flex flex-row justify-end mt-7 gap-x-2">
-        <NcButton type="secondary" :label="$t('general.cancel')" @click="dialogShow = false" />
+        <NcButton type="secondary" @click="dialogShow = false">
+          {{ $t('general.cancel') }}
+        </NcButton>
         <NcButton
           type="primary"
-          :label="$t('activity.createWorkspace')"
-          loading-label="Creating Workspace"
           :loading="isCreating"
           :disabled="validateInfos.title.validateStatus === 'error'"
           @click="_createWorkspace"
-        />
+        >
+          {{ $t('activity.createWorkspace') }}
+          <template #loading> Creating Workspace </template>
+        </NcButton>
       </div>
       <!-- <a-form-item v-bind="validateInfos.description">
           <a-textarea

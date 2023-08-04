@@ -299,44 +299,7 @@ function generalDb() {
   });
 
   it('Nested List - Link to another record', async function () {
-    const expectedRecords = [
-      [
-        {
-          CityId: 251,
-          City: 'Kabul',
-        },
-      ],
-      [
-        {
-          CityId: 59,
-          City: 'Batna',
-        },
-        {
-          CityId: 63,
-          City: 'Bchar',
-        },
-        {
-          CityId: 483,
-          City: 'Skikda',
-        },
-      ],
-      [
-        {
-          CityId: 516,
-          City: 'Tafuna',
-        },
-      ],
-      [
-        {
-          CityId: 67,
-          City: 'Benguela',
-        },
-        {
-          CityId: 360,
-          City: 'Namibe',
-        },
-      ],
-    ];
+    const expectedRecords = ['1', '3', '1', '2'];
 
     // read first 4 records
     const records = await ncAxiosGet({
@@ -348,7 +311,7 @@ function generalDb() {
     expect(records.body.list.length).to.equal(4);
 
     // extract LTAR column "City List"
-    const cityList = records.body.list.map((r) => r['City List']);
+    const cityList = records.body.list.map((r) => r['Cities']);
     expect(cityList).to.deep.equal(expectedRecords);
   });
 
@@ -419,12 +382,7 @@ function generalDb() {
     });
 
     // extract LTAR column "City List"
-    expect(records.body['City List']).to.deep.equal([
-      {
-        CityId: 251,
-        City: 'Kabul',
-      },
-    ]);
+    expect(records.body['Cities']).to.equal('1');
   });
 
   it('Nested Read - Lookup', async function () {

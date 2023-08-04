@@ -26,7 +26,7 @@ function remove_image() {
 function build_sdk(){
     # build nocodb-sdk
     cd ${SCRIPT_DIR}/packages/nocodb-sdk
-    pnpm install --frozen-lockfile || ERROR="sdk build failed"
+    pnpm --filter=!playwright install --frozen-lockfile || ERROR="sdk build failed"
     pnpm run build || ERROR="sdk build failed"
 }
 
@@ -35,7 +35,7 @@ function build_gui(){
     export NODE_OPTIONS="--max_old_space_size=16384"
     # generate static build of nc-gui
     cd ${SCRIPT_DIR}/packages/nc-gui
-    pnpm install --frozen-lockfile || ERROR="gui build failed"
+    pnpm --filter=!playwright install --frozen-lockfile || ERROR="gui build failed"
     pnpm run generate || ERROR="gui build failed"
 }
 

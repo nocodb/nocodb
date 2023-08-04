@@ -10,7 +10,7 @@ test.describe('Attachment column', () => {
     dashboard = new DashboardPage(page, context.project);
   });
 
-  test('Create and verify attachment column, verify it in shared form,', async ({ context }) => {
+  test.only('Create and verify attachment column, verify it in shared form,', async ({ context }) => {
     // run tests slowly
     test.slow();
 

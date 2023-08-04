@@ -120,7 +120,7 @@
     "nc-lib-gui": "0.109.6",
     "nc-plugin": "^0.1.3",
     "ncp": "^2.0.0",
-    "nocodb-sdk": "workspace:*",
+    "nocodb-sdk": "workspace:^",
     "nodemailer": "^6.4.10",
     "object-hash": "^3.0.0",
     "object-sizeof": "^2.6.1",

@@ -107,7 +107,7 @@ importers:
         specifier: ^0.33.0
         version: 0.33.0
       nocodb-sdk:
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../nocodb-sdk
       papaparse:
         specifier: ^5.3.2
@@ -549,7 +549,7 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0
       nocodb-sdk:
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../nocodb-sdk
       nodemailer:
         specifier: ^6.4.10
@@ -818,7 +818,7 @@ importers:
         specifier: ^2.4.2
         version: 2.4.2(mysql2@2.3.3)(pg@8.10.0)(sqlite3@5.1.6)
       nocodb-sdk:
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../../packages/nocodb-sdk
       sqlite3:
         specifier: ^5.1.6

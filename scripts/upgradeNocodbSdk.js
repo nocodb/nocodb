@@ -48,8 +48,10 @@ const searchAndReplace = (target) => {
     let list = [
         ...dfs(path.resolve(path.join(__dirname, '..', 'packages', 'nc-gui'))),
         ...dfs(path.resolve(path.join(__dirname, '..', 'packages', 'nocodb'))),
+        ...dfs(path.resolve(path.join(__dirname, '..', 'tests', 'playwright'))),
         path.join(__dirname, '..', 'packages', 'nc-gui', 'package.json'),
-        path.join(__dirname, '..', 'packages', 'nocodb', 'package.json')
+        path.join(__dirname, '..', 'packages', 'nocodb', 'package.json'),
+        path.join(__dirname, '..', 'tests', 'playwright', 'package.json'),
     ]
     return Promise.all(list.map(d => {
         return new Promise((resolve, reject) => {

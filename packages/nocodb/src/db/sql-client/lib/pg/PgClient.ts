@@ -94,17 +94,17 @@ class PGClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      const query = `${this.querySeparator()}DROP SEQUENCE ${
-        args.sequence_name
-      }`;
+      const query = `${this.querySeparator()}DROP SEQUENCE ${this.genIdentifier(
+        args.sequence_name,
+      )}`;
       await this.sqlClient.raw(query);
       result.data.object = {
         upStatement: [{ sql: query }],
         downStatement: [
           {
-            sql: `${this.querySeparator()}CREATE SEQUENCE ${
-              args.sequence_name
-            }`,
+            sql: `${this.querySeparator()}CREATE SEQUENCE ${this.genIdentifier(
+              args.sequence_name,
+            )}`,
           },
         ],
       };
@@ -174,13 +174,16 @@ class PGClient extends KnexClient {
     log.api(`${func}:args:`, args);
     try {
       const query =
-        this.querySeparator() + `CREATE SEQUENCE ${args.sequence_name}`;
+        this.querySeparator() +
+        `CREATE SEQUENCE ${this.genIdentifier(args.sequence_name)}`;
       await this.sqlClient.raw(query);
       result.data.object = {
         upStatement: [{ sql: query }],
         downStatement: [
           {
-            sql: this.querySeparator() + `DROP SEQUENCE ${args.sequence_name}`,
+            sql:
+              this.querySeparator() +
+              `DROP SEQUENCE ${this.genIdentifier(args.sequence_name)}`,
           },
         ],
       };
@@ -210,10 +213,14 @@ class PGClient extends KnexClient {
     try {
       const upQuery =
         this.querySeparator() +
-        `ALTER SEQUENCE ${args.original_sequence_name} RENAME TO ${args.sequence_name};`;
+        `ALTER SEQUENCE ${this.genIdentifier(
+          args.original_sequence_name,
+        )} RENAME TO ${this.genIdentifier(args.sequence_name)};`;
       const downQuery =
         this.querySeparator() +
-        `ALTER SEQUENCE ${args.sequence_name} RENAME TO ${args.original_sequence_name};`;
+        `ALTER SEQUENCE ${this.genIdentifier(
+          args.sequence_name,
+        )} RENAME TO ${this.genIdentifier(args.original_sequence_name)};`;
 
       await this.sqlClient.raw(upQuery);
       result.data.object = {
@@ -1936,7 +1943,9 @@ class PGClient extends KnexClient {
     log.api(`${_func}:args:`, args);
     const upQuery =
       this.querySeparator() +
-      `DROP FUNCTION IF EXISTS ${args.function_declaration}`;
+      `DROP FUNCTION IF EXISTS ${this.genIdentifier(
+        args.function_declaration,
+      )}`;
     const downQuery = this.querySeparator() + args.create_function;
     try {
       await this.sqlClient.raw(upQuery);
@@ -1961,7 +1970,7 @@ class PGClient extends KnexClient {
     log.api(`${_func}:args:`, args);
     try {
       await this.sqlClient.raw(
-        `DROP PROCEDURE IF EXISTS ${args.procedure_name}`,
+        `DROP PROCEDURE IF EXISTS ${this.genIdentifier(args.procedure_name)}`,
       );
     } catch (e) {
       log.ppe(e, _func);
@@ -2027,7 +2036,9 @@ class PGClient extends KnexClient {
 
       const downQuery =
         this.querySeparator() +
-        `DROP FUNCTION IF EXISTS ${functionCreated.data.list[0].function_declaration}`;
+        `DROP FUNCTION IF EXISTS ${this.genIdentifier(
+          functionCreated.data.list[0].function_declaration,
+        )}`;
 
       result.data.object = {
         upStatement: [{ sql: upQuery }],
@@ -2060,7 +2071,9 @@ class PGClient extends KnexClient {
       let downQuery = this.querySeparator() + args.oldCreateFunction;
 
       await this.sqlClient.raw(
-        `DROP FUNCTION IF EXISTS ${args.function_declaration};`,
+        `DROP FUNCTION IF EXISTS ${this.genIdentifier(
+          args.function_declaration,
+        )};`,
       );
       await this.sqlClient.raw(upQuery);
 
@@ -2069,8 +2082,9 @@ class PGClient extends KnexClient {
       });
 
       downQuery =
-        `DROP FUNCTION IF EXISTS ${functionCreated.data.list[0].function_declaration};` +
-        downQuery;
+        `DROP FUNCTION IF EXISTS ${this.genIdentifier(
+          functionCreated.data.list[0].function_declaration,
+        )};` + downQuery;
 
       result.data.object = {
         upStatement: [{ sql: upQuery }],
@@ -2103,11 +2117,15 @@ class PGClient extends KnexClient {
     try {
       const upQuery =
         this.querySeparator() +
-        `CREATE TRIGGER \`${args.procedure_name}\` \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`;
+        `CREATE TRIGGER ${this.genIdentifier(args.procedure_name)} \n${
+          args.timing
+        } ${args.event}\nON ${this.genIdentifier(args.tn)} FOR EACH ROW\n${
+          args.statement
+        }`;
       await this.sqlClient.raw(upQuery);
       const downQuery =
         this.querySeparator() +
-        `DROP PROCEDURE IF EXISTS ${args.procedure_name}`;
+        `DROP PROCEDURE IF EXISTS ${this.genIdentifier(args.procedure_name)}`;
       result.data.object = {
         upStatement: [{ sql: upQuery }],
         downStatement: [{ sql: downQuery }],
@@ -2140,7 +2158,11 @@ class PGClient extends KnexClient {
         this.querySeparator() + `DROP TRIGGER ${args.procedure_name}`;
       const upQuery =
         this.querySeparator() +
-        `CREATE TRIGGER \`${args.procedure_name}\` \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`;
+        `CREATE TRIGGER ${this.genIdentifier(args.procedure_name)} \n${
+          args.timing
+        } ${args.event}\nON ${this.genIdentifier(args.tn)} FOR EACH ROW\n${
+          args.statement
+        }`;
 
       await this.sqlClient.raw(query);
       await this.sqlClient.raw(upQuery);
@@ -2174,12 +2196,20 @@ class PGClient extends KnexClient {
     try {
       const upQuery =
         this.querySeparator() +
-        `CREATE TRIGGER ${args.trigger_name} \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`;
+        `CREATE TRIGGER ${this.genIdentifier(args.trigger_name)} \n${
+          args.timing
+        } ${args.event}\nON ${this.genIdentifier(args.tn)} FOR EACH ROW\n${
+          args.statement
+        }`;
       await this.sqlClient.raw(upQuery);
       result.data.object = {
         upStatement: [{ sql: upQuery }],
         downStatement: [
-          { sql: this.querySeparator() + `DROP TRIGGER ${args.trigger_name}` },
+          {
+            sql:
+              this.querySeparator() +
+              `DROP TRIGGER ${this.genIdentifier(args.trigger_name)}`,
+          },
         ],
       };
     } catch (e) {
@@ -2207,23 +2237,37 @@ class PGClient extends KnexClient {
     log.api(`${func}:args:`, args);
     try {
       await this.sqlClient.raw(
-        `DROP TRIGGER ${args.trigger_name} ON ${args.tn}`,
+        `DROP TRIGGER ${this.genIdentifier(
+          args.trigger_name,
+        )} ON ${this.genIdentifier(args.tn)}`,
       );
       await this.sqlClient.raw(
-        `CREATE TRIGGER ${args.trigger_name} \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`,
+        `CREATE TRIGGER ${this.genIdentifier(args.trigger_name)} \n${
+          args.timing
+        } ${args.event}\nON ${this.genIdentifier(args.tn)} FOR EACH ROW\n${
+          args.statement
+        }`,
       );
 
       result.data.object = {
         upStatement:
           this.querySeparator() +
-          `DROP TRIGGER ${args.trigger_name} ON ${
-            args.tn
-          };${this.querySeparator()}CREATE TRIGGER ${args.trigger_name} \n${
-            args.timing
-          } ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`,
+          `DROP TRIGGER ${this.genIdentifier(
+            args.trigger_name,
+          )} ON ${this.genIdentifier(
+            args.tn,
+          )};${this.querySeparator()}CREATE TRIGGER ${this.genIdentifier(
+            args.trigger_name,
+          )} \n${args.timing} ${args.event}\nON ${this.genIdentifier(
+            args.tn,
+          )} FOR EACH ROW\n${args.statement}`,
         downStatement:
           this.querySeparator() +
-          `CREATE TRIGGER ${args.trigger_name} \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.oldStatement}`,
+          `CREATE TRIGGER ${this.genIdentifier(args.trigger_name)} \n${
+            args.timing
+          } ${args.event}\nON ${this.genIdentifier(args.tn)} FOR EACH ROW\n${
+            args.oldStatement
+          }`,
       };
     } catch (e) {
       log.ppe(e, func);
@@ -2252,7 +2296,11 @@ class PGClient extends KnexClient {
       result.data.object = {
         upStatement: [{ sql: this.querySeparator() + query }],
         downStatement: [
-          { sql: this.querySeparator() + `DROP VIEW "${args.view_name}"` },
+          {
+            sql:
+              this.querySeparator() +
+              `DROP VIEW ${this.genIdentifier(args.view_name)}`,
+          },
         ],
       };
     } catch (e) {
@@ -2277,14 +2325,18 @@ class PGClient extends KnexClient {
     const result = new Result();
     log.api(`${func}:args:`, args);
     try {
-      const query = `CREATE OR REPLACE VIEW "${args.view_name}" AS \n${args.view_definition}`;
+      const query = `CREATE OR REPLACE VIEW ${this.genIdentifier(
+        args.view_name,
+      )} AS \n${args.view_definition}`;
 
       await this.sqlClient.raw(query);
       result.data.object = {
         upStatement: this.querySeparator() + query,
         downStatement:
           this.querySeparator() +
-          `CREATE VIEW "${args.view_name}" AS \n${args.oldViewDefination}`,
+          `CREATE VIEW ${this.genIdentifier(args.view_name)} AS \n${
+            args.oldViewDefination
+          }`,
       };
     } catch (e) {
       log.ppe(e, func);
@@ -2309,9 +2361,9 @@ class PGClient extends KnexClient {
     log.api(`${func}:args:`, args);
     // `DROP TRIGGER ${args.view_name}`
     try {
-      const query = `DROP VIEW ??`;
+      const query = `DROP VIEW ${this.genIdentifier(args.view_name)}`;
 
-      await this.sqlClient.raw(query, [args.view_name]);
+      await this.sqlClient.raw(query);
 
       result.data.object = {
         upStatement: [{ sql: this.querySeparator() + query }],
@@ -2319,7 +2371,9 @@ class PGClient extends KnexClient {
           {
             sql:
               this.querySeparator() +
-              `CREATE VIEW "${args.view_name}" AS \n${args.oldViewDefination}`,
+              `CREATE VIEW ${this.genIdentifier(args.view_name)} AS \n${
+                args.oldViewDefination
+              }`,
           },
         ],
       };

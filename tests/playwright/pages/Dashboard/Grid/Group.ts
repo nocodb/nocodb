@@ -28,7 +28,7 @@ export class GroupPageObject extends BasePage {
     await this.get().nth(index).click();
   }
 
-  async verifyGroup({ index, title, count }: { index: number; title: string; count: string }) {
+  async verifyGroupHeader({ index, title, count }: { index: number; title: string; count: string }) {
     const group = await this.getGroup(index);
     expect(
       await group.locator('.nc-group-column-title').innerText({

@@ -21,9 +21,11 @@ test.describe('Toolbar operations (GRID)', () => {
     toolbar = dashboard.grid.toolbar;
   });
 
-  test.only('Group', async () => {
+  test('Group', async () => {
     const groupBy = 'Category';
     await dashboard.treeView.openTable({ title: 'FilmList' });
+
+    // Test Descending Order
     await toolbar.groupBy.add({
       title: groupBy,
       ascending: false,
@@ -34,7 +36,28 @@ test.describe('Toolbar operations (GRID)', () => {
       count: 10,
     });
     await dashboard.grid.groupPage.clickGroup(0);
-    await dashboard.grid.groupPage.verifyGroup({ index: 0, title: 'Category', count: '(Count: 56)' });
+    await dashboard.grid.groupPage.verifyGroupHeader({ index: 0, title: groupBy, count: '(Count: 56)' });
+
+    await toolbar.groupBy.reset();
+    // Test Ascending Order
+    await toolbar.groupBy.add({
+      title: groupBy,
+      ascending: true,
+      locallySaved: false,
+    });
+    await dashboard.grid.groupPage.clickGroup(0);
+    await dashboard.grid.groupPage.verifyGroupHeader({
+      index: 0,
+      title: groupBy,
+      count: '(Count: 64)',
+    });
+
+    //Add Another GroupBy
+    await toolbar.groupBy.add({
+      title: 'Length',
+      ascending: true,
+      locallySaved: false,
+    });
   });
 
   test('Hide, Sort, Filter', async () => {

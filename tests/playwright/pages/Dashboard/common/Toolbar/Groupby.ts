@@ -28,7 +28,7 @@ export class ToolbarGroupByPage extends BasePage {
   async reset() {
     await this.toolbar.clickGroupBy();
 
-    await this.get().locator('.nc-group-by-item-remove-btn').click();
+    await this.rootPage.locator('.nc-group-by-item-remove-btn').click();
 
     await this.toolbar.clickGroupBy();
   }
@@ -37,6 +37,10 @@ export class ToolbarGroupByPage extends BasePage {
     // open group menu
     await this.toolbar.clickGroupBy();
 
+    const addGroupBtn = await this.toolbar.rootPage.locator(`.nc-add-group-btn`);
+    if (!(await addGroupBtn.isDisabled())) {
+      await addGroupBtn.click();
+    }
     // read content of the dropdown
     const col = await this.rootPage.locator('.nc-sort-field-select').last().textContent();
     if (col !== title) {
@@ -45,7 +49,9 @@ export class ToolbarGroupByPage extends BasePage {
         .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
         .locator(`div[label="${title}"]`)
         .last()
-        .click();
+        .click({
+          timeout: 2000,
+        });
     }
 
     await this.rootPage.locator('.nc-sort-dir-select').last().click();

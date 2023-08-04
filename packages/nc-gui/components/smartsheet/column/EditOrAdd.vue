@@ -49,11 +49,13 @@ const { t } = useI18n()
 
 const columnLabel = computed(() => props.columnLabel || t('objects.column'))
 
-const { $api, $e } = useNuxtApp()
+const { $e } = useNuxtApp()
 
 const { appInfo } = useGlobal()
 
 const { betaFeatureToggleState } = useBetaFeatureToggle()
+
+const { loadMagic, predictColumnType: _predictColumnType } = useNocoEe()
 
 const meta = inject(MetaInj, ref())
 
@@ -70,8 +72,6 @@ const advancedDbOptions = ref(false)
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup, UITypes.Links]
-
-const loadMagic = ref(false)
 
 const geoDataToggleCondition = (t: { name: UITypes }) => {
   return betaFeatureToggleState.show ? betaFeatureToggleState.show : !t.name.includes(UITypes.GeoData)
@@ -139,24 +139,7 @@ watchEffect(() => {
 })
 
 const predictColumnType = async () => {
-  if (loadMagic.value) return
-  try {
-    loadMagic.value = true
-    const predictRes = await $api.utils.magic({
-      operation: 'predictColumnType',
-      data: {
-        title: formState.value.title,
-      },
-    })
-    const predictType = predictRes?.data
-    if (predictType && Object.values(UITypes).includes(predictType)) {
-      formState.value.uidt = predictType
-      onUidtOrIdTypeChange()
-    }
-  } catch (e) {
-    message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
-  }
-  loadMagic.value = false
+  _predictColumnType(formState, onUidtOrIdTypeChange)
 }
 
 onMounted(() => {

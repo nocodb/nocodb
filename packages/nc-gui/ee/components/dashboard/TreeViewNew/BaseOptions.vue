@@ -99,10 +99,10 @@ function openQuickImportDialog(type: string) {
 </script>
 
 <template>
-  <a-menu-divider v-if="false" class="my-0" />
+  <a-menu-divider class="my-0" />
 
   <!-- NocoAI -->
-  <a-sub-menu v-if="false">
+  <a-sub-menu>
     <template #title>
       <div class="nc-project-menu-item group">
         <GeneralIcon icon="magic" class="group-hover:text-black" />

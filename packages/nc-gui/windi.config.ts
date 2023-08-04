@@ -18,7 +18,7 @@ const isEE = process.env.EE === 'true'
 export default defineConfig({
   extract: {
     include: [isEE ? '../**/*.{vue,html,jsx,tsx,css,scss}' : '**/*.{vue,html,jsx,tsx,css,scss}'],
-    exclude: [...(isEE ? ['../node_modules', '.git'] : ['node_modules', '.git'])],
+    exclude: ['node_modules', '.git'],
   },
 
   darkMode: 'class',

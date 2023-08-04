@@ -1184,7 +1184,7 @@ defineExpose({
                 <td
                   v-for="(col, colIndex) of dummyDataForLoading"
                   :key="colIndex"
-                  class="!bg-gray-10 h-full"
+                  class="!bg-gray-50 h-full"
                   :class="{ 'min-w-50': colIndex !== 0, 'min-w-21.25': colIndex === 0 }"
                 >
                   <a-skeleton
@@ -1239,7 +1239,7 @@ defineExpose({
                   }"
                   @click.stop="addColumnDropdown = true"
                 >
-                  <div class="absolute top-0 left-0 h-10.25 border-b-1 border-r-1 border-gray-100 nc-grid-add-edit-column group">
+                  <div class="absolute top-0 left-0 h-10.25 border-b-1 border-r-1 border-gray-200 nc-grid-add-edit-column group">
                     <a-dropdown
                       v-model:visible="addColumnDropdown"
                       :trigger="['click']"
@@ -1720,22 +1720,22 @@ defineExpose({
   @apply h-full w-full;
 
   .nc-grid-add-edit-column {
-    @apply bg-gray-10;
+    @apply bg-gray-50;
   }
   .nc-grid-add-new-cell:hover td {
-    @apply text-black bg-gray-10;
+    @apply text-black bg-gray-50;
   }
 
   td,
   th {
-    @apply border-gray-100 border-solid border-r bg-gray-10;
+    @apply border-gray-100 border-solid border-r bg-gray-50;
     min-height: 41px !important;
     height: 41px !important;
     position: relative;
   }
 
   th {
-    @apply border-b-1 border-gray-100;
+    @apply border-b-1 border-gray-200;
   }
 
   .nc-grid-header th:last-child {
@@ -1821,7 +1821,7 @@ defineExpose({
     position: sticky !important;
     left: 85px;
     z-index: 5;
-    @apply border-r-1 border-r-gray-100;
+    @apply border-r-1 border-r-gray-200;
   }
 
   tbody td:nth-child(2) {

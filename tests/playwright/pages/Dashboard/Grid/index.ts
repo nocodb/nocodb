@@ -10,6 +10,7 @@ import { QrCodeOverlay } from '../QrCodeOverlay';
 import { BarcodeOverlay } from '../BarcodeOverlay';
 import { RowPageObject } from './Row';
 import { WorkspaceMenuObject } from '../common/WorkspaceMenu';
+import { GroupPageObject } from './Group';
 
 export class GridPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -24,6 +25,7 @@ export class GridPage extends BasePage {
   readonly projectMenu: ProjectMenuObject;
   readonly workspaceMenu: WorkspaceMenuObject;
   readonly rowPage: RowPageObject;
+  readonly groupPage: GroupPageObject;
 
   constructor(dashboardPage: DashboardPage) {
     super(dashboardPage.rootPage);
@@ -38,6 +40,7 @@ export class GridPage extends BasePage {
     this.projectMenu = new ProjectMenuObject(this);
     this.workspaceMenu = new WorkspaceMenuObject(this);
     this.rowPage = new RowPageObject(this);
+    this.groupPage = new GroupPageObject(this);
   }
 
   get() {

@@ -111,7 +111,7 @@ if (vGroup.value.root === true) provide(ScrollParentInj, wrapper)
         </div>
         <a-collapse
           v-model:activeKey="_activeGroupKeys"
-          class="!bg-transparent w-full"
+          class="!bg-transparent nc-group-wrapper w-full"
           :bordered="false"
           destroy-inactive-panel
           @change="findAndLoadSubGroup"
@@ -119,7 +119,7 @@ if (vGroup.value.root === true) provide(ScrollParentInj, wrapper)
           <a-collapse-panel
             v-for="[i, grp] of Object.entries(vGroup?.children ?? [])"
             :key="`group-panel-${i}`"
-            class="!border-1 rounded-[12px] mb-4"
+            class="!border-1 nc-group rounded-[12px] mb-4"
             :class="{ 'ml-[12px]': vGroup.root === true }"
             :style="`background: rgb(${245 - _depth * 10}, ${245 - _depth * 10}, ${245 - _depth * 10})`"
             :show-arrow="false"

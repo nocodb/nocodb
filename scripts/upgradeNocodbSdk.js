@@ -36,6 +36,7 @@ const bumbVersionAndSave = () => {
     Promise.all([
         replacePackageVersion(path.join(__dirname, '..', 'packages', 'nocodb', 'package.json')),
         replacePackageVersion(path.join(__dirname, '..', 'packages', 'nc-gui', 'package.json')),
+        replacePackageVersion(path.join(__dirname, '..', 'packages', 'playwright', 'package.json')),
 
     ]).then(() => {
         execSync(`pnpm --filter=nocodb --filter=nc-gui install`, {});

@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { PaginatedType } from 'nocodb-sdk'
-import { computed, iconMap, inject, useViewsStore } from '#imports'
 import SidebarIcon from '~icons/nc-icons/sidebar'
-import { ChangePageInj, PaginationDataInj, computed, iconMap, inject, isRtlLang, useI18n } from '#imports'
+import { computed, iconMap, inject, isRtlLang, useI18n } from '#imports'
 import type { Language } from '~/lib'
 
 interface Props {
@@ -16,7 +15,7 @@ interface Props {
   sticky?: boolean
 }
 
-const { alignCountOnRight } = defineProps<Props>()
+const props = defineProps<Props>()
 
 const { locale } = useI18n()
 

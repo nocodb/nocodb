@@ -1,5 +1,4 @@
 import { dirname, resolve } from 'node:path'
-import path from 'path'
 import vueI18n from '@intlify/unplugin-vue-i18n/vite'
 import Icons from 'unplugin-icons/vite'
 import IconsResolver from 'unplugin-icons/resolver'
@@ -8,9 +7,8 @@ import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 import monacoEditorPlugin from 'vite-plugin-monaco-editor'
 import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill'
 import { FileSystemIconLoader } from 'unplugin-icons/loaders'
-import PurgeIcons from 'vite-plugin-purge-icons'
 
-const isEE = process.env.EE === 'true'
+import PurgeIcons from 'vite-plugin-purge-icons'
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
@@ -199,6 +197,7 @@ export default defineNuxtConfig({
   },
 
   imports: {
+    dirs: ['./context', './utils/**', './lib', './composables/**', './store/**'],
     imports: [
       { name: 'useI18n', from: 'vue-i18n' },
       { name: 'message', from: 'ant-design-vue/es' },
@@ -208,24 +207,5 @@ export default defineNuxtConfig({
       { name: 'useJwt', from: '@vueuse/integrations/useJwt' },
       { name: 'storeToRefs', from: 'pinia' },
     ],
-  },
-
-  extends: [...(isEE ? ['./ee'] : []), './core'],
-
-  components: {
-    dirs: [...(isEE ? ['~/ee/components'] : []), '~/components'],
-  },
-  hooks: {
-    // update priority of ee modules
-    'imports:extend': (imports) => {
-      if (!isEE) return
-      for (const importItem of imports) {
-        if (importItem.from?.includes(path.resolve('ee'))) {
-          importItem.priority = 0
-        } else {
-          importItem.priority = (importItem.priority || 0) - 1
-        }
-      }
-    },
   },
 })

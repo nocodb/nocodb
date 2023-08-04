@@ -18,11 +18,9 @@
   "web-types": "web-types.json",
   "scripts": {
     "build": "nuxt build",
-    "build:ee": "EE=true nuxt build",
     "dev": "nuxt dev",
-    "dev:ee": "EE=true nuxt dev",
+    "dev:ee": "EE=true nuxt dev ./ee",
     "generate": "nuxt generate",
-    "generate:ee": "EE=true nuxt generate",
     "start": "node .output/server/index.mjs",
     "lint": "eslint --ext \".js,.jsx,.ts,.tsx,.vue\" --fix --ignore-path .gitignore .",
     "test": "vitest -c test/vite.config.ts",
@@ -31,8 +29,7 @@
     "build:copy": "npm run generate; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/",
     "build:copy:publish": "npm run generate; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/; npm publish ../nc-lib-gui",
     "postinstall": "nuxt prepare",
-    "ci:run": "export NODE_OPTIONS=\"--max_old_space_size=16384\"; npm install; NUXT_PAGE_TRANSITION_DISABLE=true npm run build; NUXT_PUBLIC_NC_BACKEND_URL=http://localhost:8080 npm run start &",
-    "ci:run:ee": "export NODE_OPTIONS=\"--max_old_space_size=16384\"; npm install; NUXT_PAGE_TRANSITION_DISABLE=true npm run build:ee; NUXT_PUBLIC_NC_BACKEND_URL=http://localhost:8080 npm run start &"
+    "ci:run": "export NODE_OPTIONS=\"--max_old_space_size=16384\"; npm install; NUXT_PAGE_TRANSITION_DISABLE=true npm run build; NUXT_PUBLIC_NC_BACKEND_URL=http://localhost:8080 npm run start &"
   },
   "dependencies": {
     "@braks/revue-draggable": "^0.4.3",

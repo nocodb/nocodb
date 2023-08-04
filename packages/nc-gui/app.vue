@@ -1,17 +1,13 @@
 <script setup lang="ts">
-import { applyNonSelectable, computed, useCommandPalette, useRouter, useTheme } from '#imports'
+import { applyNonSelectable, computed, useRouter, useTheme } from '#imports'
 
 const router = useRouter()
 
 const route = $(router.currentRoute)
 
-const cmdK = ref(false)
-
 const disableBaseLayout = computed(() => route.path.startsWith('/nc/view') || route.path.startsWith('/nc/form'))
 
 useTheme()
-
-const { commandPalette, cmdData, cmdPlaceholder, activeScope } = useCommandPalette()
 
 applyNonSelectable()
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
@@ -59,5 +55,4 @@ if (typeof window !== 'undefined') {
       <NuxtPage :key="key" :transition="false" />
     </NuxtLayout>
   </a-config-provider>
-  <CmdK ref="commandPalette" v-model:open="cmdK" :scope="activeScope" :data="cmdData" :placeholder="cmdPlaceholder" />
 </template>

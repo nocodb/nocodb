@@ -13,10 +13,12 @@ import questionMark from '@windicss/plugin-question-mark'
 
 import { theme as colors, themeColors, themeV2Colors } from './utils/colorsUtils'
 
+const isEE = process.env.EE === 'true'
+
 export default defineConfig({
   extract: {
-    include: ['**/*.{vue,html,jsx,tsx,css,scss}'],
-    exclude: ['node_modules', '.git'],
+    include: [isEE ? '../**/*.{vue,html,jsx,tsx,css,scss}' : '**/*.{vue,html,jsx,tsx,css,scss}'],
+    exclude: [...(isEE ? ['../node_modules', '.git'] : ['node_modules', '.git'])],
   },
 
   darkMode: 'class',

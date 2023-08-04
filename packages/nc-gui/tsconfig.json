@@ -17,7 +17,7 @@
       "nuxt-windicss",
       "vite/client",
       "@nuxt/image-edge"
-    ],
+    ]
   },
   "exclude": ["node_modules", "dist", ".output"]
 }

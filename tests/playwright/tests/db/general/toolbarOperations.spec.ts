@@ -21,16 +21,20 @@ test.describe('Toolbar operations (GRID)', () => {
     toolbar = dashboard.grid.toolbar;
   });
 
-  test('Group', async () => {
+  test.only('Group', async () => {
+    const groupBy = 'Category';
     await dashboard.treeView.openTable({ title: 'FilmList' });
     await toolbar.groupBy.add({
-      title: 'Category',
+      title: groupBy,
       ascending: false,
       locallySaved: false,
     });
 
-    const x = await dashboard.grid.groupPage.getGroupCount();
+    await dashboard.grid.groupPage.verifyGroupCount({
+      count: 10,
+    });
     await dashboard.grid.groupPage.clickGroup(0);
+    await dashboard.grid.groupPage.verifyGroup({ index: 0, title: 'Category', count: '(Count: 56)' });
   });
 
   test('Hide, Sort, Filter', async () => {

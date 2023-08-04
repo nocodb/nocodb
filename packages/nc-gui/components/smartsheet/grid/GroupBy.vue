@@ -147,8 +147,8 @@ if (vGroup.value.root === true) provide(ScrollParentInj, wrapper)
                 <div class="flex items-center">
                   <div class="flex flex-col">
                     <div class="flex gap-2">
-                      <div class="text-xs">{{ grp.column.title }}</div>
-                      <div class="text-xs text-gray-400">(Count: {{ grp.count }})</div>
+                      <div class="text-xs nc-group-column-title">{{ grp.column.title }}</div>
+                      <div class="text-xs nc-group-row-count text-gray-400">(Count: {{ grp.count }})</div>
                     </div>
                     <div class="flex mt-1">
                       <template v-if="grp.column.uidt === 'MultiSelect'">

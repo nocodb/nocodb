@@ -2126,7 +2126,7 @@ function linkBased() {
     await ncAxiosLinkAdd({
       urlParams: {
         tableId: tblFilm.id,
-        linkId: getColumnId(columnsFilm, 'Actor List'),
+        linkId: getColumnId(columnsFilm, 'Actors'),
         rowId: 1,
       },
       body: [
@@ -2180,7 +2180,7 @@ function linkBased() {
     rsp = await ncAxiosLinkGet({
       urlParams: {
         tableId: tblFilm.id,
-        linkId: getColumnId(columnsFilm, 'Actor List'),
+        linkId: getColumnId(columnsFilm, 'Actors'),
         rowId: 1,
       },
     });
@@ -2225,7 +2225,7 @@ function linkBased() {
       const rsp = await ncAxiosLinkGet({
         urlParams: {
           tableId: tblFilm.id,
-          linkId: getColumnId(columnsFilm, 'Actor List'),
+          linkId: getColumnId(columnsFilm, 'Actors'),
           rowId: i,
         },
       });
@@ -2268,7 +2268,7 @@ function linkBased() {
       const rsp = await ncAxiosLinkGet({
         urlParams: {
           tableId: tblFilm.id,
-          linkId: getColumnId(columnsFilm, 'Actor List'),
+          linkId: getColumnId(columnsFilm, 'Actors'),
           rowId: i,
         },
       });

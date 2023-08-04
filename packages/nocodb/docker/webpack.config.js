@@ -30,7 +30,13 @@ module.exports = {
   },
   optimization: {
     minimize: true, //Update this to true or false
-    minimizer: [new TerserPlugin()],
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          keep_classnames: true,
+        },
+      }),
+    ],
     nodeEnv: false,
   },
   externals: [nodeExternals()],

@@ -33,14 +33,11 @@ const replacePackageVersion = (filePath) => {
 
 const bumbVersionAndSave = () => {
     // upgrade nocodb-sdk version in nocodb & nc-gui
-    Promise.all([
+    return Promise.all([
         replacePackageVersion(path.join(__dirname, '..', 'packages', 'nocodb', 'package.json')),
         replacePackageVersion(path.join(__dirname, '..', 'packages', 'nc-gui', 'package.json')),
         replacePackageVersion(path.join(__dirname, '..', 'tests', 'playwright', 'package.json')),
-
-    ]).then(() => {
-        execSync(`pnpm --filter=nocodb --filter=nc-gui install`, {});
-    })
+    ])
 }
 
 const dfs = function(dir) {

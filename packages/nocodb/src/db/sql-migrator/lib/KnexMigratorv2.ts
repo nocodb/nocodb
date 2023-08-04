@@ -114,6 +114,7 @@ export default class KnexMigratorv2 {
   }*/
 
   // @ts-ignore
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async _initDbOnFs(base: Base) {
     // this.emit(
     //   'Creating folder: ',

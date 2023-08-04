@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { ColumnType, isVirtualCol } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { isVirtualCol } from 'nocodb-sdk'
 
 const { column } = defineProps<{ column: ColumnType }>()
-
 </script>
 
 <template>

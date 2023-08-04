@@ -1866,6 +1866,7 @@ class SqliteClient extends KnexClient {
 
       /* Filter relations for current table */
       if (args.tn) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         relations = relations.filter(
           (r) => r.tn === args.tn || r.rtn === args.tn,
         );

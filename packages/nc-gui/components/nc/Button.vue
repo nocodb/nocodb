@@ -126,7 +126,7 @@ const loading = useVModel(props, 'loading', emits)
 .ant-btn.ant-btn-text {
   box-shadow: none;
 
-  @apply bg-white border-0 text-gray-700 hover:bg-gray-50;
+  @apply bg-transparent border-0 text-gray-700 hover:bg-gray-50;
 
   &:focus {
     box-shadow: none;

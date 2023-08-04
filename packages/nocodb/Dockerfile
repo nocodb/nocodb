@@ -21,11 +21,11 @@ RUN cp $GOPATH/bin/litestream /usr/src/lt
 FROM node:18.12.1-alpine as builder
 WORKDIR /usr/src/app
 
-# install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
 # install node-gyp dependencies
 RUN apk add --no-cache python3 make g++
+
+# install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Copy application dependency manifests to the container image.
 COPY ./package.json ./package.json
@@ -41,7 +41,7 @@ RUN echo "node-linker=hoisted" > .npmrc
 # install production dependencies,
 # reduce node_module size with modclean & removing sqlite deps,
 # package built code into app.tar.gz & add execute permission to start.sh
-RUN pnpm install --prod --shamefully-hoist --reporter=silent \
+RUN pnpm install --prod --shamefully-hoist \
     && npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**" --run  \
     && rm -rf ./node_modules/sqlite3/deps \
     && tar -czf ../appEntry/app.tar.gz ./* \

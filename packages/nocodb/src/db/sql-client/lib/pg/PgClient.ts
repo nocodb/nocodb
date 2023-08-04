@@ -456,14 +456,16 @@ class PGClient extends KnexClient {
         log.debug('checking if db exists');
         rows = (
           await tempSqlClient.raw(
-            `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = '${args.database}'`,
+            `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = ?`,
+            [args.database],
           )
         ).rows;
       } catch (e) {
         log.debug('checking if db exists');
         rows = (
           await this.sqlClient.raw(
-            `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = '${args.database}'`,
+            `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = ?`,
+            [args.database],
           )
         ).rows;
       }
@@ -520,12 +522,15 @@ class PGClient extends KnexClient {
       await this.sqlClient.destroy();
       this.sqlClient = tempSqlClient;
 
-      await tempSqlClient.raw(`ALTER DATABASE ${args.database} WITH CONNECTION LIMIT 0;
+      await tempSqlClient.raw(
+        `ALTER DATABASE ?? WITH CONNECTION LIMIT 0;
       SELECT pg_terminate_backend(sa.pid) FROM pg_stat_activity sa WHERE
-      sa.pid <> pg_backend_pid() AND sa.datname = '${args.database}';`);
+      sa.pid <> pg_backend_pid() AND sa.datname = ?;`,
+        [args.database, args.database],
+      );
 
       log.debug('dropping database:', args);
-      await tempSqlClient.raw(`DROP DATABASE ${args.database};`);
+      await tempSqlClient.raw(`DROP DATABASE ??;`, [args.database]);
     } catch (e) {
       log.ppe(e, _func);
       // throw e;
@@ -549,8 +554,12 @@ class PGClient extends KnexClient {
       /** ************** START : create _evolution table if not exists *************** */
       const exists = await this.sqlClient.raw(
         `SELECT table_schema,table_name as tn, table_catalog FROM information_schema.tables where table_schema=? and
-         table_name = '${args.tn}' and table_catalog = '${this.connectionConfig.connection.database}'`,
-        [args.schema || this.schema],
+         table_name = ? and table_catalog = ?`,
+        [
+          args.schema || this.schema,
+          args.tn,
+          this.connectionConfig.connection.database,
+        ],
       );
 
       if (exists.rows.length === 0) {
@@ -611,8 +620,12 @@ class PGClient extends KnexClient {
 
     try {
       const { rows } = await this.sqlClient.raw(
-        `SELECT table_schema,table_name as tn, table_catalog FROM information_schema.tables where table_schema=? and table_name = '${args.tn}' and table_catalog = '${this.connectionConfig.connection.database}'`,
-        [args.schema || this.schema],
+        `SELECT table_schema,table_name as tn, table_catalog FROM information_schema.tables where table_schema=? and table_name = ? and table_catalog = ?'`,
+        [
+          args.schema || this.schema,
+          args.tn,
+          this.connectionConfig.connection.database,
+        ],
       );
       result.data.value = rows.length > 0;
     } catch (e) {
@@ -632,7 +645,8 @@ class PGClient extends KnexClient {
 
     try {
       const { rows } = await this.sqlClient.raw(
-        `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = '${args.databaseName}'`,
+        `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = ?`,
+        [args.database],
       );
       result.data.value = rows.length > 0;
     } catch (e) {
@@ -1295,7 +1309,8 @@ class PGClient extends KnexClient {
     const result = new Result();
     log.api(`${_func}:args:`, args);
     try {
-      const response = await this.sqlClient.raw(`
+      const response = await this.sqlClient.raw(
+        `
       SELECT c.conname AS cstn,
           CASE
               WHEN c.contype = 'u' THEN 'UNIQUE'
@@ -1312,9 +1327,11 @@ class PGClient extends KnexClient {
            JOIN pg_class tbl ON tbl.oid = c.conrelid
            JOIN pg_namespace sch ON sch.oid = tbl.relnamespace
            JOIN pg_attribute col ON (col.attrelid = tbl.oid AND col.attnum = u.attnum)
-        where tbl.relname='${args.tn}'
+        where tbl.relname=?
         GROUP BY constraint_name, col.attnum, constraint_type, "schema", "table", definition
-        ORDER BY "schema", "table"; `);
+        ORDER BY "schema", "table"; `,
+        [args.tn],
+      );
 
       const rows = [];
       for (let i = 0, rowCount = 0; i < response.rows.length; ++i, ++rowCount) {
@@ -1394,8 +1411,8 @@ class PGClient extends KnexClient {
           LEFT JOIN pg_class f_tbl ON f_tbl.oid = pc.confrelid
           LEFT JOIN pg_namespace f_sch ON f_sch.oid = f_tbl.relnamespace
           LEFT JOIN pg_attribute f_col ON (f_col.attrelid = f_tbl.oid AND f_col.attnum = f_u.attnum)
-        WHERE pc.contype = 'f' AND sch.nspname = ? AND f_sch.nspname = sch.nspname AND tbl.relname='${args.tn}';`,
-        [args.schema || this.schema],
+        WHERE pc.contype = 'f' AND sch.nspname = ? AND f_sch.nspname = sch.nspname AND tbl.relname=?;`,
+        [args.schema || this.schema, args.tn],
       );
 
       const ruleMapping = {
@@ -1517,8 +1534,8 @@ class PGClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const { rows } = await this.sqlClient.raw(
-        `select * from information_schema.triggers where trigger_schema=? and event_object_table='${args.tn}'`,
-        [args.schema || this.schema],
+        `select * from information_schema.triggers where trigger_schema=? and event_object_table=?`,
+        [args.schema || this.schema, args.tn],
       );
 
       for (let i = 0; i < rows.length; ++i) {
@@ -1702,8 +1719,8 @@ class PGClient extends KnexClient {
       const { rows } = await this.sqlClient.raw(
         `SELECT format('%I.%I(%s)', ns.nspname, p.proname, oidvectortypes(p.proargtypes)) as function_declaration, pg_get_functiondef(p.oid) as create_function
                 FROM pg_proc p INNER JOIN pg_namespace ns ON (p.pronamespace = ns.oid)
-            WHERE ns.nspname = ? and p.proname = '${args.function_name}';`,
-        [args.schema || this.schema],
+            WHERE ns.nspname = ? and p.proname = ?;`,
+        [args.schema || this.schema, args.function_name],
       );
 
       // log.debug(response);
@@ -1742,9 +1759,9 @@ class PGClient extends KnexClient {
     try {
       args.databaseName = this.connectionConfig.connection.database;
 
-      const response = await this.sqlClient.raw(
-        `show create procedure ${args.procedure_name};`,
-      );
+      const response = await this.sqlClient.raw(`show create procedure ?;`, [
+        args.procedure_name,
+      ]);
       const rows = [];
 
       if (response.length === 2) {
@@ -1782,7 +1799,8 @@ class PGClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const { rows } = await this.sqlClient.raw(
-        `select * from INFORMATION_SCHEMA.views WHERE table_name='${args.view_name}' and table_schema = ANY (current_schemas(false));`,
+        `select * from INFORMATION_SCHEMA.views WHERE table_name=? and table_schema = ANY (current_schemas(false));`,
+        [args.view_name],
       );
 
       for (let i = 0; i < rows.length; ++i) {
@@ -1809,7 +1827,8 @@ class PGClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const response = await this.sqlClient.raw(
-        `SHOW FULL TABLES IN ${args.databaseName} WHERE TABLE_TYPE LIKE 'VIEW';`,
+        `SHOW FULL TABLES IN ?? WHERE TABLE_TYPE LIKE 'VIEW';`,
+        [args.databaseName],
       );
       let rows = [];
 
@@ -1842,7 +1861,7 @@ class PGClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      await this.sqlClient.raw(`create database ${args.database_name}`);
+      await this.sqlClient.raw(`create database ??`, [args.database_name]);
     } catch (e) {
       log.ppe(e, _func);
       throw e;
@@ -1859,7 +1878,7 @@ class PGClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      await this.sqlClient.raw(`drop database ${args.database_name}`);
+      await this.sqlClient.raw(`drop database ??`, [args.database_name]);
     } catch (e) {
       log.ppe(e, _func);
       throw e;
@@ -2290,9 +2309,9 @@ class PGClient extends KnexClient {
     log.api(`${func}:args:`, args);
     // `DROP TRIGGER ${args.view_name}`
     try {
-      const query = `DROP VIEW ${args.view_name}`;
+      const query = `DROP VIEW ??`;
 
-      await this.sqlClient.raw(query);
+      await this.sqlClient.raw(query, [args.view_name]);
 
       result.data.object = {
         upStatement: [{ sql: this.querySeparator() + query }],

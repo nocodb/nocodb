@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import { useGlobal, useI18n, useRoute } from '#imports'
+import { isEeUI, useGlobal, useI18n, useRoute } from '#imports'
 
 const route = useRoute()
 
@@ -74,7 +74,7 @@ export default {
             <span class="nc-quick-action-shortcut">⌘ K</span>
           </div> -->
 
-          <div v-if="!isPublic" class="flex items-center">
+          <div v-if="!isPublic && isEeUI" class="flex items-center">
             <NotificationMenu class="mr-2" data-testid="nc-notification-bell-icon" />
           </div>
 

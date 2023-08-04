@@ -1081,7 +1081,11 @@ class SqliteClient extends KnexClient {
     log.api(`${func}:args:`, args);
     try {
       const rows = await this.sqlClient.raw(
-        `CREATE TRIGGER \`${args.function_name}\` \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`,
+        `CREATE TRIGGER ${this.genIdentifier(args.function_name)} \n${
+          args.timing
+        } ${args.event}\nON ${this.genIdentifier(args.tn)} FOR EACH ROW\n${
+          args.statement
+        }`,
       );
       result.data.list = rows;
     } catch (e) {
@@ -1107,9 +1111,15 @@ class SqliteClient extends KnexClient {
     const result = new Result();
     log.api(`${func}:args:`, args);
     try {
-      await this.sqlClient.raw(`DROP TRIGGER ${args.function_name}`);
+      await this.sqlClient.raw(
+        `DROP TRIGGER ${this.genIdentifier(args.function_name)}`,
+      );
       const rows = await this.sqlClient.raw(
-        `CREATE TRIGGER \`${args.function_name}\` \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`,
+        `CREATE TRIGGER ${this.genIdentifier(args.function_name)}\` \n${
+          args.timing
+        } ${args.event}\nON ${this.genIdentifier(args.tn)} FOR EACH ROW\n${
+          args.statement
+        }`,
       );
       result.data.list = rows;
     } catch (e) {
@@ -1136,7 +1146,11 @@ class SqliteClient extends KnexClient {
     log.api(`${func}:args:`, args);
     try {
       const rows = await this.sqlClient.raw(
-        `CREATE TRIGGER \`${args.procedure_name}\` \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`,
+        `CREATE TRIGGER ${this.genIdentifier(args.procedure_name)} \n${
+          args.timing
+        } ${args.event}\nON ${this.genIdentifier(args.tn)} FOR EACH ROW\n${
+          args.statement
+        }`,
       );
       result.data.list = rows;
     } catch (e) {
@@ -1164,7 +1178,11 @@ class SqliteClient extends KnexClient {
     try {
       await this.sqlClient.raw(`DROP TRIGGER ${args.procedure_name}`);
       const rows = await this.sqlClient.raw(
-        `CREATE TRIGGER \`${args.procedure_name}\` \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`,
+        `CREATE TRIGGER ${this.genIdentifier(args.procedure_name)} \n${
+          args.timing
+        } ${args.event}\nON ${this.genIdentifier(args.tn)} FOR EACH ROW\n${
+          args.statement
+        }`,
       );
       result.data.list = rows;
     } catch (e) {
@@ -1192,7 +1210,11 @@ class SqliteClient extends KnexClient {
     try {
       const query =
         this.querySeparator() +
-        `CREATE TRIGGER \`${args.trigger_name}\` \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`;
+        `CREATE TRIGGER ${this.genIdentifier(args.trigger_name)} \n${
+          args.timing
+        } ${args.event}\nON ${this.genIdentifier(args.tn)} FOR EACH ROW\n${
+          args.statement
+        }`;
       await this.sqlClient.raw(query);
       result.data.object = {
         upStatement: [{ sql: query }],
@@ -1222,12 +1244,22 @@ class SqliteClient extends KnexClient {
     const result = new Result();
     log.api(`${func}:args:`, args);
     try {
-      await this.sqlClient.raw(`DROP TRIGGER ${args.trigger_name}`);
+      await this.sqlClient.raw(`DROP TRIGGER ??`, [args.trigger_name]);
       await this.sqlClient.raw(
-        `CREATE TRIGGER \`${args.trigger_name}\` \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`,
+        `CREATE TRIGGER ${this.genIdentifier(args.trigger_name)} \n${
+          args.timing
+        } ${args.event}\nON ${this.genIdentifier(args.tn)} FOR EACH ROW\n${
+          args.statement
+        }`,
       );
 
-      const upQuery = `DROP TRIGGER ${args.trigger_name};\nCREATE TRIGGER \`${args.trigger_name}\` \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`;
+      const upQuery = `DROP TRIGGER ${this.genIdentifier(
+        args.trigger_name,
+      )};\nCREATE TRIGGER ${this.genIdentifier(args.trigger_name)} \n${
+        args.timing
+      } ${args.event}\nON ${this.genIdentifier(args.tn)} FOR EACH ROW\n${
+        args.statement
+      }`;
 
       result.data.object = {
         upStatement: [{ sql: upQuery }],
@@ -1409,20 +1441,22 @@ class SqliteClient extends KnexClient {
     const pk = args.columns.find((c) => c.pk);
     if (!pk) return result;
 
-    const tn = this.genQuery('??', args.tn);
+    const tn = this.genIdentifier(args.tn);
 
     for (let i = 0; i < args.columns.length; i++) {
       const column = args.columns[i];
       if (column.au) {
-        const triggerName = this.genQuery('??', [
-          `xc_trigger_${tn}_${column.cn}`,
-        ]);
+        const triggerName = this.genIdentifier(`xc_trigger_${tn}_${column.cn}`);
         const triggerCreateQuery = `${this.querySeparator()}CREATE TRIGGER ${triggerName}
             AFTER UPDATE
             ON "${tn}" FOR EACH ROW
             BEGIN
-              UPDATE "${tn}" SET ${column.cn} = current_timestamp
-                WHERE ${pk.cn} = old.${pk.cn};
+              UPDATE "${tn}" SET ${this.genIdentifier(
+          column.cn,
+        )} = current_timestamp
+                WHERE ${this.genIdentifier(pk.cn)} = old.${this.genIdentifier(
+          pk.cn,
+        )};
             END;`;
 
         upQuery += triggerCreateQuery;
@@ -1444,20 +1478,24 @@ class SqliteClient extends KnexClient {
     const pk = args.columns.find((c) => c.pk);
     if (!pk) return result;
 
-    const tn = this.genQuery('??', args.tn);
+    const tn = this.genIdentifier(args.tn);
 
     for (let i = 0; i < args.columns.length; i++) {
       const column = args.columns[i];
       if (column.au && column.altered === 1) {
-        const triggerName = this.genQuery('??', [
+        const triggerName = this.genIdentifier(
           `xc_trigger_${args.tn}_${column.cn}`,
-        ]);
+        );
         const triggerCreateQuery = `${this.querySeparator()}CREATE TRIGGER ${triggerName}
             AFTER UPDATE
             ON "${tn}" FOR EACH ROW
             BEGIN
-              UPDATE "${tn}" SET ${column.cn} = current_timestamp
-                WHERE ${pk.cn} = old.${pk.cn};
+              UPDATE "${tn}" SET ${this.genIdentifier(
+          column.cn,
+        )} = current_timestamp
+                WHERE ${this.genIdentifier(pk.cn)} = old.${this.genIdentifier(
+          pk.cn,
+        )};
             END;`;
 
         upQuery += triggerCreateQuery;
@@ -2040,7 +2078,8 @@ class SqliteClient extends KnexClient {
         [n.cn],
         shouldSanitize,
       );
-      addNewColumnQuery += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
+      addNewColumnQuery +=
+        n.dtxp && n.dt !== 'text' ? `(${this.genRaw(n.dtxp)})` : '';
       addNewColumnQuery += n.cdf
         ? ` DEFAULT ${this.sanitiseDefaultValue(n.cdf)}`
         : !n.rqd
@@ -2073,7 +2112,7 @@ class SqliteClient extends KnexClient {
         [n.cn],
         shouldSanitize,
       );
-      query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
+      query += n.dtxp && n.dt !== 'text' ? `(${this.genRaw(n.dtxp)})` : '';
       query += n.cdf ? ` DEFAULT ${this.sanitiseDefaultValue(n.cdf)}` : ' ';
       query += n.rqd ? ` NOT NULL` : ' ';
     } else if (change === 1) {
@@ -2083,7 +2122,7 @@ class SqliteClient extends KnexClient {
         [n.cn],
         shouldSanitize,
       );
-      query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
+      query += n.dtxp && n.dt !== 'text' ? `(${this.genRaw(n.dtxp)})` : '';
       query += n.cdf
         ? ` DEFAULT ${this.sanitiseDefaultValue(n.cdf)}`
         : !n.rqd

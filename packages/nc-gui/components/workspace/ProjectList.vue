@@ -4,7 +4,7 @@ import type { ProjectType } from 'nocodb-sdk'
 import { ProjectStatus, WorkspaceUserRoles } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import { nextTick } from '@vue/runtime-core'
-import { NcProjectType, navigateTo, projectThemeColors, storeToRefs, timeAgo, useWorkspace } from '#imports'
+import { NcProjectType, isEeUI, navigateTo, projectThemeColors, storeToRefs, timeAgo, useWorkspace } from '#imports'
 import { useNuxtApp } from '#app'
 import { useGlobal } from '~/composables/useGlobal'
 
@@ -135,7 +135,7 @@ const columns = computed(() => [
       multiple: 5,
     },
   },
-  ...(activePage.value !== 'workspace'
+  ...(isEeUI && activePage.value !== 'workspace'
     ? [
         {
           title: 'Workspace Name',

@@ -20993,8 +20993,9 @@
           },
           "uidt": {
             "enum": [
-              "LinkToAnotherRecord"
-            , "Links"],
+              "LinkToAnotherRecord",
+              "Links"
+            ],
             "type": "string",
             "description": "Abstract type of the relationship"
           },
@@ -22007,7 +22008,12 @@
             "type": "string"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "database",
+              "documentation",
+              "dashboard"
+            ]
           },
           "linked_db_projects": {
             "description": "List of linked Database Projects that this project has access to (only used in Dashboard projects so far)",

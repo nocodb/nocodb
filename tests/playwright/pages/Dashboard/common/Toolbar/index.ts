@@ -19,14 +19,14 @@ import { MapPage } from '../../Map';
 import { getTextExcludeIconText } from '../../../../tests/utils/general';
 import { isHub } from '../../../../setup/db';
 import { ToolbarSharePage } from './Share';
-import {ToolbarGroupByPage} from "./Groupby";
+import { ToolbarGroupByPage } from './Groupby';
 
 export class ToolbarPage extends BasePage {
   readonly parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage;
   readonly fields: ToolbarFieldsPage;
   readonly sort: ToolbarSortPage;
   readonly filter: ToolbarFilterPage;
-  readonly groupBy: ToolbarGroupByPage
+  readonly groupBy: ToolbarGroupByPage;
   readonly shareView: ToolbarShareViewPage;
   readonly viewsMenu: ToolbarViewMenuPage;
   readonly actions: ToolbarActionsPage;
@@ -47,6 +47,7 @@ export class ToolbarPage extends BasePage {
     this.fields = new ToolbarFieldsPage(this);
     this.sort = new ToolbarSortPage(this);
     this.filter = new ToolbarFilterPage(this);
+    this.groupBy = new ToolbarGroupByPage(this);
     this.shareView = new ToolbarShareViewPage(this);
     this.viewsMenu = new ToolbarViewMenuPage(this);
     this.actions = new ToolbarActionsPage(this);
@@ -125,10 +126,9 @@ export class ToolbarPage extends BasePage {
   async clickGroupBy() {
     const menuOpen = this.groupBy.get().isVisible();
     const clickGroupByAction = () => this.get().locator(`button.nc-group-by-menu-btn`).click();
-      await clickGroupByAction()
-    if (menuOpen) {
-      await this.groupBy.get().waitFor({state: 'hidden'});
-
+    await clickGroupByAction();
+    if (!menuOpen) {
+      await this.groupBy.get().waitFor({ state: 'hidden' });
     }
   }
 

@@ -21,6 +21,15 @@ test.describe('Toolbar operations (GRID)', () => {
     toolbar = dashboard.grid.toolbar;
   });
 
+  test.only('Group', async () => {
+    await dashboard.treeView.openTable({ title: 'FilmList' });
+    await toolbar.groupBy.add({
+      title: 'Category',
+      ascending: false,
+      locallySaved: false,
+    });
+  });
+
   test('Hide, Sort, Filter', async () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });

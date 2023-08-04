@@ -57,7 +57,7 @@ watch(
     >
       <div
         :class="[showSkeleton ? '' : '', hasColumns ? '' : '']"
-        class="text-gray-800 text-sm py-4 border-b-1 border-gray-100 rounded-t-lg w-full h-full px-3 font-medium flex items-center"
+        class="text-gray-800 text-sm py-4 border-b-1 border-gray-200 rounded-t-lg w-full h-full px-3 font-medium flex items-center"
       >
         <GeneralTableIcon class="text-primary" :class="{ '!text-6xl !w-auto mr-2': showSkeleton }" :meta="table" />
         <div :class="showSkeleton ? 'text-6xl' : ''" class="flex pr-2 pl-1">

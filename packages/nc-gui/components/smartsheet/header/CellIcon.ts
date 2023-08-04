@@ -113,7 +113,6 @@ export default defineComponent({
 
       return h(renderIcon(column.value, abstractType.value), {
         class: 'text-inherit mx-1',
-        style: 'font-weight: 600; font-size: 1rem',
       })
     }
   },

@@ -97,7 +97,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
           (a, b) => a.base_id!.localeCompare(b.base_id!) * 20 
         )"
         :key="table.id"
-        class="py-4 flex flex-row w-full cursor-pointer hover:bg-gray-50 border-b-1 border-gray-50 px-2"
+        class="py-4 flex flex-row w-full cursor-pointer hover:bg-gray-100 border-b-1 border-gray-100 px-2.25"
         data-testid="proj-view-list__item"
         @click="openTable(table)"
       >
@@ -123,7 +123,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
 
 <style lang="scss" scoped>
 .nc-project-view-all-table-btn {
-  @apply flex flex-col gap-y-6 p-4 bg-gray-50 rounded-xl w-56 cursor-pointer text-gray-600 hover:(bg-gray-100 !text-black);
+  @apply flex flex-col gap-y-6 p-4 bg-gray-100 rounded-xl w-56 cursor-pointer text-gray-600 hover:(bg-gray-100 !text-black);
 
   .nc-icon {
     @apply h-10 w-10;

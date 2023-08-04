@@ -349,7 +349,7 @@ const gridWrapperClass = computed<string>(() => {
   const classes = []
   if (headerOnly !== true) {
     if (!scrollParent.value) {
-      classes.push('scrollbar-thin-dull overflow-auto')
+      classes.push('nc-scrollbar-x-md overflow-auto')
     }
   } else {
     classes.push('overflow-visible')
@@ -1184,7 +1184,7 @@ defineExpose({
                 <td
                   v-for="(col, colIndex) of dummyDataForLoading"
                   :key="colIndex"
-                  class="!bg-gray-10 h-full"
+                  class="!bg-gray-50 h-full"
                   :class="{ 'min-w-50': colIndex !== 0, 'min-w-21.25': colIndex === 0 }"
                 >
                   <a-skeleton
@@ -1200,7 +1200,7 @@ defineExpose({
                 <th class="w-[85px] min-w-[85px]" data-testid="grid-id-column" @dblclick="() => {}">
                   <div class="w-full h-full flex pl-5 pr-1 items-center" data-testid="nc-check-all">
                     <template v-if="!readOnly">
-                      <div class="nc-no-label text-gray-400" :class="{ hidden: vSelectedAllRecords }">#</div>
+                      <div class="nc-no-label text-gray-500" :class="{ hidden: vSelectedAllRecords }">#</div>
                       <div
                         :class="{ hidden: !vSelectedAllRecords, flex: vSelectedAllRecords }"
                         class="nc-check-all w-full items-center"
@@ -1239,7 +1239,7 @@ defineExpose({
                   }"
                   @click.stop="addColumnDropdown = true"
                 >
-                  <div class="absolute top-0 left-0 h-10.25 border-b-1 border-r-1 border-gray-50 nc-grid-add-edit-column group">
+                  <div class="absolute top-0 left-0 h-10.25 border-b-1 border-r-1 border-gray-200 nc-grid-add-edit-column group">
                     <a-dropdown
                       v-model:visible="addColumnDropdown"
                       :trigger="['click']"
@@ -1502,7 +1502,7 @@ defineExpose({
                     <component :is="iconMap.plus" class="text-pint-500 text-xs ml-2 text-gray-600 group-hover:text-black" />
                   </div>
                 </td>
-                <td class="!border-gray-50" :colspan="visibleColLength"></td>
+                <td class="!border-gray-100" :colspan="visibleColLength"></td>
               </tr>
             </tbody>
           </table>
@@ -1619,7 +1619,7 @@ defineExpose({
 
     <div
       v-if="showSkeleton && headerOnly !== true"
-      class="flex flex-row justify-center item-center min-h-10 border-t-1 border-gray-75"
+      class="flex flex-row justify-center item-center min-h-10 border-t-1 border-gray-100"
     >
       <a-skeleton :active="true" :title="true" :paragraph="false" class="-mt-1 max-w-60" />
     </div>
@@ -1655,24 +1655,24 @@ defineExpose({
                   <div
                     v-e="['c:row:add:grid-top']"
                     :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
-                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-50 text-gray-600 nc-new-record-with-grid"
+                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-grid"
                     @click="onNewRecordToGridClick"
                   >
                     <div class="flex flex-row items-center justify-between w-full">
                       <div class="flex flex-row items-center justify-start gap-x-3">
-                        <GeneralViewIcon :meta="{ type: ViewTypes.GRID }" />
+                        <component :is="viewIcons[ViewTypes.GRID]?.icon" class="nc-view-icon text-inherit" />
                         New Record - Grid
                       </div>
                       <div class="h-4 w-4 flex flex-row items-center justify-center">
                         <GeneralIcon v-if="isAddNewRecordGridMode" icon="check" />
                       </div>
                     </div>
-                    <div class="flex flex-row text-xs text-gray-300 ml-7.25">Manually add data in grid view</div>
+                    <div class="flex flex-row text-xs text-gray-400 ml-7.25">Manually add data in grid view</div>
                   </div>
                   <div
                     v-e="['c:row:add:expanded-form']"
                     :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
-                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-50 text-gray-600 nc-new-record-with-form"
+                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-form"
                     @click="onNewRecordToFormClick"
                   >
                     <div class="flex flex-row items-center justify-between w-full">
@@ -1684,7 +1684,7 @@ defineExpose({
                         <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" />
                       </div>
                     </div>
-                    <div class="flex flex-row text-xs text-gray-300 ml-7.05">Enter record data through a form</div>
+                    <div class="flex flex-row text-xs text-gray-400 ml-7.05">Enter record data through a form</div>
                   </div>
                 </div>
               </div>
@@ -1699,29 +1699,43 @@ defineExpose({
   </div>
 </template>
 
+<style lang="scss">
+.nc-pagination-wrapper .ant-dropdown-button {
+  > .ant-btn {
+    @apply !p-0 !rounded-l-lg hover:border-gray-400;
+  }
+
+  > .ant-dropdown-trigger {
+    @apply !rounded-r-lg;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  @apply !rounded-lg;
+}
+</style>
+
 <style scoped lang="scss">
 .nc-grid-wrapper {
   @apply h-full w-full;
 
   .nc-grid-add-edit-column {
-    background-color: rgb(252, 252, 252);
+    @apply bg-gray-50;
   }
   .nc-grid-add-new-cell:hover td {
-    background-color: rgb(252, 252, 252);
-    @apply text-black;
+    @apply text-black bg-gray-50;
   }
 
   td,
   th {
-    @apply border-gray-50 border-solid border-r bg-gray-50;
-    background-color: rgb(252, 252, 252);
+    @apply border-gray-100 border-solid border-r bg-gray-50;
     min-height: 41px !important;
     height: 41px !important;
     position: relative;
   }
 
   th {
-    @apply border-b-1 border-gray-50;
+    @apply border-b-1 border-gray-200;
   }
 
   .nc-grid-header th:last-child {
@@ -1807,7 +1821,7 @@ defineExpose({
     position: sticky !important;
     left: 85px;
     z-index: 5;
-    @apply border-r-1 border-r-gray-75;
+    @apply border-r-1 border-r-gray-200;
   }
 
   tbody td:nth-child(2) {
@@ -1815,7 +1829,7 @@ defineExpose({
     left: 85px;
     z-index: 4;
     background: white;
-    @apply border-r-1 border-r-gray-75;
+    @apply border-r-1 border-r-gray-100;
   }
 
   .nc-grid-skelton-loader {

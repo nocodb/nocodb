@@ -117,7 +117,7 @@ watch(
 </script>
 
 <template>
-  <div class="h-full flex flex-col w-full bg-[#eceff1] p-2">
+  <div class="h-full flex flex-col w-full bg-gray-100 p-2">
     <div ref="commentsWrapperEl" class="flex-1 min-h-[100px] overflow-y-auto scrollbar-thin-dull p-2 space-y-2">
       <a-skeleton v-if="isCommentsLoading" type="list-item-avatar-two-line@8" />
       <template v-else-if="commentsAndLogs.length === 0">

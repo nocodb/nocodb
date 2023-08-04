@@ -30,9 +30,10 @@ const { activeTable } = storeToRefs(useTablesStore())
     <div v-if="selectedView?.meta?.icon" class="text-lg mr-0.5">
       {{ selectedView?.meta?.icon }}
     </div>
-    <component :is="viewIcons[ViewTypes.GRID].icon" v-else class="min-w-5 flex text-gray-700 mb-0.25" />
+    <GeneralViewIcon v-else :meta="{ type: selectedView?.type }" class="min-w-5 flex" />
+
     <span
-      class="text-ellipsis overflow-hidden pl-1.5 text-gray-700 max-w-1/2"
+      class="text-ellipsis overflow-hidden pl-1.25 text-gray-700 max-w-1/2"
       :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline', fontSize: '0.9rem' }"
     >
       {{ selectedView?.title }}

@@ -242,7 +242,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
               <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
               <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
                 <div class="flex gap-1 items-center">
-                  <component :is="opt.icon" class="text-gray-700 mx-1" style="font-weight: 600; font-size: 1.1rem" />
+                  <component :is="opt.icon" class="text-gray-700 mx-1" />
                   {{ opt.name }}
                   <span v-if="opt.deprecated" class="!text-xs !text-gray-300">(Deprecated)</span>
                 </div>

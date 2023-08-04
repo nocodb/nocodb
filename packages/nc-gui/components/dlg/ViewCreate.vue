@@ -220,8 +220,8 @@ async function onSubmit() {
 <template>
   <NcModal v-model:visible="vModel" size="small">
     <template #header>
-      <div>
-        <GeneralViewIcon :meta="{ type: form.type }" class="nc-view-icon -mt-1 mr-0.5" />
+      <div class="flex flex-row items-center gap-x-1.5">
+        <GeneralViewIcon :meta="{ type: form.type }" class="nc-view-icon !text-xl" />
         {{ $t(`general.${selectedViewId ? 'duplicate' : 'create'}`) }} <span class="capitalize">{{ typeAlias }}</span>
         {{ $t('objects.view') }}
       </div>

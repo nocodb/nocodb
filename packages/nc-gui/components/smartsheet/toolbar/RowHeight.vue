@@ -69,7 +69,7 @@ useMenuCloseOnEsc(open)
         data-testid="nc-height-menu"
       >
         <div class="flex flex-col w-full text-sm" @click.stop>
-          <div class="text-xs text-gray-400 px-3 pt-2 pb-1 select-none">{{ $t('objects.rowHeight') }}</div>
+          <div class="text-xs text-gray-500 px-3 pt-2 pb-1 select-none">{{ $t('objects.rowHeight') }}</div>
           <div
             class="nc-row-height-option"
             :class="{'active': (view?.view as GridType).row_height === 0}"

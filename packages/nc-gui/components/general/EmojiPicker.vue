@@ -82,8 +82,8 @@ const showClearButton = computed(() => {
     <div
       class="flex flex-row justify-center items-center select-none cursor-pointer rounded-md"
       :class="{
-        'hover:bg-gray-300 hover:bg-opacity-20': !readonly,
-        'bg-gray-300 bg-opacity-20': isOpen,
+        'hover:bg-gray-500 hover:bg-opacity-15': !readonly,
+        'bg-gray-500 bg-opacity-15': isOpen,
         'h-6 w-6 text-lg': size === 'small',
         'h-8 w-8 text-xl': size === 'medium',
         'h-10 w-10 text-2xl': size === 'large',
@@ -205,6 +205,13 @@ const showClearButton = computed(() => {
     &::-webkit-scrollbar-thumb:hover {
       background: rgb(203, 203, 203);
     }
+  }
+
+  .emoji-mart-emoji {
+    @apply !px-1 !py-0.75 !m-0.5;
+  }
+  .emoji-mart-emoji:hover:before {
+    @apply !rounded-md;
   }
 }
 </style>

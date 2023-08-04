@@ -282,7 +282,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
           el.targetPosition = Position.Left
           el.sourcePosition = Position.Right
           el.position = { x: nodeWithPosition.x, y: nodeWithPosition.y }
-          el.class = ['rounded-lg border-1 border-gray-100 shadow-lg'].join(' ')
+          el.class = ['rounded-lg border-1 border-gray-200 shadow-lg'].join(' ')
           el.data.color = color
 
           el.style = (n) => {

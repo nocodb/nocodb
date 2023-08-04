@@ -60,7 +60,7 @@ const navigateToHome = () => {
   >
     <div style="min-height: var(--sidebar-top-height)">
       <div style="border-bottom-width: 1px" class="flex items-center px-1 nc-sidebar-header !border-0 py-1.25 pl-2">
-        <div v-if="!isWorkspaceLoading" class="flex flex-row flex-grow hover:bg-gray-100 pl-2 pr-1 py-0.5 rounded-md max-w-full">
+        <div v-if="!isWorkspaceLoading" class="flex flex-row flex-grow hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md max-w-full">
           <a
             v-if="isSharedBase"
             class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
@@ -125,7 +125,7 @@ const navigateToHome = () => {
           <div class="flex items-center gap-2">
             Search
             <div
-              class="inline-flex gap-1 justify-center text-xs px-[8px] py-[1px] uppercase border-1 border-solid rounded-md bg-slate-150 text-gray-500"
+              class="inline-flex gap-1 justify-center text-xs px-[8px] py-[1px] uppercase border-1 border-gray-300 rounded-md bg-slate-150 text-gray-500"
             >
               <kbd class="text-[16px] mt-[0.5px]">⌘</kbd>
               <kbd>K</kbd>
@@ -157,7 +157,7 @@ const navigateToHome = () => {
         <div
           class="w-full border-b-1"
           :class="{
-            'border-gray-100': !isTreeViewOnScrollTop,
+            'border-gray-200': !isTreeViewOnScrollTop,
             'border-transparent': isTreeViewOnScrollTop,
           }"
         ></div>
@@ -173,6 +173,6 @@ const navigateToHome = () => {
 
 <style lang="scss" scoped>
 .nc-sidebar-top-button {
-  @apply flex flex-row mx-1 px-3.5 rounded-md items-center py-0.75 my-0.5 gap-x-2 hover:bg-gray-100 cursor-pointer;
+  @apply flex flex-row mx-1 px-3.5 rounded-md items-center py-0.75 my-0.5 gap-x-2 hover:bg-gray-200 cursor-pointer;
 }
 </style>

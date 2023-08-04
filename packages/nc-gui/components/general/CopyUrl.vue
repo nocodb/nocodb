@@ -66,6 +66,6 @@ const copyUrl = async () => {
 
 <style lang="scss" scoped>
 .button {
-  @apply flex flex-row py-1.5 px-1.5 bg-white hover:bg-gray-75 cursor-pointer rounded-md border-1 border-gray-100 gap-x-1 items-center shadow-sm;
+  @apply flex flex-row py-1.5 px-1.5 bg-white hover:bg-gray-100 cursor-pointer rounded-md border-1 border-gray-100 gap-x-1 items-center shadow-sm;
 }
 </style>

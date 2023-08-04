@@ -162,7 +162,7 @@ watch(
 <template>
   <GeneralModal centered :visible="show" @cancel="close">
     <div class="flex flex-col p-6" data-testid="invite-user-and-share-base-modal">
-      <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 border-gray-75 w-full">
+      <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 border-gray-100 w-full">
         <div v-if="!isMobileMode" class="select-none font-medium">
           {{ $t('activity.share') }}
         </div>
@@ -282,7 +282,7 @@ watch(
         </div>
       </div>
 
-      <div class="flex flex-row justify-end gap-x-2 border-t-1 border-gray-75 pt-3">
+      <div class="flex flex-row justify-end gap-x-2 border-t-1 border-gray-100 pt-3">
         <a-button key="back" class="!rounded-md" @click="cancel">Cancel</a-button>
         <a-button class="!rounded-md">Manage project access</a-button>
         <a-button key="submit" class="!rounded-md" type="primary" :loading="loading">Share</a-button>

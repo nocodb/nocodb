@@ -19,9 +19,9 @@ export const useNocoEe = () => {
 
   const predictNextFormulas = async (..._args: any) => {}
 
-  const createTableMagic = async (_1: Ref<any>, _2: any, _3: any, _4?: (..._args: any) => void) => {}
+  const createTableMagic = async (..._args: any) => {}
 
-  const createSchemaMagic = async (_1: Ref<any>, _2: any, _3: any, _4?: (..._args: any) => void) => {}
+  const createSchemaMagic = async (..._args: any) => {}
 
   return {
     loadMagic,

@@ -54,12 +54,6 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
   const tables = computed(() => projectTables.value.get(param.projectId) || [])
   const project = computed(() => projects.value.get(param.projectId))
 
-  // const projectStore = useProject()
-
-  // const { sqlUis, project, tables } = storeToRefs(projectStore)
-
-  // const sqlUi = computed(() => (baseId && sqlUis.value[baseId] ? sqlUis.value[baseId] : Object.values(sqlUis.value)[0]))
-
   const openTable = async (table: TableType) => {
     if (!table.project_id) return
 
@@ -121,57 +115,6 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
-
-  /*  const createTableMagic = async () => {
-    if (!sqlUi?.value) return
-
-    try {
-      const tableMeta = await $api.base.tableMagic(project?.value?.id as string, baseId as string, {
-        table_name: table.table_name,
-        title: table.title,
-      })
-
-      $e('a:table:create')
-      onTableCreate?.(tableMeta as TableType)
-      refreshCommandPalette()
-    } catch (e: any) {
-      message.warning('NocoAI failed for the demo reasons. Please try again.')
-    }
-  }
-
-  const createSchemaMagic = async () => {
-    if (!sqlUi?.value) return
-
-    try {
-      const tableMeta = await $api.base.schemaMagic(project?.value?.id as string, baseId as string, {
-        schema_name: table.table_name,
-        title: table.title,
-      })
-
-      $e('a:table:create')
-      onTableCreate?.(tableMeta as TableType)
-      refreshCommandPalette()
-    } catch (e: any) {
-      message.warning('NocoAI failed for the demo reasons. Please try again.')
-    }
-  }
-
-  const createSqlView = async (sql: string) => {
-    if (!sqlUi?.value) return
-    if (!sql || sql.trim() === '') return
-
-    try {
-      const tableMeta = await $api.base.createSqlView(project?.value?.id as string, baseId as string, {
-        view_name: table.table_name,
-        view_definition: sql,
-      })
-
-      onTableCreate?.(tableMeta as TableType)
-      refreshCommandPalette()
-    } catch (e: any) {
-      message.warning(e)
-    }
-  } */
 
   watch(
     () => table.title,
@@ -258,12 +201,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
     project,
 
     createTable,
-    // createTableMagic,
-    // createSchemaMagic,
-    // createSqlView,
     generateUniqueTitle,
-    // tables,
-    // project,
     deleteTable,
     openTable,
   }

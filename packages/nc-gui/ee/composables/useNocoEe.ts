@@ -154,7 +154,7 @@ export const useNocoEe = () => {
   const createTableMagic = async (
     project: Ref<ProjectType>,
     baseId: string,
-    table: TableType,
+    table: { title: string; table_name: string; columns: string[] },
     onTableCreate?: (t: TableType) => void,
   ) => {
     try {
@@ -174,7 +174,7 @@ export const useNocoEe = () => {
   const createSchemaMagic = async (
     project: Ref<ProjectType>,
     baseId: string,
-    table: TableType,
+    table: { title: string; table_name: string; columns: string[] },
     onTableCreate?: (t: TableType) => void,
   ) => {
     try {

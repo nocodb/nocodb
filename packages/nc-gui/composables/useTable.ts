@@ -78,13 +78,13 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
   }
 
   const createTableMagic = async () => {
-    if (!sqlUi?.value) return
+    if (!sqlUi?.value || !baseId) return
 
     await _createTableMagic(project, baseId, table, onTableCreate)
   }
 
   const createSchemaMagic = async () => {
-    if (!sqlUi?.value) return
+    if (!sqlUi?.value || !baseId) return
 
     return await _createSchemaMagic(project, baseId, table, onTableCreate)
   }

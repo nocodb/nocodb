@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { isLinksOrLTAR, RelationTypes, UITypes } from 'nocodb-sdk';
 import { nocoExecute } from 'nc-help';
 import { NcError } from '../helpers/catchError';
 import getAst from '../helpers/getAst';
@@ -332,8 +332,7 @@ export class DataTableService {
     if (column.fk_model_id !== param.modelId)
       NcError.badRequest('Column not belong to model');
 
-    if (column.uidt !== UITypes.LinkToAnotherRecord)
-      NcError.badRequest('Column is not LTAR');
+    if (!isLinksOrLTAR(column)) NcError.badRequest('Column is not LTAR');
     return column;
   }
 

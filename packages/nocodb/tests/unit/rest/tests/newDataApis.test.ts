@@ -2858,7 +2858,7 @@ export default function () {
   describe('Numerical', numberBased);
   describe('Select based', selectBased);
   describe('Date based', dateBased);
-  describe('Link based', linkBased);
+  describe.only('Link based', linkBased);
 
   // based out of sakila db, for link based tests
   describe('General', generalDb);

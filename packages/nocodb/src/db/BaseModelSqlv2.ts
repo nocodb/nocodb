@@ -3997,7 +3997,7 @@ class BaseModelSqlv2 {
     const columns = await this.model.getColumns();
     const column = columns.find((c) => c.id === colId);
 
-    if (!column || column.uidt !== UITypes.LinkToAnotherRecord)
+    if (!column || !isLinksOrLTAR(column))
       NcError.notFound(`Link column ${colId} not found`);
 
     const row = await this.dbDriver(this.tnPath)
@@ -4222,7 +4222,7 @@ class BaseModelSqlv2 {
     const columns = await this.model.getColumns();
     const column = columns.find((c) => c.id === colId);
 
-    if (!column || column.uidt !== UITypes.LinkToAnotherRecord)
+    if (!column || !isLinksOrLTAR(column))
       NcError.notFound(`Link column ${colId} not found`);
 
     const row = await this.dbDriver(this.tnPath)

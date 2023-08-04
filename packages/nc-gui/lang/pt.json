@@ -305,6 +305,7 @@
     "importLookupColumns": "Importar colunas de pesquisa",
     "importAttachmentColumns": "Colunas de Anexos de Importação",
     "importFormulaColumns": "Colunas de Fórmula de Importação",
+    "importUsers": "Import Users (by email)",
     "noData": "Sem dados",
     "goToDashboard": "Ir para Painel de controlo",
     "importing": "Importação",

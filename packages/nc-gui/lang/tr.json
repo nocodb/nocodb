@@ -305,6 +305,7 @@
     "importLookupColumns": "Arama Sütunlarını İçe Aktarma",
     "importAttachmentColumns": "Ek Sütunlarını İçe Aktar",
     "importFormulaColumns": "Formül Sütunlarını İçe Aktarma",
+    "importUsers": "Import Users (by email)",
     "noData": "Veri Yok",
     "goToDashboard": "Gösterge Tablosuna Git",
     "importing": "İthalat",

@@ -305,6 +305,7 @@
     "importLookupColumns": "Import Lookup Columns",
     "importAttachmentColumns": "Kết nhập cột tệp đính kèm",
     "importFormulaColumns": "Kết nhập cột công thức",
+    "importUsers": "Import Users (by email)",
     "noData": "Không có dữ liệu",
     "goToDashboard": "Go to Dashboard",
     "importing": "Importing",

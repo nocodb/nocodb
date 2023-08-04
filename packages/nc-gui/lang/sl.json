@@ -305,6 +305,7 @@
     "importLookupColumns": "Uvoz stolpcev za iskanje",
     "importAttachmentColumns": "Uvoz stolpcev priloge",
     "importFormulaColumns": "Uvoz stolpcev formule",
+    "importUsers": "Import Users (by email)",
     "noData": "Ni podatkov",
     "goToDashboard": "Pojdite na nadzorno ploščo",
     "importing": "Uvoz",

@@ -305,6 +305,7 @@
     "importLookupColumns": "Suchspalten importieren",
     "importAttachmentColumns": "Spalten für Anhänge importieren",
     "importFormulaColumns": "Formelspalten importieren",
+    "importUsers": "Import Users (by email)",
     "noData": "Keine Daten",
     "goToDashboard": "Zum Dashboard gehen",
     "importing": "Wird importiert",

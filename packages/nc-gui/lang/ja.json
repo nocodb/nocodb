@@ -305,6 +305,7 @@
     "importLookupColumns": "インポートルックアップカラム",
     "importAttachmentColumns": "添付ファイルのカラムをインポートする",
     "importFormulaColumns": "インポート式カラム",
+    "importUsers": "Import Users (by email)",
     "noData": "データがありません",
     "goToDashboard": "ダッシュボードに移動",
     "importing": "インポート中",

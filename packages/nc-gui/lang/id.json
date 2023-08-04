@@ -305,6 +305,7 @@
     "importLookupColumns": "Impor Kolom Pencarian",
     "importAttachmentColumns": "Impor Kolom Lampiran",
     "importFormulaColumns": "Kolom Formula Impor",
+    "importUsers": "Import Users (by email)",
     "noData": "Tidak ada data",
     "goToDashboard": "Buka Dasbor",
     "importing": "Mengimpor",

@@ -305,6 +305,7 @@
     "importLookupColumns": "Importera kolumner för uppslagsfunktioner",
     "importAttachmentColumns": "Importera kolumner för bilagor",
     "importFormulaColumns": "Importera formelkolumner",
+    "importUsers": "Import Users (by email)",
     "noData": "Inga uppgifter",
     "goToDashboard": "Gå till instrumentpanelen",
     "importing": "Importera",

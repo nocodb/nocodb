@@ -305,6 +305,7 @@
     "importLookupColumns": "Uzlasīšanas kolonnu importēšana",
     "importAttachmentColumns": "Pielikuma kolonnu importēšana",
     "importFormulaColumns": "Formulas kolonnu importēšana",
+    "importUsers": "Import Users (by email)",
     "noData": "Nav datu",
     "goToDashboard": "Dodieties uz paneli",
     "importing": "Importēšana",

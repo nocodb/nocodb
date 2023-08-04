@@ -305,6 +305,7 @@
     "importLookupColumns": "Import Lookup Columns",
     "importAttachmentColumns": "Import Attachment Columns",
     "importFormulaColumns": "Import Formula Columns",
+    "importUsers": "Import Users (by email)",
     "noData": "No Data",
     "goToDashboard": "Go to Dashboard",
     "importing": "Importing",

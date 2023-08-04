@@ -305,6 +305,7 @@
     "importLookupColumns": "امپورت ستون های جستجو",
     "importAttachmentColumns": "ایمپورت ستون های ضمیمه",
     "importFormulaColumns": "ایمپورت ستون های فرمول",
+    "importUsers": "Import Users (by email)",
     "noData": "بدون داده",
     "goToDashboard": "رفتن به داشبورد",
     "importing": "در حال ایمپورت",

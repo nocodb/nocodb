@@ -305,6 +305,7 @@
     "importLookupColumns": "Importovanie stĺpcov vyhľadávania",
     "importAttachmentColumns": "Import stĺpcov príloh",
     "importFormulaColumns": "Import stĺpcov vzorca",
+    "importUsers": "Import Users (by email)",
     "noData": "Žiadne údaje",
     "goToDashboard": "Prejsť na prístrojový panel",
     "importing": "Importovanie",

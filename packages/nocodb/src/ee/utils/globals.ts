@@ -1,3 +1,5 @@
+export * from 'src/utils/globals';
+
 export enum MetaTable {
   PROJECT = 'nc_projects_v2',
   BASES = 'nc_bases_v2',
@@ -41,7 +43,17 @@ export enum MetaTable {
   SYNC_LOGS = 'nc_sync_logs_v2',
   MAP_VIEW = 'nc_map_view_v2',
   MAP_VIEW_COLUMNS = 'nc_map_view_columns_v2',
+  LAYOUT = 'nc_ds_layout_v2',
+  WIDGET = 'nc_ds_widget_v2',
+  DASHBOARD_PROJECT_DB_PROJECT_LINKINGS = 'nc_ds_dashboard_project_db_project_linkings_v2',
+  WIDGET_DB_DEPENDENCIES = 'nc_ds_widget_db_dependencies_v2',
   STORE = 'nc_store',
+  BOOK = 'nc_books',
+  WORKSPACE = 'workspace',
+  WORKSPACE_USER = 'workspace_user',
+  FOLLOWER = 'nc_follower',
+  COWRITER = 'cowriter',
+  NOTIFICATION = 'notification',
 }
 
 export const orderedMetaTables = [
@@ -52,9 +64,14 @@ export const orderedMetaTables = [
   MetaTable.TEAMS,
   MetaTable.ORGS,
   MetaTable.PROJECT_USERS,
+  MetaTable.WORKSPACE_USER,
   MetaTable.USERS,
   MetaTable.MAP_VIEW,
   MetaTable.MAP_VIEW_COLUMNS,
+  MetaTable.LAYOUT,
+  MetaTable.WIDGET,
+  MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS,
+  MetaTable.WIDGET_DB_DEPENDENCIES,
   MetaTable.KANBAN_VIEW_COLUMNS,
   MetaTable.KANBAN_VIEW,
   MetaTable.GRID_VIEW_COLUMNS,
@@ -79,32 +96,10 @@ export const orderedMetaTables = [
   MetaTable.MODELS,
   MetaTable.BASES,
   MetaTable.PROJECT,
-];
-
-export const sakilaTableNames = [
-  'actor',
-  'address',
-  'category',
-  'city',
-  'country',
-  'customer',
-  'film',
-  'film_actor',
-  'film_category',
-  'film_text',
-  'inventory',
-  'language',
-  'payment',
-  'rental',
-  'staff',
-  'store',
-  'actor_info',
-  'customer_list',
-  'film_list',
-  'nicer_but_slower_film_list',
-  'sales_by_film_category',
-  'sales_by_store',
-  'staff_list',
+  MetaTable.BOOK,
+  MetaTable.WORKSPACE,
+  MetaTable.COWRITER,
+  MetaTable.FOLLOWER,
 ];
 
 export enum CacheScope {
@@ -149,73 +144,11 @@ export enum CacheScope {
   INSTANCE_META = 'instanceMeta',
   USER_PROJECT = 'userProject',
   DASHBOARD_PROJECT_DB_PROJECT_LINKING = 'dashboardProjectDBProjectLinking',
+  FOLLOWER = 'follower',
+  DOCS_PAGE = 'page',
+  BOOK = 'book',
+  COWRITER = 'cowriter',
+  WORKSPACE = 'workspace',
+  WORKSPACE_USER = 'workspaceUser',
   SINGLE_QUERY = 'singleQuery',
 }
-
-export enum CacheGetType {
-  TYPE_ARRAY = 'TYPE_ARRAY',
-  TYPE_OBJECT = 'TYPE_OBJECT',
-  TYPE_STRING = 'TYPE_STRING',
-}
-
-export enum CacheDelDirection {
-  PARENT_TO_CHILD = 'PARENT_TO_CHILD',
-  CHILD_TO_PARENT = 'CHILD_TO_PARENT',
-}
-
-export const COMPARISON_OPS = <const>[
-  'eq',
-  'neq',
-  'not',
-  'like',
-  'nlike',
-  'empty',
-  'notempty',
-  'null',
-  'notnull',
-  'checked',
-  'notchecked',
-  'blank',
-  'notblank',
-  'allof',
-  'anyof',
-  'nallof',
-  'nanyof',
-  'gt',
-  'lt',
-  'gte',
-  'lte',
-  'ge',
-  'le',
-  'in',
-  'isnot',
-  'is',
-  'isWithin',
-  'btw',
-  'nbtw',
-];
-
-export const IS_WITHIN_COMPARISON_SUB_OPS = <const>[
-  'pastWeek',
-  'pastMonth',
-  'pastYear',
-  'nextWeek',
-  'nextMonth',
-  'nextYear',
-  'pastNumberOfDays',
-  'nextNumberOfDays',
-];
-
-export const COMPARISON_SUB_OPS = <const>[
-  'today',
-  'tomorrow',
-  'yesterday',
-  'oneWeekAgo',
-  'oneWeekFromNow',
-  'oneMonthAgo',
-  'oneMonthFromNow',
-  'daysAgo',
-  'daysFromNow',
-  'exactDate',
-  ...IS_WITHIN_COMPARISON_SUB_OPS,
-];

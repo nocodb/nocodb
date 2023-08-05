@@ -23,7 +23,8 @@ import type {
 } from 'nocodb-sdk';
 import { NC_APP_SETTINGS } from '~/constants';
 import { validatePayload } from '~/helpers';
-import { MetaService, MetaTable } from '~/meta/meta.service';
+import { MetaService } from '~/meta/meta.service';
+import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { Store, User, Workspace, WorkspaceUser } from '~/models';

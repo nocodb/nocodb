@@ -7,3 +7,4 @@ export { default as WorkspaceUser } from './WorkspaceUser';
 export { default as Layout } from './Layout';
 
 export { default as Project } from './Project';
+export { default as Notification } from './Notification';

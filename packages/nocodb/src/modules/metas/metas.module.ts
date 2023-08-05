@@ -71,9 +71,6 @@ import { ViewsService } from '~/services/views.service';
 import { ApiDocsService } from '~/services/api-docs/api-docs.service';
 import { ProjectUsersController } from '~/controllers/project-users.controller';
 import { ProjectUsersService } from '~/services/project-users/project-users.service';
-import { NotificationsController } from '~/controllers/notifications.controller';
-import { NotificationsService } from '~/services/notifications.service';
-import { ClickhouseService } from '~/services/clickhouse/clickhouse.service';
 import { TelemetryController } from '~/controllers/telemetry.controller';
 
 export const metaModuleMetadata = {
@@ -121,7 +118,6 @@ export const metaModuleMetadata = {
           SyncController,
           SortsController,
           SharedBasesController,
-          NotificationsController,
           TelemetryController,
         ]
       : []),
@@ -164,9 +160,7 @@ export const metaModuleMetadata = {
     SortsService,
     SharedBasesService,
     BulkDataAliasService,
-    NotificationsService,
     NotificationsGateway,
-    ClickhouseService,
   ],
   exports: [
     TablesService,

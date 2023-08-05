@@ -24,7 +24,8 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import { validatePayload } from '~/helpers';
-import { MetaService, MetaTable } from '~/meta/meta.service';
+import { MetaService } from '~/meta/meta.service';
+import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { Store, User } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';

@@ -22,6 +22,11 @@ import { PublicDocsService } from '~/services/docs/public/public-docs.service';
 import { ThrottlerExpiryListenerService } from '~/services/throttler/throttler-expiry-listener.service';
 import { CommandPaletteService } from '~/services/command-palette.service';
 import { CommandPaletteController } from '~/controllers/command-palette.controller';
+
+import { ClickhouseService } from '~/services/clickhouse/clickhouse.service';
+import { NotificationsService } from '~/services/notifications.service';
+import { NotificationsController } from '~/controllers/notifications.controller';
+
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
 
@@ -44,6 +49,8 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     LayoutsService,
     LayoutFilterService,
     CommandPaletteService,
+    ClickhouseService,
+    NotificationsService,
     ...(enableThrottler ? [ThrottlerExpiryListenerService] : []),
   ],
   controllers: [
@@ -58,6 +65,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     LayoutFilterController,
 
     CommandPaletteController,
+    NotificationsController,
   ],
 })
 export class MetasModule {}

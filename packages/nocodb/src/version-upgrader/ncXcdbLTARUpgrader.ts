@@ -2,7 +2,7 @@ import { RelationTypes, UITypes } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { MetaService } from '~/meta/meta.service';
 import type { NcUpgraderCtx } from './NcUpgrader';
-import { MetaTable } from '~/meta/meta.service';
+import { MetaTable } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { Base } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';

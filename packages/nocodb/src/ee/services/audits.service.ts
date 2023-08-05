@@ -1,8 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
-import { AuditOperationSubTypes, AuditOperationTypes } from 'nocodb-sdk';
-import { AppHooksListenerService } from './app-hooks-listener.service';
+import {
+  AuditOperationSubTypes,
+  AuditOperationTypes,
+  ClickhouseTables,
+} from 'nocodb-sdk';
+import { ClickhouseService } from './clickhouse/clickhouse.service';
 import type { AuditRowUpdateReqType, CommentUpdateReqType } from 'nocodb-sdk';
+import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
 import { Audit, Model } from '~/models';
@@ -11,6 +16,7 @@ import { Audit, Model } from '~/models';
 export class AuditsService {
   constructor(
     private readonly appHooksListenerService: AppHooksListenerService,
+    private readonly clickHouseService: ClickhouseService,
   ) {}
 
   async commentRow(param: { body: AuditRowUpdateReqType; user: any }) {
@@ -68,11 +74,23 @@ export class AuditsService {
   }
 
   async auditList(param: { query: any; projectId: string }) {
-    return await Audit.projectAuditList(param.projectId, param.query);
+    // return await Audit.projectAuditList(param.projectId, param.query);
+    return await this.clickHouseService.execute(
+      `SELECT * FROM ${ClickhouseTables.AUDIT} WHERE project_id = '${
+        param.projectId
+      }' ORDER BY created_at DESC LIMIT ${param.query?.limit || 10} OFFSET ${
+        param.query?.offset || 0
+      }`,
+    );
   }
 
   async auditCount(param: { query?: any; projectId: string }) {
-    return await Audit.projectAuditCount(param.projectId);
+    // return await Audit.projectAuditList(param.projectId, param.query);
+    const res = await this.clickHouseService.execute(
+      `SELECT count(id) as count FROM ${ClickhouseTables.AUDIT} WHERE project_id = '${param.projectId}'`,
+    );
+
+    return res?.[0]?.count;
   }
 
   async commentsCount(param: { fk_model_id: string; ids: string[] }) {

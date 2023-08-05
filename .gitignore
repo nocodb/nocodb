@@ -2,8 +2,10 @@
 # ===========
 .DS_Store
 ehthumbs.db
-Icon?
 Thumbs.db
+Icon
+
+
 
 # Node and related ecosystem
 # ==========================

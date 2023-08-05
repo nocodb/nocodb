@@ -15,13 +15,13 @@ import {
 import { GlobalGuard } from '~/guards/global/global.guard';
 import {
   Acl,
-  ExtractProjectIdMiddleware,
-} from '~/middlewares/extract-project-id/extract-project-id.middleware';
+  ExtractIdsMiddleware,
+} from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DataTableService } from '~/services/data-table.service';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(ExtractIdsMiddleware, GlobalGuard)
 export class DataTableController {
   constructor(private readonly dataTableService: DataTableService) {}
 
@@ -85,7 +85,7 @@ export class DataTableController {
     @Request() req,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
-    @Param('rowId') rowId: string,
+    @Param('rowId') _rowId: string,
   ) {
     return await this.dataTableService.dataUpdate({
       modelId: modelId,
@@ -101,7 +101,7 @@ export class DataTableController {
     @Request() req,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
-    @Param('rowId') rowId: string,
+    @Param('rowId') _rowId: string,
   ) {
     return await this.dataTableService.dataDelete({
       modelId: modelId,

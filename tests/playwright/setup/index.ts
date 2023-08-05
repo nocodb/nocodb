@@ -21,7 +21,7 @@ const config = {
     multipleStatements: true,
   },
   searchPath: ['public', 'information_schema'],
-  pool: { min: 0, max: 5 },
+  pool: { min: 0, max: 1 },
 };
 
 // Sakila Knex Configuration
@@ -32,6 +32,7 @@ const sakilaKnexConfig = (parallelId: string) => ({
     ...config.connection,
     database: `sakila${parallelId}`,
   },
+  pool: { min: 0, max: 1 },
 });
 
 // External PG Project create payload

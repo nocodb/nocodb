@@ -47,7 +47,6 @@ export default class Project implements ProjectType {
       'description',
       'is_meta',
       'status',
-      'type',
       'meta',
       'color',
     ]);

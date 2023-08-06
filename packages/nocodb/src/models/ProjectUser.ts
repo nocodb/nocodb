@@ -307,7 +307,6 @@ export default class ProjectUser {
       .select(`${MetaTable.PROJECT}.meta`)
       .select(`${MetaTable.PROJECT}.color`)
       .select(`${MetaTable.PROJECT}.is_meta`)
-      .select(`${MetaTable.PROJECT}.type`)
       .select(`${MetaTable.PROJECT}.created_at`)
       .select(`${MetaTable.PROJECT}.updated_at`)
       .select(`${MetaTable.PROJECT_USERS}.starred`)

@@ -1,6 +1,6 @@
 import { Injectable, SetMetadata, UseInterceptors } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
 import { map } from 'rxjs';
 import type { Observable } from 'rxjs';
 import type {
@@ -30,11 +30,6 @@ export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
   [OrgUserRoles.CREATOR]: 'Org Creator',
   [OrgUserRoles.VIEWER]: 'Org Viewer',
-  [WorkspaceUserRoles.OWNER]: 'Workspace Owner',
-  [WorkspaceUserRoles.CREATOR]: 'Workspace Creator',
-  [WorkspaceUserRoles.VIEWER]: 'Workspace Viewer',
-  [WorkspaceUserRoles.EDITOR]: 'Workspace Editor',
-  [WorkspaceUserRoles.COMMENTER]: 'Workspace Commenter',
   [ProjectRoles.OWNER]: 'Project Owner',
   [ProjectRoles.CREATOR]: 'Project Creator',
   [ProjectRoles.VIEWER]: 'Project Viewer',
@@ -43,7 +38,7 @@ export const rolesLabel = {
 };
 
 export function getRolesLabels(
-  roles: (OrgUserRoles | WorkspaceUserRoles | ProjectRoles | string)[],
+  roles: (OrgUserRoles | ProjectRoles | string)[],
 ) {
   return roles
     .filter(
@@ -165,20 +160,12 @@ export class AclMiddleware implements NestInterceptor {
       'blockApiTokenAccess',
       context.getHandler(),
     );
-    const workspaceMode = this.reflector.get<boolean>(
-      'workspaceMode',
-      context.getHandler(),
-    );
 
     const req = context.switchToHttp().getRequest();
     // const res = context.switchToHttp().getResponse();
     req.customProperty = 'This is a custom property';
 
-    const roles: Record<string, boolean> = extractRolesObj(
-      workspaceMode
-        ? req.user?.workspaceRoles ?? req.user?.roles
-        : req.user?.roles,
-    );
+    const roles: Record<string, boolean> = extractRolesObj(req.user?.roles);
 
     if (req?.user?.is_api_token && blockApiTokenAccess) {
       NcError.forbidden('Not allowed with API token');
@@ -229,20 +216,13 @@ export class AclMiddleware implements NestInterceptor {
   }
 }
 
-export const UseProjectIdAndWorkspaceIdMiddleware =
-  () => (target: any, key?: string, descriptor?: PropertyDescriptor) => {
-    UseInterceptors(ExtractIdsMiddleware)(target, key, descriptor);
-  };
-
 export const UseAclMiddleware =
   ({
     permissionName,
     allowedRoles,
-    workspaceMode,
     blockApiTokenAccess,
   }: {
     permissionName: string;
-    workspaceMode?: boolean;
     allowedRoles?: (OrgUserRoles | string)[];
     blockApiTokenAccess?: boolean;
   }) =>
@@ -254,7 +234,6 @@ export const UseAclMiddleware =
       key,
       descriptor,
     );
-    SetMetadata('workspaceMode', workspaceMode)(target, key, descriptor);
 
     UseInterceptors(AclMiddleware)(target, key, descriptor);
   };

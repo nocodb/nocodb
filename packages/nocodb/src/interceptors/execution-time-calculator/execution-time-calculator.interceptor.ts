@@ -45,7 +45,7 @@ export class ExecutionTimeCalculatorInterceptor implements NestInterceptor {
         const user_id = req.user?.id;
         const project_id = req.ncProjectId;
 
-        const token = req.headers['xc-token'] || req.headers['xc-auth'];
+        // const token = req.headers['xc-token'] || req.headers['xc-auth'];
 
         const url = req.route?.path ?? req.url;
         const method = req.method;

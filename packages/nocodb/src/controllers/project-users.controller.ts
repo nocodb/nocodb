@@ -49,7 +49,7 @@ export class ProjectUsersController {
     const user = await User.getByEmail(body.email);
 
     if (!user) {
-      NcError.badRequest('Only user belonging to the workspace can be invited');
+      NcError.badRequest('Only users that have signed up can be invited');
     }
 
     return await this.projectUsersService.userInvite({

@@ -15,8 +15,6 @@ import { LocalStrategy } from '~/strategies/local.strategy';
 import { AuthTokenStrategy } from '~/strategies/authtoken.strategy/authtoken.strategy';
 import { BaseViewStrategy } from '~/strategies/base-view.strategy/base-view.strategy';
 import { MetasModule } from '~/modules/metas/metas.module';
-// import { WorkspacesModule } from '~/modules/workspaces/workspaces.module';
-// import { WorkspaceUsersModule } from '~/modules/workspace-users/workspace-users.module';
 import { JobsModule } from '~/modules/jobs/jobs.module';
 
 import appConfig from '~/app.config';
@@ -37,10 +35,6 @@ export const ceModuleConfig = {
     EventEmitterModule,
     JobsModule,
     NestJsEventEmitter.forRoot(),
-
-    // todo:combine and move to meta module
-    // WorkspacesModule,
-    // WorkspaceUsersModule,
     ConfigModule.forRoot({
       load: [() => appConfig],
       isGlobal: true,

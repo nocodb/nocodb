@@ -41,51 +41,25 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new Error('Token Expired. Please login again.');
     }
 
-    const [workspaceRoles, projectRoles] = await Promise.all([
-      // extract workspace evel roles
-      new Promise((resolve) => {
-        // if (req.ncWorkspaceId) {
-        //   // todo: cache
-        //   // extract workspace role
-        //   WorkspaceUser.get(req.ncWorkspaceId, user.id)
-        //     .then((workspaceUser) => {
-        //       resolve(workspaceUser?.roles);
-        //     })
-        //     .catch(() => resolve(null));
-        // } else {
+    const projectRoles = await new Promise((resolve) => {
+      if (req.ncProjectId) {
+        ProjectUser.get(req.ncProjectId, user.id).then(async (projectUser) => {
+          let roles = projectUser?.roles;
+          roles = roles === 'owner' ? 'owner,creator' : roles;
+          // + (user.roles ? `,${user.roles}` : '');
+          resolve(roles);
+          // todo: cache
+        });
+      } else {
         resolve(null);
-        // }
-      }),
-      // extract project level roles
-      new Promise((resolve) => {
-        if (req.ncProjectId) {
-          ProjectUser.get(req.ncProjectId, user.id).then(
-            async (projectUser) => {
-              let roles = projectUser?.roles;
-              roles = roles === 'owner' ? 'owner,creator' : roles;
-              // + (user.roles ? `,${user.roles}` : '');
-              resolve(roles);
-              // todo: cache
-            },
-          );
-        } else {
-          resolve(null);
-        }
-      }),
-    ]);
-
-    // override workspace level role with project level role if exists
-    // since project level role is more specific
-    const workspaceOrProjectRoles = projectRoles || workspaceRoles;
+      }
+    });
 
     return {
       ...user,
       roles: extractRolesObj(
-        [user.roles, workspaceOrProjectRoles].filter(Boolean).join(','),
+        [user.roles, projectRoles].filter(Boolean).join(','),
       ),
-      workspaceRoles: workspaceRoles
-        ? extractRolesObj((workspaceRoles as any)?.split(',').filter(Boolean))
-        : null,
       projectRoles: projectRoles
         ? extractRolesObj((projectRoles as any)?.split(',').filter(Boolean))
         : null,

@@ -133,7 +133,6 @@ export enum CacheScope {
   KANBAN_VIEW = 'kanbanView',
   MAP_VIEW = 'mapView',
   MAP_VIEW_COLUMN = 'mapViewColumn',
-  LAYOUT = 'layout',
   KANBAN_VIEW_COLUMN = 'kanbanViewColumn',
   USER = 'user',
   ORGS = 'orgs',

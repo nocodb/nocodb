@@ -59,7 +59,7 @@ jobs:
         run: npm install
       - name: Build nocodb-sdk
         working-directory: ./packages/nocodb-sdk
-        run: npm run build
+        run: npm run build:ee
       - name: Setup mysql
         if: ${{ inputs.db == 'mysql' }}
         working-directory: ./

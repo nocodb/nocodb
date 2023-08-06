@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { BaseType, OracleUi, ProjectType, ProjectUserReqType, RequestParams, TableType } from 'nocodb-sdk'
+import type { BaseType, OracleUi, ProjectType, ProjectUserReqType, RequestParams } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { NcProjectType } from '~/utils'

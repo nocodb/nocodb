@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { Empty } from 'ant-design-vue'
-import { storeToRefs, stringToColour, timeAgo, useWorkspace, useWorkspaceStoreOrThrow } from '#imports'
+import { storeToRefs, stringToColour, timeAgo, useWorkspace } from '#imports'
 
 const rolesLabel = {
   [WorkspaceUserRoles.CREATOR]: 'Creator',

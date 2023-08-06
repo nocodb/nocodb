@@ -225,8 +225,9 @@ export const useProject = defineStore('projectStore', () => {
     sharedProject = projectVal
   }
 
-  const projectUrl = ({ id, type: _type }: { id: string; type: 'database' }) => {
-    return `/ws/default/nc/${id}`
+  const projectUrl = ({ id, type }: { id: string; type: 'database' | 'documentation' }) => {
+    const workspaceId = route.params.workspaceId as string
+    return `/ws/${workspaceId}/nc/${id}`
   }
 
   watch(

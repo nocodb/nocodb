@@ -1,9 +1,7 @@
 <script lang="ts" setup>
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import ManageUsers from './ManageUsers.vue'
-import ShareProject from './ShareProject.vue'
 import SharePage from './SharePage.vue'
-import { useDocStore } from '#imports'
 
 const { isViewToolbar } = defineProps<{
   isViewToolbar?: boolean
@@ -137,75 +135,19 @@ watch(showShareModal, (val) => {
       <div class="flex flex-row justify-between items-center pb-1 mx-4 mt-3">
         <div class="flex text-base font-medium">Share</div>
       </div>
-      <!-- <a-collapse v-model:active-key="expandedSharedType" expand-icon-position="right" class="!mx-3" :accordion="true">
-        <template #expandIcon="{ isActive }">
-          <div class="h-5 w-5 flex flex-row items-center justify-center">
-            <component
-              :is="iconMap.arrowDown"
-              class="text-gray-600 !rotate-90 transition-all duration-400 !text-md !h-4.5 !w-4.5"
-              :style="{ rotate: isActive ? '180deg' : '0deg' }"
-            />
-          </div>
-        </template>
-        <a-collapse-panel key="project" class="share-collapse-item">
-          <template #header>
-            <div class="flex flex-row items-center gap-x-2 w-full">
-              <PhBook v-if="project.type === NcProjectType.DOCS" />
-              <GeneralProjectIcon
-                v-else
-                class="!text-black !grayscale !fill-black px-0.5"
-                :style="{
-                  filter: 'grayscale(200%)',
-                }"
-              />
-              <div class="flex flex-row w-full items-center gap-x-1 select-none" data-testid="docs-share-dlg-share-project">
-                <div class="flex">
-                  Share
-                  {{ project.type === NcProjectType.DOCS ? 'Document' : 'Project' }}
-                </div>
-                <div
-                  class="max-w-7/10 ml-2 px-2 py-0.5 rounded-md bg-gray-100 capitalize text-ellipsis overflow-hidden"
-                  :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
-                >
-                  {{ project.title }}
-                </div>
-              </div>
-            </div>
-          </template>
-
-          <ShareProject />
-        </a-collapse-panel>
-        <a-collapse-panel v-if="viewTitle" key="view" class="share-collapse-item">
-          <template #header>
-            <div class="flex flex-row items-center gap-x-2">
-              <IonDocumentOutline v-if="project.type === NcProjectType.DOCS" />
-              <GeneralViewIcon v-else :meta="view!" class="nc-view-icon"></GeneralViewIcon>
-              <div data-testid="docs-share-dlg-share-view select-none">
-                <span> Share {{ project.type === NcProjectType.DOCS ? 'Page' : 'View' }} </span>
-                <span class="ml-2.75 py-1 px-2 rounded-md bg-gray-100 capitalize">{{
-                  !viewTitle ? EMPTY_TITLE_PLACEHOLDER_DOCS : viewTitle
-                }}</span>
-              </div>
-            </div>
-          </template>
-          <SharePage />
-        </a-collapse-panel>
-      </a-collapse> -->
       <div class="share-view">
         <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
-          <IonDocumentOutline v-if="project.type === NcProjectType.DOCS" />
           <component
             :is="viewIcons[view?.type]?.icon"
-            v-else
             class="nc-view-icon group-hover"
             :style="{ color: viewIcons[view?.type]?.color }"
           />
-          <div>Share {{ project.type === NcProjectType.DOCS ? 'Page' : 'View' }}</div>
+          <div>Share View</div>
           <div
             class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-gray-100 capitalize text-ellipsis overflow-hidden"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
           >
-            {{ !viewTitle ? EMPTY_TITLE_PLACEHOLDER_DOCS : viewTitle }}
+            {{ viewTitle }}
           </div>
         </div>
         <SharePage />

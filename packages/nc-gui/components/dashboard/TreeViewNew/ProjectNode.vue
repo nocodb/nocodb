@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
-import { Dropdown, message } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import { useTitle } from '@vueuse/core'
-import { openLink, useProjects, useWorkspace } from '#imports'
+import { openLink, useProjects } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import { ProjectInj, ProjectRoleInj, ToggleDialogInj } from '~/context'
 import type { NcProject } from '~~/lib'
@@ -26,8 +26,6 @@ const { setMenuContext, openRenameTableDialog, duplicateTable, contextMenuTarget
 const project = inject(ProjectInj)!
 
 const projectsStore = useProjects()
-
-const workspaceStore = useWorkspace()
 
 const { loadProject, createProject: _createProject, updateProject, getProjectMetaInfo } = projectsStore
 const { projects } = storeToRefs(projectsStore)
@@ -104,11 +102,6 @@ const updateProjectTitle = async () => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
-}
-
-const closeEditMode = () => {
-  editMode.value = false
-  tempTitle.value = ''
 }
 
 const { copy } = useCopy(true)
@@ -228,25 +221,18 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
 
   if (!isProjectPopulated) project.isLoading = true
 
-  // if dashboard or document project, add a document tab and route to the respective page
-  switch (project.type) {
-    case 'database':
-      if (!ignoreNavigation) {
-        await navigateTo(
-          projectUrl({
-            id: project.id!,
-            type: 'database',
-          }),
-        )
-      }
+  if (!ignoreNavigation) {
+    await navigateTo(
+      projectUrl({
+        id: project.id!,
+        type: 'database',
+      }),
+    )
+  }
 
-      if (!isProjectPopulated) {
-        await loadProject(project.id!)
-        await loadProjectTables(project.id!)
-      }
-      break
-    default:
-      throw new Error(`Unknown project type: ${project.type}`)
+  if (!isProjectPopulated) {
+    await loadProject(project.id!)
+    await loadProjectTables(project.id!)
   }
 
   if (!isProjectPopulated) {
@@ -255,26 +241,8 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
   }
 }
 
-function openSqlEditor(base: BaseType) {
-  navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/sql/${base.id}`)
-}
-
 function openErdView(base: BaseType) {
-  navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/erd/${base.id}`)
-}
-
-async function openProjectSqlEditor(_project: ProjectType) {
-  if (!_project.id) return
-
-  if (!projectsStore.isProjectPopulated(_project.id)) {
-    await loadProject(_project.id)
-  }
-
-  const project = projects.value.get(_project.id)
-
-  const base = project?.bases?.[0]
-  if (!base) return
-  navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/sql/${base.id}`)
+  navigateTo(`/ws/default/nc/${base.project_id}/erd/${base.id}`)
 }
 
 async function openProjectErdView(_project: ProjectType) {
@@ -288,7 +256,7 @@ async function openProjectErdView(_project: ProjectType) {
 
   const base = project?.bases?.[0]
   if (!base) return
-  navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/erd/${base.id}`)
+  navigateTo(`/ws/default/nc/${base.project_id}/erd/${base.id}`)
 }
 
 const reloadTables = async () => {
@@ -513,10 +481,7 @@ onKeyStroke('Escape', () => {
         class="overflow-x-hidden transition-max-height"
         :class="{ 'max-h-0': !project.isExpanded }"
       >
-        <div v-if="project.type === 'documentation'">
-          <LazyDocsSideBar v-if="project.isExpanded" :project="project" />
-        </div>
-        <div v-else-if="project.type === 'dashboard'">
+        <div v-if="project.type === 'dashboard'">
           <LayoutsSideBar v-if="project.isExpanded" :project="project" />
         </div>
         <template v-else-if="project && project?.bases">
@@ -648,34 +613,9 @@ onKeyStroke('Escape', () => {
     </div>
     <template v-if="!isSharedBase" #overlay>
       <a-menu class="!py-0 rounded text-sm">
-        <template v-if="contextMenuTarget.type === 'project' && project.type === 'database'">
-          <!--
-          <a-menu-item v-if="isUIAllowed('sqlEditor')" @click="openProjectSqlEditor(contextMenuTarget.value)">
-            <div class="nc-project-menu-item">SQL Editor</div>
-          </a-menu-item>
-          <a-menu-item @click="openProjectErdView(contextMenuTarget.value)">
-            <div class="nc-project-menu-item">
-              <GeneralIcon icon="erd" />
-              {{ $t('title.erdView') }}
-            </div>
-          </a-menu-item>
-          -->
-        </template>
+        <template v-if="contextMenuTarget.type === 'project' && project.type === 'database'"></template>
 
-        <template v-else-if="contextMenuTarget.type === 'base'">
-          <!--
-          <a-menu-item v-if="isUIAllowed('sqlEditor')" @click="openSqlEditor(contextMenuTarget.value)">
-            <div class="nc-project-menu-item">SQL Editor</div>
-          </a-menu-item>
-
-          <a-menu-item @click="openErdView(contextMenuTarget.value)">
-            <div class="nc-project-menu-item">
-              <GeneralIcon icon="erd" />
-              {{ $t('title.erdView') }}
-            </div>
-          </a-menu-item>
-          -->
-        </template>
+        <template v-else-if="contextMenuTarget.type === 'base'"></template>
 
         <template v-else-if="contextMenuTarget.type === 'table'">
           <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">

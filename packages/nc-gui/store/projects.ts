@@ -1,8 +1,7 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { BaseType, OracleUi, ProjectType, ProjectUserReqType, RequestParams, TableType } from 'nocodb-sdk'
+import type { BaseType, OracleUi, ProjectType, ProjectUserReqType, RequestParams } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
-import { NcProjectType } from '~/utils'
 import { useWorkspace } from '#imports'
 import type { NcProject, User } from '~~/lib'
 
@@ -35,7 +34,7 @@ export const useProjects = defineStore('projectsStore', () => {
     return basesMap
   })
 
-  const roles = computed(() => openedProject.value?.project_role || openedProject.value?.workspace_role)
+  const roles = computed(() => openedProject.value?.project_role)
 
   const workspaceStore = useWorkspace()
   const tableStore = useTablesStore()
@@ -93,27 +92,20 @@ export const useProjects = defineStore('projectsStore', () => {
 
     isProjectsLoading.value = true
     try {
-      if (activeWorkspace?.id) {
-        const { list } = await $api.workspaceProject.list(activeWorkspace?.id ?? workspace?.id, {
-          baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
-        })
-        _projects = list
-      } else {
-        const { list } = await $api.project.list(
-          page
-            ? {
-                query: {
-                  [page]: true,
-                },
-                baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
-              }
-            : {
-                baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
+      const { list } = await $api.project.list(
+        page
+          ? {
+              query: {
+                [page]: true,
               },
-        )
-        _projects = list
-        projects.value.clear()
-      }
+              baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
+            }
+          : {
+              baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
+            },
+      )
+      _projects = list
+      projects.value.clear()
 
       for (const project of _projects) {
         projects.value.set(project.id!, {
@@ -199,9 +191,6 @@ export const useProjects = defineStore('projectsStore', () => {
     const result = await api.project.create(
       {
         title: projectPayload.title,
-        // @ts-expect-error todo: include in swagger
-        fk_workspace_id: projectPayload.workspaceId,
-        type: projectPayload.type ?? NcProjectType.DB,
         linked_db_project_ids: projectPayload.linkedDbProjectIds,
         // color,
         // meta: JSON.stringify({
@@ -213,7 +202,7 @@ export const useProjects = defineStore('projectsStore', () => {
         // }),
       },
       {
-        baseURL: getBaseUrl(projectPayload.workspaceId),
+        baseURL: getBaseUrl('default'),
       },
     )
 
@@ -263,10 +252,10 @@ export const useProjects = defineStore('projectsStore', () => {
     if (!project) return
 
     if (page) {
-      return await navigateTo(`/ws/${project.fk_workspace_id}/nc/${projectId}?page=${page}`)
+      return await navigateTo(`/ws/default/nc/${projectId}?page=${page}`)
     }
 
-    await navigateTo(`/ws/${project.fk_workspace_id}/nc/${projectId}`)
+    await navigateTo(`/ws/default/nc/${projectId}`)
   }
 
   return {

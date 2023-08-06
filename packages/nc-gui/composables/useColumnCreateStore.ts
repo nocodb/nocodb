@@ -101,6 +101,14 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
               })
             },
           },
+          {
+            validator: (rule: any, value: any) => {
+              if (/[!@#$%^&*(),.?":{}|<>]/.test(value)) {
+                return Promise.reject(new Error('Special characters are not allowed in the column name.'))
+              }
+              return Promise.resolve()
+            },
+          },
           fieldLengthValidator(project.value?.bases?.[0].type || ClientType.MYSQL),
         ],
         uidt: [
@@ -215,11 +223,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const addOrUpdate = async (onSuccess: () => void, columnPosition?: Pick<ColumnReqType, 'column_order'>) => {
       try {
         if (!(await validate())) return
-        const specialCharsRegex = /[!@#$%^&*(),.?":{}|<>]/
-        if (specialCharsRegex.test(formState._rawValue.column_name)) {
-          message.warning('Special characters are not allowed in the column name.')
-          return
-        }
       } catch (e: any) {
         const errorMsgs = e.errorFields
           ?.map((e: any) => e.errors?.join(', '))

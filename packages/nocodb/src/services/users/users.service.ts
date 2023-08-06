@@ -1,13 +1,6 @@
 import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
-import {
-  AppEvents,
-  OrgUserRoles,
-  validatePassword,
-  WorkspacePlan,
-  WorkspaceStatus,
-  WorkspaceUserRoles,
-} from 'nocodb-sdk';
+import { AppEvents, OrgUserRoles, validatePassword } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { isEmail } from 'validator';
 import { T } from 'nc-help';
@@ -35,8 +28,8 @@ import { NcError } from '~/helpers/catchError';
 @Injectable()
 export class UsersService {
   constructor(
-    private metaService: MetaService,
-    private appHooksService: AppHooksService,
+    protected metaService: MetaService,
+    protected appHooksService: AppHooksService,
   ) {}
 
   // allow signup/signin only if email matches against pattern
@@ -76,17 +69,11 @@ export class UsersService {
   }
 
   async registerNewUserIfAllowed({
-    avatar,
-    display_name,
-    user_name,
     email,
     salt,
     password,
     email_verification_token,
   }: {
-    avatar;
-    display_name;
-    user_name;
     email: string;
     salt: any;
     password;
@@ -119,9 +106,6 @@ export class UsersService {
 
     const token_version = randomTokenString();
     const user = await User.insert({
-      avatar,
-      display_name,
-      user_name,
       email,
       salt,
       password,
@@ -337,7 +321,7 @@ export class UsersService {
 
     this.appHooksService.emit(AppEvents.USER_EMAIL_VERIFICATION, {
       user: user,
-      ip: param.req?.clientIp,
+      ip: req?.clientIp,
     });
 
     return true;
@@ -385,14 +369,7 @@ export class UsersService {
   }): Promise<any> {
     validatePayload('swagger.json#/components/schemas/SignUpReq', param.body);
 
-    const {
-      email: _email,
-      avatar,
-      display_name,
-      user_name,
-      token,
-      ignore_subscribe,
-    } = param.req.body;
+    const { email: _email, token, ignore_subscribe } = param.req.body;
 
     let { password } = param.req.body;
 
@@ -438,9 +415,6 @@ export class UsersService {
     if (user) {
       if (token) {
         await User.update(user.id, {
-          avatar,
-          display_name,
-          user_name,
           salt,
           password,
           email_verification_token,
@@ -453,9 +427,6 @@ export class UsersService {
       }
     } else {
       await this.registerNewUserIfAllowed({
-        avatar,
-        display_name,
-        user_name,
         email,
         salt,
         password,

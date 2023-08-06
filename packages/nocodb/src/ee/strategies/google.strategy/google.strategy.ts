@@ -50,6 +50,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       } else {
         const salt = await promisify(bcrypt.genSalt)(10);
         const user = await this.usersService.registerNewUserIfAllowed({
+          display_name: null,
+          avatar: null,
+          user_name: null,
           email_verification_token: null,
           email: profile.emails[0].value,
           password: '',

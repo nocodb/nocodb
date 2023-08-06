@@ -1,4 +1,5 @@
 import { promisify } from 'util';
+import { UsersService as UsersServiceCE } from 'src/services/users/users.service';
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
@@ -13,19 +14,11 @@ import { isEmail } from 'validator';
 import { T } from 'nc-help';
 import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
-import { genJwt, setTokenCookie } from './helpers';
-import type {
-  PasswordChangeReqType,
-  PasswordForgotReqType,
-  PasswordResetReqType,
-  SignUpReqType,
-  UserType,
-} from 'nocodb-sdk';
+import { setTokenCookie } from './helpers';
+import type { SignUpReqType } from 'nocodb-sdk';
 import { NC_APP_SETTINGS } from '~/constants';
 import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
-import { MetaTable } from '~/utils/globals';
-import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { Store, User, Workspace, WorkspaceUser } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
@@ -33,48 +26,13 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
 
 @Injectable()
-export class UsersService {
+export class UsersService extends UsersServiceCE {
   constructor(
-    private metaService: MetaService,
-    private appHooksService: AppHooksService,
-  ) {}
-
-  // allow signup/signin only if email matches against pattern
-  validateEmailPattern(email: string) {
-    const emailPattern = process.env.NC_AUTH_EMAIL_PATTERN;
-    if (emailPattern) {
-      const regex = new RegExp(emailPattern);
-      if (!regex.test(email)) {
-        NcError.forbidden('Not allowed to signup/signin with this email');
-      }
-    }
+    protected metaService: MetaService,
+    protected appHooksService: AppHooksService,
+  ) {
+    super(metaService, appHooksService);
   }
-
-  async findOne(_email: string) {
-    const email = _email.toLowerCase();
-    const user = await this.metaService.metaGet(null, null, MetaTable.USERS, {
-      email,
-    });
-
-    return user;
-  }
-
-  async insert(param: {
-    token_version: string;
-    firstname: any;
-    password: any;
-    salt: any;
-    email_verification_token: any;
-    roles: string;
-    email: string;
-    lastname: any;
-  }) {
-    return this.metaService.metaInsert2(null, null, MetaTable.USERS, {
-      ...param,
-      email: param.email?.toLowerCase(),
-    });
-  }
-
   async registerNewUserIfAllowed({
     avatar,
     display_name,
@@ -133,251 +91,6 @@ export class UsersService {
     await this.createDefaultWorkspace(user);
 
     return user;
-  }
-
-  async passwordChange(param: {
-    body: PasswordChangeReqType;
-    user: UserType;
-    req: any;
-  }): Promise<any> {
-    validatePayload(
-      'swagger.json#/components/schemas/PasswordChangeReq',
-      param.body,
-    );
-
-    const { currentPassword, newPassword } = param.body;
-
-    if (!currentPassword || !newPassword) {
-      return NcError.badRequest('Missing new/old password');
-    }
-
-    // validate password and throw error if password is satisfying the conditions
-    const { valid, error } = validatePassword(newPassword);
-
-    if (!valid) {
-      NcError.badRequest(`Password : ${error}`);
-    }
-
-    const user = await User.getByEmail(param.user.email);
-
-    const hashedPassword = await promisify(bcrypt.hash)(
-      currentPassword,
-      user.salt,
-    );
-
-    if (hashedPassword !== user.password) {
-      return NcError.badRequest('Current password is wrong');
-    }
-
-    const salt = await promisify(bcrypt.genSalt)(10);
-    const password = await promisify(bcrypt.hash)(newPassword, salt);
-
-    await User.update(user.id, {
-      salt,
-      password,
-      email: user.email,
-      token_version: null,
-    });
-
-    this.appHooksService.emit(AppEvents.USER_PASSWORD_CHANGE, {
-      user: user,
-      ip: param.req?.clientIp,
-    });
-
-    return true;
-  }
-
-  async passwordForgot(param: {
-    body: PasswordForgotReqType;
-    siteUrl: string;
-    req: any;
-  }): Promise<any> {
-    validatePayload(
-      'swagger.json#/components/schemas/PasswordForgotReq',
-      param.body,
-    );
-
-    const _email = param.body.email;
-
-    if (!_email) {
-      NcError.badRequest('Please enter your email address.');
-    }
-
-    const email = _email.toLowerCase();
-    const user = await User.getByEmail(email);
-
-    if (user) {
-      const token = uuidv4();
-      await User.update(user.id, {
-        email: user.email,
-        reset_password_token: token,
-        reset_password_expires: new Date(Date.now() + 60 * 60 * 1000),
-        token_version: null,
-      });
-      try {
-        const template = (
-          await import('~/controllers/users/ui/emailTemplates/forgotPassword')
-        ).default;
-        await NcPluginMgrv2.emailAdapter().then((adapter) =>
-          adapter.mailSend({
-            to: user.email,
-            subject: 'Password Reset Link',
-            text: `Visit following link to update your password : ${param.siteUrl}/auth/password/reset/${token}.`,
-            html: ejs.render(template, {
-              resetLink: param.siteUrl + `/auth/password/reset/${token}`,
-            }),
-          }),
-        );
-      } catch (e) {
-        console.log(e);
-        return NcError.badRequest(
-          'Email Plugin is not found. Please contact administrators to configure it in App Store first.',
-        );
-      }
-
-      this.appHooksService.emit(AppEvents.USER_PASSWORD_FORGOT, {
-        user: user,
-        ip: param.req?.clientIp,
-      });
-    } else {
-      return NcError.badRequest('Your email has not been registered.');
-    }
-
-    return true;
-  }
-
-  async tokenValidate(param: { token: string }): Promise<any> {
-    const token = param.token;
-
-    const user = await Noco.ncMeta.metaGet(null, null, MetaTable.USERS, {
-      reset_password_token: token,
-    });
-
-    if (!user || !user.email) {
-      NcError.badRequest('Invalid reset url');
-    }
-    if (new Date(user.reset_password_expires) < new Date()) {
-      NcError.badRequest('Password reset url expired');
-    }
-
-    return true;
-  }
-
-  async passwordReset(param: {
-    body: PasswordResetReqType;
-    token: string;
-    // todo: exclude
-    req: any;
-  }): Promise<any> {
-    validatePayload(
-      'swagger.json#/components/schemas/PasswordResetReq',
-      param.body,
-    );
-
-    const { token, body, req } = param;
-
-    const user = await Noco.ncMeta.metaGet(null, null, MetaTable.USERS, {
-      reset_password_token: token,
-    });
-
-    if (!user) {
-      NcError.badRequest('Invalid reset url');
-    }
-    if (user.reset_password_expires < new Date()) {
-      NcError.badRequest('Password reset url expired');
-    }
-    if (user.provider && user.provider !== 'local') {
-      NcError.badRequest('Email registered via social account');
-    }
-
-    // validate password and throw error if password is satisfying the conditions
-    const { valid, error } = validatePassword(body.password);
-    if (!valid) {
-      NcError.badRequest(`Password : ${error}`);
-    }
-
-    const salt = await promisify(bcrypt.genSalt)(10);
-    const password = await promisify(bcrypt.hash)(body.password, salt);
-
-    await User.update(user.id, {
-      salt,
-      password,
-      email: user.email,
-      reset_password_expires: null,
-      reset_password_token: '',
-      token_version: null,
-    });
-
-    this.appHooksService.emit(AppEvents.USER_PASSWORD_RESET, {
-      user: user,
-      ip: param.req?.clientIp,
-    });
-
-    return true;
-  }
-
-  async emailVerification(param: {
-    token: string;
-    // todo: exclude
-    req: any;
-  }): Promise<any> {
-    const { token, req } = param;
-
-    const user = await Noco.ncMeta.metaGet(null, null, MetaTable.USERS, {
-      email_verification_token: token,
-    });
-
-    if (!user) {
-      NcError.badRequest('Invalid verification url');
-    }
-
-    await User.update(user.id, {
-      email: user.email,
-      email_verification_token: '',
-      email_verified: true,
-    });
-
-    this.appHooksService.emit(AppEvents.USER_EMAIL_VERIFICATION, {
-      user: user,
-      ip: param.req?.clientIp,
-    });
-
-    return true;
-  }
-
-  async refreshToken(param: {
-    body: SignUpReqType;
-    req: any;
-    res: any;
-  }): Promise<any> {
-    try {
-      if (!param.req?.cookies?.refresh_token) {
-        NcError.badRequest(`Missing refresh token`);
-      }
-
-      const user = await User.getByRefreshToken(
-        param.req.cookies.refresh_token,
-      );
-
-      if (!user) {
-        NcError.badRequest(`Invalid refresh token`);
-      }
-
-      const refreshToken = randomTokenString();
-
-      await User.update(user.id, {
-        email: user.email,
-        refresh_token: refreshToken,
-      });
-
-      setTokenCookie(param.res, refreshToken);
-
-      return {
-        token: genJwt(user, Noco.getConfig()),
-      } as any;
-    } catch (e) {
-      NcError.badRequest(e.message);
-    }
   }
 
   async signup(param: {
@@ -506,31 +219,6 @@ export class UsersService {
     });
 
     return this.login(user);
-  }
-
-  login(user: UserType) {
-    this.appHooksService.emit(AppEvents.USER_SIGNIN, {
-      user,
-    });
-    return {
-      token: genJwt(user, Noco.getConfig()),
-    };
-  }
-
-  async signOut(param: { res: any; req: any }) {
-    try {
-      param.res.clearCookie('refresh_token');
-      const user = (param.req as any).user;
-      if (user?.id) {
-        await User.update(user.id, {
-          refresh_token: null,
-          token_version: randomTokenString(),
-        });
-      }
-      return { msg: 'Signed out successfully' };
-    } catch (e) {
-      NcError.badRequest(e.message);
-    }
   }
 
   private async createDefaultWorkspace(user: User) {

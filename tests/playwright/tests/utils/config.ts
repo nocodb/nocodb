@@ -10,7 +10,7 @@ const knexConfig = {
       multipleStatements: true,
     },
     searchPath: ['public', 'information_schema'],
-    pool: { min: 0, max: 5 },
+    pool: { min: 0, max: 1 },
   },
   mysql: {
     client: 'mysql2',

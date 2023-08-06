@@ -58,7 +58,7 @@ export default class NcConnectionMgrv2 {
   }
 
   public static async get(base: Base): Promise<XKnex> {
-    if (base.is_meta || base.is_local) {
+    if (base.isMeta()) {
       // if data db is set, use it for generating knex connection
       if (!this.dataKnex) {
         await this.getDataConfig();

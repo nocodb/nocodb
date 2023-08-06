@@ -1,7 +1,6 @@
 import { Project as ProjectCE } from 'src/models';
 import { ProjectTypes } from 'nocodb-sdk';
 import type { ProjectType } from 'nocodb-sdk';
-import type { DB_TYPES } from '~/models/Base';
 import DashboardProjectDBProject from '~/models/DashboardProjectDBProject';
 import Noco from '~/Noco';
 
@@ -13,6 +12,7 @@ import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
+  type DB_TYPES,
   MetaTable,
 } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';

@@ -1334,9 +1334,7 @@ export class ImportService {
                     body: chunk,
                     cookie: null,
                     chunkSize: chunk.length + 1,
-                    foreign_key_checks: !!(
-                      destBase.is_local || destBase.is_meta
-                    ),
+                    foreign_key_checks: !!destBase.isMeta(),
                     raw: true,
                   });
                 } catch (e) {
@@ -1357,7 +1355,7 @@ export class ImportService {
                 body: chunk,
                 cookie: null,
                 chunkSize: chunk.length + 1,
-                foreign_key_checks: !!(destBase.is_local || destBase.is_meta),
+                foreign_key_checks: !!destBase.isMeta(),
                 raw: true,
               });
             } catch (e) {
@@ -1393,7 +1391,7 @@ export class ImportService {
             body: v,
             cookie: null,
             chunkSize: 1000,
-            foreign_key_checks: !!(destBase.is_local || destBase.is_meta),
+            foreign_key_checks: !!destBase.isMeta(),
             raw: true,
           });
           lChunks[k] = [];

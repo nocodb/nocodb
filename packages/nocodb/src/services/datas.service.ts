@@ -134,7 +134,7 @@ export class DatasService {
     });
 
     // if xcdb project skip checking for LTAR
-    if (!base.is_meta && !base.is_local) {
+    if (!base.isMeta()) {
       // todo: Should have error http status code
       const message = await baseModel.hasLTARData(param.rowId, model);
       if (message.length) {

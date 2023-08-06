@@ -1568,7 +1568,7 @@ export class ColumnsService {
     const isLinks = param.column.uidt === UITypes.Links;
 
     // if xcdb base then treat as virtual relation to avoid creating foreign key
-    if (param.base.is_meta || param.base.is_local) {
+    if (param.base.isMeta()) {
       (param.column as LinkToAnotherColumnReqType).virtual = true;
     }
 

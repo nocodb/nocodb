@@ -1,12 +1,12 @@
 import Base from './Base';
 import { ProjectUser } from './index';
 import type { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
-import type { DB_TYPES } from './Base';
 import Noco from '~/Noco';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
+  type DB_TYPES,
   MetaTable,
 } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';

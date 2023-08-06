@@ -219,3 +219,13 @@ export const COMPARISON_SUB_OPS = <const>[
   'exactDate',
   ...IS_WITHIN_COMPARISON_SUB_OPS,
 ];
+
+export const DB_TYPES = <const>[
+  'mysql2',
+  'sqlite3',
+  'mysql',
+  'mssql',
+  'snowflake',
+  'oracledb',
+  'pg',
+];

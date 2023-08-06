@@ -1,16 +1,12 @@
 import { promisify } from 'util';
+import { ProjectsService as ProjectsServiceCE } from 'src/services/projects.service';
 import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
-import { AppEvents, OrgUserRoles } from 'nocodb-sdk';
-import type {
-  ProjectReqType,
-  ProjectUpdateReqType,
-  UserType,
-} from 'nocodb-sdk';
+import { AppEvents } from 'nocodb-sdk';
+import type { ProjectReqType } from 'nocodb-sdk';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { extractPropsAndSanitize } from '~/helpers/extractProps';
 import syncMigration from '~/helpers/syncMigration';
 import {
   DashboardProjectDBProject,
@@ -19,7 +15,6 @@ import {
   WorkspaceUser,
 } from '~/models';
 import Noco from '~/Noco';
-import extractRolesObj from '~/utils/extractRolesObj';
 import { getToolDir } from '~/utils/nc-config';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaService } from '~/meta/meta.service';
@@ -71,88 +66,12 @@ const validateUserHasReadPermissionsForLinkedDbProjects = async (
 };
 
 @Injectable()
-export class ProjectsService {
+export class ProjectsService extends ProjectsServiceCE {
   constructor(
-    private readonly appHooksService: AppHooksService,
-    private metaService: MetaService,
-  ) {}
-
-  async projectList(param: {
-    user: { id: string; roles: Record<string, boolean> };
-    query?: any;
-  }) {
-    const projects =
-      extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN] &&
-      !['shared', 'starred', 'recent'].some((k) => k in param.query)
-        ? await Project.list(param.query)
-        : await ProjectUser.getProjectsList(param.user.id, param.query);
-
-    return projects;
-  }
-
-  async getProjectWithInfo(param: { projectId: string }) {
-    const project = await Project.getWithInfo(param.projectId);
-    return project;
-  }
-
-  sanitizeProject(project: any) {
-    const sanitizedProject = { ...project };
-    sanitizedProject.bases?.forEach((b: any) => {
-      ['config'].forEach((k) => delete b[k]);
-    });
-    return sanitizedProject;
-  }
-
-  async projectUpdate(param: {
-    projectId: string;
-    project: ProjectUpdateReqType;
-    user: UserType;
-  }) {
-    validatePayload(
-      'swagger.json#/components/schemas/ProjectUpdateReq',
-      param.project,
-    );
-
-    const project = await Project.getWithInfo(param.projectId);
-
-    const data: Partial<Project> = extractPropsAndSanitize(
-      param?.project as Project,
-      ['title', 'meta', 'color', 'status'],
-    );
-
-    if (
-      data?.title &&
-      project.title !== data.title &&
-      (await Project.getByTitle(data.title))
-    ) {
-      NcError.badRequest('Project title already in use');
-    }
-
-    const result = await Project.update(param.projectId, data);
-
-    this.appHooksService.emit(AppEvents.PROJECT_UPDATE, {
-      project,
-      user: param.user,
-    });
-
-    return result;
-  }
-
-  async projectSoftDelete(param: { projectId: any; user: UserType }) {
-    const project = await Project.getWithInfo(param.projectId);
-
-    if (!project) {
-      NcError.notFound('Project not found');
-    }
-
-    await Project.softDelete(param.projectId);
-
-    this.appHooksService.emit(AppEvents.PROJECT_DELETE, {
-      project,
-      user: param.user,
-    });
-
-    return true;
+    protected readonly appHooksService: AppHooksService,
+    protected metaService: MetaService,
+  ) {
+    super(appHooksService, metaService);
   }
 
   async projectCreate(param: { project: ProjectReqType; user: any }) {

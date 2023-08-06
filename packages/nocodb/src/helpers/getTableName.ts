@@ -7,7 +7,7 @@ export default function getTableNameAlias(
   base: Base,
 ): string {
   let tn = tableName;
-  if (base.is_meta && !base.is_local && prefix) {
+  if (base.isMeta(true) && !base.isMeta(true, 1) && prefix) {
     tn = tn.replace(prefix, '');
   }
 

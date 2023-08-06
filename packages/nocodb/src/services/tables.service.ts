@@ -63,7 +63,7 @@ export class TablesService {
       );
     }
 
-    if (base.is_meta && project.prefix && !base.is_local) {
+    if (base.isMeta(true) && project.prefix && !base.isMeta(true, 1)) {
       if (!param.table.table_name.startsWith(project.prefix)) {
         param.table.table_name = `${project.prefix}${param.table.table_name}`;
       }
@@ -159,7 +159,7 @@ export class TablesService {
 
     const relationColumns = table.columns.filter((c) => isLinksOrLTAR(c));
 
-    if (relationColumns?.length && !base.is_meta && !base.is_local) {
+    if (relationColumns?.length && !base.isMeta()) {
       const referredTables = await Promise.all(
         relationColumns.map(async (c) =>
           c

@@ -376,7 +376,7 @@ export default class Model implements TableType {
       args.viewId = view.id;
     }
 
-    if (base && base.is_local) {
+    if (base && base.isMeta(true, 1)) {
       return new BaseModelSqlv2({
         dbDriver: args.dbDriver,
         viewId: args.viewId,

@@ -16,7 +16,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
 
   for (const base of bases) {
     // Skip if the base is not minimal db
-    if (!base.is_local) continue;
+    if (!base.isMeta(true, 1)) continue;
 
     let config;
 

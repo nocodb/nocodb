@@ -2897,7 +2897,7 @@ class BaseModelSqlv2 {
 
       transaction = await this.dbDriver.transaction();
 
-      if ((base.is_meta || base.is_local) && execQueries.length > 0) {
+      if (base.isMeta() && execQueries.length > 0) {
         for (const execQuery of execQueries) {
           await execQuery(transaction, idsVals);
         }
@@ -3025,7 +3025,7 @@ class BaseModelSqlv2 {
       trx = await this.dbDriver.transaction();
 
       // unlink LTAR data
-      if (base.is_meta || base.is_local) {
+      if (base.isMeta()) {
         for (const execQuery of execQueries) {
           await execQuery(trx, qb.clone());
         }

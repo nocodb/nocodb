@@ -27,7 +27,7 @@ export class BasesController {
       baseId,
     });
 
-    if (base?.is_meta || base?.is_local) {
+    if (base.isMeta()) {
       delete base.config;
     }
 
@@ -58,7 +58,7 @@ export class BasesController {
     });
 
     for (const base of bases) {
-      if (base?.is_meta || base?.is_local) {
+      if (base.isMeta()) {
         delete base.config;
       }
     }
@@ -90,7 +90,7 @@ export class BasesController {
       base: body,
     });
 
-    if (base?.is_meta || base?.is_local) {
+    if (base.isMeta()) {
       delete base.config;
     }
 

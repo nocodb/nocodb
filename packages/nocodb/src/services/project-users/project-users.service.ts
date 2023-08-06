@@ -27,6 +27,13 @@ export class ProjectUsersService {
         ...param.query,
         project_id: param.projectId,
       }),
+      {
+        ...param.query,
+        count: await ProjectUser.getUsersCount({
+          project_id: param.projectId,
+          ...param.query,
+        }),
+      },
     );
   }
 

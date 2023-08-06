@@ -120,19 +120,33 @@ export default class ProjectUser {
 
   public static async getUsersCount(
     {
+      project_id,
       query,
     }: {
+      project_id: string;
       query?: string;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<number> {
-    const qb = ncMeta.knex(MetaTable.USERS);
+    const queryBuilder = ncMeta.knex(MetaTable.USERS);
 
     if (query) {
-      qb.where('email', 'like', `%${query.toLowerCase?.()}%`);
+      queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
     }
 
-    return (await qb.count('id', { as: 'count' }).first()).count;
+    queryBuilder.leftJoin(MetaTable.PROJECT_USERS, function () {
+      this.on(
+        `${MetaTable.PROJECT_USERS}.fk_user_id`,
+        '=',
+        `${MetaTable.USERS}.id`,
+      ).andOn(
+        `${MetaTable.PROJECT_USERS}.project_id`,
+        '=',
+        ncMeta.knex.raw('?', [project_id]),
+      );
+    });
+
+    return (await queryBuilder.count('id', { as: 'count' }).first()).count;
   }
 
   static async updateRoles(

@@ -202,7 +202,7 @@ export class WorkspacesService {
 
     const projectUser = await ProjectUser.get(projectId, user.id);
     const currentWorkspaceUser = await WorkspaceUser.get(
-      project.fk_workspace_id,
+      (project as Project).fk_workspace_id,
       user.id,
     );
 

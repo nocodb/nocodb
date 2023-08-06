@@ -110,7 +110,7 @@ export class TestResetService {
     const project: Project | undefined = await Project.getByTitle(title);
 
     if (project) {
-      await removeProjectUsersFromCache(project);
+      await this.removeProjectUsersFromCache(project);
 
       // Kludge: Soft reset to support PG as root DB in PW tests
       // Revisit to fix this later
@@ -156,6 +156,26 @@ export class TestResetService {
       project: await Project.getByTitle(title),
     };
   }
+
+  // todo: Remove this once user deletion improvement PR is merged
+  removeProjectUsersFromCache = async (project: Project) => {
+    const projectUsers: ProjectUser[] = await ProjectUser.getUsersList({
+      project_id: project.id,
+      limit: 1000,
+      offset: 0,
+    });
+
+    for (const projectUser of projectUsers) {
+      try {
+        const user: User = (await User.get(projectUser.fk_user_id)) as any;
+        await NocoCache.del(
+          `${CacheScope.PROJECT_USER}:${project.id}:${user.id}`,
+        );
+      } catch (e) {
+        console.error('removeProjectUsersFromCache', e);
+      }
+    }
+  };
 }
 
 const removeAllProjectCreatedByTheTest = async (parallelId: string) => {
@@ -199,27 +219,6 @@ const removeAllTokensCreatedByTheTest = async (parallelId: string) => {
       await Noco.ncMeta.metaDelete(null, null, MetaTable.API_TOKENS, {
         token: token.token,
       });
-    }
-  }
-};
-
-// todo: Remove this once user deletion improvement PR is merged
-const removeProjectUsersFromCache = async (project: Project) => {
-  const projectUsers: ProjectUser[] = await ProjectUser.getUsersList({
-    project_id: project.id,
-    limit: 1000,
-    workspace_id: project.fk_workspace_id,
-    offset: 0,
-  });
-
-  for (const projectUser of projectUsers) {
-    try {
-      const user: User = (await User.get(projectUser.fk_user_id)) as any;
-      await NocoCache.del(
-        `${CacheScope.PROJECT_USER}:${project.id}:${user.id}`,
-      );
-    } catch (e) {
-      console.error('removeProjectUsersFromCache', e);
     }
   }
 };

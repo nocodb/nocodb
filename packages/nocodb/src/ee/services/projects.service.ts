@@ -46,7 +46,7 @@ const validateUserHasReadPermissionsForLinkedDbProjects = async (
 
       // Find the workspace-user association for the current user and the workspace of the linked db project
       const workspaceUser = await WorkspaceUser.get(
-        dbProject.fk_workspace_id,
+        (dbProject as Project).fk_workspace_id,
         user.id,
       );
 

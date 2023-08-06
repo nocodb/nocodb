@@ -1,4 +1,4 @@
-import Base from './/Base';
+import Base from './Base';
 import { ProjectUser } from './index';
 import type { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
 import type { DB_TYPES } from './Base';
@@ -26,8 +26,6 @@ export default class Project implements ProjectType {
   public is_meta = false;
   public bases?: Base[];
   public linked_db_projects?: Project[];
-  public type: string;
-  public fk_workspace_id?: string;
 
   // shared base props
   uuid?: string;
@@ -37,8 +35,6 @@ export default class Project implements ProjectType {
   constructor(project: Partial<Project>) {
     Object.assign(this, project);
   }
-
-  extended;
 
   public static async createProject(
     project: Partial<ProjectType>,
@@ -52,7 +48,6 @@ export default class Project implements ProjectType {
       'is_meta',
       'status',
       'type',
-      'fk_workspace_id',
       'meta',
       'color',
     ]);
@@ -116,9 +111,7 @@ export default class Project implements ProjectType {
     projectList = projectList.filter(
       (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
     );
-    return projectList
-      .map((m) => new Project(m))
-      .filter((p) => !param?.type || p.type === param.type);
+    return projectList.map((m) => new Project(m));
   }
 
   // @ts-ignore
@@ -252,7 +245,6 @@ export default class Project implements ProjectType {
       'uuid',
       'password',
       'roles',
-      'fk_workspace_id',
     ]);
     // get existing cache
     const key = `${CacheScope.PROJECT}:${projectId}`;
@@ -306,7 +298,6 @@ export default class Project implements ProjectType {
     let project = await this.get(projectId);
     const users = await ProjectUser.getUsersList({
       project_id: projectId,
-      workspace_id: project.fk_workspace_id,
       offset: 0,
       limit: 1000,
     });
@@ -455,67 +446,5 @@ export default class Project implements ProjectType {
     if (project) await project.getBases(ncMeta);
 
     return project;
-  }
-
-  static async listByWorkspaceAndUser(
-    fk_workspace_id: string,
-    userId: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-    // Todo: caching , pagination, query optimisation
-
-    const projectListQb = ncMeta
-      .knex(MetaTable.PROJECT)
-      .select(`${MetaTable.PROJECT}.*`)
-      .select(`${MetaTable.WORKSPACE_USER}.roles as workspace_role`)
-      .select(`${MetaTable.PROJECT_USERS}.starred`)
-      .select(`${MetaTable.PROJECT_USERS}.roles as project_role`)
-      .select(`${MetaTable.PROJECT_USERS}.updated_at as last_accessed`)
-      .leftJoin(MetaTable.WORKSPACE_USER, function () {
-        this.on(
-          `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
-          '=',
-          `${MetaTable.PROJECT}.fk_workspace_id`,
-        ).andOn(
-          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
-          '=',
-          ncMeta.knex.raw('?', [userId]),
-        );
-      })
-      .leftJoin(MetaTable.PROJECT_USERS, function () {
-        this.on(
-          `${MetaTable.PROJECT_USERS}.project_id`,
-          '=',
-          `${MetaTable.PROJECT}.id`,
-        ).andOn(
-          `${MetaTable.PROJECT_USERS}.fk_user_id`,
-          '=',
-          ncMeta.knex.raw('?', [userId]),
-        );
-      })
-
-      .where(`${MetaTable.PROJECT}.fk_workspace_id`, fk_workspace_id)
-
-      .where(function () {
-        this.where(
-          `${MetaTable.PROJECT_USERS}.fk_user_id`,
-          '=',
-          ncMeta.knex.raw('?', [userId]),
-        ).orWhere(
-          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
-          '=',
-          ncMeta.knex.raw('?', [userId]),
-        );
-      })
-      .where(`${MetaTable.PROJECT}.deleted`, false);
-
-    const projects = await projectListQb;
-
-    // parse meta
-    for (const project of projects) {
-      project.meta = parseMetaProp(project);
-    }
-
-    return projects;
   }
 }

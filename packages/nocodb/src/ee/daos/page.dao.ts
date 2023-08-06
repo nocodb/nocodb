@@ -23,7 +23,7 @@ export class PageDao {
     if (workspaceId) return `${prefix}${workspaceId}`;
 
     const project = await Project.get(projectId);
-    return `${prefix}${project.fk_workspace_id}`;
+    return `${prefix}${(project as Project).fk_workspace_id}`;
   }
 
   public async create({

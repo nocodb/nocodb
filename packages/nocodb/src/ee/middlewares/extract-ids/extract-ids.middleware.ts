@@ -4,7 +4,6 @@ import {
   OrgUserRoles,
   ProjectRoles,
   WorkspacePlan,
-  WorkspaceStatus,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { map } from 'rxjs';
@@ -151,7 +150,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     // todo:  verify all scenarios
     // extract workspace id based on request path params or projectId
     if (req.ncProjectId) {
-      req.ncWorkspaceId = (await Project.get(req.ncProjectId))?.fk_workspace_id;
+      const project = await Project.get(req.ncProjectId);
+      if (project) {
+        req.ncWorkspaceId = (project as Project).fk_workspace_id;
+      }
     } else if (req.params.workspaceId) {
       req.ncWorkspaceId = req.params.workspaceId;
     } else if (req.body.fk_workspace_id) {
@@ -211,7 +213,7 @@ export class AclMiddleware implements NestInterceptor {
     );
 
     const req = context.switchToHttp().getRequest();
-    const res = context.switchToHttp().getResponse();
+    const _res = context.switchToHttp().getResponse();
     req.customProperty = 'This is a custom property';
 
     const roles: Record<string, boolean> = extractRolesObj(

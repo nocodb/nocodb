@@ -1,4 +1,4 @@
-import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import { ProjectRoles } from 'nocodb-sdk';
 import User from './User';
 import type { ProjectType } from 'nocodb-sdk';
 import {
@@ -75,13 +75,11 @@ export default class ProjectUser {
   public static async getUsersList(
     {
       project_id,
-      workspace_id,
       limit = 25,
       offset = 0,
       query,
     }: {
       project_id: string;
-      workspace_id: string;
       limit: number;
       offset: number;
       query?: string;
@@ -97,8 +95,6 @@ export default class ProjectUser {
         `${MetaTable.USERS}.roles as main_roles`,
         `${MetaTable.PROJECT_USERS}.project_id`,
         `${MetaTable.PROJECT_USERS}.roles as roles`,
-        `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
-        `${MetaTable.WORKSPACE_USER}.fk_workspace_id as workspace_id`,
       )
       .offset(offset)
       .limit(limit);
@@ -107,29 +103,17 @@ export default class ProjectUser {
       queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
     }
 
-    queryBuilder
-      .innerJoin(MetaTable.WORKSPACE_USER, function () {
-        this.on(
-          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
-          '=',
-          `${MetaTable.USERS}.id`,
-        ).andOn(
-          `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
-          '=',
-          ncMeta.knex.raw('?', [workspace_id]),
-        );
-      })
-      .leftJoin(MetaTable.PROJECT_USERS, function () {
-        this.on(
-          `${MetaTable.PROJECT_USERS}.fk_user_id`,
-          '=',
-          `${MetaTable.USERS}.id`,
-        ).andOn(
-          `${MetaTable.PROJECT_USERS}.project_id`,
-          '=',
-          ncMeta.knex.raw('?', [project_id]),
-        );
-      });
+    queryBuilder.leftJoin(MetaTable.PROJECT_USERS, function () {
+      this.on(
+        `${MetaTable.PROJECT_USERS}.fk_user_id`,
+        '=',
+        `${MetaTable.USERS}.id`,
+      ).andOn(
+        `${MetaTable.PROJECT_USERS}.project_id`,
+        '=',
+        ncMeta.knex.raw('?', [project_id]),
+      );
+    });
 
     return await queryBuilder;
   }
@@ -312,8 +296,6 @@ export default class ProjectUser {
       .select(`${MetaTable.PROJECT}.type`)
       .select(`${MetaTable.PROJECT}.created_at`)
       .select(`${MetaTable.PROJECT}.updated_at`)
-      // .select(`${MetaTable.WORKSPACE_USER}.roles as workspace_role`)
-      // .select(`${MetaTable.WORKSPACE}.title as workspace_title`)
       .select(`${MetaTable.PROJECT_USERS}.starred`)
       .select(`${MetaTable.PROJECT_USERS}.roles as project_role`)
       .select(`${MetaTable.PROJECT_USERS}.updated_at as last_accessed`)

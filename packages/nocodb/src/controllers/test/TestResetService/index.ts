@@ -1,19 +1,15 @@
 import axios from 'axios';
-import Project from '../../../models/Project';
-// import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
-import Noco from '../../../Noco';
-import User from '../../../models/User';
-import NocoCache from '../../../cache/NocoCache';
-import {
-  CacheDelDirection,
-  CacheScope,
-  MetaTable,
-} from '../../../utils/globals';
-import ProjectUser from '../../../models/ProjectUser';
 import resetPgSakilaProject from './resetPgSakilaProject';
 import resetMysqlSakilaProject from './resetMysqlSakilaProject';
 import resetMetaSakilaSqliteProject from './resetMetaSakilaSqliteProject';
-import type ApiToken from '../../../models/ApiToken';
+import type ApiToken from '~/models/ApiToken';
+import Project from '~/models/Project';
+// import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import Noco from '~/Noco';
+import User from '~/models/User';
+import NocoCache from '~/cache/NocoCache';
+import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
+import ProjectUser from '~/models/ProjectUser';
 
 const workerStatus = {};
 

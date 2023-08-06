@@ -6,8 +6,8 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { MetaDiffsService } from '../services/meta-diffs.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()

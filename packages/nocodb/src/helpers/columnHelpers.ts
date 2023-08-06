@@ -1,11 +1,7 @@
 import { customAlphabet } from 'nanoid';
 import { UITypes } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
-import { GridViewColumn } from '../models';
-import Column from '../models/Column';
-import { getUniqueColumnAliasName } from '../helpers/getUniqueName';
-import validateParams from '../helpers/validateParams';
-import type { RollupColumn } from '../models';
+import type { RollupColumn } from '~/models';
 import type {
   BoolType,
   ColumnReqType,
@@ -15,9 +11,13 @@ import type {
   RollupColumnReqType,
   TableType,
 } from 'nocodb-sdk';
-import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
-import type LookupColumn from '../models/LookupColumn';
-import type Model from '../models/Model';
+import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
+import type LookupColumn from '~/models/LookupColumn';
+import type Model from '~/models/Model';
+import validateParams from '~/helpers/validateParams';
+import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
+import Column from '~/models/Column';
+import { GridViewColumn } from '~/models';
 
 export const randomID = customAlphabet(
   '1234567890abcdefghijklmnopqrstuvwxyz_',

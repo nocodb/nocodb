@@ -8,9 +8,9 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import { PluginsService } from '../services/plugins.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { PluginsService } from '~/services/plugins.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 // todo: move to a interceptor

@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { isLinksOrLTAR, RelationTypes, UITypes } from 'nocodb-sdk';
 import { nocoExecute } from 'nc-help';
-import { NcError } from '../helpers/catchError';
-import getAst from '../helpers/getAst';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import { Base, Column, Model, View } from '../models';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { DatasService } from './datas.service';
-import type { LinkToAnotherRecordColumn } from '../models';
+import type { LinkToAnotherRecordColumn } from '~/models';
+import { NcError } from '~/helpers/catchError';
+import getAst from '~/helpers/getAst';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { Base, Column, Model, View } from '~/models';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
 export class DataTableService {

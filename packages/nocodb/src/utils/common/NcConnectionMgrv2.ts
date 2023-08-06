@@ -1,16 +1,16 @@
 import { promisify } from 'util';
 import fs from 'fs';
-import SqlClientFactory from '../../db/sql-client/lib/SqlClientFactory';
-import { XKnex } from '../../db/CustomKnex';
 import {
   defaultConnectionConfig,
   defaultConnectionOptions,
   jdbcToXcConfig,
   metaUrlToDbConfig,
 } from '../nc-config';
-import Noco from '../../Noco';
 import type Base from '~/models/Base';
 import type { Knex } from 'knex';
+import SqlClientFactory from '~/db/sql-client/lib/SqlClientFactory';
+import { XKnex } from '~/db/CustomKnex';
+import Noco from '~/Noco';
 
 export default class NcConnectionMgrv2 {
   private static connectionRefs: {

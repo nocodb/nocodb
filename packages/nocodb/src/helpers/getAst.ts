@@ -1,11 +1,11 @@
 import { isSystemColumn, RelationTypes, UITypes } from 'nocodb-sdk';
-import { View } from '../models';
 import type {
   Column,
   LinkToAnotherRecordColumn,
   LookupColumn,
   Model,
-} from '../models';
+} from '~/models';
+import { View } from '~/models';
 
 const getAst = async ({
   query,

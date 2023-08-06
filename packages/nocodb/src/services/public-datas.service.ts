@@ -4,16 +4,16 @@ import { nanoid } from 'nanoid';
 import { ErrorMessages, UITypes, ViewTypes } from 'nocodb-sdk';
 import slash from 'slash';
 import { nocoExecute } from 'nc-help';
-import { Base, Column, Model, View } from '../models';
 
-import { NcError } from '../helpers/catchError';
-import getAst from '../helpers/getAst';
-import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import { mimeIcons } from '../utils/mimeTypes';
-import { getColumnByIdOrName } from '../modules/datas/helpers';
-import type { LinkToAnotherRecordColumn } from '../models';
+import type { LinkToAnotherRecordColumn } from '~/models';
+import { NcError } from '~/helpers/catchError';
+import getAst from '~/helpers/getAst';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { getColumnByIdOrName } from '~/modules/datas/helpers';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { mimeIcons } from '~/utils/mimeTypes';
+import { Base, Column, Model, View } from '~/models';
 
 // todo: move to utils
 export function sanitizeUrlPath(paths) {

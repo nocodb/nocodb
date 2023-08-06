@@ -4,24 +4,28 @@ import DashboardProjectDBProject from '~/models/DashboardProjectDBProject';
 import Noco from '~/Noco';
 
 export default class Project extends ProjectCE {
-  async getLinkedDbProjects(ncMeta = Noco.ncMeta): Promise<Project[]> {
-    return (this.linked_db_projects =
-      await DashboardProjectDBProject.getDbProjectsList(
+  extended = {
+    getLinkedDbProjects: async (ncMeta = Noco.ncMeta) => {
+      const dbProjects = DashboardProjectDBProject.getDbProjectsList(
         {
           dashboard_project_id: this.id,
         },
         ncMeta,
-      ));
-  }
+      );
+
+      return dbProjects;
+    },
+  };
 
   static async getWithInfo(
     projectId: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<Project | ProjectCE> {
-    let project: Project | ProjectCE = await super.get(projectId, ncMeta);
+  ): Promise<ProjectCE> {
+    let project: ProjectCE = await super.getWithInfo(projectId, ncMeta);
+
     if (project && project.type === ProjectTypes.DASHBOARD) {
       project = new Project(project);
-      await (project as Project).getLinkedDbProjects(ncMeta);
+      await project.extended.getLinkedDbProjects(ncMeta);
     }
 
     return project;

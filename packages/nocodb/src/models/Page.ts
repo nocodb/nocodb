@@ -1,6 +1,6 @@
-import Noco from '../Noco';
-import { MetaTable } from '../utils/globals';
 import Project from './Project';
+import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
 
 const { v4: uuidv4 } = require('uuid');
 

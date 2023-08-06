@@ -4,13 +4,13 @@ import CryptoJS from 'crypto-js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { XKnex } from '../db/CustomKnex';
-import { NcConfig } from '../utils/nc-config';
 import XcMigrationSource from './migrations/XcMigrationSource';
 import XcMigrationSourcev2 from './migrations/XcMigrationSourcev2';
 import XcMigrationSourcev3 from './migrations/XcMigrationSourcev3';
 import type { Knex } from 'knex';
 import type * as knex from 'knex';
+import { XKnex } from '~/db/CustomKnex';
+import { NcConfig } from '~/utils/nc-config';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

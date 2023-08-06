@@ -1,6 +1,6 @@
 import { Body, Controller, Param, Patch, UseGuards } from '@nestjs/common';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { FormColumnsService } from '../services/form-columns.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { FormColumnsService } from '~/services/form-columns.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 class FormColumnUpdateReqType {}

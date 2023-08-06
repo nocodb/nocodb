@@ -10,8 +10,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { MapUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { MapsService } from '../services/maps.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { MapsService } from '~/services/maps.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()

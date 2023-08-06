@@ -1,9 +1,9 @@
-import { NcError } from '../helpers/catchError';
-import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import Noco from '../Noco';
-import { extractProps } from '../helpers/extractProps';
-import NocoCache from '../cache/NocoCache';
 import type { UserType } from 'nocodb-sdk';
+import { NcError } from '~/helpers/catchError';
+import Noco from '~/Noco';
+import { extractProps } from '~/helpers/extractProps';
+import NocoCache from '~/cache/NocoCache';
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 
 export default class User implements UserType {
   id: string;

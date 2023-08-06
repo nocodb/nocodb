@@ -1,15 +1,15 @@
-import Noco from '../Noco';
+import Model from './Model';
+import Column from './Column';
+import type { SortType } from 'nocodb-sdk';
+import Noco from '~/Noco';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
-} from '../utils/globals';
-import NocoCache from '../cache/NocoCache';
-import { extractProps } from '../helpers/extractProps';
-import Model from './Model';
-import Column from './Column';
-import type { SortType } from 'nocodb-sdk';
+} from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
+import { extractProps } from '~/helpers/extractProps';
 import View from '~/models/View';
 
 export default class Sort {

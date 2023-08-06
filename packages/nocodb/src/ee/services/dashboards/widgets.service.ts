@@ -17,7 +17,7 @@ export class WidgetsService {
     const layoutOfWidget = await Layout.get(layoutIdOfWidget);
     const dashboardProject = await Project.get(layoutOfWidget.project_id);
     const linkedDbProjectIds = (
-      await (dashboardProject as Project).getLinkedDbProjects()
+      await dashboardProject.extended.getLinkedDbProjects()
     ).map((linkedDbProject) => linkedDbProject.id);
     const parsedDataSource =
       typeof dataSource === 'object' ? dataSource : JSON.parse(dataSource);

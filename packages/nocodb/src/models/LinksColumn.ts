@@ -1,6 +1,6 @@
-import Noco from '../Noco';
 import { Column, LinkToAnotherRecordColumn } from './';
 import type { RollupColumn } from './';
+import Noco from '~/Noco';
 
 export default class LinksColumn
   extends LinkToAnotherRecordColumn

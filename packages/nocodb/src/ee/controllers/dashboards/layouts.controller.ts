@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { LayoutReqType } from 'nocodb-sdk';
-import { GlobalGuard } from '../../guards/global/global.guard';
+import { GlobalGuard } from '~/guards/global/global.guard';
 import {
   ExtractIdsMiddleware,
   UseAclMiddleware,

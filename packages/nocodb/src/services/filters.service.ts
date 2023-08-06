@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
-import { validatePayload } from '../helpers';
-import { Filter, Hook, View } from '../models';
-import { NcError } from '../helpers/catchError';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import type { FilterReqType, UserType } from 'nocodb-sdk';
+import { validatePayload } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
+import { Filter, Hook, View } from '~/models';
 
 @Injectable()
 export class FiltersService {

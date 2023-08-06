@@ -6,9 +6,9 @@ import {
   Response,
   UseGuards,
 } from '@nestjs/common';
-import { GlobalGuard } from '../../guards/global/global.guard';
 import getSwaggerHtml from './template/swaggerHtml';
 import getRedocHtml from './template/redocHtml';
+import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { ApiDocsService } from '~/services/api-docs/api-docs.service';
 

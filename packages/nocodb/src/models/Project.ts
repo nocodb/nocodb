@@ -1,18 +1,17 @@
-import { ProjectTypes } from 'nocodb-sdk';
-import Noco from '../Noco';
+import Base from './/Base';
+import { ProjectUser } from './index';
+import type { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
+import type { DB_TYPES } from './Base';
+import Noco from '~/Noco';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
-} from '../utils/globals';
-import { extractProps } from '../helpers/extractProps';
-import NocoCache from '../cache/NocoCache';
-import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
-import Base from './/Base';
-import { ProjectUser } from './index';
-import type { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
-import type { DB_TYPES } from './Base';
+} from '~/utils/globals';
+import { extractProps } from '~/helpers/extractProps';
+import NocoCache from '~/cache/NocoCache';
+import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 
 export default class Project implements ProjectType {
   public id: string;
@@ -38,6 +37,8 @@ export default class Project implements ProjectType {
   constructor(project: Partial<Project>) {
     Object.assign(this, project);
   }
+
+  extended;
 
   public static async createProject(
     project: Partial<ProjectType>,

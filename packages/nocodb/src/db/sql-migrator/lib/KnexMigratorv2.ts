@@ -6,13 +6,13 @@ import SqlClientFactory from '../../sql-client/lib/SqlClientFactory';
 import Debug from '../../util/Debug';
 import Emit from '../../util/emit';
 import * as fileHelp from '../../util/file.help';
-import Noco from '../../../Noco';
-import Project from '../../../models/Project';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import Result from '../../util/Result';
-import type Base from '../../../models/Base';
+import type Base from '~/models/Base';
 import type { XKnex } from '../../CustomKnex';
 import type { Knex } from 'knex';
+import Noco from '~/Noco';
+import Project from '~/models/Project';
 
 const evt = new Emit();
 

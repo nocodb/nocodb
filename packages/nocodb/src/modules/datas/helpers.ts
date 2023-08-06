@@ -2,7 +2,7 @@ import { nocoExecute } from 'nc-help';
 import { isSystemColumn, UITypes } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import papaparse from 'papaparse';
-import type { BaseModelSqlv2 } from '../../db/BaseModelSqlv2';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
 import { NcError } from '~/helpers/catchError';

@@ -10,8 +10,8 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { SharedBasesService } from '../services/shared-bases.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { SharedBasesService } from '~/services/shared-bases.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()

@@ -12,9 +12,9 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import * as ejs from 'ejs';
 import { ConfigService } from '@nestjs/config';
-import { GlobalGuard } from '../../guards/global/global.guard';
-import NocoCache from '../../cache/NocoCache';
-import type { AppConfig } from '../../interface/config';
+import type { AppConfig } from '~/interface/config';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/catchError';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { User } from '~/models';

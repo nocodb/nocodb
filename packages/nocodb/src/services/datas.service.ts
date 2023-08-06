@@ -3,19 +3,19 @@ import { isSystemColumn, UITypes } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import papaparse from 'papaparse';
 import { nocoExecute } from 'nc-help';
-import { NcError } from '../helpers/catchError';
-import getAst from '../helpers/getAst';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import { Base, Column, Model, Project, View } from '../models';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type { PathParams } from '~/modules/datas/helpers';
+import type { LinkToAnotherRecordColumn, LookupColumn } from '~/models';
+import { NcError } from '~/helpers/catchError';
+import getAst from '~/helpers/getAst';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import {
   getDbRows,
   getViewAndModelByAliasOrId,
   serializeCellValue,
-} from '../modules/datas/helpers';
-import type { BaseModelSqlv2 } from '../db/BaseModelSqlv2';
-import type { PathParams } from '../modules/datas/helpers';
-import type { LinkToAnotherRecordColumn, LookupColumn } from '../models';
+} from '~/modules/datas/helpers';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { Base, Column, Model, Project, View } from '~/models';
 import { DataOptService } from '~/services/data-opt/data-opt.service';
 
 @Injectable()

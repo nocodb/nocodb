@@ -1,8 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import { Notification } from '../models';
-import { NcError } from '../helpers/catchError';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import { ClickhouseService } from './clickhouse/clickhouse.service';
 import type {
@@ -10,9 +7,12 @@ import type {
   WelcomeEvent,
   WorkspaceInviteEvent,
 } from './app-hooks/interfaces';
-import type { Project } from '../models';
+import type { Project } from '~/models';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type { NotificationType, UserType } from 'nocodb-sdk';
+import { NcError } from '~/helpers/catchError';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { Notification } from '~/models';
 
 @Injectable()
 export class NotificationsService implements OnModuleInit, OnModuleDestroy {

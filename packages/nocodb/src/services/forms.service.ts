@@ -2,15 +2,15 @@ import { Injectable } from '@nestjs/common';
 
 import { T } from 'nc-help';
 import { AppEvents, ViewTypes } from 'nocodb-sdk';
-import { validatePayload } from '../helpers';
-import { NcError } from '../helpers/catchError';
-import { FormView, View } from '../models';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import type {
   FormUpdateReqType,
   UserType,
   ViewCreateReqType,
 } from 'nocodb-sdk';
+import { validatePayload } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
+import { FormView, View } from '~/models';
 
 @Injectable()
 export class FormsService {

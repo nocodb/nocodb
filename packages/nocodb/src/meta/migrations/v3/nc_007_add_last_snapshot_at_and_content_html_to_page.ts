@@ -1,6 +1,6 @@
-import Page from '../../../models/Page';
 import { MetaTable } from '../../meta.service';
 import type { Knex } from 'knex';
+import Page from '~/models/Page';
 
 const up = async (knex: Knex) => {
   const workspaces = await knex(MetaTable.WORKSPACE).select('id');

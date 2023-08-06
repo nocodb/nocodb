@@ -9,7 +9,7 @@ import type {
 } from '@nestjs/common';
 import type { Observable } from 'rxjs';
 import type Redis from 'ioredis';
-import type { AppConfig } from '../../interface/config';
+import type { AppConfig } from '~/interface/config';
 import { Producer } from '~/services/producer/producer';
 
 @Injectable()

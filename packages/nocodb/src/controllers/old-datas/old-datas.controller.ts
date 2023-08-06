@@ -11,8 +11,8 @@ import {
   Response,
   UseGuards,
 } from '@nestjs/common';
-import { GlobalGuard } from '../../guards/global/global.guard';
 import { OldDatasService } from './old-datas.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()

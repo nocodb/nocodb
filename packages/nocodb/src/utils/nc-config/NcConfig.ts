@@ -1,10 +1,10 @@
 import * as path from 'path';
 import fs from 'fs';
 import { promisify } from 'util';
-import { SqlClientFactory } from '../../db/sql-client/lib/SqlClientFactory';
 import { getToolDir, metaUrlToDbConfig } from './helpers';
 import { DriverClient } from './interfaces';
 import type { DbConfig } from './interfaces';
+import { SqlClientFactory } from '~/db/sql-client/lib/SqlClientFactory';
 
 export class NcConfig {
   version: string;

@@ -1,10 +1,10 @@
 import Handlebars from 'handlebars';
 import { v4 as uuidv4 } from 'uuid';
-import { Filter, HookLog } from '../models';
-import Noco from '../Noco';
 import NcPluginMgrv2 from './NcPluginMgrv2';
-import type { Column, FormView, Hook, Model, View } from '../models';
+import type { Column, FormView, Hook, Model, View } from '~/models';
 import type { HookLogType } from 'nocodb-sdk';
+import Noco from '~/Noco';
+import { Filter, HookLog } from '~/models';
 
 Handlebars.registerHelper('json', function (context) {
   return JSON.stringify(context);

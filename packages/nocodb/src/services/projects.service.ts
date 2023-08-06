@@ -3,13 +3,13 @@ import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
 import { AppEvents, OrgUserRoles } from 'nocodb-sdk';
-import { populateMeta, validatePayload } from '../helpers';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import type {
   ProjectReqType,
   ProjectUpdateReqType,
   UserType,
 } from 'nocodb-sdk';
+import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { extractPropsAndSanitize } from '~/helpers/extractProps';
 import syncMigration from '~/helpers/syncMigration';

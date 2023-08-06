@@ -1,21 +1,21 @@
 import { UITypes } from 'nocodb-sdk';
 import CryptoJS from 'crypto-js';
 import { v4 as uuidv4 } from 'uuid';
-import NocoCache from '../cache/NocoCache';
+import Model from './Model';
+import Project from './Project';
+import SyncSource from './SyncSource';
+import type { BaseType, BoolType } from 'nocodb-sdk';
+import NocoCache from '~/cache/NocoCache';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
-} from '../utils/globals';
-import Noco from '../Noco';
-import { extractProps } from '../helpers/extractProps';
-import { NcError } from '../helpers/catchError';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import Model from './Model';
-import Project from './Project';
-import SyncSource from './SyncSource';
-import type { BaseType, BoolType } from 'nocodb-sdk';
+} from '~/utils/globals';
+import Noco from '~/Noco';
+import { extractProps } from '~/helpers/extractProps';
+import { NcError } from '~/helpers/catchError';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 export const DB_TYPES = <const>[
   'mysql2',

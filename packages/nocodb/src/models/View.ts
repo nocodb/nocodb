@@ -1,14 +1,4 @@
 import { isSystemColumn, UITypes, ViewTypes } from 'nocodb-sdk';
-import Noco from '../Noco';
-import {
-  CacheDelDirection,
-  CacheGetType,
-  CacheScope,
-  MetaTable,
-} from '../utils/globals';
-import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
-import NocoCache from '../cache/NocoCache';
-import { extractProps } from '../helpers/extractProps';
 import Model from './Model';
 import FormView from './FormView';
 import GridView from './GridView';
@@ -24,6 +14,16 @@ import Column from './Column';
 import MapView from './MapView';
 import MapViewColumn from './MapViewColumn';
 import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
+import { extractProps } from '~/helpers/extractProps';
+import NocoCache from '~/cache/NocoCache';
+import {
+  CacheDelDirection,
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+} from '~/utils/globals';
+import Noco from '~/Noco';
+import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 
 const { v4: uuidv4 } = require('uuid');
 

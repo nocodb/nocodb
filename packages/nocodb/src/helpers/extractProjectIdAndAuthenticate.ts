@@ -12,7 +12,7 @@ import {
   Project,
   Sort,
   View,
-} from '../models';
+} from '~/models';
 
 export default async (req, res, next) => {
   try {

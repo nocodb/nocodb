@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { IEventEmitter } from '../../modules/event-emitter/event-emitter.interface';
 import type {
   ApiCreatedEvent,
   ApiTokenCreateEvent,
@@ -42,6 +41,7 @@ import type {
   WorkspaceEvent,
   WorkspaceInviteEvent,
 } from './interfaces';
+import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 
 const ALL_EVENTS = '__nc_all_events__';
 

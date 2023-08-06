@@ -7,8 +7,8 @@ import {
 import { Job } from 'bull';
 import boxen from 'boxen';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { JobEvents, JOBS_QUEUE, JobStatus } from '../../../interface/Jobs';
 import { JobsRedisService } from './jobs-redis.service';
+import { JobEvents, JOBS_QUEUE, JobStatus } from '~/interface/Jobs';
 
 @Processor(JOBS_QUEUE)
 export class JobsEventService {

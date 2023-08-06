@@ -8,7 +8,7 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { DataAliasNestedService } from '../services/data-alias-nested.service';
+import { DataAliasNestedService } from '~/services/data-alias-nested.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { nocoExecute } from 'nc-help';
-import type { OldPathParams } from '../../modules/datas/helpers';
+import type { OldPathParams } from '~/modules/datas/helpers';
 import getAst from '~/helpers/getAst';
 import { NcError } from '~/helpers/catchError';
 import { Base, Model, Project, View } from '~/models';

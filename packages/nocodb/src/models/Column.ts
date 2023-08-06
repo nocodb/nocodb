@@ -3,18 +3,6 @@ import {
   isLinksOrLTAR,
   UITypes,
 } from 'nocodb-sdk';
-import NocoCache from '../cache/NocoCache';
-import {
-  CacheDelDirection,
-  CacheGetType,
-  CacheScope,
-  MetaTable,
-} from '../utils/globals';
-import Noco from '../Noco';
-import addFormulaErrorIfMissingColumn from '../helpers/addFormulaErrorIfMissingColumn';
-import { NcError } from '../helpers/catchError';
-import { extractProps } from '../helpers/extractProps';
-import { stringifyMetaProp } from '../utils/modelUtils';
 import FormulaColumn from './FormulaColumn';
 import LinkToAnotherRecordColumn from './LinkToAnotherRecordColumn';
 import LookupColumn from './LookupColumn';
@@ -28,6 +16,18 @@ import QrCodeColumn from './QrCodeColumn';
 import BarcodeColumn from './BarcodeColumn';
 import { LinksColumn } from './index';
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk';
+import { extractProps } from '~/helpers/extractProps';
+import { NcError } from '~/helpers/catchError';
+import addFormulaErrorIfMissingColumn from '~/helpers/addFormulaErrorIfMissingColumn';
+import Noco from '~/Noco';
+import {
+  CacheDelDirection,
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+} from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
+import { stringifyMetaProp } from '~/utils/modelUtils';
 
 export default class Column<T = any> implements ColumnType {
   public fk_model_id: string;

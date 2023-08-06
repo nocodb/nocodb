@@ -19,18 +19,18 @@ import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
 import { Knex } from 'knex';
-import { extractLimitAndOffset } from '../helpers';
-import { NcError } from '../helpers/catchError';
-import getAst from '../helpers/getAst';
-import { Audit, Base, Column, Filter, Model, Sort, View } from '../models';
-import { sanitize, unsanitize } from '../helpers/sqlSanitize';
+import { extractLimitAndOffset } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
+import getAst from '~/helpers/getAst';
+import { Audit, Base, Column, Filter, Model, Sort, View } from '~/models';
+import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
 import {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
   IS_WITHIN_COMPARISON_SUB_OPS,
-} from '../models/Filter';
-import Noco from '../Noco';
-import { HANDLE_WEBHOOK } from '../services/hook-handler.service';
+} from '~/models/Filter';
+import Noco from '~/Noco';
+import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from './genRollupSelectv2';
 import conditionV2 from './conditionV2';
@@ -50,7 +50,7 @@ import type {
   QrCodeColumn,
   RollupColumn,
   SelectOption,
-} from '../models';
+} from '~/models';
 import type { SortType } from 'nocodb-sdk';
 import { singleQueryRead } from '~/services/data-opt/helpers';
 

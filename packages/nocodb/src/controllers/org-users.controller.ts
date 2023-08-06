@@ -11,10 +11,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { OrgUserRoles } from 'nocodb-sdk';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import { User } from '../models';
-import { OrgUsersService } from '../services/org-users.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { OrgUsersService } from '~/services/org-users.service';
+import { User } from '~/models';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()

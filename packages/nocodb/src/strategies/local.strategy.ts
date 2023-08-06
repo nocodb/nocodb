@@ -2,10 +2,10 @@ import { Strategy } from 'passport-local';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AuthService } from '../services/auth.service';
-import extractRolesObj from '../utils/extractRolesObj';
-import { NcError } from '../helpers/catchError';
-import type { AppConfig } from '../interface/config';
+import type { AppConfig } from '~/interface/config';
+import { AuthService } from '~/services/auth.service';
+import { NcError } from '~/helpers/catchError';
+import extractRolesObj from '~/utils/extractRolesObj';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {

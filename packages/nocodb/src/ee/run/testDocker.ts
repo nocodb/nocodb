@@ -1,8 +1,8 @@
 import axios from 'axios';
 import cors from 'cors';
 import express from 'express';
-import { User } from '../models';
-import Noco from '../../Noco';
+import Noco from '~/Noco';
+import { User } from '~/models';
 
 process.env.NC_VERSION = '0009044';
 

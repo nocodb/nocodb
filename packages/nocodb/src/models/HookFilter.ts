@@ -1,17 +1,17 @@
 import { UITypes } from 'nocodb-sdk';
-import Noco from '../Noco';
+import Model from './Model';
+import Column from './Column';
+import View from './View';
+import type { FilterType } from 'nocodb-sdk';
+import Noco from '~/Noco';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
-} from '../utils/globals';
-import NocoCache from '../cache/NocoCache';
-import { extractProps } from '../helpers/extractProps';
-import Model from './Model';
-import Column from './Column';
-import View from './View';
-import type { FilterType } from 'nocodb-sdk';
+} from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
+import { extractProps } from '~/helpers/extractProps';
 
 export default class Filter {
   id: string;

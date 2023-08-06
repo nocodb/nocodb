@@ -6,6 +6,7 @@ import { Configuration, OpenAIApi } from 'openai';
 import JSON5 from 'json5';
 import { identify } from 'sql-query-identifier';
 import { ConfigService } from '@nestjs/config';
+import type { AppConfig } from '~/interface/config';
 import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import { NcError } from '~/helpers/catchError';
@@ -15,7 +16,6 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
 import { jdbcToXcConfig } from '~/utils/nc-config/helpers';
 import { packageVersion } from '~/utils/packageVersion';
-import type { AppConfig } from '~/interface/config';
 
 const versionCache = {
   releaseVersion: null,

@@ -2,13 +2,13 @@ import jsep from 'jsep';
 import { jsepCurlyHook, UITypes } from 'nocodb-sdk';
 import mapFunctionName from '../mapFunctionName';
 import genRollupSelectv2 from '../genRollupSelectv2';
-import NocoCache from '../../cache/NocoCache';
 import type Column from '~/models/Column';
 import type Model from '~/models/Model';
 import type RollupColumn from '~/models/RollupColumn';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
 import type { BaseModelSqlv2 } from '../BaseModelSqlv2';
+import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import {
   convertDateFormatForConcat,

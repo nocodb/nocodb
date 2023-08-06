@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
 import { AppEvents } from 'nocodb-sdk';
-import { populateMeta, validatePayload } from '../helpers';
-import { populateRollupColumnAndHideLTAR } from '../helpers/populateMeta';
-import { syncBaseMigration } from '../helpers/syncMigration';
-import { Base, Project } from '../models';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import type { BaseReqType } from 'nocodb-sdk';
+import { populateMeta, validatePayload } from '~/helpers';
+import { populateRollupColumnAndHideLTAR } from '~/helpers/populateMeta';
+import { syncBaseMigration } from '~/helpers/syncMigration';
+import { Base, Project } from '~/models';
 
 @Injectable()
 export class BasesService {

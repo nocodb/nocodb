@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
-import { validatePayload } from '../helpers';
-import { NcError } from '../helpers/catchError';
-import { Sort } from '../models';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import type { SortReqType } from 'nocodb-sdk';
+import { validatePayload } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
+import { Sort } from '~/models';
 
 @Injectable()
 export class SortsService {

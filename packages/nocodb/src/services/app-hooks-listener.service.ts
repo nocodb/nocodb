@@ -4,11 +4,10 @@ import {
   AuditOperationSubTypes,
   AuditOperationTypes,
 } from 'nocodb-sdk';
-import { User } from '../models';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import { TelemetryService } from './telemetry.service';
 import { Producer } from './producer/producer';
-import type { Audit } from '../models';
+import type { Audit } from '~/models';
 import type { AuditType } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type {
@@ -31,6 +30,7 @@ import type {
   UserSignupEvent,
   ViewEvent,
 } from './app-hooks/interfaces';
+import { User } from '~/models';
 
 @Injectable()
 export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {

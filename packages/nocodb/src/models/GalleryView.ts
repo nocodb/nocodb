@@ -1,8 +1,4 @@
 import { UITypes } from 'nocodb-sdk';
-import Noco from '../Noco';
-import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import NocoCache from '../cache/NocoCache';
-import { extractProps } from '../helpers/extractProps';
 import View from './View';
 import type {
   BoolType,
@@ -10,6 +6,10 @@ import type {
   GalleryType,
   MetaType,
 } from 'nocodb-sdk';
+import Noco from '~/Noco';
+import NocoCache from '~/cache/NocoCache';
+import { extractProps } from '~/helpers/extractProps';
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 
 export default class GalleryView implements GalleryType {
   fk_view_id?: string;

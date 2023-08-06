@@ -6,28 +6,28 @@ import {
   ViewTypes,
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
-import { BaseModelSqlv2 } from '../db/BaseModelSqlv2';
-import Noco from '../Noco';
-import { parseMetaProp } from '../utils/modelUtils';
-import NocoCache from '../cache/NocoCache';
 
-import {
-  CacheDelDirection,
-  CacheGetType,
-  CacheScope,
-  MetaTable,
-} from '../utils/globals';
-import { NcError } from '../helpers/catchError';
-import { sanitize } from '../helpers/sqlSanitize';
-import { extractProps } from '../helpers/extractProps';
 import Hook from './Hook';
 import Audit from './Audit';
 import View from './View';
 import Column from './Column';
 import Base from './Base';
 import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
-import type { XKnex } from '../db/CustomKnex';
+import type { XKnex } from '~/db/CustomKnex';
 import type { LinkToAnotherRecordColumn } from '~/models/index';
+import { extractProps } from '~/helpers/extractProps';
+import { sanitize } from '~/helpers/sqlSanitize';
+import { NcError } from '~/helpers/catchError';
+import {
+  CacheDelDirection,
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+} from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
+import Noco from '~/Noco';
+import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import { parseMetaProp } from '~/utils/modelUtils';
 
 export default class Model implements TableType {
   copy_enabled: BoolType;

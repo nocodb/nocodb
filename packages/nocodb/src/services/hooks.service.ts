@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
 import { AppEvents } from 'nocodb-sdk';
-import { validatePayload } from '../helpers';
-import { NcError } from '../helpers/catchError';
+import { AppHooksService } from './app-hooks/app-hooks.service';
+import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
+import { validatePayload } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
 import {
   populateSamplePayload,
   populateSamplePayloadV2,
-} from '../helpers/populateSamplePayload';
-import { invokeWebhook } from '../helpers/webhookHelpers';
-import { Hook, HookLog, Model } from '../models';
-import Noco from '../Noco';
-import { AppHooksService } from './app-hooks/app-hooks.service';
-import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
+} from '~/helpers/populateSamplePayload';
+import { invokeWebhook } from '~/helpers/webhookHelpers';
+import Noco from '~/Noco';
+import { Hook, HookLog, Model } from '~/models';
 
 @Injectable()
 export class HooksService {

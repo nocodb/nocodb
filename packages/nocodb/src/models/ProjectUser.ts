@@ -1,16 +1,16 @@
 import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import User from './User';
+import type { ProjectType } from 'nocodb-sdk';
 import {
   // CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
-} from '../utils/globals';
-import Noco from '../Noco';
-import NocoCache from '../cache/NocoCache';
-import { extractProps } from '../helpers/extractProps';
-import { parseMetaProp } from '../utils/modelUtils';
-import User from './User';
-import type { ProjectType } from 'nocodb-sdk';
+} from '~/utils/globals';
+import Noco from '~/Noco';
+import NocoCache from '~/cache/NocoCache';
+import { extractProps } from '~/helpers/extractProps';
+import { parseMetaProp } from '~/utils/modelUtils';
 
 export default class ProjectUser {
   project_id: string;

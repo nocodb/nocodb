@@ -5,13 +5,13 @@ import {
   AuditOperationTypes,
   ClickhouseTables,
 } from 'nocodb-sdk';
-import { validatePayload } from '../helpers';
-import { NcError } from '../helpers/catchError';
-import { Audit, Model } from '../models';
-import { MetaTable } from '../utils/globals';
 import { AppHooksListenerService } from './app-hooks-listener.service';
 import { ClickhouseService } from './clickhouse/clickhouse.service';
 import type { AuditRowUpdateReqType, CommentUpdateReqType } from 'nocodb-sdk';
+import { NcError } from '~/helpers/catchError';
+import { validatePayload } from '~/helpers';
+import { MetaTable } from '~/utils/globals';
+import { Audit, Model } from '~/models';
 
 @Injectable()
 export class AuditsService {

@@ -26,6 +26,7 @@ import { CommandPaletteController } from '~/controllers/command-palette.controll
 import { ClickhouseService } from '~/services/clickhouse/clickhouse.service';
 import { NotificationsService } from '~/services/notifications.service';
 import { NotificationsController } from '~/controllers/notifications.controller';
+import { NotificationsGateway } from '~/gateways/notifications/notifications.gateway';
 
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
@@ -51,6 +52,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     CommandPaletteService,
     ClickhouseService,
     NotificationsService,
+    NotificationsGateway,
     ...(enableThrottler ? [ThrottlerExpiryListenerService] : []),
   ],
   controllers: [

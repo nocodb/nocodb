@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
 import { GlobalModule } from '~/modules/global/global.module';
-import { NotificationsGateway } from '~/gateways/notifications/notifications.gateway';
 import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 import { ApiDocsController } from '~/controllers/api-docs/api-docs.controller';
 import { ApiTokensController } from '~/controllers/api-tokens.controller';
@@ -160,7 +159,6 @@ export const metaModuleMetadata = {
     SortsService,
     SharedBasesService,
     BulkDataAliasService,
-    NotificationsGateway,
   ],
   exports: [
     TablesService,

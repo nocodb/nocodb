@@ -21,11 +21,11 @@
   "keywords": [],
   "scripts": {
     "build": "npm run generate:sdk && run-p build:ce:*",
-    "build:ce:main": "tsc -p tsconfig.json",
-    "build:ce:module": "tsc -p tsconfig.module.json",
-    "build:ee": "npm run generate:sdk:ee && run-p build:ee:*",
-    "build:ee:main": "tsc -p tsconfig.ee.json",
-    "build:ee:module": "tsc -p tsconfig.module.ee.json",
+    "build:ce:main": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
+    "build:ce:module": "tsc -p tsconfig.module.json && tsc-alias -p tsconfig.module.json",
+    "build:ee": "rimraf ./build && npm run generate:sdk:ee && run-p build:ee:*",
+    "build:ee:main": "tsc -p ./src/ee/tsconfig.json && tsc-alias -p ./src/ee/tsconfig.json",
+    "build:ee:module": "tsc -p ./src/ee/tsconfig.module.json && tsc-alias -p ./src/ee/tsconfig.module.json",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.ts\" --write",
     "fix:lint": "eslint src --ext .ts --fix",
@@ -53,7 +53,9 @@
     "eslint-plugin-prettier": "^4.0.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.1.1",
-    "typescript": "^4.0.2"
+    "rimraf": "^5.0.1",
+    "tsc-alias": "^1.8.7",
+    "typescript": "^4.7.4"
   },
   "files": [
     "build/main",

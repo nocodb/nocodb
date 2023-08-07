@@ -23,7 +23,7 @@ const visible = useVModel(props, 'visible', emits)
     <slot />
 
     <template #overlay>
-      <div class="bg-white rounded-2xl p-6 border-1 border-gray-100 shadow-md">
+      <div class="bg-white rounded-2xl border-1 border-gray-100 shadow-md">
         <slot name="overlay" />
       </div>
     </template>

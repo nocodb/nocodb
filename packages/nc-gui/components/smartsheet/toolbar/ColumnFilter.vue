@@ -201,13 +201,13 @@ defineExpose({
   <div
     class="menu-filter-dropdown"
     :class="{
-      'max-h-[max(80vh,500px)] nc-scrollbar-md w-130': !nested,
+      'max-h-[max(80vh,500px)] w-130 py-6 pl-6': !nested,
     }"
   >
     <div
       v-if="filters && filters.length"
-      class="flex flex-col gap-y-3 nc-filter-grid pb-2"
-      :class="{ 'max-h-420px nc-scrollbar-md': !nested }"
+      class="flex flex-col gap-y-3 nc-filter-grid pb-2 -mr-2"
+      :class="{ 'max-h-420px nc-scrollbar-md w-full pr-5': !nested }"
       @click.stop
     >
       <template v-for="(filter, i) in filters" :key="i">

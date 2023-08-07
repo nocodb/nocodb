@@ -213,7 +213,7 @@ defineExpose({
       <template v-for="(filter, i) in filters" :key="i">
         <template v-if="filter.status !== 'delete'">
           <template v-if="filter.is_group">
-            <div class="flex flex-col w-full border-1 rounded-lg p-2 gap-y-2">
+            <div class="flex flex-col w-full gap-y-2">
               <div class="flex flex-row w-full justify-between items-center">
                 <span v-if="!i" class="flex items-center ml-2">{{ $t('labels.where') }}</span>
                 <div v-else :key="`${i}nested`">
@@ -243,7 +243,7 @@ defineExpose({
                 </NcButton>
               </div>
 
-              <div class="col-span-6">
+              <div class="flex border-1 rounded-lg p-2">
                 <LazySmartsheetToolbarColumnFilter
                   v-if="filter.id || filter.children"
                   :key="filter.id ?? i"
@@ -380,7 +380,15 @@ defineExpose({
         </div>
       </NcButton>
     </div>
-    <div v-if="!filters.length && !nested" class="flex flex-row text-gray-400 mt-2">No filters added</div>
+    <div
+      v-if="!filters.length"
+      class="flex flex-row text-gray-400 mt-2"
+      :class="{
+        'ml-1': nested,
+      }"
+    >
+      No filters added
+    </div>
 
     <slot />
   </div>

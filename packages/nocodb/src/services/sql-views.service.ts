@@ -27,6 +27,8 @@ export class SqlViewsService {
     };
     user: UserType;
   }) {
+    NcError.notImplemented();
+    return;
     const body = { ...param.body };
 
     const project = await Project.getWithInfo(param.projectId);
@@ -104,6 +106,7 @@ export class SqlViewsService {
       );
     }
 
+    // TODO - reimplement this
     await sqlMgr.sqlOpPlus(base, 'viewCreate', {
       view_name: body.view_name,
       view_definition: body.view_definition,

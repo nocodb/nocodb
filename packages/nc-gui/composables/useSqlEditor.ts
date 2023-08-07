@@ -8,6 +8,6 @@ export const useSqlEditor = createGlobalState(() => {
   return {
     sqlEditors,
     selectBase,
-    promptHistory: {},
+    promptHistory: [] as any[],
   }
 })

@@ -61,6 +61,7 @@ const onBlur = () => {
     :class="{
       '!py-1 !h-8': size === 'small',
       '!py-2 !h-10': size === 'medium',
+      '!p-0.25 !h-6.25 !w-6.25 !rounded-md': size === 'xsmall',
       'focused': isFocused,
     }"
     @focus="onFocus"

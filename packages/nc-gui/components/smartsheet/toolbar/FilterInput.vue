@@ -189,6 +189,8 @@ const hasExtraPadding = $computed(() => {
   )
 })
 
+const isInputBoxOnFocus = ref(false)
+
 // provide the following to override the default behavior and enable input fields like in form
 provide(ActiveCellInj, ref(true))
 provide(IsFormInj, ref(true))
@@ -204,7 +206,7 @@ provide(IsFormInj, ref(true))
   <div
     v-else
     class="bg-white border-1 flex flex-grow min-h-32px h-full items-center"
-    :class="{ 'px-2': hasExtraPadding }"
+    :class="{ 'px-2': hasExtraPadding, 'border-brand-500': isInputBoxOnFocus }"
     @mouseup.stop
   >
     <component
@@ -216,6 +218,8 @@ provide(IsFormInj, ref(true))
       class="flex"
       v-bind="componentProps"
       location="filter"
+      @focus="isInputBoxOnFocus = true"
+      @blur="isInputBoxOnFocus = false"
     />
   </div>
 </template>

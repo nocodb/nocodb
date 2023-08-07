@@ -1,7 +1,7 @@
-import View from '~/models/View';
-import MapViewColumn from '~/models/MapViewColumn';
 import type { MetaType } from 'nocodb-sdk';
 import type { MapType } from 'nocodb-sdk';
+import View from '~/models/View';
+import MapViewColumn from '~/models/MapViewColumn';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';

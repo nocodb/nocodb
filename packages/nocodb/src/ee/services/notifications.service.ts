@@ -8,7 +8,7 @@ import type {
 } from '~/services/app-hooks/interfaces';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type { UserType } from 'nocodb-sdk';
-import { Project } from '~/models';
+import type { Project } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';

@@ -7,14 +7,14 @@ import {
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
 
+import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
+import type { XKnex } from '~/db/CustomKnex';
+import type { LinkToAnotherRecordColumn } from '~/models/index';
 import Hook from '~/models/Hook';
 import Audit from '~/models/Audit';
 import View from '~/models/View';
 import Column from '~/models/Column';
 import Base from '~/models/Base';
-import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
-import type { XKnex } from '~/db/CustomKnex';
-import type { LinkToAnotherRecordColumn } from '~/models/index';
 import { extractProps } from '~/helpers/extractProps';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { NcError } from '~/helpers/catchError';

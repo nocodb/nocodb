@@ -1,5 +1,5 @@
-import View from '~/models/View';
 import type { BoolType } from 'nocodb-sdk';
+import View from '~/models/View';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';

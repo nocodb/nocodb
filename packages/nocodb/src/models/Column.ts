@@ -3,6 +3,7 @@ import {
   isLinksOrLTAR,
   UITypes,
 } from 'nocodb-sdk';
+import type { ColumnReqType, ColumnType } from 'nocodb-sdk';
 import FormulaColumn from '~/models/FormulaColumn';
 import LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import LookupColumn from '~/models/LookupColumn';
@@ -15,7 +16,6 @@ import Filter from '~/models/Filter';
 import QrCodeColumn from '~/models/QrCodeColumn';
 import BarcodeColumn from '~/models/BarcodeColumn';
 import { LinksColumn } from '~/models';
-import type { ColumnReqType, ColumnType } from 'nocodb-sdk';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
 import addFormulaErrorIfMissingColumn from '~/helpers/addFormulaErrorIfMissingColumn';

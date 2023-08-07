@@ -1,6 +1,6 @@
+import type { GridType, MetaType } from 'nocodb-sdk';
 import GridViewColumn from '~/models/GridViewColumn';
 import View from '~/models/View';
-import type { GridType, MetaType } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';

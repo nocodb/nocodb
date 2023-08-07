@@ -1,5 +1,5 @@
-import Column from '~/models/Column';
 import type { LookupType } from 'nocodb-sdk';
+import Column from '~/models/Column';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';

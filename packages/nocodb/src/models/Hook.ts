@@ -1,7 +1,7 @@
+import type { BoolType, HookReqType, HookType } from 'nocodb-sdk';
 import Model from '~/models/Model';
 import Filter from '~/models/Filter';
 import HookFilter from '~/models/HookFilter';
-import type { BoolType, HookReqType, HookType } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,

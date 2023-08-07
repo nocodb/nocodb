@@ -1,6 +1,6 @@
 import { UITypes } from 'nocodb-sdk';
-import View from '~/models/View';
 import type { BoolType, KanbanType, MetaType } from 'nocodb-sdk';
+import View from '~/models/View';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';

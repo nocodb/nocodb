@@ -1,6 +1,6 @@
 import { AuditOperationTypes } from 'nocodb-sdk';
-import Model from '~/models/Model';
 import type { AuditType } from 'nocodb-sdk';
+import Model from '~/models/Model';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { MetaTable } from '~/utils/globals';

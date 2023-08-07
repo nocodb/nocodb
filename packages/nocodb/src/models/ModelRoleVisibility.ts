@@ -1,5 +1,5 @@
-import View from '~/models/View';
 import type { ModelRoleVisibilityType } from 'nocodb-sdk';
+import View from '~/models/View';
 import Noco from '~/Noco';
 import {
   CacheDelDirection,

@@ -1,4 +1,5 @@
 import { isSystemColumn, UITypes, ViewTypes } from 'nocodb-sdk';
+import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
 import Model from '~/models/Model';
 import FormView from '~/models/FormView';
 import GridView from '~/models/GridView';
@@ -13,7 +14,6 @@ import KanbanViewColumn from '~/models/KanbanViewColumn';
 import Column from '~/models/Column';
 import MapView from '~/models/MapView';
 import MapViewColumn from '~/models/MapViewColumn';
-import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import {

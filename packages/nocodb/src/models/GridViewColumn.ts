@@ -1,5 +1,5 @@
-import View from '~/models/View';
 import type { BoolType, GridColumnType } from 'nocodb-sdk';
+import View from '~/models/View';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';

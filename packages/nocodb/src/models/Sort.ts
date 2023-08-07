@@ -1,6 +1,6 @@
+import type { SortType } from 'nocodb-sdk';
 import Model from '~/models/Model';
 import Column from '~/models/Column';
-import type { SortType } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import {
   CacheDelDirection,

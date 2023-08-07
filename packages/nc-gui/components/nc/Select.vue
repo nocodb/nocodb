@@ -33,7 +33,7 @@ const onChange = (value: string) => {
     v-model:value="vModel"
     :placeholder="placeholder"
     class="nc-select"
-    :dropdown-class-name="dropdownClassName ? `nc-select-dropdown ${dropdownClassName}` : 'nc-select'"
+    :dropdown-class-name="dropdownClassName ? `nc-select-dropdown  ${dropdownClassName}` : 'nc-select-dropdown'"
     :show-search="showSearch"
     :filter-option="filterOption"
     :dropdown-match-select-width="dropdownMatchSelectWidth"
@@ -57,5 +57,32 @@ const onChange = (value: string) => {
 .nc-select.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector {
   box-shadow: none;
   @apply border-brand-500;
+}
+
+.nc-select-dropdown {
+  @apply !rounded-xl py-1.5;
+
+  .rc-virtual-list-holder {
+    overflow-y: scroll;
+    overflow-x: hidden;
+
+    &::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    &::-webkit-scrollbar-track-piece {
+      width: 0px;
+    }
+    &::-webkit-scrollbar {
+      @apply bg-transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      width: 4px;
+      @apply bg-gray-300;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+      @apply bg-gray-400;
+    }
+  }
 }
 </style>

@@ -2243,7 +2243,7 @@ export interface ProjectReqType {
    * @example locked
    */
   status?: StringOrNullType;
-  type?: string;
+  type?: 'database' | 'documentation' | 'dashboard';
   /** List of Linked Database Project IDs (only used for Dashboard Projects so far) */
   linked_db_project_ids?: string[];
   /** Workspace ID */

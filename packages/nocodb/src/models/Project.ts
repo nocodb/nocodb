@@ -28,7 +28,7 @@ export default class Project implements ProjectType {
   public is_meta = false;
   public bases?: Base[];
   public linked_db_projects?: Project[];
-  public type: string;
+  public type: 'database' | 'documentation' | 'dashboard';
   public fk_workspace_id?: string;
 
   // shared base props

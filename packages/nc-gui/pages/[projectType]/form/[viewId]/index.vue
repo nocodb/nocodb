@@ -120,10 +120,6 @@ p {
           }
         }
 
-        &.nc-cell-longtext {
-          @apply !p-0 pb-2px pr-2px;
-        }
-
         textarea {
           @apply px-4 py-2 rounded;
 

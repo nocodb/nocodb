@@ -168,7 +168,6 @@ const onDecode = async (scannedCodeValue: string) => {
                         class="nc-input truncate"
                         :data-testid="`nc-form-input-cell-${field.label || field.title}`"
                         :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
-                        :style="{ paddingLeft: '0.5rem !important' }"
                         :column="field"
                         :edit-enabled="editEnabled[index]"
                         @click="editEnabled[index] = true"

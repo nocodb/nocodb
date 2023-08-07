@@ -3,7 +3,7 @@ import { useQRCode } from '@vueuse/integrations/useQRCode'
 import type QRCode from 'qrcode'
 import { RowHeightInj, computed, inject, ref } from '#imports'
 
-const maxNumberOfAllowedCharsForQrValue = 2000
+const maxNumberOfAllowedCharsForQrValue = 62
 
 const cellValue = inject(CellValueInj)
 
@@ -55,11 +55,13 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
     @ok="handleModalOkClick"
   >
     <template #footer>
-      <div class="mr-4" data-testid="nc-qr-code-large-value-label">{{ qrValue }}</div>
+      <div class="mr-4 overflow-scroll p-2" data-testid="nc-qr-code-large-value-label">
+        {{ qrValue }}
+      </div>
     </template>
     <img v-if="showQrCode" :src="qrCodeLarge" alt="QR Code" />
   </a-modal>
-  <div v-if="tooManyCharsForQrCode" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+  <div v-if="tooManyCharsForQrCode" class="text-left text-wrap mt-2 text-[#e65100] text-[10px]">
     {{ $t('labels.qrCodeValueTooLong') }}
   </div>
   <img

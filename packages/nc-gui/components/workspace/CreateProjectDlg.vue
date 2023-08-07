@@ -4,8 +4,7 @@ import type { Form, Input } from 'ant-design-vue'
 import type { VNodeRef } from '@vue/runtime-core'
 import { computed } from '@vue/reactivity'
 import { NcProjectType, extractSdkResponseErrorMsg } from '~/utils'
-import { projectTitleValidator, ref, useVModel, useWorkspace } from '#imports'
-import { navigateTo } from '#app'
+import { projectTitleValidator, ref, useVModel } from '#imports'
 import { useGlobal } from '~/composables/useGlobal'
 
 const props = defineProps<{
@@ -19,8 +18,6 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const projectsStore = useProjects()
 
-const workspaceStore = useWorkspace()
-const { activeWorkspace } = storeToRefs(workspaceStore)
 const { loadProjects } = useProjects()
 const { navigateToProject } = $(useGlobal())
 const { createProject: _createProject } = projectsStore
@@ -53,6 +50,7 @@ const createProject = async () => {
     navigateToProject({
       projectId: project.id!,
       type: props.type,
+      workspaceId: 'default',
     })
     dialogShow.value = false
   } catch (e: any) {
@@ -82,8 +80,6 @@ watch(dialogShow, async (n, o) => {
 
 const typeLabel = computed(() => {
   switch (props.type) {
-    case NcProjectType.DOCS:
-      return 'Book'
     case NcProjectType.DB:
       return 'Database'
     default:

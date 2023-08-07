@@ -192,14 +192,6 @@ export const useProjects = defineStore('projectsStore', () => {
       {
         title: projectPayload.title,
         linked_db_project_ids: projectPayload.linkedDbProjectIds,
-        // color,
-        // meta: JSON.stringify({
-        //   theme: {
-        //     primaryColor: color,
-        //     accentColor: complement.toHex8String(),
-        //   },
-        //   ...(route.value.query.type === NcProjectType.COWRITER && {prompt_statement: ''}),
-        // }),
       },
       {
         baseURL: getBaseUrl('default'),

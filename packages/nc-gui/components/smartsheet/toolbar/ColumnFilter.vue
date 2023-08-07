@@ -236,7 +236,7 @@ defineExpose({
                   :key="i"
                   type="text"
                   size="small"
-                  class="nc-filter-item-remove-btn cursor-pointer text-grey"
+                  class="nc-filter-item-remove-btn cursor-pointer"
                   @click.stop="deleteFilter(filter, i)"
                 >
                   <component :is="iconMap.deleteListItem" />
@@ -287,7 +287,7 @@ defineExpose({
             <NcSelect
               v-model:value="filter.comparison_op"
               :dropdown-match-select-width="false"
-              class="caption nc-filter-operation-select"
+              class="caption nc-filter-operation-select !min-w-30.5"
               :placeholder="$t('labels.operation')"
               density="compact"
               variant="solo"
@@ -303,11 +303,9 @@ defineExpose({
               </template>
             </NcSelect>
 
+            <div v-if="['blank', 'notblank'].includes(filter.comparison_op)" class="flex flex-grow"></div>
             <a-select
-              v-if="
-                [UITypes.Date, UITypes.DateTime].includes(getColumn(filter)?.uidt) &&
-                !['blank', 'notblank'].includes(filter.comparison_op)
-              "
+              v-else-if="[UITypes.Date, UITypes.DateTime].includes(getColumn(filter)?.uidt)"
               v-model:value="filter.comparison_sub_op"
               :dropdown-match-select-width="false"
               class="caption nc-filter-sub_operation-select"
@@ -319,13 +317,13 @@ defineExpose({
               dropdown-class-name="nc-dropdown-filter-comp-sub-op"
               @change="filterUpdateCondition(filter, i)"
             >
+              test
               <template v-for="compSubOp of comparisonSubOpList(filter.comparison_op)" :key="compSubOp.value">
                 <a-select-option v-if="isComparisonSubOpAllowed(filter, compSubOp)" :value="compSubOp.value">
                   {{ compSubOp.text }}
                 </a-select-option>
               </template>
             </a-select>
-
             <a-checkbox
               v-if="filter.field && types[filter.field] === 'boolean'"
               v-model:checked="filter.value"
@@ -353,7 +351,7 @@ defineExpose({
               v-if="!filter.readOnly"
               type="text"
               size="small"
-              class="nc-filter-item-remove-btn text-grey self-center"
+              class="nc-filter-item-remove-btn self-center"
               @click.stop="deleteFilter(filter, i)"
             >
               <component :is="iconMap.deleteListItem" />
@@ -396,7 +394,7 @@ defineExpose({
 
 <style scoped>
 .nc-filter-item-remove-btn {
-  @apply text-gray-600;
+  @apply text-gray-600 hover:text-gray-800;
 }
 .nc-filter-grid {
   @apply items-center w-full;

@@ -1,5 +1,5 @@
-import Model from './Model';
-import Column from './Column';
+import Model from '~/models/Model';
+import Column from '~/models/Column';
 import type { BoolType } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';

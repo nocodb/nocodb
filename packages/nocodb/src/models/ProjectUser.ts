@@ -1,6 +1,6 @@
 import { ProjectRoles } from 'nocodb-sdk';
-import User from './User';
 import type { ProjectType } from 'nocodb-sdk';
+import User from '~/models/User';
 import {
   // CacheDelDirection,
   CacheGetType,
@@ -19,6 +19,10 @@ export default class ProjectUser {
 
   constructor(data: ProjectUser) {
     Object.assign(this, data);
+  }
+
+  protected static castType(projectUser: ProjectUser): ProjectUser {
+    return projectUser && new ProjectUser(projectUser);
   }
 
   public static async insert(
@@ -69,7 +73,7 @@ export default class ProjectUser {
         projectUser,
       );
     }
-    return projectUser;
+    return this.castType(projectUser);
   }
 
   public static async getUsersList(
@@ -85,7 +89,7 @@ export default class ProjectUser {
       query?: string;
     },
     ncMeta = Noco.ncMeta,
-  ) {
+  ): Promise<ProjectUser[]> {
     const queryBuilder = ncMeta
       .knex(MetaTable.USERS)
       .select(
@@ -115,7 +119,11 @@ export default class ProjectUser {
       );
     });
 
-    return await queryBuilder;
+    const projectUsers = await queryBuilder;
+
+    return projectUsers.map((projectUser) => {
+      return this.castType(projectUser);
+    });
   }
 
   public static async getUsersCount(

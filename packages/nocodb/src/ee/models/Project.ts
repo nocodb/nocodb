@@ -1,4 +1,4 @@
-import { Project as ProjectCE } from 'src/models';
+import ProjectCE from 'src/models/Project';
 import { ProjectTypes } from 'nocodb-sdk';
 import type { ProjectType } from 'nocodb-sdk';
 import DashboardProjectDBProject from '~/models/DashboardProjectDBProject';
@@ -21,6 +21,10 @@ import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 export default class Project extends ProjectCE {
   fk_workspace_id?: string;
   type?: ProjectTypes;
+
+  protected static castType(project: Project): Project {
+    return project && new Project(project);
+  }
 
   static async list(
     // @ts-ignore

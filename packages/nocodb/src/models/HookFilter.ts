@@ -1,7 +1,7 @@
 import { UITypes } from 'nocodb-sdk';
-import Model from './Model';
-import Column from './Column';
-import View from './View';
+import Model from '~/models/Model';
+import Column from '~/models/Column';
+import View from '~/models/View';
 import type { FilterType } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import {

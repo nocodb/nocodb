@@ -1,4 +1,4 @@
-import { Base as BaseCE } from 'src/models';
+import BaseCE from 'src/models/Base';
 import CryptoJS from 'crypto-js';
 import type { BaseType, BoolType } from 'nocodb-sdk';
 import NocoCache from '~/cache/NocoCache';
@@ -10,6 +10,10 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 // todo: hide credentials
 export default class Base extends BaseCE implements BaseType {
   is_local?: BoolType;
+
+  protected static castType(base: Base): Base {
+    return base && new Base(base);
+  }
 
   public static async createBase(
     base: BaseType & { projectId: string; created_at?; updated_at? },

@@ -7,11 +7,11 @@ import {
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
 
-import Hook from './Hook';
-import Audit from './Audit';
-import View from './View';
-import Column from './Column';
-import Base from './Base';
+import Hook from '~/models/Hook';
+import Audit from '~/models/Audit';
+import View from '~/models/View';
+import Column from '~/models/Column';
+import Base from '~/models/Base';
 import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
 import type { XKnex } from '~/db/CustomKnex';
 import type { LinkToAnotherRecordColumn } from '~/models/index';

@@ -1,6 +1,6 @@
-import Base from './Base';
-import { ProjectUser } from './index';
 import type { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
+import Base from '~/models/Base';
+import { ProjectUser } from '~/models';
 import Noco from '~/Noco';
 import {
   CacheDelDirection,
@@ -34,6 +34,10 @@ export default class Project implements ProjectType {
 
   constructor(project: Partial<Project>) {
     Object.assign(this, project);
+  }
+
+  protected static castType(project: Project): Project {
+    return project && new Project(project);
   }
 
   public static async createProject(
@@ -110,7 +114,7 @@ export default class Project implements ProjectType {
     projectList = projectList.filter(
       (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
     );
-    return projectList.map((m) => new Project(m));
+    return projectList.map((m) => this.castType(m));
   }
 
   // @ts-ignore
@@ -135,7 +139,7 @@ export default class Project implements ProjectType {
         projectData = null;
       }
     }
-    return projectData && new Project(projectData);
+    return this.castType(projectData);
   }
 
   async getBases(ncMeta = Noco.ncMeta): Promise<Base[]> {
@@ -178,7 +182,7 @@ export default class Project implements ProjectType {
       const project = new Project(projectData);
       await project.getBases(ncMeta);
 
-      return project;
+      return this.castType(project);
     }
     return null;
   }

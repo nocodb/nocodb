@@ -1,5 +1,5 @@
-import View from './View';
-import MapViewColumn from './MapViewColumn';
+import View from '~/models/View';
+import MapViewColumn from '~/models/MapViewColumn';
 import type { MetaType } from 'nocodb-sdk';
 import type { MapType } from 'nocodb-sdk';
 import { extractProps } from '~/helpers/extractProps';

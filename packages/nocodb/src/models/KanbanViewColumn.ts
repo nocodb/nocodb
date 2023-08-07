@@ -1,4 +1,4 @@
-import View from './View';
+import View from '~/models/View';
 import type { BoolType, KanbanColumnType } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';

@@ -1,4 +1,4 @@
-import User from './User';
+import User from '~/models/User';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';

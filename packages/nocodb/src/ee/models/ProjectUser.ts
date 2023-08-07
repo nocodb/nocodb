@@ -7,6 +7,10 @@ import NocoCache from '~/cache/NocoCache';
 import { parseMetaProp } from '~/utils/modelUtils';
 
 export default class ProjectUser extends ProjectUserCE {
+  protected static castType(projectUser: ProjectUser): ProjectUser {
+    return projectUser && new ProjectUser(projectUser);
+  }
+
   public static async getUsersList(
     {
       project_id,
@@ -80,7 +84,11 @@ export default class ProjectUser extends ProjectUserCE {
       });
     }
 
-    return await queryBuilder;
+    const projectUsers = await queryBuilder;
+
+    return projectUsers.map((projectUser) => {
+      return this.castType(projectUser);
+    });
   }
 
   static async getProjectsList(

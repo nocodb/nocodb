@@ -3,18 +3,18 @@ import {
   isLinksOrLTAR,
   UITypes,
 } from 'nocodb-sdk';
-import FormulaColumn from './FormulaColumn';
-import LinkToAnotherRecordColumn from './LinkToAnotherRecordColumn';
-import LookupColumn from './LookupColumn';
-import RollupColumn from './RollupColumn';
-import SelectOption from './SelectOption';
-import Model from './Model';
-import View from './View';
-import Sort from './Sort';
-import Filter from './Filter';
-import QrCodeColumn from './QrCodeColumn';
-import BarcodeColumn from './BarcodeColumn';
-import { LinksColumn } from './index';
+import FormulaColumn from '~/models/FormulaColumn';
+import LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
+import LookupColumn from '~/models/LookupColumn';
+import RollupColumn from '~/models/RollupColumn';
+import SelectOption from '~/models/SelectOption';
+import Model from '~/models/Model';
+import View from '~/models/View';
+import Sort from '~/models/Sort';
+import Filter from '~/models/Filter';
+import QrCodeColumn from '~/models/QrCodeColumn';
+import BarcodeColumn from '~/models/BarcodeColumn';
+import { LinksColumn } from '~/models';
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';

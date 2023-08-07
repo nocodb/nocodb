@@ -1,4 +1,4 @@
-import Hook from './Hook';
+import Hook from '~/models/Hook';
 import type { HookLogType } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';

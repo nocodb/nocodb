@@ -1,5 +1,6 @@
-import { Column, LinkToAnotherRecordColumn } from './';
-import type { RollupColumn } from './';
+import type { RollupColumn } from '~/models/';
+import { Column } from '~/models/';
+import LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import Noco from '~/Noco';
 
 export default class LinksColumn

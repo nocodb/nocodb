@@ -1,10 +1,10 @@
 import { UITypes } from 'nocodb-sdk';
 import CryptoJS from 'crypto-js';
 import { v4 as uuidv4 } from 'uuid';
-import Model from './Model';
-import Project from './Project';
-import SyncSource from './SyncSource';
 import type { BaseType, BoolType } from 'nocodb-sdk';
+import Model from '~/models/Model';
+import Project from '~/models/Project';
+import SyncSource from '~/models/SyncSource';
 import NocoCache from '~/cache/NocoCache';
 import {
   CacheDelDirection,
@@ -34,6 +34,10 @@ export default class Base implements BaseType {
 
   constructor(base: Partial<Base>) {
     Object.assign(this, base);
+  }
+
+  protected static castType(base: Base): Base {
+    return base && new Base(base);
   }
 
   public static async createBase(
@@ -168,7 +172,7 @@ export default class Base implements BaseType {
     baseDataList.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
 
     return baseDataList?.map((baseData) => {
-      return new Base(baseData);
+      return this.castType(baseData);
     });
   }
 
@@ -183,7 +187,7 @@ export default class Base implements BaseType {
       baseData = await ncMeta.metaGet2(null, null, MetaTable.BASES, id);
       await NocoCache.set(`${CacheScope.BASE}:${id}`, baseData);
     }
-    return baseData && new Base(baseData);
+    return this.castType(baseData);
   }
 
   static async getByUUID(uuid: string, ncMeta = Noco.ncMeta) {
@@ -195,7 +199,7 @@ export default class Base implements BaseType {
 
     delete base.config;
 
-    return base && new Base(base);
+    return this.castType(base);
   }
 
   static async reorderBases(

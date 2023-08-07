@@ -1,5 +1,5 @@
-import FormViewColumn from './FormViewColumn';
-import View from './View';
+import FormViewColumn from '~/models/FormViewColumn';
+import View from '~/models/View';
 import type { MetaType } from 'nocodb-sdk';
 import type { BoolType, FormType } from 'nocodb-sdk';
 import { extractProps } from '~/helpers/extractProps';

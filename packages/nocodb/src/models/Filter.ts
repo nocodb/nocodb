@@ -1,8 +1,8 @@
 import { UITypes } from 'nocodb-sdk';
-import Model from './Model';
-import Column from './Column';
-import Hook from './Hook';
-import View from './View';
+import Model from '~/models/Model';
+import Column from '~/models/Column';
+import Hook from '~/models/Hook';
+import View from '~/models/View';
 import type { BoolType, FilterType } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import {

@@ -27,6 +27,10 @@ export default class User implements UserType {
     Object.assign(this, data);
   }
 
+  protected static castType(user: User): User {
+    return user && new User(user);
+  }
+
   public static async insert(user: Partial<User>, ncMeta = Noco.ncMeta) {
     const insertObj = extractProps(user, [
       'id',
@@ -130,7 +134,7 @@ export default class User implements UserType {
       });
       await NocoCache.set(`${CacheScope.USER}:${email}`, user);
     }
-    return user;
+    return this.castType(user);
   }
 
   static async isFirst(ncMeta = Noco.ncMeta) {
@@ -157,7 +161,7 @@ export default class User implements UserType {
     return (await qb.count('id', { as: 'count' }).first()).count;
   }
 
-  static async get(userId, ncMeta = Noco.ncMeta): Promise<UserType> {
+  static async get(userId, ncMeta = Noco.ncMeta): Promise<User> {
     let user =
       userId &&
       (await NocoCache.get(
@@ -168,7 +172,7 @@ export default class User implements UserType {
       user = await ncMeta.metaGet2(null, null, MetaTable.USERS, userId);
       await NocoCache.set(`${CacheScope.USER}:${userId}`, user);
     }
-    return user;
+    return this.castType(user);
   }
 
   static async getByRefreshToken(refresh_token, ncMeta = Noco.ncMeta) {

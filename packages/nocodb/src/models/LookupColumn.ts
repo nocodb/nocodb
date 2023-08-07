@@ -1,4 +1,4 @@
-import Column from './Column';
+import Column from '~/models/Column';
 import type { LookupType } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';

@@ -1,4 +1,4 @@
-import { User as UserCE } from 'src/models';
+import UserCE from 'src/models/User';
 import type { UserType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
@@ -13,6 +13,10 @@ export default class User extends UserCE implements UserType {
   bio?: string;
   location?: string;
   website?: string;
+
+  protected static castType(user: User): User {
+    return user && new User(user);
+  }
 
   public static async insert(user: Partial<User>, ncMeta = Noco.ncMeta) {
     const insertObj = extractProps(user, [
@@ -124,9 +128,11 @@ export default class User extends UserCE implements UserType {
 
   // TODO: cache
   public static async getByUsername(username: string, ncMeta = Noco.ncMeta) {
-    return await ncMeta.metaGet2(null, null, MetaTable.USERS, {
+    const user = await ncMeta.metaGet2(null, null, MetaTable.USERS, {
       user_name: username,
     });
+
+    return this.castType(user);
   }
 
   public static async list(

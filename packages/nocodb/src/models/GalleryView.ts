@@ -1,5 +1,5 @@
 import { UITypes } from 'nocodb-sdk';
-import View from './View';
+import View from '~/models/View';
 import type {
   BoolType,
   GalleryColumnType,

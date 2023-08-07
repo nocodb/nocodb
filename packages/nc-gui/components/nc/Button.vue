@@ -37,18 +37,24 @@ const type = computed(() => props.type)
 const loading = useVModel(props, 'loading', emits)
 
 const isFocused = ref(false)
+const isClicked = ref(false)
 
-const onFocus = (e: FocusEvent) => {
+const onFocus = () => {
   // Only focus when coming from another element which is not a mouse click
-  if (e.relatedTarget && e.sourceCapabilities) {
-    isFocused.value = true
-  } else if (isFocused.value) {
-    isFocused.value = false
-  }
+  nextTick(() => {
+    if (isClicked.value) {
+      isFocused.value = false
+    } else {
+      isFocused.value = true
+    }
+
+    isClicked.value = false
+  })
 }
 
 const onBlur = () => {
   isFocused.value = false
+  isClicked.value = false
 }
 </script>
 
@@ -66,6 +72,7 @@ const onBlur = () => {
     }"
     @focus="onFocus"
     @blur="onBlur"
+    @mousedown="isClicked = true"
   >
     <div class="flex flex-row gap-x-2.5 justify-center">
       <GeneralLoader v-if="loading" size="medium" class="flex !text-white" loader-class="!text-white" />

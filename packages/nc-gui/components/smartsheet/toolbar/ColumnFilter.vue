@@ -199,79 +199,72 @@ defineExpose({
 
 <template>
   <div
-    class="p-4 bg-white rounded-md overflow-auto border-1 border-gray-50 shadow-lg menu-filter-dropdown"
+    class="menu-filter-dropdown"
     :class="{
-      'min-w-[430px]': filters.length,
-      'shadow max-h-[max(80vh,500px)] overflow-auto': !nested,
-      'border-1 w-full': nested,
+      'max-h-[max(80vh,500px)] nc-scrollbar-md w-130': !nested,
     }"
   >
     <div
       v-if="filters && filters.length"
-      class="nc-filter-grid mb-2"
-      :class="{ 'max-h-420px overflow-y-auto': !nested }"
+      class="flex flex-col gap-y-3 nc-filter-grid pb-2"
+      :class="{ 'max-h-420px nc-scrollbar-md': !nested }"
       @click.stop
     >
       <template v-for="(filter, i) in filters" :key="i">
         <template v-if="filter.status !== 'delete'">
           <template v-if="filter.is_group">
-            <component
-              :is="iconMap.closeBox"
-              v-if="!filter.readOnly"
-              :key="i"
-              small
-              class="nc-filter-item-remove-btn cursor-pointer text-grey"
-              @click.stop="deleteFilter(filter, i)"
-            />
-            <span v-else :key="`${i}dummy`" />
+            <div class="flex flex-col w-full border-1 rounded-lg p-2 gap-y-2">
+              <div class="flex flex-row w-full justify-between items-center">
+                <span v-if="!i" class="flex items-center ml-2">{{ $t('labels.where') }}</span>
+                <div v-else :key="`${i}nested`">
+                  <NcSelect
+                    v-model:value="filter.logical_op"
+                    :dropdown-match-select-width="false"
+                    class="min-w-20 !capitalize"
+                    placeholder="Group op"
+                    dropdown-class-name="nc-dropdown-filter-logical-op-group"
+                    @click.stop
+                    @change="saveOrUpdate(filter, i)"
+                  >
+                    <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value" class="">
+                      {{ op.value }}
+                    </a-select-option>
+                  </NcSelect>
+                </div>
+                <NcButton
+                  v-if="!filter.readOnly"
+                  :key="i"
+                  type="text"
+                  size="small"
+                  class="nc-filter-item-remove-btn cursor-pointer text-grey"
+                  @click.stop="deleteFilter(filter, i)"
+                >
+                  <component :is="iconMap.deleteListItem" />
+                </NcButton>
+              </div>
 
-            <span v-if="!i" class="flex items-center">{{ $t('labels.where') }}</span>
-            <div v-else :key="`${i}nested`" class="flex bob">
-              <a-select
-                v-model:value="filter.logical_op"
-                :dropdown-match-select-width="false"
-                class="shrink grow-0"
-                placeholder="Group op"
-                dropdown-class-name="nc-dropdown-filter-logical-op-group"
-                @click.stop
-                @change="saveOrUpdate(filter, i)"
-              >
-                <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value" class="">
-                  {{ op.text }}
-                </a-select-option>
-              </a-select>
-            </div>
-            <span class="col-span-3" />
-            <div class="col-span-6">
-              <LazySmartsheetToolbarColumnFilter
-                v-if="filter.id || filter.children"
-                :key="filter.id ?? i"
-                ref="localNestedFilters"
-                v-model="filter.children"
-                :parent-id="filter.id"
-                nested
-                :auto-save="autoSave"
-                :web-hook="webHook"
-              />
+              <div class="col-span-6">
+                <LazySmartsheetToolbarColumnFilter
+                  v-if="filter.id || filter.children"
+                  :key="filter.id ?? i"
+                  ref="localNestedFilters"
+                  v-model="filter.children"
+                  :parent-id="filter.id"
+                  nested
+                  :auto-save="autoSave"
+                  :web-hook="webHook"
+                />
+              </div>
             </div>
           </template>
-          <template v-else>
-            <component
-              :is="iconMap.closeBox"
-              v-if="!filter.readOnly"
-              class="nc-filter-item-remove-btn text-grey self-center"
-              @click.stop="deleteFilter(filter, i)"
-            />
+          <div v-else class="flex flex-row gap-x-2 w-full">
+            <span v-if="!i" class="flex items-center ml-2 mr-7.35">{{ $t('labels.where') }}</span>
 
-            <span v-else />
-
-            <span v-if="!i" class="flex items-center">{{ $t('labels.where') }}</span>
-
-            <a-select
+            <NcSelect
               v-else
               v-model:value="filter.logical_op"
               :dropdown-match-select-width="false"
-              class="h-full"
+              class="h-full min-w-20 !capitalize"
               hide-details
               :disabled="filter.readOnly"
               dropdown-class-name="nc-dropdown-filter-logical-op"
@@ -279,10 +272,10 @@ defineExpose({
               @click.stop
             >
               <a-select-option v-for="op of logicalOps" :key="op.value" :value="op.value">
-                {{ op.text }}
+                {{ op.value }}
               </a-select-option>
-            </a-select>
-            <LazySmartsheetToolbarFieldListAutoCompleteDropdown
+            </NcSelect>
+            <SmartsheetToolbarFieldListAutoCompleteDropdown
               :key="`${i}_6`"
               v-model="filter.fk_column_id"
               class="nc-filter-field-select"
@@ -291,7 +284,7 @@ defineExpose({
               @click.stop
               @change="selectFilterField(filter, i)"
             />
-            <a-select
+            <NcSelect
               v-model:value="filter.comparison_op"
               :dropdown-match-select-width="false"
               class="caption nc-filter-operation-select"
@@ -308,7 +301,7 @@ defineExpose({
                   {{ compOp.text }}
                 </a-select-option>
               </template>
-            </a-select>
+            </NcSelect>
 
             <a-select
               v-if="
@@ -333,8 +326,6 @@ defineExpose({
               </template>
             </a-select>
 
-            <span v-else />
-
             <a-checkbox
               v-if="filter.field && types[filter.field] === 'boolean'"
               v-model:checked="filter.value"
@@ -343,54 +334,64 @@ defineExpose({
               @change="saveOrUpdate(filter, i)"
             />
 
-            <span
-              v-else-if="
-                filter.comparison_sub_op
+            <SmartsheetToolbarFilterInput
+              v-if="
+                filter &&
+                !(filter.comparison_sub_op
                   ? comparisonSubOpList(filter.comparison_op).find((op) => op.value === filter.comparison_sub_op)?.ignoreVal ??
                     false
-                  : comparisonOpList(getColumn(filter)?.uidt).find((op) => op.value === filter.comparison_op)?.ignoreVal ?? false
+                  : comparisonOpList(getColumn(filter)?.uidt).find((op) => op.value === filter.comparison_op)?.ignoreVal ?? false)
               "
-              :key="`span${i}`"
-            />
-
-            <LazySmartsheetToolbarFilterInput
-              v-else
-              class="nc-filter-value-select min-w-[120px] rounded-md"
+              class="nc-filter-value-select rounded-md"
               :column="getColumn(filter)"
               :filter="filter"
               @update-filter-value="(value) => updateFilterValue(value, filter, i)"
               @click.stop
             />
-          </template>
+
+            <NcButton
+              v-if="!filter.readOnly"
+              type="text"
+              size="small"
+              class="nc-filter-item-remove-btn text-grey self-center"
+              @click.stop="deleteFilter(filter, i)"
+            >
+              <component :is="iconMap.deleteListItem" />
+            </NcButton>
+          </div>
         </template>
       </template>
     </div>
 
-    <div class="flex gap-2 mb-2 mt-4">
-      <a-button class="elevation-0 text-capitalize" type="primary" ghost @click.stop="addFilter()">
+    <div class="flex gap-2">
+      <NcButton size="small" type="text" class="!text-brand-500" @click.stop="addFilter()">
         <div class="flex items-center gap-1">
           <component :is="iconMap.plus" />
           <!-- Add Filter -->
           {{ $t('activity.addFilter') }}
         </div>
-      </a-button>
+      </NcButton>
 
-      <a-button v-if="!webHook" class="text-capitalize !text-gray-500" @click.stop="addFilterGroup()">
+      <NcButton v-if="!webHook" type="text" size="small" @click.stop="addFilterGroup()">
         <div class="flex items-center gap-1">
           <!-- Add Filter Group -->
           <component :is="iconMap.plus" />
           {{ $t('activity.addFilterGroup') }}
         </div>
-      </a-button>
+      </NcButton>
     </div>
+    <div v-if="!filters.length && !nested" class="flex flex-row text-gray-400 mt-2">No filters added</div>
+
     <slot />
   </div>
 </template>
 
 <style scoped>
+.nc-filter-item-remove-btn {
+  @apply text-gray-600;
+}
 .nc-filter-grid {
-  grid-template-columns: auto auto auto auto auto auto;
-  @apply grid gap-[12px] items-center;
+  @apply items-center w-full;
 }
 
 :deep(.ant-select-item-option) {

@@ -423,7 +423,7 @@
     "sort": "Sort",
     "addSort": "Add Sort Option",
     "filter": "Filter",
-    "addFilter": "Add Filter",
+    "addFilter": "Add filter",
     "share": "Share",
     "shareBase": {
       "disable": "Disable shared base",
@@ -514,7 +514,7 @@
     "addUserToProject": "Add user to project",
     "getApiSnippet": "Get API Snippet",
     "clearCell": "Clear cell",
-    "addFilterGroup": "Add Filter Group",
+    "addFilterGroup": "Add filter group",
     "linkRecord": "Link record",
     "addNewRecord": "Add new record",
     "useConnectionUrl": "Use Connection URL",

@@ -312,6 +312,7 @@ export const iconMap = {
   code: Code,
   palette: h(Palette, {}, () => 'palette'),
   delete: Delete,
+  deleteListItem: h('span', { class: 'material-symbols' }, 'delete'),
   import: h('span', { class: 'material-symbols' }, 'system_update_alt'),
   edit: MaterialSymbolsEdit,
   lookup: h('span', { class: 'material-symbols' }, 'search'),

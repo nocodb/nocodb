@@ -203,7 +203,7 @@ provide(IsFormInj, ref(true))
   />
   <div
     v-else
-    class="bg-white border-1 flex min-w-120px max-w-170px min-h-32px h-full"
+    class="bg-white border-1 flex flex-grow min-h-32px h-full items-center"
     :class="{ 'px-2': hasExtraPadding }"
     @mouseup.stop
   >

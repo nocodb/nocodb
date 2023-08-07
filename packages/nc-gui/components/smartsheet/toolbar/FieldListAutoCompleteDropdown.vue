@@ -73,7 +73,7 @@ if (!localValue.value && allowEmpty !== true) {
 </script>
 
 <template>
-  <a-select
+  <NcSelect
     v-model:value="localValue"
     :dropdown-match-select-width="false"
     show-search
@@ -88,7 +88,7 @@ if (!localValue.value && allowEmpty !== true) {
         <span class="min-w-0"> {{ option.label }}</span>
       </div>
     </a-select-option>
-  </a-select>
+  </NcSelect>
 </template>
 
 <style lang="scss">

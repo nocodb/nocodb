@@ -73,7 +73,7 @@ useMenuCloseOnEsc(open)
 </script>
 
 <template>
-  <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-filter-menu">
+  <NcDropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-filter-menu">
     <div :class="{ 'nc-active-btn': filtersLength }">
       <a-button v-e="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm" :disabled="isLocked">
         <div class="flex items-center gap-2">
@@ -90,32 +90,12 @@ useMenuCloseOnEsc(open)
     <template #overlay>
       <LazySmartsheetToolbarColumnFilter
         ref="filterComp"
-        class="nc-table-toolbar-menu shadow-lg"
+        class="nc-table-toolbar-menu"
         :auto-save="filterAutoSave"
         data-testid="nc-filter-menu"
         @update:filters-length="filtersLength = $event"
       >
-        <div v-if="!isPublic" class="flex items-end mt-2 min-h-[30px]" @click.stop>
-          <a-checkbox id="col-filter-checkbox" v-model:checked="filterAutoSaveLoc" class="col-filter-checkbox" hide-details dense>
-            <span class="text-grey text-xs">
-              {{ $t('msg.info.filterAutoApply') }}
-              <!-- Auto apply -->
-            </span>
-          </a-checkbox>
-
-          <div class="flex-1" />
-
-          <a-button
-            v-show="!filterAutoSave"
-            v-e="['a:filter:auto-apply']"
-            size="small"
-            class="text-xs ml-2"
-            @click="applyChanges"
-          >
-            Apply changes
-          </a-button>
-        </div>
       </LazySmartsheetToolbarColumnFilter>
     </template>
-  </a-dropdown>
+  </NcDropdown>
 </template>

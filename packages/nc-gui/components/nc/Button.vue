@@ -35,6 +35,21 @@ const size = computed(() => props.size)
 const type = computed(() => props.type)
 
 const loading = useVModel(props, 'loading', emits)
+
+const isFocused = ref(false)
+
+const onFocus = (e: FocusEvent) => {
+  // Only focus when coming from another element which is not a mouse click
+  if (e.relatedTarget && e.sourceCapabilities) {
+    isFocused.value = true
+  } else if (isFocused.value) {
+    isFocused.value = false
+  }
+}
+
+const onBlur = () => {
+  isFocused.value = false
+}
 </script>
 
 <template>
@@ -46,7 +61,10 @@ const loading = useVModel(props, 'loading', emits)
     :class="{
       '!py-1 !h-8': size === 'small',
       '!py-2 !h-10': size === 'medium',
+      'focused': isFocused,
     }"
+    @focus="onFocus"
+    @blur="onBlur"
   >
     <div class="flex flex-row gap-x-2.5 justify-center">
       <GeneralLoader v-if="loading" size="medium" class="flex !text-white" loader-class="!text-white" />
@@ -74,63 +92,59 @@ const loading = useVModel(props, 'loading', emits)
   }
 }
 
-.ant-btn {
+.nc-button {
   box-shadow: 0px 5px 3px -2px rgba(0, 0, 0, 0.02), 0px 3px 1px -2px rgba(0, 0, 0, 0.06);
+  outline: none;
+}
 
-  &:focus {
-    box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
-  }
+.nc-button.ant-btn.focused {
+  box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
 }
 
 .nc-button.ant-btn[disabled] {
   box-shadow: none !important;
-  @apply bg-gray-50 hover:bg-gray-50 border-0 text-gray-300;
+  @apply bg-gray-50 hover:bg-gray-50 border-0 text-gray-300 cursor-not-allowed;
 }
 
-.ant-btn.ant-btn-secondary[disabled] {
+.nc-button.ant-btn-secondary[disabled] {
   @apply bg-white hover:bg-white border-1 border-gray-100 text-gray-300;
 }
 
-.ant-btn.ant-btn-primary {
-  @apply bg-brand-500 !border-0;
+.nc-button.ant-btn-primary {
+  @apply bg-brand-500 border-0 text-white;
 
   &:hover {
-    @apply bg-brand-600 !border-0;
-  }
-
-  &:focus {
-    @apply bg-brand-500 !border-0;
+    @apply bg-brand-600 border-0;
   }
 }
 
-.ant-btn.ant-btn-secondary {
+.nc-button.ant-btn-secondary {
   @apply bg-white border-1 border-gray-200 text-gray-700;
 
   &:hover {
-    @apply !bg-gray-50;
+    @apply bg-gray-50;
   }
 }
 
-.ant-btn.ant-btn-danger {
+.nc-button.ant-btn-danger {
   @apply bg-red-500 border-0;
 
   &:hover {
     @apply bg-red-600 border-0;
   }
-
-  &:focus {
-    @apply bg-red-500 border-0;
-  }
 }
 
-.ant-btn.ant-btn-text {
+.nc-button.ant-btn-text {
   box-shadow: none;
 
   @apply bg-transparent border-0 text-gray-700 hover:bg-gray-50;
 
   &:focus {
     box-shadow: none;
-    @apply text-brand-500;
   }
+}
+
+.nc-button.ant-btn-text.focused {
+  @apply text-brand-500;
 }
 </style>

@@ -88,14 +88,14 @@ useMenuCloseOnEsc(open)
     </div>
 
     <template #overlay>
-      <LazySmartsheetToolbarColumnFilter
+      <SmartsheetToolbarColumnFilter
         ref="filterComp"
         class="nc-table-toolbar-menu"
         :auto-save="filterAutoSave"
         data-testid="nc-filter-menu"
         @update:filters-length="filtersLength = $event"
       >
-      </LazySmartsheetToolbarColumnFilter>
+      </SmartsheetToolbarColumnFilter>
     </template>
   </NcDropdown>
 </template>

@@ -63,10 +63,10 @@ const onBlur = () => {
     :disabled="props.disabled"
     :loading="loading"
     :type="type"
-    class="!rounded-lg nc-button"
+    class="!rounded-lg nc-button !font-medium"
     :class="{
-      '!py-1 !h-8': size === 'small',
-      '!py-2 !h-10': size === 'medium',
+      '!py-1 !px-1.75 !h-8': size === 'small',
+      '!py-2 !px-3 !h-10': size === 'medium',
       '!p-0.25 !h-6.25 !w-6.25 !rounded-md': size === 'xsmall',
       'focused': isFocused,
     }"

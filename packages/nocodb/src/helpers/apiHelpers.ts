@@ -1,8 +1,8 @@
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
-import * as swagger from '../schema/swagger.json';
 import type { ErrorObject } from 'ajv';
 import type { NextFunction, Request, Response } from 'express';
+import swagger from '~/schema';
 import { NcError } from '~/helpers/catchError';
 
 export function parseHrtimeToMilliSeconds(hrtime) {

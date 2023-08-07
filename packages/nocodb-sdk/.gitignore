@@ -7,3 +7,4 @@ src/**.js
 coverage
 *.log
 yarn.lock
+nc_swagger.json

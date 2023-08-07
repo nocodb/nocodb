@@ -17,3 +17,4 @@ export {
 export { default as CustomAPI } from './lib/CustomAPI';
 export { default as TemplateGenerator } from './lib/TemplateGenerator';
 export * from './lib/passwordHelpers';
+export * from './lib/mergeSwaggerSchema';

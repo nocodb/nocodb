@@ -1,21 +1,8 @@
-import type { Knex } from 'knex';
-import { MetaTable } from '~/utils/globals';
-
-const up = async (knex: Knex) => {
-  await knex.schema.createTable(MetaTable.NOTIFICATION, (table) => {
-    table.string('id', 20).primary().notNullable();
-    table.string('type', 40);
-    table.text('body');
-    table.boolean('is_read').defaultTo(false);
-    table.boolean('is_deleted').defaultTo(false);
-    table.string('fk_user_id', 20).index();
-    table.timestamps(true, true);
-    table.index('created_at');
-  });
+const up = async (_knex) => {
 };
 
-const down = async (knex) => {
-  knex.schema.dropTable(MetaTable.NOTIFICATION);
+const down = async (_knex) => {
+  // empty migration to avoid breaking old project
 };
 
 export { up, down };

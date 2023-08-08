@@ -159,7 +159,7 @@ export class TestResetService {
 
   // todo: Remove this once user deletion improvement PR is merged
   removeProjectUsersFromCache = async (project: Project) => {
-    const projectUsers: ProjectUser[] = await ProjectUser.getUsersList({
+    const projectUsers: User[] = await ProjectUser.getUsersList({
       project_id: project.id,
       limit: 1000,
       offset: 0,
@@ -167,7 +167,7 @@ export class TestResetService {
 
     for (const projectUser of projectUsers) {
       try {
-        const user: User = (await User.get(projectUser.fk_user_id)) as any;
+        const user: User = (await User.get(projectUser.id)) as any;
         await NocoCache.del(
           `${CacheScope.PROJECT_USER}:${project.id}:${user.id}`,
         );

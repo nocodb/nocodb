@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "outDir": "../../build/main",
+    "baseUrl": "../../src/",
+    "paths": {
+      "~/*": [
+        "./ee/*",
+        "./*"
+      ],
+      "@/*": [
+        "./ee/*",
+        "./*"
+      ],
+      "src/*": [
+        "./*"
+      ]
+    }
+  },
+  "extends": "../../tsconfig.json"
+}

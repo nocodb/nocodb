@@ -1,4 +1,4 @@
-import { WidgetTypeType } from '../Api';
+import { WidgetTypeType } from '~/lib/Api';
 
 export enum AggregateFnType {
   Avg = 'avg',

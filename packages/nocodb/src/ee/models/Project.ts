@@ -19,7 +19,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 
 export default class Project extends ProjectCE {
-  public type: 'database' | 'documentation' | 'dashboard';
+  public type?: 'database' | 'documentation' | 'dashboard';
   public fk_workspace_id?: string;
 
   protected static castType(project: Project): Project {

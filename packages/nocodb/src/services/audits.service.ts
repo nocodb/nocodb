@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
 import { AuditOperationSubTypes, AuditOperationTypes } from 'nocodb-sdk';
-import { AppHooksListenerService } from './app-hooks-listener.service';
 import type { AuditRowUpdateReqType, CommentUpdateReqType } from 'nocodb-sdk';
+import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
 import { Audit, Model } from '~/models';

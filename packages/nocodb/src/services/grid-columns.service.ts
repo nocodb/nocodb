@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
-import { AppHooksService } from './app-hooks/app-hooks.service';
 import type { GridColumnReqType } from 'nocodb-sdk';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { GridViewColumn } from '~/models';
 

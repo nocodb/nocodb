@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { AppHooksService as ApppHookServiceCE } from 'src/services/app-hooks/app-hooks.service';
 import type {
   ApiCreatedEvent,
   ApiTokenCreateEvent,
@@ -23,7 +24,7 @@ import type {
   UserPasswordResetEvent,
   ViewColumnEvent,
   WebhookEvent,
-} from './interfaces';
+} from '~/services/app-hooks/interfaces';
 import type { AppEvents } from 'nocodb-sdk';
 import type {
   ColumnEvent,
@@ -38,19 +39,18 @@ import type {
   UserSignupEvent,
   ViewEvent,
   WelcomeEvent,
-} from '~/services/app-hooks/interfaces';
+  WorkspaceEvent,
+  WorkspaceInviteEvent,
+} from './interfaces';
 import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 
-const ALL_EVENTS = '__nc_all_events__';
-
 @Injectable()
-export class AppHooksService {
-  protected listenerUnsubscribers: Map<(...args: any[]) => void, () => void> =
-    new Map();
-
+export class AppHooksService extends ApppHookServiceCE {
   constructor(
     @Inject('IEventEmitter') protected readonly eventEmitter: IEventEmitter,
-  ) {}
+  ) {
+    super(eventEmitter);
+  }
 
   on(
     event: AppEvents.PROJECT_INVITE,
@@ -118,12 +118,15 @@ export class AppHooksService {
       | AppEvents.COLUMN_CREATE,
     listener: (data: ColumnEvent) => void,
   ): () => void;
+  on(
+    event:
+      | AppEvents.WORKSPACE_UPDATE
+      | AppEvents.WORKSPACE_DELETE
+      | AppEvents.WORKSPACE_CREATE,
+    listener: (data: WorkspaceEvent) => void,
+  ): () => void;
   on(event, listener): () => void {
-    const unsubscribe = this.eventEmitter.on(event, listener);
-
-    this.listenerUnsubscribers.set(listener, unsubscribe);
-
-    return unsubscribe;
+    return super.on(event, listener);
   }
 
   emit(event: AppEvents.PROJECT_INVITE, data: ProjectInviteEvent): void;
@@ -145,6 +148,7 @@ export class AppHooksService {
     event: AppEvents.USER_PASSWORD_RESET,
     data: UserPasswordResetEvent,
   ): void;
+  emit(event: AppEvents.WORKSPACE_INVITE, data: WorkspaceInviteEvent): void;
   emit(event: AppEvents.WELCOME, data: WelcomeEvent): void;
   emit(
     event: AppEvents.PROJECT_USER_UPDATE,
@@ -184,6 +188,13 @@ export class AppHooksService {
       | AppEvents.SORT_CREATE
       | AppEvents.SORT_DELETE,
     data: SortEvent,
+  ): void;
+  emit(
+    event:
+      | AppEvents.WORKSPACE_UPDATE
+      | AppEvents.WORKSPACE_CREATE
+      | AppEvents.WORKSPACE_DELETE,
+    data: WorkspaceEvent,
   ): void;
   emit(
     event:
@@ -249,35 +260,6 @@ export class AppHooksService {
     data: UserEmailVerificationEvent,
   ): void;
   emit(event, data): void {
-    this.eventEmitter.emit(event, data);
-    this.eventEmitter.emit(ALL_EVENTS, { event, data: data });
-  }
-
-  removeListener(
-    event: AppEvents | 'notification',
-    listener: (args: any) => void,
-  ) {
-    this.listenerUnsubscribers.get(listener)?.();
-    this.listenerUnsubscribers.delete(listener);
-  }
-
-  removeListeners(event: AppEvents | 'notification') {
-    return this.eventEmitter.removeAllListeners(event);
-  }
-
-  removeAllListener(listener) {
-    this.listenerUnsubscribers.get(listener)?.();
-    this.listenerUnsubscribers.delete(listener);
-  }
-
-  onAll(
-    listener: (payload: {
-      event: AppEvents | 'notification';
-      data: any;
-    }) => void,
-  ) {
-    const unsubscribe = this.eventEmitter.on(ALL_EVENTS, listener);
-    this.listenerUnsubscribers.set(listener, unsubscribe);
-    return unsubscribe;
+    return super.emit(event, data);
   }
 }

@@ -4,7 +4,6 @@ import {
   AuditOperationSubTypes,
   AuditOperationTypes,
 } from 'nocodb-sdk';
-import { AppHooksService } from './app-hooks/app-hooks.service';
 import { TelemetryService } from './telemetry.service';
 import { Producer } from './producer/producer';
 import type { Audit } from '~/models';
@@ -29,7 +28,8 @@ import type {
   UserSigninEvent,
   UserSignupEvent,
   ViewEvent,
-} from './app-hooks/interfaces';
+} from '~/services/app-hooks/interfaces';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { User } from '~/models';
 
 @Injectable()

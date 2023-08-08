@@ -1671,8 +1671,6 @@ function tableTest() {
       throw new Error('Wrong groupby');
   });
 
-  it.only('GroupBy ')
-
   it('Update table row', async function () {
     const table = await createTable(context, project);
     const row = await createRow(context, { project, table });

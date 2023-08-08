@@ -21,7 +21,7 @@ test.describe('Toolbar operations (GRID)', () => {
     toolbar = dashboard.grid.toolbar;
   });
 
-  test.only('Group', async () => {
+  test('Group', async () => {
     await dashboard.treeView.openTable({ title: 'FilmList' });
 
     // Open GroupBy Menu

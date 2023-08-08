@@ -91,7 +91,7 @@ const onDrop = async (event: DragEvent) => {
   event.preventDefault()
   try {
     // Access the dropped data
-    const data = JSON.parse(event.dataTransfer?.getData('text/json')!)
+    const data = JSON.parse(event.dataTransfer!.getData('text/json'))
     // Do something with the received data
 
     // if dragged item is not from the same base, return

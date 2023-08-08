@@ -183,9 +183,8 @@ export class ProjectUsersService {
       param.projectUser,
     );
 
-    // todo: use param.projectId
-    if (!param.projectUser?.project_id) {
-      NcError.badRequest('Missing project id in request body.');
+    if (!param.projectId) {
+      NcError.badRequest('Missing project id');
     }
 
     const project = await Project.get(param.projectId);

@@ -8,3 +8,4 @@ coverage
 *.log
 yarn.lock
 nc_swagger.json
+src/lib/Api.ts

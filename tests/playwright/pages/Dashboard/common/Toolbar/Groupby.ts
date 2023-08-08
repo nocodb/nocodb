@@ -18,25 +18,21 @@ export class ToolbarGroupByPage extends BasePage {
   async verify({ index, column, direction }: { index: number; column: string; direction: string }) {
     const fieldLocator = await this.get().locator('.nc-sort-field-select').nth(index);
     const fieldText = await getTextExcludeIconText(fieldLocator);
-    await expect(fieldText).toBe(column);
+    expect(fieldText).toBe(column);
 
-    await expect(
-      await this.get().locator('.nc-sort-dir-select >> span.ant-select-selection-item').nth(index)
-    ).toHaveText(direction);
+    await expect(this.get().locator('.nc-sort-dir-select >> span.ant-select-selection-item').nth(index)).toHaveText(
+      direction
+    );
   }
 
   async reset() {
-    await this.toolbar.clickGroupBy();
-
-    await this.rootPage.locator('.nc-group-by-item-remove-btn').click();
-
-    await this.toolbar.clickGroupBy();
+    const groupByCount = await this.rootPage.locator('.nc-group-by-item-remove-btn').count();
+    for (let i = groupByCount - 1; i > -1; i--) {
+      await this.rootPage.locator('.nc-group-by-item-remove-btn').nth(i).click();
+    }
   }
 
   async add({ title, ascending, locallySaved }: { title: string; ascending: boolean; locallySaved: boolean }) {
-    // open group menu
-    await this.toolbar.clickGroupBy();
-
     const addGroupBtn = await this.toolbar.rootPage.locator(`.nc-add-group-btn`);
     if (!(await addGroupBtn.isDisabled())) {
       await addGroupBtn.click();
@@ -68,11 +64,9 @@ export class ToolbarGroupByPage extends BasePage {
       httpMethodsToMatch: ['GET'],
       requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
     });
-    // close sort menu
-    await this.toolbar.clickGroupBy();
   }
 
-  async remove() {
-    await this.get().locator('.nc-group-by-item-remove-btn').click();
+  async remove({ index }: { index: number }) {
+    await this.get().locator('.nc-group-by-item-remove-btn').nth(index).click();
   }
 }

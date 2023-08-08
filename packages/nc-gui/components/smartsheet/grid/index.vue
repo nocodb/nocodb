@@ -205,7 +205,7 @@ onMounted(() => {
 <template>
   <div
     ref="coreWrapperRef"
-    class="relative flex flex-col h-full min-h-0 w-full"
+    class="relative flex flex-col h-full min-h-0 w-full nc-grid-wrapper"
     data-testid="nc-grid-wrapper"
     style="background-color: var(--nc-grid-bg)"
   >

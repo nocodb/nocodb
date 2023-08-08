@@ -111,7 +111,7 @@ if (vGroup.value.root === true) provide(ScrollParentInj, wrapper)
         </div>
         <a-collapse
           v-model:activeKey="_activeGroupKeys"
-          class="!bg-transparent nc-group-wrapper w-full"
+          class="!bg-transparent w-full nc-group-wrapper"
           :bordered="false"
           destroy-inactive-panel
           @change="findAndLoadSubGroup"

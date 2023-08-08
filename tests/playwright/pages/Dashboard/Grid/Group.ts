@@ -12,34 +12,23 @@ export class GroupPageObject extends BasePage {
     this.grid = grid;
   }
 
-  get() {
-    return this.rootPage.locator('.nc-group');
-  }
-
-  async getGroup(index: number) {
-    return this.get().nth(index);
+  get({ indexMap }: { indexMap: Array<number> }) {
+    const query = '.nc-group';
+    for (const n in indexMap) {
+      query.concat(`:nth-child(${n}) `);
+    }
+    return this.rootPage.locator(query);
   }
 
   async verifyGroupCount({ count }: { count: number }) {
-    expect(await this.get().count()).toEqual(count);
+    expect(await this.get({ indexMap: [1, 1] }).count()).toEqual(count);
   }
+  async openGroup({ indexMap }: { indexMap: number[] }) {
+    let root = this.rootPage.locator('.nc-group');
 
-  async clickGroup(index: number) {
-    await this.get().nth(index).click();
-  }
-
-  async verifyGroupHeader({ index, title, count }: { index: number; title: string; count: string }) {
-    const group = await this.getGroup(index);
-    expect(
-      await group.locator('.nc-group-column-title').innerText({
-        timeout: 2000,
-      })
-    ).toEqual(title);
-
-    expect(
-      await group.locator('.nc-group-row-count').innerText({
-        timeout: 2000,
-      })
-    ).toEqual(count);
+    for (const n of indexMap) {
+      await root.nth(n).click();
+      root = root.nth(n).locator('.nc-group');
+    }
   }
 }

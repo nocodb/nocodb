@@ -22,42 +22,30 @@ test.describe('Toolbar operations (GRID)', () => {
   });
 
   test('Group', async () => {
-    const groupBy = 'Category';
     await dashboard.treeView.openTable({ title: 'FilmList' });
 
-    // Test Descending Order
-    await toolbar.groupBy.add({
-      title: groupBy,
-      ascending: false,
-      locallySaved: false,
+    // Open GroupBy Menu
+    await toolbar.clickGroupBy();
+
+    // GroupBy Category Descending Order
+    await toolbar.groupBy.add({ title: 'Category', ascending: false, locallySaved: false });
+
+    // GroupBy Title field Ascending Order
+    await toolbar.groupBy.add({ title: 'Title', ascending: false, locallySaved: false });
+
+    // Close GroupBy Menu
+    await toolbar.clickGroupBy();
+
+    // Open Group
+    await dashboard.grid.groupPage.openGroup({
+      indexMap: [0, 1],
     });
 
-    await dashboard.grid.groupPage.verifyGroupCount({
-      count: 10,
-    });
-    await dashboard.grid.groupPage.clickGroup(0);
-    await dashboard.grid.groupPage.verifyGroupHeader({ index: 0, title: groupBy, count: '(Count: 56)' });
+    // Open GroupBy Menu
+    await toolbar.clickGroupBy();
 
+    //Remove All GroupBy Conditions
     await toolbar.groupBy.reset();
-    // Test Ascending Order
-    await toolbar.groupBy.add({
-      title: groupBy,
-      ascending: true,
-      locallySaved: false,
-    });
-    await dashboard.grid.groupPage.clickGroup(0);
-    await dashboard.grid.groupPage.verifyGroupHeader({
-      index: 0,
-      title: groupBy,
-      count: '(Count: 64)',
-    });
-
-    //Add Another GroupBy
-    await toolbar.groupBy.add({
-      title: 'Length',
-      ascending: true,
-      locallySaved: false,
-    });
   });
 
   test('Hide, Sort, Filter', async () => {

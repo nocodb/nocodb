@@ -7,7 +7,7 @@ import { promises as fs } from 'fs';
 import { isEE } from './db';
 
 // Use local reset logic instead of remote
-const enableLocalInit = isEE();
+const enableLocalInit = true;
 
 // PG Configuration
 //
@@ -42,6 +42,29 @@ const extPgProject = (workspaceId, title, parallelId, projectType) => ({
   fk_workspace_id: workspaceId,
   title,
   type: projectType,
+  bases: [
+    {
+      type: 'pg',
+      config: {
+        client: 'pg',
+        connection: {
+          host: 'localhost',
+          port: '5432',
+          user: 'postgres',
+          password: 'password',
+          database: `sakila${parallelId}`,
+        },
+        searchPath: ['public'],
+      },
+      inflection_column: 'camelize',
+      inflection_table: 'camelize',
+    },
+  ],
+  external: true,
+});
+
+const extPgProjectCE = (title, parallelId) => ({
+  title,
   bases: [
     {
       type: 'pg',
@@ -128,17 +151,31 @@ async function localInit({
 
     // console.log(process.env.TEST_WORKER_INDEX, process.env.TEST_PARALLEL_INDEX);
 
-    // Delete associated workspace
-    // Note that: on worker error, entire thread is reset & worker ID numbering is reset too
-    // Hence, workspace delete is based on workerId prefix instead of just workerId
-    const ws = await api.workspace.list();
-    for (const w of ws.list) {
-      // check if w.title starts with workspaceTitle
-      if (w.title.startsWith(`ws_pgExtREST_p${process.env.TEST_PARALLEL_INDEX}`)) {
-        try {
-          await api.workspace.delete(w.id);
-        } catch (e) {
-          console.log(`Error deleting workspace: ${w.id}`, `user-${parallelId}@nocodb.com`, isSuperUser);
+    if (isEE()) {
+      // Delete associated workspace
+      // Note that: on worker error, entire thread is reset & worker ID numbering is reset too
+      // Hence, workspace delete is based on workerId prefix instead of just workerId
+      const ws = await api.workspace.list();
+      for (const w of ws.list) {
+        // check if w.title starts with workspaceTitle
+        if (w.title.startsWith(`ws_pgExtREST_p${process.env.TEST_PARALLEL_INDEX}`)) {
+          try {
+            await api.workspace.delete(w.id);
+          } catch (e) {
+            console.log(`Error deleting workspace: ${w.id}`, `user-${parallelId}@nocodb.com`, isSuperUser);
+          }
+        }
+      }
+    } else {
+      const projects = await api.project.list();
+      for (const p of projects.list) {
+        // check if p.title starts with projectTitle
+        if (p.title.startsWith(`pgExtREST_p${process.env.TEST_PARALLEL_INDEX}`)) {
+          try {
+            await api.project.delete(p.id);
+          } catch (e) {
+            console.log(`Error deleting project: ${p.id}`, `user-${parallelId}@nocodb.com`, isSuperUser);
+          }
         }
       }
     }
@@ -159,24 +196,42 @@ async function localInit({
       await resetSakilaPg(workerId);
     }
 
-    // create a new workspace
-    const workspace = await api.workspace.create({
-      title: workspaceTitle,
-    });
+    let workspace;
+    if (isEE()) {
+      // create a new workspace
+      workspace = await api.workspace.create({
+        title: workspaceTitle,
+      });
+    }
 
     let project;
-    if (isEmptyProject) {
-      // create a new project under the workspace we just created
-      project = await api.project.create({
-        title: projectTitle,
-        // @ts-expect-error
-        fk_workspace_id: workspace.id,
-        type: projectType,
-      });
+    if (isEE()) {
+      if (isEmptyProject) {
+        // create a new project under the workspace we just created
+        project = await api.project.create({
+          title: projectTitle,
+          // @ts-expect-error
+          fk_workspace_id: workspace.id,
+          type: projectType,
+        });
+      } else {
+        if ('id' in workspace) {
+          // @ts-ignore
+          project = await api.project.create(extPgProject(workspace.id, projectTitle, workerId, projectType));
+        }
+      }
     } else {
-      if ('id' in workspace) {
-        // @ts-ignore
-        project = await api.project.create(extPgProject(workspace.id, projectTitle, workerId, projectType));
+      if (isEmptyProject) {
+        // create a new project
+        project = await api.project.create({
+          title: projectTitle,
+        });
+      } else {
+        try {
+          project = await api.project.create(extPgProjectCE(projectTitle, workerId));
+        } catch (e) {
+          console.log(`Error creating project: ${projectTitle}`);
+        }
       }
     }
     workerStatus[parallelId] = 'complete';

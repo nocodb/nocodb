@@ -3,8 +3,6 @@ import { LoadingOutlined } from '@ant-design/icons-vue'
 import ManageUsers from './ManageUsers.vue'
 import ShareProject from './ShareProject.vue'
 import SharePage from './SharePage.vue'
-import { useDocStore } from '#imports'
-
 const { isViewToolbar } = defineProps<{
   isViewToolbar?: boolean
 }>()
@@ -166,7 +164,7 @@ watch(showShareModal, (val) => {
                   {{ project.type === NcProjectType.DOCS ? 'Document' : 'Project' }}
                 </div>
                 <div
-                  class="max-w-7/10 ml-2 px-2 py-0.5 rounded-md bg-gray-75 capitalize text-ellipsis overflow-hidden"
+                  class="max-w-7/10 ml-2 px-2 py-0.5 rounded-md bg-gray-100 capitalize text-ellipsis overflow-hidden"
                   :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
                 >
                   {{ project.title }}
@@ -184,7 +182,7 @@ watch(showShareModal, (val) => {
               <GeneralViewIcon v-else :meta="view!" class="nc-view-icon"></GeneralViewIcon>
               <div data-testid="docs-share-dlg-share-view select-none">
                 <span> Share {{ project.type === NcProjectType.DOCS ? 'Page' : 'View' }} </span>
-                <span class="ml-2.75 py-1 px-2 rounded-md bg-gray-75 capitalize">{{
+                <span class="ml-2.75 py-1 px-2 rounded-md bg-gray-100 capitalize">{{
                   !viewTitle ? EMPTY_TITLE_PLACEHOLDER_DOCS : viewTitle
                 }}</span>
               </div>
@@ -196,10 +194,15 @@ watch(showShareModal, (val) => {
       <div class="share-view">
         <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
           <IonDocumentOutline v-if="project.type === NcProjectType.DOCS" />
-          <GeneralViewIcon v-else :meta="view!" class="nc-view-icon"></GeneralViewIcon>
+          <component
+            :is="viewIcons[view?.type]?.icon"
+            v-else
+            class="nc-view-icon group-hover"
+            :style="{ color: viewIcons[view?.type]?.color }"
+          />
           <div>Share {{ project.type === NcProjectType.DOCS ? 'Page' : 'View' }}</div>
           <div
-            class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-gray-75 capitalize text-ellipsis overflow-hidden"
+            class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-gray-100 capitalize text-ellipsis overflow-hidden"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
           >
             {{ !viewTitle ? EMPTY_TITLE_PLACEHOLDER_DOCS : viewTitle }}
@@ -207,15 +210,16 @@ watch(showShareModal, (val) => {
         </div>
         <SharePage />
       </div>
-      <div class="flex flex-row justify-end mx-3 mt-1 mb-2 !border-gray-100 pt-4 gap-x-2">
-        <NcButton type="secondary" data-testid="docs-cancel-btn" label="Close" @click="showShareModal = false" />
+      <div class="flex flex-row justify-end mx-3 mt-1 mb-2 pt-4 gap-x-2">
+        <NcButton type="secondary" data-testid="docs-cancel-btn" @click="showShareModal = false"> Close </NcButton>
         <NcButton
           data-testid="docs-share-manage-access"
           type="secondary"
-          label="Manage project access"
           :loading="isOpeningManageAccess"
           @click="openManageAccess"
-        />
+        >
+          Manage project access
+        </NcButton>
 
         <!-- <a-button
           v-if="formStatus === 'project-collaborate'"
@@ -249,7 +253,7 @@ watch(showShareModal, (val) => {
   }
 
   .share-view {
-    @apply !border-1 border-gray-100 mx-3 rounded-lg mt-3 px-1 py-1;
+    @apply !border-1 border-gray-200 mx-3 rounded-lg mt-3 px-1 py-1;
   }
 
   .ant-collapse-item {

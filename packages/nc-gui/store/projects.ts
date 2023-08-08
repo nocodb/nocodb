@@ -80,7 +80,7 @@ export const useProjects = defineStore('projectsStore', () => {
     await api.auth.projectUserUpdate(projectId, user.id, user as ProjectUserReqType)
   }
 
-  const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace' = 'recent') => {
+  const loadProjects = async (page: 'recent' | 'shared' | 'starred' | 'workspace' = 'recent') => {
     const activeWorkspace = workspaceStore.activeWorkspace
     const workspace = workspaceStore.workspace
 
@@ -230,7 +230,7 @@ export const useProjects = defineStore('projectsStore', () => {
   }
 
   async function getProjectMetaInfo(projectId: string) {
-    return await api.project.metaGet(projectId!, {}, {})
+    return await api.project.metaGet(projectId!, {})
   }
 
   async function setProject(projectId: string, project: NcProject) {

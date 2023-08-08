@@ -1,6 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { Users } from '~~/lib'
-import { useDocStore, useViewsStore } from '#imports'
+import type { Users } from '~/lib'
 
 export const useShare = defineStore('share', () => {
   const visibility = ref<'public' | 'private' | 'none' | 'hidden'>('none')

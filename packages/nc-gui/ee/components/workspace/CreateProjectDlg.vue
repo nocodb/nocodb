@@ -4,7 +4,8 @@ import type { Form, Input } from 'ant-design-vue'
 import type { VNodeRef } from '@vue/runtime-core'
 import { computed } from '@vue/reactivity'
 import { NcProjectType, extractSdkResponseErrorMsg } from '~/utils'
-import { projectTitleValidator, ref, useVModel, useWorkspace } from '#imports'
+import { projectTitleValidator, ref, useVModel } from '#imports'
+import { useWorkspace } from '~/store/workspace'
 import { navigateTo } from '#app'
 import { useGlobal } from '~/composables/useGlobal'
 
@@ -126,7 +127,7 @@ const typeLabel = computed(() => {
       </a-form>
 
       <div class="flex flex-row justify-end mt-7 gap-x-2">
-        <NcButton type="secondary" label="Cancel" @click="dialogShow = false" />
+        <NcButton type="secondary" @click="dialogShow = false">Cancel</NcButton>
         <NcButton
           data-testid="docs-create-proj-dlg-create-btn"
           :loading="creating"
@@ -134,7 +135,12 @@ const typeLabel = computed(() => {
           :label="`Create ${typeLabel}`"
           :loading-label="`Creating ${typeLabel}`"
           @click="createProject"
-        />
+        >
+          {{ `Create ${typeLabel}` }}
+          <template #loading>
+            {{ `Creating ${typeLabel}` }}
+          </template>
+        </NcButton>
       </div>
     </div>
   </NcModal>

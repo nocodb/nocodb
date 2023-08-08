@@ -50,7 +50,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   })
 
   const activeWorkspace = computed(() => {
-    return workspaces.value?.get(activeWorkspaceId.value ?? (activePage.value === 'workspace' ? workspacesList.value[0] : null))
+    if (activeWorkspaceId.value && workspaces.value?.has(activeWorkspaceId.value)) {
+      const ws = workspaces.value.get(activeWorkspaceId.value)
+      if (ws) {
+        return ws
+      }
+    }
+    return activePage.value === 'workspace' ? workspacesList.value?.[0] ?? null : null
   })
 
   const activeWorkspaceMeta = computed<Record<string, any>>(() => {

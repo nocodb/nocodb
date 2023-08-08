@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { UserType } from 'nocodb-sdk'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import {
   Form,
@@ -13,17 +12,11 @@ import {
   useNuxtApp,
   validateEmail,
 } from '#imports'
-import type { User } from '~/lib'
+import type { User, Users } from '~/lib'
 
 interface Props {
   show: boolean
   selectedUser?: User
-}
-
-interface Users {
-  emails: string
-  role: WorkspaceUserRoles.CREATOR | WorkspaceUserRoles.VIEWER
-  invitationToken?: string
 }
 
 const { show } = defineProps<Props>()
@@ -76,7 +69,7 @@ const saveUser = async () => {
     const res = await $api.orgUsers.add({
       roles: usersData.role,
       email: usersData.emails,
-    } as unknown as UserType)
+    })
 
     usersData.invitationToken = res.invite_token
     emit('reload')

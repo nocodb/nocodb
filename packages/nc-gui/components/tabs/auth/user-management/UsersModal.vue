@@ -20,18 +20,12 @@ import {
   useNuxtApp,
   useProject,
 } from '#imports'
-import type { User } from '~/lib'
+import type { User, Users } from '~/lib'
 import { ProjectRole } from '~/lib'
 
 interface Props {
   show: boolean
   selectedUser?: User | null
-}
-
-interface Users {
-  emails?: string
-  role: ProjectRole
-  invitationToken?: string
 }
 
 const { show, selectedUser } = defineProps<Props>()
@@ -87,7 +81,7 @@ const saveUser = async () => {
   try {
     if (selectedUser?.id) {
       await $api.auth.projectUserUpdate(project.value.id, selectedUser.id, {
-        roles: usersData.role,
+        roles: usersData.role as ProjectRole,
         email: selectedUser.email,
         project_id: project.value.id,
         projectName: project.value.title,

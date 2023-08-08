@@ -4,9 +4,11 @@ import type {
   FilterType,
   LayoutType,
   MetaType,
+  OrgUserRoles,
   PaginatedType,
   ProjectType,
   ViewTypes,
+  WorkspaceUserRoles,
 } from 'nocodb-sdk'
 import type { I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
@@ -181,4 +183,16 @@ export interface GroupNestedIn {
   column_name: string
   key: string
   column_uidt: string
+}
+
+type AllRoles =
+  | (typeof ProjectRole)[keyof typeof ProjectRole]
+  | (typeof Role)[keyof typeof Role]
+  | (typeof WorkspaceUserRoles)[keyof typeof WorkspaceUserRoles]
+  | (typeof OrgUserRoles)[keyof typeof OrgUserRoles]
+
+export interface Users {
+  emails?: string
+  role: AllRoles
+  invitationToken?: string
 }

@@ -14,18 +14,12 @@ import {
   useI18n,
   useNuxtApp,
 } from '#imports'
-import type { User } from '~/lib'
+import type { User, Users } from '~/lib'
 import { Role } from '~/lib'
 
 interface Props {
   show: boolean
   selectedUser?: User
-}
-
-interface Users {
-  emails: string
-  role: Role.OrgLevelCreator | Role.OrgLevelViewer
-  invitationToken?: string
 }
 
 const { show } = defineProps<Props>()

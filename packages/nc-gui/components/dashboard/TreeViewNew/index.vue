@@ -25,7 +25,7 @@ import {
 } from '#imports'
 
 import { useRouter } from '#app'
-import { isElementInvisible } from '~~/utils/domUtils'
+import { isElementInvisible } from '~/utils/domUtils'
 
 const emit = defineEmits<{
   (event: 'onScrollTop', type: boolean): void

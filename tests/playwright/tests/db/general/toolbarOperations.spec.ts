@@ -134,6 +134,11 @@ test.describe('Toolbar operations (GRID)', () => {
       indexMap: [1],
       value: 'Comedy',
     });
+
+    //Reset Changes
+    await toolbar.clickGroupBy();
+    await toolbar.groupBy.reset();
+    await toolbar.filter.reset();
   });
 
   test('Hide, Sort, Filter', async () => {

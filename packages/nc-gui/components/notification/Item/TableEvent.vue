@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { ProjectEventType } from 'nocodb-sdk'
+import type { TableEventType } from 'nocodb-sdk'
 import { AppEvents } from 'nocodb-sdk'
 
 const props = defineProps<{
-  item: ProjectEventType
+  item: TableEventType
 }>()
 
 const item = $(toRef(props, 'item'))
@@ -12,25 +12,25 @@ const { navigateToProject } = $(useGlobal())
 
 const action = computed(() => {
   switch (item.type) {
-    case AppEvents.VIEW_CREATE:
+    case AppEvents.TABLE_CREATE:
       return 'created'
-    case AppEvents.VIEW_UPDATE:
+    case AppEvents.TABLE_UPDATE:
       return 'updated'
-    case AppEvents.VIEW_DELETE:
+    case AppEvents.TABLE_DELETE:
       return 'deleted'
   }
 })
 
 const onClick = () => {
-  if (item.type === AppEvents.VIEW_DELETE) return
-  navigateToProject({ workspaceId: item.body.workspace_id, projectId: item.body.id })
+  if (item.type === AppEvents.TABLE_DELETE) return
+  navigateToProject({ projectId: item.body.id })
 }
 </script>
 
 <template>
   <NotificationItemWrapper :item="item" @click="onClick">
     <div class="text-xs gap-2">
-      View
+      Table
       <strong>{{ item.body.title }}</strong>
       {{ action }} successfully
     </div>

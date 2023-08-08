@@ -74,7 +74,7 @@ export function useGlobalActions(state: State): Actions {
     type: _type,
     projectId,
   }: {
-    workspaceId: string
+    workspaceId?: string
     projectId?: string
     type?: NcProjectType
   }) => {

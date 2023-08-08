@@ -156,7 +156,6 @@ const { loadScope } = useCommandPalette()
 onMounted(() => {
   toggle(true)
   toggleHasSidebar(true)
-  loadScope('workspace', { workspace_id: route.params.workspaceId, project_id: route.params.projectId })
 })
 
 onBeforeUnmount(() => {

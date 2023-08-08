@@ -74,7 +74,7 @@ export default {
             <span class="nc-quick-action-shortcut">⌘ K</span>
           </div> -->
 
-          <div v-if="!isPublic && isEeUI" class="flex items-center">
+          <div v-if="!isPublic" class="flex items-center">
             <NotificationMenu class="mr-2" data-testid="nc-notification-bell-icon" />
           </div>
 

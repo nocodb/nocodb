@@ -23,14 +23,14 @@ const action = computed(() => {
 
 const onClick = () => {
   if (item.type === AppEvents.VIEW_DELETE) return
-  navigateToProject({ workspaceId: item.body.workspace_id, projectId: item.body.id })
+  navigateToProject({ projectId: item.body.id })
 }
 </script>
 
 <template>
   <NotificationItemWrapper :item="item" @click="onClick">
     <div class="text-xs gap-2">
-      View
+      Shared view
       <strong>{{ item.body.title }}</strong>
       {{ action }} successfully
     </div>

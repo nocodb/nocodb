@@ -40,7 +40,7 @@ async function timezoneSuite(projectTitle: string, context: NcContext, skipTable
     },
   });
   // get current workspace information if in hub
-  const workspaceId = context.workspace.id;
+  const workspaceId = context?.workspace?.id;
   try {
     let projectList: ProjectListType;
     if (isHub()) {

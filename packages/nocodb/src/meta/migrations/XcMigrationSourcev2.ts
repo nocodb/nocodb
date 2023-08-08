@@ -52,7 +52,7 @@ export default class XcMigrationSourcev2 {
       'nc_030_add_description_field',
       'nc_031_remove_fk_and_add_idx',
       'nc_033_add_group_by',
-      'nc_034_erd_filter_and_notification'
+      'nc_034_erd_filter_and_notification',
     ]);
   }
 

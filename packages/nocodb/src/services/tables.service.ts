@@ -3,7 +3,6 @@ import DOMPurify from 'isomorphic-dompurify';
 import { isLinksOrLTAR, isVirtualCol, ModelTypes, UITypes } from 'nocodb-sdk';
 import { AppEvents } from 'nocodb-sdk';
 import { MetaDiffsService } from './meta-diffs.service';
-import { AppHooksService } from './app-hooks/app-hooks.service';
 import { ColumnsService } from './columns.service';
 import type { MetaService } from '~/meta/meta.service';
 import type { LinkToAnotherRecordColumn, User, View } from '~/models';
@@ -13,6 +12,7 @@ import type {
   TableReqType,
   UserType,
 } from 'nocodb-sdk';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import { NcError } from '~/helpers/catchError';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';

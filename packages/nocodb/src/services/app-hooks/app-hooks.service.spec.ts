@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
-import { AppHooksService } from './app-hooks.service';
 import type { TestingModule } from '@nestjs/testing';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 describe('AppHooksService', () => {
   let service: AppHooksService;

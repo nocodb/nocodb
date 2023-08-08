@@ -8,8 +8,8 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
-import { AppHooksService } from './app-hooks/app-hooks.service';
 import type { LinksColumn, LinkToAnotherRecordColumn } from '~/models';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import ModelXcMetaFactory from '~/db/sql-mgr/code/models/xc/ModelXcMetaFactory';
 import getColumnUiType from '~/helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';

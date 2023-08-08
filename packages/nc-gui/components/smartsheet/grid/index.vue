@@ -141,6 +141,27 @@ const addRowExpandOnClose = (row: Row) => {
   }
 }
 
+// function openGenerateDialog(target: any) {
+//   const isOpen = ref(true)
+
+//   const { close } = useDialog(resolveComponent('SmartsheetDlgGenerate'), {
+//     'modelValue': isOpen,
+//     'target': target,
+//     'meta': meta,
+//     'view': view,
+//     'fields': fields,
+//     'data': data,
+//     'xWhere': xWhere,
+//     'onUpdate:modelValue': closeDialog,
+//   })
+
+//   function closeDialog() {
+//     isOpen.value = false
+
+//     close(1000)
+//   }
+// }
+
 const toggleOptimisedQuery = () => {
   if (optimisedQuery.value) {
     optimisedQuery.value = false

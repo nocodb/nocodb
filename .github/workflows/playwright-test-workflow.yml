@@ -59,7 +59,7 @@ jobs:
         run: npm install
       - name: Build nocodb-sdk
         working-directory: ./packages/nocodb-sdk
-        run: npm run build:ee
+        run: npm run build
       - name: Setup mysql
         if: ${{ inputs.db == 'mysql' }}
         working-directory: ./
@@ -93,7 +93,7 @@ jobs:
         working-directory: ./packages/nocodb
         run: |
           npm install
-          npm run watch:run:playwright:pg:ee &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+          npm run watch:run:playwright:pg &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
       - name: Cache playwright npm modules
         uses: actions/cache@v3
         id: playwright-cache

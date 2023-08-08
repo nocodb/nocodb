@@ -4,9 +4,10 @@ import { Api, ProjectType, ProjectTypes, UserType, WorkspaceType } from 'nocodb-
 import { getDefaultPwd } from '../tests/utils/general';
 import { knex } from 'knex';
 import { promises as fs } from 'fs';
+import { isEE } from './db';
 
 // Use local reset logic instead of remote
-const enableLocalInit = true;
+const enableLocalInit = isEE();
 
 // PG Configuration
 //
@@ -291,15 +292,20 @@ const setup = async ({
 
   // default landing page for tests
   let projectUrl;
-  switch (project.type) {
-    case ProjectTypes.DOCUMENTATION:
-      projectUrl = url ? url : `/#/ws/${project.fk_workspace_id}/nc/${project.id}/doc`;
-      break;
-    case ProjectTypes.DATABASE:
-      projectUrl = url ? url : `/#/ws/${project.fk_workspace_id}/nc/${project.id}`;
-      break;
-    default:
-      throw new Error(`Unknown project type: ${project.type}`);
+  if (isEE()) {
+    switch (project.type) {
+      case ProjectTypes.DOCUMENTATION:
+        projectUrl = url ? url : `/#/ws/${project.fk_workspace_id}/nc/${project.id}/doc`;
+        break;
+      case ProjectTypes.DATABASE:
+        projectUrl = url ? url : `/#/ws/${project.fk_workspace_id}/nc/${project.id}`;
+        break;
+      default:
+        throw new Error(`Unknown project type: ${project.type}`);
+    }
+  } else {
+    // sample: http://localhost:3000/#/ws/default/project/pdknlfoc5e7bx4w
+    projectUrl = url ? url : `/#/ws/default/project/${project.id}`;
   }
 
   await page.goto(projectUrl, { waitUntil: 'networkidle' });

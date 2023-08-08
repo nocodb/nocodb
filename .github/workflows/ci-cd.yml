@@ -37,7 +37,7 @@ jobs:
         - name: Setup Node
           uses: actions/setup-node@v3
           with:
-            node-version: 16.15.0
+            node-version: 18.14.0
         - name: Checkout
           uses: actions/checkout@v3
           with:
@@ -79,7 +79,7 @@ jobs:
         - name: Setup Node
           uses: actions/setup-node@v3
           with:
-            node-version: 16.15.0
+            node-version: 18.14.0
         - name: Checkout
           uses: actions/checkout@v3
           with:

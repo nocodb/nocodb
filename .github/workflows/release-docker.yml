@@ -84,7 +84,7 @@ jobs:
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
-          node-version: 16.15.0
+          node-version: 18.14.0
 
       - name: upgrade packages for nightly build or pr build
         if: ${{ github.event.inputs.targetEnv == 'DEV' || inputs.targetEnv == 'DEV' }}

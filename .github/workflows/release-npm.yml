@@ -46,11 +46,11 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.ref }}
-      - name: pnpm Setup and Publish with 16.15.0
+      - name: pnpm Setup and Publish with 18.14.0
         # Setup .npmrc file to publish to npm
         uses: actions/setup-node@v3
         with:
-          node-version: 16.15.0
+          node-version: 18.14.0
           registry-url: 'https://registry.npmjs.org'
       - run: |
           export NODE_OPTIONS="--max_old_space_size=16384"

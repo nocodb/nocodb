@@ -216,7 +216,7 @@ defineExpose({
             <div class="flex flex-col w-full gap-y-2">
               <div class="flex flex-row w-full justify-between items-center">
                 <span v-if="!i" class="flex items-center ml-2">{{ $t('labels.where') }}</span>
-                <div v-else :key="`${i}nested`">
+                <div v-else :key="`${i}nested`" class="flex nc-filter-logical-op">
                   <NcSelect
                     v-model:value="filter.logical_op"
                     :dropdown-match-select-width="false"

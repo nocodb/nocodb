@@ -93,7 +93,7 @@ export class ToolbarFilterPage extends BasePage {
 
     if (filterGroupIndex) {
       if (filterLogicalOperator === 'OR') {
-        const logicalButton = await this.rootPage.locator('div.flex.bob').nth(filterGroupIndex - 1);
+        const logicalButton = await this.rootPage.locator('div.flex.nc-filter-logical-op').nth(filterGroupIndex - 1);
         await logicalButton.waitFor({ state: 'visible' });
         await logicalButton.click();
 
@@ -275,7 +275,14 @@ export class ToolbarFilterPage extends BasePage {
             .click();
           break;
         case UITypes.MultiSelect:
-          await this.get().locator('.nc-filter-value-select').click();
+          await this.get()
+            .locator('.nc-filter-value-select')
+            .click({
+              position: {
+                x: 1,
+                y: 1,
+              },
+            });
           // eslint-disable-next-line no-case-declarations
           const v = value.split(',');
           for (let i = 0; i < v.length; i++) {

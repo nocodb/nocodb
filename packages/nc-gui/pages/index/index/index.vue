@@ -1,54 +1,22 @@
 <script setup lang="ts">
 import type { Menu } from 'ant-design-vue'
-import { Empty, Modal } from 'ant-design-vue'
-import type { WorkspaceType } from 'nocodb-sdk'
-import { nextTick, onUnmounted } from '@vue/runtime-core'
-import { WorkspaceStatus, WorkspaceUserRoles } from 'nocodb-sdk'
-import tinycolor from 'tinycolor2'
-import Sortable from 'sortablejs'
-import {
-  computed,
-  extractSdkResponseErrorMsg,
-  message,
-  onMounted,
-  parseProp,
-  projectThemeColors,
-  storeToRefs,
-  stringToColour,
-  useRouter,
-  useSidebar,
-  useWorkspace,
-} from '#imports'
+import { nextTick } from '@vue/runtime-core'
+import { WorkspaceStatus } from 'nocodb-sdk'
+import { computed, onMounted, storeToRefs, useRouter, useSidebar, useWorkspace } from '#imports'
 
 const router = useRouter()
 
 const { isUIAllowed } = useUIPermission()
 
-const roleAlias = {
-  [WorkspaceUserRoles.OWNER]: 'Owner',
-  [WorkspaceUserRoles.VIEWER]: 'Viewer',
-  [WorkspaceUserRoles.CREATOR]: 'Creator',
-}
-
 const workspaceStore = useWorkspace()
 
-const { deleteWorkspace: _deleteWorkspace, loadWorkspaces, updateWorkspace, populateWorkspace } = workspaceStore
+const { deleteWorkspace: _deleteWorkspace, loadWorkspaces, populateWorkspace } = workspaceStore
 
 const projectsStore = useProjects()
 
-const {
-  workspacesList,
-  activeWorkspace,
-  isWorkspaceOwnerOrCreator,
-  isWorkspaceOwner,
-  activePage,
-  collaborators,
-  activeWorkspaceId,
-} = storeToRefs(workspaceStore)
+const { workspacesList, activeWorkspace, activePage, collaborators, activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const { loadProjects } = useProjects()
-
-const { $e } = useNuxtApp()
 
 const route = $(router.currentRoute)
 
@@ -75,36 +43,11 @@ const isCreateProjectOpen = ref(false)
 
 const menuEl = ref<typeof Menu | null>(null)
 
-const toBeDeletedWorkspaceId = ref<string | null>(null)
-const showDeleteWorkspace = ref(false)
-
-const menu = (el?: typeof Menu) => {
-  if (el) {
-    menuEl.value = el
-    initSortable(el.$el)
-  }
-}
-
-const { loadScope } = useCommandPalette()
-
 onMounted(async () => {
   toggle(true)
   toggleHasSidebar(true)
 
   loadProjects('recent')
-
-  // await loadWorkspaces()
-  // await loadScope('root')
-
-  // loadWorkspacesWithInterval()
-
-  // if (!route.query.workspaceId && workspacesList.value?.length) {
-  //   await router.push({ query: { workspaceId: workspacesList.value[0].id, page: 'workspace' } })
-  // } else {
-  //   selectedWorkspaceIndex.value = [workspacesList.value?.findIndex((workspace) => workspace.id === route.query.workspaceId)]
-  // }
-  //
-  // if (activeWorkspace.value && activeWorkspace.value.status !== WorkspaceStatus.CREATING) await loadProjects()
 })
 
 watch(
@@ -140,96 +83,6 @@ useDialog(resolveComponent('WorkspaceCreateDlg'), {
   },
 })
 
-const deleteWorkspace = (workspace: WorkspaceType) => {
-  toBeDeletedWorkspaceId.value = workspace.id!
-  showDeleteWorkspace.value = true
-}
-
-const updateWorkspaceTitle = async (workspace: WorkspaceType & { edit: boolean; temp_title: string }) => {
-  try {
-    await updateWorkspace(workspace.id!, { title: workspace.temp_title })
-    workspace.title = workspace.temp_title
-    workspace.edit = false
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
-const handleWorkspaceColor = async (workspaceId: string, color: string) => {
-  const workspace = workspacesList.value?.find((w) => w.id === workspaceId)
-
-  if (!workspace) return
-
-  const tcolor = tinycolor(color)
-
-  if (tcolor.isValid()) {
-    const meta = workspace?.meta && typeof workspace.meta === 'string' ? JSON.parse(workspace.meta) : workspace.meta || {}
-
-    // Update local workspace meta
-    workspace.meta = {
-      ...parseProp(meta),
-      color,
-    }
-
-    await updateWorkspace(workspace.id!, {
-      meta: workspace.meta,
-    })
-  }
-}
-
-const getWorkspaceColor = (workspace: WorkspaceType) => workspace.meta?.color || stringToColour(workspace.id!)
-
-// const sortables: Record<string, Sortable> = {}
-
-function getIdFromEl(previousEl: HTMLElement) {
-  return previousEl.querySelector('[data-id]')?.dataset?.id
-}
-
-// todo: replace with vuedraggable
-function initSortable(el: Element) {
-  Sortable.create(el as HTMLLIElement, {
-    onEnd: async (evt) => {
-      if (workspacesList.value?.length < 2) return
-
-      const { newIndex = 0, oldIndex = 0 } = evt
-
-      if (newIndex === oldIndex) return
-
-      const children = evt.to.children as unknown as HTMLLIElement[]
-
-      const previousEl = children[newIndex - 1]
-      const nextEl = children[newIndex + 1]
-
-      const currentItem = workspacesList.value.find((v) => v.id === getIdFromEl(evt.item))
-
-      if (!currentItem || !currentItem.id) return
-
-      const previousItem = (previousEl ? workspacesList.value.find((v) => v.id === getIdFromEl(previousEl)) : {}) as WorkspaceType
-      const nextItem = (nextEl ? workspacesList.value.find((v) => v.id === getIdFromEl(nextEl)) : {}) as WorkspaceType
-
-      let nextOrder: number
-
-      // set new order value based on the new order of the items
-      if (workspacesList.value.length - 1 === newIndex) {
-        nextOrder = parseFloat(String(previousItem.order)) + 1
-      } else if (newIndex === 0) {
-        nextOrder = parseFloat(String(nextItem.order)) / 2
-      } else {
-        nextOrder = (parseFloat(String(previousItem.order)) + parseFloat(String(nextItem.order))) / 2
-      }
-
-      const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
-
-      currentItem.order = _nextOrder
-
-      await updateWorkspace(currentItem.id, { order: _nextOrder })
-
-      $e('a:workspace:reorder')
-    },
-    animation: 150,
-  })
-}
-
 const tab = computed({
   get() {
     return route.query?.tab ?? 'projects'
@@ -238,20 +91,6 @@ const tab = computed({
     router.push({ query: { ...route.query, tab } })
   },
 })
-
-const renameInput = ref<HTMLInputElement[]>()
-const enableEdit = (index: number) => {
-  workspacesList.value[index].temp_title = workspacesList.value[index].title
-  workspacesList.value[index].edit = true
-  nextTick(() => {
-    renameInput.value?.[0]?.focus()
-    renameInput.value?.[0]?.select()
-  })
-}
-const disableEdit = (index: number) => {
-  workspacesList.value[index].temp_title = null
-  workspacesList.value[index].edit = false
-}
 
 const projectListType = computed(() => {
   switch (activePage.value) {
@@ -270,16 +109,6 @@ watch(activeWorkspaceId, async () => {
   if (activeWorkspace.value?.status !== WorkspaceStatus.CREATED) return
   await loadProjects(activePage.value)
 })
-
-// todo: do it in a better way
-function loadWorkspacesWithInterval() {
-  timerRef = setTimeout(async () => {
-    if (!workspacesList.value || workspacesList.value.some((workspace) => workspace.status === WorkspaceStatus.CREATING)) {
-      await loadWorkspaces()
-    }
-    loadWorkspacesWithInterval()
-  }, 10000)
-}
 
 watch(
   () => activeWorkspace.value?.status,

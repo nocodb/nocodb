@@ -41,7 +41,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   })
 
   const activeWorkspace = computed(() => {
-    return { id: 'default', title: 'default', meta: {}, roles: '' }
+    return { id: 'default', title: 'default', meta: {}, roles: '' } as any
   })
 
   const activeWorkspaceMeta = computed<Record<string, any>>(() => {

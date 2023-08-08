@@ -112,8 +112,12 @@ export const useProjects = defineStore('projectsStore', () => {
               },
         )
         _projects = list
-        projects.value.clear()
       }
+
+      projects.value = Array.from(projects.value.values()).reduce((acc, project) => {
+        if (_projects.find((p) => p.id === project.id)) acc.set(project.id!, project)
+        return acc
+      }, new Map())
 
       for (const project of _projects) {
         projects.value.set(project.id!, {

@@ -57,12 +57,6 @@ export interface ProjectDeleteEvent {
   user: UserType;
 }
 
-export interface WorkspaceInviteEvent {
-  workspace: WorkspaceType;
-  user: UserType;
-  invitedBy: UserType;
-}
-
 export interface WelcomeEvent {
   user: UserType;
 }
@@ -132,12 +126,6 @@ export interface ColumnEvent {
 
 export interface SortEvent {
   sort: SortType;
-  ip?: string;
-}
-
-export interface WorkspaceEvent {
-  workspace: WorkspaceType;
-  user: UserType;
   ip?: string;
 }
 
@@ -214,7 +202,6 @@ export type AppEventPayload =
   | ProjectCreateEvent
   | ProjectUpdateEvent
   | ProjectDeleteEvent
-  | WorkspaceInviteEvent
   | WelcomeEvent
   | UserSignupEvent
   | UserSigninEvent
@@ -222,5 +209,4 @@ export type AppEventPayload =
   | ViewEvent
   | FilterEvent
   | SortEvent
-  | ColumnEvent
-  | WorkspaceEvent;
+  | ColumnEvent;

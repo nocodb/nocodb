@@ -352,7 +352,7 @@ watch(
 
           <div class="flex-grow min-w-10"></div>
           <WorkspaceCreateProjectBtn
-            v-if="isUIAllowed('createProject', false) && tab === 'projects'"
+            v-if="isUIAllowed('projectCreate', false) && tab === 'projects'"
             v-model:is-open="isCreateProjectOpen"
             class="mt-0.75"
             type="primary"

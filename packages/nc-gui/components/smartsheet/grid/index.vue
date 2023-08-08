@@ -31,7 +31,7 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
 // keep a root fields variable and will get modified from
 // fields menu and get used in grid and gallery
-const fields = inject(FieldsInj, ref([]))
+// const fields = inject(FieldsInj, ref([]))
 
 const router = useRouter()
 
@@ -146,26 +146,26 @@ const addRowExpandOnClose = (row: Row) => {
   }
 }
 
-function openGenerateDialog(target: any) {
-  const isOpen = ref(true)
+// function openGenerateDialog(target: any) {
+//   const isOpen = ref(true)
 
-  const { close } = useDialog(resolveComponent('SmartsheetDlgGenerate'), {
-    'modelValue': isOpen,
-    'target': target,
-    'meta': meta,
-    'view': view,
-    'fields': fields,
-    'data': data,
-    'xWhere': xWhere,
-    'onUpdate:modelValue': closeDialog,
-  })
+//   const { close } = useDialog(resolveComponent('SmartsheetDlgGenerate'), {
+//     'modelValue': isOpen,
+//     'target': target,
+//     'meta': meta,
+//     'view': view,
+//     'fields': fields,
+//     'data': data,
+//     'xWhere': xWhere,
+//     'onUpdate:modelValue': closeDialog,
+//   })
 
-  function closeDialog() {
-    isOpen.value = false
+//   function closeDialog() {
+//     isOpen.value = false
 
-    close(1000)
-  }
-}
+//     close(1000)
+//   }
+// }
 
 const toggleOptimisedQuery = () => {
   if (optimisedQuery.value) {

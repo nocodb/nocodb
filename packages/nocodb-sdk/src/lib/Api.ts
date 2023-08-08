@@ -2196,7 +2196,7 @@ export interface ProjectType {
    * @example nc_vm5q__
    */
   prefix?: string;
-  type?: string;
+  type?: 'database' | 'documentation' | 'dashboard';
   /** List of linked Database Projects that this project has access to (only used in Dashboard projects so far) */
   linked_db_projects?: ProjectType[];
   status?: string;
@@ -2243,7 +2243,7 @@ export interface ProjectReqType {
    * @example locked
    */
   status?: StringOrNullType;
-  type?: string;
+  type?: 'database' | 'documentation' | 'dashboard';
   /** List of Linked Database Project IDs (only used for Dashboard Projects so far) */
   linked_db_project_ids?: string[];
   /** Workspace ID */

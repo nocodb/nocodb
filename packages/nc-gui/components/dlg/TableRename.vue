@@ -205,7 +205,7 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
         </a-form-item>
       </a-form>
       <div class="flex flex-row justify-end gap-x-2 mt-6">
-        <NcButton type="secondary" :label="$t('general.cancel')" @click="dialogShow = false" />
+        <NcButton type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
 
         <NcButton
           key="submit"
@@ -215,7 +215,10 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
           loading-label="Renaming Table"
           :loading="loading"
           @click="() => renameTable()"
-        />
+        >
+          Rename Table
+          <template #loading> Renaming Table </template>
+        </NcButton>
       </div>
     </div>
   </NcModal>

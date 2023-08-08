@@ -5,6 +5,7 @@ export const useShare = defineStore('share', () => {
   const visibility = ref<'public' | 'private' | 'none' | 'hidden'>('none')
   const { project } = toRefs(useProject())
   const { openedPage, isEditAllowed } = toRefs(useDocStore())
+  const viewsStore = useViewsStore()
 
   const isProjectPublic = computed(() => {
     if (typeof project.value?.meta === 'string') {
@@ -32,8 +33,21 @@ export const useShare = defineStore('share', () => {
   const invitationUsersData = ref<Users>({ emails: undefined, role: ProjectRole.Viewer, invitationToken: undefined })
 
   watch(
+    () => viewsStore.activeView?.uuid,
+    (uuid) => {
+      if (project.value?.type !== 'database') return
+
+      visibility.value = uuid ? 'public' : 'private'
+    },
+    {
+      immediate: true,
+    },
+  )
+
+  watch(
     [openedPage, isEditAllowed, isProjectPublic],
     () => {
+      if (project.value?.type !== 'documentation') return
       if (!isEditAllowed.value) {
         visibility.value = 'hidden'
         return

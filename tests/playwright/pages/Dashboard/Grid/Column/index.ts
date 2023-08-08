@@ -26,7 +26,7 @@ export class ColumnPageObject extends BasePage {
   }
 
   private getColumnHeader(title: string) {
-    return this.grid.get().locator(`th[data-title="${title}"]`);
+    return this.grid.get().locator(`th[data-title="${title}"]`).first();
   }
 
   async clickColumnHeader({ title }: { title: string }) {

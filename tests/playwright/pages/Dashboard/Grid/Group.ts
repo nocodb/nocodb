@@ -13,12 +13,9 @@ export class GroupPageObject extends BasePage {
   }
 
   get({ indexMap }: { indexMap: Array<number> }) {
-    let query = ' .nc-group ';
-    for (const [n, key] of indexMap.entries()) {
-      query += `>> nth=${n} `;
-      if (indexMap[key + 1]) {
-        query += ` >> .nc-group `;
-      }
+    let query = '';
+    for (const [n] of indexMap.entries()) {
+      query += `.nc-group:nth-child(${n + 1}) `;
     }
     return this.rootPage.locator(query);
   }
@@ -44,15 +41,15 @@ export class GroupPageObject extends BasePage {
   }
 
   async verifyOrdering({ indexMap, value }: { indexMap: number[]; value: string }) {
-    const groupWrapper = this.get({ indexMap });
-    console.log(await groupWrapper.locator('.nc-group-value').first().innerText());
-
-    await expect(groupWrapper.locator('.nc-group-value').first()).toHaveText(value);
+    let query = '';
+    for (const [n] of indexMap.entries()) {
+      query += ` .nc-group:nth-child(${n + 1})`;
+    }
+    await expect(this.rootPage.locator(`${query} .nc-group-value`).first()).toHaveText(value);
   }
 
   async verifyRow({ indexMap, rowIndex }: { indexMap: number[]; rowIndex: number }) {
     const gridWrapper = this.get({ indexMap });
-
     await gridWrapper.locator(`td[data-testid="cell-Title-${rowIndex}"]`).waitFor({ state: 'visible' });
     await expect(gridWrapper.locator(`td[data-testid="cell-Title-${rowIndex}"]`)).toHaveCount(1);
   }

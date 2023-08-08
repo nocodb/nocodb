@@ -93,9 +93,47 @@ test.describe('Toolbar operations (GRID)', () => {
     // Close GroupBy Menu
     await toolbar.clickGroupBy();
 
+    // Open Group
     await dashboard.grid.groupPage.openGroup({ indexMap: [1, 0] });
-    // TODO : Not Working
-    //await dashboard.grid.groupPage.verifyOrdering({indexMap: [1, 0], value: '48'})
+
+    // Verify Ordering
+    await dashboard.grid.groupPage.verifyOrdering({ indexMap: [1], value: 'Drama' });
+
+    // hide column with Grouping
+    await toolbar.fields.toggle({ title: 'Title' });
+    await dashboard.grid.column.verify({
+      title: 'Title',
+      isVisible: false,
+    });
+
+    // un-hide column with Grouping
+    await toolbar.fields.toggle({ title: 'Title' });
+    await dashboard.grid.column.verify({
+      title: 'Title',
+      isVisible: true,
+    });
+
+    // Filter column with Grouping
+    await toolbar.clickFilter();
+    await toolbar.filter.add({
+      title: 'Category',
+      value: 'Comedy',
+      operation: 'is equal',
+      locallySaved: false,
+    });
+    await toolbar.clickFilter();
+
+    // Verify Grouping
+    await dashboard.grid.groupPage.verifyGroupHeader({
+      indexMap: [0],
+      count: 58,
+      title: 'Category',
+    });
+
+    await dashboard.grid.groupPage.verifyOrdering({
+      indexMap: [1],
+      value: 'Comedy',
+    });
   });
 
   test('Hide, Sort, Filter', async () => {

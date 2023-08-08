@@ -45,9 +45,7 @@ export class ToolbarGroupByPage extends BasePage {
         .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
         .locator(`div[label="${title}"]`)
         .last()
-        .click({
-          timeout: 2000,
-        });
+        .click();
     }
 
     await this.rootPage.locator('.nc-sort-dir-select').last().click();

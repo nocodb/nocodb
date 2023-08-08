@@ -29,7 +29,7 @@ import type {
   UserSigninEvent,
   UserSignupEvent,
   ViewEvent,
-} from './app-hooks/interfaces';
+} from '~/services/app-hooks/interfaces';
 import { User } from '~/models';
 
 @Injectable()

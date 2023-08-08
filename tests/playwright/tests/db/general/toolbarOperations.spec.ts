@@ -41,6 +41,12 @@ test.describe('Toolbar operations (GRID)', () => {
       indexMap: [0, 1],
     });
 
+    await dashboard.grid.groupPage.verifyGroupHeader({
+      indexMap: [0, 1],
+      count: 56,
+      title: 'Category',
+    });
+
     // Open GroupBy Menu
     await toolbar.clickGroupBy();
 

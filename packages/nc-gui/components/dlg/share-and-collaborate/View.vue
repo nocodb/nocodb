@@ -153,14 +153,14 @@ watch(showShareModal, (val) => {
         <SharePage />
       </div>
       <div class="flex flex-row justify-end mx-3 mt-1 mb-2 pt-4 gap-x-2">
-        <NcButton type="secondary" data-testid="docs-cancel-btn" label="Close" @click="showShareModal = false" />
+        <NcButton type="secondary" data-testid="docs-cancel-btn" @click="showShareModal = false"> Close </NcButton>
         <NcButton
           data-testid="docs-share-manage-access"
           type="secondary"
-          label="Manage project access"
           :loading="isOpeningManageAccess"
           @click="openManageAccess"
-        />
+          >Manage project access</NcButton
+        >
 
         <!-- <a-button
           v-if="formStatus === 'project-collaborate'"

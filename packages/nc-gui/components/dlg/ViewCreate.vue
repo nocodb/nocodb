@@ -271,16 +271,14 @@ async function onSubmit() {
       </a-form>
 
       <div class="flex flex-row w-full justify-end gap-x-2 mt-7">
-        <NcButton type="secondary" :label="$t('general.cancel')" @click="vModel = false" />
+        <NcButton type="secondary" @click="vModel = false">
+          {{ $t('general.cancel') }}
+        </NcButton>
 
-        <NcButton
-          key="submit"
-          type="primary"
-          label="Create View"
-          loading-label="Creating View"
-          :loading="isViewCreating"
-          @click="onSubmit"
-        />
+        <NcButton type="primary" :loading="isViewCreating" @click="onSubmit">
+          Create View
+          <template #loading> Creating View </template>
+        </NcButton>
       </div>
     </div>
   </NcModal>

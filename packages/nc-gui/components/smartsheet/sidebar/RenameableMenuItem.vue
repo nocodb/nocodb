@@ -28,7 +28,7 @@ interface Emits {
 
   (event: 'changeView', view: Record<string, any>): void
 
-  (event: 'rename', view: ViewType, originalTitle: string | undefined): void
+  (event: 'rename', view: ViewType, title: string | undefined): void
 
   (event: 'delete', view: ViewType): void
 
@@ -64,7 +64,7 @@ const isEditing = computed({
 let isStopped = $ref(false)
 
 /** Original view title when editing the view name */
-let originalTitle = $ref<string | undefined>()
+let _title = $ref<string | undefined>()
 
 /** Debounce click handler, so we can potentially enable editing view name {@see onDblClick} */
 const onClick = useDebounceFn(() => {
@@ -80,7 +80,7 @@ function onDblClick() {
 
   if (!isEditing.value) {
     isEditing.value = true
-    originalTitle = vModel.value.title
+    _title = vModel.value.title
     $e('c:view:rename', { view: vModel.value?.type })
   }
 }
@@ -149,10 +149,14 @@ async function onRename() {
     return
   }
 
-  if (vModel.value.title === '' || vModel.value.title === originalTitle) {
+  if (vModel.value.title === '' || vModel.value.title === _title) {
     onCancel()
     return
   }
+
+  const originalTitle = vModel.value.title
+
+  vModel.value.title = _title || ''
 
   emits('rename', vModel.value, originalTitle)
 
@@ -163,7 +167,7 @@ async function onRename() {
 function onCancel() {
   if (!isEditing.value) return
 
-  vModel.value.title = originalTitle || ''
+  // vModel.value.title = _title || ''
   onStopEdit()
 }
 
@@ -171,7 +175,7 @@ function onCancel() {
 function onStopEdit() {
   isStopped = true
   isEditing.value = false
-  originalTitle = ''
+  _title = ''
 
   setTimeout(() => {
     isStopped = false
@@ -204,7 +208,7 @@ function onStopEdit() {
       <a-input
         v-if="isEditing && !props.disabled"
         :ref="focusInput"
-        v-model:value="vModel.title"
+        v-model:value="_title"
         class="!bg-transparent !text-xs !border-0 !ring-0 !outline-transparent !border-transparent"
         :class="{
           'font-medium': activeView?.id === vModel.id,

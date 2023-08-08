@@ -185,6 +185,8 @@ export function useViewFilters(
   }
 
   const loadFilters = async (hookId?: string) => {
+    if (!view.value?.id) return
+
     if (nestedMode.value) {
       // ignore restoring if not root filter group
       return

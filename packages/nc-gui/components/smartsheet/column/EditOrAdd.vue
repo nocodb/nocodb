@@ -172,11 +172,9 @@ onMounted(() => {
   emit('mounted')
 })
 
-useEventListener('keydown', (e: KeyboardEvent) => {
-  if (e.key === 'Escape') {
-    emit('cancel')
-  }
-})
+const handleEscape = (event: KeyboardEvent): void => {
+  if (event.key === 'Escape') emit('cancel')
+}
 </script>
 
 <template>
@@ -188,6 +186,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
       '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode,
       'shadow-lg border-1 border-gray-50 shadow-gray-100 rounded-md p-6': !embedMode,
     }"
+    @keydown="handleEscape"
     @click.stop
   >
     <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical" data-testid="add-or-edit-column">
@@ -223,7 +222,9 @@ useEventListener('keydown', (e: KeyboardEvent) => {
               @change="onUidtOrIdTypeChange"
               @dblclick="showDeprecated = !showDeprecated"
             >
-              <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
+              <template #suffixIcon>
+                <GeneralIcon icon="arrowDown" class="text-gray-700" />
+              </template>
               <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
                 <div class="flex gap-1 items-center">
                   <component :is="opt.icon" class="text-gray-700 mx-1" />
@@ -307,14 +308,8 @@ useEventListener('keydown', (e: KeyboardEvent) => {
           }"
         >
           <!-- Cancel -->
-          <NcButton
-            class="w-full"
-            size="small"
-            html-type="button"
-            type="secondary"
-            :label="`${$t('general.cancel')}`"
-            @click="emit('cancel')"
-          >
+          <NcButton class="w-full" size="small" html-type="button" type="secondary" @click="emit('cancel')">
+            {{ $t('general.cancel') }}
           </NcButton>
 
           <!-- Save -->
@@ -328,6 +323,8 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             :loading-label="`${$t('general.saving')} ${columnLabel}`"
             @click.prevent="onSubmit"
           >
+            {{ $t('general.save') }} {{ columnLabel }}
+            <template #loading> {{ $t('general.saving') }} {{ columnLabel }} </template>
           </NcButton>
         </div>
       </a-form-item>

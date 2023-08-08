@@ -51,7 +51,7 @@ const copyRecordUrl = () => {
     encodeURI(
       `${dashboardUrl?.value}#/ws/${route.params.workspaceId}/${route.params.projectType}/${route.params.projectId}/${
         route.params.type
-      }/${meta.value?.title}${props.view ? `/${props.view.title}` : ''}?rowId=${primaryKey.value}`,
+      }/${meta.value?.id}${props.view ? `/${props.view.title}` : ''}?rowId=${primaryKey.value}`,
     ),
   )
   message.success('Copied to clipboard')

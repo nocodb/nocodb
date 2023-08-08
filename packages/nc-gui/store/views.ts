@@ -2,14 +2,51 @@ import type { ViewType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
 export const useViewsStore = defineStore('viewsStore', () => {
-  const views = ref<ViewType[]>([])
   const { $api } = useNuxtApp()
 
-  const route = useRoute()
+  const router = useRouter()
+  const route = $(router.currentRoute)
 
+  const views = ref<ViewType[]>([])
   const isViewsLoading = ref(true)
   const isViewDataLoading = ref(true)
   const isPublic = computed(() => route.meta?.public)
+
+  const { activeTable } = storeToRefs(useTablesStore())
+
+  const activeViewTitle = computed(() => {
+    if (!route.params.viewTitle?.length) return views.value.length ? views.value[0].title : undefined
+
+    return route.params.viewTitle
+  })
+
+  const { sharedView } = useSharedView()
+
+  const activeView = computed<ViewType | undefined>({
+    get() {
+      if (sharedView.value) return sharedView.value
+
+      if (!activeTable.value) return undefined
+
+      if (!activeViewTitle.value) return undefined
+
+      return views.value.find((v) => v.title === activeViewTitle.value)
+    },
+    set(_view: ViewType | undefined) {
+      if (sharedView.value) {
+        sharedView.value = _view
+        return
+      }
+
+      if (!activeTable.value) return
+      if (!_view) return
+
+      const viewIndex = views.value.findIndex((v) => v.title === activeViewTitle.value)
+      if (viewIndex === -1) return
+
+      views.value[viewIndex] = _view
+    },
+  })
 
   // Used for Grid View Pagination
   const isPaginationLoading = ref(false)
@@ -56,6 +93,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     isPaginationLoading,
     loadViews,
     views,
+    activeView,
   }
 })
 

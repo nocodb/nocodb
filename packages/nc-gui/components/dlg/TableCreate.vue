@@ -200,17 +200,16 @@ onMounted(() => {
           </div>
         </div>
         <div class="flex flex-row justify-end gap-x-2 mt-2">
-          <NcButton type="secondary" :label="$t('general.cancel')" @click="dialogShow = false" />
+          <NcButton type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
 
           <NcButton
-            key="submit"
             type="primary"
             :disabled="validateInfos.title.validateStatus === 'error'"
-            :label="$t('activity.createTable')"
-            loading-label="Creating Table"
             :loading="creating"
             @click="_createTable"
           >
+            {{ $t('activity.createTable') }}
+            <template #loading> Creating Table </template>
           </NcButton>
         </div>
       </a-form>

@@ -1453,7 +1453,7 @@ class MysqlClient extends KnexClient {
     const result = new Result();
     log.api(`${func}:args:`, args);
     try {
-      await this.sqlClient.raw(`DROP TRIGGER ${args.trigger_name}`);
+      await this.sqlClient.raw(`DROP TRIGGER ??`, [args.trigger_name]);
       await this.sqlClient.raw(
         `CREATE TRIGGER \`${args.trigger_name}\` \n${args.timing} ${args.event}\nON ${args.tn} FOR EACH ROW\n${args.statement}`,
       );
@@ -1781,9 +1781,9 @@ class MysqlClient extends KnexClient {
     const result = new Result();
     log.api(`${func}:args:`, args);
     try {
-      await this.sqlClient.raw(
-        `DROP PROCEDURE IF EXISTS ${args.procedure_name}`,
-      );
+      await this.sqlClient.raw(`DROP PROCEDURE IF EXISTS ??`, [
+        args.procedure_name,
+      ]);
       await this.sqlClient.raw(`${args.create_procedure}`);
       result.data.object = {
         upStatement: [
@@ -1826,9 +1826,9 @@ class MysqlClient extends KnexClient {
     const result = new Result();
     log.api(`${func}:args:`, args);
     try {
-      await this.sqlClient.raw(
-        `DROP PROCEDURE IF EXISTS ${args.procedure_name}`,
-      );
+      await this.sqlClient.raw(`DROP PROCEDURE IF EXISTS ??`, [
+        args.procedure_name,
+      ]);
       result.data.object = {
         upStatement: [
           {
@@ -2193,9 +2193,9 @@ class MysqlClient extends KnexClient {
         this.querySeparator() +
         this.sqlClient.schema.dropTable(args.table_name).toString();
 
-      let createStatement = await this.sqlClient.raw(
-        `show create table \`${args.table_name}\``,
-      );
+      let createStatement = await this.sqlClient.raw(`show create table ??`, [
+        args.table_name,
+      ]);
       createStatement = Object.entries(createStatement[0][0]).find(
         ([k]) => k.toLowerCase() === 'create table',
       )[1];
@@ -2233,9 +2233,9 @@ class MysqlClient extends KnexClient {
     log.api(`${_func}:args:`, args);
     try {
       result.data = ';';
-      const response = await this.sqlClient.raw(
-        `show create table \`${args.tn}\`;`,
-      );
+      const response = await this.sqlClient.raw(`show create table ??;`, [
+        args.tn,
+      ]);
       if (response.length === 2) {
         result.data = response[0][0]['Create Table'];
       }
@@ -2566,7 +2566,8 @@ class MysqlClient extends KnexClient {
 
     try {
       const data = await this.sqlClient.raw(
-        `SELECT SUM(table_rows) as TotalRecords FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '${this.connectionConfig.connection.database}';`,
+        `SELECT SUM(table_rows) as TotalRecords FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ?;`,
+        [this.connectionConfig.connection.database],
       );
       result.data = data[0][0];
     } catch (e) {

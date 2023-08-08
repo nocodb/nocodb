@@ -64,6 +64,79 @@
     }
   ],
   "paths": {
+    "/api/v1/dashboards/{dashboardId}/layouts": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "dashboardId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Dashboard/Project ID"
+        }
+      ],
+      "post": {
+        "summary": "Create Layout",
+        "operationId": "layout-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Layout"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LayoutReq"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Dashboard"
+        ],
+        "description": "Create a new Layout in a given Dashboard project",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "get": {
+        "summary": "List Layouts",
+        "operationId": "layout-list",
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/LayoutList"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "tags": [
+          "Dashboard"
+        ],
+        "description": "List all Layouts in a given Dashboard project"
+      }
+    },
     "/api/v1/dashboards/{dashboardId}/layouts/{layoutId}": {
       "parameters": [
         {
@@ -333,6 +406,172 @@
           }
         },
         "description": "Update the given Widget",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v1/dashboards/{dashboardId}/layouts/{layoutId}/widgets/{widgetId}/filters": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "vw_wtdg2meyig5l4q"
+          },
+          "name": "dashboardId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Dashboard Project ID"
+        },
+        {
+          "schema": {
+            "type": "string",
+            "example": "vw_wtdg2meyig5l4q"
+          },
+          "name": "layoutId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Layout ID"
+        },
+        {
+          "schema": {
+            "type": "string",
+            "example": "vw_wtdg2meyig5l4q"
+          },
+          "name": "widgetId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Widget ID"
+        }
+      ],
+      "get": {
+        "summary": "Get Widget Filter",
+        "operationId": "widget-filter-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilterList"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "comparison_op": "eq",
+                          "comparison_sub_op": null,
+                          "created_at": "2023-03-02 18:18:05",
+                          "fk_column_id": "cl_d7ah9n2qfupgys",
+                          "fk_hook_id": null,
+                          "fk_widget_id": "ad_943rjowiejdis",
+                          "fk_parent_id": null,
+                          "fk_view_id": "vw_b739e29vqmrxnf",
+                          "id": "fi_xn647tpmdq8fu8",
+                          "is_group": null,
+                          "logical_op": "and",
+                          "order": 1,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "updated_at": "2023-03-02 18:18:05",
+                          "value": "foo"
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Dashboard"
+        ],
+        "description": "Get the filter for a given Widget",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create Widget Filter",
+        "operationId": "widget-filter-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Filter"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "comparison_op": "eq",
+                      "comparison_sub_op": null,
+                      "created_at": "2023-03-02 18:18:05",
+                      "fk_column_id": "cl_d7ah9n2qfupgys",
+                      "fk_hook_id": null,
+                      "fk_widget_id": "aw_t5393oijsd",
+                      "fk_parent_id": null,
+                      "fk_view_id": "vw_b739e29vqmrxnf",
+                      "id": "fi_xn647tpmdq8fu8",
+                      "is_group": null,
+                      "logical_op": "and",
+                      "order": 1,
+                      "project_id": "p_xm3thidrblw4n7",
+                      "updated_at": "2023-03-02 18:18:05",
+                      "value": "foo"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Dashboard"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "comparison_op": "eq",
+                    "comparison_sub_op": null,
+                    "fk_column_id": "cl_d7ah9n2qfupgys",
+                    "is_group": false,
+                    "logical_op": "and",
+                    "value": "foo"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Update the filter for a given Widget",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"

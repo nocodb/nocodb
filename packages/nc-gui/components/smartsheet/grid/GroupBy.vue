@@ -159,6 +159,7 @@ if (vGroup.value.root === true) provide(ScrollParentInj, wrapper)
                           :color="grp.color.split(',')[+tagIndex]"
                         >
                           <span
+                              class="nc-group-value"
                             :style="{
                               'color': tinycolor.isReadable(grp.color.split(',')[+tagIndex] || '#ccc', '#fff', {
                                 level: 'AA',
@@ -184,6 +185,7 @@ if (vGroup.value.root === true) provide(ScrollParentInj, wrapper)
                         :color="grp.color"
                       >
                         <span
+                            class="nc-group-value"
                           :style="{
                             'color': tinycolor.isReadable(grp.color || '#ccc', '#fff', {
                               level: 'AA',

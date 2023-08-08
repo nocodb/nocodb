@@ -43,6 +43,13 @@ export class GroupPageObject extends BasePage {
     await expect(groupWrapper.locator('.nc-grid-row-count').first()).toHaveText(`${count} record`);
   }
 
+  async verifyOrdering({ indexMap, value }: { indexMap: number[]; value: string }) {
+    const groupWrapper = this.get({ indexMap });
+    console.log(await groupWrapper.locator('.nc-group-value').first().innerText());
+
+    await expect(groupWrapper.locator('.nc-group-value').first()).toHaveText(value);
+  }
+
   async verifyRow({ indexMap, rowIndex }: { indexMap: number[]; rowIndex: number }) {
     const gridWrapper = this.get({ indexMap });
 

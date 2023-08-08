@@ -30,6 +30,9 @@ test.describe('Toolbar operations (GRID)', () => {
     // GroupBy Category Descending Order
     await toolbar.groupBy.add({ title: 'Category', ascending: false, locallySaved: false });
 
+    // Close GroupBy Menu
+    await toolbar.clickGroupBy();
+
     // Verify Total Group Count
     await dashboard.grid.verifyTotalGroupCount({ count: 16 });
 
@@ -53,6 +56,12 @@ test.describe('Toolbar operations (GRID)', () => {
       indexMap: [0, 1],
     });
 
+    // Verify Row in Subgroup
+    await dashboard.grid.groupPage.verifyRow({
+      indexMap: [0, 1],
+      rowIndex: 0,
+    });
+
     //Verify Group Header
     await dashboard.grid.groupPage.verifyGroupHeader({
       indexMap: [0, 1],
@@ -71,6 +80,22 @@ test.describe('Toolbar operations (GRID)', () => {
 
     //Remove All GroupBy Conditions
     await toolbar.groupBy.reset();
+
+    // Close GroupBy Menu
+    await toolbar.clickGroupBy();
+
+    // Open GroupBy Menu
+    await toolbar.clickGroupBy();
+
+    await toolbar.groupBy.add({ title: 'Category', ascending: false, locallySaved: false });
+    await toolbar.groupBy.add({ title: 'Length', ascending: true, locallySaved: false });
+
+    // Close GroupBy Menu
+    await toolbar.clickGroupBy();
+
+    await dashboard.grid.groupPage.openGroup({ indexMap: [1, 0] });
+    // TODO : Not Working
+    //await dashboard.grid.groupPage.verifyOrdering({indexMap: [1, 0], value: '48'})
   });
 
   test('Hide, Sort, Filter', async () => {

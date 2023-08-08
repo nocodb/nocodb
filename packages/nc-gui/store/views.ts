@@ -4,7 +4,8 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 export const useViewsStore = defineStore('viewsStore', () => {
   const { $api } = useNuxtApp()
 
-  const route = useRoute()
+  const router = useRouter()
+  const route = $(router.currentRoute)
 
   const views = ref<ViewType[]>([])
   const isViewsLoading = ref(true)
@@ -19,8 +20,12 @@ export const useViewsStore = defineStore('viewsStore', () => {
     return route.params.viewTitle
   })
 
+  const { sharedView } = useSharedView()
+
   const activeView = computed<ViewType | undefined>({
     get() {
+      if (sharedView.value) return sharedView.value
+
       if (!activeTable.value) return undefined
 
       if (!activeViewTitle.value) return undefined
@@ -28,6 +33,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
       return views.value.find((v) => v.title === activeViewTitle.value)
     },
     set(_view: ViewType | undefined) {
+      if (sharedView.value) {
+        sharedView.value = _view
+        return
+      }
+
       if (!activeTable.value) return
       if (!_view) return
 

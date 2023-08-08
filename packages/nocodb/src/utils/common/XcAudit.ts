@@ -9,5 +9,6 @@ export default class XcAudit {
   private static app: Noco;
 
   // @ts-ignore
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public static async log(data: { project }) {}
 }

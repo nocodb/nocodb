@@ -6,8 +6,8 @@ import type { ErrorObject } from 'ajv';
 import type { NextFunction, Request, Response } from 'express';
 
 export function parseHrtimeToMilliSeconds(hrtime) {
-  const seconds = (hrtime[0] * 1000 + hrtime[1] / 1e6).toFixed(3);
-  return seconds;
+  const milliseconds = (hrtime[0] * 1000 + hrtime[1] / 1e6).toFixed(3);
+  return milliseconds;
 }
 
 const ajv = new Ajv({ strictSchema: false, strict: false }); // Initialize AJV

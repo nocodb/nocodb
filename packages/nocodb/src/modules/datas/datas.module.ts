@@ -3,8 +3,10 @@ import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 import { DataAliasController } from '../../controllers/data-alias.controller';
+import { DataTableController } from '../../controllers/data-table.controller';
 import { PublicDatasExportController } from '../../controllers/public-datas-export.controller';
 import { PublicDatasController } from '../../controllers/public-datas.controller';
+import { DataTableService } from '../../services/data-table.service';
 import { DatasService } from '../../services/datas.service';
 import { DatasController } from '../../controllers/datas.controller';
 import { BulkDataAliasController } from '../../controllers/bulk-data-alias.controller';
@@ -30,6 +32,7 @@ import { DataOptService } from '~/services/data-opt/data-opt.service';
   controllers: [
     ...(process.env.NC_WORKER_CONTAINER !== 'true'
       ? [
+          DataTableController,
           DatasController,
           BulkDataAliasController,
           DataAliasController,
@@ -42,6 +45,7 @@ import { DataOptService } from '~/services/data-opt/data-opt.service';
       : []),
   ],
   providers: [
+    DataTableService,
     DatasService,
     BulkDataAliasService,
     DataAliasNestedService,

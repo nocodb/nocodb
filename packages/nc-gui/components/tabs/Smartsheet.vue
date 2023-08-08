@@ -43,8 +43,6 @@ const { isMobileMode } = useGlobal()
 
 const activeTab = toRef(props, 'activeTab')
 
-const activeView = ref()
-
 const fields = ref<ColumnType[]>([])
 
 const route = useRoute()
@@ -54,6 +52,7 @@ const meta = computed<TableType | undefined>(() => {
   return viewId && metas.value[viewId]
 })
 
+const { activeView } = storeToRefs(useViewsStore())
 const { isGallery, isGrid, isForm, isKanban, isLocked, isMap } = useProvideSmartsheetStore(activeView, meta)
 
 useSqlEditor()
@@ -92,7 +91,7 @@ const onDrop = async (event: DragEvent) => {
   event.preventDefault()
   try {
     // Access the dropped data
-    const data = JSON.parse(event.dataTransfer?.getData('text/json')!)
+    const data = JSON.parse(event.dataTransfer!.getData('text/json'))
     // Do something with the received data
 
     // if dragged item is not from the same base, return

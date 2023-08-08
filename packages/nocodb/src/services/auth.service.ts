@@ -40,8 +40,8 @@ export class AuthService {
       email: _email,
       firstname,
       lastname,
-      token,
-      ignore_subscribe,
+      // token,
+      // ignore_subscribe,
     } = createUserDto as any;
 
     let { password } = createUserDto;

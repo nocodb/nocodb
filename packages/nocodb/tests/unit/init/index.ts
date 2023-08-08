@@ -33,7 +33,9 @@ export default async function (forceReset = false) {
     server = await serverInit();
   }
 
-  await cleanUpSakila(forceReset);
+  // if (isSakila) {
+    await cleanUpSakila(forceReset);
+  // }
   await cleanupMeta();
 
   const { token } = await createUser({ app: server }, { roles: 'editor' });

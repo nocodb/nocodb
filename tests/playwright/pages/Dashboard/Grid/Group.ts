@@ -13,14 +13,13 @@ export class GroupPageObject extends BasePage {
   }
 
   get({ indexMap }: { indexMap: Array<number> }) {
-    const query = ' .nc-group';
+    let query = ' .nc-group ';
     for (const [n, key] of indexMap.entries()) {
-      query.concat(`:nth-child(${n}) `);
+      query += `>> nth=${n} `;
       if (indexMap[key + 1]) {
-        query.concat(` .nc-group`);
+        query += ` >> .nc-group `;
       }
     }
-    console.log(query);
     return this.rootPage.locator(query);
   }
 
@@ -37,5 +36,10 @@ export class GroupPageObject extends BasePage {
     const groupWrapper = this.get({ indexMap });
     await expect(groupWrapper.locator('.nc-group-column-title').first()).toHaveText(title);
     await expect(groupWrapper.locator('.nc-group-row-count').first()).toHaveText(`(Count: ${count})`);
+  }
+
+  async verifyPagination({ indexMap, count }: { indexMap: number[]; count: number }) {
+    const groupWrapper = this.get({ indexMap });
+    await expect(groupWrapper.locator('.nc-grid-row-count').first()).toHaveText(`${count} record`);
   }
 }

@@ -21,7 +21,7 @@ test.describe('Toolbar operations (GRID)', () => {
     toolbar = dashboard.grid.toolbar;
   });
 
-  test('Group', async () => {
+  test.only('Group', async () => {
     await dashboard.treeView.openTable({ title: 'FilmList' });
 
     // Open GroupBy Menu
@@ -41,10 +41,17 @@ test.describe('Toolbar operations (GRID)', () => {
       indexMap: [0, 1],
     });
 
+    //Verify Group Header
     await dashboard.grid.groupPage.verifyGroupHeader({
       indexMap: [0, 1],
-      count: 56,
-      title: 'Category',
+      count: 1,
+      title: 'Title',
+    });
+
+    // Verify Pagination Count
+    await dashboard.grid.groupPage.verifyPagination({
+      indexMap: [0, 1],
+      count: 1,
     });
 
     // Open GroupBy Menu

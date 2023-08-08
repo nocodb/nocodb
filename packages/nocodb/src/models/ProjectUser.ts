@@ -89,7 +89,7 @@ export default class ProjectUser {
       query?: string;
     },
     ncMeta = Noco.ncMeta,
-  ): Promise<ProjectUser[]> {
+  ): Promise<(Partial<User> & ProjectUser)[]> {
     const queryBuilder = ncMeta
       .knex(MetaTable.USERS)
       .select(
@@ -121,9 +121,7 @@ export default class ProjectUser {
 
     const projectUsers = await queryBuilder;
 
-    return projectUsers.map((projectUser) => {
-      return this.castType(projectUser);
-    });
+    return projectUsers;
   }
 
   public static async getUsersCount(
@@ -376,6 +374,7 @@ export default class ProjectUser {
 
     return projectList.filter((p) => !params?.type || p.type === params.type);
   }
+
   static async updateOrInsert(
     projectId,
     userId,
@@ -390,4 +389,6 @@ export default class ProjectUser {
       return await this.insert({ project_id: projectId, fk_user_id: userId });
     }
   }
+
+  
 }

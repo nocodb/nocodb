@@ -159,7 +159,7 @@ export class TestResetService {
 
   // todo: Remove this once user deletion improvement PR is merged
   removeProjectUsersFromCache = async (project: Project) => {
-    const projectUsers: ProjectUser[] = await ProjectUser.getUsersList({
+    const projectUsers = await ProjectUser.getUsersList({
       project_id: project.id,
       limit: 1000,
       offset: 0,

@@ -63,7 +63,7 @@ jobs:
           run: npm install
         - name: build nocodb-sdk
           working-directory: ./packages/nocodb-sdk
-          run: npm run build:main
+          run: npm run build:ce:main
         - name: Install dependencies
           working-directory: ./packages/nocodb
           run: npm install

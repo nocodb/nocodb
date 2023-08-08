@@ -154,9 +154,11 @@ async function onRename() {
     return
   }
 
+  const originalTitle = vModel.value.title
+
   vModel.value.title = _title || ''
 
-  emits('rename', vModel.value, vModel.value.title)
+  emits('rename', vModel.value, originalTitle)
 
   onStopEdit()
 }

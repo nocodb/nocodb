@@ -27,11 +27,13 @@ const { isLocked } = useProvideSmartsheetStore(sharedView, meta, true, sorts, ne
 
 const reloadEventHook = createEventHook()
 
+const columns = ref(meta.value?.columns || [])
+
 provide(ReloadViewDataHookInj, reloadEventHook)
 provide(ReadonlyInj, ref(true))
 provide(MetaInj, meta)
 provide(ActiveViewInj, sharedView)
-provide(FieldsInj, ref(meta.value?.columns || []))
+provide(FieldsInj, columns)
 provide(IsPublicInj, ref(true))
 provide(IsLockedInj, isLocked)
 
@@ -46,13 +48,22 @@ if (signedIn.value) {
   }
 }
 
-onMounted(loadGridViewColumns)
+watch(
+  () => meta.value?.columns,
+  () => (columns.value = meta.value?.columns || []),
+  {
+    immediate: true,
+  },
+)
+
+onMounted(async () => {
+  await loadGridViewColumns()
+})
 </script>
 
 <template>
   <div class="nc-container flex flex-col h-full mt-1.5 px-12">
     <LazySmartsheetToolbar />
-
     <LazySmartsheetGrid />
   </div>
 </template>

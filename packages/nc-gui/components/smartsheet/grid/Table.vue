@@ -1436,7 +1436,7 @@ defineExpose({
                           'last-cell':
                             rowIndex === (isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) &&
                             colIndex === (isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col),
-                          'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
+                          'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row) && !isPublicView,
                           'align-middle': !rowHeight || rowHeight === 1,
                           'align-top': rowHeight && rowHeight !== 1,
                           'filling': isCellInFillRange(rowIndex, colIndex),

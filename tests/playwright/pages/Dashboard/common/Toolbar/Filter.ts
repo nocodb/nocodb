@@ -286,7 +286,14 @@ export class ToolbarFilterPage extends BasePage {
           }
           break;
         case UITypes.SingleSelect:
-          await this.get().locator('.nc-filter-value-select').click();
+          await this.get()
+            .locator('.nc-filter-value-select')
+            .click({
+              position: {
+                x: 1,
+                y: 1,
+              },
+            });
           // check if value was an array
           // eslint-disable-next-line no-case-declarations
           const val = value.split(',');

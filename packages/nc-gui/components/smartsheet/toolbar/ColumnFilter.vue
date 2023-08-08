@@ -201,13 +201,13 @@ defineExpose({
   <div
     class="menu-filter-dropdown"
     :class="{
-      'max-h-[max(80vh,500px)] w-130 py-6 pl-6': !nested,
+      'max-h-[max(80vh,500px)] w-164 py-6 pl-6': !nested,
     }"
   >
     <div
       v-if="filters && filters.length"
       class="flex flex-col gap-y-3 nc-filter-grid pb-2 -mr-2"
-      :class="{ 'max-h-420px nc-scrollbar-md w-full pr-5': !nested }"
+      :class="{ 'max-h-420px nc-scrollbar-md w-full pr-3.5': !nested }"
       @click.stop
     >
       <template v-for="(filter, i) in filters" :key="i">
@@ -278,7 +278,7 @@ defineExpose({
             <SmartsheetToolbarFieldListAutoCompleteDropdown
               :key="`${i}_6`"
               v-model="filter.fk_column_id"
-              class="nc-filter-field-select"
+              class="nc-filter-field-select min-w-32 max-w-46"
               :columns="columns"
               :disabled="filter.readOnly"
               @click.stop
@@ -287,7 +287,7 @@ defineExpose({
             <NcSelect
               v-model:value="filter.comparison_op"
               :dropdown-match-select-width="false"
-              class="caption nc-filter-operation-select !min-w-30.5"
+              class="caption nc-filter-operation-select !w-30.75"
               :placeholder="$t('labels.operation')"
               density="compact"
               variant="solo"
@@ -304,11 +304,11 @@ defineExpose({
             </NcSelect>
 
             <div v-if="['blank', 'notblank'].includes(filter.comparison_op)" class="flex flex-grow"></div>
-            <a-select
+            <NcSelect
               v-else-if="[UITypes.Date, UITypes.DateTime].includes(getColumn(filter)?.uidt)"
               v-model:value="filter.comparison_sub_op"
               :dropdown-match-select-width="false"
-              class="caption nc-filter-sub_operation-select"
+              class="caption nc-filter-sub_operation-select max-w-34"
               :placeholder="$t('labels.operationSub')"
               density="compact"
               variant="solo"
@@ -317,13 +317,12 @@ defineExpose({
               dropdown-class-name="nc-dropdown-filter-comp-sub-op"
               @change="filterUpdateCondition(filter, i)"
             >
-              test
               <template v-for="compSubOp of comparisonSubOpList(filter.comparison_op)" :key="compSubOp.value">
                 <a-select-option v-if="isComparisonSubOpAllowed(filter, compSubOp)" :value="compSubOp.value">
                   {{ compSubOp.text }}
                 </a-select-option>
               </template>
-            </a-select>
+            </NcSelect>
             <a-checkbox
               v-if="filter.field && types[filter.field] === 'boolean'"
               v-model:checked="filter.value"
@@ -346,6 +345,7 @@ defineExpose({
               @update-filter-value="(value) => updateFilterValue(value, filter, i)"
               @click.stop
             />
+            <div v-else class="flex-grow"></div>
 
             <NcButton
               v-if="!filter.readOnly"

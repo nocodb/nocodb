@@ -53,6 +53,10 @@ const onChange = (value: string) => {
     box-shadow: 0px 5px 3px -2px rgba(0, 0, 0, 0.02), 0px 3px 1px -2px rgba(0, 0, 0, 0.06);
     @apply border-1 border-gray-200 !rounded-lg;
   }
+
+  .ant-select-selection-item {
+    @apply pr-3;
+  }
 }
 .nc-select.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector {
   box-shadow: none;

@@ -4,7 +4,8 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 export const useViewsStore = defineStore('viewsStore', () => {
   const { $api } = useNuxtApp()
 
-  const route = useRoute()
+  const router = useRouter()
+  const route = $(router.currentRoute)
 
   const views = ref<ViewType[]>([])
   const isViewsLoading = ref(true)

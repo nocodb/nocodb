@@ -43,8 +43,6 @@ const { isMobileMode } = useGlobal()
 
 const activeTab = toRef(props, 'activeTab')
 
-const activeView = ref()
-
 const fields = ref<ColumnType[]>([])
 
 const route = useRoute()
@@ -54,6 +52,7 @@ const meta = computed<TableType | undefined>(() => {
   return viewId && metas.value[viewId]
 })
 
+const { activeView } = storeToRefs(useViewsStore())
 const { isGallery, isGrid, isForm, isKanban, isLocked, isMap } = useProvideSmartsheetStore(activeView, meta)
 
 useSqlEditor()

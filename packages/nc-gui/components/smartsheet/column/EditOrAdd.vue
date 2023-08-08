@@ -172,15 +172,14 @@ onMounted(() => {
   emit('mounted')
 })
 
-useEventListener('keydown', (e: KeyboardEvent) => {
-  if (e.key === 'Escape') {
-    emit('cancel')
-  }
-})
+const handleEscape = (event: KeyboardEvent): void => {
+  if (event.key === 'Escape') emit('cancel')
+}
 </script>
 
 <template>
   <div
+    @keydown="handleEscape"
     class="bg-white overflow-auto"
     :class="{
       'w-[400px]': !props.embedMode,
@@ -223,7 +222,9 @@ useEventListener('keydown', (e: KeyboardEvent) => {
               @change="onUidtOrIdTypeChange"
               @dblclick="showDeprecated = !showDeprecated"
             >
-              <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
+              <template #suffixIcon>
+                <GeneralIcon icon="arrowDown" class="text-gray-700" />
+              </template>
               <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
                 <div class="flex gap-1 items-center">
                   <component :is="opt.icon" class="text-gray-700 mx-1" />

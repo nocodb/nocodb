@@ -5,7 +5,7 @@ import { DashboardPage } from '../../pages/Dashboard';
 import { isEE } from '../../setup/db';
 
 test.describe('DashboardBasicTests', () => {
-  if (isEE()) {
+  if (!isEE()) {
     test.skip();
     return;
   }

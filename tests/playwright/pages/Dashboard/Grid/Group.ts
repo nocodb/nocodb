@@ -42,4 +42,11 @@ export class GroupPageObject extends BasePage {
     const groupWrapper = this.get({ indexMap });
     await expect(groupWrapper.locator('.nc-grid-row-count').first()).toHaveText(`${count} record`);
   }
+
+  async verifyRow({ indexMap, rowIndex }: { indexMap: number[]; rowIndex: number }) {
+    const gridWrapper = this.get({ indexMap });
+
+    await gridWrapper.locator(`td[data-testid="cell-Title-${rowIndex}"]`).waitFor({ state: 'visible' });
+    await expect(gridWrapper.locator(`td[data-testid="cell-Title-${rowIndex}"]`)).toHaveCount(1);
+  }
 }

@@ -271,6 +271,24 @@ export class GridPage extends BasePage {
     expect(parseInt(recordCnt)).toEqual(count);
   }
 
+  async verifyTotalGroupCount({ count }: { count: number }) {
+    let i = 0;
+    await this.get().locator(`.nc-pagination`).waitFor();
+    let records = await this.get().locator(`[data-testid="grid-pagination"]`).allInnerTexts();
+    let recordCnt = records[0].split(' ')[0];
+
+    while (parseInt(recordCnt) !== count && i < 5) {
+      await this.get().locator(`.nc-pagination`).waitFor();
+      records = await this.get().locator(`[data-testid="grid-pagination"]`).allInnerTexts();
+      recordCnt = records[0].split(' ')[0];
+
+      // to ensure page loading is complete
+      i++;
+      await this.rootPage.waitForTimeout(100 * i);
+    }
+    expect(parseInt(recordCnt)).toEqual(count);
+  }
+
   private async pagination({ page }: { page: string }) {
     await this.get().locator(`.nc-pagination`).waitFor();
 

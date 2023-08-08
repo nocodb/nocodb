@@ -30,8 +30,20 @@ test.describe('Toolbar operations (GRID)', () => {
     // GroupBy Category Descending Order
     await toolbar.groupBy.add({ title: 'Category', ascending: false, locallySaved: false });
 
+    // Verify Total Group Count
+    await dashboard.grid.verifyTotalGroupCount({ count: 16 });
+
+    //Open Group by indexMap
+    await dashboard.grid.groupPage.openGroup({ indexMap: [0] });
+
+    // Verify Row inside Group
+    await dashboard.grid.groupPage.verifyRow({ indexMap: [0], rowIndex: 3 });
+
+    // Open GroupBy Menu
+    await toolbar.clickGroupBy();
+
     // GroupBy Title field Ascending Order
-    await toolbar.groupBy.add({ title: 'Title', ascending: false, locallySaved: false });
+    await toolbar.groupBy.add({ title: 'Title', ascending: true, locallySaved: false });
 
     // Close GroupBy Menu
     await toolbar.clickGroupBy();

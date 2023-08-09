@@ -51,8 +51,8 @@ const {
   deleteFilter,
   saveOrUpdate,
   loadFilters,
-  addFilter,
-  addFilterGroup,
+  addFilter: _addFilter,
+  addFilterGroup: _addFilterGroup,
   sync,
   saveOrUpdateDebounced,
   isComparisonOpAllowed,
@@ -68,6 +68,9 @@ const {
 )
 
 const localNestedFilters = ref()
+
+const wrapperDomRef = ref<HTMLElement>()
+const addFiltersRowDomRef = ref<HTMLElement>()
 
 const columns = computed(() => meta.value?.columns)
 
@@ -195,6 +198,45 @@ defineExpose({
   applyChanges,
   parentId,
 })
+
+const scrollToBottom = () => {
+  wrapperDomRef.value?.scrollTo({
+    top: wrapperDomRef.value.scrollHeight,
+    behavior: 'smooth',
+  })
+}
+
+const scrollDownIfNeeded = () => {
+  if (nested) {
+    addFiltersRowDomRef?.value?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'end',
+      inline: 'nearest',
+    })
+  }
+}
+
+const addFilter = async () => {
+  await _addFilter()
+
+  if (!nested) {
+    // if nested, scroll to bottom
+    scrollToBottom()
+  } else {
+    scrollDownIfNeeded()
+  }
+}
+
+const addFilterGroup = async () => {
+  await _addFilterGroup()
+
+  if (!nested) {
+    // if nested, scroll to bottom
+    scrollToBottom()
+  } else {
+    scrollDownIfNeeded()
+  }
+}
 </script>
 
 <template>
@@ -206,8 +248,9 @@ defineExpose({
   >
     <div
       v-if="filters && filters.length"
+      ref="wrapperDomRef"
       class="flex flex-col gap-y-3 nc-filter-grid pb-2 -mr-2"
-      :class="{ 'max-h-420px nc-scrollbar-md w-full pr-3.5': !nested }"
+      :class="{ 'max-h-420px nc-scrollbar-md w-full pr-3.5 nc-filter-top-wrapper': !nested }"
       @click.stop
     >
       <template v-for="(filter, i) in filters" :key="i">
@@ -361,7 +404,7 @@ defineExpose({
       </template>
     </div>
 
-    <div class="flex gap-2">
+    <div ref="addFiltersRowDomRef" class="flex gap-2">
       <NcButton size="small" type="text" class="!text-brand-500" @click.stop="addFilter()">
         <div class="flex items-center gap-1">
           <component :is="iconMap.plus" />

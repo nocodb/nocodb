@@ -361,6 +361,9 @@ test.describe('Form view with LTAR', () => {
       text: 'USA',
     });
     await sharedForm.clickLinkToChildList();
+    
+    await new Promise((r) => setTimeout(r, 500));
+
     await sharedForm.verifyChildList(['Atlanta', 'Pune', 'London', 'Sydney']);
     await sharedForm.selectChildList('Atlanta');
 

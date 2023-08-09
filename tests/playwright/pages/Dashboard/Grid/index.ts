@@ -271,7 +271,7 @@ export class GridPage extends BasePage {
     expect(parseInt(recordCnt)).toEqual(count);
   }
 
-  async verifyTotalGroupCount({ count }: { count: number }) {
+  async verifyPaginationCount({ count }: { count: number }) {
     let i = 0;
     await this.get().locator(`.nc-pagination`).waitFor();
     let records = await this.get().locator(`[data-testid="grid-pagination"]`).allInnerTexts();

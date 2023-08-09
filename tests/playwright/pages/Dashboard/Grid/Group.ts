@@ -40,7 +40,7 @@ export class GroupPageObject extends BasePage {
     await expect(groupWrapper.locator('.nc-grid-row-count').first()).toHaveText(`${count} record`);
   }
 
-  async verifyOrdering({ indexMap, value }: { indexMap: number[]; value: string }) {
+  async verifyGroup({ indexMap, value }: { indexMap: number[]; value: string }) {
     let query = '';
     for (const [n] of indexMap.entries()) {
       query += ` .nc-group:nth-child(${n + 1})`;

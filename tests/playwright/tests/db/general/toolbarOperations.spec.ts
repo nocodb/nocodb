@@ -34,7 +34,7 @@ test.describe('Toolbar operations (GRID)', () => {
     await toolbar.clickGroupBy();
 
     // Verify Total Group Count
-    await dashboard.grid.verifyTotalGroupCount({ count: 16 });
+    await dashboard.grid.verifyPaginationCount({ count: 16 });
 
     //Open Group by indexMap
     await dashboard.grid.groupPage.openGroup({ indexMap: [0] });
@@ -97,7 +97,7 @@ test.describe('Toolbar operations (GRID)', () => {
     await dashboard.grid.groupPage.openGroup({ indexMap: [1, 0] });
 
     // Verify Ordering
-    await dashboard.grid.groupPage.verifyOrdering({ indexMap: [1], value: 'Drama' });
+    await dashboard.grid.groupPage.verifyGroup({ indexMap: [1], value: 'Drama' });
 
     // hide column with Grouping
     await toolbar.fields.toggle({ title: 'Title' });
@@ -130,7 +130,7 @@ test.describe('Toolbar operations (GRID)', () => {
       title: 'Category',
     });
 
-    await dashboard.grid.groupPage.verifyOrdering({
+    await dashboard.grid.groupPage.verifyGroup({
       indexMap: [1],
       value: 'Comedy',
     });

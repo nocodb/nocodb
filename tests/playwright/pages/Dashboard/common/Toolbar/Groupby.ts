@@ -33,7 +33,7 @@ export class ToolbarGroupByPage extends BasePage {
   }
 
   async add({ title, ascending, locallySaved }: { title: string; ascending: boolean; locallySaved: boolean }) {
-    const addGroupBtn = await this.toolbar.rootPage.locator(`.nc-add-group-btn`);
+    const addGroupBtn = this.toolbar.rootPage.locator(`.nc-add-group-btn`);
     if (!(await addGroupBtn.isDisabled())) {
       await addGroupBtn.click();
     }

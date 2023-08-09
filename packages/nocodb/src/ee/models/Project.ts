@@ -234,6 +234,8 @@ export default class Project extends ProjectCE {
     return await ncMeta.metaDelete(null, null, MetaTable.PROJECT, projectId);
   }
 
+  // EXTRA METHODS
+
   static listByWorkspaceAndUser? = async (
     fk_workspace_id: string,
     userId: string,

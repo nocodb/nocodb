@@ -11,3 +11,4 @@ export { default as ProjectUser } from './ProjectUser';
 export { default as Page } from './Page';
 export { default as User } from './User';
 export { default as Base } from './Base';
+export { default as Filter } from './Filter';

@@ -247,7 +247,7 @@ const addFilterGroup = async () => {
   <div
     class="menu-filter-dropdown"
     :class="{
-      'max-h-[max(80vh,500px)] w-164 py-6 pl-6': !nested,
+      'max-h-[max(80vh,500px)] min-w-112 py-6 pl-6': !nested,
     }"
   >
     <div
@@ -311,7 +311,7 @@ const addFilterGroup = async () => {
               v-else
               v-model:value="filter.logical_op"
               :dropdown-match-select-width="false"
-              class="h-full min-w-20 !capitalize"
+              class="h-full !min-w-20 !max-w-20 !capitalize"
               hide-details
               :disabled="filter.readOnly"
               dropdown-class-name="nc-dropdown-filter-logical-op"
@@ -325,7 +325,7 @@ const addFilterGroup = async () => {
             <SmartsheetToolbarFieldListAutoCompleteDropdown
               :key="`${i}_6`"
               v-model="filter.fk_column_id"
-              class="nc-filter-field-select min-w-32 max-w-46"
+              class="nc-filter-field-select min-w-34 max-w-34"
               :columns="columns"
               :disabled="filter.readOnly"
               @click.stop
@@ -334,7 +334,7 @@ const addFilterGroup = async () => {
             <NcSelect
               v-model:value="filter.comparison_op"
               :dropdown-match-select-width="false"
-              class="caption nc-filter-operation-select !w-30.75"
+              class="caption nc-filter-operation-select !min-w-30.75 !max-w-30.75"
               :placeholder="$t('labels.operation')"
               density="compact"
               variant="solo"
@@ -355,7 +355,7 @@ const addFilterGroup = async () => {
               v-else-if="[UITypes.Date, UITypes.DateTime].includes(getColumn(filter)?.uidt)"
               v-model:value="filter.comparison_sub_op"
               :dropdown-match-select-width="false"
-              class="caption nc-filter-sub_operation-select max-w-34"
+              class="caption nc-filter-sub_operation-select max-w-34 min-w-34"
               :placeholder="$t('labels.operationSub')"
               density="compact"
               variant="solo"

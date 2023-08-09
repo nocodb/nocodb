@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { Empty, Modal, message } from 'ant-design-vue'
+import { Empty, message } from 'ant-design-vue'
 import type { ApiTokenType, RequestParams, UserType } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, iconMap, useApi, useCopy, useNuxtApp } from '#imports'
+import { extractSdkResponseErrorMsg, iconMap, ref, useApi, useCopy, useNuxtApp } from '#imports'
 
 const { api, isLoading } = useApi()
 
@@ -50,21 +50,25 @@ const loadTokens = async (page = currentPage, limit = currentLimit) => {
 
 loadTokens()
 
-const deleteToken = async (token: string) => {
-  Modal.confirm({
-    title: 'Are you sure you want to delete this token?',
-    type: 'warn',
-    onOk: async () => {
-      try {
-        await api.orgTokens.delete(token)
-        // message.success(t('msg.success.tokenDeleted'))
-        await loadTokens()
-      } catch (e: any) {
-        message.error(await extractSdkResponseErrorMsg(e))
-      }
-      $e('a:account:token:delete')
-    },
-  })
+const isModalOpen = ref(false)
+const tokenToCopy = ref('')
+
+const openModal = (tk: string) => {
+  isModalOpen.value = true
+  tokenToCopy.value = tk
+}
+
+const deleteToken = async (token: string): Promise<void> => {
+  try {
+    await api.orgTokens.delete(token)
+    // message.success(t('msg.success.tokenDeleted'))
+    await loadTokens()
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+  $e('a:account:token:delete')
+  isModalOpen.value = false
+  tokenToCopy.value = ''
 }
 
 const generateToken = async () => {
@@ -104,7 +108,7 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
       <div class="text-xl my-4 text-left font-weight-bold">{{ $t('title.tokenManagement') }}</div>
       <div class="py-2 flex gap-4 items-center">
         <div class="flex-grow"></div>
-        <component :is="iconMap.reload" class="cursor-pointer" @click="loadTokens" />
+        <component :is="iconMap.reload" class="cursor-pointer" @click="() => loadTokens()" />
         <a-button
           class="!rounded-md"
           data-testid="nc-token-create"
@@ -203,7 +207,7 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
                 <template #overlay>
                   <a-menu data-testid="nc-token-row-action-icon">
                     <a-menu-item>
-                      <div class="flex flex-row items-center py-3 h-[2rem] nc-delete-token" @click="deleteToken(record.token)">
+                      <div class="flex flex-row items-center py-3 h-[2rem] nc-delete-token" @click="openModal(record.token)">
                         <component :is="iconMap.delete" class="flex" />
                         <div class="text-sm pl-2">{{ $t('general.remove') }}</div>
                       </div>
@@ -216,6 +220,22 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
         </a-table-column>
       </a-table>
     </div>
+
+    <GeneralDeleteModal v-model:visible="isModalOpen" entity-name="Token" :on-delete="() => deleteToken(tokenToCopy)">
+      <template #entity-preview>
+        <span>
+          <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
+            <GeneralIcon icon="key" class="nc-view-icon"></GeneralIcon>
+            <div
+              class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
+              :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+            >
+              {{ tokenToCopy }}
+            </div>
+          </div>
+        </span>
+      </template>
+    </GeneralDeleteModal>
 
     <a-modal
       v-model:visible="showNewTokenModal"

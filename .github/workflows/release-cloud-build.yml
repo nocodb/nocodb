@@ -1,4 +1,4 @@
-name: "Cloud : Build Docker Image"
+name: "Cloud : Docker Build"
 
 on:
   # Triggered manually

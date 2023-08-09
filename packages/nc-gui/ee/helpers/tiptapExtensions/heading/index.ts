@@ -2,7 +2,7 @@ import TiptapHeading from '@tiptap/extension-heading'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { NodeSelection, TextSelection } from 'prosemirror-state'
 import { Slice } from 'prosemirror-model'
-import { paragraphContent } from '../helper'
+import { getPositionOfPreviousSection, getPositionOfSection, paragraphContent } from '../helper'
 
 export const Heading = TiptapHeading.extend({
   addKeyboardShortcuts() {

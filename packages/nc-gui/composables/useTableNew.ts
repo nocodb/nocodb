@@ -1,11 +1,10 @@
-import { computed } from 'vue'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
-import { computed } from '@vue/reactivity'
 import {
   Modal,
   SYSTEM_COLUMNS,
   TabType,
+  computed,
   extractSdkResponseErrorMsg,
   generateUniqueTitle as generateTitle,
   message,

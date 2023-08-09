@@ -4,6 +4,7 @@ import type { Node } from 'prosemirror-model'
 import type { Editor } from '@tiptap/core'
 import { Extension } from '@tiptap/core'
 import type { TiptapNodesTypes } from 'nocodb-sdk'
+import { nodeTypesContainingSection } from '../helper'
 
 // Ref: https://github.com/sereneinserenade/notitap/blob/main/src/tiptap/extensions/starter-kit.ts
 

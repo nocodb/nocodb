@@ -1,4 +1,3 @@
-import { toRef } from 'vue'
 import { defineStore } from 'pinia'
 import type { DocsPageType } from 'nocodb-sdk'
 import gh from 'parse-github-url'
@@ -408,16 +407,16 @@ export const useDocStore = defineStore('docStore', () => {
     nodeOverrides?: Partial<PageSidebarNode>
     projectId: string
   }) {
-    const { generateHTML } = await import('~/utils/tiptapExtensions/generateHTML')
-    const { emptyDocContent } = await import('~~/utils/tiptapExtensions/helper')
-    const { default: tiptapExts } = await import('~~/utils/tiptapExtensions')
+    const { generateHTML } = await import('../helpers/tiptapExtensions/generateHTML')
+    const { emptyDocContent } = await import('../helpers/tiptapExtensions/helper')
+    const { default: tiptapExts } = await import('../helpers/tiptapExtensions')
 
     const nestedPages = nestedPagesOfProjects.value[projectId]
     openedPage.value = undefined
     isPageFetching.value = true
 
     page.content = JSON.stringify(emptyDocContent)
-    page.content_html = generateHTML(emptyDocContent, tiptapExts)
+    page.content_html = generateHTML(emptyDocContent, tiptapExts(isPublic.value))
 
     try {
       let createdPageData = await $api.nocoDocs.createPage(projectId, {

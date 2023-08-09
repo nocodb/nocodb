@@ -3,7 +3,6 @@ import type { Card } from 'ant-design-vue'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import {
-  ColumnInj,
   Empty,
   IsPublicInj,
   SaveRowInj,
@@ -23,8 +22,6 @@ const props = defineProps<{ modelValue: boolean; column: any }>()
 const emit = defineEmits(['update:modelValue', 'addNewRecord'])
 
 const vModel = useVModel(props, 'modelValue', emit)
-
-const column = inject(ColumnInj)
 
 const filterQueryRef = ref()
 

@@ -3,9 +3,9 @@ import { EditorContent, useEditor } from '@tiptap/vue-3'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { generateJSON } from '@tiptap/html'
 import { useShortcuts } from '../utils'
-import tiptapExtensions from '~~/utils/tiptapExtensions'
+import tiptapExtensions from '@/helpers/tiptapExtensions'
 import AlignRightIcon from '~icons/tabler/align-right'
-import { emptySectionContent, removeUploadingPlaceHolderAndEmptyLinkNode } from '~~/utils/tiptapExtensions/helper'
+import { emptySectionContent, removeUploadingPlaceHolderAndEmptyLinkNode } from '@/helpers/tiptapExtensions/helper'
 import '~/assets/docsPage.scss'
 
 const { project } = useProject()

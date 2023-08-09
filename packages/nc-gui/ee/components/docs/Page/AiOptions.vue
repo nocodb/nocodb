@@ -7,7 +7,7 @@ import { generateJSON } from '@tiptap/html'
 import showdown from 'showdown'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import { undo } from 'prosemirror-history'
-import { AISelection } from '~/utils/tiptapExtensions/AISelection'
+import { AISelection } from '@/helpers/tiptapExtensions/AISelection'
 
 interface Props {
   editor: Editor

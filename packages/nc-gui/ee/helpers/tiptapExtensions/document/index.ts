@@ -2,6 +2,7 @@ import { Node } from '@tiptap/core'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { NodeSelection, Plugin, TextSelection } from 'prosemirror-state'
 import { AISelection } from '../AISelection'
+import { getPositionOfNextSection, getPositionOfPreviousSection, getPositionOfSection } from '../helper'
 
 export const Document = Node.create({
   name: TiptapNodesTypes.doc,

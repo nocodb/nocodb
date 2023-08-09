@@ -1787,14 +1787,12 @@ defineExpose({
   }
 }
 
-:deep {
-  .resizer:hover,
-  .resizer:active,
-  .resizer:focus {
-    // todo: replace with primary color
-    @apply bg-blue-500/50;
-    cursor: col-resize;
-  }
+:deep(.resizer:hover),
+:deep(.resizer:active),
+:deep(.resizer:focus) {
+  // todo: replace with primary color
+  @apply bg-blue-500/50;
+  cursor: col-resize;
 }
 
 .nc-grid-row {

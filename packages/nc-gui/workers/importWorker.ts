@@ -7,12 +7,12 @@ import {
   ExcelUrlTemplateAdapter,
   JSONTemplateAdapter,
   JSONUrlTemplateAdapter,
-} from '../utils/parsers/index'
+} from '../helpers/parsers/index'
 import type { ImportWorkerPayload } from '../lib'
 import { ImportSource, ImportType, ImportWorkerOperations, ImportWorkerResponse } from '../lib/enums'
-import type TemplateGenerator from '../utils/parsers/TemplateGenerator'
+import type TemplateGenerator from '../helpers/parsers/TemplateGenerator'
 import { extractSdkResponseErrorMsg } from '../utils/errorUtils'
-import { extractSelectOptions } from '../utils/parsers/parserHelpers'
+import { extractSelectOptions } from '../helpers/parsers/parserHelpers'
 
 const state: {
   tables: TableType[]

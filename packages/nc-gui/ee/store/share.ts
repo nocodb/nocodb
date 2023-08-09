@@ -32,31 +32,6 @@ export const useShare = defineStore('share', () => {
 
   const invitationUsersData = ref<Users>({ emails: undefined, role: ProjectRole.Viewer, invitationToken: undefined })
 
-  // watch(
-  //   [openedPage, isEditAllowed, isProjectPublic],
-  //   () => {
-  //     if (!isEditAllowed.value) {
-  //       visibility.value = 'hidden'
-  //       return
-  //     }
-  //
-  //     visibility.value = openedPage.value?.is_published || isProjectPublic.value ? 'public' : 'private'
-  //   },
-  //   { immediate: true, deep: true },
-  // )
-
-  watch(
-    () => viewsStore.activeView?.uuid,
-    (uuid) => {
-      if (project.value?.type !== 'database') return
-
-      visibility.value = uuid ? 'public' : 'private'
-    },
-    {
-      immediate: true,
-    },
-  )
-
   watch(
     () => viewsStore.activeView?.uuid,
     (uuid) => {

@@ -178,7 +178,6 @@ const handleEscape = (event: KeyboardEvent): void => {
 
 <template>
   <div
-    @keydown="handleEscape"
     class="bg-white overflow-auto"
     :class="{
       'w-[400px]': !props.embedMode,
@@ -186,6 +185,7 @@ const handleEscape = (event: KeyboardEvent): void => {
       '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode,
       'shadow-lg border-1 border-gray-50 shadow-gray-100 rounded-md p-6': !embedMode,
     }"
+    @keydown="handleEscape"
     @click.stop
   >
     <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical" data-testid="add-or-edit-column">

@@ -3,7 +3,7 @@ import { useQRCode } from '@vueuse/integrations/useQRCode'
 import type QRCode from 'qrcode'
 import { RowHeightInj, computed, inject, ref } from '#imports'
 
-const maxNumberOfAllowedCharsForQrValue = 62
+const maxNumberOfAllowedCharsForQrValue = 2000
 
 const cellValue = inject(CellValueInj)
 
@@ -16,7 +16,6 @@ const showQrCode = computed(() => qrValue?.value?.length > 0 && !tooManyCharsFor
 const qrCodeOptions: QRCode.QRCodeToDataURLOptions = {
   errorCorrectionLevel: 'M',
   margin: 1,
-  version: 4,
   rendererOpts: {
     quality: 1,
   },

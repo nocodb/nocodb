@@ -295,6 +295,7 @@ class BaseModelSqlv2 {
     const aliasColObjMap = await this.model.getAliasColObjMap();
     let sorts = extractSortsObject(rest?.sort, aliasColObjMap);
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
+    const filterObjMap = filterObj?.filter((obj) => obj?.fk_column_id) 
     // todo: replace with view id
     if (!ignoreViewFilterAndSort && this.viewId) {
       await conditionV2(
@@ -310,9 +311,9 @@ class BaseModelSqlv2 {
             logical_op: 'and',
           }),
           new Filter({
-            children: filterObj,
+            children: filterObjMap || [],
             is_group: true,
-            logical_op: 'and',
+            logical_op: filterObjMap[0]?.logical_op || 'and',
           }),
         ],
         qb,
@@ -334,7 +335,7 @@ class BaseModelSqlv2 {
             logical_op: 'and',
           }),
           new Filter({
-            children: filterObj,
+            children: filterObjMap || [],
             is_group: true,
             logical_op: 'and',
           }),
@@ -362,7 +363,11 @@ class BaseModelSqlv2 {
     let data;
 
     try {
-      data = await this.execAndParse(qb);
+      if (!where || filterObjMap?.length) {
+        data = await this.execAndParse(qb);
+      } else {
+        data = []
+      }
     } catch (e) {
       if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
         throw e;
@@ -3546,7 +3551,6 @@ class BaseModelSqlv2 {
             this.dbDriver.raw(query).wrap('(', ') __nc_alias'),
           )
         : await this.dbDriver.raw(query);
-
     // update attachment fields
     data = this.convertAttachmentType(data, childTable);
 
@@ -4319,16 +4323,18 @@ function extractCondition(nestedArrayConditions, aliasColObjMap) {
         str.match(/(?:~(and|or|not))?\((.*?),(\w+)\)/)?.slice(1) || [];
     }
     let sub_op = null;
-
     if (aliasColObjMap[alias]) {
       if (
         [UITypes.Date, UITypes.DateTime].includes(aliasColObjMap[alias].uidt)
       ) {
         value = value?.split(',');
         // the first element would be sub_op
-        sub_op = value?.[0];
+
+        if (COMPARISON_SUB_OPS.includes(value?.[0])) {
+          sub_op = value?.[0];
+          value?.shift();
+        }
         // remove the first element which is sub_op
-        value?.shift();
         value = value?.[0];
       } else if (op === 'in') {
         value = value.split(',');
@@ -4336,7 +4342,6 @@ function extractCondition(nestedArrayConditions, aliasColObjMap) {
 
       validateFilterComparison(aliasColObjMap[alias].uidt, op, sub_op);
     }
-
     return new Filter({
       comparison_op: op,
       ...(sub_op && { comparison_sub_op: sub_op }),

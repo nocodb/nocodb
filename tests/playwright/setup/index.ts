@@ -170,7 +170,10 @@ async function localInit({
       const projects = await api.project.list();
       for (const p of projects.list) {
         // check if p.title starts with projectTitle
-        if (p.title.startsWith(`pgExtREST_p${process.env.TEST_PARALLEL_INDEX}`)) {
+        if (
+          p.title.startsWith(`pgExtREST_p${process.env.TEST_PARALLEL_INDEX}`) ||
+          p.title.startsWith(`xcdb_p${process.env.TEST_PARALLEL_INDEX}`)
+        ) {
           try {
             await api.project.delete(p.id);
           } catch (e) {

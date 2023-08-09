@@ -68,7 +68,6 @@ import NcIconsRowHeightTall from '~icons/nc-icons/row-height-tall'
 import NcIconsRowHeightExtraTall from '~icons/nc-icons/row-height-extra-tall'
 import MsInfo from '~icons/material-symbols/info-outline-rounded'
 import PhSparkleFill from '~icons/ph/sparkle-fill'
-import Grid from '~icons/material-symbols/grid-view-outline'
 import NcArticle from '~icons/nc-icons/article'
 
 import MsDatabase from '~icons/mdi/database-outline'

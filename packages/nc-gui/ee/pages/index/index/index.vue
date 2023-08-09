@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { Menu } from 'ant-design-vue'
-import { Empty, Modal } from 'ant-design-vue'
+import { Empty } from 'ant-design-vue'
 import type { WorkspaceType } from 'nocodb-sdk'
 import { nextTick, onUnmounted } from '@vue/runtime-core'
 import { WorkspaceStatus, WorkspaceUserRoles } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
-import Sortable from 'sortablejs'
+// import Sortable from 'sortablejs'
 import {
   computed,
   extractSdkResponseErrorMsg,
@@ -48,8 +48,6 @@ const {
 
 const { loadProjects } = useProjects()
 
-const { $e } = useNuxtApp()
-
 const route = $(router.currentRoute)
 
 const selectedWorkspaceIndex = computed<number[]>({
@@ -73,17 +71,10 @@ const isCreateDlgOpen = ref(false)
 
 const isCreateProjectOpen = ref(false)
 
-const menuEl = ref<Menu | null>(null)
+const menuEl = ref<typeof Menu | null>(null)
 
 const toBeDeletedWorkspaceId = ref<string | null>(null)
 const showDeleteWorkspace = ref(false)
-
-const menu = (el?: typeof Menu) => {
-  if (el) {
-    menuEl.value = el
-    initSortable(el.$el)
-  }
-}
 
 const { loadScope } = useCommandPalette()
 
@@ -176,7 +167,7 @@ const handleWorkspaceColor = async (workspaceId: string, color: string) => {
 }
 
 const getWorkspaceColor = (workspace: WorkspaceType) => workspace.meta?.color || stringToColour(workspace.id!)
-
+/*
 // const sortables: Record<string, Sortable> = {}
 
 function getIdFromEl(previousEl: HTMLElement) {
@@ -184,6 +175,7 @@ function getIdFromEl(previousEl: HTMLElement) {
 }
 
 // todo: replace with vuedraggable
+
 function initSortable(el: Element) {
   Sortable.create(el as HTMLLIElement, {
     onEnd: async (evt) => {
@@ -227,7 +219,7 @@ function initSortable(el: Element) {
     animation: 150,
   })
 }
-
+*/
 const tab = computed({
   get() {
     return route.query?.tab ?? 'projects'

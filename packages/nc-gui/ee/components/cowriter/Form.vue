@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import type { TableInfoType, TableType, ViewType } from 'nocodb-sdk'
+import type { TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { RelationTypes, UITypes, getSystemColumns, isVirtualCol } from 'nocodb-sdk'
+import { getSystemColumns, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   MetaInj,
@@ -62,7 +62,7 @@ const isCreateColumnUsingAIDlgOpen = ref(false)
 const isLoadingForm = ref(true)
 
 // todo: generate hideCols based on default values
-const hiddenCols = ['created_at', 'updated_at']
+// const hiddenCols = ['created_at', 'updated_at']
 
 const { isUIAllowed } = useUIPermission()
 
@@ -75,7 +75,8 @@ const { row } = useProvideSmartsheetRowStore(
   }),
 )
 
-const columns = computed(() => (cowriterTable?.value as TableInfoType)?.column || [])
+// TableInfoType
+// const columns = computed(() => (cowriterTable?.value as any)?.column || [])
 
 const localColumns = ref<Record<string, any>[]>([])
 

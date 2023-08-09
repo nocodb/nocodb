@@ -1,6 +1,17 @@
 <script setup lang="ts">
-import { Form, computed, nextTick, onMounted, ref, useProject, useTable, useTabs, useVModel, validateTableName } from '#imports'
-import { TabType } from '~/lib'
+import {
+  Form,
+  TabType,
+  computed,
+  nextTick,
+  onMounted,
+  ref,
+  useProject,
+  useTable,
+  useTabs,
+  useVModel,
+  validateTableName,
+} from '#imports'
 
 const props = defineProps<{
   modelValue: boolean

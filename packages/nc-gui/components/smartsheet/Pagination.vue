@@ -2,7 +2,7 @@
 import type { PaginatedType } from 'nocodb-sdk'
 import SidebarIcon from '~icons/nc-icons/sidebar'
 import { computed, iconMap, inject, isRtlLang, useI18n } from '#imports'
-import type { Language } from '~/lib'
+import type { Language } from '#imports'
 
 interface Props {
   paginationData: PaginatedType
@@ -17,9 +17,9 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const { locale } = useI18n()
-
 const emits = defineEmits(['update:paginationData'])
+
+const { locale } = useI18n()
 
 const vPaginationData = useVModel(props, 'paginationData', emits)
 
@@ -89,7 +89,7 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
         v-model:page-size="size"
         size="small"
         class="!text-xs !m-1 nc-pagination"
-      :class="{ 'rtl-pagination': isRTLLanguage }"
+        :class="{ 'rtl-pagination': isRTLLanguage }"
         :total="count"
         show-less-items
         :show-size-changer="false"

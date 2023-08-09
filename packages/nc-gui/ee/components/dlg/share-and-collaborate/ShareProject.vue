@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import Collaborate from './Collaborate.vue'
-import PublicProject from './PublicProject.vue'
 import ShareBase from './ShareBase.vue'
 
 const { formStatus } = storeToRefs(useShare())

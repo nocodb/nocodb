@@ -2,9 +2,7 @@
 import type { ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import { storeToRefs } from 'pinia'
-import { isString } from '@vue/shared'
 import tinycolor from 'tinycolor2'
-import type { SharedView } from '~~/lib'
 
 interface Emits {
   (event: 'close'): void
@@ -13,18 +11,13 @@ interface Emits {
 const emits = defineEmits<Emits>()
 
 const { view: _view, $api } = useSmartsheetStoreOrThrow()
-const { t } = useI18n()
 const { $e } = useNuxtApp()
 
-const { copy } = useCopy()
-const { isUIAllowed } = useUIPermission()
-const { isMobileMode } = useGlobal()
 const { project } = storeToRefs(useProject())
 const { isProjectPublic } = storeToRefs(useShare())
 const { openedPage, nestedPublicParentPage, nestedPagesOfProjects } = storeToRefs(useDocStore())
 const { updatePage, nestedUrl } = useDocStore()
 
-const { isSharedBase } = storeToRefs(useProject())
 const { dashboardUrl } = useDashboard()
 
 const isUpdating = ref({

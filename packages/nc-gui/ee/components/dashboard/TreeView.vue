@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { nextTick } from '@vue/runtime-core'
-import type { BaseType, TableType } from 'nocodb-sdk'
+import type { TableType } from 'nocodb-sdk'
 import type { Input } from 'ant-design-vue'
 import { Dropdown, Tooltip, message } from 'ant-design-vue'
 import Sortable from 'sortablejs'
@@ -27,7 +27,6 @@ import {
   useNuxtApp,
   useProject,
   useRoute,
-  useSqlEditor,
   useTable,
   useTabs,
   useToggle,
@@ -59,7 +58,7 @@ const [searchActive, toggleSearchActive] = useToggle()
 
 const { appInfo } = useGlobal()
 
-const { selectBase } = useSqlEditor()
+// const { selectBase } = useSqlEditor()
 
 const { addUndo, defineProjectScope } = useUndoRedo()
 
@@ -366,6 +365,7 @@ function openSchemaMagicDialog(baseId?: string) {
   }
 }
 
+/*
 function openSqlEditor(base?: BaseType) {
   if (!base) base = bases.value?.filter((base: BaseType) => base.enabled)[0]
   selectBase(project.value.id!, base.id!)
@@ -376,6 +376,7 @@ function openErdView(base?: BaseType) {
   if (!base) base = bases.value?.filter((base: BaseType) => base.enabled)[0]
   navigateTo(`/${route.params.projectType}/${route.params.projectId}/erd/${base.id}`)
 }
+*/
 
 const searchInputRef: VNodeRef = (vnode: typeof Input) => vnode?.$el?.focus()
 

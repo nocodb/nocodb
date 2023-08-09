@@ -17,7 +17,7 @@ const { metas, getMeta } = useMetas()
 
 const { isUIAllowed } = useUIPermission()
 
-const { $api, $e } = useNuxtApp()
+const { $api } = useNuxtApp()
 
 const { sqlEditors, promptHistory } = useSqlEditor()
 

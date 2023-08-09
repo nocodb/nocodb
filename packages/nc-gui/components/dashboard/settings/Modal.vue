@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { FunctionalComponent, SVGAttributes } from 'vue'
-import DataSources from './DataSources.vue'
 import Misc from './Misc.vue'
-import { DataSourcesSubTab, iconMap, useI18n, useNuxtApp, useUIPermission, useVModel, watch } from '#imports'
+import { DataSourcesSubTab, iconMap, useNuxtApp, useVModel, watch } from '#imports'
 
 interface Props {
   modelValue?: boolean
@@ -41,10 +40,6 @@ const vDataState = useVModel(props, 'dataSourcesState', emits)
 const projectId = toRef(props, 'projectId')
 
 provide(ProjectIdInj, projectId)
-
-const { isUIAllowed } = useUIPermission()
-
-const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 

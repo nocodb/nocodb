@@ -197,6 +197,6 @@ export default defineNuxtConfig({
   },
 
   imports: {
-    dirs: ['./context', './utils/**', './lib', './composables/**', './store/**'],
+    dirs: ['./context', './utils/**', './lib/**', './composables/**', './store/**'],
   },
 })

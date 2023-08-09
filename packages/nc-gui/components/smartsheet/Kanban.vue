@@ -17,7 +17,6 @@ import {
   inject,
   isImage,
   isLTAR,
-  onBeforeMount,
   onBeforeUnmount,
   provide,
   useAttachment,
@@ -25,7 +24,7 @@ import {
   useKanbanViewStoreOrThrow,
   useUndoRedo,
 } from '#imports'
-import type { Row as RowType } from '~/lib'
+import type { Row as RowType } from '#imports'
 
 interface Attachment {
   url: string

@@ -1,13 +1,19 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
-import { Dropdown, message } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
-import { openLink, useProjects, useWorkspace } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils'
-import { ProjectInj, ProjectRoleInj, ToggleDialogInj } from '~/context'
-import type { NcProject } from '~~/lib'
-import { isElementInvisible } from '~~/utils/domUtils'
+import type { NcProject } from '#imports'
+import {
+  ProjectInj,
+  ProjectRoleInj,
+  ToggleDialogInj,
+  extractSdkResponseErrorMsg,
+  isElementInvisible,
+  openLink,
+  useProjects,
+  useWorkspace,
+} from '#imports'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
@@ -109,10 +115,12 @@ const updateProjectTitle = async () => {
   }
 }
 
+/*
 const closeEditMode = () => {
   editMode.value = false
   tempTitle.value = ''
 }
+*/
 
 const { copy } = useCopy(true)
 
@@ -288,12 +296,10 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
   }
 }
 
+// TODO - implement
+/*
 function openSqlEditor(base: BaseType) {
   navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/sql/${base.id}`)
-}
-
-function openErdView(base: BaseType) {
-  navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/erd/${base.id}`)
 }
 
 async function openProjectSqlEditor(_project: ProjectType) {
@@ -308,6 +314,11 @@ async function openProjectSqlEditor(_project: ProjectType) {
   const base = project?.bases?.[0]
   if (!base) return
   navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/sql/${base.id}`)
+}
+*/
+
+function openErdView(base: BaseType) {
+  navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/erd/${base.id}`)
 }
 
 async function openProjectErdView(_project: ProjectType) {

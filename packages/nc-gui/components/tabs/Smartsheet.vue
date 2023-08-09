@@ -25,7 +25,7 @@ import {
   useSqlEditor,
   useUIPermission,
 } from '#imports'
-import type { TabItem } from '~/lib'
+import type { TabItem } from '#imports'
 
 const props = defineProps<{
   activeTab: TabItem
@@ -35,11 +35,9 @@ const { isUIAllowed } = useUIPermission()
 
 const { metas, getMeta } = useMetas()
 
-const { isOpen } = useSidebar('nc-right-sidebar')
+useSidebar('nc-right-sidebar')
 
 const isPublic = inject(IsPublicInj, ref(false))
-
-const { isMobileMode } = useGlobal()
 
 const activeTab = toRef(props, 'activeTab')
 

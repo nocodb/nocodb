@@ -19,8 +19,7 @@ import {
   useUIPermission,
   watch,
 } from '#imports'
-import { TabMetaInj } from '~/context'
-import type { Filter, TabItem, UndoRedoAction } from '~/lib'
+import type { Filter, UndoRedoAction } from '#imports'
 
 export function useViewFilters(
   view: Ref<ViewType | undefined>,

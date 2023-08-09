@@ -4,6 +4,6 @@ export default {
 }
 </script>
 
-<template></template>
+<template><span /></template>
 
 <style scoped></style>

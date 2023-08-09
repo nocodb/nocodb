@@ -12,7 +12,7 @@ import {
   useNuxtApp,
   useProject,
 } from '#imports'
-import type { SmartsheetStoreEvents } from '~/lib'
+import type { SmartsheetStoreEvents } from '#imports'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   (

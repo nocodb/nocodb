@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { Role } from '~/lib'
-import { definePageMeta } from '#imports'
+import { Role, definePageMeta } from '#imports'
 
 definePageMeta({
   requiresAuth: true,

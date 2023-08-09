@@ -1,38 +1,14 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import type { TabItem } from '~/lib'
-import { TabType } from '~/lib'
-import { TabMetaInj, iconMap, provide, storeToRefs, useGlobal, useSidebar, useTabs } from '#imports'
+import { TabMetaInj, provide, storeToRefs, useSidebar, useTabs } from '#imports'
 
 const tabStore = useTabs()
-const { closeTab } = tabStore
-const { tabs, activeTabIndex, activeTab } = storeToRefs(tabStore)
+const { activeTab } = storeToRefs(tabStore)
 
 useProjectsShortcuts()
-const { isLoading } = useGlobal()
 
 provide(TabMetaInj, activeTab)
 
-const icon = (tab: TabItem) => {
-  switch (tab.type) {
-    case TabType.TABLE:
-      return iconMap.table
-    case TabType.VIEW:
-      return iconMap.view
-    case TabType.AUTH:
-      return iconMap.account
-    case TabType.SQL:
-      return iconMap.databaseSearch
-    case TabType.ERD:
-      return iconMap.erd
-  }
-}
-
-const { isOpen, toggle } = useSidebar('nc-left-sidebar')
-
-function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
-  if (action === 'remove') closeTab(targetKey)
-}
+useSidebar('nc-left-sidebar')
 </script>
 
 <template>

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { extractSdkResponseErrorMsg, message, useApi, useI18n, useNuxtApp, useVModel } from '#imports'
+import { extractSdkResponseErrorMsg, message, useApi, useNuxtApp, useVModel } from '#imports'
 
 interface Props {
   modelValue: boolean
@@ -16,8 +16,6 @@ const props = defineProps<Props>()
 const emits = defineEmits<Emits>()
 
 const { view } = props
-
-const { t } = useI18n()
 
 const vModel = useVModel(props, 'modelValue', emits)
 

@@ -30,8 +30,6 @@ import {
   watch,
 } from '#imports'
 
-const { appInfo } = useGlobal()
-
 const useForm = Form.useForm
 
 const testSuccess = ref(false)

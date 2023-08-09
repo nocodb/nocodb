@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia'
-import { computed } from '@vue/reactivity'
 import InfiniteLoading from 'v3-infinite-loading'
 import { useNotification } from '#imports'
 
@@ -8,6 +7,7 @@ const notificationStore = useNotification()
 
 const { notifications, isRead, pageInfo } = storeToRefs(notificationStore)
 
+/*
 const groupType = computed({
   get() {
     return isRead.value ? 'read' : 'unread'
@@ -17,6 +17,7 @@ const groupType = computed({
     notificationStore.loadNotifications()
   },
 })
+*/
 </script>
 
 <template>

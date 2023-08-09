@@ -5,7 +5,6 @@ import type { Ref } from 'vue'
 import { isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
-  FieldsInj,
   IsFormInj,
   IsGridInj,
   MetaInj,
@@ -18,7 +17,7 @@ import {
   ref,
   useViewData,
 } from '#imports'
-import type { Row } from '~/lib'
+import type { Row } from '#imports'
 
 const props = defineProps<{
   fields: ColumnType[]
@@ -33,8 +32,6 @@ const { loadData } = useViewData(meta, view)
 
 provide(IsFormInj, ref(false))
 provide(IsGridInj, ref(false))
-
-const fields = inject(FieldsInj, ref([]))
 
 const isRowEmpty = (record: any, col: any) => {
   const val = record.row[col.title]

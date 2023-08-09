@@ -1,21 +1,13 @@
 <script lang="ts" setup>
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { Empty } from 'ant-design-vue'
-import { storeToRefs, stringToColour, timeAgo, useWorkspace, useWorkspaceStoreOrThrow } from '#imports'
-
-const rolesLabel = {
-  [WorkspaceUserRoles.CREATOR]: 'Creator',
-  [WorkspaceUserRoles.OWNER]: 'Owner',
-  [WorkspaceUserRoles.EDITOR]: 'Editor',
-  [WorkspaceUserRoles.COMMENTER]: 'Commenter',
-  [WorkspaceUserRoles.VIEWER]: 'Viewer',
-}
+import { storeToRefs, stringToColour, timeAgo, useWorkspace } from '#imports'
 
 const workspaceStore = useWorkspace()
 
 const { removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
 
-const { collaborators, isWorkspaceOwner, activePage } = storeToRefs(workspaceStore)
+const { collaborators, isWorkspaceOwner } = storeToRefs(workspaceStore)
 const userSearchText = ref('')
 
 const filterCollaborators = computed(() => {
@@ -25,15 +17,6 @@ const filterCollaborators = computed(() => {
 
   return collaborators.value.filter((collab) => collab.email!.includes(userSearchText.value))
 })
-
-const getRolesLabel = (roles?: string) => {
-  return (
-    roles
-      ?.split(/\s*,\s*/)
-      ?.map((role) => rolesLabel[role])
-      .join(', ') ?? ''
-  )
-}
 
 const updateCollaborator = async (collab) => {
   try {

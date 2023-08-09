@@ -6,6 +6,7 @@ import type { VNodeRef } from '@vue/runtime-core'
 import type { ProjectType } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import {
+  NcProjectType,
   extractSdkResponseErrorMsg,
   generateUniqueName,
   iconMap,
@@ -25,7 +26,6 @@ import {
   useSidebar,
   useTable,
 } from '#imports'
-import { NcProjectType } from '~/utils'
 
 const { $e } = useNuxtApp()
 
@@ -142,8 +142,6 @@ onMounted(async () => {
   input.value?.$el?.focus()
   input.value?.$el?.select()
 })
-
-const isDashboardProject = computed(() => route.query.type === NcProjectType.DASHBOARD)
 </script>
 
 <template>

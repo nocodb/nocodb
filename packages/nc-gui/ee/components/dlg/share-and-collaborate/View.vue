@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import ManageUsers from './ManageUsers.vue'
-import ShareProject from './ShareProject.vue'
+// import ShareProject from './ShareProject.vue'
 import SharePage from './SharePage.vue'
 const { isViewToolbar } = defineProps<{
   isViewToolbar?: boolean
@@ -25,11 +25,10 @@ if (isViewToolbar) {
   }
 }
 
-const { formStatus, showShareModal, invitationValid, invitationUsersData, isInvitationLinkCopied } = storeToRefs(useShare())
+const { formStatus, showShareModal, invitationUsersData, isInvitationLinkCopied } = storeToRefs(useShare())
 const { resetData } = useShare()
-const { inviteUser } = useManageUsers()
 
-const expandedSharedType = ref<'none' | 'project' | 'view'>('view')
+// const expandedSharedType = ref<'none' | 'project' | 'view'>('view')
 const isOpeningManageAccess = ref(false)
 
 const pageTitle = computed(() => (openedPage.value ?? nestedPagesOfProjects.value[project.value.id!]?.[0])?.title)
@@ -47,6 +46,7 @@ const indicator = h(LoadingOutlined, {
   spin: true,
 })
 
+/*
 const onShare = async () => {
   if (!invitationValid) return
 
@@ -55,6 +55,7 @@ const onShare = async () => {
     roles: invitationUsersData.value.role!,
   })
 }
+*/
 
 const copyInvitationLink = async () => {
   await copy(inviteUrl.value!)

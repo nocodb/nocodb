@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { Icon as IconifyIcon } from '@iconify/vue'
-import type { TabItem } from '~/lib'
-import { TabType } from '~/lib'
-import { TabMetaInj, iconMap, provide, storeToRefs, useGlobal, useSidebar, useTabs } from '#imports'
+import type { TabItem } from '#imports'
+import { TabMetaInj, TabType, iconMap, provide, storeToRefs, useGlobal, useSidebar, useTabs } from '#imports'
 
 const tabStore = useTabs()
 const { closeTab } = tabStore

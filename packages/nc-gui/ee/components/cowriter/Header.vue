@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { MetaInj, useCowriterStoreOrThrow } from '#imports'
-const { cowriterLayout, cowriterProject, cowriterTable } = useCowriterStoreOrThrow()
+const { cowriterProject, cowriterTable } = useCowriterStoreOrThrow()
 
 const showApiSnippetDrawer = ref(false)
 

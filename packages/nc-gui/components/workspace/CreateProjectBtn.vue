@@ -11,7 +11,6 @@ const props = defineProps<{
 const router = useRouter()
 
 const projectCreateDlg = ref(false)
-const dashboardProjectCreateDlg = ref(false)
 const projectType = ref(NcProjectType.DB)
 
 const navigateToCreateProject = (type: NcProjectType) => {

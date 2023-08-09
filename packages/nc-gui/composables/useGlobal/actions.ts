@@ -1,6 +1,5 @@
 import type { Actions, AppInfo, State } from './types'
-import { message, useNuxtApp } from '#imports'
-import type { NcProjectType } from '~/utils'
+import { type NcProjectType, message, useNuxtApp } from '#imports'
 import { navigateTo } from '#app'
 
 export function useGlobalActions(state: State): Actions {

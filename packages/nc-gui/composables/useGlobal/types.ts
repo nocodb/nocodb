@@ -1,9 +1,7 @@
 import type { ComputedRef, Ref, ToRefs } from 'vue'
 import type { WritableComputedRef } from '@vue/reactivity'
 import type { JwtPayload } from 'jwt-decode'
-import type { Language, ProjectRole, User } from '~/lib'
-import type { useCounter } from '#imports'
-import type { NcProjectType } from '~/utils'
+import type { Language, NcProjectType, ProjectRole, User, useCounter } from '#imports'
 
 export interface AppInfo {
   ncSiteUrl: string

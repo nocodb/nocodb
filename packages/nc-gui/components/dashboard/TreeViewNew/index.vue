@@ -10,6 +10,7 @@ import {
   TreeViewInj,
   computed,
   isDrawerOrModalExist,
+  isElementInvisible,
   isMac,
   reactive,
   ref,
@@ -25,7 +26,6 @@ import {
 } from '#imports'
 
 import { useRouter } from '#app'
-import { isElementInvisible } from '~/utils/domUtils'
 
 const emit = defineEmits<{
   (event: 'onScrollTop', type: boolean): void

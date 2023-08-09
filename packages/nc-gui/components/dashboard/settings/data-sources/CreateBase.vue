@@ -5,6 +5,7 @@ import type { DefaultConnection, ProjectCreateForm, SQLiteConnection } from '#im
 import {
   CertTypes,
   ClientType,
+  ProjectIdInj,
   SSLUsage,
   clientTypes as _clientTypes,
   computed,
@@ -21,18 +22,14 @@ import {
   ref,
   storeToRefs,
   useApi,
-  useGlobal,
   useI18n,
   useNuxtApp,
   watch,
 } from '#imports'
-import { ProjectIdInj } from '~/context'
 
 const { connectionType } = defineProps<{ connectionType: ClientType }>()
 
 const emit = defineEmits(['baseCreated', 'close'])
-
-const { appInfo } = useGlobal()
 
 const projectStore = useProject()
 const { loadProject } = useProjects()

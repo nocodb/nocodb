@@ -10,12 +10,12 @@ import {
   useApi,
   useCommandPalette,
   useNuxtApp,
+  useProjects,
   useRoles,
   useRouter,
   useTheme,
 } from '#imports'
-import type { NcProject, ProjectMetaInfo, ThemeConfig } from '~/lib'
-import { useProjects } from '~/store/projects'
+import type { NcProject, ProjectMetaInfo, ThemeConfig } from '#imports'
 
 export const useProject = defineStore('projectStore', () => {
   const { $e } = useNuxtApp()
@@ -134,7 +134,7 @@ export const useProject = defineStore('projectStore', () => {
     }
   }
 
-  async function loadProject(withTheme = true, forcedId?: string) {
+  async function loadProject(_withTheme = true, forcedId?: string) {
     if (forcedId) forcedProjectId.value = forcedId
     if (projectType === 'base') {
       try {

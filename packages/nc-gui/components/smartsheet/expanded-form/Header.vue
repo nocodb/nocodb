@@ -20,7 +20,7 @@ const route = useRoute()
 
 const { meta, isSqlView } = useSmartsheetStoreOrThrow()
 
-const { commentsDrawer, displayValue, primaryKey, save: _save, loadRow, saveRowAndStay } = useExpandedFormStoreOrThrow()
+const { commentsDrawer, displayValue, primaryKey, save: _save, loadRow } = useExpandedFormStoreOrThrow()
 
 const { isNew, syncLTARRefs, state } = useSmartsheetRowStoreOrThrow()
 

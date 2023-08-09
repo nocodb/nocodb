@@ -81,16 +81,16 @@ onMounted(async () => {
     isLoading.value = false
   }
 })
-
+/*
 const getRolesLabel = (roles?: string) => {
   return (
     roles
-      ?.split(/\s*,\s*/)
+      ?.split(/\s*,\s*REMOVE/)
       ?.map((role) => rolesLabel[role])
       .join(', ') ?? ''
   )
 }
-
+*/
 const updateCollaborator = async (collab, roles) => {
   try {
     if (collab.projectRoles) {

@@ -3,8 +3,6 @@ import type { ColumnType, GalleryType, KanbanType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import type { SelectProps } from 'ant-design-vue'
-import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
-import { active } from 'sortablejs'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -24,8 +22,6 @@ import {
   useViewColumns,
   watch,
 } from '#imports'
-
-import FieldIcon from '~icons/nc-icons/eye'
 
 const meta = inject(MetaInj, ref())
 

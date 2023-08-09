@@ -10,19 +10,13 @@ const emits = defineEmits(['update:project'])
 
 const base = toRef(props, 'base')
 
-const project = useVModel(props, 'project', emits)
-
-const { appInfo } = useGlobal()
-
-const { t } = useI18n()
+const _project = useVModel(props, 'project', emits)
 
 const { isUIAllowed } = useUIPermission()
 
 const projectRole = inject(ProjectRoleInj)
 
 const { $e } = useNuxtApp()
-
-const toggleDialog = inject(ToggleDialogInj, () => {})
 
 function openTableCreateMagicDialog(baseId?: string) {
   $e('c:table:create:navdraw')

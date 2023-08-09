@@ -37,8 +37,7 @@ import {
   useViewsStore,
   watch,
 } from '#imports'
-import type { CellRange } from '#imports'
-import type { Row } from '~/lib'
+import type { CellRange, Row } from '#imports'
 
 const props = defineProps<{
   data: Row[]
@@ -126,8 +125,6 @@ const { isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
 const { $e } = useNuxtApp()
-
-const { appInfo } = useGlobal()
 
 const { t } = useI18n()
 

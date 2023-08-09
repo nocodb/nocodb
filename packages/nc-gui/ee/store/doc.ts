@@ -447,7 +447,7 @@ export const useDocStore = defineStore('docStore', () => {
       openedPage.value = findPage(nestedPages, createdPageData.id!)
       await navigateTo(nestedUrl({ id: createdPageData.id!, projectId: projectId! }))
 
-      if (isPublic.value) return
+      // if (isPublic.value) return
       // const { addTab } = useTabs()
 
       // addTab({

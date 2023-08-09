@@ -2,11 +2,9 @@
 import { Empty } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { ProjectStatus, WorkspaceUserRoles } from 'nocodb-sdk'
-import tinycolor from 'tinycolor2'
 import { nextTick } from '@vue/runtime-core'
-import { NcProjectType, isEeUI, navigateTo, storeToRefs, timeAgo, useWorkspace } from '#imports'
+import { NcProjectType, isEeUI, navigateTo, storeToRefs, timeAgo, useGlobal, useWorkspace } from '#imports'
 import { useNuxtApp } from '#app'
-import { useGlobal } from '~/composables/useGlobal'
 
 const workspaceStore = useWorkspace()
 const projectsStore = useProjects()
@@ -14,13 +12,13 @@ const { updateProjectTitle } = workspaceStore
 const { activePage } = storeToRefs(workspaceStore)
 
 const { loadProjects } = useProjects()
-const { projects, projectsList, isProjectsLoading } = storeToRefs(useProjects())
+const { projectsList, isProjectsLoading } = storeToRefs(useProjects())
 
 const { navigateToProject } = $(useGlobal())
 
 // const filteredProjects = computed(() => projects.value?.filter((p) => !p.deleted) || [])
 
-const { $e, $api, $jobs } = useNuxtApp()
+const { $e, $jobs } = useNuxtApp()
 
 const { isUIAllowed } = useUIPermission()
 

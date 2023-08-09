@@ -31,9 +31,9 @@ provide(ToggleDialogInj, toggleDialog)
 //   }
 // })
 
-// todo:
-const isSharedBase = ref(false)
-const currentVersion = ref('')
+// TODO
+// const isSharedBase = ref(false)
+// const currentVersion = ref('')
 </script>
 
 <template>

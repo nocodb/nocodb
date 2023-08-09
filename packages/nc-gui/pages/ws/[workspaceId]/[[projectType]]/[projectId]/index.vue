@@ -1,29 +1,23 @@
 <script setup lang="ts">
-import tinycolor from 'tinycolor2'
 import {
-  computed,
   definePageMeta,
   extractSdkResponseErrorMsg,
   isDrawerOrModalExist,
   isMac,
   message,
-  navigateTo,
   onBeforeMount,
   onBeforeUnmount,
   onKeyStroke,
   onMounted,
   ref,
   resolveComponent,
-  useCopy,
   useDialog,
-  useGlobal,
   useI18n,
   useProject,
   useRoute,
   useRouter,
   useSidebar,
   useTheme,
-  useUIPermission,
 } from '#imports'
 
 definePageMeta({
@@ -31,7 +25,7 @@ definePageMeta({
   hasSidebar: true,
 })
 
-const { theme, defaultTheme } = useTheme()
+useTheme()
 
 const { t } = useI18n()
 
@@ -41,83 +35,14 @@ const route = useRoute()
 
 const router = useRouter()
 
-const { token, signOut, user } = useGlobal()
-
 const projectStore = useProject()
 
-const { saveTheme, loadProject, reset } = projectStore
-
-const { isUIAllowed } = useUIPermission()
-
-const { copy } = useCopy(true)
+const { loadProject } = projectStore
 
 // create a new sidebar state
-const { isOpen, toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
+const { toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
 
 const dropdownOpen = ref(false)
-
-/** Sidebar ref */
-const sidebar = ref()
-
-const email = computed(() => user.value?.email ?? '---')
-
-const logout = async () => {
-  await signOut()
-  navigateTo('/signin')
-}
-
-const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color?: string) => {
-  switch (mode) {
-    case 'swatch': {
-      if (color === defaultTheme.primaryColor) {
-        return await saveTheme(defaultTheme)
-      }
-
-      const tcolor = tinycolor(color)
-      if (tcolor.isValid()) {
-        const complement = tcolor.complement()
-
-        await saveTheme({
-          primaryColor: color,
-          accentColor: complement.toHex8String(),
-        })
-      }
-      break
-    }
-    case 'primary': {
-      const tcolor = tinycolor(color)
-
-      if (tcolor.isValid()) {
-        await saveTheme({
-          primaryColor: color,
-        })
-      }
-      break
-    }
-    case 'accent': {
-      const tcolor = tinycolor(color)
-
-      if (tcolor.isValid()) {
-        await saveTheme({
-          accentColor: color,
-        })
-      }
-      break
-    }
-  }
-}
-
-const copyAuthToken = async () => {
-  try {
-    if (await copy(token.value!)) {
-      // Copied to clipboard
-      message.info(t('msg.info.copiedToClipboard'))
-    }
-  } catch (e: any) {
-    console.error(e)
-    message.error(e.message)
-  }
-}
 
 onKeyStroke(
   'Escape',
@@ -150,8 +75,6 @@ onBeforeMount(async () => {
     await router.replace(`/nc/${route.params.projectId}/${type}/${name}${view ? `/${view}` : ''}`)
   }
 })
-
-const { loadScope } = useCommandPalette()
 
 onMounted(() => {
   toggle(true)

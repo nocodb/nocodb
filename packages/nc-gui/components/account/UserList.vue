@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { Modal, message } from 'ant-design-vue'
 import type { OrgUserReqType, RequestParams, UserType } from 'nocodb-sdk'
+import type { User } from '#imports'
 import { Role, extractSdkResponseErrorMsg, iconMap, useApi, useCopy, useDashboard, useNuxtApp } from '#imports'
-import type { User } from '~/lib'
 
 const { api, isLoading } = useApi()
 

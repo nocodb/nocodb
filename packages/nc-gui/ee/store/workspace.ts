@@ -4,7 +4,7 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
 import { computed, ref, useCommandPalette, useNuxtApp, useRouter, useTheme } from '#imports'
-import type { ThemeConfig } from '~/lib'
+import type { ThemeConfig } from '#imports'
 
 interface NcWorkspace extends WorkspaceType {
   edit?: boolean
@@ -314,7 +314,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         { title: project.temp_title },
         {
           baseURL: appInfo.baseHostName
-            ? `https://${activeWorkspace.value?.id! || project.fk_workspace_id}.${appInfo.baseHostName}`
+            ? `https://${activeWorkspace.value?.id || project.fk_workspace_id}.${appInfo.baseHostName}`
             : undefined,
         },
       )

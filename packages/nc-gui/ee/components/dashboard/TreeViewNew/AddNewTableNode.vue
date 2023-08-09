@@ -4,10 +4,7 @@ import { storeToRefs } from 'pinia'
 import { toRef } from '@vue/reactivity'
 import { resolveComponent } from '@vue/runtime-core'
 import { ref } from 'vue'
-import { useUIPermission } from '~/composables/useUIPermission'
-import { useDialog } from '~/composables/useDialog'
-import { ClientType } from '~/lib'
-import { ProjectRoleInj } from '~/context'
+import { ProjectRoleInj, useDialog, useUIPermission } from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -107,9 +104,6 @@ function openTableCreateMagicDialog(baseId?: string) {
     close(1000)
   }
 }
-const { appInfo } = useGlobal()
-
-const toggleDialog = inject(ToggleDialogInj, () => {})
 </script>
 
 <template>

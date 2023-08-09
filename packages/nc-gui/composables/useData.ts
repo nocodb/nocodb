@@ -1,7 +1,6 @@
 import { UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RelationTypes, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import type { CellRange } from '#imports'
 import {
   NOCO,
   computed,
@@ -18,7 +17,7 @@ import {
   useNuxtApp,
   useProject,
 } from '#imports'
-import type { Row, UndoRedoAction } from '~/lib'
+import type { CellRange, Row, UndoRedoAction } from '#imports'
 
 export function useData(args: {
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>

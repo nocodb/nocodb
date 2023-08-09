@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { WorkspacePlan } from 'nocodb-sdk'
 import { storeToRefs } from 'pinia'
-import { extractSdkResponseErrorMsg } from '~/utils'
+import { extractSdkResponseErrorMsg } from '#imports'
 
 const workspaceStore = useWorkspace()
 const { upgradeActiveWorkspace } = workspaceStore

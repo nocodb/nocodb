@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
 import type { OrgUserReqType } from 'nocodb-sdk'
+import type { User, Users } from '#imports'
 import {
   Form,
+  Role,
   computed,
   emailValidator,
   extractSdkResponseErrorMsg,
@@ -14,8 +16,6 @@ import {
   useI18n,
   useNuxtApp,
 } from '#imports'
-import type { User, Users } from '~/lib'
-import { Role } from '~/lib'
 
 interface Props {
   show: boolean

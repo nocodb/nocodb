@@ -5,11 +5,12 @@ import Sortable from 'sortablejs'
 
 import ProjectWrapper from './ProjectWrapper.vue'
 
+import type { TabType } from '#imports'
 import {
-  TabType,
   TreeViewInj,
   computed,
   isDrawerOrModalExist,
+  isElementInvisible,
   isMac,
   reactive,
   ref,
@@ -26,7 +27,6 @@ import {
 } from '#imports'
 
 import { useRouter } from '#app'
-import { isElementInvisible } from '~~/utils/domUtils'
 
 const emit = defineEmits<{
   (event: 'onScrollTop', type: boolean): void
@@ -60,15 +60,13 @@ const { tables } = storeToRefs(projectStore)
 
 const { activeTable: _activeTable } = storeToRefs(useTablesStore())
 
-const { activeTab } = storeToRefs(useTabs())
-
 const { refreshCommandPalette } = useCommandPalette()
 
 const keys = $ref<Record<string, number>>({})
 
 const menuRefs = $ref<HTMLElement[] | HTMLElement>()
 
-const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
+// const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
 
 const tablesById = $computed(() =>
   Object.values(projectTables.value.get(activeProjectId.value!) || {})

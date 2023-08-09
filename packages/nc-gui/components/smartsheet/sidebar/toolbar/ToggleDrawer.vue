@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useSidebar } from '#imports'
 
-const { isOpen, toggle } = useSidebar('nc-right-sidebar')
+const { isOpen } = useSidebar('nc-right-sidebar')
 </script>
 
 <template>

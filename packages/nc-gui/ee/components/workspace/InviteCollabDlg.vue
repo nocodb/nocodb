@@ -13,7 +13,7 @@ import {
   useNuxtApp,
   validateEmail,
 } from '#imports'
-import type { User, Users } from '~/lib'
+import type { User, Users } from '#imports'
 
 interface Props {
   show: boolean

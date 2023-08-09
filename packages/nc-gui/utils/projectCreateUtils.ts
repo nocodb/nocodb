@@ -38,7 +38,7 @@ interface SQLiteConnection {
   useNullAsDefault?: boolean
 }
 
-export interface SnowflakeConnection {
+interface SnowflakeConnection {
   account: string
   username: string
   password: string
@@ -215,4 +215,4 @@ enum CertTypes {
   key = 'key',
 }
 
-export { SSLUsage, CertTypes, ProjectCreateForm, DefaultConnection, SQLiteConnection }
+export { SSLUsage, CertTypes, ProjectCreateForm, DefaultConnection, SQLiteConnection, SnowflakeConnection }

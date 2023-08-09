@@ -3,11 +3,17 @@ import type { TableType } from 'nocodb-sdk'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
 import { toRaw, unref } from '@vue/runtime-core'
+import type { ImportWorkerPayload, importFileList, streamImportFileList } from '#imports'
 import {
+  BASE_FALLBACK_URL,
   CSVTemplateAdapter,
   ExcelTemplateAdapter,
   ExcelUrlTemplateAdapter,
   Form,
+  ImportSource,
+  ImportType,
+  ImportWorkerOperations,
+  ImportWorkerResponse,
   JSONTemplateAdapter,
   JSONUrlTemplateAdapter,
   computed,
@@ -27,11 +33,9 @@ import {
   useProject,
   useVModel,
 } from '#imports'
-import type { ImportWorkerPayload, importFileList, streamImportFileList } from '~/lib'
 
 // import worker script according to the doc of Vite
 import importWorkerUrl from '~/workers/importWorker?worker&url'
-import { BASE_FALLBACK_URL, ImportSource, ImportType, ImportWorkerOperations, ImportWorkerResponse } from '~/lib'
 import { useNuxtApp } from '#app'
 
 interface Props {

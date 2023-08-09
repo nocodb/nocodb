@@ -3,6 +3,7 @@ import type { Input } from 'ant-design-vue'
 import type { ProjectUserReqType } from 'nocodb-sdk'
 import {
   Form,
+  ProjectRole,
   computed,
   emailValidator,
   extractSdkResponseErrorMsg,
@@ -20,8 +21,7 @@ import {
   useNuxtApp,
   useProject,
 } from '#imports'
-import type { User, Users } from '~/lib'
-import { ProjectRole } from '~/lib'
+import type { User, Users } from '#imports'
 
 interface Props {
   show: boolean

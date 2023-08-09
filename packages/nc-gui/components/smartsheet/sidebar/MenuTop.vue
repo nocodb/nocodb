@@ -16,7 +16,6 @@ import {
   useApi,
   useCommandPalette,
   useDialog,
-  useI18n,
   useNuxtApp,
   useRouter,
   useUndoRedo,
@@ -37,8 +36,6 @@ interface Emits {
 const { views = [] } = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
-
-const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 

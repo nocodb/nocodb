@@ -4,7 +4,7 @@ import { navigateTo } from '#app'
 
 const router = useRouter()
 
-const route = $(router.currentRoute)
+const route = router.currentRoute
 
 const workspaceStore = useWorkspace()
 
@@ -38,11 +38,12 @@ const onTreeViewScrollTop = (onScrollTop: boolean) => {
   isTreeViewOnScrollTop.value = !onScrollTop
 }
 
-const { appInfo } = $(useGlobal())
+const globalStore = useGlobal()
+const appInfo = toRef(globalStore, 'appInfo')
 
 const navigateToHome = () => {
-  if (appInfo.baseHostName) {
-    window.location.href = `https://app.${appInfo.baseHostName}/dashboard`
+  if (appInfo.value.baseHostName) {
+    window.location.href = `https://app.${appInfo.value.baseHostName}/dashboard`
   } else {
     navigateTo('/')
   }

@@ -22,8 +22,7 @@ import type {
 } from 'nocodb-sdk'
 import { AggregateFnType, ButtonActionType, DataSourceType, FontType, WidgetTypeType, chartTypes } from 'nocodb-sdk'
 import { computed, extractSdkResponseErrorMsg, message, navigateTo, ref, useNuxtApp, useRouter, watch } from '#imports'
-import type { LayoutSidebarNode } from '~~/lib'
-import type { IdAndTitle } from '~~/components/layouts/types'
+import type { IdAndTitle, LayoutSidebarNode } from '#imports'
 
 interface LayoutEntry {
   x: number
@@ -78,7 +77,7 @@ export const availableAggregateFunctionsWithIdAndTitle = availableAggregateFunct
 
 export const useDashboardStore = defineStore('dashboardStore', () => {
   const router = useRouter()
-  const route = $(router.currentRoute)
+  const route = router.currentRoute
 
   const { $api, $e } = useNuxtApp()
   const { t } = useI18n()
@@ -142,9 +141,9 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       })) || [],
   )
 
-  const openedProjectId = computed<string>(() => route.params.projectId as string)
-  const openedLayoutId = computed<string | null>(() => route.params.layoutId as string)
-  const _openedWorkspaceId = computed<string>(() => route.params.workspaceId as string)
+  const openedProjectId = computed<string>(() => route.value.params.projectId as string)
+  const openedLayoutId = computed<string | null>(() => route.value.params.layoutId as string)
+  const _openedWorkspaceId = computed<string>(() => route.value.params.workspaceId as string)
   const availableNumericColumnsOfSelectedView = computed(() => {
     if (!availableColumnsOfSelectedView.value) {
       return undefined

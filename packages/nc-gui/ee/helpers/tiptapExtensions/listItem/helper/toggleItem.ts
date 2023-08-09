@@ -3,7 +3,7 @@ import type { EditorState } from 'prosemirror-state'
 import type { ChainedCommands } from '@tiptap/core'
 import { Slice } from 'prosemirror-model'
 import { TiptapNodesTypes } from 'nocodb-sdk'
-import { nodeTypesContainingSection } from '../../helper'
+import { getPositionOfSection, nodeTypesContainingSection } from '../../helper'
 import type { ListNodeType } from '.'
 
 let prevOrderedListNodeNumber = 0

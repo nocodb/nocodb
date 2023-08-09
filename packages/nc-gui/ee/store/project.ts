@@ -24,7 +24,7 @@ export const useProject = defineStore('projectStore', () => {
 
   const router = useRouter()
 
-  const route = $(router.currentRoute)
+  const route = router.currentRoute
 
   const { setTheme, theme } = useTheme()
 
@@ -34,19 +34,19 @@ export const useProject = defineStore('projectStore', () => {
 
   const forcedProjectId = ref<string>()
 
-  const projectId = computed(() => forcedProjectId.value || (route.params.projectId as string))
+  const projectId = computed(() => forcedProjectId.value || (route.value.params.projectId as string))
 
   const projectsStore = useProjects()
 
   const tablesStore = useTablesStore()
 
   // todo: refactor
-  let sharedProject = $ref<ProjectType>()
+  const sharedProject = ref<ProjectType>()
 
   const openedProject = computed(() => projectsStore.projects.get(projectId.value))
 
   // todo: new-layout
-  const project = computed<NcProject>(() => projectsStore.projects.get(projectId.value) || sharedProject || {})
+  const project = computed<NcProject>(() => projectsStore.projects.get(projectId.value) || sharedProject.value || {})
   const tables = computed<TableType[]>(() => tablesStore.projectTables.get(projectId.value) || [])
 
   const projectLoadedHook = createEventHook<ProjectType>()
@@ -58,7 +58,7 @@ export const useProject = defineStore('projectStore', () => {
   const lastOpenedViewMap = ref<Record<string, string>>({})
 
   // todo: refactor path param name and variable name
-  const projectType = $computed(() => route.params.projectType as string)
+  const projectType = computed(() => route.value.params.projectType as string)
 
   const projectMeta = computed<Record<string, any>>(() => {
     const defaultMeta = {
@@ -109,9 +109,9 @@ export const useProject = defineStore('projectStore', () => {
     return (base?.is_meta as boolean) || (base?.is_local as boolean) || false
   }
 
-  const isSharedBase = computed(() => projectType === 'base')
+  const isSharedBase = computed(() => projectType.value === 'base')
 
-  const isSharedErd = computed(() => projectType === 'ERD')
+  const isSharedErd = computed(() => projectType.value === 'ERD')
 
   async function loadProjectMetaInfo(force?: boolean) {
     if (!projectMetaInfo.value || force) {
@@ -136,9 +136,9 @@ export const useProject = defineStore('projectStore', () => {
 
   async function loadProject(_withTheme = true, forcedId?: string) {
     if (forcedId) forcedProjectId.value = forcedId
-    if (projectType === 'base') {
+    if (projectType.value === 'base') {
       try {
-        const baseData = await api.public.sharedBaseGet(route.params.projectId as string)
+        const baseData = await api.public.sharedBaseGet(route.value.params.projectId as string)
 
         project.value = await api.project.read(baseData.project_id!)
       } catch (e: any) {
@@ -163,7 +163,7 @@ export const useProject = defineStore('projectStore', () => {
     } else if (isSharedErd.value) {
       await loadProjectRoles(project.value.id || projectId.value, {
         isSharedErd: isSharedErd.value,
-        sharedErdId: route.params.erdUuid as string,
+        sharedErdId: route.value.params.erdUuid as string,
       })
     } else {
       await loadProjectRoles(project.value.id || projectId.value)
@@ -177,7 +177,7 @@ export const useProject = defineStore('projectStore', () => {
   }
 
   async function updateProject(data: Partial<ProjectType>) {
-    if (projectType === 'base') {
+    if (projectType.value === 'base') {
       return
     }
     if (data.meta && typeof data.meta === 'string') {
@@ -222,16 +222,16 @@ export const useProject = defineStore('projectStore', () => {
   }
 
   const setProject = (projectVal: ProjectType) => {
-    sharedProject = projectVal
+    sharedProject.value = projectVal
   }
 
   const projectUrl = ({ id, type: _type }: { id: string; type: 'database' | 'documentation' }) => {
-    const workspaceId = route.params.workspaceId as string
+    const workspaceId = route.value.params.workspaceId as string
     return `/ws/${workspaceId}/nc/${id}`
   }
 
   watch(
-    () => route.params.projectType,
+    () => route.value.params.projectType,
     (n) => {
       if (!n) reset()
     },

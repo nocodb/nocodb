@@ -10,8 +10,8 @@ const props = defineProps<{
   layout: LayoutType
 }>()
 
-const project = $(toRef(props, 'project'))
-const layout = $(toRef(props, 'layout'))
+const project = toRef(props, 'project')
+const layout = toRef(props, 'layout')
 
 const route = useRoute()
 
@@ -35,7 +35,7 @@ function openRenameLayoutDialog(layout: LayoutType, rightClick = false) {
   const { close } = useDialog(resolveComponent('DlgLayoutRename'), {
     'modelValue': isOpen,
     'layout': layout,
-    'dashboardProject': project,
+    'dashboardProject': project.value,
     'onUpdate:modelValue': closeDialog,
   })
 

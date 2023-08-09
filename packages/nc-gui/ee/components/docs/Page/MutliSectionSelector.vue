@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { Editor } from '@tiptap/vue-3'
-import { selectSectionsInTextSelection } from '~~/utils/tiptapExtensions/section/helper'
+import { selectSectionsInTextSelection } from '@/helpers/tiptapExtensions/section/helper'
 
 interface SelectionBox {
   left: number

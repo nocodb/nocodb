@@ -12,15 +12,15 @@ const { copy } = useCopy()
 
 const { t } = useI18n()
 
-let tokens = $ref<UserType[]>([])
+const tokens = ref<UserType[]>([])
 
-let currentPage = $ref(1)
+const currentPage = ref(1)
 
-let showNewTokenModal = $ref(false)
+const showNewTokenModal = ref(false)
 
-const currentLimit = $ref(10)
+const currentLimit = ref(10)
 
-let selectedTokenData = $ref<ApiTokenType>({})
+const selectedTokenData = ref<ApiTokenType>({})
 
 const searchText = ref<string>('')
 
@@ -28,8 +28,8 @@ const pagination = reactive({
   total: 0,
   pageSize: 10,
 })
-const loadTokens = async (page = currentPage, limit = currentLimit) => {
-  currentPage = page
+const loadTokens = async (page = currentPage.value, limit = currentLimit.value) => {
+  currentPage.value = page
   try {
     const response: any = await api.orgTokens.list({
       query: {
@@ -42,7 +42,7 @@ const loadTokens = async (page = currentPage, limit = currentLimit) => {
     pagination.total = response.pageInfo.totalRows ?? 0
     pagination.pageSize = 10
 
-    tokens = response.list as UserType[]
+    tokens.value = response.list as UserType[]
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -73,11 +73,11 @@ const deleteToken = async (token: string): Promise<void> => {
 
 const generateToken = async () => {
   try {
-    await api.orgTokens.create(selectedTokenData)
-    showNewTokenModal = false
+    await api.orgTokens.create(selectedTokenData.value)
+    showNewTokenModal.value = false
     // Token generated successfully
     // message.success(t('msg.success.tokenGenerated'))
-    selectedTokenData = {}
+    selectedTokenData.value = {}
     await loadTokens()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

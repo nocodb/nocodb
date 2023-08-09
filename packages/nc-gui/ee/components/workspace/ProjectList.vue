@@ -14,7 +14,8 @@ const { activePage } = storeToRefs(workspaceStore)
 const { loadProjects } = useProjects()
 const { projectsList, isProjectsLoading } = storeToRefs(useProjects())
 
-const { navigateToProject } = $(useGlobal())
+const globalStore = useGlobal()
+const navigateToProject = toRef(globalStore, 'navigateToProject')
 
 // const filteredProjects = computed(() => projects.value?.filter((p) => !p.deleted) || [])
 
@@ -28,7 +29,7 @@ const showProjectDeleteModal = ref(false)
 const toBeDeletedProjectId = ref<string | undefined>()
 
 const openProject = async (project: ProjectType) => {
-  navigateToProject({
+  navigateToProject.value({
     projectId: project.id!,
     workspaceId: project.fk_workspace_id!,
     type: project.type as NcProjectType,

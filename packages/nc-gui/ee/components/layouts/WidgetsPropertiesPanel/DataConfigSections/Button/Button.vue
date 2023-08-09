@@ -2,7 +2,7 @@
 import type { SelectValue } from 'ant-design-vue/lib/select'
 import { ButtonActionType } from 'nocodb-sdk'
 import type { ButtonWidget } from 'nocodb-sdk'
-import { availableButtonActionTypes } from '~~/store/dashboard'
+import { availableButtonActionTypes } from '#imports'
 const dashboardStore = useDashboardStore()
 const { t } = useI18n()
 

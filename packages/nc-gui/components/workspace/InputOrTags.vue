@@ -14,48 +14,48 @@ const emits = defineEmits(['update:modelValue'])
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-let inputValue = $ref('')
+const inputValue = ref('')
 
-const inputRef = $ref<typeof Input>()
+const inputRef = ref<typeof Input>()
 
-let isMultiWorkspace = $ref(false)
+const isMultiWorkspace = ref(false)
 
 const focusInput = () => {
   nextTick(() => {
-    inputRef?.focus()
+    inputRef.value?.focus()
   })
 }
 
-let title = $computed<string | string[]>({
+const title = computed<string | string[]>({
   set(title) {
     if (Array.isArray(title)) {
-      if (title.length === 0 && !inputValue) isMultiWorkspace = false
+      if (title.length === 0 && !inputValue.value) isMultiWorkspace.value = false
       vModel.value = title.join()
     } else {
-      if (title.includes(',')) isMultiWorkspace = true
+      if (title.includes(',')) isMultiWorkspace.value = true
       focusInput()
       vModel.value = title
     }
   },
   get() {
-    return isMultiWorkspace ? vModel.value?.split(',').filter(Boolean) ?? [] : vModel.value ?? ''
+    return isMultiWorkspace.value ? vModel.value?.split(',').filter(Boolean) ?? [] : vModel.value ?? ''
   },
 })
 
 const handleInputConfirm = () => {
-  title = [...title, inputValue]
-  inputValue = ''
+  title.value = [...title.value, inputValue.value]
+  inputValue.value = ''
 }
 
 const onKeydown = (e: KeyboardEvent) => {
-  if (e.key === 'Backspace' && inputValue === '') {
-    inputValue = (title as string[]).pop() as string
-    title = [...title]
+  if (e.key === 'Backspace' && inputValue.value === '') {
+    inputValue.value = (title.value as string[]).pop() as string
+    title.value = [...title.value]
     e.preventDefault()
   } else if (e.key === ',') {
     e.preventDefault()
-    title = [...title, inputValue]
-    inputValue = ''
+    title.value = [...title.value, inputValue.value]
+    inputValue.value = ''
   }
 }
 

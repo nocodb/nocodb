@@ -2,7 +2,7 @@ import type { ColumnType, FilterType, Widget } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 import type { Ref } from 'nuxt/dist/app/compat/capi'
-import type { Filter } from '~~/lib'
+import type { Filter } from '#imports'
 
 const useWidgetFilters = (widget: Ref<Widget | undefined>, parentId?: string) => {
   const { $api, $e } = useNuxtApp()
@@ -11,9 +11,9 @@ const useWidgetFilters = (widget: Ref<Widget | undefined>, parentId?: string) =>
   const { availableColumnsOfSelectedView: columns, focusedWidget, openedLayoutId } = storeToRefs(dashboardStore)
   const { reloadWidgetDataEventBus } = dashboardStore
   const router = useRouter()
-  const route = $(router.currentRoute)
+  const route = router.currentRoute
   const filters = ref<Filter[]>([])
-  const openedProjectId = computed<string>(() => route.params.projectId as string)
+  const openedProjectId = computed<string>(() => route.value.params.projectId as string)
 
   const options = computed<SelectProps['options']>(() => {
     return columns.value?.filter((c: ColumnType) => {

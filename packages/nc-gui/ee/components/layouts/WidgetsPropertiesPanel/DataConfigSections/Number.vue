@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { NumberWidget } from 'nocodb-sdk'
-import { availableAggregateFunctionsWithIdAndTitle } from '~~/store/dashboard'
+import { availableAggregateFunctionsWithIdAndTitle } from '#imports'
 const dashboardStore = useDashboardStore()
 const {
   changeAggregateFunctionOfFocusedWidget,

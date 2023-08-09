@@ -90,7 +90,7 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
         size="small"
         class="!text-xs !m-1 nc-pagination"
         :class="{ 'rtl-pagination': isRTLLanguage }"
-        :total="count"
+        :total="+count"
         show-less-items
         :show-size-changer="false"
       />

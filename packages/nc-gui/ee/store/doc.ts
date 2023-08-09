@@ -1,14 +1,15 @@
 import { defineStore } from 'pinia'
 import type { DocsPageType } from 'nocodb-sdk'
 import gh from 'parse-github-url'
-import type { PageSidebarNode } from '~~/lib'
+import type { PageSidebarNode } from '#imports'
 
 export const useDocStore = defineStore('docStore', () => {
   const router = useRouter()
-  const route = $(router.currentRoute)
+  const route = router.currentRoute
 
   const { $api } = useNuxtApp()
-  const { appInfo } = $(useGlobal())
+  const globalStore = useGlobal()
+  const appInfo = toRef(globalStore, 'appInfo')
   const { projectRoles } = useRoles()
   const { setProject } = useProject()
 
@@ -28,15 +29,19 @@ export const useDocStore = defineStore('docStore', () => {
    *
    */
 
-  const isPublic = computed<boolean>(() => !!route.meta.public)
+  const isPublic = computed<boolean>(() => !!route.value.meta.public)
 
   const openedProjectId = computed<string>(() =>
-    isPublic.value ? projectIdFromCompositePageId(route.params.compositePageId as string)! : (route.params.projectId as string),
+    isPublic.value
+      ? projectIdFromCompositePageId(route.value.params.compositePageId as string)!
+      : (route.value.params.projectId as string),
   )
   const openedPageId = computed<string | null>(() =>
-    isPublic.value ? pageIdFromCompositePageId(route.params.compositePageId as string) : (route.params.pageId as string),
+    isPublic.value
+      ? pageIdFromCompositePageId(route.value.params.compositePageId as string)
+      : (route.value.params.pageId as string),
   )
-  const openedWorkspaceId = computed<string>(() => route.params.workspaceId as string)
+  const openedWorkspaceId = computed<string>(() => route.value.params.workspaceId as string)
 
   const isOpenedNestedPageLoading = computed<boolean>(() => isNestedPageFetching.value[openedProjectId.value] ?? true)
 
@@ -402,16 +407,16 @@ export const useDocStore = defineStore('docStore', () => {
     nodeOverrides?: Partial<PageSidebarNode>
     projectId: string
   }) {
-    const { generateHTML } = await import('~/utils/tiptapExtensions/generateHTML')
-    const { emptyDocContent } = await import('~~/utils/tiptapExtensions/helper')
-    const { default: tiptapExts } = await import('~~/utils/tiptapExtensions')
+    const { generateHTML } = await import('../helpers/tiptapExtensions/generateHTML')
+    const { emptyDocContent } = await import('../helpers/tiptapExtensions/helper')
+    const { default: tiptapExts } = await import('../helpers/tiptapExtensions')
 
     const nestedPages = nestedPagesOfProjects.value[projectId]
     openedPage.value = undefined
     isPageFetching.value = true
 
     page.content = JSON.stringify(emptyDocContent)
-    page.content_html = generateHTML(emptyDocContent, tiptapExts)
+    page.content_html = generateHTML(emptyDocContent, tiptapExts(isPublic.value))
 
     try {
       let createdPageData = await $api.nocoDocs.createPage(projectId, {
@@ -741,14 +746,14 @@ export const useDocStore = defineStore('docStore', () => {
 
     if (data[0]?.url) return data[0].url
 
-    return data[0]?.path ? `${appInfo.ncSiteUrl}/${data[0].path}` : ''
+    return data[0]?.path ? `${appInfo.value.ncSiteUrl}/${data[0].path}` : ''
   }
 
   // todo: Temp
   const loadPublicPageAndProject = async () => {
     if (!openedPageId.value) throw new Error('openedPageId is not defined')
 
-    const projectId = route.params.projectId as string
+    const projectId = route.value.params.projectId as string
 
     isPageFetching.value = true
     try {

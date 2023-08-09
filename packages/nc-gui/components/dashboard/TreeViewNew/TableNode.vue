@@ -16,9 +16,9 @@ const props = withDefaults(
   { baseIndex: 0 },
 )
 
-const project = $(toRef(props, 'project'))
-const table = $(toRef(props, 'table'))
-const baseIndex = $(toRef(props, 'baseIndex'))
+const project = toRef(props, 'project')
+const table = toRef(props, 'table')
+const baseIndex = toRef(props, 'baseIndex')
 
 const route = useRoute()
 
@@ -30,7 +30,7 @@ const { updateTab } = tabStore
 const { $e, $api } = useNuxtApp()
 
 useTableNew({
-  projectId: project.id!,
+  projectId: project.value.id!,
 })
 
 const projectRole = inject(ProjectRoleInj)
@@ -39,7 +39,7 @@ const { setMenuContext, openRenameTableDialog, duplicateTable } = inject(TreeVie
 
 // todo: temp
 const { projectTables } = storeToRefs(useTablesStore())
-const tables = computed(() => projectTables.value.get(project.id!) ?? [])
+const tables = computed(() => projectTables.value.get(project.value.id!) ?? [])
 
 const openedTableId = computed(() => route.params.viewId)
 

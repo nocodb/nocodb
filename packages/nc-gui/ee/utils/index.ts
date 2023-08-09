@@ -2,3 +2,5 @@
 export * from '../../utils'
 
 export * from './projectCreateUtils'
+
+export * from './tiptapUtils'

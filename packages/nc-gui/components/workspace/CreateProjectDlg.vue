@@ -17,7 +17,8 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 const projectsStore = useProjects()
 
 const { loadProjects } = useProjects()
-const { navigateToProject } = $(useGlobal())
+const globalStore = useGlobal()
+const navigateToProject = toRef(globalStore, 'navigateToProject')
 const { createProject: _createProject } = projectsStore
 
 const nameValidationRules = [
@@ -45,7 +46,7 @@ const createProject = async () => {
     })
 
     await loadProjects()
-    navigateToProject({
+    navigateToProject.value({
       projectId: project.id!,
       type: props.type,
       workspaceId: 'default',

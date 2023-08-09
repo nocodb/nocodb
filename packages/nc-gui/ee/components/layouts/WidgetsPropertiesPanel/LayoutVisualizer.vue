@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { SelectedLayoutDimension } from '../types'
+import { SelectedLayoutDimension } from '#imports'
 
 const props = defineProps<{
   selectedLayoutDimension: SelectedLayoutDimension

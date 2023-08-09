@@ -53,11 +53,11 @@ const { addUndo, defineModelScope } = useUndoRedo()
 const selected = ref<string[]>([])
 
 /** dragging renamable view items */
-let dragging = $ref(false)
+const dragging = ref(false)
 
-const menuRef = $ref<typeof AntMenu>()
+const menuRef = ref<typeof AntMenu>()
 
-let isMarked = $ref<string | false>(false)
+const isMarked = ref<string | false>(false)
 
 /** Watch currently active view, so we can mark it in the menu */
 watch(activeView, (nextActiveView) => {
@@ -68,9 +68,9 @@ watch(activeView, (nextActiveView) => {
 
 /** shortly mark an item after sorting */
 function markItem(id: string) {
-  isMarked = id
+  isMarked.value = id
   setTimeout(() => {
-    isMarked = false
+    isMarked.value = false
   }, 300)
 }
 
@@ -92,14 +92,14 @@ let sortable: Sortable
 function onSortStart(evt: SortableEvent) {
   evt.stopImmediatePropagation()
   evt.preventDefault()
-  dragging = true
+  dragging.value = true
 }
 
 async function onSortEnd(evt: SortableEvent, undo = false) {
   if (!undo) {
     evt.stopImmediatePropagation()
     evt.preventDefault()
-    dragging = false
+    dragging.value = false
   }
 
   if (views.length < 2) return
@@ -179,7 +179,7 @@ const initSortable = (el: HTMLElement) => {
   })
 }
 
-onMounted(() => menuRef && initSortable(menuRef.$el))
+onMounted(() => menuRef.value && initSortable(menuRef.value.$el))
 
 /** Navigate to view by changing url param */
 function changeView(view: ViewType) {

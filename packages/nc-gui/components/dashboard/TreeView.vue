@@ -62,17 +62,17 @@ const { addUndo, defineProjectScope } = useUndoRedo()
 
 const toggleDialog = inject(ToggleDialogInj, () => {})
 
-const keys = $ref<Record<string, number>>({})
+const keys = ref<Record<string, number>>({})
 
 const activeKey = ref<string[]>([])
 
-const menuRefs = $ref<HTMLElement[] | HTMLElement>()
+const menuRefs = ref<HTMLElement[] | HTMLElement>()
 
-let filterQuery = $ref('')
+const filterQuery = ref('')
 
 const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
 
-const tablesById = $computed(() =>
+const tablesById = computed(() =>
   tables.value?.reduce<Record<string, TableType>>((acc, table) => {
     acc[table.id!] = table
 
@@ -80,9 +80,9 @@ const tablesById = $computed(() =>
   }, {}),
 )
 
-const filteredTables = $computed(() =>
+const filteredTables = computed(() =>
   tables.value?.filter(
-    (table) => !searchActive.value || !filterQuery || table.title.toLowerCase().includes(filterQuery.toLowerCase()),
+    (table) => !searchActive.value || !filterQuery.value || table.title.toLowerCase().includes(filterQuery.value.toLowerCase()),
   ),
 )
 
@@ -100,7 +100,7 @@ const initSortable = (el: Element) => {
       if (newIndex === oldIndex) return
 
       const itemEl = evt.item as HTMLLIElement
-      const item = tablesById[itemEl.dataset.id as string]
+      const item = tablesById.value[itemEl.dataset.id as string]
 
       // store the old order for undo
       const oldOrder = item.order
@@ -116,8 +116,8 @@ const initSortable = (el: Element) => {
       const itemAfterEl = children[newIndex + 1] as HTMLLIElement
 
       // get items meta of before and after the moved item
-      const itemBefore = itemBeforeEl && tablesById[itemBeforeEl.dataset.id as string]
-      const itemAfter = itemAfterEl && tablesById[itemAfterEl.dataset.id as string]
+      const itemBefore = itemBeforeEl && tablesById.value[itemBeforeEl.dataset.id as string]
+      const itemAfter = itemAfterEl && tablesById.value[itemAfterEl.dataset.id as string]
 
       // set new order value based on the new order of the items
       if (children.length - 1 === evt.newIndex) {
@@ -143,10 +143,10 @@ const initSortable = (el: Element) => {
       }
 
       // force re-render the list
-      if (keys[base_id]) {
-        keys[base_id] = keys[base_id] + 1
+      if (keys.value[base_id]) {
+        keys.value[base_id] = keys.value[base_id] + 1
       } else {
-        keys[base_id] = 1
+        keys.value[base_id] = 1
       }
 
       // update the item order
@@ -203,11 +203,11 @@ const initSortable = (el: Element) => {
 }
 
 watchEffect(() => {
-  if (menuRefs) {
-    if (menuRefs instanceof HTMLElement) {
-      initSortable(menuRefs)
+  if (menuRefs.value) {
+    if (menuRefs.value instanceof HTMLElement) {
+      initSortable(menuRefs.value)
     } else {
-      menuRefs.forEach((el) => initSortable(el))
+      menuRefs.value.forEach((el) => initSortable(el))
     }
   }
 })
@@ -378,7 +378,7 @@ const searchInputRef: VNodeRef = (vnode: typeof Input) => vnode?.$el?.focus()
 const beforeSearch = ref<string[]>([])
 
 const onSearchCloseIconClick = () => {
-  filterQuery = ''
+  filterQuery.value = ''
   toggleSearchActive(false)
   activeKey.value = beforeSearch.value
 }

@@ -1,3 +1,4 @@
+import { toRef } from 'vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
@@ -23,7 +24,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { $e } = useNuxtApp()
 
-  const { appInfo } = $(useGlobal())
+  const globalStore = useGlobal()
+  const appInfo = toRef(globalStore, 'appInfo')
 
   const workspaces = ref<Map<string, any>>(new Map())
   const workspacesList = computed<any[]>(() => Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at))
@@ -120,7 +122,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
           starred: true,
         },
         {
-          baseURL: appInfo.baseHostName ? `https://${activeWorkspace.value?.id}.${appInfo.baseHostName}` : undefined,
+          baseURL: appInfo.value.baseHostName ? `https://${activeWorkspace.value?.id}.${appInfo.value.baseHostName}` : undefined,
         },
       )
     } catch (e: any) {
@@ -141,7 +143,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
           starred: false,
         },
         {
-          baseURL: appInfo.baseHostName ? `https://${activeWorkspace.value?.id}.${appInfo.baseHostName}` : undefined,
+          baseURL: appInfo.value.baseHostName ? `https://${activeWorkspace.value?.id}.${appInfo.value.baseHostName}` : undefined,
         },
       )
     } catch (e: any) {
@@ -155,7 +157,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         project.id!,
         { title: project.temp_title },
         {
-          baseURL: appInfo.baseHostName ? `https://${activeWorkspace.value.id}.${appInfo.baseHostName}` : undefined,
+          baseURL: appInfo.value.baseHostName ? `https://${activeWorkspace.value.id}.${appInfo.value.baseHostName}` : undefined,
         },
       )
       project.title = project.temp_title

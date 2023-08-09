@@ -1,6 +1,6 @@
 import TiptapCodeBlock from '@tiptap/extension-code-block'
 import { TiptapNodesTypes } from 'nocodb-sdk'
-import { getPositionOfPreviousSection, isCursorAtStartOfSelectedNode } from '../helper'
+import { getPositionOfPreviousSection, isCursorAtStartOfSelectedNode, isNodeTypeSelected } from '../helper'
 
 export const CodeBlock = TiptapCodeBlock.extend({
   addKeyboardShortcuts() {

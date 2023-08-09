@@ -5,7 +5,8 @@ const props = defineProps<{
   item: any
 }>()
 
-const { navigateToProject } = $(useGlobal())
+const globalStore = useGlobal()
+const navigateToProject = toRef(globalStore, 'navigateToProject')
 
 const item = toRef(props, 'item')
 </script>

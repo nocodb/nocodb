@@ -7,7 +7,7 @@ const open = (url: string) => {
   window.open(url, '_blank')
 }
 
-const isZhLang = $computed(() => locale.value.startsWith('zh'))
+const isZhLang = computed(() => locale.value.startsWith('zh'))
 </script>
 
 <template>

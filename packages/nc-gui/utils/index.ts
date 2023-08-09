@@ -25,5 +25,6 @@ export * from './mimeTypeUtils'
 export * from './parseUtils'
 export * from './cell'
 export * from './workerUtils'
+export * from './parsersUtils'
 
 export const isEeUI = false

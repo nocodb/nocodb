@@ -1,6 +1,3 @@
-/* eslint-disable import/export */
-export * from '../../utils/projectCreateUtils'
-
 export enum NcProjectType {
   DB = 'database',
   DOCS = 'documentation',

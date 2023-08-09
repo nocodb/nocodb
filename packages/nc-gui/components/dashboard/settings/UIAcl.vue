@@ -26,51 +26,51 @@ const { $api, $e } = useNuxtApp()
 
 const { project } = storeToRefs(useProject())
 
-const _projectId = $(inject(ProjectIdInj, undefined))
-const projectId = $computed(() => _projectId ?? project.value?.id)
+const _projectId = inject(ProjectIdInj, undefined)
+const projectId = computed(() => _projectId.value ?? project.value?.id)
 
 const { includeM2M } = useGlobal()
 
-const roles = $ref<string[]>(['editor', 'commenter', 'viewer'])
+const roles = ref<string[]>(['editor', 'commenter', 'viewer'])
 
-let isLoading = $ref(false)
+const isLoading = ref(false)
 
-let tables = $ref<any[]>([])
+const tables = ref<any[]>([])
 
-const searchInput = $ref('')
+const searchInput = ref('')
 
 const filteredTables = computed(() =>
-  tables.filter(
+  tables.value.filter(
     (el) =>
       el?.base_id === props.baseId &&
-      ((typeof el?._ptn === 'string' && el._ptn.toLowerCase().includes(searchInput.toLowerCase())) ||
-        (typeof el?.title === 'string' && el.title.toLowerCase().includes(searchInput.toLowerCase()))),
+      ((typeof el?._ptn === 'string' && el._ptn.toLowerCase().includes(searchInput.value.toLowerCase())) ||
+        (typeof el?.title === 'string' && el.title.toLowerCase().includes(searchInput.value.toLowerCase()))),
   ),
 )
 
 async function loadTableList() {
   try {
-    if (!projectId) return
+    if (!projectId.value) return
 
-    isLoading = true
+    isLoading.value = true
 
-    tables = await $api.project.modelVisibilityList(projectId, {
+    tables.value = await $api.project.modelVisibilityList(projectId.value, {
       includeM2M: includeM2M.value,
     })
   } catch (e) {
     console.error(e)
   } finally {
-    isLoading = false
+    isLoading.value = false
   }
 }
 
 async function saveUIAcl() {
   try {
-    if (!projectId) return
+    if (!projectId.value) return
 
     await $api.project.modelVisibilitySet(
-      projectId,
-      tables.filter((t) => t.edited),
+      projectId.value,
+      tables.value.filter((t) => t.edited),
     )
     // Updated UI ACL for tables successfully
     message.success(t('msg.success.updatedUIACL'))
@@ -86,7 +86,7 @@ const onRoleCheck = (record: any, role: string) => {
 }
 
 onMounted(async () => {
-  if (tables.length === 0) {
+  if (tables.value.length === 0) {
     await loadTableList()
   }
 })

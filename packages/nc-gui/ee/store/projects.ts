@@ -1,3 +1,4 @@
+import { toRef } from 'vue'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { BaseType, OracleUi, ProjectType, ProjectUserReqType, RequestParams } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
@@ -41,7 +42,8 @@ export const useProjects = defineStore('projectsStore', () => {
 
   const { api } = useApi()
 
-  const { getBaseUrl } = $(useGlobal())
+  const globalStore = useGlobal()
+  const getBaseUrl = toRef(globalStore, 'getBaseUrl')
 
   const isProjectsLoading = ref(false)
 
@@ -94,7 +96,7 @@ export const useProjects = defineStore('projectsStore', () => {
     try {
       if (activeWorkspace?.id) {
         const { list } = await $api.workspaceProject.list(activeWorkspace?.id ?? workspace?.id, {
-          baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
+          baseURL: getBaseUrl.value(activeWorkspace?.id ?? workspace?.id),
         })
         _projects = list
       } else {
@@ -104,10 +106,10 @@ export const useProjects = defineStore('projectsStore', () => {
                 query: {
                   [page]: true,
                 },
-                baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
+                baseURL: getBaseUrl.value(activeWorkspace?.id ?? workspace?.id),
               }
             : {
-                baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
+                baseURL: getBaseUrl.value(activeWorkspace?.id ?? workspace?.id),
               },
         )
         _projects = list
@@ -236,7 +238,7 @@ export const useProjects = defineStore('projectsStore', () => {
         // }),
       },
       {
-        baseURL: getBaseUrl(projectPayload.workspaceId),
+        baseURL: getBaseUrl.value(projectPayload.workspaceId),
       },
     )
 

@@ -3,11 +3,11 @@ import { applyNonSelectable, computed, useCommandPalette, useRouter, useTheme } 
 
 const router = useRouter()
 
-const route = $(router.currentRoute)
+const route = router.currentRoute
 
 const cmdK = ref(false)
 
-const disableBaseLayout = computed(() => route.path.startsWith('/nc/view') || route.path.startsWith('/nc/form'))
+const disableBaseLayout = computed(() => route.value.path.startsWith('/nc/view') || route.value.path.startsWith('/nc/form'))
 
 useTheme()
 

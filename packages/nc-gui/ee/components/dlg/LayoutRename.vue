@@ -35,9 +35,9 @@ const dashboardStore = useDashboardStore()
 const { fetchLayouts } = dashboardStore
 const { layoutsOfProjects } = storeToRefs(dashboardStore)
 
-const inputEl = $ref<ComponentPublicInstance>()
+const inputEl = ref<ComponentPublicInstance>()
 
-let loading = $ref(false)
+const loading = ref(false)
 
 const useForm = Form.useForm
 
@@ -88,7 +88,7 @@ watchEffect(
     if (layout?.title) formState.title = `${layout.title}`
 
     nextTick(() => {
-      const input = inputEl?.$el as HTMLInputElement
+      const input = inputEl.value?.$el as HTMLInputElement
 
       if (input) {
         input.setSelectionRange(0, formState.title.length)
@@ -102,7 +102,7 @@ watchEffect(
 const renameLayout = async () => {
   if (!layout) return
 
-  loading = true
+  loading.value = true
   try {
     await $api.dashboard.layoutUpdate(dashboardProject.id!, layout.id as string, {
       ...layout,
@@ -121,7 +121,7 @@ const renameLayout = async () => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 
-  loading = false
+  loading.value = false
 }
 </script>
 

@@ -1,9 +1,11 @@
+import { toRef } from 'vue'
 import type { Socket } from 'socket.io-client'
 import io from 'socket.io-client'
 import { JobStatus, defineNuxtPlugin, useGlobal, watch } from '#imports'
 
 export default defineNuxtPlugin(async (nuxtApp) => {
-  const { appInfo } = $(useGlobal())
+  const globalStore = useGlobal()
+  const appInfo = toRef(globalStore, 'appInfo')
 
   let socket: Socket | null = null
   let messageIndex = 0
@@ -12,7 +14,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     try {
       if (socket) socket.disconnect()
 
-      const url = new URL(appInfo.ncSiteUrl, window.location.href.split(/[?#]/)[0])
+      const url = new URL(appInfo.value.ncSiteUrl, window.location.href.split(/[?#]/)[0])
 
       socket = io(`${url.href}jobs`, {
         extraHeaders: { 'xc-auth': token },

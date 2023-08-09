@@ -9,12 +9,12 @@ export const useUndoRedo = createSharedComposable(() => {
 
   const router = useRouter()
 
-  const route = $(router.currentRoute)
+  const route = router.currentRoute
 
   // keys: projectType | projectId | type | title | viewTitle
   const scope = computed<{ key: string; param: string }[]>(() => {
     const tempScope: { key: string; param: string }[] = [{ key: 'root', param: 'root' }]
-    for (const [key, param] of Object.entries(route.params)) {
+    for (const [key, param] of Object.entries(route.value.params)) {
       if (Array.isArray(param)) {
         tempScope.push({ key, param: param.join(',') })
       } else {

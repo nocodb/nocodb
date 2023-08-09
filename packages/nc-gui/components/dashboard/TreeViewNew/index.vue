@@ -39,7 +39,7 @@ const { $e, $jobs } = useNuxtApp()
 
 const router = useRouter()
 
-const route = $(router.currentRoute)
+const route = router.currentRoute
 
 const projectsStore = useProjects()
 
@@ -146,11 +146,11 @@ const duplicateTable = async (table: TableType) => {
 const isCreateTableAllowed = computed(
   () =>
     isUIAllowed('table-create') &&
-    route.name !== 'index' &&
-    route.name !== 'index-index' &&
-    route.name !== 'index-index-create' &&
-    route.name !== 'index-index-create-external' &&
-    route.name !== 'index-user-index',
+    route.value.name !== 'index' &&
+    route.value.name !== 'index-index' &&
+    route.value.name !== 'index-index-create' &&
+    route.value.name !== 'index-index-create-external' &&
+    route.value.name !== 'index-user-index',
 )
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
@@ -173,11 +173,11 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       }
       // ALT + L - only show active project
       case 76: {
-        if (route.params.projectId) {
+        if (route.value.params.projectId) {
           router.push({
             query: {
-              ...route.query,
-              clear: route.query.clear === '1' ? undefined : '1',
+              ...route.value.query,
+              clear: route.value.query.clear === '1' ? undefined : '1',
             },
           })
         }

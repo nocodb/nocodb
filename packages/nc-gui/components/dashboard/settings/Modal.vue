@@ -124,26 +124,26 @@ const tabsInfo: TabGroup = {
 const firstKeyOfObject = (obj: object) => Object.keys(obj)[0]
 
 // Array of keys of tabs which are selected. In our case will be only one.
-const selectedTabKeys = $computed<string[]>({
+const selectedTabKeys = computed<string[]>({
   get: () => [Object.keys(tabsInfo).find((key) => key === vOpenKey.value) || firstKeyOfObject(tabsInfo)],
   set: (value) => {
     vOpenKey.value = value[0]
   },
 })
 
-const selectedTab = $computed(() => tabsInfo[selectedTabKeys[0]])
+const selectedTab = computed(() => tabsInfo[selectedTabKeys.value[0]])
 
-let selectedSubTabKeys = $ref<string[]>([firstKeyOfObject(selectedTab.subTabs)])
-const selectedSubTab = $computed(() => selectedTab.subTabs[selectedSubTabKeys[0]])
+const selectedSubTabKeys = ref<string[]>([firstKeyOfObject(selectedTab.value.subTabs)])
+const selectedSubTab = computed(() => selectedTab.value.subTabs[selectedSubTabKeys.value[0]])
 
 const handleAwaken = (val: boolean) => {
   dataSourcesAwakened.value = val
 }
 
 watch(
-  () => selectedTabKeys[0],
+  () => selectedTabKeys.value[0],
   (newTabKey) => {
-    selectedSubTabKeys = [firstKeyOfObject(tabsInfo[newTabKey].subTabs)]
+    selectedSubTabKeys.value = [firstKeyOfObject(tabsInfo[newTabKey].subTabs)]
   },
 )
 </script>

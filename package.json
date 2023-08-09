@@ -32,6 +32,7 @@
     ]
   },
   "scripts": {
+    "bootstrap": "pnpm --filter=nocodb-sdk install --ignore-scripts && pnpm --filter=nocodb-sdk run build && pnpm --filter=nocodb --filter=nc-gui install",
     "lint:staged:playwright": "cd ./tests/playwright; npx lint-staged; cd -",
     "build:common": "cd ./packages/nocodb-sdk; pnpm install; pnpm run build",
     "install:common": "cd packages/nocodb-legacy; pnpm install ../nocodb-sdk; cd ../nc-gui; pnpm install ../nocodb-sdk",

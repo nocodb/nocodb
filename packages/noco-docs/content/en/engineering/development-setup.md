@@ -15,26 +15,22 @@ git clone https://github.com/nocodb/nocodb
 ## Install dependencies
 
 ```bash
-# run under the root of the project
-pnpm boostrap
+# run from the project root
+pnpm bootstrap
 ```
 
 ## Start Frontend
 
 ```bash
-cd packages/nc-gui
-pnpm run dev
-# Or
-pnpm --filter=nc-gui run dev
+# run from the project root
+pnpm start:frontend
 ```
 
 ## Start Backend
 
 ```bash
-cd packages/nocodb
-pnpm run start
-# Or
-pnpm --filter=nocodb run start
+# run from the project root
+pnpm start:backend
 ```
 
 Any changes made to frontend and backend will be automatically reflected in the browser.

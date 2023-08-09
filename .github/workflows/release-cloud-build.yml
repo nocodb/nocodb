@@ -11,6 +11,9 @@ on:
       tag:
         description: "Any additional Tag"
         required: false
+  schedule:
+    # trigger at 6:00AM IST(0:30 GMT) and 14:00 IST(8:30 GMT)
+    - cron:  '30 0,8 * * *'
 
 
 jobs:
@@ -97,7 +100,7 @@ jobs:
           ECR_REPOSITORY: nocohub
           IMAGE_TAG: ${{ github.event.inputs.tag }}
           CUSTOM_IMAGE_TAG_ARG: ${{ github.event.inputs.tag && format('-t {0}/nocohub:{1}', steps.login-ecr.outputs.registry, github.event.inputs.tag) || '' }}
-          STAGING_IMAGE_TAG_ARG: ${{ github.event.inputs.staging == 'true' && format('-t {0}/nocohub:ws-pre-release', steps.login-ecr.outputs.registry) || '' }}
+          STAGING_IMAGE_TAG_ARG: ${{ (github.event.inputs.staging == 'true' || github.event_name == 'schedule') && format('-t {0}/nocohub:ws-pre-release', steps.login-ecr.outputs.registry) || '' }}
           COMMIT_HASH: ${{ github.sha }}
         run: |
           cd packages/nocodb &&

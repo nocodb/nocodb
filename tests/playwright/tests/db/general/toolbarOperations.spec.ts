@@ -30,11 +30,11 @@ test.describe('Toolbar operations (GRID)', () => {
     // GroupBy Category Descending Order
     await toolbar.groupBy.add({ title: 'Category', ascending: false, locallySaved: false });
 
-    // Close GroupBy Menu
-    await toolbar.clickGroupBy();
-
     // Verify Total Group Count
     await dashboard.grid.verifyPaginationCount({ count: 16 });
+
+    // Close GroupBy Menu
+    await toolbar.clickGroupBy();
 
     //Open Group by indexMap
     await dashboard.grid.groupPage.openGroup({ indexMap: [0] });

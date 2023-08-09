@@ -1,6 +1,6 @@
 import { Page, selectors } from '@playwright/test';
-import axios from 'axios';
-import { Api, ProjectType, ProjectTypes, UserType, WorkspaceType } from 'nocodb-sdk';
+import axios, { AxiosResponse } from 'axios';
+import { Api, ProjectListType, ProjectType, ProjectTypes, UserType, WorkspaceType } from 'nocodb-sdk';
 import { getDefaultPwd } from '../tests/utils/general';
 import { knex } from 'knex';
 import { promises as fs } from 'fs';
@@ -121,7 +121,7 @@ async function localInit({
   workerStatus[parallelId] = 'processing';
 
   try {
-    let response;
+    let response: AxiosResponse<any, any>;
     // Login as root user
     if (isSuperUser) {
       // required for configuring license key settings
@@ -167,17 +167,25 @@ async function localInit({
         }
       }
     } else {
-      const projects = await api.project.list();
-      for (const p of projects.list) {
-        // check if p.title starts with projectTitle
-        if (
-          p.title.startsWith(`pgExtREST_p${process.env.TEST_PARALLEL_INDEX}`) ||
-          p.title.startsWith(`xcdb_p${process.env.TEST_PARALLEL_INDEX}`)
-        ) {
-          try {
-            await api.project.delete(p.id);
-          } catch (e) {
-            console.log(`Error deleting project: ${p.id}`, `user-${parallelId}@nocodb.com`, isSuperUser);
+      let projects: ProjectListType;
+      try {
+        projects = await api.project.list();
+      } catch (e) {
+        console.log('Error fetching projects', e);
+      }
+
+      if (projects) {
+        for (const p of projects.list) {
+          // check if p.title starts with projectTitle
+          if (
+            p.title.startsWith(`pgExtREST_p${process.env.TEST_PARALLEL_INDEX}`) ||
+            p.title.startsWith(`xcdb_p${process.env.TEST_PARALLEL_INDEX}`)
+          ) {
+            try {
+              await api.project.delete(p.id);
+            } catch (e) {
+              console.log(`Error deleting project: ${p.id}`, `user-${parallelId}@nocodb.com`, isSuperUser);
+            }
           }
         }
       }
@@ -213,7 +221,6 @@ async function localInit({
         // create a new project under the workspace we just created
         project = await api.project.create({
           title: projectTitle,
-          // @ts-expect-error
           fk_workspace_id: workspace.id,
           type: projectType,
         });
@@ -271,11 +278,6 @@ const setup = async ({
   const parallelIndex = process.env.TEST_PARALLEL_INDEX;
 
   const workerId = `_p${parallelIndex}_w${workerIndex}_c${(+workerIndex + 1) * 1000 + workerCount[parallelIndex]}`;
-  // console.log(workerId);
-
-  // const workerId =
-  //   String(process.env.TEST_WORKER_INDEX) + String(process.env.TEST_PARALLEL_INDEX) + String(workerCount[workerIndex]);
-  // const workerId = parallelIndex + String(+parallelIndex * workerCount[+parallelIndex]);
   workerCount[+parallelIndex]++;
 
   // console.log(process.env.TEST_PARALLEL_INDEX, '#Setup', workerId);

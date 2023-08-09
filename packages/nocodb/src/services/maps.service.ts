@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { T } from 'nc-help';
 import { AppEvents, ViewTypes } from 'nocodb-sdk';
 import type { MapUpdateReqType, UserType, ViewCreateReqType } from 'nocodb-sdk';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';

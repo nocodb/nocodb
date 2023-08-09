@@ -3238,10 +3238,8 @@ class BaseModelSqlv2 {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async errorInsert(_e, _data, _trx, _cookie) {}
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async errorUpdate(_e, _data, _trx, _cookie) {}
 
   // todo: handle composite primary key
@@ -3255,7 +3253,6 @@ class BaseModelSqlv2 {
     );
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async errorDelete(_e, _id, _trx, _cookie) {}
 
   async validate(columns) {
@@ -3984,7 +3981,7 @@ class BaseModelSqlv2 {
   }
 
   async addLinks({
-    cookie,
+    cookie: _cookie,
     childIds,
     colId,
     rowId,
@@ -4209,7 +4206,7 @@ class BaseModelSqlv2 {
   }
 
   async removeLinks({
-    cookie,
+    cookie: _cookie,
     childIds,
     colId,
     rowId,
@@ -4248,7 +4245,7 @@ class BaseModelSqlv2 {
     const childTn = this.getTnPath(childTable);
     const parentTn = this.getTnPath(parentTable);
 
-    const prevData = await this.readByPk(rowId);
+    // const prevData = await this.readByPk(rowId);
 
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:

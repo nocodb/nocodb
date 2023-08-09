@@ -13,7 +13,6 @@ import {
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { AuditsService } from '~/services/audits.service';
-import { Audit } from '~/models';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()

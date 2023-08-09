@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { T } from 'nc-help';
 import { AppEvents } from 'nocodb-sdk';
 import type { ViewColumnReqType, ViewColumnUpdateReqType } from 'nocodb-sdk';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';

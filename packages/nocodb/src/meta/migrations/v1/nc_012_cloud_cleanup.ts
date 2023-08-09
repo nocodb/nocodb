@@ -18,6 +18,6 @@ const up = async (knex) => {
   await knex.schema.dropTable('nc_projects');
 };
 
-const down = async (knex) => {};
+const down = async (_knex) => {};
 
 export { up, down };

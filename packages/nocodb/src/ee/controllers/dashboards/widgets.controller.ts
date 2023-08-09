@@ -33,7 +33,7 @@ export class WidgetsController {
   @UseAclMiddleware({
     permissionName: 'widgetsList',
   })
-  async widgetsList(@Param('layoutId') layoutId: string, @Request() req) {
+  async widgetsList(@Param('layoutId') layoutId: string, @Request() _req) {
     return new PagedResponseImpl(
       await this.widgetsService.getWidgets({
         layoutId,
@@ -70,7 +70,7 @@ export class WidgetsController {
   async widgetCreate(
     @Param('layoutId') layoutId: string,
     @Body() body: WidgetReqType,
-    @Request() req,
+    @Request() _req,
   ) {
     const result = await this.widgetsService.widgetCreate({
       layoutId,
@@ -89,7 +89,7 @@ export class WidgetsController {
     @Param('layoutId') layoutId: string,
     @Param('widgetId') widgetId: string,
     @Body() body: WidgetUpdateReqType,
-    @Request() req,
+    @Request() _req,
   ) {
     const result = await this.widgetsService.widgetUpdate({
       widgetId,
@@ -107,7 +107,7 @@ export class WidgetsController {
   async widgetDelete(
     @Param('layoutId') layoutId: string,
     @Param('widgetId') widgetId: string,
-    @Request() req,
+    @Request() _req,
   ) {
     const result = await this.widgetsService.widgetDelete({
       widgetId,

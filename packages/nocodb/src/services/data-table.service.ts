@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { isLinksOrLTAR, RelationTypes, UITypes } from 'nocodb-sdk';
+import { isLinksOrLTAR, RelationTypes } from 'nocodb-sdk';
 import { nocoExecute } from 'nc-help';
 import { DatasService } from './datas.service';
 import type { LinkToAnotherRecordColumn } from '~/models';
@@ -99,7 +99,7 @@ export class DataTableService {
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
-    const res = await baseModel.bulkUpdate(
+    await baseModel.bulkUpdate(
       Array.isArray(param.body) ? param.body : [param.body],
       { cookie: param.cookie, throwExceptionIfNotExist: true },
     );

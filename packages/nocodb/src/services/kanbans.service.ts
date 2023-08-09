@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, ViewTypes } from 'nocodb-sdk';
-import { T } from 'nc-help';
 import type {
   KanbanUpdateReqType,
   UserType,

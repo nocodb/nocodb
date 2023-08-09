@@ -4,7 +4,6 @@ import type {
   BaseType,
   PluginTestReqType,
   PluginType,
-  WorkspaceType,
 } from 'nocodb-sdk';
 import type {
   ColumnType,

@@ -27,6 +27,7 @@ import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 
 const { v4: uuidv4 } = require('uuid');
 
+/*
 type ViewColumn =
   | GridViewColumn
   | FormViewColumn
@@ -39,6 +40,8 @@ type ViewColumnEnrichedWithTitleAndName = ViewColumn & {
   name: string;
   dt: string;
 };
+*/
+
 export default class View implements ViewType {
   id?: string;
   title: string;

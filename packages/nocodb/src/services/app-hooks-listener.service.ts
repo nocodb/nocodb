@@ -509,7 +509,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         break;
       case AppEvents.APIS_CREATED:
         {
-          const param = data as ApiCreatedEvent;
+          const _param = data as ApiCreatedEvent;
           // todo: add to telemetry
           // T.emit('evt_api_created', param.info);
         }

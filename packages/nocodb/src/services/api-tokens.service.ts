@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { T } from 'nc-help';
 import { AppEvents, OrgUserRoles } from 'nocodb-sdk';
 import type { User } from '~/models';
 import type { ApiTokenReqType } from 'nocodb-sdk';

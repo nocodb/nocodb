@@ -31,7 +31,7 @@ export class LayoutFilterController {
   async filterList(
     @Param('layoutId') layoutId: string,
     @Param('widgetId') widgetId: string,
-    @Request() req,
+    @Request() _req,
   ) {
     return new PagedResponseImpl(
       await this.dashboardFilterService.getFilters({
@@ -51,7 +51,7 @@ export class LayoutFilterController {
     @Param('layoutId') layoutId: string,
     @Param('widgetId') widgetId: string,
     @Body() dashboardFilterReq: FilterReqType,
-    @Request() req,
+    @Request() _req,
   ) {
     const result = await this.dashboardFilterService.filterCreate({
       layoutId,

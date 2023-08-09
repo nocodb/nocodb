@@ -166,7 +166,7 @@ export class WidgetDataService {
             xAxisOrderBy === 'x_val'
               ? groupByColumnName
               : `${aggregateFunction}__${aggregateColumnName}`;
-          const sort = `${sortByColName} ${xAxisOrderDirection}`;
+          // const sort = `${sortByColName} ${xAxisOrderDirection}`;
 
           const ignoreFilters =
             chartWidget.data_config.selectRecordsMode === 'all_records';

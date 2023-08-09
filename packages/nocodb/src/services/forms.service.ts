@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-
-import { T } from 'nc-help';
 import { AppEvents, ViewTypes } from 'nocodb-sdk';
 import type {
   FormUpdateReqType,

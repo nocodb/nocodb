@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Admin, Kafka } from 'kafkajs';
+import { Kafka } from 'kafkajs';
 import { createMechanism } from '@jm18457/kafkajs-msk-iam-authentication-mechanism';
 import { Producer as NcProducer } from '../producer';
 import type { Producer } from 'kafkajs';

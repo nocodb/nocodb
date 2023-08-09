@@ -389,6 +389,4 @@ export default class ProjectUser {
       return await this.insert({ project_id: projectId, fk_user_id: userId });
     }
   }
-
-  
 }

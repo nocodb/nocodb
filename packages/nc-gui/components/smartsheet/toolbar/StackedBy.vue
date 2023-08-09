@@ -9,7 +9,6 @@ import {
   MetaInj,
   ReloadViewDataHookInj,
   computed,
-  iconMap,
   inject,
   ref,
   useKanbanViewStoreOrThrow,

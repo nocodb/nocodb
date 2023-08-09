@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import type { ViewType, ViewTypes } from 'nocodb-sdk'
-import type { Ref } from 'vue'
 import {
   ActiveViewInj,
   MetaInj,
-  computed,
   inject,
   ref,
   resolveComponent,
@@ -14,7 +12,6 @@ import {
   useNuxtApp,
   useRoute,
   useRouter,
-  useSidebar,
   useUIPermission,
   useViewsStore,
   watch,

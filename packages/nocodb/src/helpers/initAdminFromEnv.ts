@@ -5,10 +5,10 @@ import { validatePassword } from 'nocodb-sdk';
 import boxen from 'boxen';
 import { T } from 'nc-help';
 import { isEmail } from 'validator';
-import NocoCache from '../cache/NocoCache';
-import { ProjectUser, User } from '../models';
-import Noco from '../Noco';
-import { CacheScope, MetaTable } from '../utils/globals';
+import NocoCache from '~/cache/NocoCache';
+import Noco from '~/Noco';
+import { ProjectUser, User } from '~/models';
+import { CacheScope, MetaTable } from '~/utils/globals';
 
 const rolesLevel = { owner: 0, creator: 1, editor: 2, commenter: 3, viewer: 4 };
 

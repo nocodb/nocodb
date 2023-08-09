@@ -18,7 +18,7 @@ const onOpen = (visible: boolean) => {
 
 <template>
   <div class="cursor-pointer flex items-center">
-    <a-dropdown :trigger="['click']" @visibleChange="onOpen">
+    <a-dropdown :trigger="['click']" @visible-change="onOpen">
       <div class="relative leading-none">
         <GeneralIcon icon="notification" />
         <GeneralIcon icon="menuDown" />

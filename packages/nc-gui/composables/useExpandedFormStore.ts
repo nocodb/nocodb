@@ -22,7 +22,7 @@ import {
   useSharedView,
   useUndoRedo,
 } from '#imports'
-import type { Row, UndoRedoAction } from '~/lib'
+import type { Row, UndoRedoAction } from '#imports'
 
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
   const { $e, $state, $api } = useNuxtApp()

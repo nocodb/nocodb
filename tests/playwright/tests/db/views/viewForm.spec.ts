@@ -7,7 +7,7 @@ import { AccountPage } from '../../../pages/Account';
 import { AccountAppStorePage } from '../../../pages/Account/AppStore';
 import { Api, UITypes } from 'nocodb-sdk';
 import { LoginPage } from '../../../pages/LoginPage';
-import { getDefaultPwd } from '../../utils/general';
+import { getDefaultPwd } from '../../../tests/utils/general';
 import { WorkspacePage } from '../../../pages/WorkspacePage';
 import { isHub } from '../../../setup/db';
 

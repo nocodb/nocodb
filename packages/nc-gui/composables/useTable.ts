@@ -3,6 +3,7 @@ import { UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import {
   Modal,
   SYSTEM_COLUMNS,
+  TabType,
   extractSdkResponseErrorMsg,
   generateUniqueTitle as generateTitle,
   message,
@@ -16,7 +17,6 @@ import {
   useTabs,
   watch,
 } from '#imports'
-import { TabType } from '~/lib'
 
 export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?: string) {
   const table = reactive<{ title: string; table_name: string; columns: string[] }>({
@@ -39,6 +39,8 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
   const { sqlUis, project, tables } = storeToRefs(projectStore)
 
   const { refreshCommandPalette } = useCommandPalette()
+
+  const { createTableMagic: _createTableMagic, createSchemaMagic: _createSchemaMagic } = useNocoEe()
 
   const sqlUi = computed(() => (baseId && sqlUis.value[baseId] ? sqlUis.value[baseId] : Object.values(sqlUis.value)[0]))
 
@@ -76,37 +78,15 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
   }
 
   const createTableMagic = async () => {
-    if (!sqlUi?.value) return
+    if (!sqlUi?.value || !baseId) return
 
-    try {
-      const tableMeta = await $api.base.tableMagic(project?.value?.id as string, baseId as string, {
-        table_name: table.table_name,
-        title: table.title,
-      })
-
-      $e('a:table:create')
-      onTableCreate?.(tableMeta as TableType)
-      refreshCommandPalette()
-    } catch (e: any) {
-      message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
-    }
+    await _createTableMagic(project, baseId, table, onTableCreate)
   }
 
   const createSchemaMagic = async () => {
-    if (!sqlUi?.value) return
+    if (!sqlUi?.value || !baseId) return
 
-    try {
-      const tableMeta = await $api.base.schemaMagic(project?.value?.id as string, baseId as string, {
-        schema_name: table.table_name,
-        title: table.title,
-      })
-
-      $e('a:table:create')
-      onTableCreate?.(tableMeta as TableType)
-      refreshCommandPalette()
-    } catch (e: any) {
-      message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
-    }
+    return await _createSchemaMagic(project, baseId, table, onTableCreate)
   }
 
   const createSqlView = async (sql: string) => {

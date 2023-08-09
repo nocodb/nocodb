@@ -8,6 +8,8 @@ const props = defineProps<{
 
 const item = $(toRef(props, 'item'))
 
+const { navigateToProject } = $(useGlobal())
+
 const action = computed(() => {
   switch (item.type) {
     case AppEvents.TABLE_CREATE:
@@ -21,7 +23,7 @@ const action = computed(() => {
 
 const onClick = () => {
   if (item.type === AppEvents.TABLE_DELETE) return
-  navigateTo(`/ws/${item.body.workspace_id}/nc/${item.body.id}`)
+  navigateToProject({ projectId: item.body.id })
 }
 </script>
 

@@ -3,11 +3,7 @@ import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
 import type { VNodeRef } from '@vue/runtime-core'
 import { computed } from '@vue/reactivity'
-import { NcProjectType, extractSdkResponseErrorMsg } from '~/utils'
-import { projectTitleValidator, ref, useVModel } from '#imports'
-import { useWorkspace } from '~/store/workspace'
-import { navigateTo } from '#app'
-import { useGlobal } from '~/composables/useGlobal'
+import { NcProjectType, extractSdkResponseErrorMsg, projectTitleValidator, ref, useGlobal, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
@@ -20,8 +16,6 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const projectsStore = useProjects()
 
-const workspaceStore = useWorkspace()
-const { activeWorkspace } = storeToRefs(workspaceStore)
 const { loadProjects } = useProjects()
 const { navigateToProject } = $(useGlobal())
 const { createProject: _createProject } = projectsStore
@@ -48,14 +42,13 @@ const createProject = async () => {
     const project = await _createProject({
       type: props.type,
       title: formState.value.title,
-      workspaceId: activeWorkspace.value!.id!,
     })
 
     await loadProjects()
     navigateToProject({
       projectId: project.id!,
-      workspaceId: activeWorkspace.value!.id!,
       type: props.type,
+      workspaceId: 'default',
     })
     dialogShow.value = false
   } catch (e: any) {
@@ -85,8 +78,6 @@ watch(dialogShow, async (n, o) => {
 
 const typeLabel = computed(() => {
   switch (props.type) {
-    case NcProjectType.DOCS:
-      return 'Book'
     case NcProjectType.DB:
       return 'Database'
     default:

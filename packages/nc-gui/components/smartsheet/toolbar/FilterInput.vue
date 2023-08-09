@@ -28,7 +28,7 @@ import {
   toRef,
   useProject,
 } from '#imports'
-import type { Filter } from '~/lib'
+import type { Filter } from '#imports'
 import SingleSelect from '~/components/cell/SingleSelect.vue'
 import MultiSelect from '~/components/cell/MultiSelect.vue'
 import DatePicker from '~/components/cell/DatePicker.vue'

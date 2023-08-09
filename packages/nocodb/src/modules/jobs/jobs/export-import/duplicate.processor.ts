@@ -4,14 +4,14 @@ import { Job } from 'bull';
 import papaparse from 'papaparse';
 import { Logger } from '@nestjs/common';
 import { isLinksOrLTAR } from 'nocodb-sdk';
-import { Base, Column, Model, Project } from '../../../../models';
-import { ProjectsService } from '../../../../services/projects.service';
-import { findWithIdentifier } from '../../../../helpers/exportImportHelpers';
-import { BulkDataAliasService } from '../../../../services/bulk-data-alias.service';
-import { JOBS_QUEUE, JobTypes } from '../../../../interface/Jobs';
-import { elapsedTime, initTime } from '../../helpers';
-import { ExportService } from './export.service';
-import { ImportService } from './import.service';
+import { Base, Column, Model, Project } from '~/models';
+import { ProjectsService } from '~/services/projects.service';
+import { findWithIdentifier } from '~/helpers/exportImportHelpers';
+import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
+import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
+import { elapsedTime, initTime } from '~/modules/jobs/helpers';
+import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
+import { ImportService } from '~/modules/jobs/jobs/export-import/import.service';
 
 @Processor(JOBS_QUEUE)
 export class DuplicateProcessor {

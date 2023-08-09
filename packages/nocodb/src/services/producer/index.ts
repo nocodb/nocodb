@@ -1,7 +1,5 @@
-import { createMechanism } from '@jm18457/kafkajs-msk-iam-authentication-mechanism';
 import { Producer } from './producer';
 import { KinesisProducer } from './kinesis/kinesis-producer';
-import { KafkaProducer } from './kafka/kafka-producer';
 import { AwsKafkaProducer } from './kafka/aws-kafka-producer';
 import type { Provider } from '@nestjs/common';
 

@@ -1,4 +1,4 @@
-import { MetaTable, orderedMetaTables } from '../../meta.service';
+import { MetaTable, orderedMetaTables } from '~/utils/globals';
 
 const up = async (knex) => {
   await knex.schema.createTable(MetaTable.PROJECT, (table) => {

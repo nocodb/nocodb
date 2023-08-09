@@ -1,7 +1,17 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { UITypes } from 'nocodb-sdk'
-import { IsKanbanInj, enumColor, iconMap, onMounted, storeToRefs, useColumnCreateStoreOrThrow, useVModel, watch } from '#imports'
+import {
+  IsKanbanInj,
+  enumColor,
+  iconMap,
+  isEeUI,
+  onMounted,
+  storeToRefs,
+  useColumnCreateStoreOrThrow,
+  useVModel,
+  watch,
+} from '#imports'
 
 interface Option {
   color: string
@@ -23,9 +33,7 @@ const { formState, setAdditionalValidations, validateInfos, isPg, isMysql } = us
 
 const { project } = storeToRefs(useProject())
 
-const { $api } = useNuxtApp()
-
-const loadMagic = ref(false)
+const { loadMagic, optionsMagic: _optionsMagic } = useNocoEe()
 
 let options = $ref<(Option & { status?: 'remove' })[]>([])
 let renderedOptions = $ref<(Option & { status?: 'remove' })[]>([])
@@ -128,32 +136,7 @@ const addNewOption = () => {
 }
 
 const optionsMagic = async () => {
-  if (loadMagic.value) return
-  try {
-    loadMagic.value = true
-    const res: Array<string> = await $api.utils.magic({
-      operation: 'selectOptions',
-      data: {
-        schema: project.value?.title,
-        title: formState.value?.title,
-        table: formState.value?.table_name,
-      },
-    })
-
-    if (res.length) {
-      for (const op of res) {
-        const option = {
-          title: op,
-          color: getNextColor(),
-        }
-        options.push(option)
-        renderedOptions.push(option)
-      }
-    }
-  } catch (e) {
-    message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
-  }
-  loadMagic.value = false
+  await _optionsMagic(project, formState, getNextColor, options, renderedOptions)
 }
 
 const syncOptions = () => {
@@ -273,7 +256,7 @@ watch(inputs, () => {
         <span class="flex-auto">Add option</span>
       </div>
     </a-button>
-    <div class="w-full cursor-pointer" @click="optionsMagic()">
+    <div v-if="isEeUI" class="w-full cursor-pointer" @click="optionsMagic()">
       <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
     </div>
   </div>

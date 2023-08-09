@@ -6,28 +6,28 @@ import {
   ViewTypes,
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
-import { BaseModelSqlv2 } from '../db/BaseModelSqlv2';
-import Noco from '../Noco';
-import { parseMetaProp } from '../utils/modelUtils';
-import NocoCache from '../cache/NocoCache';
 
+import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
+import type { XKnex } from '~/db/CustomKnex';
+import type { LinkToAnotherRecordColumn } from '~/models/index';
+import Hook from '~/models/Hook';
+import Audit from '~/models/Audit';
+import View from '~/models/View';
+import Column from '~/models/Column';
+import Base from '~/models/Base';
+import { extractProps } from '~/helpers/extractProps';
+import { sanitize } from '~/helpers/sqlSanitize';
+import { NcError } from '~/helpers/catchError';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
-} from '../utils/globals';
-import { NcError } from '../helpers/catchError';
-import { sanitize } from '../helpers/sqlSanitize';
-import { extractProps } from '../helpers/extractProps';
-import Hook from './Hook';
-import Audit from './Audit';
-import View from './View';
-import Column from './Column';
-import Base from './Base';
-import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
-import type { XKnex } from '../db/CustomKnex';
-import type { LinkToAnotherRecordColumn } from '~/models/index';
+} from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
+import Noco from '~/Noco';
+import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import { parseMetaProp } from '~/utils/modelUtils';
 
 export default class Model implements TableType {
   copy_enabled: BoolType;
@@ -376,7 +376,7 @@ export default class Model implements TableType {
       args.viewId = view.id;
     }
 
-    if (base && base.is_local) {
+    if (base && base.isMeta(true, 1)) {
       return new BaseModelSqlv2({
         dbDriver: args.dbDriver,
         viewId: args.viewId,

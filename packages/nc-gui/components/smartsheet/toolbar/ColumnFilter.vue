@@ -15,7 +15,7 @@ import {
   useViewFilters,
   watch,
 } from '#imports'
-import type { Filter } from '~/lib'
+import type { Filter } from '#imports'
 
 interface Props {
   nested?: boolean

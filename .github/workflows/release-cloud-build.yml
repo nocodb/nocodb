@@ -1,4 +1,4 @@
-name: "Build cloud docker image"
+name: "Cloud : Build Docker Image"
 
 on:
   # Triggered manually
@@ -38,7 +38,7 @@ jobs:
           # build nocodb-sdk
 
           cd packages/nocodb-sdk &&
-          npm ci && npm run build
+          npm ci && npm run build:ee
       - name: build nc-gui and copy to nocodb
         env:
           NC_CDN_URL: "${{ secrets.CDN_URL }}/${{ steps.vars.outputs.release_version }}"
@@ -47,7 +47,7 @@ jobs:
           # generate static build of nc-gui
           cd packages/nc-gui &&
           npm ci &&
-          npm run generate &&
+          npm run generate:ee &&
 
           # copy build to nocodb
           rsync -rvzh ./dist/ ../nocodb/docker/nc-gui/

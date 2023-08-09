@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import type { Row as RowType } from '#imports'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -21,13 +22,11 @@ import {
   isImage,
   isLTAR,
   nextTick,
-  onMounted,
   provide,
   ref,
   useAttachment,
   useViewData,
 } from '#imports'
-import type { Row as RowType } from '~/lib'
 
 interface Attachment {
   url: string

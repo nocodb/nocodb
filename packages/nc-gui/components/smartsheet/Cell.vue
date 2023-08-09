@@ -9,6 +9,7 @@ import {
   IsLockedInj,
   IsPublicInj,
   IsSurveyFormInj,
+  NavigateDir,
   ReadonlyInj,
   computed,
   inject,
@@ -47,7 +48,6 @@ import {
   useSmartsheetRowStoreOrThrow,
   useVModel,
 } from '#imports'
-import { NavigateDir } from '~/lib'
 
 interface Props {
   column: ColumnType

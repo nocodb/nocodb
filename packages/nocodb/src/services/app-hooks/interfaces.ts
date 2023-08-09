@@ -1,10 +1,9 @@
-import type { SyncSource } from '../../models';
+import type { SyncSource } from '~/models';
 import type {
   ApiTokenReqType,
   BaseType,
   PluginTestReqType,
   PluginType,
-  WorkspaceType,
 } from 'nocodb-sdk';
 import type {
   ColumnType,
@@ -55,12 +54,6 @@ export interface ProjectUpdateEvent {
 export interface ProjectDeleteEvent {
   project: ProjectType;
   user: UserType;
-}
-
-export interface WorkspaceInviteEvent {
-  workspace: WorkspaceType;
-  user: UserType;
-  invitedBy: UserType;
 }
 
 export interface WelcomeEvent {
@@ -132,12 +125,6 @@ export interface ColumnEvent {
 
 export interface SortEvent {
   sort: SortType;
-  ip?: string;
-}
-
-export interface WorkspaceEvent {
-  workspace: WorkspaceType;
-  user: UserType;
   ip?: string;
 }
 
@@ -214,7 +201,6 @@ export type AppEventPayload =
   | ProjectCreateEvent
   | ProjectUpdateEvent
   | ProjectDeleteEvent
-  | WorkspaceInviteEvent
   | WelcomeEvent
   | UserSignupEvent
   | UserSigninEvent
@@ -222,5 +208,4 @@ export type AppEventPayload =
   | ViewEvent
   | FilterEvent
   | SortEvent
-  | ColumnEvent
-  | WorkspaceEvent;
+  | ColumnEvent;

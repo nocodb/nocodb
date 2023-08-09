@@ -1,55 +1,22 @@
 <script setup lang="ts">
 import type { Menu } from 'ant-design-vue'
-import { Empty } from 'ant-design-vue'
-import type { WorkspaceType } from 'nocodb-sdk'
 import { nextTick } from '@vue/runtime-core'
-import { WorkspaceStatus, WorkspaceUserRoles } from 'nocodb-sdk'
-import tinycolor from 'tinycolor2'
-import Sortable from 'sortablejs'
-import {
-  computed,
-  extractSdkResponseErrorMsg,
-  message,
-  onMounted,
-  onUnmounted,
-  parseProp,
-  projectThemeColors,
-  storeToRefs,
-  stringToColour,
-  useRouter,
-  useSidebar,
-  useWorkspace,
-} from '#imports'
+import { WorkspaceStatus } from 'nocodb-sdk'
+import { computed, onMounted, storeToRefs, useRouter, useSidebar, useWorkspace } from '#imports'
 
 const router = useRouter()
 
 const { isUIAllowed } = useUIPermission()
 
-const roleAlias = {
-  [WorkspaceUserRoles.OWNER]: 'Owner',
-  [WorkspaceUserRoles.VIEWER]: 'Viewer',
-  [WorkspaceUserRoles.CREATOR]: 'Creator',
-}
-
 const workspaceStore = useWorkspace()
 
-const { deleteWorkspace: _deleteWorkspace, loadWorkspaces, updateWorkspace, populateWorkspace } = workspaceStore
+const { deleteWorkspace: _deleteWorkspace, loadWorkspaces, populateWorkspace } = workspaceStore
 
 const projectsStore = useProjects()
 
-const {
-  workspacesList,
-  activeWorkspace,
-  isWorkspaceOwnerOrCreator,
-  isWorkspaceOwner,
-  activePage,
-  collaborators,
-  activeWorkspaceId,
-} = storeToRefs(workspaceStore)
+const { workspacesList, activeWorkspace, activePage, collaborators, activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const { loadProjects } = useProjects()
-
-const { $e } = useNuxtApp()
 
 const route = $(router.currentRoute)
 
@@ -70,46 +37,17 @@ const selectedWorkspaceIndex = computed<number[]>({
 // create a new sidebar state
 const { toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
 
-let timerRef: any
-
-onUnmounted(() => {
-  if (timerRef) clearTimeout(timerRef)
-})
-
 const isCreateDlgOpen = ref(false)
 
 const isCreateProjectOpen = ref(false)
 
 const menuEl = ref<typeof Menu | null>(null)
 
-const toBeDeletedWorkspaceId = ref<string | null>(null)
-const showDeleteWorkspace = ref(false)
-
-const menu = (el?: typeof Menu) => {
-  if (el) {
-    menuEl.value = el
-    initSortable(el.$el)
-  }
-}
-
-const { loadScope } = useCommandPalette()
-
 onMounted(async () => {
   toggle(true)
   toggleHasSidebar(true)
 
-  await loadWorkspaces()
-  await loadScope('root')
-
-  loadWorkspacesWithInterval()
-
-  if (!route.query.workspaceId && workspacesList.value?.length) {
-    await router.push({ query: { workspaceId: workspacesList.value[0].id, page: 'workspace' } })
-  } else {
-    selectedWorkspaceIndex.value = [workspacesList.value?.findIndex((workspace) => workspace.id === route.query.workspaceId)]
-  }
-
-  if (activeWorkspace.value && activeWorkspace.value.status !== WorkspaceStatus.CREATING) await loadProjects()
+  loadProjects('recent')
 })
 
 watch(
@@ -129,107 +67,21 @@ watch(
   },
 )
 
-const WorkspaceCreateDlgOnSuccess = async () => {
-  isCreateDlgOpen.value = false
-  await loadWorkspaces()
-  await nextTick(() => {
-    ;[...menuEl?.value?.$el?.querySelectorAll('li.ant-menu-item')]?.pop()?.scrollIntoView({
-      block: 'nearest',
-      inline: 'nearest',
+useDialog(resolveComponent('WorkspaceCreateDlg'), {
+  'modelValue': isCreateDlgOpen,
+  'onUpdate:modelValue': (isOpen: boolean) => (isCreateDlgOpen.value = isOpen),
+  'onSuccess': async () => {
+    isCreateDlgOpen.value = false
+    await loadWorkspaces()
+    await nextTick(() => {
+      ;[...menuEl?.value?.$el?.querySelectorAll('li.ant-menu-item')]?.pop()?.scrollIntoView({
+        block: 'nearest',
+        inline: 'nearest',
+      })
+      selectedWorkspaceIndex.value = [workspacesList.value?.length - 1]
     })
-    selectedWorkspaceIndex.value = [workspacesList.value?.length - 1]
-  })
-}
-
-const deleteWorkspace = (workspace: WorkspaceType) => {
-  toBeDeletedWorkspaceId.value = workspace.id!
-  showDeleteWorkspace.value = true
-}
-
-const updateWorkspaceTitle = async (workspace: WorkspaceType & { edit: boolean; temp_title: string }) => {
-  try {
-    await updateWorkspace(workspace.id!, { title: workspace.temp_title })
-    workspace.title = workspace.temp_title
-    workspace.edit = false
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
-const handleWorkspaceColor = async (workspaceId: string, color: string) => {
-  const workspace = workspacesList.value?.find((w) => w.id === workspaceId)
-
-  if (!workspace) return
-
-  const tcolor = tinycolor(color)
-
-  if (tcolor.isValid()) {
-    const meta = workspace?.meta && typeof workspace.meta === 'string' ? JSON.parse(workspace.meta) : workspace.meta || {}
-
-    // Update local workspace meta
-    workspace.meta = {
-      ...parseProp(meta),
-      color,
-    }
-
-    await updateWorkspace(workspace.id!, {
-      meta: workspace.meta,
-    })
-  }
-}
-
-const getWorkspaceColor = (workspace: WorkspaceType) => workspace.meta?.color || stringToColour(workspace.id!)
-
-// const sortables: Record<string, Sortable> = {}
-
-function getIdFromEl(previousEl: HTMLElement) {
-  return previousEl.querySelector('[data-id]')?.dataset?.id
-}
-
-// todo: replace with vuedraggable
-function initSortable(el: Element) {
-  Sortable.create(el as HTMLLIElement, {
-    onEnd: async (evt) => {
-      if (workspacesList.value?.length < 2) return
-
-      const { newIndex = 0, oldIndex = 0 } = evt
-
-      if (newIndex === oldIndex) return
-
-      const children = evt.to.children as unknown as HTMLLIElement[]
-
-      const previousEl = children[newIndex - 1]
-      const nextEl = children[newIndex + 1]
-
-      const currentItem = workspacesList.value.find((v) => v.id === getIdFromEl(evt.item))
-
-      if (!currentItem || !currentItem.id) return
-
-      const previousItem = (previousEl ? workspacesList.value.find((v) => v.id === getIdFromEl(previousEl)) : {}) as WorkspaceType
-      const nextItem = (nextEl ? workspacesList.value.find((v) => v.id === getIdFromEl(nextEl)) : {}) as WorkspaceType
-
-      let nextOrder: number
-
-      // set new order value based on the new order of the items
-      if (workspacesList.value.length - 1 === newIndex) {
-        nextOrder = parseFloat(String(previousItem.order)) + 1
-      } else if (newIndex === 0) {
-        nextOrder = parseFloat(String(nextItem.order)) / 2
-      } else {
-        nextOrder = (parseFloat(String(previousItem.order)) + parseFloat(String(nextItem.order))) / 2
-      }
-
-      const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
-
-      currentItem.order = _nextOrder
-
-      await updateWorkspace(currentItem.id, { order: _nextOrder })
-
-      $e('a:workspace:reorder')
-    },
-    animation: 150,
-  })
-}
+  },
+})
 
 const tab = computed({
   get() {
@@ -239,20 +91,6 @@ const tab = computed({
     router.push({ query: { ...route.query, tab } })
   },
 })
-
-const renameInput = ref<HTMLInputElement[]>()
-const enableEdit = (index: number) => {
-  workspacesList.value[index].temp_title = workspacesList.value[index].title
-  workspacesList.value[index].edit = true
-  nextTick(() => {
-    renameInput.value?.[0]?.focus()
-    renameInput.value?.[0]?.select()
-  })
-}
-const disableEdit = (index: number) => {
-  workspacesList.value[index].temp_title = null
-  workspacesList.value[index].edit = false
-}
 
 const projectListType = computed(() => {
   switch (activePage.value) {
@@ -272,16 +110,6 @@ watch(activeWorkspaceId, async () => {
   await loadProjects(activePage.value)
 })
 
-// todo: do it in a better way
-function loadWorkspacesWithInterval() {
-  timerRef = setTimeout(async () => {
-    if (!workspacesList.value || workspacesList.value.some((workspace) => workspace.status === WorkspaceStatus.CREATING)) {
-      await loadWorkspaces()
-    }
-    loadWorkspacesWithInterval()
-  }, 10000)
-}
-
 watch(
   () => activeWorkspace.value?.status,
   async (status) => {
@@ -296,184 +124,64 @@ watch(
   <NuxtLayout name="new">
     <template #sidebar>
       <div class="h-full flex flex-col min-h-[400px] overflow-auto">
-        <!--        <div class="nc-workspace-group overflow-auto mt-8.5"> -->
-        <!--          <div class="flex text-sm font-medium text-gray-400 mx-4.5 mb-2">All Projects</div> -->
-        <!--          <div -->
-        <!--            class="nc-workspace-group-item" -->
-        <!--            :class="{ active: activePage === 'recent' }" -->
-        <!--            @click=" -->
-        <!--              navigateTo({ -->
-        <!--                query: { -->
-        <!--                  page: 'recent', -->
-        <!--                }, -->
-        <!--              }) -->
-        <!--            " -->
-        <!--          > -->
-        <!--            <IcOutlineAccessTime class="nc-icon" /> -->
-        <!--            <span>Recent</span> -->
-        <!--          </div> -->
-        <!--          <div -->
-        <!--            class="nc-workspace-group-item" -->
-        <!--            :class="{ active: activePage === 'shared' }" -->
-        <!--            @click=" -->
-        <!--              navigateTo({ -->
-        <!--                query: { -->
-        <!--                  page: 'shared', -->
-        <!--                }, -->
-        <!--              }) -->
-        <!--            " -->
-        <!--          > -->
-        <!--            <MaterialSymbolsGroupOutlineRounded class="nc-icon" /> -->
-        <!--            <span>Shared with me</span> -->
-        <!--          </div> -->
-        <!--          <div -->
-        <!--            class="nc-workspace-group-item" -->
-        <!--            :class="{ active: activePage === 'starred' }" -->
-        <!--            @click=" -->
-        <!--              navigateTo({ -->
-        <!--                query: { -->
-        <!--                  page: 'starred', -->
-        <!--                }, -->
-        <!--              }) -->
-        <!--            " -->
-        <!--          > -->
-        <!--            <IcRoundStarBorder class="nc-icon !h-5" /> -->
-        <!--            <span>Starred</span> -->
-        <!--          </div> -->
-        <!--        </div> -->
-        <div class="flex items-center !text-gray-400 text-xs pt-2 px-4 pb-2 h-10">
-          <div class="flex text-sm font-medium">Workspaces</div>
-          <div class="flex-grow"></div>
-          <MdiPlus
-            class="!text-gray-400 text-base cursor-pointer"
-            data-testid="nc-create-workspace"
-            @click="isCreateDlgOpen = true"
-          />
-        </div>
-
-        <div class="overflow-auto min-h-25 flex-grow" style="flex-basis: 0">
-          <a-empty v-if="!workspacesList?.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
-
-          <a-menu v-else v-model:selected-keys="selectedWorkspaceIndex" class="nc-workspace-list" trigger-sub-menu-action="click">
-            <a-menu-item v-for="(workspace, i) of workspacesList" :key="i">
-              <div class="nc-workspace-list-item flex items-center h-full group" :data-id="workspace.id">
-                <a-dropdown :trigger="['click']" trigger-sub-menu-action="click" @click.stop>
-                  <div>
-                    <span class="color-band" :style="{ backgroundColor: getWorkspaceColor(workspace) }" />
-                    <div
-                      :key="workspace.meta?.color"
-                      class="nc-workspace-avatar nc-click-transition-1"
-                      :style="{ backgroundColor: getWorkspaceColor(workspace) }"
-                    >
-                      {{ workspace.title?.slice(0, 2) }}
-                    </div>
-                  </div>
-
-                  <template #overlay>
-                    <a-menu trigger-sub-menu-action="click">
-                      <LazyGeneralColorPicker
-                        :model-value="getWorkspaceColor(workspace)"
-                        :colors="projectThemeColors"
-                        :row-size="9"
-                        :advanced="false"
-                        @input="handleWorkspaceColor(workspace.id!, $event)"
-                      />
-                      <a-sub-menu key="pick-primary">
-                        <template #title>
-                          <div class="nc-project-menu-item group !py-0">
-                            <ClarityColorPickerSolid class="group-hover:text-accent" />
-                            Custom Color
-                          </div>
-                        </template>
-
-                        <template #expandIcon></template>
-
-                        <LazyGeneralChromeWrapper @input="handleWorkspaceColor(workspace.id!, $event)" />
-                      </a-sub-menu>
-                    </a-menu>
-                  </template>
-                </a-dropdown>
-                <input
-                  v-if="workspace.edit && isUIAllowed('workspaceUpdate', false, activeWorkspace.roles)"
-                  ref="renameInput"
-                  v-model="workspace.temp_title"
-                  class="!leading-none outline-none bg-transparent"
-                  autofocus
-                  @blur="disableEdit(i)"
-                  @keydown.enter="updateWorkspaceTitle(workspace)"
-                  @keydown.esc="disableEdit(i)"
-                />
-                <div v-else class="nc-workspace-title shrink min-w-4 flex items-center gap-1">
-                  <span
-                    class="shrink min-w-0 overflow-ellipsis overflow-hidden"
-                    :class="{ '!font-weight-bold': selectedWorkspaceIndex[0] === i }"
-                    :title="workspace.title"
-                    @dblclick="enableEdit(i)"
-                    >{{ workspace.title }}</span
-                  >
-                  <span v-if="workspace.roles" class="text-[0.7rem] text-gray-500 hidden group-hover:inline"
-                    >({{ roleAlias[workspace.roles] }})</span
-                  >
-                </div>
-                <div class="flex-grow"></div>
-                <IcBaselineDragIndicator v-if="false" class="outline-0 nc-workspace-drag-icon" />
-                <a-dropdown
-                  v-if="
-                    isUIAllowed('workspaceRename', true, workspace.roles) || isUIAllowed('workspaceDelete', true, workspace.roles)
-                  "
-                  :trigger="['click']"
-                >
-                  <div class="w-4">
-                    <MdiDotsHorizontal class="outline-0 nc-workspace-menu min-w-4 nc-click-transition" />
-                  </div>
-                  <template #overlay>
-                    <a-menu class="!py-0 rounded">
-                      <a-menu-item v-if="isUIAllowed('workspaceRename', true, workspace.roles)" @click="enableEdit(i)">
-                        <div class="nc-menu-item-wrapper">
-                          <GeneralIcon icon="edit" />
-                          Rename Workspace
-                        </div>
-                      </a-menu-item>
-                      <a-menu-item
-                        v-if="isUIAllowed('workspaceDelete', true, workspace.roles)"
-                        @click="deleteWorkspace(workspace)"
-                      >
-                        <div class="nc-menu-item-wrapper text-red-600">
-                          <GeneralIcon icon="delete" />
-                          Delete Workspace
-                        </div>
-                      </a-menu-item>
-                    </a-menu>
-                  </template>
-                </a-dropdown>
-              </div>
-            </a-menu-item>
-          </a-menu>
+        <div class="nc-workspace-group overflow-auto mt-8.5">
+          <div class="flex text-sm font-medium text-gray-400 mx-4.5 mb-2">All Projects</div>
+          <div
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'recent' }"
+            @click="
+              navigateTo({
+                query: {
+                  page: 'recent',
+                },
+              })
+            "
+          >
+            <IcOutlineAccessTime class="nc-icon" />
+            <span>Recent</span>
+          </div>
+          <div
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'shared' }"
+            @click="
+              navigateTo({
+                query: {
+                  page: 'shared',
+                },
+              })
+            "
+          >
+            <MaterialSymbolsGroupOutlineRounded class="nc-icon" />
+            <span>Shared with me</span>
+          </div>
+          <div
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'starred' }"
+            @click="
+              navigateTo({
+                query: {
+                  page: 'starred',
+                },
+              })
+            "
+          >
+            <IcRoundStarBorder class="nc-icon !h-5" />
+            <span>Starred</span>
+          </div>
         </div>
       </div>
     </template>
 
     <div class="h-full nc-workspace-container overflow-x-hidden" style="width: calc(100vw - 250px)">
-      <div
-        v-if="activeWorkspace && activeWorkspace.status !== WorkspaceStatus.CREATED"
-        class="h-full w-full flex flex-col gap-3 items-center justify-center"
-      >
-        <a-spin size="large" />
-        <div class="text-gray-300 text-lg">Please wait while we set up your workspace</div>
-      </div>
-      <div v-else-if="activeWorkspace" class="flex flex-col pt-7">
-        <div class="pl-8 pr-7 flex items-center mb-7 h-8 max-w-full">
-          <div class="flex gap-2 items-center min-w-0">
-            <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
-              {{ activeWorkspace?.title?.slice(0, 2) }}
-            </span>
-            <h1 class="text-3xl font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title truncate min-w-10">
-              {{ activeWorkspace?.title }}
-            </h1>
-          </div>
+      <div class="h-full flex flex-col px-6 mt-3">
+        <div class="flex items-center gap-2 mb-5.5 mt-4 text-xl ml-5.5">
+          <h2 class="text-3xl font-weight-bold tracking-[0.5px] mb-0">
+            {{ projectListType }}
+          </h2>
+
           <div class="flex-grow min-w-10"></div>
           <WorkspaceCreateProjectBtn
-            v-if="isUIAllowed('createProject', false, activeWorkspace.roles) && tab === 'projects'"
+            v-if="isUIAllowed('projectCreate', false) && tab === 'projects'"
             v-model:is-open="isCreateProjectOpen"
             class="mt-0.75"
             type="primary"
@@ -493,56 +201,8 @@ watch(
           </WorkspaceCreateProjectBtn>
         </div>
 
-        <a-tabs v-model:activeKey="tab">
-          <a-tab-pane key="projects" class="w-full">
-            <template #tab>
-              <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
-                <MdiFileOutline />
-                Projects
-              </div>
-            </template>
-            <WorkspaceProjectList class="h-full mt-4 px-6" />
-          </a-tab-pane>
-          <template v-if="isWorkspaceOwnerOrCreator">
-            <a-tab-pane key="collab" class="w-full">
-              <template #tab>
-                <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
-                  <PhUsersBold />
-                  Collaborators
-                </div>
-              </template>
-              <WorkspaceCollaboratorsList />
-            </a-tab-pane>
-          </template>
-
-          <template v-if="isWorkspaceOwner">
-            <a-tab-pane key="billing" class="w-full">
-              <template #tab>
-                <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
-                  <MaterialSymbolsCreditCardOutline />
-                  Billing
-                </div>
-              </template>
-              <WorkspaceBilling />
-            </a-tab-pane>
-          </template>
-        </a-tabs>
-      </div>
-      <div v-else-if="activePage !== 'workspace'" class="h-full flex flex-col px-6 mt-3">
-        <div class="flex items-center gap-2 mb-5.5 mt-4 text-xl ml-5.5">
-          <h2 class="text-3xl font-weight-bold tracking-[0.5px] mb-0">
-            {{ projectListType }}
-          </h2>
-        </div>
-
         <WorkspaceProjectList class="min-h-20 grow" />
       </div>
-      <DlgWorkspaceDelete
-        v-if="toBeDeletedWorkspaceId"
-        v-model:visible="showDeleteWorkspace"
-        :workspace-id="toBeDeletedWorkspaceId"
-      />
-      <WorkspaceCreateDlg v-model="isCreateDlgOpen" @success="WorkspaceCreateDlgOnSuccess" />
     </div>
   </NuxtLayout>
 </template>

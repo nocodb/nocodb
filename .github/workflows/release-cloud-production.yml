@@ -1,4 +1,4 @@
-name: "Release cloud production"
+name: "Cloud : Production Deploy"
 
 on:
   # Triggered manually

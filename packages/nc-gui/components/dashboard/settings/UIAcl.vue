@@ -2,6 +2,7 @@
 import { inject } from '@vue/runtime-core'
 import {
   Empty,
+  ProjectIdInj,
   computed,
   extractSdkResponseErrorMsg,
   h,
@@ -14,7 +15,6 @@ import {
   useNuxtApp,
   useProject,
 } from '#imports'
-import { ProjectIdInj } from '~/context'
 
 const props = defineProps<{
   baseId: string

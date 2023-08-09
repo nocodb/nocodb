@@ -1,6 +1,6 @@
 // import ses from '../../v1-legacy/plugins/ses';
-import { MetaTable } from '../../meta.service';
 import type { Knex } from 'knex';
+import { MetaTable } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
   console.time(

@@ -6,6 +6,7 @@ import type { DefaultConnection, ProjectCreateForm, SQLiteConnection } from '#im
 import {
   CertTypes,
   ClientType,
+  ProjectIdInj,
   SSLUsage,
   clientTypes,
   computed,
@@ -24,7 +25,6 @@ import {
   useNuxtApp,
   watch,
 } from '#imports'
-import { ProjectIdInj } from '~/context'
 
 const props = defineProps<{
   baseId: string

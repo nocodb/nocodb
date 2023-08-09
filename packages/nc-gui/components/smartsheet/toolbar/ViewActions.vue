@@ -4,13 +4,13 @@ import {
   ActiveViewInj,
   IsLockedInj,
   IsPublicInj,
+  LockType,
   MetaInj,
   extractSdkResponseErrorMsg,
   iconMap,
   inject,
   message,
   ref,
-  storeToRefs,
   useI18n,
   useMenuCloseOnEsc,
   useNuxtApp,
@@ -18,13 +18,10 @@ import {
   useSmartsheetStoreOrThrow,
   useUIPermission,
 } from '#imports'
-import { LockType } from '~/lib'
 
 const { t } = useI18n()
 
 const sharedViewListDlg = ref(false)
-
-const { isMobileMode } = useGlobal()
 
 const isPublicView = inject(IsPublicInj, ref(false))
 
@@ -59,12 +56,13 @@ const quickImportDialogs: Record<(typeof quickImportDialogTypes)[number], Ref<bo
 
 const { isUIAllowed } = useUIPermission()
 
-const { isSharedBase } = storeToRefs(useProject())
+useProject()
 
 const meta = inject(MetaInj, ref())
 
 const currentBaseId = computed(() => meta.value?.base_id)
 
+/*
 const Icon = computed(() => {
   switch (selectedView.value?.lock_type) {
     case LockType.Personal:
@@ -76,6 +74,7 @@ const Icon = computed(() => {
       return iconMap.users
   }
 })
+*/
 
 const lockType = $computed(() => (selectedView.value?.lock_type as LockType) || LockType.Collaborative)
 

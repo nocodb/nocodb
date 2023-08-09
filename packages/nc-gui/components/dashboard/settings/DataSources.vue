@@ -6,8 +6,7 @@ import EditBase from './data-sources/EditBase.vue'
 import Metadata from './Metadata.vue'
 import UIAcl from './UIAcl.vue'
 import Erd from './Erd.vue'
-import { ClientType, DataSourcesSubTab } from '~/lib'
-import { storeToRefs, useCommandPalette, useNuxtApp, useProject } from '#imports'
+import { ClientType, DataSourcesSubTab, storeToRefs, useCommandPalette, useNuxtApp, useProject } from '#imports'
 
 interface Props {
   state: string

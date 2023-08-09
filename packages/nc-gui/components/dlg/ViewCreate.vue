@@ -4,20 +4,7 @@ import type { Form as AntForm, SelectProps } from 'ant-design-vue'
 import { capitalize } from '@vue/runtime-core'
 import type { FormType, GalleryType, GridType, KanbanType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, ViewTypes } from 'nocodb-sdk'
-import {
-  computed,
-  generateUniqueTitle,
-  message,
-  nextTick,
-  onBeforeMount,
-  reactive,
-  ref,
-  unref,
-  useApi,
-  useI18n,
-  useVModel,
-  watch,
-} from '#imports'
+import { computed, message, nextTick, onBeforeMount, reactive, ref, unref, useApi, useI18n, useVModel, watch } from '#imports'
 
 interface Props {
   modelValue: boolean

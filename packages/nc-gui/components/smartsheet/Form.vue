@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { RelationTypes, UITypes, ViewTypes, getSystemColumns, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import type { Permission } from '#imports'
 import {
   ActiveViewInj,
   IsFormInj,
@@ -26,7 +27,6 @@ import {
   useViewData,
   watch,
 } from '#imports'
-import type { Permission } from '~/lib'
 
 provide(IsFormInj, ref(true))
 provide(IsGalleryInj, ref(false))

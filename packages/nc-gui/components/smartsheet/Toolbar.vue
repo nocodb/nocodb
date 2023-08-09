@@ -1,17 +1,7 @@
 <script setup lang="ts">
-import { ViewTypes } from 'nocodb-sdk'
-import {
-  IsPublicInj,
-  inject,
-  ref,
-  useSharedView,
-  useSidebar,
-  useSmartsheetStoreOrThrow,
-  useUIPermission,
-  useViewsStore,
-} from '#imports'
+import { IsPublicInj, inject, ref, useSharedView, useSmartsheetStoreOrThrow, useUIPermission, useViewsStore } from '#imports'
 
-const { isGrid, isForm, isGallery, isKanban, isMap, isSqlView } = useSmartsheetStoreOrThrow()
+const { isGrid, isForm, isGallery, isKanban, isMap } = useSmartsheetStoreOrThrow()
 
 const isPublic = inject(IsPublicInj, ref(false))
 

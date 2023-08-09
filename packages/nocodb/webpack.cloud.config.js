@@ -3,12 +3,10 @@ const nodeExternals = require('webpack-node-externals');
 const webpack = require('webpack');
 const CopyPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
+const { resolveTsAliases } = require('./build-utils/resolveTsAliases');
 
-const { resolveTsAliases } = require('resolve-ts-aliases');
-// const JavaScriptObfuscator = require('webpack-obfuscator');
 module.exports = {
   entry: './src/run/cloud.ts',
-  // devtool: 'inline-source-map',
   module: {
     rules: [
       {
@@ -36,7 +34,7 @@ module.exports = {
   ],
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json'],
-    alias: resolveTsAliases(path.resolve('tsconfig.json')),
+    alias: resolveTsAliases(path.resolve('./src/ee/tsconfig.json')),
   },
   mode: 'production',
   output: {

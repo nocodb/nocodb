@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { UITypes } from 'nocodb-sdk';
-import { NcError } from '../helpers/catchError';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import { Base, Model } from '../models';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
+import type { PathParams } from '~/modules/datas/helpers';
+import { NcError } from '~/helpers/catchError';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import {
   getColumnByIdOrName,
   getViewAndModelByAliasOrId,
-} from '../modules/datas/helpers';
-import type { PathParams } from '../modules/datas/helpers';
+} from '~/modules/datas/helpers';
+import { Base, Model } from '~/models';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
 export class DataAliasNestedService {

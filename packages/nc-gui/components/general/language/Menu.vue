@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { Language } from '~/lib'
-import { useGlobal, useI18n, useNuxtApp } from '#imports'
+import { Language, useGlobal, useI18n, useNuxtApp } from '#imports'
 import { setI18nLanguage } from '~/plugins/a.i18n'
 
 const { $e } = useNuxtApp()

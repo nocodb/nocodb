@@ -16,8 +16,8 @@ import ncHookUpgrader from './ncHookUpgrader';
 import ncProjectConfigUpgrader from './ncProjectConfigUpgrader';
 import ncXcdbLTARUpgrader from './ncXcdbLTARUpgrader';
 import ncMinimalDbUpgrader from './ncMinimalDbUpgrader';
-import type { MetaService } from '../meta/meta.service';
-import type { NcConfig } from '../interface/config';
+import type { MetaService } from '~/meta/meta.service';
+import type { NcConfig } from '~/interface/config';
 
 const log = debug('nc:version-upgrader');
 

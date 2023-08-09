@@ -2,7 +2,7 @@ import { ViewTypes, isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { IsPublicInj, computed, inject, ref, storeToRefs, useNuxtApp, useProject, useUIPermission, watch } from '#imports'
-import type { Field } from '~/lib'
+import type { Field } from '#imports'
 
 export function useViewColumns(
   view: Ref<ViewType | undefined>,

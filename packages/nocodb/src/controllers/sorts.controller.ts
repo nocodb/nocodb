@@ -11,13 +11,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { SortReqType } from 'nocodb-sdk';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import {
-  ExtractProjectIdMiddleware,
-  UseAclMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { SortsService } from '../services/sorts.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { SortsService } from '~/services/sorts.service';
+import { UseAclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
 @UseGuards(GlobalGuard)
@@ -44,7 +41,7 @@ export class SortsController {
   async sortCreate(
     @Param('viewId') viewId: string,
     @Body() body: SortReqType,
-    @Req() req,
+    @Req() _req,
   ) {
     const sort = await this.sortsService.sortCreate({
       sort: body,
@@ -71,7 +68,7 @@ export class SortsController {
   async sortUpdate(
     @Param('sortId') sortId: string,
     @Body() body: SortReqType,
-    @Req() req,
+    @Req() _req,
   ) {
     const sort = await this.sortsService.sortUpdate({
       sortId,
@@ -81,7 +78,7 @@ export class SortsController {
   }
 
   @Delete('/api/v1/db/meta/sorts/:sortId')
-  async sortDelete(@Param('sortId') sortId: string, @Req() req) {
+  async sortDelete(@Param('sortId') sortId: string, @Req() _req) {
     const sort = await this.sortsService.sortDelete({
       sortId,
     });

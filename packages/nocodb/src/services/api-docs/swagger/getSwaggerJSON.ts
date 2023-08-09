@@ -1,5 +1,4 @@
 import { ViewTypes } from 'nocodb-sdk';
-import Noco from '../../../Noco';
 import swaggerBase from './swagger-base.json';
 import getPaths from './getPaths';
 import getSchemas from './getSchemas';
@@ -11,7 +10,8 @@ import type {
   Model,
   Project,
   View,
-} from '../../../models';
+} from '~/models';
+import Noco from '~/Noco';
 
 export default async function getSwaggerJSON(
   project: Project,

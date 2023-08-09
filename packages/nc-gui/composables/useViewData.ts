@@ -22,7 +22,7 @@ import {
   useState,
   useUIPermission,
 } from '#imports'
-import type { Row } from '~/lib'
+import type { Row } from '#imports'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({

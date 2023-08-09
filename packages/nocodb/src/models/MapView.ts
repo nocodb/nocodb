@@ -1,11 +1,11 @@
-import Noco from '../Noco';
-import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import NocoCache from '../cache/NocoCache';
-import { extractProps } from '../helpers/extractProps';
-import View from './View';
-import MapViewColumn from './MapViewColumn';
 import type { MetaType } from 'nocodb-sdk';
 import type { MapType } from 'nocodb-sdk';
+import View from '~/models/View';
+import MapViewColumn from '~/models/MapViewColumn';
+import { extractProps } from '~/helpers/extractProps';
+import NocoCache from '~/cache/NocoCache';
+import Noco from '~/Noco';
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 
 export default class MapView implements MapType {
   fk_view_id: string;

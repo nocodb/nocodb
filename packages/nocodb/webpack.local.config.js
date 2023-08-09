@@ -2,7 +2,7 @@ const path = require('path');
 const nodeExternals = require('webpack-node-externals');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
-const { resolveTsAliases } = require('resolve-ts-aliases');
+const { resolveTsAliases } = require('./build-utils/resolveTsAliases');
 
 module.exports = {
   entry: './src/run/local.ts',

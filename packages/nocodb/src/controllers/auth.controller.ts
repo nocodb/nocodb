@@ -9,11 +9,11 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
-import { GlobalGuard } from '../guards/global/global.guard';
-import extractRolesObj from '../utils/extractRolesObj';
-import { AuthService } from '../services/auth.service';
-import { NcError } from '../helpers/catchError';
-import type { AppConfig } from '../interface/config';
+import type { AppConfig } from '~/interface/config';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { AuthService } from '~/services/auth.service';
+import { NcError } from '~/helpers/catchError';
+import extractRolesObj from '~/utils/extractRolesObj';
 
 export class CreateUserDto {
   readonly username: string;

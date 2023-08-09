@@ -1,14 +1,14 @@
 import { UITypes } from 'nocodb-sdk';
-import { MetaTable } from '../utils/globals';
-import Base from '../models/Base';
-import Model from '../models/Model';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { throwTimeoutError } from './ncUpgradeErrors';
-import type { XKnex } from '../db/CustomKnex';
+import type { XKnex } from '~/db/CustomKnex';
 import type { Knex } from 'knex';
 import type { NcUpgraderCtx } from './NcUpgrader';
-// import type { XKnex } from '../db/sql-data-mapper';
+// import type { XKnex } from '~/db/sql-data-mapper';
 import type { BaseType } from 'nocodb-sdk';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import Model from '~/models/Model';
+import Base from '~/models/Base';
+import { MetaTable } from '~/utils/globals';
 
 // before 0.103.0, an attachment object was like
 // [{

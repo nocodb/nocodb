@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { nextTick } from '@vue/runtime-core'
-import type { BaseType, TableType } from 'nocodb-sdk'
+import type { TableType } from 'nocodb-sdk'
 import type { Input } from 'ant-design-vue'
 import { Dropdown, Tooltip, message } from 'ant-design-vue'
 import Sortable from 'sortablejs'
@@ -27,7 +27,6 @@ import {
   useNuxtApp,
   useProject,
   useRoute,
-  useSqlEditor,
   useTable,
   useTabs,
   useToggle,
@@ -58,8 +57,6 @@ const route = useRoute()
 const [searchActive, toggleSearchActive] = useToggle()
 
 const { appInfo } = useGlobal()
-
-const { selectBase } = useSqlEditor()
 
 const { addUndo, defineProjectScope } = useUndoRedo()
 
@@ -369,16 +366,12 @@ function openSchemaMagicDialog(baseId?: string) {
   }
 }
 
-function openSqlEditor(base?: BaseType) {
-  if (!base) base = bases.value?.filter((base: BaseType) => base.enabled)[0]
-  selectBase(project.value.id!, base.id!)
-  navigateTo(`/${route.params.projectType}/${route.params.projectId}/sql`)
-}
-
+/*
 function openErdView(base?: BaseType) {
   if (!base) base = bases.value?.filter((base: BaseType) => base.enabled)[0]
   navigateTo(`/${route.params.projectType}/${route.params.projectId}/erd/${base.id}`)
 }
+*/
 
 const searchInputRef: VNodeRef = (vnode: typeof Input) => vnode?.$el?.focus()
 
@@ -1300,10 +1293,6 @@ const duplicateTable = async (table: TableType) => {
         <a-menu class="!py-0 rounded text-sm">
           <template v-if="contextMenuTarget.type === 'base'">
             <!--
-            <a-menu-item v-if="isUIAllowed('sqlEditor')" @click="openSqlEditor(contextMenuTarget.value)">
-              <div class="nc-project-menu-item">SQL Editor</div>
-            </a-menu-item>
-
             <a-menu-item @click="openErdView(contextMenuTarget.value)">
               <div class="nc-project-menu-item">ERD View</div>
             </a-menu-item>

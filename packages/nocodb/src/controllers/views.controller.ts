@@ -12,13 +12,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ViewUpdateReqType } from 'nocodb-sdk';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import {
-  ExtractProjectIdMiddleware,
-  UseAclMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { ViewsService } from '../services/views.service';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { ViewsService } from '~/services/views.service';
+import { UseAclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
 @UseGuards(GlobalGuard)

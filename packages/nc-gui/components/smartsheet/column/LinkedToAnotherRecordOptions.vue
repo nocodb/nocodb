@@ -10,8 +10,6 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:value'])
 
-const { appInfo } = $(useGlobal())
-
 const vModel = useVModel(props, 'value', emit)
 
 const meta = $(inject(MetaInj, ref()))

@@ -35,8 +35,7 @@ const { $e } = useNuxtApp()
 
 const { api, isLoading: loading } = useApi()
 
-const globalStore = useGlobal()
-const appInfo = toRef(globalStore, 'appInfo')
+const { appInfo } = useGlobal()
 
 const { hooks } = storeToRefs(useWebhooksStore())
 

@@ -29,8 +29,7 @@ const { $api, $e } = useNuxtApp()
 
 const { copy } = useCopy()
 
-const dashboardStore = useDashboard()
-const dashboardUrl = toRef(dashboardStore, 'dashboardUrl')
+const { dashboardUrl } = useDashboard()
 
 const usersData = ref<Users>({ emails: '', role: WorkspaceUserRoles.VIEWER, invitationToken: undefined })
 

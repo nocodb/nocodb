@@ -8,9 +8,11 @@ export const useDocStore = defineStore('docStore', () => {
   const route = router.currentRoute
 
   const { $api } = useNuxtApp()
-  const globalStore = useGlobal()
-  const appInfo = toRef(globalStore, 'appInfo')
+
+  const { appInfo } = useGlobal()
+
   const { projectRoles } = useRoles()
+
   const { setProject } = useProject()
 
   const isNestedPageFetching = ref<Record<string, boolean>>({})

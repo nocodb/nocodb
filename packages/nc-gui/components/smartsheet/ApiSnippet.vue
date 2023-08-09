@@ -28,9 +28,7 @@ const { t } = useI18n()
 const projectStore = storeToRefs(useProject())
 const project = toRef(projectStore, 'project')
 
-const globalStore = useGlobal()
-const appInfo = toRef(globalStore, 'appInfo')
-const token = toRef(globalStore, 'token')
+const { appInfo, token } = useGlobal()
 
 const meta = inject(MetaInj, ref())
 

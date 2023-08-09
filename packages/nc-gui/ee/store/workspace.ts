@@ -1,4 +1,3 @@
-import { toRef } from 'vue'
 import type { ProjectType, WorkspaceType, WorkspaceUserType } from 'nocodb-sdk'
 import { WorkspaceStatus, WorkspaceUserRoles } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
@@ -31,8 +30,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { $e } = useNuxtApp()
 
-  const globalStore = useGlobal()
-  const appInfo = toRef(globalStore, 'appInfo')
+  const { appInfo } = useGlobal()
 
   const workspaces = ref<Map<string, NcWorkspace>>(new Map())
   const workspacesList = computed<NcWorkspace[]>(() =>

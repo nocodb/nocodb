@@ -27,8 +27,9 @@ const projectsStore = useProjects()
 const workspaceStore = useWorkspace()
 const { activeWorkspace } = storeToRefs(workspaceStore)
 const { loadProjects } = useProjects()
-const globalStore = useGlobal()
-const navigateToProject = toRef(globalStore, 'navigateToProject')
+
+const { navigateToProject } = useGlobal()
+
 const { createProject: _createProject } = projectsStore
 
 const nameValidationRules = [
@@ -57,7 +58,7 @@ const createProject = async () => {
     })
 
     await loadProjects()
-    navigateToProject.value({
+    navigateToProject({
       projectId: project.id!,
       workspaceId: activeWorkspace.value!.id!,
       type: props.type,

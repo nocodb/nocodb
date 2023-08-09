@@ -25,8 +25,7 @@ enum ShareBaseRole {
 
 const { t } = useI18n()
 
-const dashboardStore = useDashboard()
-const dashboardUrl = toRef(dashboardStore, 'dashboardUrl')
+const { dashboardUrl } = useDashboard()
 
 const { $api, $e } = useNuxtApp()
 

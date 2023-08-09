@@ -25,8 +25,7 @@ const { modelValue, baseId } = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
-const globalStore = useGlobal()
-const appInfo = toRef(globalStore, 'appInfo')
+const { appInfo } = useGlobal()
 
 const baseURL = appInfo.value.ncSiteUrl
 

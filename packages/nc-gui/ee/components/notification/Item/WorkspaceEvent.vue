@@ -6,9 +6,9 @@ const props = defineProps<{
   item: any
 }>()
 
-const item = $(toRef(props, 'item'))
-
 const { navigateToProject } = $(useGlobal())
+
+const item = $(toRef(props, 'item'))
 
 const action = computed(() => {
   switch (item.type) {

@@ -246,6 +246,7 @@ function openRenameTableDialog(table: TableType, baseId?: string, rightClick = f
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgTableRename'), {
+    'v-if': table && (baseId || bases.value[0].id),
     'modelValue': isOpen,
     'tableMeta': table,
     'baseId': baseId || bases.value[0].id,
@@ -311,6 +312,7 @@ function openTableCreateDialog(baseId?: string) {
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
+    'v-if': baseId || bases.value[0].id,
     'modelValue': isOpen,
     'baseId': baseId || bases.value[0].id,
     'onUpdate:modelValue': closeDialog,
@@ -335,6 +337,7 @@ function openTableCreateMagicDialog(baseId?: string) {
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgTableMagic'), {
+    'v-if': baseId || bases.value[0].id,
     'modelValue': isOpen,
     'baseId': baseId || bases.value[0].id,
     'onUpdate:modelValue': closeDialog,
@@ -444,7 +447,7 @@ watch(
       }
     }
     if (project.value.title && tableTitle) {
-      document.title = `${project.value.title}: ${tableTitle} | NocoDB`
+      document.title = `${project.value.title}: ${tableTitle}`
     } else {
       document.title = 'NocoDB'
     }
@@ -486,6 +489,7 @@ const duplicateTable = async (table: TableType) => {
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgTableDuplicate'), {
+    'v-if': table,
     'modelValue': isOpen,
     'table': table,
     'onOk': async (jobData: { id: string }) => {

@@ -19,11 +19,14 @@ const projectRole = inject(ProjectRoleInj)
 const { $e } = useNuxtApp()
 
 function openTableCreateMagicDialog(baseId?: string) {
+  if (!baseId) return
+
   $e('c:table:create:navdraw')
 
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgTableMagic'), {
+    'v-if': baseId,
     'modelValue': isOpen,
     'baseId': baseId,
     'onUpdate:modelValue': closeDialog,
@@ -37,6 +40,8 @@ function openTableCreateMagicDialog(baseId?: string) {
 }
 
 function openSchemaMagicDialog(baseId?: string) {
+  if (!baseId) return
+
   $e('c:table:create:navdraw')
 
   const isOpen = ref(true)
@@ -55,6 +60,8 @@ function openSchemaMagicDialog(baseId?: string) {
 }
 
 function openAirtableImportDialog(baseId?: string) {
+  if (!baseId) return
+
   $e('a:actions:import-airtable')
 
   const isOpen = ref(true)
@@ -73,6 +80,8 @@ function openAirtableImportDialog(baseId?: string) {
 }
 
 function openQuickImportDialog(type: string) {
+  if (!base.value?.id) return
+
   $e(`a:actions:import-${type}`)
 
   const isOpen = ref(true)
@@ -93,10 +102,10 @@ function openQuickImportDialog(type: string) {
 </script>
 
 <template>
-  <a-menu-divider class="my-0" />
+  <a-menu-divider v-if="false" class="my-0" />
 
   <!-- NocoAI -->
-  <a-sub-menu>
+  <a-sub-menu v-if="false">
     <template #title>
       <div class="nc-project-menu-item group">
         <GeneralIcon icon="magic" class="group-hover:text-black" />

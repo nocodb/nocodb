@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-import Sortable from 'sortablejs'
-
 import ProjectWrapper from './ProjectWrapper.vue'
-
 import type { TabType } from '#imports'
 import {
   TreeViewInj,
@@ -23,7 +20,6 @@ import {
   useTablesStore,
   useTabs,
   useUIPermission,
-  watchEffect,
 } from '#imports'
 
 import { useRouter } from '#app'
@@ -36,7 +32,7 @@ const { isUIAllowed } = useUIPermission()
 
 const { addTab } = useTabs()
 
-const { $api, $e, $jobs } = useNuxtApp()
+const { $e, $jobs } = useNuxtApp()
 
 const router = useRouter()
 
@@ -47,8 +43,6 @@ const projectsStore = useProjects()
 const { createProject: _createProject } = projectsStore
 
 const { projects, projectsList, activeProjectId } = storeToRefs(projectsStore)
-
-const { projectTables } = storeToRefs(useTablesStore())
 
 const { openTable } = useTablesStore()
 
@@ -154,6 +148,8 @@ const setMenuContext = (type: 'project' | 'base' | 'table' | 'main' | 'layout', 
 }
 
 function openRenameTableDialog(table: TableType, rightClick = false) {
+  if (!table || !table.base_id) return
+
   $e(rightClick ? 'c:table:rename:navdraw:right-click' : 'c:table:rename:navdraw:options')
 
   const isOpen = ref(true)
@@ -173,6 +169,8 @@ function openRenameTableDialog(table: TableType, rightClick = false) {
 }
 
 function openTableCreateDialog(baseId?: string, projectId?: string) {
+  if (!baseId && !(projectId || projectsList.value[0].id)) return
+
   $e('c:table:create:navdraw')
 
   const isOpen = ref(true)

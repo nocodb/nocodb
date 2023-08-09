@@ -112,6 +112,38 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
   }
 }
 
+function openCreateTable() {
+  if (!bases.value?.length) return
+
+  const isOpen = ref(true)
+  const { close } = useDialog(resolveComponent('DlgTableCreate'), {
+    'modelValue': isOpen,
+    'onUpdate:modelValue': closeDialog,
+    'baseId': bases.value.filter((base: BaseType) => base.enabled)[0].id,
+    'projectId': project.value.id,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+
+    reset()
+  }
+}
+
+function onDropZoneClick(e: MouseEvent) {
+  const elements = document.elementsFromPoint(e.clientX, e.clientY)
+  const isCreateTableBtnClicked = elements.some((element) => element.classList.contains('create-table-btn'))
+
+  if (isCreateTableBtnClicked) {
+    openCreateTable()
+    return
+  }
+
+  open()
+}
+
 watch(
   () => project.value.id,
   () => {

@@ -33,6 +33,8 @@ const { isSharedBase } = storeToRefs(projectStore)
 const projectRole = inject(ProjectRoleInj)
 
 function openSchemaMagicDialog(baseId?: string) {
+  if (!baseId) return
+
   $e('c:table:create:navdraw')
 
   const isOpen = ref(true)
@@ -51,6 +53,8 @@ function openSchemaMagicDialog(baseId?: string) {
 }
 
 function openQuickImportDialog(type: string, baseId?: string) {
+  if (!baseId) return
+
   $e(`a:actions:import-${type}`)
 
   const isOpen = ref(true)
@@ -70,6 +74,8 @@ function openQuickImportDialog(type: string, baseId?: string) {
 }
 
 function openAirtableImportDialog(baseId?: string) {
+  if (!baseId) return
+
   $e('a:actions:import-airtable')
 
   const isOpen = ref(true)
@@ -88,6 +94,8 @@ function openAirtableImportDialog(baseId?: string) {
 }
 
 function openTableCreateMagicDialog(baseId?: string) {
+  if (!baseId) return
+
   $e('c:table:create:navdraw')
 
   const isOpen = ref(true)

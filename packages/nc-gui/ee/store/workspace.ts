@@ -42,7 +42,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const isInvitingCollaborators = ref(false)
 
   const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(
-    () => (route.value.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'recent',
+    () => (route.value.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'workspace',
   )
 
   const activeWorkspaceId = computed(() => {

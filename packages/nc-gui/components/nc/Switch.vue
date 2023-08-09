@@ -11,7 +11,7 @@ const onChange = (e: boolean) => {
 </script>
 
 <template>
-  <a-switch v-model:checked="checked" :disabled="props.disabled" size="small" @change="onChange">
+  <a-switch v-model:checked="checked" :disabled="props.disabled" class="nc-switch" size="small" @change="onChange">
     <slot />
   </a-switch>
 </template>

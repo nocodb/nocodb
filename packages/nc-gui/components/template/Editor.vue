@@ -929,7 +929,7 @@ function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {
 
 <style scoped lang="scss">
 .template-collapse {
-  @apply bg-white;
+  @apply bg-white overflow-auto;
 }
 
 .template-form {

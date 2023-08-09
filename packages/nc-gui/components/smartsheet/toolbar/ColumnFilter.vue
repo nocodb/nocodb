@@ -430,6 +430,7 @@ const addFilterGroup = async () => {
       class="flex flex-row text-gray-400 mt-2"
       :class="{
         'ml-1': nested,
+        'ml-0.5': !nested,
       }"
     >
       No filters added

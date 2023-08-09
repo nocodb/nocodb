@@ -31,7 +31,7 @@ export class LayoutsController {
   @UseAclMiddleware({
     permissionName: 'layoutGet',
   })
-  async layoutGet(@Param('layoutId') layoutId: string, @Request() req) {
+  async layoutGet(@Param('layoutId') layoutId: string, @Request() _req) {
     const layout = await this.layoutService.getLayout({
       layoutId,
     });
@@ -59,7 +59,7 @@ export class LayoutsController {
   @UseAclMiddleware({
     permissionName: 'layoutList',
   })
-  async layoutList(@Param('dashboardId') dashboardId: string, @Request() req) {
+  async layoutList(@Param('dashboardId') dashboardId: string, @Request() _req) {
     return new PagedResponseImpl(
       await this.layoutService.getLayouts({
         dashboardId,
@@ -95,7 +95,7 @@ export class LayoutsController {
   async layoutUpdate(
     @Param('layoutId') layoutId: string,
     @Body() body: LayoutReqType,
-    @Request() req,
+    @Request() _req,
   ) {
     const result = await this.layoutService.layoutUpdate({
       layoutId,

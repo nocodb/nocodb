@@ -33,10 +33,12 @@ const unsupportedColumnTypes: string[] = [UITypes.Rollup, UITypes.Lookup, UIType
 const supportedColumns = computed(
   () =>
     ((meta as TableType)?.columns || [])
-      .filter((c: ColumnType) => !unsupportedColumnTypes.includes(c.uidt) && !isSystemColumn(c))
+      .filter((c: ColumnType) => c.uidt && !unsupportedColumnTypes.includes(c.uidt) && !isSystemColumn(c))
       .sort((a, b) => a.order! - b.order!) || [],
 )
 
+// TODO: implement this
+/*
 const suggestionsList = computed(() => {
   return [
     ...supportedColumns.value
@@ -55,6 +57,7 @@ const suggestionsList = computed(() => {
 
 // set default suggestion list
 const suggestion: Record<string, any> = ref(suggestionsList.value)
+*/
 
 const prompt = ref('')
 
@@ -74,9 +77,11 @@ function generateFullPrompt(rowObj: any) {
   if (arr) {
     arr.forEach((e) => {
       const column = supportedColumns.value.find((c) => c.title === e.trim())
-      const row = rowObj
-      const value = row.row[column.title]
-      fullPrompt = fullPrompt.replace(`{{${e}}}`, value)
+      if (column?.title) {
+        const row = rowObj
+        const value = row.row[column.title]
+        fullPrompt = fullPrompt.replace(`{{${e}}}`, value)
+      }
     })
   }
   return fullPrompt

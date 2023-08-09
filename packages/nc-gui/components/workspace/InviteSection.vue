@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { WorkspaceUserRoles } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg } from '~/utils'
-import { useWorkspace } from '#imports'
+import { extractSdkResponseErrorMsg, useWorkspace } from '#imports'
 
 const inviteData = reactive({
   email: '',

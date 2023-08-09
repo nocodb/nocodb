@@ -1,33 +1,31 @@
+import { NotificationsService as NotificationsServiceCE } from 'src/services/notifications.service';
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
-import { ClickhouseService } from './clickhouse/clickhouse.service';
 import type {
   ProjectInviteEvent,
   WelcomeEvent,
   WorkspaceInviteEvent,
 } from '~/services/app-hooks/interfaces';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import type { UserType } from 'nocodb-sdk';
 import type { Project } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { NcError } from '~/helpers/catchError';
-import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { Notification } from '~/models';
 
 @Injectable()
-export class NotificationsService implements OnModuleInit, OnModuleDestroy {
-  constructor(
-    private readonly appHooks: AppHooksService,
-    private clickhouseService: ClickhouseService,
-  ) {}
-
-  private async insertNotification(insertData: Partial<Notification>) {
-    this.appHooks.emit('notification' as any, insertData);
-
-    await Notification.insert(insertData);
+export class NotificationsService
+  extends NotificationsServiceCE
+  implements OnModuleInit, OnModuleDestroy
+{
+  constructor(protected readonly appHooks: AppHooksService) {
+    super(appHooks);
   }
 
-  private async hookHandler({ event, data }: { event: AppEvents; data: any }) {
+  protected async hookHandler({
+    event,
+    data,
+  }: {
+    event: AppEvents;
+    data: any;
+  }) {
     switch (event) {
       case AppEvents.PROJECT_INVITE:
         {
@@ -73,74 +71,5 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         }
         break;
     }
-  }
-
-  // todo: verify if this is the right way to do it, since we are binding this context to the handler
-  onModuleDestroy() {
-    this.appHooks.removeAllListener(this.hookHandler);
-  }
-
-  onModuleInit() {
-    this.appHooks.onAll(this.hookHandler.bind(this));
-  }
-
-  async notificationList(param: {
-    user: UserType;
-    limit?: number;
-    offset?: number;
-    is_read?: boolean;
-    is_deleted?: boolean;
-  }) {
-    try {
-      // Define the pagination parameters
-      const { limit = 10, offset = 0 } = param; // Number of rows to skip before returning results
-
-      const list = await Notification.list({
-        fk_user_id: param.user.id,
-        limit,
-        offset,
-        is_deleted: false,
-      });
-
-      const count = await Notification.count({
-        fk_user_id: param.user.id,
-        is_deleted: false,
-      });
-
-      const unreadCount = await Notification.count({
-        fk_user_id: param.user.id,
-        is_deleted: false,
-        is_read: false,
-      });
-
-      return new PagedResponseImpl(
-        list,
-        {
-          limit: param.limit,
-          offset: param.offset,
-          count,
-        },
-        { unreadCount },
-      );
-    } catch (e) {
-      console.log(e);
-      throw e;
-    }
-  }
-
-  async notificationUpdate(param: { notificationId: string; body; user: any }) {
-    await Notification.update(param.notificationId, param.body);
-
-    return true;
-  }
-
-  async markAllRead(param: { user: any }) {
-    if (!param.user?.id) {
-      NcError.badRequest('User id is required');
-    }
-
-    await Notification.markAllAsRead(param.user.id);
-
-    return true;
   }
 }

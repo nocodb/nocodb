@@ -96,7 +96,7 @@ export class FiltersController {
 
   @Delete('/api/v1/db/meta/filters/:filterId')
   @Acl('filterDelete')
-  async filterDelete(@Param('filterId') filterId: string, @Req() req) {
+  async filterDelete(@Param('filterId') filterId: string, @Req() _req) {
     const filter = await this.filtersService.filterDelete({
       filterId,
     });

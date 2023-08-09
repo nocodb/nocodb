@@ -1,9 +1,8 @@
 import type { BaseType, ProjectType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { defineStore, storeToRefs } from 'pinia'
-import { computed, navigateTo, ref, useProject, useProjects, useRouter, watch } from '#imports'
-import type { TabItem } from '~/lib'
-import { TabType } from '~/lib'
+import { TabType, computed, navigateTo, ref, useProject, useProjects, useRouter, watch } from '#imports'
+import type { TabItem } from '#imports'
 
 function getPredicate(key: Partial<TabItem>) {
   // todo: temp
@@ -37,7 +36,7 @@ export const useTabs = defineStore('tabStore', () => {
   // todo: new-layout
   const workspaceId = $computed(() => route.params.workspaceId as string)
 
-  const previousActiveTabIndex = ref(-1)
+  // const previousActiveTabIndex = ref(-1)
   const activeTabIndex: WritableComputedRef<number> = computed({
     get() {
       return 0
@@ -62,7 +61,7 @@ export const useTabs = defineStore('tabStore', () => {
           title: route.params.title as string,
         }
 
-        const currentTable = (tables ?? projectsStore.projectTableList[project?.id!]).find((t) => {
+        const currentTable = (tables ?? projectsStore.projectTableList[project?.id]).find((t) => {
           return t.id === tab.title || t.title === tab.title
         })
 

@@ -19,7 +19,7 @@ const { updatePage } = useDocStore()
 const titleInputRef = ref<HTMLInputElement>()
 
 const _title = ref<string | undefined>(undefined)
-const title = computed({
+const computedTitle = computed({
   get: () => propTitle || _title.value,
   set: (value) => {
     if (value === undefined) return
@@ -48,7 +48,7 @@ const onTitleKeyDown = (e: KeyboardEvent) => {
   else if (e.key === 'ArrowDown') {
     // get cursor position
     const cursorPosition = window.getSelection()
-    if (cursorPosition?.anchorOffset === title.value?.length) {
+    if (cursorPosition?.anchorOffset === computedTitle.value?.length) {
       emit('focusEditor')
     }
   } else if (e.key === 'Enter') {
@@ -58,9 +58,9 @@ const onTitleKeyDown = (e: KeyboardEvent) => {
     const textSelection = window.getSelection()?.toString()
 
     // TODO: Hack. Bug with ant text area. Does not delete all text when all text is selected
-    if (textSelection?.length === title.value?.length) {
+    if (textSelection?.length === computedTitle.value?.length) {
       e.preventDefault()
-      title.value = ''
+      computedTitle.value = ''
       _title.value = ''
     }
   }
@@ -69,7 +69,7 @@ const onTitleKeyDown = (e: KeyboardEvent) => {
 const onTitleInput = (e: Event) => {
   if (!titleInputRef.value) return
 
-  title.value = (e.target as HTMLInputElement).innerText
+  computedTitle.value = (e.target as HTMLInputElement).innerText
 
   const position = window.getSelection()?.anchorOffset
   // Set cursor position as in safari cursor is put start of the text when typing
@@ -103,7 +103,7 @@ const focusTitle = () => {
   })
 }
 
-watch(title, async (newTitle, oldTitle) => {
+watch(computedTitle, async (newTitle, oldTitle) => {
   if (!isEditAllowed.value) return
   if (!openedPage.value) return
   if (oldTitle === undefined) return
@@ -130,7 +130,7 @@ watch(
 )
 
 onMounted(() => {
-  title.value = openedPage.value!.title
+  computedTitle.value = openedPage.value!.title
 })
 </script>
 
@@ -138,7 +138,7 @@ onMounted(() => {
   <div
     class="flex flex-row gap-x-2 items-end ml-7.15 mb-3.5 nc-page-title-wrapper"
     :class="{
-      empty: title?.length === 0,
+      empty: computedTitle?.length === 0,
     }"
     data-testid="docs-page-title-wrapper"
   >
@@ -163,7 +163,7 @@ onMounted(() => {
       @input="onTitleInput"
       @keydown="onTitleKeyDown"
     >
-      {{ title }}
+      {{ computedTitle }}
     </div>
   </div>
 </template>

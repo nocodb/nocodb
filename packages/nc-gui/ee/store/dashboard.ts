@@ -295,7 +295,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
           break
         }
         default: {
-          alert('_resetDepsOfSelectedView handing not yet implemented for this visualisation type')
+          console.error('_resetDepsOfSelectedView handing not yet implemented for this visualisation type')
           break
         }
       }

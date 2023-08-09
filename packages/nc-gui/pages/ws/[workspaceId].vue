@@ -3,21 +3,12 @@ const router = useRouter()
 
 const route = $(router.currentRoute)
 
-// const { isWorkspaceLoading, collaborators } = storeToRefs(useWorkspace())
-// const { populateWorkspace } = useWorkspace()
 const projectsStore = useProjects()
 
 watch(
   () => route.params.workspaceId,
-  async (newId, oldId) => {
-    // if (!newId || (oldId !== newId && oldId)) {
-    //   projectsStore.clearProjects()
-    //   collaborators.value = []
-    //   return
-    // }
+  async () => {
     await projectsStore.loadProjects('recent')
-
-    // populateWorkspace()
   },
   {
     immediate: true,

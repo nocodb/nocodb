@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia'
 import type { WorkspaceType } from 'nocodb-sdk'
-import { useDebounceFn } from '@vueuse/core'
 import tinycolor from 'tinycolor2'
 import { onMounted, projectThemeColors, ref, useWorkspace } from '#imports'
 import { navigateTo } from '#app'
@@ -13,7 +12,7 @@ const props = defineProps<{
 const workspaceStore = useWorkspace()
 
 const { saveTheme } = workspaceStore
-const { activeWorkspace, workspacesList, isWorkspaceOwner } = storeToRefs(workspaceStore)
+const { isWorkspaceOwner } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
 const { signOut, signedIn, user, token } = useGlobal()
@@ -41,12 +40,6 @@ const onWorkspaceCreate = async (workspace: WorkspaceType) => {
   await loadWorkspaces()
   navigateTo(`/ws/${workspace.id}`)
 }
-
-const updateWorkspaceTitle = useDebounceFn(async () => {
-  await workspaceStore.updateWorkspace(activeWorkspace.value!.id!, {
-    title: activeWorkspace.value!.title,
-  })
-}, 500)
 
 const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color?: string) => {
   switch (mode) {

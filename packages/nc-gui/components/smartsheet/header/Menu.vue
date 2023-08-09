@@ -1,12 +1,11 @@
 <script lang="ts" setup>
-import type { ColumnReqType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import type { ColumnReqType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   ColumnInj,
   IsLockedInj,
   MetaInj,
-  Modal,
   ReloadViewDataHookInj,
   SmartsheetStoreEvents,
   extractSdkResponseErrorMsg,
@@ -14,25 +13,18 @@ import {
   iconMap,
   inject,
   message,
-  useGlobal,
   useI18n,
   useMetas,
   useNuxtApp,
-  useProject,
   useSmartsheetStoreOrThrow,
   useUndoRedo,
 } from '#imports'
-import type { UndoRedoAction } from '~~/lib'
 
 const { virtual = false } = defineProps<{ virtual?: boolean }>()
 
 const emit = defineEmits(['edit', 'addColumn'])
 
 const { eventBus } = useSmartsheetStoreOrThrow()
-
-const { includeM2M } = useGlobal()
-
-const { loadTables } = useProject()
 
 const column = inject(ColumnInj)
 

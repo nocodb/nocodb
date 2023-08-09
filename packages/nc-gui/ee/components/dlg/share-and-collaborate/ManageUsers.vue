@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import InfiniteLoading from 'v3-infinite-loading'
-import type { User } from '~/lib'
+import type { User } from '#imports'
 
 interface Emits {
   (event: 'close', value: boolean): void

@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import { customAlphabet } from 'nanoid'
 import type { Form, Input } from 'ant-design-vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { VNodeRef } from '@vue/runtime-core'
 import type { ProjectType } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import {
+  NcProjectType,
   extractSdkResponseErrorMsg,
   generateUniqueName,
   iconMap,
@@ -25,7 +25,6 @@ import {
   useSidebar,
   useTable,
 } from '#imports'
-import { NcProjectType } from '~/utils'
 
 const { $e } = useNuxtApp()
 

@@ -43,8 +43,9 @@ const onWorkspaceCreate = async (workspace: WorkspaceType) => {
 }
 
 const updateWorkspaceTitle = useDebounceFn(async () => {
-  await workspaceStore.updateWorkspace(activeWorkspace.value!.id!, {
-    title: activeWorkspace.value!.title,
+  if (!activeWorkspace.value || !activeWorkspace.value.id) return
+  await workspaceStore.updateWorkspace(activeWorkspace.value.id, {
+    title: activeWorkspace.value.title,
   })
 }, 500)
 
@@ -133,13 +134,13 @@ onKeyStroke('Escape', () => {
         <slot name="brandIcon" />
         <template v-if="props.isOpen">
           <div v-if="activeWorkspace" class="flex-grow min-w-10 font-semibold text-base">
-            <a-tooltip v-if="activeWorkspace!.title!.length > 12" placement="bottom">
-              <div class="text-md truncate capitalize min-w-0">{{ activeWorkspace!.title }}</div>
+            <a-tooltip v-if="activeWorkspace.title && activeWorkspace.title.length > 12" placement="bottom">
+              <div class="text-md truncate capitalize min-w-0">{{ activeWorkspace.title }}</div>
               <template #title>
-                <div class="text-sm !text-red-500">{{ activeWorkspace?.title }}</div>
+                <div class="text-sm !text-red-500">{{ activeWorkspace.title }}</div>
               </template>
             </a-tooltip>
-            <div v-else class="text-md truncate capitalize">{{ activeWorkspace?.title }}</div>
+            <div v-else class="text-md truncate capitalize">{{ activeWorkspace.title }}</div>
           </div>
 
           <MdiCodeTags class="min-w-[17px] text-md transform rotate-90" />
@@ -156,8 +157,9 @@ onKeyStroke('Escape', () => {
             <!--  <div class="nc-menu-sub-head">Current Workspace</div> -->
             <div class="group select-none flex items-center gap-4 p-2 pb-1 !border-t-0">
               <input
-                v-model="activeWorkspace!.title"
-                :readonly="!isUIAllowed('workspaceUpdate', false, activeWorkspace.roles)"
+                v-if="activeWorkspace"
+                v-model="activeWorkspace.title"
+                :readonly="!isUIAllowed('workspaceUpdate', false, activeWorkspace?.roles)"
                 class="nc-workspace-title-input text-current capitalize group-hover:text-accent"
                 @input="updateWorkspaceTitle"
               />

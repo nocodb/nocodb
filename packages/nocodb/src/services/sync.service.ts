@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { T } from 'nc-help';
 import { AppEvents } from 'nocodb-sdk';
-import { AppHooksService } from './app-hooks/app-hooks.service';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Project, SyncSource } from '~/models';

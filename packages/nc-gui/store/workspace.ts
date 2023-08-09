@@ -4,7 +4,7 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
 import { computed, ref, useCommandPalette, useNuxtApp, useRouter, useTheme } from '#imports'
-import type { ThemeConfig } from '~/lib'
+import type { ThemeConfig } from '#imports'
 
 export const useWorkspace = defineStore('workspaceStore', () => {
   const projectsStore = useProjects()
@@ -41,7 +41,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   })
 
   const activeWorkspace = computed(() => {
-    return { id: 'default', title: 'default', meta: {}, roles: '' }
+    return { id: 'default', title: 'default', meta: {}, roles: '' } as any
   })
 
   const activeWorkspaceMeta = computed<Record<string, any>>(() => {

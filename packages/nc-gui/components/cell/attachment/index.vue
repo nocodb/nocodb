@@ -2,11 +2,11 @@
 import { onKeyDown } from '@vueuse/core'
 import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
-import { RowHeightInj } from '~/context'
 import {
   ActiveCellInj,
   CurrentCellInj,
   DropZoneRef,
+  RowHeightInj,
   iconMap,
   inject,
   isImage,

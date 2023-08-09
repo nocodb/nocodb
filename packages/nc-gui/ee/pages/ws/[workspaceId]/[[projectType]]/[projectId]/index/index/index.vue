@@ -1,33 +1,15 @@
 <script lang="ts" setup>
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import type { BaseType } from 'nocodb-sdk'
-import {
-  message,
-  ref,
-  resolveComponent,
-  storeToRefs,
-  useDialog,
-  useDropZone,
-  useFileDialog,
-  useNuxtApp,
-  useProject,
-  useUIPermission,
-  watch,
-} from '#imports'
-
-const dropZone = ref<HTMLDivElement>()
+import { message, ref, resolveComponent, storeToRefs, useDialog, useFileDialog, useNuxtApp, useProject, watch } from '#imports'
 
 const { project } = storeToRefs(useProject())
 
-const { isOverDropZone } = useDropZone(dropZone, onDrop)
-
-const { files, open, reset } = useFileDialog()
+const { files, reset } = useFileDialog()
 
 const projectStore = useProject()
 
-const { bases, isSharedBase } = storeToRefs(projectStore)
-
-const { isUIAllowed } = useUIPermission()
+const { bases } = storeToRefs(projectStore)
 
 const { $e } = useNuxtApp()
 
@@ -131,11 +113,13 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
 }
 
 function openCreateTable() {
+  if (!bases.value?.length) return
+
   const isOpen = ref(true)
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
     'onUpdate:modelValue': closeDialog,
-    'baseId': bases.value?.filter((base: BaseType) => base.enabled)[0].id,
+    'baseId': bases.value.filter((base: BaseType) => base.enabled)[0].id,
     'projectId': project.value.id,
   })
 

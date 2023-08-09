@@ -1,6 +1,5 @@
 import type { Actions, AppInfo, State } from './types'
-import { message, useNuxtApp } from '#imports'
-import { NcProjectType } from '~/utils'
+import { NcProjectType, message, useNuxtApp } from '#imports'
 import { navigateTo } from '#app'
 
 export function useGlobalActions(state: State): Actions {
@@ -74,7 +73,7 @@ export function useGlobalActions(state: State): Actions {
     type,
     projectId,
   }: {
-    workspaceId: string
+    workspaceId?: string
     projectId?: string
     type?: NcProjectType
   }) => {

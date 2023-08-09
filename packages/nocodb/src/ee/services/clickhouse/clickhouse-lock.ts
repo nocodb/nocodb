@@ -29,7 +29,7 @@ class ClickhouseLock {
     await this.client.query(query).toPromise();
   }
 
-  private async updateLockStatus(isLocked: number): Promise<void> {
+  private async updateLockStatus(_isLocked: number): Promise<void> {
     await this.client
       .query(`DELETE FROM ${this.config.database}.${this.table} WHERE TRUE`)
       .toPromise();

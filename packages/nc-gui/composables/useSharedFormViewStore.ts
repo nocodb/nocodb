@@ -30,7 +30,7 @@ import {
   useProvideSmartsheetRowStore,
   watch,
 } from '#imports'
-import type { SharedViewMeta } from '~/lib'
+import type { SharedViewMeta } from '#imports'
 
 const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((sharedViewId: string) => {
   const progress = ref(false)

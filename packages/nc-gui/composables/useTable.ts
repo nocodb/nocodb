@@ -3,6 +3,7 @@ import { UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import {
   Modal,
   SYSTEM_COLUMNS,
+  TabType,
   extractSdkResponseErrorMsg,
   generateUniqueTitle as generateTitle,
   message,
@@ -16,7 +17,6 @@ import {
   useTabs,
   watch,
 } from '#imports'
-import { TabType } from '~/lib'
 
 export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?: string) {
   const table = reactive<{ title: string; table_name: string; columns: string[] }>({

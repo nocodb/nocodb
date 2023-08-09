@@ -7,7 +7,6 @@ import tiptapExtensions from '~~/utils/tiptapExtensions'
 import AlignRightIcon from '~icons/tabler/align-right'
 import { emptySectionContent, removeUploadingPlaceHolderAndEmptyLinkNode } from '~~/utils/tiptapExtensions/helper'
 import '~/assets/docsPage.scss'
-import { useDocStore } from '#imports'
 
 const { project } = useProject()
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
@@ -305,8 +304,7 @@ watch(
                   :data-testid="`nc-doc-page-breadcrumb-${index}`"
                 >
                   <div class="flex flex-row items-center gap-x-1.5">
-                    <LazyGeneralEmojiPicker v-if="icon" :key="icon" :emoji="icon" :readonly="true" size="small">
-                    </LazyGeneralEmojiPicker>
+                    <LazyGeneralEmojiPicker v-if="icon" :key="icon" :emoji="icon" :readonly="true" size="small"> </LazyGeneralEmojiPicker>
                     <div class="pop-in-animation">
                       {{ !title ? EMPTY_TITLE_PLACEHOLDER_DOCS : title }}
                     </div>

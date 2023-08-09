@@ -4,6 +4,7 @@ import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
 import {
   ActiveViewInj,
+  FieldsInj,
   IsFormInj,
   IsGalleryInj,
   IsGridInj,
@@ -20,13 +21,17 @@ import {
   useViewData,
   useViewGroupBy,
 } from '#imports'
-import type { Row } from '~/lib'
+import type { Row } from '#imports'
 
 const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+
+// keep a root fields variable and will get modified from
+// fields menu and get used in grid and gallery
+const _fields = inject(FieldsInj, ref([]))
 
 const router = useRouter()
 
@@ -140,27 +145,6 @@ const addRowExpandOnClose = (row: Row) => {
     eventBus.emit(SmartsheetStoreEvents.CLEAR_NEW_ROW, row)
   }
 }
-
-// function openGenerateDialog(target: any) {
-//   const isOpen = ref(true)
-
-//   const { close } = useDialog(resolveComponent('SmartsheetDlgGenerate'), {
-//     'modelValue': isOpen,
-//     'target': target,
-//     'meta': meta,
-//     'view': view,
-//     'fields': fields,
-//     'data': data,
-//     'xWhere': xWhere,
-//     'onUpdate:modelValue': closeDialog,
-//   })
-
-//   function closeDialog() {
-//     isOpen.value = false
-
-//     close(1000)
-//   }
-// }
 
 const toggleOptimisedQuery = () => {
   if (optimisedQuery.value) {

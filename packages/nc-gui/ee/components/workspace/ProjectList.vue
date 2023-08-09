@@ -2,25 +2,23 @@
 import { Empty } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { ProjectStatus, WorkspaceUserRoles } from 'nocodb-sdk'
-import tinycolor from 'tinycolor2'
 import { nextTick } from '@vue/runtime-core'
-import { NcProjectType, navigateTo, projectThemeColors, storeToRefs, timeAgo, useWorkspace } from '#imports'
+import { NcProjectType, navigateTo, storeToRefs, timeAgo, useGlobal, useWorkspace } from '#imports'
 import { useNuxtApp } from '#app'
-import { useGlobal } from '~/composables/useGlobal'
 
 const workspaceStore = useWorkspace()
 const projectsStore = useProjects()
-const { addToFavourite, removeFromFavourite, updateProjectTitle, populateWorkspace } = workspaceStore
+const { updateProjectTitle } = workspaceStore
 const { activePage } = storeToRefs(workspaceStore)
 
 const { loadProjects } = useProjects()
-const { projects, projectsList, isProjectsLoading } = storeToRefs(useProjects())
+const { projectsList, isProjectsLoading } = storeToRefs(useProjects())
 
 const { navigateToProject } = $(useGlobal())
 
 // const filteredProjects = computed(() => projects.value?.filter((p) => !p.deleted) || [])
 
-const { $e, $api, $jobs } = useNuxtApp()
+const { $e, $jobs } = useNuxtApp()
 
 const { isUIAllowed } = useUIPermission()
 
@@ -55,52 +53,6 @@ const deleteProject = (project: ProjectType) => {
 
   showProjectDeleteModal.value = true
   toBeDeletedProjectId.value = project.id
-}
-
-const handleProjectColor = async (projectId: string, color: string) => {
-  const tcolor = tinycolor(color)
-
-  if (tcolor.isValid()) {
-    const complement = tcolor.complement()
-
-    const project: ProjectType = await $api.project.read(projectId)
-
-    const meta = project?.meta && typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta || {}
-
-    await $api.project.update(projectId, {
-      color,
-      meta: JSON.stringify({
-        ...meta,
-        theme: {
-          primaryColor: color,
-          accentColor: complement.toHex8String(),
-        },
-      }),
-    })
-
-    // Update local project
-    const localProject = projects.value.get(projectId)
-
-    if (localProject) {
-      localProject.color = color
-
-      localProject.meta = JSON.stringify({
-        ...meta,
-        theme: {
-          primaryColor: color,
-          accentColor: complement.toHex8String(),
-        },
-      })
-    }
-  }
-}
-
-const getProjectPrimary = (project: ProjectType) => {
-  if (!project) return
-
-  const meta = project.meta && typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta || {}
-
-  return meta.theme?.primaryColor || themeV2Colors['royal-blue'].DEFAULT
 }
 
 const renameInput = ref<HTMLInputElement>()
@@ -178,20 +130,15 @@ const columns = computed(() => [
 const isMoveDlgOpen = ref(false)
 const selectedProjectToMove = ref()
 
-useDialog(resolveComponent('WorkspaceMoveProjectDlg'), {
-  'modelValue': isMoveDlgOpen,
-  'project': selectedProjectToMove,
-  'onUpdate:modelValue': (isOpen: boolean) => (isMoveDlgOpen.value = isOpen),
-  'onSuccess': async (workspaceId: string) => {
-    isMoveDlgOpen.value = false
-    navigateTo({
-      query: {
-        workspaceId,
-        page: 'workspace',
-      },
-    })
-  },
-})
+const workspaceMoveProjectOnSuccess = async (workspaceId: string) => {
+  isMoveDlgOpen.value = false
+  navigateTo({
+    query: {
+      workspaceId,
+      page: 'workspace',
+    },
+  })
+}
 
 const moveProject = (project: ProjectType) => {
   selectedProjectToMove.value = project
@@ -201,26 +148,21 @@ const moveProject = (project: ProjectType) => {
 const isDuplicateDlgOpen = ref(false)
 const selectedProjectToDuplicate = ref()
 
-useDialog(resolveComponent('DlgProjectDuplicate'), {
-  'modelValue': isDuplicateDlgOpen,
-  'project': selectedProjectToDuplicate,
-  'onUpdate:modelValue': (isOpen: boolean) => (isDuplicateDlgOpen.value = isOpen),
-  'onOk': async (jobData: { id: string }) => {
-    await loadProjects('workspace')
+const DlgProjectDuplicateOnOk = async (jobData: { id: string }) => {
+  await loadProjects('workspace')
 
-    $jobs.subscribe({ id: jobData.id }, undefined, async (status: string) => {
-      if (status === JobStatus.COMPLETED) {
-        await loadProjects('workspace')
-        refreshCommandPalette()
-      } else if (status === JobStatus.FAILED) {
-        message.error('Failed to duplicate project')
-        await loadProjects('workspace')
-      }
-    })
+  $jobs.subscribe({ id: jobData.id }, undefined, async (status: string) => {
+    if (status === JobStatus.COMPLETED) {
+      await loadProjects('workspace')
+      refreshCommandPalette()
+    } else if (status === JobStatus.FAILED) {
+      message.error('Failed to duplicate project')
+      await loadProjects('workspace')
+    }
+  })
 
-    $e('a:project:duplicate')
-  },
-})
+  $e('a:project:duplicate')
+}
 
 const duplicateProject = (project: ProjectType) => {
   selectedProjectToDuplicate.value = project
@@ -314,7 +256,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
         <template v-if="column.dataIndex === 'title'">
           <div class="flex items-center nc-project-title gap-2.5 max-w-full -ml-1.5">
             <div class="flex items-center gap-2 text-center">
-              <GeneralEmojiPicker
+              <LazyGeneralEmojiPicker
                 :key="record.id"
                 :emoji="record.meta?.icon"
                 size="small"
@@ -322,7 +264,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                 @emoji-selected="setIcon($event, record)"
               >
                 <GeneralProjectIcon :type="record.type" />
-              </GeneralEmojiPicker>
+              </LazyGeneralEmojiPicker>
               <!-- todo: replace with switch -->
             </div>
 
@@ -444,7 +386,19 @@ const setIcon = async (icon: string, project: ProjectType) => {
         </template>
       </template>
     </a-table>
-    <DlgProjectDelete v-model:visible="showProjectDeleteModal" :project-id="toBeDeletedProjectId" />
+    <DlgProjectDelete v-if="toBeDeletedProjectId" v-model:visible="showProjectDeleteModal" :project-id="toBeDeletedProjectId" />
+    <WorkspaceMoveProjectDlg
+      v-if="selectedProjectToMove"
+      v-model="isMoveDlgOpen"
+      :project="selectedProjectToMove"
+      @success="workspaceMoveProjectOnSuccess"
+    />
+    <DlgProjectDuplicate
+      v-if="selectedProjectToDuplicate"
+      v-model="isDuplicateDlgOpen"
+      :project="selectedProjectToDuplicate"
+      :on-ok="DlgProjectDuplicateOnOk"
+    />
   </div>
 </template>
 

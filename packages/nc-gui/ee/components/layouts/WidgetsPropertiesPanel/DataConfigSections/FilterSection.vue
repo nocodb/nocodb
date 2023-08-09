@@ -2,7 +2,7 @@
 import type { BaseType, DataSourceInternal, NumberWidget } from 'nocodb-sdk'
 import useWidgetFilters from './useWidgetFilters'
 import { ref } from '#imports'
-import type { Filter } from '~/lib'
+import type { Filter } from '#imports'
 
 interface Props {
   nested?: boolean

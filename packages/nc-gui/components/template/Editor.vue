@@ -8,8 +8,11 @@ import { srcDestMappingColumns, tableColumns } from './utils'
 import {
   Empty,
   Form,
+  ImportWorkerOperations,
+  ImportWorkerResponse,
   MetaInj,
   ReloadViewDataHookInj,
+  TabType,
   computed,
   createEventHook,
   extractSdkResponseErrorMsg,
@@ -32,8 +35,6 @@ import {
   useProject,
   useTabs,
 } from '#imports'
-import { ImportWorkerOperations, ImportWorkerResponse, TabType } from '~/lib'
-import General from '~/layouts/general.vue'
 
 const { quickImportType, projectTemplate, importData, importColumns, importDataOnly, maxRowsToParse, baseId, importWorker } =
   defineProps<Props>()

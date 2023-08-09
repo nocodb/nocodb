@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import { isEeUI, useGlobal, useI18n, useRoute } from '#imports'
+import { useGlobal, useI18n, useRoute } from '#imports'
 
 const route = useRoute()
 
@@ -21,8 +21,6 @@ const email = computed(() => user.value?.email ?? '---')
 const refreshSidebar = ref(false)
 
 useTitle(route.meta?.title && te(route.meta.title) ? `${t(route.meta.title)}` : 'NocoDB')
-
-const isHomeScreen = computed(() => route.name === 'index-index')
 
 const isPublic = computed(() => route.meta?.public)
 
@@ -74,7 +72,7 @@ export default {
             <span class="nc-quick-action-shortcut">⌘ K</span>
           </div> -->
 
-          <div v-if="!isPublic && isEeUI" class="flex items-center">
+          <div v-if="!isPublic" class="flex items-center">
             <NotificationMenu class="mr-2" data-testid="nc-notification-bell-icon" />
           </div>
 

@@ -8,7 +8,7 @@ import ProjectUser from '~/models/ProjectUser';
 
 export class TestResetService extends TestResetServiceCE {
   removeProjectUsersFromCache = async (project: Project) => {
-    const projectUsers: ProjectUser[] = await ProjectUser.getUsersList({
+    const projectUsers = await ProjectUser.getUsersList({
       project_id: project.id,
       limit: 1000,
       workspace_id: project.fk_workspace_id,

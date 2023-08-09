@@ -1,10 +1,9 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { Users } from '~~/lib'
+import type { Users } from '#imports'
 
 export const useShare = defineStore('share', () => {
   const visibility = ref<'public' | 'private' | 'none' | 'hidden'>('none')
   const { project } = toRefs(useProject())
-  const viewsStore = useViewsStore()
 
   const isProjectPublic = computed(() => {
     if (typeof project.value?.meta === 'string') {

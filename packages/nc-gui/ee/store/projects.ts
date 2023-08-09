@@ -2,9 +2,8 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { BaseType, OracleUi, ProjectType, ProjectUserReqType, RequestParams } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
-import { NcProjectType } from '~/utils'
-import { useWorkspace } from '#imports'
-import type { NcProject, User } from '~~/lib'
+import type { NcProject, User } from '#imports'
+import { NcProjectType, useWorkspace } from '#imports'
 
 // todo: merge with project store
 export const useProjects = defineStore('projectsStore', () => {
@@ -81,7 +80,7 @@ export const useProjects = defineStore('projectsStore', () => {
     await api.auth.projectUserUpdate(projectId, user.id, user as ProjectUserReqType)
   }
 
-  const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace' = 'recent') => {
+  const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace') => {
     const activeWorkspace = workspaceStore.activeWorkspace
     const workspace = workspaceStore.workspace
 
@@ -112,8 +111,12 @@ export const useProjects = defineStore('projectsStore', () => {
               },
         )
         _projects = list
-        projects.value.clear()
       }
+
+      projects.value = Array.from(projects.value.values()).reduce((acc, project) => {
+        if (_projects.find((p) => p.id === project.id)) acc.set(project.id!, project)
+        return acc
+      }, new Map())
 
       for (const project of _projects) {
         projects.value.set(project.id!, {
@@ -212,7 +215,7 @@ export const useProjects = defineStore('projectsStore', () => {
 
   const createProject = async (projectPayload: {
     title: string
-    workspaceId?: string
+    workspaceId: string
     type: string
     linkedDbProjectIds?: string[]
   }) => {

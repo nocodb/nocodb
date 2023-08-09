@@ -1,14 +1,11 @@
 <script lang="ts" setup>
 import type { ProjectType, TableType } from 'nocodb-sdk'
 import { toRef } from '@vue/reactivity'
-import { Dropdown, Tooltip, message } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import { storeToRefs } from 'pinia'
-import { useUIPermission } from '~/composables/useUIPermission'
 
-import { useTabs } from '~/store/tab'
 import { useNuxtApp } from '#app'
-import { ProjectRoleInj } from '~/context'
-import { TreeViewInj } from '#imports'
+import { ProjectRoleInj, TreeViewInj, useTabs, useUIPermission } from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -32,7 +29,7 @@ const { updateTab } = tabStore
 
 const { $e, $api } = useNuxtApp()
 
-const { deleteTable } = useTableNew({
+useTableNew({
   projectId: project.id!,
 })
 
@@ -47,15 +44,6 @@ const tables = computed(() => projectTables.value.get(project.id!) ?? [])
 const openedTableId = computed(() => route.params.viewId)
 
 const isTableDeleteDialogVisible = ref(false)
-
-const icon = (table: TableType) => {
-  if (table.type === 'table') {
-    return iconMap.table
-  }
-  if (table.type === 'view') {
-    return iconMap.view
-  }
-}
 
 const setIcon = async (icon: string, table: TableType) => {
   try {
@@ -81,7 +69,7 @@ const setIcon = async (icon: string, table: TableType) => {
 
 const { isSharedBase } = useProject()
 
-const isMultiBase = computed(() => project.bases && project.bases.length > 1)
+// const isMultiBase = computed(() => project.bases && project.bases.length > 1)
 </script>
 
 <template>

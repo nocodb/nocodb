@@ -41,7 +41,7 @@ export class SortsController {
   async sortCreate(
     @Param('viewId') viewId: string,
     @Body() body: SortReqType,
-    @Req() req,
+    @Req() _req,
   ) {
     const sort = await this.sortsService.sortCreate({
       sort: body,
@@ -68,7 +68,7 @@ export class SortsController {
   async sortUpdate(
     @Param('sortId') sortId: string,
     @Body() body: SortReqType,
-    @Req() req,
+    @Req() _req,
   ) {
     const sort = await this.sortsService.sortUpdate({
       sortId,
@@ -78,7 +78,7 @@ export class SortsController {
   }
 
   @Delete('/api/v1/db/meta/sorts/:sortId')
-  async sortDelete(@Param('sortId') sortId: string, @Req() req) {
+  async sortDelete(@Param('sortId') sortId: string, @Req() _req) {
     const sort = await this.sortsService.sortDelete({
       sortId,
     });

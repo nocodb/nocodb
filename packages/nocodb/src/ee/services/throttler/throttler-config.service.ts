@@ -38,7 +38,7 @@ export class ThrottlerConfigService implements ThrottlerOptionsFactory {
     return {
       ttl: config.ttl,
       limit: config.max_apis,
-      skipIf: (context) => {
+      skipIf: (_context) => {
         // check request header contains 'xc-token', if missing skip throttling
         return false; //!context.switchToHttp().getRequest().headers['xc-auth'];
       },

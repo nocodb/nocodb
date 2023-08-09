@@ -1,11 +1,9 @@
 <script lang="ts" setup>
 import type { LayoutType, ProjectType } from 'nocodb-sdk'
 import { toRef } from '@vue/reactivity'
-import { useUIPermission } from '~/composables/useUIPermission'
 
 import { useNuxtApp } from '#app'
-import { ProjectRoleInj } from '~/context'
-import { TreeViewInj } from '#imports'
+import { ProjectRoleInj, TreeViewInj, useUIPermission } from '#imports'
 
 const props = defineProps<{
   project: ProjectType

@@ -1,19 +1,20 @@
 <script setup lang="ts">
+import type { ButtonType } from 'ant-design-vue/lib/button'
 import { NcProjectType, useRouter } from '#imports'
 
 const props = defineProps<{
   activeWorkspaceId: string
   modal?: boolean
-  type?: string
-  isOpen: boolean
+  type?: ButtonType
+  // isOpen: boolean
 }>()
 
-const emits = defineEmits(['update:isOpen'])
+// const emits = defineEmits(['update:isOpen'])
 
 const router = useRouter()
 
 // v-model for isOpen
-const isOpen = useVModel(props, 'isOpen', emits)
+// const isOpen = useVModel(props, 'isOpen', emits)
 
 const projectCreateDlg = ref(false)
 const dashboardProjectCreateDlg = ref(false)
@@ -38,9 +39,9 @@ const navigateToCreateProject = (type: NcProjectType) => {
   }
 }
 
-const openCreateDashboardProjectOverlay = () => {
+/* const openCreateDashboardProjectOverlay = () => {
   dashboardProjectCreateDlg.value = true
-}
+} */
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey

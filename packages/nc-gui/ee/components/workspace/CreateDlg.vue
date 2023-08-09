@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
-import InputOrTags from './InputOrTags'
-import { Form, ref, useVModel, useWorkspace } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils'
+import InputOrTags from './InputOrTags.vue'
+import { Form, extractSdkResponseErrorMsg, ref, useVModel, useWorkspace } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean

@@ -30,7 +30,7 @@ interface ViewCount {
   sharedLockedCount: number | null;
 }
 
-interface AllMeta {
+export interface AllMeta {
   projectCount: number;
   projects: (
     | {

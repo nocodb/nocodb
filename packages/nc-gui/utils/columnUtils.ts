@@ -1,6 +1,6 @@
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
-import { iconMap } from '~/utils/iconUtils'
+import { iconMap } from '#imports'
 import LinkVariant from '~icons/mdi/link-variant'
 import ID from '~icons/mdi/identifier'
 

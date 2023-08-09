@@ -31,26 +31,28 @@ provide(ToggleDialogInj, toggleDialog)
 //   }
 // })
 
-// todo:
-const isSharedBase = ref(false)
-const currentVersion = ref('')
+// TODO
+// const isSharedBase = ref(false)
+// const currentVersion = ref('')
 </script>
 
 <template>
-  <NuxtLayout name="dashboard">
-    <template #sidebar>
-      <DashboardSidebar />
-    </template>
-    <template #content>
-      <NuxtPage />
-      <LazyDashboardSettingsModal
-        v-model:model-value="dialogOpen"
-        v-model:open-key="openDialogKey"
-        v-model:data-sources-state="dataSourcesState"
-        :project-id="projectId"
-      />
-    </template>
-  </NuxtLayout>
+  <div>
+    <NuxtLayout name="dashboard">
+      <template #sidebar>
+        <DashboardSidebar />
+      </template>
+      <template #content>
+        <NuxtPage />
+      </template>
+    </NuxtLayout>
+    <LazyDashboardSettingsModal
+      v-model:model-value="dialogOpen"
+      v-model:open-key="openDialogKey"
+      v-model:data-sources-state="dataSourcesState"
+      :project-id="projectId"
+    />
+  </div>
 </template>
 
 <style scoped></style>

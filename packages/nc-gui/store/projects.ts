@@ -3,7 +3,7 @@ import type { BaseType, OracleUi, ProjectType, ProjectUserReqType, RequestParams
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { useWorkspace } from '#imports'
-import type { NcProject, User } from '~~/lib'
+import type { NcProject, User } from '#imports'
 
 // todo: merge with project store
 export const useProjects = defineStore('projectsStore', () => {
@@ -80,7 +80,7 @@ export const useProjects = defineStore('projectsStore', () => {
     await api.auth.projectUserUpdate(projectId, user.id, user as ProjectUserReqType)
   }
 
-  const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace' = 'recent') => {
+  const loadProjects = async (page: 'recent' | 'shared' | 'starred' | 'workspace' = 'recent') => {
     const activeWorkspace = workspaceStore.activeWorkspace
     const workspace = workspaceStore.workspace
 
@@ -105,7 +105,11 @@ export const useProjects = defineStore('projectsStore', () => {
             },
       )
       _projects = list
-      projects.value.clear()
+
+      projects.value = Array.from(projects.value.values()).reduce((acc, project) => {
+        if (_projects.find((p) => p.id === project.id)) acc.set(project.id!, project)
+        return acc
+      }, new Map())
 
       for (const project of _projects) {
         projects.value.set(project.id!, {
@@ -226,7 +230,7 @@ export const useProjects = defineStore('projectsStore', () => {
   }
 
   async function getProjectMetaInfo(projectId: string) {
-    return await api.project.metaGet(projectId!, {}, {})
+    return await api.project.metaGet(projectId!, {})
   }
 
   async function setProject(projectId: string, project: NcProject) {

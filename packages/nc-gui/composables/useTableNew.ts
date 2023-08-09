@@ -4,6 +4,7 @@ import { computed } from '@vue/reactivity'
 import {
   Modal,
   SYSTEM_COLUMNS,
+  TabType,
   extractSdkResponseErrorMsg,
   generateUniqueTitle as generateTitle,
   message,
@@ -17,7 +18,6 @@ import {
   useTabs,
   watch,
 } from '#imports'
-import { TabType } from '~/lib'
 
 export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => void; projectId: string; baseId?: string }) {
   const table = reactive<{ title: string; table_name: string; columns: string[] }>({

@@ -14,7 +14,6 @@ import {
   ref,
   uiTypes,
   useColumnCreateStoreOrThrow,
-  useEventListener,
   useGlobal,
   useI18n,
   useMetas,

@@ -6,6 +6,7 @@ import {
   ColumnInj,
   IsFormInj,
   IsGridInj,
+  NavigateDir,
   RowInj,
   SaveRowInj,
   inject,
@@ -22,8 +23,7 @@ import {
   provide,
   toRef,
 } from '#imports'
-import type { Row } from '~/lib'
-import { NavigateDir } from '~/lib'
+import type { Row } from '#imports'
 
 const props = defineProps<{
   column: ColumnType

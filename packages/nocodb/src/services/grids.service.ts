@@ -1,12 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, ViewTypes } from 'nocodb-sdk';
-import { T } from 'nc-help';
-import { AppHooksService } from './app-hooks/app-hooks.service';
-import type {
-  GridUpdateReqType,
-  UserType,
-  ViewCreateReqType,
-} from 'nocodb-sdk';
+import type { GridUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { GridView, View } from '~/models';

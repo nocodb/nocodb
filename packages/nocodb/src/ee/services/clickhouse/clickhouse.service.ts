@@ -2,7 +2,6 @@ import path from 'path';
 import { Injectable, Logger } from '@nestjs/common';
 import { ClickHouse } from 'clickhouse';
 import { migration } from 'clickhouse-migrations/lib/migrate';
-import RedlockWrapper from './redlock-wrapper';
 import ClickhouseLock from './clickhouse-lock';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { metaUrlToDbConfig } from '~/utils/nc-config';

@@ -20,7 +20,7 @@ import {
   useUIPermission,
   watch,
 } from '#imports'
-import type { SharedView } from '~/lib'
+import type { SharedView } from '#imports'
 
 const { t } = useI18n()
 

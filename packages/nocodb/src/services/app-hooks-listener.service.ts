@@ -4,7 +4,6 @@ import {
   AuditOperationSubTypes,
   AuditOperationTypes,
 } from 'nocodb-sdk';
-import { AppHooksService } from './app-hooks/app-hooks.service';
 import { TelemetryService } from './telemetry.service';
 import { Producer } from './producer/producer';
 import type { Audit } from '~/models';
@@ -29,7 +28,8 @@ import type {
   UserSigninEvent,
   UserSignupEvent,
   ViewEvent,
-} from './app-hooks/interfaces';
+} from '~/services/app-hooks/interfaces';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { User } from '~/models';
 
 @Injectable()
@@ -509,7 +509,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         break;
       case AppEvents.APIS_CREATED:
         {
-          const param = data as ApiCreatedEvent;
+          const _param = data as ApiCreatedEvent;
           // todo: add to telemetry
           // T.emit('evt_api_created', param.info);
         }

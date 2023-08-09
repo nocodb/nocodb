@@ -1,7 +1,7 @@
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
-import type { NcProject, PageSidebarNode, Row, TabItem } from '~/lib'
+import type { NcProject, PageSidebarNode, Row, TabItem } from '#imports'
 
 export const ActiveCellInj: InjectionKey<Ref<boolean>> = Symbol('active-cell')
 export const IsPublicInj: InjectionKey<Ref<boolean>> = Symbol('is-public')

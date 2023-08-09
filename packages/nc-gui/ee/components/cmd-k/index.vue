@@ -265,7 +265,7 @@ defineExpose({
 </script>
 
 <template>
-  <div v-show="vOpen" class="cmdk-modal">
+  <div v-show="vOpen" class="cmdk-modal" :class="{ 'cmdk-modal-active': vOpen }">
     <div ref="modalEl" class="cmdk-modal-content">
       <div class="cmdk-header">
         <div class="cmdk-breadcrumbs">
@@ -364,7 +364,7 @@ defineExpose({
           </div>
         </div>
         <div class="cmdk-footer-right">
-          Powered by <img width="25" class="nc-brand-icon" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
+          Powered by <img width="25" class="nc-brand-icon" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
         </div>
       </div>
     </div>

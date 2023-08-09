@@ -6,21 +6,15 @@ definePageMeta({
   public: true,
   requiresAuth: false,
 })
-const { project } = storeToRefs(useProject())
-const { setProject } = useProject()
+
+const projectStore = useProject()
+
+const { project } = storeToRefs(projectStore)
 
 const route = useRoute()
 
-const {
-  isNestedFetchErrored,
-  isPageErrored,
-  openedProjectId,
-  nestedPagesOfProjects,
-  openedPageId,
-  flattenedNestedPages,
-  openedPage,
-  isNestedPublicPage,
-} = storeToRefs(useDocStore())
+const { isNestedFetchErrored, isPageErrored, openedProjectId, openedPageId, flattenedNestedPages, isNestedPublicPage } =
+  storeToRefs(useDocStore())
 
 const { fetchNestedPages, navigateToFirstPage } = useDocStore()
 

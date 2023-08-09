@@ -5,7 +5,6 @@ import {
   IsLockedInj,
   IsPublicInj,
   computed,
-  iconMap,
   inject,
   ref,
   useGlobal,

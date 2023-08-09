@@ -3,7 +3,7 @@ import type { PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { CellClickHookInj, IsExpandedFormOpenInj, IsFormInj, MetaInj, provide, ref, toRef, useVModel } from '#imports'
-import type { Row } from '~/lib'
+import type { Row } from '#imports'
 
 interface Props {
   modelValue: boolean

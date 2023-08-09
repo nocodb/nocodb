@@ -27,7 +27,7 @@ export class GridsController {
   async gridViewCreate(
     @Param('tableId') tableId: string,
     @Body() body: ViewCreateReqType,
-    @Req() req: any,
+    @Req() _req: any,
   ) {
     const view = await this.gridsService.gridViewCreate({
       grid: body,

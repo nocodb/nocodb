@@ -2,7 +2,7 @@
 import type { DataConfigNumber, NumberWidget } from 'nocodb-sdk'
 import { Icon as IconifyIcon } from '@iconify/vue'
 import useLayoutsContextMenu from './useLayoutsContextMenu'
-import { useWidget } from '~~/composables/useWidget'
+import { useWidget } from '#imports'
 const props = defineProps<{
   widgetConfig: NumberWidget
 }>()

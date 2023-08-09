@@ -1,6 +1,6 @@
-import type { ColumnType, CowriterType, ProjectType, TableInfoType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, CowriterType, ProjectType, TableReqType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isSystemColumn } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, useCopy, useNuxtApp, useViews } from '#imports'
+import { extractSdkResponseErrorMsg, useCopy, useNuxtApp } from '#imports'
 
 const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId: string) => {
   enum COWRITER_TABS {
@@ -20,7 +20,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
 
   const cowriterProject = ref<ProjectType | null>()
 
-  const cowriterTable = ref<TableType | TableInfoType | null>()
+  const cowriterTable = ref<TableType | TableReqType | null>()
 
   const cowriterFormView = ref<ViewType | null>()
 

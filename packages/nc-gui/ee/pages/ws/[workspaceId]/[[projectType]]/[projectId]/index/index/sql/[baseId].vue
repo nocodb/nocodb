@@ -17,7 +17,7 @@ const { metas, getMeta } = useMetas()
 
 const { isUIAllowed } = useUIPermission()
 
-const { $api, $e } = useNuxtApp()
+const { $api } = useNuxtApp()
 
 const { sqlEditors, promptHistory } = useSqlEditor()
 
@@ -274,6 +274,8 @@ const runSQL = async () => {
 }
 
 function openSqlViewCreateDialog(baseId?: string) {
+  if (!baseId && !bases.value.length) return
+
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgSqlViewCreate'), {

@@ -1,6 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { Users } from '~~/lib'
-import { useDocStore } from '#imports'
+import type { Users } from '#imports'
 
 export const useShare = defineStore('share', () => {
   const visibility = ref<'public' | 'private' | 'none' | 'hidden'>('none')
@@ -45,6 +44,18 @@ export const useShare = defineStore('share', () => {
   //   },
   //   { immediate: true, deep: true },
   // )
+
+  watch(
+    () => viewsStore.activeView?.uuid,
+    (uuid) => {
+      if (project.value?.type !== 'database') return
+
+      visibility.value = uuid ? 'public' : 'private'
+    },
+    {
+      immediate: true,
+    },
+  )
 
   watch(
     () => viewsStore.activeView?.uuid,

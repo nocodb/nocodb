@@ -4,10 +4,7 @@ import { storeToRefs } from 'pinia'
 import { toRef } from '@vue/reactivity'
 import { resolveComponent } from '@vue/runtime-core'
 import { ref } from 'vue'
-import { useUIPermission } from '~/composables/useUIPermission'
-import { useDialog } from '~/composables/useDialog'
-import { ClientType } from '~/lib'
-import { ProjectRoleInj } from '~/context'
+import { ProjectRoleInj, useDialog, useUIPermission } from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -36,6 +33,8 @@ const { isSharedBase } = storeToRefs(projectStore)
 const projectRole = inject(ProjectRoleInj)
 
 function openSchemaMagicDialog(baseId?: string) {
+  if (!baseId) return
+
   $e('c:table:create:navdraw')
 
   const isOpen = ref(true)
@@ -54,6 +53,8 @@ function openSchemaMagicDialog(baseId?: string) {
 }
 
 function openQuickImportDialog(type: string, baseId?: string) {
+  if (!baseId) return
+
   $e(`a:actions:import-${type}`)
 
   const isOpen = ref(true)
@@ -73,6 +74,8 @@ function openQuickImportDialog(type: string, baseId?: string) {
 }
 
 function openAirtableImportDialog(baseId?: string) {
+  if (!baseId) return
+
   $e('a:actions:import-airtable')
 
   const isOpen = ref(true)
@@ -91,6 +94,8 @@ function openAirtableImportDialog(baseId?: string) {
 }
 
 function openTableCreateMagicDialog(baseId?: string) {
+  if (!baseId) return
+
   $e('c:table:create:navdraw')
 
   const isOpen = ref(true)
@@ -107,9 +112,6 @@ function openTableCreateMagicDialog(baseId?: string) {
     close(1000)
   }
 }
-const { appInfo } = useGlobal()
-
-const toggleDialog = inject(ToggleDialogInj, () => {})
 </script>
 
 <template>

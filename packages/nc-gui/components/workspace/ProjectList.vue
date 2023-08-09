@@ -2,25 +2,23 @@
 import { Empty } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { ProjectStatus, WorkspaceUserRoles } from 'nocodb-sdk'
-import tinycolor from 'tinycolor2'
 import { nextTick } from '@vue/runtime-core'
-import { NcProjectType, isEeUI, navigateTo, projectThemeColors, storeToRefs, timeAgo, useWorkspace } from '#imports'
+import { NcProjectType, isEeUI, navigateTo, storeToRefs, timeAgo, useGlobal, useWorkspace } from '#imports'
 import { useNuxtApp } from '#app'
-import { useGlobal } from '~/composables/useGlobal'
 
 const workspaceStore = useWorkspace()
 const projectsStore = useProjects()
-const { addToFavourite, removeFromFavourite, updateProjectTitle, populateWorkspace } = workspaceStore
+const { updateProjectTitle } = workspaceStore
 const { activePage } = storeToRefs(workspaceStore)
 
 const { loadProjects } = useProjects()
-const { projects, projectsList, isProjectsLoading } = storeToRefs(useProjects())
+const { projectsList, isProjectsLoading } = storeToRefs(useProjects())
 
 const { navigateToProject } = $(useGlobal())
 
 // const filteredProjects = computed(() => projects.value?.filter((p) => !p.deleted) || [])
 
-const { $e, $api, $jobs } = useNuxtApp()
+const { $e, $jobs } = useNuxtApp()
 
 const { isUIAllowed } = useUIPermission()
 
@@ -32,7 +30,6 @@ const toBeDeletedProjectId = ref<string | undefined>()
 const openProject = async (project: ProjectType) => {
   navigateToProject({
     projectId: project.id!,
-    workspaceId: project.fk_workspace_id!,
     type: project.type as NcProjectType,
   })
 }
@@ -55,52 +52,6 @@ const deleteProject = (project: ProjectType) => {
 
   showProjectDeleteModal.value = true
   toBeDeletedProjectId.value = project.id
-}
-
-const handleProjectColor = async (projectId: string, color: string) => {
-  const tcolor = tinycolor(color)
-
-  if (tcolor.isValid()) {
-    const complement = tcolor.complement()
-
-    const project: ProjectType = await $api.project.read(projectId)
-
-    const meta = project?.meta && typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta || {}
-
-    await $api.project.update(projectId, {
-      color,
-      meta: JSON.stringify({
-        ...meta,
-        theme: {
-          primaryColor: color,
-          accentColor: complement.toHex8String(),
-        },
-      }),
-    })
-
-    // Update local project
-    const localProject = projects.value.get(projectId)
-
-    if (localProject) {
-      localProject.color = color
-
-      localProject.meta = JSON.stringify({
-        ...meta,
-        theme: {
-          primaryColor: color,
-          accentColor: complement.toHex8String(),
-        },
-      })
-    }
-  }
-}
-
-const getProjectPrimary = (project: ProjectType) => {
-  if (!project) return
-
-  const meta = project.meta && typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta || {}
-
-  return meta.theme?.primaryColor || themeV2Colors['royal-blue'].DEFAULT
 }
 
 const renameInput = ref<HTMLInputElement>()
@@ -360,7 +311,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
               :to="{
                 query: {
                   page: 'workspace',
-                  workspaceId: record.fk_workspace_id,
+                  workspaceId: 'default',
                 },
               }"
               class="!text-gray-500 !no-underline !hover:underline !hover:text-gray-500"

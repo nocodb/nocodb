@@ -169,14 +169,12 @@ self.addEventListener(
         state.config = payload
         break
       case ImportWorkerOperations.INIT_SDK:
-        {
-          state.api = new Api<any>({
-            baseURL: payload.baseURL,
-            headers: {
-              'xc-auth': payload.token,
-            },
-          })
-        }
+        state.api = new Api<any>({
+          baseURL: payload.baseURL,
+          headers: {
+            'xc-auth': payload.token,
+          },
+        })
         break
       case ImportWorkerOperations.GET_SINGLE_SELECT_OPTIONS:
       case ImportWorkerOperations.GET_MULTI_SELECT_OPTIONS:

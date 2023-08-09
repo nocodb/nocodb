@@ -7021,7 +7021,6 @@
                       "created_at": "2023-03-02 18:18:05",
                       "fk_column_id": "cl_d7ah9n2qfupgys",
                       "fk_hook_id": null,
-                      "fk_widget_id": null,
                       "fk_parent_id": null,
                       "fk_view_id": "vw_b739e29vqmrxnf",
                       "id": "fi_xn647tpmdq8fu8",
@@ -7174,7 +7173,6 @@
                           "created_at": "2023-03-02 18:18:05",
                           "fk_column_id": "cl_d7ah9n2qfupgys",
                           "fk_hook_id": null,
-                          "fk_widget_id": null,
                           "fk_parent_id": null,
                           "fk_view_id": "vw_b739e29vqmrxnf",
                           "id": "fi_xn647tpmdq8fu8",
@@ -15401,6 +15399,116 @@
           }
         ]
       }
+    },
+    "/api/v1/notifications": {
+      "get": {
+        "summary": "Notification list",
+        "operationId": "notification-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Notification"
+        ],
+        "description": "List notifications",
+        "parameters": [
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "name": "is_read",
+            "in": "query",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "name": "limit",
+            "in": "query",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "name": "offset",
+            "in": "query",
+            "required": false
+          }
+        ]
+      }
+    },
+    "/api/v1/notifications/{notificationId}": {
+      "patch": {
+        "summary": "Notification update",
+        "operationId": "notification-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationUpdate"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Notification"
+        ],
+        "description": "Notificattion update"
+      },
+      "delete": {
+        "summary": "Delete notification",
+        "operationId": "notification-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Notification"
+        ],
+        "description": "Delete notification"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "notificationId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v1/notifications/mark-all-read": {
+      "post": {
+        "summary": "Mark all notifications as read",
+        "operationId": "notification-mark-all-as-read",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Notification"
+        ],
+        "description": "Mark all notifications as read"
+      }
     }
   },
   "components": {
@@ -16607,7 +16715,6 @@
             "created_at": "2023-03-02 18:18:05",
             "fk_column_id": "cl_d7ah9n2qfupgys",
             "fk_hook_id": null,
-            "fk_widget_id": null,
             "fk_parent_id": null,
             "fk_view_id": "vw_b739e29vqmrxnf",
             "id": "fi_xn647tpmdq8fu8",
@@ -16713,10 +16820,6 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to Hook"
           },
-          "fk_widget_id": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Foreign Key to Widget"
-          },
           "fk_model_id": {
             "$ref": "#/components/schemas/Id",
             "description": "Foreign Key to Model"
@@ -16784,7 +16887,6 @@
                 "created_at": "2023-03-02 18:18:05",
                 "fk_column_id": "cl_d7ah9n2qfupgys",
                 "fk_hook_id": null,
-                "fk_widget_id": null,
                 "fk_parent_id": null,
                 "fk_view_id": "vw_b739e29vqmrxnf",
                 "id": "fi_xn647tpmdq8fu8",
@@ -22693,6 +22795,120 @@
           "type",
           "body"
         ]
+      },
+      "Notification": {
+        "allOf": [
+          {
+            "description": "",
+            "properties": {
+              "id": {
+                "$ref": "#/components/schemas/Id",
+                "description": "Unique ID"
+              },
+              "is_read": {
+                "type": "boolean",
+                "description": "Whether the notification has been read by the user"
+              },
+              "is_deleted": {
+                "type": "boolean",
+                "description": "Whether the notification has been deleted by the user"
+              },
+              "type": {
+                "type": "string",
+                "description": "Type of notification"
+              },
+              "updated_at": {},
+              "created_at": {}
+            },
+            "title": "Notification",
+            "type": "object"
+          },
+          {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ProjectInviteEvent"
+              },
+              {
+                "$ref": "#/components/schemas/ProjectEvent"
+              },
+              {
+                "$ref": "#/components/schemas/WorkspaceInviteEvent"
+              },
+              {
+                "$ref": "#/components/schemas/TableEvent"
+              },
+              {
+                "$ref": "#/components/schemas/ViewEvent"
+              },
+              {
+                "$ref": "#/components/schemas/ColumnEvent"
+              },
+              {
+                "$ref": "#/components/schemas/WelcomeEvent"
+              },
+              {
+                "$ref": "#/components/schemas/SortEvent"
+              },
+              {
+                "$ref": "#/components/schemas/FilterEvent"
+              }
+            ]
+          }
+        ]
+      },
+      "NotificationList": {
+        "description": "Model for Notification List",
+        "examples": [
+          {
+            "list": [
+              {
+                "body": {
+                },
+                "type": "invite",
+                "is_read": false,
+                "is_deleted": false,
+                "id": "1",
+                "updated_at": "2020-05-20T12:00:00.000000Z",
+                "created_at": "2020-05-20T12:00:00.000000Z",
+                "fk_user_id": "us_b3xo2i44nx5y9l"
+              }
+            ],
+            "pageInfo": {
+              "isFirstPage": true,
+              "isLastPage": true,
+              "page": 1,
+              "pageSize": 10,
+              "totalRows": 1
+            }
+          }
+        ],
+        "title": "API Token List Model",
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "description": "List of notification objects",
+            "items": {
+              "$ref": "#/components/schemas/Notification"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated",
+            "description": "Model for Paginated"
+          }
+        },
+        "required": [
+          "list",
+          "pageInfo"
+        ]
+      },
+      "NotificationUpdate": {
+        "type": "object",
+        "properties": {
+          "is_read": {
+            "type": "boolean"
+          }
+        }
       }
     },
     "responses": {

@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-import Sortable from 'sortablejs'
-
 import ProjectWrapper from './ProjectWrapper.vue'
-
+import type { TabType } from '#imports'
 import {
-  TabType,
   TreeViewInj,
   computed,
   isDrawerOrModalExist,
+  isElementInvisible,
   isMac,
   reactive,
   ref,
@@ -22,11 +20,9 @@ import {
   useTablesStore,
   useTabs,
   useUIPermission,
-  watchEffect,
 } from '#imports'
 
 import { useRouter } from '#app'
-import { isElementInvisible } from '~~/utils/domUtils'
 
 const emit = defineEmits<{
   (event: 'onScrollTop', type: boolean): void
@@ -36,7 +32,7 @@ const { isUIAllowed } = useUIPermission()
 
 const { addTab } = useTabs()
 
-const { $api, $e, $jobs } = useNuxtApp()
+const { $e, $jobs } = useNuxtApp()
 
 const router = useRouter()
 
@@ -48,8 +44,6 @@ const { createProject: _createProject } = projectsStore
 
 const { projects, projectsList, activeProjectId } = storeToRefs(projectsStore)
 
-const { projectTables } = storeToRefs(useTablesStore())
-
 const { openTable } = useTablesStore()
 
 const projectStore = useProject()
@@ -60,15 +54,13 @@ const { tables } = storeToRefs(projectStore)
 
 const { activeTable: _activeTable } = storeToRefs(useTablesStore())
 
-const { activeTab } = storeToRefs(useTabs())
-
 const { refreshCommandPalette } = useCommandPalette()
 
 const keys = $ref<Record<string, number>>({})
 
 const menuRefs = $ref<HTMLElement[] | HTMLElement>()
 
-const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
+// const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
 
 const tablesById = $computed(() =>
   Object.values(projectTables.value.get(activeProjectId.value!) || {})
@@ -156,6 +148,8 @@ const setMenuContext = (type: 'project' | 'base' | 'table' | 'main' | 'layout', 
 }
 
 function openRenameTableDialog(table: TableType, rightClick = false) {
+  if (!table || !table.base_id) return
+
   $e(rightClick ? 'c:table:rename:navdraw:right-click' : 'c:table:rename:navdraw:options')
 
   const isOpen = ref(true)
@@ -175,6 +169,8 @@ function openRenameTableDialog(table: TableType, rightClick = false) {
 }
 
 function openTableCreateDialog(baseId?: string, projectId?: string) {
+  if (!baseId && !(projectId || projectsList.value[0].id)) return
+
   $e('c:table:create:navdraw')
 
   const isOpen = ref(true)

@@ -249,7 +249,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
     }, [])
   }
 
-  const boxShadow = (skeleton: boolean, color: string) => ({})
+  const boxShadow = (_skeleton: boolean, _color: string) => ({})
 
   const layout = async (skeleton = false): Promise<void> => {
     return new Promise((resolve) => {

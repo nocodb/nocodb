@@ -21,7 +21,7 @@ import {
   useSharedView,
   watch,
 } from '#imports'
-import type { Row } from '~/lib'
+import type { Row } from '#imports'
 
 interface DataApiResponse {
   list: Record<string, any>

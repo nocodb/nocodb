@@ -6,9 +6,9 @@ const { activeTables } = storeToRefs(useTablesStore())
 
 const route = useRoute()
 
-const defaultBase = computed(() => {
+/* const defaultBase = computed(() => {
   return openedProject.value?.bases?.[0]
-})
+}) */
 
 const { isUIAllowed } = useUIPermission()
 

@@ -7,7 +7,7 @@ import { parse } from 'papaparse'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
 import convertCellData from './convertCellData'
-import type { Nullable, Row } from '~/lib'
+import type { Nullable, Row } from '#imports'
 import {
   dateFormats,
   extractPkFromRow,

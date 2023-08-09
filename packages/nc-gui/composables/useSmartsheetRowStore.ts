@@ -21,7 +21,7 @@ import {
   useNuxtApp,
   useProject,
 } from '#imports'
-import type { Row } from '~/lib'
+import type { Row } from '#imports'
 
 const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
   (meta: Ref<TableType | undefined>, row: MaybeRef<Row>) => {

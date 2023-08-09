@@ -12,7 +12,7 @@ import {
   usePreferredLanguages,
   useTimestamp,
 } from '#imports'
-import type { Language, User } from '~/lib'
+import type { Language, User } from '#imports'
 
 export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** get the preferred languages of a user, according to browser settings */

@@ -1,6 +1,4 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
-import { Sort } from '../models';
-import { sanitize } from '../helpers/sqlSanitize';
 import genRollupSelectv2 from './genRollupSelectv2';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import type { BaseModelSqlv2 } from './BaseModelSqlv2';
@@ -10,7 +8,9 @@ import type {
   LinkToAnotherRecordColumn,
   LookupColumn,
   RollupColumn,
-} from '../models';
+} from '~/models';
+import { sanitize } from '~/helpers/sqlSanitize';
+import { Sort } from '~/models';
 
 export default async function sortV2(
   baseModelSqlv2: BaseModelSqlv2,

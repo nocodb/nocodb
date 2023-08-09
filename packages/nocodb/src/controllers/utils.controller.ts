@@ -9,15 +9,15 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { Acl } from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { UtilsService } from '../services/utils.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { UtilsService } from '~/services/utils.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
 export class UtilsController {
   private version: string;
 
-  constructor(private readonly utilsService: UtilsService) {}
+  constructor(protected readonly utilsService: UtilsService) {}
 
   @Get('/api/v1/version')
   async getVersion() {
@@ -75,14 +75,5 @@ export class UtilsController {
   async aggregatedMetaInfo() {
     // todo: refactor
     return (await this.utilsService.aggregatedMetaInfo()) as any;
-  }
-
-  @Post('/api/v1/db/meta/magic')
-  @UseGuards(GlobalGuard)
-  @Acl('genericGPT')
-  async genericGPT(@Body() body: any) {
-    return await this.utilsService.genericGPT({
-      body,
-    });
   }
 }

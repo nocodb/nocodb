@@ -1,4 +1,4 @@
-import type { Base } from '../models';
+import type { Base } from '~/models';
 
 export async function generateBaseIdMap(
   base: Base,

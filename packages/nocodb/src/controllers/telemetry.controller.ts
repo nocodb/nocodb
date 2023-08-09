@@ -1,7 +1,7 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
-import { TelemetryService } from '../services/telemetry.service';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { Acl } from '../middlewares/extract-project-id/extract-project-id.middleware';
+import { TelemetryService } from '~/services/telemetry.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
 @UseGuards(GlobalGuard)

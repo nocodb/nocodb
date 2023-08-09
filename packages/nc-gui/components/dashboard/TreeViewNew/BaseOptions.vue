@@ -6,64 +6,13 @@ const props = defineProps<{
   project: ProjectType
 }>()
 
-const emits = defineEmits(['update:project'])
-
 const base = toRef(props, 'base')
-
-const project = useVModel(props, 'project', emits)
-
-const { appInfo } = useGlobal()
-
-const { t } = useI18n()
 
 const { isUIAllowed } = useUIPermission()
 
 const projectRole = inject(ProjectRoleInj)
 
 const { $e } = useNuxtApp()
-
-const toggleDialog = inject(ToggleDialogInj, () => {})
-
-function openTableCreateMagicDialog(baseId?: string) {
-  if (!baseId) return
-
-  $e('c:table:create:navdraw')
-
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgTableMagic'), {
-    'v-if': baseId,
-    'modelValue': isOpen,
-    'baseId': baseId,
-    'onUpdate:modelValue': closeDialog,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
-function openSchemaMagicDialog(baseId?: string) {
-  if (!baseId) return
-
-  $e('c:table:create:navdraw')
-
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgSchemaMagic'), {
-    'modelValue': isOpen,
-    'baseId': baseId,
-    'onUpdate:modelValue': closeDialog,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
 
 function openAirtableImportDialog(baseId?: string) {
   if (!baseId) return
@@ -108,36 +57,6 @@ function openQuickImportDialog(type: string) {
 </script>
 
 <template>
-  <a-menu-divider v-if="false" class="my-0" />
-
-  <!-- NocoAI -->
-  <a-sub-menu v-if="false">
-    <template #title>
-      <div class="nc-project-menu-item group">
-        <GeneralIcon icon="magic" class="group-hover:text-black" />
-        NocoAI
-        <div class="flex-1" />
-
-        <MaterialSymbolsChevronRightRounded class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400" />
-      </div>
-    </template>
-
-    <template #expandIcon></template>
-
-    <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(base.id)">
-      <div class="color-transition nc-project-menu-item group">
-        <GeneralIcon icon="magic1" class="group-hover:text-black" />
-        Create table
-      </div>
-    </a-menu-item>
-    <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(base.id)">
-      <div class="color-transition nc-project-menu-item group">
-        <GeneralIcon icon="magic1" class="group-hover:text-black" />
-        Create schema
-      </div>
-    </a-menu-item>
-  </a-sub-menu>
-
   <a-menu-divider class="my-0" />
 
   <!-- Quick Import From -->

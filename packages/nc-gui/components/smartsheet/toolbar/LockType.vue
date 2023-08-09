@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { LockType } from '~/lib'
-import { ActiveViewInj, iconMap, inject } from '#imports'
+import { ActiveViewInj, LockType, iconMap, inject } from '#imports'
 
 const { type, hideTick } = defineProps<{ hideTick?: boolean; type: LockType }>()
 

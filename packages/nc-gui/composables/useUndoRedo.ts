@@ -2,7 +2,7 @@ import type { Ref } from 'vue'
 import rfdc from 'rfdc'
 import type { ProjectType, TableType, ViewType } from 'nocodb-sdk'
 import { createSharedComposable, ref, useRouter } from '#imports'
-import type { UndoRedoAction } from '~/lib'
+import type { UndoRedoAction } from '#imports'
 
 export const useUndoRedo = createSharedComposable(() => {
   const clone = rfdc()

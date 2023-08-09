@@ -1,9 +1,9 @@
 import { AuditOperationTypes } from 'nocodb-sdk';
-import { MetaTable } from '../utils/globals';
-import Noco from '../Noco';
-import { extractProps } from '../helpers/extractProps';
-import Model from './Model';
 import type { AuditType } from 'nocodb-sdk';
+import Model from '~/models/Model';
+import Noco from '~/Noco';
+import { extractProps } from '~/helpers/extractProps';
+import { MetaTable } from '~/utils/globals';
 
 const opTypes = <const>[
   'COMMENT',

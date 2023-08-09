@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { IEventEmitter } from '../../modules/event-emitter/event-emitter.interface';
 import type {
   ApiCreatedEvent,
   ApiTokenCreateEvent,
@@ -39,19 +38,18 @@ import type {
   UserSignupEvent,
   ViewEvent,
   WelcomeEvent,
-  WorkspaceEvent,
-  WorkspaceInviteEvent,
-} from './interfaces';
+} from '~/services/app-hooks/interfaces';
+import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 
 const ALL_EVENTS = '__nc_all_events__';
 
 @Injectable()
 export class AppHooksService {
-  private listenerUnsubscribers: Map<(...args: any[]) => void, () => void> =
+  protected listenerUnsubscribers: Map<(...args: any[]) => void, () => void> =
     new Map();
 
   constructor(
-    @Inject('IEventEmitter') private readonly eventEmitter: IEventEmitter,
+    @Inject('IEventEmitter') protected readonly eventEmitter: IEventEmitter,
   ) {}
 
   on(
@@ -120,13 +118,6 @@ export class AppHooksService {
       | AppEvents.COLUMN_CREATE,
     listener: (data: ColumnEvent) => void,
   ): () => void;
-  on(
-    event:
-      | AppEvents.WORKSPACE_UPDATE
-      | AppEvents.WORKSPACE_DELETE
-      | AppEvents.WORKSPACE_CREATE,
-    listener: (data: WorkspaceEvent) => void,
-  ): () => void;
   on(event, listener): () => void {
     const unsubscribe = this.eventEmitter.on(event, listener);
 
@@ -154,7 +145,6 @@ export class AppHooksService {
     event: AppEvents.USER_PASSWORD_RESET,
     data: UserPasswordResetEvent,
   ): void;
-  emit(event: AppEvents.WORKSPACE_INVITE, data: WorkspaceInviteEvent): void;
   emit(event: AppEvents.WELCOME, data: WelcomeEvent): void;
   emit(
     event: AppEvents.PROJECT_USER_UPDATE,
@@ -194,13 +184,6 @@ export class AppHooksService {
       | AppEvents.SORT_CREATE
       | AppEvents.SORT_DELETE,
     data: SortEvent,
-  ): void;
-  emit(
-    event:
-      | AppEvents.WORKSPACE_UPDATE
-      | AppEvents.WORKSPACE_CREATE
-      | AppEvents.WORKSPACE_DELETE,
-    data: WorkspaceEvent,
   ): void;
   emit(
     event:

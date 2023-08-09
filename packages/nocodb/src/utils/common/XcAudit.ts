@@ -1,4 +1,4 @@
-import type Noco from '../../Noco';
+import type Noco from '~/Noco';
 
 export default class XcAudit {
   public static init(app: Noco) {

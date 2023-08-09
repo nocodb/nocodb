@@ -2,7 +2,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import { tap } from 'rxjs';
 import Client from 'ioredis';
 import { ConfigService } from '@nestjs/config';
-import { Producer } from '../../services/producer/producer';
 import type {
   CallHandler,
   ExecutionContext,
@@ -10,7 +9,8 @@ import type {
 } from '@nestjs/common';
 import type { Observable } from 'rxjs';
 import type Redis from 'ioredis';
-import type { AppConfig } from '../../interface/config';
+import type { AppConfig } from '~/interface/config';
+import { Producer } from '~/services/producer/producer';
 
 @Injectable()
 export class ExecutionTimeCalculatorInterceptor implements NestInterceptor {
@@ -45,7 +45,7 @@ export class ExecutionTimeCalculatorInterceptor implements NestInterceptor {
         const user_id = req.user?.id;
         const project_id = req.ncProjectId;
 
-        const token = req.headers['xc-token'] || req.headers['xc-auth'];
+        // const token = req.headers['xc-token'] || req.headers['xc-auth'];
 
         const url = req.route?.path ?? req.url;
         const method = req.method;

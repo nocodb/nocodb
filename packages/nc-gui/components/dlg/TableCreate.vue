@@ -1,19 +1,19 @@
 <script setup lang="ts">
 import {
   Form,
+  TabType,
   computed,
   iconMap,
   nextTick,
   onMounted,
   ref,
   useProject,
+  useTableNew,
   useTablesStore,
   useTabs,
   useVModel,
   validateTableName,
 } from '#imports'
-import { TabType } from '~/lib'
-import { useTableNew } from '~/composables/useTableNew'
 
 const props = defineProps<{
   modelValue: boolean
@@ -31,7 +31,7 @@ const inputEl = ref<HTMLInputElement>()
 
 const { addTab } = useTabs()
 
-const { loadTables, isMysql, isMssql, isPg, loadProject } = useProject()
+const { isMysql, isMssql, isPg } = useProject()
 
 const { loadProjectTables, addTable } = useTablesStore()
 

@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { iconMap } from '#imports'
-
 interface Props {
   modelValue: boolean
 }
@@ -11,11 +9,7 @@ const emits = defineEmits(['update:modelValue'])
 
 const { activeTable } = storeToRefs(useTablesStore())
 
-const meta = inject(MetaInj)
-
 const vModel = useVModel(props, 'modelValue', emits)
-
-const selectedView = inject(ActiveViewInj)
 </script>
 
 <template>

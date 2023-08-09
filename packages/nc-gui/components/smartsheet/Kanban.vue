@@ -17,7 +17,6 @@ import {
   inject,
   isImage,
   isLTAR,
-  onBeforeMount,
   onBeforeUnmount,
   provide,
   useAttachment,
@@ -25,7 +24,7 @@ import {
   useKanbanViewStoreOrThrow,
   useUndoRedo,
 } from '#imports'
-import type { Row as RowType } from '~/lib'
+import type { Row as RowType } from '#imports'
 
 interface Attachment {
   url: string
@@ -697,7 +696,8 @@ watch(
         </template>
       </a-dropdown>
     </div>
-    <LazySmartsheetPagination v-model:pagination-data="emptyPagination" align-count-on-right hide-pagination class="!py-4"> </LazySmartsheetPagination>
+    <LazySmartsheetPagination v-model:pagination-data="emptyPagination" align-count-on-right hide-pagination class="!py-4">
+    </LazySmartsheetPagination>
   </div>
 
   <Suspense>

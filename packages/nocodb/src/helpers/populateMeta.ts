@@ -2,21 +2,21 @@ import { ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
 import { isVirtualCol, RelationTypes } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import { isLinksOrLTAR } from 'nocodb-sdk';
-import { GridViewColumn } from '../models';
-import Column from '../models/Column';
-import Model from '../models/Model';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import NcHelp from '../utils/NcHelp';
-import View from '../models/View';
-import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
-import getColumnUiType from '../helpers/getColumnUiType';
-import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
 import { getUniqueColumnAliasName } from './getUniqueName';
-import type { RollupColumn } from '../models';
-import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
-import type Base from '../models/Base';
-import type Project from '../models/Project';
+import type { RollupColumn } from '~/models';
+import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
+import type Base from '~/models/Base';
+import type Project from '~/models/Project';
 import type PGClient from '~/db/sql-client/lib/pg/PgClient';
+import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
+import getColumnUiType from '~/helpers/getColumnUiType';
+import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
+import View from '~/models/View';
+import NcHelp from '~/utils/NcHelp';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import Model from '~/models/Model';
+import Column from '~/models/Column';
+import { GridViewColumn } from '~/models';
 
 export const IGNORE_TABLES = [
   'nc_models',

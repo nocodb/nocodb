@@ -10,8 +10,8 @@ import Debug from '../../util/Debug';
 import Emit from '../../util/emit';
 import Result from '../../util/Result';
 import * as fileHelp from '../../util/file.help';
-import { getToolDir, NcConfig } from '../../../utils/nc-config';
 import SqlMigrator from './SqlMigrator';
+import { getToolDir, NcConfig } from '~/utils/nc-config';
 
 const evt = new Emit();
 const log = new Debug('KnexMigrator');

@@ -1,31 +1,22 @@
 import { UITypes } from 'nocodb-sdk';
 import CryptoJS from 'crypto-js';
 import { v4 as uuidv4 } from 'uuid';
-import NocoCache from '../cache/NocoCache';
+import type { BaseType, BoolType } from 'nocodb-sdk';
+import Model from '~/models/Model';
+import Project from '~/models/Project';
+import SyncSource from '~/models/SyncSource';
+import NocoCache from '~/cache/NocoCache';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
+  type DB_TYPES,
   MetaTable,
-} from '../utils/globals';
-import Noco from '../Noco';
-import { extractProps } from '../helpers/extractProps';
-import { NcError } from '../helpers/catchError';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import Model from './Model';
-import Project from './Project';
-import SyncSource from './SyncSource';
-import type { BaseType, BoolType } from 'nocodb-sdk';
-
-export const DB_TYPES = <const>[
-  'mysql2',
-  'sqlite3',
-  'mysql',
-  'mssql',
-  'snowflake',
-  'oracledb',
-  'pg',
-];
+} from '~/utils/globals';
+import Noco from '~/Noco';
+import { extractProps } from '~/helpers/extractProps';
+import { NcError } from '~/helpers/catchError';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 // todo: hide credentials
 export default class Base implements BaseType {
@@ -34,7 +25,6 @@ export default class Base implements BaseType {
   alias?: string;
   type?: (typeof DB_TYPES)[number];
   is_meta?: BoolType;
-  is_local?: BoolType;
   config?: string;
   inflection_column?: string;
   inflection_table?: string;
@@ -44,6 +34,10 @@ export default class Base implements BaseType {
 
   constructor(base: Partial<Base>) {
     Object.assign(this, base);
+  }
+
+  protected static castType(base: Base): Base {
+    return base && new Base(base);
   }
 
   public static async createBase(
@@ -56,7 +50,6 @@ export default class Base implements BaseType {
       'config',
       'type',
       'is_meta',
-      'is_local',
       'inflection_column',
       'inflection_table',
       'order',
@@ -179,7 +172,7 @@ export default class Base implements BaseType {
     baseDataList.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
 
     return baseDataList?.map((baseData) => {
-      return new Base(baseData);
+      return this.castType(baseData);
     });
   }
 
@@ -194,7 +187,7 @@ export default class Base implements BaseType {
       baseData = await ncMeta.metaGet2(null, null, MetaTable.BASES, id);
       await NocoCache.set(`${CacheScope.BASE}:${id}`, baseData);
     }
-    return baseData && new Base(baseData);
+    return this.castType(baseData);
   }
 
   static async getByUUID(uuid: string, ncMeta = Noco.ncMeta) {
@@ -206,7 +199,7 @@ export default class Base implements BaseType {
 
     delete base.config;
 
-    return base && new Base(base);
+    return this.castType(base);
   }
 
   static async reorderBases(
@@ -257,7 +250,7 @@ export default class Base implements BaseType {
   }
 
   public async getConnectionConfig(): Promise<any> {
-    if (this.is_meta || this.is_local) {
+    if (this.is_meta) {
       const metaConfig = await NcConnectionMgrv2.getDataConfig();
       const config = { ...metaConfig };
       if (config.client === 'sqlite3') {
@@ -430,5 +423,16 @@ export default class Base implements BaseType {
       );
     }
     return this;
+  }
+
+  isMeta(_only = false, _mode = 0) {
+    if (_only) {
+      if (_mode === 0) {
+        return this.is_meta;
+      }
+      return false;
+    } else {
+      return this.is_meta;
+    }
   }
 }

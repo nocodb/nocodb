@@ -1,16 +1,13 @@
 import crypto from 'crypto';
 import * as jwt from 'jsonwebtoken';
-import type User from '../../models/User';
-import type { NcConfig } from '../../interface/config';
+import type User from '~/models/User';
+import type { NcConfig } from '~/interface/config';
 import type { Response } from 'express';
 
 export function genJwt(user: User, config: NcConfig) {
   return jwt.sign(
     {
       email: user.email,
-      display_name: user.display_name,
-      avatar: user.avatar,
-      user_name: user.user_name,
       id: user.id,
       roles: user.roles,
       token_version: user.token_version,

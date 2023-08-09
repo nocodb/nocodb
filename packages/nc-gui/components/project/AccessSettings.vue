@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { WorkspaceUserRoles, type WorkspaceUserType } from 'nocodb-sdk'
-import { Empty } from 'ant-design-vue'
 import InfiniteLoading from 'v3-infinite-loading'
 import { storeToRefs, stringToColour, timeAgo } from '#imports'
 
@@ -82,16 +81,16 @@ onMounted(async () => {
     isLoading.value = false
   }
 })
-
+/*
 const getRolesLabel = (roles?: string) => {
   return (
     roles
-      ?.split(/\s*,\s*/)
+      ?.split(/\s*,\s*REMOVE/)
       ?.map((role) => rolesLabel[role])
       .join(', ') ?? ''
   )
 }
-
+*/
 const updateCollaborator = async (collab, roles) => {
   try {
     if (collab.projectRoles) {

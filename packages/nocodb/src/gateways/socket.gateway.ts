@@ -1,16 +1,15 @@
 import crypto from 'crypto';
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import { T } from 'nc-help';
 import { Server } from 'socket.io';
 import { AuthGuard } from '@nestjs/passport';
 import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import Noco from '../Noco';
-import { JwtStrategy } from '../strategies/jwt.strategy';
-import { TelemetryService } from '../services/telemetry.service';
 import type { OnModuleInit } from '@nestjs/common';
 import type { Socket } from 'socket.io';
+import { JwtStrategy } from '~/strategies/jwt.strategy';
+import { TelemetryService } from '~/services/telemetry.service';
 
 function getHash(str) {
   return crypto.createHash('md5').update(str).digest('hex');

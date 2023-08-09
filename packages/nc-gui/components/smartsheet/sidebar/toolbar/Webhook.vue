@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { HookType } from 'nocodb-sdk'
-const showWebhookDrawer = ref(false)
+// const showWebhookDrawer = ref(false)
 
 const { hooks } = storeToRefs(useWebhooksStore())
 const { loadHooksList, deleteHook: _deleteHook, copyHook } = useWebhooksStore()
@@ -9,6 +9,7 @@ const modalDeleteButtonRef = ref(null)
 
 const { activeTable } = storeToRefs(useTablesStore())
 
+/*
 const eventList = ref<Record<string, any>[]>([
   { text: ['After', 'Insert'], value: ['after', 'insert'] },
   { text: ['After', 'Update'], value: ['after', 'update'] },
@@ -17,6 +18,7 @@ const eventList = ref<Record<string, any>[]>([
   { text: ['After', 'Bulk Update'], value: ['after', 'bulkUpdate'] },
   { text: ['After', 'Bulk Delete'], value: ['after', 'bulkDelete'] },
 ])
+*/
 
 const deleteHookId = ref('')
 const toBeDeleteHook = computed(() => {

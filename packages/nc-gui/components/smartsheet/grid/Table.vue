@@ -17,6 +17,7 @@ import {
   inject,
   isColumnRequiredAndNull,
   isDrawerOrModalExist,
+  isEeUI,
   isMac,
   message,
   onClickOutside,
@@ -36,8 +37,7 @@ import {
   useViewsStore,
   watch,
 } from '#imports'
-import type { CellRange } from '#imports'
-import type { Row } from '~/lib'
+import type { CellRange, Row } from '#imports'
 
 const props = defineProps<{
   data: Row[]
@@ -124,15 +124,30 @@ const { isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
 
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
-const { $api, $e } = useNuxtApp()
-
-const { appInfo } = useGlobal()
+const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
 const { getMeta } = useMetas()
 
 const { addUndo, clone, defineViewScope } = useUndoRedo()
+
+const {
+  predictingNextColumn,
+  predictedNextColumn,
+  predictingNextFormulas,
+  predictedNextFormulas,
+  predictNextColumn: _predictNextColumn,
+  predictNextFormulas: _predictNextFormulas,
+} = useNocoEe().table
+
+const predictNextColumn = async () => {
+  await _predictNextColumn(meta)
+}
+
+const predictNextFormulas = async () => {
+  await _predictNextFormulas(meta)
+}
 
 // #Refs
 
@@ -877,66 +892,6 @@ const onXcResizing = (cn: string | undefined, event: any) => {
   resizingColWidth.value = event.detail
 }
 
-// #NocoAI
-
-const predictingNextColumn = ref(false)
-
-const predictedNextColumn = ref<Array<{ title: string; type: string }>>()
-
-const predictingNextFormulas = ref(false)
-
-const predictedNextFormulas = ref<Array<{ title: string; formula: string }>>()
-
-const predictNextColumn = async () => {
-  if (predictingNextColumn.value) return
-  predictedNextColumn.value = []
-  predictingNextColumn.value = true
-  try {
-    if (meta.value && meta.value.columns) {
-      const res: { data: Array<{ title: string; type: string }> } = await $api.utils.magic({
-        operation: 'predictNextColumn',
-        data: {
-          table: meta.value.title,
-          columns: meta.value.columns.map((col) => col.title),
-        },
-      })
-
-      predictedNextColumn.value = res.data
-    }
-  } catch (e) {
-    message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
-  }
-  predictingNextColumn.value = false
-}
-
-const predictNextFormulas = async () => {
-  if (predictingNextFormulas.value) return
-  predictingNextFormulas.value = true
-  try {
-    if (meta.value && meta.value.columns) {
-      const res: { data: Array<{ title: string; formula: string }> } = await $api.utils.magic({
-        operation: 'predictNextFormulas',
-        data: {
-          table: meta.value.title,
-          columns: meta.value.columns
-            .filter((c) => {
-              // skip system LTAR columns
-              if (c.uidt === UITypes.LinkToAnotherRecord && c.system) return false
-              if ([UITypes.QrCode, UITypes.Barcode].includes(c.uidt as UITypes)) return false
-              return true
-            })
-            .map((col) => col.title),
-        },
-      })
-
-      predictedNextFormulas.value = res.data
-    }
-  } catch (e) {
-    message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
-  }
-  predictingNextFormulas.value = false
-}
-
 const loadColumn = (title: string, tp: string, colOptions?: any) => {
   preloadColumn.value = {
     title,
@@ -1247,11 +1202,11 @@ defineExpose({
                       @visible-change="persistMenu = altModifier"
                     >
                       <div class="h-full w-[60px] flex items-center justify-center">
-                        <GeneralIcon v-if="altModifier || persistMenu" icon="magic" class="text-sm text-orange-400" />
+                        <GeneralIcon v-if="isEeUI && (altModifier || persistMenu)" icon="magic" class="text-sm text-orange-400" />
                         <component :is="iconMap.plus" class="text-sm nc-column-add text-gray-500 !group-hover:text-black" />
                       </div>
 
-                      <template v-if="persistMenu" #overlay>
+                      <template v-if="isEeUI && persistMenu" #overlay>
                         <a-menu>
                           <a-sub-menu v-if="predictedNextColumn?.length" key="predict-column">
                             <template #title>
@@ -1524,7 +1479,7 @@ defineExpose({
         <template v-if="!isLocked && hasEditPermission" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
             <a-menu-item
-              v-if="appInfo.ee && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
+              v-if="isEeUI && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
               @click="emits('bulkUpdateDlg')"
             >
               <div v-e="['a:row:update-bulk']" class="nc-project-menu-item">
@@ -1583,16 +1538,6 @@ defineExpose({
                 Clear
               </div>
             </a-menu-item>
-
-            <!-- To be enabled later -->
-            <!--            <a-sub-menu v-if="contextMenuTarget" title="NocoAI"> -->
-            <!--              <a-menu-item @click="openGenerateDialog(contextMenuTarget)"> -->
-            <!--                <div class="color-transition nc-project-menu-item group"> -->
-            <!--                  <GeneralIcon icon="magic1" class="group-hover:text-accent text-primary" /> -->
-            <!--                  Generate -->
-            <!--                </div> -->
-            <!--              </a-menu-item> -->
-            <!--            </a-sub-menu> -->
 
             <a-menu-item
               v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"

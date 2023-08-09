@@ -22,8 +22,6 @@ const refreshSidebar = ref(false)
 
 useTitle(route.meta?.title && te(route.meta.title) ? `${t(route.meta.title)}` : 'NocoDB')
 
-const isHomeScreen = computed(() => route.name === 'index-index')
-
 const isPublic = computed(() => route.meta?.public)
 
 watch(hasSidebar, (val) => {

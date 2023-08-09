@@ -1,10 +1,10 @@
-import Noco from '../Noco';
-import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import NocoCache from '../cache/NocoCache';
-import { extractProps } from '../helpers/extractProps';
-import GridViewColumn from './GridViewColumn';
-import View from './View';
 import type { GridType, MetaType } from 'nocodb-sdk';
+import GridViewColumn from '~/models/GridViewColumn';
+import View from '~/models/View';
+import Noco from '~/Noco';
+import NocoCache from '~/cache/NocoCache';
+import { extractProps } from '~/helpers/extractProps';
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 
 export default class GridView implements GridType {
   fk_view_id: string;

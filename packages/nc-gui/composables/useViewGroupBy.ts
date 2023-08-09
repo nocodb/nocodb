@@ -1,8 +1,7 @@
 import { type ColumnType, type SelectOptionsType, UITypes, type ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { ref, storeToRefs, useApi, useProject } from '#imports'
-import type { Group, GroupNestedIn, Row } from '~/lib'
-import { GROUP_BY_VARS } from '~/lib'
+import { GROUP_BY_VARS, ref, storeToRefs, useApi, useProject } from '#imports'
+import type { Group, GroupNestedIn, Row } from '#imports'
 
 export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: ComputedRef<string | undefined>) => {
   const { api } = useApi()

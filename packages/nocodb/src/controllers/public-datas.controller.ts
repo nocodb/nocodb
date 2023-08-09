@@ -8,7 +8,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
-import { PublicDatasService } from '../services/public-datas.service';
+import { PublicDatasService } from '~/services/public-datas.service';
 
 @Controller()
 export class PublicDatasController {

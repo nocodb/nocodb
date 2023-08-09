@@ -8,8 +8,18 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
-import formulaQueryBuilderv2 from '../db/formulav2/formulaQueryBuilderv2';
-import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
+import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
+import type { LinkToAnotherRecordColumn, Project } from '~/models';
+import type {
+  ColumnReqType,
+  LinkToAnotherColumnReqType,
+  LinkToAnotherRecordType,
+  RelationTypes,
+  UserType,
+} from 'nocodb-sdk';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import {
   createHmAndBtColumn,
   generateFkName,
@@ -18,30 +28,20 @@ import {
   validatePayload,
   validateRequiredField,
   validateRollupPayload,
-} from '../helpers';
-import { NcError } from '../helpers/catchError';
-import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
+} from '~/helpers';
+import { NcError } from '~/helpers/catchError';
+import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import {
   getUniqueColumnAliasName,
   getUniqueColumnName,
-} from '../helpers/getUniqueName';
-import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
-import validateParams from '../helpers/validateParams';
-import { Base, Column, FormulaColumn, KanbanView, Model } from '../models';
-import Noco from '../Noco';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import { MetaTable } from '../utils/globals';
-import { MetaService } from '../meta/meta.service';
-import { AppHooksService } from './app-hooks/app-hooks.service';
-import type SqlMgrv2 from '../db/sql-mgr/v2/SqlMgrv2';
-import type { LinkToAnotherRecordColumn, Project } from '../models';
-import type {
-  ColumnReqType,
-  LinkToAnotherColumnReqType,
-  LinkToAnotherRecordType,
-  RelationTypes,
-  UserType,
-} from 'nocodb-sdk';
+} from '~/helpers/getUniqueName';
+import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
+import validateParams from '~/helpers/validateParams';
+import { Base, Column, FormulaColumn, KanbanView, Model } from '~/models';
+import Noco from '~/Noco';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { MetaTable } from '~/utils/globals';
+import { MetaService } from '~/meta/meta.service';
 
 // todo: move
 export enum Altered {
@@ -1568,7 +1568,7 @@ export class ColumnsService {
     const isLinks = param.column.uidt === UITypes.Links;
 
     // if xcdb base then treat as virtual relation to avoid creating foreign key
-    if (param.base.is_meta || param.base.is_local) {
+    if (param.base.isMeta()) {
       (param.column as LinkToAnotherColumnReqType).virtual = true;
     }
 

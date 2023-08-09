@@ -5,7 +5,6 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
   const hooks = ref<HookType[]>([])
 
   const { $api, $e } = useNuxtApp()
-  const { t } = useI18n()
 
   async function loadHooksList() {
     const { activeTable } = useTablesStore()

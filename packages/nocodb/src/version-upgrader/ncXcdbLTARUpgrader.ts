@@ -1,13 +1,13 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
-import NocoCache from '../cache/NocoCache';
-import { MetaTable } from '../meta/meta.service';
-import { Base } from '../models';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import { CacheGetType, CacheScope } from '../utils/globals';
-import { Model } from '../models';
-import type { LinkToAnotherRecordColumn } from '../models';
-import type { MetaService } from '../meta/meta.service';
+import type { LinkToAnotherRecordColumn } from '~/models';
+import type { MetaService } from '~/meta/meta.service';
 import type { NcUpgraderCtx } from './NcUpgrader';
+import { MetaTable } from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
+import { Base } from '~/models';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { CacheGetType, CacheScope } from '~/utils/globals';
+import { Model } from '~/models';
 
 // An upgrader for upgrading LTAR relations in XCDB bases
 // it will delete all the foreign keys and create a new index

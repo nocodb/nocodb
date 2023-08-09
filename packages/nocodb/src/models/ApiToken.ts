@@ -1,13 +1,13 @@
 import { nanoid } from 'nanoid';
+import type { ApiTokenType } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
-} from '../utils/globals';
-import Noco from '../Noco';
-import NocoCache from '../cache/NocoCache';
-import type { ApiTokenType } from 'nocodb-sdk';
+} from '~/utils/globals';
+import Noco from '~/Noco';
+import NocoCache from '~/cache/NocoCache';
 
 export default class ApiToken implements ApiTokenType {
   project_id?: string;

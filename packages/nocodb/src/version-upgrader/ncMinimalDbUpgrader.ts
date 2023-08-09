@@ -1,8 +1,8 @@
 import CryptoJS from 'crypto-js';
-import Noco from '../Noco';
-import { Base } from '../models';
-import { MetaTable } from '../utils/globals';
 import type { NcUpgraderCtx } from './NcUpgrader';
+import Noco from '~/Noco';
+import { Base } from '~/models';
+import { MetaTable } from '~/utils/globals';
 
 // In first implementation of NC_MINIMAL_DBS (pg) we were using separate connection for each base.
 // but in the latest implementation we are reusing same connection.
@@ -16,7 +16,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
 
   for (const base of bases) {
     // Skip if the base is not minimal db
-    if (!base.is_local) continue;
+    if (!base.isMeta(true, 1)) continue;
 
     let config;
 

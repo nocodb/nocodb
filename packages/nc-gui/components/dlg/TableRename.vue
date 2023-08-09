@@ -11,7 +11,6 @@ import {
   reactive,
   storeToRefs,
   useCommandPalette,
-  useI18n,
   useMetas,
   useNuxtApp,
   useProject,
@@ -32,8 +31,6 @@ interface Props {
 const { tableMeta, baseId, ...props } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'updated'])
-
-const { t } = useI18n()
 
 const { $e, $api } = useNuxtApp()
 

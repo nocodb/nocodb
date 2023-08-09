@@ -1,10 +1,9 @@
 <script lang="ts" setup>
-import { iconMap, onUnmounted, ref, useEventListener, useGlobal, useI18n, useNuxtApp, watch } from '#imports'
+import { ProjectRole, iconMap, onUnmounted, ref, useEventListener, useGlobal, useI18n, useNuxtApp, watch } from '#imports'
 import MdiAccountStar from '~icons/mdi/account-star'
 import MdiAccountHardHat from '~icons/mdi/account-hard-hat'
 import PhPencilCircleThin from '~icons/ph/pencil-circle-thin'
 import PhChtTeardropTextThin from '~icons/ph/chat-teardrop-text-thin'
-import { ProjectRole } from '~/lib'
 
 const { float } = defineProps<{ float?: boolean }>()
 

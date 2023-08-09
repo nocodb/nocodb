@@ -19,18 +19,6 @@ import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
 import { Knex } from 'knex';
-import { extractLimitAndOffset } from '../helpers';
-import { NcError } from '../helpers/catchError';
-import getAst from '../helpers/getAst';
-import { Audit, Base, Column, Filter, Model, Sort, View } from '../models';
-import { sanitize, unsanitize } from '../helpers/sqlSanitize';
-import {
-  COMPARISON_OPS,
-  COMPARISON_SUB_OPS,
-  IS_WITHIN_COMPARISON_SUB_OPS,
-} from '../models/Filter';
-import Noco from '../Noco';
-import { HANDLE_WEBHOOK } from '../services/hook-handler.service';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from './genRollupSelectv2';
 import conditionV2 from './conditionV2';
@@ -50,8 +38,20 @@ import type {
   QrCodeColumn,
   RollupColumn,
   SelectOption,
-} from '../models';
+} from '~/models';
 import type { SortType } from 'nocodb-sdk';
+import { extractLimitAndOffset } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
+import getAst from '~/helpers/getAst';
+import { Audit, Base, Column, Filter, Model, Sort, View } from '~/models';
+import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
+import Noco from '~/Noco';
+import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
+import {
+  COMPARISON_OPS,
+  COMPARISON_SUB_OPS,
+  IS_WITHIN_COMPARISON_SUB_OPS,
+} from '~/utils/globals';
 import { singleQueryRead } from '~/services/data-opt/helpers';
 
 dayjs.extend(utc);
@@ -2897,7 +2897,7 @@ class BaseModelSqlv2 {
 
       transaction = await this.dbDriver.transaction();
 
-      if ((base.is_meta || base.is_local) && execQueries.length > 0) {
+      if (base.isMeta() && execQueries.length > 0) {
         for (const execQuery of execQueries) {
           await execQuery(transaction, idsVals);
         }
@@ -3025,7 +3025,7 @@ class BaseModelSqlv2 {
       trx = await this.dbDriver.transaction();
 
       // unlink LTAR data
-      if (base.is_meta || base.is_local) {
+      if (base.isMeta()) {
         for (const execQuery of execQueries) {
           await execQuery(trx, qb.clone());
         }
@@ -3238,10 +3238,8 @@ class BaseModelSqlv2 {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async errorInsert(_e, _data, _trx, _cookie) {}
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async errorUpdate(_e, _data, _trx, _cookie) {}
 
   // todo: handle composite primary key
@@ -3255,7 +3253,6 @@ class BaseModelSqlv2 {
     );
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async errorDelete(_e, _id, _trx, _cookie) {}
 
   async validate(columns) {
@@ -3984,7 +3981,7 @@ class BaseModelSqlv2 {
   }
 
   async addLinks({
-    cookie,
+    cookie: _cookie,
     childIds,
     colId,
     rowId,
@@ -4209,7 +4206,7 @@ class BaseModelSqlv2 {
   }
 
   async removeLinks({
-    cookie,
+    cookie: _cookie,
     childIds,
     colId,
     rowId,
@@ -4248,7 +4245,7 @@ class BaseModelSqlv2 {
     const childTn = this.getTnPath(childTable);
     const parentTn = this.getTnPath(parentTable);
 
-    const prevData = await this.readByPk(rowId);
+    // const prevData = await this.readByPk(rowId);
 
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:

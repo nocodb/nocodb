@@ -4,7 +4,7 @@ import { Producer } from '../producer';
 
 @Injectable()
 export class KinesisProducer extends Producer {
-  sendMessages(topic: string, messages: string[]): Promise<void> {
+  sendMessages(_topic: string, _messages: string[]): Promise<void> {
     throw new Error('Method not implemented.');
   }
 

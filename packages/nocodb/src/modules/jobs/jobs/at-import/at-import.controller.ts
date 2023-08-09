@@ -6,14 +6,14 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { GlobalGuard } from '../../../../guards/global/global.guard';
-import { ExtractProjectIdMiddleware } from '../../../../middlewares/extract-project-id/extract-project-id.middleware';
-import { SyncSource } from '../../../../models';
-import { NcError } from '../../../../helpers/catchError';
-import { JobTypes } from '../../../../interface/Jobs';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { SyncSource } from '~/models';
+import { NcError } from '~/helpers/catchError';
+import { JobTypes } from '~/interface/Jobs';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(ExtractIdsMiddleware, GlobalGuard)
 export class AtImportController {
   constructor(@Inject('JobsService') private readonly jobsService) {}
 

@@ -1,32 +1,33 @@
 import { isSystemColumn, UITypes, ViewTypes } from 'nocodb-sdk';
-import Noco from '../Noco';
+import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
+import Model from '~/models/Model';
+import FormView from '~/models/FormView';
+import GridView from '~/models/GridView';
+import KanbanView from '~/models/KanbanView';
+import GalleryView from '~/models/GalleryView';
+import GridViewColumn from '~/models/GridViewColumn';
+import Sort from '~/models/Sort';
+import Filter from '~/models/Filter';
+import GalleryViewColumn from '~/models/GalleryViewColumn';
+import FormViewColumn from '~/models/FormViewColumn';
+import KanbanViewColumn from '~/models/KanbanViewColumn';
+import Column from '~/models/Column';
+import MapView from '~/models/MapView';
+import MapViewColumn from '~/models/MapViewColumn';
+import { extractProps } from '~/helpers/extractProps';
+import NocoCache from '~/cache/NocoCache';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
-} from '../utils/globals';
-import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
-import NocoCache from '../cache/NocoCache';
-import { extractProps } from '../helpers/extractProps';
-import Model from './Model';
-import FormView from './FormView';
-import GridView from './GridView';
-import KanbanView from './KanbanView';
-import GalleryView from './GalleryView';
-import GridViewColumn from './GridViewColumn';
-import Sort from './Sort';
-import Filter from './Filter';
-import GalleryViewColumn from './GalleryViewColumn';
-import FormViewColumn from './FormViewColumn';
-import KanbanViewColumn from './KanbanViewColumn';
-import Column from './Column';
-import MapView from './MapView';
-import MapViewColumn from './MapViewColumn';
-import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
+} from '~/utils/globals';
+import Noco from '~/Noco';
+import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 
 const { v4: uuidv4 } = require('uuid');
 
+/*
 type ViewColumn =
   | GridViewColumn
   | FormViewColumn
@@ -39,6 +40,8 @@ type ViewColumnEnrichedWithTitleAndName = ViewColumn & {
   name: string;
   dt: string;
 };
+*/
+
 export default class View implements ViewType {
   id?: string;
   title: string;

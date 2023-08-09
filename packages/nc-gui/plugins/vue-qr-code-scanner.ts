@@ -2,6 +2,6 @@
 
 import { defineNuxtPlugin } from 'nuxt/app'
 
-export default defineNuxtPlugin((nuxtApp) => {
+export default defineNuxtPlugin((_nuxtApp) => {
   // nuxtApp.vueApp.use(VueQrcodeReader)
 })

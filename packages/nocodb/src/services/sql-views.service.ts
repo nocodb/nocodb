@@ -5,14 +5,14 @@ import {
   ModelTypes,
 } from 'nocodb-sdk';
 import DOMPurify from 'isomorphic-dompurify';
-import { Audit, Column, Model, Project } from '../models';
-import { NcError } from '../helpers/catchError';
-import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
-import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
-import getColumnUiType from '../helpers/getColumnUiType';
 import type { UserType } from 'nocodb-sdk';
+import { NcError } from '~/helpers/catchError';
+import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
+import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
+import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
+import getColumnUiType from '~/helpers/getColumnUiType';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { Audit, Column, Model, Project } from '~/models';
 
 @Injectable()
 export class SqlViewsService {
@@ -27,6 +27,8 @@ export class SqlViewsService {
     };
     user: UserType;
   }) {
+    NcError.notImplemented();
+    return;
     const body = { ...param.body };
 
     const project = await Project.getWithInfo(param.projectId);
@@ -104,6 +106,7 @@ export class SqlViewsService {
       );
     }
 
+    // TODO - reimplement this
     await sqlMgr.sqlOpPlus(base, 'viewCreate', {
       view_name: body.view_name,
       view_definition: body.view_definition,

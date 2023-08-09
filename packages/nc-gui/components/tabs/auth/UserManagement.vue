@@ -18,7 +18,7 @@ import {
   useUIPermission,
   watchDebounced,
 } from '#imports'
-import type { User } from '~/lib'
+import type { User } from '#imports'
 
 const { t } = useI18n()
 

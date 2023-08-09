@@ -7,36 +7,34 @@ menuTitle: "Development Setup"
 ---
 
 ## Clone the repo
-```
+
+```bash
 git clone https://github.com/nocodb/nocodb
-cd nocodb/packages
 ```
 
-## Build SDK
+## Install dependencies
 
-```
-# build nocodb-sdk
-cd nocodb-sdk
-pnpm install
-pnpm run build
+```bash
+# run under the root of the project
+pnpm boostrap
 ```
 
-## Build Backend
+## Start Frontend
 
-```
-# build backend - runs on port 8080
-cd ../nocodb
-pnpm install
-pnpm run watch:run
+```bash
+cd packages/nc-gui
+pnpm run dev
+# Or
+pnpm --filter=nc-gui run dev
 ```
 
-## Build Frontend
+## Start Backend
 
-```
-# build frontend - runs on port 3000
-cd ../nc-gui
-pnpm install
-pnpm run dev 
+```bash
+cd packages/nocodb
+pnpm run start
+# Or
+pnpm --filter=nocodb run start
 ```
 
 Any changes made to frontend and backend will be automatically reflected in the browser.

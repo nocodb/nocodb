@@ -1,4 +1,4 @@
-name: "Cloud : Production Deploy"
+name: "Cloud : Docker Deploy Production"
 
 on:
   # Triggered manually

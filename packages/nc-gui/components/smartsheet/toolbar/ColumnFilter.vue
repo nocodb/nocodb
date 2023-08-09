@@ -186,6 +186,10 @@ const selectFilterField = (filter: Filter, index: number) => {
 
   // reset filter value as well
   filter.value = null
+
+  // Do not save the filter on field change if its a draft/placeholder filter
+  if (!filter.id) return
+
   saveOrUpdate(filter, index)
 }
 

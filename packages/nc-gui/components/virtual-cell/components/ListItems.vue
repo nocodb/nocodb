@@ -3,6 +3,7 @@ import type { Card } from 'ant-design-vue'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import {
+  ColumnInj,
   Empty,
   IsPublicInj,
   SaveRowInj,
@@ -22,6 +23,8 @@ const props = defineProps<{ modelValue: boolean; column: any }>()
 const emit = defineEmits(['update:modelValue', 'addNewRecord'])
 
 const vModel = useVModel(props, 'modelValue', emit)
+
+const injectedColumn = inject(ColumnInj)
 
 const filterQueryRef = ref()
 
@@ -49,7 +52,7 @@ const isAltKeyDown = ref(false)
 const linkRow = async (row: Record<string, any>) => {
   childrenExcludedList.value?.list?.splice(selectedRowIndex.value, 1)
   if (isNew.value) {
-    addLTARRef(row, column?.value as ColumnType)
+    addLTARRef(row, injectedColumn?.value as ColumnType)
     saveRow!()
   } else {
     await link(row)
@@ -77,7 +80,7 @@ const expandedFormDlg = ref(false)
 /** populate initial state for a new row which is parent/child of current record */
 const newRowState = computed(() => {
   if (isNew.value) return {}
-  const colOpt = (column?.value as ColumnType)?.colOptions as LinkToAnotherRecordType
+  const colOpt = (injectedColumn?.value as ColumnType)?.colOptions as LinkToAnotherRecordType
   const colInRelatedTable: ColumnType | undefined = relatedTableMeta?.value?.columns?.find((col) => {
     if (col.uidt !== UITypes.LinkToAnotherRecord) return false
     const colOpt1 = col?.colOptions as LinkToAnotherRecordType
@@ -243,7 +246,7 @@ watch(vModel, (nextVal) => {
             v-model:page-size="childrenExcludedListPagination.size"
             class="mt-2 !text-xs"
             size="small"
-            :total="childrenExcludedList.pageInfo.totalRows"
+            :total="+childrenExcludedList.pageInfo.totalRows"
             show-less-items
           />
         </div>

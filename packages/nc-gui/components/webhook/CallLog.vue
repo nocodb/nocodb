@@ -160,7 +160,7 @@ onBeforeMount(async () => {
           <a-pagination
             v-model:current="currentPage"
             v-model:page-size="currentLimit"
-            :total="totalRows"
+            :total="+totalRows"
             show-less-items
             @change="loadHookLogs"
           />

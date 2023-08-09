@@ -373,7 +373,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
         v-model:page-size="currentLimit"
         hide-on-single-page
         class="mt-4"
-        :total="totalRows"
+        :total="+totalRows"
         show-less-items
         @change="loadUsers"
       />

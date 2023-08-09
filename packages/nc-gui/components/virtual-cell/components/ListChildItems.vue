@@ -173,7 +173,7 @@ const onClick = (row: Row) => {
             v-model:page-size="childrenListPagination.size"
             class="mt-2 mx-auto"
             size="small"
-            :total="childrenList?.pageInfo.totalRows"
+            :total="+childrenList?.pageInfo.totalRows"
             show-less-items
           />
         </div>

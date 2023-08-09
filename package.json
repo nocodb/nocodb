@@ -44,12 +44,6 @@
     "preinstall": "npx only-allow pnpm",
     "install:local-sdk": "node scripts/installLocalSdk.js"
   },
-  "dependencies": {
-    "express": "^4.18.1",
-    "mysql2": "^2.3.3",
-    "pg": "^8.7.3",
-    "sqlite3": "^5.1.6"
-  },
   "pnpm": {
     "overrides": {
       "vue": "latest",

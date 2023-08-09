@@ -3,7 +3,7 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { isWorkspaceLoading, collaborators } = storeToRefs(useWorkspace())
+const { collaborators } = storeToRefs(useWorkspace())
 const { populateWorkspace } = useWorkspace()
 const projectsStore = useProjects()
 

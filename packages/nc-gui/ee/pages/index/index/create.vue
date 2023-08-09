@@ -72,8 +72,8 @@ const createProject = async () => {
 
     const complement = tcolor.complement()
 
-    const __$temp_2 = useGlobal()
-    const getBaseUrl = toRef(__$temp_2, 'getBaseUrl')
+    const globalStore = useGlobal()
+    const getBaseUrl = toRef(globalStore, 'getBaseUrl')
 
     // todo: provide proper project type
     creating.value = true

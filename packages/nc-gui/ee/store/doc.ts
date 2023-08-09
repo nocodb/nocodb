@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import type { DocsPageType } from 'nocodb-sdk'
 import gh from 'parse-github-url'
-import type { PageSidebarNode } from '~~/lib'
+import type { PageSidebarNode } from '#imports'
 
 export const useDocStore = defineStore('docStore', () => {
   const router = useRouter()

@@ -4,7 +4,7 @@ import type { TreeProps } from 'ant-design-vue'
 import type { AntTreeNodeDropEvent } from 'ant-design-vue/lib/tree'
 import type { ProjectType } from 'nocodb-sdk'
 import { toRef } from '@vue/runtime-core'
-import type { PageSidebarNode } from '~~/lib'
+import type { PageSidebarNode } from '#imports'
 
 const props = defineProps<{
   project: ProjectType

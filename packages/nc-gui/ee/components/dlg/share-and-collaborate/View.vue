@@ -29,7 +29,7 @@ if (isViewToolbar) {
 const { formStatus, showShareModal, invitationUsersData, isInvitationLinkCopied } = storeToRefs(useShare())
 const { resetData } = useShare()
 
-const expandedSharedType = ref<'none' | 'project' | 'view'>('view')
+// const expandedSharedType = ref<'none' | 'project' | 'view'>('view')
 const isOpeningManageAccess = ref(false)
 
 const pageTitle = computed(() => (openedPage.value ?? nestedPagesOfProjects.value[project.value.id!]?.[0])?.title)
@@ -47,6 +47,7 @@ const indicator = h(LoadingOutlined, {
   spin: true,
 })
 
+/*
 const onShare = async () => {
   if (!invitationValid) return
 
@@ -55,6 +56,7 @@ const onShare = async () => {
     roles: invitationUsersData.value.role!,
   })
 }
+*/
 
 const copyInvitationLink = async () => {
   await copy(inviteUrl.value!)

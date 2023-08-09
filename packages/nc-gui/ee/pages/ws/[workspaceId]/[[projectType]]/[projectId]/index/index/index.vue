@@ -112,6 +112,7 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
   }
 }
 
+/*
 function openCreateTable() {
   if (!bases.value?.length) return
 
@@ -143,6 +144,7 @@ function onDropZoneClick(e: MouseEvent) {
 
   open()
 }
+*/
 
 watch(
   () => project.value.id,

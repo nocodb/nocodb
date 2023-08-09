@@ -1,10 +1,10 @@
 import type { WidgetTypeType } from 'nocodb-sdk'
 
-export interface IdAndTitle {
+interface IdAndTitle {
   id: string
   title: string
 }
-export interface TableWithProject {
+interface TableWithProject {
   id: string
   title: string
   project: {
@@ -13,20 +13,20 @@ export interface TableWithProject {
   }
 }
 
-export interface WidgetTemplate {
+interface WidgetTemplate {
   title: string
   icon: any
   type: WidgetTypeType
 }
 
-export enum SelectedLayoutDimension {
+enum SelectedLayoutDimension {
   None = 'none',
   Vertical = 'vertical',
   Horizontal = 'horizontal',
   Gap = 'gap',
 }
 
-export enum WidgetTypeText {
+enum WidgetTypeText {
   Number = 'Number',
   StaticText = 'Text',
   LineChart = 'Line Chart',
@@ -37,3 +37,5 @@ export enum WidgetTypeText {
   Image = 'Image',
   Divider = 'Divider',
 }
+
+export { IdAndTitle, TableWithProject, WidgetTemplate, SelectedLayoutDimension, WidgetTypeText }

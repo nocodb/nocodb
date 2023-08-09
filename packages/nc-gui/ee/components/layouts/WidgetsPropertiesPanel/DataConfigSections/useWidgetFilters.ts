@@ -2,7 +2,7 @@ import type { ColumnType, FilterType, Widget } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 import type { Ref } from 'nuxt/dist/app/compat/capi'
-import type { Filter } from '~~/lib'
+import type { Filter } from '#imports'
 
 const useWidgetFilters = (widget: Ref<Widget | undefined>, parentId?: string) => {
   const { $api, $e } = useNuxtApp()

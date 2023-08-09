@@ -8,7 +8,7 @@ import MdiFileDocumentOutline from '~icons/mdi/file-document-outline'
 import MdiFilterVariant from '~icons/mdi/filter-variant'
 import MaterialSymbolsPublic from '~icons/material-symbols/public'
 import { storeToRefs, useProject } from '#imports'
-import type { PageSidebarNode } from '~~/lib'
+import type { PageSidebarNode } from '#imports'
 
 useShortcuts()
 const { showShareModal } = storeToRefs(useShare())

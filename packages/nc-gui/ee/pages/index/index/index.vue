@@ -78,6 +78,12 @@ const showDeleteWorkspace = ref(false)
 
 const { loadScope } = useCommandPalette()
 
+let timerRef: any
+
+onUnmounted(() => {
+  if (timerRef) clearTimeout(timerRef)
+})
+
 onMounted(async () => {
   toggle(true)
   toggleHasSidebar(true)
@@ -263,8 +269,6 @@ watch(activeWorkspaceId, async () => {
   await loadProjects(activePage.value)
 })
 
-let timerRef: any
-
 // todo: do it in a better way
 function loadWorkspacesWithInterval() {
   timerRef = setTimeout(async () => {
@@ -274,10 +278,6 @@ function loadWorkspacesWithInterval() {
     loadWorkspacesWithInterval()
   }, 10000)
 }
-
-onUnmounted(() => {
-  if (timerRef) clearTimeout(timerRef)
-})
 
 watch(
   () => activeWorkspace.value?.status,
@@ -534,7 +534,11 @@ watch(
 
         <WorkspaceProjectList class="min-h-20 grow" />
       </div>
-      <DlgWorkspaceDelete v-model:visible="showDeleteWorkspace" :workspace-id="toBeDeletedWorkspaceId" />
+      <DlgWorkspaceDelete
+        v-if="toBeDeletedWorkspaceId"
+        v-model:visible="showDeleteWorkspace"
+        :workspace-id="toBeDeletedWorkspaceId"
+      />
     </div>
   </NuxtLayout>
 </template>

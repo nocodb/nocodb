@@ -1,12 +1,11 @@
 import { test } from '@playwright/test';
-import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
-import { getDefaultPwd } from '../../../tests/utils/general';
-import { WorkspacePage } from '../../../pages/WorkspacePage';
+import { DashboardPage } from '../../pages/Dashboard';
+import setup from '../../setup';
+import { getDefaultPwd } from '../../tests/utils/general';
+import { WorkspacePage } from '../../pages/WorkspacePage';
 import { Api } from 'nocodb-sdk';
-import { CollaborationPage } from '../../../pages/WorkspacePage/CollaborationPage';
-import { LoginPage } from '../../../pages/LoginPage';
-import { isEE } from '../../../setup/db';
+import { CollaborationPage } from '../../pages/WorkspacePage/CollaborationPage';
+import { LoginPage } from '../../pages/LoginPage';
 
 const roleDb = [
   { email: 'ws_creator@nocodb.com', role: 'creator' },
@@ -16,11 +15,6 @@ const roleDb = [
 ];
 
 test.describe('Collaborators', () => {
-  if (!isEE()) {
-    test.skip();
-    return;
-  }
-
   let dashboard: DashboardPage;
   let workspacePage: WorkspacePage;
   let collaborationPage: CollaborationPage;

@@ -1,13 +1,12 @@
 import { test } from '@playwright/test';
-import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
-import { getDefaultPwd } from '../../../tests/utils/general';
-import { WorkspacePage } from '../../../pages/WorkspacePage';
+import { DashboardPage } from '../../pages/Dashboard';
+import setup from '../../setup';
+import { getDefaultPwd } from '../../tests/utils/general';
+import { WorkspacePage } from '../../pages/WorkspacePage';
 import { Api } from 'nocodb-sdk';
-import { CollaborationPage } from '../../../pages/WorkspacePage/CollaborationPage';
-import { LoginPage } from '../../../pages/LoginPage';
-import { ProjectViewPage } from '../../../pages/Dashboard/ProjectView';
-import { isEE } from '../../../setup/db';
+import { CollaborationPage } from '../../pages/WorkspacePage/CollaborationPage';
+import { LoginPage } from '../../pages/LoginPage';
+import { ProjectViewPage } from '../../pages/Dashboard/ProjectView';
 
 const roleDb = [
   { email: 'pjt_creator@nocodb.com', role: 'Creator' },
@@ -53,10 +52,6 @@ test.describe('Project Collaboration', () => {
   });
 
   test('EE: Project role access validation', async ({ page }) => {
-    if (!isEE()) {
-      test.skip();
-      return;
-    }
     await workspacePage.Container.collaborators.click();
 
     // add all users as WS viewers

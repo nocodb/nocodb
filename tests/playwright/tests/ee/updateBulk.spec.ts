@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test';
-import setup from '../../../setup';
-import { DashboardPage } from '../../../pages/Dashboard';
+import setup from '../../setup';
+import { DashboardPage } from '../../pages/Dashboard';
 import { Api } from 'nocodb-sdk';
-import { createDemoTable } from '../../../setup/demoTable';
-import { BulkUpdatePage } from '../../../pages/Dashboard/BulkUpdate';
-import { AccountLicensePage } from '../../../pages/Account/License';
-import { AccountPage } from '../../../pages/Account';
+import { createDemoTable } from '../../setup/demoTable';
+import { BulkUpdatePage } from '../../pages/Dashboard/BulkUpdate';
+import { AccountLicensePage } from '../../pages/Account/License';
+import { AccountPage } from '../../pages/Account';
 
 async function updateBulkFields(bulkUpdateForm, fields) {
   // move all fields to active

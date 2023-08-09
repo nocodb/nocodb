@@ -2,14 +2,8 @@ import { expect, test } from '@playwright/test';
 import setup from '../../setup';
 import { WorkspacePage } from '../../pages/WorkspacePage';
 import { DashboardPage } from '../../pages/Dashboard';
-import { isEE } from '../../setup/db';
 
 test.describe('DashboardBasicTests', () => {
-  if (!isEE()) {
-    test.skip();
-    return;
-  }
-
   let wsPage: WorkspacePage;
   let dashboardPage: DashboardPage;
   let context: any;

@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { AccountPage } from '../../../pages/Account';
-import setup from '../../../setup';
-import { AccountLicensePage } from '../../../pages/Account/License';
-import { DashboardPage } from '../../../pages/Dashboard';
-import { isHub } from '../../../setup/db';
+import { AccountPage } from '../../pages/Account';
+import setup from '../../setup';
+import { AccountLicensePage } from '../../pages/Account/License';
+import { DashboardPage } from '../../pages/Dashboard';
+import { isHub } from '../../setup/db';
 
 test.describe.skip('Enterprise License', () => {
   // @ts-ignore

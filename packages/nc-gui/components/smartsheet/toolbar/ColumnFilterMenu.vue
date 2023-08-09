@@ -55,18 +55,6 @@ watch(
   { immediate: true },
 )
 
-const applyChanges = async () => await filterComp.value?.applyChanges()
-
-const filterAutoSaveLoc = computed({
-  get() {
-    return filterAutoSave.value
-  },
-  set(val) {
-    $e('a:filter:auto-apply', { flag: val })
-    filterAutoSave.value = val
-  },
-})
-
 const open = ref(false)
 
 useMenuCloseOnEsc(open)

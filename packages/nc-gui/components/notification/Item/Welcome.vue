@@ -4,12 +4,12 @@ const props = defineProps<{
 }>()
 
 const router = useRouter()
-const route = $(router.currentRoute)
+const route = router.currentRoute
 
 const item = toRef(props, 'item')
 
 const navigateToHome = () => {
-  if (route.path !== '/') {
+  if (route.value.path !== '/') {
     navigateTo(`/`)
   }
 }

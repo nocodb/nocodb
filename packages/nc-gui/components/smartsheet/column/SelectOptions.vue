@@ -35,14 +35,14 @@ const { project } = storeToRefs(useProject())
 
 const { loadMagic, optionsMagic: _optionsMagic } = useNocoEe()
 
-let options = $ref<(Option & { status?: 'remove' })[]>([])
-let renderedOptions = $ref<(Option & { status?: 'remove' })[]>([])
-let savedDefaultOption = $ref<Option | null>(null)
-let savedCdf = $ref<string | null>(null)
+const options = ref<(Option & { status?: 'remove' })[]>([])
+const renderedOptions = ref<(Option & { status?: 'remove' })[]>([])
+const savedDefaultOption = ref<Option | null>(null)
+const savedCdf = ref<string | null>(null)
 
-const colorMenus = $ref<any>({})
+const colorMenus = ref<any>({})
 
-const colors = $ref(enumColor.light)
+const colors = ref(enumColor.light)
 
 const inputs = ref()
 const defaultOption = ref()
@@ -54,7 +54,7 @@ const validators = {
     {
       validator: (_: any, _opt: any) => {
         return new Promise<void>((resolve, reject) => {
-          for (const opt of options) {
+          for (const opt of options.value) {
             if ((opt as any).status === 'remove') continue
 
             if (!opt.title.length) {
@@ -63,7 +63,7 @@ const validators = {
             if (vModel.value.uidt === UITypes.MultiSelect && opt.title.includes(',')) {
               return reject(new Error("MultiSelect columns can't have commas(',')"))
             }
-            if (options.filter((el) => el.title === opt.title && (el as any).status !== 'remove').length > 1) {
+            if (options.value.filter((el) => el.title === opt.title && (el as any).status !== 'remove').length > 1) {
               return reject(new Error("Select options can't have duplicates"))
             }
           }
@@ -84,12 +84,12 @@ onMounted(() => {
       options: [],
     }
   }
-  options = vModel.value.colOptions.options
+  options.value = vModel.value.colOptions.options
 
-  renderedOptions = [...options]
+  renderedOptions.value = [...options.value]
 
   // Support for older options
-  for (const op of options.filter((el) => el.order === null)) {
+  for (const op of options.value.filter((el) => el.order === null)) {
     op.title = op.title.replace(/^'/, '').replace(/'$/, '')
   }
 
@@ -105,7 +105,7 @@ onMounted(() => {
     }
   }
 
-  const fndDefaultOption = options.find((el) => el.title === vModel.value.cdf)
+  const fndDefaultOption = options.value.find((el) => el.title === vModel.value.cdf)
   if (fndDefaultOption) {
     defaultOption.value = fndDefaultOption
   }
@@ -118,10 +118,10 @@ const optionChanged = (changedId: string) => {
 }
 
 const getNextColor = () => {
-  let tempColor = colors[0]
-  if (options.length && options[options.length - 1].color) {
-    const lastColor = colors.indexOf(options[options.length - 1].color)
-    tempColor = colors[(lastColor + 1) % colors.length]
+  let tempColor = colors.value[0]
+  if (options.value.length && options.value[options.value.length - 1].color) {
+    const lastColor = colors.value.indexOf(options.value[options.value.length - 1].color)
+    tempColor = colors.value[(lastColor + 1) % colors.value.length]
   }
   return tempColor
 }
@@ -131,43 +131,43 @@ const addNewOption = () => {
     title: '',
     color: getNextColor(),
   }
-  renderedOptions.push(tempOption)
-  options.push(tempOption)
+  renderedOptions.value.push(tempOption)
+  options.value.push(tempOption)
 }
 
 const optionsMagic = async () => {
-  await _optionsMagic(project, formState, getNextColor, options, renderedOptions)
+  await _optionsMagic(project, formState, getNextColor, options.value, renderedOptions.value)
 }
 
 const syncOptions = () => {
-  vModel.value.colOptions.options = renderedOptions.filter((op) => op.status !== 'remove')
+  vModel.value.colOptions.options = renderedOptions.value.filter((op) => op.status !== 'remove')
 }
 
 const removeRenderedOption = (index: number) => {
-  renderedOptions[index].status = 'remove'
+  renderedOptions.value[index].status = 'remove'
   syncOptions()
 
-  const optionId = renderedOptions[index]?.id
+  const optionId = renderedOptions.value[index]?.id
 
   if (optionId === defaultOption.value?.id) {
-    savedDefaultOption = { ...defaultOption.value }
-    savedCdf = vModel.value.cdf
+    savedDefaultOption.value = { ...defaultOption.value }
+    savedCdf.value = vModel.value.cdf
     defaultOption.value = null
     vModel.value.cdf = null
   }
 }
 
 const undoRemoveRenderedOption = (index: number) => {
-  renderedOptions[index].status = undefined
+  renderedOptions.value[index].status = undefined
   syncOptions()
 
-  const optionId = renderedOptions[index]?.id
+  const optionId = renderedOptions.value[index]?.id
 
-  if (optionId === savedDefaultOption?.id) {
-    defaultOption.value = { ...savedDefaultOption }
-    vModel.value.cdf = savedCdf
-    savedDefaultOption = null
-    savedCdf = null
+  if (optionId === savedDefaultOption.value?.id) {
+    defaultOption.value = { ...savedDefaultOption.value }
+    vModel.value.cdf = savedCdf.value
+    savedDefaultOption.value = null
+    savedCdf.value = null
   }
 }
 

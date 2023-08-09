@@ -25,9 +25,10 @@ const { modelValue, baseId } = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
-const { appInfo } = $(useGlobal())
+const globalStore = useGlobal()
+const appInfo = toRef(globalStore, 'appInfo')
 
-const baseURL = appInfo.ncSiteUrl
+const baseURL = appInfo.value.ncSiteUrl
 
 const { $state, $jobs } = useNuxtApp()
 

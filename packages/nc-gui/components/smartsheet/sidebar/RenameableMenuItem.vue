@@ -60,14 +60,14 @@ const isEditing = computed({
 })
 
 /** Helper to check if editing was disabled before the view navigation timeout triggers */
-let isStopped = $ref(false)
+const isStopped = ref(false)
 
 /** Original view title when editing the view name */
-let _title = $ref<string | undefined>()
+const _title = ref<string | undefined>()
 
 /** Debounce click handler, so we can potentially enable editing view name {@see onDblClick} */
 const onClick = useDebounceFn(() => {
-  if (isEditing.value || isStopped) return
+  if (isEditing.value || isStopped.value) return
 
   emits('changeView', vModel.value)
 }, 250)
@@ -79,7 +79,7 @@ function onDblClick() {
 
   if (!isEditing.value) {
     isEditing.value = true
-    _title = vModel.value.title
+    _title.value = vModel.value.title
     $e('c:view:rename', { view: vModel.value?.type })
   }
 }
@@ -148,14 +148,14 @@ async function onRename() {
     return
   }
 
-  if (vModel.value.title === '' || vModel.value.title === _title) {
+  if (vModel.value.title === '' || vModel.value.title === _title.value) {
     onCancel()
     return
   }
 
   const originalTitle = vModel.value.title
 
-  vModel.value.title = _title || ''
+  vModel.value.title = _title.value || ''
 
   emits('rename', vModel.value, originalTitle)
 
@@ -172,12 +172,12 @@ function onCancel() {
 
 /** Stop editing view name, timeout makes sure that view navigation (click trigger) does not pick up before stop is done */
 function onStopEdit() {
-  isStopped = true
+  isStopped.value = true
   isEditing.value = false
-  _title = ''
+  _title.value = ''
 
   setTimeout(() => {
-    isStopped = false
+    isStopped.value = false
   }, 250)
 }
 </script>

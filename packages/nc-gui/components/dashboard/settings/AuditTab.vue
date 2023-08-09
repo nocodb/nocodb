@@ -7,46 +7,46 @@ const { $api } = useNuxtApp()
 
 const { project } = storeToRefs(useProject())
 
-const _projectId = $(inject(ProjectIdInj, undefined))
-const projectId = $computed(() => _projectId ?? project.value?.id)
+const _projectId = inject(ProjectIdInj, undefined)
+const projectId = computed(() => _projectId.value ?? project.value?.id)
 
 const { t } = useI18n()
 
-let isLoading = $ref(false)
+const isLoading = ref(false)
 
-let audits = $ref<null | Array<AuditType>>(null)
+const audits = ref<null | Array<AuditType>>(null)
 
-let totalRows = $ref(0)
+const totalRows = ref(0)
 
-const currentPage = $ref(1)
+const currentPage = ref(1)
 
-const currentLimit = $ref(25)
+const currentLimit = ref(25)
 
 const { appInfo } = useGlobal()
 
-async function loadAudits(page = currentPage, limit = currentLimit) {
+async function loadAudits(page = currentPage.value, limit = currentLimit.value) {
   try {
     if (!project.value?.id) return
 
-    isLoading = true
+    isLoading.value = true
 
-    const { list, pageInfo } = await $api.project.auditList(projectId, {
+    const { list, pageInfo } = await $api.project.auditList(projectId.value, {
       offset: limit * (page - 1),
       limit,
     })
 
-    audits = list
-    totalRows = pageInfo.totalRows ?? 0
+    audits.value = list
+    totalRows.value = pageInfo.totalRows ?? 0
   } catch (e) {
     console.error(e)
   } finally {
-    isLoading = false
+    isLoading.value = false
   }
 }
 
 onMounted(async () => {
-  if (audits === null) {
-    await loadAudits(currentPage, currentLimit)
+  if (audits.value === null) {
+    await loadAudits(currentPage.value, currentLimit.value)
   }
 })
 

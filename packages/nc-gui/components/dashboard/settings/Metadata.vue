@@ -15,37 +15,37 @@ const { project } = storeToRefs(projectStore)
 
 const { t } = useI18n()
 
-let isLoading = $ref(false)
+const isLoading = ref(false)
 
-let isDifferent = $ref(false)
+const isDifferent = ref(false)
 
-let metadiff = $ref<any[]>([])
+const metadiff = ref<any[]>([])
 
 async function loadMetaDiff() {
   try {
     if (!project.value?.id) return
 
-    isLoading = true
-    isDifferent = false
-    metadiff = await $api.base.metaDiffGet(project.value?.id, props.baseId)
-    for (const model of metadiff) {
+    isLoading.value = true
+    isDifferent.value = false
+    metadiff.value = await $api.base.metaDiffGet(project.value?.id, props.baseId)
+    for (const model of metadiff.value) {
       if (model.detectedChanges?.length > 0) {
         model.syncState = model.detectedChanges.map((el: any) => el?.msg).join(', ')
-        isDifferent = true
+        isDifferent.value = true
       }
     }
   } catch (e) {
     console.error(e)
   } finally {
-    isLoading = false
+    isLoading.value = false
   }
 }
 
 async function syncMetaDiff() {
   try {
-    if (!project.value?.id || !isDifferent) return
+    if (!project.value?.id || !isDifferent.value) return
 
-    isLoading = true
+    isLoading.value = true
     await $api.base.metaDiffSync(project.value?.id, props.baseId)
     // Table metadata recreated successfully
     message.info(t('msg.info.metaDataRecreated'))
@@ -55,12 +55,12 @@ async function syncMetaDiff() {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    isLoading = false
+    isLoading.value = false
   }
 }
 
 onMounted(async () => {
-  if (metadiff.length === 0) {
+  if (metadiff.value.length === 0) {
     await loadMetaDiff()
   }
 })

@@ -38,9 +38,9 @@ const editable = inject(EditModeInj, ref(false))
 
 const column = inject(ColumnInj)!
 
-let isDateInvalid = $ref(false)
+const isDateInvalid = ref(false)
 
-const dateTimeFormat = $computed(() => {
+const dateTimeFormat = computed(() => {
   const dateFormat = parseProp(column?.value?.meta)?.date_format ?? dateFormats[0]
   const timeFormat = parseProp(column?.value?.meta)?.time_format ?? timeFormats[0]
   return `${dateFormat} ${timeFormat}`
@@ -48,14 +48,14 @@ const dateTimeFormat = $computed(() => {
 
 let localModelValue = modelValue ? dayjs(modelValue).utc().local() : undefined
 
-let localState = $computed({
+const localState = computed({
   get() {
     if (!modelValue) {
       return undefined
     }
 
     if (!dayjs(modelValue).isValid()) {
-      isDateInvalid = true
+      isDateInvalid.value = true
       return undefined
     }
 
@@ -129,7 +129,7 @@ watch(
   { flush: 'post' },
 )
 
-const placeholder = computed(() => (modelValue === null && showNull.value ? 'NULL' : isDateInvalid ? 'Invalid date' : ''))
+const placeholder = computed(() => (modelValue === null && showNull.value ? 'NULL' : isDateInvalid.value ? 'Invalid date' : ''))
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
@@ -158,7 +158,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
       }
       break
     case 'ArrowLeft':
-      if (!localState) {
+      if (!localState.value) {
         ;(document.querySelector('.nc-picker-datetime.active .ant-picker-header-prev-btn') as HTMLButtonElement)?.click()
       } else {
         const prevEl = document.querySelector('.nc-picker-datetime.active .ant-picker-cell-selected')
@@ -181,7 +181,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
       }
       break
     case 'ArrowRight':
-      if (!localState) {
+      if (!localState.value) {
         ;(document.querySelector('.nc-picker-datetime.active .ant-picker-header-next-btn') as HTMLButtonElement)?.click()
       } else {
         const nextEl = document.querySelector('.nc-picker-datetime.active .ant-picker-cell-selected')
@@ -204,15 +204,15 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
       }
       break
     case 'ArrowUp':
-      if (!localState)
+      if (!localState.value)
         (document.querySelector('.nc-picker-datetime.active .ant-picker-header-super-prev-btn') as HTMLButtonElement)?.click()
       break
     case 'ArrowDown':
-      if (!localState)
+      if (!localState.value)
         (document.querySelector('.nc-picker-datetime.active .ant-picker-header-super-next-btn') as HTMLButtonElement)?.click()
       break
     case ';':
-      localState = dayjs(new Date())
+      localState.value = dayjs(new Date())
       break
   }
 })

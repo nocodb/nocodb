@@ -34,8 +34,8 @@ const route = useRoute()
 const { $api } = useNuxtApp()
 
 const response = await $api.project.list({})
-const projects = $ref(response.list)
-const activePage = $ref(navDrawerOptions[0].title)
+const projects = ref(response.list)
+const activePage = ref(navDrawerOptions[0].title)
 const deleteProject = (project: ProjectType) => {
   Modal.confirm({
     title: t('msg.info.deleteProject'),
@@ -47,7 +47,7 @@ const deleteProject = (project: ProjectType) => {
     async onOk() {
       try {
         await $api.project.delete(project.id as string)
-        projects.splice(projects.indexOf(project), 1)
+        projects.value.splice(projects.value.indexOf(project), 1)
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }

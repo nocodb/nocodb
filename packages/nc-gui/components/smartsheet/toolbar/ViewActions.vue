@@ -76,7 +76,7 @@ const Icon = computed(() => {
 })
 */
 
-const lockType = $computed(() => (selectedView.value?.lock_type as LockType) || LockType.Collaborative)
+const lockType = computed(() => (selectedView.value?.lock_type as LockType) || LockType.Collaborative)
 
 async function changeLockType(type: LockType) {
   $e('a:grid:lockmenu', { lockType: type })

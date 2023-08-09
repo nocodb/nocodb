@@ -6,12 +6,13 @@ const props = defineProps<{
   item: any
 }>()
 
-const { navigateToProject } = $(useGlobal())
+const item = toRef(props, 'item')
 
-const item = $(toRef(props, 'item'))
+const globalStore = useGlobal()
+const navigateToProject = toRef(globalStore, 'navigateToProject')
 
 const action = computed(() => {
-  switch (item.type) {
+  switch (item.value.type) {
     case AppEvents.WORKSPACE_CREATE:
       return 'created'
     case AppEvents.WORKSPACE_UPDATE:
@@ -22,8 +23,8 @@ const action = computed(() => {
 })
 
 const onClick = () => {
-  if (item.type === AppEvents.WORKSPACE_DELETE) return
-  navigateToProject({ workspaceId: item.body.id })
+  if (item.value.type === AppEvents.WORKSPACE_DELETE) return
+  navigateToProject.value({ workspaceId: item.value.body.id })
 }
 </script>
 

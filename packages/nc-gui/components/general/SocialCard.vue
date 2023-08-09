@@ -5,7 +5,7 @@ const { $e } = useNuxtApp()
 
 const { lang: currentLang } = useGlobal()
 
-const isRtlLang = $computed(() => ['fa', 'ar'].includes(currentLang.value))
+const isRtlLang = computed(() => ['fa', 'ar'].includes(currentLang.value))
 
 function openKeyboardShortcutDialog() {
   $e('a:actions:keyboard-shortcut')

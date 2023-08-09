@@ -1,3 +1,4 @@
+import { toRef } from 'vue'
 import { defineStore } from 'pinia'
 import type { DocsPageType } from 'nocodb-sdk'
 import gh from 'parse-github-url'
@@ -5,10 +6,11 @@ import type { PageSidebarNode } from '~~/lib'
 
 export const useDocStore = defineStore('docStore', () => {
   const router = useRouter()
-  const route = $(router.currentRoute)
+  const route = router.currentRoute
 
   const { $api } = useNuxtApp()
-  const { appInfo } = $(useGlobal())
+  const globalStore = useGlobal()
+  const appInfo = toRef(globalStore, 'appInfo')
   const { projectRoles } = useRoles()
   const { setProject } = useProject()
 
@@ -28,15 +30,19 @@ export const useDocStore = defineStore('docStore', () => {
    *
    */
 
-  const isPublic = computed<boolean>(() => !!route.meta.public)
+  const isPublic = computed<boolean>(() => !!route.value.meta.public)
 
   const openedProjectId = computed<string>(() =>
-    isPublic.value ? projectIdFromCompositePageId(route.params.compositePageId as string)! : (route.params.projectId as string),
+    isPublic.value
+      ? projectIdFromCompositePageId(route.value.params.compositePageId as string)!
+      : (route.value.params.projectId as string),
   )
   const openedPageId = computed<string | null>(() =>
-    isPublic.value ? pageIdFromCompositePageId(route.params.compositePageId as string) : (route.params.pageId as string),
+    isPublic.value
+      ? pageIdFromCompositePageId(route.value.params.compositePageId as string)
+      : (route.value.params.pageId as string),
   )
-  const openedWorkspaceId = computed<string>(() => route.params.workspaceId as string)
+  const openedWorkspaceId = computed<string>(() => route.value.params.workspaceId as string)
 
   const isOpenedNestedPageLoading = computed<boolean>(() => isNestedPageFetching.value[openedProjectId.value] ?? true)
 
@@ -741,14 +747,14 @@ export const useDocStore = defineStore('docStore', () => {
 
     if (data[0]?.url) return data[0].url
 
-    return data[0]?.path ? `${appInfo.ncSiteUrl}/${data[0].path}` : ''
+    return data[0]?.path ? `${appInfo.value.ncSiteUrl}/${data[0].path}` : ''
   }
 
   // todo: Temp
   const loadPublicPageAndProject = async () => {
     if (!openedPageId.value) throw new Error('openedPageId is not defined')
 
-    const projectId = route.params.projectId as string
+    const projectId = route.value.params.projectId as string
 
     isPageFetching.value = true
     try {

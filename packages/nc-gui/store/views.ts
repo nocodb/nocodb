@@ -5,19 +5,19 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const { $api } = useNuxtApp()
 
   const router = useRouter()
-  const route = $(router.currentRoute)
+  const route = router.currentRoute
 
   const views = ref<ViewType[]>([])
   const isViewsLoading = ref(true)
   const isViewDataLoading = ref(true)
-  const isPublic = computed(() => route.meta?.public)
+  const isPublic = computed(() => route.value.meta?.public)
 
   const { activeTable } = storeToRefs(useTablesStore())
 
   const activeViewTitle = computed(() => {
-    if (!route.params.viewTitle?.length) return views.value.length ? views.value[0].title : undefined
+    if (!route.value.params.viewTitle?.length) return views.value.length ? views.value[0].title : undefined
 
-    return route.params.viewTitle
+    return route.value.params.viewTitle
   })
 
   const { sharedView } = useSharedView()

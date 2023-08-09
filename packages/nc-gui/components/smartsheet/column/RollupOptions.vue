@@ -12,13 +12,15 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
-const meta = $(inject(MetaInj, ref()))
+const meta = inject(MetaInj, ref())
 
 const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit } = useColumnCreateStoreOrThrow()
 
-const { tables } = $(storeToRefs(useProject()))
+const projectStore = storeToRefs(useProject())
+const tables = toRef(projectStore, 'tables')
 
-const { metas } = $(useMetas())
+const metaStore = useMetas()
+const metas = toRef(metaStore, 'metas')
 
 setAdditionalValidations({
   fk_relation_column_id: [{ required: true, message: 'Required' }],
@@ -41,32 +43,35 @@ if (!vModel.value.fk_relation_column_id) vModel.value.fk_relation_column_id = nu
 if (!vModel.value.fk_rollup_column_id) vModel.value.fk_rollup_column_id = null
 if (!vModel.value.rollup_function) vModel.value.rollup_function = null
 
-const refTables = $computed(() => {
-  if (!tables || !tables.length || !meta || !meta.columns) {
+const refTables = computed(() => {
+  if (!tables.value || !tables.value.length || !meta.value || !meta.value.columns) {
     return []
   }
 
-  const _refTables = meta.columns
+  const _refTables = meta.value.columns
     .filter(
       (c) =>
-        isLinksOrLTAR(c) && (c.colOptions as LinkToAnotherRecordType).type !== 'bt' && !c.system && c.base_id === meta?.base_id,
+        isLinksOrLTAR(c) &&
+        (c.colOptions as LinkToAnotherRecordType).type !== 'bt' &&
+        !c.system &&
+        c.base_id === meta.value?.base_id,
     )
     .map((c) => ({
       col: c.colOptions,
       column: c,
-      ...tables.find((t) => t.id === (c.colOptions as any)?.fk_related_model_id),
+      ...tables.value.find((t) => t.id === (c.colOptions as any)?.fk_related_model_id),
     }))
   return _refTables as Required<TableType & { column: ColumnType; col: Required<LinkToAnotherRecordType> }>[]
 })
 
-const columns = $computed(() => {
-  const selectedTable = refTables.find((t) => t.column.id === vModel.value.fk_relation_column_id)
+const columns = computed(() => {
+  const selectedTable = refTables.value.find((t) => t.column.id === vModel.value.fk_relation_column_id)
 
   if (!selectedTable?.id) {
     return []
   }
 
-  return metas[selectedTable.id].columns.filter(
+  return metas.value[selectedTable.id].columns.filter(
     (c: ColumnType) => !isVirtualCol(c.uidt as UITypes) && (!isSystemColumn(c) || c.pk),
   )
 })
@@ -80,7 +85,7 @@ onMounted(() => {
 })
 
 const onRelationColChange = () => {
-  vModel.value.fk_rollup_column_id = columns?.[0]?.id
+  vModel.value.fk_rollup_column_id = columns.value?.[0]?.id
   onDataTypeChange()
 }
 

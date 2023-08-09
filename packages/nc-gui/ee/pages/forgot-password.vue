@@ -14,7 +14,7 @@ const { loadScope } = useCommandPalette()
 
 loadScope('disabled')
 
-let success = $ref(false)
+const success = ref(false)
 
 const formValidator = ref()
 
@@ -45,7 +45,7 @@ async function resetPassword() {
   resetError()
 
   await api.auth.passwordForgot(form).then(() => {
-    success = true
+    success.value = true
   })
 }
 

@@ -18,11 +18,11 @@ const { workspacesList, activeWorkspace, activePage, collaborators, activeWorksp
 
 const { loadProjects } = useProjects()
 
-const route = $(router.currentRoute)
+const route = router.currentRoute
 
 const selectedWorkspaceIndex = computed<number[]>({
   get() {
-    const index = workspacesList?.value?.findIndex((workspace) => workspace.id === (route.query?.workspaceId as string))
+    const index = workspacesList?.value?.findIndex((workspace) => workspace.id === (route.value.query?.workspaceId as string))
     return activePage?.value === 'workspace' ? [index === -1 ? 0 : index] : []
   },
   set(index: number[]) {
@@ -51,7 +51,7 @@ onMounted(async () => {
 })
 
 watch(
-  () => route.query.workspaceId,
+  () => route.value.query.workspaceId,
   async (newId, oldId) => {
     if (!newId || (oldId !== newId && oldId)) {
       projectsStore.clearProjects()
@@ -85,10 +85,10 @@ useDialog(resolveComponent('WorkspaceCreateDlg'), {
 
 const tab = computed({
   get() {
-    return route.query?.tab ?? 'projects'
+    return route.value.query?.tab ?? 'projects'
   },
   set(tab: string) {
-    router.push({ query: { ...route.query, tab } })
+    router.push({ query: { ...route.value.query, tab } })
   },
 })
 

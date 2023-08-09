@@ -65,10 +65,10 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
   const { metasWithIdAsKey } = useMetas()
 
   const erdTables = computed(() => unref(tables))
-  const config = $computed(() => unref(props))
+  const config = computed(() => unref(props))
 
   const nodeWidth = 300
-  const nodeHeight = $computed(() => (config.showViews && config.showAllColumns ? 50 : 40))
+  const nodeHeight = computed(() => (config.value.showViews && config.value.showAllColumns ? 50 : 40))
 
   const relations = computed(() =>
     erdTables.value.reduce((acc, table) => {
@@ -147,7 +147,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
     if (!parentCol || !childCol) return ''
 
     if (type === 'mm') {
-      if (config.showJunctionTableNames) {
+      if (config.value.showJunctionTableNames) {
         if (!modelId) return ''
 
         const mmModel = metasWithIdAsKey.value[modelId]
@@ -176,10 +176,12 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
 
       const columns =
         metasWithIdAsKey.value[table.id].columns?.filter(
-          (col) => config.showAllColumns || (!config.showAllColumns && isLinksOrLTAR(col)),
+          (col) => config.value.showAllColumns || (!config.value.showAllColumns && isLinksOrLTAR(col)),
         ) || []
 
-      const pkAndFkColumns = columns.filter(() => config.showPkAndFk).filter((col) => col.pk || col.uidt === UITypes.ForeignKey)
+      const pkAndFkColumns = columns
+        .filter(() => config.value.showPkAndFk)
+        .filter((col) => col.pk || col.uidt === UITypes.ForeignKey)
 
       const nonPkColumns = columns.filter((col) => !col.pk && col.uidt !== UITypes.ForeignKey)
 
@@ -189,8 +191,8 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
           table: metasWithIdAsKey.value[table.id],
           pkAndFkColumns,
           nonPkColumns,
-          showPkAndFk: config.showPkAndFk,
-          showAllColumns: config.showAllColumns,
+          showPkAndFk: config.value.showPkAndFk,
+          showAllColumns: config.value.showAllColumns,
           columnLength: columns.length,
           color: '',
         },
@@ -261,7 +263,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
           const colLength = node.data!.columnLength
 
           const width = skeleton ? nodeWidth * 3 : nodeWidth
-          const height = nodeHeight + (skeleton ? 250 : colLength > 0 ? nodeHeight * colLength : nodeHeight)
+          const height = nodeHeight.value + (skeleton ? 250 : colLength > 0 ? nodeHeight.value * colLength : nodeHeight.value)
           dagreGraph.setNode(el.id, {
             width,
             height,

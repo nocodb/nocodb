@@ -79,7 +79,7 @@ watch([isHovering, () => modifierKey, () => disabled], ([hovering, key, isDisabl
   }
 })
 
-const divStyles = $computed(() => ({
+const divStyles = computed(() => ({
   style: attrs.style as CSSProperties,
   class: attrs.class as string,
 }))

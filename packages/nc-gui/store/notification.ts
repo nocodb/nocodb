@@ -1,3 +1,4 @@
+import { toRef } from 'vue'
 import { defineStore } from 'pinia'
 import type { NotificationType } from 'nocodb-sdk'
 import type { Socket } from 'socket.io-client'
@@ -15,11 +16,13 @@ export const useNotification = defineStore('notificationStore', () => {
 
   const { api, isLoading } = useApi()
 
-  const { appInfo, token } = $(useGlobal())
+  const globalStore = useGlobal()
+  const appInfo = toRef(globalStore, 'appInfo')
+  const token = toRef(globalStore, 'token')
   let socket: Socket
 
   const init = (token) => {
-    const url = new URL(appInfo.ncSiteUrl, window.location.href.split(/[?#]/)[0]).href
+    const url = new URL(appInfo.value.ncSiteUrl, window.location.href.split(/[?#]/)[0]).href
 
     socket = io(`${url}${url.endsWith('/') ? '' : '/'}notifications`, {
       extraHeaders: { 'xc-auth': token },
@@ -36,7 +39,7 @@ export const useNotification = defineStore('notificationStore', () => {
   }
 
   watch(
-    () => token,
+    () => token.value,
     (newToken, oldToken) => {
       if (newToken && newToken !== oldToken) init(newToken)
       else if (!newToken) socket?.disconnect()

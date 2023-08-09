@@ -48,11 +48,12 @@ export function useViewData(
 
   const router = useRouter()
 
-  const route = $(router.currentRoute)
+  const route = router.currentRoute
 
-  const { appInfo } = $(useGlobal())
+  const globalStore = useGlobal()
+  const appInfo = toRef(globalStore, 'appInfo')
 
-  const appInfoDefaultLimit = appInfo.defaultLimit || 25
+  const appInfoDefaultLimit = appInfo.value.defaultLimit || 25
 
   const _paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
 
@@ -78,7 +79,7 @@ export function useViewData(
 
   const { isUIAllowed } = useUIPermission()
 
-  const routeQuery = $computed(() => route.query as Record<string, string>)
+  const routeQuery = computed(() => route.value.query as Record<string, string>)
 
   const paginationData = computed({
     get: () => (isPublic.value ? sharedPaginationData.value : _paginationData.value),
@@ -272,7 +273,7 @@ export function useViewData(
   // get current expanded row index
   function getExpandedRowIndex() {
     return formattedData.value.findIndex(
-      (row: Row) => routeQuery.rowId === extractPkFromRow(row.row, meta.value?.columns as ColumnType[]),
+      (row: Row) => routeQuery.value.rowId === extractPkFromRow(row.row, meta.value?.columns as ColumnType[]),
     )
   }
 
@@ -312,7 +313,7 @@ export function useViewData(
     if (rowId) {
       router.push({
         query: {
-          ...routeQuery,
+          ...routeQuery.value,
           rowId,
         },
       })

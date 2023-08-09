@@ -48,11 +48,11 @@ const {
 
 const { loadProjects } = useProjects()
 
-const route = $(router.currentRoute)
+const route = router.currentRoute
 
 const selectedWorkspaceIndex = computed<number[]>({
   get() {
-    const index = workspacesList?.value?.findIndex((workspace) => workspace.id === (route.query?.workspaceId as string))
+    const index = workspacesList?.value?.findIndex((workspace) => workspace.id === (route.value.query?.workspaceId as string))
     return activePage?.value === 'workspace' ? [index === -1 ? 0 : index] : []
   },
   set(index: number[]) {
@@ -87,17 +87,19 @@ onMounted(async () => {
 
   loadWorkspacesWithInterval()
 
-  if (!route.query.workspaceId && workspacesList.value?.length) {
+  if (!route.value.query.workspaceId && workspacesList.value?.length) {
     await router.push({ query: { workspaceId: workspacesList.value[0].id, page: 'workspace' } })
   } else {
-    selectedWorkspaceIndex.value = [workspacesList.value?.findIndex((workspace) => workspace.id === route.query.workspaceId)]
+    selectedWorkspaceIndex.value = [
+      workspacesList.value?.findIndex((workspace) => workspace.id === route.value.query.workspaceId),
+    ]
   }
 
   if (activeWorkspace.value && activeWorkspace.value.status !== WorkspaceStatus.CREATING) await loadProjects()
 })
 
 watch(
-  () => route.query.workspaceId,
+  () => route.value.query.workspaceId,
   async (newId, oldId) => {
     if (!newId || (oldId !== newId && oldId)) {
       projectsStore.clearProjects()
@@ -222,10 +224,10 @@ function initSortable(el: Element) {
 */
 const tab = computed({
   get() {
-    return route.query?.tab ?? 'projects'
+    return route.value.query?.tab ?? 'projects'
   },
   set(tab: string) {
-    router.push({ query: { ...route.query, tab } })
+    router.push({ query: { ...route.value.query, tab } })
   },
 })
 

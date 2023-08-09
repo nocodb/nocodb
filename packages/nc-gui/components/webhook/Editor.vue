@@ -35,7 +35,8 @@ const { $e } = useNuxtApp()
 
 const { api, isLoading: loading } = useApi()
 
-const { appInfo } = $(useGlobal())
+const globalStore = useGlobal()
+const appInfo = toRef(globalStore, 'appInfo')
 
 const { hooks } = storeToRefs(useWebhooksStore())
 
@@ -68,7 +69,7 @@ let hookRef = reactive<
   version: 'v2',
 })
 
-const isBodyShown = ref(hookRef.version === 'v1' || (hookRef.version === 'v2' && appInfo.ee))
+const isBodyShown = ref(hookRef.version === 'v1' || (hookRef.version === 'v2' && appInfo.value.ee))
 
 const urlTabKey = ref(isBodyShown.value ? 'body' : 'params')
 
@@ -199,7 +200,7 @@ const eventList = ref<Record<string, any>[]>([
 ])
 
 const notificationList = computed(() => {
-  return appInfo.isCloud
+  return appInfo.value.isCloud
     ? [{ type: 'URL' }]
     : [
         { type: 'URL' },
@@ -348,7 +349,7 @@ function onEventChange() {
 }
 
 async function loadPluginList() {
-  if (appInfo.isCloud) return
+  if (appInfo.value.isCloud) return
   try {
     const plugins = (await api.plugin.list()).list!
 

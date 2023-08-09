@@ -1,3 +1,4 @@
+import { computed } from 'vue'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import { computed } from '@vue/reactivity'
@@ -38,7 +39,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
   const router = useRouter()
 
-  const route = $(router.currentRoute)
+  const route = router.currentRoute
 
   const projectsStore = useProjects()
 
@@ -49,7 +50,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
   const { loadTables, projectUrl, isXcdbBase } = useProject()
 
-  const workspaceId = $computed(() => route.params.workspaceId as string)
+  const workspaceId = computed(() => route.value.params.workspaceId as string)
 
   const tables = computed(() => projectTables.value.get(param.projectId) || [])
   const project = computed(() => projects.value.get(param.projectId))
@@ -66,10 +67,10 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
       if (!project) throw new Error('Project not found')
     }
 
-    const projectType = (route.params.projectType as string) || 'nc'
+    const projectType = (route.value.params.projectType as string) || 'nc'
     await navigateTo({
-      path: `/ws/${workspaceId}/${projectType}/${project.id!}/table/${table?.id}`,
-      query: route.query,
+      path: `/ws/${workspaceId.value}/${projectType}/${project.id!}/table/${table?.id}`,
+      query: route.value.query,
     })
 
     await getMeta(table.id as string)

@@ -24,7 +24,7 @@ const indicator = h(LoadingOutlined, {
 })
 
 const router = useRouter()
-const route = $(router.currentRoute)
+const route = router.currentRoute
 
 const { setMenuContext, openRenameTableDialog, duplicateTable, contextMenuTarget } = inject(TreeViewInj)!
 
@@ -68,7 +68,7 @@ const { addNewPage, populatedNestedPages } = useDocStore()
 
 const { getDashboardProjectUrl: dashboardProjectUrl, populateLayouts } = useDashboardStore()
 
-const activeProjectId = computed(() => route.params.projectId as string | undefined)
+const activeProjectId = computed(() => route.value.params.projectId as string | undefined)
 
 const { projectUrl: docsProjectUrl } = useDocStore()
 
@@ -79,14 +79,14 @@ const isBasesOptionsOpen = ref<Record<string, boolean>>({})
 
 const activeKey = ref<string[]>([])
 const [searchActive] = useToggle()
-const filterQuery = $ref('')
-const keys = $ref<Record<string, number>>({})
+const filterQuery = ref('')
+const keys = ref<Record<string, number>>({})
 const isTableDeleteDialogVisible = ref(false)
 const isProjectDeleteDialogVisible = ref(false)
 
 // If only project is open, i.e in case of docs, project view is open and not the page view
 const projectViewOpen = computed(() => {
-  const routeNameSplit = String(route?.name).split('projectId-index-index')
+  const routeNameSplit = String(route.value?.name).split('projectId-index-index')
   if (routeNameSplit.length <= 1) return false
 
   const routeNameAfterProjectView = routeNameSplit[routeNameSplit.length - 1]
@@ -326,7 +326,7 @@ async function openProjectSqlEditor(_project: ProjectType) {
 */
 
 function openErdView(base: BaseType) {
-  navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/erd/${base.id}`)
+  navigateTo(`/ws/${route.value.params.workspaceId}/nc/${base.project_id}/erd/${base.id}`)
 }
 
 async function openProjectErdView(_project: ProjectType) {
@@ -340,7 +340,7 @@ async function openProjectErdView(_project: ProjectType) {
 
   const base = project?.bases?.[0]
   if (!base) return
-  navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/erd/${base.id}`)
+  navigateTo(`/ws/${route.value.params.workspaceId}/nc/${base.project_id}/erd/${base.id}`)
 }
 
 const reloadTables = async () => {

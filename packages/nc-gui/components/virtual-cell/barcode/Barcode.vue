@@ -19,7 +19,7 @@ const showBarcodeModal = () => {
   modalVisible.value = true
 }
 
-const barcodeMeta = $computed(() => {
+const barcodeMeta = computed(() => {
   return {
     barcodeFormat: 'CODE128',
     ...parseProp(column?.value?.meta),

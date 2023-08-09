@@ -10,7 +10,8 @@ const router = useRouter()
 const route = router.currentRoute
 
 const { copy } = useCopy()
-const { dashboardUrl } = $(useDashboard())
+const dashboardStore = useDashboard()
+const dashboardUrl = toRef(dashboardStore, 'dashboardUrl')
 const { project } = storeToRefs(useProject())
 const { navigateToProject } = useProjects()
 const { openedPage, nestedPagesOfProjects } = storeToRefs(useDocStore())
@@ -36,7 +37,7 @@ const dbViewTitle = computed(() => route.value.params.viewTitle)
 const viewTitle = computed(() => (project.value?.type === NcProjectType.DOCS ? pageTitle.value : dbViewTitle.value))
 
 const inviteUrl = computed(() =>
-  invitationUsersData.value.invitationToken ? `${dashboardUrl}#/signup/${invitationUsersData.value.invitationToken}` : null,
+  invitationUsersData.value.invitationToken ? `${dashboardUrl.value}#/signup/${invitationUsersData.value.invitationToken}` : null,
 )
 
 const indicator = h(LoadingOutlined, {

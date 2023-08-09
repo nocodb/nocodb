@@ -8,7 +8,7 @@ const { lang: currentLang } = useGlobal()
 
 const { locale } = useI18n()
 
-const languages = $computed(() => Object.entries(Language).sort() as [keyof typeof Language, Language][])
+const languages = computed(() => Object.entries(Language).sort() as [keyof typeof Language, Language][])
 
 async function changeLanguage(lang: string) {
   const nextLang = lang as keyof typeof Language

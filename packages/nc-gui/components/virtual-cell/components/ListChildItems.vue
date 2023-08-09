@@ -80,7 +80,7 @@ const expandedFormDlg = ref(false)
 
 const expandedFormRow = ref()
 
-const colTitle = $computed(() => injectedColumn.value?.title || '')
+const colTitle = computed(() => injectedColumn.value?.title || '')
 
 /** reload children list whenever cell value changes and list is visible */
 watch(

@@ -66,7 +66,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
   const router = useRouter()
 
-  const route = $(router.currentRoute)
+  const route = router.currentRoute
 
   // const { appInfo } = $(useGlobal())
 
@@ -103,7 +103,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     eventBatcher.enqueueEvent({
       event: '$page',
       path: to.matched[0].path + (to.query && to.query.type ? `?type=${to.query.type}` : ''),
-      pid: route?.params?.projectId,
+      pid: route.value?.params?.projectId,
     })
   })
 
@@ -118,7 +118,12 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       //     pid: route?.params?.projectId,
       //   })
       // }
-      eventBatcher.enqueueEvent({ event: evt, ...(data || {}), path: route?.matched?.[0]?.path, pid: route?.params?.projectId })
+      eventBatcher.enqueueEvent({
+        event: evt,
+        ...(data || {}),
+        path: route.value?.matched?.[0]?.path,
+        pid: route.value?.params?.projectId,
+      })
     },
   }
 

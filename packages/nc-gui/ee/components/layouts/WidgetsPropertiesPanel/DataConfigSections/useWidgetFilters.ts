@@ -11,9 +11,9 @@ const useWidgetFilters = (widget: Ref<Widget | undefined>, parentId?: string) =>
   const { availableColumnsOfSelectedView: columns, focusedWidget, openedLayoutId } = storeToRefs(dashboardStore)
   const { reloadWidgetDataEventBus } = dashboardStore
   const router = useRouter()
-  const route = $(router.currentRoute)
+  const route = router.currentRoute
   const filters = ref<Filter[]>([])
-  const openedProjectId = computed<string>(() => route.params.projectId as string)
+  const openedProjectId = computed<string>(() => route.value.params.projectId as string)
 
   const options = computed<SelectProps['options']>(() => {
     return columns.value?.filter((c: ColumnType) => {

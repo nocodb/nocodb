@@ -132,7 +132,7 @@ const renderDateFilterInput = (sub_op: string) => {
   return DatePicker
 }
 
-const componentMap: Partial<Record<FilterType, any>> = $computed(() => {
+const componentMap: Partial<Record<FilterType, any>> = computed(() => {
   return {
     isSingleSelect: renderSingleSelect(props.filter.comparison_op!),
     isMultiSelect: MultiSelect,
@@ -151,12 +151,12 @@ const componentMap: Partial<Record<FilterType, any>> = $computed(() => {
   }
 })
 
-const filterType = $computed(() => {
-  return Object.keys(componentMap).find((key) => checkType(key as FilterType))
+const filterType = computed(() => {
+  return Object.keys(componentMap.value).find((key) => checkType(key as FilterType))
 })
 
-const componentProps = $computed(() => {
-  switch (filterType) {
+const componentProps = computed(() => {
+  switch (filterType.value) {
     case 'isSingleSelect':
     case 'isMultiSelect': {
       return { disableOptionCreation: true }
@@ -177,7 +177,7 @@ const componentProps = $computed(() => {
   }
 })
 
-const hasExtraPadding = $computed(() => {
+const hasExtraPadding = computed(() => {
   return (
     column.value &&
     (column.value?.uidt === UITypes.Links ||

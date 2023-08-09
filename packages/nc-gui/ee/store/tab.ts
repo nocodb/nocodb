@@ -22,8 +22,9 @@ export const useTabs = defineStore('tabStore', () => {
 
   const { isUIAllowed } = useUIPermission()
 
-  const { openedPageId } = storeToRefs(useDocStore())
-  const { nestedUrl, projectUrl: docsProjectUrl } = useDocStore()
+  const docStore = useDocStore()
+  const { nestedUrl, projectUrl: docsProjectUrl } = docStore
+  const { openedPageId } = storeToRefs(docStore)
 
   const projectsStore = useProjects()
 

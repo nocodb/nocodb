@@ -9,14 +9,11 @@ const router = useRouter()
 const { isUIAllowed } = useUIPermission()
 
 const workspaceStore = useWorkspace()
-
 const { deleteWorkspace: _deleteWorkspace, loadWorkspaces, populateWorkspace } = workspaceStore
-
-const projectsStore = useProjects()
-
 const { workspacesList, activeWorkspace, activePage, collaborators, activeWorkspaceId } = storeToRefs(workspaceStore)
 
-const { loadProjects } = useProjects()
+const projectsStore = useProjects()
+const { loadProjects } = projectsStore
 
 const route = router.currentRoute
 

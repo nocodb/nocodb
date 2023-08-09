@@ -12,9 +12,9 @@ const MAX_TITLE_LENGTH = 150
 
 const { project } = useProject()
 
-const { openedPage, isEditAllowed, isPageFetching } = storeToRefs(useDocStore())
-
-const { updatePage } = useDocStore()
+const docStore = useDocStore()
+const { updatePage } = docStore
+const { openedPage, isEditAllowed, isPageFetching } = storeToRefs(docStore)
 
 const titleInputRef = ref<HTMLInputElement>()
 

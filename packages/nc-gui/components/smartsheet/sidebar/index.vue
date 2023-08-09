@@ -28,8 +28,9 @@ const activeView = inject(ActiveViewInj, ref())
 
 const { activeTab } = storeToRefs(useTabs())
 
-const { isViewsLoading, views } = storeToRefs(useViewsStore())
-const { loadViews } = useViewsStore()
+const viewsStore = useViewsStore()
+const { loadViews } = viewsStore
+const { isViewsLoading, views } = storeToRefs(viewsStore)
 
 const { lastOpenedViewMap } = storeToRefs(useProject())
 

@@ -8,8 +8,10 @@ const { editor } = defineProps<Props>()
 
 const { project } = storeToRefs(useProject())
 
-const { flattenedNestedPages, openedPage } = storeToRefs(useDocStore())
-const { nestedSlugsFromPageId, nestedUrl } = useDocStore()
+const docStore = useDocStore()
+const { nestedSlugsFromPageId, nestedUrl } = docStore
+const { flattenedNestedPages, openedPage } = storeToRefs(docStore)
+
 interface Props {
   editor: Editor
 }

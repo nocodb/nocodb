@@ -4,8 +4,10 @@ import { useDocStore } from '#imports'
 
 export const useDocHistoryStore = defineStore('docHistoryStore', () => {
   const { $api } = useNuxtApp()
-  const { openedPage, openedProjectId } = storeToRefs(useDocStore())
-  const { fetchPage } = useDocStore()
+
+  const docStore = useDocStore()
+  const { fetchPage } = docStore
+  const { openedPage, openedProjectId } = storeToRefs(docStore)
 
   const isHistoryPaneOpen = ref(false)
   const isRestoring = ref(false)

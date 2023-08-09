@@ -9,9 +9,14 @@ import { emptySectionContent, removeUploadingPlaceHolderAndEmptyLinkNode } from 
 import '~/assets/docsPage.scss'
 
 const { project } = useProject()
+
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+
 useShortcuts()
 
+const { currentSnapshot, isHistoryPaneOpen, prevSnapshot } = storeToRefs(useDocHistoryStore())
+
+const docStore = useDocStore()
 const {
   openedPageId,
   openedPage,
@@ -21,11 +26,9 @@ const {
   isEditAllowed: _isEditAllowed,
   isPageFetching,
   flattenedNestedPages,
-} = storeToRefs(useDocStore())
+} = storeToRefs(docStore)
 
-useDocHistoryStore()
-const { currentSnapshot, isHistoryPaneOpen, prevSnapshot } = storeToRefs(useDocHistoryStore())
-const { updatePage, nestedUrl, openPage } = useDocStore()
+const { updatePage, nestedUrl, openPage } = docStore
 
 const isEditAllowed = computed(() => _isEditAllowed.value && !currentSnapshot.value)
 

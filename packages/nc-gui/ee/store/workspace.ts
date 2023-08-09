@@ -15,6 +15,7 @@ interface NcWorkspace extends WorkspaceType {
 export const useWorkspace = defineStore('workspaceStore', () => {
   // todo: update type in swagger
   const projectsStore = useProjects()
+  const { clearProjects } = projectsStore
 
   const collaborators = ref<WorkspaceUserType[] | null>()
 
@@ -357,8 +358,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   const clearWorkspaces = () => {
-    const { clearProjects } = useProjects()
-
     clearProjects()
     workspaces.value.clear()
   }

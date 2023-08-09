@@ -12,8 +12,9 @@ const indicator = h(LoadingOutlined, {
   spin: true,
 })
 
-const { flattenedNestedPages, openedProjectId, nestedPagesOfProjects, isPublic } = storeToRefs(useDocStore())
-const { nestedUrl, fetchPage } = useDocStore()
+const docStore = useDocStore()
+const { nestedUrl, fetchPage } = docStore
+const { flattenedNestedPages, openedProjectId, nestedPagesOfProjects, isPublic } = storeToRefs(docStore)
 
 const isLoading = ref(false)
 const isErrored = ref(false)

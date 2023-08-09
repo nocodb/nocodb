@@ -12,8 +12,7 @@ const props = defineProps<{
 
 const project = toRef(props, 'project')
 
-const { openedPageInSidebar, nestedPagesOfProjects, isEditAllowed, openedPage } = storeToRefs(useDocStore())
-
+const docStore = useDocStore()
 const {
   deletePage,
   reorderPages,
@@ -23,7 +22,8 @@ const {
   getChildrenOfPage,
   openPage,
   getAllChildrenOfPage,
-} = useDocStore()
+} = docStore
+const { openedPageInSidebar, nestedPagesOfProjects, isEditAllowed, openedPage } = storeToRefs(docStore)
 
 const nestedPages = computed(() => nestedPagesOfProjects.value[project.value.id!])
 

@@ -13,10 +13,10 @@ const { project } = storeToRefs(projectStore)
 
 const route = useRoute()
 
+const docStore = useDocStore()
+const { fetchNestedPages, navigateToFirstPage } = docStore
 const { isNestedFetchErrored, isPageErrored, openedProjectId, openedPageId, flattenedNestedPages, isNestedPublicPage } =
-  storeToRefs(useDocStore())
-
-const { fetchNestedPages, navigateToFirstPage } = useDocStore()
+  storeToRefs(docStore)
 
 const isFetching = ref(true)
 const isSidebarOpen = ref(false)

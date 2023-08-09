@@ -3,8 +3,10 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { collaborators } = storeToRefs(useWorkspace())
-const { populateWorkspace } = useWorkspace()
+const workspaceStore = useWorkspace()
+const { populateWorkspace } = workspaceStore
+const { collaborators } = storeToRefs(workspaceStore)
+
 const projectsStore = useProjects()
 
 watch(

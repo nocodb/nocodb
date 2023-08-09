@@ -42,8 +42,6 @@ const { activeWorkspace } = storeToRefs(workspaceStore)
 const { loadProjectTables } = useTablesStore()
 const { activeTable } = storeToRefs(useTablesStore())
 
-const { addNewLayout } = useDashboardStore()
-
 const { appInfo } = useGlobal()
 
 useTabs()
@@ -64,13 +62,11 @@ const { projectUrl } = useProject()
 
 const toggleDialog = inject(ToggleDialogInj, () => {})
 
-const { addNewPage, populatedNestedPages } = useDocStore()
-
-const { getDashboardProjectUrl: dashboardProjectUrl, populateLayouts } = useDashboardStore()
+const { addNewLayout, getDashboardProjectUrl: dashboardProjectUrl, populateLayouts } = useDashboardStore()
 
 const activeProjectId = computed(() => route.value.params.projectId as string | undefined)
 
-const { projectUrl: docsProjectUrl } = useDocStore()
+const { addNewPage, populatedNestedPages, projectUrl: docsProjectUrl } = useDocStore()
 
 const { $e } = useNuxtApp()
 

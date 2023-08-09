@@ -10,8 +10,9 @@ const visible = useVModel(props, 'visible', emits)
 
 const { closeTab } = useTabs()
 
-const { projects } = storeToRefs(useProjects())
-const { deleteProject } = useProjects()
+const projectsStore = useProjects()
+const { deleteProject } = projectsStore
+const { projects } = storeToRefs(projectsStore)
 
 const { refreshCommandPalette } = useCommandPalette()
 

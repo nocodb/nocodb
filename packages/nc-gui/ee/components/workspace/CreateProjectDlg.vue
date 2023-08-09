@@ -22,15 +22,13 @@ const emit = defineEmits(['update:modelValue'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const projectsStore = useProjects()
-
 const workspaceStore = useWorkspace()
 const { activeWorkspace } = storeToRefs(workspaceStore)
-const { loadProjects } = useProjects()
+
+const projectsStore = useProjects()
+const { loadProjects, createProject: _createProject } = projectsStore
 
 const { navigateToProject } = useGlobal()
-
-const { createProject: _createProject } = projectsStore
 
 const nameValidationRules = [
   {

@@ -3,8 +3,9 @@ import { onKeyStroke } from '@vueuse/core'
 const useShortcuts = () => {
   const { project } = storeToRefs(useProject())
 
-  const { openedPage, isEditAllowed } = storeToRefs(useDocStore())
-  const { addNewPage, getParentOfPage } = useDocStore()
+  const docStore = useDocStore()
+  const { addNewPage, getParentOfPage } = docStore
+  const { openedPage, isEditAllowed } = storeToRefs(docStore)
 
   const shortCuts = [
     {

@@ -15,10 +15,7 @@ const emit = defineEmits(['update:modelValue'])
 const dialogShow = useVModel(props, 'modelValue', emit)
 
 const projectsStore = useProjects()
-
-const { loadProjects } = useProjects()
-
-const { createProject: _createProject } = projectsStore
+const { loadProjects, createProject: _createProject } = projectsStore
 
 const { navigateToProject } = useGlobal()
 

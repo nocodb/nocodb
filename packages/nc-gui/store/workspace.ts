@@ -8,6 +8,7 @@ import type { ThemeConfig } from '#imports'
 
 export const useWorkspace = defineStore('workspaceStore', () => {
   const projectsStore = useProjects()
+  const { clearProjects } = projectsStore
 
   const collaborators = ref<any[] | null>()
 
@@ -188,8 +189,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   const clearWorkspaces = () => {
-    const { clearProjects } = useProjects()
-
     clearProjects()
     workspaces.value.clear()
   }

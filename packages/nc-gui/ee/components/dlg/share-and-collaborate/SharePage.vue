@@ -14,9 +14,12 @@ const { view: _view, $api } = useSmartsheetStoreOrThrow()
 const { $e } = useNuxtApp()
 
 const { project } = storeToRefs(useProject())
+
 const { isProjectPublic } = storeToRefs(useShare())
-const { openedPage, nestedPublicParentPage, nestedPagesOfProjects } = storeToRefs(useDocStore())
-const { updatePage, nestedUrl } = useDocStore()
+
+const docStore = useDocStore()
+const { updatePage, nestedUrl } = docStore
+const { openedPage, nestedPublicParentPage, nestedPagesOfProjects } = storeToRefs(docStore)
 
 const { dashboardUrl } = useDashboard()
 

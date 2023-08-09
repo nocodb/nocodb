@@ -7,12 +7,12 @@ import { NcProjectType, isEeUI, navigateTo, storeToRefs, timeAgo, useGlobal, use
 import { useNuxtApp } from '#app'
 
 const workspaceStore = useWorkspace()
-const projectsStore = useProjects()
 const { updateProjectTitle } = workspaceStore
 const { activePage } = storeToRefs(workspaceStore)
 
-const { loadProjects } = useProjects()
-const { projectsList, isProjectsLoading } = storeToRefs(useProjects())
+const projectsStore = useProjects()
+const { loadProjects } = projectsStore
+const { projectsList, isProjectsLoading } = storeToRefs(projectsStore)
 
 const { navigateToProject } = useGlobal()
 

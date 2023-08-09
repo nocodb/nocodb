@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { defineProps, h } from 'vue'
+import { h } from 'vue'
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu, generateHTML } from '@tiptap/vue-3'
 import { Slice } from 'prosemirror-model'

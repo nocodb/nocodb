@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { defineProps } from 'vue'
 import type { WidgetTemplate } from '../types'
 const props = defineProps<{
   item: WidgetTemplate

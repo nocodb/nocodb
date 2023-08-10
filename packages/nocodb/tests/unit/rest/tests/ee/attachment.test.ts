@@ -9,7 +9,7 @@ import init from '../../../init';
 
 const FILE_PATH = path.join(__dirname, 'test.txt');
 
-function attachmentTests() {
+function attachmentTestsEE() {
   let context;
 
   beforeEach(async function () {
@@ -90,6 +90,6 @@ function attachmentTests() {
 
 export default function () {
   if (process.env.NC_EDITION === 'enterprise') {
-    describe('Attachment', attachmentTests);
+    describe('Attachment', attachmentTestsEE);
   }
 }

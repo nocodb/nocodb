@@ -45,7 +45,7 @@ const loadCollaborators = async () => {
         ...user,
         projectRoles: user.roles,
         // TODO: Remove this hack and make the values consistent with the backend
-        roles: user.roles ?? (rolesLabel[user.workspace_roles] as string).toLowerCase(),
+        roles: user.roles ?? (rolesLabel[user.workspace_roles] as string)?.toLowerCase(),
       })),
     ]
   } catch (e: any) {

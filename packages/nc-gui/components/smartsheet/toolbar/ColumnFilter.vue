@@ -273,13 +273,14 @@ const addFilterGroup = async () => {
     class="menu-filter-dropdown"
     :class="{
       'max-h-[max(80vh,500px)] min-w-112 py-6 pl-6': !nested,
+      'w-full': nested,
     }"
   >
     <div
       v-if="filters && filters.length"
       ref="wrapperDomRef"
-      class="flex flex-col gap-y-3 nc-filter-grid pb-2 -mr-2"
-      :class="{ 'max-h-420px nc-scrollbar-md w-full pr-3.5 nc-filter-top-wrapper': !nested }"
+      class="flex flex-col gap-y-3 nc-filter-grid pb-2 w-full"
+      :class="{ 'max-h-420px nc-scrollbar-md  pr-3.5 nc-filter-top-wrapper': !nested }"
       @click.stop
     >
       <template v-for="(filter, i) in filters" :key="i">
@@ -315,7 +316,7 @@ const addFilterGroup = async () => {
                 </NcButton>
               </div>
 
-              <div class="flex border-1 rounded-lg p-2">
+              <div class="flex border-1 rounded-lg p-2 w-full">
                 <LazySmartsheetToolbarColumnFilter
                   v-if="filter.id || filter.children"
                   :key="filter.id ?? i"
@@ -350,7 +351,7 @@ const addFilterGroup = async () => {
             <SmartsheetToolbarFieldListAutoCompleteDropdown
               :key="`${i}_6`"
               v-model="filter.fk_column_id"
-              class="nc-filter-field-select min-w-40 max-w-40 max-h-8"
+              class="nc-filter-field-select min-w-32 max-w-32 max-h-8"
               :columns="columns"
               :disabled="filter.readOnly"
               @click.stop
@@ -359,7 +360,7 @@ const addFilterGroup = async () => {
             <NcSelect
               v-model:value="filter.comparison_op"
               :dropdown-match-select-width="false"
-              class="caption nc-filter-operation-select !min-w-30.75 !max-w-30.75 max-h-8"
+              class="caption nc-filter-operation-select !min-w-26.75 !max-w-26.75 max-h-8"
               :placeholder="$t('labels.operation')"
               density="compact"
               variant="solo"
@@ -380,7 +381,7 @@ const addFilterGroup = async () => {
               v-else-if="[UITypes.Date, UITypes.DateTime].includes(getColumn(filter)?.uidt)"
               v-model:value="filter.comparison_sub_op"
               :dropdown-match-select-width="false"
-              class="caption nc-filter-sub_operation-select max-w-34 min-w-34"
+              class="caption nc-filter-sub_operation-select max-w-28 min-w-28"
               :placeholder="$t('labels.operationSub')"
               density="compact"
               variant="solo"

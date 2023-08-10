@@ -114,6 +114,7 @@ export class ToolbarFilterPage extends BasePage {
     locallySaved = false,
     dataType,
     openModal = false,
+    // TODO: we do not wait for api response as there are cases where new filter will not be saved
     skipWaitingResponse = false, // used for undo (single request, less stable)
   }: {
     title: string;
@@ -127,32 +128,34 @@ export class ToolbarFilterPage extends BasePage {
   }) {
     if (!openModal) await this.get().locator(`button:has-text("Add Filter")`).first().click();
 
+    // TODO: Integrated the draft filter logic here as well, since when we add a filter its not saved till all
+    // its values are filled
+    skipWaitingResponse = true;
+
     const selectedField = await getTextExcludeIconText(
       await this.rootPage.locator('.nc-filter-field-select .ant-select-selection-item')
     );
     if (selectedField !== title) {
       await this.rootPage.locator('.nc-filter-field-select').last().click();
 
-      // TODO: Integrated the draft filter logic here as well, since when we add a filter its not saved till all
-      // its values are filled
-      await this.rootPage
-        .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
-        .locator(`div[label="${title}"]:visible`)
-        .click()
-        .then(() => {});
-      await this.rootPage.waitForTimeout(650);
-      // if (skipWaitingResponse || true) {
-      // } else {
-      //   await this.waitForResponse({
-      //     uiAction: () =>
-      //       this.rootPage
-      //         .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
-      //         .locator(`div[label="${title}"]:visible`)
-      //         .click(),
-      //     httpMethodsToMatch: ['GET'],
-      //     requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
-      //   });
-      // }
+      if (skipWaitingResponse) {
+        await this.rootPage
+          .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
+          .locator(`div[label="${title}"]:visible`)
+          .click()
+          .then(() => {});
+        await this.rootPage.waitForTimeout(350);
+      } else {
+        await this.waitForResponse({
+          uiAction: () =>
+            this.rootPage
+              .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
+              .locator(`div[label="${title}"]:visible`)
+              .click(),
+          httpMethodsToMatch: ['GET'],
+          requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+        });
+      }
     }
 
     const selectedOpType = await getTextExcludeIconText(await this.rootPage.locator('.nc-filter-operation-select'));
@@ -167,6 +170,7 @@ export class ToolbarFilterPage extends BasePage {
           .first()
           .click()
           .then(() => {});
+        await this.rootPage.waitForTimeout(350);
       } else {
         await this.waitForResponse({
           uiAction: () =>
@@ -196,6 +200,7 @@ export class ToolbarFilterPage extends BasePage {
             .locator(`.ant-select-item:has-text("${subOperation}")`)
             .first()
             .click();
+          await this.rootPage.waitForTimeout(350);
         } else {
           await this.waitForResponse({
             uiAction: () =>
@@ -242,6 +247,7 @@ export class ToolbarFilterPage extends BasePage {
 
             if (skipWaitingResponse) {
               await this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click();
+              await this.rootPage.waitForTimeout(350);
             } else {
               await this.waitForResponse({
                 uiAction: () => this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click(),
@@ -251,11 +257,16 @@ export class ToolbarFilterPage extends BasePage {
             }
           } else {
             fillFilter = () => this.rootPage.locator('.nc-filter-value-select > input').last().fill(value);
-            await this.waitForResponse({
-              uiAction: fillFilter,
-              httpMethodsToMatch: ['GET'],
-              requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
-            });
+            if (skipWaitingResponse) {
+              await fillFilter();
+              await this.rootPage.waitForTimeout(350);
+            } else {
+              await this.waitForResponse({
+                uiAction: fillFilter,
+                httpMethodsToMatch: ['GET'],
+                requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+              });
+            }
             await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
             await this.toolbar.parent.waitLoading();
           }
@@ -263,6 +274,7 @@ export class ToolbarFilterPage extends BasePage {
         case UITypes.Duration:
           if (skipWaitingResponse) {
             await this.get().locator('.nc-filter-value-select').locator('input').fill(value);
+            await this.rootPage.waitForTimeout(350);
           } else {
             await this.waitForResponse({
               uiAction: () => this.get().locator('.nc-filter-value-select').locator('input').fill(value),

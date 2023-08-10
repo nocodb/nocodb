@@ -9,7 +9,7 @@ on:
         paths:
             - "packages/nc-gui/**"
             - "packages/nocodb/**"
-            - ".github/workflows/ci-cd.yml"
+            - ".github/workflows/ci-cd-ee.yml"
             - "tests/playwright/**"
     pull_request:
         types: [opened, reopened, synchronize, ready_for_review, labeled]
@@ -17,8 +17,8 @@ on:
         paths:
             - "packages/nc-gui/**"
             - "packages/nocodb/**"
-            - ".github/workflows/ci-cd.yml"
-            - ".github/workflows/playwright-test-workflow.yml"            
+            - ".github/workflows/ci-cd-ee.yml"
+            - ".github/workflows/playwright-test-workflow-ee.yml"
             - "tests/playwright/**"
     # Triggered manually
     workflow_dispatch:    
@@ -74,25 +74,25 @@ jobs:
           run: npm run test:unit:pg:ee
     playwright-pg-shard-1:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      uses: ./.github/workflows/playwright-test-workflow.yml
+      uses: ./.github/workflows/playwright-test-workflow-ee.yml
       with:
         db: pg
         shard: 1
     playwright-pg-shard-2:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      uses: ./.github/workflows/playwright-test-workflow.yml
+      uses: ./.github/workflows/playwright-test-workflow-ee.yml
       with:
         db: pg
         shard: 2
     playwright-pg-shard-3:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      uses: ./.github/workflows/playwright-test-workflow.yml
+      uses: ./.github/workflows/playwright-test-workflow-ee.yml
       with:
         db: pg
         shard: 3
 #    playwright-pg-shard-4:
 #      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-#      uses: ./.github/workflows/playwright-test-workflow.yml
+#      uses: ./.github/workflows/playwright-test-workflow-ee.yml
 #      with:
 #        db: pg
 #        shard: 4

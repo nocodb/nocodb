@@ -268,13 +268,15 @@ export async function getDbRows(param: {
       break;
     }
 
+    const needSerializeColumns = view.model.columns.filter((column) => {
+      // eslint-disable-next-line no-prototype-builtins
+      return rows[0].hasOwnProperty(column.title);
+    });
+
     for (const row of rows) {
       const dbRow = { ...row };
 
-      for (const column of view.model.columns) {
-        if (isSystemColumn(column) && !view.show_system_fields) continue;
-        // eslint-disable-next-line no-prototype-builtins
-        if (!dbRow.hasOwnProperty(column.title)) continue;
+      for (const column of needSerializeColumns) {
         dbRow[column.title] = await serializeCellValue({
           value: row[column.title],
           column,

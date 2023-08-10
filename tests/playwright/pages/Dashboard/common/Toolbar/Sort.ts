@@ -16,13 +16,54 @@ export class ToolbarSortPage extends BasePage {
   }
 
   async verify({ index, column, direction }: { index: number; column: string; direction: string }) {
-    const fieldLocator = await this.get().locator('.nc-sort-field-select').nth(index);
+    const fieldLocator = this.get().locator('.nc-sort-field-select').nth(index);
     const fieldText = await getTextExcludeIconText(fieldLocator);
-    await expect(fieldText).toBe(column);
+    expect(fieldText).toBe(column);
 
-    await expect(
-      await this.get().locator('.nc-sort-dir-select >> span.ant-select-selection-item').nth(index)
-    ).toHaveText(direction);
+    await expect(this.get().locator('.nc-sort-dir-select >> span.ant-select-selection-item').nth(index)).toHaveText(
+      direction
+    );
+  }
+
+  async update({
+    index,
+    title,
+    ascending,
+    locallySaved,
+  }: {
+    index: number;
+    title: string;
+    ascending: boolean;
+    locallySaved: boolean;
+  }) {
+    await this.toolbar.clickSort();
+    const col = await this.rootPage.locator('.nc-sort-field-select').nth(index).textContent();
+    if (col !== title) {
+      await this.rootPage.locator('.nc-sort-field-select').nth(index).click();
+      await this.rootPage
+        .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
+        .locator(`div[label="${title}"]`)
+        .last()
+        .click();
+    }
+
+    await this.rootPage.locator('.nc-sort-dir-select').nth(index).click();
+    const selectSortDirection = () =>
+      this.rootPage
+        .locator('.nc-dropdown-sort-dir')
+        .nth(index)
+        .locator('.ant-select-item')
+        .nth(ascending ? 0 : 1)
+        .click();
+    await this.waitForResponse({
+      uiAction: selectSortDirection,
+      httpMethodsToMatch: ['GET'],
+      requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+    });
+    await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
+    // close sort menu
+    await this.toolbar.clickSort();
+    await this.toolbar.parent.waitLoading();
   }
 
   async add({ title, ascending, locallySaved }: { title: string; ascending: boolean; locallySaved: boolean }) {

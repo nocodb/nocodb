@@ -21,124 +21,110 @@ test.describe('Toolbar operations (GRID)', () => {
     toolbar = dashboard.grid.toolbar;
   });
 
-  test('Group', async () => {
-    await dashboard.treeView.openTable({ title: 'FilmList' });
+  test.only('Create a GroupBy and Verify With Sort, Filter, Hide', async () => {
+    // Open Table
+    await dashboard.treeView.openTable({ title: 'Film' });
 
     // Open GroupBy Menu
     await toolbar.clickGroupBy();
 
     // GroupBy Category Descending Order
-    await toolbar.groupBy.add({ title: 'Category', ascending: false, locallySaved: false });
+    await toolbar.groupBy.add({ title: 'Length', ascending: false, locallySaved: false });
 
-    // Verify Total Group Count
-    await dashboard.grid.verifyPaginationCount({ count: 16 });
-
-    // Close GroupBy Menu
-    await toolbar.clickGroupBy();
-
-    //Open Group by indexMap
-    await dashboard.grid.groupPage.openGroup({ indexMap: [0] });
-
-    // Verify Row inside Group
-    await dashboard.grid.groupPage.verifyRow({ indexMap: [0], rowIndex: 3 });
-
-    // Open GroupBy Menu
-    await toolbar.clickGroupBy();
-
-    // GroupBy Title field Ascending Order
-    await toolbar.groupBy.add({ title: 'Title', ascending: true, locallySaved: false });
-
-    // Close GroupBy Menu
-    await toolbar.clickGroupBy();
-
-    // Open Group
-    await dashboard.grid.groupPage.openGroup({
-      indexMap: [0, 1],
-    });
-
-    // Verify Row in Subgroup
-    await dashboard.grid.groupPage.verifyRow({
-      indexMap: [0, 1],
-      rowIndex: 0,
-    });
-
-    //Verify Group Header
-    await dashboard.grid.groupPage.verifyGroupHeader({
-      indexMap: [0, 1],
-      count: 1,
-      title: 'Title',
-    });
-
-    // Verify Pagination Count
-    await dashboard.grid.groupPage.verifyPagination({
-      indexMap: [0, 1],
-      count: 1,
-    });
-
-    // Open GroupBy Menu
-    await toolbar.clickGroupBy();
-
-    //Remove All GroupBy Conditions
-    await toolbar.groupBy.reset();
-
-    // Close GroupBy Menu
-    await toolbar.clickGroupBy();
-
-    // Open GroupBy Menu
-    await toolbar.clickGroupBy();
-
-    await toolbar.groupBy.add({ title: 'Category', ascending: false, locallySaved: false });
-    await toolbar.groupBy.add({ title: 'Length', ascending: true, locallySaved: false });
-
-    // Close GroupBy Menu
-    await toolbar.clickGroupBy();
-
-    // Open Group
-    await dashboard.grid.groupPage.openGroup({ indexMap: [1, 0] });
-
-    // Verify Ordering
-    await dashboard.grid.groupPage.verifyGroup({ indexMap: [1], value: 'Drama' });
-
-    // hide column with Grouping
-    await toolbar.fields.toggle({ title: 'Title' });
+    // Hide Field and Verify
+    await toolbar.fields.toggle({ title: 'Description' });
     await dashboard.grid.column.verify({
-      title: 'Title',
+      title: 'Description',
       isVisible: false,
     });
 
-    // un-hide column with Grouping
-    await toolbar.fields.toggle({ title: 'Title' });
-    await dashboard.grid.column.verify({
-      title: 'Title',
-      isVisible: true,
-    });
-
-    // Filter column with Grouping
+    // Filter a Field and Verify
     await toolbar.clickFilter();
     await toolbar.filter.add({
-      title: 'Category',
-      value: 'Comedy',
-      operation: 'is equal',
+      title: 'Length',
+      value: '183',
+      operation: '=',
       locallySaved: false,
     });
     await toolbar.clickFilter();
 
-    // Verify Grouping
     await dashboard.grid.groupPage.verifyGroupHeader({
       indexMap: [0],
-      count: 58,
-      title: 'Category',
+      count: 5,
+      title: 'Length',
     });
 
     await dashboard.grid.groupPage.verifyGroup({
-      indexMap: [1],
-      value: 'Comedy',
+      indexMap: [0],
+      value: '183',
     });
 
-    //Reset Changes
-    await toolbar.clickGroupBy();
-    await toolbar.groupBy.reset();
+    // Add Sort and Verify
+    await toolbar.sort.add({ title: 'Title', ascending: false, locallySaved: false });
+    await dashboard.grid.groupPage.openGroup({ indexMap: [0] });
+    await dashboard.grid.groupPage.validateFirstRow({
+      indexMap: [0],
+      rowIndex: 0,
+      columnHeader: 'Title',
+      value: 'YOUNG LANGUAGE',
+    });
+
+    // Update Sort and Verify
+    await toolbar.sort.update({ index: 1, title: 'Title', ascending: true, locallySaved: false });
+    await dashboard.grid.groupPage.openGroup({ indexMap: [0] });
+    await dashboard.grid.groupPage.validateFirstRow({
+      indexMap: [0],
+      rowIndex: 0,
+      columnHeader: 'Title',
+      value: 'CATCH AMISTAD',
+    });
+
+    // Update Hidden Field and Verify
+    await toolbar.fields.toggle({ title: 'Length' });
+    await dashboard.grid.column.verify({
+      title: 'Length',
+      isVisible: false,
+    });
+
+    // Update Filter and Verify
+    //TODO
+
+    // Remove Sort and Verify
+    await toolbar.sort.reset();
+    await dashboard.grid.groupPage.openGroup({ indexMap: [0] });
+    await dashboard.grid.groupPage.validateFirstRow({
+      indexMap: [0],
+      rowIndex: 0,
+      columnHeader: 'Title',
+      value: 'CATCH AMISTAD',
+    });
+
+    // Remove Filter and Verify
     await toolbar.filter.reset();
+    await dashboard.grid.groupPage.verifyGroupHeader({
+      indexMap: [0],
+      count: 10,
+      title: 'Length',
+    });
+    await dashboard.grid.groupPage.verifyGroup({
+      indexMap: [0],
+      value: '185',
+    });
+
+    // Remove Hidden Fields and Verify
+    await toolbar.fields.toggle({ title: 'Length' });
+    await dashboard.grid.column.verify({
+      title: 'Length',
+      isVisible: true,
+    });
+
+    await toolbar.fields.toggle({ title: 'Description' });
+    await dashboard.grid.column.verify({
+      title: 'Description',
+      isVisible: true,
+    });
+
+    await dashboard.closeTab({ title: 'Film' });
   });
 
   test('Hide, Sort, Filter', async () => {

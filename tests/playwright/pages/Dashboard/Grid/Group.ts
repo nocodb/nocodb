@@ -45,6 +45,8 @@ export class GroupPageObject extends BasePage {
     for (const [n] of indexMap.entries()) {
       query += ` .nc-group:nth-child(${n + 1})`;
     }
+    const groupWrapper = this.get({ indexMap });
+    await expect(groupWrapper.locator('.nc-group-value').first()).toHaveText(value);
     await expect(this.rootPage.locator(`${query} .nc-group-value`).first()).toHaveText(value);
   }
 
@@ -52,5 +54,22 @@ export class GroupPageObject extends BasePage {
     const gridWrapper = this.get({ indexMap });
     await gridWrapper.locator(`td[data-testid="cell-Title-${rowIndex}"]`).waitFor({ state: 'visible' });
     await expect(gridWrapper.locator(`td[data-testid="cell-Title-${rowIndex}"]`)).toHaveCount(1);
+  }
+
+  async validateFirstRow({
+    indexMap,
+    rowIndex,
+    columnHeader,
+    value,
+  }: {
+    indexMap: number[];
+    rowIndex: number;
+    columnHeader: string;
+    value: string;
+  }) {
+    const gridWrapper = this.get({ indexMap });
+    await expect(
+      gridWrapper.locator(`.nc-group-table .nc-grid-row:nth-child(${rowIndex + 1}) [data-title="${columnHeader}"]`)
+    ).toHaveText(value);
   }
 }

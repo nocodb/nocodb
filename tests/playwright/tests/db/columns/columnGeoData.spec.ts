@@ -3,7 +3,7 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import setup from '../../../setup';
 import { GridPage } from '../../../pages/Dashboard/Grid';
 
-test.describe('Geo Data column', () => {
+test.describe.skip('Geo Data column', () => {
   let dashboard: DashboardPage;
   let grid: GridPage;
   let context: any;

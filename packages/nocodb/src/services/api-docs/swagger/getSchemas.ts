@@ -1,9 +1,9 @@
-import Noco from '../../../Noco';
 import { getModelSchemas, getViewSchemas } from './templates/schemas';
-import type { Model, Project } from '../../../models';
+import type { Model, Project } from '~/models';
 
 import type { SwaggerColumn } from './getSwaggerColumnMetas';
 import type { SwaggerView } from './getSwaggerJSON';
+import Noco from '~/Noco';
 
 export default async function getSchemas(
   {

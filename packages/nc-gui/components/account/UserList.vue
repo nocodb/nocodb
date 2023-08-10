@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-import { Modal, message } from 'ant-design-vue'
 import type { OrgUserReqType, RequestParams, UserType } from 'nocodb-sdk'
+import type { User } from '#imports'
 import { Role, extractSdkResponseErrorMsg, iconMap, useApi, useCopy, useDashboard, useNuxtApp } from '#imports'
-import type { User } from '~/lib'
 
 const { api, isLoading } = useApi()
 
@@ -10,19 +9,21 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { dashboardUrl } = $(useDashboard())
+const { dashboardUrl } = useDashboard()
 
 const { copy } = useCopy()
 
-let users = $ref<UserType[]>([])
+const users = ref<UserType[]>([])
 
-let currentPage = $ref(1)
+const currentPage = ref(1)
 
-const currentLimit = $ref(10)
+const currentLimit = ref(10)
 
 const showUserModal = ref(false)
 
 const userMadalKey = ref(0)
+
+const isOpen = ref(false)
 
 const searchText = ref<string>('')
 
@@ -32,8 +33,8 @@ const pagination = reactive({
   position: ['bottomCenter'],
 })
 
-const loadUsers = async (page = currentPage, limit = currentLimit) => {
-  currentPage = page
+const loadUsers = async (page = currentPage.value, limit = currentLimit.value) => {
+  currentPage.value = page
   try {
     const response: any = await api.orgUsers.list({
       query: {
@@ -49,7 +50,7 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
 
     pagination.pageSize = 10
 
-    users = response.list as UserType[]
+    users.value = response.list as UserType[]
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -69,22 +70,18 @@ const updateRole = async (userId: string, roles: Role) => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
 const deleteUser = async (userId: string) => {
-  Modal.confirm({
-    title: 'Are you sure you want to delete this user?',
-    type: 'warn',
-    content: 'Upon deletion, the user will be removed from the installation.',
-    onOk: async () => {
-      try {
-        await api.orgUsers.delete(userId)
-        message.success(t('msg.success.userDeleted'))
-        await loadUsers()
-        $e('a:org-user:user-deleted')
-      } catch (e: any) {
-        message.error(await extractSdkResponseErrorMsg(e))
-      }
-    },
-  })
+  try {
+    await api.orgUsers.delete(userId)
+    message.success(t('msg.success.userDeleted'))
+    await loadUsers()
+    $e('a:org-user:user-deleted')
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+  // closing the modal
+  isOpen.value = false
 }
 
 const resendInvite = async (user: User) => {
@@ -104,7 +101,7 @@ const resendInvite = async (user: User) => {
 const copyInviteUrl = async (user: User) => {
   if (!user.invite_token) return
   try {
-    await copy(`${dashboardUrl}#/signup/${user.invite_token}`)
+    await copy(`${dashboardUrl.value}#/signup/${user.invite_token}`)
 
     // Invite URL copied to clipboard
     message.success(t('msg.success.inviteURLCopied'))
@@ -269,7 +266,23 @@ const copyPasswordResetUrl = async (user: User) => {
                       </div>
                     </a-menu-item>
                     <a-menu-item>
-                      <div class="flex flex-row items-center py-3" @click="deleteUser(text)">
+                      <div class="flex flex-row items-center py-3" @click="isOpen = true">
+                        <!-- Delete user modal -->
+                        <GeneralDeleteModal v-model:visible="isOpen" entity-name="User" :on-delete="() => deleteUser(text)">
+                          <template #entity-preview>
+                            <span>
+                              <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
+                                <GeneralIcon icon="account" class="nc-view-icon"></GeneralIcon>
+                                <div
+                                  class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
+                                  :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+                                >
+                                  {{ record.email }}
+                                </div>
+                              </div>
+                            </span>
+                          </template>
+                        </GeneralDeleteModal>
                         <component :is="iconMap.delete" data-testid="nc-super-user-delete" class="flex h-[1rem] text-gray-500" />
                         <div class="text-xs pl-2">{{ $t('general.delete') }}</div>
                       </div>

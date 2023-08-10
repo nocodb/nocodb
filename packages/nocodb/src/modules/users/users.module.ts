@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
-import { GoogleStrategyProvider } from '../../strategies/google.strategy/google.strategy';
-import { GlobalModule } from '../global/global.module';
-import { UsersService } from '../../services/users/users.service';
-import { UsersController } from '../../controllers/users/users.controller';
+import { GoogleStrategyProvider } from '~/strategies/google.strategy/google.strategy';
+import { GlobalModule } from '~/modules/global/global.module';
+import { UsersService } from '~/services/users/users.service';
+import { UsersController } from '~/controllers/users/users.controller';
 
 @Module({
   imports: [GlobalModule, PassportModule],

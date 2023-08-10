@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup from '../../../setup';
 import { GridPage } from '../../../pages/Dashboard/Grid';
@@ -67,7 +67,7 @@ test.describe('Virtual Columns', () => {
       // and compare the base64 encoded codes/src attributes for the first 3 rows.
       // Column data from City table (Sakila DB)
       /**
-       * City                   LastUpdate              Address List                Country
+       * City                   LastUpdate              Addresses                Country
        * A Corua (La Corua)     2006-02-15 04:45:25     939 Probolinggo Loop        Spain
        * Abha                   2006-02-15 04:45:25     733 Mandaluyong Place       Saudi Arabia
        * Abu Dhabi              2006-02-15 04:45:25     535 Ahmadnagar Manor        United Arab Emirates

@@ -1,6 +1,73 @@
 import { OrgUserRoles } from 'nocodb-sdk';
 
-export default {
+const viewerPermissions = {
+  include: {
+    formViewGet: true,
+    passwordChange: true,
+    // project
+    projectGet: true,
+    //table
+    tableGet: true,
+    // data
+    dataList: true,
+    dataRead: true,
+    dataExist: true,
+    dataFindOne: true,
+    dataGroupBy: true,
+    // commentsCount: process.env.NC_CLOUD !== 'true',
+    exportCsv: true,
+    exportExcel: true,
+
+    // sort & filter
+    sortList: true,
+    filterList: true,
+    projectInfoGet: true,
+    projectUserMetaUpdate: true,
+
+    galleryViewGet: true,
+    kanbanViewGet: true,
+    groupedDataList: true,
+
+    mmList: true,
+    hmList: true,
+    // commentList: process.env.NC_CLOUD !== 'true',
+    commentRow: false,
+
+    xcTableAndViewList: true,
+    xcVirtualTableList: true,
+    projectList: true,
+    projectCost: true,
+    PROJECT_READ_BY_WEB: true,
+
+    tableXcModelGet: true,
+    xcRelationList: true,
+    tableList: true,
+    viewList: true,
+    functionList: true,
+    sequenceList: true,
+    procedureList: true,
+    columnList: true,
+    triggerList: true,
+    relationList: true,
+    relationListAll: true,
+    indexList: true,
+    list: true,
+    xcExportAsCsv: true,
+    dataCount: true,
+    swaggerJson: true,
+
+    commandPalette: true,
+
+    // Docs
+    pageGet: true,
+    pageList: true,
+    pageSearch: true,
+    pageParents: true,
+    pagePaginate: true,
+    trackEvents: true,
+  },
+};
+const rolePermissions = {
   owner: {
     exclude: {
       pluginList: true,
@@ -8,6 +75,7 @@ export default {
       pluginRead: true,
       pluginUpdate: true,
       isPluginActive: true,
+      createBase: true,
     },
   },
   creator: {
@@ -18,6 +86,7 @@ export default {
       pluginUpdate: true,
       isPluginActive: true,
       projectDelete: true,
+      createBase: true,
     },
   },
   guest: {},
@@ -32,6 +101,7 @@ export default {
       projectGet: true,
       projectList: true,
       projectCost: true,
+      projectUserMetaUpdate: true,
       //table
       tableList: true,
       tableGet: true,
@@ -159,6 +229,22 @@ export default {
       upload: true,
       uploadViaURL: true,
       swaggerJson: true,
+
+      commandPalette: true,
+
+      // Docs
+      pageGet: true,
+      pageList: true,
+      pageSearch: true,
+      pageParents: true,
+      pageCreate: true,
+      pageUpdate: true,
+      pageDelete: true,
+      pageGpt: true,
+      pagePaginate: true,
+      pageDirectoryImport: true,
+      docsMagicCreatePages: true,
+      trackEvents: true,
     },
   },
   commenter: {
@@ -199,6 +285,7 @@ export default {
       xcVirtualTableList: true,
       projectList: true,
       projectCost: true,
+      projectUserMetaUpdate: true,
       PROJECT_READ_BY_WEB: true,
 
       tableXcModelGet: true,
@@ -219,64 +306,12 @@ export default {
       xcExportAsCsv: true,
       dataCount: true,
       swaggerJson: true,
+
+      commandPalette: true,
+      trackEvents: true,
     },
   },
-  viewer: {
-    include: {
-      formViewGet: true,
-      passwordChange: true,
-      // project
-      projectGet: true,
-      //table
-      tableGet: true,
-      // data
-      dataList: true,
-      dataRead: true,
-      dataExist: true,
-      dataFindOne: true,
-      dataGroupBy: true,
-      commentsCount: true,
-      exportCsv: true,
-      exportExcel: true,
-
-      // sort & filter
-      sortList: true,
-      filterList: true,
-      projectInfoGet: true,
-
-      galleryViewGet: true,
-      kanbanViewGet: true,
-      groupedDataList: true,
-
-      mmList: true,
-      hmList: true,
-      commentList: true,
-      commentRow: false,
-
-      xcTableAndViewList: true,
-      xcVirtualTableList: true,
-      projectList: true,
-      projectCost: true,
-      PROJECT_READ_BY_WEB: true,
-
-      tableXcModelGet: true,
-      xcRelationList: true,
-      tableList: true,
-      viewList: true,
-      functionList: true,
-      sequenceList: true,
-      procedureList: true,
-      columnList: true,
-      triggerList: true,
-      relationList: true,
-      relationListAll: true,
-      indexList: true,
-      list: true,
-      xcExportAsCsv: true,
-      dataCount: true,
-      swaggerJson: true,
-    },
-  },
+  viewer: viewerPermissions,
   [OrgUserRoles.VIEWER]: {
     include: {
       apiTokenList: true,
@@ -284,6 +319,10 @@ export default {
       apiTokenDelete: true,
       passwordChange: true,
       projectList: true,
+      commandPalette: true,
+      trackEvents: true,
+      // allow only in cloud
+      testConnection: true,
     },
   },
   [OrgUserRoles.SUPER_ADMIN]: '*',
@@ -297,16 +336,36 @@ export default {
       passwordChange: true,
       isPluginActive: true,
       projectCreate: true,
+      // projectCreateByWeb: true,
+      // projectCreateByWebWithXCDB: true,
       projectList: true,
       projectCost: true,
       handleAxiosCall: true,
       testConnection: true,
-      projectCreateByWeb: true,
-      projectCreateByWebWithXCDB: true,
       xcPluginRead: true,
       xcMetaTablesImportZipToLocalFsAndDb: true,
       xcMetaTablesExportDbToZip: true,
       auditRowUpdate: true,
+      genericGPT: true,
+      commandPalette: true,
+      runSelectQuery: true,
+
+      // Docs
+      pageGet: true,
+      pageList: true,
+      pageSearch: true,
+      pageParents: true,
+      pageCreate: true,
+      pageUpdate: true,
+      pageDelete: true,
+      pageGpt: true,
+      docsMagicCreatePages: true,
+      pagePaginate: true,
+      pageDirectoryImport: true,
+
+      trackEvents: true,
     },
   },
 };
+
+export default rolePermissions;

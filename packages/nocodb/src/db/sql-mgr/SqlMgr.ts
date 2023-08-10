@@ -8,17 +8,17 @@ import inflection from 'inflection';
 import slash from 'slash';
 import { T } from 'nc-help';
 import { customAlphabet } from 'nanoid';
-import SqlClientFactory from '../sql-client/lib/SqlClientFactory';
-import KnexMigrator from '../sql-migrator/lib/KnexMigrator';
-import NcConnectionMgr from '../../utils/common/NcConnectionMgr';
-import Debug from '../util/Debug';
-import Result from '../util/Result';
-import type MssqlClient from '../sql-client/lib/mssql/MssqlClient';
-import type MysqlClient from '../sql-client/lib/mysql/MysqlClient';
-import type OracleClient from '../sql-client/lib/oracle/OracleClient';
-import type PGClient from '../sql-client/lib/pg/PgClient';
-import type SnowflakeClient from '../sql-client/lib/snowflake/SnowflakeClient';
-import type SqliteClient from '../sql-client/lib/sqlite/SqliteClient';
+import type MssqlClient from '~/db/sql-client/lib/mssql/MssqlClient';
+import type MysqlClient from '~/db/sql-client/lib/mysql/MysqlClient';
+import type OracleClient from '~/db/sql-client/lib/oracle/OracleClient';
+import type PGClient from '~/db/sql-client/lib/pg/PgClient';
+import type SnowflakeClient from '~/db/sql-client/lib/snowflake/SnowflakeClient';
+import type SqliteClient from '~/db/sql-client/lib/sqlite/SqliteClient';
+import Result from '~/db/util/Result';
+import Debug from '~/db/util/Debug';
+import KnexMigrator from '~/db/sql-migrator/lib/KnexMigrator';
+import SqlClientFactory from '~/db/sql-client/lib/SqlClientFactory';
+import NcConnectionMgr from '~/utils/common/NcConnectionMgr';
 
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 20);
 

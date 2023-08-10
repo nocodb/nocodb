@@ -1,12 +1,12 @@
-import Noco from '../Noco';
-import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import { deserializeJSON, serializeJSON } from '../utils/serialize';
-import NocoCache from '../cache/NocoCache';
-import { extractProps } from '../helpers/extractProps';
-import FormViewColumn from './FormViewColumn';
-import View from './View';
 import type { MetaType } from 'nocodb-sdk';
 import type { BoolType, FormType } from 'nocodb-sdk';
+import FormViewColumn from '~/models/FormViewColumn';
+import View from '~/models/View';
+import { extractProps } from '~/helpers/extractProps';
+import NocoCache from '~/cache/NocoCache';
+import Noco from '~/Noco';
+import { deserializeJSON, serializeJSON } from '~/utils/serialize';
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 
 export default class FormView implements FormType {
   show: BoolType;

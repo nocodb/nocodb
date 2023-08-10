@@ -1,10 +1,9 @@
 import Handlebars from 'handlebars';
 import { v4 as uuidv4 } from 'uuid';
-import { Filter, HookLog } from '../models';
-import Noco from '../Noco';
 import NcPluginMgrv2 from './NcPluginMgrv2';
-import type { Column, FormView, Hook, Model, View } from '../models';
+import type { Column, FormView, Hook, Model, View } from '~/models';
 import type { HookLogType } from 'nocodb-sdk';
+import { Filter, HookLog } from '~/models';
 
 Handlebars.registerHelper('json', function (context) {
   return JSON.stringify(context);
@@ -136,7 +135,7 @@ export async function validateCondition(filters: Filter[], data: any) {
 }
 
 export function constructWebHookData(hook, model, view, prevData, newData) {
-  if (hook.version === 'v2' && !Noco.isEE()) {
+  if (hook.version === 'v2') {
     // extend in the future - currently only support records
     const scope = 'records';
 
@@ -146,8 +145,9 @@ export function constructWebHookData(hook, model, view, prevData, newData) {
       data: {
         table_id: model.id,
         table_name: model.title,
-        view_id: view?.id,
-        view_name: view?.title,
+        // webhook are table specific, so no need to send view_id and view_name
+        // view_id: view?.id,
+        // view_name: view?.title,
         ...(prevData && {
           previous_rows: Array.isArray(prevData) ? prevData : [prevData],
         }),

@@ -14,8 +14,8 @@ import {
   ref,
   resolveComponent,
   useApi,
+  useCommandPalette,
   useDialog,
-  useI18n,
   useNuxtApp,
   useRouter,
   useUndoRedo,
@@ -37,8 +37,6 @@ const { views = [] } = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const { t } = useI18n()
-
 const { $e } = useNuxtApp()
 
 const activeView = inject(ActiveViewInj, ref())
@@ -47,17 +45,19 @@ const { api } = useApi()
 
 const router = useRouter()
 
+const { refreshCommandPalette } = useCommandPalette()
+
 const { addUndo, defineModelScope } = useUndoRedo()
 
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
 
 /** dragging renamable view items */
-let dragging = $ref(false)
+const dragging = ref(false)
 
-const menuRef = $ref<typeof AntMenu>()
+const menuRef = ref<typeof AntMenu>()
 
-let isMarked = $ref<string | false>(false)
+const isMarked = ref<string | false>(false)
 
 /** Watch currently active view, so we can mark it in the menu */
 watch(activeView, (nextActiveView) => {
@@ -68,9 +68,9 @@ watch(activeView, (nextActiveView) => {
 
 /** shortly mark an item after sorting */
 function markItem(id: string) {
-  isMarked = id
+  isMarked.value = id
   setTimeout(() => {
-    isMarked = false
+    isMarked.value = false
   }, 300)
 }
 
@@ -92,14 +92,14 @@ let sortable: Sortable
 function onSortStart(evt: SortableEvent) {
   evt.stopImmediatePropagation()
   evt.preventDefault()
-  dragging = true
+  dragging.value = true
 }
 
 async function onSortEnd(evt: SortableEvent, undo = false) {
   if (!undo) {
     evt.stopImmediatePropagation()
     evt.preventDefault()
-    dragging = false
+    dragging.value = false
   }
 
   if (views.length < 2) return
@@ -179,7 +179,7 @@ const initSortable = (el: HTMLElement) => {
   })
 }
 
-onMounted(() => menuRef && initSortable(menuRef.$el))
+onMounted(() => menuRef.value && initSortable(menuRef.value.$el))
 
 /** Navigate to view by changing url param */
 function changeView(view: ViewType) {
@@ -209,6 +209,8 @@ async function onRename(view: ViewType, originalTitle?: string, undo = false) {
       },
     })
 
+    refreshCommandPalette()
+
     if (!undo) {
       addUndo({
         redo: {
@@ -232,7 +234,7 @@ async function onRename(view: ViewType, originalTitle?: string, undo = false) {
     }
 
     // View renamed successfully
-    message.success(t('msg.success.viewRenamed'))
+    // message.success(t('msg.success.viewRenamed'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -250,6 +252,8 @@ function openDeleteDialog(view: ViewType) {
       closeDialog()
 
       emits('deleted')
+
+      refreshCommandPalette()
       if (activeView.value === view) {
         // return to the default view
         router.replace({
@@ -288,32 +292,39 @@ const setIcon = async (icon: string, view: ViewType) => {
 </script>
 
 <template>
-  <a-menu ref="menuRef" :class="{ dragging }" class="nc-views-menu flex-1" :selected-keys="selected">
+  <a-menu
+    ref="menuRef"
+    :class="{ dragging }"
+    class="nc-views-menu flex flex-col !px-3 w-full !border-r-0 !bg-inherit nc-scrollbar-md"
+    :selected-keys="selected"
+  >
     <!-- Lazy load breaks menu item active styles, i.e. styles never change even when active item changes -->
     <SmartsheetSidebarRenameableMenuItem
-      v-for="view of views"
+      v-for="(view, index) of views"
       :id="view.id"
       :key="view.id"
       :view="view"
       :on-validate="validate"
-      class="nc-view-item transition-all ease-in duration-300"
+      class="nc-view-item !rounded-md !pl-1.25 !pr-2.25 !py-0.5 w-full transition-all ease-in duration-300"
       :class="{
-        'bg-gray-100': isMarked === view.id,
+        'bg-gray-200': isMarked === view.id,
         'active': activeView?.id === view.id,
         [`nc-${view.type ? viewTypeAlias[view.type] : undefined || view.type}-view-item`]: true,
       }"
+      :disabled="index === 0"
       @change-view="changeView"
       @open-modal="$emit('openModal', $event)"
       @delete="openDeleteDialog"
       @rename="onRename"
       @select-icon="setIcon($event, view)"
     />
+    <div class="min-h-1 max-h-1 w-full bg-transparent"></div>
   </a-menu>
 </template>
 
 <style lang="scss">
 .nc-views-menu {
-  @apply flex-1 min-h-[100px] overflow-y-scroll scrollbar-thin-dull;
+  @apply min-h-20 flex-grow;
 
   .ghost,
   .ghost > * {
@@ -335,11 +346,11 @@ const setIcon = async (icon: string, view: ViewType) => {
   }
 
   .sortable-chosen {
-    @apply !bg-primary bg-opacity-25 text-primary;
+    @apply !bg-gray-100 bg-opacity-60;
   }
 
   .active {
-    @apply bg-primary bg-opacity-25 text-primary font-medium;
+    @apply bg-gray-200 bg-opacity-60 font-medium;
   }
 }
 </style>

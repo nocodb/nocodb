@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { UITypes } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
-import { storeToRefs } from 'pinia'
 import {
   ActiveCellInj,
   ColumnInj,
@@ -24,10 +24,11 @@ import {
   isYear,
   provide,
   ref,
+  storeToRefs,
   toRef,
   useProject,
 } from '#imports'
-import type { Filter } from '~/lib'
+import type { Filter } from '#imports'
 import SingleSelect from '~/components/cell/SingleSelect.vue'
 import MultiSelect from '~/components/cell/MultiSelect.vue'
 import DatePicker from '~/components/cell/DatePicker.vue'
@@ -80,6 +81,7 @@ const checkTypeFunctions = {
   isInt,
   isFloat,
   isTextArea,
+  isLinks: (col: ColumnType) => col.uidt === UITypes.Links,
 }
 
 type FilterType = keyof typeof checkTypeFunctions
@@ -130,7 +132,7 @@ const renderDateFilterInput = (sub_op: string) => {
   return DatePicker
 }
 
-const componentMap: Partial<Record<FilterType, any>> = $computed(() => {
+const componentMap: Partial<Record<FilterType, any>> = computed(() => {
   return {
     isSingleSelect: renderSingleSelect(props.filter.comparison_op!),
     isMultiSelect: MultiSelect,
@@ -145,15 +147,16 @@ const componentMap: Partial<Record<FilterType, any>> = $computed(() => {
     isDecimal: Decimal,
     isInt: Integer,
     isFloat: Float,
+    isLinks: Integer,
   }
 })
 
-const filterType = $computed(() => {
-  return Object.keys(componentMap).find((key) => checkType(key as FilterType))
+const filterType = computed(() => {
+  return Object.keys(componentMap.value).find((key) => checkType(key as FilterType))
 })
 
-const componentProps = $computed(() => {
-  switch (filterType) {
+const componentProps = computed(() => {
+  switch (filterType.value) {
     case 'isSingleSelect':
     case 'isMultiSelect': {
       return { disableOptionCreation: true }
@@ -161,6 +164,7 @@ const componentProps = $computed(() => {
     case 'isPercent':
     case 'isDecimal':
     case 'isFloat':
+    case 'isLinks':
     case 'isInt': {
       return { class: 'h-32px' }
     }
@@ -173,16 +177,19 @@ const componentProps = $computed(() => {
   }
 })
 
-const hasExtraPadding = $computed(() => {
+const hasExtraPadding = computed(() => {
   return (
     column.value &&
-    (isInt(column.value, abstractType) ||
+    (column.value?.uidt === UITypes.Links ||
+      isInt(column.value, abstractType) ||
       isDate(column.value, abstractType) ||
       isDateTime(column.value, abstractType) ||
       isTime(column.value, abstractType) ||
       isYear(column.value, abstractType))
   )
 })
+
+const isInputBoxOnFocus = ref(false)
 
 // provide the following to override the default behavior and enable input fields like in form
 provide(ActiveCellInj, ref(true))
@@ -198,8 +205,8 @@ provide(IsFormInj, ref(true))
   />
   <div
     v-else
-    class="bg-white border-1 flex min-w-120px max-w-170px min-h-32px h-full"
-    :class="{ 'px-2': hasExtraPadding }"
+    class="bg-white border-1 flex flex-grow min-h-32px h-full items-center"
+    :class="{ 'px-2': hasExtraPadding, 'border-brand-500': isInputBoxOnFocus }"
     @mouseup.stop
   >
     <component
@@ -211,6 +218,8 @@ provide(IsFormInj, ref(true))
       class="flex"
       v-bind="componentProps"
       location="filter"
+      @focus="isInputBoxOnFocus = true"
+      @blur="isInputBoxOnFocus = false"
     />
   </div>
 </template>

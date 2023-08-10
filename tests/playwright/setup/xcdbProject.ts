@@ -1,10 +1,12 @@
-import { Api } from 'nocodb-sdk';
-let api: Api;
-async function createXcdb(token?: string) {
+import { Api, WorkspaceListType } from 'nocodb-sdk';
+import { NcContext } from './index';
+let api: Api<any>;
+
+async function createXcdb(context: NcContext) {
   api = new Api({
     baseURL: `http://localhost:8080/`,
     headers: {
-      'xc-auth': token,
+      'xc-auth': context.token,
     },
   });
 
@@ -16,7 +18,11 @@ async function createXcdb(token?: string) {
     }
   }
 
-  const project = await api.project.create({ title: 'xcdb' });
+  const project = await api.project.create({
+    title: 'xcdb',
+    fk_workspace_id: context?.workspace?.id,
+    type: 'database',
+  });
   return project;
 }
 

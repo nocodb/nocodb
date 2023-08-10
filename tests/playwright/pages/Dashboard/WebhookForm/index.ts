@@ -25,10 +25,8 @@ export class WebhookFormPage extends BasePage {
   }
 
   async create({ title, event, url = 'http://localhost:9090/hook' }: { title: string; event: string; url?: string }) {
-    await this.toolbar.clickActions();
-    await this.toolbar.actions.click('Webhooks');
-
-    await this.addNewButton.click();
+    await this.dashboard.viewSidebar.openDeveloperTab({});
+    await this.dashboard.viewSidebar.webhook.addHook();
     await this.get().waitFor({ state: 'visible' });
 
     await this.configureHeader({
@@ -70,6 +68,7 @@ export class WebhookFormPage extends BasePage {
 
     await modal.locator(`button:has-text("Add Filter")`).click();
 
+    await modal.locator('.nc-filter-field-select').waitFor({ state: 'visible', timeout: 4000 });
     await modal.locator('.nc-filter-field-select').click();
     const modalField = await this.dashboard.rootPage.locator('.nc-dropdown-toolbar-field-list:visible');
     await modalField.locator(`.ant-select-item:has-text("${column}")`).click();
@@ -114,16 +113,9 @@ export class WebhookFormPage extends BasePage {
   }
 
   async delete({ index }: { index: number }) {
-    await this.toolbar.clickActions();
-    await this.toolbar.actions.click('Webhooks');
-
-    await this.get().locator(`.nc-hook-delete-icon`).nth(index).click();
-    await this.rootPage.locator('.ant-modal-confirm-confirm button:has-text("Yes")').click();
-    await this.verifyToast({ message: 'Hook deleted successfully' });
-
-    // click escape to close the drawer
-    await this.get().click();
-    await this.get().press('Escape');
+    await this.dashboard.viewSidebar.openDeveloperTab({});
+    await this.dashboard.viewSidebar.webhook.deleteHook({ index });
+    await this.rootPage.locator('div.ant-modal.active').locator('button:has-text("Delete")').click();
   }
 
   async close() {
@@ -132,10 +124,9 @@ export class WebhookFormPage extends BasePage {
   }
 
   async open({ index }: { index: number }) {
-    await this.toolbar.clickActions();
-    await this.toolbar.actions.click('Webhooks');
-    await this.dashboard.get().locator(`.nc-hook`).nth(index).click();
-    await this.get().locator('.nc-check-box-enable-webhook').waitFor({ state: 'visible' });
+    await this.dashboard.viewSidebar.openDeveloperTab({});
+    await (await this.dashboard.viewSidebar.webhook.getItem({ index })).click();
+    await this.get().waitFor({ state: 'visible' });
   }
 
   async openForm({ index }: { index: number }) {
@@ -150,13 +141,36 @@ export class WebhookFormPage extends BasePage {
     // hardcode "Content-type: application/json"
     await this.get().locator(`.ant-tabs-tab-btn:has-text("Headers")`).click();
 
-    await this.get().locator('.nc-input-hook-header-key >> input').fill(key);
-    await this.rootPage.locator(`.ant-select-item:has-text("${key}")`).click();
+    await this.get().locator('.nc-input-hook-header-key').click();
 
+    // kludge, as the dropdown is not visible even after scroll into view
+    await this.rootPage.locator('.ant-select-dropdown:visible').hover();
+    await this.rootPage
+      .locator('.ant-select-dropdown:visible')
+      .locator(`.ant-select-item`)
+      .last()
+      .scrollIntoViewIfNeeded();
+
+    await this.rootPage
+      .locator('.ant-select-dropdown:visible')
+      .locator(`.ant-select-item:has-text("${key}")`)
+      .scrollIntoViewIfNeeded();
+    await this.rootPage
+      .locator('.ant-select-dropdown:visible')
+      .locator(`.ant-select-item:has-text("${key}")`)
+      .click({ force: true });
+
+    await this.get().locator('.nc-input-hook-header-value').clear();
     await this.get().locator('.nc-input-hook-header-value').type(value);
     await this.get().press('Enter');
 
-    await this.get().locator('.nc-hook-header-tab-checkbox').locator('input.ant-checkbox-input').click();
+    // find out if the checkbox is already checked
+    const isChecked = await this.get()
+      .locator('.nc-hook-header-tab-checkbox')
+      .locator('input.ant-checkbox-input')
+      .isChecked();
+    if (!isChecked)
+      await this.get().locator('.nc-hook-header-tab-checkbox').locator('input.ant-checkbox-input').click();
   }
 
   async verifyForm({

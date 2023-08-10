@@ -1,5 +1,6 @@
 import type { Actions, AppInfo, State } from './types'
-import { message, useNuxtApp } from '#imports'
+import { type NcProjectType, message, useNuxtApp } from '#imports'
+import { navigateTo } from '#app'
 
 export function useGlobalActions(state: State): Actions {
   const setIsMobileMode = (isMobileMode: boolean) => {
@@ -67,5 +68,36 @@ export function useGlobalActions(state: State): Actions {
     }
   }
 
-  return { signIn, signOut, refreshToken, loadAppInfo, setIsMobileMode }
+  const navigateToProject = ({
+    workspaceId: _workspaceId,
+    type: _type,
+    projectId,
+  }: {
+    workspaceId?: string
+    projectId?: string
+    type?: NcProjectType
+  }) => {
+    const workspaceId = _workspaceId || 'nc'
+    let path: string
+    if (projectId) {
+      path = `/${workspaceId}/${projectId}`
+    } else {
+      path = `/${workspaceId}`
+    }
+
+    if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
+      location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}/dashboard/#${path}`
+    } else {
+      navigateTo(path)
+    }
+  }
+
+  const getBaseUrl = (workspaceId: string) => {
+    if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
+      return `https://${workspaceId}.${state.appInfo.value.baseHostName}`
+    }
+    return undefined
+  }
+
+  return { signIn, signOut, refreshToken, loadAppInfo, setIsMobileMode, navigateToProject, getBaseUrl }
 }

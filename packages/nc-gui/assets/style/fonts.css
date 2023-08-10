@@ -151,32 +151,17 @@
 }
 
 
-/* material-symbols-outlined-200 - latin */
-@font-face {
-  font-family: 'Material Symbols Outlined';
-  font-style: normal;
-  font-weight: 200;
-  src: url('./material-symbols/material-symbols-outlined-v92-latin-200.eot'); /* IE9 Compat Modes */
-  src: url('./material-symbols/material-symbols-outlined-v92-latin-200.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
-  url('./material-symbols/material-symbols-outlined-v92-latin-200.woff2') format('woff2'), /* Super Modern Browsers */
-  url('./material-symbols/material-symbols-outlined-v92-latin-200.woff') format('woff'), /* Modern Browsers */
-  url('./material-symbols/material-symbols-outlined-v92-latin-200.ttf') format('truetype'), /* Safari, Android, iOS */
-  url('./material-symbols/material-symbols-outlined-v92-latin-200.svg#MaterialSymbolsOutlined') format('svg'); /* Legacy iOS */
-}
-
-/*      //   href: 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,200,0,-25',
+/*  //   href: 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,200,0,-25',
 */
-
-/* fallback */
 @font-face {
-  font-family: 'Material Symbols Outlined';
+  font-family: 'Material Symbols';
   font-style: normal;
-  font-weight: 200;
+  font-weight: 300;
   src: url(./material.woff2) format('woff2');
 }
 
-.material-symbols-outlined {
-  font-family: 'Material Symbols Outlined';
+.material-symbols {
+  font-family: 'Material Symbols';
   font-weight: normal;
   font-style: normal;
   line-height: 1;
@@ -186,8 +171,16 @@
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
+  font-weight: 300;
   -webkit-font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
-  font-size: 22px  !important;
-user-select: none;
+  font-size: 1rem;
+  user-select: none;
+}
+
+.nc-fonts-not-loaded {
+  .material-symbols {
+    opacity: 0;
+    width: 0 !important;
+  }
 }

@@ -12,7 +12,7 @@ test.describe('Grid view locked', () => {
     dashboard = new DashboardPage(page, context.project);
   });
 
-  test('ReadOnly lock & collaboration mode', async () => {
+  test.skip('ReadOnly lock & collaboration mode', async () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });

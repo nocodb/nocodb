@@ -1,4 +1,4 @@
-import { expect } from '@playwright/test';
+import { expect, Locator } from '@playwright/test';
 import BasePage from '../../../Base';
 import { ToolbarFieldsPage } from './Fields';
 import { ToolbarSortPage } from './Sort';
@@ -17,6 +17,7 @@ import { ToolbarSearchDataPage } from './SearchData';
 import { RowHeight } from './RowHeight';
 import { MapPage } from '../../Map';
 import { getTextExcludeIconText } from '../../../../tests/utils/general';
+import { ToolbarSharePage } from './Share';
 
 export class ToolbarPage extends BasePage {
   readonly parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage;
@@ -30,6 +31,12 @@ export class ToolbarPage extends BasePage {
   readonly addEditStack: ToolbarAddEditStackPage;
   readonly searchData: ToolbarSearchDataPage;
   readonly rowHeight: RowHeight;
+  readonly share: ToolbarSharePage;
+
+  readonly btn_fields: Locator;
+  readonly btn_sort: Locator;
+  readonly btn_filter: Locator;
+  readonly btn_rowHeight: Locator;
 
   constructor(parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage) {
     super(parent.rootPage);
@@ -44,6 +51,12 @@ export class ToolbarPage extends BasePage {
     this.addEditStack = new ToolbarAddEditStackPage(this);
     this.searchData = new ToolbarSearchDataPage(this);
     this.rowHeight = new RowHeight(this);
+    this.share = new ToolbarSharePage(this);
+
+    this.btn_fields = this.get().locator(`button.nc-fields-menu-btn`);
+    this.btn_sort = this.get().locator(`button.nc-sort-menu-btn`);
+    this.btn_filter = this.get().locator(`button.nc-filter-menu-btn`);
+    this.btn_rowHeight = this.get().locator(`button.nc-height-menu-btn`);
   }
 
   get() {
@@ -91,7 +104,7 @@ export class ToolbarPage extends BasePage {
     await expect(fieldText).toBe('Fields');
 
     // icons count within fields menu button
-    expect(await this.get().locator(`button.nc-fields-menu-btn`).locator(`.material-symbols-outlined`).count()).toBe(2);
+    expect(await this.get().locator(`button.nc-fields-menu-btn`).locator(`.material-symbols`).count()).toBe(2);
   }
 
   async verifyFieldsButtonIsVisibleWithoutTextButIcon() {
@@ -103,7 +116,7 @@ export class ToolbarPage extends BasePage {
     await expect(fieldText).not.toBe('Fields');
 
     // icons count within fields menu button
-    expect(await this.get().locator(`button.nc-fields-menu-btn`).locator(`.material-symbols-outlined`).count()).toBe(2);
+    expect(await this.get().locator(`button.nc-fields-menu-btn`).locator(`.material-symbols`).count()).toBe(2);
   }
 
   async clickFilter({
@@ -138,6 +151,10 @@ export class ToolbarPage extends BasePage {
 
     // Wait for the menu to close
     if (menuOpen) await this.shareView.get().waitFor({ state: 'hidden' });
+  }
+
+  async clickShare() {
+    await this.get().locator(`[data-testid="share-project-button"]`).click();
   }
 
   async clickStackByField() {
@@ -187,53 +204,68 @@ export class ToolbarPage extends BasePage {
   }
 
   async clickAddEditStack() {
-    await this.get().locator(`.nc-kanban-add-edit-stack-menu-btn`).click();
+    await this.get().locator(`.nc-kanban-stacked-by-menu-btn`).click();
   }
 
   async validateViewsMenu(param: { role: string; mode?: string }) {
-    let menuItems = {
-      creator: ['Download', 'Upload', 'Shared View List', 'Webhooks', 'Get API Snippet', 'ERD View'],
-      editor: ['Download', 'Upload', 'Get API Snippet', 'ERD View'],
+    const menuItems = {
+      creator: ['Download', 'Upload'],
+      editor: ['Download', 'Upload'],
       commenter: ['Download as CSV', 'Download as XLSX'],
       viewer: ['Download as CSV', 'Download as XLSX'],
     };
-
-    if (param.mode === 'shareBase') {
-      menuItems = {
-        creator: [],
-        editor: ['Download', 'Upload', 'ERD View'],
-        commenter: [],
-        viewer: ['Download as CSV', 'Download as XLSX'],
-      };
-    }
-
     const vMenu = await this.rootPage.locator('.nc-dropdown-actions-menu:visible');
-
-    for (const item of menuItems[param.role]) {
+    for (const item of menuItems[param.role.toLowerCase()]) {
       await expect(vMenu).toContainText(item);
     }
   }
 
-  async validateRoleAccess(param: { role: string; mode?: string }) {
+  async verifyRoleAccess(param: { role: string; mode?: string }) {
+    const role = param.role.toLowerCase();
+
     await this.clickActions();
     await this.validateViewsMenu({
-      role: param.role,
+      role: role,
       mode: param.mode,
     });
+    await this.clickActions();
 
-    const menuItems = {
-      creator: ['Fields', 'Filter', 'Sort', 'Share View'],
-      editor: ['Fields', 'Filter', 'Sort'],
-      commenter: ['Fields', 'Filter', 'Sort', 'Download'],
-      viewer: ['Fields', 'Filter', 'Sort', 'Download'],
-    };
+    expect(await this.btn_fields.count()).toBe(1);
+    expect(await this.btn_filter.count()).toBe(1);
+    expect(await this.btn_sort.count()).toBe(1);
+    expect(await this.btn_rowHeight.count()).toBe(1);
+  }
 
-    for (const item of menuItems[param.role]) {
-      await expect(this.get()).toContainText(item);
+  async getSharedViewUrl(surveyMode = false, password = '', download = false) {
+    await this.clickShare();
+    // await this.share.clickShareView();
+    await this.share.clickShareViewPublicAccess();
+    await this.share.clickCopyLink();
+    if (surveyMode) {
+      await this.share.clickShareViewSurveyMode();
     }
 
-    await expect(this.get().locator('.nc-add-new-row-btn')).toHaveCount(
-      param.role === 'creator' || param.role === 'editor' ? 1 : 0
-    );
+    if (password !== '') {
+      await this.share.clickShareViewWithPassword({ password });
+    }
+
+    if (download) {
+      await this.share.clickShareViewWithCSVDownload();
+    }
+
+    await this.share.closeModal();
+    return await this.getClipboardText();
+  }
+
+  async getSharedBaseUrl({ role }: { role: string }) {
+    await this.clickShare();
+    await this.share.clickShareBase();
+    await this.share.clickShareBasePublicAccess();
+    if (role === 'editor') {
+      await this.share.clickShareBaseEditorAccess();
+    }
+    await this.share.clickCopyLink();
+    await this.share.closeModal();
+    return await this.getClipboardText();
   }
 }

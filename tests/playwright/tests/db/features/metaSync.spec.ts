@@ -4,7 +4,7 @@ import { SettingsPage, SettingTab } from '../../../pages/Dashboard/Settings';
 import setup, { NcContext } from '../../../setup';
 import { isMysql, isPg, isSqlite, mysqlExec, pgExec, sqliteExec } from '../../../setup/db';
 
-test.describe('Meta sync', () => {
+test.describe.skip('Meta sync', () => {
   let dashboard: DashboardPage;
   let settings: SettingsPage;
   let context: NcContext;

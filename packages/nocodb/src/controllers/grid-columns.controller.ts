@@ -1,14 +1,11 @@
 import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
 import { GridColumnReqType } from 'nocodb-sdk';
-import { GlobalGuard } from '../guards/global/global.guard';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { GridColumnsService } from '../services/grid-columns.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { GridColumnsService } from '~/services/grid-columns.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 export class GridColumnsController {
   constructor(private readonly gridColumnsService: GridColumnsService) {}
 

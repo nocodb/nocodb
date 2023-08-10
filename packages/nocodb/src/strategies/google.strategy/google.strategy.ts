@@ -3,11 +3,11 @@ import { Injectable, Optional } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-google-oauth20';
 import bcrypt from 'bcryptjs';
-import { Plugin, ProjectUser, User } from '../../models';
-import Noco from '../../Noco';
-import { UsersService } from '../../services/users/users.service';
 import type { VerifyCallback } from 'passport-google-oauth20';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
+import Noco from '~/Noco';
+import { UsersService } from '~/services/users/users.service';
+import { Plugin, ProjectUser, User } from '~/models';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -50,8 +50,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       } else {
         const salt = await promisify(bcrypt.genSalt)(10);
         const user = await this.usersService.registerNewUserIfAllowed({
-          firstname: null,
-          lastname: null,
           email_verification_token: null,
           email: profile.emails[0].value,
           password: '',

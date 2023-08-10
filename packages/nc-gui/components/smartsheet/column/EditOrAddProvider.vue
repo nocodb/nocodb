@@ -11,7 +11,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emit = defineEmits(['submit', 'cancel'])
+const emit = defineEmits(['submit', 'cancel', 'mounted'])
 
 const meta = inject(MetaInj, ref())
 
@@ -28,5 +28,6 @@ useProvideColumnCreateStore(meta, column)
     :column-position="props.columnPosition"
     @submit="emit('submit')"
     @cancel="emit('cancel')"
+    @mounted="emit('mounted')"
   />
 </template>

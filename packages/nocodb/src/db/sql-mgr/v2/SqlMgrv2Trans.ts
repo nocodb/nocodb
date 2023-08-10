@@ -1,9 +1,9 @@
-import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import KnexMigratorv2Tans from '../../sql-migrator/lib/KnexMigratorv2Tans';
-import Base from '../../../models/Base';
 import SqlMgrv2 from './SqlMgrv2';
+import type Base from '~/models/Base';
 import type { Knex } from 'knex';
 import type { XKnex } from '../../CustomKnex';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 export default class SqlMgrv2Trans extends SqlMgrv2 {
   protected trx: Knex.Transaction;

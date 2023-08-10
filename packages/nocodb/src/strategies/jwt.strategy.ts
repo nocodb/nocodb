@@ -2,11 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
 import { OrgUserRoles } from 'nocodb-sdk';
-import NocoCache from '../cache/NocoCache';
-import { ProjectUser, User } from '../models';
-import extractRolesObj from '../utils/extractRolesObj';
-import { CacheGetType, CacheScope } from '../utils/globals';
-import { UsersService } from '../services/users/users.service';
+import { ProjectUser, User } from '~/models';
+import { UsersService } from '~/services/users/users.service';
+import extractRolesObj from '~/utils/extractRolesObj';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -17,84 +15,54 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(req: any, jwtPayload: any) {
+  async validate(req, jwtPayload) {
     if (!jwtPayload?.email) return jwtPayload;
 
-    // todo: improve this
+    // todo: improve this, caching
     if (
       req.ncProjectId &&
       extractRolesObj(jwtPayload.roles)[OrgUserRoles.SUPER_ADMIN]
     ) {
-      return User.getByEmail(jwtPayload?.email).then(async (user) => {
-        return {
-          ...user,
-          roles: extractRolesObj(`owner,creator,${OrgUserRoles.SUPER_ADMIN}`),
-        };
-      });
+      const user = await User.getByEmail(jwtPayload?.email);
+
+      return {
+        ...user,
+        roles: `owner,creator,${OrgUserRoles.SUPER_ADMIN}`,
+      };
     }
 
-    const keyVals = [jwtPayload?.email];
-    if (req.ncProjectId) {
-      keyVals.push(req.ncProjectId);
-    }
-    const key = keyVals.join('___');
-    const cachedVal = await NocoCache.get(
-      `${CacheScope.USER}:${key}`,
-      CacheGetType.TYPE_OBJECT,
-    );
+    const user = await User.getByEmail(jwtPayload?.email);
 
-    if (cachedVal) {
-      /*todo: tobe fixed
-      if (
-        !cachedVal.token_version ||
-        !jwtPayload.token_version ||
-        cachedVal.token_version !== jwtPayload.token_version
-      ) {
-        throw new Error('Token Expired. Please login again.');
-      }*/
-      return cachedVal;
+    if (
+      !user.token_version ||
+      !jwtPayload.token_version ||
+      user.token_version !== jwtPayload.token_version
+    ) {
+      throw new Error('Token Expired. Please login again.');
     }
 
-    return User.getByEmail(jwtPayload?.email).then(
-      async (user: { roles: any; id: string }) => {
-        user.roles = extractRolesObj(user?.roles);
-        /*
-     todo: tobe fixed
-     if (
-        // !user.token_version ||
-        // !jwtPayload.token_version ||
-        user.token_version !== jwtPayload.token_version
-      ) {
-        throw new Er  ror('Token Expired. Please login again.');
-      }*/
-        if (req.ncProjectId) {
-          // this.xcMeta
-          //   .metaGet(req.ncProjectId, null, 'nc_projects_users', {
-          //     user_id: user?.id
-          //   })
+    const projectRoles = await new Promise((resolve) => {
+      if (req.ncProjectId) {
+        ProjectUser.get(req.ncProjectId, user.id).then(async (projectUser) => {
+          let roles = projectUser?.roles;
+          roles = roles === 'owner' ? 'owner,creator' : roles;
+          // + (user.roles ? `,${user.roles}` : '');
+          resolve(roles);
+          // todo: cache
+        });
+      } else {
+        resolve(null);
+      }
+    });
 
-          return ProjectUser.get(req.ncProjectId, user.id).then(
-            async (projectUser) => {
-              user.roles = extractRolesObj(projectUser?.roles || user.roles);
-              user.roles = extractRolesObj(
-                user.roles === 'owner' ? 'owner,creator' : user.roles,
-              );
-              // + (user.roles ? `,${user.roles}` : '');
-
-              await NocoCache.set(`${CacheScope.USER}:${key}`, user);
-              return user;
-            },
-          );
-        } else {
-          // const roles = projectUser?.roles ? JSON.parse(projectUser.roles) : {guest: true};
-          if (user) {
-            await NocoCache.set(`${CacheScope.USER}:${key}`, user);
-            return user;
-          } else {
-            throw new Error('User not found');
-          }
-        }
-      },
-    );
+    return {
+      ...user,
+      roles: extractRolesObj(
+        [user.roles, projectRoles].filter(Boolean).join(','),
+      ),
+      projectRoles: projectRoles
+        ? extractRolesObj((projectRoles as any)?.split(',').filter(Boolean))
+        : null,
+    };
   }
 }

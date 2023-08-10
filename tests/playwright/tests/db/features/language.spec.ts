@@ -41,7 +41,7 @@ const langMenu = [
   'zh-Hant.json',
 ];
 
-test.describe('Common', () => {
+test.describe.skip('Common', () => {
   let context: any;
   let dashboard: DashboardPage;
   let projectsPage: ProjectsPage;

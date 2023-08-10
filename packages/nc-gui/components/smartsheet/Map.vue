@@ -4,7 +4,7 @@ import L, { LatLng } from 'leaflet'
 import 'leaflet.markercluster'
 import { ViewTypes } from 'nocodb-sdk'
 import { IsPublicInj, OpenNewRecordFormHookInj, iconMap, latLongToJoinedString, onMounted, provide, ref } from '#imports'
-import type { Row } from '~/lib'
+import type { Row } from '#imports'
 
 const route = useRoute()
 

@@ -1,14 +1,75 @@
-import type { Socket } from 'socket.io-client'
-import io from 'socket.io-client'
-import { defineNuxtPlugin, useGlobal, useRouter, watch } from '#imports'
+import { useDebounceFn } from '@vueuse/core'
+import { defineNuxtPlugin, useRouter } from '#imports'
+import type { NuxtApp } from '#app'
+import {io, Socket} from "socket.io-client";
+
+let clientId: string
+;(async () => {
+  const { default: FingerprintJS } = await import('@fingerprintjs/fingerprintjs')
+
+  // Initialize an agent at application startup.
+  const fpPromise = FingerprintJS.load()
+
+  // Get the visitor identifier when you need it.
+  const fp = await fpPromise
+  const result = await fp.get()
+  clientId = result.visitorId
+})().catch(() => {})
+
+// Usage example:
+const debounceTime = 3000 // Debounce time: 1000ms
+const maxWaitTime = 10000 // Max wait time: 10000ms
+
+class EventBatcher {
+  private queue: any[] = []
+  // private batchSize: number
+
+  private nuxtApp: NuxtApp
+
+  constructor(nuxtApp: NuxtApp) {
+    // this.batchSize = batchSize
+    this.nuxtApp = nuxtApp
+  }
+
+  enqueueEvent(event: any) {
+    this.queue.push({
+      created_at: Date.now(),
+      ...event,
+    })
+
+    // Check if the queue size reaches the batch size
+    // if (this.queue.length >= this.batchSize) {
+    this.processQueue()
+    // }
+  }
+
+  private processQueue = useDebounceFn(
+    () => {
+      const eventsToProcess = this.queue.splice(0, this.queue.length)
+      this.batchProcessor?.(eventsToProcess)
+    },
+    debounceTime,
+    { maxWait: maxWaitTime },
+  )
+
+  private batchProcessor = async (events: any[]) => {
+    if (!this.nuxtApp.$state.signedIn.value) return
+    await this.nuxtApp.$api.instance.post('/api/v1/tele', {
+      events,
+      clientId,
+    })
+  }
+}
 
 // todo: ignore init if tele disabled
 export default defineNuxtPlugin(async (nuxtApp) => {
+  const eventBatcher = new EventBatcher(nuxtApp)
+
   const router = useRouter()
 
-  const route = $(router.currentRoute)
+  const route = router.currentRoute
 
-  const { appInfo } = $(useGlobal())
+  const { appInfo } = useGlobal()
 
   let socket: Socket
 
@@ -16,7 +77,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     try {
       if (socket) socket.disconnect()
 
-      const url = new URL(appInfo.ncSiteUrl, window.location.href.split(/[?#]/)[0])
+      const url = new URL(appInfo.value.ncSiteUrl, window.location.href.split(/[?#]/)[0])
       let socketPath = url.pathname
       socketPath += socketPath.endsWith('/') ? 'socket.io' : '/socket.io'
 
@@ -40,21 +101,32 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
     socket.emit('page', {
       path: to.matched[0].path + (to.query && to.query.type ? `?type=${to.query.type}` : ''),
-      pid: route?.params?.projectId,
+      pid: route.value?.params?.projectId,
+    })
+
+    eventBatcher.enqueueEvent({
+      event: '$page',
+      path: to.matched[0].path + (to.query && to.query.type ? `?type=${to.query.type}` : ''),
+      pid: route.value?.params?.projectId,
     })
   })
 
   const tele = {
     emit(evt: string, data: Record<string, any>) {
-      // debugger
       if (socket) {
         socket.emit('event', {
           event: evt,
           ...(data || {}),
-          path: route?.matched?.[0]?.path,
-          pid: route?.params?.projectId,
+          path: route.value?.matched?.[0]?.path,
+          pid: route.value?.params?.projectId,
         })
       }
+      eventBatcher.enqueueEvent({
+        event: evt,
+        ...(data || {}),
+        path: route.value?.matched?.[0]?.path,
+        pid: route.value?.params?.projectId,
+      })
     },
   }
 
@@ -71,7 +143,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
   function getListener(binding: any) {
     return function () {
-      if (!socket) return
+      // if (!socket) return
 
       const event = binding.value && binding.value[0]
       const data = binding.value && binding.value[1]

@@ -5,7 +5,7 @@ import {
   pgSakilaSqlViews,
   pgSakilaTables,
   sqliteSakilaSqlViews,
-} from '../../utils/sakila';
+} from '../../../tests/utils/sakila';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { SettingsSubTab, SettingTab } from '../../../pages/Dashboard/Settings';
 import setup from '../../../setup';
@@ -13,7 +13,8 @@ import { isMysql, isPg, isSqlite } from '../../../setup/db';
 import { SettingsErdPage } from '../../../pages/Dashboard/Settings/Erd';
 import { defaultBaseName } from '../../../constants';
 
-test.describe('Erd', () => {
+// Global ERD to be enabled after project-menu landing page is implemented
+test.describe.skip('Erd', () => {
   let dashboard: DashboardPage;
   let context: any;
   let sakilaTables, sakilaSqlViews;
@@ -55,8 +56,7 @@ test.describe('Erd', () => {
 
   const openErdOfATable = async (tableName: string) => {
     await dashboard.treeView.openTable({ title: tableName });
-    await dashboard.grid.toolbar.clickActions();
-    await dashboard.grid.toolbar.actions.click('ERD View');
+    await dashboard.viewSidebar.openDeveloperTab({ option: 'ERD' });
   };
 
   test('Verify default config, all columns disabled, only PK and FK disabled, Sql views and MM table option, junction table names', async () => {
@@ -188,33 +188,33 @@ test.describe('Erd', () => {
     // Verify tables with default config
     await erd.verifyColumns({
       tableName: `country`,
-      columns: ['country_id', 'country', 'last_update', 'city_list'],
+      columns: ['country_id', 'country', 'last_update', 'cities'],
     });
 
     await erd.verifyColumns({
       tableName: `city`,
-      columns: ['city_id', 'city', 'country_id', 'last_update', 'country', 'address_list'],
+      columns: ['city_id', 'city', 'country_id', 'last_update', 'country', 'addresses'],
     });
 
     // Verify with PK/FK disabled
     await erd.clickShowPkAndFk();
     await erd.verifyColumns({
       tableName: `country`,
-      columns: ['country', 'last_update', 'city_list'],
+      columns: ['country', 'last_update', 'cities'],
     });
 
     await erd.verifyColumns({
       tableName: `city`,
-      columns: ['city', 'last_update', 'country', 'address_list'],
+      columns: ['city', 'last_update', 'country', 'addresses'],
     });
 
     // Verify with all columns disabled
     await erd.clickShowColumnNames();
-    await erd.verifyColumns({ tableName: `country`, columns: ['city_list'] });
+    await erd.verifyColumns({ tableName: `country`, columns: ['cities'] });
 
     await erd.verifyColumns({
       tableName: `city`,
-      columns: ['country', 'address_list'],
+      columns: ['country', 'addresses'],
     });
 
     // Enable All columns
@@ -232,9 +232,8 @@ test.describe('Erd', () => {
     });
     await dashboard.settings.close();
 
-    await dashboard.treeView.openTable({ title: 'Country' });
-    await dashboard.grid.toolbar.clickActions();
-    await dashboard.grid.toolbar.actions.click('ERD View');
+    await dashboard.viewSidebar.openDeveloperTab({ option: 'ERD' });
+
     await dashboard.grid.toolbar.actions.erd.verifyNode({
       tableName: `country`,
       columnName: 'test_column',
@@ -255,9 +254,8 @@ test.describe('Erd', () => {
     });
     await dashboard.settings.close();
 
-    await dashboard.treeView.openTable({ title: 'Country' });
-    await dashboard.grid.toolbar.clickActions();
-    await dashboard.grid.toolbar.actions.click('ERD View');
+    await dashboard.viewSidebar.openDeveloperTab({ option: 'ERD' });
+
     await dashboard.grid.toolbar.actions.erd.verifyNode({
       tableName: `country`,
       columnName: 'new_test_column',
@@ -280,8 +278,8 @@ test.describe('Erd', () => {
     await dashboard.settings.close();
 
     await dashboard.treeView.openTable({ title: 'Country' });
-    await dashboard.grid.toolbar.clickActions();
-    await dashboard.grid.toolbar.actions.click('ERD View');
+    await dashboard.viewSidebar.openDeveloperTab({ option: 'ERD' });
+
     await dashboard.grid.toolbar.actions.erd.verifyNode({
       tableName: `country`,
       columnNameShouldNotExist: 'new_test_column',
@@ -289,7 +287,7 @@ test.describe('Erd', () => {
     await dashboard.grid.toolbar.actions.erd.close();
 
     // Create table and verify ERD
-    await dashboard.treeView.createTable({ title: 'Test' });
+    await dashboard.treeView.createTable({ title: 'Test', projectTitle: context.project.title });
     // Verify in Settings ERD and table ERD
     await openSettingsErd();
     await dashboard.settings.dataSources.erd.verifyNode({
@@ -311,7 +309,7 @@ test.describe('Erd', () => {
   });
 });
 
-const actorTableColumn = ['actor_id', 'first_name', 'last_name', 'last_update', 'film_list'];
+const actorTableColumn = ['actor_id', 'first_name', 'last_name', 'last_update', 'films'];
 
 const mysqlPaymentTableColumns = [
   'payment_id',
@@ -338,9 +336,9 @@ const pgPaymentTableColumns = [
   'staff',
 ];
 
-const actorLTARColumns = ['filmactor_list', 'film_list'];
+const actorLTARColumns = ['filmactors', 'films'];
 
-const actorNonPkFkColumns = ['first_name', 'last_name', 'last_update', 'film_list', 'filmactor_list'];
+const actorNonPkFkColumns = ['first_name', 'last_name', 'last_update', 'films', 'filmactors'];
 
 const paymentLTARColumns = ['customer', 'rental', 'staff'];
 

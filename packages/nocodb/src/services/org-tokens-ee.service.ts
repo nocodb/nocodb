@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { OrgUserRoles } from 'nocodb-sdk';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import { ApiToken } from '../models';
-import extractRolesObj from '../utils/extractRolesObj';
 import type { UserType } from 'nocodb-sdk';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { ApiToken } from '~/models';
+import extractRolesObj from '~/utils/extractRolesObj';
 
 @Injectable()
 export class OrgTokensEeService {

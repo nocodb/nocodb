@@ -23,11 +23,11 @@ const editable = inject(EditModeInj, ref(false))
 
 const column = inject(ColumnInj)!
 
-let isTimeInvalid = $ref(false)
+const isTimeInvalid = ref(false)
 
 const dateFormat = isMysql(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
-const localState = $computed({
+const localState = computed({
   get() {
     if (!modelValue) {
       return undefined
@@ -41,7 +41,7 @@ const localState = $computed({
       dateTime = dayjs(`1999-01-01 ${modelValue}`)
     }
     if (!dateTime.isValid()) {
-      isTimeInvalid = true
+      isTimeInvalid.value = true
       return undefined
     }
 
@@ -76,7 +76,7 @@ watch(
   { flush: 'post' },
 )
 
-const placeholder = computed(() => (modelValue === null && showNull.value ? 'NULL' : isTimeInvalid ? 'Invalid time' : ''))
+const placeholder = computed(() => (modelValue === null && showNull.value ? 'NULL' : isTimeInvalid.value ? 'Invalid time' : ''))
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {

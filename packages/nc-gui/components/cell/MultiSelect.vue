@@ -4,6 +4,7 @@ import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType, SelectOptionsType } from 'nocodb-sdk'
+import { WorkspaceUserRoles } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   CellClickHookInj,
@@ -45,6 +46,8 @@ const emit = defineEmits(['update:modelValue'])
 const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj)!
+
+const isLockedMode = inject(IsLockedInj, ref(false))
 
 const isEditable = inject(EditModeInj, ref(false))
 
@@ -99,7 +102,15 @@ const isOptionMissing = computed(() => {
   return (options.value ?? []).every((op) => op.title !== searchVal.value)
 })
 
-const hasEditRoles = computed(() => hasRole('owner', true) || hasRole('creator', true) || hasRole('editor', true))
+const hasEditRoles = computed(
+  () =>
+    hasRole('owner', true) ||
+    hasRole('creator', true) ||
+    hasRole('editor', true) ||
+    hasRole(WorkspaceUserRoles.OWNER, true) ||
+    hasRole(WorkspaceUserRoles.CREATOR, true) ||
+    hasRole(WorkspaceUserRoles.EDITOR, true),
+)
 
 const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && active.value)
 
@@ -334,7 +345,11 @@ const selectedOpts = computed(() => {
 </script>
 
 <template>
-  <div class="nc-multi-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
+  <div
+    class="nc-multi-select h-full w-full flex items-center"
+    :class="{ 'read-only': readOnly || isLockedMode }"
+    @click="toggleMenu"
+  >
     <div
       v-if="!active"
       class="flex flex-wrap"
@@ -372,9 +387,9 @@ const selectedOpts = computed(() => {
       :bordered="false"
       clear-icon
       show-search
-      :show-arrow="editAllowed && !readOnly"
+      :show-arrow="editAllowed && !(readOnly || isLockedMode)"
       :open="isOpen && editAllowed"
-      :disabled="readOnly || !editAllowed"
+      :disabled="readOnly || !editAllowed || isLockedMode"
       :class="{ 'caret-transparent': !hasEditRoles }"
       :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
       @search="search"
@@ -409,7 +424,10 @@ const selectedOpts = computed(() => {
           isOptionMissing &&
           !isPublic &&
           !disableOptionCreation &&
-          (hasRole('owner', true) || hasRole('creator', true))
+          (hasRole('owner', true) ||
+            hasRole('creator', true) ||
+            hasRole(WorkspaceUserRoles.OWNER, true) ||
+            hasRole(WorkspaceUserRoles.CREATOR, true))
         "
         :key="searchVal"
         :value="searchVal"
@@ -479,6 +497,12 @@ const selectedOpts = computed(() => {
 
 .ms-close-icon:hover {
   color: rgba(0, 0, 0, 0.45);
+}
+
+.read-only {
+  .ms-close-icon {
+    display: none;
+  }
 }
 
 .rounded-tag {

@@ -50,7 +50,7 @@ test.describe('Verify cell selection', () => {
     await dashboard.treeView.openTable({ title: 'Country' });
     await grid.selectRange({
       start: { index: 0, columnHeader: 'Country' },
-      end: { index: 2, columnHeader: 'City List' },
+      end: { index: 2, columnHeader: 'Cities' },
     });
     expect(await grid.selectedCount()).toBe(9);
     await grid.cell.get({ index: 0, columnHeader: 'Country' }).click();
@@ -62,7 +62,7 @@ test.describe('Verify cell selection', () => {
     await dashboard.treeView.openTable({ title: 'Country' });
     await grid.selectRange({
       start: { index: 0, columnHeader: 'Country' },
-      end: { index: 2, columnHeader: 'City List' },
+      end: { index: 2, columnHeader: 'Cities' },
     });
     expect(await grid.selectedCount()).toBe(9);
     await grid.cell.get({ index: 5, columnHeader: 'Country' }).click();
@@ -74,7 +74,7 @@ test.describe('Verify cell selection', () => {
     await dashboard.treeView.openTable({ title: 'Country' });
     await dashboard.grid.toolbar.fields.toggleShowSystemFields();
     await grid.selectRange({
-      start: { index: 2, columnHeader: 'City List' },
+      start: { index: 2, columnHeader: 'Cities' },
       end: { index: 0, columnHeader: 'Country' },
     });
     expect(await grid.selectedCount()).toBe(12);
@@ -88,7 +88,7 @@ test.describe('Verify cell selection', () => {
     await dashboard.treeView.openTable({ title: 'Country' });
     await grid.selectRange({
       start: { index: 0, columnHeader: 'Country' },
-      end: { index: 2, columnHeader: 'City List' },
+      end: { index: 2, columnHeader: 'Cities' },
     });
     await page.keyboard.press('ArrowRight');
     expect(await grid.selectedCount()).toBe(1);

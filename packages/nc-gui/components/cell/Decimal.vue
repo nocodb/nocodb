@@ -21,7 +21,23 @@ const { showNull } = useGlobal()
 
 const editEnabled = inject(EditModeInj)
 
+const column = inject(ColumnInj, null)!
+
+const domRef = ref<HTMLElement>()
+
+const meta = computed(() => {
+  return typeof column?.value.meta === 'string' ? JSON.parse(column.value.meta) : column?.value.meta ?? {}
+})
+
 const _vModel = useVModel(props, 'modelValue', emits)
+
+const displayValue = computed(() => {
+  if (_vModel.value === null) return null
+
+  if (isNaN(Number(_vModel.value))) return null
+
+  return Number(_vModel.value).toFixed(meta.value.precision ?? 1)
+})
 
 const vModel = computed({
   get: () => _vModel.value,
@@ -36,9 +52,39 @@ const vModel = computed({
   },
 })
 
+const precision = computed(() => {
+  const meta = typeof column?.value.meta === 'string' ? JSON.parse(column.value.meta) : column?.value.meta ?? {}
+  const _precision = meta.precision ?? 1
+
+  return Number(0.1 ** _precision).toFixed(_precision)
+})
+
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
+// Handle the arrow keys as its default behavior is to increment/decrement the value
+const onKeyDown = (e: any) => {
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    // Move the cursor to the end of the input
+    e.target.type = 'text'
+    e.target?.setSelectionRange(e.target.value.length, e.target.value.length)
+    e.target.type = 'number'
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+
+    e.target.type = 'text'
+    e.target?.setSelectionRange(0, 0)
+    e.target.type = 'number'
+  }
+}
+
 const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
+
+watch(isExpandedFormOpen, () => {
+  if (!isExpandedFormOpen.value) {
+    domRef.value?.focus()
+  }
+})
 </script>
 
 <template>
@@ -46,14 +92,15 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputEle
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="outline-none px-2 border-none w-full h-full text-sm"
+    class="outline-none !p-0 border-none w-full h-full text-sm"
     type="number"
-    step="0.1"
+    :step="precision"
+    style="letter-spacing: 0.06rem"
     @blur="editEnabled = false"
-    @keydown.down.stop
+    @keydown.down.stop="onKeyDown"
     @keydown.left.stop
     @keydown.right.stop
-    @keydown.up.stop
+    @keydown.up.stop="onKeyDown"
     @keydown.delete.stop
     @keydown.ctrl.z.stop
     @keydown.meta.z.stop
@@ -61,11 +108,23 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputEle
     @mousedown.stop
   />
   <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
-  <span v-else class="text-sm">{{ vModel }}</span>
+  <span v-else class="text-sm">{{ displayValue }}</span>
 </template>
 
 <style scoped lang="scss">
 input[type='number']:focus {
   @apply ring-transparent;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type='number'] {
+  -moz-appearance: textfield;
 }
 </style>

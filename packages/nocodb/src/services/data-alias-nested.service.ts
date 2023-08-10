@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { UITypes } from 'nocodb-sdk';
-import { NcError } from '../helpers/catchError';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import { Base, Model } from '../models';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
+import type { PathParams } from '~/modules/datas/helpers';
+import { NcError } from '~/helpers/catchError';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import {
   getColumnByIdOrName,
   getViewAndModelByAliasOrId,
-} from '../modules/datas/helpers';
-import type { PathParams } from '../modules/datas/helpers';
+} from '~/modules/datas/helpers';
+import { Base, Model } from '~/models';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
 export class DataAliasNestedService {
@@ -34,7 +34,10 @@ export class DataAliasNestedService {
 
     const column = await getColumnByIdOrName(param.columnName, model);
 
-    if (column.uidt !== UITypes.LinkToAnotherRecord)
+    if (
+      !column ||
+      ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
+    )
       NcError.badRequest('Column is not LTAR');
 
     const data = await baseModel.mmList(
@@ -203,7 +206,7 @@ export class DataAliasNestedService {
 
     const column = await getColumnByIdOrName(param.columnName, model);
 
-    if (column.uidt !== UITypes.LinkToAnotherRecord)
+    if (![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt))
       NcError.badRequest('Column is not LTAR');
 
     const data = await baseModel.hmList(

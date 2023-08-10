@@ -89,6 +89,10 @@ jobs:
               ${{ runner.os }}-build-${{ env.cache-name }}-
               ${{ runner.os }}-build-
               ${{ runner.os }}-
+        - name: Set CI env
+          run: export CI=true
+        - name: Set NC Edition
+          run: export EE=true
         - name: setup pg
           working-directory: ./
           run: docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &

@@ -32,7 +32,7 @@ test.describe('Shared view', () => {
 
     // hide column
     await dashboard.grid.toolbar.fields.toggle({ title: 'Address2' });
-    await dashboard.grid.toolbar.fields.toggle({ title: 'Store List' });
+    await dashboard.grid.toolbar.fields.toggle({ title: 'Stores' });
 
     // sort
     await dashboard.grid.toolbar.sort.add({
@@ -51,8 +51,7 @@ test.describe('Shared view', () => {
     await dashboard.grid.toolbar.clickFilter();
 
     // share with password disabled, download enabled
-    await dashboard.grid.toolbar.clickShareView();
-    sharedLink = await dashboard.grid.toolbar.shareView.getShareLink();
+    sharedLink = await dashboard.grid.toolbar.getSharedViewUrl();
 
     /**
      * 2. Access shared view: verify
@@ -63,6 +62,8 @@ test.describe('Shared view', () => {
      **/
 
     await page.goto(sharedLink);
+    // fix me! kludge@hub; page wasn't getting loaded from previous step
+    await page.reload();
     const sharedPage = new DashboardPage(page, context.project);
 
     const expectedColumns = [
@@ -73,9 +74,9 @@ test.describe('Shared view', () => {
       { title: 'PostalCode', isVisible: true },
       { title: 'Phone', isVisible: true },
       { title: 'LastUpdate', isVisible: true },
-      { title: 'Customer List', isVisible: true },
-      { title: 'Staff List', isVisible: true },
-      { title: 'Store List', isVisible: false },
+      { title: 'Customers', isVisible: true },
+      { title: 'Staffs', isVisible: true },
+      { title: 'Stores', isVisible: false },
       { title: 'City', isVisible: true },
     ];
     for (const column of expectedColumns) {
@@ -94,7 +95,11 @@ test.describe('Shared view', () => {
 
     // verify virtual records
     for (const record of expectedVirtualRecordsByDb) {
-      await sharedPage.grid.cell.verifyVirtualCell({ ...record, verifyChildList: true });
+      await sharedPage.grid.cell.verifyVirtualCell({
+        ...record,
+        options: { singular: 'Customer', plural: 'Customers' },
+        verifyChildList: true,
+      });
     }
 
     /**
@@ -160,14 +165,7 @@ test.describe('Shared view', () => {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });
 
-    // enable password & verify share link
-    await dashboard.grid.toolbar.clickShareView();
-    await dashboard.grid.toolbar.shareView.enablePassword('p@ssword');
-    // disable download
-    await dashboard.grid.toolbar.shareView.toggleDownload();
-
-    sharedLink = await dashboard.grid.toolbar.shareView.getShareLink();
-    await dashboard.grid.toolbar.shareView.close();
+    sharedLink = await dashboard.grid.toolbar.getSharedViewUrl(false, 'p@ssword', true);
 
     // add new column, record after share view creation
     await dashboard.grid.column.create({
@@ -179,9 +177,11 @@ test.describe('Shared view', () => {
       value: 'New Country',
     });
 
-    await page.goto(sharedLink);
+    await dashboard.signOut();
 
-    // todo: Create shared view page
+    await page.goto(sharedLink);
+    await page.reload();
+
     // verify if password request modal exists
     const sharedPage2 = new DashboardPage(page, context.project);
     await sharedPage2.rootPage.locator('input[placeholder="Enter password"]').fill('incorrect p@ssword');
@@ -277,15 +277,15 @@ const sqliteExpectedRecords2 = [
 ];
 
 const expectedVirtualRecords = [
-  { index: 0, columnHeader: 'Customer List', count: 1, value: ['2'] },
-  { index: 1, columnHeader: 'Customer List', count: 1, value: ['2'] },
-  { index: 0, columnHeader: 'City', count: 1, value: ['Kanchrapara'] },
-  { index: 1, columnHeader: 'City', count: 1, value: ['Tafuna'] },
+  { index: 0, columnHeader: 'Customers', count: 1, type: 'hm' },
+  { index: 1, columnHeader: 'Customers', count: 1, type: 'hm' },
+  { index: 0, columnHeader: 'City', count: 1, type: 'bt', value: ['Kanchrapara'] },
+  { index: 1, columnHeader: 'City', count: 1, type: 'bt', value: ['Tafuna'] },
 ];
 
 const sqliteExpectedVirtualRecords = [
-  { index: 0, columnHeader: 'Customer List', count: 1, value: ['2'] },
-  { index: 1, columnHeader: 'Customer List', count: 1, value: ['1'] },
-  { index: 0, columnHeader: 'City', count: 1, value: ['Davao'] },
-  { index: 1, columnHeader: 'City', count: 1, value: ['Nagareyama'] },
+  { index: 0, columnHeader: 'Customers', count: 1, type: 'hm' },
+  { index: 1, columnHeader: 'Customers', count: 1, type: 'hm' },
+  { index: 0, columnHeader: 'City', count: 1, type: 'bt', value: ['Davao'] },
+  { index: 1, columnHeader: 'City', count: 1, type: 'bt', value: ['Nagareyama'] },
 ];

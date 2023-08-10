@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { inject } from '@vue/runtime-core'
 import {
   Empty,
+  ProjectIdInj,
   computed,
   extractSdkResponseErrorMsg,
   h,
@@ -24,48 +26,51 @@ const { $api, $e } = useNuxtApp()
 
 const { project } = storeToRefs(useProject())
 
+const _projectId = inject(ProjectIdInj, ref())
+const projectId = computed(() => _projectId.value ?? project.value?.id)
+
 const { includeM2M } = useGlobal()
 
-const roles = $ref<string[]>(['editor', 'commenter', 'viewer'])
+const roles = ref<string[]>(['editor', 'commenter', 'viewer'])
 
-let isLoading = $ref(false)
+const isLoading = ref(false)
 
-let tables = $ref<any[]>([])
+const tables = ref<any[]>([])
 
-const searchInput = $ref('')
+const searchInput = ref('')
 
 const filteredTables = computed(() =>
-  tables.filter(
+  tables.value.filter(
     (el) =>
       el?.base_id === props.baseId &&
-      ((typeof el?._ptn === 'string' && el._ptn.toLowerCase().includes(searchInput.toLowerCase())) ||
-        (typeof el?.title === 'string' && el.title.toLowerCase().includes(searchInput.toLowerCase()))),
+      ((typeof el?._ptn === 'string' && el._ptn.toLowerCase().includes(searchInput.value.toLowerCase())) ||
+        (typeof el?.title === 'string' && el.title.toLowerCase().includes(searchInput.value.toLowerCase()))),
   ),
 )
 
 async function loadTableList() {
   try {
-    if (!project.value?.id) return
+    if (!projectId.value) return
 
-    isLoading = true
+    isLoading.value = true
 
-    tables = await $api.project.modelVisibilityList(project.value?.id, {
+    tables.value = await $api.project.modelVisibilityList(projectId.value, {
       includeM2M: includeM2M.value,
     })
   } catch (e) {
     console.error(e)
   } finally {
-    isLoading = false
+    isLoading.value = false
   }
 }
 
 async function saveUIAcl() {
   try {
-    if (!project.value?.id) return
+    if (!projectId.value) return
 
     await $api.project.modelVisibilitySet(
-      project.value.id,
-      tables.filter((t) => t.edited),
+      projectId.value,
+      tables.value.filter((t) => t.edited),
     )
     // Updated UI ACL for tables successfully
     message.success(t('msg.success.updatedUIACL'))
@@ -81,7 +86,7 @@ const onRoleCheck = (record: any, role: string) => {
 }
 
 onMounted(async () => {
-  if (tables.length === 0) {
+  if (tables.value.length === 0) {
     await loadTableList()
   }
 })
@@ -124,7 +129,6 @@ const columns = [
             <component :is="iconMap.search" />
           </template>
         </a-input>
-
         <a-button type="text" ghost class="self-start !rounded-md nc-acl-reload" @click="loadTableList">
           <div class="flex items-center gap-2 text-gray-600 font-light">
             <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
 import type { OrgUserReqType } from 'nocodb-sdk'
+import type { User, Users } from '#imports'
 import {
   Form,
+  Role,
   computed,
   emailValidator,
   extractSdkResponseErrorMsg,
@@ -14,18 +16,10 @@ import {
   useI18n,
   useNuxtApp,
 } from '#imports'
-import type { User } from '~/lib'
-import { Role } from '~/lib'
 
 interface Props {
   show: boolean
   selectedUser?: User
-}
-
-interface Users {
-  emails: string
-  role: Role.OrgLevelCreator | Role.OrgLevelViewer
-  invitationToken?: string
 }
 
 const { show } = defineProps<Props>()
@@ -38,9 +32,9 @@ const { $api, $e } = useNuxtApp()
 
 const { copy } = useCopy()
 
-const { dashboardUrl } = $(useDashboard())
+const { dashboardUrl } = useDashboard()
 
-const usersData = $ref<Users>({ emails: '', role: Role.OrgLevelViewer, invitationToken: undefined })
+const usersData = ref<Users>({ emails: '', role: Role.OrgLevelViewer, invitationToken: undefined })
 
 const formRef = ref()
 
@@ -52,20 +46,20 @@ const validators = computed(() => {
   }
 })
 
-const { validateInfos } = useForm(usersData, validators)
+const { validateInfos } = useForm(usersData.value, validators)
 
 const saveUser = async () => {
-  $e('a:org-user:invite', { role: usersData.role })
+  $e('a:org-user:invite', { role: usersData.value.role })
 
   await formRef.value?.validateFields()
 
   try {
     const res = await $api.orgUsers.add({
-      roles: usersData.role,
-      email: usersData.emails,
+      roles: usersData.value.role,
+      email: usersData.value.emails,
     } as unknown as OrgUserReqType)
 
-    usersData.invitationToken = res.invite_token
+    usersData.value.invitationToken = res.invite_token
     emit('reload')
 
     // Successfully updated the user details
@@ -76,12 +70,14 @@ const saveUser = async () => {
   }
 }
 
-const inviteUrl = $computed(() => (usersData.invitationToken ? `${dashboardUrl}#/signup/${usersData.invitationToken}` : null))
+const inviteUrl = computed(() =>
+  usersData.value.invitationToken ? `${dashboardUrl.value}#/signup/${usersData.value.invitationToken}` : null,
+)
 
 const copyUrl = async () => {
-  if (!inviteUrl) return
+  if (!inviteUrl.value) return
   try {
-    await copy(inviteUrl)
+    await copy(inviteUrl.value)
 
     // Copied shareable base url to clipboard!
     message.success(t('msg.success.shareableURLCopied'))
@@ -93,9 +89,9 @@ const copyUrl = async () => {
 
 const clickInviteMore = () => {
   $e('c:user:invite-more')
-  usersData.invitationToken = undefined
-  usersData.role = Role.OrgLevelViewer
-  usersData.emails = ''
+  usersData.value.invitationToken = undefined
+  usersData.value.role = Role.OrgLevelViewer
+  usersData.value.emails = ''
 }
 
 const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()

@@ -21,7 +21,7 @@ test.describe('Toolbar operations (GRID)', () => {
     toolbar = dashboard.grid.toolbar;
   });
 
-  test.only('Create a GroupBy and Verify With Sort, Filter, Hide', async () => {
+  test('Create a GroupBy and Verify With Sort, Filter, Hide', async () => {
     // Open Table
     await dashboard.treeView.openTable({ title: 'Film' });
 

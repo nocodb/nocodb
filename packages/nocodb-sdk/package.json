@@ -20,9 +20,9 @@
   "license": "AGPL-3.0-or-later",
   "keywords": [],
   "scripts": {
-    "build": "npm run generate:sdk && run-p build:ce:*",
-    "build:ce:main": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
-    "build:ce:module": "tsc -p tsconfig.module.json && tsc-alias -p tsconfig.module.json",
+    "build": "npm run generate:sdk && run-p build:*",
+    "build:main": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
+    "build:module": "tsc -p tsconfig.module.json && tsc-alias -p tsconfig.module.json",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.ts\" --write",
     "fix:lint": "eslint src --ext .ts --fix",

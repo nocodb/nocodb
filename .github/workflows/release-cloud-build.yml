@@ -110,14 +110,14 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
       - name: Push staging image to ECR
-        if: ${{ github.event.inputs.staging == 'true' }}
+        if: ${{ github.event.inputs.staging == 'true' || github.event_name == 'schedule' }}
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: nocohub
         run: |
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:ws-pre-release
       - name: Publish to staging
-        if: ${{ github.event.inputs.staging == 'true' }}
+        if: ${{ github.event.inputs.staging == 'true' || github.event_name == 'schedule' }}
         run: |
            ./scripts/release/staging.sh
 

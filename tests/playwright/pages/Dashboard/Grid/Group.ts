@@ -14,8 +14,8 @@ export class GroupPageObject extends BasePage {
 
   get({ indexMap }: { indexMap: Array<number> }) {
     let query = '';
-    for (const [n] of indexMap.entries()) {
-      query += `.nc-group:nth-child(${n + 1}) `;
+    for (const n of indexMap) {
+      query = query + `.nc-group:nth-child(${n + 1}) `;
     }
     return this.rootPage.locator(query);
   }
@@ -31,8 +31,8 @@ export class GroupPageObject extends BasePage {
 
   async verifyGroupHeader({ indexMap, count, title }: { indexMap: number[]; count: number; title: string }) {
     const groupWrapper = this.get({ indexMap });
-    await expect(groupWrapper.locator('.nc-group-column-title').first()).toHaveText(title);
-    await expect(groupWrapper.locator('.nc-group-row-count').first()).toHaveText(`(Count: ${count})`);
+    await expect(groupWrapper.locator('.nc-group-column-title')).toHaveText(title);
+    await expect(groupWrapper.locator('.nc-group-row-count')).toHaveText(`(Count: ${count})`);
   }
 
   async verifyPagination({ indexMap, count }: { indexMap: number[]; count: number }) {
@@ -42,7 +42,7 @@ export class GroupPageObject extends BasePage {
 
   async verifyGroup({ indexMap, value }: { indexMap: number[]; value: string }) {
     let query = '';
-    for (const [n] of indexMap.entries()) {
+    for (const n of indexMap) {
       query += ` .nc-group:nth-child(${n + 1})`;
     }
     const groupWrapper = this.get({ indexMap });

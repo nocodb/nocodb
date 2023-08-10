@@ -37,9 +37,16 @@ export class ToolbarSortPage extends BasePage {
     locallySaved: boolean;
   }) {
     await this.toolbar.clickSort();
-    const col = await this.rootPage.locator('.nc-sort-field-select').nth(index).textContent();
+    const count = await this.rootPage.locator('.nc-sort-field-select').count();
+    const col = await this.rootPage
+      .locator('.nc-sort-field-select')
+      .nth(count - index)
+      .textContent();
     if (col !== title) {
-      await this.rootPage.locator('.nc-sort-field-select').nth(index).click();
+      await this.rootPage
+        .locator('.nc-sort-field-select')
+        .nth(count - index)
+        .click();
       await this.rootPage
         .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
         .locator(`div[label="${title}"]`)
@@ -47,11 +54,14 @@ export class ToolbarSortPage extends BasePage {
         .click();
     }
 
-    await this.rootPage.locator('.nc-sort-dir-select').nth(index).click();
+    await this.rootPage
+      .locator('.nc-sort-dir-select')
+      .nth(count - index)
+      .click();
     const selectSortDirection = () =>
       this.rootPage
         .locator('.nc-dropdown-sort-dir')
-        .nth(index)
+        .nth(count - index)
         .locator('.ant-select-item')
         .nth(ascending ? 0 : 1)
         .click();

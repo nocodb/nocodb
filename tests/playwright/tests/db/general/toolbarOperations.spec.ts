@@ -237,6 +237,119 @@ test.describe('Toolbar operations (GRID)', () => {
     await dashboard.closeTab({ title: 'Film' });
   });
 
+  test.only('Create Three GroupBy and Verify With Sort, Filter, Hide', async () => {
+    // Open Table
+    await dashboard.treeView.openTable({ title: 'Film' });
+
+    // Open GroupBy Menu
+    await toolbar.clickGroupBy();
+
+    // GroupBy Category Descending Order
+    await toolbar.groupBy.add({ title: 'Length', ascending: false, locallySaved: false });
+    await toolbar.groupBy.add({ title: 'RentalDuration', ascending: false, locallySaved: false });
+    await toolbar.groupBy.add({ title: 'ReleaseYear', ascending: false, locallySaved: false });
+
+    // Hide Field and Verify
+    await toolbar.fields.toggle({ title: 'Description' });
+    await dashboard.grid.column.verify({
+      title: 'Description',
+      isVisible: false,
+    });
+
+    // Filter a Field and Verify
+    await toolbar.clickFilter();
+    await toolbar.filter.add({
+      title: 'Rating',
+      value: 'PG-13',
+      operation: 'is equal',
+      locallySaved: false,
+    });
+    await toolbar.clickFilter();
+
+    await dashboard.grid.groupPage.openGroup({ indexMap: [5, 0, 0] });
+
+    await dashboard.grid.groupPage.verifyGroupHeader({
+      indexMap: [5, 0, 0],
+      count: 3,
+      title: 'ReleaseYear',
+    });
+
+    await dashboard.grid.groupPage.verifyGroup({
+      indexMap: [5, 0, 0],
+      value: '2006',
+    });
+
+    // Add Sort and Verify
+    await toolbar.sort.add({ title: 'Title', ascending: false, locallySaved: false });
+    await dashboard.grid.groupPage.openGroup({ indexMap: [5, 0, 0] });
+    await dashboard.grid.groupPage.validateFirstRow({
+      indexMap: [5, 0, 0],
+      rowIndex: 0,
+      columnHeader: 'Title',
+      value: 'NASH CHOCOLAT',
+    });
+
+    // Update Sort and Verify
+    await toolbar.sort.update({ index: 1, title: 'Title', ascending: true, locallySaved: false });
+    await dashboard.grid.groupPage.openGroup({ indexMap: [5, 0, 0] });
+    await dashboard.grid.groupPage.validateFirstRow({
+      indexMap: [5, 0, 0],
+      rowIndex: 0,
+      columnHeader: 'Title',
+      value: 'IMPACT ALADDIN',
+    });
+    // Update Hidden Field and Verify
+    await toolbar.fields.toggle({ title: 'Length' });
+    await dashboard.grid.column.verify({
+      title: 'Length',
+      isVisible: false,
+    });
+
+    // Update Filter and Verify
+    //TODO
+
+    // Remove Sort and Verify
+    await toolbar.sort.reset();
+    await dashboard.grid.groupPage.openGroup({ indexMap: [5, 0, 0] });
+    await dashboard.grid.groupPage.validateFirstRow({
+      indexMap: [5, 0, 0],
+      rowIndex: 0,
+      columnHeader: 'Title',
+      value: 'IMPACT ALADDIN',
+    });
+
+    // Remove Filter and Verify
+    await toolbar.filter.reset();
+    await dashboard.grid.groupPage.verifyGroupHeader({
+      indexMap: [5, 0, 0],
+      count: 6,
+      title: 'ReleaseYear',
+    });
+
+    await dashboard.grid.groupPage.verifyGroup({
+      indexMap: [5, 0, 0],
+      value: '2006',
+    });
+
+    // Remove Hidden Fields and Verify
+    await toolbar.fields.toggle({ title: 'Length' });
+    await dashboard.grid.column.verify({
+      title: 'Length',
+      isVisible: true,
+    });
+
+    await toolbar.fields.toggle({ title: 'Description' });
+    await dashboard.grid.column.verify({
+      title: 'Description',
+      isVisible: true,
+    });
+
+    await dashboard.closeTab({ title: 'Film' });
+
+    //Test
+    //await toolbar.sort.add({title: 'Title', ascending: true, locallySaved: true});
+  });
+
   test('Hide, Sort, Filter', async () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });

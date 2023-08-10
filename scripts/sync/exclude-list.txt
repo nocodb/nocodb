@@ -8,7 +8,7 @@ node_modules
 */dist
 */build
 .github/workflows
-./cloud
+/cloud
 charts
 scripts/release
 packages/nocodb-ingest-service
@@ -33,7 +33,7 @@ package.json
 package-lock.json
 .run
 packages/nocodb/tsconfig.ee.json
-./packages/nocodb/docker
+/packages/nocodb/docker
 
 
 

@@ -277,6 +277,16 @@ const addFilterGroup = async () => {
   }
 }
 
+const showFilterInput = (filter: Filter) => {
+  if (!filter.comparison_op) return false
+
+  if (filter.comparison_sub_op) {
+    return !comparisonSubOpList(filter.comparison_op).find((op) => op.value === filter.comparison_sub_op)?.ignoreVal
+  } else {
+    return !comparisonOpList(getColumn(filter)?.uidt as UITypes).find((op) => op.value === filter.comparison_op)?.ignoreVal
+  }
+}
+
 onMounted(() => {
   loadFilters(hookId?.value)
 })
@@ -307,14 +317,16 @@ onMounted(() => {
                   <NcSelect
                     v-model:value="filter.logical_op"
                     :dropdown-match-select-width="false"
-                    class="min-w-20 !capitalize"
+                    class="min-w-20 capitalize"
                     placeholder="Group op"
                     dropdown-class-name="nc-dropdown-filter-logical-op-group"
                     @click.stop
                     @change="saveOrUpdate(filter, i)"
                   >
-                    <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value" class="capitalize">
-                      {{ op.value }}
+                    <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value">
+                      <span class="capitalize">
+                        {{ op.value }}
+                      </span>
                     </a-select-option>
                   </NcSelect>
                 </div>
@@ -352,7 +364,7 @@ onMounted(() => {
               v-else
               v-model:value="filter.logical_op"
               :dropdown-match-select-width="false"
-              class="h-full !min-w-20 !max-w-20 !capitalize"
+              class="h-full !min-w-20 !max-w-20 capitalize"
               hide-details
               :disabled="filter.readOnly"
               dropdown-class-name="nc-dropdown-filter-logical-op"
@@ -360,7 +372,9 @@ onMounted(() => {
               @click.stop
             >
               <a-select-option v-for="op of logicalOps" :key="op.value" :value="op.value">
-                {{ op.value }}
+                <span class="capitalize">
+                  {{ op.value }}
+                </span>
               </a-select-option>
             </NcSelect>
             <SmartsheetToolbarFieldListAutoCompleteDropdown
@@ -396,7 +410,8 @@ onMounted(() => {
               v-else-if="[UITypes.Date, UITypes.DateTime].includes(getColumn(filter)?.uidt)"
               v-model:value="filter.comparison_sub_op"
               :dropdown-match-select-width="false"
-              class="caption nc-filter-sub_operation-select max-w-28 min-w-28"
+              class="caption nc-filter-sub_operation-select min-w-28"
+              :class="{ 'flex-grow w-full': !showFilterInput(filter), 'max-w-28': showFilterInput(filter) }"
               :placeholder="$t('labels.operationSub')"
               density="compact"
               variant="solo"
@@ -420,20 +435,14 @@ onMounted(() => {
             />
 
             <SmartsheetToolbarFilterInput
-              v-if="
-                filter &&
-                !(filter.comparison_sub_op
-                  ? comparisonSubOpList(filter.comparison_op).find((op) => op.value === filter.comparison_sub_op)?.ignoreVal ??
-                    false
-                  : comparisonOpList(getColumn(filter)?.uidt).find((op) => op.value === filter.comparison_op)?.ignoreVal ?? false)
-              "
+              v-if="showFilterInput(filter)"
               class="nc-filter-value-select rounded-md min-w-34"
               :column="getColumn(filter)"
               :filter="filter"
               @update-filter-value="(value) => updateFilterValue(value, filter, i)"
               @click.stop
             />
-            <div v-else class="flex-grow"></div>
+            <div v-else-if="![UITypes.Date, UITypes.DateTime].includes(getColumn(filter)?.uidt)" class="flex-grow"></div>
 
             <NcButton
               v-if="!filter.readOnly"

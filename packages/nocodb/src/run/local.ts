@@ -1,8 +1,11 @@
+import dns from 'node:dns';
 import path from 'path';
 import cors from 'cors';
 import express from 'express';
-
 import Noco from '../Noco';
+
+// ref: https://github.com/nodejs/node/issues/40702#issuecomment-1103623246
+dns.setDefaultResultOrder('ipv4first');
 
 const server = express();
 server.enable('trust proxy');

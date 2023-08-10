@@ -432,9 +432,50 @@ test.describe('Toolbar operations (GRID)', () => {
     });
 
     await dashboard.closeTab({ title: 'Film' });
+  });
 
-    //Test
-    //await toolbar.sort.add({title: 'Title', ascending: true, locallySaved: true});
+  test('Update GroupBy and Verify', async () => {
+    await dashboard.treeView.openTable({ title: 'Film' });
+
+    // Open GroupBy Menu
+    await toolbar.clickGroupBy();
+    await toolbar.groupBy.add({ title: 'Length', ascending: false, locallySaved: false });
+    await toolbar.groupBy.add({ title: 'RentalDuration', ascending: false, locallySaved: false });
+    await toolbar.clickGroupBy();
+
+    await dashboard.grid.groupPage.openGroup({ indexMap: [5, 0] });
+
+    await dashboard.grid.groupPage.validateFirstRow({
+      indexMap: [5, 0],
+      rowIndex: 0,
+      columnHeader: 'Title',
+      value: 'ALLEY EVOLUTION',
+    });
+
+    await toolbar.clickGroupBy();
+
+    await toolbar.groupBy.update({ index: 0, title: 'ReleaseYear', ascending: false });
+
+    await dashboard.grid.groupPage.openGroup({ indexMap: [0, 1] });
+
+    await dashboard.grid.groupPage.validateFirstRow({
+      indexMap: [0, 1],
+      rowIndex: 0,
+      columnHeader: 'Title',
+      value: 'ACADEMY DINOSAUR',
+    });
+
+    await toolbar.clickGroupBy();
+
+    await toolbar.groupBy.update({ index: 1, title: 'Length', ascending: false });
+    await dashboard.grid.groupPage.openGroup({ indexMap: [0, 5] });
+
+    await dashboard.grid.groupPage.validateFirstRow({
+      indexMap: [0, 5],
+      rowIndex: 0,
+      columnHeader: 'Title',
+      value: 'ALLEY EVOLUTION',
+    });
   });
 
   test('Hide, Sort, Filter', async () => {

@@ -405,7 +405,7 @@ onKeyStroke('Escape', () => {
                   </a-menu-item>
 
                   <!-- Copy Project Info -->
-                  <a-menu-item v-if="false" key="copy">
+                  <a-menu-item v-if="!isEeUI" key="copy">
                     <div v-e="['c:navbar:user:copy-proj-info']" class="nc-project-menu-item group" @click.stop="copyProjectInfo">
                       <GeneralIcon icon="copy" class="group-hover:text-black" />
                       {{ $t('activity.account.projInfo') }}

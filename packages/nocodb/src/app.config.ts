@@ -1,4 +1,4 @@
-import type { AppConfig } from '~/interface/config';
+import type { AppConfig } from './interface/config';
 
 const config: AppConfig = {
   throttler: {

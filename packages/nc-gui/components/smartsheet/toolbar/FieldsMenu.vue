@@ -298,7 +298,7 @@ useMenuCloseOnEsc(open)
 </script>
 
 <template>
-  <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-fields-menu">
+  <NcDropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-fields-menu">
     <div :class="{ 'nc-active-btn': numberOfHiddenFields }">
       <a-button v-e="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-2">
@@ -325,11 +325,7 @@ useMenuCloseOnEsc(open)
     </div>
 
     <template #overlay>
-      <div
-        class="p-6 pr-0 bg-white w-90 rounded-2xl nc-table-toolbar-menu border-1 border-gray-50 shadow-lg"
-        data-testid="nc-fields-menu"
-        @click.stop
-      >
+      <div class="p-6 pr-0 bg-white w-90 rounded-2xl nc-table-toolbar-menu" data-testid="nc-fields-menu" @click.stop>
         <div
           v-if="!filterQuery && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
           class="flex flex-col gap-y-2 pr-6 mb-6"
@@ -366,7 +362,9 @@ useMenuCloseOnEsc(open)
 
         <div class="flex flex-col nc-scrollbar-md max-h-[35vh] pt-1 pr-5">
           <div class="nc-fields-list py-1">
-            <div v-if="!fields?.filter((el) => el.title.includes(filterQuery)).length" class="px-3 py-2 text-gray-500">Empty</div>
+            <div v-if="!fields?.filter((el) => el.title.includes(filterQuery)).length" class="px-0.5 py-2 text-gray-500">
+              Empty
+            </div>
             <Draggable v-model="fields" item-key="id" @change="onMove($event)">
               <template #item="{ element: field, index: index }">
                 <div
@@ -434,7 +432,7 @@ useMenuCloseOnEsc(open)
         </div>
       </div>
     </template>
-  </a-dropdown>
+  </NcDropdown>
 </template>
 
 <style scoped lang="scss">

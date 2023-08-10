@@ -42,7 +42,7 @@ async function showNullAndEmptyInFilterOnChange(evt: CheckboxChangeEvent) {
   project.meta = newProjectMeta
   // update db
   await projectsStore.updateProject(projectId.value!, {
-    meta: newProjectMeta,
+    meta: JSON.stringify(newProjectMeta),
   })
 }
 </script>

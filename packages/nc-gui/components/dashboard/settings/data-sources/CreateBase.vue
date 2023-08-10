@@ -378,7 +378,7 @@ watch(
     <h1 class="prose-2xl font-bold self-start mb-4 flex items-center gap-2">
       New Base
       <span class="flex-grow"></span>
-      <span class="text-gray-400 !text-sm font-weight-normal">( Whitelist our ip: 52.15.226.51 to allow database access )</span>
+      <DashboardSettingsDataSourcesInfo />
     </h1>
 
     <a-form
@@ -517,7 +517,7 @@ watch(
               </template>
               <a-form-item label="SSL mode">
                 <a-select v-model:value="formState.sslUse" dropdown-class-name="nc-dropdown-ssl-mode" @select="onSSLModeChange">
-                  <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }}</a-select-option>
+                  <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }} </a-select-option>
                 </a-select>
               </a-form-item>
 
@@ -584,7 +584,9 @@ watch(
                     </div>
                   </div>
                   <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">
-                    <div class="flex items-center justify-center"><component :is="iconMap.plus" /></div>
+                    <div class="flex items-center justify-center">
+                      <component :is="iconMap.plus" />
+                    </div>
                   </a-button>
                 </a-card>
               </a-form-item>
@@ -596,7 +598,7 @@ watch(
                   v-model:value="formState.inflection.inflectionTable"
                   dropdown-class-name="nc-dropdown-inflection-table-name"
                 >
-                  <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
+                  <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }} </a-select-option>
                 </a-select>
               </a-form-item>
 
@@ -605,7 +607,7 @@ watch(
                   v-model:value="formState.inflection.inflectionColumn"
                   dropdown-class-name="nc-dropdown-inflection-column-name"
                 >
-                  <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
+                  <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }} </a-select-option>
                 </a-select>
               </a-form-item>
 

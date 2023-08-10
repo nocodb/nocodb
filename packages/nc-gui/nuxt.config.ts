@@ -104,7 +104,7 @@ export default defineNuxtConfig({
     },
     plugins: [
       vueI18n({
-        include: [resolve(dirname('./lang/en.json'))],
+        include: [resolve(dirname('./lang/*.json'))],
         runtimeOnly: false,
       }),
       Icons({

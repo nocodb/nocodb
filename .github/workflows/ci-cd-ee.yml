@@ -2,7 +2,7 @@
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 # Trigger configuration : https://gist.github.com/myobie/671d2f2a1e503efa0c05e7b865c26a9d
 
-name: "CI/CD"
+name: "CI/CD/EE"
 on:
     push:
         branches: [develop]

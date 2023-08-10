@@ -1,4 +1,4 @@
-name: Playwright test reusable workflow
+name: Playwright test reusable workflow (ee)
 
 on:
   workflow_call:

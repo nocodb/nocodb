@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { WidgetTemplate } from '../types'
+import type { WidgetTemplate } from '#imports'
 const props = defineProps<{
   item: WidgetTemplate
 }>()

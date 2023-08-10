@@ -64,7 +64,7 @@ const stackIdxToBeDeleted = ref(0)
 
 const router = useRouter()
 
-const route = $(router.currentRoute)
+const route = router.currentRoute
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
@@ -91,7 +91,8 @@ const { isViewDataLoading } = storeToRefs(useViewsStore())
 
 const { isUIAllowed } = useUIPermission()
 
-const { appInfo } = $(useGlobal())
+const globalStore = useGlobal()
+const appInfo = toRef(globalStore, 'appInfo')
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -103,18 +104,16 @@ provide(IsGridInj, ref(false))
 
 provide(IsKanbanInj, ref(true))
 
-const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
+const hasEditPermission = computed(() => isUIAllowed('xcDatatableEditable'))
 
 const fields = inject(FieldsInj, ref([]))
 
 const fieldsWithoutCover = computed(() => fields.value.filter((f) => f.id !== kanbanMetaData.value?.fk_cover_image_col_id))
 
-const coverImageColumn: any = $(
-  computed(() =>
-    meta.value?.columnsById
-      ? meta.value.columnsById[kanbanMetaData.value?.fk_cover_image_col_id as keyof typeof meta.value.columnsById]
-      : {},
-  ),
+const coverImageColumn: any = computed(() =>
+  meta.value?.columnsById
+    ? meta.value.columnsById[kanbanMetaData.value?.fk_cover_image_col_id as keyof typeof meta.value.columnsById]
+    : {},
 )
 
 const kanbanContainerRef = ref()
@@ -135,10 +134,10 @@ reloadViewDataHook?.on(async () => {
 
 const attachments = (record: any): Attachment[] => {
   try {
-    if (coverImageColumn?.title && record.row[coverImageColumn.title]) {
-      return typeof record.row[coverImageColumn.title] === 'string'
-        ? JSON.parse(record.row[coverImageColumn.title])
-        : record.row[coverImageColumn.title]
+    if (coverImageColumn.value?.title && record.row[coverImageColumn.value.title]) {
+      return typeof record.row[coverImageColumn.value.title] === 'string'
+        ? JSON.parse(record.row[coverImageColumn.value.title])
+        : record.row[coverImageColumn.value.title]
     }
     return []
   } catch (e) {
@@ -164,7 +163,7 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
   if (rowId) {
     router.push({
       query: {
-        ...route.query,
+        ...route.value.query,
         rowId,
       },
     })
@@ -180,7 +179,7 @@ const _contextMenu = ref(false)
 const contextMenu = computed({
   get: () => _contextMenu.value,
   set: (val) => {
-    if (hasEditPermission) {
+    if (hasEditPermission.value) {
       _contextMenu.value = val
     }
   },
@@ -197,13 +196,13 @@ const showContextMenu = (e: MouseEvent, target?: RowType) => {
 
 const expandedFormOnRowIdDlg = computed({
   get() {
-    return !!route.query.rowId
+    return !!route.value.query.rowId
   },
   set(val) {
     if (!val)
       router.push({
         query: {
-          ...route.query,
+          ...route.value.query,
           rowId: undefined,
         },
       })
@@ -286,7 +285,7 @@ async function onMove(event: any, stackKey: string) {
 const kanbanListScrollHandler = useDebounceFn(async (e: any) => {
   if (e.target.scrollTop + e.target.clientHeight + INFINITY_SCROLL_THRESHOLD >= e.target.scrollHeight) {
     const stackTitle = e.target.getAttribute('data-stack-title')
-    const pageSize = appInfo.defaultLimit || 25
+    const pageSize = appInfo.value.defaultLimit || 25
     const page = Math.ceil(formattedData.value.get(stackTitle)!.length / pageSize)
     await loadMoreKanbanData(stackTitle, { offset: page * pageSize })
   }

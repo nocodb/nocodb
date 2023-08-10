@@ -39,25 +39,25 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const localValueState = ref<string | undefined>()
 
-let error = $ref<string | undefined>()
+const error = ref<string | undefined>()
 
-let isExpanded = $ref(false)
+const isExpanded = ref(false)
 
 const localValue = computed<string | Record<string, any> | undefined>({
   get: () => localValueState.value,
   set: (val: undefined | string | Record<string, any>) => {
     localValueState.value = typeof val === 'object' ? JSON.stringify(val, null, 2) : val
     /** if form and not expanded then sync directly */
-    if (isForm.value && !isExpanded) {
+    if (isForm.value && !isExpanded.value) {
       vModel.value = val
     }
   },
 })
 
 const clear = () => {
-  error = undefined
+  error.value = undefined
 
-  isExpanded = false
+  isExpanded.value = false
 
   editEnabled.value = false
 
@@ -80,7 +80,7 @@ const formatJson = (json: string) => {
 }
 
 const onSave = () => {
-  isExpanded = false
+  isExpanded.value = false
 
   editEnabled.value = false
 
@@ -107,16 +107,16 @@ watch([localValue, editEnabled], () => {
   try {
     JSON.parse(localValue.value as string)
 
-    error = undefined
+    error.value = undefined
   } catch (e: any) {
     if (localValue.value === undefined) return
 
-    error = e
+    error.value = e
   }
 })
 
 watch(editEnabled, () => {
-  isExpanded = false
+  isExpanded.value = false
 
   setLocalValue(vModel.value)
 })

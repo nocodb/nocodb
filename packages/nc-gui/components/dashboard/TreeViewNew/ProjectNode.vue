@@ -24,7 +24,7 @@ const indicator = h(LoadingOutlined, {
 })
 
 const router = useRouter()
-const route = $(router.currentRoute)
+const route = router.currentRoute
 
 const { setMenuContext, openRenameTableDialog, duplicateTable, contextMenuTarget } = inject(TreeViewInj)!
 
@@ -58,7 +58,7 @@ const { projectUrl } = useProject()
 
 const toggleDialog = inject(ToggleDialogInj, () => {})
 
-const activeProjectId = computed(() => route.params.projectId as string | undefined)
+const activeProjectId = computed(() => route.value.params.projectId as string | undefined)
 
 const { $e } = useNuxtApp()
 
@@ -67,14 +67,14 @@ const isBasesOptionsOpen = ref<Record<string, boolean>>({})
 
 const activeKey = ref<string[]>([])
 const [searchActive] = useToggle()
-const filterQuery = $ref('')
-const keys = $ref<Record<string, number>>({})
+const filterQuery = ref('')
+const keys = ref<Record<string, number>>({})
 const isTableDeleteDialogVisible = ref(false)
 const isProjectDeleteDialogVisible = ref(false)
 
 // If only project is open, i.e in case of docs, project view is open and not the page view
 const projectViewOpen = computed(() => {
-  const routeNameSplit = String(route?.name).split('projectId-index-index')
+  const routeNameSplit = String(route.value?.name).split('projectId-index-index')
   if (routeNameSplit.length <= 1) return false
 
   const routeNameAfterProjectView = routeNameSplit[routeNameSplit.length - 1]
@@ -405,7 +405,7 @@ onKeyStroke('Escape', () => {
                   </a-menu-item>
 
                   <!-- Copy Project Info -->
-                  <a-menu-item v-if="false" key="copy">
+                  <a-menu-item v-if="!isEeUI" key="copy">
                     <div v-e="['c:navbar:user:copy-proj-info']" class="nc-project-menu-item group" @click.stop="copyProjectInfo">
                       <GeneralIcon icon="copy" class="group-hover:text-black" />
                       {{ $t('activity.account.projInfo') }}
@@ -486,10 +486,7 @@ onKeyStroke('Escape', () => {
         class="overflow-x-hidden transition-max-height"
         :class="{ 'max-h-0': !project.isExpanded }"
       >
-        <div v-if="project.type === 'dashboard'">
-          <LayoutsSideBar v-if="project.isExpanded" :project="project" />
-        </div>
-        <template v-else-if="project && project?.bases">
+        <template v-if="project && project?.bases">
           <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
             <div v-if="project?.bases?.[0]?.enabled" class="flex-1">
               <div class="transition-height duration-200">

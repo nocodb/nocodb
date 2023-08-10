@@ -3,9 +3,9 @@ import { EditorContent, useEditor } from '@tiptap/vue-3'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { generateJSON } from '@tiptap/html'
 import { useShortcuts } from '../utils'
-import tiptapExtensions from '~~/utils/tiptapExtensions'
+import tiptapExtensions from '@/helpers/tiptapExtensions'
 import AlignRightIcon from '~icons/tabler/align-right'
-import { emptySectionContent, removeUploadingPlaceHolderAndEmptyLinkNode } from '~~/utils/tiptapExtensions/helper'
+import { emptySectionContent, removeUploadingPlaceHolderAndEmptyLinkNode } from '@/helpers/tiptapExtensions/helper'
 import '~/assets/docsPage.scss'
 
 const { project } = useProject()
@@ -304,7 +304,8 @@ watch(
                   :data-testid="`nc-doc-page-breadcrumb-${index}`"
                 >
                   <div class="flex flex-row items-center gap-x-1.5">
-                    <LazyGeneralEmojiPicker v-if="icon" :key="icon" :emoji="icon" :readonly="true" size="small"> </LazyGeneralEmojiPicker>
+                    <LazyGeneralEmojiPicker v-if="icon" :key="icon" :emoji="icon" :readonly="true" size="small">
+                    </LazyGeneralEmojiPicker>
                     <div class="pop-in-animation">
                       {{ !title ? EMPTY_TITLE_PLACEHOLDER_DOCS : title }}
                     </div>

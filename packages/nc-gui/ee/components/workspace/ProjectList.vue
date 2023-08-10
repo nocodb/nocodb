@@ -14,7 +14,8 @@ const { activePage } = storeToRefs(workspaceStore)
 const { loadProjects } = useProjects()
 const { projectsList, isProjectsLoading } = storeToRefs(useProjects())
 
-const { navigateToProject } = $(useGlobal())
+const globalStore = useGlobal()
+const navigateToProject = toRef(globalStore, 'navigateToProject')
 
 // const filteredProjects = computed(() => projects.value?.filter((p) => !p.deleted) || [])
 
@@ -28,7 +29,7 @@ const showProjectDeleteModal = ref(false)
 const toBeDeletedProjectId = ref<string | undefined>()
 
 const openProject = async (project: ProjectType) => {
-  navigateToProject({
+  navigateToProject.value({
     projectId: project.id!,
     workspaceId: project.fk_workspace_id!,
     type: project.type as NcProjectType,
@@ -346,7 +347,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                 <a-menu-item @click="enableEdit(i)">
                   <div class="nc-menu-item-wrapper">
                     <GeneralIcon icon="edit" class="text-gray-700" />
-                    Rename Project
+                    {{ $t('general.rename') }} {{ $t('objects.project') }}
                   </div>
                 </a-menu-item>
                 <a-menu-item
@@ -358,7 +359,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                 >
                   <div class="nc-menu-item-wrapper">
                     <GeneralIcon icon="duplicate" class="text-gray-700" />
-                    Duplicate Project
+                    {{ $t('general.duplicate') }} {{ $t('objects.project') }}
                   </div>
                 </a-menu-item>
                 <a-menu-item
@@ -367,7 +368,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                 >
                   <div class="nc-menu-item-wrapper">
                     <GeneralIcon icon="move" class="text-gray-700" />
-                    Move Project
+                    {{ $t('general.move') }} {{ $t('objects.project') }}
                   </div>
                 </a-menu-item>
                 <a-menu-item
@@ -376,7 +377,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                 >
                   <div class="nc-menu-item-wrapper text-red-500">
                     <GeneralIcon icon="delete" />
-                    Delete Project
+                    {{ $t('general.delete') }} {{ $t('objects.project') }}
                   </div>
                 </a-menu-item>
               </a-menu>

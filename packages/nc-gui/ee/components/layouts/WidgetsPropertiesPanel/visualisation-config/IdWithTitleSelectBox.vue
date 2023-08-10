@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { SelectValue } from 'ant-design-vue/es/select'
-import type { IdAndTitle } from '../../types'
+import type { IdAndTitle } from '#imports'
 
 const props = defineProps<{
   idAndTitleTupleList?: Readonly<IdAndTitle[] | null>

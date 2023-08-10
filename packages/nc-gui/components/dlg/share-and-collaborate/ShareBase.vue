@@ -12,15 +12,16 @@ enum ShareBaseRole {
   Viewer = 'viewer',
 }
 
-const { dashboardUrl } = $(useDashboard())
+const dashboardStore = useDashboard()
+const dashboardUrl = toRef(dashboardStore, 'dashboardUrl')
 
 const { $api, $e } = useNuxtApp()
 
-let base = $ref<null | ShareBase>(null)
+const base = ref<null | ShareBase>(null)
 
 const { project } = storeToRefs(useProject())
 
-const url = $computed(() => (base && base.uuid ? `${dashboardUrl}#/base/${base.uuid}` : ''))
+const url = computed(() => (base.value && base.value.uuid ? `${dashboardUrl.value}#/base/${base.value.uuid}` : ''))
 
 const loadBase = async () => {
   try {
@@ -28,7 +29,7 @@ const loadBase = async () => {
 
     const res = await $api.project.sharedBaseGet(project.value.id)
 
-    base = {
+    base.value = {
       uuid: res.uuid,
       url: res.url,
       role: res.roles,
@@ -46,8 +47,8 @@ const createShareBase = async (role = ShareBaseRole.Viewer) => {
       roles: role,
     })
 
-    base = res ?? {}
-    base!.role = role
+    base.value = res ?? {}
+    base.value!.role = role
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -60,7 +61,7 @@ const disableSharedBase = async () => {
     if (!project.value.id) return
 
     await $api.project.sharedBaseDisable(project.value.id)
-    base = null
+    base.value = null
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -69,12 +70,12 @@ const disableSharedBase = async () => {
 }
 
 onMounted(() => {
-  if (!base) {
+  if (!base.value) {
     loadBase()
   }
 })
 
-const isSharedBaseEnabled = computed(() => !!base?.uuid)
+const isSharedBaseEnabled = computed(() => !!base.value?.uuid)
 const isToggleBaseLoading = ref(false)
 const isRoleToggleLoading = ref(false)
 
@@ -96,12 +97,12 @@ const toggleSharedBase = async () => {
 }
 
 const onRoleToggle = async () => {
-  if (!base) return
+  if (!base.value) return
   if (isRoleToggleLoading.value) return
 
   isRoleToggleLoading.value = true
   try {
-    if (base.role === ShareBaseRole.Viewer) {
+    if (base.value.role === ShareBaseRole.Viewer) {
       await createShareBase(ShareBaseRole.Editor)
     } else {
       await createShareBase(ShareBaseRole.Viewer)

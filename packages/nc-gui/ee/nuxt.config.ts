@@ -14,6 +14,10 @@ import PurgeIcons from 'vite-plugin-purge-icons'
 export default defineNuxtConfig({
   extends: ['../'],
 
+  alias: {
+    '@': resolve(__dirname),
+  },
+
   ssr: false,
   router: {
     options: {

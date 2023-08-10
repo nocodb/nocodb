@@ -8,8 +8,8 @@ import MdiFormatBulletList from '~icons/mdi/format-list-bulleted'
 import MdiFormatStrikeThrough from '~icons/mdi/format-strikethrough'
 import MdiFormatListNumber from '~icons/mdi/format-list-numbered'
 import MdiFormatListCheckbox from '~icons/mdi/format-list-checkbox'
-import { tiptapTextColor } from '~/utils/tiptapExtensions/helper'
-import { AISelection } from '~~/utils/tiptapExtensions/AISelection'
+import { tiptapTextColor } from '@/helpers/tiptapExtensions/helper'
+import { AISelection } from '@/helpers/tiptapExtensions/AISelection'
 
 const { editor } = defineProps<Props>()
 

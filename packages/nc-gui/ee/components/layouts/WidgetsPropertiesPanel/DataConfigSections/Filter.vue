@@ -2,7 +2,7 @@
 import type { BaseType, DataSourceInternal, FilterType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import useWidgetFilters from './useWidgetFilters'
-import type { Filter } from '~~/lib/types'
+import type { Filter } from '#imports'
 
 interface Props {
   nested?: boolean
@@ -180,7 +180,7 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
             <span v-else :key="`${i}dummy`" />
 
             <div :key="`${i}nested`" class="flex">
-              <a-select
+              <NcSelect
                 v-model:value="filter.logical_op"
                 :dropdown-match-select-width="false"
                 class="shrink grow-0"
@@ -192,7 +192,7 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
                 <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value" class="">
                   {{ op.text }}
                 </a-select-option>
-              </a-select>
+              </NcSelect>
             </div>
             <span class="col-span-3" />
             <div class="col-span-6">
@@ -226,7 +226,7 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
 
             <span v-if="!i" class="flex items-center">{{ $t('labels.where') }}</span>
 
-            <a-select
+            <NcSelect
               v-else
               v-model:value="filter.logical_op"
               :dropdown-match-select-width="false"
@@ -240,7 +240,7 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
               <a-select-option v-for="op of logicalOps" :key="op.value" :value="op.value">
                 {{ op.text }}
               </a-select-option>
-            </a-select>
+            </NcSelect>
             <LazyLayoutsWidgetsPropertiesPanelDataConfigSectionsFieldListAutoCompleteDropdown
               :key="`${i}_6`"
               v-model="filter.fk_column_id"

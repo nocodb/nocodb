@@ -1,8 +1,6 @@
 import type {
   ColumnType,
-  DocsPageType,
   FilterType,
-  LayoutType,
   MetaType,
   OrgUserRoles,
   PaginatedType,
@@ -120,21 +118,6 @@ type streamImportFileList = UploadFile[]
 
 type Nullable<T> = { [K in keyof T]: T[K] | null }
 
-interface AntSidebarNode {
-  parentNodeId?: string
-  isLeaf: boolean
-  key: string
-  style?: string | Record<string, string>
-  isBook?: boolean
-  children?: PageSidebarNode[]
-  level?: number
-  isSelected?: boolean
-}
-
-type PageSidebarNode = DocsPageType & AntSidebarNode
-type LayoutSidebarNode = Omit<LayoutType, 'meta'> & AntSidebarNode
-type PublishTreeNode = PageSidebarNode & { isSelected: boolean; key: string }
-
 /**
  * @description: Project type for frontend
  */
@@ -214,10 +197,6 @@ export {
   importFileList,
   streamImportFileList,
   Nullable,
-  AntSidebarNode,
-  PageSidebarNode,
-  LayoutSidebarNode,
-  PublishTreeNode,
   NcProject,
   UndoRedoAction,
   ImportWorkerPayload,

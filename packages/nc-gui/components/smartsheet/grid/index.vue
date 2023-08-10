@@ -35,13 +35,13 @@ const _fields = inject(FieldsInj, ref([]))
 
 const router = useRouter()
 
-const route = $(router.currentRoute)
+const route = router.currentRoute
 
 const { xWhere, eventBus } = useSmartsheetStoreOrThrow()
 
 const bulkUpdateDlg = ref(false)
 
-const routeQuery = $computed(() => route.query as Record<string, string>)
+const routeQuery = computed(() => route.value.query as Record<string, string>)
 
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
@@ -104,7 +104,7 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) 
   if (rowId) {
     router.push({
       query: {
-        ...routeQuery,
+        ...routeQuery.value,
         rowId,
       },
     })
@@ -127,13 +127,13 @@ defineExpose({
 
 const expandedFormOnRowIdDlg = computed({
   get() {
-    return !!routeQuery.rowId
+    return !!routeQuery.value.rowId
   },
   set(val) {
     if (!val)
       router.push({
         query: {
-          ...routeQuery,
+          ...routeQuery.value,
           rowId: undefined,
         },
       })

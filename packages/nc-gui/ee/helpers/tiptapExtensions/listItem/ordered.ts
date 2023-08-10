@@ -4,7 +4,7 @@ import { Plugin, PluginKey } from 'prosemirror-state'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { nodeTypesContainingListItems } from '../helper'
 import type { ListNodeType } from './helper'
-import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspace, onEnter } from './helper'
+import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspace, onEnter, toggleItem } from './helper'
 export interface OrderItemsOptions {
   number: string
   HTMLAttributes: Record<string, any>

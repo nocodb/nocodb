@@ -2,7 +2,7 @@
 import type { Editor } from '@tiptap/vue-3'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { useCommandList } from './utils'
-import { getEmbedContentType, urlToEmbedUrl } from '~/utils/tiptapExtensions/embed/urlHelper'
+import { getEmbedContentType, urlToEmbedUrl } from '@/helpers/tiptapExtensions/embed/urlHelper'
 
 interface Props {
   command: Function

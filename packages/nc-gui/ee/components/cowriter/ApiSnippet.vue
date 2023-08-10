@@ -12,15 +12,17 @@ const emits = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 
-const { appInfo, token } = $(useGlobal())
+const globalStore = useGlobal()
+const appInfo = toRef(globalStore, 'appInfo')
+const token = toRef(globalStore, 'token')
 
-const meta = $(inject(MetaInj, ref()))
+const meta = inject(MetaInj, ref())
 
 const { supportedColumns, cowriterTable } = useCowriterStoreOrThrow()
 
 const { copy } = useCopy()
 
-let vModel = $(useVModel(props, 'modelValue', emits))
+const vModel = useVModel(props, 'modelValue', emits)
 
 const langs = [
   {
@@ -57,12 +59,12 @@ const langs = [
   },
 ]
 
-let selectedClient = $ref<string | undefined>(langs[0].clients && langs[0].clients[0])
+const selectedClient = ref<string | undefined>(langs[0].clients && langs[0].clients[0])
 
-const selectedLangName = $ref(langs[0].name)
+const selectedLangName = ref(langs[0].name)
 
-const apiUrl = $computed(() => {
-  return new URL(`/api/v1/cowriter/meta/tables/${meta?.id}`, (appInfo && appInfo.ncSiteUrl) || '/').href
+const apiUrl = computed(() => {
+  return new URL(`/api/v1/cowriter/meta/tables/${meta.value?.id}`, (appInfo.value && appInfo.value.ncSiteUrl) || '/').href
 })
 
 const cowriterData = computed(() =>
@@ -79,12 +81,12 @@ const cowriterData = computed(() =>
       ],
 )
 
-const snippet = $computed(
+const snippet = computed(
   () =>
     new HTTPSnippet({
       method: 'POST',
-      headers: [{ name: 'xc-auth', value: token, comment: 'JWT Auth token' }],
-      url: apiUrl,
+      headers: [{ name: 'xc-auth', value: token.value, comment: 'JWT Auth token' }],
+      url: apiUrl.value,
       postData: {
         mimeType: 'application/x-www-form-urlencoded',
         params: cowriterData.value,
@@ -92,14 +94,14 @@ const snippet = $computed(
     }),
 )
 
-const activeLang = $computed(() => langs.find((lang) => lang.name === selectedLangName))
+const activeLang = computed(() => langs.find((lang) => lang.name === selectedLangName.value))
 
-const code = $computed(() => {
-  if (activeLang?.name === 'nocodb-sdk') {
+const code = computed(() => {
+  if (activeLang.value?.name === 'nocodb-sdk') {
     const content = `const api = new Api({
-  baseURL: "${(appInfo && appInfo.ncSiteUrl) || '/'}",
+  baseURL: "${(appInfo.value && appInfo.value.ncSiteUrl) || '/'}",
   headers: {
-    "xc-auth": ${JSON.stringify(token as string)}
+    "xc-auth": ${JSON.stringify(token.value as string)}
   }
 })
 
@@ -108,26 +110,30 @@ api.cowriterTable.create('${cowriterTable.value!.id!}', ${JSON.stringify(cowrite
 }).catch(function (error) {
   console.error(error);
 });`
-    return `${selectedClient === 'node' ? 'const { Api } = require("nocodb-sdk");' : 'import { Api } from "nocodb-sdk";'}
+    return `${selectedClient.value === 'node' ? 'const { Api } = require("nocodb-sdk");' : 'import { Api } from "nocodb-sdk";'}
 ${content}
     `
   }
 
-  return snippet.convert(activeLang?.name, selectedClient || (activeLang?.clients && activeLang?.clients[0]), {})
+  return snippet.value.convert(
+    activeLang.value?.name,
+    selectedClient.value || (activeLang.value?.clients && activeLang.value?.clients[0]),
+    {},
+  )
 })
 
 const onCopyToClipboard = () => {
-  copy(code)
+  copy(code.value)
   // Copied to clipboard
   message.info(t('msg.info.copiedToClipboard'))
 }
 
 const afterVisibleChange = (visible: boolean) => {
-  vModel = visible
+  vModel.value = visible
 }
 
-watch($$(activeLang), (newLang) => {
-  selectedClient = newLang?.clients?.[0]
+watch(activeLang, (newLang) => {
+  selectedClient.value = newLang?.clients?.[0]
 })
 </script>
 

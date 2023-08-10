@@ -29,9 +29,10 @@ const { $api, $e } = useNuxtApp()
 
 const { copy } = useCopy()
 
-const { dashboardUrl } = $(useDashboard())
+const dashboardStore = useDashboard()
+const dashboardUrl = toRef(dashboardStore, 'dashboardUrl')
 
-const usersData = $ref<Users>({ emails: '', role: WorkspaceUserRoles.VIEWER, invitationToken: undefined })
+const usersData = ref<Users>({ emails: '', role: WorkspaceUserRoles.VIEWER, invitationToken: undefined })
 
 const formRef = ref()
 
@@ -57,21 +58,21 @@ const validators = computed(() => {
   }
 })
 
-const { validateInfos } = useForm(usersData, validators)
+const { validateInfos } = useForm(usersData.value, validators)
 
 const saveUser = async () => {
-  $e('a:org-user:invite', { role: usersData.role })
+  $e('a:org-user:invite', { role: usersData.value.role })
 
   await formRef.value?.validateFields()
 
   try {
     // todo: update sdk(swagger.json)
     const res = await $api.orgUsers.add({
-      roles: usersData.role,
-      email: usersData.emails,
+      roles: usersData.value.role,
+      email: usersData.value.emails,
     })
 
-    usersData.invitationToken = res.invite_token
+    usersData.value.invitationToken = res.invite_token
     emit('reload')
 
     // Successfully updated the user details
@@ -82,12 +83,14 @@ const saveUser = async () => {
   }
 }
 
-const inviteUrl = $computed(() => (usersData.invitationToken ? `${dashboardUrl}#/signup/${usersData.invitationToken}` : null))
+const inviteUrl = computed(() =>
+  usersData.value.invitationToken ? `${dashboardUrl.value}#/signup/${usersData.value.invitationToken}` : null,
+)
 
 const copyUrl = async () => {
-  if (!inviteUrl) return
+  if (!inviteUrl.value) return
 
-  await copy(inviteUrl)
+  await copy(inviteUrl.value)
 
   // Copied shareable base url to clipboard!
   message.success(t('msg.success.shareableURLCopied'))
@@ -97,9 +100,9 @@ const copyUrl = async () => {
 
 const clickInviteMore = () => {
   $e('c:user:invite-more')
-  usersData.invitationToken = undefined
-  usersData.role = WorkspaceUserRoles.VIEWER
-  usersData.emails = ''
+  usersData.value.invitationToken = undefined
+  usersData.value.role = WorkspaceUserRoles.VIEWER
+  usersData.value.emails = ''
 }
 const emailInput = ref((el) => {
   el?.focus()

@@ -72,12 +72,10 @@ const { getPossibleAttachmentSrc } = useAttachment()
 
 const fieldsWithoutCover = computed(() => fields.value.filter((f) => f.id !== galleryData.value?.fk_cover_image_col_id))
 
-const coverImageColumn: any = $(
-  computed(() =>
-    meta.value?.columnsById
-      ? meta.value.columnsById[galleryData.value?.fk_cover_image_col_id as keyof typeof meta.value.columnsById]
-      : {},
-  ),
+const coverImageColumn: any = computed(() =>
+  meta.value?.columnsById
+    ? meta.value.columnsById[galleryData.value?.fk_cover_image_col_id as keyof typeof meta.value.columnsById]
+    : {},
 )
 
 const isRowEmpty = (record: any, col: any) => {
@@ -90,13 +88,13 @@ const isRowEmpty = (record: any, col: any) => {
 const { isSqlView } = useSmartsheetStoreOrThrow()
 
 const { isUIAllowed } = useUIPermission()
-const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
+const hasEditPermission = computed(() => isUIAllowed('xcDatatableEditable'))
 // TODO: extract this code (which is duplicated in grid and gallery) into a separate component
 const _contextMenu = ref(false)
 const contextMenu = computed({
   get: () => _contextMenu.value,
   set: (val) => {
-    if (hasEditPermission) {
+    if (hasEditPermission.value) {
       _contextMenu.value = val
     }
   },
@@ -113,10 +111,10 @@ const showContextMenu = (e: MouseEvent, target?: { row: number }) => {
 
 const attachments = (record: any): Attachment[] => {
   try {
-    if (coverImageColumn?.title && record.row[coverImageColumn.title]) {
-      return typeof record.row[coverImageColumn.title] === 'string'
-        ? JSON.parse(record.row[coverImageColumn.title])
-        : record.row[coverImageColumn.title]
+    if (coverImageColumn.value?.title && record.row[coverImageColumn.value.title]) {
+      return typeof record.row[coverImageColumn.value.title] === 'string'
+        ? JSON.parse(record.row[coverImageColumn.value.title])
+        : record.row[coverImageColumn.value.title]
     }
     return []
   } catch (e) {

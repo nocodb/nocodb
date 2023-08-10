@@ -52,7 +52,7 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-let formState = $ref<ProjectCreateForm>({
+const formState = ref<ProjectCreateForm>({
   title: '',
   dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
   inflection: {
@@ -90,7 +90,7 @@ const validators = computed(() => {
     'dataSource.connection.database': [fieldRequiredValidator()],
   }
 
-  switch (formState.dataSource.client) {
+  switch (formState.value.dataSource.client) {
     case ClientType.SQLITE:
       clientValidations = {
         'dataSource.connection.connection.filename': [fieldRequiredValidator()],
@@ -126,20 +126,20 @@ const validators = computed(() => {
   }
 })
 
-const { validate, validateInfos } = useForm(formState, validators)
+const { validate, validateInfos } = useForm(formState.value, validators)
 
 const populateName = (v: string) => {
-  formState.dataSource.connection.database = `${v.trim()}_noco`
+  formState.value.dataSource.connection.database = `${v.trim()}_noco`
 }
 
 const onClientChange = () => {
-  formState.dataSource = { ...getDefaultConnectionConfig(formState.dataSource.client) }
-  populateName(formState.title)
+  formState.value.dataSource = { ...getDefaultConnectionConfig(formState.value.dataSource.client) }
+  populateName(formState.value.title)
 }
 
 const onSSLModeChange = ((mode: SSLUsage) => {
-  if (formState.dataSource.client !== ClientType.SQLITE) {
-    const connection = formState.dataSource.connection as DefaultConnection
+  if (formState.value.dataSource.client !== ClientType.SQLITE) {
+    const connection = formState.value.dataSource.connection as DefaultConnection
     switch (mode) {
       case SSLUsage.No:
         delete connection.ssl
@@ -159,26 +159,26 @@ const onSSLModeChange = ((mode: SSLUsage) => {
 }) as SelectHandler
 
 const updateSSLUse = () => {
-  if (formState.dataSource.client !== ClientType.SQLITE) {
-    const connection = formState.dataSource.connection as DefaultConnection
+  if (formState.value.dataSource.client !== ClientType.SQLITE) {
+    const connection = formState.value.dataSource.connection as DefaultConnection
     if (connection.ssl) {
       if (typeof connection.ssl === 'string') {
-        formState.sslUse = SSLUsage.Allowed
+        formState.value.sslUse = SSLUsage.Allowed
       } else {
-        formState.sslUse = SSLUsage.Preferred
+        formState.value.sslUse = SSLUsage.Preferred
       }
     } else {
-      formState.sslUse = SSLUsage.No
+      formState.value.sslUse = SSLUsage.No
     }
   }
 }
 
 const addNewParam = () => {
-  formState.extraParameters.push({ key: '', value: '' })
+  formState.value.extraParameters.push({ key: '', value: '' })
 }
 
 const removeParam = (index: number) => {
-  formState.extraParameters.splice(index, 1)
+  formState.value.extraParameters.splice(index, 1)
 }
 
 const inflectionTypes = ['camelize', 'none']
@@ -194,26 +194,26 @@ const onFileSelect = (key: CertTypes, el?: HTMLInputElement) => {
   if (!el) return
 
   readFile(el, (content) => {
-    if ('ssl' in formState.dataSource.connection && typeof formState.dataSource.connection.ssl === 'object')
-      formState.dataSource.connection.ssl[key] = content ?? ''
+    if ('ssl' in formState.value.dataSource.connection && typeof formState.value.dataSource.connection.ssl === 'object')
+      formState.value.dataSource.connection.ssl[key] = content ?? ''
   })
 }
 
 const sslFilesRequired = computed(
-  () => !!formState.sslUse && formState.sslUse !== SSLUsage.No && formState.sslUse !== SSLUsage.Allowed,
+  () => !!formState.value.sslUse && formState.value.sslUse !== SSLUsage.No && formState.value.sslUse !== SSLUsage.Allowed,
 )
 
 function getConnectionConfig() {
-  const extraParameters = Object.fromEntries(new Map(formState.extraParameters.map((object) => [object.key, object.value])))
+  const extraParameters = Object.fromEntries(new Map(formState.value.extraParameters.map((object) => [object.key, object.value])))
 
   const connection = {
-    ...formState.dataSource.connection,
+    ...formState.value.dataSource.connection,
     ...extraParameters,
   }
 
   if ('ssl' in connection && connection.ssl) {
     if (
-      formState.sslUse === SSLUsage.No ||
+      formState.value.sslUse === SSLUsage.No ||
       (typeof connection.ssl === 'object' && Object.values(connection.ssl).every((v) => v === null || v === undefined))
     ) {
       delete connection.ssl
@@ -239,14 +239,14 @@ const createBase = async () => {
 
     const connection = getConnectionConfig()
 
-    const config = { ...formState.dataSource, connection }
+    const config = { ...formState.value.dataSource, connection }
 
     await api.base.create(projectId.value, {
-      alias: formState.title,
-      type: formState.dataSource.client,
+      alias: formState.value.title,
+      type: formState.value.dataSource.client,
       config,
-      inflection_column: formState.inflection.inflectionColumn,
-      inflection_table: formState.inflection.inflectionTable,
+      inflection_column: formState.value.inflection.inflectionColumn,
+      inflection_table: formState.value.inflection.inflectionTable,
     })
 
     $e('a:base:create:extdb')
@@ -271,15 +271,15 @@ const testConnection = async () => {
   $e('a:base:create:extdb:test-connection', [])
 
   try {
-    if (formState.dataSource.client === ClientType.SQLITE) {
+    if (formState.value.dataSource.client === ClientType.SQLITE) {
       testSuccess.value = true
     } else {
       const connection = getConnectionConfig()
 
-      connection.database = getTestDatabaseName(formState.dataSource)!
+      connection.database = getTestDatabaseName(formState.value.dataSource)!
 
       const testConnectionConfig = {
-        ...formState.dataSource,
+        ...formState.value.dataSource,
         connection,
       }
 
@@ -317,8 +317,8 @@ const handleImportURL = async () => {
   const connectionConfig = await api.utils.urlToConfig({ url: importURL.value })
 
   if (connectionConfig) {
-    formState.dataSource.client = connectionConfig.client
-    formState.dataSource.connection = { ...connectionConfig.connection }
+    formState.value.dataSource.client = connectionConfig.client
+    formState.value.dataSource.connection = { ...connectionConfig.connection }
   } else {
     message.error(t('msg.error.invalidURL'))
   }
@@ -327,37 +327,37 @@ const handleImportURL = async () => {
 }
 
 const handleEditJSON = () => {
-  customFormState.value = { ...formState }
+  customFormState.value = { ...formState.value }
   configEditDlg.value = true
 }
 
 const handleOk = () => {
-  formState = { ...customFormState.value }
+  formState.value = { ...customFormState.value }
   configEditDlg.value = false
   updateSSLUse()
 }
 
 // reset test status on config change
 watch(
-  () => formState.dataSource,
+  () => formState.value.dataSource,
   () => (testSuccess.value = false),
   { deep: true },
 )
 
 // populate database name based on title
 watch(
-  () => formState.title,
+  () => formState.value.title,
   (v) => populateName(v),
 )
 
 // select and focus title field on load
 onMounted(async () => {
-  formState.title = await generateUniqueName()
+  formState.value.title = await generateUniqueName()
   nextTick(() => {
     // todo: replace setTimeout and follow better approach
     setTimeout(() => {
       const input = form.value?.$el?.querySelector('input[type=text]')
-      input.setSelectionRange(0, formState.title.length)
+      input.setSelectionRange(0, formState.value.title.length)
       input.focus()
     }, 500)
   })
@@ -366,7 +366,7 @@ onMounted(async () => {
 watch(
   () => connectionType,
   (v) => {
-    formState.dataSource.client = v
+    formState.value.dataSource.client = v
     onClientChange()
   },
   { immediate: true },
@@ -378,7 +378,7 @@ watch(
     <h1 class="prose-2xl font-bold self-start mb-4 flex items-center gap-2">
       New Base
       <span class="flex-grow"></span>
-      <span class="text-gray-400 !text-sm font-weight-normal">( Whitelist our ip: 52.15.226.51 to allow database access )</span>
+      <DashboardSettingsDataSourcesInfo />
     </h1>
 
     <a-form
@@ -517,7 +517,7 @@ watch(
               </template>
               <a-form-item label="SSL mode">
                 <a-select v-model:value="formState.sslUse" dropdown-class-name="nc-dropdown-ssl-mode" @select="onSSLModeChange">
-                  <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }}</a-select-option>
+                  <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }} </a-select-option>
                 </a-select>
               </a-form-item>
 
@@ -584,7 +584,9 @@ watch(
                     </div>
                   </div>
                   <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">
-                    <div class="flex items-center justify-center"><component :is="iconMap.plus" /></div>
+                    <div class="flex items-center justify-center">
+                      <component :is="iconMap.plus" />
+                    </div>
                   </a-button>
                 </a-card>
               </a-form-item>
@@ -596,7 +598,7 @@ watch(
                   v-model:value="formState.inflection.inflectionTable"
                   dropdown-class-name="nc-dropdown-inflection-table-name"
                 >
-                  <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
+                  <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }} </a-select-option>
                 </a-select>
               </a-form-item>
 
@@ -605,7 +607,7 @@ watch(
                   v-model:value="formState.inflection.inflectionColumn"
                   dropdown-class-name="nc-dropdown-inflection-column-name"
                 >
-                  <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
+                  <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }} </a-select-option>
                 </a-select>
               </a-form-item>
 

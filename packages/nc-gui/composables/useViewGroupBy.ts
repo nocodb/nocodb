@@ -84,17 +84,17 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     return value ?? GROUP_BY_VARS.NULL
   }
 
-  const colors = $ref(enumColor.light)
+  const colors = ref(enumColor.light)
 
-  const nextGroupColor = ref(colors[0])
+  const nextGroupColor = ref(colors.value[0])
 
   const getNextColor = () => {
     const tempColor = nextGroupColor.value
-    const index = colors.indexOf(nextGroupColor.value)
-    if (index === colors.length - 1) {
-      nextGroupColor.value = colors[0]
+    const index = colors.value.indexOf(nextGroupColor.value)
+    if (index === colors.value.length - 1) {
+      nextGroupColor.value = colors.value[0]
     } else {
-      nextGroupColor.value = colors[index + 1]
+      nextGroupColor.value = colors.value[index + 1]
     }
     return tempColor
   }
@@ -160,7 +160,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
 
     if (group.nestedIn.length > groupBy.value.length) return
 
-    if (group.nestedIn.length === 0) nextGroupColor.value = colors[0]
+    if (group.nestedIn.length === 0) nextGroupColor.value = colors.value[0]
 
     const groupby = groupBy.value[group.nestedIn.length]
 

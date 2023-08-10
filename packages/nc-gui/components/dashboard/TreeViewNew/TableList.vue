@@ -30,7 +30,7 @@ const { openTable } = useTableNew({
   projectId: project.value.id!,
 })
 
-const tablesById = $computed(() =>
+const tablesById = computed(() =>
   tables.value.reduce<Record<string, TableType>>((acc, table) => {
     acc[table.id!] = table
 
@@ -38,9 +38,9 @@ const tablesById = $computed(() =>
   }, {}),
 )
 
-const keys = $ref<Record<string, number>>({})
+const keys = ref<Record<string, number>>({})
 
-const menuRefs = $ref<HTMLElement[] | HTMLElement>()
+const menuRefs = ref<HTMLElement[] | HTMLElement>()
 
 const sortables: Record<string, Sortable> = {}
 
@@ -59,7 +59,7 @@ const initSortable = (el: Element) => {
       if (newIndex === oldIndex) return
 
       const itemEl = evt.item as HTMLLIElement
-      const item = tablesById[itemEl.dataset.id as string]
+      const item = tablesById.value[itemEl.dataset.id as string]
 
       // get the html collection of all list items
       const children: HTMLCollection = evt.to.children
@@ -72,8 +72,8 @@ const initSortable = (el: Element) => {
       const itemAfterEl = children[newIndex + 1] as HTMLLIElement
 
       // get items meta of before and after the moved item
-      const itemBefore = itemBeforeEl && tablesById[itemBeforeEl.dataset.id as string]
-      const itemAfter = itemAfterEl && tablesById[itemAfterEl.dataset.id as string]
+      const itemBefore = itemBeforeEl && tablesById.value[itemBeforeEl.dataset.id as string]
+      const itemAfter = itemAfterEl && tablesById.value[itemAfterEl.dataset.id as string]
 
       // set new order value based on the new order of the items
       if (children.length - 1 === evt.newIndex) {
@@ -88,10 +88,10 @@ const initSortable = (el: Element) => {
       tables.value?.splice(newIndex + offset, 0, ...tables.value?.splice(oldIndex + offset, 1))
 
       // force re-render the list
-      if (keys[base_id]) {
-        keys[base_id] = keys[base_id] + 1
+      if (keys.value[base_id]) {
+        keys.value[base_id] = keys.value[base_id] + 1
       } else {
-        keys[base_id] = 1
+        keys.value[base_id] = 1
       }
 
       // update the item order
@@ -116,11 +116,11 @@ const initSortable = (el: Element) => {
 }
 
 watchEffect(() => {
-  if (menuRefs) {
-    if (menuRefs instanceof HTMLElement) {
-      initSortable(menuRefs)
+  if (menuRefs.value) {
+    if (menuRefs.value instanceof HTMLElement) {
+      initSortable(menuRefs.value)
     } else {
-      menuRefs.forEach((el) => initSortable(el))
+      menuRefs.value.forEach((el) => initSortable(el))
     }
   }
 })

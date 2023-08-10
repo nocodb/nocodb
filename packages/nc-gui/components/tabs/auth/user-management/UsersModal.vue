@@ -42,9 +42,10 @@ const { $api, $e } = useNuxtApp()
 
 const { copy } = useCopy()
 
-const { dashboardUrl } = $(useDashboard())
+const dashboardStore = useDashboard()
+const dashboardUrl = toRef(dashboardStore, 'dashboardUrl')
 
-let usersData = $ref<Users>({ emails: undefined, role: ProjectRole.Viewer, invitationToken: undefined })
+const usersData = ref<Users>({ emails: undefined, role: ProjectRole.Viewer, invitationToken: undefined })
 
 const formRef = ref()
 
@@ -56,23 +57,23 @@ const validators = computed(() => {
   }
 })
 
-const { validateInfos } = useForm(usersData, validators)
+const { validateInfos } = useForm(usersData.value, validators)
 
 onMounted(() => {
-  if (!usersData.emails && selectedUser?.email) {
-    usersData.emails = selectedUser.email
+  if (!usersData.value.emails && selectedUser?.email) {
+    usersData.value.emails = selectedUser.email
     // todo: types not matching, probably a bug here?
-    usersData.role = selectedUser.roles as any
+    usersData.value.role = selectedUser.roles as any
   }
 })
 
 const close = () => {
   emit('closed')
-  usersData = { role: ProjectRole.Viewer }
+  usersData.value = { role: ProjectRole.Viewer }
 }
 
 const saveUser = async () => {
-  $e('a:user:invite', { role: usersData.role })
+  $e('a:user:invite', { role: usersData.value.role })
 
   if (!project.value.id) return
 
@@ -81,7 +82,7 @@ const saveUser = async () => {
   try {
     if (selectedUser?.id) {
       await $api.auth.projectUserUpdate(project.value.id, selectedUser.id, {
-        roles: usersData.role as ProjectRole,
+        roles: usersData.value.role as ProjectRole,
         email: selectedUser.email,
         project_id: project.value.id,
         projectName: project.value.title,
@@ -89,13 +90,13 @@ const saveUser = async () => {
       close()
     } else {
       const res = await $api.auth.projectUserAdd(project.value.id, {
-        roles: usersData.role,
-        email: usersData.emails,
+        roles: usersData.value.role,
+        email: usersData.value.emails,
       } as ProjectUserReqType)
 
       // for inviting one user, invite_token will only be returned when invitation email fails to send
       // for inviting multiple users, invite_token will be returned anyway
-      usersData.invitationToken = res?.invite_token
+      usersData.value.invitationToken = res?.invite_token
     }
     emit('reload')
 
@@ -107,12 +108,14 @@ const saveUser = async () => {
   }
 }
 
-const inviteUrl = $computed(() => (usersData.invitationToken ? `${dashboardUrl}#/signup/${usersData.invitationToken}` : null))
+const inviteUrl = computed(() =>
+  usersData.value.invitationToken ? `${dashboardUrl.value}#/signup/${usersData.value.invitationToken}` : null,
+)
 
 const copyUrl = async () => {
-  if (!inviteUrl) return
+  if (!inviteUrl.value) return
   try {
-    await copy(inviteUrl)
+    await copy(inviteUrl.value)
 
     // Copied shareable base url to clipboard!
     message.success(t('msg.success.shareableURLCopied'))
@@ -124,9 +127,9 @@ const copyUrl = async () => {
 
 const clickInviteMore = () => {
   $e('c:user:invite-more')
-  usersData.invitationToken = undefined
-  usersData.role = ProjectRole.Viewer
-  usersData.emails = undefined
+  usersData.value.invitationToken = undefined
+  usersData.value.role = ProjectRole.Viewer
+  usersData.value.emails = undefined
 }
 
 const emailField = ref<typeof Input>()

@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import type { Widget } from 'nocodb-sdk'
 import { GridItem, GridLayout } from 'vue3-grid-layout-next'
-import type { WidgetTemplate } from './types'
-import { useDashboardStore } from '~~/store/dashboard'
+import type { WidgetTemplate } from '#imports'
+import { useDashboardStore } from '#imports'
 import '~/assets/dashboardLayout.scss'
 
 const dashboardStore = useDashboardStore()

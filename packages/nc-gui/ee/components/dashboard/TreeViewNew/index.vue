@@ -36,7 +36,7 @@ const { $e, $jobs } = useNuxtApp()
 
 const router = useRouter()
 
-const route = $(router.currentRoute)
+const route = router.currentRoute
 
 const projectsStore = useProjects()
 
@@ -56,13 +56,13 @@ const { activeTable: _activeTable } = storeToRefs(useTablesStore())
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const keys = $ref<Record<string, number>>({})
+const keys = ref<Record<string, number>>({})
 
-const menuRefs = $ref<HTMLElement[] | HTMLElement>()
+const menuRefs = ref<HTMLElement[] | HTMLElement>()
 
 // const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
 
-const tablesById = $computed(() =>
+const tablesById = computed(() =>
   Object.values(projectTables.value.get(activeProjectId.value!) || {})
     .flat()
     ?.reduce<Record<string, TableType>>((acc, table) => {
@@ -86,7 +86,7 @@ const initSortable = (el: Element) => {
       const { newIndex = 0, oldIndex = 0 } = evt
 
       const itemEl = evt.item as HTMLLIElement
-      const item = tablesById[itemEl.dataset.id as string]
+      const item = tablesById.value[itemEl.dataset.id as string]
 
       // get the html collection of all list items
       const children: HTMLCollection = evt.to.children
@@ -99,8 +99,8 @@ const initSortable = (el: Element) => {
       const itemAfterEl = children[newIndex + 1] as HTMLLIElement
 
       // get items meta of before and after the moved item
-      const itemBefore = itemBeforeEl && tablesById[itemBeforeEl.dataset.id as string]
-      const itemAfter = itemAfterEl && tablesById[itemAfterEl.dataset.id as string]
+      const itemBefore = itemBeforeEl && tablesById.value[itemBeforeEl.dataset.id as string]
+      const itemAfter = itemAfterEl && tablesById.value[itemAfterEl.dataset.id as string]
 
       // set new order value based on the new order of the items
       if (children.length - 1 === evt.newIndex) {
@@ -115,10 +115,10 @@ const initSortable = (el: Element) => {
       tables.value?.splice(newIndex + offset, 0, ...tables.value?.splice(oldIndex + offset, 1))
 
       // force re-render the list
-      if (keys[base_id]) {
-        keys[base_id] = keys[base_id] + 1
+      if (keys.value[base_id]) {
+        keys.value[base_id] = keys.value[base_id] + 1
       } else {
-        keys[base_id] = 1
+        keys.value[base_id] = 1
       }
 
       // update the item order
@@ -131,11 +131,11 @@ const initSortable = (el: Element) => {
 }
 
 watchEffect(() => {
-  if (menuRefs) {
-    if (menuRefs instanceof HTMLElement) {
-      initSortable(menuRefs)
+  if (menuRefs.value) {
+    if (menuRefs.value instanceof HTMLElement) {
+      initSortable(menuRefs.value)
     } else {
-      menuRefs.forEach((el) => initSortable(el))
+      menuRefs.value.forEach((el) => initSortable(el))
     }
   }
 })
@@ -227,11 +227,11 @@ const duplicateTable = async (table: TableType) => {
 const isCreateTableAllowed = computed(
   () =>
     isUIAllowed('table-create') &&
-    route.name !== 'index' &&
-    route.name !== 'index-index' &&
-    route.name !== 'index-index-create' &&
-    route.name !== 'index-index-create-external' &&
-    route.name !== 'index-user-index',
+    route.value.name !== 'index' &&
+    route.value.name !== 'index-index' &&
+    route.value.name !== 'index-index-create' &&
+    route.value.name !== 'index-index-create-external' &&
+    route.value.name !== 'index-user-index',
 )
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
@@ -254,11 +254,11 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       }
       // ALT + L - only show active project
       case 76: {
-        if (route.params.projectId) {
+        if (route.value.params.projectId) {
           router.push({
             query: {
-              ...route.query,
-              clear: route.query.clear === '1' ? undefined : '1',
+              ...route.value.query,
+              clear: route.value.query.clear === '1' ? undefined : '1',
             },
           })
         }

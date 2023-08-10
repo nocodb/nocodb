@@ -1,3 +1,4 @@
+import { toRef } from 'vue'
 import type {
   ExportTypes,
   FilterType,
@@ -15,13 +16,14 @@ import { computed, parseProp, storeToRefs, useGlobal, useMetas, useNuxtApp, useS
 export function useSharedView() {
   const nestedFilters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
 
-  const { appInfo } = $(useGlobal())
+  const globalStore = useGlobal()
+  const appInfo = toRef(globalStore, 'appInfo')
 
   const projectStore = useProject()
 
   const { project } = storeToRefs(projectStore)
 
-  const appInfoDefaultLimit = appInfo.defaultLimit || 25
+  const appInfoDefaultLimit = appInfo.value.defaultLimit || 25
 
   const paginationData = useState<PaginatedType>('paginationData', () => ({
     page: 1,

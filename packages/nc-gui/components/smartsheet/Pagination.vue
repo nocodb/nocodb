@@ -59,7 +59,11 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
   >
     <NcTooltip v-if="!isPublic && hideSidebars !== true" class="ml-2" placement="topLeft" hide-on-click>
       <template #title>
-        {{ isLeftSidebarOpen ? 'Hide sidebar' : 'Show sidebar' }}
+        {{
+          isLeftSidebarOpen
+            ? `${$t('general.hide')} ${$t('objects.sidebar').toLowerCase()}`
+            : `${$t('general.show')} ${$t('objects.sidebar').toLowerCase()}`
+        }}
       </template>
       <div
         class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) hover:(bg-gray-100 border-gray-200) border-gray-200 group flex items-center justify-center rounded-md h-full px-1.75 h-7 cursor-pointer text-gray-500 hover:text-gray-700"
@@ -90,7 +94,7 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
         size="small"
         class="!text-xs !m-1 nc-pagination"
         :class="{ 'rtl-pagination': isRTLLanguage }"
-        :total="count"
+        :total="+count"
         show-less-items
         :show-size-changer="false"
       />
@@ -116,7 +120,11 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
 
     <NcTooltip v-if="!isPublic && hideSidebars !== true" placement="topRight" hide-on-click>
       <template #title>
-        {{ isRightSidebarOpen ? 'Hide Sidebar' : 'Show Sidebar' }}
+        {{
+          isRightSidebarOpen
+            ? `${$t('general.hide')} ${$t('objects.sidebar').toLowerCase()}`
+            : `${$t('general.show')} ${$t('objects.sidebar').toLowerCase()}`
+        }}
       </template>
 
       <div

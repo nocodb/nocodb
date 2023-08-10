@@ -35,9 +35,9 @@ const { views = [], meta, selectedViewId, groupingFieldColumnId, geoDataFieldCol
 
 const emits = defineEmits<Emits>()
 
-const inputEl = $ref<ComponentPublicInstance>()
+const inputEl = ref<ComponentPublicInstance>()
 
-const formValidator = $ref<typeof AntForm>()
+const formValidator = ref<typeof AntForm>()
 
 const vModel = useVModel(props, 'modelValue', emits)
 
@@ -146,7 +146,7 @@ function init() {
   }
 
   nextTick(() => {
-    const el = inputEl?.$el as HTMLInputElement
+    const el = inputEl.value?.$el as HTMLInputElement
 
     if (el) {
       el.focus()
@@ -156,7 +156,7 @@ function init() {
 }
 
 async function onSubmit() {
-  const isValid = await formValidator?.validateFields()
+  const isValid = await formValidator.value?.validateFields()
 
   if (isValid && form.type) {
     const _meta = unref(meta)

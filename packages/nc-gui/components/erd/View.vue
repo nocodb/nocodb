@@ -12,7 +12,7 @@ const { metas, getMeta } = useMetas()
 
 const tables = ref<TableType[]>([])
 
-let isLoading = $ref(true)
+const isLoading = ref(true)
 
 const config = reactive<ERDConfig>({
   showPkAndFk: true,
@@ -61,7 +61,7 @@ const populateTables = async () => {
     )
     .filter((t) => config.singleTableMode || (!config.showViews && t.type !== 'view') || config.showViews)
 
-  isLoading = false
+  isLoading.value = false
 }
 
 const toggleFullScreen = () => {

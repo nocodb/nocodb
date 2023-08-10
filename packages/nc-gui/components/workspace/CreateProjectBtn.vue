@@ -51,7 +51,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       @click="navigateToCreateProject(NcProjectType.DB)"
     >
       <div class="flex w-full items-center gap-2">
-        <slot>New Project <MdiMenuDown /></slot>
+        <slot>{{ $t('title.newProj') }} <MdiMenuDown /></slot>
       </div>
     </a-button>
     <WorkspaceCreateProjectDlg v-model="projectCreateDlg" :type="projectType" />

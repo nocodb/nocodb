@@ -76,11 +76,13 @@ const geoDataToggleCondition = (t: { name: UITypes }) => {
   return betaFeatureToggleState.show ? betaFeatureToggleState.show : !t.name.includes(UITypes.GeoData)
 }
 
-const showDeprecated = $ref(false)
+const showDeprecated = ref(false)
 
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
-    ...uiTypes.filter((t) => geoDataToggleCondition(t) && (!isEdit.value || !t.virtual) && (!t.deprecated || showDeprecated)),
+    ...uiTypes.filter(
+      (t) => geoDataToggleCondition(t) && (!isEdit.value || !t.virtual) && (!t.deprecated || showDeprecated.value),
+    ),
     ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
       ? [
           {

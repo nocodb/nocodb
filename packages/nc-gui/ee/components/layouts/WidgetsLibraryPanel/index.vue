@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { WidgetTypeType } from 'nocodb-sdk'
-import type { WidgetTemplate } from '../types'
 
 import TextWidgetIcon from './custom-icons/widget-types/Text.vue'
 import NumberWidgetIcon from './custom-icons/widget-types/Number.vue'
@@ -10,6 +9,8 @@ import BarChartWidgetIcon from './custom-icons/widget-types/BarChart.vue'
 import LineChartWidgetIcon from './custom-icons/widget-types/LineChart.vue'
 import PieChartWidgetIcon from './custom-icons/widget-types/PieChart.vue'
 import ScatterChartWidgetIcon from './custom-icons/widget-types/ScatterChart.vue'
+
+import type { WidgetTemplate } from '#imports'
 
 const widgetsLibrary: WidgetTemplate[] = [
   {

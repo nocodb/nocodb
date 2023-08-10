@@ -10,7 +10,8 @@ const router = useRouter()
 const route = router.currentRoute
 
 const { copy } = useCopy()
-const { dashboardUrl } = $(useDashboard())
+const dashboardStore = useDashboard()
+const dashboardUrl = toRef(dashboardStore, 'dashboardUrl')
 const { project } = storeToRefs(useProject())
 const { navigateToProject } = useProjects()
 const { openedPage, nestedPagesOfProjects } = storeToRefs(useDocStore())
@@ -28,7 +29,7 @@ if (isViewToolbar) {
 const { formStatus, showShareModal, invitationUsersData, isInvitationLinkCopied } = storeToRefs(useShare())
 const { resetData } = useShare()
 
-const expandedSharedType = ref<'none' | 'project' | 'view'>('view')
+// const expandedSharedType = ref<'none' | 'project' | 'view'>('view')
 const isOpeningManageAccess = ref(false)
 
 const pageTitle = computed(() => (openedPage.value ?? nestedPagesOfProjects.value[project.value.id!]?.[0])?.title)
@@ -36,7 +37,7 @@ const dbViewTitle = computed(() => route.value.params.viewTitle)
 const viewTitle = computed(() => (project.value?.type === NcProjectType.DOCS ? pageTitle.value : dbViewTitle.value))
 
 const inviteUrl = computed(() =>
-  invitationUsersData.value.invitationToken ? `${dashboardUrl}#/signup/${invitationUsersData.value.invitationToken}` : null,
+  invitationUsersData.value.invitationToken ? `${dashboardUrl.value}#/signup/${invitationUsersData.value.invitationToken}` : null,
 )
 
 const indicator = h(LoadingOutlined, {
@@ -46,6 +47,7 @@ const indicator = h(LoadingOutlined, {
   spin: true,
 })
 
+/*
 const onShare = async () => {
   if (!invitationValid) return
 
@@ -54,6 +56,7 @@ const onShare = async () => {
     roles: invitationUsersData.value.role!,
   })
 }
+*/
 
 const copyInvitationLink = async () => {
   await copy(inviteUrl.value!)

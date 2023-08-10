@@ -80,7 +80,7 @@ const expandedFormDlg = ref(false)
 
 const expandedFormRow = ref()
 
-const colTitle = $computed(() => injectedColumn.value?.title || '')
+const colTitle = computed(() => injectedColumn.value?.title || '')
 
 /** reload children list whenever cell value changes and list is visible */
 watch(
@@ -173,7 +173,7 @@ const onClick = (row: Row) => {
             v-model:page-size="childrenListPagination.size"
             class="mt-2 mx-auto"
             size="small"
-            :total="childrenList?.pageInfo.totalRows"
+            :total="+childrenList?.pageInfo.totalRows"
             show-less-items
           />
         </div>

@@ -14,12 +14,14 @@ function getHash(str) {
   return crypto.createHash('md5').update(str).digest('hex');
 }
 
+const url = new URL(process.env.NC_PUBLIC_URL || `http://localhost:${process.env.PORT}/`)
 @WebSocketGateway({
   cors: {
     origin: '*',
     allowedHeaders: ['xc-auth'],
     credentials: true,
   },
+  namespace: url.pathname,
 })
 @Injectable()
 export class SocketGateway implements OnModuleInit {

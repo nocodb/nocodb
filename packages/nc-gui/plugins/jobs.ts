@@ -16,6 +16,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
       socket = io(`${url.href}jobs`, {
         extraHeaders: { 'xc-auth': token },
+        path: `${url.pathname}socket.io`,
       })
 
       socket.on('connect_error', (e) => {

@@ -123,7 +123,12 @@
     "geoDataField": "GeoData Field",
     "type": "Type",
     "name": "Name",
-    "changes": "Changes"
+    "changes": "Changes",
+    "new": "New",
+    "old": "Old",
+    "data": "Data",
+    "source": "Source",
+    "destination": "Destination"
   },
   "objects": {
     "workspace": "Workspace",
@@ -144,6 +149,7 @@
     "webhooks": "Webhooks",
     "view": "View",
     "views": "Views",
+    "sidebar": "Sidebar",
     "viewType": {
       "grid": "Grid",
       "gallery": "Gallery",
@@ -156,6 +162,7 @@
     "users": "Users",
     "role": "Role",
     "roles": "Roles",
+    "developer": "Developer",
     "roleType": {
       "owner": "Owner",
       "creator": "Creator",
@@ -166,7 +173,13 @@
       "orgLevelViewer": "Organization Level Viewer"
     },
     "sqlVIew": "SQL View",
-    "rowHeight": "Row Height"
+    "rowHeight": "Row Height",
+    "heightClass": {
+      "short": "Short",
+      "medium": "Medium",
+      "tall": "Tall",
+      "extra": "Extra"
+    }
   },
   "datatype": {
     "ID": "ID",
@@ -273,6 +286,7 @@
   "labels": {
     "searchProjects": "Search Projects",
     "createdBy": "Created By",
+    "createdOn": "Created On",
     "notifyVia": "Notify Via",
     "projName": "Project name",
     "tableName": "Table name",
@@ -386,7 +400,9 @@
     "welcomeToNc": "Welcome to NocoDB!",
     "inviteOnlySignup": "Allow signup only using invite url",
     "nextRow": "Next Row",
-    "prevRow": "Previous Row"
+    "prevRow": "Previous Row",
+    "addRowGrid": "Manually add data in grid view",
+    "addRowForm": "Enter record data through a form"
   },
   "activity": {
     "moveProject": "Move Project",
@@ -425,6 +441,8 @@
     "filter": "Filter",
     "addFilter": "Add Filter",
     "share": "Share",
+    "groupBy": "Group By",
+    "addSubGroup": "Add subgroup",
     "shareBase": {
       "disable": "Disable shared base",
       "enable": "Anyone with the link",
@@ -517,6 +535,7 @@
     "addFilterGroup": "Add Filter Group",
     "linkRecord": "Link record",
     "addNewRecord": "Add new record",
+    "newRecord": "New record",
     "useConnectionUrl": "Use Connection URL",
     "toggleCommentsDraw": "Toggle comments draw",
     "expandRecord": "Expand Record",

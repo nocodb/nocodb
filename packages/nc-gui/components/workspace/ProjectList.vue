@@ -346,7 +346,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                 <a-menu-item @click="enableEdit(i)">
                   <div class="nc-menu-item-wrapper">
                     <GeneralIcon icon="edit" class="text-gray-700" />
-                    Rename Project
+                    {{ $t('general.rename') }} {{ $t('objects.project') }}
                   </div>
                 </a-menu-item>
                 <a-menu-item
@@ -358,7 +358,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                 >
                   <div class="nc-menu-item-wrapper">
                     <GeneralIcon icon="duplicate" class="text-gray-700" />
-                    Duplicate Project
+                    {{ $t('general.duplicate') }} {{ $t('objects.project') }}
                   </div>
                 </a-menu-item>
                 <a-menu-item
@@ -367,7 +367,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                 >
                   <div class="nc-menu-item-wrapper">
                     <GeneralIcon icon="move" class="text-gray-700" />
-                    Move Project
+                    {{ $t('general.move') }} {{ $t('objects.project') }}
                   </div>
                 </a-menu-item>
                 <a-menu-item
@@ -376,7 +376,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                 >
                   <div class="nc-menu-item-wrapper text-red-500">
                     <GeneralIcon icon="delete" />
-                    Delete Project
+                    {{ $t('general.delete') }} {{ $t('objects.project') }}
                   </div>
                 </a-menu-item>
               </a-menu>

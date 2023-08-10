@@ -303,6 +303,18 @@ export interface AppConfig {
     password: string;
   };
 
+  workspace: {
+    sns: {
+      topicArn: string;
+      region?: string;
+      apiVersion?: string;
+      credentials?: {
+        accessKeyId: string;
+        secretAccessKey: string;
+      };
+    };
+  };
+
   auth: {
     emailPattern?: RegExp | null;
     disableEmailAuth: boolean;

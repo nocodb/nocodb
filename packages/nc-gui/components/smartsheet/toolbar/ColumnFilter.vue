@@ -23,7 +23,7 @@ interface Props {
   autoSave: boolean
   hookId?: string
   showLoading?: boolean
-  modelValue?: Filter[]
+  modelValue?: undefined | Filter[]
   webHook?: boolean
 }
 
@@ -31,7 +31,6 @@ const props = withDefaults(defineProps<Props>(), {
   nestedLevel: 0,
   autoSave: true,
   showLoading: true,
-  modelValue: () => Array<Filter>(),
   parentId: undefined,
   hookId: undefined,
   webHook: false,
@@ -350,7 +349,6 @@ onMounted(() => {
                   v-model="filter.children"
                   :nested-level="nestedLevel + 1"
                   :parent-id="filter.id"
-                  nested
                   :auto-save="autoSave"
                   :web-hook="webHook"
                 />

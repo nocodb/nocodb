@@ -47,7 +47,9 @@
     "stop:mysql": "docker-compose -f ./tests/playwright/scripts/docker-compose-mysql-playwright.yml down",
     "start:pg": "docker-compose -f ./tests/playwright/scripts/docker-compose-pg.yml up -d",
     "stop:pg": "docker-compose -f ./tests/playwright/scripts/docker-compose-pg.yml down",
-    "install:local-sdk": "node scripts/installLocalSdk.js"
+    "install:local-sdk": "node scripts/installLocalSdk.js",
+    "sync:ee:to:ce": "rsync -arzhv --delete --exclude-from='scripts/sync/exclude-list.txt' --filter=':- .gitignore' ./ ../nocodb/",
+    "sync:ce:to:ee": "rsync -arzhv --delete --exclude-from='scripts/sync/exclude-list.txt' --filter=':- .gitignore' ../nocodb/ ./"
   },
   "dependencies": {
     "express": "^4.18.1",

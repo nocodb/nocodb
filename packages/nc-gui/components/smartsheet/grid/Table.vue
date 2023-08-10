@@ -1582,8 +1582,8 @@ defineExpose({
           <a-dropdown-button placement="top" @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()">
             <div class="flex items-center px-2 text-gray-600 hover:text-black">
               <span>
-                <template v-if="isAddNewRecordGridMode"> New Record </template>
-                <template v-else> New Record - Form </template>
+                <template v-if="isAddNewRecordGridMode"> {{ $t('activity.newRecord') }} </template>
+                <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }} </template>
               </span>
             </div>
 
@@ -1606,13 +1606,13 @@ defineExpose({
                     <div class="flex flex-row items-center justify-between w-full">
                       <div class="flex flex-row items-center justify-start gap-x-3">
                         <component :is="viewIcons[ViewTypes.GRID]?.icon" class="nc-view-icon text-inherit" />
-                        New Record - Grid
+                        {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.grid') }}
                       </div>
                       <div class="h-4 w-4 flex flex-row items-center justify-center">
                         <GeneralIcon v-if="isAddNewRecordGridMode" icon="check" />
                       </div>
                     </div>
-                    <div class="flex flex-row text-xs text-gray-400 ml-7.25">Manually add data in grid view</div>
+                    <div class="flex flex-row text-xs text-gray-400 ml-7.25">{{ $t('labels.addRowGrid') }}</div>
                   </div>
                   <div
                     v-e="['c:row:add:expanded-form']"
@@ -1623,13 +1623,13 @@ defineExpose({
                     <div class="flex flex-row items-center justify-between w-full">
                       <div class="flex flex-row items-center justify-start gap-x-2.5">
                         <GeneralIcon class="h-4.5 w-4.5" icon="article" />
-                        New Record - Form
+                        {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}
                       </div>
                       <div class="h-4 w-4 flex flex-row items-center justify-center">
                         <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" />
                       </div>
                     </div>
-                    <div class="flex flex-row text-xs text-gray-400 ml-7.05">Enter record data through a form</div>
+                    <div class="flex flex-row text-xs text-gray-400 ml-7.05">{{ $t('labels.addRowForm') }}</div>
                   </div>
                 </div>
               </div>

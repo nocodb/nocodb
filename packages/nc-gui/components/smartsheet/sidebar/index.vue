@@ -201,7 +201,7 @@ onUnmounted(() => {
             'h-4 w-5': minimalMode,
           }"
         />
-        <div v-if="!minimalMode" class="tab-title nc-tab">Views</div>
+        <div v-if="!minimalMode" class="tab-title nc-tab">{{ $t('objects.views') }}</div>
       </div>
       <div
         class="tab"
@@ -221,7 +221,7 @@ onUnmounted(() => {
             fontWeight: 600,
           }"
         />
-        <div v-if="!minimalMode" class="tab-title nc-tab">Developer</div>
+        <div v-if="!minimalMode" class="tab-title nc-tab">{{ $t('objects.developer') }}</div>
       </div>
     </div>
 

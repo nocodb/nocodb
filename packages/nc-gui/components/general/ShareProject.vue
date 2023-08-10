@@ -44,7 +44,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       <div class="flex flex-row items-center w-full gap-x-1">
         <MaterialSymbolsPublic v-if="visibility === 'public'" class="h-3.5" />
         <MaterialSymbolsLockOutline v-else-if="visibility === 'private'" class="h-3.5" />
-        <div class="flex">Share</div>
+        <div class="flex">{{ $t('activity.share') }}</div>
       </div>
     </NcButton>
   </div>

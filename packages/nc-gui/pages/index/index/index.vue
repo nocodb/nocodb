@@ -196,7 +196,7 @@ watch(
             >
               <MdiPlus class="!h-4.2" />
 
-              <div class="flex">New Project</div>
+              <div class="flex">{{ $t('title.newProj') }}</div>
             </div>
           </WorkspaceCreateProjectBtn>
         </div>

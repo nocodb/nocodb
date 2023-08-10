@@ -93,7 +93,7 @@ const navigateToHome = () => {
 
       <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-home-btn" @click="navigateToHome">
         <MaterialSymbolsHomeOutlineRounded class="!h-3.9" />
-        <div>Home</div>
+        <div>{{ $t('general.home') }}</div>
       </div>
       <WorkspaceCreateProjectBtn
         v-if="isUIAllowed('createProject', false, activeWorkspace?.roles)"
@@ -114,11 +114,11 @@ const navigateToHome = () => {
         >
           <MdiPlus class="!h-4" />
 
-          <div class="flex">New Project</div>
+          <div class="flex">{{ $t('title.newProj') }}</div>
         </div>
       </WorkspaceCreateProjectBtn>
       <div v-else class="!h-7"></div>
-      <div class="text-gray-500 mx-5 font-medium mt-3 mb-1.5">Projects</div>
+      <div class="text-gray-500 mx-5 font-medium mt-3 mb-1.5">{{ $t('objects.projects') }}</div>
       <div
         class="w-full border-b-1"
         :class="{

@@ -87,7 +87,31 @@ test.describe('Toolbar operations (GRID)', () => {
     });
 
     // Update Filter and Verify
-    //TODO
+    await toolbar.clickFilter();
+    await toolbar.filter.remove({ networkValidation: false });
+    await toolbar.filter.add({
+      title: 'Rating',
+      value: 'PG-13',
+      operation: 'is equal',
+    });
+    await toolbar.clickFilter();
+    await dashboard.grid.groupPage.verifyGroupHeader({
+      indexMap: [0],
+      count: 3,
+      title: 'Length',
+    });
+
+    await dashboard.grid.groupPage.verifyGroup({
+      indexMap: [0],
+      value: '185',
+    });
+    await toolbar.filter.reset({ networkValidation: false });
+    await toolbar.filter.add({
+      title: 'Length',
+      value: '183',
+      operation: '=',
+      locallySaved: false,
+    });
 
     // Remove Sort and Verify
     await toolbar.sort.reset();
@@ -196,11 +220,41 @@ test.describe('Toolbar operations (GRID)', () => {
     });
 
     // Update Filter and Verify
-    //TODO
+    await toolbar.filter.reset({ networkValidation: false });
+    await toolbar.clickFilter();
+    await toolbar.filter.add({
+      title: 'RentalDuration',
+      value: '5',
+      operation: '=',
+      locallySaved: false,
+    });
+    await toolbar.clickFilter();
+
+    await dashboard.grid.groupPage.openGroup({ indexMap: [1, 0] });
+
+    await dashboard.grid.groupPage.verifyGroupHeader({
+      indexMap: [1, 0],
+      count: 3,
+      title: 'RentalDuration',
+    });
+
+    await dashboard.grid.groupPage.verifyGroup({
+      indexMap: [1, 0],
+      value: '5',
+    });
+    await toolbar.filter.reset({ networkValidation: false });
+    await toolbar.clickFilter();
+    await toolbar.filter.add({
+      title: 'RentalDuration',
+      value: '3',
+      operation: '=',
+      locallySaved: false,
+    });
+    await toolbar.clickFilter();
 
     // Remove Sort and Verify
     await toolbar.sort.reset();
-    await dashboard.grid.groupPage.openGroup({ indexMap: [0] });
+    await dashboard.grid.groupPage.openGroup({ indexMap: [1, 0] });
     await dashboard.grid.groupPage.validateFirstRow({
       indexMap: [1, 0],
       rowIndex: 0,
@@ -237,7 +291,7 @@ test.describe('Toolbar operations (GRID)', () => {
     await dashboard.closeTab({ title: 'Film' });
   });
 
-  test.only('Create Three GroupBy and Verify With Sort, Filter, Hide', async () => {
+  test('Create Three GroupBy and Verify With Sort, Filter, Hide', async () => {
     // Open Table
     await dashboard.treeView.openTable({ title: 'Film' });
 
@@ -306,7 +360,40 @@ test.describe('Toolbar operations (GRID)', () => {
     });
 
     // Update Filter and Verify
-    //TODO
+    await toolbar.filter.reset();
+    await toolbar.clickFilter();
+
+    await toolbar.filter.add({
+      title: 'Rating',
+      value: 'NC-17',
+      operation: 'is equal',
+      locallySaved: false,
+    });
+    await toolbar.clickFilter();
+
+    await dashboard.grid.groupPage.openGroup({ indexMap: [5, 0, 0] });
+
+    await dashboard.grid.groupPage.verifyGroupHeader({
+      indexMap: [5, 0, 0],
+      count: 2,
+      title: 'ReleaseYear',
+    });
+
+    await dashboard.grid.groupPage.verifyGroup({
+      indexMap: [5, 0, 0],
+      value: '2006',
+    });
+
+    await toolbar.filter.reset();
+    await toolbar.clickFilter();
+
+    await toolbar.filter.add({
+      title: 'Rating',
+      value: 'NC-17',
+      operation: 'is equal',
+      locallySaved: false,
+    });
+    await toolbar.clickFilter();
 
     // Remove Sort and Verify
     await toolbar.sort.reset();
@@ -315,7 +402,7 @@ test.describe('Toolbar operations (GRID)', () => {
       indexMap: [5, 0, 0],
       rowIndex: 0,
       columnHeader: 'Title',
-      value: 'IMPACT ALADDIN',
+      value: 'ANONYMOUS HUMAN',
     });
 
     // Remove Filter and Verify

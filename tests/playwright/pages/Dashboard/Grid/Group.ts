@@ -22,7 +22,6 @@ export class GroupPageObject extends BasePage {
 
   async openGroup({ indexMap }: { indexMap: number[] }) {
     let root = this.rootPage.locator('.nc-group');
-
     for (const n of indexMap) {
       await root.nth(n).click();
       root = root.nth(n).locator('.nc-group');

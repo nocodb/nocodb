@@ -356,7 +356,7 @@ useMenuCloseOnEsc(open)
           v-if="!filterQuery"
           class="pl-8 pr-2 mr-6 mt-3 py-2 justify-between flex flex-row items-center border-1 rounded-lg mb-2 border-gray-100 bg-gray-50"
         >
-          <div class="ml-0.25 select-none">Show all fields</div>
+          <div class="ml-0.25 select-none">{{ $t('general.showAll') }} {{ $t('objects.fields').toLowerCase() }}</div>
           <NcSwitch v-model:checked="showAllColumns" />
         </div>
 

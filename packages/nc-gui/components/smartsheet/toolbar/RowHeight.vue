@@ -76,7 +76,7 @@ useMenuCloseOnEsc(open)
             @click="updateRowHeight(0)"
           >
             <GeneralIcon icon="heightShort" class="nc-row-height-icon" />
-            Short
+            {{ $t('objects.heightClass.short') }}
           </div>
           <div
             class="nc-row-height-option"
@@ -84,7 +84,7 @@ useMenuCloseOnEsc(open)
             @click="updateRowHeight(1)"
           >
             <GeneralIcon icon="heightMedium" class="nc-row-height-icon" />
-            Medium
+            {{ $t('objects.heightClass.medium') }}
           </div>
           <div
             class="nc-row-height-option"
@@ -92,7 +92,7 @@ useMenuCloseOnEsc(open)
             @click="updateRowHeight(2)"
           >
             <GeneralIcon icon="heightTall" class="nc-row-height-icon" />
-            Tall
+            {{ $t('objects.heightClass.tall') }}
           </div>
           <div
             class="nc-row-height-option"
@@ -100,7 +100,7 @@ useMenuCloseOnEsc(open)
             @click="updateRowHeight(3)"
           >
             <GeneralIcon icon="heightExtra" class="nc-row-height-icon" />
-            Extra
+            {{ $t('objects.heightClass.extra') }}
           </div>
         </div>
       </div>

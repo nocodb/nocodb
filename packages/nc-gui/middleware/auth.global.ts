@@ -36,6 +36,15 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
   const { allRoles } = useRoles()
 
+  /** If baseHostname defined block home page access under subdomains, and redirect to workspace page */
+  if (
+    state.appInfo.value.baseHostName &&
+    !location.hostname?.startsWith(`${state.appInfo.value.mainSubDomain}.`) &&
+    to.path === '/'
+  ) {
+    return navigateTo(`/ws/${location.hostname.split('.')[0]}`)
+  }
+
   /** if user isn't signed in and google auth is enabled, try to check if sign-in data is present */
   if (!state.signedIn.value && state.appInfo.value.googleAuthEnabled) await tryGoogleAuth(api, state.signIn)
 
@@ -95,11 +104,15 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
   if (window.location.search && /\bscope=|\bstate=/.test(window.location.search) && /\bcode=/.test(window.location.search)) {
     try {
+      let authProvider = 'google'
+      if (window.location.search.includes('state=github')) {
+        authProvider = 'github'
+      } else if (window.location.search.includes('state=oidc')) {
+        authProvider = 'oidc'
+      }
       const {
         data: { token },
-      } = await api.instance.post(
-        `/auth/${window.location.search.includes('state=github') ? 'github' : 'google'}/genTokenByCode${window.location.search}`,
-      )
+      } = await api.instance.post(`/auth/${authProvider}/genTokenByCode${window.location.search}`)
 
       signIn(token)
     } catch (e: any) {

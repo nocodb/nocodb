@@ -165,7 +165,7 @@ const onDecode = async (scannedCodeValue: string) => {
                       <LazySmartsheetCell
                         v-else
                         v-model="formState[field.title]"
-                        class="nc-input truncate"
+                        class="nc-input"
                         :data-testid="`nc-form-input-cell-${field.label || field.title}`"
                         :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
                         :column="field"

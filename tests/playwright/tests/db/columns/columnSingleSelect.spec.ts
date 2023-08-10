@@ -13,7 +13,7 @@ test.describe('Single select', () => {
     dashboard = new DashboardPage(page, context.project);
     grid = dashboard.grid;
 
-    await dashboard.treeView.createTable({ title: 'sheet1' });
+    await dashboard.treeView.createTable({ title: 'sheet1', projectTitle: context.project.title });
 
     await grid.column.create({ title: 'SingleSelect', type: 'SingleSelect' });
     await grid.column.selectOption.addOptions({
@@ -118,7 +118,7 @@ test.describe('Single select - filter & sort', () => {
     toolbar = dashboard.grid.toolbar;
     grid = dashboard.grid;
 
-    await dashboard.treeView.createTable({ title: 'sheet1' });
+    await dashboard.treeView.createTable({ title: 'sheet1', projectTitle: context.project.title });
 
     await grid.column.create({ title: 'SingleSelect', type: 'SingleSelect' });
     await grid.column.selectOption.addOptions({

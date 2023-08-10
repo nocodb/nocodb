@@ -207,7 +207,8 @@ const createRollupColumn = async (
 
   const ltarColumn = (await table.getColumns()).find(
     (column) =>
-      column.uidt === UITypes.LinkToAnotherRecord &&
+      (column.uidt === UITypes.Links ||
+        column.uidt === UITypes.LinkToAnotherRecord) &&
       column.colOptions?.fk_related_model_id === childTable.id,
   );
 
@@ -259,7 +260,8 @@ const createLookupColumn = async (
 
   const ltarColumn = (await table.getColumns()).find(
     (column) =>
-      column.uidt === UITypes.LinkToAnotherRecord &&
+      (column.uidt === UITypes.Links ||
+        column.uidt === UITypes.LinkToAnotherRecord) &&
       column.colOptions?.fk_related_model_id === childTable.id,
   );
   const lookupColumn = await createColumn(context, table, {
@@ -286,14 +288,10 @@ const createQrCodeColumn = async (
     referencedQrValueTableColumnTitle: string;
   },
 ) => {
-  const referencedQrValueTableColumnId = await table
-    .getColumns()
-    .then(
-      (cols) =>
-        cols.find(
-          (column) => column.title == referencedQrValueTableColumnTitle,
-        )['id'],
-    );
+  const columns = await table.getColumns();
+  const referencedQrValueTableColumnId = columns.find(
+    (column) => column.title == referencedQrValueTableColumnTitle,
+  )['id'];
 
   const qrCodeColumn = await createColumn(context, table, {
     title: title,
@@ -351,7 +349,7 @@ const createLtarColumn = async (
   const ltarColumn = await createColumn(context, parentTable, {
     title: title,
     column_name: title,
-    uidt: UITypes.LinkToAnotherRecord,
+    uidt: UITypes.Links,
     parentId: parentTable.id,
     childId: childTable.id,
     type: type,

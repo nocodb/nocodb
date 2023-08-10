@@ -291,3 +291,21 @@ export interface XcRoute {
   dbAlias?: string;
   isCustom?: boolean;
 }
+
+export interface AppConfig {
+  throttler: {
+    ttl: number;
+    max_apis: number;
+    calc_execution_time: boolean;
+  };
+  basicAuth: {
+    username: string;
+    password: string;
+  };
+
+  auth: {
+    emailPattern?: RegExp | null;
+    disableEmailAuth: boolean;
+  };
+  mainSubDomain: string;
+}

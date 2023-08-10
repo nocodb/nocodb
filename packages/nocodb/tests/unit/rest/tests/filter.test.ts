@@ -1,13 +1,13 @@
 import 'mocha';
+import { UITypes } from 'nocodb-sdk';
+import { expect } from 'chai';
+import request from 'supertest';
 import init from '../../init';
 import { createProject } from '../../factory/project';
 import Project from '../../../../src/models/Project';
 import { createTable } from '../../factory/table';
-import { UITypes } from 'nocodb-sdk';
-import { createBulkRows, rowMixedValue, listRow } from '../../factory/row';
+import { createBulkRows, listRow, rowMixedValue } from '../../factory/row';
 import Model from '../../../../src/models/Model';
-import { expect } from 'chai';
-import request from 'supertest';
 
 const debugMode = true;
 
@@ -21,13 +21,13 @@ async function retrieveRecordsAndValidate(
     status: string;
     logical_op: string;
   },
-  title: string
+  title: string,
 ) {
   let expectedRecords = [];
   let toFloat = false;
   if (
     ['Number', 'Decimal', 'Currency', 'Percent', 'Duration', 'Rating'].includes(
-      title
+      title,
     )
   ) {
     toFloat = true;
@@ -39,44 +39,44 @@ async function retrieveRecordsAndValidate(
       expectedRecords = unfilteredRecords.filter(
         (record) =>
           (toFloat ? parseFloat(record[title]) : record[title]) ===
-          (toFloat ? parseFloat(filter.value) : filter.value)
+          (toFloat ? parseFloat(filter.value) : filter.value),
       );
       break;
     case 'neq':
       expectedRecords = unfilteredRecords.filter(
         (record) =>
           (toFloat ? parseFloat(record[title]) : record[title]) !==
-          (toFloat ? parseFloat(filter.value) : filter.value)
+          (toFloat ? parseFloat(filter.value) : filter.value),
       );
       break;
     case 'null':
       expectedRecords = unfilteredRecords.filter(
-        (record) => record[title] === null
+        (record) => record[title] === null,
       );
       break;
     case 'notnull':
       expectedRecords = unfilteredRecords.filter(
-        (record) => record[title] !== null
+        (record) => record[title] !== null,
       );
       break;
     case 'empty':
       expectedRecords = unfilteredRecords.filter(
-        (record) => record[title] === ''
+        (record) => record[title] === '',
       );
       break;
     case 'notempty':
       expectedRecords = unfilteredRecords.filter(
-        (record) => record[title] !== ''
+        (record) => record[title] !== '',
       );
       break;
     case 'like':
       expectedRecords = unfilteredRecords.filter((record) =>
-        record[title]?.includes(filter.value)
+        record[title]?.includes(filter.value),
       );
       break;
     case 'nlike':
       expectedRecords = unfilteredRecords.filter(
-        (record) => !record[title]?.includes(filter.value)
+        (record) => !record[title]?.includes(filter.value),
       );
       break;
     case 'gt':
@@ -84,7 +84,7 @@ async function retrieveRecordsAndValidate(
         (record) =>
           (toFloat ? parseFloat(record[title]) : record[title]) >
             (toFloat ? parseFloat(filter.value) : filter.value) &&
-          record[title] !== null
+          record[title] !== null,
       );
       break;
     case 'gte':
@@ -92,7 +92,7 @@ async function retrieveRecordsAndValidate(
         (record) =>
           (toFloat ? parseFloat(record[title]) : record[title]) >=
             (toFloat ? parseFloat(filter.value) : filter.value) &&
-          record[title] !== null
+          record[title] !== null,
       );
       break;
     case 'lt':
@@ -103,7 +103,7 @@ async function retrieveRecordsAndValidate(
             record[title] === null
           : (toFloat ? parseFloat(record[title]) : record[title]) <
               (toFloat ? parseFloat(filter.value) : filter.value) &&
-            record[title] !== null
+            record[title] !== null,
       );
       break;
     case 'lte':
@@ -114,7 +114,7 @@ async function retrieveRecordsAndValidate(
             record[title] === null
           : (toFloat ? parseFloat(record[title]) : record[title]) <=
               (toFloat ? parseFloat(filter.value) : filter.value) &&
-            record[title] !== null
+            record[title] !== null,
       );
       break;
     case 'anyof':
@@ -163,7 +163,7 @@ async function retrieveRecordsAndValidate(
       throw new Error('fix me!');
     }
     response.body.list.forEach((row, index) => {
-      if (row[title] !== expectedRecords[index][title]) {
+      if (row[title] != expectedRecords[index][title]) {
         console.log(`Failed for filter: ${JSON.stringify(filter)}`);
         console.log(`Expected: ${expectedRecords[index][title]}`);
         console.log(`Actual: ${row[title]}`);
@@ -203,6 +203,7 @@ async function verifyFilters(dataType, columnId, filterList) {
 function filterTextBased() {
   // prepare data for test cases
   beforeEach(async function () {
+    console.time('#### filterTextBased');
     context = await init();
     project = await createProject(context);
     table = await createTable(context, project, {
@@ -244,9 +245,9 @@ function filterTextBased() {
 
     columns = await table.getColumns();
 
-    let rowAttributes = [];
+    const rowAttributes = [];
     for (let i = 0; i < 400; i++) {
-      let row = {
+      const row = {
         SingleLineText: rowMixedValue(columns[1], i),
         MultiLineText: rowMixedValue(columns[2], i),
         Email: rowMixedValue(columns[3], i),
@@ -265,10 +266,11 @@ function filterTextBased() {
 
     // verify length of unfiltered records to be 400
     expect(unfilteredRecords.length).to.equal(400);
+    console.timeEnd('#### filterTextBased');
   });
 
   it('Type: Single Line Text', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: 'Afghanistan' },
       { comparison_op: 'neq', value: 'Afghanistan' },
       { comparison_op: 'null', value: '' },
@@ -282,7 +284,7 @@ function filterTextBased() {
   });
 
   it('Type: Multi Line Text', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: 'Aberdeen, United Kingdom' },
       { comparison_op: 'neq', value: 'Aberdeen, United Kingdom' },
       { comparison_op: 'null', value: '' },
@@ -296,7 +298,7 @@ function filterTextBased() {
   });
 
   it('Type: Email', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: 'leota@hotmail.com' },
       { comparison_op: 'neq', value: 'leota@hotmail.com' },
       { comparison_op: 'null', value: '' },
@@ -310,7 +312,7 @@ function filterTextBased() {
   });
 
   it('Type: Phone', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: '504-621-8927' },
       { comparison_op: 'neq', value: '504-621-8927' },
       { comparison_op: 'null', value: '' },
@@ -324,7 +326,7 @@ function filterTextBased() {
   });
 
   it('Type: Url', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: 'https://www.youtube.com' },
       { comparison_op: 'neq', value: 'https://www.youtube.com' },
       { comparison_op: 'null', value: '' },
@@ -341,6 +343,7 @@ function filterTextBased() {
 function filterNumberBased() {
   // prepare data for test cases
   beforeEach(async function () {
+    console.time('#### filterNumberBased');
     context = await init();
     project = await createProject(context);
     table = await createTable(context, project, {
@@ -387,9 +390,9 @@ function filterNumberBased() {
 
     columns = await table.getColumns();
 
-    let rowAttributes = [];
+    const rowAttributes = [];
     for (let i = 0; i < 400; i++) {
-      let row = {
+      const row = {
         Number: rowMixedValue(columns[1], i),
         Decimal: rowMixedValue(columns[2], i),
         Currency: rowMixedValue(columns[3], i),
@@ -409,10 +412,11 @@ function filterNumberBased() {
 
     // verify length of unfiltered records to be 400
     expect(unfilteredRecords.length).to.equal(400);
+    console.timeEnd('#### filterNumberBased');
   });
 
   it('Type: Number', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: '33' },
       { comparison_op: 'neq', value: '33' },
       { comparison_op: 'null', value: '' },
@@ -426,7 +430,7 @@ function filterNumberBased() {
   });
 
   it('Type: Decimal', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: '33.3' },
       { comparison_op: 'neq', value: '33.3' },
       { comparison_op: 'null', value: '' },
@@ -440,7 +444,7 @@ function filterNumberBased() {
   });
 
   it('Type: Currency', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: '33.3' },
       { comparison_op: 'neq', value: '33.3' },
       { comparison_op: 'null', value: '' },
@@ -454,7 +458,7 @@ function filterNumberBased() {
   });
 
   it('Type: Percent', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: '33' },
       { comparison_op: 'neq', value: '33' },
       { comparison_op: 'null', value: '' },
@@ -468,7 +472,7 @@ function filterNumberBased() {
   });
 
   it('Type: Duration', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: '10' },
       { comparison_op: 'neq', value: '10' },
       { comparison_op: 'null', value: '' },
@@ -482,7 +486,7 @@ function filterNumberBased() {
   });
 
   it('Type: Rating', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: '3' },
       { comparison_op: 'neq', value: '3' },
       { comparison_op: 'null', value: '' },
@@ -499,6 +503,7 @@ function filterNumberBased() {
 function filterSelectBased() {
   // prepare data for test cases
   beforeEach(async function () {
+    console.time('#### filterSelectBased');
     context = await init();
     project = await createProject(context);
     table = await createTable(context, project, {
@@ -527,9 +532,9 @@ function filterSelectBased() {
 
     columns = await table.getColumns();
 
-    let rowAttributes = [];
+    const rowAttributes = [];
     for (let i = 0; i < 400; i++) {
-      let row = {
+      const row = {
         SingleSelect: rowMixedValue(columns[1], i),
         MultiSelect: rowMixedValue(columns[2], i),
       };
@@ -545,10 +550,11 @@ function filterSelectBased() {
 
     // verify length of unfiltered records to be 400
     expect(unfilteredRecords.length).to.equal(400);
+    console.time('#### filterSelectBased');
   });
 
   it('Type: Single select', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: 'jan' },
       { comparison_op: 'neq', value: 'jan' },
       { comparison_op: 'null', value: '' },
@@ -562,7 +568,7 @@ function filterSelectBased() {
   });
 
   it('Type: Multi select', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: 'jan,feb,mar' },
       { comparison_op: 'neq', value: 'jan,feb,mar' },
       { comparison_op: 'null', value: '' },
@@ -591,7 +597,7 @@ async function applyDateFilter(filterParams, expectedRecords) {
     console.log('filterParams', filterParams);
     console.log(
       'response.body.pageInfo.totalRows',
-      response.body.pageInfo.totalRows
+      response.body.pageInfo.totalRows,
     );
     console.log('expectedRecords', expectedRecords);
   }
@@ -601,6 +607,7 @@ async function applyDateFilter(filterParams, expectedRecords) {
 function filterDateBased() {
   // prepare data for test cases
   beforeEach(async function () {
+    console.time('#### filterDateBased');
     context = await init();
     project = await createProject(context);
     table = await createTable(context, project, {
@@ -622,9 +629,9 @@ function filterDateBased() {
 
     columns = await table.getColumns();
 
-    let rowAttributes = [];
+    const rowAttributes = [];
     for (let i = 0; i < 800; i++) {
-      let row = {
+      const row = {
         Date: rowMixedValue(columns[1], i),
       };
       rowAttributes.push(row);
@@ -639,40 +646,41 @@ function filterDateBased() {
 
     // verify length of unfiltered records to be 800
     expect(unfilteredRecords.length).to.equal(800);
+    console.time('#### filterDateBased');
   });
 
   it('Type: Date ', async () => {
     const today = new Date().setHours(0, 0, 0, 0);
     const tomorrow = new Date(
-      new Date().setDate(new Date().getDate() + 1)
+      new Date().setDate(new Date().getDate() + 1),
     ).setHours(0, 0, 0, 0);
     const yesterday = new Date(
-      new Date().setDate(new Date().getDate() - 1)
+      new Date().setDate(new Date().getDate() - 1),
     ).setHours(0, 0, 0, 0);
     const oneWeekAgo = new Date(
-      new Date().setDate(new Date().getDate() - 7)
+      new Date().setDate(new Date().getDate() - 7),
     ).setHours(0, 0, 0, 0);
     const oneWeekFromNow = new Date(
-      new Date().setDate(new Date().getDate() + 7)
+      new Date().setDate(new Date().getDate() + 7),
     ).setHours(0, 0, 0, 0);
     const oneMonthAgo = new Date(
-      new Date().setMonth(new Date().getMonth() - 1)
+      new Date().setMonth(new Date().getMonth() - 1),
     ).setHours(0, 0, 0, 0);
     const oneMonthFromNow = new Date(
-      new Date().setMonth(new Date().getMonth() + 1)
+      new Date().setMonth(new Date().getMonth() + 1),
     ).setHours(0, 0, 0, 0);
     const daysAgo45 = new Date(
-      new Date().setDate(new Date().getDate() - 45)
+      new Date().setDate(new Date().getDate() - 45),
     ).setHours(0, 0, 0, 0);
     const daysFromNow45 = new Date(
-      new Date().setDate(new Date().getDate() + 45)
+      new Date().setDate(new Date().getDate() + 45),
     ).setHours(0, 0, 0, 0);
     const thisMonth15 = new Date(new Date().setDate(15)).setHours(0, 0, 0, 0);
     const oneYearAgo = new Date(
-      new Date().setFullYear(new Date().getFullYear() - 1)
+      new Date().setFullYear(new Date().getFullYear() - 1),
     ).setHours(0, 0, 0, 0);
     const oneYearFromNow = new Date(
-      new Date().setFullYear(new Date().getFullYear() + 1)
+      new Date().setFullYear(new Date().getFullYear() + 1),
     ).setHours(0, 0, 0, 0);
 
     // records array with time set to 00:00:00; store time in unix epoch
@@ -784,51 +792,51 @@ function filterDateBased() {
       {
         opSub: 'pastWeek',
         rowCount: recordsTimeSetToZero.filter(
-          (r) => r >= oneWeekAgo && r <= today
+          (r) => r >= oneWeekAgo && r <= today,
         ).length,
       },
       {
         opSub: 'pastMonth',
         rowCount: recordsTimeSetToZero.filter(
-          (r) => r >= oneMonthAgo && r <= today
+          (r) => r >= oneMonthAgo && r <= today,
         ).length,
       },
       {
         opSub: 'pastYear',
         rowCount: recordsTimeSetToZero.filter(
-          (r) => r >= oneYearAgo && r <= today
+          (r) => r >= oneYearAgo && r <= today,
         ).length,
       },
       {
         opSub: 'nextWeek',
         rowCount: recordsTimeSetToZero.filter(
-          (r) => r >= today && r <= oneWeekFromNow
+          (r) => r >= today && r <= oneWeekFromNow,
         ).length,
       },
       {
         opSub: 'nextMonth',
         rowCount: recordsTimeSetToZero.filter(
-          (r) => r >= today && r <= oneMonthFromNow
+          (r) => r >= today && r <= oneMonthFromNow,
         ).length,
       },
       {
         opSub: 'nextYear',
         rowCount: recordsTimeSetToZero.filter(
-          (r) => r >= today && r <= oneYearFromNow
+          (r) => r >= today && r <= oneYearFromNow,
         ).length,
       },
       {
         opSub: 'nextNumberOfDays',
         value: 45,
         rowCount: recordsTimeSetToZero.filter(
-          (r) => r >= today && r <= daysFromNow45
+          (r) => r >= today && r <= daysFromNow45,
         ).length,
       },
       {
         opSub: 'pastNumberOfDays',
         value: 45,
         rowCount: recordsTimeSetToZero.filter(
-          (r) => r >= daysAgo45 && r <= today
+          (r) => r >= daysAgo45 && r <= today,
         ).length,
       },
     ];
@@ -838,13 +846,13 @@ function filterDateBased() {
       {
         opType: 'blank',
         rowCount: unfilteredRecords.filter(
-          (r) => r['Date'] === null || r['Date'] === ''
+          (r) => r['Date'] === null || r['Date'] === '',
         ).length,
       },
       {
         opType: 'notblank',
         rowCount: unfilteredRecords.filter(
-          (r) => r['Date'] !== null && r['Date'] !== ''
+          (r) => r['Date'] !== null && r['Date'] !== '',
         ).length,
       },
     ];

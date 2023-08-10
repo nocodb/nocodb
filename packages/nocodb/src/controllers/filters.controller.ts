@@ -7,19 +7,17 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { FilterReqType } from 'nocodb-sdk';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { FiltersService } from '../services/filters.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { FiltersService } from '~/services/filters.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 export class FiltersController {
   constructor(private readonly filtersService: FiltersService) {}
 
@@ -39,10 +37,12 @@ export class FiltersController {
   async filterCreate(
     @Param('viewId') viewId: string,
     @Body() body: FilterReqType,
+    @Req() req,
   ) {
     const filter = await this.filtersService.filterCreate({
       filter: body,
       viewId: viewId,
+      user: req.user,
     });
     return filter;
   }
@@ -53,10 +53,12 @@ export class FiltersController {
   async hookFilterCreate(
     @Param('hookId') hookId: string,
     @Body() body: FilterReqType,
+    @Req() req,
   ) {
     const filter = await this.filtersService.hookFilterCreate({
       filter: body,
       hookId,
+      user: req.user,
     });
     return filter;
   }
@@ -82,17 +84,19 @@ export class FiltersController {
   async filterUpdate(
     @Param('filterId') filterId: string,
     @Body() body: FilterReqType,
+    @Req() req,
   ) {
     const filter = await this.filtersService.filterUpdate({
       filterId: filterId,
       filter: body,
+      user: req.user,
     });
     return filter;
   }
 
   @Delete('/api/v1/db/meta/filters/:filterId')
   @Acl('filterDelete')
-  async filterDelete(@Param('filterId') filterId: string) {
+  async filterDelete(@Param('filterId') filterId: string, @Req() _req) {
     const filter = await this.filtersService.filterDelete({
       filterId,
     });

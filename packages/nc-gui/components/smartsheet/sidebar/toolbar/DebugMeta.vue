@@ -5,12 +5,13 @@ const editorOpen = ref(false)
 
 const tabKey = ref()
 
-const { metas } = $(useMetas())
+const metaStore = useMetas()
+const metas = toRef(metaStore, 'metas')
 
 const { tables } = useTable()
 
 const localTables = computed(
-  () => tables.value.filter((t) => metas[t.id as string]) as (typeof tables.value[number] & { id: string })[],
+  () => tables.value.filter((t) => metas.value[t.id as string]) as ((typeof tables.value)[number] & { id: string })[],
 )
 </script>
 

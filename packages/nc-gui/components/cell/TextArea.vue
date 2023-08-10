@@ -19,6 +19,12 @@ const vModel = useVModel(props, 'modelValue', emits, { defaultValue: '' })
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLTextAreaElement)?.focus()
+
+const height = computed(() => {
+  if (!rowHeight.value) return 60
+
+  return rowHeight.value * 60
+})
 </script>
 
 <template>
@@ -27,8 +33,11 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLTextArea
     :ref="focus"
     v-model="vModel"
     rows="4"
-    class="h-full w-full min-h-[60px] outline-none border-none"
-    :class="{ 'p-2': editEnabled }"
+    class="h-full w-full outline-none border-none"
+    :class="`${editEnabled ? 'p-2' : ''}`"
+    :style="{
+      minHeight: `${height}px`,
+    }"
     @blur="editEnabled = false"
     @keydown.alt.enter.stop
     @keydown.shift.enter.stop

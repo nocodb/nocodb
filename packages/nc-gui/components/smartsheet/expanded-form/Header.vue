@@ -20,7 +20,7 @@ const route = useRoute()
 
 const { meta, isSqlView } = useSmartsheetStoreOrThrow()
 
-const { commentsDrawer, displayValue, primaryKey, save: _save, loadRow, saveRowAndStay } = useExpandedFormStoreOrThrow()
+const { commentsDrawer, displayValue, primaryKey, save: _save, loadRow } = useExpandedFormStoreOrThrow()
 
 const { isNew, syncLTARRefs, state } = useSmartsheetRowStoreOrThrow()
 
@@ -37,9 +37,6 @@ const save = async () => {
     await _save()
     reloadTrigger?.trigger()
   }
-  if (!saveRowAndStay.value) {
-    emit('cancel')
-  }
 }
 
 // todo: accept as a prop / inject
@@ -52,9 +49,9 @@ const { copy } = useCopy()
 const copyRecordUrl = () => {
   copy(
     encodeURI(
-      `${dashboardUrl?.value}#/${route.params.projectType}/${route.params.projectId}/${route.params.type}/${meta.value?.title}${
-        props.view ? `/${props.view.title}` : ''
-      }?rowId=${primaryKey.value}`,
+      `${dashboardUrl?.value}#/ws/${route.params.workspaceId}/${route.params.projectType}/${route.params.projectId}/${
+        route.params.type
+      }/${meta.value?.id}${props.view ? `/${props.view.title}` : ''}?rowId=${primaryKey.value}`,
     ),
   )
   message.success('Copied to clipboard')
@@ -123,49 +120,27 @@ const onConfirmDeleteRowClick = async () => {
       </template>
       <component
         :is="iconMap.comment"
-        v-if="isUIAllowed('rowComments') && !isNew"
+        v-if="isUIAllowed('commentList') && !isNew"
         v-e="['c:row-expand:comment-toggle']"
         class="nc-icon-transition cursor-pointer select-none nc-toggle-comments text-gray-500 mx-1 min-w-4"
         @click="commentsDrawer = !commentsDrawer"
       />
     </a-tooltip>
 
-    <a-dropdown-button class="nc-expand-form-save-btn" type="primary" :disabled="!isUIAllowed('tableRowUpdate')" @click="save">
-      <template #icon><component :is="iconMap.arrowDown" /></template>
-
-      <template #overlay>
-        <a-menu class="nc-expand-form-save-dropdown-menu">
-          <a-menu-item key="0" class="!py-2 flex gap-2" @click="saveRowAndStay = 0">
-            <div class="flex items-center">
-              <component :is="iconMap.contentSaveExit" class="mr-1" />
-              {{ $t('activity.saveAndExit') }}
-            </div>
-          </a-menu-item>
-          <a-menu-item key="1" class="!py-2 flex gap-2 items-center" @click="saveRowAndStay = 1">
-            <div class="flex items-center">
-              <component :is="iconMap.contentSaveStay" class="mr-1" />
-              {{ $t('activity.saveAndStay') }}
-            </div>
-          </a-menu-item>
-        </a-menu>
-      </template>
-      <div v-if="saveRowAndStay === 0" class="flex items-center">
-        <component :is="iconMap.contentSaveExit" class="mr-1" />
-        {{ $t('activity.saveAndExit') }}
-      </div>
-      <div v-if="saveRowAndStay === 1" class="flex items-center">
-        <component :is="iconMap.contentSaveStay" class="mr-1" />
-        {{ $t('activity.saveAndStay') }}
-      </div>
-    </a-dropdown-button>
+    <a-button class="nc-expand-form-save-btn !rounded-md" type="primary" :disabled="!isUIAllowed('tableRowUpdate')" @click="save">
+      {{ $t('general.save') }}
+    </a-button>
 
     <a-dropdown>
-      <component :is="iconMap.threeDotVertical" class="nc-icon-transition" />
+      <component :is="iconMap.threeDotVertical" class="nc-icon-transition nc-expand-form-more-actions" />
       <template #overlay>
         <a-menu>
-          <a-menu-item v-if="!isNew" @click="loadRow">
+          <a-menu-item v-if="!isNew" @click="loadRow()">
             <div v-e="['c:row-expand:reload']" class="py-2 flex gap-2 items-center">
-              <component :is="iconMap.reload" class="nc-icon-transition cursor-pointer select-none text-gray-500 mx-1 min-w-4" />
+              <component
+                :is="iconMap.reload"
+                class="nc-icon-transition cursor-pointer select-none text-gray-500 mx-1 min-w-4 text-primary"
+              />
               {{ $t('general.reload') }}
             </div>
           </a-menu-item>
@@ -173,7 +148,7 @@ const onConfirmDeleteRowClick = async () => {
             <div v-e="['c:row-expand:duplicate']" class="py-2 flex gap-2 a">
               <component
                 :is="iconMap.copy"
-                class="nc-icon-transition cursor-pointer select-none nc-duplicate-row text-gray-500 mx-1 min-w-4"
+                class="nc-icon-transition cursor-pointer select-none nc-duplicate-row text-gray-500 mx-1 min-w-4 text-primary"
               />
               {{ $t('activity.duplicateRow') }}
             </div>
@@ -182,7 +157,7 @@ const onConfirmDeleteRowClick = async () => {
             <div v-e="['c:row-expand:delete']" class="py-2 flex gap-2 items-center">
               <component
                 :is="iconMap.delete"
-                class="nc-icon-transition cursor-pointer select-none nc-delete-row text-gray-500 mx-1 min-w-4"
+                class="nc-icon-transition cursor-pointer select-none nc-delete-row text-gray-500 mx-1 min-w-4 text-primary"
               />
               {{ $t('activity.deleteRow') }}
             </div>
@@ -190,8 +165,8 @@ const onConfirmDeleteRowClick = async () => {
           <a-menu-item @click="emit('cancel')">
             <div v-e="['c:row-expand:delete']" class="py-2 flex gap-2 items-center">
               <component
-                :is="iconMap.closeCircle"
-                class="nc-icon-transition cursor-pointer select-none nc-delete-row text-gray-500 mx-1 min-w-4"
+                :is="iconMap.close"
+                class="nc-icon-transition cursor-pointer select-none nc-delete-row text-gray-500 mx-1 min-w-4 text-primary"
               />
               {{ $t('general.close') }}
             </div>

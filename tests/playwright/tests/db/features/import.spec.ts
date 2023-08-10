@@ -3,7 +3,7 @@ import { airtableApiBase, airtableApiKey } from '../../../constants';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { quickVerify } from '../../../quickTests/commonTest';
 import setup from '../../../setup';
-import { isPg, isSqlite } from '../../../setup/db';
+import { isHub, isPg, isSqlite } from '../../../setup/db';
 
 test.describe('Import', () => {
   let dashboard: DashboardPage;
@@ -48,6 +48,11 @@ test.describe('Import', () => {
       file: `${process.cwd()}/fixtures/sampleFiles/simple.xlsx`,
       result: expected,
     });
+
+    // kludge
+    if (isHub()) {
+      await dashboard.treeView.openTable({ title: 'Sheet2' });
+    }
 
     const recordCells = { Number: '1', Float: isSqlite(context) || isPg(context) ? '1.1' : '1.10', Text: 'abc' };
 

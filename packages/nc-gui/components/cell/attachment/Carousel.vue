@@ -133,7 +133,7 @@ onClickOutside(carouselRef, () => {
   filter: grayscale(100%);
 }
 
-.ant-carousel :deep .slick-thumb li.slick-active img {
+.ant-carousel :deep(.slick-thumb li.slick-active img) {
   filter: grayscale(0%);
 }
 

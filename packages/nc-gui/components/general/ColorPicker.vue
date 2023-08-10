@@ -65,7 +65,7 @@ watch(picked, (n, _o) => {
             Pick Color
           </a-button>
 
-          <div class="flex justify-center py-4">
+          <div class="flex justify-center">
             <LazyGeneralChromeWrapper v-model="picked" class="!w-full !shadow-none" />
           </div>
         </a-collapse-panel>

@@ -1,10 +1,10 @@
 import * as path from 'path';
 import fs from 'fs';
 import { promisify } from 'util';
-import { SqlClientFactory } from '../../db/sql-client/lib/SqlClientFactory';
 import { getToolDir, metaUrlToDbConfig } from './helpers';
 import { DriverClient } from './interfaces';
 import type { DbConfig } from './interfaces';
+import { SqlClientFactory } from '~/db/sql-client/lib/SqlClientFactory';
 
 export class NcConfig {
   version: string;
@@ -146,7 +146,7 @@ export class NcConfig {
       port: process.env.NC_PORT,
       tryMode: !!process.env.NC_TRY,
       worker: !!process.env.NC_WORKER,
-      dashboardPath: process.env.NC_DASHBOARD_PATH,
+      dashboardPath: process.env.NC_DASHBOARD_PATH ?? '/dashboard',
       publicUrl: process.env.NC_PUBLIC_URL,
     });
   }

@@ -10,15 +10,12 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { GlobalGuard } from '../guards/global/global.guard';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { SharedBasesService } from '../services/shared-bases.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { SharedBasesService } from '~/services/shared-bases.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 export class SharedBasesController {
   constructor(private readonly sharedBasesService: SharedBasesService) {}
 

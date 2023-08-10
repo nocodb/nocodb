@@ -195,9 +195,12 @@ onBeforeMount(async () => {
   }
 })
 
+const { loadScope } = useCommandPalette()
+
 onMounted(() => {
   toggle(true)
   toggleHasSidebar(true)
+  loadScope('workspace', { project_id: route.params.projectId })
 })
 
 onBeforeUnmount(() => {
@@ -263,7 +266,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         theme="light"
       >
         <div
-          style="height: var(--header-height); border-bottom-width: 1px"
+          style="height: var(--sidebar-top-height); border-bottom-width: 1px"
           :class="isOpen ? 'pl-4' : ''"
           class="flex items-center text-primary px-1 gap-1 nc-sidebar-header"
         >
@@ -278,7 +281,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
               <template #title>
                 {{ currentVersion }}
               </template>
-              <img width="25" class="-mr-1" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
+              <img width="25" class="-mr-1" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
             </a-tooltip>
           </div>
 
@@ -292,7 +295,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
               <template #title>
                 {{ currentVersion }}
               </template>
-              <img width="25" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+              <img width="25" alt="NocoDB" src="~/assets/img/icons/256x256-trans.png" />
             </a-tooltip>
           </a>
 

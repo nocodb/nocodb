@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import type { FunctionalComponent, SVGAttributes } from 'vue'
-import DataSources from './DataSources.vue'
 import Misc from './Misc.vue'
-import { DataSourcesSubTab, iconMap, useI18n, useNuxtApp, useUIPermission, useVModel, watch } from '#imports'
+import { DataSourcesSubTab, iconMap, useNuxtApp, useVModel, watch } from '#imports'
 
 interface Props {
-  modelValue: boolean
-  openKey: string
-  dataSourcesState: string
+  modelValue?: boolean
+  openKey?: string
+  dataSourcesState?: string
+  projectId?: string
 }
 
 interface SubTabGroup {
@@ -37,9 +37,9 @@ const vOpenKey = useVModel(props, 'openKey', emits)
 
 const vDataState = useVModel(props, 'dataSourcesState', emits)
 
-const { isUIAllowed } = useUIPermission()
+const projectId = toRef(props, 'projectId')
 
-const { t } = useI18n()
+provide(ProjectIdInj, projectId)
 
 const { $e } = useNuxtApp()
 
@@ -48,63 +48,63 @@ const dataSourcesReload = ref(false)
 const dataSourcesAwakened = ref(false)
 
 const tabsInfo: TabGroup = {
-  teamAndAuth: {
-    title: t('title.teamAndAuth'),
-    icon: iconMap.users,
-    subTabs: {
-      ...(isUIAllowed('userMgmtTab')
-        ? {
-            usersManagement: {
-              // Users Management
-              title: t('title.userMgmt'),
-              body: resolveComponent('TabsAuthUserManagement'),
-            },
-          }
-        : {}),
-      ...(isUIAllowed('apiTokenTab')
-        ? {
-            apiTokenManagement: {
-              // API Tokens Management
-              title: t('title.apiTokenMgmt'),
-              body: resolveComponent('TabsAuthApiTokenManagement'),
-            },
-          }
-        : {}),
-    },
-    onClick: () => {
-      $e('c:settings:team-auth')
-    },
-  },
-  dataSources: {
-    // Data Sources
-    title: 'Data Sources',
-    icon: iconMap.datasource,
-    subTabs: {
-      dataSources: {
-        title: 'Data Sources',
-        body: DataSources,
-      },
-    },
-    onClick: () => {
-      vDataState.value = ''
-      $e('c:settings:data-sources')
-    },
-  },
-  audit: {
-    // Audit
-    title: t('title.audit'),
-    icon: iconMap.book,
-    subTabs: {
-      audit: {
-        // Audit
-        title: t('title.audit'),
-        body: resolveComponent('DashboardSettingsAuditTab'),
-      },
-    },
-    onClick: () => {
-      $e('c:settings:audit')
-    },
-  },
+  // teamAndAuth: {
+  //   title: t('title.teamAndAuth'),
+  //   icon: iconMap.users,
+  //   subTabs: {
+  //     ...(isUIAllowed('userMgmtTab')
+  //       ? {
+  //           usersManagement: {
+  //             // Users Management
+  //             title: t('title.userMgmt'),
+  //             body: resolveComponent('TabsAuthUserManagement'),
+  //           },
+  //         }
+  //       : {}),
+  //     ...(isUIAllowed('apiTokenTab')
+  //       ? {
+  //           apiTokenManagement: {
+  //             // API Tokens Management
+  //             title: t('title.apiTokenMgmt'),
+  //             body: resolveComponent('TabsAuthApiTokenManagement'),
+  //           },
+  //         }
+  //       : {}),
+  //   },
+  //   onClick: () => {
+  //     $e('c:settings:team-auth')
+  //   },
+  // },
+  // dataSources: {
+  //   // Data Sources
+  //   title: 'Data Sources',
+  //   icon: iconMap.datasource,
+  //   subTabs: {
+  //     dataSources: {
+  //       title: 'Data Sources',
+  //       body: DataSources,
+  //     },
+  //   },
+  //   onClick: () => {
+  //     vDataState.value = ''
+  //     $e('c:settings:data-sources')
+  //   },
+  // },
+  // audit: {
+  //   // Audit
+  //   title: t('title.audit'),
+  //   icon: iconMap.book,
+  //   subTabs: {
+  //     audit: {
+  //       // Audit
+  //       title: t('title.audit'),
+  //       body: resolveComponent('DashboardSettingsAuditTab'),
+  //     },
+  //   },
+  //   onClick: () => {
+  //     $e('c:settings:audit')
+  //   },
+  // },
   projectSettings: {
     // Project Settings
     title: 'Project Settings',
@@ -124,26 +124,26 @@ const tabsInfo: TabGroup = {
 const firstKeyOfObject = (obj: object) => Object.keys(obj)[0]
 
 // Array of keys of tabs which are selected. In our case will be only one.
-const selectedTabKeys = $computed<string[]>({
+const selectedTabKeys = computed<string[]>({
   get: () => [Object.keys(tabsInfo).find((key) => key === vOpenKey.value) || firstKeyOfObject(tabsInfo)],
   set: (value) => {
     vOpenKey.value = value[0]
   },
 })
 
-const selectedTab = $computed(() => tabsInfo[selectedTabKeys[0]])
+const selectedTab = computed(() => tabsInfo[selectedTabKeys.value[0]])
 
-let selectedSubTabKeys = $ref<string[]>([firstKeyOfObject(selectedTab.subTabs)])
-const selectedSubTab = $computed(() => selectedTab.subTabs[selectedSubTabKeys[0]])
+const selectedSubTabKeys = ref<string[]>([firstKeyOfObject(selectedTab.value.subTabs)])
+const selectedSubTab = computed(() => selectedTab.value.subTabs[selectedSubTabKeys.value[0]])
 
 const handleAwaken = (val: boolean) => {
   dataSourcesAwakened.value = val
 }
 
 watch(
-  () => selectedTabKeys[0],
+  () => selectedTabKeys.value[0],
   (newTabKey) => {
-    selectedSubTabKeys = [firstKeyOfObject(tabsInfo[newTabKey].subTabs)]
+    selectedSubTabKeys.value = [firstKeyOfObject(tabsInfo[newTabKey].subTabs)]
   },
 )
 </script>
@@ -253,12 +253,14 @@ watch(
             v-model:reload="dataSourcesReload"
             class="px-2 pb-2"
             :data-testid="`nc-settings-subtab-${selectedSubTab.title}`"
+            :project-id="projectId"
             @awaken="handleAwaken"
           />
           <component
             :is="selectedSubTab?.body"
             v-else
             class="px-2 py-6"
+            :project-id="projectId"
             :data-testid="`nc-settings-subtab-${selectedSubTab.title}`"
           />
         </div>

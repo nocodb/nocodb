@@ -1,20 +1,21 @@
 import type { BaseType, OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
-import { isString } from '@vueuse/core'
-import { defineStore } from 'pinia'
+import { isString } from '@vue/shared'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import {
   ClientType,
   computed,
   createEventHook,
   ref,
   useApi,
-  useGlobal,
+  useCommandPalette,
   useNuxtApp,
+  useProjects,
   useRoles,
   useRouter,
   useTheme,
 } from '#imports'
-import type { ProjectMetaInfo, ThemeConfig } from '~/lib'
+import type { NcProject, ProjectMetaInfo, ThemeConfig } from '#imports'
 
 export const useProject = defineStore('projectStore', () => {
   const { $e } = useNuxtApp()
@@ -23,32 +24,41 @@ export const useProject = defineStore('projectStore', () => {
 
   const router = useRouter()
 
-  const route = $(router.currentRoute)
-
-  const { includeM2M } = useGlobal()
+  const route = router.currentRoute
 
   const { setTheme, theme } = useTheme()
 
   const { projectRoles, loadProjectRoles } = useRoles()
 
+  const { refreshCommandPalette } = useCommandPalette()
+
+  const forcedProjectId = ref<string>()
+
+  const projectId = computed(() => forcedProjectId.value || (route.value.params.projectId as string))
+
+  const projectsStore = useProjects()
+
+  const tablesStore = useTablesStore()
+
+  // todo: refactor
+  const sharedProject = ref<ProjectType>()
+
+  const openedProject = computed(() => projectsStore.projects.get(projectId.value))
+
+  // todo: new-layout
+  const project = computed<NcProject>(() => projectsStore.projects.get(projectId.value) || sharedProject.value || {})
+  const tables = computed<TableType[]>(() => tablesStore.projectTables.get(projectId.value) || [])
+
   const projectLoadedHook = createEventHook<ProjectType>()
 
-  const project = ref<ProjectType>({})
-
   const bases = computed<BaseType[]>(() => project.value?.bases || [])
-
-  const tables = ref<TableType[]>([])
 
   const projectMetaInfo = ref<ProjectMetaInfo | undefined>()
 
   const lastOpenedViewMap = ref<Record<string, string>>({})
 
-  const forcedProjectId = ref<string>()
-
-  const projectId = computed(() => forcedProjectId.value || (route.params.projectId as string))
-
   // todo: refactor path param name and variable name
-  const projectType = $computed(() => route.params.projectType as string)
+  const projectType = computed(() => route.value.params.projectType as string)
 
   const projectMeta = computed<Record<string, any>>(() => {
     const defaultMeta = {
@@ -66,7 +76,7 @@ export const useProject = defineStore('projectStore', () => {
     for (const base of bases.value) {
       if (base.id) {
         temp[base.id] = SqlUiFactory.create({ client: base.type }) as Exclude<
-          ReturnType<typeof SqlUiFactory['create']>,
+          ReturnType<(typeof SqlUiFactory)['create']>,
           typeof OracleUi
         >
       }
@@ -95,10 +105,13 @@ export const useProject = defineStore('projectStore', () => {
   }
 
   function isXcdbBase(baseId?: string) {
-    return (bases.value.find((base) => base.id === baseId)?.is_meta as boolean) || false
+    const base = bases.value.find((base) => base.id === baseId)
+    return (base?.is_meta as boolean) || (base?.is_local as boolean) || false
   }
 
-  const isSharedBase = computed(() => projectType === 'base')
+  const isSharedBase = computed(() => projectType.value === 'base')
+
+  const isSharedErd = computed(() => projectType.value === 'ERD')
 
   async function loadProjectMetaInfo(force?: boolean) {
     if (!projectMetaInfo.value || force) {
@@ -106,23 +119,26 @@ export const useProject = defineStore('projectStore', () => {
     }
   }
 
+  // todo: add force parameter
   async function loadTables() {
     if (project.value.id) {
-      const tablesResponse = await api.dbTable.list(project.value.id, {
-        includeM2M: includeM2M.value,
-      })
+      await tablesStore.loadProjectTables(project.value.id, true)
+      // tables.value = projectsStore.projectTableList[project.value.id]
+      //   await api.dbTable.list(project.value.id, {
+      //   includeM2M: includeM2M.value,
+      // })
 
-      if (tablesResponse.list) {
-        tables.value = tablesResponse.list.filter((table) => bases.value.find((base) => base.id === table.base_id)?.enabled)
-      }
+      // if (tablesResponse.list) {
+      //   tables.value = tablesResponse.list
+      // }
     }
   }
 
-  async function loadProject(withTheme = true, forcedId?: string) {
+  async function loadProject(_withTheme = true, forcedId?: string) {
     if (forcedId) forcedProjectId.value = forcedId
-    if (projectType === 'base') {
+    if (projectType.value === 'base') {
       try {
-        const baseData = await api.public.sharedBaseGet(route.params.projectId as string)
+        const baseData = await api.public.sharedBaseGet(route.value.params.projectId as string)
 
         project.value = await api.project.read(baseData.project_id!)
       } catch (e: any) {
@@ -132,23 +148,36 @@ export const useProject = defineStore('projectStore', () => {
         throw e
       }
     } else if (projectId.value) {
-      project.value = await api.project.read(projectId.value)
+      await projectsStore.loadProject(projectId.value)
+      // project.value = projectsStore.projects[projectId.value] // await api.project.read(projectId.value)
     } else {
       console.warn('Project id not found')
       return
     }
 
-    await loadProjectRoles(project.value.id || projectId.value, isSharedBase.value, projectId.value)
+    if (isSharedBase.value) {
+      await loadProjectRoles(project.value.id || projectId.value, {
+        isSharedBase: isSharedBase.value,
+        sharedBaseId: projectId.value,
+      })
+    } else if (isSharedErd.value) {
+      await loadProjectRoles(project.value.id || projectId.value, {
+        isSharedErd: isSharedErd.value,
+        sharedErdId: route.value.params.erdUuid as string,
+      })
+    } else {
+      await loadProjectRoles(project.value.id || projectId.value)
+    }
 
     await loadTables()
 
-    if (withTheme) setTheme(projectMeta.value?.theme)
+    // if (withTheme) setTheme(projectMeta.value?.theme)
 
     return projectLoadedHook.trigger(project.value)
   }
 
   async function updateProject(data: Partial<ProjectType>) {
-    if (projectType === 'base') {
+    if (projectType.value === 'base') {
       return
     }
     if (data.meta && typeof data.meta === 'string') {
@@ -156,6 +185,8 @@ export const useProject = defineStore('projectStore', () => {
     } else {
       await api.project.update(projectId.value, { ...data, meta: stringifyProp(data.meta) })
     }
+
+    refreshCommandPalette()
   }
 
   async function saveTheme(_theme: Partial<ThemeConfig>) {
@@ -173,7 +204,7 @@ export const useProject = defineStore('projectStore', () => {
       },
     })
 
-    setTheme(fullTheme)
+    // setTheme(fullTheme)
 
     $e('c:themes:change')
   }
@@ -183,23 +214,38 @@ export const useProject = defineStore('projectStore', () => {
   }
 
   const reset = () => {
-    project.value = {}
-    tables.value = []
+    // project.value = {}
+    // tables.value = []
     projectMetaInfo.value = undefined
     projectRoles.value = {}
     setTheme()
   }
 
   const setProject = (projectVal: ProjectType) => {
-    project.value = projectVal
+    sharedProject.value = projectVal
+  }
+
+  const projectUrl = ({ id, type: _type }: { id: string; type: 'database' }) => {
+    return `/ws/default/nc/${id}`
   }
 
   watch(
-    () => route.params.projectType,
+    () => route.value.params.projectType,
     (n) => {
       if (!n) reset()
     },
     { immediate: true },
+  )
+
+  watch(
+    () => openedProject.value?.id,
+    () => {
+      if (!openedProject.value) return
+
+      if (openedProject.value.isExpanded) return
+
+      openedProject.value.isExpanded = true
+    },
   )
 
   return {
@@ -216,6 +262,7 @@ export const useProject = defineStore('projectStore', () => {
     isSqlite,
     sqlUis,
     isSharedBase,
+    isSharedErd,
     loadProjectMetaInfo,
     projectMetaInfo,
     projectMeta,
@@ -227,5 +274,11 @@ export const useProject = defineStore('projectStore', () => {
     isXcdbBase,
     hasEmptyOrNullFilters,
     setProject,
+    projectUrl,
+    getBaseType,
   }
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useProject as any, import.meta.hot))
+}

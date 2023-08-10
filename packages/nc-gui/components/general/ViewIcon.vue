@@ -10,7 +10,7 @@ const props = defineProps<{
 const viewMeta = toRef(props, 'meta')
 </script>
 
-<template v-if="viewMeta">
+<template>
   <IcIcon
     v-if="viewMeta?.meta?.icon"
     :data-testid="`nc-icon-${viewMeta?.meta?.icon}`"

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { TableType, ViewType } from 'nocodb-sdk'
-import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import MdiChevronDown from '~icons/mdi/chevron-down'
 import {
   CellClickHookInj,
   FieldsInj,
@@ -17,14 +18,14 @@ import {
   provide,
   ref,
   toRef,
+  useActiveKeyupListener,
   useProvideExpandedFormStore,
   useProvideSmartsheetStore,
   useRouter,
   useVModel,
   watch,
 } from '#imports'
-import { useActiveKeyupListener } from '~/composables/useSelectedCellKeyupListener'
-import type { Row } from '~/lib'
+import type { Row } from '#imports'
 
 interface Props {
   modelValue?: boolean
@@ -56,8 +57,10 @@ const meta = toRef(props, 'meta')
 
 const router = useRouter()
 
+const { isUIAllowed } = useUIPermission()
+
 // override cell click hook to avoid unexpected behavior at form fields
-provide(CellClickHookInj, null)
+provide(CellClickHookInj, undefined)
 
 const fields = computedInject(FieldsInj, (_fields) => {
   if (props.useMetaFields) {
@@ -65,6 +68,16 @@ const fields = computedInject(FieldsInj, (_fields) => {
   }
   return _fields?.value ?? []
 })
+
+const hiddenFields = computed(() => {
+  return (meta.value.columns ?? []).filter((col) => !fields.value?.includes(col)).filter((col) => !isSystemColumn(col))
+})
+
+const showHiddenFields = ref(false)
+
+const toggleHiddenFields = () => {
+  showHiddenFields.value = !showHiddenFields.value
+}
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
@@ -75,7 +88,7 @@ const {
   changedColumns,
   state: rowState,
   isNew,
-  loadRow,
+  loadRow: _loadRow,
   saveRowAndStay,
   syncLTARRefs,
   save,
@@ -84,12 +97,12 @@ const {
 const duplicatingRowInProgress = ref(false)
 
 if (props.loadRow) {
-  await loadRow()
+  await _loadRow()
 }
 
 if (props.rowId) {
   try {
-    await loadRow(props.rowId)
+    await _loadRow(props.rowId)
   } catch (e: any) {
     if (e.response?.status === 404) {
       // todo: i18n
@@ -126,10 +139,12 @@ const onClose = () => {
 
 const onDuplicateRow = () => {
   duplicatingRowInProgress.value = true
+  const oldRow = { ...row.value.row }
+  delete oldRow.ncRecordId
   const newRow = Object.assign(
     {},
     {
-      row: row.value.row,
+      row: oldRow,
       oldRow: {},
       rowMeta: { new: true },
     },
@@ -168,7 +183,7 @@ const reloadHook = createEventHook()
 reloadHook.on(() => {
   reloadParentRowHook?.trigger(false)
   if (isNew.value) return
-  loadRow()
+  _loadRow()
 })
 provide(ReloadRowDataHookInj, reloadHook)
 
@@ -288,7 +303,7 @@ export default {
   <a-drawer
     v-model:visible="isExpanded"
     :footer="null"
-    :width="commentsDrawer ? 'min(90vw,900px)' : 'min(90vw,700px)'"
+    :width="commentsDrawer && isUIAllowed('commentList') ? 'min(90vw,900px)' : 'min(90vw,700px)'"
     :body-style="{ 'padding': 0, 'display': 'flex', 'flex-direction': 'column' }"
     :closable="false"
     class="nc-drawer-expanded-form"
@@ -296,7 +311,7 @@ export default {
   >
     <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" @duplicate-row="onDuplicateRow" />
 
-    <div :key="key" class="!bg-gray-100 rounded flex-1">
+    <div :key="key" class="!bg-gray-50 rounded flex-1">
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
         <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container relative">
           <template v-if="props.showNextPrevIcons">
@@ -324,7 +339,7 @@ export default {
             <div
               v-for="(col, i) of fields"
               v-else
-              v-show="!isVirtualCol(col) || !isNew || col.uidt === UITypes.LinkToAnotherRecord"
+              v-show="isFormula(col) || !isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
               :key="col.title"
               class="mt-2 py-2"
               :class="`nc-expand-col-${col.title}`"
@@ -335,7 +350,8 @@ export default {
               <LazySmartsheetHeaderCell v-else :column="col" />
 
               <LazySmartsheetDivDataCell
-                :ref="i ? null : (el) => (cellWrapperEl = el)"
+                v-if="col.title"
+                :ref="i ? null : (el: any) => (cellWrapperEl = el)"
                 class="!bg-white rounded px-1 min-h-[35px] flex items-center mt-2 relative"
               >
                 <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
@@ -350,12 +366,58 @@ export default {
                 />
               </LazySmartsheetDivDataCell>
             </div>
+            <div v-if="hiddenFields.length > 0" class="my-4">
+              <div class="flex items-center py-4">
+                <div class="flex-grow h-px mr-1 bg-gray-100"></div>
+                <a-button
+                  class="!rounded-md flex items-center flex-shrink-1 focus:!border-[#d9d9d9] focus:!text-gray-500 hover:text-blue"
+                  @click="toggleHiddenFields"
+                >
+                  {{ showHiddenFields ? `Hide ${hiddenFields.length} hidden` : `Show ${hiddenFields.length} hidden` }}
+                  {{ hiddenFields.length > 1 ? `fields` : `field` }}
+                  <MdiChevronDown class="ml-1" :class="showHiddenFields ? 'transform rotate-180' : ''" />
+                </a-button>
+                <div class="flex-grow ml-1 h-px bg-gray-100"></div>
+              </div>
+              <div
+                v-for="(col, i) of hiddenFields"
+                v-show="(isFormula(col) || !isVirtualCol(col) || !isNew || isLinksOrLTAR(col)) && showHiddenFields"
+                :key="col.title"
+                class="mt-2 py-2"
+                :class="`nc-expand-col-${col.title}`"
+                :data-testid="`nc-expand-col-${col.title}`"
+              >
+                <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
+
+                <LazySmartsheetHeaderCell v-else :column="col" />
+
+                <LazySmartsheetDivDataCell
+                  :ref="i ? null : (el) => (cellWrapperEl = el)"
+                  class="!bg-white rounded px-1 min-h-[35px] flex items-center mt-2 relative"
+                >
+                  <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
+
+                  <LazySmartsheetCell
+                    v-else
+                    v-model="row.row[col.title]"
+                    :column="col"
+                    :edit-enabled="true"
+                    :active="true"
+                    @update:model-value="changedColumns.add(col.title)"
+                  />
+                </LazySmartsheetDivDataCell>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div v-if="!isNew" class="nc-comments-drawer min-w-0 min-h-full max-h-full" :class="{ active: commentsDrawer }">
+        <div
+          v-if="!isNew"
+          class="nc-comments-drawer min-w-0 min-h-full max-h-full"
+          :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
+        >
           <div class="h-full">
-            <LazySmartsheetExpandedFormComments v-if="commentsDrawer" />
+            <LazySmartsheetExpandedFormComments v-if="commentsDrawer && isUIAllowed('commentList')" />
           </div>
         </div>
       </div>
@@ -369,7 +431,7 @@ export default {
 }
 
 :deep(.ant-modal-body) {
-  @apply !bg-gray-100;
+  @apply !bg-gray-50;
 }
 
 .nc-comments-drawer {

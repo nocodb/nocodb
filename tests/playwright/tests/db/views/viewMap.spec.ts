@@ -1,11 +1,15 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 
 import setup from '../../../setup';
+import { isHub } from '../../../setup/db';
 
 test.describe('Map View', () => {
-  let dashboard: DashboardPage, toolbar: ToolbarPage;
+  if (isHub()) {
+    test.skip();
+  }
+
+  let dashboard: DashboardPage;
   let context: any;
 
   const latitudeInFullDecimalLength = '50.4501000';
@@ -17,7 +21,6 @@ test.describe('Map View', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
-    toolbar = dashboard.map.toolbar;
 
     await dashboard.viewSidebar.changeBetaFeatureToggleValue();
 

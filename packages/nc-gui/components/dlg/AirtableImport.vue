@@ -25,13 +25,16 @@ const { modelValue, baseId } = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
-const { appInfo } = $(useGlobal())
+const globalStore = useGlobal()
+const appInfo = toRef(globalStore, 'appInfo')
 
-const baseURL = appInfo.ncSiteUrl
+const baseURL = appInfo.value.ncSiteUrl
 
 const { $state, $jobs } = useNuxtApp()
 
 const projectStore = useProject()
+
+const { refreshCommandPalette } = useCommandPalette()
 
 const { loadTables } = projectStore
 
@@ -87,6 +90,7 @@ const onStatus = async (status: JobStatus, data?: any) => {
     showGoToDashboardButton.value = true
     await loadTables()
     pushProgress('Done!', status)
+    refreshCommandPalette()
     // TODO: add tab of the first table
   } else if (status === JobStatus.FAILED) {
     pushProgress(data.error.message, status)

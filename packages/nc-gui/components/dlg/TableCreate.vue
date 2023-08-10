@@ -1,22 +1,24 @@
 <script setup lang="ts">
 import {
   Form,
+  TabType,
   computed,
   iconMap,
   nextTick,
   onMounted,
   ref,
   useProject,
-  useTable,
+  useTableNew,
+  useTablesStore,
   useTabs,
   useVModel,
   validateTableName,
 } from '#imports'
-import { TabType } from '~/lib'
 
 const props = defineProps<{
   modelValue: boolean
   baseId: string
+  projectId: string
 }>()
 
 const emit = defineEmits(['update:modelValue', 'create'])
@@ -29,20 +31,31 @@ const inputEl = ref<HTMLInputElement>()
 
 const { addTab } = useTabs()
 
-const { loadTables, isMysql, isMssql, isPg } = useProject()
+const { isMysql, isMssql, isPg } = useProject()
 
-const { table, createTable, generateUniqueTitle, tables, project } = useTable(async (table) => {
-  await loadTables()
+const { loadProjectTables, addTable } = useTablesStore()
 
-  addTab({
-    id: table.id as string,
-    title: table.title,
-    type: TabType.TABLE,
-  })
+const { table, createTable, generateUniqueTitle, tables, project } = useTableNew({
+  async onTableCreate(table) {
+    // await loadProject(props.projectId)
 
-  emit('create', table)
-  dialogShow.value = false
-}, props.baseId)
+    await addTab({
+      id: table.id as string,
+      title: table.title,
+      type: TabType.TABLE,
+      projectId: props.projectId,
+      // baseId: props.baseId,
+    })
+
+    addTable(props.projectId, table)
+    await loadProjectTables(props.projectId, true)
+
+    emit('create', table)
+    dialogShow.value = false
+  },
+  baseId: props.baseId,
+  projectId: props.projectId,
+})
 
 const useForm = Form.useForm
 
@@ -94,15 +107,20 @@ const systemColumnsCheckboxInfo = SYSTEM_COLUMNS.map((c, index) => ({
 const creating = ref(false)
 
 const _createTable = async () => {
+  if (creating.value) return
   try {
     creating.value = true
     await validate()
     await createTable()
+    dialogShow.value = false
   } catch (e: any) {
+    console.error(e)
     e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
     if (e.errorFields.length) return
   } finally {
-    creating.value = false
+    setTimeout(() => {
+      creating.value = false
+    }, 500)
   }
 }
 
@@ -116,41 +134,30 @@ onMounted(() => {
 </script>
 
 <template>
-  <a-modal
-    v-model:visible="dialogShow"
-    :class="{ active: dialogShow }"
-    :title="$t('activity.createTable')"
-    centered
-    wrap-class-name="nc-modal-table-create"
-    @keydown.esc="dialogShow = false"
-  >
-    <template #footer>
-      <a-button key="back" size="middle" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
-
-      <a-button key="submit" size="middle" class="!rounded-md" type="primary" :loading="creating" @click="_createTable"
-        >{{ $t('general.submit') }}
-      </a-button>
+  <NcModal v-model:visible="dialogShow" :header="$t('activity.createTable')" size="small" @keydown.esc="dialogShow = false">
+    <template #header>
+      <div class="flex flex-row items-center gap-x-2">
+        <GeneralIcon icon="table" />
+        {{ $t('activity.createTable') }}
+      </div>
     </template>
-
-    <div>
-      <a-form :model="table" name="create-new-table-form" @keydown.enter="_createTable">
-        <!-- hint="Enter table name" -->
-        <!--        Table name -->
-        <div class="mb-2">{{ $t('labels.tableName') }}</div>
-
+    <div class="flex flex-col mt-2">
+      <a-form :model="table" name="create-new-table-form" @keydown.enter="_createTable" @keydown.esc="dialogShow = false">
         <a-form-item v-bind="validateInfos.title">
           <a-input
             ref="inputEl"
             v-model:value="table.title"
-            size="large"
+            class="nc-input-md"
             hide-details
             data-testid="create-table-title-input"
             :placeholder="$t('msg.info.enterTableName')"
           />
         </a-form-item>
-
-        <div class="flex justify-end items-center">
-          <div class="pointer flex flex-row items-center gap-x-1" @click="isAdvanceOptVisible = !isAdvanceOptVisible">
+        <div v-if="false" class="flex justify-end items-center">
+          <div
+            class="pointer flex flex-row items-center gap-x-1 cursor-pointer"
+            @click="isAdvanceOptVisible = !isAdvanceOptVisible"
+          >
             {{ isAdvanceOptVisible ? $t('general.hideAll') : $t('general.showMore') }}
 
             <component :is="iconMap.minusCircle" v-if="isAdvanceOptVisible" class="text-gray-500" />
@@ -159,16 +166,16 @@ onMounted(() => {
         </div>
         <div class="nc-table-advanced-options" :class="{ active: isAdvanceOptVisible }">
           <!-- hint="Table name as saved in database" -->
-          <div v-if="!project.prefix" class="mb-2">{{ $t('msg.info.tableNameInDb') }}</div>
+          <!-- <div v-if="!project.prefix" class="mb-2">{{ $t('msg.info.tableNameInDb') }}</div>
 
           <a-form-item v-if="!project.prefix" v-bind="validateInfos.table_name">
             <a-input v-model:value="table.table_name" size="large" hide-details :placeholder="$t('msg.info.tableNameInDb')" />
-          </a-form-item>
+          </a-form-item> -->
 
           <div>
             <div class="mb-1">
               <!-- Add Default Columns -->
-              {{ $t('msg.info.addDefaultColumns') }}
+              {{ $t('msg.info.defaultColumns') }}
             </div>
 
             <a-row>
@@ -192,9 +199,22 @@ onMounted(() => {
             </a-row>
           </div>
         </div>
+        <div class="flex flex-row justify-end gap-x-2 mt-2">
+          <NcButton type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
+
+          <NcButton
+            type="primary"
+            :disabled="validateInfos.title.validateStatus === 'error'"
+            :loading="creating"
+            @click="_createTable"
+          >
+            {{ $t('activity.createTable') }}
+            <template #loading> Creating Table </template>
+          </NcButton>
+        </div>
       </a-form>
     </div>
-  </a-modal>
+  </NcModal>
 </template>
 
 <style scoped lang="scss">

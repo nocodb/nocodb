@@ -1,18 +1,14 @@
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
-import type { useViewData } from '#imports'
-import type { Row, TabItem } from '~/lib'
+import type { NcProject, PageSidebarNode, Row, TabItem } from '#imports'
 
 export const ActiveCellInj: InjectionKey<Ref<boolean>> = Symbol('active-cell')
 export const IsPublicInj: InjectionKey<Ref<boolean>> = Symbol('is-public')
 export const RowInj: InjectionKey<Ref<Row>> = Symbol('row')
 export const ColumnInj: InjectionKey<Ref<ColumnType>> = Symbol('column-injection')
-export const MetaInj: InjectionKey<ComputedRef<TableType>> = Symbol('meta-injection')
-export const TabMetaInj: InjectionKey<ComputedRef<TabItem>> = Symbol('tab-meta-injection')
-export const PaginationDataInj: InjectionKey<ReturnType<typeof useViewData>['paginationData']> =
-  Symbol('pagination-data-injection')
-export const ChangePageInj: InjectionKey<ReturnType<typeof useViewData>['changePage']> = Symbol('pagination-data-injection')
+export const MetaInj: InjectionKey<ComputedRef<TableType> | Ref<TableType>> = Symbol('meta-injection')
+export const TabMetaInj: InjectionKey<ComputedRef<TabItem> | Ref<TabItem>> = Symbol('tab-meta-injection')
 export const IsFormInj: InjectionKey<Ref<boolean>> = Symbol('is-form-injection')
 export const IsSurveyFormInj: InjectionKey<Ref<boolean>> = Symbol('is-survey-form-injection')
 export const IsGridInj: InjectionKey<Ref<boolean>> = Symbol('is-grid-injection')
@@ -24,6 +20,7 @@ export const CellValueInj: InjectionKey<Ref<any>> = Symbol('cell-value-injection
 export const ActiveViewInj: InjectionKey<Ref<ViewType>> = Symbol('active-view-injection')
 export const ReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('readonly-injection')
 export const RowHeightInj: InjectionKey<Ref<1 | 2 | 4 | 6 | undefined>> = Symbol('row-height-injection')
+export const ScrollParentInj: InjectionKey<Ref<HTMLElement | undefined>> = Symbol('scroll-parent-injection')
 /** when bool is passed, it indicates if a loading spinner should be visible while reloading */
 export const ReloadViewDataHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-data-injection')
 export const ReloadViewMetaHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-meta-injection')
@@ -39,3 +36,13 @@ export const CellClickHookInj: InjectionKey<EventHook<MouseEvent> | undefined> =
 export const SaveRowInj: InjectionKey<(() => void) | undefined> = Symbol('save-row-injection')
 export const CurrentCellInj: InjectionKey<Ref<Element | undefined>> = Symbol('current-cell-injection')
 export const IsUnderLookupInj: InjectionKey<Ref<boolean>> = Symbol('is-under-lookup-injection')
+export const DocsLocalPageInj: InjectionKey<Ref<PageSidebarNode | undefined>> = Symbol('docs-local-page-injection')
+export const ProjectRoleInj: InjectionKey<Ref<string>> = Symbol('project-roles-injection')
+export const ProjectInj: InjectionKey<Ref<NcProject>> = Symbol('project-injection')
+export const ProjectIdInj: InjectionKey<Ref<string>> = Symbol('project-id-injection')
+export const TreeViewInj: InjectionKey<{
+  setMenuContext: (type: 'project' | 'base' | 'table' | 'main' | 'layout', value?: any) => void
+  duplicateTable: (table: TableType) => void
+  openRenameTableDialog: (table: TableType, rightClick: boolean) => void
+  contextMenuTarget: { type?: 'project' | 'base' | 'table' | 'main' | 'layout'; value?: any }
+}> = Symbol('tree-view-functions-injection')

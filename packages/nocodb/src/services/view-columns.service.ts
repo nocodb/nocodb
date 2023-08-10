@@ -1,13 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { T } from 'nc-help';
-import { validatePayload } from '../helpers';
-import { View } from '../models';
+import { AppEvents } from 'nocodb-sdk';
 import type { ViewColumnReqType, ViewColumnUpdateReqType } from 'nocodb-sdk';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { validatePayload } from '~/helpers';
+import { View } from '~/models';
 
 @Injectable()
 export class ViewColumnsService {
+  constructor(private appHooksService: AppHooksService) {}
+
   async columnList(param: { viewId: string }) {
-    return await View.getColumns(param.viewId);
+    return await View.getColumns(param.viewId, undefined);
   }
   async columnAdd(param: { viewId: string; column: ViewColumnReqType }) {
     validatePayload(
@@ -23,7 +26,9 @@ export class ViewColumnsService {
         show: param.column.show,
       },
     );
-    T.emit('evt', { evt_type: 'viewColumn:inserted' });
+    this.appHooksService.emit(AppEvents.VIEW_COLUMN_CREATE, {
+      viewColumn,
+    });
 
     return viewColumn;
   }
@@ -43,7 +48,11 @@ export class ViewColumnsService {
       param.columnId,
       param.column,
     );
-    T.emit('evt', { evt_type: 'viewColumn:updated' });
+
+    this.appHooksService.emit(AppEvents.VIEW_COLUMN_UPDATE, {
+      viewColumn: param.column,
+    });
+
     return result;
   }
 }

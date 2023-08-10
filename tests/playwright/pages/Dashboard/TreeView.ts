@@ -1,17 +1,24 @@
 import { expect, Locator } from '@playwright/test';
 import { DashboardPage } from '.';
 import BasePage from '../Base';
+import { isHub } from '../../setup/db';
 
 export class TreeViewPage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly project: any;
   readonly quickImportButton: Locator;
 
+  readonly btn_addNewTable: Locator;
+  readonly btn_projectContextMenu: Locator;
+
   constructor(dashboard: DashboardPage, project: any) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.project = project;
     this.quickImportButton = dashboard.get().locator('.nc-import-menu');
+
+    this.btn_addNewTable = dashboard.get().locator('[data-testid="nc-sidebar-add-project-entity"]');
+    this.btn_projectContextMenu = dashboard.get().locator('[data-testid="nc-sidebar-context-menu"]');
   }
 
   get() {
@@ -49,13 +56,22 @@ export class TreeViewPage extends BasePage {
   }
 
   async openBase({ title }: { title: string }) {
-    const nodes = await this.get().locator(`.ant-collapse`);
+    let nodes: Locator;
+    if (isHub()) {
+      nodes = await this.get().locator(`[data-testid="nc-sidebar-project-${title.toLowerCase()}"]`);
+      await nodes.click();
+      return;
+    } else {
+      nodes = await this.get().locator(`.ant-collapse`);
+    }
+
     // loop through nodes.count() to find the node with title
     for (let i = 0; i < (await nodes.count()); i++) {
       const node = nodes.nth(i);
       const nodeTitle = await node.innerText();
       // check if nodeTitle contains title
-      if (nodeTitle.includes(title)) {
+
+      if (nodeTitle.toLowerCase().includes(title.toLowerCase())) {
         // click on node
         await node.waitFor({ state: 'visible' });
         await node.click();
@@ -64,6 +80,10 @@ export class TreeViewPage extends BasePage {
     }
 
     await this.rootPage.waitForTimeout(2000);
+  }
+
+  async getTable({ index }: { index: number }) {
+    return this.get().locator('.nc-tree-item').nth(index);
   }
 
   // assumption: first view rendered is always GRID
@@ -83,38 +103,48 @@ export class TreeViewPage extends BasePage {
       await this.rootPage.locator('.h-full > div > .nc-sidebar-left-toggle-icon').click();
     }
 
-    if ((await this.get().locator('.active.nc-project-tree-tbl').count()) > 0) {
-      if ((await this.get().locator('.active.nc-project-tree-tbl').innerText()) === title) {
-        // table already open
-        return;
-      }
-    }
-
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).waitFor({ state: 'visible' });
+    await this.get().getByTestId(`tree-view-table-${title}`).waitFor({ state: 'visible' });
 
     if (networkResponse === true) {
       await this.waitForResponse({
-        uiAction: () => this.get().locator(`.nc-project-tree-tbl-${title}`).click(),
+        uiAction: () => this.get().getByTestId(`tree-view-table-${title}`).click(),
         httpMethodsToMatch: ['GET'],
         requestUrlPathToMatch: `/api/v1/db/data/noco/`,
         responseJsonMatcher: json => json.pageInfo,
       });
       await this.dashboard.waitForTabRender({ title, mode });
     } else {
-      await this.get().locator(`.nc-project-tree-tbl-${title}`).click();
+      await this.get().getByTestId(`tree-view-table-${title}`).click();
       await this.rootPage.waitForTimeout(1000);
     }
   }
 
-  async createTable({ title, skipOpeningModal, mode }: { title: string; skipOpeningModal?: boolean; mode?: string }) {
-    if (!skipOpeningModal) await this.get().locator('.nc-add-new-table').click();
+  async createTable({
+    title,
+    skipOpeningModal,
+    mode,
+    projectTitle,
+  }: {
+    title: string;
+    skipOpeningModal?: boolean;
+    mode?: string;
+    projectTitle: string;
+  }) {
+    if (!skipOpeningModal) {
+      await this.get().getByTestId(`nc-sidebar-project-title-${projectTitle}`).hover();
 
-    await this.dashboard.get().locator('.nc-modal-table-create').locator('.ant-modal-body').waitFor();
+      await this.get()
+        .getByTestId(`nc-sidebar-project-${projectTitle}`)
+        .getByTestId('nc-sidebar-add-project-entity')
+        .click();
+    }
+
+    await this.dashboard.get().locator('.ant-modal.active').locator('.ant-modal-body').waitFor();
 
     await this.dashboard.get().getByPlaceholder('Enter table name').fill(title);
 
     await this.waitForResponse({
-      uiAction: () => this.dashboard.get().locator('button:has-text("Submit")').click(),
+      uiAction: () => this.dashboard.get().locator('button:has-text("Create Table")').click(),
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: `/api/v1/db/meta/projects/`,
       responseJsonMatcher: json => json.title === title && json.type === 'table',
@@ -137,11 +167,22 @@ export class TreeViewPage extends BasePage {
   }
 
   async deleteTable({ title }: { title: string }) {
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).click({ button: 'right' });
-    await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Delete")').click();
+    if (isHub()) {
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).scrollIntoViewIfNeeded();
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).waitFor({ state: 'visible' });
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).locator('.nc-icon.ant-dropdown-trigger').click();
+    } else {
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).click({ button: 'right' });
+    }
+    await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Delete"):visible').click();
 
     await this.waitForResponse({
-      uiAction: () => this.dashboard.get().locator('button:has-text("Yes")').click(),
+      uiAction: () => {
+        // Create a promise that resolves after 1 second
+        const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+        // Returning a promise that resolves with the result after the 1-second delay
+        return delay(100).then(() => this.dashboard.get().locator('button:has-text("Delete Table")').click());
+      },
       httpMethodsToMatch: ['DELETE'],
       requestUrlPathToMatch: `/api/v1/db/meta/tables/`,
     });
@@ -157,14 +198,18 @@ export class TreeViewPage extends BasePage {
       )
       .toBe(false);
 
-    (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
+    await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
   }
 
   async renameTable({ title, newTitle }: { title: string; newTitle: string }) {
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).click({ button: 'right' });
+    if (isHub()) {
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).locator('.nc-icon.ant-dropdown-trigger').click();
+    } else {
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).click({ button: 'right' });
+    }
     await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Rename")').click();
     await this.dashboard.get().locator('[placeholder="Enter table name"]').fill(newTitle);
-    await this.dashboard.get().locator('button:has-text("Submit")').click();
+    await this.dashboard.get().locator('button:has-text("Rename Table")').click();
     await this.verifyToast({ message: 'Table renamed successfully' });
   }
 
@@ -176,26 +221,48 @@ export class TreeViewPage extends BasePage {
   }
 
   async quickImport({ title }: { title: string }) {
-    await this.get().locator('.nc-add-new-table').hover();
-    await this.quickImportButton.click();
-    const importMenu = this.dashboard.get().locator('.nc-dropdown-import-menu');
-    await importMenu.locator(`.ant-dropdown-menu-title-content:has-text("${title}")`).click();
+    if (isHub()) {
+      await this.btn_projectContextMenu.hover();
+      await this.btn_projectContextMenu.click();
+      const importMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md');
+      await importMenu.locator(`.ant-dropdown-menu-submenu:has-text("Quick Import From")`).click();
+      await this.rootPage.locator(`.ant-dropdown-menu-item:has-text("${title}")`).waitFor();
+      await this.rootPage.locator(`.ant-dropdown-menu-item:has-text("${title}")`).click();
+    } else {
+      await this.get().locator('.nc-add-new-table').hover();
+      await this.quickImportButton.click();
+      const importMenu = this.dashboard.get().locator('.nc-dropdown-import-menu');
+      await importMenu.locator(`.ant-dropdown-menu-title-content:has-text("${title}")`).click();
+    }
   }
 
-  async changeTableIcon({ title, icon }: { title: string; icon: string }) {
+  async changeTableIcon({ title, icon, iconDisplay }: { title: string; icon: string; iconDisplay?: string }) {
     await this.get().locator(`.nc-project-tree-tbl-${title} .nc-table-icon`).click();
 
-    await this.rootPage.getByTestId('nc-emoji-filter').type(icon);
-    await this.rootPage.getByTestId('nc-emoji-container').locator(`.nc-emoji-item >> svg`).first().click();
+    if (isHub()) {
+      await this.rootPage.locator('.emoji-mart-search').type(icon);
+      const emojiList = await this.rootPage.locator('[id="emoji-mart-list"]');
+      await emojiList.locator('button').first().click();
+      await expect(
+        this.get().locator(`.nc-project-tree-tbl-${title}`).locator(`.nc-table-icon:has-text("${iconDisplay}")`)
+      ).toHaveCount(1);
+    } else {
+      await this.rootPage.getByTestId('nc-emoji-filter').type(icon);
+      await this.rootPage.getByTestId('nc-emoji-container').locator(`.nc-emoji-item >> svg`).first().click();
 
-    await this.rootPage.getByTestId('nc-emoji-container').isHidden();
-    await expect(
-      this.get().locator(`.nc-project-tree-tbl-${title} [data-testid="nc-icon-emojione:${icon}"]`)
-    ).toHaveCount(1);
+      await this.rootPage.getByTestId('nc-emoji-container').isHidden();
+      await expect(
+        this.get().locator(`.nc-project-tree-tbl-${title} [data-testid="nc-icon-emojione:${icon}"]`)
+      ).toHaveCount(1);
+    }
   }
 
   async duplicateTable(title: string, includeData = true, includeViews = true) {
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).click({ button: 'right' });
+    if (isHub()) {
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).locator('.nc-icon.ant-dropdown-trigger').click();
+    } else {
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).click({ button: 'right' });
+    }
     await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Duplicate")').click();
 
     // Find the checkbox element with the label "Include data"
@@ -220,29 +287,74 @@ export class TreeViewPage extends BasePage {
     await this.get().locator(`[data-testid="tree-view-table-${title} copy"]`).waitFor();
   }
 
-  async verifyTabIcon({ title, icon }: { title: string; icon: string }) {
+  async verifyTabIcon({ title, icon, iconDisplay }: { title: string; icon: string; iconDisplay?: string }) {
     await new Promise(resolve => setTimeout(resolve, 1000));
-    await expect(
-      this.rootPage.locator(
-        `[data-testid="nc-tab-title"]:has-text("${title}") [data-testid="nc-tab-icon-emojione:${icon}"]`
-      )
-    ).toBeVisible();
+
+    // tbd: check if we can have a common method for this
+    if (isHub()) {
+      await this.rootPage.locator(`.nc-project-tree-tbl-${title}`).waitFor({ state: 'visible' });
+      await expect(
+        this.get().locator(`.nc-project-tree-tbl-${title}`).locator(`.nc-table-icon:has-text("${iconDisplay}")`)
+      ).toHaveCount(1);
+    } else {
+      await expect(
+        this.rootPage.locator(
+          `[data-testid="nc-tab-title"]:has-text("${title}") [data-testid="nc-icon-emojione:${icon}"]`
+        )
+      ).toBeVisible();
+    }
   }
 
-  // todo: Break this into smaller methods
   async validateRoleAccess(param: { role: string }) {
-    // Add new table button
-    await expect(this.get().locator(`.nc-add-new-table`)).toHaveCount(param.role === 'creator' ? 1 : 0);
-    // Import menu
-    await expect(this.get().locator(`.nc-import-menu`)).toHaveCount(param.role === 'creator' ? 1 : 0);
-    // Team and Settings button
-    await expect(this.get().locator(`.nc-new-base`)).toHaveCount(param.role === 'creator' ? 1 : 0);
-    // Right click context menu
-    await this.get().locator(`.nc-project-tree-tbl-Country`).click({
-      button: 'right',
-    });
-    await expect(this.rootPage.locator(`.nc-dropdown-tree-view-context-menu:visible`)).toHaveCount(
-      param.role === 'creator' ? 1 : 0
-    );
+    if (!isHub()) {
+      // Team and Settings button
+      await expect(this.get().locator(`.nc-new-base`)).toHaveCount(param.role === 'creator' ? 1 : 0);
+
+      // hub has 'reload' option across all 3 roles
+      // double check against options defined in nocodb
+      // Right click context menu
+      await this.get().locator(`.nc-project-tree-tbl-Country`).click({
+        button: 'right',
+      });
+      await expect(this.rootPage.locator(`.nc-dropdown-tree-view-context-menu:visible`)).toHaveCount(
+        param.role === 'creator' ? 1 : 0
+      );
+    } else {
+      const count = param.role.toLowerCase() === 'creator' || param.role.toLowerCase() === 'owner' ? 1 : 0;
+      const pjtNode = await this.getProject({ index: 0 });
+      await pjtNode.hover();
+
+      // add new table button & context menu is visible only for owner & creator
+      expect(await pjtNode.locator('[data-testid="nc-sidebar-add-project-entity"]').count()).toBe(count);
+      expect(await pjtNode.locator('[data-testid="nc-sidebar-context-menu"]').count()).toBe(count);
+
+      // table context menu
+      const tblNode = await this.getTable({ index: 0 });
+      await tblNode.hover();
+      expect(await tblNode.locator('.nc-tbl-context-menu').count()).toBe(count);
+    }
+  }
+
+  async openProject(param: { title: string }) {
+    const nodes = await this.get().locator(`.nc-project-sub-menu`);
+
+    // loop through nodes.count() to find the node with title
+    for (let i = 0; i < (await nodes.count()); i++) {
+      const node = nodes.nth(i);
+      const nodeTitle = await node.innerText();
+      // check if nodeTitle contains title
+      if (nodeTitle.toLowerCase().includes(param.title.toLowerCase())) {
+        // click on node
+        await node.waitFor({ state: 'visible' });
+        await node.click();
+        break;
+      }
+    }
+
+    await this.rootPage.waitForTimeout(1000);
+  }
+
+  private async getProject(param: { index: number }) {
+    return this.get().locator(`.project-title-node`).nth(param.index);
   }
 }

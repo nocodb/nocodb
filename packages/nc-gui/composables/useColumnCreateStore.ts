@@ -1,6 +1,6 @@
 import rfdc from 'rfdc'
 import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import {
@@ -31,8 +31,8 @@ interface ValidationsObj {
 const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState(
   (meta: Ref<TableType | undefined>, column: Ref<ColumnType | undefined>) => {
     const projectStore = useProject()
-    const { isMysql: isMysqlFunc, isPg: isPgFunc, isMssql: isMssqlFunc, isXcdbBase: isXcdbBaseFunc } = projectStore
-    const { project, sqlUis } = storeToRefs(projectStore)
+    const { isMysql: isMysqlFunc, isPg: isPgFunc, isMssql: isMssqlFunc, isXcdbBase: isXcdbBaseFunc, getBaseType } = projectStore
+    const { sqlUis } = storeToRefs(projectStore)
 
     const { $api } = useNuxtApp()
 
@@ -53,6 +53,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const isMssql = computed(() => isMssqlFunc(meta.value?.base_id ? meta.value?.base_id : Object.keys(sqlUis.value)[0]))
 
     const isXcdbBase = computed(() => isXcdbBaseFunc(meta.value?.base_id ? meta.value?.base_id : Object.keys(sqlUis.value)[0]))
+
+    const baseType = computed(() => getBaseType(meta.value?.base_id ? meta.value?.base_id : Object.keys(sqlUis.value)[0]))
 
     const idType = null
 
@@ -101,7 +103,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
               })
             },
           },
-          fieldLengthValidator(project.value?.bases?.[0].type || ClientType.MYSQL),
+          fieldLengthValidator(baseType.value || ClientType.MYSQL),
         ],
         uidt: [
           {
@@ -212,7 +214,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       if (cdf) formState.value.cdf = formState.value.cdf || null
     }
 
-    const addOrUpdate = async (onSuccess: () => void, columnPosition?: Pick<ColumnReqType, 'column_order'>) => {
+    const addOrUpdate = async (onSuccess: () => Promise<void>, columnPosition?: Pick<ColumnReqType, 'column_order'>) => {
       try {
         if (!(await validate())) return
       } catch (e: any) {
@@ -238,7 +240,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           }
           await $api.dbTableColumn.update(column.value?.id as string, formState.value)
           // Column updated
-          message.success(t('msg.success.columnUpdated'))
+          // message.success(t('msg.success.columnUpdated'))
         } else {
           // todo : set additional meta for auto generated string id
           if (formState.value.uidt === UITypes.ID) {
@@ -252,16 +254,16 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           await $api.dbTableColumn.create(meta.value?.id as string, { ...formState.value, ...columnPosition })
 
           /** if LTAR column then force reload related table meta */
-          if (formState.value.uidt === UITypes.LinkToAnotherRecord && meta.value?.id !== formState.value.childId) {
+          if (isLinksOrLTAR(formState.value) && meta.value?.id !== formState.value.childId) {
             getMeta(formState.value.childId, true).then(() => {})
           }
 
           // Column created
-          message.success(t('msg.success.columnCreated'))
+          // message.success(t('msg.success.columnCreated'))
 
           $e('a:column:add', { datatype: formState.value.uidt })
         }
-        onSuccess?.()
+        await onSuccess?.()
         return true
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))

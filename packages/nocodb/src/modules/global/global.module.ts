@@ -1,13 +1,19 @@
 import { Global, Module } from '@nestjs/common';
 import { ExtractJwt } from 'passport-jwt';
-import { SocketGateway } from '../../gateways/socket.gateway';
-import { GlobalGuard } from '../../guards/global/global.guard';
-import { MetaService } from '../../meta/meta.service';
-import { JwtStrategy } from '../../strategies/jwt.strategy';
-import { UsersService } from '../../services/users/users.service';
-import Noco from '../../Noco';
+import { EventEmitterModule } from '../event-emitter/event-emitter.module';
 import { InitMetaServiceProvider } from './init-meta-service.provider';
 import type { Provider } from '@nestjs/common';
+import { SocketGateway } from '~/gateways/socket.gateway';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { MetaService } from '~/meta/meta.service';
+import Noco from '~/Noco';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { JwtStrategy } from '~/strategies/jwt.strategy';
+import { UsersService } from '~/services/users/users.service';
+import { Producer } from '~/services/producer/producer';
+import { ProducerProvider } from '~/services/producer';
+import { TelemetryService } from '~/services/telemetry.service';
+import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
 
 export const JwtStrategyProvider: Provider = {
   provide: JwtStrategy,
@@ -32,19 +38,28 @@ export const JwtStrategyProvider: Provider = {
 
 @Global()
 @Module({
-  imports: [],
+  imports: [EventEmitterModule],
   providers: [
     InitMetaServiceProvider,
+    AppHooksService,
     UsersService,
     JwtStrategyProvider,
     GlobalGuard,
-    ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [SocketGateway] : []),
+    SocketGateway,
+    AppHooksService,
+    ProducerProvider,
+    AppHooksListenerService,
+    TelemetryService,
   ],
   exports: [
     MetaService,
     JwtStrategyProvider,
     UsersService,
     GlobalGuard,
+    AppHooksService,
+    Producer,
+    AppHooksListenerService,
+    TelemetryService,
     ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [SocketGateway] : []),
   ],
 })

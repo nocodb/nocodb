@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TabItem } from '~/lib'
+import type { TabItem } from '#imports'
 import { TabMetaInj, computed, inject, ref, storeToRefs, until, useMetas, useProject, useRoute } from '#imports'
 
 const { getMeta } = useMetas()
@@ -15,6 +15,10 @@ const activeTab = inject(
   TabMetaInj,
   computed(() => ({} as TabItem)),
 )
+
+const viewType = computed(() => {
+  return route.params.type as string
+})
 
 watch(
   () => route.params.title,
@@ -33,7 +37,7 @@ watch(
 
 <template>
   <div class="w-full h-full relative">
-    <LazyTabsSmartsheet :active-tab="activeTab" />
+    <LazyTabsSmartsheet :key="viewType" :active-tab="activeTab" />
 
     <general-overlay :model-value="loading" inline transition class="!bg-opacity-15">
       <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">

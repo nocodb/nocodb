@@ -137,7 +137,8 @@ export class ToolbarFilterPage extends BasePage {
         await this.rootPage
           .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
           .locator(`div[label="${title}"]:visible`)
-          .click();
+          .click()
+          .then(() => {});
       } else {
         await this.waitForResponse({
           uiAction: () =>
@@ -161,7 +162,8 @@ export class ToolbarFilterPage extends BasePage {
           .locator('.nc-dropdown-filter-comp-op')
           .locator(`.ant-select-item:has-text("${operation}")`)
           .first()
-          .click();
+          .click()
+          .then(() => {});
       } else {
         await this.waitForResponse({
           uiAction: () =>

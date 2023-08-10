@@ -31,3 +31,7 @@ For Drag and Drop
 .grabbing * {
   cursor: grabbing;
 }
+
+.flex.hidden {
+  display: none;
+}

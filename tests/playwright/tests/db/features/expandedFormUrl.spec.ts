@@ -17,6 +17,7 @@ test.describe('Expanded form URL', () => {
   async function viewTestTestTable(viewType: string) {
     await dashboard.treeView.createTable({
       title: 'Test Table',
+      projectTitle: context.project.title,
     });
     await dashboard.grid.addNewRow({ index: 0 });
 
@@ -66,7 +67,7 @@ test.describe('Expanded form URL', () => {
         title: 'CountryExpand',
       });
       await viewObj.toolbar.clickFields();
-      await viewObj.toolbar.fields.click({ title: 'City List' });
+      await viewObj.toolbar.fields.click({ title: 'Cities' });
     }
 
     // expand row & verify URL
@@ -104,7 +105,7 @@ test.describe('Expanded form URL', () => {
       url: 'rowId=1',
     });
     await dashboard.expandedForm.openChildCard({
-      column: 'City List',
+      column: 'Cities',
       title: 'Kabul',
     });
     await dashboard.rootPage.waitForTimeout(1000);

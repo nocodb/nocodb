@@ -1,8 +1,8 @@
 import axios from 'axios';
 import cors from 'cors';
 import express from 'express';
-import { User } from '../models';
-import Noco from '../Noco';
+import Noco from '~/Noco';
+import { User } from '~/models';
 
 process.env.NC_VERSION = '0009044';
 
@@ -33,6 +33,21 @@ process.env[`DEBUG`] = 'xc*';
         },
       );
       console.log(response.data);
+    }
+
+    for (let i = 0; i < 8; i++) {
+      if (!(await User.getByEmail(`user-${i}@nocodb.com`))) {
+        const response = await axios.post(
+          `http://localhost:${
+            process.env.PORT || 8080
+          }/api/v1/auth/user/signup`,
+          {
+            email: `user-${i}@nocodb.com`,
+            password: 'Password123.',
+          },
+        );
+        console.log(response.data);
+      }
     }
   });
 })().catch((e) => console.log(e));

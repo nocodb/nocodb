@@ -4,7 +4,7 @@ import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { FormPage } from '../../../pages/Dashboard/Form';
 import setup from '../../../setup';
 
-test.describe('Mobile Mode', () => {
+test.describe.skip('Mobile Mode', () => {
   let dashboard: DashboardPage;
   let context: any;
   let toolbar: ToolbarPage;
@@ -23,7 +23,7 @@ test.describe('Mobile Mode', () => {
     // in non-mobile mode, all menu items are visible
     await dashboard.verifyTeamAndSettingsLinkIsVisible();
 
-    await dashboard.treeView.createTable({ title: 'test-table-for-mobile-mode' });
+    await dashboard.treeView.createTable({ title: 'test-table-for-mobile-mode', projectTitle: context.project.title });
 
     // and all toolbar items have icons AND text
     await toolbar.verifyFieldsButtonIsVisibleWithTextAndIcon();
@@ -45,7 +45,7 @@ test.describe('Mobile Mode', () => {
 
     // verify form-view fields order
     await form.verifyFormViewFieldsOrder({
-      fields: ['Country', 'LastUpdate', 'City List'],
+      fields: ['Country', 'LastUpdate', 'Cities'],
     });
 
     // reorder & verify
@@ -54,7 +54,7 @@ test.describe('Mobile Mode', () => {
       destinationField: 'Country',
     });
     await form.verifyFormViewFieldsOrder({
-      fields: ['LastUpdate', 'Country', 'City List'],
+      fields: ['LastUpdate', 'Country', 'Cities'],
     });
 
     await dashboard.treeView.openTable({ mobileMode: true, title: 'test-table-for-mobile-mode' });

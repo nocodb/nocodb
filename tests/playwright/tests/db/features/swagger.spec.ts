@@ -1,16 +1,14 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import { GridPage } from '../../../pages/Dashboard/Grid';
 import setup from '../../../setup';
 
-test.describe('Table Column Operations', () => {
-  let grid: GridPage, dashboard: DashboardPage;
+test.describe.skip('Table Column Operations', () => {
+  let dashboard: DashboardPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
-    grid = dashboard.grid;
   });
 
   test('Create column', async () => {

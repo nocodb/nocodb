@@ -7,20 +7,18 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Request,
   Response,
   UseGuards,
 } from '@nestjs/common';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { parseHrtimeToSeconds } from '../helpers';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { DatasService } from '../services/datas.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { parseHrtimeToMilliSeconds } from '~/helpers';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { DatasService } from '~/services/datas.service';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 export class DataAliasController {
   constructor(private readonly datasService: DatasService) {}
 
@@ -36,6 +34,7 @@ export class DataAliasController {
     @Param('projectName') projectName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
+    @Query('opt') opt: string,
   ) {
     const startTime = process.hrtime();
     const responseData = await this.datasService.dataList({
@@ -43,8 +42,9 @@ export class DataAliasController {
       projectName: projectName,
       tableName: tableName,
       viewName: viewName,
+      disableOptimization: opt === 'false',
     });
-    const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
+    const elapsedSeconds = parseHrtimeToMilliSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);
     res.json(responseData);
   }
@@ -121,6 +121,7 @@ export class DataAliasController {
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
     @Body() body: any,
+    @Query('opt') opt: string,
   ) {
     return await this.datasService.dataInsert({
       projectName: projectName,
@@ -128,6 +129,7 @@ export class DataAliasController {
       viewName: viewName,
       body: body,
       cookie: req,
+      disableOptimization: opt === 'false',
     });
   }
 
@@ -142,6 +144,7 @@ export class DataAliasController {
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
     @Param('rowId') rowId: string,
+    @Query('opt') opt: string,
   ) {
     return await this.datasService.dataUpdate({
       projectName: projectName,
@@ -150,6 +153,7 @@ export class DataAliasController {
       body: req.body,
       cookie: req,
       rowId: rowId,
+      disableOptimization: opt === 'false',
     });
   }
 
@@ -185,6 +189,8 @@ export class DataAliasController {
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
     @Param('rowId') rowId: string,
+    @Query('opt') opt: string,
+    @Query('getHiddenColumn') getHiddenColumn: boolean,
   ) {
     return await this.datasService.dataRead({
       projectName: projectName,
@@ -192,6 +198,8 @@ export class DataAliasController {
       viewName: viewName,
       rowId: rowId,
       query: req.query,
+      disableOptimization: opt === 'false',
+      getHiddenColumn: getHiddenColumn,
     });
   }
 
@@ -242,7 +250,7 @@ export class DataAliasController {
       query: req.query,
       columnId: columnId,
     });
-    const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
+    const elapsedSeconds = parseHrtimeToMilliSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);
     res.json(groupedData);
   }

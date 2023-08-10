@@ -9,16 +9,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ViewColumnReqType } from 'nocodb-sdk';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { ViewColumnsService } from '../services/view-columns.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { ViewColumnsService } from '~/services/view-columns.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 export class ViewColumnsController {
   constructor(private readonly viewColumnsService: ViewColumnsService) {}
 
@@ -26,7 +23,9 @@ export class ViewColumnsController {
   @Acl('columnList')
   async columnList(@Param('viewId') viewId: string) {
     return new PagedResponseImpl(
-      await this.viewColumnsService.columnList({ viewId }),
+      await this.viewColumnsService.columnList({
+        viewId,
+      }),
     );
   }
 

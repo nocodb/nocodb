@@ -35,7 +35,7 @@ const isForm = inject(IsFormInj)
 
 const readOnly = inject(ReadonlyInj)
 
-const checkboxMeta = $computed(() => {
+const checkboxMeta = computed(() => {
   return {
     icon: {
       checked: 'mdi-check-circle-outline',
@@ -46,7 +46,7 @@ const checkboxMeta = $computed(() => {
   }
 })
 
-let vModel = $computed<boolean | number>({
+const vModel = computed<boolean | number>({
   get: () => !!props.modelValue && props.modelValue !== '0' && props.modelValue !== 0,
   set: (val: any) => emits('update:modelValue', isMssql(column?.value?.base_id) ? +val : val),
 })
@@ -59,7 +59,7 @@ function onClick(force?: boolean, event?: MouseEvent) {
     return
   }
   if (!readOnly?.value && (force || active.value)) {
-    vModel = !vModel
+    vModel.value = !vModel.value
   }
 }
 

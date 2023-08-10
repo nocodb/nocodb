@@ -42,6 +42,7 @@ export enum MetaTable {
   MAP_VIEW = 'nc_map_view_v2',
   MAP_VIEW_COLUMNS = 'nc_map_view_columns_v2',
   STORE = 'nc_store',
+  NOTIFICATION = 'notification',
 }
 
 export const orderedMetaTables = [
@@ -147,7 +148,10 @@ export enum CacheScope {
   API_TOKEN = 'apiToken',
   INSTANCE_META = 'instanceMeta',
   USER_PROJECT = 'userProject',
+  DASHBOARD_PROJECT_DB_PROJECT_LINKING = 'dashboardProjectDBProjectLinking',
+  SINGLE_QUERY = 'singleQuery',
 }
+
 export enum CacheGetType {
   TYPE_ARRAY = 'TYPE_ARRAY',
   TYPE_OBJECT = 'TYPE_OBJECT',
@@ -158,3 +162,70 @@ export enum CacheDelDirection {
   PARENT_TO_CHILD = 'PARENT_TO_CHILD',
   CHILD_TO_PARENT = 'CHILD_TO_PARENT',
 }
+
+export const COMPARISON_OPS = <const>[
+  'eq',
+  'neq',
+  'not',
+  'like',
+  'nlike',
+  'empty',
+  'notempty',
+  'null',
+  'notnull',
+  'checked',
+  'notchecked',
+  'blank',
+  'notblank',
+  'allof',
+  'anyof',
+  'nallof',
+  'nanyof',
+  'gt',
+  'lt',
+  'gte',
+  'lte',
+  'ge',
+  'le',
+  'in',
+  'isnot',
+  'is',
+  'isWithin',
+  'btw',
+  'nbtw',
+];
+
+export const IS_WITHIN_COMPARISON_SUB_OPS = <const>[
+  'pastWeek',
+  'pastMonth',
+  'pastYear',
+  'nextWeek',
+  'nextMonth',
+  'nextYear',
+  'pastNumberOfDays',
+  'nextNumberOfDays',
+];
+
+export const COMPARISON_SUB_OPS = <const>[
+  'today',
+  'tomorrow',
+  'yesterday',
+  'oneWeekAgo',
+  'oneWeekFromNow',
+  'oneMonthAgo',
+  'oneMonthFromNow',
+  'daysAgo',
+  'daysFromNow',
+  'exactDate',
+  ...IS_WITHIN_COMPARISON_SUB_OPS,
+];
+
+export const DB_TYPES = <const>[
+  'mysql2',
+  'sqlite3',
+  'mysql',
+  'mssql',
+  'snowflake',
+  'oracledb',
+  'pg',
+];

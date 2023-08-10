@@ -1,401 +1,324 @@
-<script lang="ts" setup>
-import { ProjectStatus } from 'nocodb-sdk'
-import type { ProjectType } from 'nocodb-sdk'
-import tinycolor from 'tinycolor2'
-import { breakpointsTailwind } from '@vueuse/core'
-import {
-  Empty,
-  JobStatus,
-  Modal,
-  computed,
-  definePageMeta,
-  extractSdkResponseErrorMsg,
-  iconMap,
-  message,
-  navigateTo,
-  onBeforeMount,
-  parseProp,
-  projectThemeColors,
-  ref,
-  themeV2Colors,
-  useApi,
-  useBreakpoints,
-  useCopy,
-  useNuxtApp,
-  useUIPermission,
-} from '#imports'
+<script setup lang="ts">
+import type { Menu } from 'ant-design-vue'
+import { nextTick } from '@vue/runtime-core'
+import { WorkspaceStatus } from 'nocodb-sdk'
+import { computed, onMounted, storeToRefs, useRouter, useSidebar, useWorkspace } from '#imports'
 
-definePageMeta({
-  title: 'title.myProject',
-})
-
-const { $api, $e, $jobs } = useNuxtApp()
-
-const { api, isLoading } = useApi()
+const router = useRouter()
 
 const { isUIAllowed } = useUIPermission()
 
-const { md } = useBreakpoints(breakpointsTailwind)
+const workspaceStore = useWorkspace()
 
-const filterQuery = ref('')
+const { deleteWorkspace: _deleteWorkspace, loadWorkspaces, populateWorkspace } = workspaceStore
 
-const projects = ref<ProjectType[]>()
+const projectsStore = useProjects()
 
-const activePage = ref(1)
+const { workspacesList, activeWorkspace, activePage, collaborators, activeWorkspaceId } = storeToRefs(workspaceStore)
 
-const pageChange = (p: number) => {
-  activePage.value = p
-}
+const { loadProjects } = useProjects()
 
-const loadProjects = async () => {
-  const lastActivePage = activePage.value
-  const response = await api.project.list({})
-  projects.value = response.list
-  activePage.value = lastActivePage
-}
+const route = router.currentRoute
 
-const filteredProjects = computed(
-  () =>
-    projects.value?.filter(
-      (project) => !filterQuery.value || project.title?.toLowerCase?.().includes(filterQuery.value.toLowerCase()),
-    ) ?? [],
+const selectedWorkspaceIndex = computed<number[]>({
+  get() {
+    const index = workspacesList?.value?.findIndex((workspace) => workspace.id === (route.value.query?.workspaceId as string))
+    return activePage?.value === 'workspace' ? [index === -1 ? 0 : index] : []
+  },
+  set(index: number[]) {
+    if (index?.length) {
+      router.push({ query: { workspaceId: workspacesList.value?.[index[0]]?.id, page: 'workspace' } })
+    } else {
+      router.push({ query: {} })
+    }
+  },
+})
+
+// create a new sidebar state
+const { toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
+
+const isCreateDlgOpen = ref(false)
+
+const isCreateProjectOpen = ref(false)
+
+const menuEl = ref<typeof Menu | null>(null)
+
+onMounted(async () => {
+  toggle(true)
+  toggleHasSidebar(true)
+
+  loadProjects('recent')
+})
+
+watch(
+  () => route.value.query.workspaceId,
+  async (newId, oldId) => {
+    if (!newId || (oldId !== newId && oldId)) {
+      projectsStore.clearProjects()
+      collaborators.value = []
+    }
+
+    if (newId) {
+      populateWorkspace()
+    }
+  },
+  {
+    immediate: true,
+  },
 )
 
-const deleteProject = (project: ProjectType) => {
-  $e('c:project:delete')
-
-  Modal.confirm({
-    title: `Do you want to delete '${project.title}' project?`,
-    wrapClassName: 'nc-modal-project-delete',
-    okText: 'Yes',
-    okType: 'danger',
-    cancelText: 'No',
-    async onOk() {
-      try {
-        await api.project.delete(project.id as string)
-
-        $e('a:project:delete')
-
-        projects.value?.splice(projects.value?.indexOf(project), 1)
-      } catch (e: any) {
-        message.error(await extractSdkResponseErrorMsg(e))
-      }
-    },
-  })
-}
-
-const duplicateProject = (project: ProjectType) => {
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgProjectDuplicate'), {
-    'modelValue': isOpen,
-    'project': project,
-    'onOk': async (jobData: { id: string }) => {
-      await loadProjects()
-
-      $jobs.subscribe({ id: jobData.id }, undefined, async (status: string) => {
-        if (status === JobStatus.COMPLETED) {
-          await loadProjects()
-        } else if (status === JobStatus.FAILED) {
-          message.error('Failed to duplicate project')
-          await loadProjects()
-        }
+useDialog(resolveComponent('WorkspaceCreateDlg'), {
+  'modelValue': isCreateDlgOpen,
+  'onUpdate:modelValue': (isOpen: boolean) => (isCreateDlgOpen.value = isOpen),
+  'onSuccess': async () => {
+    isCreateDlgOpen.value = false
+    await loadWorkspaces()
+    await nextTick(() => {
+      ;[...menuEl?.value?.$el?.querySelectorAll('li.ant-menu-item')]?.pop()?.scrollIntoView({
+        block: 'nearest',
+        inline: 'nearest',
       })
-
-      $e('a:project:duplicate')
-    },
-    'onUpdate:modelValue': closeDialog,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
-const handleProjectColor = async (projectId: string, color: string) => {
-  const tcolor = tinycolor(color)
-
-  if (tcolor.isValid()) {
-    const complement = tcolor.complement()
-
-    const project: ProjectType = await $api.project.read(projectId)
-
-    const meta = parseProp(project?.meta)
-
-    await $api.project.update(projectId, {
-      color,
-      meta: JSON.stringify({
-        ...meta,
-        theme: {
-          primaryColor: color,
-          accentColor: complement.toHex8String(),
-        },
-      }),
+      selectedWorkspaceIndex.value = [workspacesList.value?.length - 1]
     })
+  },
+})
 
-    // Update local project
-    const localProject = projects.value?.find((p) => p.id === projectId)
+const tab = computed({
+  get() {
+    return route.value.query?.tab ?? 'projects'
+  },
+  set(tab: string) {
+    router.push({ query: { ...route.value.query, tab } })
+  },
+})
 
-    if (localProject) {
-      localProject.color = color
+const projectListType = computed(() => {
+  switch (activePage.value) {
+    case 'recent':
+      return 'Recent'
+    case 'shared':
+      return 'Shared With Me'
+    case 'starred':
+      return 'Starred'
+    default:
+      return '='
+  }
+})
 
-      localProject.meta = JSON.stringify({
-        ...meta,
-        theme: {
-          primaryColor: color,
-          accentColor: complement.toHex8String(),
-        },
-      })
+watch(activeWorkspaceId, async () => {
+  if (activeWorkspace.value?.status !== WorkspaceStatus.CREATED) return
+  await loadProjects(activePage.value)
+})
+
+watch(
+  () => activeWorkspace.value?.status,
+  async (status) => {
+    if (status === WorkspaceStatus.CREATED) {
+      await loadProjects()
+    }
+  },
+)
+</script>
+
+<template>
+  <NuxtLayout name="new">
+    <template #sidebar>
+      <div class="h-full flex flex-col min-h-[400px] overflow-auto">
+        <div class="nc-workspace-group overflow-auto mt-8.5">
+          <div class="flex text-sm font-medium text-gray-400 mx-4.5 mb-2">All Projects</div>
+          <div
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'recent' }"
+            @click="
+              navigateTo({
+                query: {
+                  page: 'recent',
+                },
+              })
+            "
+          >
+            <IcOutlineAccessTime class="nc-icon" />
+            <span>Recent</span>
+          </div>
+          <div
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'shared' }"
+            @click="
+              navigateTo({
+                query: {
+                  page: 'shared',
+                },
+              })
+            "
+          >
+            <MaterialSymbolsGroupOutlineRounded class="nc-icon" />
+            <span>Shared with me</span>
+          </div>
+          <div
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'starred' }"
+            @click="
+              navigateTo({
+                query: {
+                  page: 'starred',
+                },
+              })
+            "
+          >
+            <IcRoundStarBorder class="nc-icon !h-5" />
+            <span>Starred</span>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <div class="h-full nc-workspace-container overflow-x-hidden" style="width: calc(100vw - 250px)">
+      <div class="h-full flex flex-col px-6 mt-3">
+        <div class="flex items-center gap-2 mb-5.5 mt-4 text-xl ml-5.5">
+          <h2 class="text-3xl font-weight-bold tracking-[0.5px] mb-0">
+            {{ projectListType }}
+          </h2>
+
+          <div class="flex-grow min-w-10"></div>
+          <WorkspaceCreateProjectBtn
+            v-if="isUIAllowed('projectCreate', false) && tab === 'projects'"
+            v-model:is-open="isCreateProjectOpen"
+            class="mt-0.75"
+            type="primary"
+            :active-workspace-id="activeWorkspace?.id"
+            modal
+          >
+            <div
+              class="gap-x-2 flex flex-row w-full items-center rounded py-1.5 pl-2 pr-2.75"
+              :class="{
+                '!bg-opacity-10': isCreateProjectOpen,
+              }"
+            >
+              <MdiPlus class="!h-4.2" />
+
+              <div class="flex">New Project</div>
+            </div>
+          </WorkspaceCreateProjectBtn>
+        </div>
+
+        <WorkspaceProjectList class="min-h-20 grow" />
+      </div>
+    </div>
+  </NuxtLayout>
+</template>
+
+<style scoped lang="scss">
+.nc-workspace-avatar {
+  @apply min-w-6 h-6 rounded-[6px] flex items-center justify-center text-white font-weight-bold uppercase;
+  font-size: 0.7rem;
+}
+
+.nc-workspace-list {
+  .nc-workspace-list-item {
+    @apply flex gap-2 items-center;
+  }
+
+  :deep(.ant-menu-item) {
+    @apply relative;
+
+    & .color-band {
+      @apply opacity-0 absolute w-2 h-7 -left-1 top-[6px] bg-[#4351E8] rounded-[99px] trasition-opacity;
+    }
+  }
+
+  :deep(.ant-menu-item-selected, .ant-menu-item-active) .color-band {
+    @apply opacity-100;
+  }
+
+  .nc-workspace-menu,
+  .nc-workspace-drag-icon {
+    @apply opacity-0 transition-opactity min-w-4 text-gray-500;
+  }
+
+  .nc-workspace-drag-icon {
+    @apply cursor-move;
+  }
+
+  :deep(.ant-menu-item:hover) {
+    .nc-workspace-menu,
+    .nc-workspace-drag-icon {
+      @apply opacity-100;
     }
   }
 }
 
-const getProjectPrimary = (project: ProjectType) => {
-  if (!project) return
-
-  const meta = parseProp(project.meta)
-
-  return meta.theme?.primaryColor || themeV2Colors['royal-blue'].DEFAULT
+:deep(.nc-workspace-list .ant-menu-item) {
+  @apply !my-0;
 }
 
-const customRow = (record: ProjectType) => ({
-  onClick: async () => {
-    if (record.status !== ProjectStatus.JOB) await navigateTo(`/nc/${record.id}`)
+.nc-workspace-group {
+  .nc-workspace-group-item {
+    &:hover {
+      @apply bg-primary bg-opacity-3 text-primary;
+    }
 
-    $e('a:project:open')
-  },
-  class: ['group'],
-})
+    &.active {
+      @apply bg-primary bg-opacity-8 text-primary font-weight-bold;
+    }
 
-onBeforeMount(loadProjects)
+    @apply h-[40px]  p-4 pl-3 flex items-center gap-2 cursor-pointer;
 
-const { copy } = useCopy()
-
-const copyProjectMeta = async () => {
-  try {
-    const aggregatedMetaInfo = await $api.utils.aggregatedMetaInfo()
-    await copy(JSON.stringify(aggregatedMetaInfo))
-    message.info('Copied aggregated project meta to clipboard')
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-</script>
-
-<template>
-  <div
-    class="relative flex flex-col justify-center gap-2 w-full p-8 md:(bg-white rounded-lg border-1 border-gray-200 shadow)"
-    data-testid="projects-container"
-  >
-    <h1 class="flex items-center justify-center gap-2 leading-8 mb-8 mt-4">
-      <span class="text-4xl nc-project-page-title" @dblclick="copyProjectMeta">{{ $t('title.myProject') }}</span>
-    </h1>
-
-    <div class="flex flex-wrap gap-2 mb-6">
-      <a-input-search
-        v-model:value="filterQuery"
-        class="max-w-[250px] nc-project-page-search rounded"
-        :placeholder="$t('activity.searchProject')"
-      />
-
-      <a-tooltip title="Reload projects">
-        <div
-          class="transition-all duration-200 h-full flex-0 flex items-center group hover:ring active:(ring ring-accent) rounded-full mt-1"
-          :class="isLoading ? 'animate-spin ring ring-gray-200' : ''"
-        >
-          <component
-            :is="iconMap.reload"
-            v-e="['a:project:refresh']"
-            class="text-xl text-gray-500 group-hover:text-accent cursor-pointer"
-            :class="isLoading ? '!text-primary' : ''"
-            data-testid="projects-reload-button"
-            @click="loadProjects"
-          />
-        </div>
-      </a-tooltip>
-
-      <div class="flex-1" />
-
-      <button v-if="isUIAllowed('projectCreate', true)" class="nc-new-project-menu mt-4 md:mt-0" @click="navigateTo('/create')">
-        <span class="flex items-center w-full">
-          {{ $t('title.newProj') }}
-        </span>
-      </button>
-    </div>
-
-    <!--
-      TODO: bring back transition after fixing the bug with navigation
-      <Transition name="layout" mode="out-in"> -->
-    <div v-if="isLoading">
-      <a-skeleton />
-    </div>
-
-    <a-table
-      v-else
-      :custom-row="customRow"
-      :data-source="filteredProjects"
-      :pagination="{ 'position': ['bottomCenter'], 'current': activePage, 'onUpdate:current': pageChange }"
-      :table-layout="md ? 'auto' : 'fixed'"
-    >
-      <template #emptyText>
-        <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
-      </template>
-
-      <!-- Title -->
-      <a-table-column key="title" :title="$t('general.title')" data-index="title">
-        <template #default="{ text, record }">
-          <div class="flex items-center">
-            <div class="w-2" @click.stop>
-              <a-menu class="!border-0 !m-0 !p-0" trigger-sub-menu-action="click">
-                <template v-if="isUIAllowed('projectTheme') || isUIAllowed('projectTheme', true, record.roles)">
-                  <a-sub-menu key="theme" popup-class-name="custom-color">
-                    <template #title>
-                      <div
-                        class="color-selector"
-                        :style="{
-                          'background-color': getProjectPrimary(record),
-                          'width': '8px',
-                          'height': '100%',
-                        }"
-                      />
-                    </template>
-
-                    <template #expandIcon></template>
-
-                    <LazyGeneralColorPicker
-                      :model-value="getProjectPrimary(record)"
-                      :colors="projectThemeColors"
-                      :row-size="9"
-                      :advanced="false"
-                      @input="handleProjectColor(record.id, $event)"
-                    />
-
-                    <a-sub-menu key="pick-primary">
-                      <template #title>
-                        <div class="nc-project-menu-item group !py-0">
-                          <ClarityColorPickerSolid class="group-hover:text-accent" />
-                          Custom Color
-                        </div>
-                      </template>
-
-                      <template #expandIcon></template>
-
-                      <LazyGeneralChromeWrapper @input="handleProjectColor(record.id, $event)" />
-                    </a-sub-menu>
-                  </a-sub-menu>
-                </template>
-              </a-menu>
-            </div>
-            <div
-              class="flex capitalize color-transition group-hover:text-primary !w-[400px] h-full overflow-hidden overflow-ellipsis whitespace-nowrap pl-2"
-            >
-              <component
-                :is="iconMap.reload"
-                v-if="record.status === ProjectStatus.JOB"
-                :class="{ 'animate-infinite animate-spin text-gray-500': record.status === ProjectStatus.JOB }"
-              />
-              {{ text }}
-            </div>
-          </div>
-        </template>
-      </a-table-column>
-      <!-- Actions -->
-
-      <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
-        <template #default="{ text, record }">
-          <div v-if="record.status !== ProjectStatus.JOB" class="flex items-center gap-2">
-            <component
-              :is="iconMap.edit"
-              v-if="isUIAllowed('projectUpdate', true) || isUIAllowed('projectUpdate', true, record.roles)"
-              v-e="['c:project:edit:rename']"
-              class="nc-action-btn nc-edit-project"
-              :data-testid="`edit-project-${record.title}`"
-              @click.stop="navigateTo(`/${text}`)"
-            />
-
-            <component
-              :is="iconMap.delete"
-              v-if="isUIAllowed('projectDelete', true) || isUIAllowed('projectDelete', true, record.roles)"
-              class="nc-action-btn nc-delete-project"
-              :data-testid="`delete-project-${record.title}`"
-              @click.stop="deleteProject(record)"
-            />
-
-            <a-dropdown
-              v-if="isUIAllowed('duplicateProject', true) || isUIAllowed('duplicateProject', true, record.roles)"
-              :trigger="['click']"
-              overlay-class-name="nc-dropdown-import-menu"
-              @click.stop
-            >
-              <GeneralIcon
-                icon="threeDotVertical"
-                class="nc-import-menu outline-0"
-                :data-testid="`p-three-dot-${record.title}`"
-              />
-
-              <template #overlay>
-                <a-menu class="!py-0 rounded text-sm">
-                  <a-menu-item key="duplicate" v-e="['c:project:duplicate']" @click.stop="duplicateProject(record)">
-                    <div class="color-transition nc-project-menu-item group" :data-testid="`dupe-project-${record.title}`">
-                      <GeneralIcon icon="copy" class="group-hover:text-accent" />
-                      Duplicate
-                    </div>
-                  </a-menu-item>
-                </a-menu>
-              </template>
-            </a-dropdown>
-          </div>
-        </template>
-      </a-table-column>
-    </a-table>
-    <!--    </Transition> -->
-  </div>
-</template>
-
-<style lang="scss" scoped>
-.nc-action-btn {
-  @apply text-gray-500 group-hover:text-accent active:(ring ring-accent ring-opacity-100) cursor-pointer p-2 w-[30px] h-[30px] hover:bg-gray-300/50 rounded-full;
-}
-
-.nc-new-project-menu {
-  @apply cursor-pointer z-1 relative color-transition rounded-md px-3 py-2 text-white;
-
-  &::after {
-    @apply ring-opacity-100 rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary bg-opacity-100;
-    content: '';
-    z-index: -1;
-  }
-
-  &:hover::after {
-    @apply transform scale-110;
+    .nc-icon {
+      @apply w-6;
+    }
   }
 }
 
-:deep(.ant-table-cell) {
-  @apply py-1;
+// todo:  apply globally at windicss level
+.nc-root {
+  @apply text-[#4B5563];
 }
 
-:deep(.ant-table-row) {
-  @apply cursor-pointer;
+.nc-collab-list {
+  .nc-collab-list-item {
+    @apply flex gap-2 py-2 px-4 items-center;
+
+    .nc-collab-avatar {
+      @apply w-6 h-6 rounded-full flex items-center justify-center text-white font-weight-bold uppercase;
+      font-size: 0.7rem;
+    }
+  }
 }
 
-:deep(.ant-table) {
-  @apply min-h-[428px];
+:deep(.ant-tabs-nav-list) {
+  @apply !ml-6;
 }
 
-:deep(.ant-menu-submenu-title) {
-  @apply !p-0 !mr-1 !my-0 !h-5;
+.ant-layout-header {
+  @apply !h-20 bg-transparent;
+  border-bottom: 1px solid #f5f5f5;
 }
 
-.color-selector:hover {
-  filter: brightness(1.5);
-}
-</style>
+.nc-quick-action-wrapper {
+  @apply relative;
 
-<style>
-.custom-color .ant-menu-submenu-title {
-  height: auto !important;
+  input {
+    @apply h-10 w-60 bg-gray-100 rounded-md pl-9 pr-5 mr-2;
+  }
+
+  .nc-quick-action-icon {
+    @apply absolute left-2 top-6;
+  }
+
+  .nc-quick-action-shortcut {
+    @apply text-gray-400 absolute right-4 top-0;
+  }
+}
+
+:deep(.ant-tabs-tab:not(ant-tabs-tab-active)) {
+  @apply !text-gray-500;
+}
+
+:deep(.ant-tabs-content) {
+  @apply !min-h-25 !h-full;
+}
+
+:deep(.ant-tabs-nav) {
+  @apply !mb-0;
 }
 </style>

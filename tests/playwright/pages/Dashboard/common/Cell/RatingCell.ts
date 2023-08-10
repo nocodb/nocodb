@@ -23,7 +23,7 @@ export class RatingCellPageObject extends BasePage {
     });
   }
 
-  async verify({ index, columnHeader, rating }: { index: number; columnHeader: string; rating: number }) {
+  async verify({ index, columnHeader, rating }: { index: number; columnHeader: string; rating: number | string }) {
     const cell = await this.get({ index, columnHeader });
     await cell.scrollIntoViewIfNeeded();
     const ratingCount = await cell.locator(`li.ant-rate-star.ant-rate-star-full`).count();

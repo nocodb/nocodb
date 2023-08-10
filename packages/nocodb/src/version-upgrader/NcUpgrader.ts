@@ -15,8 +15,9 @@ import ncProjectEnvUpgrader from './ncProjectEnvUpgrader';
 import ncHookUpgrader from './ncHookUpgrader';
 import ncProjectConfigUpgrader from './ncProjectConfigUpgrader';
 import ncXcdbLTARUpgrader from './ncXcdbLTARUpgrader';
-import type { MetaService } from '../meta/meta.service';
-import type { NcConfig } from '../interface/config';
+import ncMinimalDbUpgrader from './ncMinimalDbUpgrader';
+import type { MetaService } from '~/meta/meta.service';
+import type { NcConfig } from '~/interface/config';
 
 const log = debug('nc:version-upgrader');
 
@@ -52,6 +53,7 @@ export default class NcUpgrader {
         { name: '0105004', handler: ncHookUpgrader },
         { name: '0107004', handler: ncProjectConfigUpgrader },
         { name: '0108002', handler: ncXcdbLTARUpgrader },
+        { name: '0108003', handler: ncMinimalDbUpgrader },
       ];
       if (!(await ctx.ncMeta.knexConnection?.schema?.hasTable?.('nc_store'))) {
         return;
@@ -101,7 +103,9 @@ export default class NcUpgrader {
       } else {
         this.log(`upgrade : Inserting config to meta database`);
         const configObj: any = {};
-        const isOld = (await ctx.ncMeta.projectList())?.length;
+        const isOld =
+          process.env.NC_CLOUD !== 'true' &&
+          (await ctx.ncMeta.projectList())?.length;
         configObj.version = isOld ? '0009000' : process.env.NC_VERSION;
         await ctx.ncMeta.metaInsert('', '', 'nc_store', {
           key: NcUpgrader.STORE_KEY,

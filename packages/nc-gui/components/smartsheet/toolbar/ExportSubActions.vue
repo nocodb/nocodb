@@ -24,7 +24,8 @@ const isPublicView = inject(IsPublicInj, ref(false))
 
 const fields = inject(FieldsInj, ref([]))
 
-const { project } = storeToRefs(useProject())
+const projectStore = storeToRefs(useProject())
+const project = toRef(projectStore, 'project')
 
 const { $api } = useNuxtApp()
 
@@ -54,9 +55,9 @@ const exportFile = async (exportType: ExportTypes) => {
       } else {
         res = await $api.dbViewRow.export(
           'noco',
-          project.value?.title as string,
-          meta.value?.title as string,
-          selectedView?.value.title as string,
+          project.value?.id as string,
+          meta.value?.id as string,
+          selectedView?.value.id as string,
           exportType,
           {
             responseType,

@@ -22,7 +22,7 @@ import {
   useSharedView,
   useUndoRedo,
 } from '#imports'
-import type { Row, UndoRedoAction } from '~/lib'
+import type { Row, UndoRedoAction } from '#imports'
 
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
   const { $e, $state, $api } = useNuxtApp()
@@ -54,6 +54,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 
   const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
+
+  const { isUIAllowed } = useUIPermission()
 
   // getters
   const displayValue = computed(() => {
@@ -95,6 +97,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   // actions
   const loadCommentsAndLogs = async () => {
+    if (!isUIAllowed('commentList')) return
+
     if (!row.value) return
 
     const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
@@ -157,7 +161,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
         if (missingRequiredColumns.size) return
 
-        data = await $api.dbTableRow.create('noco', project.value.title as string, meta.value.title, insertObj)
+        data = await $api.dbTableRow.create('noco', project.value.id as string, meta.value.id, insertObj)
 
         Object.assign(row.value, {
           row: data,
@@ -173,7 +177,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           addUndo({
             redo: {
               fn: async function redo(this: UndoRedoAction, rowData: any) {
-                await $api.dbTableRow.create('noco', project.value.title as string, meta.value.title, { ...pkData, ...rowData })
+                await $api.dbTableRow.create('noco', project.value.id as string, meta.value.id, { ...pkData, ...rowData })
                 if (activeView.value?.type === ViewTypes.KANBAN) {
                   const { loadKanbanData } = useKanbanViewStoreOrThrow()
                   await loadKanbanData()
@@ -189,7 +193,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
                   project.value.id as string,
                   meta.value?.id as string,
                   activeView.value?.id as string,
-                  id,
+                  encodeURIComponent(id),
                 )
                 if (res.message) {
                   throw new Error(res.message)
@@ -217,7 +221,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
             return message.info("Update not allowed for table which doesn't have primary Key")
           }
 
-          await $api.dbTableRow.update(NOCO, project.value.title as string, meta.value.title, id, updateOrInsertObj)
+          await $api.dbTableRow.update(NOCO, project.value.id as string, meta.value.id, encodeURIComponent(id), updateOrInsertObj)
 
           if (!undo) {
             const undoObject = [...changedColumns.value].reduce((obj, col) => {
@@ -228,7 +232,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
             addUndo({
               redo: {
                 fn: async (id: string, data: Record<string, any>) => {
-                  await $api.dbTableRow.update(NOCO, project.value.title as string, meta.value.title, id, data)
+                  await $api.dbTableRow.update(NOCO, project.value.id as string, meta.value.id, encodeURIComponent(id), data)
                   if (activeView.value?.type === ViewTypes.KANBAN) {
                     const { loadKanbanData } = useKanbanViewStoreOrThrow()
                     await loadKanbanData()
@@ -239,7 +243,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               },
               undo: {
                 fn: async (id: string, data: Record<string, any>) => {
-                  await $api.dbTableRow.update(NOCO, project.value.title as string, meta.value.title, id, data)
+                  await $api.dbTableRow.update(NOCO, project.value.id as string, meta.value.id, encodeURIComponent(id), data)
                   if (activeView.value?.type === ViewTypes.KANBAN) {
                     const { loadKanbanData } = useKanbanViewStoreOrThrow()
                     await loadKanbanData()
@@ -286,8 +290,11 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       NOCO,
       // todo: project_id missing on view type
       (project?.value?.id || (sharedView.value?.view as any)?.project_id) as string,
-      meta.value.title,
-      rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[]),
+      meta.value.id,
+      encodeURIComponent(rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])),
+      {
+        getHiddenColumn: true,
+      },
     )
 
     Object.assign(row.value, {

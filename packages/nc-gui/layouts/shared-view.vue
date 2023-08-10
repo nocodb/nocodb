@@ -33,7 +33,7 @@ onMounted(() => {
 
   // handle meta title
   if (sharedView.value?.title) {
-    document.title = `${sharedView.value.title} | NocoDB`
+    document.title = `${sharedView.value.title}`
   } else {
     document.title = 'NocoDB'
   }
@@ -55,7 +55,7 @@ export default {
             <template #title>
               {{ appInfo.version }}
             </template>
-            <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+            <img width="35" alt="NocoDB" src="~/assets/img/icons/256x256-trans.png" />
           </a-tooltip>
         </div>
 
@@ -79,7 +79,7 @@ export default {
         <div class="flex-1" />
       </a-layout-header>
 
-      <div class="w-full overflow-hidden" style="height: calc(100% - var(--header-height))">
+      <div class="w-full overflow-hidden" style="height: calc(100vh)">
         <slot />
       </div>
     </a-layout>

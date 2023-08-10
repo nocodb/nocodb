@@ -11,17 +11,16 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ProjectUserReqType } from 'nocodb-sdk';
-import { GlobalGuard } from '../guards/global/global.guard';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { ProjectUsersService } from '../services/project-users/project-users.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { ProjectUsersService } from '~/services/project-users/project-users.service';
+import { User } from '~/models';
+import { NcError } from '~/helpers/catchError';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 @Controller()
 export class ProjectUsersController {
-  constructor(private readonly projectUsersService: ProjectUsersService) {}
+  constructor(protected readonly projectUsersService: ProjectUsersService) {}
 
   @Get('/api/v1/db/meta/projects/:projectId/users')
   @Acl('userList')
@@ -42,6 +41,17 @@ export class ProjectUsersController {
     @Request() req,
     @Body() body: ProjectUserReqType,
   ): Promise<any> {
+    // todo: move this to a service
+    if (!body.email) {
+      NcError.badRequest('Email is required');
+    }
+
+    const user = await User.getByEmail(body.email);
+
+    if (!user) {
+      NcError.badRequest('Only users that have signed up can be invited');
+    }
+
     return await this.projectUsersService.userInvite({
       projectId,
       projectUser: body,
@@ -105,5 +115,19 @@ export class ProjectUsersController {
     return {
       msg: 'The invitation has been sent to the user',
     };
+  }
+
+  @Patch('/api/v1/db/meta/projects/:projectId/user')
+  @Acl('projectUserMetaUpdate')
+  async projectUserMetaUpdate(
+    @Param('projectId') projectId: string,
+    @Request() req,
+    @Body() body: ProjectUserReqType,
+  ): Promise<any> {
+    return await this.projectUsersService.projectUserMetaUpdate({
+      projectId,
+      body,
+      user: req.user,
+    });
   }
 }

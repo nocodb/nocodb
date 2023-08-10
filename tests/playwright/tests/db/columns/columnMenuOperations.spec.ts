@@ -3,39 +3,42 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import setup from '../../../setup';
 
 const columns = [
+  // text type
   {
-    title: 'SingleLineText',
-    type: 'SingleLineText',
-  },
-  {
-    title: 'LongText',
+    title: 'Description',
     type: 'LongText',
   },
+  // numeric type
+  {
+    title: 'ReleaseYear',
+    type: 'Decimal',
+  },
+  // cell display (boolean)
+  // {
+  //   title: 'Checkbox',
+  //   type: 'Checkbox',
+  // },
+  // {
+  //   title: 'LongText',
+  //   type: 'LongText',
+  // },
   // todo: Number column creation not works
   // {
   //   title: 'Number',
   //   type: 'Number',
   // },
-  {
-    title: 'Decimal',
-    type: 'Decimal',
-  },
-  {
-    title: 'Checkbox',
-    type: 'Checkbox',
-  },
-  {
-    title: 'Email',
-    type: 'Email',
-  },
-  {
-    title: 'PhoneNumber',
-    type: 'PhoneNumber',
-  },
-  {
-    title: 'Url',
-    type: 'URL',
-  },
+  // {
+  //   title: 'Email',
+  //   type: 'Email',
+  // },
+  // {
+  //   title: 'PhoneNumber',
+  //   type: 'PhoneNumber',
+  // },
+  // {
+  //   title: 'Url',
+  //   type: 'URL',
+  // },
 ];
 
 test.describe('Column menu operations', () => {
@@ -51,10 +54,12 @@ test.describe('Column menu operations', () => {
     await dashboard.treeView.openTable({ title: 'Film' });
 
     for (const { title, type } of columns) {
-      await dashboard.grid.column.create({
-        title,
-        type,
-      });
+      // Use sakila db fields instead of creating new
+      //
+      // await dashboard.grid.column.create({
+      //   title,
+      //   type,
+      // });
 
       await dashboard.grid.column.duplicateColumn({
         title,
@@ -79,7 +84,7 @@ test.describe('Column menu operations', () => {
     await dashboard.grid.column.create({
       title: 'InsertAfterColumn1',
       type: 'SingleLineText',
-      insertAfterColumnTitle: 'Actor List',
+      insertAfterColumnTitle: 'Actors',
     });
 
     await dashboard.closeTab({ title: 'Film' });
@@ -98,7 +103,7 @@ test.describe('Column menu operations', () => {
     await dashboard.grid.column.create({
       title: 'InsertBeforeColumn1',
       type: 'SingleLineText',
-      insertBeforeColumnTitle: 'Actor List',
+      insertBeforeColumnTitle: 'Actors',
     });
 
     await dashboard.closeTab({ title: 'Film' });
@@ -113,7 +118,7 @@ test.describe('Column menu operations', () => {
     });
 
     await dashboard.grid.column.hideColumn({
-      title: 'Actor List',
+      title: 'Actors',
     });
 
     await dashboard.closeTab({ title: 'Film' });

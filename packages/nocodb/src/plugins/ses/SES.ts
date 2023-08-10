@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer';
 import AWS from 'aws-sdk';
 import type { IEmailAdapter } from 'nc-plugin';
 import type Mail from 'nodemailer/lib/mailer';
-import type { XcEmail } from '../../interface/IEmailAdapter';
+import type { XcEmail } from '~/interface/IEmailAdapter';
 
 export default class SES implements IEmailAdapter {
   private transporter: Mail;

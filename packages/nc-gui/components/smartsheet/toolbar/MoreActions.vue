@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { RequestParams } from 'nocodb-sdk'
 import { ExportTypes } from 'nocodb-sdk'
-import { storeToRefs } from 'pinia'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -12,6 +11,7 @@ import {
   inject,
   message,
   ref,
+  storeToRefs,
   useI18n,
   useNuxtApp,
   useProject,
@@ -66,9 +66,9 @@ const exportFile = async (exportType: ExportTypes) => {
       } else {
         res = await $api.dbViewRow.export(
           'noco',
-          project?.value.title as string,
-          meta.value?.title as string,
-          selectedView.value?.title as string,
+          project?.value.id as string,
+          meta.value?.id as string,
+          selectedView.value?.id as string,
           exportType,
           {
             responseType,

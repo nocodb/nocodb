@@ -1,3 +1,4 @@
+import { toRef } from 'vue'
 import type {
   ExportTypes,
   FilterType,
@@ -15,11 +16,14 @@ import { computed, parseProp, storeToRefs, useGlobal, useMetas, useNuxtApp, useS
 export function useSharedView() {
   const nestedFilters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
 
-  const { appInfo } = $(useGlobal())
+  const globalStore = useGlobal()
+  const appInfo = toRef(globalStore, 'appInfo')
 
-  const { project } = storeToRefs(useProject())
+  const projectStore = useProject()
 
-  const appInfoDefaultLimit = appInfo.defaultLimit || 25
+  const { project } = storeToRefs(projectStore)
+
+  const appInfoDefaultLimit = appInfo.value.defaultLimit || 25
 
   const paginationData = useState<PaginatedType>('paginationData', () => ({
     page: 1,
@@ -83,14 +87,15 @@ export function useSharedView() {
 
     // if project is not defined then set it with an object containing base
     if (!project.value?.bases)
-      project.value = {
+      projectStore.setProject({
+        id: viewMeta.project_id,
         bases: [
           {
             id: viewMeta.base_id,
             type: viewMeta.client,
           },
         ],
-      }
+      })
 
     const relatedMetas = { ...viewMeta.relatedMetas }
     Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))

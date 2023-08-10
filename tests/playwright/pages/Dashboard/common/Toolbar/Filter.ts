@@ -133,23 +133,26 @@ export class ToolbarFilterPage extends BasePage {
     if (selectedField !== title) {
       await this.rootPage.locator('.nc-filter-field-select').last().click();
 
-      if (skipWaitingResponse) {
-        await this.rootPage
-          .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
-          .locator(`div[label="${title}"]:visible`)
-          .click()
-          .then(() => {});
-      } else {
-        await this.waitForResponse({
-          uiAction: () =>
-            this.rootPage
-              .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
-              .locator(`div[label="${title}"]:visible`)
-              .click(),
-          httpMethodsToMatch: ['GET'],
-          requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
-        });
-      }
+      // TODO: Integrated the draft filter logic here as well, since when we add a filter its not saved till all
+      // its values are filled
+      await this.rootPage
+        .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
+        .locator(`div[label="${title}"]:visible`)
+        .click()
+        .then(() => {});
+      await this.rootPage.waitForTimeout(650);
+      // if (skipWaitingResponse || true) {
+      // } else {
+      //   await this.waitForResponse({
+      //     uiAction: () =>
+      //       this.rootPage
+      //         .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
+      //         .locator(`div[label="${title}"]:visible`)
+      //         .click(),
+      //     httpMethodsToMatch: ['GET'],
+      //     requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+      //   });
+      // }
     }
 
     const selectedOpType = await getTextExcludeIconText(await this.rootPage.locator('.nc-filter-operation-select'));

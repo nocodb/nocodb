@@ -80,6 +80,27 @@ const getColumn = (filter: Filter) => {
 
 const filterPrevComparisonOp = ref<Record<string, string>>({})
 
+const isFilterDraft = (filter: Filter, col: ColumnType) => {
+  if (filter.id) return false
+
+  if (
+    filter.comparison_op &&
+    comparisonSubOpList(filter.comparison_op).find((compOp) => compOp.value === filter.comparison_sub_op)?.ignoreVal
+  ) {
+    return false
+  }
+
+  if (comparisonOpList(col.uidt as UITypes).find((compOp) => compOp.value === filter.comparison_op)?.ignoreVal) {
+    return false
+  }
+
+  if (filter.value) {
+    return false
+  }
+
+  return true
+}
+
 const filterUpdateCondition = (filter: FilterType, i: number) => {
   const col = getColumn(filter)
   if (!col) return
@@ -113,7 +134,11 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
       }
     }
   }
-  saveOrUpdate(filter, i)
+
+  if (!isFilterDraft(filter, col)) {
+    saveOrUpdate(filter, i)
+  }
+
   filterPrevComparisonOp.value[filter.id!] = filter.comparison_op!
   $e('a:filter:update', {
     logical: filter.logical_op,
@@ -188,9 +213,9 @@ const selectFilterField = (filter: Filter, index: number) => {
   filter.value = null
 
   // Do not save the filter on field change if its a draft/placeholder filter
-  if (!filter.id) return
-
-  saveOrUpdate(filter, index)
+  if (!isFilterDraft(filter, col)) {
+    saveOrUpdate(filter, index)
+  }
 }
 
 const updateFilterValue = (value: string, filter: Filter, index: number) => {
@@ -325,7 +350,7 @@ const addFilterGroup = async () => {
             <SmartsheetToolbarFieldListAutoCompleteDropdown
               :key="`${i}_6`"
               v-model="filter.fk_column_id"
-              class="nc-filter-field-select min-w-34 max-w-34"
+              class="nc-filter-field-select min-w-40 max-w-40 max-h-8"
               :columns="columns"
               :disabled="filter.readOnly"
               @click.stop
@@ -334,7 +359,7 @@ const addFilterGroup = async () => {
             <NcSelect
               v-model:value="filter.comparison_op"
               :dropdown-match-select-width="false"
-              class="caption nc-filter-operation-select !min-w-30.75 !max-w-30.75"
+              class="caption nc-filter-operation-select !min-w-30.75 !max-w-30.75 max-h-8"
               :placeholder="$t('labels.operation')"
               density="compact"
               variant="solo"
@@ -386,7 +411,7 @@ const addFilterGroup = async () => {
                     false
                   : comparisonOpList(getColumn(filter)?.uidt).find((op) => op.value === filter.comparison_op)?.ignoreVal ?? false)
               "
-              class="nc-filter-value-select rounded-md"
+              class="nc-filter-value-select rounded-md min-w-34"
               :column="getColumn(filter)"
               :filter="filter"
               @update-filter-value="(value) => updateFilterValue(value, filter, i)"

@@ -1,4 +1,4 @@
-name: Playwright test reusable workflow
+name: Playwright test reusable workflow (ee)
 
 on:
   workflow_call:
@@ -59,7 +59,7 @@ jobs:
         run: npm install
       - name: Build nocodb-sdk
         working-directory: ./packages/nocodb-sdk
-        run: npm run build
+        run: npm run build:ee
       - name: Setup mysql
         if: ${{ inputs.db == 'mysql' }}
         working-directory: ./
@@ -74,7 +74,7 @@ jobs:
         run: docker-compose -f ./tests/playwright/scripts/docker-compose-pg-pw-quick.yml up -d &
       - name: run frontend
         working-directory: ./packages/nc-gui
-        run: npm run ci:run
+        run: npm run ci:run:ee
         timeout-minutes: 20
       - name: Run backend
         if: ${{ inputs.db == 'sqlite' }}
@@ -93,7 +93,7 @@ jobs:
         working-directory: ./packages/nocodb
         run: |
           npm install
-          npm run watch:run:playwright:pg &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+          npm run watch:run:playwright:pg:ee &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
       - name: Cache playwright npm modules
         uses: actions/cache@v3
         id: playwright-cache
@@ -168,7 +168,7 @@ jobs:
 
           SUMMARY='[Artifacts](http://65.21.27.147/'${path}')
           [playwright-report](http://65.21.27.147/'${path}'/playwright-report)'
-          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY     
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 #      - uses: actions/upload-artifact@v3
 #        if: ${{ inputs.db == 'sqlite' }}
 #        with:

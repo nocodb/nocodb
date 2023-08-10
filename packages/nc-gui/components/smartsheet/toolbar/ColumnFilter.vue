@@ -18,7 +18,7 @@ import {
 import type { Filter } from '#imports'
 
 interface Props {
-  nested?: boolean
+  nestedLevel?: number
   parentId?: string
   autoSave: boolean
   hookId?: string
@@ -27,9 +27,21 @@ interface Props {
   webHook?: boolean
 }
 
-const { nested = false, parentId, autoSave = true, hookId = null, modelValue, showLoading = true, webHook } = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  nestedLevel: 0,
+  autoSave: true,
+  showLoading: true,
+  modelValue: () => Array<Filter>(),
+  parentId: undefined,
+  hookId: undefined,
+  webHook: false,
+})
 
 const emit = defineEmits(['update:filtersLength'])
+
+const { nestedLevel, parentId, autoSave, hookId, modelValue, showLoading, webHook } = toRefs(props)
+
+const nested = computed(() => nestedLevel.value > 0)
 
 const logicalOps = [
   { value: 'and', text: 'AND' },
@@ -59,12 +71,12 @@ const {
   isComparisonSubOpAllowed,
 } = useViewFilters(
   activeView,
-  parentId,
-  computed(() => autoSave),
-  () => reloadDataHook.trigger(showLoading),
-  modelValue || nestedFilters.value,
-  !modelValue,
-  webHook,
+  parentId?.value,
+  computed(() => autoSave.value),
+  () => reloadDataHook.trigger(showLoading.value),
+  modelValue.value || nestedFilters.value,
+  !modelValue.value,
+  webHook.value,
 )
 
 const localNestedFilters = ref()
@@ -162,11 +174,9 @@ watch(
   () => activeView.value?.id,
   (n, o) => {
     // if nested no need to reload since it will get reloaded from parent
-    if (!nested && n !== o && (hookId || !webHook)) loadFilters(hookId as string)
+    if (!nested.value && n !== o && (hookId?.value || !webHook.value)) loadFilters(hookId?.value)
   },
 )
-
-loadFilters(hookId as string)
 
 watch(
   () => nonDeletedFilters.value.length,
@@ -225,7 +235,7 @@ const updateFilterValue = (value: string, filter: Filter, index: number) => {
 
 defineExpose({
   applyChanges,
-  parentId,
+  parentId: parentId?.value,
 })
 
 const scrollToBottom = () => {
@@ -236,7 +246,7 @@ const scrollToBottom = () => {
 }
 
 const scrollDownIfNeeded = () => {
-  if (nested) {
+  if (nested.value) {
     addFiltersRowDomRef?.value?.scrollIntoView({
       behavior: 'smooth',
       block: 'end',
@@ -248,7 +258,7 @@ const scrollDownIfNeeded = () => {
 const addFilter = async () => {
   await _addFilter()
 
-  if (!nested) {
+  if (!nested.value) {
     // if nested, scroll to bottom
     scrollToBottom()
   } else {
@@ -259,13 +269,17 @@ const addFilter = async () => {
 const addFilterGroup = async () => {
   await _addFilterGroup()
 
-  if (!nested) {
+  if (!nested.value) {
     // if nested, scroll to bottom
     scrollToBottom()
   } else {
     scrollDownIfNeeded()
   }
 }
+
+onMounted(() => {
+  loadFilters(hookId?.value)
+})
 </script>
 
 <template>
@@ -299,7 +313,7 @@ const addFilterGroup = async () => {
                     @click.stop
                     @change="saveOrUpdate(filter, i)"
                   >
-                    <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value" class="">
+                    <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value" class="capitalize">
                       {{ op.value }}
                     </a-select-option>
                   </NcSelect>
@@ -322,6 +336,7 @@ const addFilterGroup = async () => {
                   :key="filter.id ?? i"
                   ref="localNestedFilters"
                   v-model="filter.children"
+                  :nested-level="nestedLevel + 1"
                   :parent-id="filter.id"
                   nested
                   :auto-save="autoSave"
@@ -443,7 +458,7 @@ const addFilterGroup = async () => {
         </div>
       </NcButton>
 
-      <NcButton v-if="!webHook" type="text" size="small" @click.stop="addFilterGroup()">
+      <NcButton v-if="!webHook && nestedLevel < 5" type="text" size="small" @click.stop="addFilterGroup()">
         <div class="flex items-center gap-1">
           <!-- Add Filter Group -->
           <component :is="iconMap.plus" />

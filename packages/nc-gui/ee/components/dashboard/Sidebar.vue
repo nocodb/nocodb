@@ -150,7 +150,7 @@ const navigateToHome = () => {
           >
             <MdiPlus class="!h-4" />
 
-            <div class="flex">New Project</div>
+            <div class="flex">{{ $t('title.newProj') }}</div>
           </div>
         </WorkspaceCreateProjectBtn>
         <div v-else class="!h-7"></div>

@@ -120,7 +120,11 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
 
     <NcTooltip v-if="!isPublic && hideSidebars !== true" placement="topRight" hide-on-click>
       <template #title>
-        {{ isRightSidebarOpen ? 'Hide Sidebar' : 'Show Sidebar' }}
+        {{
+          isRightSidebarOpen
+            ? `${$t('general.hide')} ${$t('objects.sidebar').toLowerCase()}`
+            : `${$t('general.show')} ${$t('objects.sidebar').toLowerCase()}`
+        }}
       </template>
 
       <div

@@ -123,7 +123,12 @@
     "geoDataField": "GeoData Field",
     "type": "Type",
     "name": "Name",
-    "changes": "Changes"
+    "changes": "Changes",
+    "new": "New",
+    "old": "Old",
+    "data": "Data",
+    "source": "Source",
+    "destination": "Destination"
   },
   "objects": {
     "workspace": "Workspace",
@@ -281,6 +286,7 @@
   "labels": {
     "searchProjects": "Search Projects",
     "createdBy": "Created By",
+    "createdOn": "Created On",
     "notifyVia": "Notify Via",
     "projName": "Project name",
     "tableName": "Table name",

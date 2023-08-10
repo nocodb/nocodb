@@ -258,7 +258,7 @@ onKeyStroke('Escape', () => {
             </template>
             <!-- Language -->
             <a-sub-menu
-              v-if="false"
+              v-if="!isEeUI"
               key="language"
               class="lang-menu !py-0"
               popup-class-name="scrollbar-thin-dull min-w-50 max-h-90vh !overflow-auto"

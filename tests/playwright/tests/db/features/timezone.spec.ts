@@ -1,7 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup, { NcContext } from '../../../setup';
-import { knex } from 'knex';
+import setup, { NcContext, unsetup } from '../../../setup';
 import { Api, ProjectListType, UITypes } from 'nocodb-sdk';
 import { isEE, isHub, isMysql, isPg, isSqlite } from '../../../setup/db';
 import { getKnexConfig } from '../../utils/config';
@@ -130,6 +129,10 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
     await page.reload();
   });
 
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   // DST independent test
   test.use({
     locale: 'ja-JP', // Change to Japanese locale
@@ -228,6 +231,10 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     await page.reload();
   });
 
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   test.use({
     locale: 'zh-HK',
     timezoneId: 'Asia/Hong_Kong',
@@ -315,6 +322,10 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
       columnHeader: 'DateTime',
       dateTime: '2021-01-01 08:00:00',
     });
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   /*
@@ -628,6 +639,10 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
     });
     counter++;
     await createTableWithDateTimeColumn(context.dbType, `datetimetable01${counter}`);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   // ExtDB : DateAdd, DateTime_Diff verification
@@ -950,6 +965,10 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
     await createTableWithDateTimeColumn(context.dbType, 'datetimetable02');
   });
 
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   // ExtDB : DateAdd, DateTime_Diff verification
   //  - verify display value
   //  - verify API response value
@@ -1085,6 +1104,10 @@ test.describe.serial('Timezone- ExtDB (MySQL Only) : DB Timezone configured as H
     });
 
     await createTableWithDateTimeColumn(context.dbType, 'datetimetable03', true);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test.afterEach(async () => {

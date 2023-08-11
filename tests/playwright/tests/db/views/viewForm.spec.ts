@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { FormPage } from '../../../pages/Dashboard/Form';
 import { SharedFormPage } from '../../../pages/SharedForm';
 import { AccountPage } from '../../../pages/Account';
@@ -25,6 +25,10 @@ test.describe('Form view', () => {
     form = dashboard.form;
     accountPage = new AccountPage(page);
     accountAppStorePage = accountPage.appStore;
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Field re-order operations', async () => {
@@ -341,6 +345,10 @@ test.describe('Form view with LTAR', () => {
     await page.reload();
   });
 
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   test('Form view with LTAR', async ({ page }) => {
     await dashboard.treeView.openTable({ title: 'Country' });
 
@@ -416,6 +424,10 @@ test.describe('Form view', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Select fields in form view', async () => {

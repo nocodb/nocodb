@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 
 test.describe.skip('Map View', () => {
   let dashboard: DashboardPage;
@@ -48,6 +48,10 @@ test.describe.skip('Map View', () => {
       lat: latitudeInFullDecimalLength,
       long: longitudeInFullDecimalLength,
     });
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('shows the marker and opens the expanded form view when clicking on it', async () => {

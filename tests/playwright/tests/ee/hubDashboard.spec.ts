@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import setup from '../../setup';
+import setup, { unsetup } from '../../setup';
 import { WorkspacePage } from '../../pages/WorkspacePage';
 import { DashboardPage } from '../../pages/Dashboard';
 
@@ -11,6 +11,10 @@ test.describe('DashboardBasicTests', () => {
     context = await setup({ page, isEmptyProject: true, url: '/#/' });
     wsPage = new WorkspacePage(page);
     dashboardPage = new DashboardPage(page, context.project);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Page load & static configurations verification', async () => {

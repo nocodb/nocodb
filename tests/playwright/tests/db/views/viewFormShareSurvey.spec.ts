@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { SurveyFormPage } from '../../../pages/Dashboard/SurveyForm';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 
 test.describe('Share form', () => {
   let dashboard: DashboardPage;
@@ -11,6 +11,10 @@ test.describe('Share form', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Survey', async () => {

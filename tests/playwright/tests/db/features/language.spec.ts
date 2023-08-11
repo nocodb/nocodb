@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 
 const langMenu = [
   'help-translate',
@@ -50,6 +50,10 @@ test.describe.skip('Common', () => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     projectsPage = new ProjectsPage(page);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Language', async () => {

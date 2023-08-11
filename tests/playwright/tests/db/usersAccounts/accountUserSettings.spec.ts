@@ -2,7 +2,7 @@ import { test } from '@playwright/test';
 import { AccountPage } from '../../../pages/Account';
 import { AccountSettingsPage } from '../../../pages/Account/Settings';
 import { SignupPage } from '../../../pages/SignupPage';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { getDefaultPwd } from '../../../tests/utils/general';
 
 test.describe.skip('App settings', () => {
@@ -17,6 +17,10 @@ test.describe.skip('App settings', () => {
     context = await setup({ page, isEmptyProject: true });
     accountPage = new AccountPage(page);
     accountSettingsPage = accountPage.settings;
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Toggle invite only signup', async () => {

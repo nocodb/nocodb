@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../pages/Dashboard';
-import setup from '../../setup';
+import setup, { unsetup } from '../../setup';
 import { AccountPage } from '../../pages/Account';
 import { AccountLicensePage } from '../../pages/Account/License';
 
@@ -13,6 +13,10 @@ test.describe.skip('Attachment column', () => {
     dashboard = new DashboardPage(page, context.project);
     accountPage = new AccountPage(page);
     accountLicensePage = new AccountLicensePage(accountPage);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Attachment enterprise features,', async () => {

@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 
 test.describe.skip('Super user', () => {
   let dashboard: DashboardPage;
@@ -9,6 +9,10 @@ test.describe.skip('Super user', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true, isSuperUser: true });
     dashboard = new DashboardPage(page, context.project);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   // fix me!

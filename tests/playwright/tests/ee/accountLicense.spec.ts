@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { AccountPage } from '../../pages/Account';
-import setup from '../../setup';
+import setup, { unsetup } from '../../setup';
 import { AccountLicensePage } from '../../pages/Account/License';
 import { DashboardPage } from '../../pages/Dashboard';
 import { isHub } from '../../setup/db';
@@ -16,6 +16,10 @@ test.describe.skip('Enterprise License', () => {
     accountPage = new AccountPage(page);
     accountLicensePage = new AccountLicensePage(accountPage);
     dashboard = new DashboardPage(page, context.project);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Update license key & verify if enterprise features enabled', async () => {

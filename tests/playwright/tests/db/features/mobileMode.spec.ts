@@ -2,7 +2,7 @@ import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { FormPage } from '../../../pages/Dashboard/Form';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 
 test.describe.skip('Mobile Mode', () => {
   let dashboard: DashboardPage;
@@ -15,6 +15,10 @@ test.describe.skip('Mobile Mode', () => {
     dashboard = new DashboardPage(page, context.project);
     form = dashboard.form;
     toolbar = dashboard.grid.toolbar;
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('activating and deactivating Mobile Mode results correct behavior', async () => {

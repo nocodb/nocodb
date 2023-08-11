@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../pages/Dashboard';
-import setup from '../../setup';
+import setup, { unsetup } from '../../setup';
 import { getDefaultPwd } from '../../tests/utils/general';
 import { WorkspacePage } from '../../pages/WorkspacePage';
 import { Api } from 'nocodb-sdk';
@@ -46,6 +46,10 @@ test.describe('Collaborators', () => {
     }
 
     await dashboard.leftSidebar.home.click();
+  });
+  
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('WS role access validation', async ({ page }) => {

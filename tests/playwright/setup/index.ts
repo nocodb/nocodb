@@ -372,27 +372,20 @@ const setup = async ({
   return { project, token, dbType, workerId, rootUser, workspace } as NcContext;
 };
 
-// Reference
-// packages/nocodb/src/lib/services/test/TestResetService/resetPgSakilaProject.ts
-//
-const resetSakilaPg = async (parallelId: string) => {
-  const testsDir = __dirname.replace('/tests/playwright/setup', '/packages/nocodb/tests');
+export const unsetup = async (context: NcContext): Promise<void> => {
+  if (context.token && context.project) {
+    // try to delete the project
+    try {
+       // Init SDK using token
+      const api = new Api({
+        baseURL: `http://localhost:8080/`,
+        headers: {
+          'xc-auth': context.token,
+        },
+      });
 
-  let sakilaKnex;
-  try {
-    sakilaKnex = knex(sakilaKnexConfig(parallelId));
-    const schemaFile = await fs.readFile(`${testsDir}/pg-sakila-db/01-postgres-sakila-schema.sql`);
-    await sakilaKnex.raw(schemaFile.toString());
-
-    const trx = await sakilaKnex.transaction();
-    const dataFile = await fs.readFile(`${testsDir}/pg-sakila-db/02-postgres-sakila-insert-data.sql`);
-    await trx.raw(dataFile.toString());
-    await trx.commit();
-  } catch (e) {
-    console.error(`Error resetting pg sakila db: Worker ${parallelId}`);
-    throw Error(`Error resetting pg sakila db: Worker ${parallelId}`);
-  } finally {
-    if (sakilaKnex) await sakilaKnex.destroy();
+      await api.project.delete(context.project.id);
+    } catch (e) {}
   }
 };
 

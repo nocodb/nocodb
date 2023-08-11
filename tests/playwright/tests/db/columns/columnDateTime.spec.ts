@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup, { NcContext } from '../../../setup';
+import setup, { NcContext, unsetup } from '../../../setup';
 
 const dateTimeData = [
   {
@@ -63,6 +63,10 @@ test.describe('DateTime Column', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Create DateTime Column', async () => {

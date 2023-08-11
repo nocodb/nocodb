@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 
 test.describe('Views CRUD Operations', () => {
   let dashboard: DashboardPage;
@@ -12,6 +12,10 @@ test.describe('Views CRUD Operations', () => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Create views, reorder and delete', async () => {

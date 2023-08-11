@@ -20,7 +20,7 @@
  */
 
 import { test } from '@playwright/test';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { Api, UITypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { GridPage } from '../../../pages/Dashboard/Grid';
@@ -210,6 +210,10 @@ test.describe.serial('Test table', () => {
 
     // refresh page
     await page.reload();
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Delete record - single, over UI', async () => {

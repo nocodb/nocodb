@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { Api, UITypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { GridPage } from '../../../pages/Dashboard/Grid';
@@ -62,6 +62,10 @@ test.describe('Links', () => {
 
     // refresh page
     await page.reload();
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('drag drop for Link, lookup creation', async () => {

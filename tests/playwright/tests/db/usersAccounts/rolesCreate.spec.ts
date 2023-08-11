@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { SettingsPage, SettingTab } from '../../../pages/Dashboard/Settings';
 import { SignupPage } from '../../../pages/SignupPage';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
@@ -29,6 +29,10 @@ test.describe.skip('User roles', () => {
     signupPage = new SignupPage(page);
     projectsPage = new ProjectsPage(page);
     workspacePage = new WorkspacePage(page);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test.skip('Create role', async () => {

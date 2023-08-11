@@ -130,6 +130,10 @@ const onBlur = () => {
   @apply bg-gray-50 hover:bg-gray-50 border-0 text-gray-300 cursor-not-allowed;
 }
 
+.nc-button.ant-btn-text.ant-btn[disabled] {
+  @apply bg-transparent hover:bg-transparent;
+}
+
 .nc-button.ant-btn-secondary[disabled] {
   @apply bg-white hover:bg-white border-1 border-gray-100 text-gray-300;
 }

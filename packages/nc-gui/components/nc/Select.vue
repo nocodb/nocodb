@@ -41,7 +41,7 @@ const onChange = (value: string) => {
     @change="onChange"
   >
     <template #suffixIcon>
-      <GeneralIcon icon="arrowDown" class="text-gray-800" />
+      <GeneralIcon icon="arrowDown" class="text-gray-800 nc-select-expand-btn" />
     </template>
     <slot />
   </a-select>
@@ -61,6 +61,10 @@ const onChange = (value: string) => {
 .nc-select.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector {
   box-shadow: none;
   @apply border-brand-500;
+}
+
+.nc-select.ant-select.ant-select-disabled .nc-select-expand-btn {
+  @apply text-gray-300;
 }
 
 .nc-select-dropdown {

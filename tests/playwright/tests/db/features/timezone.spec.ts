@@ -40,7 +40,7 @@ async function timezoneSuite(projectTitle: string, context: NcContext, skipTable
     },
   });
   // get current workspace information if in hub
-  const workspaceId = context.workspace.id;
+  const workspaceId = context?.workspace?.id;
   try {
     let projectList: ProjectListType;
     if (isHub()) {
@@ -122,7 +122,7 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
     if (!isSqlite(context) && !isHub()) return;
 
     try {
-      const { project, table, api } = await timezoneSuite('xcdb0', context);
+      const { project, table, api } = await timezoneSuite(`xcdb${context.workerId}`, context);
 
       await api.dbTableRow.bulkCreate('noco', project.id, table.id, rowAttributes);
       records = await api.dbTableRow.list('noco', project.id, table.id, { limit: 10 });
@@ -155,11 +155,11 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
     if (!isSqlite(context) && !isHub()) return;
 
     if (isHub()) {
-      await dashboard.treeView.openBase({ title: 'xcdb0' });
+      await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
     } else {
       await dashboard.clickHome();
       const projectsPage = new ProjectsPage(dashboard.rootPage);
-      await projectsPage.openProject({ title: 'xcdb0', withoutPrefix: true });
+      await projectsPage.openProject({ title: `xcdb${context.workerId}`, withoutPrefix: true });
     }
 
     await dashboard.treeView.openTable({ title: 'dateTimeTable' });
@@ -227,7 +227,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     dashboard = new DashboardPage(page, context.project);
 
     try {
-      const { project, table, api } = await timezoneSuite('xcdb1', context);
+      const { project, table, api } = await timezoneSuite(`xcdb${context.workerId}`, context);
       await dashboard.rootPage.reload();
 
       await api.dbTableRow.bulkCreate('noco', project.id, table.id, rowAttributes);
@@ -257,11 +257,11 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
    */
   test('API insert, verify display value', async () => {
     if (isHub()) {
-      await dashboard.treeView.openBase({ title: 'xcdb1' });
+      await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
     } else {
       await dashboard.clickHome();
       const projectsPage = new ProjectsPage(dashboard.rootPage);
-      await projectsPage.openProject({ title: 'xcdb1', withoutPrefix: true });
+      await projectsPage.openProject({ title: `xcdb${context.workerId}`, withoutPrefix: true });
     }
 
     await dashboard.treeView.openTable({ title: 'dateTimeTable' });
@@ -303,7 +303,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
 
-    const { project, api } = await timezoneSuite('xcdb2', context, true);
+    const { project, api } = await timezoneSuite(`xcdb${context.workerId}`, context, true);
     gApi = api;
     await dashboard.rootPage.reload();
 
@@ -313,11 +313,11 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     // Hence switched over to UI based table creation
 
     if (isHub()) {
-      await dashboard.treeView.openBase({ title: 'xcdb2' });
+      await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
     } else {
       await dashboard.clickHome();
       const projectsPage = new ProjectsPage(dashboard.rootPage);
-      await projectsPage.openProject({ title: 'xcdb2', withoutPrefix: true });
+      await projectsPage.openProject({ title: `xcdb${context.workerId}`, withoutPrefix: true });
     }
 
     await dashboard.treeView.createTable({

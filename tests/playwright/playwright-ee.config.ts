@@ -11,7 +11,7 @@ require('dotenv').config();
  * See https://playwright.dev/docs/test-configuration.
  */
 const config: PlaywrightTestConfig = {
-  testDir: process.env.PW_QUICK_TEST ? './quickTests' : './tests/db',
+  testDir: process.env.PW_QUICK_TEST ? './quickTests' : './tests',
   /* Maximum time one test can run for. */
   timeout: process.env.CI ? 140 * 1000 : 100 * 1000,
   expect: {
@@ -27,7 +27,7 @@ const config: PlaywrightTestConfig = {
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
-  retries: process.env.CI ? 3 : 0,
+  retries: process.env.CI ? 3 : 1,
   /* Opt out of parallel tests on CI. */
   // workers: process.env.CI ? 2 : 4,
   workers: process.env.CI ? 2 : 4,

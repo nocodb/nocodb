@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import fs from 'fs';
-import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
 import path from 'path';
 import 'mocha';
 import request from 'supertest';
@@ -8,13 +8,6 @@ import { createProject } from '../../factory/project';
 import init from '../../init';
 
 const FILE_PATH = path.join(__dirname, 'test.txt');
-
-// Test case list
-// 1. Upload file - Super admin
-// 2. Upload file - Without token
-// 3. Upload file - Org level viewer
-// 4. Upload file - Org level creator
-// 5. Upload file - Org level viewer with editor role in a project
 
 function attachmentTests() {
   let context;
@@ -123,66 +116,52 @@ function attachmentTests() {
   });
 
   it('Upload file - Org level viewer with editor role in a project', async () => {
-    // signup a new user
-    const args = {
-      email: 'dummyuser@example.com',
-      password: 'A1234abh2@dsad',
-    };
+    // skip this test for enterprise edition
+    if (process.env.NC_EDITION === 'community') {
+      // signup a new user
+      const args = {
+        email: 'dummyuser@example.com',
+        password: 'A1234abh2@dsad',
+      };
 
-    await request(context.app)
-      .post('/api/v1/auth/user/signup')
-      .send(args)
-      .expect(200);
+      await request(context.app)
+        .post('/api/v1/auth/user/signup')
+        .send(args)
+        .expect(200);
 
-    const wsList = await request(context.app)
-      .get('/api/v1/workspaces')
-      .set('xc-auth', context.token)
-      .expect(200);
+      const newProject = await createProject(context, {
+        title: 'NewTitle1',
+      });
 
-    const newProject = await createProject(context, {
-      title: 'NewTitle1',
-      fk_workspace_id: wsList.body.list[0].id,
-      type: 'database',
-    });
+      // invite user to project with editor role
+      await request(context.app)
+        .post(`/api/v1/db/meta/projects/${newProject.id}/users`)
+        .set('xc-auth', context.token)
+        .send({
+          roles: ProjectRoles.EDITOR,
+          email: args.email,
+          project_id: newProject.id,
+          projectName: newProject.title,
+        })
+        .expect(200);
 
-    // add user to WS
-    await request(context.app)
-      .post(`/api/v1/workspaces/${wsList.body.list[0].id}/invitations`)
-      .set('xc-auth', context.token)
-      .send({
-        roles: WorkspaceUserRoles.EDITOR,
-        email: args.email,
-      })
-      .expect(201);
+      // signin to get user token
+      const signinResponse = await request(context.app)
+        .post('/api/v1/auth/user/signin')
+        // pass empty data in await request
+        .send(args)
+        .expect(200);
 
-    // invite user to project with editor role
-    await request(context.app)
-      .post(`/api/v1/db/meta/projects/${newProject.id}/users`)
-      .set('xc-auth', context.token)
-      .send({
-        roles: ProjectRoles.EDITOR,
-        email: args.email,
-        project_id: newProject.id,
-        projectName: newProject.title,
-      })
-      .expect(200);
+      const response = await request(context.app)
+        .post('/api/v1/db/storage/upload')
+        .attach('files', FILE_PATH)
+        .set('xc-auth', signinResponse.body.token)
+        .expect(200);
 
-    // signin to get user token
-    const signinResponse = await request(context.app)
-      .post('/api/v1/auth/user/signin')
-      // pass empty data in await request
-      .send(args)
-      .expect(200);
-
-    const response = await request(context.app)
-      .post('/api/v1/db/storage/upload')
-      .attach('files', FILE_PATH)
-      .set('xc-auth', signinResponse.body.token)
-      .expect(200);
-
-    const attachments = response.body;
-    expect(attachments).to.be.an('array');
-    expect(attachments[0].title).to.be.eq(path.basename(FILE_PATH));
+      const attachments = response.body;
+      expect(attachments).to.be.an('array');
+      expect(attachments[0].title).to.be.eq(path.basename(FILE_PATH));
+    }
   });
 }
 

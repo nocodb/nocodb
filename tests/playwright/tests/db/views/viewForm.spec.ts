@@ -9,7 +9,7 @@ import { Api, UITypes } from 'nocodb-sdk';
 import { LoginPage } from '../../../pages/LoginPage';
 import { getDefaultPwd } from '../../../tests/utils/general';
 import { WorkspacePage } from '../../../pages/WorkspacePage';
-import { isHub } from '../../../setup/db';
+import { isEE, isHub } from '../../../setup/db';
 
 // todo: Move most of the ui actions to page object and await on the api response
 test.describe('Form view', () => {
@@ -380,9 +380,16 @@ test.describe('Form view with LTAR', () => {
 
     await wsPage.waitFor({ state: 'visible' });
 
-    await wsPage.workspaceOpen({ title: context.workspace.title });
+    if (isEE()) {
+      await wsPage.workspaceOpen({ title: context.workspace.title });
+    }
     await wsPage.projectOpen({ title: context.project.title });
 
+    if (!isEE()) {
+      // project tree is collapsed in CE
+      await dashboard.rootPage.waitForTimeout(1000);
+      await dashboard.treeView.openProject({ title: context.project.title });
+    }
     await dashboard.treeView.openTable({ title: 'Country' });
     await dashboard.viewSidebar.openView({ title: 'Country' });
 

@@ -1,4 +1,4 @@
-name: Playwright test reusable workflow
+name: Playwright test reusable workflow (ee)
 
 on:
   workflow_call:
@@ -168,7 +168,7 @@ jobs:
 
           SUMMARY='[Artifacts](http://65.21.27.147/'${path}')
           [playwright-report](http://65.21.27.147/'${path}'/playwright-report)'
-          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY     
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 #      - uses: actions/upload-artifact@v3
 #        if: ${{ inputs.db == 'sqlite' }}
 #        with:

@@ -19,7 +19,11 @@ async function createXcdb(context: NcContext) {
     }
   }
 
-  const project = await api.project.create({ title: 'xcdb', fk_workspace_id: context.workspace.id, type: 'database' });
+  const project = await api.project.create({
+    title: 'xcdb',
+    fk_workspace_id: context?.workspace?.id,
+    type: 'database',
+  });
   return project;
 }
 

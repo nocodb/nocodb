@@ -1,8 +1,8 @@
 import { test } from '@playwright/test';
-import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
-import { AccountPage } from '../../../pages/Account';
-import { AccountLicensePage } from '../../../pages/Account/License';
+import { DashboardPage } from '../../pages/Dashboard';
+import setup from '../../setup';
+import { AccountPage } from '../../pages/Account';
+import { AccountLicensePage } from '../../pages/Account/License';
 
 test.describe.skip('Attachment column', () => {
   let dashboard: DashboardPage;

@@ -478,6 +478,52 @@ test.describe('Toolbar operations (GRID)', () => {
     });
   });
 
+  test('Change View and Verify GroupBy', async () => {
+    await dashboard.treeView.openTable({ title: 'Film' });
+
+    // Open GroupBy Menu
+    await toolbar.clickGroupBy();
+    await toolbar.groupBy.add({ title: 'Length', ascending: false, locallySaved: false });
+    await toolbar.clickGroupBy();
+
+    await dashboard.viewSidebar.createGridView({ title: 'Test' });
+    await dashboard.viewSidebar.openView({ title: 'Test' });
+    await dashboard.viewSidebar.openView({ title: 'Film' });
+
+    await dashboard.grid.groupPage.verifyGroupHeader({
+      indexMap: [0],
+      count: 10,
+      title: 'Length',
+    });
+
+    await dashboard.grid.groupPage.verifyGroup({
+      indexMap: [0],
+      value: '185',
+    });
+  });
+
+  test('Duplicate View and Verify GroupBy', async () => {
+    await dashboard.treeView.openTable({ title: 'Film' });
+
+    // Open GroupBy Menu
+    await toolbar.clickGroupBy();
+    await toolbar.groupBy.add({ title: 'Length', ascending: false, locallySaved: false });
+    await toolbar.clickGroupBy();
+
+    await dashboard.viewSidebar.copyView({ title: 'Film' });
+
+    await dashboard.grid.groupPage.verifyGroupHeader({
+      indexMap: [0],
+      count: 10,
+      title: 'Length',
+    });
+
+    await dashboard.grid.groupPage.verifyGroup({
+      indexMap: [0],
+      value: '185',
+    });
+  });
+
   test('Hide, Sort, Filter', async () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });

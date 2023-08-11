@@ -14,7 +14,7 @@ import { JobEvents } from '../../interface/Jobs';
 import type { OnModuleInit } from '@nestjs/common';
 import type { JobStatus } from '../../interface/Jobs';
 
-const url = new URL(process.env.NC_PUBLIC_URL || `http://localhost:${process.env.PORT}/`)
+const url = new URL(process.env.NC_PUBLIC_URL || `http://localhost:${process.env.PORT || '8080'}/`)
 @WebSocketGateway({
   cors: {
     origin: '*',

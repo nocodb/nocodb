@@ -338,7 +338,6 @@ test.describe('Toolbar operations (GRID)', () => {
 
     // Add Sort and Verify
     await toolbar.sort.add({ title: 'Title', ascending: false, locallySaved: false });
-    await dashboard.grid.groupPage.openGroup({ indexMap: [5, 0, 0] });
     await dashboard.grid.groupPage.validateFirstRow({
       indexMap: [5, 0, 0],
       rowIndex: 0,
@@ -348,7 +347,6 @@ test.describe('Toolbar operations (GRID)', () => {
 
     // Update Sort and Verify
     await toolbar.sort.update({ index: 1, title: 'Title', ascending: true, locallySaved: false });
-    await dashboard.grid.groupPage.openGroup({ indexMap: [5, 0, 0] });
     await dashboard.grid.groupPage.validateFirstRow({
       indexMap: [5, 0, 0],
       rowIndex: 0,
@@ -392,7 +390,7 @@ test.describe('Toolbar operations (GRID)', () => {
 
     await toolbar.filter.add({
       title: 'Rating',
-      value: 'NC-17',
+      value: 'PG-13',
       operation: 'is equal',
       locallySaved: false,
     });
@@ -405,7 +403,7 @@ test.describe('Toolbar operations (GRID)', () => {
       indexMap: [5, 0, 0],
       rowIndex: 0,
       columnHeader: 'Title',
-      value: 'ANONYMOUS HUMAN',
+      value: 'IMPACT ALADDIN',
     });
 
     // Remove Filter and Verify
@@ -433,8 +431,6 @@ test.describe('Toolbar operations (GRID)', () => {
       title: 'Description',
       isVisible: true,
     });
-
-    await dashboard.closeTab({ title: 'Film' });
   });
 
   test('Update GroupBy and Verify', async () => {

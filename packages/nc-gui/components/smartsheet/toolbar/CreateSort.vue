@@ -68,15 +68,15 @@ const onArrowUp = () => {
 
 <template>
   <div
-    class="flex flex-col w-full pt-4 min-w-64"
+    class="flex flex-col w-full pt-4 pb-2 min-w-64"
     @keydown.arrow-down.prevent="onArrowDown"
     @keydown.arrow-up.prevent="onArrowUp"
     @keydown.enter.prevent="onClick(options[activeFieldIndex])"
   >
-    <div class="flex-col w-full">
-      <div class="flex pb-3 px-4 border-b-1 border-gray-100">
-        <input ref="inputRef" v-model="search" class="w-full focus:outline-none" placeholder="Select Field to Sort" />
-      </div>
+    <div class="flex pb-3 px-4 border-b-1 border-gray-100">
+      <input ref="inputRef" v-model="search" class="w-full focus:outline-none" placeholder="Select Field to Sort" />
+    </div>
+    <div class="flex-col w-full max-h-420px nc-scrollbar-md">
       <div v-if="!options.length" class="flex text-gray-500 px-4 py-2.25">Empty</div>
       <div
         v-for="(option, index) in options"

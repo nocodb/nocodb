@@ -105,11 +105,13 @@ async function localInit({
   isEmptyProject = false,
   projectType = ProjectTypes.DATABASE,
   isSuperUser = false,
+  dbType,
 }: {
   workerId: string;
   isEmptyProject?: boolean;
   projectType?: ProjectTypes;
   isSuperUser?: boolean;
+  dbType?: string;
 }) {
   const parallelId = process.env.TEST_PARALLEL_INDEX;
   // wait till previous worker is done
@@ -191,20 +193,22 @@ async function localInit({
       }
     }
 
-    // DB reset
-    if (!isEmptyProject) {
-      let pgknex;
-      try {
-        pgknex = knex(config);
-        await pgknex.raw(`DROP DATABASE IF EXISTS sakila${workerId} WITH (FORCE)`);
-        await pgknex.raw(`CREATE DATABASE sakila${workerId}`);
-      } catch (e) {
-        console.error(`Error resetting pg sakila db: Worker ${workerId}`);
-      } finally {
-        if (pgknex) await pgknex.destroy();
-      }
+    if (dbType === 'pg') {
+      // DB reset
+      if (!isEmptyProject) {
+        let pgknex;
+        try {
+          pgknex = knex(config);
+          await pgknex.raw(`DROP DATABASE IF EXISTS sakila${workerId} WITH (FORCE)`);
+          await pgknex.raw(`CREATE DATABASE sakila${workerId}`);
+        } catch (e) {
+          console.error(`Error resetting pg sakila db: Worker ${workerId}`);
+        } finally {
+          if (pgknex) await pgknex.destroy();
+        }
 
-      await resetSakilaPg(workerId);
+        await resetSakilaPg(workerId);
+      }
     }
 
     let workspace;
@@ -271,7 +275,7 @@ const setup = async ({
   url?: string;
 }): Promise<NcContext> => {
   // on noco-hub, only PG is supported
-  const dbType = 'pg';
+  const dbType = process.env.DB_TYPE;
   let response;
 
   const workerIndex = process.env.TEST_WORKER_INDEX;
@@ -290,6 +294,7 @@ const setup = async ({
         isEmptyProject,
         projectType,
         isSuperUser,
+        dbType,
       });
     }
     // Remote reset logic

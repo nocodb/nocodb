@@ -70,7 +70,6 @@ export interface NcContext {
 }
 
 selectors.setTestIdAttribute('data-testid');
-const workerStatus = {};
 
 async function localInit({
   workerId,
@@ -84,13 +83,6 @@ async function localInit({
   isSuperUser?: boolean;
 }) {
   const parallelId = process.env.TEST_PARALLEL_INDEX;
-  // wait till previous worker is done
-  while (workerStatus[parallelId] === 'processing') {
-    console.log(`waiting for previous worker to finish parrelelId:${parallelId}`);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-  }
-
-  workerStatus[parallelId] = 'processing';
 
   try {
     let response: AxiosResponse<any, any>;
@@ -205,14 +197,11 @@ async function localInit({
         }
       }
     }
-    workerStatus[parallelId] = 'complete';
 
     // get current user information
     const user = await api.auth.me();
     return { data: { project, user, workspace, token }, status: 200 };
   } catch (e) {
-    workerStatus[parallelId] = 'errored';
-
     console.error(`Error resetting project: ${process.env.TEST_PARALLEL_INDEX}`, e);
     return { data: {}, status: 500 };
   }

@@ -3,13 +3,10 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { NcContext } from '../../../setup';
 import { knex } from 'knex';
 import { Api, ProjectListType, UITypes } from 'nocodb-sdk';
-import { ProjectsPage } from '../../../pages/ProjectsPage';
-import { isHub, isMysql, isPg, isSqlite } from '../../../setup/db';
+import { isEE, isHub, isMysql, isPg, isSqlite } from '../../../setup/db';
 import { getKnexConfig } from '../../utils/config';
 import { getBrowserTimezoneOffset } from '../../utils/general';
 import config from '../../../playwright.config';
-// let api: Api<any>, records: any[];
-// let context: any;
 
 const columns = [
   {
@@ -43,8 +40,8 @@ async function timezoneSuite(projectTitle: string, context: NcContext, skipTable
   const workspaceId = context?.workspace?.id;
   try {
     let projectList: ProjectListType;
-    if (isHub()) {
-      projectList = await api.workspaceProject.list(workspaceId);
+    if (isEE() && api['workspaceProject']) {
+      projectList = await api['workspaceProject'].list(workspaceId);
     } else {
       projectList = await api.project.list();
     }
@@ -154,14 +151,7 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
   test('API insert, verify display value', async () => {
     if (!isSqlite(context) && !isHub()) return;
 
-    if (isHub()) {
-      await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
-    } else {
-      await dashboard.clickHome();
-      const projectsPage = new ProjectsPage(dashboard.rootPage);
-      await projectsPage.openProject({ title: `xcdb${context.workerId}`, withoutPrefix: true });
-    }
-
+    await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
     await dashboard.treeView.openTable({ title: 'dateTimeTable' });
 
     // DateTime inserted using API without timezone is converted to db-timezone (server timezone in case of sqlite)
@@ -256,14 +246,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
    *   Display value is converted to Asia/Hong-Kong
    */
   test('API insert, verify display value', async () => {
-    if (isHub()) {
-      await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
-    } else {
-      await dashboard.clickHome();
-      const projectsPage = new ProjectsPage(dashboard.rootPage);
-      await projectsPage.openProject({ title: `xcdb${context.workerId}`, withoutPrefix: true });
-    }
-
+    await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
     await dashboard.treeView.openTable({ title: 'dateTimeTable' });
 
     // DateTime inserted using API without timezone is converted to UTC
@@ -312,13 +295,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     // Kludge: Using API for test preparation was not working
     // Hence switched over to UI based table creation
 
-    if (isHub()) {
-      await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
-    } else {
-      await dashboard.clickHome();
-      const projectsPage = new ProjectsPage(dashboard.rootPage);
-      await projectsPage.openProject({ title: `xcdb${context.workerId}`, withoutPrefix: true });
-    }
+    await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
 
     await dashboard.treeView.createTable({
       title: 'dateTimeTable',

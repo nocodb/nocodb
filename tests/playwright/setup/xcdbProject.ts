@@ -1,5 +1,4 @@
 import { Api, WorkspaceListType } from 'nocodb-sdk';
-import { isHub } from './db';
 import { NcContext } from './index';
 let api: Api<any>;
 

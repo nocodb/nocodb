@@ -2,7 +2,6 @@ import { expect, Locator } from '@playwright/test';
 import BasePage from '../../Base';
 import { DashboardPage } from '..';
 import { DateTimeCellPageObject } from '../common/Cell/DateTimeCell';
-import { isHub } from '../../../setup/db';
 
 export class ExpandedFormPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -168,51 +167,35 @@ export class ExpandedFormPage extends BasePage {
   async verifyRoleAccess(param: { role: string }) {
     const role = param.role.toLowerCase();
 
-    if (isHub()) {
-      expect(await this.btn_copyUrl.count()).toBe(1);
+    expect(await this.btn_copyUrl.count()).toBe(1);
 
-      expect(await this.btn_moreActions.count()).toBe(1);
-      await this.btn_moreActions.click();
-      const menu = await this.rootPage.locator('.ant-dropdown:visible');
-      await menu.waitFor({ state: 'visible' });
-      const menuItems = await menu.locator('.ant-dropdown-menu-item');
-      for (let i = 0; i < (await menuItems.count()); i++) {
-        if (role === 'owner' || role === 'editor' || role === 'creator') {
-          const menuText = ['Reload', 'Duplicate row', 'Delete row', 'Close'];
-          expect(await menuItems.nth(i).innerText()).toBe(menuText[i]);
-        } else {
-          const menuText = ['Reload', 'Close'];
-          expect(await menuItems.nth(i).innerText()).toBe(menuText[i]);
-        }
-      }
-
+    expect(await this.btn_moreActions.count()).toBe(1);
+    await this.btn_moreActions.click();
+    const menu = await this.rootPage.locator('.ant-dropdown:visible');
+    await menu.waitFor({ state: 'visible' });
+    const menuItems = await menu.locator('.ant-dropdown-menu-item');
+    for (let i = 0; i < (await menuItems.count()); i++) {
       if (role === 'owner' || role === 'editor' || role === 'creator') {
-        expect(await this.btn_save.isEnabled()).toBeTruthy();
+        const menuText = ['Reload', 'Duplicate row', 'Delete row', 'Close'];
+        expect(await menuItems.nth(i).innerText()).toBe(menuText[i]);
       } else {
-        expect(await this.btn_save.isEnabled()).toBeFalsy();
+        const menuText = ['Reload', 'Close'];
+        expect(await menuItems.nth(i).innerText()).toBe(menuText[i]);
       }
-
-      if (role === 'viewer') {
-        expect(await this.btn_toggleComments.count()).toBe(0);
-      } else {
-        expect(await this.btn_toggleComments.count()).toBe(1);
-      }
-
-      // press escape to close the expanded form
-      await this.rootPage.keyboard.press('Escape');
-      return;
     }
 
-    if (role === 'commenter' || role === 'viewer') {
-      await expect(await this.get().locator('button:has-text("Save & Exit")')).toBeDisabled();
+    if (role === 'owner' || role === 'editor' || role === 'creator') {
+      expect(await this.btn_save.isEnabled()).toBeTruthy();
     } else {
-      await expect(await this.get().locator('button:has-text("Save & Exit")')).toBeEnabled();
+      expect(await this.btn_save.isEnabled()).toBeFalsy();
     }
+
     if (role === 'viewer') {
-      await expect(await this.btn_toggleComments).toHaveCount(0);
+      expect(await this.btn_toggleComments.count()).toBe(0);
     } else {
-      await expect(await this.btn_toggleComments).toHaveCount(1);
+      expect(await this.btn_toggleComments.count()).toBe(1);
     }
+
     // press escape to close the expanded form
     await this.rootPage.keyboard.press('Escape');
   }

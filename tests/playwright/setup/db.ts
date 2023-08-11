@@ -14,7 +14,7 @@ const isPg = (context: NcContext) => context.dbType === 'pg';
 // hardwired for hub; this has to be configured to false in nocodb
 // consider reading this from environment variable
 const isHub = () => true;
-const isEE = () => process.env.EE;
+const isEE = () => process.env.EE === 'true';
 
 const pg_credentials = (context: NcContext) => ({
   user: 'postgres',

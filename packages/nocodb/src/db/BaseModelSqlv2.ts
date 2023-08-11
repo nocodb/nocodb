@@ -18,18 +18,12 @@ import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
-import { Knex } from 'knex';
-import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
-import genRollupSelectv2 from './genRollupSelectv2';
-import conditionV2 from './conditionV2';
-import sortV2 from './sortV2';
-import { customValidators } from './util/customValidators';
-import Transaction = Knex.Transaction;
-import type { XKnex } from './CustomKnex';
+import type { Knex } from 'knex';
+import type { XKnex } from '~/db/CustomKnex';
 import type {
   XcFilter,
   XcFilterWithAlias,
-} from './sql-data-mapper/lib/BaseModel';
+} from '~/db/sql-data-mapper/lib/BaseModel';
 import type {
   BarcodeColumn,
   FormulaColumn,
@@ -40,6 +34,11 @@ import type {
   SelectOption,
 } from '~/models';
 import type { SortType } from 'nocodb-sdk';
+import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import genRollupSelectv2 from '~/db/genRollupSelectv2';
+import conditionV2 from '~/db/conditionV2';
+import sortV2 from '~/db/sortV2';
+import { customValidators } from '~/db/util/customValidators';
 import { extractLimitAndOffset } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
@@ -95,9 +94,8 @@ class BaseModelSqlv2 {
   protected _dbDriver: XKnex;
   protected model: Model;
   protected viewId: string;
-  public schema: string;
-  private _proto: any;
-  private _columns = {};
+  protected _proto: any;
+  protected _columns = {};
 
   public static config: any = {
     limitDefault: Math.max(+process.env.DB_QUERY_LIMIT_DEFAULT || 25, 1),
@@ -113,16 +111,13 @@ class BaseModelSqlv2 {
     dbDriver,
     model,
     viewId,
-    schema,
   }: {
     [key: string]: any;
     model: Model;
-    schema?: string;
   }) {
     this._dbDriver = dbDriver;
     this.model = model;
     this.viewId = viewId;
-    this.schema = schema;
     autoBind(this);
   }
 
@@ -719,7 +714,7 @@ class BaseModelSqlv2 {
     }
   }
 
-  private async applySortAndFilter({
+  protected async applySortAndFilter({
     table,
     where,
     qb,
@@ -1481,7 +1476,7 @@ class BaseModelSqlv2 {
     });
   }
 
-  private async getSelectQueryBuilderForFormula(
+  protected async getSelectQueryBuilderForFormula(
     column: Column<any>,
     tableAlias?: string,
     validateFormula = false,
@@ -2062,13 +2057,13 @@ class BaseModelSqlv2 {
   }
 
   async delByPk(id, _trx?, cookie?) {
-    let trx: Transaction = _trx;
+    let trx: Knex.Transaction = _trx;
     try {
       // retrieve data for handling params in hook
       const data = await this.readByPk(id, false, {}, { ignoreView: true });
       await this.beforeDelete(id, trx, cookie);
 
-      const execQueries: ((trx: Transaction) => Promise<any>)[] = [];
+      const execQueries: ((trx: Knex.Transaction) => Promise<any>)[] = [];
 
       for (const column of this.model.columns) {
         if (column.uidt !== UITypes.LinkToAnotherRecord) continue;
@@ -2259,9 +2254,7 @@ class BaseModelSqlv2 {
   public getTnPath(tb: { table_name: string } | string, alias?: string) {
     const tn = typeof tb === 'string' ? tb : tb.table_name;
     const schema = (this.dbDriver as any).searchPath?.();
-    if (this.isPg && this.schema) {
-      return `${this.schema}.${tn}${alias ? ` as ${alias}` : ``}`;
-    } else if (this.isMssql && schema) {
+    if (this.isMssql && schema) {
       return this.dbDriver.raw(`??.??${alias ? ' as ??' : ''}`, [
         schema,
         tn,
@@ -2838,8 +2831,10 @@ class BaseModelSqlv2 {
         res.push(d);
       }
 
-      const execQueries: ((trx: Transaction, ids: any[]) => Promise<any>)[] =
-        [];
+      const execQueries: ((
+        trx: Knex.Transaction,
+        ids: any[],
+      ) => Promise<any>)[] = [];
 
       const base = await Base.get(this.model.base_id);
 
@@ -2923,7 +2918,7 @@ class BaseModelSqlv2 {
     args: { where?: string; filterArr?: Filter[] } = {},
     { cookie }: { cookie?: any } = {},
   ) {
-    let trx: Transaction;
+    let trx: Knex.Transaction;
     try {
       await this.model.getColumns();
       const { where } = this._getListArgs(args);
@@ -2947,7 +2942,8 @@ class BaseModelSqlv2 {
         ],
         qb,
       );
-      const execQueries: ((trx: Transaction, qb: any) => Promise<any>)[] = [];
+      const execQueries: ((trx: Knex.Transaction, qb: any) => Promise<any>)[] =
+        [];
       // qb.del();
 
       for (const column of this.model.columns) {
@@ -3226,7 +3222,7 @@ class BaseModelSqlv2 {
     await this.handleHooks('after.delete', null, data, req);
   }
 
-  private async handleHooks(hookName, prevData, newData, req): Promise<void> {
+  protected async handleHooks(hookName, prevData, newData, req): Promise<void> {
     Noco.eventEmitter.emit(HANDLE_WEBHOOK, {
       hookName,
       prevData,
@@ -3772,7 +3768,7 @@ class BaseModelSqlv2 {
     return await qb;
   }
 
-  private async execAndParse(qb: Knex.QueryBuilder, childTable?: Model) {
+  protected async execAndParse(qb: Knex.QueryBuilder, childTable?: Model) {
     let query = qb.toQuery();
     if (!this.isPg && !this.isMssql && !this.isSnowflake) {
       query = unsanitize(qb.toQuery());
@@ -3798,7 +3794,7 @@ class BaseModelSqlv2 {
     return data;
   }
 
-  private _convertAttachmentType(
+  protected _convertAttachmentType(
     attachmentColumns: Record<string, any>[],
     d: Record<string, any>,
   ) {
@@ -3835,7 +3831,7 @@ class BaseModelSqlv2 {
   }
 
   // TODO(timezone): retrieve the format from the corresponding column meta
-  private _convertDateFormat(
+  protected _convertDateFormat(
     dateTimeColumns: Record<string, any>[],
     d: Record<string, any>,
   ) {

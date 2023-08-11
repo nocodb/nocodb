@@ -1,5 +1,5 @@
 import { RelationTypes } from 'nocodb-sdk';
-import type { BaseModelSqlv2 } from './BaseModelSqlv2';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { LinksColumn } from '~/models';
 import type { RollupColumn } from '~/models';
 import type { XKnex } from '~/db/CustomKnex';

@@ -7,7 +7,7 @@ import type Model from '~/models/Model';
 import type RollupColumn from '~/models/RollupColumn';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
-import type { BaseModelSqlv2 } from '../BaseModelSqlv2';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import {

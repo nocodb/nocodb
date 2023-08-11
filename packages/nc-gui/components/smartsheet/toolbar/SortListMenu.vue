@@ -125,12 +125,12 @@ watch(open, () => {
       <SmartsheetToolbarCreateSort v-if="!sorts.length" :key="open" @created="addSort" />
       <div
         v-else
-        :class="{ ' min-w-[400px]': sorts.length }"
-        class="py-6 pl-6 menu-filter-dropdown max-h-[max(80vh,500px)]"
+        :class="{ ' min-w-102': sorts.length }"
+        class="py-6 pl-6 menu-filter-dropdown max-h-[max(80vh,30rem)]"
         data-testid="nc-sorts-menu"
       >
         <div
-          class="sort-grid max-h-420px nc-scrollbar-md"
+          class="sort-grid max-h-120 nc-scrollbar-md"
           :class="{ 'pb-3 pr-3.5': sorts?.length, '!pb-0': !availableColumns.length }"
           @click.stop
         >

@@ -1,7 +1,5 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
-import genRollupSelectv2 from './genRollupSelectv2';
-import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
-import type { BaseModelSqlv2 } from './BaseModelSqlv2';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { Knex } from 'knex';
 import type {
   FormulaColumn,
@@ -9,6 +7,8 @@ import type {
   LookupColumn,
   RollupColumn,
 } from '~/models';
+import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { Sort } from '~/models';
 

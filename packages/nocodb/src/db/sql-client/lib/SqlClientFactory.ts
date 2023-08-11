@@ -1,13 +1,13 @@
 import fs from 'fs';
 import { promisify } from 'util';
-import MySqlClient from './mysql/MysqlClient';
-import MssqlClient from './mssql/MssqlClient';
-import OracleClient from './oracle/OracleClient';
-import SqliteClient from './sqlite/SqliteClient';
-import PgClient from './pg/PgClient';
-import YugabyteClient from './pg/YugabyteClient';
-import TidbClient from './mysql/TidbClient';
-import VitessClient from './mysql/VitessClient';
+import MySqlClient from '~/db/sql-client/lib/mysql/MysqlClient';
+import MssqlClient from '~/db/sql-client/lib/mssql/MssqlClient';
+import OracleClient from '~/db/sql-client/lib/oracle/OracleClient';
+import SqliteClient from '~/db/sql-client/lib/sqlite/SqliteClient';
+import PgClient from '~/db/sql-client/lib/pg/PgClient';
+import YugabyteClient from '~/db/sql-client/lib/pg/YugabyteClient';
+import TidbClient from '~/db/sql-client/lib/mysql/TidbClient';
+import VitessClient from '~/db/sql-client/lib/mysql/VitessClient';
 
 export class SqlClientFactory {
   static create(connectionConfig) {

@@ -4,8 +4,9 @@ import { useViewsStore } from '#imports'
 
 // DEPRECATED: Use useViewsStore instead
 function useViews(_: MaybeRef<TableType | TableReqType | undefined>) {
-  const { isViewsLoading, views } = storeToRefs(useViewsStore())
-  const { loadViews } = useViewsStore()
+  const viewsStore = useViewsStore()
+  const { loadViews } = viewsStore
+  const { isViewsLoading, views } = storeToRefs(viewsStore)
 
   const isLoading = computed(() => isViewsLoading.value)
 

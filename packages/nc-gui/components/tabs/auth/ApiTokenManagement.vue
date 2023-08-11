@@ -20,8 +20,8 @@ const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 
-const projectStore = storeToRefs(useProject())
-const project = toRef(projectStore, 'project')
+const projectStore = useProject()
+const { project } = storeToRefs(projectStore)
 
 const { copy } = useCopy()
 

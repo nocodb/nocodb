@@ -23,9 +23,11 @@ const vReload = useVModel(props, 'reload', emits)
 
 const { $api, $e } = useNuxtApp()
 
-const projectStore = useProject()
 const { loadProject } = useProjects()
+
+const projectStore = useProject()
 const { project } = storeToRefs(projectStore)
+
 const { refreshCommandPalette } = useCommandPalette()
 
 const sources = ref<BaseType[]>([])

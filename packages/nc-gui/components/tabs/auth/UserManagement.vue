@@ -32,8 +32,7 @@ const { copy } = useCopy()
 
 const { isUIAllowed } = useUIPermission()
 
-const dashboardStore = useDashboard()
-const dashboardUrl = toRef(dashboardStore, 'dashboardUrl')
+const { dashboardUrl } = useDashboard()
 
 const users = ref<null | User[]>(null)
 

@@ -3,11 +3,10 @@ import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import type { BaseType } from 'nocodb-sdk'
 import { message, ref, resolveComponent, storeToRefs, useDialog, useFileDialog, useNuxtApp, useProject, watch } from '#imports'
 
-const { project } = storeToRefs(useProject())
+const projectStore = useProject()
+const { project } = storeToRefs(projectStore)
 
 const { files, reset } = useFileDialog()
-
-const projectStore = useProject()
 
 const { bases } = storeToRefs(projectStore)
 

@@ -1,4 +1,3 @@
-import { toRef } from 'vue'
 import type { ProjectType, WorkspaceType, WorkspaceUserType } from 'nocodb-sdk'
 import { WorkspaceStatus, WorkspaceUserRoles } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
@@ -16,6 +15,7 @@ interface NcWorkspace extends WorkspaceType {
 export const useWorkspace = defineStore('workspaceStore', () => {
   // todo: update type in swagger
   const projectsStore = useProjects()
+  const { clearProjects } = projectsStore
 
   const collaborators = ref<WorkspaceUserType[] | null>()
 
@@ -31,8 +31,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { $e } = useNuxtApp()
 
-  const globalStore = useGlobal()
-  const appInfo = toRef(globalStore, 'appInfo')
+  const { appInfo } = useGlobal()
 
   const workspaces = ref<Map<string, NcWorkspace>>(new Map())
   const workspacesList = computed<NcWorkspace[]>(() =>
@@ -359,8 +358,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   const clearWorkspaces = () => {
-    const { clearProjects } = useProjects()
-
     clearProjects()
     workspaces.value.clear()
   }

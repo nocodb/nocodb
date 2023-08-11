@@ -37,8 +37,7 @@ const { table, createTable } = useTable(async (_) => {
   await loadTables()
 })
 
-const globalStore = useGlobal()
-const navigateToProject = toRef(globalStore, 'navigateToProject')
+const { navigateToProject } = useGlobal()
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -72,8 +71,7 @@ const createProject = async () => {
 
     const complement = tcolor.complement()
 
-    const globalStore = useGlobal()
-    const getBaseUrl = toRef(globalStore, 'getBaseUrl')
+    const { getBaseUrl } = useGlobal()
 
     // todo: provide proper project type
     creating.value = true
@@ -93,7 +91,7 @@ const createProject = async () => {
         }),
       },
       {
-        baseURL: getBaseUrl.value(route.query.workspaceId as string),
+        baseURL: getBaseUrl(route.query.workspaceId as string),
       },
     )) as Partial<ProjectType>
 
@@ -102,7 +100,7 @@ const createProject = async () => {
     switch (route.query.type) {
       case NcProjectType.DOCS:
         await loadProject(true, result.id)
-        navigateToProject.value({
+        navigateToProject({
           projectId: result.id!,
           workspaceId: route.query.workspaceId as string,
           type: NcProjectType.DOCS,
@@ -122,7 +120,7 @@ const createProject = async () => {
         break
       }
       default:
-        navigateToProject.value({
+        navigateToProject({
           projectId: result.id!,
           workspaceId: route.query.workspaceId as string,
           type: NcProjectType.DB,

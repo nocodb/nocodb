@@ -1,8 +1,10 @@
 <script setup lang="ts">
 const route = useRoute()
 
-const { openedProjectId } = storeToRefs(useDocStore())
-const { populatedNestedPages } = useDocStore()
+const docStore = useDocStore()
+const { populatedNestedPages } = docStore
+const { openedProjectId } = storeToRefs(docStore)
+
 const { project } = storeToRefs(useProject())
 
 onMounted(async () => {

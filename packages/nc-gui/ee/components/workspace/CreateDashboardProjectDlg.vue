@@ -18,15 +18,15 @@ const emit = defineEmits(['update:modelValue'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const projectsStore = useProjects()
-const { loadProjects } = projectsStore
-
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const workspaceStore = useWorkspace()
 const { loadWorkspaces } = workspaceStore
 const { activeWorkspace } = storeToRefs(workspaceStore)
-const { projects } = storeToRefs(useProjects())
+
+const projectsStore = useProjects()
+const { loadProjects } = projectsStore
+const { projects } = storeToRefs(projectsStore)
 
 const input: VNodeRef = ref<typeof Input>()
 

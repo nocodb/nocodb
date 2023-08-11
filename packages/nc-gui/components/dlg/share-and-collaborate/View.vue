@@ -10,10 +10,10 @@ const router = useRouter()
 const route = router.currentRoute
 
 const { copy } = useCopy()
-const dashboardStore = useDashboard()
-const dashboardUrl = toRef(dashboardStore, 'dashboardUrl')
-const { project } = storeToRefs(useProject())
-const { navigateToProject } = useProjects()
+const { dashboardUrl } = useDashboard()
+const projectStore = useProject()
+const { project } = storeToRefs(projectStore)
+const { navigateToProject } = projectStore
 
 let view
 if (isViewToolbar) {

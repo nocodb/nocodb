@@ -8,8 +8,7 @@ const props = defineProps<{
 
 const item = toRef(props, 'item')
 
-const globalStore = useGlobal()
-const navigateToProject = toRef(globalStore, 'navigateToProject')
+const { navigateToProject } = useGlobal()
 
 const action = computed(() => {
   switch (item.value.type) {
@@ -24,7 +23,7 @@ const action = computed(() => {
 
 const onClick = () => {
   if (item.value.type === AppEvents.VIEW_DELETE) return
-  navigateToProject.value({ workspaceId: item.value.body.workspace_id, projectId: item.value.body.id })
+  navigateToProject({ workspaceId: item.value.body.workspace_id, projectId: item.value.body.id })
 }
 </script>
 

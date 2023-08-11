@@ -1,4 +1,3 @@
-import { toRef } from 'vue'
 import { defineStore } from 'pinia'
 import type { NotificationType } from 'nocodb-sdk'
 import type { Socket } from 'socket.io-client'
@@ -16,9 +15,8 @@ export const useNotification = defineStore('notificationStore', () => {
 
   const { api, isLoading } = useApi()
 
-  const globalStore = useGlobal()
-  const appInfo = toRef(globalStore, 'appInfo')
-  const token = toRef(globalStore, 'token')
+  const { appInfo, token } = useGlobal()
+
   let socket: Socket
 
   const init = (token) => {

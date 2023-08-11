@@ -151,16 +151,16 @@ async function localInit({
 
     // console.log(process.env.TEST_WORKER_INDEX, process.env.TEST_PARALLEL_INDEX);
 
-    if (isEE()) {
+    if (isEE() && api['workspace']) {
       // Delete associated workspace
       // Note that: on worker error, entire thread is reset & worker ID numbering is reset too
       // Hence, workspace delete is based on workerId prefix instead of just workerId
-      const ws = await api.workspace.list();
+      const ws = await api['workspace'].list();
       for (const w of ws.list) {
         // check if w.title starts with workspaceTitle
         if (w.title.startsWith(`ws_pgExtREST_p${process.env.TEST_PARALLEL_INDEX}`)) {
           try {
-            await api.workspace.delete(w.id);
+            await api['workspace'].delete(w.id);
           } catch (e) {
             console.log(`Error deleting workspace: ${w.id}`, `user-${parallelId}@nocodb.com`, isSuperUser);
           }

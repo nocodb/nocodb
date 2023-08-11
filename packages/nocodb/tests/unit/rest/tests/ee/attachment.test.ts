@@ -89,7 +89,7 @@ function attachmentTestsEE() {
 }
 
 export default function () {
-  if (process.env.NC_EDITION === 'enterprise') {
+  if (process.env.EE) {
     describe('Attachment', attachmentTestsEE);
   }
 }

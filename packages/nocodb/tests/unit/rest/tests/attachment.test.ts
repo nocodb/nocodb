@@ -117,7 +117,7 @@ function attachmentTests() {
 
   it('Upload file - Org level viewer with editor role in a project', async () => {
     // skip this test for enterprise edition
-    if (process.env.NC_EDITION === 'community') {
+    if (!process.env.EE) {
       // signup a new user
       const args = {
         email: 'dummyuser@example.com',

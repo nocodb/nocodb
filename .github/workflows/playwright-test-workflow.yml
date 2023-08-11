@@ -53,7 +53,7 @@ jobs:
       - name: Set CI env
         run: export CI=true
       - name: Set NC Edition
-        run: export NC_EDITION=enterprise
+        run: export EE=true
       - name: Set Node env
         run: export NODE_OPTIONS=\"--max_old_space_size=16384\";
       - name: install dependencies nocodb-sdk

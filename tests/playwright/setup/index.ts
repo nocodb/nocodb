@@ -5,6 +5,7 @@ import { getDefaultPwd } from '../tests/utils/general';
 import { knex } from 'knex';
 import { promises as fs } from 'fs';
 import { isEE } from './db';
+import path from 'path';
 
 // Use local reset logic instead of remote
 const enableLocalInit = true;
@@ -86,6 +87,29 @@ const extPgProjectCE = (title, parallelId) => ({
   external: true,
 });
 
+const extSQLiteProjectCE = (title: string, workerId: string) => ({
+  title,
+  bases: [
+    {
+      type: 'sqlite3',
+      config: {
+        client: 'sqlite3',
+        connection: {
+          client: 'sqlite3',
+          connection: {
+            filename: sqliteFilePath(workerId),
+            database: 'test_sakila',
+            multipleStatements: true,
+          },
+        },
+      },
+      inflection_column: 'camelize',
+      inflection_table: 'camelize',
+    },
+  ],
+  external: true,
+});
+
 const workerCount = [0, 0, 0, 0, 0, 0, 0, 0];
 
 export interface NcContext {
@@ -99,6 +123,10 @@ export interface NcContext {
 
 selectors.setTestIdAttribute('data-testid');
 const workerStatus = {};
+const sqliteFilePath = (workerId: string) => {
+  const rootDir = process.cwd();
+  return `${rootDir}/../../packages/nocodb/test_sakila_${workerId}.db`;
+};
 
 async function localInit({
   workerId,
@@ -209,6 +237,17 @@ async function localInit({
 
         await resetSakilaPg(workerId);
       }
+    } else if (dbType === 'sqlite') {
+      console.log('p::', parallelId);
+
+      if (await fs.stat(sqliteFilePath(parallelId)).catch(() => null)) {
+        await fs.unlink(sqliteFilePath(parallelId));
+      }
+      if (!isEmptyProject) {
+        const testsDir = path.join(process.cwd(), '../../packages/nocodb/tests');
+        await fs.copyFile(`${testsDir}/sqlite-sakila-db/sakila.db`, sqliteFilePath(parallelId));
+      }
+    } else if (dbType === 'mysql') {
     }
 
     let workspace;
@@ -242,7 +281,9 @@ async function localInit({
         });
       } else {
         try {
-          project = await api.project.create(extPgProjectCE(projectTitle, workerId));
+          project = await api.project.create(
+            dbType === 'pg' ? extPgProjectCE(projectTitle, workerId) : extSQLiteProjectCE(projectTitle, parallelId)
+          );
         } catch (e) {
           console.log(`Error creating project: ${projectTitle}`);
         }
@@ -274,8 +315,7 @@ const setup = async ({
   isSuperUser?: boolean;
   url?: string;
 }): Promise<NcContext> => {
-  // on noco-hub, only PG is supported
-  const dbType = process.env.DB_TYPE;
+  const dbType = process.env.E2E_DEV_DB_TYPE;
   let response;
 
   const workerIndex = process.env.TEST_WORKER_INDEX;

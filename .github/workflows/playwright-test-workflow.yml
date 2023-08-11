@@ -50,7 +50,7 @@ jobs:
       - name: Set CI env
         run: export CI=true
       - name: Set NC Edition
-        run: export NC_EDITION=community
+        run: export EE=true
       - name: install dependencies nocodb-sdk
         working-directory: ./packages/nocodb-sdk
         run: npm install

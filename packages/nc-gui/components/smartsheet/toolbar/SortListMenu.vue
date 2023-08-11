@@ -146,7 +146,7 @@ watch(open, () => {
 
             <NcSelect
               v-model:value="sort.direction"
-              class="shrink grow-0 nc-sort-dir-select !text-xs"
+              class="shrink grow-0 nc-sort-dir-select"
               :label="$t('labels.operation')"
               dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir"
               @click.stop

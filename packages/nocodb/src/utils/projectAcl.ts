@@ -335,7 +335,7 @@ const rolePermissions = {
       uploadViaURL: true,
       passwordChange: true,
       isPluginActive: true,
-      // projectCreate: true,
+      projectCreate: true,
       // projectCreateByWeb: true,
       // projectCreateByWebWithXCDB: true,
       projectList: true,

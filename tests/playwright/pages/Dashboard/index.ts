@@ -59,7 +59,7 @@ export class DashboardPage extends BasePage {
     this.tablesSideBar = rootPage.locator('.nc-treeview-container');
     if (isHub()) {
       this.workspaceMenuLink = rootPage.getByTestId('nc-project-menu');
-      this.projectMenuLink = rootPage.locator('.project-title-node').locator('.nc-icon.ant-dropdown-trigger');
+      this.projectMenuLink = rootPage.locator('.project-title-node').locator('.nc-icon.ant-dropdown-trigger').first();
     } else {
       this.projectMenuLink = rootPage.getByTestId('nc-project-menu');
     }

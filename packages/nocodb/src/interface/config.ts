@@ -302,7 +302,6 @@ export interface AppConfig {
     username: string;
     password: string;
   };
-
   auth: {
     emailPattern?: RegExp | null;
     disableEmailAuth: boolean;

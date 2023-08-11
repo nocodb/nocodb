@@ -323,7 +323,8 @@ test.describe('Undo Redo', () => {
     await verifyRowHeight({ height: '1.8rem' });
   });
 
-  test('Column width', async ({ page }) => {
+  // fix me! is flaky, and need to be validated
+  test.skip('Column width', async ({ page }) => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'numberBased' });

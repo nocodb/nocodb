@@ -1,9 +1,10 @@
 import { Page, selectors } from '@playwright/test';
-import axios from 'axios';
-import { Api, ProjectType, ProjectTypes, UserType, WorkspaceType } from 'nocodb-sdk';
+import axios, { AxiosResponse } from 'axios';
+import { Api, ProjectListType, ProjectType, ProjectTypes, UserType, WorkspaceType } from 'nocodb-sdk';
 import { getDefaultPwd } from '../tests/utils/general';
 import { knex } from 'knex';
 import { promises as fs } from 'fs';
+import { isEE } from './db';
 
 // Use local reset logic instead of remote
 const enableLocalInit = true;
@@ -62,6 +63,29 @@ const extPgProject = (workspaceId, title, parallelId, projectType) => ({
   external: true,
 });
 
+const extPgProjectCE = (title, parallelId) => ({
+  title,
+  bases: [
+    {
+      type: 'pg',
+      config: {
+        client: 'pg',
+        connection: {
+          host: 'localhost',
+          port: '5432',
+          user: 'postgres',
+          password: 'password',
+          database: `sakila${parallelId}`,
+        },
+        searchPath: ['public'],
+      },
+      inflection_column: 'camelize',
+      inflection_table: 'camelize',
+    },
+  ],
+  external: true,
+});
+
 const workerCount = [0, 0, 0, 0, 0, 0, 0, 0];
 
 export interface NcContext {
@@ -97,7 +121,7 @@ async function localInit({
   workerStatus[parallelId] = 'processing';
 
   try {
-    let response;
+    let response: AxiosResponse<any, any>;
     // Login as root user
     if (isSuperUser) {
       // required for configuring license key settings
@@ -127,17 +151,42 @@ async function localInit({
 
     // console.log(process.env.TEST_WORKER_INDEX, process.env.TEST_PARALLEL_INDEX);
 
-    // Delete associated workspace
-    // Note that: on worker error, entire thread is reset & worker ID numbering is reset too
-    // Hence, workspace delete is based on workerId prefix instead of just workerId
-    const ws = await api.workspace.list();
-    for (const w of ws.list) {
-      // check if w.title starts with workspaceTitle
-      if (w.title.startsWith(`ws_pgExtREST_p${process.env.TEST_PARALLEL_INDEX}`)) {
-        try {
-          await api.workspace.delete(w.id);
-        } catch (e) {
-          console.log(`Error deleting workspace: ${w.id}`, `user-${parallelId}@nocodb.com`, isSuperUser);
+    if (isEE()) {
+      // Delete associated workspace
+      // Note that: on worker error, entire thread is reset & worker ID numbering is reset too
+      // Hence, workspace delete is based on workerId prefix instead of just workerId
+      const ws = await api.workspace.list();
+      for (const w of ws.list) {
+        // check if w.title starts with workspaceTitle
+        if (w.title.startsWith(`ws_pgExtREST_p${process.env.TEST_PARALLEL_INDEX}`)) {
+          try {
+            await api.workspace.delete(w.id);
+          } catch (e) {
+            console.log(`Error deleting workspace: ${w.id}`, `user-${parallelId}@nocodb.com`, isSuperUser);
+          }
+        }
+      }
+    } else {
+      let projects: ProjectListType;
+      try {
+        projects = await api.project.list();
+      } catch (e) {
+        console.log('Error fetching projects', e);
+      }
+
+      if (projects) {
+        for (const p of projects.list) {
+          // check if p.title starts with projectTitle
+          if (
+            p.title.startsWith(`pgExtREST_p${process.env.TEST_PARALLEL_INDEX}`) ||
+            p.title.startsWith(`xcdb_p${process.env.TEST_PARALLEL_INDEX}`)
+          ) {
+            try {
+              await api.project.delete(p.id);
+            } catch (e) {
+              console.log(`Error deleting project: ${p.id}`, `user-${parallelId}@nocodb.com`, isSuperUser);
+            }
+          }
         }
       }
     }
@@ -158,24 +207,41 @@ async function localInit({
       await resetSakilaPg(workerId);
     }
 
-    // create a new workspace
-    const workspace = await api.workspace.create({
-      title: workspaceTitle,
-    });
+    let workspace;
+    if (isEE()) {
+      // create a new workspace
+      workspace = await api.workspace.create({
+        title: workspaceTitle,
+      });
+    }
 
     let project;
-    if (isEmptyProject) {
-      // create a new project under the workspace we just created
-      project = await api.project.create({
-        title: projectTitle,
-        // @ts-expect-error
-        fk_workspace_id: workspace.id,
-        type: projectType,
-      });
+    if (isEE()) {
+      if (isEmptyProject) {
+        // create a new project under the workspace we just created
+        project = await api.project.create({
+          title: projectTitle,
+          fk_workspace_id: workspace.id,
+          type: projectType,
+        });
+      } else {
+        if ('id' in workspace) {
+          // @ts-ignore
+          project = await api.project.create(extPgProject(workspace.id, projectTitle, workerId, projectType));
+        }
+      }
     } else {
-      if ('id' in workspace) {
-        // @ts-ignore
-        project = await api.project.create(extPgProject(workspace.id, projectTitle, workerId, projectType));
+      if (isEmptyProject) {
+        // create a new project
+        project = await api.project.create({
+          title: projectTitle,
+        });
+      } else {
+        try {
+          project = await api.project.create(extPgProjectCE(projectTitle, workerId));
+        } catch (e) {
+          console.log(`Error creating project: ${projectTitle}`);
+        }
       }
     }
     workerStatus[parallelId] = 'complete';
@@ -212,11 +278,6 @@ const setup = async ({
   const parallelIndex = process.env.TEST_PARALLEL_INDEX;
 
   const workerId = `_p${parallelIndex}_w${workerIndex}_c${(+workerIndex + 1) * 1000 + workerCount[parallelIndex]}`;
-  // console.log(workerId);
-
-  // const workerId =
-  //   String(process.env.TEST_WORKER_INDEX) + String(process.env.TEST_PARALLEL_INDEX) + String(workerCount[workerIndex]);
-  // const workerId = parallelIndex + String(+parallelIndex * workerCount[+parallelIndex]);
   workerCount[+parallelIndex]++;
 
   // console.log(process.env.TEST_PARALLEL_INDEX, '#Setup', workerId);
@@ -291,15 +352,20 @@ const setup = async ({
 
   // default landing page for tests
   let projectUrl;
-  switch (project.type) {
-    case ProjectTypes.DOCUMENTATION:
-      projectUrl = url ? url : `/#/ws/${project.fk_workspace_id}/nc/${project.id}/doc`;
-      break;
-    case ProjectTypes.DATABASE:
-      projectUrl = url ? url : `/#/ws/${project.fk_workspace_id}/nc/${project.id}`;
-      break;
-    default:
-      throw new Error(`Unknown project type: ${project.type}`);
+  if (isEE()) {
+    switch (project.type) {
+      case ProjectTypes.DOCUMENTATION:
+        projectUrl = url ? url : `/#/ws/${project.fk_workspace_id}/nc/${project.id}/doc`;
+        break;
+      case ProjectTypes.DATABASE:
+        projectUrl = url ? url : `/#/ws/${project.fk_workspace_id}/nc/${project.id}`;
+        break;
+      default:
+        throw new Error(`Unknown project type: ${project.type}`);
+    }
+  } else {
+    // sample: http://localhost:3000/#/ws/default/project/pdknlfoc5e7bx4w
+    projectUrl = url ? url : `/#/ws/default/project/${project.id}`;
   }
 
   await page.goto(projectUrl, { waitUntil: 'networkidle' });

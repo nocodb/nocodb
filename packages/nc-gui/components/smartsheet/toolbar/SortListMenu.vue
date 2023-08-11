@@ -137,7 +137,7 @@ watch(open, () => {
           <template v-for="(sort, i) of sorts" :key="i">
             <SmartsheetToolbarFieldListAutoCompleteDropdown
               v-model="sort.fk_column_id"
-              class="flex caption nc-sort-field-select min-w-40"
+              class="flex caption nc-sort-field-select min-w-40 flex-grow"
               :columns="columns"
               is-sort
               @click.stop
@@ -161,7 +161,7 @@ watch(open, () => {
               </a-select-option>
             </NcSelect>
 
-            <NcButton type="text" size="small" class="nc-sort-item-remove-btn" @click.stop="deleteSort(sort, i)">
+            <NcButton type="text" size="small" class="nc-sort-item-remove-btn !max-w-8" @click.stop="deleteSort(sort, i)">
               <component :is="iconMap.deleteListItem" />
             </NcButton>
           </template>

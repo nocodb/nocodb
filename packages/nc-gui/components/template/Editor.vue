@@ -749,7 +749,7 @@ function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {
               </a-form-item>
               <span v-else class="font-weight-bold text-lg flex items-center gap-2" @click="setEditableTn(tableIdx, true)">
                 <component :is="iconMap.table" class="text-primary" />
-                {{ table.table_name }}
+                {{ table.table_name.length > 52 ? table.table_name.slice(0,52)+".." : table.table_name }}
               </span>
             </template>
 
@@ -929,7 +929,7 @@ function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {
 
 <style scoped lang="scss">
 .template-collapse {
-  @apply bg-white overflow-auto;
+  @apply bg-white;
 }
 
 .template-form {

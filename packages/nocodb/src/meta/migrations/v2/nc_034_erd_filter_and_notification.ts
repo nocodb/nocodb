@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import { MetaTable } from '~/ee/utils/globals';
+import { MetaTable } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
   if (!(await knex.schema.hasColumn(MetaTable.BASES, 'erd_uuid'))) {

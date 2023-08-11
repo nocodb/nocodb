@@ -2,14 +2,21 @@ import BasePage from '../../Base';
 import { GridPage } from './index';
 import { RowPageObject } from './Row';
 import { expect } from '@playwright/test';
+import { DashboardPage } from '../index';
+import { CellPageObject } from '../common/Cell';
 
 export class GroupPageObject extends BasePage {
   readonly grid: GridPage;
   readonly rows: RowPageObject;
+  readonly cell: CellPageObject;
+  readonly dashboard: DashboardPage;
 
   constructor(grid: GridPage) {
     super(grid.rootPage);
     this.grid = grid;
+    this.rows = new RowPageObject(grid);
+    this.cell = new CellPageObject(grid);
+    this.dashboard = grid.dashboard;
   }
 
   get({ indexMap }: { indexMap: Array<number> }) {
@@ -70,5 +77,91 @@ export class GroupPageObject extends BasePage {
     await expect(
       gridWrapper.locator(`.nc-group-table .nc-grid-row:nth-child(${rowIndex + 1}) [data-title="${columnHeader}"]`)
     ).toHaveText(value);
+  }
+
+  async addNewRow({
+    indexMap,
+    index = 0,
+    columnHeader = 'Title',
+    value,
+  }: {
+    indexMap: number[];
+    index?: number;
+    columnHeader?: string;
+    value?: string;
+  }) {
+    const rowValue = value ?? `Row ${index}`;
+    // wait for render to complete before count
+    if (index !== 0) await this.get({ indexMap }).locator('.nc-grid-row').nth(0).waitFor({ state: 'attached' });
+
+    await (
+      await this.get({ indexMap }).locator('.nc-grid-add-new-cell').elementHandle()
+    )?.waitForElementState('stable');
+    await this.rootPage.waitForTimeout(100);
+
+    const rowCount = await this.get({ indexMap }).locator('.nc-grid-row').count();
+
+    await this.get({ indexMap }).locator('.nc-grid-add-new-cell').click();
+
+    // add delay for UI to render (can wait for count to stabilize by reading it multiple times)
+    await this.rootPage.waitForTimeout(100);
+    expect(await this.get({ indexMap }).locator('.nc-grid-row').count()).toBe(rowCount + 1);
+
+    await this._fillRow({ indexMap, index, columnHeader, value: rowValue });
+
+    await this.dashboard.waitForLoaderToDisappear();
+  }
+
+  async deleteRow({ title, indexMap, rowIndex = 0 }: { title: string; indexMap: number[]; rowIndex?: number }) {
+    await this.get({ indexMap }).getByTestId(`cell-${title}-${rowIndex}`).click({
+      button: 'right',
+    });
+
+    // Click text=Delete Row
+    await this.rootPage.locator('text=Delete Row').click();
+
+    // todo: improve selector
+    await this.rootPage
+      .locator('span.ant-dropdown-menu-title-content > nc-project-menu-item')
+      .waitFor({ state: 'hidden' });
+
+    await this.rootPage.waitForTimeout(300);
+    await this.dashboard.waitForLoaderToDisappear();
+  }
+
+  async editRow({
+    indexMap,
+    rowIndex = 0,
+    columnHeader = 'Title',
+    value,
+  }: {
+    indexMap: number[];
+    rowIndex?: number;
+    columnHeader?: string;
+    value: string;
+  }) {
+    await this._fillRow({ indexMap, index: rowIndex, columnHeader, value });
+
+    await this.dashboard.waitForLoaderToDisappear();
+  }
+
+  private async _fillRow({
+    indexMap,
+    index,
+    columnHeader,
+    value,
+  }: {
+    indexMap: number[];
+    index: number;
+    columnHeader: string;
+    value: string;
+  }) {
+    const cell = this.cell.get({ indexMap, index, columnHeader });
+    await cell.waitFor({ state: 'visible' });
+    await this.cell.dblclick({
+      index,
+      columnHeader,
+    });
+    await cell.locator('input').fill(value);
   }
 }

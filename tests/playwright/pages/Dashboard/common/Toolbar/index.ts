@@ -328,4 +328,8 @@ export class ToolbarPage extends BasePage {
     await this.share.closeModal();
     return await this.getClipboardText();
   }
+
+  async clickRefresh() {
+    await this.get().locator(`.nc-icon-reload`).click();
+  }
 }

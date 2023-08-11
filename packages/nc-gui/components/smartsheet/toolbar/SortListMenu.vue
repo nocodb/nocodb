@@ -126,7 +126,7 @@ watch(open, () => {
       <div
         v-else
         :class="{ ' min-w-102': sorts.length }"
-        class="py-6 pl-6 menu-filter-dropdown max-h-[max(80vh,30rem)]"
+        class="py-6 pl-6 nc-filter-list max-h-[max(80vh,30rem)]"
         data-testid="nc-sorts-menu"
       >
         <div

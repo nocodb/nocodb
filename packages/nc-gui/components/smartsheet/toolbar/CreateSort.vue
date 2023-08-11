@@ -68,7 +68,7 @@ const onArrowUp = () => {
 
 <template>
   <div
-    class="flex flex-col w-full pt-4 pb-2 min-w-64"
+    class="flex flex-col w-full pt-4 pb-2 min-w-64 nc-sort-create-modal"
     @keydown.arrow-down.prevent="onArrowDown"
     @keydown.arrow-up.prevent="onArrowUp"
     @keydown.enter.prevent="onClick(options[activeFieldIndex])"
@@ -81,7 +81,7 @@ const onArrowUp = () => {
       <div
         v-for="(option, index) in options"
         :key="index"
-        class="flex flex-row h-10 items-center gap-x-1.5 px-2.5 hover:bg-gray-100 cursor-pointer"
+        class="flex flex-row h-10 items-center gap-x-1.5 px-2.5 hover:bg-gray-100 cursor-pointer nc-sort-column-search-item"
         :class="{
           'bg-gray-100': activeFieldIndex === index,
         }"

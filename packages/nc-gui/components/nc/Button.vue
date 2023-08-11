@@ -17,7 +17,7 @@ interface Props {
   loading?: boolean
   disabled?: boolean
   type?: ButtonType | 'danger' | undefined
-  size?: 'xsmall' | 'small' | 'medium' | 'large'
+  size?: 'xsmall' | 'small' | 'medium'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -63,12 +63,12 @@ const onBlur = () => {
     :disabled="props.disabled"
     :loading="loading"
     :type="type"
-    class="!rounded-lg nc-button !font-medium"
+    class="nc-button"
     :class="{
-      '!py-1 !px-1.75 !h-8': size === 'small',
-      '!py-2 !px-3 !h-10': size === 'medium',
-      '!p-0.25 !h-6.25 !w-6.25 !rounded-md': size === 'xsmall',
-      'focused': isFocused,
+      small: size === 'small',
+      medium: size === 'medium',
+      xsmall: size === 'xsmall',
+      focused: isFocused,
     }"
     @focus="onFocus"
     @blur="onBlur"
@@ -107,6 +107,22 @@ const onBlur = () => {
 
 .nc-button.ant-btn.focused {
   box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+}
+
+.nc-button.ant-btn {
+  @apply rounded-lg  font-medium;
+}
+
+.nc-button.ant-btn.small {
+  @apply py-1 px-1.75 h-8 min-w-8;
+}
+
+.nc-button.ant-btn.medium {
+  @apply py-2 px-3 h-10 min-w-10;
+}
+
+.nc-button.ant-btn.xsmall {
+  @apply p-0.25 h-6.25 w-6.25;
 }
 
 .nc-button.ant-btn[disabled] {

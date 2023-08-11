@@ -6,6 +6,7 @@ import { isEE, isHub, isMysql, isPg, isSqlite } from '../../../setup/db';
 import { getKnexConfig } from '../../utils/config';
 import { getBrowserTimezoneOffset } from '../../utils/general';
 import config from '../../../playwright.config';
+import { createTableWithDateTimeColumn, mysqlTz } from '../../../setup/knexHelper';
 
 const columns = [
   {
@@ -435,120 +436,6 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
 });
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-async function createTableWithDateTimeColumn(database: string, dbName: string, setTz = false) {
-  if (database === 'pg') {
-    const config = getKnexConfig({ dbName: 'postgres', dbType: 'pg' });
-
-    let pgknex;
-    try {
-      pgknex = knex(config);
-      await pgknex.raw(`DROP DATABASE IF EXISTS ${dbName}`);
-      await pgknex.raw(`CREATE DATABASE ${dbName}`);
-    } catch (e) {
-      console.error(`Error resetting pg sakila db: Worker ${dbName}`);
-    } finally {
-      if (pgknex) await pgknex.destroy();
-    }
-
-    const config2 = getKnexConfig({ dbName, dbType: 'pg' });
-
-    let pgknex2;
-    try {
-      pgknex2 = knex(config2);
-      await pgknex2.raw(`
-    CREATE TABLE my_table (
-      title serial PRIMARY KEY,
-      datetime_without_tz TIMESTAMP WITHOUT TIME ZONE,
-      datetime_with_tz TIMESTAMP WITH TIME ZONE
-    );
-     -- SET timezone = 'Asia/Hong_Kong';
-     -- SELECT pg_sleep(1);
-    INSERT INTO my_table (datetime_without_tz, datetime_with_tz)
-    VALUES
-      ('2023-04-27 10:00:00', '2023-04-27 10:00:00'),
-      ('2023-04-27 10:00:00+05:30', '2023-04-27 10:00:00+05:30');
-  `);
-    } catch (e) {
-      console.error(`Error resetting pg sakila db: Worker ${dbName}`);
-    } finally {
-      if (pgknex2) await pgknex2.destroy();
-    }
-  } else if (database === 'mysql') {
-    const config = getKnexConfig({ dbName: 'sakila', dbType: 'mysql' });
-
-    let mysqlknex;
-    try {
-      mysqlknex = knex(config);
-      await mysqlknex.raw(`DROP DATABASE IF EXISTS ${dbName}`);
-      await mysqlknex.raw(`CREATE DATABASE ${dbName}`);
-
-      if (setTz) {
-        await mysqlknex.raw(`SET GLOBAL time_zone = '+08:00'`);
-        // wait for 1 second for the timezone to be set
-        await mysqlknex.raw(`SELECT SLEEP(1)`);
-      }
-    } catch (e) {
-      console.error(`Error resetting mysql sakila db: Worker ${dbName}`);
-    } finally {
-      if (mysqlknex) await mysqlknex.destroy();
-    }
-
-    const config2 = getKnexConfig({ dbName, dbType: 'mysql' });
-
-    let mysqlknex2;
-    try {
-      mysqlknex2 = knex(config2);
-      await mysqlknex2.raw(`
-    USE ${dbName};
-    CREATE TABLE my_table (
-      title INT AUTO_INCREMENT PRIMARY KEY,
-      datetime_without_tz DATETIME,
-      datetime_with_tz TIMESTAMP
-    );
-    INSERT INTO my_table (datetime_without_tz, datetime_with_tz)
-    VALUES
-      ('2023-04-27 10:00:00', '2023-04-27 10:00:00'),
-      ('2023-04-27 10:00:00+05:30', '2023-04-27 10:00:00+05:30');
-    `);
-    } catch (e) {
-      console.error(`Error resetting mysql sakila db: Worker ${dbName}`);
-    } finally {
-      if (mysqlknex2) await mysqlknex2.destroy();
-    }
-  } else if (database === 'sqlite') {
-    const config = getKnexConfig({ dbName, dbType: 'sqlite' });
-
-    // SQLite supports just one type of datetime
-    // Timezone information, if specified is stored as is in the database
-    // https://www.sqlite.org/lang_datefunc.html
-
-    let sqliteknex;
-    try {
-      sqliteknex = knex(config);
-      await sqliteknex.raw(`DROP TABLE IF EXISTS my_table`);
-      await sqliteknex.raw(`
-    CREATE TABLE my_table (
-      title INTEGER PRIMARY KEY AUTOINCREMENT,
-      datetime_without_tz DATETIME,
-      datetime_with_tz DATETIME )`);
-      const datetimeData = [
-        ['2023-04-27 10:00:00', '2023-04-27 10:00:00'],
-        ['2023-04-27 10:00:00+05:30', '2023-04-27 10:00:00+05:30'],
-      ];
-      for (const data of datetimeData) {
-        await sqliteknex('my_table').insert({
-          datetime_without_tz: data[0],
-          datetime_with_tz: data[1],
-        });
-      }
-    } catch (e) {
-      console.error(`Error resetting sqlite sakila db: Worker ${dbName}`);
-    } finally {
-      if (sqliteknex) await sqliteknex.destroy();
-    }
-  }
-}
 
 function getDateTimeInLocalTimeZone(dateString: string) {
   // create a Date object with the input string
@@ -1113,10 +1000,7 @@ test.describe.serial('Timezone- ExtDB (MySQL Only) : DB Timezone configured as H
   test.afterEach(async () => {
     if (isMysql(context)) {
       // Reset DB Timezone
-      const config = getKnexConfig({ dbName: 'sakila', dbType: 'mysql' });
-      const mysqlknex = knex(config);
-      await mysqlknex.raw(`SET GLOBAL time_zone = '+00:00'`);
-      await mysqlknex.destroy();
+      await mysqlTz();
     }
   });
 

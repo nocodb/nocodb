@@ -2,39 +2,11 @@ import { Page, selectors } from '@playwright/test';
 import axios, { AxiosResponse } from 'axios';
 import { Api, ProjectListType, ProjectType, ProjectTypes, UserType, WorkspaceType } from 'nocodb-sdk';
 import { getDefaultPwd } from '../tests/utils/general';
-import { knex } from 'knex';
-import { promises as fs } from 'fs';
 import { isEE } from './db';
+import { resetSakilaPg } from './knexHelper';
 
 // Use local reset logic instead of remote
 const enableLocalInit = true;
-
-// PG Configuration
-//
-const config = {
-  client: 'pg',
-  connection: {
-    host: 'localhost',
-    port: 5432,
-    user: 'postgres',
-    password: 'password',
-    database: 'postgres',
-    multipleStatements: true,
-  },
-  searchPath: ['public', 'information_schema'],
-  pool: { min: 0, max: 1 },
-};
-
-// Sakila Knex Configuration
-//
-const sakilaKnexConfig = (parallelId: string) => ({
-  ...config,
-  connection: {
-    ...config.connection,
-    database: `sakila${parallelId}`,
-  },
-  pool: { min: 0, max: 1 },
-});
 
 // External PG Project create payload
 //
@@ -193,18 +165,7 @@ async function localInit({
 
     // DB reset
     if (!isEmptyProject) {
-      let pgknex;
-      try {
-        pgknex = knex(config);
-        await pgknex.raw(`DROP DATABASE IF EXISTS sakila${workerId} WITH (FORCE)`);
-        await pgknex.raw(`CREATE DATABASE sakila${workerId}`);
-      } catch (e) {
-        console.error(`Error resetting pg sakila db: Worker ${workerId}`);
-      } finally {
-        if (pgknex) await pgknex.destroy();
-      }
-
-      await resetSakilaPg(workerId);
+      await resetSakilaPg(`sakila${workerId}`);
     }
 
     let workspace;

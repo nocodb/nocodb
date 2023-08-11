@@ -47,6 +47,10 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
+      - name: Set CI env
+        run: export CI=true
+      - name: Set NC Edition
+        run: export NC_EDITION=community
       - name: install dependencies nocodb-sdk
         working-directory: ./packages/nocodb-sdk
         run: npm install

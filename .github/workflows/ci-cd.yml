@@ -43,6 +43,8 @@ jobs:
           fetch-depth: 0
       - name: Set CI env
         run: export CI=true
+      - name: Set NC Edition
+        run: export NC_EDITION=enterprise
       - name: Set Node env
         run: export NODE_OPTIONS=\"--max_old_space_size=16384\";
       - name: Cache node modules

@@ -8,7 +8,6 @@ process.env.NODE_ENV = 'test';
 process.env.TEST = 'true';
 process.env.NC_DISABLE_CACHE = 'true';
 process.env.NC_DISABLE_TELE = 'true';
-process.env.NC_EDITION = 'enterprise'; // enterprise or community
 
 // Load environment variables from .env file
 dotenv.config({

@@ -3,16 +3,10 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import setup from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { SettingsPage, SettingTab } from '../../../pages/Dashboard/Settings';
-import { isHub } from '../../../setup/db';
 
 const roles = ['Editor', 'Commenter', 'Viewer'];
 
-test.describe('Preview Mode', () => {
-  if (isHub()) {
-    // Role preview not supported in Hub
-    test.skip();
-  }
-
+test.describe.skip('Preview Mode', () => {
   test.slow();
 
   let dashboard: DashboardPage;
@@ -55,34 +49,20 @@ test.describe('Preview Mode', () => {
   });
 
   async function roleTest(role: string) {
-    if (isHub()) {
-      await dashboard.grid.workspaceMenu.toggle();
-      await dashboard.grid.workspaceMenu.click({
-        menu: 'Preview as',
-        subMenu: role,
-      });
-    } else {
-      await dashboard.grid.projectMenu.toggle();
-      await dashboard.grid.projectMenu.click({
-        menu: 'Preview as',
-        subMenu: role,
-      });
-    }
+    await dashboard.grid.workspaceMenu.toggle();
+    await dashboard.grid.workspaceMenu.click({
+      menu: 'Preview as',
+      subMenu: role,
+    });
 
     // wait for preview mode to be enabled
     await dashboard.rootPage.locator('.nc-preview-btn-exit-to-app').waitFor();
     // todo: Otherwise grid will be stuck at loading even tho the data is loaded
     await dashboard.rootPage.waitForTimeout(2500);
 
-    if (isHub()) {
-      await dashboard.validateWorkspaceMenu({
-        role: role.toLowerCase(),
-      });
-    } else {
-      await dashboard.validateProjectMenu({
-        role: role.toLowerCase(),
-      });
-    }
+    await dashboard.validateWorkspaceMenu({
+      role: role.toLowerCase(),
+    });
 
     await dashboard.rootPage.waitForTimeout(1500);
 

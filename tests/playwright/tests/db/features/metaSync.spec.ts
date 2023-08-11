@@ -2,13 +2,9 @@ import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { SettingsPage, SettingTab } from '../../../pages/Dashboard/Settings';
 import setup, { NcContext } from '../../../setup';
-import { isHub, isMysql, isPg, isSqlite, mysqlExec, pgExec, sqliteExec } from '../../../setup/db';
+import { isMysql, isPg, isSqlite, mysqlExec, pgExec, sqliteExec } from '../../../setup/db';
 
-test.describe('Meta sync', () => {
-  if (isHub()) {
-    test.skip();
-  }
-
+test.describe.skip('Meta sync', () => {
   let dashboard: DashboardPage;
   let settings: SettingsPage;
   let context: NcContext;

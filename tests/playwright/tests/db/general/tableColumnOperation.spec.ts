@@ -2,7 +2,6 @@ import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { GridPage } from '../../../pages/Dashboard/Grid';
 import setup from '../../../setup';
-import { isHub } from '../../../setup/db';
 
 test.describe('Table Column Operations', () => {
   let grid: GridPage, dashboard: DashboardPage;
@@ -57,11 +56,7 @@ test.describe('Table Column Operations', () => {
     await grid.verifyRowDoesNotExist({ index: 0 });
 
     // add new row using toolbar button
-    if (isHub()) {
-      await dashboard.grid.footbar.clickAddRecordFromForm();
-    } else {
-      await dashboard.grid.toolbar.clickAddNewRow();
-    }
+    await dashboard.grid.footbar.clickAddRecordFromForm();
     await dashboard.expandedForm.fillField({
       columnTitle: 'Title',
       value: 'value_a',

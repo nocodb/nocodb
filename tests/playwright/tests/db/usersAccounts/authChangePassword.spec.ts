@@ -7,15 +7,10 @@ import { SignupPage } from '../../../pages/SignupPage';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { AccountPage } from '../../../pages/Account';
 import { getDefaultPwd } from '../../../tests/utils/general';
-import { isHub } from '../../../setup/db';
 import { WorkspacePage } from '../../../pages/WorkspacePage';
 
 // To enable after fixing it in hub
-test.describe('Auth', () => {
-  if (isHub()) {
-    test.skip();
-  }
-
+test.describe.skip('Auth', () => {
   let context: any;
   let dashboard: DashboardPage;
   let settings: SettingsPage;
@@ -37,22 +32,10 @@ test.describe('Auth', () => {
 
   test('Change password', async ({ page }) => {
     let url = '';
-    if (isHub()) {
-      await dashboard.treeView.openTable({ title: 'Country' });
-      await dashboard.grid.toolbar.clickShare();
-      await dashboard.grid.toolbar.share.invite({ email: 'user-1@nocodb.com', role: 'creator' });
-      url = await dashboard.grid.toolbar.share.getInvitationUrl();
-    } else {
-      await dashboard.closeTab({ title: 'Team & Auth' });
-      await dashboard.gotoSettings();
-      await settings.selectTab({ tab: SettingTab.TeamAuth });
-      url = await settings.teams.invite({
-        email: 'user-1@nocodb.com',
-        role: 'creator',
-      });
-      await settings.teams.closeInvite();
-      await settings.close();
-    }
+    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.grid.toolbar.clickShare();
+    await dashboard.grid.toolbar.share.invite({ email: 'user-1@nocodb.com', role: 'creator' });
+    url = await dashboard.grid.toolbar.share.getInvitationUrl();
 
     await dashboard.signOut();
 
@@ -63,11 +46,7 @@ test.describe('Auth', () => {
       withoutPrefix: true,
     });
 
-    if (isHub()) {
-      await workspacePage.openPasswordChangeModal();
-    } else {
-      await projectsPage.openPasswordChangeModal();
-    }
+    await workspacePage.openPasswordChangeModal();
 
     // Existing active pass incorrect
     await accountPage.users.changePasswordPage.changePassword({
@@ -99,10 +78,6 @@ test.describe('Auth', () => {
     await loginPage.fillPassword('NewPasswordConfigured');
     await loginPage.submit();
 
-    if (isHub()) {
-      await workspacePage.waitForRender();
-    } else {
-      await projectsPage.waitForRender();
-    }
+    await workspacePage.waitForRender();
   });
 });

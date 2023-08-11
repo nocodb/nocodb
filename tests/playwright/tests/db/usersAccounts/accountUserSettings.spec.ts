@@ -4,13 +4,9 @@ import { AccountSettingsPage } from '../../../pages/Account/Settings';
 import { SignupPage } from '../../../pages/SignupPage';
 import setup from '../../../setup';
 import { getDefaultPwd } from '../../../tests/utils/general';
-import { isHub } from '../../../setup/db';
 
-test.describe('App settings', () => {
+test.describe.skip('App settings', () => {
   // hub will not have this feature
-  if (isHub()) {
-    test.skip();
-  }
 
   let accountSettingsPage: AccountSettingsPage;
   let accountPage: AccountPage;

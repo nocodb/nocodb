@@ -1,7 +1,6 @@
 import { Locator } from '@playwright/test';
 import { SettingsPage } from '.';
 import BasePage from '../../Base';
-import { isHub } from '../../../setup/db';
 
 export class TeamsPage extends BasePage {
   private readonly settings: SettingsPage;
@@ -12,11 +11,7 @@ export class TeamsPage extends BasePage {
     super(settings.rootPage);
     this.settings = settings;
     this.inviteTeamBtn = this.get().locator(`button:has-text("Invite Team")`);
-    if (isHub()) {
-      this.inviteTeamModal = this.rootPage.locator('.nc-modal-share-collaborate');
-    } else {
-      this.inviteTeamModal = this.rootPage.getByTestId('invite-user-and-share-base-modal');
-    }
+    this.inviteTeamModal = this.rootPage.locator('.nc-modal-share-collaborate');
   }
 
   get() {
@@ -41,35 +36,21 @@ export class TeamsPage extends BasePage {
   async invite({ email, role, skipOpeningModal }: { email: string; role: string; skipOpeningModal?: boolean }) {
     email = this.prefixEmail(email);
 
-    if (isHub()) {
-      await this.inviteTeamModal.getByTestId('docs-share-dlg-share-project-collaborate-emails').fill(email);
-      await this.inviteTeamModal.getByTestId('nc-share-invite-user-role-option-viewer').click();
-      const dropdown = await this.rootPage.locator('.nc-dropdown-user-role');
-      await dropdown.locator(`.nc-role-option:has-text("${role}")`).click();
-      await this.inviteTeamModal.getByTestId('docs-share-btn').click();
-      await this.inviteTeamModal.getByTestId('docs-share-invitation-copy').waitFor({ state: 'visible', timeout: 2000 });
+    await this.inviteTeamModal.getByTestId('docs-share-dlg-share-project-collaborate-emails').fill(email);
+    await this.inviteTeamModal.getByTestId('nc-share-invite-user-role-option-viewer').click();
+    const dropdown = await this.rootPage.locator('.nc-dropdown-user-role');
+    await dropdown.locator(`.nc-role-option:has-text("${role}")`).click();
+    await this.inviteTeamModal.getByTestId('docs-share-btn').click();
+    await this.inviteTeamModal.getByTestId('docs-share-invitation-copy').waitFor({ state: 'visible', timeout: 2000 });
 
-      await this.rootPage.waitForTimeout(1000);
-      await this.inviteTeamModal.getByTestId('docs-share-invitation-copy').click();
-      await this.rootPage.waitForTimeout(1000);
-      await this.inviteTeamModal
-        .locator('[data-testid="docs-share-invitation-copy"]:has-text(" Copied invite link ")')
-        .waitFor({ state: 'visible', timeout: 2000 });
-      await this.rootPage.keyboard.press('Escape');
-      return await this.getClipboardText();
-    } else {
-      if (!skipOpeningModal) await this.inviteTeamBtn.click();
-
-      await this.inviteTeamModal.locator(`input[placeholder="E-mail"]`).fill(email);
-      await this.inviteTeamModal.locator(`.nc-user-roles`).click();
-      const userRoleModal = this.rootPage.locator(`.nc-dropdown-user-role`);
-      await userRoleModal.locator(`.nc-role-option:has-text("${role}")`).click();
-      await this.inviteTeamModal.locator(`button:has-text("Invite")`).click();
-      await this.verifyToast({ message: 'Successfully updated the user details' });
-
-      // http://localhost:3000/#/signup/a5e7bf3a-cbb0-46bc-87f7-c2ae21796707
-      return (await this.inviteTeamModal.locator(`.ant-alert-message`).innerText()).slice(0, 67);
-    }
+    await this.rootPage.waitForTimeout(1000);
+    await this.inviteTeamModal.getByTestId('docs-share-invitation-copy').click();
+    await this.rootPage.waitForTimeout(1000);
+    await this.inviteTeamModal
+      .locator('[data-testid="docs-share-invitation-copy"]:has-text(" Copied invite link ")')
+      .waitFor({ state: 'visible', timeout: 2000 });
+    await this.rootPage.keyboard.press('Escape');
+    return await this.getClipboardText();
   }
 
   async closeInvite() {

@@ -1,7 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup from '../../../setup';
-import { isHub } from '../../../setup/db';
 
 test.describe('LTAR create & update', () => {
   let dashboard: DashboardPage;
@@ -57,11 +56,7 @@ test.describe('LTAR create & update', () => {
 
     // Expanded form insert
 
-    if (isHub()) {
-      await dashboard.grid.footbar.clickAddRecordFromForm();
-    } else {
-      await dashboard.grid.toolbar.clickAddNewRow();
-    }
+    await dashboard.grid.footbar.clickAddRecordFromForm();
     await dashboard.expandedForm.fillField({
       columnTitle: 'Title',
       value: '2a',

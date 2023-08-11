@@ -2,13 +2,8 @@ import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 
 import setup from '../../../setup';
-import { isHub } from '../../../setup/db';
 
-test.describe('Map View', () => {
-  if (isHub()) {
-    test.skip();
-  }
-
+test.describe.skip('Map View', () => {
   let dashboard: DashboardPage;
   let context: any;
 

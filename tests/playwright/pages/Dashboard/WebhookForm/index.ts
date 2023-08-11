@@ -3,7 +3,6 @@ import BasePage from '../../Base';
 import { DashboardPage } from '..';
 import { ToolbarPage } from '../common/Toolbar';
 import { getTextExcludeIconText } from '../../../tests/utils/general';
-import { isHub } from '../../../setup/db';
 
 export class WebhookFormPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -26,17 +25,10 @@ export class WebhookFormPage extends BasePage {
   }
 
   async create({ title, event, url = 'http://localhost:9090/hook' }: { title: string; event: string; url?: string }) {
-    if (isHub()) {
-      await this.dashboard.viewSidebar.openDeveloperTab({});
-      await this.dashboard.viewSidebar.webhook.addHook();
-      await this.get().waitFor({ state: 'visible' });
-    } else {
-      await this.toolbar.clickActions();
-      await this.toolbar.actions.click('Webhooks');
+    await this.dashboard.viewSidebar.openDeveloperTab({});
+    await this.dashboard.viewSidebar.webhook.addHook();
+    await this.get().waitFor({ state: 'visible' });
 
-      await this.addNewButton.click();
-      await this.get().waitFor({ state: 'visible' });
-    }
     await this.configureHeader({
       key: 'Content-Type',
       value: 'application/json',
@@ -121,22 +113,9 @@ export class WebhookFormPage extends BasePage {
   }
 
   async delete({ index }: { index: number }) {
-    if (isHub()) {
-      await this.dashboard.viewSidebar.openDeveloperTab({});
-      await this.dashboard.viewSidebar.webhook.deleteHook({ index });
-      await this.rootPage.locator('div.ant-modal.active').locator('button:has-text("Delete")').click();
-    } else {
-      await this.toolbar.clickActions();
-      await this.toolbar.actions.click('Webhooks');
-
-      await this.get().locator(`.nc-hook-delete-icon`).nth(index).click();
-      await this.rootPage.locator('.ant-modal-confirm-confirm button:has-text("Yes")').click();
-      await this.verifyToast({ message: 'Hook deleted successfully' });
-
-      // click escape to close the drawer
-      await this.get().click();
-      await this.get().press('Escape');
-    }
+    await this.dashboard.viewSidebar.openDeveloperTab({});
+    await this.dashboard.viewSidebar.webhook.deleteHook({ index });
+    await this.rootPage.locator('div.ant-modal.active').locator('button:has-text("Delete")').click();
   }
 
   async close() {
@@ -145,16 +124,9 @@ export class WebhookFormPage extends BasePage {
   }
 
   async open({ index }: { index: number }) {
-    if (isHub()) {
-      await this.dashboard.viewSidebar.openDeveloperTab({});
-      await (await this.dashboard.viewSidebar.webhook.getItem({ index })).click();
-      await this.get().waitFor({ state: 'visible' });
-    } else {
-      await this.toolbar.clickActions();
-      await this.toolbar.actions.click('Webhooks');
-      await this.dashboard.get().locator(`.nc-hook`).nth(index).click();
-      await this.get().locator('.nc-check-box-enable-webhook').waitFor({ state: 'visible' });
-    }
+    await this.dashboard.viewSidebar.openDeveloperTab({});
+    await (await this.dashboard.viewSidebar.webhook.getItem({ index })).click();
+    await this.get().waitFor({ state: 'visible' });
   }
 
   async openForm({ index }: { index: number }) {
@@ -169,29 +141,24 @@ export class WebhookFormPage extends BasePage {
     // hardcode "Content-type: application/json"
     await this.get().locator(`.ant-tabs-tab-btn:has-text("Headers")`).click();
 
-    if (isHub()) {
-      await this.get().locator('.nc-input-hook-header-key').click();
+    await this.get().locator('.nc-input-hook-header-key').click();
 
-      // kludge, as the dropdown is not visible even after scroll into view
-      await this.rootPage.locator('.ant-select-dropdown:visible').hover();
-      await this.rootPage
-        .locator('.ant-select-dropdown:visible')
-        .locator(`.ant-select-item`)
-        .last()
-        .scrollIntoViewIfNeeded();
+    // kludge, as the dropdown is not visible even after scroll into view
+    await this.rootPage.locator('.ant-select-dropdown:visible').hover();
+    await this.rootPage
+      .locator('.ant-select-dropdown:visible')
+      .locator(`.ant-select-item`)
+      .last()
+      .scrollIntoViewIfNeeded();
 
-      await this.rootPage
-        .locator('.ant-select-dropdown:visible')
-        .locator(`.ant-select-item:has-text("${key}")`)
-        .scrollIntoViewIfNeeded();
-      await this.rootPage
-        .locator('.ant-select-dropdown:visible')
-        .locator(`.ant-select-item:has-text("${key}")`)
-        .click({ force: true });
-    } else {
-      await this.get().locator('.nc-input-hook-header-key >> input').fill(key);
-      await this.rootPage.locator(`.ant-select-item:has-text("${key}")`).click();
-    }
+    await this.rootPage
+      .locator('.ant-select-dropdown:visible')
+      .locator(`.ant-select-item:has-text("${key}")`)
+      .scrollIntoViewIfNeeded();
+    await this.rootPage
+      .locator('.ant-select-dropdown:visible')
+      .locator(`.ant-select-item:has-text("${key}")`)
+      .click({ force: true });
 
     await this.get().locator('.nc-input-hook-header-value').clear();
     await this.get().locator('.nc-input-hook-header-value').type(value);

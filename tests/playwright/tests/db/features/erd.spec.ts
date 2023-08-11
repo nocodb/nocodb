@@ -9,7 +9,7 @@ import {
 import { DashboardPage } from '../../../pages/Dashboard';
 import { SettingsSubTab, SettingTab } from '../../../pages/Dashboard/Settings';
 import setup from '../../../setup';
-import { isHub, isMysql, isPg, isSqlite } from '../../../setup/db';
+import { isMysql, isPg, isSqlite } from '../../../setup/db';
 import { SettingsErdPage } from '../../../pages/Dashboard/Settings/Erd';
 import { defaultBaseName } from '../../../constants';
 
@@ -56,13 +56,7 @@ test.describe.skip('Erd', () => {
 
   const openErdOfATable = async (tableName: string) => {
     await dashboard.treeView.openTable({ title: tableName });
-
-    if (isHub()) {
-      await dashboard.viewSidebar.openDeveloperTab({ option: 'ERD' });
-    } else {
-      await dashboard.grid.toolbar.clickActions();
-      await dashboard.grid.toolbar.actions.click('ERD View');
-    }
+    await dashboard.viewSidebar.openDeveloperTab({ option: 'ERD' });
   };
 
   test('Verify default config, all columns disabled, only PK and FK disabled, Sql views and MM table option, junction table names', async () => {
@@ -238,13 +232,8 @@ test.describe.skip('Erd', () => {
     });
     await dashboard.settings.close();
 
-    if (!isHub()) await dashboard.treeView.openTable({ title: 'Country' });
-    if (isHub()) {
-      await dashboard.viewSidebar.openDeveloperTab({ option: 'ERD' });
-    } else {
-      await dashboard.grid.toolbar.clickActions();
-      await dashboard.grid.toolbar.actions.click('ERD View');
-    }
+    await dashboard.viewSidebar.openDeveloperTab({ option: 'ERD' });
+
     await dashboard.grid.toolbar.actions.erd.verifyNode({
       tableName: `country`,
       columnName: 'test_column',
@@ -265,13 +254,8 @@ test.describe.skip('Erd', () => {
     });
     await dashboard.settings.close();
 
-    if (!isHub()) await dashboard.treeView.openTable({ title: 'Country' });
-    if (isHub()) {
-      await dashboard.viewSidebar.openDeveloperTab({ option: 'ERD' });
-    } else {
-      await dashboard.grid.toolbar.clickActions();
-      await dashboard.grid.toolbar.actions.click('ERD View');
-    }
+    await dashboard.viewSidebar.openDeveloperTab({ option: 'ERD' });
+
     await dashboard.grid.toolbar.actions.erd.verifyNode({
       tableName: `country`,
       columnName: 'new_test_column',
@@ -294,12 +278,8 @@ test.describe.skip('Erd', () => {
     await dashboard.settings.close();
 
     await dashboard.treeView.openTable({ title: 'Country' });
-    if (isHub()) {
-      await dashboard.viewSidebar.openDeveloperTab({ option: 'ERD' });
-    } else {
-      await dashboard.grid.toolbar.clickActions();
-      await dashboard.grid.toolbar.actions.click('ERD View');
-    }
+    await dashboard.viewSidebar.openDeveloperTab({ option: 'ERD' });
+
     await dashboard.grid.toolbar.actions.erd.verifyNode({
       tableName: `country`,
       columnNameShouldNotExist: 'new_test_column',

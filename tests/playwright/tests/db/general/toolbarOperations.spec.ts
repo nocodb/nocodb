@@ -31,6 +31,8 @@ test.describe('Toolbar operations (GRID)', () => {
     // GroupBy Category Descending Order
     await toolbar.groupBy.add({ title: 'Length', ascending: false, locallySaved: false });
 
+    await toolbar.clickGroupBy();
+
     // Hide Field and Verify
     await toolbar.fields.toggle({ title: 'Description' });
     await dashboard.grid.column.verify({
@@ -106,6 +108,7 @@ test.describe('Toolbar operations (GRID)', () => {
       value: '185',
     });
     await toolbar.filter.reset({ networkValidation: false });
+    await toolbar.clickFilter();
     await toolbar.filter.add({
       title: 'Length',
       value: '183',
@@ -147,8 +150,6 @@ test.describe('Toolbar operations (GRID)', () => {
       title: 'Description',
       isVisible: true,
     });
-
-    await dashboard.closeTab({ title: 'Film' });
   });
 
   test('Create Two GroupBy and Verify With Sort, Filter, Hide', async () => {
@@ -161,6 +162,9 @@ test.describe('Toolbar operations (GRID)', () => {
     // GroupBy Category Descending Order
     await toolbar.groupBy.add({ title: 'Length', ascending: false, locallySaved: false });
     await toolbar.groupBy.add({ title: 'RentalDuration', ascending: false, locallySaved: false });
+
+    // Close GroupBy Menu
+    await toolbar.clickGroupBy();
 
     // Hide Field and Verify
     await toolbar.fields.toggle({ title: 'Description' });
@@ -194,7 +198,6 @@ test.describe('Toolbar operations (GRID)', () => {
 
     // Add Sort and Verify
     await toolbar.sort.add({ title: 'Title', ascending: false, locallySaved: false });
-    await dashboard.grid.groupPage.openGroup({ indexMap: [1, 0] });
     await dashboard.grid.groupPage.validateFirstRow({
       indexMap: [1, 0],
       rowIndex: 0,
@@ -204,7 +207,6 @@ test.describe('Toolbar operations (GRID)', () => {
 
     // Update Sort and Verify
     await toolbar.sort.update({ index: 1, title: 'Title', ascending: true, locallySaved: false });
-    await dashboard.grid.groupPage.openGroup({ indexMap: [1, 0] });
     await dashboard.grid.groupPage.validateFirstRow({
       indexMap: [1, 0],
       rowIndex: 0,
@@ -242,6 +244,7 @@ test.describe('Toolbar operations (GRID)', () => {
       indexMap: [1, 0],
       value: '5',
     });
+
     await toolbar.filter.reset({ networkValidation: false });
     await toolbar.clickFilter();
     await toolbar.filter.add({

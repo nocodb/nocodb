@@ -13,7 +13,7 @@ import questionMark from '@windicss/plugin-question-mark'
 
 import { theme as colors, themeColors, themeV2Colors } from './utils/colorsUtils'
 
-const isEE = process.env.EE === 'true'
+const isEE = process.env.EE
 
 export default defineConfig({
   extract: {

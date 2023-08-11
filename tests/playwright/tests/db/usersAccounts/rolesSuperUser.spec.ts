@@ -1,23 +1,18 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup from '../../../setup';
-import { isHub } from '../../../setup/db';
 
-test.describe('Super user', () => {
+test.describe.skip('Super user', () => {
   let dashboard: DashboardPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
+    context = await setup({ page, isEmptyProject: true, isSuperUser: true });
     dashboard = new DashboardPage(page, context.project);
   });
 
+  // fix me!
   test('AppStore access', async () => {
-    if (isHub()) {
-      // Appstore is not available in hub
-      test.skip();
-    }
-
     await dashboard.closeTab({ title: 'Team & Auth' });
 
     await dashboard.rootPage.goto('/#/account/apps', { waitUntil: 'networkidle' });

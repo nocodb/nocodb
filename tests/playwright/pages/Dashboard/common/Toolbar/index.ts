@@ -17,7 +17,6 @@ import { ToolbarSearchDataPage } from './SearchData';
 import { RowHeight } from './RowHeight';
 import { MapPage } from '../../Map';
 import { getTextExcludeIconText } from '../../../../tests/utils/general';
-import { isHub } from '../../../../setup/db';
 import { ToolbarSharePage } from './Share';
 
 export class ToolbarPage extends BasePage {
@@ -209,39 +208,14 @@ export class ToolbarPage extends BasePage {
   }
 
   async validateViewsMenu(param: { role: string; mode?: string }) {
-    if (isHub()) {
-      const menuItems = {
-        creator: ['Download', 'Upload'],
-        editor: ['Download', 'Upload'],
-        commenter: ['Download as CSV', 'Download as XLSX'],
-        viewer: ['Download as CSV', 'Download as XLSX'],
-      };
-      const vMenu = await this.rootPage.locator('.nc-dropdown-actions-menu:visible');
-      for (const item of menuItems[param.role.toLowerCase()]) {
-        await expect(vMenu).toContainText(item);
-      }
-      return;
-    }
-
-    let menuItems = {
-      creator: ['Download', 'Upload', 'Shared View List', 'Webhooks', 'Get API Snippet', 'ERD View'],
-      editor: ['Download', 'Upload', 'Get API Snippet', 'ERD View'],
+    const menuItems = {
+      creator: ['Download', 'Upload'],
+      editor: ['Download', 'Upload'],
       commenter: ['Download as CSV', 'Download as XLSX'],
       viewer: ['Download as CSV', 'Download as XLSX'],
     };
-
-    if (param.mode === 'shareBase') {
-      menuItems = {
-        creator: [],
-        editor: ['Download', 'Upload', 'ERD View'],
-        commenter: [],
-        viewer: ['Download as CSV', 'Download as XLSX'],
-      };
-    }
-
     const vMenu = await this.rootPage.locator('.nc-dropdown-actions-menu:visible');
-
-    for (const item of menuItems[param.role]) {
+    for (const item of menuItems[param.role.toLowerCase()]) {
       await expect(vMenu).toContainText(item);
     }
   }
@@ -256,54 +230,31 @@ export class ToolbarPage extends BasePage {
     });
     await this.clickActions();
 
-    if (!isHub()) {
-      const menuItems = {
-        creator: ['Fields', 'Filter', 'Sort', 'Share View'],
-        editor: ['Fields', 'Filter', 'Sort'],
-        commenter: ['Fields', 'Filter', 'Sort', 'Download'],
-        viewer: ['Fields', 'Filter', 'Sort', 'Download'],
-      };
-
-      for (const item of menuItems[param.role]) {
-        await expect(this.get()).toContainText(item);
-      }
-      await expect(this.get().locator('.nc-add-new-row-btn')).toHaveCount(
-        param.role === 'creator' || param.role === 'editor' ? 1 : 0
-      );
-    } else {
-      expect(await this.btn_fields.count()).toBe(1);
-      expect(await this.btn_filter.count()).toBe(1);
-      expect(await this.btn_sort.count()).toBe(1);
-      expect(await this.btn_rowHeight.count()).toBe(1);
-    }
+    expect(await this.btn_fields.count()).toBe(1);
+    expect(await this.btn_filter.count()).toBe(1);
+    expect(await this.btn_sort.count()).toBe(1);
+    expect(await this.btn_rowHeight.count()).toBe(1);
   }
 
   async getSharedViewUrl(surveyMode = false, password = '', download = false) {
-    if (isHub()) {
-      await this.clickShare();
-      // await this.share.clickShareView();
-      await this.share.clickShareViewPublicAccess();
-      await this.share.clickCopyLink();
-      if (surveyMode) {
-        await this.share.clickShareViewSurveyMode();
-      }
-
-      if (password !== '') {
-        await this.share.clickShareViewWithPassword({ password });
-      }
-
-      if (download) {
-        await this.share.clickShareViewWithCSVDownload();
-      }
-
-      await this.share.closeModal();
-      return await this.getClipboardText();
-    } else {
-      await this.clickShareView();
-      const formLink = await this.shareView.getShareLink();
-      await this.shareView.close();
-      return formLink;
+    await this.clickShare();
+    // await this.share.clickShareView();
+    await this.share.clickShareViewPublicAccess();
+    await this.share.clickCopyLink();
+    if (surveyMode) {
+      await this.share.clickShareViewSurveyMode();
     }
+
+    if (password !== '') {
+      await this.share.clickShareViewWithPassword({ password });
+    }
+
+    if (download) {
+      await this.share.clickShareViewWithCSVDownload();
+    }
+
+    await this.share.closeModal();
+    return await this.getClipboardText();
   }
 
   async getSharedBaseUrl({ role }: { role: string }) {

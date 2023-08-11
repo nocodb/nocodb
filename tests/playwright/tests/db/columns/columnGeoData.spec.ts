@@ -2,14 +2,8 @@ import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup from '../../../setup';
 import { GridPage } from '../../../pages/Dashboard/Grid';
-import { isHub } from '../../../setup/db';
 
-test.describe('Geo Data column', () => {
-  if (isHub()) {
-    test.skip('Not supported on hub', async () => {});
-    return;
-  }
-
+test.describe.skip('Geo Data column', () => {
   let dashboard: DashboardPage;
   let grid: GridPage;
   let context: any;

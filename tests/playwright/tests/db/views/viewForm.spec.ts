@@ -184,8 +184,8 @@ test.describe('Form view', () => {
     });
     const url = dashboard.rootPage.url();
 
+    // fix me! for app store, need super admin login.
     if (isHub()) {
-      // Appstore is not available in Hub
       return;
     }
 
@@ -361,8 +361,8 @@ test.describe('Form view with LTAR', () => {
       text: 'USA',
     });
     await sharedForm.clickLinkToChildList();
-    
-    await new Promise((r) => setTimeout(r, 500));
+
+    await new Promise(r => setTimeout(r, 500));
 
     await sharedForm.verifyChildList(['Atlanta', 'Pune', 'London', 'Sydney']);
     await sharedForm.selectChildList('Atlanta');

@@ -5,7 +5,6 @@ import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { LoginPage } from '../../../pages/LoginPage';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { getDefaultPwd } from '../../../tests/utils/general';
-import { isHub } from '../../../setup/db';
 
 // To be enabled after shared base is implemented
 test.describe.skip('Shared base', () => {
@@ -62,19 +61,9 @@ test.describe.skip('Shared base', () => {
     await dashboard.closeTab({ title: 'Team & Auth' });
 
     let url = '';
-    if (isHub()) {
-      // share button visible only if a table is opened
-      await dashboard.treeView.openTable({ title: 'Country' });
-      url = await dashboard.grid.toolbar.getSharedBaseUrl({ role: 'editor' });
-    } else {
-      await dashboard.gotoSettings();
-      await dashboard.settings.teams.clickInviteTeamBtn();
-      await dashboard.settings.teams.toggleSharedBase({ toggle: true });
-      await dashboard.settings.teams.sharedBaseRole({ role: 'editor' });
-      url = await dashboard.settings.teams.getSharedBaseUrl();
-      await dashboard.settings.teams.closeInvite();
-      await dashboard.settings.close();
-    }
+    // share button visible only if a table is opened
+    await dashboard.treeView.openTable({ title: 'Country' });
+    url = await dashboard.grid.toolbar.getSharedBaseUrl({ role: 'editor' });
 
     await dashboard.rootPage.waitForTimeout(2000);
     // access shared base link

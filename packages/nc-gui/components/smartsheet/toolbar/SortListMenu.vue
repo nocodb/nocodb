@@ -122,7 +122,7 @@ watch(open, () => {
       </a-button>
     </div>
     <template #overlay>
-      <SmartsheetToolbarCreateSort v-if="!sorts.length" :key="open" @created="addSort" />
+      <SmartsheetToolbarCreateSort v-if="!sorts.length" :is-parent-open="open" @created="addSort" />
       <div
         v-else
         :class="{ ' min-w-102': sorts.length }"
@@ -176,7 +176,7 @@ watch(open, () => {
             </div>
           </NcButton>
           <template #overlay>
-            <SmartsheetToolbarCreateSort :key="showCreateSort" @created="addSort" />
+            <SmartsheetToolbarCreateSort :is-parent-open="showCreateSort" @created="addSort" />
           </template>
         </NcDropdown>
       </div>

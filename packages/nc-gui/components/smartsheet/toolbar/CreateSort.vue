@@ -2,13 +2,20 @@
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 
+const props = defineProps<{
+  // As we need to focus search box when the parent is opened
+  isParentOpen: boolean
+}>()
+
 const emits = defineEmits(['created'])
+
+const { isParentOpen } = toRefs(props)
 
 const inputRef = ref()
 
 const search = ref('')
 
-const activeFieldIndex = ref(0)
+const activeFieldIndex = ref(-1)
 
 const activeView = inject(ActiveViewInj, ref())
 
@@ -46,15 +53,23 @@ const onClick = (column: ColumnType) => {
   emits('created', column)
 }
 
-watch(inputRef, () => {
-  // TODO: Find a better way to focus the input
-  setTimeout(() => {
-    inputRef.value?.focus()
-  }, 100)
-})
+watch(
+  isParentOpen,
+  () => {
+    if (!isParentOpen.value) return
+
+    setTimeout(() => {
+      inputRef.value?.focus()
+    }, 100)
+  },
+  {
+    immediate: true,
+  },
+)
 
 onMounted(() => {
   search.value = ''
+  activeFieldIndex.value = -1
 })
 
 const onArrowDown = () => {

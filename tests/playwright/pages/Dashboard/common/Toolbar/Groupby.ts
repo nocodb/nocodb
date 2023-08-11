@@ -82,6 +82,6 @@ export class ToolbarGroupByPage extends BasePage {
   }
 
   async remove({ index }: { index: number }) {
-    await this.get().locator('.nc-group-by-item-remove-btn').nth(index).click();
+    await this.rootPage.locator('.nc-group-by-item-remove-btn').nth(index).click();
   }
 }

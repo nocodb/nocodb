@@ -524,6 +524,46 @@ test.describe('Toolbar operations (GRID)', () => {
     });
   });
 
+  test('Delete GroupBy and Verify', async () => {
+    await dashboard.treeView.openTable({ title: 'Film' });
+
+    // Open GroupBy Menu
+    await toolbar.clickGroupBy();
+    await toolbar.groupBy.add({ title: 'Length', ascending: false, locallySaved: false });
+    await toolbar.groupBy.add({ title: 'RentalDuration', ascending: false, locallySaved: false });
+    await toolbar.clickGroupBy();
+
+    await dashboard.grid.groupPage.openGroup({ indexMap: [0, 0] });
+
+    await dashboard.grid.groupPage.validateFirstRow({
+      indexMap: [0, 0],
+      rowIndex: 0,
+      columnHeader: 'Title',
+      value: 'CONTROL ANTHEM',
+    });
+
+    await toolbar.clickGroupBy();
+    await toolbar.groupBy.remove({ index: 1 });
+    await toolbar.clickGroupBy();
+
+    await dashboard.grid.groupPage.validateFirstRow({
+      indexMap: [0],
+      rowIndex: 0,
+      columnHeader: 'Title',
+      value: 'CHICAGO NORTH',
+    });
+
+    await toolbar.clickGroupBy();
+    await toolbar.groupBy.remove({ index: 0 });
+    await toolbar.clickGroupBy();
+
+    await dashboard.grid.cell.verify({
+      index: 0,
+      columnHeader: 'Title',
+      value: 'ACADEMY DINOSAUR',
+    });
+  });
+
   test('Hide, Sort, Filter', async () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });

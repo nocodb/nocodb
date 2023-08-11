@@ -362,6 +362,8 @@ export default class Base implements BaseType {
       await SyncSource.delete(syncSource.id, ncMeta);
     }
 
+    await NcConnectionMgrv2.deleteAwait(this);
+
     return await ncMeta.metaDelete(null, null, MetaTable.BASES, this.id);
   }
 

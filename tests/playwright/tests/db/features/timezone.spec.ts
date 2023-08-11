@@ -4,7 +4,7 @@ import setup, { NcContext } from '../../../setup';
 import { knex } from 'knex';
 import { Api, ProjectListType, UITypes } from 'nocodb-sdk';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
-import { isHub, isMysql, isPg, isSqlite } from '../../../setup/db';
+import { isEE, isHub, isMysql, isPg, isSqlite } from '../../../setup/db';
 import { getKnexConfig } from '../../utils/config';
 import { getBrowserTimezoneOffset } from '../../utils/general';
 import config from '../../../playwright.config';
@@ -43,8 +43,8 @@ async function timezoneSuite(projectTitle: string, context: NcContext, skipTable
   const workspaceId = context?.workspace?.id;
   try {
     let projectList: ProjectListType;
-    if (isHub()) {
-      projectList = await api.workspaceProject.list(workspaceId);
+    if (isEE() && api['workspaceProject']) {
+      projectList = await api['workspaceProject'].list(workspaceId);
     } else {
       projectList = await api.project.list();
     }

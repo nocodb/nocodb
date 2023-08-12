@@ -57,6 +57,10 @@ const onChange = (value: string) => {
   .ant-select-selection-item {
     @apply font-medium pr-3;
   }
+
+  .ant-select-selection-placeholder {
+    @apply text-gray-600;
+  }
 }
 .nc-select.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector {
   box-shadow: none;

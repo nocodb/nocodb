@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { LoginPage } from '../../../pages/LoginPage';
 import { SettingsPage, SettingTab } from '../../../pages/Dashboard/Settings';
 import { SignupPage } from '../../../pages/SignupPage';
@@ -28,6 +28,10 @@ test.describe.skip('Auth', () => {
     workspacePage = new WorkspacePage(page);
 
     settings = dashboard.settings;
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Change password', async ({ page }) => {

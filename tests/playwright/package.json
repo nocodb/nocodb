@@ -20,7 +20,8 @@
     "ci:test:shard:2": "EE=true npx playwright test --shard=2/3 --workers=4",
     "ci:test:shard:3": "EE=true npx playwright test --shard=3/3 --workers=4",
     "ci:test:mysql": "E2E_DB_TYPE=mysql npx playwright test --workers=2",
-    "ci:test:pg": "E2E_DB_TYPE=pg npx playwright test --workers=2"
+    "ci:test:pg": "E2E_DB_TYPE=pg npx playwright test --workers=2",
+    "mock:server": "npx ts-node ./setup/init.ts"
   },
   "keywords": [],
   "author": "",

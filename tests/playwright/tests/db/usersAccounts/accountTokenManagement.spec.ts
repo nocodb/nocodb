@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { AccountPage } from '../../../pages/Account';
 import { AccountTokenPage } from '../../../pages/Account/Token';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 
 test.describe('User roles', () => {
   let accountTokenPage: AccountTokenPage;
@@ -13,6 +13,10 @@ test.describe('User roles', () => {
     context = await setup({ page, isEmptyProject: true });
     accountPage = new AccountPage(page);
     accountTokenPage = new AccountTokenPage(accountPage);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Create and Delete token', async () => {

@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { GridPage } from '../../../pages/Dashboard/Grid';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 
 test.describe('Table Column Operations', () => {
   let grid: GridPage, dashboard: DashboardPage;

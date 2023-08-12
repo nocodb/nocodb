@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { GridPage } from '../../../pages/Dashboard/Grid';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 
 test.describe('Single select', () => {
@@ -21,6 +21,10 @@ test.describe('Single select', () => {
       options: ['Option 1', 'Option 2'],
     });
     await grid.addNewRow({ index: 0, value: 'Row 0' });
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Select and clear options and rename options', async () => {
@@ -133,6 +137,10 @@ test.describe('Single select - filter & sort', () => {
     await grid.cell.selectOption.select({ index: 1, columnHeader: 'SingleSelect', option: 'foo', multiSelect: false });
     await grid.cell.selectOption.select({ index: 2, columnHeader: 'SingleSelect', option: 'bar', multiSelect: false });
     await grid.cell.selectOption.select({ index: 3, columnHeader: 'SingleSelect', option: 'baz', multiSelect: false });
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   // define validateRowArray function

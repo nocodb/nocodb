@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 
 // Storing one additional dummy value "10" at end of every input array
 // this will trigger update to previously committed data
@@ -47,6 +47,10 @@ test.describe('Duration column', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Create duration column', async () => {

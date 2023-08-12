@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { GridPage } from '../../../pages/Dashboard/Grid';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 
 test.describe('Verify cell selection', () => {
   let dashboard: DashboardPage, grid: GridPage;
@@ -12,6 +12,10 @@ test.describe('Verify cell selection', () => {
     dashboard = new DashboardPage(page, context.project);
     grid = dashboard.grid;
     await dashboard.closeAllTabs();
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Suite-1', async () => {

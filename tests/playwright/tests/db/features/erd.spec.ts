@@ -8,7 +8,7 @@ import {
 } from '../../../tests/utils/sakila';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { SettingsSubTab, SettingTab } from '../../../pages/Dashboard/Settings';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { isMysql, isPg, isSqlite } from '../../../setup/db';
 import { SettingsErdPage } from '../../../pages/Dashboard/Settings/Erd';
 import { defaultBaseName } from '../../../constants';
@@ -35,6 +35,10 @@ test.describe.skip('Erd', () => {
       sakilaTables = mysqlSakilaTables;
       sakilaSqlViews = sqliteSakilaSqlViews;
     }
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   const toggleMMAndOpenErd = async () => {

@@ -254,7 +254,10 @@ class PGClient extends KnexClient {
         JSON.stringify(this.connectionConfig),
       );
       connectionParamsWithoutDb.connection.database = 'postgres';
-      const tempSqlClient = knex(connectionParamsWithoutDb);
+      const tempSqlClient = knex({
+        ...connectionParamsWithoutDb,
+        pool: { min: 0, max: 1 },
+      });
       try {
         await tempSqlClient.raw('SELECT 1+1 as data');
         await tempSqlClient.destroy();
@@ -458,7 +461,10 @@ class PGClient extends KnexClient {
       let rows = [];
       try {
         connectionParamsWithoutDb.connection.database = 'postgres';
-        tempSqlClient = knex(connectionParamsWithoutDb);
+        tempSqlClient = knex({
+          ...connectionParamsWithoutDb,
+          pool: { min: 0, max: 1 },
+        });
 
         log.debug('checking if db exists');
         rows = (
@@ -524,7 +530,10 @@ class PGClient extends KnexClient {
         JSON.stringify(this.connectionConfig),
       );
       connectionParamsWithoutDb.connection.database = 'postgres';
-      const tempSqlClient = knex(connectionParamsWithoutDb);
+      const tempSqlClient = knex({
+        ...connectionParamsWithoutDb,
+        pool: { min: 0, max: 1 },
+      });
       await this.sqlClient.destroy();
       this.sqlClient = tempSqlClient;
 
@@ -537,6 +546,7 @@ class PGClient extends KnexClient {
 
       log.debug('dropping database:', args);
       await tempSqlClient.raw(`DROP DATABASE ??;`, [args.database]);
+      await tempSqlClient.destroy();
     } catch (e) {
       log.ppe(e, _func);
       // throw e;

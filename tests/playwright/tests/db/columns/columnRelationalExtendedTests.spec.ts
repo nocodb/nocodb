@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 
 test.describe('Relational Columns', () => {
   let dashboard: DashboardPage;
@@ -9,6 +9,10 @@ test.describe('Relational Columns', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Relational columns: HM, BT, MM', async () => {

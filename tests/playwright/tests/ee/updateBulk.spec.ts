@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import setup from '../../setup';
+import setup, { unsetup } from '../../setup';
 import { DashboardPage } from '../../pages/Dashboard';
 import { Api } from 'nocodb-sdk';
 import { createDemoTable } from '../../setup/demoTable';
@@ -64,6 +64,10 @@ test.describe.skip('Bulk update 0', () => {
     context = initRsp.context;
     api = initRsp.api;
     table = initRsp.table;
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('General- Click to add & remove', async () => {
@@ -150,6 +154,11 @@ test.describe.skip('Bulk update 1', () => {
     api = initRsp.api;
     table = initRsp.table;
   });
+
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   test('Number based', async () => {
     const fields = [
       { title: 'Number', value: '1', type: 'text' },
@@ -209,6 +218,10 @@ test.describe.skip('Bulk update 2', () => {
     table = initRsp.table;
   });
 
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   test('Select based', async () => {
     const fields = [
       { title: 'SingleSelect', value: 'jan', type: 'singleSelect' },
@@ -260,6 +273,11 @@ test.describe.skip('Bulk update 3', () => {
     api = initRsp.api;
     table = initRsp.table;
   });
+
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   test('Miscellaneous (Checkbox, attachment)', async () => {
     const fields = [
       { title: 'Checkbox', value: 'true', type: 'checkbox' },
@@ -310,6 +328,10 @@ test.describe.skip('Bulk update 4', () => {
     context = initRsp.context;
     api = initRsp.api;
     table = initRsp.table;
+  });
+  
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Date Time Based', async () => {

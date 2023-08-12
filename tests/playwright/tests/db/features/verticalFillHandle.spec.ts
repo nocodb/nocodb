@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import setup, { NcContext } from '../../../setup';
+import setup, { NcContext, unsetup } from '../../../setup';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { Api } from 'nocodb-sdk';
 import { createDemoTable } from '../../../setup/demoTable';
@@ -55,6 +55,10 @@ test.describe('Fill Handle', () => {
     p = await beforeEachInit({ page, tableType: 'textBased' });
   });
 
+  test.afterEach(async () => {
+    await unsetup(p.context);
+  });
+
   test('Text based', async () => {
     const fields = [
       { title: 'SingleLineText', value: 'Afghanistan', type: 'text' },
@@ -87,6 +91,10 @@ test.describe('Fill Handle', () => {
   let p: paramsType;
   test.beforeEach(async ({ page }) => {
     p = await beforeEachInit({ page, tableType: 'numberBased' });
+  });
+
+  test.afterEach(async () => {
+    await unsetup(p.context);
   });
 
   test('Number based', async () => {
@@ -150,6 +158,10 @@ test.describe('Fill Handle', () => {
     p = await beforeEachInit({ page, tableType: 'selectBased' });
   });
 
+  test.afterEach(async () => {
+    await unsetup(p.context);
+  });
+
   test('Select based', async () => {
     const fields = [
       { title: 'SingleSelect', value: 'jan', type: 'singleSelect' },
@@ -157,6 +169,8 @@ test.describe('Fill Handle', () => {
     ];
 
     await dragDrop({ firstColumn: 'SingleSelect', lastColumn: 'MultiSelect', params: p });
+
+    await new Promise((r) => setTimeout(r, 500));
 
     // verify data on grid
     const displayOptions = ['jan', 'feb', 'mar'];
@@ -192,6 +206,10 @@ test.describe('Fill Handle', () => {
   let p: paramsType;
   test.beforeEach(async ({ page }) => {
     p = await beforeEachInit({ page, tableType: 'miscellaneous' });
+  });
+
+  test.afterEach(async () => {
+    await unsetup(p.context);
   });
 
   test('Miscellaneous (Checkbox, attachment)', async () => {
@@ -243,6 +261,10 @@ test.describe('Fill Handle', () => {
   let p: paramsType;
   test.beforeEach(async ({ page }) => {
     p = await beforeEachInit({ page, tableType: 'dateTimeBased' });
+  });
+
+  test.afterEach(async () => {
+    await unsetup(p.context);
   });
 
   test('Date Time Based', async () => {

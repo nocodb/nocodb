@@ -12,6 +12,7 @@ import {
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 export default class Project implements ProjectType {
   public id: string;
@@ -187,12 +188,13 @@ export default class Project implements ProjectType {
     return null;
   }
 
-  // Todo: Remove the project entry from the connection pool in NcConnectionMgrv2
   // @ts-ignore
   static async softDelete(
     projectId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<any> {
+    await this.clearConnectionPool(projectId, ncMeta);
+
     // get existing cache
     const key = `${CacheScope.PROJECT}:${projectId}`;
     const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -449,5 +451,15 @@ export default class Project implements ProjectType {
     if (project) await project.getBases(ncMeta);
 
     return project;
+  }
+
+  static async clearConnectionPool(projectId: string, ncMeta = Noco.ncMeta) {
+    const project = await this.get(projectId, ncMeta);
+    if (project) {
+      const bases = await project.getBases(ncMeta);
+      for (const base of bases) {
+        await NcConnectionMgrv2.deleteAwait(base);
+      }
+    }
   }
 }

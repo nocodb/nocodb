@@ -4,21 +4,24 @@
 
 name: "CI/CD"
 on:
-    push:
-        branches: [develop]
-        paths:
-            - "packages/nc-gui/**"
-            - "packages/nocodb/**"
-            - ".github/workflows/ci-cd.yml"
-            - "tests/playwright/**"
-    pull_request:
-        types: [opened, reopened, synchronize, ready_for_review, labeled]
-        branches: [develop]
-        paths:
-            - "packages/nc-gui/**"
-            - "packages/nocodb/**"
-            - ".github/workflows/ci-cd.yml"
-            - "tests/playwright/**"
+  push:
+    branches: [develop]
+    paths:
+      - "packages/nc-gui/**"
+      - "packages/nocodb/**"
+      - ".github/workflows/ci-cd.yml"
+      - "tests/playwright/**"
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, labeled]
+    branches: [develop]
+    paths:
+      - "packages/nc-gui/**"
+      - "packages/nocodb/**"
+      - ".github/workflows/ci-cd.yml"
+      - ".github/workflows/playwright-test-workflow.yml"
+      - "tests/playwright/**"
+  # Triggered manually
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}

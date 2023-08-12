@@ -1,4 +1,4 @@
-name: Playwright test reusable workflow
+name: Playwright test reusable workflow (ee)
 
 on:
   workflow_call:
@@ -13,21 +13,9 @@ on:
 
 jobs:
   playwright:
-    runs-on: ubuntu-20.04
-    timeout-minutes: 40
+    runs-on: [self-hosted, v2]
+    timeout-minutes: 100
     steps:
-      # Reference: https://github.com/pierotofy/set-swap-space/blob/master/action.yml
-      - name: Set 5gb swap
-        shell: bash
-        # Delete the swap file, allocate a new one, and activate it
-        run: |
-            export SWAP_FILE=$(swapon --show=NAME | tail -n 1)
-            sudo swapoff $SWAP_FILE
-            sudo rm $SWAP_FILE
-            sudo fallocate -l 5G $SWAP_FILE
-            sudo chmod 600 $SWAP_FILE
-            sudo mkswap $SWAP_FILE
-            sudo swapon $SWAP_FILE
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
@@ -42,57 +30,79 @@ jobs:
         with:
           # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-v2-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+            ${{ runner.os }}-v2-build-${{ env.cache-name }}-
+            ${{ runner.os }}-v2-build-
+            ${{ runner.os }}-v2
+      - name: setup pg
+        if: ${{ inputs.db == 'pg' || ( inputs.db == 'sqlite' && inputs.shard == '1' ) }}
+        working-directory: ./
+        run:  | 
+          service postgresql start
+          cd /var/lib/postgresql/ && sudo -u postgres psql -c "SELECT 'dropdb '||datname||'' FROM pg_database WHERE datistemplate = false AND datallowconn = true And datname NOT IN ('postgres')" |grep ' dropdb ' |  sudo -u postgres /bin/bash ; cd
+          sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'password';" 
+          sudo -u postgres psql -c "ALTER USER postgres WITH SUPERUSER;" 
+          service postgresql restart
+      - name: Set CI env
+        run: export CI=true
+      - name: Kill stale servers
+        run: |
+          # export NODE_OPTIONS=\"--max_old_space_size=16384\";
+          kill -9 $(lsof -t -i:8080) || echo "no process running on 8080"
+          kill -9 $(lsof -t -i:3000) || echo "no process running on 3000"
       - name: install dependencies nocodb-sdk
         working-directory: ./packages/nocodb-sdk
         run: npm install
-      - name: build nocodb-sdk
+      - name: Build nocodb-sdk
         working-directory: ./packages/nocodb-sdk
         run: npm run build
-      - name: setup mysql
+      - name: Setup mysql
         if: ${{ inputs.db == 'mysql' }}
-        working-directory: ./
-        run: docker-compose -f ./tests/playwright/scripts/docker-compose-mysql-playwright.yml up -d &
-      - name: setup pg
-        if: ${{ inputs.db == 'pg' }}
-        working-directory: ./
-        run: docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &
-      - name: setup pg for quick tests
+        working-directory: ./packages/nocodb/tests/mysql-sakila-db
+        run: |
+          # Get a list of non-system databases and construct the DROP DATABASE statement for each
+          service mysql start
+          mysql -u'nocodb_root' -p'password' -e "SHOW DATABASES" --skip-column-names | grep -Ev "(information_schema|mysql|performance_schema|sys)" | while read db; do
+          mysql -u'nocodb_root' -p'password' -e "DROP DATABASE IF EXISTS \`$db\`";
+          done
+
+      - name: Setup pg for quick tests
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '1' }}
-        working-directory: ./
-        run: docker-compose -f ./tests/playwright/scripts/docker-compose-pg-pw-quick.yml up -d &
+        working-directory: ./packages/nocodb/tests/pg-cy-quick/
+        run: |
+          sudo -u postgres psql -U postgres -f 01-cy-quick.sql
       - name: run frontend
         working-directory: ./packages/nc-gui
         run: npm run ci:run
+        timeout-minutes: 20
       - name: Run backend
         if: ${{ inputs.db == 'sqlite' }}
         working-directory: ./packages/nocodb
         run: |
           npm install
-          npm run watch:run:playwright > ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+          npm run watch:run:playwright &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
       - name: Run backend:mysql
         if: ${{ inputs.db == 'mysql' }}
         working-directory: ./packages/nocodb
         run: |
           npm install
-          npm run watch:run:playwright:mysql > ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+          npm run watch:run:playwright:mysql &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
       - name: Run backend:pg
         if: ${{ inputs.db == 'pg' }}
         working-directory: ./packages/nocodb
         run: |
           npm install
-          npm run watch:run:playwright:pg > ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+          npm run watch:run:playwright:pg &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
       - name: Cache playwright npm modules
         uses: actions/cache@v3
         id: playwright-cache
         with:
           path: |
             **/tests/playwright/node_modules
-          key: cache-nc-playwright-${{ hashFiles('**/tests/playwright/package-lock.json') }}
+          key: cache-v2-nc-playwright-${{ hashFiles('**/tests/playwright/package-lock.json') }}
+          restore-keys: |
+            cache-v2-nc-playwright-
       - name: Install dependencies
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: ./tests/playwright
@@ -106,11 +116,11 @@ jobs:
             printf '.'
             sleep 2
           done
-
-      - name: Run Playwright tests
+        timeout-minutes: 2
+      - name: Run Playwright Tests
         working-directory: ./tests/playwright
         run: E2E_DB_TYPE=${{ inputs.db }} npm run ci:test:shard:${{ inputs.shard }}
-
+        timeout-minutes: 60
       # Stress test added/modified tests
       - name: Fetch develop branch
         working-directory: ./tests/playwright
@@ -132,7 +142,7 @@ jobs:
         run: |
           kill -9 $(lsof -t -i:8080)
           npm run watch:run:playwright:quick > quick_${{ inputs.shard }}_test_backend.log &
-      - name: Wait for backend & run quick tests
+      - name: Wait for backend for sqlite-tests
         if: ${{ inputs.db == 'sqlite' }}
         working-directory: ./tests/playwright
         run: |
@@ -140,7 +150,11 @@ jobs:
             printf '.'
             sleep 2
           done
-          PLAYWRIGHT_HTML_REPORT=playwright-report-quick npm run test:quick
+        timeout-minutes: 1
+      - name: Run quick tests
+        if: ${{ inputs.db == 'sqlite' }}
+        working-directory: ./tests/playwright
+        run: PLAYWRIGHT_HTML_REPORT=playwright-report-quick npm run test:quick
       - uses: actions/upload-artifact@v3
         if: ${{ inputs.db == 'sqlite' }}
         with:
@@ -172,3 +186,9 @@ jobs:
           name: backend-logs-${{ inputs.db }}-${{ inputs.shard }}
           path: ./packages/nocodb/${{ inputs.db }}_${{ inputs.shard }}_test_backend.log
           retention-days: 2
+      - name: stop database servers
+        if: always()
+        working-directory: ./packages/nocodb
+        run: |
+          service postgresql stop
+          service mysql stop

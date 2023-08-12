@@ -110,6 +110,8 @@ const saveGroupBy = async () => {
     } catch (e) {
       message.error('There was an error while updating view!')
     }
+  } else {
+    message.error('View not found!!!')
   }
 }
 

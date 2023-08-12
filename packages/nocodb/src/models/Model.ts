@@ -14,7 +14,6 @@ import Hook from '~/models/Hook';
 import Audit from '~/models/Audit';
 import View from '~/models/View';
 import Column from '~/models/Column';
-import Base from '~/models/Base';
 import { extractProps } from '~/helpers/extractProps';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { NcError } from '~/helpers/catchError';
@@ -369,20 +368,10 @@ export default class Model implements TableType {
     ncMeta = Noco.ncMeta,
   ): Promise<BaseModelSqlv2> {
     const model = args?.model || (await this.get(args.id, ncMeta));
-    const base = await Base.get(model.base_id);
 
     if (!args?.viewId) {
       const view = await View.getDefaultView(model.id, ncMeta);
       args.viewId = view.id;
-    }
-
-    if (base && base.isMeta(true, 1)) {
-      return new BaseModelSqlv2({
-        dbDriver: args.dbDriver,
-        viewId: args.viewId,
-        model,
-        schema: base.getConfig()?.schema,
-      });
     }
 
     return new BaseModelSqlv2({

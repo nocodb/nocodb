@@ -50,8 +50,7 @@ export function useViewData(
 
   const route = router.currentRoute
 
-  const globalStore = useGlobal()
-  const appInfo = toRef(globalStore, 'appInfo')
+  const { appInfo } = useGlobal()
 
   const appInfoDefaultLimit = appInfo.value.defaultLimit || 25
 

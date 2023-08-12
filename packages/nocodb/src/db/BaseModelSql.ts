@@ -4,7 +4,7 @@ import isEmpty from 'lodash/isEmpty';
 import difference from 'lodash/difference';
 import Validator from 'validator';
 import Papaparse from 'papaparse';
-import BaseModel from './sql-data-mapper/lib/BaseModel';
+import BaseModel from '~/db/sql-data-mapper/lib/BaseModel';
 
 /**
  * Base class for models

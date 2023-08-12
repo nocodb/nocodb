@@ -16,8 +16,9 @@ const rolesLabel = {
   [WorkspaceUserRoles.VIEWER]: 'Viewer',
 }
 
-const { getProjectUsers, createProjectUser, updateProjectUser } = useProjects()
-const { activeProjectId } = storeToRefs(useProjects())
+const projectsStore = useProjects()
+const { getProjectUsers, createProjectUser, updateProjectUser } = projectsStore
+const { activeProjectId } = storeToRefs(projectsStore)
 
 const collaborators = ref<WorkspaceUserType[]>([])
 const totalCollaborators = ref(0)
@@ -45,7 +46,7 @@ const loadCollaborators = async () => {
         ...user,
         projectRoles: user.roles,
         // TODO: Remove this hack and make the values consistent with the backend
-        roles: user.roles ?? (rolesLabel[user.workspace_roles] as string).toLowerCase(),
+        roles: user.roles ?? (rolesLabel[user.workspace_roles] as string)?.toLowerCase(),
       })),
     ]
   } catch (e: any) {

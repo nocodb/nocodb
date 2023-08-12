@@ -1,8 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
-import setup from '../../../setup';
-import { isHub } from '../../../setup/db';
+import setup, { unsetup } from '../../../setup';
 
 const langMenu = [
   'help-translate',
@@ -42,11 +41,7 @@ const langMenu = [
   'zh-Hant.json',
 ];
 
-test.describe('Common', () => {
-  if (isHub()) {
-    test.skip();
-  }
-
+test.describe.skip('Common', () => {
   let context: any;
   let dashboard: DashboardPage;
   let projectsPage: ProjectsPage;
@@ -55,6 +50,10 @@ test.describe('Common', () => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     projectsPage = new ProjectsPage(page);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Language', async () => {

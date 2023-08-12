@@ -10,10 +10,12 @@ const router = useRouter()
 const route = router.currentRoute
 
 const { copy } = useCopy()
-const dashboardStore = useDashboard()
-const dashboardUrl = toRef(dashboardStore, 'dashboardUrl')
+const { dashboardUrl } = useDashboard()
+
 const { project } = storeToRefs(useProject())
+
 const { navigateToProject } = useProjects()
+
 const { openedPage, nestedPagesOfProjects } = storeToRefs(useDocStore())
 
 let view

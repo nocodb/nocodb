@@ -3,7 +3,7 @@ import { Api, TableListType, TableType } from 'nocodb-sdk';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { SettingsPage, SettingTab } from '../../../pages/Dashboard/Settings';
 import { deepCompare } from '../../../tests/utils/objectCompareUtil';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { ProjectInfoApiUtil, TableInfo } from '../../../tests/utils/projectInfoApiUtil';
 import { isHub } from '../../../setup/db';
 
@@ -15,6 +15,10 @@ test.describe('Table Operations', () => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     settings = dashboard.settings;
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Create, and delete table, verify in audit tab, rename City table, update icon and reorder tables', async () => {

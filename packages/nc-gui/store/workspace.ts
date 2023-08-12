@@ -1,4 +1,3 @@
-import { toRef } from 'vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
@@ -9,6 +8,7 @@ import type { ThemeConfig } from '#imports'
 
 export const useWorkspace = defineStore('workspaceStore', () => {
   const projectsStore = useProjects()
+  const { clearProjects } = projectsStore
 
   const collaborators = ref<any[] | null>()
 
@@ -24,8 +24,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { $e } = useNuxtApp()
 
-  const globalStore = useGlobal()
-  const appInfo = toRef(globalStore, 'appInfo')
+  const { appInfo } = useGlobal()
 
   const workspaces = ref<Map<string, any>>(new Map())
   const workspacesList = computed<any[]>(() => Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at))
@@ -190,8 +189,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   const clearWorkspaces = () => {
-    const { clearProjects } = useProjects()
-
     clearProjects()
     workspaces.value.clear()
   }

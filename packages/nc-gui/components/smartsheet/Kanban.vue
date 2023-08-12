@@ -91,8 +91,7 @@ const { isViewDataLoading } = storeToRefs(useViewsStore())
 
 const { isUIAllowed } = useUIPermission()
 
-const globalStore = useGlobal()
-const appInfo = toRef(globalStore, 'appInfo')
+const { appInfo } = useGlobal()
 
 const { addUndo, defineViewScope } = useUndoRedo()
 

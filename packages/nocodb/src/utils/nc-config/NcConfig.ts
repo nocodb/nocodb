@@ -164,6 +164,7 @@ export class NcConfig {
       } else {
         throw new Error('Configuration missing meta db connection');
       }
+      await metaSqlClient.knex.destroy();
     } else {
       const metaSqlClient = await SqlClientFactory.create(this.meta.db);
       if (this.meta.db?.connection?.database) {

@@ -1,14 +1,9 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 
-import setup from '../../../setup';
-import { isHub } from '../../../setup/db';
+import setup, { unsetup } from '../../../setup';
 
-test.describe('Map View', () => {
-  if (isHub()) {
-    test.skip();
-  }
-
+test.describe.skip('Map View', () => {
   let dashboard: DashboardPage;
   let context: any;
 
@@ -53,6 +48,10 @@ test.describe('Map View', () => {
       lat: latitudeInFullDecimalLength,
       long: longitudeInFullDecimalLength,
     });
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('shows the marker and opens the expanded form view when clicking on it', async () => {

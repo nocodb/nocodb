@@ -15,8 +15,7 @@ const { showShareModal } = storeToRefs(useShare())
 
 const { project } = storeToRefs(useProject())
 
-const { isEditAllowed, flattenedNestedPages, isOpenedNestedPageLoading } = storeToRefs(useDocStore())
-
+const docStore = useDocStore()
 const {
   fetchNestedPages,
   addNewPage: _addNewPage,
@@ -24,7 +23,8 @@ const {
   createImport,
   openPage,
   openChildPageTabsOfRootPages,
-} = useDocStore()
+} = docStore
+const { isEditAllowed, flattenedNestedPages, isOpenedNestedPageLoading } = storeToRefs(docStore)
 
 const indicator = h(Loading3QuartersOutlined, {
   style: {

@@ -1,9 +1,12 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia'
 
-const { project } = storeToRefs(useProject())
-const { loadProject, updateProject } = useProject()
+const projectStore = useProject()
+const { loadProject, updateProject } = projectStore
+const { project } = storeToRefs(projectStore)
+
 const { projectUrl } = useDocStore()
+
 const { setProject } = useProjects()
 
 const projectMeta = computed(() => {

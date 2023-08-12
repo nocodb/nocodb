@@ -23,7 +23,6 @@ import { DocsPageGroup } from './Docs';
 import { ShareProjectButtonPage } from './ShareProjectButton';
 import { ProjectTypes } from 'nocodb-sdk';
 import { WorkspacePage } from '../WorkspacePage';
-import { isHub } from '../../setup/db';
 
 export class DashboardPage extends BasePage {
   readonly project: any;
@@ -57,12 +56,8 @@ export class DashboardPage extends BasePage {
     super(rootPage);
     this.project = project;
     this.tablesSideBar = rootPage.locator('.nc-treeview-container');
-    if (isHub()) {
-      this.workspaceMenuLink = rootPage.getByTestId('nc-project-menu');
-      this.projectMenuLink = rootPage.locator('.project-title-node').locator('.nc-icon.ant-dropdown-trigger');
-    } else {
-      this.projectMenuLink = rootPage.getByTestId('nc-project-menu');
-    }
+    this.workspaceMenuLink = rootPage.getByTestId('nc-project-menu');
+    this.projectMenuLink = rootPage.locator('.project-title-node').locator('.nc-icon.ant-dropdown-trigger').first();
     this.tabBar = rootPage.locator('.nc-tab-bar');
     this.treeView = new TreeViewPage(this, project);
     this.grid = new GridPage(this);
@@ -91,8 +86,7 @@ export class DashboardPage extends BasePage {
   }
 
   async goto() {
-    if (isHub()) await this.rootPage.goto(`/#/ws/${this.project.fk_workspace_id}/nc/${this.project.id}`);
-    else await this.rootPage.goto(`/#/nc/${this.project.id}/auth`);
+    await this.rootPage.goto(`/#/ws/${this.project.fk_workspace_id}/nc/${this.project.id}`);
   }
 
   getProjectMenuLink({ title }: { title: string }) {
@@ -127,25 +121,10 @@ export class DashboardPage extends BasePage {
     await this.tabBar.textContent().then(text => expect(text).toContain(title));
   }
 
-  async closeTab({ title }: { title: string }) {
-    if (isHub()) {
-      return;
-    }
-
-    const tab = this.tabBar.locator(`.ant-tabs-tab:has-text("${title}")`);
-    await tab.locator('button.ant-tabs-tab-remove').click();
-
-    // fix me!
-    // await tab.waitFor({ state: "detached" });
-    await this.rootPage.waitForTimeout(200);
-  }
+  async closeTab({ title }: { title: string }) {}
 
   async clickHome() {
-    if (isHub()) {
-      await this.leftSidebar.clickHome();
-    } else {
-      await this.rootPage.getByTestId('nc-noco-brand-icon').click();
-    }
+    await this.leftSidebar.clickHome();
     // wait for workspace page to render
     const workspacePage = new WorkspacePage(this.rootPage);
     await workspacePage.waitFor({ state: 'visible' });
@@ -190,18 +169,7 @@ export class DashboardPage extends BasePage {
     title: string;
     mode?: string;
     type?: ProjectTypes;
-  }) {
-    // tabs disabled
-    if (isHub()) {
-      return;
-    }
-
-    if (type === ProjectTypes.DATABASE) {
-      // 0523: Tabs are disabled & hence below checks are not required
-    } else if (type === ProjectTypes.DOCUMENTATION) {
-      await this._waitForDocsTabRender({ title, mode });
-    }
-  }
+  }) {}
 
   async toggleMobileMode() {
     await this.projectMenuLink.click();
@@ -211,15 +179,8 @@ export class DashboardPage extends BasePage {
   }
 
   async signOut() {
-    if (isHub()) {
-      await this.grid.workspaceMenu.toggle();
-      await this.grid.workspaceMenu.click({ menu: 'Account', subMenu: 'Sign Out' });
-    } else {
-      await this.projectMenuLink.click();
-      const projMenu = this.rootPage.locator('.nc-dropdown-project-menu');
-      await projMenu.locator('[data-menu-id="account"]:visible').click();
-      await this.rootPage.locator('div.nc-project-menu-item:has-text("Sign Out"):visible').click();
-    }
+    await this.grid.workspaceMenu.toggle();
+    await this.grid.workspaceMenu.click({ menu: 'Account', subMenu: 'Sign Out' });
     await this.rootPage.locator('[data-testid="nc-form-signin"]:visible').waitFor();
     await new Promise(resolve => setTimeout(resolve, 150));
   }

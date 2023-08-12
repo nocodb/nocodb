@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { FormPage } from '../../../pages/Dashboard/Form';
 import { SharedFormPage } from '../../../pages/SharedForm';
 import { AccountPage } from '../../../pages/Account';
@@ -9,7 +9,7 @@ import { Api, UITypes } from 'nocodb-sdk';
 import { LoginPage } from '../../../pages/LoginPage';
 import { getDefaultPwd } from '../../../tests/utils/general';
 import { WorkspacePage } from '../../../pages/WorkspacePage';
-import { isHub } from '../../../setup/db';
+import { isEE, isHub } from '../../../setup/db';
 
 // todo: Move most of the ui actions to page object and await on the api response
 test.describe('Form view', () => {
@@ -25,6 +25,10 @@ test.describe('Form view', () => {
     form = dashboard.form;
     accountPage = new AccountPage(page);
     accountAppStorePage = accountPage.appStore;
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Field re-order operations', async () => {
@@ -184,8 +188,8 @@ test.describe('Form view', () => {
     });
     const url = dashboard.rootPage.url();
 
+    // fix me! for app store, need super admin login.
     if (isHub()) {
-      // Appstore is not available in Hub
       return;
     }
 
@@ -341,6 +345,10 @@ test.describe('Form view with LTAR', () => {
     await page.reload();
   });
 
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   test('Form view with LTAR', async ({ page }) => {
     await dashboard.treeView.openTable({ title: 'Country' });
 
@@ -361,8 +369,8 @@ test.describe('Form view with LTAR', () => {
       text: 'USA',
     });
     await sharedForm.clickLinkToChildList();
-    
-    await new Promise((r) => setTimeout(r, 500));
+
+    await new Promise(r => setTimeout(r, 500));
 
     await sharedForm.verifyChildList(['Atlanta', 'Pune', 'London', 'Sydney']);
     await sharedForm.selectChildList('Atlanta');
@@ -380,9 +388,16 @@ test.describe('Form view with LTAR', () => {
 
     await wsPage.waitFor({ state: 'visible' });
 
-    await wsPage.workspaceOpen({ title: context.workspace.title });
+    if (isEE()) {
+      await wsPage.workspaceOpen({ title: context.workspace.title });
+    }
     await wsPage.projectOpen({ title: context.project.title });
 
+    if (!isEE()) {
+      // project tree is collapsed in CE
+      await dashboard.rootPage.waitForTimeout(1000);
+      await dashboard.treeView.openProject({ title: context.project.title });
+    }
     await dashboard.treeView.openTable({ title: 'Country' });
     await dashboard.viewSidebar.openView({ title: 'Country' });
 
@@ -409,6 +424,10 @@ test.describe('Form view', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Select fields in form view', async () => {

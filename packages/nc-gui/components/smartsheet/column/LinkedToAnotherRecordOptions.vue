@@ -16,8 +16,8 @@ const meta = inject(MetaInj, ref())
 
 const { setAdditionalValidations, validateInfos, onDataTypeChange, sqlUi, isXcdbBase } = useColumnCreateStoreOrThrow()
 
-const projectStore = storeToRefs(useProject())
-const tables = toRef(projectStore, 'tables')
+const projectStore = useProject()
+const { tables } = storeToRefs(projectStore)
 
 setAdditionalValidations({
   childId: [{ required: true, message: 'Required' }],

@@ -16,11 +16,10 @@ const meta = inject(MetaInj, ref())
 
 const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit } = useColumnCreateStoreOrThrow()
 
-const projectStore = storeToRefs(useProject())
-const tables = toRef(projectStore, 'tables')
+const projectStore = useProject()
+const { tables } = storeToRefs(projectStore)
 
-const metaStore = useMetas()
-const metas = toRef(metaStore, 'metas')
+const { metas } = useMetas()
 
 setAdditionalValidations({
   fk_relation_column_id: [{ required: true, message: 'Required' }],

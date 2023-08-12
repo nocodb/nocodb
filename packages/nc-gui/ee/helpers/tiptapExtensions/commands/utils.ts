@@ -61,8 +61,9 @@ export const useCommandList = ({
   }>
   loadingOpType: Ref<string>
 }) => {
-  const { magicOutline } = useDocStore()
-  const { openedPage, openedProjectId } = storeToRefs(useDocStore())
+  const docStore = useDocStore()
+  const { magicOutline } = docStore
+  const { openedPage, openedProjectId } = storeToRefs(docStore)
 
   const commands = ref([
     {

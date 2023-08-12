@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup, { NcContext } from '../../../setup';
+import setup, { NcContext, unsetup } from '../../../setup';
 import makeServer from '../../../setup/server';
 import { WebhookFormPage } from '../../../pages/Dashboard/WebhookForm';
 import { isSubset } from '../../../tests/utils/general';
@@ -125,6 +125,10 @@ test.describe.serial('Webhook', () => {
         'xc-auth': context.token,
       },
     });
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('CRUD', async ({ request, page }) => {

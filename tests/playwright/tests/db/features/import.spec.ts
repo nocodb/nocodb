@@ -2,8 +2,8 @@ import { test } from '@playwright/test';
 import { airtableApiBase, airtableApiKey } from '../../../constants';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { quickVerify } from '../../../quickTests/commonTest';
-import setup from '../../../setup';
-import { isHub, isPg, isSqlite } from '../../../setup/db';
+import setup, { unsetup } from '../../../setup';
+import { isPg, isSqlite } from '../../../setup/db';
 
 test.describe('Import', () => {
   let dashboard: DashboardPage;
@@ -15,6 +15,10 @@ test.describe('Import', () => {
     page.setDefaultTimeout(70000);
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Airtable', async () => {
@@ -49,10 +53,7 @@ test.describe('Import', () => {
       result: expected,
     });
 
-    // kludge
-    if (isHub()) {
-      await dashboard.treeView.openTable({ title: 'Sheet2' });
-    }
+    await dashboard.treeView.openTable({ title: 'Sheet2' });
 
     const recordCells = { Number: '1', Float: isSqlite(context) || isPg(context) ? '1.1' : '1.10', Text: 'abc' };
 

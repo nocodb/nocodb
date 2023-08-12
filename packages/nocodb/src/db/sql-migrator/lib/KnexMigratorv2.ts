@@ -2,15 +2,15 @@ import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
 import glob from 'glob';
-import SqlClientFactory from '../../sql-client/lib/SqlClientFactory';
 import Debug from '../../util/Debug';
 import Emit from '../../util/emit';
 import * as fileHelp from '../../util/file.help';
-import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import Result from '../../util/Result';
 import type Base from '~/models/Base';
-import type { XKnex } from '../../CustomKnex';
+import type { XKnex } from '~/db/CustomKnex';
 import type { Knex } from 'knex';
+import SqlClientFactory from '~/db/sql-client/lib/SqlClientFactory';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Noco from '~/Noco';
 import Project from '~/models/Project';
 

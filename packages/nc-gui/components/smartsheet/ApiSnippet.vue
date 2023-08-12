@@ -25,12 +25,10 @@ const emits = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 
-const projectStore = storeToRefs(useProject())
-const project = toRef(projectStore, 'project')
+const projectStore = useProject()
+const { project } = storeToRefs(projectStore)
 
-const globalStore = useGlobal()
-const appInfo = toRef(globalStore, 'appInfo')
-const token = toRef(globalStore, 'token')
+const { appInfo, token } = useGlobal()
 
 const meta = inject(MetaInj, ref())
 
@@ -38,8 +36,7 @@ const view = inject(ActiveViewInj, ref())
 
 const { xWhere } = useSmartsheetStoreOrThrow()
 
-const viewDataStore = useViewData(meta, view, xWhere)
-const queryParams = toRef(viewDataStore, 'queryParams')
+const { queryParams } = useViewData(meta, view, xWhere)
 
 const { copy } = useCopy()
 

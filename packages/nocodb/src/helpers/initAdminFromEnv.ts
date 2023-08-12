@@ -9,6 +9,7 @@ import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
 import { ProjectUser, User } from '~/models';
 import { CacheScope, MetaTable } from '~/utils/globals';
+import { randomTokenString } from '~/services/users/helpers';
 
 const rolesLevel = { owner: 0, creator: 1, editor: 2, commenter: 3, viewer: 4 };
 
@@ -115,7 +116,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 email,
                 password,
                 email_verification_token,
-                token_version: null,
+                token_version: randomTokenString(),
                 refresh_token: null,
                 roles,
               },
@@ -224,7 +225,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 email,
                 password,
                 email_verification_token,
-                token_version: null,
+                token_version: randomTokenString(),
                 refresh_token: null,
               },
               ncMeta,
@@ -238,7 +239,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 email,
                 password,
                 email_verification_token,
-                token_version: null,
+                token_version: randomTokenString(),
                 refresh_token: null,
               },
               ncMeta,
@@ -259,7 +260,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 salt,
                 password,
                 email_verification_token,
-                token_version: null,
+                token_version: randomTokenString(),
                 refresh_token: null,
               },
               ncMeta,

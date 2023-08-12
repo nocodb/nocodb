@@ -1,6 +1,6 @@
-import Debug from '../../../util/Debug';
-import Result from '../../../util/Result';
-import PGClient from './PgClient';
+import PGClient from '~/db/sql-client/lib/pg/PgClient';
+import Result from '~/db/util/Result';
+import Debug from '~/db/util/Debug';
 
 const log = new Debug('YBClient');
 

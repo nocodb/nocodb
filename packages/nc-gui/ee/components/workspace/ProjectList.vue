@@ -7,15 +7,14 @@ import { NcProjectType, navigateTo, storeToRefs, timeAgo, useGlobal, useWorkspac
 import { useNuxtApp } from '#app'
 
 const workspaceStore = useWorkspace()
-const projectsStore = useProjects()
 const { updateProjectTitle } = workspaceStore
 const { activePage } = storeToRefs(workspaceStore)
 
-const { loadProjects } = useProjects()
-const { projectsList, isProjectsLoading } = storeToRefs(useProjects())
+const projectsStore = useProjects()
+const { loadProjects } = projectsStore
+const { projectsList, isProjectsLoading } = storeToRefs(projectsStore)
 
-const globalStore = useGlobal()
-const navigateToProject = toRef(globalStore, 'navigateToProject')
+const { navigateToProject } = useGlobal()
 
 // const filteredProjects = computed(() => projects.value?.filter((p) => !p.deleted) || [])
 
@@ -29,7 +28,7 @@ const showProjectDeleteModal = ref(false)
 const toBeDeletedProjectId = ref<string | undefined>()
 
 const openProject = async (project: ProjectType) => {
-  navigateToProject.value({
+  navigateToProject({
     projectId: project.id!,
     workspaceId: project.fk_workspace_id!,
     type: project.type as NcProjectType,

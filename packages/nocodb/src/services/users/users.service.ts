@@ -6,8 +6,6 @@ import { isEmail } from 'validator';
 import { T } from 'nc-help';
 import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
-import { NC_APP_SETTINGS } from '../../constants';
-import { AppHooksService } from '../app-hooks/app-hooks.service';
 import { genJwt, setTokenCookie } from './helpers';
 import type {
   PasswordChangeReqType,
@@ -16,6 +14,8 @@ import type {
   SignUpReqType,
   UserType,
 } from 'nocodb-sdk';
+import { NC_APP_SETTINGS } from '~/constants';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable } from '~/utils/globals';
@@ -158,7 +158,7 @@ export class UsersService {
       salt,
       password,
       email: user.email,
-      token_version: null,
+      token_version: randomTokenString(),
     });
 
     this.appHooksService.emit(AppEvents.USER_PASSWORD_CHANGE, {
@@ -194,7 +194,7 @@ export class UsersService {
         email: user.email,
         reset_password_token: token,
         reset_password_expires: new Date(Date.now() + 60 * 60 * 1000),
-        token_version: null,
+        token_version: randomTokenString(),
       });
       try {
         const template = (
@@ -287,7 +287,7 @@ export class UsersService {
       email: user.email,
       reset_password_expires: null,
       reset_password_token: '',
-      token_version: null,
+      token_version: randomTokenString(),
     });
 
     this.appHooksService.emit(AppEvents.USER_PASSWORD_RESET, {

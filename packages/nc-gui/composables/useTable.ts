@@ -31,11 +31,10 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
 
   const { getMeta, removeMeta } = useMetas()
 
-  const { loadTables, isXcdbBase } = useProject()
-
   const { closeTab } = useTabs()
 
   const projectStore = useProject()
+  const { loadTables, isXcdbBase } = projectStore
   const { sqlUis, project, tables } = storeToRefs(projectStore)
 
   const { refreshCommandPalette } = useCommandPalette()

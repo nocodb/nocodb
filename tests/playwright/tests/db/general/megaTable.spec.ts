@@ -1,5 +1,5 @@
 import { test } from '@playwright/test';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { UITypes } from 'nocodb-sdk';
 import { Api } from 'nocodb-sdk';
 let api: Api<any>;
@@ -40,6 +40,10 @@ test.describe.serial('Test table', () => {
         'xc-auth': context.token,
       },
     });
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test.skip('mega table', async ({ page }) => {

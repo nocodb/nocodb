@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { GridPage } from '../../../pages/Dashboard/Grid';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { Api, UITypes } from 'nocodb-sdk';
 import { isHub } from '../../../setup/db';
 import { getDefaultPwd } from '../../utils/general';
@@ -42,6 +42,10 @@ test.describe('Verify shortcuts', () => {
     } catch (e) {
       console.log(e);
     }
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Verify shortcuts', async ({ page }) => {
@@ -232,6 +236,11 @@ test.describe('Clipboard support', () => {
       filePath: [`${process.cwd()}/fixtures/sampleFiles/1.json`],
     });
   });
+
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   async function verifyCellContents({ rowIndex }: { rowIndex: number }) {
     const responseTable = [
       { type: 'SingleLineText', value: 'SingleLineText' },

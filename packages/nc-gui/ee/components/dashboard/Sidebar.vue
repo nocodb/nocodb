@@ -40,8 +40,7 @@ const onTreeViewScrollTop = (onScrollTop: boolean) => {
   isTreeViewOnScrollTop.value = !onScrollTop
 }
 
-const globalStore = useGlobal()
-const appInfo = toRef(globalStore, 'appInfo')
+const { appInfo } = useGlobal()
 
 const navigateToHome = () => {
   if (appInfo.value.baseHostName) {

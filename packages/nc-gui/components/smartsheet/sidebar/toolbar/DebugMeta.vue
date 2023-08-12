@@ -5,8 +5,7 @@ const editorOpen = ref(false)
 
 const tabKey = ref()
 
-const metaStore = useMetas()
-const metas = toRef(metaStore, 'metas')
+const { metas } = useMetas()
 
 const { tables } = useTable()
 

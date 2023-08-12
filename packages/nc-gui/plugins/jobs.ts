@@ -1,11 +1,9 @@
-import { toRef } from 'vue'
 import type { Socket } from 'socket.io-client'
 import io from 'socket.io-client'
 import { JobStatus, defineNuxtPlugin, useGlobal, watch } from '#imports'
 
 export default defineNuxtPlugin(async (nuxtApp) => {
-  const globalStore = useGlobal()
-  const appInfo = toRef(globalStore, 'appInfo')
+  const { appInfo } = useGlobal()
 
   let socket: Socket | null = null
   let messageIndex = 0

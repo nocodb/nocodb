@@ -167,7 +167,7 @@ export class TestResetService {
 
     for (const projectUser of projectUsers) {
       try {
-        const user: User = (await User.get(projectUser.fk_user_id)) as any;
+        const user: User = (await User.get(projectUser.id)) as any;
         await NocoCache.del(
           `${CacheScope.PROJECT_USER}:${project.id}:${user.id}`,
         );

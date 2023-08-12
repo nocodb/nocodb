@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { airtableApiBase, airtableApiKey } from '../../../constants';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { Api, ProjectListType } from 'nocodb-sdk';
@@ -9,12 +9,8 @@ import { ProjectInfo, ProjectInfoApiUtil } from '../../../tests/utils/projectInf
 import { deepCompare } from '../../../tests/utils/objectCompareUtil';
 import { isHub } from '../../../setup/db';
 
-test.describe('Project operations', () => {
-  if (isHub()) {
-    // tests covered under tests/playwright/tests/nocohub/hubDashboard.spec.ts
-    test.skip();
-  }
-
+// tests covered under tests/playwright/tests/nocohub/hubDashboard.spec.ts
+test.describe.skip('Project operations', () => {
   let dashboard: DashboardPage;
   let toolbar: ToolbarPage;
   let context: any;
@@ -24,13 +20,8 @@ test.describe('Project operations', () => {
 
   async function deleteIfExists(name: string) {
     try {
-      let projectList: ProjectListType;
-      if (isHub()) {
-        const ws = await api.workspace.list();
-        projectList = await api.workspaceProject.list(ws.list[0].id);
-      } else {
-        projectList = await api.project.list();
-      }
+      const ws = await api.workspace.list();
+      const projectList = await api.workspaceProject.list(ws.list[0].id);
 
       const project = projectList.list.find((p: any) => p.title === name);
       if (project) {
@@ -75,12 +66,12 @@ test.describe('Project operations', () => {
     });
   });
 
-  test('rename, delete', async () => {
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
+  test.skip('rename, delete', async () => {
     // Already verified as part of workspace tests
-    // Skip for hub
-    if (isHub()) {
-      return;
-    }
 
     // if project already exists, delete it
     await deleteIfExists('project-firstName');

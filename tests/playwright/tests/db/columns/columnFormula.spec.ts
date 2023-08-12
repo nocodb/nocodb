@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup, { NcContext } from '../../../setup';
+import setup, { NcContext, unsetup } from '../../../setup';
 import { isPg, isSqlite } from '../../../setup/db';
 
 // Add formula to be verified here & store expected results for 5 rows
@@ -163,6 +163,10 @@ test.describe('Virtual Columns', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   async function formulaResultVerify({ title, result }: { title: string; result: string[] }) {

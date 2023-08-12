@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup, { unsetup } from '../../../setup';
+import setup from '../../../setup';
 import { isMysql, isPg, isSqlite } from '../../../setup/db';
 
 test.describe('Shared view', () => {
@@ -14,8 +14,100 @@ test.describe('Shared view', () => {
     dashboard = new DashboardPage(page, context.project);
   });
 
-  test.afterEach(async () => {
-    await unsetup(context);
+  test('Grid Share with GroupBy', async ({ page }) => {
+    await dashboard.treeView.openTable({ title: 'Film' });
+    await dashboard.grid.toolbar.clickGroupBy();
+
+    await dashboard.grid.toolbar.groupBy.add({
+      title: 'Title',
+      ascending: false,
+      locallySaved: false,
+    });
+    await dashboard.grid.toolbar.clickGroupBy();
+    await dashboard.grid.toolbar.sort.add({
+      title: 'Title',
+      ascending: false,
+      locallySaved: false,
+    });
+
+    sharedLink = await dashboard.grid.toolbar.getSharedViewUrl();
+    await page.goto(sharedLink);
+
+    // fix me! kludge@hub; page wasn't getting loaded from previous step
+    await page.reload();
+    const sharedPage = new DashboardPage(page, context.project);
+    await sharedPage.grid.groupPage.openGroup({ indexMap: [0] });
+
+    await sharedPage.grid.groupPage.validateFirstRow({
+      indexMap: [0],
+      rowIndex: 0,
+      columnHeader: 'Title',
+      value: 'ZORRO ARK',
+    });
+
+    // Goto dashboard and Create Filter and verify shared view
+    await dashboard.goto();
+    await page.reload();
+
+    await dashboard.treeView.openTable({ title: 'Film' });
+
+    await dashboard.grid.toolbar.clickFilter();
+    await dashboard.grid.toolbar.filter.add({
+      title: 'Length',
+      operation: '=',
+      value: '180',
+    });
+    await dashboard.grid.toolbar.clickFilter();
+
+    await page.goto(sharedLink);
+    await page.reload();
+
+    await sharedPage.grid.groupPage.openGroup({ indexMap: [0] });
+    await sharedPage.grid.groupPage.validateFirstRow({
+      indexMap: [0],
+      rowIndex: 0,
+      columnHeader: 'Title',
+      value: 'SOMETHING DUCK',
+    });
+
+    // Goto dashboard and Update Group, Remove Filter and verify shared view
+
+    await dashboard.goto();
+    await page.reload();
+
+    await dashboard.treeView.openTable({ title: 'Film' });
+    await dashboard.grid.toolbar.clickGroupBy();
+    await dashboard.grid.toolbar.groupBy.update({
+      index: 0,
+      title: 'Length',
+      ascending: false,
+    });
+
+    await dashboard.grid.toolbar.filter.reset();
+
+    await page.goto(sharedLink);
+    await page.reload();
+
+    await sharedPage.grid.groupPage.openGroup({ indexMap: [0] });
+    await sharedPage.grid.groupPage.validateFirstRow({
+      indexMap: [0],
+      rowIndex: 0,
+      columnHeader: 'Title',
+      value: 'WORST BANGER',
+    });
+
+    await dashboard.goto();
+    await page.reload();
+
+    await dashboard.treeView.openTable({ title: 'Film' });
+    await dashboard.grid.toolbar.clickGroupBy();
+    await dashboard.grid.toolbar.groupBy.remove({ index: 0 });
+    await dashboard.grid.toolbar.clickGroupBy();
+
+    await page.goto(sharedLink);
+    await page.reload();
+
+    await sharedPage.grid.cell.verify({ index: 0, columnHeader: 'Title', value: 'ZORRO ARK' });
   });
 
   test('Grid share ', async ({ page }) => {

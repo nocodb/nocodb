@@ -3,7 +3,6 @@ import setup from '../../../setup';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { createDemoTable } from '../../../setup/demoTable';
-import { Api } from 'nocodb-sdk';
 
 const validateResponse = false;
 
@@ -28,24 +27,13 @@ async function undo({ page, dashboard }: { page: Page; dashboard: DashboardPage 
 test.describe('GroupBy CRUD Operations', () => {
   let dashboard: DashboardPage, toolbar: ToolbarPage;
   let context: any;
-  let api: Api<any>;
-  let records: Record<string, any>;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
 
-    api = new Api({
-      baseURL: `http://localhost:8080/`,
-      headers: {
-        'xc-auth': context.token,
-      },
-    });
-
-    const table = await createDemoTable({ context, type: 'groupBased', recordCnt: 400 });
-
-    records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 400 });
+    await createDemoTable({ context, type: 'groupBased', recordCnt: 400 });
     await page.reload();
   });
 

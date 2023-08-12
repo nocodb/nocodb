@@ -16,9 +16,7 @@ function getHash(str) {
 
 const url = new URL(process.env.NC_PUBLIC_URL || `http://localhost:${process.env.PORT || '8080'}/`)
 let namespace = url.pathname
-if (!namespace.endsWith('/')) {
-  namespace = namespace + '/';
-}
+namespace += namespace.endsWith("/") ? "" : "/"
 
 @WebSocketGateway({
   cors: {
@@ -26,7 +24,7 @@ if (!namespace.endsWith('/')) {
     allowedHeaders: ['xc-auth'],
     credentials: true,
   },
-  namespace: namespace,
+  namespace,
 })
 @Injectable()
 export class SocketGateway implements OnModuleInit {

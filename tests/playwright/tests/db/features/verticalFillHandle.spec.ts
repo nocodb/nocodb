@@ -170,6 +170,8 @@ test.describe('Fill Handle', () => {
 
     await dragDrop({ firstColumn: 'SingleSelect', lastColumn: 'MultiSelect', params: p });
 
+    await new Promise((r) => setTimeout(r, 500));
+
     // verify data on grid
     const displayOptions = ['jan', 'feb', 'mar'];
     for (let i = 0; i < fields.length; i++) {

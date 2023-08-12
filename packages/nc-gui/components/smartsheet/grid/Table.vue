@@ -1693,7 +1693,7 @@ defineExpose({
 
   td:not(:first-child) > div {
     overflow: hidden;
-    @apply flex px-1 h-auto;
+    @apply flex px-1;
   }
 
   table {

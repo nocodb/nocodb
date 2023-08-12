@@ -281,6 +281,7 @@ export class ToolbarPage extends BasePage {
   }
 
   async clickRefresh() {
+    await this.get().locator(`.nc-icon-reload`).waitFor({ state: 'visible' });
     await this.get().locator(`.nc-icon-reload`).click();
   }
 }

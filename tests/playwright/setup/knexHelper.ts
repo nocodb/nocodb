@@ -13,6 +13,14 @@ export async function initializeSakilaTemplatePg() {
   {
     const kn = knex(getKnexConfig({ dbName: 'postgres', dbType: 'pg' }));
 
+    // skip if sakila_nc exists
+    const rows = await kn.raw(`SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = ?`, [sakila_template]);  
+    
+    if (rows.rows.length !== 0) {
+      await kn.destroy();
+      return;
+    }
+
     await dropAndCreateDb(kn, sakila_template);
 
     await kn.destroy();

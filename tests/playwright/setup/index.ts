@@ -316,6 +316,8 @@ const setup = async ({
   url?: string;
 }): Promise<NcContext> => {
   const dbType = process.env.E2E_DEV_DB_TYPE;
+  console.log('dbType::', dbType);
+
   let response;
 
   const workerIndex = process.env.TEST_WORKER_INDEX;

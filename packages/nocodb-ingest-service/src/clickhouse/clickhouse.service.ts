@@ -38,7 +38,7 @@ export class ClickhouseService implements OnModuleInit, OnModuleDestroy {
     );
 
     this.config = {
-      host: `${client}://${connection.host}` ?? 'http://localhost',
+      host: `${client ?? 'http'}://${connection.host ?? 'localhost'}`,
       port: connection.port ?? 8123,
       username: connection.user,
       password: connection.password,

@@ -247,7 +247,7 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
 }
 
 function openErdView(base: BaseType) {
-  navigateTo(`/ws/default/nc/${base.project_id}/erd/${base.id}`)
+  navigateTo(`/nc/${base.project_id}/erd/${base.id}`)
 }
 
 async function openProjectErdView(_project: ProjectType) {
@@ -261,7 +261,7 @@ async function openProjectErdView(_project: ProjectType) {
 
   const base = project?.bases?.[0]
   if (!base) return
-  navigateTo(`/ws/default/nc/${base.project_id}/erd/${base.id}`)
+  navigateTo(`/nc/${base.project_id}/erd/${base.id}`)
 }
 
 const reloadTables = async () => {

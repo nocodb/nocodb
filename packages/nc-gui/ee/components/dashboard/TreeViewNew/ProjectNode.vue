@@ -322,7 +322,7 @@ async function openProjectSqlEditor(_project: ProjectType) {
 */
 
 function openErdView(base: BaseType) {
-  navigateTo(`/ws/${route.value.params.workspaceId}/nc/${base.project_id}/erd/${base.id}`)
+  navigateTo(`/${route.value.params.workspaceId}/${base.project_id}/erd/${base.id}`)
 }
 
 async function openProjectErdView(_project: ProjectType) {
@@ -336,7 +336,7 @@ async function openProjectErdView(_project: ProjectType) {
 
   const base = project?.bases?.[0]
   if (!base) return
-  navigateTo(`/ws/${route.value.params.workspaceId}/nc/${base.project_id}/erd/${base.id}`)
+  navigateTo(`/${route.value.params.workspaceId}/${base.project_id}/erd/${base.id}`)
 }
 
 const reloadTables = async () => {

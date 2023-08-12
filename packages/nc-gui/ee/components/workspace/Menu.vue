@@ -39,7 +39,7 @@ const createDlg = ref(false)
 const onWorkspaceCreate = async (workspace: WorkspaceType) => {
   createDlg.value = false
   await loadWorkspaces()
-  navigateTo(`/ws/${workspace.id}`)
+  navigateTo(`/${workspace.id}`)
 }
 
 const updateWorkspaceTitle = useDebounceFn(async () => {
@@ -177,7 +177,7 @@ onKeyStroke('Escape', () => {
             <div class="nc-menu-sub-head">Workspaces</div>
 
             <div class="max-h-300px nc-scrollbar-md">
-              <a-menu-item v-for="workspace of workspacesList" :key="workspace.id!" @click="navigateTo(`/ws/${workspace.id}`)">
+              <a-menu-item v-for="workspace of workspacesList" :key="workspace.id!" @click="navigateTo(`/${workspace.id}`)">
                 <div class="nc-workspace-menu-item group capitalize max-w-300px flex">
                   <GeneralIcon icon="workspace" class="group-hover:text-accent" />
                   <span class="truncate min-w-10 flex-shrink">

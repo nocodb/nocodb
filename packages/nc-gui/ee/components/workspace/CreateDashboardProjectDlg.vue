@@ -137,7 +137,7 @@ const createDashboardProject = async () => {
     })
     await loadProjects()
 
-    navigateTo(`/ws/${activeWorkspace.value!.id!}/project/${project.id!}/layout`)
+    navigateTo(`/${activeWorkspace.value!.id!}/${project.id!}/layout`)
 
     dialogShow.value = false
   } catch (e: any) {

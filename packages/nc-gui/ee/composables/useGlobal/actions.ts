@@ -82,13 +82,13 @@ export function useGlobalActions(state: State): Actions {
     if (projectId)
       switch (type) {
         case NcProjectType.DOCS:
-          path = `/ws/${workspaceId}/nc/${projectId}/doc`
+          path = `/${workspaceId}/${projectId}/doc`
           break
         default:
-          path = `/ws/${workspaceId}/project/${projectId}`
+          path = `/${workspaceId}/${projectId}`
           break
       }
-    else path = `/ws/${workspaceId}`
+    else path = `/${workspaceId}`
 
     if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
       location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}/dashboard/#${path}`

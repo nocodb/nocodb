@@ -227,7 +227,7 @@ export const useProject = defineStore('projectStore', () => {
 
   const projectUrl = ({ id, type: _type }: { id: string; type: 'database' | 'documentation' }) => {
     const workspaceId = route.value.params.workspaceId as string
-    return `/ws/${workspaceId}/nc/${id}`
+    return `/${workspaceId}/${id}`
   }
 
   watch(

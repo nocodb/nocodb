@@ -107,7 +107,7 @@ export const useTabs = defineStore('tabStore', () => {
       return
       if (index === -1) {
         navigateTo({
-          path: `/ws/${workspaceId.value}/${projectType.value}/${project.value?.id}`,
+          path: `/${workspaceId.value}/${project.value?.id}`,
           query: route.value.query,
         })
       } else {
@@ -217,7 +217,7 @@ export const useTabs = defineStore('tabStore', () => {
 
       if (newTabIndex === -1) {
         await navigateTo({
-          path: `/ws/${workspaceId.value}/${projectType.value}/${route.value.params.projectId}`,
+          path: `/${workspaceId.value}/${route.value.params.projectId}`,
           query: route.value.query,
         })
       } else {
@@ -238,31 +238,31 @@ export const useTabs = defineStore('tabStore', () => {
     switch (tab.type) {
       case TabType.TABLE:
         return navigateTo({
-          path: `/ws/${workspaceId.value}/${projectType.value}/${tab.projectId}/table/${tab?.id}${
+          path: `/${workspaceId.value}/${tab.projectId}/table/${tab?.id}${
             tab.viewTitle ? `/${tab.viewTitle}` : ''
           }`,
           query: route.value.query,
         })
       case TabType.VIEW:
         return navigateTo({
-          path: `/ws/${workspaceId.value}/${projectType.value}/${tab.projectId}/view/${tab?.id}${
+          path: `/${workspaceId.value}/${tab.projectId}/view/${tab?.id}${
             tab.viewTitle ? `/${tab.viewTitle}` : ''
           }`,
           query: route.value.query,
         })
       case TabType.AUTH:
         return navigateTo({
-          path: `/ws/${workspaceId.value}/${projectType.value}/${tab.projectId}/auth`,
+          path: `/${workspaceId.value}/${tab.projectId}/auth`,
           query: route.value.query,
         })
       case TabType.SQL:
         return navigateTo({
-          path: `/ws/${workspaceId.value}/${projectType.value}/${tab.projectId}/sql`,
+          path: `/${workspaceId.value}/${tab.projectId}/sql`,
           query: route.value.query,
         })
       case TabType.ERD:
         return navigateTo({
-          path: `/ws/${workspaceId.value}/${projectType.value}/${tab.projectId}/erd/${tab?.tabMeta?.base.id}`,
+          path: `/${workspaceId.value}/${tab.projectId}/erd/${tab?.tabMeta?.base.id}`,
           query: route.value.query,
         })
       case TabType.DOCUMENT:

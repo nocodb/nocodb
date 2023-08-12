@@ -286,10 +286,10 @@ export const useProjects = defineStore('projectsStore', () => {
     if (!project) return
 
     if (page) {
-      return await navigateTo(`/ws/${project.fk_workspace_id}/nc/${projectId}?page=${page}`)
+      return await navigateTo(`/${project.fk_workspace_id}/${projectId}?page=${page}`)
     }
 
-    await navigateTo(`/ws/${project.fk_workspace_id}/nc/${projectId}`)
+    await navigateTo(`/${project.fk_workspace_id}/${projectId}`)
   }
 
   return {

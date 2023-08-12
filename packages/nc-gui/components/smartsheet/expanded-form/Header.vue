@@ -49,7 +49,7 @@ const { copy } = useCopy()
 const copyRecordUrl = () => {
   copy(
     encodeURI(
-      `${dashboardUrl?.value}#/ws/${route.params.workspaceId}/${route.params.projectType}/${route.params.projectId}/${
+      `${dashboardUrl?.value}#/${route.params.workspaceId}/${route.params.projectId}/${
         route.params.type
       }/${meta.value?.id}${props.view ? `/${props.view.title}` : ''}?rowId=${primaryKey.value}`,
     ),

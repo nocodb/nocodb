@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia'
 import type { WorkspaceType } from 'nocodb-sdk'
-import { useDebounceFn } from '@vueuse/core'
 import tinycolor from 'tinycolor2'
 import { onMounted, projectThemeColors, ref, useWorkspace } from '#imports'
 import { navigateTo } from '#app'
@@ -13,7 +12,7 @@ const props = defineProps<{
 const workspaceStore = useWorkspace()
 
 const { saveTheme } = workspaceStore
-const { activeWorkspace, workspacesList, isWorkspaceOwner } = storeToRefs(workspaceStore)
+const { isWorkspaceOwner } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
 const { signOut, signedIn, user, token } = useGlobal()
@@ -27,7 +26,7 @@ const { isUIAllowed } = useUIPermission()
 const { theme, defaultTheme } = useTheme()
 
 onMounted(async () => {
-  await loadWorkspaces()
+  // await loadWorkspaces()
 })
 
 const workspaceModalVisible = ref(false)
@@ -41,12 +40,6 @@ const onWorkspaceCreate = async (workspace: WorkspaceType) => {
   await loadWorkspaces()
   navigateTo(`/ws/${workspace.id}`)
 }
-
-const updateWorkspaceTitle = useDebounceFn(async () => {
-  await workspaceStore.updateWorkspace(activeWorkspace.value!.id!, {
-    title: activeWorkspace.value!.title,
-  })
-}, 500)
 
 const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color?: string) => {
   switch (mode) {
@@ -132,16 +125,7 @@ onKeyStroke('Escape', () => {
       >
         <slot name="brandIcon" />
         <template v-if="props.isOpen">
-          <div v-if="activeWorkspace" class="flex-grow min-w-10 font-semibold text-base">
-            <a-tooltip v-if="activeWorkspace!.title!.length > 12" placement="bottom">
-              <div class="text-md truncate capitalize min-w-0">{{ activeWorkspace!.title }}</div>
-              <template #title>
-                <div class="text-sm !text-red-500">{{ activeWorkspace?.title }}</div>
-              </template>
-            </a-tooltip>
-            <div v-else class="text-md truncate capitalize">{{ activeWorkspace?.title }}</div>
-          </div>
-
+          Nocodb
           <MdiCodeTags class="min-w-[17px] text-md transform rotate-90" />
         </template>
 
@@ -153,52 +137,7 @@ onKeyStroke('Escape', () => {
       <template #overlay>
         <a-menu class="" @click="isWorkspaceDropdownOpen = false">
           <a-menu-item-group class="!border-t-0">
-            <!--  <div class="nc-menu-sub-head">Current Workspace</div> -->
-            <div class="group select-none flex items-center gap-4 p-2 pb-1 !border-t-0">
-              <input
-                v-model="activeWorkspace!.title"
-                :readonly="!isUIAllowed('workspaceUpdate', false, activeWorkspace.roles)"
-                class="nc-workspace-title-input text-current capitalize group-hover:text-accent"
-                @input="updateWorkspaceTitle"
-              />
-            </div>
-
-            <!-- <a-menu-item @click="workspaceModalVisible = true">
-              <div class="nc-workspace-menu-item group">
-                <PhFadersThin />
-                Settings
-              </div>
-            </a-menu-item> -->
-
             <a-menu-divider />
-
-            <div class="nc-menu-sub-head">Workspaces</div>
-
-            <div class="max-h-300px nc-scrollbar-md">
-              <a-menu-item v-for="workspace of workspacesList" :key="workspace.id!" @click="navigateTo(`/ws/${workspace.id}`)">
-                <div class="nc-workspace-menu-item group capitalize max-w-300px flex">
-                  <GeneralIcon icon="workspace" class="group-hover:text-accent" />
-                  <span class="truncate min-w-10 flex-shrink">
-                    {{ workspace.title }}
-                  </span>
-                </div>
-              </a-menu-item>
-            </div>
-            <a-menu-item @click="createDlg = true">
-              <div class="nc-workspace-menu-item group text-gray-700 group-hover:text-black">
-                <GeneralIcon icon="plus" class="mr-1" />
-
-                <div class="">Add new workspace</div>
-              </div>
-            </a-menu-item>
-            <a-menu-divider />
-
-            <!-- <a-menu-item @click="workspaceModalVisible = true">
-              <div class="nc-workspace-menu-item group">
-                <GeneralIcon icon="users" />
-                Collaborators
-              </div>
-            </a-menu-item> -->
 
             <template v-if="!isSharedBase">
               <!-- Copy Auth Token -->
@@ -319,7 +258,7 @@ onKeyStroke('Escape', () => {
             </template>
             <!-- Language -->
             <a-sub-menu
-              v-if="false"
+              v-if="!isEeUI"
               key="language"
               class="lang-menu !py-0"
               popup-class-name="scrollbar-thin-dull min-w-50 max-h-90vh !overflow-auto"

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { WorkspaceUserRoles, type WorkspaceUserType } from 'nocodb-sdk'
-import { Empty } from 'ant-design-vue'
 import InfiniteLoading from 'v3-infinite-loading'
 import { storeToRefs, stringToColour, timeAgo } from '#imports'
 
@@ -17,8 +16,9 @@ const rolesLabel = {
   [WorkspaceUserRoles.VIEWER]: 'Viewer',
 }
 
-const { getProjectUsers, createProjectUser, updateProjectUser } = useProjects()
-const { activeProjectId } = storeToRefs(useProjects())
+const projectsStore = useProjects()
+const { getProjectUsers, createProjectUser, updateProjectUser } = projectsStore
+const { activeProjectId } = storeToRefs(projectsStore)
 
 const collaborators = ref<WorkspaceUserType[]>([])
 const totalCollaborators = ref(0)
@@ -46,7 +46,7 @@ const loadCollaborators = async () => {
         ...user,
         projectRoles: user.roles,
         // TODO: Remove this hack and make the values consistent with the backend
-        roles: user.roles ?? (rolesLabel[user.workspace_roles] as string).toLowerCase(),
+        roles: user.roles ?? (rolesLabel[user.workspace_roles] as string)?.toLowerCase(),
       })),
     ]
   } catch (e: any) {
@@ -82,16 +82,16 @@ onMounted(async () => {
     isLoading.value = false
   }
 })
-
+/*
 const getRolesLabel = (roles?: string) => {
   return (
     roles
-      ?.split(/\s*,\s*/)
+      ?.split(/\s*,\s*REMOVE/)
       ?.map((role) => rolesLabel[role])
       .join(', ') ?? ''
   )
 }
-
+*/
 const updateCollaborator = async (collab, roles) => {
   try {
     if (collab.projectRoles) {
@@ -225,10 +225,10 @@ watchDebounced(
 }
 
 .nc-collaborators-list-header {
-  @apply flex flex-row justify-between items-center min-h-13 border-b-1 border-gray-75 pl-4 text-gray-500;
+  @apply flex flex-row justify-between items-center min-h-13 border-b-1 border-gray-100 pl-4 text-gray-500;
 }
 .nc-collaborators-list-row {
-  @apply flex flex-row justify-between items-center min-h-16 border-b-1 border-gray-75 pl-4;
+  @apply flex flex-row justify-between items-center min-h-16 border-b-1 border-gray-100 pl-4;
 }
 
 .color-band {

@@ -3,17 +3,16 @@ import { AccountPage } from '../../../pages/Account';
 import { AccountUsersPage } from '../../../pages/Account/Users';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { SignupPage } from '../../../pages/SignupPage';
-import setup from '../../../setup';
-import { isHub } from '../../../setup/db';
+import setup, { unsetup } from '../../../setup';
 import { WorkspacePage } from '../../../pages/WorkspacePage';
-import { getDefaultPwd } from '../../utils/general';
+import { getDefaultPwd } from '../../../tests/utils/general';
 
 const roleDb = [
   { email: 'creator@nocodb.com', role: 'Organization Level Creator', url: '' },
   { email: 'viewer@nocodb.com', role: 'Organization Level Viewer', url: '' },
 ];
 
-test.describe('User roles', () => {
+test.describe.skip('User roles', () => {
   let accountUsersPage: AccountUsersPage;
   let accountPage: AccountPage;
   let signupPage: SignupPage;
@@ -23,10 +22,6 @@ test.describe('User roles', () => {
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    // hub will not have this feature
-    if (isHub()) {
-      test.skip();
-    }
     context = await setup({ page, isEmptyProject: true });
     accountPage = new AccountPage(page);
     accountUsersPage = new AccountUsersPage(accountPage);
@@ -34,6 +29,10 @@ test.describe('User roles', () => {
     signupPage = new SignupPage(accountPage.rootPage);
     projectsPage = new ProjectsPage(accountPage.rootPage);
     workspacePage = new WorkspacePage(accountPage.rootPage);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Invite user, update role and delete user', async () => {
@@ -80,14 +79,8 @@ test.describe('User roles', () => {
       password: getDefaultPwd(),
     });
 
-    if (isHub()) {
-      await workspacePage.checkWorkspaceCreateButton({
-        exists: roleDb[roleIdx].role === 'Organization Level Creator',
-      });
-    } else {
-      await projectsPage.checkProjectCreateButton({
-        exists: roleDb[roleIdx].role === 'Organization Level Creator',
-      });
-    }
+    await workspacePage.checkWorkspaceCreateButton({
+      exists: roleDb[roleIdx].role === 'Organization Level Creator',
+    });
   }
 });

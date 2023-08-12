@@ -1,47 +1,37 @@
 import { Injectable } from '@nestjs/common';
-import {
-  AppEvents,
-  AuditOperationSubTypes,
-  AuditOperationTypes,
-  OrgUserRoles,
-  PluginCategory,
-} from 'nocodb-sdk';
-import { T } from 'nc-help';
+import { AppEvents, OrgUserRoles, PluginCategory } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import * as ejs from 'ejs';
 import validator from 'validator';
-import NocoCache from '../../cache/NocoCache';
-import { validatePayload } from '../../helpers';
-import { NcError } from '../../helpers/catchError';
-import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
-import { PagedResponseImpl } from '../../helpers/PagedResponse';
-import { randomTokenString } from '../../helpers/stringHelpers';
-import { Audit, Project, ProjectUser, User, WorkspaceUser } from '../../models';
-
-import Noco from '../../Noco';
-import { CacheGetType, CacheScope, MetaTable } from '../../utils/globals';
-import { AppHooksService } from '../app-hooks/app-hooks.service';
-import { ProjectUserUpdateEvent } from '../app-hooks/interfaces';
-import { extractProps } from '../../helpers/extractProps';
 import type { ProjectUserReqType, UserType } from 'nocodb-sdk';
+import NocoCache from '~/cache/NocoCache';
+import { validatePayload } from '~/helpers';
+import Noco from '~/Noco';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { NcError } from '~/helpers/catchError';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { randomTokenString } from '~/helpers/stringHelpers';
+import { Project, ProjectUser, User } from '~/models';
+
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import { extractProps } from '~/helpers/extractProps';
 
 @Injectable()
 export class ProjectUsersService {
-  constructor(private appHooksService: AppHooksService) {}
+  constructor(protected appHooksService: AppHooksService) {}
 
   async userList(param: { projectId: string; query: any }) {
-    const project = await Project.get(param.projectId);
-
     return new PagedResponseImpl(
       await ProjectUser.getUsersList({
         ...param.query,
         project_id: param.projectId,
-        workspace_id: project?.fk_workspace_id,
       }),
       {
         ...param.query,
-        count: await WorkspaceUser.count({
-          workspaceId: project?.fk_workspace_id,
+        count: await ProjectUser.getUsersCount({
+          project_id: param.projectId,
+          ...param.query,
         }),
       },
     );
@@ -193,9 +183,8 @@ export class ProjectUsersService {
       param.projectUser,
     );
 
-    // todo: use param.projectId
-    if (!param.projectUser?.project_id) {
-      NcError.badRequest('Missing project id in request body.');
+    if (!param.projectId) {
+      NcError.badRequest('Missing project id');
     }
 
     const project = await Project.get(param.projectId);

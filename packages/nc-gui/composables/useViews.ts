@@ -1,11 +1,12 @@
-import type { TableInfoType, TableType, ViewType } from 'nocodb-sdk'
+import type { TableReqType, TableType } from 'nocodb-sdk'
 import type { MaybeRef } from '@vueuse/core'
-import { ref, unref, useNuxtApp, useViewsStore, watch } from '#imports'
+import { useViewsStore } from '#imports'
 
 // DEPRECATED: Use useViewsStore instead
-function useViews(_: MaybeRef<TableType | TableInfoType | undefined>) {
-  const { isViewsLoading, views } = storeToRefs(useViewsStore())
-  const { loadViews } = useViewsStore()
+function useViews(_: MaybeRef<TableType | TableReqType | undefined>) {
+  const viewsStore = useViewsStore()
+  const { loadViews } = viewsStore
+  const { isViewsLoading, views } = storeToRefs(viewsStore)
 
   const isLoading = computed(() => isViewsLoading.value)
 

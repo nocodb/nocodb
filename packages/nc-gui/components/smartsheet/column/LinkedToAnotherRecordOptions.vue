@@ -10,15 +10,14 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:value'])
 
-const { appInfo } = $(useGlobal())
-
 const vModel = useVModel(props, 'value', emit)
 
-const meta = $(inject(MetaInj, ref()))
+const meta = inject(MetaInj, ref())
 
 const { setAdditionalValidations, validateInfos, onDataTypeChange, sqlUi, isXcdbBase } = useColumnCreateStoreOrThrow()
 
-const { tables } = $(storeToRefs(useProject()))
+const projectStore = useProject()
+const { tables } = storeToRefs(projectStore)
 
 setAdditionalValidations({
   childId: [{ required: true, message: 'Required' }],
@@ -26,10 +25,10 @@ setAdditionalValidations({
 
 const onUpdateDeleteOptions = sqlUi === MssqlUi ? ['NO ACTION'] : ['NO ACTION', 'CASCADE', 'RESTRICT', 'SET NULL', 'SET DEFAULT']
 
-if (!vModel.value.parentId) vModel.value.parentId = meta?.id
+if (!vModel.value.parentId) vModel.value.parentId = meta.value?.id
 if (!vModel.value.childId) vModel.value.childId = null
-if (!vModel.value.childColumn) vModel.value.childColumn = `${meta?.table_name}_id`
-if (!vModel.value.childTable) vModel.value.childTable = meta?.table_name
+if (!vModel.value.childColumn) vModel.value.childColumn = `${meta.value?.table_name}_id`
+if (!vModel.value.childTable) vModel.value.childTable = meta.value?.table_name
 if (!vModel.value.parentTable) vModel.value.parentTable = vModel.value.rtn || ''
 if (!vModel.value.parentColumn) vModel.value.parentColumn = vModel.value.rcn || ''
 
@@ -39,19 +38,19 @@ if (!vModel.value.onDelete) vModel.value.onDelete = onUpdateDeleteOptions[0]
 if (!vModel.value.virtual) vModel.value.virtual = sqlUi === SqliteUi // appInfo.isCloud || sqlUi === SqliteUi
 if (!vModel.value.alias) vModel.value.alias = vModel.value.column_name
 
-const advancedOptions = $(ref(false))
+const advancedOptions = ref(false)
 
-const refTables = $computed(() => {
-  if (!tables || !tables.length) {
+const refTables = computed(() => {
+  if (!tables.value || !tables.value.length) {
     return []
   }
 
-  return tables.filter((t) => t.type === ModelTypes.TABLE && t.base_id === meta?.base_id)
+  return tables.value.filter((t) => t.type === ModelTypes.TABLE && t.base_id === meta.value?.base_id)
 })
 
 const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())
 
-const isLinks = $computed(() => vModel.value.uidt === UITypes.Links)
+const isLinks = computed(() => vModel.value.uidt === UITypes.Links)
 </script>
 
 <template>

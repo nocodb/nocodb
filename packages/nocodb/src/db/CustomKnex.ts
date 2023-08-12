@@ -2,9 +2,9 @@ import { Knex, knex } from 'knex';
 import { SnowflakeClient } from 'nc-help';
 import { types } from 'pg';
 import dayjs from 'dayjs';
-import Filter from '../models/Filter';
 import type { FilterType } from 'nocodb-sdk';
-import type { BaseModelSql } from './BaseModelSql';
+import type { BaseModelSql } from '~/db/BaseModelSql';
+import Filter from '~/models/Filter';
 
 // For the code, check out
 // https://raw.githubusercontent.com/brianc/node-pg-types/master/lib/builtins.js

@@ -1,9 +1,7 @@
 import type { ComputedRef, Ref, ToRefs } from 'vue'
 import type { WritableComputedRef } from '@vue/reactivity'
 import type { JwtPayload } from 'jwt-decode'
-import type { Language, ProjectRole, User } from '~/lib'
-import type { useCounter } from '#imports'
-import type { NcProjectType } from '~/utils'
+import type { Language, NcProjectType, ProjectRole, User, useCounter } from '#imports'
 
 export interface AppInfo {
   ncSiteUrl: string
@@ -68,7 +66,7 @@ export interface Actions {
   refreshToken: () => void
   loadAppInfo: () => void
   setIsMobileMode: (isMobileMode: boolean) => void
-  navigateToProject: (params: { workspaceId: string; projectId?: string; type?: NcProjectType }) => void
+  navigateToProject: (params: { workspaceId?: string; projectId?: string; type?: NcProjectType }) => void
   getBaseUrl: (workspaceId: string) => string | undefined
 }
 

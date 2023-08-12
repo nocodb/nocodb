@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 
 test.describe('Toolbar operations (GRID)', () => {
   let dashboard: DashboardPage, toolbar: ToolbarPage;
@@ -19,6 +19,10 @@ test.describe('Toolbar operations (GRID)', () => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Create a GroupBy and Verify With Sort, Filter, Hide', async () => {

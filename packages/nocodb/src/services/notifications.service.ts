@@ -1,33 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import { Notification } from '../models';
-import { NcError } from '../helpers/catchError';
-import { AppHooksService } from './app-hooks/app-hooks.service';
-import { ClickhouseService } from './clickhouse/clickhouse.service';
 import type {
   ProjectInviteEvent,
   WelcomeEvent,
-  WorkspaceInviteEvent,
-} from './app-hooks/interfaces';
-import type { Project } from '../models';
+} from '~/services/app-hooks/interfaces';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import type { NotificationType, UserType } from 'nocodb-sdk';
+import type { UserType } from 'nocodb-sdk';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { NcError } from '~/helpers/catchError';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { Notification } from '~/models';
 
 @Injectable()
 export class NotificationsService implements OnModuleInit, OnModuleDestroy {
-  constructor(
-    private readonly appHooks: AppHooksService,
-    private clickhouseService: ClickhouseService,
-  ) {}
+  constructor(protected readonly appHooks: AppHooksService) {}
 
-  private async insertNotification(insertData: Partial<Notification>) {
+  protected async insertNotification(insertData: Partial<Notification>) {
     this.appHooks.emit('notification' as any, insertData);
 
     await Notification.insert(insertData);
   }
 
-  private async hookHandler({ event, data }: { event: AppEvents; data: any }) {
+  protected async hookHandler({
+    event,
+    data,
+  }: {
+    event: AppEvents;
+    data: any;
+  }) {
     switch (event) {
       case AppEvents.PROJECT_INVITE:
         {
@@ -41,22 +41,6 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
               title: project.title,
               type: project.type,
               invited_by: invitedBy.email,
-              workspace_id: (project as Project).fk_workspace_id,
-            },
-          });
-        }
-        break;
-      case AppEvents.WORKSPACE_INVITE:
-        {
-          const { workspace, user, invitedBy } = data as WorkspaceInviteEvent;
-
-          await this.insertNotification({
-            fk_user_id: user.id,
-            type: AppEvents.WORKSPACE_INVITE,
-            body: {
-              id: workspace.id,
-              invited_by: invitedBy.email,
-              title: workspace.title,
             },
           });
         }

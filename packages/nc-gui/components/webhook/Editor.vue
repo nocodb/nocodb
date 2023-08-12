@@ -35,17 +35,17 @@ const { $e } = useNuxtApp()
 
 const { api, isLoading: loading } = useApi()
 
-const { appInfo } = $(useGlobal())
+const { appInfo } = useGlobal()
 
 const { hooks } = storeToRefs(useWebhooksStore())
 
 const meta = inject(MetaInj, ref())
 
-const hookTabKey = ref('hook-edit')
+// const hookTabKey = ref('hook-edit')
 
 const useForm = Form.useForm
 
-let hook = reactive<
+let hookRef = reactive<
   Omit<HookType, 'notification'> & { notification: Record<string, any>; eventOperation?: string; condition: boolean }
 >({
   id: '',
@@ -68,7 +68,7 @@ let hook = reactive<
   version: 'v2',
 })
 
-const isBodyShown = ref(hook.version === 'v1' || (hook.version === 'v2' && appInfo.ee))
+const isBodyShown = ref(hookRef.version === 'v1' || (hookRef.version === 'v2' && appInfo.value.ee))
 
 const urlTabKey = ref(isBodyShown.value ? 'body' : 'params')
 
@@ -199,7 +199,7 @@ const eventList = ref<Record<string, any>[]>([
 ])
 
 const notificationList = computed(() => {
-  return appInfo.isCloud
+  return appInfo.value.isCloud
     ? [{ type: 'URL' }]
     : [
         { type: 'URL' },
@@ -227,71 +227,71 @@ const validators = computed(() => {
     'title': [fieldRequiredValidator()],
     'eventOperation': [fieldRequiredValidator()],
     'notification.type': [fieldRequiredValidator()],
-    ...(hook.notification.type === 'URL' && {
+    ...(hookRef.notification.type === 'URL' && {
       'notification.payload.method': [fieldRequiredValidator()],
       'notification.payload.path': [fieldRequiredValidator()],
     }),
-    ...(hook.notification.type === 'Email' && {
+    ...(hookRef.notification.type === 'Email' && {
       'notification.payload.to': [fieldRequiredValidator()],
       'notification.payload.subject': [fieldRequiredValidator()],
       'notification.payload.body': [fieldRequiredValidator()],
     }),
-    ...(['Slack', 'Microsoft Teams', 'Discord', 'Mattermost'].includes(hook.notification.type) && {
+    ...(['Slack', 'Microsoft Teams', 'Discord', 'Mattermost'].includes(hookRef.notification.type) && {
       'notification.payload.channels': [fieldRequiredValidator()],
       'notification.payload.body': [fieldRequiredValidator()],
     }),
-    ...((hook.notification.type === 'Twilio' || hook.notification.type === 'Whatsapp Twilio') && {
+    ...((hookRef.notification.type === 'Twilio' || hookRef.notification.type === 'Whatsapp Twilio') && {
       'notification.payload.body': [fieldRequiredValidator()],
       'notification.payload.to': [fieldRequiredValidator()],
     }),
   }
 })
-const { validate, validateInfos } = useForm(hook, validators)
+const { validate, validateInfos } = useForm(hookRef, validators)
 
 function onNotificationTypeChange(reset = false) {
   if (reset) {
-    hook.notification.payload = {} as Record<string, any>
-    if (['Slack', 'Microsoft Teams', 'Discord', 'Mattermost'].includes(hook.notification.type)) {
-      hook.notification.payload.channels = []
-      hook.notification.payload.body = ''
+    hookRef.notification.payload = {} as Record<string, any>
+    if (['Slack', 'Microsoft Teams', 'Discord', 'Mattermost'].includes(hookRef.notification.type)) {
+      hookRef.notification.payload.channels = []
+      hookRef.notification.payload.body = ''
     }
   }
 
-  if (hook.notification.type === 'Slack') {
+  if (hookRef.notification.type === 'Slack') {
     slackChannels.value = (apps.value && apps.value.Slack && apps.value.Slack.parsedInput) || []
   }
 
-  if (hook.notification.type === 'Microsoft Teams') {
+  if (hookRef.notification.type === 'Microsoft Teams') {
     teamsChannels.value = (apps.value && apps.value['Microsoft Teams'] && apps.value['Microsoft Teams'].parsedInput) || []
   }
 
-  if (hook.notification.type === 'Discord') {
+  if (hookRef.notification.type === 'Discord') {
     discordChannels.value = (apps.value && apps.value.Discord && apps.value.Discord.parsedInput) || []
   }
 
-  if (hook.notification.type === 'Mattermost') {
+  if (hookRef.notification.type === 'Mattermost') {
     mattermostChannels.value = (apps.value && apps.value.Mattermost && apps.value.Mattermost.parsedInput) || []
   }
 
-  if (hook.notification.type === 'URL') {
-    hook.notification.payload.body = hook.notification.payload.body || '{{ json data }}'
-    hook.notification.payload.parameters = hook.notification.payload.parameters || [{}]
-    hook.notification.payload.headers = hook.notification.payload.headers || [{}]
-    hook.notification.payload.method = hook.notification.payload.method || 'POST'
-    hook.notification.payload.auth = hook.notification.payload.auth || ''
+  if (hookRef.notification.type === 'URL') {
+    hookRef.notification.payload.body = hookRef.notification.payload.body || '{{ json data }}'
+    hookRef.notification.payload.parameters = hookRef.notification.payload.parameters || [{}]
+    hookRef.notification.payload.headers = hookRef.notification.payload.headers || [{}]
+    hookRef.notification.payload.method = hookRef.notification.payload.method || 'POST'
+    hookRef.notification.payload.auth = hookRef.notification.payload.auth || ''
   }
 }
 
 function setHook(newHook: HookType) {
   const notification = newHook.notification as Record<string, any>
-  Object.assign(hook, {
+  Object.assign(hookRef, {
     ...newHook,
     notification: {
       ...notification,
       payload: notification.payload,
     },
   })
-  if (hook.version === 'v1') {
+  if (hookRef.version === 'v1') {
     urlTabKey.value = 'body'
     eventList.value = [
       { text: ['After', 'Insert'], value: ['after', 'insert'] },
@@ -302,21 +302,21 @@ function setHook(newHook: HookType) {
 }
 
 function onEventChange() {
-  const { notification: { payload = {}, type = {} } = {} } = hook
+  const { notification: { payload = {}, type = {} } = {} } = hookRef
 
-  Object.assign(hook, {
-    ...hook,
+  Object.assign(hookRef, {
+    ...hookRef,
     notification: {
       type,
       payload,
     },
   })
 
-  hook.notification.payload = payload
+  hookRef.notification.payload = payload
 
   const channels: Ref<Record<string, any>[] | null> = ref(null)
 
-  switch (hook.notification.type) {
+  switch (hookRef.notification.type) {
     case 'Slack':
       channels.value = slackChannels.value
       break
@@ -332,23 +332,23 @@ function onEventChange() {
   }
 
   if (channels) {
-    hook.notification.payload.webhook_url =
-      hook.notification.payload.webhook_url &&
-      hook.notification.payload.webhook_url.map((v: { webhook_url: string }) =>
+    hookRef.notification.payload.webhook_url =
+      hookRef.notification.payload.webhook_url &&
+      hookRef.notification.payload.webhook_url.map((v: { webhook_url: string }) =>
         channels.value?.find((s) => v.webhook_url === s.webhook_url),
       )
   }
 
-  if (hook.notification.type === 'URL') {
-    hook.notification.payload = hook.notification.payload || {}
-    hook.notification.payload.parameters = hook.notification.payload.parameters || [{}]
-    hook.notification.payload.headers = hook.notification.payload.headers || [{}]
-    hook.notification.payload.method = hook.notification.payload.method || 'POST'
+  if (hookRef.notification.type === 'URL') {
+    hookRef.notification.payload = hookRef.notification.payload || {}
+    hookRef.notification.payload.parameters = hookRef.notification.payload.parameters || [{}]
+    hookRef.notification.payload.headers = hookRef.notification.payload.headers || [{}]
+    hookRef.notification.payload.method = hookRef.notification.payload.method || 'POST'
   }
 }
 
 async function loadPluginList() {
-  if (appInfo.isCloud) return
+  if (appInfo.value.isCloud) return
   try {
     const plugins = (await api.plugin.list()).list!
 
@@ -384,20 +384,20 @@ async function saveHooks() {
 
   try {
     let res
-    if (hook.id) {
-      res = await api.dbTableWebhook.update(hook.id, {
-        ...hook,
+    if (hookRef.id) {
+      res = await api.dbTableWebhook.update(hookRef.id, {
+        ...hookRef,
         notification: {
-          ...hook.notification,
-          payload: hook.notification.payload,
+          ...hookRef.notification,
+          payload: hookRef.notification.payload,
         },
       })
     } else {
       res = await api.dbTableWebhook.create(meta.value!.id!, {
-        ...hook,
+        ...hookRef,
         notification: {
-          ...hook.notification,
-          payload: hook.notification.payload,
+          ...hookRef.notification,
+          payload: hookRef.notification.payload,
         },
       } as HookReqType)
 
@@ -408,18 +408,18 @@ async function saveHooks() {
       res.notification = JSON.parse(res.notification)
     }
 
-    if (!hook.id && res) {
-      hook = { ...hook, ...res } as any
+    if (!hookRef.id && res) {
+      hookRef = { ...hookRef, ...res } as any
     }
 
     if (filterRef.value) {
-      await filterRef.value.applyChanges(hook.id)
+      await filterRef.value.applyChanges(hookRef.id)
     }
 
     // Webhook details updated successfully
     hooks.value = hooks.value.map((h) => {
-      if (h.id === hook.id) {
-        return hook
+      if (h.id === hookRef.id) {
+        return hookRef
       }
       return h
     })
@@ -432,9 +432,9 @@ async function saveHooks() {
   }
 
   $e('a:webhook:add', {
-    operation: hook.operation,
-    condition: hook.condition,
-    notification: hook.notification.type,
+    operation: hookRef.operation,
+    condition: hookRef.condition,
+    notification: hookRef.notification.type,
   })
 }
 
@@ -443,13 +443,13 @@ async function testWebhook() {
 }
 
 watch(
-  () => hook.eventOperation,
+  () => hookRef.eventOperation,
   () => {
-    if (!hook.eventOperation) return
+    if (!hookRef.eventOperation) return
 
-    const [event, operation] = hook.eventOperation.split(' ')
-    hook.event = event as HookType['event']
-    hook.operation = operation as HookType['operation']
+    const [event, operation] = hookRef.eventOperation.split(' ')
+    hookRef.event = event as HookType['event']
+    hookRef.operation = operation as HookType['operation']
   },
 )
 
@@ -467,8 +467,8 @@ watch(
 onMounted(async () => {
   await loadPluginList()
 
-  if (hook.event && hook.operation) {
-    hook.eventOperation = `${hook.event} ${hook.operation}`
+  if (hookRef.event && hookRef.operation) {
+    hookRef.eventOperation = `${hookRef.event} ${hookRef.operation}`
   }
 
   onNotificationTypeChange()
@@ -484,14 +484,14 @@ onMounted(async () => {
             <div
               class="dot"
               :class="{
-                'bg-green-500': hook?.active,
-                'bg-gray-400': !hook?.active,
+                'bg-green-500': hookRef?.active,
+                'bg-gray-400': !hookRef?.active,
               }"
             ></div>
           </div>
         </div>
 
-        <span class="inline text-lg font-medium ml-2">{{ hook.title || 'Webhooks' }} </span>
+        <span class="inline text-lg font-medium ml-2">{{ hookRef.title || 'Webhooks' }} </span>
       </div>
     </div>
     <div class="flex flex-row gap-2 mr-0.25">
@@ -524,14 +524,14 @@ onMounted(async () => {
         <div class="flex flex-row justify-between mb-6">
           <div class="font-medium text-lg">Parameters</div>
         </div>
-        <a-form :model="hook" name="create-or-edit-webhook">
+        <a-form :model="hookRef" name="create-or-edit-webhook">
           <a-form-item>
             <div class="flex flex-row justify-between px-3 py-2 border-1 border-gray-100 rounded-md">
               <div class="text-black">Activate Web hook</div>
               <a-switch
-                :checked="Boolean(hook.active)"
+                :checked="Boolean(hookRef.active)"
                 class="nc-check-box-enable-webhook"
-                @update:checked="hook.active = $event"
+                @update:checked="hookRef.active = $event"
               />
             </div>
           </a-form-item>
@@ -541,7 +541,7 @@ onMounted(async () => {
               <a-col :span="24">
                 <a-form-item v-bind="validateInfos.title">
                   <a-input
-                    v-model:value="hook.title"
+                    v-model:value="hookRef.title"
                     size="large"
                     :placeholder="$t('general.title')"
                     class="nc-text-field-hook-title !rounded-md"
@@ -556,7 +556,7 @@ onMounted(async () => {
               <a-col :span="12">
                 <a-form-item v-bind="validateInfos.eventOperation">
                   <a-select
-                    v-model:value="hook.eventOperation"
+                    v-model:value="hookRef.eventOperation"
                     size="large"
                     :placeholder="$t('general.event')"
                     class="nc-text-field-hook-event"
@@ -572,7 +572,7 @@ onMounted(async () => {
               <a-col :span="12">
                 <a-form-item v-bind="validateInfos['notification.type']">
                   <a-select
-                    v-model:value="hook.notification.type"
+                    v-model:value="hookRef.notification.type"
                     size="large"
                     class="nc-select-hook-notification-type"
                     :placeholder="$t('general.notification')"
@@ -609,11 +609,11 @@ onMounted(async () => {
               </a-col>
             </a-row>
 
-            <a-row v-if="hook.notification.type === 'URL'" class="mb-5" type="flex" :gutter="[16, 0]">
+            <a-row v-if="hookRef.notification.type === 'URL'" class="mb-5" type="flex" :gutter="[16, 0]">
               <a-col :span="6">
                 <div>Action</div>
                 <a-select
-                  v-model:value="hook.notification.payload.method"
+                  v-model:value="hookRef.notification.payload.method"
                   size="large"
                   class="nc-select-hook-url-method"
                   dropdown-class-name="nc-dropdown-hook-notification-url-method"
@@ -628,7 +628,7 @@ onMounted(async () => {
                 <div>Link</div>
                 <a-form-item v-bind="validateInfos['notification.payload.path']">
                   <a-input
-                    v-model:value="hook.notification.payload.path"
+                    v-model:value="hookRef.notification.payload.path"
                     size="large"
                     placeholder="http://example.com"
                     class="nc-text-field-hook-url-path !rounded-md"
@@ -640,7 +640,7 @@ onMounted(async () => {
                 <a-tabs v-model:activeKey="urlTabKey" type="card" closeable="false" class="">
                   <a-tab-pane v-if="isBodyShown" key="body" tab="Body">
                     <LazyMonacoEditor
-                      v-model="hook.notification.payload.body"
+                      v-model="hookRef.notification.payload.body"
                       disable-deep-compare
                       :validate="false"
                       class="min-h-60 max-h-80"
@@ -648,11 +648,11 @@ onMounted(async () => {
                   </a-tab-pane>
 
                   <a-tab-pane key="params" tab="Parameters" force-render>
-                    <LazyApiClientParams v-model="hook.notification.payload.parameters" />
+                    <LazyApiClientParams v-model="hookRef.notification.payload.parameters" />
                   </a-tab-pane>
 
                   <a-tab-pane key="headers" tab="Headers" class="nc-tab-headers">
-                    <LazyApiClientHeaders v-model="hook.notification.payload.headers" />
+                    <LazyApiClientHeaders v-model="hookRef.notification.payload.headers" />
                   </a-tab-pane>
 
                   <!-- No in use at this moment -->
@@ -668,12 +668,12 @@ onMounted(async () => {
               </a-col>
             </a-row>
 
-            <a-row v-if="hook.notification.type === 'Slack'" type="flex">
+            <a-row v-if="hookRef.notification.type === 'Slack'" type="flex">
               <a-col :span="24">
                 <a-form-item v-bind="validateInfos['notification.payload.channels']">
                   <LazyWebhookChannelMultiSelect
-                    v-model="hook.notification.payload.channels"
-                    :selected-channel-list="hook.notification.payload.channels"
+                    v-model="hookRef.notification.payload.channels"
+                    :selected-channel-list="hookRef.notification.payload.channels"
                     :available-channel-list="slackChannels"
                     placeholder="Select Slack channels"
                   />
@@ -681,12 +681,12 @@ onMounted(async () => {
               </a-col>
             </a-row>
 
-            <a-row v-if="hook.notification.type === 'Microsoft Teams'" type="flex">
+            <a-row v-if="hookRef.notification.type === 'Microsoft Teams'" type="flex">
               <a-col :span="24">
                 <a-form-item v-bind="validateInfos['notification.payload.channels']">
                   <LazyWebhookChannelMultiSelect
-                    v-model="hook.notification.payload.channels"
-                    :selected-channel-list="hook.notification.payload.channels"
+                    v-model="hookRef.notification.payload.channels"
+                    :selected-channel-list="hookRef.notification.payload.channels"
                     :available-channel-list="teamsChannels"
                     placeholder="Select Microsoft Teams channels"
                   />
@@ -694,12 +694,12 @@ onMounted(async () => {
               </a-col>
             </a-row>
 
-            <a-row v-if="hook.notification.type === 'Discord'" type="flex">
+            <a-row v-if="hookRef.notification.type === 'Discord'" type="flex">
               <a-col :span="24">
                 <a-form-item v-bind="validateInfos['notification.payload.channels']">
                   <LazyWebhookChannelMultiSelect
-                    v-model="hook.notification.payload.channels"
-                    :selected-channel-list="hook.notification.payload.channels"
+                    v-model="hookRef.notification.payload.channels"
+                    :selected-channel-list="hookRef.notification.payload.channels"
                     :available-channel-list="discordChannels"
                     placeholder="Select Discord channels"
                   />
@@ -707,12 +707,12 @@ onMounted(async () => {
               </a-col>
             </a-row>
 
-            <a-row v-if="hook.notification.type === 'Mattermost'" type="flex">
+            <a-row v-if="hookRef.notification.type === 'Mattermost'" type="flex">
               <a-col :span="24">
                 <a-form-item v-bind="validateInfos['notification.payload.channels']">
                   <LazyWebhookChannelMultiSelect
-                    v-model="hook.notification.payload.channels"
-                    :selected-channel-list="hook.notification.payload.channels"
+                    v-model="hookRef.notification.payload.channels"
+                    :selected-channel-list="hookRef.notification.payload.channels"
                     :available-channel-list="mattermostChannels"
                     placeholder="Select Mattermost channels"
                   />
@@ -720,14 +720,14 @@ onMounted(async () => {
               </a-col>
             </a-row>
 
-            <a-row v-if="formInput[hook.notification.type] && hook.notification.payload" type="flex">
-              <a-col v-for="(input, i) in formInput[hook.notification.type]" :key="i" :span="24">
+            <a-row v-if="formInput[hookRef.notification.type] && hookRef.notification.payload" type="flex">
+              <a-col v-for="(input, i) in formInput[hookRef.notification.type]" :key="i" :span="24">
                 <a-form-item v-if="input.type === 'LongText'" v-bind="validateInfos[`notification.payload.${input.key}`]">
-                  <a-textarea v-model:value="hook.notification.payload[input.key]" :placeholder="input.label" size="large" />
+                  <a-textarea v-model:value="hookRef.notification.payload[input.key]" :placeholder="input.label" size="large" />
                 </a-form-item>
 
                 <a-form-item v-else v-bind="validateInfos[`notification.payload.${input.key}`]">
-                  <a-input v-model:value="hook.notification.payload[input.key]" :placeholder="input.label" size="large" />
+                  <a-input v-model:value="hookRef.notification.payload[input.key]" :placeholder="input.label" size="large" />
                 </a-form-item>
               </a-col>
             </a-row>
@@ -736,20 +736,20 @@ onMounted(async () => {
               <a-col :span="24">
                 <a-card>
                   <a-checkbox
-                    :checked="Boolean(hook.condition)"
+                    :checked="Boolean(hookRef.condition)"
                     class="nc-check-box-hook-condition"
-                    @update:checked="hook.condition = $event"
+                    @update:checked="hookRef.condition = $event"
                   >
                     On Condition
                   </a-checkbox>
 
                   <LazySmartsheetToolbarColumnFilter
-                    v-if="hook.condition"
+                    v-if="hookRef.condition"
                     ref="filterRef"
                     class="mt-4"
                     :auto-save="false"
                     :show-loading="false"
-                    :hook-id="hook.id"
+                    :hook-id="hookRef.id"
                     :web-hook="true"
                   />
                 </a-card>
@@ -781,10 +781,10 @@ onMounted(async () => {
                 <LazyWebhookTest
                   ref="webhookTestRef"
                   :hook="{
-                    ...hook,
+                    ...hookRef,
                     notification: {
-                      ...hook.notification,
-                      payload: hook.notification.payload,
+                      ...hookRef.notification,
+                      payload: hookRef.notification.payload,
                     },
                   }"
                 />
@@ -794,7 +794,7 @@ onMounted(async () => {
         </a-form>
       </div>
       <div v-if="showLogs" class="nc-webhook-calllog flex w-1/2">
-        <LazyWebhookCallLog :hook="hook" />
+        <LazyWebhookCallLog :hook="hookRef" />
       </div>
     </div>
   </div>

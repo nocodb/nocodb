@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { UITypes } from 'nocodb-sdk';
 import { Api } from 'nocodb-sdk';
@@ -233,6 +233,10 @@ test.describe('Filter Tests: Numerical', () => {
     await page.reload();
   });
 
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   test('Filter: Number', async () => {
     await numBasedFilterTest('Number', '33', '44');
   });
@@ -384,6 +388,10 @@ test.describe('Filter Tests: Text based', () => {
     await page.reload();
   });
 
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   test('Filter: Single Line Text', async () => {
     await textBasedFilterTest('SingleLineText', 'Afghanistan', 'Au');
   });
@@ -503,6 +511,10 @@ test.describe('Filter Tests: Select based', () => {
     records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 400 });
 
     await page.reload();
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Filter: Single Select', async () => {
@@ -813,6 +825,10 @@ test.describe('Filter Tests: Date based', () => {
     await page.reload();
   });
 
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   test('Date : filters-1', async () => {
     await dateTimeBasedFilterTest('Date', 0);
   });
@@ -916,6 +932,10 @@ test.describe('Filter Tests: AddOn', () => {
       console.error(e);
     }
     await page.reload();
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Filter: Checkbox', async () => {
@@ -1051,6 +1071,10 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
     });
   });
 
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   test('Filter: LTAR columns', async () => {
     await linkToAnotherRecordFilterTest();
   });
@@ -1088,6 +1112,10 @@ test.describe('Filter Tests: Toggle button', () => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Filter: Toggle NULL & EMPTY button', async () => {
@@ -1165,6 +1193,10 @@ test.describe('Filter Tests: Filter groups', () => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Filter: Empty filters', async () => {

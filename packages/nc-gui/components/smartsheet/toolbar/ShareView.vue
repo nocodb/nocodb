@@ -20,7 +20,7 @@ import {
   useUIPermission,
   watch,
 } from '#imports'
-import type { SharedView } from '~/lib'
+import type { SharedView } from '#imports'
 
 const { t } = useI18n()
 
@@ -38,7 +38,7 @@ const { isSharedBase } = storeToRefs(useProject())
 
 const { isMobileMode } = useGlobal()
 
-let showShareModel = $ref(false)
+const showShareModel = ref(false)
 
 const passwordProtected = ref(false)
 
@@ -105,7 +105,7 @@ const genShareLink = async () => {
 
   passwordProtected.value = !!shared.value.password && shared.value.password !== ''
 
-  showShareModel = true
+  showShareModel.value = true
 }
 
 const sharedViewUrl = computed(() => {

@@ -30,17 +30,17 @@ const emojiIndex = new EmojiIndex(data, {
     return true
   },
 })
-const emoji = ref(initialEmoji || '')
+const emojiRef = ref(initialEmoji || '')
 
 function selectEmoji(_emoji: any) {
-  emoji.value = _emoji.native
+  emojiRef.value = _emoji.native
   emit('emojiSelected', _emoji.native)
 
   isOpen.value = false
 }
 
 const isUnicodeEmoji = computed(() => {
-  return emoji.value?.match(/\p{Extended_Pictographic}/gu)
+  return emojiRef.value?.match(/\p{Extended_Pictographic}/gu)
 })
 
 const onClick = (e: Event) => {
@@ -52,7 +52,7 @@ const onClick = (e: Event) => {
 }
 
 const clearEmoji = () => {
-  emoji.value = ''
+  emojiRef.value = ''
   emit('emojiSelected', '')
 
   isOpen.value = false
@@ -73,7 +73,7 @@ watch(isOpen, () => {
 })
 
 const showClearButton = computed(() => {
-  return !!emoji.value && clearable.value
+  return !!emojiRef.value && clearable.value
 })
 </script>
 
@@ -82,8 +82,8 @@ const showClearButton = computed(() => {
     <div
       class="flex flex-row justify-center items-center select-none cursor-pointer rounded-md"
       :class="{
-        'hover:bg-gray-300 hover:bg-opacity-20': !readonly,
-        'bg-gray-300 bg-opacity-20': isOpen,
+        'hover:bg-gray-500 hover:bg-opacity-15': !readonly,
+        'bg-gray-500 bg-opacity-15': isOpen,
         'h-6 w-6 text-lg': size === 'small',
         'h-8 w-8 text-xl': size === 'medium',
         'h-10 w-10 text-2xl': size === 'large',
@@ -91,14 +91,14 @@ const showClearButton = computed(() => {
       }"
       @click="onClick"
     >
-      <template v-if="!emoji">
+      <template v-if="!emojiRef">
         <slot name="default" />
       </template>
       <template v-else-if="isUnicodeEmoji">
-        {{ emoji }}
+        {{ emojiRef }}
       </template>
       <template v-else>
-        <Icon :data-testid="`nc-icon-${emoji}`" class="text-lg" :icon="emoji"></Icon>
+        <Icon :data-testid="`nc-icon-${emojiRef}`" class="text-lg" :icon="emojiRef"></Icon>
       </template>
     </div>
     <template #overlay>
@@ -205,6 +205,13 @@ const showClearButton = computed(() => {
     &::-webkit-scrollbar-thumb:hover {
       background: rgb(203, 203, 203);
     }
+  }
+
+  .emoji-mart-emoji {
+    @apply !px-1 !py-0.75 !m-0.5;
+  }
+  .emoji-mart-emoji:hover:before {
+    @apply !rounded-md;
   }
 }
 </style>

@@ -12,11 +12,11 @@ import {
   usePreferredLanguages,
   useTimestamp,
 } from '#imports'
-import type { Language, User } from '~/lib'
+import type { Language, User } from '#imports'
 
 export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** get the preferred languages of a user, according to browser settings */
-  const preferredLanguages = $(usePreferredLanguages())
+  const preferredLanguages = usePreferredLanguages()
   /** todo: reimplement; get the preferred dark mode setting, according to browser settings */
   //   const prefersDarkMode = $(usePreferredDark())
   const prefersDarkMode = false
@@ -33,7 +33,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
    * If the user has not set a preferred language, we fall back to 'en'.
    * If the user has set a preferred language, we try to find a matching locale in the available locales.
    */
-  const preferredLanguage = preferredLanguages.reduce<keyof typeof Language>((locale, language) => {
+  const preferredLanguage = preferredLanguages.value.reduce<keyof typeof Language>((locale, language) => {
     /** split language to language and code, e.g. en-GB -> [en, GB] */
     const [lang, code] = language.split(/[_-]/)
 

@@ -4,13 +4,13 @@ import {
   ActiveViewInj,
   IsLockedInj,
   IsPublicInj,
+  LockType,
   MetaInj,
   extractSdkResponseErrorMsg,
   iconMap,
   inject,
   message,
   ref,
-  storeToRefs,
   useI18n,
   useMenuCloseOnEsc,
   useNuxtApp,
@@ -18,13 +18,10 @@ import {
   useSmartsheetStoreOrThrow,
   useUIPermission,
 } from '#imports'
-import { LockType } from '~/lib'
 
 const { t } = useI18n()
 
 const sharedViewListDlg = ref(false)
-
-const { isMobileMode } = useGlobal()
 
 const isPublicView = inject(IsPublicInj, ref(false))
 
@@ -59,12 +56,13 @@ const quickImportDialogs: Record<(typeof quickImportDialogTypes)[number], Ref<bo
 
 const { isUIAllowed } = useUIPermission()
 
-const { isSharedBase } = storeToRefs(useProject())
+useProject()
 
 const meta = inject(MetaInj, ref())
 
 const currentBaseId = computed(() => meta.value?.base_id)
 
+/*
 const Icon = computed(() => {
   switch (selectedView.value?.lock_type) {
     case LockType.Personal:
@@ -76,8 +74,9 @@ const Icon = computed(() => {
       return iconMap.users
   }
 })
+*/
 
-const lockType = $computed(() => (selectedView.value?.lock_type as LockType) || LockType.Collaborative)
+const lockType = computed(() => (selectedView.value?.lock_type as LockType) || LockType.Collaborative)
 
 async function changeLockType(type: LockType) {
   $e('a:grid:lockmenu', { lockType: type })
@@ -196,14 +195,16 @@ useMenuCloseOnEsc(open)
       </template>
     </a-dropdown>
 
-    <LazyDlgQuickImport
-      v-for="type in quickImportDialogTypes"
-      :key="type"
-      v-model="quickImportDialogs[type].value"
-      :import-type="type"
-      :base-id="currentBaseId"
-      :import-data-only="true"
-    />
+    <template v-if="currentBaseId">
+      <LazyDlgQuickImport
+        v-for="tp in quickImportDialogTypes"
+        :key="tp"
+        v-model="quickImportDialogs[tp].value"
+        :import-type="tp"
+        :base-id="currentBaseId"
+        :import-data-only="true"
+      />
+    </template>
 
     <LazyWebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
 

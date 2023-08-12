@@ -1,9 +1,10 @@
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
-import { computed } from '@vue/reactivity'
 import {
   Modal,
   SYSTEM_COLUMNS,
+  TabType,
+  computed,
   extractSdkResponseErrorMsg,
   generateUniqueTitle as generateTitle,
   message,
@@ -17,7 +18,6 @@ import {
   useTabs,
   watch,
 } from '#imports'
-import { TabType } from '~/lib'
 
 export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => void; projectId: string; baseId?: string }) {
   const table = reactive<{ title: string; table_name: string; columns: string[] }>({
@@ -38,7 +38,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
   const router = useRouter()
 
-  const route = $(router.currentRoute)
+  const route = router.currentRoute
 
   const projectsStore = useProjects()
 
@@ -49,16 +49,10 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
   const { loadTables, projectUrl, isXcdbBase } = useProject()
 
-  const workspaceId = $computed(() => route.params.workspaceId as string)
+  const workspaceId = computed(() => route.value.params.workspaceId as string)
 
   const tables = computed(() => projectTables.value.get(param.projectId) || [])
   const project = computed(() => projects.value.get(param.projectId))
-
-  // const projectStore = useProject()
-
-  // const { sqlUis, project, tables } = storeToRefs(projectStore)
-
-  // const sqlUi = computed(() => (baseId && sqlUis.value[baseId] ? sqlUis.value[baseId] : Object.values(sqlUis.value)[0]))
 
   const openTable = async (table: TableType) => {
     if (!table.project_id) return
@@ -72,10 +66,10 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
       if (!project) throw new Error('Project not found')
     }
 
-    const projectType = (route.params.projectType as string) || 'nc'
+    const projectType = (route.value.params.projectType as string) || 'nc'
     await navigateTo({
-      path: `/ws/${workspaceId}/${projectType}/${project.id!}/table/${table?.id}`,
-      query: route.query,
+      path: `/ws/${workspaceId.value}/${projectType}/${project.id!}/table/${table?.id}`,
+      query: route.value.query,
     })
 
     await getMeta(table.id as string)
@@ -121,57 +115,6 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
-
-  /*  const createTableMagic = async () => {
-    if (!sqlUi?.value) return
-
-    try {
-      const tableMeta = await $api.base.tableMagic(project?.value?.id as string, baseId as string, {
-        table_name: table.table_name,
-        title: table.title,
-      })
-
-      $e('a:table:create')
-      onTableCreate?.(tableMeta as TableType)
-      refreshCommandPalette()
-    } catch (e: any) {
-      message.warning('NocoAI failed for the demo reasons. Please try again.')
-    }
-  }
-
-  const createSchemaMagic = async () => {
-    if (!sqlUi?.value) return
-
-    try {
-      const tableMeta = await $api.base.schemaMagic(project?.value?.id as string, baseId as string, {
-        schema_name: table.table_name,
-        title: table.title,
-      })
-
-      $e('a:table:create')
-      onTableCreate?.(tableMeta as TableType)
-      refreshCommandPalette()
-    } catch (e: any) {
-      message.warning('NocoAI failed for the demo reasons. Please try again.')
-    }
-  }
-
-  const createSqlView = async (sql: string) => {
-    if (!sqlUi?.value) return
-    if (!sql || sql.trim() === '') return
-
-    try {
-      const tableMeta = await $api.base.createSqlView(project?.value?.id as string, baseId as string, {
-        view_name: table.table_name,
-        view_definition: sql,
-      })
-
-      onTableCreate?.(tableMeta as TableType)
-      refreshCommandPalette()
-    } catch (e: any) {
-      message.warning(e)
-    }
-  } */
 
   watch(
     () => table.title,
@@ -258,12 +201,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
     project,
 
     createTable,
-    // createTableMagic,
-    // createSchemaMagic,
-    // createSqlView,
     generateUniqueTitle,
-    // tables,
-    // project,
     deleteTable,
     openTable,
   }

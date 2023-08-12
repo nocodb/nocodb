@@ -6,9 +6,9 @@ const { activeTables } = storeToRefs(useTablesStore())
 
 const route = useRoute()
 
-const defaultBase = computed(() => {
+/* const defaultBase = computed(() => {
   return openedProject.value?.bases?.[0]
-})
+}) */
 
 const { isUIAllowed } = useUIPermission()
 
@@ -45,7 +45,7 @@ watch(
 <template>
   <div class="h-full nc-project-view">
     <div
-      class="flex flex-row pl-5 pr-3 border-b-1 border-gray-75 justify-between w-full"
+      class="flex flex-row pl-5 pr-3 border-b-1 border-gray-200 justify-between w-full"
       :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
     >
       <div class="flex flex-row items-center gap-x-4">

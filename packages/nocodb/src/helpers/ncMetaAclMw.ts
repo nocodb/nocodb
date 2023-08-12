@@ -1,8 +1,8 @@
 import { OrgUserRoles } from 'nocodb-sdk';
-import projectAcl from '../utils/projectAcl';
 import catchError, { NcError } from './catchError';
 import extractProjectIdAndAuthenticate from './extractProjectIdAndAuthenticate';
 import type { NextFunction, Request, Response } from 'express';
+import projectAcl from '~/utils/projectAcl';
 
 export default function (
   handlerFn,

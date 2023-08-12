@@ -90,7 +90,7 @@ const localCellValue = computed<any[]>(() => {
         <component
           :is="isLocked || isUnderLookup ? 'span' : 'a'"
           :title="textVal"
-          class="text-center pl-3 nc-datatype-link"
+          class="text-center pl-3 nc-datatype-link underline-transparent"
           :class="{ '!text-gray-300': !value }"
           @click.stop.prevent="openChildList"
         >

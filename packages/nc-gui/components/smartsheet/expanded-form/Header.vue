@@ -20,7 +20,7 @@ const route = useRoute()
 
 const { meta, isSqlView } = useSmartsheetStoreOrThrow()
 
-const { commentsDrawer, displayValue, primaryKey, save: _save, loadRow, saveRowAndStay } = useExpandedFormStoreOrThrow()
+const { commentsDrawer, displayValue, primaryKey, save: _save, loadRow } = useExpandedFormStoreOrThrow()
 
 const { isNew, syncLTARRefs, state } = useSmartsheetRowStoreOrThrow()
 
@@ -51,7 +51,7 @@ const copyRecordUrl = () => {
     encodeURI(
       `${dashboardUrl?.value}#/ws/${route.params.workspaceId}/${route.params.projectType}/${route.params.projectId}/${
         route.params.type
-      }/${meta.value?.title}${props.view ? `/${props.view.title}` : ''}?rowId=${primaryKey.value}`,
+      }/${meta.value?.id}${props.view ? `/${props.view.title}` : ''}?rowId=${primaryKey.value}`,
     ),
   )
   message.success('Copied to clipboard')

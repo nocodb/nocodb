@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { JobStatus } from '../../../interface/Jobs';
 import { QueueService } from './fallback-queue.service';
+import { JobStatus } from '~/interface/Jobs';
 
 @Injectable()
 export class JobsService {

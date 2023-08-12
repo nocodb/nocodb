@@ -3,9 +3,8 @@ import tinycolor from 'tinycolor2'
 import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
 import GroupByTable from './GroupByTable.vue'
-import { computed, ref } from '#imports'
-import { GROUP_BY_VARS } from '~/lib'
-import type { Group, Row } from '~/lib'
+import { GROUP_BY_VARS, computed, ref } from '#imports'
+import type { Group, Row } from '#imports'
 
 const props = defineProps<{
   group: Group

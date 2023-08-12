@@ -25,21 +25,22 @@ const emits = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 
-const { project } = $(storeToRefs(useProject()))
+const projectStore = useProject()
+const { project } = storeToRefs(projectStore)
 
-const { appInfo, token } = $(useGlobal())
+const { appInfo, token } = useGlobal()
 
-const meta = $(inject(MetaInj, ref()))
+const meta = inject(MetaInj, ref())
 
-const view = $(inject(ActiveViewInj, ref()))
+const view = inject(ActiveViewInj, ref())
 
 const { xWhere } = useSmartsheetStoreOrThrow()
 
-const { queryParams } = $(useViewData($$(meta), $$(view), xWhere))
+const { queryParams } = useViewData(meta, view, xWhere)
 
 const { copy } = useCopy()
 
-let vModel = $(useVModel(props, 'modelValue', emits))
+const vModel = useVModel(props, 'modelValue', emits)
 
 const langs = [
   {
@@ -76,22 +77,25 @@ const langs = [
   },
 ]
 
-let selectedClient = $ref<string | undefined>(langs[0].clients && langs[0].clients[0])
+const selectedClient = ref<string | undefined>(langs[0].clients && langs[0].clients[0])
 
-const selectedLangName = $ref(langs[0].name)
+const selectedLangName = ref(langs[0].name)
 
-const apiUrl = $computed(
+const apiUrl = computed(
   () =>
-    new URL(`/api/v1/db/data/noco/${project.id}/${meta?.title}/views/${view?.title}`, (appInfo && appInfo.ncSiteUrl) || '/').href,
+    new URL(
+      `/api/v1/db/data/noco/${project.value.id}/${meta.value?.title}/views/${view.value?.title}`,
+      (appInfo.value && appInfo.value.ncSiteUrl) || '/',
+    ).href,
 )
 
-const snippet = $computed(
+const snippet = computed(
   () =>
     new HTTPSnippet({
       method: 'GET',
-      headers: [{ name: 'xc-auth', value: token, comment: 'JWT Auth token' }],
-      url: apiUrl,
-      queryString: Object.entries(queryParams || {}).map(([name, value]) => {
+      headers: [{ name: 'xc-auth', value: token.value, comment: 'JWT Auth token' }],
+      url: apiUrl.value,
+      queryString: Object.entries(queryParams.value || {}).map(([name, value]) => {
         return {
           name,
           value: String(value),
@@ -100,23 +104,23 @@ const snippet = $computed(
     }),
 )
 
-const activeLang = $computed(() => langs.find((lang) => lang.name === selectedLangName))
+const activeLang = computed(() => langs.find((lang) => lang.name === selectedLangName.value))
 
-const code = $computed(() => {
-  if (activeLang?.name === 'nocodb-sdk') {
-    return `${selectedClient === 'node' ? 'const { Api } = require("nocodb-sdk");' : 'import { Api } from "nocodb-sdk";'}
+const code = computed(() => {
+  if (activeLang.value?.name === 'nocodb-sdk') {
+    return `${selectedClient.value === 'node' ? 'const { Api } = require("nocodb-sdk");' : 'import { Api } from "nocodb-sdk";'}
 const api = new Api({
-  baseURL: "${(appInfo && appInfo.ncSiteUrl) || '/'}",
+  baseURL: "${(appInfo.value && appInfo.value.ncSiteUrl) || '/'}",
   headers: {
-    "xc-auth": ${JSON.stringify(token as string)}
+    "xc-auth": ${JSON.stringify(token.value as string)}
   }
 })
 
 api.dbViewRow.list(
   "noco",
-  ${JSON.stringify(project.title)},
-  ${JSON.stringify(meta?.title)},
-  ${JSON.stringify(view?.title)}, ${JSON.stringify(queryParams, null, 4)}).then(function (data) {
+  ${JSON.stringify(project.value.title)},
+  ${JSON.stringify(meta.value?.title)},
+  ${JSON.stringify(view.value?.title)}, ${JSON.stringify(queryParams.value, null, 4)}).then(function (data) {
   console.log(data);
 }).catch(function (error) {
   console.error(error);
@@ -124,12 +128,16 @@ api.dbViewRow.list(
     `
   }
 
-  return snippet.convert(activeLang?.name, selectedClient || (activeLang?.clients && activeLang?.clients[0]), {})
+  return snippet.value.convert(
+    activeLang.value?.name,
+    selectedClient.value || (activeLang.value?.clients && activeLang.value?.clients[0]),
+    {},
+  )
 })
 
 const onCopyToClipboard = async () => {
   try {
-    await copy(code)
+    await copy(code.value)
     // Copied to clipboard
     message.info(t('msg.info.copiedToClipboard'))
   } catch (e: any) {
@@ -138,11 +146,11 @@ const onCopyToClipboard = async () => {
 }
 
 const afterVisibleChange = (visible: boolean) => {
-  vModel = visible
+  vModel.value = visible
 }
 
-watch($$(activeLang), (newLang) => {
-  selectedClient = newLang?.clients?.[0]
+watch(activeLang, (newLang) => {
+  selectedClient.value = newLang?.clients?.[0]
 })
 </script>
 

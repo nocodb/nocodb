@@ -147,7 +147,7 @@ watch(open, () => {
           <MdiFormatListGroup class="h-4 w-4" />
 
           <!-- Group By -->
-          <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">Group By</span>
+          <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.groupBy') }}</span>
 
           <span v-if="groupedByColumnIds?.length" class="nc-count-badge">{{ groupedByColumnIds.length }}</span>
         </div>
@@ -212,7 +212,7 @@ watch(open, () => {
           :disabled="groupedByColumnIds.length < _groupBy.length"
           @click.stop="addFieldToGroupBy()"
         >
-          <div class="flex gap-1 items-center">Add subgroup</div>
+          <div class="flex gap-1 items-center">{{ $t('activity.addSubGroup') }}</div>
         </a-button>
       </div>
     </template>

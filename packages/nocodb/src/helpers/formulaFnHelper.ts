@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import { UITypes } from 'nocodb-sdk';
-import Column from '../models/Column';
 import { convertDateFormat } from './convertDateFormat';
+import Column from '~/models/Column';
 
 // todo: tobe fixed
 // import customParseFormat from 'dayjs/plugin/customParseFormat';

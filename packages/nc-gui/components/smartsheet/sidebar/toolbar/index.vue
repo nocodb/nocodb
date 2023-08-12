@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-let debug = $ref(false)
+const debug = ref(false)
 
-let clickCount = $ref(0)
+const clickCount = ref(0)
 
 const onClick = () => {
-  clickCount = clickCount + 1
-  debug = clickCount >= 4
+  clickCount.value = clickCount.value + 1
+  debug.value = clickCount.value >= 4
 }
 </script>
 

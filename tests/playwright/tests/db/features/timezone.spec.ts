@@ -1,15 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup, { NcContext } from '../../../setup';
-import { knex } from 'knex';
+import setup, { NcContext, unsetup } from '../../../setup';
 import { Api, ProjectListType, UITypes } from 'nocodb-sdk';
-import { ProjectsPage } from '../../../pages/ProjectsPage';
-import { isHub, isMysql, isPg, isSqlite } from '../../../setup/db';
+import { isEE, isHub, isMysql, isPg, isSqlite } from '../../../setup/db';
 import { getKnexConfig } from '../../utils/config';
 import { getBrowserTimezoneOffset } from '../../utils/general';
 import config from '../../../playwright.config';
-// let api: Api<any>, records: any[];
-// let context: any;
+import { createTableWithDateTimeColumn, mysqlTz } from '../../../setup/knexHelper';
 
 const columns = [
   {
@@ -40,11 +37,11 @@ async function timezoneSuite(projectTitle: string, context: NcContext, skipTable
     },
   });
   // get current workspace information if in hub
-  const workspaceId = context.workspace.id;
+  const workspaceId = context?.workspace?.id;
   try {
     let projectList: ProjectListType;
-    if (isHub()) {
-      projectList = await api.workspaceProject.list(workspaceId);
+    if (isEE() && api['workspaceProject']) {
+      projectList = await api['workspaceProject'].list(workspaceId);
     } else {
       projectList = await api.project.list();
     }
@@ -122,7 +119,7 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
     if (!isSqlite(context) && !isHub()) return;
 
     try {
-      const { project, table, api } = await timezoneSuite('xcdb0', context);
+      const { project, table, api } = await timezoneSuite(`xcdb${context.workerId}`, context);
 
       await api.dbTableRow.bulkCreate('noco', project.id, table.id, rowAttributes);
       records = await api.dbTableRow.list('noco', project.id, table.id, { limit: 10 });
@@ -131,6 +128,10 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
     }
 
     await page.reload();
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   // DST independent test
@@ -154,14 +155,7 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
   test('API insert, verify display value', async () => {
     if (!isSqlite(context) && !isHub()) return;
 
-    if (isHub()) {
-      await dashboard.treeView.openBase({ title: 'xcdb0' });
-    } else {
-      await dashboard.clickHome();
-      const projectsPage = new ProjectsPage(dashboard.rootPage);
-      await projectsPage.openProject({ title: 'xcdb0', withoutPrefix: true });
-    }
-
+    await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
     await dashboard.treeView.openTable({ title: 'dateTimeTable' });
 
     // DateTime inserted using API without timezone is converted to db-timezone (server timezone in case of sqlite)
@@ -227,7 +221,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     dashboard = new DashboardPage(page, context.project);
 
     try {
-      const { project, table, api } = await timezoneSuite('xcdb1', context);
+      const { project, table, api } = await timezoneSuite(`xcdb${context.workerId}`, context);
       await dashboard.rootPage.reload();
 
       await api.dbTableRow.bulkCreate('noco', project.id, table.id, rowAttributes);
@@ -236,6 +230,10 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     }
 
     await page.reload();
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test.use({
@@ -256,14 +254,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
    *   Display value is converted to Asia/Hong-Kong
    */
   test('API insert, verify display value', async () => {
-    if (isHub()) {
-      await dashboard.treeView.openBase({ title: 'xcdb1' });
-    } else {
-      await dashboard.clickHome();
-      const projectsPage = new ProjectsPage(dashboard.rootPage);
-      await projectsPage.openProject({ title: 'xcdb1', withoutPrefix: true });
-    }
-
+    await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
     await dashboard.treeView.openTable({ title: 'dateTimeTable' });
 
     // DateTime inserted using API without timezone is converted to UTC
@@ -303,7 +294,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
 
-    const { project, api } = await timezoneSuite('xcdb2', context, true);
+    const { project, api } = await timezoneSuite(`xcdb${context.workerId}`, context, true);
     gApi = api;
     await dashboard.rootPage.reload();
 
@@ -312,13 +303,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     // Kludge: Using API for test preparation was not working
     // Hence switched over to UI based table creation
 
-    if (isHub()) {
-      await dashboard.treeView.openBase({ title: 'xcdb2' });
-    } else {
-      await dashboard.clickHome();
-      const projectsPage = new ProjectsPage(dashboard.rootPage);
-      await projectsPage.openProject({ title: 'xcdb2', withoutPrefix: true });
-    }
+    await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
 
     await dashboard.treeView.createTable({
       title: 'dateTimeTable',
@@ -338,6 +323,10 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
       columnHeader: 'DateTime',
       dateTime: '2021-01-01 08:00:00',
     });
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   /*
@@ -448,120 +437,6 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function createTableWithDateTimeColumn(database: string, dbName: string, setTz = false) {
-  if (database === 'pg') {
-    const config = getKnexConfig({ dbName: 'postgres', dbType: 'pg' });
-
-    let pgknex;
-    try {
-      pgknex = knex(config);
-      await pgknex.raw(`DROP DATABASE IF EXISTS ${dbName}`);
-      await pgknex.raw(`CREATE DATABASE ${dbName}`);
-    } catch (e) {
-      console.error(`Error resetting pg sakila db: Worker ${dbName}`);
-    } finally {
-      if (pgknex) await pgknex.destroy();
-    }
-
-    const config2 = getKnexConfig({ dbName, dbType: 'pg' });
-
-    let pgknex2;
-    try {
-      pgknex2 = knex(config2);
-      await pgknex2.raw(`
-    CREATE TABLE my_table (
-      title serial PRIMARY KEY,
-      datetime_without_tz TIMESTAMP WITHOUT TIME ZONE,
-      datetime_with_tz TIMESTAMP WITH TIME ZONE
-    );
-     -- SET timezone = 'Asia/Hong_Kong';
-     -- SELECT pg_sleep(1);
-    INSERT INTO my_table (datetime_without_tz, datetime_with_tz)
-    VALUES
-      ('2023-04-27 10:00:00', '2023-04-27 10:00:00'),
-      ('2023-04-27 10:00:00+05:30', '2023-04-27 10:00:00+05:30');
-  `);
-    } catch (e) {
-      console.error(`Error resetting pg sakila db: Worker ${dbName}`);
-    } finally {
-      if (pgknex2) await pgknex2.destroy();
-    }
-  } else if (database === 'mysql') {
-    const config = getKnexConfig({ dbName: 'sakila', dbType: 'mysql' });
-
-    let mysqlknex;
-    try {
-      mysqlknex = knex(config);
-      await mysqlknex.raw(`DROP DATABASE IF EXISTS ${dbName}`);
-      await mysqlknex.raw(`CREATE DATABASE ${dbName}`);
-
-      if (setTz) {
-        await mysqlknex.raw(`SET GLOBAL time_zone = '+08:00'`);
-        // wait for 1 second for the timezone to be set
-        await mysqlknex.raw(`SELECT SLEEP(1)`);
-      }
-    } catch (e) {
-      console.error(`Error resetting mysql sakila db: Worker ${dbName}`);
-    } finally {
-      if (mysqlknex) await mysqlknex.destroy();
-    }
-
-    const config2 = getKnexConfig({ dbName, dbType: 'mysql' });
-
-    let mysqlknex2;
-    try {
-      mysqlknex2 = knex(config2);
-      await mysqlknex2.raw(`
-    USE ${dbName};
-    CREATE TABLE my_table (
-      title INT AUTO_INCREMENT PRIMARY KEY,
-      datetime_without_tz DATETIME,
-      datetime_with_tz TIMESTAMP
-    );
-    INSERT INTO my_table (datetime_without_tz, datetime_with_tz)
-    VALUES
-      ('2023-04-27 10:00:00', '2023-04-27 10:00:00'),
-      ('2023-04-27 10:00:00+05:30', '2023-04-27 10:00:00+05:30');
-    `);
-    } catch (e) {
-      console.error(`Error resetting mysql sakila db: Worker ${dbName}`);
-    } finally {
-      if (mysqlknex2) await mysqlknex2.destroy();
-    }
-  } else if (database === 'sqlite') {
-    const config = getKnexConfig({ dbName, dbType: 'sqlite' });
-
-    // SQLite supports just one type of datetime
-    // Timezone information, if specified is stored as is in the database
-    // https://www.sqlite.org/lang_datefunc.html
-
-    let sqliteknex;
-    try {
-      sqliteknex = knex(config);
-      await sqliteknex.raw(`DROP TABLE IF EXISTS my_table`);
-      await sqliteknex.raw(`
-    CREATE TABLE my_table (
-      title INTEGER PRIMARY KEY AUTOINCREMENT,
-      datetime_without_tz DATETIME,
-      datetime_with_tz DATETIME )`);
-      const datetimeData = [
-        ['2023-04-27 10:00:00', '2023-04-27 10:00:00'],
-        ['2023-04-27 10:00:00+05:30', '2023-04-27 10:00:00+05:30'],
-      ];
-      for (const data of datetimeData) {
-        await sqliteknex('my_table').insert({
-          datetime_without_tz: data[0],
-          datetime_with_tz: data[1],
-        });
-      }
-    } catch (e) {
-      console.error(`Error resetting sqlite sakila db: Worker ${dbName}`);
-    } finally {
-      if (sqliteknex) await sqliteknex.destroy();
-    }
-  }
-}
-
 function getDateTimeInLocalTimeZone(dateString: string) {
   // create a Date object with the input string
   // assumes local system timezone
@@ -651,6 +526,10 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
     });
     counter++;
     await createTableWithDateTimeColumn(context.dbType, `datetimetable01${counter}`);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   // ExtDB : DateAdd, DateTime_Diff verification
@@ -973,6 +852,10 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
     await createTableWithDateTimeColumn(context.dbType, 'datetimetable02');
   });
 
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   // ExtDB : DateAdd, DateTime_Diff verification
   //  - verify display value
   //  - verify API response value
@@ -1111,12 +994,13 @@ test.describe.serial('Timezone- ExtDB (MySQL Only) : DB Timezone configured as H
   });
 
   test.afterEach(async () => {
+    await unsetup(context);
+  });
+
+  test.afterEach(async () => {
     if (isMysql(context)) {
       // Reset DB Timezone
-      const config = getKnexConfig({ dbName: 'sakila', dbType: 'mysql' });
-      const mysqlknex = knex(config);
-      await mysqlknex.raw(`SET GLOBAL time_zone = '+00:00'`);
-      await mysqlknex.destroy();
+      await mysqlTz();
     }
   });
 

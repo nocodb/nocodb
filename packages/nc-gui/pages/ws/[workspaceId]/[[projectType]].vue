@@ -20,20 +20,6 @@ function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: str
 }
 
 provide(ToggleDialogInj, toggleDialog)
-
-// onMounted(async () => {
-//   isLoading.value = true
-//   try {
-//     await loadWorkspace(route.params.workspaceId as string)
-//     await loadProjects()
-//   } finally {
-//     isLoading.value = false
-//   }
-// })
-
-// todo:
-const isSharedBase = ref(false)
-const currentVersion = ref('')
 </script>
 
 <template>

@@ -1,16 +1,16 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
-import { Sort } from '../models';
-import { sanitize } from '../helpers/sqlSanitize';
-import genRollupSelectv2 from './genRollupSelectv2';
-import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
-import type { BaseModelSqlv2 } from './BaseModelSqlv2';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { Knex } from 'knex';
 import type {
   FormulaColumn,
   LinkToAnotherRecordColumn,
   LookupColumn,
   RollupColumn,
-} from '../models';
+} from '~/models';
+import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import genRollupSelectv2 from '~/db/genRollupSelectv2';
+import { sanitize } from '~/helpers/sqlSanitize';
+import { Sort } from '~/models';
 
 export default async function sortV2(
   baseModelSqlv2: BaseModelSqlv2,

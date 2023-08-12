@@ -36,33 +36,6 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
           >
             <div class="text-xs text-gray-500 ml-4 pt-4 pb-2 font-weight-bold">{{ $t('title.accountSettings') }}</div>
 
-            <a-sub-menu v-if="false" key="users" class="!bg-white">
-              <template #icon>
-                <MdiAccountSupervisorOutline />
-              </template>
-              <template #title>Users</template>
-
-              <a-menu-item
-                v-if="isUIAllowed('superAdminUserManagement')"
-                key="list"
-                class="text-xs"
-                @click="navigateTo('/account/users/list')"
-              >
-                <span class="ml-4">{{ $t('title.userManagement') }}</span>
-              </a-menu-item>
-              <a-menu-item key="password-reset" class="text-xs" @click="navigateTo('/account/users/password-reset')">
-                <span class="ml-4">{{ $t('title.resetPasswordMenu') }}</span>
-              </a-menu-item>
-              <a-menu-item
-                v-if="isUIAllowed('superAdminAppSettings')"
-                key="settings"
-                class="text-xs"
-                @click="navigateTo('/account/users/settings')"
-              >
-                <span class="ml-4">{{ $t('activity.settings') }}</span>
-              </a-menu-item>
-            </a-sub-menu>
-
             <a-menu-item
               key="tokens"
               class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"

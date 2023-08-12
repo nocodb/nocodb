@@ -30,8 +30,6 @@ import {
   watch,
 } from '#imports'
 
-const { appInfo } = useGlobal()
-
 const useForm = Form.useForm
 
 const testSuccess = ref(false)
@@ -46,7 +44,7 @@ useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const { t } = useI18n()
 
-let formState = $ref<ProjectCreateForm>({
+const formState = ref<ProjectCreateForm>({
   title: '',
   dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
   inflection: {
@@ -84,7 +82,7 @@ const validators = computed(() => {
     'dataSource.connection.database': [fieldRequiredValidator()],
   }
 
-  switch (formState.dataSource.client) {
+  switch (formState.value.dataSource.client) {
     case ClientType.SQLITE:
       clientValidations = {
         'dataSource.connection.connection.filename': [fieldRequiredValidator()],
@@ -120,20 +118,20 @@ const validators = computed(() => {
   }
 })
 
-const { validate, validateInfos } = useForm(formState, validators)
+const { validate, validateInfos } = useForm(formState.value, validators)
 
 const populateName = (v: string) => {
-  formState.dataSource.connection.database = `${v.trim()}_noco`
+  formState.value.dataSource.connection.database = `${v.trim()}_noco`
 }
 
 const onClientChange = () => {
-  formState.dataSource = { ...getDefaultConnectionConfig(formState.dataSource.client) }
-  populateName(formState.title)
+  formState.value.dataSource = { ...getDefaultConnectionConfig(formState.value.dataSource.client) }
+  populateName(formState.value.title)
 }
 
 const onSSLModeChange = ((mode: SSLUsage) => {
-  if (formState.dataSource.client !== ClientType.SQLITE) {
-    const connection = formState.dataSource.connection as DefaultConnection
+  if (formState.value.dataSource.client !== ClientType.SQLITE) {
+    const connection = formState.value.dataSource.connection as DefaultConnection
     switch (mode) {
       case SSLUsage.No:
         delete connection.ssl
@@ -156,26 +154,26 @@ const onSSLModeChange = ((mode: SSLUsage) => {
 }) as SelectHandler
 
 const updateSSLUse = () => {
-  if (formState.dataSource.client !== ClientType.SQLITE) {
-    const connection = formState.dataSource.connection as DefaultConnection
+  if (formState.value.dataSource.client !== ClientType.SQLITE) {
+    const connection = formState.value.dataSource.connection as DefaultConnection
     if (connection.ssl) {
       if (typeof connection.ssl === 'string') {
-        formState.sslUse = SSLUsage.Allowed
+        formState.value.sslUse = SSLUsage.Allowed
       } else {
-        formState.sslUse = SSLUsage.Preferred
+        formState.value.sslUse = SSLUsage.Preferred
       }
     } else {
-      formState.sslUse = SSLUsage.No
+      formState.value.sslUse = SSLUsage.No
     }
   }
 }
 
 const addNewParam = () => {
-  formState.extraParameters.push({ key: '', value: '' })
+  formState.value.extraParameters.push({ key: '', value: '' })
 }
 
 const removeParam = (index: number) => {
-  formState.extraParameters.splice(index, 1)
+  formState.value.extraParameters.splice(index, 1)
 }
 
 const inflectionTypes = ['camelize', 'none']
@@ -191,26 +189,26 @@ const onFileSelect = (key: CertTypes, el?: HTMLInputElement) => {
   if (!el) return
 
   readFile(el, (content) => {
-    if ('ssl' in formState.dataSource.connection && typeof formState.dataSource.connection.ssl === 'object')
-      formState.dataSource.connection.ssl[key] = content ?? ''
+    if ('ssl' in formState.value.dataSource.connection && typeof formState.value.dataSource.connection.ssl === 'object')
+      formState.value.dataSource.connection.ssl[key] = content ?? ''
   })
 }
 
 const sslFilesRequired = computed(
-  () => !!formState.sslUse && formState.sslUse !== SSLUsage.No && formState.sslUse !== SSLUsage.Allowed,
+  () => !!formState.value.sslUse && formState.value.sslUse !== SSLUsage.No && formState.value.sslUse !== SSLUsage.Allowed,
 )
 
 function getConnectionConfig() {
-  const extraParameters = Object.fromEntries(new Map(formState.extraParameters.map((object) => [object.key, object.value])))
+  const extraParameters = Object.fromEntries(new Map(formState.value.extraParameters.map((object) => [object.key, object.value])))
 
   const connection = {
-    ...formState.dataSource.connection,
+    ...formState.value.dataSource.connection,
     ...extraParameters,
   }
 
   if ('ssl' in connection && connection.ssl) {
     if (
-      formState.sslUse === SSLUsage.No ||
+      formState.value.sslUse === SSLUsage.No ||
       (typeof connection.ssl === 'object' && Object.values(connection.ssl).every((v) => v === null || v === undefined))
     ) {
       delete connection.ssl
@@ -234,16 +232,16 @@ const createProject = async () => {
   try {
     const connection = getConnectionConfig()
 
-    const config = { ...formState.dataSource, connection }
+    const config = { ...formState.value.dataSource, connection }
 
     const result = (await api.project.create({
-      title: formState.title,
+      title: formState.value.title,
       bases: [
         {
-          type: formState.dataSource.client,
+          type: formState.value.dataSource.client,
           config,
-          inflection_column: formState.inflection.inflectionColumn,
-          inflection_table: formState.inflection.inflectionTable,
+          inflection_column: formState.value.inflection.inflectionColumn,
+          inflection_table: formState.value.inflection.inflectionTable,
         },
       ],
       external: true,
@@ -268,15 +266,15 @@ const testConnection = async () => {
   $e('a:project:create:extdb:test-connection', [])
 
   try {
-    if (formState.dataSource.client === ClientType.SQLITE) {
+    if (formState.value.dataSource.client === ClientType.SQLITE) {
       testSuccess.value = true
     } else {
       const connection = getConnectionConfig()
 
-      connection.database = getTestDatabaseName(formState.dataSource)!
+      connection.database = getTestDatabaseName(formState.value.dataSource)!
 
       const testConnectionConfig = {
-        ...formState.dataSource,
+        ...formState.value.dataSource,
         connection,
       }
 
@@ -314,8 +312,8 @@ const handleImportURL = async () => {
   const connectionConfig = await api.utils.urlToConfig({ url: importURL.value })
 
   if (connectionConfig) {
-    formState.dataSource.client = connectionConfig.client
-    formState.dataSource.connection = { ...connectionConfig.connection }
+    formState.value.dataSource.client = connectionConfig.client
+    formState.value.dataSource.connection = { ...connectionConfig.connection }
   } else {
     message.error(t('msg.error.invalidURL'))
   }
@@ -324,38 +322,38 @@ const handleImportURL = async () => {
 }
 
 const handleEditJSON = () => {
-  customFormState.value = { ...formState }
+  customFormState.value = { ...formState.value }
   configEditDlg.value = true
 }
 
 const handleOk = () => {
-  formState = { ...customFormState.value }
+  formState.value = { ...customFormState.value }
   configEditDlg.value = false
   updateSSLUse()
 }
 
 // reset test status on config change
 watch(
-  () => formState.dataSource,
+  () => formState.value.dataSource,
   () => (testSuccess.value = false),
   { deep: true },
 )
 
 // populate database name based on title
 watch(
-  () => formState.title,
+  () => formState.value.title,
   (v) => populateName(v),
 )
 
 // select and focus title field on load
 onMounted(async () => {
-  formState.title = await generateUniqueName()
+  formState.value.title = await generateUniqueName()
 
   await nextTick(() => {
     // todo: replace setTimeout and follow better approach
     setTimeout(() => {
       const input = form.value?.$el?.querySelector('input[type=text]')
-      input.setSelectionRange(0, formState.title.length)
+      input.setSelectionRange(0, formState.value.title.length)
       input.focus()
     }, 500)
   })
@@ -410,43 +408,6 @@ onMounted(async () => {
       >
         <a-input v-model:value="formState.dataSource.connection.connection.filename" />
       </a-form-item>
-
-      <template v-else-if="formState.dataSource.client === ClientType.SNOWFLAKE && false">
-        <!-- Account -->
-        <a-form-item label="Account" v-bind="validateInfos['dataSource.connection.account']">
-          <a-input v-model:value="formState.dataSource.connection.account" class="nc-extdb-account" />
-        </a-form-item>
-
-        <!-- Username -->
-        <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.username']">
-          <a-input v-model:value="formState.dataSource.connection.username" class="nc-extdb-host-user" />
-        </a-form-item>
-
-        <!-- Password -->
-        <a-form-item :label="$t('labels.password')" v-bind="validateInfos['dataSource.connection.password']">
-          <a-input-password v-model:value="formState.dataSource.connection.password" class="nc-extdb-host-password" />
-        </a-form-item>
-
-        <!-- Warehouse -->
-        <a-form-item label="Warehouse" v-bind="validateInfos['dataSource.connection.warehouse']">
-          <a-input v-model:value="formState.dataSource.connection.warehouse" />
-        </a-form-item>
-
-        <!-- Database -->
-        <a-form-item :label="$t('labels.database')" v-bind="validateInfos['dataSource.connection.database']">
-          <!-- Database : create if not exists -->
-          <a-input
-            v-model:value="formState.dataSource.connection.database"
-            :placeholder="$t('labels.dbCreateIfNotExists')"
-            class="nc-extdb-host-database"
-          />
-        </a-form-item>
-
-        <!-- Schema name -->
-        <a-form-item :label="$t('labels.schemaName')" v-bind="validateInfos['dataSource.connection.schema']">
-          <a-input v-model:value="formState.dataSource.connection.schema" />
-        </a-form-item>
-      </template>
 
       <template v-else>
         <!-- Host Address -->

@@ -3,11 +3,7 @@ import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
 import type { VNodeRef } from '@vue/runtime-core'
 import { computed } from '@vue/reactivity'
-import { NcProjectType, extractSdkResponseErrorMsg } from '~/utils'
-import { projectTitleValidator, ref, useVModel } from '#imports'
-import { useWorkspace } from '~/store/workspace'
-import { navigateTo } from '#app'
-import { useGlobal } from '~/composables/useGlobal'
+import { NcProjectType, extractSdkResponseErrorMsg, projectTitleValidator, ref, useGlobal, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
@@ -19,12 +15,9 @@ const emit = defineEmits(['update:modelValue'])
 const dialogShow = useVModel(props, 'modelValue', emit)
 
 const projectsStore = useProjects()
+const { loadProjects, createProject: _createProject } = projectsStore
 
-const workspaceStore = useWorkspace()
-const { activeWorkspace } = storeToRefs(workspaceStore)
-const { loadProjects } = useProjects()
-const { navigateToProject } = $(useGlobal())
-const { createProject: _createProject } = projectsStore
+const { navigateToProject } = useGlobal()
 
 const nameValidationRules = [
   {
@@ -48,14 +41,13 @@ const createProject = async () => {
     const project = await _createProject({
       type: props.type,
       title: formState.value.title,
-      workspaceId: activeWorkspace.value!.id!,
     })
 
     await loadProjects()
     navigateToProject({
       projectId: project.id!,
-      workspaceId: activeWorkspace.value!.id!,
       type: props.type,
+      workspaceId: 'default',
     })
     dialogShow.value = false
   } catch (e: any) {
@@ -85,8 +77,6 @@ watch(dialogShow, async (n, o) => {
 
 const typeLabel = computed(() => {
   switch (props.type) {
-    case NcProjectType.DOCS:
-      return 'Book'
     case NcProjectType.DB:
       return 'Database'
     default:
@@ -127,7 +117,7 @@ const typeLabel = computed(() => {
       </a-form>
 
       <div class="flex flex-row justify-end mt-7 gap-x-2">
-        <NcButton type="secondary" label="Cancel" @click="dialogShow = false" />
+        <NcButton type="secondary" @click="dialogShow = false">Cancel</NcButton>
         <NcButton
           data-testid="docs-create-proj-dlg-create-btn"
           :loading="creating"
@@ -135,7 +125,12 @@ const typeLabel = computed(() => {
           :label="`Create ${typeLabel}`"
           :loading-label="`Creating ${typeLabel}`"
           @click="createProject"
-        />
+        >
+          {{ `Create ${typeLabel}` }}
+          <template #loading>
+            {{ `Creating ${typeLabel}` }}
+          </template>
+        </NcButton>
       </div>
     </div>
   </NcModal>

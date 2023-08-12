@@ -1,7 +1,6 @@
 import { expect, Locator } from '@playwright/test';
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
-import { isHub } from '../../../setup/db';
 import { WebhookPage } from './WebhookPage';
 
 export class ViewSidebarPage extends BasePage {
@@ -58,7 +57,7 @@ export class ViewSidebarPage extends BasePage {
   }
 
   private async createView({ title, locator }: { title: string; locator: Locator }) {
-    if (isHub()) await this.rootPage.waitForTimeout(1000);
+    await this.rootPage.waitForTimeout(1000);
     await locator.click();
     await this.rootPage.locator('input[id="form_item_title"]:visible').waitFor({ state: 'visible' });
     await this.rootPage.locator('input[id="form_item_title"]:visible').fill(title);
@@ -170,24 +169,14 @@ export class ViewSidebarPage extends BasePage {
     await this.rootPage.waitForTimeout(1000);
     await this.get().locator(`[data-testid="view-sidebar-view-${title}"] .nc-view-icon`).click();
 
-    if (isHub()) {
-      await this.rootPage.locator('.emoji-mart-search').type(icon);
-      const emojiList = await this.rootPage.locator('[id="emoji-mart-list"]');
-      await emojiList.locator('button').first().click();
-      await expect(
-        this.get()
-          .locator(`[data-testid="view-sidebar-view-${title}"]`)
-          .locator(`.nc-table-icon:has-text("${iconDisplay}")`)
-      ).toHaveCount(1);
-    } else {
-      await this.rootPage.getByTestId('nc-emoji-filter').type(icon);
-      await this.rootPage.getByTestId('nc-emoji-container').locator(`.nc-emoji-item >> svg`).first().click();
-
-      await this.rootPage.getByTestId('nc-emoji-container').isHidden();
-      await expect(
-        this.get().locator(`[data-testid="view-sidebar-view-${title}"] [data-testid="nc-icon-emojione:${icon}"]`)
-      ).toHaveCount(1);
-    }
+    await this.rootPage.locator('.emoji-mart-search').type(icon);
+    const emojiList = await this.rootPage.locator('[id="emoji-mart-list"]');
+    await emojiList.locator('button').first().click();
+    await expect(
+      this.get()
+        .locator(`[data-testid="view-sidebar-view-${title}"]`)
+        .locator(`.nc-table-icon:has-text("${iconDisplay}")`)
+    ).toHaveCount(1);
   }
 
   async verifyTabIcon({ title, icon }: { title: string; icon: string }) {

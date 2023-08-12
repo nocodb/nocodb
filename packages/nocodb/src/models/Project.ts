@@ -1,19 +1,18 @@
-import { ProjectTypes } from 'nocodb-sdk';
-import Noco from '../Noco';
+import type { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
+import Base from '~/models/Base';
+import { ProjectUser } from '~/models';
+import Noco from '~/Noco';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
+  type DB_TYPES,
   MetaTable,
-} from '../utils/globals';
-import { extractProps } from '../helpers/extractProps';
-import NocoCache from '../cache/NocoCache';
-import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
-import Base from './/Base';
-import DashboardProjectDBProject from './DashboardProjectDBProject';
-import { ProjectUser } from './index';
-import type { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
-import type { DB_TYPES } from './Base';
+} from '~/utils/globals';
+import { extractProps } from '~/helpers/extractProps';
+import NocoCache from '~/cache/NocoCache';
+import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 export default class Project implements ProjectType {
   public id: string;
@@ -28,8 +27,6 @@ export default class Project implements ProjectType {
   public is_meta = false;
   public bases?: Base[];
   public linked_db_projects?: Project[];
-  public type: string;
-  public fk_workspace_id?: string;
 
   // shared base props
   uuid?: string;
@@ -38,6 +35,10 @@ export default class Project implements ProjectType {
 
   constructor(project: Partial<Project>) {
     Object.assign(this, project);
+  }
+
+  protected static castType(project: Project): Project {
+    return project && new Project(project);
   }
 
   public static async createProject(
@@ -51,8 +52,6 @@ export default class Project implements ProjectType {
       'description',
       'is_meta',
       'status',
-      'type',
-      'fk_workspace_id',
       'meta',
       'color',
     ]);
@@ -116,9 +115,7 @@ export default class Project implements ProjectType {
     projectList = projectList.filter(
       (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
     );
-    return projectList
-      .map((m) => new Project(m))
-      .filter((p) => !param?.type || p.type === param.type);
+    return projectList.map((m) => this.castType(m));
   }
 
   // @ts-ignore
@@ -143,21 +140,11 @@ export default class Project implements ProjectType {
         projectData = null;
       }
     }
-    return projectData && new Project(projectData);
+    return this.castType(projectData);
   }
 
   async getBases(ncMeta = Noco.ncMeta): Promise<Base[]> {
     return (this.bases = await Base.list({ projectId: this.id }, ncMeta));
-  }
-
-  async getLinkedDbProjects(ncMeta = Noco.ncMeta): Promise<Project[]> {
-    return (this.linked_db_projects =
-      await DashboardProjectDBProject.getDbProjectsList(
-        {
-          dashboard_project_id: this.id,
-        },
-        ncMeta,
-      ));
   }
 
   // todo: hide credentials
@@ -195,20 +182,19 @@ export default class Project implements ProjectType {
     if (projectData) {
       const project = new Project(projectData);
       await project.getBases(ncMeta);
-      if (project.type === ProjectTypes.DASHBOARD) {
-        await project.getLinkedDbProjects(ncMeta);
-      }
-      return project;
+
+      return this.castType(project);
     }
     return null;
   }
 
-  // Todo: Remove the project entry from the connection pool in NcConnectionMgrv2
   // @ts-ignore
   static async softDelete(
     projectId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<any> {
+    await this.clearConnectionPool(projectId, ncMeta);
+
     // get existing cache
     const key = `${CacheScope.PROJECT}:${projectId}`;
     const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -264,7 +250,6 @@ export default class Project implements ProjectType {
       'uuid',
       'password',
       'roles',
-      'fk_workspace_id',
     ]);
     // get existing cache
     const key = `${CacheScope.PROJECT}:${projectId}`;
@@ -318,7 +303,6 @@ export default class Project implements ProjectType {
     let project = await this.get(projectId);
     const users = await ProjectUser.getUsersList({
       project_id: projectId,
-      workspace_id: project.fk_workspace_id,
       offset: 0,
       limit: 1000,
     });
@@ -469,65 +453,13 @@ export default class Project implements ProjectType {
     return project;
   }
 
-  static async listByWorkspaceAndUser(
-    fk_workspace_id: string,
-    userId: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-    // Todo: caching , pagination, query optimisation
-
-    const projectListQb = ncMeta
-      .knex(MetaTable.PROJECT)
-      .select(`${MetaTable.PROJECT}.*`)
-      .select(`${MetaTable.WORKSPACE_USER}.roles as workspace_role`)
-      .select(`${MetaTable.PROJECT_USERS}.starred`)
-      .select(`${MetaTable.PROJECT_USERS}.roles as project_role`)
-      .select(`${MetaTable.PROJECT_USERS}.updated_at as last_accessed`)
-      .leftJoin(MetaTable.WORKSPACE_USER, function () {
-        this.on(
-          `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
-          '=',
-          `${MetaTable.PROJECT}.fk_workspace_id`,
-        ).andOn(
-          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
-          '=',
-          ncMeta.knex.raw('?', [userId]),
-        );
-      })
-      .leftJoin(MetaTable.PROJECT_USERS, function () {
-        this.on(
-          `${MetaTable.PROJECT_USERS}.project_id`,
-          '=',
-          `${MetaTable.PROJECT}.id`,
-        ).andOn(
-          `${MetaTable.PROJECT_USERS}.fk_user_id`,
-          '=',
-          ncMeta.knex.raw('?', [userId]),
-        );
-      })
-
-      .where(`${MetaTable.PROJECT}.fk_workspace_id`, fk_workspace_id)
-
-      .where(function () {
-        this.where(
-          `${MetaTable.PROJECT_USERS}.fk_user_id`,
-          '=',
-          ncMeta.knex.raw('?', [userId]),
-        ).orWhere(
-          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
-          '=',
-          ncMeta.knex.raw('?', [userId]),
-        );
-      })
-      .where(`${MetaTable.PROJECT}.deleted`, false);
-
-    const projects = await projectListQb;
-
-    // parse meta
-    for (const project of projects) {
-      project.meta = parseMetaProp(project);
+  static async clearConnectionPool(projectId: string, ncMeta = Noco.ncMeta) {
+    const project = await this.get(projectId, ncMeta);
+    if (project) {
+      const bases = await project.getBases(ncMeta);
+      for (const base of bases) {
+        await NcConnectionMgrv2.deleteAwait(base);
+      }
     }
-
-    return projects;
   }
 }

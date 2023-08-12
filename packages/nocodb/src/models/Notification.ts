@@ -1,8 +1,8 @@
-import { extractProps } from '../helpers/extractProps';
-import Noco from '../Noco';
-import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
-import { MetaTable } from '../meta/meta.service';
 import type { AppEvents } from 'nocodb-sdk';
+import { extractProps } from '~/helpers/extractProps';
+import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
+import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 
 export default class Notification {
   id?: string;

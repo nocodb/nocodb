@@ -1,5 +1,5 @@
 import { Controller, HttpCode, Post, Req } from '@nestjs/common';
-import { TestResetService } from './TestResetService';
+import { TestResetService } from '~/controllers/test/TestResetService';
 
 @Controller()
 export class TestController {

@@ -1,11 +1,10 @@
 import type { RequestParams } from 'nocodb-sdk'
 import { storeToRefs } from 'pinia'
-import type { User } from '~/lib'
+import type { User } from '#imports'
 
 const [setup, use] = useInjectionState(() => {
   const { api } = useApi()
   const { project } = storeToRefs(useProject())
-  const { t } = useI18n()
   const { $e } = useNuxtApp()
   const { formStatus, invitationUsersData } = storeToRefs(useShare())
 

@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { UITypes } from 'nocodb-sdk';
 import { Api } from 'nocodb-sdk';
@@ -88,6 +88,10 @@ test.describe('Checkbox - cell, filter, sort', () => {
 
     // page reload
     await page.reload();
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Checkbox', async () => {

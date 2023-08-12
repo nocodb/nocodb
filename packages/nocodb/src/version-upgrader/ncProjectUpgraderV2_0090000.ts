@@ -4,33 +4,33 @@ import {
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
-import Model from '../models/Model';
-import ProjectUser from '../models/ProjectUser';
-import Project from '../models/Project';
-import User from '../models/User';
-import Noco from '../Noco';
-import Column from '../models/Column';
-import NcHelp from '../utils/NcHelp';
-import View from '../models/View';
-import Sort from '../models/Sort';
-import Filter from '../models/Filter';
-import ModelRoleVisibility from '../models/ModelRoleVisibility';
-import { MetaTable } from '../utils/globals';
-import Hook from '../models/Hook';
-import FormViewColumn from '../models/FormViewColumn';
-import GridViewColumn from '../models/GridViewColumn';
-import { getUniqueColumnAliasName } from '../helpers/getUniqueName';
-import Audit from '../models/Audit';
 import NcProjectBuilderEE from './v1-legacy/NcProjectBuilder';
-import type GalleryView from '../models/GalleryView';
-import type FormView from '../models/FormView';
+import type GalleryView from '~/models/GalleryView';
+import type FormView from '~/models/FormView';
 import type { UserType, ViewType } from 'nocodb-sdk';
-import type KanbanView from '../models/KanbanView';
-import type GridView from '../models/GridView';
-import type RollupColumn from '../models/RollupColumn';
-import type { ROLLUP_FUNCTIONS } from '../models/RollupColumn';
-import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
+import type KanbanView from '~/models/KanbanView';
+import type GridView from '~/models/GridView';
+import type RollupColumn from '~/models/RollupColumn';
+import type { ROLLUP_FUNCTIONS } from '~/models/RollupColumn';
+import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type { NcUpgraderCtx } from './NcUpgrader';
+import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
+import Noco from '~/Noco';
+import Model from '~/models/Model';
+import ProjectUser from '~/models/ProjectUser';
+import Project from '~/models/Project';
+import User from '~/models/User';
+import Column from '~/models/Column';
+import NcHelp from '~/utils/NcHelp';
+import View from '~/models/View';
+import Sort from '~/models/Sort';
+import Filter from '~/models/Filter';
+import ModelRoleVisibility from '~/models/ModelRoleVisibility';
+import { MetaTable } from '~/utils/globals';
+import Hook from '~/models/Hook';
+import FormViewColumn from '~/models/FormViewColumn';
+import GridViewColumn from '~/models/GridViewColumn';
+import Audit from '~/models/Audit';
 
 export default async function (ctx: NcUpgraderCtx) {
   const ncMeta = ctx.ncMeta;

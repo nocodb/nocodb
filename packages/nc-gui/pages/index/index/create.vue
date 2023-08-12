@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import { customAlphabet } from 'nanoid'
 import type { Form, Input } from 'ant-design-vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { VNodeRef } from '@vue/runtime-core'
 import type { ProjectType } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import {
+  NcProjectType,
   extractSdkResponseErrorMsg,
   generateUniqueName,
   iconMap,
@@ -25,19 +25,17 @@ import {
   useSidebar,
   useTable,
 } from '#imports'
-import { NcProjectType } from '~/utils'
 
 const { $e } = useNuxtApp()
 
 useProjects()
-useDashboardStore()
-const { loadTables, loadProject } = useProject()
+const { loadTables } = useProject()
 
-const { table, createTable } = useTable(async (_) => {
+useTable(async (_) => {
   await loadTables()
 })
 
-const { navigateToProject } = $(useGlobal())
+const { navigateToProject } = useGlobal()
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -71,7 +69,7 @@ const createProject = async () => {
 
     const complement = tcolor.complement()
 
-    const { getBaseUrl } = $(useGlobal())
+    const { getBaseUrl } = useGlobal()
 
     // todo: provide proper project type
     creating.value = true
@@ -79,15 +77,12 @@ const createProject = async () => {
     const result = (await api.project.create(
       {
         title: formState.title,
-        fk_workspace_id: route.query.workspaceId,
-        type: route.query.type ?? NcProjectType.DB,
         color,
         meta: JSON.stringify({
           theme: {
             primaryColor: color,
             accentColor: complement.toHex8String(),
           },
-          ...(route.query.type === NcProjectType.COWRITER && { prompt_statement: '' }),
         }),
       },
       {
@@ -97,35 +92,11 @@ const createProject = async () => {
 
     refreshCommandPalette()
 
-    switch (route.query.type) {
-      case NcProjectType.DOCS:
-        await loadProject(true, result.id)
-        navigateToProject({
-          projectId: result.id!,
-          workspaceId: route.query.workspaceId as string,
-          type: NcProjectType.DOCS,
-        })
-        break
-      case NcProjectType.COWRITER: {
-        // force load project so that baseId is available in useTable
-        await loadProject(true, result.id)
-        // Create a table for the COWRITER form
-        const nanoidV2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14)
-        table.table_name = `nc_cowriter_${nanoidV2()}`
-        // exclude title
-        table.columns = ['id', 'created_at', 'updated_at']
-        await createTable()
-
-        await navigateTo(`/nc/cowriter/${result.id}`)
-        break
-      }
-      default:
-        navigateToProject({
-          projectId: result.id!,
-          workspaceId: route.query.workspaceId as string,
-          type: NcProjectType.DB,
-        })
-    }
+    navigateToProject({
+      projectId: result.id!,
+      workspaceId: route.query.workspaceId as string,
+      type: NcProjectType.DB,
+    })
   } catch (e: any) {
     console.error(e)
     message.error(await extractSdkResponseErrorMsg(e))
@@ -142,8 +113,6 @@ onMounted(async () => {
   input.value?.$el?.focus()
   input.value?.$el?.select()
 })
-
-const isDashboardProject = computed(() => route.query.type === NcProjectType.DASHBOARD)
 </script>
 
 <template>

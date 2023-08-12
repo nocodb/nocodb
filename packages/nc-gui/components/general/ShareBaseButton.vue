@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { iconMap, isDrawerOrModalExist, isMac, useNuxtApp, useRoute, useUIPermission } from '#imports'
+import { isDrawerOrModalExist, isMac, useNuxtApp, useRoute, useUIPermission } from '#imports'
 
 const route = useRoute()
 

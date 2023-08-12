@@ -183,7 +183,7 @@ export default {
     overflow: visible;
   }
   .splitpanes__splitter:before {
-    @apply bg-border w-0.25;
+    @apply bg-gray-200 w-0.25;
     content: '';
     position: absolute;
     left: 0;
@@ -258,6 +258,6 @@ export default {
   opacity: 0;
 }
 .nc-sidebar-wrapper.sidebar-short > * {
-  @apply !(rounded-r-lg border-1 border-gray-100 shadow-lg);
+  @apply !(rounded-r-lg border-1 border-gray-200 shadow-lg);
 }
 </style>

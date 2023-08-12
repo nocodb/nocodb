@@ -10,9 +10,9 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { NotificationsService } from '../services/notifications.service';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { extractProps } from '../helpers/extractProps';
+import { NotificationsService } from '~/services/notifications.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { extractProps } from '~/helpers/extractProps';
 
 @Controller()
 @UseGuards(GlobalGuard)

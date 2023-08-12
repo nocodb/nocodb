@@ -11,13 +11,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { FilterReqType } from 'nocodb-sdk';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { FiltersService } from '../services/filters.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { FiltersService } from '~/services/filters.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
 @UseGuards(GlobalGuard)
@@ -99,7 +96,7 @@ export class FiltersController {
 
   @Delete('/api/v1/db/meta/filters/:filterId')
   @Acl('filterDelete')
-  async filterDelete(@Param('filterId') filterId: string, @Req() req) {
+  async filterDelete(@Param('filterId') filterId: string, @Req() _req) {
     const filter = await this.filtersService.filterDelete({
       filterId,
     });

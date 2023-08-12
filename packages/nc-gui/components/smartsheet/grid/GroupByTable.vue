@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import Table from './Table.vue'
 import { computed, ref } from '#imports'
-import type { Group, Row } from '~/lib'
+import type { Group, Row } from '#imports'
 
 const props = defineProps<{
   group: Group

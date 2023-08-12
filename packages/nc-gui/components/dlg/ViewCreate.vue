@@ -4,20 +4,7 @@ import type { Form as AntForm, SelectProps } from 'ant-design-vue'
 import { capitalize } from '@vue/runtime-core'
 import type { FormType, GalleryType, GridType, KanbanType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, ViewTypes } from 'nocodb-sdk'
-import {
-  computed,
-  generateUniqueTitle,
-  message,
-  nextTick,
-  onBeforeMount,
-  reactive,
-  ref,
-  unref,
-  useApi,
-  useI18n,
-  useVModel,
-  watch,
-} from '#imports'
+import { computed, message, nextTick, onBeforeMount, reactive, ref, unref, useApi, useI18n, useVModel, watch } from '#imports'
 
 interface Props {
   modelValue: boolean
@@ -48,9 +35,9 @@ const { views = [], meta, selectedViewId, groupingFieldColumnId, geoDataFieldCol
 
 const emits = defineEmits<Emits>()
 
-const inputEl = $ref<ComponentPublicInstance>()
+const inputEl = ref<ComponentPublicInstance>()
 
-const formValidator = $ref<typeof AntForm>()
+const formValidator = ref<typeof AntForm>()
 
 const vModel = useVModel(props, 'modelValue', emits)
 
@@ -159,7 +146,7 @@ function init() {
   }
 
   nextTick(() => {
-    const el = inputEl?.$el as HTMLInputElement
+    const el = inputEl.value?.$el as HTMLInputElement
 
     if (el) {
       el.focus()
@@ -169,7 +156,7 @@ function init() {
 }
 
 async function onSubmit() {
-  const isValid = await formValidator?.validateFields()
+  const isValid = await formValidator.value?.validateFields()
 
   if (isValid && form.type) {
     const _meta = unref(meta)
@@ -220,8 +207,8 @@ async function onSubmit() {
 <template>
   <NcModal v-model:visible="vModel" size="small">
     <template #header>
-      <div>
-        <GeneralViewIcon :meta="{ type: form.type }" class="nc-view-icon -mt-1 mr-0.5" />
+      <div class="flex flex-row items-center gap-x-1.5">
+        <GeneralViewIcon :meta="{ type: form.type }" class="nc-view-icon !text-xl" />
         {{ $t(`general.${selectedViewId ? 'duplicate' : 'create'}`) }} <span class="capitalize">{{ typeAlias }}</span>
         {{ $t('objects.view') }}
       </div>
@@ -271,16 +258,14 @@ async function onSubmit() {
       </a-form>
 
       <div class="flex flex-row w-full justify-end gap-x-2 mt-7">
-        <NcButton type="secondary" :label="$t('general.cancel')" @click="vModel = false" />
+        <NcButton type="secondary" @click="vModel = false">
+          {{ $t('general.cancel') }}
+        </NcButton>
 
-        <NcButton
-          key="submit"
-          type="primary"
-          label="Create View"
-          loading-label="Creating View"
-          :loading="isViewCreating"
-          @click="onSubmit"
-        />
+        <NcButton type="primary" :loading="isViewCreating" @click="onSubmit">
+          Create View
+          <template #loading> Creating View </template>
+        </NcButton>
       </div>
     </div>
   </NcModal>

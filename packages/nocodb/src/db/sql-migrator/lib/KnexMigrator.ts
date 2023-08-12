@@ -10,8 +10,8 @@ import Debug from '../../util/Debug';
 import Emit from '../../util/emit';
 import Result from '../../util/Result';
 import * as fileHelp from '../../util/file.help';
-import { getToolDir, NcConfig } from '../../../utils/nc-config';
 import SqlMigrator from './SqlMigrator';
+import { getToolDir, NcConfig } from '~/utils/nc-config';
 
 const evt = new Emit();
 const log = new Debug('KnexMigrator');
@@ -137,6 +137,7 @@ export default class KnexMigrator extends SqlMigrator {
         ),
       );
       // @ts-ignore
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const dirStat = await promisify(fs.stat)(
         path.join(
           this.toolDir,
@@ -232,6 +233,7 @@ export default class KnexMigrator extends SqlMigrator {
       );
 
       // @ts-ignore
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const metaStat = await promisify(fs.stat)(
         path.join(
           this.toolDir,

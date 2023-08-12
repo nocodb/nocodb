@@ -3,11 +3,10 @@ import { AppEvents } from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import slash from 'slash';
-import { T } from 'nc-help';
-import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
-import Local from '../plugins/storage/Local';
-import mimetypes, { mimeIcons } from '../utils/mimeTypes';
-import { AppHooksService } from './app-hooks/app-hooks.service';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import Local from '~/plugins/storage/Local';
+import mimetypes, { mimeIcons } from '~/utils/mimeTypes';
 
 @Injectable()
 export class AttachmentsService {

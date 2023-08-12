@@ -1,12 +1,12 @@
 // import debug from 'debug';
 
 // import {XKnex} from "../sql-data-mapper";
-import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import SqlClientFactory from '../../sql-client/lib/SqlClientFactory';
 import KnexMigratorv2 from '../../sql-migrator/lib/KnexMigratorv2';
 import Debug from '../../util/Debug';
-import type { MetaService } from '../../../meta/meta.service';
-import type Base from '../../../models/Base';
+import type { MetaService } from '~/meta/meta.service';
+import type Base from '~/models/Base';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 const log = new Debug('SqlMgr');
 

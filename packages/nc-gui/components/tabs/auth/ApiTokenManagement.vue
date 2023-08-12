@@ -20,26 +20,27 @@ const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 
-const { project } = $(storeToRefs(useProject()))
+const projectStore = useProject()
+const { project } = storeToRefs(projectStore)
 
 const { copy } = useCopy()
 
-let tokensInfo = $ref<ApiToken[] | undefined>([])
+const tokensInfo = ref<ApiToken[] | undefined>([])
 
-let showNewTokenModal = $ref(false)
+const showNewTokenModal = ref(false)
 
-let showDeleteTokenModal = $ref(false)
+const showDeleteTokenModal = ref(false)
 
-let selectedTokenData = $ref<ApiToken>({})
+const selectedTokenData = ref<ApiToken>({})
 
 const loadApiTokens = async () => {
-  if (!project?.id) return
+  if (!project.value?.id) return
 
-  tokensInfo = (await $api.apiToken.list(project.id)).list
+  tokensInfo.value = (await $api.apiToken.list(project.value.id)).list
 }
 
 const openNewTokenModal = () => {
-  showNewTokenModal = true
+  showNewTokenModal.value = true
   $e('c:api-token:generate')
 }
 
@@ -58,13 +59,13 @@ const copyToken = async (token: string | undefined) => {
 
 const generateToken = async () => {
   try {
-    if (!project?.id) return
+    if (!project.value?.id) return
 
-    await $api.apiToken.create(project.id, selectedTokenData)
-    showNewTokenModal = false
+    await $api.apiToken.create(project.value.id, selectedTokenData.value)
+    showNewTokenModal.value = false
     // Token generated successfully
     message.success(t('msg.success.tokenGenerated'))
-    selectedTokenData = {}
+    selectedTokenData.value = {}
     await loadApiTokens()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -75,14 +76,14 @@ const generateToken = async () => {
 
 const deleteToken = async () => {
   try {
-    if (!project?.id || !selectedTokenData.token) return
+    if (!project.value?.id || !selectedTokenData.value.token) return
 
-    await $api.apiToken.delete(project.id, selectedTokenData.token)
+    await $api.apiToken.delete(project.value.id, selectedTokenData.value.token)
 
     // Token deleted successfully
     message.success(t('msg.success.tokenDeleted'))
     await loadApiTokens()
-    showDeleteTokenModal = false
+    showDeleteTokenModal.value = false
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -91,8 +92,8 @@ const deleteToken = async () => {
 }
 
 const openDeleteModal = (item: ApiToken) => {
-  selectedTokenData = item
-  showDeleteTokenModal = true
+  selectedTokenData.value = item
+  showDeleteTokenModal.value = true
 }
 
 onMounted(() => {

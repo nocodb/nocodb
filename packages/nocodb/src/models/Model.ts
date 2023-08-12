@@ -6,28 +6,27 @@ import {
   ViewTypes,
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
-import { BaseModelSqlv2 } from '../db/BaseModelSqlv2';
-import Noco from '../Noco';
-import { parseMetaProp } from '../utils/modelUtils';
-import NocoCache from '../cache/NocoCache';
 
+import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
+import type { XKnex } from '~/db/CustomKnex';
+import type { LinkToAnotherRecordColumn } from '~/models/index';
+import Hook from '~/models/Hook';
+import Audit from '~/models/Audit';
+import View from '~/models/View';
+import Column from '~/models/Column';
+import { extractProps } from '~/helpers/extractProps';
+import { sanitize } from '~/helpers/sqlSanitize';
+import { NcError } from '~/helpers/catchError';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
-} from '../utils/globals';
-import { NcError } from '../helpers/catchError';
-import { sanitize } from '../helpers/sqlSanitize';
-import { extractProps } from '../helpers/extractProps';
-import Hook from './Hook';
-import Audit from './Audit';
-import View from './View';
-import Column from './Column';
-import Base from './Base';
-import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
-import type { XKnex } from '../db/CustomKnex';
-import type { LinkToAnotherRecordColumn } from '~/models/index';
+} from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
+import Noco from '~/Noco';
+import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import { parseMetaProp } from '~/utils/modelUtils';
 
 export default class Model implements TableType {
   copy_enabled: BoolType;
@@ -73,6 +72,7 @@ export default class Model implements TableType {
   }
 
   // @ts-ignore
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async getViews(force = false, ncMeta = Noco.ncMeta): Promise<View[]> {
     this.views = await View.listWithInfo(this.id, ncMeta);
     return this.views;
@@ -368,20 +368,10 @@ export default class Model implements TableType {
     ncMeta = Noco.ncMeta,
   ): Promise<BaseModelSqlv2> {
     const model = args?.model || (await this.get(args.id, ncMeta));
-    const base = await Base.get(model.base_id);
 
     if (!args?.viewId) {
       const view = await View.getDefaultView(model.id, ncMeta);
       args.viewId = view.id;
-    }
-
-    if (base && base.is_local) {
-      return new BaseModelSqlv2({
-        dbDriver: args.dbDriver,
-        viewId: args.viewId,
-        model,
-        schema: base.getConfig()?.schema,
-      });
     }
 
     return new BaseModelSqlv2({

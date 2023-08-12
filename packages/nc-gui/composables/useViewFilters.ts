@@ -19,8 +19,7 @@ import {
   useUIPermission,
   watch,
 } from '#imports'
-import { TabMetaInj } from '~/context'
-import type { Filter, TabItem, UndoRedoAction } from '~/lib'
+import type { Filter, UndoRedoAction } from '#imports'
 
 export function useViewFilters(
   view: Ref<ViewType | undefined>,
@@ -31,7 +30,7 @@ export function useViewFilters(
   isNestedRoot?: boolean,
   isWebhook?: boolean,
 ) {
-  let currentFilters = $ref(_currentFilters)
+  const currentFilters = ref(_currentFilters)
 
   const reloadHook = inject(ReloadViewDataHookInj)
 
@@ -55,11 +54,11 @@ export function useViewFilters(
 
   const filters = computed<Filter[]>({
     get: () => {
-      return nestedMode.value ? currentFilters! : _filters.value
+      return nestedMode.value ? currentFilters.value! : _filters.value
     },
     set: (value: Filter[]) => {
       if (nestedMode.value) {
-        currentFilters = value
+        currentFilters.value = value
         if (isNestedRoot) {
           nestedFilters.value = value
         }
@@ -185,6 +184,8 @@ export function useViewFilters(
   }
 
   const loadFilters = async (hookId?: string) => {
+    if (!view.value?.id) return
+
     if (nestedMode.value) {
       // ignore restoring if not root filter group
       return

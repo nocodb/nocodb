@@ -69,14 +69,14 @@ useMenuCloseOnEsc(open)
         data-testid="nc-height-menu"
       >
         <div class="flex flex-col w-full text-sm" @click.stop>
-          <div class="text-xs text-gray-400 px-3 pt-2 pb-1 select-none">{{ $t('objects.rowHeight') }}</div>
+          <div class="text-xs text-gray-500 px-3 pt-2 pb-1 select-none">{{ $t('objects.rowHeight') }}</div>
           <div
             class="nc-row-height-option"
             :class="{'active': (view?.view as GridType).row_height === 0}"
             @click="updateRowHeight(0)"
           >
             <GeneralIcon icon="heightShort" class="nc-row-height-icon" />
-            Short
+            {{ $t('objects.heightClass.short') }}
           </div>
           <div
             class="nc-row-height-option"
@@ -84,7 +84,7 @@ useMenuCloseOnEsc(open)
             @click="updateRowHeight(1)"
           >
             <GeneralIcon icon="heightMedium" class="nc-row-height-icon" />
-            Medium
+            {{ $t('objects.heightClass.medium') }}
           </div>
           <div
             class="nc-row-height-option"
@@ -92,7 +92,7 @@ useMenuCloseOnEsc(open)
             @click="updateRowHeight(2)"
           >
             <GeneralIcon icon="heightTall" class="nc-row-height-icon" />
-            Tall
+            {{ $t('objects.heightClass.tall') }}
           </div>
           <div
             class="nc-row-height-option"
@@ -100,7 +100,7 @@ useMenuCloseOnEsc(open)
             @click="updateRowHeight(3)"
           >
             <GeneralIcon icon="heightExtra" class="nc-row-height-icon" />
-            Extra
+            {{ $t('objects.heightClass.extra') }}
           </div>
         </div>
       </div>

@@ -3,16 +3,16 @@ import knex from 'knex';
 import isEmpty from 'lodash/isEmpty';
 import mapKeys from 'lodash/mapKeys';
 import find from 'lodash/find';
-import KnexClient from '../KnexClient';
-import Debug from '../../../util/Debug';
-import Result from '../../../util/Result';
-import queries from './pg.queries';
+import KnexClient from '~/db/sql-client/lib/KnexClient';
+import Debug from '~/db/util/Debug';
+import Result from '~/db/util/Result';
+import queries from '~/db/sql-client/lib/pg/pg.queries';
 
 const log = new Debug('PGClient');
 
 class PGClient extends KnexClient {
-  private queries: any;
-  private _version: any;
+  protected queries: any;
+  protected _version: any;
   constructor(connectionConfig) {
     super(connectionConfig);
     // this.sqlClient = null;
@@ -94,17 +94,17 @@ class PGClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      const query = `${this.querySeparator()}DROP SEQUENCE ${
-        args.sequence_name
-      }`;
+      const query = `${this.querySeparator()}DROP SEQUENCE ${this.genIdentifier(
+        args.sequence_name,
+      )}`;
       await this.sqlClient.raw(query);
       result.data.object = {
         upStatement: [{ sql: query }],
         downStatement: [
           {
-            sql: `${this.querySeparator()}CREATE SEQUENCE ${
-              args.sequence_name
-            }`,
+            sql: `${this.querySeparator()}CREATE SEQUENCE ${this.genIdentifier(
+              args.sequence_name,
+            )}`,
           },
         ],
       };
@@ -174,13 +174,16 @@ class PGClient extends KnexClient {
     log.api(`${func}:args:`, args);
     try {
       const query =
-        this.querySeparator() + `CREATE SEQUENCE ${args.sequence_name}`;
+        this.querySeparator() +
+        `CREATE SEQUENCE ${this.genIdentifier(args.sequence_name)}`;
       await this.sqlClient.raw(query);
       result.data.object = {
         upStatement: [{ sql: query }],
         downStatement: [
           {
-            sql: this.querySeparator() + `DROP SEQUENCE ${args.sequence_name}`,
+            sql:
+              this.querySeparator() +
+              `DROP SEQUENCE ${this.genIdentifier(args.sequence_name)}`,
           },
         ],
       };
@@ -210,10 +213,14 @@ class PGClient extends KnexClient {
     try {
       const upQuery =
         this.querySeparator() +
-        `ALTER SEQUENCE ${args.original_sequence_name} RENAME TO ${args.sequence_name};`;
+        `ALTER SEQUENCE ${this.genIdentifier(
+          args.original_sequence_name,
+        )} RENAME TO ${this.genIdentifier(args.sequence_name)};`;
       const downQuery =
         this.querySeparator() +
-        `ALTER SEQUENCE ${args.sequence_name} RENAME TO ${args.original_sequence_name};`;
+        `ALTER SEQUENCE ${this.genIdentifier(
+          args.sequence_name,
+        )} RENAME TO ${this.genIdentifier(args.original_sequence_name)};`;
 
       await this.sqlClient.raw(upQuery);
       result.data.object = {
@@ -247,7 +254,10 @@ class PGClient extends KnexClient {
         JSON.stringify(this.connectionConfig),
       );
       connectionParamsWithoutDb.connection.database = 'postgres';
-      const tempSqlClient = knex(connectionParamsWithoutDb);
+      const tempSqlClient = knex({
+        ...connectionParamsWithoutDb,
+        pool: { min: 0, max: 1 },
+      });
       try {
         await tempSqlClient.raw('SELECT 1+1 as data');
         await tempSqlClient.destroy();
@@ -451,19 +461,24 @@ class PGClient extends KnexClient {
       let rows = [];
       try {
         connectionParamsWithoutDb.connection.database = 'postgres';
-        tempSqlClient = knex(connectionParamsWithoutDb);
+        tempSqlClient = knex({
+          ...connectionParamsWithoutDb,
+          pool: { min: 0, max: 1 },
+        });
 
         log.debug('checking if db exists');
         rows = (
           await tempSqlClient.raw(
-            `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = '${args.database}'`,
+            `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = ?`,
+            [args.database],
           )
         ).rows;
       } catch (e) {
         log.debug('checking if db exists');
         rows = (
           await this.sqlClient.raw(
-            `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = '${args.database}'`,
+            `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = ?`,
+            [args.database],
           )
         ).rows;
       }
@@ -474,8 +489,7 @@ class PGClient extends KnexClient {
         ]);
       }
 
-      const schemaName =
-        args.schema || this.connectionConfig.searchPath?.[0] || 'public';
+      const schemaName = this.connectionConfig.searchPath?.[0] || 'public';
 
       // Check schemaExists because `CREATE SCHEMA IF NOT EXISTS` requires permissions of `CREATE ON DATABASE`
       const schemaExists = !!(
@@ -516,16 +530,23 @@ class PGClient extends KnexClient {
         JSON.stringify(this.connectionConfig),
       );
       connectionParamsWithoutDb.connection.database = 'postgres';
-      const tempSqlClient = knex(connectionParamsWithoutDb);
+      const tempSqlClient = knex({
+        ...connectionParamsWithoutDb,
+        pool: { min: 0, max: 1 },
+      });
       await this.sqlClient.destroy();
       this.sqlClient = tempSqlClient;
 
-      await tempSqlClient.raw(`ALTER DATABASE ${args.database} WITH CONNECTION LIMIT 0;
+      await tempSqlClient.raw(
+        `ALTER DATABASE ?? WITH CONNECTION LIMIT 0;
       SELECT pg_terminate_backend(sa.pid) FROM pg_stat_activity sa WHERE
-      sa.pid <> pg_backend_pid() AND sa.datname = '${args.database}';`);
+      sa.pid <> pg_backend_pid() AND sa.datname = ?;`,
+        [args.database, args.database],
+      );
 
       log.debug('dropping database:', args);
-      await tempSqlClient.raw(`DROP DATABASE ${args.database};`);
+      await tempSqlClient.raw(`DROP DATABASE ??;`, [args.database]);
+      await tempSqlClient.destroy();
     } catch (e) {
       log.ppe(e, _func);
       // throw e;
@@ -549,8 +570,8 @@ class PGClient extends KnexClient {
       /** ************** START : create _evolution table if not exists *************** */
       const exists = await this.sqlClient.raw(
         `SELECT table_schema,table_name as tn, table_catalog FROM information_schema.tables where table_schema=? and
-         table_name = '${args.tn}' and table_catalog = '${this.connectionConfig.connection.database}'`,
-        [args.schema || this.schema],
+         table_name = ? and table_catalog = ?`,
+        [this.schema, args.tn, this.connectionConfig.connection.database],
       );
 
       if (exists.rows.length === 0) {
@@ -611,8 +632,8 @@ class PGClient extends KnexClient {
 
     try {
       const { rows } = await this.sqlClient.raw(
-        `SELECT table_schema,table_name as tn, table_catalog FROM information_schema.tables where table_schema=? and table_name = '${args.tn}' and table_catalog = '${this.connectionConfig.connection.database}'`,
-        [args.schema || this.schema],
+        `SELECT table_schema,table_name as tn, table_catalog FROM information_schema.tables where table_schema=? and table_name = ? and table_catalog = ?'`,
+        [this.schema, args.tn, this.connectionConfig.connection.database],
       );
       result.data.value = rows.length > 0;
     } catch (e) {
@@ -632,7 +653,8 @@ class PGClient extends KnexClient {
 
     try {
       const { rows } = await this.sqlClient.raw(
-        `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = '${args.databaseName}'`,
+        `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = ?`,
+        [args.database],
       );
       result.data.value = rows.length > 0;
     } catch (e) {
@@ -689,7 +711,7 @@ class PGClient extends KnexClient {
               FROM information_schema.tables
               where table_schema = ?
               ORDER BY table_schema, table_name`,
-        [args.schema || this.schema],
+        [this.schema],
       );
 
       result.data.list = rows.filter(
@@ -845,7 +867,7 @@ class PGClient extends KnexClient {
               where c.table_catalog=:database and c.table_schema=:schema and c.table_name=:table
               order by c.table_name, c.ordinal_position`,
         {
-          schema: args.schema || this.schema,
+          schema: this.schema,
           table: args.tn,
           database: args.databaseName,
         },
@@ -995,7 +1017,7 @@ class PGClient extends KnexClient {
       and i.oid<>0
       AND f.attnum > 0
       ORDER BY i.relname, f.attnum;`,
-        [args.schema || this.schema, args.tn],
+        [this.schema, args.tn],
       );
       result.data.list = rows;
     } catch (e) {
@@ -1004,211 +1026,6 @@ class PGClient extends KnexClient {
     }
 
     log.api(`${_func}: result`, result);
-
-    return result;
-  }
-
-  /**
-   *
-   * @param {Object} - args
-   * @param {String} - args.tn
-   * @param {String} - args.indexName
-   * @param {String} - args.non_unique
-   * @param {String[]} - args.columns
-   * @returns {Promise<{upStatement, downStatement}>}
-   */
-  async indexCreate(args) {
-    const _func = this.indexCreate.name;
-    const result = new Result();
-    log.api(`${_func}:args:`, args);
-
-    const indexName = args.indexName || null;
-
-    try {
-      args.table = args.schema ? `${args.schema}.${args.tn}` : args.tn;
-
-      // s = await this.sqlClient.schema.index(Object.keys(args.columns));
-      await this.sqlClient.schema.table(args.table, function (table) {
-        if (args.non_unique) {
-          table.index(args.columns, indexName);
-        } else {
-          table.unique(args.columns, indexName);
-        }
-      });
-
-      const upStatement =
-        this.querySeparator() +
-        this.sqlClient.schema
-          .table(args.table, function (table) {
-            if (args.non_unique) {
-              table.index(args.columns, indexName);
-            } else {
-              table.unique(args.columns, indexName);
-            }
-          })
-          .toQuery();
-
-      this.emit(`Success : ${upStatement}`);
-
-      const downStatement =
-        this.querySeparator() +
-        this.sqlClient.schema
-          .table(args.table, function (table) {
-            if (args.non_unique) {
-              table.dropIndex(args.columns, indexName);
-            } else {
-              table.dropUnique(args.columns, indexName);
-            }
-          })
-          .toQuery();
-
-      result.data.object = {
-        upStatement: [{ sql: upStatement }],
-        downStatement: [{ sql: downStatement }],
-      };
-
-      // result.data.object = {
-      //   upStatement,
-      //   downStatement
-      // };
-    } catch (e) {
-      log.ppe(e, _func);
-      throw e;
-    }
-
-    return result;
-  }
-
-  /**
-   *
-   * @param {Object} - args
-   * @param {String} - args.tn
-   * @param {String[]} - args.columns
-   * @param {String} - args.indexName
-   * @param {String} - args.non_unique
-   * @returns {Promise<{upStatement, downStatement}>}
-   */
-  async indexDelete(args) {
-    const _func = this.indexDelete.name;
-    const result = new Result();
-    log.api(`${_func}:args:`, args);
-
-    const indexName = args.indexName || null;
-
-    try {
-      args.table = args.schema ? `${args.schema}.${args.tn}` : args.tn;
-
-      // s = await this.sqlClient.schema.index(Object.keys(args.columns));
-      await this.sqlClient.schema.table(args.table, function (table) {
-        if (args.non_unique_original) {
-          table.dropIndex(args.columns, indexName);
-        } else {
-          table.dropUnique(args.columns, indexName);
-        }
-      });
-
-      const upStatement =
-        this.querySeparator() +
-        this.sqlClient.schema
-          .table(args.table, function (table) {
-            if (args.non_unique_original) {
-              table.dropIndex(args.columns, indexName);
-            } else {
-              table.dropUnique(args.columns, indexName);
-            }
-          })
-          .toQuery();
-
-      this.emit(`Success : ${upStatement}`);
-
-      const downStatement =
-        this.querySeparator() +
-        this.sqlClient.schema
-          .table(args.table, function (table) {
-            if (args.non_unique_original) {
-              table.index(args.columns, indexName);
-            } else {
-              table.unique(args.columns, indexName);
-            }
-          })
-          .toQuery();
-
-      result.data.object = {
-        upStatement: [{ sql: upStatement }],
-        downStatement: [{ sql: downStatement }],
-      };
-    } catch (e) {
-      log.ppe(e, _func);
-      throw e;
-    }
-
-    return result;
-  }
-
-  /**
-   *
-   * @param {Object} - args
-   * @param {String} - args.parentTable
-   * @param {String} - args.parentColumn
-   * @param {String} - args.childColumn
-   * @param {String} - args.childTable
-   * @returns {Promise<{upStatement, downStatement}>}
-   */
-  async relationCreate(args) {
-    const _func = this.relationCreate.name;
-    const result = new Result();
-    log.api(`${_func}:args:`, args);
-
-    const foreignKeyName = args.foreignKeyName || null;
-
-    args.childTableWithSchema = args.schema
-      ? `${args.schema}.${args.childTable}`
-      : args.childTable;
-
-    args.parentTableWithSchema = args.schema
-      ? `${args.schema}.${args.parentTable}`
-      : args.parentTable;
-
-    try {
-      const upQb = this.sqlClient.schema.table(
-        args.childTableWithSchema,
-        function (table) {
-          table = table
-            .foreign(args.childColumn, foreignKeyName)
-            .references(args.parentColumn)
-            .on(args.parentTableWithSchema);
-
-          if (args.onUpdate) {
-            table = table.onUpdate(args.onUpdate);
-          }
-          if (args.onDelete) {
-            table.onDelete(args.onDelete);
-          }
-        },
-      );
-
-      await upQb;
-
-      const upStatement = this.querySeparator() + upQb.toQuery();
-
-      this.emit(`Success : ${upStatement}`);
-
-      const downStatement =
-        this.querySeparator() +
-        this.sqlClient.schema
-          .table(args.childTableWithSchema, function (table) {
-            table.dropForeign(args.childColumn, foreignKeyName);
-          })
-          .toQuery();
-
-      result.data.object = {
-        upStatement: [{ sql: upStatement }],
-        downStatement: [{ sql: downStatement }],
-      };
-    } catch (e) {
-      log.ppe(e, _func);
-      throw e;
-    }
 
     return result;
   }
@@ -1230,13 +1047,9 @@ class PGClient extends KnexClient {
 
     const foreignKeyName = args.foreignKeyName || null;
 
-    args.childTableWithSchema = args.schema
-      ? `${args.schema}.${args.childTable}`
-      : args.childTable;
+    args.childTableWithSchema = args.childTable;
 
-    args.parentTableWithSchema = args.schema
-      ? `${args.schema}.${args.parentTable}`
-      : args.parentTable;
+    args.parentTableWithSchema = args.parentTable;
 
     try {
       // const self = this;
@@ -1295,7 +1108,8 @@ class PGClient extends KnexClient {
     const result = new Result();
     log.api(`${_func}:args:`, args);
     try {
-      const response = await this.sqlClient.raw(`
+      const response = await this.sqlClient.raw(
+        `
       SELECT c.conname AS cstn,
           CASE
               WHEN c.contype = 'u' THEN 'UNIQUE'
@@ -1312,9 +1126,11 @@ class PGClient extends KnexClient {
            JOIN pg_class tbl ON tbl.oid = c.conrelid
            JOIN pg_namespace sch ON sch.oid = tbl.relnamespace
            JOIN pg_attribute col ON (col.attrelid = tbl.oid AND col.attnum = u.attnum)
-        where tbl.relname='${args.tn}'
+        where tbl.relname=?
         GROUP BY constraint_name, col.attnum, constraint_type, "schema", "table", definition
-        ORDER BY "schema", "table"; `);
+        ORDER BY "schema", "table"; `,
+        [args.tn],
+      );
 
       const rows = [];
       for (let i = 0, rowCount = 0; i < response.rows.length; ++i, ++rowCount) {
@@ -1394,8 +1210,8 @@ class PGClient extends KnexClient {
           LEFT JOIN pg_class f_tbl ON f_tbl.oid = pc.confrelid
           LEFT JOIN pg_namespace f_sch ON f_sch.oid = f_tbl.relnamespace
           LEFT JOIN pg_attribute f_col ON (f_col.attrelid = f_tbl.oid AND f_col.attnum = f_u.attnum)
-        WHERE pc.contype = 'f' AND sch.nspname = ? AND f_sch.nspname = sch.nspname AND tbl.relname='${args.tn}';`,
-        [args.schema || this.schema],
+        WHERE pc.contype = 'f' AND sch.nspname = ? AND f_sch.nspname = sch.nspname AND tbl.relname=?;`,
+        [this.schema, args.tn],
       );
 
       const ruleMapping = {
@@ -1465,7 +1281,7 @@ class PGClient extends KnexClient {
           LEFT JOIN pg_attribute f_col ON (f_col.attrelid = f_tbl.oid AND f_col.attnum = f_u.attnum)
         WHERE pc.contype = 'f' AND sch.nspname = ?
         ORDER BY tn;`,
-        [args.schema || this.schema],
+        [this.schema],
       );
 
       const ruleMapping = {
@@ -1517,8 +1333,8 @@ class PGClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const { rows } = await this.sqlClient.raw(
-        `select * from information_schema.triggers where trigger_schema=? and event_object_table='${args.tn}'`,
-        [args.schema || this.schema],
+        `select * from information_schema.triggers where trigger_schema=? and event_object_table=?`,
+        [this.schema, args.tn],
       );
 
       for (let i = 0; i < rows.length; ++i) {
@@ -1568,7 +1384,7 @@ class PGClient extends KnexClient {
                      JOIN pg_catalog.pg_proc p
                           ON pronamespace = n.oid
               WHERE nspname = ?;`,
-        [args.schema || this.schema],
+        [this.schema],
       );
       const functionRows = [];
       for (let i = 0; i < rows.length; ++i) {
@@ -1623,7 +1439,7 @@ class PGClient extends KnexClient {
                      JOIN pg_catalog.pg_proc p
                           ON pronamespace = n.oid
               WHERE nspname = ?;`,
-        [args.schema || this.schema],
+        [this.schema],
       );
       const procedureRows = [];
       for (let i = 0; i < rows.length; ++i) {
@@ -1665,7 +1481,7 @@ class PGClient extends KnexClient {
         `select *
            from INFORMATION_SCHEMA.views
            WHERE table_schema = ?;`,
-        [args.schema || this.schema],
+        [this.schema],
       );
 
       for (let i = 0; i < rows.length; ++i) {
@@ -1702,8 +1518,8 @@ class PGClient extends KnexClient {
       const { rows } = await this.sqlClient.raw(
         `SELECT format('%I.%I(%s)', ns.nspname, p.proname, oidvectortypes(p.proargtypes)) as function_declaration, pg_get_functiondef(p.oid) as create_function
                 FROM pg_proc p INNER JOIN pg_namespace ns ON (p.pronamespace = ns.oid)
-            WHERE ns.nspname = ? and p.proname = '${args.function_name}';`,
-        [args.schema || this.schema],
+            WHERE ns.nspname = ? and p.proname = ?;`,
+        [this.schema, args.function_name],
       );
 
       // log.debug(response);
@@ -1742,9 +1558,9 @@ class PGClient extends KnexClient {
     try {
       args.databaseName = this.connectionConfig.connection.database;
 
-      const response = await this.sqlClient.raw(
-        `show create procedure ${args.procedure_name};`,
-      );
+      const response = await this.sqlClient.raw(`show create procedure ?;`, [
+        args.procedure_name,
+      ]);
       const rows = [];
 
       if (response.length === 2) {
@@ -1782,7 +1598,8 @@ class PGClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const { rows } = await this.sqlClient.raw(
-        `select * from INFORMATION_SCHEMA.views WHERE table_name='${args.view_name}' and table_schema = ANY (current_schemas(false));`,
+        `select * from INFORMATION_SCHEMA.views WHERE table_name=? and table_schema = ANY (current_schemas(false));`,
+        [args.view_name],
       );
 
       for (let i = 0; i < rows.length; ++i) {
@@ -1809,7 +1626,8 @@ class PGClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const response = await this.sqlClient.raw(
-        `SHOW FULL TABLES IN ${args.databaseName} WHERE TABLE_TYPE LIKE 'VIEW';`,
+        `SHOW FULL TABLES IN ?? WHERE TABLE_TYPE LIKE 'VIEW';`,
+        [args.databaseName],
       );
       let rows = [];
 
@@ -1842,7 +1660,7 @@ class PGClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      await this.sqlClient.raw(`create database ${args.database_name}`);
+      await this.sqlClient.raw(`create database ??`, [args.database_name]);
     } catch (e) {
       log.ppe(e, _func);
       throw e;
@@ -1859,7 +1677,7 @@ class PGClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      await this.sqlClient.raw(`drop database ${args.database_name}`);
+      await this.sqlClient.raw(`drop database ??`, [args.database_name]);
     } catch (e) {
       log.ppe(e, _func);
       throw e;
@@ -1917,7 +1735,9 @@ class PGClient extends KnexClient {
     log.api(`${_func}:args:`, args);
     const upQuery =
       this.querySeparator() +
-      `DROP FUNCTION IF EXISTS ${args.function_declaration}`;
+      `DROP FUNCTION IF EXISTS ${this.genIdentifier(
+        args.function_declaration,
+      )}`;
     const downQuery = this.querySeparator() + args.create_function;
     try {
       await this.sqlClient.raw(upQuery);
@@ -1942,7 +1762,7 @@ class PGClient extends KnexClient {
     log.api(`${_func}:args:`, args);
     try {
       await this.sqlClient.raw(
-        `DROP PROCEDURE IF EXISTS ${args.procedure_name}`,
+        `DROP PROCEDURE IF EXISTS ${this.genIdentifier(args.procedure_name)}`,
       );
     } catch (e) {
       log.ppe(e, _func);
@@ -2008,7 +1828,9 @@ class PGClient extends KnexClient {
 
       const downQuery =
         this.querySeparator() +
-        `DROP FUNCTION IF EXISTS ${functionCreated.data.list[0].function_declaration}`;
+        `DROP FUNCTION IF EXISTS ${this.genIdentifier(
+          functionCreated.data.list[0].function_declaration,
+        )}`;
 
       result.data.object = {
         upStatement: [{ sql: upQuery }],
@@ -2041,7 +1863,9 @@ class PGClient extends KnexClient {
       let downQuery = this.querySeparator() + args.oldCreateFunction;
 
       await this.sqlClient.raw(
-        `DROP FUNCTION IF EXISTS ${args.function_declaration};`,
+        `DROP FUNCTION IF EXISTS ${this.genIdentifier(
+          args.function_declaration,
+        )};`,
       );
       await this.sqlClient.raw(upQuery);
 
@@ -2050,8 +1874,9 @@ class PGClient extends KnexClient {
       });
 
       downQuery =
-        `DROP FUNCTION IF EXISTS ${functionCreated.data.list[0].function_declaration};` +
-        downQuery;
+        `DROP FUNCTION IF EXISTS ${this.genIdentifier(
+          functionCreated.data.list[0].function_declaration,
+        )};` + downQuery;
 
       result.data.object = {
         upStatement: [{ sql: upQuery }],
@@ -2084,11 +1909,15 @@ class PGClient extends KnexClient {
     try {
       const upQuery =
         this.querySeparator() +
-        `CREATE TRIGGER \`${args.procedure_name}\` \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`;
+        `CREATE TRIGGER ${this.genIdentifier(args.procedure_name)} \n${
+          args.timing
+        } ${args.event}\nON ${this.genIdentifier(args.tn)} FOR EACH ROW\n${
+          args.statement
+        }`;
       await this.sqlClient.raw(upQuery);
       const downQuery =
         this.querySeparator() +
-        `DROP PROCEDURE IF EXISTS ${args.procedure_name}`;
+        `DROP PROCEDURE IF EXISTS ${this.genIdentifier(args.procedure_name)}`;
       result.data.object = {
         upStatement: [{ sql: upQuery }],
         downStatement: [{ sql: downQuery }],
@@ -2121,7 +1950,11 @@ class PGClient extends KnexClient {
         this.querySeparator() + `DROP TRIGGER ${args.procedure_name}`;
       const upQuery =
         this.querySeparator() +
-        `CREATE TRIGGER \`${args.procedure_name}\` \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`;
+        `CREATE TRIGGER ${this.genIdentifier(args.procedure_name)} \n${
+          args.timing
+        } ${args.event}\nON ${this.genIdentifier(args.tn)} FOR EACH ROW\n${
+          args.statement
+        }`;
 
       await this.sqlClient.raw(query);
       await this.sqlClient.raw(upQuery);
@@ -2155,12 +1988,20 @@ class PGClient extends KnexClient {
     try {
       const upQuery =
         this.querySeparator() +
-        `CREATE TRIGGER ${args.trigger_name} \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`;
+        `CREATE TRIGGER ${this.genIdentifier(args.trigger_name)} \n${
+          args.timing
+        } ${args.event}\nON ${this.genIdentifier(args.tn)} FOR EACH ROW\n${
+          args.statement
+        }`;
       await this.sqlClient.raw(upQuery);
       result.data.object = {
         upStatement: [{ sql: upQuery }],
         downStatement: [
-          { sql: this.querySeparator() + `DROP TRIGGER ${args.trigger_name}` },
+          {
+            sql:
+              this.querySeparator() +
+              `DROP TRIGGER ${this.genIdentifier(args.trigger_name)}`,
+          },
         ],
       };
     } catch (e) {
@@ -2188,23 +2029,37 @@ class PGClient extends KnexClient {
     log.api(`${func}:args:`, args);
     try {
       await this.sqlClient.raw(
-        `DROP TRIGGER ${args.trigger_name} ON ${args.tn}`,
+        `DROP TRIGGER ${this.genIdentifier(
+          args.trigger_name,
+        )} ON ${this.genIdentifier(args.tn)}`,
       );
       await this.sqlClient.raw(
-        `CREATE TRIGGER ${args.trigger_name} \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`,
+        `CREATE TRIGGER ${this.genIdentifier(args.trigger_name)} \n${
+          args.timing
+        } ${args.event}\nON ${this.genIdentifier(args.tn)} FOR EACH ROW\n${
+          args.statement
+        }`,
       );
 
       result.data.object = {
         upStatement:
           this.querySeparator() +
-          `DROP TRIGGER ${args.trigger_name} ON ${
-            args.tn
-          };${this.querySeparator()}CREATE TRIGGER ${args.trigger_name} \n${
-            args.timing
-          } ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`,
+          `DROP TRIGGER ${this.genIdentifier(
+            args.trigger_name,
+          )} ON ${this.genIdentifier(
+            args.tn,
+          )};${this.querySeparator()}CREATE TRIGGER ${this.genIdentifier(
+            args.trigger_name,
+          )} \n${args.timing} ${args.event}\nON ${this.genIdentifier(
+            args.tn,
+          )} FOR EACH ROW\n${args.statement}`,
         downStatement:
           this.querySeparator() +
-          `CREATE TRIGGER ${args.trigger_name} \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.oldStatement}`,
+          `CREATE TRIGGER ${this.genIdentifier(args.trigger_name)} \n${
+            args.timing
+          } ${args.event}\nON ${this.genIdentifier(args.tn)} FOR EACH ROW\n${
+            args.oldStatement
+          }`,
       };
     } catch (e) {
       log.ppe(e, func);
@@ -2233,7 +2088,11 @@ class PGClient extends KnexClient {
       result.data.object = {
         upStatement: [{ sql: this.querySeparator() + query }],
         downStatement: [
-          { sql: this.querySeparator() + `DROP VIEW "${args.view_name}"` },
+          {
+            sql:
+              this.querySeparator() +
+              `DROP VIEW ${this.genIdentifier(args.view_name)}`,
+          },
         ],
       };
     } catch (e) {
@@ -2258,14 +2117,18 @@ class PGClient extends KnexClient {
     const result = new Result();
     log.api(`${func}:args:`, args);
     try {
-      const query = `CREATE OR REPLACE VIEW "${args.view_name}" AS \n${args.view_definition}`;
+      const query = `CREATE OR REPLACE VIEW ${this.genIdentifier(
+        args.view_name,
+      )} AS \n${args.view_definition}`;
 
       await this.sqlClient.raw(query);
       result.data.object = {
         upStatement: this.querySeparator() + query,
         downStatement:
           this.querySeparator() +
-          `CREATE VIEW "${args.view_name}" AS \n${args.oldViewDefination}`,
+          `CREATE VIEW ${this.genIdentifier(args.view_name)} AS \n${
+            args.oldViewDefination
+          }`,
       };
     } catch (e) {
       log.ppe(e, func);
@@ -2290,7 +2153,7 @@ class PGClient extends KnexClient {
     log.api(`${func}:args:`, args);
     // `DROP TRIGGER ${args.view_name}`
     try {
-      const query = `DROP VIEW ${args.view_name}`;
+      const query = `DROP VIEW ${this.genIdentifier(args.view_name)}`;
 
       await this.sqlClient.raw(query);
 
@@ -2300,7 +2163,9 @@ class PGClient extends KnexClient {
           {
             sql:
               this.querySeparator() +
-              `CREATE VIEW "${args.view_name}" AS \n${args.oldViewDefination}`,
+              `CREATE VIEW ${this.genIdentifier(args.view_name)} AS \n${
+                args.oldViewDefination
+              }`,
           },
         ],
       };
@@ -2389,12 +2254,8 @@ class PGClient extends KnexClient {
     for (let i = 0; i < args.columns.length; i++) {
       const column = args.columns[i];
       if (column.au) {
-        const triggerFnName = args.schema
-          ? `xc_au_${args.schema}_${args.tn}_${column.cn}`
-          : `xc_au_${args.tn}_${column.cn}`;
-        const triggerName = args.schema
-          ? `xc_trigger_${args.schema}_${args.tn}_${column.cn}`
-          : `xc_trigger_${args.tn}_${column.cn}`;
+        const triggerFnName = `xc_au_${args.tn}_${column.cn}`;
+        const triggerName = `xc_trigger_${args.tn}_${column.cn}`;
 
         const triggerFnQuery = this.genQuery(
           `CREATE OR REPLACE FUNCTION ??()
@@ -2416,18 +2277,14 @@ class PGClient extends KnexClient {
             BEFORE UPDATE ON ??
             FOR EACH ROW
             EXECUTE PROCEDURE ??();`,
-            [
-              triggerName,
-              args.schema ? `${args.schema}.${args.tn}` : args.tn,
-              triggerFnName,
-            ],
+            [triggerName, args.tn, triggerFnName],
           );
 
         downQuery +=
           this.querySeparator() +
           this.genQuery(`DROP TRIGGER IF EXISTS ?? ON ??;`, [
             triggerName,
-            args.schema ? `${args.schema}.${args.tn}` : args.tn,
+            args.tn,
           ]) +
           this.querySeparator() +
           this.genQuery(`DROP FUNCTION IF EXISTS ??()`, [triggerFnName]);
@@ -2448,12 +2305,8 @@ class PGClient extends KnexClient {
     for (let i = 0; i < args.columns.length; i++) {
       const column = args.columns[i];
       if (column.au && column.altered === 1) {
-        const triggerFnName = args.schema
-          ? `xc_au_${args.schema}_${args.tn}_${column.cn}`
-          : `xc_au_${args.tn}_${column.cn}`;
-        const triggerName = args.schema
-          ? `xc_trigger_${args.schema}_${args.tn}_${column.cn}`
-          : `xc_trigger_${args.tn}_${column.cn}`;
+        const triggerFnName = `xc_au_${args.tn}_${column.cn}`;
+        const triggerName = `xc_trigger_${args.tn}_${column.cn}`;
 
         const triggerFnQuery = this.genQuery(
           `CREATE OR REPLACE FUNCTION ??()
@@ -2475,11 +2328,7 @@ class PGClient extends KnexClient {
             BEFORE UPDATE ON ??
             FOR EACH ROW
             EXECUTE PROCEDURE ??();`,
-            [
-              triggerName,
-              args.schema ? `${args.schema}.${args.tn}` : args.tn,
-              triggerFnName,
-            ],
+            [triggerName, args.tn, triggerFnName],
           );
 
         downQuery +=
@@ -2532,7 +2381,7 @@ class PGClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      args.table = args.schema ? `${args.schema}.${args.tn}` : args.tn;
+      args.table = args.tn;
       const originalColumns = args.originalColumns;
       args.connectionConfig = this._connectionConfig;
       args.sqlClient = this.sqlClient;
@@ -2653,9 +2502,7 @@ class PGClient extends KnexClient {
       /** ************** create up & down statements *************** */
       const upStatement =
         this.querySeparator() +
-        this.sqlClient.schema
-          .dropTable(args.schema ? `${args.schema}.${args.tn}` : args.tn)
-          .toString();
+        this.sqlClient.schema.dropTable(args.tn).toString();
       let downQuery = this.createTable(args.tn, args);
 
       /**
@@ -2691,7 +2538,7 @@ class PGClient extends KnexClient {
                 table = table.onUpdate(relation.ur);
               }
               if (relation.dr) {
-                table = table.onDelete(relation.dr);
+                table.onDelete(relation.dr);
               }
             })
             .toQuery());
@@ -2736,9 +2583,7 @@ class PGClient extends KnexClient {
       this.emit(`Success : ${upStatement}`);
 
       /** ************** drop tn *************** */
-      await this.sqlClient.schema.dropTable(
-        args.schema ? `${args.schema}.${args.tn}` : args.tn,
-      );
+      await this.sqlClient.schema.dropTable(args.tn);
 
       /** ************** return files *************** */
       result.data.object = {
@@ -3012,9 +2857,7 @@ class PGClient extends KnexClient {
 
     query += this.alterTablePK(table, args.columns, [], query, true);
 
-    query = this.genQuery(`CREATE TABLE ?? (${query});`, [
-      args.schema ? `${args.schema}.${args.tn}` : args.tn,
-    ]);
+    query = this.genQuery(`CREATE TABLE ?? (${query});`, [args.tn]);
 
     return query;
   }
@@ -3165,7 +3008,7 @@ class PGClient extends KnexClient {
 
       /** ************** create table *************** */
       await this.sqlClient.schema.renameTable(
-        this.sqlClient.raw('??.??', [args.schema || this.schema, args.tn_old]),
+        this.sqlClient.raw('??.??', [this.schema, args.tn_old]),
         args.tn,
       );
 
@@ -3174,7 +3017,7 @@ class PGClient extends KnexClient {
         this.querySeparator() +
         this.sqlClient.schema
           .renameTable(
-            this.sqlClient.raw('??.??', [args.schema || this.schema, args.tn]),
+            this.sqlClient.raw('??.??', [this.schema, args.tn]),
             args.tn_old,
           )
           .toQuery();
@@ -3185,10 +3028,7 @@ class PGClient extends KnexClient {
         this.querySeparator() +
         this.sqlClient.schema
           .renameTable(
-            this.sqlClient.raw('??.??', [
-              args.schema || this.schema,
-              args.tn_old,
-            ]),
+            this.sqlClient.raw('??.??', [this.schema, args.tn_old]),
             args.tn,
           )
           .toQuery();

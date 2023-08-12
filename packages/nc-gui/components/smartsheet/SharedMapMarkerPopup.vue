@@ -5,7 +5,6 @@ import type { Ref } from 'vue'
 import { isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
-  FieldsInj,
   IsFormInj,
   IsGridInj,
   MetaInj,
@@ -18,7 +17,7 @@ import {
   ref,
   useViewData,
 } from '#imports'
-import type { Row } from '~/lib'
+import type { Row } from '#imports'
 
 const props = defineProps<{
   fields: ColumnType[]
@@ -33,8 +32,6 @@ const { loadData } = useViewData(meta, view)
 
 provide(IsFormInj, ref(false))
 provide(IsGridInj, ref(false))
-
-const fields = inject(FieldsInj, ref([]))
 
 const isRowEmpty = (record: any, col: any) => {
   const val = record.row[col.title]
@@ -55,19 +52,19 @@ provide(ReloadRowDataHookInj, reloadViewDataHook)
 
 const currentRow = toRef(props, 'row')
 
-const { row } = useProvideSmartsheetRowStore(meta as Ref<TableType>, currentRow)
+useProvideSmartsheetRowStore(meta as Ref<TableType>, currentRow)
 </script>
 
 <template>
-  <LazySmartsheetRow :row="row">
+  <LazySmartsheetRow :row="currentRow">
     <a-card
       hoverable
       class="!rounded-lg h-full overflow-hidden break-all max-w-[450px]"
-      :data-testid="`nc-shared-map-marker-popup-card-${row.row.id}`"
+      :data-testid="`nc-shared-map-marker-popup-card-${currentRow.row.id}`"
     >
-      <div v-for="col in fields" :key="`record-${row.row.id}-${col.id}`">
+      <div v-for="col in fields" :key="`record-${currentRow.row.id}-${col.id}`">
         <div
-          v-if="!isRowEmpty(row, col) || isLTAR(col.uidt)"
+          v-if="!isRowEmpty(currentRow, col) || isLTAR(col.uidt)"
           class="flex flex-col space-y-1 px-4 mb-6 bg-gray-50 rounded-lg w-full"
         >
           <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">
@@ -79,9 +76,20 @@ const { row } = useProvideSmartsheetRowStore(meta as Ref<TableType>, currentRow)
           </div>
 
           <div class="flex flex-row w-full pb-3 pt-2 pl-2 items-center justify-start">
-            <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :column="col" :row="row" />
+            <LazySmartsheetVirtualCell
+              v-if="isVirtualCol(col)"
+              v-model="currentRow.row[col.title]"
+              :column="col"
+              :row="currentRow"
+            />
 
-            <LazySmartsheetCell v-else v-model="row.row[col.title]" :column="col" :edit-enabled="false" :read-only="true" />
+            <LazySmartsheetCell
+              v-else
+              v-model="currentRow.row[col.title]"
+              :column="col"
+              :edit-enabled="false"
+              :read-only="true"
+            />
           </div>
         </div>
       </div>

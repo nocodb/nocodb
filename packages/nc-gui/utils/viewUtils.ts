@@ -3,12 +3,12 @@ import type { Language } from '../lib'
 import { iconMap } from './iconUtils'
 
 export const viewIcons: Record<number | string, { icon: any; color: string }> = {
-  [ViewTypes.GRID]: { icon: iconMap.grid, color: '#2b39f3' },
-  [ViewTypes.FORM]: { icon: iconMap.form, color: '#c00145' },
+  [ViewTypes.GRID]: { icon: iconMap.grid, color: '#36BFFF' },
+  [ViewTypes.FORM]: { icon: iconMap.form, color: '#7D26CD' },
   calendar: { icon: iconMap.calendar, color: 'purple' },
-  [ViewTypes.GALLERY]: { icon: iconMap.gallery, color: '#bd4200' },
+  [ViewTypes.GALLERY]: { icon: iconMap.gallery, color: '#FC3AC6' },
   [ViewTypes.MAP]: { icon: iconMap.map, color: 'blue' },
-  [ViewTypes.KANBAN]: { icon: iconMap.kanban, color: '#007300' },
+  [ViewTypes.KANBAN]: { icon: iconMap.kanban, color: '#FF9052' },
   view: { icon: iconMap.view, color: 'blue' },
 }
 

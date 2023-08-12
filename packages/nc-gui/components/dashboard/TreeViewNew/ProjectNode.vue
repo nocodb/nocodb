@@ -1,16 +1,19 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
-import { Dropdown, message } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import { useTitle } from '@vueuse/core'
-import TableList from './TableList.vue'
-import { openLink, useProjects } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils'
-import { ProjectInj, ProjectRoleInj, ToggleDialogInj } from '~/context'
-import type { NcProject } from '~~/lib'
-import { isElementInvisible } from '~~/utils/domUtils'
-import { useWorkspace } from '~/store/workspace'
+import type { NcProject } from '#imports'
+import {
+  ProjectInj,
+  ProjectRoleInj,
+  ToggleDialogInj,
+  extractSdkResponseErrorMsg,
+  isElementInvisible,
+  openLink,
+  useProjects,
+} from '#imports'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
@@ -21,7 +24,7 @@ const indicator = h(LoadingOutlined, {
 })
 
 const router = useRouter()
-const route = $(router.currentRoute)
+const route = router.currentRoute
 
 const { setMenuContext, openRenameTableDialog, duplicateTable, contextMenuTarget } = inject(TreeViewInj)!
 
@@ -29,17 +32,11 @@ const project = inject(ProjectInj)!
 
 const projectsStore = useProjects()
 
-const workspaceStore = useWorkspace()
-
 const { loadProject, createProject: _createProject, updateProject, getProjectMetaInfo } = projectsStore
 const { projects } = storeToRefs(projectsStore)
 
-const { activeWorkspace } = storeToRefs(workspaceStore)
-
 const { loadProjectTables } = useTablesStore()
 const { activeTable } = storeToRefs(useTablesStore())
-
-const { addNewLayout } = useDashboardStore()
 
 const { appInfo } = useGlobal()
 
@@ -61,13 +58,7 @@ const { projectUrl } = useProject()
 
 const toggleDialog = inject(ToggleDialogInj, () => {})
 
-const { addNewPage, populatedNestedPages } = useDocStore()
-
-const { getDashboardProjectUrl: dashboardProjectUrl, populateLayouts } = useDashboardStore()
-
-const activeProjectId = computed(() => route.params.projectId as string | undefined)
-
-const { projectUrl: docsProjectUrl } = useDocStore()
+const activeProjectId = computed(() => route.value.params.projectId as string | undefined)
 
 const { $e } = useNuxtApp()
 
@@ -76,14 +67,14 @@ const isBasesOptionsOpen = ref<Record<string, boolean>>({})
 
 const activeKey = ref<string[]>([])
 const [searchActive] = useToggle()
-const filterQuery = $ref('')
-const keys = $ref<Record<string, number>>({})
+const filterQuery = ref('')
+const keys = ref<Record<string, number>>({})
 const isTableDeleteDialogVisible = ref(false)
 const isProjectDeleteDialogVisible = ref(false)
 
 // If only project is open, i.e in case of docs, project view is open and not the page view
 const projectViewOpen = computed(() => {
-  const routeNameSplit = String(route?.name).split('projectId-index-index')
+  const routeNameSplit = String(route.value?.name).split('projectId-index-index')
   if (routeNameSplit.length <= 1) return false
 
   const routeNameAfterProjectView = routeNameSplit[routeNameSplit.length - 1]
@@ -116,11 +107,6 @@ const updateProjectTitle = async () => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
-}
-
-const closeEditMode = () => {
-  editMode.value = false
-  tempTitle.value = ''
 }
 
 const { copy } = useCopy(true)
@@ -212,19 +198,7 @@ const addNewProjectChildEntity = async () => {
 
   isAddNewProjectChildEntityLoading.value = true
   try {
-    switch (project.value.type) {
-      case NcProjectType.DASHBOARD:
-        await populateLayouts({ projectId: project.value.id! })
-        await addNewLayout({ projectId: project.value!.id! })
-        break
-      case NcProjectType.DOCS:
-        await populatedNestedPages({ projectId: project.value.id! })
-        await addNewPage({ parentPageId: undefined, projectId: project.value!.id! })
-        break
-      case NcProjectType.DB:
-        openTableCreateDialog()
-        break
-    }
+    openTableCreateDialog()
 
     if (!project.value.isExpanded) {
       project.value.isExpanded = true
@@ -252,45 +226,18 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
 
   if (!isProjectPopulated) project.isLoading = true
 
-  // if dashboard or document project, add a document tab and route to the respective page
-  switch (project.type) {
-    case 'dashboard':
-      $e('c:dashboard:open', project.id)
-      await populateLayouts({ projectId: project.id! })
-      if (!ignoreNavigation) {
-        await navigateTo(dashboardProjectUrl(project.id!))
-      }
-      break
-    case 'documentation':
-      // addTab({
-      //   id: project.id,
-      //   title: project.title!,
-      //   type: TabType.DOCUMENT,
-      //   projectId: project.id,
-      // })
-      $e('c:document:open', project.id)
-      await populatedNestedPages({ projectId: project.id! })
-      if (!ignoreNavigation) {
-        await navigateTo(docsProjectUrl(project.id!))
-      }
-      break
-    case 'database':
-      if (!ignoreNavigation) {
-        await navigateTo(
-          projectUrl({
-            id: project.id!,
-            type: 'database',
-          }),
-        )
-      }
+  if (!ignoreNavigation) {
+    await navigateTo(
+      projectUrl({
+        id: project.id!,
+        type: 'database',
+      }),
+    )
+  }
 
-      if (!isProjectPopulated) {
-        await loadProject(project.id!)
-        await loadProjectTables(project.id!)
-      }
-      break
-    default:
-      throw new Error(`Unknown project type: ${project.type}`)
+  if (!isProjectPopulated) {
+    await loadProject(project.id!)
+    await loadProjectTables(project.id!)
   }
 
   if (!isProjectPopulated) {
@@ -299,26 +246,8 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
   }
 }
 
-function openSqlEditor(base: BaseType) {
-  navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/sql/${base.id}`)
-}
-
 function openErdView(base: BaseType) {
-  navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/erd/${base.id}`)
-}
-
-async function openProjectSqlEditor(_project: ProjectType) {
-  if (!_project.id) return
-
-  if (!projectsStore.isProjectPopulated(_project.id)) {
-    await loadProject(_project.id)
-  }
-
-  const project = projects.value.get(_project.id)
-
-  const base = project?.bases?.[0]
-  if (!base) return
-  navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/sql/${base.id}`)
+  navigateTo(`/ws/default/nc/${base.project_id}/erd/${base.id}`)
 }
 
 async function openProjectErdView(_project: ProjectType) {
@@ -332,7 +261,7 @@ async function openProjectErdView(_project: ProjectType) {
 
   const base = project?.bases?.[0]
   if (!base) return
-  navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/erd/${base.id}`)
+  navigateTo(`/ws/default/nc/${base.project_id}/erd/${base.id}`)
 }
 
 const reloadTables = async () => {
@@ -392,13 +321,13 @@ onKeyStroke('Escape', () => {
           ref="projectNodeRefs"
           :class="{
             'bg-primary-selected': activeProjectId === project.id && projectViewOpen,
-            'hover:bg-hover': !(activeProjectId === project.id && projectViewOpen),
+            'hover:bg-gray-200': !(activeProjectId === project.id && projectViewOpen),
           }"
           :data-testid="`nc-sidebar-project-title-${project.title}`"
           class="project-title-node h-7.25 flex-grow rounded-md group flex items-center w-full"
         >
           <div
-            class="nc-sidebar-expand ml-0.75 min-h-5.75 min-w-5.75 px-1.5 text-gray-500 hover:(hover:bg-gray-300 hover:bg-opacity-20 !text-black) rounded-md relative"
+            class="nc-sidebar-expand ml-0.75 min-h-5.75 min-w-5.75 px-1.5 text-gray-500 hover:(hover:bg-gray-500 hover:bg-opacity-15 !text-black) rounded-md relative"
             @click="onProjectClick(project, true, true)"
           >
             <PhTriangleFill
@@ -453,7 +382,7 @@ onKeyStroke('Escape', () => {
 
           <a-dropdown v-if="isUIAllowed('tableCreate', false, projectRole)" v-model:visible="isOptionsOpen" trigger="click">
             <MdiDotsHorizontal
-              class="min-w-5.75 min-h-5.75 px-0.5 py-0.5 mr-0.25 !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 opacity-0 group-hover:(opacity-100) hover:text-black text-gray-600 rounded-md hover:(bg-gray-300 bg-opacity-20)"
+              class="min-w-5.75 min-h-5.75 px-0.5 py-0.5 mr-0.25 !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 opacity-0 group-hover:(opacity-100) hover:text-black text-gray-600 rounded-md hover:(bg-gray-500 bg-opacity-15)"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
               data-testid="nc-sidebar-context-menu"
               @click.stop
@@ -476,7 +405,7 @@ onKeyStroke('Escape', () => {
                   </a-menu-item>
 
                   <!-- Copy Project Info -->
-                  <a-menu-item v-if="false" key="copy">
+                  <a-menu-item v-if="!isEeUI" key="copy">
                     <div v-e="['c:navbar:user:copy-proj-info']" class="nc-project-menu-item group" @click.stop="copyProjectInfo">
                       <GeneralIcon icon="copy" class="group-hover:text-black" />
                       {{ $t('activity.account.projInfo') }}
@@ -526,10 +455,7 @@ onKeyStroke('Escape', () => {
 
                 <a-menu-divider v-if="false" />
 
-                <a-menu-item
-                  v-if="isUIAllowed('projectDelete', false, [activeWorkspace.roles], true)"
-                  @click="isProjectDeleteDialogVisible = true"
-                >
+                <a-menu-item v-if="isUIAllowed('projectDelete', false, true)" @click="isProjectDeleteDialogVisible = true">
                   <div class="nc-project-menu-item group text-red-500">
                     <GeneralIcon icon="delete" />
                     {{ $t('general.delete') }}
@@ -541,7 +467,7 @@ onKeyStroke('Escape', () => {
 
           <div
             v-if="isUIAllowed('tableCreate', false, projectRole)"
-            class="min-h-5.75 min-w-5.75 mr-1 flex flex-row items-center justify-center gap-x-2 cursor-pointer hover:(text-black) text-gray-600 text-sm invisible !group-hover:visible rounded-md hover:(bg-gray-300 bg-opacity-20)"
+            class="min-h-5.75 min-w-5.75 mr-1 flex flex-row items-center justify-center gap-x-2 cursor-pointer hover:(text-black) text-gray-600 text-sm invisible !group-hover:visible rounded-md hover:(bg-gray-500 bg-opacity-15)"
             data-testid="nc-sidebar-add-project-entity"
             :class="{ '!text-black !visible': isAddNewProjectChildEntityLoading, '!visible': isOptionsOpen }"
             @click.stop="addNewProjectChildEntity"
@@ -560,17 +486,11 @@ onKeyStroke('Escape', () => {
         class="overflow-x-hidden transition-max-height"
         :class="{ 'max-h-0': !project.isExpanded }"
       >
-        <div v-if="project.type === 'documentation'">
-          <LazyDocsSideBar v-if="project.isExpanded" :project="project" />
-        </div>
-        <div v-else-if="project.type === 'dashboard'">
-          <LayoutsSideBar v-if="project.isExpanded" :project="project" />
-        </div>
-        <template v-else-if="project && project?.bases">
+        <template v-if="project && project?.bases">
           <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
             <div v-if="project?.bases?.[0]?.enabled" class="flex-1">
               <div class="transition-height duration-200">
-                <TableList :project="project" :base-index="0" />
+                <DashboardTreeViewNewTableList :project="project" :base-index="0" />
               </div>
             </div>
 
@@ -636,7 +556,7 @@ onKeyStroke('Escape', () => {
                               @update:visible="isBasesOptionsOpen[base!.id!] = $event"
                             >
                               <MdiDotsHorizontal
-                                class="min-w-6 min-h-6 mt-0.15 invisible nc-sidebar-base-node-btns !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 hover:text-black py-0.25 px-0.5 rounded-md text-gray-600 hover:(bg-gray-300 bg-opacity-20)"
+                                class="min-w-6 min-h-6 mt-0.15 invisible nc-sidebar-base-node-btns !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 hover:text-black py-0.25 px-0.5 rounded-md text-gray-600 hover:(bg-gray-400 bg-opacity-20)"
                                 :class="{ '!text-black !opacity-100': isBasesOptionsOpen[base!.id!] }"
                                 @click.stop="isBasesOptionsOpen[base!.id!] = !isBasesOptionsOpen[base!.id!]"
                               />
@@ -664,7 +584,7 @@ onKeyStroke('Escape', () => {
 
                             <div
                               v-if="isUIAllowed('tableCreate', false, projectRole)"
-                              class="flex invisible nc-sidebar-base-node-btns !focus:outline-0 text-gray-600 hover:text-black px-0.35 rounded-md hover:(bg-gray-300 bg-opacity-20) min-h-6 mt-0.15 min-w-6"
+                              class="flex invisible nc-sidebar-base-node-btns !focus:outline-0 text-gray-600 hover:text-black px-0.35 rounded-md hover:(bg-gray-500 bg-opacity-15) min-h-6 mt-0.15 min-w-6"
                               @click.stop="openTableCreateDialog(baseIndex)"
                             >
                               <component :is="iconMap.plus" class="text-inherit mt-0.25 h-5.5 w-5.5 py-0.5 !focus:outline-0" />
@@ -682,7 +602,7 @@ onKeyStroke('Escape', () => {
                         :key="`sortable-${base.id}-${base.id && base.id in keys ? keys[base.id] : '0'}`"
                         :nc-base="base.id"
                       >
-                        <TableList :project="project" :base-index="baseIndex" />
+                        <DashboardTreeViewNewTableList :project="project" :base-index="baseIndex" />
                       </div>
                     </a-collapse-panel>
                   </a-collapse>
@@ -695,34 +615,9 @@ onKeyStroke('Escape', () => {
     </div>
     <template v-if="!isSharedBase" #overlay>
       <a-menu class="!py-0 rounded text-sm">
-        <template v-if="contextMenuTarget.type === 'project' && project.type === 'database'">
-          <!--
-          <a-menu-item v-if="isUIAllowed('sqlEditor')" @click="openProjectSqlEditor(contextMenuTarget.value)">
-            <div class="nc-project-menu-item">SQL Editor</div>
-          </a-menu-item>
-          <a-menu-item @click="openProjectErdView(contextMenuTarget.value)">
-            <div class="nc-project-menu-item">
-              <GeneralIcon icon="erd" />
-              {{ $t('title.erdView') }}
-            </div>
-          </a-menu-item>
-          -->
-        </template>
+        <template v-if="contextMenuTarget.type === 'project' && project.type === 'database'"></template>
 
-        <template v-else-if="contextMenuTarget.type === 'base'">
-          <!--
-          <a-menu-item v-if="isUIAllowed('sqlEditor')" @click="openSqlEditor(contextMenuTarget.value)">
-            <div class="nc-project-menu-item">SQL Editor</div>
-          </a-menu-item>
-
-          <a-menu-item @click="openErdView(contextMenuTarget.value)">
-            <div class="nc-project-menu-item">
-              <GeneralIcon icon="erd" />
-              {{ $t('title.erdView') }}
-            </div>
-          </a-menu-item>
-          -->
-        </template>
+        <template v-else-if="contextMenuTarget.type === 'base'"></template>
 
         <template v-else-if="contextMenuTarget.type === 'table'">
           <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">

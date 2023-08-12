@@ -1,17 +1,7 @@
 <script setup lang="ts">
-import { ViewTypes } from 'nocodb-sdk'
-import {
-  IsPublicInj,
-  inject,
-  ref,
-  useSharedView,
-  useSidebar,
-  useSmartsheetStoreOrThrow,
-  useUIPermission,
-  useViewsStore,
-} from '#imports'
+import { IsPublicInj, inject, ref, useSharedView, useSmartsheetStoreOrThrow, useUIPermission, useViewsStore } from '#imports'
 
-const { isGrid, isForm, isGallery, isKanban, isMap, isSqlView } = useSmartsheetStoreOrThrow()
+const { isGrid, isForm, isGallery, isKanban, isMap } = useSmartsheetStoreOrThrow()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -26,7 +16,7 @@ const { allowCSVDownload } = useSharedView()
 
 <template>
   <div
-    class="nc-table-toolbar h-20 py-1 flex gap-2 items-center pr-2 pl-2.5 border-b border-gray-75 overflow-hidden"
+    class="nc-table-toolbar h-20 py-1 flex gap-2 items-center pr-2 pl-2.5 border-b border-gray-200 overflow-hidden"
     :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
     style="z-index: 7"
   >

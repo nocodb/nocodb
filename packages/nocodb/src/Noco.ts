@@ -8,20 +8,19 @@ import NcToolGui from 'nc-lib-gui';
 import { T } from 'nc-help';
 import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
-import { ExpressAdapter } from '@nestjs/platform-express';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import requestIp from 'request-ip';
 import cookieParser from 'cookie-parser';
-import { AppModule } from './app.module';
-import { NC_LICENSE_KEY } from './constants';
-import Store from './models/Store';
-import { MetaTable } from './utils/globals';
-import type { MetaService } from './meta/meta.service';
-import type { IEventEmitter } from './modules/event-emitter/event-emitter.interface';
+import type { MetaService } from '~/meta/meta.service';
+import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import type { Express } from 'express';
 // import type * as http from 'http';
 
 import type http from 'http';
+import { MetaTable } from '~/utils/globals';
+import Store from '~/models/Store';
+import { NC_LICENSE_KEY } from '~/constants';
+import { AppModule } from '~/app.module';
 
 dotenv.config();
 

@@ -3,8 +3,6 @@ import type { ColumnType, GalleryType, KanbanType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import type { SelectProps } from 'ant-design-vue'
-import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
-import { active } from 'sortablejs'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -24,8 +22,6 @@ import {
   useViewColumns,
   watch,
 } from '#imports'
-
-import FieldIcon from '~icons/nc-icons/eye'
 
 const meta = inject(MetaInj, ref())
 
@@ -302,7 +298,7 @@ useMenuCloseOnEsc(open)
 </script>
 
 <template>
-  <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-fields-menu">
+  <NcDropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-fields-menu">
     <div :class="{ 'nc-active-btn': numberOfHiddenFields }">
       <a-button v-e="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-2">
@@ -329,11 +325,7 @@ useMenuCloseOnEsc(open)
     </div>
 
     <template #overlay>
-      <div
-        class="p-6 pr-0 bg-white w-90 rounded-2xl nc-table-toolbar-menu border-1 border-gray-50 shadow-lg"
-        data-testid="nc-fields-menu"
-        @click.stop
-      >
+      <div class="p-6 pr-0 bg-white w-90 rounded-2xl nc-table-toolbar-menu" data-testid="nc-fields-menu" @click.stop>
         <div
           v-if="!filterQuery && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
           class="flex flex-col gap-y-2 pr-6 mb-6"
@@ -358,9 +350,9 @@ useMenuCloseOnEsc(open)
 
         <div
           v-if="!filterQuery"
-          class="pl-8 pr-2 mr-6 mt-3 py-2 justify-between flex flex-row items-center border-1 rounded-lg mb-2 border-gray-75 bg-gray-50"
+          class="pl-8 pr-2 mr-6 mt-3 py-2 justify-between flex flex-row items-center border-1 rounded-lg mb-2 border-gray-100 bg-gray-50"
         >
-          <div class="ml-0.25 select-none">Show all fields</div>
+          <div class="ml-0.25 select-none">{{ $t('general.showAll') }} {{ $t('objects.fields').toLowerCase() }}</div>
           <NcSwitch v-model:checked="showAllColumns" />
         </div>
 
@@ -370,7 +362,9 @@ useMenuCloseOnEsc(open)
 
         <div class="flex flex-col nc-scrollbar-md max-h-[35vh] pt-1 pr-5">
           <div class="nc-fields-list py-1">
-            <div v-if="!fields?.filter((el) => el.title.includes(filterQuery)).length" class="px-3 py-2 text-gray-500">Empty</div>
+            <div v-if="!fields?.filter((el) => el.title.includes(filterQuery)).length" class="px-0.5 py-2 text-gray-500">
+              Empty
+            </div>
             <Draggable v-model="fields" item-key="id" @change="onMove($event)">
               <template #item="{ element: field, index: index }">
                 <div
@@ -380,7 +374,7 @@ useMenuCloseOnEsc(open)
                       .includes(field)
                   "
                   :key="field.id"
-                  class="px-2 py-2 flex flex-row items-center border-1 rounded-lg mb-2 border-gray-75"
+                  class="px-2 py-2 flex flex-row items-center border-1 rounded-lg mb-2 border-gray-100"
                   :data-testid="`nc-fields-menu-${field.title}`"
                   @click.stop
                 >
@@ -406,7 +400,7 @@ useMenuCloseOnEsc(open)
                 <div
                   v-if="gridDisplayValueField && filteredFieldList[0].title.includes(filterQuery)"
                   :key="`pv-${gridDisplayValueField.id}`"
-                  class="pl-7.5 pr-2.1 py-2 flex flex-row items-center border-1 rounded-lg mb-2 border-gray-75"
+                  class="pl-7.5 pr-2.1 py-2 flex flex-row items-center border-1 rounded-lg mb-2 border-gray-100"
                   :data-testid="`nc-fields-menu-${gridDisplayValueField.title}`"
                   @click.stop
                 >
@@ -438,7 +432,7 @@ useMenuCloseOnEsc(open)
         </div>
       </div>
     </template>
-  </a-dropdown>
+  </NcDropdown>
 </template>
 
 <style scoped lang="scss">

@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { Modal, message } from 'ant-design-vue'
 import type { OrgUserReqType, RequestParams, UserType } from 'nocodb-sdk'
+import type { User } from '#imports'
 import { Role, extractSdkResponseErrorMsg, iconMap, useApi, useCopy, useDashboard, useNuxtApp } from '#imports'
-import type { User } from '~/lib'
 
 const { api, isLoading } = useApi()
 
@@ -10,15 +10,15 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { dashboardUrl } = $(useDashboard())
+const { dashboardUrl } = useDashboard()
 
 const { copy } = useCopy()
 
-let users = $ref<UserType[]>([])
+const users = ref<UserType[]>([])
 
-let currentPage = $ref(1)
+const currentPage = ref(1)
 
-const currentLimit = $ref(10)
+const currentLimit = ref(10)
 
 const showUserModal = ref(false)
 
@@ -32,8 +32,8 @@ const pagination = reactive({
   position: ['bottomCenter'],
 })
 
-const loadUsers = async (page = currentPage, limit = currentLimit) => {
-  currentPage = page
+const loadUsers = async (page = currentPage.value, limit = currentLimit.value) => {
+  currentPage.value = page
   try {
     const response: any = await api.orgUsers.list({
       query: {
@@ -49,7 +49,7 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
 
     pagination.pageSize = 10
 
-    users = response.list as UserType[]
+    users.value = response.list as UserType[]
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -104,7 +104,7 @@ const resendInvite = async (user: User) => {
 const copyInviteUrl = async (user: User) => {
   if (!user.invite_token) return
   try {
-    await copy(`${dashboardUrl}#/signup/${user.invite_token}`)
+    await copy(`${dashboardUrl.value}#/signup/${user.invite_token}`)
 
     // Invite URL copied to clipboard
     message.success(t('msg.success.inviteURLCopied'))

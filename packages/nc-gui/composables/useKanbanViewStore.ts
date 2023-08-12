@@ -1,6 +1,6 @@
 import type { ComputedRef, Ref } from 'vue'
 import type { Api, ColumnType, KanbanType, SelectOptionType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
-import type { Row, UndoRedoAction } from '~/lib'
+import type { Row, UndoRedoAction } from '#imports'
 import {
   IsPublicInj,
   SharedViewPasswordInj,

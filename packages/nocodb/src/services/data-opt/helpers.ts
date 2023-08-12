@@ -605,6 +605,7 @@ export async function extractColumn({
         break;
       }
     }
+    // eslint-disable-next-line no-fallthrough
     default:
       {
         if (column.dt === 'bytea') {

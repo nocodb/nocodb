@@ -214,7 +214,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       if (cdf) formState.value.cdf = formState.value.cdf || null
     }
 
-    const addOrUpdate = async (onSuccess: () => void, columnPosition?: Pick<ColumnReqType, 'column_order'>) => {
+    const addOrUpdate = async (onSuccess: () => Promise<void>, columnPosition?: Pick<ColumnReqType, 'column_order'>) => {
       try {
         if (!(await validate())) return
       } catch (e: any) {
@@ -263,7 +263,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
           $e('a:column:add', { datatype: formState.value.uidt })
         }
-        onSuccess?.()
+        await onSuccess?.()
         return true
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))

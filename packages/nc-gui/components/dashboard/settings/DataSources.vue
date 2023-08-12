@@ -6,8 +6,7 @@ import EditBase from './data-sources/EditBase.vue'
 import Metadata from './Metadata.vue'
 import UIAcl from './UIAcl.vue'
 import Erd from './Erd.vue'
-import { ClientType, DataSourcesSubTab } from '~/lib'
-import { storeToRefs, useCommandPalette, useNuxtApp, useProject } from '#imports'
+import { ClientType, DataSourcesSubTab, storeToRefs, useCommandPalette, useNuxtApp, useProject } from '#imports'
 
 interface Props {
   state: string
@@ -24,22 +23,24 @@ const vReload = useVModel(props, 'reload', emits)
 
 const { $api, $e } = useNuxtApp()
 
-const projectStore = useProject()
 const { loadProject } = useProjects()
+
+const projectStore = useProject()
 const { project } = storeToRefs(projectStore)
+
 const { refreshCommandPalette } = useCommandPalette()
 
-let sources = $ref<BaseType[]>([])
+const sources = ref<BaseType[]>([])
 
-let activeBaseId = $ref('')
+const activeBaseId = ref('')
 
-let metadiffbases = $ref<string[]>([])
+const metadiffbases = ref<string[]>([])
 
-let clientType = $ref<ClientType>(ClientType.MYSQL)
+const clientType = ref<ClientType>(ClientType.MYSQL)
 
-let isReloading = $ref(false)
+const isReloading = ref(false)
 
-let forceAwakened = $ref(false)
+const forceAwakened = ref(false)
 
 const dataSourcesAwakened = ref(false)
 
@@ -50,11 +51,11 @@ async function loadBases(changed?: boolean) {
   try {
     if (changed) refreshCommandPalette()
 
-    isReloading = true
+    isReloading.value = true
     vReload.value = true
     const baseList = await $api.base.list(project.value.id as string)
     if (baseList.list && baseList.list.length) {
-      sources = baseList.list
+      sources.value = baseList.list
     }
 
     await loadMetaDiff()
@@ -62,18 +63,18 @@ async function loadBases(changed?: boolean) {
     console.error(e)
   } finally {
     vReload.value = false
-    isReloading = false
+    isReloading.value = false
   }
 }
 
 async function loadMetaDiff() {
   try {
-    metadiffbases = []
+    metadiffbases.value = []
 
     const metadiff = await $api.project.metaDiffGet(project.value.id as string)
     for (const model of metadiff) {
       if (model.detectedChanges?.length > 0) {
-        metadiffbases.push(model.base_id)
+        metadiffbases.value.push(model.base_id)
       }
     }
   } catch (e) {
@@ -83,7 +84,7 @@ async function loadMetaDiff() {
 
 const baseAction = (baseId?: string, action?: string) => {
   if (!baseId) return
-  activeBaseId = baseId
+  activeBaseId.value = baseId
   vState.value = action || ''
 }
 
@@ -101,7 +102,7 @@ const deleteBase = async () => {
 
     $e('a:base:delete')
 
-    sources.splice(sources.indexOf(toBeDeletedBase.value), 1)
+    sources.value.splice(sources.value.indexOf(toBeDeletedBase.value), 1)
     await loadProject(project.value.id as string, true)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -110,7 +111,7 @@ const deleteBase = async () => {
 
 const toggleBase = async (base: BaseType, state: boolean) => {
   try {
-    if (!state && sources.filter((src) => src.enabled).length < 2) {
+    if (!state && sources.value.filter((src) => src.enabled).length < 2) {
       message.info('There should be at least one enabled base!')
       return
     }
@@ -130,7 +131,7 @@ const moveBase = async (e: any) => {
   try {
     if (e.oldIndex === e.newIndex) return
     // sources list is mutated so we have to get the new index and mirror it to backend
-    const base = sources[e.newIndex]
+    const base = sources.value[e.newIndex]
     if (base) {
       if (!base.order) {
         // empty update call to reorder bases (migration)
@@ -155,13 +156,13 @@ const moveBase = async (e: any) => {
 }
 
 const forceAwaken = () => {
-  forceAwakened = !forceAwakened
-  dataSourcesAwakened.value = forceAwakened
-  emits('awaken', forceAwakened)
+  forceAwakened.value = !forceAwakened.value
+  dataSourcesAwakened.value = forceAwakened.value
+  emits('awaken', forceAwakened.value)
 }
 
 onMounted(async () => {
-  if (sources.length === 0) {
+  if (sources.value.length === 0) {
     await loadBases()
     await loadMetaDiff()
   }
@@ -170,7 +171,7 @@ onMounted(async () => {
 watch(
   () => props.reload,
   async (reload) => {
-    if (reload && !isReloading) {
+    if (reload && !isReloading.value) {
       await loadBases()
       await loadMetaDiff()
     }
@@ -178,9 +179,9 @@ watch(
 )
 
 watch(
-  () => sources.length,
+  () => sources.value.length,
   (l) => {
-    if (l > 1 && !forceAwakened) {
+    if (l > 1 && !forceAwakened.value) {
       dataSourcesAwakened.value = false
       emits('awaken', false)
     } else {
@@ -194,32 +195,32 @@ watch(
 watch(
   vState,
   async (newState) => {
-    if (!sources.length) {
+    if (!sources.value.length) {
       await loadBases()
     }
     switch (newState) {
       case ClientType.MYSQL:
-        clientType = ClientType.MYSQL
+        clientType.value = ClientType.MYSQL
         vState.value = DataSourcesSubTab.New
         break
       case ClientType.PG:
-        clientType = ClientType.PG
+        clientType.value = ClientType.PG
         vState.value = DataSourcesSubTab.New
         break
       case ClientType.SQLITE:
-        clientType = ClientType.SQLITE
+        clientType.value = ClientType.SQLITE
         vState.value = DataSourcesSubTab.New
         break
       case ClientType.MSSQL:
-        clientType = ClientType.MSSQL
+        clientType.value = ClientType.MSSQL
         vState.value = DataSourcesSubTab.New
         break
       case ClientType.SNOWFLAKE:
-        clientType = ClientType.SNOWFLAKE
+        clientType.value = ClientType.SNOWFLAKE
         vState.value = DataSourcesSubTab.New
         break
       case DataSourcesSubTab.New:
-        if (sources.length > 1 && !forceAwakened) {
+        if (sources.value.length > 1 && !forceAwakened.value) {
           vState.value = ''
         }
         break

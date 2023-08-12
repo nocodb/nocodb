@@ -1,3 +1,4 @@
+import { computed } from 'vue'
 import dayjs from 'dayjs'
 import type { Ref } from 'vue'
 import type { MaybeRef } from '@vueuse/core'
@@ -7,7 +8,7 @@ import { parse } from 'papaparse'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
 import convertCellData from './convertCellData'
-import type { Nullable, Row } from '~/lib'
+import type { Nullable, Row } from '#imports'
 import {
   dateFormats,
   extractPkFromRow,
@@ -73,7 +74,7 @@ export function useMultiSelect(
 
   const activeCell = reactive<Nullable<Cell>>({ row: null, col: null })
 
-  const columnLength = $computed(() => unref(fields)?.length)
+  const columnLength = computed(() => unref(fields)?.length)
 
   const isCellActive = computed(
     () => !(activeCell.row === null || activeCell.col === null || isNaN(activeCell.row) || isNaN(activeCell.col)),
@@ -500,11 +501,11 @@ export function useMultiSelect(
             editEnabled.value = false
           } else if (activeCell.row > 0) {
             activeCell.row--
-            activeCell.col = unref(columnLength) - 1
+            activeCell.col = unref(columnLength.value) - 1
             editEnabled.value = false
           }
         } else {
-          if (activeCell.col < unref(columnLength) - 1) {
+          if (activeCell.col < unref(columnLength.value) - 1) {
             activeCell.col++
             editEnabled.value = false
           } else if (activeCell.row < unref(data).length - 1) {
@@ -543,10 +544,10 @@ export function useMultiSelect(
             editEnabled.value = false
             selectedRange.endRange({
               row: selectedRange._end?.row ?? activeCell.row,
-              col: unref(columnLength) - 1,
+              col: unref(columnLength.value) - 1,
             })
             scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
-          } else if ((selectedRange._end?.col ?? activeCell.col) < unref(columnLength) - 1) {
+          } else if ((selectedRange._end?.col ?? activeCell.col) < unref(columnLength.value) - 1) {
             editEnabled.value = false
             selectedRange.endRange({
               row: selectedRange._end?.row ?? activeCell.row,
@@ -557,7 +558,7 @@ export function useMultiSelect(
         } else {
           selectedRange.clear()
 
-          if (activeCell.col < unref(columnLength) - 1) {
+          if (activeCell.col < unref(columnLength.value) - 1) {
             activeCell.col++
             selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
             scrollToCell?.()
@@ -673,7 +674,7 @@ export function useMultiSelect(
               // select all - ctrl/cmd +a
               case 65:
                 selectedRange.startRange({ row: 0, col: 0 })
-                selectedRange.endRange({ row: unref(data).length - 1, col: unref(columnLength) - 1 })
+                selectedRange.endRange({ row: unref(data).length - 1, col: unref(columnLength.value) - 1 })
                 break
             }
           }

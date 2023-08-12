@@ -17,7 +17,6 @@ import {
   inject,
   isImage,
   isLTAR,
-  onBeforeMount,
   onBeforeUnmount,
   provide,
   useAttachment,
@@ -25,7 +24,7 @@ import {
   useKanbanViewStoreOrThrow,
   useUndoRedo,
 } from '#imports'
-import type { Row as RowType } from '~/lib'
+import type { Row as RowType } from '#imports'
 
 interface Attachment {
   url: string
@@ -65,7 +64,7 @@ const stackIdxToBeDeleted = ref(0)
 
 const router = useRouter()
 
-const route = $(router.currentRoute)
+const route = router.currentRoute
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
@@ -92,7 +91,7 @@ const { isViewDataLoading } = storeToRefs(useViewsStore())
 
 const { isUIAllowed } = useUIPermission()
 
-const { appInfo } = $(useGlobal())
+const { appInfo } = useGlobal()
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -104,18 +103,16 @@ provide(IsGridInj, ref(false))
 
 provide(IsKanbanInj, ref(true))
 
-const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
+const hasEditPermission = computed(() => isUIAllowed('xcDatatableEditable'))
 
 const fields = inject(FieldsInj, ref([]))
 
 const fieldsWithoutCover = computed(() => fields.value.filter((f) => f.id !== kanbanMetaData.value?.fk_cover_image_col_id))
 
-const coverImageColumn: any = $(
-  computed(() =>
-    meta.value?.columnsById
-      ? meta.value.columnsById[kanbanMetaData.value?.fk_cover_image_col_id as keyof typeof meta.value.columnsById]
-      : {},
-  ),
+const coverImageColumn: any = computed(() =>
+  meta.value?.columnsById
+    ? meta.value.columnsById[kanbanMetaData.value?.fk_cover_image_col_id as keyof typeof meta.value.columnsById]
+    : {},
 )
 
 const kanbanContainerRef = ref()
@@ -136,10 +133,10 @@ reloadViewDataHook?.on(async () => {
 
 const attachments = (record: any): Attachment[] => {
   try {
-    if (coverImageColumn?.title && record.row[coverImageColumn.title]) {
-      return typeof record.row[coverImageColumn.title] === 'string'
-        ? JSON.parse(record.row[coverImageColumn.title])
-        : record.row[coverImageColumn.title]
+    if (coverImageColumn.value?.title && record.row[coverImageColumn.value.title]) {
+      return typeof record.row[coverImageColumn.value.title] === 'string'
+        ? JSON.parse(record.row[coverImageColumn.value.title])
+        : record.row[coverImageColumn.value.title]
     }
     return []
   } catch (e) {
@@ -165,7 +162,7 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
   if (rowId) {
     router.push({
       query: {
-        ...route.query,
+        ...route.value.query,
         rowId,
       },
     })
@@ -181,7 +178,7 @@ const _contextMenu = ref(false)
 const contextMenu = computed({
   get: () => _contextMenu.value,
   set: (val) => {
-    if (hasEditPermission) {
+    if (hasEditPermission.value) {
       _contextMenu.value = val
     }
   },
@@ -198,13 +195,13 @@ const showContextMenu = (e: MouseEvent, target?: RowType) => {
 
 const expandedFormOnRowIdDlg = computed({
   get() {
-    return !!route.query.rowId
+    return !!route.value.query.rowId
   },
   set(val) {
     if (!val)
       router.push({
         query: {
-          ...route.query,
+          ...route.value.query,
           rowId: undefined,
         },
       })
@@ -287,7 +284,7 @@ async function onMove(event: any, stackKey: string) {
 const kanbanListScrollHandler = useDebounceFn(async (e: any) => {
   if (e.target.scrollTop + e.target.clientHeight + INFINITY_SCROLL_THRESHOLD >= e.target.scrollHeight) {
     const stackTitle = e.target.getAttribute('data-stack-title')
-    const pageSize = appInfo.defaultLimit || 25
+    const pageSize = appInfo.value.defaultLimit || 25
     const page = Math.ceil(formattedData.value.get(stackTitle)!.length / pageSize)
     await loadMoreKanbanData(stackTitle, { offset: page * pageSize })
   }
@@ -426,7 +423,7 @@ watch(
               <a-card
                 v-if="!stack.collapsed"
                 :key="stack.id"
-                class="mx-4 !bg-gray-50 flex flex-col w-80 h-full !rounded-xl overflow-y-hidden"
+                class="mx-4 !bg-gray-100 flex flex-col w-80 h-full !rounded-xl overflow-y-hidden"
                 :class="{
                   'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
                   '!cursor-default': isLocked || !hasEditPermission,
@@ -446,7 +443,7 @@ watch(
                 </div>
 
                 <!-- Stack -->
-                <a-layout v-else class="!bg-gray-50">
+                <a-layout v-else class="!bg-gray-100">
                   <a-layout-header>
                     <div class="nc-kanban-stack-head font-medium flex items-center">
                       <a-dropdown
@@ -697,7 +694,8 @@ watch(
         </template>
       </a-dropdown>
     </div>
-    <LazySmartsheetPagination v-model:pagination-data="emptyPagination" align-count-on-right hide-pagination class="!py-4"> </LazySmartsheetPagination>
+    <LazySmartsheetPagination v-model:pagination-data="emptyPagination" align-count-on-right hide-pagination class="!py-4">
+    </LazySmartsheetPagination>
   </div>
 
   <Suspense>
@@ -725,7 +723,7 @@ watch(
 
   <GeneralDeleteModal v-model:visible="deleteStackVModel" entity-name="Stack" :on-delete="handleDeleteStackConfirmClick">
     <template #entity-preview>
-      <div v-if="stackToBeDeleted" class="flex flex-row items-center py-2 px-2.25 bg-gray-50 rounded-lg text-gray-700 mb-4">
+      <div v-if="stackToBeDeleted" class="flex flex-row items-center py-2 px-2.25 bg-gray-100 rounded-lg text-gray-700 mb-4">
         <div
           class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
@@ -742,7 +740,7 @@ watch(
 .a-layout,
 .ant-layout-header,
 .ant-layout-content {
-  @apply !bg-gray-50;
+  @apply !bg-gray-100;
 }
 
 .ant-layout-header {

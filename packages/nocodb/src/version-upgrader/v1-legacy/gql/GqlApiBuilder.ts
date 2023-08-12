@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import GqlXcSchemaFactory from '../../../db/sql-mgr/code/gql-schema/xc-ts/GqlXcSchemaFactory';
 import BaseApiBuilder from '../BaseApiBuilder';
-import type { MetaService } from '../../../meta/meta.service';
-import type Noco from '../../../Noco';
+import type { MetaService } from '~/meta/meta.service';
+import type Noco from '~/Noco';
 import type NcProjectBuilder from '../NcProjectBuilder';
-import type { DbConfig, NcConfig } from '../../../interface/config';
-import type XcMetaMgr from '../../../interface/XcMetaMgr';
+import type { DbConfig, NcConfig } from '~/interface/config';
+import type XcMetaMgr from '~/interface/XcMetaMgr';
+import GqlXcSchemaFactory from '~/db/sql-mgr/code/gql-schema/xc-ts/GqlXcSchemaFactory';
 
 export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
   public readonly type = 'gql';

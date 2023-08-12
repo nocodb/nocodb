@@ -1,13 +1,17 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { SharedFormPage } from '../../../pages/SharedForm';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 
 test.describe('Attachment column', () => {
   let dashboard: DashboardPage, context: any;
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
+  });
+  
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Create and verify attachment column, verify it in shared form,', async ({ context }) => {

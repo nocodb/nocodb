@@ -1,9 +1,5 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
-import { GlobalModule } from '../global/global.module';
-import { DatasModule } from '../datas/datas.module';
-import { MetasModule } from '../metas/metas.module';
-import { JOBS_QUEUE } from '../../interface/Jobs';
 import { ExportService } from './jobs/export-import/export.service';
 import { ImportService } from './jobs/export-import/import.service';
 import { AtImportController } from './jobs/at-import/at-import.controller';
@@ -22,6 +18,10 @@ import { JobsEventService } from './redis/jobs-event.service';
 import { JobsService as FallbackJobsService } from './fallback/jobs.service';
 import { QueueService as FallbackQueueService } from './fallback/fallback-queue.service';
 import { JobsEventService as FallbackJobsEventService } from './fallback/jobs-event.service';
+import { JOBS_QUEUE } from '~/interface/Jobs';
+import { MetasModule } from '~/modules/metas/metas.module';
+import { DatasModule } from '~/modules/datas/datas.module';
+import { GlobalModule } from '~/modules/global/global.module';
 
 @Module({
   imports: [

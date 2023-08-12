@@ -37,7 +37,7 @@ function onOpenModal(type: ViewTypes, title = '') {
         </template>
 
         <div class="!py-0 text-xs flex items-center h-full w-full gap-2">
-          <component :is="viewIcons[ViewTypes.GRID].icon" />
+          <component :is="viewIcons[ViewTypes.GRID].icon" :style="{ color: viewIcons[ViewTypes.GRID]?.color }" />
 
           <div>{{ $t('objects.viewType.grid') }}</div>
 
@@ -59,7 +59,7 @@ function onOpenModal(type: ViewTypes, title = '') {
         </template>
 
         <div class="!py-0 text-xs flex items-center h-full w-full gap-2">
-          <component :is="viewIcons[ViewTypes.GALLERY].icon" />
+          <component :is="viewIcons[ViewTypes.GALLERY].icon" :style="{ color: viewIcons[ViewTypes.GALLERY]?.color }" />
 
           <div>{{ $t('objects.viewType.gallery') }}</div>
 
@@ -82,7 +82,7 @@ function onOpenModal(type: ViewTypes, title = '') {
         </template>
 
         <div class="!py-0 text-xs flex items-center h-full w-full gap-2">
-          <component :is="viewIcons[ViewTypes.FORM].icon" />
+          <component :is="viewIcons[ViewTypes.FORM].icon" :style="{ color: viewIcons[ViewTypes.FORM]?.color }" />
 
           <div>{{ $t('objects.viewType.form') }}</div>
 
@@ -104,7 +104,7 @@ function onOpenModal(type: ViewTypes, title = '') {
         </template>
 
         <div class="!py-0 text-xs flex items-center h-full w-full gap-2">
-          <component :is="viewIcons[ViewTypes.KANBAN].icon" />
+          <component :is="viewIcons[ViewTypes.KANBAN].icon" :style="{ color: viewIcons[ViewTypes.KANBAN]?.color }" />
 
           <div>{{ $t('objects.viewType.kanban') }}</div>
 
@@ -126,7 +126,7 @@ function onOpenModal(type: ViewTypes, title = '') {
         </template>
 
         <div class="!py-0 text-xs flex items-center h-full w-full gap-2">
-          <component :is="viewIcons[ViewTypes.MAP].icon" />
+          <component :is="viewIcons[ViewTypes.MAP].icon" :style="{ color: viewIcons[ViewTypes.MAP]?.color }" />
 
           <div>{{ $t('objects.viewType.map') }}</div>
 
@@ -143,7 +143,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
 <style lang="scss" scoped>
 :deep(.nc-create-view) {
-  @apply !py-0 !h-8 mx-3.75 rounded-md hover:(text-gray-800 bg-gray-75);
+  @apply !py-0 !h-8 mx-3.75 rounded-md hover:(text-gray-800 bg-gray-100);
 }
 :deep(.nc-create-view.ant-menu-item) {
   @apply px-2.25;

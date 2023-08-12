@@ -2,17 +2,17 @@ import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
 import glob from 'glob';
-import SqlClientFactory from '../../sql-client/lib/SqlClientFactory';
 import Debug from '../../util/Debug';
 import Emit from '../../util/emit';
 import * as fileHelp from '../../util/file.help';
-import Noco from '../../../Noco';
-import Project from '../../../models/Project';
-import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import Result from '../../util/Result';
-import type Base from '../../../models/Base';
-import type { XKnex } from '../../CustomKnex';
+import type Base from '~/models/Base';
+import type { XKnex } from '~/db/CustomKnex';
 import type { Knex } from 'knex';
+import SqlClientFactory from '~/db/sql-client/lib/SqlClientFactory';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import Noco from '~/Noco';
+import Project from '~/models/Project';
 
 const evt = new Emit();
 
@@ -114,6 +114,7 @@ export default class KnexMigratorv2 {
   }*/
 
   // @ts-ignore
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async _initDbOnFs(base: Base) {
     // this.emit(
     //   'Creating folder: ',
@@ -388,7 +389,7 @@ export default class KnexMigratorv2 {
       await sqlClient.createDatabaseIfNotExists({
         database: connectionConfig.connection.user,
       });
-    } else if (base.is_local && base.type === 'pg') {
+    } else if (base.isMeta(true, 1) && base.type === 'pg') {
       this.emit(
         `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.database}`,
       );

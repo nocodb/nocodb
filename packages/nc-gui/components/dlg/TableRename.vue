@@ -11,7 +11,6 @@ import {
   reactive,
   storeToRefs,
   useCommandPalette,
-  useI18n,
   useMetas,
   useNuxtApp,
   useProject,
@@ -33,8 +32,6 @@ const { tableMeta, baseId, ...props } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'updated'])
 
-const { t } = useI18n()
-
 const { $e, $api } = useNuxtApp()
 
 const { setMeta } = useMetas()
@@ -53,9 +50,9 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { addUndo, defineProjectScope } = useUndoRedo()
 
-const inputEl = $ref<ComponentPublicInstance>()
+const inputEl = ref<ComponentPublicInstance>()
 
-let loading = $ref(false)
+const loading = ref(false)
 
 const useForm = Form.useForm
 
@@ -112,7 +109,7 @@ watchEffect(
     if (tableMeta?.title) formState.title = `${tableMeta.title}`
 
     nextTick(() => {
-      const input = inputEl?.$el as HTMLInputElement
+      const input = inputEl.value?.$el as HTMLInputElement
 
       if (input) {
         input.setSelectionRange(0, formState.title.length)
@@ -127,7 +124,7 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
   if (!tableMeta) return
   if (formState.title === tableMeta.title && !disableTitleDiffCheck) return
 
-  loading = true
+  loading.value = true
   try {
     await $api.dbTable.update(tableMeta.id as string, {
       project_id: tableMeta.project_id,
@@ -178,7 +175,7 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
     message.error(await extractSdkResponseErrorMsg(e))
   }
 
-  loading = false
+  loading.value = false
 }
 </script>
 
@@ -205,7 +202,7 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
         </a-form-item>
       </a-form>
       <div class="flex flex-row justify-end gap-x-2 mt-6">
-        <NcButton type="secondary" :label="$t('general.cancel')" @click="dialogShow = false" />
+        <NcButton type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
 
         <NcButton
           key="submit"
@@ -215,7 +212,10 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
           loading-label="Renaming Table"
           :loading="loading"
           @click="() => renameTable()"
-        />
+        >
+          Rename Table
+          <template #loading> Renaming Table </template>
+        </NcButton>
       </div>
     </div>
   </NcModal>

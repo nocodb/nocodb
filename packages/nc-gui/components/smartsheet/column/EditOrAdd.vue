@@ -8,12 +8,12 @@ import {
   ReloadViewDataHookInj,
   computed,
   inject,
+  isEeUI,
   message,
   onMounted,
   ref,
   uiTypes,
   useColumnCreateStoreOrThrow,
-  useEventListener,
   useGlobal,
   useI18n,
   useMetas,
@@ -48,11 +48,13 @@ const { t } = useI18n()
 
 const columnLabel = computed(() => props.columnLabel || t('objects.column'))
 
-const { $api, $e } = useNuxtApp()
+const { $e } = useNuxtApp()
 
 const { appInfo } = useGlobal()
 
 const { betaFeatureToggleState } = useBetaFeatureToggle()
+
+const { loadMagic, predictColumnType: _predictColumnType } = useNocoEe()
 
 const meta = inject(MetaInj, ref())
 
@@ -70,17 +72,17 @@ const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup, UITypes.Links]
 
-const loadMagic = ref(false)
-
 const geoDataToggleCondition = (t: { name: UITypes }) => {
   return betaFeatureToggleState.show ? betaFeatureToggleState.show : !t.name.includes(UITypes.GeoData)
 }
 
-const showDeprecated = $ref(false)
+const showDeprecated = ref(false)
 
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
-    ...uiTypes.filter((t) => geoDataToggleCondition(t) && (!isEdit.value || !t.virtual) && (!t.deprecated || showDeprecated)),
+    ...uiTypes.filter(
+      (t) => geoDataToggleCondition(t) && (!isEdit.value || !t.virtual) && (!t.deprecated || showDeprecated.value),
+    ),
     ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
       ? [
           {
@@ -138,24 +140,7 @@ watchEffect(() => {
 })
 
 const predictColumnType = async () => {
-  if (loadMagic.value) return
-  try {
-    loadMagic.value = true
-    const predictRes = await $api.utils.magic({
-      operation: 'predictColumnType',
-      data: {
-        title: formState.value.title,
-      },
-    })
-    const predictType = predictRes?.data
-    if (predictType && Object.values(UITypes).includes(predictType)) {
-      formState.value.uidt = predictType
-      onUidtOrIdTypeChange()
-    }
-  } catch (e) {
-    message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
-  }
-  loadMagic.value = false
+  _predictColumnType(formState, onUidtOrIdTypeChange)
 }
 
 onMounted(() => {
@@ -188,11 +173,9 @@ onMounted(() => {
   emit('mounted')
 })
 
-useEventListener('keydown', (e: KeyboardEvent) => {
-  if (e.key === 'Escape') {
-    emit('cancel')
-  }
-})
+const handleEscape = (event: KeyboardEvent): void => {
+  if (event.key === 'Escape') emit('cancel')
+}
 </script>
 
 <template>
@@ -204,6 +187,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
       '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode,
       'shadow-lg border-1 border-gray-50 shadow-gray-100 rounded-md p-6': !embedMode,
     }"
+    @keydown="handleEscape"
     @click.stop
   >
     <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical" data-testid="add-or-edit-column">
@@ -239,17 +223,19 @@ useEventListener('keydown', (e: KeyboardEvent) => {
               @change="onUidtOrIdTypeChange"
               @dblclick="showDeprecated = !showDeprecated"
             >
-              <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
+              <template #suffixIcon>
+                <GeneralIcon icon="arrowDown" class="text-gray-700" />
+              </template>
               <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
                 <div class="flex gap-1 items-center">
-                  <component :is="opt.icon" class="text-gray-700 mx-1" style="font-weight: 600; font-size: 1.1rem" />
+                  <component :is="opt.icon" class="text-gray-700 mx-1" />
                   {{ opt.name }}
                   <span v-if="opt.deprecated" class="!text-xs !text-gray-300">(Deprecated)</span>
                 </div>
               </a-select-option>
             </a-select>
           </a-form-item>
-          <div v-if="!props.hideType" class="mt-2 cursor-pointer" @click="predictColumnType()">
+          <div v-if="isEeUI && !props.hideType" class="mt-2 cursor-pointer" @click="predictColumnType()">
             <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
           </div>
         </div>
@@ -323,14 +309,8 @@ useEventListener('keydown', (e: KeyboardEvent) => {
           }"
         >
           <!-- Cancel -->
-          <NcButton
-            class="w-full"
-            size="small"
-            html-type="button"
-            type="secondary"
-            :label="`${$t('general.cancel')}`"
-            @click="emit('cancel')"
-          >
+          <NcButton class="w-full" size="small" html-type="button" type="secondary" @click="emit('cancel')">
+            {{ $t('general.cancel') }}
           </NcButton>
 
           <!-- Save -->
@@ -344,6 +324,8 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             :loading-label="`${$t('general.saving')} ${columnLabel}`"
             @click.prevent="onSubmit"
           >
+            {{ $t('general.save') }} {{ columnLabel }}
+            <template #loading> {{ $t('general.saving') }} {{ columnLabel }} </template>
           </NcButton>
         </div>
       </a-form-item>

@@ -1,19 +1,19 @@
 <script setup lang="ts">
 import {
   Form,
+  TabType,
   computed,
   iconMap,
   nextTick,
   onMounted,
   ref,
   useProject,
+  useTableNew,
   useTablesStore,
   useTabs,
   useVModel,
   validateTableName,
 } from '#imports'
-import { TabType } from '~/lib'
-import { useTableNew } from '~/composables/useTableNew'
 
 const props = defineProps<{
   modelValue: boolean
@@ -31,7 +31,7 @@ const inputEl = ref<HTMLInputElement>()
 
 const { addTab } = useTabs()
 
-const { loadTables, isMysql, isMssql, isPg, loadProject } = useProject()
+const { isMysql, isMssql, isPg } = useProject()
 
 const { loadProjectTables, addTable } = useTablesStore()
 
@@ -200,17 +200,16 @@ onMounted(() => {
           </div>
         </div>
         <div class="flex flex-row justify-end gap-x-2 mt-2">
-          <NcButton type="secondary" :label="$t('general.cancel')" @click="dialogShow = false" />
+          <NcButton type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
 
           <NcButton
-            key="submit"
             type="primary"
             :disabled="validateInfos.title.validateStatus === 'error'"
-            :label="$t('activity.createTable')"
-            loading-label="Creating Table"
             :loading="creating"
             @click="_createTable"
           >
+            {{ $t('activity.createTable') }}
+            <template #loading> Creating Table </template>
           </NcButton>
         </div>
       </a-form>

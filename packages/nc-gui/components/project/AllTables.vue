@@ -74,17 +74,17 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
     <div v-if="isUIAllowed('tableCreate', false, roles)" class="flex flex-row gap-x-6 pb-3 pt-6">
       <div class="nc-project-view-all-table-btn" data-testid="proj-view-btn__add-new-table" @click="openTableCreateDialog()">
         <GeneralIcon icon="addOutlineBox" />
-        <div class="label">New Table</div>
+        <div class="label">{{ $t('general.new') }} {{ $t('objects.table') }}</div>
       </div>
       <div class="nc-project-view-all-table-btn" data-testid="proj-view-btn__import-data" @click="isImportModalOpen = true">
         <GeneralIcon icon="download" />
-        <div class="label">Import Data</div>
+        <div class="label">{{ $t('activity.import') }} {{ $t('general.data') }}</div>
       </div>
     </div>
     <div class="flex flex-row w-full text-gray-400 border-b-1 border-gray-50 py-3 px-2.5">
-      <div class="w-2/5">Table</div>
-      <div class="w-1/5">Source</div>
-      <div class="w-1/5">Created on</div>
+      <div class="w-2/5">{{ $t('objects.table') }}</div>
+      <div class="w-1/5">{{ $t('general.source') }}</div>
+      <div class="w-1/5">{{ $t('labels.createdOn') }}</div>
     </div>
     <div
       class="nc-project-view-all-table-list nc-scrollbar-md"
@@ -97,7 +97,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
           (a, b) => a.base_id!.localeCompare(b.base_id!) * 20 
         )"
         :key="table.id"
-        class="py-4 flex flex-row w-full cursor-pointer hover:bg-gray-50 border-b-1 border-gray-50 px-2"
+        class="py-4 flex flex-row w-full cursor-pointer hover:bg-gray-100 border-b-1 border-gray-100 px-2.25"
         data-testid="proj-view-list__item"
         @click="openTable(table)"
       >
@@ -123,7 +123,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
 
 <style lang="scss" scoped>
 .nc-project-view-all-table-btn {
-  @apply flex flex-col gap-y-6 p-4 bg-gray-50 rounded-xl w-56 cursor-pointer text-gray-600 hover:(bg-gray-100 !text-black);
+  @apply flex flex-col gap-y-6 p-4 bg-gray-100 rounded-xl w-56 cursor-pointer text-gray-600 hover:(bg-gray-100 !text-black);
 
   .nc-icon {
     @apply h-10 w-10;

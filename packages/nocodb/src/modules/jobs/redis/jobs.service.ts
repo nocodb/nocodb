@@ -2,9 +2,9 @@ import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { JobEvents, JOBS_QUEUE, JobStatus } from '../../../interface/Jobs';
 import { JobsRedisService } from './jobs-redis.service';
 import type { OnModuleInit } from '@nestjs/common';
+import { JobEvents, JOBS_QUEUE, JobStatus } from '~/interface/Jobs';
 
 @Injectable()
 export class JobsService implements OnModuleInit {

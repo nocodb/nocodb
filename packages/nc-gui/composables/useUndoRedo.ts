@@ -2,19 +2,19 @@ import type { Ref } from 'vue'
 import rfdc from 'rfdc'
 import type { ProjectType, TableType, ViewType } from 'nocodb-sdk'
 import { createSharedComposable, ref, useRouter } from '#imports'
-import type { UndoRedoAction } from '~/lib'
+import type { UndoRedoAction } from '#imports'
 
 export const useUndoRedo = createSharedComposable(() => {
   const clone = rfdc()
 
   const router = useRouter()
 
-  const route = $(router.currentRoute)
+  const route = router.currentRoute
 
   // keys: projectType | projectId | type | title | viewTitle
   const scope = computed<{ key: string; param: string }[]>(() => {
     const tempScope: { key: string; param: string }[] = [{ key: 'root', param: 'root' }]
-    for (const [key, param] of Object.entries(route.params)) {
+    for (const [key, param] of Object.entries(route.value.params)) {
       if (Array.isArray(param)) {
         tempScope.push({ key, param: param.join(',') })
       } else {

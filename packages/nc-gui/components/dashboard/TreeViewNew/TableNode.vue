@@ -1,14 +1,11 @@
 <script lang="ts" setup>
 import type { ProjectType, TableType } from 'nocodb-sdk'
 import { toRef } from '@vue/reactivity'
-import { Dropdown, Tooltip, message } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import { storeToRefs } from 'pinia'
-import { useUIPermission } from '~/composables/useUIPermission'
 
-import { useTabs } from '~/store/tab'
 import { useNuxtApp } from '#app'
-import { ProjectRoleInj } from '~/context'
-import { TreeViewInj } from '#imports'
+import { ProjectRoleInj, TreeViewInj, useTabs, useUIPermission } from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -19,9 +16,9 @@ const props = withDefaults(
   { baseIndex: 0 },
 )
 
-const project = $(toRef(props, 'project'))
-const table = $(toRef(props, 'table'))
-const baseIndex = $(toRef(props, 'baseIndex'))
+const project = toRef(props, 'project')
+const table = toRef(props, 'table')
+const baseIndex = toRef(props, 'baseIndex')
 
 const route = useRoute()
 
@@ -32,8 +29,8 @@ const { updateTab } = tabStore
 
 const { $e, $api } = useNuxtApp()
 
-const { deleteTable } = useTableNew({
-  projectId: project.id!,
+useTableNew({
+  projectId: project.value.id!,
 })
 
 const projectRole = inject(ProjectRoleInj)
@@ -42,20 +39,11 @@ const { setMenuContext, openRenameTableDialog, duplicateTable } = inject(TreeVie
 
 // todo: temp
 const { projectTables } = storeToRefs(useTablesStore())
-const tables = computed(() => projectTables.value.get(project.id!) ?? [])
+const tables = computed(() => projectTables.value.get(project.value.id!) ?? [])
 
 const openedTableId = computed(() => route.params.viewId)
 
 const isTableDeleteDialogVisible = ref(false)
-
-const icon = (table: TableType) => {
-  if (table.type === 'table') {
-    return iconMap.table
-  }
-  if (table.type === 'view') {
-    return iconMap.view
-  }
-}
 
 const setIcon = async (icon: string, table: TableType) => {
   try {
@@ -81,7 +69,7 @@ const setIcon = async (icon: string, table: TableType) => {
 
 const { isSharedBase } = useProject()
 
-const isMultiBase = computed(() => project.bases && project.bases.length > 1)
+// const isMultiBase = computed(() => project.bases && project.bases.length > 1)
 </script>
 
 <template>
@@ -101,7 +89,7 @@ const isMultiBase = computed(() => project.bases && project.bases.length > 1)
     <GeneralTooltip
       class="pl-11 pr-0.75 mb-0.25 rounded-md h-7.1"
       :class="{
-        'hover:bg-hover': openedTableId !== table.id,
+        'hover:bg-gray-200': openedTableId !== table.id,
         'pl-17.75': baseIndex !== 0,
         'pl-12.25': baseIndex === 0,
       }"
@@ -156,7 +144,7 @@ const isMultiBase = computed(() => project.bases && project.bases.length > 1)
           @click.stop
         >
           <MdiDotsHorizontal
-            class="min-w-5.75 min-h-5.75 mt-0.2 mr-0.25 px-0.5 transition-opacity opacity-0 group-hover:opacity-100 nc-tbl-context-menu outline-0 rounded-md hover:(bg-gray-300 bg-opacity-20 !text-black)"
+            class="min-w-5.75 min-h-5.75 mt-0.2 mr-0.25 px-0.5 transition-opacity opacity-0 group-hover:opacity-100 nc-tbl-context-menu outline-0 rounded-md hover:(bg-gray-500 bg-opacity-15 !text-black)"
             :class="{
               '!text-gray-600': openedTableId !== table.id,
               '!text-black': openedTableId === table.id,

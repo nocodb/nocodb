@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { onMounted } from '@vue/runtime-core'
-import { storeToRefs, useGlobal, useProject, watch } from '#imports'
-import { ProjectIdInj } from '~/context'
+import { ProjectIdInj, storeToRefs, useGlobal, useProject, watch } from '#imports'
 
 const { includeM2M, showNull } = useGlobal()
 
@@ -43,7 +42,7 @@ async function showNullAndEmptyInFilterOnChange(evt: CheckboxChangeEvent) {
   project.meta = newProjectMeta
   // update db
   await projectsStore.updateProject(projectId.value!, {
-    meta: newProjectMeta,
+    meta: JSON.stringify(newProjectMeta),
   })
 }
 </script>

@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import ManageUsers from './ManageUsers.vue'
-import ShareProject from './ShareProject.vue'
 import SharePage from './SharePage.vue'
+
 const { isViewToolbar } = defineProps<{
   isViewToolbar?: boolean
 }>()
@@ -10,10 +10,10 @@ const router = useRouter()
 const route = router.currentRoute
 
 const { copy } = useCopy()
-const { dashboardUrl } = $(useDashboard())
-const { project } = storeToRefs(useProject())
-const { navigateToProject } = useProjects()
-const { openedPage, nestedPagesOfProjects } = storeToRefs(useDocStore())
+const { dashboardUrl } = useDashboard()
+const projectStore = useProject()
+const { project } = storeToRefs(projectStore)
+const { navigateToProject } = projectStore
 
 let view
 if (isViewToolbar) {
@@ -25,19 +25,18 @@ if (isViewToolbar) {
   }
 }
 
-const { formStatus, showShareModal, invitationValid, invitationUsersData, isInvitationLinkCopied } = storeToRefs(useShare())
+const { formStatus, showShareModal, invitationUsersData, isInvitationLinkCopied } = storeToRefs(useShare())
 const { resetData } = useShare()
-const { inviteUser } = useManageUsers()
+// const { inviteUser } = useManageUsers()
 
-const expandedSharedType = ref<'none' | 'project' | 'view'>('view')
+// const expandedSharedType = ref<'none' | 'project' | 'view'>('view')
 const isOpeningManageAccess = ref(false)
 
-const pageTitle = computed(() => (openedPage.value ?? nestedPagesOfProjects.value[project.value.id!]?.[0])?.title)
 const dbViewTitle = computed(() => route.value.params.viewTitle)
-const viewTitle = computed(() => (project.value?.type === NcProjectType.DOCS ? pageTitle.value : dbViewTitle.value))
+const viewTitle = computed(() => dbViewTitle.value)
 
 const inviteUrl = computed(() =>
-  invitationUsersData.value.invitationToken ? `${dashboardUrl}#/signup/${invitationUsersData.value.invitationToken}` : null,
+  invitationUsersData.value.invitationToken ? `${dashboardUrl.value}#/signup/${invitationUsersData.value.invitationToken}` : null,
 )
 
 const indicator = h(LoadingOutlined, {
@@ -47,6 +46,7 @@ const indicator = h(LoadingOutlined, {
   spin: true,
 })
 
+/*
 const onShare = async () => {
   if (!invitationValid) return
 
@@ -55,6 +55,7 @@ const onShare = async () => {
     roles: invitationUsersData.value.role!,
   })
 }
+*/
 
 const copyInvitationLink = async () => {
   await copy(inviteUrl.value!)
@@ -137,83 +138,32 @@ watch(showShareModal, (val) => {
       <div class="flex flex-row justify-between items-center pb-1 mx-4 mt-3">
         <div class="flex text-base font-medium">Share</div>
       </div>
-      <!-- <a-collapse v-model:active-key="expandedSharedType" expand-icon-position="right" class="!mx-3" :accordion="true">
-        <template #expandIcon="{ isActive }">
-          <div class="h-5 w-5 flex flex-row items-center justify-center">
-            <component
-              :is="iconMap.arrowDown"
-              class="text-gray-600 !rotate-90 transition-all duration-400 !text-md !h-4.5 !w-4.5"
-              :style="{ rotate: isActive ? '180deg' : '0deg' }"
-            />
-          </div>
-        </template>
-        <a-collapse-panel key="project" class="share-collapse-item">
-          <template #header>
-            <div class="flex flex-row items-center gap-x-2 w-full">
-              <PhBook v-if="project.type === NcProjectType.DOCS" />
-              <GeneralProjectIcon
-                v-else
-                class="!text-black !grayscale !fill-black px-0.5"
-                :style="{
-                  filter: 'grayscale(200%)',
-                }"
-              />
-              <div class="flex flex-row w-full items-center gap-x-1 select-none" data-testid="docs-share-dlg-share-project">
-                <div class="flex">
-                  Share
-                  {{ project.type === NcProjectType.DOCS ? 'Document' : 'Project' }}
-                </div>
-                <div
-                  class="max-w-7/10 ml-2 px-2 py-0.5 rounded-md bg-gray-75 capitalize text-ellipsis overflow-hidden"
-                  :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
-                >
-                  {{ project.title }}
-                </div>
-              </div>
-            </div>
-          </template>
-
-          <ShareProject />
-        </a-collapse-panel>
-        <a-collapse-panel v-if="viewTitle" key="view" class="share-collapse-item">
-          <template #header>
-            <div class="flex flex-row items-center gap-x-2">
-              <IonDocumentOutline v-if="project.type === NcProjectType.DOCS" />
-              <GeneralViewIcon v-else :meta="view!" class="nc-view-icon"></GeneralViewIcon>
-              <div data-testid="docs-share-dlg-share-view select-none">
-                <span> Share {{ project.type === NcProjectType.DOCS ? 'Page' : 'View' }} </span>
-                <span class="ml-2.75 py-1 px-2 rounded-md bg-gray-75 capitalize">{{
-                  !viewTitle ? EMPTY_TITLE_PLACEHOLDER_DOCS : viewTitle
-                }}</span>
-              </div>
-            </div>
-          </template>
-          <SharePage />
-        </a-collapse-panel>
-      </a-collapse> -->
       <div class="share-view">
         <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
-          <IonDocumentOutline v-if="project.type === NcProjectType.DOCS" />
-          <GeneralViewIcon v-else :meta="view!" class="nc-view-icon"></GeneralViewIcon>
-          <div>Share {{ project.type === NcProjectType.DOCS ? 'Page' : 'View' }}</div>
+          <component
+            :is="viewIcons[view?.type]?.icon"
+            class="nc-view-icon group-hover"
+            :style="{ color: viewIcons[view?.type]?.color }"
+          />
+          <div>Share View</div>
           <div
-            class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-gray-75 capitalize text-ellipsis overflow-hidden"
+            class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-gray-100 capitalize text-ellipsis overflow-hidden"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
           >
-            {{ !viewTitle ? EMPTY_TITLE_PLACEHOLDER_DOCS : viewTitle }}
+            {{ viewTitle }}
           </div>
         </div>
         <SharePage />
       </div>
-      <div class="flex flex-row justify-end mx-3 mt-1 mb-2 !border-gray-100 pt-4 gap-x-2">
-        <NcButton type="secondary" data-testid="docs-cancel-btn" label="Close" @click="showShareModal = false" />
+      <div class="flex flex-row justify-end mx-3 mt-1 mb-2 pt-4 gap-x-2">
+        <NcButton type="secondary" data-testid="docs-cancel-btn" @click="showShareModal = false"> Close </NcButton>
         <NcButton
           data-testid="docs-share-manage-access"
           type="secondary"
-          label="Manage project access"
           :loading="isOpeningManageAccess"
           @click="openManageAccess"
-        />
+          >Manage project access</NcButton
+        >
 
         <!-- <a-button
           v-if="formStatus === 'project-collaborate'"
@@ -247,7 +197,7 @@ watch(showShareModal, (val) => {
   }
 
   .share-view {
-    @apply !border-1 border-gray-100 mx-3 rounded-lg mt-3 px-1 py-1;
+    @apply !border-1 border-gray-200 mx-3 rounded-lg mt-3 px-1 py-1;
   }
 
   .ant-collapse-item {

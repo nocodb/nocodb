@@ -1,6 +1,6 @@
 {
   "name": "nocodb-sdk",
-  "version": "0.109.4",
+  "version": "0.109.6",
   "description": "NocoDB SDK",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
@@ -20,9 +20,12 @@
   "license": "AGPL-3.0-or-later",
   "keywords": [],
   "scripts": {
-    "build": "npm run generate:sdk && run-p build:*",
-    "build:main": "tsc -p tsconfig.json",
-    "build:module": "tsc -p tsconfig.module.json",
+    "build": "npm run generate:sdk && run-p build:ce:*",
+    "build:ce:main": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
+    "build:ce:module": "tsc -p tsconfig.module.json && tsc-alias -p tsconfig.module.json",
+    "build:ee": "rimraf ./build && npm run generate:sdk:ee && run-p build:ee:*",
+    "build:ee:main": "tsc -p ./src/ee/tsconfig.json && tsc-alias -p ./src/ee/tsconfig.json",
+    "build:ee:module": "tsc -p ./src/ee/tsconfig.module.json && tsc-alias -p ./src/ee/tsconfig.module.json",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.ts\" --write",
     "fix:lint": "eslint src --ext .ts --fix",
@@ -31,7 +34,8 @@
     "test:prettier": "prettier \"src/**/*.ts\" --list-different",
     "test:spelling": "cspell \"{README.md,.github/*.md,src/**/*.ts}\"",
     "watch:build": "tsc -p tsconfig.json -w",
-    "generate:sdk": "npx --yes swagger-typescript-api@10.0.3 -r -p ../nocodb/src/schema/swagger.json -o ./src/lib/  --axios --unwrap-response-data  --module-name-first-tag --type-suffix=Type --templates ../../scripts/sdk/templates"
+    "generate:sdk": "npx --yes swagger-typescript-api@10.0.3 -r -p ../nocodb/src/schema/swagger.json -o ./src/lib/  --axios --unwrap-response-data  --module-name-first-tag --type-suffix=Type --templates ../../scripts/sdk/templates",
+    "generate:sdk:ee": "node build-script/mergeAndGenerateSwagger && npx --yes swagger-typescript-api@10.0.3 -r -p ./nc_swagger.json -o ./src/lib/  --axios --unwrap-response-data  --module-name-first-tag --type-suffix=Type --templates ../../scripts/sdk/templates; rm ./nc_swagger.json"
   },
   "dependencies": {
     "axios": "^0.21.1",
@@ -49,7 +53,9 @@
     "eslint-plugin-prettier": "^4.0.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.1.1",
-    "typescript": "^4.0.2"
+    "rimraf": "^5.0.1",
+    "tsc-alias": "^1.8.7",
+    "typescript": "^4.7.4"
   },
   "files": [
     "build/main",

@@ -6,17 +6,13 @@ import {
   Param,
   Patch,
   Post,
-  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ViewColumnReqType } from 'nocodb-sdk';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { ViewColumnsService } from '../services/view-columns.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { ViewColumnsService } from '~/services/view-columns.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
 @UseGuards(GlobalGuard)

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { PaginatedType } from 'nocodb-sdk'
-import { computed, iconMap, inject, useViewsStore } from '#imports'
 import SidebarIcon from '~icons/nc-icons/sidebar'
+import { computed, iconMap, inject, isRtlLang, useI18n } from '#imports'
+import type { Language } from '#imports'
 
-const props = defineProps<{
+interface Props {
   paginationData: PaginatedType
   changePage: (page: number) => void
   alignCountOnRight?: boolean
@@ -12,9 +13,13 @@ const props = defineProps<{
   customLabel?: string
   fixedSize?: number
   sticky?: boolean
-}>()
+}
+
+const props = defineProps<Props>()
 
 const emits = defineEmits(['update:paginationData'])
+
+const { locale } = useI18n()
 
 const vPaginationData = useVModel(props, 'paginationData', emits)
 
@@ -43,21 +48,27 @@ const page = computed({
     }
   },
 })
+
+const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Language))
 </script>
 
 <template>
   <div
-    class="flex items-center border-t-1 border-gray-75 h-10 nc-pagination-wrapper"
+    class="flex items-center bg-white border-t-1 border-gray-200 h-10 nc-pagination-wrapper"
     :style="`${sticky === true ? 'position: sticky; left: 0;' : ''}${fixedSize ? `width: ${fixedSize - 20}px;` : ''}`"
   >
     <NcTooltip v-if="!isPublic && hideSidebars !== true" class="ml-2" placement="topLeft" hide-on-click>
       <template #title>
-        {{ isLeftSidebarOpen ? 'Hide sidebar' : 'Show sidebar' }}
+        {{
+          isLeftSidebarOpen
+            ? `${$t('general.hide')} ${$t('objects.sidebar').toLowerCase()}`
+            : `${$t('general.show')} ${$t('objects.sidebar').toLowerCase()}`
+        }}
       </template>
       <div
-        class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) hover:(bg-gray-50 border-gray-200) border-gray-100 group flex items-center justify-center rounded-md h-full px-2 h-7 cursor-pointer text-gray-400 hover:text-gray-700"
+        class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) hover:(bg-gray-100 border-gray-200) border-gray-200 group flex items-center justify-center rounded-md h-full px-1.75 h-7 cursor-pointer text-gray-500 hover:text-gray-700"
         :class="{
-          'bg-gray-50': !isLeftSidebarOpen,
+          'bg-gray-100': !isLeftSidebarOpen,
         }"
         @click="isLeftSidebarOpen = !isLeftSidebarOpen"
       >
@@ -82,7 +93,8 @@ const page = computed({
         v-model:page-size="size"
         size="small"
         class="!text-xs !m-1 nc-pagination"
-        :total="count"
+        :class="{ 'rtl-pagination': isRTLLanguage }"
+        :total="+count"
         show-less-items
         :show-size-changer="false"
       />
@@ -108,13 +120,17 @@ const page = computed({
 
     <NcTooltip v-if="!isPublic && hideSidebars !== true" placement="topRight" hide-on-click>
       <template #title>
-        {{ isRightSidebarOpen ? 'Hide Sidebar' : 'Show Sidebar' }}
+        {{
+          isRightSidebarOpen
+            ? `${$t('general.hide')} ${$t('objects.sidebar').toLowerCase()}`
+            : `${$t('general.show')} ${$t('objects.sidebar').toLowerCase()}`
+        }}
       </template>
 
       <div
-        class="flex flex-row items-center justify-center !rounded-md !p-1.75 border-gray-100 cursor-pointer bg-white hover:bg-gray-50 text-gray-400 hover:text-gray-700 nc-sidebar-right-toggle-icon"
+        class="flex flex-row items-center justify-center !rounded-md !p-1.75 border-gray-100 cursor-pointer bg-white hover:bg-gray-100 text-gray-500 hover:text-gray-700 nc-sidebar-right-toggle-icon"
         :class="{
-          'bg-gray-75': !isRightSidebarOpen,
+          '!bg-gray-100': !isRightSidebarOpen,
         }"
         type="ghost"
         @click="isRightSidebarOpen = !isRightSidebarOpen"
@@ -156,5 +172,10 @@ const page = computed({
 
 :deep(.ant-pagination-item.ant-pagination-item-active) {
   @apply !bg-transparent;
+}
+
+:deep(.rtl-pagination .ant-pagination-prev .ant-pagination-item-link),
+:deep(.rtl-pagination .ant-pagination-next .ant-pagination-item-link) {
+  @apply transform rotate-180;
 }
 </style>

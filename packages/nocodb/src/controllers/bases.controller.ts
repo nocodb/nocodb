@@ -10,13 +10,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { BaseReqType } from 'nocodb-sdk';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { BasesService } from '../services/bases.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { BasesService } from '~/services/bases.service';
 
 @Controller()
 @UseGuards(GlobalGuard)
@@ -30,7 +27,7 @@ export class BasesController {
       baseId,
     });
 
-    if (base?.is_meta || base?.is_local) {
+    if (base.isMeta()) {
       delete base.config;
     }
 
@@ -61,7 +58,7 @@ export class BasesController {
     });
 
     for (const base of bases) {
-      if (base?.is_meta || base?.is_local) {
+      if (base.isMeta()) {
         delete base.config;
       }
     }
@@ -93,7 +90,7 @@ export class BasesController {
       base: body,
     });
 
-    if (base?.is_meta || base?.is_local) {
+    if (base.isMeta()) {
       delete base.config;
     }
 

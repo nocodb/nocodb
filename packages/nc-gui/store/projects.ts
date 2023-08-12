@@ -1,10 +1,9 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { BaseType, OracleUi, ProjectType, ProjectUserReqType, RequestParams, TableType } from 'nocodb-sdk'
+import type { BaseType, OracleUi, ProjectType, ProjectUserReqType, RequestParams } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
-import { NcProjectType } from '~/utils'
-import { useWorkspace } from '~/store/workspace'
-import type { NcProject, User } from '~~/lib'
+import { useWorkspace } from '#imports'
+import type { NcProject, User } from '#imports'
 
 // todo: merge with project store
 export const useProjects = defineStore('projectsStore', () => {
@@ -35,14 +34,14 @@ export const useProjects = defineStore('projectsStore', () => {
     return basesMap
   })
 
-  const roles = computed(() => openedProject.value?.project_role || openedProject.value?.workspace_role)
+  const roles = computed(() => openedProject.value?.project_role)
 
   const workspaceStore = useWorkspace()
   const tableStore = useTablesStore()
 
   const { api } = useApi()
 
-  const { getBaseUrl } = $(useGlobal())
+  const { getBaseUrl } = useGlobal()
 
   const isProjectsLoading = ref(false)
 
@@ -81,7 +80,7 @@ export const useProjects = defineStore('projectsStore', () => {
     await api.auth.projectUserUpdate(projectId, user.id, user as ProjectUserReqType)
   }
 
-  const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace') => {
+  const loadProjects = async (page: 'recent' | 'shared' | 'starred' | 'workspace' = 'recent') => {
     const activeWorkspace = workspaceStore.activeWorkspace
     const workspace = workspaceStore.workspace
 
@@ -93,27 +92,24 @@ export const useProjects = defineStore('projectsStore', () => {
 
     isProjectsLoading.value = true
     try {
-      if (activeWorkspace?.id) {
-        const { list } = await $api.workspaceProject.list(activeWorkspace?.id ?? workspace?.id, {
-          baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
-        })
-        _projects = list
-      } else {
-        const { list } = await $api.project.list(
-          page
-            ? {
-                query: {
-                  [page]: true,
-                },
-                baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
-              }
-            : {
-                baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
+      const { list } = await $api.project.list(
+        page
+          ? {
+              query: {
+                [page]: true,
               },
-        )
-        _projects = list
-        projects.value.clear()
-      }
+              baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
+            }
+          : {
+              baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
+            },
+      )
+      _projects = list
+
+      projects.value = Array.from(projects.value.values()).reduce((acc, project) => {
+        if (_projects.find((p) => p.id === project.id)) acc.set(project.id!, project)
+        return acc
+      }, new Map())
 
       for (const project of _projects) {
         projects.value.set(project.id!, {
@@ -134,39 +130,19 @@ export const useProjects = defineStore('projectsStore', () => {
   function isProjectEmpty(projectId: string) {
     if (!isProjectPopulated(projectId)) return true
 
-    const dashboardStore = useDashboardStore()
-    const docsStore = useDocStore()
-
     const project = projects.value.get(projectId)
     if (!project) return false
 
-    switch (project.type) {
-      case NcProjectType.DB:
-        return tableStore.projectTables.get(projectId)!.length === 0
-      case NcProjectType.DOCS:
-        return docsStore.nestedPagesOfProjects[projectId]!.length === 0
-      case NcProjectType.DASHBOARD:
-        return dashboardStore.layoutsOfProjects[projectId]!.length === 0
-    }
+    return tableStore.projectTables.get(projectId)!.length === 0
 
     return false
   }
 
   function isProjectPopulated(projectId: string) {
-    const dashboardStore = useDashboardStore()
-    const docsStore = useDocStore()
-
     const project = projects.value.get(projectId)
     if (!project) return false
 
-    switch (project.type) {
-      case NcProjectType.DB:
-        return !!(project.bases && tableStore.projectTables.get(projectId))
-      case NcProjectType.DOCS:
-        return !!docsStore.nestedPagesOfProjects[projectId]
-      case NcProjectType.DASHBOARD:
-        return !!dashboardStore.layoutsOfProjects[projectId]
-    }
+    return !!(project.bases && tableStore.projectTables.get(projectId))
   }
 
   // actions
@@ -212,28 +188,17 @@ export const useProjects = defineStore('projectsStore', () => {
 
   const createProject = async (projectPayload: {
     title: string
-    workspaceId: string
+    workspaceId?: string
     type: string
     linkedDbProjectIds?: string[]
   }) => {
     const result = await api.project.create(
       {
         title: projectPayload.title,
-        // @ts-expect-error todo: include in swagger
-        fk_workspace_id: projectPayload.workspaceId,
-        type: projectPayload.type ?? NcProjectType.DB,
         linked_db_project_ids: projectPayload.linkedDbProjectIds,
-        // color,
-        // meta: JSON.stringify({
-        //   theme: {
-        //     primaryColor: color,
-        //     accentColor: complement.toHex8String(),
-        //   },
-        //   ...(route.value.query.type === NcProjectType.COWRITER && {prompt_statement: ''}),
-        // }),
       },
       {
-        baseURL: getBaseUrl(projectPayload.workspaceId),
+        baseURL: getBaseUrl('default'),
       },
     )
 
@@ -265,7 +230,7 @@ export const useProjects = defineStore('projectsStore', () => {
   }
 
   async function getProjectMetaInfo(projectId: string) {
-    return await api.project.metaGet(projectId!, {}, {})
+    return await api.project.metaGet(projectId!, {})
   }
 
   async function setProject(projectId: string, project: NcProject) {
@@ -283,10 +248,10 @@ export const useProjects = defineStore('projectsStore', () => {
     if (!project) return
 
     if (page) {
-      return await navigateTo(`/ws/${project.fk_workspace_id}/nc/${projectId}?page=${page}`)
+      return await navigateTo(`/ws/default/nc/${projectId}?page=${page}`)
     }
 
-    await navigateTo(`/ws/${project.fk_workspace_id}/nc/${projectId}`)
+    await navigateTo(`/ws/default/nc/${projectId}`)
   }
 
   return {

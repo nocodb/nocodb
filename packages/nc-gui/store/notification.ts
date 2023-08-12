@@ -15,11 +15,12 @@ export const useNotification = defineStore('notificationStore', () => {
 
   const { api, isLoading } = useApi()
 
-  const { appInfo, token } = $(useGlobal())
+  const { appInfo, token } = useGlobal()
+
   let socket: Socket
 
   const init = (token) => {
-    const url = new URL(appInfo.ncSiteUrl, window.location.href.split(/[?#]/)[0]).href
+    const url = new URL(appInfo.value.ncSiteUrl, window.location.href.split(/[?#]/)[0]).href
 
     socket = io(`${url}${url.endsWith('/') ? '' : '/'}notifications`, {
       extraHeaders: { 'xc-auth': token },
@@ -36,7 +37,7 @@ export const useNotification = defineStore('notificationStore', () => {
   }
 
   watch(
-    () => token,
+    () => token.value,
     (newToken, oldToken) => {
       if (newToken && newToken !== oldToken) init(newToken)
       else if (!newToken) socket?.disconnect()

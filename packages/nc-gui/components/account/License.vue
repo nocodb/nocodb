@@ -9,19 +9,19 @@ const { $e } = useNuxtApp()
 
 const { loadAppInfo } = useGlobal()
 
-let key = $ref('')
+let key = ref('')
 
 const loadLicense = async () => {
   try {
     const response = await api.orgLicense.get()
-    key = response.key!
+    key.value = response.key!
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 const setLicense = async () => {
   try {
-    await api.orgLicense.set({ key: key })
+    await api.orgLicense.set({ key: key.value })
     message.success('License key updated')
     await loadAppInfo()
   } catch (e: any) {

@@ -1,7 +1,7 @@
 import CryptoJS from 'crypto-js';
-import { Base } from '../models';
-import { MetaTable } from '../utils/globals';
 import type { NcUpgraderCtx } from './NcUpgrader';
+import { Base } from '~/models';
+import { MetaTable } from '~/utils/globals';
 
 const TEMP_KEY = 'temporary-key';
 

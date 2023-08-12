@@ -13,9 +13,11 @@ import questionMark from '@windicss/plugin-question-mark'
 
 import { theme as colors, themeColors, themeV2Colors } from './utils/colorsUtils'
 
+const isEE = process.env.EE
+
 export default defineConfig({
   extract: {
-    include: ['**/*.{vue,html,jsx,tsx,css,scss}'],
+    include: [isEE ? '../**/*.{vue,html,jsx,tsx,css,scss}' : '**/*.{vue,html,jsx,tsx,css,scss}'],
     exclude: ['node_modules', '.git'],
   },
 
@@ -73,19 +75,42 @@ export default defineConfig({
         ...windiColors,
         ...themeColors,
         ...themeV2Colors,
+        brand: {
+          50: '#EBF0FF',
+          100: '#D6E0FF',
+          200: '#ADC2FF',
+          300: '#85A3FF',
+          400: '#5C85FF',
+          500: '#36F',
+          600: '#2952CC',
+          700: '#1F3D99',
+          800: '#142966',
+          900: '#0A1433',
+        },
         gray: {
           10: '#FCFCFC',
-          50: '#F2F4F7',
-          75: '#EDEDED',
-          100: '#E1E3E6',
-          200: '#C4C7CC',
-          300: '#A6AAB3',
-          400: '#898E99',
-          500: '#6B7280',
-          600: '#565B66',
-          700: '#40444D',
-          800: '#2B2E33',
-          900: '#15171A',
+          50: '#F9F9FA',
+          100: '#F4F4F5',
+          200: '#E7E7E9',
+          300: '#D5D5D9',
+          400: '#9AA2AF',
+          500: '#6A7184',
+          600: '#4A5268',
+          700: '#374151',
+          800: '#1F293A',
+          900: '#101015',
+        },
+        red: {
+          50: '#FFF2F1',
+          100: '#FFDBD9',
+          200: '#FFB7B2',
+          300: '#FF928C',
+          400: '#FF6E65',
+          500: '#FF4A3F',
+          600: '#CC3B32',
+          700: '#992C26',
+          800: '#661E19',
+          900: '#330F0D',
         },
         primary: 'rgba(var(--color-primary), var(--tw-bg-opacity))',
         accent: 'rgba(var(--color-accent), var(--tw-bg-opacity))',

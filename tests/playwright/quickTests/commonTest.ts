@@ -1,7 +1,7 @@
 import { DashboardPage } from '../pages/Dashboard';
 import { ProjectsPage } from '../pages/ProjectsPage';
 import { NcContext } from '../setup';
-import { isHub, isMysql, isPg } from '../setup/db';
+import { isMysql, isPg } from '../setup/db';
 import { WorkspacePage } from '../pages/WorkspacePage';
 
 // normal fields
@@ -249,19 +249,8 @@ const quickVerify = async ({
   if (airtableImport) {
     // Delete default context project
     await dashboard.clickHome();
-    if (isHub()) {
-      const workspacePage = new WorkspacePage(dashboard.rootPage);
-      await workspacePage.projectDelete({ title: context.project.title });
-    } else {
-      const projectsPage = new ProjectsPage(dashboard.rootPage);
-      const projExists: boolean = await projectsPage
-        .get()
-        .locator(`[data-testid="delete-project-${context.project.title}"]`)
-        .isVisible();
-      if (projExists) {
-        await projectsPage.deleteProject({ title: context.project.title, withoutPrefix: true });
-      }
-    }
+    const workspacePage = new WorkspacePage(dashboard.rootPage);
+    await workspacePage.projectDelete({ title: context.project.title });
   }
 };
 

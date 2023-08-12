@@ -21,7 +21,7 @@ import {
   useSharedView,
   watch,
 } from '#imports'
-import type { Row } from '~/lib'
+import type { Row } from '#imports'
 
 interface DataApiResponse {
   list: Record<string, any>
@@ -66,9 +66,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { t } = useI18n()
 
-    const isPublic: boolean = $(inject(IsPublicInj, ref(false)))
+    const isPublic: boolean = inject(IsPublicInj, ref(false))
 
-    const colOptions = $computed(() => column.value?.colOptions as LinkToAnotherRecordType)
+    const colOptions = computed(() => column.value?.colOptions as LinkToAnotherRecordType)
 
     const { sharedView } = useSharedView()
 
@@ -77,7 +77,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     // getters
     const meta = computed(() => metas?.value?.[column?.value?.fk_model_id as string])
     const relatedTableMeta = computed<TableType>(() => {
-      return metas.value?.[colOptions?.fk_related_model_id as string]
+      return metas.value?.[colOptions.value?.fk_related_model_id as string]
     })
 
     const rowId = computed(() =>
@@ -96,7 +96,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     }
 
     const loadRelatedTableMeta = async () => {
-      await getMeta(colOptions.fk_related_model_id as string)
+      await getMeta(colOptions.value.fk_related_model_id as string)
     }
 
     const relatedTableDisplayValueProp = computed(() => {
@@ -112,13 +112,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const loadChildrenExcludedList = async () => {
       try {
-        if (isPublic) {
+        if (isPublic.value) {
           const router = useRouter()
 
-          const route = $(router.currentRoute)
+          const route = router.currentRoute
 
           childrenExcludedList.value = await $api.public.dataRelationList(
-            route.params.viewId as string,
+            route.value.params.viewId as string,
             column.value.id,
             {},
             {
@@ -157,7 +157,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             projectId,
             meta.value.id,
             encodeURIComponent(rowId.value),
-            colOptions.type as 'mm' | 'hm',
+            colOptions.value.type as 'mm' | 'hm',
             column?.value?.id,
             {
               limit: String(childrenExcludedListPagination.size),
@@ -176,13 +176,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const loadChildrenList = async () => {
       try {
-        if (colOptions.type === 'bt') return
+        if (colOptions.value.type === 'bt') return
 
-        if (isPublic) {
+        if (isPublic.value) {
           childrenList.value = await $api.public.dataNestedList(
             sharedView.value?.uuid as string,
             encodeURIComponent(rowId.value),
-            colOptions.type as 'mm' | 'hm',
+            colOptions.value.type as 'mm' | 'hm',
             column?.value?.id,
             {
               limit: String(childrenListPagination.size),
@@ -197,7 +197,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             (project?.value?.id || (sharedView.value?.view as any)?.project_id) as string,
             meta.value.id,
             encodeURIComponent(rowId.value),
-            colOptions.type as 'mm' | 'hm',
+            colOptions.value.type as 'mm' | 'hm',
             column?.value?.id,
             {
               limit: String(childrenListPagination.size),
@@ -270,7 +270,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           project.value.id as string,
           metaValue.id!,
           encodeURIComponent(rowId.value),
-          colOptions.type as 'mm' | 'hm',
+          colOptions.value.type as 'mm' | 'hm',
           column?.value?.id,
           encodeURIComponent(getRelatedTableRowId(row) as string),
         )
@@ -316,7 +316,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           project.value.id as string,
           metaValue.id as string,
           encodeURIComponent(rowId.value),
-          colOptions.type as 'mm' | 'hm',
+          colOptions.value.type as 'mm' | 'hm',
           column?.value?.id,
           encodeURIComponent(getRelatedTableRowId(row) as string) as string,
         )

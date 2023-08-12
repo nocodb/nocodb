@@ -2,19 +2,16 @@ import { Readable } from 'stream';
 import { isLinksOrLTAR, UITypes, ViewTypes } from 'nocodb-sdk';
 import { unparse } from 'papaparse';
 import { Injectable, Logger } from '@nestjs/common';
-import NcConnectionMgrv2 from '../../../../utils/common/NcConnectionMgrv2';
-import { getViewAndModelByAliasOrId } from '../../../datas/helpers';
-import {
-  clearPrefix,
-  generateBaseIdMap,
-} from '../../../../helpers/exportImportHelpers';
-import NcPluginMgrv2 from '../../../../helpers/NcPluginMgrv2';
-import { NcError } from '../../../../helpers/catchError';
-import { Base, Hook, Model, Project } from '../../../../models';
-import { DatasService } from '../../../../services/datas.service';
 import { elapsedTime, initTime } from '../../helpers';
-import type { BaseModelSqlv2 } from '../../../../db/BaseModelSqlv2';
-import type { View } from '../../../../models';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type { View } from '~/models';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
+import { clearPrefix, generateBaseIdMap } from '~/helpers/exportImportHelpers';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import { NcError } from '~/helpers/catchError';
+import { DatasService } from '~/services/datas.service';
+import { Base, Hook, Model, Project } from '~/models';
 
 @Injectable()
 export class ExportService {

@@ -17,6 +17,7 @@ import {
   inject,
   isColumnRequiredAndNull,
   isDrawerOrModalExist,
+  isEeUI,
   isMac,
   message,
   onClickOutside,
@@ -36,8 +37,7 @@ import {
   useViewsStore,
   watch,
 } from '#imports'
-import type { CellRange } from '#imports'
-import type { Row } from '~/lib'
+import type { CellRange, Row } from '#imports'
 
 const props = defineProps<{
   data: Row[]
@@ -124,9 +124,7 @@ const { isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
 
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
-const { $api, $e } = useNuxtApp()
-
-const { appInfo } = useGlobal()
+const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -134,9 +132,26 @@ const { getMeta } = useMetas()
 
 const { addUndo, clone, defineViewScope } = useUndoRedo()
 
+const {
+  predictingNextColumn,
+  predictedNextColumn,
+  predictingNextFormulas,
+  predictedNextFormulas,
+  predictNextColumn: _predictNextColumn,
+  predictNextFormulas: _predictNextFormulas,
+} = useNocoEe().table
+
+const predictNextColumn = async () => {
+  await _predictNextColumn(meta)
+}
+
+const predictNextFormulas = async () => {
+  await _predictNextFormulas(meta)
+}
+
 // #Refs
 
-const rowRefs = $ref<any[]>()
+const rowRefs = ref<any[]>()
 
 const smartTable = ref(null)
 
@@ -155,8 +170,8 @@ const gridRect = useElementBounding(gridWrapper)
 // #Permissions
 const { hasRole } = useRoles()
 const { isUIAllowed } = useUIPermission()
-const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
-const isAddingColumnAllowed = $computed(() => !readOnly.value && !isLocked.value && isUIAllowed('add-column') && !isSqlView.value)
+const hasEditPermission = computed(() => isUIAllowed('xcDatatableEditable'))
+const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isUIAllowed('add-column') && !isSqlView.value)
 
 // #Variables
 const addColumnDropdown = ref(false)
@@ -181,14 +196,14 @@ const isView = false
 
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 
-let editEnabled = $ref(false)
+const editEnabled = ref(false)
 
 // #Context Menu
 const _contextMenu = ref(false)
 const contextMenu = computed({
   get: () => _contextMenu.value,
   set: (val) => {
-    if (hasEditPermission) {
+    if (hasEditPermission.value) {
       _contextMenu.value = val
     }
   },
@@ -207,7 +222,7 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
 // #Cell - 1
 
 async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = false) {
-  if (!ctx || !hasEditPermission || (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col]))) return
+  if (!ctx || !hasEditPermission.value || (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col]))) return
 
   if (fields.value[ctx.col]?.uidt === UITypes.Links) {
     return message.info('Links column clear is not supported yet')
@@ -234,9 +249,9 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             ) {
               rowObj.row[columnObj.title] = row.row[columnObj.title]
 
-              if (rowRefs) {
-                await rowRefs[ctx.row]!.addLTARRef(rowObj.row[columnObj.title], columnObj)
-                await rowRefs[ctx.row]!.syncLTARRefs(rowObj.row)
+              if (rowRefs.value) {
+                await rowRefs.value[ctx.row]!.addLTARRef(rowObj.row[columnObj.title], columnObj)
+                await rowRefs.value[ctx.row]!.syncLTARRefs(rowObj.row)
               }
 
               // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -263,8 +278,8 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             const rowObj = dataRef.value[ctx.row]
             const columnObj = fields.value[ctx.col]
             if (rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) && columnObj.id === col.id) {
-              if (rowRefs) {
-                await rowRefs[ctx.row]!.clearLTARCell(columnObj)
+              if (rowRefs.value) {
+                await rowRefs.value[ctx.row]!.clearLTARCell(columnObj)
               }
               // eslint-disable-next-line @typescript-eslint/no-use-before-define
               activeCell.col = ctx.col
@@ -282,7 +297,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
       },
       scope: defineViewScope({ view: view.value }),
     })
-    if (rowRefs) await rowRefs[ctx.row]!.clearLTARCell(columnObj)
+    if (rowRefs.value) await rowRefs.value[ctx.row]!.clearLTARCell(columnObj)
     return
   }
 
@@ -308,7 +323,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 }
 
 function makeEditable(row: Row, col: ColumnType) {
-  if (!hasEditPermission || editEnabled || isView || isLocked.value || readOnly.value || isSystemColumn(col)) {
+  if (!hasEditPermission.value || editEnabled.value || isView || isLocked.value || readOnly.value || isSystemColumn(col)) {
     return
   }
 
@@ -334,22 +349,22 @@ function makeEditable(row: Row, col: ColumnType) {
     return
   }
 
-  return (editEnabled = true)
+  return (editEnabled.value = true)
 }
 
 // #Computed
 
-const isAddingEmptyRowAllowed = $computed(
-  () => !isView && !isLocked.value && hasEditPermission && !isSqlView.value && !isPublicView.value,
+const isAddingEmptyRowAllowed = computed(
+  () => !isView && !isLocked.value && hasEditPermission.value && !isSqlView.value && !isPublicView.value,
 )
 
-const visibleColLength = $computed(() => fields.value?.length)
+const visibleColLength = computed(() => fields.value?.length)
 
 const gridWrapperClass = computed<string>(() => {
   const classes = []
   if (headerOnly !== true) {
     if (!scrollParent.value) {
-      classes.push('scrollbar-thin-dull overflow-auto')
+      classes.push('nc-scrollbar-x-md overflow-auto')
     }
   } else {
     classes.push('overflow-visible')
@@ -489,7 +504,7 @@ const {
   meta,
   fields,
   dataRef,
-  $$(editEnabled),
+  editEnabled,
   isPkAvail,
   contextMenu,
   clearCell,
@@ -515,15 +530,15 @@ const {
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
     const altOrOptionKey = e.altKey
     if (e.key === ' ') {
-      if (isCellActive.value && !editEnabled && hasEditPermission && activeCell.row !== null) {
+      if (isCellActive.value && !editEnabled.value && hasEditPermission.value && activeCell.row !== null) {
         e.preventDefault()
         const row = dataRef.value[activeCell.row]
         expandForm?.(row)
         return true
       }
     } else if (e.key === 'Escape') {
-      if (editEnabled) {
-        editEnabled = false
+      if (editEnabled.value) {
+        editEnabled.value = false
         return true
       }
     } else if (e.key === 'Enter') {
@@ -531,8 +546,8 @@ const {
         // add a line break for types like LongText / JSON
         return true
       }
-      if (editEnabled) {
-        editEnabled = false
+      if (editEnabled.value) {
+        editEnabled.value = false
         return true
       }
     }
@@ -550,7 +565,7 @@ const {
           activeCell.row = 0
           activeCell.col = activeCell.col ?? 0
           scrollToCell?.()
-          editEnabled = false
+          editEnabled.value = false
           return true
         case 'ArrowDown':
           e.preventDefault()
@@ -558,7 +573,7 @@ const {
           activeCell.row = dataRef.value.length - 1
           activeCell.col = activeCell.col ?? 0
           scrollToCell?.()
-          editEnabled = false
+          editEnabled.value = false
           return true
         case 'ArrowRight':
           e.preventDefault()
@@ -566,7 +581,7 @@ const {
           activeCell.row = activeCell.row ?? 0
           activeCell.col = fields.value?.length - 1
           scrollToCell?.()
-          editEnabled = false
+          editEnabled.value = false
           return true
         case 'ArrowLeft':
           e.preventDefault()
@@ -574,7 +589,7 @@ const {
           activeCell.row = activeCell.row ?? 0
           activeCell.col = 0
           scrollToCell?.()
-          editEnabled = false
+          editEnabled.value = false
           return true
       }
     }
@@ -583,7 +598,7 @@ const {
       switch (e.keyCode) {
         case 82: {
           // ALT + R
-          if (isAddingEmptyRowAllowed) {
+          if (isAddingEmptyRowAllowed.value) {
             $e('c:shortcut', { key: 'ALT + R' })
             addEmptyRow()
             activeCell.row = dataRef.value.length - 1
@@ -599,7 +614,7 @@ const {
         }
         case 67: {
           // ALT + C
-          if (isAddingColumnAllowed) {
+          if (isAddingColumnAllowed.value) {
             $e('c:shortcut', { key: 'ALT + C' })
             addColumnDropdown.value = true
           }
@@ -687,7 +702,7 @@ onClickOutside(tableBodyEl, (e) => {
 
   const activeCol = fields.value[activeCell.col]
 
-  if (editEnabled && (isVirtualCol(activeCol) || activeCol.uidt === UITypes.JSON)) return
+  if (editEnabled.value && (isVirtualCol(activeCol) || activeCol.uidt === UITypes.JSON)) return
 
   // skip if fill mode is active
   if (isFillMode.value) return
@@ -717,7 +732,7 @@ onClickOutside(tableBodyEl, (e) => {
 const onNavigate = (dir: NavigateDir) => {
   if (activeCell.row === null || activeCell.col === null) return
 
-  editEnabled = false
+  editEnabled.value = false
   clearSelectedRange()
 
   switch (dir) {
@@ -743,7 +758,7 @@ const onNavigate = (dir: NavigateDir) => {
 // #Cell - 2
 
 async function clearSelectedRangeOfCells() {
-  if (!hasEditPermission) return
+  if (!hasEditPermission.value) return
 
   const start = selectedRange.start
   const end = selectedRange.end
@@ -841,7 +856,7 @@ const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?
     index++
     /** if new record save row and save the LTAR cells */
     if (currentRow.rowMeta.new) {
-      const syncLTARRefs = rowRefs?.[index]?.syncLTARRefs
+      const syncLTARRefs = rowRefs.value?.[index]?.syncLTARRefs
       const savedRow = await updateOrSaveRow?.(currentRow, '', {}, args)
       await syncLTARRefs?.(savedRow, args)
       currentRow.rowMeta.changed = false
@@ -877,66 +892,6 @@ const onXcResizing = (cn: string | undefined, event: any) => {
   resizingColWidth.value = event.detail
 }
 
-// #NocoAI
-
-const predictingNextColumn = ref(false)
-
-const predictedNextColumn = ref<Array<{ title: string; type: string }>>()
-
-const predictingNextFormulas = ref(false)
-
-const predictedNextFormulas = ref<Array<{ title: string; formula: string }>>()
-
-const predictNextColumn = async () => {
-  if (predictingNextColumn.value) return
-  predictedNextColumn.value = []
-  predictingNextColumn.value = true
-  try {
-    if (meta.value && meta.value.columns) {
-      const res: { data: Array<{ title: string; type: string }> } = await $api.utils.magic({
-        operation: 'predictNextColumn',
-        data: {
-          table: meta.value.title,
-          columns: meta.value.columns.map((col) => col.title),
-        },
-      })
-
-      predictedNextColumn.value = res.data
-    }
-  } catch (e) {
-    message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
-  }
-  predictingNextColumn.value = false
-}
-
-const predictNextFormulas = async () => {
-  if (predictingNextFormulas.value) return
-  predictingNextFormulas.value = true
-  try {
-    if (meta.value && meta.value.columns) {
-      const res: { data: Array<{ title: string; formula: string }> } = await $api.utils.magic({
-        operation: 'predictNextFormulas',
-        data: {
-          table: meta.value.title,
-          columns: meta.value.columns
-            .filter((c) => {
-              // skip system LTAR columns
-              if (c.uidt === UITypes.LinkToAnotherRecord && c.system) return false
-              if ([UITypes.QrCode, UITypes.Barcode].includes(c.uidt as UITypes)) return false
-              return true
-            })
-            .map((col) => col.title),
-        },
-      })
-
-      predictedNextFormulas.value = res.data
-    }
-  } catch (e) {
-    message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
-  }
-  predictingNextFormulas.value = false
-}
-
 const loadColumn = (title: string, tp: string, colOptions?: any) => {
   preloadColumn.value = {
     title,
@@ -967,7 +922,7 @@ const showFillHandle = computed(
   () =>
     !readOnly.value &&
     !isLocked.value &&
-    !editEnabled &&
+    !editEnabled.value &&
     (!selectedRange.isEmpty() || (activeCell.row !== null && activeCell.col !== null)) &&
     !dataRef.value[(isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) ?? -1]?.rowMeta?.new,
 )
@@ -1064,7 +1019,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     switch (e.keyCode) {
       case 78: {
         // ALT + N
-        if (isAddingEmptyRowAllowed) {
+        if (isAddingEmptyRowAllowed.value) {
           addEmptyRow()
         }
 
@@ -1184,7 +1139,7 @@ defineExpose({
                 <td
                   v-for="(col, colIndex) of dummyDataForLoading"
                   :key="colIndex"
-                  class="!bg-gray-10 h-full"
+                  class="!bg-gray-50 h-full"
                   :class="{ 'min-w-50': colIndex !== 0, 'min-w-21.25': colIndex === 0 }"
                 >
                   <a-skeleton
@@ -1200,7 +1155,7 @@ defineExpose({
                 <th class="w-[85px] min-w-[85px]" data-testid="grid-id-column" @dblclick="() => {}">
                   <div class="w-full h-full flex pl-5 pr-1 items-center" data-testid="nc-check-all">
                     <template v-if="!readOnly">
-                      <div class="nc-no-label text-gray-400" :class="{ hidden: vSelectedAllRecords }">#</div>
+                      <div class="nc-no-label text-gray-500" :class="{ hidden: vSelectedAllRecords }">#</div>
                       <div
                         :class="{ hidden: !vSelectedAllRecords, flex: vSelectedAllRecords }"
                         class="nc-check-all w-full items-center"
@@ -1239,7 +1194,7 @@ defineExpose({
                   }"
                   @click.stop="addColumnDropdown = true"
                 >
-                  <div class="absolute top-0 left-0 h-10.25 border-b-1 border-r-1 border-gray-50 nc-grid-add-edit-column group">
+                  <div class="absolute top-0 left-0 h-10.25 border-b-1 border-r-1 border-gray-200 nc-grid-add-edit-column group">
                     <a-dropdown
                       v-model:visible="addColumnDropdown"
                       :trigger="['click']"
@@ -1247,11 +1202,11 @@ defineExpose({
                       @visible-change="persistMenu = altModifier"
                     >
                       <div class="h-full w-[60px] flex items-center justify-center">
-                        <GeneralIcon v-if="altModifier || persistMenu" icon="magic" class="text-sm text-orange-400" />
+                        <GeneralIcon v-if="isEeUI && (altModifier || persistMenu)" icon="magic" class="text-sm text-orange-400" />
                         <component :is="iconMap.plus" class="text-sm nc-column-add text-gray-500 !group-hover:text-black" />
                       </div>
 
-                      <template v-if="persistMenu" #overlay>
+                      <template v-if="isEeUI && persistMenu" #overlay>
                         <a-menu>
                           <a-sub-menu v-if="predictedNextColumn?.length" key="predict-column">
                             <template #title>
@@ -1436,7 +1391,7 @@ defineExpose({
                           'last-cell':
                             rowIndex === (isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) &&
                             colIndex === (isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col),
-                          'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
+                          'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row) && !isPublicView,
                           'align-middle': !rowHeight || rowHeight === 1,
                           'align-top': rowHeight && rowHeight !== 1,
                           'filling': isCellInFillRange(rowIndex, colIndex),
@@ -1502,7 +1457,7 @@ defineExpose({
                     <component :is="iconMap.plus" class="text-pint-500 text-xs ml-2 text-gray-600 group-hover:text-black" />
                   </div>
                 </td>
-                <td class="!border-gray-50" :colspan="visibleColLength"></td>
+                <td class="!border-gray-100" :colspan="visibleColLength"></td>
               </tr>
             </tbody>
           </table>
@@ -1524,7 +1479,7 @@ defineExpose({
         <template v-if="!isLocked && hasEditPermission" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
             <a-menu-item
-              v-if="appInfo.ee && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
+              v-if="isEeUI && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
               @click="emits('bulkUpdateDlg')"
             >
               <div v-e="['a:row:update-bulk']" class="nc-project-menu-item">
@@ -1584,16 +1539,6 @@ defineExpose({
               </div>
             </a-menu-item>
 
-            <!-- To be enabled later -->
-            <!--            <a-sub-menu v-if="contextMenuTarget" title="NocoAI"> -->
-            <!--              <a-menu-item @click="openGenerateDialog(contextMenuTarget)"> -->
-            <!--                <div class="color-transition nc-project-menu-item group"> -->
-            <!--                  <GeneralIcon icon="magic1" class="group-hover:text-accent text-primary" /> -->
-            <!--                  Generate -->
-            <!--                </div> -->
-            <!--              </a-menu-item> -->
-            <!--            </a-sub-menu> -->
-
             <a-menu-item
               v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
               @click="confirmDeleteRow(contextMenuTarget.row)"
@@ -1619,7 +1564,7 @@ defineExpose({
 
     <div
       v-if="showSkeleton && headerOnly !== true"
-      class="flex flex-row justify-center item-center min-h-10 border-t-1 border-gray-75"
+      class="flex flex-row justify-center item-center min-h-10 border-t-1 border-gray-100"
     >
       <a-skeleton :active="true" :title="true" :paragraph="false" class="-mt-1 max-w-60" />
     </div>
@@ -1637,8 +1582,8 @@ defineExpose({
           <a-dropdown-button placement="top" @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()">
             <div class="flex items-center px-2 text-gray-600 hover:text-black">
               <span>
-                <template v-if="isAddNewRecordGridMode"> New Record </template>
-                <template v-else> New Record - Form </template>
+                <template v-if="isAddNewRecordGridMode"> {{ $t('activity.newRecord') }} </template>
+                <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }} </template>
               </span>
             </div>
 
@@ -1655,36 +1600,36 @@ defineExpose({
                   <div
                     v-e="['c:row:add:grid-top']"
                     :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
-                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-50 text-gray-600 nc-new-record-with-grid"
+                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-grid"
                     @click="onNewRecordToGridClick"
                   >
                     <div class="flex flex-row items-center justify-between w-full">
                       <div class="flex flex-row items-center justify-start gap-x-3">
-                        <GeneralViewIcon :meta="{ type: ViewTypes.GRID }" />
-                        New Record - Grid
+                        <component :is="viewIcons[ViewTypes.GRID]?.icon" class="nc-view-icon text-inherit" />
+                        {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.grid') }}
                       </div>
                       <div class="h-4 w-4 flex flex-row items-center justify-center">
                         <GeneralIcon v-if="isAddNewRecordGridMode" icon="check" />
                       </div>
                     </div>
-                    <div class="flex flex-row text-xs text-gray-300 ml-7.25">Manually add data in grid view</div>
+                    <div class="flex flex-row text-xs text-gray-400 ml-7.25">{{ $t('labels.addRowGrid') }}</div>
                   </div>
                   <div
                     v-e="['c:row:add:expanded-form']"
                     :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
-                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-50 text-gray-600 nc-new-record-with-form"
+                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-form"
                     @click="onNewRecordToFormClick"
                   >
                     <div class="flex flex-row items-center justify-between w-full">
                       <div class="flex flex-row items-center justify-start gap-x-2.5">
                         <GeneralIcon class="h-4.5 w-4.5" icon="article" />
-                        New Record - Form
+                        {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}
                       </div>
                       <div class="h-4 w-4 flex flex-row items-center justify-center">
                         <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" />
                       </div>
                     </div>
-                    <div class="flex flex-row text-xs text-gray-300 ml-7.05">Enter record data through a form</div>
+                    <div class="flex flex-row text-xs text-gray-400 ml-7.05">{{ $t('labels.addRowForm') }}</div>
                   </div>
                 </div>
               </div>
@@ -1699,29 +1644,43 @@ defineExpose({
   </div>
 </template>
 
+<style lang="scss">
+.nc-pagination-wrapper .ant-dropdown-button {
+  > .ant-btn {
+    @apply !p-0 !rounded-l-lg hover:border-gray-400;
+  }
+
+  > .ant-dropdown-trigger {
+    @apply !rounded-r-lg;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  @apply !rounded-lg;
+}
+</style>
+
 <style scoped lang="scss">
 .nc-grid-wrapper {
   @apply h-full w-full;
 
   .nc-grid-add-edit-column {
-    background-color: rgb(252, 252, 252);
+    @apply bg-gray-50;
   }
   .nc-grid-add-new-cell:hover td {
-    background-color: rgb(252, 252, 252);
-    @apply text-black;
+    @apply text-black bg-gray-50;
   }
 
   td,
   th {
-    @apply border-gray-50 border-solid border-r bg-gray-50;
-    background-color: rgb(252, 252, 252);
+    @apply border-gray-100 border-solid border-r bg-gray-50;
     min-height: 41px !important;
     height: 41px !important;
     position: relative;
   }
 
   th {
-    @apply border-b-1 border-gray-50;
+    @apply border-b-1 border-gray-200;
   }
 
   .nc-grid-header th:last-child {
@@ -1807,7 +1766,7 @@ defineExpose({
     position: sticky !important;
     left: 85px;
     z-index: 5;
-    @apply border-r-1 border-r-gray-75;
+    @apply border-r-1 border-r-gray-200;
   }
 
   tbody td:nth-child(2) {
@@ -1815,7 +1774,7 @@ defineExpose({
     left: 85px;
     z-index: 4;
     background: white;
-    @apply border-r-1 border-r-gray-75;
+    @apply border-r-1 border-r-gray-100;
   }
 
   .nc-grid-skelton-loader {
@@ -1828,14 +1787,12 @@ defineExpose({
   }
 }
 
-:deep {
-  .resizer:hover,
-  .resizer:active,
-  .resizer:focus {
-    // todo: replace with primary color
-    @apply bg-blue-500/50;
-    cursor: col-resize;
-  }
+:deep(.resizer:hover),
+:deep(.resizer:active),
+:deep(.resizer:focus) {
+  // todo: replace with primary color
+  @apply bg-blue-500/50;
+  cursor: col-resize;
 }
 
 .nc-grid-row {

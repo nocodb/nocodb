@@ -1,4 +1,4 @@
-import { OrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import { OrgUserRoles } from 'nocodb-sdk';
 
 const viewerPermissions = {
   include: {
@@ -65,13 +65,6 @@ const viewerPermissions = {
     pageParents: true,
     pagePaginate: true,
     trackEvents: true,
-
-    // dashboards
-    layoutGet: true,
-    layoutList: true,
-    widgetsList: true,
-    widgetGet: true,
-    widgetFilterList: true,
   },
 };
 const rolePermissions = {
@@ -82,22 +75,6 @@ const rolePermissions = {
       pluginRead: true,
       pluginUpdate: true,
       isPluginActive: true,
-      workspaceCreate: true,
-      workspaceList: true,
-      workspaceGet: true,
-      workspaceUpdate: true,
-      workspaceDelete: true,
-      workspaceUserList: true,
-      workspaceUserGet: true,
-      workspaceUserUpdate: true,
-      workspaceUserDelete: true,
-      workspaceInvite: true,
-      workspaceInvitationGet: true,
-      workspaceInvitationUpdate: true,
-      workspaceInvitationDelete: true,
-      workspaceInvitationAccept: true,
-      workspaceInvitationReject: true,
-      workspaceInvitationTokenRead: true,
       createBase: true,
     },
   },
@@ -109,22 +86,6 @@ const rolePermissions = {
       pluginUpdate: true,
       isPluginActive: true,
       projectDelete: true,
-      workspaceList: true,
-      workspaceGet: true,
-      workspaceUpdate: true,
-      workspaceCreate: true,
-      workspaceDelete: true,
-      workspaceUserList: true,
-      workspaceUserGet: true,
-      workspaceUserUpdate: true,
-      workspaceUserDelete: true,
-      workspaceInvitationList: true,
-      workspaceInvitationGet: true,
-      workspaceInvitationUpdate: true,
-      workspaceInvitationDelete: true,
-      workspaceInvitationAccept: true,
-      workspaceInvitationReject: true,
-      workspaceInvitationTokenRead: true,
       createBase: true,
     },
   },
@@ -284,18 +245,6 @@ const rolePermissions = {
       pageDirectoryImport: true,
       docsMagicCreatePages: true,
       trackEvents: true,
-
-      // dashboards
-      layoutGet: true,
-      layoutList: true,
-      layoutCreate: true,
-      widgetsList: true,
-      widgetGet: true,
-      widgetCreate: true,
-      widgetUpdate: true,
-      widgetDelete: true,
-      widgetFilterList: true,
-      widgetFilterCreate: true,
     },
   },
   commenter: {
@@ -365,15 +314,11 @@ const rolePermissions = {
   viewer: viewerPermissions,
   [OrgUserRoles.VIEWER]: {
     include: {
-      workspaceProjectList: true,
       apiTokenList: true,
       apiTokenCreate: true,
       apiTokenDelete: true,
       passwordChange: true,
       projectList: true,
-      workspaceList: true,
-      workspaceGet: true,
-      workspaceCreate: true,
       commandPalette: true,
       trackEvents: true,
       // allow only in cloud
@@ -383,7 +328,6 @@ const rolePermissions = {
   [OrgUserRoles.SUPER_ADMIN]: '*',
   [OrgUserRoles.CREATOR]: {
     include: {
-      workspaceProjectList: true,
       apiTokenList: true,
       apiTokenCreate: true,
       apiTokenDelete: true,
@@ -391,7 +335,7 @@ const rolePermissions = {
       uploadViaURL: true,
       passwordChange: true,
       isPluginActive: true,
-      // projectCreate: true,
+      projectCreate: true,
       // projectCreateByWeb: true,
       // projectCreateByWebWithXCDB: true,
       projectList: true,
@@ -402,10 +346,6 @@ const rolePermissions = {
       xcMetaTablesImportZipToLocalFsAndDb: true,
       xcMetaTablesExportDbToZip: true,
       auditRowUpdate: true,
-      workspaceList: true,
-      workspaceGet: true,
-      workspaceCreate: true,
-      workspaceUserList: true,
       genericGPT: true,
       commandPalette: true,
       runSelectQuery: true,
@@ -424,98 +364,8 @@ const rolePermissions = {
       pageDirectoryImport: true,
 
       trackEvents: true,
-
-      // dashboards
-      layoutGet: true,
-      layoutList: true,
-      layoutCreate: true,
-      widgetsList: true,
-      widgetGet: true,
-      widgetCreate: true,
-      widgetUpdate: true,
-      widgetDelete: true,
-      widgetFilterList: true,
-      widgetFilterCreate: true,
-    },
-  },
-
-  // todo: role correction
-  [WorkspaceUserRoles.CREATOR]: {
-    // include: {
-    //   workspaceList: true,
-    //   workspaceGet: true,
-    //   workspaceDelete: true,
-    // },
-    exclude: {
-      pluginList: true,
-      pluginTest: true,
-      pluginRead: true,
-      pluginUpdate: true,
-      isPluginActive: true,
-      projectDelete: true,
-      createBase: true,
-      workspaceDelete: true,
-    },
-  },
-  [WorkspaceUserRoles.VIEWER]: {
-    include: {
-      ...viewerPermissions.include,
-      workspaceList: true,
-      projectUserMetaUpdate: true,
-      workspaceGet: true,
-      workspaceDelete: true,
-      commandPalette: true,
-    },
-  },
-  [WorkspaceUserRoles.COMMENTER]: {
-    include: {
-      workspaceList: true,
-      projectUserMetaUpdate: true,
-      workspaceGet: true,
-      workspaceDelete: true,
-      commandPalette: true,
-    },
-  },
-  [WorkspaceUserRoles.EDITOR]: {
-    include: {
-      workspaceList: true,
-      projectUserMetaUpdate: true,
-      workspaceGet: true,
-      workspaceDelete: true,
-      commandPalette: true,
-    },
-  },
-  [WorkspaceUserRoles.OWNER]: {
-    exclude: {
-      pluginList: true,
-      pluginTest: true,
-      pluginRead: true,
-      pluginUpdate: true,
-      isPluginActive: true,
-      commandPalette: true,
     },
   },
 };
-
-// include viewer project role permissions
-Object.assign(
-  rolePermissions[WorkspaceUserRoles.VIEWER].include,
-  rolePermissions['viewer'].include,
-);
-// include editor project role permissions
-Object.assign(
-  rolePermissions[WorkspaceUserRoles.EDITOR].include,
-  rolePermissions['editor'].include,
-);
-
-// include editor project role permissions
-Object.assign(
-  rolePermissions[WorkspaceUserRoles.COMMENTER].include,
-  rolePermissions['commenter'].include,
-);
-
-// todo: remove org level roles in cloud
-// in cloud there is no org user roles, all user can create project and we can give all permissions
-rolePermissions[OrgUserRoles.VIEWER] = rolePermissions[OrgUserRoles.CREATOR];
 
 export default rolePermissions;

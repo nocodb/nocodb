@@ -1,17 +1,17 @@
 import { isNumericCol, RelationTypes, UITypes } from 'nocodb-sdk';
 import dayjs from 'dayjs';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
-import Filter from '../models/Filter';
-import { sanitize } from '../helpers/sqlSanitize';
-import genRollupSelectv2 from './genRollupSelectv2';
-import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
-import type { BaseModelSqlv2 } from '../db/BaseModelSqlv2';
-import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type { Knex } from 'knex';
-import type Column from '../models/Column';
-import type LookupColumn from '../models/LookupColumn';
-import type RollupColumn from '../models/RollupColumn';
-import type FormulaColumn from '../models/FormulaColumn';
+import type Column from '~/models/Column';
+import type LookupColumn from '~/models/LookupColumn';
+import type RollupColumn from '~/models/RollupColumn';
+import type FormulaColumn from '~/models/FormulaColumn';
+import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import genRollupSelectv2 from '~/db/genRollupSelectv2';
+import { sanitize } from '~/helpers/sqlSanitize';
+import Filter from '~/models/Filter';
 
 // tod: tobe fixed
 // extend(customParseFormat);

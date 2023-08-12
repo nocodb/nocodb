@@ -1,30 +1,11 @@
 <script lang="ts" setup>
 import type { ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import { storeToRefs } from 'pinia'
-import { isString } from '@vue/shared'
 import tinycolor from 'tinycolor2'
-import type { SharedView } from '~~/lib'
-
-interface Emits {
-  (event: 'close'): void
-}
-
-const emits = defineEmits<Emits>()
 
 const { view: _view, $api } = useSmartsheetStoreOrThrow()
-const { t } = useI18n()
 const { $e } = useNuxtApp()
 
-const { copy } = useCopy()
-const { isUIAllowed } = useUIPermission()
-const { isMobileMode } = useGlobal()
-const { project } = storeToRefs(useProject())
-const { isProjectPublic } = storeToRefs(useShare())
-const { openedPage, nestedPublicParentPage, nestedPagesOfProjects } = storeToRefs(useDocStore())
-const { updatePage, nestedUrl } = useDocStore()
-
-const { isSharedBase } = storeToRefs(useProject())
 const { dashboardUrl } = useDashboard()
 
 const isUpdating = ref({
@@ -33,7 +14,6 @@ const isUpdating = ref({
   download: false,
 })
 
-const page = computed(() => openedPage.value ?? nestedPagesOfProjects.value[project.value.id!]?.[0])
 const activeView = computed<(ViewType & { meta: object & Record<string, any> }) | undefined>({
   get: () => {
     if (typeof _view.value?.meta === 'string') {
@@ -56,11 +36,7 @@ const activeView = computed<(ViewType & { meta: object & Record<string, any> }) 
 })
 
 const url = computed(() => {
-  if (project.value?.type === NcProjectType.DOCS) {
-    return nestedUrl({ projectId: project.value.id!, id: page.value!.id!, completeUrl: true, publicUrl: true }) ?? ''
-  } else {
-    return sharedViewUrl() ?? ''
-  }
+  return sharedViewUrl() ?? ''
 })
 
 const passwordProtected = computed(() => {
@@ -181,27 +157,6 @@ function sharedViewUrl() {
   return encodeURI(`${dashboardUrl?.value}#/nc/${viewType}/${activeView.value.uuid}`)
 }
 
-const isNestedParent = computed(() => nestedPublicParentPage.value?.id === page.value!.id)
-
-const togglePagePublishedState = async () => {
-  let pageUpdates
-  if (page.value!.is_published) {
-    pageUpdates = {
-      is_published: false,
-    }
-  } else {
-    pageUpdates = {
-      is_published: true,
-    }
-  }
-
-  await updatePage({
-    pageId: page.value!.id!,
-    page: pageUpdates,
-    projectId: project.value.id!,
-  })
-}
-
 const toggleViewShare = async () => {
   if (!activeView.value?.id) return
 
@@ -226,26 +181,12 @@ const toggleShare = async () => {
 
   isUpdating.value.public = true
   try {
-    if (project.value?.type === NcProjectType.DOCS) {
-      return await togglePagePublishedState()
-    } else {
-      return await toggleViewShare()
-    }
+    return await toggleViewShare()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     isUpdating.value.public = false
   }
-}
-
-const openParentPageLink = async () => {
-  await navigateTo(
-    nestedUrl({
-      projectId: project.value.id!,
-      id: nestedPublicParentPage.value!.id!,
-    }),
-  )
-  emits('close')
 }
 
 async function saveAllowCSVDownload() {
@@ -302,25 +243,17 @@ function onChangeTheme(color: string) {
 }
 
 const isPublicShared = computed(() => {
-  if (project.value.type === NcProjectType.DASHBOARD) {
-    return isProjectPublic.value || !!page.value?.is_published
-  } else {
-    return !!activeView.value?.uuid
-  }
+  return !!activeView.value?.uuid
 })
 
 const isPublicShareDisabled = computed(() => {
-  if (project.value.type === NcProjectType.DASHBOARD) {
-    return isProjectPublic.value || (page.value.is_published && !isNestedParent)
-  } else {
-    return false
-  }
+  return false
 })
 </script>
 
 <template>
   <div class="flex flex-col py-2 px-3 mb-1">
-    <div class="flex flex-col w-full mt-2.5 px-3 py-2.5 border-gray-100 border-1 rounded-md gap-y-2">
+    <div class="flex flex-col w-full mt-2.5 px-3 py-2.5 border-gray-200 border-1 rounded-md gap-y-2">
       <div class="flex flex-row w-full justify-between py-0.5">
         <div class="flex" :style="{ fontWeight: 500 }">Enable public viewing</div>
         <a-switch
@@ -332,24 +265,8 @@ const isPublicShareDisabled = computed(() => {
           @click="toggleShare"
         />
       </div>
-      <template v-if="project.type === NcProjectType.DOCS">
-        <div v-if="isProjectPublic" class="flex text-xs items-center">
-          Shared through project
-          <span class="ml-1.5 px-1.5 py-0.5 bg-gray-100 rounded-md capitalize">{{ project.title }}</span>
-        </div>
-        <div v-else-if="page.is_published && !isNestedParent" class="flex text-xs">
-          Shared through page
-          <span
-            class="text-blue-600 underline pl-1 cursor-pointer mr-1"
-            :data-testid="`docs-share-page-parent-share-${nestedPublicParentPage?.title}`"
-            @click="openParentPageLink"
-          >
-            {{ nestedPublicParentPage?.title }}</span
-          >
-        </div>
-      </template>
       <template v-if="isPublicShared">
-        <div class="mt-0.5 border-t-1 border-gray-75 pt-3">
+        <div class="mt-0.5 border-t-1 border-gray-100 pt-3">
           <GeneralCopyUrl v-model:url="url" />
         </div>
         <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-gray-50 rounded-md">

@@ -7,12 +7,12 @@ import {
   ExcelUrlTemplateAdapter,
   JSONTemplateAdapter,
   JSONUrlTemplateAdapter,
-} from '../utils/parsers/index'
+} from '../helpers/parsers/index'
 import type { ImportWorkerPayload } from '../lib'
 import { ImportSource, ImportType, ImportWorkerOperations, ImportWorkerResponse } from '../lib/enums'
-import type TemplateGenerator from '../utils/parsers/TemplateGenerator'
+import type TemplateGenerator from '../helpers/parsers/TemplateGenerator'
 import { extractSdkResponseErrorMsg } from '../utils/errorUtils'
-import { extractSelectOptions } from '../utils/parsers/parserHelpers'
+import { extractSelectOptions } from '../helpers/parsers/parserHelpers'
 
 const state: {
   tables: TableType[]
@@ -169,14 +169,12 @@ self.addEventListener(
         state.config = payload
         break
       case ImportWorkerOperations.INIT_SDK:
-        {
-          state.api = new Api<any>({
-            baseURL: payload.baseURL,
-            headers: {
-              'xc-auth': payload.token,
-            },
-          })
-        }
+        state.api = new Api<any>({
+          baseURL: payload.baseURL,
+          headers: {
+            'xc-auth': payload.token,
+          },
+        })
         break
       case ImportWorkerOperations.GET_SINGLE_SELECT_OPTIONS:
       case ImportWorkerOperations.GET_MULTI_SELECT_OPTIONS:

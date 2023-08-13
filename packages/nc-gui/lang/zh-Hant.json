@@ -305,7 +305,6 @@
     "importLookupColumns": "Import Lookup Columns",
     "importAttachmentColumns": "Import Attachment Columns",
     "importFormulaColumns": "Import Formula Columns",
-    "importUsers": "Import Users (by email)",
     "noData": "沒有資料",
     "goToDashboard": "前往儀表板",
     "importing": "匯入中",

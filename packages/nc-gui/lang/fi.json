@@ -305,7 +305,6 @@
     "importLookupColumns": "Tuo hakusarakkeita",
     "importAttachmentColumns": "Liitesarakkeiden tuominen",
     "importFormulaColumns": "Tuo kaavan sarakkeet",
-    "importUsers": "Import Users (by email)",
     "noData": "Ei tietoja",
     "goToDashboard": "Siirry kojelautaan",
     "importing": "Tuo",

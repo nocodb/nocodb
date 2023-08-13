@@ -305,7 +305,6 @@
     "importLookupColumns": "Импорт подстановочных (Lookup) столбцов",
     "importAttachmentColumns": "Импорт столбцов вложений",
     "importFormulaColumns": "Импорт столбцов формул",
-    "importUsers": "Import Users (by email)",
     "noData": "Нет данных",
     "goToDashboard": "Перейти к Дашборду",
     "importing": "Импорт",

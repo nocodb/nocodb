@@ -305,7 +305,6 @@
     "importLookupColumns": "导入查询列",
     "importAttachmentColumns": "导入附件列",
     "importFormulaColumns": "导入公式列",
-    "importUsers": "Import Users (by email)",
     "noData": "暂无数据",
     "goToDashboard": "转到仪表板",
     "importing": "导入中",

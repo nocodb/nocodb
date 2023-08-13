@@ -13,6 +13,7 @@ import {
   useProjects,
   useRoles,
   useRouter,
+  useTablesStore,
   useTheme,
 } from '#imports'
 import type { NcProject, ProjectMetaInfo, ThemeConfig } from '#imports'
@@ -140,7 +141,8 @@ export const useProject = defineStore('projectStore', () => {
       try {
         const baseData = await api.public.sharedBaseGet(route.value.params.projectId as string)
 
-        project.value = await api.project.read(baseData.project_id!)
+        forcedProjectId.value = baseData.project_id
+        sharedProject.value = await api.project.read(baseData.project_id!)
       } catch (e: any) {
         if (e?.response?.status === 404) {
           return router.push('/error/404')

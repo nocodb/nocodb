@@ -1,15 +1,12 @@
 <script setup lang="ts">
 import type { TabItem } from '#imports'
-import { TabMetaInj, computed, inject, ref, storeToRefs, until, useMetas, useProject, useRoute } from '#imports'
-
+import { TabMetaInj, computed, inject, storeToRefs, until, useMetas, useProject, useRoute } from '#imports'
 const { getMeta } = useMetas()
 
 const projectStore = useProject()
 const { tables } = storeToRefs(projectStore)
 
 const route = useRoute()
-
-const loading = ref(true)
 
 const activeTab = inject(
   TabMetaInj,
@@ -21,14 +18,13 @@ const viewType = computed(() => {
 })
 
 watch(
-  () => route.params.title,
-  (tableTitle) => {
+  () => route.params.viewId,
+  (viewId) => {
     /** wait until table list loads since meta load requires table list **/
     until(tables)
       .toMatch((tables) => tables.length > 0)
       .then(() => {
-        loading.value = true
-        getMeta(tableTitle as string, true).finally(() => (loading.value = false))
+        getMeta(viewId as string, true)
       })
   },
   { immediate: true },
@@ -38,11 +34,5 @@ watch(
 <template>
   <div class="w-full h-full relative">
     <LazyTabsSmartsheet :key="viewType" :active-tab="activeTab" />
-
-    <general-overlay :model-value="loading" inline transition class="!bg-opacity-15">
-      <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
-        <a-spin size="large" />
-      </div>
-    </general-overlay>
   </div>
 </template>

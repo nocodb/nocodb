@@ -33,6 +33,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { appInfo } = useGlobal()
 
+  const isSharedBase = computed(() => route.value.params.workspaceId === 'base')
+
   const workspaces = ref<Map<string, NcWorkspace>>(new Map())
   const workspacesList = computed<NcWorkspace[]>(() =>
     Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at),
@@ -417,7 +419,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     upgradeActiveWorkspace,
     navigateToWorkspace,
     isWorkspaceOwnerOrCreator,
-    setLoadingState
+    setLoadingState,
+    isSharedBase
   }
 })
 

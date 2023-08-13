@@ -27,7 +27,7 @@ const { isUIAllowed } = useUIPermission()
 const { theme, defaultTheme } = useTheme()
 
 onMounted(async () => {
-  await loadWorkspaces()
+  if (!workspaceStore.isSharedBase) await loadWorkspaces()
 })
 
 const workspaceModalVisible = ref(false)

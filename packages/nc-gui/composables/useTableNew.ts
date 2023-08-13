@@ -66,9 +66,20 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
       if (!project) throw new Error('Project not found')
     }
 
-    const projectType = (route.value.params.projectType as string) || 'nc'
+    let workspaceIdOrType = workspaceId.value
+
+    if (['nc', 'base'].includes(route.value.params.workspaceId as string)) {
+      workspaceIdOrType = route.value.params.workspaceId as string
+    }
+
+    let projectIdOrBaseId = project.id
+
+    if (['base'].includes(route.value.params.workspaceId as string)) {
+      projectIdOrBaseId = route.value.params.projectId as string
+    }
+
     await navigateTo({
-      path: `/${workspaceId.value}/${project.id!}/table/${table?.id}`,
+      path: `/${workspaceIdOrType}/${projectIdOrBaseId}/table/${table?.id}`,
       query: route.value.query,
     })
 

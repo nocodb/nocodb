@@ -13,6 +13,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
   const projectTables = ref<Map<string, TableType[]>>(new Map())
   const projectsStore = useProjects()
+  // const projectStore = useProject()
 
   const workspaceStore = useWorkspace()
 

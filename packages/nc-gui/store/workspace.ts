@@ -201,7 +201,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     await router.push({ query: { workspaceId, page: 'workspace' } })
   }
 
-
   function setLoadingState(isLoading = false) {
     isWorkspaceLoading.value = isLoading
   }
@@ -238,7 +237,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     upgradeActiveWorkspace,
     navigateToWorkspace,
     isWorkspaceOwnerOrCreator,
-    setLoadingState
+    setLoadingState,
   }
 })
 

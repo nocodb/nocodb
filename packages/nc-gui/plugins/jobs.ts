@@ -13,9 +13,12 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       if (socket) socket.disconnect()
 
       const url = new URL(appInfo.ncSiteUrl, window.location.href.split(/[?#]/)[0])
+      let socketPath = url.pathname
+      socketPath += socketPath.endsWith("/") ? "socket.io" : "/socket.io"
 
       socket = io(`${url.href}jobs`, {
         extraHeaders: { 'xc-auth': token },
+        path: socketPath,
       })
 
       socket.on('connect_error', (e) => {

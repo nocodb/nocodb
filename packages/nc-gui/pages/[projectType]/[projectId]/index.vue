@@ -365,7 +365,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                         v-if="isUIAllowed('apiDocs') && !isMobileMode"
                         v-e="['e:api-docs']"
                         class="nc-project-menu-item group"
-                        @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.ncSiteUrl)"
+                        @click.stop="openLink(`./api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.ncSiteUrl)"
                       >
                         <component :is="iconMap.json" class="group-hover:text-accent" />
                         {{ $t('activity.account.swagger') }}

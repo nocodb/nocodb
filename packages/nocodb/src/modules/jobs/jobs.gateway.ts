@@ -14,13 +14,17 @@ import { JobEvents } from '../../interface/Jobs';
 import type { OnModuleInit } from '@nestjs/common';
 import type { JobStatus } from '../../interface/Jobs';
 
+const url = new URL(process.env.NC_PUBLIC_URL || `http://localhost:${process.env.PORT || '8080'}/`)
+let namespace = url.pathname
+namespace += namespace.endsWith("/") ? "jobs" : "/jobs"
+
 @WebSocketGateway({
   cors: {
     origin: '*',
     allowedHeaders: ['xc-auth'],
     credentials: true,
   },
-  namespace: 'jobs',
+  namespace,
 })
 export class JobsGateway implements OnModuleInit {
   constructor(@Inject('JobsService') private readonly jobsService) {}

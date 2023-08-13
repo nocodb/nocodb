@@ -127,6 +127,8 @@ watchDebounced(
     maxWait: 600,
   },
 )
+
+const modal = ref(true)
 </script>
 
 <template>
@@ -142,6 +144,10 @@ watchDebounced(
           </template>
         </a-input>
       </div>
+
+      <DlgShareAndCollaborateShareBase v-model="modal" />
+
+
       <div v-if="isSearching" class="nc-collaborators-list items-center justify-center">
         <GeneralLoader size="xlarge" />
       </div>

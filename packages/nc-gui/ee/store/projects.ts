@@ -81,6 +81,30 @@ export const useProjects = defineStore('projectsStore', () => {
   }
 
   const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace') => {
+
+
+    // if shared base then get the shared project and create a list
+    if (route.value.params.workspaceId ===  'base' && route.value.params.projectId) {
+      const {project_id} = await $api.public.sharedBaseGet(route.value.params.projectId as string)
+      const project: ProjectType = await $api.project.read(project_id)
+
+      if (!project) return
+
+      projects.value = [project].reduce((acc, project) => {
+        acc.set(project.id!, project)
+        return acc
+      }, new Map())
+
+      projects.value.set(project.id!, {
+        ...(projects.value.get(project.id!) || {}),
+        ...project,
+        isExpanded: route.value.params.projectId === project.id || projects.value.get(project.id!)?.isExpanded,
+        isLoading: false,
+      })
+
+      return
+    }
+
     const activeWorkspace = workspaceStore.activeWorkspace
     const workspace = workspaceStore.workspace
 

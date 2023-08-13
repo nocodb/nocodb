@@ -47,7 +47,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   )
 
   const activeWorkspaceId = computed(() => {
-    return (route.value.query.workspaceId ?? route.value.params.workspaceId?? route.value.params.projectTypeOrWorkspaceId) as string | undefined
+    return (route.value.query.workspaceId ?? route.value.params.workspaceId ?? route.value.params.projectTypeOrWorkspaceId) as
+      | string
+      | undefined
   })
 
   const activeWorkspace = computed(() => {
@@ -379,6 +381,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     await router.push({ query: { workspaceId, page: 'workspace' } })
   }
 
+  function setLoadingState(isLoading = false) {
+    isWorkspaceLoading.value = isLoading
+  }
+
   return {
     loadWorkspaces,
     workspaces,
@@ -411,6 +417,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     upgradeActiveWorkspace,
     navigateToWorkspace,
     isWorkspaceOwnerOrCreator,
+    setLoadingState
   }
 })
 

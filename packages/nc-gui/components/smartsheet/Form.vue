@@ -730,7 +730,7 @@ watch(view, (nextView) => {
                     <LazySmartsheetDivDataCell class="relative">
                       <LazySmartsheetCell
                         v-model="formState[element.title]"
-                        class="nc-input"
+                        class="nc-input truncate"
                         :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                         :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                         :column="element"

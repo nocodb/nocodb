@@ -1580,7 +1580,11 @@ defineExpose({
     >
       <template #add-record>
         <div v-if="isAddingEmptyRowAllowed" class="flex ml-2">
-          <a-dropdown-button placement="top" @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()">
+          <a-dropdown-button
+            class="nc-grid-add-new-cell"
+            placement="top"
+            @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
+          >
             <div class="flex items-center px-2 text-gray-600 hover:text-black">
               <span>
                 <template v-if="isAddNewRecordGridMode"> {{ $t('activity.newRecord') }} </template>

@@ -183,7 +183,7 @@ const onScroll = (e: Event) => {
                     <div class="flex flex-col">
                       <div class="flex gap-2">
                         <div class="text-xs nc-group-column-title">{{ grp.column.title }}</div>
-                        <div class="text-xs text-gray-400  nc-group-row-count">(Count: {{ grp.count }})</div>
+                        <div class="text-xs text-gray-400 nc-group-row-count">(Count: {{ grp.count }})</div>
                       </div>
                       <div class="flex mt-1">
                         <template v-if="grp.column.uidt === 'MultiSelect'">
@@ -194,7 +194,7 @@ const onScroll = (e: Event) => {
                             :color="grp.color.split(',')[+tagIndex]"
                           >
                             <span
-                               class="nc-group-value"
+                              class="nc-group-value"
                               :style="{
                                 'color': tinycolor.isReadable(grp.color.split(',')[+tagIndex] || '#ccc', '#fff', {
                                   level: 'AA',
@@ -220,7 +220,7 @@ const onScroll = (e: Event) => {
                           :color="grp.color"
                         >
                           <span
-                              class="nc-group-value"
+                            class="nc-group-value"
                             :style="{
                               'color': tinycolor.isReadable(grp.color || '#ccc', '#fff', {
                                 level: 'AA',

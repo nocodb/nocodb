@@ -133,6 +133,10 @@ const modal = ref(true)
 
 <template>
   <div class="nc-collaborator-table-container mt-4 nc-access-settings-view">
+
+    <ProjectInviteProjectCollabSection />
+<!--    <Collaborate />-->
+
     <div v-if="isLoading" class="nc-collaborators-list items-center justify-center">
       <GeneralLoader size="xlarge" />
     </div>

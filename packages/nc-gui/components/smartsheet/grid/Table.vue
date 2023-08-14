@@ -723,7 +723,6 @@ onClickOutside(tableBodyEl, (e) => {
   if (isDrawerOrModalExist()) {
     return
   }
-
   clearSelectedRange()
   activeCell.row = null
   activeCell.col = null
@@ -1118,6 +1117,17 @@ defineExpose({
   scrollToRow,
   openColumnCreate,
 })
+
+// when expand is clicked the drawer should open
+// and cell should loose focs
+const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
+  if (expandForm) {
+    expandForm(row, col)
+  }
+  activeCell.row = null
+  activeCell.col = null
+  console.log(activeCell, 'modal reset')
+}
 </script>
 
 <template>
@@ -1369,7 +1379,7 @@ defineExpose({
                                   v-if="expandForm"
                                   v-e="['c:row-expand']"
                                   class="select-none transform hover:(text-black scale-120) nc-row-expand"
-                                  @click="expandForm(row, state)"
+                                  @click="expandAndLooseFocus(row, state)"
                                 />
                               </div>
                             </template>

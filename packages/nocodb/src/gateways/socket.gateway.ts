@@ -14,9 +14,12 @@ function getHash(str) {
   return crypto.createHash('md5').update(str).digest('hex');
 }
 
-const url = new URL(process.env.NC_PUBLIC_URL || `http://localhost:${process.env.PORT || '8080'}/`)
-let namespace = url.pathname
-namespace += namespace.endsWith("/") ? "" : "/"
+const url = new URL(
+  process.env.NC_PUBLIC_URL ||
+    `http://localhost:${process.env.PORT || '8080'}/`,
+);
+let namespace = url.pathname;
+namespace += namespace.endsWith('/') ? '' : '/';
 
 @WebSocketGateway({
   cors: {

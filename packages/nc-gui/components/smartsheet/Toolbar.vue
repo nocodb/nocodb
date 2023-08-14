@@ -16,7 +16,7 @@ const { allowCSVDownload } = useSharedView()
 
 <template>
   <div
-    class="nc-table-toolbar h-20 py-1 flex gap-2 items-center pr-2 pl-2.5 border-b border-gray-200 overflow-hidden"
+    class="nc-table-toolbar h-12 min-h-12 py-1 flex gap-2 items-center px-3 border-b border-gray-200 overflow-hidden"
     :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
     style="z-index: 7"
   >
@@ -24,13 +24,7 @@ const { allowCSVDownload } = useSharedView()
       <a-skeleton-input :active="true" class="!w-44 !h-4 ml-2 !rounded overflow-hidden" />
     </template>
     <template v-else>
-      <LazySmartsheetToolbarViewInfo v-if="!isPublic" />
-
-      <div v-if="!isMobileMode" class="flex-1" />
-
       <LazySmartsheetToolbarMappedBy v-if="isMap" />
-
-      <GeneralApiLoader />
 
       <LazySmartsheetToolbarStackedBy v-if="isKanban" />
 
@@ -48,9 +42,9 @@ const { allowCSVDownload } = useSharedView()
 
       <LazySmartsheetToolbarExport v-if="(!isPublic && !isUIAllowed('dataInsert')) || (isPublic && allowCSVDownload)" />
 
-      <LazySmartsheetToolbarSearchData v-if="(isGrid || isGallery || isKanban) && !isPublic" class="shrink" />
+      <div v-if="!isMobileMode" class="flex-1" />
 
-      <LazyGeneralShareProject v-if="(isForm || isGrid || isKanban || isGallery || isMap) && !isPublic" is-view-toolbar />
+      <LazySmartsheetToolbarSearchData v-if="(isGrid || isGallery || isKanban) && !isPublic" class="shrink" />
 
       <LazySmartsheetToolbarViewActions
         v-if="(isGrid || isGallery || isKanban || isMap) && !isPublic && isUIAllowed('dataInsert')"

@@ -20,6 +20,18 @@ export const useViewsStore = defineStore('viewsStore', () => {
     return route.value.params.viewTitle
   })
 
+  const openedViewsTab = computed(() => {
+    if (route.value.query.page === 'webhooks') {
+      return 'webhooks'
+    }
+
+    if (route.value.query.page === 'apis') {
+      return 'apis'
+    }
+
+    return 'views'
+  })
+
   const { sharedView } = useSharedView()
 
   const activeView = computed<ViewType | undefined>({
@@ -64,6 +76,15 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
   }
 
+  const onViewsTabChange = (page: 'views' | 'webhooks' | 'apis') => {
+    router.push({
+      query: {
+        ...route.value.query,
+        page: page === 'views' ? undefined : page,
+      },
+    })
+  }
+
   watch(
     () => tablesStore.activeTableId,
     async (newId, oldId) => {
@@ -94,6 +115,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
     loadViews,
     views,
     activeView,
+    openedViewsTab,
+    onViewsTabChange,
   }
 })
 

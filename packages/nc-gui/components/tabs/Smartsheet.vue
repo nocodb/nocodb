@@ -50,7 +50,7 @@ const meta = computed<TableType | undefined>(() => {
   return viewId && metas.value[viewId]
 })
 
-const { activeView } = storeToRefs(useViewsStore())
+const { activeView, openedViewsTab } = storeToRefs(useViewsStore())
 const { isGallery, isGrid, isForm, isKanban, isLocked, isMap } = useProvideSmartsheetStore(activeView, meta)
 
 useSqlEditor()
@@ -170,10 +170,11 @@ watch(
 
 <template>
   <div class="nc-container flex flex-col h-full" @drop="onDrop" @dragover.prevent>
-    <LazySmartsheetToolbar />
-    <TabsSmarsheetResizable>
+    <LazySmartsheetTopbar />
+    <TabsSmartsheetResizable>
       <template #content>
-        <div class="flex flex-col h-full flex-1 min-w-0">
+        <div v-if="openedViewsTab === 'views'" class="flex flex-col h-full flex-1 min-w-0">
+          <LazySmartsheetToolbar />
           <div class="flex flex-row w-full" style="height: calc(100vh - var(--topbar-height))">
             <Transition name="layout" mode="out-in">
               <template v-if="meta">
@@ -194,13 +195,14 @@ watch(
             </Transition>
           </div>
         </div>
+        <SmartsheetDetails v-else />
       </template>
       <template #sidebar>
         <template v-if="!isPublic">
           <LazySmartsheetSidebar />
         </template>
       </template>
-    </TabsSmarsheetResizable>
+    </TabsSmartsheetResizable>
 
     <LazySmartsheetExpandedFormDetached />
   </div>

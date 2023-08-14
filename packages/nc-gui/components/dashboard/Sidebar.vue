@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { storeToRefs } from 'pinia'
 import { useGlobal } from '#imports'
 import { navigateTo } from '#app'
 
@@ -9,6 +10,10 @@ const route = router.currentRoute
 const workspaceStore = useWorkspace()
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
+
+const projectStore = useProject()
+
+const { isSharedBase } = storeToRefs(projectStore)
 
 const { isUIAllowed } = useUIPermission()
 
@@ -30,7 +35,6 @@ function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: str
 }
 
 // todo:
-const isSharedBase = ref(false)
 const currentVersion = ref('')
 
 const isTreeViewOnScrollTop = ref(true)
@@ -60,7 +64,7 @@ const navigateToHome = () => {
       <div style="border-bottom-width: 1px" class="flex items-center px-1 nc-sidebar-header !border-0 py-1.25 pl-2">
         <div class="flex flex-row flex-grow hover:bg-gray-100 pl-2 pr-1 py-0.5 rounded-md max-w-full">
           <a
-            v-if="isSharedBase"
+            v-if="!isSharedBase"
             class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
             href="https://github.com/nocodb/nocodb"
             target="_blank"
@@ -88,36 +92,38 @@ const navigateToHome = () => {
         </div>
       </div>
 
+      <template v-if="!isSharedBase">
       <div class="w-full mt-2"></div>
-
-      <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-home-btn" @click="navigateToHome">
-        <MaterialSymbolsHomeOutlineRounded class="!h-3.9" />
-        <div>{{ $t('general.home') }}</div>
-      </div>
-      <WorkspaceCreateProjectBtn
-        v-if="isUIAllowed('createProject', false, activeWorkspace?.roles)"
-        v-model:is-open="isCreateProjectOpen"
-        modal
-        type="text"
-        class="!p-0 mx-1"
-        data-testid="nc-sidebar-create-project-btn"
-        :active-workspace-id="route.params.typeOrId"
-      >
-        <div
-          class="gap-x-2 flex flex-row w-full items-center nc-sidebar-top-button !my-0 !ml-0"
-          :class="{
-            'border-gray-200': !isTreeViewOnScrollTop,
-            'border-transparent': isTreeViewOnScrollTop,
-            'bg-gray-100': isCreateProjectOpen,
-          }"
-        >
-          <MdiPlus class="!h-4" />
-
-          <div class="flex">{{ $t('title.newProj') }}</div>
+        <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-home-btn" @click="navigateToHome">
+          <MaterialSymbolsHomeOutlineRounded class="!h-3.9" />
+          <div>{{ $t('general.home') }}</div>
         </div>
-      </WorkspaceCreateProjectBtn>
-      <div v-else class="!h-7"></div>
+        <WorkspaceCreateProjectBtn
+          v-if="isUIAllowed('createProject', false, activeWorkspace?.roles)"
+          v-model:is-open="isCreateProjectOpen"
+          modal
+          type="text"
+          class="!p-0 mx-1"
+          data-testid="nc-sidebar-create-project-btn"
+          :active-workspace-id="route.params.typeOrId"
+        >
+          <div
+            class="gap-x-2 flex flex-row w-full items-center nc-sidebar-top-button !my-0 !ml-0"
+            :class="{
+              'border-gray-200': !isTreeViewOnScrollTop,
+              'border-transparent': isTreeViewOnScrollTop,
+              'bg-gray-100': isCreateProjectOpen,
+            }"
+          >
+            <MdiPlus class="!h-4" />
+
+            <div class="flex">{{ $t('title.newProj') }}</div>
+          </div>
+        </WorkspaceCreateProjectBtn>
+        <div v-else class="!h-7"></div>
       <div class="text-gray-500 mx-5 font-medium mt-3 mb-1.5">{{ $t('objects.projects') }}</div>
+
+      </template>
       <div
         class="w-full border-b-1"
         :class="{

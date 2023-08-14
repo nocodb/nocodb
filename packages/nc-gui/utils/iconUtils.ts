@@ -348,6 +348,7 @@ export const iconMap = {
   eye: NcEye,
   eyeSlash: h('span', { class: 'material-symbols' }, 'visibility_off'),
   expand: h('span', { class: 'material-symbols' }, 'open_in_full'),
+  shrink: h('span', { class: 'material-symbols' }, 'close_fullscreen'),
   check: NcCheck,
   acl: h('span', { class: 'material-symbols' }, 'shield'),
   sync: MsSync,

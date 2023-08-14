@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import Table from './Table.vue'
-import { computed, ref } from '#imports'
+import { IsGroupByInj, computed, ref } from '#imports'
 import type { Group, Row } from '#imports'
 
 const props = defineProps<{
@@ -18,11 +18,13 @@ const props = defineProps<{
 
   rowHeight?: number
   expandForm?: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
-  pagination?: {
-    fixedSize?: number
-    sticky?: boolean
-    hideSidebars?: boolean
-  }
+
+  paginationFixedSize?: number
+  paginationHideSidebars?: boolean
+
+  scrollLeft?: number
+  viewWidth?: number
+  scrollable?: HTMLElement | null
 }>()
 
 const emits = defineEmits(['update:paginationData'])
@@ -86,6 +88,27 @@ onBeforeUnmount(async () => {
 })
 
 reloadViewDataHook?.on(reloadTableData)
+
+provide(IsGroupByInj, ref(true))
+
+const scrollBump = computed<number>(() => {
+  if (props.scrollLeft && props.viewWidth && props.scrollable) {
+    const scrollWidth = props.scrollable.scrollWidth
+    if (props.scrollLeft + props.viewWidth > scrollWidth) {
+      return scrollWidth - props.viewWidth
+    }
+    return Math.max(Math.min(scrollWidth - props.viewWidth, (props.scrollLeft ?? 0) - 24), 0)
+  }
+  return 0
+})
+
+const pagination = computed(() => {
+  return {
+    fixedSize: props.paginationFixedSize ? props.paginationFixedSize - 2 : undefined,
+    hideSidebars: props.paginationHideSidebars,
+    extraStyle: `margin-left: ${scrollBump.value}px;`,
+  }
+})
 </script>
 
 <template>
@@ -107,7 +130,7 @@ reloadViewDataHook?.on(reloadTableData)
     :remove-row-if-new="removeRowIfNew"
     :bulk-update-rows="bulkUpdateRows"
     :hide-header="true"
-    :pagination="props.pagination"
+    :pagination="pagination"
     :disable-skeleton="true"
   />
 </template>

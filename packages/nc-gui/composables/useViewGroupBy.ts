@@ -330,12 +330,15 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
   watch(
     () => groupBy.value.length,
     async () => {
-      rootGroup.value.paginationData = { page: 1, pageSize: groupByLimit }
-      rootGroup.value.column = {} as any
-      await loadGroups()
-      refreshNested()
-      nextTick(() => reloadViewDataHook?.trigger())
+      if (groupBy.value.length > 0) {
+        rootGroup.value.paginationData = { page: 1, pageSize: groupByLimit }
+        rootGroup.value.column = {} as any
+        await loadGroups()
+        refreshNested()
+        nextTick(() => reloadViewDataHook?.trigger())
+      }
     },
+    { immediate: true },
   )
 
   const findGroupByNestedIn = (nestedIn: GroupNestedIn[], group?: Group, nestLevel = 0): Group => {

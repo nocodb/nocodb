@@ -9,7 +9,7 @@ import { Base, Project } from '~/models';
 
 @Injectable()
 export class BasesService {
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   async baseGetWithConfig(param: { baseId: any }) {
     const base = await Base.get(param.baseId);

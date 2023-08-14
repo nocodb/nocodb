@@ -224,10 +224,11 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
     }
   }
 
-  const addSort = (undo = false) => {
+  const addSort = (undo = false, column?: ColumnType) => {
     sorts.value = [
       ...sorts.value,
       {
+        fk_column_id: column?.id,
         direction: 'asc',
       },
     ]

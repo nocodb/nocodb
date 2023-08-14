@@ -122,6 +122,7 @@ export class SelectOptionCellPageObject extends BasePage {
     }
 
     await this.get({ index, columnHeader }).click();
+    await this.rootPage.waitForTimeout(500);
 
     let counter = 0;
     for (const option of options) {

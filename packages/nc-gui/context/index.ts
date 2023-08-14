@@ -12,6 +12,7 @@ export const TabMetaInj: InjectionKey<ComputedRef<TabItem> | Ref<TabItem>> = Sym
 export const IsFormInj: InjectionKey<Ref<boolean>> = Symbol('is-form-injection')
 export const IsSurveyFormInj: InjectionKey<Ref<boolean>> = Symbol('is-survey-form-injection')
 export const IsGridInj: InjectionKey<Ref<boolean>> = Symbol('is-grid-injection')
+export const IsGroupByInj: InjectionKey<Ref<boolean>> = Symbol('is-group-by-injection')
 export const IsGalleryInj: InjectionKey<Ref<boolean>> = Symbol('is-gallery-injection')
 export const IsKanbanInj: InjectionKey<Ref<boolean>> = Symbol('is-kanban-injection')
 export const IsLockedInj: InjectionKey<Ref<boolean>> = Symbol('is-locked-injection')

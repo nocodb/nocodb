@@ -6,6 +6,7 @@ import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
   FieldsInj,
+  IsGroupByInj,
   IsLockedInj,
   MetaInj,
   NavigateDir,
@@ -68,8 +69,8 @@ const props = defineProps<{
   hideHeader?: boolean
   pagination?: {
     fixedSize?: number
-    sticky?: boolean
     hideSidebars?: boolean
+    extraStyle?: string
   }
   disableSkeleton?: boolean
 }>()
@@ -81,6 +82,8 @@ const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 const paginationDataRef = toRef(props, 'paginationData')
 
 const dataRef = toRef(props, 'data')
+
+const paginationStyleRef = toRef(props, 'pagination')
 
 const {
   loadData,
@@ -95,7 +98,6 @@ const {
   bulkUpdateRows,
   headerOnly,
   hideHeader,
-  pagination,
   disableSkeleton,
 } = props
 
@@ -111,6 +113,8 @@ const readOnly = inject(ReadonlyInj, ref(false))
 const isLocked = inject(IsLockedInj, ref(false))
 
 const isPublicView = inject(IsPublicInj, ref(false))
+
+const isGroupBy = inject(IsGroupByInj, ref(false))
 
 const route = useRoute()
 
@@ -1443,7 +1447,7 @@ defineExpose({
               </template>
 
               <tr
-                v-if="isAddingEmptyRowAllowed"
+                v-if="isAddingEmptyRowAllowed && !isGroupBy"
                 v-e="['c:row:add:grid-bottom']"
                 class="text-left nc-grid-add-new-cell cursor-pointer group relative z-3"
                 :class="{
@@ -1562,10 +1566,7 @@ defineExpose({
       </a-dropdown>
     </div>
 
-    <div
-      v-if="showSkeleton && headerOnly !== true"
-      class="flex flex-row justify-center item-center min-h-10 border-t-1 border-gray-100"
-    >
+    <div v-if="showSkeleton && headerOnly !== true" class="flex flex-row justify-center item-center min-h-10">
       <a-skeleton :active="true" :title="true" :paragraph="false" class="-mt-1 max-w-60" />
     </div>
     <LazySmartsheetPagination
@@ -1573,9 +1574,9 @@ defineExpose({
       v-model:pagination-data="paginationDataRef"
       align-count-on-right
       :change-page="changePage"
-      :hide-sidebars="pagination?.hideSidebars === true"
-      :sticky="pagination?.sticky === true"
-      :fixed-size="pagination?.fixedSize"
+      :hide-sidebars="paginationStyleRef?.hideSidebars === true"
+      :fixed-size="paginationStyleRef?.fixedSize"
+      :extra-style="paginationStyleRef?.extraStyle"
     >
       <template #add-record>
         <div v-if="isAddingEmptyRowAllowed" class="flex ml-2">

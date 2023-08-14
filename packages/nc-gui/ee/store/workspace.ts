@@ -49,7 +49,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   )
 
   const activeWorkspaceId = computed(() => {
-    return (route.value.query.typeOrId ?? route.value.params.typeOrId ?? route.value.params.projectTypeOrWorkspaceId) as
+    return (route.value.query.workspaceId ?? route.value.params.typeOrId ?? route.value.params.projectTypeOrWorkspaceId) as
       | string
       | undefined
   })

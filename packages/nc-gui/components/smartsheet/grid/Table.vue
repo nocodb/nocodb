@@ -1126,7 +1126,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
   }
   activeCell.row = null
   activeCell.col = null
-  console.log(activeCell, 'modal reset')
+  selectedRange.clear()
 }
 </script>
 
@@ -1366,7 +1366,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
                                 v-if="row.rowMeta?.commentCount && expandForm"
                                 class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
                                 :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
-                                @click="expandForm(row, state)"
+                                @click="expandAndLooseFocus(row, state)"
                               >
                                 {{ row.rowMeta.commentCount }}
                               </span>

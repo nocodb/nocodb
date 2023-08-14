@@ -464,27 +464,6 @@ export const unsetup = async (context: NcContext): Promise<void> => {
 
 // Reference
 // packages/nocodb/src/lib/services/test/TestResetService/resetPgSakilaProject.ts
-//
-const resetSakilaPg = async (parallelId: string) => {
-  const testsDir = __dirname.replace('/tests/playwright/setup', '/packages/nocodb/tests');
-
-  let sakilaKnex;
-  try {
-    sakilaKnex = knex(sakilaKnexConfig(parallelId));
-    const schemaFile = await fs.readFile(`${testsDir}/pg-sakila-db/01-postgres-sakila-schema.sql`);
-    await sakilaKnex.raw(schemaFile.toString());
-
-    const trx = await sakilaKnex.transaction();
-    const dataFile = await fs.readFile(`${testsDir}/pg-sakila-db/02-postgres-sakila-insert-data.sql`);
-    await trx.raw(dataFile.toString());
-    await trx.commit();
-  } catch (e) {
-    console.error(`Error resetting pg sakila db: Worker ${parallelId}`);
-    throw Error(`Error resetting pg sakila db: Worker ${parallelId}`);
-  } finally {
-    if (sakilaKnex) await sakilaKnex.destroy();
-  }
-};
 
 const resetSakilaMysql = async (knex: Knex, parallelId: string, isEmptyProject: boolean) => {
   const testsDir = path.join(process.cwd(), '/../../packages/nocodb/tests');

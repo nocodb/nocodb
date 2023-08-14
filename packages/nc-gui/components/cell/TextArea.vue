@@ -8,6 +8,8 @@ const props = defineProps<{
 
 const emits = defineEmits(['update:modelValue'])
 
+const column = inject(ColumnInj)
+
 const editEnabled = inject(EditModeInj)
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
@@ -38,7 +40,9 @@ watch(isVisible, () => {
   }
 })
 
-onClickOutside(inputWrapperRef, () => {
+onClickOutside(inputWrapperRef, (e) => {
+  if ((e.target as HTMLElement)?.className.includes('nc-long-text-toggle-expand')) return
+
   isVisible.value = false
 })
 </script>
@@ -76,15 +80,31 @@ onClickOutside(inputWrapperRef, () => {
 
       <span v-else>{{ vModel }}</span>
 
-      <NcButton class="!absolute right-0 top-1.5 bottom-0" type="secondary" size="xsmall" @click="isVisible = !isVisible">
-        <GeneralIcon icon="edit" />
+      <NcButton
+        class="!absolute right-0 top-1.5 bottom-0 nc-long-text-toggle-expand"
+        type="secondary"
+        size="xsmall"
+        @click.stop="isVisible = !isVisible"
+      >
+        <GeneralIcon v-if="isVisible" icon="shrink" class="nc-long-text-toggle-expand h-3.75 w-3.75 !text-xs" />
+        <GeneralIcon v-else icon="expand" class="nc-long-text-toggle-expand h-3.75 w-3.75 !text-xs" />
       </NcButton>
     </div>
     <template #overlay>
       <div ref="inputWrapperRef" class="flex flex-col min-w-120 min-h-70 py-3 pl-3 pr-1">
+        <div
+          v-if="column"
+          class="flex flex-row gap-x-1 items-center font-medium pb-2.5 mb-1.5 p-1 mr-2 border-b-1 border-gray-100"
+        >
+          <SmartsheetHeaderCellIcon class="flex" />
+          <div class="flex">
+            {{ column.title }}
+          </div>
+        </div>
         <a-textarea
           ref="inputRef"
           v-model:value="vModel"
+          placeholder="Enter text"
           class="p-1 !pr-3 !border-0 !border-r-0 !focus:outline-transparent nc-scrollbar-md"
           :bordered="false"
           :auto-size="{ minRows: 20, maxRows: 20 }"

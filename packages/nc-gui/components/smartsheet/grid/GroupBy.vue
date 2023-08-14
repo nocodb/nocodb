@@ -139,7 +139,7 @@ const onScroll = (e: Event) => {
           <div
             class="bumper mb-2"
             style="background-color: #f9f9fa; border-color: #e7e7e9; border-bottom-width: 1px"
-            :style="{ 'padding-left': `${(maxDepth || 1) * 12 + 12}px` }"
+            :style="{ 'padding-left': `${(maxDepth || 1) * 13}px` }"
           ></div>
           <Table class="mb-2" :data="[]" :header-only="true" />
         </div>

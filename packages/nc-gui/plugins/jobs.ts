@@ -14,7 +14,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
       const url = new URL(appInfo.ncSiteUrl, window.location.href.split(/[?#]/)[0])
       let socketPath = url.pathname
-      socketPath += socketPath.endsWith("/") ? "socket.io" : "/socket.io"
+      socketPath += socketPath.endsWith('/') ? 'socket.io' : '/socket.io'
 
       socket = io(`${url.href}jobs`, {
         extraHeaders: { 'xc-auth': token },

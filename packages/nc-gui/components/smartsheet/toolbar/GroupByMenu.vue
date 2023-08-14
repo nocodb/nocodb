@@ -140,7 +140,7 @@ watch(open, () => {
 </script>
 
 <template>
-  <a-dropdown v-model:visible="open" offset-y class="" :trigger="['click']" overlay-class-name="nc-dropdown-group-by-menu">
+  <NcDropdown v-model:visible="open" offset-y class="" :trigger="['click']" overlay-class-name="nc-dropdown-group-by-menu">
     <div :class="{ 'nc-badge nc-active-btn': groupedByColumnIds?.length }">
       <a-button v-e="['c:group-by']" class="nc-group-by-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-2">
@@ -156,10 +156,10 @@ watch(open, () => {
     <template #overlay>
       <div
         :class="{ ' min-w-[400px]': _groupBy.length }"
-        class="flex flex-col bg-white shadow-lg rounded-md overflow-auto border-1 border-gray-50 menu-filter-dropdown max-h-[max(80vh,500px)] p-4"
+        class="flex flex-col bg-white shadow-lg rounded-md overflow-auto border-1 border-gray-50 menu-filter-dropdown max-h-[max(80vh,500px)] py-6 pl-6"
         data-testid="nc-group-by-menu"
       >
-        <div class="group-by-grid mb-2 max-h-420px overflow-y-auto" @click.stop>
+        <div class="group-by-grid pb-1 mb-2 max-h-100 nc-scrollbar-md pr-5" @click.stop>
           <template v-for="[i, group] of Object.entries(_groupBy)" :key="`grouped-by-${group.fk_column_id}`">
             <LazySmartsheetToolbarFieldListAutoCompleteDropdown
               v-model="group.fk_column_id"
@@ -171,12 +171,13 @@ watch(open, () => {
               @change="saveGroupBy"
               @click.stop
             />
-            <a-select
+            <NcSelect
               ref=""
               v-model:value="group.sort"
-              class="shrink grow-0 nc-sort-dir-select !text-xs"
+              class="shrink grow-0 nc-sort-dir-select"
               :label="$t('labels.operation')"
               dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir"
+              :disabled="!group.fk_column_id"
               @change="saveGroupBy"
               @click.stop
             >
@@ -184,39 +185,36 @@ watch(open, () => {
                 v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(group.fk_column_id))"
                 :key="j"
                 :value="option.value"
-                :disabled="!group.fk_column_id"
               >
                 <span>{{ option.text }}</span>
               </a-select-option>
-            </a-select>
-            <div class="flex items-center">
-              <a-tooltip placement="right" title="Remove">
-                <GeneralIcon
-                  icon="close"
-                  class="nc-group-by-item-remove-btn text-grey self-center cursor-pointer hover:text-red-500"
-                  @click.stop="removeFieldFromGroupBy(i)"
-                />
-              </a-tooltip>
-            </div>
+            </NcSelect>
+
+            <a-tooltip placement="right" title="Remove">
+              <NcButton class="nc-group-by-item-remove-btn" size="small" type="text" @click.stop="removeFieldFromGroupBy(i)">
+                <GeneralIcon icon="delete" class="" />
+              </NcButton>
+            </a-tooltip>
           </template>
         </div>
-        <a-button
+        <NcButton
           v-if="fieldsToGroupBy.length > _groupBy.length"
-          class="text-capitalize text-sm"
-          :class="`${
-            groupedByColumnIds.length < _groupBy.length ? '!text-gray-500 !border-gray-500' : '!text-primary !border-primary'
-          }`"
           style="width: fit-content"
-          type="dashed"
-          ghost
+          size="small"
+          type="text"
           :disabled="groupedByColumnIds.length < _groupBy.length"
           @click.stop="addFieldToGroupBy()"
         >
-          <div class="flex gap-1 items-center">{{ $t('activity.addSubGroup') }}</div>
-        </a-button>
+          <div class="flex gap-1 items-center" :class="{ 'text-brand-500': groupedByColumnIds.length >= _groupBy.length }">
+            <div class="flex">
+              {{ $t('activity.addSubGroup') }}
+            </div>
+            <GeneralIcon icon="plus" />
+          </div>
+        </NcButton>
       </div>
     </template>
-  </a-dropdown>
+  </NcDropdown>
 </template>
 
 <style scoped>

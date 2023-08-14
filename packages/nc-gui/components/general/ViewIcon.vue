@@ -23,8 +23,9 @@ const viewMeta = toRef(props, 'meta')
     v-else-if="viewMeta?.type"
     class="nc-view-icon group-hover"
     :style="{
-      color: !props.ignoreColor ? viewIcons[viewMeta.type]?.color : undefined,
-      fontWeight: 500,
+      'color': !props.ignoreColor ? viewIcons[viewMeta.type]?.color : undefined,
+      'fontWeight': 500,
+      '-webkit-text-stroke': !props.ignoreColor ? `0.5px ${viewIcons[viewMeta.type]?.color}` : '0.5px',
     }"
   />
 </template>

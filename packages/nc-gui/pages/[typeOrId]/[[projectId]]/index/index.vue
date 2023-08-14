@@ -1,56 +1,27 @@
 <script setup lang="ts">
-import { Icon as IconifyIcon } from '@iconify/vue'
-import type { TabItem } from '#imports'
-import { TabMetaInj, TabType, iconMap, provide, storeToRefs, useGlobal, useSidebar, useTabs } from '#imports'
+import { TabMetaInj, provide, storeToRefs, useSidebar, useTabs } from '#imports'
 
 const tabStore = useTabs()
-const { closeTab } = tabStore
-const { tabs, activeTabIndex, activeTab } = storeToRefs(tabStore)
+const { activeTab } = storeToRefs(tabStore)
 
-const { isLoading, isMobileMode } = useGlobal()
+useProjectsShortcuts()
 
 provide(TabMetaInj, activeTab)
 
-const icon = (tab: TabItem) => {
-  switch (tab.type) {
-    case TabType.TABLE:
-      return iconMap.table
-    case TabType.VIEW:
-      return iconMap.view
-    case TabType.AUTH:
-      return iconMap.users
-    // todo: iconmap key
-    case TabType.SQL:
-      return iconMap.databaseSearch
-    case TabType.ERD:
-      return iconMap.erd
-  }
-}
-
-const { isOpen, toggle } = useSidebar('nc-left-sidebar')
-
-function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
-  if (action === 'remove') closeTab(targetKey)
-}
-
-const hideSidebarOnClickOrTouchIfMobileMode = () => {
-  if (isMobileMode.value && isOpen.value) {
-    toggle(false)
-  }
-}
+useSidebar('nc-left-sidebar')
 </script>
 
 <template>
   <div class="h-full w-full nc-container">
     <div class="h-full w-full flex flex-col">
-      <div class="flex items-end !min-h-[var(--sidebar-top-height)] !bg-white-500 nc-tab-bar">
+      <!-- <div class="flex items-end !min-h-[var(--sidebar-top-height)] !bg-white-500 nc-tab-bar">
         <div
           v-if="!isOpen"
-          class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3"
+          class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3 mb-1"
         >
-          <component
-            :is="iconMap.sidebarMinimise"
+          <GeneralIcon
             v-e="['c:grid:toggle-navdraw']"
+            icon="sidebarMinimise"
             class="cursor-pointer transform transition-transform duration-500 text-gray-500/80 hover:text-gray-500"
             :class="{ 'rotate-180': !isOpen }"
             @click="toggle(!isOpen)"
@@ -62,7 +33,7 @@ const hideSidebarOnClickOrTouchIfMobileMode = () => {
             <template #tab>
               <div class="flex items-center gap-2" data-testid="nc-tab-title">
                 <div class="flex items-center">
-                  <IconifyIcon
+                  <Icon
                     v-if="tab.meta?.icon"
                     :icon="tab.meta?.icon"
                     class="text-xl"
@@ -87,16 +58,16 @@ const hideSidebarOnClickOrTouchIfMobileMode = () => {
           <div v-if="isLoading" class="flex items-center gap-2 ml-3 text-gray-200" data-testid="nc-loading">
             {{ $t('general.loading') }}
 
-            <component :is="iconMap.loading" class="animate-infinite animate-spin" />
+            <MdiLoading class="animate-infinite animate-spin" />
           </div>
         </div>
 
         <LazyGeneralShareBaseButton class="mb-1px" />
-        <LazyGeneralFullScreen v-if="!isMobileMode" class="nc-fullscreen-icon mb-1px" />
+        <LazyGeneralFullScreen class="nc-fullscreen-icon mb-1px" />
       </div>
-
-      <div class="w-full min-h-[300px] flex-auto" @click="hideSidebarOnClickOrTouchIfMobileMode">
-        <NuxtPage :page-key="`${$route.params.projectId}.${$route.name}`" />
+       -->
+      <div class="w-full min-h-[300px] flex-auto">
+        <NuxtPage />
       </div>
     </div>
   </div>

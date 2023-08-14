@@ -13,6 +13,7 @@ import {
   openLink,
   useProjects,
   useWorkspace,
+  storeToRefs
 } from '#imports'
 
 const indicator = h(LoadingOutlined, {
@@ -60,11 +61,11 @@ const projectRole = inject(ProjectRoleInj)
 
 const { projectUrl } = useProject()
 
+const { activeProjectId } = storeToRefs(useProjects())
+
 const toggleDialog = inject(ToggleDialogInj, () => {})
 
 const { addNewLayout, getDashboardProjectUrl: dashboardProjectUrl, populateLayouts } = useDashboardStore()
-
-const activeProjectId = computed(() => route.value.params.projectId as string | undefined)
 
 const { addNewPage, populatedNestedPages, projectUrl: docsProjectUrl } = useDocStore()
 

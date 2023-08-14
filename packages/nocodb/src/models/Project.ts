@@ -159,6 +159,7 @@ export default class Project implements ProjectType {
         `${CacheScope.PROJECT}:${projectId}`,
         CacheGetType.TYPE_OBJECT,
       ));
+
     if (!projectData) {
       projectData = await ncMeta.metaGet2(null, null, MetaTable.PROJECT, {
         id: projectId,

@@ -4,6 +4,7 @@ import { message } from 'ant-design-vue'
 import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import { useTitle } from '@vueuse/core'
+import { storeToRefs } from '#imports'
 import type { NcProject } from '#imports'
 import {
   ProjectInj,
@@ -54,11 +55,11 @@ const { isUIAllowed } = useUIPermission()
 
 const projectRole = inject(ProjectRoleInj)
 
+const { activeProjectId } = storeToRefs(useProjects())
+
 const { projectUrl } = useProject()
 
 const toggleDialog = inject(ToggleDialogInj, () => {})
-
-const activeProjectId = computed(() => route.value.params.projectId as string | undefined)
 
 const { $e } = useNuxtApp()
 
@@ -223,6 +224,11 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
   }
 
   const isProjectPopulated = projectsStore.isProjectPopulated(project.id!)
+
+  // if shared base ignore navigation
+  if (route.value.params.typeOrId === 'base') {
+    ignoreNavigation = true
+  }
 
   if (!isProjectPopulated) project.isLoading = true
 

@@ -18,7 +18,13 @@ export const useProjects = defineStore('projectsStore', () => {
   const router = useRouter()
   const route = router.currentRoute
 
-  const activeProjectId = computed(() => route.value.params.projectId as string | undefined)
+  const activeProjectId = computed(() => {
+    if (route.value.params.typeOrId === 'base') {
+      return projectsList.value?.[0]?.id
+    }
+
+    return route.value.params.projectId as string | undefined
+  })
 
   const openedProject = computed(() => (activeProjectId.value ? projects.value.get(activeProjectId.value) : undefined))
   const openedProjectBasesMap = computed(() => {
@@ -83,7 +89,8 @@ export const useProjects = defineStore('projectsStore', () => {
   const loadProjects = async (page: 'recent' | 'shared' | 'starred' | 'workspace' = 'recent') => {
     // if shared base then get the shared project and create a list
     if (route.value.params.typeOrId === 'base' && route.value.params.projectId) {
-      const project: ProjectType = await $api.public.sharedBaseGet(route.value.params.projectId as string)
+      const { project_id } = await $api.public.sharedBaseGet(route.value.params.projectId as string)
+      const project: ProjectType = await $api.project.read(project_id)
 
       if (!project) return
 

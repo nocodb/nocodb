@@ -77,7 +77,7 @@ export function useGlobalActions(state: State): Actions {
     projectId?: string
     type?: NcProjectType
   }) => {
-    const workspaceId = _workspaceId || 'default'
+    const workspaceId = _workspaceId || 'nc'
     let path: string
     if (projectId) {
       path = `/${workspaceId}/${projectId}`

@@ -193,9 +193,9 @@ const quickVerify = async ({
 
   // Verify pagination
   await dashboard.grid.verifyActivePage({ page: '1' });
-  await dashboard.grid.clickPagination({ page: '>' });
+  await dashboard.grid.clickPagination({ page: '>', skipWait: true });
   await dashboard.grid.verifyActivePage({ page: '2' });
-  await dashboard.grid.clickPagination({ page: '<' });
+  await dashboard.grid.clickPagination({ page: '<', skipWait: true });
   await dashboard.grid.verifyActivePage({ page: '1' });
 
   await dashboard.viewSidebar.openView({ title: 'Filter&Sort' });

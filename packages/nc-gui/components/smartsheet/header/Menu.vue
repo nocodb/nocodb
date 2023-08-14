@@ -13,6 +13,7 @@ import {
   iconMap,
   inject,
   message,
+  toRef,
   useI18n,
   useMetas,
   useNuxtApp,
@@ -20,9 +21,13 @@ import {
   useUndoRedo,
 } from '#imports'
 
-const { virtual = false } = defineProps<{ virtual?: boolean }>()
+const props = defineProps<{ virtual?: boolean; isOpen: boolean; close: () => void }>()
 
-const emit = defineEmits(['edit', 'addColumn'])
+const emit = defineEmits(['edit', 'addColumn', 'update:isOpen'])
+
+const virtual = toRef(props, 'virtual')
+
+const isOpen = useVModel(props, 'isOpen', emit)
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
@@ -177,6 +182,8 @@ const duplicateColumn = async () => {
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
+  // closing dropdown
+  isOpen.value = false
 }
 
 // add column before or after current column
@@ -235,14 +242,44 @@ const hideField = async () => {
     scope: defineViewScope({ view: view.value }),
   })
 }
+
+const handleDelete = () => {
+  // closing the dropdown
+  // when modal opens
+  isOpen.value = false
+  showDeleteColumnModal.value = true
+}
+
+const onEditPress = () => {
+  isOpen.value = false
+  emit('edit')
+}
+
+const onInsertBefore = () => {
+  isOpen.value = false
+  addColumn(true)
+}
+const onInsertAfter = () => {
+  isOpen.value = false
+  addColumn()
+}
 </script>
 
 <template>
-  <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']" overlay-class-name="nc-dropdown-column-operations">
-    <div><GeneralIcon icon="arrowDown" class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2" /></div>
+  <a-dropdown
+    v-if="!isLocked"
+    v-model:visible="isOpen"
+    :trigger="['click']"
+    placement="bottomRight"
+    overlay-class-name="nc-dropdown-column-operations"
+    @click.stop="isOpen = !isOpen"
+  >
+    <div>
+      <GeneralIcon icon="arrowDown" class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2" />
+    </div>
     <template #overlay>
       <a-menu class="shadow bg-white nc-column-options">
-        <a-menu-item @click="emit('edit')">
+        <a-menu-item @click="onEditPress">
           <div class="nc-column-edit nc-header-menu-item">
             <component :is="iconMap.edit" class="text-gray-700 mx-0.65 my-0.75" />
             <!-- Edit -->
@@ -305,14 +342,14 @@ const hideField = async () => {
             {{ t('general.duplicate') }}
           </div>
         </a-menu-item>
-        <a-menu-item @click="addColumn()">
+        <a-menu-item @click="onInsertAfter">
           <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
             <component :is="iconMap.colInsertAfter" class="text-gray-700 !w-4.5 !h-4.5 ml-0.75" />
             <!-- Insert After -->
             {{ t('general.insertAfter') }}
           </div>
         </a-menu-item>
-        <a-menu-item v-if="!column?.pv" @click="addColumn(true)">
+        <a-menu-item v-if="!column?.pv" @click="onInsertBefore">
           <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
             <component :is="iconMap.colInsertBefore" class="text-gray-600 !w-4.5 !h-4.5 mr-1.5 -ml-0.75" />
             <!-- Insert Before -->
@@ -321,7 +358,7 @@ const hideField = async () => {
         </a-menu-item>
         <a-divider class="!my-0" />
 
-        <a-menu-item v-if="!column?.pv" @click="showDeleteColumnModal = true">
+        <a-menu-item v-if="!column?.pv" @click="handleDelete">
           <div class="nc-column-delete nc-header-menu-item my-0.75 text-red-600">
             <component :is="iconMap.delete" class="ml-0.75 mr-1" />
             <!-- Delete -->

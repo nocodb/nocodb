@@ -11,6 +11,7 @@ const { disabled, isViewToolbar } = defineProps<Props>()
 const { visibility, showShareModal } = storeToRefs(useShare())
 
 const { activeTable } = storeToRefs(useTablesStore())
+const { project } = storeToRefs(useProject())
 
 const { $e } = useNuxtApp()
 
@@ -35,7 +36,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <template>
   <div
-    v-if="isUIAllowed('shareProject') && visibility !== 'hidden' && activeTable"
+    v-if="isUIAllowed('shareProject') && visibility !== 'hidden' && (activeTable || project)"
     class="flex flex-col justify-center h-full"
     data-testid="share-project-button"
     :data-sharetype="visibility"

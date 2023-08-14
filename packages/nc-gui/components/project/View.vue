@@ -55,6 +55,7 @@ watch(
         </div>
       </div>
       <LazyGeneralShareProject />
+
     </div>
     <div
       class="flex mx-12 my-8 nc-project-view-tab"

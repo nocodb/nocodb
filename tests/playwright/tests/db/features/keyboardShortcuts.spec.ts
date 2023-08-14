@@ -3,7 +3,7 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import { GridPage } from '../../../pages/Dashboard/Grid';
 import setup, { unsetup } from '../../../setup';
 import { Api, UITypes } from 'nocodb-sdk';
-import { isHub } from '../../../setup/db';
+import { isEE, isHub } from '../../../setup/db';
 import { getDefaultPwd } from '../../utils/general';
 import config from '../../../playwright.config';
 
@@ -34,13 +34,15 @@ test.describe('Verify shortcuts', () => {
       // ignore error even if user already exists
     }
 
-    try {
-      await api.workspaceUser.invite(context.workspace.id, {
-        email: 'new@example.com',
-        roles: 'workspace-level-creator',
-      });
-    } catch (e) {
-      console.log(e);
+    if (isEE() && api['workspaceUser']) {
+      try {
+        await api['workspaceUser'].invite(context.workspace.id, {
+          email: 'new@example.com',
+          roles: 'workspace-level-creator',
+        });
+      } catch (e) {
+        console.log(e);
+      }
     }
   });
 

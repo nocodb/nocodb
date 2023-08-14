@@ -277,15 +277,20 @@ export class GridPage extends BasePage {
     return this.get().locator(`.nc-pagination > .ant-pagination-item.ant-pagination-item-${page}`);
   }
 
-  async clickPagination({ page }: { page: string }) {
-    await this.waitForResponse({
-      uiAction: async () => (await this.pagination({ page })).click(),
-      httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: '/views/',
-      responseJsonMatcher: resJson => resJson?.pageInfo,
-    });
+  async clickPagination({ page, skipWait = false }: { page: string; skipWait?: boolean }) {
+    if (!skipWait) {
+      await (await this.pagination({ page })).click();
+      await this.waitLoading();
+    } else {
+      await this.waitForResponse({
+        uiAction: async () => (await this.pagination({ page })).click(),
+        httpMethodsToMatch: ['GET'],
+        requestUrlPathToMatch: '/views/',
+        responseJsonMatcher: resJson => resJson?.pageInfo,
+      });
 
-    await this.waitLoading();
+      await this.waitLoading();
+    }
   }
 
   async verifyActivePage({ page }: { page: string }) {

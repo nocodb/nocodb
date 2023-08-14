@@ -1581,7 +1581,7 @@ defineExpose({
       <template #add-record>
         <div v-if="isAddingEmptyRowAllowed" class="flex ml-2">
           <a-dropdown-button
-            class="nc-grid-add-new-cell"
+            class="nc-grid-add-new-row"
             placement="top"
             @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
           >

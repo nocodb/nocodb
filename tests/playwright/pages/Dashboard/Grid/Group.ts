@@ -97,14 +97,14 @@ export class GroupPageObject extends BasePage {
     // wait for render to complete before count
     if (index !== 0) await this.get({ indexMap }).locator('.nc-grid-row').nth(0).waitFor({ state: 'attached' });
 
-    const addNewRowBtn = this.get({ indexMap }).locator('.nc-grid-add-new-cell');
+    const addNewRowBtn = this.get({ indexMap }).locator('.nc-grid-add-new-row');
     await addNewRowBtn.scrollIntoViewIfNeeded();
     await (await addNewRowBtn.elementHandle()).waitForElementState('stable');
     await this.rootPage.waitForTimeout(100);
 
     const rowCount = await this.get({ indexMap }).locator('.nc-grid-row').count();
 
-    await this.get({ indexMap }).locator('.nc-grid-add-new-cell').click();
+    await this.get({ indexMap }).locator('.nc-grid-add-new-row').click();
 
     // add delay for UI to render (can wait for count to stabilize by reading it multiple times)
     await this.rootPage.waitForTimeout(100);

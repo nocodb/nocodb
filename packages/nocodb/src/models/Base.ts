@@ -250,15 +250,6 @@ export default class Base implements BaseType {
   }
 
   public async getConnectionConfig(): Promise<any> {
-    if (this.is_meta) {
-      const metaConfig = await NcConnectionMgrv2.getDataConfig();
-      const config = { ...metaConfig };
-      if (config.client === 'sqlite3') {
-        config.connection = metaConfig;
-      }
-      return config;
-    }
-
     const config = this.getConfig();
 
     // todo: update sql-client args

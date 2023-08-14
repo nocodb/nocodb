@@ -18,6 +18,7 @@ import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
 import { Knex } from 'knex';
+import { extractLimitAndOffset } from '../helpers';
 import { NcError } from '../helpers/catchError';
 import getAst from '../helpers/getAst';
 import {
@@ -43,6 +44,7 @@ import genRollupSelectv2 from './genRollupSelectv2';
 import conditionV2 from './conditionV2';
 import sortV2 from './sortV2';
 import { customValidators } from './util/customValidators';
+import Transaction = Knex.Transaction;
 import type { XKnex } from './CustomKnex';
 import type {
   XcFilter,
@@ -58,7 +60,6 @@ import type {
   SelectOption,
 } from '../models';
 import type { SortType } from 'nocodb-sdk';
-import Transaction = Knex.Transaction;
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -1511,20 +1512,12 @@ class BaseModelSqlv2 {
   }
 
   _getListArgs(args: XcFilterWithAlias): XcFilter {
-    const obj: XcFilter = {};
-    obj.where = args.where || args.w || '';
+    const obj: XcFilter = extractLimitAndOffset(args);
+    obj.where = args.filter || args.where || args.w || '';
     obj.having = args.having || args.h || '';
     obj.shuffle = args.shuffle || args.r || '';
     obj.condition = args.condition || args.c || {};
     obj.conditionGraph = args.conditionGraph || {};
-    obj.limit = Math.max(
-      Math.min(
-        args.limit || args.l || this.config.limitDefault,
-        this.config.limitMax,
-      ),
-      this.config.limitMin,
-    );
-    obj.offset = Math.max(+(args.offset || args.o) || 0, 0);
     obj.fields = args.fields || args.f;
     obj.sort = args.sort || args.s;
     return obj;
@@ -2244,12 +2237,14 @@ class BaseModelSqlv2 {
       foreign_key_checks = true,
       skip_hooks = false,
       raw = false,
+      insertOneByOneAsFallback = false,
     }: {
       chunkSize?: number;
       cookie?: any;
       foreign_key_checks?: boolean;
       skip_hooks?: boolean;
       raw?: boolean;
+      insertOneByOneAsFallback?: boolean;
     } = {},
   ) {
     let trx;
@@ -2403,12 +2398,28 @@ class BaseModelSqlv2 {
         }
       }
 
-      const response =
-        this.isPg || this.isMssql
-          ? await trx
-              .batchInsert(this.tnPath, insertDatas, chunkSize)
-              .returning(this.model.primaryKey?.column_name)
-          : await trx.batchInsert(this.tnPath, insertDatas, chunkSize);
+      let response;
+
+      // insert one by one as fallback to get ids for sqlite and mysql
+      if (insertOneByOneAsFallback && (this.isSqlite || this.isMySQL)) {
+        // sqlite and mysql doesnt support returning, so insert one by one and return ids
+        response = [];
+
+        const aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
+
+        for (const insertData of insertDatas) {
+          const query = trx(this.tnPath).insert(insertData);
+          const id = (await query)[0];
+          response.push(aiPkCol ? { [aiPkCol.title]: id } : id);
+        }
+      } else {
+        response =
+          this.isPg || this.isMssql
+            ? await trx
+                .batchInsert(this.tnPath, insertDatas, chunkSize)
+                .returning(this.model.primaryKey?.column_name)
+            : await trx.batchInsert(this.tnPath, insertDatas, chunkSize);
+      }
 
       if (!foreign_key_checks) {
         if (this.isPg) {
@@ -2433,7 +2444,11 @@ class BaseModelSqlv2 {
 
   async bulkUpdate(
     datas: any[],
-    { cookie, raw = false }: { cookie?: any; raw?: boolean } = {},
+    {
+      cookie,
+      raw = false,
+      throwExceptionIfNotExist = false,
+    }: { cookie?: any; raw?: boolean; throwExceptionIfNotExist?: boolean } = {},
   ) {
     let transaction;
     try {
@@ -2476,9 +2491,12 @@ class BaseModelSqlv2 {
 
       if (!raw) {
         for (const pkValues of updatePkValues) {
-          newData.push(
-            await this.readByPk(pkValues, false, {}, { ignoreView: true }),
-          );
+          const oldRecord = await this.readByPk(pkValues);
+          if (!oldRecord && throwExceptionIfNotExist)
+            NcError.unprocessableEntity(
+              `Record with pk ${JSON.stringify(pkValues)} not found`,
+            );
+          newData.push(oldRecord);
         }
       }
 
@@ -2553,7 +2571,13 @@ class BaseModelSqlv2 {
     }
   }
 
-  async bulkDelete(ids: any[], { cookie }: { cookie?: any } = {}) {
+  async bulkDelete(
+    ids: any[],
+    {
+      cookie,
+      throwExceptionIfNotExist = false,
+    }: { cookie?: any; throwExceptionIfNotExist?: boolean } = {},
+  ) {
     let transaction;
     try {
       const deleteIds = await Promise.all(
@@ -2570,9 +2594,14 @@ class BaseModelSqlv2 {
           // pk not specified - bypass
           continue;
         }
-        deleted.push(
-          await this.readByPk(pkValues, false, {}, { ignoreView: true }),
-        );
+
+        const oldRecord = await this.readByPk(pkValues);
+        if (!oldRecord && throwExceptionIfNotExist)
+          NcError.unprocessableEntity(
+            `Record with pk ${JSON.stringify(pkValues)} not found`,
+          );
+        deleted.push(oldRecord);
+
         res.push(d);
       }
 
@@ -2635,12 +2664,6 @@ class BaseModelSqlv2 {
 
       transaction = await this.dbDriver.transaction();
 
-      if (base.is_meta && execQueries.length > 0) {
-        for (const execQuery of execQueries) {
-          await execQuery(transaction, idsVals);
-        }
-      }
-
       for (const d of res) {
         await transaction(this.tnPath).del().where(d);
       }
@@ -2685,8 +2708,8 @@ class BaseModelSqlv2 {
         qb,
         this.dbDriver,
       );
-
       const execQueries: ((trx: Transaction, qb: any) => Promise<any>)[] = [];
+      // qb.del();
 
       for (const column of this.model.columns) {
         if (column.uidt !== UITypes.LinkToAnotherRecord) continue;
@@ -2706,18 +2729,16 @@ class BaseModelSqlv2 {
         await parentTable.getColumns();
 
         const childTn = this.getTnPath(childTable);
-        const parentTn = this.getTnPath(parentTable);
 
         switch (colOptions.type) {
           case 'mm':
             {
               const vChildCol = await colOptions.getMMChildColumn();
-              const vParentCol = await colOptions.getMMParentColumn();
               const vTable = await colOptions.getMMModel();
 
               const vTn = this.getTnPath(vTable);
 
-              execQueries.push((trx, qb) =>
+              execQueries.push(() =>
                 this.dbDriver(vTn)
                   .where({
                     [vChildCol.column_name]: this.dbDriver(childTn)
@@ -2781,7 +2802,6 @@ class BaseModelSqlv2 {
 
       return count;
     } catch (e) {
-      if (trx) await trx.rollback();
       throw e;
     }
   }
@@ -2977,104 +2997,12 @@ class BaseModelSqlv2 {
       modelId: this.model.id,
       tnPath: this.tnPath,
     });
-
-    /*
-    const view = await View.get(this.viewId);
-
-    // handle form view data submission
-    if (
-      (hookName === 'after.insert' || hookName === 'after.bulkInsert') &&
-      view.type === ViewTypes.FORM
-    ) {
-      try {
-        const formView = await view.getView<FormView>();
-        const { columns } = await FormView.getWithInfo(formView.fk_view_id);
-        const allColumns = await this.model.getColumns();
-        const fieldById = columns.reduce(
-          (o: Record<string, any>, f: Record<string, any>) => ({
-            ...o,
-            [f.fk_column_id]: f,
-          }),
-          {},
-        );
-        let order = 1;
-        const filteredColumns = allColumns
-          ?.map((c: Record<string, any>) => ({
-            ...c,
-            fk_column_id: c.id,
-            fk_view_id: formView.fk_view_id,
-            ...(fieldById[c.id] ? fieldById[c.id] : {}),
-            order: (fieldById[c.id] && fieldById[c.id].order) || order++,
-            id: fieldById[c.id] && fieldById[c.id].id,
-          }))
-          .sort(
-            (a: Record<string, any>, b: Record<string, any>) =>
-              a.order - b.order,
-          )
-          .filter(
-            (f: Record<string, any>) =>
-              f.show &&
-              f.uidt !== UITypes.Rollup &&
-              f.uidt !== UITypes.Lookup &&
-              f.uidt !== UITypes.Formula &&
-              f.uidt !== UITypes.QrCode &&
-              f.uidt !== UITypes.Barcode &&
-              f.uidt !== UITypes.SpecificDBType,
-          )
-          .sort(
-            (a: Record<string, any>, b: Record<string, any>) =>
-              a.order - b.order,
-          )
-          .map((c: Record<string, any>) => ({
-            ...c,
-            required: !!(c.required || 0),
-          }));
-
-        const emails = Object.entries(JSON.parse(formView?.email) || {})
-          .filter((a) => a[1])
-          .map((a) => a[0]);
-        if (emails?.length) {
-          const transformedData = _transformSubmittedFormDataForEmail(
-            newData,
-            formView,
-            filteredColumns,
-          );
-          (await NcPluginMgrv2.emailAdapter(false))?.mailSend({
-            to: emails.join(','),
-            subject: 'NocoDB Form',
-            html: ejs.render(formSubmissionEmailTemplate, {
-              data: transformedData,
-              tn: this.tnPath,
-              _tn: this.model.title,
-            }),
-          });
-        }
-      } catch (e) {
-        console.log(e);
-      }
-    }
-
-    try {
-      const [event, operation] = hookName.split('.');
-      const hooks = await Hook.list({
-        fk_model_id: this.model.id,
-        event,
-        operation,
-      });
-      for (const hook of hooks) {
-        if (hook.active) {
-          invokeWebhook(hook, this.model, view, prevData, newData, req?.user);
-        }
-      }
-    } catch (e) {
-      console.log('hooks :: error', hookName, e);
-    }*/
   }
 
-  // @ts-ignore
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async errorInsert(e, data, trx, cookie) {}
 
-  // @ts-ignore
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async errorUpdate(e, data, trx, cookie) {}
 
   // todo: handle composite primary key
@@ -3088,7 +3016,7 @@ class BaseModelSqlv2 {
     );
   }
 
-  // @ts-ignore
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async errorDelete(e, id, trx, cookie) {}
 
   async validate(columns) {
@@ -3808,6 +3736,464 @@ class BaseModelSqlv2 {
       }
     }
     return data;
+  }
+
+  async addLinks({
+    cookie,
+    childIds,
+    colId,
+    rowId,
+  }: {
+    cookie: any;
+    childIds: (string | number)[];
+    colId: string;
+    rowId: string;
+  }) {
+    const columns = await this.model.getColumns();
+    const column = columns.find((c) => c.id === colId);
+
+    if (!column || column.uidt !== UITypes.LinkToAnotherRecord)
+      NcError.notFound(`Link column ${colId} not found`);
+
+    const row = await this.dbDriver(this.tnPath)
+      .where(await this._wherePk(rowId))
+      .first();
+
+    // validate rowId
+    if (!row) {
+      NcError.notFound(`Row with id '${rowId}' not found`);
+    }
+
+    if (!childIds.length) return;
+
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+
+    const childColumn = await colOptions.getChildColumn();
+    const parentColumn = await colOptions.getParentColumn();
+    const parentTable = await parentColumn.getModel();
+    const childTable = await childColumn.getModel();
+    await childTable.getColumns();
+    await parentTable.getColumns();
+
+    const childTn = this.getTnPath(childTable);
+    const parentTn = this.getTnPath(parentTable);
+
+    switch (colOptions.type) {
+      case RelationTypes.MANY_TO_MANY:
+        {
+          const vChildCol = await colOptions.getMMChildColumn();
+          const vParentCol = await colOptions.getMMParentColumn();
+          const vTable = await colOptions.getMMModel();
+
+          const vTn = this.getTnPath(vTable);
+
+          let insertData: Record<string, any>[];
+
+          // validate Ids
+          {
+            const childRowsQb = this.dbDriver(parentTn)
+              .select(parentColumn.column_name)
+              .select(`${vTable.table_name}.${vChildCol.column_name}`)
+              .leftJoin(vTn, (qb) => {
+                qb.on(
+                  `${vTable.table_name}.${vParentCol.column_name}`,
+                  `${parentTable.table_name}.${parentColumn.column_name}`,
+                ).andOn(
+                  `${vTable.table_name}.${vChildCol.column_name}`,
+                  row[childColumn.column_name],
+                );
+              });
+            // .where(_wherePk(parentTable.primaryKeys, childId))
+
+            if (parentTable.primaryKeys.length > 1) {
+              childRowsQb.where((qb) => {
+                for (const childId of childIds) {
+                  qb.orWhere(_wherePk(parentTable.primaryKeys, childId));
+                }
+              });
+            } else {
+              childRowsQb.whereIn(parentTable.primaryKey.column_name, childIds);
+            }
+
+            if (parentTable.primaryKey.column_name !== parentColumn.column_name)
+              childRowsQb.select(parentTable.primaryKey.column_name);
+
+            const childRows = await childRowsQb;
+
+            if (childRows.length !== childIds.length) {
+              const missingIds = childIds.filter(
+                (id) =>
+                  !childRows.find((r) => r[parentColumn.column_name] === id),
+              );
+
+              NcError.unprocessableEntity(
+                `Child record with id [${missingIds.join(', ')}] not found`,
+              );
+            }
+
+            insertData = childRows
+              // skip existing links
+              .filter((childRow) => !childRow[vChildCol.column_name])
+              // generate insert data for new links
+              .map((childRow) => ({
+                [vParentCol.column_name]: childRow[parentColumn.column_name],
+                [vChildCol.column_name]: row[childColumn.column_name],
+              }));
+
+            // if no new links, return true
+            if (!insertData.length) return true;
+          }
+
+          // if (this.isSnowflake) {
+          //   const parentPK = this.dbDriver(parentTn)
+          //     .select(parentColumn.column_name)
+          //     // .where(_wherePk(parentTable.primaryKeys, childId))
+          //     .whereIn(parentTable.primaryKey.column_name, childIds)
+          //     .first();
+          //
+          //   const childPK = this.dbDriver(childTn)
+          //     .select(childColumn.column_name)
+          //     .where(_wherePk(childTable.primaryKeys, rowId))
+          //     .first();
+          //
+          //   await this.dbDriver.raw(
+          //     `INSERT INTO ?? (??, ??) SELECT (${parentPK.toQuery()}), (${childPK.toQuery()})`,
+          //     [vTn, vParentCol.column_name, vChildCol.column_name],
+          //   );
+          // } else {
+          //   await this.dbDriver(vTn).insert({
+          //     [vParentCol.column_name]: this.dbDriver(parentTn)
+          //       .select(parentColumn.column_name)
+          //       // .where(_wherePk(parentTable.primaryKeys, childId))
+          //       .where(parentTable.primaryKey.column_name, childIds)
+          //       .first(),
+          //     [vChildCol.column_name]: this.dbDriver(childTn)
+          //       .select(childColumn.column_name)
+          //       .where(_wherePk(childTable.primaryKeys, rowId))
+          //       .first(),
+          //   });
+
+          // todo: use bulk insert
+          await this.dbDriver(vTn).insert(insertData);
+          // }
+        }
+        break;
+      case RelationTypes.HAS_MANY:
+        {
+          // validate Ids
+          {
+            const childRowsQb = this.dbDriver(childTn).select(
+              childTable.primaryKey.column_name,
+            );
+
+            if (childTable.primaryKeys.length > 1) {
+              childRowsQb.where((qb) => {
+                for (const childId of childIds) {
+                  qb.orWhere(_wherePk(childTable.primaryKeys, childId));
+                }
+              });
+            } else {
+              childRowsQb.whereIn(parentTable.primaryKey.column_name, childIds);
+            }
+
+            const childRows = await childRowsQb;
+
+            if (childRows.length !== childIds.length) {
+              const missingIds = childIds.filter(
+                (id) =>
+                  !childRows.find((r) => r[parentColumn.column_name] === id),
+              );
+
+              NcError.unprocessableEntity(
+                `Child record with id [${missingIds.join(', ')}] not found`,
+              );
+            }
+          }
+
+          await this.dbDriver(childTn)
+            .update({
+              [childColumn.column_name]: this.dbDriver.from(
+                this.dbDriver(parentTn)
+                  .select(parentColumn.column_name)
+                  .where(_wherePk(parentTable.primaryKeys, rowId))
+                  .first()
+                  .as('___cn_alias'),
+              ),
+            })
+            // .where(_wherePk(childTable.primaryKeys, childId));
+            .whereIn(childTable.primaryKey.column_name, childIds);
+        }
+        break;
+      case RelationTypes.BELONGS_TO:
+        {
+          // validate Ids
+          {
+            const childRowsQb = this.dbDriver(parentTn)
+              .select(parentTable.primaryKey.column_name)
+              .where(_wherePk(parentTable.primaryKeys, childIds[0]))
+              .first();
+
+            const childRow = await childRowsQb;
+
+            if (!childRow) {
+              NcError.unprocessableEntity(
+                `Child record with id [${childIds[0]}] not found`,
+              );
+            }
+          }
+
+          await this.dbDriver(childTn)
+            .update({
+              [childColumn.column_name]: this.dbDriver.from(
+                this.dbDriver(parentTn)
+                  .select(parentColumn.column_name)
+                  .where(_wherePk(parentTable.primaryKeys, childIds[0]))
+                  // .whereIn(parentTable.primaryKey.column_name, childIds)
+                  .first()
+                  .as('___cn_alias'),
+              ),
+            })
+            .where(_wherePk(childTable.primaryKeys, rowId));
+        }
+        break;
+    }
+
+    // const response = await this.readByPk(rowId);
+    // await this.afterInsert(response, this.dbDriver, cookie);
+    // await this.afterAddChild(rowId, childId, cookie);
+  }
+
+  async removeLinks({
+    cookie,
+    childIds,
+    colId,
+    rowId,
+  }: {
+    cookie: any;
+    childIds: (string | number)[];
+    colId: string;
+    rowId: string;
+  }) {
+    const columns = await this.model.getColumns();
+    const column = columns.find((c) => c.id === colId);
+
+    if (!column || column.uidt !== UITypes.LinkToAnotherRecord)
+      NcError.notFound(`Link column ${colId} not found`);
+
+    const row = await this.dbDriver(this.tnPath)
+      .where(await this._wherePk(rowId))
+      .first();
+
+    // validate rowId
+    if (!row) {
+      NcError.notFound(`Row with id '${rowId}' not found`);
+    }
+
+    if (!childIds.length) return;
+
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+
+    const childColumn = await colOptions.getChildColumn();
+    const parentColumn = await colOptions.getParentColumn();
+    const parentTable = await parentColumn.getModel();
+    const childTable = await childColumn.getModel();
+    await childTable.getColumns();
+    await parentTable.getColumns();
+
+    const childTn = this.getTnPath(childTable);
+    const parentTn = this.getTnPath(parentTable);
+
+    const prevData = await this.readByPk(rowId);
+
+    switch (colOptions.type) {
+      case RelationTypes.MANY_TO_MANY:
+        {
+          const vChildCol = await colOptions.getMMChildColumn();
+          const vParentCol = await colOptions.getMMParentColumn();
+          const vTable = await colOptions.getMMModel();
+
+          // validate Ids
+          {
+            const childRowsQb = this.dbDriver(parentTn)
+              .select(parentColumn.column_name)
+              // .where(_wherePk(parentTable.primaryKeys, childId))
+              .whereIn(parentTable.primaryKey.column_name, childIds);
+
+            if (parentTable.primaryKey.column_name !== parentColumn.column_name)
+              childRowsQb.select(parentTable.primaryKey.column_name);
+
+            const childRows = await childRowsQb;
+
+            if (childRows.length !== childIds.length) {
+              const missingIds = childIds.filter(
+                (id) =>
+                  !childRows.find((r) => r[parentColumn.column_name] === id),
+              );
+
+              NcError.unprocessableEntity(
+                `Child record with id [${missingIds.join(', ')}] not found`,
+              );
+            }
+          }
+
+          const vTn = this.getTnPath(vTable);
+
+          await this.dbDriver(vTn)
+            .where({
+              [vChildCol.column_name]: this.dbDriver(childTn)
+                .select(childColumn.column_name)
+                .where(_wherePk(childTable.primaryKeys, rowId))
+                .first(),
+            })
+            .whereIn(
+              [vParentCol.column_name],
+              this.dbDriver(parentTn)
+                .select(parentColumn.column_name)
+                .whereIn(parentTable.primaryKey.column_name, childIds),
+            )
+            .delete();
+        }
+        break;
+      case RelationTypes.HAS_MANY:
+        {
+          // validate Ids
+          {
+            const childRowsQb = this.dbDriver(childTn)
+              .select(childTable.primaryKey.column_name)
+              .whereIn(childTable.primaryKey.column_name, childIds);
+
+            const childRows = await childRowsQb;
+
+            if (childRows.length !== childIds.length) {
+              const missingIds = childIds.filter(
+                (id) =>
+                  !childRows.find((r) => r[parentColumn.column_name] === id),
+              );
+
+              NcError.unprocessableEntity(
+                `Child record with id [${missingIds.join(', ')}] not found`,
+              );
+            }
+          }
+
+          await this.dbDriver(childTn)
+            // .where({
+            //   [childColumn.cn]: this.dbDriver(parentTable.tn)
+            //     .select(parentColumn.cn)
+            //     .where(parentTable.primaryKey.cn, rowId)
+            //     .first()
+            // })
+            // .where(_wherePk(childTable.primaryKeys, childId))
+            .whereIn(childTable.primaryKey.column_name, childIds)
+            .update({ [childColumn.column_name]: null });
+        }
+        break;
+      case RelationTypes.BELONGS_TO:
+        {
+          // validate Ids
+          {
+            if (childIds.length > 1)
+              NcError.unprocessableEntity(
+                'Request must contain only one parent id',
+              );
+
+            const childRowsQb = this.dbDriver(parentTn)
+              .select(parentTable.primaryKey.column_name)
+              .where(_wherePk(parentTable.primaryKeys, childIds[0]))
+              .first();
+
+            const childRow = await childRowsQb;
+
+            if (!childRow) {
+              NcError.unprocessableEntity(
+                `Child record with id [${childIds[0]}] not found`,
+              );
+            }
+          }
+
+          await this.dbDriver(childTn)
+            // .where({
+            //   [childColumn.cn]: this.dbDriver(parentTable.tn)
+            //     .select(parentColumn.cn)
+            //     .where(parentTable.primaryKey.cn, childId)
+            //     .first()
+            // })
+            // .where(_wherePk(childTable.primaryKeys, rowId))
+            .where(childTable.primaryKey.column_name, rowId)
+            .update({ [childColumn.column_name]: null });
+        }
+        break;
+    }
+
+    // const newData = await this.readByPk(rowId);
+    // await this.afterUpdate(prevData, newData, this.dbDriver, cookie);
+    // await this.afterRemoveChild(rowId, childIds, cookie);
+  }
+
+  async btRead(
+    { colId, id }: { colId; id },
+    args: { limit?; offset?; fieldSet?: Set<string> } = {},
+  ) {
+    try {
+      const { where, sort } = this._getListArgs(args as any);
+      // todo: get only required fields
+
+      const relColumn = (await this.model.getColumns()).find(
+        (c) => c.id === colId,
+      );
+
+      const row = await this.dbDriver(this.tnPath)
+        .where(await this._wherePk(id))
+        .first();
+
+      // validate rowId
+      if (!row) {
+        NcError.notFound(`Row with id ${id} not found`);
+      }
+
+      const parentCol = await (
+        (await relColumn.getColOptions()) as LinkToAnotherRecordColumn
+      ).getParentColumn();
+      const parentTable = await parentCol.getModel();
+      const chilCol = await (
+        (await relColumn.getColOptions()) as LinkToAnotherRecordColumn
+      ).getChildColumn();
+      const childTable = await chilCol.getModel();
+
+      const parentModel = await Model.getBaseModelSQL({
+        model: parentTable,
+        dbDriver: this.dbDriver,
+      });
+      await childTable.getColumns();
+
+      const childTn = this.getTnPath(childTable);
+      const parentTn = this.getTnPath(parentTable);
+
+      const qb = this.dbDriver(parentTn);
+      await this.applySortAndFilter({ table: parentTable, where, qb, sort });
+
+      qb.where(
+        parentCol.column_name,
+        this.dbDriver(childTn)
+          .select(chilCol.column_name)
+          // .where(parentTable.primaryKey.cn, p)
+          .where(_wherePk(childTable.primaryKeys, id)),
+      );
+
+      await parentModel.selectObject({ qb, fieldsSet: args.fieldSet });
+
+      const parent = (await this.execAndParse(qb, childTable))?.[0];
+
+      const proto = await parentModel.getProto();
+
+      if (parent) {
+        parent.__proto__ = proto;
+      }
+      return parent;
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
   }
 }
 

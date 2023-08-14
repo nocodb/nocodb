@@ -66,7 +66,7 @@ export const useProject = defineStore('projectStore', () => {
     for (const base of bases.value) {
       if (base.id) {
         temp[base.id] = SqlUiFactory.create({ client: base.type }) as Exclude<
-          ReturnType<typeof SqlUiFactory['create']>,
+          ReturnType<(typeof SqlUiFactory)['create']>,
           typeof OracleUi
         >
       }

@@ -64,6 +64,7 @@ const syncSource = ref({
       syncLookup: true,
       syncFormula: false,
       syncAttachment: true,
+      syncUsers: true,
     },
   },
 })
@@ -174,6 +175,7 @@ async function loadSyncSrc() {
           syncLookup: true,
           syncFormula: false,
           syncAttachment: true,
+          syncUsers: true,
         },
       },
     }
@@ -331,6 +333,13 @@ onMounted(async () => {
           <div class="my-2">
             <a-checkbox v-model:checked="syncSource.details.options.syncAttachment">
               {{ $t('labels.importAttachmentColumns') }}
+            </a-checkbox>
+          </div>
+
+          <!--          Import Users Columns -->
+          <div class="my-2">
+            <a-checkbox v-model:checked="syncSource.details.options.syncUsers">
+              {{ $t('labels.importUsers') }}
             </a-checkbox>
           </div>
 

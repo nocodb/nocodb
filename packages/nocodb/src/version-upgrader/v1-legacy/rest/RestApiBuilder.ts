@@ -3,11 +3,11 @@ import SwaggerXc from '../../../db/sql-mgr/code/routers/xc-ts/SwaggerXc';
 import ExpressXcTsRoutes from '../../../db/sql-mgr/code/routes/xc-ts/ExpressXcTsRoutes';
 import NcHelp from '../../../utils/NcHelp';
 import BaseApiBuilder from '../BaseApiBuilder';
-import type { MetaService } from '../../../meta/meta.service';
-import type Noco from '../../../Noco';
+import { MetaService } from '../../../meta/meta.service';
+import Noco from '../../../Noco';
+import { DbConfig, NcConfig } from '../../../interface/config';
+import NcProjectBuilder from '../NcProjectBuilder';
 import type { Router } from 'express';
-import type { DbConfig, NcConfig } from '../../../interface/config';
-import type NcProjectBuilder from '../NcProjectBuilder';
 
 export class RestApiBuilder extends BaseApiBuilder<Noco> {
   public readonly type = 'rest';

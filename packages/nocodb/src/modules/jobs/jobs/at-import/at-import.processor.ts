@@ -348,32 +348,6 @@ export class AtImportProcessor {
       }
     };
 
-    const nc_DumpTableSchema = async () => {
-      console.log('[');
-      // const ncTblList = await api.base.tableList(
-      //   ncCreatedProjectSchema.id,
-      //   syncDB.baseId
-      // );
-
-      const ncTblList = { list: [] };
-      ncTblList['list'] = await this.tablesService.getAccessibleTables({
-        projectId: ncCreatedProjectSchema.id,
-        baseId: syncDB.baseId,
-        roles: userRole,
-      });
-
-      for (let i = 0; i < ncTblList.list.length; i++) {
-        // const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
-        const ncTbl = await this.tablesService.getTableWithAccessibleViews({
-          tableId: ncTblList.list[i].id,
-          user: syncDB.user,
-        });
-        console.log(JSON.stringify(ncTbl, null, 2));
-        console.log(',');
-      }
-      console.log(']');
-    };
-
     // retrieve nc column schema from using aTbl field ID as reference
     //
     const nc_getColumnSchema = async (aTblFieldId) => {
@@ -1563,45 +1537,6 @@ export class AtImportProcessor {
       return rec;
     };
 
-    const nocoReadDataSelected = async (projName, table, callback, fields) => {
-      return new Promise((resolve, reject) => {
-        base(table.title)
-          .select({
-            pageSize: 100,
-            // maxRecords: 100,
-            fields: fields,
-          })
-          .eachPage(
-            async function page(records, fetchNextPage) {
-              // This function (`page`) will get called for each page of records.
-              // records.forEach(record => callback(table, record));
-              logBasic(
-                `:: ${table.title} / ${fields} : ${
-                  recordCnt + 1
-                } ~ ${(recordCnt += 100)}`,
-              );
-              await Promise.all(
-                records.map((r) => callback(projName, table, r, fields)),
-              );
-
-              // To fetch the next page of records, call `fetchNextPage`.
-              // If there are more records, `page` will get called again.
-              // If there are no more records, `done` will get called.
-              fetchNextPage();
-            },
-            function done(err) {
-              if (err) {
-                console.error(err);
-                reject(err);
-              }
-              resolve(null);
-            },
-          );
-      });
-    };
-
-    //////////
-
     const nc_isLinkExists = (airtableFieldId) => {
       return !!ncLinkMappingTable.find(
         (x) => x.aTbl.typeOptions.symmetricColumnId === airtableFieldId,
@@ -1879,9 +1814,7 @@ export class AtImportProcessor {
               req: { user: syncDB.user, clientIp: '' },
             })
             .catch((e) =>
-              e.response?.data?.msg
-                ? logBasic(`NOTICE: ${e.response.data.msg}`)
-                : console.log(e),
+              e.message ? logBasic(`NOTICE: ${e.message}`) : console.log(e),
             ),
         );
         recordPerfStats(_perfStart, 'auth.projectUserAdd');
@@ -2294,7 +2227,6 @@ export class AtImportProcessor {
     };
 
     ///////////////////////////////////////////////////////////////////////////////
-    let recordCnt = 0;
     try {
       logBasic('SDK initialized');
       logDetailed('Project initialization started');
@@ -2357,10 +2289,12 @@ export class AtImportProcessor {
       await nocoSetPrimary(aTblSchema);
       logDetailed('Configuring Display Value column completed');
 
-      logBasic('Configuring User(s)');
-      // add users
-      await nocoAddUsers(schema);
-      logDetailed('Adding users completed');
+      if (syncDB.options.syncUsers) {
+        logBasic('Configuring User(s)');
+        // add users
+        await nocoAddUsers(schema);
+        logDetailed('Adding users completed');
+      }
 
       // hide-fields
       // await nocoReconfigureFields(aTblSchema);
@@ -2374,7 +2308,6 @@ export class AtImportProcessor {
 
       if (syncDB.options.syncData) {
         try {
-          // await nc_DumpTableSchema();
           const _perfStart = recordPerfStart();
           const ncTblList = { list: [] };
           ncTblList['list'] = await this.tablesService.getAccessibleTables({
@@ -2403,8 +2336,6 @@ export class AtImportProcessor {
                 user: syncDB.user,
               });
             recordPerfStats(_perfStart, 'dbTable.read');
-
-            recordCnt = 0;
 
             recordsMap[ncTbl.id] = await importData({
               projectName: syncDB.projectName,
@@ -2469,12 +2400,12 @@ export class AtImportProcessor {
         await generateMigrationStats(aTblSchema);
       }
     } catch (e) {
-      if (e.response?.data?.msg) {
+      if (e.message) {
         T.event({
           event: 'a:airtable-import:error',
-          data: { error: e.response.data.msg },
+          data: { error: e.message },
         });
-        throw new Error(e.response.data.msg);
+        throw new Error(e.message);
       }
       throw e;
     }

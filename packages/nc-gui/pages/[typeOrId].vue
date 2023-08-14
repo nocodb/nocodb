@@ -17,5 +17,5 @@ watch(
 </script>
 
 <template>
-  <NuxtPage :page-key="route.params.workspaceId" />
+  <NuxtPage :page-key="route.params.typeOrId" />
 </template>

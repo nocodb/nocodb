@@ -24,7 +24,7 @@ provide(ToggleDialogInj, toggleDialog)
 // onMounted(async () => {
 //   isLoading.value = true
 //   try {
-//     await loadWorkspace(route.params.workspaceId as string)
+//     await loadWorkspace(route.params.typeOrId as string)
 //     await loadProjects()
 //   } finally {
 //     isLoading.value = false

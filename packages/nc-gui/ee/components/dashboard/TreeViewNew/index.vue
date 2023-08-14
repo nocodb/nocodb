@@ -369,7 +369,7 @@ onUnmounted(() => {
           modal
           type="ghost"
           class="h-auto w-full nc-create-project-btn !rounded-lg"
-          :active-workspace-id="route.params.workspaceId"
+          :active-workspace-id="route.params.typeOrId"
         >
           <div class="flex flex-row justify-between w-full items-center">
             <div class="flex">Create new Project</div>

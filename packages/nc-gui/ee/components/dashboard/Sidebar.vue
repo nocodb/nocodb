@@ -139,7 +139,7 @@ const navigateToHome = () => {
           type="text"
           class="!p-0 mx-1"
           data-testid="nc-sidebar-create-project-btn"
-          :active-workspace-id="route.params.workspaceId"
+          :active-workspace-id="route.params.typeOrId"
         >
           <div
             class="gap-x-2 flex flex-row w-full items-center nc-sidebar-top-button !my-0 !ml-0"

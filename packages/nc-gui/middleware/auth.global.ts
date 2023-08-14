@@ -52,7 +52,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   if (to.meta.public) return
 
   /** if shared base allow without validating */
-  if (to.params.workspaceId === 'base') return
+  if (to.params.typeOrId === 'base') return
 
   /** if auth is required or unspecified (same as required) and user is not signed in, redirect to signin page */
   if ((to.meta.requiresAuth || typeof to.meta.requiresAuth === 'undefined') && !state.signedIn.value) {

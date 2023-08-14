@@ -309,7 +309,7 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
 // TODO - implement
 /*
 function openSqlEditor(base: BaseType) {
-  navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/sql/${base.id}`)
+  navigateTo(`/ws/${route.params.typeOrId}/nc/${base.project_id}/sql/${base.id}`)
 }
 
 async function openProjectSqlEditor(_project: ProjectType) {
@@ -323,7 +323,7 @@ async function openProjectSqlEditor(_project: ProjectType) {
 
   const base = project?.bases?.[0]
   if (!base) return
-  navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/sql/${base.id}`)
+  navigateTo(`/ws/${route.params.typeOrId}/nc/${base.project_id}/sql/${base.id}`)
 }
 */
 

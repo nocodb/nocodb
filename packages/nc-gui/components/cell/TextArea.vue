@@ -48,8 +48,14 @@ onClickOutside(inputWrapperRef, (e) => {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isVisible" class="overflow-visible h-full" :trigger="[]" placement="bottomLeft">
-    <div class="flex flex-row h-full">
+  <NcDropdown v-model:visible="isVisible" class="overflow-visible" :trigger="[]" placement="bottomLeft">
+    <div
+      class="flex flex-row pt-0.5"
+      :class="{
+        'min-h-10': rowHeight !== 1,
+        'min-h-6.5': rowHeight === 1,
+      }"
+    >
       <textarea
         v-if="editEnabled"
         :ref="focus"
@@ -76,12 +82,16 @@ onClickOutside(inputWrapperRef, (e) => {
 
       <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
 
-      <LazyCellClampedText v-else-if="rowHeight" :value="vModel" :lines="rowHeight" />
+      <LazyCellClampedText v-else-if="rowHeight" :value="vModel" :lines="rowHeight" class="mr-7" />
 
       <span v-else>{{ vModel }}</span>
 
       <NcButton
-        class="!absolute right-0 top-1.5 bottom-0 nc-long-text-toggle-expand"
+        class="!absolute right-0 bottom-0 nc-long-text-toggle-expand"
+        :class="{
+          'top-1': rowHeight !== 1,
+          'top-0.15': rowHeight === 1,
+        }"
         type="secondary"
         size="xsmall"
         @click.stop="isVisible = !isVisible"

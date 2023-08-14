@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PaginatedType } from 'nocodb-sdk'
 import SidebarIcon from '~icons/nc-icons/sidebar'
-import { computed, iconMap, inject, isRtlLang, useI18n } from '#imports'
+import { IsGroupByInj, computed, iconMap, inject, isRtlLang, useI18n } from '#imports'
 import type { Language } from '#imports'
 
 interface Props {
@@ -12,7 +12,7 @@ interface Props {
   hideSidebars?: boolean
   customLabel?: string
   fixedSize?: number
-  sticky?: boolean
+  extraStyle?: string
 }
 
 const props = defineProps<Props>()
@@ -23,9 +23,15 @@ const { locale } = useI18n()
 
 const vPaginationData = useVModel(props, 'paginationData', emits)
 
-const { alignCountOnRight, customLabel, changePage, sticky, fixedSize } = props
+const { alignCountOnRight, customLabel, changePage } = props
+
+const fixedSize = toRef(props, 'fixedSize')
+
+const extraStyle = toRef(props, 'extraStyle')
 
 const isPublic = inject(IsPublicInj, ref(false))
+
+const isGroupBy = inject(IsGroupByInj, ref(false))
 
 const { isLeftSidebarOpen, isRightSidebarOpen } = storeToRefs(useSidebarStore())
 
@@ -54,8 +60,11 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
 
 <template>
   <div
-    class="flex items-center bg-white border-t-1 border-gray-200 h-10 nc-pagination-wrapper"
-    :style="`${sticky === true ? 'position: sticky; left: 0;' : ''}${fixedSize ? `width: ${fixedSize - 20}px;` : ''}`"
+    class="flex items-center bg-white border-gray-200 h-10 nc-pagination-wrapper"
+    :class="{ 'border-t-1': !isGroupBy }"
+    :style="`${fixedSize ? `width: ${fixedSize}px;` : ''}${
+      isGroupBy ? 'margin-top:1px; border-radius: 0 0 12px 12px !important;' : ''
+    }${extraStyle}`"
   >
     <NcTooltip v-if="!isPublic && hideSidebars !== true" class="ml-2" placement="topLeft" hide-on-click>
       <template #title>

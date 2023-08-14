@@ -69,7 +69,13 @@ const [useProvideGridViewColumn, useGridViewColumn] = useInjectionState(
 
     /** when columns changes(create/delete) reload grid columns
      * or when view changes reload columns width  */
-    watch([() => columns.value?.length, () => view?.value?.id], loadGridViewColumns)
+    watch(
+      [() => columns.value?.length, () => view.value?.id],
+      async (n) => {
+        if (n[1]) await loadGridViewColumns()
+      },
+      { immediate: true },
+    )
 
     const updateGridViewColumn = async (id: string, props: Partial<GridColumnReqType>, undo = false) => {
       if (!undo) {
@@ -92,18 +98,21 @@ const [useProvideGridViewColumn, useGridViewColumn] = useInjectionState(
         })
       }
 
-      if (gridViewCols?.value?.[id]) {
-        Object.assign(gridViewCols.value[id], {
-          ...gridViewCols.value[id],
-          ...props,
-        })
-      }
-
       // sync with server if allowed
       if (!isPublic.value && isUIAllowed('gridColUpdate') && gridViewCols.value[id]?.id) {
         await $api.dbView.gridColumnUpdate(gridViewCols.value[id].id as string, {
           ...props,
         })
+      }
+
+      if (gridViewCols.value?.[id]) {
+        Object.assign(gridViewCols.value[id], {
+          ...gridViewCols.value[id],
+          ...props,
+        })
+      } else {
+        // fallback to reload
+        await loadGridViewColumns()
       }
     }
 

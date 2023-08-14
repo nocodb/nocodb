@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 const props = defineProps<{
-  value: string
+  value?: string
   placeholder?: string
   dropdownClassName?: string
   showSearch?: boolean
@@ -37,7 +37,6 @@ const onChange = (value: string) => {
     :show-search="showSearch"
     :filter-option="filterOption"
     :dropdown-match-select-width="dropdownMatchSelectWidth"
-    @click.stop
     @change="onChange"
   >
     <template #suffixIcon>

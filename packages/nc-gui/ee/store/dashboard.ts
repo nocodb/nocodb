@@ -143,7 +143,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
 
   const openedProjectId = computed<string>(() => route.value.params.projectId as string)
   const openedLayoutId = computed<string | null>(() => route.value.params.layoutId as string)
-  const _openedWorkspaceId = computed<string>(() => route.value.params.workspaceId as string)
+  const _openedWorkspaceId = computed<string>(() => route.value.params.typeOrId as string)
   const availableNumericColumnsOfSelectedView = computed(() => {
     if (!availableColumnsOfSelectedView.value) {
       return undefined

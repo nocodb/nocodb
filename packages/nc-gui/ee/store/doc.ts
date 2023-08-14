@@ -43,7 +43,7 @@ export const useDocStore = defineStore('docStore', () => {
       ? pageIdFromCompositePageId(route.value.params.compositePageId as string)
       : (route.value.params.pageId as string),
   )
-  const openedWorkspaceId = computed<string>(() => route.value.params.workspaceId as string)
+  const openedWorkspaceId = computed<string>(() => route.value.params.typeOrId as string)
 
   const isOpenedNestedPageLoading = computed<boolean>(() => isNestedPageFetching.value[openedProjectId.value] ?? true)
 

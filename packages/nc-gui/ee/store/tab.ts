@@ -35,7 +35,7 @@ export const useTabs = defineStore('tabStore', () => {
   const projectType = computed(() => (route.value.params.projectType as string) || 'nc')
 
   // todo: new-layout
-  const workspaceId = computed(() => route.value.params.workspaceId as string)
+  const workspaceId = computed(() => route.value.params.typeOrId as string)
 
   // const previousActiveTabIndex = ref(-1)
   const activeTabIndex: WritableComputedRef<number> = computed({

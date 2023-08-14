@@ -252,7 +252,7 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
   const isProjectPopulated = projectsStore.isProjectPopulated(project.id!)
 
   // if shared base ignore navigation
-  if(route.value.params.workspaceId === 'base') {
+  if(route.value.params.typeOrId === 'base') {
     ignoreNavigation = true
   }
 
@@ -328,7 +328,7 @@ async function openProjectSqlEditor(_project: ProjectType) {
 */
 
 function openErdView(base: BaseType) {
-  navigateTo(`/${route.value.params.workspaceId}/${base.project_id}/erd/${base.id}`)
+  navigateTo(`/${route.value.params.typeOrId}/${base.project_id}/erd/${base.id}`)
 }
 
 async function openProjectErdView(_project: ProjectType) {
@@ -342,7 +342,7 @@ async function openProjectErdView(_project: ProjectType) {
 
   const base = project?.bases?.[0]
   if (!base) return
-  navigateTo(`/${route.value.params.workspaceId}/${base.project_id}/erd/${base.id}`)
+  navigateTo(`/${route.value.params.typeOrId}/${base.project_id}/erd/${base.id}`)
 }
 
 const reloadTables = async () => {

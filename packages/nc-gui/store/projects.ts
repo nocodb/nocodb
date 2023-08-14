@@ -82,7 +82,7 @@ export const useProjects = defineStore('projectsStore', () => {
 
   const loadProjects = async (page: 'recent' | 'shared' | 'starred' | 'workspace' = 'recent') => {
     // if shared base then get the shared project and create a list
-    if (route.value.params.workspaceId === 'base' && route.value.params.projectId) {
+    if (route.value.params.typeOrId === 'base' && route.value.params.projectId) {
       const project: ProjectType = await $api.public.sharedBaseGet(route.value.params.projectId as string)
 
       if (!project) return

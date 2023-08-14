@@ -49,7 +49,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
   const { loadTables, projectUrl, isXcdbBase } = useProject()
 
-  const workspaceId = computed(() => route.value.params.workspaceId as string)
+  const workspaceId = computed(() => route.value.params.typeOrId as string)
 
   const tables = computed(() => projectTables.value.get(param.projectId) || [])
   const project = computed(() => projects.value.get(param.projectId))
@@ -68,13 +68,13 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
     let workspaceIdOrType = workspaceId.value
 
-    if (['nc', 'base'].includes(route.value.params.workspaceId as string)) {
-      workspaceIdOrType = route.value.params.workspaceId as string
+    if (['nc', 'base'].includes(route.value.params.typeOrId as string)) {
+      workspaceIdOrType = route.value.params.typeOrId as string
     }
 
     let projectIdOrBaseId = project.id
 
-    if (['base'].includes(route.value.params.workspaceId as string)) {
+    if (['base'].includes(route.value.params.typeOrId as string)) {
       projectIdOrBaseId = route.value.params.projectId as string
     }
 

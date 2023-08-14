@@ -19,7 +19,7 @@ watch(
   (projects) => {
     if (projects.size) {
       return router.replace({
-        path: `/${router.currentRoute.value.params.workspaceId}/${projectsList.value[0].id}`,
+        path: `/${router.currentRoute.value.params.typeOrId}/${projectsList.value[0].id}`,
       })
     }
     loading.value = false

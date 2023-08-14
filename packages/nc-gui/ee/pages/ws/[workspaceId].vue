@@ -10,7 +10,7 @@ const { collaborators } = storeToRefs(workspaceStore)
 const projectsStore = useProjects()
 
 watch(
-  () => route.value.params.workspaceId,
+  () => route.value.params.typeOrId,
   async (newId, oldId) => {
     if (!newId || (oldId !== newId && oldId)) {
       projectsStore.clearProjects()

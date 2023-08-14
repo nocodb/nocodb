@@ -6,7 +6,7 @@ const route = router.currentRoute
 const projectsStore = useProjects()
 
 watch(
-  () => route.value.params.workspaceId,
+  () => route.value.params.typeOrId,
   async () => {
     await projectsStore.loadProjects('recent')
   },

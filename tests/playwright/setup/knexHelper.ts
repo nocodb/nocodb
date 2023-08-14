@@ -14,8 +14,11 @@ export async function initializeSakilaTemplatePg() {
     const kn = knex(getKnexConfig({ dbName: 'postgres', dbType: 'pg' }));
 
     // skip if sakila_nc exists
-    const rows = await kn.raw(`SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = ?`, [sakila_template]);  
-    
+    const rows = await kn.raw(
+      `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = ?`,
+      [sakila_template]
+    );
+
     if (rows.rows.length !== 0) {
       await kn.destroy();
       return;
@@ -56,20 +59,15 @@ export async function resetSakilaPg(database: string) {
 }
 
 export async function createTableWithDateTimeColumn(database: string, dbName: string, setTz = false) {
-
   if (database === 'pg') {
-
     {
       const pgknex = knex(getKnexConfig({ dbName: 'postgres', dbType: 'pg' }));
-
       await dropAndCreateDb(pgknex, dbName);
-  
       await pgknex.destroy();
     }
 
     {
       const pgknex = knex(getKnexConfig({ dbName, dbType: 'pg' }));
-
       try {
         await pgknex.raw(`
           CREATE TABLE my_table (
@@ -87,23 +85,20 @@ export async function createTableWithDateTimeColumn(database: string, dbName: st
       } catch (e) {
         console.error(`Error resetting pg sakila db: Worker ${dbName}`);
       }
-
       await pgknex.destroy();
     }
-    
   } else if (database === 'mysql') {
-
     {
       const mysqlknex = knex(getKnexConfig({ dbName: 'sakila', dbType: 'mysql' }));
 
       await dropAndCreateDb(mysqlknex, dbName);
-      
+
       if (setTz) {
         await mysqlknex.raw(`SET GLOBAL time_zone = '+08:00'`);
         // wait for 1 second for the timezone to be set
         await mysqlknex.raw(`SELECT SLEEP(1)`);
       }
-  
+
       await mysqlknex.destroy();
     }
 
@@ -129,7 +124,6 @@ export async function createTableWithDateTimeColumn(database: string, dbName: st
       await mysqlknex.destroy();
     }
   } else if (database === 'sqlite') {
-
     const sqliteknex = knex(getKnexConfig({ dbName, dbType: 'sqlite' }));
     try {
       await sqliteknex.raw(`DROP TABLE IF EXISTS my_table`);
@@ -143,16 +137,18 @@ export async function createTableWithDateTimeColumn(database: string, dbName: st
         ['2023-04-27 10:00:00+05:30', '2023-04-27 10:00:00+05:30'],
       ];
       for (const [datetime_without_tz, datetime_with_tz] of datetimeData) {
-        await sqliteknex.raw(`
+        await sqliteknex.raw(
+          `
           INSERT INTO my_table (datetime_without_tz, datetime_with_tz)
-          VALUES (?, ?)`, [datetime_without_tz, datetime_with_tz]);
+          VALUES (?, ?)`,
+          [datetime_without_tz, datetime_with_tz]
+        );
       }
     } catch (e) {
       console.error(`Error resetting sqlite sakila db: Worker ${dbName}`);
     }
 
     await sqliteknex.destroy();
-
   }
 }
 

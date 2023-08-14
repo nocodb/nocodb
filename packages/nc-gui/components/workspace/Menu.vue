@@ -87,8 +87,11 @@ const logout = async () => {
   navigateTo('/signin')
 }
 
+const projectStore = useProject()
+
+const { isSharedBase } = storeToRefs(projectStore)
+
 // todo: temp
-const isSharedBase = false
 const modalVisible = false
 
 const copyAuthToken = async () => {

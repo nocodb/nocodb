@@ -102,6 +102,17 @@ watch(
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" />
         </a-tab-pane>
+        <a-tab-pane v-if="isUIAllowed('acl')" key="ui-acl">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__data-sources">
+              <GeneralIcon icon="acl" />
+              <div>{{
+                $t('title.uiACL')
+                }}</div>
+            </div>
+          </template>
+          <DashboardSettingsUIAclTabs class="mt-6"  />
+        </a-tab-pane>
       </a-tabs>
     </div>
   </div>

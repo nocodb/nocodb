@@ -57,7 +57,7 @@ onClickOutside(inputWrapperRef, (e) => {
       }"
     >
       <textarea
-        v-if="editEnabled"
+        v-if="editEnabled && !isVisible"
         :ref="focus"
         v-model="vModel"
         rows="4"
@@ -87,12 +87,13 @@ onClickOutside(inputWrapperRef, (e) => {
       <span v-else>{{ vModel }}</span>
 
       <NcButton
-        class="!absolute right-0 bottom-0 nc-long-text-toggle-expand"
+        class="!absolute right-0 bottom-0 nc-long-text-toggle-expand !duration-0"
         :class="{
           'top-1': rowHeight !== 1,
+          'mt-2': editEnabled,
           'top-0.15': rowHeight === 1,
         }"
-        type="secondary"
+        type="text"
         size="xsmall"
         @click.stop="isVisible = !isVisible"
       >
@@ -104,7 +105,7 @@ onClickOutside(inputWrapperRef, (e) => {
       <div ref="inputWrapperRef" class="flex flex-col min-w-120 min-h-70 py-3 pl-3 pr-1">
         <div
           v-if="column"
-          class="flex flex-row gap-x-1 items-center font-medium pb-2.5 mb-1.5 p-1 mr-2 border-b-1 border-gray-100"
+          class="flex flex-row gap-x-1 items-center font-medium pb-2.5 mb-1 py-1 mr-3 ml-1 border-b-1 border-gray-100"
         >
           <SmartsheetHeaderCellIcon class="flex" />
           <div class="flex">
@@ -115,9 +116,11 @@ onClickOutside(inputWrapperRef, (e) => {
           ref="inputRef"
           v-model:value="vModel"
           placeholder="Enter text"
-          class="p-1 !pr-3 !border-0 !border-r-0 !focus:outline-transparent nc-scrollbar-md"
+          class="p-1 !pt-1 !pr-3 !border-0 !border-r-0 !focus:outline-transparent nc-scrollbar-md"
           :bordered="false"
           :auto-size="{ minRows: 20, maxRows: 20 }"
+          @keydown.stop
+          @keydown.escape="isVisible = false"
         />
       </div>
     </template>

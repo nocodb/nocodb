@@ -42,7 +42,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     !location.hostname?.startsWith(`${state.appInfo.value.mainSubDomain}.`) &&
     to.path === '/'
   ) {
-    return navigateTo(`/ws/${location.hostname.split('.')[0]}`)
+    return navigateTo(`/${location.hostname.split('.')[0]}`)
   }
 
   /** if user isn't signed in and google auth is enabled, try to check if sign-in data is present */

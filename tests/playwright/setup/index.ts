@@ -305,17 +305,17 @@ const setup = async ({
   if (isEE()) {
     switch (project.type) {
       case ProjectTypes.DOCUMENTATION:
-        projectUrl = url ? url : `/#/ws/${project.fk_workspace_id}/nc/${project.id}/doc`;
+        projectUrl = url ? url : `/#/${project.fk_workspace_id}/${project.id}/doc`;
         break;
       case ProjectTypes.DATABASE:
-        projectUrl = url ? url : `/#/ws/${project.fk_workspace_id}/nc/${project.id}`;
+        projectUrl = url ? url : `/#/${project.fk_workspace_id}/${project.id}`;
         break;
       default:
         throw new Error(`Unknown project type: ${project.type}`);
     }
   } else {
     // sample: http://localhost:3000/#/ws/default/project/pdknlfoc5e7bx4w
-    projectUrl = url ? url : `/#/ws/default/project/${project.id}`;
+    projectUrl = url ? url : `/#/nc/${project.id}`;
   }
 
   await page.goto(projectUrl, { waitUntil: 'networkidle' });
@@ -326,7 +326,7 @@ export const unsetup = async (context: NcContext): Promise<void> => {
   if (context.token && context.project) {
     // try to delete the project
     try {
-       // Init SDK using token
+      // Init SDK using token
       const api = new Api({
         baseURL: `http://localhost:8080/`,
         headers: {

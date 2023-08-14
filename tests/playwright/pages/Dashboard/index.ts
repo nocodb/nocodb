@@ -86,7 +86,7 @@ export class DashboardPage extends BasePage {
   }
 
   async goto() {
-    await this.rootPage.goto(`/#/ws/${this.project.fk_workspace_id}/nc/${this.project.id}`);
+    await this.rootPage.goto(`/#/${this.project.fk_workspace_id}/${this.project.id}`);
   }
 
   getProjectMenuLink({ title }: { title: string }) {

@@ -2289,10 +2289,12 @@ export class AtImportProcessor {
       await nocoSetPrimary(aTblSchema);
       logDetailed('Configuring Display Value column completed');
 
-      logBasic('Configuring User(s)');
-      // add users
-      await nocoAddUsers(schema);
-      logDetailed('Adding users completed');
+      if (syncDB.options.syncUsers) {
+        logBasic('Configuring User(s)');
+        // add users
+        await nocoAddUsers(schema);
+        logDetailed('Adding users completed');
+      }
 
       // hide-fields
       // await nocoReconfigureFields(aTblSchema);

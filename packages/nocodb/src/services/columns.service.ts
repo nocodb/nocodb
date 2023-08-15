@@ -8,6 +8,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
+import hash from 'object-hash';
 import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import type { LinkToAnotherRecordColumn, Project } from '~/models';
 import type {
@@ -17,6 +18,9 @@ import type {
   RelationTypes,
   UserType,
 } from 'nocodb-sdk';
+import type CustomKnex from '~/db/CustomKnex';
+import type SqlClient from '~/db/sql-client/lib/SqlClient';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
@@ -50,6 +54,32 @@ export enum Altered {
   UPDATE_COLUMN = 8,
 }
 
+interface ReusableParams {
+  table?: Model;
+  base?: Base;
+  project?: Project;
+  dbDriver?: CustomKnex;
+  sqlClient?: SqlClient;
+  sqlMgr?: SqlMgrv2;
+  baseModel?: BaseModelSqlv2;
+}
+
+async function reuseOrSave(
+  tp: keyof ReusableParams,
+  params: ReusableParams,
+  get: () => Promise<any>,
+) {
+  if (params[tp]) {
+    return params[tp];
+  }
+
+  const res = await get();
+
+  params[tp] = res;
+
+  return res;
+}
+
 @Injectable()
 export class ColumnsService {
   constructor(
@@ -63,17 +93,26 @@ export class ColumnsService {
     column: ColumnReqType & { colOptions?: any };
     cookie?: any;
     user: UserType;
+    reuse?: ReusableParams;
   }) {
+    const reuse = param.reuse || {};
+
     const { cookie } = param;
     const column = await Column.get({ colId: param.columnId });
 
-    const table = await Model.getWithInfo({
-      id: column.fk_model_id,
-    });
+    const table = await reuseOrSave('table', reuse, async () =>
+      Model.getWithInfo({
+        id: column.fk_model_id,
+      }),
+    );
 
-    const base = await Base.get(table.base_id);
+    const base = await reuseOrSave('base', reuse, async () =>
+      Base.get(table.base_id),
+    );
 
-    const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
+    const sqlClient = await reuseOrSave('sqlClient', reuse, async () =>
+      NcConnectionMgrv2.getSqlClient(base),
+    );
 
     const sqlClientType = sqlClient.knex.clientType();
 
@@ -134,10 +173,14 @@ export class ColumnsService {
           );
 
           try {
-            const baseModel = await Model.getBaseModelSQL({
-              id: table.id,
-              dbDriver: await NcConnectionMgrv2.get(base),
-            });
+            const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+              Model.getBaseModelSQL({
+                id: table.id,
+                dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+                  NcConnectionMgrv2.get(base),
+                ),
+              }),
+            );
             await formulaQueryBuilderv2(
               baseModel,
               colBody.formula,
@@ -196,14 +239,20 @@ export class ColumnsService {
     ) {
       colBody = await getColumnPropsFromUIDT(colBody, base);
 
-      const baseModel = await Model.getBaseModelSQL({
-        id: table.id,
-        dbDriver: await NcConnectionMgrv2.get(base),
-      });
+      const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+        Model.getBaseModelSQL({
+          id: table.id,
+          dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+            NcConnectionMgrv2.get(base),
+          ),
+        }),
+      );
 
       if (colBody.colOptions?.options) {
         const supportedDrivers = ['mysql', 'mysql2', 'pg', 'mssql', 'sqlite3'];
-        const dbDriver = await NcConnectionMgrv2.get(base);
+        const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
+          NcConnectionMgrv2.get(base),
+        );
         const driverType = dbDriver.clientType();
 
         // MultiSelect to SingleSelect
@@ -539,9 +588,11 @@ export class ColumnsService {
                 ),
               };
 
-              const sqlMgr = await ProjectMgrv2.getSqlMgr({
-                id: base.project_id,
-              });
+              const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+                ProjectMgrv2.getSqlMgr({
+                  id: base.project_id,
+                }),
+              );
               await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
 
               await Column.update(param.columnId, {
@@ -772,7 +823,9 @@ export class ColumnsService {
         ),
       };
 
-      const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
+      const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+        ProjectMgrv2.getSqlMgr({ id: base.project_id }),
+      );
       await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
 
       await Column.update(param.columnId, {
@@ -831,7 +884,9 @@ export class ColumnsService {
         ),
       };
 
-      const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
+      const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+        ProjectMgrv2.getSqlMgr({ id: base.project_id }),
+      );
       await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
 
       await Column.update(param.columnId, {
@@ -865,19 +920,30 @@ export class ColumnsService {
     tableId: string;
     column: ColumnReqType;
     user: UserType;
+    reuse?: ReusableParams;
   }) {
     validatePayload('swagger.json#/components/schemas/ColumnReq', param.column);
 
-    const table = await Model.getWithInfo({
-      id: param.tableId,
-    });
+    const reuse = param.reuse || {};
 
-    const base = await Base.get(table.base_id);
+    const table = await reuseOrSave('table', reuse, async () =>
+      Model.getWithInfo({
+        id: param.tableId,
+      }),
+    );
 
-    const project = await base.getProject();
+    const base = await reuseOrSave('base', reuse, async () =>
+      Base.get(table.base_id),
+    );
+
+    const project = await reuseOrSave('project', reuse, async () =>
+      base.getProject(),
+    );
 
     if (param.column.title || param.column.column_name) {
-      const dbDriver = await NcConnectionMgrv2.get(base);
+      const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
+        NcConnectionMgrv2.get(base),
+      );
 
       const sqlClientType = dbDriver.clientType();
 
@@ -937,7 +1003,7 @@ export class ColumnsService {
 
       case UITypes.Links:
       case UITypes.LinkToAnotherRecord:
-        await this.createLTARColumn({ ...param, base, project });
+        await this.createLTARColumn({ ...param, base, project, reuse });
 
         this.appHooksService.emit(AppEvents.RELATION_DELETE, {
           column: {
@@ -968,10 +1034,14 @@ export class ColumnsService {
         );
 
         try {
-          const baseModel = await Model.getBaseModelSQL({
-            id: table.id,
-            dbDriver: await NcConnectionMgrv2.get(base),
-          });
+          const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+            Model.getBaseModelSQL({
+              id: table.id,
+              dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+                NcConnectionMgrv2.get(base),
+              ),
+            }),
+          );
           await formulaQueryBuilderv2(
             baseModel,
             colBody.formula,
@@ -1123,8 +1193,12 @@ export class ColumnsService {
             ],
           };
 
-          const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
-          const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
+          const sqlClient = await reuseOrSave('sqlClient', reuse, async () =>
+            NcConnectionMgrv2.getSqlClient(base),
+          );
+          const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+            ProjectMgrv2.getSqlMgr({ id: base.project_id }),
+          );
           await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
 
           const columns: Array<
@@ -1172,21 +1246,31 @@ export class ColumnsService {
   }
 
   async columnDelete(
-    param: { req?: any; columnId: string; user: UserType },
+    param: {
+      req?: any;
+      columnId: string;
+      user: UserType;
+      reuse?: ReusableParams;
+    },
     ncMeta = this.metaService,
   ) {
-    const column = await Column.get({ colId: param.columnId }, ncMeta);
-    const table = await Model.getWithInfo(
-      {
-        id: column.fk_model_id,
-      },
-      ncMeta,
-    );
-    const base = await Base.get(table.base_id, ncMeta);
+    const reuse = param.reuse || {};
 
-    const sqlMgr = await ProjectMgrv2.getSqlMgr(
-      { id: base.project_id },
-      ncMeta,
+    const column = await Column.get({ colId: param.columnId }, ncMeta);
+    const table = await reuseOrSave('table', reuse, async () =>
+      Model.getWithInfo(
+        {
+          id: column.fk_model_id,
+        },
+        ncMeta,
+      ),
+    );
+    const base = await reuseOrSave('base', reuse, async () =>
+      Base.get(table.base_id, ncMeta),
+    );
+
+    const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+      ProjectMgrv2.getSqlMgr({ id: base.project_id }, ncMeta),
     );
 
     switch (column.uidt) {
@@ -1438,7 +1522,6 @@ export class ColumnsService {
               if (col.uidt === UITypes.LinkToAnotherRecord) {
                 const colOptions =
                   await col.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
-                console.log(colOptions);
                 if (colOptions.fk_related_model_id === parentTable.id) {
                   return { colOptions };
                 }
@@ -1550,8 +1633,11 @@ export class ColumnsService {
     column: ColumnReqType;
     base: Base;
     project: Project;
+    reuse?: ReusableParams;
   }) {
     validateParams(['parentId', 'childId', 'type'], param.column);
+
+    const reuse = param.reuse ?? {};
 
     // get parent and child models
     const parent = await Model.getWithInfo({
@@ -1562,9 +1648,11 @@ export class ColumnsService {
     });
     let childColumn: Column;
 
-    const sqlMgr = await ProjectMgrv2.getSqlMgr({
-      id: param.base.project_id,
-    });
+    const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+      ProjectMgrv2.getSqlMgr({
+        id: param.base.project_id,
+      }),
+    );
     const isLinks = param.column.uidt === UITypes.Links;
 
     // if xcdb base then treat as virtual relation to avoid creating foreign key
@@ -1905,5 +1993,161 @@ export class ColumnsService {
       await validateRollupPayload(colBody);
       await Column.update(column.id, colBody);
     }
+  }
+  async columnsHash(tableId: string) {
+    const table = await Model.getWithInfo({
+      id: tableId,
+    });
+
+    if (!table) {
+      NcError.badRequest('Table not found');
+    }
+
+    const columns = await table.getColumns();
+
+    return {
+      hash: hash(columns),
+    };
+  }
+
+  async columnBulk(
+    tableId: string,
+    params: {
+      hash: string;
+      ops: {
+        op: 'add' | 'update' | 'delete';
+        column?: Partial<Column>;
+      }[];
+    },
+    req: any,
+  ) {
+    // TODO validatePayload
+
+    const table = await Model.getWithInfo({
+      id: tableId,
+    });
+
+    if (!table) {
+      NcError.badRequest('Table not found');
+    }
+
+    const columns = await table.getColumns();
+
+    if (hash(columns) !== params.hash) {
+      NcError.badRequest(
+        'Columns are updated by someone else! Your changes are rejected. Please refresh the page and try again.',
+      );
+    }
+
+    const base = await Base.get(table.base_id);
+
+    if (!base) {
+      NcError.badRequest('Base not found');
+    }
+
+    const project = await base.getProject();
+
+    if (!project) {
+      NcError.badRequest('Project not found');
+    }
+
+    const dbDriver = await NcConnectionMgrv2.get(base);
+    const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
+    const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
+    const baseModel = await Model.getBaseModelSQL({
+      id: table.id,
+      dbDriver: dbDriver,
+    });
+
+    if (!dbDriver || !sqlClient || !sqlMgr || !baseModel) {
+      NcError.badRequest('There was an error handling your request');
+    }
+
+    const reuse: ReusableParams = {
+      table,
+      base,
+      project,
+      dbDriver,
+      sqlClient,
+      sqlMgr,
+      baseModel,
+    };
+
+    const ops = params.ops;
+
+    for (const op of ops) {
+      if (op.op === 'update') {
+        if (!op.column || !op.column?.id) {
+          NcError.badRequest(
+            'Bad request, update operation requires column id',
+          );
+        }
+      } else if (op.op === 'delete') {
+        if (!op.column || !op.column?.id) {
+          NcError.badRequest(
+            'Bad request, delete operation requires column id',
+          );
+        }
+      } else if (op.op === 'add') {
+        if (!op.column) {
+          NcError.badRequest('Bad request, add operation requires column');
+        }
+      }
+    }
+
+    const failedOps = [];
+
+    for (const op of ops) {
+      const column = op.column;
+
+      if (op.op === 'add') {
+        try {
+          await this.columnAdd({
+            tableId,
+            column: column as ColumnReqType,
+            req,
+            user: req.user,
+            reuse,
+          });
+        } catch (e) {
+          failedOps.push({
+            op,
+            error: e,
+          });
+        }
+      } else if (op.op === 'update') {
+        try {
+          await this.columnUpdate({
+            columnId: op.column.id,
+            column: column as ColumnReqType,
+            req,
+            user: req.user,
+            reuse,
+          });
+        } catch (e) {
+          failedOps.push({
+            op,
+            error: e,
+          });
+        }
+      } else if (op.op === 'delete') {
+        try {
+          await this.columnDelete({
+            columnId: op.column.id,
+            req,
+            user: req.user,
+          });
+        } catch (e) {
+          failedOps.push({
+            op,
+            error: e,
+          });
+        }
+      }
+    }
+
+    return {
+      failedOps,
+    };
   }
 }

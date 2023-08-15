@@ -113,7 +113,7 @@ const readPluginDetails = async () => {
     // and it has been changed to XcType.Checkbox, since 0.0.2
     // hence, change the text value to boolean here
     if ('secure' in parsedInput && typeof parsedInput.secure === 'string') {
-      parsedInput.secure = !!parsedInput.secure
+      parsedInput.secure = parsedInput.secure === 'true'
     }
 
     plugin.value = { ...res, formDetails, parsedInput }

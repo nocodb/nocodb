@@ -28,6 +28,7 @@
     "aws-kcl": "^2.2.2",
     "aws-sdk": "^2.1377.0",
     "clickhouse": "^2.6.0",
+    "clickhouse-migrations": "^0.1.13",
     "kafkajs": "^2.2.4",
     "knex": "^2.4.2",
     "parse-database-url": "^0.3.0",

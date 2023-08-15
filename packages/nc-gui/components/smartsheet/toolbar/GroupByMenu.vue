@@ -110,6 +110,8 @@ const saveGroupBy = async () => {
     } catch (e) {
       message.error('There was an error while updating view!')
     }
+  } else {
+    message.error('View not found!!!')
   }
 }
 
@@ -198,7 +200,7 @@ watch(open, () => {
           </template>
         </div>
         <NcButton
-          v-if="fieldsToGroupBy.length > _groupBy.length"
+          v-if="fieldsToGroupBy.length > _groupBy.length && _groupBy.length < 3"
           style="width: fit-content"
           size="small"
           type="text"

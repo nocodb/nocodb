@@ -135,7 +135,7 @@ jobs:
         working-directory: ./packages/nocodb
         run: |
           kill -9 $(lsof -t -i:8080)
-          npm run watch:run:playwright:pg:cyquick &
+          npm run watch:run:playwright:pg:cyquick > quick_${{ inputs.shard }}_test_backend.log &
       - name: Run quick server and tests (sqlite)
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '2' }}
         working-directory: ./packages/nocodb

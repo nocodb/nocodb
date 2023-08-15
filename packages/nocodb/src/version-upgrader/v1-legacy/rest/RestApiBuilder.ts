@@ -1,7 +1,9 @@
 import autoBind from 'auto-bind';
 import BaseApiBuilder from '../BaseApiBuilder';
-import type { MetaService } from '~/meta/meta.service';
-import type Noco from '~/Noco';
+import { MetaService } from '~/meta/meta.service';
+import Noco from '~/Noco';
+import { DbConfig, NcConfig } from '../../../interface/config';
+import NcProjectBuilder from '../NcProjectBuilder';
 import type { Router } from 'express';
 import type { DbConfig, NcConfig } from '~/interface/config';
 import type NcProjectBuilder from '../NcProjectBuilder';

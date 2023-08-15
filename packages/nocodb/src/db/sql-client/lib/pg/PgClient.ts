@@ -830,7 +830,7 @@ class PGClient extends KnexClient {
                   order by table_name,ordinal_position ) pk
                 on
                 pk.table_name = c.table_name and pk.column_name=c.column_name
-                left join information_schema.triggers trg on trg.event_object_table = c.table_name and trg.trigger_name = CONCAT('xc_trigger_' , :table , '_' , c.column_name)
+                left join information_schema.triggers trg on trg.event_object_table = c.table_name and trg.trigger_name = CONCAT('xc_trigger_' , :table::text , '_' , c.column_name)
               where c.table_catalog=:database and c.table_schema=:schema and c.table_name=:table
               order by c.table_name, c.ordinal_position`,
         {

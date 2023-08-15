@@ -1,31 +1,14 @@
 <script lang="ts" setup>
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import type { BaseType } from 'nocodb-sdk'
-import {
-  message,
-  ref,
-  resolveComponent,
-  storeToRefs,
-  useDialog,
-  useDropZone,
-  useFileDialog,
-  useNuxtApp,
-  useProject,
-  useUIPermission,
-  watch,
-} from '#imports'
-
-const dropZone = ref<HTMLDivElement>()
-
-const { isOverDropZone } = useDropZone(dropZone, onDrop)
-
-const { files, open, reset } = useFileDialog()
+import { message, ref, resolveComponent, storeToRefs, useDialog, useFileDialog, useNuxtApp, useProject, watch } from '#imports'
 
 const projectStore = useProject()
+const { project } = storeToRefs(projectStore)
 
-const { bases, isSharedBase } = storeToRefs(projectStore)
+const { files, reset } = useFileDialog()
 
-const { isUIAllowed } = useUIPermission()
+const { bases } = storeToRefs(projectStore)
 
 const { $e } = useNuxtApp()
 
@@ -128,75 +111,23 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
   }
 }
 
-function openCreateTable() {
-  if (!bases.value?.length) return
+watch(
+  () => project.value.id,
+  () => {
+    if (project.value?.id && project.value.type === 'database') {
+      const { addTab } = useTabs()
 
-  const isOpen = ref(true)
-  const { close } = useDialog(resolveComponent('DlgTableCreate'), {
-    'modelValue': isOpen,
-    'onUpdate:modelValue': closeDialog,
-    'baseId': bases.value.filter((base: BaseType) => base.enabled)[0].id,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-
-    reset()
-  }
-}
-
-function onDropZoneClick(e: MouseEvent) {
-  const elements = document.elementsFromPoint(e.clientX, e.clientY)
-  const isCreateTableBtnClicked = elements.some((element) => element.classList.contains('create-table-btn'))
-
-  if (isCreateTableBtnClicked) {
-    openCreateTable()
-    return
-  }
-
-  open()
-}
+      addTab({
+        id: project.value.id,
+        title: project.value.title!,
+        type: TabType.DB,
+        projectId: project.value.id,
+      })
+    }
+  },
+)
 </script>
 
 <template>
-  <div class="h-full w-full text-gray-600 flex items-center justify-center relative">
-    <div
-      v-if="isSharedBase || !isUIAllowed('dataInsert')"
-      class="flex flex-col gap-6 items-center justify-center mx-auto text-center text-gray-500 border-gray-300 border-1 w-3/5 h-1/2 rounded-md"
-    >
-      <div class="text-3xl">Welcome to NocoDB!</div>
-
-      <div class="prose-lg leading-8">To get started, click on a table in the left pane</div>
-    </div>
-
-    <div v-else ref="dropZone">
-      <general-overlay
-        :model-value="true"
-        :class="[isOverDropZone ? 'bg-gray-300/75 border-primary shadow' : 'bg-gray-100/25 border-gray-500 cursor-pointer']"
-        inline
-        style="top: 20%; left: 20%; right: 20%; bottom: 20%"
-        class="text-3xl flex items-center justify-center gap-2 border-1 border-dashed rounded hover:border-primary"
-        @click="onDropZoneClick"
-      >
-        <template v-if="isOverDropZone"> <MaterialSymbolsFileCopyOutline class="text-accent" /> Drop here </template>
-      </general-overlay>
-
-      <div class="flex flex-col gap-6 items-center justify-center md:w-1/2 mx-auto text-center">
-        <div class="text-3xl">Welcome to NocoDB!</div>
-        <div class="flex items-center flex-wrap justify-center gap-2 prose-lg leading-8">
-          To get started, either drop a <span class="flex items-center gap-2"><PhFileCsv /> CSV,</span>
-
-          <span class="flex items-center gap-2"><BiFiletypeJson /> JSON</span> or
-
-          <span class="flex items-center gap-2"><BiFiletypeXlsx /> Excel file here or</span>
-        </div>
-
-        <a-button type="primary" ghost class="create-table-btn">
-          <span class="prose text-[1rem] text-primary z-50" @click.stop="openCreateTable">{{ $t('tooltip.addTable') }}</span>
-        </a-button>
-      </div>
-    </div>
-  </div>
+  <ProjectView />
 </template>

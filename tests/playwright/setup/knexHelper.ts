@@ -2,35 +2,22 @@ import { knex, Knex } from 'knex';
 import { promises as fs } from 'fs';
 import { getKnexConfig } from '../tests/utils/config';
 
-const sakila_template = 'sakila_nc';
-
 async function dropAndCreateDb(kn: Knex, dbName: string) {
   await kn.raw(`DROP DATABASE IF EXISTS ?? WITH (FORCE)`, [dbName]);
   await kn.raw(`CREATE DATABASE ??`, [dbName]);
 }
 
-export async function initializeSakilaTemplatePg() {
+export async function initializeSakilaPg(database: string) {
   {
     const kn = knex(getKnexConfig({ dbName: 'postgres', dbType: 'pg' }));
 
-    // skip if sakila_nc exists
-    const rows = await kn.raw(
-      `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = ?`,
-      [sakila_template]
-    );
-
-    if (rows.rows.length !== 0) {
-      await kn.destroy();
-      return;
-    }
-
-    await dropAndCreateDb(kn, sakila_template);
+    await dropAndCreateDb(kn, database);
 
     await kn.destroy();
   }
 
   {
-    const kn = knex(getKnexConfig({ dbName: sakila_template, dbType: 'pg' }));
+    const kn = knex(getKnexConfig({ dbName: database, dbType: 'pg' }));
 
     const testsDir = __dirname.replace('/tests/playwright/setup', '/packages/nocodb/tests');
     const schemaFile = await fs.readFile(`${testsDir}/pg-sakila-db/01-postgres-sakila-schema.sql`);
@@ -46,13 +33,8 @@ export async function initializeSakilaTemplatePg() {
 }
 
 export async function resetSakilaPg(database: string) {
-  const kn = knex(getKnexConfig({ dbName: 'postgres', dbType: 'pg' }));
-
   try {
-    await kn.raw(`DROP DATABASE IF EXISTS ?? WITH (FORCE)`, [database]);
-    await kn.raw(`CREATE DATABASE ?? WITH TEMPLATE ?? OWNER postgres`, [database, sakila_template]);
-
-    await kn.destroy();
+    await initializeSakilaPg(database);
   } catch (e) {
     console.error(`Error resetting pg sakila db: Worker ${database}`);
   }

@@ -105,12 +105,6 @@ const config: PlaywrightTestConfig = {
   /* Folder for test artifacts such as screenshots, videos, traces, etc. */
   outputDir: './output',
 
-
-  webServer: {
-    command: 'npm run mock:server',
-    url: 'http://127.0.0.1:8001',
-    reuseExistingServer: true,
-  },
   /* Run your local dev server before starting the tests */
   // webServer: {
   //   command: 'npm run start',

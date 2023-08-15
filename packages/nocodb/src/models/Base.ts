@@ -250,6 +250,10 @@ export default class Base implements BaseType {
   }
 
   public async getConnectionConfig(): Promise<any> {
+    if (this.is_meta) {
+      return Noco.ncMeta.config.meta.db;
+    }
+
     const config = this.getConfig();
 
     // todo: update sql-client args

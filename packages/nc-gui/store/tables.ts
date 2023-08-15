@@ -96,8 +96,20 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
     const typeOrId = (route.value.params.typeOrId as string) || 'nc'
 
+    let workspaceIdOrType = workspaceId
+
+    if (['nc', 'base'].includes(route.value.params.typeOrId as string)) {
+      workspaceIdOrType = route.value.params.typeOrId as string
+    }
+
+    let projectIdOrBaseId = project.id
+
+    if (['base'].includes(route.value.params.typeOrId as string)) {
+      projectIdOrBaseId = route.value.params.projectId as string
+    }
+
     await navigateTo({
-      path: `/${typeOrId}/${project.id!}/table/${table?.id}${table.title ? `/${table.title}` : ''}`,
+      path: `/${workspaceIdOrType}/${projectIdOrBaseId}/table/${table?.id}${table.title ? `/${table.title}` : ''}`,
       query: route.value.query,
     })
   }

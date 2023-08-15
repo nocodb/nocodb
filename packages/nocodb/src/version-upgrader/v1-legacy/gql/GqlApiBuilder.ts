@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import BaseApiBuilder from '../BaseApiBuilder';
-import type { MetaService } from '~/meta/meta.service';
-import type Noco from '~/Noco';
-import type NcProjectBuilder from '../NcProjectBuilder';
-import type { DbConfig, NcConfig } from '~/interface/config';
+import { MetaService } from '~/meta/meta.service';
+import Noco from '~/Noco';
+import NcProjectBuilder from '../NcProjectBuilder';
+import { DbConfig, NcConfig } from '~/interface/config';
 import type XcMetaMgr from '~/interface/XcMetaMgr';
 import GqlXcSchemaFactory from '~/db/sql-mgr/code/gql-schema/xc-ts/GqlXcSchemaFactory';
 

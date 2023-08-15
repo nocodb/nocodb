@@ -5,6 +5,8 @@ import { ActiveViewInj, inject } from '#imports'
 const selectedView = inject(ActiveViewInj)
 
 const { activeTable } = storeToRefs(useTablesStore())
+
+const test = ref(false)
 </script>
 
 <template>
@@ -39,5 +41,9 @@ const { activeTable } = storeToRefs(useTablesStore())
       {{ selectedView?.title }}
     </span>
     <LazySmartsheetToolbarReload />
+    <a-button @click="test = !test">Test</a-button>
+    <a-modal v-model:visible="test" width="1200px" :closable="false" :footer="null">
+      <SmartsheetTableExplorer @close="test = false" />
+    </a-modal>
   </div>
 </template>

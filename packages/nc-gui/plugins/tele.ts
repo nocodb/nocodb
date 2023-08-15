@@ -1,6 +1,7 @@
 import { useDebounceFn } from '@vueuse/core'
 import { defineNuxtPlugin, useRouter } from '#imports'
 import type { NuxtApp } from '#app'
+import {io, Socket} from "socket.io-client";
 
 let clientId: string
 ;(async () => {
@@ -68,41 +69,41 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
   const route = router.currentRoute
 
-  // const { appInfo } = $(useGlobal())
+  const { appInfo } = useGlobal()
 
-  // let socket: Socket
+  let socket: Socket
 
-  // const init = async (token: string) => {
-  //   try {
-  //     if (socket) socket.disconnect()
-  //
-  //     const url = new URL(appInfo.ncSiteUrl, window.location.href.split(/[?#]/)[0])
-  //     let socketPath = url.pathname
-  //     socketPath += socketPath.endsWith('/') ? 'socket.io' : '/socket.io'
-  //
-  //     socket = io(url.href, {
-  //       extraHeaders: { 'xc-auth': token },
-  //       path: socketPath,
-  //     })
-  //
-  //     socket.on('connect_error', () => {
-  //       socket.disconnect()
-  //     })
-  //   } catch {}
-  // }
-  //
-  // if (nuxtApp.$state.signedIn.value) {
-  //   await init(nuxtApp.$state.token.value)
-  // }
+  const init = async (token: string) => {
+    try {
+      if (socket) socket.disconnect()
 
+      const url = new URL(appInfo.value.ncSiteUrl, window.location.href.split(/[?#]/)[0])
+      let socketPath = url.pathname
+      socketPath += socketPath.endsWith('/') ? 'socket.io' : '/socket.io'
 
-  router.afterEach((to) => {
-    // if (!socket || (to.path === from.path && (to.query && to.query.type) === (from.query && from.query.type))) return
+      socket = io(url.href, {
+        extraHeaders: { 'xc-auth': token },
+        path: socketPath,
+      })
 
-    // socket.emit('page', {
-    //   path: to.matched[0].path + (to.query && to.query.type ? `?type=${to.query.type}` : ''),
-    //   pid: route?.params?.projectId,
-    // })
+      socket.on('connect_error', () => {
+        socket.disconnect()
+      })
+    } catch {}
+  }
+
+  if (nuxtApp.$state.signedIn.value) {
+    await init(nuxtApp.$state.token.value)
+  }
+
+  router.afterEach((to, from) => {
+    if (!socket || (to.path === from.path && (to.query && to.query.type) === (from.query && from.query.type))) return
+
+    socket.emit('page', {
+      path: to.matched[0].path + (to.query && to.query.type ? `?type=${to.query.type}` : ''),
+      pid: route.value?.params?.projectId,
+    })
+
     eventBatcher.enqueueEvent({
       event: '$page',
       path: to.matched[0].path + (to.query && to.query.type ? `?type=${to.query.type}` : ''),
@@ -112,15 +113,14 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
   const tele = {
     emit(evt: string, data: Record<string, any>) {
-      // debugger
-      // if (socket) {
-      //   socket.emit('event', {
-      //     event: evt,
-      //     ...(data || {}),
-      //     path: route?.matched?.[0]?.path,
-      //     pid: route?.params?.projectId,
-      //   })
-      // }
+      if (socket) {
+        socket.emit('event', {
+          event: evt,
+          ...(data || {}),
+          path: route.value?.matched?.[0]?.path,
+          pid: route.value?.params?.projectId,
+        })
+      }
       eventBatcher.enqueueEvent({
         event: evt,
         ...(data || {}),
@@ -155,10 +155,10 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     }
   }
 
-  // watch((nuxtApp.$state as ReturnType<typeof useGlobal>).token, (newToken, oldToken) => {
-  //   // if (newToken && newToken !== oldToken) init(newToken)
-  //   // else if (!newToken) socket.disconnect()
-  // })
+  watch((nuxtApp.$state as ReturnType<typeof useGlobal>).token, (newToken, oldToken) => {
+    if (newToken && newToken !== oldToken) init(newToken)
+    else if (!newToken) socket.disconnect()
+  })
 
   nuxtApp.provide('tele', tele)
   nuxtApp.provide('e', (e: string, data?: Record<string, any>) => tele.emit(e, { data }))

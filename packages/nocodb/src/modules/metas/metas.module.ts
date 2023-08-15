@@ -70,7 +70,6 @@ import { ViewsService } from '~/services/views.service';
 import { ApiDocsService } from '~/services/api-docs/api-docs.service';
 import { ProjectUsersController } from '~/controllers/project-users.controller';
 import { ProjectUsersService } from '~/services/project-users/project-users.service';
-import { TelemetryController } from '~/controllers/telemetry.controller';
 import { NotificationsService } from '~/services/notifications.service';
 import { NotificationsController } from '~/controllers/notifications.controller';
 import { NotificationsGateway } from '~/gateways/notifications/notifications.gateway';
@@ -120,7 +119,6 @@ export const metaModuleMetadata = {
           SyncController,
           SortsController,
           SharedBasesController,
-          TelemetryController,
           NotificationsController,
         ]
       : []),

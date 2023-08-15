@@ -13,6 +13,7 @@ import { LayoutFilterService } from '~/services/dashboards/layoutFilter.service'
 import { WidgetsController } from '~/controllers/dashboards/widgets.controller';
 import { LayoutsController } from '~/controllers/dashboards/layouts.controller';
 import { LayoutFilterController } from '~/controllers/dashboards/layoutFilter.controller';
+import { TelemetryController } from '~/controllers/telemetry.controller';
 
 // import { PageDao } from '../../daos/page.dao';
 import { DocsPagesService } from '~/services/docs/docs-pages.service';
@@ -62,6 +63,7 @@ import { CommandPaletteController } from '~/controllers/command-palette.controll
     LayoutFilterController,
 
     CommandPaletteController,
+    TelemetryController,
   ],
 })
 export class MetasModule {}

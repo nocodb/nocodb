@@ -11,7 +11,6 @@ import appConfig from '~/app.config';
 import { Model } from '~/models';
 import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 
-console.log(Model);
 
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];

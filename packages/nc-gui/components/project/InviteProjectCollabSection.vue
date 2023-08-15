@@ -1,12 +1,13 @@
 <script lang="ts" setup>
 import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, useManageUsers, useWorkspace } from '#imports'
-import { useGlobal } from '~/composables/useGlobal'
+import { extractSdkResponseErrorMsg, useDashboard, useManageUsers, useProject, useWorkspace } from '#imports'
 
 const inviteData = reactive({
   email: '',
   roles: ProjectRoles.VIEWER,
 })
+
+const emit = defineEmits(['invited'])
 
 const projectStore = useProject()
 
@@ -22,8 +23,6 @@ const usersData = ref<{
   roles?: string
 }>()
 
-// const { isInvitingCollaborators } = storeToRefs(projectStore)
-
 const inviteCollaborator = async () => {
   try {
     usersData.value = await inviteUser(inviteData)
@@ -31,6 +30,7 @@ const inviteCollaborator = async () => {
     if (usersData.value) {
       message.success('Invitation sent successfully')
       inviteData.email = ''
+      emit('invited')
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -101,46 +101,46 @@ const copyUrl = async () => {
     </template>
 
     <template v-else>
-    <div class="text-xl mb-4">Invite</div>
-    <a-form >
-      <div class="flex gap-2">
-        <a-input
+      <div class="text-xl mb-4">Invite</div>
+      <a-form>
+        <div class="flex gap-2">
+          <a-input
             id="email"
             v-model:value="inviteData.email"
             placeholder="Enter emails to send invitation"
             class="!max-w-130 !rounded"
-        />
+          />
 
-        <a-select v-model:value="inviteData.roles" class="min-w-30 !rounded px-1" data-testid="roles">
-          <template #suffixIcon>
-            <MdiChevronDown />
-          </template>
-          <a-select-option v-for="(role, index) in projectRoles" :key="index" :value="role" class="nc-role-option">
-            <div
+          <a-select v-model:value="inviteData.roles" class="min-w-30 !rounded px-1" data-testid="roles">
+            <template #suffixIcon>
+              <MdiChevronDown />
+            </template>
+            <a-select-option v-for="(role, index) in projectRoles" :key="index" :value="role" class="nc-role-option">
+              <div
                 class="flex flex-row h-full justify-start items-center"
                 :data-testid="`nc-share-invite-user-role-option-${role}`"
-            >
-              <div class="px-2 py-1 flex rounded-full text-xs capitalize">
-                {{ role }}
+              >
+                <div class="px-2 py-1 flex rounded-full text-xs capitalize">
+                  {{ role }}
+                </div>
               </div>
-            </div>
-          </a-select-option>
-        </a-select>
+            </a-select-option>
+          </a-select>
 
-        <a-button
+          <a-button
             type="primary"
             class="!rounded-md"
             :disabled="!inviteData.email?.length || isInvitingCollaborators"
             @click="inviteCollaborator"
-        >
-          <div class="flex flex-row items-center gap-x-2 pr-1">
-            <GeneralLoader v-if="isInvitingCollaborators" class="flex" />
-            <MdiPlus v-else />
-            {{ isInvitingCollaborators ? 'Adding' : 'Add' }} User/s
-          </div>
-        </a-button>
-      </div>
-    </a-form>
+          >
+            <div class="flex flex-row items-center gap-x-2 pr-1">
+              <GeneralLoader v-if="isInvitingCollaborators" class="flex" />
+              <MdiPlus v-else />
+              {{ isInvitingCollaborators ? 'Adding' : 'Add' }} User/s
+            </div>
+          </a-button>
+        </div>
+      </a-form>
     </template>
   </div>
 </template>

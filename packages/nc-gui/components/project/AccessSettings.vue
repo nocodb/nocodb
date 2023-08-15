@@ -129,13 +129,18 @@ watchDebounced(
 )
 
 const modal = ref(true)
+
+const reloadCollabs = async () =>{
+  currentPage.value=0;
+  collaborators.value = [];
+  await loadCollaborators()
+}
 </script>
 
 <template>
   <div class="nc-collaborator-table-container mt-4 nc-access-settings-view">
 
-    <ProjectInviteProjectCollabSection />
-<!--    <Collaborate />-->
+    <ProjectInviteProjectCollabSection @invited="reloadCollabs"/>
 
     <div v-if="isLoading" class="nc-collaborators-list items-center justify-center">
       <GeneralLoader size="xlarge" />
@@ -229,7 +234,8 @@ const modal = ref(true)
 <style scoped lang="scss">
 .nc-collaborators-list {
   @apply border-gray-100 mt-1 flex flex-col w-full;
-  height: calc(100vh - calc(var(--topbar-height) + 9rem));
+  // todo: replace/remove 120px with proper value while updating invite ui
+  height: calc(100vh - calc(var(--topbar-height) + 9rem + 120px));
 }
 
 .nc-collaborators-list-header {

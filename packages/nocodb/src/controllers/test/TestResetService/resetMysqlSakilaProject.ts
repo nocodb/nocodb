@@ -13,7 +13,7 @@ const config = {
     port: 3306,
     user: 'root',
     password: 'password',
-    database: 'mysql',
+    database: 'sakila',
     multipleStatements: true,
     dateStrings: true,
   },

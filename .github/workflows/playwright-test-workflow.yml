@@ -63,10 +63,11 @@ jobs:
         run: |
           # Get a list of non-system databases and construct the DROP DATABASE statement for each
           service mysql start
-          mysql -u'nocodb_root' -p'password' -e "SHOW DATABASES" --skip-column-names | grep -Ev "(information_schema|mysql|performance_schema|sys)" | while read db; do
-          mysql -u'nocodb_root' -p'password' -e "DROP DATABASE IF EXISTS \`$db\`";
+          mysql -u'root' -p'password' -e "SHOW DATABASES" --skip-column-names | grep -Ev "(information_schema|mysql|performance_schema|sys)" | while read db; do
+          mysql -u'root' -p'password' -e "DROP DATABASE IF EXISTS \`$db\`";
           done
-
+          # this is only needed for connecting to sakila db as its refeferred in multiple places in test code
+          mysql -u'root' -p'password' < 01-mysql-sakila-schema.sql          
       - name: Setup pg for quick tests
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '1' }}
         working-directory: ./packages/nocodb/tests/pg-cy-quick/

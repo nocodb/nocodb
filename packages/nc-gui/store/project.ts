@@ -227,7 +227,7 @@ export const useProject = defineStore('projectStore', () => {
   }
 
   const projectUrl = ({ id, type: _type }: { id: string; type: 'database' }) => {
-    return `/ws/default/nc/${id}`
+    return `/nc/${id}`
   }
 
   watch(

@@ -283,7 +283,7 @@ export class WorkspaceUsersService {
             .mailSend({
               to: user.email,
               subject: "You've been invited to a Noco Cloud Workspace\n",
-              text: `Visit following link to access the workspace : ${siteUrl}/dashboard/#/ws/${workspace.id}`,
+              text: `Visit following link to access the workspace : ${siteUrl}/dashboard/#/${workspace.id}`,
               html: ejs.render(template, {
                 workspaceLink: siteUrl + `/dashboard/#/${workspace.id}`,
                 workspaceName: workspace.title,

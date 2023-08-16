@@ -127,7 +127,7 @@ const onRoleToggle = async () => {
           <div class="text-black">Editing access</div>
           <a-switch
             :loading="isRoleToggleLoading"
-            :checked="base?.role === ShareBaseRole.Viewer"
+            :checked="base?.role === ShareBaseRole.Editor"
             class="ml-2"
             @click="onRoleToggle"
           />

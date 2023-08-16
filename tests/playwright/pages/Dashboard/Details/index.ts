@@ -11,6 +11,8 @@ export class DetailsPage extends BasePage {
 
   readonly tab_webhooks: Locator;
   readonly tab_apiSnippet: Locator;
+  readonly tab_fields: Locator;
+  readonly tab_relations: Locator;
 
   readonly btn_addWebhook: Locator;
 
@@ -20,8 +22,10 @@ export class DetailsPage extends BasePage {
     this.topbar = dashboard.grid.topbar;
     this.webhook = new WebhookPage(this);
 
-    this.tab_webhooks = this.get().locator(`.nc-tab:has-text("Webhooks")`);
-    this.tab_apiSnippet = this.get().locator(`.nc-tab:has-text("APIs")`);
+    this.tab_webhooks = this.get().locator(`[data-testid="nc-webhooks-tab"]`);
+    this.tab_apiSnippet = this.get().locator(`[data-testid="nc-apis-tab"]`);
+    this.tab_fields = this.get().locator(`[data-testid="nc-fields-tab"]`);
+    this.tab_relations = this.get().locator(`[data-testid="nc-relations-tab"]`);
 
     this.btn_addWebhook = this.get().locator(`.nc-button:has-text("Add Webhook")`);
   }

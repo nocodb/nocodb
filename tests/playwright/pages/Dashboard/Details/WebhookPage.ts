@@ -54,7 +54,7 @@ export class WebhookPage extends BasePage {
   async deleteHook({ index }: { index: number }) {
     const hookItem = await this.getItem({ index });
     await hookItem.hover();
-    await hookItem.locator('[data-testid="nc-view-sidebar-webhook-context-menu"]').click();
+    await hookItem.locator('[data-testid="nc-view-sidebar-webhook-context-menu"]').click({ force: true });
     await this.rootPage
       .locator('.ant-dropdown:visible')
       .locator('[data-testid="nc-view-sidebar-webhook-delete"]')

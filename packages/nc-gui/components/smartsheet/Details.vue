@@ -17,7 +17,7 @@ const openedSubTab = computed({
     <NcTabs v-model="openedSubTab">
       <a-tab-pane key="fields">
         <template #tab>
-          <div class="tab">
+          <div class="tab" data-testid="nc-fields-tab">
             <GeneralIcon icon="list" class="tab-icon" :class="{}" />
             <div>Fields</div>
           </div>
@@ -26,7 +26,7 @@ const openedSubTab = computed({
 
       <a-tab-pane key="relations">
         <template #tab>
-          <div class="tab">
+          <div class="tab" data-testid="nc-relations-tab">
             <GeneralIcon icon="erd" class="tab-icon" :class="{}" />
             <div>Relations</div>
           </div>
@@ -36,7 +36,7 @@ const openedSubTab = computed({
 
       <a-tab-pane key="apis">
         <template #tab>
-          <div class="tab">
+          <div class="tab" data-testid="nc-apis-tab">
             <GeneralIcon icon="code" class="tab-icon" :class="{}" />
             <div>APIs</div>
           </div>
@@ -46,7 +46,7 @@ const openedSubTab = computed({
 
       <a-tab-pane key="webhooks">
         <template #tab>
-          <div class="tab">
+          <div class="tab" data-testid="nc-webhooks-tab">
             <GeneralIcon icon="webhook" class="tab-icon" :class="{}" />
             <div>Webhooks</div>
           </div>

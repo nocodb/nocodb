@@ -457,6 +457,7 @@ onMounted(async () => {
                 Add field
               </div>
             </NcButton>
+            <!--
             <NcButton type="ghost" size="small">
               <div class="flex items-center pr-2">
                 <GeneralIcon icon="magic" class="mx-1 h-3.5 w-3.5 text-gray-500 text-orange-400" />
@@ -469,6 +470,7 @@ onMounted(async () => {
                 Suggest formula
               </div>
             </NcButton>
+            -->
           </div>
           <div class="flex-1"></div>
           <div class="flex gap-2">

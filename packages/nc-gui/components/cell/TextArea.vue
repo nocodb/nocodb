@@ -92,18 +92,14 @@ onClickOutside(inputWrapperRef, (e) => {
           'top-1': rowHeight !== 1,
           'mt-2': editEnabled,
           'top-0.15': rowHeight === 1,
+          '!hidden': isExpandedFormOpen,
         }"
         type="text"
         size="xsmall"
         @click.stop="isVisible = !isVisible"
       >
         <GeneralIcon v-if="isVisible" icon="shrink" class="nc-long-text-toggle-expand h-3.75 w-3.75 !text-xs" />
-        <GeneralIcon
-          v-else
-          icon="expand"
-          class="nc-long-text-toggle-expand h-3.75 w-3.75 !text-xs"
-          :class="{ hidden: isExpandedFormOpen }"
-        />
+        <GeneralIcon v-else icon="expand" class="nc-long-text-toggle-expand h-3.75 w-3.75 !text-xs" />
       </NcButton>
     </div>
     <template #overlay>

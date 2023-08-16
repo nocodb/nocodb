@@ -155,10 +155,7 @@ watch(activeLang, (newLang) => {
 </script>
 
 <template>
-  <div class="flex flex-col w-full h-full px-6 py-3">
-    <!--      Code Snippet -->
-    <div class="pb-1 text-2xl font-medium">API Snippets</div>
-
+  <div class="flex flex-col w-full h-full px-6 mt-1">
     <NcTabs v-model:activeKey="selectedLangName" class="!h-full">
       <a-tab-pane v-for="item in langs" :key="item.name" class="!h-full">
         <template #tab>

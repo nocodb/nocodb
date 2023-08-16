@@ -144,8 +144,14 @@ test.describe('Checkbox - cell, filter, sort', () => {
       ascending: true,
       locallySaved: false,
     });
-    if (isPg(context)) await validateRowArray(['1d', '1e', '1b', '1a', '1c', '1f']);
-    else await validateRowArray(['1b', '1d', '1e', '1a', '1c', '1f']);
+
+    for (let i = 0; i < 3; i++) {
+      await dashboard.grid.cell.checkbox.verifyUnchecked({ index: i, columnHeader: 'checkbox' });
+    }
+    for (let i = 3; i < 6; i++) {
+      await dashboard.grid.cell.checkbox.verifyChecked({ index: i, columnHeader: 'checkbox' });
+    }
+
     await toolbar.sort.reset();
 
     // sort descending & validate
@@ -154,8 +160,14 @@ test.describe('Checkbox - cell, filter, sort', () => {
       ascending: false,
       locallySaved: false,
     });
-    if (isPg(context)) await validateRowArray(['1a', '1c', '1f', '1d', '1e', '1b']);
-    else await validateRowArray(['1a', '1c', '1f', '1b', '1d', '1e']);
+
+    for (let i = 0; i < 3; i++) {
+      await dashboard.grid.cell.checkbox.verifyChecked({ index: i, columnHeader: 'checkbox' });
+    }
+    for (let i = 3; i < 6; i++) {
+      await dashboard.grid.cell.checkbox.verifyUnchecked({ index: i, columnHeader: 'checkbox' });
+    }
+
     await toolbar.sort.reset();
 
     // TBD: Add more tests

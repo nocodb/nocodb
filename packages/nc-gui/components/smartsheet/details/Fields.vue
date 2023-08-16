@@ -255,30 +255,30 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col w-full h-full p-4">
+  <div class="flex flex-col w-full p-4" style="height: calc(100vh - (var(--topbar-height) * 2))">
     <!-- TODO i18n -->
     <a-typography-title :level="4">Table Explorer</a-typography-title>
 
     <a-divider class="!mt-0 !mb-2" />
 
-    <div>
-      <div class="flex flex-col">
+    <div class="h-full">
+      <div class="flex flex-col h-full">
         <div class="flex px-2 py-2">
           <div class="flex gap-2">
-            <NcButton type="ghost" size="small">
-              <div class="flex items-center" @click="changeField({})">
-                <GeneralIcon icon="plus" class="mx-1 h-3.5 w-3.5 text-gray-500" />
+            <NcButton type="primary" size="small">
+              <div class="flex items-center pr-2" @click="changeField({})">
+                <GeneralIcon icon="plus" class="mx-1 h-3.5 w-3.5 text-white-500" />
                 Add field
               </div>
             </NcButton>
             <NcButton type="ghost" size="small">
-              <div class="flex items-center">
+              <div class="flex items-center pr-2">
                 <GeneralIcon icon="magic" class="mx-1 h-3.5 w-3.5 text-gray-500 text-orange-400" />
                 Add using AI
               </div>
             </NcButton>
             <NcButton type="ghost" size="small">
-              <div class="flex items-center">
+              <div class="flex items-center pr-2">
                 <GeneralIcon icon="magic" class="mx-1 h-3.5 w-3.5 text-gray-500 text-orange-400" />
                 Suggest formula
               </div>
@@ -288,10 +288,10 @@ onMounted(async () => {
           <div class="flex gap-2">
             <template v-if="ops.length > 0">
               <NcButton type="ghost" size="small">
-                <div class="flex items-center" :disabled="loading" @click="clearChanges()">Clear Changes</div>
+                <div class="flex items-center px-1" :disabled="loading" @click="clearChanges()">Clear Changes</div>
               </NcButton>
               <NcButton type="primary" size="small">
-                <div class="flex items-center" :disabled="loading" @click="saveChanges()">Save Changes</div>
+                <div class="flex items-center px-1" :disabled="loading" @click="saveChanges()">Save Changes</div>
               </NcButton>
             </template>
           </div>
@@ -318,7 +318,7 @@ onMounted(async () => {
             <a-switch v-model:checked="viewOnly" />
           </div>
         </div>
-        <div class="flex mt-2">
+        <div class="flex mt-2 h-full">
           <div class="flex flex-col flex-1 p-2">
             <TransitionGroup name="slide-fade" tag="div">
               <template v-for="field of filteredListFields" :key="`field-${field.id || field.temp_id}`">
@@ -400,7 +400,7 @@ onMounted(async () => {
             </TransitionGroup>
           </div>
           <Transition name="slide-fade">
-            <div v-if="!changingField" class="flex p-2 mt-2 w-1/3 border-1 rounded-lg" :class="fieldStatus(activeField)">
+            <div v-if="!changingField" class="flex p-2 mt-2 w-1/3 h-full border-1 rounded-lg" :class="fieldStatus(activeField)">
               <SmartsheetColumnEditOrAddProvider
                 v-if="activeField"
                 class="w-full"

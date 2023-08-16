@@ -183,7 +183,15 @@ onMounted(() => menuRef.value && initSortable(menuRef.value.$el))
 
 /** Navigate to view by changing url param */
 function changeView(view: ViewType) {
-  router.push({ params: { viewTitle: view.title || '' } })
+  if (
+    router.currentRoute.value.query &&
+    router.currentRoute.value.query.page &&
+    router.currentRoute.value.query.page === 'fields'
+  ) {
+    router.push({ params: { viewTitle: view.title || '' }, query: router.currentRoute.value.query })
+  } else {
+    router.push({ params: { viewTitle: view.title || '' } })
+  }
 
   if (view.type === ViewTypes.FORM && selected.value[0] === view.id) {
     // reload the page if the same form view is clicked

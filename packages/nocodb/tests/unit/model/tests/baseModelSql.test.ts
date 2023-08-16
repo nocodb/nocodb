@@ -1,6 +1,5 @@
 import 'mocha';
 import { expect } from 'chai';
-import { BaseModelSqlv2 } from 'src/db/BaseModelSqlv2';
 import init from '../../init';
 import { createProject } from '../../factory/project';
 import { createTable } from '../../factory/table';
@@ -11,6 +10,7 @@ import type View from '~/models/View';
 import type Project from '~/models/Project';
 import type Model from '~/models/Model';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
+import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import Filter from '~/models/Filter';
 import Audit from '~/models/Audit';
 import Base from '~/models/Base';

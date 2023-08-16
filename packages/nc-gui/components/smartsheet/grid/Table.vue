@@ -727,7 +727,6 @@ onClickOutside(tableBodyEl, (e) => {
   if (isDrawerOrModalExist()) {
     return
   }
-
   clearSelectedRange()
   activeCell.row = null
   activeCell.col = null
@@ -1122,6 +1121,17 @@ defineExpose({
   scrollToRow,
   openColumnCreate,
 })
+
+// when expand is clicked the drawer should open
+// and cell should loose focs
+const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
+  if (expandForm) {
+    expandForm(row, col)
+  }
+  activeCell.row = null
+  activeCell.col = null
+  selectedRange.clear()
+}
 </script>
 
 <template>
@@ -1360,7 +1370,7 @@ defineExpose({
                                 v-if="row.rowMeta?.commentCount && expandForm"
                                 class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
                                 :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
-                                @click="expandForm(row, state)"
+                                @click="expandAndLooseFocus(row, state)"
                               >
                                 {{ row.rowMeta.commentCount }}
                               </span>
@@ -1373,7 +1383,7 @@ defineExpose({
                                   v-if="expandForm"
                                   v-e="['c:row-expand']"
                                   class="select-none transform hover:(text-black scale-120) nc-row-expand"
-                                  @click="expandForm(row, state)"
+                                  @click="expandAndLooseFocus(row, state)"
                                 />
                               </div>
                             </template>
@@ -1580,7 +1590,11 @@ defineExpose({
     >
       <template #add-record>
         <div v-if="isAddingEmptyRowAllowed" class="flex ml-2">
-          <a-dropdown-button placement="top" @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()">
+          <a-dropdown-button
+            class="nc-grid-add-new-row"
+            placement="top"
+            @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
+          >
             <div class="flex items-center px-2 text-gray-600 hover:text-black">
               <span>
                 <template v-if="isAddNewRecordGridMode"> {{ $t('activity.newRecord') }} </template>

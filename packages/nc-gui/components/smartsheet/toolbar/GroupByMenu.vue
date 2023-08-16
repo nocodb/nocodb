@@ -162,7 +162,7 @@ watch(open, () => {
         data-testid="nc-group-by-menu"
       >
         <div class="group-by-grid pb-1 mb-2 max-h-100 nc-scrollbar-md pr-5" @click.stop>
-          <template v-for="[i, group] of Object.entries(_groupBy)" :key="`grouped-by-${group.fk_column_id}`">
+          <template v-for="[i, group] of Object.entries(_groupBy)" :key="`grouped-by-${group.fk_column_id}`"  class="nc-group-menu">
             <LazySmartsheetToolbarFieldListAutoCompleteDropdown
               v-model="group.fk_column_id"
               class="caption nc-sort-field-select"
@@ -201,6 +201,7 @@ watch(open, () => {
         </div>
         <NcButton
           v-if="fieldsToGroupBy.length > _groupBy.length && _groupBy.length < 3"
+          class=" nc-add-group-btn"
           style="width: fit-content"
           size="small"
           type="text"

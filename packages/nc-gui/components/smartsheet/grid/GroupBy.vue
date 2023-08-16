@@ -146,7 +146,7 @@ const onScroll = (e: Event) => {
         <div :class="{ 'px-[12px]': vGroup.root === true }">
           <a-collapse
             v-model:activeKey="_activeGroupKeys"
-            class="!bg-transparent w-full"
+            class="!bg-transparent w-full nc-group-wrapper"
             :bordered="false"
             destroy-inactive-panel
             @change="findAndLoadSubGroup"
@@ -154,7 +154,7 @@ const onScroll = (e: Event) => {
             <a-collapse-panel
               v-for="[i, grp] of Object.entries(vGroup?.children ?? [])"
               :key="`group-panel-${i}`"
-              class="!border-1 rounded-[12px]"
+              class="!border-1 nc-group rounded-[12px]"
               :class="{ 'mb-4': vGroup.children && +i !== vGroup.children.length - 1 }"
               :style="`background: rgb(${245 - _depth * 10}, ${245 - _depth * 10}, ${245 - _depth * 10})`"
               :show-arrow="false"
@@ -182,8 +182,8 @@ const onScroll = (e: Event) => {
                   <div class="flex items-center">
                     <div class="flex flex-col">
                       <div class="flex gap-2">
-                        <div class="text-xs">{{ grp.column.title }}</div>
-                        <div class="text-xs text-gray-400">(Count: {{ grp.count }})</div>
+                        <div class="text-xs nc-group-column-title">{{ grp.column.title }}</div>
+                        <div class="text-xs text-gray-400 nc-group-row-count">(Count: {{ grp.count }})</div>
                       </div>
                       <div class="flex mt-1">
                         <template v-if="grp.column.uidt === 'MultiSelect'">
@@ -194,6 +194,7 @@ const onScroll = (e: Event) => {
                             :color="grp.color.split(',')[+tagIndex]"
                           >
                             <span
+                              class="nc-group-value"
                               :style="{
                                 'color': tinycolor.isReadable(grp.color.split(',')[+tagIndex] || '#ccc', '#fff', {
                                   level: 'AA',
@@ -219,6 +220,7 @@ const onScroll = (e: Event) => {
                           :color="grp.color"
                         >
                           <span
+                            class="nc-group-value"
                             :style="{
                               'color': tinycolor.isReadable(grp.color || '#ccc', '#fff', {
                                 level: 'AA',

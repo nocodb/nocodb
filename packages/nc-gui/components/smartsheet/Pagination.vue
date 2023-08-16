@@ -120,7 +120,7 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
     <div class="flex-1 text-right pr-2">
       <span
         v-if="alignCountOnRight && count !== null && count !== Infinity"
-        class="caption mr-2.5 text-gray-500 text-xs"
+        class="caption nc-grid-row-count mr-2.5 text-gray-500 text-xs"
         data-testid="grid-pagination"
       >
         {{ count }} {{ customLabel ? customLabel : count !== 1 ? $t('objects.records') : $t('objects.record') }}

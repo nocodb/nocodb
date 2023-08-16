@@ -113,6 +113,7 @@ const pagination = computed(() => {
 
 <template>
   <Table
+      class="nc-group-table"
     v-if="vGroup.rows"
     v-model:selected-all-records="selectedAllRecords"
     :data="vGroup.rows"

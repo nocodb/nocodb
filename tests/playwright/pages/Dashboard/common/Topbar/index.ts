@@ -74,4 +74,9 @@ export class TopbarPage extends BasePage {
     await this.btn_data.click();
     await this.rootPage.waitForTimeout(500);
   }
+
+  async clickRefresh() {
+    await this.get().locator(`.nc-icon-reload`).waitFor({ state: 'visible' });
+    await this.get().locator(`.nc-icon-reload`).click();
+  }
 }

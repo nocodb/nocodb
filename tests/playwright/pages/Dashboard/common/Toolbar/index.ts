@@ -228,9 +228,4 @@ export class ToolbarPage extends BasePage {
     expect(await this.btn_sort.count()).toBe(1);
     expect(await this.btn_rowHeight.count()).toBe(1);
   }
-
-  async clickRefresh() {
-    await this.get().locator(`.nc-icon-reload`).waitFor({ state: 'visible' });
-    await this.get().locator(`.nc-icon-reload`).click();
-  }
 }

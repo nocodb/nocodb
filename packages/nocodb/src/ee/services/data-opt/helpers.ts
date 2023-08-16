@@ -713,7 +713,16 @@ export async function singleQueryRead(ctx: {
 
   const rootQb = knex(baseModel.getTnPath(ctx.model));
 
-  rootQb.where(_wherePk(ctx.model.primaryKeys, ctx.id));
+  // dummy id placeholder to be replaced later
+  const idSym = Symbol('__dummy_id_placeholder');
+
+  // use ids as a unique value to replace raw in the query later
+  rootQb.where(
+    ctx.model.primaryKeys.reduce((acc, pk) => {
+      acc[pk.column_name] = idSym;
+      return acc;
+    }, {}),
+  );
 
   const aliasColObjMap = await ctx.model.getAliasColObjMap();
   // let sorts = extractSortsObject(listArgs?.sort, aliasColObjMap);
@@ -775,29 +784,39 @@ export async function singleQueryRead(ctx: {
 
   const finalQb = qb.first();
 
+  const { sql, bindings } = finalQb.toSQL();
+
+  // get unique placeholder which is not present in the query
+  const idPlaceholder = getUniquePlaceholders(finalQb.toQuery());
+
+  // // take care of composite primary key
+  // const idPlaceholders = ctx.model.primaryKeys.map(() => idPlaceholder);
+
+  // bind all params and replace id  with placeholders
+  // and in generated sql replace placeholders with bindings
+  const query = knex
+    .raw(
+      sql,
+      bindings.map((v: unknown) => (v === idSym ? idPlaceholder : v)),
+    )
+    .toQuery()
+    // escape any `?` in the query to avoid replacing them with bindings
+    .replace(/\?/g, '\\?')
+    .replaceAll(`'${idPlaceholder}'`, '?');
+
   if (!skipCache) {
-    const { sql, bindings } = finalQb.toSQL();
-
-    // get unique placeholder which is not present in the query
-    const idPlaceholder = getUniquePlaceholders(finalQb.toQuery());
-
-    // take care of composite primary key
-    const idPlaceholders = ctx.model.primaryKeys.map(() => idPlaceholder);
-
-    // bind all params and replace id  with placeholders
-    // and in generated sql replace placeholders with bindings
-    const query = knex
-      .raw(sql, [...idPlaceholders, ...bindings.slice(idPlaceholders.length)])
-      .toQuery()
-      // escape any `?` in the query to avoid replacing them with bindings
-      .replace(/\?/g, '\\?')
-      .replaceAll(`'${idPlaceholder}'`, '?');
-
     // cache query for later use
     await NocoCache.set(cacheKey, query);
   }
 
-  const res = await finalQb;
+  // const res = await finalQb;
+
+  const rawRes = await knex.raw(
+    query,
+    ctx.model.primaryKeys.length === 1 ? [ctx.id] : ctx.id.split('___'),
+  );
+
+  const res = rawRes?.rows?.[0];
 
   // update attachment fields
   // res = baseModel.convertAttachmentType(res, ctx.model);

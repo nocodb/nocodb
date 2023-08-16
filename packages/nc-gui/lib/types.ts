@@ -180,6 +180,8 @@ interface Users {
   invitationToken?: string
 }
 
+type ViewPageType = 'views' | 'webhooks' | 'apis' | 'fields' | 'relations'
+
 export {
   User,
   ProjectMetaInfo,
@@ -204,4 +206,5 @@ export {
   GroupNestedIn,
   AllRoles,
   Users,
+  ViewPageType,
 }

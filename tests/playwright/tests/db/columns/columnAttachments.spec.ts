@@ -9,7 +9,7 @@ test.describe('Attachment column', () => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
   });
-  
+
   test.afterEach(async () => {
     await unsetup(context);
   });
@@ -49,7 +49,7 @@ test.describe('Attachment column', () => {
     await dashboard.viewSidebar.createFormView({
       title: 'Form 1',
     });
-    const sharedFormUrl = await dashboard.form.toolbar.getSharedViewUrl();
+    const sharedFormUrl = await dashboard.form.topbar.getSharedViewUrl();
     await dashboard.viewSidebar.openView({ title: 'Country' });
 
     // Verify attachment in shared form

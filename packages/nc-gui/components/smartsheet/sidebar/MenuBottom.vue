@@ -37,7 +37,7 @@ function onOpenModal(type: ViewTypes, title = '') {
         </template>
 
         <div class="!py-0 text-xs flex items-center h-full w-full gap-2">
-          <component :is="viewIcons[ViewTypes.GRID].icon" :style="{ color: viewIcons[ViewTypes.GRID]?.color }" />
+          <GeneralViewIcon :meta="{ type: ViewTypes.GRID }" class="min-w-5 flex" />
 
           <div>{{ $t('objects.viewType.grid') }}</div>
 
@@ -59,7 +59,7 @@ function onOpenModal(type: ViewTypes, title = '') {
         </template>
 
         <div class="!py-0 text-xs flex items-center h-full w-full gap-2">
-          <component :is="viewIcons[ViewTypes.GALLERY].icon" :style="{ color: viewIcons[ViewTypes.GALLERY]?.color }" />
+          <GeneralViewIcon :meta="{ type: ViewTypes.GALLERY }" class="min-w-5 flex" />
 
           <div>{{ $t('objects.viewType.gallery') }}</div>
 
@@ -82,7 +82,7 @@ function onOpenModal(type: ViewTypes, title = '') {
         </template>
 
         <div class="!py-0 text-xs flex items-center h-full w-full gap-2">
-          <component :is="viewIcons[ViewTypes.FORM].icon" :style="{ color: viewIcons[ViewTypes.FORM]?.color }" />
+          <GeneralViewIcon :meta="{ type: ViewTypes.FORM }" class="min-w-5 flex" />
 
           <div>{{ $t('objects.viewType.form') }}</div>
 
@@ -104,7 +104,7 @@ function onOpenModal(type: ViewTypes, title = '') {
         </template>
 
         <div class="!py-0 text-xs flex items-center h-full w-full gap-2">
-          <component :is="viewIcons[ViewTypes.KANBAN].icon" :style="{ color: viewIcons[ViewTypes.KANBAN]?.color }" />
+          <GeneralViewIcon :meta="{ type: ViewTypes.KANBAN }" class="min-w-5 flex" />
 
           <div>{{ $t('objects.viewType.kanban') }}</div>
 

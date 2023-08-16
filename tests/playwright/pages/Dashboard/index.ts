@@ -23,6 +23,7 @@ import { DocsPageGroup } from './Docs';
 import { ShareProjectButtonPage } from './ShareProjectButton';
 import { ProjectTypes } from 'nocodb-sdk';
 import { WorkspacePage } from '../WorkspacePage';
+import { DetailsPage } from './Details';
 
 export class DashboardPage extends BasePage {
   readonly project: any;
@@ -51,6 +52,7 @@ export class DashboardPage extends BasePage {
   readonly docs: DocsPageGroup;
   readonly sidebar: SidebarPage;
   readonly shareProjectButton: ShareProjectButtonPage;
+  readonly details: DetailsPage;
 
   constructor(rootPage: Page, project: any) {
     super(rootPage);
@@ -79,6 +81,7 @@ export class DashboardPage extends BasePage {
     this.sidebar = new SidebarPage(this);
     this.docs = new DocsPageGroup(this);
     this.shareProjectButton = new ShareProjectButtonPage(this);
+    this.details = new DetailsPage(this);
   }
 
   get() {

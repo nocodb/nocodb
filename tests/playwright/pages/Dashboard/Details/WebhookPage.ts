@@ -9,24 +9,24 @@
 //          data-testid="nc-view-sidebar-webhook-delete"
 
 import BasePage from '../../Base';
-import { ViewSidebarPage } from './index';
 import { Locator } from '@playwright/test';
+import { DetailsPage } from './index';
 
 export class WebhookPage extends BasePage {
-  readonly viewSidebar: ViewSidebarPage;
+  readonly detailsPage: DetailsPage;
 
   readonly addHookButton: Locator;
   readonly webhookItems: Locator;
 
-  constructor(viewSidebar: ViewSidebarPage) {
-    super(viewSidebar.rootPage);
-    this.viewSidebar = viewSidebar;
+  constructor(details: DetailsPage) {
+    super(details.rootPage);
+    this.detailsPage = details;
     this.addHookButton = this.get().locator('.nc-view-sidebar-webhook-plus-icon:visible');
     this.webhookItems = this.get().locator('.nc-view-sidebar-webhook-item');
   }
 
   get() {
-    return this.viewSidebar.get().locator('.nc-view-sidebar-webhook');
+    return this.detailsPage.get().locator('.nc-view-sidebar-webhook');
   }
 
   async itemCount() {
@@ -54,7 +54,7 @@ export class WebhookPage extends BasePage {
   async deleteHook({ index }: { index: number }) {
     const hookItem = await this.getItem({ index });
     await hookItem.hover();
-    await hookItem.locator('[data-testid="nc-view-sidebar-webhook-context-menu"]').click();
+    await hookItem.locator('[data-testid="nc-view-sidebar-webhook-context-menu"]').click({ force: true });
     await this.rootPage
       .locator('.ant-dropdown:visible')
       .locator('[data-testid="nc-view-sidebar-webhook-delete"]')

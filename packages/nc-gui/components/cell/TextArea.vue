@@ -87,11 +87,12 @@ onClickOutside(inputWrapperRef, (e) => {
       <span v-else>{{ vModel }}</span>
 
       <NcButton
-        class="!absolute right-0 bottom-0 nc-long-text-toggle-expand !duration-0"
+        class="!absolute right-0 bottom-0 nc-long-text-toggle-expand !duration-0 z-[-1]"
         :class="{
           'top-1': rowHeight !== 1,
           'mt-2': editEnabled,
           'top-0.15': rowHeight === 1,
+          'right-2': isExpandedFormOpen,
         }"
         type="text"
         size="xsmall"

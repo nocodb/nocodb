@@ -1,4 +1,4 @@
-import path from 'path';
+import * as path from 'path';
 import { Injectable, Logger } from '@nestjs/common';
 import { ClickHouse } from 'clickhouse';
 import { migration } from 'clickhouse-migrations/lib/migrate';

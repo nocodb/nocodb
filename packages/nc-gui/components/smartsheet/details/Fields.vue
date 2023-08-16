@@ -445,11 +445,6 @@ onMounted(async () => {
 
 <template>
   <div class="flex flex-col w-full p-4" style="height: calc(100vh - (var(--topbar-height) * 2))">
-    <!-- TODO i18n -->
-    <a-typography-title :level="4">Table Explorer</a-typography-title>
-
-    <a-divider class="!mt-0 !mb-2" />
-
     <div class="h-full">
       <div class="flex flex-col h-full">
         <div class="flex px-2 py-2">

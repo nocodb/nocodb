@@ -28,7 +28,7 @@ const { allowCSVDownload } = useSharedView()
 
       <div v-if="!isMobileMode" class="flex-1" />
 
-      <div class="absolute mx-auto -left-8 right-0 w-47.5"><SmartsheetTopbarSelectMode /></div>
+      <div class="absolute mx-auto -left-1/7 right-0 w-47.5"><SmartsheetTopbarSelectMode /></div>
 
       <GeneralApiLoader />
 

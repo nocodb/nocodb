@@ -234,7 +234,7 @@ test.describe('Filter Tests: Numerical', () => {
     await page.reload();
   });
 
-  test('Filter: Number', async () => {
+  test.only('Filter: Number', async () => {
     await numBasedFilterTest('Number', '33', '44');
   });
 

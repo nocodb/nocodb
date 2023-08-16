@@ -22,6 +22,7 @@ const openedSubTab = computed({
             <div>Fields</div>
           </div>
         </template>
+        <SmartsheetDetailsFields />
       </a-tab-pane>
 
       <a-tab-pane key="relations">

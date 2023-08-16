@@ -13,7 +13,7 @@ const openedSubTab = computed({
 </script>
 
 <template>
-  <div class="flex flex-col h-full w-full">
+  <div class="flex flex-col h-full w-full" data-testid="nc-details-wrapper">
     <NcTabs v-model="openedSubTab">
       <a-tab-pane key="fields">
         <template #tab>
@@ -23,6 +23,7 @@ const openedSubTab = computed({
           </div>
         </template>
       </a-tab-pane>
+
       <a-tab-pane key="relations">
         <template #tab>
           <div class="tab">

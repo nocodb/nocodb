@@ -1,11 +1,9 @@
 import { expect, Locator } from '@playwright/test';
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
-import { WebhookPage } from './WebhookPage';
 
 export class ViewSidebarPage extends BasePage {
   readonly project: any;
-  readonly webhook: WebhookPage;
 
   readonly dashboard: DashboardPage;
   readonly createGalleryButton: Locator;
@@ -21,7 +19,6 @@ export class ViewSidebarPage extends BasePage {
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
-    this.webhook = new WebhookPage(this);
 
     this.createGalleryButton = this.get().locator('.nc-create-gallery-view:visible');
     this.createGridButton = this.get().locator('.nc-create-grid-view:visible');

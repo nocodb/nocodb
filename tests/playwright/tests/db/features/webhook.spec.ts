@@ -60,7 +60,7 @@ async function verifyHookTrigger(count: number, value: string, request, expected
     for (let i = 0; i < 20; i++) {
       response = await request.get(hookPath + '/last');
       const rspJson = await response.json();
-      console.log('verifyHookTrigger response', value, rspJson);
+      // console.log('verifyHookTrigger response', value, rspJson);
 
       if (rspJson?.data?.rows[0]?.Title === value) {
         break;
@@ -292,6 +292,7 @@ test.describe.serial('Webhook', () => {
     await webhook.delete({ index: 0 });
     await webhook.delete({ index: 0 });
     await webhook.delete({ index: 0 });
+    await dashboard.grid.topbar.openDataTab();
 
     await clearServerData({ request });
     await dashboard.grid.addNewRow({
@@ -740,8 +741,8 @@ test.describe.serial('Webhook', () => {
       }
     }
 
-    console.log('rsp', rsp[0]);
-    console.log('expectedData', expectedData);
+    // console.log('rsp', rsp[0]);
+    // console.log('expectedData', expectedData);
 
     await expect(isSubset(rsp[0], expectedData)).toBe(true);
   });

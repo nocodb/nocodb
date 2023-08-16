@@ -65,4 +65,13 @@ export class TopbarPage extends BasePage {
     await this.share.closeModal();
     return await this.getClipboardText();
   }
+
+  async openDetailedTab() {
+    await this.btn_details.click();
+  }
+
+  async openDataTab() {
+    await this.btn_data.click();
+    await this.rootPage.waitForTimeout(500);
+  }
 }

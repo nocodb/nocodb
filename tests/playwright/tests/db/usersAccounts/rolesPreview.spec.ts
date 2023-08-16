@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { SettingsPage, SettingTab } from '../../../pages/Dashboard/Settings';
 
@@ -20,6 +20,10 @@ test.describe.skip('Preview Mode', () => {
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
     settings = dashboard.settings;
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Preview Mode', async () => {

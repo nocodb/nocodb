@@ -12,14 +12,16 @@ import { GeoDataCellPageObject } from './GeoDataCell';
 import { getTextExcludeIconText } from '../../../../tests/utils/general';
 import { YearCellPageObject } from './YearCell';
 import { TimeCellPageObject } from './TimeCell';
+import { GroupPageObject } from '../../Grid/Group';
 
 export interface CellProps {
+  indexMap?: Array<number>;
   index?: number;
   columnHeader: string;
 }
 
 export class CellPageObject extends BasePage {
-  readonly parent: GridPage | SharedFormPage;
+  readonly parent: GridPage | SharedFormPage | GroupPageObject;
   readonly selectOption: SelectOptionCellPageObject;
   readonly attachment: AttachmentCellPageObject;
   readonly checkbox: CheckboxCellPageObject;
@@ -30,7 +32,7 @@ export class CellPageObject extends BasePage {
   readonly date: DateCellPageObject;
   readonly dateTime: DateTimeCellPageObject;
 
-  constructor(parent: GridPage | SharedFormPage) {
+  constructor(parent: GridPage | SharedFormPage | GroupPageObject) {
     super(parent.rootPage);
     this.parent = parent;
     this.selectOption = new SelectOptionCellPageObject(this);
@@ -44,11 +46,13 @@ export class CellPageObject extends BasePage {
     this.dateTime = new DateTimeCellPageObject(this);
   }
 
-  get({ index, columnHeader }: CellProps): Locator {
+  get({ indexMap, index, columnHeader }: CellProps): Locator {
     if (this.parent instanceof SharedFormPage) {
       return this.parent.get().locator(`[data-testid="nc-form-input-cell-${columnHeader}"]`).first();
-    } else {
+    } else if (this.parent instanceof GridPage) {
       return this.parent.get().locator(`td[data-testid="cell-${columnHeader}-${index}"]`).first();
+    } else {
+      return this.parent.get({ indexMap }).locator(`td[data-testid="cell-${columnHeader}-${index}"]`).first();
     }
   }
 

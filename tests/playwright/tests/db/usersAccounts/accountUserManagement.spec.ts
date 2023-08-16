@@ -3,7 +3,7 @@ import { AccountPage } from '../../../pages/Account';
 import { AccountUsersPage } from '../../../pages/Account/Users';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { SignupPage } from '../../../pages/SignupPage';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { WorkspacePage } from '../../../pages/WorkspacePage';
 import { getDefaultPwd } from '../../../tests/utils/general';
 
@@ -29,6 +29,10 @@ test.describe.skip('User roles', () => {
     signupPage = new SignupPage(accountPage.rootPage);
     projectsPage = new ProjectsPage(accountPage.rootPage);
     workspacePage = new WorkspacePage(accountPage.rootPage);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Invite user, update role and delete user', async () => {

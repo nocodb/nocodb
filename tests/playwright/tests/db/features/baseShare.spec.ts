@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { LoginPage } from '../../../pages/LoginPage';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
@@ -54,6 +54,10 @@ test.describe.skip('Shared base', () => {
     projectPage = new ProjectsPage(page);
     toolbar = dashboard.grid.toolbar;
     loginPage = new LoginPage(page);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('#1', async () => {

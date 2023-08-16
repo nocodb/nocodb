@@ -2,7 +2,7 @@ import { test } from '@playwright/test';
 import { airtableApiBase, airtableApiKey } from '../../../constants';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { quickVerify } from '../../../quickTests/commonTest';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { isPg, isSqlite } from '../../../setup/db';
 
 test.describe('Import', () => {
@@ -15,6 +15,10 @@ test.describe('Import', () => {
     page.setDefaultTimeout(70000);
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Airtable', async () => {

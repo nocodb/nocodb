@@ -2,7 +2,7 @@ import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { isPg, isSqlite } from '../../../setup/db';
 
 const filmRatings = ['G', 'PG', 'PG-13', 'R', 'NC-17'];
@@ -47,6 +47,10 @@ test.describe('View', () => {
       }
       await dashboard.grid.column.save();
     }
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Kanban', async () => {

@@ -5,6 +5,7 @@ import { getDefaultPwd } from '../tests/utils/general';
 import { Knex, knex } from 'knex';
 import { promises as fs } from 'fs';
 import { isEE } from './db';
+import { resetSakilaPg } from './knexHelper';
 import path from 'path';
 
 // Use local reset logic instead of remote
@@ -158,7 +159,6 @@ export interface NcContext {
 }
 
 selectors.setTestIdAttribute('data-testid');
-const workerStatus = {};
 const sqliteFilePath = (workerId: string) => {
   const rootDir = process.cwd();
   return `${rootDir}/../../packages/nocodb/test_sakila_${workerId}.db`;
@@ -178,13 +178,6 @@ async function localInit({
   dbType?: string;
 }) {
   const parallelId = process.env.TEST_PARALLEL_INDEX;
-  // wait till previous worker is done
-  while (workerStatus[parallelId] === 'processing') {
-    console.log(`waiting for previous worker to finish parrelelId:${parallelId}`);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-  }
-
-  workerStatus[parallelId] = 'processing';
 
   try {
     let response: AxiosResponse<any, any>;
@@ -257,22 +250,9 @@ async function localInit({
       }
     }
 
-    if (dbType === 'pg') {
-      // DB reset
-      if (!isEmptyProject) {
-        let pgknex;
-        try {
-          pgknex = knex(pgConfig);
-          await pgknex.raw(`DROP DATABASE IF EXISTS sakila${workerId} WITH (FORCE)`);
-          await pgknex.raw(`CREATE DATABASE sakila${workerId}`);
-        } catch (e) {
-          console.error(`Error resetting pg sakila db: Worker ${workerId}`);
-        } finally {
-          if (pgknex) await pgknex.destroy();
-        }
-
-        await resetSakilaPg(workerId);
-      }
+    // DB reset
+    if (!isEmptyProject) {
+      await resetSakilaPg(`sakila${workerId}`);
     } else if (dbType === 'sqlite') {
       if (await fs.stat(sqliteFilePath(parallelId)).catch(() => null)) {
         await fs.unlink(sqliteFilePath(parallelId));
@@ -338,14 +318,11 @@ async function localInit({
         }
       }
     }
-    workerStatus[parallelId] = 'complete';
 
     // get current user information
     const user = await api.auth.me();
     return { data: { project, user, workspace, token }, status: 200 };
   } catch (e) {
-    workerStatus[parallelId] = 'errored';
-
     console.error(`Error resetting project: ${process.env.TEST_PARALLEL_INDEX}`, e);
     return { data: {}, status: 500 };
   }
@@ -451,46 +428,42 @@ const setup = async ({
   if (isEE()) {
     switch (project.type) {
       case ProjectTypes.DOCUMENTATION:
-        projectUrl = url ? url : `/#/ws/${project.fk_workspace_id}/nc/${project.id}/doc`;
+        projectUrl = url ? url : `/#/${project.fk_workspace_id}/${project.id}/doc`;
         break;
       case ProjectTypes.DATABASE:
-        projectUrl = url ? url : `/#/ws/${project.fk_workspace_id}/nc/${project.id}`;
+        projectUrl = url ? url : `/#/${project.fk_workspace_id}/${project.id}`;
         break;
       default:
         throw new Error(`Unknown project type: ${project.type}`);
     }
   } else {
     // sample: http://localhost:3000/#/ws/default/project/pdknlfoc5e7bx4w
-    projectUrl = url ? url : `/#/ws/default/project/${project.id}`;
+    projectUrl = url ? url : `/#/nc/${project.id}`;
   }
 
   await page.goto(projectUrl, { waitUntil: 'networkidle' });
   return { project, token, dbType, workerId, rootUser, workspace } as NcContext;
 };
 
-// Reference
-// packages/nocodb/src/lib/services/test/TestResetService/resetPgSakilaProject.ts
-//
-const resetSakilaPg = async (parallelId: string) => {
-  const testsDir = __dirname.replace('/tests/playwright/setup', '/packages/nocodb/tests');
+export const unsetup = async (context: NcContext): Promise<void> => {
+  if (context.token && context.project) {
+    // try to delete the project
+    try {
+      // Init SDK using token
+      const api = new Api({
+        baseURL: `http://localhost:8080/`,
+        headers: {
+          'xc-auth': context.token,
+        },
+      });
 
-  let sakilaKnex;
-  try {
-    sakilaKnex = knex(sakilaKnexConfig(parallelId));
-    const schemaFile = await fs.readFile(`${testsDir}/pg-sakila-db/01-postgres-sakila-schema.sql`);
-    await sakilaKnex.raw(schemaFile.toString());
-
-    const trx = await sakilaKnex.transaction();
-    const dataFile = await fs.readFile(`${testsDir}/pg-sakila-db/02-postgres-sakila-insert-data.sql`);
-    await trx.raw(dataFile.toString());
-    await trx.commit();
-  } catch (e) {
-    console.error(`Error resetting pg sakila db: Worker ${parallelId}`);
-    throw Error(`Error resetting pg sakila db: Worker ${parallelId}`);
-  } finally {
-    if (sakilaKnex) await sakilaKnex.destroy();
+      await api.project.delete(context.project.id);
+    } catch (e) {}
   }
 };
+
+// Reference
+// packages/nocodb/src/lib/services/test/TestResetService/resetPgSakilaProject.ts
 
 const resetSakilaMysql = async (knex: Knex, parallelId: string, isEmptyProject: boolean) => {
   const testsDir = path.join(process.cwd(), '/../../packages/nocodb/tests');

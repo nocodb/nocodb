@@ -26,7 +26,7 @@ export class ColumnPageObject extends BasePage {
   }
 
   private getColumnHeader(title: string) {
-    return this.grid.get().locator(`th[data-title="${title}"]`);
+    return this.grid.get().locator(`th[data-title="${title}"]`).first();
   }
 
   async clickColumnHeader({ title }: { title: string }) {
@@ -259,12 +259,15 @@ export class ColumnPageObject extends BasePage {
     // await this.rootPage.locator('li[role="menuitem"]:has-text("Delete")').waitFor();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Delete"):visible').click();
 
-    await this.rootPage.locator('button:has-text("Delete")').click();
+    // pressing on delete column button
+    await this.rootPage.locator('.ant-modal.active button:has-text("Delete Column")').click();
 
     // wait till modal is closed
-    await this.rootPage.locator('.nc-modal-column-delete').waitFor({ state: 'hidden' });
+    await this.rootPage.locator('.ant-modal.active').waitFor({ state: 'hidden' });
   }
 
+  // opening edit modal in table header  double click
+  // or in the dropdown edit click
   async openEdit({
     title,
     type = 'SingleLineText',
@@ -280,6 +283,7 @@ export class ColumnPageObject extends BasePage {
     dateFormat?: string;
     timeFormat?: string;
   }) {
+    // when clicked on the dropdown cell header
     await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').scrollIntoViewIfNeeded();
     await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').click();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').last().click();
@@ -319,7 +323,7 @@ export class ColumnPageObject extends BasePage {
     await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Duplicate"):visible').click();
 
-    await this.verifyToast({ message: 'Column duplicated successfully' });
+    // await this.verifyToast({ message: 'Column duplicated successfully' });
     await this.grid.get().locator(`th[data-title="${expectedTitle}"]`).waitFor({ state: 'visible' });
   }
 

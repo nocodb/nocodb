@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { airtableApiBase, airtableApiKey } from '../../../constants';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { Api, ProjectListType } from 'nocodb-sdk';
@@ -64,6 +64,10 @@ test.describe.skip('Project operations', () => {
         'xc-auth': context.token,
       },
     });
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test.skip('rename, delete', async () => {

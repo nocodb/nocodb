@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { GridPage } from '../../../pages/Dashboard/Grid';
 
 type ExpectedQrCodeData = {
@@ -17,6 +17,10 @@ test.describe('Virtual Columns', () => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     grid = dashboard.grid;
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test.describe('QrCode Column', () => {

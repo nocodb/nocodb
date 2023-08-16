@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { isPg } from '../../../setup/db';
 
 test.describe('Grid view locked', () => {
@@ -10,6 +10,10 @@ test.describe('Grid view locked', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test.skip('ReadOnly lock & collaboration mode', async () => {

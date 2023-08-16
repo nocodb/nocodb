@@ -1,6 +1,6 @@
 import { expect, Page, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { Api, UITypes } from 'nocodb-sdk';
 import { rowMixedValue } from '../../../setup/xcdb-records';
 import { GridPage } from '../../../pages/Dashboard/Grid';
@@ -107,6 +107,10 @@ test.describe('Undo Redo', () => {
 
     // reload page after api calls
     await page.reload();
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   async function verifyRecords(values: any[] = []) {
@@ -401,6 +405,10 @@ test.describe('Undo Redo - Table & view rename operations', () => {
     await page.reload();
   });
 
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   test('Table & View rename', async ({ page }) => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
@@ -534,6 +542,10 @@ test.describe('Undo Redo - LTAR', () => {
 
     // reload page after api calls
     await page.reload();
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   async function verifyRecords(values: any[] = []) {
@@ -684,6 +696,10 @@ test.describe('Undo Redo - Select based', () => {
 
     // reload page after api calls
     await page.reload();
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test.skip('Kanban', async ({ page }) => {

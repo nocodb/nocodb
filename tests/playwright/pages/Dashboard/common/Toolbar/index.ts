@@ -18,12 +18,14 @@ import { RowHeight } from './RowHeight';
 import { MapPage } from '../../Map';
 import { getTextExcludeIconText } from '../../../../tests/utils/general';
 import { ToolbarSharePage } from './Share';
+import { ToolbarGroupByPage } from './Groupby';
 
 export class ToolbarPage extends BasePage {
   readonly parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage;
   readonly fields: ToolbarFieldsPage;
   readonly sort: ToolbarSortPage;
   readonly filter: ToolbarFilterPage;
+  readonly groupBy: ToolbarGroupByPage;
   readonly shareView: ToolbarShareViewPage;
   readonly viewsMenu: ToolbarViewMenuPage;
   readonly actions: ToolbarActionsPage;
@@ -44,6 +46,7 @@ export class ToolbarPage extends BasePage {
     this.fields = new ToolbarFieldsPage(this);
     this.sort = new ToolbarSortPage(this);
     this.filter = new ToolbarFilterPage(this);
+    this.groupBy = new ToolbarGroupByPage(this);
     this.shareView = new ToolbarShareViewPage(this);
     this.viewsMenu = new ToolbarViewMenuPage(this);
     this.actions = new ToolbarActionsPage(this);
@@ -117,6 +120,14 @@ export class ToolbarPage extends BasePage {
 
     // icons count within fields menu button
     expect(await this.get().locator(`button.nc-fields-menu-btn`).locator(`.material-symbols`).count()).toBe(2);
+  }
+
+  async clickGroupBy() {
+    const menuOpen = this.groupBy.get().isVisible();
+    await this.get().locator(`button.nc-group-by-menu-btn`).click();
+    if (!menuOpen) {
+      await this.groupBy.get().waitFor({ state: 'hidden' });
+    }
   }
 
   async clickFilter({
@@ -267,5 +278,10 @@ export class ToolbarPage extends BasePage {
     await this.share.clickCopyLink();
     await this.share.closeModal();
     return await this.getClipboardText();
+  }
+
+  async clickRefresh() {
+    await this.get().locator(`.nc-icon-reload`).waitFor({ state: 'visible' });
+    await this.get().locator(`.nc-icon-reload`).click();
   }
 }

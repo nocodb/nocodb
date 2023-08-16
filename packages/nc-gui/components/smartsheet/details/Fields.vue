@@ -223,6 +223,7 @@ const duplicateField = async (field: TableExplorerColumn) => {
         column_name: duplicateColumnName,
         id: undefined,
         order: undefined,
+        pv: false,
         colOptions: {
           options:
             (field.colOptions as SelectOptionsType)?.options?.map((option: Record<string, any>) => ({
@@ -240,6 +241,7 @@ const duplicateField = async (field: TableExplorerColumn) => {
         id: undefined,
         colOptions: undefined,
         order: undefined,
+        pv: false,
       }
       break
   }

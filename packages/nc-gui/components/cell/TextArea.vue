@@ -87,19 +87,23 @@ onClickOutside(inputWrapperRef, (e) => {
       <span v-else>{{ vModel }}</span>
 
       <NcButton
-        class="!absolute right-0 bottom-0 nc-long-text-toggle-expand !duration-0"
+        class="!absolute right-0 bottom-0 nc-long-text-toggle-expand !duration-0 border-4"
         :class="{
           'top-1': rowHeight !== 1,
           'mt-2': editEnabled,
           'top-0.15': rowHeight === 1,
-          'right-2': isExpandedFormOpen,
         }"
         type="text"
         size="xsmall"
         @click.stop="isVisible = !isVisible"
       >
         <GeneralIcon v-if="isVisible" icon="shrink" class="nc-long-text-toggle-expand h-3.75 w-3.75 !text-xs" />
-        <GeneralIcon v-else icon="expand" class="nc-long-text-toggle-expand h-3.75 w-3.75 !text-xs" />
+        <GeneralIcon
+          v-else
+          icon="expand"
+          class="nc-long-text-toggle-expand h-3.75 w-3.75 !text-xs"
+          :class="{ hidden: isExpandedFormOpen }"
+        />
       </NcButton>
     </div>
     <template #overlay>

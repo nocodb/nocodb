@@ -152,6 +152,7 @@ watch(
             <span>Shared with me</span>
           </div>
           <div
+            v-if="false"
             class="nc-workspace-group-item"
             :class="{ active: activePage === 'starred' }"
             @click="

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule } from '@nestjs/config';
-import {APP_GUARD, APP_INTERCEPTOR} from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppModule as AppCeModule, ceModuleConfig } from 'src/app.module';
 import { WorkspacesModule } from './modules/workspaces/workspaces.module';
 import { CustomApiLimiterGuard } from '~/guards/custom-api-limiter.guard';
@@ -11,7 +11,6 @@ import appConfig from '~/app.config';
 import { Model } from '~/models';
 import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { ExecutionTimeCalculatorInterceptor } from '~/interceptors/execution-time-calculator/execution-time-calculator.interceptor';
-
 
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];

@@ -34,7 +34,7 @@ export const JwtStrategyProvider: Provider = {
   inject: [UsersService, MetaService],
 };
 
-export const globalModuleMetadata ={
+export const globalModuleMetadata = {
   imports: [EventEmitterModule],
   providers: [
     InitMetaServiceProvider,
@@ -57,7 +57,7 @@ export const globalModuleMetadata ={
     TelemetryService,
     ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [SocketGateway] : []),
   ],
-}
+};
 
 @Global()
 @Module(globalModuleMetadata)

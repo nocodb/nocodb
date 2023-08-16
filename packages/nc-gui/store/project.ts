@@ -1,7 +1,7 @@
-import type {BaseType, OracleUi, ProjectType, TableType} from 'nocodb-sdk'
-import {SqlUiFactory} from 'nocodb-sdk'
-import {isString} from '@vue/shared'
-import {acceptHMRUpdate, defineStore} from 'pinia'
+import type { BaseType, OracleUi, ProjectType, TableType } from 'nocodb-sdk'
+import { SqlUiFactory } from 'nocodb-sdk'
+import { isString } from '@vue/shared'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import {
   ClientType,
   computed,
@@ -15,22 +15,22 @@ import {
   useRouter,
   useTheme,
 } from '#imports'
-import type {NcProject, ProjectMetaInfo, ThemeConfig} from '#imports'
+import type { NcProject, ProjectMetaInfo, ThemeConfig } from '#imports'
 
 export const useProject = defineStore('projectStore', () => {
-  const {$e} = useNuxtApp()
+  const { $e } = useNuxtApp()
 
-  const {api, isLoading} = useApi()
+  const { api, isLoading } = useApi()
 
   const router = useRouter()
 
   const route = router.currentRoute
 
-  const {setTheme, theme} = useTheme()
+  const { setTheme, theme } = useTheme()
 
-  const {projectRoles, loadProjectRoles} = useRoles()
+  const { projectRoles, loadProjectRoles } = useRoles()
 
-  const {refreshCommandPalette} = useCommandPalette()
+  const { refreshCommandPalette } = useCommandPalette()
 
   const forcedProjectId = ref<string>()
 
@@ -75,8 +75,10 @@ export const useProject = defineStore('projectStore', () => {
     const temp: Record<string, any> = {}
     for (const base of bases.value) {
       if (base.id) {
-        temp[base.id] = SqlUiFactory.create({client: base.type}) as Exclude<ReturnType<(typeof SqlUiFactory)['create']>,
-          typeof OracleUi>
+        temp[base.id] = SqlUiFactory.create({ client: base.type }) as Exclude<
+          ReturnType<(typeof SqlUiFactory)['create']>,
+          typeof OracleUi
+        >
       }
     }
     return temp
@@ -182,7 +184,7 @@ export const useProject = defineStore('projectStore', () => {
     if (data.meta && typeof data.meta === 'string') {
       await api.project.update(projectId.value, data)
     } else {
-      await api.project.update(projectId.value, {...data, meta: stringifyProp(data.meta)})
+      await api.project.update(projectId.value, { ...data, meta: stringifyProp(data.meta) })
     }
 
     refreshCommandPalette()
@@ -224,7 +226,7 @@ export const useProject = defineStore('projectStore', () => {
     sharedProject.value = projectVal
   }
 
-  const projectUrl = ({id, type: _type}: { id: string; type: 'database' }) => {
+  const projectUrl = ({ id, type: _type }: { id: string; type: 'database' }) => {
     return `/nc/${id}`
   }
 
@@ -233,7 +235,7 @@ export const useProject = defineStore('projectStore', () => {
     (n) => {
       if (!n) reset()
     },
-    {immediate: true},
+    { immediate: true },
   )
 
   watch(

@@ -93,7 +93,7 @@ const navigateToHome = () => {
       </div>
 
       <template v-if="!isSharedBase">
-      <div class="w-full mt-2"></div>
+        <div class="w-full mt-2"></div>
         <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-home-btn" @click="navigateToHome">
           <MaterialSymbolsHomeOutlineRounded class="!h-3.9" />
           <div>{{ $t('general.home') }}</div>
@@ -121,8 +121,7 @@ const navigateToHome = () => {
           </div>
         </WorkspaceCreateProjectBtn>
         <div v-else class="!h-7"></div>
-      <div class="text-gray-500 mx-5 font-medium mt-3 mb-1.5">{{ $t('objects.projects') }}</div>
-
+        <div class="text-gray-500 mx-5 font-medium mt-3 mb-1.5">{{ $t('objects.projects') }}</div>
       </template>
       <div
         class="w-full border-b-1"

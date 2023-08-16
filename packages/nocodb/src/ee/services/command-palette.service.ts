@@ -116,9 +116,9 @@ export class CommandPaletteService {
                 } / ${v._ptn}`,
                 handler: {
                   type: 'navigate',
-                  payload: `/${data.workspace_id}/${
-                    v.project_id
-                  }/table/${v.fk_model_id}/${encodeURIComponent(v.title)}`,
+                  payload: `/${data.workspace_id}/${v.project_id}/table/${
+                    v.fk_model_id
+                  }/${encodeURIComponent(v.title)}`,
                 },
               });
             }

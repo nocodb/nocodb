@@ -4,8 +4,6 @@ import {
   AuditOperationSubTypes,
   AuditOperationTypes,
 } from 'nocodb-sdk';
-import { TelemetryService } from '~/services/telemetry.service';
-import { Producer } from '~/services/producer/producer';
 import type { Audit } from '~/models';
 import type { AuditType } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
@@ -29,6 +27,8 @@ import type {
   UserSignupEvent,
   ViewEvent,
 } from '~/services/app-hooks/interfaces';
+import { Producer } from '~/services/producer/producer';
+import { TelemetryService } from '~/services/telemetry.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { User } from '~/models';
 

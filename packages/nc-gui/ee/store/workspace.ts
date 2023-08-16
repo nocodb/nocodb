@@ -420,7 +420,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     navigateToWorkspace,
     isWorkspaceOwnerOrCreator,
     setLoadingState,
-    isSharedBase
+    isSharedBase,
   }
 })
 

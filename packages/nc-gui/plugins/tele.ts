@@ -1,7 +1,8 @@
 import { useDebounceFn } from '@vueuse/core'
+import type { Socket } from 'socket.io-client'
+import { io } from 'socket.io-client'
 import { defineNuxtPlugin, useRouter } from '#imports'
 import type { NuxtApp } from '#app'
-import {io, Socket} from "socket.io-client";
 
 let clientId: string
 ;(async () => {

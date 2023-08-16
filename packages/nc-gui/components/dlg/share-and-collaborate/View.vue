@@ -138,7 +138,7 @@ watch(showShareModal, (val) => {
       <div class="flex flex-row justify-between items-center pb-1 mx-4 mt-3">
         <div class="flex text-base font-medium">Share</div>
       </div>
-      <div class="share-view" v-if="isViewToolbar">
+      <div v-if="isViewToolbar" class="share-view">
         <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
           <component
             :is="viewIcons[view?.type]?.icon"
@@ -171,8 +171,6 @@ watch(showShareModal, (val) => {
           </div>
         </div>
         <LazyDlgShareAndCollaborateShareBase />
-
-
       </div>
       <div class="flex flex-row justify-end mx-3 mt-1 mb-2 pt-4 gap-x-2">
         <NcButton type="secondary" data-testid="docs-cancel-btn" @click="showShareModal = false"> Close </NcButton>
@@ -215,7 +213,8 @@ watch(showShareModal, (val) => {
     top: 28vh !important;
   }
 
-  .share-view,.share-base {
+  .share-view,
+  .share-base {
     @apply !border-1 border-gray-200 mx-3 rounded-lg mt-3 px-1 py-1;
   }
 

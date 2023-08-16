@@ -4,8 +4,6 @@ import { message } from 'ant-design-vue'
 import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import { useTitle } from '@vueuse/core'
-import { storeToRefs } from '#imports'
-import type { NcProject } from '#imports'
 import {
   ProjectInj,
   ProjectRoleInj,
@@ -13,8 +11,10 @@ import {
   extractSdkResponseErrorMsg,
   isElementInvisible,
   openLink,
+  storeToRefs,
   useProjects,
 } from '#imports'
+import type { NcProject } from '#imports'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',

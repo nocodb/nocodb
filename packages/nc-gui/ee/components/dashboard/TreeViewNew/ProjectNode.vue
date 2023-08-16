@@ -11,9 +11,9 @@ import {
   extractSdkResponseErrorMsg,
   isElementInvisible,
   openLink,
+  storeToRefs,
   useProjects,
   useWorkspace,
-  storeToRefs
 } from '#imports'
 
 const indicator = h(LoadingOutlined, {
@@ -253,12 +253,11 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
   const isProjectPopulated = projectsStore.isProjectPopulated(project.id!)
 
   // if shared base ignore navigation
-  if(route.value.params.typeOrId === 'base') {
+  if (route.value.params.typeOrId === 'base') {
     ignoreNavigation = true
   }
 
   if (!isProjectPopulated) project.isLoading = true
-
 
   // if dashboard or document project, add a document tab and route to the respective page
   switch (project.type) {

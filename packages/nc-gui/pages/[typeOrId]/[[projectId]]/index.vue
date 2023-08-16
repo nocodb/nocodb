@@ -45,11 +45,11 @@ const { toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar:
 const dropdownOpen = ref(false)
 
 onKeyStroke(
-    'Escape',
-    () => {
-      dropdownOpen.value = false
-    },
-    { eventName: 'keydown' },
+  'Escape',
+  () => {
+    dropdownOpen.value = false
+  },
+  { eventName: 'keydown' },
 )
 
 onBeforeMount(async () => {

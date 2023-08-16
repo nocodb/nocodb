@@ -55,7 +55,6 @@ watch(
         </div>
       </div>
       <LazyGeneralShareProject />
-
     </div>
     <div
       class="flex mx-12 my-8 nc-project-view-tab"
@@ -107,12 +106,10 @@ watch(
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__data-sources">
               <GeneralIcon icon="acl" />
-              <div>{{
-                $t('title.uiACL')
-                }}</div>
+              <div>{{ $t('title.uiACL') }}</div>
             </div>
           </template>
-          <DashboardSettingsUIAclTabs class="mt-6"  />
+          <DashboardSettingsUIAclTabs class="mt-6" />
         </a-tab-pane>
       </a-tabs>
     </div>

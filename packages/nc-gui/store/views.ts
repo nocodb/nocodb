@@ -1,5 +1,6 @@
 import type { ViewType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
+import type { ViewPageType } from '~/lib'
 
 export const useViewsStore = defineStore('viewsStore', () => {
   const { $api } = useNuxtApp()
@@ -20,14 +21,13 @@ export const useViewsStore = defineStore('viewsStore', () => {
     return route.value.params.viewTitle
   })
 
+  // Get view page type acc to route which will be used to open the view page
   const openedViewsTab = computed(() => {
-    if (route.value.query.page === 'webhooks') {
-      return 'webhooks'
-    }
-
-    if (route.value.query.page === 'apis') {
-      return 'apis'
-    }
+    // For types in ViewPageType type
+    if (route.value.query.page === 'webhooks') return 'webhooks'
+    if (route.value.query.page === 'fields') return 'fields'
+    if (route.value.query.page === 'apis') return 'apis'
+    if (route.value.query.page === 'relations') return 'relations'
 
     return 'views'
   })
@@ -76,7 +76,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
   }
 
-  const onViewsTabChange = (page: 'views' | 'webhooks' | 'apis') => {
+  const onViewsTabChange = (page: ViewPageType) => {
     router.push({
       query: {
         ...route.value.query,

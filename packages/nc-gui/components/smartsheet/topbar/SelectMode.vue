@@ -25,7 +25,7 @@ const { onViewsTabChange } = useViewsStore()
       :class="{
         active: openedViewsTab !== 'views',
       }"
-      @click="onViewsTabChange('webhooks')"
+      @click="onViewsTabChange('fields')"
     >
       <GeneralIcon
         icon="erd"

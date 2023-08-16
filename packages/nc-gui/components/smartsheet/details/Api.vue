@@ -145,10 +145,6 @@ const onCopyToClipboard = async () => {
   }
 }
 
-const afterVisibleChange = (visible: boolean) => {
-  vModel.value = visible
-}
-
 watch(activeLang, (newLang) => {
   selectedClient.value = newLang?.clients?.[0]
 })
@@ -159,24 +155,20 @@ watch(activeLang, (newLang) => {
     <NcTabs v-model:activeKey="selectedLangName" class="!h-full">
       <a-tab-pane v-for="item in langs" :key="item.name" class="!h-full">
         <template #tab>
-          <div class="uppercase !text-xs select-none">
+          <div class="text-sm capitalize select-none">
             {{ item.name }}
           </div>
         </template>
 
-        <LazyMonacoEditor
-          class="h-[60vh] border-1 border-gray-100 py-4 rounded-sm"
-          :model-value="code"
-          :read-only="true"
-          lang="typescript"
-          :validate="false"
-          :disable-deep-compare="true"
-          hide-minimap
-        />
-
-        <div v-if="activeLang?.clients" class="flex flex-row w-full justify-end space-x-3 mt-4 uppercase">
-          <NcSelect v-model:value="selectedClient" style="width: 6rem" dropdown-class-name="nc-dropdown-snippet-active-lang">
-            <a-select-option v-for="(client, i) in activeLang?.clients" :key="i" class="!w-full uppercase" :value="client">
+        <div class="flex flex-row w-full space-x-3 my-4 items-center">
+          <NcSelect
+            v-if="activeLang?.clients"
+            v-model:value="selectedClient"
+            style="width: 10rem"
+            class="capitalize"
+            dropdown-class-name="nc-dropdown-snippet-active-lang"
+          >
+            <a-select-option v-for="(client, i) in activeLang?.clients" :key="i" class="!w-full capitalize" :value="client">
               {{ client }}
             </a-select-option>
           </NcSelect>
@@ -186,15 +178,27 @@ watch(activeLang, (newLang) => {
               'c:snippet:copy',
               { client: activeLang?.clients && (selectedClient || activeLang?.clients[0]), lang: activeLang?.name },
             ]"
-            type="primary"
+            type="secondary"
             size="small"
             @click="onCopyToClipboard"
           >
-            <div class="flex px-2">
-              {{ $t('general.copy') }}
+            <div class="flex items-center">
+              <GeneralIcon icon="copy" class="mr-1" />
+              {{ $t('general.copy') }} code
             </div>
           </NcButton>
         </div>
+
+        <LazyMonacoEditor
+          class="border-1 border-gray-200 py-4 rounded-lg"
+          style="height: calc(100vh - (var(--topbar-height) * 2) - 8rem)"
+          :model-value="code"
+          :read-only="true"
+          lang="typescript"
+          :validate="false"
+          :disable-deep-compare="true"
+          hide-minimap
+        />
       </a-tab-pane>
     </NcTabs>
   </div>

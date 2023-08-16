@@ -2,7 +2,7 @@
 const { openedViewsTab } = storeToRefs(useViewsStore())
 const { onViewsTabChange } = useViewsStore()
 
-const openedSubTab = computed<'webhooks' | 'apis' | 'views'>({
+const openedSubTab = computed({
   get() {
     return openedViewsTab.value
   },
@@ -13,26 +13,51 @@ const openedSubTab = computed<'webhooks' | 'apis' | 'views'>({
 </script>
 
 <template>
-  <div class="flex flex-col h-full w-full mt-0.5">
-    <NcTabs v-model="openedSubTab" centered>
+  <div class="flex flex-col h-full w-full">
+    <NcTabs v-model="openedSubTab">
+      <a-tab-pane key="fields">
+        <template #tab>
+          <div class="tab">
+            <GeneralIcon icon="list" class="tab-icon" :class="{}" />
+            <div>Fields</div>
+          </div>
+        </template>
+      </a-tab-pane>
+      <a-tab-pane key="relations">
+        <template #tab>
+          <div class="tab">
+            <GeneralIcon icon="erd" class="tab-icon" :class="{}" />
+            <div>Relations</div>
+          </div>
+        </template>
+        <SmartsheetDetailsErd />
+      </a-tab-pane>
+
+      <a-tab-pane key="apis">
+        <template #tab>
+          <div class="tab">
+            <GeneralIcon icon="code" class="tab-icon" :class="{}" />
+            <div>APIs</div>
+          </div>
+        </template>
+        <SmartsheetDetailsApi />
+      </a-tab-pane>
+
       <a-tab-pane key="webhooks">
         <template #tab>
-          <div class="flex flex-row gap-x-1 pr-0.5">
+          <div class="tab">
             <GeneralIcon icon="webhook" class="tab-icon" :class="{}" />
-            <div class="tab-title nc-tab">Webhooks</div>
+            <div>Webhooks</div>
           </div>
         </template>
         <SmartsheetDetailsWebhooks />
       </a-tab-pane>
-      <a-tab-pane key="apis">
-        <template #tab>
-          <div class="flex flex-row gap-x-1 items-center pr-0.5">
-            <GeneralIcon icon="code" class="tab-icon" :class="{}" />
-            <div class="tab-title nc-tab">APIs</div>
-          </div>
-        </template>
-        <SmartsheetDetailsApi
-      /></a-tab-pane>
     </NcTabs>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.tab {
+  @apply flex flex-row items-center gap-x-1.5 pr-0.5;
+}
+</style>

@@ -25,11 +25,12 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 <style lang="scss">
 .nc-tabs.centered {
-  .ant-tabs-nav {
+  > .ant-tabs-nav {
     @apply justify-center mb-0;
-  }
-  .ant-tabs-nav-wrap {
-    @apply w-full flex flex-row justify-center;
+
+    .ant-tabs-nav-wrap {
+      @apply w-full flex flex-row justify-center;
+    }
   }
 }
 
@@ -42,6 +43,11 @@ const vModel = useVModel(props, 'modelValue', emits)
   }
   .ant-tabs-tab.ant-tabs-tab-active:hover .ant-tabs-tab-btn {
     @apply text-brand-600;
+  }
+
+  .ant-tabs-nav {
+    @apply pl-2.5 mb-0;
+    min-height: calc(var(--topbar-height) - 1.75px);
   }
 
   .ant-tabs-ink-bar {

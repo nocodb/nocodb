@@ -237,7 +237,7 @@ test.describe('Form view', () => {
     });
 
     await dashboard.viewSidebar.createFormView({ title: 'NewForm' });
-    const formLink = await dashboard.form.toolbar.getSharedViewUrl();
+    const formLink = await dashboard.form.topbar.getSharedViewUrl();
 
     await dashboard.rootPage.goto(formLink);
     // fix me! kludge@hub; page wasn't getting loaded from previous step
@@ -355,7 +355,7 @@ test.describe('Form view with LTAR', () => {
     const url = dashboard.rootPage.url();
 
     await dashboard.viewSidebar.createFormView({ title: 'NewForm' });
-    const formUrl = await dashboard.form.toolbar.getSharedViewUrl();
+    const formUrl = await dashboard.form.topbar.getSharedViewUrl();
     console.log(formUrl);
 
     // sign-out
@@ -472,7 +472,7 @@ test.describe('Form view', () => {
     const url = dashboard.rootPage.url();
 
     await dashboard.viewSidebar.createFormView({ title: 'NewForm' });
-    const formLink = await dashboard.form.toolbar.getSharedViewUrl();
+    const formLink = await dashboard.form.topbar.getSharedViewUrl();
 
     await dashboard.rootPage.goto(formLink);
     await dashboard.rootPage.reload();

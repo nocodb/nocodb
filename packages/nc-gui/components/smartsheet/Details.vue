@@ -60,4 +60,8 @@ const openedSubTab = computed({
 .tab {
   @apply flex flex-row items-center gap-x-1.5 pr-0.5;
 }
+
+:deep(.ant-tabs-nav) {
+  min-height: calc(var(--topbar-height) - 1.75px);
+}
 </style>

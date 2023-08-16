@@ -47,7 +47,6 @@ const vModel = useVModel(props, 'modelValue', emits)
 
   .ant-tabs-nav {
     @apply pl-2.5 mb-0;
-    min-height: calc(var(--topbar-height) - 1.75px);
   }
 
   .ant-tabs-ink-bar {

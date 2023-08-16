@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { isLinksOrLTAR, RelationTypes } from 'nocodb-sdk';
 import { nocoExecute } from 'nc-help';
-import { DatasService } from './datas.service';
+import { DatasService } from '~/services/datas.service';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';

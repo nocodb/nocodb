@@ -5,6 +5,6 @@ import { DataOptService } from '~/services/data-opt/data-opt.service';
 @Module({
   ...dataModuleMetadata,
   providers: [...dataModuleMetadata.providers, DataOptService],
-  exports: [DataOptService],
+  exports: [...dataModuleMetadata.exports, DataOptService],
 })
 export class DatasModule {}

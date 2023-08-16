@@ -2,6 +2,7 @@
 import type { TableType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 
+import GithubButton from 'vue-github-button'
 import ProjectWrapper from './ProjectWrapper.vue'
 
 import type { TabType } from '#imports'
@@ -282,24 +283,21 @@ onUnmounted(() => {
       <WorkspaceEmptyPlaceholder v-else />
     </div>
 
-    <!-- <div class="flex flex-col border-t-1 border-gray-100">
-      <div class="flex items-center mt-3 justify-center mx-2">
-        <WorkspaceCreateProjectBtn
-          modal
-          type="ghost"
-          class="h-auto w-full nc-create-project-btn !rounded-lg"
-          :active-workspace-id="route.params.typeOrId"
-        >
-          <div class="flex flex-row justify-between w-full items-center">
-            <div class="flex">Create new Project</div>
-            <MaterialSymbolsAddRounded />
-          </div>
-        </WorkspaceCreateProjectBtn>
-      </div>
-      <div class="flex items-start flex-row justify-center px-2 pt-1 pb-1.5 gap-2">
-        <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
-      </div>
-    </div> -->
+    <div class="flex items-start flex-row justify-center px-2 gap-2">
+      <GithubButton
+        class="ml-2"
+        href="https://github.com/nocodb/nocodb"
+        data-icon="octicon-star"
+        data-show-count="true"
+        data-size="large"
+      >
+        Star
+      </GithubButton>
+    </div>
+
+    <div class="flex items-start flex-row justify-center px-2 pt-1 pb-1.5 gap-2">
+      <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
+    </div>
   </div>
 </template>
 

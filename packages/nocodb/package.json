@@ -42,6 +42,7 @@
     "docker:build": "EE=\"true-xc-test\" webpack  --config docker/webpack.config.js"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.338.0",
     "@google-cloud/storage": "^5.7.2",
     "@graphql-tools/merge": "^6.0.12",
     "@nestjs/bull": "^0.6.3",

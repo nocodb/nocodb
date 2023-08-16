@@ -1,16 +1,17 @@
-import { PluginCategory, XcActionType, XcType } from 'nocodb-sdk';
-import S3Plugin from './S3Plugin';
+import { XcActionType, XcType } from 'nocodb-sdk';
+import R2Plugin from './R2Plugin';
 import type { XcPluginConfig } from 'nc-plugin';
 
 const config: XcPluginConfig = {
-  builder: S3Plugin,
-  title: 'S3',
+  builder: R2Plugin,
+  title: 'Cloudflare R2 Storage',
   version: '0.0.2',
-  logo: 'plugins/s3.png',
+  logo: 'plugins/r2.png',
   description:
-    'Amazon Simple Storage Service (Amazon S3) is an object storage service that offers industry-leading scalability, data availability, security, and performance.',
+    'Cloudflare R2 is an S3-compatible, zero egress-fee, globally distributed object storage.',
+  tags: 'Storage',
   inputs: {
-    title: 'Configure Amazon S3',
+    title: 'Configure Cloudflare R2 Storage',
     items: [
       {
         key: 'bucket',
@@ -20,9 +21,16 @@ const config: XcPluginConfig = {
         required: true,
       },
       {
-        key: 'region',
-        label: 'Region',
-        placeholder: 'Region',
+        key: 'hostname',
+        label: 'Host Name',
+        placeholder: 'e.g.: *****.r2.cloudflarestorage.com',
+        type: XcType.SingleLineText,
+        required: true,
+      },
+      {
+        key: 'public_url',
+        label: 'Public URL',
+        placeholder: 'e.g.: pub-********************.r2.dev',
         type: XcType.SingleLineText,
         required: true,
       },
@@ -58,11 +66,10 @@ const config: XcPluginConfig = {
       },
     ],
     msgOnInstall:
-      'Successfully installed and attachment will be stored in AWS S3',
+      'Successfully installed and attachment will be stored in Cloudflare R2 Storage',
     msgOnUninstall: '',
   },
-  category: PluginCategory.STORAGE,
-  tags: 'Storage',
+  category: 'Storage',
 };
 
 export default config;

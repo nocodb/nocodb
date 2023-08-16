@@ -1,16 +1,23 @@
 import fs from 'fs';
 import { promisify } from 'util';
-import AWS from 'aws-sdk';
+
+import {
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3';
+
 import request from 'request';
 import {
   generateTempFilePath,
   waitForStreamClose,
 } from '../../utils/pluginUtils';
+import type { PutObjectRequest, S3ClientConfig } from '@aws-sdk/client-s3';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import type { Readable } from 'stream';
 
 export default class Backblaze implements IStorageAdapterV2 {
-  private s3Client: AWS.S3;
+  private s3Client: S3Client;
   private input: any;
 
   constructor(input: any) {
@@ -18,9 +25,11 @@ export default class Backblaze implements IStorageAdapterV2 {
   }
 
   async fileCreate(key: string, file: XcFile): Promise<any> {
-    const uploadParams: any = {
+    const uploadParams: PutObjectRequest = {
       ACL: 'public-read',
       ContentType: file.mimetype,
+      Bucket: this.input.bucket,
+      Key: key,
     };
     return new Promise((resolve, reject) => {
       // Configure the file stream and obtain the upload parameters
@@ -31,16 +40,16 @@ export default class Backblaze implements IStorageAdapterV2 {
       });
 
       uploadParams.Body = fileStream;
-      uploadParams.Key = key;
 
       // call S3 to retrieve upload file to specified bucket
-      this.s3Client.upload(uploadParams, (err, data) => {
+      this.s3Client.send(new PutObjectCommand(uploadParams), (err, data) => {
         if (err) {
-          console.log('Error', err);
+          console.log(err);
           reject(err);
-        }
-        if (data) {
-          resolve(data.Location);
+        } else {
+          resolve(
+            `https://${this.input.bucket}.s3.${this.input.region}.backblazeb2.com/${key}`,
+          );
         }
       });
     });
@@ -65,15 +74,19 @@ export default class Backblaze implements IStorageAdapterV2 {
           uploadParams.ContentType = httpResponse.headers['content-type'];
 
           // call S3 to retrieve upload file to specified bucket
-          this.s3Client.upload(uploadParams, (err1, data) => {
-            if (err) {
-              console.log('Error', err);
-              reject(err1);
-            }
-            if (data) {
-              resolve(data.Location);
-            }
-          });
+          this.s3Client.send(
+            new PutObjectCommand(uploadParams),
+            (err, data) => {
+              if (err) {
+                console.log(err);
+                reject(err);
+              } else {
+                resolve(
+                  `https://${this.input.bucket}.s3.${this.input.region}.backblazeb2.com/${key}`,
+                );
+              }
+            },
+          );
         },
       );
     });
@@ -110,32 +123,32 @@ export default class Backblaze implements IStorageAdapterV2 {
 
   public async fileRead(key: string): Promise<any> {
     return new Promise((resolve, reject) => {
-      this.s3Client.getObject({ Key: key } as any, (err, data) => {
-        if (err) {
-          return reject(err);
-        }
-        if (!data?.Body) {
-          return reject(data);
-        }
-        return resolve(data.Body);
-      });
+      this.s3Client.send(
+        new GetObjectCommand({ Key: key, Bucket: this.input.bucket }),
+        (err, data) => {
+          if (err) {
+            return reject(err);
+          }
+          if (!data?.Body) {
+            return reject(data);
+          }
+          return resolve(data.Body);
+        },
+      );
     });
   }
 
   public async init(): Promise<any> {
-    const s3Options: any = {
-      params: { Bucket: this.input.bucket },
+    const s3Options: S3ClientConfig = {
       region: this.patchRegion(this.input.region),
+      credentials: {
+        accessKeyId: this.input.access_key,
+        secretAccessKey: this.input.access_secret,
+      },
+      endpoint: `https://s3.${this.input.region}.backblazeb2.com`,
     };
 
-    s3Options.accessKeyId = this.input.access_key;
-    s3Options.secretAccessKey = this.input.access_secret;
-
-    s3Options.endpoint = new AWS.Endpoint(
-      `s3.${s3Options.region}.backblazeb2.com`,
-    );
-
-    this.s3Client = new AWS.S3(s3Options);
+    this.s3Client = new S3Client(s3Options);
   }
 
   public async test(): Promise<boolean> {

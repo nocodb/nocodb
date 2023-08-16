@@ -3,7 +3,6 @@ import BasePage from '../../../Base';
 import { ToolbarFieldsPage } from './Fields';
 import { ToolbarSortPage } from './Sort';
 import { ToolbarFilterPage } from './Filter';
-import { ToolbarShareViewPage } from './ShareView';
 import { ToolbarViewMenuPage } from './ViewMenu';
 import * as fs from 'fs';
 import { GridPage } from '../../Grid';
@@ -17,21 +16,18 @@ import { ToolbarSearchDataPage } from './SearchData';
 import { RowHeight } from './RowHeight';
 import { MapPage } from '../../Map';
 import { getTextExcludeIconText } from '../../../../tests/utils/general';
-import { ToolbarSharePage } from './Share';
 
 export class ToolbarPage extends BasePage {
   readonly parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage;
   readonly fields: ToolbarFieldsPage;
   readonly sort: ToolbarSortPage;
   readonly filter: ToolbarFilterPage;
-  readonly shareView: ToolbarShareViewPage;
   readonly viewsMenu: ToolbarViewMenuPage;
   readonly actions: ToolbarActionsPage;
   readonly stackBy: ToolbarStackbyPage;
   readonly addEditStack: ToolbarAddEditStackPage;
   readonly searchData: ToolbarSearchDataPage;
   readonly rowHeight: RowHeight;
-  readonly share: ToolbarSharePage;
 
   readonly btn_fields: Locator;
   readonly btn_sort: Locator;
@@ -44,14 +40,12 @@ export class ToolbarPage extends BasePage {
     this.fields = new ToolbarFieldsPage(this);
     this.sort = new ToolbarSortPage(this);
     this.filter = new ToolbarFilterPage(this);
-    this.shareView = new ToolbarShareViewPage(this);
     this.viewsMenu = new ToolbarViewMenuPage(this);
     this.actions = new ToolbarActionsPage(this);
     this.stackBy = new ToolbarStackbyPage(this);
     this.addEditStack = new ToolbarAddEditStackPage(this);
     this.searchData = new ToolbarSearchDataPage(this);
     this.rowHeight = new RowHeight(this);
-    this.share = new ToolbarSharePage(this);
 
     this.btn_fields = this.get().locator(`button.nc-fields-menu-btn`);
     this.btn_sort = this.get().locator(`button.nc-sort-menu-btn`);
@@ -145,18 +139,6 @@ export class ToolbarPage extends BasePage {
     }
   }
 
-  async clickShareView() {
-    const menuOpen = await this.shareView.get().isVisible();
-    await this.get().locator(`button.nc-btn-share-view `).click();
-
-    // Wait for the menu to close
-    if (menuOpen) await this.shareView.get().waitFor({ state: 'hidden' });
-  }
-
-  async clickShare() {
-    await this.get().locator(`[data-testid="share-project-button"]`).click();
-  }
-
   async clickStackByField() {
     await this.get().locator(`.nc-toolbar-btn.nc-kanban-stacked-by-menu-btn`).click();
   }
@@ -234,38 +216,5 @@ export class ToolbarPage extends BasePage {
     expect(await this.btn_filter.count()).toBe(1);
     expect(await this.btn_sort.count()).toBe(1);
     expect(await this.btn_rowHeight.count()).toBe(1);
-  }
-
-  async getSharedViewUrl(surveyMode = false, password = '', download = false) {
-    await this.clickShare();
-    // await this.share.clickShareView();
-    await this.share.clickShareViewPublicAccess();
-    await this.share.clickCopyLink();
-    if (surveyMode) {
-      await this.share.clickShareViewSurveyMode();
-    }
-
-    if (password !== '') {
-      await this.share.clickShareViewWithPassword({ password });
-    }
-
-    if (download) {
-      await this.share.clickShareViewWithCSVDownload();
-    }
-
-    await this.share.closeModal();
-    return await this.getClipboardText();
-  }
-
-  async getSharedBaseUrl({ role }: { role: string }) {
-    await this.clickShare();
-    await this.share.clickShareBase();
-    await this.share.clickShareBasePublicAccess();
-    if (role === 'editor') {
-      await this.share.clickShareBaseEditorAccess();
-    }
-    await this.share.clickCopyLink();
-    await this.share.closeModal();
-    return await this.getClipboardText();
   }
 }

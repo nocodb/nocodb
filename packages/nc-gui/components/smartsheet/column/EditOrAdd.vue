@@ -206,8 +206,9 @@ if (props.fromTableExplorer) {
 
 <template>
   <div
-    class="bg-white overflow-auto"
+    class="overflow-auto"
     :class="{
+      'bg-white': !props.fromTableExplorer,
       'w-[400px]': !props.embedMode,
       '!w-[600px]': formState.uidt === UITypes.Formula && !props.embedMode,
       '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode,

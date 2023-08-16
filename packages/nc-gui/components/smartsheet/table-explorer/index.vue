@@ -80,20 +80,6 @@ const temporaryAddCount = ref(0)
 
 const changingField = ref(false)
 
-const changeField = (field: any, event?: MouseEvent) => {
-  if (event) {
-    if (event.target instanceof HTMLElement) {
-      if (event.target.closest('.no-action')) return
-    }
-  }
-
-  changingField.value = true
-  nextTick(() => {
-    activeField.value = field
-    changingField.value = false
-  })
-}
-
 const compareCols = (a: TableExplorerColumn, b: TableExplorerColumn) => {
   if (a?.id && b?.id) {
     return a.id === b.id
@@ -101,6 +87,22 @@ const compareCols = (a: TableExplorerColumn, b: TableExplorerColumn) => {
     return a.temp_id === b.temp_id
   }
   return false
+}
+
+const changeField = (field: any, event?: MouseEvent) => {
+  if (event) {
+    if (event.target instanceof HTMLElement) {
+      if (event.target.closest('.no-action')) return
+    }
+  }
+
+  if (compareCols(field, activeField.value) || (field === undefined && activeField.value === undefined)) return
+
+  changingField.value = true
+  nextTick(() => {
+    activeField.value = field
+    changingField.value = false
+  })
 }
 
 const onFieldUpdate = (state: any) => {
@@ -129,6 +131,9 @@ const onFieldDelete = (state: any) => {
     if (field.op === 'delete') {
       ops.value = ops.value.filter((op) => op.column.id !== state.id)
     } else if (field.op === 'add') {
+      if (activeField.value && compareCols(activeField.value, state)) {
+        changeField(undefined)
+      }
       ops.value = ops.value.filter((op) => op.column.temp_id !== state.temp_id)
       newFields.value = newFields.value.filter((op) => op.temp_id !== state.temp_id)
     } else {
@@ -151,6 +156,18 @@ const onFieldAdd = (state: any) => {
   })
   newFields.value.push(state)
   activeField.value = state
+}
+
+const recoverField = (state: any) => {
+  const field = ops.value.find((op) => compareCols(op.column, state))
+  if (field) {
+    if (field.op === 'delete') {
+      ops.value = ops.value.filter((op) => !compareCols(op.column, state))
+    } else if (field.op === 'update') {
+      ops.value = ops.value.filter((op) => !compareCols(op.column, state))
+    }
+    changeField(activeField.value)
+  }
 }
 
 const fieldState = (field: any) => {
@@ -301,99 +318,105 @@ onMounted(async () => {
         </div>
         <div class="flex mt-2">
           <div class="flex flex-col flex-1 p-2">
-            <template v-for="field of filteredListFields" :key="`field-${field.id || field.temp_id}`">
-              <div
-                class="flex px-2 mb-2 border-1 rounded-lg pl-5 group"
-                :class="`${fieldStatus(field)} ${compareCols(field, activeField) ? 'selected' : ''}`"
-                @click="changeField(field, $event)"
-              >
-                <div class="flex items-center py-2.5 gap-2 w-2/6">
-                  <NcSwitch
-                    v-if="field.id && viewFieldsMap[field.id]"
-                    v-model:checked="viewFieldsMap[field.id].show"
-                    class="no-action"
-                    :disabled="field.pv"
-                    @change="toggleFieldVisibilityWrapper($event, viewFieldsMap[field.id])"
-                  />
-                  <NcSwitch v-else :checked="true" class="no-action" :disabled="true" />
-                  {{ fieldState(field)?.title || field.title }}
-                </div>
-                <div class="flex items-center w-2/6">
-                  <SmartsheetHeaderCellIcon v-if="field" :column-meta="fieldState(field) || field" />
-                  {{ fieldState(field)?.uidt || field.uidt }}
-                </div>
-                <div class="flex flex-1 items-center">
-                  <template v-if="fieldStatus(field) === 'delete'">
-                    <a-tag class="!rounded" color="red">Deleted field</a-tag>
-                  </template>
-                  <template v-else-if="fieldStatus(field) === 'add'">
-                    <a-tag class="!rounded" color="green">New field</a-tag>
-                  </template>
-                </div>
-                <div class="flex items-center justify-end">
-                  <div v-if="fieldStatus(field) === 'delete'">
-                    <NcButton type="ghost" size="small" class="!bg-white">
-                      <div class="flex items-center no-action" :disabled="loading" @click="onFieldDelete(field)">
-                        Recover field
-                      </div>
-                    </NcButton>
+            <TransitionGroup name="slide-fade" tag="div">
+              <template v-for="field of filteredListFields" :key="`field-${field.id || field.temp_id}`">
+                <div
+                  class="flex px-2 mb-2 border-1 rounded-lg pl-5 group"
+                  :class="`${fieldStatus(field)} ${compareCols(field, activeField) ? 'selected' : ''}`"
+                  @click="changeField(field, $event)"
+                >
+                  <div class="flex items-center py-2.5 gap-2 w-2/6">
+                    <NcSwitch
+                      v-if="field.id && viewFieldsMap[field.id]"
+                      v-model:checked="viewFieldsMap[field.id].show"
+                      class="no-action"
+                      :disabled="field.pv"
+                      @change="toggleFieldVisibilityWrapper($event, viewFieldsMap[field.id])"
+                    />
+                    <NcSwitch v-else :checked="true" class="no-action" :disabled="true" />
+                    {{ fieldState(field)?.title || field.title }}
                   </div>
-                  <a-dropdown v-else :trigger="['click']" overlay-class-name="nc-dropdown-table-explorer" @click.stop>
-                    <GeneralIcon icon="threeDotVertical" class="no-action opacity-0 group-hover:(opacity-100) text-gray-500" />
-
-                    <template #overlay>
-                      <a-menu>
-                        <a-menu-item key="table-explorer-duplicate">
-                          <div class="color-transition nc-project-menu-item group">
-                            <GeneralIcon icon="duplicate" class="group-hover:text-accent" />
-                            Duplicate
-                          </div>
-                        </a-menu-item>
-                        <a-menu-item key="table-explorer-insert-above">
-                          <div class="color-transition nc-project-menu-item group">
-                            <GeneralIcon icon="arrowUp" class="group-hover:text-accent" />
-                            Insert Above
-                          </div>
-                        </a-menu-item>
-                        <a-menu-item key="table-explorer-insert-below">
-                          <div class="color-transition nc-project-menu-item group">
-                            <GeneralIcon icon="arrowDown" class="group-hover:text-accent" />
-                            Insert Below
-                          </div>
-                        </a-menu-item>
-
-                        <a-menu-divider class="my-0" />
-
-                        <a-menu-item key="table-explorer-delete" @click="onFieldDelete(field)">
-                          <div class="color-transition nc-project-menu-item group text-red-500">
-                            <GeneralIcon icon="delete" class="group-hover:text-accent" />
-                            Delete
-                          </div>
-                        </a-menu-item>
-                      </a-menu>
+                  <div class="flex items-center w-2/6">
+                    <SmartsheetHeaderCellIcon v-if="field" :column-meta="fieldState(field) || field" />
+                    {{ fieldState(field)?.uidt || field.uidt }}
+                  </div>
+                  <div class="flex flex-1 items-center">
+                    <template v-if="fieldStatus(field) === 'delete'">
+                      <a-tag class="!rounded" color="red">Deleted field</a-tag>
                     </template>
-                  </a-dropdown>
+                    <template v-else-if="fieldStatus(field) === 'add'">
+                      <a-tag class="!rounded" color="green">New field</a-tag>
+                    </template>
+                  </div>
+                  <div class="flex items-center justify-end">
+                    <div v-if="fieldStatus(field) === 'delete' || fieldStatus(field) === 'update'">
+                      <NcButton type="ghost" size="small" class="!bg-white no-action">
+                        <div class="flex items-center text-xs gap-2" :disabled="loading" @click="recoverField(field)">
+                          <GeneralIcon icon="reload" class="group-hover:text-accent" />
+                          Undo Change
+                        </div>
+                      </NcButton>
+                    </div>
+                    <a-dropdown v-else :trigger="['click']" overlay-class-name="nc-dropdown-table-explorer" @click.stop>
+                      <GeneralIcon icon="threeDotVertical" class="no-action opacity-0 group-hover:(opacity-100) text-gray-500" />
+
+                      <template #overlay>
+                        <a-menu>
+                          <a-menu-item key="table-explorer-duplicate">
+                            <div class="color-transition nc-project-menu-item group">
+                              <GeneralIcon icon="duplicate" class="group-hover:text-accent" />
+                              Duplicate
+                            </div>
+                          </a-menu-item>
+                          <a-menu-item key="table-explorer-insert-above">
+                            <div class="color-transition nc-project-menu-item group">
+                              <GeneralIcon icon="arrowUp" class="group-hover:text-accent" />
+                              Insert Above
+                            </div>
+                          </a-menu-item>
+                          <a-menu-item key="table-explorer-insert-below">
+                            <div class="color-transition nc-project-menu-item group">
+                              <GeneralIcon icon="arrowDown" class="group-hover:text-accent" />
+                              Insert Below
+                            </div>
+                          </a-menu-item>
+
+                          <a-menu-divider class="my-0" />
+
+                          <a-menu-item key="table-explorer-delete" @click="onFieldDelete(field)">
+                            <div class="color-transition nc-project-menu-item group text-red-500">
+                              <GeneralIcon icon="delete" class="group-hover:text-accent" />
+                              Delete
+                            </div>
+                          </a-menu-item>
+                        </a-menu>
+                      </template>
+                    </a-dropdown>
+                  </div>
                 </div>
+              </template>
+            </TransitionGroup>
+          </div>
+          <Transition name="slide-fade">
+            <div v-if="!changingField" class="flex p-2 mt-2 w-1/3 border-1 rounded-lg" :class="fieldStatus(activeField)">
+              <SmartsheetColumnEditOrAddProvider
+                v-if="activeField"
+                class="w-full"
+                :column="activeField"
+                :preload="fieldState(activeField)"
+                :table-explorer-columns="listFields"
+                embed-mode
+                from-table-explorer
+                @update="onFieldUpdate"
+                @add="onFieldAdd"
+              />
+              <div v-else class="flex flex-col p-2 mt-2 w-full items-center">
+                <ListIcon class="w-[48px] h-[48px]" />
+                <div class="text-xl text-center py-[24px]">Select a field</div>
+                <div class="text-center">Make changes to field properties by selecting a field from the list</div>
               </div>
-            </template>
-          </div>
-          <div v-if="!changingField && activeField" class="flex p-2 mt-2 w-1/3 border-1 rounded-lg">
-            <SmartsheetColumnEditOrAddProvider
-              class="w-full"
-              :column="activeField"
-              :preload="fieldState(activeField)"
-              :table-explorer-columns="listFields"
-              embed-mode
-              from-table-explorer
-              @update="onFieldUpdate"
-              @add="onFieldAdd"
-            />
-          </div>
-          <div v-else class="flex flex-col p-2 mt-2 w-1/3 items-center border-1 rounded-lg">
-            <ListIcon class="w-[48px] h-[48px]" />
-            <div class="text-xl text-center py-[24px]">Select a field</div>
-            <div class="text-center">Make changes to field properties by selecting a field from the list</div>
-          </div>
+            </div>
+          </Transition>
         </div>
       </div>
     </div>
@@ -416,5 +439,20 @@ onMounted(async () => {
 .selected {
   border: 1px solid #1890ff !important;
   background: var(--background-brand, #ebf0ff);
+}
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.5s cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.slide-fade-enter-from {
+  transform: translateX(20px);
+  opacity: 0;
+}
+.slide-fade-leave-to {
+  opacity: 0;
 }
 </style>

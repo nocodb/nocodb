@@ -1,18 +1,29 @@
 <script setup lang="ts">
 import { diff } from 'deep-object-diff'
 import { message } from 'ant-design-vue'
-import { type ColumnType, isSystemColumn } from 'nocodb-sdk'
-import { type Field, ref, useSmartsheetStoreOrThrow } from '#imports'
+import { UITypes, isSystemColumn } from 'nocodb-sdk'
+import type { ColumnType, SelectOptionsType, TableType } from 'nocodb-sdk'
+import { type Field, getUniqueColumnName, ref, useSmartsheetStoreOrThrow } from '#imports'
 import ListIcon from '~icons/nc-icons/list'
 
 interface TableExplorerColumn extends ColumnType {
   id?: string
   temp_id?: string
+  column_order?: {
+    order: number
+    view_id: string
+  }
 }
 
 interface op {
   op: 'add' | 'update' | 'delete'
   column: TableExplorerColumn
+}
+
+interface moveOp {
+  op: 'move'
+  column: TableExplorerColumn
+  index: number
 }
 
 const { $api } = useNuxtApp()
@@ -21,7 +32,7 @@ const { getMeta } = useMetas()
 
 const { meta, view } = useSmartsheetStoreOrThrow()
 
-const { fields: viewFields, toggleFieldVisibility } = useViewColumns(view, meta)
+const { fields: viewFields, toggleFieldVisibility } = useViewColumns(view, meta as Ref<TableType | undefined>)
 
 const loading = ref(false)
 
@@ -47,8 +58,30 @@ const fields = computed<TableExplorerColumn[]>(() =>
 
 const newFields = ref<TableExplorerColumn[]>([])
 
+const moveOps = ref<moveOp[]>([])
+
+const compareCols = (a: TableExplorerColumn, b: TableExplorerColumn) => {
+  if (a?.id && b?.id) {
+    return a.id === b.id
+  } else if (a?.temp_id && b?.temp_id) {
+    return a.temp_id === b.temp_id
+  }
+  return false
+}
+
 const listFields = computed<TableExplorerColumn[]>(() => {
-  return fields.value.concat(newFields.value)
+  const tempList = fields.value.concat(newFields.value)
+
+  // apply move ops
+  for (const op of moveOps.value) {
+    const index = tempList.findIndex((f) => compareCols(f, op.column))
+    if (index !== -1) {
+      const tempField = tempList.splice(index, 1)
+      tempList.splice(op.index, 0, tempField[0])
+    }
+  }
+
+  return tempList
 })
 
 const activeField = ref()
@@ -74,19 +107,71 @@ const viewFieldsMap = computed<Record<string, Field>>(() => {
   return temp
 })
 
+const orderList = computed(() => {
+  const temp = []
+  for (const field of listFields.value) {
+    if (field.id) {
+      const viewField = viewFieldsMap.value[field.id]
+      if (viewField) {
+        temp.push(viewField.order)
+        continue
+      }
+    }
+    temp.push(-1)
+  }
+  return temp
+})
+
+const calculateOrder = (column: TableExplorerColumn) => {
+  if (!viewFields.value) return -1
+
+  if (column.pv) return viewFieldsMap.value[column.id as string].order
+
+  // this can't be 0 as pv is 0
+  const currentColumnIndex = listFields.value.findIndex((f) => compareCols(f, column))
+
+  let before = -1
+  let after = -1
+
+  let tempIndex = currentColumnIndex
+  let counterBefore = 0
+  while (before === -1) {
+    before = orderList.value[--tempIndex]
+    counterBefore++
+  }
+
+  tempIndex = currentColumnIndex
+  let counterAfter = 0
+  while (after === -1) {
+    if (tempIndex === listFields.value.length) {
+      after = listFields.value.length
+      counterAfter++
+      break
+    }
+    after = orderList.value[++tempIndex]
+    counterAfter++
+  }
+
+  const step = (after - before) / (counterBefore + counterAfter)
+
+  return before + step * counterBefore
+}
+
 const ops = ref<op[]>([])
 
 const temporaryAddCount = ref(0)
 
 const changingField = ref(false)
 
-const compareCols = (a: TableExplorerColumn, b: TableExplorerColumn) => {
-  if (a?.id && b?.id) {
-    return a.id === b.id
-  } else if (a?.temp_id && b?.temp_id) {
-    return a.temp_id === b.temp_id
+const addFieldMoveHook = ref<number>()
+
+const duplicateFieldHook = ref<TableExplorerColumn>()
+
+const setFieldMoveHook = (field: TableExplorerColumn, before = false) => {
+  const index = listFields.value.findIndex((f) => compareCols(f, field))
+  if (index !== -1) {
+    addFieldMoveHook.value = before ? index : index + 1
   }
-  return false
 }
 
 const changeField = (field: any, event?: MouseEvent) => {
@@ -103,6 +188,63 @@ const changeField = (field: any, event?: MouseEvent) => {
     activeField.value = field
     changingField.value = false
   })
+}
+
+const addField = (field?: TableExplorerColumn, before = false) => {
+  if (field) {
+    setFieldMoveHook(field, before)
+  }
+  changeField({})
+}
+
+const duplicateField = async (field: TableExplorerColumn) => {
+  if (!meta.value?.columns) return
+
+  // generate duplicate column name
+  const duplicateColumnName = getUniqueColumnName(`${field.title}_copy`, meta.value?.columns)
+
+  let fieldPayload = {}
+
+  // construct column create payload
+  switch (field.uidt) {
+    case UITypes.LinkToAnotherRecord:
+    case UITypes.Links:
+    case UITypes.Lookup:
+    case UITypes.Rollup:
+    case UITypes.Formula:
+      return message.info('Not available at the moment')
+    case UITypes.SingleSelect:
+    case UITypes.MultiSelect:
+      fieldPayload = {
+        ...field,
+        title: duplicateColumnName,
+        column_name: duplicateColumnName,
+        id: undefined,
+        order: undefined,
+        colOptions: {
+          options:
+            (field.colOptions as SelectOptionsType)?.options?.map((option: Record<string, any>) => ({
+              ...option,
+              id: undefined,
+            })) ?? [],
+        },
+      }
+      break
+    default:
+      fieldPayload = {
+        ...field,
+        title: duplicateColumnName,
+        column_name: duplicateColumnName,
+        id: undefined,
+        colOptions: undefined,
+        order: undefined,
+      }
+      break
+  }
+
+  addField(field)
+
+  duplicateFieldHook.value = fieldPayload as TableExplorerColumn
 }
 
 const onFieldUpdate = (state: any) => {
@@ -149,13 +291,28 @@ const onFieldDelete = (state: any) => {
 }
 
 const onFieldAdd = (state: any) => {
+  if (duplicateFieldHook.value) {
+    state = duplicateFieldHook.value
+    duplicateFieldHook.value = undefined
+  }
+
   state.temp_id = `temp_${++temporaryAddCount.value}`
   ops.value.push({
     op: 'add',
     column: state,
   })
   newFields.value.push(state)
-  activeField.value = state
+
+  if (addFieldMoveHook.value) {
+    moveOps.value.push({
+      op: 'move',
+      column: state,
+      index: addFieldMoveHook.value,
+    })
+    addFieldMoveHook.value = undefined
+  }
+
+  changeField(state)
 }
 
 const recoverField = (state: any) => {
@@ -210,6 +367,23 @@ const saveChanges = async () => {
 
   loading.value = true
 
+  for (const mop of moveOps.value) {
+    const op = ops.value.find((op) => compareCols(op.column, mop.column))
+    if (op && op.op === 'add') {
+      op.column.column_order = {
+        order: calculateOrder(op.column),
+        view_id: view.value?.id as string,
+      }
+    }
+  }
+
+  if (activeField.value) {
+    const activeOp = ops.value.find((op) => compareCols(op.column, activeField.value))
+    if (activeOp && activeOp.op === 'delete') {
+      changeField(undefined)
+    }
+  }
+
   const res = await $api.dbTableColumn.bulk(meta.value?.id, {
     hash: columnsHash.value,
     ops: ops.value,
@@ -228,6 +402,7 @@ const saveChanges = async () => {
       }
       return false
     })
+    moveOps.value = []
   }
 
   await getMeta(meta.value.id, true)
@@ -265,20 +440,20 @@ onMounted(async () => {
       <div class="flex flex-col h-full">
         <div class="flex px-2 py-2">
           <div class="flex gap-2">
-            <NcButton type="primary" size="small">
-              <div class="flex items-center pr-2" @click="changeField({})">
-                <GeneralIcon icon="plus" class="mx-1 h-3.5 w-3.5 text-white-500" />
+            <NcButton type="ghost" size="small">
+              <div class="flex items-center" @click="addField()">
+                <GeneralIcon icon="plus" class="mx-1 h-3.5 w-3.5 text-gray-500" />
                 Add field
               </div>
             </NcButton>
             <NcButton type="ghost" size="small">
-              <div class="flex items-center pr-2">
+              <div class="flex items-center">
                 <GeneralIcon icon="magic" class="mx-1 h-3.5 w-3.5 text-gray-500 text-orange-400" />
                 Add using AI
               </div>
             </NcButton>
             <NcButton type="ghost" size="small">
-              <div class="flex items-center pr-2">
+              <div class="flex items-center">
                 <GeneralIcon icon="magic" class="mx-1 h-3.5 w-3.5 text-gray-500 text-orange-400" />
                 Suggest formula
               </div>
@@ -288,10 +463,10 @@ onMounted(async () => {
           <div class="flex gap-2">
             <template v-if="ops.length > 0">
               <NcButton type="ghost" size="small">
-                <div class="flex items-center px-1" :disabled="loading" @click="clearChanges()">Clear Changes</div>
+                <div class="flex items-center" :disabled="loading" @click="clearChanges()">Clear Changes</div>
               </NcButton>
               <NcButton type="primary" size="small">
-                <div class="flex items-center px-1" :disabled="loading" @click="saveChanges()">Save Changes</div>
+                <div class="flex items-center" :disabled="loading" @click="saveChanges()">Save Changes</div>
               </NcButton>
             </template>
           </div>
@@ -364,19 +539,19 @@ onMounted(async () => {
 
                       <template #overlay>
                         <a-menu>
-                          <a-menu-item key="table-explorer-duplicate">
+                          <a-menu-item key="table-explorer-duplicate" @click="duplicateField(field)">
                             <div class="color-transition nc-project-menu-item group">
                               <GeneralIcon icon="duplicate" class="group-hover:text-accent" />
                               Duplicate
                             </div>
                           </a-menu-item>
-                          <a-menu-item key="table-explorer-insert-above">
+                          <a-menu-item v-if="!field.pv" key="table-explorer-insert-above" @click="addField(field, true)">
                             <div class="color-transition nc-project-menu-item group">
                               <GeneralIcon icon="arrowUp" class="group-hover:text-accent" />
                               Insert Above
                             </div>
                           </a-menu-item>
-                          <a-menu-item key="table-explorer-insert-below">
+                          <a-menu-item key="table-explorer-insert-below" @click="addField(field)">
                             <div class="color-transition nc-project-menu-item group">
                               <GeneralIcon icon="arrowDown" class="group-hover:text-accent" />
                               Insert Below

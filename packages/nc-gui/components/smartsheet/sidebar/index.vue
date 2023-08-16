@@ -186,7 +186,7 @@ onUnmounted(() => {
     <div
       v-else
       ref="tabBtnsContainerRef"
-      class="flex flex-row p-1 mx-3 mt-3 mb-3 rounded-md gap-x-2 nc-view-sidebar-tab text-gray-500"
+      class="flex flex-row p-1 mx-3 mt-2.25 mb-2.75 rounded-md gap-x-2 nc-view-sidebar-tab text-gray-500"
     >
       Views
     </div>

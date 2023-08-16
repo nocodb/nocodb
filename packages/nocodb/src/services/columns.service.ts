@@ -2016,7 +2016,7 @@ export class ColumnsService {
       hash: string;
       ops: {
         op: 'add' | 'update' | 'delete';
-        column?: Partial<Column>;
+        column: Partial<Column>;
       }[];
     },
     req: any,
@@ -2111,8 +2111,8 @@ export class ColumnsService {
           });
         } catch (e) {
           failedOps.push({
-            op,
-            error: e,
+            ...op,
+            error: e.message,
           });
         }
       } else if (op.op === 'update') {
@@ -2126,8 +2126,8 @@ export class ColumnsService {
           });
         } catch (e) {
           failedOps.push({
-            op,
-            error: e,
+            ...op,
+            error: e.message,
           });
         }
       } else if (op.op === 'delete') {
@@ -2139,8 +2139,8 @@ export class ColumnsService {
           });
         } catch (e) {
           failedOps.push({
-            op,
-            error: e,
+            ...op,
+            error: e.message,
           });
         }
       }

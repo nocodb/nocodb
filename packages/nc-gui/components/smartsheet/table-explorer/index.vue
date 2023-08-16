@@ -216,10 +216,12 @@ const saveChanges = async () => {
   })
 
   if (res) {
-    ops.value = res.failedOps || []
+    ops.value = (res.failedOps as op[]) || []
     newFields.value = newFields.value.filter((col) => {
       if (res.failedOps) {
-        const op = res.failedOps.find((fop) => fop.column?.temp_id === col.temp_id)
+        const op = res.failedOps.find((fop) => {
+          return (fop.column as TableExplorerColumn).temp_id === col.temp_id
+        })
         if (op) {
           return true
         }

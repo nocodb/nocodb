@@ -15584,16 +15584,22 @@
                     "failedOps": {
                       "type": "array",
                       "items": {
-                        "schema": {
-                          "type": "object",
-                          "properties": {
-                            "op": {
-                              "type": "string"
-                            },
-                            "column": {
-                              "type": "object"
-                            }
-                          }
+                        "type": "object",
+                        "properties": {
+                          "op": {
+                            "type": "string",
+                            "enum": [
+                              "add",
+                              "update",
+                              "delete"
+                            ],
+                            "required": true
+                          },
+                          "column": {
+                            "$ref": "#/components/schemas/Column",
+                            "required": true
+                          },
+                          "error": {}
                         }
                       }
                     }

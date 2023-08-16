@@ -13,7 +13,7 @@ const openedSubTab = computed<'webhooks' | 'apis' | 'views'>({
 </script>
 
 <template>
-  <div class="flex flex-col h-full w-full">
+  <div class="flex flex-col h-full w-full mt-0.5">
     <NcTabs v-model="openedSubTab" centered>
       <a-tab-pane key="webhooks">
         <template #tab>

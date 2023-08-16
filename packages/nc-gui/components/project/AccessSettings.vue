@@ -130,17 +130,16 @@ watchDebounced(
 
 const modal = ref(true)
 
-const reloadCollabs = async () =>{
-  currentPage.value=0;
-  collaborators.value = [];
+const reloadCollabs = async () => {
+  currentPage.value = 0
+  collaborators.value = []
   await loadCollaborators()
 }
 </script>
 
 <template>
   <div class="nc-collaborator-table-container mt-4 nc-access-settings-view">
-
-    <ProjectInviteProjectCollabSection @invited="reloadCollabs"/>
+    <ProjectInviteProjectCollabSection @invited="reloadCollabs" />
 
     <div v-if="isLoading" class="nc-collaborators-list items-center justify-center">
       <GeneralLoader size="xlarge" />
@@ -153,7 +152,6 @@ const reloadCollabs = async () =>{
           </template>
         </a-input>
       </div>
-
 
       <div v-if="isSearching" class="nc-collaborators-list items-center justify-center">
         <GeneralLoader size="xlarge" />

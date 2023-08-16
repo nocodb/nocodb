@@ -2,12 +2,12 @@
 import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, useDashboard, useManageUsers, useProject, useWorkspace } from '#imports'
 
+const emit = defineEmits(['invited'])
+
 const inviteData = reactive({
   email: '',
   roles: ProjectRoles.VIEWER,
 })
-
-const emit = defineEmits(['invited'])
 
 const projectStore = useProject()
 

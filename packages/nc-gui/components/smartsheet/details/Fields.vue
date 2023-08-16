@@ -163,6 +163,8 @@ const temporaryAddCount = ref(0)
 
 const changingField = ref(false)
 
+const skipTransitionList = ref<string[]>([])
+
 const addFieldMoveHook = ref<number>()
 
 const duplicateFieldHook = ref<TableExplorerColumn>()
@@ -356,6 +358,10 @@ const fieldStatus = (field: any) => {
   return fieldStatuses.value[field?.id || field?.temp_id] || ''
 }
 
+const skipTransition = (field: any) => {
+  return skipTransitionList.value.includes(field?.id || field?.temp_id)
+}
+
 const clearChanges = () => {
   ops.value = []
   newFields.value = []
@@ -377,10 +383,16 @@ const saveChanges = async () => {
     }
   }
 
-  if (activeField.value) {
-    const activeOp = ops.value.find((op) => compareCols(op.column, activeField.value))
-    if (activeOp && activeOp.op === 'delete') {
-      changeField(undefined)
+  for (const op of ops.value) {
+    if (op.op === 'add') {
+      skipTransitionList.value.push(op.column.temp_id as string)
+      if (activeField.value && compareCols(activeField.value, op.column)) {
+        changeField(undefined)
+      }
+    } else if (op.op === 'delete') {
+      if (activeField.value && compareCols(activeField.value, op.column)) {
+        changeField(undefined)
+      }
     }
   }
 
@@ -404,6 +416,8 @@ const saveChanges = async () => {
     })
     moveOps.value = []
   }
+
+  skipTransitionList.value = []
 
   await getMeta(meta.value.id, true)
   columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
@@ -440,20 +454,20 @@ onMounted(async () => {
       <div class="flex flex-col h-full">
         <div class="flex px-2 py-2">
           <div class="flex gap-2">
-            <NcButton type="ghost" size="small">
-              <div class="flex items-center" @click="addField()">
-                <GeneralIcon icon="plus" class="mx-1 h-3.5 w-3.5 text-gray-500" />
+            <NcButton type="primary" size="small">
+              <div class="flex items-center pr-2" @click="addField()">
+                <GeneralIcon icon="plus" class="mx-1 h-3.5 w-3.5" />
                 Add field
               </div>
             </NcButton>
             <NcButton type="ghost" size="small">
-              <div class="flex items-center">
+              <div class="flex items-center pr-2">
                 <GeneralIcon icon="magic" class="mx-1 h-3.5 w-3.5 text-gray-500 text-orange-400" />
                 Add using AI
               </div>
             </NcButton>
             <NcButton type="ghost" size="small">
-              <div class="flex items-center">
+              <div class="flex items-center pr-2">
                 <GeneralIcon icon="magic" class="mx-1 h-3.5 w-3.5 text-gray-500 text-orange-400" />
                 Suggest formula
               </div>
@@ -463,10 +477,10 @@ onMounted(async () => {
           <div class="flex gap-2">
             <template v-if="ops.length > 0">
               <NcButton type="ghost" size="small">
-                <div class="flex items-center" :disabled="loading" @click="clearChanges()">Clear Changes</div>
+                <div class="flex items-center px-1" :disabled="loading" @click="clearChanges()">Clear Changes</div>
               </NcButton>
               <NcButton type="primary" size="small">
-                <div class="flex items-center" :disabled="loading" @click="saveChanges()">Save Changes</div>
+                <div class="flex items-center px-1" :disabled="loading" @click="saveChanges()">Save Changes</div>
               </NcButton>
             </template>
           </div>
@@ -499,7 +513,9 @@ onMounted(async () => {
               <template v-for="field of filteredListFields" :key="`field-${field.id || field.temp_id}`">
                 <div
                   class="flex px-2 mb-2 border-1 rounded-lg pl-5 group"
-                  :class="`${fieldStatus(field)} ${compareCols(field, activeField) ? 'selected' : ''}`"
+                  :class="`${fieldStatus(field)} ${compareCols(field, activeField) ? 'selected' : ''} ${
+                    skipTransition(field) ? 'skip-animation' : ''
+                  }`"
                   @click="changeField(field, $event)"
                 >
                   <div class="flex items-center py-2.5 gap-2 w-2/6">
@@ -528,7 +544,7 @@ onMounted(async () => {
                   <div class="flex items-center justify-end">
                     <div v-if="fieldStatus(field) === 'delete' || fieldStatus(field) === 'update'">
                       <NcButton type="ghost" size="small" class="!bg-white no-action">
-                        <div class="flex items-center text-xs gap-2" :disabled="loading" @click="recoverField(field)">
+                        <div class="flex items-center text-xs gap-1" :disabled="loading" @click="recoverField(field)">
                           <GeneralIcon icon="reload" class="group-hover:text-accent" />
                           Undo Change
                         </div>
@@ -587,6 +603,9 @@ onMounted(async () => {
                 @update="onFieldUpdate"
                 @add="onFieldAdd"
               />
+              <div v-else-if="loading" class="flex flex-col p-2 mt-2 w-full items-center">
+                <GeneralIcon icon="reload" class="animate-infinite animate-spin text-gray-500 w-[48px] h-[48px]" />
+              </div>
               <div v-else class="flex flex-col p-2 mt-2 w-full items-center">
                 <ListIcon class="w-[48px] h-[48px]" />
                 <div class="text-xl text-center py-[24px]">Select a field</div>
@@ -623,6 +642,10 @@ onMounted(async () => {
 
 .slide-fade-leave-active {
   transition: all 0.5s cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.skip-animation {
+  transition: none;
 }
 
 .slide-fade-enter-from {

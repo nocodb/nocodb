@@ -26,7 +26,7 @@ const vModel = useVModel(props, 'modelValue', emits)
 <style lang="scss">
 .nc-tabs.centered {
   .ant-tabs-nav {
-    @apply justify-center;
+    @apply justify-center mb-0;
   }
   .ant-tabs-nav-wrap {
     @apply w-full flex flex-row justify-center;

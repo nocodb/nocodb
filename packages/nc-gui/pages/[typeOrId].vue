@@ -8,6 +8,9 @@ const projectsStore = useProjects()
 watch(
   () => route.value.params.typeOrId,
   async () => {
+    if (!((route.value.name as string) || '').startsWith('typeOrId-projectId-')) {
+      return
+    }
     await projectsStore.loadProjects('recent')
   },
   {

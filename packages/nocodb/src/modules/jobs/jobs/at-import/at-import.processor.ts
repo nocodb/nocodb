@@ -1831,9 +1831,7 @@ export class AtImportProcessor {
               req: { user: syncDB.user, clientIp: '' },
             })
             .catch((e) =>
-              e.response?.data?.msg
-                ? logBasic(`NOTICE: ${e.response.data.msg}`)
-                : console.log(e),
+              e.message ? logBasic(`NOTICE: ${e.message}`) : console.log(e),
             ),
         );
         recordPerfStats(_perfStart, 'auth.projectUserAdd');
@@ -2307,10 +2305,12 @@ export class AtImportProcessor {
       await nocoSetPrimary(aTblSchema);
       logDetailed('Configuring Display Value column completed');
 
-      logBasic('Configuring User(s)');
-      // add users
-      await nocoAddUsers(schema);
-      logDetailed('Adding users completed');
+      if (syncDB.options.syncUsers) {
+        logBasic('Configuring User(s)');
+        // add users
+        await nocoAddUsers(schema);
+        logDetailed('Adding users completed');
+      }
 
       // hide-fields
       // await nocoReconfigureFields(aTblSchema);
@@ -2416,12 +2416,12 @@ export class AtImportProcessor {
         await generateMigrationStats(aTblSchema);
       }
     } catch (e) {
-      if (e.response?.data?.msg) {
+      if (e.message) {
         T.event({
           event: 'a:airtable-import:error',
-          data: { error: e.response.data.msg },
+          data: { error: e.message },
         });
-        throw new Error(e.response.data.msg);
+        throw new Error(e.message);
       }
       throw e;
     }

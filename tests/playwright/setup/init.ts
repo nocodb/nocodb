@@ -1,4 +1,4 @@
-import express from 'express';
+/* import express from 'express';
 import { initializeSakilaTemplatePg } from './knexHelper';
 
 const app = express();
@@ -15,3 +15,4 @@ app.get('/', (_req, res) => {
 });
 
 init();
+*/

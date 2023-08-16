@@ -16,12 +16,14 @@ import { ToolbarSearchDataPage } from './SearchData';
 import { RowHeight } from './RowHeight';
 import { MapPage } from '../../Map';
 import { getTextExcludeIconText } from '../../../../tests/utils/general';
+import { ToolbarGroupByPage } from './Groupby';
 
 export class ToolbarPage extends BasePage {
   readonly parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage;
   readonly fields: ToolbarFieldsPage;
   readonly sort: ToolbarSortPage;
   readonly filter: ToolbarFilterPage;
+  readonly groupBy: ToolbarGroupByPage;
   readonly viewsMenu: ToolbarViewMenuPage;
   readonly actions: ToolbarActionsPage;
   readonly stackBy: ToolbarStackbyPage;
@@ -40,6 +42,7 @@ export class ToolbarPage extends BasePage {
     this.fields = new ToolbarFieldsPage(this);
     this.sort = new ToolbarSortPage(this);
     this.filter = new ToolbarFilterPage(this);
+    this.groupBy = new ToolbarGroupByPage(this);
     this.viewsMenu = new ToolbarViewMenuPage(this);
     this.actions = new ToolbarActionsPage(this);
     this.stackBy = new ToolbarStackbyPage(this);
@@ -111,6 +114,14 @@ export class ToolbarPage extends BasePage {
 
     // icons count within fields menu button
     expect(await this.get().locator(`button.nc-fields-menu-btn`).locator(`.material-symbols`).count()).toBe(2);
+  }
+
+  async clickGroupBy() {
+    const menuOpen = this.groupBy.get().isVisible();
+    await this.get().locator(`button.nc-group-by-menu-btn`).click();
+    if (!menuOpen) {
+      await this.groupBy.get().waitFor({ state: 'hidden' });
+    }
   }
 
   async clickFilter({
@@ -216,5 +227,10 @@ export class ToolbarPage extends BasePage {
     expect(await this.btn_filter.count()).toBe(1);
     expect(await this.btn_sort.count()).toBe(1);
     expect(await this.btn_rowHeight.count()).toBe(1);
+  }
+
+  async clickRefresh() {
+    await this.get().locator(`.nc-icon-reload`).waitFor({ state: 'visible' });
+    await this.get().locator(`.nc-icon-reload`).click();
   }
 }

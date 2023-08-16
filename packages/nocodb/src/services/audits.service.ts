@@ -10,7 +10,7 @@ import { Audit, Model } from '~/models';
 @Injectable()
 export class AuditsService {
   constructor(
-    private readonly appHooksListenerService: AppHooksListenerService,
+    protected readonly appHooksListenerService: AppHooksListenerService,
   ) {}
 
   async commentRow(param: { body: AuditRowUpdateReqType; user: any }) {

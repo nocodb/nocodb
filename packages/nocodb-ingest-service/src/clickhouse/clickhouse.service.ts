@@ -1,13 +1,14 @@
+import * as path from 'path';
 import { Injectable, Logger } from '@nestjs/common';
 import { ClickHouse } from 'clickhouse';
-import type { OnModuleInit } from '@nestjs/common';
+import { migration } from 'clickhouse-migrations/lib/migrate';
+import ClickhouseLock from './clickhouse-lock';
+import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import NcConfigFactory from '../helpers/NcConfigFactory';
 
 @Injectable()
-export class ClickhouseService implements OnModuleInit {
+export class ClickhouseService implements OnModuleInit, OnModuleDestroy {
   private client: ClickHouse;
-  private logger: Logger = new Logger(ClickhouseService.name);
-
   private config: {
     username?: string;
     password?: string;
@@ -15,6 +16,7 @@ export class ClickhouseService implements OnModuleInit {
     port?: number;
     database?: string;
   };
+  private logger = new Logger(ClickhouseService.name);
 
   async execute(query: string, isInsert = false): Promise<any> {
     if (!this.client) return;
@@ -24,12 +26,11 @@ export class ClickhouseService implements OnModuleInit {
       : this.client.query(query).toPromise();
   }
 
+  onModuleDestroy(): any {}
+
   async onModuleInit(): Promise<any> {
     if (!process.env.NC_CLICKHOUSE) {
-      this.logger.error(
-        'NC_CLICKHOUSE environment variable is not set. Please set it to a valid ClickHouse connection string.',
-      );
-      process.exit(1);
+      return;
     }
 
     const { connection, client } = await NcConfigFactory.metaUrlToDbConfig(
@@ -43,11 +44,27 @@ export class ClickhouseService implements OnModuleInit {
       password: connection.password,
       database: connection.database ?? 'nc',
     };
+
     try {
-      this.client = new ClickHouse(this.config);
+      const clickhouseLock = new ClickhouseLock(this.config);
+
+      await clickhouseLock.executeWithLock(
+        async () => {
+          await migration(
+            path.join(__dirname, 'migrations'),
+            `${this.config.host}:${this.config.port}`,
+            this.config.username,
+            this.config.password,
+            this.config.database,
+          );
+        },
+        120000,
+        2000,
+      );
     } catch (e) {
-      this.logger.error(e);
-      process.exit(1);
+      this.logger.error('Check Clickhouse configuration');
+      throw e;
     }
+    this.client = new ClickHouse(this.config);
   }
 }

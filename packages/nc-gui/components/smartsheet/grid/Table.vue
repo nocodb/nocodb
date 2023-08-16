@@ -6,6 +6,7 @@ import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
   FieldsInj,
+  IsGroupByInj,
   IsLockedInj,
   MetaInj,
   NavigateDir,
@@ -68,8 +69,8 @@ const props = defineProps<{
   hideHeader?: boolean
   pagination?: {
     fixedSize?: number
-    sticky?: boolean
     hideSidebars?: boolean
+    extraStyle?: string
   }
   disableSkeleton?: boolean
 }>()
@@ -81,6 +82,8 @@ const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 const paginationDataRef = toRef(props, 'paginationData')
 
 const dataRef = toRef(props, 'data')
+
+const paginationStyleRef = toRef(props, 'pagination')
 
 const {
   loadData,
@@ -95,7 +98,6 @@ const {
   bulkUpdateRows,
   headerOnly,
   hideHeader,
-  pagination,
   disableSkeleton,
 } = props
 
@@ -111,6 +113,8 @@ const readOnly = inject(ReadonlyInj, ref(false))
 const isLocked = inject(IsLockedInj, ref(false))
 
 const isPublicView = inject(IsPublicInj, ref(false))
+
+const isGroupBy = inject(IsGroupByInj, ref(false))
 
 const route = useRoute()
 
@@ -723,7 +727,6 @@ onClickOutside(tableBodyEl, (e) => {
   if (isDrawerOrModalExist()) {
     return
   }
-
   clearSelectedRange()
   activeCell.row = null
   activeCell.col = null
@@ -1118,6 +1121,17 @@ defineExpose({
   scrollToRow,
   openColumnCreate,
 })
+
+// when expand is clicked the drawer should open
+// and cell should loose focs
+const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
+  if (expandForm) {
+    expandForm(row, col)
+  }
+  activeCell.row = null
+  activeCell.col = null
+  selectedRange.clear()
+}
 </script>
 
 <template>
@@ -1356,7 +1370,7 @@ defineExpose({
                                 v-if="row.rowMeta?.commentCount && expandForm"
                                 class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
                                 :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
-                                @click="expandForm(row, state)"
+                                @click="expandAndLooseFocus(row, state)"
                               >
                                 {{ row.rowMeta.commentCount }}
                               </span>
@@ -1369,7 +1383,7 @@ defineExpose({
                                   v-if="expandForm"
                                   v-e="['c:row-expand']"
                                   class="select-none transform hover:(text-black scale-120) nc-row-expand"
-                                  @click="expandForm(row, state)"
+                                  @click="expandAndLooseFocus(row, state)"
                                 />
                               </div>
                             </template>
@@ -1443,7 +1457,7 @@ defineExpose({
               </template>
 
               <tr
-                v-if="isAddingEmptyRowAllowed"
+                v-if="isAddingEmptyRowAllowed && !isGroupBy"
                 v-e="['c:row:add:grid-bottom']"
                 class="text-left nc-grid-add-new-cell cursor-pointer group relative z-3"
                 :class="{
@@ -1562,10 +1576,7 @@ defineExpose({
       </a-dropdown>
     </div>
 
-    <div
-      v-if="showSkeleton && headerOnly !== true"
-      class="flex flex-row justify-center item-center min-h-10 border-t-1 border-gray-100"
-    >
+    <div v-if="showSkeleton && headerOnly !== true" class="flex flex-row justify-center item-center min-h-10">
       <a-skeleton :active="true" :title="true" :paragraph="false" class="-mt-1 max-w-60" />
     </div>
     <LazySmartsheetPagination
@@ -1573,13 +1584,17 @@ defineExpose({
       v-model:pagination-data="paginationDataRef"
       align-count-on-right
       :change-page="changePage"
-      :hide-sidebars="pagination?.hideSidebars === true"
-      :sticky="pagination?.sticky === true"
-      :fixed-size="pagination?.fixedSize"
+      :hide-sidebars="paginationStyleRef?.hideSidebars === true"
+      :fixed-size="paginationStyleRef?.fixedSize"
+      :extra-style="paginationStyleRef?.extraStyle"
     >
       <template #add-record>
         <div v-if="isAddingEmptyRowAllowed" class="flex ml-2">
-          <a-dropdown-button placement="top" @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()">
+          <a-dropdown-button
+            class="nc-grid-add-new-row"
+            placement="top"
+            @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
+          >
             <div class="flex items-center px-2 text-gray-600 hover:text-black">
               <span>
                 <template v-if="isAddNewRecordGridMode"> {{ $t('activity.newRecord') }} </template>

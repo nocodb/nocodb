@@ -2,11 +2,77 @@ import { Page, selectors } from '@playwright/test';
 import axios, { AxiosResponse } from 'axios';
 import { Api, ProjectListType, ProjectType, ProjectTypes, UserType, WorkspaceType } from 'nocodb-sdk';
 import { getDefaultPwd } from '../tests/utils/general';
+import { Knex, knex } from 'knex';
+import { promises as fs } from 'fs';
 import { isEE } from './db';
 import { resetSakilaPg } from './knexHelper';
+import path from 'path';
 
 // Use local reset logic instead of remote
 const enableLocalInit = true;
+
+// MySQL Configuration
+const mysqlConfig = {
+  client: 'mysql2',
+  connection: {
+    host: 'localhost',
+    port: 3306,
+    user: 'root',
+    password: 'password',
+    database: 'sakila',
+    multipleStatements: true,
+    dateStrings: true,
+  },
+};
+
+const extMysqlProject = (title, parallelId) => ({
+  title,
+  bases: [
+    {
+      type: 'mysql2',
+      config: {
+        client: 'mysql2',
+        connection: {
+          host: 'localhost',
+          port: '3306',
+          user: 'root',
+          password: 'password',
+          database: `test_sakila_${parallelId}`,
+        },
+      },
+      inflection_column: 'camelize',
+      inflection_table: 'camelize',
+    },
+  ],
+  external: true,
+});
+
+// PG Configuration
+//
+const pgConfig = {
+  client: 'pg',
+  connection: {
+    host: 'localhost',
+    port: 5432,
+    user: 'postgres',
+    password: 'password',
+    database: 'postgres',
+    multipleStatements: true,
+  },
+  searchPath: ['public', 'information_schema'],
+  pool: { min: 0, max: 1 },
+};
+
+// Sakila Knex Configuration
+//
+const sakilaKnexConfig = (parallelId: string) => ({
+  ...pgConfig,
+  connection: {
+    ...pgConfig.connection,
+    database: `sakila${parallelId}`,
+  },
+  pool: { min: 0, max: 1 },
+});
 
 // External PG Project create payload
 //
@@ -58,6 +124,29 @@ const extPgProjectCE = (title, parallelId) => ({
   external: true,
 });
 
+const extSQLiteProjectCE = (title: string, workerId: string) => ({
+  title,
+  bases: [
+    {
+      type: 'sqlite3',
+      config: {
+        client: 'sqlite3',
+        connection: {
+          client: 'sqlite3',
+          connection: {
+            filename: sqliteFilePath(workerId),
+            database: 'test_sakila',
+            multipleStatements: true,
+          },
+        },
+      },
+      inflection_column: 'camelize',
+      inflection_table: 'camelize',
+    },
+  ],
+  external: true,
+});
+
 const workerCount = [0, 0, 0, 0, 0, 0, 0, 0];
 
 export interface NcContext {
@@ -70,17 +159,23 @@ export interface NcContext {
 }
 
 selectors.setTestIdAttribute('data-testid');
+const sqliteFilePath = (workerId: string) => {
+  const rootDir = process.cwd();
+  return `${rootDir}/../../packages/nocodb/test_sakila_${workerId}.db`;
+};
 
 async function localInit({
   workerId,
   isEmptyProject = false,
   projectType = ProjectTypes.DATABASE,
   isSuperUser = false,
+  dbType,
 }: {
   workerId: string;
   isEmptyProject?: boolean;
   projectType?: ProjectTypes;
   isSuperUser?: boolean;
+  dbType?: string;
 }) {
   const parallelId = process.env.TEST_PARALLEL_INDEX;
 
@@ -158,6 +253,26 @@ async function localInit({
     // DB reset
     if (!isEmptyProject) {
       await resetSakilaPg(`sakila${workerId}`);
+    } else if (dbType === 'sqlite') {
+      if (await fs.stat(sqliteFilePath(parallelId)).catch(() => null)) {
+        await fs.unlink(sqliteFilePath(parallelId));
+      }
+      if (!isEmptyProject) {
+        const testsDir = path.join(process.cwd(), '../../packages/nocodb/tests');
+        await fs.copyFile(`${testsDir}/sqlite-sakila-db/sakila.db`, sqliteFilePath(parallelId));
+      }
+    } else if (dbType === 'mysql') {
+      const nc_knex = knex(mysqlConfig);
+
+      try {
+        await nc_knex.raw(`USE test_sakila_${parallelId}`);
+      } catch (e) {
+        await nc_knex.raw(`CREATE DATABASE test_sakila_${parallelId}`);
+        await nc_knex.raw(`USE test_sakila_${parallelId}`);
+      }
+      if (!isEmptyProject) {
+        await resetSakilaMysql(nc_knex, parallelId, isEmptyProject);
+      }
     }
 
     let workspace;
@@ -191,7 +306,13 @@ async function localInit({
         });
       } else {
         try {
-          project = await api.project.create(extPgProjectCE(projectTitle, workerId));
+          project = await api.project.create(
+            dbType === 'pg'
+              ? extPgProjectCE(projectTitle, workerId)
+              : dbType === 'sqlite'
+              ? extSQLiteProjectCE(projectTitle, parallelId)
+              : extMysqlProject(projectTitle, parallelId)
+          );
         } catch (e) {
           console.log(`Error creating project: ${projectTitle}`);
         }
@@ -220,8 +341,9 @@ const setup = async ({
   isSuperUser?: boolean;
   url?: string;
 }): Promise<NcContext> => {
-  // on noco-hub, only PG is supported
-  const dbType = 'pg';
+  let dbType = process.env.CI ? process.env.E2E_DB_TYPE : process.env.E2E_DEV_DB_TYPE;
+  dbType = dbType || 'sqlite';
+
   let response;
 
   const workerIndex = process.env.TEST_WORKER_INDEX;
@@ -240,6 +362,7 @@ const setup = async ({
         isEmptyProject,
         projectType,
         isSuperUser,
+        dbType,
       });
     }
     // Remote reset logic
@@ -326,7 +449,7 @@ export const unsetup = async (context: NcContext): Promise<void> => {
   if (context.token && context.project) {
     // try to delete the project
     try {
-       // Init SDK using token
+      // Init SDK using token
       const api = new Api({
         baseURL: `http://localhost:8080/`,
         headers: {
@@ -336,6 +459,37 @@ export const unsetup = async (context: NcContext): Promise<void> => {
 
       await api.project.delete(context.project.id);
     } catch (e) {}
+  }
+};
+
+// Reference
+// packages/nocodb/src/lib/services/test/TestResetService/resetPgSakilaProject.ts
+
+const resetSakilaMysql = async (knex: Knex, parallelId: string, isEmptyProject: boolean) => {
+  const testsDir = path.join(process.cwd(), '/../../packages/nocodb/tests');
+
+  try {
+    await knex.raw(`DROP DATABASE test_sakila_${parallelId}`);
+  } catch (e) {
+    console.log('Error dropping db', e);
+  }
+  await knex.raw(`CREATE DATABASE test_sakila_${parallelId}`);
+
+  if (isEmptyProject) return;
+
+  const trx = await knex.transaction();
+
+  try {
+    const schemaFile = await fs.readFile(`${testsDir}/mysql-sakila-db/03-test-sakila-schema.sql`);
+    const dataFile = await fs.readFile(`${testsDir}/mysql-sakila-db/04-test-sakila-data.sql`);
+
+    await trx.raw(schemaFile.toString().replace(/test_sakila/g, `test_sakila_${parallelId}`));
+    await trx.raw(dataFile.toString().replace(/test_sakila/g, `test_sakila_${parallelId}`));
+
+    await trx.commit();
+  } catch (e) {
+    console.log('Error resetting mysql db', e);
+    await trx.rollback(e);
   }
 };
 

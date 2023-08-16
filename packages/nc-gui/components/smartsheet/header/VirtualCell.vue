@@ -32,6 +32,8 @@ const hideMenu = toRef(props, 'hideMenu')
 
 const editColumnDropdown = ref(false)
 
+const isDropDownOpen = ref(false)
+
 provide(ColumnInj, column)
 
 const { metas } = useMetas()
@@ -107,7 +109,7 @@ const tooltipMsg = computed(() => {
 
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 
-const addField = async (payload) => {
+const addField = async (payload: any) => {
   columnOrder.value = payload
   editColumnDropdown.value = true
 }
@@ -119,7 +121,11 @@ const closeAddColumnDropdown = () => {
 </script>
 
 <template>
-  <div class="flex items-center w-full text-xs text-gray-500 font-weight-medium" :class="{ 'h-full': column }">
+  <div
+    class="flex items-center w-full text-xs text-gray-500 font-weight-medium"
+    :class="{ 'h-full': column }"
+    @click.right="isDropDownOpen = !isDropDownOpen"
+  >
     <LazySmartsheetHeaderVirtualCellIcon v-if="column" />
 
     <a-tooltip placement="bottom">
@@ -138,6 +144,7 @@ const closeAddColumnDropdown = () => {
 
       <LazySmartsheetHeaderMenu
         v-if="!isForm && isUIAllowed('edit-column')"
+        v-model:is-open="isDropDownOpen"
         :virtual="true"
         @add-column="addField"
         @edit="editColumnDropdown = true"

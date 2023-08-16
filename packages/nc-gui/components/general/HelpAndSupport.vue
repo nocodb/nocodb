@@ -10,7 +10,7 @@ const { project } = storeToRefs(useProject())
 const route = useRoute()
 
 const openSwaggerLink = () => {
-  openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.value.ncSiteUrl)
+  openLink(`./api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.value.ncSiteUrl)
 }
 </script>
 

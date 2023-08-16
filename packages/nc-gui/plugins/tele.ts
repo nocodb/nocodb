@@ -76,22 +76,25 @@ export default defineNuxtPlugin(async (nuxtApp) => {
   //   try {
   //     if (socket) socket.disconnect()
   //
-  //     const url = new URL(appInfo.ncSiteUrl, window.location.href.split(/[?#]/)[0]).href
+  //     const url = new URL(appInfo.ncSiteUrl, window.location.href.split(/[?#]/)[0])
+  //     let socketPath = url.pathname
+  //     socketPath += socketPath.endsWith('/') ? 'socket.io' : '/socket.io'
   //
-  //     socket = io(url, {
-  //       extraHeaders: {'xc-auth': token},
+  //     socket = io(url.href, {
+  //       extraHeaders: { 'xc-auth': token },
+  //       path: socketPath,
   //     })
   //
   //     socket.on('connect_error', () => {
   //       socket.disconnect()
   //     })
-  //   } catch {
-  //   }
+  //   } catch {}
+  // }
+  //
+  // if (nuxtApp.$state.signedIn.value) {
+  //   await init(nuxtApp.$state.token.value)
   // }
 
-  // if (nuxtApp.$state.signedIn.value) {
-  //   // await init(nuxtApp.$state.token.value)
-  // }
 
   router.afterEach((to) => {
     // if (!socket || (to.path === from.path && (to.query && to.query.type) === (from.query && from.query.type))) return

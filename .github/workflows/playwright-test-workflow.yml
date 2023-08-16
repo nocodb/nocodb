@@ -67,7 +67,8 @@ jobs:
           mysql -u'root' -p'password' -e "DROP DATABASE IF EXISTS \`$db\`";
           done
           # this is only needed for connecting to sakila db as its refeferred in multiple places in test code
-          mysql -u'root' -p'password' < 01-mysql-sakila-schema.sql          
+          mysql -u'root' -p'password' < 01-mysql-sakila-schema.sql   
+          mysql -u'root' -p'password' < 02-mysql-sakila-insert-data.sql
       - name: Setup pg for quick tests
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '1' }}
         working-directory: ./packages/nocodb/tests/pg-cy-quick/

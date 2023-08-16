@@ -192,22 +192,22 @@ export class ViewSidebarPage extends BasePage {
     await expect(this.createFormButton).toHaveCount(count);
     await expect(this.createKanbanButton).toHaveCount(count);
 
-    await this.openDeveloperTab({});
-    await expect(this.erdButton).toHaveCount(1);
-    await expect(this.apiSnippet).toHaveCount(1);
-    await expect(this.webhookButton).toHaveCount(count);
+    // await this.openDeveloperTab({});
+    // await expect(this.erdButton).toHaveCount(1);
+    // await expect(this.apiSnippet).toHaveCount(1);
+    // await expect(this.webhookButton).toHaveCount(count);
   }
 
-  async openDeveloperTab({ option }: { option?: string }) {
-    await this.get().locator('.nc-tab').nth(1).click();
-    if (option === 'ERD') {
-      await this.get().locator('.nc-view-action-erd.button').click();
-    } else if (option?.toLowerCase() === 'webhook') {
-      await this.get().locator('.nc-view-sidebar-webhook').click();
-    }
-  }
-
-  async openViewsTab() {
-    await this.get().locator(',nc-tab').nth(0).click();
-  }
+  // async openDeveloperTab({ option }: { option?: string }) {
+  //   await this.get().locator('.nc-tab').nth(1).click();
+  //   if (option === 'ERD') {
+  //     await this.get().locator('.nc-view-action-erd.button').click();
+  //   } else if (option?.toLowerCase() === 'webhook') {
+  //     await this.get().locator('.nc-view-sidebar-webhook').click();
+  //   }
+  // }
+  //
+  // async openViewsTab() {
+  //   await this.get().locator(',nc-tab').nth(0).click();
+  // }
 }

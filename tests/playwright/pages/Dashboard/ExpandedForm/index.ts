@@ -2,6 +2,7 @@ import { expect, Locator } from '@playwright/test';
 import BasePage from '../../Base';
 import { DashboardPage } from '..';
 import { DateTimeCellPageObject } from '../common/Cell/DateTimeCell';
+import { getTextExcludeIconText } from '../../../tests/utils/general';
 
 export class ExpandedFormPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -177,7 +178,7 @@ export class ExpandedFormPage extends BasePage {
     for (let i = 0; i < (await menuItems.count()); i++) {
       if (role === 'owner' || role === 'editor' || role === 'creator') {
         const menuText = ['Reload', 'Duplicate row', 'Delete row', 'Close'];
-        expect(await menuItems.nth(i).innerText()).toBe(menuText[i]);
+        expect(await getTextExcludeIconText(menuItems.nth(i))).toBe(menuText[i]);
       } else {
         const menuText = ['Reload', 'Close'];
         expect(await menuItems.nth(i).innerText()).toBe(menuText[i]);

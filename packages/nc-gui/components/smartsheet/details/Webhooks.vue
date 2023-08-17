@@ -89,11 +89,13 @@ watch(showEditModal, () => {
 
 watch(
   () => activeTable.value?.id,
-  () => {
+  async () => {
     if (!activeTable.value?.id) return
 
     selectedHookId.value = undefined
-    loadHooksList()
+    await loadHooksList()
+
+    selectedHookId.value = hooks.value[0]?.id
   },
   {
     immediate: true,
@@ -123,7 +125,7 @@ const createWebhook = async () => {
           <GeneralIcon icon="plus" />
         </div>
       </NcButton>
-      <div v-if="hooks.length === 0" class="flex flex-col px-1.5 py-2.5 ml-6.5 text-gray-500">Empty</div>
+      <div v-if="hooks.length === 0" class="flex flex-col px-1.5 py-2.5 ml-1 text-gray-500">Empty</div>
       <div v-else class="flex flex-col pb-2 gap-y-1.5 mt-3 nc-scrollbar-md mb-2.5">
         <div
           v-for="hook in hooks"

@@ -87,6 +87,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   })
 
   const isWorkspaceOwnerOrCreator = computed(() => {
+    console.log('activeWorkspace.value?.roles:ee', activeWorkspace.value)
     // todo: type correction
     return (
       activeWorkspace.value?.roles === WorkspaceUserRoles.OWNER || activeWorkspace.value?.roles === WorkspaceUserRoles.CREATOR
@@ -379,6 +380,15 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     await router.push({ query: { workspaceId, page: 'workspace' } })
   }
 
+  const navigateToWorkspaceSettings = async (workspaceId?: string) => {
+    workspaceId = workspaceId || activeWorkspaceId.value!
+    if (!workspaceId) {
+      throw new Error('Workspace not selected')
+    }
+
+    await router.push({ name: 'ws-workspaceId-projectType-settings', params: { workspaceId } })
+  }
+
   return {
     loadWorkspaces,
     workspaces,
@@ -411,6 +421,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     upgradeActiveWorkspace,
     navigateToWorkspace,
     isWorkspaceOwnerOrCreator,
+    navigateToWorkspaceSettings,
   }
 })
 

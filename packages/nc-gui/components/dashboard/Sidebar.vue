@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { useGlobal } from '#imports'
-import { navigateTo } from '#app'
 
 const router = useRouter()
 
@@ -9,6 +8,8 @@ const route = router.currentRoute
 const workspaceStore = useWorkspace()
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
+
+const { navigateToWorkspaceSettings } = useWorkspace()
 
 const { isUIAllowed } = useUIPermission()
 
@@ -44,7 +45,7 @@ const navigateToHome = () => {
   if (appInfo.value.baseHostName) {
     window.location.href = `https://app.${appInfo.value.baseHostName}/dashboard`
   } else {
-    navigateTo('/')
+    navigateToWorkspaceSettings()
   }
 }
 </script>
@@ -91,8 +92,8 @@ const navigateToHome = () => {
       <div class="w-full mt-2"></div>
 
       <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-home-btn" @click="navigateToHome">
-        <MaterialSymbolsHomeOutlineRounded class="!h-3.9" />
-        <div>{{ $t('general.home') }}</div>
+        <GeneralIcon icon="settings" class="!h-3.9" />
+        <div>Workspace settings</div>
       </div>
       <WorkspaceCreateProjectBtn
         v-if="isUIAllowed('createProject', false, activeWorkspace?.roles)"

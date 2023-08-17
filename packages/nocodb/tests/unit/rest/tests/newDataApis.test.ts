@@ -299,7 +299,7 @@ function generalDb() {
   });
 
   it('Nested List - Link to another record', async function () {
-    const expectedRecords = ['1', '3', '1', '2'];
+    const expectedRecords = [1, 3, 1, 2];
 
     // read first 4 records
     const records = await ncAxiosGet({
@@ -382,7 +382,7 @@ function generalDb() {
     });
 
     // extract LTAR column "City List"
-    expect(records.body['Cities']).to.equal('1');
+    expect(records.body['Cities']).to.equal(1);
   });
 
   it('Nested Read - Lookup', async function () {

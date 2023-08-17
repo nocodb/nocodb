@@ -282,4 +282,13 @@ export class TreeViewPage extends BasePage {
   private async getProject(param: { index: number }) {
     return this.get().locator(`.project-title-node`).nth(param.index);
   }
+
+  async deleteProject(param: { title: string }) {
+    await this.btn_projectContextMenu.hover();
+    await this.btn_projectContextMenu.click();
+    const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md');
+    await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Delete")`).click();
+
+    await this.rootPage.locator('div.ant-modal-content').locator(`button.ant-btn:has-text("Delete Project")`).click();
+  }
 }

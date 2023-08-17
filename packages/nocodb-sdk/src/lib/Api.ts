@@ -10156,6 +10156,43 @@ export class Api<
       }),
 
     /**
+ * @description List all webhook plugins
+ * 
+ * @tags Plugin
+ * @name WebhookList
+ * @summary Webhook List Plugins
+ * @request GET:/api/v1/db/meta/plugins/webhook
+ * @response `200` `{
+  list?: (PluginType)[],
+  \** Model for Paginated *\
+  pageInfo?: PaginatedType,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    webhookList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          list?: PluginType[];
+          /** Model for Paginated */
+          pageInfo?: PaginatedType;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/plugins/webhook`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Check plugin is active or not
  * 
  * @tags Plugin

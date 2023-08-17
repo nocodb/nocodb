@@ -46,4 +46,12 @@ export class PluginsService {
   async isPluginActive(param: { pluginTitle: string }) {
     return await Plugin.isPluginActive(param.pluginTitle);
   }
+
+  async webhookPluginList() {
+    const plugins = await Plugin.list();
+
+    return plugins.filter((p) =>
+      ['Slack', 'Microsoft Teams', 'Discord', 'Mattermost'].includes(p.title),
+    );
+  }
 }

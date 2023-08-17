@@ -31,6 +31,12 @@ export class PluginsController {
     return new PagedResponseImpl(await this.pluginsService.pluginList());
   }
 
+  @Get('/api/v1/db/meta/plugins/webhook')
+  @Acl('webhookPluginList')
+  async webhookPluginList() {
+    return new PagedResponseImpl(await this.pluginsService.webhookPluginList());
+  }
+
   @Post('/api/v1/db/meta/plugins/test')
   @HttpCode(200)
   @Acl('pluginTest')
@@ -61,4 +67,5 @@ export class PluginsController {
       pluginTitle: pluginTitle,
     });
   }
+
 }

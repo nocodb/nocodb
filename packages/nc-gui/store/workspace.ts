@@ -192,10 +192,17 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const upgradeActiveWorkspace = async () => {}
 
   const navigateToWorkspace = async (workspaceId?: string) => {
+    workspaceId = workspaceId || activeWorkspaceId.value!
     if (!workspaceId) {
-      return await router.push({ query: { page: 'workspace' } })
+      throw new Error('Workspace not selected')
     }
-    await router.push({ query: { workspaceId, page: 'workspace' } })
+
+    await router.push({ name: 'ws-workspaceId', params: { workspaceId } })
+    await populateWorkspace({ force: true })
+
+    setTimeout(() => {
+      window.location.reload()
+    }, 100)
   }
 
   const navigateToWorkspaceSettings = async (workspaceId?: string) => {

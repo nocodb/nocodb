@@ -30,7 +30,7 @@ export const getIncidentHandlerConfig = ({
 
   return {
     app,
-    projectName: 'N8N',
+    projectName: 'NocoDB',
     connection,
     entities: {
       ServerIncident,
@@ -40,7 +40,8 @@ export const getIncidentHandlerConfig = ({
     zoho: {
       desk: {
         config: {
-          accountsUrl: process.env.ZOHO_ACCOUNTS_BASE_URL,
+          accountsUrl:
+            process.env.ZOHO_ACCOUNTS_BASE_URL || 'https://accounts.zoho.com',
           clientId: process.env.ZOHO_DESK_MONITORING_CLIENT_ID,
           clientSecret: process.env.ZOHO_DESK_MONITORING_CLIENT_SECRET,
           refreshToken: process.env.ZOHO_DESK_MONITORING_REFRESH_TOKEN,

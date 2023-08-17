@@ -41,31 +41,33 @@ test.describe.skip('Erd', () => {
     await unsetup(context);
   });
 
-  const toggleMMAndOpenErd = async () => {
-    await dashboard.settings.selectTab({ tab: SettingTab.ProjectSettings, subTab: SettingsSubTab.Miscellaneous });
+  const toggleMM = async () => {
+    await dashboard.treeView.projectSettings({});
     await dashboard.settings.miscellaneous.clickShowM2MTables();
-    await dashboard.settings.selectTab({ tab: SettingTab.DataSources });
-    await dashboard.settings.dataSources.openErd({
-      dataSourceName: defaultBaseName,
-    });
+    await dashboard.settings.close();
+
+    // await dashboard.settings.selectTab({ tab: SettingTab.ProjectSettings, subTab: SettingsSubTab.Miscellaneous });
+    // await dashboard.settings.miscellaneous.clickShowM2MTables();
+    // await dashboard.settings.selectTab({ tab: SettingTab.DataSources });
+    // await dashboard.settings.dataSources.openErd({
+    //   dataSourceName: defaultBaseName,
+    // });
   };
 
-  const openSettingsErd = async () => {
-    await dashboard.gotoSettings();
-    await dashboard.settings.selectTab({ tab: SettingTab.DataSources });
-    await dashboard.settings.dataSources.openErd({
-      dataSourceName: defaultBaseName,
-    });
+  const openProjectErd = async () => {
+    await dashboard.projectView.tab_dataSources.click();
+    await dashboard.projectView.dataSources.openERD({ rowIndex: 0 });
   };
 
   const openErdOfATable = async (tableName: string) => {
     await dashboard.treeView.openTable({ title: tableName });
-    await dashboard.viewSidebar.openDeveloperTab({ option: 'ERD' });
+    await dashboard.grid.topbar.openDetailedTab();
+    await dashboard.details.clickRelationsTab();
   };
 
   test('Verify default config, all columns disabled, only PK and FK disabled, Sql views and MM table option, junction table names', async () => {
-    await openSettingsErd();
-    await toggleMMAndOpenErd();
+    await toggleMM();
+    await openProjectErd();
 
     const erd: SettingsErdPage = dashboard.settings.dataSources.erd;
 
@@ -229,7 +231,7 @@ test.describe.skip('Erd', () => {
     // Add column
     await dashboard.grid.column.create({ title: 'test_column' });
     // Verify in Settings ERD and table ERD
-    await openSettingsErd();
+    await openProjectErd();
     await dashboard.settings.dataSources.erd.verifyNode({
       tableName: `country`,
       columnName: 'test_column',
@@ -251,7 +253,7 @@ test.describe.skip('Erd', () => {
       isUpdated: true,
     });
     // Verify in Settings ERD and table ERD
-    await openSettingsErd();
+    await openProjectErd();
     await dashboard.settings.dataSources.erd.verifyNode({
       tableName: `country`,
       columnName: 'new_test_column',
@@ -269,7 +271,7 @@ test.describe.skip('Erd', () => {
     // Delete column
     await dashboard.grid.column.delete({ title: 'new_test_column' });
     // Verify in Settings ERD and table ERD
-    await openSettingsErd();
+    await openProjectErd();
     await dashboard.settings.dataSources.erd.verifyNode({
       tableName: `country`,
       columnNameShouldNotExist: 'new_test_column',
@@ -278,7 +280,7 @@ test.describe.skip('Erd', () => {
   });
 
   test('Verify table operations sync with ERD', async () => {
-    await openSettingsErd();
+    await openProjectErd();
     await dashboard.settings.close();
 
     await dashboard.treeView.openTable({ title: 'Country' });
@@ -293,7 +295,7 @@ test.describe.skip('Erd', () => {
     // Create table and verify ERD
     await dashboard.treeView.createTable({ title: 'Test', projectTitle: context.project.title });
     // Verify in Settings ERD and table ERD
-    await openSettingsErd();
+    await openProjectErd();
     await dashboard.settings.dataSources.erd.verifyNode({
       tableName: `Test`,
     });
@@ -301,7 +303,7 @@ test.describe.skip('Erd', () => {
 
     // Delete table and verify ERD
     await dashboard.treeView.deleteTable({ title: 'Test' });
-    await openSettingsErd();
+    await openProjectErd();
     await dashboard.settings.dataSources.erd.verifyNodeDoesNotExist({
       tableName: `Test`,
     });

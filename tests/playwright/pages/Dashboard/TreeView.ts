@@ -190,6 +190,13 @@ export class TreeViewPage extends BasePage {
       .dragTo(this.get().locator(`[data-testid="tree-view-table-${destinationTable}"]`));
   }
 
+  async projectSettings({ title }: { title?: string }) {
+    await this.btn_projectContextMenu.hover();
+    await this.btn_projectContextMenu.click();
+    const settingsMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md');
+    await settingsMenu.locator(`[data-menu-id="teamAndSettings"]`).click();
+  }
+
   async quickImport({ title }: { title: string }) {
     await this.btn_projectContextMenu.hover();
     await this.btn_projectContextMenu.click();

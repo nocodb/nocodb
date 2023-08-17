@@ -697,7 +697,7 @@ test.describe.serial('Webhook', () => {
             CityList: '2',
             CityCodeRollup: '2',
             CityCodeFormula: 100,
-            CityCodeLookup: [23, 33],
+            CityCodeLookup: ['23', '33'],
           },
         ],
         rows: [
@@ -708,7 +708,7 @@ test.describe.serial('Webhook', () => {
             CityList: '2',
             CityCodeRollup: '2',
             CityCodeFormula: 100,
-            CityCodeLookup: [23, 33],
+            CityCodeLookup: ['23', '33'],
           },
         ],
       },

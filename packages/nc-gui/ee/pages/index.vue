@@ -7,6 +7,10 @@ definePageMeta({
   hasSidebar: true,
 })
 
+const router = useRouter()
+
+const route = router.currentRoute
+
 const dialogOpen = ref(false)
 
 const openDialogKey = ref<string>('')
@@ -34,10 +38,6 @@ provide(ToggleDialogInj, toggleDialog)
 // TODO
 // const isSharedBase = ref(false)
 // const currentVersion = ref('')
-
-const router = useRouter()
-
-const route = router.currentRoute
 
 const projectId = computed(() => route.value.params.projectId)
 
@@ -81,7 +81,6 @@ const { deleteWorkspace: _deleteWorkspace, loadWorkspaces } = workspaceStore
 
 // create a new sidebar state
 const { toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
-const { loadScope } = useCommandPalette()
 
 let timerRef: any
 
@@ -93,10 +92,14 @@ onMounted(async () => {
   toggle(true)
   toggleHasSidebar(true)
 
-  await loadWorkspaces()
-  await loadScope('root')
+  // skip loading workspace and command palette for shared base
+  if (!['base'].includes(route.value.params.typeOrId as string)) {
+    await loadWorkspaces()
+    const { loadScope } = useCommandPalette()
+    await loadScope('root')
+  }
 
-  if (!workspaceStore.activeWorkspace.value) {
+  if (!workspaceStore.activeWorkspace.value && !['nc', 'base'].includes(route.value.params.typeOrId as string)) {
     await populateWorkspace()
   }
 })

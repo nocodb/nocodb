@@ -329,7 +329,7 @@ export class ToolbarFilterPage extends BasePage {
           } else {
             await this.rootPage
               .locator(`.nc-dropdown-single-select-cell`)
-              .locator(`.nc-select-option-SingleSelect-${value}`)
+              .locator(`.nc-select-option-${title}-${value}`)
               .click();
           }
           break;

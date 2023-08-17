@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import setup, { unsetup } from '../../../setup';
+import { isMysql } from '../../../setup/db';
+import { UITypes } from 'nocodb-sdk';
 
 test.describe('Toolbar operations (GRID)', () => {
   let dashboard: DashboardPage, toolbar: ToolbarPage;
@@ -98,7 +100,8 @@ test.describe('Toolbar operations (GRID)', () => {
     await toolbar.filter.add({
       title: 'Rating',
       value: 'PG-13',
-      operation: 'is equal',
+      operation: isMysql(context) ? 'is' : 'is equal',
+      dataType: isMysql(context) ? UITypes.SingleSelect : UITypes.SingleLineText,
     });
     await toolbar.clickFilter();
     await dashboard.grid.groupPage.verifyGroupHeader({
@@ -302,6 +305,13 @@ test.describe('Toolbar operations (GRID)', () => {
     // Open Table
     await dashboard.treeView.openTable({ title: 'Film' });
 
+    if (isMysql(context)) {
+      // change type of ReleaseYear from Year to SingleLineText
+      await dashboard.grid.column.openEdit({ title: 'ReleaseYear', type: 'SingleLineText' });
+      await dashboard.grid.column.selectType({ type: 'SingleLineText' });
+      await dashboard.grid.column.save({ isUpdated: true });
+    }
+
     // Open GroupBy Menu
     await toolbar.clickGroupBy();
 
@@ -322,7 +332,8 @@ test.describe('Toolbar operations (GRID)', () => {
     await toolbar.filter.add({
       title: 'Rating',
       value: 'PG-13',
-      operation: 'is equal',
+      operation: isMysql(context) ? 'is' : 'is equal',
+      dataType: isMysql(context) ? UITypes.SingleSelect : UITypes.SingleLineText,
       locallySaved: false,
     });
     await toolbar.clickFilter();
@@ -371,7 +382,8 @@ test.describe('Toolbar operations (GRID)', () => {
     await toolbar.filter.add({
       title: 'Rating',
       value: 'NC-17',
-      operation: 'is equal',
+      operation: isMysql(context) ? 'is' : 'is equal',
+      dataType: isMysql(context) ? UITypes.SingleSelect : UITypes.SingleLineText,
       locallySaved: false,
     });
     await toolbar.clickFilter();
@@ -395,7 +407,8 @@ test.describe('Toolbar operations (GRID)', () => {
     await toolbar.filter.add({
       title: 'Rating',
       value: 'PG-13',
-      operation: 'is equal',
+      operation: isMysql(context) ? 'is' : 'is equal',
+      dataType: isMysql(context) ? UITypes.SingleSelect : UITypes.SingleLineText,
       locallySaved: false,
     });
     await toolbar.clickFilter();
@@ -439,6 +452,13 @@ test.describe('Toolbar operations (GRID)', () => {
 
   test('Update GroupBy and Verify', async () => {
     await dashboard.treeView.openTable({ title: 'Film' });
+
+    if (isMysql(context)) {
+      // change type of ReleaseYear from Year to SingleLineText
+      await dashboard.grid.column.openEdit({ title: 'ReleaseYear', type: 'SingleLineText' });
+      await dashboard.grid.column.selectType({ type: 'SingleLineText' });
+      await dashboard.grid.column.save({ isUpdated: true });
+    }
 
     // Open GroupBy Menu
     await toolbar.clickGroupBy();

@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import setup, { unsetup } from '../../../setup';
+import { isMysql } from '../../../setup/db';
+import { UITypes } from 'nocodb-sdk';
 
 test.describe('Toolbar operations (GRID)', () => {
   let dashboard: DashboardPage, toolbar: ToolbarPage;
@@ -98,7 +100,8 @@ test.describe('Toolbar operations (GRID)', () => {
     await toolbar.filter.add({
       title: 'Rating',
       value: 'PG-13',
-      operation: 'is equal',
+      operation: isMysql(context) ? 'is' : 'is equal',
+      dataType: UITypes.SingleSelect,
     });
     await toolbar.clickFilter();
     await dashboard.grid.groupPage.verifyGroupHeader({
@@ -322,7 +325,8 @@ test.describe('Toolbar operations (GRID)', () => {
     await toolbar.filter.add({
       title: 'Rating',
       value: 'PG-13',
-      operation: 'is equal',
+      operation: isMysql(context) ? 'is' : 'is equal',
+      dataType: UITypes.SingleSelect,
       locallySaved: false,
     });
     await toolbar.clickFilter();
@@ -371,7 +375,8 @@ test.describe('Toolbar operations (GRID)', () => {
     await toolbar.filter.add({
       title: 'Rating',
       value: 'NC-17',
-      operation: 'is equal',
+      operation: isMysql(context) ? 'is' : 'is equal',
+      dataType: UITypes.SingleSelect,
       locallySaved: false,
     });
     await toolbar.clickFilter();
@@ -395,7 +400,8 @@ test.describe('Toolbar operations (GRID)', () => {
     await toolbar.filter.add({
       title: 'Rating',
       value: 'PG-13',
-      operation: 'is equal',
+      operation: isMysql(context) ? 'is' : 'is equal',
+      dataType: UITypes.SingleSelect,
       locallySaved: false,
     });
     await toolbar.clickFilter();

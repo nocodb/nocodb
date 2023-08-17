@@ -112,7 +112,7 @@ onMounted(async () => {
         <DashboardSidebar />
       </template>
       <template #content>
-        <NuxtPage />
+        <NuxtPage :transition="false" />
       </template>
     </NuxtLayout>
     <LazyDashboardSettingsModal

@@ -39,5 +39,5 @@ watch(
 </script>
 
 <template>
-  <NuxtPage :page-key="route.params.projectTypeOrWorkspaceId" />
+  <NuxtPage :transition="false" :page-key="route.params.projectTypeOrWorkspaceId" />
 </template>

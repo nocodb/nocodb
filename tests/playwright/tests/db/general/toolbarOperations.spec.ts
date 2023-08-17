@@ -305,6 +305,12 @@ test.describe('Toolbar operations (GRID)', () => {
     // Open Table
     await dashboard.treeView.openTable({ title: 'Film' });
 
+    if (isMysql(context)) {
+      // change type of ReleaseYear from Year to SingleLineText
+      await dashboard.grid.column.openEdit({ title: 'ReleaseYear', type: 'SingleLineText' });
+      await dashboard.grid.column.save({ isUpdated: true });
+    }
+
     // Open GroupBy Menu
     await toolbar.clickGroupBy();
 

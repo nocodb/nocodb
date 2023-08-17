@@ -101,7 +101,7 @@ test.describe('Toolbar operations (GRID)', () => {
       title: 'Rating',
       value: 'PG-13',
       operation: isMysql(context) ? 'is' : 'is equal',
-      dataType: UITypes.SingleSelect,
+      dataType: isMysql(context) ? UITypes.SingleSelect : UITypes.SingleLineText,
     });
     await toolbar.clickFilter();
     await dashboard.grid.groupPage.verifyGroupHeader({
@@ -332,7 +332,7 @@ test.describe('Toolbar operations (GRID)', () => {
       title: 'Rating',
       value: 'PG-13',
       operation: isMysql(context) ? 'is' : 'is equal',
-      dataType: UITypes.SingleSelect,
+      dataType: isMysql(context) ? UITypes.SingleSelect : UITypes.SingleLineText,
       locallySaved: false,
     });
     await toolbar.clickFilter();
@@ -382,7 +382,7 @@ test.describe('Toolbar operations (GRID)', () => {
       title: 'Rating',
       value: 'NC-17',
       operation: isMysql(context) ? 'is' : 'is equal',
-      dataType: UITypes.SingleSelect,
+      dataType: isMysql(context) ? UITypes.SingleSelect : UITypes.SingleLineText,
       locallySaved: false,
     });
     await toolbar.clickFilter();
@@ -407,7 +407,7 @@ test.describe('Toolbar operations (GRID)', () => {
       title: 'Rating',
       value: 'PG-13',
       operation: isMysql(context) ? 'is' : 'is equal',
-      dataType: UITypes.SingleSelect,
+      dataType: isMysql(context) ? UITypes.SingleSelect : UITypes.SingleLineText,
       locallySaved: false,
     });
     await toolbar.clickFilter();

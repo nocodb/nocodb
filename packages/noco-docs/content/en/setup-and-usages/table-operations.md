@@ -14,11 +14,12 @@ Once you have created a new NocoDB project you can open it, In the browser, the 
 
 On project dashboard, click on `Add new table` button
 
-<img width="1505" alt="image" src="https://user-images.githubusercontent.com/35857179/194795025-afd81191-4743-435b-b802-88367d2663f9.png">
+![table-create-button](https://github.com/nocodb/nocodb/assets/86527202/0b1d0b89-b3c6-4c3c-8208-4b6afce67d23)
 
-Provide a name for the table & click `Submit` button.
+Provide a name for the table & click `Create Table` button.
 
-<img width="1510" alt="image" src="https://user-images.githubusercontent.com/35857179/194795048-aef59b23-ba3f-40ca-88bd-19ee512d7114.png">
+![table-create-modal](https://github.com/nocodb/nocodb/assets/86527202/fceb6c48-e0d6-428c-bb16-d2da4e38a81f)
+
 
 After the successful submission, the table will be created and open on a new grid.  
 

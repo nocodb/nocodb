@@ -2,7 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import { getConnectionManager } from 'typeorm';
 import Noco from '../lib/Noco';
-import { createDatabaseConnection } from '../databaseConnection';
+import { createDatabaseConnection, runMigrations } from '../databaseConnection';
 import { setupReusablesAndRoutes } from '../reusables';
 
 const server = express();
@@ -26,6 +26,7 @@ process.env[`DEBUG`] = 'xc*';
   } else {
     connection = getConnectionManager().get('default');
   }
+  await runMigrations(connection);
   await setupReusablesAndRoutes(server, connection);
 
   const httpServer = server.listen(process.env.PORT || 8080, async () => {

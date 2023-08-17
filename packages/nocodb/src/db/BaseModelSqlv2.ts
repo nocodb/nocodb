@@ -4567,8 +4567,8 @@ function applyPaginate(
   return query;
 }
 
-export function _wherePk(primaryKeys: Column[], id) {
-  const ids = (id + '').split('___');
+export function _wherePk(primaryKeys: Column[], id: unknown | unknown[]) {
+  const ids = Array.isArray(id) ? id : (id + '').split('___');
   const where = {};
   for (let i = 0; i < primaryKeys.length; ++i) {
     if (primaryKeys[i].dt === 'bytea') {

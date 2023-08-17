@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import ManageUsers from './ManageUsers.vue'
-import SharePage from './SharePage.vue'
 
 const { isViewToolbar } = defineProps<{
   isViewToolbar?: boolean
@@ -153,7 +152,7 @@ watch(showShareModal, (val) => {
             {{ viewTitle }}
           </div>
         </div>
-        <SharePage />
+        <DlgShareAndCollaborateSharePage />
       </div>
       <div class="share-base">
         <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">

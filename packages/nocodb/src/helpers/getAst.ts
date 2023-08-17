@@ -118,7 +118,11 @@ const getAst = async ({
     }
     let isRequested;
     if (getHiddenColumn) {
-      isRequested = !isSystemColumn(col) || col.pk;
+      isRequested =
+        !isSystemColumn(col) ||
+        col.column_name === 'created_at' ||
+        col.column_name === 'updated_at' ||
+        col.pk;
     } else {
       isRequested =
         allowedCols && (!includePkByDefault || !col.pk)

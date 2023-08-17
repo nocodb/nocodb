@@ -9,6 +9,11 @@ useProjectsShortcuts()
 provide(TabMetaInj, activeTab)
 
 useSidebar('nc-left-sidebar')
+
+
+const router = useRouter()
+
+const route = router.currentRoute
 </script>
 
 <template>
@@ -67,7 +72,7 @@ useSidebar('nc-left-sidebar')
       </div>
        -->
       <div class="w-full min-h-[300px] flex-auto">
-        <NuxtPage />
+        <NuxtPage/>
       </div>
     </div>
   </div>

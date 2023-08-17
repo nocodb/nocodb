@@ -117,10 +117,6 @@ const navigateToHome = () => {
         </div>
       </template>
       <template v-else>
-        <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-home-btn" @click="navigateToHome">
-          <GeneralIcon icon="settings" class="!h-3.9" />
-          <div>Workspace settings</div>
-        </div>
         <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-search-btn" @click="commandPalette?.open()">
           <MaterialSymbolsSearch class="!h-3.9" />
           <div class="flex items-center gap-2">
@@ -132,6 +128,10 @@ const navigateToHome = () => {
               <kbd>K</kbd>
             </div>
           </div>
+        </div>
+        <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-home-btn" @click="navigateToHome">
+          <GeneralIcon icon="settings" class="!h-3.9" />
+          <div>Workspace Settings</div>
         </div>
         <WorkspaceCreateProjectBtn
           v-if="isUIAllowed('createProject', false, activeWorkspace?.roles)"

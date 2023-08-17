@@ -87,7 +87,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   })
 
   const isWorkspaceOwnerOrCreator = computed(() => {
-    console.log('activeWorkspace.value?.roles:ee', activeWorkspace.value)
     // todo: type correction
     return (
       activeWorkspace.value?.roles === WorkspaceUserRoles.OWNER || activeWorkspace.value?.roles === WorkspaceUserRoles.CREATOR

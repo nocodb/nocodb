@@ -197,12 +197,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       throw new Error('Workspace not selected')
     }
 
-    await router.push({ name: 'ws-workspaceId', params: { workspaceId } })
-    await populateWorkspace({ force: true })
-
-    setTimeout(() => {
-      window.location.reload()
-    }, 100)
+    await navigateTo(`/ws/${workspaceId}`)
   }
 
   const navigateToWorkspaceSettings = async (workspaceId?: string) => {

@@ -41,6 +41,8 @@ const { hooks } = storeToRefs(useWebhooksStore())
 
 const meta = inject(MetaInj, ref())
 
+const titleDomRef = ref<HTMLElement | undefined>()
+
 // const hookTabKey = ref('hook-edit')
 
 const useForm = Form.useForm
@@ -477,23 +479,6 @@ onMounted(async () => {
 
   onNotificationTypeChange()
 })
-
-const titleDomRef = ref<HTMLElement | undefined>()
-
-// const onRename = () => {
-//   isRenaming.value = !isRenaming.value
-
-//   nextTick(() => {
-//     titleDomRef.value?.focus()
-
-//     // Select the text
-//     const range = document.createRange()
-//     range.selectNodeContents(titleDomRef.value!)
-//     const sel = window.getSelection()
-//     sel?.removeAllRanges()
-//     sel?.addRange(range)
-//   })
-// }
 </script>
 
 <template>
@@ -512,33 +497,6 @@ const titleDomRef = ref<HTMLElement | undefined>()
           @keydown.enter.prevent="titleDomRef?.blur()"
         />
       </div>
-      <!-- <NcDropdown v-model:visible="isWebhookOptionOpen" :trigger="['click']" overlay-class-name="!rounded-md">
-        <NcButton size="small" type="secondary" class="nc-btn-webhook-more">
-          <GeneralIcon icon="threeDotVertical" />
-        </NcButton>
-        <template #overlay>
-          <div class="flex flex-col p-0" @click="isWebhookOptionOpen = false">
-            <NcButton type="text" class="!rounded-none" @click="onRename">
-              <div class="flex items-center gap-x-1">
-                <GeneralIcon icon="edit" />
-                Rename
-              </div>
-            </NcButton>
-            <NcButton type="text" class="!rounded-none">
-              <div class="flex items-center gap-x-1">
-                <GeneralIcon icon="copy" class="-ml-0.75" />
-                Duplicate
-              </div>
-            </NcButton>
-            <NcButton type="text" class="!rounded-none" @click="emit('delete')">
-              <div class="flex items-center gap-x-1 !text-red-500">
-                <GeneralIcon icon="delete" />
-                Delete
-              </div>
-            </NcButton>
-          </div>
-        </template>
-      </NcDropdown> -->
     </div>
     <div class="flex flex-row gap-2">
       <NcButton class="nc-btn-webhook-test" type="secondary" size="small" @click="testWebhook">

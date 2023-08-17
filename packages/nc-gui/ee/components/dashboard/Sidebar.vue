@@ -131,7 +131,7 @@ const navigateToHome = () => {
         </div>
         <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-home-btn" @click="navigateToHome">
           <GeneralIcon icon="settings" class="!h-3.9" />
-          <div>Workspace Settings</div>
+          <div>Team & Settings</div>
         </div>
         <WorkspaceCreateProjectBtn
           v-if="isUIAllowed('createProject', false, activeWorkspace?.roles)"

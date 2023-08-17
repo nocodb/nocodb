@@ -34,7 +34,7 @@ test.describe('View', () => {
     await dashboard.treeView.openTable({ title: 'Film' });
 
     if (isSqlite(context) || isPg(context)) {
-      await dashboard.grid.column.openEdit({ title: 'Rating' });
+      await dashboard.grid.column.openEdit({ title: 'Rating', type: 'SingleSelect' });
       await dashboard.grid.column.selectType({ type: 'SingleSelect' });
       let count = 0;
       for (const rating of filmRatings) {

@@ -251,7 +251,7 @@ async function localInit({
     }
 
     // DB reset
-    if (!isEmptyProject) {
+    if (dbType === 'pg' && !isEmptyProject) {
       await resetSakilaPg(`sakila${workerId}`);
     } else if (dbType === 'sqlite') {
       if (await fs.stat(sqliteFilePath(parallelId)).catch(() => null)) {

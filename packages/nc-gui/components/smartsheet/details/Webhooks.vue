@@ -116,19 +116,19 @@ const createWebhook = async () => {
     class="flex flex-row pt-6 border-gray-50 pl-6 pr-0 nc-view-sidebar-webhook gap-x-4"
     style="height: calc(100vh - (var(--topbar-height) * 2))"
   >
-    <div class="flex flex-col mb-4 w-1/4 p-4 !pb-0 border-1 rounded-2xl">
-      <NcButton v-e="['c:actions:webhook']" type="secondary" @click="createWebhook()">
+    <div class="flex flex-col mb-4 w-1/4 p-4 !pr-0 !pb-0 border-1 rounded-2xl">
+      <NcButton v-e="['c:actions:webhook']" class="mr-4" type="secondary" @click="createWebhook()">
         <div class="flex flex-row items-center justify-between w-full text-brand-500">
           <span class="ml-1">New Webhook</span>
           <GeneralIcon icon="plus" />
         </div>
       </NcButton>
       <div v-if="hooks.length === 0" class="flex flex-col px-1.5 py-2.5 ml-6.5 text-gray-500">Empty</div>
-      <div v-else class="flex flex-col pb-2 gap-y-2.5 mt-3">
+      <div v-else class="flex flex-col pb-2 gap-y-1.5 mt-3 nc-scrollbar-md mb-2.5">
         <div
           v-for="hook in hooks"
           :key="hook.id"
-          class="flex flex-row items-center hover:bg-gray-50 rounded-lg pl-3 pr-2 py-2 cursor-pointer group nc-view-sidebar-webhook-item text-gray-600"
+          class="flex flex-row mr-3 items-center hover:bg-gray-50 rounded-lg pl-3 pr-2 py-2 cursor-pointer group nc-view-sidebar-webhook-item text-gray-600"
           :class="{
             'bg-brand-50 !text-brand-500 hover:bg-brand-50': hook.id === selectedHookId,
           }"

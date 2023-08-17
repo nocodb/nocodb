@@ -2,7 +2,7 @@
 const router = useRouter()
 
 const route = router.currentRoute
-
+/*
 const workspaceStore = useWorkspace()
 const { populateWorkspace } = workspaceStore
 const { collaborators } = storeToRefs(workspaceStore)
@@ -35,7 +35,7 @@ watch(
   {
     immediate: true,
   },
-)
+)*/
 </script>
 
 <template>

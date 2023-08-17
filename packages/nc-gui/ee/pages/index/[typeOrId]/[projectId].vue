@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-definePageMeta({
+/*definePageMeta({
   hideHeader: true,
   hasSidebar: true,
 })
@@ -19,7 +19,7 @@ function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: str
   projectId.value = pId || ''
 }
 
-provide(ToggleDialogInj, toggleDialog)
+provide(ToggleDialogInj, toggleDialog)*/
 
 // onMounted(async () => {
 //   isLoading.value = true
@@ -37,14 +37,14 @@ provide(ToggleDialogInj, toggleDialog)
 </script>
 
 <template>
-  <div>
+<!--  <div>
     <NuxtLayout name="dashboard">
       <template #sidebar>
         <DashboardSidebar />
       </template>
-      <template #content>
+      <template #content>-->
         <NuxtPage />
-      </template>
+<!--      </template>
     </NuxtLayout>
     <LazyDashboardSettingsModal
       v-model:model-value="dialogOpen"
@@ -52,7 +52,7 @@ provide(ToggleDialogInj, toggleDialog)
       v-model:data-sources-state="dataSourcesState"
       :project-id="projectId"
     />
-  </div>
+  </div>-->
 </template>
 
 <style scoped></style>

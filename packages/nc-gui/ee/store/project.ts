@@ -39,6 +39,8 @@ export const useProject = defineStore('projectStore', () => {
 
   const projectsStore = useProjects()
 
+  const workspaceStore = useWorkspace()
+
   const tablesStore = useTablesStore()
 
   // todo: refactor
@@ -228,7 +230,7 @@ export const useProject = defineStore('projectStore', () => {
   }
 
   const projectUrl = ({ id, type: _type }: { id: string; type: 'database' | 'documentation' }) => {
-    const workspaceId = route.value.params.typeOrId as string
+    const workspaceId = workspaceStore.activeWorkspaceId;
     return `/${workspaceId}/${id}`
   }
 

@@ -153,6 +153,7 @@ const columns = [
           :pagination="false"
           :loading="isLoading"
           bordered
+          :scroll="{ y: 240 }"
           :custom-row="
             (record) => ({
               class: `nc-acl-table-row nc-acl-table-row-${record.title}`,

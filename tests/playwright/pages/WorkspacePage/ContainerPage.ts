@@ -80,8 +80,8 @@ export class ContainerPage extends BasePage {
     // actions column
     expect(await tableHeaderCells.nth(3).innerText()).toBe('');
 
-    const tabs = await this.get().locator('.ant-tabs-tab-btn');
-    await expect(await tabs.count()).toBe(3);
+    const tabs = this.get().locator('.ant-tabs-tab-btn');
+    expect(await tabs.count()).toBe(3);
     await expect(this.projects).toBeVisible();
     await expect(this.collaborators).toBeVisible();
     await expect(this.billing).toBeVisible();
@@ -90,7 +90,7 @@ export class ContainerPage extends BasePage {
   }
 
   async getProjectRowData({ index, skipWs = false }: { index: number; skipWs: boolean }) {
-    const rows = await this.get().locator('.ant-table-tbody > tr.ant-table-row');
+    const rows = this.get().locator('.ant-table-tbody > tr.ant-table-row');
     const title = await getTextExcludeIconText(rows.nth(index).locator('.nc-project-title'));
     const role = await rows
       .nth(index)
@@ -109,7 +109,7 @@ export class ContainerPage extends BasePage {
   //
   async getProjectRow({ title }: { title: string }) {
     const titles = [];
-    const rows = await this.get().locator('.ant-table-tbody > tr.ant-table-row');
+    const rows = this.get().locator('.ant-table-tbody > tr.ant-table-row');
     const count = await rows.count();
 
     for (let i = 0; i < count; i++) {
@@ -122,7 +122,7 @@ export class ContainerPage extends BasePage {
   // returns number of project rows
   //
   async getProjectRowCount() {
-    const rows = await this.get().locator('.ant-table-tbody > tr.ant-table-row');
+    const rows = this.get().locator('.ant-table-tbody > tr.ant-table-row');
     return await rows.count();
   }
 
@@ -211,5 +211,11 @@ export class ContainerPage extends BasePage {
       menuItemsText.push(await menuItems.nth(i).innerText());
     }
     return menuItemsText;
+  }
+
+  async deleteWorkspace({ title }: { title: string }) {
+    await this.get().locator('.ant-checkbox-input').click();
+    await this.get().locator('.ant-btn-danger:visible').waitFor();
+    await this.get().locator('.ant-btn-danger:visible').click();
   }
 }

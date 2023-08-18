@@ -2977,6 +2977,9 @@ class KnexClient extends SqlClient {
 
   genRaw(raw) {
     const q = this.genQuery('?', [raw], true);
+
+    if (typeof raw === 'number') return q;
+
     return q.substring(1, q.length - 1);
   }
 

@@ -129,20 +129,20 @@ const navigateToHome = () => {
             v-if="isWorkspaceOwnerOrCreator"
             role="button"
             class="nc-sidebar-top-button"
-            data-testid="nc-sidebar-home-btn"
+            data-testid="nc-sidebar-team-settings-btn"
             @click="navigateToHome"
           >
             <GeneralIcon icon="settings" class="!h-3.9" />
             <div>Team & Settings</div>
           </div>
           <WorkspaceCreateProjectBtn
-          v-if="isUIAllowed('createProject', false, activeWorkspace?.roles) && !isSharedBase"
+            v-if="isUIAllowed('createProject', false, activeWorkspace?.roles) && !isSharedBase"
             v-model:is-open="isCreateProjectOpen"
             modal
             type="text"
             class="!p-0 mx-1"
             data-testid="nc-sidebar-create-project-btn"
-          :active-workspace-id="route.params.typeOrId"
+            :active-workspace-id="route.params.typeOrId"
           >
             <div
               class="gap-x-2 flex flex-row w-full items-center nc-sidebar-top-button !my-0 !ml-0"

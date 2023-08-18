@@ -68,10 +68,7 @@ test.describe('Collaborators', () => {
         skipReload: true,
       });
 
-      await workspacePage.waitFor({ state: 'visible' });
-
-      await workspacePage.workspaceOpen({ title: context.workspace.title });
-      await workspacePage.projectOpen({ title: context.project.title });
+      await dashboard.treeView.openProject({ title: context.project.title });
 
       // wait for render
       await dashboard.rootPage.waitForTimeout(1000);
@@ -87,6 +84,7 @@ test.describe('Collaborators', () => {
         await expect(dashboard.leftSidebar.btn_newProject).toBeVisible({ visible: false });
       }
 
+      // Needs license key; hence disabled
       // await workspacePage.verifyAccess(roleDb[i].role);
     }
   });

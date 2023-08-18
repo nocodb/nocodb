@@ -104,7 +104,7 @@ watch(
         </a-tab-pane>
         <a-tab-pane v-if="isUIAllowed('acl')" key="ui-acl">
           <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__data-sources">
+            <div class="tab-title" data-testid="proj-view-tab__ui-acl">
               <GeneralIcon icon="acl" />
               <div>{{ $t('title.uiACL') }}</div>
             </div>

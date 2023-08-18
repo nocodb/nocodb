@@ -16,6 +16,8 @@ import {
   useWorkspace,
 } from '#imports'
 
+import { useTitle } from '@vueuse/core'
+
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
   style: {

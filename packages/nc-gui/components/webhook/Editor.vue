@@ -184,8 +184,6 @@ const formInput = ref({
 
 const isRenaming = ref(false)
 
-const isWebhookOptionOpen = ref(false)
-
 // TODO: Add back when show logs is working
 const showLogs = computed(
   () => false,
@@ -253,6 +251,24 @@ const validators = computed(() => {
   }
 })
 const { validate, validateInfos } = useForm(hookRef, validators)
+
+const isValid = computed(() => {
+  // Recursively check if all the fields are valid
+  const check = (obj: Record<string, any>) => {
+    for (const key in obj) {
+      if (typeof obj[key] === 'object') {
+        if (!check(obj[key])) {
+          return false
+        }
+      } else if (obj && key === 'validateStatus' && obj[key] === 'error') {
+        return false
+      }
+    }
+    return true
+  }
+
+  return hookRef && check(validateInfos)
+})
 
 function onNotificationTypeChange(reset = false) {
   if (reset) {
@@ -513,7 +529,14 @@ onMounted(async () => {
         <div class="flex items-center px-1">Test Webhook</div>
       </NcButton>
 
-      <NcButton class="nc-btn-webhook-save" type="primary" :loading="loading" size="small" @click.prevent="saveHooks">
+      <NcButton
+        class="nc-btn-webhook-save"
+        type="primary"
+        :loading="loading"
+        size="small"
+        :disabled="!isValid"
+        @click.prevent="saveHooks"
+      >
         <template #loading> Saving </template>
         <div class="flex items-center px-1">{{ $t('general.save') }}</div>
       </NcButton>

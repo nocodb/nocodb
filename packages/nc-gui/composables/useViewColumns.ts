@@ -1,7 +1,18 @@
 import { ViewTypes, isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { IsPublicInj, computed, inject, ref, storeToRefs, useNuxtApp, useProject, useUIPermission, watch } from '#imports'
+import {
+  IsPublicInj,
+  computed,
+  inject,
+  ref,
+  storeToRefs,
+  useNuxtApp,
+  useProject,
+  useUIPermission,
+  useUndoRedo,
+  watch,
+} from '#imports'
 import type { Field } from '#imports'
 
 export function useViewColumns(
@@ -20,6 +31,8 @@ export function useViewColumns(
   const { isUIAllowed } = useUIPermission()
 
   const { isSharedBase } = storeToRefs(useProject())
+
+  const { addUndo, defineViewScope } = useUndoRedo()
 
   const isLocalMode = computed(
     () => isPublic.value || !isUIAllowed('hideAllColumns') || !isUIAllowed('showAllColumns') || isSharedBase.value,
@@ -233,6 +246,29 @@ export function useViewColumns(
       ?.map((field: Field) => metaColumnById?.value?.[field.fk_column_id!]) || []) as ColumnType[]
   })
 
+  const toggleFieldVisibility = (checked: boolean, field: any) => {
+    const fieldIndex = fields.value?.findIndex((f) => f.fk_column_id === field.fk_column_id)
+    if (!fieldIndex && fieldIndex !== 0) return
+    addUndo({
+      undo: {
+        fn: (v: boolean) => {
+          field.show = !v
+          saveOrUpdate(field, fieldIndex)
+        },
+        args: [checked],
+      },
+      redo: {
+        fn: (v: boolean) => {
+          field.show = v
+          saveOrUpdate(field, fieldIndex)
+        },
+        args: [checked],
+      },
+      scope: defineViewScope({ view: view.value }),
+    })
+    saveOrUpdate(field, fieldIndex)
+  }
+
   // reload view columns when active view changes
   // or when columns count changes(delete/add)
   watch(
@@ -257,5 +293,6 @@ export function useViewColumns(
     sortedAndFilteredFields,
     showSystemFields,
     metaColumnById,
+    toggleFieldVisibility,
   }
 }

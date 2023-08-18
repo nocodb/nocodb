@@ -1,11 +1,15 @@
-<script lang="ts" setup>
-import { useSidebar } from '#imports'
-definePageMeta({
-  hideHeader: true,
-})
-useSidebar('nc-left-sidebar', { hasSidebar: false })
+<template>
+  <div class="p-4">
+<!--<WorkspaceProjectList />-->
+  </div>
+</template>
+
+<script>
+export default {
+  name: "index"
+}
 </script>
 
-<template>
-  <NuxtPage :transition="false" />
-</template>
+<style scoped>
+
+</style>

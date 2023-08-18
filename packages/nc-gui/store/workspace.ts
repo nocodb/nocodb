@@ -1,5 +1,4 @@
 import type { ProjectType } from 'nocodb-sdk'
-import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
@@ -25,6 +24,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const { $e } = useNuxtApp()
 
   const { appInfo } = useGlobal()
+
+  const { userRoles } = useRoles()
 
   const workspaces = ref<Map<string, any>>(new Map())
   const workspacesList = computed<any[]>(() => Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at))
@@ -61,21 +62,17 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   /** getters */
   const isWorkspaceCreator = computed(() => {
     // todo: type correction
-    return (
-      activeWorkspace.value?.roles === WorkspaceUserRoles.CREATOR || activeWorkspace.value?.roles === WorkspaceUserRoles.OWNER
-    )
+    return userRoles.value[Role.OrgLevelCreator]
   })
 
   const isWorkspaceOwner = computed(() => {
     // todo: type correction
-    return activeWorkspace.value?.roles === WorkspaceUserRoles.OWNER
+    return userRoles.value[Role.OrgLevelCreator]
   })
 
   const isWorkspaceOwnerOrCreator = computed(() => {
     // todo: type correction
-    return (
-      activeWorkspace.value?.roles === WorkspaceUserRoles.OWNER || activeWorkspace.value?.roles === WorkspaceUserRoles.CREATOR
-    )
+    return userRoles.value[Role.OrgLevelCreator]
   })
 
   /** actions */
@@ -195,10 +192,21 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const upgradeActiveWorkspace = async () => {}
 
   const navigateToWorkspace = async (workspaceId?: string) => {
+    workspaceId = workspaceId || activeWorkspaceId.value!
     if (!workspaceId) {
-      return await router.push({ query: { page: 'workspace' } })
+      throw new Error('Workspace not selected')
     }
-    await router.push({ query: { workspaceId, page: 'workspace' } })
+
+    await navigateTo(`/ws/${workspaceId}`)
+  }
+
+  const navigateToWorkspaceSettings = async (workspaceId?: string) => {
+    workspaceId = workspaceId || activeWorkspaceId.value!
+    if (!workspaceId) {
+      throw new Error('Workspace not selected')
+    }
+
+    await router.push({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId } })
   }
 
   function setLoadingState(isLoading = false) {
@@ -238,6 +246,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     navigateToWorkspace,
     isWorkspaceOwnerOrCreator,
     setLoadingState,
+    navigateToWorkspaceSettings,
   }
 })
 

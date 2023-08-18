@@ -186,113 +186,75 @@ onUnmounted(() => {
     <div
       v-else
       ref="tabBtnsContainerRef"
-      class="flex flex-row p-1 mx-3 mt-3 mb-3 bg-gray-100 rounded-md gap-x-2 nc-view-sidebar-tab f"
+      class="flex flex-row p-1 mx-3 mt-2.25 mb-2.75 rounded-md gap-x-2 nc-view-sidebar-tab text-gray-500"
     >
-      <div
-        class="tab"
-        :class="{
-          active: openedTab === 'views',
-        }"
-        @click="onTabChange('views')"
-      >
-        <FieldIcon
-          class="tab-icon"
-          :class="{
-            'h-3.5 w-3.5': !minimalMode,
-            'h-4 w-5': minimalMode,
-          }"
-        />
-        <div v-if="!minimalMode" class="tab-title nc-tab">{{ $t('objects.views') }}</div>
-      </div>
-      <div
-        class="tab"
-        :class="{
-          active: openedTab === 'developer',
-        }"
-        @click="onTabChange('developer')"
-      >
-        <component
-          :is="iconMap.code"
-          class="tab-icon"
-          :class="{
-            'h-3.5 w-3.5': !minimalMode,
-            'h-4 w-5': minimalMode,
-          }"
-          :style="{
-            fontWeight: 600,
-          }"
-        />
-        <div v-if="!minimalMode" class="tab-title nc-tab">{{ $t('objects.developer') }}</div>
-      </div>
+      Views
     </div>
 
     <div class="flex-1 flex flex-col min-h-0">
-      <template v-if="openedTab === 'views'">
-        <div class="flex flex-col h-full justify-between w-full">
-          <div class="flex flex-grow w-full">
-            <div v-if="isViewsLoading" class="flex flex-col w-full">
-              <div class="flex flex-row items-center w-full mt-1.5 ml-5 gap-x-3">
-                <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
-                <a-skeleton-input :active="true" class="!w-1/2 !h-4 !rounded overflow-hidden" />
-              </div>
-              <div class="flex flex-row items-center w-full mt-4 ml-5 gap-x-3">
-                <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
-                <a-skeleton-input :active="true" class="!w-1/2 !h-4 !rounded overflow-hidden" />
-              </div>
-              <div class="flex flex-row items-center w-full mt-4 ml-5 gap-x-3">
-                <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
-                <a-skeleton-input :active="true" class="!w-1/2 !h-4 !rounded overflow-hidden" />
-              </div>
+      <div class="flex flex-col h-full justify-between w-full">
+        <div class="flex flex-grow w-full">
+          <div v-if="isViewsLoading" class="flex flex-col w-full">
+            <div class="flex flex-row items-center w-full mt-1.5 ml-5 gap-x-3">
+              <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
+              <a-skeleton-input :active="true" class="!w-1/2 !h-4 !rounded overflow-hidden" />
             </div>
-            <LazySmartsheetSidebarMenuTop v-else :views="views" @open-modal="onOpenModal" @deleted="loadViews" />
-          </div>
-          <div v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="flex flex-col">
-            <div class="!mb-3 w-full border-b-1 border-gray-200" />
-
-            <div v-if="!activeTable" class="flex flex-col pt-2 pb-5 px-6">
-              <a-skeleton-input :active="true" class="!w-3/5 !h-4 !rounded overflow-hidden" />
-              <div class="flex flex-row justify-between items-center w-full mt-4.75">
-                <div class="flex flex-row items-center flex-grow gap-x-3">
-                  <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
-                  <a-skeleton-input :active="true" class="!w-3/5 !h-4 !rounded overflow-hidden" />
-                </div>
-                <div class="flex">
-                  <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
-                </div>
-              </div>
-              <div class="flex flex-row justify-between items-center w-full mt-3.75">
-                <div class="flex flex-row items-center flex-grow gap-x-3">
-                  <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
-                  <a-skeleton-input :active="true" class="!w-3/5 !h-4 !rounded overflow-hidden" />
-                </div>
-                <div class="flex">
-                  <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
-                </div>
-              </div>
-              <div class="flex flex-row justify-between items-center w-full mt-3.75">
-                <div class="flex flex-row items-center flex-grow gap-x-3">
-                  <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
-                  <a-skeleton-input :active="true" class="!w-3/5 !h-4 !rounded overflow-hidden" />
-                </div>
-                <div class="flex">
-                  <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
-                </div>
-              </div>
-              <div class="flex flex-row justify-between items-center w-full mt-3.75">
-                <div class="flex flex-row items-center flex-grow gap-x-3">
-                  <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
-                  <a-skeleton-input :active="true" class="!w-3/5 !h-4 !rounded overflow-hidden" />
-                </div>
-                <div class="flex">
-                  <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
-                </div>
-              </div>
+            <div class="flex flex-row items-center w-full mt-4 ml-5 gap-x-3">
+              <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
+              <a-skeleton-input :active="true" class="!w-1/2 !h-4 !rounded overflow-hidden" />
             </div>
-            <LazySmartsheetSidebarMenuBottom v-else @open-modal="onOpenModal" />
+            <div class="flex flex-row items-center w-full mt-4 ml-5 gap-x-3">
+              <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
+              <a-skeleton-input :active="true" class="!w-1/2 !h-4 !rounded overflow-hidden" />
+            </div>
           </div>
+          <LazySmartsheetSidebarMenuTop v-else :views="views" @open-modal="onOpenModal" @deleted="loadViews" />
         </div>
-      </template>
-      <LazySmartsheetSidebarToolbarDeveloper v-if="openedTab === 'developer'" />
+        <div v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="flex flex-col">
+          <div class="!mb-3 w-full border-b-1 border-gray-200" />
+
+          <div v-if="!activeTable" class="flex flex-col pt-2 pb-5 px-6">
+            <a-skeleton-input :active="true" class="!w-3/5 !h-4 !rounded overflow-hidden" />
+            <div class="flex flex-row justify-between items-center w-full mt-4.75">
+              <div class="flex flex-row items-center flex-grow gap-x-3">
+                <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
+                <a-skeleton-input :active="true" class="!w-3/5 !h-4 !rounded overflow-hidden" />
+              </div>
+              <div class="flex">
+                <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
+              </div>
+            </div>
+            <div class="flex flex-row justify-between items-center w-full mt-3.75">
+              <div class="flex flex-row items-center flex-grow gap-x-3">
+                <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
+                <a-skeleton-input :active="true" class="!w-3/5 !h-4 !rounded overflow-hidden" />
+              </div>
+              <div class="flex">
+                <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
+              </div>
+            </div>
+            <div class="flex flex-row justify-between items-center w-full mt-3.75">
+              <div class="flex flex-row items-center flex-grow gap-x-3">
+                <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
+                <a-skeleton-input :active="true" class="!w-3/5 !h-4 !rounded overflow-hidden" />
+              </div>
+              <div class="flex">
+                <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
+              </div>
+            </div>
+            <div class="flex flex-row justify-between items-center w-full mt-3.75">
+              <div class="flex flex-row items-center flex-grow gap-x-3">
+                <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
+                <a-skeleton-input :active="true" class="!w-3/5 !h-4 !rounded overflow-hidden" />
+              </div>
+              <div class="flex">
+                <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
+              </div>
+            </div>
+          </div>
+          <LazySmartsheetSidebarMenuBottom v-else @open-modal="onOpenModal" />
+        </div>
+      </div>
     </div>
   </div>
 </template>

@@ -15557,6 +15557,150 @@
         ],
         "description": "Mark all notifications as read"
       }
+    },
+    "/api/v1/db/meta/tables/{tableId}/columns/hash": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Table ID"
+        }
+      ],
+      "get": {
+        "summary": "Get columns hash for table",
+        "operationId": "db-table-column-hash",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "hash": {
+                      "type": "string",
+                      "description": "Columns hash"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB Table Column"
+        ],
+        "description": "Get columns hash for table",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v1/db/meta/tables/{tableId}/columns/bulk": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Table ID"
+        }
+      ],
+      "post": {
+        "summary": "Bulk create-update-delete columns",
+        "operationId": "db-table-column-bulk",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "failedOps": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "op": {
+                            "type": "string",
+                            "enum": [
+                              "add",
+                              "update",
+                              "delete"
+                            ],
+                            "required": true
+                          },
+                          "column": {
+                            "$ref": "#/components/schemas/Column",
+                            "required": true
+                          },
+                          "error": {}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "hash": {
+                    "type": "string",
+                    "description": "Columns hash"
+                  },
+                  "ops": {
+                    "type": "array",
+                    "items": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "op": {
+                            "type": "string"
+                          },
+                          "column": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB Table Column"
+        ],
+        "description": "Bulk create-update-delete columns",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
     }
   },
   "components": {

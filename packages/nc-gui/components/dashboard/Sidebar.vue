@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia'
 import { useGlobal } from '#imports'
-import { navigateTo } from '#app'
 
 const router = useRouter()
 
@@ -14,6 +13,8 @@ const { activeWorkspace } = storeToRefs(workspaceStore)
 const projectStore = useProject()
 
 const { isSharedBase } = storeToRefs(projectStore)
+
+const { navigateToWorkspaceSettings } = useWorkspace()
 
 const { isUIAllowed } = useUIPermission()
 
@@ -48,7 +49,7 @@ const navigateToHome = () => {
   if (appInfo.value.baseHostName) {
     window.location.href = `https://app.${appInfo.value.baseHostName}/dashboard`
   } else {
-    navigateTo('/')
+    navigateToWorkspaceSettings()
   }
 }
 </script>
@@ -95,8 +96,8 @@ const navigateToHome = () => {
       <template v-if="!isSharedBase">
         <div class="w-full mt-2"></div>
         <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-home-btn" @click="navigateToHome">
-          <MaterialSymbolsHomeOutlineRounded class="!h-3.9" />
-          <div>{{ $t('general.home') }}</div>
+        <GeneralIcon icon="settings" class="!h-3.9" />
+        <div>Team & Settings</div>
         </div>
         <WorkspaceCreateProjectBtn
           v-if="isUIAllowed('createProject', false, activeWorkspace?.roles)"

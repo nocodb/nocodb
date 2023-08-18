@@ -39,13 +39,17 @@ const loading = useVModel(props, 'loading', emits)
 const isFocused = ref(false)
 const isClicked = ref(false)
 
-const onFocus = () => {
+const onFocus = (e: FocusEvent) => {
   // Only focus when coming from another element which is not a mouse click
   nextTick(() => {
     if (isClicked.value) {
       isFocused.value = false
     } else {
-      isFocused.value = true
+      const relatedTarget = e.relatedTarget as HTMLElement | null
+      const focusFromModal =
+        relatedTarget?.classList?.contains('ant-modal-wrap') || relatedTarget?.classList?.contains('ant-modal-wrap')
+
+      isFocused.value = !focusFromModal
     }
 
     isClicked.value = false

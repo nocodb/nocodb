@@ -29,7 +29,11 @@ interface ValidationsObj {
 }
 
 const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState(
-  (meta: Ref<TableType | undefined>, column: Ref<ColumnType | undefined>) => {
+  (
+    meta: Ref<TableType | undefined>,
+    column: Ref<ColumnType | undefined>,
+    tableExplorerColumns?: Ref<ColumnType[] | undefined>,
+  ) => {
     const projectStore = useProject()
     const { isMysql: isMysqlFunc, isPg: isPgFunc, isMssql: isMssqlFunc, isXcdbBase: isXcdbBaseFunc, getBaseType } = projectStore
     const { sqlUis } = storeToRefs(projectStore)
@@ -70,10 +74,27 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       ...clone(column.value || {}),
     })
 
+    const generateUniqueColumnSuffix = () => {
+      let suffix = (meta.value?.columns?.length || 0) + 1
+      let columnName = `title${suffix}`
+      while (
+        (tableExplorerColumns?.value || meta.value?.columns)?.some(
+          (c) => (c.column_name || '').toLowerCase() === columnName.toLowerCase(),
+        )
+      ) {
+        suffix++
+        columnName = `title${suffix}`
+      }
+      return suffix
+    }
+
     // actions
     const generateNewColumnMeta = () => {
       setAdditionalValidations({})
-      formState.value = { meta: {}, ...sqlUi.value.getNewColumn((meta.value?.columns?.length || 0) + 1) }
+      formState.value = {
+        meta: {},
+        ...sqlUi.value.getNewColumn(generateUniqueColumnSuffix()),
+      }
       formState.value.title = formState.value.column_name
     }
 
@@ -89,7 +110,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             validator: (rule: any, value: any) => {
               return new Promise<void>((resolve, reject) => {
                 if (
-                  meta.value?.columns?.some(
+                  (tableExplorerColumns?.value || meta.value?.columns)?.some(
                     (c) =>
                       c.id !== formState.value.id && // ignore current column
                       // compare against column_name and title
@@ -127,6 +148,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           title: formState.value.title,
           column_name: formState.value.column_name,
           uidt: formState.value.uidt,
+          temp_id: formState.value.temp_id,
         }),
         ...(isEdit.value && {
           // take the existing formState.value when editing a column

@@ -2,8 +2,13 @@
 import type { HookType } from 'nocodb-sdk'
 // const showWebhookDrawer = ref(false)
 
-const { hooks } = storeToRefs(useWebhooksStore())
+const router = useRouter()
+
+const route = router.currentRoute
+
+const { hooks, webhookMainUrl } = storeToRefs(useWebhooksStore())
 const { loadHooksList, deleteHook: _deleteHook, copyHook, saveHooks, navigateToWebhook } = useWebhooksStore()
+const { activeView } = storeToRefs(useViewsStore())
 
 const modalDeleteButtonRef = ref(null)
 
@@ -35,7 +40,6 @@ const selectedHook = computed(() => {
 const showDeleteModal = ref(false)
 const isDeleting = ref(false)
 const isCopying = ref(false)
-const showEditModal = ref(false)
 
 const isDraftMode = ref(false)
 
@@ -69,8 +73,7 @@ const deleteHook = async () => {
 }
 
 const openEditor = (hookId?: string | undefined) => {
-  selectedHookId.value = hookId
-  showEditModal.value = true
+  navigateToWebhook({ hookId })
 }
 
 watch(showDeleteModal, () => {
@@ -79,12 +82,6 @@ watch(showDeleteModal, () => {
   nextTick(() => {
     modalDeleteButtonRef.value?.$el?.focus()
   })
-})
-
-watch(showEditModal, () => {
-  if (!showEditModal.value) {
-    selectedHookId.value = undefined
-  }
 })
 
 watch(
@@ -106,28 +103,56 @@ const toggleHook = async (hook: HookType) => {
 }
 
 const createWebhook = async () => {
-  isDraftMode.value = true
+  navigateToWebhook({ openCreatePage: true })
 }
 
 const onEditorClose = () => {
   isDraftMode.value = false
   selectedHookId.value = undefined
 }
+
+watch(
+  () => route.value.params.slugs,
+  async () => {
+    if (!route.value.params.slugs) {
+      isDraftMode.value = false
+      selectedHookId.value = undefined
+      return
+    }
+
+    if (route.value.params.slugs[1] === 'create') {
+      isDraftMode.value = true
+    } else {
+      isDraftMode.value = false
+    }
+
+    selectedHookId.value = (route.value.params.slugs && route.value.params.slugs[1]) || undefined
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
   <div
+    v-if="activeView"
     class="flex flex-col pt-3 border-gray-50 pl-3 pr-0 nc-view-sidebar-webhook"
     style="height: calc(100vh - (var(--topbar-height) * 2))"
   >
     <div class="flex flex-row justify-between w-full">
-      <div>
-        <NuxtLink
-          class="text-sm !hover:text-black docs-breadcrumb-item !underline-transparent"
-          :to="navigateToWebhook({ openMainPage: true })"
+      <div class="flex flex-row items-center">
+        <NcButton
+          v-if="isDraftMode || selectedHookId"
+          type="text"
+          size="xsmall"
+          @click="navigateToWebhook({ openMainPage: true })"
         >
-          Webhook
-        </NuxtLink>
+          <GeneralIcon icon="arrowLeft" class="ml-0.75" />
+        </NcButton>
+        <div class="flex flex-row ml-3">
+          <NuxtLink class="link" :to="webhookMainUrl"> Webhook </NuxtLink>
+        </div>
       </div>
       <NcButton v-e="['c:actions:webhook']" class="mr-4 max-w-40" type="secondary" @click="createWebhook()">
         <div class="flex flex-row items-center justify-between w-full text-brand-500">
@@ -247,5 +272,9 @@ const onEditorClose = () => {
   top: 50%;
   left: 50%;
   transform: translate(-52.5%, -52.5%);
+}
+
+.link {
+  @apply !hover:text-gray-800 !text-gray-500 !underline-transparent !hover:underline  transition-all duration-150;
 }
 </style>

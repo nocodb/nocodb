@@ -488,13 +488,6 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex mb-4">
-    <NcButton type="text" size="small" @click="emit('close')">
-      <div class="flex flex-row items-center gap-x-1 font-normal text-gray-600 hover:text-gray-800">
-        <GeneralIcon icon="arrowLeft" />
-      </div>
-    </NcButton>
-  </div>
   <div class="flex nc-webhook-header pb-4 gap-x-2">
     <div class="flex flex-1">
       <div

@@ -4,10 +4,29 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 export const useWebhooksStore = defineStore('webhooksStore', () => {
   const hooks = ref<HookType[]>([])
 
+  const isHooksLoading = ref(true)
+
   const { $api, $e } = useNuxtApp()
+
+  const router = useRouter()
+
+  const route = router.currentRoute
+
+  const createWebhookUrl = computed(() => {
+    return navigateToWebhookRoute({
+      openCreatePage: true,
+    })
+  })
+
+  const webhookMainUrl = computed(() => {
+    return navigateToWebhookRoute({
+      openMainPage: true,
+    })
+  })
 
   async function loadHooksList() {
     const { activeTable } = useTablesStore()
+    isHooksLoading.value = true
 
     try {
       const hookList = (await $api.dbTableWebhook.list(activeTable?.id as string)).list
@@ -18,6 +37,8 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
       })
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      isHooksLoading.value = false
     }
   }
 
@@ -136,15 +157,54 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     return hook
   }
 
-  const navigateToWebhook = ({
-    hook,
+  function navigateToWebhookRoute({
+    hookId,
     openCreatePage,
     openMainPage,
   }: {
-    hook?: HookType
+    hookId?: string
     openCreatePage?: Boolean
     openMainPage?: Boolean
-  }) => {}
+  }) {
+    const { activeView } = useViewsStore()
+    if (!activeView) throw new Error('activeView is not defined')
+
+    if (!openMainPage && !openCreatePage && !hookId) throw new Error('hook id is not defined')
+
+    return {
+      name: 'ws-workspaceId-projectType-projectId-index-index-type-viewId-viewTitle-slugs',
+      params: {
+        workspaceId: route.value.params.workspaceId,
+        projectType: route.value.params.projectType,
+        projectId: route.value.params.projectId,
+        type: route.value.params.type,
+        viewId: route.value.params.viewId,
+        viewTitle: activeView.title,
+        slugs: openMainPage ? ['webhook'] : ['webhook', openCreatePage ? 'create' : hookId!],
+      },
+    }
+  }
+
+  const navigateToWebhook = async ({
+    hookId,
+    openCreatePage,
+    openMainPage,
+  }: {
+    hookId?: string
+    openCreatePage?: Boolean
+    openMainPage?: Boolean
+  }) => {
+    const { activeView } = useViewsStore()
+    if (!activeView) return
+
+    await router.push(
+      navigateToWebhookRoute({
+        hookId,
+        openCreatePage,
+        openMainPage,
+      }),
+    )
+  }
 
   return {
     hooks,
@@ -153,6 +213,9 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     copyHook,
     saveHooks,
     navigateToWebhook,
+    createWebhookUrl,
+    webhookMainUrl,
+    isHooksLoading,
   }
 })
 

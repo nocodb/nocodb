@@ -118,13 +118,12 @@ const filterOption = (input: string, option: Option) => option.value.toUpperCase
 
         <tr>
           <td :colspan="12" class="">
-            <div
-              class="flex flex-row border-1 w-36 gap-x-2 items-center pl-2 py-1 rounded-md hover:bg-gray-50 cursor-pointer"
-              @click="addHeaderRow"
-            >
-              <div>Add Header</div>
-              <component :is="iconMap.plus" class="flex mx-auto" />
-            </div>
+            <NcButton size="small" type="secondary" @click="addHeaderRow">
+              <div class="flex flex-row items-center gap-x-1">
+                <div>Add Header</div>
+                <component :is="iconMap.plus" class="flex mx-auto" />
+              </div>
+            </NcButton>
           </td>
         </tr>
       </tbody>

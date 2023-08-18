@@ -561,10 +561,10 @@ onMounted(async () => {
                   v-model:value="hookRef.eventOperation"
                   size="large"
                   :placeholder="$t('general.event')"
-                  class="nc-text-field-hook-event"
+                  class="nc-text-field-hook-event capitalize"
                   dropdown-class-name="nc-dropdown-webhook-event"
                 >
-                  <NcSelect-option v-for="(event, i) in eventList" :key="i" :value="event.value.join(' ')">
+                  <NcSelect-option v-for="(event, i) in eventList" :key="i" class="capitalize" :value="event.value.join(' ')">
                     {{ event.text.join(' ') }}
                   </NcSelect-option>
                 </NcSelect>
@@ -635,7 +635,7 @@ onMounted(async () => {
             </a-col>
 
             <a-col :span="24">
-              <a-tabs v-model:activeKey="urlTabKey" type="card" closeable="false" class="">
+              <NcTabs v-model:activeKey="urlTabKey" type="card" closeable="false" class="border-1 !pb-2 !rounded-lg">
                 <a-tab-pane v-if="isBodyShown" key="body" tab="Body">
                   <LazyMonacoEditor
                     v-model="hookRef.notification.payload.body"
@@ -646,11 +646,11 @@ onMounted(async () => {
                 </a-tab-pane>
 
                 <a-tab-pane key="params" tab="Parameters" force-render>
-                  <LazyApiClientParams v-model="hookRef.notification.payload.parameters" />
+                  <LazyApiClientParams v-model="hookRef.notification.payload.parameters" class="p-4" />
                 </a-tab-pane>
 
                 <a-tab-pane key="headers" tab="Headers" class="nc-tab-headers">
-                  <LazyApiClientHeaders v-model="hookRef.notification.payload.headers" />
+                  <LazyApiClientHeaders v-model="hookRef.notification.payload.headers" class="!p-4" />
                 </a-tab-pane>
 
                 <!-- No in use at this moment -->
@@ -662,7 +662,7 @@ onMounted(async () => {
                 <!--                <a class="prose-sm" href  ="https://github.com/axios/axios#request-config" target="_blank">axios docs</a>. -->
                 <!--              </span> -->
                 <!--            </a-tab-pane> -->
-              </a-tabs>
+              </NcTabs>
             </a-col>
           </a-row>
 

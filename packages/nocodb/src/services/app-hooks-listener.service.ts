@@ -6,7 +6,7 @@ import {
 } from 'nocodb-sdk';
 import { T } from 'nc-help';
 import { TelemetryService } from './telemetry.service';
-import type { Audit } from '~/models';
+import { Audit } from '~/models';
 import type { AuditType } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type {
@@ -525,7 +525,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
   }
 
   async auditInsert(param: Partial<Audit | AuditType>) {
-    // await Audit.insert(param)
+    await Audit.insert(param);
     try {
       T.event({ ...param, created_at: Date.now() });
     } catch (e) {

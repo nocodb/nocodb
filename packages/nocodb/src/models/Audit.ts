@@ -99,10 +99,17 @@ export default class Audit implements AuditType {
         'description',
         'details',
       ]);
-      if (!insertObj.project_id && insertObj.fk_model_id) {
-        insertObj.project_id = (
-          await Model.getByIdOrName({ id: insertObj.fk_model_id }, ncMeta)
-        ).project_id;
+      if (
+        (!insertObj.project_id || !insertObj.base_id) &&
+        insertObj.fk_model_id
+      ) {
+        const model = await Model.getByIdOrName(
+          { id: insertObj.fk_model_id },
+          ncMeta,
+        );
+
+        insertObj.project_id = model.project_id;
+        insertObj.base_id = model.base_id;
       }
 
       return await ncMeta.metaInsert2(null, null, MetaTable.AUDIT, insertObj);

@@ -392,7 +392,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       throw new Error('Workspace not selected')
     }
 
-    await router.push({ name: 'ws-workspaceId-projectType-settings', params: { workspaceId } })
+    await router.push({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId } })
   }
 
   function setLoadingState(isLoading = false) {

@@ -479,6 +479,8 @@ test.describe('Toolbar operations (GRID)', () => {
 
     await toolbar.groupBy.update({ index: 0, title: 'ReleaseYear', ascending: false });
 
+    await toolbar.clickGroupBy();
+
     await dashboard.grid.groupPage.openGroup({ indexMap: [0, 1] });
 
     await dashboard.grid.groupPage.validateFirstRow({

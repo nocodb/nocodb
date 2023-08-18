@@ -4,17 +4,19 @@ import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 
 import setup, { unsetup } from '../../../setup';
 import { isPg, isSqlite } from '../../../setup/db';
+import { TopbarPage } from '../../../pages/Dashboard/common/Topbar';
 
 const filmRatings = ['G', 'PG', 'PG-13', 'R', 'NC-17'];
 
 test.describe('View', () => {
-  let dashboard: DashboardPage, toolbar: ToolbarPage;
+  let dashboard: DashboardPage, toolbar: ToolbarPage, topbar: TopbarPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     toolbar = toolbar = dashboard.kanban.toolbar;
+    topbar = dashboard.kanban.topbar;
 
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
@@ -331,7 +333,7 @@ test.describe('View', () => {
 
     // Share view
     await toolbar.fields.toggle({ title: 'Rating' });
-    const sharedLink = await toolbar.getSharedViewUrl();
+    const sharedLink = await topbar.getSharedViewUrl();
     // await toolbar.shareView.close();
 
     // sign-out

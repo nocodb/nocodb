@@ -310,13 +310,6 @@ export class ColumnPageObject extends BasePage {
         await this.get().locator('.nc-time-select').click();
         await this.rootPage.locator('.ant-select-item').locator(`text="${timeFormat}"`).click();
         break;
-      // case 'SingleLineText':
-      //   await this.get().locator('.nc-column-type-input').click();
-      //   await this.rootPage
-      //     .locator('.nc-dropdown-column-type')
-      //     .locator(`.ant-select-item:has-text("SingleLineText")`)
-      //     .click();
-      //   break;
       default:
         break;
     }
@@ -359,9 +352,9 @@ export class ColumnPageObject extends BasePage {
       responseJsonMatcher: json => json['pageInfo'],
     });
 
-    // await this.verifyToast({
-    //   message: isUpdated ? 'Column updated' : 'Column created',
-    // });
+    await this.verifyToast({
+      message: isUpdated ? 'Column updated' : 'Column created',
+    });
     await this.get().waitFor({ state: 'hidden' });
     await this.rootPage.waitForTimeout(200);
   }

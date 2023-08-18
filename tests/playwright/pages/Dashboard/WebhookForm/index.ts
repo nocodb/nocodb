@@ -3,9 +3,11 @@ import BasePage from '../../Base';
 import { DashboardPage } from '..';
 import { ToolbarPage } from '../common/Toolbar';
 import { getTextExcludeIconText } from '../../../tests/utils/general';
+import { TopbarPage } from '../common/Topbar';
 
 export class WebhookFormPage extends BasePage {
   readonly dashboard: DashboardPage;
+  readonly topbar: TopbarPage;
   readonly toolbar: ToolbarPage;
   readonly addNewButton: Locator;
   readonly saveButton: Locator;
@@ -15,6 +17,7 @@ export class WebhookFormPage extends BasePage {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.toolbar = dashboard.grid.toolbar;
+    this.topbar = dashboard.grid.topbar;
     this.addNewButton = this.dashboard.get().locator('.nc-btn-create-webhook');
     this.saveButton = this.get().locator('button:has-text("Save")');
     this.testButton = this.get().locator('button:has-text("Test Webhook")');
@@ -25,8 +28,9 @@ export class WebhookFormPage extends BasePage {
   }
 
   async create({ title, event, url = 'http://localhost:9090/hook' }: { title: string; event: string; url?: string }) {
-    await this.dashboard.viewSidebar.openDeveloperTab({});
-    await this.dashboard.viewSidebar.webhook.addHook();
+    await this.dashboard.grid.topbar.openDetailedTab();
+    await this.dashboard.details.clickWebhooksTab();
+    await this.dashboard.details.clickAddWebhook();
     await this.get().waitFor({ state: 'visible' });
 
     await this.configureHeader({
@@ -113,19 +117,23 @@ export class WebhookFormPage extends BasePage {
   }
 
   async delete({ index }: { index: number }) {
-    await this.dashboard.viewSidebar.openDeveloperTab({});
-    await this.dashboard.viewSidebar.webhook.deleteHook({ index });
+    await this.dashboard.grid.topbar.openDetailedTab();
+    await this.dashboard.details.clickWebhooksTab();
+    await this.dashboard.details.webhook.deleteHook({ index });
     await this.rootPage.locator('div.ant-modal.active').locator('button:has-text("Delete")').click();
   }
 
   async close() {
     // type esc key
     await this.get().press('Escape');
+    await this.dashboard.grid.topbar.openDataTab();
   }
 
   async open({ index }: { index: number }) {
-    await this.dashboard.viewSidebar.openDeveloperTab({});
-    await (await this.dashboard.viewSidebar.webhook.getItem({ index })).click();
+    await this.dashboard.grid.topbar.openDetailedTab();
+    await this.dashboard.details.clickWebhooksTab();
+
+    await (await this.dashboard.details.webhook.getItem({ index })).click();
     await this.get().waitFor({ state: 'visible' });
   }
 

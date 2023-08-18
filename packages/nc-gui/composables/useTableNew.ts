@@ -66,7 +66,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
       if (!project) throw new Error('Project not found')
     }
 
-    let workspaceIdOrType = workspaceId.value
+    let workspaceIdOrType = workspaceId.value ?? 'nc'
 
     if (['nc', 'base'].includes(route.value.params.typeOrId as string)) {
       workspaceIdOrType = route.value.params.typeOrId as string

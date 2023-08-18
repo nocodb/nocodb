@@ -24,20 +24,7 @@ provide(ToggleDialogInj, toggleDialog)
 
 <template>
   <div>
-    <NuxtLayout name="dashboard">
-      <template #sidebar>
-        <DashboardSidebar />
-      </template>
-      <template #content>
-        <NuxtPage />
-      </template>
-    </NuxtLayout>
-    <LazyDashboardSettingsModal
-      v-model:model-value="dialogOpen"
-      v-model:open-key="openDialogKey"
-      v-model:data-sources-state="dataSourcesState"
-      :project-id="projectId"
-    />
+    <NuxtPage :transition="false"/>
   </div>
 </template>
 

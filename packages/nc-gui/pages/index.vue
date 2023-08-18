@@ -12,6 +12,25 @@ const dataSourcesState = ref<string>('')
 
 const projectId = ref<string>()
 
+const projectsStore = useProjects()
+
+const router = useRouter()
+
+const route = router.currentRoute
+
+watch(
+    () => route.value.params.typeOrId,
+    async () => {
+      // if (!((route.value.name as string) || '').startsWith('typeOrId-projectId-')) {
+      //   return
+      // }
+      await projectsStore.loadProjects('recent')
+    },
+    {
+      immediate: true,
+    },
+)
+
 function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: string) {
   dialogOpen.value = value ?? !dialogOpen.value
   openDialogKey.value = key || ''
@@ -20,20 +39,6 @@ function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: str
 }
 
 provide(ToggleDialogInj, toggleDialog)
-
-// onMounted(async () => {
-//   isLoading.value = true
-//   try {
-//     await loadWorkspace(route.params.typeOrId as string)
-//     await loadProjects()
-//   } finally {
-//     isLoading.value = false
-//   }
-// })
-
-// TODO
-// const isSharedBase = ref(false)
-// const currentVersion = ref('')
 </script>
 
 <template>

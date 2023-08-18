@@ -10,6 +10,10 @@ const workspaceStore = useWorkspace()
 
 const { activeWorkspace, isWorkspaceLoading } = storeToRefs(workspaceStore)
 
+const projectStore = useProject()
+
+const { isSharedBase, project } = storeToRefs(projectStore)
+
 const { isUIAllowed } = useUIPermission()
 
 const { commandPalette } = useCommandPalette()
@@ -32,7 +36,6 @@ function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: str
 }
 
 // todo:
-const isSharedBase = ref(false)
 const currentVersion = ref('')
 
 const isTreeViewOnScrollTop = ref(true)
@@ -58,7 +61,7 @@ const navigateToHome = () => {
       outlineWidth: '1px',
     }"
   >
-    <div style="min-height: var(--sidebar-top-height)">
+    <div :style="{ minHeight: isSharedBase ? 'auto' : 'var(--sidebar-top-height)' }">
       <div style="border-bottom-width: 1px" class="flex items-center px-1 nc-sidebar-header !border-0 py-1.25 pl-2">
         <div v-if="!isWorkspaceLoading" class="flex flex-row flex-grow hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md max-w-full">
           <a
@@ -67,22 +70,12 @@ const navigateToHome = () => {
             href="https://github.com/nocodb/nocodb"
             target="_blank"
           >
-            <a-tooltip placement="bottom">
-              <template #title>
-                {{ currentVersion }}
-              </template>
-              <img width="25" alt="NocoDB" src="~/assets/img/icons/256x256-trans.png" />
-            </a-tooltip>
+            <img width="25" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
           </a>
 
-          <WorkspaceMenu :workspace="activeWorkspace" :is-open="true">
+          <WorkspaceMenu v-if="!isSharedBase" :workspace="activeWorkspace" :is-open="true">
             <template #brandIcon>
-              <div
-                v-if="!isSharedBase"
-                v-e="['c:navbar:home']"
-                data-testid="nc-noco-brand-icon"
-                class="w-[29px] min-w-[29px] nc-noco-brand-icon"
-              >
+              <div v-e="['c:navbar:home']" data-testid="nc-noco-brand-icon" class="w-[29px] min-w-[29px] nc-noco-brand-icon">
                 <img width="25" class="mr-0" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
               </div>
             </template>
@@ -115,7 +108,7 @@ const navigateToHome = () => {
           <a-skeleton-input :active="true" class="!w-40 !h-4 !rounded overflow-hidden" />
         </div>
       </template>
-      <template v-else>
+      <template v-else-if="!isSharedBase">
         <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-home-btn" @click="navigateToHome">
           <MaterialSymbolsHomeOutlineRounded class="!h-3.9" />
           <div>Home</div>
@@ -133,7 +126,7 @@ const navigateToHome = () => {
           </div>
         </div>
         <WorkspaceCreateProjectBtn
-          v-if="isUIAllowed('createProject', false, activeWorkspace?.roles)"
+          v-if="isUIAllowed('createProject', false, activeWorkspace?.roles) && !isSharedBase"
           v-model:is-open="isCreateProjectOpen"
           modal
           type="text"

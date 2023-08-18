@@ -22,14 +22,16 @@ export const useViewsStore = defineStore('viewsStore', () => {
   })
 
   // Get view page type acc to route which will be used to open the view page
-  const openedViewsTab = computed(() => {
+  const openedViewsTab = computed<ViewPageType>(() => {
     // For types in ViewPageType type
-    if (route.value.query.page === 'webhooks') return 'webhooks'
-    if (route.value.query.page === 'fields') return 'fields'
-    if (route.value.query.page === 'apis') return 'apis'
-    if (route.value.query.page === 'relations') return 'relations'
+    if (!route.value.params?.slugs || route.value.params.slugs?.length === 0) return 'view'
 
-    return 'views'
+    if (route.value.params.slugs[0] === 'webhook') return 'webhook'
+    if (route.value.params.slugs[0] === 'field') return 'field'
+    if (route.value.params.slugs[0] === 'api') return 'api'
+    if (route.value.params.slugs[0] === 'relation') return 'relation'
+
+    return 'view'
   })
 
   const { sharedView } = useSharedView()
@@ -78,9 +80,15 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const onViewsTabChange = (page: ViewPageType) => {
     router.push({
-      query: {
-        ...route.value.query,
-        page: page === 'views' ? undefined : page,
+      name: 'ws-workspaceId-projectType-projectId-index-index-type-viewId-viewTitle-slugs',
+      params: {
+        workspaceId: route.value.params.workspaceId,
+        projectType: route.value.params.projectType,
+        projectId: route.value.params.projectId,
+        type: route.value.params.type,
+        viewId: route.value.params.viewId,
+        viewTitle: activeViewTitle.value,
+        slugs: [page],
       },
     })
   }

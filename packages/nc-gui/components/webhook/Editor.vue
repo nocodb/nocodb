@@ -732,7 +732,7 @@ onMounted(async () => {
 
           <a-row class="mb-5" type="flex">
             <a-col :span="24">
-              <div class="rounded-xl border-1 p-6">
+              <div class="rounded-lg border-1 p-6">
                 <a-checkbox
                   :checked="Boolean(hookRef.condition)"
                   class="nc-check-box-hook-condition"

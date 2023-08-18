@@ -2188,8 +2188,6 @@ class BaseModelSqlv2 {
 
       await this.beforeUpdate(data, trx, cookie);
 
-      const view = await View.get(this.viewId);
-      const base = await Base.get(this.model.base_id);
       const prevData = await this.readByPk(
         id,
         false,

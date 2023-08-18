@@ -136,12 +136,12 @@ const columns = [
           </div>
         </a-button>
 
-        <a-button type="primary" class="!rounded-md self-start nc-acl-save" @click="saveUIAcl">
-          <div class="flex items-center gap-2 text-white font-light">
+        <NcButton size="large" class="z-10 !rounded-lg !px-2 mr-2.5" type="primary" @click="saveUIAcl">
+          <div class="flex flex-row items-center w-full gap-x-1">
             <component :is="iconMap.save" />
-            Save
+            <div class="flex">Save</div>
           </div>
-        </a-button>
+        </NcButton>
       </div>
 
       <div class="max-h-600px overflow-y-auto">

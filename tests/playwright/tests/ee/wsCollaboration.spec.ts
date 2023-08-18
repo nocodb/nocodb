@@ -1,4 +1,4 @@
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../pages/Dashboard';
 import setup, { unsetup } from '../../setup';
 import { getDefaultPwd } from '../../tests/utils/general';
@@ -44,23 +44,21 @@ test.describe('Collaborators', () => {
         // ignore error even if user already exists
       }
     }
-
-    await dashboard.leftSidebar.home.click();
   });
-  
+
   test.afterEach(async () => {
     await unsetup(context);
   });
 
   test('WS role access validation', async ({ page }) => {
-    await workspacePage.Container.collaborators.click();
+    await dashboard.leftSidebar.clickTeamAndSettings();
 
     for (let i = 0; i < roleDb.length; i++) {
       await collaborationPage.addUsers(roleDb[i].email, roleDb[i].role);
     }
 
     for (let i = 0; i < roleDb.length; i++) {
-      await workspacePage.Header.accountMenuOpen({ title: 'sign-out' });
+      await dashboard.signOut();
 
       const loginPage = new LoginPage(page);
       await loginPage.signIn({
@@ -73,7 +71,23 @@ test.describe('Collaborators', () => {
       await workspacePage.waitFor({ state: 'visible' });
 
       await workspacePage.workspaceOpen({ title: context.workspace.title });
-      await workspacePage.verifyAccess(roleDb[i].role);
+      await workspacePage.projectOpen({ title: context.project.title });
+
+      // wait for render
+      await dashboard.rootPage.waitForTimeout(1000);
+
+      if (roleDb[i].role.toLowerCase() === 'creator') {
+        await expect(dashboard.leftSidebar.btn_teamAndSettings).toBeVisible();
+        await expect(dashboard.leftSidebar.btn_newProject).toBeVisible();
+
+        await dashboard.leftSidebar.clickTeamAndSettings();
+        await workspacePage.verifyAccess(roleDb[i].role.toLowerCase());
+      } else {
+        await expect(dashboard.leftSidebar.btn_teamAndSettings).toBeVisible({ visible: false });
+        await expect(dashboard.leftSidebar.btn_newProject).toBeVisible({ visible: false });
+      }
+
+      // await workspacePage.verifyAccess(roleDb[i].role);
     }
   });
 });

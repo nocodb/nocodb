@@ -8,7 +8,7 @@ const route = router.currentRoute
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspace, isWorkspaceLoading } = storeToRefs(workspaceStore)
+const { activeWorkspace, isWorkspaceLoading, isWorkspaceOwnerOrCreator } = storeToRefs(workspaceStore)
 
 const projectStore = useProject()
 
@@ -111,44 +111,53 @@ const navigateToHome = () => {
         </div>
       </template>
       <template v-else-if="!isSharedBase">
-        <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-search-btn" @click="commandPalette?.open()">
-          <MaterialSymbolsSearch class="!h-3.9" />
-          <div class="flex items-center gap-2">
-            Search
-            <div
-              class="inline-flex gap-1 justify-center text-xs px-[8px] py-[1px] uppercase border-1 border-gray-300 rounded-md bg-slate-150 text-gray-500"
-            >
-              <kbd class="text-[16px] mt-[0.5px]">⌘</kbd>
-              <kbd>K</kbd>
+        <div class="h-21.85">
+          <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-search-btn" @click="commandPalette?.open()">
+            <MaterialSymbolsSearch class="!h-3.9" />
+            <div class="flex items-center gap-2">
+              Search
+              <div
+                class="inline-flex gap-1 justify-center text-xs px-[8px] py-[1px] uppercase border-1 border-gray-300 rounded-md bg-slate-150 text-gray-500"
+              >
+                <kbd class="text-[16px] mt-[0.5px]">⌘</kbd>
+                <kbd>K</kbd>
+              </div>
             </div>
           </div>
-        </div>
-        <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-home-btn" @click="navigateToHome">
-          <GeneralIcon icon="settings" class="!h-3.9" />
-          <div>Team & Settings</div>
-        </div>
-        <WorkspaceCreateProjectBtn
-          v-if="isUIAllowed('createProject', false, activeWorkspace?.roles) && !isSharedBase"
-          v-model:is-open="isCreateProjectOpen"
-          modal
-          type="text"
-          class="!p-0 mx-1"
-          data-testid="nc-sidebar-create-project-btn"
-          :active-workspace-id="route.params.typeOrId"
-        >
-          <div
-            class="gap-x-2 flex flex-row w-full items-center nc-sidebar-top-button !my-0 !ml-0"
-            :class="{
-              'bg-gray-100': isCreateProjectOpen,
-            }"
-          >
-            <MdiPlus class="!h-4" />
 
-            <div class="flex">{{ $t('title.newProj') }}</div>
+          <div
+            v-if="isWorkspaceOwnerOrCreator"
+            role="button"
+            class="nc-sidebar-top-button"
+            data-testid="nc-sidebar-home-btn"
+            @click="navigateToHome"
+          >
+            <GeneralIcon icon="settings" class="!h-3.9" />
+            <div>Team & Settings</div>
           </div>
-        </WorkspaceCreateProjectBtn>
-        <div v-else class="!h-7"></div>
-        <div class="text-gray-500 mx-5 font-medium mt-3 mb-1.5">Projects</div>
+          <WorkspaceCreateProjectBtn
+          v-if="isUIAllowed('createProject', false, activeWorkspace?.roles) && !isSharedBase"
+            v-model:is-open="isCreateProjectOpen"
+            modal
+            type="text"
+            class="!p-0 mx-1"
+            data-testid="nc-sidebar-create-project-btn"
+          :active-workspace-id="route.params.typeOrId"
+          >
+            <div
+              class="gap-x-2 flex flex-row w-full items-center nc-sidebar-top-button !my-0 !ml-0"
+              :class="{
+                'bg-gray-100': isCreateProjectOpen,
+              }"
+            >
+              <MdiPlus class="!h-4" />
+
+              <div class="flex">{{ $t('title.newProj') }}</div>
+            </div>
+          </WorkspaceCreateProjectBtn>
+        </div>
+        <div class="flex flex-grow"></div>
+        <div class="text-gray-500 mx-5 font-medium mb-1.5">Projects</div>
         <div
           class="w-full border-b-1"
           :class="{

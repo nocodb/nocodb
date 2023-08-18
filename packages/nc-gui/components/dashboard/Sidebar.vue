@@ -8,7 +8,7 @@ const route = router.currentRoute
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspace } = storeToRefs(workspaceStore)
+const { activeWorkspace, isWorkspaceOwnerOrCreator } = storeToRefs(workspaceStore)
 
 const projectStore = useProject()
 
@@ -95,7 +95,14 @@ const navigateToHome = () => {
 
       <template v-if="!isSharedBase">
         <div class="w-full mt-2"></div>
-        <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-home-btn" @click="navigateToHome">
+        <div class="h-17.5">
+        <div
+          v-if="isWorkspaceOwnerOrCreator"
+          role="button"
+          class="nc-sidebar-top-button"
+          data-testid="nc-sidebar-home-btn"
+          @click="navigateToHome"
+        >
         <GeneralIcon icon="settings" class="!h-3.9" />
         <div>Team & Settings</div>
         </div>
@@ -111,8 +118,6 @@ const navigateToHome = () => {
           <div
             class="gap-x-2 flex flex-row w-full items-center nc-sidebar-top-button !my-0 !ml-0"
             :class="{
-              'border-gray-200': !isTreeViewOnScrollTop,
-              'border-transparent': isTreeViewOnScrollTop,
               'bg-gray-100': isCreateProjectOpen,
             }"
           >
@@ -121,13 +126,14 @@ const navigateToHome = () => {
             <div class="flex">{{ $t('title.newProj') }}</div>
           </div>
         </WorkspaceCreateProjectBtn>
-        <div v-else class="!h-7"></div>
-        <div class="text-gray-500 mx-5 font-medium mt-3 mb-1.5">{{ $t('objects.projects') }}</div>
+        </div>
+      <div class="flex flex-grow"></div>
+        <div class="text-gray-500 mx-5 font-medium mb-1.5">{{ $t('objects.projects') }}</div>
       </template>
       <div
         class="w-full border-b-1"
         :class="{
-          'border-gray-100': !isTreeViewOnScrollTop,
+          'border-gray-200': !isTreeViewOnScrollTop,
           'border-transparent': isTreeViewOnScrollTop,
         }"
       ></div>

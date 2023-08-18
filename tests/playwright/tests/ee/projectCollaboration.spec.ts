@@ -47,8 +47,6 @@ test.describe('Project Collaboration', () => {
         // ignore error even if user already exists
       }
     }
-
-    await dashboard.leftSidebar.home.click();
   });
 
   test.afterEach(async () => {
@@ -56,15 +54,14 @@ test.describe('Project Collaboration', () => {
   });
 
   test('EE: Project role access validation', async ({ page }) => {
-    await workspacePage.Container.collaborators.click();
+    await dashboard.leftSidebar.clickTeamAndSettings();
 
     // add all users as WS viewers
     for (let i = 0; i < roleDb.length; i++) {
       await collaborationPage.addUsers(roleDb[i].email, 'viewer');
     }
 
-    await workspacePage.Container.projects.click();
-    await workspacePage.projectOpen(context.project.title);
+    await dashboard.treeView.openProject({ title: context.project.title });
 
     // tab access validation
     await projectViewPage.verifyAccess('Owner');

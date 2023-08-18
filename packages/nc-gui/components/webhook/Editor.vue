@@ -478,22 +478,37 @@ onMounted(async () => {
   }
 
   onNotificationTypeChange()
+
+  setTimeout(() => {
+    if (hookRef.title === '') {
+      titleDomRef.value?.focus()
+    }
+  }, 50)
 })
 </script>
 
 <template>
+  <div class="flex mb-4">
+    <NcButton type="text" size="small" @click="emit('close')">
+      <div class="flex flex-row items-center gap-x-1 font-normal text-gray-600 hover:text-gray-800">
+        <GeneralIcon icon="arrowLeft" />
+      </div>
+    </NcButton>
+  </div>
   <div class="flex nc-webhook-header pb-4 gap-x-2">
     <div class="flex flex-1">
       <div
-        class="flex flex-grow px-1 py-1 -ml-1 -mt-0.5 items-center rounded-md border-transparent hover:(border-gray-200 bg-gray-50 shadow-gray-200 outline-gray-200) focus:(border-gray-200 bg-gray-50 shadow-gray-200 outline-gray-200) shadow-transparent outline-transparent"
+        class="flex flex-grow px-1.5 py-1 -ml-1 -mt-0.5 items-center rounded-md border-gray-200 bg-gray-50 outline-gray-200"
         style="outline-style: solid; outline-width: thin"
       >
         <input
           ref="titleDomRef"
           v-model="hookRef.title"
           class="flex flex-grow text-lg font-medium capitalize outline-none bg-inherit"
+          placeholder="Webhook Title"
           :contenteditable="true"
           @blur="isRenaming = false"
+          @focus="isRenaming = true"
           @keydown.enter.prevent="titleDomRef?.blur()"
         />
       </div>

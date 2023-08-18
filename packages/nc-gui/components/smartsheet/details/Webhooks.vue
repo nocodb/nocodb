@@ -32,12 +32,12 @@ const selectedHook = computed(() => {
   return hooks.value.find((hook) => hook.id === selectedHookId.value)
 })
 
-const isWebhookOptionOpen = ref(false)
-
 const showDeleteModal = ref(false)
 const isDeleting = ref(false)
 const isCopying = ref(false)
 const showEditModal = ref(false)
+
+const isDraftMode = ref(false)
 
 const copyWebhook = async (hook: HookType) => {
   if (isCopying.value) return
@@ -94,8 +94,6 @@ watch(
 
     selectedHookId.value = undefined
     await loadHooksList()
-
-    selectedHookId.value = hooks.value[0]?.id
   },
   {
     immediate: true,
@@ -108,18 +106,22 @@ const toggleHook = async (hook: HookType) => {
 }
 
 const createWebhook = async () => {
-  const hook = await createHook()
-  openEditor(hook.id)
+  isDraftMode.value = true
+}
+
+const onEditorClose = () => {
+  isDraftMode.value = false
+  selectedHookId.value = undefined
 }
 </script>
 
 <template>
   <div
-    class="flex flex-row pt-6 border-gray-50 pl-6 pr-0 nc-view-sidebar-webhook gap-x-4"
+    class="flex flex-row pt-3 border-gray-50 pl-3 pr-0 nc-view-sidebar-webhook gap-x-4"
     style="height: calc(100vh - (var(--topbar-height) * 2))"
   >
-    <div class="flex flex-col mb-4 w-1/4 p-4 !pr-0 !pb-0 border-1 rounded-2xl">
-      <NcButton v-e="['c:actions:webhook']" class="mr-4" type="secondary" @click="createWebhook()">
+    <div v-if="!selectedHookId && !isDraftMode" class="flex flex-col mb-4 w-full p-4 !pr-0 !pb-0">
+      <NcButton v-e="['c:actions:webhook']" class="mr-4 max-w-40" type="secondary" @click="createWebhook()">
         <div class="flex flex-row items-center justify-between w-full text-brand-500">
           <span class="ml-1">New Webhook</span>
           <GeneralIcon icon="plus" />
@@ -189,15 +191,9 @@ const createWebhook = async () => {
         </div>
       </div>
     </div>
-    <div class="flex w-3/4 pr-4 nc-scrollbar-md">
-      <div class="flex flex-col p-6 mb-4 border-1 rounded-2xl w-full" style="height: fit-content">
-        <WebhookEditor
-          v-if="selectedHookId"
-          :key="selectedHookId"
-          :hook="selectedHook"
-          @close="showEditModal = false"
-          @delete="showDeleteModal = true"
-        />
+    <div v-else class="flex w-full pr-4 nc-scrollbar-md justify-center">
+      <div class="flex flex-col mt-4 px-8 py-6 mb-4 border-1 rounded-2xl w-full" style="height: fit-content">
+        <WebhookEditor :key="selectedHookId" :hook="selectedHook" @close="onEditorClose" @delete="showDeleteModal = true" />
       </div>
     </div>
   </div>

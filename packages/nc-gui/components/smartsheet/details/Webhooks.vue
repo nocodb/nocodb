@@ -15,7 +15,7 @@ const {
   navigateToWebhook,
   navigateToWebhookRoute,
 } = useWebhooksStore()
-const { activeView } = storeToRefs(useViewsStore())
+const { activeView, isHooksLoading } = storeToRefs(useViewsStore())
 
 const modalDeleteButtonRef = ref(null)
 
@@ -142,12 +142,12 @@ watch(
 
 <template>
   <div
-    v-if="activeView"
+    v-if="activeView && !isHooksLoading"
     class="flex flex-col pt-3 border-gray-50 pl-3 pr-0 nc-view-sidebar-webhook nc-scrollbar-md"
     style="height: calc(100vh - (var(--topbar-height) * 2))"
   >
     <div
-      class="flex flex-row justify-between w-full min-h-8"
+      class="flex flex-row justify-between w-full min-h-8 mb-8"
       :class="{
         '!items-start mt-1': !selectedHookId && !isDraftMode,
       }"
@@ -162,7 +162,7 @@ watch(
           <GeneralIcon icon="arrowLeft" class="ml-0.75" />
         </NcButton>
         <div class="flex flex-row ml-2">
-          <NuxtLink class="link" :to="webhookMainUrl">Webhook</NuxtLink>
+          <NuxtLink class="link" :to="webhookMainUrl">Webhooks</NuxtLink>
         </div>
         <template v-if="selectedHook || isDraftMode">
           <div class="flex text-gray-400">/</div>

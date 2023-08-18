@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 import {
   IsFormInj,
   IsKanbanInj,
@@ -174,7 +174,7 @@ onMounted(() => {
   }
 
   // for cases like formula
-  if (formState.value && !formState.value.column_name) {
+  if (formState.value && !formState.value.column_name && !isLinksOrLTAR(formState.value)) {
     formState.value.column_name = formState.value?.title
   }
 

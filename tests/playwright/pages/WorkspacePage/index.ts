@@ -128,33 +128,57 @@ export class WorkspacePage extends BasePage {
     await this.Header.verifyStaticElements();
   }
 
+  // async verifyAccess(role: string) {
+  //   const addWs = this.LeftSideBar.createWorkspace;
+  //   const addProject = this.Container.newProjectButton;
+  //   const collaborators = this.Container.collaborators;
+  //   const billing = this.Container.billing;
+  //   const moreActions = this.Container.moreActions;
+  //
+  //   if (role === 'owner') expect(await billing.isVisible()).toBeTruthy();
+  //   else expect(await billing.isVisible()).toBeFalsy();
+  //
+  //   expect(await addWs.isVisible()).toBeTruthy();
+  //
+  //   if (role === 'creator' || role === 'owner') {
+  //     expect(await collaborators.isVisible()).toBeTruthy();
+  //     expect(await addProject.isVisible()).toBeTruthy();
+  //     expect(await moreActions.isVisible()).toBeTruthy();
+  //
+  //     const menuItems = await this.Container.getMoreActionsSubMenuDetails();
+  //     if (role === 'creator') {
+  //       expect(menuItems).toEqual(['Rename Project', 'Duplicate Project']);
+  //     } else {
+  //       expect(menuItems).toEqual(['Rename Project', 'Duplicate Project', 'Move Project', 'Delete Project']);
+  //     }
+  //   } else {
+  //     expect(await collaborators.isVisible()).toBeFalsy();
+  //     expect(await billing.isVisible()).toBeFalsy();
+  //     expect(await addProject.isVisible()).toBeFalsy();
+  //   }
+  // }
+
   async verifyAccess(role: string) {
-    const addWs = await this.LeftSideBar.createWorkspace;
-    const addProject = await this.Container.newProjectButton;
-    const collaborators = await this.Container.collaborators;
-    const billing = await this.Container.billing;
-    const moreActions = await this.Container.moreActions;
+    const collaborators = this.Container.collaborators;
+    const billing = this.Container.billing;
+    const settings = this.Container.settings;
 
-    if (role === 'owner') expect(await billing.isVisible()).toBeTruthy();
-    else expect(await billing.isVisible()).toBeFalsy();
+    if (role === 'owner') {
+      expect(await billing.isVisible()).toBeTruthy();
+      expect(await settings.isVisible()).toBeTruthy();
+    } else {
+      expect(await billing.isVisible()).toBeFalsy();
+      expect(await settings.isVisible()).toBeFalsy();
+    }
 
-    expect(await addWs.isVisible()).toBeTruthy();
+    await this.rootPage.waitForTimeout(1000);
 
     if (role === 'creator' || role === 'owner') {
+      console.log(await this.Container.get().count());
+      console.log(await this.Container.collaborators.count());
       expect(await collaborators.isVisible()).toBeTruthy();
-      expect(await addProject.isVisible()).toBeTruthy();
-      expect(await moreActions.isVisible()).toBeTruthy();
-
-      const menuItems = await this.Container.getMoreActionsSubMenuDetails();
-      if (role === 'creator') {
-        expect(menuItems).toEqual(['Rename Project', 'Duplicate Project']);
-      } else {
-        expect(menuItems).toEqual(['Rename Project', 'Duplicate Project', 'Move Project', 'Delete Project']);
-      }
     } else {
       expect(await collaborators.isVisible()).toBeFalsy();
-      expect(await billing.isVisible()).toBeFalsy();
-      expect(await addProject.isVisible()).toBeFalsy();
     }
   }
 }

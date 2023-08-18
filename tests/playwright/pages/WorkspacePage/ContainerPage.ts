@@ -43,6 +43,7 @@ export class ContainerPage extends BasePage {
   readonly projects: Locator;
   readonly collaborators: Locator;
   readonly billing: Locator;
+  readonly settings: Locator;
 
   // list
   readonly moreActions: Locator;
@@ -56,6 +57,7 @@ export class ContainerPage extends BasePage {
     this.projects = this.get().locator('.ant-tabs-tab:has-text("Projects")');
     this.collaborators = this.get().locator('.ant-tabs-tab:has-text("Collaborators")');
     this.billing = this.get().locator('.ant-tabs-tab:has-text("Billing")');
+    this.settings = this.get().locator('.ant-tabs-tab:has-text("Settings")');
 
     // list
     this.moreActions = this.get().locator('td.ant-table-cell >> .nc-workspace-menu');
@@ -70,7 +72,7 @@ export class ContainerPage extends BasePage {
   }
 
   async verifyStaticElements() {
-    const tableHeaderCells = await this.get().locator('.ant-table-thead > tr > th.ant-table-cell');
+    const tableHeaderCells = this.get().locator('.ant-table-thead > tr > th.ant-table-cell');
     expect(await tableHeaderCells.count()).toBe(5);
     expect(await tableHeaderCells.nth(0).innerText()).toBe('Project Name');
     expect(await tableHeaderCells.nth(1).innerText()).toBe('Role');
@@ -80,11 +82,11 @@ export class ContainerPage extends BasePage {
 
     const tabs = await this.get().locator('.ant-tabs-tab-btn');
     await expect(await tabs.count()).toBe(3);
-    await expect(await this.projects).toBeVisible();
-    await expect(await this.collaborators).toBeVisible();
-    await expect(await this.billing).toBeVisible();
+    await expect(this.projects).toBeVisible();
+    await expect(this.collaborators).toBeVisible();
+    await expect(this.billing).toBeVisible();
 
-    await expect(await this.newProjectButton).toBeVisible();
+    await expect(this.newProjectButton).toBeVisible();
   }
 
   async getProjectRowData({ index, skipWs = false }: { index: number; skipWs: boolean }) {

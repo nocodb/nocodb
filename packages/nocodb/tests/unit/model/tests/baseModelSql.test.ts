@@ -69,9 +69,6 @@ function baseModelSqlTests() {
       inputData.UpdatedAt = `${inputData.UpdatedAt}+00:00`;
     }
 
-    console.log('insertedRow', JSON.stringify(insertedRow, null, 2));
-    console.log('inputData', JSON.stringify(inputData, null, 2));
-
     expect(insertedRow).to.include(inputData);
     expect(insertedRow).to.include(response);
 
@@ -81,7 +78,7 @@ function baseModelSqlTests() {
     expect(rowInsertedAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: null,
+      base_id: table.base_id,
       project_id: project.id,
       fk_model_id: table.id,
       row_id: '1',
@@ -129,7 +126,7 @@ function baseModelSqlTests() {
     expect(rowBulkInsertedAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: null,
+      base_id: table.base_id,
       project_id: project.id,
       fk_model_id: table.id,
       row_id: null,
@@ -163,7 +160,7 @@ function baseModelSqlTests() {
     expect(rowUpdatedAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: null,
+      base_id: table.base_id,
       project_id: project.id,
       fk_model_id: table.id,
       row_id: '1',
@@ -206,7 +203,7 @@ function baseModelSqlTests() {
     expect(rowBulkUpdateAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: null,
+      base_id: table.base_id,
       fk_model_id: table.id,
       project_id: project.id,
       row_id: null,
@@ -257,7 +254,7 @@ function baseModelSqlTests() {
     expect(rowBulkUpdateAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: null,
+      base_id: table.base_id,
       fk_model_id: table.id,
       project_id: project.id,
       row_id: null,
@@ -296,7 +293,7 @@ function baseModelSqlTests() {
     expect(rowDeletedAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: null,
+      base_id: table.base_id,
       project_id: project.id,
       fk_model_id: table.id,
       row_id: '1',
@@ -337,7 +334,7 @@ function baseModelSqlTests() {
     expect(rowBulkDeleteAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: null,
+      base_id: table.base_id,
       fk_model_id: table.id,
       project_id: project.id,
       row_id: null,
@@ -385,7 +382,7 @@ function baseModelSqlTests() {
     expect(rowBulkDeleteAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: null,
+      base_id: table.base_id,
       fk_model_id: table.id,
       project_id: project.id,
       row_id: null,
@@ -446,7 +443,7 @@ function baseModelSqlTests() {
     expect(rowInsertedAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: null,
+      base_id: table.base_id,
       project_id: project.id,
       fk_model_id: table.id,
       row_id: '1',
@@ -513,7 +510,7 @@ function baseModelSqlTests() {
     expect(rowInsertedAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: null,
+      base_id: table.base_id,
       project_id: project.id,
       fk_model_id: table.id,
       row_id: '1',
@@ -588,7 +585,7 @@ function baseModelSqlTests() {
     expect(rowInsertedAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: null,
+      base_id: table.base_id,
       project_id: project.id,
       fk_model_id: table.id,
       row_id: '1',

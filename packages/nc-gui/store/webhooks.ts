@@ -216,6 +216,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     createWebhookUrl,
     webhookMainUrl,
     isHooksLoading,
+    navigateToWebhookRoute,
   }
 })
 

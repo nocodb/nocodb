@@ -488,33 +488,34 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex nc-webhook-header pb-4 gap-x-2">
+  <div class="flex nc-webhook-header pb-3 gap-x-2 items-start">
     <div class="flex flex-1">
-      <div
-        class="flex flex-grow px-1.5 py-1 -ml-1 -mt-0.5 items-center rounded-md border-gray-200 bg-gray-50 outline-gray-200"
-        style="outline-style: solid; outline-width: thin"
-      >
-        <input
-          ref="titleDomRef"
-          v-model="hookRef.title"
-          class="flex flex-grow text-lg font-medium capitalize outline-none bg-inherit"
-          placeholder="Webhook Title"
-          :contenteditable="true"
-          @blur="isRenaming = false"
-          @focus="isRenaming = true"
-          @keydown.enter.prevent="titleDomRef?.blur()"
-        />
-      </div>
+      <a-form-item v-bind="validateInfos.title" class="flex flex-grow">
+        <div
+          class="flex flex-grow px-1.5 py-0.125 items-center rounded-md border-gray-200 bg-gray-50 outline-gray-200"
+          style="outline-style: solid; outline-width: thin"
+        >
+          <input
+            ref="titleDomRef"
+            v-model="hookRef.title"
+            class="flex flex-grow text-lg font-medium capitalize outline-none bg-inherit"
+            placeholder="Webhook Title"
+            :contenteditable="true"
+            @blur="isRenaming = false"
+            @focus="isRenaming = true"
+            @keydown.enter.prevent="titleDomRef?.blur()"
+          />
+        </div>
+      </a-form-item>
     </div>
     <div class="flex flex-row gap-2">
       <NcButton class="nc-btn-webhook-test" type="secondary" size="small" @click="testWebhook">
         <div class="flex items-center px-1">Test Webhook</div>
       </NcButton>
 
-      <NcButton class="nc-btn-webhook-save" type="primary" size="small" @click.prevent="saveHooks">
-        <div class="flex items-center px-1">
-          {{ $t('general.save') }}
-        </div>
+      <NcButton class="nc-btn-webhook-save" type="primary" :loading="loading" size="small" @click.prevent="saveHooks">
+        <template #loading> Saving </template>
+        <div class="flex items-center px-1">{{ $t('general.save') }}</div>
       </NcButton>
     </div>
   </div>

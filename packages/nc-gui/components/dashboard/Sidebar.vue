@@ -7,7 +7,7 @@ const route = router.currentRoute
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspace } = storeToRefs(workspaceStore)
+const { activeWorkspace, isWorkspaceOwnerOrCreator } = storeToRefs(workspaceStore)
 
 const { navigateToWorkspaceSettings } = useWorkspace()
 
@@ -91,38 +91,44 @@ const navigateToHome = () => {
 
       <div class="w-full mt-2"></div>
 
-      <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-home-btn" @click="navigateToHome">
-        <GeneralIcon icon="settings" class="!h-3.9" />
-        <div>Team & Settings</div>
-      </div>
-      <WorkspaceCreateProjectBtn
-        v-if="isUIAllowed('createProject', false, activeWorkspace?.roles)"
-        v-model:is-open="isCreateProjectOpen"
-        modal
-        type="text"
-        class="!p-0 mx-1"
-        data-testid="nc-sidebar-create-project-btn"
-        :active-workspace-id="route.params.workspaceId"
-      >
+      <div class="h-17.5">
         <div
-          class="gap-x-2 flex flex-row w-full items-center nc-sidebar-top-button !my-0 !ml-0"
-          :class="{
-            'border-gray-200': !isTreeViewOnScrollTop,
-            'border-transparent': isTreeViewOnScrollTop,
-            'bg-gray-100': isCreateProjectOpen,
-          }"
+          v-if="isWorkspaceOwnerOrCreator"
+          role="button"
+          class="nc-sidebar-top-button"
+          data-testid="nc-sidebar-home-btn"
+          @click="navigateToHome"
         >
-          <MdiPlus class="!h-4" />
-
-          <div class="flex">{{ $t('title.newProj') }}</div>
+          <GeneralIcon icon="settings" class="!h-3.9" />
+          <div>Team & Settings</div>
         </div>
-      </WorkspaceCreateProjectBtn>
-      <div v-else class="!h-7"></div>
-      <div class="text-gray-500 mx-5 font-medium mt-3 mb-1.5">{{ $t('objects.projects') }}</div>
+        <WorkspaceCreateProjectBtn
+          v-if="isUIAllowed('createProject', false, activeWorkspace?.roles)"
+          v-model:is-open="isCreateProjectOpen"
+          modal
+          type="text"
+          class="!p-0 mx-1"
+          data-testid="nc-sidebar-create-project-btn"
+          :active-workspace-id="route.params.workspaceId"
+        >
+          <div
+            class="gap-x-2 flex flex-row w-full items-center nc-sidebar-top-button !my-0 !ml-0"
+            :class="{
+              'bg-gray-100': isCreateProjectOpen,
+            }"
+          >
+            <MdiPlus class="!h-4" />
+
+            <div class="flex">{{ $t('title.newProj') }}</div>
+          </div>
+        </WorkspaceCreateProjectBtn>
+      </div>
+      <div class="flex flex-grow"></div>
+      <div class="text-gray-500 mx-5 font-medium mb-1.5">{{ $t('objects.projects') }}</div>
       <div
         class="w-full border-b-1"
         :class="{
-          'border-gray-100': !isTreeViewOnScrollTop,
+          'border-gray-200': !isTreeViewOnScrollTop,
           'border-transparent': isTreeViewOnScrollTop,
         }"
       ></div>

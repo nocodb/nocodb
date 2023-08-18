@@ -69,6 +69,9 @@ function baseModelSqlTests() {
       inputData.UpdatedAt = `${inputData.UpdatedAt}+00:00`;
     }
 
+    console.log('insertedRow', JSON.stringify(insertedRow, null, 2));
+    console.log('inputData', JSON.stringify(inputData, null, 2));
+
     expect(insertedRow).to.include(inputData);
     expect(insertedRow).to.include(response);
 

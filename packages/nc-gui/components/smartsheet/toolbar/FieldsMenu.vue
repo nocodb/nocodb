@@ -52,6 +52,7 @@ const {
   saveOrUpdate,
   metaColumnById,
   loadViewColumns,
+  toggleFieldVisibility,
 } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
 
 const { eventBus } = useSmartsheetStoreOrThrow()
@@ -255,27 +256,6 @@ const getIcon = (c: ColumnType) =>
 
 const open = ref(false)
 
-const toggleFieldVisibility = (checked: boolean, field: any, index: number) => {
-  addUndo({
-    undo: {
-      fn: (v: boolean) => {
-        field.show = !v
-        saveOrUpdate(field, index)
-      },
-      args: [checked],
-    },
-    redo: {
-      fn: (v: boolean) => {
-        field.show = v
-        saveOrUpdate(field, index)
-      },
-      args: [checked],
-    },
-    scope: defineViewScope({ view: activeView.value }),
-  })
-  saveOrUpdate(field, index)
-}
-
 const toggleSystemFields = (checked: boolean) => {
   addUndo({
     undo: {
@@ -389,7 +369,7 @@ useMenuCloseOnEsc(open)
                       v-model:checked="field.show"
                       v-e="['a:fields:show-hide']"
                       :disabled="field.isViewEssentialField"
-                      @change="toggleFieldVisibility($event, field, index)"
+                      @change="toggleFieldVisibility($event, field)"
                     />
                   </div>
 

@@ -55,7 +55,7 @@ test.describe('Import', () => {
 
     await dashboard.treeView.openTable({ title: 'Sheet2' });
 
-    const recordCells = { Number: '1', Float: isSqlite(context) || isPg(context) ? '1.1' : '1.10', Text: 'abc' };
+    const recordCells = { Number: '1', Float: '1.1', Text: 'abc' };
 
     for (const [key, value] of Object.entries(recordCells)) {
       await dashboard.grid.cell.verify({

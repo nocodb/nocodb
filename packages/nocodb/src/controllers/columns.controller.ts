@@ -11,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ColumnReqType } from 'nocodb-sdk';
+import type { Column } from '~/models';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { ColumnsService } from '~/services/columns.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -72,5 +73,29 @@ export class ColumnsController {
   @Acl('columnSetAsPrimary')
   async columnSetAsPrimary(@Param('columnId') columnId: string) {
     return await this.columnsService.columnSetAsPrimary({ columnId });
+  }
+
+  @Get('/api/v1/db/meta/tables/:tableId/columns/hash')
+  @Acl('columnsHash')
+  async columnsHash(@Param('tableId') tableId: string) {
+    return await this.columnsService.columnsHash(tableId);
+  }
+
+  @Post('/api/v1/db/meta/tables/:tableId/columns/bulk')
+  @HttpCode(200)
+  @Acl('columnBulk')
+  async columnBulk(
+    @Param('tableId') tableId: string,
+    @Body()
+    body: {
+      hash: string;
+      ops: {
+        op: 'add' | 'update' | 'delete';
+        column: Partial<Column>;
+      }[];
+    },
+    @Request() req: any,
+  ) {
+    return await this.columnsService.columnBulk(tableId, body, req);
   }
 }

@@ -373,10 +373,21 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   const navigateToWorkspace = async (workspaceId?: string) => {
+    workspaceId = workspaceId || activeWorkspaceId.value!
     if (!workspaceId) {
-      return await router.push({ query: { page: 'workspace' } })
+      throw new Error('Workspace not selected')
     }
-    await router.push({ query: { workspaceId, page: 'workspace' } })
+
+    await navigateTo(`/ws/${workspaceId}`)
+  }
+
+  const navigateToWorkspaceSettings = async (workspaceId?: string) => {
+    workspaceId = workspaceId || activeWorkspaceId.value!
+    if (!workspaceId) {
+      throw new Error('Workspace not selected')
+    }
+
+    await router.push({ name: 'ws-workspaceId-projectType-settings', params: { workspaceId } })
   }
 
   return {
@@ -411,6 +422,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     upgradeActiveWorkspace,
     navigateToWorkspace,
     isWorkspaceOwnerOrCreator,
+    navigateToWorkspaceSettings,
   }
 })
 

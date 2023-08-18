@@ -18,7 +18,7 @@ export class WorkspaceMenuObject extends BasePage {
   }
 
   async click({ menu, subMenu }: { menu: string; subMenu: string }) {
-    const pMenu = await this.rootPage.locator(`.nc-dropdown-workspace-menu:visible`);
+    const pMenu = this.rootPage.locator(`.nc-dropdown-workspace-menu:visible`);
     await pMenu.locator(`div.nc-workspace-menu-item:has-text("${menu}"):visible`).click();
     await this.rootPage.waitForTimeout(2000);
 

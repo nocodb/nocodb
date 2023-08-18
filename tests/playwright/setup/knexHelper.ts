@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 import { getKnexConfig } from '../tests/utils/config';
 
 async function dropAndCreateDb(kn: Knex, dbName: string) {
-  await kn.raw(`DROP DATABASE IF EXISTS ?? WITH (FORCE)`, [dbName]);
+  await kn.raw(`DROP DATABASE IF EXISTS ??`, [dbName]);
   await kn.raw(`CREATE DATABASE ??`, [dbName]);
 }
 

@@ -84,6 +84,7 @@ onMounted(() => {
       options: [],
     }
   }
+
   options.value = vModel.value.colOptions.options
 
   renderedOptions.value = [...options.value]

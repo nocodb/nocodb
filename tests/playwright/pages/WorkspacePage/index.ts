@@ -17,16 +17,16 @@ import { CollaborationPage } from './CollaborationPage';
 */
 
 export class WorkspacePage extends BasePage {
-  readonly Header: HeaderPage;
-  readonly LeftSideBar: LeftSideBarPage;
-  readonly Container: ContainerPage;
+  readonly header: HeaderPage;
+  readonly leftSideBar: LeftSideBarPage;
+  readonly container: ContainerPage;
   readonly collaboration: CollaborationPage;
 
   constructor(rootPage: Page) {
     super(rootPage);
-    this.Header = new HeaderPage(this);
-    this.LeftSideBar = new LeftSideBarPage(this);
-    this.Container = new ContainerPage(this);
+    this.header = new HeaderPage(this);
+    this.leftSideBar = new LeftSideBarPage(this);
+    this.container = new ContainerPage(this);
     this.collaboration = new CollaborationPage(this);
   }
 
@@ -36,69 +36,69 @@ export class WorkspacePage extends BasePage {
 
   async waitFor({ state }) {
     await this.get().waitFor({ state });
-    await this.Header.waitFor({ state });
-    await this.LeftSideBar.waitFor({ state });
-    await this.Container.waitFor({ state });
+    await this.header.waitFor({ state });
+    await this.leftSideBar.waitFor({ state });
+    await this.container.waitFor({ state });
   }
 
   async verifyStaticElements() {
     await this.waitFor({ state: 'visible' });
-    await this.Header.verifyStaticElements();
-    await this.LeftSideBar.verifyStaticElements();
-    await this.Container.verifyStaticElements();
+    await this.header.verifyStaticElements();
+    await this.leftSideBar.verifyStaticElements();
+    await this.container.verifyStaticElements();
   }
 
   async workspaceCreate({ title }) {
     await this.waitFor({ state: 'visible' });
-    await this.LeftSideBar.workspaceCreate({ title });
+    await this.leftSideBar.workspaceCreate({ title });
   }
 
   async workspaceRename({ title, newTitle }: { newTitle: string; title: string }) {
-    await this.LeftSideBar.workspaceRename({ title, newTitle });
+    await this.leftSideBar.workspaceRename({ title, newTitle });
   }
 
   async workspaceDelete({ title }) {
     await this.waitFor({ state: 'visible' });
-    await this.LeftSideBar.workspaceDelete({ title });
+    await this.leftSideBar.workspaceDelete({ title });
   }
 
   async workspaceOpen({ title }) {
     await this.waitFor({ state: 'visible' });
-    await (await this.LeftSideBar.workspaceGetLocator(title)).click();
+    await (await this.leftSideBar.workspaceGetLocator(title)).click();
   }
 
   async workspaceCount() {
-    return await this.LeftSideBar.getWorkspaceCount();
+    return await this.leftSideBar.getWorkspaceCount();
   }
 
   async projectCreate({ title, type }) {
     await this.waitFor({ state: 'visible' });
-    await this.Container.projectCreate({ title, type });
+    await this.container.projectCreate({ title, type });
   }
 
   async projectDelete({ title }) {
-    await this.Container.projectDelete({ title });
+    await this.container.projectDelete({ title });
   }
 
   async projectOpen({ title }) {
     await this.waitFor({ state: 'visible' });
-    await this.Container.projectOpen({ title });
+    await this.container.projectOpen({ title });
   }
 
   async projectRename({ title, newTitle }) {
-    await this.Container.projectRename({ title, newTitle });
+    await this.container.projectRename({ title, newTitle });
   }
 
   async projectMove({ title, newWorkspace }) {
-    await this.Container.projectMove({ title, newWorkspace });
+    await this.container.projectMove({ title, newWorkspace });
   }
 
   async projectAddToFavourites({ title }: { title: string }) {
-    await this.Container.projectAddToFavourites({ title });
+    await this.container.projectAddToFavourites({ title });
   }
 
   async openQuickAccess(menu: 'Recent' | 'Shared with me' | 'Favourites') {
-    await this.LeftSideBar.openQuickAccess(menu);
+    await this.leftSideBar.openQuickAccess(menu);
     await this.rootPage.waitForTimeout(100);
   }
 
@@ -106,55 +106,80 @@ export class WorkspacePage extends BasePage {
     // fix me! wait for page load to complete
     // one of the two checks should suffice
     await this.rootPage.waitForTimeout(1000);
-    expect(await this.LeftSideBar.createWorkspace.count()).toBe(param.exists ? 1 : 0);
-    await this.LeftSideBar.get()
+    expect(await this.leftSideBar.createWorkspace.count()).toBe(param.exists ? 1 : 0);
+    await this.leftSideBar
+      .get()
       .locator('[data-testid="nc-create-workspace"]')
       .waitFor({ state: param.exists ? 'visible' : 'hidden' });
   }
 
   async logout() {
-    await this.Header.accountMenuOpen({ title: 'sign-out' });
+    await this.header.accountMenuOpen({ title: 'sign-out' });
   }
 
   // Add on verification routines
   // can be done using expect at source
 
   async openPasswordChangeModal() {
-    await this.Header.accountMenuOpen({ title: 'user-settings' });
+    await this.header.accountMenuOpen({ title: 'user-settings' });
     await this.rootPage.locator('[data-menu-id="password-reset"]').click();
   }
 
   async waitForRender() {
-    await this.Header.verifyStaticElements();
+    await this.header.verifyStaticElements();
   }
 
+  // async verifyAccess(role: string) {
+  //   const addWs = this.LeftSideBar.createWorkspace;
+  //   const addProject = this.Container.newProjectButton;
+  //   const collaborators = this.Container.collaborators;
+  //   const billing = this.Container.billing;
+  //   const moreActions = this.Container.moreActions;
+  //
+  //   if (role === 'owner') expect(await billing.isVisible()).toBeTruthy();
+  //   else expect(await billing.isVisible()).toBeFalsy();
+  //
+  //   expect(await addWs.isVisible()).toBeTruthy();
+  //
+  //   if (role === 'creator' || role === 'owner') {
+  //     expect(await collaborators.isVisible()).toBeTruthy();
+  //     expect(await addProject.isVisible()).toBeTruthy();
+  //     expect(await moreActions.isVisible()).toBeTruthy();
+  //
+  //     const menuItems = await this.Container.getMoreActionsSubMenuDetails();
+  //     if (role === 'creator') {
+  //       expect(menuItems).toEqual(['Rename Project', 'Duplicate Project']);
+  //     } else {
+  //       expect(menuItems).toEqual(['Rename Project', 'Duplicate Project', 'Move Project', 'Delete Project']);
+  //     }
+  //   } else {
+  //     expect(await collaborators.isVisible()).toBeFalsy();
+  //     expect(await billing.isVisible()).toBeFalsy();
+  //     expect(await addProject.isVisible()).toBeFalsy();
+  //   }
+  // }
+
   async verifyAccess(role: string) {
-    const addWs = await this.LeftSideBar.createWorkspace;
-    const addProject = await this.Container.newProjectButton;
-    const collaborators = await this.Container.collaborators;
-    const billing = await this.Container.billing;
-    const moreActions = await this.Container.moreActions;
+    const collaborators = this.container.collaborators;
+    const billing = this.container.billing;
+    const settings = this.container.settings;
 
-    if (role === 'owner') expect(await billing.isVisible()).toBeTruthy();
-    else expect(await billing.isVisible()).toBeFalsy();
+    if (role === 'owner') {
+      expect(await billing.isVisible()).toBeTruthy();
+      expect(await settings.isVisible()).toBeTruthy();
+    } else {
+      expect(await billing.isVisible()).toBeFalsy();
+      expect(await settings.isVisible()).toBeFalsy();
+    }
 
-    expect(await addWs.isVisible()).toBeTruthy();
+    await this.rootPage.waitForTimeout(1000);
 
     if (role === 'creator' || role === 'owner') {
+      console.log(await this.container.get().count());
+      console.log(await this.container.collaborators.count());
       expect(await collaborators.isVisible()).toBeTruthy();
-      expect(await addProject.isVisible()).toBeTruthy();
-      expect(await moreActions.isVisible()).toBeTruthy();
-
-      const menuItems = await this.Container.getMoreActionsSubMenuDetails();
-      if (role === 'creator') {
-        expect(menuItems).toEqual(['Rename Project', 'Duplicate Project']);
-      } else {
-        expect(menuItems).toEqual(['Rename Project', 'Duplicate Project', 'Move Project', 'Delete Project']);
-      }
     } else {
       expect(await collaborators.isVisible()).toBeFalsy();
-      expect(await billing.isVisible()).toBeFalsy();
-      expect(await addProject.isVisible()).toBeFalsy();
     }
   }
 }

@@ -260,15 +260,27 @@ export class TreeViewPage extends BasePage {
     expect(await tblNode.locator('.nc-tbl-context-menu').count()).toBe(count);
   }
 
-  async openProject(param: { title: string }) {
-    const nodes = await this.get().locator(`.nc-project-sub-menu`);
+  async openProject({ title, projectCount }: { title: string; projectCount?: number }) {
+    const nodes = this.get().locator(`.project-title-node`);
+
+    // at times, page is not rendered yet when trying to open project
+    // hence retry logic to wait for expected number of projects to be available
+    if (projectCount) {
+      let retryCount = 0;
+      while (retryCount < 5) {
+        if ((await nodes.count()) === projectCount) break;
+        await this.rootPage.waitForTimeout(retryCount * 500);
+        retryCount++;
+      }
+    }
 
     // loop through nodes.count() to find the node with title
     for (let i = 0; i < (await nodes.count()); i++) {
       const node = nodes.nth(i);
       const nodeTitle = await node.innerText();
+
       // check if nodeTitle contains title
-      if (nodeTitle.toLowerCase().includes(param.title.toLowerCase())) {
+      if (nodeTitle.toLowerCase().includes(title.toLowerCase())) {
         // click on node
         await node.waitFor({ state: 'visible' });
         await node.click();
@@ -281,5 +293,14 @@ export class TreeViewPage extends BasePage {
 
   private async getProject(param: { index: number }) {
     return this.get().locator(`.project-title-node`).nth(param.index);
+  }
+
+  async deleteProject(param: { title: string }) {
+    await this.btn_projectContextMenu.hover();
+    await this.btn_projectContextMenu.click();
+    const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md');
+    await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Delete")`).click();
+
+    await this.rootPage.locator('div.ant-modal-content').locator(`button.ant-btn:has-text("Delete Project")`).click();
   }
 }

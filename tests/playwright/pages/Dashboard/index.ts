@@ -9,7 +9,7 @@ import { LinkRecord } from './Grid/Column/LTAR/LinkRecord';
 import { TreeViewPage } from './TreeView';
 import { SettingsPage } from './Settings';
 import { ViewSidebarPage } from './ViewSidebar';
-import { LeftSidebarPage } from './LeftSidebar';
+import { LeftSidebarPage } from './common/LeftSidebar';
 import { ProjectViewPage } from './ProjectView';
 import { GalleryPage } from './Gallery';
 import { KanbanPage } from './Kanban';

@@ -91,7 +91,7 @@ const navigateToHome = () => {
 
       <div class="w-full mt-2"></div>
 
-      <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-home-btn" @click="navigateToHome">
+      <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-team-settings-btn" @click="navigateToHome">
         <GeneralIcon icon="settings" class="!h-3.9" />
         <div>Team & Settings</div>
       </div>

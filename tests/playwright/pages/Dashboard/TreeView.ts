@@ -261,7 +261,7 @@ export class TreeViewPage extends BasePage {
   }
 
   async openProject({ title, projectCount }: { title: string; projectCount?: number }) {
-    const nodes = this.get().locator(`.nc-project-sub-menu`);
+    const nodes = this.get().locator(`.project-title-node`);
 
     // at times, page is not rendered yet when trying to open project
     // hence retry logic to wait for expected number of projects to be available

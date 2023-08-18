@@ -208,7 +208,7 @@ watch(
           </div>
         </NcButton>
       </div>
-      <div v-else class="flex flex-col pb-2 gap-y-1.5 mt-3 nc-scrollbar-md mb-2.5 w-full max-w-200">
+      <div v-else class="flex flex-col pb-2 gap-y-1.5 mt-3 mb-2.5 w-full max-w-200">
         <div
           v-for="hook in hooks"
           :key="hook.id"

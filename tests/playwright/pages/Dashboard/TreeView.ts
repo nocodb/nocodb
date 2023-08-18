@@ -145,8 +145,9 @@ export class TreeViewPage extends BasePage {
   }
 
   async deleteTable({ title }: { title: string }) {
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).scrollIntoViewIfNeeded();
     await this.get().locator(`.nc-project-tree-tbl-${title}`).waitFor({ state: 'visible' });
+
+    await this.get().locator(`.nc-project-tree-tbl-${title}`).scrollIntoViewIfNeeded();
     await this.get().locator(`.nc-project-tree-tbl-${title}`).locator('.nc-icon.ant-dropdown-trigger').click();
     await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Delete"):visible').click();
 

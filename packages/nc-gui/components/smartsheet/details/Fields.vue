@@ -84,6 +84,7 @@ const listFields = computed<TableExplorerColumn[]>(() => {
   return tempList
 })
 
+// Current Selected Field
 const activeField = ref()
 
 const searchQuery = ref<string>('')
@@ -157,6 +158,7 @@ const calculateOrder = (column: TableExplorerColumn) => {
   return before + step * counterBefore
 }
 
+// Update, Delete and New Column operations are tracked here
 const ops = ref<op[]>([])
 
 const temporaryAddCount = ref(0)
@@ -251,6 +253,7 @@ const duplicateField = async (field: TableExplorerColumn) => {
   duplicateFieldHook.value = fieldPayload as TableExplorerColumn
 }
 
+// This method is called whenever there is a change in field properties
 const onFieldUpdate = (state: any) => {
   const col = listFields.value.find((col) => compareCols(col, state))
   if (!col) return
@@ -327,7 +330,8 @@ const recoverField = (state: any) => {
     } else if (field.op === 'update') {
       ops.value = ops.value.filter((op) => !compareCols(op.column, state))
     }
-    changeField(activeField.value)
+    activeField.value = null
+    changeField(fields.value.filter((fiel) => fiel.id === state.id)[0])
   }
 }
 
@@ -367,7 +371,7 @@ const skipTransition = (field: any) => {
 const clearChanges = () => {
   ops.value = []
   newFields.value = []
-  changeField(undefined)
+  changeField(null)
 }
 
 const saveChanges = async () => {
@@ -508,10 +512,10 @@ onMounted(async () => {
         </div>
         <div class="flex mt-2 h-full">
           <div class="flex flex-col flex-1 p-2">
-            <TransitionGroup name="slide-fade" tag="div">
+            <TransitionGroup name="slide-fade" tag="div" class="overflow-y-auto pb-4 nc-scrollbar-x-md">
               <template v-for="field of filteredListFields" :key="`field-${field.id || field.temp_id}`">
                 <div
-                  class="flex px-2 mb-2 border-1 rounded-lg pl-5 group"
+                  class="flex px-2 mb-2 mr-2 border-1 rounded-lg pl-5 group"
                   :class="`${fieldStatus(field)} ${compareCols(field, activeField) ? 'selected' : ''} ${
                     skipTransition(field) ? 'skip-animation' : ''
                   }`"

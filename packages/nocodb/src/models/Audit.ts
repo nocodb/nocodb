@@ -186,4 +186,25 @@ export default class Audit implements AuditType {
       auditId,
     );
   }
+
+  static async baseAuditList(baseId: string, { limit = 25, offset = 0 }) {
+    return await Noco.ncMeta.metaList2(null, null, MetaTable.AUDIT, {
+      condition: { base_id: baseId },
+      orderBy: {
+        created_at: 'desc',
+      },
+      limit,
+      offset,
+    });
+  }
+
+  static async baseAuditCount(baseId: string) {
+    return (
+      await Noco.ncMeta
+        .knex(MetaTable.AUDIT)
+        .where({ base_id: baseId })
+        .count('id', { as: 'count' })
+        .first()
+    )?.count;
+  }
 }

@@ -260,15 +260,27 @@ export class TreeViewPage extends BasePage {
     expect(await tblNode.locator('.nc-tbl-context-menu').count()).toBe(count);
   }
 
-  async openProject(param: { title: string }) {
-    const nodes = await this.get().locator(`.nc-project-sub-menu`);
+  async openProject({ title, projectCount }: { title: string; projectCount?: number }) {
+    const nodes = this.get().locator(`.nc-project-sub-menu`);
+
+    // at times, page is not rendered yet when trying to open project
+    // hence retry logic to wait for expected number of projects to be available
+    if (projectCount) {
+      let retryCount = 0;
+      while (retryCount < 5) {
+        if ((await nodes.count()) === projectCount) break;
+        await this.rootPage.waitForTimeout(retryCount * 500);
+        retryCount++;
+      }
+    }
 
     // loop through nodes.count() to find the node with title
     for (let i = 0; i < (await nodes.count()); i++) {
       const node = nodes.nth(i);
       const nodeTitle = await node.innerText();
+
       // check if nodeTitle contains title
-      if (nodeTitle.toLowerCase().includes(param.title.toLowerCase())) {
+      if (nodeTitle.toLowerCase().includes(title.toLowerCase())) {
         // click on node
         await node.waitFor({ state: 'visible' });
         await node.click();

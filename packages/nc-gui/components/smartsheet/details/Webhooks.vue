@@ -193,8 +193,21 @@ watch(
         </div>
       </NcButton>
     </div>
-    <div v-if="!selectedHookId && !isDraftMode" class="flex flex-col mb-4 w-full p-4 !pr-0 !pb-0 items-center">
-      <div v-if="hooks.length === 0" class="flex flex-col px-1.5 py-2.5 ml-1 text-gray-500">Empty</div>
+    <div v-if="!selectedHookId && !isDraftMode" class="flex flex-col h-full w-full items-center">
+      <div v-if="hooks.length === 0" class="flex flex-col px-1.5 py-2.5 ml-1 h-full justify-center items-center gap-y-6">
+        <GeneralIcon icon="webhook" class="flex text-5xl h-10" style="-webkit-text-stroke: 0.5px" />
+        <div class="flex text-gray-600 font-medium text-lg">Get started with web-hooks!</div>
+        <div class="flex flex-col items-center">
+          <div class="flex">Create web-hooks to power you automations,</div>
+          <div class="flex">Get notified as soon as there are changes in your data</div>
+        </div>
+        <NcButton v-e="['c:actions:webhook']" class="flex max-w-40" type="primary" @click="createWebhook()">
+          <div class="flex flex-row items-center justify-between w-full">
+            <span class="ml-1">New Webhook</span>
+            <GeneralIcon icon="plus" />
+          </div>
+        </NcButton>
+      </div>
       <div v-else class="flex flex-col pb-2 gap-y-1.5 mt-3 nc-scrollbar-md mb-2.5 w-full max-w-200">
         <div
           v-for="hook in hooks"

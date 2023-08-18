@@ -71,14 +71,7 @@ export class ProjectsService {
       param?.project as Project,
       ['title', 'meta', 'color', 'status'],
     );
-
-    if (
-      data?.title &&
-      project.title !== data.title &&
-      (await Project.getByTitle(data.title))
-    ) {
-      NcError.badRequest('Project title already in use');
-    }
+    await this.validateProjectTitle(data, project);
 
     const result = await Project.update(param.projectId, data);
 
@@ -88,6 +81,16 @@ export class ProjectsService {
     });
 
     return result;
+  }
+
+  protected async validateProjectTitle(data: Partial<Project>, project: Project) {
+    if (
+      data?.title &&
+      project.title !== data.title &&
+      (await Project.getByTitle(data.title))
+    ) {
+      NcError.badRequest('Project title already in use');
+    }
   }
 
   async projectSoftDelete(param: { projectId: any; user: UserType }) {

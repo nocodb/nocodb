@@ -1986,7 +1986,7 @@ class BaseModelSqlv2 {
           data[ag.title],
           false,
           {},
-          { ignoreView: true },
+          { ignoreView: true, getHiddenColumn: true },
         );
       } else if (
         !response ||
@@ -2049,7 +2049,12 @@ class BaseModelSqlv2 {
     let trx: Knex.Transaction = _trx;
     try {
       // retrieve data for handling params in hook
-      const data = await this.readByPk(id, false, {}, { ignoreView: true });
+      const data = await this.readByPk(
+        id,
+        false,
+        {},
+        { ignoreView: true, getHiddenColumn: true },
+      );
       await this.beforeDelete(id, trx, cookie);
 
       const execQueries: ((trx: Knex.Transaction) => Promise<any>)[] = [];
@@ -2198,7 +2203,7 @@ class BaseModelSqlv2 {
 
       await this.execAndParse(query);
 
-      // const newData = await this.readByPk(id, false, {}, { ignoreView: true });
+      // const newData = await this.readByPk(id, false, {}, { ignoreView: true , getHiddenColumn: true});
 
       // const prevData = await this.readByPk(id);
 
@@ -2398,7 +2403,12 @@ class BaseModelSqlv2 {
               })) as any
             ).rows[0].id;
           }
-          response = await this.readByPk(id, false, {}, { ignoreView: true });
+          response = await this.readByPk(
+            id,
+            false,
+            {},
+            { ignoreView: true, getHiddenColumn: true },
+          );
         } else {
           response = data;
         }
@@ -3367,7 +3377,7 @@ class BaseModelSqlv2 {
       rowId,
       false,
       {},
-      { ignoreView: true },
+      { ignoreView: true, getHiddenColumn: true },
     );
     await this.afterInsert(response, this.dbDriver, cookie);
     await this.afterAddChild(rowId, childId, cookie);
@@ -3424,7 +3434,7 @@ class BaseModelSqlv2 {
       rowId,
       false,
       {},
-      { ignoreView: true },
+      { ignoreView: true, getHiddenColumn: true },
     );
 
     switch (colOptions.type) {
@@ -3478,7 +3488,12 @@ class BaseModelSqlv2 {
         break;
     }
 
-    const newData = await this.readByPk(rowId, false, {}, { ignoreView: true });
+    const newData = await this.readByPk(
+      rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
+    );
     await this.afterUpdate(prevData, newData, this.dbDriver, cookie);
     await this.afterRemoveChild(rowId, childId, cookie);
   }

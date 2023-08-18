@@ -104,7 +104,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               params: {},
               base,
             })
-          : this.readByPk(data[ag.title], false, {}, { ignoreView: true }));
+          : this.readByPk(
+              data[ag.title],
+              false,
+              {},
+              { ignoreView: true, getHiddenColumn: true },
+            ));
       } else if (
         !response ||
         (typeof response?.[0] !== 'object' && response?.[0] !== null)
@@ -132,7 +137,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               })) as any
             )[0].id;
           }
-          response = await this.readByPk(id, false, {}, { ignoreView: true });
+          response = await this.readByPk(
+            id,
+            false,
+            {},
+            { ignoreView: true, getHiddenColumn: true },
+          );
         } else {
           response = data;
         }
@@ -202,7 +212,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       await this.execAndParse(query);
 
-      // const newData = await this.readByPk(id, false, {}, { ignoreView: true });
+      // const newData = await this.readByPk(id, false, {}, { ignoreView: true, getHiddenColumn: true });
 
       // const prevData = await this.readByPk(id);
 

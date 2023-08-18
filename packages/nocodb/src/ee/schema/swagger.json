@@ -2650,8 +2650,6 @@
           "body"
         ]
       },
-
-
       "Filter": {
         "description": "Model for Filter",
         "examples": [

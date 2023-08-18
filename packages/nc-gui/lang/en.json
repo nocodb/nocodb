@@ -403,7 +403,8 @@
     "nextRow": "Next Row",
     "prevRow": "Previous Row",
     "addRowGrid": "Manually add data in grid view",
-    "addRowForm": "Enter record data through a form"
+    "addRowForm": "Enter record data through a form",
+    "noAccess": "No access"
   },
   "activity": {
     "moveProject": "Move Project",

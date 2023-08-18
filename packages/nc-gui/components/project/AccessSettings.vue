@@ -199,6 +199,7 @@ const reloadCollabs = async () => {
                   class="w-30 !rounded px-1"
                   :virtual="true"
                   @change="(value) => updateCollaborator(collab, value)"
+                  :placeholder="$t('labels.noAccess')"
                 >
                   <template #suffixIcon>
                     <MdiChevronDown />

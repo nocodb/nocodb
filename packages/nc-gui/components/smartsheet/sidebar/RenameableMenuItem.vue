@@ -199,7 +199,7 @@ function onStopEdit() {
           @emoji-selected="emits('selectIcon', $event)"
         >
           <template #default>
-            <GeneralViewIcon :meta="props.view" class="nc-view-icon !w-4"></GeneralViewIcon>
+            <GeneralViewIcon :meta="props.view" class="nc-view-icon"></GeneralViewIcon>
           </template>
         </LazyGeneralEmojiPicker>
       </div>

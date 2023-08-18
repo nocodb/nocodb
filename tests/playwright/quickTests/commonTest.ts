@@ -248,9 +248,10 @@ const quickVerify = async ({
 
   if (airtableImport) {
     // Delete default context project
-    await dashboard.clickHome();
-    const workspacePage = new WorkspacePage(dashboard.rootPage);
-    await workspacePage.projectDelete({ title: context.project.title });
+    // await dashboard.clickHome();
+    // const workspacePage = new WorkspacePage(dashboard.rootPage);
+    // await workspacePage.projectDelete({ title: context.project.title });
+    await dashboard.treeView.deleteProject({ title: context.project.title });
   }
 };
 

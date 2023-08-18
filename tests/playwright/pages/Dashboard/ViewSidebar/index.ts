@@ -1,11 +1,9 @@
 import { expect, Locator } from '@playwright/test';
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
-import { WebhookPage } from './WebhookPage';
 
 export class ViewSidebarPage extends BasePage {
   readonly project: any;
-  readonly webhook: WebhookPage;
 
   readonly dashboard: DashboardPage;
   readonly createGalleryButton: Locator;
@@ -21,7 +19,6 @@ export class ViewSidebarPage extends BasePage {
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
-    this.webhook = new WebhookPage(this);
 
     this.createGalleryButton = this.get().locator('.nc-create-gallery-view:visible');
     this.createGridButton = this.get().locator('.nc-create-grid-view:visible');
@@ -195,22 +192,22 @@ export class ViewSidebarPage extends BasePage {
     await expect(this.createFormButton).toHaveCount(count);
     await expect(this.createKanbanButton).toHaveCount(count);
 
-    await this.openDeveloperTab({});
-    await expect(this.erdButton).toHaveCount(1);
-    await expect(this.apiSnippet).toHaveCount(1);
-    await expect(this.webhookButton).toHaveCount(count);
+    // await this.openDeveloperTab({});
+    // await expect(this.erdButton).toHaveCount(1);
+    // await expect(this.apiSnippet).toHaveCount(1);
+    // await expect(this.webhookButton).toHaveCount(count);
   }
 
-  async openDeveloperTab({ option }: { option?: string }) {
-    await this.get().locator('.nc-tab').nth(1).click();
-    if (option === 'ERD') {
-      await this.get().locator('.nc-view-action-erd.button').click();
-    } else if (option?.toLowerCase() === 'webhook') {
-      await this.get().locator('.nc-view-sidebar-webhook').click();
-    }
-  }
-
-  async openViewsTab() {
-    await this.get().locator(',nc-tab').nth(0).click();
-  }
+  // async openDeveloperTab({ option }: { option?: string }) {
+  //   await this.get().locator('.nc-tab').nth(1).click();
+  //   if (option === 'ERD') {
+  //     await this.get().locator('.nc-view-action-erd.button').click();
+  //   } else if (option?.toLowerCase() === 'webhook') {
+  //     await this.get().locator('.nc-view-sidebar-webhook').click();
+  //   }
+  // }
+  //
+  // async openViewsTab() {
+  //   await this.get().locator(',nc-tab').nth(0).click();
+  // }
 }

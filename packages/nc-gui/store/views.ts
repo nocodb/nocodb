@@ -1,5 +1,6 @@
 import type { ViewType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
+import type { ViewPageType } from '~/lib'
 
 export const useViewsStore = defineStore('viewsStore', () => {
   const { $api } = useNuxtApp()
@@ -18,6 +19,17 @@ export const useViewsStore = defineStore('viewsStore', () => {
     if (!route.value.params.viewTitle?.length) return views.value.length ? views.value[0].title : undefined
 
     return route.value.params.viewTitle
+  })
+
+  // Get view page type acc to route which will be used to open the view page
+  const openedViewsTab = computed(() => {
+    // For types in ViewPageType type
+    if (route.value.query.page === 'webhooks') return 'webhooks'
+    if (route.value.query.page === 'fields') return 'fields'
+    if (route.value.query.page === 'apis') return 'apis'
+    if (route.value.query.page === 'relations') return 'relations'
+
+    return 'views'
   })
 
   const { sharedView } = useSharedView()
@@ -64,6 +76,15 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
   }
 
+  const onViewsTabChange = (page: ViewPageType) => {
+    router.push({
+      query: {
+        ...route.value.query,
+        page: page === 'views' ? undefined : page,
+      },
+    })
+  }
+
   watch(
     () => tablesStore.activeTableId,
     async (newId, oldId) => {
@@ -94,6 +115,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
     loadViews,
     views,
     activeView,
+    openedViewsTab,
+    onViewsTabChange,
   }
 })
 

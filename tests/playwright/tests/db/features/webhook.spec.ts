@@ -292,6 +292,7 @@ test.describe.serial('Webhook', () => {
     await webhook.delete({ index: 0 });
     await webhook.delete({ index: 0 });
     await webhook.delete({ index: 0 });
+    await dashboard.grid.topbar.openDataTab();
 
     await clearServerData({ request });
     await dashboard.grid.addNewRow({

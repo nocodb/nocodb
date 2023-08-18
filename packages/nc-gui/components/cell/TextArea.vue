@@ -92,6 +92,7 @@ onClickOutside(inputWrapperRef, (e) => {
           'top-1': rowHeight !== 1,
           'mt-2': editEnabled,
           'top-0.15': rowHeight === 1,
+          '!hidden': isExpandedFormOpen,
         }"
         type="text"
         size="xsmall"

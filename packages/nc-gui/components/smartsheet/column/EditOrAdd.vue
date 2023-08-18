@@ -35,9 +35,10 @@ const props = defineProps<{
   hideTitle?: boolean
   hideType?: boolean
   hideAdditionalOptions?: boolean
+  fromTableExplorer?: boolean
 }>()
 
-const emit = defineEmits(['submit', 'cancel', 'mounted'])
+const emit = defineEmits(['submit', 'cancel', 'mounted', 'add', 'update'])
 
 const { formState, generateNewColumnMeta, addOrUpdate, onAlter, onUidtOrIdTypeChange, validateInfos, isEdit } =
   useColumnCreateStoreOrThrow()
@@ -67,6 +68,8 @@ const reloadDataTrigger = inject(ReloadViewDataHookInj)
 const advancedOptions = ref(false)
 
 const advancedDbOptions = ref(false)
+
+const mounted = ref(false)
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
@@ -146,7 +149,15 @@ const predictColumnType = async () => {
 onMounted(() => {
   if (!isEdit.value) {
     generateNewColumnMeta()
-    const { colOptions, ...others } = props.preload || {}
+  } else {
+    if (formState.value.pk) {
+      message.info(t('msg.info.editingPKnotSupported'))
+      emit('cancel')
+    }
+  }
+
+  if (props.preload) {
+    const { colOptions, ...others } = props.preload
     formState.value = {
       ...formState.value,
       ...others,
@@ -155,13 +166,10 @@ onMounted(() => {
       onUidtOrIdTypeChange()
       formState.value = {
         ...formState.value,
-        ...colOptions,
+        colOptions: {
+          ...colOptions,
+        },
       }
-    }
-  } else {
-    if (formState.value.pk) {
-      message.info(t('msg.info.editingPKnotSupported'))
-      emit('cancel')
     }
   }
 
@@ -170,18 +178,37 @@ onMounted(() => {
     formState.value.column_name = formState.value?.title
   }
 
-  emit('mounted')
+  nextTick(() => {
+    mounted.value = true
+    emit('mounted')
+    if (!isEdit.value) {
+      if (!formState.value?.temp_id) {
+        emit('add', formState.value)
+      }
+    }
+  })
 })
 
 const handleEscape = (event: KeyboardEvent): void => {
   if (event.key === 'Escape') emit('cancel')
 }
+
+if (props.fromTableExplorer) {
+  watch(
+    formState,
+    () => {
+      if (mounted.value) emit('update', formState.value)
+    },
+    { deep: true },
+  )
+}
 </script>
 
 <template>
   <div
-    class="bg-white overflow-auto"
+    class="overflow-auto"
     :class="{
+      'bg-white': !props.fromTableExplorer,
       'w-[400px]': !props.embedMode,
       '!w-[600px]': formState.uidt === UITypes.Formula && !props.embedMode,
       '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode,
@@ -299,36 +326,41 @@ const handleEscape = (event: KeyboardEvent): void => {
         </div>
       </Transition>
 
-      <a-form-item>
-        <div
-          class="flex gap-x-2"
-          :class="{
-            'mt-6': props.hideAdditionalOptions,
-            'mt-2': !props.hideAdditionalOptions,
-            'justify-end': !props.embedMode,
-          }"
-        >
-          <!-- Cancel -->
-          <NcButton class="w-full" size="small" html-type="button" type="secondary" @click="emit('cancel')">
-            {{ $t('general.cancel') }}
-          </NcButton>
-
-          <!-- Save -->
-          <NcButton
-            html-type="submit"
-            type="primary"
-            :loading="saving"
-            size="small"
-            class="w-full"
-            :label="`${$t('general.save')} ${columnLabel}`"
-            :loading-label="`${$t('general.saving')} ${columnLabel}`"
-            @click.prevent="onSubmit"
+      <template v-if="props.fromTableExplorer">
+        <a-form-item></a-form-item>
+      </template>
+      <template v-else>
+        <a-form-item>
+          <div
+            class="flex gap-x-2"
+            :class="{
+              'mt-6': props.hideAdditionalOptions,
+              'mt-2': !props.hideAdditionalOptions,
+              'justify-end': !props.embedMode,
+            }"
           >
-            {{ $t('general.save') }} {{ columnLabel }}
-            <template #loading> {{ $t('general.saving') }} {{ columnLabel }} </template>
-          </NcButton>
-        </div>
-      </a-form-item>
+            <!-- Cancel -->
+            <NcButton class="w-full" size="small" html-type="button" type="secondary" @click="emit('cancel')">
+              {{ $t('general.cancel') }}
+            </NcButton>
+
+            <!-- Save -->
+            <NcButton
+              html-type="submit"
+              type="primary"
+              :loading="saving"
+              size="small"
+              class="w-full"
+              :label="`${$t('general.save')} ${columnLabel}`"
+              :loading-label="`${$t('general.saving')} ${columnLabel}`"
+              @click.prevent="onSubmit"
+            >
+              {{ $t('general.save') }} {{ columnLabel }}
+              <template #loading> {{ $t('general.saving') }} {{ columnLabel }} </template>
+            </NcButton>
+          </div>
+        </a-form-item>
+      </template>
     </a-form>
   </div>
 </template>

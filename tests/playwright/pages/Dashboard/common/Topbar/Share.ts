@@ -1,13 +1,13 @@
 import BasePage from '../../../Base';
-import { ToolbarPage } from './index';
+import { TopbarPage } from '../Topbar';
 import { Locator } from '@playwright/test';
 
-export class ToolbarSharePage extends BasePage {
-  readonly toolbar: ToolbarPage;
+export class TopbarSharePage extends BasePage {
+  readonly topbar: TopbarPage;
 
-  constructor(toolbar: ToolbarPage) {
-    super(toolbar.rootPage);
-    this.toolbar = toolbar;
+  constructor(topbar: TopbarPage) {
+    super(topbar.rootPage);
+    this.topbar = topbar;
   }
 
   get() {

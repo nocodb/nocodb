@@ -3,6 +3,7 @@ import setup from '../../../setup';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { createDemoTable } from '../../../setup/demoTable';
+import { TopbarPage } from '../../../pages/Dashboard/common/Topbar';
 
 const validateResponse = false;
 
@@ -25,13 +26,14 @@ async function undo({ page, dashboard }: { page: Page; dashboard: DashboardPage 
 }
 
 test.describe('GroupBy CRUD Operations', () => {
-  let dashboard: DashboardPage, toolbar: ToolbarPage;
+  let dashboard: DashboardPage, toolbar: ToolbarPage, topbar: TopbarPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
+    topbar = dashboard.grid.topbar;
 
     await createDemoTable({ context, type: 'groupBased', recordCnt: 400 });
     await page.reload();
@@ -55,9 +57,9 @@ test.describe('GroupBy CRUD Operations', () => {
       value: 'Aaaaaaaaaaaaaaaaaaaa',
     });
 
-    // One Click Didnt Work for some reason
-    await toolbar.clickRefresh();
-    await toolbar.clickRefresh();
+    // kludge: refresh once did not work for some reason
+    await topbar.clickRefresh();
+    await topbar.clickRefresh();
 
     //await toolbar.sort.add({title: 'Sub_Group', ascending: true, locallySaved: true});
 
@@ -125,9 +127,9 @@ test.describe('GroupBy CRUD Operations', () => {
       value: 'Aaaaaaaaaaaaaaaaaaaa',
     });
 
-    // One Click Didnt Work for some reason
-    await toolbar.clickRefresh();
-    await toolbar.clickRefresh();
+    // One Click did not work for some reason
+    await topbar.clickRefresh();
+    await topbar.clickRefresh();
 
     //await toolbar.sort.add({title: 'Sub_Group', ascending: true, locallySaved: true});
 
@@ -196,9 +198,9 @@ test.describe('GroupBy CRUD Operations', () => {
       value: 'Aaaaaaaaaaaaaaaaaaaa',
     });
 
-    // One Click Didnt Work for some reason
-    await toolbar.clickRefresh();
-    await toolbar.clickRefresh();
+    // One Click did not work for some reason
+    await topbar.clickRefresh();
+    await topbar.clickRefresh();
 
     //await toolbar.sort.add({title: 'Sub_Group', ascending: true, locallySaved: true});
 

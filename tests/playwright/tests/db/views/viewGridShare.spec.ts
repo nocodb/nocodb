@@ -30,7 +30,7 @@ test.describe('Shared view', () => {
       locallySaved: false,
     });
 
-    sharedLink = await dashboard.grid.toolbar.getSharedViewUrl();
+    sharedLink = await dashboard.grid.topbar.getSharedViewUrl();
     await page.goto(sharedLink);
 
     // fix me! kludge@hub; page wasn't getting loaded from previous step
@@ -147,7 +147,7 @@ test.describe('Shared view', () => {
     await dashboard.grid.toolbar.clickFilter();
 
     // share with password disabled, download enabled
-    sharedLink = await dashboard.grid.toolbar.getSharedViewUrl();
+    sharedLink = await dashboard.grid.topbar.getSharedViewUrl();
 
     /**
      * 2. Access shared view: verify
@@ -261,7 +261,7 @@ test.describe('Shared view', () => {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });
 
-    sharedLink = await dashboard.grid.toolbar.getSharedViewUrl(false, 'p@ssword', true);
+    sharedLink = await dashboard.grid.topbar.getSharedViewUrl(false, 'p@ssword', true);
 
     // add new column, record after share view creation
     await dashboard.grid.column.create({

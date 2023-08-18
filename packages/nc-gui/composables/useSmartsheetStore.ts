@@ -84,6 +84,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       nestedFilters,
       isSqlView,
       eventBus,
+      sqlUi,
     }
   },
   'smartsheet-store',

@@ -72,6 +72,7 @@ test.describe('Expanded form URL', () => {
       });
       await viewObj.toolbar.clickFields();
       await viewObj.toolbar.fields.click({ title: 'Cities' });
+      await viewObj.toolbar.clickFields();
     }
 
     // expand row & verify URL

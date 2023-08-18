@@ -14,6 +14,8 @@ const projectStore = useProject()
 
 const { isSharedBase, project } = storeToRefs(projectStore)
 
+const { navigateToWorkspaceSettings } = useWorkspace()
+
 const { isUIAllowed } = useUIPermission()
 
 const { commandPalette } = useCommandPalette()
@@ -49,7 +51,7 @@ const navigateToHome = () => {
   if (appInfo.value.baseHostName) {
     window.location.href = `https://app.${appInfo.value.baseHostName}/dashboard`
   } else {
-    navigateTo('/')
+    navigateToWorkspaceSettings()
   }
 }
 </script>
@@ -109,10 +111,6 @@ const navigateToHome = () => {
         </div>
       </template>
       <template v-else-if="!isSharedBase">
-        <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-home-btn" @click="navigateToHome">
-          <MaterialSymbolsHomeOutlineRounded class="!h-3.9" />
-          <div>Home</div>
-        </div>
         <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-search-btn" @click="commandPalette?.open()">
           <MaterialSymbolsSearch class="!h-3.9" />
           <div class="flex items-center gap-2">
@@ -124,6 +122,10 @@ const navigateToHome = () => {
               <kbd>K</kbd>
             </div>
           </div>
+        </div>
+        <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-home-btn" @click="navigateToHome">
+          <GeneralIcon icon="settings" class="!h-3.9" />
+          <div>Team & Settings</div>
         </div>
         <WorkspaceCreateProjectBtn
           v-if="isUIAllowed('createProject', false, activeWorkspace?.roles) && !isSharedBase"

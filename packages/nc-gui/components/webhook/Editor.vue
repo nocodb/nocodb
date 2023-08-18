@@ -557,23 +557,23 @@ onMounted(async () => {
           <a-row type="flex" :gutter="[16, 16]">
             <a-col :span="12">
               <a-form-item v-bind="validateInfos.eventOperation">
-                <a-select
+                <NcSelect
                   v-model:value="hookRef.eventOperation"
                   size="large"
                   :placeholder="$t('general.event')"
                   class="nc-text-field-hook-event"
                   dropdown-class-name="nc-dropdown-webhook-event"
                 >
-                  <a-select-option v-for="(event, i) in eventList" :key="i" :value="event.value.join(' ')">
+                  <NcSelect-option v-for="(event, i) in eventList" :key="i" :value="event.value.join(' ')">
                     {{ event.text.join(' ') }}
-                  </a-select-option>
-                </a-select>
+                  </NcSelect-option>
+                </NcSelect>
               </a-form-item>
             </a-col>
 
             <a-col :span="12">
               <a-form-item v-bind="validateInfos['notification.type']">
-                <a-select
+                <NcSelect
                   v-model:value="hookRef.notification.type"
                   size="large"
                   class="nc-select-hook-notification-type"
@@ -581,7 +581,7 @@ onMounted(async () => {
                   dropdown-class-name="nc-dropdown-webhook-notification"
                   @change="onNotificationTypeChange(true)"
                 >
-                  <a-select-option v-for="(notificationOption, i) in notificationList" :key="i" :value="notificationOption.type">
+                  <NcSelect-option v-for="(notificationOption, i) in notificationList" :key="i" :value="notificationOption.type">
                     <div class="flex items-center">
                       <component :is="iconMap.link" v-if="notificationOption.type === 'URL'" class="mr-2" />
 
@@ -601,8 +601,8 @@ onMounted(async () => {
 
                       {{ notificationOption.type }}
                     </div>
-                  </a-select-option>
-                </a-select>
+                  </NcSelect-option>
+                </NcSelect>
               </a-form-item>
             </a-col>
           </a-row>
@@ -610,16 +610,16 @@ onMounted(async () => {
           <a-row v-if="hookRef.notification.type === 'URL'" class="mb-5" type="flex" :gutter="[16, 0]">
             <a-col :span="6">
               <div>Action</div>
-              <a-select
+              <NcSelect
                 v-model:value="hookRef.notification.payload.method"
                 size="large"
                 class="nc-select-hook-url-method"
                 dropdown-class-name="nc-dropdown-hook-notification-url-method"
               >
-                <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">
+                <NcSelect-option v-for="(method, i) in methodList" :key="i" :value="method.title">
                   {{ method.title }}
-                </a-select-option>
-              </a-select>
+                </NcSelect-option>
+              </NcSelect>
             </a-col>
 
             <a-col :span="18">
@@ -732,7 +732,7 @@ onMounted(async () => {
 
           <a-row class="mb-5" type="flex">
             <a-col :span="24">
-              <a-card>
+              <div class="rounded-xl border-1 p-6">
                 <a-checkbox
                   :checked="Boolean(hookRef.condition)"
                   class="nc-check-box-hook-condition"
@@ -744,13 +744,13 @@ onMounted(async () => {
                 <LazySmartsheetToolbarColumnFilter
                   v-if="hookRef.condition"
                   ref="filterRef"
-                  class="mt-4"
+                  class="!p-0 mt-4"
                   :auto-save="false"
                   :show-loading="false"
                   :hook-id="hookRef.id"
                   :web-hook="true"
                 />
-              </a-card>
+              </div>
             </a-col>
           </a-row>
 

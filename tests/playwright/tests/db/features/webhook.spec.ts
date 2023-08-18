@@ -5,7 +5,7 @@ import makeServer from '../../../setup/server';
 import { WebhookFormPage } from '../../../pages/Dashboard/WebhookForm';
 import { isSubset } from '../../../tests/utils/general';
 import { Api, UITypes } from 'nocodb-sdk';
-import { isMysql, isSqlite } from '../../../setup/db';
+import { isEE, isMysql, isSqlite } from '../../../setup/db';
 
 const hookPath = 'http://localhost:9090/hook';
 
@@ -715,6 +715,14 @@ test.describe.serial('Webhook', () => {
       },
     };
 
+    // Webhook response type for lookup is different for PG between CE & EE
+    if (isEE()) {
+      // @ts-ignore
+      expectedData.data.previous_rows[0].CityCodeLookup = [23, 33];
+      // @ts-ignore
+      expectedData.data.rows[0].CityCodeLookup = [23, 33];
+    }
+
     if (isSqlite(context) || isMysql(context)) {
       // @ts-ignore
       expectedData.data.previous_rows[0].CountryCode = 1;
@@ -744,6 +752,6 @@ test.describe.serial('Webhook', () => {
     console.log('rsp', rsp[0]);
     console.log('expectedData', expectedData);
 
-    await expect(isSubset(rsp[0], expectedData)).toBe(true);
+    expect(isSubset(rsp[0], expectedData)).toBe(true);
   });
 });

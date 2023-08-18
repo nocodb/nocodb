@@ -136,36 +136,15 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     return hook
   }
 
-  const createHook = async (_hook?: HookType) => {
-    const { activeTable } = useTablesStore()
-
-    const emptyWebhook = {
-      active: false,
-      event: 'after',
-      fk_model_id: activeTable?.id,
-      title: 'New Webhook',
-      operation: 'insert',
-      version: 'v2',
-      async: false,
-      notification: {
-        type: 'URL',
-        payload: {
-          method: 'POST',
-          body: {},
-          headers: [{}],
-          parameters: [{}],
-          path: '',
-          auth: '',
-        },
-      },
-      retry_interval: 60000,
-      timeout: 60000,
-      retries: 0,
-      env: 'all',
-    } as HookType
-
-    return await saveHooks({ hook: _hook ?? emptyWebhook })
-  }
+  const navigateToWebhook = ({
+    hook,
+    openCreatePage,
+    openMainPage,
+  }: {
+    hook?: HookType
+    openCreatePage?: Boolean
+    openMainPage?: Boolean
+  }) => {}
 
   return {
     hooks,
@@ -173,7 +152,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     deleteHook,
     copyHook,
     saveHooks,
-    createHook,
+    navigateToWebhook,
   }
 })
 

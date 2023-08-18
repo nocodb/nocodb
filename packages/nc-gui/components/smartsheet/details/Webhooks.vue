@@ -3,7 +3,7 @@ import type { HookType } from 'nocodb-sdk'
 // const showWebhookDrawer = ref(false)
 
 const { hooks } = storeToRefs(useWebhooksStore())
-const { loadHooksList, deleteHook: _deleteHook, copyHook, saveHooks, createHook } = useWebhooksStore()
+const { loadHooksList, deleteHook: _deleteHook, copyHook, saveHooks, navigateToWebhook } = useWebhooksStore()
 
 const modalDeleteButtonRef = ref(null)
 
@@ -117,18 +117,28 @@ const onEditorClose = () => {
 
 <template>
   <div
-    class="flex flex-row pt-3 border-gray-50 pl-3 pr-0 nc-view-sidebar-webhook gap-x-4"
+    class="flex flex-col pt-3 border-gray-50 pl-3 pr-0 nc-view-sidebar-webhook"
     style="height: calc(100vh - (var(--topbar-height) * 2))"
   >
-    <div v-if="!selectedHookId && !isDraftMode" class="flex flex-col mb-4 w-full p-4 !pr-0 !pb-0">
+    <div class="flex flex-row justify-between w-full">
+      <div>
+        <NuxtLink
+          class="text-sm !hover:text-black docs-breadcrumb-item !underline-transparent"
+          :to="navigateToWebhook({ openMainPage: true })"
+        >
+          Webhook
+        </NuxtLink>
+      </div>
       <NcButton v-e="['c:actions:webhook']" class="mr-4 max-w-40" type="secondary" @click="createWebhook()">
         <div class="flex flex-row items-center justify-between w-full text-brand-500">
           <span class="ml-1">New Webhook</span>
           <GeneralIcon icon="plus" />
         </div>
       </NcButton>
+    </div>
+    <div v-if="!selectedHookId && !isDraftMode" class="flex flex-col mb-4 w-full p-4 !pr-0 !pb-0 items-center">
       <div v-if="hooks.length === 0" class="flex flex-col px-1.5 py-2.5 ml-1 text-gray-500">Empty</div>
-      <div v-else class="flex flex-col pb-2 gap-y-1.5 mt-3 nc-scrollbar-md mb-2.5">
+      <div v-else class="flex flex-col pb-2 gap-y-1.5 mt-3 nc-scrollbar-md mb-2.5 w-full max-w-200">
         <div
           v-for="hook in hooks"
           :key="hook.id"

@@ -42,7 +42,7 @@ NC_DB is an environment variable used to store the meta data in the given databa
 Click on three-dot menu adjacent to `BASES`. Pick required database option from the menu `Connect to new datasource`. 
 
 <alert type="success">
-Tip: If you are running NocoDB on Docker and your local DB is running on your host machine, your Host Address would be host.docker.internal instead of localhost.
+Tip: If you are running NocoDB on Docker and your local DB is running on your host machine, your Host Address would be host.docker.internal instead of localhost. If you use a docker-compose.yml file and your local DB is running on another container, your Host Address would be the name of the database service, for instance 'root_db' for a configuration like this: https://github.com/nocodb/nocodb/blob/aa48f50823269d5e0f3eea57f4d67cfa5d311d58/docker-compose/pg/docker-compose.yml#L15)
 </alert>
 
 ![Screenshot 2022-12-29 at 2 55 39 PM](https://user-images.githubusercontent.com/86527202/209933294-9327ff16-21db-4aca-bf16-8cea8a1eb415.png)

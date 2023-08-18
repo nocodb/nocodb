@@ -182,7 +182,7 @@ onKeyStroke('Escape', () => {
 
             <div class="max-h-300px nc-scrollbar-md">
               <a-menu-item v-for="workspace of otherWorkspaces" :key="workspace.id!" @click="navigateTo(`/ws/${workspace.id}`)">
-                <div class="nc-workspace-menu-item group capitalize max-w-300px flex">
+                <div class="nc-workspace-menu-item group capitalize max-w-300px flex" data-testid="nc-workspace-list">
                   <GeneralIcon icon="workspace" class="group-hover:text-accent" />
                   <span class="truncate min-w-10 flex-shrink">
                     {{ workspace.title }}

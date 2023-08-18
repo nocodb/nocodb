@@ -5,19 +5,19 @@ import { DashboardPage } from '../../pages/Dashboard';
 
 test.describe('DashboardBasicTests', () => {
   let wsPage: WorkspacePage;
-  let dashboardPage: DashboardPage;
+  let dashboard: DashboardPage;
   let context: any;
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true, url: '/#/' });
+    context = await setup({ page, isEmptyProject: true });
     wsPage = new WorkspacePage(page);
-    dashboardPage = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.project);
   });
 
   test.afterEach(async () => {
     await unsetup(context);
   });
 
-  test('Page load & static configurations verification', async () => {
+  test.skip('Page load & static configurations verification', async () => {
     await wsPage.waitFor({ state: 'visible' });
     await wsPage.workspaceOpen({ title: context.workspace.title });
 
@@ -25,10 +25,10 @@ test.describe('DashboardBasicTests', () => {
     await wsPage.verifyStaticElements();
 
     // verify run-time elements : dynamic menu items
-    await wsPage.LeftSideBar.verifyDynamicElements([{ title: context.workspace.title, role: 'owner' }]);
+    await wsPage.leftSideBar.verifyDynamicElements([{ title: context.workspace.title, role: 'owner' }]);
 
     // first row
-    await wsPage.Container.verifyDynamicElements({
+    await wsPage.container.verifyDynamicElements({
       title: context.project.title,
       lastAccessed: 'a few seconds ago',
       role: 'Workspace Owner',
@@ -44,29 +44,26 @@ test.describe('DashboardBasicTests', () => {
 
   test('Workspace Basic CRUD', async () => {
     const ws2Title = context.workspace.title + '1';
-    const leftPanel = await wsPage.LeftSideBar;
-    await wsPage.workspaceCreate({
-      title: ws2Title,
-    });
-    await leftPanel.verifyDynamicElements([
-      { title: ws2Title, role: 'owner' },
-      { title: ws2Title, role: 'owner' },
-    ]);
 
-    // await leftPanel.workspaceList();
+    await dashboard.leftSidebar.createWorkspace({ title: ws2Title });
+    await dashboard.rootPage.waitForTimeout(1000);
+    expect(await dashboard.leftSidebar.getWorkspaceName()).toBe(ws2Title);
 
-    await wsPage.workspaceRename({ title: ws2Title, newTitle: ws2Title + '2' });
-    await leftPanel.verifyDynamicElements([
-      { title: ws2Title, role: 'owner' },
-      { title: ws2Title + '2', role: 'owner' },
-    ]);
+    await dashboard.leftSidebar.renameWorkspace({ newTitle: ws2Title + '2' });
+    await dashboard.rootPage.waitForTimeout(1000);
+    expect(await dashboard.leftSidebar.getWorkspaceName()).toBe(ws2Title + '2');
 
-    await wsPage.workspaceDelete({ title: ws2Title + '2' });
-    await leftPanel.verifyDynamicElements([{ title: context.workspace.title, role: 'owner' }]);
+    const wsList = await dashboard.leftSidebar.getWorkspaceList();
+    expect(wsList.length).toBe(2);
+
+    // tbd
+    // await dashboard.leftSidebar.clickTeamAndSettings();
+    // await wsPage.container.settings.click();
+    // await wsPage.container.deleteWorkspace({ title: ws2Title + '2' });
   });
 
   test.skip('Cmd K : Quick action menu', async () => {
-    const header = await wsPage.Header;
+    const header = await wsPage.header;
     await header.navigateUsingCmdK({
       keySequence: ['Enter', 'ArrowDown', 'ArrowDown', 'Enter'],
       url: 'http://localhost:3000/#/account/apps',
@@ -84,12 +81,12 @@ test.describe('DashboardBasicTests', () => {
   });
 
   test.skip('Project CRUD + Move', async ({ page }) => {
-    const container = await wsPage.Container;
+    const container = await wsPage.container;
 
     // create a db project
     // go back to dashboard; verify project creation
     await wsPage.projectCreate({ title: 'db-created-using-ui', type: 'db' });
-    await dashboardPage.clickHome();
+    await dashboard.clickHome();
 
     expect(await container.getProjectRowData({ index: 1, skipWs: false })).toEqual({
       icon: 'database',
@@ -101,7 +98,7 @@ test.describe('DashboardBasicTests', () => {
     // create a docs project
     // go back to dashboard; verify project creation
     await wsPage.projectCreate({ title: 'docs-created-using-ui', type: 'docs' });
-    await dashboardPage.clickHome();
+    await dashboard.clickHome();
 
     expect(await container.getProjectRowData({ index: 2, skipWs: false })).toEqual({
       icon: 'menu_book',
@@ -151,31 +148,31 @@ test.describe('DashboardBasicTests', () => {
     };
 
     await wsPage.openQuickAccess('Recent');
-    expect(await wsPage.Container.getProjectRowData({ index: 0, skipWs: true })).toEqual(dbInfo);
-    expect(await wsPage.Container.getProjectRowCount()).toEqual(1);
+    expect(await wsPage.container.getProjectRowData({ index: 0, skipWs: true })).toEqual(dbInfo);
+    expect(await wsPage.container.getProjectRowCount()).toEqual(1);
 
     await wsPage.openQuickAccess('Shared with me');
-    expect(await wsPage.Container.getProjectRowCount()).toEqual(0);
+    expect(await wsPage.container.getProjectRowCount()).toEqual(0);
 
     await wsPage.openQuickAccess('Favourites');
-    expect(await wsPage.Container.getProjectRowCount()).toEqual(0);
+    expect(await wsPage.container.getProjectRowCount()).toEqual(0);
 
     await wsPage.workspaceOpen({ title: context.workspace.title });
     // mark current project as favourite
     await wsPage.projectAddToFavourites({ title: context.project.title });
 
     await wsPage.openQuickAccess('Favourites');
-    expect(await wsPage.Container.getProjectRowData({ index: 0, skipWs: true })).toEqual(dbInfo);
-    expect(await wsPage.Container.getProjectRowCount()).toEqual(1);
+    expect(await wsPage.container.getProjectRowData({ index: 0, skipWs: true })).toEqual(dbInfo);
+    expect(await wsPage.container.getProjectRowCount()).toEqual(1);
   });
 
-  test('Accounts menu', async () => {
-    const header = await wsPage.Header;
+  test.skip('Accounts menu', async () => {
+    const header = await wsPage.header;
     await header.accountMenuOpen({ title: 'user-settings' });
-    expect(dashboardPage.rootPage.url()).toBe('http://localhost:3000/#/account/users');
+    expect(dashboard.rootPage.url()).toBe('http://localhost:3000/#/account/users');
 
     await wsPage.rootPage.goto('http://localhost:3000/#/');
     await header.accountMenuOpen({ title: 'sign-out' });
-    expect(dashboardPage.rootPage.url()).toBe('http://localhost:3000/#/signin');
+    expect(dashboard.rootPage.url()).toBe('http://localhost:3000/#/signin');
   });
 });

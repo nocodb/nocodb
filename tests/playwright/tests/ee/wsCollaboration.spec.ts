@@ -68,8 +68,12 @@ test.describe('Collaborators', () => {
         skipReload: true,
       });
 
+      await dashboard.rootPage.waitForTimeout(500);
+      await dashboard.leftSidebar.openWorkspace({ title: context.workspace.title });
+      await dashboard.rootPage.waitForTimeout(500);
       await dashboard.treeView.openProject({ title: context.project.title });
-
+      await dashboard.rootPage.waitForTimeout(500);
+      await dashboard.treeView.openProject({ title: context.project.title });
       // wait for render
       await dashboard.rootPage.waitForTimeout(1000);
 

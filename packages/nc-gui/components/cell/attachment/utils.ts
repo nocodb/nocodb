@@ -1,4 +1,5 @@
 import type { AttachmentType } from 'nocodb-sdk'
+import { readonly } from '@vue/reactivity'
 import RenameFile from './RenameFile.vue'
 import {
   ColumnInj,
@@ -217,6 +218,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     /** save files on drop */
     async function onDrop(droppedFiles: File[] | null) {
+      if (isReadonly.value) return
+
       if (droppedFiles) {
         // set files
         await onFileSelect(droppedFiles)

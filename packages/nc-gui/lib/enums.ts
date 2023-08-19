@@ -108,6 +108,7 @@ export enum DataSourcesSubTab {
   Metadata = 'Metadata',
   ERD = 'ERD',
   UIAcl = 'UI ACL',
+  Audit = 'Audit',
   Misc = 'Misc',
   Edit = 'Edit',
 }

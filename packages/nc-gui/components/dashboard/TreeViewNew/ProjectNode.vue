@@ -4,7 +4,6 @@ import { message } from 'ant-design-vue'
 import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import { useTitle } from '@vueuse/core'
-import type { NcProject } from '#imports'
 import {
   ProjectInj,
   ProjectRoleInj,
@@ -12,8 +11,10 @@ import {
   extractSdkResponseErrorMsg,
   isElementInvisible,
   openLink,
+  storeToRefs,
   useProjects,
 } from '#imports'
+import type { NcProject } from '#imports'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
@@ -54,11 +55,11 @@ const { isUIAllowed } = useUIPermission()
 
 const projectRole = inject(ProjectRoleInj)
 
+const { activeProjectId } = storeToRefs(useProjects())
+
 const { projectUrl } = useProject()
 
 const toggleDialog = inject(ToggleDialogInj, () => {})
-
-const activeProjectId = computed(() => route.value.params.projectId as string | undefined)
 
 const { $e } = useNuxtApp()
 
@@ -224,6 +225,11 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
 
   const isProjectPopulated = projectsStore.isProjectPopulated(project.id!)
 
+  // if shared base ignore navigation
+  if (route.value.params.typeOrId === 'base') {
+    ignoreNavigation = true
+  }
+
   if (!isProjectPopulated) project.isLoading = true
 
   if (!ignoreNavigation) {
@@ -247,7 +253,7 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
 }
 
 function openErdView(base: BaseType) {
-  navigateTo(`/ws/default/nc/${base.project_id}/erd/${base.id}`)
+  navigateTo(`/nc/${base.project_id}/erd/${base.id}`)
 }
 
 async function openProjectErdView(_project: ProjectType) {
@@ -261,7 +267,7 @@ async function openProjectErdView(_project: ProjectType) {
 
   const base = project?.bases?.[0]
   if (!base) return
-  navigateTo(`/ws/default/nc/${base.project_id}/erd/${base.id}`)
+  navigateTo(`/nc/${base.project_id}/erd/${base.id}`)
 }
 
 const reloadTables = async () => {

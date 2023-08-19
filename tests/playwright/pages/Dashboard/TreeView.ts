@@ -145,8 +145,9 @@ export class TreeViewPage extends BasePage {
   }
 
   async deleteTable({ title }: { title: string }) {
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).scrollIntoViewIfNeeded();
     await this.get().locator(`.nc-project-tree-tbl-${title}`).waitFor({ state: 'visible' });
+
+    await this.get().locator(`.nc-project-tree-tbl-${title}`).scrollIntoViewIfNeeded();
     await this.get().locator(`.nc-project-tree-tbl-${title}`).locator('.nc-icon.ant-dropdown-trigger').click();
     await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Delete"):visible').click();
 
@@ -188,6 +189,13 @@ export class TreeViewPage extends BasePage {
       .get()
       .locator(`[data-testid="tree-view-table-draggable-handle-${sourceTable}"]`)
       .dragTo(this.get().locator(`[data-testid="tree-view-table-${destinationTable}"]`));
+  }
+
+  async projectSettings({ title }: { title?: string }) {
+    await this.btn_projectContextMenu.hover();
+    await this.btn_projectContextMenu.click();
+    const settingsMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md');
+    await settingsMenu.locator(`[data-menu-id="teamAndSettings"]`).click();
   }
 
   async quickImport({ title }: { title: string }) {

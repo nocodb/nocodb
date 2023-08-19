@@ -7,7 +7,7 @@ SET default_transaction_read_only = off;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 
-ALTER ROLE postgres WITH SUPERUSER INHERIT CREATEROLE CREATEDB LOGIN REPLICATION BYPASSRLS PASSWORD 'md532e12f215ba27cb750c9e093ce4b5127';
+ALTER ROLE postgres WITH SUPERUSER INHERIT CREATEROLE CREATEDB LOGIN REPLICATION BYPASSRLS;
 
 --
 -- Database creation

@@ -43,7 +43,7 @@ export const useDocStore = defineStore('docStore', () => {
       ? pageIdFromCompositePageId(route.value.params.compositePageId as string)
       : (route.value.params.pageId as string),
   )
-  const openedWorkspaceId = computed<string>(() => route.value.params.workspaceId as string)
+  const openedWorkspaceId = computed<string>(() => route.value.params.typeOrId as string)
 
   const isOpenedNestedPageLoading = computed<boolean>(() => isNestedPageFetching.value[openedProjectId.value] ?? true)
 
@@ -356,14 +356,14 @@ export const useDocStore = defineStore('docStore', () => {
     if (publicMode) {
       url = `/nc/doc/s/${slug}-${id}-${projectId}`
     } else {
-      url = `/ws/${openedWorkspaceId.value}/nc/${projectId}/doc/${id}`
+      url = `/${openedWorkspaceId.value}/${projectId}/doc/${id}`
     }
 
     return completeUrl ? `${window.location.origin}/#${url}` : url
   }
 
   function projectUrl(projectId: string, { completeUrl, publicMode }: { completeUrl?: boolean; publicMode?: boolean } = {}) {
-    const path = publicMode || isPublic.value ? `/nc/doc/s/${projectId!}` : `/ws/${openedWorkspaceId.value}/nc/${projectId}/doc`
+    const path = publicMode || isPublic.value ? `/nc/doc/s/${projectId!}` : `/${openedWorkspaceId.value}/${projectId}/doc`
     if (completeUrl) return `${window.location.origin}/#${path}`
 
     return path

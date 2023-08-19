@@ -26,7 +26,7 @@ const { $api, $e } = useNuxtApp()
 
 const { project } = storeToRefs(useProject())
 
-const _projectId = inject(ProjectIdInj, undefined)
+const _projectId = inject(ProjectIdInj, ref())
 const projectId = computed(() => _projectId.value ?? project.value?.id)
 
 const { includeM2M } = useGlobal()
@@ -129,7 +129,6 @@ const columns = [
             <component :is="iconMap.search" />
           </template>
         </a-input>
-
         <a-button type="text" ghost class="self-start !rounded-md nc-acl-reload" @click="loadTableList">
           <div class="flex items-center gap-2 text-gray-600 font-light">
             <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />

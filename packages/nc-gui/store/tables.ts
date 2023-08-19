@@ -13,6 +13,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
   const projectTables = ref<Map<string, TableType[]>>(new Map())
   const projectsStore = useProjects()
+  // const projectStore = useProject()
 
   const workspaceStore = useWorkspace()
 
@@ -93,10 +94,22 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
     await getMeta(table.id as string)
 
-    const projectType = (route.value.params.projectType as string) || 'nc'
+    const typeOrId = (route.value.params.typeOrId as string) || 'nc'
+
+    let workspaceIdOrType = workspaceId
+
+    if (['nc', 'base'].includes(route.value.params.typeOrId as string)) {
+      workspaceIdOrType = route.value.params.typeOrId as string
+    }
+
+    let projectIdOrBaseId = project.id
+
+    if (['base'].includes(route.value.params.typeOrId as string)) {
+      projectIdOrBaseId = route.value.params.projectId as string
+    }
 
     await navigateTo({
-      path: `/ws/${workspaceId}/${projectType}/${project.id!}/table/${table?.id}${table.title ? `/${table.title}` : ''}`,
+      path: `/${workspaceIdOrType}/${projectIdOrBaseId}/table/${table?.id}${table.title ? `/${table.title}` : ''}`,
       query: route.value.query,
     })
   }

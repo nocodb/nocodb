@@ -113,9 +113,9 @@ const pagination = computed(() => {
 
 <template>
   <Table
-      class="nc-group-table"
     v-if="vGroup.rows"
     v-model:selected-all-records="selectedAllRecords"
+    class="nc-group-table"
     :data="vGroup.rows"
     :pagination-data="vGroup.paginationData"
     :load-data="async () => {}"

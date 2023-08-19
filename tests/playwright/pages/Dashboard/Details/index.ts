@@ -45,4 +45,8 @@ export class DetailsPage extends BasePage {
   async clickAddWebhook() {
     await this.btn_addWebhook.click();
   }
+
+  async clickRelationsTab() {
+    await this.tab_relations.click();
+  }
 }

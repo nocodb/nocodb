@@ -313,7 +313,13 @@ const parseConditionV2 = async (
       ).builder;
       return parseConditionV2(
         baseModelSqlv2,
-        new Filter({ ...filter, value: knex.raw('?', [filter.value]) } as any),
+        new Filter({
+          ...filter,
+          value: knex.raw('?', [
+            // convert value to number for rollup since rollup is always number
+            isNaN(+filter.value) ? filter.value : +filter.value,
+          ]),
+        } as any),
         aliasCount,
         alias,
         builder,

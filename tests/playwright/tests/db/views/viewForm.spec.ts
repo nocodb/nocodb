@@ -388,9 +388,9 @@ test.describe('Form view with LTAR', () => {
 
     await wsPage.waitFor({ state: 'visible' });
 
-    if (isEE()) {
-      await wsPage.workspaceOpen({ title: context.workspace.title });
-    }
+    // if (isEE()) {
+    //   await wsPage.workspaceOpen({ title: context.workspace.title });
+    // }
     await wsPage.projectOpen({ title: context.project.title });
 
     if (!isEE()) {

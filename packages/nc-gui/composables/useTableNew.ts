@@ -49,7 +49,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
   const { loadTables, projectUrl, isXcdbBase } = useProject()
 
-  const workspaceId = computed(() => route.value.params.workspaceId as string)
+  const workspaceId = computed(() => route.value.params.typeOrId as string)
 
   const tables = computed(() => projectTables.value.get(param.projectId) || [])
   const project = computed(() => projects.value.get(param.projectId))
@@ -66,9 +66,20 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
       if (!project) throw new Error('Project not found')
     }
 
-    const projectType = (route.value.params.projectType as string) || 'nc'
+    let workspaceIdOrType = workspaceId.value ?? 'nc'
+
+    if (['nc', 'base'].includes(route.value.params.typeOrId as string)) {
+      workspaceIdOrType = route.value.params.typeOrId as string
+    }
+
+    let projectIdOrBaseId = project.id
+
+    if (['base'].includes(route.value.params.typeOrId as string)) {
+      projectIdOrBaseId = route.value.params.projectId as string
+    }
+
     await navigateTo({
-      path: `/ws/${workspaceId.value}/${projectType}/${project.id!}/table/${table?.id}`,
+      path: `/${workspaceIdOrType}/${projectIdOrBaseId}/table/${table?.id}`,
       query: route.value.query,
     })
 

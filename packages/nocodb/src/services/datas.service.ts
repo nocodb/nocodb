@@ -6,45 +6,31 @@ import { nocoExecute } from 'nc-help';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/modules/datas/helpers';
 import type { LinkToAnotherRecordColumn, LookupColumn } from '~/models';
-import { NcError } from '~/helpers/catchError';
-import getAst from '~/helpers/getAst';
-import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import {
   getDbRows,
   getViewAndModelByAliasOrId,
   serializeCellValue,
 } from '~/modules/datas/helpers';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Base, Column, Model, Project, View } from '~/models';
-import { DataOptService } from '~/services/data-opt/data-opt.service';
+import { NcError } from '~/helpers/catchError';
+import getAst from '~/helpers/getAst';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
 export class DatasService {
-  constructor(private readonly dataOptService: DataOptService) {}
+  constructor() {}
 
   async dataList(
     param: PathParams & { query: any; disableOptimization?: boolean },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
-    let responseData;
-    const base = await Base.get(model.base_id);
-    if (base.type === 'pg' && !param.disableOptimization) {
-      responseData = await this.dataOptService.list({
-        model,
-        view,
-        params: param.query,
-        base,
-      });
-    } else {
-      responseData = await this.getDataList({
-        model,
-        view,
-        query: param.query,
-      });
-    }
-
-    return responseData;
+    return await this.getDataList({
+      model,
+      view,
+      query: param.query,
+    });
   }
 
   async dataFindOne(param: PathParams & { query: any }) {
@@ -264,26 +250,14 @@ export class DatasService {
 
     const base = await Base.get(model.base_id);
 
-    let row;
-
-    if (base.type === 'pg' && !param.disableOptimization) {
-      row = await this.dataOptService.read({
-        model,
-        view,
-        params: param.query,
-        base,
-        id: param.rowId,
-      });
-    } else {
-      const baseModel = await Model.getBaseModelSQL({
-        id: model.id,
-        viewId: view?.id,
-        dbDriver: await NcConnectionMgrv2.get(base),
-      });
-      row = await baseModel.readByPk(param.rowId, false, param.query, {
-        getHiddenColumn: param.getHiddenColumn,
-      });
-    }
+    const baseModel = await Model.getBaseModelSQL({
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(base),
+    });
+    const row = await baseModel.readByPk(param.rowId, false, param.query, {
+      getHiddenColumn: param.getHiddenColumn,
+    });
 
     if (!row) {
       NcError.notFound('Row not found');

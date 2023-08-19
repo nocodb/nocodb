@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { storeToRefs } from 'pinia'
 import { useGlobal } from '#imports'
 
 const router = useRouter()
@@ -7,7 +8,11 @@ const route = router.currentRoute
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspace } = storeToRefs(workspaceStore)
+const { activeWorkspace, isWorkspaceOwnerOrCreator } = storeToRefs(workspaceStore)
+
+const projectStore = useProject()
+
+const { isSharedBase } = storeToRefs(projectStore)
 
 const { navigateToWorkspaceSettings } = useWorkspace()
 
@@ -31,7 +36,6 @@ function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: str
 }
 
 // todo:
-const isSharedBase = ref(false)
 const currentVersion = ref('')
 
 const isTreeViewOnScrollTop = ref(true)
@@ -57,7 +61,7 @@ const navigateToHome = () => {
       outlineWidth: '1px',
     }"
   >
-    <div style="height: var(--sidebar-top-height)">
+    <div :style="{ height: isSharedBase ? 'auto' : 'var(--sidebar-top-height)' }">
       <div style="border-bottom-width: 1px" class="flex items-center px-1 nc-sidebar-header !border-0 py-1.25 pl-2">
         <div class="flex flex-row flex-grow hover:bg-gray-100 pl-2 pr-1 py-0.5 rounded-md max-w-full">
           <a
@@ -89,40 +93,47 @@ const navigateToHome = () => {
         </div>
       </div>
 
-      <div class="w-full mt-2"></div>
+      <template v-if="!isSharedBase">
+        <div class="w-full mt-2"></div>
+        <div class="h-17.5">
+          <div
+            v-if="isWorkspaceOwnerOrCreator"
+            role="button"
+            class="nc-sidebar-top-button"
+            data-testid="nc-sidebar-team-settings-btn"
+            @click="navigateToHome"
+          >
+            <GeneralIcon icon="settings" class="!h-3.9" />
+            <div>Team & Settings</div>
+          </div>
+          <WorkspaceCreateProjectBtn
+            v-if="isUIAllowed('createProject', false, activeWorkspace?.roles)"
+            v-model:is-open="isCreateProjectOpen"
+            modal
+            type="text"
+            class="!p-0 mx-1"
+            data-testid="nc-sidebar-create-project-btn"
+            :active-workspace-id="route.params.typeOrId"
+          >
+            <div
+              class="gap-x-2 flex flex-row w-full items-center nc-sidebar-top-button !my-0 !ml-0"
+              :class="{
+                'bg-gray-100': isCreateProjectOpen,
+              }"
+            >
+              <MdiPlus class="!h-4" />
 
-      <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-team-settings-btn" @click="navigateToHome">
-        <GeneralIcon icon="settings" class="!h-3.9" />
-        <div>Team & Settings</div>
-      </div>
-      <WorkspaceCreateProjectBtn
-        v-if="isUIAllowed('createProject', false, activeWorkspace?.roles)"
-        v-model:is-open="isCreateProjectOpen"
-        modal
-        type="text"
-        class="!p-0 mx-1"
-        data-testid="nc-sidebar-create-project-btn"
-        :active-workspace-id="route.params.workspaceId"
-      >
-        <div
-          class="gap-x-2 flex flex-row w-full items-center nc-sidebar-top-button !my-0 !ml-0"
-          :class="{
-            'border-gray-200': !isTreeViewOnScrollTop,
-            'border-transparent': isTreeViewOnScrollTop,
-            'bg-gray-100': isCreateProjectOpen,
-          }"
-        >
-          <MdiPlus class="!h-4" />
-
-          <div class="flex">{{ $t('title.newProj') }}</div>
+              <div class="flex">{{ $t('title.newProj') }}</div>
+            </div>
+          </WorkspaceCreateProjectBtn>
         </div>
-      </WorkspaceCreateProjectBtn>
-      <div v-else class="!h-7"></div>
-      <div class="text-gray-500 mx-5 font-medium mt-3 mb-1.5">{{ $t('objects.projects') }}</div>
+        <div class="flex flex-grow"></div>
+        <div class="text-gray-500 mx-5 font-medium mb-1.5">{{ $t('objects.projects') }}</div>
+      </template>
       <div
         class="w-full border-b-1"
         :class="{
-          'border-gray-100': !isTreeViewOnScrollTop,
+          'border-gray-200': !isTreeViewOnScrollTop,
           'border-transparent': isTreeViewOnScrollTop,
         }"
       ></div>

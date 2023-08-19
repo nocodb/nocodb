@@ -1,3 +1,3 @@
 <template>
-  <span/>
+  <span />
 </template>

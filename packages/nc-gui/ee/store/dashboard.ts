@@ -143,7 +143,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
 
   const openedProjectId = computed<string>(() => route.value.params.projectId as string)
   const openedLayoutId = computed<string | null>(() => route.value.params.layoutId as string)
-  const _openedWorkspaceId = computed<string>(() => route.value.params.workspaceId as string)
+  const _openedWorkspaceId = computed<string>(() => route.value.params.typeOrId as string)
   const availableNumericColumnsOfSelectedView = computed(() => {
     if (!availableColumnsOfSelectedView.value) {
       return undefined
@@ -240,7 +240,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   function _getLayoutUrl({ projectId, id, completeUrl }: { projectId: string; id: string; completeUrl?: boolean }) {
     projectId = projectId || openedProjectId.value
 
-    const url = `/ws/${_openedWorkspaceId.value}/nc/${projectId}/layout/${id}`
+    const url = `/${_openedWorkspaceId.value}/${projectId}/layout/${id}`
 
     return completeUrl ? `${window.location.origin}/#${url}` : url
   }
@@ -438,7 +438,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
    *
    */
   function getDashboardProjectUrl(projectId: string, { completeUrl }: { completeUrl?: boolean; publicMode?: boolean } = {}) {
-    const path = `/ws/${_openedWorkspaceId.value}/nc/${projectId}/layout`
+    const path = `/${_openedWorkspaceId.value}/${projectId}/layout`
     if (completeUrl) return `${window.location.origin}/#${path}`
 
     return path

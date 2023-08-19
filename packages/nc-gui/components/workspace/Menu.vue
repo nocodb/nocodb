@@ -38,7 +38,7 @@ const createDlg = ref(false)
 const onWorkspaceCreate = async (workspace: WorkspaceType) => {
   createDlg.value = false
   await loadWorkspaces()
-  navigateTo(`/ws/${workspace.id}`)
+  navigateTo(`/${workspace.id}`)
 }
 
 const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color?: string) => {
@@ -87,8 +87,11 @@ const logout = async () => {
   navigateTo('/signin')
 }
 
+const projectStore = useProject()
+
+const { isSharedBase } = storeToRefs(projectStore)
+
 // todo: temp
-const isSharedBase = false
 const modalVisible = false
 
 const copyAuthToken = async () => {

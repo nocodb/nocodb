@@ -372,7 +372,7 @@ function onEventChange() {
 async function loadPluginList() {
   if (appInfo.value.isCloud) return
   try {
-    const plugins = (await api.plugin.list()).list!
+    const plugins = (await api.plugin.webhookList()).list!
 
     apps.value = plugins.reduce((o, p) => {
       const plugin: { title: string; tags: string[]; parsedInput: Record<string, any> } = {

@@ -57,11 +57,12 @@ const [setup, use] = useInjectionState(() => {
   }
 
   const inviteUser = async (user: Partial<User>) => {
+    let res
     formStatus.value = 'project-collaborateSaving'
     try {
       if (!project.value?.id) return
 
-      const res = await api.auth.projectUserAdd(project.value.id, {
+      res = await api.auth.projectUserAdd(project.value.id, {
         ...user,
         project_id: project.value!.id!,
         projectName: project.value.title,
@@ -81,6 +82,7 @@ const [setup, use] = useInjectionState(() => {
 
     formStatus.value = 'project-collaborateSaved'
     $e('a:user:add')
+    return res
   }
 
   const updateEditedUsers = async (_editedUsers?: User[]) => {

@@ -115,7 +115,7 @@ const onRoleToggle = async () => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-2 w-full" data-testid="nc-share-base-sub-modal">
+  <div class="flex flex-col py-2 px-3 gap-2 w-full" data-testid="nc-share-base-sub-modal">
     <div class="flex flex-col w-full p-3 border-1 border-gray-100 rounded-md">
       <div class="flex flex-row w-full justify-between">
         <div class="text-black font-medium">Enable Public Access</div>
@@ -127,7 +127,7 @@ const onRoleToggle = async () => {
           <div class="text-black">Editing access</div>
           <a-switch
             :loading="isRoleToggleLoading"
-            :checked="base?.role === ShareBaseRole.Viewer"
+            :checked="base?.role === ShareBaseRole.Editor"
             class="ml-2"
             @click="onRoleToggle"
           />

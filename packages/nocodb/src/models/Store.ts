@@ -1,4 +1,4 @@
-import type {SortType } from 'nocodb-sdk';
+import type { SortType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';

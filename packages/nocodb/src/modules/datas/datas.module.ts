@@ -18,9 +18,8 @@ import { DataAliasNestedService } from '~/services/data-alias-nested.service';
 import { OldDatasService } from '~/controllers/old-datas/old-datas.service';
 import { PublicDatasExportService } from '~/services/public-datas-export.service';
 import { PublicDatasService } from '~/services/public-datas.service';
-import { DataOptService } from '~/services/data-opt/data-opt.service';
 
-@Module({
+export const dataModuleMetadata = {
   imports: [
     MulterModule.register({
       storage: multer.diskStorage({}),
@@ -52,7 +51,6 @@ import { DataOptService } from '~/services/data-opt/data-opt.service';
     OldDatasService,
     PublicDatasService,
     PublicDatasExportService,
-    DataOptService,
   ],
   exports: [
     DatasService,
@@ -61,7 +59,8 @@ import { DataOptService } from '~/services/data-opt/data-opt.service';
     OldDatasService,
     PublicDatasService,
     PublicDatasExportService,
-    DataOptService,
   ],
-})
+};
+
+@Module(dataModuleMetadata)
 export class DatasModule {}

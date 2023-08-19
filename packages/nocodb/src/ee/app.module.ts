@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppModule as AppCeModule, ceModuleConfig } from 'src/app.module';
 import { WorkspacesModule } from './modules/workspaces/workspaces.module';
 import { CustomApiLimiterGuard } from '~/guards/custom-api-limiter.guard';
@@ -10,8 +10,7 @@ import { ThrottlerConfigService } from '~/services/throttler/throttler-config.se
 import appConfig from '~/app.config';
 import { Model } from '~/models';
 import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
-
-console.log(Model);
+import { ExecutionTimeCalculatorInterceptor } from '~/interceptors/execution-time-calculator/execution-time-calculator.interceptor';
 
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
@@ -49,6 +48,10 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
       }
       return x;
     }),
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ExecutionTimeCalculatorInterceptor,
+    },
   ],
 })
 export class AppModule extends AppCeModule {

@@ -127,10 +127,20 @@ watchDebounced(
     maxWait: 600,
   },
 )
+
+const modal = ref(true)
+
+const reloadCollabs = async () => {
+  currentPage.value = 0
+  collaborators.value = []
+  await loadCollaborators()
+}
 </script>
 
 <template>
   <div class="nc-collaborator-table-container mt-4 nc-access-settings-view">
+    <ProjectInviteProjectCollabSection @invited="reloadCollabs" />
+
     <div v-if="isLoading" class="nc-collaborators-list items-center justify-center">
       <GeneralLoader size="xlarge" />
     </div>
@@ -142,6 +152,7 @@ watchDebounced(
           </template>
         </a-input>
       </div>
+
       <div v-if="isSearching" class="nc-collaborators-list items-center justify-center">
         <GeneralLoader size="xlarge" />
       </div>
@@ -188,6 +199,7 @@ watchDebounced(
                   class="w-30 !rounded px-1"
                   :virtual="true"
                   @change="(value) => updateCollaborator(collab, value)"
+                  :placeholder="$t('labels.noAccess')"
                 >
                   <template #suffixIcon>
                     <MdiChevronDown />
@@ -221,7 +233,8 @@ watchDebounced(
 <style scoped lang="scss">
 .nc-collaborators-list {
   @apply border-gray-100 mt-1 flex flex-col w-full;
-  height: calc(100vh - calc(var(--topbar-height) + 9rem));
+  // todo: replace/remove 120px with proper value while updating invite ui
+  height: calc(100vh - calc(var(--topbar-height) + 9rem + 120px));
 }
 
 .nc-collaborators-list-header {

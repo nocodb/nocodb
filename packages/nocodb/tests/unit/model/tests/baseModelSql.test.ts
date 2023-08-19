@@ -1,20 +1,20 @@
 import 'mocha';
 import { expect } from 'chai';
-import { BaseModelSqlv2 } from '../../../../src/db/BaseModelSqlv2';
-import NcConnectionMgrv2 from '../../../../src/utils/common/NcConnectionMgrv2';
 import init from '../../init';
 import { createProject } from '../../factory/project';
 import { createTable } from '../../factory/table';
-import Base from '../../../../src/models/Base';
 import { createRow, generateDefaultRowAttributes } from '../../factory/row';
-import Audit from '../../../../src/models/Audit';
-import Filter from '../../../../src/models/Filter';
 import { createLtarColumn } from '../../factory/column';
 import { isPg, isSqlite } from '../../init/db';
-import type View from '../../../../src/models/View';
-import type Project from '../../../../src/models/Project';
-import type Model from '../../../../src/models/Model';
-import type LinkToAnotherRecordColumn from '../../../../src/models/LinkToAnotherRecordColumn';
+import type View from '~/models/View';
+import type Project from '~/models/Project';
+import type Model from '~/models/Model';
+import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
+import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import Filter from '~/models/Filter';
+import Audit from '~/models/Audit';
+import Base from '~/models/Base';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 function baseModelSqlTests() {
   let context;
@@ -78,7 +78,7 @@ function baseModelSqlTests() {
     expect(rowInsertedAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: null,
+      base_id: table.base_id,
       project_id: project.id,
       fk_model_id: table.id,
       row_id: '1',
@@ -126,7 +126,7 @@ function baseModelSqlTests() {
     expect(rowBulkInsertedAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: null,
+      base_id: table.base_id,
       project_id: project.id,
       fk_model_id: table.id,
       row_id: null,
@@ -160,7 +160,7 @@ function baseModelSqlTests() {
     expect(rowUpdatedAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: null,
+      base_id: table.base_id,
       project_id: project.id,
       fk_model_id: table.id,
       row_id: '1',
@@ -203,7 +203,7 @@ function baseModelSqlTests() {
     expect(rowBulkUpdateAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: null,
+      base_id: table.base_id,
       fk_model_id: table.id,
       project_id: project.id,
       row_id: null,
@@ -254,7 +254,7 @@ function baseModelSqlTests() {
     expect(rowBulkUpdateAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: null,
+      base_id: table.base_id,
       fk_model_id: table.id,
       project_id: project.id,
       row_id: null,
@@ -293,7 +293,7 @@ function baseModelSqlTests() {
     expect(rowDeletedAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: null,
+      base_id: table.base_id,
       project_id: project.id,
       fk_model_id: table.id,
       row_id: '1',
@@ -334,7 +334,7 @@ function baseModelSqlTests() {
     expect(rowBulkDeleteAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: null,
+      base_id: table.base_id,
       fk_model_id: table.id,
       project_id: project.id,
       row_id: null,
@@ -382,7 +382,7 @@ function baseModelSqlTests() {
     expect(rowBulkDeleteAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: null,
+      base_id: table.base_id,
       fk_model_id: table.id,
       project_id: project.id,
       row_id: null,
@@ -443,7 +443,7 @@ function baseModelSqlTests() {
     expect(rowInsertedAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: null,
+      base_id: table.base_id,
       project_id: project.id,
       fk_model_id: table.id,
       row_id: '1',
@@ -510,7 +510,7 @@ function baseModelSqlTests() {
     expect(rowInsertedAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: null,
+      base_id: table.base_id,
       project_id: project.id,
       fk_model_id: table.id,
       row_id: '1',
@@ -585,7 +585,7 @@ function baseModelSqlTests() {
     expect(rowInsertedAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: null,
+      base_id: table.base_id,
       project_id: project.id,
       fk_model_id: table.id,
       row_id: '1',

@@ -54,7 +54,7 @@ test.describe('DashboardBasicTests', () => {
     expect(await dashboard.leftSidebar.getWorkspaceName()).toBe(ws2Title + '2');
 
     const wsList = await dashboard.leftSidebar.getWorkspaceList();
-    expect(wsList.length).toBe(2);
+    expect(wsList.length).toBe(3);
 
     // tbd
     // await dashboard.leftSidebar.clickTeamAndSettings();

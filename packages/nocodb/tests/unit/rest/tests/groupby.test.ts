@@ -1,10 +1,9 @@
 import request from 'supertest';
 import { createProject, createSakilaProject } from '../../factory/project';
 import { getTable } from '../../factory/table';
-import { getView } from '../../factory/view';
+import { getView, updateView } from '../../factory/view';
 import init from '../../init';
 import type { Column, Model, Project, View } from '../../../../src/models';
-import { it } from 'node:test';
 
 function groupByTests() {
   let context;
@@ -200,16 +199,36 @@ function groupByTests() {
   });
 
   it.only('GroupBy Along with Filter', async () => {
-    const lengthColumn = filmColumns.find((c) => c.column_name === 'length');
-    const Condition = `?offset=0&limit=10&where=`;
+    const _lengthColumn = filmColumns.find((c) => c.column_name === 'length');
+    const lengthColumn = gridViewColumns.find(
+      (f) => f.fk_column_id === _lengthColumn.id,
+    );
+
+    await updateView(context, {
+      table: filmTable,
+      view: filmView,
+      filter: [
+        {
+          comparison_op: 'eq',
+          value: 46,
+          status: 'create',
+          fk_column_id: lengthColumn.fk_column_id,
+        },
+      ],
+    });
     const response = await request(context.app)
       .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
       .set('xc-auth', context.token)
       .query({
-        column_name: lengthColumn.column_name,
-        sort: `-${lengthColumn.title}`,
+        column_name: _lengthColumn.column_name,
       })
       .expect(200);
+
+    if (
+      response.body.list[0]['length'] !== '46' &&
+      parseInt(response.body.list[0]['count']) !== 5
+    )
+      throw new Error('Invalid GroupBy With Filters');
   });
 }
 

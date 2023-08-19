@@ -514,7 +514,7 @@ onMounted(async () => {
           <input
             ref="titleDomRef"
             v-model="hookRef.title"
-            class="flex flex-grow text-lg font-medium capitalize outline-none bg-inherit"
+            class="flex flex-grow text-lg font-medium capitalize outline-none bg-inherit nc-text-field-hook-title"
             placeholder="Webhook Title"
             :contenteditable="true"
             @blur="isRenaming = false"

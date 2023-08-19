@@ -6,16 +6,9 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { hooks, webhookMainUrl } = storeToRefs(useWebhooksStore())
-const {
-  loadHooksList,
-  deleteHook: _deleteHook,
-  copyHook,
-  saveHooks,
-  navigateToWebhook,
-  navigateToWebhookRoute,
-} = useWebhooksStore()
-const { activeView, isHooksLoading } = storeToRefs(useViewsStore())
+const { hooks, webhookMainUrl, isHooksLoading } = storeToRefs(useWebhooksStore())
+const { loadHooksList, deleteHook: _deleteHook, copyHook, saveHooks, navigateToWebhook } = useWebhooksStore()
+const { activeView } = storeToRefs(useViewsStore())
 
 const modalDeleteButtonRef = ref(null)
 
@@ -87,7 +80,7 @@ watch(showDeleteModal, () => {
   if (!showDeleteModal.value) return
 
   nextTick(() => {
-    modalDeleteButtonRef.value?.$el?.focus()
+    ;(modalDeleteButtonRef.value as any)?.$el?.focus()
   })
 })
 
@@ -220,7 +213,7 @@ watch(
           <a-switch
             v-e="['c:actions:webhook']"
             size="small"
-            :checked="hook.active"
+            :checked="hook.active!"
             class="min-w-4 !mr-2"
             @change="toggleHook(hook)"
           />
@@ -260,7 +253,7 @@ watch(
                     Duplicate
                   </div>
                 </NcButton>
-                <NcButton type="text" class="!rounded-none" @click="openDeleteModal(hook.id)">
+                <NcButton type="text" class="!rounded-none" @click="openDeleteModal(hook.id!)">
                   <div class="flex items-center gap-x-1 !text-red-500">
                     <GeneralIcon icon="delete" />
                     Delete

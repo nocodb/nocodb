@@ -172,10 +172,9 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     if (!openMainPage && !openCreatePage && !hookId) throw new Error('hook id is not defined')
 
     return {
-      name: 'ws-workspaceId-projectType-projectId-index-index-type-viewId-viewTitle-slugs',
+      name: 'index-typeOrId-projectId-index-index-type-viewId-viewTitle-slugs',
       params: {
-        workspaceId: route.value.params.workspaceId,
-        projectType: route.value.params.projectType,
+        typeOrId: route.value.params.typeOrId,
         projectId: route.value.params.projectId,
         type: route.value.params.type,
         viewId: route.value.params.viewId,

@@ -866,6 +866,8 @@ export const useDocStore = defineStore('docStore', () => {
 })
 
 function pageIdFromCompositePageId(compositePageId: string) {
+  if (!compositePageId) return null
+
   const ids = compositePageId.split('-')
   if (ids.length < 3) return null
 
@@ -873,6 +875,8 @@ function pageIdFromCompositePageId(compositePageId: string) {
 }
 
 function projectIdFromCompositePageId(compositePageId: string) {
+  if (!compositePageId) return null
+
   const ids = compositePageId.split('-')
   if (ids.length < 1) return null
 

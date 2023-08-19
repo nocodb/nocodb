@@ -21,6 +21,7 @@ import {
 
 definePageMeta({
   public: true,
+  hasSidebar: false,
 })
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
@@ -61,7 +62,6 @@ watch(
 <template>
   <NuxtLayout>
     <NuxtPage v-if="!passwordDlg" />
-
     <a-modal
       v-model:visible="passwordDlg"
       :class="{ active: passwordDlg }"

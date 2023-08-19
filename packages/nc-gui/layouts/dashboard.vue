@@ -141,7 +141,9 @@ export default {
 
 <template>
   <NuxtLayout>
+    <slot v-if="!route.meta.hasSidebar" name="content" />
     <Splitpanes
+      v-else
       style="height: 100vh"
       class="nc-sidebar-content-resizable-wrapper w-full"
       :class="{

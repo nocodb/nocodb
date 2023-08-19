@@ -111,7 +111,7 @@ const navigateToHome = () => {
         </div>
       </template>
       <template v-else-if="!isSharedBase">
-        <div class="h-21.85">
+        <div class="h-26.85">
           <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-search-btn" @click="commandPalette?.open()">
             <MaterialSymbolsSearch class="!h-3.9" />
             <div class="flex items-center gap-2">

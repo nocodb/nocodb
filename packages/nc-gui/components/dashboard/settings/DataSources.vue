@@ -401,7 +401,7 @@ const isEditBaseModalOpen = computed({
                       @click="baseAction(sources[0].id, DataSourcesSubTab.Audit)"
                     >
                       <div class="flex items-center gap-2 text-gray-600">
-                        <GeneralIcon icon="erd" class="group-hover:text-accent" />
+                        <GeneralIcon icon="book" class="group-hover:text-accent" />
                         Audit
                       </div>
                     </a-button>
@@ -457,7 +457,17 @@ const isEditBaseModalOpen = computed({
                     >
                       <div class="flex items-center gap-2 text-gray-600">
                         <GeneralIcon icon="erd" class="group-hover:text-accent" />
-                        ERD
+                        Relations
+                      </div>
+                    </a-button>
+                    <a-button
+                      type="text"
+                      class="nc-action-btn cursor-pointer outline-0"
+                      @click="baseAction(base.id, DataSourcesSubTab.UIAcl)"
+                    >
+                      <div class="flex items-center gap-2 text-gray-600">
+                        <GeneralIcon icon="acl" class="group-hover:text-accent" />
+                        UI ACL
                       </div>
                     </a-button>
                     <a-button
@@ -475,15 +485,6 @@ const isEditBaseModalOpen = computed({
                         Sync Metadata
                       </div>
                     </a-button>
-                    <!-- <a-button
-                      class="nc-action-btn cursor-pointer outline-0"
-                      @click="baseAction(base.id, DataSourcesSubTab.UIAcl)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600 ">
-                        <GeneralIcon icon="acl" class="group-hover:text-accent" />
-                        UI ACL
-                      </div>
-                    </a-button> -->
                   </div>
                 </div>
                 <div class="ds-table-col ds-table-crud justify-end gap-x-1">
@@ -529,7 +530,7 @@ const isEditBaseModalOpen = computed({
           <Metadata :base-id="activeBaseId" @base-synced="loadBases(true)" />
         </div>
       </GeneralModal>
-      <GeneralModal v-model:visible="isUIAclModalOpen" size="large">
+      <GeneralModal v-model:visible="isUIAclModalOpen" width="70rem">
         <div class="p-6">
           <UIAcl :base-id="activeBaseId" />
         </div>

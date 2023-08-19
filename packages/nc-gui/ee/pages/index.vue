@@ -106,8 +106,10 @@ onMounted(async () => {
     await loadScope('root')
   }
 
-  if (!workspaceStore.activeWorkspace.value && !route.value.params.typeOrId) {
-    await populateWorkspace()
+  if (!workspaceStore?.activeWorkspace?.value && !route.value.params.typeOrId) {
+    await populateWorkspace({
+      workspaceId: workspaceStore.workspacesList[0].id!,
+    })
 
     if (!route.value.params.projectId && projectsStore.projectsList.length) {
       await projectsStore.navigateToProject({

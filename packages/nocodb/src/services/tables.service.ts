@@ -358,7 +358,7 @@ export class TablesService {
     useDefaultColumns?: boolean;
   }) {
     if (param.useDefaultColumns) {
-      param.table.columns = defaultColumns as any;
+      param.table.columns = defaultColumnsPg as any;
     }
 
     validatePayload('swagger.json#/components/schemas/TableReq', param.table);
@@ -525,11 +525,11 @@ export class TablesService {
   }
 }
 
-const defaultColumns = [
+const defaultColumnsPg = [
   {
     column_name: 'id',
     title: 'Id',
-    dt: 'integer',
+    dt: 'int4',
     dtx: 'integer',
     ct: 'int(11)',
     nrqd: false,
@@ -540,9 +540,9 @@ const defaultColumns = [
     ai: true,
     cdf: null,
     clen: null,
-    np: null,
+    np: 11,
     ns: 0,
-    dtxp: '',
+    dtxp: '11',
     dtxs: '',
     altered: 1,
     uidt: 'ID',
@@ -552,9 +552,9 @@ const defaultColumns = [
   {
     column_name: 'title',
     title: 'Title',
-    dt: 'varchar',
+    dt: 'character varying',
     dtx: 'specificType',
-    ct: 'varchar',
+    ct: 'varchar(45)',
     nrqd: true,
     rqd: false,
     ck: false,
@@ -565,7 +565,7 @@ const defaultColumns = [
     clen: 45,
     np: null,
     ns: null,
-    dtxp: '',
+    dtxp: '45',
     dtxs: '',
     altered: 1,
     uidt: 'SingleLineText',
@@ -575,16 +575,16 @@ const defaultColumns = [
   {
     column_name: 'created_at',
     title: 'CreatedAt',
-    dt: 'datetime',
+    dt: 'timestamp',
     dtx: 'specificType',
-    ct: 'varchar',
+    ct: 'varchar(45)',
     nrqd: true,
     rqd: false,
     ck: false,
     pk: false,
     un: false,
     ai: false,
-    cdf: 'CURRENT_TIMESTAMP',
+    cdf: 'now()',
     clen: 45,
     np: null,
     ns: null,
@@ -598,16 +598,17 @@ const defaultColumns = [
   {
     column_name: 'updated_at',
     title: 'UpdatedAt',
-    dt: 'datetime',
+    dt: 'timestamp',
     dtx: 'specificType',
-    ct: 'varchar',
+    ct: 'varchar(45)',
     nrqd: true,
     rqd: false,
     ck: false,
     pk: false,
     un: false,
     ai: false,
-    cdf: 'CURRENT_TIMESTAMP',
+    au: true,
+    cdf: 'now()',
     clen: 45,
     np: null,
     ns: null,

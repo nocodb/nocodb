@@ -41,7 +41,7 @@ const { hooks } = storeToRefs(useWebhooksStore())
 
 const meta = inject(MetaInj, ref())
 
-const titleDomRef = ref<HTMLElement | undefined>()
+const titleDomRef = ref<HTMLInputElement | undefined>()
 
 // const hookTabKey = ref('hook-edit')
 
@@ -51,7 +51,7 @@ let hookRef = reactive<
   Omit<HookType, 'notification'> & { notification: Record<string, any>; eventOperation?: string; condition: boolean }
 >({
   id: '',
-  title: '',
+  title: 'Untitled Webhook',
   event: undefined,
   operation: undefined,
   eventOperation: undefined,
@@ -496,8 +496,9 @@ onMounted(async () => {
   onNotificationTypeChange()
 
   setTimeout(() => {
-    if (hookRef.title === '') {
-      titleDomRef.value?.focus()
+    if (hookRef.id === '') {
+      titleDomRef.value?.click()
+      titleDomRef.value?.select()
     }
   }, 50)
 })
@@ -564,9 +565,9 @@ onMounted(async () => {
                   class="nc-text-field-hook-event capitalize"
                   dropdown-class-name="nc-dropdown-webhook-event"
                 >
-                  <NcSelect-option v-for="(event, i) in eventList" :key="i" class="capitalize" :value="event.value.join(' ')">
+                  <a-select-option v-for="(event, i) in eventList" :key="i" class="capitalize" :value="event.value.join(' ')">
                     {{ event.text.join(' ') }}
-                  </NcSelect-option>
+                  </a-select-option>
                 </NcSelect>
               </a-form-item>
             </a-col>
@@ -581,7 +582,7 @@ onMounted(async () => {
                   dropdown-class-name="nc-dropdown-webhook-notification"
                   @change="onNotificationTypeChange(true)"
                 >
-                  <NcSelect-option v-for="(notificationOption, i) in notificationList" :key="i" :value="notificationOption.type">
+                  <a-select-option v-for="(notificationOption, i) in notificationList" :key="i" :value="notificationOption.type">
                     <div class="flex items-center">
                       <component :is="iconMap.link" v-if="notificationOption.type === 'URL'" class="mr-2" />
 
@@ -601,7 +602,7 @@ onMounted(async () => {
 
                       {{ notificationOption.type }}
                     </div>
-                  </NcSelect-option>
+                  </a-select-option>
                 </NcSelect>
               </a-form-item>
             </a-col>
@@ -616,9 +617,9 @@ onMounted(async () => {
                 class="nc-select-hook-url-method"
                 dropdown-class-name="nc-dropdown-hook-notification-url-method"
               >
-                <NcSelect-option v-for="(method, i) in methodList" :key="i" :value="method.title">
+                <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">
                   {{ method.title }}
-                </NcSelect-option>
+                </a-select-option>
               </NcSelect>
             </a-col>
 

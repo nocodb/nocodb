@@ -4,21 +4,22 @@ import { getTable } from '../../factory/table';
 import { getView } from '../../factory/view';
 import init from '../../init';
 import type { Column, Model, Project, View } from '../../../../src/models';
+import { it } from 'node:test';
 
 function groupByTests() {
   let context;
-  let project: Project;
   let sakilaProject: Project;
   let filmTable: Model;
   let filmColumns: Array<Column>;
   let filmView: View;
+  let gridViewColumns;
 
   before(async function () {
     console.time('GroupBy Tests');
     context = await init();
 
     sakilaProject = await createSakilaProject(context);
-    project = await createProject(context);
+    await createProject(context);
 
     filmTable = await getTable({
       project: sakilaProject,
@@ -26,6 +27,15 @@ function groupByTests() {
     });
     filmView = await getView(context, { table: filmTable, name: 'Film' });
     filmColumns = await filmTable.getColumns();
+
+    const columns = (
+      await request(context.app)
+        .get(`/api/v1/db/meta/views/${filmView.id}/columns`)
+        .set('xc-auth', context.token)
+        .expect(200)
+    ).body.list;
+
+    gridViewColumns = columns;
   });
 
   it('Check One GroupBy Column Ascending', async function () {
@@ -138,10 +148,18 @@ function groupByTests() {
       throw new Error('Invalid Three GroupBy Descending');
   });
 
-  /*   it('Set GroupBy and Verify', async () => {
-    const lengthColumn = filmColumns.find((c) => c.column_name === 'length');
-    const rentalColumn = filmColumns.find(
+  it('Set GroupBy and Verify Columns', async () => {
+    const _lengthColumn = filmColumns.find((c) => c.column_name === 'length');
+    const _rentalColumn = filmColumns.find(
       (c) => c.column_name === 'rental_duration',
+    );
+
+    const lengthColumn = gridViewColumns.find(
+      (f) => f.fk_column_id === _lengthColumn.id,
+    );
+
+    const rentalColumn = gridViewColumns.find(
+      (f) => f.fk_column_id === _rentalColumn.id,
     );
 
     // Group By Length Column Ascending Order
@@ -164,7 +182,6 @@ function groupByTests() {
         group_by_order: 2,
       })
       .expect(200);
-
     const columns = (
       await request(context.app)
         .get(`/api/v1/db/meta/views/${filmView.id}/columns`)
@@ -172,8 +189,28 @@ function groupByTests() {
         .expect(200)
     ).body.list;
 
-    console.log(columns);
-  }); */
+    columns.forEach((c) => {
+      if (
+        c.fk_column_id === lengthColumn.id ||
+        c.fk_column_id === rentalColumn.id
+      ) {
+        if (!c.group_by) throw new Error('Group By Not Set');
+      }
+    });
+  });
+
+  it.only('GroupBy Along with Filter', async () => {
+    const lengthColumn = filmColumns.find((c) => c.column_name === 'length');
+    const Condition = `?offset=0&limit=10&where=`;
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .set('xc-auth', context.token)
+      .query({
+        column_name: lengthColumn.column_name,
+        sort: `-${lengthColumn.title}`,
+      })
+      .expect(200);
+  });
 }
 
 export default function () {

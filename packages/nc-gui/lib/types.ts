@@ -180,7 +180,7 @@ interface Users {
   invitationToken?: string
 }
 
-type ViewPageType = 'views' | 'webhooks' | 'apis' | 'fields' | 'relations'
+type ViewPageType = 'view' | 'webhook' | 'api' | 'field' | 'relation'
 
 export {
   User,

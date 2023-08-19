@@ -173,7 +173,7 @@ watch(
     <LazySmartsheetTopbar />
     <TabsSmartsheetResizable>
       <template #content>
-        <div v-if="openedViewsTab === 'views'" class="flex flex-col h-full flex-1 min-w-0">
+        <div v-if="openedViewsTab === 'view'" class="flex flex-col h-full flex-1 min-w-0">
           <LazySmartsheetToolbar v-if="!isForm" />
           <div class="flex flex-row w-full" style="height: calc(100vh - var(--topbar-height))">
             <Transition name="layout" mode="out-in">

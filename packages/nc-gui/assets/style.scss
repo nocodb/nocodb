@@ -60,10 +60,10 @@ main {
   }
   &::-webkit-scrollbar-thumb {
     width: 4px;
-    @apply bg-gray-200 ;
+    @apply bg-gray-300 ;
   }
   &::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-300;
+    @apply bg-gray-400;
   }
 }
 

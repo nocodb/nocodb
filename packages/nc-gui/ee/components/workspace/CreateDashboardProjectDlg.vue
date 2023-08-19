@@ -162,7 +162,7 @@ watch(dialogShow, async (n, o) => {
 
 onMounted(async () => {
   formState.title = await generateUniqueName()
-  await loadWorkspaces()
+  // await loadWorkspaces()
   await nextTick()
   input.value?.$el?.focus()
   input.value?.$el?.select()

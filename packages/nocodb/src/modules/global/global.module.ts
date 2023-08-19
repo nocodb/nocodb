@@ -10,8 +10,6 @@ import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { UsersService } from '~/services/users/users.service';
-import { Producer } from '~/services/producer/producer';
-import { ProducerProvider } from '~/services/producer';
 import { TelemetryService } from '~/services/telemetry.service';
 import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
 
@@ -36,8 +34,7 @@ export const JwtStrategyProvider: Provider = {
   inject: [UsersService, MetaService],
 };
 
-@Global()
-@Module({
+export const globalModuleMetadata = {
   imports: [EventEmitterModule],
   providers: [
     InitMetaServiceProvider,
@@ -47,7 +44,6 @@ export const JwtStrategyProvider: Provider = {
     GlobalGuard,
     SocketGateway,
     AppHooksService,
-    ProducerProvider,
     AppHooksListenerService,
     TelemetryService,
   ],
@@ -57,10 +53,12 @@ export const JwtStrategyProvider: Provider = {
     UsersService,
     GlobalGuard,
     AppHooksService,
-    Producer,
     AppHooksListenerService,
     TelemetryService,
     ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [SocketGateway] : []),
   ],
-})
+};
+
+@Global()
+@Module(globalModuleMetadata)
 export class GlobalModule {}

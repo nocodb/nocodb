@@ -1,0 +1,127 @@
+<script lang="ts" setup>
+import type { Menu } from 'ant-design-vue'
+import { onUnmounted } from '@vue/runtime-core'
+
+definePageMeta({
+  hideHeader: true,
+  hasSidebar: true,
+})
+
+const router = useRouter()
+
+const route = router.currentRoute
+
+const dialogOpen = ref(false)
+
+const openDialogKey = ref<string>('')
+
+const dataSourcesState = ref<string>('')
+
+function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: string) {
+  dialogOpen.value = value ?? !dialogOpen.value
+  openDialogKey.value = key || ''
+  dataSourcesState.value = dsState || ''
+}
+
+provide(ToggleDialogInj, toggleDialog)
+
+// onMounted(async () => {
+//   isLoading.value = true
+//   try {
+//     await loadWorkspace(route.params.typeOrId as string)
+//     await loadProjects()
+//   } finally {
+//     isLoading.value = false
+//   }
+// })
+
+// TODO
+// const isSharedBase = ref(false)
+// const currentVersion = ref('')
+
+const projectId = computed(() => route.value.params.projectId)
+
+const workspaceStore = useWorkspace()
+const { populateWorkspace } = workspaceStore
+const { collaborators } = storeToRefs(workspaceStore)
+
+const projectsStore = useProjects()
+
+watch(
+  () => route.value.params.projectTypeOrWorkspaceId ?? route.value.params.typeOrId,
+  async (newId, oldId) => {
+    if (newId === 'nc') {
+      workspaceStore.setLoadingState(false)
+      workspaceStore.isWorkspaceLoading = false
+      return
+    }
+
+    if (newId === 'base') {
+      workspaceStore.setLoadingState(false)
+      projectsStore.loadProjects()
+      return
+    }
+
+    if (newId && oldId !== newId) {
+      projectsStore.clearProjects()
+      collaborators.value = []
+      // return
+    }
+
+    if (newId || workspaceStore.workspacesList.length) {
+      populateWorkspace()
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
+const { deleteWorkspace: _deleteWorkspace, loadWorkspaces } = workspaceStore
+
+// create a new sidebar state
+const { toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
+
+let timerRef: any
+
+onUnmounted(() => {
+  if (timerRef) clearTimeout(timerRef)
+})
+
+onMounted(async () => {
+  toggle(true)
+  toggleHasSidebar(true)
+
+  // skip loading workspace and command palette for shared base
+  if (!['base'].includes(route.value.params.typeOrId as string)) {
+    await loadWorkspaces()
+    const { loadScope } = useCommandPalette()
+    await loadScope('root')
+  }
+
+  if (!workspaceStore.activeWorkspace.value && !['nc', 'base'].includes(route.value.params.typeOrId as string)) {
+    await populateWorkspace()
+  }
+})
+</script>
+
+<template>
+  <div>
+    <NuxtLayout name="dashboard">
+      <template #sidebar>
+        <DashboardSidebar />
+      </template>
+      <template #content>
+        <NuxtPage :transition="false" />
+      </template>
+    </NuxtLayout>
+    <LazyDashboardSettingsModal
+      v-model:model-value="dialogOpen"
+      v-model:open-key="openDialogKey"
+      v-model:data-sources-state="dataSourcesState"
+      :project-id="projectId"
+    />
+  </div>
+</template>
+
+<style scoped></style>

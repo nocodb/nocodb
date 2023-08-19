@@ -797,10 +797,8 @@ class PGClient extends KnexClient {
                     c.generation_expression,
                     c.character_octet_length,
                     c.character_set_name as csn,
-                    pk.ordinal_position as pk_ordinal_position,
-                    pk.constraint_name as pk_constraint_name,
-                    pk1.ordinal_position as pk_ordinal_position1,
-                    pk1.constraint_name as pk_constraint_name1,
+                    -- c.collation_name as clnn,
+                    pk.ordinal_position as pk_ordinal_position, pk.constraint_name as pk_constraint_name,
                     c.udt_name,
 
        (SELECT count(*)
@@ -819,57 +817,26 @@ class PGClient extends KnexClient {
         INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
         WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
                 ) enum_values
+
+
             from information_schema.columns c
-                          LEFT JOIN (
-                     SELECT
-                            kc.constraint_name,
-                            kc.table_name,
-                            kc.column_name,
-                            kc.ordinal_position,
-                            tc.constraint_type
-                     FROM
-                            information_schema.key_column_usage kc
-                            INNER JOIN information_schema.table_constraints AS tc ON kc.constraint_name = tc.constraint_name
-                                   AND kc.constraint_schema = tc.constraint_schema
-                                   AND tc.constraint_type in('PRIMARY KEY')
-                     WHERE
-                            kc.table_catalog = :database
-                            AND kc.table_schema = :schema) pk1 ON pk1.table_name = c.table_name
-              AND pk1.column_name = c.column_name
-           
               left join
-                ( 
-                    select 
-                      pc.conrelid::regclass::text AS table_name,
-                      pc.conname as constraint_name,
-                      col.attname as column_name,
-                      pc.contype as constraint_type,
-                      kc.ordinal_position as ordinal_position
-                    from
-                        pg_constraint pc
-                    JOIN pg_namespace n
-                        ON n.oid = pc.connamespace
-                    INNER JOIN pg_catalog.pg_class rel
-                         ON rel.oid = pc.conrelid
-                    LEFT JOIN LATERAL UNNEST(pc.conkey)  WITH ORDINALITY AS u(attnum, attposition)   ON TRUE
-                    LEFT JOIN pg_attribute col ON (col.attrelid = pc.conrelid AND col.attnum = u.attnum)
-                    left join information_schema.key_column_usage as kc
-                      on pc.conname = kc.constraint_name 
-                      and col.attname = kc.column_name
-                      and pc.conrelid::regclass::text = kc.table_name
-                    WHERE n.nspname = :schema
-                      AND rel.relname = :table 
-                      and pc.contype = 'p' and pc.conrelid::regclass::text = :table
-                 ) pk
+                ( select kc.constraint_name, kc.table_name,kc.column_name, kc.ordinal_position,tc.constraint_type
+                  from information_schema.key_column_usage kc
+                    inner join information_schema.table_constraints as tc
+                      on kc.constraint_name = tc.constraint_name 
+                      and kc.constraint_schema = tc.constraint_schema and tc.constraint_type in ('PRIMARY KEY')
+                  where kc.table_catalog = :database and kc.table_schema= :schema
+                  order by table_name,ordinal_position ) pk
                 on
                 pk.table_name = c.table_name and pk.column_name=c.column_name
-                left join information_schema.triggers trg on trg.event_object_table = c.table_name and trg.trigger_name = CONCAT('xc_trigger_' , 'scans' , '_' , c.column_name)
+                left join information_schema.triggers trg on trg.event_object_table = c.table_name and trg.trigger_name = CONCAT('xc_trigger_' , :table::text , '_' , c.column_name)
               where c.table_catalog=:database and c.table_schema=:schema and c.table_name=:table
               order by c.table_name, c.ordinal_position`,
         {
           schema: this.schema,
-          table: args.tn,
           database: args.databaseName,
+          table: args.tn,
         },
       );
 
@@ -891,9 +858,7 @@ class PGClient extends KnexClient {
         // todo : there are lot of types in pg - handle them
         //column.dtx = this.getKnexDataType(column.dt);
         column.dtx = response.rows[i].dt;
-        column.pk =
-          response.rows[i].pk_constraint_name !== null ||
-          response.rows[i].pk_constraint_name1 !== null;
+        column.pk = response.rows[i].pk_constraint_name !== null;
 
         column.nrqd = response.rows[i].nrqd !== 'NO';
         column.not_nullable = !column.nrqd;
@@ -1185,33 +1150,29 @@ class PGClient extends KnexClient {
     const result = new Result();
     log.api(`${_func}:args:`, args);
     try {
-      // The relationList & relationListAll queries is may look needlessly long, but it is a way
-      // to get relationships without the `information_schema.constraint_column_usage` table (view).
-      // As that view only returns fk relations if the pg user is the table owner.
-      // Resource: https://dba.stackexchange.com/a/218969
-      // Remove clause `WHERE clause: AND f_sch.nspname = sch.nspname` for x-schema relations.
       const { rows } = await this.sqlClient.raw(
-        `SELECT 
-          sch.nspname    AS ts,
-          pc.conname     AS cstn,
-          tbl.relname    AS tn,
-          col.attname    AS cn,
-          f_sch.nspname  AS foreign_table_schema,
-          f_tbl.relname  AS rtn,
-          f_col.attname  AS rcn,
-          pc.confupdtype AS ur,
-          pc.confdeltype AS dr
-        FROM pg_constraint pc
-          LEFT JOIN LATERAL UNNEST(pc.conkey)  WITH ORDINALITY AS u(attnum, attposition)   ON TRUE
-          LEFT JOIN LATERAL UNNEST(pc.confkey) WITH ORDINALITY AS f_u(attnum, attposition) ON f_u.attposition = u.attposition
-          JOIN pg_class tbl ON tbl.oid = pc.conrelid
-          JOIN pg_namespace sch ON sch.oid = tbl.relnamespace
-          LEFT JOIN pg_attribute col ON (col.attrelid = tbl.oid AND col.attnum = u.attnum)
-          LEFT JOIN pg_class f_tbl ON f_tbl.oid = pc.confrelid
-          LEFT JOIN pg_namespace f_sch ON f_sch.oid = f_tbl.relnamespace
-          LEFT JOIN pg_attribute f_col ON (f_col.attrelid = f_tbl.oid AND f_col.attnum = f_u.attnum)
-        WHERE pc.contype = 'f' AND sch.nspname = ? AND f_sch.nspname = sch.nspname AND tbl.relname=?;`,
-        [this.schema, args.tn],
+        `SELECT distinct
+                tc.table_schema as ts,
+                tc.constraint_name as cstn,
+                tc.table_name as tn,
+                kcu.column_name as cn,
+                ccu.table_schema AS foreign_table_schema,
+                ccu.table_name AS rtn,
+                ccu.column_name AS rcn,
+                pc.confupdtype as ur, pc.confdeltype as dr
+        FROM
+            information_schema.table_constraints AS tc
+            JOIN information_schema.key_column_usage AS kcu
+              ON tc.constraint_name = kcu.constraint_name
+              AND tc.table_schema = kcu.table_schema
+            JOIN information_schema.constraint_column_usage AS ccu
+              ON ccu.constraint_name = tc.constraint_name
+              AND ccu.table_schema = tc.table_schema
+            join (select conname,confupdtype,confdeltype from pg_catalog.pg_constraint) pc
+            on pc.conname = tc.constraint_name
+        WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema=:schema and tc.table_name=:table
+        order by tc.table_name;`,
+        { schema: this.schema, table: args.tn },
       );
 
       const ruleMapping = {
@@ -1260,27 +1221,28 @@ class PGClient extends KnexClient {
     log.api(`${_func}:args:`, args);
     try {
       const { rows } = await this.sqlClient.raw(
-        `SELECT 
-          sch.nspname    AS ts,
-          pc.conname     AS cstn,
-          tbl.relname    AS tn,
-          col.attname    AS cn,
-          f_sch.nspname  AS foreign_table_schema,
-          f_tbl.relname  AS rtn,
-          f_col.attname  AS rcn,
-          pc.confupdtype AS ur,
-          pc.confdeltype AS dr
-        FROM pg_constraint pc
-          LEFT JOIN LATERAL UNNEST(pc.conkey)  WITH ORDINALITY AS u(attnum, attposition)   ON TRUE
-          LEFT JOIN LATERAL UNNEST(pc.confkey) WITH ORDINALITY AS f_u(attnum, attposition) ON f_u.attposition = u.attposition
-          JOIN pg_class tbl ON tbl.oid = pc.conrelid
-          JOIN pg_namespace sch ON sch.oid = tbl.relnamespace
-          LEFT JOIN pg_attribute col ON (col.attrelid = tbl.oid AND col.attnum = u.attnum)
-          LEFT JOIN pg_class f_tbl ON f_tbl.oid = pc.confrelid
-          LEFT JOIN pg_namespace f_sch ON f_sch.oid = f_tbl.relnamespace
-          LEFT JOIN pg_attribute f_col ON (f_col.attrelid = f_tbl.oid AND f_col.attnum = f_u.attnum)
-        WHERE pc.contype = 'f' AND sch.nspname = ?
-        ORDER BY tn;`,
+        `SELECT DISTINCT tc.table_schema as ts,
+                tc.constraint_name as cstn,
+                tc.table_name as tn,
+                kcu.column_name as cn,
+                ccu.table_schema AS foreign_table_schema,
+                ccu.table_name   AS rtn,
+                ccu.column_name  AS rcn,
+                pc.confupdtype   as ur,
+                pc.confdeltype   as dr
+         FROM information_schema.table_constraints AS tc
+                JOIN information_schema.key_column_usage AS kcu
+                     ON tc.constraint_name = kcu.constraint_name
+                       AND tc.table_schema = kcu.table_schema
+                JOIN information_schema.constraint_column_usage AS ccu
+                     ON ccu.constraint_name = tc.constraint_name
+                       AND ccu.table_schema = tc.table_schema
+                join (select conname, confupdtype, confdeltype
+                      from pg_catalog.pg_constraint) pc
+                     on pc.conname = tc.constraint_name
+         WHERE tc.constraint_type = 'FOREIGN KEY'
+           AND tc.table_schema = ?
+         order by tc.table_name;`,
         [this.schema],
       );
 

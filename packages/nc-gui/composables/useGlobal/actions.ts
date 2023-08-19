@@ -77,12 +77,12 @@ export function useGlobalActions(state: State): Actions {
     projectId?: string
     type?: NcProjectType
   }) => {
-    const workspaceId = _workspaceId || 'default'
+    const workspaceId = _workspaceId || 'nc'
     let path: string
     if (projectId) {
-      path = `/ws/${workspaceId}/project/${projectId}`
+      path = `/${workspaceId}/${projectId}`
     } else {
-      path = `/ws/${workspaceId}`
+      path = `/${workspaceId}`
     }
 
     if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {

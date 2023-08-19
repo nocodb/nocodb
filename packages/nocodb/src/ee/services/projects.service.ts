@@ -222,4 +222,9 @@ export class ProjectsService extends ProjectsServiceCE {
 
     return project;
   }
+
+  protected async validateProjectTitle(
+    _data: Partial<Project>,
+    _project: Project,
+  ) {}
 }

@@ -1,12 +1,12 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   AuditOperationSubTypes,
   AuditOperationTypes,
 } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import { TelemetryService } from './telemetry.service';
-import { Producer } from './producer/producer';
-import type { Audit } from '~/models';
+import { Audit } from '~/models';
 import type { AuditType } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type {
@@ -39,8 +39,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     private readonly appHooksService: AppHooksService,
-    private readonly telemetryService: TelemetryService,
-    @Inject(Producer) private readonly producer: Producer,
+    private readonly telemetryService: TelemetryService, // @Inject(Producer) private readonly producer: Producer,
   ) {}
 
   private async hookHandler({ event, data }: { event: AppEvents; data: any }) {
@@ -526,12 +525,9 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
   }
 
   async auditInsert(param: Partial<Audit | AuditType>) {
-    // await Audit.insert(param)
+    await Audit.insert(param);
     try {
-      await this.producer.sendMessage(
-        'cloud-audit',
-        JSON.stringify({ ...param, created_at: Date.now() }),
-      );
+      T.event({ ...param, created_at: Date.now() });
     } catch (e) {
       this.logger.error(e);
     }

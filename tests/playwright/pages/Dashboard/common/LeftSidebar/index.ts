@@ -68,10 +68,8 @@ export class LeftSidebarPage extends BasePage {
     const ws = [];
     await this.clickWorkspace();
     const nodes = this.modal_workspace.locator('[data-testid="nc-workspace-list"]');
-    console.log(await nodes.count());
 
     for (let i = 0; i < (await nodes.count()); i++) {
-      console.log(await nodes.nth(i).innerText());
       ws.push(await getTextExcludeIconText(nodes.nth(i)));
     }
 

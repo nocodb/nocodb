@@ -27,7 +27,7 @@ import {
 @UseGuards(ExtractIdsMiddleware, GlobalGuard)
 @Controller()
 export class ProjectsController {
-  constructor(private readonly projectsService: ProjectsService) {}
+  constructor(protected readonly projectsService: ProjectsService) {}
 
   @Acl('projectList')
   @Get('/api/v1/db/meta/projects/')

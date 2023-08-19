@@ -11,9 +11,12 @@ import {
   extractSdkResponseErrorMsg,
   isElementInvisible,
   openLink,
+  storeToRefs,
   useProjects,
   useWorkspace,
 } from '#imports'
+
+import { useTitle } from '@vueuse/core'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
@@ -60,11 +63,11 @@ const projectRole = inject(ProjectRoleInj)
 
 const { projectUrl } = useProject()
 
+const { activeProjectId } = storeToRefs(useProjects())
+
 const toggleDialog = inject(ToggleDialogInj, () => {})
 
 const { addNewLayout, getDashboardProjectUrl: dashboardProjectUrl, populateLayouts } = useDashboardStore()
-
-const activeProjectId = computed(() => route.value.params.projectId as string | undefined)
 
 const { addNewPage, populatedNestedPages, projectUrl: docsProjectUrl } = useDocStore()
 
@@ -251,6 +254,11 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
 
   const isProjectPopulated = projectsStore.isProjectPopulated(project.id!)
 
+  // if shared base ignore navigation
+  if (route.value.params.typeOrId === 'base') {
+    ignoreNavigation = true
+  }
+
   if (!isProjectPopulated) project.isLoading = true
 
   // if dashboard or document project, add a document tab and route to the respective page
@@ -303,7 +311,7 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
 // TODO - implement
 /*
 function openSqlEditor(base: BaseType) {
-  navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/sql/${base.id}`)
+  navigateTo(`/ws/${route.params.typeOrId}/nc/${base.project_id}/sql/${base.id}`)
 }
 
 async function openProjectSqlEditor(_project: ProjectType) {
@@ -317,12 +325,12 @@ async function openProjectSqlEditor(_project: ProjectType) {
 
   const base = project?.bases?.[0]
   if (!base) return
-  navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/sql/${base.id}`)
+  navigateTo(`/ws/${route.params.typeOrId}/nc/${base.project_id}/sql/${base.id}`)
 }
 */
 
 function openErdView(base: BaseType) {
-  navigateTo(`/ws/${route.value.params.workspaceId}/nc/${base.project_id}/erd/${base.id}`)
+  navigateTo(`/${route.value.params.typeOrId}/${base.project_id}/erd/${base.id}`)
 }
 
 async function openProjectErdView(_project: ProjectType) {
@@ -336,7 +344,7 @@ async function openProjectErdView(_project: ProjectType) {
 
   const base = project?.bases?.[0]
   if (!base) return
-  navigateTo(`/ws/${route.value.params.workspaceId}/nc/${base.project_id}/erd/${base.id}`)
+  navigateTo(`/${route.value.params.typeOrId}/${base.project_id}/erd/${base.id}`)
 }
 
 const reloadTables = async () => {

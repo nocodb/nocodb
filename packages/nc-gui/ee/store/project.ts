@@ -13,6 +13,7 @@ import {
   useProjects,
   useRoles,
   useRouter,
+  useTablesStore,
   useTheme,
 } from '#imports'
 import type { NcProject, ProjectMetaInfo, ThemeConfig } from '#imports'
@@ -38,6 +39,8 @@ export const useProject = defineStore('projectStore', () => {
 
   const projectsStore = useProjects()
 
+  const workspaceStore = useWorkspace()
+
   const tablesStore = useTablesStore()
 
   // todo: refactor
@@ -58,7 +61,7 @@ export const useProject = defineStore('projectStore', () => {
   const lastOpenedViewMap = ref<Record<string, string>>({})
 
   // todo: refactor path param name and variable name
-  const projectType = computed(() => route.value.params.projectType as string)
+  const projectType = computed(() => route.value.params.typeOrId as string)
 
   const projectMeta = computed<Record<string, any>>(() => {
     const defaultMeta = {
@@ -140,7 +143,8 @@ export const useProject = defineStore('projectStore', () => {
       try {
         const baseData = await api.public.sharedBaseGet(route.value.params.projectId as string)
 
-        project.value = await api.project.read(baseData.project_id!)
+        forcedProjectId.value = baseData.project_id
+        sharedProject.value = await api.project.read(baseData.project_id!)
       } catch (e: any) {
         if (e?.response?.status === 404) {
           return router.push('/error/404')
@@ -226,8 +230,8 @@ export const useProject = defineStore('projectStore', () => {
   }
 
   const projectUrl = ({ id, type: _type }: { id: string; type: 'database' | 'documentation' }) => {
-    const workspaceId = route.value.params.workspaceId as string
-    return `/ws/${workspaceId}/nc/${id}`
+    const workspaceId = workspaceStore.activeWorkspaceId;
+    return `/${workspaceId}/${id}`
   }
 
   watch(

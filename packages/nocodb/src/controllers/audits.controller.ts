@@ -62,7 +62,22 @@ export class AuditsController {
     });
   }
 
-  @Get('/api/v1/db/meta/projects/:projectId/audits')
+  @Get('/api/v1/db/meta/bases/:baseId/audits')
+  @Acl('auditList')
+  async baseAuditList(@Request() req, @Param('baseId') baseId: string) {
+    return new PagedResponseImpl(
+      await this.auditsService.baseAuditList({
+        query: req.query,
+        baseId,
+      }),
+      {
+        count: this.auditsService.baseAuditCount({ baseId }),
+        ...req.query,
+      },
+    );
+  }
+
+  @Get('/api/v1/db/meta/projects/:projectId/audits/')
   @Acl('auditList')
   async auditList(@Request() req, @Param('projectId') projectId: string) {
     return new PagedResponseImpl(

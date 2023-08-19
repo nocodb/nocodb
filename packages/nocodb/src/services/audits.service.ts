@@ -99,4 +99,12 @@ export class AuditsService {
     }
     return await Audit.commentUpdate(param.auditId, param.body);
   }
+
+  async baseAuditList(param: { query: any; baseId: any }) {
+    return await Audit.baseAuditList(param.baseId, param.query);
+  }
+
+  async baseAuditCount(param: { baseId: string }) {
+    return await Audit.baseAuditCount(param.baseId);
+  }
 }

@@ -145,13 +145,14 @@ function projectTest() {
       title: 'NewTitle1',
     });
 
+    // Allow project rename to be replaced with same title
     await request(context.app)
       .patch(`/api/v1/db/meta/projects/${project.id}`)
       .set('xc-auth', context.token)
       .send({
         title: newProject.title,
       })
-      .expect(400);
+      .expect(200);
   });
 
   it('Create project shared base', async () => {

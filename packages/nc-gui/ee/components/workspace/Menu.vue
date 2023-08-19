@@ -27,7 +27,7 @@ const { isUIAllowed } = useUIPermission()
 const { theme, defaultTheme } = useTheme()
 
 onMounted(async () => {
-  await loadWorkspaces()
+  if (!workspaceStore.isSharedBase) await loadWorkspaces()
 })
 
 const workspaceModalVisible = ref(false)
@@ -43,7 +43,7 @@ const otherWorkspaces = computed(() => {
 const onWorkspaceCreate = async (workspace: WorkspaceType) => {
   createDlg.value = false
   await loadWorkspaces()
-  navigateTo(`/ws/${workspace.id}`)
+  navigateTo(`/${workspace.id}`)
 }
 
 const updateWorkspaceTitle = useDebounceFn(async () => {
@@ -99,8 +99,11 @@ const logout = async () => {
   navigateTo('/signin')
 }
 
+const projectStore = useProject()
+
+const { isSharedBase } = storeToRefs(projectStore)
+
 // todo: temp
-const isSharedBase = false
 const modalVisible = false
 
 const copyAuthToken = async () => {
@@ -181,8 +184,8 @@ onKeyStroke('Escape', () => {
             <div class="nc-menu-sub-head">Workspaces</div>
 
             <div class="max-h-300px nc-scrollbar-md">
-              <a-menu-item v-for="workspace of otherWorkspaces" :key="workspace.id!" @click="navigateTo(`/ws/${workspace.id}`)">
-                <div class="nc-workspace-menu-item group capitalize max-w-300px flex" data-testid="nc-workspace-list">
+              <a-menu-item v-for="workspace of otherWorkspaces" :key="workspace.id!" @click="navigateTo(`/${workspace.id}`)">
+                <div class="nc-workspace-menu-item group capitalize max-w-300px flex"  data-testid="nc-workspace-list">
                   <GeneralIcon icon="workspace" class="group-hover:text-accent" />
                   <span class="truncate min-w-10 flex-shrink">
                     {{ workspace.title }}

@@ -262,6 +262,15 @@ export default class Base implements BaseType {
   }
 
   public getConfig(): any {
+    if (this.is_meta) {
+      const metaConfig = Noco.getConfig()?.meta?.db;
+      const config = { ...metaConfig };
+      if (config.client === 'sqlite3') {
+        config.connection = metaConfig;
+      }
+      return config;
+    }
+
     const config = JSON.parse(
       CryptoJS.AES.decrypt(
         this.config,

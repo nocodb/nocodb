@@ -33,6 +33,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { appInfo } = useGlobal()
 
+  const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
+
   const workspaces = ref<Map<string, NcWorkspace>>(new Map())
   const workspacesList = computed<NcWorkspace[]>(() =>
     Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at),
@@ -47,7 +49,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   )
 
   const activeWorkspaceId = computed(() => {
-    return (route.value.query.workspaceId ?? route.value.params.workspaceId) as string | undefined
+    return (route.value.query.workspaceId ?? route.value.params.typeOrId ?? workspacesList.value?.[0]?.id) as
+      | string
+      | undefined
   })
 
   const activeWorkspace = computed(() => {
@@ -101,6 +105,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       for (const workspace of list ?? []) {
         workspaces.value.set(workspace.id!, workspace)
       }
+
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -387,7 +392,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       throw new Error('Workspace not selected')
     }
 
-    await router.push({ name: 'ws-workspaceId-projectType-settings', params: { workspaceId } })
+    await router.push({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId } })
+  }
+
+  function setLoadingState(isLoading = false) {
+    isWorkspaceLoading.value = isLoading
   }
 
   return {
@@ -422,6 +431,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     upgradeActiveWorkspace,
     navigateToWorkspace,
     isWorkspaceOwnerOrCreator,
+    setLoadingState,
+    isSharedBase,
     navigateToWorkspaceSettings,
   }
 })

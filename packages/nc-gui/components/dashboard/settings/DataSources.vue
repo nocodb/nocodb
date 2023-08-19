@@ -6,6 +6,7 @@ import EditBase from './data-sources/EditBase.vue'
 import Metadata from './Metadata.vue'
 import UIAcl from './UIAcl.vue'
 import Erd from './Erd.vue'
+import BaseAudit from './BaseAudit.vue'
 import { ClientType, DataSourcesSubTab, storeToRefs, useCommandPalette, useNuxtApp, useProject } from '#imports'
 
 interface Props {
@@ -272,6 +273,16 @@ const isUIAclModalOpen = computed({
     }
   },
 })
+const isBaseAuditModalOpen = computed({
+  get: () => {
+    return [DataSourcesSubTab.Audit].includes(vState.value as any)
+  },
+  set: (val) => {
+    if (!val) {
+      vState.value = ''
+    }
+  },
+})
 
 const isEditBaseModalOpen = computed({
   get: () => {
@@ -363,15 +374,15 @@ const isEditBaseModalOpen = computed({
                         Sync Metadata
                       </div>
                     </a-button>
-                    <!-- <a-button
+                    <a-button
                       class="nc-action-btn cursor-pointer outline-0"
                       @click="baseAction(sources[0].id, DataSourcesSubTab.UIAcl)"
                     >
-                      <div class="flex items-center gap-2 text-gray-600 ">
+                      <div class="flex items-center gap-2 text-gray-600">
                         <GeneralIcon icon="acl" class="group-hover:text-accent" />
                         UI ACL
                       </div>
-                    </a-button> -->
+                    </a-button>
                     <a-button
                       class="nc-action-btn cursor-pointer outline-0"
                       type="text"
@@ -380,6 +391,16 @@ const isEditBaseModalOpen = computed({
                       <div class="flex items-center gap-2 text-gray-600">
                         <GeneralIcon icon="erd" class="group-hover:text-accent" />
                         ERD
+                      </div>
+                    </a-button>
+                    <a-button
+                      class="nc-action-btn cursor-pointer outline-0"
+                      type="text"
+                      @click="baseAction(sources[0].id, DataSourcesSubTab.Audit)"
+                    >
+                      <div class="flex items-center gap-2 text-gray-600">
+                        <GeneralIcon icon="erd" class="group-hover:text-accent" />
+                        Audit
                       </div>
                     </a-button>
                   </div>
@@ -514,6 +535,11 @@ const isEditBaseModalOpen = computed({
       <GeneralModal v-model:visible="isEditBaseModalOpen" size="medium">
         <div class="p-6">
           <EditBase :base-id="activeBaseId" @base-updated="loadBases(true)" @close="isEditBaseModalOpen = false" />
+        </div>
+      </GeneralModal>
+      <GeneralModal v-model:visible="isBaseAuditModalOpen" size="medium">
+        <div class="p-6">
+          <BaseAudit :base-id="activeBaseId" @close="isBaseAuditModalOpen = false" />
         </div>
       </GeneralModal>
       <GeneralDeleteModal v-model:visible="isDeleteBaseModalOpen" entity-name="base" :on-delete="deleteBase">

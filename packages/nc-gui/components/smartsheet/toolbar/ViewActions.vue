@@ -191,6 +191,33 @@ useMenuCloseOnEsc(open)
               </a-sub-menu>
             </template>
           </a-menu-item-group>
+
+          <a-sub-menu
+            v-if="isUIAllowed('view-type')"
+            key="lock-type"
+            class="scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !py-0"
+          >
+            <template #title>
+              <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group px-0 !py-0">
+                <LazySmartsheetToolbarLockType hide-tick :type="lockType" />
+
+                <component :is="iconMap.arrowRight" class="transform group-hover:(scale-115 text-accent) text-gray-400" />
+              </div>
+            </template>
+
+            <template #expandIcon></template>
+            <a-menu-item @click="changeLockType(LockType.Collaborative)">
+              <LazySmartsheetToolbarLockType :type="LockType.Collaborative" />
+            </a-menu-item>
+
+            <a-menu-item @click="changeLockType(LockType.Locked)">
+              <LazySmartsheetToolbarLockType :type="LockType.Locked" />
+            </a-menu-item>
+
+            <a-menu-item @click="changeLockType(LockType.Personal)">
+              <LazySmartsheetToolbarLockType :type="LockType.Personal" />
+            </a-menu-item>
+          </a-sub-menu>
         </a-menu>
       </template>
     </a-dropdown>

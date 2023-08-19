@@ -45,13 +45,6 @@ export class ProjectUsersController {
     if (!body.email) {
       NcError.badRequest('Email is required');
     }
-
-    const user = await User.getByEmail(body.email);
-
-    if (!user) {
-      NcError.badRequest('Only users that have signed up can be invited');
-    }
-
     return await this.projectUsersService.userInvite({
       projectId,
       projectUser: body,

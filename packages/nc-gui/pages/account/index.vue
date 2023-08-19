@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { iconMap, navigateTo, useUIPermission } from '#imports'
+import { iconMap, isEeUI, navigateTo, useUIPermission } from '#imports'
 
 const { isUIAllowed } = useUIPermission()
 
@@ -36,6 +36,33 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
           >
             <div class="text-xs text-gray-500 ml-4 pt-4 pb-2 font-weight-bold">{{ $t('title.accountSettings') }}</div>
 
+            <a-sub-menu key="users" class="!bg-white">
+              <template #icon>
+                <MdiAccountSupervisorOutline />
+              </template>
+              <template #title>Users</template>
+
+              <a-menu-item
+                v-if="isUIAllowed('superAdminUserManagement') && !isEeUI"
+                key="list"
+                class="text-xs"
+                @click="navigateTo('/account/users/list')"
+              >
+                <span class="ml-4">{{ $t('title.userManagement') }}</span>
+              </a-menu-item>
+              <a-menu-item key="password-reset" class="text-xs" @click="navigateTo('/account/users/password-reset')">
+                <span class="ml-4">{{ $t('title.resetPasswordMenu') }}</span>
+              </a-menu-item>
+              <a-menu-item
+                v-if="isUIAllowed('superAdminAppSettings') && !isEeUI"
+                key="settings"
+                class="text-xs"
+                @click="navigateTo('/account/users/settings')"
+              >
+                <span class="ml-4">{{ $t('activity.settings') }}</span>
+              </a-menu-item>
+            </a-sub-menu>
+
             <a-menu-item
               key="tokens"
               class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
@@ -48,7 +75,7 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
               </div>
             </a-menu-item>
             <a-menu-item
-              v-if="isUIAllowed('appStore') && !appInfo.isCloud"
+              v-if="isUIAllowed('appStore') && !isEeUI"
               key="apps"
               class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
               @click="navigateTo('/account/apps')"
@@ -57,18 +84,6 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
                 <component :is="iconMap.appStore" />
 
                 <div class="select-none">{{ $t('title.appStore') }}</div>
-              </div>
-            </a-menu-item>
-            <a-menu-item
-              v-if="isUIAllowed('license')"
-              key="license"
-              class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
-              @click="navigateTo('/account/license')"
-            >
-              <div class="flex items-center space-x-2">
-                <component :is="iconMap.key" />
-
-                <div class="select-none">{{ $t('title.licence') }}</div>
               </div>
             </a-menu-item>
           </a-menu>

@@ -6,33 +6,22 @@ category: "Product"
 menuTitle: "Table Operations"
 ---
 
-Once you have created a new NocoDB project you can open it, In the browser, the URL would be like `example.com/dashboard/#/nc/<project_id>`.
+Once you have created a new NocoDB project you can open it, In the browser, the URL would be like `example.com/#/default/<project_id>`.
 
 ## Table
 
 ### Table Create
 
-Now you can start creating new tables by simply clicking one of the following options.
+On project dashboard, click on `Add new table` button
 
-- Click `Add new table` button
-- Hover `Add new table` button in table menu, click three dots, use Quick Import to create
-- Drag and drop CSV, JSON or Excel file to import
+![table-create-button](https://github.com/nocodb/nocodb/assets/86527202/0b1d0b89-b3c6-4c3c-8208-4b6afce67d23)
 
-<img width="1505" alt="image" src="https://user-images.githubusercontent.com/35857179/194795025-afd81191-4743-435b-b802-88367d2663f9.png">
+Provide a name for the table & click `Create Table` button.
 
-A modal will be popped up. Input the corresponding info and enable or disable default columns and click `Submit` button.
+![table-create-modal](https://github.com/nocodb/nocodb/assets/86527202/fceb6c48-e0d6-428c-bb16-d2da4e38a81f)
 
-<img width="1510" alt="image" src="https://user-images.githubusercontent.com/35857179/194795048-aef59b23-ba3f-40ca-88bd-19ee512d7114.png">
 
-Click Show more for advanced settings.
-
-<alert>
-Note: You can't disable the `id` column since NocoDB needs a primary column for every table. You can rename it after the creation.
-</alert>
-
-<img width="756" alt="image" src="https://user-images.githubusercontent.com/35857179/194795067-e9275cec-f375-45b4-80f9-098745d83e5c.png">
-
-After the successful submission, the table will be created and open as a new tab.  
+After the successful submission, the table will be created and open on a new grid.  
 
 <img width="1504" alt="image" src="https://user-images.githubusercontent.com/35857179/194795081-f41ebd4d-7fa9-4f65-a66f-3d2375925106.png">
 

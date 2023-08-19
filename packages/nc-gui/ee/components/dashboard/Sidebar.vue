@@ -145,7 +145,7 @@ const navigateToHome = () => {
             :active-workspace-id="route.params.typeOrId"
           >
             <div
-              class="gap-x-2 flex flex-row w-full items-center nc-sidebar-top-button !my-0 !ml-0"
+              class="gap-x-2 flex flex-row w-full items-center nc-sidebar-top-button !my-0 !mx-0"
               :class="{
                 'bg-gray-100': isCreateProjectOpen,
               }"

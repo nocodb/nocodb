@@ -27,7 +27,7 @@ export class DetailsPage extends BasePage {
     this.tab_fields = this.get().locator(`[data-testid="nc-fields-tab"]`);
     this.tab_relations = this.get().locator(`[data-testid="nc-relations-tab"]`);
 
-    this.btn_addWebhook = this.get().locator(`.nc-button:has-text("Add Webhook")`);
+    this.btn_addWebhook = this.get().locator(`.nc-button:has-text("New Webhook")`).first();
   }
 
   get() {
@@ -43,6 +43,7 @@ export class DetailsPage extends BasePage {
   }
 
   async clickAddWebhook() {
+    await this.btn_addWebhook.waitFor({ state: 'visible' });
     await this.btn_addWebhook.click();
   }
 

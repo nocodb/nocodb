@@ -134,7 +134,7 @@ export class HooksService {
     operation: HookType['operation'];
     version: any; // HookType['version'];
   }) {
-    const model = await Model.getByIdOrName({ id: param.tableId });
+    const model = new Model(await Model.getByIdOrName({ id: param.tableId }));
 
     if (param.version === 'v1' || (param.version === 'v2' && Noco.isEE())) {
       return await populateSamplePayload(model, false, param.operation);

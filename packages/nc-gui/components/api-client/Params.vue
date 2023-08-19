@@ -67,13 +67,12 @@ const deleteParamRow = (i: number) => {
 
         <tr>
           <td :colspan="12" class="">
-            <div
-              class="flex flex-row border-1 border-gray-100 w-36 gap-x-2 items-center ml-1.75 pl-2 py-1 rounded-lg hover:bg-gray-50 cursor-pointer"
-              @click="addParamRow"
-            >
-              <div>Add Parameter</div>
-              <component :is="iconMap.plus" class="flex mx-auto" />
-            </div>
+            <NcButton size="small" type="secondary" @click="addParamRow">
+              <div class="flex flex-row items-center gap-x-1">
+                <div>Add Parameter</div>
+                <component :is="iconMap.plus" class="flex mx-auto" />
+              </div>
+            </NcButton>
           </td>
         </tr>
       </tbody>

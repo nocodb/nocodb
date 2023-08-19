@@ -2,8 +2,13 @@
 import type { HookType } from 'nocodb-sdk'
 // const showWebhookDrawer = ref(false)
 
-const { hooks } = storeToRefs(useWebhooksStore())
-const { loadHooksList, deleteHook: _deleteHook, copyHook } = useWebhooksStore()
+const router = useRouter()
+
+const route = router.currentRoute
+
+const { hooks, webhookMainUrl, isHooksLoading } = storeToRefs(useWebhooksStore())
+const { loadHooksList, deleteHook: _deleteHook, copyHook, saveHooks, navigateToWebhook } = useWebhooksStore()
+const { activeView } = storeToRefs(useViewsStore())
 
 const modalDeleteButtonRef = ref(null)
 
@@ -35,7 +40,8 @@ const selectedHook = computed(() => {
 const showDeleteModal = ref(false)
 const isDeleting = ref(false)
 const isCopying = ref(false)
-const showEditModal = ref(false)
+
+const isDraftMode = ref(false)
 
 const copyWebhook = async (hook: HookType) => {
   if (isCopying.value) return
@@ -55,6 +61,7 @@ const openDeleteModal = (hookId: string) => {
 
 const deleteHook = async () => {
   isDeleting.value = true
+  if (!deleteHookId.value) return
 
   try {
     await _deleteHook(deleteHookId.value)
@@ -66,31 +73,59 @@ const deleteHook = async () => {
 }
 
 const openEditor = (hookId?: string | undefined) => {
-  selectedHookId.value = hookId
-  showEditModal.value = true
+  navigateToWebhook({ hookId })
 }
 
 watch(showDeleteModal, () => {
   if (!showDeleteModal.value) return
 
   nextTick(() => {
-    modalDeleteButtonRef.value?.$el?.focus()
+    ;(modalDeleteButtonRef.value as any)?.$el?.focus()
   })
-})
-
-watch(showEditModal, () => {
-  if (!showEditModal.value) {
-    selectedHookId.value = undefined
-  }
 })
 
 watch(
   () => activeTable.value?.id,
-  () => {
+  async () => {
     if (!activeTable.value?.id) return
 
     selectedHookId.value = undefined
-    loadHooksList()
+    await loadHooksList()
+  },
+  {
+    immediate: true,
+  },
+)
+
+const toggleHook = async (hook: HookType) => {
+  hook.active = !hook.active
+  await saveHooks({ hook })
+}
+
+const createWebhook = async () => {
+  navigateToWebhook({ openCreatePage: true })
+}
+
+const onEditorClose = () => {
+  navigateToWebhook({ openMainPage: true })
+}
+
+watch(
+  () => route.value.params.slugs,
+  async () => {
+    if (!route.value.params.slugs) {
+      isDraftMode.value = false
+      selectedHookId.value = undefined
+      return
+    }
+
+    if (route.value.params.slugs[1] === 'create') {
+      isDraftMode.value = true
+    } else {
+      isDraftMode.value = false
+    }
+
+    selectedHookId.value = (route.value.params.slugs && route.value.params.slugs[1]) || undefined
   },
   {
     immediate: true,
@@ -99,76 +134,140 @@ watch(
 </script>
 
 <template>
-  <div class="flex flex-col mt-2 pt-1 border-gray-50 px-6 nc-view-sidebar-webhook">
-    <div class="flex flex-row mb-4">
-      <NcButton v-e="['c:actions:webhook']" type="secondary" @click="openEditor()">
-        <div class="flex flex-row items-center">
+  <div
+    v-if="activeView && !isHooksLoading"
+    class="flex flex-col pt-3 border-gray-50 pl-3 pr-0 nc-view-sidebar-webhook nc-scrollbar-md"
+    style="height: calc(100vh - (var(--topbar-height) * 2))"
+  >
+    <div
+      class="flex flex-row justify-between w-full min-h-8 mb-8"
+      :class="{
+        '!items-start mt-1': !selectedHookId && !isDraftMode,
+      }"
+    >
+      <div class="flex flex-row items-center gap-x-1">
+        <NcButton
+          v-if="isDraftMode || selectedHookId"
+          type="text"
+          size="xsmall"
+          @click="navigateToWebhook({ openMainPage: true })"
+        >
+          <GeneralIcon icon="arrowLeft" class="ml-0.75" />
+        </NcButton>
+        <div class="flex flex-row ml-2">
+          <NuxtLink class="link" :to="webhookMainUrl">Webhooks</NuxtLink>
+        </div>
+        <template v-if="selectedHook || isDraftMode">
+          <div class="flex text-gray-400">/</div>
+          <div class="flex link">{{ selectedHook ? selectedHook.title : 'Create' }}</div>
+        </template>
+        <div
+          v-if="selectedHook"
+          class="flex text-xs px-1.5 py-1 rounded-md ml-1"
+          :class="{
+            'bg-green-200 text-green-800': selectedHook.active,
+            'bg-gray-100 text-gray-500': !selectedHook.active,
+          }"
+        >
+          {{ selectedHook.active ? 'Active' : 'Inactive' }}
+        </div>
+      </div>
+      <NcButton
+        v-if="!selectedHookId && !isDraftMode"
+        v-e="['c:actions:webhook']"
+        class="mr-4 max-w-40"
+        type="secondary"
+        size="small"
+        @click="createWebhook()"
+      >
+        <div class="flex flex-row items-center justify-between w-full text-brand-500">
+          <span class="ml-1">New Webhook</span>
           <GeneralIcon icon="plus" />
-          <span class="ml-1">Add Webhook</span>
         </div>
       </NcButton>
     </div>
-    <div v-if="hooks.length === 0" class="flex flex-col px-1.5 py-2.5 ml-6.5 text-gray-500">Empty</div>
-    <div v-else class="flex flex-col pb-2 gap-y-2.5">
-      <div
-        v-for="hook in hooks"
-        :key="hook.id"
-        class="flex flex-row items-center hover:bg-gray-50 rounded-lg px-4 py-2.5 cursor-pointer group nc-view-sidebar-webhook-item shadow-sm"
-      >
-        <div class="flex flex-row items-center gap-x-2 flex-grow" @click="openEditor(hook.id!)">
-          <div class="circle">
-            <div
-              class="dot"
-              :class="{
-                'bg-green-500': hook?.active,
-                'bg-gray-400': !hook?.active,
-              }"
-            ></div>
+    <div v-if="!selectedHookId && !isDraftMode" class="flex flex-col h-full w-full items-center">
+      <div v-if="hooks.length === 0" class="flex flex-col px-1.5 py-2.5 ml-1 h-full justify-center items-center gap-y-6">
+        <GeneralIcon icon="webhook" class="flex text-5xl h-10" style="-webkit-text-stroke: 0.5px" />
+        <div class="flex text-gray-600 font-medium text-lg">Get started with web-hooks!</div>
+        <div class="flex flex-col items-center">
+          <div class="flex">Create web-hooks to power you automations,</div>
+          <div class="flex">Get notified as soon as there are changes in your data</div>
+        </div>
+        <NcButton v-e="['c:actions:webhook']" class="flex max-w-40" type="primary" @click="createWebhook()">
+          <div class="flex flex-row items-center justify-between w-full">
+            <span class="ml-1">New Webhook</span>
+            <GeneralIcon icon="plus" />
           </div>
-          <div class="flex flex-col">
-            <div class="text-gray-600 group-hover:text-black">
+        </NcButton>
+      </div>
+      <div v-else class="flex flex-col pb-2 gap-y-1.5 mt-3 mb-2.5 w-full max-w-200">
+        <div
+          v-for="hook in hooks"
+          :key="hook.id"
+          class="flex flex-row mr-3 items-center hover:bg-gray-50 rounded-lg pl-3 pr-2 py-2 cursor-pointer group nc-view-sidebar-webhook-item text-gray-600"
+          :class="{
+            'bg-brand-50 !text-brand-500 hover:bg-brand-50': hook.id === selectedHookId,
+          }"
+        >
+          <a-switch
+            v-e="['c:actions:webhook']"
+            size="small"
+            :checked="hook.active!"
+            class="min-w-4 !mr-2"
+            @change="toggleHook(hook)"
+          />
+          <div class="flex flex-row items-center gap-x-2 flex-grow ml-0.5" @click="openEditor(hook.id!)">
+            <!-- <div class="circle">
+              <div
+                class="dot"
+                :class="{
+                  'bg-green-500': hook?.active,
+                  'bg-gray-400': !hook?.active,
+                }"
+              ></div>
+            </div> -->
+            <div class="text-inherit group-hover:text-black capitalize">
               {{ hook?.title }}
             </div>
-            <div class="text-gray-400 text-xs select-none">Trigger {{ hook.event }} {{ hook.operation }}</div>
           </div>
-        </div>
-        <div class="flex">
-          <a-dropdown placement="bottom" trigger="click">
-            <div
-              class="nc-docs-sidebar-page-options px-0.5 hover:(!bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none"
-              data-testid="nc-view-sidebar-webhook-context-menu"
+
+          <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md">
+            <NcButton
+              size="xsmall"
+              type="text"
+              class="nc-btn-webhook-more !text-gray-500 !hover:text-gray-800"
               :class="{
-                'hidden group-hover:block': !isOptionOpen,
+                '!hover:bg-brand-100': hook.id === selectedHookId,
+                '!hover:bg-gray-200': hook.id !== selectedHookId,
               }"
             >
-              <MdiDotsHorizontal />
-            </div>
+              <GeneralIcon icon="threeDotVertical" class="ml-0.75 text-inherit" />
+            </NcButton>
             <template #overlay>
-              <div class="flex flex-col p-1 bg-white rounded-md w-28 gap-y-0.5 border-1 border-gray-100">
-                <div
-                  class="flex items-center cursor-pointer select-none px-2 py-1.5 text-xs gap-x-1.5 hover:bg-gray-50 rounded-md"
-                  :class="{
-                    'cursor-not-allowed': isCopying,
-                  }"
-                  data-testid="nc-view-sidebar-webhook-copy"
-                  @click="copyWebhook(hook)"
-                >
-                  <GeneralLoader v-if="isCopying" class="!h-4.75" />
-                  <MdiContentCopy v-else class="!h-4.75" />
-                  <div class="flex">{{ isCopying ? 'Copying' : 'Copy' }}</div>
-                </div>
-                <div
-                  class="flex items-center cursor-pointer select-none px-2 py-1.5 text-xs gap-x-1.5 hover:bg-gray-50 rounded-md !text-red-500"
-                  data-testid="nc-view-sidebar-webhook-delete"
-                  @click="openDeleteModal(hook.id!)"
-                >
-                  <MdiDeleteOutline class="!h-4.75" />
-                  <div class="flex">Delete</div>
-                </div>
+              <div class="flex flex-col p-0">
+                <NcButton type="text" class="!rounded-none" :loading="isCopying" @click="copyWebhook(hook)">
+                  <template #loading> Duplicating </template>
+                  <div class="flex items-center gap-x-1">
+                    <GeneralIcon icon="copy" class="-ml-0.75" />
+                    Duplicate
+                  </div>
+                </NcButton>
+                <NcButton type="text" class="!rounded-none" @click="openDeleteModal(hook.id!)">
+                  <div class="flex items-center gap-x-1 !text-red-500">
+                    <GeneralIcon icon="delete" />
+                    Delete
+                  </div>
+                </NcButton>
               </div>
             </template>
-          </a-dropdown>
+          </NcDropdown>
         </div>
+      </div>
+    </div>
+    <div v-else class="flex w-full pr-4 justify-center">
+      <div class="flex flex-col mt-4 p-8 mb-4 border-1 rounded-2xl w-full max-w-200" style="height: fit-content">
+        <WebhookEditor :key="selectedHookId" :hook="selectedHook" @close="onEditorClose" @delete="showDeleteModal = true" />
       </div>
     </div>
   </div>
@@ -185,13 +284,6 @@ watch(
       </div>
     </template>
   </GeneralDeleteModal>
-  <GeneralModal v-model:visible="showEditModal" width="48rem" destroy-on-close>
-    <div class="py-6">
-      <div class="webhook-scroll px-5 nc-drawer-webhook-body">
-        <WebhookEditor :key="selectedHookId" :hook="selectedHook" @close="showEditModal = false" />
-      </div>
-    </div>
-  </GeneralModal>
   <!-- <LazyWebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" /> -->
 </template>
 
@@ -219,5 +311,9 @@ watch(
   top: 50%;
   left: 50%;
   transform: translate(-52.5%, -52.5%);
+}
+
+.link {
+  @apply !hover:text-gray-800 !text-gray-600 !underline-transparent !hover:underline  transition-all duration-150 cursor-pointer;
 }
 </style>

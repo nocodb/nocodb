@@ -390,7 +390,7 @@ const isEditBaseModalOpen = computed({
                     >
                       <div class="flex items-center gap-2 text-gray-600">
                         <GeneralIcon icon="erd" class="group-hover:text-accent" />
-                        ERD
+                        Relations
                       </div>
                     </a-button>
                     <a-button

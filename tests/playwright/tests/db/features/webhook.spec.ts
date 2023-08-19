@@ -51,16 +51,16 @@ async function verifyHookTrigger(count: number, value: string, request, expected
     }
     await new Promise(resolve => setTimeout(resolve, 300));
   }
-  await expect(await response.json()).toBe(count);
+  expect(await response.json()).toBe(count);
 
   if (count) {
-    let response;
+    let response: any;
 
     // retry since there can be lag between the time the hook is triggered and the time the server receives the request
     for (let i = 0; i < 20; i++) {
       response = await request.get(hookPath + '/last');
       const rspJson = await response.json();
-      console.log('verifyHookTrigger response', value, rspJson);
+      // console.log('verifyHookTrigger response', value, rspJson);
 
       if (rspJson?.data?.rows[0]?.Title === value) {
         break;
@@ -68,7 +68,7 @@ async function verifyHookTrigger(count: number, value: string, request, expected
       await new Promise(resolve => setTimeout(resolve, 300));
     }
     const rspJson = await response.json();
-    await expect(rspJson?.data?.rows[0]?.Title).toBe(value);
+    expect(rspJson?.data?.rows[0]?.Title).toBe(value);
     if (expectedData) {
       await expect(isSubset(rspJson, expectedData)).toBe(true);
     }

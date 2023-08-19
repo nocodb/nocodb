@@ -50,7 +50,7 @@ watch(
     >
       <div class="flex flex-row items-center gap-x-4">
         <GeneralProjectIcon :type="openedProject?.type" />
-        <div class="flex font-medium text-base">
+        <div class="flex font-medium text-base capitalize">
           {{ openedProject?.title }}
         </div>
       </div>
@@ -102,7 +102,7 @@ watch(
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" />
         </a-tab-pane>
-        <a-tab-pane v-if="isUIAllowed('acl')" key="ui-acl">
+        <a-tab-pane v-if="false && isUIAllowed('acl')" key="ui-acl">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__ui-acl">
               <GeneralIcon icon="acl" />

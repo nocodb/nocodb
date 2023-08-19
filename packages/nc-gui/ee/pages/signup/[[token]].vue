@@ -30,6 +30,8 @@ const { t } = useI18n()
 
 const { loadScope } = useCommandPalette()
 
+const { navigateToTable } = useTablesStore()
+
 loadScope('disabled')
 
 const formValidator = ref()
@@ -81,12 +83,30 @@ async function signUp() {
 
   data.ignore_subscribe = !subscribe.value
 
-  api.auth.signup(data).then(async ({ token }) => {
-    signIn(token!)
-
-    await navigateTo('/')
+  api.auth.signup(data).then(async (user) => {
+    signIn(user.token!)
 
     $e('a:auth:sign-up')
+
+    try {
+      // TODO: Add to swagger
+      const workspace = (user as any).createdWorkspace
+      const project = (workspace as any)?.projects?.[0]
+      const table = project?.tables?.[0]
+
+      if (workspace && project && table) {
+        return await navigateToTable({
+          projectId: project.id,
+          tableId: table.id,
+          tableTitle: table.title,
+          workspaceId: workspace.id,
+        })
+      }
+    } catch (e) {
+      console.error(e)
+    }
+
+    await navigateTo('/')
   })
 }
 

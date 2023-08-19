@@ -355,7 +355,12 @@ export class TablesService {
     table: TableReqType;
     user: User | UserType;
     req?: any;
+    useDefaultColumns?: boolean;
   }) {
+    if (param.useDefaultColumns) {
+      param.table.columns = defaultColumns as any;
+    }
+
     validatePayload('swagger.json#/components/schemas/TableReq', param.table);
 
     const tableCreatePayLoad: Omit<TableReqType, 'columns'> & {
@@ -519,3 +524,98 @@ export class TablesService {
     return result;
   }
 }
+
+const defaultColumns = [
+  {
+    column_name: 'id',
+    title: 'Id',
+    dt: 'integer',
+    dtx: 'integer',
+    ct: 'int(11)',
+    nrqd: false,
+    rqd: true,
+    ck: false,
+    pk: true,
+    un: false,
+    ai: true,
+    cdf: null,
+    clen: null,
+    np: null,
+    ns: 0,
+    dtxp: '',
+    dtxs: '',
+    altered: 1,
+    uidt: 'ID',
+    uip: '',
+    uicn: '',
+  },
+  {
+    column_name: 'title',
+    title: 'Title',
+    dt: 'varchar',
+    dtx: 'specificType',
+    ct: 'varchar',
+    nrqd: true,
+    rqd: false,
+    ck: false,
+    pk: false,
+    un: false,
+    ai: false,
+    cdf: null,
+    clen: 45,
+    np: null,
+    ns: null,
+    dtxp: '',
+    dtxs: '',
+    altered: 1,
+    uidt: 'SingleLineText',
+    uip: '',
+    uicn: '',
+  },
+  {
+    column_name: 'created_at',
+    title: 'CreatedAt',
+    dt: 'datetime',
+    dtx: 'specificType',
+    ct: 'varchar',
+    nrqd: true,
+    rqd: false,
+    ck: false,
+    pk: false,
+    un: false,
+    ai: false,
+    cdf: 'CURRENT_TIMESTAMP',
+    clen: 45,
+    np: null,
+    ns: null,
+    dtxp: '',
+    dtxs: '',
+    altered: 1,
+    uidt: 'DateTime',
+    uip: '',
+    uicn: '',
+  },
+  {
+    column_name: 'updated_at',
+    title: 'UpdatedAt',
+    dt: 'datetime',
+    dtx: 'specificType',
+    ct: 'varchar',
+    nrqd: true,
+    rqd: false,
+    ck: false,
+    pk: false,
+    un: false,
+    ai: false,
+    cdf: 'CURRENT_TIMESTAMP',
+    clen: 45,
+    np: null,
+    ns: null,
+    dtxp: '',
+    dtxs: '',
+    altered: 1,
+    uidt: 'DateTime',
+    uip: '',
+    uicn: '',
+  },
+];

@@ -12,6 +12,10 @@ import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { UsersService } from '~/services/users/users.service';
 import { TelemetryService } from '~/services/telemetry.service';
 import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
+import { ProjectsService } from '~/services/projects.service';
+import { TablesService } from '~/services/tables.service';
+import { MetaDiffsService } from '~/services/meta-diffs.service';
+import { ColumnsService } from '~/services/columns.service';
 
 export const JwtStrategyProvider: Provider = {
   provide: JwtStrategy,
@@ -46,6 +50,10 @@ export const globalModuleMetadata = {
     AppHooksService,
     AppHooksListenerService,
     TelemetryService,
+    ProjectsService,
+    TablesService,
+    MetaDiffsService,
+    ColumnsService,
   ],
   exports: [
     MetaService,

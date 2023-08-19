@@ -16,6 +16,8 @@ const { saveTheme } = workspaceStore
 const { activeWorkspace, workspacesList, isWorkspaceOwner } = storeToRefs(workspaceStore)
 const { loadWorkspaces, clearWorkspaces } = workspaceStore
 
+const { navigateToTable } = useTablesStore()
+
 const { signOut, signedIn, user, token } = useGlobal()
 
 const { copy } = useCopy(true)
@@ -39,6 +41,20 @@ const otherWorkspaces = computed(() => {
 const onWorkspaceCreate = async (workspace: WorkspaceType) => {
   createDlg.value = false
   await loadWorkspaces()
+
+  // TODO: Add to swagger
+  const project = (workspace as any).projects?.[0]
+  const table = project?.tables?.[0]
+
+  if (project && table) {
+    return await navigateToTable({
+      projectId: project.id,
+      tableId: table.id,
+      tableTitle: table.title,
+      workspaceId: workspace.id,
+    })
+  }
+
   navigateTo(`/${workspace.id}`)
 }
 

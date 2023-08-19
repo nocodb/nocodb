@@ -24,12 +24,15 @@ import { Store, User, Workspace, WorkspaceUser } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
-
+import { ProjectsService } from '~/services/projects.service';
+import { TablesService } from '~/services/tables.service';
 @Injectable()
 export class UsersService extends UsersServiceCE {
   constructor(
     protected metaService: MetaService,
     protected appHooksService: AppHooksService,
+    private projectsService: ProjectsService,
+    private readonly tablesService: TablesService,
   ) {
     super(metaService, appHooksService);
   }
@@ -88,7 +91,9 @@ export class UsersService extends UsersServiceCE {
       token_version,
     });
 
-    await this.createDefaultWorkspace(user);
+    const createdWorkspace = await this.createDefaultWorkspace(user);
+
+    (user as any).createdWorkspace = createdWorkspace;
 
     return user;
   }
@@ -108,6 +113,8 @@ export class UsersService extends UsersServiceCE {
       token,
       ignore_subscribe,
     } = param.req.body;
+
+    let createdWorkspace;
 
     let { password } = param.req.body;
 
@@ -167,7 +174,7 @@ export class UsersService extends UsersServiceCE {
         NcError.badRequest('User already exist');
       }
     } else {
-      await this.registerNewUserIfAllowed({
+      const user = await this.registerNewUserIfAllowed({
         avatar,
         display_name,
         user_name,
@@ -176,6 +183,7 @@ export class UsersService extends UsersServiceCE {
         password,
         email_verification_token,
       });
+      createdWorkspace = (user as any).createdWorkspace;
     }
     user = await User.getByEmail(email);
 
@@ -218,7 +226,7 @@ export class UsersService extends UsersServiceCE {
       user,
     });
 
-    return this.login(user);
+    return { ...this.login(user), createdWorkspace };
   }
 
   private async createDefaultWorkspace(user: User) {
@@ -231,6 +239,31 @@ export class UsersService extends UsersServiceCE {
       plan: WorkspacePlan.FREE,
       status: WorkspaceStatus.CREATED,
     });
+
+    const project = await this.projectsService.projectCreate({
+      project: {
+        title: 'Getting Started',
+        fk_workspace_id: workspace.id,
+        type: 'database',
+      } as any,
+      user: user,
+    });
+
+    const table = await this.tablesService.tableCreate({
+      projectId: project.id,
+      baseId: project.bases[0].id,
+      table: {
+        title: 'Features',
+        table_name: 'Features',
+        columns: [],
+      },
+      useDefaultColumns: true,
+      user: user,
+    });
+
+    // TODO: Add proper types in swagger
+    (project as any).tables = [table];
+    (workspace as any).projects = [project];
 
     await WorkspaceUser.insert({
       fk_user_id: user.id,

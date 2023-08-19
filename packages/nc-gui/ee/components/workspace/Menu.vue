@@ -125,7 +125,7 @@ const switchWorkspace = async (workspaceId: string) => {
 </script>
 
 <template>
-  <div class="flex-grow min-w-20">
+  <div class="flex-grow min-w-2">
     <a-dropdown
       v-model:visible="isWorkspaceDropdownOpen"
       class="h-full min-w-0 flex-1"
@@ -142,13 +142,7 @@ const switchWorkspace = async (workspaceId: string) => {
         <slot name="brandIcon" />
         <template v-if="props.isOpen">
           <div v-if="activeWorkspace" class="flex-grow min-w-10 font-semibold text-base">
-            <a-tooltip v-if="activeWorkspace.title && activeWorkspace.title.length > 12" placement="bottom">
-              <div class="text-md truncate capitalize min-w-0">{{ activeWorkspace.title }}</div>
-              <template #title>
-                <div class="text-sm !text-red-500">{{ activeWorkspace.title }}</div>
-              </template>
-            </a-tooltip>
-            <div v-else class="text-md truncate capitalize">{{ activeWorkspace.title }}</div>
+            <div class="text-md truncate capitalize">{{ activeWorkspace.title }}</div>
           </div>
 
           <MdiCodeTags class="min-w-[17px] text-md transform rotate-90" />

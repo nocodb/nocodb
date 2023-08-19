@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 import {
   IsFormInj,
   IsKanbanInj,
@@ -174,7 +174,7 @@ onMounted(() => {
   }
 
   // for cases like formula
-  if (formState.value && !formState.value.column_name) {
+  if (formState.value && !formState.value.column_name && !isLinksOrLTAR(formState.value)) {
     formState.value.column_name = formState.value?.title
   }
 
@@ -332,7 +332,7 @@ if (props.fromTableExplorer) {
       <template v-else>
         <a-form-item>
           <div
-            class="flex gap-x-2"
+            class="flex gap-x-2 justify-between"
             :class="{
               'mt-6': props.hideAdditionalOptions,
               'mt-2': !props.hideAdditionalOptions,
@@ -340,17 +340,17 @@ if (props.fromTableExplorer) {
             }"
           >
             <!-- Cancel -->
-            <NcButton class="w-full" size="small" html-type="button" type="secondary" @click="emit('cancel')">
+            <NcButton size="small" class="w-full" html-type="button" type="secondary" @click="emit('cancel')">
               {{ $t('general.cancel') }}
             </NcButton>
 
             <!-- Save -->
             <NcButton
+              class="w-full"
               html-type="submit"
               type="primary"
               :loading="saving"
               size="small"
-              class="w-full"
               :label="`${$t('general.save')} ${columnLabel}`"
               :loading-label="`${$t('general.saving')} ${columnLabel}`"
               @click.prevent="onSubmit"

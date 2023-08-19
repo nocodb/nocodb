@@ -26,10 +26,6 @@ const { isUIAllowed } = useUIPermission()
 
 const { theme, defaultTheme } = useTheme()
 
-onMounted(async () => {
-  if (!workspaceStore.isSharedBase) await loadWorkspaces()
-})
-
 const workspaceModalVisible = ref(false)
 const isWorkspaceDropdownOpen = ref(false)
 const isAuthTokenCopied = ref(false)
@@ -122,6 +118,10 @@ onKeyStroke('Escape', () => {
     isWorkspaceDropdownOpen.value = false
   }
 })
+
+const switchWorkspace = async (workspaceId: string) => {
+  navigateTo(`/${workspaceId}`)
+}
 </script>
 
 <template>
@@ -179,7 +179,7 @@ onKeyStroke('Escape', () => {
             <div class="nc-menu-sub-head">Workspaces</div>
 
             <div class="max-h-300px nc-scrollbar-md">
-              <a-menu-item v-for="workspace of otherWorkspaces" :key="workspace.id!" @click="navigateTo(`/${workspace.id}`)">
+              <a-menu-item v-for="workspace of otherWorkspaces" :key="workspace.id!" @click="switchWorkspace(workspace.id!)">
                 <div class="nc-workspace-menu-item group capitalize max-w-300px flex" data-testid="nc-workspace-list">
                   <GeneralIcon icon="workspace" class="group-hover:text-accent" />
                   <span class="truncate min-w-10 flex-shrink">

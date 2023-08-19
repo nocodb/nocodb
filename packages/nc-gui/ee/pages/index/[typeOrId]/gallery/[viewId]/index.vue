@@ -6,6 +6,7 @@ definePageMeta({
   public: true,
   requiresAuth: false,
   layout: 'shared-view',
+  hasSidebar: false,
 })
 
 const route = useRoute()
@@ -26,10 +27,8 @@ try {
 </script>
 
 <template>
-  <NuxtLayout class="flex" name="shared-view">
-    <div v-if="showPassword">
-      <LazySharedViewAskPassword v-model="showPassword" />
-    </div>
-    <LazySharedViewGallery v-else />
-  </NuxtLayout>
+  <div v-if="showPassword">
+    <LazySharedViewAskPassword v-model="showPassword" />
+  </div>
+  <LazySharedViewGallery v-else />
 </template>

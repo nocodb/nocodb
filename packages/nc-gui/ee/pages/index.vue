@@ -43,9 +43,21 @@ const projectId = computed(() => route.value.params.projectId)
 
 const workspaceStore = useWorkspace()
 const { populateWorkspace } = workspaceStore
-const { collaborators } = storeToRefs(workspaceStore)
+const { collaborators, lastPopulatedWorkspaceId } = storeToRefs(workspaceStore)
 
 const projectsStore = useProjects()
+
+const autoNavigateToProject = async () => {
+  const routeName = route.value.name as string
+
+  if (routeName !== 'index-typeOrId' && routeName !== 'index') {
+    return
+  }
+
+  await projectsStore.navigateToProject({
+    projectId: projectsStore.projectsList[0].id!,
+  })
+}
 
 watch(
   () => route.value.params.projectTypeOrWorkspaceId ?? route.value.params.typeOrId,
@@ -68,8 +80,12 @@ watch(
       // return
     }
 
-    if (newId || workspaceStore.workspacesList.length) {
-      populateWorkspace()
+    if (lastPopulatedWorkspaceId.value !== newId && (newId || workspaceStore.workspacesList.length)) {
+      await populateWorkspace()
+
+      if (!route.value.params.projectId && projectsStore.projectsList.length) {
+        await autoNavigateToProject()
+      }
     }
   },
   {
@@ -89,6 +105,7 @@ onUnmounted(() => {
 })
 
 onMounted(async () => {
+  if (route.value.meta.public) return
   toggle(true)
   toggleHasSidebar(true)
 
@@ -99,8 +116,14 @@ onMounted(async () => {
     await loadScope('root')
   }
 
-  if (!workspaceStore.activeWorkspace.value && !['nc', 'base'].includes(route.value.params.typeOrId as string)) {
-    await populateWorkspace()
+  if (!workspaceStore?.activeWorkspace?.value && !route.value.params.typeOrId) {
+    await populateWorkspace({
+      workspaceId: workspaceStore.workspacesList[0].id!,
+    })
+
+    if (!route.value.params.projectId && projectsStore.projectsList.length) {
+      await autoNavigateToProject()
+    }
   }
 })
 </script>

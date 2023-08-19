@@ -83,6 +83,8 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   const { t } = useI18n()
   const reloadWidgetDataEventBus = useEventBus('ReloadWidgetData')
 
+  const projectsStore = useProjects()
+
   /***
    *
    *
@@ -322,12 +324,12 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
    *
    */
   watch(
-    [() => openedProjectId.value],
+    projectsStore.openedProject,
     async () => {
       if (openedProjectId.value == null) {
         return
       }
-      dashboardProject.value = await $api.project.read(openedProjectId.value)
+      dashboardProject.value = projectsStore.openedProject as ProjectType
     },
     {
       immediate: true,

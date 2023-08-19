@@ -63,7 +63,7 @@ const navigateToHome = () => {
       outlineWidth: '1px',
     }"
   >
-    <div :style="{ minHeight: isSharedBase ? 'auto' : 'var(--sidebar-top-height)' }">
+    <div class="flex flex-col" :style="{ minHeight: isSharedBase ? 'auto' : 'var(--sidebar-top-height)' }">
       <div style="border-bottom-width: 1px" class="flex items-center px-1 nc-sidebar-header !border-0 py-1.25 pl-2">
         <div v-if="!isWorkspaceLoading" class="flex flex-row flex-grow hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md max-w-full">
           <a

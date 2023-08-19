@@ -19,6 +19,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const collaborators = ref<WorkspaceUserType[] | null>()
 
+  const lastPopulatedWorkspaceId = ref<string | null>(null)
+
   const router = useRouter()
 
   const route = router.currentRoute
@@ -49,9 +51,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   )
 
   const activeWorkspaceId = computed(() => {
-    return (route.value.query.workspaceId ?? route.value.params.typeOrId ?? workspacesList.value?.[0]?.id) as
-      | string
-      | undefined
+    return (route.value.query.workspaceId ?? route.value.params.typeOrId ?? workspacesList.value?.[0]?.id) as string | undefined
   })
 
   const activeWorkspace = computed(() => {
@@ -105,7 +105,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       for (const workspace of list ?? []) {
         workspaces.value.set(workspace.id!, workspace)
       }
-
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -251,6 +250,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   async function populateWorkspace({ force, workspaceId: _workspaceId }: { force?: boolean; workspaceId?: string } = {}) {
     isWorkspaceLoading.value = true
     const workspaceId = _workspaceId ?? activeWorkspaceId.value!
+
+    lastPopulatedWorkspaceId.value = workspaceId
 
     if (force || !workspaces.value.get(workspaceId)) {
       await loadWorkspace(workspaceId)
@@ -434,6 +435,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     setLoadingState,
     isSharedBase,
     navigateToWorkspaceSettings,
+    lastPopulatedWorkspaceId,
   }
 })
 

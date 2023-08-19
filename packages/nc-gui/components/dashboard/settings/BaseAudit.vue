@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Tooltip as ATooltip, Empty } from 'ant-design-vue'
 import type { AuditType } from 'nocodb-sdk'
-import { ProjectIdInj, h, iconMap, onMounted, storeToRefs, timeAgo, useGlobal, useI18n, useNuxtApp, useProject } from '#imports'
+import {  h, iconMap, onMounted, storeToRefs, timeAgo, useGlobal, useI18n, useNuxtApp, useProject } from '#imports'
 
 
 interface Props {
@@ -9,6 +9,10 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
+const projectStore = useProject()
+
+const { project } = storeToRefs(projectStore)
 
 const { $api } = useNuxtApp()
 
@@ -97,12 +101,12 @@ const columns = [
 <template>
   <div class="flex flex-col gap-4 w-full">
     <div v-if="!appInfo.auditEnabled" class="text-red-500">Audit logs are currently disabled by administrators.</div>
-    <div class="flex flex-row justify-end items-center">
+    <div class="flex flex-row justify-between items-center">
+      <h6 class="first-letter:capital">{{ project.title }}</h6>
       <a-button class="self-start !rounded-md" @click="loadAudits">
         <!-- Reload -->
         <div class="flex items-center gap-2 text-gray-600 font-light">
           <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
-
           {{ $t('general.reload') }}
         </div>
       </a-button>

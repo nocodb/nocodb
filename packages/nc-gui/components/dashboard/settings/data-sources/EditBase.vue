@@ -600,8 +600,8 @@ onMounted(async () => {
         </div>
       </a-form-item>
       <div class="w-full flex items-center mt-2 text-[#e65100]">
-        <component :is="iconMap.warning" class="mr-1" />
-        Please make sure database you are trying to connect is valid! This operation can cause schema loss!!
+        <component :is="iconMap.warning" class="mr-2 mb-5.9" />
+        <div>Please make sure database you are trying to connect is valid! This operation can cause schema loss!!</div>
       </div>
     </a-form>
 

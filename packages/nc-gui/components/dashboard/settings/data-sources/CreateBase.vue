@@ -378,7 +378,6 @@ watch(
     <h1 class="prose-2xl font-bold self-start mb-4 flex items-center gap-2">
       New Base
       <span class="flex-grow"></span>
-      <DashboardSettingsDataSourcesInfo />
     </h1>
 
     <a-form

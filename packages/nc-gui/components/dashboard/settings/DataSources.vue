@@ -451,6 +451,16 @@ const isEditBaseModalOpen = computed({
                 <div class="ds-table-col ds-table-actions">
                   <div class="flex items-center gap-2">
                     <a-button
+                      class="nc-action-btn cursor-pointer outline-0"
+                      type="text"
+                      @click="baseAction(base.id, DataSourcesSubTab.ERD)"
+                    >
+                      <div class="flex items-center gap-2 text-gray-600">
+                        <GeneralIcon icon="erd" class="group-hover:text-accent" />
+                        ERD
+                      </div>
+                    </a-button>
+                    <a-button
                       v-if="!base.is_meta && !base.is_local"
                       type="text"
                       class="nc-action-btn cursor-pointer outline-0"
@@ -474,16 +484,6 @@ const isEditBaseModalOpen = computed({
                         UI ACL
                       </div>
                     </a-button> -->
-                    <a-button
-                      class="nc-action-btn cursor-pointer outline-0"
-                      type="text"
-                      @click="baseAction(base.id, DataSourcesSubTab.ERD)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600">
-                        <GeneralIcon icon="erd" class="group-hover:text-accent" />
-                        ERD
-                      </div>
-                    </a-button>
                   </div>
                 </div>
                 <div class="ds-table-col ds-table-crud justify-end gap-x-1">

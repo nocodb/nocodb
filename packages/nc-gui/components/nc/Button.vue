@@ -82,9 +82,7 @@ const onBlur = () => {
       <GeneralLoader v-if="loading" size="medium" class="flex !text-white" loader-class="!text-white" />
 
       <slot v-else name="icon" />
-
       <div
-        class="flex w-full"
         :class="{
           'font-medium': type === 'primary' || type === 'danger',
         }"

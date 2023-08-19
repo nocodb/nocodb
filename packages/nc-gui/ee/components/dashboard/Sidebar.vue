@@ -58,7 +58,7 @@ const navigateToHome = () => {
 
 <template>
   <div
-    class="nc-sidebar flex flex-col bg-gray-50 outline-r-1 outline-gray-100 select-none"
+    class="nc-sidebar flex flex-col bg-gray-50 outline-r-1 outline-gray-100 select-none "
     :style="{
       outlineWidth: '1px',
     }"

@@ -300,17 +300,18 @@ const isEditBaseModalOpen = computed({
   <div class="flex flex-row w-full h-full nc-data-sources-view">
     <div class="flex flex-col w-full overflow-auto">
       <div class="flex flex-row w-full justify-end mt-6 mb-5">
-        <a-button
+        <NcButton
           v-if="dataSourcesAwakened"
+          size="large"
+          class="z-10 !rounded-lg !px-2 mr-2.5"
           type="primary"
-          class="self-start !rounded-md nc-btn-new-datasource !h-8.5"
           @click="vState = DataSourcesSubTab.New"
         >
-          <div class="flex items-center gap-2">
+          <div class="flex flex-row items-center w-full gap-x-1">
             <component :is="iconMap.plus" />
-            New source
+            <div class="flex">New Source</div>
           </div>
-        </a-button>
+        </NcButton>
       </div>
       <div
         class="overflow-y-auto nc-scrollbar-md"
@@ -376,21 +377,22 @@ const isEditBaseModalOpen = computed({
                     </a-button>
                     <a-button
                       class="nc-action-btn cursor-pointer outline-0"
-                      @click="baseAction(sources[0].id, DataSourcesSubTab.UIAcl)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600">
-                        <GeneralIcon icon="acl" class="group-hover:text-accent" />
-                        UI ACL
-                      </div>
-                    </a-button>
-                    <a-button
-                      class="nc-action-btn cursor-pointer outline-0"
                       type="text"
                       @click="baseAction(sources[0].id, DataSourcesSubTab.ERD)"
                     >
                       <div class="flex items-center gap-2 text-gray-600">
                         <GeneralIcon icon="erd" class="group-hover:text-accent" />
                         Relations
+                      </div>
+                    </a-button>
+                    <a-button
+                      class="nc-action-btn cursor-pointer outline-0"
+                      type="text"
+                      @click="baseAction(sources[0].id, DataSourcesSubTab.UIAcl)"
+                    >
+                      <div class="flex items-center gap-2 text-gray-600">
+                        <GeneralIcon icon="acl" class="group-hover:text-accent" />
+                        UI ACL
                       </div>
                     </a-button>
                     <a-button

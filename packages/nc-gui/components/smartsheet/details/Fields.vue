@@ -539,12 +539,15 @@ onMounted(async () => {
                     <template v-else-if="fieldStatus(field) === 'add'">
                       <a-tag class="!rounded" color="green">New field</a-tag>
                     </template>
+                    <template v-else-if="fieldStatus(field) === 'update'">
+                      <a-tag class="!rounded" color="orange">Updated Field</a-tag>
+                    </template>
                   </div>
                   <div class="flex items-center justify-end">
                     <div v-if="fieldStatus(field) === 'delete' || fieldStatus(field) === 'update'">
                       <NcButton type="ghost" size="small" class="!bg-white no-action">
                         <div class="flex items-center text-xs gap-1" :disabled="loading" @click="recoverField(field)">
-                          <GeneralIcon icon="reload" class="group-hover:text-accent" />
+                          <GeneralIcon icon="reload" class="group-hover:text-primary" />
                           Undo Change
                         </div>
                       </NcButton>

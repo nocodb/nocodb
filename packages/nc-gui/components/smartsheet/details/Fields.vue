@@ -60,7 +60,7 @@ const newFields = ref<TableExplorerColumn[]>([])
 
 const moveOps = ref<moveOp[]>([])
 
-const compareCols = (a: TableExplorerColumn, b: TableExplorerColumn) => {
+const compareCols = (a?: TableExplorerColumn, b?: TableExplorerColumn) => {
   if (a?.id && b?.id) {
     return a.id === b.id
   } else if (a?.temp_id && b?.temp_id) {
@@ -84,6 +84,7 @@ const listFields = computed<TableExplorerColumn[]>(() => {
   return tempList
 })
 
+// Current Selected Field
 const activeField = ref()
 
 const searchQuery = ref<string>('')
@@ -157,6 +158,7 @@ const calculateOrder = (column: TableExplorerColumn) => {
   return before + step * counterBefore
 }
 
+// Update, Delete and New Column operations are tracked here
 const ops = ref<op[]>([])
 
 const temporaryAddCount = ref(0)
@@ -176,7 +178,7 @@ const setFieldMoveHook = (field: TableExplorerColumn, before = false) => {
   }
 }
 
-const changeField = (field: any, event?: MouseEvent) => {
+const changeField = (field?: TableExplorerColumn, event?: MouseEvent) => {
   if (event) {
     if (event.target instanceof HTMLElement) {
       if (event.target.closest('.no-action')) return
@@ -251,7 +253,8 @@ const duplicateField = async (field: TableExplorerColumn) => {
   duplicateFieldHook.value = fieldPayload as TableExplorerColumn
 }
 
-const onFieldUpdate = (state: any) => {
+// This method is called whenever there is a change in field properties
+const onFieldUpdate = (state: TableExplorerColumn) => {
   const col = listFields.value.find((col) => compareCols(col, state))
   if (!col) return
 
@@ -271,14 +274,14 @@ const onFieldUpdate = (state: any) => {
   }
 }
 
-const onFieldDelete = (state: any) => {
+const onFieldDelete = (state: TableExplorerColumn) => {
   const field = ops.value.find((op) => compareCols(op.column, state))
   if (field) {
     if (field.op === 'delete') {
       ops.value = ops.value.filter((op) => op.column.id !== state.id)
     } else if (field.op === 'add') {
       if (activeField.value && compareCols(activeField.value, state)) {
-        changeField(undefined)
+        changeField()
       }
       ops.value = ops.value.filter((op) => op.column.temp_id !== state.temp_id)
       newFields.value = newFields.value.filter((op) => op.temp_id !== state.temp_id)
@@ -294,7 +297,7 @@ const onFieldDelete = (state: any) => {
   }
 }
 
-const onFieldAdd = (state: any) => {
+const onFieldAdd = (state: TableExplorerColumn) => {
   if (duplicateFieldHook.value) {
     state = duplicateFieldHook.value
     duplicateFieldHook.value = undefined
@@ -319,7 +322,7 @@ const onFieldAdd = (state: any) => {
   changeField(state)
 }
 
-const recoverField = (state: any) => {
+const recoverField = (state: TableExplorerColumn) => {
   const field = ops.value.find((op) => compareCols(op.column, state))
   if (field) {
     if (field.op === 'delete') {
@@ -327,11 +330,12 @@ const recoverField = (state: any) => {
     } else if (field.op === 'update') {
       ops.value = ops.value.filter((op) => !compareCols(op.column, state))
     }
-    changeField(activeField.value)
+    activeField.value = null
+    changeField(fields.value.filter((fiel) => fiel.id === state.id)[0])
   }
 }
 
-const fieldState = (field: any) => {
+const fieldState = (field: TableExplorerColumn) => {
   const col = listFields.value.find((col) => compareCols(col, field))
   if (col) {
     const op = ops.value.find((op) => compareCols(op.column, col))
@@ -356,18 +360,20 @@ const fieldStatuses = computed<Record<string, string>>(() => {
   return statuses
 })
 
-const fieldStatus = (field: any) => {
-  return fieldStatuses.value[field?.id || field?.temp_id] || ''
+const fieldStatus = (field?: TableExplorerColumn) => {
+  const id = field?.id || field?.temp_id
+  return id ? fieldStatuses.value[id] : ''
 }
 
-const skipTransition = (field: any) => {
-  return skipTransitionList.value.includes(field?.id || field?.temp_id)
+const skipTransition = (field?: TableExplorerColumn) => {
+  const id = field?.id || field?.temp_id
+  return id ? skipTransitionList.value.includes(id) : false
 }
 
 const clearChanges = () => {
   ops.value = []
   newFields.value = []
-  changeField(undefined)
+  changeField()
 }
 
 const saveChanges = async () => {
@@ -389,11 +395,11 @@ const saveChanges = async () => {
     if (op.op === 'add') {
       skipTransitionList.value.push(op.column.temp_id as string)
       if (activeField.value && compareCols(activeField.value, op.column)) {
-        changeField(undefined)
+        changeField()
       }
     } else if (op.op === 'delete') {
       if (activeField.value && compareCols(activeField.value, op.column)) {
-        changeField(undefined)
+        changeField()
       }
     }
   }
@@ -427,14 +433,14 @@ const saveChanges = async () => {
   loading.value = false
 }
 
-const toggleFieldVisibilityWrapper = async (checked: boolean, field: any) => {
-  if (fieldStatuses.value[field.fk_column_id]) {
+const toggleFieldVisibilityWrapper = async (checked: boolean, field: Field) => {
+  if (field.fk_column_id && fieldStatuses.value[field.fk_column_id]) {
     message.warning('You cannot change visibility of a field that is being edited. Please save or discard changes first.')
     field.show = !checked
     return
   }
   if (viewOnly.value && !checked && activeField.value && compareCols(activeField.value, { id: field.fk_column_id })) {
-    changeField(undefined)
+    changeField()
   }
   await toggleFieldVisibility(checked, field)
 }
@@ -508,10 +514,10 @@ onMounted(async () => {
         </div>
         <div class="flex mt-2 h-full">
           <div class="flex flex-col flex-1 p-2">
-            <TransitionGroup name="slide-fade" tag="div">
+            <TransitionGroup name="slide-fade" tag="div" class="overflow-y-auto pb-4 nc-scrollbar-x-md">
               <template v-for="field of filteredListFields" :key="`field-${field.id || field.temp_id}`">
                 <div
-                  class="flex px-2 mb-2 border-1 rounded-lg pl-5 group"
+                  class="flex px-2 mb-2 mr-2 border-1 rounded-lg pl-5 group"
                   :class="`${fieldStatus(field)} ${compareCols(field, activeField) ? 'selected' : ''} ${
                     skipTransition(field) ? 'skip-animation' : ''
                   }`"

@@ -35,12 +35,12 @@ const hideLength = computed(() => {
   return [UITypes.SingleSelect, UITypes.MultiSelect].includes(vModel.value.uidt)
 })
 
-// to avoid type error with checkbox
+/* to avoid type error with checkbox
 vModel.value.rqd = !!vModel.value.rqd
 vModel.value.pk = !!vModel.value.pk
 vModel.value.un = !!vModel.value.un
 vModel.value.ai = !!vModel.value.ai
-vModel.value.au = !!vModel.value.au
+vModel.value.au = !!vModel.value.au */
 </script>
 
 <template>

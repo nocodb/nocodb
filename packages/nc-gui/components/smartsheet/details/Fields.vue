@@ -506,8 +506,8 @@ onMounted(async () => {
             <a-switch v-model:checked="viewOnly" />
           </div>
         </div>
-        <div class="flex mt-2">
-          <div class="flex flex-col flex-1 p-2 overflow-scroll">
+        <div class="flex mt-2 h-full">
+          <div class="flex flex-col flex-1 p-2">
             <TransitionGroup name="slide-fade" tag="div">
               <template v-for="field of filteredListFields" :key="`field-${field.id || field.temp_id}`">
                 <div

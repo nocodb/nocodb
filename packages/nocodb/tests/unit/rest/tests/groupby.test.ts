@@ -28,7 +28,7 @@ function groupByTests() {
     filmColumns = await filmTable.getColumns();
   });
 
-  it('Check One GroupBy Column', async function () {
+  it('Check One GroupBy Column Ascending', async function () {
     const lengthColumn = filmColumns.find((c) => c.column_name === 'length');
     const response = await request(context.app)
       .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
@@ -41,10 +41,104 @@ function groupByTests() {
       response.body.list[4]['length'] !== '68' &&
       parseInt(response.body.list[4]['count']) !== 5
     )
-      throw new Error('Invalid GroupBy');
+      throw new Error('Invalid Ascending One GroupBy Test');
   });
 
-  it.only('Set GroupBy and Verify', async () => {
+  it('Check Two GroupBy Column Ascending', async function () {
+    const rentalDurationColumn = filmColumns.find(
+      (c) => c.column_name === 'rental_duration',
+    );
+    const filterCondition = '(Length,eq,46)';
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .set('xc-auth', context.token)
+      .query({
+        column_name: rentalDurationColumn.column_name,
+        where: filterCondition,
+      })
+      .expect(200);
+    if (
+      response.body.list[1]['length'] !== '5' &&
+      parseInt(response.body.list[1]['count']) !== 2
+    )
+      throw new Error('Invalid Two GroupBy Ascending');
+  });
+
+  it('Check Three GroupBy Column Ascending', async function () {
+    const titleColumn = filmColumns.find((c) => c.column_name === 'title');
+    const filterCondition = '(Length,eq,46)~and(RentalDuration,eq,5)';
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .set('xc-auth', context.token)
+      .query({
+        column_name: titleColumn.column_name,
+        where: filterCondition,
+      })
+      .expect(200);
+    if (
+      response.body.list[0]['length'] !== 'ALIEN CENTER' &&
+      parseInt(response.body.list[0]['count']) !== 1
+    )
+      throw new Error('Invalid Three GroupBy Ascending');
+  });
+
+  it('Check One GroupBy Column With Descending', async function () {
+    const lengthColumn = filmColumns.find((c) => c.column_name === 'length');
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .set('xc-auth', context.token)
+      .query({
+        column_name: lengthColumn.column_name,
+        sort: `-${lengthColumn.title}`,
+      })
+      .expect(200);
+    if (
+      response.body.list[0]['length'] !== '185' &&
+      parseInt(response.body.list[0]['count']) !== 10
+    )
+      throw new Error('Invalid Ascending One GroupBy Test');
+  });
+
+  it('Check Two GroupBy Column Descending', async function () {
+    const rentalDurationColumn = filmColumns.find(
+      (c) => c.column_name === 'rental_duration',
+    );
+    const filterCondition = '(Length,eq,46)';
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .set('xc-auth', context.token)
+      .query({
+        column_name: rentalDurationColumn.column_name,
+        where: filterCondition,
+        sort: `-${rentalDurationColumn.title}`,
+      })
+      .expect(200);
+    if (
+      response.body.list[2]['length'] !== '5' &&
+      parseInt(response.body.list[2]['count']) !== 2
+    )
+      throw new Error('Invalid Two GroupBy Descending');
+  });
+
+  it('Check Three GroupBy Column Descending', async function () {
+    const titleColumn = filmColumns.find((c) => c.column_name === 'title');
+    const filterCondition = '(Length,eq,46)~and(RentalDuration,eq,5)';
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .set('xc-auth', context.token)
+      .query({
+        column_name: titleColumn.column_name,
+        where: filterCondition,
+      })
+      .expect(200);
+    if (
+      response.body.list[0]['length'] !== 'KWAI HOMEWARD' &&
+      parseInt(response.body.list[0]['count']) !== 1
+    )
+      throw new Error('Invalid Three GroupBy Descending');
+  });
+
+  /*   it('Set GroupBy and Verify', async () => {
     const lengthColumn = filmColumns.find((c) => c.column_name === 'length');
     const rentalColumn = filmColumns.find(
       (c) => c.column_name === 'rental_duration',
@@ -78,8 +172,8 @@ function groupByTests() {
         .expect(200)
     ).body.list;
 
-    //console.log(columns);
-  });
+    console.log(columns);
+  }); */
 }
 
 export default function () {

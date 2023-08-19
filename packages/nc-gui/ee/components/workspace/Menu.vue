@@ -14,7 +14,7 @@ const workspaceStore = useWorkspace()
 
 const { saveTheme } = workspaceStore
 const { activeWorkspace, workspacesList, isWorkspaceOwner } = storeToRefs(workspaceStore)
-const { loadWorkspaces } = workspaceStore
+const { loadWorkspaces, clearWorkspaces } = workspaceStore
 
 const { signOut, signedIn, user, token } = useGlobal()
 
@@ -95,6 +95,7 @@ const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color?: s
 }
 
 const logout = async () => {
+  clearWorkspaces()
   await signOut()
   navigateTo('/signin')
 }
@@ -185,7 +186,7 @@ onKeyStroke('Escape', () => {
 
             <div class="max-h-300px nc-scrollbar-md">
               <a-menu-item v-for="workspace of otherWorkspaces" :key="workspace.id!" @click="navigateTo(`/${workspace.id}`)">
-                <div class="nc-workspace-menu-item group capitalize max-w-300px flex"  data-testid="nc-workspace-list">
+                <div class="nc-workspace-menu-item group capitalize max-w-300px flex" data-testid="nc-workspace-list">
                   <GeneralIcon icon="workspace" class="group-hover:text-accent" />
                   <span class="truncate min-w-10 flex-shrink">
                     {{ workspace.title }}

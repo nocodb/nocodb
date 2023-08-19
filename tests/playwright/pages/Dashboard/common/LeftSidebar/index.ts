@@ -78,4 +78,18 @@ export class LeftSidebarPage extends BasePage {
 
     return ws;
   }
+
+  async openWorkspace(param: { title: any }) {
+    await this.clickWorkspace();
+    const nodes = this.modal_workspace.locator('[data-testid="nc-workspace-list"]');
+
+    for (let i = 0; i < (await nodes.count()); i++) {
+      const text = await getTextExcludeIconText(nodes.nth(i));
+      if (text.toLowerCase() === param.title.toLowerCase()) {
+        await nodes.nth(i).click();
+        break;
+      }
+    }
+    await this.rootPage.keyboard.press('Escape');
+  }
 }

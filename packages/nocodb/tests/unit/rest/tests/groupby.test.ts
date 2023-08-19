@@ -198,7 +198,7 @@ function groupByTests() {
     });
   });
 
-  it.only('GroupBy Along with Filter', async () => {
+  it('GroupBy Along with Filter', async () => {
     const _lengthColumn = filmColumns.find((c) => c.column_name === 'length');
     const lengthColumn = gridViewColumns.find(
       (f) => f.fk_column_id === _lengthColumn.id,

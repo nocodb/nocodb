@@ -540,7 +540,7 @@ const isEditBaseModalOpen = computed({
           <EditBase :base-id="activeBaseId" @base-updated="loadBases(true)" @close="isEditBaseModalOpen = false" />
         </div>
       </GeneralModal>
-      <GeneralModal v-model:visible="isBaseAuditModalOpen" class="!w-[80rem]">
+      <GeneralModal v-model:visible="isBaseAuditModalOpen" class="!w-[70rem]">
         <div class="p-6">
           <BaseAudit :base-id="activeBaseId" @close="isBaseAuditModalOpen = false" />
         </div>

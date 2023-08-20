@@ -123,9 +123,7 @@ const columns = [
 <template>
   <div class="flex flex-row w-full items-center justify-center">
     <div class="flex flex-col w-[900px]">
-      <span class="mb-4 first-letter:capital font-bold">
-        {{ project.title }}
-      </span>
+      <span class="mb-4 first-letter:capital font-bold"> UI ACL : {{ project.title }} </span>
       <div class="flex flex-row items-center w-full mb-4 gap-2 justify-between">
         <a-input v-model:value="searchInput" placeholder="Search models" class="nc-acl-search !w-[400px]">
           <template #prefix>

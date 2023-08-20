@@ -86,7 +86,7 @@ const columns = [
     dataIndex: 'user',
     key: 'user',
     customRender: (value: { text: string }) => h('div', {}, value.text || 'Shared base'),
-    width: 250,
+    width: 200,
   },
   {
     // Created
@@ -96,7 +96,7 @@ const columns = [
     sort: 'desc',
     customRender: (value: { text: string }) =>
       h(ATooltip, { placement: 'bottom', title: h('span', {}, value.text) }, () => timeAgo(value.text)),
-    width: '12%',
+    width: '13%',
   },
 ]
 </script>
@@ -105,7 +105,7 @@ const columns = [
   <div class="flex flex-col gap-4 w-full">
     <div v-if="!appInfo.auditEnabled" class="text-red-500">Audit logs are currently disabled by administrators.</div>
     <div class="flex flex-row justify-between items-center">
-      <h6 class="first-letter:capital">{{ project.title }}</h6>
+      <h6 class="mb-4 first-letter:capital font-bold">Audit : {{ project.title }}</h6>
       <a-button class="self-start !rounded-md" @click="loadAudits">
         <!-- Reload -->
         <div class="flex items-center gap-2 text-gray-600 font-light">

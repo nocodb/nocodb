@@ -410,15 +410,14 @@ onKeyStroke('Escape', () => {
           class="project-title-node h-7.25 flex-grow rounded-md group flex items-center w-full"
         >
           <div
-            class="nc-sidebar-expand ml-0.75 min-h-5.75 min-w-5.75 px-1.5 text-gray-500 hover:(hover:bg-gray-500 hover:bg-opacity-15 !text-black) rounded-md relative"
+            class="nc-sidebar-expand ml-3 min-h-5.75 min-w-5.75 px-1.5 text-gray-500 hover:(hover:bg-gray-500 hover:bg-opacity-15 !text-black) rounded-md relative"
             @click="onProjectClick(project, true, true)"
           >
             <PhTriangleFill
-              class="absolute top-2.25 left-2 invisible group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.75 rotate-90"
+              class="absolute top-2.25 left-2 group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.75 rotate-90"
               :class="{ '!rotate-180': project.isExpanded, '!visible': isOptionsOpen }"
             />
           </div>
-
           <div class="flex items-center mr-1" @click="onProjectClick(project)">
             <div class="flex items-center select-none w-6 h-full">
               <a-spin

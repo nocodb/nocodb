@@ -96,7 +96,7 @@ const columns = [
     sort: 'desc',
     customRender: (value: { text: string }) =>
       h(ATooltip, { placement: 'bottom', title: h('span', {}, value.text) }, () => timeAgo(value.text)),
-    width: '10%',
+    width: '12%',
   },
 ]
 </script>

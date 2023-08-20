@@ -20,6 +20,15 @@ const route = router.currentRoute
 
 const { projectsList } = storeToRefs(projectsStore)
 
+const autoNavigateToProject = async () => {
+  const routeName = route.value.name as string
+  if (routeName !== 'index-typeOrId' && routeName !== 'index') {
+    return
+  }
+
+  await projectsStore.navigateToProject({ projectId: projectsList.value[0].id! })
+}
+
 watch(
   () => route.value.params.typeOrId,
   async () => {
@@ -29,7 +38,7 @@ watch(
     await projectsStore.loadProjects('recent')
 
     if (!route.value.params.projectId && projectsList.value.length > 0) {
-      await projectsStore.navigateToProject({ projectId: projectsList.value[0].id! })
+      await autoNavigateToProject()
     }
   },
   {

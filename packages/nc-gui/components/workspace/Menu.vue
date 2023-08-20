@@ -83,7 +83,6 @@ const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color?: s
 }
 
 const logout = async () => {
-  clearWorkspaces()
   await signOut()
   navigateTo('/signin')
 }

@@ -47,6 +47,18 @@ const { collaborators, lastPopulatedWorkspaceId } = storeToRefs(workspaceStore)
 
 const projectsStore = useProjects()
 
+const autoNavigateToProject = async () => {
+  const routeName = route.value.name as string
+
+  if (routeName !== 'index-typeOrId' && routeName !== 'index') {
+    return
+  }
+
+  await projectsStore.navigateToProject({
+    projectId: projectsStore.projectsList[0].id!,
+  })
+}
+
 watch(
   () => route.value.params.projectTypeOrWorkspaceId ?? route.value.params.typeOrId,
   async (newId, oldId) => {
@@ -72,9 +84,7 @@ watch(
       await populateWorkspace()
 
       if (!route.value.params.projectId && projectsStore.projectsList.length) {
-        await projectsStore.navigateToProject({
-          projectId: projectsStore.projectsList[0].id!,
-        })
+        await autoNavigateToProject()
       }
     }
   },
@@ -106,13 +116,13 @@ onMounted(async () => {
     await loadScope('root')
   }
 
-  if (!workspaceStore.activeWorkspace.value && !route.value.params.typeOrId) {
-    await populateWorkspace()
+  if (!workspaceStore?.activeWorkspace?.value && !route.value.params.typeOrId) {
+    await populateWorkspace({
+      workspaceId: workspaceStore.workspacesList[0].id!,
+    })
 
     if (!route.value.params.projectId && projectsStore.projectsList.length) {
-      await projectsStore.navigateToProject({
-        projectId: projectsStore.projectsList[0].id!,
-      })
+      await autoNavigateToProject()
     }
   }
 })

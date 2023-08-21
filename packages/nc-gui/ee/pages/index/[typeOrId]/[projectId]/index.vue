@@ -76,12 +76,14 @@ onBeforeMount(async () => {
   }
 })
 
-const { loadScope } = useCommandPalette()
-
 onMounted(() => {
   toggle(true)
   toggleHasSidebar(true)
-  loadScope('workspace', { workspace_id: route.params.typeOrId, project_id: route.params.projectId })
+
+  if (!projectStore.isSharedBase) {
+    const { loadScope } = useCommandPalette()
+    loadScope('workspace', { workspace_id: route.params.typeOrId, project_id: route.params.projectId })
+  }
 })
 
 onBeforeUnmount(() => {

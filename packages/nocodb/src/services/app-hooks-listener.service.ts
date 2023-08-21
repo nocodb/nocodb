@@ -5,7 +5,7 @@ import {
   AuditOperationTypes,
 } from 'nocodb-sdk';
 import { T } from 'nc-help';
-import { TelemetryService } from './telemetry.service';
+import { TelemetryService } from '~/services/telemetry.service';
 import { Audit } from '~/models';
 import type { AuditType } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';

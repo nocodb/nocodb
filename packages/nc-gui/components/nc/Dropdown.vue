@@ -1,9 +1,16 @@
 <script lang="ts" setup>
-const props = defineProps<{
-  trigger: Array<'click' | 'hover' | 'contextmenu'>
-  visible: boolean
-  overlayClassName?: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    trigger: Array<'click' | 'hover' | 'contextmenu'>
+    visible: boolean | undefined
+    overlayClassName?: string | undefined
+  }>(),
+  {
+    trigger: () => ['click'],
+    visible: undefined,
+    overlayClassName: undefined,
+  },
+)
 
 const emits = defineEmits(['update:visible'])
 
@@ -16,16 +23,18 @@ const visible = useVModel(props, 'visible', emits)
 
 <template>
   <a-dropdown
-    v-model:visible="visible"
+    :visible="visible"
     :trigger="trigger"
-    :overlay-class-name="overlayClassName ? `nc-dropdown ${overlayClassName}` : 'nc-dropdown'"
+    :overlay-class-name="{
+      'nc-dropdown bg-white rounded-2xl border-1 border-gray-100 shadow-md overflow-hidden': true,
+      [overlayClassName as any]: !!overlayClassName,
+    } as any"
+    @update:visible="visible !== undefined ? (visible = $event) : undefined"
   >
     <slot />
 
     <template #overlay>
-      <div class="bg-white rounded-2xl border-1 border-gray-100 shadow-md overflow-hidden">
-        <slot name="overlay" />
-      </div>
+      <slot name="overlay" />
     </template>
   </a-dropdown>
 </template>

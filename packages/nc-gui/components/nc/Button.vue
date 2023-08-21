@@ -78,13 +78,11 @@ const onBlur = () => {
     @blur="onBlur"
     @mousedown="isClicked = true"
   >
-    <div class="flex flex-row gap-x-2.5 justify-center">
+    <div class="flex flex-row gap-x-2.5 justify-center w-full">
       <GeneralLoader v-if="loading" size="medium" class="flex !text-white" loader-class="!text-white" />
 
       <slot v-else name="icon" />
-
       <div
-        class="flex"
         :class="{
           'font-medium': type === 'primary' || type === 'danger',
         }"

@@ -123,6 +123,7 @@ export default async (req, res, next) => {
               }
             },
           )(req, res, next);
+
         } else if (req.headers['xc-shared-base-id']) {
           passport.authenticate('baseView', {}, (_err, user, _info) => {
             // if (_err) return reject(_err);

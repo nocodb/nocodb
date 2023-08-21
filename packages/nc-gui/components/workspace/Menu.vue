@@ -13,7 +13,7 @@ const workspaceStore = useWorkspace()
 
 const { saveTheme } = workspaceStore
 const { isWorkspaceOwner } = storeToRefs(workspaceStore)
-const { loadWorkspaces } = workspaceStore
+const { loadWorkspaces, clearWorkspaces } = workspaceStore
 
 const { signOut, signedIn, user, token } = useGlobal()
 

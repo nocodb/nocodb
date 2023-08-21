@@ -99,10 +99,17 @@ export default class Audit implements AuditType {
         'description',
         'details',
       ]);
-      if (!insertObj.project_id && insertObj.fk_model_id) {
-        insertObj.project_id = (
-          await Model.getByIdOrName({ id: insertObj.fk_model_id }, ncMeta)
-        ).project_id;
+      if (
+        (!insertObj.project_id || !insertObj.base_id) &&
+        insertObj.fk_model_id
+      ) {
+        const model = await Model.getByIdOrName(
+          { id: insertObj.fk_model_id },
+          ncMeta,
+        );
+
+        insertObj.project_id = model.project_id;
+        insertObj.base_id = model.base_id;
       }
 
       return await ncMeta.metaInsert2(null, null, MetaTable.AUDIT, insertObj);
@@ -185,5 +192,26 @@ export default class Audit implements AuditType {
       updateObj,
       auditId,
     );
+  }
+
+  static async baseAuditList(baseId: string, { limit = 25, offset = 0 }) {
+    return await Noco.ncMeta.metaList2(null, null, MetaTable.AUDIT, {
+      condition: { base_id: baseId },
+      orderBy: {
+        created_at: 'desc',
+      },
+      limit,
+      offset,
+    });
+  }
+
+  static async baseAuditCount(baseId: string) {
+    return (
+      await Noco.ncMeta
+        .knex(MetaTable.AUDIT)
+        .where({ base_id: baseId })
+        .count('id', { as: 'count' })
+        .first()
+    )?.count;
   }
 }

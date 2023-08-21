@@ -178,7 +178,9 @@ const reloadCollabs = async () => {
                 <span class="color-band" :style="{ backgroundColor: stringToColour(collab.email) }">{{
                   collab?.email?.slice(0, 2)
                 }}</span>
+                <!--                <GeneralTruncateText>-->
                 {{ collab.email }}
+                <!--                </GeneralTruncateText>-->
               </div>
             </div>
             <div class="text-gray-500 text-xs w-1/5 created-at">
@@ -199,6 +201,7 @@ const reloadCollabs = async () => {
                   class="w-30 !rounded px-1"
                   :virtual="true"
                   @change="(value) => updateCollaborator(collab, value)"
+                  :placeholder="$t('labels.noAccess')"
                 >
                   <template #suffixIcon>
                     <MdiChevronDown />

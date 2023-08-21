@@ -105,43 +105,46 @@ const columns = [
   {
     title: tableHeaderRenderer('Editor'),
     name: 'editor',
-    width: 150,
+    width: 120,
   },
   {
     title: tableHeaderRenderer('Commenter'),
     name: 'commenter',
-    width: 150,
+    width: 120,
   },
   {
     title: tableHeaderRenderer('Viewer'),
     name: 'viewer',
-    width: 150,
+    width: 120,
   },
 ]
 </script>
 
 <template>
-  <div class="flex flex-row w-full">
-    <div class="flex flex-col w-full">
-      <div class="flex flex-row items-center w-full mb-4 gap-2">
-        <a-input v-model:value="searchInput" placeholder="Search models" class="nc-acl-search">
+  <div class="flex flex-row w-full items-center justify-center">
+    <div class="flex flex-col w-[900px]">
+      <span class="mb-4 first-letter:capital font-bold"> UI ACL : {{ project.title }} </span>
+      <div class="flex flex-row items-center w-full mb-4 gap-2 justify-between">
+        <a-input v-model:value="searchInput" placeholder="Search models" class="nc-acl-search !w-[400px]">
           <template #prefix>
             <component :is="iconMap.search" />
           </template>
         </a-input>
-        <a-button type="text" ghost class="self-start !rounded-md nc-acl-reload" @click="loadTableList">
-          <div class="flex items-center gap-2 text-gray-600 font-light">
-            <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
-            Reload
-          </div>
-        </a-button>
+        <div class="flex">
+          <a-button type="text" ghost class="self-start !rounded-md nc-acl-reload" @click="loadTableList">
+            <div class="flex items-center gap-2 text-gray-600 font-light">
+              <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
+              Reload
+            </div>
+          </a-button>
 
-        <a-button type="primary" class="!rounded-md self-start nc-acl-save" @click="saveUIAcl">
-          <div class="flex items-center gap-2 text-white font-light">
-            <component :is="iconMap.save" />
-            Save
-          </div>
-        </a-button>
+          <NcButton size="large" class="z-10 !rounded-lg !px-2 mr-2.5" type="primary" @click="saveUIAcl">
+            <div class="flex flex-row items-center w-full gap-x-1">
+              <component :is="iconMap.save" />
+              <div class="flex">Save</div>
+            </div>
+          </NcButton>
+        </div>
       </div>
 
       <div class="max-h-600px overflow-y-auto">
@@ -152,6 +155,7 @@ const columns = [
           :columns="columns"
           :pagination="false"
           :loading="isLoading"
+          sticky
           bordered
           :custom-row="
             (record) => ({
@@ -172,7 +176,9 @@ const columns = [
                     class="text-gray-500"
                   ></GeneralTableIcon>
                 </div>
-                <span class="overflow-ellipsis min-w-0 shrink-1">{{ record._ptn }}</span>
+                <GeneralTruncateText>
+                  <span class="overflow-ellipsis min-w-0 shrink-1">{{ record._ptn }}</span>
+                </GeneralTruncateText>
               </div>
             </div>
 

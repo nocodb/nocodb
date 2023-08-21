@@ -2,6 +2,8 @@
 const { openedViewsTab } = storeToRefs(useViewsStore())
 const { onViewsTabChange } = useViewsStore()
 
+const { isUIAllowed } = useUIPermission()
+
 const openedSubTab = computed({
   get() {
     return openedViewsTab.value
@@ -10,12 +12,28 @@ const openedSubTab = computed({
     onViewsTabChange(val)
   },
 })
+
+watch(
+  openedSubTab,
+  () => {
+    if (openedSubTab.value === 'field' && !isUIAllowed('viewColumnUpdate')) {
+      onViewsTabChange('relation')
+    }
+
+    if (openedSubTab.value === 'webhook' && !isUIAllowed('hookList')) {
+      onViewsTabChange('relation')
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
   <div class="flex flex-col h-full w-full" data-testid="nc-details-wrapper">
     <NcTabs v-model="openedSubTab">
-      <a-tab-pane key="fields">
+      <a-tab-pane v-if="isUIAllowed('viewColumnUpdate')" key="field">
         <template #tab>
           <div class="tab" data-testid="nc-fields-tab">
             <GeneralIcon icon="list" class="tab-icon" :class="{}" />
@@ -25,7 +43,7 @@ const openedSubTab = computed({
         <SmartsheetDetailsFields />
       </a-tab-pane>
 
-      <a-tab-pane key="relations">
+      <a-tab-pane key="relation">
         <template #tab>
           <div class="tab" data-testid="nc-relations-tab">
             <GeneralIcon icon="erd" class="tab-icon" :class="{}" />
@@ -35,7 +53,7 @@ const openedSubTab = computed({
         <SmartsheetDetailsErd />
       </a-tab-pane>
 
-      <a-tab-pane key="apis">
+      <a-tab-pane key="api">
         <template #tab>
           <div class="tab" data-testid="nc-apis-tab">
             <GeneralIcon icon="code" class="tab-icon" :class="{}" />
@@ -45,7 +63,7 @@ const openedSubTab = computed({
         <SmartsheetDetailsApi />
       </a-tab-pane>
 
-      <a-tab-pane key="webhooks">
+      <a-tab-pane v-if="isUIAllowed('hookList')" key="webhook">
         <template #tab>
           <div class="tab" data-testid="nc-webhooks-tab">
             <GeneralIcon icon="webhook" class="tab-icon" :class="{}" />

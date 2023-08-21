@@ -13,9 +13,9 @@ const { onViewsTabChange } = useViewsStore()
     <div
       class="tab"
       :class="{
-        active: openedViewsTab === 'views',
+        active: openedViewsTab === 'view',
       }"
-      @click="onViewsTabChange('views')"
+      @click="onViewsTabChange('view')"
     >
       <GeneralViewIcon class="tab-icon" :meta="{ type: activeView?.type }" ignore-color />
       <div class="tab-title nc-tab">Data</div>
@@ -23,9 +23,9 @@ const { onViewsTabChange } = useViewsStore()
     <div
       class="tab"
       :class="{
-        active: openedViewsTab !== 'views',
+        active: openedViewsTab !== 'view',
       }"
-      @click="onViewsTabChange('fields')"
+      @click="onViewsTabChange('field')"
     >
       <GeneralIcon
         icon="erd"

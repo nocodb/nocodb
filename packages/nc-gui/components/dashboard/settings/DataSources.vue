@@ -6,6 +6,7 @@ import EditBase from './data-sources/EditBase.vue'
 import Metadata from './Metadata.vue'
 import UIAcl from './UIAcl.vue'
 import Erd from './Erd.vue'
+import BaseAudit from './BaseAudit.vue'
 import { ClientType, DataSourcesSubTab, storeToRefs, useCommandPalette, useNuxtApp, useProject } from '#imports'
 
 interface Props {
@@ -272,6 +273,16 @@ const isUIAclModalOpen = computed({
     }
   },
 })
+const isBaseAuditModalOpen = computed({
+  get: () => {
+    return [DataSourcesSubTab.Audit].includes(vState.value as any)
+  },
+  set: (val) => {
+    if (!val) {
+      vState.value = ''
+    }
+  },
+})
 
 const isEditBaseModalOpen = computed({
   get: () => {
@@ -289,17 +300,18 @@ const isEditBaseModalOpen = computed({
   <div class="flex flex-row w-full h-full nc-data-sources-view">
     <div class="flex flex-col w-full overflow-auto">
       <div class="flex flex-row w-full justify-end mt-6 mb-5">
-        <a-button
+        <NcButton
           v-if="dataSourcesAwakened"
+          size="large"
+          class="z-10 !rounded-lg !px-2 mr-2.5"
           type="primary"
-          class="self-start !rounded-md nc-btn-new-datasource !h-8.5"
           @click="vState = DataSourcesSubTab.New"
         >
-          <div class="flex items-center gap-2">
+          <div class="flex flex-row items-center w-full gap-x-1">
             <component :is="iconMap.plus" />
-            New source
+            <div class="flex">New Source</div>
           </div>
-        </a-button>
+        </NcButton>
       </div>
       <div
         class="overflow-y-auto nc-scrollbar-md"
@@ -363,15 +375,6 @@ const isEditBaseModalOpen = computed({
                         Sync Metadata
                       </div>
                     </a-button>
-                    <!-- <a-button
-                      class="nc-action-btn cursor-pointer outline-0"
-                      @click="baseAction(sources[0].id, DataSourcesSubTab.UIAcl)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600 ">
-                        <GeneralIcon icon="acl" class="group-hover:text-accent" />
-                        UI ACL
-                      </div>
-                    </a-button> -->
                     <a-button
                       class="nc-action-btn cursor-pointer outline-0"
                       type="text"
@@ -379,7 +382,27 @@ const isEditBaseModalOpen = computed({
                     >
                       <div class="flex items-center gap-2 text-gray-600">
                         <GeneralIcon icon="erd" class="group-hover:text-accent" />
-                        ERD
+                        Relations
+                      </div>
+                    </a-button>
+                    <a-button
+                      class="nc-action-btn cursor-pointer outline-0"
+                      type="text"
+                      @click="baseAction(sources[0].id, DataSourcesSubTab.UIAcl)"
+                    >
+                      <div class="flex items-center gap-2 text-gray-600">
+                        <GeneralIcon icon="acl" class="group-hover:text-accent" />
+                        UI ACL
+                      </div>
+                    </a-button>
+                    <a-button
+                      class="nc-action-btn cursor-pointer outline-0"
+                      type="text"
+                      @click="baseAction(sources[0].id, DataSourcesSubTab.Audit)"
+                    >
+                      <div class="flex items-center gap-2 text-gray-600">
+                        <GeneralIcon icon="book" class="group-hover:text-accent" />
+                        Audit
                       </div>
                     </a-button>
                   </div>
@@ -428,6 +451,26 @@ const isEditBaseModalOpen = computed({
                 <div class="ds-table-col ds-table-actions">
                   <div class="flex items-center gap-2">
                     <a-button
+                      class="nc-action-btn cursor-pointer outline-0"
+                      type="text"
+                      @click="baseAction(base.id, DataSourcesSubTab.ERD)"
+                    >
+                      <div class="flex items-center gap-2 text-gray-600">
+                        <GeneralIcon icon="erd" class="group-hover:text-accent" />
+                        Relations
+                      </div>
+                    </a-button>
+                    <a-button
+                      type="text"
+                      class="nc-action-btn cursor-pointer outline-0"
+                      @click="baseAction(base.id, DataSourcesSubTab.UIAcl)"
+                    >
+                      <div class="flex items-center gap-2 text-gray-600">
+                        <GeneralIcon icon="acl" class="group-hover:text-accent" />
+                        UI ACL
+                      </div>
+                    </a-button>
+                    <a-button
                       v-if="!base.is_meta && !base.is_local"
                       type="text"
                       class="nc-action-btn cursor-pointer outline-0"
@@ -440,25 +483,6 @@ const isEditBaseModalOpen = computed({
                         </a-tooltip>
                         <GeneralIcon v-else icon="sync" class="group-hover:text-accent" />
                         Sync Metadata
-                      </div>
-                    </a-button>
-                    <!-- <a-button
-                      class="nc-action-btn cursor-pointer outline-0"
-                      @click="baseAction(base.id, DataSourcesSubTab.UIAcl)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600 ">
-                        <GeneralIcon icon="acl" class="group-hover:text-accent" />
-                        UI ACL
-                      </div>
-                    </a-button> -->
-                    <a-button
-                      class="nc-action-btn cursor-pointer outline-0"
-                      type="text"
-                      @click="baseAction(base.id, DataSourcesSubTab.ERD)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600">
-                        <GeneralIcon icon="erd" class="group-hover:text-accent" />
-                        ERD
                       </div>
                     </a-button>
                   </div>
@@ -506,7 +530,7 @@ const isEditBaseModalOpen = computed({
           <Metadata :base-id="activeBaseId" @base-synced="loadBases(true)" />
         </div>
       </GeneralModal>
-      <GeneralModal v-model:visible="isUIAclModalOpen" size="large">
+      <GeneralModal v-model:visible="isUIAclModalOpen" class="!w-[60rem]">
         <div class="p-6">
           <UIAcl :base-id="activeBaseId" />
         </div>
@@ -514,6 +538,11 @@ const isEditBaseModalOpen = computed({
       <GeneralModal v-model:visible="isEditBaseModalOpen" size="medium">
         <div class="p-6">
           <EditBase :base-id="activeBaseId" @base-updated="loadBases(true)" @close="isEditBaseModalOpen = false" />
+        </div>
+      </GeneralModal>
+      <GeneralModal v-model:visible="isBaseAuditModalOpen" class="!w-[70rem]">
+        <div class="p-6">
+          <BaseAudit :base-id="activeBaseId" @close="isBaseAuditModalOpen = false" />
         </div>
       </GeneralModal>
       <GeneralDeleteModal v-model:visible="isDeleteBaseModalOpen" entity-name="base" :on-delete="deleteBase">

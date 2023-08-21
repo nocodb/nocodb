@@ -4,10 +4,29 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 export const useWebhooksStore = defineStore('webhooksStore', () => {
   const hooks = ref<HookType[]>([])
 
+  const isHooksLoading = ref(true)
+
   const { $api, $e } = useNuxtApp()
+
+  const router = useRouter()
+
+  const route = router.currentRoute
+
+  const createWebhookUrl = computed(() => {
+    return navigateToWebhookRoute({
+      openCreatePage: true,
+    })
+  })
+
+  const webhookMainUrl = computed(() => {
+    return navigateToWebhookRoute({
+      openMainPage: true,
+    })
+  })
 
   async function loadHooksList() {
     const { activeTable } = useTablesStore()
+    isHooksLoading.value = true
 
     try {
       const hookList = (await $api.dbTableWebhook.list(activeTable?.id as string)).list
@@ -18,6 +37,8 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
       })
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      isHooksLoading.value = false
     }
   }
 
@@ -71,11 +92,130 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     }
   }
 
+  async function saveHooks({ hook: _hook }: { hook: HookType }) {
+    const { activeTable } = useTablesStore()
+    if (!activeTable) throw new Error('activeTable is not defined')
+
+    if (typeof _hook.notification === 'string') {
+      _hook.notification = JSON.parse(_hook.notification)
+    }
+    let hook = _hook as Omit<HookType, 'notification'> & {
+      notification: Record<string, any>
+      eventOperation?: string
+      condition: boolean
+    }
+
+    try {
+      let res
+      if (hook.id) {
+        res = await $api.dbTableWebhook.update(hook.id, {
+          ...hook,
+          notification: {
+            ...hook.notification,
+            payload: hook.notification.payload,
+          },
+        })
+      } else {
+        res = await $api.dbTableWebhook.create(activeTable!.id!, {
+          ...hook,
+          notification: {
+            ...hook.notification,
+            payload: hook.notification.payload,
+          },
+        } as HookReqType)
+
+        hooks.value.push(res)
+      }
+
+      if (res && typeof res.notification === 'string') {
+        res.notification = JSON.parse(res.notification)
+      }
+
+      if (!hook.id && res) {
+        hook = { ...hook, ...res } as any
+      }
+
+      // Webhook details updated successfully
+      hooks.value = hooks.value.map((h) => {
+        if (h.id === hook.id) {
+          return hook
+        }
+        return h
+      })
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+      console.error(e)
+      throw e
+    }
+
+    $e('a:webhook:add', {
+      operation: hook.operation,
+      condition: hook.condition,
+      notification: hook.notification.type,
+    })
+
+    return hook
+  }
+
+  function navigateToWebhookRoute({
+    hookId,
+    openCreatePage,
+    openMainPage,
+  }: {
+    hookId?: string
+    openCreatePage?: Boolean
+    openMainPage?: Boolean
+  }) {
+    const { activeView } = useViewsStore()
+    if (!activeView) throw new Error('activeView is not defined')
+
+    if (!openMainPage && !openCreatePage && !hookId) throw new Error('hook id is not defined')
+
+    return {
+      name: 'index-typeOrId-projectId-index-index-type-viewId-viewTitle-slugs',
+      params: {
+        typeOrId: route.value.params.typeOrId,
+        projectId: route.value.params.projectId,
+        type: route.value.params.type,
+        viewId: route.value.params.viewId,
+        viewTitle: activeView.title,
+        slugs: openMainPage ? ['webhook'] : ['webhook', openCreatePage ? 'create' : hookId!],
+      },
+    }
+  }
+
+  const navigateToWebhook = async ({
+    hookId,
+    openCreatePage,
+    openMainPage,
+  }: {
+    hookId?: string
+    openCreatePage?: Boolean
+    openMainPage?: Boolean
+  }) => {
+    const { activeView } = useViewsStore()
+    if (!activeView) return
+
+    await router.push(
+      navigateToWebhookRoute({
+        hookId,
+        openCreatePage,
+        openMainPage,
+      }),
+    )
+  }
+
   return {
     hooks,
     loadHooksList,
     deleteHook,
     copyHook,
+    saveHooks,
+    navigateToWebhook,
+    createWebhookUrl,
+    webhookMainUrl,
+    isHooksLoading,
+    navigateToWebhookRoute,
   }
 })
 

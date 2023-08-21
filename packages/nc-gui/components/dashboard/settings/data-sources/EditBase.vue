@@ -346,11 +346,7 @@ onMounted(async () => {
 
 <template>
   <div class="edit-base bg-white relative flex flex-col justify-start gap-2 w-full p-2">
-    <h1 class="prose-2xl font-bold self-start">
-      Edit Base
-      <span class="flex-grow"></span>
-      <span class="text-gray-400 !text-sm font-weight-normal">( Whitelist our ip: 52.15.226.51 to allow database access )</span>
-    </h1>
+    <h1 class="prose-2xl font-bold self-start">Edit Base</h1>
 
     <a-form
       ref="form"
@@ -604,8 +600,8 @@ onMounted(async () => {
         </div>
       </a-form-item>
       <div class="w-full flex items-center mt-2 text-[#e65100]">
-        <component :is="iconMap.warning" class="mr-1" />
-        Please make sure database you are trying to connect is valid! This operation can cause schema loss!!
+        <component :is="iconMap.warning" class="mr-2 mb-5.9" />
+        <div>Please make sure database you are trying to connect is valid! This operation can cause schema loss!!</div>
       </div>
     </a-form>
 

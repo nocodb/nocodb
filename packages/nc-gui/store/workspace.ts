@@ -19,6 +19,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { refreshCommandPalette } = useCommandPalette()
 
+  const lastPopulatedWorkspaceId = ref<string | null>(null)
+
   const { setTheme, theme } = useTheme()
 
   const { $e } = useNuxtApp()
@@ -247,6 +249,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isWorkspaceOwnerOrCreator,
     setLoadingState,
     navigateToWorkspaceSettings,
+    lastPopulatedWorkspaceId,
   }
 })
 

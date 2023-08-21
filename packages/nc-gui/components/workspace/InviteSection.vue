@@ -4,7 +4,7 @@ import { extractSdkResponseErrorMsg, useWorkspace } from '#imports'
 
 const inviteData = reactive({
   email: '',
-  roles: { value: WorkspaceUserRoles.VIEWER, label: RoleLabels[WorkspaceUserRoles.VIEWER] },
+  roles: WorkspaceUserRoles.VIEWER,
 })
 
 const workspaceStore = useWorkspace()
@@ -14,7 +14,7 @@ const { isInvitingCollaborators, workspaceRole } = storeToRefs(workspaceStore)
 
 const inviteCollaborator = async () => {
   try {
-    await _inviteCollaborator(inviteData.email, inviteData.roles.value)
+    await _inviteCollaborator(inviteData.email, inviteData.roles)
     message.success('Invitation sent successfully')
     inviteData.email = ''
   } catch (e: any) {

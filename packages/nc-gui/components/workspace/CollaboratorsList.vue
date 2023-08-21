@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { WorkspaceUserRoles } from 'nocodb-sdk'
+import { OrderedWorkspaceRoles, RoleColors, RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
 import { Empty } from 'ant-design-vue'
 import { storeToRefs, stringToColour, timeAgo, useWorkspace } from '#imports'
 
@@ -28,6 +28,11 @@ const updateCollaborator = async (collab) => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
+  const currentRoleIndex = OrderedWorkspaceRoles.findIndex((role) => role === workspaceRole.value)
+  return OrderedWorkspaceRoles.slice(currentRoleIndex + 1)
+})
 </script>
 
 <template>
@@ -87,32 +92,29 @@ const updateCollaborator = async (collab) => {
               <NcSelect
                 v-model:value="collab.roles"
                 class="w-30 !rounded px-1"
-                :disabled="collab.id === user?.id"
+                :disabled="collab.id === user?.id || !accessibleRoles.includes(collab.roles)"
                 @change="updateCollaborator(collab)"
               >
                 <template #suffixIcon>
                   <MdiChevronDown />
                 </template>
-                <a-select-option :value="WorkspaceUserRoles.CREATOR">
-                  <NcBadge color="blue">
-                    <p class="badge-text">Creator</p>
+                <a-select-option v-if="collab.id === user?.id" :value="workspaceRole">
+                  <NcBadge :color="RoleColors[workspaceRole]">
+                    <p class="badge-text">{{ RoleLabels[workspaceRole] }}</p>
                   </NcBadge>
                 </a-select-option>
-                <a-select-option :value="WorkspaceUserRoles.EDITOR">
-                  <NcBadge color="green">
-                    <p class="badge-text">Editor</p>
+                <a-select-option v-if="!accessibleRoles.includes(collab.roles)" :value="collab.roles">
+                  <NcBadge :color="RoleColors[collab.roles]">
+                    <p class="badge-text">{{ RoleLabels[collab.roles] }}</p>
                   </NcBadge>
                 </a-select-option>
-                <a-select-option :value="WorkspaceUserRoles.COMMENTER">
-                  <NcBadge color="orange">
-                    <p class="badge-text">Commenter</p>
-                  </NcBadge>
-                </a-select-option>
-                <a-select-option :value="WorkspaceUserRoles.VIEWER">
-                  <NcBadge color="yellow">
-                    <p class="badge-text">Viewer</p>
-                  </NcBadge>
-                </a-select-option>
+                <template v-for="role of accessibleRoles" :key="`role-option-${role}`">
+                  <a-select-option :value="role">
+                    <NcBadge :color="RoleColors[role]">
+                      <p class="badge-text">{{ RoleLabels[role] }}</p>
+                    </NcBadge>
+                  </a-select-option>
+                </template>
               </NcSelect>
             </div>
           </td>

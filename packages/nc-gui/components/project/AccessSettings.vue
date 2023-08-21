@@ -1,21 +1,9 @@
 <script lang="ts" setup>
-import { WorkspaceUserRoles, type WorkspaceUserType } from 'nocodb-sdk'
+import { RoleLabels, WorkspaceUserRoles, type WorkspaceUserType } from 'nocodb-sdk'
 import InfiniteLoading from 'v3-infinite-loading'
-import { storeToRefs, stringToColour, timeAgo } from '#imports'
+import { storeToRefs, stringToColour, timeAgo, useGlobal } from '#imports'
 
-const rolesLabel = {
-  [ProjectRole.Creator]: 'Creator',
-  [ProjectRole.Owner]: 'Owner',
-  [ProjectRole.Editor]: 'Editor',
-  [ProjectRole.Commenter]: 'Commenter',
-  [ProjectRole.Viewer]: 'Viewer',
-  [WorkspaceUserRoles.CREATOR]: 'Creator',
-  [WorkspaceUserRoles.OWNER]: 'Owner',
-  [WorkspaceUserRoles.EDITOR]: 'Editor',
-  [WorkspaceUserRoles.COMMENTER]: 'Commenter',
-  [WorkspaceUserRoles.VIEWER]: 'Viewer',
-}
-
+const { user } = useGlobal()
 const projectsStore = useProjects()
 const { getProjectUsers, createProjectUser, updateProjectUser } = projectsStore
 const { activeProjectId } = storeToRefs(projectsStore)
@@ -46,7 +34,7 @@ const loadCollaborators = async () => {
         ...user,
         projectRoles: user.roles,
         // TODO: Remove this hack and make the values consistent with the backend
-        roles: user.roles ?? (rolesLabel[user.workspace_roles] as string)?.toLowerCase(),
+        roles: user.roles ?? (RoleLabels[user.workspace_roles as string] as string)?.toLowerCase(),
       })),
     ]
   } catch (e: any) {
@@ -82,16 +70,7 @@ onMounted(async () => {
     isLoading.value = false
   }
 })
-/*
-const getRolesLabel = (roles?: string) => {
-  return (
-    roles
-      ?.split(/\s*,\s*REMOVE/)
-      ?.map((role) => rolesLabel[role])
-      .join(', ') ?? ''
-  )
-}
-*/
+
 const updateCollaborator = async (collab, roles) => {
   try {
     if (collab.projectRoles) {
@@ -199,8 +178,14 @@ const reloadCollabs = async () => {
                 </NcSelect>
               </div>
               <div v-else class="nc-collaborator-role-select">
-                <NcSelect v-model:value="collab.roles" class="w-35 !rounded px-1" :virtual="true"
-                  @change="(value) => updateCollaborator(collab, value)">
+                <NcSelect
+                  v-model:value="collab.roles"
+                  class="w-35 !rounded px-1"
+                  :virtual="true"
+                  :placeholder="$t('labels.noAccess')"
+                  :disabled="collab.id === user?.id"
+                  @change="(value) => updateCollaborator(collab, value)"
+                >
                   <template #suffixIcon>
                     <MdiChevronDown />
                   </template>

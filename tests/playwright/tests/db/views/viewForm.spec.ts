@@ -386,18 +386,11 @@ test.describe('Form view with LTAR', () => {
       withoutPrefix: true,
     });
 
-    await wsPage.waitFor({ state: 'visible' });
-
-    if (isEE()) {
-      await wsPage.workspaceOpen({ title: context.workspace.title });
-    }
-    await wsPage.projectOpen({ title: context.project.title });
-
-    if (!isEE()) {
-      // project tree is collapsed in CE
-      await dashboard.rootPage.waitForTimeout(1000);
-      await dashboard.treeView.openProject({ title: context.project.title });
-    }
+    await dashboard.rootPage.waitForTimeout(500);
+    await dashboard.leftSidebar.openWorkspace({ title: context.workspace.title });
+    await dashboard.rootPage.waitForTimeout(500);
+    await dashboard.treeView.openProject({ title: context.project.title });
+    await dashboard.rootPage.waitForTimeout(500);
     await dashboard.treeView.openTable({ title: 'Country' });
     await dashboard.viewSidebar.openView({ title: 'Country' });
 

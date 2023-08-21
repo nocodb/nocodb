@@ -71,24 +71,44 @@ const updateCollaborator = async (collab) => {
           </td>
           <td class="w-1/5 roles">
             <div v-if="collab.roles === WorkspaceUserRoles.OWNER" class="nc-collaborator-role-select">
-              <a-select v-model:value="collab.roles" class="w-30 !rounded px-1" disabled>
+              <NcSelect v-model:value="collab.roles" class="w-35 !rounded px-1" disabled>
                 <template #suffixIcon>
                   <MdiChevronDown />
                 </template>
-                <a-select-option :value="WorkspaceUserRoles.OWNER"> Owner</a-select-option>
-              </a-select>
+                <a-select-option :value="WorkspaceUserRoles.OWNER">
+                  <NcBadge color="purple">
+                    <p class="badge-text">Owner</p>
+                  </NcBadge>
+                </a-select-option>
+              </NcSelect>
             </div>
 
             <div v-else class="nc-collaborator-role-select">
-              <a-select v-model:value="collab.roles" class="w-30 !rounded px-1" @change="updateCollaborator(collab)">
+              <NcSelect v-model:value="collab.roles" class="w-35 !rounded px-1" @change="updateCollaborator(collab)">
                 <template #suffixIcon>
                   <MdiChevronDown />
                 </template>
-                <a-select-option :value="WorkspaceUserRoles.CREATOR"> Creator</a-select-option>
-                <a-select-option :value="WorkspaceUserRoles.EDITOR"> Editor</a-select-option>
-                <a-select-option :value="WorkspaceUserRoles.COMMENTER"> Commenter</a-select-option>
-                <a-select-option :value="WorkspaceUserRoles.VIEWER"> Viewer</a-select-option>
-              </a-select>
+                <a-select-option :value="WorkspaceUserRoles.CREATOR">
+                  <NcBadge color="blue">
+                    <p class="badge-text">Creator</p>
+                  </NcBadge>
+                </a-select-option>
+                <a-select-option :value="WorkspaceUserRoles.EDITOR">
+                  <NcBadge color="green">
+                    <p class="badge-text">Editor</p>
+                  </NcBadge>
+                </a-select-option>
+                <a-select-option :value="WorkspaceUserRoles.COMMENTER">
+                  <NcBadge color="orange">
+                    <p class="badge-text">Commenter</p>
+                  </NcBadge>
+                </a-select-option>
+                <a-select-option :value="WorkspaceUserRoles.VIEWER">
+                  <NcBadge color="yellow">
+                    <p class="badge-text">Viewer</p>
+                  </NcBadge>
+                </a-select-option>
+              </NcSelect>
             </div>
           </td>
           <td class="w-1/5">
@@ -119,6 +139,9 @@ const updateCollaborator = async (collab) => {
 </template>
 
 <style scoped lang="scss">
+.badge-text {
+    @apply text-[14px] pt-1 text-center
+}
 .nc-collaborators-list-table {
   @apply min-w-[700px] !w-full border-gray-100 mt-1;
 

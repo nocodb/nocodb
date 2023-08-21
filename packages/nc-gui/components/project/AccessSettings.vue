@@ -156,10 +156,8 @@ const reloadCollabs = async () => {
       <div v-if="isSearching" class="nc-collaborators-list items-center justify-center">
         <GeneralLoader size="xlarge" />
       </div>
-      <div
-        v-else-if="!collaborators?.length"
-        class="nc-collaborators-list w-full h-full flex flex-col items-center justify-center mt-36"
-      >
+      <div v-else-if="!collaborators?.length"
+        class="nc-collaborators-list w-full h-full flex flex-col items-center justify-center mt-36">
         <Empty description="No collaborators found" />
       </div>
       <div v-else class="nc-collaborators-list nc-scrollbar-md">
@@ -172,7 +170,8 @@ const reloadCollabs = async () => {
         </div>
 
         <div class="flex flex-col nc-scrollbar-md">
-          <div v-for="(collab, i) of collaborators" :key="i" class="relative w-full nc-collaborators nc-collaborators-list-row">
+          <div v-for="(collab, i) of collaborators" :key="i"
+            class="relative w-full nc-collaborators nc-collaborators-list-row">
             <div class="!py-0 w-1/5 email">
               <div class="flex items-center gap-2">
                 <span class="color-band" :style="{ backgroundColor: stringToColour(collab.email) }">{{
@@ -188,29 +187,44 @@ const reloadCollabs = async () => {
             </div>
             <div class="w-1/5 roles">
               <div v-if="collab.roles === ProjectRole.Owner" class="nc-collaborator-role-select">
-                <a-select v-model:value="collab.roles" class="w-30 !rounded px-1 !capitalize" disabled>
+                <NcSelect v-model:value="collab.roles" class="w-35 !rounded px-1 !capitalize" disabled>
                   <template #suffixIcon>
                     <MdiChevronDown />
                   </template>
-                  <a-select-option :value="WorkspaceUserRoles.OWNER"> Owner</a-select-option>
-                </a-select>
+                  <a-select-option :value="ProjectRole.Owner">
+                    <NcBadge color="purple">
+                      <p class="badge-text">Owner</p>
+                    </NcBadge>
+                  </a-select-option>
+                </NcSelect>
               </div>
               <div v-else class="nc-collaborator-role-select">
-                <a-select
-                  v-model:value="collab.roles"
-                  class="w-30 !rounded px-1"
-                  :virtual="true"
-                  @change="(value) => updateCollaborator(collab, value)"
-                  :placeholder="$t('labels.noAccess')"
-                >
+                <NcSelect v-model:value="collab.roles" class="w-35 !rounded px-1" :virtual="true"
+                  @change="(value) => updateCollaborator(collab, value)">
                   <template #suffixIcon>
                     <MdiChevronDown />
                   </template>
-                  <a-select-option :value="ProjectRole.Creator"> Creator</a-select-option>
-                  <a-select-option :value="ProjectRole.Editor"> Editor</a-select-option>
-                  <a-select-option :value="ProjectRole.Commenter"> Commenter</a-select-option>
-                  <a-select-option :value="ProjectRole.Viewer"> Viewer</a-select-option>
-                </a-select>
+                  <a-select-option :value="ProjectRole.Creator">
+                    <NcBadge color="blue">
+                      <p class="badge-text">Creator</p>
+                    </NcBadge>
+                  </a-select-option>
+                  <a-select-option :value="ProjectRole.Editor">
+                    <NcBadge color="green">
+                      <p class="badge-text">Editor</p>
+                    </NcBadge>
+                  </a-select-option>
+                  <a-select-option :value="ProjectRole.Commenter">
+                    <NcBadge color="orange">
+                      <p class="badge-text">Commenter</p>
+                    </NcBadge>
+                  </a-select-option>
+                  <a-select-option :value="ProjectRole.Viewer">
+                    <NcBadge color="yellow">
+                      <p class="badge-text">Viewer</p>
+                    </NcBadge>
+                  </a-select-option>
+                </NcSelect>
               </div>
             </div>
             <div class="w-1/5"></div>
@@ -233,6 +247,10 @@ const reloadCollabs = async () => {
 </template>
 
 <style scoped lang="scss">
+.badge-text {
+  @apply text-[14px] pt-1 text-center
+}
+
 .nc-collaborators-list {
   @apply border-gray-100 mt-1 flex flex-col w-full;
   // todo: replace/remove 120px with proper value while updating invite ui
@@ -242,6 +260,7 @@ const reloadCollabs = async () => {
 .nc-collaborators-list-header {
   @apply flex flex-row justify-between items-center min-h-13 border-b-1 border-gray-100 pl-4 text-gray-500;
 }
+
 .nc-collaborators-list-row {
   @apply flex flex-row justify-between items-center min-h-16 border-b-1 border-gray-100 pl-4;
 }

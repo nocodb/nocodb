@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { useTitle } from '@vueuse/core'
 import type { WorkspaceType } from 'nocodb-sdk'
 
 const router = useRouter()
@@ -18,6 +19,20 @@ const tab = computed({
 })
 
 const getWorkspaceColor = (workspace: WorkspaceType) => workspace.meta?.color || stringToColour(workspace.id!)
+
+watch(
+  () => activeWorkspace.value?.title,
+  (title: string) => {
+    if (!title) return
+
+    const capitalizedTitle = title.charAt(0).toUpperCase() + title.slice(1)
+
+    useTitle(capitalizedTitle)
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>

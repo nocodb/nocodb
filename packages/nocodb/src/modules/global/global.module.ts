@@ -12,6 +12,7 @@ import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { UsersService } from '~/services/users/users.service';
 import { TelemetryService } from '~/services/telemetry.service';
 import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
+import { WorkspacesService } from '~/ee/modules/workspaces/workspaces.service';
 import { ProjectsService } from '~/services/projects.service';
 import { TablesService } from '~/services/tables.service';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
@@ -49,6 +50,7 @@ export const globalModuleMetadata = {
     SocketGateway,
     AppHooksService,
     AppHooksListenerService,
+    WorkspacesService,
     TelemetryService,
     ProjectsService,
     TablesService,

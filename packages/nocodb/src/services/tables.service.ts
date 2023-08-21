@@ -355,12 +355,7 @@ export class TablesService {
     table: TableReqType;
     user: User | UserType;
     req?: any;
-    useDefaultColumns?: boolean;
   }) {
-    if (param.useDefaultColumns) {
-      param.table.columns = defaultColumnsPg as any;
-    }
-
     validatePayload('swagger.json#/components/schemas/TableReq', param.table);
 
     const tableCreatePayLoad: Omit<TableReqType, 'columns'> & {
@@ -524,99 +519,3 @@ export class TablesService {
     return result;
   }
 }
-
-const defaultColumnsPg = [
-  {
-    column_name: 'id',
-    title: 'Id',
-    dt: 'int4',
-    dtx: 'integer',
-    ct: 'int(11)',
-    nrqd: false,
-    rqd: true,
-    ck: false,
-    pk: true,
-    un: false,
-    ai: true,
-    cdf: null,
-    clen: null,
-    np: 11,
-    ns: 0,
-    dtxp: '11',
-    dtxs: '',
-    altered: 1,
-    uidt: 'ID',
-    uip: '',
-    uicn: '',
-  },
-  {
-    column_name: 'title',
-    title: 'Title',
-    dt: 'character varying',
-    dtx: 'specificType',
-    ct: 'varchar(45)',
-    nrqd: true,
-    rqd: false,
-    ck: false,
-    pk: false,
-    un: false,
-    ai: false,
-    cdf: null,
-    clen: 45,
-    np: null,
-    ns: null,
-    dtxp: '45',
-    dtxs: '',
-    altered: 1,
-    uidt: 'SingleLineText',
-    uip: '',
-    uicn: '',
-  },
-  {
-    column_name: 'created_at',
-    title: 'CreatedAt',
-    dt: 'timestamp',
-    dtx: 'specificType',
-    ct: 'varchar(45)',
-    nrqd: true,
-    rqd: false,
-    ck: false,
-    pk: false,
-    un: false,
-    ai: false,
-    cdf: 'now()',
-    clen: 45,
-    np: null,
-    ns: null,
-    dtxp: '',
-    dtxs: '',
-    altered: 1,
-    uidt: 'DateTime',
-    uip: '',
-    uicn: '',
-  },
-  {
-    column_name: 'updated_at',
-    title: 'UpdatedAt',
-    dt: 'timestamp',
-    dtx: 'specificType',
-    ct: 'varchar(45)',
-    nrqd: true,
-    rqd: false,
-    ck: false,
-    pk: false,
-    un: false,
-    ai: false,
-    au: true,
-    cdf: 'now()',
-    clen: 45,
-    np: null,
-    ns: null,
-    dtxp: '',
-    dtxs: '',
-    altered: 1,
-    uidt: 'DateTime',
-    uip: '',
-    uicn: '',
-  },
-];

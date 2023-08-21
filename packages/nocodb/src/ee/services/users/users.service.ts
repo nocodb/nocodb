@@ -1,14 +1,7 @@
 import { promisify } from 'util';
 import { UsersService as UsersServiceCE } from 'src/services/users/users.service';
 import { Injectable } from '@nestjs/common';
-import {
-  AppEvents,
-  OrgUserRoles,
-  validatePassword,
-  WorkspacePlan,
-  WorkspaceStatus,
-  WorkspaceUserRoles,
-} from 'nocodb-sdk';
+import { AppEvents, OrgUserRoles, validatePassword } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { isEmail } from 'validator';
 import { T } from 'nc-help';
@@ -20,19 +13,18 @@ import { NC_APP_SETTINGS } from '~/constants';
 import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { Store, User, Workspace, WorkspaceUser } from '~/models';
+import { Store, User } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
-import { ProjectsService } from '~/services/projects.service';
-import { TablesService } from '~/services/tables.service';
+import { WorkspacesService } from '~/modules/workspaces/workspaces.service';
+
 @Injectable()
 export class UsersService extends UsersServiceCE {
   constructor(
     protected metaService: MetaService,
     protected appHooksService: AppHooksService,
-    private projectsService: ProjectsService,
-    private readonly tablesService: TablesService,
+    protected workspaceService: WorkspacesService,
   ) {
     super(metaService, appHooksService);
   }
@@ -90,10 +82,6 @@ export class UsersService extends UsersServiceCE {
       roles,
       token_version,
     });
-
-    const createdWorkspace = await this.createDefaultWorkspace(user);
-
-    (user as any).createdWorkspace = createdWorkspace;
 
     return user;
   }
@@ -183,7 +171,8 @@ export class UsersService extends UsersServiceCE {
         password,
         email_verification_token,
       });
-      createdWorkspace = (user as any).createdWorkspace;
+
+      createdWorkspace = await this.createDefaultWorkspace(user);
     }
     user = await User.getByEmail(email);
 
@@ -232,43 +221,11 @@ export class UsersService extends UsersServiceCE {
   private async createDefaultWorkspace(user: User) {
     const title = `${user.email?.split('@')?.[0]}`;
     // create new workspace for user
-    const workspace = await Workspace.insert({
-      title,
-      description: 'Default workspace',
-      fk_user_id: user.id,
-      plan: WorkspacePlan.FREE,
-      status: WorkspaceStatus.CREATED,
-    });
-
-    const project = await this.projectsService.projectCreate({
-      project: {
-        title: 'Getting Started',
-        fk_workspace_id: workspace.id,
-        type: 'database',
-      } as any,
-      user: user,
-    });
-
-    const table = await this.tablesService.tableCreate({
-      projectId: project.id,
-      baseId: project.bases[0].id,
-      table: {
-        title: 'Features',
-        table_name: 'Features',
-        columns: [],
+    const workspace = await this.workspaceService.create({
+      user,
+      workspaces: {
+        title,
       },
-      useDefaultColumns: true,
-      user: user,
-    });
-
-    // TODO: Add proper types in swagger
-    (project as any).tables = [table];
-    (workspace as any).projects = [project];
-
-    await WorkspaceUser.insert({
-      fk_user_id: user.id,
-      fk_workspace_id: workspace.id,
-      roles: WorkspaceUserRoles.OWNER,
     });
 
     return workspace;

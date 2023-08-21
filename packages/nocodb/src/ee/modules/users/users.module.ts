@@ -5,14 +5,13 @@ import { GlobalModule } from '~/modules/global/global.module';
 import { UsersService } from '~/services/users/users.service';
 import { UsersController } from '~/controllers/users/users.controller';
 import { OpenidStrategyProvider } from '~/strategies/openid.strategy/openid.strategy';
+import { WorkspacesService } from '~/ee/modules/workspaces/workspaces.service';
 import { ProjectsService } from '~/services/projects.service';
 import { TablesService } from '~/services/tables.service';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { ColumnsService } from '~/services/columns.service';
-import { MetasModule } from '~/modules/metas/metas.module';
-
 @Module({
-  imports: [GlobalModule, PassportModule, MetasModule],
+  imports: [GlobalModule, PassportModule],
   controllers: [
     ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [UsersController] : []),
   ],
@@ -20,6 +19,7 @@ import { MetasModule } from '~/modules/metas/metas.module';
     UsersService,
     GoogleStrategyProvider,
     OpenidStrategyProvider,
+    WorkspacesService,
     ProjectsService,
     TablesService,
     MetaDiffsService,

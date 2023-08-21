@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   ProjectRoles,
+  SqlUiFactory,
   WorkspacePlan,
   WorkspaceStatus,
   WorkspaceUserRoles,
@@ -15,10 +16,12 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import Workspace from '~/models/Workspace';
 import validateParams from '~/helpers/validateParams';
 import { NcError } from '~/helpers/catchError';
-import { Project, ProjectUser } from '~/models';
+import { Base, Project, ProjectUser } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { extractProps } from '~/helpers/extractProps';
 import extractRolesObj from '~/utils/extractRolesObj';
+import { ProjectsService } from '~/services/projects.service';
+import { TablesService } from '~/services/tables.service';
 
 @Injectable()
 export class WorkspacesService {
@@ -27,6 +30,8 @@ export class WorkspacesService {
   constructor(
     private appHooksService: AppHooksService,
     private configService: ConfigService<AppConfig>,
+    private projectsService: ProjectsService,
+    private tablesService: TablesService,
   ) {}
 
   async list(param: {
@@ -52,6 +57,8 @@ export class WorkspacesService {
     const workspacePayloads = Array.isArray(param.workspaces)
       ? param.workspaces
       : [param.workspaces];
+
+    const isBulkMode = Array.isArray(param.workspaces);
 
     for (const workspacePayload of workspacePayloads) {
       validateParams(['title'], workspacePayload);
@@ -83,9 +90,35 @@ export class WorkspacesService {
         user: param.user,
       });
 
+      const project = await this.projectsService.projectCreate({
+        project: {
+          title: 'Getting Started',
+          fk_workspace_id: workspace.id,
+          type: 'database',
+        } as any,
+        user: param.user,
+      });
+
+      const sqlUI = SqlUiFactory.create({ client: project.bases[0].type });
+      const columns = sqlUI?.getNewTableColumns() as any;
+
+      const table = await this.tablesService.tableCreate({
+        projectId: project.id,
+        baseId: project.bases[0].id,
+        table: {
+          title: 'Features',
+          table_name: 'Features',
+          columns,
+        },
+        user: param.user,
+      });
+
+      (project as any).tables = [table];
+      (workspace as any).projects = [project];
+
       workspaces.push(workspace);
     }
-    return Array.isArray(param.workspaces) ? workspaces : workspaces[0];
+    return isBulkMode ? workspaces : workspaces[0];
   }
 
   async get(param: {

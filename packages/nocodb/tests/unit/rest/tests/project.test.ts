@@ -3,7 +3,6 @@ import request from 'supertest';
 import { beforeEach } from 'mocha';
 import { Exception } from 'handlebars';
 import { expect } from 'chai';
-import { isEE } from '../../../../../../tests/playwright/setup/db';
 import { Project } from '../../../../src/models';
 import { createTable } from '../../factory/table';
 import init from '../../init';
@@ -142,7 +141,7 @@ function projectTest() {
   });
 
   it('Update projects with existing title', async function () {
-    if (!isEE()) {
+    if (process.env.EE !== 'true') {
       const newProject = await createProject(context, {
         title: 'NewTitle1',
       });

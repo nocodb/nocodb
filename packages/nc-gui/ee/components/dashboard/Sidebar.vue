@@ -47,18 +47,20 @@ const onTreeViewScrollTop = (onScrollTop: boolean) => {
 
 const { appInfo } = useGlobal()
 
-const navigateToHome = () => {
-  if (appInfo.value.baseHostName) {
-    window.location.href = `https://app.${appInfo.value.baseHostName}/dashboard`
-  } else {
-    navigateToWorkspaceSettings()
-  }
+const navigateToSettings = () => {
+  // TODO: Handle cloud case properly
+  navigateToWorkspaceSettings()
+
+  // if (appInfo.value.baseHostName) {
+  //   window.location.href = `https://app.${appInfo.value.baseHostName}/dashboard`
+  // } else {
+  // }
 }
 </script>
 
 <template>
   <div
-    class="nc-sidebar flex flex-col bg-gray-50 outline-r-1 outline-gray-100 select-none "
+    class="nc-sidebar flex flex-col bg-gray-50 outline-r-1 outline-gray-100 select-none"
     :style="{
       outlineWidth: '1px',
     }"
@@ -130,7 +132,7 @@ const navigateToHome = () => {
             role="button"
             class="nc-sidebar-top-button"
             data-testid="nc-sidebar-team-settings-btn"
-            @click="navigateToHome"
+            @click="navigateToSettings"
           >
             <GeneralIcon icon="settings" class="!h-3.9" />
             <div>Team & Settings</div>

@@ -44,6 +44,7 @@ function groupByTests() {
       .set('xc-auth', context.token)
       .query({
         column_name: lengthColumn.column_name,
+        sort: lengthColumn.title,
       })
       .expect(200);
     if (
@@ -64,6 +65,7 @@ function groupByTests() {
       .query({
         column_name: rentalDurationColumn.column_name,
         where: filterCondition,
+        sort: rentalDurationColumn.title,
       })
       .expect(200);
     if (
@@ -82,6 +84,7 @@ function groupByTests() {
       .query({
         column_name: titleColumn.column_name,
         where: filterCondition,
+        sort: titleColumn.title,
       })
       .expect(200);
     if (
@@ -138,6 +141,7 @@ function groupByTests() {
       .query({
         column_name: titleColumn.column_name,
         where: filterCondition,
+        sort: `-${titleColumn.title}`,
       })
       .expect(200);
     if (

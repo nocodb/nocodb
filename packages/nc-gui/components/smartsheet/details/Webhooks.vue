@@ -136,7 +136,7 @@ watch(
 <template>
   <div
     v-if="activeView && !isHooksLoading"
-    class="flex flex-col pt-3 border-gray-50 pl-3 pr-0 nc-view-sidebar-webhook nc-scrollbar-md"
+    class="flex flex-col pt-3 pb-12 border-gray-50 pl-3 pr-0 nc-view-sidebar-webhook nc-scrollbar-md"
     style="height: calc(100vh - (var(--topbar-height) * 2))"
   >
     <div
@@ -201,67 +201,76 @@ watch(
           </div>
         </NcButton>
       </div>
-      <div v-else class="flex flex-col pb-2 gap-y-1.5 mt-3 mb-2.5 w-full max-w-200">
-        <div
-          v-for="hook in hooks"
-          :key="hook.id"
-          class="flex flex-row mr-3 items-center hover:bg-gray-50 rounded-lg pl-3 pr-2 py-2 cursor-pointer group nc-view-sidebar-webhook-item text-gray-600"
-          :class="{
-            'bg-brand-50 !text-brand-500 hover:bg-brand-50': hook.id === selectedHookId,
-          }"
-        >
-          <a-switch
-            v-e="['c:actions:webhook']"
-            size="small"
-            :checked="hook.active!"
-            class="min-w-4 !mr-2"
-            @change="toggleHook(hook)"
-          />
-          <div class="flex flex-row items-center gap-x-2 flex-grow ml-0.5" @click="openEditor(hook.id!)">
-            <!-- <div class="circle">
-              <div
-                class="dot"
-                :class="{
-                  'bg-green-500': hook?.active,
-                  'bg-gray-400': !hook?.active,
-                }"
-              ></div>
-            </div> -->
-            <div class="text-inherit group-hover:text-black capitalize">
-              {{ hook?.title }}
+      <div v-else class="flex flex-col pb-2 mt-3 mb-2.5 w-full max-w-200">
+        <div class="flex flex-row nc-view-sidebar-webhook-item pl-3 pr-2 !py-2.5">
+          <div class="nc-view-sidebar-webhook-item-toggle header">Activate</div>
+          <div class="nc-view-sidebar-webhook-item-title header">Title</div>
+          <div class="nc-view-sidebar-webhook-item-event header">Event</div>
+          <div class="nc-view-sidebar-webhook-item-action header">Action</div>
+        </div>
+        <div v-for="hook in hooks" :key="hook.id" class="nc-view-sidebar-webhook-item">
+          <div
+            class="flex flex-row w-full items-center pl-3 pr-2 py-2 hover:bg-gray-50 rounded-lg cursor-pointer group text-gray-600"
+            :class="{
+              'bg-brand-50 !text-brand-500 hover:bg-brand-50': hook.id === selectedHookId,
+            }"
+          >
+            <div class="nc-view-sidebar-webhook-item-toggle">
+              <a-switch
+                v-e="['c:actions:webhook']"
+                size="small"
+                :checked="hook.active!"
+                class="min-w-4"
+                @change="toggleHook(hook)"
+              />
+            </div>
+            <div class="nc-view-sidebar-webhook-item-title font-medium flex flex-row items-center" @click="openEditor(hook.id!)">
+              <div class="text-inherit group-hover:text-black capitalize">
+                {{ hook?.title }}
+              </div>
+            </div>
+
+            <div class="nc-view-sidebar-webhook-item-event capitalize">{{ hook?.event }} {{ hook?.operation }}</div>
+
+            <div class="nc-view-sidebar-webhook-item-action !">
+              <NcDropdown :trigger="['click']" overlay-class-name="rounded-md">
+                <NcButton
+                  size="xsmall"
+                  type="text"
+                  class="nc-btn-webhook-more !text-gray-500 !hover:text-gray-800"
+                  :class="{
+                    '!hover:bg-brand-100': hook.id === selectedHookId,
+                    '!hover:bg-gray-200': hook.id !== selectedHookId,
+                  }"
+                >
+                  <GeneralIcon icon="threeDotVertical" class="text-inherit" />
+                </NcButton>
+                <template #overlay>
+                  <div class="flex flex-col p-0 items-start">
+                    <NcButton
+                      type="text"
+                      class="w-full !rounded-none"
+                      :loading="isCopying"
+                      :centered="false"
+                      @click="copyWebhook(hook)"
+                    >
+                      <template #loading> Duplicating </template>
+                      <div class="flex items-center gap-x-1">
+                        <GeneralIcon icon="copy" class="-ml-0.75" />
+                        Duplicate
+                      </div>
+                    </NcButton>
+                    <NcButton type="text" class="w-full !rounded-none" :centered="false" @click="openDeleteModal(hook.id!)">
+                      <div class="flex items-center justify-start gap-x-1 !text-red-500">
+                        <GeneralIcon icon="delete" />
+                        Delete
+                      </div>
+                    </NcButton>
+                  </div>
+                </template>
+              </NcDropdown>
             </div>
           </div>
-
-          <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md">
-            <NcButton
-              size="xsmall"
-              type="text"
-              class="nc-btn-webhook-more !text-gray-500 !hover:text-gray-800"
-              :class="{
-                '!hover:bg-brand-100': hook.id === selectedHookId,
-                '!hover:bg-gray-200': hook.id !== selectedHookId,
-              }"
-            >
-              <GeneralIcon icon="threeDotVertical" class="ml-0.75 text-inherit" />
-            </NcButton>
-            <template #overlay>
-              <div class="flex flex-col p-0">
-                <NcButton type="text" class="!rounded-none" :loading="isCopying" @click="copyWebhook(hook)">
-                  <template #loading> Duplicating </template>
-                  <div class="flex items-center gap-x-1">
-                    <GeneralIcon icon="copy" class="-ml-0.75" />
-                    Duplicate
-                  </div>
-                </NcButton>
-                <NcButton type="text" class="!rounded-none" @click="openDeleteModal(hook.id!)">
-                  <div class="flex items-center gap-x-1 !text-red-500">
-                    <GeneralIcon icon="delete" />
-                    Delete
-                  </div>
-                </NcButton>
-              </div>
-            </template>
-          </NcDropdown>
         </div>
       </div>
     </div>
@@ -315,5 +324,27 @@ watch(
 
 .link {
   @apply !hover:text-gray-800 !text-gray-600 !underline-transparent !hover:underline  transition-all duration-150 cursor-pointer;
+}
+
+.nc-view-sidebar-webhook-item {
+  @apply flex flex-row mr-3 items-center border-b-1 py-1;
+}
+.nc-view-sidebar-webhook-item:last-child {
+  @apply border-b-0;
+}
+.nc-view-sidebar-webhook-item-toggle {
+  @apply flex flex-row min-w-1/10 max-w-1/10 ml-2;
+}
+.nc-view-sidebar-webhook-item-title {
+  @apply flex flex-row min-w-6/10 max-w-6/10;
+}
+.nc-view-sidebar-webhook-item-event {
+  @apply flex flex-row min-w-2/10 max-w-2/10;
+}
+.nc-view-sidebar-webhook-item-action {
+  @apply flex flex-row w-1/10 justify-end;
+}
+.nc-view-sidebar-webhook-item > .header {
+  @apply text-gray-500;
 }
 </style>

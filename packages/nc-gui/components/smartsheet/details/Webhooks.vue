@@ -152,7 +152,7 @@ watch(
           size="xsmall"
           @click="navigateToWebhook({ openMainPage: true })"
         >
-          <GeneralIcon icon="arrowLeft" class="ml-0.75" />
+          <GeneralIcon icon="arrowLeft" />
         </NcButton>
         <div class="flex flex-row ml-2">
           <NuxtLink class="link" :to="webhookMainUrl">Webhooks</NuxtLink>

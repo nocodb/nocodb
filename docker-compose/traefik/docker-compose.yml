@@ -62,7 +62,7 @@ services:
       - "--certificatesResolvers.letsencrypt.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53"
     container_name: traefik
     environment: 
-      - "CF_DNS_API_TOKEN=${CLOUDFLARE_TOKEN}"
+      - "CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}"
     healthcheck: 
       retries: 3
       test: 

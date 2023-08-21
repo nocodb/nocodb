@@ -15,7 +15,7 @@ function workspaceTests() {
     console.timeEnd('#### workspaceTests');
   });
 
-  it.only('Create WorkSpace', async () => {
+  it('Create WorkSpace', async () => {
     const title = 'Sakila01';
     const color = '#4351E8';
 
@@ -40,7 +40,7 @@ function workspaceTests() {
     }
   });
 
-  it.only('List Workspaces', async () => {
+  it('List Workspaces', async () => {
     const title = 'Sakila01';
     const color = '#4351E8';
 

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
-import { useTitle } from '@vueuse/core'
 
 import {
   ActiveViewInj,
@@ -159,13 +158,6 @@ const onDrop = async (event: DragEvent) => {
     console.log('error', e)
   }
 }
-
-watch(
-  () => `${openedProject.value?.title}: ${activeTable.value?.title}`,
-  () => {
-    useTitle(`${openedProject.value?.title}: ${activeTable.value?.title}`)
-  },
-)
 </script>
 
 <template>

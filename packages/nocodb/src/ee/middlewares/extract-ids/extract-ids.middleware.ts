@@ -79,8 +79,6 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     }
     if (params.projectId) {
       req.ncProjectId = params.projectId;
-    } else if (req.query.project_id) {
-      req.ncProjectId = req.query.project_id;
     } else if (params.dashboardId) {
       req.ncProjectId = params.dashboardId;
     } else if (
@@ -145,6 +143,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const widget = await Widget.get(params.widgetId);
       const layout = await Layout.get(widget.layout_id);
       req.ncProjectId = layout?.project_id;
+    } else if (req.query.project_id) {
+      req.ncProjectId = req.query.project_id;
     }
 
     // todo:  verify all scenarios

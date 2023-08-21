@@ -136,6 +136,7 @@ watch(
 <template>
   <div
     v-if="activeView && !isHooksLoading"
+    :key="selectedHookId"
     class="flex flex-col pt-3 pb-12 border-gray-50 pl-3 pr-0 nc-view-sidebar-webhook nc-scrollbar-md"
     style="height: calc(100vh - (var(--topbar-height) * 2))"
   >

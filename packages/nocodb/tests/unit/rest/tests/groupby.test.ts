@@ -44,11 +44,12 @@ function groupByTests() {
       .set('xc-auth', context.token)
       .query({
         column_name: lengthColumn.column_name,
+        sort: lengthColumn.title,
       })
       .expect(200);
     if (
-      response.body.list[4]['length'] !== '68' &&
-      parseInt(response.body.list[4]['count']) !== 5
+      response.body.list[4]['length'] !== '50' &&
+      parseInt(response.body.list[4]['count']) !== 9
     )
       throw new Error('Invalid Ascending One GroupBy Test');
   });
@@ -64,6 +65,7 @@ function groupByTests() {
       .query({
         column_name: rentalDurationColumn.column_name,
         where: filterCondition,
+        sort: rentalDurationColumn.title,
       })
       .expect(200);
     if (
@@ -82,6 +84,7 @@ function groupByTests() {
       .query({
         column_name: titleColumn.column_name,
         where: filterCondition,
+        sort: titleColumn.title,
       })
       .expect(200);
     if (
@@ -138,6 +141,7 @@ function groupByTests() {
       .query({
         column_name: titleColumn.column_name,
         where: filterCondition,
+        sort: `-${titleColumn.title}`,
       })
       .expect(200);
     if (

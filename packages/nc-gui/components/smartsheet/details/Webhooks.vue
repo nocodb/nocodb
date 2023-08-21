@@ -327,7 +327,7 @@ watch(
 }
 
 .nc-view-sidebar-webhook-item {
-  @apply flex flex-row mr-3 items-center border-b-1 py-1;
+  @apply flex flex-row mr-3 items-center border-b-1 py-1 border-gray-100;
 }
 .nc-view-sidebar-webhook-item:last-child {
   @apply border-b-0;

@@ -28,29 +28,37 @@ const inviteCollaborator = async () => {
     <div class="text-xl mb-4">Invite</div>
     <a-form>
       <div class="flex gap-2">
-        <a-input
-          id="email"
-          v-model:value="inviteData.email"
-          placeholder="Enter emails to send invitation"
-          class="!max-w-130 !rounded"
-        />
+        <a-input id="email" v-model:value="inviteData.email" placeholder="Enter emails to send invitation"
+          class="!max-w-130 !rounded" />
 
-        <a-select v-model:value="inviteData.roles" class="min-w-30 !rounded px-1" data-testid="roles">
+        <NcSelect v-model:value="inviteData.roles" class="min-w-35 !rounded px-1" data-testid="roles">
           <template #suffixIcon>
             <MdiChevronDown />
           </template>
-          <a-select-option :value="WorkspaceUserRoles.CREATOR"> Creator </a-select-option>
-          <a-select-option :value="WorkspaceUserRoles.EDITOR"> Editor </a-select-option>
-          <a-select-option :value="WorkspaceUserRoles.COMMENTER"> Commenter </a-select-option>
-          <a-select-option :value="WorkspaceUserRoles.VIEWER"> Viewer </a-select-option>
-        </a-select>
+          <a-select-option :value="WorkspaceUserRoles.CREATOR">
+            <NcBadge color="blue">
+              <p class="badge-text">Creator</p>
+            </NcBadge>
+          </a-select-option>
+          <a-select-option :value="WorkspaceUserRoles.EDITOR">
+            <NcBadge color="green">
+              <p class="badge-text">Editor</p>
+            </NcBadge>
+          </a-select-option>
+          <a-select-option :value="WorkspaceUserRoles.COMMENTER">
+            <NcBadge color="orange">
+              <p class="badge-text">Commenter</p>
+            </NcBadge>
+          </a-select-option>
+          <a-select-option :value="WorkspaceUserRoles.VIEWER">
+            <NcBadge color="yellow">
+              <p class="badge-text">Viewer</p>
+            </NcBadge>
+          </a-select-option>
+        </NcSelect>
 
-        <a-button
-          type="primary"
-          class="!rounded-md"
-          :disabled="!inviteData.email?.length || isInvitingCollaborators"
-          @click="inviteCollaborator"
-        >
+        <a-button type="primary" class="!rounded-md" :disabled="!inviteData.email?.length || isInvitingCollaborators"
+          @click="inviteCollaborator">
           <div class="flex flex-row items-center gap-x-2 pr-1">
             <GeneralLoader v-if="isInvitingCollaborators" class="flex" />
             <MdiPlus v-else />
@@ -63,6 +71,9 @@ const inviteCollaborator = async () => {
 </template>
 
 <style scoped>
+.badge-text {
+    @apply text-[14px] pt-1 text-center
+}
 :deep(.ant-select .ant-select-selector) {
   @apply rounded;
 }

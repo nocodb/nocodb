@@ -116,14 +116,29 @@ const copyUrl = async () => {
               <MdiChevronDown />
             </template>
             <a-select-option v-for="(role, index) in projectRoles" :key="index" :value="role" class="nc-role-option">
-              <div
+              <!-- <div
                 class="flex flex-row h-full justify-start items-center"
                 :data-testid="`nc-share-invite-user-role-option-${role}`"
               >
                 <div class="px-2 py-1 flex rounded-full text-xs capitalize">
                   {{ role }}
                 </div>
-              </div>
+              </div> -->
+              <NcBadge v-if='role===ProjectRole.Owner' color="purple">
+                <p class="badge-text">{{ role }}</p>
+              </NcBadge>
+              <NcBadge v-if="role===ProjectRole.Creator" color="blue">
+                <p class="badge-text">{{ role }}</p>
+              </NcBadge>
+              <NcBadge v-if='role===ProjectRole.Editor' color="green">
+                <p class="badge-text">{{ role }}</p>
+              </NcBadge>
+              <NcBadge v-if="role===ProjectRole.Commenter" color="orange">
+                <p class="badge-text">{{ role }}</p>
+              </NcBadge>
+              <NcBadge v-if="role===ProjectRole.Viewer" color="yellow">
+                <p class="badge-text">{{ role }}</p>
+              </NcBadge>
             </a-select-option>
           </a-select>
 
@@ -146,6 +161,9 @@ const copyUrl = async () => {
 </template>
 
 <style scoped>
+.badge-text {
+    @apply text-[14px] pt-1 text-center
+}
 :deep(.ant-select .ant-select-selector) {
   @apply rounded;
 }

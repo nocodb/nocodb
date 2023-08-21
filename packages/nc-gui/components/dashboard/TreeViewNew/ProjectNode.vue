@@ -461,7 +461,10 @@ onKeyStroke('Escape', () => {
 
                 <a-menu-divider v-if="false" />
 
-                <a-menu-item v-if="isUIAllowed('projectDelete', false, true)" @click="isProjectDeleteDialogVisible = true">
+                <a-menu-item
+                  v-if="isUIAllowed('projectDelete', false, project.project_role)"
+                  @click="isProjectDeleteDialogVisible = true"
+                >
                   <div class="nc-project-menu-item group text-red-500">
                     <GeneralIcon icon="delete" />
                     {{ $t('general.delete') }}

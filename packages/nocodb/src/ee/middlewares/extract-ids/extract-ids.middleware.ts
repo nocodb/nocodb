@@ -81,13 +81,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncProjectId = params.projectId;
     } else if (params.dashboardId) {
       req.ncProjectId = params.dashboardId;
-    } else if (
-      params.tableId ||
-      req.query.fk_model_id ||
-      req.body?.fk_model_id
-    ) {
+    } else if (params.tableId) {
       const model = await Model.getByIdOrName({
-        id: params.tableId || req.query?.fk_model_id || req.body?.fk_model_id,
+        id: params.tableId,
       });
       req.ncProjectId = model?.project_id;
     } else if (params.viewId) {
@@ -143,6 +139,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const widget = await Widget.get(params.widgetId);
       const layout = await Layout.get(widget.layout_id);
       req.ncProjectId = layout?.project_id;
+    } else if (req.query.fk_model_id || req.body?.fk_model_id) {
+      const model = await Model.getByIdOrName({
+        id: params.tableId || req.query?.fk_model_id || req.body?.fk_model_id,
+      });
+      req.ncProjectId = model?.project_id;
     } else if (req.query.project_id) {
       req.ncProjectId = req.query.project_id;
     }

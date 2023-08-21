@@ -83,7 +83,10 @@ export class ProjectsService {
     return result;
   }
 
-  protected async validateProjectTitle(data: Partial<Project>, project: Project) {
+  protected async validateProjectTitle(
+    data: Partial<Project>,
+    project: Project,
+  ) {
     if (
       data?.title &&
       project.title !== data.title &&

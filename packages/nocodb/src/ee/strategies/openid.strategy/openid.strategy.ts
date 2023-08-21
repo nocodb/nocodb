@@ -12,6 +12,7 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';
 import { UsersService } from '~/services/users/users.service';
+import {sanitiseUserObj} from "~/utils";
 
 @Injectable()
 export class OpenidStrategy extends PassportStrategy(
@@ -39,7 +40,7 @@ export class OpenidStrategy extends PassportStrategy(
     User.getByEmail(email)
       .then(async (user) => {
         if (user) {
-          return done(null, { ...user, provider: 'openid' });
+          return done(null, { ...sanitiseUserObj(user), provider: 'openid' });
         } else {
           // if user not found create new user
           const salt = await promisify(bcrypt.genSalt)(10);
@@ -54,7 +55,7 @@ export class OpenidStrategy extends PassportStrategy(
               salt,
             })
             .then((user) => {
-              done(null, { ...user, provider: 'openid' });
+              done(null, { ...sanitiseUserObj(user), provider: 'openid' });
             })
             .catch((e) => done(e));
         }

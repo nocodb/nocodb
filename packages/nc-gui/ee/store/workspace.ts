@@ -400,6 +400,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isWorkspaceLoading.value = isLoading
   }
 
+  const workspaceRole = computed(() => activeWorkspace.value?.roles)
+
   return {
     loadWorkspaces,
     workspaces,
@@ -436,6 +438,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isSharedBase,
     navigateToWorkspaceSettings,
     lastPopulatedWorkspaceId,
+    workspaceRole,
   }
 })
 

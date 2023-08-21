@@ -3,7 +3,7 @@ import type { Menu } from 'ant-design-vue'
 import { Empty } from 'ant-design-vue'
 import type { WorkspaceType } from 'nocodb-sdk'
 import { nextTick, onUnmounted } from '@vue/runtime-core'
-import { WorkspaceStatus, WorkspaceUserRoles } from 'nocodb-sdk'
+import { RoleLabels, WorkspaceStatus } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 // import Sortable from 'sortablejs'
 import {
@@ -23,12 +23,6 @@ import {
 const router = useRouter()
 
 const { isUIAllowed } = useUIPermission()
-
-const roleAlias = {
-  [WorkspaceUserRoles.OWNER]: 'Owner',
-  [WorkspaceUserRoles.VIEWER]: 'Viewer',
-  [WorkspaceUserRoles.CREATOR]: 'Creator',
-}
 
 const workspaceStore = useWorkspace()
 
@@ -408,7 +402,7 @@ watch(
                     >{{ workspace.title }}</span
                   >
                   <span v-if="workspace.roles" class="text-[0.7rem] text-gray-500 hidden group-hover:inline"
-                    >({{ roleAlias[workspace.roles] }})</span
+                    >({{ RoleLabels[workspace.roles] }})</span
                   >
                 </div>
                 <div class="flex-grow"></div>

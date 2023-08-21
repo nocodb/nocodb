@@ -7,7 +7,7 @@ on:
       staging:
         description: 'Staging (ws-pre-release)'
         required: false
-        default: 'false'
+        default: 'true'
       tag:
         description: "Any additional Tag"
         required: false

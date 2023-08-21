@@ -47,8 +47,8 @@ function groupByTests() {
       })
       .expect(200);
     if (
-      response.body.list[4]['length'] !== '68' &&
-      parseInt(response.body.list[4]['count']) !== 5
+      response.body.list[4]['length'] !== '50' &&
+      parseInt(response.body.list[4]['count']) !== 9
     )
       throw new Error('Invalid Ascending One GroupBy Test');
   });

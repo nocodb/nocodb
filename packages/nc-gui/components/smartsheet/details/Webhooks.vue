@@ -203,7 +203,7 @@ watch(
         </NcButton>
       </div>
       <div v-else class="flex flex-col pb-2 mt-3 mb-2.5 w-full max-w-200">
-        <div class="flex flex-row nc-view-sidebar-webhook-item pl-3 pr-2 !py-2.5">
+        <div class="flex flex-row nc-view-sidebar-webhook-header pl-3 pr-2 !py-2.5">
           <div class="nc-view-sidebar-webhook-item-toggle header">Activate</div>
           <div class="nc-view-sidebar-webhook-item-title header">Title</div>
           <div class="nc-view-sidebar-webhook-item-event header">Event</div>

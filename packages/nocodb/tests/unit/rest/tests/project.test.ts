@@ -141,7 +141,7 @@ function projectTest() {
     }
   });
 
-  it.only('Update projects with existing title', async function () {
+  it('Update projects with existing title', async function () {
     if (!isEE()) {
       const newProject = await createProject(context, {
         title: 'NewTitle1',

@@ -14,7 +14,7 @@ import {
 import { TableReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { TablesService } from '~/services/tables.service';
-import { UseAclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import extractRolesObj from '~/utils/extractRolesObj';
 
@@ -27,9 +27,7 @@ export class TablesController {
     '/api/v1/db/meta/projects/:projectId/tables',
     '/api/v1/db/meta/projects/:projectId/:baseId/tables',
   ])
-  @UseAclMiddleware({
-    permissionName: 'tableList',
-  })
+  @Acl('tableList')
   async tableList(
     @Param('projectId') projectId: string,
     @Param('baseId') baseId: string,
@@ -51,9 +49,7 @@ export class TablesController {
     '/api/v1/db/meta/projects/:projectId/:baseId/tables',
   ])
   @HttpCode(200)
-  @UseAclMiddleware({
-    permissionName: 'tableCreate',
-  })
+  @Acl('tableCreate')
   async tableCreate(
     @Param('projectId') projectId: string,
     @Param('baseId') baseId: string,
@@ -71,9 +67,7 @@ export class TablesController {
   }
 
   @Get('/api/v1/db/meta/tables/:tableId')
-  @UseAclMiddleware({
-    permissionName: 'tableGet',
-  })
+  @Acl('tableGet')
   async tableGet(@Param('tableId') tableId: string, @Request() req) {
     const table = await this.tablesService.getTableWithAccessibleViews({
       tableId: req.params.tableId,
@@ -84,9 +78,7 @@ export class TablesController {
   }
 
   @Patch('/api/v1/db/meta/tables/:tableId')
-  @UseAclMiddleware({
-    permissionName: 'tableUpdate',
-  })
+  @Acl('tableUpdate')
   async tableUpdate(
     @Param('tableId') tableId: string,
     @Body() body: TableReqType,
@@ -102,9 +94,7 @@ export class TablesController {
   }
 
   @Delete('/api/v1/db/meta/tables/:tableId')
-  @UseAclMiddleware({
-    permissionName: 'tableDelete',
-  })
+  @Acl('tableDelete')
   async tableDelete(@Param('tableId') tableId: string, @Request() req) {
     const result = await this.tablesService.tableDelete({
       tableId: req.params.tableId,
@@ -116,9 +106,7 @@ export class TablesController {
   }
 
   @Post('/api/v1/db/meta/tables/:tableId/reorder')
-  @UseAclMiddleware({
-    permissionName: 'tableReorder',
-  })
+  @Acl('tableReorder')
   @HttpCode(200)
   async tableReorder(
     @Param('tableId') tableId: string,

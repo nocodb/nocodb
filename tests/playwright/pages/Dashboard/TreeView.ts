@@ -261,9 +261,9 @@ export class TreeViewPage extends BasePage {
     ).toHaveCount(1);
   }
 
-  async validateRoleAccess(param: { role: string }) {
+  async validateRoleAccess(param: { role: string; projectTitle?: string }) {
     const count = param.role.toLowerCase() === 'creator' || param.role.toLowerCase() === 'owner' ? 1 : 0;
-    const pjtNode = await this.getProject({ index: 0 });
+    const pjtNode = await this.getProject({ index: 0, title: param.projectTitle });
     await pjtNode.hover();
 
     // add new table button & context menu is visible only for owner & creator
@@ -307,7 +307,11 @@ export class TreeViewPage extends BasePage {
     await this.rootPage.waitForTimeout(1000);
   }
 
-  private async getProject(param: { index: number }) {
+  private async getProject(param: { index: number; title?: string }) {
+    if (param.title) {
+      return this.get().getByTestId(`nc-sidebar-project-title-${param.title}`);
+    }
+
     return this.get().locator(`.project-title-node`).nth(param.index);
   }
 

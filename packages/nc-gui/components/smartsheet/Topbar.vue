@@ -3,6 +3,9 @@ import { IsPublicInj, inject, ref, useSharedView, useSmartsheetStoreOrThrow, use
 
 const { isGrid, isForm, isGallery, isKanban, isMap } = useSmartsheetStoreOrThrow()
 
+const router = useRouter()
+const route = router.currentRoute
+
 const isPublic = inject(IsPublicInj, ref(false))
 
 const { isViewsLoading } = storeToRefs(useViewsStore())
@@ -12,6 +15,8 @@ const { isMobileMode } = useGlobal()
 const { isUIAllowed } = useUIPermission()
 
 const { allowCSVDownload } = useSharedView()
+
+const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 </script>
 
 <template>
@@ -28,7 +33,7 @@ const { allowCSVDownload } = useSharedView()
 
       <div v-if="!isMobileMode" class="flex-1" />
 
-      <div class="absolute mx-auto -left-1/8 right-0 w-47.5"><SmartsheetTopbarSelectMode /></div>
+      <div v-if="!isSharedBase" class="absolute mx-auto -left-1/8 right-0 w-47.5"><SmartsheetTopbarSelectMode /></div>
 
       <GeneralApiLoader />
 

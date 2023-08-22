@@ -3,6 +3,7 @@ import { nextTick } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
 import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
+import { useTitle } from '@vueuse/core'
 import type { NcProject } from '#imports'
 import {
   ProjectInj,
@@ -15,8 +16,6 @@ import {
   useProjects,
   useWorkspace,
 } from '#imports'
-
-import { useTitle } from '@vueuse/core'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
@@ -254,9 +253,10 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
 
   const isProjectPopulated = projectsStore.isProjectPopulated(project.id!)
 
+  let isSharedBase = false
   // if shared base ignore navigation
   if (route.value.params.typeOrId === 'base') {
-    ignoreNavigation = true
+    isSharedBase = true
   }
 
   if (!isProjectPopulated) project.isLoading = true
@@ -289,6 +289,7 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
           projectUrl({
             id: project.id!,
             type: 'database',
+            isSharedBase,
           }),
         )
       }

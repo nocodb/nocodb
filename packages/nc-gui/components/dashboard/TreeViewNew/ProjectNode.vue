@@ -225,9 +225,10 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
 
   const isProjectPopulated = projectsStore.isProjectPopulated(project.id!)
 
+  let isSharedBase = false
   // if shared base ignore navigation
   if (route.value.params.typeOrId === 'base') {
-    ignoreNavigation = true
+    isSharedBase = true
   }
 
   if (!isProjectPopulated) project.isLoading = true
@@ -237,6 +238,7 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
       projectUrl({
         id: project.id!,
         type: 'database',
+        isSharedBase,
       }),
     )
   }

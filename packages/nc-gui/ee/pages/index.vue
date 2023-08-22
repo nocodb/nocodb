@@ -60,7 +60,7 @@ const autoNavigateToProject = async () => {
 }
 
 watch(
-  () => route.value.params.projectTypeOrWorkspaceId ?? route.value.params.typeOrId,
+  () => workspaceStore.activeWorkspaceId,
   async (newId, oldId) => {
     if (newId === 'nc') {
       workspaceStore.setLoadingState(false)

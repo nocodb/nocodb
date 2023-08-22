@@ -29,12 +29,21 @@ const autoNavigateToProject = async () => {
   await projectsStore.navigateToProject({ projectId: projectsList.value[0].id! })
 }
 
+const isSharedView = computed(() => {
+  const routeName = (route.value.name as string) || ''
+
+  // check route is not project page by route name
+  return !routeName.startsWith('index-typeOrId-projectId-') && !['index', 'index-typeOrId'].includes(routeName)
+})
+
 watch(
   () => route.value.params.typeOrId,
   async () => {
-    // if (!((route.value.name as string) || '').startsWith('typeOrId-projectId-')) {
-    //   return
-    // }
+    // avoid loading projects for shared views
+    if (isSharedView.value) {
+      return
+    }
+
     await projectsStore.loadProjects('recent')
 
     if (!route.value.params.projectId && projectsList.value.length > 0) {
@@ -58,7 +67,10 @@ provide(ToggleDialogInj, toggleDialog)
 
 <template>
   <div>
-    <NuxtLayout name="dashboard">
+    <NuxtLayout v-if="isSharedView" name="shared-view">
+      <NuxtPage />
+    </NuxtLayout>
+    <NuxtLayout v-else name="dashboard">
       <template #sidebar>
         <DashboardSidebar />
       </template>

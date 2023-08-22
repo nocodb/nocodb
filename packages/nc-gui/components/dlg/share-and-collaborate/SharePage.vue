@@ -1,12 +1,18 @@
 <script lang="ts" setup>
-import type { ViewType } from 'nocodb-sdk'
+import type { ColumnType, KanbanType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
+import { useTablesStore } from '~/store/tables'
+import { useMetas } from '~/composables/useMetas'
 
 const { view: _view, $api } = useSmartsheetStoreOrThrow()
 const { $e } = useNuxtApp()
 
 const { dashboardUrl } = useDashboard()
+
+const viewStore = useViewsStore()
+
+const { metas } = useMetas()
 
 const isUpdating = ref({
   public: false,
@@ -169,8 +175,13 @@ const toggleViewShare = async () => {
     activeView.value = { ...activeView.value, ...(response as any) }
 
     if (activeView.value!.type === ViewTypes.KANBAN) {
-      const { groupingFieldColumn } = useKanbanViewStoreOrThrow()
-      activeView.value!.meta = { ...activeView.value!.meta, groupingFieldColumn: groupingFieldColumn.value }
+      // extract grouping column meta
+      const groupingFieldColumn = metas.value[viewStore.activeView!.fk_model_id].columns!.find(
+        (col: ColumnType) => col.id === ((viewStore.activeView!.view! as KanbanType).fk_grp_col_id! as string),
+      )
+
+      activeView.value!.meta = { ...activeView.value!.meta, groupingFieldColumn }
+
       await updateSharedView()
     }
   }

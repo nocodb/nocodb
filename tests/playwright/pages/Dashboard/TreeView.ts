@@ -7,27 +7,29 @@ export class TreeViewPage extends BasePage {
   readonly project: any;
   readonly quickImportButton: Locator;
 
-  readonly btn_addNewTable: Locator;
-  readonly btn_projectContextMenu: Locator;
-
   constructor(dashboard: DashboardPage, project: any) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.project = project;
     this.quickImportButton = dashboard.get().locator('.nc-import-menu');
-
-    this.btn_addNewTable = dashboard
-      .get()
-      .locator('.project-title-node.active')
-      .locator('[data-testid="nc-sidebar-add-project-entity"]');
-    this.btn_projectContextMenu = dashboard
-      .get()
-      .locator('.project-title-node.active')
-      .locator('[data-testid="nc-sidebar-context-menu"]');
   }
 
   get() {
     return this.dashboard.get().locator('.nc-treeview-container');
+  }
+
+  getAddNewTableBtn({ projectTitle }: { projectTitle: string }) {
+    return this.dashboard
+      .get()
+      .getByTestId(`nc-sidebar-project-title-${projectTitle}`)
+      .locator('[data-testid="nc-sidebar-add-project-entity"]');
+  }
+
+  getProjectContextMenu({ projectTitle }: { projectTitle: string }) {
+    return this.dashboard
+      .get()
+      .getByTestId(`nc-sidebar-project-title-${projectTitle}`)
+      .locator('[data-testid="nc-sidebar-context-menu"]');
   }
 
   async isVisible() {
@@ -198,15 +200,15 @@ export class TreeViewPage extends BasePage {
   }
 
   async projectSettings({ title }: { title?: string }) {
-    await this.btn_projectContextMenu.hover();
-    await this.btn_projectContextMenu.click();
+    await this.getProjectContextMenu({ projectTitle: title }).hover();
+    await this.getProjectContextMenu({ projectTitle: title }).click();
     const settingsMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md');
     await settingsMenu.locator(`[data-menu-id="teamAndSettings"]`).click();
   }
 
-  async quickImport({ title }: { title: string }) {
-    await this.btn_projectContextMenu.hover();
-    await this.btn_projectContextMenu.click();
+  async quickImport({ title, projectTitle }: { title: string; projectTitle }) {
+    await this.getProjectContextMenu({ projectTitle }).hover();
+    await this.getProjectContextMenu({ projectTitle }).click();
     const importMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md');
     await importMenu.locator(`.ant-dropdown-menu-submenu:has-text("Quick Import From")`).click();
     await this.rootPage.locator(`.ant-dropdown-menu-item:has-text("${title}")`).waitFor();
@@ -310,8 +312,8 @@ export class TreeViewPage extends BasePage {
   }
 
   async deleteProject(param: { title: string }) {
-    await this.btn_projectContextMenu.hover();
-    await this.btn_projectContextMenu.click();
+    await this.getProjectContextMenu({ projectTitle: param.title }).hover();
+    await this.getProjectContextMenu({ projectTitle: param.title }).click();
     const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md');
     await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Delete")`).click();
 

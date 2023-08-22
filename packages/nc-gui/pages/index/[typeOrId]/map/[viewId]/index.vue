@@ -26,10 +26,8 @@ try {
 </script>
 
 <template>
-  <NuxtLayout class="flex" name="shared-view">
     <div v-if="showPassword">
       <LazySharedViewAskPassword v-model="showPassword" />
     </div>
     <LazySharedViewMap v-else />
-  </NuxtLayout>
 </template>

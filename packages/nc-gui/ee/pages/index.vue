@@ -74,7 +74,7 @@ watch(
       return
     }
 
-    if (newId && oldId !== newId) {
+    if (newId && oldId !== newId && lastPopulatedWorkspaceId.value !== newId) {
       projectsStore.clearProjects()
       collaborators.value = []
       // return

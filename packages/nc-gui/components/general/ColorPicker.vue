@@ -63,6 +63,7 @@ watch(picked, (n, _o) => {
         @click="isPickerOn = !isPickerOn"
       >
         <GeneralTooltip>
+          <template #title>More colors</template>
           <GeneralIcon icon="plus" />
         </GeneralTooltip>
       </button>
@@ -105,5 +106,8 @@ watch(picked, (n, _o) => {
 .color-selector.selected {
   filter: brightness(90%);
   -webkit-filter: brightness(90%);
+}
+:deep(.vc-chrome-toggle-icon) {
+  @apply ml-3!important;
 }
 </style>

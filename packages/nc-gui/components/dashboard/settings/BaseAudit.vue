@@ -35,9 +35,10 @@ async function loadAudits(page = currentPage.value, limit = currentLimit.value) 
 
     isLoading.value = true
 
-    const { list, pageInfo } = await $api.base.auditList(props.baseId, {
+    const { list, pageInfo } = await $api.project.auditList(project.value.id!, {
       offset: limit * (page - 1),
       limit,
+      baseId: props.baseId,
     })
 
     audits.value = list

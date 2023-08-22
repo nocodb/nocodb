@@ -67,5 +67,4 @@ export class PluginsController {
       pluginTitle: pluginTitle,
     });
   }
-
 }

@@ -12,16 +12,6 @@ In a table, you can use different views to display your data. You can show speci
 
 To navigate different views, we can select the target one in the view sidebar. By default, Grid View will be created for you after creating the table. You can create multiple views of a type, as long as they have unique View names.
 
-## View Menu Bar
-
-To work with `Views`, use View menu-bar on the right hand side - 
-- <1> Toggle View menu-bar.
-- <2> Displays created view-list for the selected table
-  - Currently active view is high-lighted   
-- <3> Add new view to the list
-
-![image](https://user-images.githubusercontent.com/35857179/194814369-53fa8875-7610-4849-9a91-f94096b15b3f.png)
-
 ## View Types
 
 ### Grid View
@@ -54,13 +44,10 @@ Kanban View allows you to visualise your data using cards at various stacks.
 
 We can apply permission to each View. By default, Collaborative Views will be used. To see or change the view type, expand `view-tool-bar-menu` as shown below. 
 
-![Screenshot 2022-09-09 at 3 46 33 PM](https://user-images.githubusercontent.com/86527202/189328303-edbf35b5-f793-4e06-9dbf-89d045a38482.png)
-<!-- ![Screenshot 2022-09-09 at 3 19 00 PM](https://user-images.githubusercontent.com/86527202/189323062-5be6bd3f-366a-4be2-8de0-df30fcd1808e.png) -->
-<!-- ![image](https://user-images.githubusercontent.com/35857179/163343598-fd81edea-f160-41ee-8bb2-3ef1eee5348d.png) -->
+![locked view](https://github.com/nocodb/nocodb/assets/86527202/41b28e3b-f8c3-46b7-8e9e-894706379a1c)
 
 ### Collaborative Views (default)
 - Collaborators with edit permissions or higher can change the view configurations
-<!-- ![image](https://user-images.githubusercontent.com/35857179/163343959-7e2f43cb-1a1f-4f36-985c-ca91db262f98.png) -->
 
 ### Locked Views
 - No one can edit view configurations until it is Unlocked
@@ -75,37 +62,30 @@ We can apply permission to each View. By default, Collaborative Views will be us
 
 ## View Operations
   
-![Screenshot 2022-09-09 at 3 27 46 PM](https://user-images.githubusercontent.com/86527202/189325592-302054da-a755-4a92-a322-80aed184ca3b.png)
+![view operations](https://github.com/nocodb/nocodb/assets/86527202/c210de4a-7bc2-4b21-bc64-e68c52c1ba21)
 
 
 ### Create a View
 
-Click '+' in View-menu sidebar, as shown in <3>.
+Click '+' in View-menu sidebar
 
 ### Rename a View
 
 Double click on `view-name`, edit, <enter>.
 
-<!-- ![image](https://user-images.githubusercontent.com/35857179/163353802-1da52cec-ae17-4ced-8679-62d7180683ec.png) -->
-
 ### Delete a View
 
-Hover the target View and click the delete icon, as shown in <2>.
+Hover the target View and click the delete icon
 
 <alert>
 You cannot delete the very first Grid View (termed as `Default view`).
 </alert>
 
-<!-- ![image](https://user-images.githubusercontent.com/35857179/163359795-f4420402-b2a6-41d8-b48c-f0dea8b9abbe.png) -->
-
 ### Duplicate a View
 
-Hover the target View and click the copy icon, as shown in <2>.
-
-<!-- ![image](https://user-images.githubusercontent.com/35857179/163353865-7275499e-c685-44f4-906c-ba08f0ee419e.png) -->
+Hover the target View and click the copy icon
 
 ### Reorder a View
 
-Hover the target View and re-order it as needed by drag-drop the drag icon, as shown in <1>.
+Hover the target View and re-order it as needed by drag-drop the drag icon
 
-<!-- ![image](https://user-images.githubusercontent.com/35857179/163359674-c4aeff74-1cb4-498d-b79c-c6ddf84ad352.png) -->

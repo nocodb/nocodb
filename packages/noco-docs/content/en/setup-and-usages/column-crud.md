@@ -6,7 +6,7 @@ category: "Product"
 menuTitle: "Column"
 ---
 
-## Column Create
+## Column Add
 
 Click on `+` button to the right of Columns header, type `Column name`
 
@@ -22,7 +22,7 @@ You can also use context menu of an existing column to either insert before or a
 ![column-context-menu - insert after before](https://github.com/nocodb/nocodb/assets/86527202/d15b62b4-5302-4c75-bd5b-e60ae8b81a65)
 
   
-## Column Rename
+## Column Edit
 
 Double click on Column name in column header to open `Column edit` modal
 You can rename column & optionally change column-type.

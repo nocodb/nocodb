@@ -10,7 +10,6 @@ menuTitle: "Formulas"
 
 ![Formula](https://github.com/nocodb/nocodb/assets/86527202/f18d6a52-0ad6-4c0f-b9e4-9e1e1bafd695)
 
-
 - Click on '+' (Add column)
 - Populate column Name
 - Select column Type as 'Formula'
@@ -53,8 +52,8 @@ menuTitle: "Formulas"
 | `/`      | `{Column1} / {Column2}`     | Division of numeric values       |
 
 <alert type="success">
-Tip :To change the order of arithmetic operation, you can use round bracket parantheses (). <br/>
-Example: ({Column1} + ({Column2} * {Column3}) / (3 - $Column4$ ))
+Tip: To change the order of arithmetic operation, you can use round bracket parentheses (). <br/>
+Example: ({Column1} + ({Column2} * {Column3}) / (3 - {Column4} ))
 </alert>
 
 ### String Functions

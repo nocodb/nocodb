@@ -14,7 +14,7 @@ menuTitle: "Display Value"
 
 ## What is the use of Display Value ?
 - Within a spreadsheet, Display Value are always highlighted so that it is easier to recognise what row we are in.
-- And when LinkToAnotherRecord is created between two tables - it is the Display Value that appears in LinkToAnotheRecord column. 
+- And when LinkToAnotherRecord is created between two tables - it is the Display Value that appears in LinkToAnotherRecord column. 
 
 #### Example : Display Value highlighted in Actor table
   
@@ -34,7 +34,7 @@ Click down arrow in the target column. Click `Set as Display Value`.
 
 
 
-## How is Display Value identfied for existing database tables ?
+## How is Display Value identified for existing database tables ?
 
 - It is usually the first column after the primary key which is not a number. 
 - If there is no column which is not a number then the column adjacent to primary key is chosen. 

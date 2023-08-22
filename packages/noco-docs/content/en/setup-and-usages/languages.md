@@ -6,7 +6,7 @@ category: 'Product'
 menuTitle: 'Languages'
 ---
 
-NocoDB supports multiple lanuages on dashboard. By default, English will be used. However, if you prefer to display in other languages, you can do the following steps to change the language.
+NocoDB supports multiple languages on dashboard. By default, English will be used. However, if you prefer to display in other languages, you can do the following steps to change the language.
 
 Open `Global Menu` (click on NocoDB on left top to access Global menu)
 

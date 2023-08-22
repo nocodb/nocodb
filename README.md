@@ -68,27 +68,6 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 
 # Quick try
 
-## NPX
-
-You can run the below command if you need an interactive configuration.
-
-```
-npx create-nocodb-app
-```
-
-<img src="https://user-images.githubusercontent.com/35857179/163672964-00ef5d62-0434-447d-ac01-3ebb780099b9.png" width="520px"/>
-
-## Node Application
-
-We provide a simple NodeJS Application for getting started.
-
-```bash
-git clone https://github.com/nocodb/nocodb-seed
-cd nocodb-seed
-npm install
-npm start
-```
-
 ## Docker
 
 ```bash
@@ -185,6 +164,28 @@ docker-compose up -d
 > To persist data in docker, you can mount volume at `/usr/app/data/` since 0.10.6. Otherwise your data will be lost after recreating the container.
 
 > If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for [MySQL Docker Compose](https://github.com/nocodb/nocodb/issues/1313#issuecomment-1046625974).
+
+## NPX
+
+You can run the below command if you need an interactive configuration.
+
+```
+npx create-nocodb-app
+```
+
+<img src="https://user-images.githubusercontent.com/35857179/163672964-00ef5d62-0434-447d-ac01-3ebb780099b9.png" width="520px"/>
+
+## Node Application
+
+We provide a simple NodeJS Application for getting started.
+
+```bash
+git clone https://github.com/nocodb/nocodb-seed
+cd nocodb-seed
+npm install
+npm start
+```
+
 
 # GUI
 

@@ -651,6 +651,7 @@ export async function singleQueryRead(ctx: {
   base: Base;
   params;
   id: string;
+  getHiddenColumn?: boolean;
 }): Promise<PagedResponseImpl<Record<string, any>>> {
   await ctx.model.getColumns();
 
@@ -768,6 +769,7 @@ export async function singleQueryRead(ctx: {
     query: ctx.params,
     model: ctx.model,
     view: ctx.view,
+    getHiddenColumn: ctx.getHiddenColumn,
   });
 
   await extractColumns({

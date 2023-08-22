@@ -15,5 +15,6 @@ import { ColumnsService } from '~/services/columns.service';
     MetaDiffsService,
     ColumnsService,
   ],
+  exports: [WorkspacesService],
 })
 export class WorkspacesModule {}

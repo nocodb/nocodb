@@ -1,4 +1,4 @@
-import { Global, Module } from '@nestjs/common';
+import { forwardRef, Global, Module } from '@nestjs/common';
 import { ExtractJwt } from 'passport-jwt';
 import { EventEmitterModule } from '../event-emitter/event-emitter.module';
 import { InitMetaServiceProvider } from './init-meta-service.provider';
@@ -12,11 +12,7 @@ import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { UsersService } from '~/services/users/users.service';
 import { TelemetryService } from '~/services/telemetry.service';
 import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
-import { WorkspacesService } from '~/ee/modules/workspaces/workspaces.service';
-import { ProjectsService } from '~/services/projects.service';
-import { TablesService } from '~/services/tables.service';
-import { MetaDiffsService } from '~/services/meta-diffs.service';
-import { ColumnsService } from '~/services/columns.service';
+import { UsersModule } from '~/modules/users/users.module';
 
 export const JwtStrategyProvider: Provider = {
   provide: JwtStrategy,
@@ -40,27 +36,20 @@ export const JwtStrategyProvider: Provider = {
 };
 
 export const globalModuleMetadata = {
-  imports: [EventEmitterModule],
+  imports: [EventEmitterModule, forwardRef(() => UsersModule)],
   providers: [
     InitMetaServiceProvider,
     AppHooksService,
-    UsersService,
     JwtStrategyProvider,
     GlobalGuard,
     SocketGateway,
     AppHooksService,
     AppHooksListenerService,
-    WorkspacesService,
     TelemetryService,
-    ProjectsService,
-    TablesService,
-    MetaDiffsService,
-    ColumnsService,
   ],
   exports: [
     MetaService,
     JwtStrategyProvider,
-    UsersService,
     GlobalGuard,
     AppHooksService,
     AppHooksListenerService,

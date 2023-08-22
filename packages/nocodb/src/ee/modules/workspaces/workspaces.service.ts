@@ -16,7 +16,7 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import Workspace from '~/models/Workspace';
 import validateParams from '~/helpers/validateParams';
 import { NcError } from '~/helpers/catchError';
-import { Base, Project, ProjectUser } from '~/models';
+import { Project, ProjectUser } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { extractProps } from '~/helpers/extractProps';
 import extractRolesObj from '~/utils/extractRolesObj';

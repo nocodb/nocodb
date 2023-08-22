@@ -59,9 +59,35 @@ You can also group several filters together using Filter Group.
 
 
 ## Sort
-### Add sort
-### Edit sort
+Sorting allows you to order contents alphabetically `(A → Z)` / `(Z → A)` (OR) in `ascending` / `descending` order. NocoDB allows nested sorting. You can choose column fields & order in which to apply nested sorting. Lookup, Formula, Nested Data are also supported in Sorting.
+
+### Add / Edit sort
+
+- Click on `Sort` button in the toolbar menu
+- Select `Field` to sort by
+  
+
+  ![sort](https://github.com/nocodb/nocodb/assets/86527202/5665b5db-7d66-4d17-8307-4a8bf32360c8)
+
+- Configure sort `direction`
+
+
+  ![sort direction](https://github.com/nocodb/nocodb/assets/86527202/56a6d29b-de43-4aaf-b77e-41f32bb58f93)
+
+- Multiple fields can be configured for subsequent level sorting
+  
+
+  ![sort nested](https://github.com/nocodb/nocodb/assets/86527202/4e9393d7-953c-4a3f-bb4e-3b0161042ae4)
+
+
+Note: Field configured on the top will be used for first level sorting, followed by subsequent fields in top-down order
+
 ### Delete sort
+- Click on `Sort` button in the toolbar
+- Click on the bin icon to the right of the sort you wish to delete
+
+  ![sort delete](https://github.com/nocodb/nocodb/assets/86527202/d469110b-12b2-4b8a-83ee-fe8819da2dc1)
+
 
 ## Group by
 Group-by allows one to visually categorise records on grid into specific `Groups` & `Sub groups`. NocoDB allows three levels of record seggregation. 

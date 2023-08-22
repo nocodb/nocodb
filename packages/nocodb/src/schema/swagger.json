@@ -2439,6 +2439,9 @@
                     },
                     "id": {
                       "type": "string"
+                    },
+                    "project_id": {
+                      "type": "string"
                     }
                   }
                 }
@@ -13128,87 +13131,18 @@
             "name": "limit"
           },
           {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ],
-        "tags": [
-          "Project"
-        ]
-      }
-    },
-    "/api/v1/db/meta/bases/{baseId}/audits": {
-      "parameters": [
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id",
-            "example": "b_124hhlkbeasewh",
-            "type": "string"
-          },
-          "name": "baseId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Base ID"
-        }
-      ],
-      "get": {
-        "summary": "List Audits in Base",
-        "operationId": "base-audit-list",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "list": {
-                      "type": "array",
-                      "uniqueItems": true,
-                      "minItems": 1,
-                      "items": {
-                        "$ref": "#/components/schemas/Audit"
-                      }
-                    },
-                    "pageInfo": {
-                      "$ref": "#/components/schemas/Paginated"
-                    }
-                  },
-                  "required": [
-                    "list",
-                    "pageInfo"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "List all audit data in the given project",
-        "parameters": [
-          {
             "schema": {
-              "type": "integer",
-              "minimum": 0
+              "type": "string"
             },
             "in": "query",
-            "name": "offset"
-          },
-          {
-            "schema": {
-              "type": "integer",
-              "maximum": 1
-            },
-            "in": "query",
-            "name": "limit"
+            "name": "baseId"
           },
           {
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
         "tags": [
-          "Base"
+          "Project"
         ]
       }
     },

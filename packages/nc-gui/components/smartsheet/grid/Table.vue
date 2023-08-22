@@ -943,6 +943,7 @@ onMounted(() => {
   const resizeObserver = new ResizeObserver(() => {
     refreshFillHandle()
     if (activeCell.row !== null && !dataRef.value?.[activeCell.row]) {
+      clearSelectedRange()
       activeCell.row = null
       activeCell.col = null
     }

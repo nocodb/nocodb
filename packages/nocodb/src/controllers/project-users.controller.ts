@@ -13,7 +13,6 @@ import {
 import { ProjectUserReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { ProjectUsersService } from '~/services/project-users/project-users.service';
-import { User } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 

@@ -10,6 +10,7 @@ import attachmentTests from './tests/attachment.test';
 import filterTest from './tests/filter.test';
 import newDataApisTest from './tests/newDataApis.test';
 import groupByTest from './tests/groupby.test';
+import workspaceTest from './tests/ee/workspace.test';
 // import layoutTests from './tests/layout.test';
 // import widgetTest from './tests/widget.test';
 
@@ -25,6 +26,7 @@ function restTests() {
   filterTest();
   newDataApisTest();
   groupByTest();
+  workspaceTest();
 
   // Enable for dashboard feature
   // widgetTest();

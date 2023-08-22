@@ -38,7 +38,7 @@ export const SaveRowInj: InjectionKey<(() => void) | undefined> = Symbol('save-r
 export const CurrentCellInj: InjectionKey<Ref<Element | undefined>> = Symbol('current-cell-injection')
 export const IsUnderLookupInj: InjectionKey<Ref<boolean>> = Symbol('is-under-lookup-injection')
 export const DocsLocalPageInj: InjectionKey<Ref<PageSidebarNode | undefined>> = Symbol('docs-local-page-injection')
-export const ProjectRoleInj: InjectionKey<Ref<string>> = Symbol('project-roles-injection')
+export const ProjectRoleInj: InjectionKey<Ref<string | string[]>> = Symbol('project-roles-injection')
 export const ProjectInj: InjectionKey<Ref<NcProject>> = Symbol('project-injection')
 export const ProjectIdInj: InjectionKey<Ref<string>> = Symbol('project-id-injection')
 export const TreeViewInj: InjectionKey<{

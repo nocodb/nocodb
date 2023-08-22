@@ -3,6 +3,7 @@ import { useTitle } from '@vueuse/core'
 import NcLayout from '~icons/nc-icons/layout'
 const { openedProject } = storeToRefs(useProjects())
 const { activeTables } = storeToRefs(useTablesStore())
+const { activeWorkspace } = storeToRefs(useWorkspace())
 
 const route = useRoute()
 
@@ -37,7 +38,7 @@ watch(
 watch(
   () => openedProject.value?.title,
   () => {
-    useTitle(`${openedProject.value?.title}`)
+    useTitle(`${openedProject.value?.title ?? activeWorkspace.value?.title ?? 'NocoDB'}`)
   },
 )
 </script>

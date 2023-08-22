@@ -33,11 +33,9 @@ onMounted(async () => {
 </script>
 
 <template>
-  <NuxtLayout class="flex" name="shared-view">
-    <div v-if="showPassword">
-      <LazySharedViewAskPassword v-model="showPassword" />
-    </div>
+  <div v-if="showPassword">
+    <LazySharedViewAskPassword v-model="showPassword" />
+  </div>
 
-    <LazySharedViewGrid v-else />
-  </NuxtLayout>
+  <LazySharedViewGrid v-else />
 </template>

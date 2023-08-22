@@ -86,7 +86,7 @@ export class DuplicateController {
       },
     });
 
-    return { id: job.id };
+    return { id: job.id, project_id: dupProject.id };
   }
 
   @Post('/api/v1/db/meta/duplicate/:projectId/table/:modelId')

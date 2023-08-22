@@ -1,23 +1,15 @@
 <script lang="ts" setup>
-import { WorkspaceUserRoles } from 'nocodb-sdk'
+import { OrderedWorkspaceRoles, RoleColors, RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
 import { Empty } from 'ant-design-vue'
 import { storeToRefs, stringToColour, timeAgo, useWorkspace } from '#imports'
 
-/*
-const rolesLabel = {
-  [WorkspaceUserRoles.CREATOR]: 'Creator',
-  [WorkspaceUserRoles.OWNER]: 'Owner',
-  [WorkspaceUserRoles.EDITOR]: 'Editor',
-  [WorkspaceUserRoles.COMMENTER]: 'Commenter',
-  [WorkspaceUserRoles.VIEWER]: 'Viewer',
-}
-*/
+const { user } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
 const { removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
 
-const { collaborators, isWorkspaceOwner } = storeToRefs(workspaceStore)
+const { collaborators, workspaceRole } = storeToRefs(workspaceStore)
 const userSearchText = ref('')
 
 const filterCollaborators = computed(() => {
@@ -28,17 +20,6 @@ const filterCollaborators = computed(() => {
   return collaborators.value.filter((collab) => collab.email!.includes(userSearchText.value))
 })
 
-/*
-const getRolesLabel = (roles?: string) => {
-  return (
-    roles
-      ?.split(/\s*,\s*REMOVE/)
-      ?.map((role) => rolesLabel[role])
-      .join(', ') ?? ''
-  )
-}
-*/
-
 const updateCollaborator = async (collab) => {
   try {
     await _updateCollaborator(collab.id, collab.roles)
@@ -47,11 +28,16 @@ const updateCollaborator = async (collab) => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
+  const currentRoleIndex = OrderedWorkspaceRoles.findIndex((role) => role === workspaceRole.value)
+  return OrderedWorkspaceRoles.slice(currentRoleIndex + 1)
+})
 </script>
 
 <template>
   <div class="nc-collaborator-table-container mt-4 mx-6">
-    <WorkspaceInviteSection v-if="isWorkspaceOwner" />
+    <WorkspaceInviteSection v-if="workspaceRole !== WorkspaceUserRoles.VIEWER" />
     <div class="w-full h-1 border-t-1 border-gray-100 opacity-50 mt-6"></div>
     <div class="w-full flex flex-row justify-between items-baseline mt-6.5 mb-2 pr-0.25 ml-2">
       <div class="text-xl">Collaborators</div>
@@ -94,20 +80,42 @@ const updateCollaborator = async (collab) => {
                 <template #suffixIcon>
                   <MdiChevronDown />
                 </template>
-                <a-select-option :value="WorkspaceUserRoles.OWNER"> Owner</a-select-option>
+                <a-select-option :value="WorkspaceUserRoles.OWNER">
+                  <NcBadge color="purple">
+                    <p class="badge-text">Owner</p>
+                  </NcBadge>
+                </a-select-option>
               </a-select>
             </div>
 
             <div v-else class="nc-collaborator-role-select">
-              <a-select v-model:value="collab.roles" class="w-30 !rounded px-1" @change="updateCollaborator(collab)">
+              <NcSelect
+                v-model:value="collab.roles"
+                class="w-30 !rounded px-1"
+                :disabled="collab.id === user?.id || !accessibleRoles.includes(collab.roles)"
+                @change="updateCollaborator(collab)"
+              >
                 <template #suffixIcon>
                   <MdiChevronDown />
                 </template>
-                <a-select-option :value="WorkspaceUserRoles.CREATOR"> Creator</a-select-option>
-                <a-select-option :value="WorkspaceUserRoles.EDITOR"> Editor</a-select-option>
-                <a-select-option :value="WorkspaceUserRoles.COMMENTER"> Commenter</a-select-option>
-                <a-select-option :value="WorkspaceUserRoles.VIEWER"> Viewer</a-select-option>
-              </a-select>
+                <a-select-option v-if="collab.id === user?.id" :value="workspaceRole">
+                  <NcBadge :color="RoleColors[workspaceRole]">
+                    <p class="badge-text">{{ RoleLabels[workspaceRole] }}</p>
+                  </NcBadge>
+                </a-select-option>
+                <a-select-option v-if="!accessibleRoles.includes(collab.roles)" :value="collab.roles">
+                  <NcBadge :color="RoleColors[collab.roles]">
+                    <p class="badge-text">{{ RoleLabels[collab.roles] }}</p>
+                  </NcBadge>
+                </a-select-option>
+                <template v-for="role of accessibleRoles" :key="`role-option-${role}`">
+                  <a-select-option :value="role">
+                    <NcBadge :color="RoleColors[role]">
+                      <p class="badge-text">{{ RoleLabels[role] }}</p>
+                    </NcBadge>
+                  </a-select-option>
+                </template>
+              </NcSelect>
             </div>
           </td>
           <td class="w-1/5">
@@ -138,6 +146,10 @@ const updateCollaborator = async (collab) => {
 </template>
 
 <style scoped lang="scss">
+.badge-text {
+    @apply text-[14px] pt-1 text-center
+}
+
 .nc-collaborators-list-table {
   @apply min-w-[700px] !w-full border-gray-100 mt-1;
 

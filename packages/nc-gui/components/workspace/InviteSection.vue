@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { WorkspaceUserRoles } from 'nocodb-sdk'
+import { OrderedWorkspaceRoles, RoleColors, RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, useWorkspace } from '#imports'
 
 const inviteData = reactive({
@@ -10,7 +10,7 @@ const inviteData = reactive({
 const workspaceStore = useWorkspace()
 
 const { inviteCollaborator: _inviteCollaborator } = workspaceStore
-const { isInvitingCollaborators } = storeToRefs(workspaceStore)
+const { isInvitingCollaborators, workspaceRole } = storeToRefs(workspaceStore)
 
 const inviteCollaborator = async () => {
   try {
@@ -21,6 +21,12 @@ const inviteCollaborator = async () => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+// allow only lower roles to be assigned
+const allowedRoles = computed<WorkspaceUserRoles[]>(() => {
+  const currentRoleIndex = OrderedWorkspaceRoles.findIndex((role) => role === workspaceRole.value)
+  return OrderedWorkspaceRoles.slice(currentRoleIndex + 1)
+})
 </script>
 
 <template>
@@ -35,15 +41,18 @@ const inviteCollaborator = async () => {
           class="!max-w-130 !rounded"
         />
 
-        <a-select v-model:value="inviteData.roles" class="min-w-30 !rounded px-1" data-testid="roles">
+        <NcSelect v-model:value="inviteData.roles" class="min-w-30 !rounded px-1" data-testid="roles">
           <template #suffixIcon>
             <MdiChevronDown />
           </template>
-          <a-select-option :value="WorkspaceUserRoles.CREATOR"> Creator </a-select-option>
-          <a-select-option :value="WorkspaceUserRoles.EDITOR"> Editor </a-select-option>
-          <a-select-option :value="WorkspaceUserRoles.COMMENTER"> Commenter </a-select-option>
-          <a-select-option :value="WorkspaceUserRoles.VIEWER"> Viewer </a-select-option>
-        </a-select>
+          <template v-for="role of allowedRoles" :key="`role-option-${role}`">
+            <a-select-option :value="role">
+              <NcBadge :color="RoleColors[role]">
+                <p class="badge-text">{{ RoleLabels[role] }}</p>
+              </NcBadge>
+            </a-select-option>
+          </template>
+        </NcSelect>
 
         <a-button
           type="primary"
@@ -65,5 +74,9 @@ const inviteCollaborator = async () => {
 <style scoped>
 :deep(.ant-select .ant-select-selector) {
   @apply rounded;
+}
+
+.badge-text {
+  @apply text-[14px] pt-1 text-center;
 }
 </style>

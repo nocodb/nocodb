@@ -50,33 +50,39 @@ const defaultOption = ref()
 const isKanban = inject(IsKanbanInj, ref(false))
 
 const validators = {
-  'colOptions.options': [
+  colOptions: [
     {
-      validator: (_: any, _opt: any) => {
-        return new Promise<void>((resolve, reject) => {
-          for (const opt of options.value) {
-            if ((opt as any).status === 'remove') continue
+      type: 'object',
+      fields: {
+        options: {
+          validator: (_: any, _opt: any) => {
+            return new Promise<void>((resolve, reject) => {
+              for (const opt of options.value) {
+                if ((opt as any).status === 'remove') continue
 
-            if (!opt.title.length) {
-              return reject(new Error("Select options can't be null"))
-            }
-            if (vModel.value.uidt === UITypes.MultiSelect && opt.title.includes(',')) {
-              return reject(new Error("MultiSelect columns can't have commas(',')"))
-            }
-            if (options.value.filter((el) => el.title === opt.title && (el as any).status !== 'remove').length > 1) {
-              return reject(new Error("Select options can't have duplicates"))
-            }
-          }
-          resolve()
-        })
+                if (!opt.title.length) {
+                  return reject(new Error("Select options can't be null"))
+                }
+                if (vModel.value.uidt === UITypes.MultiSelect && opt.title.includes(',')) {
+                  return reject(new Error("MultiSelect columns can't have commas(',')"))
+                }
+                if (options.value.filter((el) => el.title === opt.title && (el as any).status !== 'remove').length > 1) {
+                  return reject(new Error("Select options can't have duplicates"))
+                }
+              }
+              resolve()
+            })
+          },
+        },
       },
     },
   ],
 }
 
+// we use a correct syntax from async-validator but causes a type mismatch on antdv so we cast any
 setAdditionalValidations({
   ...validators,
-})
+} as any)
 
 onMounted(() => {
   if (!vModel.value.colOptions?.options) {
@@ -248,8 +254,8 @@ watch(inputs, () => {
       </Draggable>
     </div>
 
-    <div v-if="validateInfos?.['colOptions.options']?.help?.[0]?.[0]" class="text-error text-[10px] mb-1 mt-2">
-      {{ validateInfos['colOptions.options'].help[0][0] }}
+    <div v-if="validateInfos?.colOptions?.help?.[0]?.[0]" class="text-error text-[10px] mb-1 mt-2">
+      {{ validateInfos.colOptions.help[0][0] }}
     </div>
     <a-button type="dashed" class="w-full caption mt-2" @click="addNewOption()">
       <div class="flex items-center">

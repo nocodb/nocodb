@@ -1,12 +1,12 @@
 import 'mocha';
 import request from 'supertest';
+import { beforeEach } from 'mocha';
+import { Exception } from 'handlebars';
+import { expect } from 'chai';
 import { Project } from '../../../../src/models';
 import { createTable } from '../../factory/table';
 import init from '../../init';
 import { createProject, createSharedBase } from '../../factory/project';
-import { beforeEach } from 'mocha';
-import { Exception } from 'handlebars';
-import { expect } from 'chai';
 
 // Test case list
 // 1. Get project info
@@ -306,23 +306,27 @@ function projectTest() {
       .send({})
       .expect(200)
       .then((res) => {
+        const createdProject = res.body.projects[1];
+
         expect(res.body).to.have.all.keys(
           'userCount',
           'sharedBaseCount',
           'projectCount',
           'projects',
         );
-        expect(res.body).to.have.property('projectCount').to.eq(1);
+        // As there will be a default project created for a workspace
+        expect(res.body).to.have.property('projectCount').to.eq(2);
         expect(res.body).to.have.property('projects').to.be.an('array');
-        expect(res.body.projects[0].tableCount.table).to.be.eq(3);
+
+        expect(createdProject.tableCount.table).to.be.eq(3);
         expect(res.body)
-          .to.have.nested.property('projects[0].tableCount.table')
+          .to.have.nested.property('projects[1].tableCount.table')
           .to.be.a('number');
         expect(res.body)
-          .to.have.nested.property('projects[0].tableCount.view')
+          .to.have.nested.property('projects[1].tableCount.view')
           .to.be.a('number');
         expect(res.body)
-          .to.have.nested.property('projects[0].viewCount')
+          .to.have.nested.property('projects[1].viewCount')
           .to.be.an('object')
           .have.keys(
             'formCount',
@@ -337,7 +341,7 @@ function projectTest() {
             'sharedTotal',
             'sharedLockedCount',
           );
-        expect(res.body.projects[0]).have.keys(
+        expect(createdProject).have.keys(
           'external',
           'webhookCount',
           'filterCount',
@@ -348,10 +352,10 @@ function projectTest() {
           'viewCount',
         );
         expect(res.body)
-          .to.have.nested.property('projects[0].rowCount')
+          .to.have.nested.property('projects[1].rowCount')
           .to.be.an('array');
         expect(res.body)
-          .to.have.nested.property('projects[0].external')
+          .to.have.nested.property('projects[1].external')
           .to.be.an('boolean');
       });
   });

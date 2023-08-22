@@ -47,12 +47,15 @@ Prerequisites: <br/> - A NocoDB Project <br/> - Airtable Credentials
 </alert>
   
 Below are 3 simple steps
-1. Go to your Project, Open `Add / Import` menu and click `Airtable`.
+1. Go to your Project dashboard, click on `Import Data` 
   
-![Screenshot 2022-09-14 at 9 27 51 AM](https://user-images.githubusercontent.com/86527202/190057053-983126b3-287a-4bc4-a1d8-fa89da8f40f8.png)
+![import data](https://github.com/nocodb/nocodb/assets/86527202/7822b06e-2cd4-4742-acb1-f1ce5dffd869)
+  
+2. Select `Airtable`
+  
+![import data airtable](https://github.com/nocodb/nocodb/assets/86527202/c6f7d705-528f-45b6-96a3-cf6e1f33fede)
 
-<!--   ![image](https://user-images.githubusercontent.com/35857179/168772072-937b037b-32b3-4e5b-b982-5ee4b9a4959c.png) -->
-<!--   ![image](https://user-images.githubusercontent.com/35857179/168773192-f3ef9d36-3329-4324-ae25-989b611f66bf.png) -->
+
 2. Input API key & Shared Base ID / URL (retrieved from `Get Airtable Credentials` above).
   
   - <1> API Key

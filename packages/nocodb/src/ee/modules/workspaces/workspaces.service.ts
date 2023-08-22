@@ -90,31 +90,34 @@ export class WorkspacesService {
         user: param.user,
       });
 
-      const project = await this.projectsService.projectCreate({
-        project: {
-          title: 'Getting Started',
-          fk_workspace_id: workspace.id,
-          type: 'database',
-        } as any,
-        user: param.user,
-      });
+      // Create a default project for single workspace creation
+      if (!isBulkMode) {
+        const project = await this.projectsService.projectCreate({
+          project: {
+            title: 'Getting Started',
+            fk_workspace_id: workspace.id,
+            type: 'database',
+          } as any,
+          user: param.user,
+        });
 
-      const sqlUI = SqlUiFactory.create({ client: project.bases[0].type });
-      const columns = sqlUI?.getNewTableColumns() as any;
+        const sqlUI = SqlUiFactory.create({ client: project.bases[0].type });
+        const columns = sqlUI?.getNewTableColumns() as any;
 
-      const table = await this.tablesService.tableCreate({
-        projectId: project.id,
-        baseId: project.bases[0].id,
-        table: {
-          title: 'Features',
-          table_name: 'Features',
-          columns,
-        },
-        user: param.user,
-      });
+        const table = await this.tablesService.tableCreate({
+          projectId: project.id,
+          baseId: project.bases[0].id,
+          table: {
+            title: 'Features',
+            table_name: 'Features',
+            columns,
+          },
+          user: param.user,
+        });
 
-      (project as any).tables = [table];
-      (workspace as any).projects = [project];
+        (project as any).tables = [table];
+        (workspace as any).projects = [project];
+      }
 
       workspaces.push(workspace);
     }

@@ -4,7 +4,7 @@ import type { Row } from 'lib'
 import { isColumnRequiredAndNull } from './columnUtils'
 
 export const extractPkFromRow = (row: Record<string, any>, columns: ColumnType[]) => {
-  return (
+  return encodeURIComponent(
     row &&
     columns
       ?.filter((c) => c.pk)

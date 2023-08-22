@@ -78,6 +78,9 @@ export class SortsController {
   }
 
   @Delete('/api/v1/db/meta/sorts/:sortId')
+  @UseAclMiddleware({
+    permissionName: 'sortDelete',
+  })
   async sortDelete(@Param('sortId') sortId: string, @Req() _req) {
     const sort = await this.sortsService.sortDelete({
       sortId,

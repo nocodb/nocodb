@@ -7,7 +7,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { GlobalGuard } from '~/guards/global/global.guard';
-import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+import {
+  Acl,
+  ExtractIdsMiddleware,
+} from '~/middlewares/extract-ids/extract-ids.middleware';
 import { SyncSource } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { JobTypes } from '~/interface/Jobs';
@@ -18,6 +21,7 @@ export class AtImportController {
   constructor(@Inject('JobsService') private readonly jobsService) {}
 
   @Post('/api/v1/db/meta/import/airtable')
+  @Acl('airtableImport')
   @HttpCode(200)
   async importAirtable(@Request() req) {
     const job = await this.jobsService.add(JobTypes.AtImport, {
@@ -28,6 +32,7 @@ export class AtImportController {
   }
 
   @Post('/api/v1/db/meta/syncs/:syncId/trigger')
+  @Acl('airtableImport')
   @HttpCode(200)
   async triggerSync(@Request() req) {
     const jobs = await this.jobsService.jobList();
@@ -64,6 +69,7 @@ export class AtImportController {
   }
 
   @Post('/api/v1/db/meta/syncs/:syncId/abort')
+  @Acl('airtableImport')
   @HttpCode(200)
   async abortImport(@Request() _) {
     return {};

@@ -103,6 +103,9 @@ export class ViewsController {
   }
 
   @Get('/api/v1/db/meta/tables/:tableId/share')
+  @UseAclMiddleware({
+    permissionName: 'shareViewList',
+  })
   async shareViewList(@Param('tableId') tableId: string) {
     return new PagedResponseImpl(
       await this.viewsService.shareViewList({

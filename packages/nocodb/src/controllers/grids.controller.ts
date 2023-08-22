@@ -36,6 +36,7 @@ export class GridsController {
     return view;
   }
   @Patch('/api/v1/db/meta/grids/:viewId')
+  @Acl('gridViewUpdate')
   async gridViewUpdate(@Param('viewId') viewId: string, @Body() body) {
     return await this.gridsService.gridViewUpdate({
       viewId,

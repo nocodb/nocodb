@@ -20,17 +20,6 @@ import { JobTypes } from '~/interface/Jobs';
 export class AtImportController {
   constructor(@Inject('JobsService') private readonly jobsService) {}
 
-  @Post('/api/v1/db/meta/import/airtable')
-  @Acl('airtableImport')
-  @HttpCode(200)
-  async importAirtable(@Request() req) {
-    const job = await this.jobsService.add(JobTypes.AtImport, {
-      ...req.body,
-    });
-
-    return { id: job.id };
-  }
-
   @Post('/api/v1/db/meta/syncs/:syncId/trigger')
   @Acl('airtableImport')
   @HttpCode(200)

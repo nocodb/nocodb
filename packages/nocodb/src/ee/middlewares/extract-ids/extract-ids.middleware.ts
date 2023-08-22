@@ -26,6 +26,7 @@ import {
   Model,
   Project,
   Sort,
+  SyncSource,
   View,
   Widget,
   Workspace,
@@ -139,6 +140,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const widget = await Widget.get(params.widgetId);
       const layout = await Layout.get(widget.layout_id);
       req.ncProjectId = layout?.project_id;
+    } else if (params.syncId) {
+      const syncSource = await SyncSource.get(req.params.syncId);
+      req.ncProjectId = syncSource.project_id;
     }
     // extract fk_model_id from query params only if it's audit post endpoint
     else if (

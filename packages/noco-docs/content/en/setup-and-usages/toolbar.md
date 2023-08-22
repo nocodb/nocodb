@@ -57,6 +57,21 @@ You can also group several filters together using Filter Group.
   
 ![filter grouped](https://github.com/nocodb/nocodb/assets/86527202/582c29de-28cd-4414-b7db-4b1b1eea131e)
 
+## Enable NULL and EMPTY Filters
+NULL filters (`is null` & `is not null`) and EMPTY filters (`is empty` & `is not empty`) are hidden by default. If you wish to filter out either one only, you may enable `Show NULL and EMPTY Filter` in Project Settings.
+  
+![project settings](https://github.com/nocodb/nocodb/assets/86527202/49d40f16-f8bd-4925-a4d0-65efb2d8f73e)
+  
+![filters show null   empty](https://github.com/nocodb/nocodb/assets/86527202/a383f5e8-f2b9-461b-b725-9b172ac9975b)
+  
+Otherwise, we can use Blank filters to filter out cells with NULL values and EMPTY values. 
+
+## Supported filters
+
+Currently we support different types of filters for corresponding columns. Please refer the below matrix for details.
+
+<iframe width="100%" height="700vh" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vTpCNKtA-szaXUKJEO5uuSIRnzUOK793MKnyBz9m2rQcwn7HqK19jPHeER-IIRWH9X56J78wfxXZuuv/pubhtml?gid=427284630&amp;single=true&amp;widget=true&amp;headers=false"></iframe>
+
 
 ## Sort
 Sorting allows you to order contents alphabetically `(A → Z)` / `(Z → A)` (OR) in `ascending` / `descending` order. NocoDB allows nested sorting. You can choose column fields & order in which to apply nested sorting. Lookup, Formula, Nested Data are also supported in Sorting.

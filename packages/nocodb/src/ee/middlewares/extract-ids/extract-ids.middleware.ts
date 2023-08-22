@@ -139,12 +139,44 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const widget = await Widget.get(params.widgetId);
       const layout = await Layout.get(widget.layout_id);
       req.ncProjectId = layout?.project_id;
-    } else if (req.query.fk_model_id || req.body?.fk_model_id) {
+    }
+    // extract fk_model_id from query params only if it's audit post endpoint
+    else if (
+      [
+        '/api/v1/db/meta/audits/rows/:rowId/update',
+        '/api/v1/db/meta/audits/comments',
+      ].some(
+        (auditInsertOrUpdatePath) => req.route.path === auditInsertOrUpdatePath,
+      ) &&
+      req.method === 'POST' &&
+      req.body?.fk_model_id
+    ) {
       const model = await Model.getByIdOrName({
-        id: params.tableId || req.query?.fk_model_id || req.body?.fk_model_id,
+        id: req.body.fk_model_id,
       });
       req.ncProjectId = model?.project_id;
-    } else if (req.query.project_id) {
+    }
+    // extract fk_model_id from query params only if it's audit get endpoint
+    else if (
+      [
+        '/api/v1/db/meta/audits/comments/count',
+        '/api/v1/db/meta/audits/comments',
+      ].some((auditReadPath) => req.route.path === auditReadPath) &&
+      req.method === 'GET' &&
+      req.query.fk_model_id
+    ) {
+      const model = await Model.getByIdOrName({
+        id: req.query?.fk_model_id,
+      });
+      req.ncProjectId = model?.project_id;
+    }
+    // extract project id from query params only if it's userMe endpoint
+    else if (
+      ['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'].some(
+        (userMePath) => req.route.path === userMePath,
+      ) &&
+      req.query.project_id
+    ) {
       req.ncProjectId = req.query.project_id;
     }
 

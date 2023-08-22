@@ -68,11 +68,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncProjectId = params.projectId;
     } else if (params.dashboardId) {
       req.ncProjectId = params.dashboardId;
-    } else if (
-      params.tableId
-    ) {
+    } else if (params.tableId) {
       const model = await Model.getByIdOrName({
-        id: params.tableId
+        id: params.tableId,
       });
       req.ncProjectId = model?.project_id;
     } else if (params.viewId) {
@@ -121,12 +119,44 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     } else if (params.sortId) {
       const sort = await Sort.get(params.sortId);
       req.ncProjectId = sort?.project_id;
-    } else if (req.query.fk_model_id || req.body?.fk_model_id) {
+    }
+    // extract fk_model_id from query params only if it's audit post endpoint
+    else if (
+      [
+        '/api/v1/db/meta/audits/rows/:rowId/update',
+        '/api/v1/db/meta/audits/comments',
+      ].some(
+        (auditInsertOrUpdatePath) => req.route.path === auditInsertOrUpdatePath,
+      ) &&
+      req.method === 'POST' &&
+      req.body?.fk_model_id
+    ) {
       const model = await Model.getByIdOrName({
-        id: params.tableId || req.query?.fk_model_id || req.body?.fk_model_id,
+        id: req.body.fk_model_id,
       });
       req.ncProjectId = model?.project_id;
-    } else if (req.query.project_id) {
+    }
+    // extract fk_model_id from query params only if it's audit get endpoint
+    else if (
+      [
+        '/api/v1/db/meta/audits/comments/count',
+        '/api/v1/db/meta/audits/comments',
+      ].some((auditReadPath) => req.route.path === auditReadPath) &&
+      req.method === 'GET' &&
+      req.query.fk_model_id
+    ) {
+      const model = await Model.getByIdOrName({
+        id: req.query?.fk_model_id,
+      });
+      req.ncProjectId = model?.project_id;
+    }
+    // extract project id from query params only if it's userMe endpoint
+    else if (
+      ['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'].some(
+        (userMePath) => req.route.path === userMePath,
+      ) &&
+      req.query.project_id
+    ) {
       req.ncProjectId = req.query.project_id;
     }
 

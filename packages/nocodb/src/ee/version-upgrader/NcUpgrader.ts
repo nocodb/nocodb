@@ -18,5 +18,4 @@ export default class NcUpgrader extends NcUpgraderCE {
   }
 }
 
-
 export * from 'src/version-upgrader/NcUpgrader';

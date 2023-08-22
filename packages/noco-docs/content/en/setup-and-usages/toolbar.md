@@ -107,3 +107,7 @@ Group-by allows one to visually categorise records on grid into specific `Groups
 Note: To disable `Group by` & return back to standard spreadsheet grid view - you need to remove all the groups configured.
 
 ## Row Height
+NocoDB allows you to change height of records displayed on spreadsheet grid to 4 different levels `Short` (default), `Medium`, `Tall`, and `Extra`. This allows you to bring more content per cell to be displayed, useful when working with lengthy text columns and multi select fields.
+  
+![Row height](https://github.com/nocodb/nocodb/assets/86527202/6f49e7b4-a3de-4325-a11e-3ffc670ddd2e)
+

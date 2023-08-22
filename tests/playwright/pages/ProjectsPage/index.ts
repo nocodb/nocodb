@@ -1,10 +1,21 @@
-import { expect, Page } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 import BasePage from '../Base';
 import { DashboardPage } from '../Dashboard';
 
 export class ProjectsPage extends BasePage {
+  readonly buttonEditProject: Locator;
+  readonly buttonDeleteProject: Locator;
+  readonly buttonMoreActions: Locator;
+  readonly buttonNewProject: Locator;
+  readonly buttonColorSelector: Locator;
+
   constructor(rootPage: Page) {
     super(rootPage);
+    this.buttonEditProject = this.get().locator('.nc-action-btn.nc-edit-project');
+    this.buttonDeleteProject = this.get().locator('.nc-action-btn.nc-delete-project');
+    this.buttonMoreActions = this.get().locator('.nc-import-menu');
+    this.buttonNewProject = this.get().locator('.nc-new-project-menu');
+    this.buttonColorSelector = this.get().locator('div.color-selector');
   }
 
   prefixTitle(title: string) {
@@ -35,6 +46,53 @@ export class ProjectsPage extends BasePage {
 
     // wait for dashboard to render
     await this.rootPage.locator('.nc-container').waitFor({ state: 'visible' });
+  }
+
+  // duplicate project
+  async duplicateProject({
+    name = 'sample',
+    withoutPrefix,
+    includeData = true,
+    includeViews = true,
+  }: {
+    name?: string;
+    type?: string;
+    withoutPrefix?: boolean;
+    includeData: boolean;
+    includeViews: boolean;
+  }) {
+    if (!withoutPrefix) name = this.prefixTitle(name);
+    // click three-dot
+    await this.rootPage.getByTestId('p-three-dot-' + name).click();
+    // check duplicate visible
+    await expect(this.rootPage.getByTestId('dupe-project-' + name)).toBeVisible();
+    // click duplicate
+    await this.rootPage.getByTestId('dupe-project-' + name).click();
+
+    // Find the checkbox element with the label "Include data"
+    const includeDataCheckbox = await this.rootPage.getByText('Include data', { exact: true });
+    // Check the checkbox if it is not already checked
+    if ((await includeDataCheckbox.isChecked()) && !includeData) {
+      await includeDataCheckbox.click(); // click the checkbox to check it
+    }
+
+    // Find the checkbox element with the label "Include data"
+    const includeViewsCheckbox = await this.rootPage.getByText('Include views', { exact: true });
+    // Check the checkbox if it is not already checked
+    if ((await includeViewsCheckbox.isChecked()) && !includeViews) {
+      await includeViewsCheckbox.click(); // click the checkbox to check it
+    }
+
+    // click duplicate confirmation "Do you want to duplicate 'sampleREST0' project?"
+    const dupeProjectSubmitAction = () => this.rootPage.getByRole('button', { name: 'Confirm' }).click();
+
+    await this.waitForResponse({
+      uiAction: dupeProjectSubmitAction,
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: 'api/v1/db/meta/duplicate/',
+    });
+    // wait for duplicate create completed and render kebab
+    await this.get().locator(`[data-testid="p-three-dot-${name} copy"]`).waitFor();
   }
 
   async checkProjectCreateButton({ exists = true }) {
@@ -147,6 +205,9 @@ export class ProjectsPage extends BasePage {
     });
     await projRow.locator('.nc-action-btn').nth(0).click();
 
+    // there is a flicker; add delay to avoid flakiness
+    await this.rootPage.waitForTimeout(1000);
+
     await project.locator('input.nc-metadb-project-name').fill(newTitle);
     // press enter to save
     const submitAction = () => project.locator('input.nc-metadb-project-name').press('Enter');
@@ -185,5 +246,28 @@ export class ProjectsPage extends BasePage {
 
   async waitForRender() {
     await this.rootPage.locator('.nc-project-page-title:has-text("My Projects")').waitFor();
+  }
+
+  async validateRoleAccess(param: { role: string }) {
+    // new user; by default org level permission is to viewer (can't create project)
+    await expect(await this.buttonNewProject).toBeVisible({ visible: false });
+
+    // role specific permissions
+    switch (param.role) {
+      case 'creator':
+        await expect(await this.buttonColorSelector).toBeVisible();
+        await expect(await this.buttonEditProject).toBeVisible();
+        await expect(await this.buttonDeleteProject).toBeVisible();
+        await expect(await this.buttonMoreActions).toBeVisible();
+        break;
+      case 'editor':
+      case 'commenter':
+      case 'viewer':
+        await expect(await this.buttonColorSelector).toBeVisible({ visible: false });
+        await expect(await this.buttonEditProject).toBeVisible({ visible: false });
+        await expect(await this.buttonDeleteProject).toBeVisible({ visible: false });
+        await expect(await this.buttonMoreActions).toBeVisible({ visible: false });
+        break;
+    }
   }
 }

@@ -9,7 +9,7 @@ Supported Translations:
     <li><a href="french.md">French</a></li>
     <li><a href="german.md">German</a></li>
     <li><a href="spanish.md">Spanish</a></li>
-    <li><a href="portugese.md">Portugese</a></li>
+    <li><a href="portuguese.md">Portugese</a></li>
     <li><a href="italian.md">Italian</a></li>
     <li><a href="japanese.md">Japanese</a></li>
     <li><a href="korean.md">Korean</a></li>

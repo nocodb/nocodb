@@ -141,7 +141,7 @@ export class ToolbarViewMenuPage extends BasePage {
     await expect(await this.toolbar.get().locator(`.nc-filter-menu-btn.nc-toolbar-btn`)).toBeDisabled();
     await expect(await this.toolbar.get().locator(`.nc-sort-menu-btn.nc-toolbar-btn`)).toBeDisabled();
     await expect(
-      await this.toolbar.get().locator(`.nc-add-new-row-btn.nc-toolbar-btn > .nc-icon.disabled`)
+      await this.toolbar.get().locator(`.nc-add-new-row-btn.nc-toolbar-btn > .material-symbols-outlined.disabled`)
     ).toBeVisible();
 
     await (this.toolbar.parent as GridPage).verifyEditDisabled({
@@ -153,7 +153,9 @@ export class ToolbarViewMenuPage extends BasePage {
     await expect(await this.toolbar.get().locator(`.nc-fields-menu-btn.nc-toolbar-btn`)).toBeEnabled();
     await expect(await this.toolbar.get().locator(`.nc-filter-menu-btn.nc-toolbar-btn`)).toBeEnabled();
     await expect(await this.toolbar.get().locator(`.nc-sort-menu-btn.nc-toolbar-btn`)).toBeEnabled();
-    await expect(await this.toolbar.get().locator(`.nc-add-new-row-btn.nc-toolbar-btn > .nc-icon`)).toBeVisible();
+    await expect(
+      await this.toolbar.get().locator(`.nc-add-new-row-btn.nc-toolbar-btn > .material-symbols-outlined`)
+    ).toBeVisible();
 
     await (this.toolbar.parent as GridPage).verifyEditEnabled({
       columnHeader: 'Country',

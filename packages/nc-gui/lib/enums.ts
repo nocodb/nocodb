@@ -41,7 +41,7 @@ export enum Language {
   id = 'Bahasa Indonesia',
   it = 'Italiano',
   ja = '日本語',
-  ko = '한국인',
+  ko = '한국어',
   lv = 'Latviešu',
   nl = 'Nederlandse',
   no = 'Norsk',
@@ -98,4 +98,20 @@ export enum DataSourcesSubTab {
   UIAcl = 'UI ACL',
   Misc = 'Misc',
   Edit = 'Edit',
+}
+
+export enum AutomationLogLevel {
+  OFF = 'OFF',
+  ERROR = 'ERROR',
+  ALL = 'ALL',
+}
+
+export enum JobStatus {
+  COMPLETED = 'completed',
+  WAITING = 'waiting',
+  ACTIVE = 'active',
+  DELAYED = 'delayed',
+  FAILED = 'failed',
+  PAUSED = 'paused',
+  REFRESH = 'refresh',
 }

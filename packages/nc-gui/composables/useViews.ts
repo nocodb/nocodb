@@ -2,7 +2,7 @@ import type { TableType, ViewType } from 'nocodb-sdk'
 import type { MaybeRef } from '@vueuse/core'
 import { ref, unref, useNuxtApp, watch } from '#imports'
 
-export function useViews(meta: MaybeRef<TableType | undefined>) {
+function useViews(meta: MaybeRef<TableType | undefined>) {
   const views = ref<ViewType[]>([])
   const isLoading = ref(false)
 
@@ -26,3 +26,5 @@ export function useViews(meta: MaybeRef<TableType | undefined>) {
 
   return { views, isLoading, loadViews }
 }
+
+export default useViews

@@ -10,7 +10,7 @@ link: https://codesandbox.io/embed/vigorous-firefly-80kq5?hidenavigation=1&theme
 Simple installation - takes about three minutes!
 
 ## Prerequisites
-- [Docker](https://www.docker.com/get-started) or [Node.js](https://nodejs.org/en/download) ( > v14.x ) 
+- [Docker](https://www.docker.com/get-started) or [Node.js](https://nodejs.org/en/download) ( > v16.x ) 
     
 ## Quick try
 

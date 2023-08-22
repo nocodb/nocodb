@@ -64,7 +64,7 @@ export class FormPage extends BasePage {
   }
 
   getFormFieldsRequired() {
-    return this.get().locator('[data-testid="nc-form-input-required"]');
+    return this.get().locator('[data-testid="nc-form-input-required"] + button');
   }
 
   getFormFieldsInputLabel() {
@@ -124,8 +124,11 @@ export class FormPage extends BasePage {
 
   async addField({ field, mode }: { mode: string; field: string }) {
     if (mode === 'dragDrop') {
-      const src = await this.get().locator(`[data-testid="nc-form-hidden-column-${field}"]`);
-      const dst = await this.get().locator(`.nc-form-drag-Country`);
+      const src = await this.get().locator(`[data-testid="nc-form-hidden-column-${field}"] > div.ant-card-body`);
+      const dst = await this.get().locator(`[data-testid="nc-form-input-Country"]`);
+      await src.waitFor({ state: 'visible' });
+      await dst.waitFor({ state: 'visible' });
+      await src.dragTo(dst, { trial: true });
       await src.dragTo(dst);
     } else if (mode === 'clickField') {
       const src = await this.get().locator(`[data-testid="nc-form-hidden-column-${field}"]`);
@@ -154,6 +157,9 @@ export class FormPage extends BasePage {
   async fillForm(param: { field: string; value: string }[]) {
     for (let i = 0; i < param.length; i++) {
       await this.get()
+        .locator(`[data-testid="nc-form-input-${param[i].field.replace(' ', '')}"]`)
+        .click();
+      await this.get()
         .locator(`[data-testid="nc-form-input-${param[i].field.replace(' ', '')}"] >> input`)
         .fill(param[i].value);
     }
@@ -177,9 +183,7 @@ export class FormPage extends BasePage {
     await this.getFormFieldsInputLabel().fill(label);
     await this.getFormFieldsInputHelpText().fill(helpText);
     if (required) {
-      await this.get()
-        .locator(`.nc-form-drag-${field.replace(' ', '')}`)
-        .click();
+      await this.getFormFieldsRequired().click();
     }
     await this.formHeading.click();
   }

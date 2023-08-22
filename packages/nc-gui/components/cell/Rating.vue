@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ActiveCellInj, ColumnInj, computed, inject, useSelectedCellKeyupListener } from '#imports'
+import { ActiveCellInj, ColumnInj, computed, inject, parseProp, useSelectedCellKeyupListener } from '#imports'
 
 interface Props {
   modelValue?: number | null | undefined
@@ -19,7 +19,7 @@ const ratingMeta = computed(() => {
     },
     color: '#fcb401',
     max: 5,
-    ...(column.value?.meta || {}),
+    ...parseProp(column.value?.meta),
   }
 })
 

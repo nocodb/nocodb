@@ -1,6 +1,16 @@
 <script setup lang="ts">
 import type { ApiTokenType } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, message, onMounted, useCopy, useI18n, useNuxtApp, useProject } from '#imports'
+import {
+  extractSdkResponseErrorMsg,
+  iconMap,
+  message,
+  onMounted,
+  storeToRefs,
+  useCopy,
+  useI18n,
+  useNuxtApp,
+  useProject,
+} from '#imports'
 
 interface ApiToken extends ApiTokenType {
   show?: boolean
@@ -10,7 +20,7 @@ const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 
-const { project } = $(useProject())
+const { project } = $(storeToRefs(useProject()))
 
 const { copy } = useCopy()
 
@@ -25,7 +35,7 @@ let selectedTokenData = $ref<ApiToken>({})
 const loadApiTokens = async () => {
   if (!project?.id) return
 
-  tokensInfo = await $api.apiToken.list(project.id)
+  tokensInfo = (await $api.apiToken.list(project.id)).list
 }
 
 const openNewTokenModal = () => {
@@ -40,7 +50,7 @@ const copyToken = async (token: string | undefined) => {
     await copy(token)
     // Copied to clipboard
     message.info(t('msg.info.copiedToClipboard'))
-  } catch (e) {
+  } catch (e: any) {
     message.error(e.message)
   }
   $e('c:api-token:copy')
@@ -109,7 +119,7 @@ onMounted(() => {
         </a-button>
 
         <!-- Generate Token -->
-        <div class="flex flex-row justify-center w-full -mt-1 mb-3">
+        <div class="flex flex-row justify-start w-full -mt-1 mb-3">
           <a-typography-title :level="5">{{ $t('title.generateToken') }}</a-typography-title>
         </div>
 
@@ -119,16 +129,16 @@ onMounted(() => {
           :model="selectedTokenData"
           name="basic"
           layout="vertical"
-          class="flex flex-col justify-center space-y-6"
+          class="flex flex-col justify-center space-y-3"
           no-style
           autocomplete="off"
           @finish="generateToken"
         >
-          <a-input v-model:value="selectedTokenData.description" :placeholder="$t('labels.description')" />
+          <a-input v-model:value="selectedTokenData.description" size="middle" :placeholder="$t('labels.description')" />
 
           <!-- Generate -->
-          <div class="flex flex-row justify-center">
-            <a-button type="primary" html-type="submit">
+          <div class="flex flex-row justify-end">
+            <a-button type="primary" html-type="submit" class="!rounded-md">
               {{ $t('general.generate') }}
             </a-button>
           </div>
@@ -147,27 +157,27 @@ onMounted(() => {
       <div class="flex flex-col h-full">
         <div class="flex flex-row justify-center mt-2 text-center w-full text-base">This action will remove this API Token</div>
 
-        <div class="flex mt-6 justify-center space-x-2">
-          <a-button @click="showDeleteTokenModal = false"> {{ $t('general.cancel') }}</a-button>
-          <a-button type="primary" danger @click="deleteToken()"> {{ $t('general.confirm') }}</a-button>
+        <div class="flex mt-6 justify-end space-x-2">
+          <a-button class="!rounded-md" @click="showDeleteTokenModal = false"> {{ $t('general.cancel') }}</a-button>
+          <a-button class="!rounded-md" type="primary" danger @click="deleteToken()"> {{ $t('general.confirm') }}</a-button>
         </div>
       </div>
     </a-modal>
 
-    <div class="flex flex-col px-10 mt-6">
+    <div class="flex flex-col px-10">
       <div class="flex flex-row justify-end">
         <div class="flex flex-row space-x-1">
           <a-button size="middle" type="text" @click="loadApiTokens()">
             <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
-              <MdiReload class="text-gray-500" />
+              <component :is="iconMap.reload" class="text-gray-500" />
               <div class="text-gray-500">{{ $t('general.reload') }}</div>
             </div>
           </a-button>
 
           <!--        Add New Token -->
-          <a-button size="middle" type="primary" ghost @click="openNewTokenModal">
+          <a-button type="primary" size="middle" class="!rounded-md" @click="openNewTokenModal">
             <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
-              <MdiPlus />
+              <component :is="iconMap.plus" />
               <div>{{ $t('activity.newToken') }}</div>
             </div>
           </a-button>
@@ -212,7 +222,7 @@ onMounted(() => {
 
                 <a-button type="text" class="!rounded-md" @click="copyToken(item.token)">
                   <template #icon>
-                    <MdiContentCopy class="flex mx-auto h-[1rem]" />
+                    <component :is="iconMap.copy" class="flex mx-auto h-[1rem]" />
                   </template>
                 </a-button>
               </a-tooltip>
@@ -234,8 +244,8 @@ onMounted(() => {
                 <template #overlay>
                   <a-menu>
                     <a-menu-item>
-                      <div class="flex flex-row items-center py-3 h-[1rem]" @click="openDeleteModal(item)">
-                        <MdiDeleteOutline class="flex" />
+                      <div class="flex flex-row items-center py-4 h-[1rem]" @click="openDeleteModal(item)">
+                        <component :is="iconMap.delete" class="flex" />
                         <div class="text-xs pl-2">{{ $t('general.remove') }}</div>
                       </div>
                     </a-menu-item>

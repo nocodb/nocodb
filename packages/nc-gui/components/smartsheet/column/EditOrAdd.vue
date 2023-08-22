@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnReqType } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   IsFormInj,
@@ -25,6 +25,7 @@ import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
 
 const props = defineProps<{
+  preload?: Partial<ColumnType>
   columnPosition?: Pick<ColumnReqType, 'column_order'>
 }>()
 
@@ -40,6 +41,8 @@ const { t } = useI18n()
 const { $e } = useNuxtApp()
 
 const { appInfo } = useGlobal()
+
+const { betaFeatureToggleState } = useBetaFeatureToggle()
 
 const meta = inject(MetaInj, ref())
 
@@ -57,8 +60,8 @@ const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup]
 
-const geoDataToggleCondition = (t) => {
-  return geodataToggleState.show ? geodataToggleState.show : !t.name.includes(UITypes.GeoData)
+const geoDataToggleCondition = (t: { name: UITypes }) => {
+  return betaFeatureToggleState.show ? betaFeatureToggleState.show : !t.name.includes(UITypes.GeoData)
 }
 
 const uiTypesOptions = computed<typeof uiTypes>(() => {
@@ -123,6 +126,18 @@ watchEffect(() => {
 onMounted(() => {
   if (!isEdit.value) {
     generateNewColumnMeta()
+    const { colOptions, ...others } = props.preload || {}
+    formState.value = {
+      ...formState.value,
+      ...others,
+    }
+    if (colOptions) {
+      onUidtOrIdTypeChange()
+      formState.value = {
+        ...formState.value,
+        ...colOptions,
+      }
+    }
   } else {
     if (formState.value.pk) {
       message.info(t('msg.info.editingPKnotSupported'))
@@ -186,7 +201,6 @@ useEventListener('keydown', (e: KeyboardEvent) => {
         <LazySmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
         <LazySmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />
         <LazySmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
-        <LazySmartsheetColumnGeoDataOptions v-if="formState.uidt === UITypes.GeoData" v-model:value="formState" />
         <LazySmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
         <LazySmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
         <LazySmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
@@ -232,7 +246,10 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             v-model:value="formState"
           />
 
-          <LazySmartsheetColumnAdvancedOptions v-model:value="formState" :advanced-db-options="advancedDbOptions" />
+          <LazySmartsheetColumnAdvancedOptions
+            v-model:value="formState"
+            :advanced-db-options="advancedDbOptions || formState.uidt === UITypes.SpecificDBType"
+          />
         </div>
       </Transition>
 

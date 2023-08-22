@@ -47,15 +47,13 @@ export enum AuditOperationSubTypes {
   LINK_RECORD = 'LINK_RECORD',
   UNLINK_RECORD = 'UNLINK_RECORD',
   DELETE = 'DELETE',
-  CREATED = 'CREATED',
-  DELETED = 'DELETED',
-  RENAMED = 'RENAMED',
+  CREATE = 'CREATE',
+  RENAME = 'RENAME',
   IMPORT_FROM_ZIP = 'IMPORT_FROM_ZIP',
   EXPORT_TO_FS = 'EXPORT_TO_FS',
   EXPORT_TO_ZIP = 'EXPORT_TO_ZIP',
-  UPDATED = 'UPDATED',
   SIGNIN = 'SIGNIN',
-  SIGN = 'SIGN',
+  SIGNUP = 'SIGNUP',
   PASSWORD_RESET = 'PASSWORD_RESET',
   PASSWORD_FORGOT = 'PASSWORD_FORGOT',
   PASSWORD_CHANGE = 'PASSWORD_CHANGE',
@@ -73,4 +71,8 @@ export enum PluginCategory {
 export enum ModelTypes {
   TABLE = 'table',
   VIEW = 'view',
+}
+
+export enum ProjectStatus {
+  JOB = 'job',
 }

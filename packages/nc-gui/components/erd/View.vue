@@ -2,11 +2,11 @@
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { ERDConfig } from './utils'
-import { reactive, ref, useMetas, useProject, watch } from '#imports'
+import { reactive, ref, storeToRefs, useMetas, useProject, watch } from '#imports'
 
 const props = defineProps<{ table?: TableType; baseId?: string }>()
 
-const { tables: projectTables } = useProject()
+const { tables: projectTables } = storeToRefs(useProject())
 
 const { metas, getMeta } = useMetas()
 
@@ -40,8 +40,8 @@ const populateTables = async () => {
     // if table is provided only get the table and its related tables
     localTables = projectTables.value.filter(
       (t) =>
-        t.id === props.table.id ||
-        props.table.columns?.find(
+        t.id === props.table?.id ||
+        props.table?.columns?.find(
           (column) =>
             column.uidt === UITypes.LinkToAnotherRecord &&
             (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id === t.id,

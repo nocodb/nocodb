@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import MdiLockOutlineIcon from '~icons/mdi/lock-outline'
-import MdiAccountIcon from '~icons/mdi/account'
-import MdiAccountGroupIcon from '~icons/mdi/account-group'
 import { LockType } from '~/lib'
-import { ActiveViewInj, inject } from '#imports'
+import { ActiveViewInj, iconMap, inject } from '#imports'
 
 const { type, hideTick } = defineProps<{ hideTick?: boolean; type: LockType }>()
 
@@ -12,17 +9,17 @@ const emit = defineEmits(['select'])
 const types = {
   [LockType.Personal]: {
     title: 'title.personalView',
-    icon: MdiAccountIcon,
+    icon: iconMap.account,
     subtitle: 'msg.info.personalView',
   },
   [LockType.Collaborative]: {
     title: 'title.collabView',
-    icon: MdiAccountGroupIcon,
+    icon: iconMap.users,
     subtitle: 'msg.info.collabView',
   },
   [LockType.Locked]: {
     title: 'title.lockedView',
-    icon: MdiLockOutlineIcon,
+    icon: iconMap.lock,
     subtitle: 'msg.info.lockedView',
   },
 }
@@ -34,16 +31,17 @@ const selectedView = inject(ActiveViewInj)
   <div class="nc-locked-menu-item" @click="emit('select', type)">
     <div :class="{ 'show-tick': !hideTick }">
       <template v-if="!hideTick">
-        <MdiCheck v-if="selectedView?.lock_type === type" />
+        <GeneralIcon v-if="selectedView?.lock_type === type" icon="check" />
 
         <span v-else />
       </template>
 
       <div>
-        <component :is="types[type].icon" class="text-gray-500" />
+        <div class="flex items-center gap-1">
+          <component :is="types[type].icon" class="text-gray-500" />
 
-        {{ $t(types[type].title) }}
-
+          {{ $t(types[type].title) }}
+        </div>
         <div class="nc-subtitle whitespace-normal">
           {{ $t(types[type].subtitle) }}
         </div>

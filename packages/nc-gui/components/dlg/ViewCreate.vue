@@ -75,9 +75,7 @@ const viewNameRules = [
   {
     validator: (_: unknown, v: string) =>
       new Promise((resolve, reject) => {
-        views.every((v1) => ((v1 as GridType | KanbanType | GalleryType | MapType).alias || v1.title) !== v)
-          ? resolve(true)
-          : reject(new Error(`View name should be unique`))
+        views.every((v1) => v1.title !== v) ? resolve(true) : reject(new Error(`View name should be unique`))
       }),
     message: 'View name should be unique',
   },
@@ -209,7 +207,7 @@ async function onSubmit() {
 <template>
   <a-modal
     v-model:visible="vModel"
-    class="!top-[35%]"
+    centered
     :class="{ active: vModel }"
     :confirm-loading="loading"
     wrap-class-name="nc-modal-view-create"
@@ -221,7 +219,7 @@ async function onSubmit() {
 
     <a-form ref="formValidator" layout="vertical" :model="form">
       <a-form-item :label="$t('labels.viewName')" name="title" :rules="viewNameRules">
-        <a-input ref="inputEl" v-model:value="form.title" autofocus @keydown.enter="onSubmit" />
+        <a-input ref="inputEl" v-model:value="form.title" size="large" autofocus @keydown.enter="onSubmit" />
       </a-form-item>
       <a-form-item
         v-if="form.type === ViewTypes.KANBAN"
@@ -256,8 +254,10 @@ async function onSubmit() {
     </a-form>
 
     <template #footer>
-      <a-button key="back" @click="vModel = false">{{ $t('general.cancel') }}</a-button>
-      <a-button key="submit" type="primary" :loading="loading" @click="onSubmit">{{ $t('general.submit') }}</a-button>
+      <a-button key="back" class="!rounded-md" @click="vModel = false">{{ $t('general.cancel') }}</a-button>
+      <a-button key="submit" class="!rounded-md" type="primary" :loading="loading" @click="onSubmit">{{
+        $t('general.submit')
+      }}</a-button>
     </template>
   </a-modal>
 </template>

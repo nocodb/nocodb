@@ -10,6 +10,7 @@ import {
   computed,
   createEventHook,
   extractSdkResponseErrorMsg,
+  iconMap,
   inject,
   message,
   onClickOutside,
@@ -97,7 +98,11 @@ const submitted = ref(false)
 
 const activeRow = ref('')
 
+const editEnabled = ref<boolean[]>([])
+
 const { t } = useI18n()
+
+const { betaFeatureToggleState } = useBetaFeatureToggle()
 
 const updateView = useDebounceFn(
   () => {
@@ -281,6 +286,8 @@ function setFormData() {
     .sort((a, b) => a.order - b.order)
     .map((c) => ({ ...c, required: !!c.required }))
 
+  editEnabled.value = new Array(localColumns.value.length).fill(false)
+
   systemFieldsIds.value = getSystemColumns(col).map((c) => c.fk_column_id)
 
   hiddenColumns.value = col.filter(
@@ -360,6 +367,10 @@ function handleMouseUp(col: Record<string, any>, hiddenColIndex: number) {
     saveOrUpdate(col, index)
   }
 }
+
+const columnSupportsScanning = (elementType: UITypes) =>
+  betaFeatureToggleState.show &&
+  [UITypes.SingleLineText, UITypes.Number, UITypes.Email, UITypes.URL, UITypes.LongText].includes(elementType)
 
 onClickOutside(draggableRef, () => {
   activeRow.value = ''
@@ -480,7 +491,7 @@ watch(view, (nextView) => {
           <a-dropdown v-model:visible="showColumnDropdown" :trigger="['click']" overlay-class-name="nc-dropdown-form-add-column">
             <button type="button" class="group w-full mt-2" @click.stop="showColumnDropdown = true">
               <span class="flex items-center flex-wrap justify-center gap-2 prose-sm text-gray-400">
-                <MdiPlus class="color-transition transform group-hover:(text-accent scale-125)" />
+                <component :is="iconMap.plus" class="color-transition transform group-hover:(text-accent scale-125)" />
                 <!-- Add new field to this table -->
                 <span class="color-transition group-hover:text-primary break-words">
                   {{ $t('activity.addField') }}
@@ -521,10 +532,10 @@ watch(view, (nextView) => {
             <!-- Header -->
             <div v-if="isEditable" class="px-4 lg:px-12">
               <a-form-item v-if="isEditable">
-                <a-input
+                <a-textarea
                   v-model:value="formViewData.heading"
                   class="w-full !font-bold !text-4xl !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
-                  :style="{ borderRightWidth: '0px !important' }"
+                  :style="{ 'borderRightWidth': '0px !important', 'height': '54px', 'min-height': '54px', 'resize': 'vertical' }"
                   size="large"
                   hide-details
                   placeholder="Form Title"
@@ -540,10 +551,10 @@ watch(view, (nextView) => {
             <!-- Sub Header -->
             <div v-if="isEditable" class="px-4 lg:px-12">
               <a-form-item>
-                <a-input
+                <a-textarea
                   v-model:value="formViewData.subheading"
                   class="w-full !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
-                  :style="{ borderRightWidth: '0px !important' }"
+                  :style="{ 'borderRightWidth': '0px !important', 'height': '40px', 'min-height': '40px', 'resize': 'vertical' }"
                   size="large"
                   hide-details
                   :placeholder="$t('msg.info.formDesc')"
@@ -586,7 +597,8 @@ watch(view, (nextView) => {
                     v-if="isUIAllowed('editFormView') && !isRequired(element, element.required)"
                     class="absolute flex top-2 right-2"
                   >
-                    <MdiEyeOffOutline
+                    <component
+                      :is="iconMap.eyeSlash"
                       class="opacity-0 nc-field-remove-icon"
                       data-testid="nc-field-remove-icon"
                       @click.stop="hideColumn(index)"
@@ -615,6 +627,30 @@ watch(view, (nextView) => {
                         @change="updateColMeta(element)"
                       />
                     </div>
+
+                    <a-form-item v-if="columnSupportsScanning(element.uidt)" class="my-0 w-1/2 !mb-1">
+                      <div class="flex gap-2 items-center">
+                        <span
+                          class="text-gray-500 mr-2 nc-form-input-required"
+                          data-testid="nc-form-input-enable-scanner"
+                          @click="
+                            () => {
+                              element.general.enable_scanner = !element.general.enable_scanner
+                              updateColMeta(element)
+                            }
+                          "
+                        >
+                          {{ $t('general.enableScanner') }}
+                        </span>
+
+                        <a-switch
+                          v-model:checked="element.enable_scanner"
+                          v-e="['a:form-view:field:mark-enable-scaner']"
+                          size="small"
+                          @change="updateColMeta(element)"
+                        />
+                      </div>
+                    </a-form-item>
 
                     <a-form-item class="my-0 w-1/2 !mb-1">
                       <a-input
@@ -661,7 +697,7 @@ watch(view, (nextView) => {
                   <a-form-item
                     v-if="isVirtualCol(element)"
                     :name="element.title"
-                    class="!mb-0"
+                    class="!mb-0 nc-input-required-error"
                     :rules="[
                       {
                         required: isRequired(element, element.required),
@@ -683,7 +719,7 @@ watch(view, (nextView) => {
                   <a-form-item
                     v-else
                     :name="element.title"
-                    class="!mb-0"
+                    class="!mb-0 nc-input-required-error"
                     :rules="[
                       {
                         required: isRequired(element, element.required),
@@ -691,18 +727,25 @@ watch(view, (nextView) => {
                       },
                     ]"
                   >
-                    <LazySmartsheetCell
-                      v-model="formState[element.title]"
-                      class="nc-input"
-                      :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                      :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                      :column="element"
-                      :edit-enabled="true"
-                      @click.stop.prevent
-                    />
+                    <LazySmartsheetDivDataCell class="relative">
+                      <LazySmartsheetCell
+                        v-model="formState[element.title]"
+                        class="nc-input truncate"
+                        :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                        :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                        :column="element"
+                        :edit-enabled="editEnabled[index]"
+                        @click="editEnabled[index] = true"
+                        @cancel="editEnabled[index] = false"
+                        @update:edit-enabled="editEnabled[index] = $event"
+                        @click.stop.prevent
+                      />
+                    </LazySmartsheetDivDataCell>
                   </a-form-item>
 
-                  <div class="text-gray-500 text-xs" data-testid="nc-form-input-help-text-label">{{ element.description }}</div>
+                  <div class="nc-form-help-text text-gray-500 text-xs" data-testid="nc-form-input-help-text-label">
+                    {{ element.description }}
+                  </div>
                 </div>
               </template>
 
@@ -796,7 +839,7 @@ watch(view, (nextView) => {
 
 <style scoped lang="scss">
 .nc-editable:hover {
-  .nc-field-remove-icon {
+  :deep(.nc-field-remove-icon) {
     @apply opacity-100;
   }
 }
@@ -820,6 +863,13 @@ watch(view, (nextView) => {
   }
 }
 
+.nc-form-help-text,
+.nc-input-required-error {
+  max-width: 100%;
+  word-break: break-all;
+  white-space: pre-line;
+}
+
 :deep(.nc-cell-attachment) {
   @apply p-0;
 
@@ -827,7 +877,7 @@ watch(view, (nextView) => {
     @apply px-4 min-h-[75px] w-full h-full;
 
     .nc-attachment {
-      @apply md:(w-[50px] h-[50px]) lg:(w-[75px] h-[75px]) min-h-[50px] min-w-[50px];
+      @apply md: (w-[50px] h-[50px]) lg:(w-[75px] h-[75px]) min-h-[50px] min-w-[50px];
     }
 
     .nc-attachment-cell-dropzone {

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { RequestParams } from 'nocodb-sdk'
 import { ExportTypes } from 'nocodb-sdk'
+import { storeToRefs } from 'pinia'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -27,7 +28,7 @@ const isPublicView = inject(IsPublicInj, ref(false))
 
 const isView = false
 
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
 
 const { $api } = useNuxtApp()
 

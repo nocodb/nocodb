@@ -2,9 +2,11 @@
 import type { Form, Input } from 'ant-design-vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { VNodeRef } from '@vue/runtime-core'
+import type { ProjectType } from 'nocodb-sdk'
 import {
   extractSdkResponseErrorMsg,
   generateUniqueName,
+  iconMap,
   message,
   navigateTo,
   nextTick,
@@ -44,9 +46,9 @@ const createProject = async () => {
   try {
     creating.value = true
 
-    const result = await api.project.create({
+    const result = (await api.project.create({
       title: formState.title,
-    })
+    })) as Partial<ProjectType>
 
     await navigateTo(`/nc/${result.id}`)
   } catch (e: any) {
@@ -76,7 +78,7 @@ onMounted(async () => {
       class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full cursor-pointer"
       @click="navigateTo('/')"
     >
-      <MdiChevronLeft class="text-black group-hover:(text-accent scale-110)" />
+      <component :is="iconMap.chevronLeft" class="text-black group-hover:(text-accent scale-110)" />
     </div>
 
     <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.createProject') }}</h1>

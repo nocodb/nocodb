@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import type { UserType } from 'nocodb-sdk'
+import type { VNodeRef } from '@vue/runtime-core'
+import type { OrgUserReqType } from 'nocodb-sdk'
 import {
   Form,
   computed,
+  emailValidator,
   extractSdkResponseErrorMsg,
+  iconMap,
   message,
   ref,
   useCopy,
   useDashboard,
   useI18n,
   useNuxtApp,
-  validateEmail,
 } from '#imports'
 import type { User } from '~/lib'
 import { Role } from '~/lib'
@@ -43,24 +45,10 @@ const usersData = $ref<Users>({ emails: '', role: Role.OrgLevelViewer, invitatio
 const formRef = ref()
 
 const useForm = Form.useForm
+
 const validators = computed(() => {
   return {
-    emails: [
-      {
-        validator: (rule: any, value: string, callback: (errMsg?: string) => void) => {
-          if (!value || value.length === 0) {
-            callback('Email is required')
-            return
-          }
-          const invalidEmails = (value || '').split(/\s*,\s*/).filter((e: string) => !validateEmail(e))
-          if (invalidEmails.length > 0) {
-            callback(`${invalidEmails.length > 1 ? ' Invalid emails:' : 'Invalid email:'} ${invalidEmails.join(', ')} `)
-          } else {
-            callback()
-          }
-        },
-      },
-    ],
+    emails: [emailValidator],
   }
 })
 
@@ -72,11 +60,10 @@ const saveUser = async () => {
   await formRef.value?.validateFields()
 
   try {
-    // todo: update sdk(swagger.json)
     const res = await $api.orgUsers.add({
       roles: usersData.role,
       email: usersData.emails,
-    } as unknown as UserType)
+    } as unknown as OrgUserReqType)
 
     usersData.invitationToken = res.invite_token
     emit('reload')
@@ -98,7 +85,7 @@ const copyUrl = async () => {
 
     // Copied shareable base url to clipboard!
     message.success(t('msg.success.shareableURLCopied'))
-  } catch (e) {
+  } catch (e: any) {
     message.error(e.message)
   }
   $e('c:shared-base:copy-url')
@@ -110,9 +97,8 @@ const clickInviteMore = () => {
   usersData.role = Role.OrgLevelViewer
   usersData.emails = ''
 }
-const emailInput = ref((el) => {
-  el?.focus()
-})
+
+const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
@@ -139,13 +125,13 @@ const emailInput = ref((el) => {
 
       <div class="px-2 mt-1.5">
         <template v-if="usersData.invitationToken">
-          <div class="flex flex-col mt-1 border-b-1 pb-5">
+          <div class="flex flex-col mt-1 pb-5">
             <div class="flex flex-row items-center pl-1.5 pb-1 h-[1.1rem]">
-              <MdiAccountOutline />
+              <component :is="iconMap.account" />
               <div class="text-xs ml-0.5 mt-0.5">Copy Invite Token</div>
             </div>
 
-            <a-alert class="mt-1" type="success" show-icon>
+            <a-alert class="!mt-2" type="success" show-icon>
               <template #message>
                 <div class="flex flex-row justify-between items-center py-1">
                   <div class="flex pl-2 text-green-700 text-xs">
@@ -154,7 +140,7 @@ const emailInput = ref((el) => {
 
                   <a-button type="text" class="!rounded-md -mt-0.5" @click="copyUrl">
                     <template #icon>
-                      <MdiContentCopy class="flex mx-auto text-green-700 h-[1rem]" />
+                      <component :is="iconMap.copy" class="flex mx-auto text-green-700 h-[1rem]" />
                     </template>
                   </a-button>
                 </div>
@@ -166,8 +152,8 @@ const emailInput = ref((el) => {
               {{ usersData.invitationToken && usersData.emails }}
             </div>
 
-            <div class="flex flex-row justify-start mt-4 ml-2">
-              <a-button size="small" outlined @click="clickInviteMore">
+            <div class="flex flex-row justify-end mt-4 ml-2">
+              <a-button size="middle" outlined @click="clickInviteMore">
                 <div class="flex flex-row justify-center items-center space-x-0.5">
                   <MaterialSymbolsSendOutline class="flex mx-auto text-gray-600 h-[0.8rem]" />
 
@@ -179,11 +165,6 @@ const emailInput = ref((el) => {
         </template>
 
         <div v-else class="flex flex-col pb-4">
-          <div class="flex flex-row items-center pl-2 pb-1 h-[1rem]">
-            <MdiAccountOutline />
-            <div class="text-xs ml-0.5 mt-0.5">{{ $t('activity.inviteUser') }}</div>
-          </div>
-
           <div class="border-1 py-3 px-4 rounded-md mt-1">
             <a-form
               ref="formRef"
@@ -205,6 +186,7 @@ const emailInput = ref((el) => {
                     <a-input
                       :ref="emailInput"
                       v-model:value="usersData.emails"
+                      size="middle"
                       validate-trigger="onBlur"
                       :placeholder="$t('labels.email')"
                     />
@@ -242,8 +224,8 @@ const emailInput = ref((el) => {
                 </div>
               </div>
 
-              <div class="flex flex-row justify-center">
-                <a-button type="primary" html-type="submit">
+              <div class="flex flex-row justify-end">
+                <a-button type="primary" class="!rounded-md" html-type="submit">
                   <div class="flex flex-row justify-center items-center space-x-1.5">
                     <MaterialSymbolsSendOutline class="flex h-[0.8rem]" />
                     <div>{{ $t('activity.invite') }}</div>

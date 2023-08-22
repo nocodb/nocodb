@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { iconMap } from '#imports'
+
 interface Props {
   srcs: string[]
   alt?: string
@@ -21,5 +23,5 @@ const onError = () => index.value++
     quality="75"
     @error="onError"
   />
-  <MdiFileImageBox v-else />
+  <component :is="iconMap.imagePlaceholder" v-else />
 </template>

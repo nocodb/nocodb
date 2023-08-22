@@ -8,6 +8,7 @@ import {
   IsPublicInj,
   SaveRowInj,
   computed,
+  iconMap,
   inject,
   isDrawerExist,
   ref,
@@ -15,10 +16,9 @@ import {
   useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
   useVModel,
-  watch,
 } from '#imports'
 
-const props = defineProps<{ modelValue: boolean }>()
+const props = defineProps<{ modelValue: boolean; column: any }>()
 
 const emit = defineEmits(['update:modelValue', 'addNewRecord'])
 
@@ -210,9 +210,9 @@ watch(vModel, (nextVal) => {
 
         <div class="flex-1" />
 
-        <MdiReload class="cursor-pointer text-gray-500 nc-reload" @click="loadChildrenExcludedList" />
+        <component :is="iconMap.reload" class="cursor-pointer text-gray-500 nc-reload" @click="loadChildrenExcludedList" />
 
-        <!--        Add new record -->
+        <!-- Add new record -->
         <a-button v-if="!isPublic" type="primary" size="small" @click="expandedFormDlg = true">
           {{ $t('activity.addNewRecord') }}
         </a-button>
@@ -228,7 +228,11 @@ watch(vModel, (nextVal) => {
             :class="{ 'nc-selected-row': selectedRowIndex === i }"
             @click="linkRow(refRow)"
           >
-            {{ refRow[relatedTableDisplayValueProp] }}
+            <VirtualCellComponentsItemChip
+              :value="refRow[relatedTableDisplayValueProp]"
+              :column="props.column"
+              :show-unlink-button="false"
+            />
             <span class="hidden group-hover:(inline) text-gray-400 text-[11px] ml-1">
               ({{ $t('labels.primaryKey') }} : {{ getRelatedTableRowId(refRow) }})
             </span>

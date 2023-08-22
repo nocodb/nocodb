@@ -1,8 +1,11 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, inject, useVModel } from '#imports'
+import { EditModeInj, IsExpandedFormOpenInj, inject, useVModel } from '#imports'
 
 interface Props {
+  // when we set a number, then it is number type
+  // for sqlite, when we clear a cell or empty the cell, it returns ""
+  // otherwise, it is null type
   modelValue?: number | null | string
 }
 
@@ -22,8 +25,10 @@ const _vModel = useVModel(props, 'modelValue', emits)
 
 const vModel = computed({
   get: () => _vModel.value,
-  set: (value: string) => {
+  set: (value) => {
     if (value === '') {
+      // if we clear / empty a cell in sqlite,
+      // the value is considered as ''
       _vModel.value = null
     } else {
       _vModel.value = value
@@ -31,7 +36,9 @@ const vModel = computed({
   },
 })
 
-const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
@@ -48,6 +55,8 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
     @keydown.right.stop
     @keydown.up.stop
     @keydown.delete.stop
+    @keydown.ctrl.z.stop
+    @keydown.meta.z.stop
     @selectstart.capture.stop
     @mousedown.stop
   />

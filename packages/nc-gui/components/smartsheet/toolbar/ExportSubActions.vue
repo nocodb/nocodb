@@ -7,9 +7,11 @@ import {
   IsPublicInj,
   MetaInj,
   extractSdkResponseErrorMsg,
+  iconMap,
   inject,
   message,
   ref,
+  storeToRefs,
   useI18n,
   useNuxtApp,
   useProject,
@@ -22,7 +24,7 @@ const isPublicView = inject(IsPublicInj, ref(false))
 
 const fields = inject(FieldsInj, ref([]))
 
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
 
 const { $api } = useNuxtApp()
 
@@ -98,7 +100,7 @@ const exportFile = async (exportType: ExportTypes) => {
 <template>
   <a-menu-item>
     <div v-e="['a:actions:download-csv']" class="nc-project-menu-item" @click="exportFile(ExportTypes.CSV)">
-      <MdiDownloadOutline class="text-gray-500" />
+      <component :is="iconMap.csv" class="text-gray-500" />
       <!-- Download as CSV -->
       {{ $t('activity.downloadCSV') }}
     </div>
@@ -106,7 +108,7 @@ const exportFile = async (exportType: ExportTypes) => {
 
   <a-menu-item>
     <div v-e="['a:actions:download-excel']" class="nc-project-menu-item" @click="exportFile(ExportTypes.EXCEL)">
-      <MdiDownloadOutline class="text-gray-500" />
+      <component :is="iconMap.excel" class="text-gray-500" />
       <!-- Download as XLSX -->
       {{ $t('activity.downloadExcel') }}
     </div>

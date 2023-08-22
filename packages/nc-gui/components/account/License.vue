@@ -14,9 +14,8 @@ let key = $ref('')
 const loadLicense = async () => {
   try {
     const response = await api.orgLicense.get()
-
-    key = response.key
-  } catch (e) {
+    key = response.key!
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -25,7 +24,7 @@ const setLicense = async () => {
     await api.orgLicense.set({ key: key })
     message.success('License key updated')
     await loadAppInfo()
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
   $e('a:account:license')
@@ -41,9 +40,9 @@ loadLicense()
       <div>
         <a-textarea v-model:value="key" placeholder="License key" class="!mt-2 !max-w-[600px]"></a-textarea>
       </div>
-      <div class="text-center"><a-button class="mt-4" @click="setLicense" type="primary">Save license key</a-button></div>
+      <div class="text-center">
+        <a-button class="mt-4 !h-[2.2rem] !rounded-md" @click="setLicense" type="primary">Save license key</a-button>
+      </div>
     </div>
   </div>
 </template>
-
-<style scoped></style>

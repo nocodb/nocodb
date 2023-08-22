@@ -1,5 +1,4 @@
 import 'mocha';
-
 import restTests from './rest/index.test';
 import modelTests from './model/index.test';
 import TestDbMngr from './TestDbMngr'

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, RowHeightInj, inject, useVModel } from '#imports'
+import { EditModeInj, IsExpandedFormOpenInj, RowHeightInj, inject, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue?: string | number
@@ -10,13 +10,15 @@ const emits = defineEmits(['update:modelValue'])
 
 const editEnabled = inject(EditModeInj)
 
-const rowHeight = inject(RowHeightInj)
+const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const { showNull } = useGlobal()
 
 const vModel = useVModel(props, 'modelValue', emits, { defaultValue: '' })
 
-const focus: VNodeRef = (el) => (el as HTMLTextAreaElement)?.focus()
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLTextAreaElement)?.focus()
 </script>
 
 <template>
@@ -35,6 +37,8 @@ const focus: VNodeRef = (el) => (el as HTMLTextAreaElement)?.focus()
     @keydown.right.stop
     @keydown.up.stop
     @keydown.delete.stop
+    @keydown.ctrl.z.stop
+    @keydown.meta.z.stop
     @selectstart.capture.stop
     @mousedown.stop
   />
@@ -45,3 +49,9 @@ const focus: VNodeRef = (el) => (el as HTMLTextAreaElement)?.focus()
 
   <span v-else>{{ vModel }}</span>
 </template>
+
+<style>
+textarea:focus {
+  box-shadow: none;
+}
+</style>

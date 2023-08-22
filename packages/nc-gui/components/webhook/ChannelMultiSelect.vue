@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, useVModel, watch } from '#imports'
+import { onBeforeMount, useVModel, watch } from '#imports'
 
 interface Props {
   modelValue: Record<string, any>[]
@@ -17,24 +17,9 @@ const vModel = useVModel(rest, 'modelValue', emit)
 const localChannelValues = $ref<number[]>([])
 
 // availableChannelList with idx enriched
-let availableChannelWithIdxList = $ref<Record<string, any>[]>()
+let availableChannelWithIdxList = $ref<Record<string, any>[]>([])
 
-watch(
-  () => localChannelValues,
-  (v) => {
-    const res = []
-    for (const channelIdx of v) {
-      const target = availableChannelWithIdxList.find((availableChannel) => availableChannel.idx === channelIdx)
-      if (target) {
-        // push without target.idx
-        res.push({ webhook_url: target.webhook_url, channel: target.channel })
-      }
-    }
-    vModel.value = res
-  },
-)
-
-onMounted(() => {
+function setAvailableChannelWithIdxList(availableChannelList: Record<string, any>[]) {
   if (availableChannelList.length) {
     // enrich idx
     let idx = 0
@@ -54,7 +39,33 @@ onMounted(() => {
       }
     }
   }
-})
+}
+
+watch(
+  () => availableChannelList,
+  (n, o) => {
+    if (n !== o) {
+      setAvailableChannelWithIdxList(n)
+    }
+  },
+)
+
+watch(
+  () => localChannelValues,
+  (v) => {
+    const res = []
+    for (const channelIdx of v) {
+      const target = availableChannelWithIdxList.find((availableChannel) => availableChannel.idx === channelIdx)
+      if (target) {
+        // push without target.idx
+        res.push({ webhook_url: target.webhook_url, channel: target.channel })
+      }
+    }
+    vModel.value = res
+  },
+)
+
+onBeforeMount(() => setAvailableChannelWithIdxList(availableChannelList))
 </script>
 
 <template>

@@ -5,6 +5,7 @@ import {
   IsLockedInj,
   IsPublicInj,
   computed,
+  iconMap,
   inject,
   ref,
   useGlobal,
@@ -21,7 +22,7 @@ const activeView = inject(ActiveViewInj, ref())
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { filterAutoSave } = useGlobal()
+const { filterAutoSave, isMobileMode } = useGlobal()
 
 const filterComp = ref<typeof ColumnFilter>()
 
@@ -74,10 +75,10 @@ useMenuCloseOnEsc(open)
     <div :class="{ 'nc-active-btn': filtersLength }">
       <a-button v-e="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm" :disabled="isLocked">
         <div class="flex items-center gap-1">
-          <MdiFilterOutline />
+          <component :is="iconMap.filter" />
           <!-- Filter -->
-          <span class="text-capitalize !text-xs font-weight-normal">{{ $t('activity.filter') }}</span>
-          <MdiMenuDown class="text-grey" />
+          <span v-if="!isMobileMode" class="text-capitalize !text-xs font-weight-normal">{{ $t('activity.filter') }}</span>
+          <component :is="iconMap.arrowDown" class="text-grey" />
 
           <span v-if="filtersLength" class="nc-count-badge">{{ filtersLength }}</span>
         </div>

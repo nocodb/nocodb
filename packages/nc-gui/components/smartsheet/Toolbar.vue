@@ -5,6 +5,8 @@ const { isGrid, isForm, isGallery, isKanban, isMap, isSqlView } = useSmartsheetS
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const { isMobileMode } = useGlobal()
+
 const { isUIAllowed } = useUIPermission()
 
 const { isOpen } = useSidebar('nc-right-sidebar')
@@ -14,7 +16,8 @@ const { allowCSVDownload } = useSharedView()
 
 <template>
   <div
-    class="nc-table-toolbar w-full py-1 flex gap-2 items-center h-[var(--toolbar-height)] px-2 border-b overflow-x-hidden"
+    class="nc-table-toolbar w-full py-1 flex gap-2 items-center px-2 border-b overflow-x-hidden"
+    :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--toolbar-height)]': !isMobileMode }"
     style="z-index: 7"
   >
     <LazySmartsheetToolbarViewActions
@@ -41,8 +44,10 @@ const { allowCSVDownload } = useSharedView()
 
     <LazySmartsheetToolbarShareView v-if="(isForm || isGrid || isKanban || isGallery || isMap) && !isPublic" />
 
+    <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" />
+
     <LazySmartsheetToolbarExport v-if="(!isPublic && !isUIAllowed('dataInsert')) || (isPublic && allowCSVDownload)" />
-    <div class="flex-1" />
+    <div v-if="!isMobileMode" class="flex-1" />
 
     <LazySmartsheetToolbarReload v-if="!isPublic && !isForm" />
 
@@ -51,7 +56,7 @@ const { allowCSVDownload } = useSharedView()
     <LazySmartsheetToolbarSearchData v-if="(isGrid || isGallery || isKanban) && !isPublic" class="shrink mx-2" />
 
     <template v-if="!isOpen && !isPublic">
-      <div class="border-l-1 pl-3">
+      <div class="border-l-1 pl-3 nc-views-show-sidebar-button" :class="{ 'ml-auto': isMobileMode }">
         <LazySmartsheetSidebarToolbarToggleDrawer class="mr-2" />
       </div>
     </template>
@@ -65,5 +70,8 @@ const { allowCSVDownload } = useSharedView()
 
 .nc-table-toolbar {
   border-color: #f0f0f0 !important;
+}
+.nc-table-toolbar-mobile {
+  @apply flex-wrap h-auto py-2;
 }
 </style>

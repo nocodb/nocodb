@@ -173,15 +173,14 @@ export function jsepTreeToFormula(node) {
       'SWITCH',
       'URL',
     ];
-    if (!formulas.includes(node.name)) return '{' + node.name + '}';
+    if (!formulas.includes(node.name.toUpperCase())) return '{' + node.name + '}';
     return node.name;
   }
 
   if (node.type === 'Literal') {
     if (typeof node.value === 'string') {
-      return '"' + node.value + '"';
+      return String.raw`"${escapeLiteral(node.value)}"`;
     }
-
     return '' + node.value;
   }
 
@@ -213,4 +212,16 @@ export function jsepTreeToFormula(node) {
   }
 
   return '';
+}
+
+function escapeLiteral(v: string) {
+  return (
+    v
+      // replace \ to \\
+      .replace(/\\/g, `\\\\`)
+      // replace " to \"
+      .replace(/"/g, `\\"`)
+      // replace ' to \'
+      .replace(/'/g, `\\'`)
+  );
 }

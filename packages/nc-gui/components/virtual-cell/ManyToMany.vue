@@ -7,6 +7,7 @@ import {
   ColumnInj,
   IsFormInj,
   IsLockedInj,
+  IsUnderLookupInj,
   ReadonlyInj,
   ReloadRowDataHookInj,
   RowInj,
@@ -34,6 +35,8 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const isLocked = inject(IsLockedInj)
 
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+
 const listItemsDlg = ref(false)
 
 const childListDlg = ref(false)
@@ -42,7 +45,7 @@ const { isUIAllowed } = useUIPermission()
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
-const { loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvideLTARStore(
+const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
   isNew,
@@ -93,6 +96,11 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
       break
   }
 })
+
+const m2mColumn = computed(
+  () =>
+    relatedTableMeta.value?.columns?.find((c: any) => c.title === relatedTableDisplayValueProp.value) as ColumnType | undefined,
+)
 </script>
 
 <template>
@@ -105,6 +113,8 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
             :key="i"
             :item="cell.item"
             :value="cell.value"
+            :column="m2mColumn"
+            :show-unlink-button="true"
             @unlink="unlinkRef(cell.item)"
           />
 
@@ -114,25 +124,28 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
         </template>
       </div>
 
-      <div v-if="!isLocked" class="flex justify-end gap-1 min-h-[30px] items-center">
-        <MdiArrowExpand
+      <div v-if="!isLocked && !isUnderLookup" class="flex justify-end gap-1 min-h-[30px] items-center">
+        <GeneralIcon
+          icon="expand"
           class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
           @click.stop="childListDlg = true"
         />
 
-        <MdiPlus
+        <GeneralIcon
           v-if="!readOnly && isUIAllowed('xcDatatableEditable')"
+          icon="plus"
           class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
           @click.stop="listItemsDlg = true"
         />
       </div>
     </template>
 
-    <LazyVirtualCellComponentsListItems v-model="listItemsDlg" />
+    <LazyVirtualCellComponentsListItems v-model="listItemsDlg" :column="m2mColumn" />
 
     <LazyVirtualCellComponentsListChildItems
       v-model="childListDlg"
       :cell-value="localCellValue"
+      :column="m2mColumn"
       @attach-record="onAttachRecord"
     />
   </div>

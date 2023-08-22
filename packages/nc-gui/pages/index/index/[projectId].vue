@@ -5,18 +5,23 @@ import type { VNodeRef } from '@vue/runtime-core'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import {
   extractSdkResponseErrorMsg,
+  iconMap,
   message,
   navigateTo,
   projectTitleValidator,
   reactive,
   ref,
+  storeToRefs,
   useProject,
   useRoute,
 } from '#imports'
 
 const route = useRoute()
 
-const { project, loadProject, updateProject, isLoading } = useProject()
+const projectStore = useProject()
+
+const { loadProject, updateProject } = projectStore
+const { project, isLoading } = storeToRefs(projectStore)
 
 const nameValidationRules = [
   {
@@ -61,7 +66,7 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
       class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full cursor-pointer"
       @click="navigateTo('/')"
     >
-      <MdiChevronLeft class="text-black group-hover:(text-accent scale-110)" />
+      <component :is="iconMap.chevronLeft" class="text-black group-hover:(text-accent scale-110)" />
     </div>
 
     <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.editProject') }}</h1>

@@ -1,8 +1,19 @@
-import type { ColumnType, GridColumnType, GridType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, GridColumnType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { IsPublicInj, computed, inject, ref, useMetas, useNuxtApp, useStyleTag, useUIPermission, watch } from '#imports'
+import {
+  IsPublicInj,
+  computed,
+  inject,
+  ref,
+  useMetas,
+  useNuxtApp,
+  useStyleTag,
+  useUIPermission,
+  useUndoRedo,
+  watch,
+} from '#imports'
 
-export function useGridViewColumnWidth(view: Ref<GridType | undefined>) {
+export function useGridViewColumnWidth(view: Ref<(ViewType & { columns?: GridColumnType[] }) | undefined>) {
   const { css, load: loadCss, unload: unloadCss } = useStyleTag('')
 
   const { isUIAllowed } = useUIPermission()
@@ -11,12 +22,14 @@ export function useGridViewColumnWidth(view: Ref<GridType | undefined>) {
 
   const { metas } = useMetas()
 
+  const { addUndo, defineViewScope } = useUndoRedo()
+
   const gridViewCols = ref<Record<string, GridColumnType>>({})
   const resizingCol = ref('')
   const resizingColWidth = ref('200px')
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const columns = computed<ColumnType[]>(() => metas.value?.[(view.value as ViewType)?.fk_model_id as string]?.columns || [])
+  const columns = computed<ColumnType[]>(() => metas.value?.[view.value?.fk_model_id as string]?.columns || [])
 
   watch(
     [gridViewCols, resizingCol, resizingColWidth],
@@ -39,7 +52,9 @@ export function useGridViewColumnWidth(view: Ref<GridType | undefined>) {
   const loadGridViewColumns = async () => {
     if (!view.value?.id && !isPublic.value) return
 
-    const colsData: GridColumnType[] = (isPublic.value ? columns.value : await $api.dbView.gridColumnsList(view.value!.id!)) ?? []
+    const colsData: GridColumnType[] =
+      (isPublic.value ? view.value?.columns : await $api.dbView.gridColumnsList(view.value!.id!)) ?? []
+
     gridViewCols.value = colsData.reduce<Record<string, GridColumnType>>(
       (o, col) => ({
         ...o,
@@ -54,7 +69,21 @@ export function useGridViewColumnWidth(view: Ref<GridType | undefined>) {
    * or when view changes reload columns width  */
   watch([() => columns.value?.length, () => view?.value?.id], loadGridViewColumns)
 
-  const updateWidth = async (id: string, width: string) => {
+  const updateWidth = async (id: string, width: string, undo = false) => {
+    if (!undo) {
+      addUndo({
+        redo: {
+          fn: (w: string) => updateWidth(id, w, true),
+          args: [width],
+        },
+        undo: {
+          fn: (w: string) => updateWidth(id, w, true),
+          args: [gridViewCols.value[id].width],
+        },
+        scope: defineViewScope({ view: view.value }),
+      })
+    }
+
     if (gridViewCols?.value?.[id]) {
       gridViewCols.value[id].width = width
     }

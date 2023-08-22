@@ -1,5 +1,15 @@
 <script setup lang="ts">
-import { ActiveCellInj, ColumnInj, IsFormInj, ReadonlyInj, getMdiIcon, inject, useSelectedCellKeyupListener } from '#imports'
+import {
+  ActiveCellInj,
+  ColumnInj,
+  IsFormInj,
+  ReadonlyInj,
+  getMdiIcon,
+  inject,
+  parseProp,
+  useProject,
+  useSelectedCellKeyupListener,
+} from '#imports'
 
 interface Props {
   // If the previous cell value was a text, the initial checkbox value is a string type
@@ -17,10 +27,7 @@ const emits = defineEmits<Emits>()
 
 const active = inject(ActiveCellInj, ref(false))
 
-let vModel = $computed<boolean>({
-  get: () => !!props.modelValue && props.modelValue !== '0' && props.modelValue !== 0,
-  set: (val: boolean) => emits('update:modelValue', val),
-})
+const { isMssql } = useProject()
 
 const column = inject(ColumnInj)
 
@@ -35,8 +42,13 @@ const checkboxMeta = $computed(() => {
       unchecked: 'mdi-checkbox-blank-circle-outline',
     },
     color: 'primary',
-    ...(column?.value?.meta || {}),
+    ...parseProp(column?.value?.meta),
   }
+})
+
+let vModel = $computed<boolean | number>({
+  get: () => !!props.modelValue && props.modelValue !== '0' && props.modelValue !== 0,
+  set: (val: any) => emits('update:modelValue', isMssql(column?.value?.base_id) ? +val : val),
 })
 
 function onClick(force?: boolean, event?: MouseEvent) {
@@ -89,7 +101,7 @@ useSelectedCellKeyupListener(active, (e) => {
 
 <style scoped lang="scss">
 .nc-cell-hover-show {
-  opacity: 0;
+  opacity: 0.3;
   transition: 0.3s opacity;
 
   &:hover {

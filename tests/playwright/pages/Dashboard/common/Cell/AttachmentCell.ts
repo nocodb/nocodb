@@ -22,6 +22,8 @@ export class AttachmentCellPageObject extends BasePage {
   // e.g. ['path/to/file1', 'path/to/file2']
   //
   async addFile({ index, columnHeader, filePath }: { index?: number; columnHeader: string; filePath: string[] }) {
+    await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
+    await this.get({ index, columnHeader }).click({ position: { x: 1, y: 1 } });
     const attachFileAction = this.get({ index, columnHeader })
       .locator('[data-testid="attachment-cell-file-picker-button"]')
       .click();
@@ -52,7 +54,7 @@ export class AttachmentCellPageObject extends BasePage {
     let retryCount = 0;
     while (retryCount < 5) {
       const attachments = await this.get({ index, columnHeader }).locator('.nc-attachment');
-      console.log(await attachments.count());
+      // console.log(await attachments.count());
       if ((await attachments.count()) === count) {
         break;
       }

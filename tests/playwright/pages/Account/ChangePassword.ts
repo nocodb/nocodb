@@ -25,6 +25,14 @@ export class ChangePasswordPage extends BasePage {
     const newPassword = this.get().locator('input[data-testid="nc-user-settings-form__new-password"]');
     const confirmPassword = this.get().locator('input[data-testid="nc-user-settings-form__new-password-repeat"]');
 
+    await currentPassword.waitFor({ state: 'visible' });
+    await newPassword.waitFor({ state: 'visible' });
+    await confirmPassword.waitFor({ state: 'visible' });
+
+    // in-spite of the waitFor above, the input fields are not always ready to be filled
+    // this is a workaround
+    await this.rootPage.waitForTimeout(500);
+
     await currentPassword.fill(oldPass);
     await newPassword.fill(newPass);
     await confirmPassword.fill(repeatPass);

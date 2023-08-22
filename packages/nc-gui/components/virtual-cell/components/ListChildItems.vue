@@ -10,15 +10,15 @@ import {
   ReadonlyInj,
   computed,
   h,
+  iconMap,
   inject,
   ref,
   useLTARStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
   useVModel,
-  watch,
 } from '#imports'
 
-const props = defineProps<{ modelValue?: boolean; cellValue: any }>()
+const props = defineProps<{ modelValue?: boolean; cellValue: any; column: any }>()
 
 const emit = defineEmits(['update:modelValue', 'attachRecord'])
 
@@ -111,7 +111,8 @@ const onClick = (row: Row) => {
     <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col py-6">
       <div class="flex mb-4 items-center gap-2 px-12">
         <div class="flex-1" />
-        <MdiReload
+        <component
+          :is="iconMap.reload"
           v-if="!isForm"
           class="cursor-pointer text-gray-500"
           data-testid="nc-child-list-reload"
@@ -128,7 +129,7 @@ const onClick = (row: Row) => {
           @click="emit('attachRecord')"
         >
           <div class="flex items-center gap-1">
-            <MdiLinkVariant class="text-xs" type="primary" />
+            <component :is="iconMap.link" class="text-xs" type="primary" />
             Link to '
             <GeneralTableIcon :meta="relatedTableMeta" class="-mx-1 w-5" />
             {{ relatedTableMeta.title }}'
@@ -146,17 +147,19 @@ const onClick = (row: Row) => {
           >
             <div class="flex items-center">
               <div class="flex-1 overflow-hidden min-w-0">
-                {{ row[relatedTableDisplayValueProp] }}
+                <VirtualCellComponentsItemChip :value="row[relatedTableDisplayValueProp]" :column="props.column" />
                 <span class="text-gray-400 text-[11px] ml-1">(Primary key : {{ getRelatedTableRowId(row) }})</span>
               </div>
 
               <div v-if="!readonly" class="flex gap-2">
-                <MdiLinkVariantRemove
+                <component
+                  :is="iconMap.linkRemove"
                   class="text-xs text-grey hover:(!text-red-500) cursor-pointer"
                   data-testid="nc-child-list-icon-unlink"
                   @click.stop="unlinkRow(row)"
                 />
-                <MdiDeleteOutline
+                <component
+                  :is="iconMap.delete"
                   v-if="!readonly && !isPublic"
                   class="text-xs text-grey hover:(!text-red-500) cursor-pointer"
                   data-testid="nc-child-list-icon-delete"

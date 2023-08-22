@@ -5,10 +5,10 @@ metadata:
   labels:
     {{- include "nocodb.selectorLabels" . | nindent 8 }}
 spec:
-  accessModes:
-    - ReadWriteMany
   resources:
     requests:
       storage: {{ .Values.storage.size }}
   storageClassName: {{ .Values.storage.storageClassName }}
+  accessModes:
+    {{- default (toYaml .Values.storage.accessModes) "- ReadWriteMany" | nindent 4 }}
   volumeMode: Filesystem

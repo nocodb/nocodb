@@ -787,6 +787,9 @@ export class SqliteUi {
       case 'Attachment':
         colProp.dt = 'text';
         break;
+      case 'GeoData':
+        colProp.dt = 'text';
+        break;
       case 'Checkbox':
         colProp.dt = 'boolean';
         colProp.cdf = '0';
@@ -923,6 +926,7 @@ export class SqliteUi {
       case 'LongText':
       case 'Attachment':
       case 'Collaborator':
+      case 'GeoData':
         return ['character', 'text', 'varchar'];
 
       case 'Checkbox':

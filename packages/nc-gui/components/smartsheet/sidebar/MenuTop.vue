@@ -10,6 +10,7 @@ import {
   inject,
   message,
   onMounted,
+  parseProp,
   ref,
   resolveComponent,
   useApi,
@@ -17,6 +18,7 @@ import {
   useI18n,
   useNuxtApp,
   useRouter,
+  useUndoRedo,
   viewTypeAlias,
   watch,
 } from '#imports'
@@ -44,6 +46,8 @@ const activeView = inject(ActiveViewInj, ref())
 const { api } = useApi()
 
 const router = useRouter()
+
+const { addUndo, defineModelScope } = useUndoRedo()
 
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
@@ -83,22 +87,52 @@ function validate(view: ViewType) {
   return true
 }
 
+let sortable: Sortable
+
 function onSortStart(evt: SortableEvent) {
   evt.stopImmediatePropagation()
   evt.preventDefault()
   dragging = true
 }
 
-async function onSortEnd(evt: SortableEvent) {
-  evt.stopImmediatePropagation()
-  evt.preventDefault()
-  dragging = false
+async function onSortEnd(evt: SortableEvent, undo = false) {
+  if (!undo) {
+    evt.stopImmediatePropagation()
+    evt.preventDefault()
+    dragging = false
+  }
 
   if (views.length < 2) return
 
   const { newIndex = 0, oldIndex = 0 } = evt
 
   if (newIndex === oldIndex) return
+
+  if (!undo) {
+    addUndo({
+      redo: {
+        fn: async () => {
+          const ord = sortable.toArray()
+          const temp = ord.splice(oldIndex, 1)
+          ord.splice(newIndex, 0, temp[0])
+          sortable.sort(ord)
+          await onSortEnd(evt, true)
+        },
+        args: [],
+      },
+      undo: {
+        fn: async () => {
+          const ord = sortable.toArray()
+          const temp = ord.splice(newIndex, 1)
+          ord.splice(oldIndex, 0, temp[0])
+          sortable.sort(ord)
+          await onSortEnd({ ...evt, oldIndex: newIndex, newIndex: oldIndex }, true)
+        },
+        args: [],
+      },
+      scope: defineModelScope({ view: activeView.value }),
+    })
+  }
 
   const children = evt.to.children as unknown as HTMLLIElement[]
 
@@ -134,8 +168,6 @@ async function onSortEnd(evt: SortableEvent) {
   $e('a:view:reorder')
 }
 
-let sortable: Sortable
-
 const initSortable = (el: HTMLElement) => {
   if (sortable) sortable.destroy()
 
@@ -164,7 +196,7 @@ function changeView(view: ViewType) {
 }
 
 /** Rename a view */
-async function onRename(view: ViewType) {
+async function onRename(view: ViewType, originalTitle?: string, undo = false) {
   try {
     await api.dbView.update(view.id!, {
       title: view.title,
@@ -176,6 +208,28 @@ async function onRename(view: ViewType) {
         viewTitle: view.title,
       },
     })
+
+    if (!undo) {
+      addUndo({
+        redo: {
+          fn: (v: ViewType, title: string) => {
+            const tempTitle = v.title
+            v.title = title
+            onRename(v, tempTitle, true)
+          },
+          args: [view, view.title],
+        },
+        undo: {
+          fn: (v: ViewType, title: string) => {
+            const tempTitle = v.title
+            v.title = title
+            onRename(v, tempTitle, true)
+          },
+          args: [view, originalTitle],
+        },
+        scope: defineModelScope({ view: activeView.value }),
+      })
+    }
 
     // View renamed successfully
     message.success(t('msg.success.viewRenamed'))
@@ -218,7 +272,7 @@ const setIcon = async (icon: string, view: ViewType) => {
   try {
     // modify the icon property in meta
     view.meta = {
-      ...(view.meta || {}),
+      ...parseProp(view.meta),
       icon,
     }
 
@@ -227,7 +281,7 @@ const setIcon = async (icon: string, view: ViewType) => {
     })
 
     $e('a:view:icon:sidebar', { icon })
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }

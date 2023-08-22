@@ -1,8 +1,8 @@
-import Model from "../../../src/lib/models/Model";
-import Project from "../../../src/lib/models/Project";
-import NcConnectionMgrv2 from "../../../src/lib/utils/common/NcConnectionMgrv2";
-import { orderedMetaTables } from "../../../src/lib/utils/globals";
-import TestDbMngr from "../TestDbMngr";
+import { Model, Project } from '../../../src/models';
+import NcConnectionMgrv2 from '../../../src/utils/common/NcConnectionMgrv2';
+import { orderedMetaTables } from '../../../src/utils/globals';
+import TestDbMngr from '../TestDbMngr';
+import { isPg } from './db';
 
 const dropTablesAllNonExternalProjects = async () => {
   const projects = await Project.list({});
@@ -22,13 +22,17 @@ const dropTablesAllNonExternalProjects = async () => {
         models.forEach((model) => {
           userCreatedTableNames.push(model.table_name);
         });
-      })
+      }),
   );
 
   await TestDbMngr.disableForeignKeyChecks(TestDbMngr.metaKnex);
 
   for (const tableName of userCreatedTableNames) {
-    await TestDbMngr.metaKnex.raw(`DROP TABLE ${tableName}`);
+    if (TestDbMngr.isPg()) {
+      await TestDbMngr.metaKnex.raw(`DROP TABLE "${tableName}" CASCADE`);
+    } else {
+      await TestDbMngr.metaKnex.raw(`DROP TABLE ${tableName}`);
+    }
   }
 
   await TestDbMngr.enableForeignKeyChecks(TestDbMngr.metaKnex);

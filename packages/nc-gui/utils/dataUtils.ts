@@ -2,12 +2,12 @@ import { RelationTypes, UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 
 export const extractPkFromRow = (row: Record<string, any>, columns: ColumnType[]) => {
-  return (
+  return encodeURIComponent(
     row &&
-    columns
-      ?.filter((c) => c.pk)
-      .map((c) => row?.[c.title as string])
-      .join('___')
+      columns
+        ?.filter((c) => c.pk)
+        .map((c) => row?.[c.title as string])
+        .join('___'),
   )
 }
 

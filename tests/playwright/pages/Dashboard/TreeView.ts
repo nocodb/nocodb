@@ -16,8 +16,14 @@ export class TreeViewPage extends BasePage {
     this.project = project;
     this.quickImportButton = dashboard.get().locator('.nc-import-menu');
 
-    this.btn_addNewTable = dashboard.get().locator('[data-testid="nc-sidebar-add-project-entity"]');
-    this.btn_projectContextMenu = dashboard.get().locator('[data-testid="nc-sidebar-context-menu"]');
+    this.btn_addNewTable = dashboard
+      .get()
+      .locator('.project-title-node.active')
+      .locator('[data-testid="nc-sidebar-add-project-entity"]');
+    this.btn_projectContextMenu = dashboard
+      .get()
+      .locator('.project-title-node.active')
+      .locator('[data-testid="nc-sidebar-context-menu"]');
   }
 
   get() {
@@ -259,8 +265,8 @@ export class TreeViewPage extends BasePage {
     await pjtNode.hover();
 
     // add new table button & context menu is visible only for owner & creator
-    expect(await pjtNode.locator('[data-testid="nc-sidebar-add-project-entity"]').count()).toBe(count);
-    expect(await pjtNode.locator('[data-testid="nc-sidebar-context-menu"]').count()).toBe(count);
+    await expect(pjtNode.locator('[data-testid="nc-sidebar-add-project-entity"]')).toHaveCount(count);
+    await expect(pjtNode.locator('[data-testid="nc-sidebar-context-menu"]')).toHaveCount(count);
 
     // table context menu
     const tblNode = await this.getTable({ index: 0 });

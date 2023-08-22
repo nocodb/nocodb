@@ -326,7 +326,7 @@ onKeyStroke('Escape', () => {
         <div
           ref="projectNodeRefs"
           :class="{
-            'bg-primary-selected': activeProjectId === project.id && projectViewOpen,
+            'bg-primary-selected active': activeProjectId === project.id && projectViewOpen,
             'hover:bg-gray-200': !(activeProjectId === project.id && projectViewOpen),
           }"
           :data-testid="`nc-sidebar-project-title-${project.title}`"

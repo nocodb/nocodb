@@ -5,6 +5,7 @@ import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import { useTitle } from '@vueuse/core'
 import {
+  NcProjectType,
   ProjectInj,
   ProjectRoleInj,
   ToggleDialogInj,
@@ -15,7 +16,7 @@ import {
   useProjects,
 } from '#imports'
 import type { NcProject } from '#imports'
-import {useNuxtApp} from "#app";
+import { useNuxtApp } from '#app'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
@@ -40,7 +41,7 @@ const { projects } = storeToRefs(projectsStore)
 const { loadProjectTables } = useTablesStore()
 const { activeTable } = storeToRefs(useTablesStore())
 
-const { appInfo } = useGlobal()
+const { appInfo, navigateToProject } = useGlobal()
 
 useTabs()
 
@@ -323,15 +324,24 @@ const duplicateProject = (project: ProjectType) => {
   selectedProjectToDuplicate.value = project
   isDuplicateDlgOpen.value = true
 }
-const {  $jobs } = useNuxtApp()
+const { $jobs } = useNuxtApp()
 
-
-const DlgProjectDuplicateOnOk = async (jobData: { id: string }) => {
+const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string }) => {
   await loadProjects('workspace')
 
   $jobs.subscribe({ id: jobData.id }, undefined, async (status: string) => {
     if (status === JobStatus.COMPLETED) {
       await loadProjects('workspace')
+
+      const project = projects.value.get(jobData.project_id)
+
+      // open project after duplication
+      if (project) {
+        await navigateToProject({
+          projectId: project.id,
+          type: project.type,
+        })
+      }
     } else if (status === JobStatus.FAILED) {
       message.error('Failed to duplicate project')
       await loadProjects('workspace')
@@ -445,13 +455,9 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string }) => {
                       {{ $t('activity.account.projInfo') }}
                     </div>
                   </a-menu-item>
-
                   <a-menu-item
-                      v-if="
-            project.type === NcProjectType.DB &&
-            isUIAllowed('duplicateProject', true, [project.workspace_role, project.project_role].join())
-          "
-                      @click="duplicateProject(project)"
+                    v-if="isUIAllowed('duplicateProject', true, project.project_role)"
+                    @click="duplicateProject(project)"
                   >
                     <div class="nc-menu-item-wrapper">
                       <GeneralIcon icon="duplicate" class="text-gray-700" />
@@ -709,6 +715,12 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string }) => {
     :project-id="project?.id"
   />
   <DlgProjectDelete v-model:visible="isProjectDeleteDialogVisible" :project-id="project?.id" />
+  <DlgProjectDuplicate
+    v-if="selectedProjectToDuplicate"
+    v-model="isDuplicateDlgOpen"
+    :project="selectedProjectToDuplicate"
+    :on-ok="DlgProjectDuplicateOnOk"
+  />
 </template>
 
 <style lang="scss" scoped>

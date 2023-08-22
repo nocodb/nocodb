@@ -17,7 +17,7 @@ import {
   useProjects,
   useWorkspace,
 } from '#imports'
-import {useNuxtApp} from "#app";
+import { useNuxtApp } from '#app'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
@@ -38,7 +38,7 @@ const projectsStore = useProjects()
 
 const workspaceStore = useWorkspace()
 
-const { loadProject, loadProjects,  createProject: _createProject, updateProject, getProjectMetaInfo } = projectsStore
+const { loadProject, loadProjects, createProject: _createProject, updateProject, getProjectMetaInfo } = projectsStore
 const { projects } = storeToRefs(projectsStore)
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
@@ -46,7 +46,7 @@ const { activeWorkspace } = storeToRefs(workspaceStore)
 const { loadProjectTables } = useTablesStore()
 const { activeTable } = storeToRefs(useTablesStore())
 
-const { appInfo } = useGlobal()
+const { appInfo, navigateToProject } = useGlobal()
 
 useTabs()
 
@@ -402,15 +402,24 @@ const duplicateProject = (project: ProjectType) => {
   selectedProjectToDuplicate.value = project
   isDuplicateDlgOpen.value = true
 }
-const {  $jobs } = useNuxtApp()
+const { $jobs } = useNuxtApp()
 
-
-const DlgProjectDuplicateOnOk = async (jobData: { id: string }) => {
+const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string }) => {
   await loadProjects('workspace')
 
   $jobs.subscribe({ id: jobData.id }, undefined, async (status: string) => {
     if (status === JobStatus.COMPLETED) {
       await loadProjects('workspace')
+      const project = projects.value.get(jobData.project_id)
+
+      // open project after duplication
+      if (project) {
+        await navigateToProject({
+          workspaceId: project.fk_workspace_id,
+          projectId: project.id,
+          type: project.type,
+        })
+      }
       refreshCommandPalette()
     } else if (status === JobStatus.FAILED) {
       message.error('Failed to duplicate project')
@@ -517,11 +526,11 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string }) => {
                     </div>
                   </a-menu-item>
                   <a-menu-item
-                      v-if="
-            project.type === NcProjectType.DB &&
-            isUIAllowed('duplicateProject', true, [project.workspace_role, project.project_role].join())
-          "
-                      @click="duplicateProject(project)"
+                    v-if="
+                      project.type === NcProjectType.DB &&
+                      isUIAllowed('duplicateProject', true, [project.workspace_role, project.project_role].join())
+                    "
+                    @click="duplicateProject(project)"
                   >
                     <div class="nc-menu-item-wrapper">
                       <GeneralIcon icon="duplicate" class="text-gray-700" />
@@ -748,8 +757,6 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string }) => {
     </div>
     <template v-if="!isSharedBase" #overlay>
       <a-menu class="!py-0 rounded text-sm">
-
-
         <template v-if="contextMenuTarget.type === 'project' && project.type === 'database'">
           <!--
           <a-menu-item v-if="isUIAllowed('sqlEditor')" @click="openProjectSqlEditor(contextMenuTarget.value)">

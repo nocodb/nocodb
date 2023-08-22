@@ -7,14 +7,14 @@ menuTitle: "Row"
 ---
 
 ## Row Create
-### Using expanded form
+### Row Add (Using Form)
 Click on `New Record` at the bottom of the grid (footbar), select `New Record - Form`
 ![new record-form](https://github.com/nocodb/nocodb/assets/86527202/c6e9acff-4d54-440a-9888-e24529747cf9)
 
 Populate columns in the Expnaded form popup; click `Save`
 ![expanded record form](https://github.com/nocodb/nocodb/assets/86527202/ec264f05-8b0b-4029-adc0-a88932d69c9f)
 
-### Inline
+### Row Add (Using Table Row at bottom of page)
 ![in grid insert](https://github.com/nocodb/nocodb/assets/86527202/cf0b6ccb-f598-4874-bb87-8fe291bab14e)
 
 Click on any of the following options to insert a new record on the grid directly.

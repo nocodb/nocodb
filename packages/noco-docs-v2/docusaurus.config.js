@@ -86,34 +86,24 @@ const config = {
         },
         links: [
           {
-            title: 'NocoDB',
-            items: [
-              {
-                label: 'GitHub',
-                href: 'https://github.com/facebook/docusaurus',
-              },
-              {
-                label: 'Website',
-                href: 'https://nocodb.com/',
-              },
-            ],
+            label: 'GitHub',
+            href: 'https://github.com/facebook/docusaurus',
           },
           {
-            title: 'Community',
-            items: [
-              {
-                label: 'Discord',
-                href: 'https://discord.gg/5RgZmkW',
-              },
-              {
-                label: 'Twitter',
-                href: 'https://twitter.com/nocodb',
-              },
-              {
-                label: 'Forum',
-                href: 'https://community.nocodb.com/',
-              }
-            ],
+            label: 'Website',
+            href: 'https://nocodb.com/',
+          },
+          {
+            label: 'Community',
+            href: 'https://community.nocodb.com/',
+          },
+          {
+            label: 'Discord',
+            href: 'https://discord.gg/5RgZmkW',
+          },
+          {
+            label: 'Twitter',
+            href: 'https://twitter.com/nocodb',
           }
         ],
         copyright: `Copyright © ${new Date().getFullYear()} NocoDB`,

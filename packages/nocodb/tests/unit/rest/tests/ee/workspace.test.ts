@@ -117,6 +117,48 @@ function workspaceTests() {
       throw new Error('Workspace update failed');
     }
   });
+
+  it('Update Workspace Error Test', async () => {
+    await request(context.app)
+      .patch(`/api/v1/workspaces/xxxxxxxxx`)
+      .set('xc-auth', context.token)
+      .send({ title: 'Sakila02' })
+      .expect(400);
+  });
+
+  it('Delete Workspace Error Test', async () => {
+    await request(context.app)
+      .delete(`/api/v1/workspaces/xxxxxxxxx`)
+      .set('xc-auth', context.token)
+      .expect(400);
+  });
+
+  it('Create Workspace Error Test', async () => {
+    await request(context.app)
+      .post(`/api/v1/workspaces`)
+      .set('xc-auth', context.token)
+      .send()
+      .expect(400);
+  });
+
+  it('Create Workspace Unauthorized User Test', async () => {
+    const title = 'Sakila01';
+    const color = '#4351E8';
+
+    await request(context.app)
+      .post(`/api/v1/workspaces`)
+      .send({
+        title,
+        meta: {
+          color,
+        },
+      })
+      .expect(401);
+  });
+
+  it('List Workspace Unauthorized User Test', async () => {
+    await request(context.app).get(`/api/v1/workspaces`).expect(401);
+  });
 }
 
 export default function () {

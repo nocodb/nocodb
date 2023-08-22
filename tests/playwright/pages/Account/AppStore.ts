@@ -11,13 +11,11 @@ export class AccountAppStorePage extends BasePage {
   }
 
   async goto() {
-    await this.rootPage.goto('/#/account/apps', { waitUntil: 'networkidle' });
-  }
-
-  async waitUntilContentLoads() {
-    return this.rootPage.waitForResponse(
-      resp => resp.url().includes('api/v1/db/meta/plugins') && resp.status() === 200
-    );
+    await this.waitForResponse({
+      uiAction: () => this.rootPage.goto('/#/account/apps', { waitUntil: 'networkidle' }),
+      httpMethodsToMatch: ['GET'],
+      requestUrlPathToMatch: 'api/v1/db/meta/plugins',
+    });
   }
 
   get() {

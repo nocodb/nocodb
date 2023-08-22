@@ -8,30 +8,22 @@ Thanks for spending your time to contribute! The following is a set of guideline
 - [Development Setup](#development-setup)
   * [Committing Changes](#committing-changes)
   * [Applying License](#applying-license)
-    + [Modifying existing file](#modifying-existing-file)
-    + [Creating new file](#creating-new-file)
-    + [Sign your existing work](#sign-your-existing-work)
-    + [Sign your previous work](#sign-your-previous-work)
-- [Project Structure](#project-structure)
-- [Financial Contribution](#financial-contribution)
-- [Credits](#credits)
 
 ## Pull Request Guidelines
 
-- When you create a PR, you should fill in all the info defined in this [template](https://github.com/nocodb/nocodb/blob/master/.github/pull_request_template.md).
+- When you create a PR, you should fill in all the info defined in this [template](https://github.com/nocodb/nocodb/blob/master/.github/PULL_REQUEST_TEMPLATE.md).
 
 - We adopt [Gitflow Design](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow). However, we do not have release branches. 
 
-    ![git flow design](https://wac-cdn.atlassian.com/dam/jcr:cc0b526e-adb7-4d45-874e-9bcea9898b4a/04%20Hotfix%20branches.svg?cdnVersion=176)
-
-- The `master` branch is just a snapshot of the latest stable release. All development should be done in dedicated branches. 
-**Do not submit PRs against the `master` branch.**
+- The `master` branch is just a snapshot of the latest stable release. All development should be done in dedicated branches (e.g. `feat/foo`, `fix/bar`, `enhancement/baz`). All approved PRs will go to `develop` branch. **Do not submit PRs against the `master` branch.**
 
 - Checkout a topic branch from the relevant branch, e.g. `develop`, and merge back against that branch.
 
 - Multiple small commits are allowed on the PR - They will be squashed into one commit before merging.
 
-- If your changes are related to a special issue, add `ref: #xxx` to link the issue where xxx is the issue id.
+- If your changes are related to a special issue, add `ref: #xxx` to link the issue where `xxx` is the issue id. If your changes are meant to solve the issue, then add `closes: #xxx` instead.
+
+- If your changes doesn't relate to any issues, we suggest you to create a new issue first and ask for assignment. Also, it'd be better to discuss the design or solutions with the team members via Discord first. 
 
 ## Development Setup
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { ColumnType, TableType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -29,7 +30,7 @@ const props = defineProps<{
 
 const { isUIAllowed } = useUIPermission()
 
-const { metas } = useMetas()
+const { metas, getMeta } = useMetas()
 
 const activeTab = toRef(props, 'activeTab')
 
@@ -64,10 +65,74 @@ provide(
   ReadonlyInj,
   computed(() => !isUIAllowed('xcDatatableEditable')),
 )
+
+const grid = ref()
+
+const onDrop = async (event: DragEvent) => {
+  event.preventDefault()
+  try {
+    // Access the dropped data
+    const data = JSON.parse(event.dataTransfer!.getData('text/json'))
+    // Do something with the received data
+
+    // if dragged item is not from the same base, return
+    if (data.baseId !== meta.value?.base_id) return
+
+    // if dragged item or opened view is not a table, return
+    if (data.type !== 'table' || meta.value?.type !== 'table') return
+
+    const childMeta = await getMeta(data.id)
+    const parentMeta = metas.value[meta.value.id!]
+
+    if (!childMeta || !parentMeta) return
+
+    const parentPkCol = parentMeta.columns?.find((c) => c.pk)
+    const childPkCol = childMeta.columns?.find((c) => c.pk)
+
+    // if already a link column exists, create a new Lookup column
+    const relationCol = parentMeta.columns?.find((c: ColumnType) => {
+      if (c.uidt !== UITypes.LinkToAnotherRecord) return false
+
+      const ltarOptions = c.colOptions as LinkToAnotherRecordType
+
+      if (ltarOptions.type !== 'mm') {
+        return false
+      }
+
+      if (ltarOptions.fk_related_model_id === childMeta.id) {
+        return true
+      }
+
+      return false
+    })
+    if (relationCol) {
+      const lookupCol = childMeta.columns?.find((c) => c.pv) ?? childMeta.columns?.[0]
+      grid.value?.openColumnCreate({
+        uidt: UITypes.Lookup,
+        title: `${data.title}Lookup`,
+        fk_relation_column_id: relationCol.id,
+        fk_lookup_column_id: lookupCol?.id,
+      })
+    } else {
+      grid.value?.openColumnCreate({
+        uidt: UITypes.LinkToAnotherRecord,
+        title: `${data.title}List`,
+        parentId: parentMeta.id,
+        childId: childMeta.id,
+        parentTable: parentMeta.title,
+        parentColumn: parentPkCol.title,
+        childTable: childMeta.title,
+        childColumn: childPkCol?.title,
+      })
+    }
+  } catch (e) {
+    console.log('error', e)
+  }
+}
 </script>
 
 <template>
-  <div class="nc-container flex h-full">
+  <div class="nc-container flex h-full" @drop="onDrop" @dragover.prevent>
     <div class="flex flex-col h-full flex-1 min-w-0">
       <LazySmartsheetToolbar />
 
@@ -75,7 +140,7 @@ provide(
         <template v-if="meta">
           <div class="flex flex-1 min-h-0">
             <div v-if="activeView" class="h-full flex-1 min-w-0 min-h-0 bg-gray-50">
-              <LazySmartsheetGrid v-if="isGrid" />
+              <LazySmartsheetGrid v-if="isGrid" ref="grid" />
 
               <LazySmartsheetGallery v-else-if="isGallery" />
 

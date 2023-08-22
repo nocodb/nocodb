@@ -4,10 +4,13 @@ import {
   CellUrlDisableOverlayInj,
   ColumnInj,
   EditModeInj,
+  IsExpandedFormOpenInj,
+  IsSurveyFormInj,
   computed,
   inject,
   isValidURL,
   message,
+  parseProp,
   ref,
   useCellUrlConfig,
   useI18n,
@@ -35,11 +38,13 @@ const disableOverlay = inject(CellUrlDisableOverlayInj, ref(false))
 // Used in the logic of when to display error since we are not storing the url if it's not valid
 const localState = ref(value)
 
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
 const vModel = computed({
   get: () => value,
   set: (val) => {
     localState.value = val
-    if (!column.value.meta?.validate || (val && isValidURL(val)) || !val) {
+    if (!parseProp(column.value.meta)?.validate || (val && isValidURL(val)) || !val || isSurveyForm.value) {
       emit('update:modelValue', val)
     }
   },
@@ -58,12 +63,14 @@ const url = computed(() => {
 
 const { cellUrlOptions } = useCellUrlConfig(url)
 
-const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
 
 watch(
   () => editEnabled.value,
   () => {
-    if (column.value.meta?.validate && !editEnabled.value && localState.value && !isValidURL(localState.value)) {
+    if (parseProp(column.value.meta)?.validate && !editEnabled.value && localState.value && !isValidURL(localState.value)) {
       message.error(t('msg.error.invalidURL'))
       localState.value = undefined
       return
@@ -86,6 +93,8 @@ watch(
       @keydown.right.stop
       @keydown.up.stop
       @keydown.delete.stop
+      @keydown.ctrl.z.stop
+      @keydown.meta.z.stop
       @selectstart.capture.stop
       @mousedown.stop
     />
@@ -118,7 +127,7 @@ watch(
 
     <div v-if="column.meta?.validate && !isValid && value?.length && !editEnabled" class="mr-1 w-1/10">
       <a-tooltip placement="top">
-        <template #title> Invalid URL </template>
+        <template #title> {{ t('msg.error.invalidURL') }} </template>
         <div class="flex flex-row items-center">
           <MiCircleWarning class="text-red-400 h-4" />
         </div>
@@ -126,6 +135,3 @@ watch(
     </div>
   </div>
 </template>
-
-<!--
--->

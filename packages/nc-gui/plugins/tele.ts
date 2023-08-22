@@ -16,10 +16,13 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     try {
       if (socket) socket.disconnect()
 
-      const url = new URL(appInfo.ncSiteUrl, window.location.href.split(/[?#]/)[0]).href
+      const url = new URL(appInfo.ncSiteUrl, window.location.href.split(/[?#]/)[0])
+      let socketPath = url.pathname
+      socketPath += socketPath.endsWith('/') ? 'socket.io' : '/socket.io'
 
-      socket = io(url, {
+      socket = io(url.href, {
         extraHeaders: { 'xc-auth': token },
+        path: socketPath,
       })
 
       socket.on('connect_error', () => {

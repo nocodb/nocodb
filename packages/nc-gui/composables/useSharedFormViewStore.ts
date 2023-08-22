@@ -1,7 +1,16 @@
 import useVuelidate from '@vuelidate/core'
 import { helpers, minLength, required } from '@vuelidate/validators'
 import type { Ref } from 'vue'
-import type { ColumnType, FormType, LinkToAnotherRecordType, TableType, ViewType } from 'nocodb-sdk'
+import type {
+  BoolType,
+  ColumnType,
+  FormColumnType,
+  FormType,
+  LinkToAnotherRecordType,
+  StringOrNullType,
+  TableType,
+  ViewType,
+} from 'nocodb-sdk'
 import { ErrorMessages, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
 import {
@@ -12,10 +21,12 @@ import {
   message,
   provide,
   ref,
+  storeToRefs,
   useApi,
   useI18n,
   useInjectionState,
   useMetas,
+  useProject,
   useProvideSmartsheetRowStore,
   watch,
 } from '#imports'
@@ -35,7 +46,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const sharedView = ref<ViewType>()
   const sharedFormView = ref<FormType>()
   const meta = ref<TableType>()
-  const columns = ref<(ColumnType & { required?: boolean; show?: boolean; label?: string })[]>()
+  const columns =
+    ref<(ColumnType & { required?: BoolType; show?: BoolType; label?: StringOrNullType; enable_scanner?: BoolType })[]>()
   const sharedViewMeta = ref<SharedViewMeta>({})
   const formResetHook = createEventHook<void>()
 
@@ -43,7 +55,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { metas, setMeta } = useMetas()
 
-  const { project } = useProject()
+  const projectStore = useProject()
+  const { project } = storeToRefs(projectStore)
 
   const { t } = useI18n()
 
@@ -79,7 +92,19 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       sharedView.value = viewMeta
       sharedFormView.value = viewMeta.view
       meta.value = viewMeta.model
-      columns.value = viewMeta.model?.columns
+
+      const fieldById = (viewMeta.columns || []).reduce(
+        (o: Record<string, any>, f: Record<string, any>) => ({
+          ...o,
+          [f.fk_column_id]: f,
+        }),
+        {} as Record<string, FormColumnType>,
+      )
+
+      columns.value = viewMeta.model?.columns?.map((c) => ({
+        ...c,
+        description: fieldById[c.id].description,
+      }))
 
       const _sharedViewMeta = (viewMeta as any).meta
       sharedViewMeta.value = isString(_sharedViewMeta) ? JSON.parse(_sharedViewMeta) : _sharedViewMeta
@@ -88,14 +113,14 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
       // if project is not defined then set it with an object containing base
       if (!project.value?.bases)
-        project.value = {
+        projectStore.setProject({
           bases: [
             {
               id: viewMeta.base_id,
               type: viewMeta.client,
             },
           ],
-        }
+        })
 
       const relatedMetas = { ...viewMeta.relatedMetas }
 

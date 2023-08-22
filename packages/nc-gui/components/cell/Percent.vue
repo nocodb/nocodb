@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, inject, useVModel } from '#imports'
+import { EditModeInj, IsExpandedFormOpenInj, inject, useVModel } from '#imports'
 
 interface Props {
   modelValue?: number | string | null
@@ -27,9 +27,9 @@ const vModel = computed({
   },
 })
 
-const focus: VNodeRef = (el) => {
-  ;(el as HTMLInputElement)?.focus()
-}
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
@@ -46,6 +46,8 @@ const focus: VNodeRef = (el) => {
     @keydown.right.stop
     @keydown.up.stop
     @keydown.delete.stop
+    @keydown.ctrl.z.stop
+    @keydown.meta.z.stop
     @selectstart.capture.stop
     @mousedown.stop
   />

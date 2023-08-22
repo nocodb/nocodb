@@ -1,7 +1,17 @@
 import { ViewTypes } from 'nocodb-sdk'
 import type { FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { computed, ref, unref, useEventBus, useFieldQuery, useInjectionState, useNuxtApp, useProject } from '#imports'
+import {
+  computed,
+  ref,
+  storeToRefs,
+  unref,
+  useEventBus,
+  useFieldQuery,
+  useInjectionState,
+  useNuxtApp,
+  useProject,
+} from '#imports'
 import type { SmartsheetStoreEvents } from '~/lib'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
@@ -14,13 +24,13 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   ) => {
     const { $api } = useNuxtApp()
 
-    const { sqlUis } = useProject()
+    const projectStore = useProject()
+
+    const { sqlUis } = storeToRefs(projectStore)
 
     const sqlUi = ref(
       (meta.value as TableType)?.base_id ? sqlUis.value[(meta.value as TableType).base_id!] : Object.values(sqlUis.value)[0],
     )
-
-    const cellRefs = ref<HTMLTableDataCellElement[]>([])
 
     const { search } = useFieldQuery()
 
@@ -51,7 +61,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     })
 
     const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
-    const sorts = ref<Required<SortType>[]>((unref(initialSorts) as Required<SortType>[]) ?? [])
+    const sorts = ref<SortType[]>(unref(initialSorts) ?? [])
     const nestedFilters = ref<FilterType[]>(unref(initialFilters) ?? [])
 
     return {
@@ -66,7 +76,6 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       isGallery,
       isKanban,
       isMap,
-      cellRefs,
       isSharedForm,
       sorts,
       nestedFilters,

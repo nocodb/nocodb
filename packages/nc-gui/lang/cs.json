@@ -39,6 +39,7 @@
     "signIn": "PŘIHLÁSIT SE",
     "signOut": "Odhlásit se",
     "required": "Vyžadováno",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Preferováno",
     "mandatory": "Povinné",
     "loading": "Načítání ...",
@@ -100,7 +101,7 @@
       "form": "Formulář",
       "kanban": "Kanban",
       "calendar": "Kalendář",
-      "map": "Map"
+      "map": "Mapa"
     },
     "user": "Uživatel",
     "users": "Uživatelé",
@@ -209,7 +210,8 @@
     "advancedSettings": "Pokročilá nastavení",
     "codeSnippet": "Úryvek kódu",
     "keyboardShortcut": "Klávesové zkratky",
-    "generateRandomName": "Vytvořit náhodné jméno"
+    "generateRandomName": "Vytvořit náhodné jméno",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Vytvořil/a",
@@ -219,6 +221,7 @@
     "viewName": "Název zobrazení",
     "viewLink": "Zobrazit odkaz",
     "columnName": "Název sloupce",
+    "columnToScanFor": "Column to scan",
     "columnType": "Typ sloupce",
     "roleName": "Název role",
     "roleDescription": "Popis role",
@@ -235,6 +238,7 @@
     "action": "Akce",
     "actions": "Akce",
     "operation": "Operace",
+    "operationSub": "Sub Operation",
     "operationType": "Typ operace",
     "operationSubType": "Podtyp operace",
     "description": "Popis",
@@ -256,9 +260,9 @@
     "barcodeFormat": "Formát čárového kódu",
     "qrCodeValueTooLong": "Příliš mnoho znaků pro QR kód",
     "barcodeValueTooLong": "Příliš mnoho znaků pro čárový kód",
-    "yourLocation": "Your Location",
-    "lng": "Lng",
-    "lat": "Lat",
+    "currentLocation": "Současná poloha",
+    "lng": "Zem. délka",
+    "lat": "Zem. šířka",
     "aggregateFunction": "Agregační funkce",
     "dbCreateIfNotExists": "Databáze : vytvořit, pokud neexistuje",
     "clientKey": "Klíč klienta",
@@ -381,10 +385,10 @@
     "nextRecord": "Další záznam",
     "previousRecord": "Předchozí rekord",
     "copyApiURL": "Kopírování adresy URL rozhraní API",
-    "createTable": "Vytvoření tabulky",
+    "createTable": "Create New Table",
     "refreshTable": "Tabulky Obnovení",
-    "renameTable": "Přejmenování tabulky",
-    "deleteTable": "Tabulka Odstranit",
+    "renameTable": "Rename Table",
+    "deleteTable": "Delete Table",
     "addField": "Přidání nového pole do této tabulky",
     "setDisplay": "Set as Display value",
     "addRow": "Přidat nový řádek",
@@ -392,8 +396,8 @@
     "saveAndExit": "Uložit a odejít",
     "saveAndStay": "Uložit a zůstat",
     "insertRow": "Vložit nový řádek",
+    "duplicateRow": "Duplikovat řádek",
     "deleteRow": "Odstranit řádek",
-    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Odstranit vybrané řádky",
     "importExcel": "Importovat Excel",
     "importCSV": "Importovat CSV",
@@ -408,6 +412,8 @@
     "changePwd": "Změnit heslo",
     "createView": "Vytvořit pohled",
     "shareView": "Sdílet pohled",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Seznam sdílených zobrazení",
     "ListView": "Seznam pohledů",
     "copyView": "Kopírovat pohled",
@@ -423,6 +429,10 @@
     "openTab": "Otevřít novou kartu",
     "iFrame": "Kopírování vložitelného kódu HTML",
     "addWebhook": "Přidat nový webhook",
+    "enableWebhook": "Povolit Webhook",
+    "testWebhook": "Otestovat Webhook",
+    "copyWebhook": "Kopírovat Webhook",
+    "deleteWebhook": "Smazat Webhook",
     "newToken": "Přidat nový token",
     "exportZip": "Exportovat zip archív",
     "importZip": "Importovat zip archív",
@@ -461,8 +471,11 @@
     },
     "map": {
       "mappedBy": "Mapped By",
-      "chooseMappingField": "Choose a Mapping Field"
-    }
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google mapy",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Uložení změn",
@@ -527,6 +540,12 @@
       "roles": {
         "orgCreator": "Tvůrce může vytvářet nové projekty a přistupovat k jakémukoli pozvanému projektu.",
         "orgViewer": "Prohlížeč nemůže vytvářet nové projekty, ale může přistupovat k jakémukoli pozvanému projektu."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",
@@ -615,7 +634,7 @@
         "gallery": "Přidat zobrazení galerie",
         "form": "Přidání zobrazení formuláře",
         "kanban": "Přidání zobrazení Kanban",
-        "map": "Add Map View",
+        "map": "Přidat zobrazení mapy",
         "calendar": "Přidat zobrazení kalendáře"
       },
       "tablesMetadataInSync": "Metadata tabulek jsou synchronizována",
@@ -648,7 +667,7 @@
       "deleteTableConfirmation": "Chcete odstranit tabulku",
       "showM2mTables": "Zobrazit tabulky M2M",
       "showM2mTablesDesc": "Many-to-many relation is supported via a junction table & is hidden by default. Enable this option to list all such tables along with existing tables.",
-      "showNullInCells": "Show NULL in Cells",
+      "showNullInCells": "Zobrazit NULL v buňkách",
       "showNullInCellsDesc": "Display 'NULL' tag in cells holding NULL value. This helps differentiate against cells holding EMPTY string.",
       "showNullAndEmptyInFilter": "Show NULL and EMPTY in Filter",
       "showNullAndEmptyInFilterDesc": "Enable 'additional' filters to differentiate fields containing NULL & Empty Strings. Default support for Blank treats both NULL & Empty strings alike.",
@@ -679,6 +698,7 @@
         "allowedSpecialCharList": "Seznam povolených speciálních znaků"
       },
       "invalidURL": "Neplatná adresa URL",
+      "invalidEmail": "Neplatný e-mail",
       "internalError": "Došlo k nějaké interní chybě",
       "templateGeneratorNotFound": "Generátor šablon nelze najít!",
       "fileUploadFailed": "Nepodařilo se nahrát soubor",
@@ -739,7 +759,7 @@
     },
     "success": {
       "columnDuplicated": "Sloupec úspěšně duplikován",
-      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
+      "rowDuplicatedWithoutSavedYet": "Řádek duplikován (neuložen)",
       "updatedUIACL": "Úspěšná aktualizace uživatelského rozhraní ACL pro tabulky",
       "pluginUninstalled": "Plugin byl úspěšně odinstalován",
       "pluginSettingsSaved": "Nastavení zásuvného modulu bylo úspěšně uloženo",
@@ -759,6 +779,7 @@
       "userDeletedFromProject": "Úspěšné odstranění uživatele z projektu",
       "inviteEmailSent": "E-mail s pozvánkou byl úspěšně odeslán",
       "inviteURLCopied": "Adresa URL pozvánky zkopírovaná do schránky",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Adresa URL pro resetování hesla zkopírovaná do schránky",
       "shareableURLCopied": "Zkopírovaná sdílená základní adresa URL do schránky!",
       "embeddableHTMLCodeCopied": "Zkopírovaný vložitelný kód HTML!",

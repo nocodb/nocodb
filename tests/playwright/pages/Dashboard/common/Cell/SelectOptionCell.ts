@@ -28,13 +28,18 @@ export class SelectOptionCellPageObject extends BasePage {
     const selectCell = this.get({ index, columnHeader });
 
     // check if cell active
-    if (!(await selectCell.getAttribute('class')).includes('active')) {
+    if (
+      !(await selectCell.getAttribute('class')).includes('active') &&
+      (await selectCell.locator('.nc-selected-option').count()) === 0
+    ) {
       await selectCell.click();
     }
 
     await selectCell.click();
 
-    await this.rootPage.getByTestId(`select-option-${columnHeader}-${index}`).getByText(option).click();
+    if (index === -1)
+      await this.rootPage.getByTestId(`select-option-${columnHeader}-undefined`).getByText(option).click();
+    else await this.rootPage.getByTestId(`select-option-${columnHeader}-${index}`).getByText(option).click();
 
     if (multiSelect) await this.get({ index, columnHeader }).click();
 
@@ -72,12 +77,12 @@ export class SelectOptionCellPageObject extends BasePage {
   }
 
   async verify({
-    index,
+    index = 0,
     columnHeader,
     option,
     multiSelect,
   }: {
-    index: number;
+    index?: number;
     columnHeader: string;
     option: string;
     multiSelect?: boolean;
@@ -85,9 +90,11 @@ export class SelectOptionCellPageObject extends BasePage {
     if (multiSelect) {
       return await expect(this.cell.get({ index, columnHeader })).toContainText(option, { useInnerText: true });
     }
-    return await expect(
-      this.cell.get({ index, columnHeader }).locator('.ant-select-selection-item > .ant-tag')
-    ).toHaveText(option, { useInnerText: true });
+
+    const locator = await this.cell.get({ index, columnHeader }).locator('.ant-tag');
+    await locator.waitFor({ state: 'visible' });
+    const text = await locator.allInnerTexts();
+    return expect(text).toContain(option);
   }
 
   async verifyNoOptionsSelected({ index, columnHeader }: { index: number; columnHeader: string }) {
@@ -96,11 +103,21 @@ export class SelectOptionCellPageObject extends BasePage {
     ).toBeHidden();
   }
 
-  async verifyOptions({ index, columnHeader, options }: { index: number; columnHeader: string; options: string[] }) {
+  async verifyOptions({
+    index = 0,
+    columnHeader,
+    options,
+  }: {
+    index?: number;
+    columnHeader: string;
+    options: string[];
+  }) {
     const selectCell = this.get({ index, columnHeader });
 
     // check if cell active
-    if (!(await selectCell.getAttribute('class')).includes('active')) {
+    // drag based non-primary cell will have 'active' attribute
+    // primary cell with blue border will have 'active-cell' attribute
+    if (!(await selectCell.getAttribute('class')).includes('active-cell')) {
       await selectCell.click();
     }
 
@@ -111,7 +128,7 @@ export class SelectOptionCellPageObject extends BasePage {
       await expect(this.rootPage.locator(`div.ant-select-item-option`).nth(counter)).toHaveText(option);
       counter++;
     }
-    await this.get({ index, columnHeader }).click();
+    await this.rootPage.keyboard.press('Escape');
     await this.rootPage.locator(`.nc-dropdown-single-select-cell`).nth(index).waitFor({ state: 'hidden' });
   }
 
@@ -119,7 +136,7 @@ export class SelectOptionCellPageObject extends BasePage {
     index,
     columnHeader,
     option,
-    multiSelect,
+    multiSelect = false,
   }: {
     index: number;
     columnHeader: string;
@@ -135,10 +152,18 @@ export class SelectOptionCellPageObject extends BasePage {
 
     await selectCell.locator('.ant-select-selection-search-input').type(option);
 
-    await selectCell.locator('.ant-select-selection-search-input').press('Enter');
+    // await selectCell.locator('.ant-select-selection-search-input').press('Enter');
+
+    // Wait for update api call
+    const saveRowAction = () => selectCell.locator('.ant-select-selection-search-input').press('Enter');
+    await this.waitForResponse({
+      uiAction: saveRowAction,
+      requestUrlPathToMatch: 'api/v1/db/data/noco/',
+      httpMethodsToMatch: ['PATCH'],
+      responseJsonMatcher: resJson => String(resJson?.[columnHeader]).includes(String(option)),
+    });
 
     if (multiSelect) await selectCell.locator('.ant-select-selection-search-input').press('Escape');
-    // todo: wait for update api call
   }
 
   async verifySelectedOptions({

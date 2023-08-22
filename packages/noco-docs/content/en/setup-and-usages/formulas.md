@@ -27,7 +27,7 @@ menuTitle: "Formulas"
 
 ## Editing formula column 
 
-Unlike other column types, formula cells cannot be modified by double-clicking since the value is generated based on the formula. Instead, the vaule can be changed by updating the formula in the column setting.
+Unlike other column types, formula cells cannot be modified by double-clicking since the value is generated based on the formula. Instead, the value can be changed by updating the formula in the column setting.
 
 <img width="253" alt="image" src="https://user-images.githubusercontent.com/35857179/189109486-4d41f2b7-0a19-46ef-8bb4-a8d1aabd3592.png">
 
@@ -63,8 +63,8 @@ Unlike other column types, formula cells cannot be modified by double-clicking s
 | `/`      | `{Column1} / {Column2}`     | Division of numeric values       |
 
 <alert type="success">
-Tip :To change the order of arithmetic operation, you can use round bracket parantheses (). <br/>
-Example: ({Column1} + ({Column2} * {Column3}) / (3 - $Column4$ ))
+Tip: To change the order of arithmetic operation, you can use round bracket parentheses (). <br/>
+Example: ({Column1} + ({Column2} * {Column3}) / (3 - {Column4} ))
 </alert>
 
 ### String Functions

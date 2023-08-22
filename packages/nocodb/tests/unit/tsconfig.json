@@ -1,4 +1,5 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "skipLibCheck": true,
     "composite": true,
@@ -58,7 +59,7 @@
   "parserOptions": {
     "sourceType": "module",
     "tsconfigRootDir": "./",
-    "project": "./tsconfig.json",
+    "project": "./tsconfig.json"
   },
   "include": [
     "./tests/**/**/**.ts",

@@ -13,6 +13,7 @@ import {
   isMm,
   message,
   ref,
+  storeToRefs,
   unref,
   useI18n,
   useInjectionState,
@@ -28,7 +29,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
 
     const { t } = useI18n()
 
-    const { project } = useProject()
+    const { project } = storeToRefs(useProject())
 
     const { metas } = useMetas()
 
@@ -50,7 +51,11 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
           return message.info(t('msg.info.valueAlreadyInList'))
         }
 
-        state.value[column.title!]!.push(value)
+        if (Array.isArray(value)) {
+          state.value[column.title!]!.push(...value)
+        } else {
+          state.value[column.title!]!.push(value)
+        }
       } else if (isBt(column)) {
         state.value[column.title!] = value
       }
@@ -118,6 +123,9 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
             { metaValue },
           )
         }
+
+        // clear LTAR refs after sync
+        state.value[column.title!] = null
       }
     }
 

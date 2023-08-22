@@ -28,7 +28,7 @@ To access it, click the down arrow button next to Project Name on the top left s
 
 ## Sync Metadata
 
-Go to `Data Sources`, click ``Sync Metadata``, you can see your metadata sync status. If it is out of sync, you can sync the schema. See <a href="./sync-schema">Sync Schema</a> for more.0
+Go to `Data Sources`, click ``Sync Metadata``, you can see your metadata sync status. If it is out of sync, you can sync the schema. See <NuxtLink to="/setup-and-usages/sync-schema">Sync Schema</NuxtLink> for more.
 
 ![image](https://user-images.githubusercontent.com/35857179/219833485-3bcaa6ec-88bc-47cc-b938-5abb4835dc31.png)
 

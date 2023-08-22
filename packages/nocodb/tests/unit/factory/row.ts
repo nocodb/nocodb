@@ -1,11 +1,12 @@
-import { ColumnType, UITypes } from 'nocodb-sdk';
+import { UITypes } from 'nocodb-sdk';
 import request from 'supertest';
-import Column from '../../../src/lib/models/Column';
-import Filter from '../../../src/lib/models/Filter';
-import Model from '../../../src/lib/models/Model';
-import Project from '../../../src/lib/models/Project';
-import Sort from '../../../src/lib/models/Sort';
-import NcConnectionMgrv2 from '../../../src/lib/utils/common/NcConnectionMgrv2';
+import Model from '../../../src/models/Model';
+import NcConnectionMgrv2 from '../../../src/utils/common/NcConnectionMgrv2';
+import type { ColumnType } from 'nocodb-sdk';
+import type Column from '../../../src/models/Column';
+import type Filter from '../../../src/models/Filter';
+import type Project from '../../../src/models/Project';
+import type Sort from '../../../src/models/Sort';
 
 const rowValue = (column: ColumnType, index: number) => {
   switch (column.uidt) {
@@ -173,7 +174,19 @@ const rowMixedValue = (column: ColumnType, index: number) => {
     case UITypes.LongText:
       return longText[index % longText.length];
     case UITypes.Date:
-      return '2020-01-01';
+      // set startDate as 400 days before today
+      // eslint-disable-next-line no-case-declarations
+      const d1 = new Date();
+      d1.setDate(d1.getDate() - 400 + index);
+      return d1.toISOString().slice(0, 10);
+    case UITypes.DateTime:
+      // set startDate as 400 days before today
+      // eslint-disable-next-line no-case-declarations
+      const d2 = new Date();
+      d2.setDate(d2.getDate() - 400 + index);
+      // set time to 12:00:00
+      d2.setHours(12, 0, 0, 0);
+      return d2.toISOString();
     case UITypes.URL:
       return urls[index % urls.length];
     case UITypes.SingleSelect:
@@ -214,7 +227,7 @@ const listRow = async ({
   const bases = await project.getBases();
   const baseModel = await Model.getBaseModelSQL({
     id: table.id,
-    dbDriver: NcConnectionMgrv2.get(bases[0]!),
+    dbDriver: await NcConnectionMgrv2.get(bases[0]!),
   });
 
   const ignorePagination = !options;
@@ -224,7 +237,7 @@ const listRow = async ({
 
 const getOneRow = async (
   context,
-  { project, table }: { project: Project; table: Model }
+  { project, table }: { project: Project; table: Model },
 ) => {
   const response = await request(context.app)
     .get(`/api/v1/db/data/noco/${project.id}/${table.id}/find-one`)
@@ -262,7 +275,7 @@ const createRow = async (
     project: Project;
     table: Model;
     index?: number;
-  }
+  },
 ) => {
   const columns = await table.getColumns();
   const rowData = generateDefaultRowAttributes({ columns, index });
@@ -285,7 +298,7 @@ const createBulkRows = async (
     project: Project;
     table: Model;
     values: any[];
-  }
+  },
 ) => {
   await request(context.app)
     .post(`/api/v1/db/data/bulk/noco/${project.id}/${table.id}`)
@@ -313,7 +326,7 @@ const createChildRow = async (
     rowId?: string;
     childRowId?: string;
     type: string;
-  }
+  },
 ) => {
   if (!rowId) {
     const row = await createRow(context, { project, table });
@@ -327,7 +340,7 @@ const createChildRow = async (
 
   await request(context.app)
     .post(
-      `/api/v1/db/data/noco/${project.id}/${table.id}/${rowId}/${type}/${column.title}/${childRowId}`
+      `/api/v1/db/data/noco/${project.id}/${table.id}/${rowId}/${type}/${column.title}/${childRowId}`,
     )
     .set('xc-auth', context.token);
 

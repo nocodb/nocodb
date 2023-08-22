@@ -7,6 +7,7 @@ import {
   inject,
   message,
   ref,
+  storeToRefs,
   useNuxtApp,
   useProject,
   useSharedView,
@@ -24,13 +25,21 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
   const { isUIAllowed } = useUIPermission()
 
-  const { isSharedBase } = useProject()
+  const { isSharedBase } = storeToRefs(useProject())
+
+  const { addUndo, clone, defineViewScope } = useUndoRedo()
 
   const reloadHook = inject(ReloadViewDataHookInj)
 
   const isPublic = inject(IsPublicInj, ref(false))
 
   const tabMeta = inject(TabMetaInj, ref({ sortsState: new Map() } as TabItem))
+
+  const lastSorts = ref<SortType[]>([])
+
+  watchOnce(sorts, (sorts: SortType[]) => {
+    lastSorts.value = clone(sorts)
+  })
 
   const loadSorts = async () => {
     if (isPublic.value) {
@@ -49,14 +58,53 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
         }
       }
       if (!view?.value) return
-      sorts.value = (await $api.dbTableSort.list(view.value!.id!)).sorts?.list || []
+      sorts.value = (await $api.dbTableSort.list(view.value!.id!)).list as SortType[]
     } catch (e: any) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
 
-  const saveOrUpdate = async (sort: SortType, i: number) => {
+  // get delta between two objects and return the changed fields (value is from b)
+  const getDelta = (a: any, b: any) => {
+    return Object.entries(b)
+      .filter(([key, val]) => a[key] !== val && key in a)
+      .reduce((a, [key, v]) => ({ ...a, [key]: v }), {})
+  }
+
+  const saveOrUpdate = async (sort: SortType, i: number, undo = false) => {
+    if (!undo) {
+      const lastSort = lastSorts.value[i]
+      if (lastSort) {
+        const delta = clone(getDelta(sort, lastSort))
+        if (Object.keys(delta).length > 0) {
+          addUndo({
+            undo: {
+              fn: (prop: string, data: any) => {
+                const f = sorts.value[i]
+                if (f) {
+                  f[prop] = data
+                  saveOrUpdate(f, i, true)
+                }
+              },
+              args: [Object.keys(delta)[0], Object.values(delta)[0]],
+            },
+            redo: {
+              fn: (prop: string, data: any) => {
+                const f = sorts.value[i]
+                if (f) {
+                  f[prop] = data
+                  saveOrUpdate(f, i, true)
+                }
+              },
+              args: [Object.keys(delta)[0], sort[Object.keys(delta)[0]]],
+            },
+            scope: defineViewScope({ view: view.value }),
+          })
+        }
+      }
+    }
+
     if (isPublic.value || isSharedBase.value) {
       sorts.value[i] = sort
       sorts.value = [...sorts.value]
@@ -80,27 +128,38 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }
-  }
-  const addSort = () => {
-    sorts.value = [
-      ...sorts.value,
-      {
-        direction: 'asc',
-      },
-    ]
 
-    $e('a:sort:add', { length: sorts?.value?.length })
-
-    tabMeta.value.sortsState!.set(view.value!.id!, sorts.value)
+    lastSorts.value = clone(sorts.value)
   }
 
-  const deleteSort = async (sort: SortType, i: number) => {
+  const deleteSort = async (sort: SortType, i: number, undo = false) => {
     try {
       if (isUIAllowed('sortSync') && sort.id && !isPublic.value && !isSharedBase.value) {
         await $api.dbTableSort.delete(sort.id)
       }
       sorts.value.splice(i, 1)
       sorts.value = [...sorts.value]
+
+      if (!undo) {
+        addUndo({
+          redo: {
+            fn: async () => {
+              await deleteSort(sort, i, true)
+            },
+            args: [],
+          },
+          undo: {
+            fn: () => {
+              sorts.value.splice(i, 0, sort)
+              saveOrUpdate(sort, i, true)
+            },
+            args: [clone(sort), i],
+          },
+          scope: defineViewScope({ view: view.value }),
+        })
+      }
+
+      lastSorts.value = clone(sorts.value)
 
       tabMeta.value.sortsState!.set(view.value!.id!, sorts.value)
 
@@ -110,6 +169,39 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }
+  }
+
+  const addSort = (undo = false) => {
+    sorts.value = [
+      ...sorts.value,
+      {
+        direction: 'asc',
+      },
+    ]
+
+    $e('a:sort:add', { length: sorts?.value?.length })
+
+    if (!undo) {
+      addUndo({
+        undo: {
+          fn: async () => {
+            await deleteSort(sorts.value[sorts.value.length - 1], sorts.value.length - 1, true)
+          },
+          args: [],
+        },
+        redo: {
+          fn: () => {
+            addSort(true)
+          },
+          args: [],
+        },
+        scope: defineViewScope({ view: view.value }),
+      })
+    }
+
+    lastSorts.value = clone(sorts.value)
+
+    tabMeta.value.sortsState!.set(view.value!.id!, sorts.value)
   }
 
   return { sorts, loadSorts, addSort, deleteSort, saveOrUpdate }

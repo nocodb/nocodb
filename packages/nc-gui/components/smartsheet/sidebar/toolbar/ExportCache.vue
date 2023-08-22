@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { message, useApi, useI18n } from '#imports'
+import { iconMap, message, useApi, useI18n } from '#imports'
 
 const { t } = useI18n()
 
@@ -36,6 +36,6 @@ async function exportCache() {
       <span> Export Cache </span>
     </template>
 
-    <mdi-export class="cursor-pointer" @click="exportCache" />
+    <component :is="iconMap.export" class="cursor-pointer" @click="exportCache" />
   </a-tooltip>
 </template>

@@ -1,16 +1,19 @@
 import request from 'supertest';
-import Project from '../../../src/lib/models/Project';
+import Project from '../../../src/models/Project';
 
 const sakilaProjectConfig = (context) => {
   let base;
 
-  if(context.sakilaDbConfig.client === 'mysql2'){
+  if (
+    context.sakilaDbConfig.client === 'mysql2' ||
+    context.sakilaDbConfig.client === 'pg'
+  ) {
     base = {
       type: context.sakilaDbConfig.client,
       config: {
         client: context.sakilaDbConfig.client,
-        connection: context.sakilaDbConfig.connection
-      }
+        connection: context.sakilaDbConfig.connection,
+      },
     };
   } else {
     base = {
@@ -26,7 +29,7 @@ const sakilaProjectConfig = (context) => {
   }
 
   base = {
-    ...base, 
+    ...base,
     inflection_column: 'camelize',
     inflection_table: 'camelize',
   };
@@ -35,7 +38,7 @@ const sakilaProjectConfig = (context) => {
     title: 'sakila',
     bases: [base],
     external: true,
-  }
+  };
 };
 
 const defaultProjectValue = {
@@ -44,7 +47,7 @@ const defaultProjectValue = {
 
 const defaultSharedBaseValue = {
   roles: 'viewer',
-  password: 'test',
+  password: 'password123',
 };
 
 const createSharedBase = async (app, token, project, sharedBaseArgs = {}) => {

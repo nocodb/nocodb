@@ -5,10 +5,12 @@ import tinycolor from 'tinycolor2'
 import {
   computed,
   extractSdkResponseErrorMsg,
+  iconMap,
   isRtlLang,
   message,
   projectThemeColors,
   ref,
+  storeToRefs,
   useCopy,
   useDashboard,
   useI18n,
@@ -32,7 +34,9 @@ const { dashboardUrl } = useDashboard()
 
 const { isUIAllowed } = useUIPermission()
 
-const { isSharedBase } = useProject()
+const { isSharedBase } = storeToRefs(useProject())
+
+const { isMobileMode } = useGlobal()
 
 let showShareModel = $ref(false)
 
@@ -194,7 +198,7 @@ const copyLink = async () => {
 
       // Copied to clipboard
       message.success(t('msg.info.copiedToClipboard'))
-    } catch (e) {
+    } catch (e: any) {
       message.error(e.message)
     }
   }
@@ -229,7 +233,7 @@ const copyIframeCode = async () => {
 
       // Copied to clipboard
       message.success(t('msg.info.copiedToClipboard'))
-    } catch (e) {
+    } catch (e: any) {
       message.error(e.message)
     }
   }
@@ -246,9 +250,9 @@ const copyIframeCode = async () => {
       @click="genShareLink"
     >
       <div class="flex items-center gap-1">
-        <MdiOpenInNew />
+        <component :is="iconMap.share" />
         <!-- Share View -->
-        <span class="!text-xs font-weight-normal"> {{ $t('activity.shareView') }}</span>
+        <span v-if="!isMobileMode" class="!text-xs font-weight-normal"> {{ $t('activity.shareView') }}</span>
       </div>
     </a-button>
 
@@ -262,24 +266,26 @@ const copyIframeCode = async () => {
       width="min(100vw,720px)"
       wrap-class-name="nc-modal-share-view"
     >
-      <div
-        data-testid="nc-modal-share-view__link"
-        class="share-link-box !bg-primary !bg-opacity-5 ring-1 ring-accent ring-opacity-100"
-      >
-        <div class="flex-1 h-min text-xs text-gray-500">{{ sharedViewUrl }}</div>
+      <div class="share-link-box !bg-primary !bg-opacity-5 ring-1 ring-accent ring-opacity-100">
+        <div data-testid="nc-modal-share-view__link" class="flex-1 h-min text-xs text-gray-500">{{ sharedViewUrl }}</div>
 
-        <a v-e="['c:view:share:open-url']" :href="sharedViewUrl" target="_blank">
-          <MdiOpenInNew class="text-sm text-gray-500" />
+        <a v-e="['c:view:share:open-url']" :href="sharedViewUrl" target="_blank" class="flex items-center !no-underline">
+          <component :is="iconMap.share" class="text-sm text-gray-500" />
         </a>
 
-        <MdiContentCopy v-e="['c:view:share:copy-url']" class="text-gray-500 text-sm cursor-pointer" @click="copyLink" />
+        <component
+          :is="iconMap.copy"
+          v-e="['c:view:share:copy-url']"
+          class="text-gray-500 text-sm cursor-pointer"
+          @click="copyLink"
+        />
       </div>
 
       <div
         class="flex gap-1 items-center pb-1 text-gray-500 cursor-pointer font-weight-medium mb-2 mt-4 pl-1"
         @click="copyIframeCode"
       >
-        <MdiCodeTags class="text-gray-500" />
+        <component :is="iconMap.embed" class="text-gray-500" />
         Embed this view in your site
       </div>
 

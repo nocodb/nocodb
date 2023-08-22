@@ -206,7 +206,7 @@ export class MysqlUi {
 
       case 'datetime':
       case 'timestamp':
-        return 6;
+        return '';
 
       case 'time':
         return '';
@@ -871,7 +871,7 @@ export class MysqlUi {
   }
 
   static getAbstractType(col): any {
-    switch (col.dt.toLowerCase()) {
+    switch (col.dt?.toLowerCase()) {
       case 'int':
       case 'smallint':
       case 'mediumint':
@@ -971,6 +971,9 @@ export class MysqlUi {
         colProp.dt = 'text';
         break;
       case 'Attachment':
+        colProp.dt = 'text';
+        break;
+      case 'GeoData':
         colProp.dt = 'text';
         break;
       case 'Checkbox':
@@ -1107,6 +1110,7 @@ export class MysqlUi {
       case 'SingleLineText':
       case 'LongText':
       case 'Collaborator':
+      case 'GeoData':
         return [
           'char',
           'varchar',

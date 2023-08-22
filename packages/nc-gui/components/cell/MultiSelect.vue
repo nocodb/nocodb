@@ -8,12 +8,15 @@ import {
   ActiveCellInj,
   CellClickHookInj,
   ColumnInj,
+  EditModeInj,
   IsKanbanInj,
   ReadonlyInj,
+  RowHeightInj,
   computed,
   enumColor,
   extractSdkResponseErrorMsg,
   h,
+  iconMap,
   inject,
   isDrawerOrModalExist,
   onMounted,
@@ -32,6 +35,7 @@ interface Props {
   modelValue?: string | string[]
   rowIndex?: number
   disableOptionCreation?: boolean
+  location?: 'cell' | 'filter'
 }
 
 const { modelValue, disableOptionCreation } = defineProps<Props>()
@@ -42,13 +46,19 @@ const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj)!
 
-const active = inject(ActiveCellInj, ref(false))
+const isEditable = inject(EditModeInj, ref(false))
 
-const editable = inject(EditModeInj, ref(false))
+const activeCell = inject(ActiveCellInj, ref(false))
+
+// use both ActiveCellInj or EditModeInj to determine the active state
+// since active will be false in case of form view
+const active = computed(() => activeCell.value || isEditable.value)
 
 const isPublic = inject(IsPublicInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
+
+const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const selectedIds = ref<string[]>([])
 
@@ -91,7 +101,7 @@ const isOptionMissing = computed(() => {
 
 const hasEditRoles = computed(() => hasRole('owner', true) || hasRole('creator', true) || hasRole('editor', true))
 
-const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && (active.value || editable.value))
+const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && active.value)
 
 const vModel = computed({
   get: () => {
@@ -170,7 +180,7 @@ watch(isOpen, (n, _o) => {
   }
 })
 
-useSelectedCellKeyupListener(active, (e) => {
+useSelectedCellKeyupListener(activeCell, (e) => {
   switch (e.key) {
     case 'Escape':
       isOpen.value = false
@@ -259,8 +269,7 @@ async function addIfMissingAndSave() {
     } else {
       activeOptCreateInProgress.value--
     }
-  } catch (e) {
-    // todo: handle error
+  } catch (e: any) {
     console.log(e)
     activeOptCreateInProgress.value--
     message.error(await extractSdkResponseErrorMsg(e))
@@ -282,7 +291,7 @@ const onTagClick = (e: Event, onClose: Function) => {
   }
 }
 
-const cellClickHook = inject(CellClickHookInj)
+const cellClickHook = inject(CellClickHookInj, null)
 
 const toggleMenu = () => {
   if (cellClickHook) return
@@ -312,11 +321,50 @@ const handleClose = (e: MouseEvent) => {
 }
 
 useEventListener(document, 'click', handleClose, true)
+
+const selectedOpts = computed(() => {
+  return vModel.value.reduce<SelectOptionType[]>((selectedOptions, option) => {
+    const selectedOption = options.value.find((o) => o.value === option)
+    if (selectedOption) {
+      selectedOptions.push(selectedOption)
+    }
+    return selectedOptions
+  }, [])
+})
 </script>
 
 <template>
   <div class="nc-multi-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
+    <div
+      v-if="!active"
+      class="flex flex-wrap"
+      :style="{
+        'display': '-webkit-box',
+        'max-width': '100%',
+        '-webkit-line-clamp': rowHeight || 1,
+        '-webkit-box-orient': 'vertical',
+        'overflow': 'hidden',
+      }"
+    >
+      <template v-for="selectedOpt of selectedOpts" :key="selectedOpt.value">
+        <a-tag class="rounded-tag" :color="selectedOpt.color">
+          <span
+            :style="{
+              'color': tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                ? '#fff'
+                : tinycolor.mostReadable(selectedOpt.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+              'font-size': '13px',
+            }"
+            :class="{ 'text-sm': isKanban }"
+          >
+            {{ selectedOpt.title }}
+          </span>
+        </a-tag>
+      </template>
+    </div>
+
     <a-select
+      v-else
       ref="aselect"
       v-model:value="vModel"
       mode="multiple"
@@ -336,7 +384,7 @@ useEventListener(document, 'click', handleClose, true)
         v-for="op of options"
         :key="op.id || op.title"
         :value="op.title"
-        :data-testid="`select-option-${column.title}-${rowIndex}`"
+        :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
         :class="`nc-select-option-${column.title}-${op.title}`"
         @click.stop
       >
@@ -367,7 +415,7 @@ useEventListener(document, 'click', handleClose, true)
         :value="searchVal"
       >
         <div class="flex gap-2 text-gray-500 items-center h-full">
-          <MdiPlusThick class="min-w-4" />
+          <component :is="iconMap.plusThick" class="min-w-4" />
           <div class="text-xs whitespace-normal">
             Create new option named <strong>{{ searchVal }}</strong>
           </div>

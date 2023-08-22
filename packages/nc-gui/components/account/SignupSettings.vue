@@ -12,7 +12,7 @@ const loadSettings = async () => {
   try {
     const response = await api.orgAppSettings.get()
     settings = response
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -21,7 +21,7 @@ const saveSettings = async () => {
   try {
     await api.orgAppSettings.set(settings)
     message.success(t('msg.success.settingsSaved'))
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }

@@ -1,3 +1,4 @@
+import { BoolType } from '../Api'
 import UITypes from '../UITypes';
 
 import { MssqlUi } from './MssqlUi';
@@ -56,12 +57,12 @@ export type SqlUIColumn = {
   dt?: string;
   dtx?: string;
   ct?: string;
-  nrqd?: boolean;
-  rqd?: boolean;
+  nrqd?: BoolType;
+  rqd?: BoolType;
   ck?: string;
-  pk?: boolean;
-  un?: boolean;
-  ai?: boolean;
+  pk?: BoolType;
+  un?: BoolType;
+  ai?: BoolType;
   cdf?: string | any;
   clen?: number | any;
   np?: string;

@@ -10,9 +10,7 @@ menuTitle: 'Column Types'
 
 | Type | Description |
 |---|---|
-<!-- | [ID](#id) | Primary column of the table | -->
 | [LinkToAnotherRecord](#linktoanotherrecord) | Has Many or Many To Many columns |
-<!-- | [ForeignKey](#foreignkey)|  Belongs To relation  | -->
 | [SingleLineText](#singlelinetext) |  For short text |
 | [LongText](#longtext) | For lengthy string content |
 | [Attachment](#attachment) | File attachment column |
@@ -36,7 +34,6 @@ menuTitle: 'Column Types'
 | [DateTime](#datetime)| Date & Time selector |
 | [QR Code](#qr-code)|  QR Code visualization of another referenced column |
 | [Barcode](#barcode)|  Barcode visualization of another referenced column |
-<!-- | [CreateTime](#createtime)| | -->
 | [Geometry](#geometry)|  Geometry column |
 | [GeoData](#geodata)|  GeoData column |
 | [Json](#json)|  Json column |
@@ -57,7 +54,7 @@ menuTitle: 'Column Types'
 
 ### LinkToAnotherRecord
 
-For more about Link To Another Record, please visit [here](./link-to-another-record).
+For more about Link To Another Record, please visit <NuxtLink to="/setup-and-usages/link-to-another-record" target="_blank">here</NuxtLink>.
 
 <!-- ### ForeignKey
 #### Available Database Types
@@ -264,7 +261,7 @@ For more about Link To Another Record, please visit [here](./link-to-another-rec
 
 ### Formula
 
-For more about formula, please visit [here](./formulas).
+For more about Formulas, please visit <NuxtLink to="/setup-and-usages/formulas" target="_blank">here</NuxtLink>.
 
 ### QR-Code
 
@@ -292,7 +289,7 @@ Since it's a virtual column, the cell content (Barcode) cannot be changed direct
 
 ### Rollup
 
-For more about rollup, please visit [here](./rollup).
+For more about Rollup, please visit <NuxtLink to="/setup-and-usages/rollup" target="_blank">here</NuxtLink>.
 
 ### DateTime
 
@@ -328,7 +325,22 @@ For more about rollup, please visit [here](./rollup).
 |**SQL Server**|geometry|
 |**SQLite**|text|
 
-<!-- TODO: add GeoData -->
+
+### GeoData
+
+Encodes a geographic location which consists of a latitude and a longitude. 
+Both are internally stored as one string, where latitude and longitude are separated by ';'
+Example: "52.2134;29.1442"
+
+#### Available Database Types
+
+|Database| Types|
+|-----|----------|
+|**MySQL**|char, varchar, nchar, text, tinytext, mediumtext, longtext|
+|**PostgreSQL**|char, character, character varying, text|
+|**SQL Server**|decimal, float|
+|**SQLite**|character, text, varchar|
+
 
 ### JSON
 

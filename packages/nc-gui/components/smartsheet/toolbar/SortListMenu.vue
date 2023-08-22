@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { nextTick } from '@vue/runtime-core'
 import type { ColumnType } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -7,6 +8,7 @@ import {
   ReloadViewDataHookInj,
   computed,
   getSortDirectionOptions,
+  iconMap,
   inject,
   ref,
   useMenuCloseOnEsc,
@@ -22,7 +24,18 @@ const reloadDataHook = inject(ReloadViewDataHookInj)
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
-const { sorts, saveOrUpdate, loadSorts, addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
+const { sorts, saveOrUpdate, loadSorts, addSort: _addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
+
+const removeIcon = ref<HTMLElement>()
+
+const addSort = () => {
+  _addSort()
+  nextTick(() => {
+    removeIcon.value?.[removeIcon.value?.length - 1]?.$el?.scrollIntoView()
+  })
+}
+
+const { isMobileMode } = useGlobal()
 
 eventBus.on((event) => {
   if (event === SmartsheetStoreEvents.SORT_RELOAD) {
@@ -63,11 +76,11 @@ useMenuCloseOnEsc(open)
     <div :class="{ 'nc-badge nc-active-btn': sorts?.length }">
       <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
-          <MdiSort />
+          <component :is="iconMap.sort" />
 
           <!-- Sort -->
-          <span class="text-capitalize !text-xs font-weight-normal">{{ $t('activity.sort') }}</span>
-          <MdiMenuDown class="text-grey" />
+          <span v-if="!isMobileMode" class="text-capitalize !text-xs font-weight-normal">{{ $t('activity.sort') }}</span>
+          <component :is="iconMap.arrowDown" class="text-grey" />
 
           <span v-if="sorts?.length" class="nc-count-badge">{{ sorts.length }}</span>
         </div>
@@ -75,12 +88,19 @@ useMenuCloseOnEsc(open)
     </div>
     <template #overlay>
       <div
-        class="bg-gray-50 p-6 shadow-lg menu-filter-dropdown min-w-[400px] max-h-[max(80vh,500px)] overflow-auto !border"
+        :class="{ ' min-w-[400px]': sorts.length }"
+        class="bg-gray-50 p-6 shadow-lg menu-filter-dropdown max-h-[max(80vh,500px)] overflow-auto !border"
         data-testid="nc-sorts-menu"
       >
-        <div v-if="sorts?.length" class="sort-grid mb-2" @click.stop>
+        <div v-if="sorts?.length" class="sort-grid mb-2 max-h-420px overflow-y-auto" @click.stop>
           <template v-for="(sort, i) of sorts" :key="i">
-            <MdiCloseBox class="nc-sort-item-remove-btn text-grey self-center" small @click.stop="deleteSort(sort, i)" />
+            <component
+              :is="iconMap.closeBox"
+              ref="removeIcon"
+              class="nc-sort-item-remove-btn text-grey self-center"
+              small
+              @click.stop="deleteSort(sort, i)"
+            />
 
             <LazySmartsheetToolbarFieldListAutoCompleteDropdown
               v-model="sort.fk_column_id"
@@ -92,6 +112,7 @@ useMenuCloseOnEsc(open)
             />
 
             <a-select
+              ref=""
               v-model:value="sort.direction"
               class="shrink grow-0 nc-sort-dir-select !text-xs"
               :label="$t('labels.operation')"
@@ -112,7 +133,7 @@ useMenuCloseOnEsc(open)
 
         <a-button class="text-capitalize mb-1 mt-4" type="primary" ghost @click.stop="addSort">
           <div class="flex gap-1 items-center">
-            <MdiPlus />
+            <component :is="iconMap.plus" />
             <!-- Add Sort Option -->
             {{ $t('activity.addSort') }}
           </div>

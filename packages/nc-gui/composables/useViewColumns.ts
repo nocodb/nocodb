@@ -1,7 +1,7 @@
 import { ViewTypes, isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { IsPublicInj, computed, inject, ref, useNuxtApp, useProject, useUIPermission, watch } from '#imports'
+import { IsPublicInj, computed, inject, ref, storeToRefs, useNuxtApp, useProject, useUIPermission, watch } from '#imports'
 import type { Field } from '~/lib'
 
 export function useViewColumns(
@@ -19,11 +19,13 @@ export function useViewColumns(
 
   const { isUIAllowed } = useUIPermission()
 
-  const { isSharedBase } = useProject()
+  const { isSharedBase } = storeToRefs(useProject())
 
   const isLocalMode = computed(
     () => isPublic.value || !isUIAllowed('hideAllColumns') || !isUIAllowed('showAllColumns') || isSharedBase.value,
   )
+
+  const localChanges = ref<Field[]>([])
 
   const isColumnViewEssential = (column: ColumnType) => {
     // TODO: consider at some point ti delegate this via a cleaner design pattern to view specific check logic
@@ -35,13 +37,13 @@ export function useViewColumns(
   const metaColumnById = computed<Record<string, ColumnType>>(() => {
     if (!meta.value?.columns) return {}
 
-    return meta.value.columns.reduce(
+    return (meta.value.columns as ColumnType[]).reduce(
       (acc, curr) => ({
         ...acc,
         [curr.id!]: curr,
       }),
       {},
-    )
+    ) as Record<string, ColumnType>
   })
 
   const loadViewColumns = async () => {
@@ -50,7 +52,7 @@ export function useViewColumns(
     let order = 1
 
     if (view.value?.id) {
-      const data = (isPublic.value ? meta.value?.columns : await $api.dbViewColumn.list(view.value.id)) as any[]
+      const data = (isPublic.value ? meta.value?.columns : (await $api.dbViewColumn.list(view.value.id)).list) as any[]
 
       const fieldById = data.reduce<Record<string, any>>((acc, curr) => {
         curr.show = !!curr.show
@@ -76,6 +78,16 @@ export function useViewColumns(
           }
         })
         .sort((a: Field, b: Field) => a.order - b.order)
+
+      if (isLocalMode.value && fields.value) {
+        for (const field of localChanges.value) {
+          const fieldIndex = fields.value.findIndex((f) => f.fk_column_id === field.fk_column_id)
+          if (fieldIndex !== undefined && fieldIndex > -1) {
+            fields.value[fieldIndex] = field
+            fields.value = fields.value.sort((a: Field, b: Field) => a.order - b.order)
+          }
+        }
+      }
     }
   }
 
@@ -128,20 +140,20 @@ export function useViewColumns(
   }
 
   const saveOrUpdate = async (field: any, index: number) => {
-    if (isPublic.value && fields.value) {
+    if (isLocalMode.value && fields.value) {
       fields.value[index] = field
       meta.value!.columns = meta.value!.columns?.map((column: ColumnType) => {
         if (column.id === field.fk_column_id) {
           return {
             ...column,
             ...field,
+            id: field.fk_column_id,
           }
         }
         return column
       })
 
-      await loadViewColumns()
-      reloadData?.()
+      localChanges.value.push(field)
     }
 
     if (isUIAllowed('fieldsSync')) {
@@ -156,13 +168,14 @@ export function useViewColumns(
         return insertedField
       }
     }
+
     await loadViewColumns()
     reloadData?.()
   }
 
   const showSystemFields = computed({
     get() {
-      return view.value?.show_system_fields || false
+      return (view.value?.show_system_fields as boolean) || false
     },
     set(v: boolean) {
       if (view?.value?.id) {

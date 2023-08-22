@@ -3,11 +3,13 @@ import type { VNodeRef } from '@vue/runtime-core'
 import {
   ColumnInj,
   EditModeInj,
+  IsExpandedFormOpenInj,
   computed,
   convertDurationToSeconds,
   convertMS2Duration,
   durationOptions,
   inject,
+  parseProp,
   ref,
 } from '#imports'
 
@@ -32,7 +34,7 @@ const durationInMS = ref(0)
 
 const isEdited = ref(false)
 
-const durationType = computed(() => column?.value?.meta?.duration || 0)
+const durationType = computed(() => parseProp(column?.value?.meta)?.duration || 0)
 
 const durationPlaceholder = computed(() => durationOptions[durationType.value].title)
 
@@ -72,7 +74,9 @@ const submitDuration = () => {
   isEdited.value = false
 }
 
-const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
@@ -92,6 +96,8 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
       @keydown.right.stop
       @keydown.up.stop
       @keydown.delete.stop
+      @keydown.ctrl.z.stop
+      @keydown.meta.z.stop
       @selectstart.capture.stop
       @mousedown.stop
     />

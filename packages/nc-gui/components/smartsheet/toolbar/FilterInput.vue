@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
+import { storeToRefs } from 'pinia'
 import {
+  ActiveCellInj,
   ColumnInj,
-  EditModeInj,
+  IsFormInj,
   ReadonlyInj,
   computed,
   isBoolean,
@@ -30,7 +32,6 @@ import SingleSelect from '~/components/cell/SingleSelect.vue'
 import MultiSelect from '~/components/cell/MultiSelect.vue'
 import DatePicker from '~/components/cell/DatePicker.vue'
 import YearPicker from '~/components/cell/YearPicker.vue'
-import DateTimePicker from '~/components/cell/DateTimePicker.vue'
 import TimePicker from '~/components/cell/TimePicker.vue'
 import Rating from '~/components/cell/Rating.vue'
 import Duration from '~/components/cell/Duration.vue'
@@ -83,9 +84,11 @@ const checkTypeFunctions = {
 
 type FilterType = keyof typeof checkTypeFunctions
 
-const { sqlUi } = $(useProject())
+const { sqlUis } = storeToRefs(useProject())
 
-const abstractType = $computed(() => (column.value?.dt && sqlUi ? sqlUi.getAbstractType(column.value) : null))
+const sqlUi = ref(column.value?.base_id ? sqlUis.value[column.value?.base_id] : Object.values(sqlUis.value)[0])
+
+const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
 const checkType = (filterType: FilterType) => {
   const checkTypeFunction = checkTypeFunctions[filterType]
@@ -112,14 +115,28 @@ const booleanOptions = [
   { value: null, label: 'unset' },
 ]
 
+const renderSingleSelect = (op: string) => {
+  // use MultiSelect for SingleSelect columns for anyof / nanyof filters
+  if (['anyof', 'nanyof'].includes(op)) {
+    return MultiSelect
+  }
+  return SingleSelect
+}
+
+const renderDateFilterInput = (sub_op: string) => {
+  if (['daysAgo', 'daysFromNow', 'pastNumberOfDays', 'nextNumberOfDays'].includes(sub_op)) {
+    return Decimal
+  }
+  return DatePicker
+}
+
 const componentMap: Partial<Record<FilterType, any>> = $computed(() => {
   return {
-    // use MultiSelect for SingleSelect columns for anyof / nanyof filters
-    isSingleSelect: ['anyof', 'nanyof'].includes(props.filter.comparison_op!) ? MultiSelect : SingleSelect,
+    isSingleSelect: renderSingleSelect(props.filter.comparison_op!),
     isMultiSelect: MultiSelect,
-    isDate: DatePicker,
+    isDate: renderDateFilterInput(props.filter.comparison_sub_op!),
     isYear: YearPicker,
-    isDateTime: DateTimePicker,
+    isDateTime: renderDateFilterInput(props.filter.comparison_sub_op!),
     isTime: TimePicker,
     isRating: Rating,
     isDuration: Duration,
@@ -166,6 +183,10 @@ const hasExtraPadding = $computed(() => {
       isYear(column.value, abstractType))
   )
 })
+
+// provide the following to override the default behavior and enable input fields like in form
+provide(ActiveCellInj, ref(true))
+provide(IsFormInj, ref(true))
 </script>
 
 <template>
@@ -189,6 +210,7 @@ const hasExtraPadding = $computed(() => {
       :column="column"
       class="flex"
       v-bind="componentProps"
+      location="filter"
     />
   </div>
 </template>

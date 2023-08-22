@@ -3,6 +3,7 @@ import BasePage from '../Base';
 import { GridPage } from './Grid';
 import { FormPage } from './Form';
 import { ExpandedFormPage } from './ExpandedForm';
+import { BulkUpdatePage } from './BulkUpdate';
 import { ChildList } from './Grid/Column/LTAR/ChildList';
 import { LinkRecord } from './Grid/Column/LTAR/LinkRecord';
 import { TreeViewPage } from './TreeView';
@@ -15,10 +16,12 @@ import { ImportAirtablePage } from './Import/Airtable';
 import { ImportTemplatePage } from './Import/ImportTemplate';
 import { WebhookFormPage } from './WebhookForm';
 import { ProjectsPage } from '../ProjectsPage';
+import { FindRowByScanOverlay } from './FindRowByScanOverlay';
 
 export class DashboardPage extends BasePage {
   readonly project: any;
   readonly tablesSideBar: Locator;
+  readonly projectMenuLink: Locator;
   readonly tabBar: Locator;
   readonly treeView: TreeViewPage;
   readonly grid: GridPage;
@@ -27,7 +30,9 @@ export class DashboardPage extends BasePage {
   readonly kanban: KanbanPage;
   readonly map: MapPage;
   readonly expandedForm: ExpandedFormPage;
+  readonly bulkUpdateForm: BulkUpdatePage;
   readonly webhookForm: WebhookFormPage;
+  readonly findRowByScanOverlay: FindRowByScanOverlay;
   readonly childList: ChildList;
   readonly linkRecord: LinkRecord;
   readonly settings: SettingsPage;
@@ -39,6 +44,7 @@ export class DashboardPage extends BasePage {
     super(rootPage);
     this.project = project;
     this.tablesSideBar = rootPage.locator('.nc-treeview-container');
+    this.projectMenuLink = rootPage.getByTestId('nc-project-menu');
     this.tabBar = rootPage.locator('.nc-tab-bar');
     this.treeView = new TreeViewPage(this, project);
     this.grid = new GridPage(this);
@@ -47,7 +53,9 @@ export class DashboardPage extends BasePage {
     this.kanban = new KanbanPage(this);
     this.map = new MapPage(this);
     this.expandedForm = new ExpandedFormPage(this);
+    this.bulkUpdateForm = new BulkUpdatePage(this);
     this.webhookForm = new WebhookFormPage(this);
+    this.findRowByScanOverlay = new FindRowByScanOverlay(this);
     this.childList = new ChildList(this);
     this.linkRecord = new LinkRecord(this);
     this.settings = new SettingsPage(this);
@@ -61,6 +69,24 @@ export class DashboardPage extends BasePage {
 
   async goto() {
     await this.rootPage.goto(`/#/nc/${this.project.id}/auth`);
+  }
+
+  getProjectMenuLink({ title }: { title: string }) {
+    return this.rootPage.locator(`div.nc-project-menu-item:has-text("${title}")`);
+  }
+
+  async verifyTeamAndSettingsLinkIsVisible() {
+    await this.projectMenuLink.click();
+    const teamAndSettingsLink = await this.getProjectMenuLink({ title: ' Team & Settings' });
+    await expect(teamAndSettingsLink).toBeVisible();
+    await this.projectMenuLink.click();
+  }
+
+  async verifyTeamAndSettingsLinkIsNotVisible() {
+    await this.projectMenuLink.click();
+    const teamAndSettingsLink = await this.getProjectMenuLink({ title: ' Team & Settings' });
+    await expect(teamAndSettingsLink).not.toBeVisible();
+    await this.projectMenuLink.click();
   }
 
   async gotoSettings() {
@@ -131,6 +157,13 @@ export class DashboardPage extends BasePage {
     }
   }
 
+  async toggleMobileMode() {
+    await this.projectMenuLink.click();
+    const projMenu = this.rootPage.locator('.nc-dropdown-project-menu');
+    await projMenu.locator('[data-menu-id="mobile-mode"]:visible').click();
+    await this.projectMenuLink.click();
+  }
+
   async signOut() {
     await this.rootPage.getByTestId('nc-project-menu').click();
     const projMenu = this.rootPage.locator('.nc-dropdown-project-menu');
@@ -181,5 +214,16 @@ export class DashboardPage extends BasePage {
   // Wait for the loader i.e the loader than appears when rows are being fetched, saved etc on the top right of dashboard
   async waitForLoaderToDisappear() {
     await this.rootPage.locator('[data-testid="nc-loading"]').waitFor({ state: 'hidden' });
+  }
+
+  async closeAllTabs() {
+    await this.tabBar.locator(`.ant-tabs-tab`).waitFor({ state: 'visible' });
+    const tab = await this.tabBar.locator(`.ant-tabs-tab`);
+    const tabCount = await tab.count();
+
+    for (let i = 0; i < tabCount; i++) {
+      await tab.nth(i).locator('button.ant-tabs-tab-remove').click();
+      await tab.nth(i).waitFor({ state: 'detached' });
+    }
   }
 }

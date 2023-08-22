@@ -29,20 +29,21 @@ export class KanbanPage extends BasePage {
   // todo: Implement
   async addOption() {}
 
-  // todo: Implement
-  async dragDropCard(param: { from: string; to: string }) {
-    // const { from, to } = param;
-    // const srcStack = await this.get().locator(`.nc-kanban-stack`).nth(1);
-    // const dstStack = await this.get().locator(`.nc-kanban-stack`).nth(2);
-    // const fromCard = await srcStack.locator(`.nc-kanban-item`).nth(1);
-    // const toCard = await dstStack.locator(`.nc-kanban-item`).nth(1);
-    // const [fromCard, toCard] = await Promise.all([
-    //   srcStack.locator(`.nc-kanban-item[data-draggable="true"]`).nth(0),
-    //   dstStack.locator(`.nc-kanban-item[data-draggable="true"]`).nth(0),
-    // ]);
-    // const fromCard = await this.get().locator(`.nc-kanban-item`).nth(0);
-    // const toCard = await this.get().locator(`.nc-kanban-item`).nth(25);
-    // await fromCard.dragTo(toCard);
+  async dragDropCard(param: { from: { stack: number; card: number }; to: { stack: number; card: number } }) {
+    const { from, to } = param;
+    const srcStack = await this.get().locator(`.nc-kanban-stack`).nth(from.stack);
+    const dstStack = await this.get().locator(`.nc-kanban-stack`).nth(to.stack);
+    const fromCard = await srcStack.locator(`.nc-kanban-item`).nth(from.card);
+    const toCard = await dstStack.locator(`.nc-kanban-item`).nth(to.card);
+
+    console.log(await fromCard.allTextContents());
+    console.log(await toCard.allTextContents());
+
+    await fromCard.dragTo(toCard, {
+      force: true,
+      sourcePosition: { x: 10, y: 10 },
+      targetPosition: { x: 10, y: 10 },
+    });
   }
 
   async dragDropStack(param: { from: number; to: number }) {
@@ -64,6 +65,7 @@ export class KanbanPage extends BasePage {
     const stacks = await this.get().locator(`.nc-kanban-stack`).count();
     for (let i = 0; i < stacks; i++) {
       const stack = await this.get().locator(`.nc-kanban-stack`).nth(i);
+      await stack.scrollIntoViewIfNeeded();
       // Since otherwise stack title will be repeated as title is in two divs, with one having hidden class
       const stackTitle = await stack.locator(`.nc-kanban-stack-head >> [data-testid="truncate-label"]`);
       await expect(stackTitle).toHaveText(order[i], { ignoreCase: true });
@@ -75,6 +77,7 @@ export class KanbanPage extends BasePage {
     const stacks = await this.get().locator(`.nc-kanban-stack`).count();
     for (let i = 0; i < stacks; i++) {
       const stack = await this.get().locator(`.nc-kanban-stack`).nth(i);
+      await stack.scrollIntoViewIfNeeded();
       const stackFooter = await stack.locator(`.nc-kanban-data-count`).innerText();
       await expect(stackFooter).toContain(`${count[i]} record${count[i] !== 1 ? 's' : ''}`);
     }
@@ -85,6 +88,7 @@ export class KanbanPage extends BasePage {
     const stacks = await this.get().locator(`.nc-kanban-stack`).count();
     for (let i = 0; i < stacks; i++) {
       const stack = await this.get().locator(`.nc-kanban-stack`).nth(i);
+      await stack.scrollIntoViewIfNeeded();
       const stackCards = stack.locator(`.nc-kanban-item`);
       await expect(stackCards).toHaveCount(count[i]);
     }
@@ -95,6 +99,7 @@ export class KanbanPage extends BasePage {
     const stack = await this.get().locator(`.nc-kanban-stack`).nth(stackIndex);
     for (let i = 0; i < order.length; i++) {
       const card = await stack.locator(`.nc-kanban-item`).nth(i);
+      await card.scrollIntoViewIfNeeded();
       const cardTitle = await card.locator(`.nc-cell`);
       await expect(cardTitle).toHaveText(order[i]);
     }

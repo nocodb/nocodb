@@ -7,6 +7,7 @@ interface Props {
   required?: boolean | number
   hideMenu?: boolean
 }
+
 const props = defineProps<Props>()
 
 const hideMenu = toRef(props, 'hideMenu')
@@ -34,6 +35,12 @@ const closeAddColumnDropdown = () => {
   columnOrder.value = null
   editColumnDropdown.value = false
 }
+
+const openHeaderMenu = () => {
+  if (!isForm.value && isUIAllowed('edit-column')) {
+    editColumnDropdown.value = true
+  }
+}
 </script>
 
 <template>
@@ -44,10 +51,11 @@ const closeAddColumnDropdown = () => {
     <SmartsheetHeaderCellIcon v-if="column" />
     <span
       v-if="column"
-      class="name cursor-pointer"
-      style="white-space: nowrap"
+      class="name"
+      :class="{ 'cursor-pointer': !isForm && isUIAllowed('edit-column') && !hideMenu }"
+      style="white-space: pre-line"
       :title="column.title"
-      @dblclick="editColumnDropdown = true"
+      @dblclick="openHeaderMenu"
       >{{ column.title }}</span
     >
 
@@ -56,11 +64,7 @@ const closeAddColumnDropdown = () => {
     <template v-if="!hideMenu">
       <div class="flex-1" />
 
-      <LazySmartsheetHeaderMenu
-        v-if="!isForm && isUIAllowed('edit-column')"
-        @add-column="addField"
-        @edit="editColumnDropdown = true"
-      />
+      <LazySmartsheetHeaderMenu v-if="!isForm && isUIAllowed('edit-column')" @add-column="addField" @edit="openHeaderMenu" />
     </template>
 
     <a-dropdown
@@ -91,7 +95,6 @@ const closeAddColumnDropdown = () => {
 <style scoped>
 .name {
   max-width: calc(100% - 40px);
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-all;
 }
 </style>

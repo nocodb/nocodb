@@ -2,7 +2,7 @@
 import type { UITypes } from 'nocodb-sdk'
 import { AllowedColumnTypesForQrAndBarcodes } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
-import { onMounted, useVModel, watch } from '#imports'
+import { iconMap, onMounted, useVModel, watch } from '#imports'
 
 const props = defineProps<{
   modelValue: any
@@ -98,7 +98,7 @@ const showBarcodeValueColumnInfoIcon = computed(() => !columnsAllowedAsBarcodeVa
                   Decimal. Please create one first.
                 </span>
               </template>
-              <mdi-information class="cursor-pointer" />
+              <component :is="iconMap.info" class="cursor-pointer" />
             </a-tooltip>
           </div>
         </div>

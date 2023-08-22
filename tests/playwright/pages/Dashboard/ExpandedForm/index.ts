@@ -1,6 +1,7 @@
 import { expect, Locator } from '@playwright/test';
 import BasePage from '../../Base';
 import { DashboardPage } from '..';
+import { DateTimeCellPageObject } from '../common/Cell/DateTimeCell';
 
 export class ExpandedFormPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -24,16 +25,25 @@ export class ExpandedFormPage extends BasePage {
     return this.dashboard.get().locator(`.nc-drawer-expanded-form`);
   }
 
-  async clickDuplicateRow() {
-    await this.duplicateRowButton.click();
+  async click3DotsMenu(menuItem: string) {
+    await this.get().locator('.nc-icon-transition.ant-dropdown-trigger').last().click();
 
+    // add delay; wait for the menu to appear
+    await this.rootPage.waitForTimeout(500);
+
+    const popUpMenu = await this.rootPage.locator('.ant-dropdown');
+    await popUpMenu.locator(`.ant-dropdown-menu-item:has-text("${menuItem}")`).click();
+  }
+
+  async clickDuplicateRow() {
+    await this.click3DotsMenu('Duplicate Row');
     // wait for loader to disappear
     // await this.dashboard.waitForLoaderToDisappear();
     await this.rootPage.waitForTimeout(2000);
   }
 
   async clickDeleteRow() {
-    await this.deleteRowButton.click();
+    await this.click3DotsMenu('Delete Row');
     await this.rootPage.locator('.ant-btn-primary:has-text("OK")').click();
   }
 
@@ -83,6 +93,14 @@ export class ExpandedFormPage extends BasePage {
       case 'manyToMany':
         await field.locator(`[data-testid="nc-child-list-button-link-to"]`).click();
         await this.dashboard.linkRecord.select(value);
+        break;
+      case 'dateTime':
+        await field.locator('.nc-cell').click();
+        // eslint-disable-next-line no-case-declarations
+        const dateTimeObj = new DateTimeCellPageObject(this.dashboard.grid.cell);
+        await dateTimeObj.selectDate({ date: value.slice(0, 10) });
+        await dateTimeObj.selectTime({ hour: +value.slice(11, 13), minute: +value.slice(14, 16) });
+        await dateTimeObj.save();
         break;
     }
   }
@@ -142,7 +160,7 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async close() {
-    await this.get().locator('.nc-close-form').last().click();
+    await this.click3DotsMenu('Close');
   }
 
   async openChildCard(param: { column: string; title: string }) {

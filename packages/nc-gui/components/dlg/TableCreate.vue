@@ -1,5 +1,17 @@
 <script setup lang="ts">
-import { Form, computed, nextTick, onMounted, ref, useProject, useTable, useTabs, useVModel, validateTableName } from '#imports'
+import {
+  Form,
+  computed,
+  iconMap,
+  nextTick,
+  onMounted,
+  ref,
+  useProject,
+  useTable,
+  useTabs,
+  useVModel,
+  validateTableName,
+} from '#imports'
 import { TabType } from '~/lib'
 
 const props = defineProps<{
@@ -7,7 +19,7 @@ const props = defineProps<{
   baseId: string
 }>()
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'create'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
@@ -28,6 +40,7 @@ const { table, createTable, generateUniqueTitle, tables, project } = useTable(as
     type: TabType.TABLE,
   })
 
+  emit('create', table)
   dialogShow.value = false
 }, props.baseId)
 
@@ -41,7 +54,7 @@ const validators = computed(() => {
         validator: (_: any, value: any) => {
           // validate duplicate alias
           return new Promise((resolve, reject) => {
-            if ((tables.value || []).some((t) => t.title === (value || ''))) {
+            if ((tables.value || []).some((t) => t.title === (value || '') && t.base_id === props.baseId)) {
               return reject(new Error('Duplicate table alias'))
             }
             return resolve(true)
@@ -106,24 +119,21 @@ onMounted(() => {
   <a-modal
     v-model:visible="dialogShow"
     :class="{ active: dialogShow }"
-    width="max(30vw, 600px)"
+    :title="$t('activity.createTable')"
     centered
     wrap-class-name="nc-modal-table-create"
     @keydown.esc="dialogShow = false"
   >
     <template #footer>
-      <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
+      <a-button key="back" size="middle" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
 
-      <a-button key="submit" size="large" type="primary" :loading="creating" @click="_createTable"
+      <a-button key="submit" size="middle" class="!rounded-md" type="primary" :loading="creating" @click="_createTable"
         >{{ $t('general.submit') }}
       </a-button>
     </template>
 
-    <div class="pl-10 pr-10 pt-5">
+    <div>
       <a-form :model="table" name="create-new-table-form" @keydown.enter="_createTable">
-        <!-- Create A New Table -->
-        <div class="prose-xl font-bold self-center my-4">{{ $t('activity.createTable') }}</div>
-
         <!-- hint="Enter table name" -->
         <!--        Table name -->
         <div class="mb-2">{{ $t('labels.tableName') }}</div>
@@ -143,8 +153,8 @@ onMounted(() => {
           <div class="pointer flex flex-row items-center gap-x-1" @click="isAdvanceOptVisible = !isAdvanceOptVisible">
             {{ isAdvanceOptVisible ? $t('general.hideAll') : $t('general.showMore') }}
 
-            <MdiMinusCircleOutline v-if="isAdvanceOptVisible" class="text-gray-500" />
-            <MdiPlusCircleOutline v-else class="text-gray-500" />
+            <component :is="iconMap.minusCircle" v-if="isAdvanceOptVisible" class="text-gray-500" />
+            <component :is="iconMap.plusCircle" v-else class="text-gray-500" />
           </div>
         </div>
         <div class="nc-table-advanced-options" :class="{ active: isAdvanceOptVisible }">
@@ -194,7 +204,7 @@ onMounted(() => {
   overflow: hidden;
 
   &.active {
-    max-height: 200px;
+    max-height: 100px;
   }
 }
 </style>

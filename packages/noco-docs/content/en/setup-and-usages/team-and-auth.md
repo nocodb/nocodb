@@ -6,41 +6,35 @@ category: 'Product'
 menuTitle: 'Team & Settings > Team & Auth'
 ---
 
-## Accessing Team & Auth 
+## Accessing Collaboration
 
-- Click on `Team & Settings` from the `Project Menu` 
-- Access `Team & Auth` under `Settings`
+- Click on `Collaborators` tab from the `Project Dashboard` 
   
-<img width="322" alt="image" src="https://user-images.githubusercontent.com/35857179/194856648-67936db0-ee4d-4060-be3d-af9f86ef8fc6.png">
+![Collaorators](https://github.com/nocodb/nocodb/assets/86527202/548769b8-8678-4827-85cd-2c0af57ce876)
+
 
 ## User Management
 
 ### How to Add a User
 
-1. Go to `Team & Auth`, click on `Invite Team`
+Go to `Collaborators`, Enter the user's `E-mail`. Select `User Role`, and Click `Invite`.
 
-![image](https://user-images.githubusercontent.com/35857179/219830800-481f372f-86b1-4e2f-865d-3fb7c10663f7.png)
-
-
-2. Enter the user's `E-mail`. Select `User Role`, and Click `Invite`.
+![collaborators invite](https://github.com/nocodb/nocodb/assets/86527202/6b16b106-5b55-442c-bc1a-ab59977b330a)
 
     <alert type="success">
         Tip: You can add multiple comma (,) seperated emails
     </alert>
 
-![Screenshot 2022-09-13 at 10 54 39 AM](https://user-images.githubusercontent.com/86527202/189817152-83fca866-7713-49ee-8068-d3eba1311353.png)
-
 If you do not have an SMTP sender configured, make sure to copy the invite link and manually send it to your collaborator.
     
-![Screenshot 2022-09-13 at 10 54 22 AM](https://user-images.githubusercontent.com/86527202/189817156-f3dab634-dc25-4f9b-8126-865187aae254.png)
+![Collaborators- invite link](https://github.com/nocodb/nocodb/assets/86527202/704b4b38-ba39-40f6-ac0d-8d75811869c9)
 
 
 ### How to Update user permissions
 
-1. Use `Edit` <1> menu to assign a different role to existing user
-2. Use `Delete` <2> menu to remove a user from accessing current project
-  
-![image](https://user-images.githubusercontent.com/35857179/219830858-be7a4656-9f3b-440c-9a79-165f919223d7.png)
+Go to `Collaborators`, from the drop down for the user - change permissions as desired
+
+![Collaborators update](https://github.com/nocodb/nocodb/assets/86527202/e2d4037d-e15e-47ca-8cc6-56e53cb53f88)
 
 ------
 
@@ -107,33 +101,3 @@ If you do not have an SMTP sender configured, make sure to copy the invite link 
 |	Project Info	        | ✅	| ✅	| ✅	| ✅	| ✅	|
 |	Swagger API	          | ✅	| ✅	| ✅	| ✅	| ✅	|
 
-## API Tokens Management
-
-NocoDB allows creating API tokens which allow it to be integrated seamlessly with 3rd party apps. API Token is a Nano ID with a length of 40. If you are passing API Token, make sure that the header is called `xc-token`.
-
-- Open `Project Menu`, click on `Team & Settings`
-  
-<img width="322" alt="image" src="https://user-images.githubusercontent.com/35857179/194856648-67936db0-ee4d-4060-be3d-af9f86ef8fc6.png">
-
-- Click `API Tokens Management` tab under `Team & Auth` section
-
-- Click Add New Token
-  
-![image](https://user-images.githubusercontent.com/35857179/219835108-037127bd-4bf6-4d96-b691-139bd141631c.png)
-
-- Type an recognizable name for your token and click `Generate`
-  
-![Screenshot 2022-09-14 at 10 20 10 AM](https://user-images.githubusercontent.com/86527202/190062801-db3fab83-7974-4dfe-9c83-bf0d8a7dba1e.png)
-
-- Copy API token to your clipboard; use action menu to the right of token list
-
-<!-- TODO: -->
-<!-- ### Automations
-| &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | &nbsp; &nbsp; Owner &nbsp; &nbsp;| &nbsp; &nbsp; Creator &nbsp; &nbsp; | &nbsp; &nbsp; Editor &nbsp; &nbsp;| Commenter | &nbsp; &nbsp; Viewer &nbsp; &nbsp;|
-|    :--   |    :-:   |    :-:   |    :-:   |    :-:   |    :-:   |
-
-### App store
-| &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | &nbsp; &nbsp; Owner &nbsp; &nbsp;| &nbsp; &nbsp; Creator &nbsp; &nbsp; | &nbsp; &nbsp; Editor &nbsp; &nbsp;| Commenter | &nbsp; &nbsp; Viewer &nbsp; &nbsp;|
-|    :--   |    :-:   |    :-:   |    :-:   |    :-:   |    :-:   |
-
- -->

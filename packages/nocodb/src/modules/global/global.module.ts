@@ -1,8 +1,8 @@
 import { Global, Module } from '@nestjs/common';
 import { ExtractJwt } from 'passport-jwt';
-import { EventEmitterModule } from '../event-emitter/event-emitter.module';
 import { InitMetaServiceProvider } from './init-meta-service.provider';
 import type { Provider } from '@nestjs/common';
+import { EventEmitterModule } from '~/modules/event-emitter/event-emitter.module';
 import { SocketGateway } from '~/gateways/socket.gateway';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaService } from '~/meta/meta.service';

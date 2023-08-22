@@ -8,6 +8,7 @@ import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider
 import Noco from '~/Noco';
 import { UsersService } from '~/services/users/users.service';
 import { Plugin, ProjectUser, User } from '~/models';
+import {sanitiseUserObj} from "~/utils";
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -39,11 +40,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
                 user.roles === 'owner' ? 'owner,creator' : user.roles;
               // + (user.roles ? `,${user.roles}` : '');
 
-              done(null, user);
+              done(null, sanitiseUserObj(user));
             })
             .catch((e) => done(e));
         } else {
-          return done(null, user);
+          return done(null, sanitiseUserObj(user));
         }
         // if user not found create new user if allowed
         // or return error
@@ -58,7 +59,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
           password: '',
           salt,
         });
-        return done(null, user);
+        return done(null, sanitiseUserObj(user));
       }
     } catch (err) {
       return done(err);

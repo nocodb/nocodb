@@ -162,7 +162,7 @@ export const useProject = defineStore('projectStore', () => {
     if (isSharedBase.value) {
       await loadProjectRoles(project.value.id || projectId.value, {
         isSharedBase: isSharedBase.value,
-        sharedBaseId: projectId.value,
+        sharedBaseId: route.value.params.projectId as string,
       })
     } else if (isSharedErd.value) {
       await loadProjectRoles(project.value.id || projectId.value, {

@@ -6,6 +6,7 @@ import { ProjectUser, User } from '~/models';
 import { UsersService } from '~/services/users/users.service';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import extractRolesObj from '~/utils/extractRolesObj';
+import {sanitiseUserObj} from "~/utils";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -27,7 +28,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       const user = await User.getByEmail(jwtPayload?.email);
 
       return {
-        ...user,
+        ...sanitiseUserObj(user),
         roles: `owner,creator,${OrgUserRoles.SUPER_ADMIN}`,
       };
     }
@@ -80,7 +81,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const workspaceOrProjectRoles = projectRoles || workspaceRoles;
 
     return {
-      ...user,
+      ...sanitiseUserObj(user),
       roles: extractRolesObj(
         [user.roles, workspaceOrProjectRoles].filter(Boolean).join(','),
       ),

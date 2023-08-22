@@ -76,13 +76,14 @@ function onRemoveFileClick(title: any, i: number) {
   })
 }
 
-const handleKeyDown = (event) => {
+const handleKeyDown = async (event: any) => {
   if ((event.metaKey || event.ctrlKey) && event.key === 'v') {
-    console.log('tesr')
-    // You can process the pasted text or perform other actions here
-
-    // Prevent the default paste behavior
-    event.preventDefault()
+    window.addEventListener('paste', (e) => {
+      if (e.clipboardData?.files) {
+        console.log(e.clipboardData.files)
+        handlePaste(e.clipboardData.files)
+      }
+    })
   }
 }
 </script>

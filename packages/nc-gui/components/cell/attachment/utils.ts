@@ -259,14 +259,13 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       }
     }
 
-    const handlePaste = (e: ClipboardEvent) => {
-      console.log('Trigering function')
-      // Handle the paste event here
-      const clipboardData = e.clipboardData
-      const pastedText = clipboardData?.getData('text') // Get pasted text
-      console.log('Pasted text:', pastedText)
-
-      // You can process the pasted text or perform other actions here
+    const handlePaste = async (f: FileList) => {
+      if (isReadonly.value) return
+      if (f) {
+        console.log(visibleItems.value.map((el) => console.log(typeof el)))
+        // if (visibleItems.value.includes((el) => el === f[0].name)) console.log(f[0].name) return
+        await onFileSelect(f)
+      }
     }
 
     watch(files, (nextFiles) => nextFiles && onFileSelect(nextFiles))

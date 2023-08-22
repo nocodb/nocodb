@@ -34,6 +34,8 @@ const selectColor = (color: string) => {
   if (props.pickButton) vModel.value = color
 }
 
+const isPickerOn = ref(false)
+
 const compare = (colorA: string, colorB: string) => colorA.toLowerCase() === colorB.toLowerCase()
 
 watch(picked, (n, _o) => {
@@ -56,20 +58,21 @@ watch(picked, (n, _o) => {
       >
         {{ compare(picked, color) ? '&#10003;' : '' }}
       </button>
+      <button
+        class="h-6 w-6 mt-2.5 ml-1 border-1 border-[grey] rounded-md flex items-center justify-center"
+        @click="isPickerOn = !isPickerOn"
+      >
+        <GeneralTooltip>
+          <template #title>More colors</template>
+          <GeneralIcon :icon="isPickerOn ? 'minus' : 'plus'" />
+        </GeneralTooltip>
+      </button>
     </div>
 
     <a-card v-if="props.advanced" class="w-full mt-2" :body-style="{ padding: '0px' }" :bordered="false">
-      <a-collapse accordion ghost expand-icon-position="right">
-        <a-collapse-panel key="1" header="Advanced" class="">
-          <a-button v-if="props.pickButton" class="!bg-primary text-white w-full" @click="selectColor(picked)">
-            Pick Color
-          </a-button>
-
-          <div class="flex justify-center">
-            <LazyGeneralChromeWrapper v-model="picked" class="!w-full !shadow-none" />
-          </div>
-        </a-collapse-panel>
-      </a-collapse>
+      <div v-if="isPickerOn" class="flex justify-center">
+        <LazyGeneralChromeWrapper v-model="picked" class="!w-full !shadow-none" />
+      </div>
     </a-card>
   </div>
 </template>
@@ -103,5 +106,8 @@ watch(picked, (n, _o) => {
 .color-selector.selected {
   filter: brightness(90%);
   -webkit-filter: brightness(90%);
+}
+:deep(.vc-chrome-toggle-icon) {
+  @apply ml-3!important;
 }
 </style>

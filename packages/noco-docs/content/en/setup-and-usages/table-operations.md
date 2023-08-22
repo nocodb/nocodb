@@ -6,7 +6,7 @@ category: "Product"
 menuTitle: "Table Operations"
 ---
 
-Once you have created a new NocoDB project you can open it, In the browser, the URL would be like `example.com/dashboard/#/nc/<project_id>`.
+Once you have created a new NocoDB project you can open it. In the browser, the URL would be like `example.com/dashboard/#/nc/<project_id>`.
 
 ## Table
 
@@ -134,7 +134,7 @@ You can start editing by any of the following methods
   - Double click on cell to edit  
   - Click on cell and start typing (this way it will clear the previous content)  
   - Click on cell and press enter to start editing
-- And it will automatically save on blur event or if inactive.  
+- And it will automatically save on blur event (that is, exiting the cell) or if inactive.  
 
 ### Row Delete
 
@@ -146,10 +146,10 @@ Bulk delete is also possible by selecting multiple rows by using the checkbox in
 
 ## Quick Import
 
-You can use Quick Import when you have data from external sources such as Airtable, CSV file or Microsoft Excel to an existing project by either 
+You can use Quick Import when you have data from external sources such as Airtable, CSV file, Microsoft Excel or LibreOffice Calc to an existing project by either 
 
 - Hover `Add new table` button in table menu, click three dots, use Quick Import to create
-- Drag and drop CSV, JSON or Excel file to import
+- Drag and drop CSV, JSON, Excel or ODS file to import
 
 <img width="1505" alt="image" src="https://user-images.githubusercontent.com/35857179/194795025-afd81191-4743-435b-b802-88367d2663f9.png">
 

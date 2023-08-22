@@ -51,11 +51,13 @@ const loadTokens = async (page = currentPage.value, limit = currentLimit.value) 
 loadTokens()
 
 const isModalOpen = ref(false)
+const tokenDesc = ref('')
 const tokenToCopy = ref('')
 
-const openModal = (tk: string) => {
+const openModal = (tk: string, desc: string) => {
   isModalOpen.value = true
   tokenToCopy.value = tk
+  tokenDesc.value = desc
 }
 
 const deleteToken = async (token: string): Promise<void> => {
@@ -69,6 +71,7 @@ const deleteToken = async (token: string): Promise<void> => {
   $e('a:account:token:delete')
   isModalOpen.value = false
   tokenToCopy.value = ''
+  tokenDesc.value = ''
 }
 
 const generateToken = async () => {
@@ -207,7 +210,10 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
                 <template #overlay>
                   <a-menu data-testid="nc-token-row-action-icon">
                     <a-menu-item>
-                      <div class="flex flex-row items-center py-3 h-[2rem] nc-delete-token" @click="openModal(record.token)">
+                      <div
+                        class="flex flex-row items-center py-3 h-[2rem] nc-delete-token"
+                        @click="openModal(record.token, record.description)"
+                      >
                         <component :is="iconMap.delete" class="flex" />
                         <div class="text-sm pl-2">{{ $t('general.remove') }}</div>
                       </div>
@@ -230,7 +236,7 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
               class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             >
-              {{ tokenToCopy }}
+              {{ tokenDesc }}
             </div>
           </div>
         </span>

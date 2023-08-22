@@ -40,10 +40,16 @@ const config = {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
           routeBasePath: '/',
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          // editUrl:
-          //  'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+          editUrl: 'https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/',
+          lastVersion: 'current',
+          versions: {
+            current: {
+              label: 'Latest',
+            },
+            '0.109.7': {
+              label: '0.109.7 - Old UI',
+            }
+          },
         },
         blog: false,
         theme: {
@@ -64,7 +70,12 @@ const config = {
           alt: 'NocoDB',
           src: 'img/icon.png',
         },
-        items: [],
+        items: [
+          {
+            type: 'docsVersionDropdown',
+            position: 'right',
+          },
+        ],
       },
       footer: {
         style: 'dark',

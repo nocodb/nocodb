@@ -59,12 +59,12 @@ watch(picked, (n, _o) => {
         {{ compare(picked, color) ? '&#10003;' : '' }}
       </button>
       <button
-        class="h-6 w-6 mt-2.5 border-1 border-[grey] rounded-md flex items-center justify-center"
+        class="h-6 w-6 mt-2.5 ml-1 border-1 border-[grey] rounded-md flex items-center justify-center"
         @click="isPickerOn = !isPickerOn"
       >
         <GeneralTooltip>
           <template #title>More colors</template>
-          <GeneralIcon icon="plus" />
+          <GeneralIcon :icon="isPickerOn ? 'minus' : 'plus'" />
         </GeneralTooltip>
       </button>
     </div>

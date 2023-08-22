@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onKeyDown } from '@vueuse/core'
+import { onKeyDown, useEventListener } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
 import { useSortable } from './sort'
 import { iconMap, isImage, ref, useAttachment, useDropZone, useUIPermission, watch } from '#imports'
@@ -23,7 +23,6 @@ const {
   selectedVisibleItems,
   bulkDownloadFiles,
   renameFile,
-  handlePaste,
 } = useAttachmentCell()!
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -76,16 +75,12 @@ function onRemoveFileClick(title: any, i: number) {
   })
 }
 
-const handleKeyDown = async (event: any) => {
-  if ((event.metaKey || event.ctrlKey) && event.key === 'v') {
-    window.addEventListener('paste', (e) => {
-      if (e.clipboardData?.files) {
-        console.log(e.clipboardData.files)
-        handlePaste(e.clipboardData.files)
-      }
-    })
+// when user paste on modal
+useEventListener(dropZoneRef, 'paste', (event: ClipboardEvent) => {
+  if (event.clipboardData?.files) {
+    onDrop(event.clipboardData.files)
   }
-}
+})
 </script>
 
 <template>
@@ -120,7 +115,7 @@ const handleKeyDown = async (event: any) => {
         </div>
       </div>
     </template>
-    <div ref="dropZoneRef" tabindex="0" @keydown="handleKeyDown">
+    <div ref="dropZoneRef" tabindex="0">
       <template v-if="isSharedForm || (!readOnly && !dragging)">
         <general-overlay
           v-model="isOverDropZone"

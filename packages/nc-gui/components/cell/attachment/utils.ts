@@ -219,8 +219,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     }
 
     /** save files on drop */
-    async function onDrop(droppedFiles: File[] | null) {
-      if (isReadonly.value || isLockedMode.value) return
+    async function onDrop(droppedFiles: FileList | File[] | null) {
+      if (isReadonly.value) return
 
       if (droppedFiles) {
         // set files
@@ -259,19 +259,9 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       }
     }
 
-    const handlePaste = async (f: FileList) => {
-      if (isReadonly.value) return
-      if (f) {
-        console.log(visibleItems.value.map((el) => console.log(typeof el)))
-        // if (visibleItems.value.includes((el) => el === f[0].name)) console.log(f[0].name) return
-        await onFileSelect(f)
-      }
-    }
-
     watch(files, (nextFiles) => nextFiles && onFileSelect(nextFiles))
 
     return {
-      handlePaste,
       attachments,
       visibleItems,
       isPublic,

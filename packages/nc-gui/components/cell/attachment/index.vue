@@ -60,7 +60,6 @@ const {
   selectedImage,
   isReadonly: _isReadonly,
   storedFiles,
-  handlePaste,
 } = useProvideAttachmentCell(updateModelValue)
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, _isReadonly)
@@ -139,17 +138,6 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
 })
 
 const rowHeight = inject(RowHeightInj, ref(1.8))
-
-const handleKeyDown = async (event: any) => {
-  console.log('triggering')
-  if ((event.metaKey || event.ctrlKey) && event.key === 'v') {
-    window.addEventListener('paste', (e) => {
-      if (e.clipboardData?.files) {
-        handlePaste(e.clipboardData.files)
-      }
-    })
-  }
-}
 </script>
 
 <template>
@@ -160,7 +148,6 @@ const handleKeyDown = async (event: any) => {
       height: isForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
     }"
     class="nc-attachment-cell relative flex-1 color-transition flex items-center justify-between gap-1"
-    @keydown="handleKeyDown"
   >
     <LazyCellAttachmentCarousel />
 

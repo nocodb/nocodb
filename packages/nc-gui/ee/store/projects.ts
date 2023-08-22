@@ -141,19 +141,14 @@ export const useProjects = defineStore('projectsStore', () => {
         _projects = list
       }
 
-      projects.value = Array.from(projects.value.values()).reduce((acc, project) => {
-        if (_projects.find((p) => p.id === project.id)) acc.set(project.id!, project)
-        return acc
-      }, new Map())
-
-      for (const project of _projects) {
-        projects.value.set(project.id!, {
-          ...(projects.value.get(project.id!) || {}),
+      projects.value = _projects.reduce((acc, project) => {
+        acc.set(project.id!, {
           ...project,
           isExpanded: route.value.params.projectId === project.id || projects.value.get(project.id!)?.isExpanded,
           isLoading: false,
         })
-      }
+        return acc
+      }, new Map())
     } catch (e) {
       console.error(e)
       message.error(e.message)
@@ -208,7 +203,6 @@ export const useProjects = defineStore('projectsStore', () => {
     _project.meta = typeof _project.meta === 'string' ? JSON.parse(_project.meta) : {}
 
     const existingProject = projects.value.get(projectId) ?? ({} as any)
-
     const project = {
       ...existingProject,
       ..._project,
@@ -268,8 +262,7 @@ export const useProjects = defineStore('projectsStore', () => {
       },
     )
 
-    const count = projects.value.size
-    projects.value.set(result.id!, { ...result, isExpanded: true, isLoading: false, order: count })
+    await loadProjects()
     return result
   }
 

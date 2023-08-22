@@ -43,7 +43,6 @@ const createProject = async () => {
       title: formState.value.title,
     })
 
-    await loadProjects()
     navigateToProject({
       projectId: project.id!,
       type: props.type,

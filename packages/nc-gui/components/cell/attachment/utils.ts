@@ -34,6 +34,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
   (updateModelValue: (data: string | Record<string, any>[]) => void) => {
     const isReadonly = inject(ReadonlyInj, ref(false))
 
+    const isLockedMode = inject(IsLockedInj, ref(false))
+
     const isPublic = inject(IsPublicInj, ref(false))
 
     const isForm = inject(IsFormInj, ref(false))
@@ -218,7 +220,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     /** save files on drop */
     async function onDrop(droppedFiles: File[] | null) {
-      if (isReadonly.value) return
+      if (isReadonly.value || isLockedMode.value) return
 
       if (droppedFiles) {
         // set files

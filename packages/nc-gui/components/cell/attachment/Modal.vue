@@ -25,8 +25,7 @@ const {
   renameFile,
 } = useAttachmentCell()!
 
-// todo: replace placeholder var
-const isLocked = ref(false)
+const isLocked = inject(IsLockedInj, ref(false))
 
 const dropZoneRef = ref<HTMLDivElement>()
 

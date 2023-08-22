@@ -273,7 +273,7 @@ export class TreeViewPage extends BasePage {
     // table context menu
     const tblNode = await this.getTable({ index: 0 });
     await tblNode.hover();
-    expect(await tblNode.locator('.nc-tbl-context-menu').count()).toBe(count);
+    await expect(tblNode.locator('.nc-tbl-context-menu')).toHaveCount(count);
   }
 
   async openProject({ title, projectCount }: { title: string; projectCount?: number }) {

@@ -259,9 +259,20 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       }
     }
 
+    const handlePaste = (e: ClipboardEvent) => {
+      console.log('Trigering function')
+      // Handle the paste event here
+      const clipboardData = e.clipboardData
+      const pastedText = clipboardData?.getData('text') // Get pasted text
+      console.log('Pasted text:', pastedText)
+
+      // You can process the pasted text or perform other actions here
+    }
+
     watch(files, (nextFiles) => nextFiles && onFileSelect(nextFiles))
 
     return {
+      handlePaste,
       attachments,
       visibleItems,
       isPublic,

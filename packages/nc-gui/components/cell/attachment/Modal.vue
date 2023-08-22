@@ -23,6 +23,7 @@ const {
   selectedVisibleItems,
   bulkDownloadFiles,
   renameFile,
+  handlePaste,
 } = useAttachmentCell()!
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -74,6 +75,16 @@ function onRemoveFileClick(title: any, i: number) {
     },
   })
 }
+
+const handleKeyDown = (event) => {
+  if ((event.metaKey || event.ctrlKey) && event.key === 'v') {
+    console.log('tesr')
+    // You can process the pasted text or perform other actions here
+
+    // Prevent the default paste behavior
+    event.preventDefault()
+  }
+}
 </script>
 
 <template>
@@ -108,8 +119,7 @@ function onRemoveFileClick(title: any, i: number) {
         </div>
       </div>
     </template>
-
-    <div ref="dropZoneRef">
+    <div ref="dropZoneRef" tabindex="0" @keydown="handleKeyDown">
       <template v-if="isSharedForm || (!readOnly && !dragging)">
         <general-overlay
           v-model="isOverDropZone"

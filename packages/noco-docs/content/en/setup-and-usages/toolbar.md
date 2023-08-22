@@ -64,8 +64,20 @@ You can also group several filters together using Filter Group.
 ### Delete sort
 
 ## Group by
-### Add group-by
-### Edit group-by
+Group-by allows one to visually categorise records on grid into specific `Groups` & `Sub groups`. NocoDB allows three levels of record seggregation. 
+  
+![group by](https://github.com/nocodb/nocodb/assets/86527202/d4bfcdee-85ed-4c98-92ac-12055f9715e4)
+
+### Add / Edit group-by
+- Click on `Group By` in the toolbar
+- Choose field for the records to be grouped by
+- Optionally- you can also sort groups, in either ascending or descending way.
+- Add sub-groups of upto 3 levels
+
 ### Delete group-by
+- Click on `Group By` in the toolbar
+- Click on the bin icon to the right of the group you wish to delete
+
+Note: To disable `Group by` & return back to standard spreadsheet grid view - you need to remove all the groups configured.
 
 ## Row Height

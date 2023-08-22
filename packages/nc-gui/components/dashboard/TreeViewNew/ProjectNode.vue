@@ -15,6 +15,7 @@ import {
   useProjects,
 } from '#imports'
 import type { NcProject } from '#imports'
+import {useNuxtApp} from "#app";
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
@@ -33,7 +34,7 @@ const project = inject(ProjectInj)!
 
 const projectsStore = useProjects()
 
-const { loadProject, createProject: _createProject, updateProject, getProjectMetaInfo } = projectsStore
+const { loadProject, loadProjects, createProject: _createProject, updateProject, getProjectMetaInfo } = projectsStore
 const { projects } = storeToRefs(projectsStore)
 
 const { loadProjectTables } = useTablesStore()
@@ -314,6 +315,31 @@ onKeyStroke('Escape', () => {
     isBasesOptionsOpen.value[key] = false
   }
 })
+
+const isDuplicateDlgOpen = ref(false)
+const selectedProjectToDuplicate = ref()
+
+const duplicateProject = (project: ProjectType) => {
+  selectedProjectToDuplicate.value = project
+  isDuplicateDlgOpen.value = true
+}
+const {  $jobs } = useNuxtApp()
+
+
+const DlgProjectDuplicateOnOk = async (jobData: { id: string }) => {
+  await loadProjects('workspace')
+
+  $jobs.subscribe({ id: jobData.id }, undefined, async (status: string) => {
+    if (status === JobStatus.COMPLETED) {
+      await loadProjects('workspace')
+    } else if (status === JobStatus.FAILED) {
+      message.error('Failed to duplicate project')
+      await loadProjects('workspace')
+    }
+  })
+
+  $e('a:project:duplicate')
+}
 </script>
 
 <template>
@@ -417,6 +443,19 @@ onKeyStroke('Escape', () => {
                     <div v-e="['c:navbar:user:copy-proj-info']" class="nc-project-menu-item group" @click.stop="copyProjectInfo">
                       <GeneralIcon icon="copy" class="group-hover:text-black" />
                       {{ $t('activity.account.projInfo') }}
+                    </div>
+                  </a-menu-item>
+
+                  <a-menu-item
+                      v-if="
+            project.type === NcProjectType.DB &&
+            isUIAllowed('duplicateProject', true, [project.workspace_role, project.project_role].join())
+          "
+                      @click="duplicateProject(project)"
+                  >
+                    <div class="nc-menu-item-wrapper">
+                      <GeneralIcon icon="duplicate" class="text-gray-700" />
+                      {{ $t('general.duplicate') }} {{ $t('objects.project') }}
                     </div>
                   </a-menu-item>
 

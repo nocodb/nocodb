@@ -6,6 +6,7 @@ import { LoadingOutlined } from '@ant-design/icons-vue'
 import { useTitle } from '@vueuse/core'
 import type { NcProject } from '#imports'
 import {
+  NcProjectType,
   ProjectInj,
   ProjectRoleInj,
   ToggleDialogInj,
@@ -16,6 +17,7 @@ import {
   useProjects,
   useWorkspace,
 } from '#imports'
+import {useNuxtApp} from "#app";
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
@@ -36,7 +38,7 @@ const projectsStore = useProjects()
 
 const workspaceStore = useWorkspace()
 
-const { loadProject, createProject: _createProject, updateProject, getProjectMetaInfo } = projectsStore
+const { loadProject, loadProjects,  createProject: _createProject, updateProject, getProjectMetaInfo } = projectsStore
 const { projects } = storeToRefs(projectsStore)
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
@@ -65,6 +67,8 @@ const { projectUrl } = useProject()
 const { activeProjectId } = storeToRefs(useProjects())
 
 const toggleDialog = inject(ToggleDialogInj, () => {})
+
+const { refreshCommandPalette } = useCommandPalette()
 
 const { addNewLayout, getDashboardProjectUrl: dashboardProjectUrl, populateLayouts } = useDashboardStore()
 
@@ -390,6 +394,32 @@ onKeyStroke('Escape', () => {
     isBasesOptionsOpen.value[key] = false
   }
 })
+
+const isDuplicateDlgOpen = ref(false)
+const selectedProjectToDuplicate = ref()
+
+const duplicateProject = (project: ProjectType) => {
+  selectedProjectToDuplicate.value = project
+  isDuplicateDlgOpen.value = true
+}
+const {  $jobs } = useNuxtApp()
+
+
+const DlgProjectDuplicateOnOk = async (jobData: { id: string }) => {
+  await loadProjects('workspace')
+
+  $jobs.subscribe({ id: jobData.id }, undefined, async (status: string) => {
+    if (status === JobStatus.COMPLETED) {
+      await loadProjects('workspace')
+      refreshCommandPalette()
+    } else if (status === JobStatus.FAILED) {
+      message.error('Failed to duplicate project')
+      await loadProjects('workspace')
+    }
+  })
+
+  $e('a:project:duplicate')
+}
 </script>
 
 <template>
@@ -486,7 +516,18 @@ onKeyStroke('Escape', () => {
                       {{ $t('general.edit') }}
                     </div>
                   </a-menu-item>
-
+                  <a-menu-item
+                      v-if="
+            project.type === NcProjectType.DB &&
+            isUIAllowed('duplicateProject', true, [project.workspace_role, project.project_role].join())
+          "
+                      @click="duplicateProject(project)"
+                  >
+                    <div class="nc-menu-item-wrapper">
+                      <GeneralIcon icon="duplicate" class="text-gray-700" />
+                      {{ $t('general.duplicate') }} {{ $t('objects.project') }}
+                    </div>
+                  </a-menu-item>
                   <!-- Copy Project Info -->
                   <a-menu-item v-if="false" key="copy">
                     <div v-e="['c:navbar:user:copy-proj-info']" class="nc-project-menu-item group" @click.stop="copyProjectInfo">
@@ -707,6 +748,8 @@ onKeyStroke('Escape', () => {
     </div>
     <template v-if="!isSharedBase" #overlay>
       <a-menu class="!py-0 rounded text-sm">
+
+
         <template v-if="contextMenuTarget.type === 'project' && project.type === 'database'">
           <!--
           <a-menu-item v-if="isUIAllowed('sqlEditor')" @click="openProjectSqlEditor(contextMenuTarget.value)">
@@ -779,6 +822,13 @@ onKeyStroke('Escape', () => {
     :project-id="project?.id"
   />
   <DlgProjectDelete v-model:visible="isProjectDeleteDialogVisible" :project-id="project?.id" />
+
+  <DlgProjectDuplicate
+    v-if="selectedProjectToDuplicate"
+    v-model="isDuplicateDlgOpen"
+    :project="selectedProjectToDuplicate"
+    :on-ok="DlgProjectDuplicateOnOk"
+  />
 </template>
 
 <style lang="scss" scoped>

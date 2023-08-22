@@ -34,11 +34,5 @@ It is possible to have a table without any primary key.
 - New table can be created using SDK / API without primary key
 In such scenario's, new records can be created in NocoDB for this table, but records can't be updated or deleted [as there is now way for NocoDB to uniquely identify these records]
 
-#### Example : Primary Key & optional system fields during new table creation
-<img width="596" alt="image" src="https://user-images.githubusercontent.com/35857179/189113679-481bceab-8957-4c5d-a38c-9940f03cfd7e.png">
-
-#### Example : Show System Fields
-<img width="309" alt="image" src="https://user-images.githubusercontent.com/35857179/189113907-871f7ab0-9bb2-4f04-a726-2d9feb56892e.png">
-
 ## Can I change the Primary Key to another column within tables ?
 - You can't update Primary Key from NocoDB UI. You can reconfigure it at database level directly & trigger `meta sync` explicitly.

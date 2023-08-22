@@ -10,7 +10,7 @@ menuTitle: 'Column Types'
 
 | Type | Description |
 |---|---|
-| [LinkToAnotherRecord](#linktoanotherrecord) | Has Many or Many To Many columns |
+| [Links](#links) | Count of `Has Many` or `Many To Many` linked columns |
 | [SingleLineText](#singlelinetext) |  For short text |
 | [LongText](#longtext) | For lengthy string content |
 | [Attachment](#attachment) | File attachment column |
@@ -38,6 +38,7 @@ menuTitle: 'Column Types'
 | [GeoData](#geodata)|  GeoData column |
 | [Json](#json)|  Json column |
 | [SpecificDBType](#specificdbtype)| Custom DB type option |
+| [LinkToAnotherRecord](#linktoanotherrecord) -- deprecated | Has Many or Many To Many columns |
 
 ## Database Types
 

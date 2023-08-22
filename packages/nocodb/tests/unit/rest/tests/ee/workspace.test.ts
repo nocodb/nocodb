@@ -6,12 +6,11 @@ import init from '../../../init';
 
 function workspaceTests() {
   let context;
-  let project;
 
   beforeEach(async function () {
     console.time('#### workspaceTests');
     context = await init();
-    project = await createProject(context);
+    await createProject(context);
     console.timeEnd('#### workspaceTests');
   });
 
@@ -65,6 +64,57 @@ function workspaceTests() {
       response.body.list[1].meta.color !== '#4351E8'
     ) {
       throw new Error('Workspace listing failed');
+    }
+  });
+
+  it('Delete Workspace', async () => {
+    const title = 'Sakila01';
+    const color = '#4351E8';
+
+    const workspace = await request(context.app)
+      .post(`/api/v1/workspaces`)
+      .set('xc-auth', context.token)
+      .send({
+        title,
+        meta: {
+          color,
+        },
+      })
+      .expect(201);
+    await request(context.app)
+      .delete(`/api/v1/workspaces/${workspace.body.id}`)
+      .set('xc-auth', context.token)
+      .expect(200);
+  });
+
+  it('Update Workspace', async () => {
+    const title = 'Sakila01';
+    const color = '#4351E8';
+
+    const workspace = await request(context.app)
+      .post(`/api/v1/workspaces`)
+      .set('xc-auth', context.token)
+      .send({
+        title,
+        meta: {
+          color,
+        },
+      })
+      .expect(201);
+
+    await request(context.app)
+      .patch(`/api/v1/workspaces/${workspace.body.id}`)
+      .set('xc-auth', context.token)
+      .send({ title: 'Sakila02' })
+      .expect(200);
+
+    const response = await request(context.app)
+      .get(`/api/v1/workspaces`)
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    if (response.body.list[1].title !== 'Sakila02') {
+      throw new Error('Workspace update failed');
     }
   });
 }

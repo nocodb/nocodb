@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { generateUniqueName, onKeyStroke, onMounted, reactive, ref } from '#imports'
+import { onKeyStroke, onMounted, reactive, ref } from '#imports'
 
 const props = defineProps<{
   title: string
@@ -23,9 +23,10 @@ function renameFile(fileName: string) {
   emit('rename', fileName)
 }
 
-async function useRandomName() {
-  form.title = await generateUniqueName()
-}
+// generate random name for file
+// async function useRandomName() {
+//   form.title = await generateUniqueName()
+// }
 
 const rules = {
   title: [{ required: true, message: 'title is required.' }],
@@ -53,17 +54,9 @@ onMounted(() => {
         <a-form-item class="w-full" name="title" :rules="rules.title">
           <a-input ref="inputEl" v-model:value="form.title" class="w-full" :placeholder="$t('general.rename')" />
         </a-form-item>
-        <!-- <div class="flex items-center justify-center gap-6 w-full mt-4">
-          <button class="scaling-btn bg-opacity-100" type="submit">
-            <span>{{ $t('general.confirm') }}</span>
-          </button>
-          <button class="scaling-btn bg-opacity-100" type="button" @click="useRandomName">
-            <span>{{ $t('title.generateRandomName') }}</span>
-          </button>
-        </div> -->
         <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
-          <NcButton key="submit" html-type="submit" type="secondary">{{ $t('general.confirm') }}</NcButton>
-          <NcButton type="primary" @click="useRandomName">{{ $t('title.generateRandomName') }} </NcButton>
+          <NcButton key="back" html-type="back" type="secondary">{{ $t('general.cancel') }}</NcButton>
+          <NcButton key="submit" html-type="submit" type="primary">{{ $t('general.confirm') }}</NcButton>
         </div>
       </a-form>
     </div>

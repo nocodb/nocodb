@@ -4,6 +4,7 @@ import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
 import { computed, ref, useCommandPalette, useNuxtApp, useRouter, useTheme } from '#imports'
 import type { ThemeConfig } from '#imports'
+import {navigateTo} from "#app";
 
 export const useWorkspace = defineStore('workspaceStore', () => {
   const projectsStore = useProjects()
@@ -202,13 +203,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     await navigateTo(`/ws/${workspaceId}`)
   }
 
-  const navigateToWorkspaceSettings = async (workspaceId?: string) => {
-    workspaceId = workspaceId || activeWorkspaceId.value!
-    if (!workspaceId) {
-      throw new Error('Workspace not selected')
-    }
-
-    await router.push({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId } })
+  const navigateToWorkspaceSettings = async () => {
+    navigateTo('/account/users')
   }
 
   function setLoadingState(isLoading = false) {

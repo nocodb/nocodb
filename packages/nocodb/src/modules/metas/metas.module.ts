@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
 import { GlobalModule } from '~/modules/global/global.module';
@@ -82,7 +82,7 @@ export const metaModuleMetadata = {
         fieldSize: NC_ATTACHMENT_FIELD_SIZE,
       },
     }),
-    GlobalModule,
+    forwardRef(() => GlobalModule),
   ],
   controllers: [
     ...(process.env.NC_WORKER_CONTAINER !== 'true'

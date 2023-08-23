@@ -90,6 +90,26 @@ export const useTablesStore = defineStore('tablesStore', () => {
     tables.push(table)
   }
 
+  const navigateToTable = async ({
+    projectId,
+    tableId,
+    viewTitle,
+    workspaceId,
+  }: {
+    projectId?: string
+    tableId: string
+    viewTitle?: string
+    workspaceId?: string
+  }) => {
+    const workspaceIdOrType = workspaceId ?? workspaceStore.activeWorkspaceId
+    const projectIdOrBaseId = projectId ?? projectsStore.activeProjectId
+
+    await navigateTo({
+      path: `/${workspaceIdOrType}/${projectIdOrBaseId}/table/${tableId}${viewTitle ? `/${viewTitle}` : ''}`,
+      query: route.value.query,
+    })
+  }
+
   const openTable = async (table: TableType) => {
     if (!table.project_id) return
 
@@ -187,6 +207,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
     openTable,
     updateTable,
     activeTableId,
+    navigateToTable,
   }
 })
 

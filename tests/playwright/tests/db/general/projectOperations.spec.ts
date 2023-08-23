@@ -36,7 +36,7 @@ test.describe.skip('Project operations', () => {
   async function createTestProjectWithData(testProjectName: string) {
     await dashboard.clickHome();
     await projectPage.createProject({ name: testProjectName, withoutPrefix: true });
-    await dashboard.treeView.quickImport({ title: 'Airtable' });
+    await dashboard.treeView.quickImport({ title: 'Airtable', projectTitle: context.project.title });
     await dashboard.importAirtable.import({
       key: airtableApiKey,
       baseId: airtableApiBase,

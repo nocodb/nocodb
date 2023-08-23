@@ -312,6 +312,12 @@ export const useProjects = defineStore('projectsStore', () => {
 
     await navigateTo(`/${project.fk_workspace_id}/${projectId}`)
   }
+  
+  onMounted(() => {
+    if (!activeProjectId.value) return
+    if (isProjectPopulated(activeProjectId.value)) return
+    loadProject(activeProjectId.value)
+  })
 
   return {
     projects,

@@ -4,7 +4,20 @@ import { isLinksOrLTAR } from 'nocodb-sdk'
 import type { ERDConfig } from './utils'
 import { reactive, ref, storeToRefs, useMetas, useProject, watch } from '#imports'
 
-const props = defineProps<{ table?: TableType; baseId?: string }>()
+const props = defineProps({
+  baseId: {
+    type: String,
+    default: '',
+  },
+  table: {
+    type: Object as PropType<TableType>,
+    default: null,
+  },
+  showAllColumns: {
+    type: Boolean,
+    default: true,
+  },
+})
 
 const { bases, tables: projectTables } = storeToRefs(useProject())
 
@@ -17,7 +30,7 @@ const isLoading = ref(true)
 const config = reactive<ERDConfig>({
   showPkAndFk: true,
   showViews: false,
-  showAllColumns: true,
+  showAllColumns: props.showAllColumns,
   singleTableMode: !!props.table,
   showMMTables: false,
   showJunctionTableNames: false,

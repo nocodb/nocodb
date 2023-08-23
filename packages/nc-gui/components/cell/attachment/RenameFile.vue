@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { generateUniqueName, onKeyStroke, onMounted, reactive, ref } from '#imports'
+import { onKeyStroke, onMounted, reactive, ref } from '#imports'
 
 const props = defineProps<{
   title: string
@@ -23,9 +23,10 @@ function renameFile(fileName: string) {
   emit('rename', fileName)
 }
 
-async function useRandomName() {
-  form.title = await generateUniqueName()
-}
+// generate random name for file
+// async function useRandomName() {
+//   form.title = await generateUniqueName()
+// }
 
 const rules = {
   title: [{ required: true, message: 'title is required.' }],
@@ -45,34 +46,21 @@ onMounted(() => {
 </script>
 
 <template>
-  <a-modal
-    :visible="visible"
-    :closable="false"
-    :mask-closable="false"
-    destroy-on-close
-    title="Rename file"
-    class="nc-attachment-rename-modal"
-    width="min(100%, 620px)"
-    :footer="null"
-    centered
-    @cancel="onCancel"
-  >
-    <div class="flex flex-col items-center justify-center h-full">
+  <GeneralModal v-model:visible="visible" class="nc-attachment-rename-modal !w-[30rem]">
+    <div class="flex flex-col items-center justify-center h-full p-8">
+      <div class="text-lg font-semibold self-start mb-4">Rename File</div>
+
       <a-form class="w-full h-full" no-style :model="form" @finish="renameFile(form.title)">
         <a-form-item class="w-full" name="title" :rules="rules.title">
           <a-input ref="inputEl" v-model:value="form.title" class="w-full" :placeholder="$t('general.rename')" />
         </a-form-item>
-        <div class="flex items-center justify-center gap-6 w-full mt-4">
-          <button class="scaling-btn bg-opacity-100" type="submit">
-            <span>{{ $t('general.confirm') }}</span>
-          </button>
-          <button class="scaling-btn bg-opacity-100" type="button" @click="useRandomName">
-            <span>{{ $t('title.generateRandomName') }}</span>
-          </button>
+        <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
+          <NcButton key="back" html-type="back" type="secondary">{{ $t('general.cancel') }}</NcButton>
+          <NcButton key="submit" html-type="submit" type="primary">{{ $t('general.confirm') }}</NcButton>
         </div>
       </a-form>
     </div>
-  </a-modal>
+  </GeneralModal>
 </template>
 
 <style scoped lang="scss">

@@ -129,6 +129,7 @@ onKeyStroke('Escape', () => {
         <slot name="brandIcon" />
         <template v-if="props.isOpen">
           Nocodb
+          <div class="flex flex-grow"></div>
           <MdiCodeTags class="min-w-[17px] text-md transform rotate-90" />
         </template>
 
@@ -147,7 +148,7 @@ onKeyStroke('Escape', () => {
               <a-menu-item key="copy">
                 <div
                   v-e="['a:navbar:user:copy-auth-token']"
-                  class="nc-workspace-menu-item group !gap-x-3"
+                  class="nc-workspace-menu-item group !gap-x-2"
                   @click.stop="copyAuthToken"
                 >
                   <GeneralIcon v-if="isAuthTokenCopied" icon="check" class="group-hover:text-black" />
@@ -268,7 +269,7 @@ onKeyStroke('Escape', () => {
             >
               <template #title>
                 <div class="nc-workspace-menu-item group">
-                  <GeneralIcon icon="translate" class="group-hover:text-black nc-language" />
+                  <GeneralIcon icon="translate" class="group-hover:text-black nc-language mr-0.1" />
                   {{ $t('labels.language') }}
                   <div class="flex items-center text-gray-400 text-xs">(Community Translated)</div>
                   <div class="flex-1" />

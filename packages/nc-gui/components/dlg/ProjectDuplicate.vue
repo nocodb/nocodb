@@ -67,27 +67,11 @@ const isEaster = ref(false)
 </script>
 
 <template>
-  <a-modal
-    v-if="project"
-    v-model:visible="dialogShow"
-    :class="{ active: dialogShow }"
-    width="max(30vw, 600px)"
-    centered
-    wrap-class-name="nc-modal-project-duplicate"
-    @keydown.esc="dialogShow = false"
-  >
-    <template #footer>
-      <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
+  <GeneralModal v-if="project" v-model:visible="dialogShow" class="!w-[30rem]" wrap-class-name="nc-modal-project-duplicate">
+    <div>
+      <div class="prose-xl font-bold self-center" @dblclick="isEaster = !isEaster">{{ $t('general.duplicate') }}</div>
 
-      <a-button key="submit" size="large" type="primary" :loading="isLoading" @click="_duplicate"
-        >{{ $t('general.confirm') }}
-      </a-button>
-    </template>
-
-    <div class="pl-10 pr-10 pt-5">
-      <div class="prose-xl font-bold self-center my-4" @dblclick="isEaster = !isEaster">{{ $t('general.duplicate') }}</div>
-
-      <div class="mb-2">Are you sure you want to duplicate the `{{ project.title }}` project?</div>
+      <div class="mt-4">Are you sure you want to duplicate the `{{ project.title }}` project?</div>
 
       <div class="prose-md self-center text-gray-500 mt-4">{{ $t('title.advancedSettings') }}</div>
 
@@ -99,7 +83,11 @@ const isEaster = ref(false)
         <a-checkbox v-show="isEaster" v-model:checked="options.includeHooks">Include webhooks</a-checkbox>
       </div>
     </div>
-  </a-modal>
+    <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
+      <NcButton key="back" type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
+      <NcButton key="submit" type="primary" :loading="isLoading" @click="_duplicate">{{ $t('general.confirm') }} </NcButton>
+    </div>
+  </GeneralModal>
 </template>
 
 <style scoped lang="scss"></style>

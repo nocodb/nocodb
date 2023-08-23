@@ -220,7 +220,7 @@ watch(
               <a-switch
                 v-e="['c:actions:webhook']"
                 size="small"
-                :checked="hook.active!"
+                :checked="!!hook.active"
                 class="min-w-4"
                 @change="toggleHook(hook)"
               />
@@ -234,7 +234,7 @@ watch(
             <div class="nc-view-sidebar-webhook-item-event capitalize">{{ hook?.event }} {{ hook?.operation }}</div>
 
             <div class="nc-view-sidebar-webhook-item-action !">
-              <NcDropdown :trigger="['click']" overlay-class-name="rounded-md">
+              <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md">
                 <NcButton
                   size="xsmall"
                   type="text"
@@ -256,10 +256,7 @@ watch(
                       @click="copyWebhook(hook)"
                     >
                       <template #loading> Duplicating </template>
-                      <div class="flex items-center gap-x-1">
-                        <GeneralIcon icon="copy" class="-ml-0.75" />
-                        Duplicate
-                      </div>
+                      <div class="flex items-center gap-x-1"><GeneralIcon icon="copy" /> Duplicate</div>
                     </NcButton>
                     <NcButton type="text" class="w-full !rounded-none" :centered="false" @click="openDeleteModal(hook.id!)">
                       <div class="flex items-center justify-start gap-x-1 !text-red-500">

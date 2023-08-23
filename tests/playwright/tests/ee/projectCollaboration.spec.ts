@@ -93,7 +93,11 @@ test.describe('Project Collaboration', () => {
       await dashboard.projectView.verifyAccess(roleDb[i].role);
 
       await dashboard.treeView.openTable({ title: 'Country' });
-      await dashboard.treeView.validateRoleAccess({ role: roleDb[i].role, projectTitle: context.project.title });
+      await dashboard.treeView.validateRoleAccess({
+        role: roleDb[i].role,
+        projectTitle: context.project.title,
+        tableTitle: 'Country',
+      });
       await dashboard.viewSidebar.validateRoleAccess({ role: roleDb[i].role });
 
       await dashboard.grid.verifyRoleAccess({ role: roleDb[i].role });

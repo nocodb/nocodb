@@ -68,7 +68,11 @@ export class TreeViewPage extends BasePage {
     return;
   }
 
-  async getTable({ index }: { index: number }) {
+  async getTable({ index, tableTitle }: { index: number; tableTitle?: string }) {
+    if (tableTitle) {
+      return this.get().getByTestId(`tree-view-table-${tableTitle}`);
+    }
+
     return this.get().locator('.nc-tree-item').nth(index);
   }
 
@@ -261,7 +265,7 @@ export class TreeViewPage extends BasePage {
     ).toHaveCount(1);
   }
 
-  async validateRoleAccess(param: { role: string; projectTitle?: string }) {
+  async validateRoleAccess(param: { role: string; projectTitle?: string; tableTitle?: string }) {
     const count = param.role.toLowerCase() === 'creator' || param.role.toLowerCase() === 'owner' ? 1 : 0;
     const pjtNode = await this.getProject({ index: 0, title: param.projectTitle });
     await pjtNode.hover();
@@ -271,7 +275,7 @@ export class TreeViewPage extends BasePage {
     await expect(pjtNode.locator('[data-testid="nc-sidebar-context-menu"]')).toHaveCount(count);
 
     // table context menu
-    const tblNode = await this.getTable({ index: 0 });
+    const tblNode = await this.getTable({ index: 0, tableTitle: param.tableTitle });
     await tblNode.hover();
     await expect(tblNode.locator('.nc-tbl-context-menu')).toHaveCount(count);
   }

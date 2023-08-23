@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { WorkspaceUsersService } from './workspace-users.service';
-import { UseAclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
 @UseGuards(AuthGuard('jwt'))
@@ -19,9 +19,7 @@ export class WorkspaceUsersController {
   constructor(private readonly workspaceUsersService: WorkspaceUsersService) {}
 
   @Get('/api/v1/workspaces/:workspaceId/users')
-  @UseAclMiddleware({
-    permissionName: 'workspaceUserList',
-  })
+  @Acl('workspaceUserList')
   async list(@Param('workspaceId') workspaceId: string) {
     return await this.workspaceUsersService.list({
       workspaceId,
@@ -29,9 +27,7 @@ export class WorkspaceUsersController {
   }
 
   @Get('/api/v1/workspaces/:workspaceId/users/:userId')
-  @UseAclMiddleware({
-    permissionName: 'workspaceUserGet',
-  })
+  @Acl('workspaceUserGet')
   async get(
     @Param('workspaceId') workspaceId: string,
     @Param('userId') userId: string,
@@ -43,9 +39,7 @@ export class WorkspaceUsersController {
   }
 
   @Patch('/api/v1/workspaces/:workspaceId/users/:userId')
-  @UseAclMiddleware({
-    permissionName: 'workspaceUserUpdate',
-  })
+  @Acl('workspaceUserUpdate')
   async update(
     @Param('workspaceId') workspaceId: string,
     @Param('userId') userId: string,
@@ -61,9 +55,7 @@ export class WorkspaceUsersController {
   }
 
   @Delete('/api/v1/workspaces/:workspaceId/users/:workspaceUserId')
-  @UseAclMiddleware({
-    permissionName: 'workspaceUserDelete',
-  })
+  @Acl('workspaceUserDelete')
   async delete(
     @Param('workspaceId') workspaceId: string,
     @Param('workspaceUserId') workspaceUserId: string,
@@ -75,9 +67,7 @@ export class WorkspaceUsersController {
   }
 
   @Post('/api/v1/workspaces/:workspaceId/invitations')
-  @UseAclMiddleware({
-    permissionName: 'workspaceInvite',
-  })
+  @Acl('workspaceInvite')
   async invite(
     @Param('workspaceId') workspaceId: string,
     @Body() body: any,
@@ -92,9 +82,7 @@ export class WorkspaceUsersController {
   }
 
   @Post('/api/v1/workspaces/:workspaceId/invitations/:invitationToken/accept')
-  @UseAclMiddleware({
-    permissionName: 'workspaceInvitationAccept',
-  })
+  @Acl('workspaceInvitationAccept')
   async acceptInvite(
     @Param('invitationToken') invitationToken: string,
     @Param('userId') userId: string,
@@ -106,9 +94,7 @@ export class WorkspaceUsersController {
   }
 
   @Post('/api/v1/workspaces/:workspaceId/invitations/:invitationToken/reject')
-  @UseAclMiddleware({
-    permissionName: 'workspaceInvitationReject',
-  })
+  @Acl('workspaceInvitationReject')
   async rejectInvite(
     @Param('invitationToken') invitationToken: string,
     @Param('userId') userId: string,

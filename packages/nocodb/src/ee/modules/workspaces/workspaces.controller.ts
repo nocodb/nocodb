@@ -13,7 +13,10 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { WorkspacesService } from './workspaces.service';
 import type { WorkspaceType } from 'nocodb-sdk';
-import { UseAclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+import {
+  Acl,
+  UseAclMiddleware,
+} from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcError } from '~/helpers/catchError';
 import { MetaTable } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
@@ -39,9 +42,7 @@ export class WorkspacesController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get('/api/v1/workspaces/:workspaceId')
-  @UseAclMiddleware({
-    permissionName: 'workspaceGet',
-  })
+  @Acl('workspaceGet')
   async get(@Param('workspaceId') workspaceId: string, @Request() req) {
     const workspace: WorkspaceType & {
       roles?: any;
@@ -57,9 +58,7 @@ export class WorkspacesController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('/api/v1/workspaces/')
-  @UseAclMiddleware({
-    permissionName: 'workspaceCreate',
-  })
+  @Acl('workspaceCreate')
   async create(@Body() body: any, @Request() req) {
     return await this.workspacesService.create({
       workspaces: body,
@@ -69,9 +68,7 @@ export class WorkspacesController {
 
   @UseGuards(AuthGuard('jwt'))
   @Patch('/api/v1/workspaces/:workspaceId')
-  @UseAclMiddleware({
-    permissionName: 'workspaceUpdate',
-  })
+  @Acl('workspaceUpdate')
   async update(
     @Param('workspaceId') workspaceId: string,
     @Body() body: any,
@@ -86,9 +83,7 @@ export class WorkspacesController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('/api/v1/workspaces/:workspaceId/upgrade')
-  @UseAclMiddleware({
-    permissionName: 'workspaceUpgrade',
-  })
+  @Acl('workspaceUpgrade')
   async upgrade(@Param('workspaceId') workspaceId: string, @Request() req) {
     return await this.workspacesService.upgrade({
       workspaceId,
@@ -98,9 +93,7 @@ export class WorkspacesController {
 
   @UseGuards(AuthGuard('jwt'))
   @Delete('/api/v1/workspaces/:workspaceId')
-  @UseAclMiddleware({
-    permissionName: 'workspaceDelete',
-  })
+  @Acl('workspaceDelete')
   async delete(@Param('workspaceId') workspaceId: string, @Request() req) {
     return await this.workspacesService.delete({
       workspaceId,
@@ -110,9 +103,7 @@ export class WorkspacesController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('/api/v1/workspaces/:workspaceId/projects/:projectId/move')
-  @UseAclMiddleware({
-    permissionName: 'moveProjectToWorkspace',
-  })
+  @Acl('moveProjectToWorkspace')
   async moveProjectToWorkspace(
     @Param('workspaceId') workspaceId: string,
     @Param('projectId') projectId: string,
@@ -127,9 +118,7 @@ export class WorkspacesController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get('/api/v1/workspaces/:workspaceId/projects')
-  @UseAclMiddleware({
-    permissionName: 'workspaceProjectList',
-  })
+  @Acl('workspaceProjectList')
   async listProjects(
     @Param('workspaceId') workspaceId: string,
     @Request() req,

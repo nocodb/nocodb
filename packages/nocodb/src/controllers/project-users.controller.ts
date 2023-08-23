@@ -52,6 +52,7 @@ export class ProjectUsersController {
   }
 
   @Patch('/api/v1/db/meta/projects/:projectId/users/:userId')
+  @Acl('projectUserUpdate')
   async projectUserUpdate(
     @Param('projectId') projectId: string,
     @Param('userId') userId: string,

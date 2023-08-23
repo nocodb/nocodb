@@ -14,7 +14,7 @@ import { SortReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { SortsService } from '~/services/sorts.service';
-import { UseAclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
 @UseGuards(GlobalGuard)
@@ -22,9 +22,7 @@ export class SortsController {
   constructor(private readonly sortsService: SortsService) {}
 
   @Get('/api/v1/db/meta/views/:viewId/sorts/')
-  @UseAclMiddleware({
-    permissionName: 'sortList',
-  })
+  @Acl('sortList')
   async sortList(@Param('viewId') viewId: string) {
     return new PagedResponseImpl(
       await this.sortsService.sortList({
@@ -35,9 +33,7 @@ export class SortsController {
 
   @Post('/api/v1/db/meta/views/:viewId/sorts/')
   @HttpCode(200)
-  @UseAclMiddleware({
-    permissionName: 'sortCreate',
-  })
+  @Acl('sortCreate')
   async sortCreate(
     @Param('viewId') viewId: string,
     @Body() body: SortReqType,
@@ -51,9 +47,7 @@ export class SortsController {
   }
 
   @Get('/api/v1/db/meta/sorts/:sortId')
-  @UseAclMiddleware({
-    permissionName: 'sortGet',
-  })
+  @Acl('sortGet')
   async sortGet(@Param('sortId') sortId: string) {
     const sort = await this.sortsService.sortGet({
       sortId,
@@ -62,9 +56,7 @@ export class SortsController {
   }
 
   @Patch('/api/v1/db/meta/sorts/:sortId')
-  @UseAclMiddleware({
-    permissionName: 'sortUpdate',
-  })
+  @Acl('sortUpdate')
   async sortUpdate(
     @Param('sortId') sortId: string,
     @Body() body: SortReqType,
@@ -78,6 +70,7 @@ export class SortsController {
   }
 
   @Delete('/api/v1/db/meta/sorts/:sortId')
+  @Acl('sortDelete')
   async sortDelete(@Param('sortId') sortId: string, @Req() _req) {
     const sort = await this.sortsService.sortDelete({
       sortId,

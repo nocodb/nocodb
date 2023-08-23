@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { PageDao } from '~/daos/page.dao';
-import { UseAclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DocsPageHistoryService } from '~/services/docs/history/docs-page-history.service';
 
 @Controller()
@@ -21,9 +21,7 @@ export class DocsPagesHistoryController {
   ) {}
 
   @Get('/api/v1/docs/:projectId/pages/:pageId/history')
-  @UseAclMiddleware({
-    permissionName: 'pageHistoryList',
-  })
+  @Acl('pageHistoryList')
   async list(
     @Param('pageId') pageId: string,
     @Param('projectId') projectId: string,
@@ -39,9 +37,7 @@ export class DocsPagesHistoryController {
   }
 
   @Post('/api/v1/docs/:projectId/pages/:pageId/history/sync')
-  @UseAclMiddleware({
-    permissionName: 'pageHistorySync',
-  })
+  @Acl('pageHistorySync')
   async sync(
     @Param('pageId') pageId: string,
     @Param('projectId') projectId: string,
@@ -64,9 +60,7 @@ export class DocsPagesHistoryController {
   }
 
   @Post('/api/v1/docs/:projectId/pages/:pageId/history/:snapshotId/restore')
-  @UseAclMiddleware({
-    permissionName: 'pageHistoryRestore',
-  })
+  @Acl('pageHistoryRestore')
   async restore(
     @Param('pageId') pageId: string,
     @Param('projectId') projectId: string,

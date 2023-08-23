@@ -63,6 +63,7 @@ export class SyncController {
   }
 
   @Patch('/api/v1/db/meta/syncs/:syncId')
+  @Acl('syncSourceUpdate')
   async syncUpdate(@Param('syncId') syncId: string, @Body() body: any) {
     return await this.syncService.syncUpdate({
       syncId: syncId,

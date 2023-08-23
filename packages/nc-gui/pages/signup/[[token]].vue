@@ -88,24 +88,6 @@ async function signUp() {
 
     $e('a:auth:sign-up')
 
-    try {
-      // TODO: Add to swagger
-      const workspace = (user as any).createdWorkspace
-      const project = (workspace as any)?.projects?.[0]
-      const table = project?.tables?.[0]
-
-      if (workspace && project && table) {
-        return await navigateToTable({
-          projectId: project.id,
-          tableId: table.id,
-          tableTitle: table.title,
-          workspaceId: workspace.id,
-        })
-      }
-    } catch (e) {
-      console.error(e)
-    }
-
     await navigateTo('/')
   })
 }

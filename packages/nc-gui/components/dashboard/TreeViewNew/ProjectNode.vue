@@ -471,7 +471,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   <a-menu-item key="erd" @click="openProjectErdView(project)">
                     <div class="nc-project-menu-item group">
                       <GeneralIcon icon="erd" />
-                      {{ $t('title.erdView') }}
+                      Relations
                     </div>
                   </a-menu-item>
 
@@ -626,7 +626,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                                   <a-menu-item key="erd" @click="openErdView(base)">
                                     <div class="nc-project-menu-item group">
                                       <GeneralIcon icon="erd" />
-                                      {{ $t('title.erdView') }}
+                                      Relations
                                     </div>
                                   </a-menu-item>
 

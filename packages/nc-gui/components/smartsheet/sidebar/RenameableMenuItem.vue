@@ -216,12 +216,24 @@ function onStopEdit() {
 
       <template v-if="!isEditing && !isLocked && isUIAllowed('virtualViewsCreateOrEdit')">
         <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">
-          <NcButton type="text" size="xsmall" class="!px-1 !hover:bg-gray-200" @click.stop="isDropdownOpen = !isDropdownOpen">
-            <GeneralIcon icon="threeDotVertical" />
-          </NcButton>
+          <div
+            class="invisible !group-hover:visible"
+            :class="{
+              '!visible': isDropdownOpen,
+            }"
+          >
+            <NcButton
+              type="text"
+              size="xsmall"
+              class="nc-view-sidebar-node-context-btn !px-1 !hover:bg-gray-200"
+              @click.stop="isDropdownOpen = !isDropdownOpen"
+            >
+              <GeneralIcon icon="threeDotVertical" class="-mt-0.5" />
+            </NcButton>
+          </div>
           <template #overlay>
             <div
-              class="flex flex-col items-center min-w-28"
+              class="flex flex-col items-center min-w-27"
               :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`"
             >
               <NcButton
@@ -239,7 +251,7 @@ function onStopEdit() {
               <NcButton
                 type="text"
                 size="small"
-                class="w-full !rounded-none !hover:bg-gray-200"
+                class="nc-view-copy-icon w-full !rounded-none !hover:bg-gray-200"
                 :centered="false"
                 @click.stop="onDuplicate"
               >
@@ -253,7 +265,7 @@ function onStopEdit() {
                 <NcButton
                   type="text"
                   size="small"
-                  class="w-full !hover:bg-gray-200 !rounded-none"
+                  class="nc-view-delete-icon w-full !hover:bg-gray-200 !rounded-none"
                   :centered="false"
                   @click.stop="onDelete"
                 >

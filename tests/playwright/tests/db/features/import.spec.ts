@@ -3,7 +3,6 @@ import { airtableApiBase, airtableApiKey } from '../../../constants';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { quickVerify } from '../../../quickTests/commonTest';
 import setup, { unsetup } from '../../../setup';
-import { isPg, isSqlite } from '../../../setup/db';
 
 test.describe('Import', () => {
   let dashboard: DashboardPage;

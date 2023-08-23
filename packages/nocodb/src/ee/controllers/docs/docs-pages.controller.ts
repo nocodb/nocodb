@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { DocsPageHistoryService } from '~/services/docs/history/docs-page-history.service';
-import { UseAclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DocsPagesService } from '~/services/docs/docs-pages.service';
 
 @Controller()
@@ -27,9 +27,7 @@ export class DocsPagesController {
   ) {}
 
   @Get('/api/v1/docs/:projectId/pages/:id')
-  @UseAclMiddleware({
-    permissionName: 'pageGet',
-  })
+  @Acl('pageGet')
   async get(@Param('id') id: string, @Param('projectId') projectId: string) {
     return await this.pagesService.get({
       id,
@@ -38,9 +36,7 @@ export class DocsPagesController {
   }
 
   @Get('/api/v1/docs/:projectId/pages')
-  @UseAclMiddleware({
-    permissionName: 'pageList',
-  })
+  @Acl('pageList')
   async list(@Param('projectId') projectId: string) {
     return await this.pagesService.list({
       projectId,
@@ -48,9 +44,7 @@ export class DocsPagesController {
   }
 
   @Post('/api/v1/docs/:projectId/pages')
-  @UseAclMiddleware({
-    permissionName: 'pageCreate',
-  })
+  @Acl('pageCreate')
   async create(
     @Param('projectId') projectId: string,
     @Body() body: { attributes: any },
@@ -76,9 +70,7 @@ export class DocsPagesController {
   }
 
   @Put('/api/v1/docs/:projectId/pages/:id')
-  @UseAclMiddleware({
-    permissionName: 'pageUpdate',
-  })
+  @Acl('pageUpdate')
   async update(
     @Param('id') id: string,
     @Param('projectId') projectId: string,
@@ -95,9 +87,7 @@ export class DocsPagesController {
   }
 
   @Delete('/api/v1/docs/:projectId/pages/:id')
-  @UseAclMiddleware({
-    permissionName: 'pageDelete',
-  })
+  @Acl('pageDelete')
   async delete(@Param('id') id: string, @Param('projectId') projectId: string) {
     return await this.pagesService.delete({
       id,
@@ -106,9 +96,7 @@ export class DocsPagesController {
   }
 
   @Post('/api/v1/docs/:projectId/pages/:id/gpt')
-  @UseAclMiddleware({
-    permissionName: 'pageGpt',
-  })
+  @Acl('pageGpt')
   async gpt(
     @Param('id') id: string,
     @Param('projectId') projectId: string,
@@ -147,9 +135,7 @@ export class DocsPagesController {
   }
 
   @Post('/api/v1/docs/:projectId/gpt')
-  @UseAclMiddleware({
-    permissionName: 'docsMagicCreatePages',
-  })
+  @Acl('docsMagicCreatePages')
   async gptCreatePages(
     @Param('projectId') projectId: string,
     @Body() body: { text: string },
@@ -163,9 +149,7 @@ export class DocsPagesController {
   }
 
   @Post('/api/v1/docs/:projectId/import')
-  @UseAclMiddleware({
-    permissionName: 'pageImport',
-  })
+  @Acl('pageImport')
   async import(
     @Param('projectId') projectId: string,
     @Body()

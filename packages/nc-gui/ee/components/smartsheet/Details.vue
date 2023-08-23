@@ -16,6 +16,10 @@ const openedSubTab = computed({
 watch(
   openedSubTab,
   () => {
+    if (openedSubTab.value === 'field' && !isUIAllowed('viewColumnUpdate')) {
+      onViewsTabChange('relation')
+    }
+
     if (openedSubTab.value === 'webhook' && !isUIAllowed('hookList')) {
       onViewsTabChange('relation')
     }
@@ -29,6 +33,16 @@ watch(
 <template>
   <div class="flex flex-col h-full w-full" data-testid="nc-details-wrapper">
     <NcTabs v-model="openedSubTab">
+      <a-tab-pane v-if="isUIAllowed('viewColumnUpdate')" key="field">
+        <template #tab>
+          <div class="tab" data-testid="nc-fields-tab">
+            <GeneralIcon icon="list" class="tab-icon" :class="{}" />
+            <div>Fields</div>
+          </div>
+        </template>
+        <SmartsheetDetailsFields />
+      </a-tab-pane>
+
       <a-tab-pane key="relation">
         <template #tab>
           <div class="tab" data-testid="nc-relations-tab">

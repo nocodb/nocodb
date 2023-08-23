@@ -16,8 +16,8 @@ import Widget from '~/models/Widget';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import {
+  Acl,
   ExtractIdsMiddleware,
-  UseAclMiddleware,
 } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { WidgetDataService } from '~/services/dashboards/widgetData.service';
 
@@ -30,9 +30,7 @@ export class WidgetsController {
   ) {}
 
   @Get(['/api/v1/layouts/:layoutId/widgets'])
-  @UseAclMiddleware({
-    permissionName: 'widgetsList',
-  })
+  @Acl('widgetsList')
   async widgetsList(@Param('layoutId') layoutId: string, @Request() _req) {
     return new PagedResponseImpl(
       await this.widgetsService.getWidgets({
@@ -42,9 +40,7 @@ export class WidgetsController {
   }
 
   @Get(['api/v1/layouts/:layoutId/widgets/:widgetId'])
-  @UseAclMiddleware({
-    permissionName: 'widgetGet',
-  })
+  @Acl('widgetGet')
   async widgetGet(
     @Param('layoutId') layoutId: string,
     @Param('widgetId') widgetId: string,
@@ -64,9 +60,7 @@ export class WidgetsController {
 
   @Post(['/api/v1/layouts/:layoutId/widgets'])
   @HttpCode(200)
-  @UseAclMiddleware({
-    permissionName: 'widgetCreate',
-  })
+  @Acl('widgetCreate')
   async widgetCreate(
     @Param('layoutId') layoutId: string,
     @Body() body: WidgetReqType,
@@ -82,9 +76,7 @@ export class WidgetsController {
 
   @Patch(['/api/v1/layouts/:layoutId/widgets/:widgetId'])
   @HttpCode(200)
-  @UseAclMiddleware({
-    permissionName: 'widgetUpdate',
-  })
+  @Acl('widgetUpdate')
   async widgetUpdate(
     @Param('layoutId') layoutId: string,
     @Param('widgetId') widgetId: string,
@@ -101,9 +93,7 @@ export class WidgetsController {
 
   @Delete(['/api/v1/layouts/:layoutId/widgets/:widgetId'])
   @HttpCode(200)
-  @UseAclMiddleware({
-    permissionName: 'widgetDelete',
-  })
+  @Acl('widgetDelete')
   async widgetDelete(
     @Param('layoutId') layoutId: string,
     @Param('widgetId') widgetId: string,

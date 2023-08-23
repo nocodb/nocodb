@@ -13,8 +13,8 @@ import {
 import { LayoutReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import {
+  Acl,
   ExtractIdsMiddleware,
-  UseAclMiddleware,
 } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { LayoutsService } from '~/services/dashboards/layouts.service';
@@ -28,9 +28,7 @@ export class LayoutsController {
     '/api/v1/dashboards/:dashboardId/layouts/:layoutId',
     '/api/v1/layouts/:layoutId',
   ])
-  @UseAclMiddleware({
-    permissionName: 'layoutGet',
-  })
+  @Acl('layoutGet')
   async layoutGet(@Param('layoutId') layoutId: string, @Request() _req) {
     const layout = await this.layoutService.getLayout({
       layoutId,
@@ -43,9 +41,7 @@ export class LayoutsController {
     '/api/v1/dashboards/:dashboardId/layouts/:layoutId',
     '/api/v1/layouts/:layoutId',
   ])
-  @UseAclMiddleware({
-    permissionName: 'layoutDelete',
-  })
+  @Acl('layoutDelete')
   async layoutDelete(@Param('layoutId') layoutId: string, @Request() req) {
     const result = await this.layoutService.layoutDelete({
       layoutId: layoutId,
@@ -56,9 +52,7 @@ export class LayoutsController {
   }
 
   @Get(['/api/v1/dashboards/:dashboardId/layouts'])
-  @UseAclMiddleware({
-    permissionName: 'layoutList',
-  })
+  @Acl('layoutList')
   async layoutList(@Param('dashboardId') dashboardId: string, @Request() _req) {
     return new PagedResponseImpl(
       await this.layoutService.getLayouts({
@@ -69,9 +63,7 @@ export class LayoutsController {
 
   @Post(['/api/v1/dashboards/:dashboardId/layouts'])
   @HttpCode(200)
-  @UseAclMiddleware({
-    permissionName: 'layoutCreate',
-  })
+  @Acl('layoutCreate')
   async layoutCreate(
     @Param('dashboardId') dashboardId: string,
     @Body() body: LayoutReqType,
@@ -89,9 +81,7 @@ export class LayoutsController {
     '/api/v1/layouts/:layoutId',
   ])
   @HttpCode(200)
-  @UseAclMiddleware({
-    permissionName: 'layoutUpdate',
-  })
+  @Acl('layoutUpdate')
   async layoutUpdate(
     @Param('layoutId') layoutId: string,
     @Body() body: LayoutReqType,

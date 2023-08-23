@@ -13,6 +13,7 @@ import { NC_APP_SETTINGS } from '~/constants';
 import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { ProjectsService } from '~/services/projects.service';
 import { Store, User } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -25,8 +26,9 @@ export class UsersService extends UsersServiceCE {
     protected metaService: MetaService,
     protected appHooksService: AppHooksService,
     protected workspaceService: WorkspacesService,
+    protected projectService: ProjectsService,
   ) {
-    super(metaService, appHooksService);
+    super(metaService, appHooksService, projectService);
   }
   async registerNewUserIfAllowed({
     avatar,

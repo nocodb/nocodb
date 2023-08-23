@@ -24,12 +24,14 @@ import { Store, User } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
+import { ProjectsService } from '~/services/projects.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     protected metaService: MetaService,
     protected appHooksService: AppHooksService,
+    protected projectsService: ProjectsService,
   ) {}
 
   // allow signup/signin only if email matches against pattern
@@ -83,7 +85,9 @@ export class UsersService {
 
     let roles: string = OrgUserRoles.CREATOR;
 
-    if ((await User.isFirst()) && process.env.NC_CLOUD !== 'true') {
+    const isFirstUser = await User.isFirst();
+
+    if (isFirstUser && process.env.NC_CLOUD !== 'true') {
       roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
       // todo: update in nc_store
       // roles = 'owner,creator,editor'
@@ -113,6 +117,12 @@ export class UsersService {
       roles,
       token_version,
     });
+
+    // if first user and super admin, create a project
+    if (isFirstUser && process.env.NC_CLOUD !== 'true') {
+      // todo: update swagger type
+      (user as any).createdProject = await this.createDefaultProject(user);
+    }
 
     return user;
   }
@@ -500,5 +510,14 @@ export class UsersService {
     } catch (e) {
       NcError.badRequest(e.message);
     }
+  }
+
+  private async createDefaultProject(user: User) {
+    // create new project for user
+    const project = await this.projectsService.createDefaultProject({
+      user,
+    });
+
+    return project;
   }
 }

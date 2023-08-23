@@ -20,6 +20,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import {TablesService} from "~/services/tables.service";
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -70,8 +71,9 @@ export class ProjectsService extends ProjectsServiceCE {
   constructor(
     protected readonly appHooksService: AppHooksService,
     protected metaService: MetaService,
+    protected tablesService: TablesService
   ) {
-    super(appHooksService, metaService);
+    super(appHooksService, metaService, tablesService);
   }
 
   async projectCreate(param: { project: ProjectReqType; user: any }) {

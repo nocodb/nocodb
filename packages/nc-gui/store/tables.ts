@@ -93,19 +93,19 @@ export const useTablesStore = defineStore('tablesStore', () => {
   const navigateToTable = async ({
     projectId,
     tableId,
-    tableTitle,
+    viewTitle,
     workspaceId,
   }: {
     projectId?: string
     tableId: string
-    tableTitle?: string
+    viewTitle?: string
     workspaceId?: string
   }) => {
     const workspaceIdOrType = workspaceId ?? workspaceStore.activeWorkspaceId
     const projectIdOrBaseId = projectId ?? projectsStore.activeProjectId
 
     await navigateTo({
-      path: `/${workspaceIdOrType}/${projectIdOrBaseId}/table/${tableId}${tableTitle ? `/${tableTitle}` : ''}`,
+      path: `/${workspaceIdOrType}/${projectIdOrBaseId}/table/${tableId}${viewTitle ? `/${viewTitle}` : ''}`,
       query: route.value.query,
     })
   }

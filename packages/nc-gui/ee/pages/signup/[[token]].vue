@@ -98,7 +98,7 @@ async function signUp() {
         return await navigateToTable({
           projectId: project.id,
           tableId: table.id,
-          tableTitle: table.title,
+          viewTitle: table.title,
           workspaceId: workspace.id,
         })
       }

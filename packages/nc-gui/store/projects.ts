@@ -168,7 +168,7 @@ export const useProjects = defineStore('projectsStore', () => {
     const project = projects.value.get(projectId)
     if (!project) return false
 
-    return !!(project.bases && tableStore.projectTables.get(projectId))
+    return !!(project.bases?.length && tableStore.projectTables.get(projectId))
   }
 
   // actions

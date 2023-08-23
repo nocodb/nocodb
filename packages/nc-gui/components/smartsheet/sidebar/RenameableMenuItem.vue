@@ -2,7 +2,6 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import type { KanbanType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
-import { Tooltip } from 'ant-design-vue'
 import {
   IsLockedInj,
   iconMap,
@@ -18,6 +17,7 @@ import {
 interface Props {
   view: ViewType
   onValidate: (view: ViewType) => boolean | string
+  disabled: boolean
 }
 
 interface Emits {
@@ -27,7 +27,7 @@ interface Emits {
 
   (event: 'changeView', view: Record<string, any>): void
 
-  (event: 'rename', view: ViewType, originalTitle: string | undefined): void
+  (event: 'rename', view: ViewType, title: string | undefined): void
 
   (event: 'delete', view: ViewType): void
 
@@ -44,20 +44,30 @@ const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useUIPermission()
 
+const activeView = inject(ActiveViewInj, ref())
+
 const isLocked = inject(IsLockedInj, ref(false))
 
+const _isEditing = ref(false)
 /** Is editing the view name enabled */
-let isEditing = $ref<boolean>(false)
+const isEditing = computed({
+  get: () => !props.disabled && _isEditing.value,
+  set: (value) => {
+    if (props.disabled) return
+
+    _isEditing.value = value
+  },
+})
 
 /** Helper to check if editing was disabled before the view navigation timeout triggers */
-let isStopped = $ref(false)
+const isStopped = ref(false)
 
 /** Original view title when editing the view name */
-let originalTitle = $ref<string | undefined>()
+const _title = ref<string | undefined>()
 
 /** Debounce click handler, so we can potentially enable editing view name {@see onDblClick} */
 const onClick = useDebounceFn(() => {
-  if (isEditing || isStopped) return
+  if (isEditing.value || isStopped.value) return
 
   emits('changeView', vModel.value)
 }, 250)
@@ -65,10 +75,11 @@ const onClick = useDebounceFn(() => {
 /** Enable editing view name on dbl click */
 function onDblClick() {
   if (!isUIAllowed('virtualViewsCreateOrEdit')) return
+  if (props.disabled) return
 
-  if (!isEditing) {
-    isEditing = true
-    originalTitle = vModel.value.title
+  if (!isEditing.value) {
+    isEditing.value = true
+    _title.value = vModel.value.title
     $e('c:view:rename', { view: vModel.value?.type })
   }
 }
@@ -99,7 +110,7 @@ function onKeyEsc(event: KeyboardEvent) {
 }
 
 onKeyStroke('Enter', (event) => {
-  if (isEditing) {
+  if (isEditing.value) {
     onKeyEnter(event)
   }
 })
@@ -126,7 +137,7 @@ async function onDelete() {
 
 /** Rename a view */
 async function onRename() {
-  if (!isEditing) return
+  if (!isEditing.value) return
 
   const isValid = props.onValidate(vModel.value)
 
@@ -137,10 +148,14 @@ async function onRename() {
     return
   }
 
-  if (vModel.value.title === '' || vModel.value.title === originalTitle) {
+  if (vModel.value.title === '' || vModel.value.title === _title.value) {
     onCancel()
     return
   }
+
+  const originalTitle = vModel.value.title
+
+  vModel.value.title = _title.value || ''
 
   emits('rename', vModel.value, originalTitle)
 
@@ -149,59 +164,65 @@ async function onRename() {
 
 /** Cancel renaming view */
 function onCancel() {
-  if (!isEditing) return
+  if (!isEditing.value) return
 
-  vModel.value.title = originalTitle || ''
+  // vModel.value.title = _title || ''
   onStopEdit()
 }
 
 /** Stop editing view name, timeout makes sure that view navigation (click trigger) does not pick up before stop is done */
 function onStopEdit() {
-  isStopped = true
-  isEditing = false
-  originalTitle = ''
+  isStopped.value = true
+  isEditing.value = false
+  _title.value = ''
 
   setTimeout(() => {
-    isStopped = false
+    isStopped.value = false
   }, 250)
 }
 </script>
 
 <template>
   <a-menu-item
-    class="select-none group !flex !items-center !my-0 hover:(bg-primary !bg-opacity-5)"
+    class="!min-h-8 !max-h-8 !mb-0.25 select-none group text-gray-700 !flex !items-center !mt-0 hover:(!bg-gray-100 !text-gray-900)"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @dblclick.stop="onDblClick"
-    @click.stop="onClick"
+    @click="onClick"
   >
-    <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2" data-testid="view-item">
-      <div class="flex w-auto min-w-5" :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`">
-        <a-dropdown :trigger="['click']" @click.stop>
-          <component :is="isUIAllowed('viewIconCustomisation') ? Tooltip : 'div'">
+    <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-1" data-testid="view-item">
+      <div class="flex min-w-6" :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`">
+        <LazyGeneralEmojiPicker
+          class="nc-table-icon"
+          :emoji="props.view?.meta?.icon"
+          size="small"
+          :clearable="true"
+          @emoji-selected="emits('selectIcon', $event)"
+        >
+          <template #default>
             <GeneralViewIcon :meta="props.view" class="nc-view-icon"></GeneralViewIcon>
-            <template v-if="isUIAllowed('viewIconCustomisation')" #title>Change icon</template>
-          </component>
-
-          <template v-if="isUIAllowed('viewIconCustomisation')" #overlay>
-            <GeneralEmojiIcons
-              class="shadow bg-white p-2"
-              :show-reset="!!view.meta?.icon"
-              @select-icon="emits('selectIcon', $event)"
-            />
           </template>
-        </a-dropdown>
+        </LazyGeneralEmojiPicker>
       </div>
 
       <a-input
-        v-if="isEditing"
+        v-if="isEditing && !props.disabled"
         :ref="focusInput"
-        v-model:value="vModel.title"
+        v-model:value="_title"
+        class="!bg-transparent !text-xs !border-0 !ring-0 !outline-transparent !border-transparent"
+        :class="{
+          'font-medium': activeView?.id === vModel.id,
+        }"
         @blur="onRename"
         @keydown.stop="onKeyDown($event)"
       />
 
-      <div v-else>
-        <LazyGeneralTruncateText>{{ vModel.alias || vModel.title }}</LazyGeneralTruncateText>
+      <div
+        v-else
+        class="capitalize text-ellipsis overflow-hidden select-none w-full"
+        data-testid="sidebar-view-title"
+        :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+      >
+        {{ vModel.alias || vModel.title }}
       </div>
 
       <div class="flex-1" />
@@ -213,11 +234,7 @@ function onStopEdit() {
               {{ $t('activity.copyView') }}
             </template>
 
-            <component
-              :is="iconMap.copy"
-              class="!hidden !group-hover:block text-gray-500 nc-view-copy-icon"
-              @click.stop="onDuplicate"
-            />
+            <component :is="iconMap.copy" class="!hidden !group-hover:block nc-view-copy-icon" @click.stop="onDuplicate" />
           </a-tooltip>
 
           <template v-if="!vModel.is_default">
@@ -228,7 +245,7 @@ function onStopEdit() {
 
               <component
                 :is="iconMap.delete"
-                class="!hidden !group-hover:block text-red-500 nc-view-delete-icon"
+                class="!hidden !group-hover:block text-red-600 nc-view-delete-icon"
                 @click.stop="onDelete"
               />
             </a-tooltip>

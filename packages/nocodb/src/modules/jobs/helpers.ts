@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { JOBS_QUEUE } from '../../interface/Jobs';
+import { JOBS_QUEUE } from '~/interface/Jobs';
 
 export const initTime = function () {
   return {

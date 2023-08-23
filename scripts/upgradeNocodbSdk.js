@@ -19,10 +19,15 @@ const replacePackageName = (filePath) => {
 }
 
 const bumbVersionAndSave = () => {
-    // upgrade nocodb-sdk version in nocodb
-    execSync(`cd packages/nocodb && npm install --save --save-exact ${nocodbSdkPackage.name}@${nocodbSdkPackage.version}`, {});
-    // upgrade nocodb-sdk version in nc-gui
-    execSync(`cd packages/nc-gui && npm install --save --save-exact ${nocodbSdkPackage.name}@${nocodbSdkPackage.version}`, {});
+    try {
+        // upgrade nocodb-sdk version in nocodb
+        execSync(`cd packages/nocodb && npm install --save --save-exact ${nocodbSdkPackage.name}@${nocodbSdkPackage.version}`, {});
+        // upgrade nocodb-sdk version in nc-gui
+        execSync(`cd packages/nc-gui && npm install --save --save-exact ${nocodbSdkPackage.name}@${nocodbSdkPackage.version}`, {});
+    } catch (e) {
+        console.log(e.message);
+        console.log(e.stdout.toString());
+    }
 }
 
 const dfs = function(dir) {

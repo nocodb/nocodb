@@ -9,18 +9,18 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ProjectStatus } from 'nocodb-sdk';
-import { GlobalGuard } from '../../../../guards/global/global.guard';
+import { GlobalGuard } from '~/guards/global/global.guard';
 import {
   Acl,
-  ExtractProjectIdMiddleware,
-} from '../../../../middlewares/extract-project-id/extract-project-id.middleware';
-import { ProjectsService } from '../../../../services/projects.service';
-import { Base, Model, Project } from '../../../../models';
-import { generateUniqueName } from '../../../../helpers/exportImportHelpers';
-import { JobTypes } from '../../../../interface/Jobs';
+  ExtractIdsMiddleware,
+} from '~/middlewares/extract-ids/extract-ids.middleware';
+import { ProjectsService } from '~/services/projects.service';
+import { Base, Model, Project } from '~/models';
+import { generateUniqueName } from '~/helpers/exportImportHelpers';
+import { JobTypes } from '~/interface/Jobs';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(ExtractIdsMiddleware, GlobalGuard)
 export class DuplicateController {
   constructor(
     @Inject('JobsService') private readonly jobsService,
@@ -86,7 +86,7 @@ export class DuplicateController {
       },
     });
 
-    return { id: job.id };
+    return { id: job.id, project_id: dupProject.id };
   }
 
   @Post('/api/v1/db/meta/duplicate/:projectId/table/:modelId')

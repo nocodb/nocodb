@@ -12,17 +12,14 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { TableReqType } from 'nocodb-sdk';
-import { GlobalGuard } from '../guards/global/global.guard';
-import extractRolesObj from '../utils/extractRolesObj';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import {
-  ExtractProjectIdMiddleware,
-  UseAclMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { TablesService } from '../services/tables.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { TablesService } from '~/services/tables.service';
+import { UseAclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import extractRolesObj from '~/utils/extractRolesObj';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 export class TablesController {
   constructor(private readonly tablesService: TablesService) {}
 
@@ -99,6 +96,7 @@ export class TablesController {
       tableId: tableId,
       table: body,
       projectId: req.ncProjectId,
+      user: req.ncProjectId,
     });
     return { msg: 'The table has been updated successfully' };
   }

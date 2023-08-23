@@ -93,7 +93,7 @@ export class ToolbarFilterPage extends BasePage {
 
     if (filterGroupIndex) {
       if (filterLogicalOperator === 'OR') {
-        const logicalButton = await this.rootPage.locator('div.flex.bob').nth(filterGroupIndex - 1);
+        const logicalButton = await this.rootPage.locator('div.flex.nc-filter-logical-op').nth(filterGroupIndex - 1);
         await logicalButton.waitFor({ state: 'visible' });
         await logicalButton.click();
 
@@ -114,6 +114,7 @@ export class ToolbarFilterPage extends BasePage {
     locallySaved = false,
     dataType,
     openModal = false,
+    // TODO: we do not wait for api response as there are cases where new filter will not be saved
     skipWaitingResponse = false, // used for undo (single request, less stable)
   }: {
     title: string;
@@ -127,6 +128,10 @@ export class ToolbarFilterPage extends BasePage {
   }) {
     if (!openModal) await this.get().locator(`button:has-text("Add Filter")`).first().click();
 
+    // TODO: Integrated the draft filter logic here as well, since when we add a filter its not saved till all
+    // its values are filled
+    skipWaitingResponse = true;
+
     const selectedField = await getTextExcludeIconText(
       await this.rootPage.locator('.nc-filter-field-select .ant-select-selection-item')
     );
@@ -137,7 +142,9 @@ export class ToolbarFilterPage extends BasePage {
         await this.rootPage
           .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
           .locator(`div[label="${title}"]:visible`)
-          .click();
+          .click()
+          .then(() => {});
+        await this.rootPage.waitForTimeout(350);
       } else {
         await this.waitForResponse({
           uiAction: () =>
@@ -161,7 +168,9 @@ export class ToolbarFilterPage extends BasePage {
           .locator('.nc-dropdown-filter-comp-op')
           .locator(`.ant-select-item:has-text("${operation}")`)
           .first()
-          .click();
+          .click()
+          .then(() => {});
+        await this.rootPage.waitForTimeout(350);
       } else {
         await this.waitForResponse({
           uiAction: () =>
@@ -191,6 +200,7 @@ export class ToolbarFilterPage extends BasePage {
             .locator(`.ant-select-item:has-text("${subOperation}")`)
             .first()
             .click();
+          await this.rootPage.waitForTimeout(350);
         } else {
           await this.waitForResponse({
             uiAction: () =>
@@ -237,6 +247,7 @@ export class ToolbarFilterPage extends BasePage {
 
             if (skipWaitingResponse) {
               await this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click();
+              await this.rootPage.waitForTimeout(350);
             } else {
               await this.waitForResponse({
                 uiAction: () => this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click(),
@@ -246,11 +257,16 @@ export class ToolbarFilterPage extends BasePage {
             }
           } else {
             fillFilter = () => this.rootPage.locator('.nc-filter-value-select > input').last().fill(value);
-            await this.waitForResponse({
-              uiAction: fillFilter,
-              httpMethodsToMatch: ['GET'],
-              requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
-            });
+            if (skipWaitingResponse) {
+              await fillFilter();
+              await this.rootPage.waitForTimeout(350);
+            } else {
+              await this.waitForResponse({
+                uiAction: fillFilter,
+                httpMethodsToMatch: ['GET'],
+                requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+              });
+            }
             await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
             await this.toolbar.parent.waitLoading();
           }
@@ -258,6 +274,7 @@ export class ToolbarFilterPage extends BasePage {
         case UITypes.Duration:
           if (skipWaitingResponse) {
             await this.get().locator('.nc-filter-value-select').locator('input').fill(value);
+            await this.rootPage.waitForTimeout(350);
           } else {
             await this.waitForResponse({
               uiAction: () => this.get().locator('.nc-filter-value-select').locator('input').fill(value),
@@ -273,7 +290,14 @@ export class ToolbarFilterPage extends BasePage {
             .click();
           break;
         case UITypes.MultiSelect:
-          await this.get().locator('.nc-filter-value-select').click();
+          await this.get()
+            .locator('.nc-filter-value-select')
+            .click({
+              position: {
+                x: 1,
+                y: 1,
+              },
+            });
           // eslint-disable-next-line no-case-declarations
           const v = value.split(',');
           for (let i = 0; i < v.length; i++) {
@@ -284,7 +308,14 @@ export class ToolbarFilterPage extends BasePage {
           }
           break;
         case UITypes.SingleSelect:
-          await this.get().locator('.nc-filter-value-select').click();
+          await this.get()
+            .locator('.nc-filter-value-select')
+            .click({
+              position: {
+                x: 1,
+                y: 1,
+              },
+            });
           // check if value was an array
           // eslint-disable-next-line no-case-declarations
           const val = value.split(',');
@@ -298,7 +329,7 @@ export class ToolbarFilterPage extends BasePage {
           } else {
             await this.rootPage
               .locator(`.nc-dropdown-single-select-cell`)
-              .locator(`.nc-select-option-SingleSelect-${value}`)
+              .locator(`.nc-select-option-${title}-${value}`)
               .click();
           }
           break;

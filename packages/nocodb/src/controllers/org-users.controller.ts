@@ -11,17 +11,14 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { OrgUserRoles } from 'nocodb-sdk';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { User } from '../models';
-import { OrgUsersService } from '../services/org-users.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { OrgUsersService } from '~/services/org-users.service';
+import { User } from '~/models';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 export class OrgUsersController {
   constructor(private readonly orgUsersService: OrgUsersService) {}
 
@@ -73,15 +70,10 @@ export class OrgUsersController {
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
-  async userAdd(
-    @Body() body,
-    @Request() req,
-    @Param('projectId') projectId: string,
-  ) {
+  async userAdd(@Body() body, @Request() req) {
     const result = await this.orgUsersService.userAdd({
       user: req.body,
       req,
-      projectId,
     });
 
     return result;

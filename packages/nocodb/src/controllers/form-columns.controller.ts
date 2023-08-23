@@ -1,15 +1,12 @@
 import { Body, Controller, Param, Patch, UseGuards } from '@nestjs/common';
-import { GlobalGuard } from '../guards/global/global.guard';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { FormColumnsService } from '../services/form-columns.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { FormColumnsService } from '~/services/form-columns.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 class FormColumnUpdateReqType {}
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 export class FormColumnsController {
   constructor(private readonly formColumnsService: FormColumnsService) {}
 

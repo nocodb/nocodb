@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
-import { isString } from '@vueuse/core'
+import { isString } from '@vue/shared'
 import tinycolor from 'tinycolor2'
 import {
   computed,
@@ -20,7 +20,7 @@ import {
   useUIPermission,
   watch,
 } from '#imports'
-import type { SharedView } from '~/lib'
+import type { SharedView } from '#imports'
 
 const { t } = useI18n()
 
@@ -38,7 +38,7 @@ const { isSharedBase } = storeToRefs(useProject())
 
 const { isMobileMode } = useGlobal()
 
-let showShareModel = $ref(false)
+const showShareModel = ref(false)
 
 const passwordProtected = ref(false)
 
@@ -93,6 +93,8 @@ const genShareLink = async () => {
 
   const meta = isString(response.meta) ? JSON.parse(response.meta) : response.meta
 
+  console.log('genShareLink', response, meta)
+
   shared.value = { ...response, meta }
 
   if (shared.value.type === ViewTypes.KANBAN) {
@@ -103,7 +105,7 @@ const genShareLink = async () => {
 
   passwordProtected.value = !!shared.value.password && shared.value.password !== ''
 
-  showShareModel = true
+  showShareModel.value = true
 }
 
 const sharedViewUrl = computed(() => {
@@ -238,6 +240,10 @@ const copyIframeCode = async () => {
     }
   }
 }
+
+watch(shared, () => {
+  console.log('shared', shared.value)
+})
 </script>
 
 <template>

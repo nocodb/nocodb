@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { JobEvents } from '../../../interface/Jobs';
 import type { Job } from 'bull';
+import { JobEvents } from '~/interface/Jobs';
 
 @Injectable()
 export class JobsLogService {

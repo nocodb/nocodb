@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { inject } from '@vue/runtime-core'
 import {
   Empty,
+  ProjectIdInj,
   computed,
   extractSdkResponseErrorMsg,
   h,
@@ -24,48 +26,51 @@ const { $api, $e } = useNuxtApp()
 
 const { project } = storeToRefs(useProject())
 
+const _projectId = inject(ProjectIdInj, ref())
+const projectId = computed(() => _projectId.value ?? project.value?.id)
+
 const { includeM2M } = useGlobal()
 
-const roles = $ref<string[]>(['editor', 'commenter', 'viewer'])
+const roles = ref<string[]>(['editor', 'commenter', 'viewer'])
 
-let isLoading = $ref(false)
+const isLoading = ref(false)
 
-let tables = $ref<any[]>([])
+const tables = ref<any[]>([])
 
-const searchInput = $ref('')
+const searchInput = ref('')
 
 const filteredTables = computed(() =>
-  tables.filter(
+  tables.value.filter(
     (el) =>
       el?.base_id === props.baseId &&
-      ((typeof el?._ptn === 'string' && el._ptn.toLowerCase().includes(searchInput.toLowerCase())) ||
-        (typeof el?.title === 'string' && el.title.toLowerCase().includes(searchInput.toLowerCase()))),
+      ((typeof el?._ptn === 'string' && el._ptn.toLowerCase().includes(searchInput.value.toLowerCase())) ||
+        (typeof el?.title === 'string' && el.title.toLowerCase().includes(searchInput.value.toLowerCase()))),
   ),
 )
 
 async function loadTableList() {
   try {
-    if (!project.value?.id) return
+    if (!projectId.value) return
 
-    isLoading = true
+    isLoading.value = true
 
-    tables = await $api.project.modelVisibilityList(project.value?.id, {
+    tables.value = await $api.project.modelVisibilityList(projectId.value, {
       includeM2M: includeM2M.value,
     })
   } catch (e) {
     console.error(e)
   } finally {
-    isLoading = false
+    isLoading.value = false
   }
 }
 
 async function saveUIAcl() {
   try {
-    if (!project.value?.id) return
+    if (!projectId.value) return
 
     await $api.project.modelVisibilitySet(
-      project.value.id,
-      tables.filter((t) => t.edited),
+      projectId.value,
+      tables.value.filter((t) => t.edited),
     )
     // Updated UI ACL for tables successfully
     message.success(t('msg.success.updatedUIACL'))
@@ -81,7 +86,7 @@ const onRoleCheck = (record: any, role: string) => {
 }
 
 onMounted(async () => {
-  if (tables.length === 0) {
+  if (tables.value.length === 0) {
     await loadTableList()
   }
 })
@@ -100,44 +105,46 @@ const columns = [
   {
     title: tableHeaderRenderer('Editor'),
     name: 'editor',
-    width: 150,
+    width: 120,
   },
   {
     title: tableHeaderRenderer('Commenter'),
     name: 'commenter',
-    width: 150,
+    width: 120,
   },
   {
     title: tableHeaderRenderer('Viewer'),
     name: 'viewer',
-    width: 150,
+    width: 120,
   },
 ]
 </script>
 
 <template>
-  <div class="flex flex-row w-full">
-    <div class="flex flex-col w-full">
-      <div class="flex flex-row items-center w-full mb-4 gap-2">
-        <a-input v-model:value="searchInput" placeholder="Search models" class="nc-acl-search">
+  <div class="flex flex-row w-full items-center justify-center">
+    <div class="flex flex-col w-[900px]">
+      <span class="mb-4 first-letter:capital font-bold"> UI ACL : {{ project.title }} </span>
+      <div class="flex flex-row items-center w-full mb-4 gap-2 justify-between">
+        <a-input v-model:value="searchInput" placeholder="Search models" class="nc-acl-search !w-[400px]">
           <template #prefix>
             <component :is="iconMap.search" />
           </template>
         </a-input>
+        <div class="flex">
+          <a-button type="text" ghost class="self-start !rounded-md nc-acl-reload" @click="loadTableList">
+            <div class="flex items-center gap-2 text-gray-600 font-light">
+              <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
+              Reload
+            </div>
+          </a-button>
 
-        <a-button type="text" ghost class="self-start !rounded-md nc-acl-reload" @click="loadTableList">
-          <div class="flex items-center gap-2 text-gray-600 font-light">
-            <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
-            Reload
-          </div>
-        </a-button>
-
-        <a-button type="primary" class="!rounded-md self-start nc-acl-save" @click="saveUIAcl">
-          <div class="flex items-center gap-2 text-white font-light">
-            <component :is="iconMap.save" />
-            Save
-          </div>
-        </a-button>
+          <NcButton size="large" class="z-10 !rounded-lg !px-2 mr-2.5" type="primary" @click="saveUIAcl">
+            <div class="flex flex-row items-center w-full gap-x-1">
+              <component :is="iconMap.save" />
+              <div class="flex">Save</div>
+            </div>
+          </NcButton>
+        </div>
       </div>
 
       <div class="max-h-600px overflow-y-auto">
@@ -148,6 +155,7 @@ const columns = [
           :columns="columns"
           :pagination="false"
           :loading="isLoading"
+          sticky
           bordered
           :custom-row="
             (record) => ({
@@ -168,7 +176,9 @@ const columns = [
                     class="text-gray-500"
                   ></GeneralTableIcon>
                 </div>
-                <span class="overflow-ellipsis min-w-0 shrink-1">{{ record._ptn }}</span>
+                <GeneralTruncateText>
+                  <span class="overflow-ellipsis min-w-0 shrink-1">{{ record._ptn }}</span>
+                </GeneralTruncateText>
               </div>
             </div>
 

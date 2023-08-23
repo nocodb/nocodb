@@ -3,10 +3,10 @@ import path from 'path';
 import { promisify } from 'util';
 import mkdirp from 'mkdirp';
 import axios from 'axios';
-import { NcError } from '../../helpers/catchError';
-import { getToolDir } from '../../utils/nc-config';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import type { Readable } from 'stream';
+import { NcError } from '~/helpers/catchError';
+import { getToolDir } from '~/utils/nc-config';
 
 export default class Local implements IStorageAdapterV2 {
   constructor() {}

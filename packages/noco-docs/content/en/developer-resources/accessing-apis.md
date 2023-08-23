@@ -12,9 +12,10 @@ NocoDB APIs can be authorized by either Auth Token or API Token.
 
 Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable `NC_JWT_EXPIRES_IN`. If you are passing Auth Token, make sure that the header is called `xc-auth`.
 
-- Go to NocoDB Project, click the rightmost button and click ``Copy Auth Token``.
+- Go to NocoDB Project, click on `Nocodb` on top left, ``Copy Auth Token``.
     
-<img width="357" alt="image" src="https://user-images.githubusercontent.com/35857179/194856397-b2e194e8-5ca1-420e-8b46-e1345d1d91d3.png">
+![copy auth token](https://github.com/nocodb/nocodb/assets/86527202/d7e2810b-4268-43b3-8163-dfe1541fbf68)
+
 
 ## API Token
 
@@ -24,9 +25,9 @@ API tokens allows us to integrate seamlessly with 3rd party apps. See [API Token
 
 You can interact with the API's resources via Swagger UI.
 
-- Go to NocoDB Project, click the rightmost button and click  ``Swagger APIs Doc``.
+- Open project context menu, select ``Swagger: REST APIs``.
   
-<img width="325" alt="image" src="https://user-images.githubusercontent.com/35857179/194856535-c81bfc2a-8cdd-41aa-8aa6-9c667c972fa4.png">
+![swagger](https://github.com/nocodb/nocodb/assets/86527202/218f1286-775b-466b-b6d1-f8bd9c74f9ee)
 
 - Click ``Authorize``, paste the token you copied in above steps and click `Authorize` to save.
 

@@ -1,18 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { T } from 'nc-help';
-import { validatePayload } from '../helpers';
-import { NcError } from '../helpers/catchError';
+import { AppEvents } from 'nocodb-sdk';
+import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { validatePayload } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
 import {
   populateSamplePayload,
   populateSamplePayloadV2,
-} from '../helpers/populateSamplePayload';
-import { invokeWebhook } from '../helpers/webhookHelpers';
-import { Hook, HookLog, Model } from '../models';
-import Noco from '../Noco';
-import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
+} from '~/helpers/populateSamplePayload';
+import { invokeWebhook } from '~/helpers/webhookHelpers';
+import Noco from '~/Noco';
+import { Hook, HookLog, Model } from '~/models';
 
 @Injectable()
 export class HooksService {
+  constructor(private readonly appHooksService: AppHooksService) {}
+
   validateHookPayload(notificationJsonOrObject: string | Record<string, any>) {
     let notification: { type?: string } = {};
     try {
@@ -45,25 +48,48 @@ export class HooksService {
       fk_model_id: param.tableId,
     } as any);
 
-    T.emit('evt', { evt_type: 'webhooks:created' });
+    this.appHooksService.emit(AppEvents.WEBHOOK_CREATE, {
+      hook,
+    });
 
     return hook;
   }
 
   async hookDelete(param: { hookId: string }) {
-    T.emit('evt', { evt_type: 'webhooks:deleted' });
+    const hook = await Hook.get(param.hookId);
+
+    if (!hook) {
+      NcError.badRequest('Hook not found');
+    }
+
     await Hook.delete(param.hookId);
+    this.appHooksService.emit(AppEvents.WEBHOOK_DELETE, {
+      hook,
+    });
     return true;
   }
 
   async hookUpdate(param: { hookId: string; hook: HookReqType }) {
     validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
 
-    T.emit('evt', { evt_type: 'webhooks:updated' });
+    const hook = await Hook.get(param.hookId);
+
+    if (!hook) {
+      NcError.badRequest('Hook not found');
+    }
 
     this.validateHookPayload(param.hook.notification);
 
-    return await Hook.update(param.hookId, param.hook);
+    const res = await Hook.update(param.hookId, param.hook);
+
+    this.appHooksService.emit(AppEvents.WEBHOOK_UPDATE, {
+      hook: {
+        ...hook,
+        ...param.hook,
+      },
+    });
+
+    return res;
   }
 
   async hookTest(param: { tableId: string; hookTest: HookTestReqType }) {
@@ -75,8 +101,6 @@ export class HooksService {
     this.validateHookPayload(param.hookTest.hook?.notification);
 
     const model = await Model.getByIdOrName({ id: param.tableId });
-
-    T.emit('evt', { evt_type: 'webhooks:tested' });
 
     const {
       hook,
@@ -96,6 +120,10 @@ export class HooksService {
       );
     } catch (e) {
       throw e;
+    } finally {
+      this.appHooksService.emit(AppEvents.WEBHOOK_TEST, {
+        hook,
+      });
     }
 
     return true;
@@ -106,7 +134,7 @@ export class HooksService {
     operation: HookType['operation'];
     version: any; // HookType['version'];
   }) {
-    const model = await Model.getByIdOrName({ id: param.tableId });
+    const model = new Model(await Model.getByIdOrName({ id: param.tableId }));
 
     if (param.version === 'v1' || (param.version === 'v2' && Noco.isEE())) {
       return await populateSamplePayload(model, false, param.operation);

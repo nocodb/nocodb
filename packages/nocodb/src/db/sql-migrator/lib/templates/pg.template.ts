@@ -1,6 +1,6 @@
 const { DOCKER_DB_HOST, DOCKER_DB_PORT } = process.env;
 
-module.exports = {
+export default {
   title: 'default',
   envs: {
     _noco: {

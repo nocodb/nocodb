@@ -2,9 +2,9 @@
 import type { NodeProps } from '@vue-flow/core'
 import { Handle, Position, useVueFlow } from '@vue-flow/core'
 import type { LinkToAnotherRecordType } from 'nocodb-sdk'
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import { isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 import type { NodeData } from './utils'
-import { MetaInj, computed, provide, refAutoReset, toRef, useNuxtApp, watch } from '#imports'
+import { MetaInj, computed, provide, refAutoReset, useNuxtApp, watch } from '#imports'
 
 interface Props extends Pick<NodeProps<NodeData>, 'data' | 'dragging'> {
   data: NodeData
@@ -16,7 +16,7 @@ const { data, showSkeleton, dragging } = defineProps<Props>()
 
 const { viewport } = useVueFlow()
 
-const table = toRef(data, 'table')
+const table = computed(() => data.table)
 
 const isZooming = refAutoReset(false, 200)
 
@@ -48,16 +48,16 @@ watch(
     </template>
 
     <div
-      class="relative h-full flex flex-col justify-center bg-slate-50 min-w-16 min-h-8 rounded-lg nc-erd-table-node"
+      class="relative h-full flex flex-col justify-center bg-white min-w-16 min-h-8 rounded-lg nc-erd-table-node"
       :class="[
         `nc-erd-table-node-${table.table_name}`,
-        showSkeleton ? 'cursor-pointer items-center bg-slate-200 min-h-200px min-w-300px px-4' : '',
+        showSkeleton ? 'cursor-pointer items-center min-h-200px min-w-300px' : '',
       ]"
       @click="$e('c:erd:node-click')"
     >
       <div
-        :class="[showSkeleton ? '' : 'bg-primary bg-opacity-10', hasColumns ? 'border-b-1' : '']"
-        class="text-slate-600 text-md py-2 border-slate-500 rounded-t-lg w-full h-full px-3 font-semibold flex items-center"
+        :class="[showSkeleton ? '' : '', hasColumns ? '' : '']"
+        class="text-gray-800 text-sm py-4 border-b-1 border-gray-200 rounded-t-lg w-full h-full px-3 font-medium flex items-center"
       >
         <GeneralTableIcon class="text-primary" :class="{ '!text-6xl !w-auto mr-2': showSkeleton }" :meta="table" />
         <div :class="showSkeleton ? 'text-6xl' : ''" class="flex pr-2 pl-1">
@@ -70,23 +70,23 @@ watch(
         <Handle style="right: -15px" class="opacity-0" :position="Position.Right" type="source" :connectable="false" />
       </div>
 
-      <div v-else-if="hasColumns">
+      <div v-else-if="hasColumns" class="py-1 pr-0.5">
         <div
           v-for="col in data.pkAndFkColumns"
           :key="col.title"
-          class="w-full h-full min-w-32 border-b-1 py-2 px-1 border-slate-200 bg-slate-100"
+          class="w-full h-full min-w-32 py-2 px-1"
           :class="`nc-erd-table-node-${table.table_name}-column-${col.column_name}`"
         >
-          <LazySmartsheetHeaderCell v-if="col" :column="col" :hide-menu="true" />
+          <LazySmartsheetHeaderCell v-if="col" class="nc-erd-table-node-column" :column="col" :hide-menu="true" />
         </div>
 
         <div v-for="(col, index) in data.nonPkColumns" :key="col.title">
           <div
-            class="relative w-full h-full flex items-center min-w-32 border-slate-200 py-2 px-1"
-            :class="index + 1 === data.nonPkColumns.length ? 'rounded-b-lg' : 'border-b-1'"
+            class="relative w-full h-full flex items-center min-w-32 py-2 px-1"
+            :class="index + 1 === data.nonPkColumns.length ? 'rounded-b-lg' : ''"
           >
             <div
-              v-if="col.uidt === UITypes.LinkToAnotherRecord"
+              v-if="isLinksOrLTAR(col)"
               class="flex w-full"
               :class="`nc-erd-table-node-${table.table_name}-column-${col.title?.toLowerCase().replace(' ', '_')}`"
             >
@@ -106,21 +106,21 @@ watch(
                 :connectable="false"
               />
 
-              <LazySmartsheetHeaderVirtualCell :column="col" :hide-menu="true" />
+              <LazySmartsheetHeaderVirtualCell class="nc-erd-table-node-column" :column="col" :hide-menu="true" />
             </div>
 
             <LazySmartsheetHeaderVirtualCell
               v-else-if="isVirtualCol(col)"
               :column="col"
               :hide-menu="true"
-              :class="`nc-erd-table-node-${table.table_name}-column-${col.column_name}`"
+              :class="`nc-erd-table-node-column nc-erd-table-node-${table.table_name}-column-${col.column_name}`"
             />
 
             <LazySmartsheetHeaderCell
               v-else
               :column="col"
               :hide-menu="true"
-              :class="`nc-erd-table-node-${table.table_name}-column-${col.column_name}`"
+              :class="`nc-erd-table-node-column nc-erd-table-node-${table.table_name}-column-${col.column_name}`"
             />
           </div>
         </div>
@@ -128,3 +128,9 @@ watch(
     </div>
   </GeneralTooltip>
 </template>
+
+<style lang="scss" scoped>
+.nc-erd-table-node-column {
+  @apply py-0.5 px-2 text-gray-700;
+}
+</style>

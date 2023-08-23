@@ -1,6 +1,6 @@
-import Noco from '../Noco';
-import { MetaTable } from '../utils/globals';
-import { extractProps } from '../helpers/extractProps';
+import Noco from '~/Noco';
+import { extractProps } from '~/helpers/extractProps';
+import { MetaTable } from '~/utils/globals';
 
 export default class SyncLogs {
   id?: string;

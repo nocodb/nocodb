@@ -1,10 +1,24 @@
+import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { ProjectRole, Role } from './enums'
 
 export const NOCO = 'noco'
 
 export const SYSTEM_COLUMNS = ['id', 'title', 'created_at', 'updated_at']
 
+export const EMPTY_TITLE_PLACEHOLDER_DOCS = 'Untitled'
+
 export const BASE_FALLBACK_URL = process.env.NODE_ENV === 'production' ? '..' : 'http://localhost:8080'
+
+export const GROUP_BY_VARS = {
+  NULL: '__nc_null__',
+  TRUE: '__nc_true__',
+  FALSE: '__nc_false__',
+  VAR_TITLES: {
+    __nc_null__: 'Empty',
+    __nc_true__: 'Checked',
+    __nc_false__: 'Unchecked',
+  } as Record<string, string>,
+}
 /**
  * Each permission value means the following
  * `*` - which is wildcard, means all permissions are allowed
@@ -12,7 +26,7 @@ export const BASE_FALLBACK_URL = process.env.NODE_ENV === 'production' ? '..' : 
  *  `exclude` - which is an object, means all permissions are allowed except the ones listed in the object
  *  `undefined` or `{}` - which is the default value, means no permissions are allowed
  * */
-export const rolePermissions = {
+const rolePermissions = {
   // general role permissions
 
   [Role.Super]: '*',
@@ -33,6 +47,8 @@ export const rolePermissions = {
       superAdminUserManagement: true,
       superAdminAppSettings: true,
       appLicense: true,
+      moveProject: true,
+      projectDelete: true,
     },
   },
   [ProjectRole.Owner]: {
@@ -62,6 +78,9 @@ export const rolePermissions = {
       apiDocs: true,
       projectSettings: true,
       newUser: false,
+      commentEditable: true,
+      commentList: true,
+      commentsCount: true,
     },
   },
   [ProjectRole.Commenter]: {
@@ -70,6 +89,9 @@ export const rolePermissions = {
       column: true,
       rowComments: true,
       projectSettings: true,
+      commentEditable: true,
+      commentList: true,
+      commentsCount: true,
     },
   },
   [ProjectRole.Viewer]: {
@@ -80,3 +102,17 @@ export const rolePermissions = {
     },
   },
 } as const
+
+// todo: fix type error
+rolePermissions[WorkspaceUserRoles.OWNER] = rolePermissions[ProjectRole.Owner]
+rolePermissions[WorkspaceUserRoles.CREATOR] = {
+  exclude: {
+    ...rolePermissions[ProjectRole.Creator].exclude,
+    workspaceDelete: true,
+  },
+}
+rolePermissions[WorkspaceUserRoles.VIEWER] = rolePermissions[ProjectRole.Viewer]
+rolePermissions[WorkspaceUserRoles.EDITOR] = rolePermissions[ProjectRole.Editor]
+rolePermissions[WorkspaceUserRoles.COMMENTER] = rolePermissions[ProjectRole.Commenter]
+
+export { rolePermissions }

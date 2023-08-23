@@ -15,38 +15,38 @@ const { project } = storeToRefs(projectStore)
 
 const { t } = useI18n()
 
-let isLoading = $ref(false)
+const isLoading = ref(false)
 
-let isDifferent = $ref(false)
+const isDifferent = ref(false)
 
-let metadiff = $ref<any[]>([])
+const metadiff = ref<any[]>([])
 
 async function loadMetaDiff() {
   try {
     if (!project.value?.id) return
 
-    isLoading = true
-    isDifferent = false
-    metadiff = await $api.base.metaDiffGet(project.value?.id, props.baseId)
-    for (const model of metadiff) {
+    isLoading.value = true
+    isDifferent.value = false
+    metadiff.value = await $api.base.metaDiffGet(project.value?.id, props.baseId)
+    for (const model of metadiff.value) {
       if (model.detectedChanges?.length > 0) {
         model.syncState = model.detectedChanges.map((el: any) => el?.msg).join(', ')
-        isDifferent = true
+        isDifferent.value = true
       }
     }
   } catch (e) {
     console.error(e)
   } finally {
-    isLoading = false
+    isLoading.value = false
   }
 }
 
 async function syncMetaDiff() {
   try {
-    if (!project.value?.id || !isDifferent) return
+    if (!project.value?.id || !isDifferent.value) return
 
-    isLoading = true
-    await $api.base.metaDiffSync(project.value.id, props.baseId)
+    isLoading.value = true
+    await $api.base.metaDiffSync(project.value?.id, props.baseId)
     // Table metadata recreated successfully
     message.info(t('msg.info.metaDataRecreated'))
     await loadTables()
@@ -55,12 +55,12 @@ async function syncMetaDiff() {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    isLoading = false
+    isLoading.value = false
   }
 }
 
 onMounted(async () => {
-  if (metadiff.length === 0) {
+  if (metadiff.value.length === 0) {
     await loadMetaDiff()
   }
 })
@@ -86,9 +86,26 @@ const columns = [
 </script>
 
 <template>
-  <div class="flex flex-row w-full">
-    <div class="flex flex-col w-3/5">
-      <div class="flex flex-row justify-end items-center w-full mb-4">
+  <div class="flex flex-col w-full">
+    <div class="flex flex-col">
+      <div class="flex flex-row justify-between items-center w-full mb-4">
+        <div class="flex">
+          <div v-if="isDifferent">
+            <a-button v-e="['a:proj-meta:meta-data:sync']" class="nc-btn-metasync-sync-now" type="primary" @click="syncMetaDiff">
+              <div class="flex items-center gap-2">
+                <component :is="iconMap.databaseSync" />
+                {{ $t('activity.metaSync') }}
+              </div>
+            </a-button>
+          </div>
+
+          <div v-else>
+            <!--        Tables metadata is in sync -->
+            <span>
+              <a-alert :message="$t('msg.info.tablesMetadataInSync')" type="success" show-icon />
+            </span>
+          </div>
+        </div>
         <!--        Reload -->
         <a-button
           v-e="['a:proj-meta:meta-data:reload']"
@@ -134,23 +151,8 @@ const columns = [
       </div>
     </div>
 
-    <div class="flex place-content-center w-2/5">
+    <div class="flex place-content-center item-center">
       <!--      Sync Now -->
-      <div v-if="isDifferent">
-        <a-button v-e="['a:proj-meta:meta-data:sync']" class="nc-btn-metasync-sync-now" type="primary" @click="syncMetaDiff">
-          <div class="flex items-center gap-2">
-            <component :is="iconMap.databaseSync" />
-            {{ $t('activity.metaSync') }}
-          </div>
-        </a-button>
-      </div>
-
-      <div v-else>
-        <!--        Tables metadata is in sync -->
-        <span>
-          <a-alert :message="$t('msg.info.tablesMetadataInSync')" type="success" show-icon />
-        </span>
-      </div>
     </div>
   </div>
 </template>

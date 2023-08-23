@@ -38,6 +38,8 @@ const disableOverlay = inject(CellUrlDisableOverlayInj, ref(false))
 // Used in the logic of when to display error since we are not storing the url if it's not valid
 const localState = ref(value)
 
+const rowHeight = inject(RowHeightInj, ref(undefined))
+
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const vModel = computed({
@@ -109,7 +111,7 @@ watch(
       :to="url"
       :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
     >
-      {{ value }}
+      <LazyCellClampedText :value="value" :lines="rowHeight" />
     </nuxt-link>
 
     <nuxt-link
@@ -120,10 +122,10 @@ watch(
       :to="url"
       :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
     >
-      {{ cellUrlOptions.overlay }}
+      <LazyCellClampedText :value="cellUrlOptions.overlay" :lines="rowHeight" />
     </nuxt-link>
 
-    <span v-else class="w-9/10 overflow-ellipsis overflow-hidden">{{ value }}</span>
+    <span v-else class="w-9/10 overflow-ellipsis overflow-hidden"><LazyCellClampedText :value="value" :lines="rowHeight" /></span>
 
     <div v-if="column.meta?.validate && !isValid && value?.length && !editEnabled" class="mr-1 w-1/10">
       <a-tooltip placement="top">

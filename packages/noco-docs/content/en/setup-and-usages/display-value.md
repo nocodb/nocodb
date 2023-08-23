@@ -17,19 +17,21 @@ menuTitle: "Display Value"
 - And when LinkToAnotherRecord is created between two tables - it is the Display Value that appears in LinkToAnotherRecord column. 
 
 #### Example : Display Value highlighted in Actor table
-<img width="646" alt="image" src="https://user-images.githubusercontent.com/35857179/189114321-58ebaa16-20e2-4615-abda-39417a5df5bf.png">
+  
+![display value](https://github.com/nocodb/nocodb/assets/86527202/f3773b9b-cd0e-411c-843f-9e37796a6600)
 
-#### Example : Display Value highlighted in Film table
-<img width="643" alt="image" src="https://user-images.githubusercontent.com/35857179/189114462-a7fef0e2-f9ac-4943-98d5-fee9f60a4ab5.png">
+#### Example : Display Value associated when Links field
 
-#### Example : Display Value associated when LinkToAnotherRecord is created
-<img width="311" alt="image" src="https://user-images.githubusercontent.com/35857179/189114548-193acc4d-f714-4204-a560-97668db7884c.png">
+The value shown in `Link Records` modal when adding a new link is associated records `Display value`
+![display value- links field](https://github.com/nocodb/nocodb/assets/86527202/69eb206f-3796-4587-97cd-0c389053a20a)
+
 
 ## How to set Display Value ?
 
 Click down arrow in the target column. Click `Set as Display Value`. 
 
-![image](https://user-images.githubusercontent.com/35857179/219339727-dee5fdea-6db7-4a06-9e48-df7113cc63b1.png)
+![display value set](https://github.com/nocodb/nocodb/assets/86527202/d5f09946-5654-46fe-8ecb-107fc9714219)
+
 
 
 ## How is Display Value identified for existing database tables ?

@@ -1,8 +1,8 @@
-import { MetaTable } from '../utils/globals';
-import Noco from '../Noco';
-import { extractProps } from '../helpers/extractProps';
-import Hook from './Hook';
 import type { HookLogType } from 'nocodb-sdk';
+import Hook from '~/models/Hook';
+import Noco from '~/Noco';
+import { extractProps } from '~/helpers/extractProps';
+import { MetaTable } from '~/utils/globals';
 
 export default class HookLog implements HookLogType {
   id?: string;

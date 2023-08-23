@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { UITypes } from 'nocodb-sdk'
-import { computed, useColumnCreateStoreOrThrow, useVModel } from '#imports'
+import { MetaInj, computed, useColumnCreateStoreOrThrow, useProject, useVModel } from '#imports'
 
 const props = defineProps<{
   value: any
@@ -15,6 +15,10 @@ const { onAlter, onDataTypeChange, validateInfos, sqlUi } = useColumnCreateStore
 
 // todo: 2nd argument of `getDataTypeListForUiType` is missing!
 const dataTypes = computed(() => sqlUi.value.getDataTypeListForUiType(vModel.value as { uidt: UITypes }, '' as any))
+
+const { isPg } = useProject()
+
+const meta = inject(MetaInj, ref())
 
 const sampleValue = computed(() => {
   switch (vModel.value.uidt) {
@@ -31,16 +35,16 @@ const hideLength = computed(() => {
   return [UITypes.SingleSelect, UITypes.MultiSelect].includes(vModel.value.uidt)
 })
 
-// to avoid type error with checkbox
+/* to avoid type error with checkbox
 vModel.value.rqd = !!vModel.value.rqd
 vModel.value.pk = !!vModel.value.pk
 vModel.value.un = !!vModel.value.un
 vModel.value.ai = !!vModel.value.ai
-vModel.value.au = !!vModel.value.au
+vModel.value.au = !!vModel.value.au */
 </script>
 
 <template>
-  <div class="p-4 border-[2px] radius-1 border-grey w-full flex flex-col gap-2">
+  <div class="p-4 border-[0.1px] radius-1 border-grey w-full flex flex-col gap-2">
     <template v-if="props.advancedDbOptions">
       <div class="flex justify-between w-full gap-1">
         <a-form-item label="NN">
@@ -86,6 +90,8 @@ vModel.value.au = !!vModel.value.au
           </a-select-option>
         </a-select>
       </a-form-item>
+
+      <LazySmartsheetColumnPgBinaryOptions v-if="isPg(meta.base_id) && vModel.dt === 'bytea'" v-model:value="vModel" />
 
       <a-form-item v-if="!hideLength" :label="$t('labels.lengthValue')">
         <a-input

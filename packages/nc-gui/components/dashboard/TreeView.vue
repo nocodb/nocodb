@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { nextTick } from '@vue/runtime-core'
-import { Icon as IconifyIcon } from '@iconify/vue'
 import type { TableType } from 'nocodb-sdk'
 import type { Input } from 'ant-design-vue'
 import { Dropdown, Tooltip, message } from 'ant-design-vue'
 import Sortable from 'sortablejs'
-import GithubButton from 'vue-github-button'
+// import GithubButton from 'vue-github-button'
+import { Icon as IconifyIcon } from '@iconify/vue'
 import type { VNodeRef } from '#imports'
 import {
   ClientType,
@@ -62,17 +62,17 @@ const { addUndo, defineProjectScope } = useUndoRedo()
 
 const toggleDialog = inject(ToggleDialogInj, () => {})
 
-const keys = $ref<Record<string, number>>({})
+const keys = ref<Record<string, number>>({})
 
 const activeKey = ref<string[]>([])
 
-const menuRefs = $ref<HTMLElement[] | HTMLElement>()
+const menuRefs = ref<HTMLElement[] | HTMLElement>()
 
-let filterQuery = $ref('')
+const filterQuery = ref('')
 
 const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
 
-const tablesById = $computed(() =>
+const tablesById = computed(() =>
   tables.value?.reduce<Record<string, TableType>>((acc, table) => {
     acc[table.id!] = table
 
@@ -80,9 +80,9 @@ const tablesById = $computed(() =>
   }, {}),
 )
 
-const filteredTables = $computed(() =>
+const filteredTables = computed(() =>
   tables.value?.filter(
-    (table) => !searchActive.value || !filterQuery || table.title.toLowerCase().includes(filterQuery.toLowerCase()),
+    (table) => !searchActive.value || !filterQuery.value || table.title.toLowerCase().includes(filterQuery.value.toLowerCase()),
   ),
 )
 
@@ -100,7 +100,7 @@ const initSortable = (el: Element) => {
       if (newIndex === oldIndex) return
 
       const itemEl = evt.item as HTMLLIElement
-      const item = tablesById[itemEl.dataset.id as string]
+      const item = tablesById.value[itemEl.dataset.id as string]
 
       // store the old order for undo
       const oldOrder = item.order
@@ -116,8 +116,8 @@ const initSortable = (el: Element) => {
       const itemAfterEl = children[newIndex + 1] as HTMLLIElement
 
       // get items meta of before and after the moved item
-      const itemBefore = itemBeforeEl && tablesById[itemBeforeEl.dataset.id as string]
-      const itemAfter = itemAfterEl && tablesById[itemAfterEl.dataset.id as string]
+      const itemBefore = itemBeforeEl && tablesById.value[itemBeforeEl.dataset.id as string]
+      const itemAfter = itemAfterEl && tablesById.value[itemAfterEl.dataset.id as string]
 
       // set new order value based on the new order of the items
       if (children.length - 1 === evt.newIndex) {
@@ -143,10 +143,10 @@ const initSortable = (el: Element) => {
       }
 
       // force re-render the list
-      if (keys[base_id]) {
-        keys[base_id] = keys[base_id] + 1
+      if (keys.value[base_id]) {
+        keys.value[base_id] = keys.value[base_id] + 1
       } else {
-        keys[base_id] = 1
+        keys.value[base_id] = 1
       }
 
       // update the item order
@@ -203,11 +203,11 @@ const initSortable = (el: Element) => {
 }
 
 watchEffect(() => {
-  if (menuRefs) {
-    if (menuRefs instanceof HTMLElement) {
-      initSortable(menuRefs)
+  if (menuRefs.value) {
+    if (menuRefs.value instanceof HTMLElement) {
+      initSortable(menuRefs.value)
     } else {
-      menuRefs.forEach((el) => initSortable(el))
+      menuRefs.value.forEach((el) => initSortable(el))
     }
   }
 })
@@ -221,9 +221,9 @@ const icon = (table: TableType) => {
   }
 }
 
-const contextMenuTarget = reactive<{ type?: 'table' | 'main'; value?: any }>({})
+const contextMenuTarget = reactive<{ type?: 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
 
-const setMenuContext = (type: 'table' | 'main', value?: any) => {
+const setMenuContext = (type: 'base' | 'table' | 'main', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
 }
@@ -244,6 +244,7 @@ function openRenameTableDialog(table: TableType, baseId?: string, rightClick = f
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgTableRename'), {
+    'v-if': table && (baseId || bases.value[0].id),
     'modelValue': isOpen,
     'tableMeta': table,
     'baseId': baseId || bases.value[0].id,
@@ -309,6 +310,7 @@ function openTableCreateDialog(baseId?: string) {
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
+    'v-if': baseId || bases.value[0].id,
     'modelValue': isOpen,
     'baseId': baseId || bases.value[0].id,
     'onUpdate:modelValue': closeDialog,
@@ -327,12 +329,56 @@ function openTableCreateDialog(baseId?: string) {
   }
 }
 
+function openTableCreateMagicDialog(baseId?: string) {
+  $e('c:table:create:navdraw')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgTableMagic'), {
+    'v-if': baseId || bases.value[0].id,
+    'modelValue': isOpen,
+    'baseId': baseId || bases.value[0].id,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
+function openSchemaMagicDialog(baseId?: string) {
+  $e('c:table:create:navdraw')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgSchemaMagic'), {
+    'modelValue': isOpen,
+    'baseId': baseId || bases.value[0].id,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
+/*
+function openErdView(base?: BaseType) {
+  if (!base) base = bases.value?.filter((base: BaseType) => base.enabled)[0]
+  navigateTo(`/${route.params.projectType}/${route.params.projectId}/erd/${base.id}`)
+}
+*/
+
 const searchInputRef: VNodeRef = (vnode: typeof Input) => vnode?.$el?.focus()
 
 const beforeSearch = ref<string[]>([])
 
 const onSearchCloseIconClick = () => {
-  filterQuery = ''
+  filterQuery.value = ''
   toggleSearchActive(false)
   activeKey.value = beforeSearch.value
 }
@@ -393,7 +439,7 @@ watch(
       }
     }
     if (project.value.title && tableTitle) {
-      document.title = `${project.value.title}: ${tableTitle} | NocoDB`
+      document.title = `${project.value.title}: ${tableTitle}`
     } else {
       document.title = 'NocoDB'
     }
@@ -421,12 +467,21 @@ const setIcon = async (icon: string, table: TableType) => {
   }
 }
 
+const handleContext = (e: MouseEvent) => {
+  if (!document.querySelector('.base-context, .table-context')?.contains(e.target as Node)) {
+    setMenuContext('main')
+  }
+}
+
+useEventListener(document, 'contextmenu', handleContext, true)
+
 const duplicateTable = async (table: TableType) => {
   if (!table || !table.id || !table.project_id) return
 
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgTableDuplicate'), {
+    'v-if': table,
     'modelValue': isOpen,
     'table': table,
     'onOk': async (jobData: { id: string }) => {
@@ -463,8 +518,8 @@ const duplicateTable = async (table: TableType) => {
       <div class="pt-2 pl-2 pb-2 flex-1 overflow-y-auto flex flex-col scrollbar-thin-dull" :class="{ 'mb-[20px]': isSharedBase }">
         <div
           v-if="bases[0] && bases[0].enabled && !bases.slice(1).filter((el) => el.enabled)?.length"
-          class="min-h-[36px] py-1 px-3 flex w-full items-center gap-1 cursor-pointer"
-          @contextmenu="setMenuContext('main')"
+          class="base-context min-h-[36px] py-1 px-3 flex w-full items-center gap-1 cursor-pointer"
+          @contextmenu="setMenuContext('base', bases[0])"
         >
           <Transition name="slide-left" mode="out-in">
             <a-input
@@ -559,7 +614,7 @@ const duplicateTable = async (table: TableType) => {
                     </div>
                   </a-menu-item>
                   <a-menu-item
-                    v-if="appInfo.ee"
+                    v-if="appInfo.ee && false"
                     key="connect-new-source"
                     @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)"
                   >
@@ -607,6 +662,29 @@ const duplicateTable = async (table: TableType) => {
 
               <template #overlay>
                 <a-menu class="!py-0 rounded text-sm">
+                  <a-menu-item-group class="!px-0 !mx-0">
+                    <template #title>
+                      <div class="flex items-center">
+                        Noco
+                        <GeneralIcon icon="magic" class="ml-1 text-orange-400" />
+                      </div>
+                    </template>
+                    <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(bases[0].id)">
+                      <div class="color-transition nc-project-menu-item group">
+                        <GeneralIcon icon="magic1" class="group-hover:text-accent" />
+                        Create table
+                      </div>
+                    </a-menu-item>
+                    <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(bases[0].id)">
+                      <div class="color-transition nc-project-menu-item group">
+                        <GeneralIcon icon="magic1" class="group-hover:text-accent" />
+                        Create schema
+                      </div>
+                    </a-menu-item>
+                  </a-menu-item-group>
+
+                  <a-menu-divider class="my-0" />
+
                   <!--                  Quick Import From -->
                   <a-menu-item-group :title="$t('title.quickImportFrom')" class="!px-0 !mx-0">
                     <a-menu-item
@@ -682,7 +760,7 @@ const duplicateTable = async (table: TableType) => {
                       </div>
                     </a-menu-item>
                     <a-menu-item
-                      v-if="appInfo.ee"
+                      v-if="appInfo.ee && false"
                       key="connect-new-source"
                       @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)"
                     >
@@ -740,7 +818,7 @@ const duplicateTable = async (table: TableType) => {
                   >
                     <GeneralTooltip class="pl-2 pr-3 py-2" modifier-key="Alt">
                       <template #title>{{ table.table_name }}</template>
-                      <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
+                      <div class="table-context flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
                           <component
                             :is="isUIAllowed('tableIconCustomisation') ? Dropdown : 'div'"
@@ -803,12 +881,8 @@ const duplicateTable = async (table: TableType) => {
                                 </div>
                               </a-menu-item>
 
-                              <a-menu-item
-                                v-if="isUIAllowed('table-duplicate') && !table.mm"
-                                v-e="['c:table:duplicate']"
-                                @click="duplicateTable(table)"
-                              >
-                                <div class="nc-project-menu-item">
+                              <a-menu-item v-if="isUIAllowed('table-duplicate')" @click="duplicateTable(table)">
+                                <div class="nc-project-menu-item" :data-testid="`sidebar-table-duplicate-${table.title}`">
                                   {{ $t('general.duplicate') }}
                                 </div>
                               </a-menu-item>
@@ -855,11 +929,19 @@ const duplicateTable = async (table: TableType) => {
               >
                 <a-collapse-panel :key="`collapse-${base.id}`">
                   <template #header>
-                    <div v-if="index === '0'" class="flex items-center gap-2 text-gray-500 font-bold">
+                    <div
+                      v-if="index === '0'"
+                      class="base-context flex items-center gap-2 text-gray-500 font-bold"
+                      @contextmenu="setMenuContext('base', base)"
+                    >
                       <GeneralBaseLogo :base-type="base.type" />
                       Default ({{ tables.filter((table) => table.base_id === base.id).length || '0' }})
                     </div>
-                    <div v-else class="flex items-center gap-2 text-gray-500 font-bold">
+                    <div
+                      v-else
+                      class="base-context flex items-center gap-2 text-gray-500 font-bold"
+                      @contextmenu="setMenuContext('base', base)"
+                    >
                       <GeneralBaseLogo :base-type="base.type" />
                       {{ base.alias || '' }}
                       ({{ tables.filter((table) => table.base_id === base.id).length || '0' }})
@@ -889,6 +971,29 @@ const duplicateTable = async (table: TableType) => {
 
                       <template #overlay>
                         <a-menu class="!py-0 rounded text-sm">
+                          <a-menu-item-group class="!px-0 !mx-0">
+                            <template #title>
+                              <div class="flex items-center">
+                                Noco
+                                <GeneralIcon icon="magic" class="ml-1 text-orange-400" />
+                              </div>
+                            </template>
+                            <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(bases[0].id)">
+                              <div class="color-transition nc-project-menu-item group">
+                                <GeneralIcon icon="magic1" class="group-hover:text-accent" />
+                                Create table
+                              </div>
+                            </a-menu-item>
+                            <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(bases[0].id)">
+                              <div class="color-transition nc-project-menu-item group">
+                                <GeneralIcon icon="magic1" class="group-hover:text-accent" />
+                                Create schema
+                              </div>
+                            </a-menu-item>
+                          </a-menu-item-group>
+
+                          <a-menu-divider class="my-0" />
+
                           <!--                  Quick Import From -->
                           <a-menu-item-group :title="$t('title.quickImportFrom')" class="!px-0 !mx-0">
                             <a-menu-item
@@ -978,6 +1083,29 @@ const duplicateTable = async (table: TableType) => {
 
                       <template #overlay>
                         <a-menu class="!py-0 rounded text-sm">
+                          <a-menu-item-group class="!px-0 !mx-0">
+                            <template #title>
+                              <div class="flex items-center">
+                                Noco
+                                <GeneralIcon icon="magic" class="ml-1 text-orange-400" />
+                              </div>
+                            </template>
+                            <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(base.id)">
+                              <div class="color-transition nc-project-menu-item group">
+                                <GeneralIcon icon="magic1" class="group-hover:text-accent" />
+                                Create table
+                              </div>
+                            </a-menu-item>
+                            <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(base.id)">
+                              <div class="color-transition nc-project-menu-item group">
+                                <GeneralIcon icon="magic1" class="group-hover:text-accent" />
+                                Create schema
+                              </div>
+                            </a-menu-item>
+                          </a-menu-item-group>
+
+                          <a-menu-divider class="my-0" />
+
                           <!--                  Quick Import From -->
                           <a-menu-item-group :title="$t('title.quickImportFrom')" class="!px-0 !mx-0">
                             <a-menu-item
@@ -1067,7 +1195,7 @@ const duplicateTable = async (table: TableType) => {
                     >
                       <GeneralTooltip class="pl-8 pr-3 py-2" modifier-key="Alt">
                         <template #title>{{ table.table_name }}</template>
-                        <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
+                        <div class="table-context flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                           <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
                             <component
                               :is="isUIAllowed('tableIconCustomisation') ? Dropdown : 'div'"
@@ -1163,7 +1291,15 @@ const duplicateTable = async (table: TableType) => {
 
       <template v-if="!isSharedBase" #overlay>
         <a-menu class="!py-0 rounded text-sm">
-          <template v-if="contextMenuTarget.type === 'table'">
+          <template v-if="contextMenuTarget.type === 'base'">
+            <!--
+            <a-menu-item @click="openErdView(contextMenuTarget.value)">
+              <div class="nc-project-menu-item">ERD View</div>
+            </a-menu-item>
+            -->
+          </template>
+
+          <template v-else-if="contextMenuTarget.type === 'table'">
             <a-menu-item
               v-if="isUIAllowed('table-rename')"
               @click="openRenameTableDialog(contextMenuTarget.value, bases[0].id, true)"
@@ -1211,24 +1347,29 @@ const duplicateTable = async (table: TableType) => {
         v-if="!isMobileMode"
         class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent"
       />
+      <!--
+           todo: enable it back later
+           disable at the moment to avoid issue with navigation
 
-      <GithubButton
+           <GithubButton
         v-if="!isMobileMode"
-        class="ml-2 py-1"
-        href="https://github.com/nocodb/nocodb"
-        data-icon="octicon-star"
-        data-show-count="true"
-        data-size="large"
-      >
-        Star
-      </GithubButton>
+              class="ml-2 py-1"
+              href="https://github.com/nocodb/nocodb"
+              data-icon="octicon-star"
+              data-show-count="true"
+              data-size="large"
+              v-if="$route.name"
+            >
+              Star
+            </GithubButton>
+            -->
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .nc-treeview-container {
-  @apply h-[calc(100vh_-_var(--header-height))];
+  // @apply h-[calc(100vh_-_var(--sidebar-top-height))];
   border-right: 1px solid var(--navbar-border) !important;
 }
 

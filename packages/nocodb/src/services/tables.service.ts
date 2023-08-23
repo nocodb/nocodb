@@ -1,40 +1,42 @@
 import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
-import {
-  AuditOperationSubTypes,
-  AuditOperationTypes,
-  isVirtualCol,
-  ModelTypes,
-  UITypes,
-} from 'nocodb-sdk';
-import { T } from 'nc-help';
-import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
-import { NcError } from '../helpers/catchError';
-import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
-import getColumnUiType from '../helpers/getColumnUiType';
-import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
-import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
-import { Audit, Column, Model, ModelRoleVisibility, Project } from '../models';
-import Noco from '../Noco';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import { validatePayload } from '../helpers';
+import { isLinksOrLTAR, isVirtualCol, ModelTypes, UITypes } from 'nocodb-sdk';
+import { AppEvents } from 'nocodb-sdk';
+import { MetaDiffsService } from './meta-diffs.service';
 import { ColumnsService } from './columns.service';
-import type { MetaService } from '../meta/meta.service';
-import type { LinkToAnotherRecordColumn, User, View } from '../models';
+import type { MetaService } from '~/meta/meta.service';
+import type { LinkToAnotherRecordColumn, User, View } from '~/models';
 import type {
   ColumnType,
   NormalColumnRequestType,
   TableReqType,
+  UserType,
 } from 'nocodb-sdk';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
+import { NcError } from '~/helpers/catchError';
+import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
+import getColumnUiType from '~/helpers/getColumnUiType';
+import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
+import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
+import { Column, Model, ModelRoleVisibility, Project } from '~/models';
+import Noco from '~/Noco';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { validatePayload } from '~/helpers';
 
 @Injectable()
 export class TablesService {
-  constructor(private readonly columnsService: ColumnsService) {}
+  constructor(
+    private metaDiffService: MetaDiffsService,
+    private appHooksService: AppHooksService,
+    private readonly columnsService: ColumnsService,
+  ) {}
 
   async tableUpdate(param: {
     tableId: any;
     table: TableReqType & { project_id?: string };
     projectId?: string;
+    user: UserType;
   }) {
     const model = await Model.get(param.tableId);
 
@@ -61,7 +63,7 @@ export class TablesService {
       );
     }
 
-    if (base.is_meta && project.prefix) {
+    if (base.isMeta(true) && project.prefix && !base.isMeta(true, 1)) {
       if (!param.table.table_name.startsWith(project.prefix)) {
         param.table.table_name = `${project.prefix}${param.table.table_name}`;
       }
@@ -123,19 +125,24 @@ export class TablesService {
       );
     }
 
+    await sqlMgr.sqlOpPlus(base, 'tableRename', {
+      ...param.table,
+      tn: param.table.table_name,
+      tn_old: model.table_name,
+      schema: base.getConfig()?.schema,
+    });
+
     await Model.updateAliasAndTableName(
       param.tableId,
       param.table.title,
       param.table.table_name,
     );
 
-    await sqlMgr.sqlOpPlus(base, 'tableRename', {
-      ...param.table,
-      tn: param.table.table_name,
-      tn_old: model.table_name,
+    this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
+      table: model,
+      user: param.user,
     });
 
-    T.emit('evt', { evt_type: 'table:updated' });
     return true;
   }
 
@@ -150,11 +157,9 @@ export class TablesService {
     const project = await Project.getWithInfo(table.project_id);
     const base = project.bases.find((b) => b.id === table.base_id);
 
-    const relationColumns = table.columns.filter(
-      (c) => c.uidt === UITypes.LinkToAnotherRecord,
-    );
+    const relationColumns = table.columns.filter((c) => isLinksOrLTAR(c));
 
-    if (relationColumns?.length && !base.is_meta) {
+    if (relationColumns?.length && !base.isMeta()) {
       const referredTables = await Promise.all(
         relationColumns.map(async (c) =>
           c
@@ -190,6 +195,7 @@ export class TablesService {
           {
             req: param.req,
             columnId: c.id,
+            user: param.user,
           },
           ncMeta,
         );
@@ -211,20 +217,11 @@ export class TablesService {
         });
       }
 
-      await Audit.insert(
-        {
-          project_id: project.id,
-          base_id: base.id,
-          op_type: AuditOperationTypes.TABLE,
-          op_sub_type: AuditOperationSubTypes.DELETE,
-          user: param.user?.email,
-          description: `Deleted ${table.type} ${table.table_name} with alias ${table.title}  `,
-          ip: param.req?.clientIp,
-        },
-        ncMeta,
-      ).then(() => {});
-
-      T.emit('evt', { evt_type: 'table:deleted' });
+      this.appHooksService.emit(AppEvents.TABLE_DELETE, {
+        table,
+        user: param.user,
+        ip: param.req?.clientIp,
+      });
 
       result = await table.delete(ncMeta);
       await ncMeta.commit();
@@ -235,7 +232,10 @@ export class TablesService {
     return result;
   }
 
-  async getTableWithAccessibleViews(param: { tableId: string; user: User }) {
+  async getTableWithAccessibleViews(param: {
+    tableId: string;
+    user: User | UserType;
+  }) {
     const table = await Model.getWithInfo({
       id: param.tableId,
     });
@@ -353,7 +353,7 @@ export class TablesService {
     projectId: string;
     baseId?: string;
     table: TableReqType;
-    user: User;
+    user: User | UserType;
     req?: any;
   }) {
     validatePayload('swagger.json#/components/schemas/TableReq', param.table);
@@ -472,27 +472,19 @@ export class TablesService {
         cn: string;
         system?: boolean;
       }
-    > = (await sqlClient.columnList({ tn: tableCreatePayLoad.table_name }))
-      ?.data?.list;
+    > = (
+      await sqlClient.columnList({
+        tn: tableCreatePayLoad.table_name,
+        schema: base.getConfig()?.schema,
+      })
+    )?.data?.list;
 
     const tables = await Model.list({
       project_id: project.id,
       base_id: base.id,
     });
 
-    await Audit.insert({
-      project_id: project.id,
-      base_id: base.id,
-      op_type: AuditOperationTypes.TABLE,
-      op_sub_type: AuditOperationSubTypes.CREATE,
-      user: param.user?.email,
-      description: `Table ${tableCreatePayLoad.table_name} with alias ${tableCreatePayLoad.title} has been created`,
-      ip: param.req?.clientIp,
-    }).then(() => {});
-
     mapDefaultDisplayValue(param.table.columns);
-
-    T.emit('evt', { evt_type: 'table:created' });
 
     // todo: type correction
     const result = await Model.insert(project.id, base.id, {
@@ -517,6 +509,12 @@ export class TablesService {
       }),
       order: +(tables?.pop()?.order ?? 0) + 1,
     } as any);
+
+    this.appHooksService.emit(AppEvents.TABLE_CREATE, {
+      table: result,
+      user: param.user,
+      ip: param.req?.clientIp,
+    });
 
     return result;
   }

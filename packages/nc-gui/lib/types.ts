@@ -1,11 +1,20 @@
-import type { FilterType, MetaType, ViewTypes } from 'nocodb-sdk'
+import type {
+  ColumnType,
+  FilterType,
+  MetaType,
+  OrgUserRoles,
+  PaginatedType,
+  ProjectType,
+  ViewTypes,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk'
 import type { I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
-import type { ProjectRole, Role, TabType } from './enums'
+import type { ImportSource, ImportType, ProjectRole, Role, TabType } from './enums'
 import type { rolePermissions } from './constants'
 
-export interface User {
+interface User {
   id: string
   email: string
   firstname: string | null
@@ -15,7 +24,7 @@ export interface User {
   project_id?: string
 }
 
-export interface ProjectMetaInfo {
+interface ProjectMetaInfo {
   Node?: string
   Arch?: string
   Platform?: string
@@ -26,7 +35,7 @@ export interface ProjectMetaInfo {
   PackageVersion?: string
 }
 
-export interface Field {
+interface Field {
   order: number
   show: number | boolean
   title: string
@@ -35,23 +44,23 @@ export interface Field {
   isViewEssentialField?: boolean
 }
 
-export type Roles<T extends Role | ProjectRole = Role | ProjectRole> = Record<T | string, boolean>
+type Roles<T extends Role | ProjectRole = Role | ProjectRole> = Record<T | string, boolean>
 
-export type Filter = FilterType & {
+type Filter = FilterType & {
   field?: string
   status?: 'update' | 'delete' | 'create'
   parentId?: string
   readOnly?: boolean
 }
 
-export type NocoI18n = I18n<{}, unknown, unknown, string, false>
+type NocoI18n = I18n<{}, unknown, unknown, string, false>
 
-export interface ThemeConfig extends AntTheme {
+interface ThemeConfig extends AntTheme {
   primaryColor: string
   accentColor: string
 }
 
-export interface Row {
+interface Row {
   row: Record<string, any>
   oldRow: Record<string, any>
   rowMeta: {
@@ -69,11 +78,11 @@ type RolePermissions = Omit<typeof rolePermissions, 'guest' | 'admin' | 'super'>
 
 type GetKeys<T> = T extends Record<any, Record<infer Key, boolean>> ? Key : never
 
-export type Permission<K extends keyof RolePermissions = keyof RolePermissions> = RolePermissions[K] extends Record<any, any>
+type Permission<K extends keyof RolePermissions = keyof RolePermissions> = RolePermissions[K] extends Record<any, any>
   ? GetKeys<RolePermissions[K]>
   : never
 
-export interface TabItem {
+interface TabItem {
   type: TabType
   title: string
   id?: string
@@ -82,9 +91,11 @@ export interface TabItem {
   sortsState?: Map<string, any>
   filterState?: Map<string, any>
   meta?: MetaType
+  tabMeta?: any
+  projectId?: string
 }
 
-export interface SharedViewMeta extends Record<string, any> {
+interface SharedViewMeta extends Record<string, any> {
   surveyMode?: boolean
   transitionDuration?: number // in ms
   withTheme?: boolean
@@ -93,7 +104,7 @@ export interface SharedViewMeta extends Record<string, any> {
   rtl?: boolean
 }
 
-export interface SharedView {
+interface SharedView {
   uuid?: string
   id: string
   password?: string
@@ -101,14 +112,99 @@ export interface SharedView {
   meta: SharedViewMeta
 }
 
-export type importFileList = (UploadFile & { data: string | ArrayBuffer })[]
+type importFileList = (UploadFile & { data: string | ArrayBuffer })[]
 
-export type streamImportFileList = UploadFile[]
+type streamImportFileList = UploadFile[]
 
-export type Nullable<T> = { [K in keyof T]: T[K] | null }
+type Nullable<T> = { [K in keyof T]: T[K] | null }
 
-export interface UndoRedoAction {
+/**
+ * @description: Project type for frontend
+ */
+type NcProject = ProjectType & {
+  /**
+   * When project is expanded in sidebar
+   * */
+  isExpanded?: boolean
+  /**
+   * When project's content is being fetched i.e tables, views, etc
+   */
+  isLoading?: boolean
+  temp_title?: string
+  edit?: boolean
+  starred?: boolean
+}
+
+interface UndoRedoAction {
   undo: { fn: Function; args: any[] }
   redo: { fn: Function; args: any[] }
   scope?: { key: string; param: string }[]
+}
+
+interface ImportWorkerPayload {
+  importType: ImportType
+  importSource: ImportSource
+  value: any
+  config: Record<string, any>
+}
+
+interface Group {
+  key: string
+  column: ColumnType
+  color: string
+  count: number
+  nestedIn: GroupNestedIn[]
+  paginationData: PaginatedType
+  nested: boolean
+  children?: Group[]
+  rows?: Row[]
+  root?: boolean
+}
+
+interface GroupNestedIn {
+  title: string
+  column_name: string
+  key: string
+  column_uidt: string
+}
+
+type AllRoles =
+  | (typeof ProjectRole)[keyof typeof ProjectRole]
+  | (typeof Role)[keyof typeof Role]
+  | (typeof WorkspaceUserRoles)[keyof typeof WorkspaceUserRoles]
+  | (typeof OrgUserRoles)[keyof typeof OrgUserRoles]
+
+interface Users {
+  emails?: string
+  role: AllRoles
+  invitationToken?: string
+}
+
+type ViewPageType = 'view' | 'webhook' | 'api' | 'field' | 'relation'
+
+export {
+  User,
+  ProjectMetaInfo,
+  Field,
+  Roles,
+  Filter,
+  NocoI18n,
+  ThemeConfig,
+  Row,
+  RolePermissions,
+  Permission,
+  TabItem,
+  SharedView,
+  SharedViewMeta,
+  importFileList,
+  streamImportFileList,
+  Nullable,
+  NcProject,
+  UndoRedoAction,
+  ImportWorkerPayload,
+  Group,
+  GroupNestedIn,
+  AllRoles,
+  Users,
+  ViewPageType,
 }

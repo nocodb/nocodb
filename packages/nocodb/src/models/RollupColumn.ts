@@ -1,9 +1,9 @@
-import Noco from '../Noco';
-import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import NocoCache from '../cache/NocoCache';
-import { extractProps } from '../helpers/extractProps';
-import Column from './Column';
 import type { RollupType } from 'nocodb-sdk';
+import Column from '~/models/Column';
+import Noco from '~/Noco';
+import NocoCache from '~/cache/NocoCache';
+import { extractProps } from '~/helpers/extractProps';
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 
 export const ROLLUP_FUNCTIONS = <const>[
   'count',

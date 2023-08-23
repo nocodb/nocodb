@@ -5,19 +5,19 @@ const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 
-let apps = $ref<null | any[]>(null)
+const apps = ref<null | any[]>(null)
 
-let showPluginUninstallModal = $ref(false)
+const showPluginUninstallModal = ref(false)
 
-let showPluginInstallModal = $ref(false)
+const showPluginInstallModal = ref(false)
 
-let pluginApp = $ref<any>(null)
+const pluginApp = ref<any>(null)
 
 const fetchPluginApps = async () => {
   try {
     const plugins = (await $api.plugin.list()).list ?? []
 
-    apps = plugins.map((p) => ({
+    apps.value = plugins.map((p) => ({
       ...p,
       tags: p.tags ? p.tags.split(',') : [],
       parsedInput: p.input && JSON.parse(p.input as string),
@@ -29,41 +29,41 @@ const fetchPluginApps = async () => {
 
 const resetPlugin = async () => {
   try {
-    await $api.plugin.update(pluginApp.id, {
+    await $api.plugin.update(pluginApp.value.id, {
       input: null,
       active: false,
     })
     // Plugin uninstalled successfully
     message.success(t('msg.success.pluginUninstalled'))
-    showPluginUninstallModal = false
+    showPluginUninstallModal.value = false
     await fetchPluginApps()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 
-  $e('a:appstore:reset', { app: pluginApp.title })
+  $e('a:appstore:reset', { app: pluginApp.value.title })
 }
 
 const saved = async () => {
-  showPluginInstallModal = false
+  showPluginInstallModal.value = false
   await fetchPluginApps()
-  $e('a:appstore:install', { app: pluginApp.title })
+  $e('a:appstore:install', { app: pluginApp.value.title })
 }
 
 const showInstallPluginModal = async (app: any) => {
-  showPluginInstallModal = true
-  pluginApp = app
+  showPluginInstallModal.value = true
+  pluginApp.value = app
 
   $e('c:appstore:install', { app: app.title })
 }
 
 const showResetPluginModal = async (app: any) => {
-  showPluginUninstallModal = true
-  pluginApp = app
+  showPluginUninstallModal.value = true
+  pluginApp.value = app
 }
 
 onMounted(async () => {
-  if (apps === null) {
+  if (apps.value === null) {
     await fetchPluginApps()
   }
 })
@@ -81,7 +81,7 @@ onMounted(async () => {
       wrap-class-name="nc-modal-plugin-install"
       v-bind="$attrs"
     >
-      <LazyDashboardSettingsAppInstall
+      <LazyDashboardSettingsAppStoreAppInstall
         v-if="pluginApp && showPluginInstallModal"
         :id="pluginApp.id"
         @close="showPluginInstallModal = false"

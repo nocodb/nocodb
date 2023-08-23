@@ -1,9 +1,9 @@
-import Noco from '../Noco';
-import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import { extractProps } from '../helpers/extractProps';
-import NocoCache from '../cache/NocoCache';
-import View from './View';
 import type { BoolType, GridColumnType } from 'nocodb-sdk';
+import View from '~/models/View';
+import Noco from '~/Noco';
+import { extractProps } from '~/helpers/extractProps';
+import NocoCache from '~/cache/NocoCache';
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 
 export default class GridViewColumn implements GridColumnType {
   id: string;
@@ -15,6 +15,10 @@ export default class GridViewColumn implements GridColumnType {
   fk_column_id: string;
   project_id?: string;
   base_id?: string;
+
+  group_by?: BoolType;
+  group_by_order?: number;
+  group_by_sort?: string;
 
   constructor(data: GridViewColumn) {
     Object.assign(this, data);
@@ -79,6 +83,9 @@ export default class GridViewColumn implements GridColumnType {
       'base_id',
       'order',
       'width',
+      'group_by',
+      'group_by_order',
+      'group_by_sort',
     ]);
 
     insertObj.order =
@@ -115,6 +122,15 @@ export default class GridViewColumn implements GridColumnType {
 
     await View.fixPVColumnForView(column.fk_view_id, ncMeta);
 
+    // on new view column, delete any optimised single query cache
+    {
+      const view = await View.get(column.fk_view_id, ncMeta);
+      await NocoCache.delAll(
+        CacheScope.SINGLE_QUERY,
+        `${view.fk_model_id}:${view.id}:*`,
+      );
+    }
+
     return this.get(id, ncMeta);
   }
 
@@ -123,7 +139,14 @@ export default class GridViewColumn implements GridColumnType {
     body: Partial<GridViewColumn>,
     ncMeta = Noco.ncMeta,
   ) {
-    const updateObj = extractProps(body, ['order', 'show', 'width']);
+    const updateObj = extractProps(body, [
+      'order',
+      'show',
+      'width',
+      'group_by',
+      'group_by_order',
+      'group_by_sort',
+    ]);
     // get existing cache
     const key = `${CacheScope.GRID_VIEW_COLUMN}:${columnId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -134,12 +157,24 @@ export default class GridViewColumn implements GridColumnType {
       await NocoCache.set(key, o);
     }
     // set meta
-    return await ncMeta.metaUpdate(
+    const res = await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.GRID_VIEW_COLUMNS,
       updateObj,
       columnId,
     );
+
+    // on view column update, delete any optimised single query cache
+    {
+      const gridCol = await this.get(columnId, ncMeta);
+      const view = await View.get(gridCol.fk_view_id, ncMeta);
+      await NocoCache.delAll(
+        CacheScope.SINGLE_QUERY,
+        `${view.fk_model_id}:${view.id}:*`,
+      );
+    }
+
+    return res;
   }
 }

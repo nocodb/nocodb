@@ -1,5 +1,5 @@
 import { test } from '@playwright/test';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { UITypes } from 'nocodb-sdk';
 import { Api } from 'nocodb-sdk';
 let api: Api<any>;
@@ -40,6 +40,10 @@ test.describe.serial('Test table', () => {
         'xc-auth': context.token,
       },
     });
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test.skip('mega table', async ({ page }) => {
@@ -202,9 +206,9 @@ test.describe.serial('Test table', () => {
     await api.dbTableRow.bulkCreate('noco', context.project.id, table_2.id, rows);
 
     await api.dbTableColumn.create(table_2.id, {
-      uidt: UITypes.LinkToAnotherRecord,
-      title: 'LinkToAnotherRecord',
-      column_name: 'LinkToAnotherRecord',
+      uidt: UITypes.Links,
+      title: 'Links',
+      column_name: 'Links',
       parentId: table_1.id,
       childId: table_2.id,
       type: 'hm',

@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
-import setup from '../setup';
+import setup, { unsetup } from '../setup';
 import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
 
 test.describe.only('Test block name', () => {
@@ -12,6 +12,10 @@ test.describe.only('Test block name', () => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Test case name', async () => {

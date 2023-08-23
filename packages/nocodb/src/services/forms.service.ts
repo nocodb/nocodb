@@ -1,19 +1,29 @@
 import { Injectable } from '@nestjs/common';
-
-import { T } from 'nc-help';
-import { ViewTypes } from 'nocodb-sdk';
-import { validatePayload } from '../helpers';
-import { FormView, View } from '../models';
-import type { FormUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
+import { AppEvents, ViewTypes } from 'nocodb-sdk';
+import type {
+  FormUpdateReqType,
+  UserType,
+  ViewCreateReqType,
+} from 'nocodb-sdk';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { validatePayload } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
+import { FormView, View } from '~/models';
 
 @Injectable()
 export class FormsService {
+  constructor(private readonly appHooksService: AppHooksService) {}
+
   async formViewGet(param: { formViewId: string }) {
     const formViewData = await FormView.getWithInfo(param.formViewId);
     return formViewData;
   }
 
-  async formViewCreate(param: { tableId: string; body: ViewCreateReqType }) {
+  async formViewCreate(param: {
+    tableId: string;
+    body: ViewCreateReqType;
+    user: UserType;
+  }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
       param.body,
@@ -26,7 +36,15 @@ export class FormsService {
       type: ViewTypes.FORM,
     });
 
-    T.emit('evt', { evt_type: 'vtable:created', show_as: 'form' });
+    this.appHooksService.emit(AppEvents.VIEW_CREATE, {
+      view,
+      showAs: 'form',
+    });
+
+    this.appHooksService.emit(AppEvents.VIEW_CREATE, {
+      user: param.user,
+      view,
+    });
 
     return view;
   }
@@ -36,8 +54,19 @@ export class FormsService {
       'swagger.json#/components/schemas/FormUpdateReq',
       param.form,
     );
+    const view = await View.get(param.formViewId);
 
-    T.emit('evt', { evt_type: 'view:updated', type: 'form' });
-    return await FormView.update(param.formViewId, param.form);
+    if (!view) {
+      NcError.badRequest('View not found');
+    }
+
+    const res = await FormView.update(param.formViewId, param.form);
+
+    this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
+      view,
+      showAs: 'form',
+    });
+
+    return res;
   }
 }

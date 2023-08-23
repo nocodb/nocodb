@@ -6,30 +6,19 @@ category: "Product"
 menuTitle: "Formulas"
 ---
 
-## Adding formula column
+## Adding / Editing formula column
 
-<img width="990" alt="image" src="https://user-images.githubusercontent.com/35857179/189108950-fba76e31-8ae4-4108-916b-e413c841f451.png">
+![Formula](https://github.com/nocodb/nocodb/assets/86527202/f18d6a52-0ad6-4c0f-b9e4-9e1e1bafd695)
 
-### 1. Click on '+' (Add column)
-
-### 2. Populate column Name
-
-### 3. Select column Type as 'Formula'
-
-### 4. Insert required formula
-
-- You can use explicit numerical values/ strings as needed, e.g. `123` (numeric) or `"123"` (string).
-- You can reference column names in equation with `{}`, e.g. `{column_name}`, if the column name conflicts with literals
-- Table below lists supported formula & associated syntax
-- Nested formula (formula equation referring to another formula column) is supported
-
-### 5. Click on 'Save'
-
-## Editing formula column 
-
-Unlike other column types, formula cells cannot be modified by double-clicking since the value is generated based on the formula. Instead, the value can be changed by updating the formula in the column setting.
-
-<img width="253" alt="image" src="https://user-images.githubusercontent.com/35857179/189109486-4d41f2b7-0a19-46ef-8bb4-a8d1aabd3592.png">
+- Click on '+' (Add column)
+- Populate column Name
+- Select column Type as 'Formula'
+- Insert required formula
+  - You can use explicit numerical values/ strings as needed, e.g. `123` (numeric) or `"123"` (string).
+  - You can reference column names in equation with `{}`, e.g. `{column_name}`, if the column name conflicts with literals
+  - Table below lists supported formula & associated syntax
+  - Nested formula (formula equation referring to another formula column) is supported
+- Click on 'Save'
 
 ## Available Formula Features
 

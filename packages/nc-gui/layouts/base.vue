@@ -20,7 +20,7 @@ const logout = async () => {
 
 const { hooks } = useNuxtApp()
 
-const isDashboard = computed(() => !!route.params.projectType)
+const isDashboard = computed(() => !!route.params.typeOrId)
 
 /** when page suspensions have finished, check if a sidebar element was teleported into the layout */
 hooks.hook('page:finish', () => {
@@ -50,8 +50,8 @@ hooks.hook('page:finish', () => {
               {{ currentVersion }}
             </template>
             <div class="flex items-center gap-2">
-              <img v-if="!isDashboard" width="120" alt="NocoDB" src="~/assets/img/brand/nocodb-full-color.png" />
-              <img v-else width="25" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
+              <img v-if="!isDashboard" width="120" alt="NocoDB" src="~/assets/img/brand/nocodb-full.png" />
+              <img v-else width="25" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
             </div>
           </a-tooltip>
         </div>
@@ -113,7 +113,7 @@ hooks.hook('page:finish', () => {
 
                 <a-menu-divider class="!m-0" /> -->
 
-                <a-menu-item key="1" class="!rounded-b group">
+                <a-menu-item key="1" class="!rounded-b group" data-testid="nc-menu-accounts__sign-out">
                   <div v-e="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
                     <component :is="iconMap.signout" class="group-hover:text-accent" />&nbsp;
 
@@ -131,7 +131,7 @@ hooks.hook('page:finish', () => {
       <a-tooltip placement="bottom">
         <template #title> Switch language</template>
 
-        <LazyGeneralLanguage v-if="!signedIn && !route.params.projectId" class="nc-lang-btn" />
+        <LazyGeneralLanguage v-if="!signedIn && !route.params.projectId && !route.params.erdUuid" class="nc-lang-btn" />
       </a-tooltip>
 
       <div class="w-full h-full overflow-hidden">

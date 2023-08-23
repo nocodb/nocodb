@@ -6,12 +6,12 @@ const { api } = useApi()
 
 const { t } = useI18n()
 
-let settings = $ref<{ invite_only_signup?: boolean }>({ invite_only_signup: false })
+const settings = ref<{ invite_only_signup?: boolean }>({ invite_only_signup: false })
 
 const loadSettings = async () => {
   try {
     const response = await api.orgAppSettings.get()
-    settings = response
+    settings.value = response
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -19,7 +19,7 @@ const loadSettings = async () => {
 
 const saveSettings = async () => {
   try {
-    await api.orgAppSettings.set(settings)
+    await api.orgAppSettings.set(settings.value)
     message.success(t('msg.success.settingsSaved'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

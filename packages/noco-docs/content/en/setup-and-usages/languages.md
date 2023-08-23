@@ -8,9 +8,9 @@ menuTitle: 'Languages'
 
 NocoDB supports multiple languages on dashboard. By default, English will be used. However, if you prefer to display in other languages, you can do the following steps to change the language.
 
-Open `Project Menu` (click on project name on left top to access Project menu)
+Open `Global Menu` (click on NocoDB on left top to access Global menu)
 
-<img width="505" alt="image" src="https://user-images.githubusercontent.com/35857179/194849611-7d037906-7c21-4797-8bb4-12edeafe8b7b.png">
+![language](https://github.com/nocodb/nocodb/assets/86527202/1b62dc7f-72c8-41ce-be43-7f4dd62be824)
 
 and select the one you prefer.
 

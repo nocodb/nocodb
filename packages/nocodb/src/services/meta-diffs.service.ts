@@ -1,15 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import { isVirtualCol, ModelTypes, RelationTypes, UITypes } from 'nocodb-sdk';
-import { T } from 'nc-help';
-import { Base, Column, Model, Project } from '../models';
-import ModelXcMetaFactory from '../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
-import getColumnUiType from '../helpers/getColumnUiType';
-import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
-import { getUniqueColumnAliasName } from '../helpers/getUniqueName';
-import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import NcHelp from '../utils/NcHelp';
-import type { LinkToAnotherRecordColumn } from '../models';
+import {
+  AppEvents,
+  isLinksOrLTAR,
+  isVirtualCol,
+  ModelTypes,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
+import { pluralize, singularize } from 'inflection';
+import type { LinksColumn, LinkToAnotherRecordColumn } from '~/models';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import ModelXcMetaFactory from '~/db/sql-mgr/code/models/xc/ModelXcMetaFactory';
+import getColumnUiType from '~/helpers/getColumnUiType';
+import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
+import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
+import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
+import { NcError } from '~/helpers/catchError';
+import NcHelp from '~/utils/NcHelp';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { Base, Column, Model, Project } from '~/models';
 
 // todo:move enum and types
 export enum MetaDiffType {
@@ -117,17 +126,24 @@ type MetaDiffChange = {
 
 @Injectable()
 export class MetaDiffsService {
+  constructor(private appHooksService: AppHooksService) {}
+
   async getMetaDiff(
     sqlClient,
     project: Project,
     base: Base,
   ): Promise<Array<MetaDiff>> {
+    // if meta base then return empty array
+    if (base.is_meta) {
+      return [];
+    }
+
     const changes: Array<MetaDiff> = [];
     const virtualRelationColumns: Column<LinkToAnotherRecordColumn>[] = [];
 
     // @ts-ignore
     const tableList: Array<{ tn: string }> = (
-      await sqlClient.tableList()
+      await sqlClient.tableList({ schema: base.getConfig()?.schema })
     )?.data?.list?.filter((t) => {
       if (project?.prefix && base.is_meta) {
         return t.tn?.startsWith(project?.prefix);
@@ -154,7 +170,8 @@ export class MetaDiffsService {
       rcn: string;
       found?: any;
       cstn?: string;
-    }> = (await sqlClient.relationListAll())?.data?.list;
+    }> = (await sqlClient.relationListAll({ schema: base.getConfig()?.schema }))
+      ?.data?.list;
 
     for (const table of tableList) {
       if (table.tn === 'nc_evolutions') continue;
@@ -195,7 +212,10 @@ export class MetaDiffsService {
 
       // check for column change
       colListRef[table.tn] = (
-        await sqlClient.columnList({ tn: table.tn })
+        await sqlClient.columnList({
+          tn: table.tn,
+          schema: base.getConfig()?.schema,
+        })
       )?.data?.list;
 
       await oldMeta.getColumns();
@@ -247,12 +267,13 @@ export class MetaDiffsService {
         if (
           [
             UITypes.LinkToAnotherRecord,
+            UITypes.Links,
             UITypes.Rollup,
             UITypes.Lookup,
             UITypes.Formula,
           ].includes(column.uidt)
         ) {
-          if (column.uidt === UITypes.LinkToAnotherRecord) {
+          if (isLinksOrLTAR(column.uidt)) {
             virtualRelationColumns.push(column);
           }
 
@@ -332,17 +353,30 @@ export class MetaDiffsService {
 
         const cColumns = (colListRef[childModel.table_name] =
           colListRef[childModel.table_name] ||
-          (await sqlClient.columnList({ tn: childModel.table_name }))?.data
-            ?.list);
+          (
+            await sqlClient.columnList({
+              tn: childModel.table_name,
+              schema: base.getConfig()?.schema,
+            })
+          )?.data?.list);
 
         const pColumns = (colListRef[parentModel.table_name] =
           colListRef[parentModel.table_name] ||
-          (await sqlClient.columnList({ tn: parentModel.table_name }))?.data
-            ?.list);
+          (
+            await sqlClient.columnList({
+              tn: parentModel.table_name,
+              schema: base.getConfig()?.schema,
+            })
+          )?.data?.list);
 
         const vColumns = (colListRef[m2mTable.tn] =
           colListRef[m2mTable.tn] ||
-          (await sqlClient.columnList({ tn: m2mTable.tn }))?.data?.list);
+          (
+            await sqlClient.columnList({
+              tn: m2mTable.tn,
+              schema: base.getConfig()?.schema,
+            })
+          )?.data?.list);
 
         const m2mChildCol = await colOpt.getMMChildColumn();
         const m2mParentCol = await colOpt.getMMParentColumn();
@@ -442,7 +476,9 @@ export class MetaDiffsService {
       view_name: string;
       tn: string;
       type: 'view';
-    }> = (await sqlClient.viewList())?.data?.list
+    }> = (
+      await sqlClient.viewList({ schema: base.getConfig()?.schema })
+    )?.data?.list
       ?.map((v) => {
         v.type = 'view';
         v.tn = v.view_name;
@@ -492,7 +528,10 @@ export class MetaDiffsService {
 
       // check for column change
       colListRef[view.tn] = (
-        await sqlClient.columnList({ tn: view.tn })
+        await sqlClient.columnList({
+          tn: view.tn,
+          schema: base.getConfig()?.schema,
+        })
       )?.data?.list;
 
       await oldMeta.getColumns();
@@ -532,6 +571,7 @@ export class MetaDiffsService {
             UITypes.Rollup,
             UITypes.Lookup,
             UITypes.Formula,
+            UITypes.Links,
           ].includes(column.uidt)
         ) {
           continue;
@@ -574,6 +614,9 @@ export class MetaDiffsService {
     let changes = [];
     for (const base of project.bases) {
       try {
+        // skip meta base
+        if (base.is_meta) continue;
+
         // @ts-ignore
         const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
         changes = changes.concat(
@@ -590,6 +633,7 @@ export class MetaDiffsService {
   async baseMetaDiff(param: { projectId: string; baseId: string }) {
     const project = await Project.getWithInfo(param.projectId);
     const base = await Base.get(param.baseId);
+
     let changes = [];
 
     const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
@@ -601,6 +645,9 @@ export class MetaDiffsService {
   async metaDiffSync(param: { projectId: string }) {
     const project = await Project.getWithInfo(param.projectId);
     for (const base of project.bases) {
+      // skip if metadb base
+      if (base.is_meta) continue;
+
       const virtualColumnInsert: Array<() => Promise<void>> = [];
 
       // @ts-ignore
@@ -625,7 +672,10 @@ export class MetaDiffsService {
             case MetaDiffType.TABLE_NEW:
               {
                 const columns = (
-                  await sqlClient.columnList({ tn: table_name })
+                  await sqlClient.columnList({
+                    tn: table_name,
+                    schema: base.getConfig()?.schema,
+                  })
                 )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
 
                 mapDefaultDisplayValue(columns);
@@ -653,7 +703,10 @@ export class MetaDiffsService {
             case MetaDiffType.VIEW_NEW:
               {
                 const columns = (
-                  await sqlClient.columnList({ tn: table_name })
+                  await sqlClient.columnList({
+                    tn: table_name,
+                    schema: base.getConfig()?.schema,
+                  })
                 )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
 
                 mapDefaultDisplayValue(columns);
@@ -684,7 +737,10 @@ export class MetaDiffsService {
             case MetaDiffType.VIEW_COLUMN_ADD:
               {
                 const columns = (
-                  await sqlClient.columnList({ tn: table_name })
+                  await sqlClient.columnList({
+                    tn: table_name,
+                    schema: base.getConfig()?.schema,
+                  })
                 )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
                 const column = columns.find((c) => c.cn === change.cn);
                 column.uidt = getColumnUiType(base, column);
@@ -701,7 +757,10 @@ export class MetaDiffsService {
             case MetaDiffType.VIEW_COLUMN_TYPE_CHANGE:
               {
                 const columns = (
-                  await sqlClient.columnList({ tn: table_name })
+                  await sqlClient.columnList({
+                    tn: table_name,
+                    schema: base.getConfig()?.schema,
+                  })
                 )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
                 const column = columns.find((c) => c.cn === change.cn);
                 const metaFact = ModelXcMetaFactory.create(
@@ -787,10 +846,10 @@ export class MetaDiffsService {
                   } else if (change.relationType === RelationTypes.HAS_MANY) {
                     const title = getUniqueColumnAliasName(
                       childModel.columns,
-                      `${childModel.title || childModel.table_name} List`,
+                      pluralize(childModel.title || childModel.table_name),
                     );
                     await Column.insert<LinkToAnotherRecordColumn>({
-                      uidt: UITypes.LinkToAnotherRecord,
+                      uidt: UITypes.Links,
                       title,
                       fk_model_id: parentModel.id,
                       fk_related_model_id: childModel.id,
@@ -799,6 +858,10 @@ export class MetaDiffsService {
                       fk_child_column_id: childCol.id,
                       virtual: false,
                       fk_index_name: change.cstn,
+                      meta: {
+                        plural: pluralize(childModel.title),
+                        singular: singularize(childModel.title),
+                      },
                     });
                   }
                 });
@@ -814,7 +877,9 @@ export class MetaDiffsService {
       await this.extractAndGenerateManyToManyRelations(await base.getModels());
     }
 
-    T.emit('evt', { evt_type: 'metaDiff:synced' });
+    this.appHooksService.emit(AppEvents.META_DIFF_SYNC, {
+      project,
+    });
 
     return true;
   }
@@ -822,6 +887,10 @@ export class MetaDiffsService {
   async baseMetaDiffSync(param: { projectId: string; baseId: string }) {
     const project = await Project.getWithInfo(param.projectId);
     const base = await Base.get(param.baseId);
+
+    if (base.is_meta) {
+      NcError.badRequest('Cannot sync meta base');
+    }
 
     const virtualColumnInsert: Array<() => Promise<void>> = [];
 
@@ -838,7 +907,10 @@ export class MetaDiffsService {
           case MetaDiffType.TABLE_NEW:
             {
               const columns = (
-                await sqlClient.columnList({ tn: table_name })
+                await sqlClient.columnList({
+                  tn: table_name,
+                  schema: base.getConfig()?.schema,
+                })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
 
               mapDefaultDisplayValue(columns);
@@ -866,7 +938,10 @@ export class MetaDiffsService {
           case MetaDiffType.VIEW_NEW:
             {
               const columns = (
-                await sqlClient.columnList({ tn: table_name })
+                await sqlClient.columnList({
+                  tn: table_name,
+                  schema: base.getConfig()?.schema,
+                })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
 
               mapDefaultDisplayValue(columns);
@@ -897,7 +972,10 @@ export class MetaDiffsService {
           case MetaDiffType.VIEW_COLUMN_ADD:
             {
               const columns = (
-                await sqlClient.columnList({ tn: table_name })
+                await sqlClient.columnList({
+                  tn: table_name,
+                  schema: base.getConfig()?.schema,
+                })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
               const column = columns.find((c) => c.cn === change.cn);
               column.uidt = getColumnUiType(base, column);
@@ -914,7 +992,10 @@ export class MetaDiffsService {
           case MetaDiffType.VIEW_COLUMN_TYPE_CHANGE:
             {
               const columns = (
-                await sqlClient.columnList({ tn: table_name })
+                await sqlClient.columnList({
+                  tn: table_name,
+                  schema: base.getConfig()?.schema,
+                })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
               const column = columns.find((c) => c.cn === change.cn);
               const metaFact = ModelXcMetaFactory.create(
@@ -999,10 +1080,10 @@ export class MetaDiffsService {
                 } else if (change.relationType === RelationTypes.HAS_MANY) {
                   const title = getUniqueColumnAliasName(
                     childModel.columns,
-                    `${childModel.title || childModel.table_name} List`,
+                    pluralize(childModel.title || childModel.table_name),
                   );
-                  await Column.insert<LinkToAnotherRecordColumn>({
-                    uidt: UITypes.LinkToAnotherRecord,
+                  await Column.insert<LinksColumn>({
+                    uidt: UITypes.Links,
                     title,
                     fk_model_id: parentModel.id,
                     fk_related_model_id: childModel.id,
@@ -1024,7 +1105,10 @@ export class MetaDiffsService {
     // populate m2m relations
     await this.extractAndGenerateManyToManyRelations(await base.getModels());
 
-    T.emit('evt', { evt_type: 'baseMetaDiff:synced' });
+    this.appHooksService.emit(AppEvents.META_DIFF_SYNC, {
+      project,
+      base,
+    });
 
     return true;
   }
@@ -1038,7 +1122,7 @@ export class MetaDiffsService {
     const colChildOpt =
       await belongsToCol.getColOptions<LinkToAnotherRecordColumn>();
     for (const col of await model.getColumns()) {
-      if (col.uidt === UITypes.LinkToAnotherRecord) {
+      if (isLinksOrLTAR(col.uidt)) {
         const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>();
         if (
           colOpt &&
@@ -1097,10 +1181,10 @@ export class MetaDiffsService {
         );
 
         if (!isRelationAvailInA) {
-          await Column.insert<LinkToAnotherRecordColumn>({
+          await Column.insert<LinksColumn>({
             title: getUniqueColumnAliasName(
               modelA.columns,
-              `${modelB.title} List`,
+              pluralize(modelB.title),
             ),
             fk_model_id: modelA.id,
             fk_related_model_id: modelB.id,
@@ -1113,14 +1197,18 @@ export class MetaDiffsService {
             fk_mm_parent_column_id:
               belongsToCols[1].colOptions.fk_child_column_id,
             type: RelationTypes.MANY_TO_MANY,
-            uidt: UITypes.LinkToAnotherRecord,
+            uidt: UITypes.Links,
+            meta: {
+              plural: pluralize(modelB.title),
+              singular: singularize(modelB.title),
+            },
           });
         }
         if (!isRelationAvailInB) {
-          await Column.insert<LinkToAnotherRecordColumn>({
+          await Column.insert<LinksColumn>({
             title: getUniqueColumnAliasName(
               modelB.columns,
-              `${modelA.title} List`,
+              pluralize(modelA.title),
             ),
             fk_model_id: modelB.id,
             fk_related_model_id: modelA.id,
@@ -1133,7 +1221,11 @@ export class MetaDiffsService {
             fk_mm_parent_column_id:
               belongsToCols[0].colOptions.fk_child_column_id,
             type: RelationTypes.MANY_TO_MANY,
-            uidt: UITypes.LinkToAnotherRecord,
+            uidt: UITypes.Links,
+            meta: {
+              plural: pluralize(modelA.title),
+              singular: singularize(modelA.title),
+            },
           });
         }
 
@@ -1145,7 +1237,7 @@ export class MetaDiffsService {
           const model = await colOpt.getRelatedTable();
 
           for (const col of await model.getColumns()) {
-            if (col.uidt !== UITypes.LinkToAnotherRecord) continue;
+            if (!isLinksOrLTAR(col.uidt)) continue;
 
             const colOpt1 =
               await col.getColOptions<LinkToAnotherRecordColumn>();

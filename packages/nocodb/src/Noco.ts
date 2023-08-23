@@ -5,19 +5,22 @@ import { NestFactory } from '@nestjs/core';
 import clear from 'clear';
 import * as express from 'express';
 import NcToolGui from 'nc-lib-gui';
-import { IoAdapter } from '@nestjs/platform-socket.io';
-import requestIp from 'request-ip';
-import cookieParser from 'cookie-parser';
 import { T } from 'nc-help';
 import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
-import { AppModule } from './app.module';
-import { NC_LICENSE_KEY } from './constants';
-import Store from './models/Store';
-import { MetaTable } from './utils/globals';
-import type { IEventEmitter } from './modules/event-emitter/event-emitter.interface';
+import { IoAdapter } from '@nestjs/platform-socket.io';
+import requestIp from 'request-ip';
+import cookieParser from 'cookie-parser';
+import type { MetaService } from '~/meta/meta.service';
+import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import type { Express } from 'express';
-import type * as http from 'http';
+// import type * as http from 'http';
+
+import type http from 'http';
+import { MetaTable } from '~/utils/globals';
+import Store from '~/models/Store';
+import { NC_LICENSE_KEY } from '~/constants';
+import { AppModule } from '~/app.module';
 
 dotenv.config();
 
@@ -51,7 +54,7 @@ export default class Noco {
     process.env.PORT = process.env.PORT || '8080';
     // todo: move
     // if env variable NC_MINIMAL_DBS is set, then disable project creation with external sources
-    if (process.env.NC_MINIMAL_DBS) {
+    if (process.env.NC_MINIMAL_DBS === 'true') {
       process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED = 'true';
     }
 
@@ -74,7 +77,7 @@ export default class Noco {
     this.requestContext = context;
   }
 
-  public static get ncMeta(): any {
+  public static get ncMeta(): MetaService {
     return this._ncMeta;
   }
 
@@ -87,7 +90,7 @@ export default class Noco {
   }
 
   public static isEE(): boolean {
-    return Noco.ee;
+    return Noco.ee || process.env.NC_CLOUD === 'true';
   }
 
   public static async loadEEState(): Promise<boolean> {
@@ -98,21 +101,27 @@ export default class Noco {
   }
 
   static async init(param: any, httpServer: http.Server, server: Express) {
-    this._httpServer = httpServer;
+    const nestApp = await NestFactory.create(
+      AppModule,
+      // new ExpressAdapter(server),
+    );
+
+    nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
+
+    this._httpServer = nestApp.getHttpAdapter().getInstance();
     this._server = server;
 
-    const nestApp = await NestFactory.create(AppModule);
+    nestApp.use(requestIp.mw());
+    nestApp.use(cookieParser());
 
     this.initSentry(nestApp);
 
     nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
 
-    nestApp.use(requestIp.mw());
-    nestApp.use(cookieParser());
-
     nestApp.use(
       express.json({ limit: process.env.NC_REQUEST_BODY_SIZE || '50mb' }),
     );
+
     await nestApp.init();
 
     const dashboardPath = process.env.NC_DASHBOARD_URL || '/dashboard';

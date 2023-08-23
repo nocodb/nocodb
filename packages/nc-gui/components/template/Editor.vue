@@ -8,8 +8,11 @@ import { srcDestMappingColumns, tableColumns } from './utils'
 import {
   Empty,
   Form,
+  ImportWorkerOperations,
+  ImportWorkerResponse,
   MetaInj,
   ReloadViewDataHookInj,
+  TabType,
   computed,
   createEventHook,
   extractSdkResponseErrorMsg,
@@ -32,9 +35,8 @@ import {
   useProject,
   useTabs,
 } from '#imports'
-import { TabType } from '~/lib'
 
-const { quickImportType, projectTemplate, importData, importColumns, importDataOnly, maxRowsToParse, baseId } =
+const { quickImportType, projectTemplate, importData, importColumns, importDataOnly, maxRowsToParse, baseId, importWorker } =
   defineProps<Props>()
 
 const emit = defineEmits(['import'])
@@ -51,6 +53,7 @@ interface Props {
   importDataOnly: boolean
   maxRowsToParse: number
   baseId: string
+  importWorker: Worker
 }
 
 interface Option {
@@ -73,6 +76,8 @@ const { addTab } = useTabs()
 const projectStrore = useProject()
 const { loadTables } = projectStrore
 const { sqlUis, project } = storeToRefs(projectStrore)
+const { openTable } = useTablesStore()
+const { projectTables } = storeToRefs(useTablesStore())
 
 const sqlUi = ref(sqlUis.value[baseId] || Object.values(sqlUis.value)[0])
 
@@ -411,7 +416,7 @@ async function importTemplate() {
       isImporting.value = true
 
       const tableId = meta.value?.id
-      const projectName = project.value.title!
+      const projectId = project.value.id!
       const table_names = data.tables.map((t: Record<string, any>) => t.table_name)
 
       await Promise.all(
@@ -455,8 +460,8 @@ async function importTemplate() {
                   return res
                 }, {}),
               )
-              await $api.dbTableRow.bulkCreate('noco', projectName, tableId!, batchData)
-              updateImportTips(projectName, tableId!, progress, total)
+              await $api.dbTableRow.bulkCreate('noco', projectId, tableId!, batchData)
+              updateImportTips(projectId, tableId!, progress, total)
               progress += batchData.length
             }
           })(key),
@@ -488,6 +493,7 @@ async function importTemplate() {
       const tab = {
         id: '',
         title: '',
+        projectId: '',
       }
 
       // create tables
@@ -508,7 +514,11 @@ async function importTemplate() {
               column.pk = true
               column.rqd = true
             }
-            if (!isSystemColumn(column) && column.uidt !== UITypes.SingleSelect && column.uidt !== UITypes.MultiSelect) {
+            if (
+              (!isSystemColumn(column) || ['created_at', 'updated_at'].includes(column.column_name!)) &&
+              column.uidt !== UITypes.SingleSelect &&
+              column.uidt !== UITypes.MultiSelect
+            ) {
               // delete dtxp if the final data type is not single & multi select
               // e.g. import -> detect as single / multi select -> switch to SingleLineText
               // the correct dtxp will be generated during column creation
@@ -526,9 +536,10 @@ async function importTemplate() {
         table.title = createdTable.title
 
         // open the first table after import
-        if (tab.id === '' && tab.title === '') {
+        if (tab.id === '' && tab.title === '' && tab.projectId === '') {
           tab.id = createdTable.id as string
           tab.title = createdTable.title as string
+          tab.projectId = project.value.id as string
         }
 
         // set display value
@@ -553,7 +564,7 @@ async function importTemplate() {
                 for (let i = 0; i < data.length; i += offset) {
                   updateImportTips(projectName, tableMeta.title, progress, total)
                   const batchData = remapColNames(data.slice(i, i + offset), tableMeta.columns)
-                  await $api.dbTableRow.bulkCreate('noco', projectName, tableMeta.id, batchData)
+                  await $api.dbTableRow.bulkCreate('noco', project.value.id, tableMeta.id, batchData)
                   progress += batchData.length
                 }
                 updateImportTips(projectName, tableMeta.title, total, total)
@@ -575,6 +586,14 @@ async function importTemplate() {
       isImporting.value = false
     }
   }
+
+  if (!data.tables?.length) return
+
+  const tables = projectTables.value.get(project.value!.id!)
+  const toBeNavigatedTable = tables?.find((t) => t.id === data.tables[0].id)
+  if (!toBeNavigatedTable) return
+
+  openTable(toBeNavigatedTable)
 }
 
 function mapDefaultColumns() {
@@ -623,6 +642,41 @@ function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {
   const isChecked = event.target.checked
   for (const record of srcDestMapping.value[tableName]) {
     record.enabled = isChecked
+  }
+}
+
+function handleUIDTChange(column, table) {
+  if (!importWorker) return
+
+  const handler = (e) => {
+    const [type, payload] = e.data
+    switch (type) {
+      case ImportWorkerResponse.SINGLE_SELECT_OPTIONS:
+      case ImportWorkerResponse.MULTI_SELECT_OPTIONS:
+        importWorker.removeEventListener('message', handler, false)
+        column.dtxp = payload
+        break
+    }
+  }
+
+  if (column.uidt === UITypes.SingleSelect) {
+    importWorker.addEventListener('message', handler, false)
+    importWorker.postMessage([
+      ImportWorkerOperations.GET_SINGLE_SELECT_OPTIONS,
+      {
+        tableName: table.ref_table_name,
+        columnName: column.ref_column_name,
+      },
+    ])
+  } else if (column.uidt === UITypes.MultiSelect) {
+    importWorker.addEventListener('message', handler, false)
+    importWorker.postMessage([
+      ImportWorkerOperations.GET_MULTI_SELECT_OPTIONS,
+      {
+        tableName: table.ref_table_name,
+        columnName: column.ref_column_name,
+      },
+    ])
   }
 }
 </script>
@@ -737,7 +791,7 @@ function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {
             <template #header>
               <a-form-item v-if="editableTn[tableIdx]" v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
                 <a-input
-                  v-model:value="table.table_name"
+                  v-model:value.lazy="table.table_name"
                   class="max-w-xs font-weight-bold text-lg"
                   size="large"
                   hide-details
@@ -773,7 +827,7 @@ function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {
               row-class-name="template-form-row"
               :data-source="table.columns"
               :columns="tableColumns"
-              :pagination="false"
+              :pagination="table.columns.length > 50 ? { defaultPageSize: 50, position: ['bottomCenter'] } : false"
             >
               <template #emptyText>
                 <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
@@ -815,13 +869,9 @@ function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {
                       show-search
                       :filter-option="filterOption"
                       dropdown-class-name="nc-dropdown-template-uidt"
+                      @change="handleUIDTChange(record, table)"
                     >
-                      <a-select-option
-                        v-for="(option, i) of uiTypeOptions"
-                        :key="i"
-                        :value="option.value"
-                        :disabled="isSelectDisabled(option.label, table.columns[record.key]?._disableSelect)"
-                      >
+                      <a-select-option v-for="(option, i) of uiTypeOptions" :key="i" :value="option.value">
                         <a-tooltip placement="right">
                           <template v-if="isSelectDisabled(option.label, table.columns[record.key]?._disableSelect)" #title>
                             The field is too large to be converted to {{ option.label }}
@@ -936,6 +986,7 @@ function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {
   :deep(.ant-table-thead) > tr > th {
     @apply bg-white;
   }
+
   :deep(.template-form-row) > td {
     @apply p-0 mb-0;
     .ant-form-item {

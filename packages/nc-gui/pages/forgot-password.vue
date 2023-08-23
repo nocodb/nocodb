@@ -10,7 +10,11 @@ const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
 
-let success = $ref(false)
+const { loadScope } = useCommandPalette()
+
+loadScope('disabled')
+
+const success = ref(false)
 
 const formValidator = ref()
 
@@ -41,7 +45,7 @@ async function resetPassword() {
   resetError()
 
   await api.auth.passwordForgot(form).then(() => {
-    success = true
+    success.value = true
   })
 }
 

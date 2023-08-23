@@ -5,7 +5,6 @@ import {
   IsLockedInj,
   IsPublicInj,
   computed,
-  iconMap,
   inject,
   ref,
   useGlobal,
@@ -15,6 +14,8 @@ import {
   useViewFilters,
   watch,
 } from '#imports'
+
+import FilterIcon from '~icons/nc-icons/filter'
 
 const isLocked = inject(IsLockedInj, ref(false))
 
@@ -53,32 +54,20 @@ watch(
   { immediate: true },
 )
 
-const applyChanges = async () => await filterComp.value?.applyChanges()
-
-const filterAutoSaveLoc = computed({
-  get() {
-    return filterAutoSave.value
-  },
-  set(val) {
-    $e('a:filter:auto-apply', { flag: val })
-    filterAutoSave.value = val
-  },
-})
-
 const open = ref(false)
 
 useMenuCloseOnEsc(open)
 </script>
 
 <template>
-  <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-filter-menu">
+  <NcDropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-filter-menu">
     <div :class="{ 'nc-active-btn': filtersLength }">
       <a-button v-e="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm" :disabled="isLocked">
-        <div class="flex items-center gap-1">
-          <component :is="iconMap.filter" />
+        <div class="flex items-center gap-2">
+          <FilterIcon class="h-4 w-4" />
+
           <!-- Filter -->
-          <span v-if="!isMobileMode" class="text-capitalize !text-xs font-weight-normal">{{ $t('activity.filter') }}</span>
-          <component :is="iconMap.arrowDown" class="text-grey" />
+          <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.filter') }}</span>
 
           <span v-if="filtersLength" class="nc-count-badge">{{ filtersLength }}</span>
         </div>
@@ -86,34 +75,14 @@ useMenuCloseOnEsc(open)
     </div>
 
     <template #overlay>
-      <LazySmartsheetToolbarColumnFilter
+      <SmartsheetToolbarColumnFilter
         ref="filterComp"
-        class="nc-table-toolbar-menu shadow-lg"
+        class="nc-table-toolbar-menu"
         :auto-save="filterAutoSave"
         data-testid="nc-filter-menu"
         @update:filters-length="filtersLength = $event"
       >
-        <div v-if="!isPublic" class="flex items-end mt-2 min-h-[30px]" @click.stop>
-          <a-checkbox id="col-filter-checkbox" v-model:checked="filterAutoSaveLoc" class="col-filter-checkbox" hide-details dense>
-            <span class="text-grey text-xs">
-              {{ $t('msg.info.filterAutoApply') }}
-              <!-- Auto apply -->
-            </span>
-          </a-checkbox>
-
-          <div class="flex-1" />
-
-          <a-button
-            v-show="!filterAutoSave"
-            v-e="['a:filter:auto-apply']"
-            size="small"
-            class="text-xs ml-2"
-            @click="applyChanges"
-          >
-            Apply changes
-          </a-button>
-        </div>
-      </LazySmartsheetToolbarColumnFilter>
+      </SmartsheetToolbarColumnFilter>
     </template>
-  </a-dropdown>
+  </NcDropdown>
 </template>

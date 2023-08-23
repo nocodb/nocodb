@@ -57,7 +57,9 @@ export class BulkUpdatePage extends BasePage {
     const activeColumnsTitles = [];
     // get title for each active column
     for (let i = 0; i < activeColumnsCount; i++) {
-      const title = await getTextExcludeIconText(activeColumns.nth(i).locator('[data-testid="nc-bulk-update-input-label"]'));
+      const title = await getTextExcludeIconText(
+        activeColumns.nth(i).locator('[data-testid="nc-bulk-update-input-label"]')
+      );
       activeColumnsTitles.push(title);
     }
 

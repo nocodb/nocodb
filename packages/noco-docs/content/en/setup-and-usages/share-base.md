@@ -9,17 +9,18 @@ menuTitle: "Share Base"
 ## Generate Share base
 
 - Open Project 
-- Click on `Invite Team` button on bottom left tool bar
+- Click on `Share` button to the top right in the top navigation bar
 
-![image](https://user-images.githubusercontent.com/35857179/192435607-ee00326e-3890-4478-8260-e5c7c286f03a.png)
+![share button](https://github.com/nocodb/nocodb/assets/86527202/44d85978-ad27-40a6-9fd5-ea17a0bd3a79)
 
-- Under `Shared base link` tab and toggle from `Disabled Share base` to `Anyone with the link`
+- Under `Shared base` section and toggle `Enable public access` to enable shared base
 
-![image](https://user-images.githubusercontent.com/35857179/192435735-71fc161b-48fc-49e2-94ad-55713932f10a.png)
+![Share base modal](https://github.com/nocodb/nocodb/assets/86527202/4fc4e98a-d180-476d-8b5a-6a5903f081fc)
 
-- Share base link generated is displayed over & can be used to share this project to others in the team [Selection (2) in the image below]
+- Share base link generated is displayed over & can be used to share this project to others. Click `Copy Link` to copy URL
 
-![Screenshot 2022-02-19 at 12 01 58 PM](https://user-images.githubusercontent.com/86527202/154789725-a1194e30-3101-423a-bd5c-25009c361b96.png)
+![shared base enable access](https://github.com/nocodb/nocodb/assets/86527202/c5d18e7d-69cb-474c-94f2-d863d8cbc2b3)
+
 
 ## Modify Share base
 
@@ -27,7 +28,9 @@ Modifying `Share base` will invalidate the `Share base` link generated previousl
 
 -   Open Project base
 -   Click on 'Share' button on top right tool bar
--   Click on 'Reload' button on Quick menu (next to Shared base link)
+-   Toggle ``Enable public access`` to disable base share
+-   Toggle ``Enable public access`` to re-enable base share & generate a new link
+
 
 ## Disable Share base
 
@@ -35,7 +38,7 @@ Disabling `Share base` will invalidate the generated `Share base` link
 
 -   Open Project base
 -   Click on 'Share' button on top right tool bar
--   Under `Shared base link` and toggle from `Anyone with the link` to `Disable Share base`
+-   Toggle ``Enable public access`` to disable base share
 
 ## Share base Access Permissions
 
@@ -43,6 +46,8 @@ Shared base can be configured as
 
 -   Viewer - User with the link will get **READ ONLY** access to the project data.
 -   Editor - User with the link will get **READ & WRITE** access to the project data.
+
+Toggle `Enable Editor Access` button to configure permissions as desired
 
 ## Embeddable Frame
 
@@ -52,7 +57,7 @@ NocoDB interface can be embedded into existing applications easily by making use
 
 -   Open Project base
 -   Click on 'Share' button on top right tool bar
--   Under 'Shared base link' tab
+-   Under 'Shared base' section
     -   Click on </> button to copy 'Embeddable HTML code'
 
 Example:

@@ -1,13 +1,13 @@
 import { UITypes } from 'nocodb-sdk';
-import { MetaTable } from '../utils/globals';
-import Base from '../models/Base';
-import Model from '../models/Model';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { throwTimeoutError } from './ncUpgradeErrors';
-import type { XKnex } from '../db/CustomKnex';
+import type { XKnex } from '~/db/CustomKnex';
 import type { Knex } from 'knex';
 import type { NcUpgraderCtx } from './NcUpgrader';
 import type { BaseType } from 'nocodb-sdk';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import Model from '~/models/Model';
+import Base from '~/models/Base';
+import { MetaTable } from '~/utils/globals';
 
 // after 0101002 upgrader, the attachment object would become broken when
 // (1) switching views after updating a singleSelect field

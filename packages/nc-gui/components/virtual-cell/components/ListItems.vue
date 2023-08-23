@@ -24,7 +24,7 @@ const emit = defineEmits(['update:modelValue', 'addNewRecord'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const column = inject(ColumnInj)
+const injectedColumn = inject(ColumnInj)
 
 const filterQueryRef = ref()
 
@@ -34,7 +34,6 @@ const {
   childrenExcludedListPagination,
   relatedTableDisplayValueProp,
   link,
-  getRelatedTableRowId,
   relatedTableMeta,
   meta,
   row,
@@ -51,14 +50,15 @@ const selectedRowIndex = ref(0)
 const isAltKeyDown = ref(false)
 
 const linkRow = async (row: Record<string, any>) => {
+  childrenExcludedList.value?.list?.splice(selectedRowIndex.value, 1)
   if (isNew.value) {
-    addLTARRef(row, column?.value as ColumnType)
+    addLTARRef(row, injectedColumn?.value as ColumnType)
     saveRow!()
   } else {
     await link(row)
   }
   if (isAltKeyDown.value) {
-    loadChildrenExcludedList()
+    if (!isNew.value) loadChildrenExcludedList()
   } else {
     vModel.value = false
   }
@@ -80,7 +80,7 @@ const expandedFormDlg = ref(false)
 /** populate initial state for a new row which is parent/child of current record */
 const newRowState = computed(() => {
   if (isNew.value) return {}
-  const colOpt = (column?.value as ColumnType)?.colOptions as LinkToAnotherRecordType
+  const colOpt = (injectedColumn?.value as ColumnType)?.colOptions as LinkToAnotherRecordType
   const colInRelatedTable: ColumnType | undefined = relatedTableMeta?.value?.columns?.find((col) => {
     if (col.uidt !== UITypes.LinkToAnotherRecord) return false
     const colOpt1 = col?.colOptions as LinkToAnotherRecordType
@@ -197,7 +197,7 @@ watch(vModel, (nextVal) => {
     :body-style="{ padding: 0 }"
     wrap-class-name="nc-modal-link-record"
   >
-    <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col py-6">
+    <div class="h-[min(max(calc(100vh_-_300px)_,350px),540px)] flex flex-col py-6">
       <div class="flex mb-4 items-center gap-2 px-12">
         <a-input
           ref="filterQueryRef"
@@ -224,18 +224,18 @@ watch(vModel, (nextVal) => {
             v-for="(refRow, i) in childrenExcludedList?.list ?? []"
             :key="i"
             :ref="selectedRowIndex === i ? activeRow : null"
-            class="!my-4 cursor-pointer hover:(!bg-gray-200/50 shadow-md) group"
+            class="nc-nested-list-item !my-2 cursor-pointer hover:(!bg-gray-200/50 shadow-md) group"
             :class="{ 'nc-selected-row': selectedRowIndex === i }"
             @click="linkRow(refRow)"
           >
             <VirtualCellComponentsItemChip
+              :item="refRow"
               :value="refRow[relatedTableDisplayValueProp]"
               :column="props.column"
               :show-unlink-button="false"
+              :border="false"
+              readonly
             />
-            <span class="hidden group-hover:(inline) text-gray-400 text-[11px] ml-1">
-              ({{ $t('labels.primaryKey') }} : {{ getRelatedTableRowId(refRow) }})
-            </span>
           </a-card>
         </div>
 
@@ -246,7 +246,7 @@ watch(vModel, (nextVal) => {
             v-model:page-size="childrenExcludedListPagination.size"
             class="mt-2 !text-xs"
             size="small"
-            :total="childrenExcludedList.pageInfo.totalRows"
+            :total="+childrenExcludedList.pageInfo.totalRows"
             show-less-items
           />
         </div>
@@ -279,5 +279,9 @@ watch(vModel, (nextVal) => {
 
 :deep(.nc-selected-row) {
   @apply !ring;
+}
+
+:deep(.nc-nested-list-item .ant-card-body) {
+  @apply !px-1 !py-0;
 }
 </style>

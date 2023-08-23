@@ -11,8 +11,8 @@ import {
 import { FilterReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import {
+  Acl,
   ExtractIdsMiddleware,
-  UseAclMiddleware,
 } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { LayoutFilterService } from '~/services/dashboards/layoutFilter.service';
@@ -25,9 +25,7 @@ export class LayoutFilterController {
   @Get([
     '/api/v1/dashboards/:dashboardId/layouts/:layoutId/widgets/:widgetId/filters',
   ])
-  @UseAclMiddleware({
-    permissionName: 'widgetFilterList',
-  })
+  @Acl('widgetFilterList')
   async filterList(
     @Param('layoutId') layoutId: string,
     @Param('widgetId') widgetId: string,
@@ -44,9 +42,7 @@ export class LayoutFilterController {
     '/api/v1/dashboards/:dashboardId/layouts/:layoutId/widgets/:widgetId/filters',
   ])
   @HttpCode(200)
-  @UseAclMiddleware({
-    permissionName: 'widgetFilterCreate',
-  })
+  @Acl('widgetFilterCreate')
   async filterCreate(
     @Param('layoutId') layoutId: string,
     @Param('widgetId') widgetId: string,

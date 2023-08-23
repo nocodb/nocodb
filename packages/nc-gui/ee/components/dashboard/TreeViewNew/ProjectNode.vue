@@ -450,7 +450,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
           class="project-title-node h-7.25 flex-grow rounded-md group flex items-center w-full"
         >
           <div
-            class="nc-sidebar-expand ml-3 min-h-5.75 min-w-5.75 px-1.5 text-gray-500 hover:(hover:bg-gray-500 hover:bg-opacity-15 !text-black) rounded-md relative"
+            class="nc-sidebar-expand ml-0.75 min-h-5.75 min-w-5.75 px-1.5 text-gray-500 hover:(hover:bg-gray-500 hover:bg-opacity-15 !text-black) rounded-md relative"
             @click="onProjectClick(project, true, true)"
           >
             <PhTriangleFill
@@ -551,7 +551,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   <a-menu-item key="erd" @click="openProjectErdView(project)">
                     <div class="nc-project-menu-item group">
                       <GeneralIcon icon="erd" />
-                      {{ $t('title.erdView') }}
+                      Relations
                     </div>
                   </a-menu-item>
 
@@ -715,7 +715,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                                   <a-menu-item key="erd" @click="openErdView(base)">
                                     <div class="nc-project-menu-item group">
                                       <GeneralIcon icon="erd" />
-                                      {{ $t('title.erdView') }}
+                                      Relations
                                     </div>
                                   </a-menu-item>
 

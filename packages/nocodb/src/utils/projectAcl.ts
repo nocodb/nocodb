@@ -122,6 +122,7 @@ const rolePermissions = {
       viewList: true,
       columnList: true,
       viewColumnUpdate: true,
+      gridViewUpdate: true,
 
       sortList: true,
       sortCreate: true,

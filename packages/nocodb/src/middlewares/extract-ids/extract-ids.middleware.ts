@@ -20,6 +20,7 @@ import {
   Model,
   Project,
   Sort,
+  SyncSource,
   View,
 } from '~/models';
 import extractRolesObj from '~/utils/extractRolesObj';
@@ -119,6 +120,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     } else if (params.sortId) {
       const sort = await Sort.get(params.sortId);
       req.ncProjectId = sort?.project_id;
+    } else if (params.syncId) {
+      const syncSource = await SyncSource.get(req.params.syncId);
+      req.ncProjectId = syncSource.project_id;
     }
     // extract fk_model_id from query params only if it's audit post endpoint
     else if (

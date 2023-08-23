@@ -14,9 +14,17 @@ const props = withDefaults(
 
 const emits = defineEmits(['update:visible'])
 
-const trigger = computed(() => props.trigger)
+const trigger = toRef(props, 'trigger')
 
-const overlayClassName = computed(() => props.overlayClassName)
+const overlayClassName = toRef(props, 'overlayClassName')
+
+const overlayClassNameComputed = computed(() => {
+  let className = 'nc-dropdown bg-white rounded-2xl border-1 border-gray-100 shadow-md overflow-hidden'
+  if (overlayClassName.value) {
+    className += ` ${overlayClassName.value}`
+  }
+  return className
+})
 
 const visible = useVModel(props, 'visible', emits)
 </script>
@@ -25,10 +33,7 @@ const visible = useVModel(props, 'visible', emits)
   <a-dropdown
     :visible="visible"
     :trigger="trigger"
-    :overlay-class-name="{
-      'nc-dropdown bg-white rounded-2xl border-1 border-gray-100 shadow-md overflow-hidden': true,
-      [overlayClassName as any]: !!overlayClassName,
-    } as any"
+    :overlay-class-name="overlayClassNameComputed"
     @update:visible="visible !== undefined ? (visible = $event) : undefined"
   >
     <slot />

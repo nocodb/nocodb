@@ -143,6 +143,7 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
 <template>
   <div
     ref="attachmentCellRef"
+    tabindex="0"
     :style="{
       height: isForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
     }"

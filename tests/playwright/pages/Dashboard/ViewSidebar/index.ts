@@ -132,6 +132,11 @@ export class ViewSidebarPage extends BasePage {
   async deleteView({ title }: { title: string }) {
     await this.get().locator(`[data-testid="view-sidebar-view-${title}"]`).hover();
     await this.get()
+      .locator(`[data-testid="view-sidebar-view-${title}"]`)
+      .locator('.nc-view-sidebar-node-context-btn')
+      .click();
+
+    await this.rootPage
       .locator(`[data-testid="view-sidebar-view-actions-${title}"]`)
       .locator('.nc-view-delete-icon')
       .click();
@@ -149,6 +154,11 @@ export class ViewSidebarPage extends BasePage {
   async copyView({ title }: { title: string }) {
     await this.get().locator(`[data-testid="view-sidebar-view-${title}"]`).hover();
     await this.get()
+      .locator(`[data-testid="view-sidebar-view-${title}"]`)
+      .locator('.nc-view-sidebar-node-context-btn')
+      .click();
+
+    await this.rootPage
       .locator(`[data-testid="view-sidebar-view-actions-${title}"]`)
       .locator('.nc-view-copy-icon')
       .click();

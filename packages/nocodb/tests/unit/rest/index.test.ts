@@ -13,7 +13,7 @@ import groupByTest from './tests/groupby.test';
 
 let workspaceTest = () => {};
 if (process.env.EE === 'true') {
-  workspaceTest = require('./ee/workspace.test').default;
+  workspaceTest = require('./tests/ee/workspace.test').default;
 }
 // import layoutTests from './tests/layout.test';
 // import widgetTest from './tests/widget.test';

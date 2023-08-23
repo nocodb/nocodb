@@ -1,4 +1,3 @@
-import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { ProjectRole, Role } from './enums'
 
 export const NOCO = 'noco'
@@ -49,10 +48,12 @@ const rolePermissions = {
       appLicense: true,
       moveProject: true,
       projectDelete: true,
+      projectCreate: true,
     },
   },
   [ProjectRole.Owner]: {
     exclude: {
+      projectCreate: true,
       appStore: true,
       superAdminUserManagement: true,
       superAdminAppSettings: true,
@@ -102,17 +103,5 @@ const rolePermissions = {
     },
   },
 } as const
-
-// todo: fix type error
-rolePermissions[WorkspaceUserRoles.OWNER] = rolePermissions[ProjectRole.Owner]
-rolePermissions[WorkspaceUserRoles.CREATOR] = {
-  exclude: {
-    ...rolePermissions[ProjectRole.Creator].exclude,
-    workspaceDelete: true,
-  },
-}
-rolePermissions[WorkspaceUserRoles.VIEWER] = rolePermissions[ProjectRole.Viewer]
-rolePermissions[WorkspaceUserRoles.EDITOR] = rolePermissions[ProjectRole.Editor]
-rolePermissions[WorkspaceUserRoles.COMMENTER] = rolePermissions[ProjectRole.Commenter]
 
 export { rolePermissions }

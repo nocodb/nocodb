@@ -219,8 +219,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     }
 
     /** save files on drop */
-    async function onDrop(droppedFiles: File[] | null) {
-      if (isReadonly.value || isLockedMode.value) return
+    async function onDrop(droppedFiles: FileList | File[] | null) {
+      if (isReadonly.value) return
 
       if (droppedFiles) {
         // set files

@@ -2,22 +2,11 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import type { KanbanType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
-import {
-  IsLockedInj,
-  iconMap,
-  inject,
-  message,
-  onKeyStroke,
-  useDebounceFn,
-  useNuxtApp,
-  useUIPermission,
-  useVModel,
-} from '#imports'
+import { IsLockedInj, inject, message, onKeyStroke, useDebounceFn, useNuxtApp, useUIPermission, useVModel } from '#imports'
 
 interface Props {
   view: ViewType
   onValidate: (view: ViewType) => boolean | string
-  disabled: boolean
 }
 
 interface Emits {
@@ -48,16 +37,10 @@ const activeView = inject(ActiveViewInj, ref())
 
 const isLocked = inject(IsLockedInj, ref(false))
 
-const _isEditing = ref(false)
-/** Is editing the view name enabled */
-const isEditing = computed({
-  get: () => !props.disabled && _isEditing.value,
-  set: (value) => {
-    if (props.disabled) return
+const isDropdownOpen = ref(false)
 
-    _isEditing.value = value
-  },
-})
+const isEditing = ref(false)
+/** Is editing the view name enabled */
 
 /** Helper to check if editing was disabled before the view navigation timeout triggers */
 const isStopped = ref(false)
@@ -75,7 +58,6 @@ const onClick = useDebounceFn(() => {
 /** Enable editing view name on dbl click */
 function onDblClick() {
   if (!isUIAllowed('virtualViewsCreateOrEdit')) return
-  if (props.disabled) return
 
   if (!isEditing.value) {
     isEditing.value = true
@@ -120,6 +102,8 @@ const focusInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 /** Duplicate a view */
 // todo: This is not really a duplication, maybe we need to implement a true duplication?
 function onDuplicate() {
+  isDropdownOpen.value = false
+
   emits('openModal', {
     type: vModel.value.type!,
     title: vModel.value.title,
@@ -132,14 +116,17 @@ function onDuplicate() {
 
 /** Delete a view */
 async function onDelete() {
+  isDropdownOpen.value = false
+
   emits('delete', vModel.value)
 }
 
 /** Rename a view */
 async function onRename() {
+  isDropdownOpen.value = false
   if (!isEditing.value) return
 
-  const isValid = props.onValidate(vModel.value)
+  const isValid = props.onValidate({ ...vModel.value, title: _title.value! })
 
   if (isValid !== true) {
     message.error(isValid)
@@ -205,7 +192,7 @@ function onStopEdit() {
       </div>
 
       <a-input
-        v-if="isEditing && !props.disabled"
+        v-if="isEditing"
         :ref="focusInput"
         v-model:value="_title"
         class="!bg-transparent !text-xs !border-0 !ring-0 !outline-transparent !border-transparent"
@@ -228,29 +215,69 @@ function onStopEdit() {
       <div class="flex-1" />
 
       <template v-if="!isEditing && !isLocked && isUIAllowed('virtualViewsCreateOrEdit')">
-        <div class="flex items-center gap-1" :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`">
-          <a-tooltip placement="left">
-            <template #title>
-              {{ $t('activity.copyView') }}
-            </template>
+        <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">
+          <div
+            class="invisible !group-hover:visible"
+            :class="{
+              '!visible': isDropdownOpen,
+            }"
+          >
+            <NcButton
+              type="text"
+              size="xsmall"
+              class="nc-view-sidebar-node-context-btn !px-1 !hover:bg-gray-200"
+              @click.stop="isDropdownOpen = !isDropdownOpen"
+            >
+              <GeneralIcon icon="threeDotVertical" class="-mt-0.5" />
+            </NcButton>
+          </div>
+          <template #overlay>
+            <div
+              class="flex flex-col items-center min-w-27"
+              :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`"
+            >
+              <NcButton
+                type="text"
+                size="small"
+                class="w-full !rounded-none !hover:bg-gray-200"
+                :centered="false"
+                @click.stop="onDblClick"
+              >
+                <div class="flex flex-row items-center gap-x-2 pl-2 text-xs">
+                  <GeneralIcon icon="edit" />
+                  Rename
+                </div>
+              </NcButton>
+              <NcButton
+                type="text"
+                size="small"
+                class="nc-view-copy-icon w-full !rounded-none !hover:bg-gray-200"
+                :centered="false"
+                @click.stop="onDuplicate"
+              >
+                <div class="flex flex-row items-center gap-x-2 pl-1.5 text-xs">
+                  <GeneralIcon icon="copy" class="text-base" />
+                  Duplicate
+                </div>
+              </NcButton>
 
-            <component :is="iconMap.copy" class="!hidden !group-hover:block nc-view-copy-icon" @click.stop="onDuplicate" />
-          </a-tooltip>
-
-          <template v-if="!vModel.is_default">
-            <a-tooltip placement="left">
-              <template #title>
-                {{ $t('activity.deleteView') }}
+              <template v-if="!vModel.is_default">
+                <NcButton
+                  type="text"
+                  size="small"
+                  class="nc-view-delete-icon w-full !hover:bg-gray-200 !rounded-none"
+                  :centered="false"
+                  @click.stop="onDelete"
+                >
+                  <div class="flex flex-row items-center gap-x-2.25 pl-1.75 text-red-400 text-xs">
+                    <GeneralIcon icon="delete" />
+                    Delete
+                  </div>
+                </NcButton>
               </template>
-
-              <component
-                :is="iconMap.delete"
-                class="!hidden !group-hover:block text-red-600 nc-view-delete-icon"
-                @click.stop="onDelete"
-              />
-            </a-tooltip>
+            </div>
           </template>
-        </div>
+        </NcDropdown>
       </template>
     </div>
   </a-menu-item>

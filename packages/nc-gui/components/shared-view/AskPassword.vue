@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
+import type { InputPassword } from 'ant-design-vue'
 import { extractSdkResponseErrorMsg, message, ref, useRoute, useSharedView, useVModel } from '#imports'
 
 const props = defineProps<{
@@ -26,7 +27,7 @@ const onFinish = async () => {
   }
 }
 
-const focus: VNodeRef = (el) => el?.$el?.querySelector('nc-input-md').focus()
+const focus: VNodeRef = (el: typeof InputPassword) => el?.$el?.querySelector('input').focus()
 </script>
 
 <template>
@@ -40,7 +41,7 @@ const focus: VNodeRef = (el) => el?.$el?.querySelector('nc-input-md').focus()
     <div class="mt-2">
       <a-form :model="formState" name="create-new-table-form" @finish="onFinish">
         <a-form-item name="password" :rules="[{ required: true, message: 'Password is required' }]">
-          <a-input
+          <a-input-password
             ref="focus"
             v-model:value="formState.password"
             class="nc-input-md"

@@ -31,15 +31,16 @@ const focus: VNodeRef = (el: typeof InputPassword) => el?.$el?.querySelector('in
 </script>
 
 <template>
-  <NcModal v-model:visible="vModel" size="small" :class="{ active: vModel }">
+  <NcModal v-model:visible="vModel" c size="small" :class="{ active: vModel }" :mask-closable="false">
     <template #header>
       <div class="flex flex-row items-center gap-x-2">
         <GeneralIcon icon="key" />
         This shared view is protected
       </div>
     </template>
+
     <div class="mt-2">
-      <a-form :model="formState" name="create-new-table-form" @finish="onFinish">
+      <a-form ref="formRef" :model="formState" name="create-new-table-form" @finish="onFinish">
         <a-form-item name="password" :rules="[{ required: true, message: 'Password is required' }]">
           <a-input-password
             ref="focus"
@@ -52,7 +53,7 @@ const focus: VNodeRef = (el: typeof InputPassword) => el?.$el?.querySelector('in
         </a-form-item>
       </a-form>
       <div class="flex flex-row justify-end gap-x-2 mt-6">
-        <NcButton type="primary" html-type="submit"
+        <NcButton type="primary" html-type="submit" @click="onFinish"
           >Unlock
           <template #loading> Verifying Password </template>
         </NcButton>

@@ -5,7 +5,10 @@ const { openedProject } = storeToRefs(useProjects())
 const { activeTables } = storeToRefs(useTablesStore())
 const { activeWorkspace } = storeToRefs(useWorkspace())
 
-const route = useRoute()
+const { navigateToProjectPage } = useProject()
+
+const router = useRouter()
+const route = router.currentRoute
 
 /* const defaultBase = computed(() => {
   return openedProject.value?.bases?.[0]
@@ -15,25 +18,33 @@ const { isUIAllowed } = useUIPermission()
 
 const { isMobileMode } = useGlobal()
 
-const activeKey = ref<'allTables' | 'collaborators' | 'data-sources'>('allTables')
+const activeKey = ref<'allTable' | 'collaborator' | 'data-source'>('allTable')
 
 const baseSettingsState = ref('')
 
 watch(
-  () => route.query.page,
+  () => route.value.query?.page,
   (newVal, oldVal) => {
     if (newVal && newVal !== oldVal) {
-      if (newVal === 'collaborators') {
-        activeKey.value = 'collaborators'
-      } else if (newVal === 'data-sources') {
-        activeKey.value = 'data-sources'
+      if (newVal === 'collaborator') {
+        activeKey.value = 'collaborator'
+      } else if (newVal === 'data-source') {
+        activeKey.value = 'data-source'
       } else {
-        activeKey.value = 'allTables'
+        activeKey.value = 'allTable'
       }
     }
   },
   { immediate: true },
 )
+
+watch(activeKey, () => {
+  if (activeKey.value) {
+    navigateToProjectPage({
+      page: activeKey.value as any,
+    })
+  }
+})
 
 watch(
   () => openedProject.value?.title,
@@ -64,7 +75,7 @@ watch(
       }"
     >
       <a-tabs v-model:activeKey="activeKey" class="w-full">
-        <a-tab-pane key="allTables">
+        <a-tab-pane key="allTable">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__all-tables">
               <NcLayout />
@@ -72,8 +83,8 @@ watch(
               <div
                 class="flex pl-1.25 px-1.5 py-0.75 rounded-md text-xs"
                 :class="{
-                  'bg-primary-selected': activeKey === 'allTables',
-                  'bg-gray-50': activeKey !== 'allTables',
+                  'bg-primary-selected': activeKey === 'allTable',
+                  'bg-gray-50': activeKey !== 'allTable',
                 }"
               >
                 {{ activeTables.length }}
@@ -85,16 +96,16 @@ watch(
         <!-- <a-tab-pane v-if="defaultBase" key="erd" tab="Project ERD" force-render class="pt-4 pb-12">
           <ErdView :base-id="defaultBase!.id" class="!h-full" />
         </a-tab-pane> -->
-        <a-tab-pane v-if="isUIAllowed('shareProject')" key="collaborators">
+        <a-tab-pane v-if="isUIAllowed('shareProject')" key="collaborator">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__access-settings">
               <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
-              <div>Collaborators</div>
+              <div>Collaborator</div>
             </div>
           </template>
           <ProjectAccessSettings />
         </a-tab-pane>
-        <a-tab-pane v-if="isUIAllowed('createBase')" key="data-sources">
+        <a-tab-pane v-if="isUIAllowed('createBase')" key="data-source">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__data-sources">
               <GeneralIcon icon="database" />

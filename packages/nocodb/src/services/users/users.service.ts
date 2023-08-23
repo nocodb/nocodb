@@ -124,7 +124,8 @@ export class UsersService {
       (user as any).createdProject = await this.createDefaultProject(user);
     }
 
-    return user;
+    // todo: update swagger type
+    return user as any;
   }
 
   async passwordChange(param: {
@@ -421,6 +422,7 @@ export class UsersService {
     if (!ignore_subscribe) {
       T.emit('evt_subscribe', email);
     }
+    let createdProject = undefined;
 
     if (user) {
       if (token) {
@@ -436,12 +438,14 @@ export class UsersService {
         NcError.badRequest('User already exist');
       }
     } else {
-      await this.registerNewUserIfAllowed({
-        email,
-        salt,
-        password,
-        email_verification_token,
-      });
+      const { createdProject: _createdProject } =
+        await this.registerNewUserIfAllowed({
+          email,
+          salt,
+          password,
+          email_verification_token,
+        });
+      createdProject = _createdProject;
     }
     user = await User.getByEmail(email);
 
@@ -484,7 +488,7 @@ export class UsersService {
       user,
     });
 
-    return this.login(user);
+    return { ...this.login(user), createdProject };
   }
 
   login(user: UserType) {

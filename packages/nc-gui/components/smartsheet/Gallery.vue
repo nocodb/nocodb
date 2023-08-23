@@ -283,7 +283,7 @@ watch(
                   </template>
                 </a-carousel>
                 <div v-else class="h-52 w-full !flex flex-row items-center justify-center">
-                  <img class="object-contain w-36" src="~assets/icons/FileIconImageBox.svg" />
+                  <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
                 </div>
               </template>
 

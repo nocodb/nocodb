@@ -6,17 +6,21 @@ category: 'Product'
 menuTitle: 'Dashboard'
 ---
 
-## Setup Your First Super Admin
+## Setup Your First Account : Super Admin
 
 Once you have started NocoDB, you can visit the dashboard via `example.com`. You will be redirected to `example.com/#/signup`. 
 
 Enter your work email and your password.
 
-<img width="1492" alt="image" src="https://user-images.githubusercontent.com/35857179/194793294-fa027496-c3c3-44eb-a613-2ba3e3bd26c1.png">
+![signup](https://github.com/nocodb/nocodb/assets/86527202/f424f935-fef2-4080-8b67-3f6f1bd95c65)
 
 <alert id="password-conditions">
   Your password has at least 8 letters. No other constraints on case, numbers or special characters.
 </alert>
+
+On signup, landing page has a default project & a table created for you to quickly get started
+
+![landing page](https://github.com/nocodb/nocodb/assets/86527202/cd09dbeb-f5e1-42e6-92bb-abd4b3ab48bf)
 
 ## Initialize Your First Project
 
@@ -42,61 +46,10 @@ NC_DB is an environment variable used to store the meta data in the given databa
 Click on three-dot menu adjacent to `BASES`. Pick required database option from the menu `Connect to new datasource`. 
 
 <alert type="success">
-Tip: If you are running NocoDB on Docker and your local DB is running on your host machine, your Host Address would be host.docker.internal instead of localhost.
+Tip: If you are running NocoDB on Docker and your local DB is running on your host machine, your Host Address would be host.docker.internal instead of localhost. If you use a docker-compose.yml file and your local DB is running on another container, your Host Address would be the name of the database service, for instance 'root_db' for a configuration like this: https://github.com/nocodb/nocodb/blob/aa48f50823269d5e0f3eea57f4d67cfa5d311d58/docker-compose/pg/docker-compose.yml#L15)
 </alert>
 
 ![Screenshot 2022-12-29 at 2 55 39 PM](https://user-images.githubusercontent.com/86527202/209933294-9327ff16-21db-4aca-bf16-8cea8a1eb415.png)
   
-Above menu is also accessible from `Team & Settings` > `Data Sources`. Click on `New` button to add existing database. 
-  
-![image](https://user-images.githubusercontent.com/35857179/219841162-6456c5cf-fd26-4a88-8de6-e8742c043607.png)
 
-You need to specify the project name, API type, and other database parameters.
-  
-![image](https://user-images.githubusercontent.com/35857179/219841283-1a42f9f6-4677-4e25-8ca9-a060753d1e1e.png)
-  
-Currently it supports MySQL, Postgres, MSSQL and SQLite.
 
-You can also configure associated SSL & advanced parameters.
-
-<img width="689" alt="image" src="https://user-images.githubusercontent.com/35857179/189047293-05176c44-e162-495a-a7cd-e02377c1f42c.png">
-
-<alert type="success">
-Tip: You can click Edit Connection JSON and modify SSL settings in "ssl".
-</alert>
-
-```json
-{
-  "client": "pg",
-  "connection": {
-    "host": "<YOUR_HOST>",
-    "port": "5432",
-    "user": "<YOUR_DB_USER>",
-    "password": "<YOUR_DB_PASSWORD>",
-    "database": "<YOUR_DB_NAME>",
-    "ssl": {
-      "require": true,
-      "rejectUnauthorized": false,
-      "sslMode": "no-verify"
-    }
-  }
-}
-```
-
-<alert type="success">
-Tip: You can click Edit Connection JSON and specify the schema you want to use in "searchPath".
-</alert>
-
-```json
-{
-  "client": "pg",
-  "connection": {
-    ...
-  },
-  "searchPath": [ "<YOUR_TARGET_SCHEMA>" ]
-}
-```
-
-Click `Test Database Connection` to see if the connection can be established or not. NocoDB creates a new **empty database** with specified parameters if the database doesn't exist.
-
-<img width="505" alt="image" src="https://user-images.githubusercontent.com/35857179/194793513-feabf14f-1f62-4896-b06d-88548251511a.png">

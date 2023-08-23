@@ -8,10 +8,14 @@ menuTitle: 'Team & Settings > Project Settings'
 
 ## Overview
 
-Generic project configuration options are retained under `Project Settings` menu. To access it, click the down arrow button next to Project Name on the top left side, then select `Team & Settings`.
+Generic project configuration options are retained under `Project Settings` menu. To access it, click the down arrow button next to Project Name on the top left side, then select `Settings`.
 
-<img width="322" alt="image" src="https://user-images.githubusercontent.com/35857179/194856648-67936db0-ee4d-4060-be3d-af9f86ef8fc6.png">
+![project settings](https://github.com/nocodb/nocodb/assets/86527202/04dd96f1-5c9d-4de8-bd02-a8b80a1c137c)
 
-Then, under SETTINGS, click `Project Settings`.
+## Configurations
+- Show M2M Tables: M2M (junction) tables are hidden by default (system tables). Enabling this will display these along with other tables in project tree view
+- Show NULL in Cells: When enabled, NULL value in cell is explicitly displayed
+- Show NULL & EMPTY in Filter: By default, NULL & EMPTY cells are treated alike. Enabling this will have additional filter options to differentiate
 
-![image](https://user-images.githubusercontent.com/35857179/219830971-9518fa21-a45c-4d49-af3f-2f933d779ecd.png)
+![project settings options](https://github.com/nocodb/nocodb/assets/86527202/d073dbe9-a6ec-449b-8b89-24215b0e40c0)
+

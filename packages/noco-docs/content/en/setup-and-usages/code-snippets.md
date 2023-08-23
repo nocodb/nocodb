@@ -8,13 +8,10 @@ menuTitle: 'Code Snippets'
 
 ## Overview
 
-In the table toolbar, click Table name button and click `Get API Snippet`.
+In the table topbar, toggle to `Details` tab, click `APIs`.
+Tab body will display sample code snippet for List API.
 
-<img width="476" alt="image" src="https://user-images.githubusercontent.com/35857179/194796042-e80ee8dd-a26f-4b75-a7ff-7cfdab1dcc43.png">
-
-A modal box will be shown with sample code snippet for List API.
-
-<img width="1499" alt="image" src="https://user-images.githubusercontent.com/35857179/194796072-b521e3eb-4f25-42d9-bdfe-ef2dd22a1efa.png">
+![code snippet](https://github.com/nocodb/nocodb/assets/86527202/fb281926-b066-48b2-9b91-8b628a3c09b4)
 
 ## Supported Snippet
 

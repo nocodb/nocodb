@@ -37,7 +37,7 @@ Workflow details are captured below.
 
 ## Adding a relationship
   
-![Screenshot 2023-06-27 at 11 03 20 AM](https://github.com/nocodb/nocodb/assets/86527202/b3762fc8-4bba-42ef-8415-41428840ee0e)
+![Links](https://github.com/nocodb/nocodb/assets/86527202/97203ff1-29e1-46de-9987-18a14e7b7bb3)
 
 
 1. Create column
@@ -63,7 +63,8 @@ Workflow details are captured below.
 ### 1. Open link record tab
 
 Click on the '+' icon in corresponding row - cell
-![Screenshot 2023-06-27 at 11 06 52 AM](https://github.com/nocodb/nocodb/assets/86527202/96a90a6d-544e-4e43-b6d1-fe1aef784257)
+![links add](https://github.com/nocodb/nocodb/assets/86527202/25132434-606e-4c9c-aa66-e0753d6ca49a)
+
 
 ### 2. Select from the option displayed
 
@@ -71,21 +72,25 @@ Use 'Filter box' to narrow down on search items.
 You can opt to insert a new record as well, using "+ New Record" button.  
 You can use `ALT + Click` to insert multiple options together.  
   
-![Screenshot 2023-06-27 at 11 08 40 AM](https://github.com/nocodb/nocodb/assets/86527202/68246783-8d01-488b-8926-644fca8fa164)
+![links child list](https://github.com/nocodb/nocodb/assets/86527202/c10912b2-a202-4cb0-b4be-daeead1ecef3)
+
 
 ### 3. Column display for "Has Many" relationship
 
 Country 'has many' City
 
-![Screenshot 2023-06-27 at 11 11 50 AM](https://github.com/nocodb/nocodb/assets/86527202/b5bb62b7-37ad-480e-8bf2-d666b775b07a)
+![links has many](https://github.com/nocodb/nocodb/assets/86527202/92a72ea6-6acf-4c4d-aa0e-86dc3644905a)
 
+
+Display remains similar for "Many to Many" relationship as well
 
 ### 4. Column display for "Belongs to" relationship [Automatically updated]
 
 City 'belongs to' Country.  
 Note: Primary value is still used as cell display value for "Belongs to" as it can have only one associated record.
 
-![Screenshot 2023-06-27 at 11 12 27 AM](https://github.com/nocodb/nocodb/assets/86527202/54e9ee75-4af5-49f6-8cd9-275dc53a8915)
+![links belongs to](https://github.com/nocodb/nocodb/assets/86527202/cb16f5c8-1403-4d89-97b6-6b2de7e9729d)
+
 
 
 ## Unlinking records
@@ -93,7 +98,8 @@ Note: Primary value is still used as cell display value for "Belongs to" as it c
 1. Click on link count to open Child modal
 2. Click on Unlink icon against required item
 
-![Screenshot 2023-06-27 at 11 22 00 AM](https://github.com/nocodb/nocodb/assets/86527202/dad3cbc7-289d-45a7-9c49-a72264ed36b1)
+![links unlink](https://github.com/nocodb/nocodb/assets/86527202/f8dc91a5-09ad-46aa-bcc2-5484db034aba)
+
 
 
 
@@ -103,5 +109,6 @@ Note: Primary value is still used as cell display value for "Belongs to" as it c
 
 Use column edit menu for **Links** to reconfigure display label
 
-![Screenshot 2023-06-27 at 11 16 19 AM](https://github.com/nocodb/nocodb/assets/86527202/1aabdd8c-7102-4917-b0c0-b72e1187b0b7)
+![links label config](https://github.com/nocodb/nocodb/assets/86527202/1fb02fd6-6dea-4423-a365-f8db2cdc7a1f)
+
 

@@ -262,14 +262,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isWorkspaceLoading.value = false
   }
 
-  // load projects and collaborators list on active workspace change
-  watch(activePage, async (page) => {
-    if (page === 'workspace') {
-      return
-    }
-    await projectsStore.loadProjects(page)
-  })
-
   const addToFavourite = async (projectId: string) => {
     try {
       const projects = projectsStore.projects

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import type { InputPassword } from 'ant-design-vue'
 import { extractSdkResponseErrorMsg, message, ref, useRoute, useSharedView, useVModel } from '#imports'
 
 const props = defineProps<{
@@ -27,31 +26,36 @@ const onFinish = async () => {
   }
 }
 
-const focus: VNodeRef = (el: typeof InputPassword) => el?.$el?.querySelector('input').focus()
+const focus: VNodeRef = (el) => el?.$el?.querySelector('nc-input-md').focus()
 </script>
 
 <template>
-  <a-modal
-    v-model:visible="vModel"
-    :class="{ active: vModel }"
-    :closable="false"
-    width="28rem"
-    centered
-    :footer="null"
-    :mask-closable="false"
-    wrap-class-name="nc-modal-shared-view-password-dlg"
-    @close="vModel = false"
-  >
-    <div class="w-full flex flex-col">
-      <a-typography-title :level="4">This shared view is protected</a-typography-title>
-
-      <a-form ref="formRef" :model="formState" class="mt-2" @finish="onFinish">
+  <NcModal v-model:visible="vModel" size="small" :class="{ active: vModel }">
+    <template #header>
+      <div class="flex flex-row items-center gap-x-2">
+        <GeneralIcon icon="key" />
+        This shared view is protected
+      </div>
+    </template>
+    <div class="mt-2">
+      <a-form :model="formState" name="create-new-table-form" @finish="onFinish">
         <a-form-item name="password" :rules="[{ required: true, message: 'Password is required' }]">
-          <a-input-password :ref="focus" v-model:value="formState.password" placeholder="Enter password" />
+          <a-input
+            ref="focus"
+            v-model:value="formState.password"
+            class="nc-input-md"
+            hide-details
+            size="large"
+            placeholder="Enter password"
+          />
         </a-form-item>
-
-        <a-button type="primary" html-type="submit">Unlock</a-button>
       </a-form>
+      <div class="flex flex-row justify-end gap-x-2 mt-6">
+        <NcButton type="primary" html-type="submit"
+          >Unlock
+          <template #loading> Verifying Password </template>
+        </NcButton>
+      </div>
     </div>
-  </a-modal>
+  </NcModal>
 </template>

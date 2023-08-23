@@ -10,17 +10,13 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { Audit } from '../models';
-import { AuditsService } from '../services/audits.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { AuditsService } from '~/services/audits.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 export class AuditsController {
   constructor(private readonly auditsService: AuditsService) {}
 
@@ -66,7 +62,7 @@ export class AuditsController {
     });
   }
 
-  @Get('/api/v1/db/meta/projects/:projectId/audits')
+  @Get('/api/v1/db/meta/projects/:projectId/audits/')
   @Acl('auditList')
   async auditList(@Request() req, @Param('projectId') projectId: string) {
     return new PagedResponseImpl(
@@ -75,7 +71,7 @@ export class AuditsController {
         projectId,
       }),
       {
-        count: await Audit.projectAuditCount(projectId),
+        count: this.auditsService.auditCount({ projectId }),
         ...req.query,
       },
     );

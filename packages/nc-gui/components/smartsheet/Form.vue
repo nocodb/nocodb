@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import { RelationTypes, UITypes, ViewTypes, getSystemColumns, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, ViewTypes, getSystemColumns, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import type { Permission } from '#imports'
 import {
   ActiveViewInj,
   IsFormInj,
@@ -26,7 +27,6 @@ import {
   useViewData,
   watch,
 } from '#imports'
-import type { Permission } from '~/lib'
 
 provide(IsFormInj, ref(true))
 provide(IsGalleryInj, ref(false))
@@ -53,6 +53,8 @@ const isEditable = isUIAllowed('editFormView' as Permission)
 const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
+
+const isPublic = inject(IsPublicInj, ref(false))
 
 const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(meta, view)
 
@@ -148,7 +150,7 @@ function isDbRequired(column: Record<string, any>) {
       // confirm it's not foreign key
       !columns.value.some(
         (c: Record<string, any>) =>
-          c.uidt === UITypes.LinkToAnotherRecord &&
+          isLinksOrLTAR(c.uidt) &&
           c?.colOptions?.type === RelationTypes.BELONGS_TO &&
           column.fk_column_id === c.colOptions.fk_child_column_id,
       )) ||
@@ -297,11 +299,7 @@ function setFormData() {
 
 function isRequired(_columnObj: Record<string, any>, required = false) {
   let columnObj = _columnObj
-  if (
-    columnObj.uidt === UITypes.LinkToAnotherRecord &&
-    columnObj.colOptions &&
-    columnObj.colOptions.type === RelationTypes.BELONGS_TO
-  ) {
+  if (isLinksOrLTAR(columnObj.uidt) && columnObj.colOptions && columnObj.colOptions.type === RelationTypes.BELONGS_TO) {
     columnObj = columns.value.find((c: Record<string, any>) => c.id === columnObj.colOptions.fk_child_column_id) as Record<
       string,
       any
@@ -402,7 +400,7 @@ watch(view, (nextView) => {
           New form will be loaded after {{ secondsRemain }} seconds
         </div>
 
-        <div v-if="formViewData.submit_another_form" class="text-center mt-4">
+        <div v-if="formViewData.submit_another_form || !isPublic" class="text-center mt-4">
           <a-button type="primary" size="large" @click="submitted = false"> Submit Another Form</a-button>
         </div>
       </div>
@@ -760,7 +758,13 @@ watch(view, (nextView) => {
             </Draggable>
 
             <div class="justify-center flex mt-6">
-              <button type="submit" class="uppercase scaling-btn nc-form-submit" data-testid="nc-form-submit" @click="submitForm">
+              <button
+                type="submit"
+                :disabled="!isUIAllowed('dataInsert')"
+                class="uppercase scaling-btn nc-form-submit"
+                data-testid="nc-form-submit"
+                @click="submitForm"
+              >
                 {{ $t('general.submit') }}
               </button>
             </div>

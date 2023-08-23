@@ -1,12 +1,15 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { FormPage } from '../../../pages/Dashboard/Form';
 import { SharedFormPage } from '../../../pages/SharedForm';
 import { AccountPage } from '../../../pages/Account';
 import { AccountAppStorePage } from '../../../pages/Account/AppStore';
 import { Api, UITypes } from 'nocodb-sdk';
-let api: Api<any>;
+import { LoginPage } from '../../../pages/LoginPage';
+import { getDefaultPwd } from '../../../tests/utils/general';
+import { WorkspacePage } from '../../../pages/WorkspacePage';
+import { isEE, isHub } from '../../../setup/db';
 
 // todo: Move most of the ui actions to page object and await on the api response
 test.describe('Form view', () => {
@@ -24,6 +27,10 @@ test.describe('Form view', () => {
     accountAppStorePage = accountPage.appStore;
   });
 
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   test('Field re-order operations', async () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
@@ -34,7 +41,7 @@ test.describe('Form view', () => {
 
     // verify form-view fields order
     await form.verifyFormViewFieldsOrder({
-      fields: ['Country', 'LastUpdate', 'City List'],
+      fields: ['Country', 'LastUpdate', 'Cities'],
     });
 
     // reorder & verify
@@ -43,31 +50,31 @@ test.describe('Form view', () => {
       destinationField: 'Country',
     });
     await form.verifyFormViewFieldsOrder({
-      fields: ['LastUpdate', 'Country', 'City List'],
+      fields: ['LastUpdate', 'Country', 'Cities'],
     });
 
     // remove & verify (drag-drop)
-    await form.removeField({ field: 'City List', mode: 'dragDrop' });
+    await form.removeField({ field: 'Cities', mode: 'dragDrop' });
     await form.verifyFormViewFieldsOrder({
       fields: ['LastUpdate', 'Country'],
     });
 
     // add & verify (drag-drop)
-    await form.addField({ field: 'City List', mode: 'dragDrop' });
+    await form.addField({ field: 'Cities', mode: 'dragDrop' });
     await form.verifyFormViewFieldsOrder({
-      fields: ['LastUpdate', 'Country', 'City List'],
+      fields: ['LastUpdate', 'Country', 'Cities'],
     });
 
     // remove & verify (hide field button)
-    await form.removeField({ field: 'City List', mode: 'hideField' });
+    await form.removeField({ field: 'Cities', mode: 'hideField' });
     await form.verifyFormViewFieldsOrder({
       fields: ['LastUpdate', 'Country'],
     });
 
     // add & verify (hide field button)
-    await form.addField({ field: 'City List', mode: 'clickField' });
+    await form.addField({ field: 'Cities', mode: 'clickField' });
     await form.verifyFormViewFieldsOrder({
-      fields: ['LastUpdate', 'Country', 'City List'],
+      fields: ['LastUpdate', 'Country', 'Cities'],
     });
 
     // remove-all & verify
@@ -81,7 +88,7 @@ test.describe('Form view', () => {
     await form.addAllFields();
     await dashboard.rootPage.waitForTimeout(2000);
     await form.verifyFormViewFieldsOrder({
-      fields: ['LastUpdate', 'Country', 'City List'],
+      fields: ['LastUpdate', 'Country', 'Cities'],
     });
   });
 
@@ -137,7 +144,9 @@ test.describe('Form view', () => {
     });
 
     // submit custom form validation
-    await dashboard.viewSidebar.openView({ title: 'CountryForm' });
+    await form.submitAnotherForm().waitFor();
+    await form.submitAnotherForm().click();
+
     await form.configureSubmitMessage({
       message: 'Custom submit message',
     });
@@ -148,7 +157,9 @@ test.describe('Form view', () => {
     });
 
     // enable 'submit another form' option
-    await dashboard.viewSidebar.openView({ title: 'CountryForm' });
+    await form.submitAnotherForm().waitFor();
+    await form.submitAnotherForm().click();
+
     await form.showAnotherFormRadioButton.click();
     await form.fillForm([{ field: 'Country', value: '_abc' }]);
     await form.submitForm();
@@ -176,6 +187,11 @@ test.describe('Form view', () => {
       message: 'Please activate SMTP plugin in App store for enabling email notification',
     });
     const url = dashboard.rootPage.url();
+
+    // fix me! for app store, need super admin login.
+    if (isHub()) {
+      return;
+    }
 
     // activate SMTP plugin
     await accountAppStorePage.goto();
@@ -213,7 +229,7 @@ test.describe('Form view', () => {
   });
 
   test('Form share, verify attachment file', async () => {
-    await dashboard.treeView.createTable({ title: 'New' });
+    await dashboard.treeView.createTable({ title: 'New', projectTitle: context.project.title });
 
     await dashboard.grid.column.create({
       title: 'Attachment',
@@ -221,15 +237,16 @@ test.describe('Form view', () => {
     });
 
     await dashboard.viewSidebar.createFormView({ title: 'NewForm' });
-    await dashboard.form.toolbar.clickShareView();
-    const formLink = await dashboard.form.toolbar.shareView.getShareLink();
+    const formLink = await dashboard.form.topbar.getSharedViewUrl();
 
     await dashboard.rootPage.goto(formLink);
+    // fix me! kludge@hub; page wasn't getting loaded from previous step
+    await dashboard.rootPage.reload();
 
     const sharedForm = new SharedFormPage(dashboard.rootPage);
     await sharedForm.cell.attachment.addFile({
       columnHeader: 'Attachment',
-      filePath: `${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`,
+      filePath: [`${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`],
     });
     await sharedForm.cell.fillText({
       columnHeader: 'Title',
@@ -243,15 +260,18 @@ test.describe('Form view', () => {
 
 test.describe('Form view with LTAR', () => {
   let dashboard: DashboardPage;
-  let form: FormPage;
+  let loginPage: LoginPage;
+  let wsPage: WorkspacePage;
   let context: any;
+  let api: Api<any>;
 
   let cityTable: any, countryTable: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
-    form = dashboard.form;
+    loginPage = new LoginPage(page);
+    wsPage = new WorkspacePage(page);
 
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -310,7 +330,7 @@ test.describe('Form view with LTAR', () => {
       await api.dbTableColumn.create(countryTable.id, {
         column_name: 'CityList',
         title: 'CityList',
-        uidt: UITypes.LinkToAnotherRecord,
+        uidt: UITypes.Links,
         parentId: countryTable.id,
         childId: cityTable.id,
         type: 'hm',
@@ -325,16 +345,23 @@ test.describe('Form view with LTAR', () => {
     await page.reload();
   });
 
-  test('Form view with LTAR', async () => {
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
+  test('Form view with LTAR', async ({ page }) => {
     await dashboard.treeView.openTable({ title: 'Country' });
 
     const url = dashboard.rootPage.url();
 
     await dashboard.viewSidebar.createFormView({ title: 'NewForm' });
-    await dashboard.form.toolbar.clickShareView();
-    const formLink = await dashboard.form.toolbar.shareView.getShareLink();
+    const formUrl = await dashboard.form.topbar.getSharedViewUrl();
+    console.log(formUrl);
 
-    await dashboard.rootPage.goto(formLink);
+    // sign-out
+    await dashboard.signOut();
+    await page.goto(formUrl);
+    await page.reload();
 
     const sharedForm = new SharedFormPage(dashboard.rootPage);
     await sharedForm.cell.fillText({
@@ -342,13 +369,32 @@ test.describe('Form view with LTAR', () => {
       text: 'USA',
     });
     await sharedForm.clickLinkToChildList();
+
+    await new Promise(r => setTimeout(r, 500));
+
     await sharedForm.verifyChildList(['Atlanta', 'Pune', 'London', 'Sydney']);
     await sharedForm.selectChildList('Atlanta');
 
     await sharedForm.submit();
     await sharedForm.verifySuccessMessage();
 
-    await dashboard.rootPage.goto(url);
+    await page.goto(url);
+    await page.reload();
+    await loginPage.signIn({
+      email: `user-${process.env.TEST_PARALLEL_INDEX}@nocodb.com`,
+      password: getDefaultPwd(),
+      withoutPrefix: true,
+    });
+
+    if (isEE()) {
+      await dashboard.rootPage.waitForTimeout(500);
+      await dashboard.leftSidebar.openWorkspace({ title: context.workspace.title });
+      await dashboard.rootPage.waitForTimeout(500);
+    }
+    await dashboard.treeView.openProject({ title: context.project.title });
+    await dashboard.rootPage.waitForTimeout(500);
+
+    await dashboard.treeView.openTable({ title: 'Country' });
     await dashboard.viewSidebar.openView({ title: 'Country' });
 
     await dashboard.grid.cell.verify({
@@ -360,20 +406,24 @@ test.describe('Form view with LTAR', () => {
       index: 3,
       columnHeader: 'CityList',
       count: 1,
-      value: ['Atlanta'],
+      type: 'hm',
+      options: { singular: 'City', plural: 'Cities' },
     });
   });
 });
 
 test.describe('Form view', () => {
   let dashboard: DashboardPage;
-  let form: FormPage;
   let context: any;
+  let api: Api<any>;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
-    form = dashboard.form;
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Select fields in form view', async () => {
@@ -412,15 +462,18 @@ test.describe('Form view', () => {
     });
 
     await dashboard.rootPage.reload();
+    await dashboard.rootPage.waitForTimeout(100);
 
     await dashboard.treeView.openTable({ title: 'selectBased' });
     const url = dashboard.rootPage.url();
 
+    await dashboard.rootPage.waitForTimeout(500);
+
     await dashboard.viewSidebar.createFormView({ title: 'NewForm' });
-    await dashboard.form.toolbar.clickShareView();
-    const formLink = await dashboard.form.toolbar.shareView.getShareLink();
+    const formLink = await dashboard.form.topbar.getSharedViewUrl();
 
     await dashboard.rootPage.goto(formLink);
+    await dashboard.rootPage.reload();
 
     const sharedForm = new SharedFormPage(dashboard.rootPage);
 
@@ -447,13 +500,16 @@ test.describe('Form view', () => {
     await dashboard.rootPage.goto(url);
     await dashboard.viewSidebar.openView({ title: 'selectBased' });
 
+    await dashboard.rootPage.waitForTimeout(500);
+
     await dashboard.grid.cell.selectOption.verify({
       columnHeader: 'SingleSelect',
       option: 'jan',
       multiSelect: false,
     });
 
-    await dashboard.grid.cell.selectOption.verifyOptions({
+    await dashboard.grid.cell.selectOption.verifySelectedOptions({
+      index: 0,
       columnHeader: 'MultiSelect',
       options: ['jan', 'feb', 'mar'],
     });

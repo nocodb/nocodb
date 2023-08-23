@@ -1,14 +1,14 @@
-import SqlClientFactory from '../../db/sql-client/lib/SqlClientFactory';
-import { XKnex } from '../../db/CustomKnex';
+import type Base from '~/models/Base';
 import {
   defaultConnectionConfig,
   defaultConnectionOptions,
-} from '../nc-config';
-import Noco from '../../Noco';
-import type Base from '../../models/Base';
+} from '~/utils/nc-config';
+import SqlClientFactory from '~/db/sql-client/lib/SqlClientFactory';
+import { XKnex } from '~/db/CustomKnex';
+import Noco from '~/Noco';
 
 export default class NcConnectionMgrv2 {
-  private static connectionRefs: {
+  protected static connectionRefs: {
     [projectId: string]: {
       [baseId: string]: XKnex;
     };
@@ -49,10 +49,8 @@ export default class NcConnectionMgrv2 {
     }
   }
 
-  // NC_DATA_DB is not available in community version
-  // make it return Promise<XKnex> to avoid conflicts
   public static async get(base: Base): Promise<XKnex> {
-    if (base.is_meta) return Noco.ncMeta.knex;
+    if (base.isMeta()) return Noco.ncMeta.knex;
 
     if (this.connectionRefs?.[base.project_id]?.[base.id]) {
       return this.connectionRefs?.[base.project_id]?.[base.id];
@@ -81,14 +79,6 @@ export default class NcConnectionMgrv2 {
     } as any);
     return this.connectionRefs[base.project_id][base.id];
   }
-
-  // private static getConnectionConfig(
-  //   config: NcConfig,
-  //   env: string,
-  //   dbAlias: string
-  // ) {
-  //   return config?.envs?.[env]?.db?.find(db => db?.meta?.dbAlias === dbAlias);
-  // }
 
   public static async getSqlClient(base: Base, _knex = null) {
     const knex = _knex || (await this.get(base));

@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ErrorMessages, RelationTypes, UITypes } from 'nocodb-sdk';
-import { NcError } from '../helpers/catchError';
-import { Base, Column, Model, Project, View } from '../models';
-import type { LinkToAnotherRecordColumn, LookupColumn } from '../models';
+import { isLinksOrLTAR } from 'nocodb-sdk';
+import type { LinkToAnotherRecordColumn, LookupColumn } from '~/models';
+import { NcError } from '~/helpers/catchError';
+import { Base, Column, Model, Project, View } from '~/models';
 
 @Injectable()
 export class PublicMetasService {
@@ -41,7 +42,7 @@ export class PublicMetasService {
           column.pk ||
           view.model.columns.some(
             (c1) =>
-              c1.uidt === UITypes.LinkToAnotherRecord &&
+              isLinksOrLTAR(c1.uidt) &&
               (<LinkToAnotherRecordColumn>c1.colOptions).type ===
                 RelationTypes.BELONGS_TO &&
               view.columns.some((vc) => vc.fk_column_id === c1.id && vc.show) &&
@@ -77,7 +78,7 @@ export class PublicMetasService {
     col: Column<any>;
     relatedMetas: Record<string, Model>;
   }) {
-    if (UITypes.LinkToAnotherRecord === col.uidt) {
+    if (isLinksOrLTAR(col.uidt)) {
       await this.extractLTARRelatedMetas({
         ltarColOption: await col.getColOptions<LinkToAnotherRecordColumn>(),
         relatedMetas,

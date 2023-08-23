@@ -6,6 +6,7 @@ import {
   ColumnInj,
   IsFormInj,
   IsGridInj,
+  NavigateDir,
   RowInj,
   SaveRowInj,
   inject,
@@ -14,6 +15,7 @@ import {
   isCount,
   isFormula,
   isHm,
+  isLink,
   isLookup,
   isMm,
   isQrCode,
@@ -21,8 +23,7 @@ import {
   provide,
   toRef,
 } from '#imports'
-import type { Row } from '~/lib'
-import { NavigateDir } from '~/lib'
+import type { Row } from '#imports'
 
 const props = defineProps<{
   column: ColumnType
@@ -56,19 +57,19 @@ function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
 // Todo: move intersection logic to a separate component or a vue directive
 const intersected = ref(false)
 
-let intersectionObserver = $ref<IntersectionObserver>()
+const intersectionObserver = ref<IntersectionObserver>()
 
-const elementToObserve = $ref<Element>()
+const elementToObserve = ref<Element>()
 
 // load the cell only when it is in the viewport
 function initIntersectionObserver() {
-  intersectionObserver = new IntersectionObserver((entries) => {
+  intersectionObserver.value = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       // if the cell is in the viewport, load the cell and disconnect the observer
       if (entry.isIntersecting) {
         intersected.value = true
-        intersectionObserver?.disconnect()
-        intersectionObserver = undefined
+        intersectionObserver.value?.disconnect()
+        intersectionObserver.value = undefined
       }
     })
   })
@@ -77,12 +78,12 @@ function initIntersectionObserver() {
 // observe the cell when it is mounted
 onMounted(() => {
   initIntersectionObserver()
-  intersectionObserver?.observe(elementToObserve!)
+  intersectionObserver.value?.observe(elementToObserve.value!)
 })
 
 // disconnect the observer when the cell is unmounted
 onUnmounted(() => {
-  intersectionObserver?.disconnect()
+  intersectionObserver.value?.disconnect()
 })
 </script>
 
@@ -95,7 +96,8 @@ onUnmounted(() => {
     @keydown.shift.enter.exact="onNavigate(NavigateDir.PREV, $event)"
   >
     <template v-if="intersected">
-      <LazyVirtualCellHasMany v-if="isHm(column)" />
+      <LazyVirtualCellLinks v-if="isLink(column)" />
+      <LazyVirtualCellHasMany v-else-if="isHm(column)" />
       <LazyVirtualCellManyToMany v-else-if="isMm(column)" />
       <LazyVirtualCellBelongsTo v-else-if="isBt(column)" />
       <LazyVirtualCellRollup v-else-if="isRollup(column)" />

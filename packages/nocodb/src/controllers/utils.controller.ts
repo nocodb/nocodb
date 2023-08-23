@@ -1,3 +1,5 @@
+import fs from 'fs';
+import { promisify } from 'util';
 import {
   Body,
   Controller,
@@ -7,29 +9,40 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { GlobalGuard } from '../guards/global/global.guard';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { UtilsService } from '../services/utils.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { UtilsService } from '~/services/utils.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
 export class UtilsController {
-  constructor(private readonly utilsService: UtilsService) {}
+  private version: string;
+
+  constructor(protected readonly utilsService: UtilsService) {}
 
   @Get('/api/v1/version')
-  version() {
-    return this.utilsService.versionInfo();
+  async getVersion() {
+    if (process.env.NC_CLOUD !== 'true') {
+      return this.utilsService.versionInfo();
+    }
+
+    if (!this.version) {
+      try {
+        this.version = await promisify(fs.readFile)('./public/nc.txt', 'utf-8');
+      } catch {
+        this.version = 'Not available';
+      }
+    }
+    return this.version;
   }
 
-  @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+  @UseGuards(GlobalGuard)
   @Post('/api/v1/db/meta/connection/test')
   @Acl('testConnection')
   @HttpCode(200)
   async testConnection(@Body() body: any) {
     return await this.utilsService.testConnection({ body });
   }
+
   @Get('/api/v1/db/meta/nocodb/info')
   async appInfo(@Request() req) {
     return await this.utilsService.appInfo({

@@ -1,7 +1,7 @@
-import VueQrcodeReader from 'vue-qrcode-reader'
+// import VueQrcodeReader from 'vue-qrcode-reader'
 
 import { defineNuxtPlugin } from 'nuxt/app'
 
-export default defineNuxtPlugin((nuxtApp) => {
-  nuxtApp.vueApp.use(VueQrcodeReader)
+export default defineNuxtPlugin((_nuxtApp) => {
+  // nuxtApp.vueApp.use(VueQrcodeReader)
 })

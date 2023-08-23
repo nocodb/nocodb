@@ -10,9 +10,9 @@ import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-hos
 import { AuthGuard } from '@nestjs/passport';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Inject } from '@nestjs/common';
-import { JobEvents } from '../../interface/Jobs';
 import type { OnModuleInit } from '@nestjs/common';
-import type { JobStatus } from '../../interface/Jobs';
+import type { JobStatus } from '~/interface/Jobs';
+import { JobEvents } from '~/interface/Jobs';
 
 const url = new URL(
   process.env.NC_PUBLIC_URL ||

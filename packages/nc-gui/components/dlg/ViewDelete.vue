@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { extractSdkResponseErrorMsg, message, onKeyStroke, useApi, useI18n, useNuxtApp, useVModel } from '#imports'
+import { extractSdkResponseErrorMsg, message, useApi, useNuxtApp, useVModel } from '#imports'
 
 interface Props {
   modelValue: boolean
@@ -15,17 +15,13 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const { t } = useI18n()
+const { view } = props
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-const { api, isLoading } = useApi()
+const { api } = useApi()
 
 const { $e } = useNuxtApp()
-
-onKeyStroke('Escape', () => (vModel.value = false))
-
-onKeyStroke('Enter', () => onDelete())
 
 /** Delete a view */
 async function onDelete() {
@@ -34,37 +30,29 @@ async function onDelete() {
   try {
     await api.dbView.delete(props.view.id)
 
-    // View deleted successfully
-    message.success(t('msg.success.viewDeleted'))
+    vModel.value = false
+    emits('deleted')
+    $e('a:view:delete', { view: props.view.type })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 
-  emits('deleted')
-
   // telemetry event
-  $e('a:view:delete', { view: props.view.type })
 }
 </script>
 
 <template>
-  <a-modal
-    v-model:visible="vModel"
-    centered
-    :class="{ active: vModel }"
-    :confirm-loading="isLoading"
-    wrap-class-name="nc-modal-view-delete"
-  >
-    <template #title> {{ $t('general.delete') }} {{ $t('objects.view') }} </template>
-
-    {{ $t('msg.info.deleteViewConfirmation') }}
-
-    <template #footer>
-      <a-button key="back" class="!rounded-md" @click="vModel = false">{{ $t('general.cancel') }}</a-button>
-
-      <a-button key="submit" class="!rounded-md" danger html-type="submit" :loading="isLoading" @click="onDelete">
-        {{ $t('general.submit') }}
-      </a-button>
+  <GeneralDeleteModal v-model:visible="vModel" :entity-name="$t('objects.view')" :on-delete="onDelete">
+    <template #entity-preview>
+      <div v-if="view" class="flex flex-row items-center py-2 px-3 bg-gray-50 rounded-lg text-gray-700 mb-4">
+        <GeneralViewIcon :meta="props.view" class="nc-view-icon"></GeneralViewIcon>
+        <div
+          class="capitalize text-ellipsis overflow-hidden select-none w-full pl-3"
+          :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+        >
+          {{ view.title }}
+        </div>
+      </div>
     </template>
-  </a-modal>
+  </GeneralDeleteModal>
 </template>

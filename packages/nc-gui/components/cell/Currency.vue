@@ -59,7 +59,7 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputEle
 
 const submitCurrency = () => {
   if (lastSaved.value !== vModel.value) {
-    lastSaved.value = vModel.value
+    vModel.value = lastSaved.value = vModel.value ?? null
     emit('save')
   }
   editEnabled.value = false

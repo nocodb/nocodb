@@ -10,7 +10,7 @@ export class ToolbarAddEditStackPage extends BasePage {
   }
 
   get() {
-    return this.rootPage.locator(`.nc-dropdown-kanban-add-edit-stack-menu`);
+    return this.rootPage.locator(`.nc-dropdown-kanban-stacked-by-menu`);
   }
 
   async addOption({ title }: { title: string }) {

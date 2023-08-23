@@ -15,7 +15,7 @@ export class DateTimeCellPageObject extends BasePage {
 
   async open({ index, columnHeader }: { index: number; columnHeader: string }) {
     await this.rootPage.locator('.nc-grid-add-new-cell').click();
-
+    await this.rootPage.waitForTimeout(100);
     await this.cell.dblclick({
       index,
       columnHeader,
@@ -36,6 +36,7 @@ export class DateTimeCellPageObject extends BasePage {
     const [year, month, day] = date.split('-');
 
     // configure year
+    await this.rootPage.locator('.ant-picker-year-btn:visible').waitFor();
     await this.rootPage.locator('.ant-picker-year-btn:visible').click();
     await this.rootPage.locator(`td[title="${year}"]`).click();
 

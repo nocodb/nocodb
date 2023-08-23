@@ -5,7 +5,7 @@ async function getTextExcludeIconText(selector) {
   let text = await selector.textContent();
 
   // List of icons
-  const icons = await selector.locator('.material-symbols-outlined');
+  const icons = await selector.locator('.material-symbols');
   const iconCount = await icons.count();
 
   // Remove the text of each icon from the text
@@ -21,7 +21,7 @@ async function getTextExcludeIconText(selector) {
 
 async function getIconText(selector) {
   // List of icons
-  const icons = await selector.locator('.material-symbols-outlined');
+  const icons = await selector.locator('.material-symbols');
 
   await icons.nth(0).waitFor();
   return await icons.nth(0).textContent();

@@ -11,8 +11,8 @@ import type {
   TableType,
   ViewType,
 } from 'nocodb-sdk'
-import { ErrorMessages, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { isString } from '@vueuse/core'
+import { ErrorMessages, RelationTypes, UITypes, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import { isString } from '@vue/shared'
 import {
   SharedViewPasswordInj,
   computed,
@@ -30,7 +30,7 @@ import {
   useProvideSmartsheetRowStore,
   watch,
 } from '#imports'
-import type { SharedViewMeta } from '~/lib'
+import type { SharedViewMeta } from '#imports'
 
 const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((sharedViewId: string) => {
   const progress = ref(false)
@@ -74,7 +74,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const fieldRequired = (fieldName = 'Value') => helpers.withMessage(t('msg.error.fieldRequired', { value: fieldName }), required)
 
   const formColumns = computed(() =>
-    columns.value?.filter((c) => c.show).filter((col) => !isVirtualCol(col) || col.uidt === UITypes.LinkToAnotherRecord),
+    columns.value?.filter((c) => c.show).filter((col) => !isVirtualCol(col) || isLinksOrLTAR(col.uidt)),
   )
 
   const loadSharedView = async () => {
@@ -151,7 +151,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       ) {
         obj.localState[column.title!] = { required: fieldRequired(column.label || column.title) }
       } else if (
-        column.uidt === UITypes.LinkToAnotherRecord &&
+        isLinksOrLTAR(column) &&
         column.colOptions &&
         (column.colOptions as LinkToAnotherRecordType).type === RelationTypes.BELONGS_TO
       ) {

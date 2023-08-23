@@ -1,8 +1,7 @@
 import { createI18n } from 'vue-i18n'
 import { isClient } from '@vueuse/core'
-import { applyLanguageDirection, defineNuxtPlugin, isRtlLang, nextTick } from '#imports'
-import type { Language, NocoI18n } from '~/lib'
-import { LanguageAlias } from '~/lib'
+import { LanguageAlias, applyLanguageDirection, defineNuxtPlugin, isRtlLang, nextTick } from '#imports'
+import type { Language, NocoI18n } from '#imports'
 
 let globalI18n: NocoI18n
 

@@ -2949,7 +2949,7 @@ class KnexClient extends SqlClient {
 
   genQuery(query, args = [], shouldSanitize: any = 0) {
     if (shouldSanitize) {
-      args = (args || []).map((s) =>
+      args = ((Array.isArray(args) ? args : [args]) || []).map((s) =>
         typeof s === 'string' ? this.sanitize(s) : s,
       );
     }
@@ -2965,6 +2965,22 @@ class KnexClient extends SqlClient {
 
   unsanitize(str) {
     return str.replace(/\\[?]/g, '?');
+  }
+
+  genValue(value) {
+    return this.genQuery('?', [value], true);
+  }
+
+  genIdentifier(identifier) {
+    return this.genQuery('??', [identifier], true);
+  }
+
+  genRaw(raw) {
+    const q = this.genQuery('?', [raw], true);
+
+    if (typeof raw === 'number' || typeof raw === 'boolean') return q;
+
+    return q.substring(1, q.length - 1);
   }
 
   sanitiseDataType(dt: string) {

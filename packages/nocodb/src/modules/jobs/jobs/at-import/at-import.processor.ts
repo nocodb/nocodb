@@ -9,27 +9,29 @@ import utc from 'dayjs/plugin/utc';
 import tinycolor from 'tinycolor2';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
-import extractRolesObj from '../../../../utils/extractRolesObj';
-import { AttachmentsService } from '../../../../services/attachments.service';
-import { ColumnsService } from '../../../../services/columns.service';
-import { BulkDataAliasService } from '../../../../services/bulk-data-alias.service';
-import { FiltersService } from '../../../../services/filters.service';
-import { FormColumnsService } from '../../../../services/form-columns.service';
-import { GalleriesService } from '../../../../services/galleries.service';
-import { GridsService } from '../../../../services/grids.service';
-import { ProjectUsersService } from '../../../../services/project-users/project-users.service';
-import { ProjectsService } from '../../../../services/projects.service';
-import { SortsService } from '../../../../services/sorts.service';
-import { TablesService } from '../../../../services/tables.service';
-import { ViewColumnsService } from '../../../../services/view-columns.service';
-import { ViewsService } from '../../../../services/views.service';
-import { FormsService } from '../../../../services/forms.service';
-import { JOBS_QUEUE, JobTypes } from '../../../../interface/Jobs';
+import { isLinksOrLTAR } from 'nocodb-sdk';
+import debug from 'debug';
 import { JobsLogService } from '../jobs-log.service';
 import FetchAT from './helpers/fetchAT';
 import { importData, importLTARData } from './helpers/readAndProcessData';
 import EntityMap from './helpers/EntityMap';
 import type { UserType } from 'nocodb-sdk';
+import extractRolesObj from '~/utils/extractRolesObj';
+import { AttachmentsService } from '~/services/attachments.service';
+import { ColumnsService } from '~/services/columns.service';
+import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
+import { FiltersService } from '~/services/filters.service';
+import { FormColumnsService } from '~/services/form-columns.service';
+import { GalleriesService } from '~/services/galleries.service';
+import { GridsService } from '~/services/grids.service';
+import { ProjectUsersService } from '~/services/project-users/project-users.service';
+import { ProjectsService } from '~/services/projects.service';
+import { SortsService } from '~/services/sorts.service';
+import { TablesService } from '~/services/tables.service';
+import { ViewColumnsService } from '~/services/view-columns.service';
+import { ViewsService } from '~/services/views.service';
+import { FormsService } from '~/services/forms.service';
+import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 
 const writeJsonFileAsync = promisify(jsonfile.writeFile);
 
@@ -84,6 +86,8 @@ const selectColors = {
 
 @Processor(JOBS_QUEUE)
 export class AtImportProcessor {
+  private readonly dubugLog = debug('nc:at-import:processor');
+
   constructor(
     private readonly tablesService: TablesService,
     private readonly viewsService: ViewsService,
@@ -136,10 +140,12 @@ export class AtImportProcessor {
 
     const logBasic = (log) => {
       this.jobsLogService.sendLog(job, { message: log });
+      this.dubugLog(log);
     };
 
     const logDetailed = (log) => {
       if (debugMode) this.jobsLogService.sendLog(job, { message: log });
+      this.dubugLog(log);
     };
 
     const perfStats = [];
@@ -270,7 +276,7 @@ export class AtImportProcessor {
 
     // base mapping table
     const aTblNcTypeMap = {
-      foreignKey: UITypes.LinkToAnotherRecord,
+      foreignKey: UITypes.Links,
       text: UITypes.SingleLineText,
       multilineText: UITypes.LongText,
       richText: UITypes.LongText,
@@ -384,6 +390,7 @@ export class AtImportProcessor {
       if (sampleProj) {
         await this.projectsService.projectSoftDelete({
           projectId: sampleProj.id,
+          user: syncDB.user,
         });
       }
       logDetailed('Init');
@@ -672,6 +679,7 @@ export class AtImportProcessor {
         await this.viewsService.viewUpdate({
           viewId: view.list[0].id,
           view: { title: aTbl_grid.name },
+          user: syncDB.user,
         });
         recordPerfStats(_perfStart, 'dbView.update');
 
@@ -759,7 +767,7 @@ export class AtImportProcessor {
               const ncTbl: any = await this.columnsService.columnAdd({
                 tableId: srcTableId,
                 column: {
-                  uidt: UITypes.LinkToAnotherRecord,
+                  uidt: UITypes.Links,
                   title: ncName.title,
                   column_name: ncName.column_name,
                   parentId: srcTableId,
@@ -770,6 +778,7 @@ export class AtImportProcessor {
                   user: syncDB.user.email,
                   clientIp: '',
                 },
+                user: syncDB.user,
               });
               recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -841,14 +850,14 @@ export class AtImportProcessor {
                 updateMigrationSkipLog(
                   parentTblSchema?.title,
                   ncLinkMappingTable[x].nc.title,
-                  UITypes.LinkToAnotherRecord,
+                  UITypes.Links,
                   'Link error',
                 );
                 continue;
               }
 
               // hack // fix me
-              if (parentLinkColumn.uidt !== 'LinkToAnotherRecord') {
+              if (!isLinksOrLTAR(parentLinkColumn)) {
                 parentLinkColumn = parentTblSchema.columns.find(
                   (col) => col.title === ncLinkMappingTable[x].nc.title + '_2',
                 );
@@ -862,7 +871,7 @@ export class AtImportProcessor {
                 //
                 childLinkColumn = childTblSchema.columns.find(
                   (col) =>
-                    col.uidt === UITypes.LinkToAnotherRecord &&
+                    isLinksOrLTAR(col) &&
                     col.colOptions.fk_child_column_id ===
                       parentLinkColumn.colOptions.fk_child_column_id &&
                     col.colOptions.fk_parent_column_id ===
@@ -874,7 +883,7 @@ export class AtImportProcessor {
                 //
                 childLinkColumn = childTblSchema.columns.find(
                   (col) =>
-                    col.uidt === UITypes.LinkToAnotherRecord &&
+                    isLinksOrLTAR(col) &&
                     col.colOptions.fk_child_column_id ===
                       parentLinkColumn.colOptions.fk_parent_column_id &&
                     col.colOptions.fk_parent_column_id ===
@@ -912,6 +921,7 @@ export class AtImportProcessor {
                   title: ncName.title,
                   column_name: ncName.column_name,
                 },
+                user: syncDB.user,
               });
               recordPerfStats(_perfStart, 'dbTableColumn.update');
 
@@ -1005,6 +1015,7 @@ export class AtImportProcessor {
                 user: syncDB.user.email,
                 clientIp: '',
               },
+              user: syncDB.user,
             });
             recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1092,6 +1103,7 @@ export class AtImportProcessor {
               user: syncDB.user.email,
               clientIp: '',
             },
+            user: syncDB.user,
           });
           recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1241,6 +1253,7 @@ export class AtImportProcessor {
                 user: syncDB.user.email,
                 clientIp: '',
               },
+              user: syncDB.user,
             });
             recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1307,6 +1320,7 @@ export class AtImportProcessor {
             user: syncDB.user.email,
             clientIp: '',
           },
+          user: syncDB.user,
         });
         recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1405,7 +1419,7 @@ export class AtImportProcessor {
         // always process LTAR, Lookup, and Rollup columns as we delete the key after processing
         if (
           !value &&
-          dt !== UITypes.LinkToAnotherRecord &&
+          !isLinksOrLTAR(dt) &&
           dt !== UITypes.Lookup &&
           dt !== UITypes.Rollup
         ) {
@@ -1424,6 +1438,7 @@ export class AtImportProcessor {
 
           // we will pick up LTAR once all table data's are in place
           case UITypes.LinkToAnotherRecord:
+          case UITypes.Links:
             if (storeLinks) {
               if (ncLinkDataStore[table.title][record.id] === undefined)
                 ncLinkDataStore[table.title][record.id] = {
@@ -1600,6 +1615,7 @@ export class AtImportProcessor {
             gallery: {
               title: viewName,
             },
+            user: syncDB.user,
           });
           recordPerfStats(_perfStart, 'dbView.galleryCreate');
 
@@ -1665,6 +1681,7 @@ export class AtImportProcessor {
           const f = await this.formsService.formViewCreate({
             tableId: tblId,
             body: formData,
+            user: syncDB.user,
           });
           recordPerfStats(_perfStart, 'dbView.formCreate');
 
@@ -1903,9 +1920,7 @@ export class AtImportProcessor {
         migrationStatsObj.aTbl.rollup = aTblRollup.length;
 
         const ncTbl = await nc_getTableSchema(aTblSchema[idx].name);
-        const linkColumn = ncTbl.columns.filter(
-          (x) => x.uidt === UITypes.LinkToAnotherRecord,
-        );
+        const linkColumn = ncTbl.columns.filter((x) => isLinksOrLTAR(x));
         const lookup = ncTbl.columns.filter((x) => x.uidt === UITypes.Lookup);
         const rollup = ncTbl.columns.filter((x) => x.uidt === UITypes.Rollup);
 
@@ -2101,6 +2116,7 @@ export class AtImportProcessor {
           await this.filtersService.filterCreate({
             viewId: viewId,
             filter: ncFilters[i],
+            user: syncDB.user,
           });
           recordPerfStats(_perfStart, 'dbTableFilter.create');
 
@@ -2338,7 +2354,7 @@ export class AtImportProcessor {
             recordPerfStats(_perfStart, 'dbTable.read');
 
             recordsMap[ncTbl.id] = await importData({
-              projectName: syncDB.projectName,
+              projectName: syncDB.projectId,
               table: ncTbl,
               base,
               logBasic,

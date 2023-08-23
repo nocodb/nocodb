@@ -1,47 +1,62 @@
 import { expect, test } from '@playwright/test';
-import setup from '../../../setup';
+import setup, { NcContext, unsetup } from '../../../setup';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { Api } from 'nocodb-sdk';
 import { createDemoTable } from '../../../setup/demoTable';
-import { BulkUpdatePage } from '../../../pages/Dashboard/BulkUpdate';
 
-let dashboard: DashboardPage;
-let context: any;
-let api: Api<any>;
-let table;
-async function dragDrop({ firstColumn, lastColumn }: { firstColumn: string; lastColumn: string }) {
-  await dashboard.grid.cell.get({ index: 0, columnHeader: firstColumn }).click();
-  await dashboard.rootPage.keyboard.press(
-    (await dashboard.grid.isMacOs()) ? 'Meta+Shift+ArrowRight' : 'Control+Shift+ArrowRight'
+interface paramsType {
+  dashboard: DashboardPage;
+  context: NcContext;
+  api: Api<any>;
+  table: any;
+}
+
+async function dragDrop({
+  firstColumn,
+  lastColumn,
+  params,
+}: {
+  firstColumn: string;
+  lastColumn: string;
+  params: paramsType;
+}) {
+  await params.dashboard.grid.cell.get({ index: 0, columnHeader: firstColumn }).click();
+  await params.dashboard.rootPage.keyboard.press(
+    (await params.dashboard.grid.isMacOs()) ? 'Meta+Shift+ArrowRight' : 'Control+Shift+ArrowRight'
   );
 
   // get fill handle locator
-  const src = await dashboard.rootPage.locator(`.nc-fill-handle`);
-  const dst = await dashboard.grid.cell.get({ index: 3, columnHeader: lastColumn });
+  const src = await params.dashboard.rootPage.locator(`.nc-fill-handle`);
+  const dst = await params.dashboard.grid.cell.get({ index: 3, columnHeader: lastColumn });
 
   // drag and drop
   await src.dragTo(dst);
 }
 async function beforeEachInit({ page, tableType }: { page: any; tableType: string }) {
-  context = await setup({ page, isEmptyProject: true });
-  dashboard = new DashboardPage(page, context.project);
-
-  api = new Api({
+  const context = await setup({ page, isEmptyProject: true });
+  const dashboard = new DashboardPage(page, context.project);
+  const api = new Api({
     baseURL: `http://localhost:8080/`,
     headers: {
       'xc-auth': context.token,
     },
   });
-
-  table = await createDemoTable({ context, type: tableType, recordCnt: 10 });
+  const table = await createDemoTable({ context, type: tableType, recordCnt: 10 });
   await page.reload();
 
   await dashboard.treeView.openTable({ title: tableType });
+
+  return { dashboard, context, api, table } as paramsType;
 }
 
 test.describe('Fill Handle', () => {
+  let p: paramsType;
   test.beforeEach(async ({ page }) => {
-    await beforeEachInit({ page, tableType: 'textBased' });
+    p = await beforeEachInit({ page, tableType: 'textBased' });
+  });
+
+  test.afterEach(async () => {
+    await unsetup(p.context);
   });
 
   test('Text based', async () => {
@@ -53,17 +68,17 @@ test.describe('Fill Handle', () => {
       { title: 'MultiLineText', value: 'Aberdeen, United Kingdom', type: 'longText' },
     ];
 
-    await dragDrop({ firstColumn: 'SingleLineText', lastColumn: 'URL' });
+    await dragDrop({ firstColumn: 'SingleLineText', lastColumn: 'URL', params: p });
 
     // verify data on grid (verifying just two rows)
     for (let i = 0; i < fields.length; i++) {
       for (let j = 0; j < 4; j++) {
-        await dashboard.grid.cell.verify({ index: j, columnHeader: fields[i].title, value: fields[i].value });
+        await p.dashboard.grid.cell.verify({ index: j, columnHeader: fields[i].title, value: fields[i].value });
       }
     }
 
     // verify api response
-    const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 4 })).list;
+    const updatedRecords = (await p.api.dbTableRow.list('noco', p.context.project.id, p.table.id, { limit: 4 })).list;
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
         expect(updatedRecords[i][fields[j].title]).toEqual(fields[j].value);
@@ -73,8 +88,13 @@ test.describe('Fill Handle', () => {
 });
 
 test.describe('Fill Handle', () => {
+  let p: paramsType;
   test.beforeEach(async ({ page }) => {
-    await beforeEachInit({ page, tableType: 'numberBased' });
+    p = await beforeEachInit({ page, tableType: 'numberBased' });
+  });
+
+  test.afterEach(async () => {
+    await unsetup(p.context);
   });
 
   test('Number based', async () => {
@@ -90,28 +110,28 @@ test.describe('Fill Handle', () => {
     ];
 
     // kludge: insert time from browser until mysql issue with timezone is fixed
-    await dashboard.grid.cell.time.set({ index: 0, columnHeader: 'Time', value: '02:02' });
+    await p.dashboard.grid.cell.time.set({ index: 0, columnHeader: 'Time', value: '02:02' });
 
     // set rating for first record
-    await dashboard.grid.cell.rating.select({ index: 0, columnHeader: 'Rating', rating: 2 });
+    await p.dashboard.grid.cell.rating.select({ index: 0, columnHeader: 'Rating', rating: 2 });
 
-    await dragDrop({ firstColumn: 'Number', lastColumn: 'Time' });
+    await dragDrop({ firstColumn: 'Number', lastColumn: 'Time', params: p });
 
     // verify data on grid
     for (let i = 0; i < fields.length; i++) {
       for (let j = 0; j < 4; j++) {
         if (fields[i].type === 'rating') {
-          await dashboard.grid.cell.rating.verify({
+          await p.dashboard.grid.cell.rating.verify({
             index: j,
             columnHeader: fields[i].title,
             rating: +fields[i].value,
           });
         } else if (fields[i].type === 'year') {
-          await dashboard.grid.cell.year.verify({ index: j, columnHeader: fields[i].title, value: +fields[i].value });
+          await p.dashboard.grid.cell.year.verify({ index: j, columnHeader: fields[i].title, value: +fields[i].value });
         } else if (fields[i].type === 'time') {
-          await dashboard.grid.cell.time.verify({ index: j, columnHeader: fields[i].title, value: fields[i].value });
+          await p.dashboard.grid.cell.time.verify({ index: j, columnHeader: fields[i].title, value: fields[i].value });
         } else {
-          await dashboard.grid.cell.verify({ index: j, columnHeader: fields[i].title, value: fields[i].value });
+          await p.dashboard.grid.cell.verify({ index: j, columnHeader: fields[i].title, value: fields[i].value });
         }
       }
     }
@@ -119,7 +139,7 @@ test.describe('Fill Handle', () => {
     // verify api response
     // duration in seconds
     const APIResponse = [33, 33.3, 33.3, 33, 60, 3, 2023, '02:02:00'];
-    const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 4 })).list;
+    const updatedRecords = (await p.api.dbTableRow.list('noco', p.context.project.id, p.table.id, { limit: 4 })).list;
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
         if (fields[j].title === 'Time') {
@@ -133,8 +153,13 @@ test.describe('Fill Handle', () => {
 });
 
 test.describe('Fill Handle', () => {
+  let p: paramsType;
   test.beforeEach(async ({ page }) => {
-    await beforeEachInit({ page, tableType: 'selectBased' });
+    p = await beforeEachInit({ page, tableType: 'selectBased' });
+  });
+
+  test.afterEach(async () => {
+    await unsetup(p.context);
   });
 
   test('Select based', async () => {
@@ -143,20 +168,22 @@ test.describe('Fill Handle', () => {
       { title: 'MultiSelect', value: 'jan,feb,mar', type: 'multiSelect' },
     ];
 
-    await dragDrop({ firstColumn: 'SingleSelect', lastColumn: 'MultiSelect' });
+    await dragDrop({ firstColumn: 'SingleSelect', lastColumn: 'MultiSelect', params: p });
+
+    await new Promise((r) => setTimeout(r, 500));
 
     // verify data on grid
     const displayOptions = ['jan', 'feb', 'mar'];
     for (let i = 0; i < fields.length; i++) {
       for (let j = 0; j < 4; j++) {
         if (fields[i].type === 'singleSelect') {
-          await dashboard.grid.cell.selectOption.verify({
+          await p.dashboard.grid.cell.selectOption.verify({
             index: j,
             columnHeader: fields[i].title,
             option: fields[i].value,
           });
         } else {
-          await dashboard.grid.cell.selectOption.verifyOptions({
+          await p.dashboard.grid.cell.selectOption.verifyOptions({
             index: j,
             columnHeader: fields[i].title,
             options: displayOptions,
@@ -166,7 +193,7 @@ test.describe('Fill Handle', () => {
     }
 
     // verify api response
-    const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 4 })).list;
+    const updatedRecords = (await p.api.dbTableRow.list('noco', p.context.project.id, p.table.id, { limit: 4 })).list;
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
         expect(updatedRecords[i][fields[j].title]).toContain(fields[j].value);
@@ -176,8 +203,13 @@ test.describe('Fill Handle', () => {
 });
 
 test.describe('Fill Handle', () => {
+  let p: paramsType;
   test.beforeEach(async ({ page }) => {
-    await beforeEachInit({ page, tableType: 'miscellaneous' });
+    p = await beforeEachInit({ page, tableType: 'miscellaneous' });
+  });
+
+  test.afterEach(async () => {
+    await unsetup(p.context);
   });
 
   test('Miscellaneous (Checkbox, attachment)', async () => {
@@ -186,25 +218,25 @@ test.describe('Fill Handle', () => {
       { title: 'Attachment', value: `${process.cwd()}/fixtures/sampleFiles/1.json`, type: 'attachment' },
     ];
 
-    await dashboard.grid.cell.checkbox.click({ index: 0, columnHeader: 'Checkbox' });
+    await p.dashboard.grid.cell.checkbox.click({ index: 0, columnHeader: 'Checkbox' });
     const filepath = [`${process.cwd()}/fixtures/sampleFiles/1.json`];
-    await dashboard.grid.cell.attachment.addFile({
+    await p.dashboard.grid.cell.attachment.addFile({
       index: 0,
       columnHeader: 'Attachment',
       filePath: filepath,
     });
-    await dragDrop({ firstColumn: 'Checkbox', lastColumn: 'Attachment' });
+    await dragDrop({ firstColumn: 'Checkbox', lastColumn: 'Attachment', params: p });
 
     // verify data on grid
     for (let i = 0; i < fields.length; i++) {
       for (let j = 0; j < 4; j++) {
         if (fields[i].type === 'checkbox') {
-          await dashboard.grid.cell.checkbox.verifyChecked({
+          await p.dashboard.grid.cell.checkbox.verifyChecked({
             index: j,
             columnHeader: fields[i].title,
           });
         } else {
-          await dashboard.grid.cell.attachment.verifyFileCount({
+          await p.dashboard.grid.cell.attachment.verifyFileCount({
             index: j,
             columnHeader: fields[i].title,
             count: 1,
@@ -214,7 +246,7 @@ test.describe('Fill Handle', () => {
     }
 
     // verify api response
-    const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 4 })).list;
+    const updatedRecords = (await p.api.dbTableRow.list('noco', p.context.project.id, p.table.id, { limit: 4 })).list;
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
         expect(+updatedRecords[i]['Checkbox']).toBe(1);
@@ -226,20 +258,25 @@ test.describe('Fill Handle', () => {
 });
 
 test.describe('Fill Handle', () => {
+  let p: paramsType;
   test.beforeEach(async ({ page }) => {
-    await beforeEachInit({ page, tableType: 'dateTimeBased' });
+    p = await beforeEachInit({ page, tableType: 'dateTimeBased' });
+  });
+
+  test.afterEach(async () => {
+    await unsetup(p.context);
   });
 
   test('Date Time Based', async () => {
-    const row0_date = await api.dbTableRow.read('noco', context.project.id, table.id, 1);
+    const row0_date = await p.api.dbTableRow.read('noco', p.context.project.id, p.table.id, 1);
     const fields = [{ title: 'Date', value: row0_date['Date'], type: 'date' }];
 
-    await dragDrop({ firstColumn: 'Date', lastColumn: 'Date' });
+    await dragDrop({ firstColumn: 'Date', lastColumn: 'Date', params: p });
 
     // verify data on grid
     for (let i = 0; i < fields.length; i++) {
       for (let j = 0; j < 4; j++) {
-        await dashboard.grid.cell.date.verify({
+        await p.dashboard.grid.cell.date.verify({
           index: j,
           columnHeader: fields[i].title,
           date: fields[i].value,
@@ -248,7 +285,7 @@ test.describe('Fill Handle', () => {
     }
 
     // verify api response
-    const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 4 })).list;
+    const updatedRecords = (await p.api.dbTableRow.list('noco', p.context.project.id, p.table.id, { limit: 4 })).list;
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
         expect(updatedRecords[i]['Date']).toBe(fields[j].value);

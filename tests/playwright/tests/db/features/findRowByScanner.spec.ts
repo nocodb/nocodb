@@ -1,20 +1,17 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
-import { FormPage } from '../../../pages/Dashboard/Form';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 
 // Skip for now as it is not working in CI atm
 test.describe.skip('Find row by scanner', () => {
   let dashboard: DashboardPage;
   let context: any;
   let toolbar: ToolbarPage;
-  let form: FormPage;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
-    form = dashboard.form;
     toolbar = dashboard.grid.toolbar;
   });
 

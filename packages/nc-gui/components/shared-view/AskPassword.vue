@@ -31,27 +31,33 @@ const focus: VNodeRef = (el: typeof InputPassword) => el?.$el?.querySelector('in
 </script>
 
 <template>
-  <a-modal
-    v-model:visible="vModel"
-    :class="{ active: vModel }"
-    :closable="false"
-    width="28rem"
-    centered
-    :footer="null"
-    :mask-closable="false"
-    wrap-class-name="nc-modal-shared-view-password-dlg"
-    @close="vModel = false"
-  >
-    <div class="w-full flex flex-col">
-      <a-typography-title :level="4">This shared view is protected</a-typography-title>
+  <NcModal v-model:visible="vModel" c size="small" :class="{ active: vModel }" :mask-closable="false">
+    <template #header>
+      <div class="flex flex-row items-center gap-x-2">
+        <GeneralIcon icon="key" />
+        This shared view is protected
+      </div>
+    </template>
 
-      <a-form ref="formRef" :model="formState" class="mt-2" @finish="onFinish">
+    <div class="mt-2">
+      <a-form ref="formRef" :model="formState" name="create-new-table-form" @finish="onFinish">
         <a-form-item name="password" :rules="[{ required: true, message: 'Password is required' }]">
-          <a-input-password :ref="focus" v-model:value="formState.password" placeholder="Enter password" />
+          <a-input-password
+            ref="focus"
+            v-model:value="formState.password"
+            class="nc-input-md"
+            hide-details
+            size="large"
+            placeholder="Enter password"
+          />
         </a-form-item>
-
-        <a-button type="primary" html-type="submit">Unlock</a-button>
       </a-form>
+      <div class="flex flex-row justify-end gap-x-2 mt-6">
+        <NcButton type="primary" html-type="submit" @click="onFinish"
+          >Unlock
+          <template #loading> Verifying Password </template>
+        </NcButton>
+      </div>
     </div>
-  </a-modal>
+  </NcModal>
 </template>

@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import type { Row as RowType } from '#imports'
 import {
   ActiveViewInj,
-  ChangePageInj,
   FieldsInj,
   IsFormInj,
   IsGalleryInj,
@@ -11,7 +11,6 @@ import {
   MetaInj,
   NavigateDir,
   OpenNewRecordFormHookInj,
-  PaginationDataInj,
   ReloadRowDataHookInj,
   ReloadViewDataHookInj,
   ReloadViewMetaHookInj,
@@ -23,13 +22,11 @@ import {
   isImage,
   isLTAR,
   nextTick,
-  onMounted,
   provide,
   ref,
   useAttachment,
   useViewData,
 } from '#imports'
-import type { Row as RowType } from '~/lib'
 
 interface Attachment {
   url: string
@@ -40,6 +37,8 @@ const view = inject(ActiveViewInj, ref())
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
+
+const { isViewDataLoading } = storeToRefs(useViewsStore())
 
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
@@ -60,8 +59,6 @@ const {
 provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(true))
 provide(IsGridInj, ref(false))
-provide(PaginationDataInj, paginationData)
-provide(ChangePageInj, changePage)
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -75,12 +72,10 @@ const { getPossibleAttachmentSrc } = useAttachment()
 
 const fieldsWithoutCover = computed(() => fields.value.filter((f) => f.id !== galleryData.value?.fk_cover_image_col_id))
 
-const coverImageColumn: any = $(
-  computed(() =>
-    meta.value?.columnsById
-      ? meta.value.columnsById[galleryData.value?.fk_cover_image_col_id as keyof typeof meta.value.columnsById]
-      : {},
-  ),
+const coverImageColumn: any = computed(() =>
+  meta.value?.columnsById
+    ? meta.value.columnsById[galleryData.value?.fk_cover_image_col_id as keyof typeof meta.value.columnsById]
+    : {},
 )
 
 const isRowEmpty = (record: any, col: any) => {
@@ -93,13 +88,13 @@ const isRowEmpty = (record: any, col: any) => {
 const { isSqlView } = useSmartsheetStoreOrThrow()
 
 const { isUIAllowed } = useUIPermission()
-const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
+const hasEditPermission = computed(() => isUIAllowed('xcDatatableEditable'))
 // TODO: extract this code (which is duplicated in grid and gallery) into a separate component
 const _contextMenu = ref(false)
 const contextMenu = computed({
   get: () => _contextMenu.value,
   set: (val) => {
-    if (hasEditPermission) {
+    if (hasEditPermission.value) {
       _contextMenu.value = val
     }
   },
@@ -116,10 +111,10 @@ const showContextMenu = (e: MouseEvent, target?: { row: number }) => {
 
 const attachments = (record: any): Attachment[] => {
   try {
-    if (coverImageColumn?.title && record.row[coverImageColumn.title]) {
-      return typeof record.row[coverImageColumn.title] === 'string'
-        ? JSON.parse(record.row[coverImageColumn.title])
-        : record.row[coverImageColumn.title]
+    if (coverImageColumn.value?.title && record.row[coverImageColumn.value.title]) {
+      return typeof record.row[coverImageColumn.value.title] === 'string'
+        ? JSON.parse(record.row[coverImageColumn.value.title])
+        : record.row[coverImageColumn.value.title]
     }
     return []
   } catch (e) {
@@ -190,21 +185,26 @@ reloadViewDataHook?.on(async () => {
   await loadData()
 })
 
-onMounted(async () => {
-  await loadData()
-
-  await loadGalleryData()
-})
-
 // provide view data reload hook as fallback to row data reload
 provide(ReloadRowDataHookInj, reloadViewDataHook)
 
-watch(view, async (nextView) => {
-  if (nextView?.type === ViewTypes.GALLERY) {
-    await loadData()
-    await loadGalleryData()
-  }
-})
+watch(
+  view,
+  async (nextView) => {
+    isViewDataLoading.value = true
+    try {
+      if (nextView?.type === ViewTypes.GALLERY) {
+        await loadData()
+        await loadGalleryData()
+      }
+    } finally {
+      isViewDataLoading.value = false
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -231,8 +231,20 @@ watch(view, async (nextView) => {
       </a-menu>
     </template>
 
-    <div class="flex flex-col h-full w-full overflow-auto nc-gallery" data-testid="nc-gallery-wrapper">
-      <div class="nc-gallery-container grid gap-2 my-4 px-3">
+    <div
+      class="flex flex-col w-full nc-gallery nc-scrollbar-md"
+      data-testid="nc-gallery-wrapper"
+      style="height: calc(100% - var(--topbar-height) + 0.7rem)"
+      :class="{
+        '!overflow-hidden': isViewDataLoading,
+      }"
+    >
+      <div v-if="isViewDataLoading" class="flex flex-col h-full">
+        <div class="flex flex-row p-3 !pr-1 gap-x-2 flex-wrap gap-y-2">
+          <a-skeleton-input v-for="index of Array(20)" :key="index" class="!min-w-60.5 !h-96 !rounded-md overflow-hidden" />
+        </div>
+      </div>
+      <div v-else class="nc-gallery-container grid gap-2 my-4 px-3">
         <div v-for="(record, rowIndex) in data" :key="`record-${record.row.id}`">
           <LazySmartsheetRow :row="record">
             <a-card
@@ -270,8 +282,9 @@ watch(view, async (nextView) => {
                     />
                   </template>
                 </a-carousel>
-
-                <component :is="iconMap.imagePlaceholder" v-else class="w-full h-48 my-4 text-cool-gray-200" />
+                <div v-else class="h-52 w-full !flex flex-row items-center justify-center">
+                  <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
+                </div>
               </template>
 
               <div v-for="col in fieldsWithoutCover" :key="`record-${record.row.id}-${col.id}`">
@@ -309,13 +322,10 @@ watch(view, async (nextView) => {
           </LazySmartsheetRow>
         </div>
       </div>
-
-      <div class="flex-1" />
-
-      <LazySmartsheetPagination />
     </div>
   </a-dropdown>
 
+  <LazySmartsheetPagination v-model:pagination-data="paginationData" :change-page="changePage" />
   <Suspense>
     <LazySmartsheetExpandedForm
       v-if="expandedFormRow && expandedFormDlg"

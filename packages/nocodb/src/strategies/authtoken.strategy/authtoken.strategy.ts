@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-custom';
-import { ApiToken, ProjectUser, User } from '../../models';
+import { ApiToken, ProjectUser, User } from '~/models';
+import { sanitiseUserObj } from '~/utils';
 
 @Injectable()
 export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
@@ -39,10 +40,10 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
           );
           user.roles = projectUser?.roles || dbUser.roles;
           user.roles = user.roles === 'owner' ? 'owner,creator' : user.roles;
-          return callback(null, user);
+          return callback(null, sanitiseUserObj(user));
         }
       }
-      return callback(null, user);
+      return callback(null, sanitiseUserObj(user));
     } catch (error) {
       return callback(error);
     }

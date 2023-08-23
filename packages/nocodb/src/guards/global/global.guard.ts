@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { lastValueFrom, Observable } from 'rxjs';
-import { JwtStrategy } from '../../strategies/jwt.strategy';
-import extractRolesObj from '../../utils/extractRolesObj';
 import type { ExecutionContext } from '@nestjs/common';
+import { JwtStrategy } from '~/strategies/jwt.strategy';
+import extractRolesObj from '~/utils/extractRolesObj';
 
 @Injectable()
 export class GlobalGuard extends AuthGuard(['jwt']) {

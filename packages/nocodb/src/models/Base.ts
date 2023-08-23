@@ -1,29 +1,22 @@
 import { UITypes } from 'nocodb-sdk';
 import CryptoJS from 'crypto-js';
-import NocoCache from '../cache/NocoCache';
+import { v4 as uuidv4 } from 'uuid';
+import type { BaseType, BoolType } from 'nocodb-sdk';
+import Model from '~/models/Model';
+import Project from '~/models/Project';
+import SyncSource from '~/models/SyncSource';
+import NocoCache from '~/cache/NocoCache';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
+  type DB_TYPES,
   MetaTable,
-} from '../utils/globals';
-import Noco from '../Noco';
-import { extractProps } from '../helpers/extractProps';
-import { NcError } from '../helpers/catchError';
-import Model from './Model';
-import Project from './Project';
-import SyncSource from './SyncSource';
-import type { BaseType, BoolType } from 'nocodb-sdk';
-
-export const DB_TYPES = <const>[
-  'mysql2',
-  'sqlite3',
-  'mysql',
-  'mssql',
-  'snowflake',
-  'oracledb',
-  'pg',
-];
+} from '~/utils/globals';
+import Noco from '~/Noco';
+import { extractProps } from '~/helpers/extractProps';
+import { NcError } from '~/helpers/catchError';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 // todo: hide credentials
 export default class Base implements BaseType {
@@ -36,10 +29,15 @@ export default class Base implements BaseType {
   inflection_column?: string;
   inflection_table?: string;
   order?: number;
+  erd_uuid?: string;
   enabled?: BoolType;
 
   constructor(base: Partial<Base>) {
     Object.assign(this, base);
+  }
+
+  protected static castType(base: Base): Base {
+    return base && new Base(base);
   }
 
   public static async createBase(
@@ -57,12 +55,9 @@ export default class Base implements BaseType {
       'order',
       'enabled',
     ]);
-
-    const secret = Noco.getConfig()?.auth?.jwt?.secret;
-
     insertObj.config = CryptoJS.AES.encrypt(
       JSON.stringify(base.config),
-      secret,
+      Noco.getConfig()?.auth?.jwt?.secret,
     ).toString();
 
     const { id } = await ncMeta.metaInsert2(
@@ -177,7 +172,7 @@ export default class Base implements BaseType {
     baseDataList.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
 
     return baseDataList?.map((baseData) => {
-      return new Base(baseData);
+      return this.castType(baseData);
     });
   }
 
@@ -192,7 +187,19 @@ export default class Base implements BaseType {
       baseData = await ncMeta.metaGet2(null, null, MetaTable.BASES, id);
       await NocoCache.set(`${CacheScope.BASE}:${id}`, baseData);
     }
-    return baseData && new Base(baseData);
+    return this.castType(baseData);
+  }
+
+  static async getByUUID(uuid: string, ncMeta = Noco.ncMeta) {
+    const base = await ncMeta.metaGet2(null, null, MetaTable.BASES, {
+      erd_uuid: uuid,
+    });
+
+    if (!base) return null;
+
+    delete base.config;
+
+    return this.castType(base);
   }
 
   static async reorderBases(
@@ -242,9 +249,19 @@ export default class Base implements BaseType {
     }
   }
 
-  // NC_DATA_DB is not available in community version
-  // make it return Promise to avoid conflicts
-  public getConnectionConfig(): Promise<any> {
+  public async getConnectionConfig(): Promise<any> {
+    const config = this.getConfig();
+
+    // todo: update sql-client args
+    if (config?.client === 'sqlite3') {
+      config.connection.filename =
+        config.connection.filename || config.connection?.connection.filename;
+    }
+
+    return config;
+  }
+
+  public getConfig(): any {
     if (this.is_meta) {
       const metaConfig = Noco.getConfig()?.meta?.db;
       const config = { ...metaConfig };
@@ -260,12 +277,6 @@ export default class Base implements BaseType {
         Noco.getConfig()?.auth?.jwt?.secret,
       ).toString(CryptoJS.enc.Utf8),
     );
-
-    // todo: update sql-client args
-    if (config?.client === 'sqlite3') {
-      config.connection.filename =
-        config.connection.filename || config.connection?.connection.filename;
-    }
 
     return config;
   }
@@ -351,6 +362,8 @@ export default class Base implements BaseType {
       await SyncSource.delete(syncSource.id, ncMeta);
     }
 
+    await NcConnectionMgrv2.deleteAwait(this);
+
     return await ncMeta.metaDelete(null, null, MetaTable.BASES, this.id);
   }
 
@@ -359,5 +372,69 @@ export default class Base implements BaseType {
       { project_id: this.project_id, base_id: this.id },
       ncMeta,
     );
+  }
+
+  async shareErd(ncMeta = Noco.ncMeta) {
+    if (!this.erd_uuid) {
+      const uuid = uuidv4();
+      this.erd_uuid = uuid;
+      // get existing cache
+      const key = `${CacheScope.BASE}:${this.id}`;
+      const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+      if (o) {
+        // update data
+        o.erd_uuid = uuid;
+        // set cache
+        await NocoCache.set(key, o);
+      }
+      // set meta
+      await ncMeta.metaUpdate(
+        null,
+        null,
+        MetaTable.BASES,
+        {
+          erd_uuid: this.erd_uuid,
+        },
+        this.id,
+      );
+    }
+    return this;
+  }
+
+  async disableShareErd(ncMeta = Noco.ncMeta) {
+    if (this.erd_uuid) {
+      this.erd_uuid = null;
+      // get existing cache
+      const key = `${CacheScope.BASE}:${this.id}`;
+      const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+      if (o) {
+        // update data
+        o.erd_uuid = null;
+        // set cache
+        await NocoCache.set(key, o);
+      }
+      // set meta
+      await ncMeta.metaUpdate(
+        null,
+        null,
+        MetaTable.BASES,
+        {
+          erd_uuid: this.erd_uuid,
+        },
+        this.id,
+      );
+    }
+    return this;
+  }
+
+  isMeta(_only = false, _mode = 0) {
+    if (_only) {
+      if (_mode === 0) {
+        return this.is_meta;
+      }
+      return false;
+    } else {
+      return this.is_meta;
+    }
   }
 }

@@ -2,11 +2,11 @@
 import { onKeyDown } from '@vueuse/core'
 import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
-import { RowHeightInj } from '~/context'
 import {
   ActiveCellInj,
   CurrentCellInj,
   DropZoneRef,
+  RowHeightInj,
   iconMap,
   inject,
   isImage,
@@ -40,6 +40,8 @@ const sortableRef = ref<HTMLDivElement>()
 
 const currentCellRef = inject(CurrentCellInj, dropZoneInjection.value)
 
+const isLockedMode = inject(IsLockedInj, ref(false))
+
 const { isSharedForm } = useSmartsheetStoreOrThrow()!
 
 const { getPossibleAttachmentSrc, openAttachment } = useAttachment()
@@ -56,11 +58,15 @@ const {
   open,
   FileIcon,
   selectedImage,
-  isReadonly,
+  isReadonly: _isReadonly,
   storedFiles,
 } = useProvideAttachmentCell(updateModelValue)
 
-const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)
+const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, _isReadonly)
+
+const isReadonly = computed(() => {
+  return isLockedMode.value || _isReadonly.value
+})
 
 const { state: rowState } = useSmartsheetRowStoreOrThrow()
 
@@ -137,6 +143,7 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
 <template>
   <div
     ref="attachmentCellRef"
+    tabindex="0"
     :style="{
       height: isForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
     }"

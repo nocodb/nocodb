@@ -9,7 +9,6 @@ import {
   MetaInj,
   ReloadViewDataHookInj,
   computed,
-  iconMap,
   inject,
   ref,
   useKanbanViewStoreOrThrow,
@@ -18,6 +17,8 @@ import {
   useViewColumns,
   watch,
 } from '#imports'
+
+provide(IsKanbanInj, ref(true))
 
 const meta = inject(MetaInj, ref())
 
@@ -31,7 +32,8 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { fields, loadViewColumns, metaColumnById } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
 
-const { kanbanMetaData, loadKanbanMeta, loadKanbanData, updateKanbanMeta, groupingField } = useKanbanViewStoreOrThrow()
+const { kanbanMetaData, loadKanbanMeta, loadKanbanData, updateKanbanMeta, groupingField, groupingFieldColumn } =
+  useKanbanViewStoreOrThrow()
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -90,6 +92,13 @@ const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
     })
 })
 
+const onSubmit = async () => {
+  open.value = false
+
+  await loadKanbanMeta()
+  await loadKanbanData()
+}
+
 const handleChange = () => {
   open.value = false
 }
@@ -109,26 +118,18 @@ const handleChange = () => {
         :disabled="isLocked"
       >
         <div class="flex items-center gap-1">
-          <mdi-arrow-down-drop-circle-outline />
-          <span class="text-capitalize !text-sm font-weight-normal">
+          <GeneralIcon icon="layers" class="mr-0.5" />
+          <span class="text-capitalize !text-sm">
             {{ $t('activity.kanban.stackedBy') }}
-            <span class="font-bold">{{ groupingField }}</span>
+            <span class="font-bold ml-0.25">{{ groupingField }}</span>
           </span>
-          <component :is="iconMap.arrowDown" class="text-grey" />
         </div>
       </a-button>
     </div>
     <template #overlay>
-      <div
-        v-if="open"
-        class="p-3 min-w-[280px] bg-gray-50 shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto !border"
-        @click.stop
-      >
-        <div>
-          <span class="font-bold"> {{ $t('activity.kanban.chooseGroupingField') }}</span>
-          <a-divider class="!my-2" />
-        </div>
-        <div class="nc-fields-list py-1">
+      <div v-if="open" class="p-6 w-90 bg-white shadow-lg nc-table-toolbar-menu !border-1 border-gray-50 rounded-2xl" @click.stop>
+        <div>Select a field to stack records by</div>
+        <div class="nc-fields-list py-2">
           <div class="grouping-field">
             <a-select
               v-model:value="groupingFieldColumnId"
@@ -137,8 +138,26 @@ const handleChange = () => {
               placeholder="Select a Grouping Field"
               @change="handleChange"
               @click.stop
-            />
+            >
+              <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template
+            ></a-select>
           </div>
+        </div>
+        <div class="mt-4 border-1 px-4 pt-4 pb-3 border-gray-50 rounded-2xl">
+          <div class="text-base font-medium mb-2">Options</div>
+          <LazySmartsheetColumnEditOrAddProvider
+            v-if="open"
+            :column="groupingFieldColumn"
+            embed-mode
+            :column-label="$t('general.changes')"
+            hide-title
+            hide-type
+            hide-additional-options
+            @cancel="open = false"
+            @submit="onSubmit"
+            @click.stop
+            @keydown.stop
+          />
         </div>
       </div>
     </template>

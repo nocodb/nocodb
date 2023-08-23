@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onKeyDown } from '@vueuse/core'
+import { onKeyDown, useEventListener } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
 import { useSortable } from './sort'
 import { iconMap, isImage, ref, useAttachment, useDropZone, useUIPermission, watch } from '#imports'
@@ -58,21 +58,29 @@ function onClick(item: Record<string, any>) {
   })
 }
 
+const isModalOpen = ref(false)
+const filetoDelete = reactive({
+  title: '',
+  i: 0,
+})
+
 function onRemoveFileClick(title: any, i: number) {
-  Modal.confirm({
-    title: `Do you want to delete '${title}'?`,
-    wrapClassName: 'nc-modal-attachment-delete',
-    okText: 'Yes',
-    okType: 'danger',
-    cancelText: 'No',
-    onOk() {
-      try {
-        removeFile(i)
-      } catch (e: any) {
-        message.error(e.message)
-      }
-    },
-  })
+  isModalOpen.value = true
+  filetoDelete.i = i
+  filetoDelete.title = title
+}
+
+// when user paste on modal
+useEventListener(dropZoneRef, 'paste', (event: ClipboardEvent) => {
+  if (event.clipboardData?.files) {
+    onDrop(event.clipboardData.files)
+  }
+})
+const handleFileDelete = (i: number) => {
+  removeFile(i)
+  isModalOpen.value = false
+  filetoDelete.i = 0
+  filetoDelete.title = ''
 }
 </script>
 
@@ -108,8 +116,7 @@ function onRemoveFileClick(title: any, i: number) {
         </div>
       </div>
     </template>
-
-    <div ref="dropZoneRef">
+    <div ref="dropZoneRef" tabindex="0">
       <template v-if="isSharedForm || (!readOnly && !dragging)">
         <general-overlay
           v-model="isOverDropZone"
@@ -196,6 +203,21 @@ function onRemoveFileClick(title: any, i: number) {
         </div>
       </div>
     </div>
+    <GeneralDeleteModal v-model:visible="isModalOpen" entity-name="File" :on-delete="() => handleFileDelete(filetoDelete.i)">
+      <template #entity-preview>
+        <span>
+          <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
+            <GeneralIcon icon="file" class="nc-view-icon"></GeneralIcon>
+            <div
+              class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
+              :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+            >
+              {{ filetoDelete.title }}
+            </div>
+          </div>
+        </span>
+      </template>
+    </GeneralDeleteModal>
   </a-modal>
 </template>
 

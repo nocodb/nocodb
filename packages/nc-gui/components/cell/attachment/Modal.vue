@@ -104,7 +104,7 @@ function onRemoveFileClick(title: any, i: number) {
         </div>
 
         <div v-if="selectedVisibleItems.includes(true)" class="flex flex-1 items-center gap-3 justify-end mr-[30px]">
-          <a-button type="primary" class="nc-attachment-download-all" @click="bulkDownloadFiles"> Bulk Download </a-button>
+          <NcButton type="primary" class="nc-attachment-download-all" @click="bulkDownloadFiles"> Bulk Download </NcButton>
         </div>
       </div>
     </template>

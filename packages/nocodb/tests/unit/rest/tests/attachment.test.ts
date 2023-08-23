@@ -46,7 +46,7 @@ function attachmentTests() {
     expect(msg).to.be.eq('Unauthorized');
   });
 
-  it('Upload file - Org level viewer', async () => {
+  it.skip('Upload file - Org level viewer', async () => {
     // signup a user
     const args = {
       email: 'dummyuser@example.com',

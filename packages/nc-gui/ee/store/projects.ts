@@ -142,13 +142,16 @@ export const useProjects = defineStore('projectsStore', () => {
       }
 
       projects.value = _projects.reduce((acc, project) => {
+        const existingProjectMeta = projects.value.get(project.id!) || {}
         acc.set(project.id!, {
+          ...existingProjectMeta,
           ...project,
           isExpanded: route.value.params.projectId === project.id || projects.value.get(project.id!)?.isExpanded,
           isLoading: false,
         })
         return acc
-      }, new Map())
+      }, new Map());
+
     } catch (e) {
       console.error(e)
       message.error(e.message)

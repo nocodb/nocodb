@@ -282,8 +282,9 @@ watch(
                     />
                   </template>
                 </a-carousel>
-
-                <component :is="iconMap.imagePlaceholder" v-else class="w-full h-48 my-4 text-cool-gray-200" />
+                <div v-else class="h-52 w-full !flex flex-row items-center justify-center">
+                  <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
+                </div>
               </template>
 
               <div v-for="col in fieldsWithoutCover" :key="`record-${record.row.id}-${col.id}`">

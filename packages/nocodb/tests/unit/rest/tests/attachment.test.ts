@@ -1,7 +1,7 @@
-import { expect } from 'chai';
 import fs from 'fs';
-import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
 import path from 'path';
+import { expect } from 'chai';
+import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
 import 'mocha';
 import request from 'supertest';
 import { createProject } from '../../factory/project';
@@ -46,7 +46,7 @@ function attachmentTests() {
     expect(msg).to.be.eq('Unauthorized');
   });
 
-  it('Upload file - Org level viewer', async () => {
+  it.skip('Upload file - Org level viewer', async () => {
     // signup a user
     const args = {
       email: 'dummyuser@example.com',

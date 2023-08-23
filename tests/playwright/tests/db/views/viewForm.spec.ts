@@ -467,6 +467,8 @@ test.describe('Form view', () => {
     await dashboard.treeView.openTable({ title: 'selectBased' });
     const url = dashboard.rootPage.url();
 
+    await dashboard.rootPage.waitForTimeout(500);
+
     await dashboard.viewSidebar.createFormView({ title: 'NewForm' });
     const formLink = await dashboard.form.topbar.getSharedViewUrl();
 
@@ -497,6 +499,8 @@ test.describe('Form view', () => {
     await sharedForm.submit();
     await dashboard.rootPage.goto(url);
     await dashboard.viewSidebar.openView({ title: 'selectBased' });
+
+    await dashboard.rootPage.waitForTimeout(500);
 
     await dashboard.grid.cell.selectOption.verify({
       columnHeader: 'SingleSelect',

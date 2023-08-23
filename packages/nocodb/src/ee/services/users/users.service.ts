@@ -1,14 +1,7 @@
 import { promisify } from 'util';
 import { UsersService as UsersServiceCE } from 'src/services/users/users.service';
 import { Injectable } from '@nestjs/common';
-import {
-  AppEvents,
-  OrgUserRoles,
-  validatePassword,
-  WorkspacePlan,
-  WorkspaceStatus,
-  WorkspaceUserRoles,
-} from 'nocodb-sdk';
+import { AppEvents, OrgUserRoles, validatePassword } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { isEmail } from 'validator';
 import { T } from 'nc-help';
@@ -20,18 +13,22 @@ import { NC_APP_SETTINGS } from '~/constants';
 import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { Store, User, Workspace, WorkspaceUser } from '~/models';
+import { ProjectsService } from '~/services/projects.service';
+import { Store, User } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
+import { WorkspacesService } from '~/modules/workspaces/workspaces.service';
 
 @Injectable()
 export class UsersService extends UsersServiceCE {
   constructor(
     protected metaService: MetaService,
     protected appHooksService: AppHooksService,
+    protected workspaceService: WorkspacesService,
+    protected projectService: ProjectsService,
   ) {
-    super(metaService, appHooksService);
+    super(metaService, appHooksService, projectService);
   }
   async registerNewUserIfAllowed({
     avatar,
@@ -88,8 +85,6 @@ export class UsersService extends UsersServiceCE {
       token_version,
     });
 
-    await this.createDefaultWorkspace(user);
-
     return user;
   }
 
@@ -108,6 +103,8 @@ export class UsersService extends UsersServiceCE {
       token,
       ignore_subscribe,
     } = param.req.body;
+
+    let createdWorkspace;
 
     let { password } = param.req.body;
 
@@ -167,7 +164,7 @@ export class UsersService extends UsersServiceCE {
         NcError.badRequest('User already exist');
       }
     } else {
-      await this.registerNewUserIfAllowed({
+      const user = await this.registerNewUserIfAllowed({
         avatar,
         display_name,
         user_name,
@@ -176,6 +173,8 @@ export class UsersService extends UsersServiceCE {
         password,
         email_verification_token,
       });
+
+      createdWorkspace = await this.createDefaultWorkspace(user);
     }
     user = await User.getByEmail(email);
 
@@ -218,24 +217,17 @@ export class UsersService extends UsersServiceCE {
       user,
     });
 
-    return this.login(user);
+    return { ...this.login(user), createdWorkspace };
   }
 
   private async createDefaultWorkspace(user: User) {
     const title = `${user.email?.split('@')?.[0]}`;
     // create new workspace for user
-    const workspace = await Workspace.insert({
-      title,
-      description: 'Default workspace',
-      fk_user_id: user.id,
-      plan: WorkspacePlan.FREE,
-      status: WorkspaceStatus.CREATED,
-    });
-
-    await WorkspaceUser.insert({
-      fk_user_id: user.id,
-      fk_workspace_id: workspace.id,
-      roles: WorkspaceUserRoles.OWNER,
+    const workspace = await this.workspaceService.create({
+      user,
+      workspaces: {
+        title,
+      },
     });
 
     return workspace;

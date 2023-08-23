@@ -2,11 +2,11 @@ import { test } from '@playwright/test';
 import { airtableApiBase, airtableApiKey } from '../../../constants';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { quickVerify } from '../../../quickTests/commonTest';
-import setup, { unsetup } from '../../../setup';
+import setup, { NcContext, unsetup } from '../../../setup';
 
 test.describe('Import', () => {
   let dashboard: DashboardPage;
-  let context: any;
+  let context: NcContext;
 
   test.setTimeout(150000);
 
@@ -21,7 +21,7 @@ test.describe('Import', () => {
   });
 
   test('Airtable', async () => {
-    await dashboard.treeView.quickImport({ title: 'Airtable' });
+    await dashboard.treeView.quickImport({ title: 'Airtable', projectTitle: context.project.title });
     await dashboard.importAirtable.import({
       key: airtableApiKey,
       baseId: airtableApiBase,
@@ -31,7 +31,7 @@ test.describe('Import', () => {
   });
 
   test('CSV', async () => {
-    await dashboard.treeView.quickImport({ title: 'CSV file' });
+    await dashboard.treeView.quickImport({ title: 'CSV file', projectTitle: context.project.title });
   });
 
   test('Excel', async () => {
@@ -46,7 +46,7 @@ test.describe('Import', () => {
       { name: 'Sheet4', columns: col },
     ];
 
-    await dashboard.treeView.quickImport({ title: 'Microsoft Excel' });
+    await dashboard.treeView.quickImport({ title: 'Microsoft Excel', projectTitle: context.project.title });
     await dashboard.importTemplate.import({
       file: `${process.cwd()}/fixtures/sampleFiles/simple.xlsx`,
       result: expected,
@@ -66,6 +66,6 @@ test.describe('Import', () => {
   });
 
   test('JSON', async () => {
-    await dashboard.treeView.quickImport({ title: 'JSON file' });
+    await dashboard.treeView.quickImport({ title: 'JSON file', projectTitle: context.project.title });
   });
 });

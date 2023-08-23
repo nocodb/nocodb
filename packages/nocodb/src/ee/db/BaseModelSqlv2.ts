@@ -103,6 +103,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               id: data[ag.title],
               params: {},
               base,
+              getHiddenColumn: true,
             })
           : this.readByPk(
               data[ag.title],
@@ -158,6 +159,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 id,
                 params: {},
                 base,
+                getHiddenColumn: true,
               })
             : await this.readByPk(
                 id,
@@ -198,6 +200,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               id,
               params: {},
               base,
+              getHiddenColumn: true,
             })
           : await this.readByPk(
               id,
@@ -224,6 +227,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               id,
               params: {},
               base,
+              getHiddenColumn: true,
             })
           : await this.readByPk(
               id,

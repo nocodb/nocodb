@@ -102,6 +102,7 @@ export const useProjects = defineStore('projectsStore', () => {
       projects.value.set(project.id!, {
         ...(projects.value.get(project.id!) || {}),
         ...project,
+        bases: [...(projects.value.get(project.id!)?.bases ?? []), ...(project.bases ?? [])],
         isExpanded: route.value.params.projectId === project.id || projects.value.get(project.id!)?.isExpanded,
         isLoading: false,
       })
@@ -167,7 +168,7 @@ export const useProjects = defineStore('projectsStore', () => {
     const project = projects.value.get(projectId)
     if (!project) return false
 
-    return !!(project.bases && tableStore.projectTables.get(projectId))
+    return !!(project.bases?.length && tableStore.projectTables.get(projectId))
   }
 
   // actions

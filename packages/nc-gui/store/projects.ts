@@ -136,7 +136,9 @@ export const useProjects = defineStore('projectsStore', () => {
       _projects = list
 
       projects.value = _projects.reduce((acc, project) => {
+        const existingProjectMeta = projects.value.get(project.id!) || {}
         acc.set(project.id!, {
+          ...existingProjectMeta,
           ...project,
           isExpanded: route.value.params.projectId === project.id || projects.value.get(project.id!)?.isExpanded,
           isLoading: false,

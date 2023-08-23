@@ -203,7 +203,7 @@ const eventList = ref<Record<string, any>[]>([
 ])
 
 const notificationList = computed(() => {
-  return appInfo.value.isCloud
+  return isEeUI
     ? [{ type: 'URL' }]
     : [
         { type: 'URL' },
@@ -370,7 +370,7 @@ function onEventChange() {
 }
 
 async function loadPluginList() {
-  if (appInfo.value.isCloud) return
+  if (isEeUI) return
   try {
     const plugins = (await api.plugin.webhookList()).list!
 

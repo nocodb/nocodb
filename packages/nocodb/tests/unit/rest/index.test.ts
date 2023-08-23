@@ -10,7 +10,11 @@ import attachmentTests from './tests/attachment.test';
 import filterTest from './tests/filter.test';
 import newDataApisTest from './tests/newDataApis.test';
 import groupByTest from './tests/groupby.test';
-import workspaceTest from './tests/ee/workspace.test';
+
+let workspaceTest = () => {};
+if (process.env.EE === 'true') {
+  workspaceTest = require('./tests/ee/workspace.test').default;
+}
 // import layoutTests from './tests/layout.test';
 // import widgetTest from './tests/widget.test';
 

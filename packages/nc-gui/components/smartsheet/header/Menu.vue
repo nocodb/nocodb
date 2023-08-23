@@ -57,6 +57,8 @@ const setAsDisplayValue = async () => {
   try {
     const currentDisplayValue = meta?.value?.columns?.find((f) => f.pv)
 
+    isOpen.value = false
+
     await $api.dbTableColumn.primaryColumnSet(column?.value?.id as string)
 
     await getMeta(meta?.value?.id as string, true)

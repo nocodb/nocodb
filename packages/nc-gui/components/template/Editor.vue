@@ -756,11 +756,6 @@ function handleUIDTChange(column, table) {
                   :filter-option="filterOption"
                   dropdown-class-name="nc-dropdown-filter-field"
                 >
-                  <a-select-option>
-                    <GeneralIcon icon="add" />
-                    <span class="ml-2 font-weight-bold">Add as a new column</span>
-                  </a-select-option>
-
                   <a-select-option v-for="(col, i) of columns" :key="i" :value="col.title">
                     <div class="flex items-center">
                       <component :is="getUIDTIcon(col.uidt)" />

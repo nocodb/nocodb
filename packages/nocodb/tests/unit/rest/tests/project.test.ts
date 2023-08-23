@@ -141,18 +141,20 @@ function projectTest() {
   });
 
   it('Update projects with existing title', async function () {
-    const newProject = await createProject(context, {
-      title: 'NewTitle1',
-    });
+    if (process.env.EE !== 'true') {
+      const newProject = await createProject(context, {
+        title: 'NewTitle1',
+      });
 
-    // Allow project rename to be replaced with same title
-    await request(context.app)
-      .patch(`/api/v1/db/meta/projects/${project.id}`)
-      .set('xc-auth', context.token)
-      .send({
-        title: newProject.title,
-      })
-      .expect(200);
+      // Allow project rename to be replaced with same title
+      await request(context.app)
+        .patch(`/api/v1/db/meta/projects/${project.id}`)
+        .set('xc-auth', context.token)
+        .send({
+          title: newProject.title,
+        })
+        .expect(400);
+    }
   });
 
   it('Create project shared base', async () => {

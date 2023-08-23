@@ -1,5 +1,5 @@
 import { WorkspaceUserRoles } from 'nocodb-sdk'
-import { ProjectRole, Role } from './enums'
+import { ProjectRole, Role } from '../../lib/enums'
 
 /**
  * Each permission value means the following

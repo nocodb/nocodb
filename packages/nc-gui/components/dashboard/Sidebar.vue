@@ -47,12 +47,6 @@ const { appInfo } = useGlobal()
 
 const navigateToSettings = () => {
   navigateToWorkspaceSettings()
-
-  // TODO: Handle cloud case properly
-  // if (appInfo.value.baseHostName) {
-  //   window.location.href = `https://app.${appInfo.value.baseHostName}/dashboard`
-  // } else {
-  // }
 }
 </script>
 

@@ -72,7 +72,7 @@ export class AuditsService {
   }
 
   async auditCount(param: { query?: any; projectId: string }) {
-    return await Audit.projectAuditCount(param.projectId);
+    return await Audit.projectAuditCount(param.projectId, param.query?.baseId);
   }
 
   async commentsCount(param: { fk_model_id: string; ids: string[] }) {

@@ -1,21 +1,10 @@
 <script lang="ts" setup>
-import { WorkspaceUserRoles, type WorkspaceUserType } from 'nocodb-sdk'
+import { OrderedProjectRoles, RoleColors, RoleLabels } from 'nocodb-sdk'
+import type { ProjectRoles, WorkspaceUserType } from 'nocodb-sdk'
 import InfiniteLoading from 'v3-infinite-loading'
-import { storeToRefs, stringToColour, timeAgo } from '#imports'
+import { storeToRefs, stringToColour, timeAgo, useGlobal } from '#imports'
 
-const rolesLabel = {
-  [ProjectRole.Creator]: 'Creator',
-  [ProjectRole.Owner]: 'Owner',
-  [ProjectRole.Editor]: 'Editor',
-  [ProjectRole.Commenter]: 'Commenter',
-  [ProjectRole.Viewer]: 'Viewer',
-  [WorkspaceUserRoles.CREATOR]: 'Creator',
-  [WorkspaceUserRoles.OWNER]: 'Owner',
-  [WorkspaceUserRoles.EDITOR]: 'Editor',
-  [WorkspaceUserRoles.COMMENTER]: 'Commenter',
-  [WorkspaceUserRoles.VIEWER]: 'Viewer',
-}
-
+const { user } = useGlobal()
 const projectsStore = useProjects()
 const { getProjectUsers, createProjectUser, updateProjectUser } = projectsStore
 const { activeProjectId } = storeToRefs(projectsStore)
@@ -46,7 +35,7 @@ const loadCollaborators = async () => {
         ...user,
         projectRoles: user.roles,
         // TODO: Remove this hack and make the values consistent with the backend
-        roles: user.roles ?? (rolesLabel[user.workspace_roles] as string)?.toLowerCase(),
+        roles: user.roles ?? (RoleLabels[user.workspace_roles as string] as string)?.toLowerCase(),
       })),
     ]
   } catch (e: any) {
@@ -82,16 +71,7 @@ onMounted(async () => {
     isLoading.value = false
   }
 })
-/*
-const getRolesLabel = (roles?: string) => {
-  return (
-    roles
-      ?.split(/\s*,\s*REMOVE/)
-      ?.map((role) => rolesLabel[role])
-      .join(', ') ?? ''
-  )
-}
-*/
+
 const updateCollaborator = async (collab, roles) => {
   try {
     if (collab.projectRoles) {
@@ -135,6 +115,17 @@ const reloadCollabs = async () => {
   collaborators.value = []
   await loadCollaborators()
 }
+
+const userProjectRole = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles]>(() => {
+  const projectUser = collaborators.value?.find((collab) => collab.id === user.value?.id)
+  return projectUser?.projectRoles
+})
+
+const accessibleRoles = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>(() => {
+  const currentRoleIndex = OrderedProjectRoles.findIndex((role) => role === userProjectRole.value)
+  if (currentRoleIndex === -1) return []
+  return OrderedProjectRoles.slice(currentRoleIndex + 1)
+})
 </script>
 
 <template>
@@ -178,39 +169,45 @@ const reloadCollabs = async () => {
                 <span class="color-band" :style="{ backgroundColor: stringToColour(collab.email) }">{{
                   collab?.email?.slice(0, 2)
                 }}</span>
-                <!--                <GeneralTruncateText>-->
+                <!--                <GeneralTruncateText> -->
                 {{ collab.email }}
-                <!--                </GeneralTruncateText>-->
+                <!--                </GeneralTruncateText> -->
               </div>
             </div>
             <div class="text-gray-500 text-xs w-1/5 created-at">
               {{ timeAgo(collab.created_at) }}
             </div>
             <div class="w-1/5 roles">
-              <div v-if="collab.roles === ProjectRole.Owner" class="nc-collaborator-role-select">
-                <a-select v-model:value="collab.roles" class="w-30 !rounded px-1 !capitalize" disabled>
-                  <template #suffixIcon>
-                    <MdiChevronDown />
-                  </template>
-                  <a-select-option :value="WorkspaceUserRoles.OWNER"> Owner</a-select-option>
-                </a-select>
-              </div>
-              <div v-else class="nc-collaborator-role-select">
-                <a-select
+              <div class="nc-collaborator-role-select">
+                <NcSelect
                   v-model:value="collab.roles"
-                  class="w-30 !rounded px-1"
+                  class="w-35 !rounded px-1"
                   :virtual="true"
-                  @change="(value) => updateCollaborator(collab, value)"
                   :placeholder="$t('labels.noAccess')"
+                  :disabled="collab.id === user?.id || !accessibleRoles.includes(collab.roles)"
+                  @change="(value) => updateCollaborator(collab, value)"
                 >
                   <template #suffixIcon>
                     <MdiChevronDown />
                   </template>
-                  <a-select-option :value="ProjectRole.Creator"> Creator</a-select-option>
-                  <a-select-option :value="ProjectRole.Editor"> Editor</a-select-option>
-                  <a-select-option :value="ProjectRole.Commenter"> Commenter</a-select-option>
-                  <a-select-option :value="ProjectRole.Viewer"> Viewer</a-select-option>
-                </a-select>
+                  <a-select-option v-if="collab.id === user?.id" :value="userProjectRole">
+                    <NcBadge :color="RoleColors[userProjectRole]">
+                      <p class="badge-text">{{ RoleLabels[userProjectRole] }}</p>
+                    </NcBadge>
+                  </a-select-option>
+                  <a-select-option v-if="!accessibleRoles.includes(collab.roles)" :value="collab.roles">
+                    <NcBadge :color="RoleColors[collab.roles]">
+                      <p class="badge-text">{{ RoleLabels[collab.roles] }}</p>
+                    </NcBadge>
+                  </a-select-option>
+                  <template v-for="role of accessibleRoles" :key="`role-option-${role}`">
+                    <a-select-option :value="role">
+                      <NcBadge :color="RoleColors[role]">
+                        <p class="badge-text">{{ RoleLabels[role] }}</p>
+                      </NcBadge>
+                    </a-select-option>
+                  </template>
+                </NcSelect>
               </div>
             </div>
             <div class="w-1/5"></div>
@@ -233,6 +230,10 @@ const reloadCollabs = async () => {
 </template>
 
 <style scoped lang="scss">
+.badge-text {
+  @apply text-[14px] pt-1 text-center;
+}
+
 .nc-collaborators-list {
   @apply border-gray-100 mt-1 flex flex-col w-full;
   // todo: replace/remove 120px with proper value while updating invite ui
@@ -242,6 +243,7 @@ const reloadCollabs = async () => {
 .nc-collaborators-list-header {
   @apply flex flex-row justify-between items-center min-h-13 border-b-1 border-gray-100 pl-4 text-gray-500;
 }
+
 .nc-collaborators-list-row {
   @apply flex flex-row justify-between items-center min-h-16 border-b-1 border-gray-100 pl-4;
 }

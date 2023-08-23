@@ -6,6 +6,7 @@ import { LoadingOutlined } from '@ant-design/icons-vue'
 import { useTitle } from '@vueuse/core'
 import type { NcProject } from '#imports'
 import {
+  NcProjectType,
   ProjectInj,
   ProjectRoleInj,
   ToggleDialogInj,
@@ -16,6 +17,7 @@ import {
   useProjects,
   useWorkspace,
 } from '#imports'
+import { useNuxtApp } from '#app'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
@@ -36,7 +38,7 @@ const projectsStore = useProjects()
 
 const workspaceStore = useWorkspace()
 
-const { loadProject, createProject: _createProject, updateProject, getProjectMetaInfo } = projectsStore
+const { loadProject, loadProjects, createProject: _createProject, updateProject, getProjectMetaInfo } = projectsStore
 const { projects } = storeToRefs(projectsStore)
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
@@ -44,7 +46,7 @@ const { activeWorkspace } = storeToRefs(workspaceStore)
 const { loadProjectTables } = useTablesStore()
 const { activeTable } = storeToRefs(useTablesStore())
 
-const { appInfo } = useGlobal()
+const { appInfo, navigateToProject } = useGlobal()
 
 useTabs()
 
@@ -65,6 +67,8 @@ const { projectUrl } = useProject()
 const { activeProjectId } = storeToRefs(useProjects())
 
 const toggleDialog = inject(ToggleDialogInj, () => {})
+
+const { refreshCommandPalette } = useCommandPalette()
 
 const { addNewLayout, getDashboardProjectUrl: dashboardProjectUrl, populateLayouts } = useDashboardStore()
 
@@ -253,9 +257,10 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
 
   const isProjectPopulated = projectsStore.isProjectPopulated(project.id!)
 
+  let isSharedBase = false
   // if shared base ignore navigation
   if (route.value.params.typeOrId === 'base') {
-    ignoreNavigation = true
+    isSharedBase = true
   }
 
   if (!isProjectPopulated) project.isLoading = true
@@ -288,6 +293,7 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
           projectUrl({
             id: project.id!,
             type: 'database',
+            isSharedBase,
           }),
         )
       }
@@ -388,6 +394,41 @@ onKeyStroke('Escape', () => {
     isBasesOptionsOpen.value[key] = false
   }
 })
+
+const isDuplicateDlgOpen = ref(false)
+const selectedProjectToDuplicate = ref()
+
+const duplicateProject = (project: ProjectType) => {
+  selectedProjectToDuplicate.value = project
+  isDuplicateDlgOpen.value = true
+}
+const { $jobs } = useNuxtApp()
+
+const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string }) => {
+  await loadProjects('workspace')
+
+  $jobs.subscribe({ id: jobData.id }, undefined, async (status: string) => {
+    if (status === JobStatus.COMPLETED) {
+      await loadProjects('workspace')
+      const project = projects.value.get(jobData.project_id)
+
+      // open project after duplication
+      if (project) {
+        await navigateToProject({
+          workspaceId: project.fk_workspace_id,
+          projectId: project.id,
+          type: project.type,
+        })
+      }
+      refreshCommandPalette()
+    } else if (status === JobStatus.FAILED) {
+      message.error('Failed to duplicate project')
+      await loadProjects('workspace')
+    }
+  })
+
+  $e('a:project:duplicate')
+}
 </script>
 
 <template>
@@ -409,15 +450,14 @@ onKeyStroke('Escape', () => {
           class="project-title-node h-7.25 flex-grow rounded-md group flex items-center w-full"
         >
           <div
-            class="nc-sidebar-expand ml-0.75 min-h-5.75 min-w-5.75 px-1.5 text-gray-500 hover:(hover:bg-gray-500 hover:bg-opacity-15 !text-black) rounded-md relative"
+            class="nc-sidebar-expand ml-3 min-h-5.75 min-w-5.75 px-1.5 text-gray-500 hover:(hover:bg-gray-500 hover:bg-opacity-15 !text-black) rounded-md relative"
             @click="onProjectClick(project, true, true)"
           >
             <PhTriangleFill
-              class="absolute top-2.25 left-2 invisible group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.75 rotate-90"
+              class="absolute top-2.25 left-2 group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.75 rotate-90"
               :class="{ '!rotate-180': project.isExpanded, '!visible': isOptionsOpen }"
             />
           </div>
-
           <div class="flex items-center mr-1" @click="onProjectClick(project)">
             <div class="flex items-center select-none w-6 h-full">
               <a-spin
@@ -485,7 +525,18 @@ onKeyStroke('Escape', () => {
                       {{ $t('general.edit') }}
                     </div>
                   </a-menu-item>
-
+                  <a-menu-item
+                    v-if="
+                      project.type === NcProjectType.DB &&
+                      isUIAllowed('duplicateProject', true, [project.workspace_role, project.project_role].join())
+                    "
+                    @click="duplicateProject(project)"
+                  >
+                    <div class="nc-menu-item-wrapper">
+                      <GeneralIcon icon="duplicate" class="text-gray-700" />
+                      {{ $t('general.duplicate') }} {{ $t('objects.project') }}
+                    </div>
+                  </a-menu-item>
                   <!-- Copy Project Info -->
                   <a-menu-item v-if="false" key="copy">
                     <div v-e="['c:navbar:user:copy-proj-info']" class="nc-project-menu-item group" @click.stop="copyProjectInfo">
@@ -778,6 +829,13 @@ onKeyStroke('Escape', () => {
     :project-id="project?.id"
   />
   <DlgProjectDelete v-model:visible="isProjectDeleteDialogVisible" :project-id="project?.id" />
+
+  <DlgProjectDuplicate
+    v-if="selectedProjectToDuplicate"
+    v-model="isDuplicateDlgOpen"
+    :project="selectedProjectToDuplicate"
+    :on-ok="DlgProjectDuplicateOnOk"
+  />
 </template>
 
 <style lang="scss" scoped>

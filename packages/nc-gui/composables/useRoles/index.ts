@@ -43,7 +43,9 @@ export const useRoles = createSharedComposable(() => {
   ) {
     if (options?.isSharedBase) {
       const user = await api.auth.me(
-        {},
+        {
+          project_id: projectId,
+        },
         {
           headers: {
             'xc-shared-base-id': options?.sharedBaseId,
@@ -54,7 +56,9 @@ export const useRoles = createSharedComposable(() => {
       projectRoles.value = user.roles
     } else if (options?.isSharedErd) {
       const user = await api.auth.me(
-        {},
+        {
+          project_id: projectId,
+        },
         {
           headers: {
             'xc-shared-erd-id': options?.sharedErdId,

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import ManageUsers from './ManageUsers.vue'
+import {useViewsStore} from "~/store/views";
 
 const { isViewToolbar } = defineProps<{
   isViewToolbar?: boolean
@@ -13,6 +14,7 @@ const { dashboardUrl } = useDashboard()
 const projectStore = useProject()
 const { project } = storeToRefs(projectStore)
 const { navigateToProject } = projectStore
+const { activeView } = storeToRefs(useViewsStore())
 
 let view
 if (isViewToolbar) {
@@ -30,9 +32,6 @@ const { resetData } = useShare()
 
 // const expandedSharedType = ref<'none' | 'project' | 'view'>('view')
 const isOpeningManageAccess = ref(false)
-
-const dbViewTitle = computed(() => route.value.params.viewTitle)
-const viewTitle = computed(() => dbViewTitle.value)
 
 const inviteUrl = computed(() =>
   invitationUsersData.value.invitationToken ? `${dashboardUrl.value}#/signup/${invitationUsersData.value.invitationToken}` : null,
@@ -149,7 +148,7 @@ watch(showShareModal, (val) => {
             class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-gray-100 capitalize text-ellipsis overflow-hidden"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
           >
-            {{ viewTitle }}
+            {{ activeView.title }}
           </div>
         </div>
         <DlgShareAndCollaborateSharePage />

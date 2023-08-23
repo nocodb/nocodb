@@ -1,5 +1,6 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { TableType } from 'nocodb-sdk'
+import { useTitle } from '@vueuse/core'
 
 export const useTablesStore = defineStore('tablesStore', () => {
   const { includeM2M } = useGlobal()
@@ -46,6 +47,20 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
     return activeTables.value.find((t) => t.id === activeTableId.value)
   })
+
+  watch(
+    () => activeTable.value?.title,
+    (title) => {
+      if (projectsStore.openedProject?.type !== 'database') return
+
+      if (!title) {
+        useTitle(projectsStore.openedProject?.title)
+        return
+      }
+
+      useTitle(`${projectsStore.openedProject?.title}: ${title}`)
+    },
+  )
 
   const loadProjectTables = async (projectId: string, force = false) => {
     const projects = projectsStore.projects

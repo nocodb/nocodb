@@ -18,12 +18,14 @@ interface Props {
   disabled?: boolean
   type?: ButtonType | 'danger' | undefined
   size?: 'xsmall' | 'small' | 'medium'
+  centered?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   size: 'medium',
   type: 'primary',
+  centered: true,
 })
 
 const emits = defineEmits(['update:loading'])
@@ -78,7 +80,13 @@ const onBlur = () => {
     @blur="onBlur"
     @mousedown="isClicked = true"
   >
-    <div class="flex flex-row gap-x-2.5 justify-center w-full">
+    <div
+      class="flex flex-row gap-x-2.5 w-full"
+      :class="{
+        'justify-center': props.centered,
+        'justify-start': !props.centered,
+      }"
+    >
       <GeneralLoader v-if="loading" size="medium" class="flex !text-white" loader-class="!text-white" />
 
       <slot v-else name="icon" />

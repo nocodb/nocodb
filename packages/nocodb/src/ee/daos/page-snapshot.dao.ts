@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import { ClickhouseTables } from 'nocodb-sdk';
 import type { DocsPageSnapshotType, DocsPageType } from 'nocodb-sdk';
-import { ClickhouseService } from '~/services/clickhouse/clickhouse.service';
 import { MetaService } from '~/meta/meta.service';
 
 dayjs.extend(utc);

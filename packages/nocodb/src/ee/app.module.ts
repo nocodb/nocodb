@@ -8,7 +8,6 @@ import { CustomApiLimiterGuard } from '~/guards/custom-api-limiter.guard';
 import { WorkspaceUsersModule } from '~/modules/workspace-users/workspace-users.module';
 import { ThrottlerConfigService } from '~/services/throttler/throttler-config.service';
 import appConfig from '~/app.config';
-import { Model } from '~/models';
 import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { ExecutionTimeCalculatorInterceptor } from '~/interceptors/execution-time-calculator/execution-time-calculator.interceptor';
 

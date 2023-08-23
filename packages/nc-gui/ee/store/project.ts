@@ -162,7 +162,7 @@ export const useProject = defineStore('projectStore', () => {
     if (isSharedBase.value) {
       await loadProjectRoles(project.value.id || projectId.value, {
         isSharedBase: isSharedBase.value,
-        sharedBaseId: projectId.value,
+        sharedBaseId: route.value.params.projectId as string,
       })
     } else if (isSharedErd.value) {
       await loadProjectRoles(project.value.id || projectId.value, {
@@ -229,8 +229,23 @@ export const useProject = defineStore('projectStore', () => {
     sharedProject.value = projectVal
   }
 
-  const projectUrl = ({ id, type: _type }: { id: string; type: 'database' | 'documentation' }) => {
-    const workspaceId = workspaceStore.activeWorkspaceId;
+  const projectUrl = ({
+    id,
+    type: _type,
+    isSharedBase,
+  }: {
+    id: string
+    type: 'database' | 'documentation'
+    isSharedBase?: boolean
+  }) => {
+    if (isSharedBase) {
+      const typeOrId = route.value.params.typeOrId as string
+      const projectId = route.value.params.projectId as string
+
+      return `/${typeOrId}/${projectId}`
+    }
+
+    const workspaceId = workspaceStore.activeWorkspaceId
     return `/${workspaceId}/${id}`
   }
 

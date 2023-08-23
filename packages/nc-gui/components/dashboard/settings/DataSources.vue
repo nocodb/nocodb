@@ -530,7 +530,7 @@ const isEditBaseModalOpen = computed({
           <Metadata :base-id="activeBaseId" @base-synced="loadBases(true)" />
         </div>
       </GeneralModal>
-      <GeneralModal v-model:visible="isUIAclModalOpen" width="70rem">
+      <GeneralModal v-model:visible="isUIAclModalOpen" class="!w-[60rem]">
         <div class="p-6">
           <UIAcl :base-id="activeBaseId" />
         </div>
@@ -540,7 +540,7 @@ const isEditBaseModalOpen = computed({
           <EditBase :base-id="activeBaseId" @base-updated="loadBases(true)" @close="isEditBaseModalOpen = false" />
         </div>
       </GeneralModal>
-      <GeneralModal v-model:visible="isBaseAuditModalOpen" size="medium">
+      <GeneralModal v-model:visible="isBaseAuditModalOpen" class="!w-[70rem]">
         <div class="p-6">
           <BaseAudit :base-id="activeBaseId" @close="isBaseAuditModalOpen = false" />
         </div>

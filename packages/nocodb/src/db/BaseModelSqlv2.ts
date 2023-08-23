@@ -1945,7 +1945,7 @@ class BaseModelSqlv2 {
     qb.select(res);
   }
 
-  async insert(data, trx?, cookie?, disableOptimization = false) {
+  async insert(data, trx?, cookie?, _disableOptimization = false) {
     try {
       await populatePk(this.model, data);
 

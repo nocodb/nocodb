@@ -158,3 +158,51 @@ export enum WorkspacePlan {
   FREE = 'free',
   PAID = 'paid',
 }
+
+export const RoleLabels = {
+  [WorkspaceUserRoles.OWNER]: 'Owner',
+  [WorkspaceUserRoles.CREATOR]: 'Creator',
+  [WorkspaceUserRoles.EDITOR]: 'Editor',
+  [WorkspaceUserRoles.COMMENTER]: 'Commenter',
+  [WorkspaceUserRoles.VIEWER]: 'Viewer',
+  [ProjectRoles.OWNER]: 'Owner',
+  [ProjectRoles.CREATOR]: 'Creator',
+  [ProjectRoles.EDITOR]: 'Editor',
+  [ProjectRoles.COMMENTER]: 'Commenter',
+  [ProjectRoles.VIEWER]: 'Viewer',
+  [OrgUserRoles.SUPER_ADMIN]: 'Super',
+  [OrgUserRoles.CREATOR]: 'Creator',
+  [OrgUserRoles.VIEWER]: 'Viewer',
+}
+
+export const RoleColors = {
+  [WorkspaceUserRoles.OWNER]: 'purple',
+  [WorkspaceUserRoles.CREATOR]: 'blue',
+  [WorkspaceUserRoles.EDITOR]: 'green',
+  [WorkspaceUserRoles.COMMENTER]: 'orange',
+  [WorkspaceUserRoles.VIEWER]: 'yellow',
+  [ProjectRoles.OWNER]: 'purple',
+  [ProjectRoles.CREATOR]: 'blue',
+  [ProjectRoles.EDITOR]: 'green',
+  [ProjectRoles.COMMENTER]: 'orange',
+  [ProjectRoles.VIEWER]: 'yellow',
+  [OrgUserRoles.SUPER_ADMIN]: 'purple',
+  [OrgUserRoles.CREATOR]: 'blue',
+  [OrgUserRoles.VIEWER]: 'yellow',
+}
+
+export const OrderedWorkspaceRoles = [
+  WorkspaceUserRoles.OWNER,
+  WorkspaceUserRoles.CREATOR,
+  WorkspaceUserRoles.EDITOR,
+  WorkspaceUserRoles.COMMENTER,
+  WorkspaceUserRoles.VIEWER,
+]
+
+export const OrderedProjectRoles = [
+  ProjectRoles.OWNER,
+  ProjectRoles.CREATOR,
+  ProjectRoles.EDITOR,
+  ProjectRoles.COMMENTER,
+  ProjectRoles.VIEWER,
+]

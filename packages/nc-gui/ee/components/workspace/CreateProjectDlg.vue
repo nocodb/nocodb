@@ -55,7 +55,6 @@ const createProject = async () => {
       workspaceId: activeWorkspace.value!.id!,
     })
 
-    await loadProjects()
     navigateToProject({
       projectId: project.id!,
       workspaceId: activeWorkspace.value!.id!,

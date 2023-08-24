@@ -346,8 +346,6 @@ onKeyStroke('Escape', () => {
         </a-tabs>
       </div>
     </GeneralModal>
-
-    <WorkspaceCreateDlg v-model="createDlg" @success="onWorkspaceCreate" />
   </div>
 </template>
 

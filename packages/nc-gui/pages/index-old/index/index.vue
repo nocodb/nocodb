@@ -64,22 +64,6 @@ watch(
   },
 )
 
-useDialog(resolveComponent('WorkspaceCreateDlg'), {
-  'modelValue': isCreateDlgOpen,
-  'onUpdate:modelValue': (isOpen: boolean) => (isCreateDlgOpen.value = isOpen),
-  'onSuccess': async () => {
-    isCreateDlgOpen.value = false
-    await loadWorkspaces()
-    await nextTick(() => {
-      ;[...menuEl?.value?.$el?.querySelectorAll('li.ant-menu-item')]?.pop()?.scrollIntoView({
-        block: 'nearest',
-        inline: 'nearest',
-      })
-      selectedWorkspaceIndex.value = [workspacesList.value?.length - 1]
-    })
-  },
-})
-
 const tab = computed({
   get() {
     return route.value.query?.tab ?? 'projects'

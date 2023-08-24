@@ -229,7 +229,7 @@ export const useProjects = defineStore('projectsStore', () => {
         linked_db_project_ids: projectPayload.linkedDbProjectIds,
       },
       {
-        baseURL: getBaseUrl('default'),
+        baseURL: getBaseUrl('nc'),
       },
     )
 

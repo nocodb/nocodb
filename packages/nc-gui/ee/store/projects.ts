@@ -151,8 +151,7 @@ export const useProjects = defineStore('projectsStore', () => {
           isLoading: false,
         })
         return acc
-      }, new Map());
-
+      }, new Map())
     } catch (e) {
       console.error(e)
       message.error(e.message)
@@ -323,6 +322,12 @@ export const useProjects = defineStore('projectsStore', () => {
     loadProject(activeProjectId.value)
   })
 
+  const navigateToFirstProjectOrHome = async () => {
+    // if active project id is deleted, navigate to first project or home page
+    if (projectsList.value?.length) await navigateToProject({ projectId: projectsList.value[0].id! })
+    else navigateTo(`/${workspaceStore.activeWorkspaceId}`)
+  }
+
   return {
     projects,
     projectsList,
@@ -347,6 +352,7 @@ export const useProjects = defineStore('projectsStore', () => {
     createProjectUser,
     updateProjectUser,
     navigateToProject,
+    navigateToFirstProjectOrHome,
   }
 })
 

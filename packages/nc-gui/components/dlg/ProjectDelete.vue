@@ -13,7 +13,7 @@ const visible = useVModel(props, 'visible', emits)
 const { closeTab } = useTabs()
 
 const projectsStore = useProjects()
-const { deleteProject } = projectsStore
+const { deleteProject, navigateToFirstProjectOrHome } = projectsStore
 const { projects } = storeToRefs(projectsStore)
 
 const { refreshCommandPalette } = useCommandPalette()
@@ -38,10 +38,8 @@ const onDelete = async () => {
 
     visible.value = false
 
-    // if active project id is deleted, navigate to first project or home page
     if (toBeDeletedProject.id === projectsStore.activeProjectId) {
-      if (projectsList.value?.length) await projectsStore.navigateToProject({ projectId: projectsList.value[0].id! })
-      else navigateTo('/')
+      await navigateToFirstProjectOrHome()
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

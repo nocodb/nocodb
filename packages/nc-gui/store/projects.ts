@@ -86,7 +86,6 @@ export const useProjects = defineStore('projectsStore', () => {
     await api.auth.projectUserUpdate(projectId, user.id, user as ProjectUserReqType)
   }
 
-
   const removeProjectUser = async (projectId: string, user: User) => {
     await api.auth.projectUserRemove(projectId, user.id)
   }
@@ -291,6 +290,12 @@ export const useProjects = defineStore('projectsStore', () => {
     loadProject(activeProjectId.value)
   })
 
+  const navigateToFirstProjectOrHome = async () => {
+    // if active project id is deleted, navigate to first project or home page
+    if (projectsList.value?.length) await navigateToProject({ projectId: projectsList.value[0].id! })
+    else navigateTo('/')
+  }
+
   return {
     projects,
     projectsList,
@@ -315,7 +320,8 @@ export const useProjects = defineStore('projectsStore', () => {
     createProjectUser,
     updateProjectUser,
     navigateToProject,
-    removeProjectUser
+    removeProjectUser,
+    navigateToFirstProjectOrHome,
   }
 })
 

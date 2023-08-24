@@ -237,13 +237,17 @@ const clickHandler = () => {
   cellClickHandler()
 }
 
-const isColEditable = column.value.title === 'CreatedAt' || column.value.title === 'UpdatedAt'
+const isColEditable =
+  column.value.title === 'CreatedAt' ||
+  column.value.title === 'UpdatedAt' ||
+  readOnly.value ||
+  column.value.title === (localState.value && isPk)
 </script>
 
 <template>
   <a-date-picker
     v-model:value="localState"
-    :disabled="isColEditable || readOnly || (localState && isPk)"
+    :disabled="isColEditable"
     :show-time="true"
     :bordered="false"
     class="!w-full !px-0 !border-none"

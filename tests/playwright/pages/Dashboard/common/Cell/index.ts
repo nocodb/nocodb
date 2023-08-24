@@ -300,19 +300,30 @@ export class CellPageObject extends BasePage {
 
     if (type === 'bt') {
       const chips = cell.locator('.chips > .chip');
-      await expect(await chips.count()).toBe(count);
+      expect(await chips.count()).toBe(count);
 
       for (let i = 0; i < value.length; ++i) {
         await chips.nth(i).locator('.name').waitFor({ state: 'visible' });
         await chips.nth(i).locator('.name').scrollIntoViewIfNeeded();
-        await expect(await chips.nth(i).locator('.name')).toHaveText(value[i]);
+        await expect(chips.nth(i).locator('.name')).toHaveText(value[i]);
       }
       return;
     }
 
     // verify chip count & contents
     if (count) {
-      await expect(await cell.innerText()).toContain(`${count} ${count === 1 ? options.singular : options.plural}`);
+      const expectedText = `${count} ${count === 1 ? options.singular : options.plural}`;
+      let retryCount = 0;
+      while (retryCount < 5) {
+        const receivedText = await linkText.innerText();
+        if (receivedText.includes(expectedText)) {
+          break;
+        }
+        retryCount++;
+        // add delay of 100ms
+        await this.rootPage.waitForTimeout(100 * retryCount);
+      }
+      expect(await cell.innerText()).toContain(expectedText);
     }
 
     if (verifyChildList) {

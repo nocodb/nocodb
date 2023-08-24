@@ -129,6 +129,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     activeView,
     openedViewsTab,
     onViewsTabChange,
+    sharedView,
   }
 })
 

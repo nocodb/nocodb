@@ -616,15 +616,12 @@ watch(
                   </a-layout-content>
 
                   <div class="!rounded-lg !px-3 pt-3">
-                    <div
-                      v-if="formattedData.get(stack.title) && countByStack.get(stack.title) && countByStack.get(stack.title)! >= 0"
-                      class="text-center"
-                    >
+                    <div v-if="formattedData.get(stack.title)" class="text-center">
                       <!-- Stack Title -->
 
                       <!-- Record Count -->
                       <div class="nc-kanban-data-count text-gray-500">
-                        {{ formattedData.get(stack.title)!.length }} / {{ countByStack.get(stack.title) }}
+                        {{ formattedData.get(stack.title)!.length }} / {{ countByStack.get(stack.title) ?? 0 }}
                         {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
                       </div>
 

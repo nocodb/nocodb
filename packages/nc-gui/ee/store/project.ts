@@ -268,6 +268,19 @@ export const useProject = defineStore('projectStore', () => {
     },
   )
 
+  const navigateToProjectPage = async ({ page }: { page: 'all-table' | 'collaborator' | 'data-source' }) => {
+    await router.push({
+      name: 'index-typeOrId-projectId-index-index',
+      params: {
+        typeOrId: route.value.params.typeOrId,
+        projectId: route.value.params.projectId,
+      },
+      query: {
+        page,
+      },
+    })
+  }
+
   return {
     project,
     bases,
@@ -296,6 +309,7 @@ export const useProject = defineStore('projectStore', () => {
     setProject,
     projectUrl,
     getBaseType,
+    navigateToProjectPage,
   }
 })
 

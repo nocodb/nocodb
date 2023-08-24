@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import ManageUsers from './ManageUsers.vue'
-import {useViewsStore} from "~/store/views";
+import { useViewsStore } from '~/store/views'
 
 const { isViewToolbar } = defineProps<{
   isViewToolbar?: boolean
@@ -13,7 +13,7 @@ const { copy } = useCopy()
 const { dashboardUrl } = useDashboard()
 const projectStore = useProject()
 const { project } = storeToRefs(projectStore)
-const { navigateToProject } = projectStore
+const { navigateToProjectPage } = projectStore
 const { activeView } = storeToRefs(useViewsStore())
 
 let view
@@ -64,7 +64,7 @@ const copyInvitationLink = async () => {
 const openManageAccess = async () => {
   isOpeningManageAccess.value = true
   try {
-    await navigateToProject({ projectId: project.value.id!, page: 'collaborators' })
+    await navigateToProjectPage({ page: 'collaborator' })
     showShareModal.value = false
   } catch (e) {
     console.error(e)

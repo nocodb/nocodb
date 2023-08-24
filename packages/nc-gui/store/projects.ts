@@ -125,18 +125,9 @@ export const useProjects = defineStore('projectsStore', () => {
 
     isProjectsLoading.value = true
     try {
-      const { list } = await $api.project.list(
-        page
-          ? {
-              query: {
-                [page]: true,
-              },
-              baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
-            }
-          : {
-              baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
-            },
-      )
+      const { list } = await $api.project.list({
+        baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
+      })
       _projects = list
 
       projects.value = _projects.reduce((acc, project) => {
@@ -180,7 +171,13 @@ export const useProjects = defineStore('projectsStore', () => {
     if (!force && isProjectPopulated(projectId)) return projects.value.get(projectId)
 
     const _project = await api.project.read(projectId)
-    _project.meta = typeof _project.meta === 'string' ? JSON.parse(_project.meta) : {}
+
+    if (!_project) {
+      await navigateTo(`/`)
+      return
+    }
+
+    _project.meta = _project?.meta && typeof _project.meta === 'string' ? JSON.parse(_project.meta) : {}
 
     const existingProject = projects.value.get(projectId) ?? ({} as any)
 

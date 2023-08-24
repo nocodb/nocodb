@@ -203,7 +203,13 @@ export const useProjects = defineStore('projectsStore', () => {
     if (!force && isProjectPopulated(projectId)) return projects.value.get(projectId)
 
     const _project = await api.project.read(projectId)
-    _project.meta = typeof _project.meta === 'string' ? JSON.parse(_project.meta) : {}
+
+    if (!_project) {
+      await navigateTo(`/`)
+      return
+    }
+
+    _project.meta = _project?.meta && typeof _project.meta === 'string' ? JSON.parse(_project.meta) : {}
 
     const existingProject = projects.value.get(projectId) ?? ({} as any)
     const project = {

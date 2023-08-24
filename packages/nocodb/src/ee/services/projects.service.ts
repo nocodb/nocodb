@@ -3,7 +3,7 @@ import { ProjectsService as ProjectsServiceCE } from 'src/services/projects.serv
 import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, OrgUserRoles } from 'nocodb-sdk';
 import type { ProjectReqType } from 'nocodb-sdk';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -20,7 +20,8 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import {TablesService} from "~/services/tables.service";
+import { TablesService } from '~/services/tables.service';
+import extractRolesObj from '~/utils/extractRolesObj';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -71,9 +72,22 @@ export class ProjectsService extends ProjectsServiceCE {
   constructor(
     protected readonly appHooksService: AppHooksService,
     protected metaService: MetaService,
-    protected tablesService: TablesService
+    protected tablesService: TablesService,
   ) {
     super(appHooksService, metaService, tablesService);
+  }
+
+  async projectList(param: {
+    user: { id: string; roles: Record<string, boolean> };
+    query?: any;
+  }) {
+    const projects =
+      extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN] &&
+      !['shared', 'starred', 'recent'].some((k) => k in param.query)
+        ? await Project.list(param.query)
+        : await ProjectUser.getProjectsList(param.user.id, param.query);
+
+    return projects;
   }
 
   async projectCreate(param: { project: ProjectReqType; user: any }) {

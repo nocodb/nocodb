@@ -32,6 +32,7 @@ import { HooksService } from '~/services/hooks.service';
 import { ViewsService } from '~/services/views.service';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
 export class ImportService {
@@ -152,6 +153,19 @@ export class ImportService {
           (a) => a.column_name === col.column_name,
         );
         idMap.set(colRef.id, col.id);
+
+        // setval for auto increment column in pg
+        if (base.type === 'pg') {
+          if (modelData.pgSerialLastVal) {
+            if (col.ai) {
+              const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
+              await sqlClient.knex.raw(
+                `SELECT setval(pg_get_serial_sequence('??', ?), ?);`,
+                [table.table_name, col.column_name, modelData.pgSerialLastVal],
+              );
+            }
+          }
+        }
       }
 
       tableReferences.set(modelData.id, table);

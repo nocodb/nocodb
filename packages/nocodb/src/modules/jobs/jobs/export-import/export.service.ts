@@ -23,9 +23,11 @@ export class ExportService {
     modelIds: string[];
     excludeViews?: boolean;
     excludeHooks?: boolean;
+    excludeData?: boolean;
   }) {
     const { modelIds } = param;
 
+    const excludeData = param?.excludeData || false;
     const excludeViews = param?.excludeViews || false;
     const excludeHooks = param?.excludeHooks || false;
 
@@ -40,6 +42,8 @@ export class ExportService {
 
     for (const modelId of modelIds) {
       const model = await Model.get(modelId);
+
+      let pgSerialLastVal;
 
       if (!model)
         return NcError.badRequest(`Model not found for id '${modelId}'`);
@@ -67,6 +71,35 @@ export class ExportService {
 
       for (const column of model.columns) {
         await column.getColOptions();
+
+        // if data is not excluded, get currval for ai column (pg)
+        if (!excludeData) {
+          if (base.type === 'pg') {
+            if (column.ai) {
+              try {
+                const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
+                const seq = await sqlClient.knex.raw(
+                  `SELECT pg_get_serial_sequence('??', ?) as seq;`,
+                  [model.table_name, column.column_name],
+                );
+                if (seq.rows.length > 0) {
+                  const seqName = seq.rows[0].seq;
+
+                  const res = await sqlClient.knex.raw(
+                    `SELECT last_value as last FROM ${seqName};`,
+                  );
+
+                  if (res.rows.length > 0) {
+                    pgSerialLastVal = res.rows[0].last;
+                  }
+                }
+              } catch (e) {
+                this.logger.error(e);
+              }
+            }
+          }
+        }
+
         if (column.colOptions) {
           for (const [k, v] of Object.entries(column.colOptions)) {
             switch (k) {
@@ -235,6 +268,7 @@ export class ExportService {
           prefix: project.prefix,
           title: model.title,
           table_name: clearPrefix(model.table_name, project.prefix),
+          pgSerialLastVal,
           meta: model.meta,
           columns: model.columns.map((column) => ({
             id: idMap.get(column.id),

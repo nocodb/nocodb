@@ -56,6 +56,7 @@ export class DuplicateProcessor {
         modelIds: models.map((m) => m.id),
         excludeViews,
         excludeHooks,
+        excludeData,
       });
 
       elapsedTime(
@@ -150,6 +151,7 @@ export class DuplicateProcessor {
         modelIds: [modelId],
         excludeViews,
         excludeHooks,
+        excludeData,
       })
     )[0];
 

@@ -119,7 +119,7 @@ const onRoleToggle = async () => {
     <div class="flex flex-col w-full p-3 border-1 border-gray-100 rounded-md">
       <div class="flex flex-row w-full justify-between">
         <div class="text-black font-medium">Enable Public Access</div>
-        <a-switch v-model:checked="isSharedBaseEnabled" :loading="isToggleBaseLoading" class="ml-2" @click="toggleSharedBase" />
+        <a-switch :checked="isSharedBaseEnabled" :loading="isToggleBaseLoading" class="ml-2" @click="toggleSharedBase" />
       </div>
       <div v-if="isSharedBaseEnabled" class="flex flex-col w-full mt-3 border-t-1 pt-3 border-gray-100">
         <GeneralCopyUrl v-model:url="url" />

@@ -16,7 +16,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const { activeTable } = storeToRefs(useTablesStore())
 
   const activeViewTitleOrId = computed(() => {
-    if (!route.value.params.viewTitle?.length) return views.value.length ? views.value[0].title : undefined
+    if (!route.value.params.viewTitle?.length) return views.value.length ? views.value[0].id : undefined
 
     return route.value.params.viewTitle
   })
@@ -58,7 +58,9 @@ export const useViewsStore = defineStore('viewsStore', () => {
       if (!activeTable.value) return
       if (!_view) return
 
-      const viewIndex = views.value.findIndex((v) => v.title === activeViewTitleOrId.value)
+      const viewIndex =
+        views.value.findIndex((v) => v.id === activeViewTitleOrId.value) ||
+        views.value.findIndex((v) => v.title === activeViewTitleOrId.value)
       if (viewIndex === -1) return
 
       views.value[viewIndex] = _view

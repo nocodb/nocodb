@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import {ProjectRoles, WorkspaceUserRoles} from 'nocodb-sdk'
-import {extractSdkResponseErrorMsg, useDashboard, useManageUsers, useProject, useWorkspace} from '#imports'
+import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
+import { extractSdkResponseErrorMsg, useDashboard, useManageUsers, useProject, useWorkspace } from '#imports'
 
 const emit = defineEmits(['invited'])
 
@@ -11,11 +11,11 @@ const inviteData = reactive({
 
 const projectStore = useProject()
 
-const {dashboardUrl} = useDashboard()
+const { dashboardUrl } = useDashboard()
 
-const {inviteUser} = useManageUsers()
+const { inviteUser } = useManageUsers()
 
-const {$e} = useNuxtApp()
+const { $e } = useNuxtApp()
 
 const usersData = ref<{
   invite_token?: string
@@ -38,12 +38,12 @@ const inviteCollaborator = async () => {
 }
 
 const inviteUrl = computed(() =>
-    usersData.value?.invite_token ? `${dashboardUrl.value}#/signup/${usersData.value.invite_token}` : null,
+  usersData.value?.invite_token ? `${dashboardUrl.value}#/signup/${usersData.value.invite_token}` : null,
 )
 
-const {copy} = useCopy(true)
+const { copy } = useCopy(true)
 
-const {t} = useI18n()
+const { t } = useI18n()
 
 const copyUrl = async () => {
   if (!inviteUrl.value) return
@@ -91,7 +91,7 @@ const copyUrl = async () => {
         <div class="flex flex-row justify-start mt-4 ml-2">
           <a-button size="small" outlined @click="usersData = null">
             <div class="flex flex-row justify-center items-center space-x-0.5">
-              <MaterialSymbolsSendOutline class="flex mx-auto text-gray-600 h-[0.8rem]"/>
+              <MaterialSymbolsSendOutline class="flex mx-auto text-gray-600 h-[0.8rem]" />
 
               <div class="text-xs text-gray-600">{{ $t('activity.inviteMore') }}</div>
             </div>
@@ -105,15 +105,15 @@ const copyUrl = async () => {
       <a-form>
         <div class="flex gap-2">
           <a-input
-              id="email"
-              v-model:value="inviteData.email"
-              placeholder="Enter emails to send invitation"
-              class="!max-w-130 !rounded"
+            id="email"
+            v-model:value="inviteData.email"
+            placeholder="Enter emails to send invitation"
+            class="!max-w-130 !rounded"
           />
 
           <a-select v-model:value="inviteData.roles" class="min-w-30 !rounded px-1" data-testid="roles">
             <template #suffixIcon>
-              <MdiChevronDown/>
+              <MdiChevronDown />
             </template>
             <a-select-option v-for="(role, index) in projectRoles" :key="index" :value="role" class="nc-role-option">
               <!-- <div
@@ -124,33 +124,33 @@ const copyUrl = async () => {
                   {{ role }}
                 </div>
               </div> -->
-              <NcBadge v-if='role===ProjectRole.Owner' color="purple">
+              <NcBadge v-if="role === ProjectRole.Owner" color="purple">
                 <p class="badge-text">{{ role }}</p>
               </NcBadge>
-              <NcBadge v-if="role===ProjectRole.Creator" color="blue">
+              <NcBadge v-if="role === ProjectRole.Creator" color="blue">
                 <p class="badge-text">{{ role }}</p>
               </NcBadge>
-              <NcBadge v-if='role===ProjectRole.Editor' color="green">
+              <NcBadge v-if="role === ProjectRole.Editor" color="green">
                 <p class="badge-text">{{ role }}</p>
               </NcBadge>
-              <NcBadge v-if="role===ProjectRole.Commenter" color="orange">
+              <NcBadge v-if="role === ProjectRole.Commenter" color="orange">
                 <p class="badge-text">{{ role }}</p>
               </NcBadge>
-              <NcBadge v-if="role===ProjectRole.Viewer" color="yellow">
+              <NcBadge v-if="role === ProjectRole.Viewer" color="yellow">
                 <p class="badge-text">{{ role }}</p>
               </NcBadge>
             </a-select-option>
           </a-select>
 
           <a-button
-              type="primary"
-              class="!rounded-md"
-              :disabled="!inviteData.email?.length || isInvitingCollaborators"
-              @click="inviteCollaborator"
+            type="primary"
+            class="!rounded-md"
+            :disabled="!inviteData.email?.length || isInvitingCollaborators"
+            @click="inviteCollaborator"
           >
             <div class="flex flex-row items-center gap-x-2 pr-1">
-              <GeneralLoader v-if="isInvitingCollaborators" class="flex"/>
-              <MdiPlus v-else/>
+              <GeneralLoader v-if="isInvitingCollaborators" class="flex" />
+              <MdiPlus v-else />
               {{ isInvitingCollaborators ? 'Adding' : 'Add' }} User/s
             </div>
           </a-button>
@@ -162,7 +162,7 @@ const copyUrl = async () => {
 
 <style scoped>
 .badge-text {
-  @apply text-[14px] pt-1 text-center
+  @apply text-[14px] pt-1 text-center;
 }
 
 :deep(.ant-select .ant-select-selector) {

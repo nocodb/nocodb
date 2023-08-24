@@ -65,7 +65,7 @@ const navigateToSettings = () => {
       outlineWidth: '1px',
     }"
   >
-    <div class="flex flex-col" :style="{ minHeight: isSharedBase ? 'auto' : 'var(--sidebar-top-height)' }">
+    <div class="flex flex-col">
       <div style="border-bottom-width: 1px" class="flex items-center px-1 nc-sidebar-header !border-0 py-1.25 pl-2">
         <div v-if="!isWorkspaceLoading" class="flex flex-row flex-grow hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md max-w-full">
           <a
@@ -91,8 +91,6 @@ const navigateToSettings = () => {
         </div>
       </div>
 
-      <div class="w-full mt-2"></div>
-
       <template v-if="isWorkspaceLoading">
         <div class="flex flex-col w-full gap-y-3.25 ml-5.5 mt-5.75">
           <div class="flex flex-row items-center w-full gap-x-3">
@@ -113,7 +111,7 @@ const navigateToSettings = () => {
         </div>
       </template>
       <template v-else-if="!isSharedBase">
-        <div class="h-26.85">
+        <div class="h-auto">
           <div role="button" class="nc-sidebar-top-button" data-testid="nc-sidebar-search-btn" @click="commandPalette?.open()">
             <MaterialSymbolsSearch class="!h-3.9" />
             <div class="flex items-center gap-2">
@@ -158,8 +156,10 @@ const navigateToSettings = () => {
             </div>
           </WorkspaceCreateProjectBtn>
         </div>
-        <div class="flex flex-grow"></div>
-        <div class="text-gray-500 mx-5 font-medium mb-1.5">Projects</div>
+
+        <div class="w-full mt-2"></div>
+
+        <div class="text-gray-500 mx-5 font-medium mb-1.5">{{ $t('objects.projects') }}</div>
         <div
           class="w-full border-b-1"
           :class="{

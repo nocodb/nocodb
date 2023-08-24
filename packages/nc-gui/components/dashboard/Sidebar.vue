@@ -58,7 +58,7 @@ const navigateToSettings = () => {
       height: isSharedBase ? '100%' : null,
     }"
   >
-    <div class="flex flex-col" :style="{ height: isSharedBase ? 'auto' : 'var(--sidebar-top-height)' }">
+    <div class="flex flex-col">
       <div style="border-bottom-width: 1px" class="flex items-center px-1 nc-sidebar-header !border-0 py-1.25 pl-2">
         <div class="flex flex-row flex-grow hover:bg-gray-100 pl-2 pr-1 py-0.5 rounded-md max-w-full">
           <a
@@ -86,8 +86,7 @@ const navigateToSettings = () => {
       </div>
 
       <template v-if="!isSharedBase">
-        <div class="w-full mt-2"></div>
-        <div class="h-17.5">
+        <div class="h-auto">
           <div
             v-if="isWorkspaceOwnerOrCreator"
             role="button"
@@ -119,16 +118,18 @@ const navigateToSettings = () => {
             </div>
           </WorkspaceCreateProjectBtn>
         </div>
-        <div class="flex flex-grow"></div>
+
+        <div class="w-full mt-2"></div>
+
         <div class="text-gray-500 mx-5 font-medium mb-1.5">{{ $t('objects.projects') }}</div>
+        <div
+          class="w-full border-b-1"
+          :class="{
+            'border-gray-200': !isTreeViewOnScrollTop,
+            'border-transparent': isTreeViewOnScrollTop,
+          }"
+        ></div>
       </template>
-      <div
-        class="w-full border-b-1"
-        :class="{
-          'border-gray-200': !isTreeViewOnScrollTop,
-          'border-transparent': isTreeViewOnScrollTop,
-        }"
-      ></div>
     </div>
     <LazyDashboardTreeViewNew
       :class="{

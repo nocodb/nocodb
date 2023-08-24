@@ -386,11 +386,14 @@ test.describe('Form view with LTAR', () => {
       withoutPrefix: true,
     });
 
-    await dashboard.rootPage.waitForTimeout(500);
-    await dashboard.leftSidebar.openWorkspace({ title: context.workspace.title });
-    await dashboard.rootPage.waitForTimeout(500);
+    if (isEE()) {
+      await dashboard.rootPage.waitForTimeout(500);
+      await dashboard.leftSidebar.openWorkspace({ title: context.workspace.title });
+      await dashboard.rootPage.waitForTimeout(500);
+    }
     await dashboard.treeView.openProject({ title: context.project.title });
     await dashboard.rootPage.waitForTimeout(500);
+
     await dashboard.treeView.openTable({ title: 'Country' });
     await dashboard.viewSidebar.openView({ title: 'Country' });
 
@@ -464,6 +467,8 @@ test.describe('Form view', () => {
     await dashboard.treeView.openTable({ title: 'selectBased' });
     const url = dashboard.rootPage.url();
 
+    await dashboard.rootPage.waitForTimeout(500);
+
     await dashboard.viewSidebar.createFormView({ title: 'NewForm' });
     const formLink = await dashboard.form.topbar.getSharedViewUrl();
 
@@ -494,6 +499,8 @@ test.describe('Form view', () => {
     await sharedForm.submit();
     await dashboard.rootPage.goto(url);
     await dashboard.viewSidebar.openView({ title: 'selectBased' });
+
+    await dashboard.rootPage.waitForTimeout(500);
 
     await dashboard.grid.cell.selectOption.verify({
       columnHeader: 'SingleSelect',

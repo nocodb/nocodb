@@ -47,12 +47,6 @@ const { appInfo } = useGlobal()
 
 const navigateToSettings = () => {
   navigateToWorkspaceSettings()
-
-  // TODO: Handle cloud case properly
-  // if (appInfo.value.baseHostName) {
-  //   window.location.href = `https://app.${appInfo.value.baseHostName}/dashboard`
-  // } else {
-  // }
 }
 </script>
 
@@ -109,7 +103,7 @@ const navigateToSettings = () => {
             <div>Team & Settings</div>
           </div>
           <WorkspaceCreateProjectBtn
-            v-if="isUIAllowed('createProject', false, activeWorkspace?.roles)"
+            v-if="isUIAllowed('projectCreate', false)"
             v-model:is-open="isCreateProjectOpen"
             modal
             type="text"

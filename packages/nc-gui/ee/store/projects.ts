@@ -142,14 +142,17 @@ export const useProjects = defineStore('projectsStore', () => {
       }
 
       projects.value = _projects.reduce((acc, project) => {
+        const existingProjectMeta = projects.value.get(project.id!) || {}
         acc.set(project.id!, {
+          ...existingProjectMeta,
           ...project,
           bases: [...(projects.value.get(project.id!)?.bases ?? []), ...(project.bases ?? [])],
           isExpanded: route.value.params.projectId === project.id || projects.value.get(project.id!)?.isExpanded,
           isLoading: false,
         })
         return acc
-      }, new Map())
+      }, new Map());
+
     } catch (e) {
       console.error(e)
       message.error(e.message)
@@ -188,7 +191,7 @@ export const useProjects = defineStore('projectsStore', () => {
 
     switch (project.type) {
       case NcProjectType.DB:
-        return !!(project.bases && tableStore.projectTables.get(projectId))
+        return !!(project.bases?.length && tableStore.projectTables.get(projectId))
       case NcProjectType.DOCS:
         return !!docsStore.nestedPagesOfProjects[projectId]
       case NcProjectType.DASHBOARD:
@@ -313,7 +316,7 @@ export const useProjects = defineStore('projectsStore', () => {
 
     await navigateTo(`/${project.fk_workspace_id}/${projectId}`)
   }
-  
+
   onMounted(() => {
     if (!activeProjectId.value) return
     if (isProjectPopulated(activeProjectId.value)) return

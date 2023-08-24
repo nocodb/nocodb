@@ -136,7 +136,9 @@ export const useProjects = defineStore('projectsStore', () => {
       _projects = list
 
       projects.value = _projects.reduce((acc, project) => {
+        const existingProjectMeta = projects.value.get(project.id!) || {}
         acc.set(project.id!, {
+          ...existingProjectMeta,
           ...project,
           isExpanded: route.value.params.projectId === project.id || projects.value.get(project.id!)?.isExpanded,
           isLoading: false,
@@ -166,7 +168,7 @@ export const useProjects = defineStore('projectsStore', () => {
     const project = projects.value.get(projectId)
     if (!project) return false
 
-    return !!(project.bases && tableStore.projectTables.get(projectId))
+    return !!(project.bases?.length && tableStore.projectTables.get(projectId))
   }
 
   // actions

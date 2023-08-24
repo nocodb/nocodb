@@ -24,12 +24,14 @@ import { Store, User } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
+import { ProjectsService } from '~/services/projects.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     protected metaService: MetaService,
     protected appHooksService: AppHooksService,
+    protected projectsService: ProjectsService,
   ) {}
 
   // allow signup/signin only if email matches against pattern
@@ -83,7 +85,9 @@ export class UsersService {
 
     let roles: string = OrgUserRoles.CREATOR;
 
-    if ((await User.isFirst()) && process.env.NC_CLOUD !== 'true') {
+    const isFirstUser = await User.isFirst();
+
+    if (isFirstUser && process.env.NC_CLOUD !== 'true') {
       roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
       // todo: update in nc_store
       // roles = 'owner,creator,editor'
@@ -114,7 +118,14 @@ export class UsersService {
       token_version,
     });
 
-    return user;
+    // if first user and super admin, create a project
+    if (isFirstUser && process.env.NC_CLOUD !== 'true') {
+      // todo: update swagger type
+      (user as any).createdProject = await this.createDefaultProject(user);
+    }
+
+    // todo: update swagger type
+    return user as any;
   }
 
   async passwordChange(param: {
@@ -411,6 +422,7 @@ export class UsersService {
     if (!ignore_subscribe) {
       T.emit('evt_subscribe', email);
     }
+    let createdProject = undefined;
 
     if (user) {
       if (token) {
@@ -426,12 +438,14 @@ export class UsersService {
         NcError.badRequest('User already exist');
       }
     } else {
-      await this.registerNewUserIfAllowed({
-        email,
-        salt,
-        password,
-        email_verification_token,
-      });
+      const { createdProject: _createdProject } =
+        await this.registerNewUserIfAllowed({
+          email,
+          salt,
+          password,
+          email_verification_token,
+        });
+      createdProject = _createdProject;
     }
     user = await User.getByEmail(email);
 
@@ -474,7 +488,7 @@ export class UsersService {
       user,
     });
 
-    return this.login(user);
+    return { ...this.login(user), createdProject };
   }
 
   login(user: UserType) {
@@ -500,5 +514,14 @@ export class UsersService {
     } catch (e) {
       NcError.badRequest(e.message);
     }
+  }
+
+  private async createDefaultProject(user: User) {
+    // create new project for user
+    const project = await this.projectsService.createDefaultProject({
+      user,
+    });
+
+    return project;
   }
 }

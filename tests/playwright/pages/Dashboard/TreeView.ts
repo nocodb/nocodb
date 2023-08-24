@@ -7,21 +7,29 @@ export class TreeViewPage extends BasePage {
   readonly project: any;
   readonly quickImportButton: Locator;
 
-  readonly btn_addNewTable: Locator;
-  readonly btn_projectContextMenu: Locator;
-
   constructor(dashboard: DashboardPage, project: any) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.project = project;
     this.quickImportButton = dashboard.get().locator('.nc-import-menu');
-
-    this.btn_addNewTable = dashboard.get().locator('[data-testid="nc-sidebar-add-project-entity"]');
-    this.btn_projectContextMenu = dashboard.get().locator('[data-testid="nc-sidebar-context-menu"]');
   }
 
   get() {
     return this.dashboard.get().locator('.nc-treeview-container');
+  }
+
+  getAddNewTableBtn({ projectTitle }: { projectTitle: string }) {
+    return this.dashboard
+      .get()
+      .getByTestId(`nc-sidebar-project-title-${projectTitle}`)
+      .locator('[data-testid="nc-sidebar-add-project-entity"]');
+  }
+
+  getProjectContextMenu({ projectTitle }: { projectTitle: string }) {
+    return this.dashboard
+      .get()
+      .getByTestId(`nc-sidebar-project-title-${projectTitle}`)
+      .locator('[data-testid="nc-sidebar-context-menu"]');
   }
 
   async isVisible() {
@@ -60,7 +68,11 @@ export class TreeViewPage extends BasePage {
     return;
   }
 
-  async getTable({ index }: { index: number }) {
+  async getTable({ index, tableTitle }: { index: number; tableTitle?: string }) {
+    if (tableTitle) {
+      return this.get().getByTestId(`tree-view-table-${tableTitle}`);
+    }
+
     return this.get().locator('.nc-tree-item').nth(index);
   }
 
@@ -192,15 +204,15 @@ export class TreeViewPage extends BasePage {
   }
 
   async projectSettings({ title }: { title?: string }) {
-    await this.btn_projectContextMenu.hover();
-    await this.btn_projectContextMenu.click();
+    await this.getProjectContextMenu({ projectTitle: title }).hover();
+    await this.getProjectContextMenu({ projectTitle: title }).click();
     const settingsMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md');
     await settingsMenu.locator(`[data-menu-id="teamAndSettings"]`).click();
   }
 
-  async quickImport({ title }: { title: string }) {
-    await this.btn_projectContextMenu.hover();
-    await this.btn_projectContextMenu.click();
+  async quickImport({ title, projectTitle }: { title: string; projectTitle }) {
+    await this.getProjectContextMenu({ projectTitle }).hover();
+    await this.getProjectContextMenu({ projectTitle }).click();
     const importMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md');
     await importMenu.locator(`.ant-dropdown-menu-submenu:has-text("Quick Import From")`).click();
     await this.rootPage.locator(`.ant-dropdown-menu-item:has-text("${title}")`).waitFor();
@@ -253,19 +265,19 @@ export class TreeViewPage extends BasePage {
     ).toHaveCount(1);
   }
 
-  async validateRoleAccess(param: { role: string }) {
+  async validateRoleAccess(param: { role: string; projectTitle?: string; tableTitle?: string }) {
     const count = param.role.toLowerCase() === 'creator' || param.role.toLowerCase() === 'owner' ? 1 : 0;
-    const pjtNode = await this.getProject({ index: 0 });
+    const pjtNode = await this.getProject({ index: 0, title: param.projectTitle });
     await pjtNode.hover();
 
     // add new table button & context menu is visible only for owner & creator
-    expect(await pjtNode.locator('[data-testid="nc-sidebar-add-project-entity"]').count()).toBe(count);
-    expect(await pjtNode.locator('[data-testid="nc-sidebar-context-menu"]').count()).toBe(count);
+    await expect(pjtNode.locator('[data-testid="nc-sidebar-add-project-entity"]')).toHaveCount(count);
+    await expect(pjtNode.locator('[data-testid="nc-sidebar-context-menu"]')).toHaveCount(count);
 
     // table context menu
-    const tblNode = await this.getTable({ index: 0 });
+    const tblNode = await this.getTable({ index: 0, tableTitle: param.tableTitle });
     await tblNode.hover();
-    expect(await tblNode.locator('.nc-tbl-context-menu').count()).toBe(count);
+    await expect(tblNode.locator('.nc-tbl-context-menu')).toHaveCount(count);
   }
 
   async openProject({ title, projectCount }: { title: string; projectCount?: number }) {
@@ -299,13 +311,17 @@ export class TreeViewPage extends BasePage {
     await this.rootPage.waitForTimeout(1000);
   }
 
-  private async getProject(param: { index: number }) {
+  private async getProject(param: { index: number; title?: string }) {
+    if (param.title) {
+      return this.get().getByTestId(`nc-sidebar-project-title-${param.title}`);
+    }
+
     return this.get().locator(`.project-title-node`).nth(param.index);
   }
 
   async deleteProject(param: { title: string }) {
-    await this.btn_projectContextMenu.hover();
-    await this.btn_projectContextMenu.click();
+    await this.getProjectContextMenu({ projectTitle: param.title }).hover();
+    await this.getProjectContextMenu({ projectTitle: param.title }).click();
     const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md');
     await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Delete")`).click();
 

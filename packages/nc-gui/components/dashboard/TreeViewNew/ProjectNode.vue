@@ -364,7 +364,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
         <div
           ref="projectNodeRefs"
           :class="{
-            'bg-primary-selected': activeProjectId === project.id && projectViewOpen,
+            'bg-primary-selected active': activeProjectId === project.id && projectViewOpen,
             'hover:bg-gray-200': !(activeProjectId === project.id && projectViewOpen),
           }"
           :data-testid="`nc-sidebar-project-title-${project.title}`"
@@ -456,7 +456,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                     </div>
                   </a-menu-item>
                   <a-menu-item
-                    v-if="isUIAllowed('duplicateProject', true, project.project_role)"
+                    v-if="isUIAllowed('duplicateProject', true, projectRole)"
                     @click="duplicateProject(project)"
                   >
                     <div class="nc-menu-item-wrapper">
@@ -508,7 +508,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 
                 <a-menu-divider v-if="false" />
 
-                <a-menu-item v-if="isUIAllowed('projectDelete', false, true)" @click="isProjectDeleteDialogVisible = true">
+                <a-menu-item v-if="isUIAllowed('projectDelete', false, projectRole)" @click="isProjectDeleteDialogVisible = true">
                   <div class="nc-project-menu-item group text-red-500">
                     <GeneralIcon icon="delete" />
                     {{ $t('general.delete') }}

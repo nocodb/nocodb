@@ -2,7 +2,7 @@ import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
-import { AppEvents, OrgUserRoles } from 'nocodb-sdk';
+import { AppEvents, OrgUserRoles, SqlUiFactory } from 'nocodb-sdk';
 import type {
   ProjectReqType,
   ProjectUpdateReqType,
@@ -19,6 +19,7 @@ import extractRolesObj from '~/utils/extractRolesObj';
 import { getToolDir } from '~/utils/nc-config';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable } from '~/utils/globals';
+import { TablesService } from '~/services/tables.service';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -27,6 +28,7 @@ export class ProjectsService {
   constructor(
     protected readonly appHooksService: AppHooksService,
     protected metaService: MetaService,
+    protected tablesService: TablesService,
   ) {}
 
   async projectList(param: {
@@ -216,6 +218,34 @@ export class ProjectsService {
       user: param.user,
       xcdb: !projectBody.external,
     });
+
+    return project;
+  }
+
+  async createDefaultProject(param: { user: UserType }) {
+    const project = await this.projectCreate({
+      project: {
+        title: 'Getting Started',
+        type: 'database',
+      } as any,
+      user: param.user,
+    });
+
+    const sqlUI = SqlUiFactory.create({ client: project.bases[0].type });
+    const columns = sqlUI?.getNewTableColumns() as any;
+
+    const table = await this.tablesService.tableCreate({
+      projectId: project.id,
+      baseId: project.bases[0].id,
+      table: {
+        title: 'Features',
+        table_name: 'Features',
+        columns,
+      },
+      user: param.user,
+    });
+
+    (project as any).tables = [table];
 
     return project;
   }

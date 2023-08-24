@@ -40,7 +40,7 @@ test.describe.skip('Enterprise License', () => {
       const types = await dashboard.projectView.dataSources.getDatabaseTypeList();
       await expect(types).toContain('Snowflake');
     } else {
-      await dashboard.treeView.quickImport({ title: 'Snowflake' });
+      await dashboard.treeView.quickImport({ title: 'Snowflake', projectTitle: context.project.title });
     }
   });
 });

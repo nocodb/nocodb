@@ -1,4 +1,4 @@
-import { Global, Module } from '@nestjs/common';
+import { forwardRef, Global, Module } from '@nestjs/common';
 import { ExtractJwt } from 'passport-jwt';
 import { InitMetaServiceProvider } from './init-meta-service.provider';
 import type { Provider } from '@nestjs/common';
@@ -12,6 +12,7 @@ import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { UsersService } from '~/services/users/users.service';
 import { TelemetryService } from '~/services/telemetry.service';
 import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
+import { UsersModule } from '~/modules/users/users.module';
 
 export const JwtStrategyProvider: Provider = {
   provide: JwtStrategy,
@@ -35,11 +36,10 @@ export const JwtStrategyProvider: Provider = {
 };
 
 export const globalModuleMetadata = {
-  imports: [EventEmitterModule],
+  imports: [EventEmitterModule, forwardRef(() => UsersModule)],
   providers: [
     InitMetaServiceProvider,
     AppHooksService,
-    UsersService,
     JwtStrategyProvider,
     GlobalGuard,
     SocketGateway,
@@ -50,7 +50,6 @@ export const globalModuleMetadata = {
   exports: [
     MetaService,
     JwtStrategyProvider,
-    UsersService,
     GlobalGuard,
     AppHooksService,
     AppHooksListenerService,

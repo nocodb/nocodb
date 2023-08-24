@@ -129,7 +129,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
     await getMeta(table.id as string)
 
-    const typeOrId = (route.value.params.typeOrId as string) || 'nc'
+    // const typeOrId = (route.value.params.typeOrId as string) || 'nc'
 
     let workspaceIdOrType = workspaceId
 
@@ -144,7 +144,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
     }
 
     await navigateTo({
-      path: `/${workspaceIdOrType}/${projectIdOrBaseId}/table/${table?.id}${table.title ? `/${table.title}` : ''}`,
+      path: `/${workspaceIdOrType}/${projectIdOrBaseId}/table/${table?.id}`,
       query: route.value.query,
     })
   }

@@ -45,8 +45,10 @@ const url = computed(() => {
   return sharedViewUrl() ?? ''
 })
 
+const passwordProtectedLocal = ref(false)
+
 const passwordProtected = computed(() => {
-  return !!(activeView.value?.password !== undefined && activeView.value?.password !== null)
+  return !!activeView.value?.password || passwordProtectedLocal.value
 })
 
 const password = computed({
@@ -74,6 +76,7 @@ const viewTheme = computed({
 })
 
 const togglePasswordProtected = async () => {
+  passwordProtectedLocal.value = !passwordProtected.value
   if (!activeView.value) return
   if (isUpdating.value.password) return
 

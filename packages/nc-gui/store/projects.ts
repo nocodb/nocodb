@@ -86,7 +86,6 @@ export const useProjects = defineStore('projectsStore', () => {
     await api.auth.projectUserUpdate(projectId, user.id, user as ProjectUserReqType)
   }
 
-
   const removeProjectUser = async (projectId: string, user: User) => {
     await api.auth.projectUserRemove(projectId, user.id)
   }
@@ -126,18 +125,9 @@ export const useProjects = defineStore('projectsStore', () => {
 
     isProjectsLoading.value = true
     try {
-      const { list } = await $api.project.list(
-        page
-          ? {
-              query: {
-                [page]: true,
-              },
-              baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
-            }
-          : {
-              baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
-            },
-      )
+      const { list } = await $api.project.list({
+        baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
+      })
       _projects = list
 
       projects.value = _projects.reduce((acc, project) => {
@@ -315,7 +305,7 @@ export const useProjects = defineStore('projectsStore', () => {
     createProjectUser,
     updateProjectUser,
     navigateToProject,
-    removeProjectUser
+    removeProjectUser,
   }
 })
 

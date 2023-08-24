@@ -238,12 +238,7 @@ const clickHandler = () => {
 }
 
 const isColEditable = computed(() => {
-  return (
-    column.value.title === 'CreatedAt' ||
-    column.value.title === 'UpdatedAt' ||
-    readOnly.value ||
-    column.value.title === (localState.value && isPk)
-  )
+  return column.value.title === 'CreatedAt' || column.value.title === 'UpdatedAt' || readOnly.value || (localState.value && isPk)
 })
 </script>
 

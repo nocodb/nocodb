@@ -1,3 +1,4 @@
+import { getActivePinia } from 'pinia'
 import type { Actions, AppInfo, State } from './types'
 import { type NcProjectType, message, useNuxtApp } from '#imports'
 import { navigateTo } from '#app'
@@ -16,6 +17,13 @@ export function useGlobalActions(state: State): Actions {
     } finally {
       state.token.value = null
       state.user.value = null
+      const pn = getActivePinia()
+      if (pn) {
+        pn._s.forEach((store) => {
+          store.$dispose()
+          delete pn.state.value[store.$id]
+        })
+      }
     }
   }
 

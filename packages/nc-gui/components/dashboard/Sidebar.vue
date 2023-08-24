@@ -55,6 +55,7 @@ const navigateToSettings = () => {
     class="nc-sidebar flex flex-col bg-gray-50 outline-r-1 outline-gray-100 select-none"
     :style="{
       outlineWidth: '1px',
+      height: isSharedBase ? '100%' : null,
     }"
   >
     <div class="flex flex-col" :style="{ height: isSharedBase ? 'auto' : 'var(--sidebar-top-height)' }">
@@ -130,6 +131,9 @@ const navigateToSettings = () => {
       ></div>
     </div>
     <LazyDashboardTreeViewNew
+      :class="{
+        'nc-shared-base': isSharedBase,
+      }"
       @create-base-dlg="toggleDialog(true, 'dataSources', undefined, projectId)"
       @on-scroll-top="onTreeViewScrollTop"
     />
@@ -139,5 +143,9 @@ const navigateToSettings = () => {
 <style lang="scss" scoped>
 .nc-sidebar-top-button {
   @apply flex flex-row mx-1 px-3.5 rounded-md items-center py-0.75 my-0.5 gap-x-2 hover:bg-gray-200 cursor-pointer;
+}
+
+:deep(.nc-shared-base.nc-treeview-container) {
+  @apply !h-full;
 }
 </style>

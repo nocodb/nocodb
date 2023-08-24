@@ -14,6 +14,7 @@ import {
   extractPkFromRow,
   extractSdkResponseErrorMsg,
   isDrawerOrModalExist,
+  isExpandedCellInputExist,
   isMac,
   isTypableInputColumn,
   message,
@@ -704,7 +705,7 @@ export function useMultiSelect(
   const clearSelectedRange = selectedRange.clear.bind(selectedRange)
 
   const handlePaste = async (e: ClipboardEvent) => {
-    if (isDrawerOrModalExist()) {
+    if (isDrawerOrModalExist() || isExpandedCellInputExist()) {
       return
     }
 

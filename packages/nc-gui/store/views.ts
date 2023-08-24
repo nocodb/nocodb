@@ -45,7 +45,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       if (!activeViewTitleOrId.value) return undefined
 
       return (
-        views.value.find((v) => v.id === activeViewTitleOrId.value) ||
+        views.value.find((v) => v.id === activeViewTitleOrId.value) ??
         views.value.find((v) => v.title === activeViewTitleOrId.value)
       )
     },
@@ -59,7 +59,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       if (!_view) return
 
       const viewIndex =
-        views.value.findIndex((v) => v.id === activeViewTitleOrId.value) ||
+        views.value.findIndex((v) => v.id === activeViewTitleOrId.value) ??
         views.value.findIndex((v) => v.title === activeViewTitleOrId.value)
       if (viewIndex === -1) return
 

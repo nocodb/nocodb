@@ -66,12 +66,7 @@ const navigateToSettings = () => {
             href="https://github.com/nocodb/nocodb"
             target="_blank"
           >
-            <a-tooltip placement="bottom">
-              <template #title>
-                {{ currentVersion }}
-              </template>
-              <img width="25" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
-            </a-tooltip>
+            <img width="25" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
           </a>
 
           <WorkspaceMenu :workspace="activeWorkspace" :is-open="true">

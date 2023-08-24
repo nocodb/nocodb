@@ -21,7 +21,7 @@ import {
   useUndoRedo,
 } from '#imports'
 
-const props = defineProps<{ virtual?: boolean; isOpen: boolean; close: () => void }>()
+const props = defineProps<{ virtual?: boolean; isOpen: boolean }>()
 
 const emit = defineEmits(['edit', 'addColumn', 'update:isOpen'])
 

@@ -74,7 +74,7 @@ watch(
         if (view) {
           router.replace({
             params: {
-              viewTitle: view.title,
+              viewTitle: view.id,
             },
           })
         }
@@ -83,7 +83,7 @@ watch(
       /** if active view is not found, set it to last opened view */
       router.replace({
         params: {
-          viewTitle: lastOpenedView.title,
+          viewTitle: lastOpenedView.id,
         },
       })
     } else {
@@ -130,7 +130,7 @@ function onOpenModal({
 
       await loadViews()
 
-      router.push({ params: { viewTitle: view.title || '' } })
+      router.push({ params: { viewTitle: view.id || '' } })
 
       $e('a:view:create', { view: view.type })
     },

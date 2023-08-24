@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 const props = withDefaults(
   defineProps<{
-    trigger: Array<'click' | 'hover' | 'contextmenu'>
-    visible: boolean | undefined
+    trigger?: Array<'click' | 'hover' | 'contextmenu'>
+    visible?: boolean | undefined
     overlayClassName?: string | undefined
   }>(),
   {

@@ -324,7 +324,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
    *
    */
   watch(
-    projectsStore.openedProject,
+    () => projectsStore.openedProject,
     async () => {
       if (openedProjectId.value == null) {
         return

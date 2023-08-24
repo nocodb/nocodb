@@ -86,6 +86,11 @@ export const useProjects = defineStore('projectsStore', () => {
     await api.auth.projectUserUpdate(projectId, user.id, user as ProjectUserReqType)
   }
 
+
+  const removeProjectUser = async (projectId: string, user: User) => {
+    await api.auth.projectUserRemove(projectId, user.id)
+  }
+
   const loadProjects = async (page: 'recent' | 'shared' | 'starred' | 'workspace' = 'recent') => {
     // if shared base then get the shared project and create a list
     if (route.value.params.typeOrId === 'base' && route.value.params.projectId) {
@@ -102,7 +107,7 @@ export const useProjects = defineStore('projectsStore', () => {
       projects.value.set(project.id!, {
         ...(projects.value.get(project.id!) || {}),
         ...project,
-        bases: [...(projects.value.get(project.id!)?.bases ?? []), ...(project.bases ?? [])],
+        bases: [...(project.bases ?? projects.value.get(project.id!)?.bases ?? [])],
         isExpanded: route.value.params.projectId === project.id || projects.value.get(project.id!)?.isExpanded,
         isLoading: false,
       })
@@ -224,7 +229,7 @@ export const useProjects = defineStore('projectsStore', () => {
         linked_db_project_ids: projectPayload.linkedDbProjectIds,
       },
       {
-        baseURL: getBaseUrl('default'),
+        baseURL: getBaseUrl('nc'),
       },
     )
 
@@ -310,6 +315,7 @@ export const useProjects = defineStore('projectsStore', () => {
     createProjectUser,
     updateProjectUser,
     navigateToProject,
+    removeProjectUser
   }
 })
 

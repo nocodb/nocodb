@@ -46,9 +46,9 @@ const { copy } = useCopy(true)
 const { t } = useI18n()
 
 const copyUrl = async () => {
-  if (!inviteUrl) return
+  if (!inviteUrl.value) return
   try {
-    await copy(inviteUrl)
+    await copy(inviteUrl.value)
 
     // Copied shareable base url to clipboard!
     message.success(t('msg.success.shareableURLCopied'))
@@ -124,19 +124,19 @@ const copyUrl = async () => {
                   {{ role }}
                 </div>
               </div> -->
-              <NcBadge v-if='role===ProjectRole.Owner' color="purple">
+              <NcBadge v-if="role === ProjectRole.Owner" color="purple">
                 <p class="badge-text">{{ role }}</p>
               </NcBadge>
-              <NcBadge v-if="role===ProjectRole.Creator" color="blue">
+              <NcBadge v-if="role === ProjectRole.Creator" color="blue">
                 <p class="badge-text">{{ role }}</p>
               </NcBadge>
-              <NcBadge v-if='role===ProjectRole.Editor' color="green">
+              <NcBadge v-if="role === ProjectRole.Editor" color="green">
                 <p class="badge-text">{{ role }}</p>
               </NcBadge>
-              <NcBadge v-if="role===ProjectRole.Commenter" color="orange">
+              <NcBadge v-if="role === ProjectRole.Commenter" color="orange">
                 <p class="badge-text">{{ role }}</p>
               </NcBadge>
-              <NcBadge v-if="role===ProjectRole.Viewer" color="yellow">
+              <NcBadge v-if="role === ProjectRole.Viewer" color="yellow">
                 <p class="badge-text">{{ role }}</p>
               </NcBadge>
             </a-select-option>
@@ -162,8 +162,9 @@ const copyUrl = async () => {
 
 <style scoped>
 .badge-text {
-    @apply text-[14px] pt-1 text-center
+  @apply text-[14px] pt-1 text-center;
 }
+
 :deep(.ant-select .ant-select-selector) {
   @apply rounded;
 }

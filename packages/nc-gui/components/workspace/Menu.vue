@@ -33,14 +33,6 @@ const workspaceModalVisible = ref(false)
 const isWorkspaceDropdownOpen = ref(false)
 const isAuthTokenCopied = ref(false)
 
-const createDlg = ref(false)
-
-const onWorkspaceCreate = async (workspace: WorkspaceType) => {
-  createDlg.value = false
-  await loadWorkspaces()
-  navigateTo(`/${workspace.id}`)
-}
-
 const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color?: string) => {
   switch (mode) {
     case 'swatch': {

@@ -132,6 +132,7 @@ const navigateToSettings = () => {
       </template>
     </div>
     <LazyDashboardTreeViewNew
+      class="flex-1"
       :class="{
         'nc-shared-base': isSharedBase,
       }"

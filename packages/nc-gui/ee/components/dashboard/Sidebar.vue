@@ -171,6 +171,7 @@ const navigateToSettings = () => {
     </div>
     <LazyDashboardTreeViewNew
       v-if="!isWorkspaceLoading"
+      class="flex-1"
       @create-base-dlg="toggleDialog(true, 'dataSources', null, projectId)"
       @on-scroll-top="onTreeViewScrollTop"
     />

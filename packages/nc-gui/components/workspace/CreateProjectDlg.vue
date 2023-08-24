@@ -46,7 +46,7 @@ const createProject = async () => {
     navigateToProject({
       projectId: project.id!,
       type: props.type,
-      workspaceId: 'default',
+      workspaceId: 'nc',
     })
     dialogShow.value = false
   } catch (e: any) {

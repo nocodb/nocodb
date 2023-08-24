@@ -285,8 +285,11 @@ const kanbanListScrollHandler = useDebounceFn(async (e: any) => {
   if (e.target.scrollTop + e.target.clientHeight + INFINITY_SCROLL_THRESHOLD >= e.target.scrollHeight) {
     const stackTitle = e.target.getAttribute('data-stack-title')
     const pageSize = appInfo.value.defaultLimit || 25
-    const page = Math.ceil(formattedData.value.get(stackTitle)!.length / pageSize)
-    await loadMoreKanbanData(stackTitle, { offset: page * pageSize })
+    const stack = formattedData.value.get(stackTitle)
+    if (stack) {
+      const page = Math.ceil(stack.length / pageSize)
+      await loadMoreKanbanData(stackTitle, { offset: page * pageSize })
+    }
   }
 })
 
@@ -568,7 +571,7 @@ watch(
                                   :key="`record-${record.row.id}-${col.id}`"
                                   class="flex flex-col rounded-lg w-full"
                                 >
-                                  <div v-if="!isRowEmpty(record, col) || isLTAR(col.uidt)">
+                                  <div v-if="!isRowEmpty(record, col) || isLTAR(col.uidt, col.colOptions)">
                                     <!-- Smartsheet Header (Virtual) Cell -->
                                     <div class="flex flex-row w-full justify-start pt-2">
                                       <div class="w-full text-gray-400">
@@ -587,14 +590,14 @@ watch(
                                       :class="{ '!ml-[-12px] pl-3': col.uidt === UITypes.SingleSelect }"
                                     >
                                       <LazySmartsheetVirtualCell
-                                        v-if="isVirtualCol(col)"
+                                        v-if="col.title && isVirtualCol(col)"
                                         v-model="record.row[col.title]"
                                         class="text-sm pt-1 pl-5"
                                         :column="col"
                                         :row="record"
                                       />
                                       <LazySmartsheetCell
-                                        v-else
+                                        v-else-if="col.title"
                                         v-model="record.row[col.title]"
                                         class="text-sm pt-1 pl-7.25"
                                         :column="col"
@@ -613,12 +616,15 @@ watch(
                   </a-layout-content>
 
                   <div class="!rounded-lg !px-3 pt-3">
-                    <div v-if="formattedData.get(stack.title) && countByStack.get(stack.title) >= 0" class="text-center">
+                    <div
+                      v-if="formattedData.get(stack.title) && countByStack.get(stack.title) && countByStack.get(stack.title)! >= 0"
+                      class="text-center"
+                    >
                       <!-- Stack Title -->
 
                       <!-- Record Count -->
                       <div class="nc-kanban-data-count text-gray-500">
-                        {{ formattedData.get(stack.title).length }} / {{ countByStack.get(stack.title) }}
+                        {{ formattedData.get(stack.title)!.length }} / {{ countByStack.get(stack.title) }}
                         {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
                       </div>
 
@@ -664,7 +670,7 @@ watch(
                       <component :is="iconMap.arrowDown" class="text-grey text-lg" />
                     </div>
                     <!-- Record Count -->
-                    {{ formattedData.get(stack.title).length }} / {{ countByStack.get(stack.title) }}
+                    {{ formattedData.get(stack.title)!.length }} / {{ countByStack.get(stack.title) }}
                     {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
                   </div>
                 </div>

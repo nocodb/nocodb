@@ -2,7 +2,7 @@
 import { NcProjectType, useRouter } from '#imports'
 
 const props = defineProps<{
-  activeWorkspaceId: string
+  activeWorkspaceId?: string
   modal?: boolean
   type?: string
   isOpen: boolean

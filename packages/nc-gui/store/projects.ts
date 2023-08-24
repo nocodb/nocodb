@@ -86,6 +86,11 @@ export const useProjects = defineStore('projectsStore', () => {
     await api.auth.projectUserUpdate(projectId, user.id, user as ProjectUserReqType)
   }
 
+
+  const removeProjectUser = async (projectId: string, user: User) => {
+    await api.auth.projectUserRemove(projectId, user.id)
+  }
+
   const loadProjects = async (page: 'recent' | 'shared' | 'starred' | 'workspace' = 'recent') => {
     // if shared base then get the shared project and create a list
     if (route.value.params.typeOrId === 'base' && route.value.params.projectId) {
@@ -310,6 +315,7 @@ export const useProjects = defineStore('projectsStore', () => {
     createProjectUser,
     updateProjectUser,
     navigateToProject,
+    removeProjectUser
   }
 })
 

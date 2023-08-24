@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { navigateTo } from '#app'
+
 const props = defineProps<{
   visible: boolean
   projectId: string
@@ -20,6 +22,8 @@ const project = computed(() => projects.value.get(props.projectId))
 
 const isLoading = ref(false)
 
+const { projectsList } = storeToRefs(projectsStore)
+
 const onDelete = async () => {
   if (!project.value) return
 
@@ -33,6 +37,12 @@ const onDelete = async () => {
     refreshCommandPalette()
 
     visible.value = false
+
+    // if active project id is deleted, navigate to first project or home page
+    if (toBeDeletedProject.id === projectsStore.activeProjectId) {
+      if (projectsList.value?.length) await projectsStore.navigateToProject({ projectId: projectsList.value[0].id! })
+      else navigateTo('/')
+    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {

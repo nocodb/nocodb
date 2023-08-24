@@ -188,9 +188,9 @@ function changeView(view: ViewType) {
     router.currentRoute.value.query.page &&
     router.currentRoute.value.query.page === 'fields'
   ) {
-    router.push({ params: { viewTitle: view.title || '' }, query: router.currentRoute.value.query })
+    router.push({ params: { viewTitle: view.id || '' }, query: router.currentRoute.value.query })
   } else {
-    router.push({ params: { viewTitle: view.title || '' } })
+    router.push({ params: { viewTitle: view.id || '' } })
   }
 
   if (view.type === ViewTypes.FORM && selected.value[0] === view.id) {
@@ -213,7 +213,7 @@ async function onRename(view: ViewType, originalTitle?: string, undo = false) {
 
     await router.replace({
       params: {
-        viewTitle: view.title,
+        viewTitle: view.id,
       },
     })
 
@@ -266,7 +266,7 @@ function openDeleteDialog(view: ViewType) {
         // return to the default view
         router.replace({
           params: {
-            viewTitle: views[0].title,
+            viewTitle: views[0].id,
           },
         })
       }

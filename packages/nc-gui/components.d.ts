@@ -151,6 +151,7 @@ declare module '@vue/runtime-core' {
     MdiDotsVertical: typeof import('~icons/mdi/dots-vertical')['default']
     MdiEarth: typeof import('~icons/mdi/earth')['default']
     MdiEditOutline: typeof import('~icons/mdi/edit-outline')['default']
+    MdiEye: typeof import('~icons/mdi/eye')['default']
     MdiFlag: typeof import('~icons/mdi/flag')['default']
     MdiFolder: typeof import('~icons/mdi/folder')['default']
     MdiHeart: typeof import('~icons/mdi/heart')['default']

@@ -113,6 +113,15 @@ const { isSharedBase } = useProject()
                   </template>
 
                   <MdiTable
+                    v-if="table.type === 'table'"
+                    class="flex w-5 !text-gray-500 text-sm"
+                    :class="{
+                      'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole),
+                      '!text-black': openedTableId === table.id,
+                    }"
+                  />
+                  <MdiEye
+                    v-else
                     class="flex w-5 !text-gray-500 text-sm"
                     :class="{
                       'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole),

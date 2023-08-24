@@ -12,16 +12,9 @@ import {
   useI18n,
   useProject,
   useSmartsheetStoreOrThrow,
-  useVModel,
   useViewData,
   watch,
 } from '#imports'
-
-const props = defineProps<{
-  modelValue: boolean
-}>()
-
-const emits = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 
@@ -39,8 +32,6 @@ const { xWhere } = useSmartsheetStoreOrThrow()
 const { queryParams } = useViewData(meta, view, xWhere)
 
 const { copy } = useCopy()
-
-const vModel = useVModel(props, 'modelValue', emits)
 
 const langs = [
   {

@@ -154,11 +154,14 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       });
       req.ncProjectId = model?.project_id;
     }
-    // extract project id from query params only if it's userMe endpoint
+    // extract project id from query params only if it's userMe endpoint or webhook plugin list
     else if (
-      ['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'].some(
-        (userMePath) => req.route.path === userMePath,
-      ) &&
+      [
+        '/auth/user/me',
+        '/api/v1/db/auth/user/me',
+        '/api/v1/auth/user/me',
+        '/api/v1/db/meta/plugins/webhook',
+      ].some((userMePath) => req.route.path === userMePath) &&
       req.query.project_id
     ) {
       req.ncProjectId = req.query.project_id;

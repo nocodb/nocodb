@@ -7,6 +7,7 @@ const props = defineProps<{
   // filterOptions is a function
   filterOption?: (input: string, option: any) => boolean
   dropdownMatchSelectWidth?: boolean
+  allowClear?: boolean
 }>()
 
 const emits = defineEmits(['update:value', 'change'])
@@ -38,6 +39,7 @@ const onChange = (value: string) => {
     :filter-option="filterOption"
     :dropdown-match-select-width="dropdownMatchSelectWidth"
     @change="onChange"
+    :allow-clear="allowClear"
   >
     <template #suffixIcon>
       <GeneralIcon icon="arrowDown" class="text-gray-800 nc-select-expand-btn" />

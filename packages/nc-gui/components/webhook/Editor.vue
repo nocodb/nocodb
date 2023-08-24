@@ -39,6 +39,8 @@ const { appInfo } = useGlobal()
 
 const { hooks } = storeToRefs(useWebhooksStore())
 
+const { project } = storeToRefs(useProject())
+
 const meta = inject(MetaInj, ref())
 
 const titleDomRef = ref<HTMLInputElement | undefined>()
@@ -372,7 +374,13 @@ function onEventChange() {
 async function loadPluginList() {
   if (isEeUI) return
   try {
-    const plugins = (await api.plugin.webhookList()).list!
+    const plugins = (
+      await api.plugin.webhookList({
+        query: {
+          project_id: project.value.id,
+        },
+      })
+    ).list!
 
     apps.value = plugins.reduce((o, p) => {
       const plugin: { title: string; tags: string[]; parsedInput: Record<string, any> } = {

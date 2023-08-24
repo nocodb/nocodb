@@ -50,7 +50,6 @@ const onWorkspaceCreate = async (workspace: WorkspaceType) => {
     return await navigateToTable({
       projectId: project.id,
       tableId: table.id,
-      viewTitle: table.title,
       workspaceId: workspace.id,
     })
   }

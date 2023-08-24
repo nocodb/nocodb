@@ -15,7 +15,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const { activeTable } = storeToRefs(useTablesStore())
 
-  const activeViewTitle = computed(() => {
+  const activeViewTitleOrId = computed(() => {
     if (!route.value.params.viewTitle?.length) return views.value.length ? views.value[0].title : undefined
 
     return route.value.params.viewTitle
@@ -42,9 +42,12 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
       if (!activeTable.value) return undefined
 
-      if (!activeViewTitle.value) return undefined
+      if (!activeViewTitleOrId.value) return undefined
 
-      return views.value.find((v) => v.title === activeViewTitle.value)
+      return (
+        views.value.find((v) => v.id === activeViewTitleOrId.value) ||
+        views.value.find((v) => v.title === activeViewTitleOrId.value)
+      )
     },
     set(_view: ViewType | undefined) {
       if (sharedView.value) {
@@ -55,7 +58,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       if (!activeTable.value) return
       if (!_view) return
 
-      const viewIndex = views.value.findIndex((v) => v.title === activeViewTitle.value)
+      const viewIndex = views.value.findIndex((v) => v.title === activeViewTitleOrId.value)
       if (viewIndex === -1) return
 
       views.value[viewIndex] = _view
@@ -86,7 +89,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
         projectId: route.value.params.projectId,
         type: route.value.params.type,
         viewId: route.value.params.viewId,
-        viewTitle: activeViewTitle.value,
+        viewTitle: activeViewTitleOrId.value,
         slugs: [page],
       },
     })

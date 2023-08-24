@@ -64,7 +64,7 @@ useProvideSmartsheetRowStore(meta as Ref<TableType>, currentRow)
     >
       <div v-for="col in fields" :key="`record-${currentRow.row.id}-${col.id}`">
         <div
-          v-if="!isRowEmpty(currentRow, col) || isLTAR(col.uidt)"
+          v-if="!isRowEmpty(currentRow, col) || isLTAR(col.uidt, colOptions)"
           class="flex flex-col space-y-1 px-4 mb-6 bg-gray-50 rounded-lg w-full"
         >
           <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">

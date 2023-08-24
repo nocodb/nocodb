@@ -225,12 +225,15 @@ function getConnectionConfig() {
 const focusInvalidInput = () => {
   form.value?.$el.querySelector('.ant-form-item-explain-error')?.parentNode?.parentNode?.querySelector('input')?.focus()
 }
+const isConnSuccess = ref(false)
 
 const createBase = async () => {
   try {
     await validate()
+    isConnSuccess.value = false
   } catch (e) {
     focusInvalidInput()
+    isConnSuccess.value = false
     return
   }
 
@@ -287,17 +290,7 @@ const testConnection = async () => {
 
       if (result.code === 0) {
         testSuccess.value = true
-
-        Modal.confirm({
-          title: t('msg.info.dbConnected'),
-          icon: null,
-          type: 'success',
-          okText: 'Ok & Add Base',
-          okType: 'primary',
-          cancelText: t('general.cancel'),
-          onOk: createBase,
-          style: 'top: 30%!important',
-        })
+        isConnSuccess.value = true
       } else {
         testSuccess.value = false
 
@@ -374,6 +367,15 @@ watch(
 </script>
 
 <template>
+  <GeneralModal v-model:visible="isConnSuccess" class="!w-[25rem]">
+    <div class="flex flex-col h-full p-8">
+      <div class="text-lg font-semibold self-start mb-4">{{ t('msg.info.dbConnected') }}</div>
+      <div class="flex gap-x-2 mt-5 ml-7 pt-2.5 justify-end">
+        <NcButton key="back" type="secondary" @click="isConnSuccess = false">{{ $t('general.cancel') }}</NcButton>
+        <NcButton key="submit" type="primary" @click="createBase">Ok & Add Base</NcButton>
+      </div>
+    </div>
+  </GeneralModal>
   <div class="create-base bg-white relative flex flex-col justify-center gap-2 w-full">
     <h1 class="prose-2xl font-bold self-start mb-4 flex items-center gap-2">
       New Base
@@ -656,6 +658,17 @@ watch(
     >
       <a-input v-model:value="importURL" />
     </a-modal>
+
+    <!-- connection succesfull modal -->
+    <GeneralModal v-model:visible="isConnSuccess" class="!w-[25rem]">
+      <div class="flex flex-col h-full p-8">
+        <div class="text-lg font-semibold self-start mb-4">{{ t('msg.info.dbConnected') }}</div>
+        <div class="flex gap-x-2 mt-5 ml-7 pt-2.5 justify-end">
+          <NcButton key="back" type="secondary" @click="isConnSuccess = false">{{ $t('general.cancel') }}</NcButton>
+          <NcButton key="submit" type="primary" @click="createBase">Ok & Add Base</NcButton>
+        </div>
+      </div>
+    </GeneralModal>
   </div>
 </template>
 

@@ -86,7 +86,6 @@ export const useProjects = defineStore('projectsStore', () => {
     await api.auth.projectUserUpdate(projectId, user.id, user as ProjectUserReqType)
   }
 
-
   const removeProjectUser = async (projectId: string, user: User) => {
     await api.auth.projectUserRemove(projectId, user.id)
   }
@@ -126,18 +125,9 @@ export const useProjects = defineStore('projectsStore', () => {
 
     isProjectsLoading.value = true
     try {
-      const { list } = await $api.project.list(
-        page
-          ? {
-              query: {
-                [page]: true,
-              },
-              baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
-            }
-          : {
-              baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
-            },
-      )
+      const { list } = await $api.project.list({
+        baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
+      })
       _projects = list
 
       projects.value = _projects.reduce((acc, project) => {
@@ -181,7 +171,13 @@ export const useProjects = defineStore('projectsStore', () => {
     if (!force && isProjectPopulated(projectId)) return projects.value.get(projectId)
 
     const _project = await api.project.read(projectId)
-    _project.meta = typeof _project.meta === 'string' ? JSON.parse(_project.meta) : {}
+
+    if (!_project) {
+      await navigateTo(`/`)
+      return
+    }
+
+    _project.meta = _project?.meta && typeof _project.meta === 'string' ? JSON.parse(_project.meta) : {}
 
     const existingProject = projects.value.get(projectId) ?? ({} as any)
 
@@ -291,6 +287,12 @@ export const useProjects = defineStore('projectsStore', () => {
     loadProject(activeProjectId.value)
   })
 
+  const navigateToFirstProjectOrHome = async () => {
+    // if active project id is deleted, navigate to first project or home page
+    if (projectsList.value?.length) await navigateToProject({ projectId: projectsList.value[0].id! })
+    else navigateTo('/')
+  }
+
   return {
     projects,
     projectsList,
@@ -315,7 +317,8 @@ export const useProjects = defineStore('projectsStore', () => {
     createProjectUser,
     updateProjectUser,
     navigateToProject,
-    removeProjectUser
+    removeProjectUser,
+    navigateToFirstProjectOrHome,
   }
 })
 

@@ -55,9 +55,10 @@ const navigateToSettings = () => {
     class="nc-sidebar flex flex-col bg-gray-50 outline-r-1 outline-gray-100 select-none"
     :style="{
       outlineWidth: '1px',
+      height: isSharedBase ? '100%' : null,
     }"
   >
-    <div class="flex flex-col" :style="{ height: isSharedBase ? 'auto' : 'var(--sidebar-top-height)' }">
+    <div class="flex flex-col">
       <div style="border-bottom-width: 1px" class="flex items-center px-1 nc-sidebar-header !border-0 py-1.25 pl-2">
         <div class="flex flex-row flex-grow hover:bg-gray-100 pl-2 pr-1 py-0.5 rounded-md max-w-full">
           <a
@@ -66,12 +67,7 @@ const navigateToSettings = () => {
             href="https://github.com/nocodb/nocodb"
             target="_blank"
           >
-            <a-tooltip placement="bottom">
-              <template #title>
-                {{ currentVersion }}
-              </template>
-              <img width="25" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
-            </a-tooltip>
+            <img width="25" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
           </a>
 
           <WorkspaceMenu :workspace="activeWorkspace" :is-open="true">
@@ -90,8 +86,7 @@ const navigateToSettings = () => {
       </div>
 
       <template v-if="!isSharedBase">
-        <div class="w-full mt-2"></div>
-        <div class="h-17.5">
+        <div class="h-auto">
           <div
             v-if="isWorkspaceOwnerOrCreator"
             role="button"
@@ -123,18 +118,24 @@ const navigateToSettings = () => {
             </div>
           </WorkspaceCreateProjectBtn>
         </div>
-        <div class="flex flex-grow"></div>
+
+        <div class="w-full mt-2"></div>
+
         <div class="text-gray-500 mx-5 font-medium mb-1.5">{{ $t('objects.projects') }}</div>
+        <div
+          class="w-full border-b-1"
+          :class="{
+            'border-gray-200': !isTreeViewOnScrollTop,
+            'border-transparent': isTreeViewOnScrollTop,
+          }"
+        ></div>
       </template>
-      <div
-        class="w-full border-b-1"
-        :class="{
-          'border-gray-200': !isTreeViewOnScrollTop,
-          'border-transparent': isTreeViewOnScrollTop,
-        }"
-      ></div>
     </div>
     <LazyDashboardTreeViewNew
+      class="flex-1"
+      :class="{
+        'nc-shared-base': isSharedBase,
+      }"
       @create-base-dlg="toggleDialog(true, 'dataSources', undefined, projectId)"
       @on-scroll-top="onTreeViewScrollTop"
     />
@@ -144,5 +145,9 @@ const navigateToSettings = () => {
 <style lang="scss" scoped>
 .nc-sidebar-top-button {
   @apply flex flex-row mx-1 px-3.5 rounded-md items-center py-0.75 my-0.5 gap-x-2 hover:bg-gray-200 cursor-pointer;
+}
+
+:deep(.nc-shared-base.nc-treeview-container) {
+  @apply !h-full;
 }
 </style>

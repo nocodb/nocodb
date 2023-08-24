@@ -6,7 +6,7 @@ import { storeToRefs, stringToColour, timeAgo, useGlobal } from '#imports'
 
 const { user } = useGlobal()
 const projectsStore = useProjects()
-const { getProjectUsers, createProjectUser, updateProjectUser } = projectsStore
+const { getProjectUsers, createProjectUser, updateProjectUser, removeProjectUser } = projectsStore
 const { activeProjectId } = storeToRefs(projectsStore)
 
 const collaborators = ref<WorkspaceUserType[]>([])
@@ -74,7 +74,10 @@ onMounted(async () => {
 
 const updateCollaborator = async (collab, roles) => {
   try {
-    if (collab.projectRoles) {
+    if (!roles) {
+      await removeProjectUser(activeProjectId.value!, collab)
+      collab.projectRoles = null
+    } else if (collab.projectRoles) {
       await updateProjectUser(activeProjectId.value!, collab)
     } else {
       await createProjectUser(activeProjectId.value!, collab)
@@ -184,7 +187,8 @@ const accessibleRoles = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles
                   class="w-35 !rounded px-1"
                   :virtual="true"
                   :placeholder="$t('labels.noAccess')"
-                  :disabled="collab.id === user?.id || !accessibleRoles.includes(collab.roles)"
+                  :disabled="collab.id === user?.id"
+                  allow-clear
                   @change="(value) => updateCollaborator(collab, value)"
                 >
                   <template #suffixIcon>
@@ -195,7 +199,7 @@ const accessibleRoles = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles
                       <p class="badge-text">{{ RoleLabels[userProjectRole] }}</p>
                     </NcBadge>
                   </a-select-option>
-                  <a-select-option v-if="!accessibleRoles.includes(collab.roles)" :value="collab.roles">
+                  <a-select-option v-if="collab.roles && !accessibleRoles.includes(collab.roles)" :value="collab.roles">
                     <NcBadge :color="RoleColors[collab.roles]">
                       <p class="badge-text">{{ RoleLabels[collab.roles] }}</p>
                     </NcBadge>

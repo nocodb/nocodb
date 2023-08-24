@@ -9,7 +9,6 @@ import type {
   LinkToAnotherRecordType,
   StringOrNullType,
   TableType,
-  ViewType,
 } from 'nocodb-sdk'
 import { ErrorMessages, RelationTypes, UITypes, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
@@ -28,6 +27,7 @@ import {
   useMetas,
   useProject,
   useProvideSmartsheetRowStore,
+  useViewsStore,
   watch,
 } from '#imports'
 import type { SharedViewMeta } from '#imports'
@@ -41,9 +41,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const passwordError = ref<string | null>(null)
   const secondsRemain = ref(0)
 
+  const { sharedView } = storeToRefs(useViewsStore())
+
   provide(SharedViewPasswordInj, password)
 
-  const sharedView = ref<ViewType>()
   const sharedFormView = ref<FormType>()
   const meta = ref<TableType>()
   const columns =

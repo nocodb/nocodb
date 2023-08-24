@@ -289,7 +289,7 @@ watch(
 
               <div v-for="col in fieldsWithoutCover" :key="`record-${record.row.id}-${col.id}`">
                 <div
-                  v-if="!isRowEmpty(record, col) || isLTAR(col.uidt)"
+                  v-if="!isRowEmpty(record, col) || isLTAR(col.uidt, col.colOptions)"
                   class="flex flex-col space-y-1 px-4 mb-6 bg-gray-50 rounded-lg w-full"
                 >
                   <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">

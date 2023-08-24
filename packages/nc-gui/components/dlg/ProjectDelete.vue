@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { navigateTo } from '#app'
+
 const props = defineProps<{
   visible: boolean
   projectId: string
@@ -11,7 +13,7 @@ const visible = useVModel(props, 'visible', emits)
 const { closeTab } = useTabs()
 
 const projectsStore = useProjects()
-const { deleteProject } = projectsStore
+const { deleteProject, navigateToFirstProjectOrHome } = projectsStore
 const { projects } = storeToRefs(projectsStore)
 
 const { refreshCommandPalette } = useCommandPalette()
@@ -19,6 +21,8 @@ const { refreshCommandPalette } = useCommandPalette()
 const project = computed(() => projects.value.get(props.projectId))
 
 const isLoading = ref(false)
+
+const { projectsList } = storeToRefs(projectsStore)
 
 const onDelete = async () => {
   if (!project.value) return
@@ -33,6 +37,10 @@ const onDelete = async () => {
     refreshCommandPalette()
 
     visible.value = false
+
+    if (toBeDeletedProject.id === projectsStore.activeProjectId) {
+      await navigateToFirstProjectOrHome()
+    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {

@@ -178,7 +178,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
         projectId: route.value.params.projectId,
         type: route.value.params.type,
         viewId: route.value.params.viewId,
-        viewTitle: activeView.title,
+        viewTitle: activeView.id,
         slugs: openMainPage ? ['webhook'] : ['webhook', openCreatePage ? 'create' : hookId!],
       },
     }

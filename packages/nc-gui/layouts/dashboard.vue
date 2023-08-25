@@ -16,7 +16,7 @@ const contentSize = ref({
   current: 82.5,
 })
 const isSidebarShort = ref(false)
-const animationDuration = 300
+const animationDuration = 175
 const viewportWidth = ref(window.innerWidth)
 const isMouseOverShowSidebarZone = ref(false)
 const isAnimationEndAfterSidebarHide = ref(false)
@@ -251,7 +251,7 @@ export default {
 
 .nc-sidebar-wrapper > * {
   width: 100%;
-  transition: all 0.3s ease-in-out;
+  transition: all 0.2s ease-in-out;
 }
 
 .nc-sidebar-wrapper.hide-sidebar {

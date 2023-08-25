@@ -8,7 +8,7 @@ watch(_isLeftSidebarOpen, (val) => {
   } else {
     setTimeout(() => {
       isLeftSidebarOpen.value = false
-    }, 600)
+    }, 300)
   }
 })
 
@@ -23,7 +23,7 @@ const onClick = () => {
   <NcTooltip
     placement="topLeft"
     hide-on-click
-    class="transition-all duration-400"
+    class="transition-all duration-100"
     :class="{
       '!w-0 !opacity-0': isLeftSidebarOpen,
       '!w-8 !opacity-100': !isLeftSidebarOpen,

@@ -455,10 +455,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                       {{ $t('activity.account.projInfo') }}
                     </div>
                   </a-menu-item>
-                  <a-menu-item
-                    v-if="isUIAllowed('duplicateProject', true, projectRole)"
-                    @click="duplicateProject(project)"
-                  >
+                  <a-menu-item v-if="isUIAllowed('duplicateProject', true, projectRole)" @click="duplicateProject(project)">
                     <div class="nc-menu-item-wrapper">
                       <GeneralIcon icon="duplicate" class="text-gray-700" />
                       {{ $t('general.duplicate') }} {{ $t('objects.project') }}

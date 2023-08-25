@@ -147,7 +147,7 @@ const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
 
 <style scoped lang="scss">
 .badge-text {
-    @apply text-[14px] pt-1 text-center
+  @apply text-[14px] pt-1 text-center;
 }
 
 .nc-collaborators-list-table {

@@ -54,8 +54,8 @@ export default class Audit implements AuditType {
   project_id?: string;
   fk_model_id?: string;
   row_id?: string;
-  op_type?: typeof opTypes[number];
-  op_sub_type?: typeof opSubTypes[number];
+  op_type?: (typeof opTypes)[number];
+  op_sub_type?: (typeof opSubTypes)[number];
   status?: string;
   description?: string;
   details?: string;

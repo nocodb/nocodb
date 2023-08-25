@@ -605,7 +605,7 @@ async function migrateProjectModels(
               const colBody: Partial<RollupColumn & Column> = {
                 title: columnMeta._cn,
                 rollup_function: columnMeta.rl
-                  .fn as typeof ROLLUP_FUNCTIONS[number],
+                  .fn as (typeof ROLLUP_FUNCTIONS)[number],
               };
 
               colBody.fk_rollup_column_id =

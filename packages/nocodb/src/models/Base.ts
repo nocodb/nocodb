@@ -23,7 +23,7 @@ export default class Base implements BaseType {
   id?: string;
   project_id?: string;
   alias?: string;
-  type?: typeof DB_TYPES[number];
+  type?: (typeof DB_TYPES)[number];
   is_meta?: BoolType;
   config?: string;
   inflection_column?: string;

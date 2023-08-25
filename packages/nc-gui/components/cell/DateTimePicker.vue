@@ -238,7 +238,7 @@ const clickHandler = () => {
   cellClickHandler()
 }
 
-const isColEditable = computed(() => {
+const isColDisabled = computed(() => {
   return isSystemColumn(column.value) || readOnly.value || (localState.value && isPk)
 })
 </script>
@@ -246,7 +246,7 @@ const isColEditable = computed(() => {
 <template>
   <a-date-picker
     v-model:value="localState"
-    :disabled="isColEditable"
+    :disabled="isColDisabled"
     :show-time="true"
     :bordered="false"
     class="!w-full !px-0 !border-none"

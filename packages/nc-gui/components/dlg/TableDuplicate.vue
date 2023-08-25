@@ -59,7 +59,7 @@ const isEaster = ref(false)
   >
     <div>
       <div class="prose-xl font-bold self-center" @dblclick="isEaster = !isEaster">
-        {{ $t('general.duplicateTable') }}
+        {{ $t('general.duplicate') }} {{ $t('objects.table') }}
       </div>
 
       <div class="mt-4">Are you sure you want to duplicate the `{{ table.title }}` table?</div>

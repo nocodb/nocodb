@@ -16,20 +16,27 @@ jobs:
     runs-on: [self-hosted, v2]
     timeout-minutes: 100
     steps:
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 18.14.0
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Cache node modules
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules
       - name: setup pg
         if: ${{ inputs.db == 'pg' || ( inputs.db == 'sqlite' && inputs.shard == '1' ) }}
         working-directory: ./

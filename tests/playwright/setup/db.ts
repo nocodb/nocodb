@@ -11,9 +11,6 @@ const isSqlite = (context: NcContext) => context.dbType === 'sqlite';
 
 const isPg = (context: NcContext) => context.dbType === 'pg';
 
-// hardwired for hub; this has to be configured to false in nocodb
-// consider reading this from environment variable
-const isHub = () => true;
 const isEE = () => process.env.EE === 'true';
 
 const pg_credentials = (context: NcContext) => ({
@@ -66,4 +63,4 @@ async function sqliteExec(query) {
   await sqliteDb.close();
 }
 
-export { sqliteExec, mysqlExec, isMysql, isSqlite, isPg, pgExec, isHub, isEE };
+export { sqliteExec, mysqlExec, isMysql, isSqlite, isPg, pgExec, isEE };

@@ -9,7 +9,7 @@ import { Api, UITypes } from 'nocodb-sdk';
 import { LoginPage } from '../../../pages/LoginPage';
 import { getDefaultPwd } from '../../../tests/utils/general';
 import { WorkspacePage } from '../../../pages/WorkspacePage';
-import { isEE, isHub } from '../../../setup/db';
+import { isEE } from '../../../setup/db';
 
 // todo: Move most of the ui actions to page object and await on the api response
 test.describe('Form view', () => {
@@ -188,44 +188,39 @@ test.describe('Form view', () => {
     });
     const url = dashboard.rootPage.url();
 
-    // fix me! for app store, need super admin login.
-    if (isHub()) {
-      return;
-    }
-
     // activate SMTP plugin
-    await accountAppStorePage.goto();
-
-    // install SMTP
-    await accountAppStorePage.install({ name: 'SMTP' });
-    await accountAppStorePage.configureSMTP({
-      email: 'a@b.com',
-      host: 'smtp.gmail.com',
-      port: '587',
-    });
-    await dashboard.verifyToast({
-      message: 'Successfully installed and email notification will use SMTP configuration',
-    });
-
-    // revisit form view
-    await page.goto(url);
-
-    // enable 'email-me' option
-    await dashboard.viewSidebar.openView({ title: 'CountryForm' });
-    await form.emailMeRadioButton.click();
-    await form.verifyAfterSubmitMenuState({
-      emailMe: true,
-      submitAnotherForm: false,
-      showBlankForm: false,
-    });
-
-    // Uninstall SMTP
-    await accountAppStorePage.goto();
-    await accountAppStorePage.uninstall({ name: 'SMTP' });
-
-    await dashboard.verifyToast({
-      message: 'Plugin uninstalled successfully',
-    });
+    // await accountAppStorePage.goto();
+    //
+    // // install SMTP
+    // await accountAppStorePage.install({ name: 'SMTP' });
+    // await accountAppStorePage.configureSMTP({
+    //   email: 'a@b.com',
+    //   host: 'smtp.gmail.com',
+    //   port: '587',
+    // });
+    // await dashboard.verifyToast({
+    //   message: 'Successfully installed and email notification will use SMTP configuration',
+    // });
+    //
+    // // revisit form view
+    // await page.goto(url);
+    //
+    // // enable 'email-me' option
+    // await dashboard.viewSidebar.openView({ title: 'CountryForm' });
+    // await form.emailMeRadioButton.click();
+    // await form.verifyAfterSubmitMenuState({
+    //   emailMe: true,
+    //   submitAnotherForm: false,
+    //   showBlankForm: false,
+    // });
+    //
+    // // Uninstall SMTP
+    // await accountAppStorePage.goto();
+    // await accountAppStorePage.uninstall({ name: 'SMTP' });
+    //
+    // await dashboard.verifyToast({
+    //   message: 'Plugin uninstalled successfully',
+    // });
   });
 
   test('Form share, verify attachment file', async () => {

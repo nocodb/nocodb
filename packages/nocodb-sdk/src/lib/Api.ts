@@ -4468,6 +4468,7 @@ export class Api<
  * @response `200` `{
   name?: string,
   id?: string,
+  project_id?: string,
 
 }` OK
  * @response `400` `{
@@ -4493,6 +4494,7 @@ export class Api<
         {
           name?: string;
           id?: string;
+          project_id?: string;
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
@@ -5026,6 +5028,7 @@ export class Api<
         offset?: number;
         /** @max 1 */
         limit?: number;
+        baseId?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -5332,58 +5335,6 @@ export class Api<
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/${baseId}/tables`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Base
-     * @name TableMagic
-     * @request POST:/api/v1/db/meta/projects/{projectId}/{baseId}/tables/magic
-     * @response `200` `TableType` OK
-     */
-    tableMagic: (
-      projectId: string,
-      baseId: string,
-      data: {
-        table_name: string;
-        title: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<TableType, any>({
-        path: `/api/v1/db/meta/projects/${projectId}/${baseId}/tables/magic`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Base
-     * @name SchemaMagic
-     * @request POST:/api/v1/db/meta/projects/{projectId}/{baseId}/schema/magic
-     * @response `200` `TableType` OK
-     */
-    schemaMagic: (
-      projectId: string,
-      baseId: string,
-      data: {
-        schema_name: string;
-        title: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<TableType, any>({
-        path: `/api/v1/db/meta/projects/${projectId}/${baseId}/schema/magic`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -5916,6 +5867,87 @@ export class Api<
       >({
         path: `/api/v1/db/meta/columns/${columnId}/primary`,
         method: 'POST',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Get columns hash for table
+ * 
+ * @tags DB Table Column
+ * @name Hash
+ * @summary Get columns hash for table
+ * @request GET:/api/v1/db/meta/tables/{tableId}/columns/hash
+ * @response `200` `{
+  \** Columns hash *\
+  hash?: string,
+
+}` OK
+ */
+    hash: (tableId: IdType, params: RequestParams = {}) =>
+      this.request<
+        {
+          /** Columns hash */
+          hash?: string;
+        },
+        any
+      >({
+        path: `/api/v1/db/meta/tables/${tableId}/columns/hash`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Bulk create-update-delete columns
+ * 
+ * @tags DB Table Column
+ * @name Bulk
+ * @summary Bulk create-update-delete columns
+ * @request POST:/api/v1/db/meta/tables/{tableId}/columns/bulk
+ * @response `200` `{
+  failedOps?: ({
+  op: "add" | "update" | "delete",
+  \** Model for Column *\
+  column: ColumnType,
+  error?: any,
+
+})[],
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    bulk: (
+      tableId: IdType,
+      data: {
+        /** Columns hash */
+        hash?: string;
+        ops?: any[];
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          failedOps?: {
+            op: 'add' | 'update' | 'delete';
+            /** Model for Column */
+            column: ColumnType;
+            error?: any;
+          }[];
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/tables/${tableId}/columns/bulk`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),
@@ -9272,59 +9304,6 @@ export class Api<
     selectQuery: (data: any, params: RequestParams = {}) =>
       this.request<any, any>({
         path: `/api/v1/db/meta/connection/select`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * @description Get select options using NocoAI
-     *
-     * @tags Utils
-     * @name Magic
-     * @summary Get generic response using NocoAI
-     * @request POST:/api/v1/db/meta/magic
-     * @response `200` `any` OK
-     */
-    magic: (
-      data: {
-        operation:
-          | 'selectOptions'
-          | 'predictColumnType'
-          | 'predictFormula'
-          | 'predictNextColumn'
-          | 'predictNextFormulas'
-          | 'generateSinglePrompt'
-          | 'generateQueryPrompt'
-          | 'generateSQL'
-          | 'repairSQL';
-        data?: object;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/api/v1/db/meta/magic`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * @description Get dynamic command palette suggestions based on scope
-     *
-     * @tags Utils
-     * @name CommandPalette
-     * @summary Get command palette suggestions
-     * @request POST:/api/v1/command_palette
-     * @response `200` `any` OK
-     */
-    commandPalette: (data: any, params: RequestParams = {}) =>
-      this.request<any, any>({
-        path: `/api/v1/command_palette`,
         method: 'POST',
         body: data,
         type: ContentType.Json,

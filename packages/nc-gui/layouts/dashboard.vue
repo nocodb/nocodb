@@ -254,6 +254,10 @@ export default {
   transition: all 0.3s ease-in-out;
 }
 
+.nc-sidebar-wrapper.hide-sidebar {
+  min-width: 0 !important;
+}
+
 .nc-sidebar-wrapper.hide-sidebar > * {
   position: absolute;
   transform: translateX(-100%);

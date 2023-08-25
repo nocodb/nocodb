@@ -301,6 +301,8 @@ export const iconMap = {
   arrowLeft: Left,
   arrowUp: Up,
   layout: PhLayout,
+  doubleRightArrow: h('span', { class: 'material-symbols', style: '-webkit-text-stroke: 0.5px' }, 'keyboard_double_arrow_right'),
+  doubleLeftArrow: h('span', { class: 'material-symbols', style: '-webkit-text-stroke: 0.5px' }, 'keyboard_double_arrow_left'),
   sidebarMinimise: PhCaretDoubleLeftThin, // h('span', { class: 'material-symbols' }, 'left_panel_close'),
   // threeDotVertical: h('span', { class: 'material-symbols' }, 'more_vert'),
   // threeDotHorizontal: h('span', { class: 'material-symbols' }, 'more_horiz'),

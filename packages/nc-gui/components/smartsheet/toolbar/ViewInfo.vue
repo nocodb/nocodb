@@ -9,7 +9,7 @@ const { activeTable } = storeToRefs(useTablesStore())
 
 <template>
   <div
-    class="flex flex-row font-medium ml-1.5 items-center border-gray-50"
+    class="flex flex-row font-medium items-center border-gray-50"
     :class="{
       'max-w-2/5': selectedView?.type !== ViewTypes.KANBAN,
       'max-w-1/4': selectedView?.type === ViewTypes.KANBAN,

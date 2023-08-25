@@ -14,6 +14,8 @@ const projectStore = useProject()
 
 const { isSharedBase, project } = storeToRefs(projectStore)
 
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+
 const { navigateToWorkspaceSettings } = useWorkspace()
 
 const { isUIAllowed } = useUIPermission()
@@ -67,23 +69,50 @@ const navigateToSettings = () => {
   >
     <div class="flex flex-col">
       <div style="border-bottom-width: 1px" class="flex items-center px-1 nc-sidebar-header !border-0 py-1.25 pl-2">
-        <div v-if="!isWorkspaceLoading" class="flex flex-row flex-grow hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md max-w-full">
-          <a
-            v-if="isSharedBase"
-            class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
-            href="https://github.com/nocodb/nocodb"
-            target="_blank"
-          >
-            <img width="25" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
-          </a>
+        <div v-if="!isWorkspaceLoading" class="flex flex-row items-center w-full gap-x-1">
+          <div class="flex flex-row flex-grow hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md max-w-full">
+            <a
+              v-if="isSharedBase"
+              class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
+              href="https://github.com/nocodb/nocodb"
+              target="_blank"
+            >
+              <img width="25" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
+            </a>
 
-          <WorkspaceMenu v-if="!isSharedBase" :workspace="activeWorkspace" :is-open="true">
-            <template #brandIcon>
-              <div v-e="['c:navbar:home']" data-testid="nc-noco-brand-icon" class="w-[29px] min-w-[29px] nc-noco-brand-icon">
-                <img width="25" class="mr-0" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
-              </div>
+            <WorkspaceMenu v-if="!isSharedBase" :workspace="activeWorkspace" :is-open="true">
+              <template #brandIcon>
+                <div v-e="['c:navbar:home']" data-testid="nc-noco-brand-icon" class="w-[29px] min-w-[29px] nc-noco-brand-icon">
+                  <img width="25" class="mr-0" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
+                </div>
+              </template>
+            </WorkspaceMenu>
+          </div>
+          <NcTooltip placement="bottom" hide-on-click>
+            <template #title>
+              {{
+                isLeftSidebarOpen
+                  ? `${$t('general.hide')} ${$t('objects.sidebar').toLowerCase()}`
+                  : `${$t('general.show')} ${$t('objects.sidebar').toLowerCase()}`
+              }}
             </template>
-          </WorkspaceMenu>
+            <NcButton
+              type="text"
+              size="small"
+              class="nc-sidebar-left-toggle-icon !text-gray-700 !hover:text-gray-800 !hover:bg-gray-200"
+              @click="isLeftSidebarOpen = !isLeftSidebarOpen"
+            >
+              <div class="flex items-center text-inherit">
+                <GeneralIcon
+                  icon="doubleLeftArrow"
+                  class="duration-300 transition-all"
+                  :class="{
+                    'transform rotate-180': !isLeftSidebarOpen,
+                  }"
+                />
+              </div>
+            </NcButton>
+          </NcTooltip>
         </div>
         <div v-else class="flex flex-row items-center w-full mt-2 ml-2.5 gap-x-3">
           <a-skeleton-input :active="true" class="!w-6 !h-6 !rounded overflow-hidden" />

@@ -1590,7 +1590,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
       :extra-style="paginationStyleRef?.extraStyle"
     >
       <template #add-record>
-        <div v-if="isAddingEmptyRowAllowed" class="flex ml-2">
+        <div v-if="isAddingEmptyRowAllowed" class="flex ml-1">
           <a-dropdown-button
             class="nc-grid-add-new-row"
             placement="top"

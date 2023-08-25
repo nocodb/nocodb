@@ -66,24 +66,6 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
       isGroupBy ? 'margin-top:1px; border-radius: 0 0 12px 12px !important;' : ''
     }${extraStyle}`"
   >
-    <NcTooltip v-if="!isPublic && hideSidebars !== true" class="ml-2" placement="topLeft" hide-on-click>
-      <template #title>
-        {{
-          isLeftSidebarOpen
-            ? `${$t('general.hide')} ${$t('objects.sidebar').toLowerCase()}`
-            : `${$t('general.show')} ${$t('objects.sidebar').toLowerCase()}`
-        }}
-      </template>
-      <div
-        class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) hover:(bg-gray-100 border-gray-200) border-gray-200 group flex items-center justify-center rounded-md h-full px-1.75 h-7 cursor-pointer text-gray-500 hover:text-gray-700"
-        :class="{
-          'bg-gray-100': !isLeftSidebarOpen,
-        }"
-        @click="isLeftSidebarOpen = !isLeftSidebarOpen"
-      >
-        <SidebarIcon class="cursor-pointer transform transition-transform duration-500 rounded-md rotate-180" />
-      </div>
-    </NcTooltip>
     <slot name="add-record" />
     <div class="flex-1">
       <span

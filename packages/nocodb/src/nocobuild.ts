@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import express from 'express';
 import NcToolGui from 'nc-lib-gui';
-import { AppModule } from './app.module';
+import { AppModule } from '~/app.module';
 
 export default async function (app) {
   if (!app) app = express();

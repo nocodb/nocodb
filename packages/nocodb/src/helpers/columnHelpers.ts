@@ -1,8 +1,7 @@
 import { customAlphabet } from 'nanoid';
 import { UITypes } from 'nocodb-sdk';
-import Column from '../models/Column';
-import { getUniqueColumnAliasName } from '../helpers/getUniqueName';
-import validateParams from '../helpers/validateParams';
+import { pluralize, singularize } from 'inflection';
+import type { RollupColumn } from '~/models';
 import type {
   BoolType,
   ColumnReqType,
@@ -12,9 +11,13 @@ import type {
   RollupColumnReqType,
   TableType,
 } from 'nocodb-sdk';
-import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
-import type LookupColumn from '../models/LookupColumn';
-import type Model from '../models/Model';
+import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
+import type LookupColumn from '~/models/LookupColumn';
+import type Model from '~/models/Model';
+import validateParams from '~/helpers/validateParams';
+import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
+import Column from '~/models/Column';
+import { GridViewColumn } from '~/models';
 
 export const randomID = customAlphabet(
   '1234567890abcdefghijklmnopqrstuvwxyz_',
@@ -30,12 +33,14 @@ export async function createHmAndBtColumn(
   fkColName?: string,
   virtual: BoolType = false,
   isSystemCol = false,
+  columnMeta = null,
+  isLinks = false,
 ) {
   // save bt column
   {
     const title = getUniqueColumnAliasName(
       await child.getColumns(),
-      type === 'bt' ? alias : `${parent.title}`,
+      (type === 'bt' && alias) || `${parent.title}`,
     );
     await Column.insert<LinkToAnotherRecordColumn>({
       title,
@@ -50,7 +55,8 @@ export async function createHmAndBtColumn(
       fk_parent_column_id: parent.primaryKey.id,
       fk_related_model_id: parent.id,
       virtual,
-      system: isSystemCol,
+      // if self referencing treat it as system field to hide from ui
+      system: isSystemCol || parent.id === child.id,
       fk_col_name: fkColName,
       fk_index_name: fkColName,
     });
@@ -59,12 +65,17 @@ export async function createHmAndBtColumn(
   {
     const title = getUniqueColumnAliasName(
       await parent.getColumns(),
-      type === 'hm' ? alias : `${child.title} List`,
+      (type === 'hm' && alias) || pluralize(child.title),
     );
+    const meta = {
+      plural: columnMeta?.plural || pluralize(child.title),
+      singular: columnMeta?.singular || singularize(child.title),
+    };
+
     await Column.insert({
       title,
       fk_model_id: parent.id,
-      uidt: UITypes.LinkToAnotherRecord,
+      uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
       type: 'hm',
       fk_child_column_id: childColumn.id,
       fk_parent_column_id: parent.primaryKey.id,
@@ -73,6 +84,7 @@ export async function createHmAndBtColumn(
       system: isSystemCol,
       fk_col_name: fkColName,
       fk_index_name: fkColName,
+      meta,
     });
   }
 }
@@ -206,3 +218,47 @@ export const generateFkName = (parent: TableType, child: TableType) => {
     .slice(0, 10)}_${randomID()}`;
   return constraintName;
 };
+
+export async function populateRollupForLTAR({
+  column,
+  columnMeta,
+  alias,
+}: {
+  column: Column;
+  columnMeta?: any;
+  alias?: string;
+}) {
+  const model = await column.getModel();
+
+  const views = await model.getViews();
+
+  const relatedModel = await column
+    .getColOptions<LinkToAnotherRecordColumn>()
+    .then((colOpt) => colOpt.getRelatedTable());
+  await relatedModel.getColumns();
+  const pkId =
+    relatedModel.primaryKey?.id || (await relatedModel.getColumns())[0]?.id;
+
+  const meta = {
+    plural: columnMeta?.plural || pluralize(relatedModel.title),
+    singular: columnMeta?.singular || singularize(relatedModel.title),
+  };
+
+  await Column.insert<RollupColumn>({
+    uidt: UITypes.Links,
+    title: getUniqueColumnAliasName(
+      await model.getColumns(),
+      alias || `${relatedModel.title} Count`,
+    ),
+    fk_rollup_column_id: pkId,
+    fk_model_id: model.id,
+    rollup_function: 'count',
+    fk_relation_column_id: column.id,
+    meta,
+  });
+
+  const viewCol = await GridViewColumn.list(views[0].id).then((cols) =>
+    cols.find((c) => c.fk_column_id === column.id),
+  );
+  await GridViewColumn.update(viewCol.id, { show: false });
+}

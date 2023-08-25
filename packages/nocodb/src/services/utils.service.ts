@@ -2,15 +2,17 @@ import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { compareVersions, validate } from 'compare-versions';
 import { ViewTypes } from 'nocodb-sdk';
-import { NC_ATTACHMENT_FIELD_SIZE } from '../constants';
-import SqlMgrv2 from '../db/sql-mgr/v2/SqlMgrv2';
-import { NcError } from '../helpers/catchError';
-import { Project, User } from '../models';
-import Noco from '../Noco';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import { MetaTable } from '../utils/globals';
-import { jdbcToXcConfig } from '../utils/nc-config/helpers';
-import { packageVersion } from '../utils/packageVersion';
+import { ConfigService } from '@nestjs/config';
+import type { AppConfig } from '~/interface/config';
+import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
+import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
+import { NcError } from '~/helpers/catchError';
+import { Project, User } from '~/models';
+import Noco from '~/Noco';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { MetaTable } from '~/utils/globals';
+import { jdbcToXcConfig } from '~/utils/nc-config/helpers';
+import { packageVersion } from '~/utils/packageVersion';
 
 const versionCache = {
   releaseVersion: null,
@@ -61,6 +63,8 @@ interface AllMeta {
 
 @Injectable()
 export class UtilsService {
+  constructor(protected readonly configService: ConfigService<AppConfig>) {}
+
   async versionInfo() {
     if (
       !versionCache.lastFetched ||
@@ -350,6 +354,18 @@ export class UtilsService {
 
   async appInfo(param: { req: { ncSiteUrl: string } }) {
     const projectHasAdmin = !(await User.isFirst());
+    const oidcAuthEnabled = !!(
+      process.env.NC_OIDC_ISSUER &&
+      process.env.NC_OIDC_AUTHORIZATION_URL &&
+      process.env.NC_OIDC_TOKEN_URL &&
+      process.env.NC_OIDC_USERINFO_URL &&
+      process.env.NC_OIDC_CLIENT_ID &&
+      process.env.NC_OIDC_CLIENT_SECRET
+    );
+    const oidcProviderName = oidcAuthEnabled
+      ? process.env.NC_OIDC_PROVIDER_NAME ?? 'OpenID Connect'
+      : null;
+
     const result = {
       authType: 'jwt',
       projectHasAdmin,
@@ -362,6 +378,8 @@ export class UtilsService {
       githubAuthEnabled: !!(
         process.env.NC_GITHUB_CLIENT_ID && process.env.NC_GITHUB_CLIENT_SECRET
       ),
+      oidcAuthEnabled,
+      oidcProviderName,
       oneClick: !!process.env.NC_ONE_CLICK,
       connectToExternalDB: !process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
       version: packageVersion,
@@ -382,6 +400,11 @@ export class UtilsService {
       ncMaxAttachmentsAllowed: +(process.env.NC_MAX_ATTACHMENTS_ALLOWED || 10),
       isCloud: process.env.NC_CLOUD === 'true',
       automationLogLevel: process.env.NC_AUTOMATION_LOG_LEVEL || 'OFF',
+      baseHostName: process.env.NC_BASE_HOST_NAME,
+      disableEmailAuth: this.configService.get('auth.disableEmailAuth', {
+        infer: true,
+      }),
+      mainSubDomain: this.configService.get('mainSubDomain', { infer: true }),
     };
 
     return result;

@@ -2,23 +2,35 @@ import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
-import { T } from 'nc-help';
-import { OrgUserRoles } from 'nocodb-sdk';
-import { populateMeta, validatePayload } from '../helpers';
-import { NcError } from '../helpers/catchError';
-import { extractPropsAndSanitize } from '../helpers/extractProps';
-import syncMigration from '../helpers/syncMigration';
-import { Project, ProjectUser } from '../models';
-import Noco from '../Noco';
-import extractRolesObj from '../utils/extractRolesObj';
-import { getToolDir } from '../utils/nc-config';
-import type { ProjectUpdateReqType } from 'nocodb-sdk';
-import type { ProjectReqType } from 'nocodb-sdk';
+import { AppEvents, OrgUserRoles, SqlUiFactory } from 'nocodb-sdk';
+import type {
+  ProjectReqType,
+  ProjectUpdateReqType,
+  UserType,
+} from 'nocodb-sdk';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { populateMeta, validatePayload } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
+import { extractPropsAndSanitize } from '~/helpers/extractProps';
+import syncMigration from '~/helpers/syncMigration';
+import { Project, ProjectUser } from '~/models';
+import Noco from '~/Noco';
+import extractRolesObj from '~/utils/extractRolesObj';
+import { getToolDir } from '~/utils/nc-config';
+import { MetaService } from '~/meta/meta.service';
+import { MetaTable } from '~/utils/globals';
+import { TablesService } from '~/services/tables.service';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
 @Injectable()
 export class ProjectsService {
+  constructor(
+    protected readonly appHooksService: AppHooksService,
+    protected metaService: MetaService,
+    protected tablesService: TablesService,
+  ) {}
+
   async projectList(param: {
     user: { id: string; roles: Record<string, boolean> };
     query?: any;
@@ -48,6 +60,7 @@ export class ProjectsService {
   async projectUpdate(param: {
     projectId: string;
     project: ProjectUpdateReqType;
+    user: UserType;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUpdateReq',
@@ -60,7 +73,22 @@ export class ProjectsService {
       param?.project as Project,
       ['title', 'meta', 'color', 'status'],
     );
+    await this.validateProjectTitle(data, project);
 
+    const result = await Project.update(param.projectId, data);
+
+    this.appHooksService.emit(AppEvents.PROJECT_UPDATE, {
+      project,
+      user: param.user,
+    });
+
+    return result;
+  }
+
+  protected async validateProjectTitle(
+    data: Partial<Project>,
+    project: Project,
+  ) {
     if (
       data?.title &&
       project.title !== data.title &&
@@ -68,16 +96,22 @@ export class ProjectsService {
     ) {
       NcError.badRequest('Project title already in use');
     }
-
-    const result = await Project.update(param.projectId, data);
-    T.emit('evt', { evt_type: 'project:update' });
-
-    return result;
   }
 
-  async projectSoftDelete(param: { projectId: any }) {
+  async projectSoftDelete(param: { projectId: any; user: UserType }) {
+    const project = await Project.getWithInfo(param.projectId);
+
+    if (!project) {
+      NcError.notFound('Project not found');
+    }
+
     await Project.softDelete(param.projectId);
-    T.emit('evt', { evt_type: 'project:deleted' });
+
+    this.appHooksService.emit(AppEvents.PROJECT_DELETE, {
+      project,
+      user: param.user,
+    });
+
     return true;
   }
 
@@ -87,12 +121,16 @@ export class ProjectsService {
       param.project,
     );
 
+    const projectId = this.metaService.genNanoid(MetaTable.PROJECT);
+
     const projectBody: ProjectReqType & Record<string, any> = param.project;
+    projectBody.id = projectId;
+
     if (!projectBody.external) {
       const ranId = nanoid();
       projectBody.prefix = `nc_${ranId}__`;
       projectBody.is_meta = true;
-      if (process.env.NC_MINIMAL_DBS) {
+      if (process.env.NC_MINIMAL_DBS === 'true') {
         // if env variable NC_MINIMAL_DBS is set, then create a SQLite file/connection for each project
         // each file will be named as nc_<random_id>.db
         const fs = require('fs');
@@ -110,6 +148,7 @@ export class ProjectsService {
         projectBody.bases = [
           {
             type: 'sqlite3',
+            is_meta: false,
             config: {
               client: 'sqlite3',
               connection: {
@@ -147,14 +186,12 @@ export class ProjectsService {
       NcError.badRequest('Project title exceeds 50 characters');
     }
 
-    if (await Project.getByTitle(projectBody?.title)) {
-      NcError.badRequest('Project title already in use');
-    }
-
     projectBody.title = DOMPurify.sanitize(projectBody.title);
     projectBody.slug = projectBody.title;
 
     const project = await Project.createProject(projectBody);
+
+    // TODO: create n:m instances here
     await ProjectUser.insert({
       fk_user_id: (param as any).user.id,
       project_id: project.id,
@@ -165,18 +202,50 @@ export class ProjectsService {
 
     // populate metadata if existing table
     for (const base of await project.getBases()) {
-      const info = await populateMeta(base, project);
+      if (process.env.NC_CLOUD !== 'true' && !project.is_meta) {
+        const info = await populateMeta(base, project);
 
-      T.emit('evt_api_created', info);
-      delete base.config;
+        this.appHooksService.emit(AppEvents.APIS_CREATED, {
+          info,
+        });
+
+        delete base.config;
+      }
     }
 
-    T.emit('evt', {
-      evt_type: 'project:created',
+    this.appHooksService.emit(AppEvents.PROJECT_CREATE, {
+      project,
+      user: param.user,
       xcdb: !projectBody.external,
     });
 
-    T.emit('evt', { evt_type: 'project:rest' });
+    return project;
+  }
+
+  async createDefaultProject(param: { user: UserType }) {
+    const project = await this.projectCreate({
+      project: {
+        title: 'Getting Started',
+        type: 'database',
+      } as any,
+      user: param.user,
+    });
+
+    const sqlUI = SqlUiFactory.create({ client: project.bases[0].type });
+    const columns = sqlUI?.getNewTableColumns() as any;
+
+    const table = await this.tablesService.tableCreate({
+      projectId: project.id,
+      baseId: project.bases[0].id,
+      table: {
+        title: 'Features',
+        table_name: 'Features',
+        columns,
+      },
+      user: param.user,
+    });
+
+    (project as any).tables = [table];
 
     return project;
   }

@@ -29,7 +29,9 @@ function authTests() {
   let context;
 
   beforeEach(async function () {
+    console.time('#### authTests');
     context = await init();
+    console.timeEnd('#### authTests');
   });
 
   it('Signup with valid email', async () => {

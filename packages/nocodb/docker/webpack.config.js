@@ -1,6 +1,8 @@
+const path = require('path');
 const nodeExternals = require('webpack-node-externals');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
+const { resolveTsAliases } = require('../build-utils/resolveTsAliases');
 
 module.exports = {
   entry: './src/run/dockerEntry.ts',
@@ -20,6 +22,7 @@ module.exports = {
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json'],
+    alias: resolveTsAliases(path.resolve('tsconfig.json')),
   },
   output: {
     path: require('path').resolve('./docker'),

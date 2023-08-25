@@ -4,33 +4,33 @@ import {
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
-import Model from '../models/Model';
-import ProjectUser from '../models/ProjectUser';
-import Project from '../models/Project';
-import User from '../models/User';
-import Noco from '../Noco';
-import Column from '../models/Column';
-import NcHelp from '../utils/NcHelp';
-import View from '../models/View';
-import Sort from '../models/Sort';
-import Filter from '../models/Filter';
-import ModelRoleVisibility from '../models/ModelRoleVisibility';
-import { MetaTable } from '../utils/globals';
-import Hook from '../models/Hook';
-import FormViewColumn from '../models/FormViewColumn';
-import GridViewColumn from '../models/GridViewColumn';
-import { getUniqueColumnAliasName } from '../helpers/getUniqueName';
-import Audit from '../models/Audit';
 import NcProjectBuilderEE from './v1-legacy/NcProjectBuilder';
-import type GalleryView from '../models/GalleryView';
-import type FormView from '../models/FormView';
-import type { ViewType } from 'nocodb-sdk';
-import type KanbanView from '../models/KanbanView';
-import type GridView from '../models/GridView';
-import type RollupColumn from '../models/RollupColumn';
-import type { ROLLUP_FUNCTIONS } from '../models/RollupColumn';
-import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
+import type GalleryView from '~/models/GalleryView';
+import type FormView from '~/models/FormView';
+import type { UserType, ViewType } from 'nocodb-sdk';
+import type KanbanView from '~/models/KanbanView';
+import type GridView from '~/models/GridView';
+import type RollupColumn from '~/models/RollupColumn';
+import type { ROLLUP_FUNCTIONS } from '~/models/RollupColumn';
+import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type { NcUpgraderCtx } from './NcUpgrader';
+import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
+import Noco from '~/Noco';
+import Model from '~/models/Model';
+import ProjectUser from '~/models/ProjectUser';
+import Project from '~/models/Project';
+import User from '~/models/User';
+import Column from '~/models/Column';
+import NcHelp from '~/utils/NcHelp';
+import View from '~/models/View';
+import Sort from '~/models/Sort';
+import Filter from '~/models/Filter';
+import ModelRoleVisibility from '~/models/ModelRoleVisibility';
+import { MetaTable } from '~/utils/globals';
+import Hook from '~/models/Hook';
+import FormViewColumn from '~/models/FormViewColumn';
+import GridViewColumn from '~/models/GridViewColumn';
+import Audit from '~/models/Audit';
 
 export default async function (ctx: NcUpgraderCtx) {
   const ncMeta = ctx.ncMeta;
@@ -64,7 +64,7 @@ export default async function (ctx: NcUpgraderCtx) {
 
 async function migrateUsers(ncMeta = Noco.ncMeta) {
   const users = await ncMeta.metaList(null, null, 'xc_users');
-  const userObj: { [id: string]: User } = {};
+  const userObj: { [id: string]: User | UserType } = {};
 
   for (const user of users) {
     const user1 = await User.insert(user, ncMeta);
@@ -106,7 +106,7 @@ async function migrateProjects(
 
 async function migrateProjectUsers(
   projectsObj: { [p: string]: Project },
-  usersObj: { [p: string]: User },
+  usersObj: { [p: string]: User | UserType },
   ncMeta = Noco.ncMeta,
 ) {
   const projectUsers = await ncMeta.metaList(null, null, 'nc_projects_users');

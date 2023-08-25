@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { NC_LICENSE_KEY } from '../constants';
-import { validatePayload } from '../helpers';
-import { Store } from '../models';
-import Noco from '../Noco';
+import { validatePayload } from '~/helpers';
+import Noco from '~/Noco';
+import { Store } from '~/models';
 
 @Injectable()
 export class OrgLcenseService {

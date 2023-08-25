@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 
 test.describe('Virtual columns', () => {
   let dashboard: DashboardPage;
@@ -11,11 +11,15 @@ test.describe('Virtual columns', () => {
     dashboard = new DashboardPage(page, context.project);
   });
 
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   test('Lookup', async () => {
     // close 'Team & Auth' tab
     // await dashboard.closeTab({ title: "Team & Auth" });
 
-    const pinCode = ['4166', '77459', '41136', '8268', '33463'];
+    const countryList = ['Spain', 'Saudi Arabia', 'United Arab Emirates', 'Mexico', 'Turkey'];
     const cityCount = ['1', '3', '1', '2', '1'];
 
     await dashboard.treeView.openTable({ title: 'City' });
@@ -23,14 +27,14 @@ test.describe('Virtual columns', () => {
     await dashboard.grid.column.create({
       title: 'Lookup',
       type: 'Lookup',
-      childTable: 'Address List',
-      childColumn: 'PostalCode',
+      childTable: 'Country',
+      childColumn: 'Country',
     });
-    for (let i = 0; i < pinCode.length; i++) {
+    for (let i = 0; i < countryList.length; i++) {
       await dashboard.grid.cell.verify({
         index: i,
         columnHeader: 'Lookup',
-        value: pinCode[i],
+        value: countryList[i],
       });
     }
     await dashboard.closeTab({ title: 'City' });
@@ -40,11 +44,11 @@ test.describe('Virtual columns', () => {
     await dashboard.grid.column.create({
       title: 'Rollup',
       type: 'Rollup',
-      childTable: 'City List',
+      childTable: 'Cities',
       childColumn: 'CityId',
       rollupType: 'count',
     });
-    for (let i = 0; i < pinCode.length; i++) {
+    for (let i = 0; i < countryList.length; i++) {
       await dashboard.grid.cell.verify({
         index: i,
         columnHeader: 'Rollup',

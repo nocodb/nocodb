@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 
 test.describe('Views CRUD Operations', () => {
   let dashboard: DashboardPage;
@@ -12,6 +12,10 @@ test.describe('Views CRUD Operations', () => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Create views, reorder and delete', async () => {
@@ -53,6 +57,7 @@ test.describe('Views CRUD Operations', () => {
     await dashboard.viewSidebar.changeViewIcon({
       title: 'CityGallery2',
       icon: 'american-football',
+      iconDisplay: '🏈',
     });
 
     // todo: Enable when view bug is fixed
@@ -101,13 +106,11 @@ test.describe('Views CRUD Operations', () => {
     await toolbar.searchData.verify('City-CityGrid2');
 
     await dashboard.viewSidebar.openView({ title: 'CityGrid' });
-    await expect(dashboard.get().locator('[data-testid="grid-load-spinner"]')).toBeVisible();
-    await dashboard.grid.waitLoading();
+    await dashboard.rootPage.waitForTimeout(1000);
     await toolbar.searchData.verify('City-CityGrid');
 
     await dashboard.viewSidebar.openView({ title: 'City' });
-    await expect(dashboard.get().locator('[data-testid="grid-load-spinner"]')).toBeVisible();
-    await dashboard.grid.waitLoading();
+    await dashboard.rootPage.waitForTimeout(1000);
     await toolbar.searchData.verify('City-City');
 
     await dashboard.treeView.openTable({ title: 'Actor' });
@@ -119,8 +122,7 @@ test.describe('Views CRUD Operations', () => {
     await toolbar.searchData.verify('Actor-ActorGrid');
 
     await dashboard.viewSidebar.openView({ title: 'Actor' });
-    await expect(dashboard.get().locator('[data-testid="grid-load-spinner"]')).toBeVisible();
-    await dashboard.grid.waitLoading();
+    await dashboard.rootPage.waitForTimeout(1000);
     await toolbar.searchData.verify('');
 
     await dashboard.treeView.openTable({ title: 'City', mode: '' });

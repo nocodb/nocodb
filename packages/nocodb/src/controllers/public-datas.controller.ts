@@ -8,7 +8,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
-import { PublicDatasService } from '../services/public-datas.service';
+import { PublicDatasService } from '~/services/public-datas.service';
 
 @Controller()
 export class PublicDatasController {
@@ -27,7 +27,18 @@ export class PublicDatasController {
     return pagedResponse;
   }
 
-  // todo: Handle the error case where view doesnt belong to model
+  @Get('/api/v1/db/public/shared-view/:sharedViewUuid/groupby')
+  async dataGroupBy(
+    @Request() req,
+    @Param('sharedViewUuid') sharedViewUuid: string,
+  ) {
+    return await this.publicDatasService.dataGroupBy({
+      query: req.query,
+      password: req.headers?.['xc-password'] as string,
+      sharedViewUuid: sharedViewUuid,
+    });
+  }
+
   @Get('/api/v1/db/public/shared-view/:sharedViewUuid/group/:columnId')
   async groupedDataList(
     @Request() req,

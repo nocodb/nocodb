@@ -24,51 +24,51 @@ const formRef = ref()
 
 const { t } = useI18n()
 
-let plugin = $ref<Plugin | null>(null)
+const plugin = ref<Plugin | null>(null)
 
-let pluginFormData = $ref<Record<string, any>>({})
+const pluginFormData = ref<Record<string, any>>({})
 
-let isLoading = $ref(true)
+const isLoading = ref(true)
 
-let loadingAction = $ref<null | Action>(null)
+const loadingAction = ref<null | Action>(null)
 
 const layout = {
   labelCol: { span: 14, pull: 4 },
   wrapperCol: { span: 20, pull: 4 },
 }
 
-const addSetting = () => pluginFormData.push({})
+const addSetting = () => pluginFormData.value.push({})
 
 const saveSettings = async () => {
-  loadingAction = Action.Save
+  loadingAction.value = Action.Save
 
   try {
     await formRef.value?.validateFields()
 
     await $api.plugin.update(id, {
-      input: JSON.stringify(pluginFormData),
+      input: JSON.stringify(pluginFormData.value),
       active: true,
     })
 
     emits('saved')
     // Plugin settings saved successfully
-    message.success(plugin?.formDetails.msgOnInstall || t('msg.success.pluginSettingsSaved'))
+    message.success(plugin.value?.formDetails.msgOnInstall || t('msg.success.pluginSettingsSaved'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    loadingAction = null
+    loadingAction.value = null
   }
 }
 
 const testSettings = async () => {
-  loadingAction = Action.Test
+  loadingAction.value = Action.Test
 
   try {
-    if (plugin) {
+    if (plugin.value) {
       const res = await $api.plugin.test({
-        input: JSON.stringify(pluginFormData),
-        title: plugin.title,
-        category: plugin.category,
+        input: JSON.stringify(pluginFormData.value),
+        title: plugin.value.title,
+        category: plugin.value.category,
       } as PluginTestReqType)
 
       if (res) {
@@ -82,7 +82,7 @@ const testSettings = async () => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    loadingAction = null
+    loadingAction.value = null
   }
 }
 
@@ -102,7 +102,7 @@ const doAction = async (action: Action) => {
 
 const readPluginDetails = async () => {
   try {
-    isLoading = true
+    isLoading.value = true
 
     const res = await $api.plugin.read(id)
     const formDetails = JSON.parse(res.input_schema ?? '{}')
@@ -113,22 +113,22 @@ const readPluginDetails = async () => {
     // and it has been changed to XcType.Checkbox, since 0.0.2
     // hence, change the text value to boolean here
     if ('secure' in parsedInput && typeof parsedInput.secure === 'string') {
-      parsedInput.secure = !!parsedInput.secure
+      parsedInput.secure = parsedInput.secure === 'true'
     }
 
-    plugin = { ...res, formDetails, parsedInput }
-    pluginFormData = plugin.parsedInput
+    plugin.value = { ...res, formDetails, parsedInput }
+    pluginFormData.value = plugin.value.parsedInput
   } catch (e) {
     console.log(e)
   } finally {
-    isLoading = false
+    isLoading.value = false
   }
 }
 
-const deleteFormRow = (index: number) => pluginFormData.splice(index, 1)
+const deleteFormRow = (index: number) => pluginFormData.value.splice(index, 1)
 
 onMounted(async () => {
-  if (!plugin) {
+  if (!plugin.value) {
     await readPluginDetails()
   }
 })

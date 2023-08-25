@@ -1,11 +1,13 @@
 <script lang="ts" setup>
 import { onKeyDown } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
-import { computed, iconMap, isImage, onClickOutside, ref, useAttachment } from '#imports'
+import { computed, iconMap, isImage, onClickOutside, ref, useAttachment, useEventListener } from '#imports'
 
 const { selectedImage, visibleItems, downloadFile } = useAttachmentCell()!
 
 const carouselRef = ref()
+
+const container = ref()
 
 const imageItems = computed(() => visibleItems.value.filter((item) => isImage(item.title, item.mimetype)))
 
@@ -43,15 +45,17 @@ const setCarouselRef = (el: Element) => {
 }
 
 /** close overlay view when clicking outside of image */
-onClickOutside(carouselRef, () => {
-  selectedImage.value = false
+useEventListener(container, 'click', (e) => {
+  if (!(e.target as HTMLElement)?.closest('.keep-open') && !(e.target as HTMLElement)?.closest('img')) {
+    selectedImage.value = false
+  }
 })
 </script>
 
 <template>
-  <GeneralOverlay v-model="selectedImage" :z-index="1001">
+  <GeneralOverlay v-model="selectedImage" :z-index="1001" class="bg-gray-500 bg-opacity-50">
     <template v-if="selectedImage">
-      <div class="overflow-hidden p-12 text-center relative">
+      <div ref="container" class="overflow-hidden p-12 text-center relative">
         <div class="text-white group absolute top-5 right-5">
           <component
             :is="iconMap.closeCircle"
@@ -61,7 +65,7 @@ onClickOutside(carouselRef, () => {
         </div>
 
         <div
-          class="select-none group hover:(ring-1 ring-accent) ring-opacity-100 cursor-pointer leading-8 inline-block px-3 py-1 bg-gray-300 text-white mb-4 text-center rounded shadow"
+          class="keep-open select-none group hover:(ring-1 ring-accent) ring-opacity-100 cursor-pointer leading-8 inline-block px-3 py-1 bg-gray-300 text-white mb-4 text-center rounded shadow"
           @click.stop="downloadFile(selectedImage)"
         >
           <h3 class="group-hover:text-primary">{{ selectedImage && selectedImage.title }}</h3>
@@ -75,13 +79,13 @@ onClickOutside(carouselRef, () => {
           arrows
         >
           <template #prevArrow>
-            <div class="custom-slick-arrow left-2 z-1">
+            <div class="custom-slick-arrow left-2 z-1 keep-open">
               <MaterialSymbolsArrowCircleLeftRounded class="rounded-full" />
             </div>
           </template>
 
           <template #nextArrow>
-            <div class="custom-slick-arrow !right-2 z-1">
+            <div class="custom-slick-arrow !right-2 z-1 keep-open">
               <MaterialSymbolsArrowCircleRightRounded class="rounded-full" />
             </div>
           </template>
@@ -133,7 +137,7 @@ onClickOutside(carouselRef, () => {
   filter: grayscale(100%);
 }
 
-.ant-carousel :deep .slick-thumb li.slick-active img {
+.ant-carousel :deep(.slick-thumb li.slick-active img) {
   filter: grayscale(0%);
 }
 

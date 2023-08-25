@@ -4,20 +4,7 @@ import type { Form as AntForm, SelectProps } from 'ant-design-vue'
 import { capitalize } from '@vue/runtime-core'
 import type { FormType, GalleryType, GridType, KanbanType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, ViewTypes } from 'nocodb-sdk'
-import {
-  computed,
-  generateUniqueTitle,
-  message,
-  nextTick,
-  onBeforeMount,
-  reactive,
-  ref,
-  unref,
-  useApi,
-  useI18n,
-  useVModel,
-  watch,
-} from '#imports'
+import { computed, message, nextTick, onBeforeMount, reactive, ref, unref, useApi, useI18n, useVModel, watch } from '#imports'
 
 interface Props {
   modelValue: boolean
@@ -48,15 +35,17 @@ const { views = [], meta, selectedViewId, groupingFieldColumnId, geoDataFieldCol
 
 const emits = defineEmits<Emits>()
 
-const inputEl = $ref<ComponentPublicInstance>()
+const inputEl = ref<ComponentPublicInstance>()
 
-const formValidator = $ref<typeof AntForm>()
+const formValidator = ref<typeof AntForm>()
 
 const vModel = useVModel(props, 'modelValue', emits)
 
 const { t } = useI18n()
 
-const { isLoading: loading, api } = useApi()
+const { api } = useApi()
+
+const isViewCreating = ref(false)
 
 const form = reactive<Form>({
   title: props.title || '',
@@ -106,7 +95,12 @@ watch(
 )
 
 function init() {
-  form.title = generateUniqueTitle(capitalize(ViewTypes[props.type].toLowerCase()), views, 'title')
+  form.title = `Untitled ${capitalize(typeAlias.value)}`
+
+  const repeatCount = views.filter((v) => v.title.startsWith(form.title)).length
+  if (repeatCount) {
+    form.title = `${form.title} ${repeatCount}`
+  }
 
   if (selectedViewId) {
     form.copy_from_id = selectedViewId
@@ -152,7 +146,7 @@ function init() {
   }
 
   nextTick(() => {
-    const el = inputEl?.$el as HTMLInputElement
+    const el = inputEl.value?.$el as HTMLInputElement
 
     if (el) {
       el.focus()
@@ -162,7 +156,7 @@ function init() {
 }
 
 async function onSubmit() {
-  const isValid = await formValidator?.validateFields()
+  const isValid = await formValidator.value?.validateFields()
 
   if (isValid && form.type) {
     const _meta = unref(meta)
@@ -171,6 +165,8 @@ async function onSubmit() {
 
     try {
       let data: GridType | KanbanType | GalleryType | FormType | MapType | null = null
+
+      isViewCreating.value = true
 
       switch (form.type) {
         case ViewTypes.GRID:
@@ -191,7 +187,7 @@ async function onSubmit() {
 
       if (data) {
         // View created successfully
-        message.success(t('msg.toast.createView'))
+        // message.success(t('msg.toast.createView'))
 
         emits('created', data)
       }
@@ -200,64 +196,77 @@ async function onSubmit() {
     }
 
     vModel.value = false
+
+    setTimeout(() => {
+      isViewCreating.value = false
+    }, 500)
   }
 }
 </script>
 
 <template>
-  <a-modal
-    v-model:visible="vModel"
-    centered
-    :class="{ active: vModel }"
-    :confirm-loading="loading"
-    wrap-class-name="nc-modal-view-create"
-  >
-    <template #title>
-      {{ $t(`general.${selectedViewId ? 'duplicate' : 'create'}`) }} <span class="capitalize">{{ typeAlias }}</span>
-      {{ $t('objects.view') }}
+  <NcModal v-model:visible="vModel" size="small">
+    <template #header>
+      <div class="flex flex-row items-center gap-x-1.5">
+        <GeneralViewIcon :meta="{ type: form.type }" class="nc-view-icon !text-xl" />
+        {{ $t(`general.${selectedViewId ? 'duplicate' : 'create'}`) }} <span class="capitalize">{{ typeAlias }}</span>
+        {{ $t('objects.view') }}
+      </div>
     </template>
+    <div class="mt-2">
+      <a-form ref="formValidator" layout="vertical" :model="form">
+        <a-form-item name="title" :rules="viewNameRules">
+          <a-input
+            ref="inputEl"
+            v-model:value="form.title"
+            class="nc-input-md"
+            autofocus
+            :placeholder="$t('labels.viewName')"
+            @keydown.enter="onSubmit"
+          />
+        </a-form-item>
+        <a-form-item
+          v-if="form.type === ViewTypes.KANBAN"
+          :label="$t('general.groupingField')"
+          name="fk_grp_col_id"
+          :rules="groupingFieldColumnRules"
+        >
+          <a-select
+            v-model:value="form.fk_grp_col_id"
+            class="w-full nc-kanban-grouping-field-select"
+            :options="viewSelectFieldOptions"
+            :disabled="groupingFieldColumnId"
+            placeholder="Select a Grouping Field"
+            not-found-content="No Single Select Field can be found. Please create one first."
+          />
+        </a-form-item>
+        <a-form-item
+          v-if="form.type === ViewTypes.MAP"
+          :label="$t('general.geoDataField')"
+          name="fk_geo_data_col_id"
+          :rules="geoDataFieldColumnRules"
+        >
+          <a-select
+            v-model:value="form.fk_geo_data_col_id"
+            class="w-full"
+            :options="viewSelectFieldOptions"
+            :disabled="geoDataFieldColumnId"
+            placeholder="Select a GeoData Field"
+            not-found-content="No GeoData Field can be found. Please create one first."
+          />
+        </a-form-item>
+      </a-form>
 
-    <a-form ref="formValidator" layout="vertical" :model="form">
-      <a-form-item :label="$t('labels.viewName')" name="title" :rules="viewNameRules">
-        <a-input ref="inputEl" v-model:value="form.title" size="large" autofocus @keydown.enter="onSubmit" />
-      </a-form-item>
-      <a-form-item
-        v-if="form.type === ViewTypes.KANBAN"
-        :label="$t('general.groupingField')"
-        name="fk_grp_col_id"
-        :rules="groupingFieldColumnRules"
-      >
-        <a-select
-          v-model:value="form.fk_grp_col_id"
-          class="w-full nc-kanban-grouping-field-select"
-          :options="viewSelectFieldOptions"
-          :disabled="groupingFieldColumnId"
-          placeholder="Select a Grouping Field"
-          not-found-content="No Single Select Field can be found. Please create one first."
-        />
-      </a-form-item>
-      <a-form-item
-        v-if="form.type === ViewTypes.MAP"
-        :label="$t('general.geoDataField')"
-        name="fk_geo_data_col_id"
-        :rules="geoDataFieldColumnRules"
-      >
-        <a-select
-          v-model:value="form.fk_geo_data_col_id"
-          class="w-full"
-          :options="viewSelectFieldOptions"
-          :disabled="geoDataFieldColumnId"
-          placeholder="Select a GeoData Field"
-          not-found-content="No GeoData Field can be found. Please create one first."
-        />
-      </a-form-item>
-    </a-form>
+      <div class="flex flex-row w-full justify-end gap-x-2 mt-7">
+        <NcButton type="secondary" @click="vModel = false">
+          {{ $t('general.cancel') }}
+        </NcButton>
 
-    <template #footer>
-      <a-button key="back" class="!rounded-md" @click="vModel = false">{{ $t('general.cancel') }}</a-button>
-      <a-button key="submit" class="!rounded-md" type="primary" :loading="loading" @click="onSubmit">{{
-        $t('general.submit')
-      }}</a-button>
-    </template>
-  </a-modal>
+        <NcButton type="primary" :loading="isViewCreating" @click="onSubmit">
+          Create View
+          <template #loading> Creating View </template>
+        </NcButton>
+      </div>
+    </div>
+  </NcModal>
 </template>

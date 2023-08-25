@@ -9,10 +9,10 @@ export class JobsRedisService {
 
   constructor() {
     if (process.env.NC_WORKER_CONTAINER === 'true') {
-      this.redisClient = new Redis(process.env.NC_REDIS_URL);
+      this.redisClient = new Redis(process.env.NC_REDIS_JOB_URL);
       return;
     }
-    this.redisSubscriber = new Redis(process.env.NC_REDIS_URL);
+    this.redisSubscriber = new Redis(process.env.NC_REDIS_JOB_URL);
   }
 
   publish(channel: string, message: string | any) {

@@ -1,31 +1,47 @@
 import { isSystemColumn, UITypes, ViewTypes } from 'nocodb-sdk';
-import Noco from '../Noco';
+import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
+import Model from '~/models/Model';
+import FormView from '~/models/FormView';
+import GridView from '~/models/GridView';
+import KanbanView from '~/models/KanbanView';
+import GalleryView from '~/models/GalleryView';
+import GridViewColumn from '~/models/GridViewColumn';
+import Sort from '~/models/Sort';
+import Filter from '~/models/Filter';
+import GalleryViewColumn from '~/models/GalleryViewColumn';
+import FormViewColumn from '~/models/FormViewColumn';
+import KanbanViewColumn from '~/models/KanbanViewColumn';
+import Column from '~/models/Column';
+import MapView from '~/models/MapView';
+import MapViewColumn from '~/models/MapViewColumn';
+import { extractProps } from '~/helpers/extractProps';
+import NocoCache from '~/cache/NocoCache';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
-} from '../utils/globals';
-import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
-import NocoCache from '../cache/NocoCache';
-import { extractProps } from '../helpers/extractProps';
-import Model from './Model';
-import FormView from './FormView';
-import GridView from './GridView';
-import KanbanView from './KanbanView';
-import GalleryView from './GalleryView';
-import GridViewColumn from './GridViewColumn';
-import Sort from './Sort';
-import Filter from './Filter';
-import GalleryViewColumn from './GalleryViewColumn';
-import FormViewColumn from './FormViewColumn';
-import KanbanViewColumn from './KanbanViewColumn';
-import Column from './Column';
-import MapView from './MapView';
-import MapViewColumn from './MapViewColumn';
-import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
+} from '~/utils/globals';
+import Noco from '~/Noco';
+import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 
 const { v4: uuidv4 } = require('uuid');
+
+/*
+type ViewColumn =
+  | GridViewColumn
+  | FormViewColumn
+  | GalleryViewColumn
+  | KanbanViewColumn
+  | MapViewColumn;
+
+type ViewColumnEnrichedWithTitleAndName = ViewColumn & {
+  title: string;
+  name: string;
+  dt: string;
+};
+*/
+
 export default class View implements ViewType {
   id?: string;
   title: string;
@@ -733,7 +749,15 @@ export default class View implements ViewType {
       await NocoCache.set(key, o);
     }
     // set meta
-    return await ncMeta.metaUpdate(null, null, table, updateObj, colId);
+    const res = await ncMeta.metaUpdate(null, null, table, updateObj, colId);
+
+    // on view column update, delete corresponding single query cache
+    await NocoCache.delAll(
+      CacheScope.SINGLE_QUERY,
+      `${view.fk_model_id}:${view.id}:*`,
+    );
+
+    return res;
   }
 
   static async insertOrUpdateColumn(
@@ -771,6 +795,13 @@ export default class View implements ViewType {
         },
         existingCol.id,
       );
+
+      // on view column update, delete any optimised single query cache
+      await NocoCache.delAll(
+        CacheScope.SINGLE_QUERY,
+        `${view.fk_model_id}:${view.id}:*`,
+      );
+
       return { ...existingCol, ...colData };
     } else {
       switch (view.type) {
@@ -999,6 +1030,12 @@ export default class View implements ViewType {
       }
     }
 
+    // on update, delete any optimised single query cache
+    await NocoCache.delAll(
+      CacheScope.SINGLE_QUERY,
+      `${view.fk_model_id}:${view.id}:*`,
+    );
+
     return view;
   }
 
@@ -1035,6 +1072,12 @@ export default class View implements ViewType {
     );
     await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.title}`);
     await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.id}`);
+
+    // on update, delete any optimised single query cache
+    await NocoCache.delAll(
+      CacheScope.SINGLE_QUERY,
+      `${view.fk_model_id}:${view.id}:*`,
+    );
   }
 
   private static extractViewColumnsTableName(view: View) {

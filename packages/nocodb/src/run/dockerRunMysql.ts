@@ -1,7 +1,7 @@
 import dns from 'node:dns';
 import cors from 'cors';
 import express from 'express';
-import Noco from '../Noco';
+import Noco from '~/Noco';
 
 // ref: https://github.com/nodejs/node/issues/40702#issuecomment-1103623246
 dns.setDefaultResultOrder('ipv4first');

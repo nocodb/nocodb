@@ -3,11 +3,12 @@ import { Injectable, Optional } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-google-oauth20';
 import bcrypt from 'bcryptjs';
-import { Plugin, ProjectUser, User } from '../../models';
-import Noco from '../../Noco';
-import { UsersService } from '../../services/users/users.service';
 import type { VerifyCallback } from 'passport-google-oauth20';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
+import Noco from '~/Noco';
+import { UsersService } from '~/services/users/users.service';
+import { Plugin, ProjectUser, User } from '~/models';
+import { sanitiseUserObj } from '~/utils';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -39,25 +40,23 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
                 user.roles === 'owner' ? 'owner,creator' : user.roles;
               // + (user.roles ? `,${user.roles}` : '');
 
-              done(null, user);
+              done(null, sanitiseUserObj(user));
             })
             .catch((e) => done(e));
         } else {
-          return done(null, user);
+          return done(null, sanitiseUserObj(user));
         }
         // if user not found create new user if allowed
         // or return error
       } else {
         const salt = await promisify(bcrypt.genSalt)(10);
         const user = await this.usersService.registerNewUserIfAllowed({
-          firstname: null,
-          lastname: null,
           email_verification_token: null,
           email: profile.emails[0].value,
           password: '',
           salt,
         });
-        return done(null, user);
+        return done(null, sanitiseUserObj(user));
       }
     } catch (err) {
       return done(err);

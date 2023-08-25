@@ -1,6 +1,6 @@
 {
   "name": "nocodb-sdk",
-  "version": "0.109.6",
+  "version": "0.109.7",
   "description": "NocoDB SDK",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
@@ -24,8 +24,8 @@
   "keywords": [],
   "scripts": {
     "build": "pnpm generate:sdk && run-p build:*",
-    "build:main": "tsc -p tsconfig.json",
-    "build:module": "tsc -p tsconfig.module.json",
+    "build:main": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
+    "build:module": "tsc -p tsconfig.module.json && tsc-alias -p tsconfig.module.json",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.ts\" --write",
     "fix:lint": "eslint src --ext .ts --fix",
@@ -53,7 +53,9 @@
     "eslint-plugin-prettier": "^4.2.1",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.8.8",
-    "typescript": "^4.0.2"
+    "rimraf": "^5.0.1",
+    "tsc-alias": "^1.8.7",
+    "typescript": "^4.7.4"
   },
   "files": [
     "build/main",

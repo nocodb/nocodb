@@ -1,12 +1,12 @@
 import 'mocha';
 import request from 'supertest';
-import { Project } from '../../../../src/models'
-import { createTable } from '../../factory/table';
-import init from '../../init';
-import { createProject, createSharedBase } from '../../factory/project';
 import { beforeEach } from 'mocha';
 import { Exception } from 'handlebars';
 import { expect } from 'chai';
+import { Project } from '../../../../src/models';
+import { createTable } from '../../factory/table';
+import init from '../../init';
+import { createProject, createSharedBase } from '../../factory/project';
 
 // Test case list
 // 1. Get project info
@@ -31,9 +31,10 @@ function projectTest() {
   let project;
 
   beforeEach(async function () {
+    console.time('#### projectTest');
     context = await init();
-
     project = await createProject(context);
+    console.timeEnd('#### projectTest');
   });
 
   it('Get project info', async () => {
@@ -86,7 +87,7 @@ function projectTest() {
       .send({
         title: project.title,
       })
-      .expect(400);
+      .expect(200);
   });
 
   // todo: fix passport user role popluation bug
@@ -140,17 +141,20 @@ function projectTest() {
   });
 
   it('Update projects with existing title', async function () {
-    const newProject = await createProject(context, {
-      title: 'NewTitle1',
-    });
+    if (process.env.EE !== 'true') {
+      const newProject = await createProject(context, {
+        title: 'NewTitle1',
+      });
 
-    await request(context.app)
-      .patch(`/api/v1/db/meta/projects/${project.id}`)
-      .set('xc-auth', context.token)
-      .send({
-        title: newProject.title,
-      })
-      .expect(400);
+      // Allow project rename to be replaced with same title
+      await request(context.app)
+        .patch(`/api/v1/db/meta/projects/${project.id}`)
+        .set('xc-auth', context.token)
+        .send({
+          title: newProject.title,
+        })
+        .expect(400);
+    }
   });
 
   it('Create project shared base', async () => {
@@ -304,23 +308,27 @@ function projectTest() {
       .send({})
       .expect(200)
       .then((res) => {
+        const createdProject = res.body.projects[1];
+
         expect(res.body).to.have.all.keys(
           'userCount',
           'sharedBaseCount',
           'projectCount',
-          'projects'
+          'projects',
         );
-        expect(res.body).to.have.property('projectCount').to.eq(1);
+        // As there will be a default project created for a workspace
+        expect(res.body).to.have.property('projectCount').to.eq(2);
         expect(res.body).to.have.property('projects').to.be.an('array');
-        expect(res.body.projects[0].tableCount.table).to.be.eq(3);
+
+        expect(createdProject.tableCount.table).to.be.eq(3);
         expect(res.body)
-          .to.have.nested.property('projects[0].tableCount.table')
+          .to.have.nested.property('projects[1].tableCount.table')
           .to.be.a('number');
         expect(res.body)
-          .to.have.nested.property('projects[0].tableCount.view')
+          .to.have.nested.property('projects[1].tableCount.view')
           .to.be.a('number');
         expect(res.body)
-          .to.have.nested.property('projects[0].viewCount')
+          .to.have.nested.property('projects[1].viewCount')
           .to.be.an('object')
           .have.keys(
             'formCount',
@@ -333,9 +341,9 @@ function projectTest() {
             'sharedGalleryCount',
             'sharedKanbanCount',
             'sharedTotal',
-            'sharedLockedCount'
+            'sharedLockedCount',
           );
-        expect(res.body.projects[0]).have.keys(
+        expect(createdProject).have.keys(
           'external',
           'webhookCount',
           'filterCount',
@@ -343,13 +351,13 @@ function projectTest() {
           'userCount',
           'rowCount',
           'tableCount',
-          'viewCount'
+          'viewCount',
         );
         expect(res.body)
-          .to.have.nested.property('projects[0].rowCount')
+          .to.have.nested.property('projects[1].rowCount')
           .to.be.an('array');
         expect(res.body)
-          .to.have.nested.property('projects[0].external')
+          .to.have.nested.property('projects[1].external')
           .to.be.an('boolean');
       });
   });

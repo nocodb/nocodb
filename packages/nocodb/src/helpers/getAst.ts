@@ -1,11 +1,11 @@
 import { isSystemColumn, RelationTypes, UITypes } from 'nocodb-sdk';
-import { View } from '../models';
 import type {
   Column,
   LinkToAnotherRecordColumn,
   LookupColumn,
   Model,
-} from '../models';
+} from '~/models';
+import { View } from '~/models';
 
 const getAst = async ({
   query,
@@ -18,6 +18,7 @@ const getAst = async ({
     nested: { ...(query?.nested || {}) },
     fieldsSet: new Set(),
   },
+  getHiddenColumn = false,
 }: {
   query?: RequestQuery;
   extractOnlyPrimaries?: boolean;
@@ -25,6 +26,7 @@ const getAst = async ({
   model: Model;
   view?: View;
   dependencyFields?: DependantFields;
+  getHiddenColumn?: boolean;
 }) => {
   // set default values of dependencyFields and nested
   dependencyFields.nested = dependencyFields.nested || {};
@@ -89,11 +91,12 @@ const getAst = async ({
         value = ast;
 
         // todo: include field relative to the relation => pk / fk
+      } else if (col.uidt === UITypes.Links) {
+        value = 1;
       } else {
-        value = (Array.isArray(fields) ? fields : fields.split(',')).reduce(
-          (o, f) => ({ ...o, [f]: 1 }),
-          {},
-        );
+        value = (
+          Array.isArray(nestedFields) ? nestedFields : nestedFields.split(',')
+        ).reduce((o, f) => ({ ...o, [f]: 1 }), {});
       }
     } else if (col.uidt === UITypes.LinkToAnotherRecord) {
       const model = await col
@@ -113,16 +116,24 @@ const getAst = async ({
         })
       ).ast;
     }
-
-    const isRequested =
-      allowedCols && (!includePkByDefault || !col.pk)
-        ? allowedCols[col.id] &&
-          (!isSystemColumn(col) || view.show_system_fields || col.pv) &&
-          (!fields?.length || fields.includes(col.title)) &&
-          value
-        : fields?.length
-        ? fields.includes(col.title) && value
-        : value;
+    let isRequested;
+    if (getHiddenColumn) {
+      isRequested =
+        !isSystemColumn(col) ||
+        col.column_name === 'created_at' ||
+        col.column_name === 'updated_at' ||
+        col.pk;
+    } else {
+      isRequested =
+        allowedCols && (!includePkByDefault || !col.pk)
+          ? allowedCols[col.id] &&
+            (!isSystemColumn(col) || view.show_system_fields || col.pv) &&
+            (!fields?.length || fields.includes(col.title)) &&
+            value
+          : fields?.length
+          ? fields.includes(col.title) && value
+          : value;
+    }
     if (isRequested || col.pk) await extractDependencies(col, dependencyFields);
 
     return {
@@ -208,7 +219,7 @@ type RequestQuery = {
   };
 };
 
-interface DependantFields {
+export interface DependantFields {
   fieldsSet?: Set<string>;
   nested?: DependantFields;
 }

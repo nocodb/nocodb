@@ -94,10 +94,3 @@ COPY --from=builder /usr/src/appEntry/ /usr/src/appEntry/
 # Run the web service on container startup.
 #CMD [ "node", "docker/index.js" ]
 ENTRYPOINT ["sh", "/usr/src/appEntry/start.sh"]
-
-
-
-
-
-
-

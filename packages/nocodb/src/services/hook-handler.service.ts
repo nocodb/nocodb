@@ -1,16 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
 import ejs from 'ejs';
-import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
+import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import type { UserType } from 'nocodb-sdk';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import {
   _transformSubmittedFormDataForEmail,
   invokeWebhook,
-} from '../helpers/webhookHelpers';
-import { FormView, Hook, Model, View } from '../models';
-import { IEventEmitter } from '../modules/event-emitter/event-emitter.interface';
-import formSubmissionEmailTemplate from '../utils/common/formSubmissionEmailTemplate';
-import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import type { UserType } from 'nocodb-sdk';
+} from '~/helpers/webhookHelpers';
+import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
+import formSubmissionEmailTemplate from '~/utils/common/formSubmissionEmailTemplate';
+import { FormView, Hook, Model, View } from '~/models';
 
 export const HANDLE_WEBHOOK = '__nc_handleHooks';
 

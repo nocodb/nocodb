@@ -46,7 +46,7 @@ export class SignupPage extends BasePage {
     if (expectedError) {
       await expect(signUp.getByTestId('nc-signup-error')).toHaveText(expectedError);
     } else {
-      await this.projectsPage.waitToBeRendered();
+      await this.rootPage.waitForLoadState('networkidle');
     }
   }
 }

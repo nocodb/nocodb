@@ -1,76 +1,20 @@
 import { UITypes } from 'nocodb-sdk';
-import Noco from '../Noco';
+import type { BoolType, FilterType } from 'nocodb-sdk';
+import type { COMPARISON_OPS, COMPARISON_SUB_OPS } from '~/utils/globals';
+import Model from '~/models/Model';
+import Column from '~/models/Column';
+import Hook from '~/models/Hook';
+import View from '~/models/View';
+import Noco from '~/Noco';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
-} from '../utils/globals';
-import NocoCache from '../cache/NocoCache';
-import { NcError } from '../helpers/catchError';
-import { extractProps } from '../helpers/extractProps';
-import Model from './Model';
-import Column from './Column';
-import Hook from './Hook';
-import View from './View';
-import type { BoolType, FilterType } from 'nocodb-sdk';
-
-export const COMPARISON_OPS = <const>[
-  'eq',
-  'neq',
-  'not',
-  'like',
-  'nlike',
-  'empty',
-  'notempty',
-  'null',
-  'notnull',
-  'checked',
-  'notchecked',
-  'blank',
-  'notblank',
-  'allof',
-  'anyof',
-  'nallof',
-  'nanyof',
-  'gt',
-  'lt',
-  'gte',
-  'lte',
-  'ge',
-  'le',
-  'in',
-  'isnot',
-  'is',
-  'isWithin',
-  'btw',
-  'nbtw',
-];
-
-export const IS_WITHIN_COMPARISON_SUB_OPS = <const>[
-  'pastWeek',
-  'pastMonth',
-  'pastYear',
-  'nextWeek',
-  'nextMonth',
-  'nextYear',
-  'pastNumberOfDays',
-  'nextNumberOfDays',
-];
-
-export const COMPARISON_SUB_OPS = <const>[
-  'today',
-  'tomorrow',
-  'yesterday',
-  'oneWeekAgo',
-  'oneWeekFromNow',
-  'oneMonthAgo',
-  'oneMonthFromNow',
-  'daysAgo',
-  'daysFromNow',
-  'exactDate',
-  ...IS_WITHIN_COMPARISON_SUB_OPS,
-];
+} from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
+import { NcError } from '~/helpers/catchError';
+import { extractProps } from '~/helpers/extractProps';
 
 export default class Filter implements FilterType {
   id: string;
@@ -95,6 +39,14 @@ export default class Filter implements FilterType {
 
   constructor(data: Filter | FilterType) {
     Object.assign(this, data);
+  }
+
+  public static castType(filter: Filter): Filter {
+    return filter && new Filter(filter);
+  }
+
+  public castType(filter: Filter): Filter {
+    return filter && new Filter(filter);
   }
 
   public async getModel(ncMeta = Noco.ncMeta): Promise<Model> {
@@ -128,10 +80,11 @@ export default class Filter implements FilterType {
       'order',
     ]);
 
+    const referencedModelColName = filter.fk_hook_id
+      ? 'fk_hook_id'
+      : 'fk_view_id';
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.FILTER_EXP, {
-      [filter.fk_hook_id ? 'fk_hook_id' : 'fk_view_id']: filter.fk_hook_id
-        ? filter.fk_hook_id
-        : filter.fk_view_id,
+      [referencedModelColName]: filter[referencedModelColName],
     });
 
     if (!(filter.project_id && filter.base_id)) {
@@ -145,8 +98,11 @@ export default class Filter implements FilterType {
       } else {
         NcError.badRequest('Invalid filter');
       }
-      insertObj.project_id = model.project_id;
-      insertObj.base_id = model.base_id;
+
+      if (model != null) {
+        insertObj.project_id = model.project_id;
+        insertObj.base_id = model.base_id;
+      }
     }
 
     const row = await ncMeta.metaInsert2(
@@ -249,7 +205,20 @@ export default class Filter implements FilterType {
       }
       await Promise.all(p);
     }
-    return new Filter(value);
+
+    // on new filter creation delete any optimised single query cache
+    {
+      // if not a view filter then no need to delete
+      if (filter.fk_view_id) {
+        const view = await View.get(filter.fk_view_id, ncMeta);
+        await NocoCache.delAll(
+          CacheScope.SINGLE_QUERY,
+          `${view.fk_model_id}:${view.id}:*`,
+        );
+      }
+    }
+
+    return this.castType(value);
   }
 
   static async update(id, filter: Partial<Filter>, ncMeta = Noco.ncMeta) {
@@ -262,6 +231,10 @@ export default class Filter implements FilterType {
       'is_group',
       'logical_op',
     ]);
+
+    if (typeof updateObj.value === 'string')
+      updateObj.value = updateObj.value.slice(0, 255);
+
     // get existing cache
     const key = `${CacheScope.FILTER_EXP}:${id}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -272,13 +245,28 @@ export default class Filter implements FilterType {
       await NocoCache.set(key, o);
     }
     // set meta
-    return await ncMeta.metaUpdate(
+    const res = await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.FILTER_EXP,
       updateObj,
       id,
     );
+
+    // on update delete any optimised single query cache
+    {
+      const filter = await this.get(id, ncMeta);
+      // if not a view filter then no need to delete
+      if (filter.fk_view_id) {
+        const view = await View.get(filter.fk_view_id, ncMeta);
+        await NocoCache.delAll(
+          CacheScope.SINGLE_QUERY,
+          `${view.fk_model_id}:${view.id}:*`,
+        );
+      }
+    }
+
+    return res;
   }
 
   static async delete(id: string, ncMeta = Noco.ncMeta) {
@@ -296,6 +284,18 @@ export default class Filter implements FilterType {
       );
     };
     await deleteRecursively(filter);
+
+    // delete any optimised single query cache
+    {
+      // if not a view filter then no need to delete
+      if (filter.fk_view_id) {
+        const view = await View.get(filter.fk_view_id, ncMeta);
+        await NocoCache.delAll(
+          CacheScope.SINGLE_QUERY,
+          `${view.fk_model_id}:${view.id}:*`,
+        );
+      }
+    }
   }
 
   public getColumn(): Promise<Column> {
@@ -320,7 +320,7 @@ export default class Filter implements FilterType {
         filterObj,
       );
     }
-    return filterObj && new Filter(filterObj);
+    return this.castType(filterObj);
   }
 
   public async getChildren(ncMeta = Noco.ncMeta): Promise<Filter[]> {
@@ -342,7 +342,7 @@ export default class Filter implements FilterType {
       });
       await NocoCache.setList(CacheScope.FILTER_EXP, [this.id], childFilters);
     }
-    return childFilters && childFilters.map((f) => new Filter(f));
+    return childFilters && childFilters.map((f) => this.castType(f));
   }
 
   // public static async getFilter({
@@ -444,6 +444,15 @@ export default class Filter implements FilterType {
       }
     };
     await deleteRecursively(filter);
+
+    // on update delete any optimised single query cache
+    {
+      const view = await View.get(viewId, ncMeta);
+      await NocoCache.delAll(
+        CacheScope.SINGLE_QUERY,
+        `${view.fk_model_id}:${view.id}:*`,
+      );
+    }
   }
 
   static async deleteAllByHook(hookId: string, ncMeta = Noco.ncMeta) {
@@ -477,7 +486,7 @@ export default class Filter implements FilterType {
       });
       await NocoCache.set(`${CacheScope.FILTER_EXP}:${id}`, filterObj);
     }
-    return filterObj && new Filter(filterObj);
+    return this.castType(filterObj);
   }
 
   static async rootFilterList(
@@ -498,7 +507,7 @@ export default class Filter implements FilterType {
     }
     return filterObjs
       ?.filter((f) => !f.fk_parent_id)
-      ?.map((f) => new Filter(f));
+      ?.map((f) => this.castType(f));
   }
 
   static async rootFilterListByHook(
@@ -517,7 +526,7 @@ export default class Filter implements FilterType {
       });
       await NocoCache.setList(CacheScope.FILTER_EXP, [hookId], filterObjs);
     }
-    return filterObjs?.map((f) => new Filter(f));
+    return filterObjs?.map((f) => this.castType(f));
   }
 
   static async parentFilterList(
@@ -545,7 +554,7 @@ export default class Filter implements FilterType {
       });
       await NocoCache.setList(CacheScope.FILTER_EXP, [parentId], filterObjs);
     }
-    return filterObjs?.map((f) => new Filter(f));
+    return filterObjs?.map((f) => this.castType(f));
   }
 
   static async parentFilterListByHook(
@@ -580,7 +589,7 @@ export default class Filter implements FilterType {
         filterObjs,
       );
     }
-    return filterObjs?.map((f) => new Filter(f));
+    return filterObjs?.map((f) => this.castType(f));
   }
 
   static async hasEmptyOrNullFilters(projectId: string, ncMeta = Noco.ncMeta) {

@@ -22,6 +22,7 @@ import CountIcon from '~icons/mdi/counter'
 const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
   switch (column.uidt) {
     case UITypes.LinkToAnotherRecord:
+    case UITypes.Links:
       switch ((column.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
           return { icon: iconMap.mm, color: 'text-accent' }

@@ -231,6 +231,8 @@ export interface BaseType {
   inflection_table?: string;
   /** Is the data source connected externally */
   is_meta?: BoolType;
+  /** Is the data source minimal db */
+  is_local?: BoolType;
   /**
    * The order of the list of bases
    * @example 1
@@ -285,6 +287,8 @@ export interface BaseReqType {
   inflection_table?: string;
   /** Is the data source connected externally */
   is_meta?: boolean;
+  /** Is the data source minimal db */
+  is_local?: boolean;
   /** DB Type */
   type?:
     | 'mssql'
@@ -433,7 +437,8 @@ export interface ColumnType {
     | 'Time'
     | 'URL'
     | 'Year'
-    | 'QrCode';
+    | 'QrCode'
+    | 'Links';
   /** Is Unsigned? */
   un?: BoolType;
   /** Is unique? */
@@ -782,6 +787,10 @@ export interface FilterReqType {
   value?: any;
 }
 
+export interface FollowerType {
+  fk_follower_id?: string;
+}
+
 /**
  * Model for Form
  */
@@ -931,8 +940,8 @@ export interface FormColumnReqType {
  * Model for Formula
  */
 export interface FormulaType {
-  /** Unique ID */
-  id?: IdType;
+  /** Error Message */
+  error?: string;
   /** Foreign Key to Column */
   fk_column_id?: IdType;
   /**
@@ -945,8 +954,8 @@ export interface FormulaType {
    * @example CONCAT("FOO", {Title})
    */
   formula_raw?: string;
-  /** Error Message */
-  error?: string;
+  /** Unique ID */
+  id?: IdType;
 }
 
 /**
@@ -1106,6 +1115,18 @@ export interface GridColumnType {
   width?: string;
   /** Column Help Text */
   help?: StringOrNullType;
+  /** Group By */
+  group_by?: BoolType;
+  /**
+   * Group By Order
+   * @example 1
+   */
+  group_by_order?: number;
+  /**
+   * Group By Sort
+   * @example asc
+   */
+  group_by_sort?: StringOrNullType;
 }
 
 /**
@@ -1126,6 +1147,18 @@ export interface GridColumnReqType {
    * @example 200px
    */
   width?: string;
+  /** Group By */
+  group_by?: BoolType;
+  /**
+   * Group By Order
+   * @example 1
+   */
+  group_by_order?: number;
+  /**
+   * Group By Sort
+   * @example asc
+   */
+  group_by_sort?: StringOrNullType;
 }
 
 /**
@@ -1468,7 +1501,7 @@ export interface LinkToAnotherColumnReqType {
   /** The type of the relationship */
   type: 'bt' | 'hm' | 'mm';
   /** Abstract type of the relationship */
-  uidt: 'LinkToAnotherRecord';
+  uidt: 'LinkToAnotherRecord' | 'Links';
   /** Is this relationship virtual? */
   virtual?: BoolType;
 }
@@ -1720,7 +1753,8 @@ export interface NormalColumnRequestType {
     | 'Time'
     | 'URL'
     | 'Year'
-    | 'QrCode';
+    | 'QrCode'
+    | 'Links';
   /** Is this column unique? */
   un?: BoolType;
   /** Is this column unique? */
@@ -1917,6 +1951,9 @@ export interface ProjectType {
    * @example nc_vm5q__
    */
   prefix?: string;
+  type?: 'database' | 'documentation' | 'dashboard';
+  /** List of linked Database Projects that this project has access to (only used in Dashboard projects so far) */
+  linked_db_projects?: ProjectType[];
   status?: string;
   /**
    * Project Title
@@ -1961,6 +1998,9 @@ export interface ProjectReqType {
    * @example locked
    */
   status?: StringOrNullType;
+  type?: 'database' | 'documentation' | 'dashboard';
+  /** List of Linked Database Project IDs (only used for Dashboard Projects so far) */
+  linked_db_project_ids?: string[];
 }
 
 /**
@@ -1984,6 +2024,8 @@ export interface ProjectUpdateReqType {
    * @example locked
    */
   status?: StringOrNullType;
+  /** List of Linked Database Project IDs (only used for Dashboard Projects so far) */
+  linked_db_project_ids?: string[];
 }
 
 /**
@@ -1997,6 +2039,21 @@ export interface ProjectUserReqType {
   email: string;
   /** Project User Role */
   roles: 'commenter' | 'editor' | 'guest' | 'owner' | 'viewer' | 'creator';
+}
+
+/**
+ * Model for Project User Meta Request
+ */
+export interface ProjectUserMetaReqType {
+  /** Star Project */
+  starred?: BoolType;
+  /**
+   * The order among the projects
+   * @example 1
+   */
+  order?: number;
+  /** Model for Bool */
+  hidden?: BoolType;
 }
 
 /**
@@ -2291,34 +2348,29 @@ export interface TableReqType {
  * Model for User
  */
 export interface UserType {
-  /**
-   * The email of the user
-   * @format email
-   * @example user@example.com
-   */
+  /** Unique identifier for the given user. */
+  id: string;
+  /** @format email */
   email: string;
+  roles?: string;
   /** Set to true if the user's email has been verified. */
   email_verified: boolean;
   /**
-   * The first name of the user
-   * @example Alice
+   * The date that the user was created.
+   * @format date
    */
-  firstname: string;
+  created_at?: string;
   /**
-   * Unique identifier for the given user.
-   * @example us_8kugj628ebjngs
+   * The date that the user was created.
+   * @format date
    */
-  id: string;
-  /**
-   * The last name of the user
-   * @example Smith
-   */
-  lastname: string;
-  /**
-   * The roles of the user
-   * @example org-level-viewer
-   */
-  roles?: string;
+  updated_at?: string;
+  display_name?: string;
+  user_name?: string;
+  bio?: string;
+  location?: string;
+  website?: string;
+  avatar?: string;
   /** Access token version */
   token_version?: string;
 }
@@ -2511,6 +2563,157 @@ export type VisibilityRuleReqType = {
     viewer?: BoolType;
   };
 }[];
+
+export interface WebhookType {
+  id?: string;
+  title?: string;
+  type?: string;
+}
+
+export interface ProjectInviteEventType {
+  /** The ID of the user who receives the project invite */
+  fk_user_id: string;
+  /** The type of event, which should be set to 'PROJECT_INVITE' */
+  type: string;
+  body: {
+    /** The ID of the project being invited to */
+    id: string;
+    /** The title of the project being invited to */
+    title: string;
+    /** The type of the project being invited to */
+    type: string;
+    /** The email address of the user who invited the recipient */
+    invited_by: string;
+  };
+}
+
+export interface ProjectEventType {
+  /** The ID of the user */
+  fk_user_id: string;
+  type: string;
+  body: {
+    /** The ID of the project */
+    id: string;
+    /** The title of the project */
+    title: string;
+    /** The type of the project */
+    type: string;
+  };
+}
+
+export interface WelcomeEventType {
+  /** The ID of the user receiving the welcome message */
+  fk_user_id: string;
+  /** The type of event, which should be set to 'WELCOME' */
+  type: string;
+  /** An empty object */
+  body: object;
+}
+
+export interface SortEventType {
+  /** The ID of the user who created sort */
+  fk_user_id: string;
+  type: string;
+  body: object;
+}
+
+export interface FilterEventType {
+  /** The ID of the user who created filter */
+  fk_user_id: string;
+  type: string;
+  body: object;
+}
+
+export interface TableEventType {
+  /** The ID of the user who triggered the event */
+  fk_user_id: string;
+  /** The type of the event */
+  type: string;
+  body: {
+    /** The title of the table associated with the event */
+    title: string;
+    /** The ID of the project that the table belongs to */
+    project_id: string;
+    /** The ID of the base that the table belongs to */
+    base_id: string;
+    /** The ID of the table associated with the event */
+    id: string;
+  };
+}
+
+export interface ViewEventType {
+  /** The ID of the user who triggered the event */
+  fk_user_id: string;
+  /** The type of the event */
+  type: string;
+  body: {
+    /** The title of the view associated with the event */
+    title: string;
+    /** The ID of the project that the view belongs to */
+    project_id: string;
+    /** The ID of the base that the view belongs to */
+    base_id: string;
+    /** The ID of the view associated with the event */
+    id: string;
+    /** The ID of the model that the view is based on */
+    fk_model_id: string;
+  };
+}
+
+export interface ColumnEventType {
+  /** The ID of the user who triggered the event */
+  fk_user_id: string;
+  /** The type of the event */
+  type: string;
+  body: {
+    /** The title of the column associated with the event */
+    title: string;
+    /** The ID of the project that the column belongs to */
+    project_id: string;
+    /** The ID of the base that the column belongs to */
+    base_id: string;
+    /** The ID of the column associated with the event */
+    id: string;
+    /** The ID of the model that the column belongs to */
+    fk_model_id: string;
+  };
+}
+
+export type NotificationType = {
+  /** Unique ID */
+  id?: IdType;
+  /** Whether the notification has been read by the user */
+  is_read?: boolean;
+  /** Whether the notification has been deleted by the user */
+  is_deleted?: boolean;
+  /** Type of notification */
+  type?: string;
+  updated_at?: any;
+  created_at?: any;
+} & (
+  | ProjectInviteEventType
+  | ProjectEventType
+  | TableEventType
+  | ViewEventType
+  | ColumnEventType
+  | WelcomeEventType
+  | SortEventType
+  | FilterEventType
+);
+
+/**
+ * Model for Notification List
+ */
+export interface NotificationListType {
+  /** List of notification objects */
+  list: NotificationType[];
+  /** Model for Paginated */
+  pageInfo: PaginatedType;
+}
+
+export interface NotificationUpdateType {
+  is_read?: boolean;
+}
 
 import axios, { AxiosInstance, AxiosRequestConfig, ResponseType } from 'axios';
 
@@ -3746,6 +3949,23 @@ export class Api<
       }),
 
     /**
+     * @description Organisation User GetByUsername
+     *
+     * @tags Org users
+     * @name GetByUsername
+     * @summary Organisation User GetByUsername
+     * @request GET:/api/v1/users/{username}
+     * @response `200` `UserType` OK
+     */
+    getByUsername: (username: string, params: RequestParams = {}) =>
+      this.request<UserType, any>({
+        path: `/api/v1/users/${username}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Resend Invitation to a specific user. Exclusive for Super Admin. Access with API Tokens will be blocked.
  * 
  * @tags Org Users
@@ -3783,6 +4003,167 @@ export class Api<
         path: `/api/v1/users/${userId}/resend-invite`,
         method: 'POST',
         format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Create Organisation User Profile
+     *
+     * @tags Org users
+     * @name ProfileCreate
+     * @summary Organisation User Profile - Create
+     * @request POST:/api/v1/users/{userId}/profile
+     * @response `200` `void` OK
+     */
+    profileCreate: (
+      userId: string,
+      data: UserType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/users/${userId}/profile`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Get Organisation User Profile
+     *
+     * @tags Org users
+     * @name ProfileGet
+     * @summary Organisation User Profile - Get
+     * @request GET:/api/v1/users/{userId}/profile
+     * @response `200` `void` OK
+     */
+    profileGet: (userId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/users/${userId}/profile`,
+        method: 'GET',
+        ...params,
+      }),
+
+    /**
+     * @description Update Organisation User Profile
+     *
+     * @tags Org users
+     * @name ProfileUpdate
+     * @request PATCH:/api/v1/users/{userId}/profile
+     * @response `200` `void` OK
+     */
+    profileUpdate: (
+      userId: string,
+      data: UserType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/users/${userId}/profile`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Create Organisation User Follower Relationship (Follow)
+     *
+     * @tags Org users
+     * @name FollowerCreate
+     * @summary Organisation User Follower - Create
+     * @request POST:/api/v1/users/{userId}/follower
+     * @response `200` `void` OK
+     */
+    followerCreate: (
+      userId: string,
+      data: FollowerType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/users/${userId}/follower`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description List Organisation User Followers
+     *
+     * @tags Org users
+     * @name FollowerList
+     * @summary Organisation User Follower - List
+     * @request GET:/api/v1/users/{userId}/follower
+     * @response `200` `void` OK
+     */
+    followerList: (
+      userId: string,
+      data: FollowerType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/users/${userId}/follower`,
+        method: 'GET',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Delete Organisation User Follower Relationship (Unfollow)
+     *
+     * @tags Org users
+     * @name FollowerDelete
+     * @summary Organisation User Follower - Delete
+     * @request DELETE:/api/v1/users/{userId}/follower
+     * @response `200` `void` OK
+     */
+    followerDelete: (
+      userId: string,
+      data: FollowerType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/users/${userId}/follower`,
+        method: 'DELETE',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description List Organisation User Following
+     *
+     * @tags Org users
+     * @name FollowingList
+     * @summary Organisation User Following - List
+     * @request GET:/api/v1/users/{userId}/following
+     * @response `200` `void` OK
+     */
+    followingList: (userId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/users/${userId}/following`,
+        method: 'GET',
+        ...params,
+      }),
+
+    /**
+     * @description Check if Organisation User is following someone
+     *
+     * @tags Org users
+     * @name IsFollowing
+     * @summary Organisation User IsFollowing
+     * @request GET:/api/v1/users/{userId}/isFollowing/{followerId}
+     * @response `200` `void` OK
+     */
+    isFollowing: (
+      userId: string,
+      followerId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/users/${userId}/isFollowing/${followerId}`,
+        method: 'GET',
         ...params,
       }),
 
@@ -4048,7 +4429,7 @@ export class Api<
  * @name Create
  * @summary Create Project
  * @request POST:/api/v1/db/meta/projects/
- * @response `200` `ProjectReqType` OK
+ * @response `200` `ProjectType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -4056,14 +4437,14 @@ export class Api<
 }`
  */
     create: (
-      data: ProjectType & {
+      data: ProjectReqType & {
         /** If true, the project will us an external database else it will use the root database */
         external?: boolean;
       },
       params: RequestParams = {}
     ) =>
       this.request<
-        ProjectReqType,
+        ProjectType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -4261,6 +4642,28 @@ export class Api<
         body: data,
         type: ContentType.Json,
         format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Project
+     * @name UserMetaUpdate
+     * @summary Project user meta update
+     * @request PATCH:/api/v1/db/meta/projects/{projectId}/user
+     * @response `200` `void` OK
+     */
+    userMetaUpdate: (
+      projectId: string,
+      data: ProjectUserMetaReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/user`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
         ...params,
       }),
 
@@ -4737,6 +5140,33 @@ export class Api<
       }),
 
     /**
+     * No description
+     *
+     * @tags Base
+     * @name CreateSqlView
+     * @summary Create sql view
+     * @request POST:/api/v1/db/meta/projects/:projectId/bases/:baseId/sqlView
+     * @response `200` `object` OK
+     */
+    createSqlView: (
+      projectId: string,
+      baseId: string,
+      data: {
+        view_name?: string;
+        view_definition?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<object, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}/sqlView`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Get project base list
  * 
  * @tags Base
@@ -4797,6 +5227,42 @@ export class Api<
         body: data,
         type: ContentType.Json,
         format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name ShareErd
+     * @summary share ERD view
+     * @request POST:/api/v1/db/meta/projects/{projectId}/bases/{baseId}/share/erd
+     * @response `200` `BaseType` OK
+     */
+    shareErd: (projectId: string, baseId: string, params: RequestParams = {}) =>
+      this.request<BaseType, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}/share/erd`,
+        method: 'POST',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name DisableShareErd
+     * @request DELETE:/api/v1/db/meta/projects/{projectId}/bases/{baseId}/share/erd
+     * @response `200` `void` OK
+     */
+    disableShareErd: (
+      projectId: string,
+      baseId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}/share/erd`,
+        method: 'DELETE',
         ...params,
       }),
 
@@ -4866,6 +5332,58 @@ export class Api<
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/${baseId}/tables`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name TableMagic
+     * @request POST:/api/v1/db/meta/projects/{projectId}/{baseId}/tables/magic
+     * @response `200` `TableType` OK
+     */
+    tableMagic: (
+      projectId: string,
+      baseId: string,
+      data: {
+        table_name: string;
+        title: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<TableType, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/${baseId}/tables/magic`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name SchemaMagic
+     * @request POST:/api/v1/db/meta/projects/{projectId}/{baseId}/schema/magic
+     * @response `200` `TableType` OK
+     */
+    schemaMagic: (
+      projectId: string,
+      baseId: string,
+      data: {
+        schema_name: string;
+        title: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<TableType, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/${baseId}/schema/magic`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -6995,6 +7513,10 @@ export class Api<
       projectName: string,
       tableName: string,
       rowId: any,
+      query?: {
+        /** To get Hidden Columns */
+        getHiddenColumn?: boolean;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -7006,6 +7528,7 @@ export class Api<
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}`,
         method: 'GET',
+        query: query,
         format: 'json',
         ...params,
       }),
@@ -7030,6 +7553,10 @@ export class Api<
       tableName: string,
       rowId: any,
       data: object,
+      query?: {
+        /** To get Hidden Columns */
+        getHiddenColumn?: boolean;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -7041,6 +7568,7 @@ export class Api<
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}`,
         method: 'PATCH',
+        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -7066,6 +7594,10 @@ export class Api<
       projectName: string,
       tableName: string,
       rowId: any,
+      query?: {
+        /** To get Hidden Columns */
+        getHiddenColumn?: boolean;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -7077,6 +7609,7 @@ export class Api<
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}`,
         method: 'DELETE',
+        query: query,
         format: 'json',
         ...params,
       }),
@@ -7721,7 +8254,7 @@ export class Api<
       }),
 
     /**
- * @description Get the table view rows groupe by the given query
+ * @description Get the table view rows grouped by the given query
  * 
  * @tags DB View Row
  * @name GroupBy
@@ -8147,6 +8680,62 @@ export class Api<
       }),
 
     /**
+ * @description List all shared view rows grouped by a column
+ * 
+ * @tags Public
+ * @name DataGroupBy
+ * @summary List Shared View Rows
+ * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/groupby
+ * @response `200` `SharedViewListType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dataGroupBy: (
+      sharedViewUuid: string,
+      query?: {
+        /** Which fields to be shown */
+        fields?: any[];
+        /** The result will be sorted based on `sort` query */
+        sort?: string[] | string;
+        /** Extra filtering */
+        where?: string;
+        /**
+         * Offset in rows
+         * @min 0
+         */
+        offset?: number;
+        /**
+         * Limit in rows
+         * @min 1
+         */
+        limit?: number;
+        /** Used for multiple sort queries */
+        sortArrJson?: string;
+        /** Used for multiple filter queries */
+        filterArrJson?: string;
+        /** Columns to group by */
+        column_name?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        SharedViewListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/groupby`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description List all nested list data in a given shared view
  * 
  * @tags Public
@@ -8391,6 +8980,20 @@ export class Api<
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/meta`,
         method: 'GET',
         format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Public
+     * @name SharedErdMetaGet
+     * @request GET:/api/v1/db/public/shared-erd/{sharedErdUuid}/meta
+     */
+    sharedErdMetaGet: (sharedErdUuid: string, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/db/public/shared-erd/${sharedErdUuid}/meta`,
+        method: 'GET',
         ...params,
       }),
   };
@@ -8651,6 +9254,77 @@ export class Api<
         }
       >({
         path: `/api/v1/db/meta/connection/test`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Utils
+     * @name SelectQuery
+     * @request POST:/api/v1/db/meta/connection/select
+     * @response `200` `any` OK
+     */
+    selectQuery: (data: any, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/db/meta/connection/select`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Get select options using NocoAI
+     *
+     * @tags Utils
+     * @name Magic
+     * @summary Get generic response using NocoAI
+     * @request POST:/api/v1/db/meta/magic
+     * @response `200` `any` OK
+     */
+    magic: (
+      data: {
+        operation:
+          | 'selectOptions'
+          | 'predictColumnType'
+          | 'predictFormula'
+          | 'predictNextColumn'
+          | 'predictNextFormulas'
+          | 'generateSinglePrompt'
+          | 'generateQueryPrompt'
+          | 'generateSQL'
+          | 'repairSQL';
+        data?: object;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/meta/magic`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Get dynamic command palette suggestions based on scope
+     *
+     * @tags Utils
+     * @name CommandPalette
+     * @summary Get command palette suggestions
+     * @request POST:/api/v1/command_palette
+     * @response `200` `any` OK
+     */
+    commandPalette: (data: any, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/command_palette`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -9323,6 +9997,126 @@ export class Api<
         ...params,
       }),
   };
+  cowriterTable = {
+    /**
+     * No description
+     *
+     * @tags Cowriter Table
+     * @name Create
+     * @summary Cowriter Create
+     * @request POST:/api/v1/cowriter/meta/tables/{tableId}
+     * @response `200` `any` OK
+     */
+    create: (tableId: string, data: object, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/cowriter/meta/tables/${tableId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Cowriter Table
+     * @name List
+     * @summary Cowriter List
+     * @request GET:/api/v1/cowriter/meta/tables/{tableId}
+     * @response `200` `any` OK
+     */
+    list: (tableId: string, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/cowriter/meta/tables/${tableId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Cowriter Table
+     * @name Get
+     * @summary Cowriter Get
+     * @request GET:/api/v1/cowriter/meta/tables/{tableId}/{cowriterId}
+     * @response `200` `any` OK
+     * @response `0` `any`
+     */
+    get: (tableId: string, cowriterId: string, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/cowriter/meta/tables/${tableId}/${cowriterId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Cowriter Table
+     * @name Patch
+     * @summary Cowriter Patch
+     * @request PATCH:/api/v1/cowriter/meta/tables/{tableId}/{cowriterId}
+     * @response `200` `void` OK
+     */
+    patch: (
+      tableId: string,
+      cowriterId: string,
+      data: any,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/cowriter/meta/tables/${tableId}/${cowriterId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Generate Columns using AI
+     *
+     * @tags Cowriter Table
+     * @name GenerateColumns
+     * @summary Cowriter Generate Columns
+     * @request POST:/api/v1/cowriter/meta/tables/{tableId}/generate-columns
+     * @response `200` `void` OK
+     */
+    generateColumns: (
+      tableId: string,
+      data: {
+        title?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/cowriter/meta/tables/${tableId}/generate-columns`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Cowriter Table
+     * @name CreateBulk
+     * @summary Cowriter Create Bulk
+     * @request POST:/api/v1/cowriter/meta/tables/{tableId}/bulk
+     * @response `200` `void` OK
+     */
+    createBulk: (tableId: string, data: any[], params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/cowriter/meta/tables/${tableId}/bulk`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+  };
   plugin = {
     /**
  * @description List all plugins
@@ -9356,6 +10150,43 @@ export class Api<
         }
       >({
         path: `/api/v1/db/meta/plugins`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description List all webhook plugins
+ * 
+ * @tags Plugin
+ * @name WebhookList
+ * @summary Webhook List Plugins
+ * @request GET:/api/v1/db/meta/plugins/webhook
+ * @response `200` `{
+  list?: (PluginType)[],
+  \** Model for Paginated *\
+  pageInfo?: PaginatedType,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    webhookList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          list?: PluginType[];
+          /** Model for Paginated */
+          pageInfo?: PaginatedType;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/plugins/webhook`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -9626,6 +10457,86 @@ export class Api<
         query: query,
         body: data,
         type: ContentType.Json,
+        ...params,
+      }),
+  };
+  notification = {
+    /**
+     * @description List notifications
+     *
+     * @tags Notification
+     * @name List
+     * @summary Notification list
+     * @request GET:/api/v1/notifications
+     * @response `200` `NotificationListType` OK
+     */
+    list: (
+      query?: {
+        is_read?: boolean;
+        limit?: number;
+        offset?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<NotificationListType, any>({
+        path: `/api/v1/notifications`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Notificattion update
+     *
+     * @tags Notification
+     * @name Update
+     * @summary Notification update
+     * @request PATCH:/api/v1/notifications/{notificationId}
+     * @response `200` `void` OK
+     */
+    update: (
+      notificationId: string,
+      data: NotificationUpdateType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/notifications/${notificationId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Delete notification
+     *
+     * @tags Notification
+     * @name Delete
+     * @summary Delete notification
+     * @request DELETE:/api/v1/notifications/{notificationId}
+     * @response `200` `void` OK
+     */
+    delete: (notificationId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/notifications/${notificationId}`,
+        method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * @description Mark all notifications as read
+     *
+     * @tags Notification
+     * @name MarkAllAsRead
+     * @summary Mark all notifications as read
+     * @request POST:/api/v1/notifications/mark-all-read
+     * @response `200` `void` OK
+     */
+    markAllAsRead: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/notifications/mark-all-read`,
+        method: 'POST',
         ...params,
       }),
   };

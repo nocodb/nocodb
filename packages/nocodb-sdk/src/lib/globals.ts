@@ -6,6 +6,13 @@ export enum ViewTypes {
   MAP = 5,
 }
 
+export enum ProjectTypes {
+  DATABASE = 'database',
+  DOCUMENTATION = 'documentation',
+  COWRITER = 'cowriter',
+  DASHBOARD = 'dashboard',
+}
+
 export enum RelationTypes {
   HAS_MANY = 'hm',
   BELONGS_TO = 'bt',
@@ -75,4 +82,41 @@ export enum ModelTypes {
 
 export enum ProjectStatus {
   JOB = 'job',
+}
+
+export enum TiptapNodesTypes {
+  doc = 'doc',
+  sec = 'sec',
+  paragraph = 'paragraph',
+  text = 'text',
+  heading = 'heading',
+  bullet = 'bullet',
+  ordered = 'ordered',
+  task = 'task',
+  quote = 'quote',
+  divider = 'divider',
+  codeBlock = 'codeBlock',
+  image = 'image',
+  callout = 'callout',
+  tipCallout = 'tipCallout',
+  table = 'table',
+  tableRow = 'tableRow',
+  tableCell = 'tableCell',
+  embed = 'embed',
+  collapsable = 'collapsable',
+  collapsableContent = 'collapsable_content',
+  collapsableHeader = 'collapsable_header',
+  column = 'column',
+  columnContent = 'columnContent',
+  linkToPage = 'linkToPage',
+  attachment = 'attachment',
+}
+
+export enum TiptapMarksTypes {
+  strike = 'strike',
+  bold = 'bold',
+  italic = 'italic',
+  link = 'link',
+  code = 'code',
+  underline = 'underline',
 }

@@ -40,14 +40,14 @@ const resetAndSeedSakila = async () => {
   }
 };
 
-const cleanUpSakila = async () => {
+const cleanUpSakila = async (forceReset) => {
   try {
     const sakilaProject = await Project.getByTitle('sakila');
 
     const audits =
       sakilaProject && (await Audit.projectAuditList(sakilaProject.id, {}));
 
-    if (audits?.length > 0) {
+    if (audits?.length > 0 || forceReset) {
       // if PG, drop schema
       if (TestDbMngr.isPg()) {
         return await dropSchemaAndSeedSakila();

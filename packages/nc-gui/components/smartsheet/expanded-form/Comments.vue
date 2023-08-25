@@ -20,16 +20,16 @@ const { user } = useGlobal()
 
 const { isUIAllowed } = useUIPermission()
 
-const hasEditPermission = $computed(() => isUIAllowed('commentEditable'))
+const hasEditPermission = computed(() => isUIAllowed('commentEditable'))
 
 // currently, edit option is disable on purpose
 // since the current update wouldn't keep track of the previous values
 // need history of edit feature in order to enable it back
 const disableEditOption = ref(true)
 
-let editLog = $ref<AuditType>()
+const editLog = ref<AuditType>()
 
-let isEditing = $ref<boolean>(false)
+const isEditing = ref<boolean>(false)
 
 const focusInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
@@ -54,26 +54,26 @@ function onKeyEsc(event: KeyboardEvent) {
 }
 
 async function onEditComment() {
-  if (!isEditing || !editLog) return
-  await updateComment(editLog.id!, {
-    description: editLog.description,
+  if (!isEditing.value || !editLog.value) return
+  await updateComment(editLog.value.id!, {
+    description: editLog.value.description,
   })
   onStopEdit()
 }
 
 function onCancel() {
-  if (!isEditing) return
-  editLog = undefined
+  if (!isEditing.value) return
+  editLog.value = undefined
   onStopEdit()
 }
 
 function onStopEdit() {
-  isEditing = false
-  editLog = undefined
+  isEditing.value = false
+  editLog.value = undefined
 }
 
 onKeyStroke('Enter', (event) => {
-  if (isEditing) {
+  if (isEditing.value) {
     onKeyEnter(event)
   }
 })
@@ -83,7 +83,7 @@ const _contextMenu = ref(false)
 const contextMenu = computed({
   get: () => _contextMenu.value,
   set: (val) => {
-    if (hasEditPermission) {
+    if (hasEditPermission.value) {
       _contextMenu.value = val
     }
   },
@@ -100,8 +100,8 @@ async function copyComment(val: string) {
 }
 
 function editComment(log: AuditType) {
-  editLog = log
-  isEditing = true
+  editLog.value = log
+  isEditing.value = true
 }
 
 watch(
@@ -117,16 +117,18 @@ watch(
 </script>
 
 <template>
-  <div class="h-full flex flex-col w-full bg-[#eceff1] p-2">
+  <div class="h-full flex flex-col w-full bg-gray-100 p-2">
     <div ref="commentsWrapperEl" class="flex-1 min-h-[100px] overflow-y-auto scrollbar-thin-dull p-2 space-y-2">
       <a-skeleton v-if="isCommentsLoading" type="list-item-avatar-two-line@8" />
       <template v-else-if="commentsAndLogs.length === 0">
         <div class="flex flex-col text-center justify-center h-full">
-          <div class="text-center text-3xl">
+          <div class="text-center text-3xl text-gray-300">
             <MdiChatProcessingOutline />
           </div>
-          <div class="font-bold text-center my-1">Start a conversation</div>
-          <div>NocoDB allows you to inquire, monitor progress updates, and collaborate with your team members.</div>
+          <div class="font-bold text-center my-1 text-gray-400">Start a conversation</div>
+          <div class="text-gray-400">
+            NocoDB allows you to inquire, monitor progress updates, and collaborate with your team members.
+          </div>
         </div>
       </template>
       <template v-else>
@@ -136,7 +138,7 @@ watch(
               <component
                 :is="iconMap.accountCircle"
                 class="row-span-2"
-                :class="isYou(log.user) ? 'text-pink-300' : 'text-blue-300 '"
+                :class="isYou(log.user) ? 'text-pink-600' : 'text-blue-600 '"
               />
 
               <div class="flex-1">
@@ -206,7 +208,7 @@ watch(
         </a-checkbox>
       </div>
 
-      <div class="shrink mt-2 flex">
+      <div v-if="hasEditPermission" class="shrink mt-2 flex">
         <a-input
           v-model:value="comment"
           class="!text-xs nc-comment-box"
@@ -218,7 +220,7 @@ watch(
         >
           <template #addonBefore>
             <div class="flex items-center">
-              <component :is="iconMap.accountCircle" class="text-lg text-pink-300" small @click="saveComment" />
+              <component :is="iconMap.accountCircle" class="text-lg text-pink-700" small @click="saveComment" />
             </div>
           </template>
 

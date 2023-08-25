@@ -18,7 +18,7 @@ const { hideMinimap, lang = 'json', validate = true, disableDeepCompare = false,
 
 const emits = defineEmits(['update:modelValue'])
 
-let vModel = $computed<string>({
+const vModel = computed<string>({
   get: () => {
     if (typeof modelValue === 'object') {
       return JSON.stringify(modelValue, null, 2)
@@ -75,7 +75,7 @@ onMounted(async () => {
   const { editor: monacoEditor, languages } = await import('monaco-editor')
 
   if (root.value && lang) {
-    const model = monacoEditor.createModel(vModel, lang)
+    const model = monacoEditor.createModel(vModel.value, lang)
 
     if (lang === 'json') {
       // configure the JSON language support with schemas and schema associations
@@ -105,12 +105,12 @@ onMounted(async () => {
       try {
         isValid.value = true
 
-        if (disableDeepCompare) {
-          vModel = editor.getValue()
+        if (disableDeepCompare || lang !== 'json') {
+          vModel.value = editor.getValue()
         } else {
           const obj = JSON.parse(editor.getValue())
 
-          if (!obj || !deepCompare(vModel, obj)) vModel = obj
+          if (!obj || !deepCompare(vModel.value, obj)) vModel.value = obj
         }
       } catch (e) {
         isValid.value = false
@@ -125,11 +125,11 @@ onMounted(async () => {
   }
 })
 
-watch($$(vModel), (v) => {
+watch(vModel, (v) => {
   if (!editor || !v) return
 
   const editorValue = editor?.getValue()
-  if (!disableDeepCompare) {
+  if (!disableDeepCompare && lang === 'json') {
     if (!editorValue || !deepCompare(JSON.parse(v), JSON.parse(editorValue))) {
       editor.setValue(v)
     }
@@ -137,6 +137,15 @@ watch($$(vModel), (v) => {
     if (editorValue !== v) editor.setValue(v)
   }
 })
+
+watch(
+  () => readOnly,
+  (v) => {
+    if (!editor) return
+
+    editor.updateOptions({ readOnly: v })
+  },
+)
 </script>
 
 <template>

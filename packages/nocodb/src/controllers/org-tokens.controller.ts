@@ -11,15 +11,12 @@ import {
 } from '@nestjs/common';
 import { ApiTokenReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
-import { getConditionalHandler } from '../helpers/getHandler';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { OrgTokensEeService } from '../services/org-tokens-ee.service';
-import { OrgTokensService } from '../services/org-tokens.service';
+import { getConditionalHandler } from '~/helpers/getHandler';
+import { OrgTokensEeService } from '~/services/org-tokens-ee.service';
+import { OrgTokensService } from '~/services/org-tokens.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
-@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'))
 @Controller()
 export class OrgTokensController {
   constructor(
@@ -59,7 +56,6 @@ export class OrgTokensController {
     blockApiTokenAccess: true,
   })
   async apiTokenDelete(@Request() req, @Param('token') token: string) {
-    return;
     await this.orgTokensService.apiTokenDelete({
       token,
       user: req['user'],

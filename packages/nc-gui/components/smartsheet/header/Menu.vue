@@ -1,12 +1,11 @@
 <script lang="ts" setup>
-import type { ColumnReqType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes } from 'nocodb-sdk'
+import type { ColumnReqType } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   ColumnInj,
   IsLockedInj,
   MetaInj,
-  Modal,
   ReloadViewDataHookInj,
   SmartsheetStoreEvents,
   extractSdkResponseErrorMsg,
@@ -14,25 +13,23 @@ import {
   iconMap,
   inject,
   message,
-  useGlobal,
+  toRef,
   useI18n,
   useMetas,
   useNuxtApp,
-  useProject,
   useSmartsheetStoreOrThrow,
   useUndoRedo,
 } from '#imports'
-import type { UndoRedoAction } from '~~/lib'
 
-const { virtual = false } = defineProps<{ virtual?: boolean }>()
+const props = defineProps<{ virtual?: boolean; isOpen: boolean }>()
 
-const emit = defineEmits(['edit', 'addColumn'])
+const emit = defineEmits(['edit', 'addColumn', 'update:isOpen'])
+
+const virtual = toRef(props, 'virtual')
+
+const isOpen = useVModel(props, 'isOpen', emit)
 
 const { eventBus } = useSmartsheetStoreOrThrow()
-
-const { includeM2M } = useGlobal()
-
-const { loadTables } = useProject()
 
 const column = inject(ColumnInj)
 
@@ -41,6 +38,8 @@ const reloadDataHook = inject(ReloadViewDataHookInj)
 const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
+
+const { insertSort } = useViewSorts(view, () => reloadDataHook?.trigger())
 
 const isLocked = inject(IsLockedInj)
 
@@ -52,39 +51,13 @@ const { getMeta } = useMetas()
 
 const { addUndo, defineModelScope, defineViewScope } = useUndoRedo()
 
-const deleteColumn = () =>
-  Modal.confirm({
-    title: h('div', ['Do you want to delete ', h('span', { class: 'font-weight-bold' }, [column?.value?.title]), ' column ?']),
-    wrapClassName: 'nc-modal-column-delete',
-    okText: t('general.delete'),
-    okType: 'danger',
-    cancelText: t('general.cancel'),
-    async onOk() {
-      try {
-        await $api.dbTableColumn.delete(column?.value?.id as string)
-
-        await getMeta(meta?.value?.id as string, true)
-
-        /** force-reload related table meta if deleted column is a LTAR and not linked to same table */
-        if (column?.value?.uidt === UITypes.LinkToAnotherRecord && column.value?.colOptions) {
-          await getMeta((column.value?.colOptions as LinkToAnotherRecordType).fk_related_model_id!, true)
-
-          // reload tables if deleted column is mm and include m2m is true
-          if (includeM2M.value && (column.value?.colOptions as LinkToAnotherRecordType).type === RelationTypes.MANY_TO_MANY) {
-            loadTables()
-          }
-        }
-
-        $e('a:column:delete')
-      } catch (e: any) {
-        message.error(await extractSdkResponseErrorMsg(e))
-      }
-    },
-  })
+const showDeleteColumnModal = ref(false)
 
 const setAsDisplayValue = async () => {
   try {
     const currentDisplayValue = meta?.value?.columns?.find((f) => f.pv)
+
+    isOpen.value = false
 
     await $api.dbTableColumn.primaryColumnSet(column?.value?.id as string)
 
@@ -93,7 +66,7 @@ const setAsDisplayValue = async () => {
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
 
     // Successfully updated as primary column
-    message.success(t('msg.success.primaryColumnUpdated'))
+    // message.success(t('msg.success.primaryColumnUpdated'))
 
     $e('a:column:set-primary')
 
@@ -107,7 +80,7 @@ const setAsDisplayValue = async () => {
           eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
 
           // Successfully updated as primary column
-          message.success(t('msg.success.primaryColumnUpdated'))
+          // message.success(t('msg.success.primaryColumnUpdated'))
         },
         args: [column?.value?.id as string],
       },
@@ -120,7 +93,7 @@ const setAsDisplayValue = async () => {
           eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
 
           // Successfully updated as primary column
-          message.success(t('msg.success.primaryColumnUpdated'))
+          // message.success(t('msg.success.primaryColumnUpdated'))
         },
         args: [currentDisplayValue?.id],
       },
@@ -132,44 +105,11 @@ const setAsDisplayValue = async () => {
 }
 
 const sortByColumn = async (direction: 'asc' | 'desc') => {
-  try {
-    $e('a:sort:add', { from: 'column-menu' })
-    const data: any = await $api.dbTableSort.create(view.value?.id as string, {
-      fk_column_id: column!.value.id,
-      direction,
-      push_to_top: true,
-    })
-
-    addUndo({
-      redo: {
-        fn: async function redo(this: UndoRedoAction) {
-          const data: any = await $api.dbTableSort.create(view.value?.id as string, {
-            fk_column_id: column!.value.id,
-            direction,
-            push_to_top: true,
-          })
-          this.undo.args = [data.id]
-          eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
-          reloadDataHook?.trigger()
-        },
-        args: [],
-      },
-      undo: {
-        fn: async function undo(id: string) {
-          await $api.dbTableSort.delete(id)
-          eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
-          reloadDataHook?.trigger()
-        },
-        args: [data.id],
-      },
-      scope: defineViewScope({ view: view.value }),
-    })
-
-    eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
-    reloadDataHook?.trigger()
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
+  await insertSort({
+    column: column!.value,
+    direction,
+    reloadDataHook,
+  })
 }
 
 const duplicateColumn = async () => {
@@ -181,6 +121,7 @@ const duplicateColumn = async () => {
   // construct column create payload
   switch (column?.value.uidt) {
     case UITypes.LinkToAnotherRecord:
+    case UITypes.Links:
     case UITypes.Lookup:
     case UITypes.Rollup:
     case UITypes.Formula:
@@ -239,10 +180,12 @@ const duplicateColumn = async () => {
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     reloadDataHook?.trigger()
 
-    message.success(t('msg.success.columnDuplicated'))
+    // message.success(t('msg.success.columnDuplicated'))
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
+  // closing dropdown
+  isOpen.value = false
 }
 
 // add column before or after current column
@@ -301,77 +244,61 @@ const hideField = async () => {
     scope: defineViewScope({ view: view.value }),
   })
 }
+
+const handleDelete = () => {
+  // closing the dropdown
+  // when modal opens
+  isOpen.value = false
+  showDeleteColumnModal.value = true
+}
+
+const onEditPress = () => {
+  isOpen.value = false
+  emit('edit')
+}
+
+const onInsertBefore = () => {
+  isOpen.value = false
+  addColumn(true)
+}
+const onInsertAfter = () => {
+  isOpen.value = false
+  addColumn()
+}
 </script>
 
 <template>
-  <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']" overlay-class-name="nc-dropdown-column-operations">
-    <div><GeneralIcon icon="arrowDown" class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2" /></div>
+  <a-dropdown
+    v-if="!isLocked"
+    v-model:visible="isOpen"
+    :trigger="['click']"
+    placement="bottomRight"
+    overlay-class-name="nc-dropdown-column-operations"
+    @click.stop="isOpen = !isOpen"
+  >
+    <div>
+      <GeneralIcon icon="arrowDown" class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2" />
+    </div>
     <template #overlay>
-      <a-menu class="shadow bg-white">
-        <a-menu-item @click="emit('edit')">
+      <a-menu class="shadow bg-white nc-column-options">
+        <a-menu-item @click="onEditPress">
           <div class="nc-column-edit nc-header-menu-item">
-            <component :is="iconMap.edit" class="text-primary" />
+            <component :is="iconMap.edit" class="text-gray-700 mx-0.65 my-0.75" />
             <!-- Edit -->
             {{ $t('general.edit') }}
           </div>
         </a-menu-item>
-        <template v-if="column.uidt !== UITypes.LinkToAnotherRecord || column.colOptions.type !== RelationTypes.BELONGS_TO">
-          <a-divider class="!my-0" />
-          <a-menu-item @click="sortByColumn('asc')">
-            <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
-              <component :is="iconMap.sortAsc" class="text-primary" />
-              <!-- Sort Ascending -->
-              {{ $t('general.sortAsc') }}
-            </div>
-          </a-menu-item>
-          <a-menu-item @click="sortByColumn('desc')">
-            <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
-              <component :is="iconMap.sortDesc" class="text-primary" />
-              <!-- Sort Descending -->
-              {{ $t('general.sortDesc') }}
-            </div>
-          </a-menu-item>
-        </template>
-        <a-divider class="!my-0" />
+        <a-divider v-if="!column?.pv" class="!my-0" />
         <a-menu-item v-if="!column?.pv" @click="hideField">
-          <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
-            <component :is="iconMap.eye" class="text-primary" />
+          <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item my-0.5">
+            <component :is="iconMap.eye" class="text-gray-700 mx-0.75 !w-3.75 !h-3.75 ml-0.75 mr-0.5" />
             <!-- Hide Field -->
             {{ $t('general.hideField') }}
           </div>
         </a-menu-item>
-
-        <a-divider class="!my-0" />
-
-        <a-menu-item
-          v-if="column.uidt !== UITypes.LinkToAnotherRecord && column.uidt !== UITypes.Lookup && !column.pk"
-          @click="duplicateColumn"
-        >
-          <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
-            <component :is="iconMap.duplicate" class="text-primary" />
-            <!-- Duplicate -->
-            {{ t('general.duplicate') }}
-          </div>
-        </a-menu-item>
-        <a-menu-item @click="addColumn()">
-          <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
-            <component :is="iconMap.colInsertAfter" class="text-primary" />
-            <!-- Insert After -->
-            {{ t('general.insertAfter') }}
-          </div>
-        </a-menu-item>
-        <a-menu-item v-if="!column?.pv" @click="addColumn(true)">
-          <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
-            <component :is="iconMap.colInsertBefore" class="text-primary" />
-            <!-- Insert Before -->
-            {{ t('general.insertBefore') }}
-          </div>
-        </a-menu-item>
-        <a-divider class="!my-0" />
-
         <a-menu-item v-if="(!virtual || column?.uidt === UITypes.Formula) && !column?.pv" @click="setAsDisplayValue">
-          <div class="nc-column-set-primary nc-header-menu-item">
-            <GeneralIcon icon="star" class="text-primary" />
+          <div class="nc-column-set-primary nc-header-menu-item item my-0.5">
+            <GeneralIcon icon="star" class="text-gray-700 !w-4.25 !h-4.25 ml-0.5 mr-0.25 -mt-0.5" />
 
             <!--       todo : tooltip -->
             <!-- Set as Display value -->
@@ -379,9 +306,63 @@ const hideField = async () => {
           </div>
         </a-menu-item>
 
-        <a-menu-item v-if="!column?.pv" @click="deleteColumn">
-          <div class="nc-column-delete nc-header-menu-item">
-            <component :is="iconMap.delete" class="text-error" />
+        <a-divider class="!my-0" />
+
+        <template v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
+          <a-menu-item @click="sortByColumn('asc')">
+            <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
+              <component
+                :is="iconMap.sortDesc"
+                class="text-gray-700 !rotate-180 !w-4.25 !h-4.25 ml-0.5 mr-0.25"
+                :style="{
+                  transform: 'rotate(180deg)',
+                }"
+              />
+
+              <!-- Sort Ascending -->
+              {{ $t('general.sortAsc') }}
+            </div>
+          </a-menu-item>
+          <a-menu-item @click="sortByColumn('desc')">
+            <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
+              <component :is="iconMap.sortDesc" class="text-gray-700 !w-4.25 !h-4.25 ml-0.5 mr-0.25" />
+              <!-- Sort Descending -->
+              {{ $t('general.sortDesc') }}
+            </div>
+          </a-menu-item>
+        </template>
+
+        <a-divider class="!my-0" />
+
+        <a-menu-item
+          v-if="column.uidt !== UITypes.LinkToAnotherRecord && column.uidt !== UITypes.Lookup && !column.pk"
+          @click="duplicateColumn"
+        >
+          <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item my-0.5">
+            <component :is="iconMap.duplicate" class="text-gray-700 mx-0.75" />
+            <!-- Duplicate -->
+            {{ t('general.duplicate') }}
+          </div>
+        </a-menu-item>
+        <a-menu-item @click="onInsertAfter">
+          <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
+            <component :is="iconMap.colInsertAfter" class="text-gray-700 !w-4.5 !h-4.5 ml-0.75" />
+            <!-- Insert After -->
+            {{ t('general.insertAfter') }}
+          </div>
+        </a-menu-item>
+        <a-menu-item v-if="!column?.pv" @click="onInsertBefore">
+          <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
+            <component :is="iconMap.colInsertBefore" class="text-gray-600 !w-4.5 !h-4.5 mr-1.5 -ml-0.75" />
+            <!-- Insert Before -->
+            {{ t('general.insertBefore') }}
+          </div>
+        </a-menu-item>
+        <a-divider class="!my-0" />
+
+        <a-menu-item v-if="!column?.pv" @click="handleDelete">
+          <div class="nc-column-delete nc-header-menu-item my-0.75 text-red-600">
+            <component :is="iconMap.delete" class="ml-0.75 mr-1" />
             <!-- Delete -->
             {{ $t('general.delete') }}
           </div>
@@ -389,10 +370,21 @@ const hideField = async () => {
       </a-menu>
     </template>
   </a-dropdown>
+  <SmartsheetHeaderDeleteColumnModal v-model:visible="showDeleteColumnModal" />
 </template>
 
 <style scoped>
 .nc-header-menu-item {
   @apply text-xs flex items-center px-1 py-2 gap-1;
+}
+
+.nc-column-options {
+  .nc-icons {
+    @apply !w-5 !h-5;
+  }
+}
+
+:deep(.ant-dropdown-menu-item) {
+  @apply !hover:text-black text-gray-700;
 }
 </style>

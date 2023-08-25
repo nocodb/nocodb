@@ -1,20 +1,17 @@
 import { Readable } from 'stream';
-import { UITypes, ViewTypes } from 'nocodb-sdk';
+import { isLinksOrLTAR, UITypes, ViewTypes } from 'nocodb-sdk';
 import { unparse } from 'papaparse';
 import { Injectable, Logger } from '@nestjs/common';
-import NcConnectionMgrv2 from '../../../../utils/common/NcConnectionMgrv2';
-import { getViewAndModelByAliasOrId } from '../../../datas/helpers';
-import {
-  clearPrefix,
-  generateBaseIdMap,
-} from '../../../../helpers/exportImportHelpers';
-import NcPluginMgrv2 from '../../../../helpers/NcPluginMgrv2';
-import { NcError } from '../../../../helpers/catchError';
-import { Base, Hook, Model, Project } from '../../../../models';
-import { DatasService } from '../../../../services/datas.service';
 import { elapsedTime, initTime } from '../../helpers';
-import type { BaseModelSqlv2 } from '../../../../db/BaseModelSqlv2';
-import type { View } from '../../../../models';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type { View } from '~/models';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
+import { clearPrefix, generateBaseIdMap } from '~/helpers/exportImportHelpers';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import { NcError } from '~/helpers/catchError';
+import { DatasService } from '~/services/datas.service';
+import { Base, Hook, Model, Project } from '~/models';
 
 @Injectable()
 export class ExportService {
@@ -26,9 +23,11 @@ export class ExportService {
     modelIds: string[];
     excludeViews?: boolean;
     excludeHooks?: boolean;
+    excludeData?: boolean;
   }) {
     const { modelIds } = param;
 
+    const excludeData = param?.excludeData || false;
     const excludeViews = param?.excludeViews || false;
     const excludeHooks = param?.excludeHooks || false;
 
@@ -43,6 +42,8 @@ export class ExportService {
 
     for (const modelId of modelIds) {
       const model = await Model.get(modelId);
+
+      let pgSerialLastVal;
 
       if (!model)
         return NcError.badRequest(`Model not found for id '${modelId}'`);
@@ -70,6 +71,35 @@ export class ExportService {
 
       for (const column of model.columns) {
         await column.getColOptions();
+
+        // if data is not excluded, get currval for ai column (pg)
+        if (!excludeData) {
+          if (base.type === 'pg') {
+            if (column.ai) {
+              try {
+                const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
+                const seq = await sqlClient.knex.raw(
+                  `SELECT pg_get_serial_sequence('??', ?) as seq;`,
+                  [model.table_name, column.column_name],
+                );
+                if (seq.rows.length > 0) {
+                  const seqName = seq.rows[0].seq;
+
+                  const res = await sqlClient.knex.raw(
+                    `SELECT last_value as last FROM ${seqName};`,
+                  );
+
+                  if (res.rows.length > 0) {
+                    pgSerialLastVal = res.rows[0].last;
+                  }
+                }
+              } catch (e) {
+                this.logger.error(e);
+              }
+            }
+          }
+        }
+
         if (column.colOptions) {
           for (const [k, v] of Object.entries(column.colOptions)) {
             switch (k) {
@@ -238,6 +268,7 @@ export class ExportService {
           prefix: project.prefix,
           title: model.title,
           table_name: clearPrefix(model.table_name, project.prefix),
+          pgSerialLastVal,
           meta: model.meta,
           columns: model.columns.map((column) => ({
             id: idMap.get(column.id),
@@ -352,14 +383,12 @@ export class ExportService {
           .map((c) => c.title)
           .join(',')
       : model.columns
-          .filter((c) => c.uidt !== UITypes.LinkToAnotherRecord)
+          .filter((c) => !isLinksOrLTAR(c))
           .map((c) => c.title)
           .join(',');
 
     const mmColumns = model.columns.filter(
-      (col) =>
-        col.uidt === UITypes.LinkToAnotherRecord &&
-        col.colOptions?.type === 'mm',
+      (col) => isLinksOrLTAR(col) && col.colOptions?.type === 'mm',
     );
 
     const hasLink = mmColumns.length > 0;

@@ -1,23 +1,36 @@
 <script setup lang="ts">
-import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import type { BaseType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import { isLinksOrLTAR } from 'nocodb-sdk'
 import type { ERDConfig } from './utils'
 import { reactive, ref, storeToRefs, useMetas, useProject, watch } from '#imports'
 
-const props = defineProps<{ table?: TableType; baseId?: string }>()
+const props = defineProps({
+  baseId: {
+    type: String,
+    default: '',
+  },
+  table: {
+    type: Object as PropType<TableType>,
+    default: null,
+  },
+  showAllColumns: {
+    type: Boolean,
+    default: true,
+  },
+})
 
-const { tables: projectTables } = storeToRefs(useProject())
+const { bases, tables: projectTables } = storeToRefs(useProject())
 
 const { metas, getMeta } = useMetas()
 
 const tables = ref<TableType[]>([])
 
-let isLoading = $ref(true)
+const isLoading = ref(true)
 
 const config = reactive<ERDConfig>({
   showPkAndFk: true,
   showViews: false,
-  showAllColumns: true,
+  showAllColumns: props.showAllColumns,
   singleTableMode: !!props.table,
   showMMTables: false,
   showJunctionTableNames: false,
@@ -41,11 +54,9 @@ const populateTables = async () => {
     localTables = projectTables.value.filter(
       (t) =>
         t.id === props.table?.id ||
-        props.table?.columns?.find(
-          (column) =>
-            column.uidt === UITypes.LinkToAnotherRecord &&
-            (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id === t.id,
-        ),
+        metas.value[props.table!.id!].columns?.find((column) => {
+          return isLinksOrLTAR(column.uidt) && (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id === t.id
+        }),
     )
   } else {
     localTables = projectTables.value
@@ -63,7 +74,7 @@ const populateTables = async () => {
     )
     .filter((t) => config.singleTableMode || (!config.showViews && t.type !== 'view') || config.showViews)
 
-  isLoading = false
+  isLoading.value = false
 }
 
 const toggleFullScreen = () => {
@@ -80,7 +91,11 @@ watch(config, populateTables, {
   deep: true,
 })
 
-const filteredTables = computed(() => tables.value.filter((t) => !props.baseId || t.base_id === props.baseId))
+const filteredTables = computed(() =>
+  tables.value.filter((t) =>
+    props?.baseId ? t.base_id === props.baseId : t.base_id === bases.value?.filter((base: BaseType) => base.enabled)[0].id,
+  ),
+)
 
 watch(
   () => config.showAllColumns,
@@ -92,7 +107,7 @@ watch(
 
 <template>
   <div
-    class="w-full bg-white"
+    class="w-full bg-white border-1 border-gray-100 rounded-lg"
     :class="{
       'z-100 h-screen w-screen fixed top-0 left-0 right-0 bottom-0': config.isFullScreen,
       'nc-erd-vue-flow-single-table': config.singleTableMode,

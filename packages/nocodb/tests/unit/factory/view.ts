@@ -48,6 +48,24 @@ const createView = async (
   return view;
 };
 
+const getView = async (
+  context,
+  { table, name }: { table: Model; name: string },
+) => {
+  const response = await request(context.app)
+    .get(`/api/v1/db/meta/tables/${table.id}/views`)
+    .set('xc-auth', context.token);
+  if (response.status !== 200) {
+    throw new Error('List Views', response.body.message);
+  }
+  const _view = response.body.list.find((v) => v.title === name);
+  const view = View.getByTitleOrId({
+    titleOrId: _view.id,
+    fk_model_id: _view.fk_model_id,
+  });
+  return view;
+};
+
 const updateView = async (
   context,
   {
@@ -103,4 +121,4 @@ const updateView = async (
   }
 };
 
-export { createView, updateView };
+export { createView, updateView, getView };

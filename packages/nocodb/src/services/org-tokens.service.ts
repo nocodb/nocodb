@@ -1,16 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { OrgUserRoles } from 'nocodb-sdk';
-import { T } from 'nc-help';
-import { validatePayload } from '../helpers';
-import { NcError } from '../helpers/catchError';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import { ApiToken } from '../models';
-import extractRolesObj from '../utils/extractRolesObj';
-import type { User } from '../models';
+import { AppEvents, OrgUserRoles } from 'nocodb-sdk';
+import type { User } from '~/models';
 import type { ApiTokenReqType } from 'nocodb-sdk';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { validatePayload } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import extractRolesObj from '~/utils/extractRolesObj';
+import { ApiToken } from '~/models';
 
 @Injectable()
 export class OrgTokensService {
+  constructor(private readonly appHooksService: AppHooksService) {}
+
   async apiTokenList(param: { user: User; query: any }) {
     const fk_user_id = param.user.id;
     let includeUnmappedToken = false;
@@ -40,11 +42,17 @@ export class OrgTokensService {
       param.apiToken,
     );
 
-    T.emit('evt', { evt_type: 'org:apiToken:created' });
-    return await ApiToken.insert({
+    const apiToken = await ApiToken.insert({
       ...param.apiToken,
       fk_user_id: param['user'].id,
     });
+
+    this.appHooksService.emit(AppEvents.ORG_API_TOKEN_CREATE, {
+      tokenBody: param.apiToken,
+      userId: param.user?.id,
+    });
+
+    return apiToken;
   }
 
   async apiTokenDelete(param: { user: User; token: string }) {
@@ -56,7 +64,13 @@ export class OrgTokensService {
     ) {
       NcError.notFound('Token not found');
     }
-    T.emit('evt', { evt_type: 'org:apiToken:deleted' });
-    return await ApiToken.delete(param.token);
+    const res = await ApiToken.delete(param.token);
+
+    this.appHooksService.emit(AppEvents.ORG_API_TOKEN_DELETE, {
+      token: param.token,
+      userId: param.user?.id,
+    });
+
+    return res;
   }
 }

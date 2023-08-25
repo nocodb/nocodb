@@ -61,9 +61,9 @@ export class ImportTemplatePage extends BasePage {
 
     await this.get().locator('button:has-text("Back"):visible').waitFor();
     await this.waitForResponse({
-      requestUrlPathToMatch: '/api/v1/db/data/noco/',
-      httpMethodsToMatch: ['GET'],
-      uiAction: async () => await this.get().locator('button:has-text("Import"):visible').click(),
+      requestUrlPathToMatch: '/api/v1/db/data/bulk/',
+      httpMethodsToMatch: ['POST'],
+      uiAction: () => this.get().locator('button:has-text("Import"):visible').click(),
     });
     await this.dashboard.waitForTabRender({
       title: tblList[0],

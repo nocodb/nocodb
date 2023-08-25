@@ -17,7 +17,6 @@ import {
   inject,
   isImage,
   isLTAR,
-  onBeforeMount,
   onBeforeUnmount,
   provide,
   useAttachment,
@@ -25,7 +24,7 @@ import {
   useKanbanViewStoreOrThrow,
   useUndoRedo,
 } from '#imports'
-import type { Row as RowType } from '~/lib'
+import type { Row as RowType } from '#imports'
 
 interface Attachment {
   url: string
@@ -33,9 +32,13 @@ interface Attachment {
 
 const INFINITY_SCROLL_THRESHOLD = 100
 
+const emptyPagination = ref()
+
 const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
+
+// useProvideKanbanViewStore(meta, view)
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
@@ -59,9 +62,9 @@ const stackToBeDeleted = ref('')
 
 const stackIdxToBeDeleted = ref(0)
 
-const route = useRoute()
-
 const router = useRouter()
+
+const route = router.currentRoute
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
@@ -84,9 +87,11 @@ const {
   moveHistory,
 } = useKanbanViewStoreOrThrow()
 
+const { isViewDataLoading } = storeToRefs(useViewsStore())
+
 const { isUIAllowed } = useUIPermission()
 
-const { appInfo } = $(useGlobal())
+const { appInfo } = useGlobal()
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -98,18 +103,16 @@ provide(IsGridInj, ref(false))
 
 provide(IsKanbanInj, ref(true))
 
-const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
+const hasEditPermission = computed(() => isUIAllowed('xcDatatableEditable'))
 
 const fields = inject(FieldsInj, ref([]))
 
 const fieldsWithoutCover = computed(() => fields.value.filter((f) => f.id !== kanbanMetaData.value?.fk_cover_image_col_id))
 
-const coverImageColumn: any = $(
-  computed(() =>
-    meta.value?.columnsById
-      ? meta.value.columnsById[kanbanMetaData.value?.fk_cover_image_col_id as keyof typeof meta.value.columnsById]
-      : {},
-  ),
+const coverImageColumn: any = computed(() =>
+  meta.value?.columnsById
+    ? meta.value.columnsById[kanbanMetaData.value?.fk_cover_image_col_id as keyof typeof meta.value.columnsById]
+    : {},
 )
 
 const kanbanContainerRef = ref()
@@ -130,10 +133,10 @@ reloadViewDataHook?.on(async () => {
 
 const attachments = (record: any): Attachment[] => {
   try {
-    if (coverImageColumn?.title && record.row[coverImageColumn.title]) {
-      return typeof record.row[coverImageColumn.title] === 'string'
-        ? JSON.parse(record.row[coverImageColumn.title])
-        : record.row[coverImageColumn.title]
+    if (coverImageColumn.value?.title && record.row[coverImageColumn.value.title]) {
+      return typeof record.row[coverImageColumn.value.title] === 'string'
+        ? JSON.parse(record.row[coverImageColumn.value.title])
+        : record.row[coverImageColumn.value.title]
     }
     return []
   } catch (e) {
@@ -159,7 +162,7 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
   if (rowId) {
     router.push({
       query: {
-        ...route.query,
+        ...route.value.query,
         rowId,
       },
     })
@@ -175,7 +178,7 @@ const _contextMenu = ref(false)
 const contextMenu = computed({
   get: () => _contextMenu.value,
   set: (val) => {
-    if (hasEditPermission) {
+    if (hasEditPermission.value) {
       _contextMenu.value = val
     }
   },
@@ -192,13 +195,13 @@ const showContextMenu = (e: MouseEvent, target?: RowType) => {
 
 const expandedFormOnRowIdDlg = computed({
   get() {
-    return !!route.query.rowId
+    return !!route.value.query.rowId
   },
   set(val) {
     if (!val)
       router.push({
         query: {
-          ...route.query,
+          ...route.value.query,
           rowId: undefined,
         },
       })
@@ -281,9 +284,12 @@ async function onMove(event: any, stackKey: string) {
 const kanbanListScrollHandler = useDebounceFn(async (e: any) => {
   if (e.target.scrollTop + e.target.clientHeight + INFINITY_SCROLL_THRESHOLD >= e.target.scrollHeight) {
     const stackTitle = e.target.getAttribute('data-stack-title')
-    const pageSize = appInfo.defaultLimit || 25
-    const page = Math.ceil(formattedData.value.get(stackTitle)!.length / pageSize)
-    await loadMoreKanbanData(stackTitle, { offset: page * pageSize })
+    const pageSize = appInfo.value.defaultLimit || 25
+    const stack = formattedData.value.get(stackTitle)
+    if (stack) {
+      const page = Math.ceil(stack.length / pageSize)
+      await loadMoreKanbanData(stackTitle, { offset: page * pageSize })
+    }
   }
 })
 
@@ -326,11 +332,6 @@ const openNewRecordFormHookHandler = async () => {
 
 openNewRecordFormHook?.on(openNewRecordFormHookHandler)
 
-onBeforeMount(async () => {
-  await loadKanbanMeta()
-  await loadKanbanData()
-})
-
 // remove openNewRecordFormHookHandler before unmounting
 // so that it won't be triggered multiple times
 onBeforeUnmount(() => openNewRecordFormHook.off(openNewRecordFormHookHandler))
@@ -342,30 +343,70 @@ watch(contextMenu, () => {
   }
 })
 
-watch(view, async (nextView) => {
-  if (nextView?.type === ViewTypes.KANBAN) {
-    // load kanban meta
-    await loadKanbanMeta()
-    // load kanban data
-    await loadKanbanData()
-    // horizontally scroll to the end of the kanban container
-    // when a new option is added within kanban view
-    if (shouldScrollToRight.value) {
-      kanbanContainerRef.value.scrollTo({
-        left: kanbanContainerRef.value.scrollWidth,
-        behavior: 'smooth',
-      })
-      // reset shouldScrollToRight
-      shouldScrollToRight.value = false
+watch(
+  view,
+  async (nextView) => {
+    if (nextView?.type === ViewTypes.KANBAN) {
+      isViewDataLoading.value = true
+
+      try {
+        // load kanban meta
+        await loadKanbanMeta()
+
+        isViewDataLoading.value = false
+
+        // load kanban data
+        await loadKanbanData()
+
+        // horizontally scroll to the end of the kanban container
+        // when a new option is added within kanban view
+        nextTick(() => {
+          if (shouldScrollToRight.value) {
+            kanbanContainerRef.value.scrollTo({
+              left: kanbanContainerRef.value.scrollWidth,
+              behavior: 'smooth',
+            })
+            // reset shouldScrollToRight
+            shouldScrollToRight.value = false
+          }
+        })
+      } catch (error) {
+        console.error(error)
+        isViewDataLoading.value = false
+      }
     }
-  }
-})
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
-  <div class="flex h-full bg-white px-2" data-testid="nc-kanban-wrapper">
-    <div ref="kanbanContainerRef" class="nc-kanban-container flex my-4 px-3 overflow-x-scroll overflow-y-hidden">
-      <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']" overlay-class-name="nc-dropdown-kanban-context-menu">
+  <div
+    class="flex flex-col w-full bg-white"
+    data-testid="nc-kanban-wrapper"
+    :style="{
+      minHeight: 'calc(100vh - var(--topbar-height))',
+    }"
+  >
+    <div
+      ref="kanbanContainerRef"
+      class="nc-kanban-container flex mt-4 pb-4 px-4 overflow-y-hidden w-full nc-scrollbar-x-md"
+      :style="{
+        minHeight: 'calc(100vh - var(--topbar-height) - 3.5rem)',
+        maxHeight: 'calc(100vh - var(--topbar-height) - 3.5rem)',
+      }"
+    >
+      <div v-if="isViewDataLoading" class="flex flex-row min-h-full gap-x-2">
+        <a-skeleton-input v-for="index of Array(20)" :key="index" class="!min-w-80 !min-h-full !rounded-xl overflow-hidden" />
+      </div>
+      <a-dropdown
+        v-else
+        v-model:visible="contextMenu"
+        :trigger="['contextmenu']"
+        overlay-class-name="nc-dropdown-kanban-context-menu"
+      >
         <!-- Draggable Stack -->
         <Draggable
           v-model="groupingFieldColOptions"
@@ -385,27 +426,36 @@ watch(view, async (nextView) => {
               <a-card
                 v-if="!stack.collapsed"
                 :key="stack.id"
-                class="mx-4 !bg-[#f0f2f5] flex flex-col w-[280px] h-full rounded-[12px]"
+                class="mx-4 !bg-gray-100 flex flex-col w-80 h-full !rounded-xl overflow-y-hidden"
                 :class="{
                   'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
                   '!cursor-default': isLocked || !hasEditPermission,
                 }"
                 :head-style="{ paddingBottom: '0px' }"
-                :body-style="{ padding: '0px', height: '100%' }"
+                :body-style="{ padding: '0px', height: '100%', borderRadius: '0.75rem !important', paddingBottom: '0rem' }"
               >
                 <!-- Header Color Bar -->
-                <div :style="`background-color: ${stack.color}`" class="nc-kanban-stack-head-color h-[10px]"></div>
+                <div
+                  :style="`background-color: ${stack.color}`"
+                  class="nc-kanban-stack-head-color h-[10px] mt-3 mx-3 rounded-full"
+                ></div>
 
                 <!-- Skeleton -->
-                <a-skeleton v-if="!formattedData.get(stack.title) || !countByStack" class="p-4" />
+                <div v-if="!formattedData.get(stack.title) || !countByStack" class="mt-2.5 px-3 !w-full">
+                  <a-skeleton-input :active="true" class="!w-full !h-9.75 !rounded-lg overflow-hidden" />
+                </div>
 
                 <!-- Stack -->
-                <a-layout v-else class="!bg-[#f0f2f5]">
+                <a-layout v-else class="!bg-gray-100">
                   <a-layout-header>
-                    <div class="nc-kanban-stack-head font-bold flex items-center px-[15px]">
-                      <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-kanban-stack-context-menu">
+                    <div class="nc-kanban-stack-head font-medium flex items-center">
+                      <a-dropdown
+                        :trigger="['click']"
+                        overlay-class-name="nc-dropdown-kanban-stack-context-menu"
+                        class="bg-white !rounded-lg"
+                      >
                         <div
-                          class="flex items-center w-full"
+                          class="flex items-center w-full mx-2 px-3 py-1"
                           :class="{ 'capitalize': stack.title === null, 'cursor-pointer': !isLocked }"
                         >
                           <LazyGeneralTruncateText>{{ stack.title ?? 'uncategorized' }}</LazyGeneralTruncateText>
@@ -431,7 +481,7 @@ watch(view, async (nextView) => {
                               </div>
                             </a-menu-item>
                             <a-menu-item v-e="['c:kanban:collapse-stack']" @click="handleCollapseStack(stackIdx)">
-                              <div class="py-2 flex gap-2 items-center">
+                              <div class="py-2 flex gap-1.8 items-center">
                                 <component :is="iconMap.arrowCollapse" class="text-gray-500" />
                                 {{ $t('activity.kanban.collapseStack') }}
                               </div>
@@ -452,8 +502,8 @@ watch(view, async (nextView) => {
                     </div>
                   </a-layout-header>
 
-                  <a-layout-content class="overflow-y-hidden">
-                    <div :ref="kanbanListRef" class="nc-kanban-list h-full overflow-y-auto" :data-stack-title="stack.title">
+                  <a-layout-content class="overflow-y-hidden mt-1" style="max-height: calc(100% - 11rem)">
+                    <div :ref="kanbanListRef" class="nc-kanban-list h-full nc-scrollbar-dark-md" :data-stack-title="stack.title">
                       <!-- Draggable Record Card -->
                       <Draggable
                         :list="formattedData.get(stack.title)"
@@ -467,12 +517,12 @@ watch(view, async (nextView) => {
                         @change="onMove($event, stack.title)"
                       >
                         <template #item="{ element: record }">
-                          <div class="nc-kanban-item py-2 px-[15px]">
+                          <div class="nc-kanban-item py-2 pl-3 pr-2">
                             <LazySmartsheetRow :row="record">
                               <a-card
                                 hoverable
                                 :data-stack="stack.title"
-                                class="!rounded-lg h-full overflow-hidden break-all max-w-[450px] shadow-lg"
+                                class="!rounded-xl h-full overflow-hidden break-all max-w-[450px]"
                                 :class="{
                                   'not-draggable': isLocked || !hasEditPermission || isPublic,
                                   '!cursor-default': isLocked || !hasEditPermission || isPublic,
@@ -521,7 +571,7 @@ watch(view, async (nextView) => {
                                   :key="`record-${record.row.id}-${col.id}`"
                                   class="flex flex-col rounded-lg w-full"
                                 >
-                                  <div v-if="!isRowEmpty(record, col) || isLTAR(col.uidt)">
+                                  <div v-if="!isRowEmpty(record, col) || isLTAR(col.uidt, col.colOptions)">
                                     <!-- Smartsheet Header (Virtual) Cell -->
                                     <div class="flex flex-row w-full justify-start pt-2">
                                       <div class="w-full text-gray-400">
@@ -536,20 +586,20 @@ watch(view, async (nextView) => {
 
                                     <!--  Smartsheet (Virtual) Cell -->
                                     <div
-                                      class="flex flex-row w-full items-center justify-start pl-[6px]"
-                                      :class="{ '!ml-[-12px]': col.uidt === UITypes.SingleSelect }"
+                                      class="flex flex-row w-full items-center justify-start"
+                                      :class="{ '!ml-[-12px] pl-3': col.uidt === UITypes.SingleSelect }"
                                     >
                                       <LazySmartsheetVirtualCell
-                                        v-if="isVirtualCol(col)"
+                                        v-if="col.title && isVirtualCol(col)"
                                         v-model="record.row[col.title]"
-                                        class="text-sm pt-1"
+                                        class="text-sm pt-1 pl-5"
                                         :column="col"
                                         :row="record"
                                       />
                                       <LazySmartsheetCell
-                                        v-else
+                                        v-else-if="col.title"
                                         v-model="record.row[col.title]"
-                                        class="text-sm pt-1"
+                                        class="text-sm pt-1 pl-7.25"
                                         :column="col"
                                         :edit-enabled="false"
                                         :read-only="true"
@@ -565,27 +615,30 @@ watch(view, async (nextView) => {
                     </div>
                   </a-layout-content>
 
-                  <a-layout-footer>
-                    <div v-if="formattedData.get(stack.title) && countByStack.get(stack.title) >= 0" class="mt-5 text-center">
+                  <div class="!rounded-lg !px-3 pt-3">
+                    <div v-if="formattedData.get(stack.title)" class="text-center">
                       <!-- Stack Title -->
-                      <component
-                        :is="iconMap.plus"
-                        v-if="!isPublic && !isLocked"
-                        class="text-pint-500 text-lg text-primary cursor-pointer"
+
+                      <!-- Record Count -->
+                      <div class="nc-kanban-data-count text-gray-500">
+                        {{ formattedData.get(stack.title)!.length }} / {{ countByStack.get(stack.title) ?? 0 }}
+                        {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
+                      </div>
+
+                      <div
+                        class="flex flex-row w-full mt-3 justify-between items-center cursor-pointer bg-white px-4 py-2 rounded-lg border-gray-100 border-1 shadow-sm shadow-gray-100"
                         @click="
                           () => {
                             selectedStackTitle = stack.title
                             openNewRecordFormHook.trigger(stack.title)
                           }
                         "
-                      />
-                      <!-- Record Count -->
-                      <div class="nc-kanban-data-count">
-                        {{ formattedData.get(stack.title).length }} / {{ countByStack.get(stack.title) }}
-                        {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
+                      >
+                        Add Record
+                        <component :is="iconMap.plus" v-if="!isPublic && !isLocked" class="" />
                       </div>
                     </div>
-                  </a-layout-footer>
+                  </div>
                 </a-layout>
               </a-card>
 
@@ -594,20 +647,16 @@ watch(view, async (nextView) => {
                 v-else
                 :key="`${stack.id}-collapsed`"
                 :style="`background-color: ${stack.color} !important`"
-                class="nc-kanban-collapsed-stack mx-4 flex items-center w-[300px] h-[50px] rounded-[12px] cursor-pointer h-full !pr-[10px]"
+                class="nc-kanban-collapsed-stack mx-4 flex items-center w-[300px] h-[50px] !rounded-xl cursor-pointer h-full !pr-[10px] overflow-hidden"
                 :class="{
                   'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
                 }"
                 :body-style="{ padding: '0px', height: '100%', width: '100%', background: '#f0f2f5 !important' }"
               >
                 <div class="items-center justify-between" @click="handleCollapseStack(stackIdx)">
-                  <!-- Skeleton -->
-                  <a-skeleton
-                    v-if="!formattedData.get(stack.title) || !countByStack"
-                    class="!w-[150px] pl-5"
-                    :paragraph="false"
-                  />
-
+                  <div v-if="!formattedData.get(stack.title) || !countByStack" class="mt-4 px-3 !w-full">
+                    <a-skeleton-input :active="true" class="!w-full !h-4 !rounded-lg overflow-hidden" />
+                  </div>
                   <div v-else class="nc-kanban-data-count mt-[12px] mx-[10px]">
                     <!--  Stack title -->
                     <div
@@ -618,7 +667,7 @@ watch(view, async (nextView) => {
                       <component :is="iconMap.arrowDown" class="text-grey text-lg" />
                     </div>
                     <!-- Record Count -->
-                    {{ formattedData.get(stack.title).length }} / {{ countByStack.get(stack.title) }}
+                    {{ formattedData.get(stack.title)!.length }} / {{ countByStack.get(stack.title) }}
                     {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
                   </div>
                 </div>
@@ -648,9 +697,9 @@ watch(view, async (nextView) => {
         </template>
       </a-dropdown>
     </div>
+    <LazySmartsheetPagination v-model:pagination-data="emptyPagination" align-count-on-right hide-pagination class="!py-4">
+    </LazySmartsheetPagination>
   </div>
-
-  <div class="flex-1" />
 
   <Suspense>
     <LazySmartsheetExpandedForm
@@ -675,27 +724,18 @@ watch(view, async (nextView) => {
     />
   </Suspense>
 
-  <a-modal
-    v-model:visible="deleteStackVModel"
-    class="!top-[35%]"
-    :class="{ active: deleteStackVModel }"
-    wrap-class-name="nc-modal-kanban-delete-stack"
-  >
-    <template #title>
-      {{ $t('activity.deleteKanbanStack') }}
+  <GeneralDeleteModal v-model:visible="deleteStackVModel" entity-name="Stack" :on-delete="handleDeleteStackConfirmClick">
+    <template #entity-preview>
+      <div v-if="stackToBeDeleted" class="flex flex-row items-center py-2 px-2.25 bg-gray-100 rounded-lg text-gray-700 mb-4">
+        <div
+          class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
+          :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+        >
+          {{ stackToBeDeleted }}
+        </div>
+      </div>
     </template>
-    <div>
-      {{ $t('msg.info.deleteKanbanStackConfirmation', { stackToBeDeleted, groupingField }) }}
-    </div>
-    <template #footer>
-      <a-button key="back" v-e="['c:kanban:cancel-delete-stack']" @click="deleteStackVModel = false">
-        {{ $t('general.cancel') }}
-      </a-button>
-      <a-button key="submit" v-e="['c:kanban:confirm-delete-stack']" type="primary" @click="handleDeleteStackConfirmClick">
-        {{ $t('general.delete') }}
-      </a-button>
-    </template>
-  </a-modal>
+  </GeneralDeleteModal>
 </template>
 
 <style lang="scss" scoped>
@@ -703,7 +743,7 @@ watch(view, async (nextView) => {
 .a-layout,
 .ant-layout-header,
 .ant-layout-content {
-  @apply !bg-[#f0f2f5];
+  @apply !bg-gray-100;
 }
 
 .ant-layout-header {

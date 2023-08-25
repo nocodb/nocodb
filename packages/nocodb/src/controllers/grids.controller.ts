@@ -5,18 +5,16 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ViewCreateReqType } from 'nocodb-sdk';
-import { GlobalGuard } from '../guards/global/global.guard';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { GridsService } from '../services/grids.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { GridsService } from '~/services/grids.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 export class GridsController {
   get '/api/v1/db/meta/tables/:tableId/grids/'() {
     return this['_/api/v1/db/meta/tables/:tableId/grids/'];
@@ -29,6 +27,7 @@ export class GridsController {
   async gridViewCreate(
     @Param('tableId') tableId: string,
     @Body() body: ViewCreateReqType,
+    @Req() _req: any,
   ) {
     const view = await this.gridsService.gridViewCreate({
       grid: body,
@@ -37,6 +36,7 @@ export class GridsController {
     return view;
   }
   @Patch('/api/v1/db/meta/grids/:viewId')
+  @Acl('gridViewUpdate')
   async gridViewUpdate(@Param('viewId') viewId: string, @Body() body) {
     return await this.gridsService.gridViewUpdate({
       viewId,

@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 
 // Storing one additional dummy value "10" at end of every input array
 // this will trigger update to previously committed data
@@ -40,7 +40,7 @@ const durationData = [
   },
 ];
 
-test.describe.skip('Duration column', () => {
+test.describe('Duration column', () => {
   let dashboard: DashboardPage;
   let context: any;
 
@@ -49,8 +49,12 @@ test.describe.skip('Duration column', () => {
     dashboard = new DashboardPage(page, context.project);
   });
 
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   test('Create duration column', async () => {
-    await dashboard.treeView.createTable({ title: 'tablex' });
+    await dashboard.treeView.createTable({ title: 'tablex', projectTitle: context.project.title });
     // Create duration column
     await dashboard.grid.column.create({
       title: 'NC_DURATION_0',

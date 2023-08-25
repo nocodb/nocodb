@@ -2,19 +2,19 @@ import type { Ref } from 'vue'
 import rfdc from 'rfdc'
 import type { ProjectType, TableType, ViewType } from 'nocodb-sdk'
 import { createSharedComposable, ref, useRouter } from '#imports'
-import type { UndoRedoAction } from '~/lib'
+import type { UndoRedoAction } from '#imports'
 
 export const useUndoRedo = createSharedComposable(() => {
   const clone = rfdc()
 
   const router = useRouter()
 
-  const route = $(router.currentRoute)
+  const route = router.currentRoute
 
   // keys: projectType | projectId | type | title | viewTitle
   const scope = computed<{ key: string; param: string }[]>(() => {
     const tempScope: { key: string; param: string }[] = [{ key: 'root', param: 'root' }]
-    for (const [key, param] of Object.entries(route.params)) {
+    for (const [key, param] of Object.entries(route.value.params)) {
       if (Array.isArray(param)) {
         tempScope.push({ key, param: param.join(',') })
       } else {
@@ -115,17 +115,17 @@ export const useUndoRedo = createSharedComposable(() => {
     if (param.model) {
       return [
         { key: 'projectId', param: param.model.project_id! },
-        { key: 'title', param: param.model.id! },
+        { key: 'viewId', param: param.model.id! },
       ]
     } else if (param.view) {
       return [
         { key: 'projectId', param: param.view.project_id! },
-        { key: 'title', param: param.view.fk_model_id! },
+        { key: 'viewId', param: param.view.fk_model_id! },
       ]
     } else {
       return [
         { key: 'projectId', param: param.project_id! },
-        { key: 'title', param: param.model_id! },
+        { key: 'viewId', param: param.model_id! },
       ]
     }
   }
@@ -134,13 +134,13 @@ export const useUndoRedo = createSharedComposable(() => {
     if (param.view) {
       return [
         { key: 'projectId', param: param.view.project_id! },
-        { key: 'title', param: param.view.fk_model_id! },
+        { key: 'viewId', param: param.view.fk_model_id! },
         { key: 'viewTitle', param: param.view.title! },
       ]
     } else {
       return [
         { key: 'projectId', param: param.project_id! },
-        { key: 'title', param: param.model_id! },
+        { key: 'viewId', param: param.model_id! },
         { key: 'viewTitle', param: param.title! },
       ]
     }

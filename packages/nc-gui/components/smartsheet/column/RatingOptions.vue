@@ -109,7 +109,7 @@ watch(
     <LazyGeneralColorPicker
       v-model="picked"
       :row-size="8"
-      :colors="['#fcb401', '#faa307', '#f48c06', '#e85d04', '#dc2f02', '#d00000', '#9d0208', '#777']"
+      :colors="['#FF94B6', '#6A8D9D', '#6DAE42', '#4AC0BF', '#905FB3', '#FF8320', '#6BCC72', '#FF4138']"
     />
   </a-row>
 </template>

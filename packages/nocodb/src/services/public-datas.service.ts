@@ -4,16 +4,16 @@ import { nanoid } from 'nanoid';
 import { ErrorMessages, UITypes, ViewTypes } from 'nocodb-sdk';
 import slash from 'slash';
 import { nocoExecute } from 'nc-help';
-import { Base, Column, Model, View } from '../models';
 
-import { NcError } from '../helpers/catchError';
-import getAst from '../helpers/getAst';
-import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import { mimeIcons } from '../utils/mimeTypes';
-import { getColumnByIdOrName } from '../modules/datas/helpers';
-import type { LinkToAnotherRecordColumn } from '../models';
+import type { LinkToAnotherRecordColumn } from '~/models';
+import { NcError } from '~/helpers/catchError';
+import getAst from '~/helpers/getAst';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { getColumnByIdOrName } from '~/modules/datas/helpers';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { mimeIcons } from '~/utils/mimeTypes';
+import { Base, Column, Model, View } from '~/models';
 
 // todo: move to utils
 export function sanitizeUrlPath(paths) {
@@ -187,6 +187,64 @@ export class PublicDatasService {
     return data;
   }
 
+  async dataGroupBy(param: {
+    sharedViewUuid: string;
+    password?: string;
+    query: any;
+  }) {
+    const view = await View.getByUUID(param.sharedViewUuid);
+
+    if (!view) NcError.notFound('Not found');
+
+    if (view.type !== ViewTypes.GRID) {
+      NcError.notFound('Not found');
+    }
+
+    if (view.password && view.password !== param.password) {
+      return NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
+    }
+
+    const model = await Model.getByIdOrName({
+      id: view?.fk_model_id,
+    });
+
+    return await this.getDataGroupBy({ model, view, query: param.query });
+  }
+
+  async getDataGroupBy(param: { model: Model; view: View; query?: any }) {
+    try {
+      const { model, view, query = {} } = param;
+
+      const base = await Base.get(model.base_id);
+
+      const baseModel = await Model.getBaseModelSQL({
+        id: model.id,
+        viewId: view?.id,
+        dbDriver: await NcConnectionMgrv2.get(base),
+      });
+
+      const listArgs: any = { ...query };
+
+      try {
+        listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+      } catch (e) {}
+      try {
+        listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+      } catch (e) {}
+
+      const data = await baseModel.groupBy(listArgs);
+      const count = await baseModel.groupByCount(listArgs);
+
+      return new PagedResponseImpl(data, {
+        ...query,
+        count,
+      });
+    } catch (e) {
+      console.log(e);
+      NcError.internalServerError('Please check server log for more details');
+    }
+  }
+
   async dataInsert(param: {
     sharedViewUuid: string;
     password?: string;
@@ -343,7 +401,7 @@ export class PublicDatasService {
         {},
         dependencyFields,
       );
-      count = await baseModel.count(dependencyFields);
+      count = await baseModel.count(dependencyFields as any);
     } catch (e) {
       console.log(e);
       NcError.internalServerError('Please check server log for more details');

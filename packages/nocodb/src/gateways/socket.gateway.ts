@@ -1,18 +1,26 @@
 import crypto from 'crypto';
-import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Inject, Injectable } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import { T } from 'nc-help';
 import { Server } from 'socket.io';
 import { AuthGuard } from '@nestjs/passport';
 import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
-import { JwtStrategy } from '../strategies/jwt.strategy';
+import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import type { OnModuleInit } from '@nestjs/common';
 import type { Socket } from 'socket.io';
+import { JwtStrategy } from '~/strategies/jwt.strategy';
+import { TelemetryService } from '~/services/telemetry.service';
 
 function getHash(str) {
   return crypto.createHash('md5').update(str).digest('hex');
 }
+
+const url = new URL(
+  process.env.NC_PUBLIC_URL ||
+    `http://localhost:${process.env.PORT || '8080'}/`,
+);
+let namespace = url.pathname;
+namespace += namespace.endsWith('/') ? '' : '/';
 
 @WebSocketGateway({
   cors: {
@@ -20,14 +28,19 @@ function getHash(str) {
     allowedHeaders: ['xc-auth'],
     credentials: true,
   },
+  namespace,
 })
 @Injectable()
 export class SocketGateway implements OnModuleInit {
   // private server: HttpServer;
   private clients: { [id: string]: Socket } = {};
+  private _jobs: { [id: string]: { last_message: any } } = {};
+  @WebSocketServer()
+  private _io: Server;
 
   constructor(
     private jwtStrategy: JwtStrategy,
+    private telemetryService: TelemetryService,
     @Inject(HttpAdapterHost) private httpAdapterHost: HttpAdapterHost,
   ) {}
 
@@ -53,10 +66,16 @@ export class SocketGateway implements OnModuleInit {
         );
 
         socket.on('page', (args) => {
-          T.page({ ...args, id });
+          // T.page({ ...args, id });
+          this.telemetryService.sendEvent({
+            evt_type: '$pageview',
+            ...args,
+            id,
+          });
         });
-        socket.on('event', (args) => {
-          T.event({ ...args, id });
+        socket.on('event', ({ event, ...args }) => {
+          // T.event({ ...args, id });
+          this.telemetryService.sendEvent({ evt_type: event, ...args, id });
         });
       });
   }

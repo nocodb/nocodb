@@ -12,17 +12,20 @@ import {
   useNuxtApp,
   useProject,
 } from '#imports'
-import type { SmartsheetStoreEvents } from '~/lib'
+import type { SmartsheetStoreEvents } from '#imports'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   (
-    view: Ref<ViewType | undefined>,
+    // _view is deprecated, we use viewsStore instead
+    _view: Ref<ViewType | undefined>,
     meta: Ref<TableType | KanbanType | undefined>,
     shared = false,
     initialSorts?: Ref<SortType[]>,
     initialFilters?: Ref<FilterType[]>,
   ) => {
     const { $api } = useNuxtApp()
+
+    const { activeView: view } = storeToRefs(useViewsStore())
 
     const projectStore = useProject()
 
@@ -81,6 +84,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       nestedFilters,
       isSqlView,
       eventBus,
+      sqlUi,
     }
   },
   'smartsheet-store',

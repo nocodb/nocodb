@@ -1,6 +1,11 @@
 import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { Injectable, Logger } from '@nestjs/common';
 import papaparse from 'papaparse';
+import { isLinksOrLTAR } from 'nocodb-sdk';
+import { elapsedTime, initTime } from '../../helpers';
+import type { Readable } from 'stream';
+import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
+import type { LinkToAnotherRecordColumn, User, View } from '~/models';
 import {
   findWithIdentifier,
   generateUniqueName,
@@ -9,28 +14,25 @@ import {
   reverseGet,
   withoutId,
   withoutNull,
-} from '../../../../helpers/exportImportHelpers';
-import { NcError } from '../../../../helpers/catchError';
-import { Base, Column, Model, Project } from '../../../../models';
-import { TablesService } from '../../../../services/tables.service';
-import { ColumnsService } from '../../../../services/columns.service';
-import { FiltersService } from '../../../../services/filters.service';
-import { SortsService } from '../../../../services/sorts.service';
-import { ViewColumnsService } from '../../../../services/view-columns.service';
-import { GridColumnsService } from '../../../../services/grid-columns.service';
-import { FormColumnsService } from '../../../../services/form-columns.service';
-import { GridsService } from '../../../../services/grids.service';
-import { FormsService } from '../../../../services/forms.service';
-import { GalleriesService } from '../../../../services/galleries.service';
-import { KanbansService } from '../../../../services/kanbans.service';
-import { HooksService } from '../../../../services/hooks.service';
-import { ViewsService } from '../../../../services/views.service';
-import NcPluginMgrv2 from '../../../../helpers/NcPluginMgrv2';
-import { BulkDataAliasService } from '../../../../services/bulk-data-alias.service';
-import { elapsedTime, initTime } from '../../helpers';
-import type { Readable } from 'stream';
-import type { ViewCreateReqType } from 'nocodb-sdk';
-import type { LinkToAnotherRecordColumn, User, View } from '../../../../models';
+} from '~/helpers/exportImportHelpers';
+import { NcError } from '~/helpers/catchError';
+import { Base, Column, Model, Project } from '~/models';
+import { TablesService } from '~/services/tables.service';
+import { ColumnsService } from '~/services/columns.service';
+import { FiltersService } from '~/services/filters.service';
+import { SortsService } from '~/services/sorts.service';
+import { ViewColumnsService } from '~/services/view-columns.service';
+import { GridColumnsService } from '~/services/grid-columns.service';
+import { FormColumnsService } from '~/services/form-columns.service';
+import { GridsService } from '~/services/grids.service';
+import { FormsService } from '~/services/forms.service';
+import { GalleriesService } from '~/services/galleries.service';
+import { KanbansService } from '~/services/kanbans.service';
+import { HooksService } from '~/services/hooks.service';
+import { ViewsService } from '~/services/views.service';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
 export class ImportService {
@@ -125,7 +127,7 @@ export class ImportService {
 
       const reducedColumnSet = modelData.columns.filter(
         (a) =>
-          a.uidt !== UITypes.LinkToAnotherRecord &&
+          !isLinksOrLTAR(a) &&
           a.uidt !== UITypes.Lookup &&
           a.uidt !== UITypes.Rollup &&
           a.uidt !== UITypes.Formula &&
@@ -151,6 +153,19 @@ export class ImportService {
           (a) => a.column_name === col.column_name,
         );
         idMap.set(colRef.id, col.id);
+
+        // setval for auto increment column in pg
+        if (base.type === 'pg') {
+          if (modelData.pgSerialLastVal) {
+            if (col.ai) {
+              const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
+              await sqlClient.knex.raw(
+                `SELECT setval(pg_get_serial_sequence('??', ?), ?);`,
+                [table.table_name, col.column_name, modelData.pgSerialLastVal],
+              );
+            }
+          }
+        }
       }
 
       tableReferences.set(modelData.id, table);
@@ -165,9 +180,7 @@ export class ImportService {
       const modelData = data.model;
       const table = tableReferences.get(modelData.id);
 
-      const linkedColumnSet = modelData.columns.filter(
-        (a) => a.uidt === UITypes.LinkToAnotherRecord,
-      );
+      const linkedColumnSet = modelData.columns.filter((a) => isLinksOrLTAR(a));
 
       for (const col of linkedColumnSet) {
         if (col.colOptions) {
@@ -196,6 +209,7 @@ export class ImportService {
                     },
                   }),
                   req: param.req,
+                  user: param.user,
                 });
 
                 for (const nColumn of freshModelData.columns) {
@@ -253,6 +267,7 @@ export class ImportService {
                           column_name: childColumn.title,
                           title: childColumn.title,
                         },
+                        user: param.user,
                       });
                     }
                     break;
@@ -281,6 +296,7 @@ export class ImportService {
                   },
                 }),
                 req: param.req,
+                user: param.user,
               });
 
               for (const nColumn of freshModelData.columns) {
@@ -337,6 +353,7 @@ export class ImportService {
                         column_name: childColumn.title,
                         title: childColumn.title,
                       },
+                      user: param.user,
                     });
                   }
                   break;
@@ -367,6 +384,7 @@ export class ImportService {
                     },
                   }),
                   req: param.req,
+                  user: param.user,
                 });
 
                 for (const nColumn of freshModelData.columns) {
@@ -449,6 +467,7 @@ export class ImportService {
                           column_name: childColumn.title,
                           title: childColumn.title,
                         },
+                        user: param.user,
                       });
                     }
                     break;
@@ -482,6 +501,7 @@ export class ImportService {
                     },
                   }),
                   req: param.req,
+                  user: param.user,
                 });
 
                 linkMap.set(
@@ -569,6 +589,7 @@ export class ImportService {
                           column_name: childColumn.title,
                           title: childColumn.title,
                         },
+                        user: param.user,
                       });
                     }
                     break;
@@ -602,6 +623,7 @@ export class ImportService {
                     },
                   }),
                   req: param.req,
+                  user: param.user,
                 });
 
                 linkMap.set(
@@ -689,6 +711,7 @@ export class ImportService {
                           column_name: childColumn.title,
                           title: childColumn.title,
                         },
+                        user: param.user,
                       });
                     }
                     break;
@@ -771,6 +794,7 @@ export class ImportService {
             },
           }),
           req: param.req,
+          user: param.user,
         });
 
         for (const nColumn of freshModelData.columns) {
@@ -796,6 +820,7 @@ export class ImportService {
             },
           }),
           req: param.req,
+          user: param.user,
         });
 
         for (const nColumn of freshModelData.columns) {
@@ -814,6 +839,7 @@ export class ImportService {
             },
           }),
           req: param.req,
+          user: param.user,
         });
 
         for (const nColumn of freshModelData.columns) {
@@ -842,7 +868,13 @@ export class ImportService {
           ...view,
         });
 
-        const vw = await this.createView(idMap, table, viewData, table.views);
+        const vw = await this.createView(
+          idMap,
+          table,
+          viewData,
+          table.views,
+          param.user,
+        );
 
         if (!vw) continue;
 
@@ -859,6 +891,7 @@ export class ImportService {
               fk_column_id: getIdOrExternalId(fl.fk_column_id),
               fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
             }),
+            user: param.user,
           });
 
           idMap.set(fl.id, fg.id);
@@ -938,6 +971,7 @@ export class ImportService {
             view: {
               order: view.order,
             },
+            user: param.user,
           });
         }
       }
@@ -980,6 +1014,7 @@ export class ImportService {
               fk_column_id: getIdOrExternalId(fl.fk_column_id),
               fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
             }),
+            user: param.user,
           });
 
           idMap.set(fl.id, fg.id);
@@ -997,6 +1032,7 @@ export class ImportService {
     md: Model,
     vw: Partial<View>,
     views: View[],
+    user: UserType,
   ): Promise<View> {
     if (vw.is_default) {
       const view = views.find((a) => a.is_default);
@@ -1031,6 +1067,7 @@ export class ImportService {
         const fview = await this.formsService.formViewCreate({
           tableId: md.id,
           body: vw as ViewCreateReqType,
+          user,
         });
         const formData = withoutNull(vw.view);
         if (formData) {
@@ -1045,6 +1082,7 @@ export class ImportService {
         const glview = await this.galleriesService.galleryViewCreate({
           tableId: md.id,
           gallery: vw as ViewCreateReqType,
+          user,
         });
         const galleryData = withoutNull(vw.view);
         if (galleryData) {
@@ -1066,6 +1104,7 @@ export class ImportService {
         const kview = await this.kanbansService.kanbanViewCreate({
           tableId: md.id,
           kanban: vw as ViewCreateReqType,
+          user,
         });
         const kanbanData = withoutNull(vw.view);
         if (kanbanData) {
@@ -1309,7 +1348,7 @@ export class ImportService {
                     body: chunk,
                     cookie: null,
                     chunkSize: chunk.length + 1,
-                    foreign_key_checks: false,
+                    foreign_key_checks: !!destBase.isMeta(),
                     raw: true,
                   });
                 } catch (e) {
@@ -1330,7 +1369,7 @@ export class ImportService {
                 body: chunk,
                 cookie: null,
                 chunkSize: chunk.length + 1,
-                foreign_key_checks: false,
+                foreign_key_checks: !!destBase.isMeta(),
                 raw: true,
               });
             } catch (e) {
@@ -1366,7 +1405,7 @@ export class ImportService {
             body: v,
             cookie: null,
             chunkSize: 1000,
-            foreign_key_checks: false,
+            foreign_key_checks: !!destBase.isMeta(),
             raw: true,
           });
           lChunks[k] = [];

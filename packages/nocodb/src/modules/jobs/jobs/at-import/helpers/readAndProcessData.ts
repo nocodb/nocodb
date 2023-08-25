@@ -1,5 +1,5 @@
 /* eslint-disable no-async-promise-executor */
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { isLinksOrLTAR, RelationTypes } from 'nocodb-sdk';
 import sizeof from 'object-sizeof';
 import EntityMap from './EntityMap';
 import type { BulkDataAliasService } from '../../../../../services/bulk-data-alias.service';
@@ -111,7 +111,7 @@ export async function importData({
       logBasic,
     });
 
-    await new Promise(async (resolve) => {
+    await new Promise(async (resolve, reject) => {
       const readable = records.getStream();
       const allRecordsCount = await records.getCount();
       const promises = [];
@@ -125,81 +125,88 @@ export async function importData({
 
       readable.on('data', async (record) => {
         promises.push(
-          new Promise(async (resolve) => {
-            activeProcess++;
-            if (activeProcess >= BULK_PARALLEL_PROCESS) readable.pause();
+          new Promise(async (resolve, reject) => {
+            try {
+              activeProcess++;
+              if (activeProcess >= BULK_PARALLEL_PROCESS) readable.pause();
 
-            const { id: rid, ...fields } = record;
-            const r = await nocoBaseDataProcessing_v2(sDB, table, {
-              id: rid,
-              fields,
-            });
-            tempData.push(r);
-            tempCount++;
+              const { id: rid, ...fields } = record;
+              const r = await nocoBaseDataProcessing_v2(sDB, table, {
+                id: rid,
+                fields,
+              });
+              tempData.push(r);
+              tempCount++;
 
-            if (tempCount >= BULK_DATA_BATCH_COUNT) {
-              if (sizeof(tempData) >= BULK_DATA_BATCH_SIZE) {
-                readable.pause();
+              if (tempCount >= BULK_DATA_BATCH_COUNT) {
+                if (sizeof(tempData) >= BULK_DATA_BATCH_SIZE) {
+                  readable.pause();
 
-                let insertArray = tempData.splice(0, tempData.length);
+                  let insertArray = tempData.splice(0, tempData.length);
 
-                await services.bulkDataService.bulkDataInsert({
-                  projectName,
-                  tableName: table.title,
-                  body: insertArray,
-                  cookie: {},
-                  skip_hooks: true,
-                });
+                  await services.bulkDataService.bulkDataInsert({
+                    projectName,
+                    tableName: table.title,
+                    body: insertArray,
+                    cookie: {},
+                    skip_hooks: true,
+                  });
 
-                logBasic(
-                  `:: Importing '${
-                    table.title
-                  }' data :: ${importedCount} - ${Math.min(
-                    importedCount + insertArray.length,
-                    allRecordsCount,
-                  )}`,
-                );
+                  logBasic(
+                    `:: Importing '${
+                      table.title
+                    }' data :: ${importedCount} - ${Math.min(
+                      importedCount + insertArray.length,
+                      allRecordsCount,
+                    )}`,
+                  );
 
-                importedCount += insertArray.length;
-                insertArray = [];
+                  importedCount += insertArray.length;
+                  insertArray = [];
 
-                readable.resume();
+                  readable.resume();
+                }
+                tempCount = 0;
               }
-              tempCount = 0;
+              activeProcess--;
+              if (activeProcess < BULK_PARALLEL_PROCESS) readable.resume();
+              resolve(true);
+            } catch (e) {
+              reject(e);
             }
-            activeProcess--;
-            if (activeProcess < BULK_PARALLEL_PROCESS) readable.resume();
-            resolve(true);
           }),
         );
       });
       readable.on('end', async () => {
-        // ensure all chunks are processed
-        await Promise.all(promises);
+        try {
+          // ensure all chunks are processed
+          await Promise.all(promises);
 
-        // insert remaining data
-        if (tempData.length > 0) {
-          await services.bulkDataService.bulkDataInsert({
-            projectName,
-            tableName: table.title,
-            body: tempData,
-            cookie: {},
-            skip_hooks: true,
-          });
+          // insert remaining data
+          if (tempData.length > 0) {
+            await services.bulkDataService.bulkDataInsert({
+              projectName,
+              tableName: table.id,
+              body: tempData,
+              cookie: {},
+              skip_hooks: true,
+            });
 
-          logBasic(
-            `:: Importing '${
-              table.title
-            }' data :: ${importedCount} - ${Math.min(
-              importedCount + tempData.length,
-              allRecordsCount,
-            )}`,
-          );
-          importedCount += tempData.length;
-          tempData = [];
+            logBasic(
+              `:: Importing '${
+                table.title
+              }' data :: ${importedCount} - ${Math.min(
+                importedCount + tempData.length,
+                allRecordsCount,
+              )}`,
+            );
+            importedCount += tempData.length;
+            tempData = [];
+          }
+          resolve(true);
+        } catch (e) {
+          return reject(e);
         }
-
-        resolve(true);
       });
     });
 
@@ -266,7 +273,7 @@ export async function importLTARData({
   for (const colMeta of modelMeta.columns) {
     // skip columns which are not LTAR and Many to many
     if (
-      colMeta.uidt !== UITypes.LinkToAnotherRecord ||
+      !isLinksOrLTAR(colMeta.uidt) ||
       colMeta.colOptions.type !== RelationTypes.MANY_TO_MANY
     ) {
       continue;
@@ -308,91 +315,99 @@ export async function importLTARData({
     let tempCount = 0;
 
     //  extract link data from records
-    await new Promise((resolve) => {
+    await new Promise((resolve, reject) => {
       const promises = [];
       const readable = allData.getStream();
 
       readable.on('data', async (record) => {
         promises.push(
           new Promise(async (resolve) => {
-            const { id: _atId, ...rec } = record;
+            try {
+              const { id: _atId, ...rec } = record;
 
-            // todo: use actual alias instead of sanitized
-            assocTableData.push(
-              ...(
-                rec?.[atNcAliasRef[table.id][assocMeta.colMeta.title]] || []
-              ).map((id) => ({
-                [assocMeta.curCol.title]: record.id,
-                [assocMeta.refCol.title]: id,
-              })),
-            );
-            tempCount++;
+              // todo: use actual alias instead of sanitized
+              assocTableData.push(
+                ...(
+                  rec?.[atNcAliasRef[table.id][assocMeta.colMeta.title]] || []
+                ).map((id) => ({
+                  [assocMeta.curCol.title]: record.id,
+                  [assocMeta.refCol.title]: id,
+                })),
+              );
+              tempCount++;
 
-            if (tempCount >= BULK_DATA_BATCH_COUNT) {
-              if (sizeof(assocTableData) >= BULK_DATA_BATCH_SIZE) {
-                readable.pause();
+              if (tempCount >= BULK_DATA_BATCH_COUNT) {
+                if (sizeof(assocTableData) >= BULK_DATA_BATCH_SIZE) {
+                  readable.pause();
 
-                let insertArray = assocTableData.splice(
-                  0,
-                  assocTableData.length,
-                );
+                  let insertArray = assocTableData.splice(
+                    0,
+                    assocTableData.length,
+                  );
 
-                logBasic(
-                  `:: Importing '${
-                    table.title
-                  }' LTAR data :: ${importedCount} - ${Math.min(
-                    importedCount + insertArray.length,
-                    insertArray.length,
-                  )}`,
-                );
+                  logBasic(
+                    `:: Importing '${
+                      table.title
+                    }' LTAR data :: ${importedCount} - ${Math.min(
+                      importedCount + insertArray.length,
+                      insertArray.length,
+                    )}`,
+                  );
 
-                await services.bulkDataService.bulkDataInsert({
-                  projectName,
-                  tableName: assocMeta.modelMeta.title,
-                  body: insertArray,
-                  cookie: {},
-                  skip_hooks: true,
-                });
+                  await services.bulkDataService.bulkDataInsert({
+                    projectName,
+                    tableName: assocMeta.modelMeta.id,
+                    body: insertArray,
+                    cookie: {},
+                    skip_hooks: true,
+                  });
 
-                importedCount += insertArray.length;
-                insertArray = [];
+                  importedCount += insertArray.length;
+                  insertArray = [];
 
-                readable.resume();
+                  readable.resume();
+                }
+                tempCount = 0;
               }
-              tempCount = 0;
+              resolve(true);
+            } catch (e) {
+              reject(e);
             }
-            resolve(true);
           }),
         );
       });
       readable.on('end', async () => {
-        // ensure all chunks are processed
-        await Promise.all(promises);
+        try {
+          // ensure all chunks are processed
+          await Promise.all(promises);
 
-        // insert remaining data
-        if (assocTableData.length >= 0) {
-          logBasic(
-            `:: Importing '${
-              table.title
-            }' LTAR data :: ${importedCount} - ${Math.min(
-              importedCount + assocTableData.length,
-              assocTableData.length,
-            )}`,
-          );
+          // insert remaining data
+          if (assocTableData.length >= 0) {
+            logBasic(
+              `:: Importing '${
+                table.title
+              }' LTAR data :: ${importedCount} - ${Math.min(
+                importedCount + assocTableData.length,
+                assocTableData.length,
+              )}`,
+            );
 
-          await services.bulkDataService.bulkDataInsert({
-            projectName,
-            tableName: assocMeta.modelMeta.title,
-            body: assocTableData,
-            cookie: {},
-            skip_hooks: true,
-          });
+            await services.bulkDataService.bulkDataInsert({
+              projectName,
+              tableName: assocMeta.modelMeta.title,
+              body: assocTableData,
+              cookie: {},
+              skip_hooks: true,
+            });
 
-          importedCount += assocTableData.length;
-          assocTableData = [];
+            importedCount += assocTableData.length;
+            assocTableData = [];
+          }
+
+          resolve(true);
+        } catch (e) {
+          reject(e);
         }
-
-        resolve(true);
       });
     });
 

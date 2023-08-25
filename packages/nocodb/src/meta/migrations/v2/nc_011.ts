@@ -1,7 +1,4 @@
-import { MetaTable, orderedMetaTables } from '../../meta.service';
-// import googleAuth from '../plugins/googleAuth';
-// import ses from '../plugins/ses';
-// import cache from '../plugins/cache';
+import { MetaTable, orderedMetaTables } from '~/utils/globals';
 
 const up = async (knex) => {
   await knex.schema.createTable(MetaTable.PROJECT, (table) => {

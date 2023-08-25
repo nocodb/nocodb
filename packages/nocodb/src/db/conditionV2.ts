@@ -1,29 +1,33 @@
 import { isNumericCol, RelationTypes, UITypes } from 'nocodb-sdk';
 import dayjs from 'dayjs';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
-import Filter from '../models/Filter';
-import { sanitize } from '../helpers/sqlSanitize';
-import genRollupSelectv2 from './genRollupSelectv2';
-import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
-import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type { Knex } from 'knex';
-import type Column from '../models/Column';
-import type LookupColumn from '../models/LookupColumn';
-import type RollupColumn from '../models/RollupColumn';
-import type FormulaColumn from '../models/FormulaColumn';
+import type Column from '~/models/Column';
+import type LookupColumn from '~/models/LookupColumn';
+import type RollupColumn from '~/models/RollupColumn';
+import type FormulaColumn from '~/models/FormulaColumn';
+import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import genRollupSelectv2 from '~/db/genRollupSelectv2';
+import { sanitize } from '~/helpers/sqlSanitize';
+import Filter from '~/models/Filter';
 
 // tod: tobe fixed
 // extend(customParseFormat);
 
 export default async function conditionV2(
+  baseModelSqlv2: BaseModelSqlv2,
   conditionObj: Filter | Filter[],
   qb: Knex.QueryBuilder,
-  knex: Knex,
+  alias?: string,
 ) {
   if (!conditionObj || typeof conditionObj !== 'object') {
     return;
   }
-  (await parseConditionV2(conditionObj, knex))(qb);
+  (await parseConditionV2(baseModelSqlv2, conditionObj, { count: 0 }, alias))(
+    qb,
+  );
 }
 
 function getLogicalOpMethod(filter: Filter) {
@@ -40,12 +44,14 @@ function getLogicalOpMethod(filter: Filter) {
 }
 
 const parseConditionV2 = async (
+  baseModelSqlv2: BaseModelSqlv2,
   _filter: Filter | Filter[],
-  knex: Knex,
   aliasCount = { count: 0 },
   alias?,
   customWhereClause?,
 ) => {
+  const knex = baseModelSqlv2.dbDriver;
+
   let filter: Filter;
   if (!Array.isArray(_filter)) {
     if (!(_filter instanceof Filter)) filter = new Filter(_filter as Filter);
@@ -53,7 +59,9 @@ const parseConditionV2 = async (
   }
   if (Array.isArray(_filter)) {
     const qbs = await Promise.all(
-      _filter.map((child) => parseConditionV2(child, knex, aliasCount)),
+      _filter.map((child) =>
+        parseConditionV2(baseModelSqlv2, child, aliasCount, alias),
+      ),
     );
 
     return (qbP) => {
@@ -68,7 +76,7 @@ const parseConditionV2 = async (
 
     const qbs = await Promise.all(
       (children || []).map((child) =>
-        parseConditionV2(child, knex, aliasCount),
+        parseConditionV2(baseModelSqlv2, child, aliasCount),
       ),
     );
 
@@ -106,12 +114,14 @@ const parseConditionV2 = async (
             }
           }
 
-          const selectHmCount = knex(childModel.table_name)
+          const selectHmCount = knex(
+            baseModelSqlv2.getTnPath(childModel.table_name),
+          )
             .count(childColumn.column_name)
             .where(
               childColumn.column_name,
               knex.raw('??.??', [
-                alias || parentModel.table_name,
+                alias || baseModelSqlv2.getTnPath(parentModel.table_name),
                 parentColumn.column_name,
               ]),
             );
@@ -124,11 +134,12 @@ const parseConditionV2 = async (
             }
           };
         }
-        const selectQb = knex(childModel.table_name).select(
-          childColumn.column_name,
-        );
+        const selectQb = knex(
+          baseModelSqlv2.getTnPath(childModel.table_name),
+        ).select(childColumn.column_name);
         (
           await parseConditionV2(
+            baseModelSqlv2,
             new Filter({
               ...filter,
               ...(filter.comparison_op in negatedMapping
@@ -137,7 +148,6 @@ const parseConditionV2 = async (
               fk_model_id: childModel.id,
               fk_column_id: childModel?.displayValue?.id,
             }),
-            knex,
             aliasCount,
           )
         )(selectQb);
@@ -162,12 +172,14 @@ const parseConditionV2 = async (
             }
           }
 
-          const selectBtCount = knex(parentModel.table_name)
+          const selectBtCount = knex(
+            baseModelSqlv2.getTnPath(parentModel.table_name),
+          )
             .count(parentColumn.column_name)
             .where(
               parentColumn.column_name,
               knex.raw('??.??', [
-                alias || childModel.table_name,
+                alias || baseModelSqlv2.getTnPath(childModel.table_name),
                 childColumn.column_name,
               ]),
             );
@@ -181,11 +193,12 @@ const parseConditionV2 = async (
           };
         }
 
-        const selectQb = knex(parentModel.table_name).select(
-          parentColumn.column_name,
-        );
+        const selectQb = knex(
+          baseModelSqlv2.getTnPath(parentModel.table_name),
+        ).select(parentColumn.column_name);
         (
           await parseConditionV2(
+            baseModelSqlv2,
             new Filter({
               ...filter,
               ...(filter.comparison_op in negatedMapping
@@ -194,7 +207,6 @@ const parseConditionV2 = async (
               fk_model_id: parentModel.id,
               fk_column_id: parentModel?.displayValue?.id,
             }),
-            knex,
             aliasCount,
           )
         )(selectQb);
@@ -223,12 +235,14 @@ const parseConditionV2 = async (
             }
           }
 
-          const selectMmCount = knex(mmModel.table_name)
+          const selectMmCount = knex(
+            baseModelSqlv2.getTnPath(mmModel.table_name),
+          )
             .count(mmChildColumn.column_name)
             .where(
               mmChildColumn.column_name,
               knex.raw('??.??', [
-                alias || childModel.table_name,
+                alias || baseModelSqlv2.getTnPath(childModel.table_name),
                 childColumn.column_name,
               ]),
             );
@@ -242,16 +256,21 @@ const parseConditionV2 = async (
           };
         }
 
-        const selectQb = knex(mmModel.table_name)
+        const selectQb = knex(baseModelSqlv2.getTnPath(mmModel.table_name))
           .select(mmChildColumn.column_name)
           .join(
-            parentModel.table_name,
-            `${mmModel.table_name}.${mmParentColumn.column_name}`,
-            `${parentModel.table_name}.${parentColumn.column_name}`,
+            baseModelSqlv2.getTnPath(parentModel.table_name),
+            `${baseModelSqlv2.getTnPath(mmModel.table_name)}.${
+              mmParentColumn.column_name
+            }`,
+            `${baseModelSqlv2.getTnPath(parentModel.table_name)}.${
+              parentColumn.column_name
+            }`,
           );
 
         (
           await parseConditionV2(
+            baseModelSqlv2,
             new Filter({
               ...filter,
               ...(filter.comparison_op in negatedMapping
@@ -260,7 +279,6 @@ const parseConditionV2 = async (
               fk_model_id: parentModel.id,
               fk_column_id: parentModel?.displayValue?.id,
             }),
-            knex,
             aliasCount,
           )
         )(selectQb);
@@ -274,18 +292,34 @@ const parseConditionV2 = async (
 
       return (_qb) => {};
     } else if (column.uidt === UITypes.Lookup) {
-      return await generateLookupCondition(column, filter, knex, aliasCount);
-    } else if (column.uidt === UITypes.Rollup && !customWhereClause) {
+      return await generateLookupCondition(
+        baseModelSqlv2,
+        column,
+        filter,
+        knex,
+        aliasCount,
+      );
+    } else if (
+      [UITypes.Rollup, UITypes.Links].includes(column.uidt) &&
+      !customWhereClause
+    ) {
       const builder = (
         await genRollupSelectv2({
+          baseModelSqlv2,
           knex,
           alias,
           columnOptions: (await column.getColOptions()) as RollupColumn,
         })
       ).builder;
       return parseConditionV2(
-        new Filter({ ...filter, value: knex.raw('?', [filter.value]) } as any),
-        knex,
+        baseModelSqlv2,
+        new Filter({
+          ...filter,
+          value: knex.raw('?', [
+            // convert value to number for rollup since rollup is always number
+            isNaN(+filter.value) ? filter.value : +filter.value,
+          ]),
+        } as any),
         aliasCount,
         alias,
         builder,
@@ -294,11 +328,17 @@ const parseConditionV2 = async (
       const model = await column.getModel();
       const formula = await column.getColOptions<FormulaColumn>();
       const builder = (
-        await formulaQueryBuilderv2(formula.formula, null, knex, model, column)
+        await formulaQueryBuilderv2(
+          baseModelSqlv2,
+          formula.formula,
+          null,
+          model,
+          column,
+        )
       ).builder;
       return parseConditionV2(
+        baseModelSqlv2,
         new Filter({ ...filter, value: knex.raw('?', [filter.value]) } as any),
-        knex,
         aliasCount,
         alias,
         builder,
@@ -416,14 +456,15 @@ const parseConditionV2 = async (
                   UITypes.Decimal,
                   UITypes.Rating,
                   UITypes.Rollup,
+                  UITypes.Links,
                 ].includes(column.uidt)
               ) {
                 qb = qb.where(field, val);
               } else if (column.ct === 'timestamp') {
-                qb = qb.whereRaw('DATE(??) = DATE(?)', [field, val]);
+                qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
               } else {
                 // mysql is case-insensitive for strings, turn to case-sensitive
-                qb = qb.whereRaw('BINARY ?? = ?', [field, val]);
+                qb = qb.where(knex.raw('BINARY ?? = ?', [field, val]));
               }
             } else {
               qb = qb.where(field, val);
@@ -444,12 +485,14 @@ const parseConditionV2 = async (
                   UITypes.Number,
                   UITypes.Decimal,
                   UITypes.Rollup,
+                  UITypes.Links,
                 ].includes(column.uidt)
               ) {
                 qb = qb.where((nestedQb) => {
-                  nestedQb
-                    .whereNot(field, val)
-                    .orWhereNull(customWhereClause ? _val : _field);
+                  nestedQb.whereNot(field, val);
+
+                  if (column.uidt !== UITypes.Links)
+                    nestedQb.orWhereNull(customWhereClause ? _val : _field);
                 });
               } else if (column.uidt === UITypes.Rating) {
                 // unset rating is considered as NULL
@@ -461,7 +504,7 @@ const parseConditionV2 = async (
               } else {
                 // mysql is case-insensitive for strings, turn to case-sensitive
                 qb = qb.where((nestedQb) => {
-                  nestedQb.whereRaw('BINARY ?? != ?', [field, val]);
+                  nestedQb.where(knex.raw('BINARY ?? != ?', [field, val]));
                   if (column.uidt !== UITypes.Rating) {
                     nestedQb.orWhereNull(customWhereClause ? _val : _field);
                   }
@@ -469,9 +512,10 @@ const parseConditionV2 = async (
               }
             } else {
               qb = qb.where((nestedQb) => {
-                nestedQb
-                  .whereNot(field, val)
-                  .orWhereNull(customWhereClause ? _val : _field);
+                nestedQb.whereNot(field, val);
+
+                if (column.uidt !== UITypes.Links)
+                  nestedQb.orWhereNull(customWhereClause ? _val : _field);
               });
             }
             break;
@@ -496,7 +540,7 @@ const parseConditionV2 = async (
                   val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
               }
               if (qb?.client?.config?.client === 'pg') {
-                qb = qb.whereRaw('??::text ilike ?', [field, val]);
+                qb = qb.where(knex.raw('??::text ilike ?', [field, val]));
               } else {
                 qb = qb.where(field, 'like', val);
               }
@@ -523,7 +567,9 @@ const parseConditionV2 = async (
               }
               qb.where((nestedQb) => {
                 if (qb?.client?.config?.client === 'pg') {
-                  nestedQb.whereRaw('??::text not ilike ?', [field, val]);
+                  nestedQb.where(
+                    knex.raw('??::text not ilike ?', [field, val]),
+                  );
                 } else {
                   nestedQb.whereNot(field, 'like', val);
                 }
@@ -557,15 +603,15 @@ const parseConditionV2 = async (
                     sql = "CONCAT(',', ??, ',') like ?";
                   }
                   if (i === 0) {
-                    builder = builder.whereRaw(sql, bindings);
+                    builder = builder.where(knex.raw(sql, bindings));
                   } else {
                     if (
                       filter.comparison_op === 'allof' ||
                       filter.comparison_op === 'nallof'
                     ) {
-                      builder = builder.andWhereRaw(sql, bindings);
+                      builder = builder.andWhere(knex.raw(sql, bindings));
                     } else {
-                      builder = builder.orWhereRaw(sql, bindings);
+                      builder = builder.orWhere(knex.raw(sql, bindings));
                     }
                   }
                 }
@@ -764,6 +810,7 @@ const parseConditionV2 = async (
 const negatedMapping = {
   nlike: { comparison_op: 'like' },
   neq: { comparison_op: 'eq' },
+  blank: { comparison_op: 'notblank' },
 };
 
 function getAlias(aliasCount: { count: number }) {
@@ -772,6 +819,7 @@ function getAlias(aliasCount: { count: number }) {
 
 // todo: refactor child , parent in mm
 async function generateLookupCondition(
+  baseModelSqlv2: BaseModelSqlv2,
   col: Column,
   filter: Filter,
   knex,
@@ -794,33 +842,26 @@ async function generateLookupCondition(
     await parentModel.getColumns();
 
     if (relationColumnOptions.type === RelationTypes.HAS_MANY) {
-      qb = knex(`${childModel.table_name} as ${alias}`);
+      qb = knex(
+        `${baseModelSqlv2.getTnPath(childModel.table_name)} as ${alias}`,
+      );
 
       qb.select(`${alias}.${childColumn.column_name}`);
 
-      if (filter.comparison_op === 'blank') {
-        return (qbP: Knex.QueryBuilder) => {
-          qbP.whereNotIn(childColumn.column_name, qb);
-        };
-      } else if (filter.comparison_op === 'notblank') {
-        return (qbP: Knex.QueryBuilder) => {
-          qbP.whereIn(childColumn.column_name, qb);
-        };
-      } else {
-        await nestedConditionJoin(
-          {
-            ...filter,
-            ...(filter.comparison_op in negatedMapping
-              ? negatedMapping[filter.comparison_op]
-              : {}),
-          },
-          lookupColumn,
-          qb,
-          knex,
-          alias,
-          aliasCount,
-        );
-      }
+      await nestedConditionJoin(
+        baseModelSqlv2,
+        {
+          ...filter,
+          ...(filter.comparison_op in negatedMapping
+            ? negatedMapping[filter.comparison_op]
+            : {}),
+        },
+        lookupColumn,
+        qb,
+        knex,
+        alias,
+        aliasCount,
+      );
 
       return (qbP: Knex.QueryBuilder) => {
         if (filter.comparison_op in negatedMapping)
@@ -828,32 +869,25 @@ async function generateLookupCondition(
         else qbP.whereIn(parentColumn.column_name, qb);
       };
     } else if (relationColumnOptions.type === RelationTypes.BELONGS_TO) {
-      qb = knex(`${parentModel.table_name} as ${alias}`);
+      qb = knex(
+        `${baseModelSqlv2.getTnPath(parentModel.table_name)} as ${alias}`,
+      );
       qb.select(`${alias}.${parentColumn.column_name}`);
 
-      if (filter.comparison_op === 'blank') {
-        return (qbP: Knex.QueryBuilder) => {
-          qbP.whereNotIn(childColumn.column_name, qb);
-        };
-      } else if (filter.comparison_op === 'notblank') {
-        return (qbP: Knex.QueryBuilder) => {
-          qbP.whereIn(childColumn.column_name, qb);
-        };
-      } else {
-        await nestedConditionJoin(
-          {
-            ...filter,
-            ...(filter.comparison_op in negatedMapping
-              ? negatedMapping[filter.comparison_op]
-              : {}),
-          },
-          lookupColumn,
-          qb,
-          knex,
-          alias,
-          aliasCount,
-        );
-      }
+      await nestedConditionJoin(
+        baseModelSqlv2,
+        {
+          ...filter,
+          ...(filter.comparison_op in negatedMapping
+            ? negatedMapping[filter.comparison_op]
+            : {}),
+        },
+        lookupColumn,
+        qb,
+        knex,
+        alias,
+        aliasCount,
+      );
 
       return (qbP: Knex.QueryBuilder) => {
         if (filter.comparison_op in negatedMapping)
@@ -867,37 +901,30 @@ async function generateLookupCondition(
 
       const childAlias = `__nc${aliasCount.count++}`;
 
-      qb = knex(`${mmModel.table_name} as ${alias}`)
+      qb = knex(`${baseModelSqlv2.getTnPath(mmModel.table_name)} as ${alias}`)
         .select(`${alias}.${mmChildColumn.column_name}`)
         .join(
-          `${parentModel.table_name} as ${childAlias}`,
+          `${baseModelSqlv2.getTnPath(
+            parentModel.table_name,
+          )} as ${childAlias}`,
           `${alias}.${mmParentColumn.column_name}`,
           `${childAlias}.${parentColumn.column_name}`,
         );
 
-      if (filter.comparison_op === 'blank') {
-        return (qbP: Knex.QueryBuilder) => {
-          qbP.whereNotIn(childColumn.column_name, qb);
-        };
-      } else if (filter.comparison_op === 'notblank') {
-        return (qbP: Knex.QueryBuilder) => {
-          qbP.whereIn(childColumn.column_name, qb);
-        };
-      } else {
-        await nestedConditionJoin(
-          {
-            ...filter,
-            ...(filter.comparison_op in negatedMapping
-              ? negatedMapping[filter.comparison_op]
-              : {}),
-          },
-          lookupColumn,
-          qb,
-          knex,
-          childAlias,
-          aliasCount,
-        );
-      }
+      await nestedConditionJoin(
+        baseModelSqlv2,
+        {
+          ...filter,
+          ...(filter.comparison_op in negatedMapping
+            ? negatedMapping[filter.comparison_op]
+            : {}),
+        },
+        lookupColumn,
+        qb,
+        knex,
+        childAlias,
+        aliasCount,
+      );
 
       return (qbP: Knex.QueryBuilder) => {
         if (filter.comparison_op in negatedMapping)
@@ -909,6 +936,7 @@ async function generateLookupCondition(
 }
 
 async function nestedConditionJoin(
+  baseModelSqlv2: BaseModelSqlv2,
   filter: Filter,
   lookupColumn: Column,
   qb: Knex.QueryBuilder,
@@ -941,7 +969,9 @@ async function nestedConditionJoin(
         case RelationTypes.HAS_MANY:
           {
             qb.join(
-              `${childModel.table_name} as ${relAlias}`,
+              `${baseModelSqlv2.getTnPath(
+                childModel.table_name,
+              )} as ${relAlias}`,
               `${alias}.${parentColumn.column_name}`,
               `${relAlias}.${childColumn.column_name}`,
             );
@@ -950,7 +980,9 @@ async function nestedConditionJoin(
         case RelationTypes.BELONGS_TO:
           {
             qb.join(
-              `${parentModel.table_name} as ${relAlias}`,
+              `${baseModelSqlv2.getTnPath(
+                parentModel.table_name,
+              )} as ${relAlias}`,
               `${alias}.${childColumn.column_name}`,
               `${relAlias}.${parentColumn.column_name}`,
             );
@@ -965,11 +997,15 @@ async function nestedConditionJoin(
             const assocAlias = `__nc${aliasCount.count++}`;
 
             qb.join(
-              `${mmModel.table_name} as ${assocAlias}`,
+              `${baseModelSqlv2.getTnPath(
+                mmModel.table_name,
+              )} as ${assocAlias}`,
               `${assocAlias}.${mmChildColumn.column_name}`,
               `${alias}.${childColumn.column_name}`,
             ).join(
-              `${parentModel.table_name} as ${relAlias}`,
+              `${baseModelSqlv2.getTnPath(
+                parentModel.table_name,
+              )} as ${relAlias}`,
               `${relAlias}.${parentColumn.column_name}`,
               `${assocAlias}.${mmParentColumn.column_name}`,
             );
@@ -980,6 +1016,7 @@ async function nestedConditionJoin(
 
     if (lookupColumn.uidt === UITypes.Lookup) {
       await nestedConditionJoin(
+        baseModelSqlv2,
         filter,
         await (
           await lookupColumn.getColOptions<LookupColumn>()
@@ -995,12 +1032,12 @@ async function nestedConditionJoin(
           {
             (
               await parseConditionV2(
+                baseModelSqlv2,
                 new Filter({
                   ...filter,
                   fk_model_id: childModel.id,
                   fk_column_id: childModel.displayValue?.id,
                 }),
-                knex,
                 aliasCount,
                 relAlias,
               )
@@ -1011,12 +1048,12 @@ async function nestedConditionJoin(
           {
             (
               await parseConditionV2(
+                baseModelSqlv2,
                 new Filter({
                   ...filter,
                   fk_model_id: parentModel.id,
                   fk_column_id: parentModel?.displayValue?.id,
                 }),
-                knex,
                 aliasCount,
                 relAlias,
               )
@@ -1027,12 +1064,12 @@ async function nestedConditionJoin(
           {
             (
               await parseConditionV2(
+                baseModelSqlv2,
                 new Filter({
                   ...filter,
                   fk_model_id: parentModel.id,
                   fk_column_id: parentModel.displayValue?.id,
                 }),
-                knex,
                 aliasCount,
                 relAlias,
               )
@@ -1044,12 +1081,12 @@ async function nestedConditionJoin(
   } else {
     (
       await parseConditionV2(
+        baseModelSqlv2,
         new Filter({
           ...filter,
           fk_model_id: (await lookupColumn.getModel()).id,
           fk_column_id: lookupColumn?.id,
         }),
-        knex,
         aliasCount,
         alias,
       )

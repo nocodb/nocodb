@@ -9,16 +9,13 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { ApiTokensService } from '../services/api-tokens.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { ApiTokensService } from '~/services/api-tokens.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 export class ApiTokensController {
   constructor(private readonly apiTokensService: ApiTokensService) {}
 

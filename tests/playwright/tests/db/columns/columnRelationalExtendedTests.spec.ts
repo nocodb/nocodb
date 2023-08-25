@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 
 test.describe('Relational Columns', () => {
   let dashboard: DashboardPage;
@@ -9,6 +9,10 @@ test.describe('Relational Columns', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Relational columns: HM, BT, MM', async () => {
@@ -23,16 +27,17 @@ test.describe('Relational Columns', () => {
     for (let i = 0; i < cityList.length; i++) {
       await dashboard.grid.cell.verifyVirtualCell({
         index: i,
-        columnHeader: 'City List',
+        columnHeader: 'Cities',
         count: cityList[i].length,
-        value: cityList[i],
+        type: 'hm',
+        options: { singular: 'City', plural: 'Cities' },
       });
     }
 
     // click on expand icon, open child list
     await dashboard.grid.cell.inCellExpand({
       index: 0,
-      columnHeader: 'City List',
+      columnHeader: 'Cities',
     });
     await dashboard.childList.verify({
       cardTitle: ['Kabul'],
@@ -65,6 +70,7 @@ test.describe('Relational Columns', () => {
       await dashboard.grid.cell.verifyVirtualCell({
         index: i,
         columnHeader: 'Country',
+        type: 'bt',
         count: countryList[i].length,
         value: countryList[i],
       });
@@ -90,16 +96,17 @@ test.describe('Relational Columns', () => {
     for (let i = 0; i < filmList.length; i++) {
       await dashboard.grid.cell.verifyVirtualCell({
         index: i,
-        columnHeader: 'Film List',
+        columnHeader: 'Films',
         // Count hardwired to avoid verifying all 19 entries
         count: 19,
-        value: filmList[i],
+        type: 'mm',
+        options: { singular: 'Film', plural: 'Films' },
       });
     }
     // click on expand icon, open child list
     await dashboard.grid.cell.inCellExpand({
       index: 0,
-      columnHeader: 'Film List',
+      columnHeader: 'Films',
     });
     await dashboard.childList.verify({
       cardTitle: filmList[0],

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { isSystemColumn } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   CellClickHookInj,
@@ -238,7 +239,7 @@ const clickHandler = () => {
 }
 
 const isColEditable = computed(() => {
-  return column.value.title === 'CreatedAt' || column.value.title === 'UpdatedAt' || readOnly.value || (localState.value && isPk)
+  return isSystemColumn(column.value) || readOnly.value || (localState.value && isPk)
 })
 </script>
 

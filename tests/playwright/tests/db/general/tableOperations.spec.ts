@@ -5,7 +5,7 @@ import { SettingsPage, SettingTab } from '../../../pages/Dashboard/Settings';
 import { deepCompare } from '../../../tests/utils/objectCompareUtil';
 import setup, { unsetup } from '../../../setup';
 import { ProjectInfoApiUtil, TableInfo } from '../../../tests/utils/projectInfoApiUtil';
-import { isHub } from '../../../setup/db';
+import { isEE } from '../../../setup/db';
 
 test.describe('Table Operations', () => {
   let dashboard: DashboardPage, settings: SettingsPage;
@@ -28,7 +28,7 @@ test.describe('Table Operations', () => {
     await dashboard.treeView.deleteTable({ title: 'tablex' });
     await dashboard.treeView.verifyTable({ title: 'tablex', exists: false });
 
-    if (!isHub()) {
+    if (!isEE()) {
       // Audit logs in clickhouse; locally wont be accessible
       await dashboard.gotoSettings();
       await settings.selectTab({ tab: SettingTab.Audit });

@@ -43,6 +43,10 @@ const _duplicate = async () => {
   dialogShow.value = false
 }
 
+onKeyStroke('Enter', () => {
+  _duplicate()
+})
+
 const isEaster = ref(false)
 </script>
 

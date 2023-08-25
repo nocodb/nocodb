@@ -226,8 +226,16 @@ export default {
   }
 }
 
+.splitpanes__pane {
+  transition: width 0.1s ease-in-out !important;
+}
+
 .splitpanes--dragging {
   cursor: col-resize;
+}
+
+.splitpanes--dragging > .splitpanes__pane {
+  transition: none !important;
 }
 
 .nc-sidebar-wrapper {
@@ -262,14 +270,6 @@ export default {
 .nc-sidebar-wrapper > * {
   width: 100%;
   transition: all 0.2s ease-in-out;
-}
-
-.splitpanes__pane {
-  transition: width 0.1s ease-in-out !important;
-}
-
-.nc-sidebar-wrapper.hide-sidebar {
-  min-width: 0 !important;
 }
 
 .nc-sidebar-wrapper.hide-sidebar > * {

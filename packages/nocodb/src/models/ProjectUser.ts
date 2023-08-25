@@ -372,7 +372,17 @@ export default class ProjectUser {
       await NocoCache.setList(CacheScope.USER_PROJECT, [userId], projectList);
     }
 
-    return projectList.filter((p) => !params?.type || p.type === params.type);
+    const castedProjectList = projectList
+      .filter((p) => !params?.type || p.type === params.type)
+      .map((m) => this.castType(m));
+
+    await Promise.all(
+      castedProjectList.map(async (project) => {
+        await project.getBases(ncMeta);
+      }),
+    );
+
+    return castedProjectList;
   }
 
   static async updateOrInsert(

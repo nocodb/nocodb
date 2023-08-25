@@ -115,7 +115,15 @@ export default class Project implements ProjectType {
     projectList = projectList.filter(
       (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
     );
-    return projectList.map((m) => this.castType(m));
+    const castedProjectList = projectList.map((m) => this.castType(m));
+
+    await Promise.all(
+      castedProjectList.map(async (project) => {
+        await project.getBases(ncMeta);
+      }),
+    );
+
+    return castedProjectList;
   }
 
   // @ts-ignore

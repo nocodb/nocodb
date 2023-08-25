@@ -295,7 +295,15 @@ export default class Project extends ProjectCE {
       project.meta = parseMetaProp(project);
     }
 
-    return projects;
+    const castedProjectList = projects.map((m) => this.castType(m));
+
+    await Promise.all(
+      castedProjectList.map(async (project) => {
+        await project.getBases(ncMeta);
+      }),
+    );
+
+    return castedProjectList;
   };
 
   getLinkedDbProjects? = async (ncMeta = Noco.ncMeta) => {

@@ -299,7 +299,6 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
       }
 
       if (!isProjectPopulated) {
-        await loadProject(project.id!)
         await loadProjectTables(project.id!)
       }
       break

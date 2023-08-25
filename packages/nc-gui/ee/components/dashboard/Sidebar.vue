@@ -68,9 +68,9 @@ const navigateToSettings = () => {
     }"
   >
     <div class="flex flex-col">
-      <div style="border-bottom-width: 1px" class="flex items-center px-1 nc-sidebar-header !border-0 py-1.25 pl-2">
-        <div v-if="!isWorkspaceLoading" class="flex flex-row items-center w-full gap-x-1">
-          <div class="flex flex-row flex-grow hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md max-w-full">
+      <div style="border-bottom-width: 1px" class="flex items-center px-1 nc-sidebar-header !border-0 py-1.25 pl-2 w-full">
+        <div v-if="!isWorkspaceLoading" class="flex flex-row items-center w-full">
+          <div class="flex flex-row flex-grow hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md max-w-82/100">
             <a
               v-if="isSharedBase"
               class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
@@ -88,7 +88,8 @@ const navigateToSettings = () => {
               </template>
             </WorkspaceMenu>
           </div>
-          <NcTooltip placement="bottom" hide-on-click>
+          <div class="flex flex-grow min-w-1"></div>
+          <NcTooltip class="flex" placement="bottom" hide-on-click>
             <template #title>
               {{
                 isLeftSidebarOpen
@@ -105,7 +106,7 @@ const navigateToSettings = () => {
               <div class="flex items-center text-inherit">
                 <GeneralIcon
                   icon="doubleLeftArrow"
-                  class="duration-150 transition-all"
+                  class="duration-150 transition-all !text-lg -mt-0.5"
                   :class="{
                     'transform rotate-180': !isLeftSidebarOpen,
                   }"

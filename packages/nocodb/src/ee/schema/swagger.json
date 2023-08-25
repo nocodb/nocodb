@@ -1809,6 +1809,210 @@
           "Base"
         ]
       }
+    },
+    "/api/v1/cowriter/meta/tables/{tableId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "Cowriter Create",
+        "operationId": "cowriter-table-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cowriter"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cowriter Table"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Cowriter List",
+        "operationId": "cowriter-table-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CowriterList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cowriter Table"
+        ]
+      }
+    },
+    "/api/v1/cowriter/meta/tables/{tableId}/{cowriterId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "cowriterId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Cowriter Get",
+        "operationId": "cowriter-table-get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CowriterList"
+                }
+              }
+            }
+          },
+          "": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cowriter"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cowriter Table"
+        ]
+      },
+      "patch": {
+        "summary": "Cowriter Patch",
+        "operationId": "cowriter-table-patch",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Cowriter Table"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Cowriter"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cowriter/meta/tables/{tableId}/generate-columns": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "Cowriter Generate Columns",
+        "operationId": "cowriter-table-generate-columns",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "Generate Columns using AI",
+        "tags": [
+          "Cowriter Table"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cowriter/meta/tables/{tableId}/bulk": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "Cowriter Create Bulk",
+        "operationId": "cowriter-table-create-bulk",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "",
+        "tags": [
+          "Cowriter Table"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Cowriter"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3115,6 +3319,66 @@
         "x-stoplight": {
           "id": "wbc42cyev1qzt"
         }
+      },
+      "Notification": {
+        "allOf": [
+          {
+            "description": "",
+            "properties": {
+              "id": {
+                "$ref": "#/components/schemas/Id",
+                "description": "Unique ID"
+              },
+              "is_read": {
+                "type": "boolean",
+                "description": "Whether the notification has been read by the user"
+              },
+              "is_deleted": {
+                "type": "boolean",
+                "description": "Whether the notification has been deleted by the user"
+              },
+              "type": {
+                "type": "string",
+                "description": "Type of notification"
+              },
+              "updated_at": {},
+              "created_at": {}
+            },
+            "title": "Notification",
+            "type": "object"
+          },
+          {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ProjectInviteEvent"
+              },
+              {
+                "$ref": "#/components/schemas/ProjectEvent"
+              },
+              {
+                "$ref": "#/components/schemas/WorkspaceInviteEvent"
+              },
+              {
+                "$ref": "#/components/schemas/TableEvent"
+              },
+              {
+                "$ref": "#/components/schemas/ViewEvent"
+              },
+              {
+                "$ref": "#/components/schemas/ColumnEvent"
+              },
+              {
+                "$ref": "#/components/schemas/WelcomeEvent"
+              },
+              {
+                "$ref": "#/components/schemas/SortEvent"
+              },
+              {
+                "$ref": "#/components/schemas/FilterEvent"
+              }
+            ]
+          }
+        ]
       }
     },
     "responses": {

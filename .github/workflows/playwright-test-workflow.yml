@@ -16,6 +16,8 @@ jobs:
     runs-on: [self-hosted, v2]
     timeout-minutes: 100
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
@@ -35,8 +37,6 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
-      - name: Checkout
-        uses: actions/checkout@v3
       - name: setup pg
         if: ${{ inputs.db == 'pg' || ( inputs.db == 'sqlite' && inputs.shard == '1' ) }}
         working-directory: ./

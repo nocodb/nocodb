@@ -50,7 +50,7 @@ const route = useRoute()
 
 const { $e } = useNuxtApp()
 
-const { rightSidebarSize } = storeToRefs(useSidebarStore())
+const { rightSidebarSize, isRightSidebarOpen } = storeToRefs(useSidebarStore())
 
 const tabBtnsContainerRef = ref<HTMLElement | null>(null)
 
@@ -186,9 +186,25 @@ onUnmounted(() => {
     <div
       v-else
       ref="tabBtnsContainerRef"
-      class="flex flex-row p-1 mx-3 mt-2.25 mb-2.75 rounded-md gap-x-2 nc-view-sidebar-tab text-gray-500"
+      class="flex flex-row p-1 mx-1 mt-1 mb-2.75 rounded-md gap-x-2 nc-view-sidebar-tab items-center"
     >
-      Views
+      <NcButton
+        type="text"
+        size="small"
+        class="nc-sidebar-left-toggle-icon !text-gray-600 !hover:text-gray-800"
+        @click="isRightSidebarOpen = !isRightSidebarOpen"
+      >
+        <div class="flex items-center text-inherit">
+          <GeneralIcon
+            icon="doubleRightArrow"
+            class="duration-150 transition-all"
+            :class="{
+              'transform rotate-180': !isRightSidebarOpen,
+            }"
+          />
+        </div>
+      </NcButton>
+      <div class="flex text-gray-600">Views</div>
     </div>
 
     <div class="flex-1 flex flex-col min-h-0">

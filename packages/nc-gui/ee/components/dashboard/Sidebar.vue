@@ -105,7 +105,7 @@ const navigateToSettings = () => {
               <div class="flex items-center text-inherit">
                 <GeneralIcon
                   icon="doubleLeftArrow"
-                  class="duration-300 transition-all"
+                  class="duration-150 transition-all"
                   :class="{
                     'transform rotate-180': !isLeftSidebarOpen,
                   }"

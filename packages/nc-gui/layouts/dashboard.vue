@@ -16,11 +16,12 @@ const contentSize = ref({
   current: 82.5,
 })
 const isSidebarShort = ref(false)
-const animationDuration = 175
+const animationDuration = 200
 const viewportWidth = ref(window.innerWidth)
 const isMouseOverShowSidebarZone = ref(false)
 const isAnimationEndAfterSidebarHide = ref(false)
 const isStartHideSidebarAnimation = ref(false)
+const sidebarOpenAnimating = ref(false)
 
 const sidebarWidth = computed(() => (sideBarSize.value.old * viewportWidth.value) / 100)
 const currentSidebarSize = computed({
@@ -72,6 +73,15 @@ watch(isLeftSidebarOpen, () => {
       sideBarSize.value.current = 0
       isAnimationEndAfterSidebarHide.value = true
     }, animationDuration * 1.75)
+  }
+})
+
+watch(isLeftSidebarOpen, () => {
+  if (isLeftSidebarOpen.value) {
+    sidebarOpenAnimating.value = true
+    setTimeout(() => {
+      sidebarOpenAnimating.value = false
+    }, animationDuration)
   }
 })
 
@@ -252,6 +262,10 @@ export default {
 .nc-sidebar-wrapper > * {
   width: 100%;
   transition: all 0.2s ease-in-out;
+}
+
+.splitpanes__pane {
+  transition: width 0.1s ease-in-out !important;
 }
 
 .nc-sidebar-wrapper.hide-sidebar {

@@ -120,9 +120,9 @@ onKeyStroke('Escape', () => {
       >
         <slot name="brandIcon" />
         <template v-if="props.isOpen">
-          Nocodb
+          <div class="font-semibold text-base">Nocodb</div>
           <div class="flex flex-grow"></div>
-          <MdiCodeTags class="min-w-[17px] text-md transform rotate-90" />
+          <GeneralIcon icon="arrowDown" class="text-lg !text-gray-700" />
         </template>
 
         <template v-else>

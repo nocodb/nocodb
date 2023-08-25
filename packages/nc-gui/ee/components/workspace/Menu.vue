@@ -160,7 +160,7 @@ const switchWorkspace = async (workspaceId: string) => {
             <div class="text-md truncate capitalize">{{ activeWorkspace.title }}</div>
           </div>
 
-          <MdiCodeTags class="min-w-[17px] text-md transform rotate-90" />
+          <GeneralIcon icon="arrowDown" class="text-lg !text-gray-700" />
         </template>
 
         <template v-else>

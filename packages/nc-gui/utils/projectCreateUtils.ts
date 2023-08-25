@@ -1,4 +1,9 @@
-import { ClientType } from '~/lib'
+import { ClientType } from '../lib'
+
+// todo: move to noco-sdk
+export enum NcProjectType {
+  DB = 'database',
+}
 
 interface ProjectCreateForm {
   title: string
@@ -33,7 +38,7 @@ interface SQLiteConnection {
   useNullAsDefault?: boolean
 }
 
-export interface SnowflakeConnection {
+interface SnowflakeConnection {
   account: string
   username: string
   password: string
@@ -76,7 +81,7 @@ export const clientTypes = [
     value: ClientType.SQLITE,
   },
   {
-    text: 'SnowFlake',
+    text: 'Snowflake',
     value: ClientType.SNOWFLAKE,
   },
 ]
@@ -210,4 +215,4 @@ enum CertTypes {
   key = 'key',
 }
 
-export { SSLUsage, CertTypes, ProjectCreateForm, DefaultConnection, SQLiteConnection }
+export { SSLUsage, CertTypes, ProjectCreateForm, DefaultConnection, SQLiteConnection, SnowflakeConnection }

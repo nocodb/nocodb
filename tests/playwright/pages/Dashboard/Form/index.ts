@@ -2,10 +2,12 @@ import { expect, Locator } from '@playwright/test';
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { ToolbarPage } from '../common/Toolbar';
+import { TopbarPage } from '../common/Topbar';
 
 export class FormPage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly toolbar: ToolbarPage;
+  readonly topbar: TopbarPage;
 
   // todo: All the locator should be private
   readonly addAllButton: Locator;
@@ -24,6 +26,7 @@ export class FormPage extends BasePage {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.toolbar = new ToolbarPage(this);
+    this.topbar = new TopbarPage(this);
 
     this.addAllButton = dashboard.get().locator('[data-testid="nc-form-add-all"]');
     this.removeAllButton = dashboard.get().locator('[data-testid="nc-form-remove-all"]');
@@ -220,6 +223,15 @@ export class FormPage extends BasePage {
 
   async verifyStatePostSubmit(param: { message?: string; submitAnotherForm?: boolean; showBlankForm?: boolean }) {
     if (undefined !== param.message) {
+      let retryCounter = 0;
+      while (retryCounter <= 5) {
+        const msg = await this.getFormAfterSubmit().innerText();
+        if (msg.includes('Form submitted successfully')) {
+          break;
+        }
+        await this.rootPage.waitForTimeout(100 * retryCounter);
+        retryCounter++;
+      }
       await expect(await this.getFormAfterSubmit()).toContainText(param.message);
     }
     if (true === param.submitAnotherForm) {

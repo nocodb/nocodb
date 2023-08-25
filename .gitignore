@@ -2,8 +2,10 @@
 # ===========
 .DS_Store
 ehthumbs.db
-Icon?
 Thumbs.db
+Icon
+
+
 
 # Node and related ecosystem
 # ==========================
@@ -92,3 +94,4 @@ test_noco.db
 
 # ngrok config
 httpbin
+.run/test-debug.run.xml

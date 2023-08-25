@@ -3,11 +3,15 @@ import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { CellPageObject, CellProps } from '../common/Cell';
 import { ColumnPageObject } from './Column';
+import { TopbarPage } from '../common/Topbar';
 import { ToolbarPage } from '../common/Toolbar';
+import { FootbarPage } from '../common/Footbar';
 import { ProjectMenuObject } from '../common/ProjectMenu';
 import { QrCodeOverlay } from '../QrCodeOverlay';
 import { BarcodeOverlay } from '../BarcodeOverlay';
 import { RowPageObject } from './Row';
+import { WorkspaceMenuObject } from '../common/WorkspaceMenu';
+import { GroupPageObject } from './Group';
 
 export class GridPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -17,9 +21,13 @@ export class GridPage extends BasePage {
   readonly barcodeOverlay: BarcodeOverlay;
   readonly column: ColumnPageObject;
   readonly cell: CellPageObject;
+  readonly topbar: TopbarPage;
   readonly toolbar: ToolbarPage;
+  readonly footbar: FootbarPage;
   readonly projectMenu: ProjectMenuObject;
+  readonly workspaceMenu: WorkspaceMenuObject;
   readonly rowPage: RowPageObject;
+  readonly groupPage: GroupPageObject;
 
   constructor(dashboardPage: DashboardPage) {
     super(dashboardPage.rootPage);
@@ -29,9 +37,13 @@ export class GridPage extends BasePage {
     this.barcodeOverlay = new BarcodeOverlay(this);
     this.column = new ColumnPageObject(this);
     this.cell = new CellPageObject(this);
+    this.topbar = new TopbarPage(this);
     this.toolbar = new ToolbarPage(this);
+    this.footbar = new FootbarPage(this);
     this.projectMenu = new ProjectMenuObject(this);
+    this.workspaceMenu = new WorkspaceMenuObject(this);
     this.rowPage = new RowPageObject(this);
+    this.groupPage = new GroupPageObject(this);
   }
 
   get() {
@@ -75,18 +87,22 @@ export class GridPage extends BasePage {
     const rowValue = value ?? `Row ${index}`;
     // wait for render to complete before count
     if (index !== 0) await this.get().locator('.nc-grid-row').nth(0).waitFor({ state: 'attached' });
+
+    await (await this.get().locator('.nc-grid-add-new-cell').elementHandle())?.waitForElementState('stable');
+    await this.rootPage.waitForTimeout(100);
+
     const rowCount = await this.get().locator('.nc-grid-row').count();
 
-    const addNewRowButton: Locator = await this.rootPage.locator(`[data-testid="nc-grid-add-new-row"]`);
-    await addNewRowButton.waitFor({ state: 'visible' });
-    await addNewRowButton.click();
+    await this.get().locator('.nc-grid-add-new-cell').click();
 
-    await expect(await this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);
+    // add delay for UI to render (can wait for count to stabilize by reading it multiple times)
+    await this.rootPage.waitForTimeout(100);
+    await expect(await this.get().locator('.nc-grid-row').count()).toBe(rowCount + 1);
 
     await this._fillRow({ index, columnHeader, value: rowValue });
 
     const clickOnColumnHeaderToSave = () =>
-      this.get().locator(`[data-title="${columnHeader}"]`).locator(`span[title="${columnHeader}"]`).click();
+      this.get().locator(`[data-title="${columnHeader}"]`).locator(`div[title="${columnHeader}"]`).click();
 
     if (networkValidation) {
       await this.waitForResponse({
@@ -118,7 +134,7 @@ export class GridPage extends BasePage {
     await this._fillRow({ index, columnHeader, value });
 
     const clickOnColumnHeaderToSave = () =>
-      this.get().locator(`[data-title="${columnHeader}"]`).locator(`span[title="${columnHeader}"]`).click();
+      this.get().locator(`[data-title="${columnHeader}"]`).locator(`div[title="${columnHeader}"]`).click();
 
     if (networkValidation) {
       await this.waitForResponse({
@@ -207,6 +223,12 @@ export class GridPage extends BasePage {
     await this.rootPage.waitForTimeout(300);
   }
 
+  async openAllRowContextMenu() {
+    await this.get().locator('[data-testid="nc-check-all"]').nth(0).click({
+      button: 'right',
+    });
+  }
+
   async deleteSelectedRows() {
     await this.get().locator('[data-testid="nc-check-all"]').nth(0).click({
       button: 'right',
@@ -252,6 +274,24 @@ export class GridPage extends BasePage {
     expect(parseInt(recordCnt)).toEqual(count);
   }
 
+  async verifyPaginationCount({ count }: { count: number }) {
+    let i = 0;
+    await this.get().locator(`.nc-pagination`).first().waitFor();
+    let records = await this.get().locator(`[data-testid="grid-pagination"]`).allInnerTexts();
+    let recordCnt = records[0].split(' ')[0];
+
+    while (parseInt(recordCnt) !== count && i < 5) {
+      await this.get().locator(`.nc-pagination`).first().waitFor();
+      records = await this.get().locator(`[data-testid="grid-pagination"]`).allInnerTexts();
+      recordCnt = records[0].split(' ')[0];
+
+      // to ensure page loading is complete
+      i++;
+      await this.rootPage.waitForTimeout(300 * i);
+    }
+    expect(parseInt(recordCnt)).toEqual(count);
+  }
+
   private async pagination({ page }: { page: string }) {
     await this.get().locator(`.nc-pagination`).waitFor();
 
@@ -261,15 +301,20 @@ export class GridPage extends BasePage {
     return this.get().locator(`.nc-pagination > .ant-pagination-item.ant-pagination-item-${page}`);
   }
 
-  async clickPagination({ page }: { page: string }) {
-    await this.waitForResponse({
-      uiAction: async () => (await this.pagination({ page })).click(),
-      httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: '/views/',
-      responseJsonMatcher: resJson => resJson?.pageInfo,
-    });
+  async clickPagination({ page, skipWait = false }: { page: string; skipWait?: boolean }) {
+    if (!skipWait) {
+      await (await this.pagination({ page })).click();
+      await this.waitLoading();
+    } else {
+      await this.waitForResponse({
+        uiAction: async () => (await this.pagination({ page })).click(),
+        httpMethodsToMatch: ['GET'],
+        requestUrlPathToMatch: '/views/',
+        responseJsonMatcher: resJson => resJson?.pageInfo,
+      });
 
-    await this.waitLoading();
+      await this.waitLoading();
+    }
   }
 
   async verifyActivePage({ page }: { page: string }) {
@@ -296,15 +341,15 @@ export class GridPage extends BasePage {
     await expect(await this.rootPage.locator('text=Insert New Row')).not.toBeVisible();
 
     // in cell-add
-    await this.cell.get({ index: 0, columnHeader: 'City List' }).hover();
+    await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();
     await expect(
-      await this.cell.get({ index: 0, columnHeader: 'City List' }).locator('.nc-action-icon.nc-plus')
+      await this.cell.get({ index: 0, columnHeader: 'Cities' }).locator('.nc-action-icon.nc-plus')
     ).not.toBeVisible();
 
     // expand row
-    await this.cell.get({ index: 0, columnHeader: 'City List' }).hover();
+    await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();
     await expect(
-      await this.cell.get({ index: 0, columnHeader: 'City List' }).locator('.nc-action-icon >> nth=0')
+      await this.cell.get({ index: 0, columnHeader: 'Cities' }).locator('.nc-action-icon >> nth=0')
     ).not.toBeVisible();
   }
 
@@ -327,24 +372,17 @@ export class GridPage extends BasePage {
     await expect(await this.rootPage.locator('text=Insert New Row')).toBeVisible();
 
     // in cell-add
-    await this.cell.get({ index: 0, columnHeader: 'City List' }).hover();
+    await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();
     await expect(
-      await this.cell.get({ index: 0, columnHeader: 'City List' }).locator('.nc-action-icon.nc-plus')
-    ).toBeVisible();
-
-    // expand row
-    await this.cell.get({ index: 0, columnHeader: 'City List' }).hover();
-    await expect(
-      await this.cell.get({ index: 0, columnHeader: 'City List' }).locator('.nc-action-icon.nc-arrow-expand')
+      await this.cell.get({ index: 0, columnHeader: 'Cities' }).locator('.nc-action-icon.nc-plus')
     ).toBeVisible();
   }
 
-  async validateRoleAccess(param: { role: string }) {
+  async verifyRoleAccess(param: { role: string }) {
     await this.column.verifyRoleAccess(param);
     await this.cell.verifyRoleAccess(param);
-    await expect(this.get().locator('.nc-grid-add-new-cell')).toHaveCount(
-      param.role === 'creator' || param.role === 'editor' ? 1 : 0
-    );
+    await this.toolbar.verifyRoleAccess(param);
+    await this.footbar.verifyRoleAccess(param);
   }
 
   async selectRange({ start, end }: { start: CellProps; end: CellProps }) {

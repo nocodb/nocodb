@@ -1,15 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import {
-  AuditOperationSubTypes,
-  AuditOperationTypes,
+  AppEvents,
+  isLinksOrLTAR,
   isVirtualCol,
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
   UITypes,
 } from 'nocodb-sdk';
-import { T } from 'nc-help';
-import formulaQueryBuilderv2 from '../db/formulav2/formulaQueryBuilderv2';
-import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
+import { pluralize, singularize } from 'inflection';
+import hash from 'object-hash';
+import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
+import type { LinkToAnotherRecordColumn, Project } from '~/models';
+import type {
+  ColumnReqType,
+  LinkToAnotherColumnReqType,
+  LinkToAnotherRecordType,
+  RelationTypes,
+  UserType,
+} from 'nocodb-sdk';
+import type CustomKnex from '~/db/CustomKnex';
+import type SqlClient from '~/db/sql-client/lib/SqlClient';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import {
   createHmAndBtColumn,
   generateFkName,
@@ -18,35 +32,20 @@ import {
   validatePayload,
   validateRequiredField,
   validateRollupPayload,
-} from '../helpers';
-import { NcError } from '../helpers/catchError';
-import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
+} from '~/helpers';
+import { NcError } from '~/helpers/catchError';
+import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import {
   getUniqueColumnAliasName,
   getUniqueColumnName,
-} from '../helpers/getUniqueName';
-import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
-import validateParams from '../helpers/validateParams';
-import {
-  Audit,
-  Base,
-  Column,
-  FormulaColumn,
-  KanbanView,
-  Model,
-} from '../models';
-import Noco from '../Noco';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import { MetaTable } from '../utils/globals';
-import { MetaService } from '../meta/meta.service';
-import type { LinkToAnotherRecordColumn, Project } from '../models';
-import type SqlMgrv2 from '../db/sql-mgr/v2/SqlMgrv2';
-import type {
-  ColumnReqType,
-  LinkToAnotherColumnReqType,
-  LinkToAnotherRecordType,
-  RelationTypes,
-} from 'nocodb-sdk';
+} from '~/helpers/getUniqueName';
+import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
+import validateParams from '~/helpers/validateParams';
+import { Base, Column, FormulaColumn, KanbanView, Model } from '~/models';
+import Noco from '~/Noco';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { MetaTable } from '~/utils/globals';
+import { MetaService } from '~/meta/meta.service';
 
 // todo: move
 export enum Altered {
@@ -55,26 +54,65 @@ export enum Altered {
   UPDATE_COLUMN = 8,
 }
 
+interface ReusableParams {
+  table?: Model;
+  base?: Base;
+  project?: Project;
+  dbDriver?: CustomKnex;
+  sqlClient?: SqlClient;
+  sqlMgr?: SqlMgrv2;
+  baseModel?: BaseModelSqlv2;
+}
+
+async function reuseOrSave(
+  tp: keyof ReusableParams,
+  params: ReusableParams,
+  get: () => Promise<any>,
+) {
+  if (params[tp]) {
+    return params[tp];
+  }
+
+  const res = await get();
+
+  params[tp] = res;
+
+  return res;
+}
+
 @Injectable()
 export class ColumnsService {
-  constructor(private readonly metaService: MetaService) {}
+  constructor(
+    private readonly metaService: MetaService,
+    private readonly appHooksService: AppHooksService,
+  ) {}
 
   async columnUpdate(param: {
     req?: any;
     columnId: string;
     column: ColumnReqType & { colOptions?: any };
     cookie?: any;
+    user: UserType;
+    reuse?: ReusableParams;
   }) {
+    const reuse = param.reuse || {};
+
     const { cookie } = param;
     const column = await Column.get({ colId: param.columnId });
 
-    const table = await Model.getWithInfo({
-      id: column.fk_model_id,
-    });
+    const table = await reuseOrSave('table', reuse, async () =>
+      Model.getWithInfo({
+        id: column.fk_model_id,
+      }),
+    );
 
-    const base = await Base.get(table.base_id);
+    const base = await reuseOrSave('base', reuse, async () =>
+      Base.get(table.base_id),
+    );
 
-    const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
+    const sqlClient = await reuseOrSave('sqlClient', reuse, async () =>
+      NcConnectionMgrv2.getSqlClient(base),
+    );
 
     const sqlClientType = sqlClient.knex.clientType();
 
@@ -119,6 +157,7 @@ export class ColumnsService {
         UITypes.QrCode,
         UITypes.Barcode,
         UITypes.ForeignKey,
+        UITypes.Links,
       ].includes(column.uidt)
     ) {
       if (column.uidt === colBody.uidt) {
@@ -134,12 +173,18 @@ export class ColumnsService {
           );
 
           try {
-            // test the query to see if it is valid in db level
-            const dbDriver = await NcConnectionMgrv2.get(base);
+            const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+              Model.getBaseModelSQL({
+                id: table.id,
+                dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+                  NcConnectionMgrv2.get(base),
+                ),
+              }),
+            );
             await formulaQueryBuilderv2(
+              baseModel,
               colBody.formula,
               null,
-              dbDriver,
               table,
               null,
               {},
@@ -156,10 +201,18 @@ export class ColumnsService {
             ...column,
             ...colBody,
           });
-        } else if (colBody.title !== column.title) {
-          await Column.updateAlias(param.columnId, {
-            title: colBody.title,
-          });
+        } else {
+          if (colBody.title !== column.title) {
+            await Column.updateAlias(param.columnId, {
+              title: colBody.title,
+            });
+          }
+          if ('meta' in colBody && column.uidt === UITypes.Links) {
+            await Column.updateMeta({
+              colId: param.columnId,
+              meta: colBody.meta,
+            });
+          }
         }
         await this.updateRollupOrLookup(colBody, column);
       } else {
@@ -186,14 +239,20 @@ export class ColumnsService {
     ) {
       colBody = await getColumnPropsFromUIDT(colBody, base);
 
-      const baseModel = await Model.getBaseModelSQL({
-        id: table.id,
-        dbDriver: await NcConnectionMgrv2.get(base),
-      });
+      const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+        Model.getBaseModelSQL({
+          id: table.id,
+          dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+            NcConnectionMgrv2.get(base),
+          ),
+        }),
+      );
 
       if (colBody.colOptions?.options) {
         const supportedDrivers = ['mysql', 'mysql2', 'pg', 'mssql', 'sqlite3'];
-        const dbDriver = await NcConnectionMgrv2.get(base);
+        const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
+          NcConnectionMgrv2.get(base),
+        );
         const driverType = dbDriver.clientType();
 
         // MultiSelect to SingleSelect
@@ -529,9 +588,11 @@ export class ColumnsService {
                 ),
               };
 
-              const sqlMgr = await ProjectMgrv2.getSqlMgr({
-                id: base.project_id,
-              });
+              const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+                ProjectMgrv2.getSqlMgr({
+                  id: base.project_id,
+                }),
+              );
               await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
 
               await Column.update(param.columnId, {
@@ -762,7 +823,9 @@ export class ColumnsService {
         ),
       };
 
-      const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
+      const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+        ProjectMgrv2.getSqlMgr({ id: base.project_id }),
+      );
       await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
 
       await Column.update(param.columnId, {
@@ -821,24 +884,24 @@ export class ColumnsService {
         ),
       };
 
-      const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
+      const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+        ProjectMgrv2.getSqlMgr({ id: base.project_id }),
+      );
       await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
 
       await Column.update(param.columnId, {
         ...colBody,
       });
     }
-    await Audit.insert({
-      project_id: base.project_id,
-      op_type: AuditOperationTypes.TABLE_COLUMN,
-      op_sub_type: AuditOperationSubTypes.UPDATE,
-      user: param.req?.user?.email,
-      description: `The column ${column.column_name} with alias ${column.title} from table ${table.table_name} has been updated`,
-      ip: param.req?.clientIp,
-    });
 
     await table.getColumns();
-    T.emit('evt', { evt_type: 'column:updated' });
+
+    this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
+      table,
+      column,
+      user: param.req?.user,
+      ip: param.req?.clientIp,
+    });
 
     return table;
   }
@@ -852,19 +915,35 @@ export class ColumnsService {
     return Model.updatePrimaryColumn(column.fk_model_id, column.id);
   }
 
-  async columnAdd(param: { req: any; tableId: string; column: ColumnReqType }) {
+  async columnAdd(param: {
+    req: any;
+    tableId: string;
+    column: ColumnReqType;
+    user: UserType;
+    reuse?: ReusableParams;
+  }) {
     validatePayload('swagger.json#/components/schemas/ColumnReq', param.column);
 
-    const table = await Model.getWithInfo({
-      id: param.tableId,
-    });
+    const reuse = param.reuse || {};
 
-    const base = await Base.get(table.base_id);
+    const table = await reuseOrSave('table', reuse, async () =>
+      Model.getWithInfo({
+        id: param.tableId,
+      }),
+    );
 
-    const project = await base.getProject();
+    const base = await reuseOrSave('base', reuse, async () =>
+      Base.get(table.base_id),
+    );
+
+    const project = await reuseOrSave('project', reuse, async () =>
+      base.getProject(),
+    );
 
     if (param.column.title || param.column.column_name) {
-      const dbDriver = await NcConnectionMgrv2.get(base);
+      const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
+        NcConnectionMgrv2.get(base),
+      );
 
       const sqlClientType = dbDriver.clientType();
 
@@ -922,9 +1001,18 @@ export class ColumnsService {
         }
         break;
 
+      case UITypes.Links:
       case UITypes.LinkToAnotherRecord:
-        await this.createLTARColumn({ ...param, base, project });
-        T.emit('evt', { evt_type: 'relation:created' });
+        await this.createLTARColumn({ ...param, base, project, reuse });
+
+        this.appHooksService.emit(AppEvents.RELATION_DELETE, {
+          column: {
+            ...colBody,
+            fk_model_id: param.tableId,
+            project_id: project.id,
+            base_id: base.id,
+          },
+        });
         break;
 
       case UITypes.QrCode:
@@ -946,12 +1034,18 @@ export class ColumnsService {
         );
 
         try {
-          // test the query to see if it is valid in db level
-          const dbDriver = await NcConnectionMgrv2.get(base);
+          const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+            Model.getBaseModelSQL({
+              id: table.id,
+              dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+                NcConnectionMgrv2.get(base),
+              ),
+            }),
+          );
           await formulaQueryBuilderv2(
+            baseModel,
             colBody.formula,
             null,
-            dbDriver,
             table,
             null,
             {},
@@ -1099,8 +1193,12 @@ export class ColumnsService {
             ],
           };
 
-          const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
-          const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
+          const sqlClient = await reuseOrSave('sqlClient', reuse, async () =>
+            NcConnectionMgrv2.getSqlClient(base),
+          );
+          const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+            ProjectMgrv2.getSqlMgr({ id: base.project_id }),
+          );
           await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
 
           const columns: Array<
@@ -1108,8 +1206,12 @@ export class ColumnsService {
               cn: string;
               system?: boolean;
             }
-          > = (await sqlClient.columnList({ tn: table.table_name }))?.data
-            ?.list;
+          > = (
+            await sqlClient.columnList({
+              tn: table.table_name,
+              schema: base.getConfig()?.schema,
+            })
+          )?.data?.list;
 
           const insertedColumnMeta =
             columns.find((c) => c.cn === colBody.column_name) || ({} as any);
@@ -1130,36 +1232,45 @@ export class ColumnsService {
 
     await table.getColumns();
 
-    await Audit.insert({
-      project_id: base.project_id,
-      op_type: AuditOperationTypes.TABLE_COLUMN,
-      op_sub_type: AuditOperationSubTypes.CREATE,
-      user: param?.req.user?.email,
-      description: `The column ${colBody.column_name} with alias ${colBody.title} from table ${table.table_name} has been created`,
-      ip: param?.req.clientIp,
+    this.appHooksService.emit(AppEvents.COLUMN_CREATE, {
+      table,
+      column: {
+        ...colBody,
+        fk_model_id: table.id,
+      },
+      user: param.req?.user,
+      ip: param.req?.clientIp,
     });
-
-    T.emit('evt', { evt_type: 'column:created' });
 
     return table;
   }
 
   async columnDelete(
-    param: { req?: any; columnId: string },
+    param: {
+      req?: any;
+      columnId: string;
+      user: UserType;
+      reuse?: ReusableParams;
+    },
     ncMeta = this.metaService,
   ) {
-    const column = await Column.get({ colId: param.columnId }, ncMeta);
-    const table = await Model.getWithInfo(
-      {
-        id: column.fk_model_id,
-      },
-      ncMeta,
-    );
-    const base = await Base.get(table.base_id, ncMeta);
+    const reuse = param.reuse || {};
 
-    const sqlMgr = await ProjectMgrv2.getSqlMgr(
-      { id: base.project_id },
-      ncMeta,
+    const column = await Column.get({ colId: param.columnId }, ncMeta);
+    const table = await reuseOrSave('table', reuse, async () =>
+      Model.getWithInfo(
+        {
+          id: column.fk_model_id,
+        },
+        ncMeta,
+      ),
+    );
+    const base = await reuseOrSave('base', reuse, async () =>
+      Base.get(table.base_id, ncMeta),
+    );
+
+    const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+      ProjectMgrv2.getSqlMgr({ id: base.project_id }, ncMeta),
     );
 
     switch (column.uidt) {
@@ -1170,6 +1281,8 @@ export class ColumnsService {
       case UITypes.Formula:
         await Column.delete(param.columnId, ncMeta);
         break;
+      // Since Links is just an extended version of LTAR, we can use the same logic
+      case UITypes.Links:
       case UITypes.LinkToAnotherRecord:
         {
           const relationColOpt =
@@ -1240,7 +1353,7 @@ export class ColumnsService {
                   .then((m) => m.getColumns(ncMeta));
 
                 for (const c of columnsInRelatedTable) {
-                  if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                  if (!isLinksOrLTAR(c.uidt)) continue;
                   const colOpt =
                     await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
                   if (
@@ -1261,7 +1374,7 @@ export class ColumnsService {
                 // delete bt columns in m2m table
                 await mmTable.getColumns(ncMeta);
                 for (const c of mmTable.columns) {
-                  if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                  if (!isLinksOrLTAR(c.uidt)) continue;
                   const colOpt =
                     await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
                   if (colOpt.type === 'bt') {
@@ -1272,7 +1385,7 @@ export class ColumnsService {
                 // delete hm columns in parent table
                 await parentTable.getColumns(ncMeta);
                 for (const c of parentTable.columns) {
-                  if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                  if (!isLinksOrLTAR(c.uidt)) continue;
                   const colOpt =
                     await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
                   if (colOpt.fk_related_model_id === mmTable.id) {
@@ -1283,7 +1396,7 @@ export class ColumnsService {
                 // delete hm columns in child table
                 await childTable.getColumns(ncMeta);
                 for (const c of childTable.columns) {
-                  if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                  if (!isLinksOrLTAR(c.uidt)) continue;
                   const colOpt =
                     await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
                   if (colOpt.fk_related_model_id === mmTable.id) {
@@ -1305,7 +1418,9 @@ export class ColumnsService {
               break;
           }
         }
-        T.emit('evt', { evt_type: 'raltion:deleted' });
+        this.appHooksService.emit(AppEvents.RELATION_DELETE, {
+          column,
+        });
         break;
       case UITypes.ForeignKey: {
         NcError.notImplemented();
@@ -1350,19 +1465,6 @@ export class ColumnsService {
         await Column.delete(param.columnId, ncMeta);
       }
     }
-
-    await Audit.insert(
-      {
-        project_id: base.project_id,
-        op_type: AuditOperationTypes.TABLE_COLUMN,
-        op_sub_type: AuditOperationSubTypes.DELETE,
-        user: param?.req?.user?.email,
-        description: `The column ${column.column_name} with alias ${column.title} from table ${table.table_name} has been deleted`,
-        ip: param?.req.clientIp,
-      },
-      ncMeta,
-    );
-
     await table.getColumns(ncMeta);
 
     const displayValueColumn = mapDefaultDisplayValue(table.columns);
@@ -1374,7 +1476,12 @@ export class ColumnsService {
       );
     }
 
-    T.emit('evt', { evt_type: 'column:deleted' });
+    this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
+      table,
+      column,
+      user: param.req?.user,
+      ip: param.req?.clientIp,
+    });
 
     return table;
   }
@@ -1415,7 +1522,6 @@ export class ColumnsService {
               if (col.uidt === UITypes.LinkToAnotherRecord) {
                 const colOptions =
                   await col.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
-                console.log(colOptions);
                 if (colOptions.fk_related_model_id === parentTable.id) {
                   return { colOptions };
                 }
@@ -1527,8 +1633,11 @@ export class ColumnsService {
     column: ColumnReqType;
     base: Base;
     project: Project;
+    reuse?: ReusableParams;
   }) {
     validateParams(['parentId', 'childId', 'type'], param.column);
+
+    const reuse = param.reuse ?? {};
 
     // get parent and child models
     const parent = await Model.getWithInfo({
@@ -1539,12 +1648,15 @@ export class ColumnsService {
     });
     let childColumn: Column;
 
-    const sqlMgr = await ProjectMgrv2.getSqlMgr({
-      id: param.base.project_id,
-    });
+    const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+      ProjectMgrv2.getSqlMgr({
+        id: param.base.project_id,
+      }),
+    );
+    const isLinks = param.column.uidt === UITypes.Links;
 
     // if xcdb base then treat as virtual relation to avoid creating foreign key
-    if (param.base.is_meta) {
+    if (param.base.isMeta()) {
       (param.column as LinkToAnotherColumnReqType).virtual = true;
     }
 
@@ -1642,6 +1754,9 @@ export class ColumnsService {
         (param.column as LinkToAnotherColumnReqType).title,
         foreignKeyName,
         (param.column as LinkToAnotherColumnReqType).virtual,
+        null,
+        param.column['meta'],
+        isLinks,
       );
     } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
       const aTn = `${param.project?.prefix ?? ''}_nc_m2m_${randomID()}`;
@@ -1762,9 +1877,9 @@ export class ColumnsService {
       await Column.insert({
         title: getUniqueColumnAliasName(
           await child.getColumns(),
-          `${parent.title} List`,
+          pluralize(parent.title),
         ),
-        uidt: UITypes.LinkToAnotherRecord,
+        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
         type: 'mm',
 
         // ref_db_alias
@@ -1779,14 +1894,20 @@ export class ColumnsService {
         fk_mm_parent_column_id: parentCol.id,
         fk_related_model_id: parent.id,
         virtual: (param.column as LinkToAnotherColumnReqType).virtual,
+        meta: {
+          plural: pluralize(parent.title),
+          singular: singularize(parent.title),
+        },
+        // if self referencing treat it as system field to hide from ui
+        system: parent.id === child.id,
       });
       await Column.insert({
         title: getUniqueColumnAliasName(
           await parent.getColumns(),
-          param.column.title ?? `${child.title} List`,
+          param.column.title ?? pluralize(child.title),
         ),
 
-        uidt: UITypes.LinkToAnotherRecord,
+        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
         type: 'mm',
 
         fk_model_id: parent.id,
@@ -1799,6 +1920,10 @@ export class ColumnsService {
         fk_mm_parent_column_id: childCol.id,
         fk_related_model_id: child.id,
         virtual: (param.column as LinkToAnotherColumnReqType).virtual,
+        meta: {
+          plural: param.column['meta']?.plural || pluralize(child.title),
+          singular: param.column['meta']?.singular || singularize(child.title),
+        },
       });
 
       // todo: create index for virtual relations as well
@@ -1868,5 +1993,161 @@ export class ColumnsService {
       await validateRollupPayload(colBody);
       await Column.update(column.id, colBody);
     }
+  }
+  async columnsHash(tableId: string) {
+    const table = await Model.getWithInfo({
+      id: tableId,
+    });
+
+    if (!table) {
+      NcError.badRequest('Table not found');
+    }
+
+    const columns = await table.getColumns();
+
+    return {
+      hash: hash(columns),
+    };
+  }
+
+  async columnBulk(
+    tableId: string,
+    params: {
+      hash: string;
+      ops: {
+        op: 'add' | 'update' | 'delete';
+        column: Partial<Column>;
+      }[];
+    },
+    req: any,
+  ) {
+    // TODO validatePayload
+
+    const table = await Model.getWithInfo({
+      id: tableId,
+    });
+
+    if (!table) {
+      NcError.badRequest('Table not found');
+    }
+
+    const columns = await table.getColumns();
+
+    if (hash(columns) !== params.hash) {
+      NcError.badRequest(
+        'Columns are updated by someone else! Your changes are rejected. Please refresh the page and try again.',
+      );
+    }
+
+    const base = await Base.get(table.base_id);
+
+    if (!base) {
+      NcError.badRequest('Base not found');
+    }
+
+    const project = await base.getProject();
+
+    if (!project) {
+      NcError.badRequest('Project not found');
+    }
+
+    const dbDriver = await NcConnectionMgrv2.get(base);
+    const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
+    const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
+    const baseModel = await Model.getBaseModelSQL({
+      id: table.id,
+      dbDriver: dbDriver,
+    });
+
+    if (!dbDriver || !sqlClient || !sqlMgr || !baseModel) {
+      NcError.badRequest('There was an error handling your request');
+    }
+
+    const reuse: ReusableParams = {
+      table,
+      base,
+      project,
+      dbDriver,
+      sqlClient,
+      sqlMgr,
+      baseModel,
+    };
+
+    const ops = params.ops;
+
+    for (const op of ops) {
+      if (op.op === 'update') {
+        if (!op.column || !op.column?.id) {
+          NcError.badRequest(
+            'Bad request, update operation requires column id',
+          );
+        }
+      } else if (op.op === 'delete') {
+        if (!op.column || !op.column?.id) {
+          NcError.badRequest(
+            'Bad request, delete operation requires column id',
+          );
+        }
+      } else if (op.op === 'add') {
+        if (!op.column) {
+          NcError.badRequest('Bad request, add operation requires column');
+        }
+      }
+    }
+
+    const failedOps = [];
+
+    for (const op of ops) {
+      const column = op.column;
+
+      if (op.op === 'add') {
+        try {
+          await this.columnAdd({
+            tableId,
+            column: column as ColumnReqType,
+            req,
+            user: req.user,
+            reuse,
+          });
+        } catch (e) {
+          failedOps.push({
+            ...op,
+            error: e.message,
+          });
+        }
+      } else if (op.op === 'update') {
+        try {
+          await this.columnUpdate({
+            columnId: op.column.id,
+            column: column as ColumnReqType,
+            req,
+            user: req.user,
+            reuse,
+          });
+        } catch (e) {
+          failedOps.push({
+            ...op,
+            error: e.message,
+          });
+        }
+      } else if (op.op === 'delete') {
+        try {
+          await this.columnDelete({
+            columnId: op.column.id,
+            req,
+            user: req.user,
+          });
+        } catch (e) {
+          failedOps.push({
+            ...op,
+            error: e.message,
+          });
+        }
+      }
+    }
+
+    return {
+      failedOps,
+    };
   }
 }

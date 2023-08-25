@@ -21,14 +21,14 @@ function onOpenModal(type: ViewTypes, title = '') {
 </script>
 
 <template>
-  <a-menu :selected-keys="[]" class="flex flex-col">
-    <h3 class="px-3 text-xs font-semibold flex items-center gap-4 text-gray-500">
+  <a-menu :selected-keys="[]" class="flex flex-col !text-gray-600 !bg-inherit">
+    <div class="px-6 text-xs flex items-center gap-4 my-2 !text-gray-700">
       {{ $t('activity.createView') }}
-    </h3>
+    </div>
 
     <a-menu-item
       key="grid"
-      class="group !flex !items-center !my-0 !h-2.5rem nc-create-grid-view"
+      class="nc-create-view group !flex !items-center !my-0 !h-2.5rem nc-create-grid-view"
       @click="onOpenModal(ViewTypes.GRID)"
     >
       <a-tooltip :mouse-enter-delay="1" placement="left">
@@ -36,21 +36,21 @@ function onOpenModal(type: ViewTypes, title = '') {
           {{ $t('msg.info.addView.grid') }}
         </template>
 
-        <div class="nc-project-menu-item !py-0 text-xs flex items-center h-full w-full gap-2">
-          <component :is="viewIcons[ViewTypes.GRID].icon" :style="{ color: viewIcons[ViewTypes.GRID].color }" />
+        <div class="!py-0 text-xs flex items-center h-full w-full gap-2">
+          <GeneralViewIcon :meta="{ type: ViewTypes.GRID }" class="min-w-5 flex" />
 
           <div>{{ $t('objects.viewType.grid') }}</div>
 
           <div class="flex-1" />
 
-          <component :is="iconMap.plus" class="group-hover:text-primary" />
+          <component :is="iconMap.plus" />
         </div>
       </a-tooltip>
     </a-menu-item>
 
     <a-menu-item
       key="gallery"
-      class="group !flex !items-center !my-0 !h-2.5rem nc-create-gallery-view"
+      class="nc-create-view group !flex !items-center !my-0 !h-2.5rem nc-create-gallery-view"
       @click="onOpenModal(ViewTypes.GALLERY)"
     >
       <a-tooltip :mouse-enter-delay="1" placement="left">
@@ -58,14 +58,14 @@ function onOpenModal(type: ViewTypes, title = '') {
           {{ $t('msg.info.addView.gallery') }}
         </template>
 
-        <div class="nc-project-menu-item !py-0 text-xs flex items-center h-full w-full gap-2">
-          <component :is="viewIcons[ViewTypes.GALLERY].icon" :style="{ color: viewIcons[ViewTypes.GALLERY].color }" />
+        <div class="!py-0 text-xs flex items-center h-full w-full gap-2">
+          <GeneralViewIcon :meta="{ type: ViewTypes.GALLERY }" class="min-w-5 flex" />
 
           <div>{{ $t('objects.viewType.gallery') }}</div>
 
           <div class="flex-1" />
 
-          <component :is="iconMap.plus" class="group-hover:text-primary" />
+          <component :is="iconMap.plus" />
         </div>
       </a-tooltip>
     </a-menu-item>
@@ -73,7 +73,7 @@ function onOpenModal(type: ViewTypes, title = '') {
     <a-menu-item
       v-if="!isSqlView"
       key="form"
-      class="group !flex !items-center !my-0 !h-2.5rem nc-create-form-view"
+      class="nc-create-view group !flex !items-center !my-0 !h-2.5rem nc-create-form-view"
       @click="onOpenModal(ViewTypes.FORM)"
     >
       <a-tooltip :mouse-enter-delay="1" placement="left">
@@ -81,21 +81,21 @@ function onOpenModal(type: ViewTypes, title = '') {
           {{ $t('msg.info.addView.form') }}
         </template>
 
-        <div class="nc-project-menu-item !py-0 text-xs flex items-center h-full w-full gap-2">
-          <component :is="viewIcons[ViewTypes.FORM].icon" :style="{ color: viewIcons[ViewTypes.FORM].color }" />
+        <div class="!py-0 text-xs flex items-center h-full w-full gap-2">
+          <GeneralViewIcon :meta="{ type: ViewTypes.FORM }" class="min-w-5 flex" />
 
           <div>{{ $t('objects.viewType.form') }}</div>
 
           <div class="flex-1" />
 
-          <component :is="iconMap.plus" class="group-hover:text-primary" />
+          <component :is="iconMap.plus" />
         </div>
       </a-tooltip>
     </a-menu-item>
 
     <a-menu-item
       key="kanban"
-      class="group !flex !items-center !my-0 !h-2.5rem nc-create-kanban-view"
+      class="nc-create-view group !flex !items-center !my-0 !h-2.5rem nc-create-kanban-view"
       @click="onOpenModal(ViewTypes.KANBAN)"
     >
       <a-tooltip :mouse-enter-delay="1" placement="left">
@@ -103,21 +103,21 @@ function onOpenModal(type: ViewTypes, title = '') {
           {{ $t('msg.info.addView.kanban') }}
         </template>
 
-        <div class="nc-project-menu-item !py-0 text-xs flex items-center h-full w-full gap-2">
-          <component :is="viewIcons[ViewTypes.KANBAN].icon" :style="{ color: viewIcons[ViewTypes.KANBAN].color }" />
+        <div class="!py-0 text-xs flex items-center h-full w-full gap-2">
+          <GeneralViewIcon :meta="{ type: ViewTypes.KANBAN }" class="min-w-5 flex" />
 
           <div>{{ $t('objects.viewType.kanban') }}</div>
 
           <div class="flex-1" />
 
-          <component :is="iconMap.plus" class="group-hover:text-primary" />
+          <component :is="iconMap.plus" />
         </div>
       </a-tooltip>
     </a-menu-item>
     <a-menu-item
       v-if="betaFeatureToggleState.show"
       key="map"
-      class="group !flex !items-center !my-0 !h-2.5rem nc-create-map-view"
+      class="nc-create-view group !flex !items-center !my-0 !h-2.5rem nc-create-map-view"
       @click="onOpenModal(ViewTypes.MAP)"
     >
       <a-tooltip :mouse-enter-delay="1" placement="left">
@@ -125,18 +125,27 @@ function onOpenModal(type: ViewTypes, title = '') {
           {{ $t('msg.info.addView.map') }}
         </template>
 
-        <div class="nc-project-menu-item !py-0 text-xs flex items-center h-full w-full gap-2">
-          <component :is="viewIcons[ViewTypes.MAP].icon" :style="{ color: viewIcons[ViewTypes.MAP].color }" />
+        <div class="!py-0 text-xs flex items-center h-full w-full gap-2">
+          <component :is="viewIcons[ViewTypes.MAP].icon" :style="{ color: viewIcons[ViewTypes.MAP]?.color }" />
 
           <div>{{ $t('objects.viewType.map') }}</div>
 
           <div class="flex-1" />
 
-          <component :is="iconMap.plus" class="group-hover:text-primary" />
+          <component :is="iconMap.plus" />
         </div>
       </a-tooltip>
     </a-menu-item>
 
-    <div class="w-full h-4" />
+    <div class="w-full h-3" />
   </a-menu>
 </template>
+
+<style lang="scss" scoped>
+:deep(.nc-create-view) {
+  @apply !py-0 !h-8 mx-3.75 rounded-md hover:(text-gray-800 bg-gray-100);
+}
+:deep(.nc-create-view.ant-menu-item) {
+  @apply px-2.25;
+}
+</style>

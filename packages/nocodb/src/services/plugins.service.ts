@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { T } from 'nc-help';
-import { validatePayload } from '../helpers';
-import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
-import { Plugin } from '../models';
+import { AppEvents } from 'nocodb-sdk';
 import type { PluginTestReqType, PluginType } from 'nocodb-sdk';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { validatePayload } from '~/helpers';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import { Plugin } from '~/models';
 
 @Injectable()
 export class PluginsService {
+  constructor(private readonly appHooksService: AppHooksService) {}
+
   async pluginList() {
     return await Plugin.list();
   }
@@ -17,7 +20,9 @@ export class PluginsService {
       param.body,
     );
 
-    T.emit('evt', { evt_type: 'plugin:tested' });
+    this.appHooksService.emit(AppEvents.PLUGIN_TEST, {
+      testBody: param.body,
+    });
     return await NcPluginMgrv2.test(param.body);
   }
 
@@ -28,13 +33,25 @@ export class PluginsService {
     validatePayload('swagger.json#/components/schemas/PluginReq', param.plugin);
 
     const plugin = await Plugin.update(param.pluginId, param.plugin);
-    T.emit('evt', {
-      evt_type: plugin.active ? 'plugin:installed' : 'plugin:uninstalled',
-      title: plugin.title,
-    });
+
+    this.appHooksService.emit(
+      plugin.active ? AppEvents.PLUGIN_INSTALL : AppEvents.PLUGIN_UNINSTALL,
+      {
+        plugin,
+      },
+    );
+
     return plugin;
   }
   async isPluginActive(param: { pluginTitle: string }) {
     return await Plugin.isPluginActive(param.pluginTitle);
+  }
+
+  async webhookPluginList() {
+    const plugins = await Plugin.list();
+
+    return plugins.filter((p) =>
+      ['Slack', 'Microsoft Teams', 'Discord', 'Mattermost'].includes(p.title),
+    );
   }
 }

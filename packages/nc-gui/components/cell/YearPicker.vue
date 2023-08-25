@@ -19,9 +19,9 @@ const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
 
-let isYearInvalid = $ref(false)
+const isYearInvalid = ref(false)
 
-const localState = $computed({
+const localState = computed({
   get() {
     if (!modelValue) {
       return undefined
@@ -29,7 +29,7 @@ const localState = $computed({
 
     const yearDate = dayjs(modelValue.toString(), 'YYYY')
     if (!yearDate.isValid()) {
-      isYearInvalid = true
+      isYearInvalid.value = true
       return undefined
     }
 
@@ -62,7 +62,7 @@ watch(
   { flush: 'post' },
 )
 
-const placeholder = computed(() => (modelValue === null && showNull.value ? 'NULL' : isYearInvalid ? 'Invalid year' : ''))
+const placeholder = computed(() => (modelValue === null && showNull.value ? 'NULL' : isYearInvalid.value ? 'Invalid year' : ''))
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {

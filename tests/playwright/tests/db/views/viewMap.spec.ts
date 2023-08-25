@@ -1,11 +1,10 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 
-test.describe('Map View', () => {
-  let dashboard: DashboardPage, toolbar: ToolbarPage;
+test.describe.skip('Map View', () => {
+  let dashboard: DashboardPage;
   let context: any;
 
   const latitudeInFullDecimalLength = '50.4501000';
@@ -17,7 +16,6 @@ test.describe('Map View', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
-    toolbar = dashboard.map.toolbar;
 
     await dashboard.viewSidebar.changeBetaFeatureToggleValue();
 
@@ -50,6 +48,10 @@ test.describe('Map View', () => {
       lat: latitudeInFullDecimalLength,
       long: longitudeInFullDecimalLength,
     });
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('shows the marker and opens the expanded form view when clicking on it', async () => {

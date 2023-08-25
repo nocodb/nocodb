@@ -49,7 +49,11 @@ setAdditionalValidations({
 
 const currencyList = currencyCodes || []
 
-const currencyLocaleList = currencyLocales() || []
+const currencyLocaleList = []
+
+currencyLocales().then((locales) => {
+  currencyLocaleList.push(...locales)
+})
 
 const isMoney = computed(() => vModel.value.dt === 'money')
 

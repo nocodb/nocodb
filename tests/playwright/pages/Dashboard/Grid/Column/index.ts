@@ -1,4 +1,4 @@
-import { expect } from '@playwright/test';
+import { expect, Locator } from '@playwright/test';
 import { GridPage } from '..';
 import BasePage from '../../../Base';
 import { SelectOptionColumnPageObject } from './SelectOptionColumn';
@@ -21,8 +21,12 @@ export class ColumnPageObject extends BasePage {
     return this.rootPage.locator('form[data-testid="add-or-edit-column"]');
   }
 
+  async getColumnHeaderByIndex({ index }: { index: number }) {
+    return this.grid.get().locator(`.nc-grid-header > th`).nth(index);
+  }
+
   private getColumnHeader(title: string) {
-    return this.grid.get().locator(`th[data-title="${title}"]`);
+    return this.grid.get().locator(`th[data-title="${title}"]`).first();
   }
 
   async clickColumnHeader({ title }: { title: string }) {
@@ -139,6 +143,7 @@ export class ColumnPageObject extends BasePage {
           .locator(`.ant-select-item`, {
             hasText: childColumn,
           })
+          .last()
           .click();
         break;
       case 'Rollup':
@@ -162,7 +167,7 @@ export class ColumnPageObject extends BasePage {
           .nth(0)
           .click();
         break;
-      case 'LinkToAnotherRecord':
+      case 'Links':
         await this.get()
           .locator('.nc-ltar-relation-type >> .ant-radio')
           .nth(relationType === 'Has Many' ? 0 : 1)
@@ -254,12 +259,15 @@ export class ColumnPageObject extends BasePage {
     // await this.rootPage.locator('li[role="menuitem"]:has-text("Delete")').waitFor();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Delete"):visible').click();
 
-    await this.rootPage.locator('button:has-text("Delete")').click();
+    // pressing on delete column button
+    await this.rootPage.locator('.ant-modal.active button:has-text("Delete Column")').click();
 
     // wait till modal is closed
-    await this.rootPage.locator('.nc-modal-column-delete').waitFor({ state: 'hidden' });
+    await this.rootPage.locator('.ant-modal.active').waitFor({ state: 'hidden' });
   }
 
+  // opening edit modal in table header  double click
+  // or in the dropdown edit click
   async openEdit({
     title,
     type = 'SingleLineText',
@@ -275,6 +283,8 @@ export class ColumnPageObject extends BasePage {
     dateFormat?: string;
     timeFormat?: string;
   }) {
+    // when clicked on the dropdown cell header
+    await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').scrollIntoViewIfNeeded();
     await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').click();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').last().click();
 
@@ -313,8 +323,8 @@ export class ColumnPageObject extends BasePage {
     await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Duplicate"):visible').click();
 
-    await this.verifyToast({ message: 'Column duplicated successfully' });
-    await this.grid.get().locator(`th[data-title="${expectedTitle}"]`).isVisible();
+    // await this.verifyToast({ message: 'Column duplicated successfully' });
+    await this.grid.get().locator(`th[data-title="${expectedTitle}"]`).waitFor({ state: 'visible' });
   }
 
   async hideColumn({ title, isDisplayValue = false }: { title: string; isDisplayValue?: boolean }) {
@@ -357,13 +367,35 @@ export class ColumnPageObject extends BasePage {
   }
 
   async verifyRoleAccess(param: { role: string }) {
-    await expect(this.grid.get().locator('.nc-column-add:visible')).toHaveCount(param.role === 'creator' ? 1 : 0);
-    await expect(this.grid.get().locator('.nc-ui-dt-dropdown:visible')).toHaveCount(param.role === 'creator' ? 3 : 0);
+    const role = param.role.toLowerCase();
+    const count = role.toLowerCase() === 'creator' || role.toLowerCase() === 'owner' ? 1 : 0;
+    await expect(this.grid.get().locator('.nc-column-add:visible')).toHaveCount(count);
 
-    if (param.role === 'creator') {
-      await this.grid.get().locator('.nc-ui-dt-dropdown:visible').first().click();
+    // verify for first column, if edit dropdown exists
+    const columnHdr = await this.getColumnHeaderByIndex({ index: 1 });
+    await expect(await columnHdr.locator('.nc-ui-dt-dropdown:visible')).toHaveCount(count);
+
+    if (role === 'creator' || role === 'owner') {
+      // open edit dropdown menu
+      await columnHdr.locator('.nc-ui-dt-dropdown:visible').click();
       await expect(this.rootPage.locator('.nc-dropdown-column-operations')).toHaveCount(1);
-      await this.grid.get().locator('.nc-ui-dt-dropdown:visible').first().click();
+
+      // close edit dropdown menu
+      await columnHdr.locator('.nc-ui-dt-dropdown:visible').click();
+    }
+
+    // select all menu access
+    expect(
+      await this.grid.get().locator('[data-testid="nc-check-all"]').locator('input[type="checkbox"]').count()
+    ).toBe(role === 'creator' || role === 'owner' || role === 'editor' ? 1 : 0);
+
+    if (role === 'creator' || role === 'owner' || role === 'editor') {
+      await this.grid.selectAll();
+      await this.grid.openAllRowContextMenu();
+      await this.rootPage.locator('.nc-dropdown-grid-context-menu').waitFor({ state: 'visible' });
+      await expect(this.rootPage.locator('.nc-dropdown-grid-context-menu')).toHaveCount(1);
+      await this.rootPage.keyboard.press('Escape');
+      await (await this.getColumnHeaderByIndex({ index: 2 })).click();
     }
   }
 

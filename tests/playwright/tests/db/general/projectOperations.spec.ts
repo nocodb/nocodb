@@ -1,15 +1,16 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { airtableApiBase, airtableApiKey } from '../../../constants';
-import { quickVerify } from '../../../quickTests/commonTest';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
-import { Api } from 'nocodb-sdk';
-import { ProjectInfo, ProjectInfoApiUtil } from '../../utils/projectInfoApiUtil';
-import { deepCompare } from '../../utils/objectCompareUtil';
+import { Api, ProjectListType } from 'nocodb-sdk';
+import { ProjectInfo, ProjectInfoApiUtil } from '../../../tests/utils/projectInfoApiUtil';
+import { deepCompare } from '../../../tests/utils/objectCompareUtil';
+import { isHub } from '../../../setup/db';
 
-test.describe('Project operations', () => {
+// tests covered under tests/playwright/tests/nocohub/hubDashboard.spec.ts
+test.describe.skip('Project operations', () => {
   let dashboard: DashboardPage;
   let toolbar: ToolbarPage;
   let context: any;
@@ -19,7 +20,9 @@ test.describe('Project operations', () => {
 
   async function deleteIfExists(name: string) {
     try {
-      const projectList = await api.project.list();
+      const ws = await api.workspace.list();
+      const projectList = await api.workspaceProject.list(ws.list[0].id);
+
       const project = projectList.list.find((p: any) => p.title === name);
       if (project) {
         await api.project.delete(project.id);
@@ -33,7 +36,7 @@ test.describe('Project operations', () => {
   async function createTestProjectWithData(testProjectName: string) {
     await dashboard.clickHome();
     await projectPage.createProject({ name: testProjectName, withoutPrefix: true });
-    await dashboard.treeView.quickImport({ title: 'Airtable' });
+    await dashboard.treeView.quickImport({ title: 'Airtable', projectTitle: context.project.title });
     await dashboard.importAirtable.import({
       key: airtableApiKey,
       baseId: airtableApiBase,
@@ -63,7 +66,13 @@ test.describe('Project operations', () => {
     });
   });
 
-  test('rename, delete', async () => {
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
+  test.skip('rename, delete', async () => {
+    // Already verified as part of workspace tests
+
     // if project already exists, delete it
     await deleteIfExists('project-firstName');
 
@@ -103,7 +112,13 @@ test.describe('Project operations', () => {
     // await quickVerify({ dashboard, airtableImport: true, context });
 
     // compare
-    const projectList = await api.project.list();
+    let projectList: ProjectListType;
+    if (isHub()) {
+      const ws = await api.workspace.list();
+      projectList = await api.workspaceProject.list(ws.list[0].id);
+    } else {
+      projectList = await api.project.list();
+    }
     const testProjectId = await projectList.list.find((p: any) => p.title === testProjectName);
     const dupeProjectId = await projectList.list.find((p: any) => p.title === dupeProjectName);
     const projectInfoOp: ProjectInfoApiUtil = new ProjectInfoApiUtil(context.token);

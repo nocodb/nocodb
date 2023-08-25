@@ -1,6 +1,6 @@
 import type { TableType, ViewType } from 'nocodb-sdk'
 import { createEventHook, ref, useInjectionState } from '#imports'
-import type { Row } from '~/lib'
+import type { Row } from '#imports'
 
 interface UseExpandedFormDetachedProps {
   'isOpen'?: boolean

@@ -14,6 +14,8 @@ const hideMenu = toRef(props, 'hideMenu')
 
 const isForm = inject(IsFormInj, ref(false))
 
+const isDropDownOpen = ref(false)
+
 const isKanban = inject(IsKanbanInj, ref(false))
 
 const column = toRef(props, 'column')
@@ -26,7 +28,7 @@ const editColumnDropdown = ref(false)
 
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 
-const addField = async (payload) => {
+const addField = async (payload: any) => {
   columnOrder.value = payload
   editColumnDropdown.value = true
 }
@@ -47,24 +49,31 @@ const openHeaderMenu = () => {
   <div
     class="flex items-center w-full text-xs text-gray-500 font-weight-medium"
     :class="{ 'h-full': column, '!text-gray-400': isKanban }"
+    @dblclick="openHeaderMenu"
+    @click.right="isDropDownOpen = !isDropDownOpen"
+    @click="isDropDownOpen = false"
   >
     <SmartsheetHeaderCellIcon v-if="column" />
-    <span
+    <div
       v-if="column"
-      class="name"
-      :class="{ 'cursor-pointer': !isForm && isUIAllowed('edit-column') && !hideMenu }"
+      class="name pl-1 !truncate"
+      :class="{ 'cursor-pointer pt-0.25': !isForm && isUIAllowed('edit-column') && !hideMenu }"
       style="white-space: pre-line"
       :title="column.title"
-      @dblclick="openHeaderMenu"
-      >{{ column.title }}</span
     >
+      {{ column.title }}
+    </div>
 
     <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
 
     <template v-if="!hideMenu">
       <div class="flex-1" />
-
-      <LazySmartsheetHeaderMenu v-if="!isForm && isUIAllowed('edit-column')" @add-column="addField" @edit="openHeaderMenu" />
+      <LazySmartsheetHeaderMenu
+        v-if="!isForm && isUIAllowed('edit-column')"
+        v-model:is-open="isDropDownOpen"
+        @add-column="addField"
+        @edit="openHeaderMenu"
+      />
     </template>
 
     <a-dropdown

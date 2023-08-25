@@ -28,12 +28,15 @@ export function useMetas() {
   // todo: this needs a proper refactor, arbitrary waiting times are usually not a good idea
   const getMeta = async (tableIdOrTitle: string, force = false, skipIfCacheMiss = false): Promise<TableType | null> => {
     if (!tableIdOrTitle) return null
-    /** wait until loading is finished if requesting same meta */
-    if (!force && loadingState.value[tableIdOrTitle]) {
+    /** wait until loading is finished if requesting same meta
+     * use while to recheck loading state since it can be changed by other requests
+     * */
+    // eslint-disable-next-line no-unmodified-loop-condition
+    while (!force && loadingState.value[tableIdOrTitle]) {
       await new Promise((resolve) => {
         let unwatch: WatchStopHandle
 
-        // set maximum 20sec timeout to wait loading meta
+        // set maximum 10sec timeout to wait loading meta
         const timeout = setTimeout(() => {
           unwatch?.()
           clearTimeout(timeout)
@@ -58,6 +61,8 @@ export function useMetas() {
         return metas.value[tableIdOrTitle]
       }
     }
+
+    // return null if cache miss
     if (skipIfCacheMiss) return null
 
     loadingState.value[tableIdOrTitle] = true
@@ -67,7 +72,8 @@ export function useMetas() {
         return metas.value[tableIdOrTitle]
       }
 
-      const modelId = tableIdOrTitle.startsWith('md_') ? tableIdOrTitle : tables.value.find((t) => t.title === tableIdOrTitle)?.id
+      const modelId = (tables.value.find((t) => t.id === tableIdOrTitle) || tables.value.find((t) => t.title === tableIdOrTitle))
+        ?.id
 
       if (!modelId) {
         console.warn(`Table '${tableIdOrTitle}' is not found in the table list`)

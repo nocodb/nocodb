@@ -1,7 +1,7 @@
 import debug from 'debug';
 import Redis from 'ioredis-mock';
-import { CacheDelDirection, CacheGetType, CacheScope } from '../utils/globals';
 import CacheMgr from './CacheMgr';
+import { CacheDelDirection, CacheGetType, CacheScope } from '~/utils/globals';
 const log = debug('nc:cache');
 
 export default class RedisMockCacheMgr extends CacheMgr {

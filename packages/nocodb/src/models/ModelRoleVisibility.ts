@@ -1,14 +1,14 @@
-import Noco from '../Noco';
+import type { ModelRoleVisibilityType } from 'nocodb-sdk';
+import View from '~/models/View';
+import Noco from '~/Noco';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
-} from '../utils/globals';
-import NocoCache from '../cache/NocoCache';
-import { extractProps } from '../helpers/extractProps';
-import View from './View';
-import type { ModelRoleVisibilityType } from 'nocodb-sdk';
+} from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
+import { extractProps } from '~/helpers/extractProps';
 
 export default class ModelRoleVisibility implements ModelRoleVisibilityType {
   id?: string;

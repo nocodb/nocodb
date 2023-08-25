@@ -19,16 +19,21 @@ import { expect } from 'chai';
 // 9. Get table
 // 10. Reorder table
 
-function tableTest() {
+// Set of tests that doesn't make any changes to the database schema or data
+// run before hook instead of beforeEach
+//
+function tableStaticTests() {
   let context;
   let project;
   let table;
 
-  beforeEach(async function () {
+  before(async function () {
+    console.time('#### tableTest');
     context = await init();
 
     project = await createProject(context);
     table = await createTable(context, project);
+    console.timeEnd('#### tableTest');
   });
 
   it('Get table list', async function () {
@@ -39,36 +44,6 @@ function tableTest() {
       .expect(200);
 
     expect(response.body.list).to.be.an('array').not.empty;
-  });
-
-  it('Create table', async function () {
-    const response = await request(context.app)
-      .post(`/api/v1/db/meta/projects/${project.id}/tables`)
-      .set('xc-auth', context.token)
-      .send({
-        table_name: 'table2',
-        title: 'new_title_2',
-        columns: defaultColumns(context),
-      })
-      .expect(200);
-
-    const tables = await getAllTables({ project });
-    if (tables.length !== 2) {
-      return new Error('Tables is not be created');
-    }
-
-    if (response.body.columns.length !== defaultColumns(context)) {
-      return new Error('Columns not saved properly');
-    }
-
-    if (
-      !(
-        response.body.table_name.startsWith(project.prefix) &&
-        response.body.table_name.endsWith('table2')
-      )
-    ) {
-      return new Error('table name not configured properly');
-    }
   });
 
   it('Create table with no table name', async function () {
@@ -84,7 +59,7 @@ function tableTest() {
 
     if (
       !response.text.includes(
-        'Missing table name `table_name` property in request body'
+        'Missing table name `table_name` property in request body',
       )
     ) {
       console.error(response.text);
@@ -95,7 +70,7 @@ function tableTest() {
     if (tables.length !== 1) {
       console.log(tables);
       return new Error(
-        `Tables should not be created, tables.length:${tables.length}`
+        `Tables should not be created, tables.length:${tables.length}`,
       );
     }
   });
@@ -179,7 +154,7 @@ function tableTest() {
 
     if (
       !response.text.includes(
-        'Leading or trailing whitespace not allowed in table names'
+        'Leading or trailing whitespace not allowed in table names',
       )
     ) {
       console.error(response.text);
@@ -189,6 +164,51 @@ function tableTest() {
     const tables = await getAllTables({ project });
     if (tables.length !== 1) {
       return new Error('Tables should not be created');
+    }
+  });
+}
+
+function tableTest() {
+  let context;
+  let project;
+  let table;
+
+  beforeEach(async function () {
+    console.time('#### tableTest');
+    context = await init();
+
+    project = await createProject(context);
+    table = await createTable(context, project);
+    console.timeEnd('#### tableTest');
+  });
+
+  it('Create table', async function () {
+    const response = await request(context.app)
+      .post(`/api/v1/db/meta/projects/${project.id}/tables`)
+      .set('xc-auth', context.token)
+      .send({
+        table_name: 'table2',
+        title: 'new_title_2',
+        columns: defaultColumns(context),
+      })
+      .expect(200);
+
+    const tables = await getAllTables({ project });
+    if (tables.length !== 2) {
+      return new Error('Tables is not be created');
+    }
+
+    if (response.body.columns.length !== defaultColumns(context)) {
+      return new Error('Columns not saved properly');
+    }
+
+    if (
+      !(
+        response.body.table_name.startsWith(project.prefix) &&
+        response.body.table_name.endsWith('table2')
+      )
+    ) {
+      return new Error('table name not configured properly');
     }
   });
 
@@ -261,4 +281,5 @@ function tableTest() {
 
 export default async function () {
   describe('Table', tableTest);
+  describe('TableStatic', tableStaticTests);
 }

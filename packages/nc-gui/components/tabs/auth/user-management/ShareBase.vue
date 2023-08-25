@@ -25,19 +25,19 @@ enum ShareBaseRole {
 
 const { t } = useI18n()
 
-const { dashboardUrl } = $(useDashboard())
+const { dashboardUrl } = useDashboard()
 
 const { $api, $e } = useNuxtApp()
 
-let base = $ref<null | ShareBase>(null)
+const base = ref<null | ShareBase>(null)
 
-const showEditBaseDropdown = $ref(false)
+const showEditBaseDropdown = ref(false)
 
 const { project } = storeToRefs(useProject())
 
 const { copy } = useCopy()
 
-const url = $computed(() => (base && base.uuid ? `${dashboardUrl}#/base/${base.uuid}` : null))
+const url = computed(() => (base.value && base.value.uuid ? `${dashboardUrl.value}#/base/${base.value.uuid}` : null))
 
 const loadBase = async () => {
   try {
@@ -45,7 +45,7 @@ const loadBase = async () => {
 
     const res = await $api.project.sharedBaseGet(project.value.id)
 
-    base = {
+    base.value = {
       uuid: res.uuid,
       url: res.url,
       role: res.roles,
@@ -63,8 +63,8 @@ const createShareBase = async (role = ShareBaseRole.Viewer) => {
       roles: role,
     })
 
-    base = res ?? {}
-    base!.role = role
+    base.value = res ?? {}
+    base.value!.role = role
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -77,7 +77,7 @@ const disableSharedBase = async () => {
     if (!project.value.id) return
 
     await $api.project.sharedBaseDisable(project.value.id)
-    base = null
+    base.value = null
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -90,12 +90,12 @@ const recreate = async () => {
     if (!project.value.id) return
 
     const sharedBase = await $api.project.sharedBaseCreate(project.value.id, {
-      roles: base?.role || ShareBaseRole.Viewer,
+      roles: base.value?.role || ShareBaseRole.Viewer,
     })
 
     const newBase = sharedBase || {}
 
-    base = { ...newBase, role: base?.role }
+    base.value = { ...newBase, role: base.value?.role }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -104,9 +104,9 @@ const recreate = async () => {
 }
 
 const copyUrl = async () => {
-  if (!url) return
+  if (!url.value) return
   try {
-    await copy(url)
+    await copy(url.value)
 
     // Copied shareable base url to clipboard!
     message.success(t('msg.success.shareableURLCopied'))
@@ -118,19 +118,19 @@ const copyUrl = async () => {
 }
 
 const navigateToSharedBase = () => {
-  if (!url) return
+  if (!url.value) return
 
-  window.open(url, '_blank')
+  window.open(url.value, '_blank')
 
   $e('c:shared-base:open-url')
 }
 
 const generateEmbeddableIframe = async () => {
-  if (!url) return
+  if (!url.value) return
   try {
     await copy(`<iframe
 class="nc-embed"
-src="${url}?embed"
+src="${url.value}?embed"
 frameborder="0"
 width="100%"
 height="700"
@@ -145,7 +145,7 @@ style="background: transparent; border: 1px solid #ddd"></iframe>`)
 }
 
 onMounted(() => {
-  if (!base) {
+  if (!base.value) {
     loadBase()
   }
 })

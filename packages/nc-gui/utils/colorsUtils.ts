@@ -36,7 +36,13 @@ export const themeColors = {
   'background': '#FFFFFF',
   'surface': '#FFFFFF',
   'primary': '#4351e8',
-  'secondary': '#03DAC6',
+  'primary-selected': '#EBF0FF',
+  'primary-selected-sidebar': '#EBF0FF',
+  'hover': '#E1E3E6',
+  'scrollbar': '#d7d7d7',
+  'scrollbar-hover': '#cbcbcb',
+  'border': '#F3F4F6',
+  'secondary': '#F2F4F7',
   'secondary-darken-1': '#018786',
   'error': '#B00020',
   'info': '#2196F3',
@@ -88,7 +94,7 @@ export const projectThemeColors = [
   themeV2Colors['royal-blue'].DEFAULT,
   '#2D7FF9',
   '#18BFFF',
-  '#60DAD5',
+  '#0C4E65',
   '#EC2CBD',
   '#F82B60',
   '#F57134',
@@ -104,3 +110,18 @@ export const projectThemeColors = [
   '#381475',
   '#333333',
 ]
+
+// convert string into a unique color
+export const stringToColour = function (str: string) {
+  let i
+  let hash = 0
+  for (i = 0; i < str?.length ?? 0; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  let colour = '#'
+  for (i = 0; i < 3; i++) {
+    const value = (hash >> (i * 8)) & 0xff
+    colour += `00${value.toString(16)}`.substr(-2)
+  }
+  return colour
+}

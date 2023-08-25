@@ -1,5 +1,5 @@
 import { OrgUserRoles } from 'nocodb-sdk'
-import { ProjectRole } from '~/lib/enums'
+import { ProjectRole } from '../lib/enums'
 
 export const projectRoleTagColors = {
   [ProjectRole.Owner]: '#cfdffe',
@@ -11,3 +11,5 @@ export const projectRoleTagColors = {
 }
 
 export const projectRoles = [ProjectRole.Creator, ProjectRole.Editor, ProjectRole.Commenter, ProjectRole.Viewer]
+
+export const docsProjectRoles = [ProjectRole.Editor, ProjectRole.Viewer]

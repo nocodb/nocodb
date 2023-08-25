@@ -16,17 +16,17 @@ const emits = defineEmits<Emits>()
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-let isExpanded = $ref(false)
+const isExpanded = ref(false)
 
-let isLoading = $ref(false)
+const isLoading = ref(false)
 
-let isLocationSet = $ref(false)
+const isLocationSet = ref(false)
 
 const [latitude, longitude] = (vModel.value || '').split(';')
 
 const latLongStr = computed(() => {
   const [latitude, longitude] = (vModel.value || '').split(';')
-  if (latitude) isLocationSet = true
+  if (latitude) isLocationSet.value = true
   return latitude && longitude ? `${latitude}; ${longitude}` : 'Set location'
 })
 
@@ -37,28 +37,28 @@ const formState = reactive({
 
 const handleFinish = () => {
   vModel.value = latLongToJoinedString(parseFloat(formState.latitude), parseFloat(formState.longitude))
-  isExpanded = false
+  isExpanded.value = false
 }
 
 const clear = () => {
-  isExpanded = false
+  isExpanded.value = false
 
   formState.latitude = latitude
   formState.longitude = longitude
 }
 
 const onClickSetCurrentLocation = () => {
-  isLoading = true
+  isLoading.value = true
   const onSuccess: PositionCallback = (position: GeolocationPosition) => {
     const crd = position.coords
     formState.latitude = `${crd.latitude}`
     formState.longitude = `${crd.longitude}`
-    isLoading = false
+    isLoading.value = false
   }
 
   const onError: PositionErrorCallback = (err: GeolocationPositionError) => {
     console.error(`ERROR(${err.code}): ${err.message}`)
-    isLoading = false
+    isLoading.value = false
   }
 
   const options = {

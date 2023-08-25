@@ -1,4 +1,6 @@
-module.exports = {
+const { DOCKER_DB_HOST, DOCKER_DB_PORT } = process.env;
+
+export default {
   title: 'default',
   envs: {
     _noco: {
@@ -7,10 +9,8 @@ module.exports = {
         {
           client: 'mssql',
           connection: {
-            host: process.env.DOCKER_DB_HOST || 'localhost',
-            port: process.env.DOCKER_DB_PORT
-              ? parseInt(process.env.DOCKER_DB_PORT, 10)
-              : null || 1433,
+            host: DOCKER_DB_HOST || 'localhost',
+            port: DOCKER_DB_PORT ? parseInt(DOCKER_DB_PORT, 10) : null || 1433,
             user: 'sa',
             password: 'Password123.',
             database: 'default_dev',

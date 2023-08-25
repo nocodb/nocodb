@@ -18,7 +18,7 @@ import {
   useUIPermission,
   watchDebounced,
 } from '#imports'
-import type { User } from '~/lib'
+import type { User } from '#imports'
 
 const { t } = useI18n()
 
@@ -32,27 +32,27 @@ const { copy } = useCopy()
 
 const { isUIAllowed } = useUIPermission()
 
-const { dashboardUrl } = $(useDashboard())
+const { dashboardUrl } = useDashboard()
 
-let users = $ref<null | User[]>(null)
+const users = ref<null | User[]>(null)
 
-let selectedUser = $ref<null | User>(null)
+const selectedUser = ref<null | User>(null)
 
-let showUserModal = $ref(false)
+const showUserModal = ref(false)
 
-let showUserDeleteModal = $ref(false)
+const showUserDeleteModal = ref(false)
 
-let isLoading = $ref(false)
+const isLoading = ref(false)
 
-let totalRows = $ref(0)
+const totalRows = ref(0)
 
-let currentPage = $ref(1)
+const currentPage = ref(1)
 
-const currentLimit = $ref(10)
+const currentLimit = ref(10)
 
 const searchText = ref<string>('')
 
-const loadUsers = async (page = currentPage, limit = currentLimit) => {
+const loadUsers = async (page = currentPage.value, limit = currentLimit.value) => {
   try {
     if (!project.value?.id) return
 
@@ -66,9 +66,9 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
     } as RequestParams)
     if (!response.users) return
 
-    totalRows = response.users.pageInfo.totalRows ?? 0
+    totalRows.value = response.users.pageInfo.totalRows ?? 0
 
-    users = response.users.list as User[]
+    users.value = response.users.list as User[]
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -97,38 +97,38 @@ const inviteUser = async (user: User) => {
 
 const deleteUser = async () => {
   try {
-    if (!project.value?.id || !selectedUser?.id) return
+    if (!project.value?.id || !selectedUser.value?.id) return
 
-    await api.auth.projectUserRemove(project.value.id, selectedUser.id)
+    await api.auth.projectUserRemove(project.value.id, selectedUser.value.id)
 
     // Successfully deleted user from project
     message.success(t('msg.success.userDeletedFromProject'))
 
     await loadUsers()
 
-    showUserDeleteModal = false
+    showUserDeleteModal.value = false
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    showUserDeleteModal = false
+    showUserDeleteModal.value = false
   }
 
   $e('a:user:delete')
 }
 
 const onEdit = (user: User) => {
-  selectedUser = user
-  showUserModal = true
+  selectedUser.value = user
+  showUserModal.value = true
 }
 
 const onInvite = () => {
-  selectedUser = null
-  showUserModal = true
+  selectedUser.value = null
+  showUserModal.value = true
 }
 
 const onDelete = (user: User) => {
-  selectedUser = user
-  showUserDeleteModal = true
+  selectedUser.value = user
+  showUserDeleteModal.value = true
 }
 
 const resendInvite = async (user: User) => {
@@ -150,7 +150,7 @@ const resendInvite = async (user: User) => {
 const copyInviteUrl = async (user: User) => {
   if (!user.invite_token) return
   try {
-    await copy(`${dashboardUrl}#/signup/${user.invite_token}`)
+    await copy(`${dashboardUrl.value}#/signup/${user.invite_token}`)
 
     // Invite URL copied to clipboard
     message.success(t('msg.success.inviteURLCopied'))
@@ -161,19 +161,19 @@ const copyInviteUrl = async (user: User) => {
 }
 
 onBeforeMount(async () => {
-  if (!users) {
-    isLoading = true
+  if (!users.value) {
+    isLoading.value = true
 
     await loadUsers()
 
-    isLoading = false
+    isLoading.value = false
   }
 })
 
 watchDebounced(
   searchText,
   () => {
-    currentPage = 1
+    currentPage.value = 1
     loadUsers()
   },
   { debounce: 300, maxWait: 600 },
@@ -372,7 +372,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
         v-model:page-size="currentLimit"
         hide-on-single-page
         class="mt-4"
-        :total="totalRows"
+        :total="+totalRows"
         show-less-items
         @change="loadUsers"
       />

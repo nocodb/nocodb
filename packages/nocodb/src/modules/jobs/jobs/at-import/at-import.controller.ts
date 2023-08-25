@@ -6,28 +6,22 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { GlobalGuard } from '../../../../guards/global/global.guard';
-import { ExtractProjectIdMiddleware } from '../../../../middlewares/extract-project-id/extract-project-id.middleware';
-import { SyncSource } from '../../../../models';
-import { NcError } from '../../../../helpers/catchError';
-import { JobTypes } from '../../../../interface/Jobs';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import {
+  Acl,
+  ExtractIdsMiddleware,
+} from '~/middlewares/extract-ids/extract-ids.middleware';
+import { SyncSource } from '~/models';
+import { NcError } from '~/helpers/catchError';
+import { JobTypes } from '~/interface/Jobs';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(ExtractIdsMiddleware, GlobalGuard)
 export class AtImportController {
   constructor(@Inject('JobsService') private readonly jobsService) {}
 
-  @Post('/api/v1/db/meta/import/airtable')
-  @HttpCode(200)
-  async importAirtable(@Request() req) {
-    const job = await this.jobsService.add(JobTypes.AtImport, {
-      ...req.body,
-    });
-
-    return { id: job.id };
-  }
-
   @Post('/api/v1/db/meta/syncs/:syncId/trigger')
+  @Acl('airtableImport')
   @HttpCode(200)
   async triggerSync(@Request() req) {
     const jobs = await this.jobsService.jobList();
@@ -64,6 +58,7 @@ export class AtImportController {
   }
 
   @Post('/api/v1/db/meta/syncs/:syncId/abort')
+  @Acl('airtableImport')
   @HttpCode(200)
   async abortImport(@Request() _) {
     return {};

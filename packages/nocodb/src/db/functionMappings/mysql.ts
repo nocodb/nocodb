@@ -1,8 +1,8 @@
 import dayjs from 'dayjs';
-import { convertUnits } from '../../helpers/convertUnits';
-import { getWeekdayByText } from '../../helpers/formulaFnHelper';
 import commonFns from './commonFns';
 import type { MapFnArgs } from '../mapFunctionName';
+import { convertUnits } from '~/helpers/convertUnits';
+import { getWeekdayByText } from '~/helpers/formulaFnHelper';
 
 const mysql2 = {
   ...commonFns,

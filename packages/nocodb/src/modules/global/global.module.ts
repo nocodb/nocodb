@@ -1,13 +1,18 @@
-import { Global, Module } from '@nestjs/common';
+import { forwardRef, Global, Module } from '@nestjs/common';
 import { ExtractJwt } from 'passport-jwt';
-import { SocketGateway } from '../../gateways/socket.gateway';
-import { GlobalGuard } from '../../guards/global/global.guard';
-import { MetaService } from '../../meta/meta.service';
-import { JwtStrategy } from '../../strategies/jwt.strategy';
-import { UsersService } from '../../services/users/users.service';
-import Noco from '../../Noco';
 import { InitMetaServiceProvider } from './init-meta-service.provider';
 import type { Provider } from '@nestjs/common';
+import { EventEmitterModule } from '~/modules/event-emitter/event-emitter.module';
+import { SocketGateway } from '~/gateways/socket.gateway';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { MetaService } from '~/meta/meta.service';
+import Noco from '~/Noco';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { JwtStrategy } from '~/strategies/jwt.strategy';
+import { UsersService } from '~/services/users/users.service';
+import { TelemetryService } from '~/services/telemetry.service';
+import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
+import { UsersModule } from '~/modules/users/users.module';
 
 export const JwtStrategyProvider: Provider = {
   provide: JwtStrategy,
@@ -30,22 +35,29 @@ export const JwtStrategyProvider: Provider = {
   inject: [UsersService, MetaService],
 };
 
-@Global()
-@Module({
-  imports: [],
+export const globalModuleMetadata = {
+  imports: [EventEmitterModule, forwardRef(() => UsersModule)],
   providers: [
     InitMetaServiceProvider,
-    UsersService,
+    AppHooksService,
     JwtStrategyProvider,
     GlobalGuard,
-    ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [SocketGateway] : []),
+    SocketGateway,
+    AppHooksService,
+    AppHooksListenerService,
+    TelemetryService,
   ],
   exports: [
     MetaService,
     JwtStrategyProvider,
-    UsersService,
     GlobalGuard,
+    AppHooksService,
+    AppHooksListenerService,
+    TelemetryService,
     ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [SocketGateway] : []),
   ],
-})
+};
+
+@Global()
+@Module(globalModuleMetadata)
 export class GlobalModule {}

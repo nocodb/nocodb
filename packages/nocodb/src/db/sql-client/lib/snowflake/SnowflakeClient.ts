@@ -354,7 +354,8 @@ class SnowflakeClient extends KnexClient {
         log.debug('checking if db exists');
         rows = (
           await this.sqlClient.raw(
-            `SELECT DATABASE_NAME as database FROM SNOWFLAKE.information_schema.DATABASES WHERE DATABASE_NAME = '${args.database}'`,
+            `SELECT DATABASE_NAME as database FROM SNOWFLAKE.information_schema.DATABASES WHERE DATABASE_NAME = ??`,
+            [args.database],
           )
         ).rows;
       } catch (e) {

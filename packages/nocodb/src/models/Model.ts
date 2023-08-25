@@ -1,25 +1,32 @@
-import { isVirtualCol, ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
+import {
+  isLinksOrLTAR,
+  isVirtualCol,
+  ModelTypes,
+  UITypes,
+  ViewTypes,
+} from 'nocodb-sdk';
 import dayjs from 'dayjs';
-import { BaseModelSqlv2 } from '../db/BaseModelSqlv2';
-import Noco from '../Noco';
-import { parseMetaProp } from '../utils/modelUtils';
-import NocoCache from '../cache/NocoCache';
 
+import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
+import type { XKnex } from '~/db/CustomKnex';
+import type { LinkToAnotherRecordColumn } from '~/models/index';
+import Hook from '~/models/Hook';
+import Audit from '~/models/Audit';
+import View from '~/models/View';
+import Column from '~/models/Column';
+import { extractProps } from '~/helpers/extractProps';
+import { sanitize } from '~/helpers/sqlSanitize';
+import { NcError } from '~/helpers/catchError';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
-} from '../utils/globals';
-import { NcError } from '../helpers/catchError';
-import { sanitize } from '../helpers/sqlSanitize';
-import { extractProps } from '../helpers/extractProps';
-import Hook from './Hook';
-import Audit from './Audit';
-import View from './View';
-import Column from './Column';
-import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
-import type { XKnex } from '../db/CustomKnex';
+} from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
+import Noco from '~/Noco';
+import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import { parseMetaProp } from '~/utils/modelUtils';
 
 export default class Model implements TableType {
   copy_enabled: BoolType;
@@ -295,6 +302,9 @@ export default class Model implements TableType {
       ));
     if (!modelData) {
       modelData = await ncMeta.metaGet2(null, null, MetaTable.MODELS, k);
+      if (modelData) {
+        modelData.meta = parseMetaProp(modelData);
+      }
     }
     if (modelData) {
       modelData.meta = parseMetaProp(modelData);
@@ -549,6 +559,17 @@ export default class Model implements TableType {
           }
         }
         insertObj[sanitize(col.column_name)] = val;
+
+        if (clientMeta.isPg && col.dt === 'bytea') {
+          insertObj[sanitize(col.column_name)] = knex.raw(
+            `decode(?, '${col.meta?.format === 'hex' ? 'hex' : 'escape'}')`,
+            [
+              col.meta?.format === 'hex' && (val + '').length % 2 === 1
+                ? '0' + val
+                : val,
+            ],
+          );
+        }
       }
     }
     return insertObj;
@@ -607,7 +628,7 @@ export default class Model implements TableType {
     );
 
     // set meta
-    return await ncMeta.metaUpdate(
+    const res = await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.MODELS,
@@ -617,6 +638,25 @@ export default class Model implements TableType {
       },
       tableId,
     );
+
+    // clear all the cached query under this model
+    await NocoCache.delAll(CacheScope.SINGLE_QUERY, `${tableId}:*`);
+
+    // clear all the cached query under related models
+    for (const col of await this.get(tableId).then((t) => t.getColumns())) {
+      if (!isLinksOrLTAR(col)) continue;
+
+      const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>();
+
+      if (colOptions.fk_related_model_id === tableId) continue;
+
+      await NocoCache.delAll(
+        CacheScope.SINGLE_QUERY,
+        `${colOptions.fk_related_model_id}:*`,
+      );
+    }
+
+    return res;
   }
 
   static async markAsMmTable(tableId, isMm = true, ncMeta = Noco.ncMeta) {

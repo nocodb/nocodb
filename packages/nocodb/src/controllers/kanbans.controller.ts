@@ -6,18 +6,16 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ViewCreateReqType } from 'nocodb-sdk';
-import { GlobalGuard } from '../guards/global/global.guard';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { KanbansService } from '../services/kanbans.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { KanbansService } from '~/services/kanbans.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 export class KanbansController {
   constructor(private readonly kanbansService: KanbansService) {}
 
@@ -35,10 +33,12 @@ export class KanbansController {
   async kanbanViewCreate(
     @Param('tableId') tableId: string,
     @Body() body: ViewCreateReqType,
+    @Req() req: any,
   ) {
     return await this.kanbansService.kanbanViewCreate({
       tableId,
       kanban: body,
+      user: req.user,
     });
   }
 

@@ -1,8 +1,8 @@
-import Noco from '../../../Noco';
 import { getModelPaths, getViewPaths } from './templates/paths';
-import type { Model, Project } from '../../../models';
+import type { Model, Project } from '~/models';
 import type { SwaggerColumn } from './getSwaggerColumnMetas';
 import type { SwaggerView } from './getSwaggerJSON';
+import Noco from '~/Noco';
 
 export default async function getPaths(
   {

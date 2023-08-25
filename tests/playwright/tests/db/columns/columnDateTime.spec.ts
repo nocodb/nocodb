@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
+import setup, { NcContext, unsetup } from '../../../setup';
 
 const dateTimeData = [
   {
@@ -58,15 +58,19 @@ const dateTimeData = [
 
 test.describe('DateTime Column', () => {
   let dashboard: DashboardPage;
-  let context: any;
+  let context: NcContext;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
   });
 
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   test('Create DateTime Column', async () => {
-    await dashboard.treeView.createTable({ title: 'test_datetime' });
+    await dashboard.treeView.createTable({ title: 'test_datetime', projectTitle: context.project.title });
     // Create DateTime column
     await dashboard.grid.column.create({
       title: 'NC_DATETIME_0',

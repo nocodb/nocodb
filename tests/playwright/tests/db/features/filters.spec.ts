@@ -1,13 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { UITypes } from 'nocodb-sdk';
 import { Api } from 'nocodb-sdk';
 import { rowMixedValue } from '../../../setup/xcdb-records';
 import dayjs from 'dayjs';
 import { createDemoTable } from '../../../setup/demoTable';
-import { isPg } from '../../../setup/db';
 
 let dashboard: DashboardPage, toolbar: ToolbarPage;
 let context: any;
@@ -234,6 +233,10 @@ test.describe('Filter Tests: Numerical', () => {
     await page.reload();
   });
 
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   test('Filter: Number', async () => {
     await numBasedFilterTest('Number', '33', '44');
   });
@@ -385,6 +388,10 @@ test.describe('Filter Tests: Text based', () => {
     await page.reload();
   });
 
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   test('Filter: Single Line Text', async () => {
     await textBasedFilterTest('SingleLineText', 'Afghanistan', 'Au');
   });
@@ -504,6 +511,10 @@ test.describe('Filter Tests: Select based', () => {
     records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 400 });
 
     await page.reload();
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Filter: Single Select', async () => {
@@ -814,6 +825,10 @@ test.describe('Filter Tests: Date based', () => {
     await page.reload();
   });
 
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   test('Date : filters-1', async () => {
     await dateTimeBasedFilterTest('Date', 0);
   });
@@ -919,6 +934,10 @@ test.describe('Filter Tests: AddOn', () => {
     await page.reload();
   });
 
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   test('Filter: Checkbox', async () => {
     await addOnFilterTest('Checkbox');
   });
@@ -937,23 +956,23 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
 
     // add filter for CityList column
     const filterList = [
-      { op: 'is', value: 'Kabul', rowCount: 1 },
-      { op: 'is not', value: 'Kabul', rowCount: 108 },
-      { op: 'is like', value: 'bad', rowCount: 2 },
-      { op: 'is not like', value: 'bad', rowCount: 107 },
-      { op: 'is blank', value: null, rowCount: 0 },
-      { op: 'is not blank', value: null, rowCount: 109 },
+      { op: '=', value: '5', rowCount: 5 },
+      { op: '!=', value: '5', rowCount: 104 },
+      { op: '>', value: '5', rowCount: 25 },
+      { op: '<', value: '5', rowCount: 79 },
+      { op: '>=', value: '5', rowCount: 30 },
+      { op: '<=', value: '5', rowCount: 84 },
     ];
 
     await toolbar.clickFilter();
     await toolbar.filter.clickAddFilter();
     for (let i = 0; i < filterList.length; i++) {
       await verifyFilter({
-        column: 'City List',
+        column: 'Cities',
         opType: filterList[i].op,
         value: filterList[i].value,
         result: { rowCount: filterList[i].rowCount },
-        dataType: 'LinkToAnotherRecord',
+        dataType: 'Links',
       });
     }
   }
@@ -965,8 +984,8 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
     await dashboard.grid.column.create({
       title: 'Lookup',
       type: 'Lookup',
-      childTable: 'Address List',
-      childColumn: 'PostalCode',
+      childTable: 'Country',
+      childColumn: 'Country',
     });
 
     // Enable NULL & EMPTY filters
@@ -975,12 +994,12 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
 
     // add filter for CityList column
     const filterList = [
-      { op: 'is equal', value: '4166', rowCount: 1 },
-      { op: 'is not equal', value: '4166', rowCount: 599 },
-      { op: 'is like', value: '41', rowCount: 19 },
-      { op: 'is not like', value: '41', rowCount: 581 },
-      { op: 'is blank', value: null, rowCount: 1 },
-      { op: 'is not blank', value: null, rowCount: 599 },
+      { op: 'is equal', value: 'Spain', rowCount: 5 },
+      { op: 'is not equal', value: 'Spain', rowCount: 595 },
+      { op: 'is like', value: 'ca', rowCount: 28 },
+      { op: 'is not like', value: 'ca', rowCount: 572 },
+      { op: 'is blank', value: null, rowCount: 0 },
+      { op: 'is not blank', value: null, rowCount: 600 },
     ];
 
     await toolbar.clickFilter();
@@ -1003,7 +1022,7 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
     await dashboard.grid.column.create({
       title: 'Rollup',
       type: 'Rollup',
-      childTable: 'Address List',
+      childTable: 'Addresses',
       childColumn: 'PostalCode',
       rollupType: 'Sum',
     });
@@ -1018,6 +1037,8 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
       { op: 'is not equal', value: '4166', rowCount: 599 },
       { op: 'is like', value: '41', rowCount: 19 },
       { op: 'is not like', value: '41', rowCount: 581 },
+      { op: 'is empty', value: '41', rowCount: 581 },
+      { op: 'is not empty', value: '41', rowCount: 581 },
       { op: 'is blank', value: null, rowCount: 2 },
       { op: 'is not blank', value: null, rowCount: 598 },
     ];
@@ -1026,16 +1047,18 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
     await toolbar.filter.clickAddFilter();
     for (let i = 0; i < filterList.length; i++) {
       await verifyFilter({
-        column: 'Lookup',
+        column: 'Rollup',
         opType: filterList[i].op,
         value: filterList[i].value,
         result: { rowCount: filterList[i].rowCount },
-        dataType: 'Lookup',
+        dataType: 'Rollup',
       });
     }
   }
 
   test.beforeEach(async ({ page }) => {
+    // todo: confirm with @dstala
+    // context = await setup({ page, isEmptyProject: true });
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
@@ -1046,6 +1069,10 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
         'xc-auth': context.token,
       },
     });
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Filter: LTAR columns', async () => {
@@ -1080,9 +1107,15 @@ test.describe('Filter Tests: Toggle button', () => {
    */
 
   test.beforeEach(async ({ page }) => {
+    // todo: confirm with @dstala
+    // context = await setup({ page, isEmptyProject: true });
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Filter: Toggle NULL & EMPTY button', async () => {
@@ -1160,6 +1193,10 @@ test.describe('Filter Tests: Filter groups', () => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Filter: Empty filters', async () => {

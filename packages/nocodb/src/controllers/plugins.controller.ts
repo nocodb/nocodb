@@ -8,10 +8,10 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import { Acl } from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { PluginsService } from '../services/plugins.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { PluginsService } from '~/services/plugins.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 // todo: move to a interceptor
 // const blockInCloudMw = (_req, res, next) => {
@@ -29,6 +29,12 @@ export class PluginsController {
   @Acl('pluginList')
   async pluginList() {
     return new PagedResponseImpl(await this.pluginsService.pluginList());
+  }
+
+  @Get('/api/v1/db/meta/plugins/webhook')
+  @Acl('webhookPluginList')
+  async webhookPluginList() {
+    return new PagedResponseImpl(await this.pluginsService.webhookPluginList());
   }
 
   @Post('/api/v1/db/meta/plugins/test')

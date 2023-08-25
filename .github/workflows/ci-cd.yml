@@ -18,7 +18,10 @@ on:
             - "packages/nc-gui/**"
             - "packages/nocodb/**"
             - ".github/workflows/ci-cd.yml"
+            - ".github/workflows/playwright-test-workflow.yml"
             - "tests/playwright/**"
+  # Triggered manually
+    workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -89,6 +92,10 @@ jobs:
               ${{ runner.os }}-build-${{ env.cache-name }}-
               ${{ runner.os }}-build-
               ${{ runner.os }}-
+        - name: Set CI env
+          run: export CI=true
+        - name: Set NC Edition
+          run: export EE=true
         - name: setup pg
           working-directory: ./
           run: docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &

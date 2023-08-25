@@ -12,16 +12,16 @@ import {
   Response,
   UseGuards,
 } from '@nestjs/common';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { parseHrtimeToSeconds } from '../helpers';
+import { GlobalGuard } from '~/guards/global/global.guard';
 import {
   Acl,
-  ExtractProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { DataTableService } from '../services/data-table.service';
+  ExtractIdsMiddleware,
+} from '~/middlewares/extract-ids/extract-ids.middleware';
+import { DataTableService } from '~/services/data-table.service';
+import { parseHrtimeToMilliSeconds } from '~/helpers';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(ExtractIdsMiddleware, GlobalGuard)
 export class DataTableController {
   constructor(private readonly dataTableService: DataTableService) {}
 
@@ -40,7 +40,7 @@ export class DataTableController {
       modelId: modelId,
       viewId: viewId,
     });
-    const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
+    const elapsedSeconds = parseHrtimeToMilliSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);
     res.json(responseData);
   }
@@ -85,7 +85,7 @@ export class DataTableController {
     @Request() req,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
-    @Param('rowId') rowId: string,
+    @Param('rowId') _rowId: string,
   ) {
     return await this.dataTableService.dataUpdate({
       modelId: modelId,
@@ -101,7 +101,7 @@ export class DataTableController {
     @Request() req,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
-    @Param('rowId') rowId: string,
+    @Param('rowId') _rowId: string,
   ) {
     return await this.dataTableService.dataDelete({
       modelId: modelId,

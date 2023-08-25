@@ -1,5 +1,6 @@
 import { Api, UITypes } from 'nocodb-sdk';
 import { rowMixedValue } from './xcdb-records';
+
 let api: Api<any>;
 
 const columns = {
@@ -116,7 +117,33 @@ const columns = {
       uidt: UITypes.Time,
     },
   ],
-
+  groupBased: [
+    {
+      column_name: 'Id',
+      title: 'Id',
+      uidt: UITypes.ID,
+    },
+    {
+      column_name: 'Category',
+      title: 'Category',
+      uidt: UITypes.SingleLineText,
+    },
+    {
+      column_name: 'Sub_Group',
+      title: 'Sub_Group',
+      uidt: UITypes.SingleLineText,
+    },
+    {
+      column_name: 'Sub_Category',
+      title: 'Sub_Category',
+      uidt: UITypes.SingleLineText,
+    },
+    {
+      column_name: 'Item',
+      title: 'Item',
+      uidt: UITypes.SingleLineText,
+    },
+  ],
   miscellaneous: [
     {
       column_name: 'Id',
@@ -200,6 +227,17 @@ async function createDemoTable({
           Rating: rowMixedValue(columns.numberBased[6], i),
           Year: rowMixedValue(columns.numberBased[7], i),
           Time: rowMixedValue(columns.numberBased[8], i, context.dbType),
+        };
+        rowAttributes.push(row);
+      }
+      break;
+    case 'groupBased':
+      for (let i = 0; i < recordCnt; i++) {
+        const row = {
+          Category: rowMixedValue(columns.groupBased[1], i + 8),
+          Sub_Group: rowMixedValue(columns.groupBased[2], i + 4),
+          Sub_Category: rowMixedValue(columns.groupBased[3], i),
+          Item: rowMixedValue(columns.groupBased[4], i + 6),
         };
         rowAttributes.push(row);
       }

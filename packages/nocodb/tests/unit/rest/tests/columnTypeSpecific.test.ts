@@ -28,7 +28,8 @@ function columnTypeSpecificTests() {
   const qrCodeReferenceColumnTitle = 'Qr Code Column';
 
   beforeEach(async function () {
-    context = await init();
+    console.time('#### columnTypeSpecificTests');
+    context = await init(true);
 
     sakilaProject = await createSakilaProject(context);
     project = await createProject(context);
@@ -37,62 +38,59 @@ function columnTypeSpecificTests() {
       project: sakilaProject,
       name: 'customer',
     });
+
+    qrValueReferenceColumn = await createColumn(context, customerTable, {
+      title: qrValueReferenceColumnTitle,
+      uidt: UITypes.SingleLineText,
+      table_name: customerTable.table_name,
+      column_name: qrValueReferenceColumnTitle,
+    });
+
+    await createQrCodeColumn(context, {
+      title: qrCodeReferenceColumnTitle,
+      table: customerTable,
+      referencedQrValueTableColumnTitle: qrValueReferenceColumnTitle,
+    });
+    console.timeEnd('#### columnTypeSpecificTests');
   });
 
   describe('Qr Code Column', () => {
-    beforeEach(async function () {
-      qrValueReferenceColumn = await createColumn(context, customerTable, {
-        title: qrValueReferenceColumnTitle,
-        uidt: UITypes.SingleLineText,
-        table_name: customerTable.table_name,
-        column_name: title,
-      });
+    it('delivers the same cell values as the referenced column', async () => {
+      const resp = await request(context.app)
+        .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
+        .set('xc-auth', context.token)
+        .expect(200);
+      expect(resp.body.list[0][qrValueReferenceColumnTitle]).to.eql(
+        resp.body.list[0][qrCodeReferenceColumnTitle],
+      );
+      expect(
+        resp.body.list.map((row) => row[qrValueReferenceColumnTitle]),
+      ).to.eql(resp.body.list.map((row) => row[qrCodeReferenceColumnTitle]));
     });
-    describe('adding a QR code column which references another column ', async () => {
-      beforeEach(async function () {
-        await createQrCodeColumn(context, {
-          title: qrCodeReferenceColumnTitle,
-          table: customerTable,
-          referencedQrValueTableColumnTitle: qrValueReferenceColumnTitle,
-        });
-      });
-      it('delivers the same cell values as the referenced column', async () => {
-        const resp = await request(context.app)
-          .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
-          .set('xc-auth', context.token)
-          .expect(200);
-        expect(resp.body.list[0][qrValueReferenceColumnTitle]).to.eql(
-          resp.body.list[0][qrCodeReferenceColumnTitle],
-        );
-        expect(
-          resp.body.list.map((row) => row[qrValueReferenceColumnTitle]),
-        ).to.eql(resp.body.list.map((row) => row[qrCodeReferenceColumnTitle]));
-      });
 
-      it('gets deleted if the referenced column gets deleted', async () => {
-        // delete referenced value column
-        const columnsBeforeReferencedColumnDeleted =
-          await customerTable.getColumns();
+    it('gets deleted if the referenced column gets deleted', async () => {
+      // delete referenced value column
+      const columnsBeforeReferencedColumnDeleted =
+        await customerTable.getColumns();
 
-        expect(
-          columnsBeforeReferencedColumnDeleted.some(
-            (col) => col['title'] === qrCodeReferenceColumnTitle,
-          ),
-        ).to.eq(true);
+      expect(
+        columnsBeforeReferencedColumnDeleted.some(
+          (col) => col['title'] === qrCodeReferenceColumnTitle,
+        ),
+      ).to.eq(true);
 
-        const response = await request(context.app)
-          .delete(`/api/v1/db/meta/columns/${qrValueReferenceColumn.id}`)
-          .set('xc-auth', context.token)
-          .send({});
+      const response = await request(context.app)
+        .delete(`/api/v1/db/meta/columns/${qrValueReferenceColumn.id}`)
+        .set('xc-auth', context.token)
+        .send({});
 
-        const columnsAfterReferencedColumnDeleted =
-          await customerTable.getColumns();
-        expect(
-          columnsAfterReferencedColumnDeleted.some(
-            (col) => col['title'] === qrCodeReferenceColumnTitle,
-          ),
-        ).to.eq(false);
-      });
+      const columnsAfterReferencedColumnDeleted =
+        await customerTable.getColumns();
+      expect(
+        columnsAfterReferencedColumnDeleted.some(
+          (col) => col['title'] === qrCodeReferenceColumnTitle,
+        ),
+      ).to.eq(false);
     });
   });
 }

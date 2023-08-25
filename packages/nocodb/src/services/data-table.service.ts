@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { isLinksOrLTAR, RelationTypes } from 'nocodb-sdk';
 import { nocoExecute } from 'nc-help';
-import { NcError } from '../helpers/catchError';
-import getAst from '../helpers/getAst';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import { Base, Column, Model, View } from '../models';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import { DatasService } from './datas.service';
-import type { LinkToAnotherRecordColumn } from '../models';
+import type { LinkToAnotherRecordColumn } from '~/models';
+import { DatasService } from '~/services/datas.service';
+import { NcError } from '~/helpers/catchError';
+import getAst from '~/helpers/getAst';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { Base, Column, Model, View } from '~/models';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
 export class DataTableService {
@@ -99,7 +99,7 @@ export class DataTableService {
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
-    const res = await baseModel.bulkUpdate(
+    await baseModel.bulkUpdate(
       Array.isArray(param.body) ? param.body : [param.body],
       { cookie: param.cookie, throwExceptionIfNotExist: true },
     );
@@ -332,8 +332,7 @@ export class DataTableService {
     if (column.fk_model_id !== param.modelId)
       NcError.badRequest('Column not belong to model');
 
-    if (column.uidt !== UITypes.LinkToAnotherRecord)
-      NcError.badRequest('Column is not LTAR');
+    if (!isLinksOrLTAR(column)) NcError.badRequest('Column is not LTAR');
     return column;
   }
 

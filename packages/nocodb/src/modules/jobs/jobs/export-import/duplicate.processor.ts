@@ -2,16 +2,16 @@ import { Readable } from 'stream';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import papaparse from 'papaparse';
-import { UITypes } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
-import { Base, Column, Model, Project } from '../../../../models';
-import { ProjectsService } from '../../../../services/projects.service';
-import { findWithIdentifier } from '../../../../helpers/exportImportHelpers';
-import { BulkDataAliasService } from '../../../../services/bulk-data-alias.service';
-import { JOBS_QUEUE, JobTypes } from '../../../../interface/Jobs';
-import { elapsedTime, initTime } from '../../helpers';
-import { ExportService } from './export.service';
-import { ImportService } from './import.service';
+import { isLinksOrLTAR } from 'nocodb-sdk';
+import { Base, Column, Model, Project } from '~/models';
+import { ProjectsService } from '~/services/projects.service';
+import { findWithIdentifier } from '~/helpers/exportImportHelpers';
+import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
+import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
+import { elapsedTime, initTime } from '~/modules/jobs/helpers';
+import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
+import { ImportService } from '~/modules/jobs/jobs/export-import/import.service';
 
 @Processor(JOBS_QUEUE)
 export class DuplicateProcessor {
@@ -56,6 +56,7 @@ export class DuplicateProcessor {
         modelIds: models.map((m) => m.id),
         excludeViews,
         excludeHooks,
+        excludeData,
       });
 
       elapsedTime(
@@ -102,11 +103,13 @@ export class DuplicateProcessor {
         project: {
           status: null,
         },
+        user: req.user,
       });
     } catch (e) {
       if (dupProject?.id) {
         await this.projectsService.projectSoftDelete({
           projectId: dupProject.id,
+          user: req.user,
         });
       }
       throw e;
@@ -137,7 +140,7 @@ export class DuplicateProcessor {
     await sourceModel.getColumns();
 
     const relatedModelIds = sourceModel.columns
-      .filter((col) => col.uidt === UITypes.LinkToAnotherRecord)
+      .filter((col) => isLinksOrLTAR(col))
       .map((col) => col.colOptions.fk_related_model_id)
       .filter((id) => id);
 
@@ -148,6 +151,7 @@ export class DuplicateProcessor {
         modelIds: [modelId],
         excludeViews,
         excludeHooks,
+        excludeData,
       })
     )[0];
 
@@ -186,7 +190,7 @@ export class DuplicateProcessor {
         const bts = md.columns
           .filter(
             (c) =>
-              c.uidt === UITypes.LinkToAnotherRecord &&
+              isLinksOrLTAR(c) &&
               c.colOptions.type === 'bt' &&
               c.colOptions.fk_related_model_id === modelId,
           )

@@ -1,22 +1,25 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
-import { Sort } from '../models';
-import { sanitize } from '../helpers/sqlSanitize';
-import genRollupSelectv2 from './genRollupSelectv2';
-import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { Knex } from 'knex';
-import type { XKnex } from '../db/CustomKnex';
 import type {
   FormulaColumn,
   LinkToAnotherRecordColumn,
   LookupColumn,
   RollupColumn,
-} from '../models';
+} from '~/models';
+import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import genRollupSelectv2 from '~/db/genRollupSelectv2';
+import { sanitize } from '~/helpers/sqlSanitize';
+import { Sort } from '~/models';
 
 export default async function sortV2(
+  baseModelSqlv2: BaseModelSqlv2,
   sortList: Sort[],
   qb: Knex.QueryBuilder,
-  knex: XKnex,
+  alias?: string,
 ) {
+  const knex = baseModelSqlv2.dbDriver;
+
   if (!sortList?.length) {
     return;
   }
@@ -36,11 +39,14 @@ export default async function sortV2(
 
     switch (column.uidt) {
       case UITypes.Rollup:
+      case UITypes.Links:
         {
           const builder = (
             await genRollupSelectv2({
+              baseModelSqlv2,
               knex,
               columnOptions: (await column.getColOptions()) as RollupColumn,
+              alias,
             })
           ).builder;
 
@@ -51,11 +57,11 @@ export default async function sortV2(
         {
           const builder = (
             await formulaQueryBuilderv2(
+              baseModelSqlv2,
               (
                 await column.getColOptions<FormulaColumn>()
               ).formula,
-              null,
-              knex,
+              alias,
               model,
               column,
             )
@@ -65,6 +71,7 @@ export default async function sortV2(
         break;
       case UITypes.Lookup:
         {
+          const rootAlias = alias;
           {
             let aliasCount = 0,
               selectQb;
@@ -83,10 +90,16 @@ export default async function sortV2(
               const parentModel = await parentColumn.getModel();
               await parentModel.getColumns();
 
-              selectQb = knex(`${parentModel.table_name} as ${alias}`).where(
+              selectQb = knex(
+                `${baseModelSqlv2.getTnPath(
+                  parentModel.table_name,
+                )} as ${alias}`,
+              ).where(
                 `${alias}.${parentColumn.column_name}`,
                 knex.raw(`??`, [
-                  `${childModel.table_name}.${childColumn.column_name}`,
+                  `${
+                    rootAlias || baseModelSqlv2.getTnPath(childModel.table_name)
+                  }.${childColumn.column_name}`,
                 ]),
               );
             }
@@ -111,7 +124,9 @@ export default async function sortV2(
               await parentModel.getColumns();
 
               selectQb.join(
-                `${parentModel.table_name} as ${nestedAlias}`,
+                `${baseModelSqlv2.getTnPath(
+                  parentModel.table_name,
+                )} as ${nestedAlias}`,
                 `${nestedAlias}.${parentColumn.column_name}`,
                 `${prevAlias}.${childColumn.column_name}`,
               );
@@ -121,13 +136,16 @@ export default async function sortV2(
             }
 
             switch (lookupColumn.uidt) {
+              case UITypes.Links:
               case UITypes.Rollup:
                 {
                   const builder = (
                     await genRollupSelectv2({
+                      baseModelSqlv2,
                       knex,
                       columnOptions:
                         (await lookupColumn.getColOptions()) as RollupColumn,
+                      alias: prevAlias,
                     })
                   ).builder;
                   selectQb.select(builder);
@@ -151,7 +169,9 @@ export default async function sortV2(
 
                   selectQb
                     .join(
-                      `${parentModel.table_name} as ${nestedAlias}`,
+                      `${baseModelSqlv2.getTnPath(
+                        parentModel.table_name,
+                      )} as ${nestedAlias}`,
                       `${nestedAlias}.${parentColumn.column_name}`,
                       `${prevAlias}.${childColumn.column_name}`,
                     )
@@ -162,11 +182,11 @@ export default async function sortV2(
                 {
                   const builder = (
                     await formulaQueryBuilderv2(
+                      baseModelSqlv2,
                       (
                         await column.getColOptions<FormulaColumn>()
                       ).formula,
                       null,
-                      knex,
                       model,
                       column,
                     )
@@ -202,12 +222,18 @@ export default async function sortV2(
           const parentModel = await parentColumn.getModel();
           await parentModel.getColumns();
 
-          const selectQb = knex(parentModel.table_name)
+          const selectQb = knex(
+            baseModelSqlv2.getTnPath(parentModel.table_name),
+          )
             .select(parentModel?.displayValue?.column_name)
             .where(
-              `${parentModel.table_name}.${parentColumn.column_name}`,
+              `${baseModelSqlv2.getTnPath(parentModel.table_name)}.${
+                parentColumn.column_name
+              }`,
               knex.raw(`??`, [
-                `${childModel.table_name}.${childColumn.column_name}`,
+                `${baseModelSqlv2.getTnPath(childModel.table_name)}.${
+                  childColumn.column_name
+                }`,
               ]),
             );
 

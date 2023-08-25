@@ -1,8 +1,8 @@
-import { NcError } from '../helpers/catchError';
-import Noco from '../Noco';
-import { MetaTable } from '../utils/globals';
-import { extractProps } from '../helpers/extractProps';
-import User from './User';
+import User from '~/models/User';
+import { NcError } from '~/helpers/catchError';
+import Noco from '~/Noco';
+import { extractProps } from '~/helpers/extractProps';
+import { MetaTable } from '~/utils/globals';
 
 export default class SyncSource {
   id?: string;

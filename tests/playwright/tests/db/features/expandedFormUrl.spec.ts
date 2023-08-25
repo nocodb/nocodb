@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { GalleryPage } from '../../../pages/Dashboard/Gallery';
 import { GridPage } from '../../../pages/Dashboard/Grid';
-import setup from '../../../setup';
+import setup, { unsetup } from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 
 test.describe('Expanded form URL', () => {
@@ -14,9 +14,14 @@ test.describe('Expanded form URL', () => {
     dashboard = new DashboardPage(page, context.project);
   });
 
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
   async function viewTestTestTable(viewType: string) {
     await dashboard.treeView.createTable({
       title: 'Test Table',
+      projectTitle: context.project.title,
     });
     await dashboard.grid.addNewRow({ index: 0 });
 
@@ -66,7 +71,8 @@ test.describe('Expanded form URL', () => {
         title: 'CountryExpand',
       });
       await viewObj.toolbar.clickFields();
-      await viewObj.toolbar.fields.click({ title: 'City List' });
+      await viewObj.toolbar.fields.click({ title: 'Cities' });
+      await viewObj.toolbar.clickFields();
     }
 
     // expand row & verify URL
@@ -104,7 +110,7 @@ test.describe('Expanded form URL', () => {
       url: 'rowId=1',
     });
     await dashboard.expandedForm.openChildCard({
-      column: 'City List',
+      column: 'Cities',
       title: 'Kabul',
     });
     await dashboard.rootPage.waitForTimeout(1000);
@@ -142,6 +148,10 @@ test.describe('Expanded record duplicate & delete options', () => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
   });
 
   test('Grid', async () => {

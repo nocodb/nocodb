@@ -289,7 +289,7 @@ export const iconMap = {
   erd: h('span', { class: 'material-symbols' }, 'account_tree'),
   plus: Plus,
   minus: Minus,
-  copy: h('span', { class: 'material-symbols', style: '-webkit-text-stroke: 0.5px' }, 'content_copy'),
+  copy: h('span', { class: 'material-symbols' }, 'content_copy'),
   duplicate: MaterialDuplicate,
   clipboard: h('span', { class: 'material-symbols' }, 'content_paste'),
   settings: MdiSettings,

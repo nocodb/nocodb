@@ -69,7 +69,7 @@ const isEaster = ref(false)
 <template>
   <GeneralModal v-if="project" v-model:visible="dialogShow" class="!w-[30rem]" wrap-class-name="nc-modal-project-duplicate">
     <div>
-      <div class="prose-xl font-bold self-center" @dblclick="isEaster = !isEaster">{{ $t('general.duplicate') }}</div>
+      <div class="prose-xl font-bold self-center" @dblclick="isEaster = !isEaster">{{ $t('general.duplicateProject') }}</div>
 
       <div class="mt-4">Are you sure you want to duplicate the `{{ project.title }}` project?</div>
 

@@ -128,7 +128,9 @@
     "old": "Old",
     "data": "Data",
     "source": "Source",
-    "destination": "Destination"
+    "destination": "Destination",
+    "duplicateTable": "Duplicate Table",
+    "duplicateProject": "Duplicate Project"
   },
   "objects": {
     "workspace": "Workspace",

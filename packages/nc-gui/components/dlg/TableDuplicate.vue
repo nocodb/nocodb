@@ -32,19 +32,23 @@ const optionsToExclude = computed(() => {
 const isLoading = ref(false)
 
 const _duplicate = async () => {
-  isLoading.value = true
   try {
+    isLoading.value = true
     const jobData = await api.dbTable.duplicate(props.table.project_id!, props.table.id!, { options: optionsToExclude.value })
     props.onOk(jobData as any)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isLoading.value = false
+    dialogShow.value = false
   }
-  isLoading.value = false
-  dialogShow.value = false
 }
 
 onKeyStroke('Enter', () => {
-  _duplicate()
+  // should only trigger this when our modal is open
+  if (dialogShow.value) {
+    _duplicate()
+  }
 })
 
 const isEaster = ref(false)
@@ -80,9 +84,7 @@ const isEaster = ref(false)
     </div>
     <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
       <NcButton key="back" type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
-      <NcButton key="submit" type="primary" :loading="isLoading" @click="_duplicate">{{ $t('general.confirm') }} </NcButton>
+      <NcButton key="submit" type="primary" :loading="isLoading" @submit="_duplicate">{{ $t('general.confirm') }} </NcButton>
     </div>
   </GeneralModal>
 </template>
-
-<style scoped lang="scss"></style>

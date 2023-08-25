@@ -33,8 +33,8 @@ const optionsToExclude = computed(() => {
 const isLoading = ref(false)
 
 const _duplicate = async () => {
-  isLoading.value = true
   try {
+    isLoading.value = true
     // pick a random color from array and assign to project
     const color = projectThemeColors[Math.floor(Math.random() * 1000) % projectThemeColors.length]
     const tcolor = tinycolor(color)
@@ -58,13 +58,17 @@ const _duplicate = async () => {
     props.onOk(jobData as any)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isLoading.value = false
+    dialogShow.value = false
   }
-  isLoading.value = false
-  dialogShow.value = false
 }
 
 onKeyStroke('Enter', () => {
-  _duplicate()
+  // should only trigger this when our modal is open
+  if (dialogShow.value) {
+    _duplicate()
+  }
 })
 
 const isEaster = ref(false)
@@ -91,7 +95,7 @@ const isEaster = ref(false)
     </div>
     <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
       <NcButton key="back" type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
-      <NcButton key="submit" html-type="submit" :loading="isLoading" @click="_duplicate">{{ $t('general.confirm') }} </NcButton>
+      <NcButton key="submit" :loading="isLoading" @click="_duplicate">{{ $t('general.confirm') }} </NcButton>
     </div>
   </GeneralModal>
 </template>

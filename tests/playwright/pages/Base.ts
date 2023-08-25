@@ -33,23 +33,14 @@ export default abstract class BasePage {
     debug?: boolean;
     debugKey?: string;
   }) {
-    const [res] = await Promise.all([
-      this.rootPage.waitForResponse(
-        res =>
-          res.url().includes(requestUrlPathToMatch) &&
-          res.status() === 200 &&
-          httpMethodsToMatch.includes(res.request().method())
-      ),
-      uiAction(),
-    ]);
-
-    // handle JSON matcher if provided
-    let isResJsonMatched = true;
-    if (responseJsonMatcher) {
-      try {
-        isResJsonMatched = responseJsonMatcher(res.json());
-      } catch {
-        isResJsonMatched = false;
+    const waitForResponsePromise = this.rootPage.waitForResponse(async res => {
+      let isResJsonMatched = true;
+      if (responseJsonMatcher) {
+        try {
+          isResJsonMatched = responseJsonMatcher(await res.json());
+        } catch (e) {
+          return false;
+        }
       }
 
       if (debug) {

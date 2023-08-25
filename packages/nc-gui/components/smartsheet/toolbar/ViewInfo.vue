@@ -9,7 +9,7 @@ const { activeTable } = storeToRefs(useTablesStore())
 
 <template>
   <div
-    class="flex flex-row font-medium items-center border-gray-50"
+    class="flex flex-row font-medium items-center border-gray-50 mt-0.5"
     :class="{
       'max-w-2/5': selectedView?.type !== ViewTypes.KANBAN,
       'max-w-1/4': selectedView?.type === ViewTypes.KANBAN,
@@ -18,9 +18,9 @@ const { activeTable } = storeToRefs(useTablesStore())
     <div v-if="activeTable?.meta?.icon" class="text-lg mr-0.5">
       {{ activeTable?.meta?.icon }}
     </div>
-    <MdiTable v-else class="min-w-5 !text-gray-500 mb-0.25" :class="{}" />
+    <MdiTable v-else class="min-w-5 !text-gray-500" :class="{}" />
     <span
-      class="text-ellipsis overflow-hidden pl-1 text-gray-500 max-w-1/2"
+      class="text-ellipsis overflow-hidden pl-1 text-gray-500 max-w-28/100"
       :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
     >
       {{ activeTable?.title }}
@@ -33,7 +33,7 @@ const { activeTable } = storeToRefs(useTablesStore())
     <GeneralViewIcon v-else :meta="{ type: selectedView?.type }" class="min-w-5 flex" />
 
     <span
-      class="text-ellipsis overflow-hidden pl-1.25 text-gray-700 max-w-1/2"
+      class="text-ellipsis overflow-hidden pl-1.25 text-gray-700 max-w-28/100"
       :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline', fontSize: '0.9rem' }"
     >
       {{ selectedView?.title }}

@@ -46,7 +46,7 @@ const onClick = () => {
       @click="onClick"
     >
       <div class="flex items-center text-inherit">
-        <GeneralIcon icon="doubleLeftArrow" />
+        <GeneralIcon icon="doubleLeftArrow" class="duration-150 transition-all !text-lg -mt-0.25" />
       </div>
     </NcButton>
   </NcTooltip>

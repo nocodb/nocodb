@@ -17,10 +17,13 @@ jobs:
           node-version: 16.15.0
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          path: nocohub
       - name: Checkout OSS
         uses: actions/checkout@v3
         with:
           repository: 'nocodb/nocodb'
+          path: nocodb
       - name: Sync OSS to EE
         run: |
           git config user.name 'github-actions[bot]'

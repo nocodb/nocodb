@@ -68,8 +68,11 @@ const setIcon = async (icon: string, table: TableType) => {
 // Todo: temp
 
 const { isSharedBase } = useProject()
-
 // const isMultiBase = computed(() => project.bases && project.bases.length > 1)
+
+const canUserEditEmote = computed(() => {
+  return projectRole?.value === 'owner' || projectRole?.value === 'creator' || projectRole?.value === 'editor'
+})
 </script>
 
 <template>
@@ -107,11 +110,31 @@ const { isSharedBase } = useProject()
               @emoji-selected="setIcon($event, table)"
             >
               <template #default>
-                <NcTooltip class="flex" placement="topLeft" hide-on-click>
-                  <template #title>
-                    {{ 'Change icon' }}
-                  </template>
+                <div v-if="canUserEditEmote">
+                  <NcTooltip class="flex" placement="topLeft" hide-on-click>
+                    <template #title>
+                      {{ 'Change icon' }}
+                    </template>
 
+                    <MdiTable
+                      v-if="table.type === 'table'"
+                      class="flex w-5 !text-gray-500 text-sm"
+                      :class="{
+                        'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole),
+                        '!text-black': openedTableId === table.id,
+                      }"
+                    />
+                    <MdiEye
+                      v-else
+                      class="flex w-5 !text-gray-500 text-sm"
+                      :class="{
+                        'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole),
+                        '!text-black': openedTableId === table.id,
+                      }"
+                    />
+                  </NcTooltip>
+                </div>
+                <div v-else>
                   <MdiTable
                     v-if="table.type === 'table'"
                     class="flex w-5 !text-gray-500 text-sm"
@@ -128,7 +151,7 @@ const { isSharedBase } = useProject()
                       '!text-black': openedTableId === table.id,
                     }"
                   />
-                </NcTooltip>
+                </div>
               </template>
             </LazyGeneralEmojiPicker>
           </div>

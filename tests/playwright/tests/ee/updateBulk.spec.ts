@@ -4,8 +4,8 @@ import { DashboardPage } from '../../pages/Dashboard';
 import { Api } from 'nocodb-sdk';
 import { createDemoTable } from '../../setup/demoTable';
 import { BulkUpdatePage } from '../../pages/Dashboard/BulkUpdate';
-import { AccountLicensePage } from '../../pages/Account/License';
-import { AccountPage } from '../../pages/Account';
+// import { AccountLicensePage } from '../../pages/Account/License';
+// import { AccountPage } from '../../pages/Account';
 
 async function updateBulkFields(bulkUpdateForm, fields) {
   // move all fields to active
@@ -26,8 +26,6 @@ async function beforeEachInit({ page, tableType }: { page: any; tableType: strin
   const context = await setup({ page, isEmptyProject: true, isSuperUser: true });
   const dashboard = new DashboardPage(page, context.project);
   const bulkUpdateForm = dashboard.bulkUpdateForm;
-  const accountPage: AccountPage = new AccountPage(page);
-  const accountLicensePage: AccountLicensePage = new AccountLicensePage(accountPage);
 
   const api = new Api({
     baseURL: `http://localhost:8080/`,
@@ -38,9 +36,8 @@ async function beforeEachInit({ page, tableType }: { page: any; tableType: strin
 
   const table = await createDemoTable({ context, type: tableType, recordCnt: 50 });
 
-  await accountLicensePage.goto();
-  await accountLicensePage.saveLicenseKey('1234567890');
-  await dashboard.goto();
+  // For tables created via API to appear
+  await dashboard.rootPage.reload();
 
   await dashboard.treeView.openTable({ title: tableType });
 
@@ -50,7 +47,7 @@ async function beforeEachInit({ page, tableType }: { page: any; tableType: strin
   return { bulkUpdateForm, dashboard, context, api, table };
 }
 
-test.describe.skip('Bulk update 0', () => {
+test.describe('Bulk update 0', () => {
   let bulkUpdateForm: BulkUpdatePage;
   let dashboard: DashboardPage;
   let context: any;
@@ -117,7 +114,7 @@ test.describe.skip('Bulk update 0', () => {
       { title: 'URL', value: 'https://www.google.com', type: 'text' },
       {
         title: 'MultiLineText',
-        value: 'Long text. Long text. Long text. Long text. Long text. Long text. Long text. Long text. Long text. ',
+        value: 'Long text. Long text. Long text. Long text. Long text. Long text. Long text. Long text. Long text.',
         type: 'longText',
       },
     ];
@@ -139,7 +136,7 @@ test.describe.skip('Bulk update 0', () => {
   });
 });
 
-test.describe.skip('Bulk update 1', () => {
+test.describe('Bulk update 1', () => {
   let bulkUpdateForm: BulkUpdatePage;
   let dashboard: DashboardPage;
   let context: any;
@@ -202,7 +199,7 @@ test.describe.skip('Bulk update 1', () => {
   });
 });
 
-test.describe.skip('Bulk update 2', () => {
+test.describe('Bulk update 2', () => {
   let bulkUpdateForm: BulkUpdatePage;
   let dashboard: DashboardPage;
   let context: any;
@@ -258,7 +255,7 @@ test.describe.skip('Bulk update 2', () => {
   });
 });
 
-test.describe.skip('Bulk update 3', () => {
+test.describe('Bulk update 3', () => {
   let bulkUpdateForm: BulkUpdatePage;
   let dashboard: DashboardPage;
   let context: any;
@@ -314,7 +311,7 @@ test.describe.skip('Bulk update 3', () => {
   });
 });
 
-test.describe.skip('Bulk update 4', () => {
+test.describe('Bulk update 4', () => {
   let bulkUpdateForm: BulkUpdatePage;
   let dashboard: DashboardPage;
   let context: any;
@@ -329,7 +326,7 @@ test.describe.skip('Bulk update 4', () => {
     api = initRsp.api;
     table = initRsp.table;
   });
-  
+
   test.afterEach(async () => {
     await unsetup(context);
   });

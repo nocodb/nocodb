@@ -1,0 +1,45 @@
+name: "Sync OSS to CE"
+
+on:
+  # Triggered manually
+  workflow_dispatch:
+  # Triggered when pushed to develop branch of nocodb/nocodb (TODO)
+  repository_dispatch:
+    types: [OSS]
+
+jobs:
+  sync:
+    runs-on: [self-hosted, aws]
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.15.0
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Checkout OSS
+        uses: actions/checkout@v3
+        with:
+          repository: 'nocodb/nocodb'
+      - name: Sync OSS to EE
+        id: sync
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          cd nocohub
+          LAST_SHA=$(git rev-list -n 3 HEAD | tail -1)
+          echo "LAST_SHA=${LAST_SHA}" >> $GITHUB_OUTPUT
+          git checkout -b sync/${LAST_SHA}
+          npm run sync:ce:to:ee
+          git add .
+          git commit -m "chore: Sync OSS to EE"
+          git push origin sync/${LAST_SHA}
+
+      - name: Create Pull Request
+        uses: repo-sync/pull-request@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          source_branch: "develop"
+          destination_branch: "sync/${steps.sync.outputs.LAST_SHA}"  
+          pr_title: 'Sync OSS to EE'

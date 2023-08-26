@@ -8,36 +8,36 @@ export abstract class ErdBasePage extends BasePage {
 
   async clickShowColumnNames() {
     await this.get().locator(`.nc-erd-showColumns-checkbox`).click();
-    (await this.vueFlow().elementHandle())?.waitForElementState('stable');
+    await (await this.vueFlow().elementHandle())?.waitForElementState('stable');
   }
 
   async dbClickShowColumnNames() {
     await this.get().locator(`.nc-erd-showColumns-label`).dblclick();
-    (await this.vueFlow().elementHandle())?.waitForElementState('stable');
+    await (await this.vueFlow().elementHandle())?.waitForElementState('stable');
   }
 
   async clickShowPkAndFk() {
     await this.get().locator(`.nc-erd-showPkAndFk-checkbox`).click();
-    (await this.vueFlow().elementHandle())?.waitForElementState('stable');
+    await (await this.vueFlow().elementHandle())?.waitForElementState('stable');
   }
 
   async clickShowSqlViews() {
     await this.get().locator(`.nc-erd-showViews-checkbox`).click();
-    (await this.vueFlow().elementHandle())?.waitForElementState('stable');
+    await (await this.vueFlow().elementHandle())?.waitForElementState('stable');
   }
 
   async clickShowMMTables() {
     await this.get().locator(`.nc-erd-showMMTables-checkbox`).click();
-    (await this.vueFlow().elementHandle())?.waitForElementState('stable');
+    await (await this.vueFlow().elementHandle())?.waitForElementState('stable');
   }
 
   async clickShowJunctionTableNames() {
     await this.get().locator(`.nc-erd-showJunctionTableNames-checkbox`).click();
-    (await this.vueFlow().elementHandle())?.waitForElementState('stable');
+    await (await this.vueFlow().elementHandle())?.waitForElementState('stable');
   }
 
   async verifyEasterEggNotShown() {
-    await expect(await this.get().locator('.nc-erd-showMMTables-checkbox')).not.toBeVisible();
+    await expect(this.get().locator('.nc-erd-showMMTables-checkbox')).not.toBeVisible();
   }
 
   async verifyNode({

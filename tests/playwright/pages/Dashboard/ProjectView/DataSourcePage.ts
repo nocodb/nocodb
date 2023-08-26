@@ -30,7 +30,7 @@ export class DataSourcePage extends BasePage {
 
   async openERD({ rowIndex }: { rowIndex: number }) {
     // hardwired
-    await this.rootPage.locator('button.nc-action-btn').nth(1).click();
+    await this.rootPage.locator('button.nc-action-btn:has-text("Relations")').click();
 
     // const row = this.get().locator('.ds-table-row').nth(rowIndex);
     // await row.locator('.ds-table-actions').locator('button.nc-action-btn').waitFor();

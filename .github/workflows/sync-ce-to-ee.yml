@@ -20,35 +20,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           path: nocohub
       - name: Checkout OSS
         uses: actions/checkout@v3
         with:
           repository: 'nocodb/nocodb'
+          branch: develop
           path: nocodb
+      - name: Prepare GH Cli
+        id: gh
+        run: |
+          wget https://github.com/cli/cli/releases/download/v2.33.0/gh_2.33.0_linux_amd64.tar.gz
+          tar -xvf gh_2.33.0_linux_amd64.tar.gz
+          GH=gh_2.33.0_linux_amd64/bin/gh
+          echo "GH=${GH}" >> $GITHUB_OUTPUT
       - name: Sync OSS to EE
         id: sync
         run: |
           cd nocohub
           BRANCH_NAME=oss/$(git rev-list -n 3 HEAD | tail -1 | cut -c1-8)
-          echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_OUTPUT
-          git checkout -b ${BRANCH_NAME}
+          git checkout -b $BRANCH_NAME
           npm run sync:ce:to:ee
           git add .
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           git commit -m "chore: Sync OSS to EE"
-          git push origin ${BRANCH_NAME}
-          echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_OUTPUT
-      - name: Create Pull Request
-        id: cpr
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          base: develop
-          branch: ${{ steps.sync.outputs.BRANCH_NAME }}
-          title: 'chore: Sync OSS to EE'
-          body: |
-            This is an automated pull request to sync the OSS repository to the EE repository.
-            Please review and merge this pull request if it looks good.
-          
+          git push origin $BRANCH_NAME
+          ../${{ steps.gh.outputs.GH }} pr create --title "chore: Sync OSS to EE" --body "This is an automated pull request to sync the OSS repository to the EE repository. Please review and merge this pull request if it looks good." --base develop --head $BRANCH_NAME

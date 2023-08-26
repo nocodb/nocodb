@@ -9,9 +9,12 @@ const { activeWorkspace, isWorkspaceLoading } = storeToRefs(workspaceStore)
 </script>
 
 <template>
-  <div class="flex items-center px-1 nc-sidebar-header py-1.2 pl-2 w-full border-b-1 border-gray-200">
+  <div class="flex items-center px-2 nc-sidebar-header py-1.2 w-full border-b-1 border-gray-200">
     <div v-if="!isWorkspaceLoading" class="flex flex-row items-center w-full">
-      <div class="flex flex-row flex-grow hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md max-w-82/100">
+      <div
+        class="flex flex-row flex-grow hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md w-full"
+        style="max-width: calc(100% - 2.5rem)"
+      >
         <a
           v-if="isSharedBase"
           class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"

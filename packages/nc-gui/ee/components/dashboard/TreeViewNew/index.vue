@@ -347,7 +347,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="nc-treeview-container flex flex-col justify-between select-none">
+  <div class="nc-treeview-container flex flex-col justify-between select-none px-0.5">
     <div ref="treeViewDom" mode="inline" class="nc-treeview pb-0.5 flex-grow min-h-50 overflow-x-hidden">
       <template v-if="projectsList?.length">
         <ProjectWrapper

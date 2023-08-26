@@ -1,35 +1,7 @@
 <script lang="ts" setup>
-import { useGlobal } from '#imports'
-import { navigateTo } from '#app'
-
-const router = useRouter()
-
-const route = router.currentRoute
-
 const workspaceStore = useWorkspace()
 
-const { activeWorkspace, isWorkspaceLoading, isWorkspaceOwnerOrCreator } = storeToRefs(workspaceStore)
-
-const projectStore = useProject()
-
-const { isSharedBase } = storeToRefs(projectStore)
-
-const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
-
-const dialogOpen = ref(false)
-
-const openDialogKey = ref<string>('')
-
-const dataSourcesState = ref<string>('')
-
-const projectId = ref<string>()
-
-function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: string) {
-  dialogOpen.value = value ?? !dialogOpen.value
-  openDialogKey.value = key || ''
-  dataSourcesState.value = dsState || ''
-  projectId.value = pId || ''
-}
+const { isWorkspaceLoading } = storeToRefs(workspaceStore)
 </script>
 
 <template>
@@ -45,12 +17,8 @@ function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: str
       <DashboardSidebarTopSection />
     </div>
     <div class="flex flex-col nc-scrollbar-sm-dark border-t-1 pt-1" style="height: calc(100% - var(--sidebar-top-height))">
-      <div class="text-gray-500 mx-4.5 font-medium my-1.5">{{ $t('objects.projects') }}</div>
-      <LazyDashboardTreeViewNew
-        v-if="!isWorkspaceLoading"
-        class="flex-1"
-        @create-base-dlg="toggleDialog(true, 'dataSources', null, projectId)"
-      />
+      <div class="text-gray-500 mx-4.2 font-medium my-1.5">{{ $t('objects.projects') }}</div>
+      <LazyDashboardTreeViewNew v-if="!isWorkspaceLoading" />
     </div>
   </div>
 </template>

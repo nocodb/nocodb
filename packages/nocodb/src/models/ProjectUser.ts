@@ -377,9 +377,7 @@ export default class ProjectUser {
       .map((m) => this.castType(m));
 
     await Promise.all(
-      castedProjectList.map(async (project) => {
-        await project.getBases(ncMeta);
-      }),
+      castedProjectList.map((project) => project.getBases(ncMeta)),
     );
 
     return castedProjectList;

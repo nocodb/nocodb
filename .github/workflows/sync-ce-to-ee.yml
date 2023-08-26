@@ -27,15 +27,28 @@ jobs:
           repository: 'nocodb/nocodb'
           path: nocodb
       - name: Sync OSS to EE
+        id: sync
         run: |
           cd nocohub
-          LAST_SHA=$(git rev-list -n 3 HEAD | tail -1 | cut -c1-8)
-          echo "LAST_SHA=${LAST_SHA}" >> $GITHUB_OUTPUT
-          git checkout -b oss/${LAST_SHA}
+          BRANCH_NAME=oss/$(git rev-list -n 3 HEAD | tail -1 | cut -c1-8)
+          echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+          git checkout -b ${BRANCH_NAME}
           npm run sync:ce:to:ee
           git add .
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           git commit -m "chore: Sync OSS to EE"
-          git push origin oss/${LAST_SHA}
-          gh pr create --base develop --head oss/${LAST_SHA} --title "Sync OSS to EE" --body "Auto-generated PR to sync OSS to EE"
+          git push origin ${BRANCH_NAME}
+          echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: develop
+          branch: ${{ steps.sync.outputs.BRANCH_NAME }}
+          title: 'chore: Sync OSS to EE'
+          body: |
+            This is an automated pull request to sync the OSS repository to the EE repository.
+            Please review and merge this pull request if it looks good.
+          

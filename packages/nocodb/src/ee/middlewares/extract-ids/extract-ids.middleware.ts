@@ -322,11 +322,6 @@ export class AclMiddleware implements NestInterceptor {
   }
 }
 
-export const UseIdsMiddleware =
-  () => (target: any, key?: string, descriptor?: PropertyDescriptor) => {
-    UseInterceptors(ExtractIdsMiddleware)(target, key, descriptor);
-  };
-
 export const UseAclMiddleware =
   ({
     permissionName,

@@ -19,12 +19,9 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import Noco from '~/Noco';
 import { packageVersion } from '~/utils/packageVersion';
 import { ProjectsService } from '~/services/projects.service';
-import {
-  Acl,
-  ExtractIdsMiddleware,
-} from '~/middlewares/extract-ids/extract-ids.middleware';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
-@UseGuards(ExtractIdsMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 @Controller()
 export class ProjectsController {
   constructor(protected readonly projectsService: ProjectsService) {}

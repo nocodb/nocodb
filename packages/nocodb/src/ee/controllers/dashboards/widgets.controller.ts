@@ -15,14 +15,11 @@ import { WidgetsService } from '~/services/dashboards/widgets.service';
 import Widget from '~/models/Widget';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import {
-  Acl,
-  ExtractIdsMiddleware,
-} from '~/middlewares/extract-ids/extract-ids.middleware';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { WidgetDataService } from '~/services/dashboards/widgetData.service';
 
 @Controller()
-@UseGuards(ExtractIdsMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 export class WidgetsController {
   constructor(
     private readonly widgetsService: WidgetsService,

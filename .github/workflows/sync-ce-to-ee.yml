@@ -37,6 +37,8 @@ jobs:
           echo "GH=${GH}" >> $GITHUB_OUTPUT
       - name: Sync OSS to EE
         id: sync
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd nocohub
           BRANCH_NAME=oss/$(git rev-list -n 3 HEAD | tail -1 | cut -c1-8)

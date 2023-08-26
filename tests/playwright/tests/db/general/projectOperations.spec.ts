@@ -7,7 +7,6 @@ import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { Api, ProjectListType } from 'nocodb-sdk';
 import { ProjectInfo, ProjectInfoApiUtil } from '../../../tests/utils/projectInfoApiUtil';
 import { deepCompare } from '../../../tests/utils/objectCompareUtil';
-import { isHub } from '../../../setup/db';
 
 // tests covered under tests/playwright/tests/nocohub/hubDashboard.spec.ts
 test.describe.skip('Project operations', () => {
@@ -20,8 +19,8 @@ test.describe.skip('Project operations', () => {
 
   async function deleteIfExists(name: string) {
     try {
-      const ws = await api.workspace.list();
-      const projectList = await api.workspaceProject.list(ws.list[0].id);
+      const ws = await api['workspace'].list();
+      const projectList = await api['workspaceProject'].list(ws.list[0].id);
 
       const project = projectList.list.find((p: any) => p.title === name);
       if (project) {
@@ -112,13 +111,9 @@ test.describe.skip('Project operations', () => {
     // await quickVerify({ dashboard, airtableImport: true, context });
 
     // compare
-    let projectList: ProjectListType;
-    if (isHub()) {
-      const ws = await api.workspace.list();
-      projectList = await api.workspaceProject.list(ws.list[0].id);
-    } else {
-      projectList = await api.project.list();
-    }
+    const ws = await api['workspace'].list();
+    const projectList = await api['workspaceProject'].list(ws.list[0].id);
+
     const testProjectId = await projectList.list.find((p: any) => p.title === testProjectName);
     const dupeProjectId = await projectList.list.find((p: any) => p.title === dupeProjectName);
     const projectInfoOp: ProjectInfoApiUtil = new ProjectInfoApiUtil(context.token);

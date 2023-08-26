@@ -98,6 +98,8 @@ test.describe('Shared view', () => {
 
     await dashboard.goto();
     await page.reload();
+    // kludge: wait for 3 seconds to avoid flaky test
+    await page.waitForTimeout(5000);
 
     await dashboard.treeView.openTable({ title: 'Film' });
     await dashboard.grid.toolbar.clickGroupBy();
@@ -106,6 +108,8 @@ test.describe('Shared view', () => {
 
     await page.goto(sharedLink);
     await page.reload();
+    // kludge: wait for 3 seconds to avoid flaky test
+    await page.waitForTimeout(5000);
 
     await sharedPage.grid.cell.verify({ index: 0, columnHeader: 'Title', value: 'ZORRO ARK' });
   });

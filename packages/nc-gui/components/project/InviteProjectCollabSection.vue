@@ -162,7 +162,7 @@ const copyUrl = async () => {
 
 <style scoped>
 .badge-text {
-  @apply text-[14px] pt-1 text-center;
+  @apply text-[14px] pt-1 text-center font-medium first-letter:uppercase;
 }
 
 :deep(.ant-select .ant-select-selector) {

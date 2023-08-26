@@ -42,4 +42,14 @@ export class FootbarPage extends BasePage {
     await this.rootPage.locator('.ant-dropdown-content:visible').waitFor();
     await this.rootPage.locator('.ant-dropdown-content:visible').locator('.nc-new-record-with-form').click();
   }
+
+  async verifyLockMode() {
+    // add record button
+    await expect(this.btn_addNewRow).toBeVisible({ visible: false });
+  }
+
+  async verifyCollaborativeMode() {
+    // add record button
+    await expect(this.btn_addNewRow).toBeVisible({ visible: true });
+  }
 }

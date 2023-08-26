@@ -35,6 +35,7 @@ export class ToolbarPage extends BasePage {
   readonly btn_sort: Locator;
   readonly btn_filter: Locator;
   readonly btn_rowHeight: Locator;
+  readonly btn_groupBy: Locator;
 
   constructor(parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage) {
     super(parent.rootPage);
@@ -54,6 +55,7 @@ export class ToolbarPage extends BasePage {
     this.btn_sort = this.get().locator(`button.nc-sort-menu-btn`);
     this.btn_filter = this.get().locator(`button.nc-filter-menu-btn`);
     this.btn_rowHeight = this.get().locator(`button.nc-height-menu-btn`);
+    this.btn_groupBy = this.get().locator(`button.nc-group-by-menu-btn`);
   }
 
   get() {
@@ -96,9 +98,9 @@ export class ToolbarPage extends BasePage {
     await expect(this.get().locator(`button.nc-fields-menu-btn`)).toBeVisible();
 
     // menu text
-    const fieldLocator = await this.get().locator(`button.nc-fields-menu-btn`);
+    const fieldLocator = this.get().locator(`button.nc-fields-menu-btn`);
     const fieldText = await getTextExcludeIconText(fieldLocator);
-    await expect(fieldText).toBe('Fields');
+    expect(fieldText).toBe('Fields');
 
     // icons count within fields menu button
     expect(await this.get().locator(`button.nc-fields-menu-btn`).locator(`.material-symbols`).count()).toBe(2);
@@ -108,9 +110,9 @@ export class ToolbarPage extends BasePage {
     await expect(this.get().locator(`button.nc-fields-menu-btn`)).toBeVisible();
 
     // menu text
-    const fieldLocator = await this.get().locator(`button.nc-fields-menu-btn`);
+    const fieldLocator = this.get().locator(`button.nc-fields-menu-btn`);
     const fieldText = await getTextExcludeIconText(fieldLocator);
-    await expect(fieldText).not.toBe('Fields');
+    expect(fieldText).not.toBe('Fields');
 
     // icons count within fields menu button
     expect(await this.get().locator(`button.nc-fields-menu-btn`).locator(`.material-symbols`).count()).toBe(2);
@@ -188,7 +190,7 @@ export class ToolbarPage extends BasePage {
   async verifyStackByButton({ title }: { title: string }) {
     await this.get().locator(`.nc-toolbar-btn.nc-kanban-stacked-by-menu-btn`).waitFor({ state: 'visible' });
     await expect(
-      await this.get().locator(`.nc-toolbar-btn.nc-kanban-stacked-by-menu-btn:has-text("${title}")`)
+      this.get().locator(`.nc-toolbar-btn.nc-kanban-stacked-by-menu-btn:has-text("${title}")`)
     ).toBeVisible();
   }
 
@@ -227,5 +229,21 @@ export class ToolbarPage extends BasePage {
     expect(await this.btn_filter.count()).toBe(1);
     expect(await this.btn_sort.count()).toBe(1);
     expect(await this.btn_rowHeight.count()).toBe(1);
+  }
+
+  async verifyLockMode() {
+    await expect(this.btn_fields).toBeDisabled();
+    await expect(this.btn_filter).toBeDisabled();
+    await expect(this.btn_sort).toBeDisabled();
+    await expect(this.btn_groupBy).toBeDisabled();
+    await expect(this.btn_rowHeight).toBeDisabled();
+  }
+
+  async verifyCollaborativeMode() {
+    await expect(this.btn_fields).toBeEnabled();
+    await expect(this.btn_filter).toBeEnabled();
+    await expect(this.btn_sort).toBeEnabled();
+    await expect(this.btn_groupBy).toBeEnabled();
+    await expect(this.btn_rowHeight).toBeEnabled();
   }
 }

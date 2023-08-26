@@ -175,6 +175,8 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
 
     if (!table) return
 
+    project.value.isExpanded = true
+
     if (!activeKey.value || !activeKey.value.includes(`collapse-${baseId}`)) {
       activeKey.value.push(`collapse-${baseId}`)
     }
@@ -200,10 +202,19 @@ const addNewProjectChildEntity = async () => {
   if (isAddNewProjectChildEntityLoading.value) return
 
   isAddNewProjectChildEntityLoading.value = true
+
+  const isProjectPopulated = projectsStore.isProjectPopulated(project.value.id!)
+  if (!isProjectPopulated && project.value.type === NcProjectType.DB) {
+    // We do not wait for tables api, so that add new table is seamless.
+    // Only con would be while saving table duplicate table name FE validation might not work
+    // If the table list api takes time to load before the table name validation
+    loadProjectTables(project.value.id!)
+  }
+
   try {
     openTableCreateDialog()
 
-    if (!project.value.isExpanded) {
+    if (!project.value.isExpanded && project.value.type !== NcProjectType.DB) {
       project.value.isExpanded = true
     }
   } finally {
@@ -246,7 +257,6 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
   }
 
   if (!isProjectPopulated) {
-    await loadProject(project.id!)
     await loadProjectTables(project.id!)
   }
 
@@ -455,10 +465,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                       {{ $t('activity.account.projInfo') }}
                     </div>
                   </a-menu-item>
-                  <a-menu-item
-                    v-if="isUIAllowed('duplicateProject', true, projectRole)"
-                    @click="duplicateProject(project)"
-                  >
+                  <a-menu-item v-if="isUIAllowed('duplicateProject', true, projectRole)" @click="duplicateProject(project)">
                     <div class="nc-menu-item-wrapper">
                       <GeneralIcon icon="duplicate" class="text-gray-700" />
                       {{ $t('general.duplicate') }} {{ $t('objects.project') }}
@@ -729,7 +736,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 }
 
 :deep(.ant-collapse-header) {
-  @apply !mx-0 !pl-8.75 !pr-1 !py-0.75 hover:bg-gray-100 !rounded-md;
+  @apply !mx-0 !pl-8.75 !pr-1 !py-0.75 hover:bg-gray-200 !rounded-md;
 }
 
 :deep(.ant-collapse-header:hover .nc-sidebar-base-node-btns) {

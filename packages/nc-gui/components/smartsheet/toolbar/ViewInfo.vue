@@ -11,18 +11,15 @@ const { activeTable } = storeToRefs(useTablesStore())
   <div
     class="flex flex-row font-medium items-center border-gray-50 mt-0.5"
     :class="{
-      'max-w-2/5': selectedView?.type !== ViewTypes.KANBAN,
-      'max-w-1/4': selectedView?.type === ViewTypes.KANBAN,
+      'min-w-2/5 max-w-2/5': selectedView?.type !== ViewTypes.KANBAN,
+      'min-w-1/4 max-w-1/4': selectedView?.type === ViewTypes.KANBAN,
     }"
   >
     <div v-if="activeTable?.meta?.icon" class="text-lg mr-0.5">
       {{ activeTable?.meta?.icon }}
     </div>
     <MdiTable v-else class="min-w-5 !text-gray-500" :class="{}" />
-    <span
-      class="text-ellipsis overflow-hidden pl-1 text-gray-500 max-w-28/100"
-      :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-    >
+    <span class="truncate overflow-hidden pl-1 text-gray-500 max-w-28/100">
       {{ activeTable?.title }}
     </span>
 
@@ -32,10 +29,7 @@ const { activeTable } = storeToRefs(useTablesStore())
     </div>
     <GeneralViewIcon v-else :meta="{ type: selectedView?.type }" class="min-w-5 flex" />
 
-    <span
-      class="text-ellipsis overflow-hidden pl-1.25 text-gray-700 max-w-28/100"
-      :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline', fontSize: '0.9rem' }"
-    >
+    <span class="truncate pl-1.25 text-gray-700 max-w-28/100">
       {{ selectedView?.title }}
     </span>
     <LazySmartsheetToolbarReload />

@@ -21,7 +21,7 @@ const onClick = () => {
 
 <template>
   <NcTooltip
-    placement="topLeft"
+    placement="bottom"
     hide-on-click
     class="transition-all duration-100"
     :class="{

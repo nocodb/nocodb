@@ -16,7 +16,6 @@ import {
   useViewsStore,
   watch,
 } from '#imports'
-import FieldIcon from '~icons/nc-icons/eye'
 
 const openedTab = ref<'views' | 'developer'>('views')
 
@@ -188,22 +187,31 @@ onUnmounted(() => {
       ref="tabBtnsContainerRef"
       class="flex flex-row p-1 mx-1 mt-1 mb-2.75 rounded-md gap-x-2 nc-view-sidebar-tab items-center"
     >
-      <NcButton
-        type="text"
-        size="small"
-        class="nc-sidebar-left-toggle-icon !text-gray-600 !hover:text-gray-800"
-        @click="isRightSidebarOpen = !isRightSidebarOpen"
-      >
-        <div class="flex items-center text-inherit">
-          <GeneralIcon
-            icon="doubleRightArrow"
-            class="duration-150 transition-all"
-            :class="{
-              'transform rotate-180': !isRightSidebarOpen,
-            }"
-          />
-        </div>
-      </NcButton>
+      <NcTooltip placement="bottom" hide-on-click>
+        <template #title>
+          {{
+            isRightSidebarOpen
+              ? `${$t('general.hide')} ${$t('objects.sidebar').toLowerCase()}`
+              : `${$t('general.show')} ${$t('objects.sidebar').toLowerCase()}`
+          }}
+        </template>
+        <NcButton
+          type="text"
+          size="small"
+          class="nc-sidebar-left-toggle-icon !text-gray-600 !hover:text-gray-800"
+          @click="isRightSidebarOpen = !isRightSidebarOpen"
+        >
+          <div class="flex items-center text-inherit">
+            <GeneralIcon
+              icon="doubleRightArrow"
+              class="duration-150 transition-all"
+              :class="{
+                'transform rotate-180': !isRightSidebarOpen,
+              }"
+            />
+          </div>
+        </NcButton>
+      </NcTooltip>
       <div class="flex text-gray-600">Views</div>
     </div>
 

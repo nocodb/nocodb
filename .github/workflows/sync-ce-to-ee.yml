@@ -22,7 +22,6 @@ jobs:
         with:
           repository: 'nocodb/nocodb'
       - name: Sync OSS to EE
-        id: sync
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
@@ -34,12 +33,4 @@ jobs:
           git add .
           git commit -m "chore: Sync OSS to EE"
           git push origin sync/${LAST_SHA}
-
-      - name: Create Pull Request
-        uses: repo-sync/pull-request@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          source_branch: "develop"
-          destination_branch: "sync/${steps.sync.outputs.LAST_SHA}"  
-          pr_title: 'Sync OSS to EE'
+          gh pr create --base develop --head sync/${LAST_SHA} --title "Sync OSS to EE" --body "Auto-generated PR to sync OSS to EE"

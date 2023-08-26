@@ -277,6 +277,11 @@ export default {
   transform: translateX(-100%);
   opacity: 0;
 }
+
+.nc-sidebar-wrapper.hide-sidebar {
+  min-width: 0 !important;
+}
+
 .nc-sidebar-wrapper.sidebar-short > * {
   @apply !(rounded-r-lg border-1 border-gray-200 shadow-lg);
 }

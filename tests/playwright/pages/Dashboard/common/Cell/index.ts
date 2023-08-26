@@ -135,10 +135,7 @@ export class CellPageObject extends BasePage {
         columnHeader,
       }).scrollIntoViewIfNeeded();
       while (count < 5) {
-        const innerTexts = await this.get({
-          index,
-          columnHeader,
-        }).allInnerTexts();
+        const innerTexts = await getTextExcludeIconText(this.get({ index, columnHeader }));
         const cellText = typeof innerTexts === 'string' ? [innerTexts] : innerTexts;
 
         if (cellText) {
@@ -148,7 +145,12 @@ export class CellPageObject extends BasePage {
         }
         await this.rootPage.waitForTimeout(1000);
         count++;
-        if (count === 5) throw new Error(`Cell text ${text} not found`);
+        if (count === 5) {
+          console.log('cellText', cellText);
+          console.log('text', text);
+
+          throw new Error(`Cell text "${text}" not found`);
+        }
       }
     };
 

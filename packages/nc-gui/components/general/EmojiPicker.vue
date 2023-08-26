@@ -80,9 +80,9 @@ const showClearButton = computed(() => {
 <template>
   <a-dropdown v-model:visible="isOpen" trigger="click" :disabled="readonly">
     <div
-      class="flex flex-row justify-center items-center select-none cursor-pointer rounded-md"
+      class="flex flex-row justify-center items-center select-none rounded-md"
       :class="{
-        'hover:bg-gray-500 hover:bg-opacity-15': !readonly,
+        'hover:bg-gray-500 hover:bg-opacity-15 cursor-pointer': !readonly,
         'bg-gray-500 bg-opacity-15': isOpen,
         'h-6 w-6 text-lg': size === 'small',
         'h-8 w-8 text-xl': size === 'medium',

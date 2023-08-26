@@ -65,17 +65,18 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 </script>
 
 <template>
-  <div>
-    <a-button
-      class="!py-0 !px-0 !border-0 !h-full !rounded-md w-full hover:bg-gray-100 text-sm select-none cursor-pointer"
-      :type="props.type ?? 'primary'"
-      @click="navigateToCreateProject(NcProjectType.DB)"
-    >
-      <div class="flex w-full items-center gap-2">
-        <slot>{{ $t('title.newProj') }} <MdiMenuDown /></slot>
-      </div>
-    </a-button>
-    <!-- <a-dropdown v-model:visible="isOpen" class="w-full">
+  <NcButton
+    type="text"
+    size="small"
+    :centered="false"
+    class="w-full !hover:bg-gray-200 !rounded-md !font-normal !px-3"
+    @click="navigateToCreateProject(NcProjectType.DB)"
+  >
+    <div class="flex w-full items-center gap-2">
+      <slot>{{ $t('title.newProj') }} <MdiMenuDown /></slot>
+    </div>
+  </NcButton>
+  <!-- <a-dropdown v-model:visible="isOpen" class="w-full">
       <template #overlay>
         <a-menu>
           <a-menu-item @click="navigateToCreateProject(NcProjectType.DB)">
@@ -105,9 +106,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         </a-menu>
       </template>
     </a-dropdown> -->
-    <WorkspaceCreateProjectDlg v-model="projectCreateDlg" :type="projectType" />
-    <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
-  </div>
+  <WorkspaceCreateProjectDlg v-model="projectCreateDlg" :type="projectType" />
+  <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
 </template>
 
 <style scoped></style>

@@ -444,7 +444,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 <template>
   <a-dropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
     <div
-      class="mx-1 nc-project-sub-menu rounded-md"
+      class="ml-1 mr-0.5 nc-project-sub-menu rounded-md"
       :class="{ active: project.isExpanded }"
       :data-testid="`nc-sidebar-project-${project.title}`"
       :data-project-id="project.id"

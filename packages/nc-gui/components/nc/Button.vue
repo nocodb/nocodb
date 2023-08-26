@@ -132,7 +132,7 @@ const onBlur = () => {
 }
 
 .nc-button.ant-btn.xsmall {
-  @apply p-0.25 h-6.25 w-6.25;
+  @apply p-0.25 h-6.25 min-w-6.25 rounded-md;
 }
 
 .nc-button.ant-btn[disabled] {

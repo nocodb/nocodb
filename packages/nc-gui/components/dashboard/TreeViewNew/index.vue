@@ -302,10 +302,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped lang="scss">
-.nc-treeview-container {
-  height: calc(100% - var(--sidebar-top-height));
-}
-
 .nc-treeview-footer-item {
   @apply cursor-pointer px-4 py-2 flex items-center hover:bg-gray-200/20 text-xs text-current;
 }
@@ -411,22 +407,6 @@ onUnmounted(() => {
     & > div {
       @apply !justify-center;
     }
-  }
-}
-
-.nc-treeview {
-  overflow-y: overlay;
-  &::-webkit-scrollbar {
-    width: 3px;
-  }
-  &::-webkit-scrollbar-track {
-    @apply bg-inherit;
-  }
-  &::-webkit-scrollbar-thumb {
-    @apply bg-scrollbar;
-  }
-  &::-webkit-scrollbar-thumb:hover {
-    @apply bg-scrollbar-hover;
   }
 }
 </style>

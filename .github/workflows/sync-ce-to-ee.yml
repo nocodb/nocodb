@@ -29,13 +29,13 @@ jobs:
       - name: Sync OSS to EE
         run: |
           cd nocohub
-          LAST_SHA=$(git rev-list -n 3 HEAD | tail -1)
+          LAST_SHA=$(git rev-list -n 3 HEAD | tail -1 | cut -c1-8)
           echo "LAST_SHA=${LAST_SHA}" >> $GITHUB_OUTPUT
-          git checkout -b sync/${LAST_SHA}
+          git checkout -b oss/${LAST_SHA}
           npm run sync:ce:to:ee
           git add .
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           git commit -m "chore: Sync OSS to EE"
-          git push origin sync/${LAST_SHA}
-          gh pr create --base develop --head sync/${LAST_SHA} --title "Sync OSS to EE" --body "Auto-generated PR to sync OSS to EE"
+          git push origin oss/${LAST_SHA}
+          gh pr create --base develop --head oss/${LAST_SHA} --title "Sync OSS to EE" --body "Auto-generated PR to sync OSS to EE"

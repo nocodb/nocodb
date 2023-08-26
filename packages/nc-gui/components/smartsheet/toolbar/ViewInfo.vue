@@ -3,6 +3,7 @@ import { ViewTypes } from 'nocodb-sdk'
 import { ActiveViewInj, inject } from '#imports'
 
 const selectedView = inject(ActiveViewInj)
+const { openedViewsTab } = storeToRefs(useViewsStore())
 
 const { activeTable } = storeToRefs(useTablesStore())
 </script>
@@ -38,6 +39,6 @@ const { activeTable } = storeToRefs(useTablesStore())
     >
       {{ selectedView?.title }}
     </span>
-    <LazySmartsheetToolbarReload />
+    <LazySmartsheetToolbarReload v-if="openedViewsTab === 'view'" />
   </div>
 </template>

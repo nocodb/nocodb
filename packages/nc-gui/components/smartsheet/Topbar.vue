@@ -29,6 +29,7 @@ const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
       <a-skeleton-input :active="true" class="!w-44 !h-4 ml-2 !rounded overflow-hidden" />
     </template>
     <template v-else>
+      <GeneralOpenLeftSidebarBtn />
       <LazySmartsheetToolbarViewInfo v-if="!isPublic" />
 
       <div v-if="!isMobileMode" class="flex-1" />

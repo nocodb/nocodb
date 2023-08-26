@@ -140,10 +140,10 @@ const switchWorkspace = async (workspaceId: string) => {
 </script>
 
 <template>
-  <div class="flex-grow min-w-2">
+  <div class="min-w-2 w-full">
     <a-dropdown
       v-model:visible="isWorkspaceDropdownOpen"
-      class="h-full min-w-0 flex-1"
+      class="h-full min-w-0"
       :trigger="['click']"
       placement="bottom"
       overlay-class-name="nc-dropdown-workspace-menu"
@@ -156,11 +156,11 @@ const switchWorkspace = async (workspaceId: string) => {
       >
         <slot name="brandIcon" />
         <template v-if="props.isOpen">
-          <div v-if="activeWorkspace" class="flex-grow min-w-10 font-semibold text-base">
+          <div v-if="activeWorkspace" class="flex flex-grow w-full min-w-10 font-semibold text-base">
             <div class="text-md truncate capitalize">{{ activeWorkspace.title }}</div>
           </div>
 
-          <MdiCodeTags class="min-w-[17px] text-md transform rotate-90" />
+          <GeneralIcon icon="arrowDown" class="min-w-6 text-lg !text-gray-700" />
         </template>
 
         <template v-else>

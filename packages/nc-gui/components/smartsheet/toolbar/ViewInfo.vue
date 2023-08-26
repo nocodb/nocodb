@@ -10,10 +10,10 @@ const { activeTable } = storeToRefs(useTablesStore())
 
 <template>
   <div
-    class="flex flex-row font-medium ml-1.5 items-center border-gray-50"
+    class="flex flex-row font-medium items-center border-gray-50 mt-0.5"
     :class="{
-      'max-w-2/5': selectedView?.type !== ViewTypes.KANBAN,
-      'max-w-1/4': selectedView?.type === ViewTypes.KANBAN,
+      'min-w-2/5 max-w-2/5': selectedView?.type !== ViewTypes.KANBAN,
+      'min-w-1/4 max-w-1/4': selectedView?.type === ViewTypes.KANBAN,
     }"
   >
     <LazyGeneralEmojiPicker :emoji="activeTable?.meta?.icon" readonly size="xsmall">
@@ -35,10 +35,7 @@ const { activeTable } = storeToRefs(useTablesStore())
       </template>
     </LazyGeneralEmojiPicker>
 
-    <span
-      class="text-ellipsis overflow-hidden pl-1.25 text-gray-700 max-w-1/2"
-      :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline', fontSize: '0.9rem' }"
-    >
+    <span class="truncate pl-1.25 text-gray-700 max-w-28/100">
       {{ selectedView?.title }}
     </span>
     <LazySmartsheetToolbarReload v-if="openedViewsTab === 'view'" />

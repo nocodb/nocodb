@@ -132,7 +132,6 @@ test.describe.serial('Webhook', () => {
   });
 
   test('CRUD', async ({ request, page }) => {
-    test.slow();
     // Waiting for the server to start
     await page.waitForTimeout(1000);
 

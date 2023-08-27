@@ -17,7 +17,7 @@ const pg_credentials = (context: NcContext) => ({
   user: 'postgres',
   host: 'localhost',
   // todo: Hack to resolve issue with pg resetting
-  database: `sakila_${context.workerId}`,
+  database: `sakila${context.workerId}`,
   password: 'password',
   port: 5432,
 });

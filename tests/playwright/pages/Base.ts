@@ -23,53 +23,32 @@ export default abstract class BasePage {
     requestUrlPathToMatch,
     // A function that takes the response body and returns true if the response is the one we are looking for
     responseJsonMatcher,
-    debug = false,
-    debugKey,
   }: {
     uiAction: () => Promise<any>;
     requestUrlPathToMatch: string;
     httpMethodsToMatch?: string[];
     responseJsonMatcher?: ResponseSelector;
-    debug?: boolean;
-    debugKey?: string;
   }) {
-    const waitForResponsePromise = this.rootPage.waitForResponse(async res => {
-      let isResJsonMatched = true;
-      if (responseJsonMatcher) {
-        try {
-          isResJsonMatched = responseJsonMatcher(await res.json());
-        } catch (e) {
-          return false;
-        }
+    const [res] = await Promise.all([
+      this.rootPage.waitForResponse(
+        res =>
+          res.url().includes(requestUrlPathToMatch) &&
+          res.status() === 200 &&
+          httpMethodsToMatch.includes(res.request().method())
+      ),
+      uiAction(),
+    ]);
+
+    // handle JSON matcher if provided
+    let isResJsonMatched = true;
+    if (responseJsonMatcher) {
+      try {
+        isResJsonMatched = responseJsonMatcher(res.json());
+      } catch {
+        isResJsonMatched = false;
       }
-
-      if (debug) {
-        console.log(`${debugKey},waitForResponse`, {
-          resUrl: res.request().url(),
-          resMethod: res.request().method(),
-        });
-        console.log(`${debugKey},result`, {
-          resUrlResult: res.request().url().includes(requestUrlPathToMatch),
-          resMethodResult: httpMethodsToMatch.includes(res.request().method()),
-          resJsonResult: isResJsonMatched,
-        });
-      }
-
-      const found =
-        res.request().url().includes(requestUrlPathToMatch) &&
-        httpMethodsToMatch.includes(res.request().method()) &&
-        isResJsonMatched;
-
-      return found;
-    });
-
-    const uiActionWithDelay = () => {
-      // Create a promise that resolves after a delay
-      const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-      // Returning a promise that resolves with the result after the a delay
-      return delay(100).then(() => uiAction());
-    };
-    await Promise.all([waitForResponsePromise, uiActionWithDelay()]);
+    }
+    return isResJsonMatched;
   }
 
   async attachFile({ filePickUIAction, filePath }: { filePickUIAction: Promise<any>; filePath: string[] }) {

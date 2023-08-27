@@ -148,8 +148,10 @@ export class WebhookFormPage extends BasePage {
   async configureHeader({ key, value }: { key: string; value: string }) {
     // hardcode "Content-type: application/json"
     await this.get().locator(`.ant-tabs-tab-btn:has-text("Headers")`).click();
+    await this.rootPage.waitForTimeout(500);
 
     await this.get().locator('.nc-input-hook-header-key').click();
+    await this.rootPage.waitForTimeout(500);
 
     // kludge, as the dropdown is not visible even after scroll into view
     await this.rootPage.locator('.ant-select-dropdown:visible').hover();

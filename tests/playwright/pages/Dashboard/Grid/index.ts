@@ -69,6 +69,7 @@ export class GridPage extends BasePage {
       index,
       columnHeader,
     });
+    await this.rootPage.waitForTimeout(500);
 
     await cell.locator('input').fill(value);
   }

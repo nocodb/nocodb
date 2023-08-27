@@ -54,8 +54,24 @@ export class TopbarSharePage extends BasePage {
     await this.get().locator(`[data-testid="nc-share-base-sub-modal"]`).locator('.ant-switch').nth(0).click();
   }
 
+  async isSharedBasePublicAccessEnabled() {
+    return await this.get()
+      .locator(`[data-testid="nc-share-base-sub-modal"]`)
+      .locator('.ant-switch')
+      .nth(0)
+      .isChecked();
+  }
+
   async clickShareBaseEditorAccess() {
     await this.get().locator(`[data-testid="nc-share-base-sub-modal"]`).locator('.ant-switch').nth(1).click();
+  }
+
+  async isSharedBaseEditorAccessEnabled() {
+    return await this.get()
+      .locator(`[data-testid="nc-share-base-sub-modal"]`)
+      .locator('.ant-switch')
+      .nth(1)
+      .isChecked();
   }
 
   async clickShareViewSurveyMode() {

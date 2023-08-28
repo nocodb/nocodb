@@ -80,7 +80,7 @@ export function useGlobalActions(state: State): Actions {
     type?: NcProjectType
     query?:any
   }) => {
-    const queryParams = query ? `?${new URLSearchParams(query).toString()}` : '
+    const queryParams = query ? `?${new URLSearchParams(query).toString()}` : '';
     const workspaceId = _workspaceId || 'app'
     let path: string
     if (projectId) {

@@ -146,18 +146,27 @@ function resetError() {
               </div>
             </Transition>
 
-            <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
+            <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email" aria-autocomplete="email">
               <a-input
                 v-model:value="form.email"
+                autocomplete="email"
+                type="email"
                 size="large"
                 :placeholder="$t('msg.info.signUp.workEmail')"
                 @focus="resetError"
               />
             </a-form-item>
 
-            <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
+            <a-form-item
+              :label="$t('labels.password')"
+              name="password"
+              :rules="formRules.password"
+              aria-autocomplete="new-password"
+            >
               <a-input-password
                 v-model:value="form.password"
+                type="password"
+                autocomplete="new-password"
                 size="large"
                 class="password"
                 :placeholder="$t('msg.info.signUp.enterPassword')"

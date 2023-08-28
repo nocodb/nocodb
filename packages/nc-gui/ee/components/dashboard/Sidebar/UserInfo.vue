@@ -1,0 +1,116 @@
+<script lang="ts" setup>
+const { user, signOut, token } = useGlobal()
+
+const { clearWorkspaces } = useWorkspace()
+
+const { copy } = useCopy(true)
+
+const name = computed(() => `${user.value?.firstname ?? ''} ${user.value?.lastname ?? ''}`.trim())
+
+const isMenuOpen = ref(false)
+
+const isAuthTokenCopied = ref(false)
+
+const logout = async () => {
+  await signOut()
+  await navigateTo('/signin')
+
+  await new Promise((resolve) => setTimeout(resolve, 1000))
+
+  clearWorkspaces()
+}
+
+const onCopy = async () => {
+  try {
+    await copy(token.value!)
+    isAuthTokenCopied.value = true
+  } catch (e: any) {
+    console.error(e)
+    message.error(e.message)
+  }
+}
+
+watch(isMenuOpen, () => {
+  if (isAuthTokenCopied.value) {
+    isAuthTokenCopied.value = false
+  }
+})
+</script>
+
+<template>
+  <div class="flex w-full flex-col p-1 border-t-1 border-gray-200 gap-y-2">
+    <NcDropdown v-model:visible="isMenuOpen" placement="top">
+      <div class="flex flex-row py-2 px-3 gap-x-2 items-center hover:bg-gray-200 rounded-lg cursor-pointer h-10">
+        <GeneralUserIcon />
+        <div class="flex truncate">
+          {{ name ? name : user?.email }}
+        </div>
+        <GeneralIcon icon="arrowUp" />
+      </div>
+      <template #overlay>
+        <NcMenu class="" @click="isMenuOpen = false">
+          <NcMenuItem @click="logout">
+            <GeneralIcon icon="signout" />
+            Log Out</NcMenuItem
+          >
+          <NcDivider />
+          <a href="https://docs.nocodb.com" target="_blank" class="!underline-transparent">
+            <NcMenuItem>
+              <GeneralIcon icon="help" />
+              Help Center</NcMenuItem
+            >
+          </a>
+          <NcDivider />
+          <a href="https://discord.gg/5RgZmkW" target="_blank" class="!underline-transparent">
+            <NcMenuItem class="social-icon-wrapper"
+              ><GeneralIcon class="social-icon" icon="discord" />Join our Discord</NcMenuItem
+            >
+          </a>
+          <a href="https://www.reddit.com/r/NocoDB" target="_blank" class="!underline-transparent">
+            <NcMenuItem class="social-icon-wrapper"><GeneralIcon class="social-icon" icon="reddit" />/r/NocoDB</NcMenuItem>
+          </a>
+          <a href="https://twitter.com/nocodb" target="_blank" class="!underline-transparent">
+            <NcMenuItem class="group"
+              ><GeneralIcon class="text-gray-500 group-hover:text-gray-800" icon="twitter" />X Twitter</NcMenuItem
+            >
+          </a>
+          <NcDivider />
+          <NcMenuItem @click="onCopy"
+            ><GeneralIcon v-if="isAuthTokenCopied" icon="check" class="group-hover:text-black" /><GeneralIcon
+              v-else
+              icon="copy"
+            />
+            <template v-if="isAuthTokenCopied"> Copied Auth Token </template>
+            <template v-else> Copy Auth Token </template>
+          </NcMenuItem>
+          <nuxt-link v-e="['c:navbar:user:email']" class="!no-underline" to="/account/users">
+            <NcMenuItem><GeneralIcon icon="settings" /> Account Settings</NcMenuItem>
+          </nuxt-link>
+        </NcMenu>
+      </template>
+    </NcDropdown>
+
+    <div class="text-gray-500 text-xs ml-3.25">© 2023 NocoDB. Inc</div>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.social-icon {
+  // Make icon black and white
+  filter: grayscale(100%);
+
+  // Make icon red on hover
+  &:hover {
+    filter: grayscale(100%) invert(100%);
+  }
+}
+
+.social-icon-wrapper {
+  // Make icon red
+  &:hover {
+    .social-icon {
+      filter: none !important;
+    }
+  }
+}
+</style>

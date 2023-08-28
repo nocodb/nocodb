@@ -16,9 +16,15 @@ const { isWorkspaceLoading } = storeToRefs(workspaceStore)
 
       <DashboardSidebarTopSection />
     </div>
-    <div class="flex flex-col nc-scrollbar-sm-dark border-t-1 pt-1" style="height: calc(100% - var(--sidebar-top-height))">
+    <div
+      class="flex flex-col nc-scrollbar-sm-dark border-t-1 pt-1"
+      style="height: calc(100% - var(--sidebar-top-height) - var(--sidebar-bottom-height))"
+    >
       <div class="text-gray-500 mx-4.2 font-medium my-1.5">{{ $t('objects.projects') }}</div>
       <LazyDashboardTreeViewNew v-if="!isWorkspaceLoading" />
+    </div>
+    <div style="height: var(--sidebar-bottom-height)">
+      <DashboardSidebarUserInfo />
     </div>
   </div>
 </template>

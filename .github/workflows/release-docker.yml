@@ -97,11 +97,11 @@ jobs:
             NOCODB_GUI_PKG_NAME=nc-gui-daily
           fi
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js &&
-          pnpm --filter=${{ NOCODB_SDK_PKG_NAME }} install --ignore-scripts --no-frozen-lockfile && pnpm --filter=${{ NOCODB_SDK_PKG_NAME }} run build &&
+          pnpm --filter=${NOCODB_SDK_PKG_NAME} install --ignore-scripts --no-frozen-lockfile && pnpm --filter=${NOCODB_SDK_PKG_NAME} run build &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNcGuiVersion.js &&
-          pnpm --filter=${{ NOCODB_GUI_PKG_NAME }} install --ignore-scripts --no-frozen-lockfile &&
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} pnpm --filter=${{ NOCODB_GUI_PKG_NAME }} run build:copy &&
+          pnpm --filter=${NOCODB_GUI_PKG_NAME} install --ignore-scripts --no-frozen-lockfile &&
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} pnpm --filter=${NOCODB_GUI_PKG_NAME} run build:copy &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js
 
       - name: Build nocodb and docker files

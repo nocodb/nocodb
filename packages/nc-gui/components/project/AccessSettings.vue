@@ -259,4 +259,8 @@ const accessibleRoles = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles
 :deep(.nc-collaborator-role-select .ant-select-selector) {
   @apply !rounded;
 }
+
+:deep(.ant-select-selection-item) {
+  @apply mt-0.75;
+}
 </style>

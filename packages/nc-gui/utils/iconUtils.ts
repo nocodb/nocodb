@@ -36,6 +36,7 @@ import NcCreditCard from '~icons/nc-icons/credit-card'
 import NcLayers from '~icons/nc-icons/layers'
 import NcUsers from '~icons/nc-icons/users'
 import NcCheck from '~icons/nc-icons/check'
+import PlusSquare from '~icons/nc-icons/plus-square'
 
 import PhLayout from '~icons/ph/layout'
 import Copy from '~icons/material-symbols/content-copy-outline'
@@ -288,6 +289,7 @@ export const iconMap = {
   hook: Phishing,
   erd: h('span', { class: 'material-symbols' }, 'account_tree'),
   plus: Plus,
+  plusSquare: PlusSquare,
   minus: Minus,
   copy: h('span', { class: 'material-symbols' }, 'content_copy'),
   duplicate: MaterialDuplicate,

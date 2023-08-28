@@ -11,7 +11,10 @@ const { activeWorkspace, isWorkspaceLoading } = storeToRefs(workspaceStore)
 </script>
 
 <template>
-  <div class="flex items-center px-2 nc-sidebar-header py-1.2 w-full border-b-1 border-gray-200">
+  <div
+    class="flex items-center px-2 nc-sidebar-header py-1.2 w-full border-b-1 border-gray-200"
+    style="height: var(--topbar-height)"
+  >
     <div v-if="!isWorkspaceLoading" class="flex flex-row items-center w-full">
       <div
         class="flex flex-row flex-grow hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md w-full"
@@ -28,9 +31,7 @@ const { activeWorkspace, isWorkspaceLoading } = storeToRefs(workspaceStore)
 
         <WorkspaceMenu v-if="!isSharedBase" :workspace="activeWorkspace" :is-open="true">
           <template #brandIcon>
-            <div v-e="['c:navbar:home']" data-testid="nc-noco-brand-icon" class="w-[29px] min-w-[29px] nc-noco-brand-icon">
-              <img width="25" class="mr-0" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
-            </div>
+            <GeneralWorkspaceIcon :workspace="activeWorkspace" />
           </template>
         </WorkspaceMenu>
       </div>

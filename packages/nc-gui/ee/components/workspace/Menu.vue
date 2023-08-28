@@ -155,7 +155,7 @@ const getWorkspaceColor = (workspace: WorkspaceType) => workspace.meta?.color ||
       :style="{ width: props.isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
       :class="[props.isOpen ? '' : 'justify-center']"
       data-testid="nc-workspace-menu"
-      class="group cursor-pointer flex flex-grow w-full gap-1 items-center nc-workspace-menu overflow-hidden py-1.25 pr-0.25"
+      class="group cursor-pointer flex flex-grow w-full gap-x-2 items-center nc-workspace-menu overflow-hidden py-1.25 pr-0.25"
     >
       <slot name="brandIcon" />
       <template v-if="props.isOpen">
@@ -178,9 +178,7 @@ const getWorkspaceColor = (workspace: WorkspaceType) => workspace.meta?.color ||
           <!--  <div class="nc-menu-sub-head">Current Workspace</div> -->
 
           <div class="flex gap-2 min-w-0 p-4 items-start">
-            <div class="flex nc-workspace-avatar !w-6 !h-6" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
-              {{ activeWorkspace?.title?.slice(0, 2) }}
-            </div>
+            <GeneralWorkspaceIcon :workspace="activeWorkspace" />
             <div class="flex flex-col gap-y-2.5">
               <div class="mt-0.5 flex capitalize mb-0 nc-workspace-title truncate min-w-10 text-black font-medium">
                 {{ activeWorkspace?.title }}
@@ -199,7 +197,7 @@ const getWorkspaceColor = (workspace: WorkspaceType) => workspace.meta?.color ||
           <div class="max-h-300px nc-scrollbar-md !overflow-y-auto">
             <a-menu-item v-for="workspace of otherWorkspaces" :key="workspace.id!" @click="switchWorkspace(workspace.id!)">
               <div class="nc-workspace-menu-item group capitalize max-w-300px flex" data-testid="nc-workspace-list">
-                <div class="flex nc-workspace-avatar !w-4 !h-4" :style="{ backgroundColor: getWorkspaceColor(workspace) }"></div>
+                <GeneralWorkspaceIcon :workspace="workspace" hide-label size="small" />
                 <div class="mt-0.5 flex capitalize mb-0 nc-workspace-title truncate min-w-10">
                   {{ workspace?.title }}
                 </div>
@@ -358,8 +356,5 @@ const getWorkspaceColor = (workspace: WorkspaceType) => workspace.meta?.color ||
 
 :deep(.ant-menu-item-divider) {
   @apply !border-gray-200;
-}
-.nc-workspace-avatar {
-  @apply min-w-4 rounded text-xs flex items-center justify-center text-white uppercase;
 }
 </style>

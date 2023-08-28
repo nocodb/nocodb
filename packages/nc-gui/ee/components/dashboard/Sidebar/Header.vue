@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { WorkspaceType } from 'nocodb-sdk'
+
 const workspaceStore = useWorkspace()
 const projectStore = useProject()
 

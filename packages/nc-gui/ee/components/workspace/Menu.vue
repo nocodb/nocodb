@@ -13,12 +13,14 @@ const props = defineProps<{
 const workspaceStore = useWorkspace()
 
 const { saveTheme } = workspaceStore
-const { activeWorkspace, workspacesList, isWorkspaceOwner } = storeToRefs(workspaceStore)
+const { activeWorkspace, workspacesList, isWorkspaceOwner, collaborators } = storeToRefs(workspaceStore)
 const { loadWorkspaces, clearWorkspaces } = workspaceStore
 
 const { navigateToTable } = useTablesStore()
 
 const { signOut, signedIn, user, token } = useGlobal()
+
+const { appInfo } = useGlobal()
 
 const { copy } = useCopy(true)
 
@@ -137,10 +139,12 @@ onKeyStroke('Escape', () => {
 const switchWorkspace = async (workspaceId: string) => {
   navigateTo(`/${workspaceId}`)
 }
+
+const getWorkspaceColor = (workspace: WorkspaceType) => workspace.meta?.color || stringToColour(workspace.id!)
 </script>
 
 <template>
-  <a-dropdown
+  <NcDropdown
     v-model:visible="isWorkspaceDropdownOpen"
     class="h-full min-w-0"
     :trigger="['click']"
@@ -172,45 +176,43 @@ const switchWorkspace = async (workspaceId: string) => {
       <a-menu class="" @click="isWorkspaceDropdownOpen = false">
         <a-menu-item-group class="!border-t-0">
           <!--  <div class="nc-menu-sub-head">Current Workspace</div> -->
-          <div class="group select-none flex items-center gap-4 p-2 pb-1 !border-t-0">
-            <input
-              v-if="activeWorkspace"
-              v-model="activeWorkspace.title"
-              :readonly="!isUIAllowed('workspaceUpdate', false, activeWorkspace?.roles)"
-              class="nc-workspace-title-input text-current capitalize group-hover:text-accent"
-              @input="updateWorkspaceTitle"
-            />
-          </div>
 
-          <!-- <a-menu-item @click="workspaceModalVisible = true">
-              <div class="nc-workspace-menu-item group">
-                <PhFadersThin />
-                Settings
+          <div class="flex gap-2 min-w-0 p-4 items-start">
+            <div class="flex nc-workspace-avatar !w-6 !h-6" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
+              {{ activeWorkspace?.title?.slice(0, 2) }}
+            </div>
+            <div class="flex flex-col gap-y-2.5">
+              <div class="mt-0.5 flex capitalize mb-0 nc-workspace-title truncate min-w-10 text-black font-medium">
+                {{ activeWorkspace?.title }}
               </div>
-            </a-menu-item> -->
+              <div class="flex flex-row items-center gap-x-2 -ml-0.1">
+                <NcBadge class="flex text-gray-700">Free plan</NcBadge>
+                <div class="flex text-xs text-gray-600">
+                  {{ collaborators?.length }} {{ Number(collaborators?.length) > 1 ? 'members' : 'member' }}
+                </div>
+              </div>
+            </div>
+          </div>
 
           <a-menu-divider />
 
-          <div class="nc-menu-sub-head">Workspaces</div>
-
-          <div class="max-h-300px nc-scrollbar-md">
+          <div class="max-h-300px nc-scrollbar-md !overflow-y-auto">
             <a-menu-item v-for="workspace of otherWorkspaces" :key="workspace.id!" @click="switchWorkspace(workspace.id!)">
               <div class="nc-workspace-menu-item group capitalize max-w-300px flex" data-testid="nc-workspace-list">
-                <GeneralIcon icon="workspace" class="group-hover:text-accent" />
-                <span class="truncate min-w-10 flex-shrink">
-                  {{ workspace.title }}
-                </span>
+                <div class="flex nc-workspace-avatar !w-4 !h-4" :style="{ backgroundColor: getWorkspaceColor(workspace) }"></div>
+                <div class="mt-0.5 flex capitalize mb-0 nc-workspace-title truncate min-w-10">
+                  {{ workspace?.title }}
+                </div>
               </div>
             </a-menu-item>
           </div>
           <a-menu-item @click="createDlg = true">
-            <div class="nc-workspace-menu-item group text-gray-700 group-hover:text-black">
-              <GeneralIcon icon="plus" class="mr-1" />
+            <div class="nc-workspace-menu-item group">
+              <GeneralIcon icon="plusSquare" class="!text-inherit" />
 
-              <div class="">Add new workspace</div>
+              <div class="">Create New Workspace</div>
             </div>
           </a-menu-item>
-          <a-menu-divider />
 
           <!-- <a-menu-item @click="workspaceModalVisible = true">
               <div class="nc-workspace-menu-item group">
@@ -219,8 +221,8 @@ const switchWorkspace = async (workspaceId: string) => {
               </div>
             </a-menu-item> -->
 
-          <template v-if="!isSharedBase">
-            <!-- Copy Auth Token -->
+          <!-- Copy Auth Token -->
+          <!-- <template v-if="!isSharedBase">
             <a-menu-item key="copy">
               <div
                 v-e="['a:navbar:user:copy-auth-token']"
@@ -237,108 +239,10 @@ const switchWorkspace = async (workspaceId: string) => {
                 </div>
               </div>
             </a-menu-item>
-
-            <a-menu-divider v-if="false" />
-
-            <!-- Theme -->
-            <template v-if="isUIAllowed('projectTheme') && false">
-              <a-sub-menu key="theme">
-                <template #title>
-                  <div class="nc-workspace-menu-item group">
-                    <GeneralIcon icon="image" class="group-hover:text-accent" />
-                    {{ $t('activity.account.themes') }}
-
-                    <div class="flex-1" />
-
-                    <MaterialSymbolsChevronRightRounded
-                      class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                    />
-                  </div>
-                </template>
-
-                <template #expandIcon></template>
-
-                <LazyGeneralColorPicker
-                  :model-value="theme.primaryColor"
-                  :colors="projectThemeColors"
-                  :row-size="9"
-                  :advanced="false"
-                  class="rounded-t"
-                  @input="handleThemeColor('swatch', $event)"
-                />
-
-                <!-- Custom Theme -->
-                <a-sub-menu key="theme-2">
-                  <template #title>
-                    <div class="nc-workspace-menu-item group">
-                      {{ $t('labels.customTheme') }}
-
-                      <div class="flex-1" />
-
-                      <MaterialSymbolsChevronRightRounded
-                        class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                      />
-                    </div>
-                  </template>
-
-                  <!-- Primary Color -->
-                  <template #expandIcon></template>
-
-                  <a-sub-menu key="pick-primary">
-                    <template #title>
-                      <div class="nc-workspace-menu-item group">
-                        <ClarityColorPickerSolid class="group-hover:text-black" />
-                        {{ $t('labels.primaryColor') }}
-                      </div>
-                    </template>
-
-                    <template #expandIcon></template>
-
-                    <LazyGeneralChromeWrapper @input="handleThemeColor('primary', $event)" />
-                  </a-sub-menu>
-
-                  <!-- Accent Color -->
-                  <a-sub-menu key="pick-accent">
-                    <template #title>
-                      <div class="nc-workspace-menu-item group">
-                        <ClarityColorPickerSolid class="group-hover:text-black" />
-                        {{ $t('labels.accentColor') }}
-                      </div>
-                    </template>
-
-                    <template #expandIcon></template>
-
-                    <LazyGeneralChromeWrapper @input="handleThemeColor('accent', $event)" />
-                  </a-sub-menu>
-                </a-sub-menu>
-              </a-sub-menu>
-            </template>
-
-            <a-menu-divider v-if="false" />
-
-            <!-- Preview As -->
-            <a-sub-menu v-if="isUIAllowed('previewAs') && false" key="preview-as">
-              <template #title>
-                <div v-e="['c:navdraw:preview-as']" class="nc-workspace-menu-item group">
-                  <GeneralIcon icon="preview" class="group-hover:text-black" />
-                  {{ $t('activity.previewAs') }}
-
-                  <div class="flex-1" />
-
-                  <MaterialSymbolsChevronRightRounded
-                    class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                  />
-                </div>
-              </template>
-
-              <template #expandIcon></template>
-
-              <LazyGeneralPreviewAs />
-            </a-sub-menu>
-          </template>
+          </template> -->
           <!-- Language -->
           <a-sub-menu
-            v-if="false"
+            v-if="!appInfo.ee"
             key="language"
             class="lang-menu !py-0"
             popup-class-name="scrollbar-thin-dull min-w-50 max-h-90vh !overflow-auto"
@@ -360,7 +264,7 @@ const switchWorkspace = async (workspaceId: string) => {
           </a-sub-menu>
 
           <!-- Account -->
-          <template v-if="signedIn && !isSharedBase">
+          <!-- <template v-if="signedIn && !isSharedBase">
             <a-sub-menu key="account">
               <template #title>
                 <div class="nc-workspace-menu-item group">
@@ -396,11 +300,11 @@ const switchWorkspace = async (workspaceId: string) => {
                 </div>
               </a-menu-item>
             </a-sub-menu>
-          </template>
+          </template> -->
         </a-menu-item-group>
       </a-menu>
     </template>
-  </a-dropdown>
+  </NcDropdown>
   <GeneralModal v-model:visible="workspaceModalVisible" :class="{ active: modalVisible }" width="80%" :footer="null">
     <div class="relative flex flex-col px-6 py-2">
       <div class="absolute right-4 top-4 z-20">
@@ -434,7 +338,7 @@ const switchWorkspace = async (workspaceId: string) => {
 }
 
 .nc-workspace-menu-item {
-  @apply flex items-center pl-2 py-2 gap-2 text-sm hover:text-black;
+  @apply flex items-center pl-1.5 !py-2.5 gap-2 text-sm hover:text-black;
 }
 
 :deep(.ant-dropdown-menu-item-group-title) {
@@ -450,5 +354,12 @@ const switchWorkspace = async (workspaceId: string) => {
   .nc-icon {
     @apply !text-xs;
   }
+}
+
+:deep(.ant-menu-item-divider) {
+  @apply !border-gray-200;
+}
+.nc-workspace-avatar {
+  @apply min-w-4 rounded text-xs flex items-center justify-center text-white uppercase;
 }
 </style>

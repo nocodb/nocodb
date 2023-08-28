@@ -1,8 +1,25 @@
 {
   "name": "playwright",
   "version": "1.0.0",
-  "description": "",
+  "description": "NocoDB playwright",
+  "private": true,
+  "author": {
+    "name": "NocoDB",
+    "url": "https://nocodb.com/"
+  },
+  "homepage": "https://github.com/nocodb/nocodb",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nocodb/nocodb.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nocodb/nocodb/issues"
+  },
+  "license": "AGPL-3.0-or-later",
   "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "test": "TRACE=true pnpm exec playwright test --workers=4",
     "test:fast": "pnpm exec playwright test --workers=6",
@@ -18,11 +35,18 @@
     "ci:test:shard:1": "pnpm exec playwright test --workers=2 --shard=1/2",
     "ci:test:shard:2": "pnpm exec playwright test --workers=2 --shard=2/2",
     "ci:test:mysql": "E2E_DB_TYPE=mysql pnpm exec playwright test --workers=2",
-    "ci:test:pg": "E2E_DB_TYPE=pg pnpm exec playwright test --workers=2"
+    "ci:test:pg": "E2E_DB_TYPE=pg pnpm exec playwright test --workers=2",
+    "preinstall": "npx only-allow pnpm"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.1",
+    "dayjs": "^1.11.9",
+    "express": "^4.18.1",
+    "knex": "^2.4.2",
+    "nocodb-sdk": "workspace:^",
+    "sqlite3": "^5.1.6",
+    "xlsx": "^0.18.5"
+  },
   "devDependencies": {
     "@playwright/test": "1.36.1",
     "@typescript-eslint/eslint-plugin": "^6.1.0",
@@ -42,14 +66,5 @@
     "pg": "^8.8.0",
     "prettier": "^2.7.1",
     "promised-sqlite3": "^2.1.0"
-  },
-  "dependencies": {
-    "body-parser": "^1.20.1",
-    "dayjs": "^1.11.9",
-    "express": "^4.18.1",
-    "knex": "^2.4.2",
-    "nocodb-sdk": "workspace:^",
-    "sqlite3": "^5.1.6",
-    "xlsx": "^0.18.5"
   }
 }

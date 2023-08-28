@@ -26,8 +26,8 @@ try {
 </script>
 
 <template>
-    <div v-if="showPassword">
-      <LazySharedViewAskPassword v-model="showPassword" />
-    </div>
-    <LazySharedViewMap v-else />
+  <div v-if="showPassword">
+    <LazySharedViewAskPassword v-model="showPassword" />
+  </div>
+  <LazySharedViewMap v-else />
 </template>

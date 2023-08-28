@@ -265,9 +265,9 @@ onMounted(async () => {
 
         <div class="flex flex-row space-x-4 justify-center mt-4">
           <NcButton
+            v-for="(action, i) in plugin.formDetails.actions"
             :key="i"
             class="!px-5"
-            v-for="(action, i) in plugin.formDetails.actions"
             :loading="loadingAction === action.key"
             :type="action.key === Action.Save ? 'primary' : 'default'"
             :disabled="!!loadingAction"

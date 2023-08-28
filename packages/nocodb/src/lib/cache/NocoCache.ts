@@ -1,4 +1,5 @@
 import { CacheGetType } from '../utils/globals';
+import { getRedisURI } from '../../database/redis';
 import RedisCacheMgr from './RedisCacheMgr';
 import RedisMockCacheMgr from './RedisMockCacheMgr';
 import type CacheMgr from './CacheMgr';
@@ -13,8 +14,9 @@ export default class NocoCache {
     if (this.cacheDisabled) {
       return;
     }
-    if (process.env.NC_REDIS_URL) {
-      this.client = new RedisCacheMgr(process.env.NC_REDIS_URL);
+    const redisURI = getRedisURI();
+    if (redisURI) {
+      this.client = new RedisCacheMgr(redisURI);
     } else {
       this.client = new RedisMockCacheMgr();
     }

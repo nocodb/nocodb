@@ -4,6 +4,7 @@ import { getConnectionManager } from 'typeorm';
 import Noco from '../lib/Noco';
 import { createDatabaseConnection, runMigrations } from '../databaseConnection';
 import { setupReusablesAndRoutes } from '../reusables';
+import type { Connection } from 'typeorm';
 
 const server = express();
 server.enable('trust proxy');
@@ -20,7 +21,7 @@ server.set('view engine', 'ejs');
 process.env[`DEBUG`] = 'xc*';
 
 (async () => {
-  let connection;
+  let connection: Connection;
   if (!getConnectionManager().has('default')) {
     connection = await createDatabaseConnection();
   } else {

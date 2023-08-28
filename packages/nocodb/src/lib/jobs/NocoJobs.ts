@@ -1,3 +1,4 @@
+import { getRedisURI } from '../../database/redis';
 import EmitteryJobsMgr from './EmitteryJobsMgr';
 import RedisJobsMgr from './RedisJobsMgr';
 import type JobsMgr from './JobsMgr';
@@ -6,8 +7,9 @@ export default class NocoJobs {
   private static client: JobsMgr;
 
   private static init() {
-    if (process.env.NC_REDIS_URL) {
-      this.client = new RedisJobsMgr(process.env.NC_REDIS_URL);
+    const redisURI = getRedisURI();
+    if (redisURI) {
+      this.client = new RedisJobsMgr(redisURI);
     } else {
       this.client = new EmitteryJobsMgr();
     }

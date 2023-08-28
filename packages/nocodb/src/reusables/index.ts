@@ -1,6 +1,7 @@
 import IncidentHandler from '@deep-consulting-solutions/incident-handling';
 import { DataRecoveryActivity, ServerIncident } from '../database/entities';
 import RedisCacheMgr from '../lib/cache/RedisCacheMgr';
+import { getRedisURI } from '../database/redis';
 import type { IncidentHandlerOptions } from '@deep-consulting-solutions/incident-handling';
 import type { Application } from 'express';
 import type { Connection } from 'typeorm';
@@ -19,7 +20,7 @@ export const getIncidentHandlerConfig = ({
   app: Application;
   connection: Connection;
 }): IncidentHandlerOptions => {
-  const redis = new RedisCacheMgr(process.env.NC_REDIS_URL);
+  const redis = new RedisCacheMgr(getRedisURI());
 
   let ticketBlueprintTransitions = [];
   try {

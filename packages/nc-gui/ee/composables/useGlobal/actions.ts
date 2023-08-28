@@ -68,27 +68,70 @@ export function useGlobalActions(state: State): Actions {
     }
   }
 
+  // todo: remove and use navigateToProject
   const navigateToProject = ({
     workspaceId: _workspaceId,
     type,
     projectId,
+    query
   }: {
     workspaceId?: string
     projectId?: string
     type?: NcProjectType
+    query?:any
   }) => {
+    const queryParams = query ? `?${new URLSearchParams(query).toString()}` : '
     const workspaceId = _workspaceId || 'default'
     let path: string
     if (projectId)
       switch (type) {
         case NcProjectType.DOCS:
-          path = `/${workspaceId}/${projectId}/doc`
+          path = `/${workspaceId}/${projectId}/doc${queryParams}`
           break
         default:
-          path = `/${workspaceId}/${projectId}`
+          path = `/${workspaceId}/${projectId}${queryParams}`
           break
       }
-    else path = `/${workspaceId}`
+    else path = `/${workspaceId}${queryParams}`
+
+    if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
+      location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}/dashboard/#${path}`
+    } else {
+      navigateTo(path)
+    }
+  }
+
+
+  const ncNavigateTo = ({
+    workspaceId: _workspaceId,
+    type,
+    projectId,
+    tableId,
+    viewId,
+    query
+  }: {
+    workspaceId?: string
+    projectId?: string
+    type?: NcProjectType
+    tableId?:string
+    viewId?:string
+    query?:string
+  }) => {
+
+    const tablePath = tableId ? `/table/${tableId}${viewId ? `/${viewId}` : ''}` : ''
+    const queryParams = query ? `?${new URLSearchParams(query).toString()}` : '';
+    const workspaceId = _workspaceId || 'default'
+    let path: string
+    if (projectId)
+      switch (type) {
+        case NcProjectType.DOCS:
+          path = `/${workspaceId}/${projectId}/doc${queryParams}`
+          break
+        default:
+          path = `/${workspaceId}/${projectId}${tablePath}${queryParams}`
+          break
+      }
+    else path = `/${workspaceId}${queryParams}`
 
     if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
       location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}/dashboard/#${path}`
@@ -104,5 +147,5 @@ export function useGlobalActions(state: State): Actions {
     return undefined
   }
 
-  return { signIn, signOut, refreshToken, loadAppInfo, setIsMobileMode, navigateToProject, getBaseUrl }
+  return { signIn, signOut, refreshToken, loadAppInfo, setIsMobileMode, navigateToProject, getBaseUrl, ncNavigateTo }
 }

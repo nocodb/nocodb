@@ -17,7 +17,7 @@ import {
   useTheme,
 } from '#imports'
 import type { NcProject, ProjectMetaInfo, ThemeConfig } from '#imports'
-import {useGlobal} from "~/composables/useGlobal";
+import { useGlobal } from "~/composables/useGlobal";
 
 export const useProject = defineStore('projectStore', () => {
   const { $e } = useNuxtApp()

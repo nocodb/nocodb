@@ -71,7 +71,7 @@ const { isSharedBase } = useProject()
 // const isMultiBase = computed(() => project.bases && project.bases.length > 1)
 
 const canUserEditEmote = computed(() => {
-  return projectRole?.value === 'owner' || projectRole?.value === 'creator' || projectRole?.value === 'editor'
+  return projectRole?.value === 'owner' || projectRole?.value === 'creator'
 })
 </script>
 

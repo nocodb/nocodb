@@ -81,9 +81,9 @@ export function useGlobalActions(state: State): Actions {
     query?:any
   }) => {
     const queryParams = query ? `?${new URLSearchParams(query).toString()}` : '
-    const workspaceId = _workspaceId || 'default'
+    const workspaceId = _workspaceId || 'app'
     let path: string
-    if (projectId)
+    if (projectId) {
       switch (type) {
         case NcProjectType.DOCS:
           path = `/${workspaceId}/${projectId}/doc${queryParams}`
@@ -92,7 +92,10 @@ export function useGlobalActions(state: State): Actions {
           path = `/${workspaceId}/${projectId}${queryParams}`
           break
       }
-    else path = `/${workspaceId}${queryParams}`
+    } else {
+      path = _workspaceId ? `/${workspaceId}${queryParams}` : `/${queryParams}`
+    }
+
 
     if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
       location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}/dashboard/#${path}`
@@ -120,7 +123,7 @@ export function useGlobalActions(state: State): Actions {
 
     const tablePath = tableId ? `/table/${tableId}${viewId ? `/${viewId}` : ''}` : ''
     const queryParams = query ? `?${new URLSearchParams(query).toString()}` : '';
-    const workspaceId = _workspaceId || 'default'
+    const workspaceId = _workspaceId || 'app'
     let path: string
     if (projectId)
       switch (type) {
@@ -131,7 +134,9 @@ export function useGlobalActions(state: State): Actions {
           path = `/${workspaceId}/${projectId}${tablePath}${queryParams}`
           break
       }
-    else path = `/${workspaceId}${queryParams}`
+    else {
+      path = _workspaceId ? `/${workspaceId}${queryParams}` : `/${queryParams}`
+    }
 
     if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
       location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}/dashboard/#${path}`
@@ -144,7 +149,7 @@ export function useGlobalActions(state: State): Actions {
     if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
       return `https://${workspaceId}.${state.appInfo.value.baseHostName}`
     }
-    return undefined
+    return  undefined
   }
 
   return { signIn, signOut, refreshToken, loadAppInfo, setIsMobileMode, navigateToProject, getBaseUrl, ncNavigateTo }

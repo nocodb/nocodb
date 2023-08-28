@@ -166,7 +166,7 @@ const navigateToSettings = () => {
             <div>Team & Settings</div>
           </div>
           <WorkspaceCreateProjectBtn
-            v-if="isUIAllowed('createProject', false, activeWorkspace?.roles) && !isSharedBase"
+            v-if="activeWorkspace && isUIAllowed('createProject', false, activeWorkspace?.roles) && !isSharedBase"
             v-model:is-open="isCreateProjectOpen"
             modal
             type="text"

@@ -54,10 +54,12 @@ const autoNavigateToProject = async () => {
     return
   }
 
-  await projectsStore.navigateToProject({
-    workspaceId: projectsStore.projectsList[0].fk_workspace_id!,
-    projectId: projectsStore.projectsList[0].id!,
-  })
+  // open first project if project list is not empty
+  if (projectsStore.projectsList?.length)
+    await projectsStore.navigateToProject({
+      workspaceId: projectsStore.projectsList[0].fk_workspace_id!,
+      projectId: projectsStore.projectsList[0].id!,
+    })
 }
 
 watch(
@@ -118,6 +120,12 @@ onMounted(async () => {
   }
 
   if (!workspaceStore?.activeWorkspace?.value && !route.value.params.typeOrId) {
+    // if workspace list is empty update loading state and return
+    if (!workspaceStore.workspacesList?.length) {
+      workspaceStore.setLoadingState(false)
+      return
+    }
+
     await populateWorkspace({
       workspaceId: workspaceStore.workspacesList[0].id!,
     })

@@ -319,6 +319,19 @@ export class TreeViewPage extends BasePage {
     return this.get().locator(`.project-title-node`).nth(param.index);
   }
 
+  async renameProject(param: { newTitle: string; title: string }) {
+    await this.getProjectContextMenu({ projectTitle: param.title }).hover();
+    await this.getProjectContextMenu({ projectTitle: param.title }).click();
+    const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md:visible').last();
+    await contextMenu.waitFor();
+    await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Edit")`).click();
+
+    const projectNodeInput = (await this.getProject({ index: 0, title: param.title })).locator('input');
+    await projectNodeInput.clear();
+    await projectNodeInput.fill(param.newTitle);
+    await projectNodeInput.press('Enter');
+  }
+
   async deleteProject(param: { title: string }) {
     await this.getProjectContextMenu({ projectTitle: param.title }).hover();
     await this.getProjectContextMenu({ projectTitle: param.title }).click();

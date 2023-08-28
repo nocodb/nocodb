@@ -102,6 +102,4 @@ export class LeftSidebarPage extends BasePage {
     }
     await this.rootPage.keyboard.press('Escape');
   }
-
-  async renameProject(param: { newTitle: string; title: string }) {}
 }

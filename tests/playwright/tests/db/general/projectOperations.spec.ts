@@ -70,14 +70,14 @@ test.describe('Project operations', () => {
     await unsetup(context);
   });
 
-  test.skip('rename, delete', async () => {
+  test('rename, delete', async () => {
     // Already verified as part of workspace tests
 
     // if project already exists, delete it
     await deleteIfExists('project-firstName');
 
     await dashboard.leftSidebar.createProject({ title: 'project-firstName' });
-    await dashboard.leftSidebar.renameProject({ title: 'project-firstName', newTitle: 'project-rename' });
+    await dashboard.treeView.renameProject({ title: 'project-firstName', newTitle: 'project-rename' });
     await dashboard.treeView.openProject({ title: 'project-rename' });
     await dashboard.treeView.deleteProject({ title: 'project-rename' });
   });

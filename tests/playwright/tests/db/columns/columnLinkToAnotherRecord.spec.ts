@@ -19,9 +19,6 @@ test.describe('LTAR create & update', () => {
   });
 
   test('LTAR', async () => {
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
-
     await dashboard.treeView.createTable({ title: 'Sheet1', projectTitle: context.project.title });
     // subsequent table creation fails; hence delay
     await dashboard.rootPage.waitForTimeout(1000);
@@ -189,6 +186,20 @@ test.describe('LTAR create & update', () => {
     await dashboard.treeView.deleteTable({ title: 'Sheet1' });
     await dashboard.treeView.deleteTable({ title: 'Sheet2' });
   });
+});
+
+test.describe('Links after edit record', () => {
+  let dashboard: DashboardPage;
+  let context: any;
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page, isEmptyProject: false });
+    dashboard = new DashboardPage(page, context.project);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
 
   async function verifyRow(param: {
     index: number;
@@ -214,9 +225,10 @@ test.describe('LTAR create & update', () => {
     await dashboard.grid.cell.verifyVirtualCell({
       index: param.index,
       columnHeader: 'Cities',
-      count: param.value['Cities'].length,
-      value: param.value['Cities'],
+      count: param.value.Cities.length,
+      options: { singular: 'City', plural: 'Cities' },
     });
+
     if (param.value.SLT) {
       await dashboard.grid.cell.verify({
         index: param.index,
@@ -235,10 +247,7 @@ test.describe('LTAR create & update', () => {
    *  https://github.com/nocodb/nocodb/issues/4220
    *
    */
-  test.skip('Existing LTAR table verification', async () => {
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
-
+  test('Existing LTAR table verification', async () => {
     // open table
     await dashboard.treeView.openTable({ title: 'Country' });
     await verifyRow({

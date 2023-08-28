@@ -2,7 +2,6 @@
 import { ActiveViewInj, inject, ref, storeToRefs, useViewsStore } from '#imports'
 
 const activeView = inject(ActiveViewInj, ref())
-
 const { openedViewsTab } = storeToRefs(useViewsStore())
 
 const { onViewsTabChange } = useViewsStore()

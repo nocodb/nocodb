@@ -190,8 +190,10 @@ onUnmounted(() => {
       <NcTooltip
         placement="bottom"
         hide-on-click
-        :mouse-enter-delay="10"
         class="flex opacity-0 w-0 group-hover:(opacity-100 w-8) transition-all duration-50"
+        :class="{
+          '!w-8 !opacity-100': !isRightSidebarOpen,
+        }"
       >
         <template #title>
           {{

@@ -113,10 +113,10 @@ function resetError() {
               />
             </a-form-item>
 
-            <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password" >
+            <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
               <a-input-password
                 v-model:value="form.password"
-                autocomplete="password"
+                autocomplete="current-password"
                 data-testid="nc-form-signin__password"
                 size="large"
                 class="password"

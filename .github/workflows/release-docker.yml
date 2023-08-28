@@ -91,15 +91,11 @@ jobs:
         run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js
-          cd packages/nocodb-sdk
-          pnpm --filter=!playwright install --ignore-scripts --no-frozen-lockfile && pnpm run build
-          cd ../..
+          pnpm --filter=nocodb-sdk install --ignore-scripts --no-frozen-lockfile && pnpm --filter=nocodb-sdk run build
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNcGuiVersion.js &&
-          cd packages/nc-gui
-          pnpm --filter=!playwright install --ignore-scripts --no-frozen-lockfile
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} pnpm run build:copy
-          cd ../..
+          pnpm --filter=nc-gui install --ignore-scripts --no-frozen-lockfile &&
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} --filter=nc-gui pnpm run build:copy
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js
 
       - name: Build nocodb and docker files

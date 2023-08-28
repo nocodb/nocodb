@@ -55,16 +55,12 @@ jobs:
       - run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js &&
-          cd packages/nocodb-sdk
-          npm --filter=!playwright install --ignore-scripts --no-frozen-lockfile && pnpm run build && pnpm publish --no-git-checks &&
-          cd ../.. &&
+          pnpm --filter=nocodb-sdk install --ignore-scripts --no-frozen-lockfile && pnpm --filter=nocodb-sdk run build && pnpm --filter=nocodb-sdk publish --no-git-checks &&
           sleep 90 &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNcGuiVersion.js &&
-          cd packages/nc-gui &&
-          pnpm --filter=!playwright install --ignore-scripts --no-frozen-lockfile &&
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} pnpm run build:copy:publish --no-git-checks &&
-          cd ../.. &&
+          pnpm --filter=nc-gui install --ignore-scripts --no-frozen-lockfile &&
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} pnpm --filter=nc-gui run build:copy:publish --no-git-checks &&
           sleep 90 &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js && cd packages/nocodb && pnpm run obfuscate:build:publish --no-git-checks
         env:

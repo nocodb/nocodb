@@ -2,7 +2,6 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { airtableApiBase, airtableApiKey } from '../../../constants';
 import setup, { unsetup } from '../../../setup';
-import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { Api, ProjectListType } from 'nocodb-sdk';
 import { ProjectInfo, ProjectInfoApiUtil } from '../../../tests/utils/projectInfoApiUtil';
 import { deepCompare } from '../../../tests/utils/objectCompareUtil';
@@ -12,7 +11,6 @@ test.describe('Project operations', () => {
   let dashboard: DashboardPage;
   let context: any;
   let api: Api<any>;
-  let projectPage: ProjectsPage;
   test.setTimeout(100000);
 
   async function getProjectList() {
@@ -59,7 +57,6 @@ test.describe('Project operations', () => {
     page.setDefaultTimeout(70000);
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
-    projectPage = new ProjectsPage(page);
 
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -79,18 +76,10 @@ test.describe('Project operations', () => {
     // if project already exists, delete it
     await deleteIfExists('project-firstName');
 
-    await dashboard.clickHome();
-    await projectPage.createProject({ name: 'project-firstName', withoutPrefix: true });
-    await dashboard.clickHome();
-    await projectPage.renameProject({
-      title: 'project-firstName',
-      newTitle: 'project-rename',
-      withoutPrefix: true,
-    });
-    await dashboard.clickHome();
-    await projectPage.openProject({ title: 'project-rename', withoutPrefix: true });
-    await dashboard.clickHome();
-    await projectPage.deleteProject({ title: 'project-rename', withoutPrefix: true });
+    await dashboard.leftSidebar.createProject({ title: 'project-firstName' });
+    await dashboard.leftSidebar.renameProject({ title: 'project-firstName', newTitle: 'project-rename' });
+    await dashboard.treeView.openProject({ title: 'project-rename' });
+    await dashboard.treeView.deleteProject({ title: 'project-rename' });
   });
 
   test('project_duplicate', async () => {

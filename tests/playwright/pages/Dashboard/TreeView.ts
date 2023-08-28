@@ -223,7 +223,7 @@ export class TreeViewPage extends BasePage {
     await this.get().locator(`.nc-project-tree-tbl-${title} .nc-table-icon`).click();
 
     await this.rootPage.locator('.emoji-mart-search').type(icon);
-    const emojiList = await this.rootPage.locator('[id="emoji-mart-list"]');
+    const emojiList = this.rootPage.locator('[id="emoji-mart-list"]');
     await emojiList.locator('button').first().click();
     await expect(
       this.get().locator(`.nc-project-tree-tbl-${title}`).locator(`.nc-table-icon:has-text("${iconDisplay}")`)
@@ -235,14 +235,14 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Duplicate")').click();
 
     // Find the checkbox element with the label "Include data"
-    const includeDataCheckbox = await this.dashboard.get().getByText('Include data', { exact: true });
+    const includeDataCheckbox = this.dashboard.get().getByText('Include data', { exact: true });
     // Check the checkbox if it is not already checked
     if ((await includeDataCheckbox.isChecked()) && !includeData) {
       await includeDataCheckbox.click(); // click the checkbox to check it
     }
 
     // Find the checkbox element with the label "Include data"
-    const includeViewsCheckbox = await this.dashboard.get().getByText('Include views', { exact: true });
+    const includeViewsCheckbox = this.dashboard.get().getByText('Include views', { exact: true });
     // Check the checkbox if it is not already checked
     if ((await includeViewsCheckbox.isChecked()) && !includeViews) {
       await includeViewsCheckbox.click(); // click the checkbox to check it

@@ -97,9 +97,6 @@ jobs:
         working-directory: ./packages/nocodb
         run: |
           pnpm run watch:run:playwright:pg &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
-      - name: Install dependencies
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        working-directory: ./tests/playwright
       - name: Install Playwright Browsers
         working-directory: ./tests/playwright
         run: pnpm exec playwright install --with-deps chromium

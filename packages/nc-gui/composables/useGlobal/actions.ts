@@ -1,4 +1,5 @@
 import { getActivePinia } from 'pinia'
+import { LocationQuery } from 'vue-router'
 import type { Actions, AppInfo, State } from './types'
 import { type NcProjectType, message, useNuxtApp } from '#imports'
 import { navigateTo } from '#app'
@@ -80,7 +81,8 @@ export function useGlobalActions(state: State): Actions {
     workspaceId: _workspaceId,
     type: _type,
     projectId,
-  }: {
+  }: // query,
+  {
     workspaceId?: string
     projectId?: string
     type?: NcProjectType
@@ -96,7 +98,10 @@ export function useGlobalActions(state: State): Actions {
     if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
       location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}/dashboard/#${path}`
     } else {
-      navigateTo(path)
+      navigateTo({
+        path,
+        // query,
+      })
     }
   }
 

@@ -17,6 +17,7 @@ import {
   useTheme,
 } from '#imports'
 import type { NcProject, ProjectMetaInfo, ThemeConfig } from '#imports'
+import {useGlobal} from "~/composables/useGlobal";
 
 export const useProject = defineStore('projectStore', () => {
   const { $e } = useNuxtApp()
@@ -62,6 +63,8 @@ export const useProject = defineStore('projectStore', () => {
 
   // todo: refactor path param name and variable name
   const projectType = computed(() => route.value.params.typeOrId as string)
+
+  const {navigateToProject} = useGlobal()
 
   const projectMeta = computed<Record<string, any>>(() => {
     const defaultMeta = {
@@ -269,12 +272,20 @@ export const useProject = defineStore('projectStore', () => {
   )
 
   const navigateToProjectPage = async ({ page }: { page: 'all-table' | 'collaborator' | 'data-source' }) => {
-    await router.push({
-      name: 'index-typeOrId-projectId-index-index',
-      params: {
-        typeOrId: route.value.params.typeOrId,
-        projectId: route.value.params.projectId,
-      },
+    // await router.push({
+    //   name: 'index-typeOrId-projectId-index-index',
+    //   params: {
+    //     typeOrId: route.value.params.typeOrId,
+    //     projectId: route.value.params.projectId,
+    //   },
+    //   query: {
+    //     page,
+    //   },
+    // })
+
+    navigateToProject({
+      workspaceId: route.value.params.typeOrId,
+      projectId: route.value.params.projectId,
       query: {
         page,
       },

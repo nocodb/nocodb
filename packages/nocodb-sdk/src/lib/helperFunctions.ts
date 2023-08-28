@@ -11,7 +11,7 @@ const getSystemColumnsIds = (columns) => {
 
 const getSystemColumns = (columns) => columns.filter(isSystemColumn) || [];
 
-const isSystemColumn = (col) =>
+const isSystemColumn = (col): boolean =>
   col &&
   (col.uidt === UITypes.ForeignKey ||
     col.column_name === 'created_at' ||

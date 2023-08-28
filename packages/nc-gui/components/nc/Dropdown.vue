@@ -19,7 +19,7 @@ const trigger = toRef(props, 'trigger')
 const overlayClassName = toRef(props, 'overlayClassName')
 
 const overlayClassNameComputed = computed(() => {
-  let className = 'nc-dropdown bg-white rounded-2xl border-1 border-gray-100 shadow-md overflow-hidden'
+  let className = 'nc-dropdown bg-white rounded-lg border-1 border-gray-100 shadow-md overflow-hidden'
   if (overlayClassName.value) {
     className += ` ${overlayClassName.value}`
   }

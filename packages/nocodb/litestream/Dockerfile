@@ -1,4 +1,4 @@
-FROM golang:alpine3.14 as lt
+FROM golang:alpine3.18 as lt
 
 WORKDIR /usr/src/
 
@@ -37,7 +37,7 @@ RUN rm -rf ./node_modules/sqlite3/deps
 RUN tar -czf ../appEntry/app.tar.gz ./*
 RUN chmod +x /usr/src/appEntry/start.sh
 
-FROM alpine:3.14
+FROM alpine:3.18
 
 #ENV AWS_ACCESS_KEY_ID=
 #ENV AWS_SECRET_ACCESS_KEY=

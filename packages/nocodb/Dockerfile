@@ -50,7 +50,7 @@ RUN pnpm install --prod --shamefully-hoist \
 ##########
 # Runner
 ##########
-FROM alpine:3.15
+FROM alpine:3.18
 WORKDIR /usr/src/app
 
 ENV NC_DOCKER 0.6

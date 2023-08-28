@@ -21,6 +21,7 @@ import { MetaTable } from '~/utils/globals';
 import Store from '~/models/Store';
 import { NC_LICENSE_KEY } from '~/constants';
 import { AppModule } from '~/app.module';
+import { isEE } from '~/utils';
 
 dotenv.config();
 
@@ -95,7 +96,7 @@ export default class Noco {
 
   public static async loadEEState(): Promise<boolean> {
     try {
-      return (Noco.ee = !!(await Store.get(NC_LICENSE_KEY))?.value);
+      return (Noco.ee = isEE);
     } catch {}
     return (Noco.ee = false);
   }

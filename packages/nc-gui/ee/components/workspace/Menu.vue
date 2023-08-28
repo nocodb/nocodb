@@ -18,7 +18,7 @@ const { loadWorkspaces, clearWorkspaces } = workspaceStore
 
 const { navigateToTable } = useTablesStore()
 
-const { signOut, signedIn, user, token } = useGlobal()
+const { signOut, signedIn, user, token, navigateToProject } = useGlobal()
 
 const { copy } = useCopy(true)
 
@@ -135,7 +135,9 @@ onKeyStroke('Escape', () => {
 })
 
 const switchWorkspace = async (workspaceId: string) => {
-  navigateTo(`/${workspaceId}`)
+  navigateToProject({
+    workspaceId,
+  })
 }
 </script>
 

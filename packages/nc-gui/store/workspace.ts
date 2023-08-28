@@ -2,9 +2,8 @@ import type { ProjectType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
-import { computed, ref, useCommandPalette, useNuxtApp, useRouter, useTheme } from '#imports'
+import { computed, navigateTo, ref, useCommandPalette, useNuxtApp, useRouter, useTheme } from '#imports'
 import type { ThemeConfig } from '#imports'
-import { navigateTo } from '#imports'
 
 export const useWorkspace = defineStore('workspaceStore', () => {
   const projectsStore = useProjects()
@@ -32,6 +31,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const workspaces = ref<Map<string, any>>(new Map())
   const workspacesList = computed<any[]>(() => Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at))
+
+  const isWorkspaceSettingsPageOpened = computed(() => route.value.name === 'index-typeOrId-settings')
 
   const isWorkspaceLoading = ref(true)
   const isCollaboratorsLoading = ref(true)
@@ -246,6 +247,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     setLoadingState,
     navigateToWorkspaceSettings,
     lastPopulatedWorkspaceId,
+    isWorkspaceSettingsPageOpened,
   }
 })
 

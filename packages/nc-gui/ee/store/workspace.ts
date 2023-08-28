@@ -37,6 +37,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
+  const isWorkspaceSettingsPageOpened = computed(() => route.value.name === 'index-typeOrId-settings')
+
   const workspaces = ref<Map<string, NcWorkspace>>(new Map())
   const workspacesList = computed<NcWorkspace[]>(() =>
     Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at),
@@ -431,6 +433,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     navigateToWorkspaceSettings,
     lastPopulatedWorkspaceId,
     workspaceRole,
+    isWorkspaceSettingsPageOpened,
   }
 })
 

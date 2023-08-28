@@ -2,15 +2,15 @@
 const workspaceStore = useWorkspace()
 const projectStore = useProject()
 
-const { activeWorkspace, isWorkspaceLoading, isWorkspaceOwnerOrCreator } = storeToRefs(workspaceStore)
+const { activeWorkspace, isWorkspaceLoading, isWorkspaceOwnerOrCreator, isWorkspaceSettingsPageOpened } =
+  storeToRefs(workspaceStore)
+const { navigateToWorkspaceSettings } = workspaceStore
 
-const { isSharedBase, project } = storeToRefs(projectStore)
+const { isSharedBase } = storeToRefs(projectStore)
 
 const { commandPalette } = useCommandPalette()
 
 const { isUIAllowed } = useUIPermission()
-
-const { navigateToWorkspaceSettings } = useWorkspace()
 
 const isCreateProjectOpen = ref(false)
 
@@ -78,6 +78,10 @@ const navigateToSettings = () => {
         class="nc-sidebar-top-button"
         data-testid="nc-sidebar-team-settings-btn"
         :centered="false"
+        :class="{
+          '!text-brand-500 !bg-brand-50 !hover:bg-brand-50': isWorkspaceSettingsPageOpened,
+          '!hover:bg-gray-200': !isWorkspaceSettingsPageOpened,
+        }"
         @click="navigateToSettings"
       >
         <div class="flex items-center gap-2">
@@ -90,7 +94,7 @@ const navigateToSettings = () => {
         v-model:is-open="isCreateProjectOpen"
         modal
         type="text"
-        class="nc-sidebar-top-button"
+        class="nc-sidebar-top-button !hover:bg-gray-200"
         data-testid="nc-sidebar-create-project-btn"
         :active-workspace-id="route.params.typeOrId"
       >
@@ -106,6 +110,6 @@ const navigateToSettings = () => {
 
 <style lang="scss" scoped>
 .nc-sidebar-top-button {
-  @apply w-full !hover:bg-gray-200 !rounded-md !font-normal !px-3;
+  @apply w-full !rounded-md !font-normal !px-3;
 }
 </style>

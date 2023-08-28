@@ -24,6 +24,7 @@ const column = inject(ColumnInj)!
 const localState = ref(value)
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+const isForm = inject(IsFormInj, ref(false))
 
 const vModel = computed({
   get: () => value,
@@ -59,7 +60,9 @@ watch(
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="w-full outline-none text-sm px-2"
+    class="w-full focus:!outline-none focus:ring-0 focus:border-none !border-none !outline-none text-sm px-2"
+    :type="isForm ? 'email' : 'text'"
+    :autocomplete="isForm ? 'email' : 'text'"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

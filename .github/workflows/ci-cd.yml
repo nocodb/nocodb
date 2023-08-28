@@ -58,7 +58,6 @@ jobs:
               ${{ runner.os }}-pnpm-store-
         - name: Install dependencies for packages
           run: pnpm bootstrap
-        - name: Install dependencies
         - name: run unit tests
           working-directory: ./packages/nocodb
           run: pnpm run test:unit

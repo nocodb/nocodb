@@ -1,9 +1,12 @@
 <script lang="ts" setup>
+import { onKeyStroke } from '#imports'
+
 const props = withDefaults(
   defineProps<{
     trigger?: Array<'click' | 'hover' | 'contextmenu'>
     visible?: boolean | undefined
     overlayClassName?: string | undefined
+    autoClose?: boolean
   }>(),
   {
     trigger: () => ['click'],
@@ -18,6 +21,8 @@ const trigger = toRef(props, 'trigger')
 
 const overlayClassName = toRef(props, 'overlayClassName')
 
+const autoClose = computed(() => props.autoClose ?? true)
+
 const overlayClassNameComputed = computed(() => {
   let className = 'nc-dropdown bg-white rounded-lg border-1 border-gray-100 shadow-md overflow-hidden'
   if (overlayClassName.value) {
@@ -27,6 +32,12 @@ const overlayClassNameComputed = computed(() => {
 })
 
 const visible = useVModel(props, 'visible', emits)
+
+onKeyStroke('Escape', () => {
+  if (visible.value && autoClose.value) {
+    visible.value = false
+  }
+})
 </script>
 
 <template>

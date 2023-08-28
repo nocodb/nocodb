@@ -210,7 +210,7 @@ export class TreeViewPage extends BasePage {
     await settingsMenu.locator(`[data-menu-id="teamAndSettings"]`).click();
   }
 
-  async quickImport({ title, projectTitle }: { title: string; projectTitle }) {
+  async quickImport({ title, projectTitle }: { title: string; projectTitle: string }) {
     await this.getProjectContextMenu({ projectTitle }).hover();
     await this.getProjectContextMenu({ projectTitle }).click();
     const importMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md');
@@ -322,9 +322,20 @@ export class TreeViewPage extends BasePage {
   async deleteProject(param: { title: string }) {
     await this.getProjectContextMenu({ projectTitle: param.title }).hover();
     await this.getProjectContextMenu({ projectTitle: param.title }).click();
-    const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md');
+    const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md:visible').last();
+    await contextMenu.waitFor();
     await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Delete")`).click();
 
     await this.rootPage.locator('div.ant-modal-content').locator(`button.ant-btn:has-text("Delete Project")`).click();
+  }
+
+  async duplicateProject(param: { title: string }) {
+    await this.getProjectContextMenu({ projectTitle: param.title }).hover();
+    await this.getProjectContextMenu({ projectTitle: param.title }).click();
+    const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md:visible');
+    await contextMenu.waitFor();
+    await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Duplicate Project")`).click();
+
+    await this.rootPage.locator('div.ant-modal-content').locator(`button.ant-btn:has-text("Confirm")`).click();
   }
 }

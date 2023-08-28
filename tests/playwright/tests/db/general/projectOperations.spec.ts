@@ -2,25 +2,32 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { airtableApiBase, airtableApiKey } from '../../../constants';
 import setup, { unsetup } from '../../../setup';
-import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { Api, ProjectListType } from 'nocodb-sdk';
 import { ProjectInfo, ProjectInfoApiUtil } from '../../../tests/utils/projectInfoApiUtil';
 import { deepCompare } from '../../../tests/utils/objectCompareUtil';
+import { isEE } from '../../../setup/db';
 
-// tests covered under tests/playwright/tests/nocohub/hubDashboard.spec.ts
-test.describe.skip('Project operations', () => {
+test.describe('Project operations', () => {
   let dashboard: DashboardPage;
-  let toolbar: ToolbarPage;
   let context: any;
   let api: Api<any>;
   let projectPage: ProjectsPage;
   test.setTimeout(100000);
 
+  async function getProjectList() {
+    let projectList: ProjectListType;
+    if (isEE() && api['workspaceProject']) {
+      const ws = await api['workspace'].list();
+      projectList = await api['workspaceProject'].list(ws.list[1].id);
+    } else {
+      projectList = await api.project.list();
+    }
+    return projectList;
+  }
   async function deleteIfExists(name: string) {
     try {
-      const ws = await api['workspace'].list();
-      const projectList = await api['workspaceProject'].list(ws.list[0].id);
+      const projectList = await getProjectList();
 
       const project = projectList.list.find((p: any) => p.title === name);
       if (project) {
@@ -33,21 +40,19 @@ test.describe.skip('Project operations', () => {
   }
 
   async function createTestProjectWithData(testProjectName: string) {
-    await dashboard.clickHome();
-    await projectPage.createProject({ name: testProjectName, withoutPrefix: true });
-    await dashboard.treeView.quickImport({ title: 'Airtable', projectTitle: context.project.title });
+    await dashboard.leftSidebar.createProject({ title: testProjectName });
+    await dashboard.treeView.openProject({ title: testProjectName });
+    await dashboard.treeView.quickImport({ title: 'Airtable', projectTitle: testProjectName });
     await dashboard.importAirtable.import({
       key: airtableApiKey,
       baseId: airtableApiBase,
     });
     await dashboard.rootPage.waitForTimeout(1000);
-    // await quickVerify({ dashboard, airtableImport: true, context });
   }
 
   async function cleanupTestData(dupeProjectName: string, testProjectName: string) {
-    await dashboard.clickHome();
-    await projectPage.deleteProject({ title: dupeProjectName, withoutPrefix: true });
-    await projectPage.deleteProject({ title: testProjectName, withoutPrefix: true });
+    await dashboard.treeView.deleteProject({ title: dupeProjectName });
+    await dashboard.treeView.deleteProject({ title: testProjectName });
   }
 
   test.beforeEach(async ({ page }) => {
@@ -55,7 +60,6 @@ test.describe.skip('Project operations', () => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
     projectPage = new ProjectsPage(page);
-    toolbar = dashboard.grid.toolbar;
 
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -91,31 +95,23 @@ test.describe.skip('Project operations', () => {
 
   test('project_duplicate', async () => {
     // if project already exists, delete it to avoid test failures due to residual data
-    const testProjectName = 'project-to-imexp';
+    const testProjectName = 'Project-To-Import-Export';
     const dupeProjectName: string = testProjectName + ' copy';
     await deleteIfExists(testProjectName);
     await deleteIfExists(dupeProjectName);
 
-    // // data creation for orginial test project
+    // // data creation for original test project
     await createTestProjectWithData(testProjectName);
 
-    // create duplicate
-    await dashboard.clickHome();
-    await projectPage.duplicateProject({
-      name: testProjectName,
-      withoutPrefix: true,
-      includeData: true,
-      includeViews: true,
-    });
-    await projectPage.openProject({ title: dupeProjectName, withoutPrefix: true });
-    // await quickVerify({ dashboard, airtableImport: true, context });
+    // duplicate duplicate
+    await dashboard.treeView.duplicateProject({ title: testProjectName });
+    await dashboard.treeView.openProject({ title: testProjectName });
 
     // compare
-    const ws = await api['workspace'].list();
-    const projectList = await api['workspaceProject'].list(ws.list[0].id);
+    const projectList = await getProjectList();
 
-    const testProjectId = await projectList.list.find((p: any) => p.title === testProjectName);
-    const dupeProjectId = await projectList.list.find((p: any) => p.title === dupeProjectName);
+    const testProjectId = projectList.list.find((p: any) => p.title === testProjectName);
+    const dupeProjectId = projectList.list.find((p: any) => p.title.startsWith(testProjectName + ' copy'));
     const projectInfoOp: ProjectInfoApiUtil = new ProjectInfoApiUtil(context.token);
     const original: Promise<ProjectInfo> = projectInfoOp.extractProjectInfo(testProjectId.id);
     const duplicate: Promise<ProjectInfo> = projectInfoOp.extractProjectInfo(dupeProjectId.id);
@@ -158,12 +154,14 @@ test.describe.skip('Project operations', () => {
         '.users.1.roles',
         '.users.2.roles',
       ]);
-      const orginalProjectInfo: ProjectInfo = arr[0];
+      const originalProjectInfo: ProjectInfo = arr[0];
       const duplicateProjectInfo: ProjectInfo = arr[1];
-      expect(deepCompare(orginalProjectInfo, duplicateProjectInfo, ignoredFields, ignoredKeys, '', false)).toBeTruthy();
+      expect(
+        deepCompare(originalProjectInfo, duplicateProjectInfo, ignoredFields, ignoredKeys, '', false)
+      ).toBeTruthy();
     });
 
     // cleanup test-data
-    await cleanupTestData(dupeProjectName, testProjectName);
+    await cleanupTestData(dupeProjectId.title, testProjectId.title);
   });
 });

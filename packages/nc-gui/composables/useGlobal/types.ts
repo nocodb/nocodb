@@ -66,7 +66,15 @@ export interface Actions {
   refreshToken: () => void
   loadAppInfo: () => void
   setIsMobileMode: (isMobileMode: boolean) => void
-  navigateToProject: (params: { workspaceId?: string; projectId?: string; type?: NcProjectType }) => void
+  navigateToProject: (params: { workspaceId?: string; projectId?: string; type?: NcProjectType; query?: any }) => void
+  ncNavigateTo: (params: {
+    workspaceId?: string
+    projectId?: string
+    type?: NcProjectType
+    query?: any
+    tableId?: string
+    viewId?: string
+  }) => void
   getBaseUrl: (workspaceId: string) => string | undefined
 }
 

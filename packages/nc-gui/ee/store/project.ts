@@ -17,7 +17,7 @@ import {
   useTheme,
 } from '#imports'
 import type { NcProject, ProjectMetaInfo, ThemeConfig } from '#imports'
-import {useGlobal} from "~/composables/useGlobal";
+import { useGlobal } from '#imports'
 
 export const useProject = defineStore('projectStore', () => {
   const { $e } = useNuxtApp()
@@ -64,7 +64,7 @@ export const useProject = defineStore('projectStore', () => {
   // todo: refactor path param name and variable name
   const projectType = computed(() => route.value.params.typeOrId as string)
 
-  const {navigateToProject} = useGlobal()
+  const { navigateToProject } = useGlobal()
 
   const projectMeta = computed<Record<string, any>>(() => {
     const defaultMeta = {

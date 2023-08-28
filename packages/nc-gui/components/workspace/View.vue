@@ -59,7 +59,7 @@ watch(
         </a-tab-pane>
       </template>
 
-      <template v-if="isWorkspaceOwner && appInfo.ee">
+      <template v-if="isWorkspaceOwner && isEeUI">
         <a-tab-pane key="billing" class="w-full">
           <template #tab>
             <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
@@ -70,7 +70,7 @@ watch(
           <WorkspaceBilling />
         </a-tab-pane>
       </template>
-      <template v-if="isWorkspaceOwner && appInfo.ee">
+      <template v-if="isWorkspaceOwner && isEeUI">
         <a-tab-pane key="settings" class="w-full">
           <template #tab>
             <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">

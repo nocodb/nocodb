@@ -2,9 +2,8 @@ import type { ProjectType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
-import { computed, ref, useCommandPalette, useNuxtApp, useRouter, useTheme } from '#imports'
+import { computed, navigateTo, ref, useCommandPalette, useNuxtApp, useRouter, useTheme } from '#imports'
 import type { ThemeConfig } from '#imports'
-import { navigateTo } from '#imports'
 
 export const useWorkspace = defineStore('workspaceStore', () => {
   const projectsStore = useProjects()
@@ -26,7 +25,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { $e } = useNuxtApp()
 
-  const { appInfo } = useGlobal()
+  const { appInfo, ncNavigateTo } = useGlobal()
 
   const { userRoles } = useRoles()
 
@@ -200,7 +199,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       throw new Error('Workspace not selected')
     }
 
-    await navigateTo(`/ws/${workspaceId}`)
+    await ncNavigateTo({
+      workspaceId,
+    })
   }
 
   const navigateToWorkspaceSettings = async () => {

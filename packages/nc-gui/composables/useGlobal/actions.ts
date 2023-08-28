@@ -99,13 +99,41 @@ export function useGlobalActions(state: State): Actions {
       path = `/${workspaceId}${queryParams}`
     }
 
-    if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
-      location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}/dashboard/#${path}`
+    navigateTo({
+      path,
+    })
+  }
+
+  const ncNavigateTo = ({
+    workspaceId: _workspaceId,
+    type: _type,
+    projectId,
+    query,
+    tableId,
+    viewId,
+  }: {
+    workspaceId?: string
+    projectId?: string
+    type?: NcProjectType
+    query?: any
+    tableId?: string
+    viewId?: string
+  }) => {
+    const tablePath = tableId ? `/table/${tableId}${viewId ? `/${viewId}` : ''}` : ''
+    const workspaceId = _workspaceId || 'nc'
+    let path: string
+
+    const queryParams = query ? `?${new URLSearchParams(query).toString()}` : ''
+
+    if (projectId) {
+      path = `/${workspaceId}/${projectId}${tablePath}${queryParams}`
     } else {
-      navigateTo({
-        path,
-      })
+      path = `/${workspaceId}${queryParams}`
     }
+
+    navigateTo({
+      path,
+    })
   }
 
   const getBaseUrl = (workspaceId: string) => {
@@ -115,5 +143,5 @@ export function useGlobalActions(state: State): Actions {
     return undefined
   }
 
-  return { signIn, signOut, refreshToken, loadAppInfo, setIsMobileMode, navigateToProject, getBaseUrl }
+  return { signIn, signOut, refreshToken, loadAppInfo, setIsMobileMode, navigateToProject, getBaseUrl, ncNavigateTo }
 }

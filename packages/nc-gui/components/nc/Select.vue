@@ -38,8 +38,8 @@ const onChange = (value: string) => {
     :show-search="showSearch"
     :filter-option="filterOption"
     :dropdown-match-select-width="dropdownMatchSelectWidth"
-    @change="onChange"
     :allow-clear="allowClear"
+    @change="onChange"
   >
     <template #suffixIcon>
       <GeneralIcon icon="arrowDown" class="text-gray-800 nc-select-expand-btn" />

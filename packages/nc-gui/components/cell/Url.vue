@@ -42,6 +42,8 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
+const isForm = inject(IsFormInj, ref(false))
+
 const vModel = computed({
   get: () => value,
   set: (val) => {
@@ -88,7 +90,9 @@ watch(
       v-if="editEnabled"
       :ref="focus"
       v-model="vModel"
-      class="outline-none text-sm w-full px-2 bg-transparent h-full"
+      class="outline-none focus:!outline-none focus:ring-0 focus:border-none !border-none !outline-none text-sm w-full px-2 bg-transparent h-full"
+      :type="isForm ? 'url' : 'text'"
+      :autocomplete="isForm ? 'url' : ''"
       @blur="editEnabled = false"
       @keydown.down.stop
       @keydown.left.stop

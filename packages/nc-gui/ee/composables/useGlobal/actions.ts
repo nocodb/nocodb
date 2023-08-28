@@ -1,4 +1,4 @@
-import type { Actions, AppInfo, State } from './types'
+import type { Actions, AppInfo, State } from '~/composables/useGlobal/types'
 import { NcProjectType, message, useNuxtApp } from '#imports'
 import { navigateTo } from '#app'
 

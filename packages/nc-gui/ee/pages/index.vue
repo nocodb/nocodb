@@ -55,6 +55,7 @@ const autoNavigateToProject = async () => {
   }
 
   await projectsStore.navigateToProject({
+    workspaceId: projectsStore.projectsList[0].fk_workspace_id!,
     projectId: projectsStore.projectsList[0].id!,
   })
 }

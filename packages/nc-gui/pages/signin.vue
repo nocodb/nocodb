@@ -101,7 +101,7 @@ function resetError() {
               </div>
             </Transition>
 
-            <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email" aria-autocomplete="email">
+            <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
               <a-input
                 v-model:value="form.email"
                 type="email"
@@ -113,10 +113,9 @@ function resetError() {
               />
             </a-form-item>
 
-            <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password" aria-autocomplete="password">
+            <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
               <a-input-password
                 v-model:value="form.password"
-                type="password"
                 autocomplete="password"
                 data-testid="nc-form-signin__password"
                 size="large"

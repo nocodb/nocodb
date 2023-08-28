@@ -71,8 +71,6 @@ test.describe('Project operations', () => {
   });
 
   test('rename, delete', async () => {
-    // Already verified as part of workspace tests
-
     // if project already exists, delete it
     await deleteIfExists('project-firstName');
 

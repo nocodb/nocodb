@@ -292,12 +292,12 @@ export class CellPageObject extends BasePage {
     verifyChildList?: boolean;
     options?: { singular?: string; plural?: string };
   }) {
-    const cell = await this.get({ index, columnHeader });
-    const linkText = await cell.locator('.nc-datatype-link');
+    const cell = this.get({ index, columnHeader });
+    const linkText = cell.locator('.nc-datatype-link');
 
     await cell.scrollIntoViewIfNeeded();
 
-    // lazy load- give enough time for cell to load
+    // lazy load - give enough time for cell to load
     await this.rootPage.waitForTimeout(1000);
 
     if (type === 'bt') {
@@ -344,7 +344,7 @@ export class CellPageObject extends BasePage {
         await this.rootPage.waitForSelector('.nc-modal-child-list:visible');
 
         // verify child list count & contents
-        const childList = await this.rootPage.locator('.ant-card:visible');
+        const childList = this.rootPage.locator('.ant-card:visible');
         expect(await childList.count()).toBe(count);
 
         // close child list

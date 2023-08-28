@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { WorkspaceType } from 'nocodb-sdk'
-
 const workspaceStore = useWorkspace()
 const projectStore = useProject()
 
@@ -12,7 +10,7 @@ const { activeWorkspace, isWorkspaceLoading } = storeToRefs(workspaceStore)
 
 <template>
   <div
-    class="flex items-center px-2 nc-sidebar-header py-1.2 w-full border-b-1 border-gray-200"
+    class="flex items-center px-2 nc-sidebar-header py-1.2 w-full border-b-1 border-gray-200 group"
     style="height: var(--topbar-height)"
   >
     <div v-if="!isWorkspaceLoading" class="flex flex-row items-center w-full">
@@ -36,7 +34,8 @@ const { activeWorkspace, isWorkspaceLoading } = storeToRefs(workspaceStore)
         </WorkspaceMenu>
       </div>
       <div class="flex flex-grow min-w-1"></div>
-      <NcTooltip class="flex" placement="bottom" hide-on-click>
+
+      <NcTooltip class="flex opacity-0 group-hover:opacity-100 transition-opacity duration-50" placement="bottom" hide-on-click>
         <template #title>
           {{
             isLeftSidebarOpen

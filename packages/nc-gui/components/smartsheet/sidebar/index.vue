@@ -185,9 +185,14 @@ onUnmounted(() => {
     <div
       v-else
       ref="tabBtnsContainerRef"
-      class="flex flex-row p-1 mx-1 mt-1 mb-2.75 rounded-md gap-x-2 nc-view-sidebar-tab items-center"
+      class="flex flex-row group p-1 mx-1 mt-1 mb-2.75 rounded-md gap-x-2 nc-view-sidebar-tab items-center"
     >
-      <NcTooltip placement="bottom" hide-on-click>
+      <NcTooltip
+        placement="bottom"
+        hide-on-click
+        :mouse-enter-delay="10"
+        class="flex opacity-0 w-0 group-hover:(opacity-100 w-8) transition-all duration-50"
+      >
         <template #title>
           {{
             isRightSidebarOpen

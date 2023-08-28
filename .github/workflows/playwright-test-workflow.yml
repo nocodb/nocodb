@@ -57,12 +57,8 @@ jobs:
         run: export CI=true
       - name: Set NC Edition
         run: export EE=true
-      - name: install dependencies nocodb-sdk
-        working-directory: ./packages/nocodb-sdk
-        run: pnpm install
-      - name: Build nocodb-sdk
-        working-directory: ./packages/nocodb-sdk
-        run: pnpm run build
+      - name: install dependencies
+        run: pnpm bootstrap
       - name: Setup mysql
         if: ${{ inputs.db == 'mysql' }}
         working-directory: ./packages/nocodb/tests/mysql-sakila-db
@@ -90,24 +86,20 @@ jobs:
         if: ${{ inputs.db == 'sqlite' }}
         working-directory: ./packages/nocodb
         run: |
-          pnpm install
           pnpm run watch:run:playwright &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
       - name: Run backend:mysql
         if: ${{ inputs.db == 'mysql' }}
         working-directory: ./packages/nocodb
         run: |
-          pnpm install
           pnpm run watch:run:playwright:mysql &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
       - name: Run backend:pg
         if: ${{ inputs.db == 'pg' }}
         working-directory: ./packages/nocodb
         run: |
-          pnpm install
           pnpm run watch:run:playwright:pg &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
       - name: Install dependencies
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: ./tests/playwright
-        run: pnpm install
       - name: Install Playwright Browsers
         working-directory: ./tests/playwright
         run: pnpm exec playwright install --with-deps chromium

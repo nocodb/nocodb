@@ -29,19 +29,17 @@ jobs:
         with:
           token: ${{ secrets.NC_GITHUB_TOKEN }}
           repository: 'nocodb/nocodb-timely'
-      - name: Cache node modules
-        id: cache-pnpm
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
         with:
-          # pnpm cache files are stored in `~/.pnpm` on Linux/macOS
-          path: ~/.pnpm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+            ${{ runner.os }}-pnpm-store-
       - name: Cache pkg modules
         id: cache-pkg
         uses: actions/cache@v3
@@ -68,7 +66,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
 
       - name: Update nocodb-timely
         env:
@@ -86,7 +84,7 @@ jobs:
       - name : Install dependencies and build executables
         run: |
           # install pnpm dependendencies
-          pnpm i
+          pnpm bootstrap
 
           # Copy sqlite binaries
           # rsync -rvzhP ./binaries/binding/ ./node_modules/sqlite3/lib/binding/

@@ -23,11 +23,7 @@ jobs:
           fetch-depth: 0
         
       - run: |
-          cd packages/nocodb
-          pnpm install --ignore-scripts nocodb-sdk
-          cd ../..
-          cd packages/nc-gui
-          pnpm install --ignore-scripts nocodb-sdk
+          pnpm bootstrap
 
       - name: Create Pull Request
         id: cpr

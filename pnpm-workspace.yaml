@@ -2,4 +2,4 @@ packages:
   - 'packages/nocodb-sdk'
   - 'packages/nc-gui'
   - 'packages/nocodb'
-  - 'tests/*'
+  - 'tests/playwright'

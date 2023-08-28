@@ -160,7 +160,7 @@ const onBlur = () => {
   @apply bg-white border-1 border-gray-200 text-gray-700;
 
   &:hover {
-    @apply bg-gray-50;
+    @apply bg-gray-100;
   }
 }
 
@@ -175,7 +175,7 @@ const onBlur = () => {
 .nc-button.ant-btn-text {
   box-shadow: none;
 
-  @apply bg-transparent border-0 text-gray-700 hover:bg-gray-50;
+  @apply bg-transparent border-0 text-gray-700 hover:bg-gray-100;
 
   &:focus {
     box-shadow: none;

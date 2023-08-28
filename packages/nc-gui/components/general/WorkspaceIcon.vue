@@ -16,8 +16,8 @@ const size = computed(() => props.size || 'medium')
   <div
     class="flex nc-workspace-avatar"
     :class="{
-      'w-4 h-4': size === 'small',
-      'w-6 h-6': size === 'medium',
+      'min-w-4 w-4 h-4': size === 'small',
+      'min-w-6 w-6 h-6': size === 'medium',
     }"
     :style="{ backgroundColor: workspaceColor }"
   >
@@ -29,6 +29,6 @@ const size = computed(() => props.size || 'medium')
 
 <style lang="scss" scoped>
 .nc-workspace-avatar {
-  @apply min-w-4 rounded text-xs flex items-center justify-center text-white uppercase;
+  @apply rounded text-xs flex items-center justify-center text-white uppercase;
 }
 </style>

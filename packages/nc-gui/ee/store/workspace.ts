@@ -142,12 +142,20 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const updateWorkspace = async (
     workspaceId: string,
-    workspace: Pick<WorkspaceType, 'title' | 'order' | 'description' | 'meta'>,
+    workspaceData: Pick<WorkspaceType, 'title' | 'order' | 'description' | 'meta'>,
   ) => {
     try {
       // todo: pagination
-      await $api.workspace.update(workspaceId, workspace, {
+      await $api.workspace.update(workspaceId, workspaceData, {
         baseURL: appInfo.value.baseHostName ? `https://${workspaceId}.${appInfo.value.baseHostName}` : undefined,
+      })
+
+      const workspace = workspaces.value.get(workspaceId)
+      if (!workspace) return
+
+      workspaces.value.set(workspaceId, {
+        ...workspace,
+        ...workspaceData,
       })
       refreshCommandPalette()
     } catch (e: any) {

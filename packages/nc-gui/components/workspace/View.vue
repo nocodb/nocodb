@@ -78,7 +78,7 @@ watch(
               Settings
             </div>
           </template>
-          <WorkspaceDelete />
+          <WorkspaceSettings />
         </a-tab-pane>
       </template>
     </NcTabs>

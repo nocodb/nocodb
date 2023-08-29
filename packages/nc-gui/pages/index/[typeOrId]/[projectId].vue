@@ -24,7 +24,7 @@ provide(ToggleDialogInj, toggleDialog)
 
 <template>
   <div>
-    <NuxtPage :transition="false"/>
+    <NuxtPage :transition="false" />
   </div>
 </template>
 

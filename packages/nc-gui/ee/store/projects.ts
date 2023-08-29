@@ -47,7 +47,7 @@ export const useProjects = defineStore('projectsStore', () => {
 
   const { api } = useApi()
 
-  const { getBaseUrl } = useGlobal()
+  const { getBaseUrl, navigateToProject: _navigateToProject } = useGlobal()
 
   const isProjectsLoading = ref(false)
 
@@ -316,10 +316,10 @@ export const useProjects = defineStore('projectsStore', () => {
     if (!project) return
 
     if (page) {
-      return await navigateTo(`/${project.fk_workspace_id}/${projectId}?page=${page}`)
+      return await _navigateToProject({ workspaceId: project.fk_workspace_id, projectId, query: { page } })
     }
 
-    await navigateTo(`/${project.fk_workspace_id}/${projectId}`)
+    return await _navigateToProject({ workspaceId: project.fk_workspace_id, projectId })
   }
 
   onMounted(() => {
@@ -330,8 +330,12 @@ export const useProjects = defineStore('projectsStore', () => {
 
   const navigateToFirstProjectOrHome = async () => {
     // if active project id is deleted, navigate to first project or home page
-    if (projectsList.value?.length) await navigateToProject({ projectId: projectsList.value[0].id! })
-    else navigateTo(`/${workspaceStore.activeWorkspaceId}`)
+    if (projectsList.value?.length)
+      await _navigateToProject({ projectId: projectsList.value[0].id!, workspaceId: projectsList.value[0].fk_workspace_id })
+    else
+      await _navigateToProject({
+        workspaceId: workspaceStore.activeWorkspaceId,
+      })
   }
 
   return {

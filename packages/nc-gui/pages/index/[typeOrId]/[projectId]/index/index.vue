@@ -10,7 +10,6 @@ provide(TabMetaInj, activeTab)
 
 useSidebar('nc-left-sidebar')
 
-
 const router = useRouter()
 
 const route = router.currentRoute
@@ -72,7 +71,7 @@ const route = router.currentRoute
       </div>
        -->
       <div class="w-full min-h-[300px] flex-auto">
-        <NuxtPage/>
+        <NuxtPage />
       </div>
     </div>
   </div>

@@ -138,7 +138,7 @@ type NcProject = ProjectType & {
 interface UndoRedoAction {
   undo: { fn: Function; args: any[] }
   redo: { fn: Function; args: any[] }
-  scope?: { key: string; param: string }[]
+  scope?: { key: string; param: string | string[] }[]
 }
 
 interface ImportWorkerPayload {

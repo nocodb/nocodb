@@ -15,7 +15,7 @@ const { loadWorkspaces } = workspaceStore
 
 const { navigateToTable } = useTablesStore()
 
-const { appInfo } = useGlobal()
+const { appInfo, navigateToProject } = useGlobal()
 
 const isWorkspaceDropdownOpen = ref(false)
 
@@ -49,7 +49,9 @@ const projectStore = useProject()
 const { isSharedBase } = storeToRefs(projectStore)
 
 const switchWorkspace = async (workspaceId: string) => {
-  navigateTo(`/${workspaceId}`)
+  navigateToProject({
+    workspaceId,
+  })
 }
 </script>
 

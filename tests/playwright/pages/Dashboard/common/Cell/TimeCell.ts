@@ -15,7 +15,7 @@ export class TimeCellPageObject extends BasePage {
   }
 
   async verify({ index, columnHeader, value }: { index: number; columnHeader: string; value: string }) {
-    const cell = await this.get({ index, columnHeader });
+    const cell = this.get({ index, columnHeader });
     await cell.scrollIntoViewIfNeeded();
     await cell.locator(`input[title="${value}"]`).waitFor({ state: 'visible' });
     await expect(cell.locator(`[title="${value}"]`)).toBeVisible();
@@ -31,7 +31,7 @@ export class TimeCellPageObject extends BasePage {
     hour: number;
     minute: number;
   }) {
-    const timePanel = await this.rootPage.locator('.ant-picker-time-panel-column');
+    const timePanel = this.rootPage.locator('.ant-picker-time-panel-column');
     await timePanel.nth(0).locator('.ant-picker-time-panel-cell').nth(hour).click();
     await timePanel.nth(1).locator('.ant-picker-time-panel-cell').nth(minute).click();
     if (hour < 12) {

@@ -1,15 +1,13 @@
-<template>
-  <div class="p-4">
-<!--<WorkspaceProjectList />-->
-  </div>
-</template>
-
 <script>
 export default {
-  name: "index"
+  name: 'Index',
 }
 </script>
 
-<style scoped>
+<template>
+  <div class="p-4">
+    <!-- <WorkspaceProjectList /> -->
+  </div>
+</template>
 
-</style>
+<style scoped></style>

@@ -6,6 +6,8 @@ const activeView = inject(ActiveViewInj, ref())
 const { openedViewsTab } = storeToRefs(useViewsStore())
 
 const { onViewsTabChange } = useViewsStore()
+
+const isDetailsDisabled = computed(() => activeView.value?.lock_type === 'locked')
 </script>
 
 <template>
@@ -21,21 +23,28 @@ const { onViewsTabChange } = useViewsStore()
       <div class="tab-title nc-tab">Data</div>
     </div>
     <div
-      class="tab"
       :class="{
-        active: openedViewsTab !== 'view',
+        '!cursor-not-allowed': isDetailsDisabled,
       }"
-      @click="onViewsTabChange(isEeUI ? 'field' : 'relation')"
     >
-      <GeneralIcon
-        icon="erd"
-        class="tab-icon"
-        :class="{}"
-        :style="{
-          fontWeight: 500,
+      <div
+        class="tab"
+        :class="{
+          'active': openedViewsTab !== 'view',
+          'pointer-events-none ': isDetailsDisabled,
         }"
-      />
-      <div class="tab-title nc-tab">Details</div>
+        @click="onViewsTabChange(isEeUI ? 'field' : 'relation')"
+      >
+        <GeneralIcon
+          icon="erd"
+          class="tab-icon"
+          :class="{}"
+          :style="{
+            fontWeight: 500,
+          }"
+        />
+        <div class="tab-title nc-tab">Details</div>
+      </div>
     </div>
   </div>
 </template>

@@ -98,7 +98,17 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const loadWorkspace = async (..._args: any) => {}
 
-  async function populateWorkspace(..._args: any) {}
+  async function populateWorkspace(..._args: any) {
+    isWorkspaceLoading.value = true
+
+    try {
+      await projectsStore.loadProjects()
+    } catch (e: any) {
+      console.error(e)
+    } finally {
+      isWorkspaceLoading.value = false
+    }
+  }
 
   watch(activePage, async (page) => {
     if (page === 'workspace') {

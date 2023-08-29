@@ -2,6 +2,8 @@
 const workspaceStore = useWorkspace()
 const projectStore = useProject()
 
+const { appInfo } = useGlobal()
+
 const { activeWorkspace, isWorkspaceLoading, isWorkspaceOwnerOrCreator, isWorkspaceSettingsPageOpened } =
   storeToRefs(workspaceStore)
 const { navigateToWorkspaceSettings } = workspaceStore
@@ -52,6 +54,7 @@ const navigateToSettings = () => {
   <template v-else-if="!isSharedBase">
     <div class="flex flex-col p-1 gap-y-0.5 mt-0.25">
       <NcButton
+        v-if="appInfo.ee"
         type="text"
         size="small"
         class="nc-sidebar-top-button w-full !hover:bg-gray-200 !rounded-md"

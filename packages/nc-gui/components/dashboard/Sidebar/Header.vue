@@ -35,7 +35,14 @@ const { activeWorkspace, isWorkspaceLoading } = storeToRefs(workspaceStore)
       </div>
       <div class="flex flex-grow min-w-1"></div>
 
-      <NcTooltip class="flex opacity-0 group-hover:opacity-100 transition-opacity duration-50" placement="bottom" hide-on-click>
+      <NcTooltip
+        class="flex opacity-0 group-hover:opacity-100 transition-opacity duration-50"
+        :class="{
+          '!opacity-100': !isLeftSidebarOpen,
+        }"
+        placement="bottom"
+        hide-on-click
+      >
         <template #title>
           {{
             isLeftSidebarOpen

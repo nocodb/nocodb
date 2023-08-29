@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-const { user, signOut, token } = useGlobal()
+import GithubButton from 'vue-github-button'
+const { user, signOut, token, appInfo } = useGlobal()
 
 const { clearWorkspaces } = useWorkspace()
 
@@ -90,7 +91,18 @@ watch(isMenuOpen, () => {
       </template>
     </NcDropdown>
 
-    <div class="text-gray-500 text-xs ml-3.25">© 2023 NocoDB. Inc</div>
+    <div v-if="appInfo.ee" class="text-gray-500 text-xs ml-3.25">© 2023 NocoDB. Inc</div>
+    <div v-else class="flex flex-col gap-y-1 pt-1">
+      <div class="flex items-start flex-row justify-center px-2 gap-2">
+        <GithubButton href="https://github.com/nocodb/nocodb" data-icon="octicon-star" data-show-count="true" data-size="large">
+          Star
+        </GithubButton>
+      </div>
+
+      <div class="flex items-start flex-row justify-center gap-2">
+        <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
+      </div>
+    </div>
   </div>
 </template>
 

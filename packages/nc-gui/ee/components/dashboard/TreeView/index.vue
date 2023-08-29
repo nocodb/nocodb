@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-
-import GithubButton from 'vue-github-button'
 import ProjectWrapper from './ProjectWrapper.vue'
-
 import type { TabType } from '#imports'
-
 import {
   TreeViewInj,
   computed,
@@ -59,6 +55,90 @@ const { tables } = storeToRefs(projectStore)
 const { activeTable: _activeTable } = storeToRefs(useTablesStore())
 
 const { refreshCommandPalette } = useCommandPalette()
+
+const keys = ref<Record<string, number>>({})
+
+const menuRefs = ref<HTMLElement[] | HTMLElement>()
+
+// const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
+
+const tablesById = computed(() =>
+  Object.values(projectTables.value.get(activeProjectId.value!) || {})
+    .flat()
+    ?.reduce<Record<string, TableType>>((acc, table) => {
+      acc[table.id!] = table
+
+      return acc
+    }, {}),
+)
+
+const sortables: Record<string, Sortable> = {}
+
+// todo: replace with vuedraggable
+const initSortable = (el: Element) => {
+  const base_id = el.getAttribute('nc-base')
+  if (!base_id) return
+  if (sortables[base_id]) sortables[base_id].destroy()
+  Sortable.create(el as HTMLLIElement, {
+    onEnd: async (evt) => {
+      const offset = tables.value.findIndex((table) => table.base_id === base_id)
+
+      const { newIndex = 0, oldIndex = 0 } = evt
+
+      const itemEl = evt.item as HTMLLIElement
+      const item = tablesById.value[itemEl.dataset.id as string]
+
+      // get the html collection of all list items
+      const children: HTMLCollection = evt.to.children
+
+      // skip if children count is 1
+      if (children.length < 2) return
+
+      // get items before and after the moved item
+      const itemBeforeEl = children[newIndex - 1] as HTMLLIElement
+      const itemAfterEl = children[newIndex + 1] as HTMLLIElement
+
+      // get items meta of before and after the moved item
+      const itemBefore = itemBeforeEl && tablesById.value[itemBeforeEl.dataset.id as string]
+      const itemAfter = itemAfterEl && tablesById.value[itemAfterEl.dataset.id as string]
+
+      // set new order value based on the new order of the items
+      if (children.length - 1 === evt.newIndex) {
+        item.order = (itemBefore.order as number) + 1
+      } else if (newIndex === 0) {
+        item.order = (itemAfter.order as number) / 2
+      } else {
+        item.order = ((itemBefore.order as number) + (itemAfter.order as number)) / 2
+      }
+
+      // update the order of the moved item
+      tables.value?.splice(newIndex + offset, 0, ...tables.value?.splice(oldIndex + offset, 1))
+
+      // force re-render the list
+      if (keys.value[base_id]) {
+        keys.value[base_id] = keys.value[base_id] + 1
+      } else {
+        keys.value[base_id] = 1
+      }
+
+      // update the item order
+      await $api.dbTable.reorder(item.id as string, {
+        order: item.order,
+      })
+    },
+    animation: 150,
+  })
+}
+
+watchEffect(() => {
+  if (menuRefs.value) {
+    if (menuRefs.value instanceof HTMLElement) {
+      initSortable(menuRefs.value)
+    } else {
+      menuRefs.value.forEach((el) => initSortable(el))
+    }
+  }
+})
 
 const contextMenuTarget = reactive<{ type?: 'project' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
 
@@ -267,7 +347,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="nc-treeview-container flex flex-col justify-between select-none">
+  <div class="nc-treeview-container flex flex-col justify-between select-none px-0.5">
     <div ref="treeViewDom" mode="inline" class="nc-treeview pb-0.5 flex-grow min-h-50 overflow-x-hidden">
       <template v-if="projectsList?.length">
         <ProjectWrapper
@@ -276,28 +356,31 @@ onUnmounted(() => {
           :project-role="project.project_role || project.workspace_role"
           :project="project"
         >
-          <DashboardTreeViewNewProjectNode />
+          <DashboardTreeViewProjectNode />
         </ProjectWrapper>
       </template>
 
       <WorkspaceEmptyPlaceholder v-else />
     </div>
 
-    <div class="flex items-start flex-row justify-center px-2 gap-2">
-      <GithubButton
-        class="ml-2"
-        href="https://github.com/nocodb/nocodb"
-        data-icon="octicon-star"
-        data-show-count="true"
-        data-size="large"
-      >
-        Star
-      </GithubButton>
-    </div>
-
-    <div class="flex items-start flex-row justify-center px-2 pt-1 pb-1.5 gap-2">
-      <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
-    </div>
+    <!-- <div class="flex flex-col border-t-1 border-gray-100">
+      <div class="flex items-center mt-3 justify-center mx-2">
+        <WorkspaceCreateProjectBtn
+          modal
+          type="ghost"
+          class="h-auto w-full nc-create-project-btn !rounded-lg"
+          :active-workspace-id="route.params.typeOrId"
+        >
+          <div class="flex flex-row justify-between w-full items-center">
+            <div class="flex">Create new Project</div>
+            <MaterialSymbolsAddRounded />
+          </div>
+        </WorkspaceCreateProjectBtn>
+      </div>
+      <div class="flex items-start flex-row justify-center px-2 pt-1 pb-1.5 gap-2">
+        <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
+      </div>
+    </div> -->
   </div>
 </template>
 

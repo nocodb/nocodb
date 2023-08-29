@@ -6,8 +6,8 @@ const activeView = inject(ActiveViewInj, ref())
 const { openedViewsTab } = storeToRefs(useViewsStore())
 
 const { onViewsTabChange } = useViewsStore()
-const selectedView = inject(ActiveViewInj)
-const isDetailsDisabled = computed(() => selectedView?.value.lock_type === 'locked')
+
+const isDetailsDisabled = computed(() => activeView.value?.lock_type === 'locked')
 </script>
 
 <template>

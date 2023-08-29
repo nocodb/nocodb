@@ -156,7 +156,7 @@ export class ToolbarFilterPage extends BasePage {
       }
     }
 
-    const selectedOpType = await getTextExcludeIconText(await this.rootPage.locator('.nc-filter-operation-select'));
+    const selectedOpType = await getTextExcludeIconText(this.rootPage.locator('.nc-filter-operation-select'));
     if (selectedOpType !== operation) {
       await this.rootPage.locator('.nc-filter-operation-select').click();
       // first() : filter list has >, >=

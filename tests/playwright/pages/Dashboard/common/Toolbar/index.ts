@@ -179,7 +179,7 @@ export class ToolbarPage extends BasePage {
     // verify downloaded content against expected content
     const expectedData = fs.readFileSync(`./fixtures/${verificationFile}`, 'utf8').replace(/\r/g, '').split('\n');
     const file = fs.readFileSync('./output/at.txt', 'utf8').replace(/\r/g, '').split('\n');
-    await expect(file).toEqual(expectedData);
+    expect(file).toEqual(expectedData);
   }
 
   async clickRowHeight() {
@@ -209,7 +209,7 @@ export class ToolbarPage extends BasePage {
       commenter: ['Download as CSV', 'Download as XLSX'],
       viewer: ['Download as CSV', 'Download as XLSX'],
     };
-    const vMenu = await this.rootPage.locator('.nc-dropdown-actions-menu:visible');
+    const vMenu = this.rootPage.locator('.nc-dropdown-actions-menu:visible');
     for (const item of menuItems[param.role.toLowerCase()]) {
       await expect(vMenu).toContainText(item);
     }

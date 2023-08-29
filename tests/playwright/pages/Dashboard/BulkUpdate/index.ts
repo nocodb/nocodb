@@ -1,7 +1,6 @@
 import { expect, Locator } from '@playwright/test';
 import BasePage from '../../Base';
 import { DashboardPage } from '..';
-import { DateTimeCellPageObject } from '../common/Cell/DateTimeCell';
 import { getTextExcludeIconText } from '../../../tests/utils/general';
 
 export class BulkUpdatePage extends BasePage {
@@ -29,17 +28,17 @@ export class BulkUpdatePage extends BasePage {
   }
 
   async getInactiveColumn(index: number) {
-    const inactiveColumns = await this.columnsDrawer.locator('.ant-card');
+    const inactiveColumns = this.columnsDrawer.locator('.ant-card');
     return inactiveColumns.nth(index);
   }
 
   async getActiveColumn(index: number) {
-    const activeColumns = await this.form.locator('[data-testid="nc-bulk-update-fields"]');
+    const activeColumns = this.form.locator('[data-testid="nc-bulk-update-fields"]');
     return activeColumns.nth(index);
   }
 
   async getInactiveColumns() {
-    const inactiveColumns = await this.columnsDrawer.locator('.ant-card');
+    const inactiveColumns = this.columnsDrawer.locator('.ant-card');
     const inactiveColumnsCount = await inactiveColumns.count();
     const inactiveColumnsTitles = [];
     // get title for each inactive column
@@ -52,7 +51,7 @@ export class BulkUpdatePage extends BasePage {
   }
 
   async getActiveColumns() {
-    const activeColumns = await this.form.locator('[data-testid="nc-bulk-update-fields"]');
+    const activeColumns = this.form.locator('[data-testid="nc-bulk-update-fields"]');
     const activeColumnsCount = await activeColumns.count();
     const activeColumnsTitles = [];
     // get title for each active column
@@ -67,7 +66,7 @@ export class BulkUpdatePage extends BasePage {
   }
 
   async removeField(index: number) {
-    const removeFieldButton = await this.form.locator('[data-testid="nc-bulk-update-fields"]');
+    const removeFieldButton = this.form.locator('[data-testid="nc-bulk-update-fields"]');
     const removeFieldButtonCount = await removeFieldButton.count();
     await removeFieldButton.nth(index).locator('[data-testid="nc-bulk-update-fields-remove-icon"]').click();
     const newRemoveFieldButtonCount = await removeFieldButton.count();
@@ -75,7 +74,7 @@ export class BulkUpdatePage extends BasePage {
   }
 
   async addField(index: number) {
-    const addFieldButton = await this.columnsDrawer.locator('.ant-card');
+    const addFieldButton = this.columnsDrawer.locator('.ant-card');
     const addFieldButtonCount = await addFieldButton.count();
     await addFieldButton.nth(index).click();
     const newAddFieldButtonCount = await addFieldButton.count();
@@ -143,7 +142,7 @@ export class BulkUpdatePage extends BasePage {
       case 'attachment':
         // eslint-disable-next-line no-case-declarations
         const attachFileAction = field.locator('[data-testid="attachment-cell-file-picker-button"]').click();
-        await this.attachFile({ filePickUIAction: attachFileAction, filePath: value });
+        await this.attachFile({ filePickUIAction: attachFileAction, filePath: [value] });
         break;
       case 'date':
         {
@@ -174,7 +173,7 @@ export class BulkUpdatePage extends BasePage {
     awaitResponse?: boolean;
   } = {}) {
     await this.bulkUpdateButton.click();
-    const confirmModal = await this.rootPage.locator('.ant-modal-confirm');
+    const confirmModal = this.rootPage.locator('.ant-modal-confirm');
 
     const saveRowAction = () => confirmModal.locator('.ant-btn-primary').click();
     if (!awaitResponse) {

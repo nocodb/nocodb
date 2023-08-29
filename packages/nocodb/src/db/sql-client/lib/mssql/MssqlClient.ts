@@ -1,9 +1,9 @@
 import knex from 'knex';
 import find from 'lodash/find';
+import { type ColumnType, UITypes } from 'nocodb-sdk';
 import KnexClient from '../KnexClient';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
-import type { ColumnType } from 'nocodb-sdk';
 
 const log = new Debug('MssqlClient');
 
@@ -2584,10 +2584,17 @@ class MssqlClient extends KnexClient {
 
     const defaultValue = this.sanitiseDefaultValue(n.cdf);
     const shouldSanitize = true;
-    const scaleAndPrecision =
-      !getDefaultLengthIsDisabled(n.dt) && n.dtxp
-        ? `(${n.dtxp}${n.dtxs ? `,${n.dtxs}` : ''})`
-        : '';
+    let scaleAndPrecision = '';
+    if (
+      ['varchar', 'nvarchar'].includes(n.dt) &&
+      [UITypes.SingleSelect, UITypes.MultiSelect].includes(n.uidt)
+    ) {
+      // for UITypes.SingleSelect, UITypes.MultiSelect,
+      // dtxp would be the select options.
+      scaleAndPrecision = `(MAX)`;
+    } else if (!getDefaultLengthIsDisabled(n.dt) && n.dtxp) {
+      scaleAndPrecision = `(${n.dtxp}${n.dtxs ? `,${n.dtxs}` : ''})`;
+    }
 
     if (change === 0) {
       query = existingQuery ? ',' : '';

@@ -3650,9 +3650,10 @@ class BaseModelSqlv2 {
       const proto = await this.getProto();
 
       const data = await groupedQb;
+
       const result = data?.map((d) => {
         d.__proto__ = proto;
-        return d;
+        return this.convertDateFormat(d);
       });
 
       const groupedResult = result.reduce<Map<string | number | null, any[]>>(
@@ -3660,9 +3661,7 @@ class BaseModelSqlv2 {
           if (!aggObj.has(row[column.title])) {
             aggObj.set(row[column.title], []);
           }
-
           aggObj.get(row[column.title]).push(row);
-
           return aggObj;
         },
         new Map(),

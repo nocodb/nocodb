@@ -205,7 +205,6 @@ export class MssqlUi {
       case 'int':
       case 'money':
       case 'nchar':
-      case 'ntext':
       case 'numeric':
       case 'nvarchar':
       case 'real':
@@ -215,7 +214,6 @@ export class MssqlUi {
       case 'smallmoney':
       case 'sql_variant':
       case 'sysname':
-      case 'text':
       case 'time':
       case 'timestamp':
       case 'tinyint':
@@ -548,7 +546,7 @@ export class MssqlUi {
         return 'string';
 
       case 'ntext':
-        return 'text';
+        return 'nvarchar';
       case 'numeric':
         return 'float';
       case 'nvarchar':
@@ -564,7 +562,7 @@ export class MssqlUi {
       case 'sysname':
         return 'string';
       case 'text':
-        return 'text';
+        return 'varchar';
       case 'time':
         return 'time';
       case 'timestamp':
@@ -638,10 +636,10 @@ export class MssqlUi {
         colProp.dt = 'varchar';
         break;
       case 'LongText':
-        colProp.dt = 'text';
+        colProp.dt = 'varchar';
         break;
       case 'Attachment':
-        colProp.dt = 'text';
+        colProp.dt = 'varchar';
         break;
       case 'Checkbox':
         colProp.dt = 'tinyint';
@@ -649,10 +647,10 @@ export class MssqlUi {
         colProp.cdf = '0';
         break;
       case 'MultiSelect':
-        colProp.dt = 'text';
+        colProp.dt = 'varchar';
         break;
       case 'SingleSelect':
-        colProp.dt = 'text';
+        colProp.dt = 'varchar';
         break;
       case 'Collaborator':
         colProp.dt = 'varchar';
@@ -758,7 +756,7 @@ export class MssqlUi {
     switch (col.uidt) {
       case 'ID':
         if (idType === 'AG') {
-          return ['char', 'ntext', 'text', 'varchar', 'nvarchar'];
+          return ['char', 'varchar', 'nvarchar'];
         } else if (idType === 'AI') {
           return ['int', 'bigint', 'bit', 'smallint', 'tinyint'];
         } else {
@@ -772,19 +770,19 @@ export class MssqlUi {
       case 'Attachment':
       case 'Collaborator':
       case 'GeoData':
-        return ['char', 'ntext', 'text', 'varchar', 'nvarchar'];
+        return ['char', 'varchar', 'nvarchar'];
 
       case 'JSON':
-        return ['text', 'ntext'];
+        return ['varchar', 'nvarchar'];
 
       case 'Checkbox':
         return ['bigint', 'bit', 'int', 'tinyint'];
 
       case 'MultiSelect':
-        return ['text', 'ntext'];
+        return ['varchar', 'nvarchar'];
 
       case 'SingleSelect':
-        return ['text', 'ntext'];
+        return ['varchar', 'nvarchar'];
 
       case 'Year':
         return ['int'];
@@ -869,7 +867,7 @@ export class MssqlUi {
         ];
 
       case 'Formula':
-        return ['text', 'ntext', 'varchar', 'nvarchar'];
+        return ['varchar', 'nvarchar'];
 
       case 'Rollup':
         return ['varchar'];

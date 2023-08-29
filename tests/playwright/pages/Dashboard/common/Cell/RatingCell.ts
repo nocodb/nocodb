@@ -24,7 +24,7 @@ export class RatingCellPageObject extends BasePage {
   }
 
   async verify({ index, columnHeader, rating }: { index: number; columnHeader: string; rating: number }) {
-    const cell = await this.get({ index, columnHeader });
+    const cell = this.get({ index, columnHeader });
     await cell.scrollIntoViewIfNeeded();
     await expect(cell.locator(`li.ant-rate-star.ant-rate-star-full`)).toHaveCount(rating);
   }

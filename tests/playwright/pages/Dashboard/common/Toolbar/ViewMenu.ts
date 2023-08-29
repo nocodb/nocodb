@@ -1,6 +1,5 @@
 import { expect, Locator } from '@playwright/test';
 import BasePage from '../../../Base';
-import { GridPage } from '../../Grid';
 import { ToolbarPage } from './index';
 // @ts-ignore
 import fs from 'fs';
@@ -44,7 +43,7 @@ export class ToolbarViewMenuPage extends BasePage {
     // verify downloaded content against expected content
     const expectedData = fs.readFileSync(expectedDataFile, 'utf8').replace(/\r/g, '').split('\n');
     const file = fs.readFileSync('./output/test.txt', 'utf8').replace(/\r/g, '').split('\n');
-    await expect(file).toEqual(expectedData);
+    expect(file).toEqual(expectedData);
   }
 
   async verifyDownloadAsXLSX({

@@ -63,7 +63,7 @@ export class TreeViewPage extends BasePage {
   }
 
   async openBase({ title }: { title: string }) {
-    const nodes = await this.get().locator(`[data-testid="nc-sidebar-project-${title.toLowerCase()}"]`);
+    const nodes = this.get().locator(`[data-testid="nc-sidebar-project-${title.toLowerCase()}"]`);
     await nodes.click();
     return;
   }
@@ -164,11 +164,12 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Delete"):visible').click();
 
     await this.waitForResponse({
-      uiAction: () => {
+      uiAction: async () => {
         // Create a promise that resolves after 1 second
-        const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+        const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
         // Returning a promise that resolves with the result after the 1-second delay
-        return delay(100).then(() => this.dashboard.get().locator('button:has-text("Delete Table")').click());
+        await delay(100);
+        return await this.dashboard.get().locator('button:has-text("Delete Table")').click();
       },
       httpMethodsToMatch: ['DELETE'],
       requestUrlPathToMatch: `/api/v1/db/meta/tables/`,

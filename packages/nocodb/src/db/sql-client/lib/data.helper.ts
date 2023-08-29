@@ -169,7 +169,6 @@ export const getColumnType = function (column) {
     'tinytext',
     'mediumtext',
     'longtext',
-    'ntext',
     'image',
     'blob',
     'mediumblob',

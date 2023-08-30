@@ -12,7 +12,7 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';
 import { UsersService } from '~/services/users/users.service';
-import {sanitiseUserObj} from "~/utils";
+import { sanitiseUserObj } from '~/utils';
 
 @Injectable()
 export class OpenidStrategy extends PassportStrategy(

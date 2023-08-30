@@ -1,11 +1,6 @@
 import { knownQueryParams } from '../lib/utils/NcConfigFactory';
-
-const entities = [`${__dirname}/entities/*.ts`, `${__dirname}/entities/*.js`];
-
-const migrations = [
-  `${__dirname}/migrations/*.ts`,
-  `${__dirname}/migrations/*.js`,
-];
+import { DataRecoveryActivity, ServerIncident } from './entities';
+import { addIncidentHandlingTables1689942863738 } from './migrations/1689942863738-addIncidentHandlingTables';
 
 const ormConfig = () => {
   const url = new URL(process.env.NC_DB || '');
@@ -29,8 +24,8 @@ const ormConfig = () => {
     username: parsedQuery.user,
     password: parsedQuery.password,
     database: parsedQuery.database,
-    entities,
-    migrations,
+    entities: [ServerIncident, DataRecoveryActivity],
+    migrations: [addIncidentHandlingTables1689942863738],
     migrationsRun: false,
     cli: {
       migrationsDir: `src/database/migrations`,

@@ -136,7 +136,7 @@ watch(
 }
 
 .nc-view-sidebar-wrapper > * {
-  transition: all 0.2s ease-in-out;
+  transition: all 0.15s ease-in-out;
   @apply z-10 absolute;
 }
 

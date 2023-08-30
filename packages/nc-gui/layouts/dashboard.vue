@@ -182,13 +182,14 @@ export default {
 
 .nc-sidebar-content-resizable-wrapper.hide-resize-bar > {
   .splitpanes__splitter {
-    display: none !important;
+    cursor: default !important;
+    opacity: 0 !important;
     background-color: transparent !important;
   }
 }
 
 .splitpanes__pane {
-  transition: width 0.1s ease-in-out !important;
+  transition: width 0.15s ease-in-out !important;
 }
 
 .splitpanes--dragging {

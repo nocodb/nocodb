@@ -1,7 +1,7 @@
 ###########
 # Litestream Builder
 ###########
-FROM golang:alpine3.14 as lt-builder
+FROM golang:alpine3.18 as lt-builder
 
 WORKDIR /usr/src/
 
@@ -20,6 +20,8 @@ RUN cp $GOPATH/bin/litestream /usr/src/lt
 ###########
 FROM node:18.12.1-alpine as builder
 WORKDIR /usr/src/app
+
+ENV NODE_ENV production
 
 # install node-gyp dependencies
 RUN apk add --no-cache python3 make g++
@@ -41,7 +43,7 @@ RUN echo "node-linker=hoisted" > .npmrc
 # install production dependencies,
 # reduce node_module size with modclean & removing sqlite deps,
 # package built code into app.tar.gz & add execute permission to start.sh
-RUN pnpm install --prod --shamefully-hoist --ignore-scripts \
+RUN pnpm install --prod --shamefully-hoist \
     && npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**" --run  \
     && rm -rf ./node_modules/sqlite3/deps \
     && tar -czf ../appEntry/app.tar.gz ./* \
@@ -64,7 +66,7 @@ RUN apk --update --no-cache add \
     dumb-init
 
 # Copy litestream binary build
-COPY  --from=lt-builder /usr/src/lt /usr/src/appEntry/litestream
+COPY --from=lt-builder /usr/src/lt /usr/src/appEntry/litestream
 # Copy packaged production code & main entry file
 COPY --from=builder /usr/src/appEntry/ /usr/src/appEntry/
 

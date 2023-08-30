@@ -15,6 +15,8 @@ RUN cp $GOPATH/bin/litestream /usr/src/lt
 FROM node:18.12.1-alpine as builder
 WORKDIR /usr/src/app
 
+ENV NODE_ENV production
+
 # install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
 

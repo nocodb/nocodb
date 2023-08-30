@@ -1,18 +1,14 @@
 <script setup lang="ts">
 const { openedViewsTab } = storeToRefs(useViewsStore())
-const { onViewsTabChange } = useViewsStore()
+const { onViewsTabChange, isProtectedView } = useViewsStore()
 
 const { isUIAllowed } = useUIPermission()
-
-const activeView = inject(ActiveViewInj, ref())
-
-const isProtectedView = computed(() => activeView.value?.lock_type === 'locked')
 
 const route = useRoute()
 
 onMounted(() => {
   // preventing the webhook and field route in locked view
-  if ((isProtectedView.value && route.params?.slugs[0] === 'webhook') || route.params?.slugs[0] === 'field') {
+  if (isProtectedView && (route.params?.slugs[0] === 'webhook' || route.params?.slugs[0] === 'field')) {
     onViewsTabChange('relation')
   }
 })
@@ -33,7 +29,7 @@ watch(
       onViewsTabChange('relation')
     }
     // preventing the webhook route in locked view
-    if (isProtectedView.value && openedSubTab.value === 'webhook') {
+    if (isProtectedView && openedSubTab.value === 'webhook') {
       onViewsTabChange('relation')
     }
 

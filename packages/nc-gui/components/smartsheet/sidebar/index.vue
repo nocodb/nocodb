@@ -147,7 +147,7 @@ function onOpenModal({
     <div
       v-else
       ref="tabBtnsContainerRef"
-      class="flex flex-row group p-1 mx-1 mt-1 mb-2.75 rounded-md gap-x-2 nc-view-sidebar-tab items-center"
+      class="flex flex-row group p-1 mx-1.25 mt-1.25 mb-2.75 rounded-md gap-x-2 nc-view-sidebar-tab items-center"
     >
       <NcTooltip
         placement="bottom"

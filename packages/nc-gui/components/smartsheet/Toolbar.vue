@@ -23,7 +23,7 @@ const isViewSidebarAvailable = computed(
     class="nc-table-toolbar h-12 min-h-12 py-1 flex gap-2 items-center border-b border-gray-200 overflow-hidden"
     :class="{
       'nc-table-toolbar-mobile': isMobileMode,
-      'h-[var(--topbar-height)]': !isMobileMode,
+      'max-h-[var(--topbar-height)] min-h-[var(--topbar-height)]': !isMobileMode,
       'pl-3 pr-0': isViewSidebarAvailable,
       'px-3': !isViewSidebarAvailable,
     }"

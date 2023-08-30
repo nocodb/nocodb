@@ -57,6 +57,15 @@ export class UsersController extends UsersControllerCE {
     );
   }
 
+  @Get('/auth/oidc/logout-redirect')
+  async logoutRedirect(@Request() req, @Response() res) {
+    const host = req.query.state;
+
+    res.redirect(
+      host ? `https://${host}/dashboard#/signin` : '/dashboard#/signin',
+    );
+  }
+
   @UseGuards(GlobalGuard)
   @Post('/api/v1/auth/user/signout')
   @HttpCode(200)
@@ -72,14 +81,14 @@ export class UsersController extends UsersControllerCE {
 
     // todo: check provider as well, if we have multiple ways of login mechanism
     if (process.env.NC_OIDC_LOGOUT_URL) {
-      let callbackURL = req.ncSiteUrl + Noco.getConfig().dashboardPath;
+      const callbackURL = req.ncSiteUrl + '/auth/oidc/logout-redirect';
+      let state;
       if (process.env.NC_BASE_APP_URL) {
         const url = new URL(req.ncSiteUrl);
         const baseAppUrl = new URL(process.env.NC_BASE_APP_URL);
 
         if (baseAppUrl.host !== url.host) {
-          callbackURL =
-            process.env.NC_BASE_APP_URL + Noco.getConfig().dashboardPath; //+ '/auth/oidc/redirect';
+          state = url.host;
         }
       }
 
@@ -93,6 +102,7 @@ export class UsersController extends UsersControllerCE {
       signoutUrl.searchParams.append('redirect_uri', callbackURL);
       signoutUrl.searchParams.append('scope', 'openid profile email');
       signoutUrl.searchParams.append('response_type', 'code');
+      signoutUrl.searchParams.append('stet', state);
 
       // return res.redirect(process.env.NC_OIDC_LOGOUT_URL);
       result.redirect_url = signoutUrl.toString();

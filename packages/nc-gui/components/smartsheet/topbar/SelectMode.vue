@@ -1,13 +1,9 @@
 <script lang="ts" setup>
-import { ActiveViewInj, inject, ref, storeToRefs, useViewsStore } from '#imports'
-
-const activeView = inject(ActiveViewInj, ref())
+import { storeToRefs, useViewsStore } from '#imports'
 
 const { openedViewsTab } = storeToRefs(useViewsStore())
 
-const { onViewsTabChange } = useViewsStore()
-
-const isDetailsDisabled = computed(() => activeView.value?.lock_type === 'locked')
+const { onViewsTabChange, activeView } = useViewsStore()
 </script>
 
 <template>
@@ -23,28 +19,21 @@ const isDetailsDisabled = computed(() => activeView.value?.lock_type === 'locked
       <div class="tab-title nc-tab">Data</div>
     </div>
     <div
+      class="tab"
       :class="{
-        '!cursor-not-allowed': isDetailsDisabled,
+        active: openedViewsTab !== 'view',
       }"
+      @click="onViewsTabChange(isEeUI ? 'field' : 'relation')"
     >
-      <div
-        class="tab"
-        :class="{
-          'active': openedViewsTab !== 'view',
-          'pointer-events-none ': isDetailsDisabled,
+      <GeneralIcon
+        icon="erd"
+        class="tab-icon"
+        :class="{}"
+        :style="{
+          fontWeight: 500,
         }"
-        @click="onViewsTabChange(isEeUI ? 'field' : 'relation')"
-      >
-        <GeneralIcon
-          icon="erd"
-          class="tab-icon"
-          :class="{}"
-          :style="{
-            fontWeight: 500,
-          }"
-        />
-        <div class="tab-title nc-tab">Details</div>
-      </div>
+      />
+      <div class="tab-title nc-tab">Details</div>
     </div>
   </div>
 </template>

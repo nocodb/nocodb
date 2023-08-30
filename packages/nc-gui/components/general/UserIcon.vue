@@ -33,8 +33,8 @@ const usernameInitials = computed(() => {
   <div
     class="flex nc-user-avatar"
     :class="{
-      'w-4 h-4': size === 'small',
-      'w-6 h-6': size === 'medium',
+      'min-w-4 min-h-4': size === 'small',
+      'min-w-6 min-h-6': size === 'medium',
     }"
     :style="{ backgroundColor }"
   >
@@ -46,6 +46,6 @@ const usernameInitials = computed(() => {
 
 <style lang="scss" scoped>
 .nc-user-avatar {
-  @apply min-w-4 rounded-full text-xs flex items-center justify-center text-white uppercase;
+  @apply rounded-full text-xs flex items-center justify-center text-white uppercase;
 }
 </style>

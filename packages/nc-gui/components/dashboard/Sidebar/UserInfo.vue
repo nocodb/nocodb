@@ -46,7 +46,7 @@ watch(isMenuOpen, () => {
         <div class="flex truncate">
           {{ name ? name : user?.email }}
         </div>
-        <GeneralIcon icon="arrowUp" />
+        <GeneralIcon icon="arrowUp" class="!min-w-5" />
       </div>
       <template #overlay>
         <NcMenu class="" @click="isMenuOpen = false">

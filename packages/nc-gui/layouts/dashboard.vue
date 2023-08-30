@@ -11,17 +11,13 @@ const sideBarSize = ref({
   old: 17.5,
   current: 17.5,
 })
-const contentSize = ref({
-  old: 82.5,
-  current: 82.5,
-})
-const isSidebarShort = ref(false)
-const animationDuration = 200
+const contentSize = computed(() => 100 - sideBarSize.value.current)
+const animationDuration = 250
 const viewportWidth = ref(window.innerWidth)
-const isMouseOverShowSidebarZone = ref(false)
-const isAnimationEndAfterSidebarHide = ref(false)
-const isStartHideSidebarAnimation = ref(false)
-const sidebarOpenAnimating = ref(false)
+
+const leftSidebarState = ref<
+  'openStart' | 'openEnd' | 'hiddenStart' | 'hiddenEnd' | 'peekOpenStart' | 'peekOpenEnd' | 'peekCloseOpen' | 'peekCloseEnd'
+>('openEnd')
 
 const sidebarWidth = computed(() => (sideBarSize.value.old * viewportWidth.value) / 100)
 const currentSidebarSize = computed({
@@ -32,79 +28,46 @@ const currentSidebarSize = computed({
   },
 })
 
-watch(
-  currentSidebarSize,
-  () => {
-    leftSidebarWidthPercent.value = currentSidebarSize.value
-  },
-  {
-    immediate: true,
-  },
-)
-
-const isSidebarHidden = ref(false)
+watch(currentSidebarSize, () => {
+  leftSidebarWidthPercent.value = currentSidebarSize.value
+})
 
 watch(isLeftSidebarOpen, () => {
   sideBarSize.value.current = sideBarSize.value.old
 
   if (isLeftSidebarOpen.value) {
-    contentSize.value.current = contentSize.value.old
+    setTimeout(() => (leftSidebarState.value = 'openStart'), 0)
 
-    setTimeout(() => {
-      isSidebarShort.value = true
-
-      isSidebarHidden.value = false
-    }, 0)
-
-    setTimeout(() => {
-      isSidebarShort.value = false
-    }, animationDuration / 2)
+    setTimeout(() => (leftSidebarState.value = 'openEnd'), animationDuration / 2)
   } else {
     sideBarSize.value.old = sideBarSize.value.current
 
-    contentSize.value.current = contentSize.value.old
-    contentSize.value.current = 100
-
-    isSidebarShort.value = true
-    isAnimationEndAfterSidebarHide.value = false
+    leftSidebarState.value = 'hiddenStart'
 
     setTimeout(() => {
-      isSidebarHidden.value = true
       sideBarSize.value.current = 0
-      isAnimationEndAfterSidebarHide.value = true
-    }, animationDuration * 1.75)
-  }
-})
 
-watch(isLeftSidebarOpen, () => {
-  if (isLeftSidebarOpen.value) {
-    sidebarOpenAnimating.value = true
-    setTimeout(() => {
-      sidebarOpenAnimating.value = false
+      leftSidebarState.value = 'hiddenEnd'
     }, animationDuration)
   }
 })
 
 function handleMouseMove(e: MouseEvent) {
   if (!wrapperRef.value) return
-  if (isLeftSidebarOpen.value && !isSidebarHidden.value && !isMouseOverShowSidebarZone.value) return
-  if (isLeftSidebarOpen.value) {
-    isSidebarHidden.value = false
-    isMouseOverShowSidebarZone.value = false
-    return
-  }
+  if (leftSidebarState.value === 'openEnd') return
 
-  if (e.clientX < 4) {
-    isSidebarHidden.value = false
-    isMouseOverShowSidebarZone.value = true
-  } else if (e.clientX > sidebarWidth.value + 10 && !isSidebarHidden.value) {
-    isSidebarHidden.value = true
-    isMouseOverShowSidebarZone.value = false
-    isAnimationEndAfterSidebarHide.value = false
+  if (e.clientX < 4 && ['hiddenEnd', 'peekCloseEnd'].includes(leftSidebarState.value)) {
+    leftSidebarState.value = 'peekOpenStart'
 
     setTimeout(() => {
-      isAnimationEndAfterSidebarHide.value = true
-    }, animationDuration * 1.75)
+      leftSidebarState.value = 'peekOpenEnd'
+    }, animationDuration)
+  } else if (e.clientX > sidebarWidth.value + 10 && leftSidebarState.value === 'peekOpenEnd') {
+    leftSidebarState.value = 'peekCloseOpen'
+
+    setTimeout(() => {
+      leftSidebarState.value = 'peekCloseEnd'
+    }, animationDuration)
   }
 }
 
@@ -123,19 +86,6 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', onWindowResize)
 })
 
-watch(
-  () => !isLeftSidebarOpen.value && isSidebarShort.value,
-  (value) => {
-    if (value) {
-      setTimeout(() => {
-        isStartHideSidebarAnimation.value = true
-      }, animationDuration / 2)
-    } else {
-      isStartHideSidebarAnimation.value = false
-    }
-  },
-)
-
 watch(route, () => {
   if (route.value.name === 'index-index') {
     isLeftSidebarOpen.value = true
@@ -150,37 +100,33 @@ export default {
 </script>
 
 <template>
-  <NuxtLayout>
+  <NuxtLayout class="h-screen">
     <slot v-if="!route.meta.hasSidebar" name="content" />
     <Splitpanes
       v-else
-      style="height: 100vh"
-      class="nc-sidebar-content-resizable-wrapper w-full"
+      class="nc-sidebar-content-resizable-wrapper w-full h-full"
       :class="{
-        'sidebar-short': isSidebarShort,
+        'hide-resize-bar': !isLeftSidebarOpen || leftSidebarState === 'openStart',
       }"
       @resize="currentSidebarSize = $event[0].size"
     >
       <Pane min-size="15%" :size="currentSidebarSize" max-size="40%" class="nc-sidebar-splitpane relative !overflow-visible">
         <div
           ref="wrapperRef"
-          class="nc-sidebar-wrapper relative"
+          class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !min-w-32 absolute overflow-visible"
           :class="{
-            'open': isLeftSidebarOpen,
-            'close': !isLeftSidebarOpen,
-            'absolute': isMouseOverShowSidebarZone,
-            'sidebar-short': isSidebarShort,
-            'hide-sidebar': isStartHideSidebarAnimation && !isMouseOverShowSidebarZone,
+            'minimized-height': !isLeftSidebarOpen,
+            'sidebar-show-animating': leftSidebarState === 'openEnd',
+            'hide-sidebar': ['hiddenStart', 'hiddenEnd', 'peekCloseEnd'].includes(leftSidebarState),
           }"
           :style="{
-            width: isAnimationEndAfterSidebarHide && isSidebarHidden ? '0px' : `${sidebarWidth}px`,
-            overflow: isMouseOverShowSidebarZone ? 'visible' : undefined,
+            width: leftSidebarState === 'hiddenEnd' ? '0px' : `${sidebarWidth}px`,
           }"
         >
           <slot name="sidebar" />
         </div>
       </Pane>
-      <Pane :size="contentSize.current">
+      <Pane :size="contentSize">
         <slot name="content" />
       </Pane>
     </Splitpanes>
@@ -188,20 +134,39 @@ export default {
 </template>
 
 <style lang="scss">
+.nc-sidebar-wrapper.minimized-height > * {
+  @apply h-4/5 pb-2 !(rounded-r-lg border-1 border-gray-200 shadow-lg);
+}
+
+.nc-sidebar-wrapper > * {
+  transition: all 0.2s ease-in-out;
+  @apply z-10 absolute;
+}
+
+.nc-sidebar-wrapper.hide-sidebar {
+  @apply !min-w-0;
+
+  > * {
+    @apply opacity-0;
+    transform: translateX(-100%);
+  }
+}
+
+.nc-sidebar-wrapper.sidebar-show-animating {
+  > * {
+    transition: all 0.2s ease-in-out;
+  }
+}
+
+/** Split pane CSS */
+
 .nc-sidebar-content-resizable-wrapper > {
   .splitpanes__splitter {
-    width: 0 !important;
-    position: relative;
-    overflow: visible;
+    @apply !w-0 relative overflow-visible;
   }
   .splitpanes__splitter:before {
-    @apply bg-gray-200 w-0.25;
+    @apply bg-gray-200 w-0.25 absolute left-0 top-0 h-full z-40;
     content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    z-index: 40;
   }
 
   .splitpanes__splitter:hover:before {
@@ -219,8 +184,10 @@ export default {
   .splitpanes--dragging .splitpanes__splitter {
     @apply w-1 mr-0;
   }
+}
 
-  .sidebar-short > .splitpanes__splitter {
+.nc-sidebar-content-resizable-wrapper.hide-resize-bar > {
+  .splitpanes__splitter {
     display: none !important;
     background-color: transparent !important;
   }
@@ -232,57 +199,9 @@ export default {
 
 .splitpanes--dragging {
   cursor: col-resize;
-}
 
-.splitpanes--dragging > .splitpanes__pane {
-  transition: none !important;
-}
-
-.nc-sidebar-wrapper {
-  @apply flex flex-col h-full justify-center !min-w-32;
-}
-
-.nc-sidebar-wrapper.close {
-  > * {
-    height: 80vh;
+  > .splitpanes__pane {
+    transition: none !important;
   }
-}
-
-.nc-sidebar-wrapper.sidebar-short {
-  > * {
-    @apply z-10;
-    height: 80vh !important;
-    padding-bottom: 0.35rem;
-  }
-}
-
-.nc-sidebar-wrapper.open {
-  height: 100vh;
-  > * {
-    height: 100vh;
-  }
-}
-
-.nc-sidebar-wrapper > * {
-  height: calc(100% - var(--sidebar-top-height));
-}
-
-.nc-sidebar-wrapper > * {
-  width: 100%;
-  transition: all 0.2s ease-in-out;
-}
-
-.nc-sidebar-wrapper.hide-sidebar > * {
-  position: absolute;
-  transform: translateX(-100%);
-  opacity: 0;
-}
-
-.nc-sidebar-wrapper.hide-sidebar {
-  min-width: 0 !important;
-}
-
-.nc-sidebar-wrapper.sidebar-short > * {
-  @apply !(rounded-r-lg border-1 border-gray-200 shadow-lg);
 }
 </style>

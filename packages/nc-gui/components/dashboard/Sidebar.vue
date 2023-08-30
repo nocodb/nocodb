@@ -8,7 +8,7 @@ const isCreateProjectOpen = ref(false)
 
 <template>
   <div
-    class="nc-sidebar flex flex-col bg-gray-50 outline-r-1 outline-gray-100 select-none"
+    class="nc-sidebar flex flex-col bg-gray-50 outline-r-1 outline-gray-100 select-none w-full h-full"
     :style="{
       outlineWidth: '1px',
     }"

@@ -58,7 +58,7 @@ onMounted(async () => {
         </a-button>
       </template>
       <div
-        v-if="activeWorkspace && activeWorkspace.status !== WorkspaceStatus.CREATED"
+        v-else-if="activeWorkspace && activeWorkspace.status !== WorkspaceStatus.CREATED"
         class="h-full w-full flex flex-col gap-3 items-center justify-center"
       >
         <a-spin size="large" />

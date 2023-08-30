@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
 import type { WorkspaceType } from 'nocodb-sdk'
+import { isEeUI } from '#imports'
 
 const router = useRouter()
 const route = router.currentRoute

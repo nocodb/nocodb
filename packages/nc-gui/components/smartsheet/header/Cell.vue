@@ -59,7 +59,7 @@ const openHeaderMenu = () => {
     <div
       v-if="column"
       class="name pl-1 !truncate"
-      :class="{ 'cursor-pointer pt-0.25': !isForm && isUIAllowed('edit-column') && !hideMenu }"
+      :class="{ 'cursor-pointer pt-0.25': !isForm && isUIAllowed('edit-column') && !hideMenu && !isLocked }"
       style="white-space: pre-line"
       :title="column.title"
     >

@@ -6,6 +6,10 @@ import { NcConfig } from '~/utils/nc-config';
 import { MetaTable } from '~/utils/globals';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
+const nanoidWorkspace = customAlphabet(
+  '1234567890abcdefghijklmnopqrstuvwxyz',
+  7,
+);
 
 @Injectable()
 export class MetaService extends MetaServiceCE {
@@ -22,7 +26,7 @@ export class MetaService extends MetaServiceCE {
     return true;
   }
 
-  public genNanoid(target: string) {
+  public async genNanoid(target: string) {
     let prefix;
     switch (target) {
       case MetaTable.PROJECT:
@@ -116,9 +120,17 @@ export class MetaService extends MetaServiceCE {
         prefix = 'nc';
         break;
     }
+    let id: string;
 
-    // using nanoid to avoid collision with existing ids when duplicating
-    return `${prefix}${nanoidv2()}`;
+    do {
+      // using nanoid to avoid collision with existing ids when duplicating
+      id = `${prefix}${
+        target === MetaTable.WORKSPACE ? nanoidWorkspace() : nanoidv2()
+      }`;
+      // re-generate id if already in use
+    } while (await this.knex(target).where({ id }).first());
+
+    return id;
   }
 }
 

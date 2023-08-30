@@ -7,6 +7,7 @@ import { UsersService } from '~/services/users/users.service';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import extractRolesObj from '~/utils/extractRolesObj';
 import {sanitiseUserObj} from "~/utils";
+import {NcError} from "~/helpers/catchError";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -40,7 +41,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       !jwtPayload.token_version ||
       user.token_version !== jwtPayload.token_version
     ) {
-      throw new Error('Token Expired. Please login again.');
+      NcError.unauthorized('Token Expired. Please login again.');
     }
 
     const [workspaceRoles, projectRoles] = await Promise.all([

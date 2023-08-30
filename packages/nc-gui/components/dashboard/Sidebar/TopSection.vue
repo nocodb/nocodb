@@ -6,6 +6,7 @@ const { appInfo } = useGlobal()
 
 const { activeWorkspace, isWorkspaceLoading, isWorkspaceOwnerOrCreator, isWorkspaceSettingsPageOpened } =
   storeToRefs(workspaceStore)
+
 const { navigateToWorkspaceSettings } = workspaceStore
 
 const { isSharedBase } = storeToRefs(projectStore)
@@ -15,10 +16,6 @@ const { commandPalette } = useCommandPalette()
 const { isUIAllowed } = useUIPermission()
 
 const isCreateProjectOpen = ref(false)
-
-const router = useRouter()
-
-const route = router.currentRoute
 
 const navigateToSettings = () => {
   // TODO: Handle cloud case properly
@@ -33,8 +30,8 @@ const navigateToSettings = () => {
 
 <template>
   <template v-if="isWorkspaceLoading">
-    <div class="flex flex-col w-full gap-y-3.25 ml-5.5 mt-5.75">
-      <div class="flex flex-row items-center w-full gap-x-3">
+    <div class="flex flex-col w-full gap-y-3.75 ml-5.5 mt-3.75">
+      <div v-if="appInfo.ee" class="flex flex-row items-center w-full gap-x-3">
         <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
         <a-skeleton-input :active="true" class="!w-40 !h-4 !rounded overflow-hidden" />
       </div>
@@ -46,9 +43,6 @@ const navigateToSettings = () => {
         <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
         <a-skeleton-input :active="true" class="!w-40 !h-4 !rounded overflow-hidden" />
       </div>
-    </div>
-    <div class="mt-6 ml-4.5">
-      <a-skeleton-input :active="true" class="!w-40 !h-4 !rounded overflow-hidden" />
     </div>
   </template>
   <template v-else-if="!isSharedBase">

@@ -68,9 +68,9 @@ const { activeWorkspace, isWorkspaceLoading } = storeToRefs(workspaceStore)
         </NcButton>
       </NcTooltip>
     </div>
-    <div v-else class="flex flex-row items-center w-full mt-2 ml-2.5 gap-x-3">
+    <div v-else class="flex flex-row items-center w-full mt-0.25 ml-2.5 gap-x-3">
       <a-skeleton-input :active="true" class="!w-6 !h-6 !rounded overflow-hidden" />
-      <a-skeleton-input :active="true" class="!w-40 !h-4 !rounded overflow-hidden" />
+      <a-skeleton-input :active="true" class="!w-40 !h-6 !rounded overflow-hidden" />
     </div>
   </div>
 </template>

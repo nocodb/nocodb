@@ -71,15 +71,15 @@ export class UsersController extends UsersControllerCE {
     });
 
     if (req.user?.provider === 'openid' && process.env.NC_OIDC_LOGOUT_URL) {
-      let callbackURL = req.ncSiteUrl + Noco.getConfig().dashboardPath;
-      if (process.env.NC_BASE_APP_URL) {
-        const url = new URL(req.ncSiteUrl);
-        const baseAppUrl = new URL(process.env.NC_BASE_APP_URL);
-
-        if (baseAppUrl.host !== url.host) {
-          callbackURL = process.env.NC_BASE_APP_URL + '/auth/oidc/redirect';
-        }
-      }
+      const callbackURL = req.ncSiteUrl + Noco.getConfig().dashboardPath;
+      // if (process.env.NC_BASE_APP_URL) {
+      //   const url = new URL(req.ncSiteUrl);
+      //   const baseAppUrl = new URL(process.env.NC_BASE_APP_URL);
+      //
+      //   if (baseAppUrl.host !== url.host) {
+      //     callbackURL = process.env.NC_BASE_APP_URL + '/auth/oidc/redirect';
+      //   }
+      // }
 
       const signoutUrl = new URL(process.env.NC_OIDC_LOGOUT_URL);
 
@@ -87,9 +87,9 @@ export class UsersController extends UsersControllerCE {
         'client_id',
         process.env.NC_OIDC_CLIENT_ID,
       );
-      signoutUrl.searchParams.append('redirect_uri', callbackURL);
+      signoutUrl.searchParams.append('logout_uri', callbackURL);
       signoutUrl.searchParams.append('scope', 'openid profile email');
-      signoutUrl.searchParams.append('response_type', 'code');
+      // signoutUrl.searchParams.append('response_type', 'code');
 
       // return res.redirect(process.env.NC_OIDC_LOGOUT_URL);
       result.redirect_url = signoutUrl.toString();

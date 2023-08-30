@@ -35,7 +35,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
       - name: install dependencies
-        run: pnpm bootstrap
+        run: pnpm i
       - name: run unit tests
         working-directory: ./packages/nocodb
         run: pnpm run unit-test

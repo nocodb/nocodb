@@ -58,7 +58,7 @@ jobs:
       - name: Set NC Edition
         run: export EE=true
       - name: install dependencies
-        run: pnpm bootstrap
+        run: pnpm i
       - name: Setup mysql
         if: ${{ inputs.db == 'mysql' }}
         working-directory: ./packages/nocodb/tests/mysql-sakila-db

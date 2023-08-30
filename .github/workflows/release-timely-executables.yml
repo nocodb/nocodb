@@ -84,7 +84,7 @@ jobs:
       - name : Install dependencies and build executables
         run: |
           # install pnpm dependendencies
-          pnpm bootstrap
+          pnpm i
 
           # Copy sqlite binaries
           # rsync -rvzhP ./binaries/binding/ ./node_modules/sqlite3/lib/binding/

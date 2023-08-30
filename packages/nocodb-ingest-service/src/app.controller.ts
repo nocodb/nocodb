@@ -62,8 +62,8 @@ export class AppController {
   constructor(private readonly clickhouseService: ClickhouseService) {}
 
   @MessagePattern(
-    process.env.AWS_KINESIS_STREAM ||
-      process.env.NC_KAFKA_TOPIC ||
+    process.env.AWS_KAFKA_TOPIC ||
+      process.env.AWS_KINESIS_STREAM ||
       'nocohub-dev-input-stream',
   )
   async syncApiExecTime(@Payload() messages: any[]) {

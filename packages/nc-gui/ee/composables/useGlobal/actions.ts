@@ -9,18 +9,18 @@ export function useGlobalActions(state: State): Actions {
 
   /** Sign out by deleting the token from localStorage */
   const signOut: Actions['signOut'] = async () => {
+    let signoutRes
     try {
       const nuxtApp = useNuxtApp()
-      const signoutRes = await nuxtApp.$api.auth.signout()
-
-      // todo: update type in swagger.json
-      if ((signoutRes as any).redirect_url) {
-        location.href = (signoutRes as any).redirect_url
-      }
+      signoutRes = await nuxtApp.$api.auth.signout()
     } catch {
     } finally {
       state.token.value = null
       state.user.value = null
+      // todo: update type in swagger.json
+      if ((signoutRes as any).redirect_url) {
+        location.href = (signoutRes as any).redirect_url
+      }
     }
   }
 

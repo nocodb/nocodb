@@ -102,10 +102,9 @@ export class MetaService {
     data: any,
     ignoreIdGeneration?: boolean,
   ): Promise<any> {
-    const id = data?.id || (await this.genNanoid(target));
     const insertObj = {
       ...data,
-      ...(ignoreIdGeneration ? {} : { id }),
+      ...(ignoreIdGeneration ? {} : { id: data?.id || (await this.genNanoid(target)) }),
     };
     if (base_id !== null) insertObj.base_id = base_id;
     if (project_id !== null) insertObj.project_id = project_id;

@@ -61,7 +61,7 @@ const switchWorkspace = async (workspaceId: string) => {
     class="h-full min-w-0 rounded-lg"
     :trigger="['click']"
     placement="bottom"
-    overlay-class-name="nc-dropdown-workspace-menu !overflow-visible"
+    overlay-class-name="nc-dropdown-workspace-menu !overflow-hidden"
   >
     <div
       :style="{ width: props.isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
-import { IsFormInj, IsKanbanInj, IsLockedInj, inject, provide, ref, toRef, useUIPermission } from '#imports'
+import { ColumnInj, IsFormInj, IsKanbanInj, IsLockedInj, inject, provide, ref, toRef, useUIPermission } from '#imports'
 
 interface Props {
   column: ColumnType

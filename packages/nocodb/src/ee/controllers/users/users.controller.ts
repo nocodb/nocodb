@@ -71,15 +71,16 @@ export class UsersController extends UsersControllerCE {
     });
 
     if (req.user?.provider === 'openid' && process.env.NC_OIDC_LOGOUT_URL) {
-      const callbackURL = req.ncSiteUrl + Noco.getConfig().dashboardPath;
-      // if (process.env.NC_BASE_APP_URL) {
-      //   const url = new URL(req.ncSiteUrl);
-      //   const baseAppUrl = new URL(process.env.NC_BASE_APP_URL);
-      //
-      //   if (baseAppUrl.host !== url.host) {
-      //     callbackURL = process.env.NC_BASE_APP_URL + '/auth/oidc/redirect';
-      //   }
-      // }
+      let callbackURL = req.ncSiteUrl + Noco.getConfig().dashboardPath;
+      if (process.env.NC_BASE_APP_URL) {
+        const url = new URL(req.ncSiteUrl);
+        const baseAppUrl = new URL(process.env.NC_BASE_APP_URL);
+
+        if (baseAppUrl.host !== url.host) {
+          callbackURL =
+            process.env.NC_BASE_APP_URL + Noco.getConfig().dashboardPath; //+ '/auth/oidc/redirect';
+        }
+      }
 
       const signoutUrl = new URL(process.env.NC_OIDC_LOGOUT_URL);
 

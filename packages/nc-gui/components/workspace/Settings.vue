@@ -112,17 +112,6 @@ watch(
     <div class="item flex flex-col">
       <div class="font-medium text-base">Delete Workspace</div>
       <div class="text-gray-500 mt-2">Delete this workspace and all it’s contents.</div>
-      <div class="flex flex-row p-4 border-1 rounded-lg gap-x-2 mt-6">
-        <div class="flex">
-          <GeneralIcon icon="warning" class="text-xl text-orange-600" />
-        </div>
-        <div class="flex flex-col items-start gap-y-1">
-          <div class="flex font-medium">This action is irreversible.</div>
-          <div class="flex flex-row text-gray-500">
-            You have 31 days to undo this action by following the steps provided in recover workspace mail sent to your email.
-          </div>
-        </div>
-      </div>
       <div class="flex flex-row mt-8 gap-x-2">
         <a-checkbox v-model:checked="isConfirmed" />
         <div class="flex">I understand that this action is irreversible</div>
@@ -140,6 +129,6 @@ watch(
 
 <style lang="scss" scoped>
 .item {
-  @apply p-6 rounded-2xl border-1 max-w-180 mt-10;
+  @apply p-6 rounded-2xl border-1 max-w-180 mt-10 min-w-100 w-full;
 }
 </style>

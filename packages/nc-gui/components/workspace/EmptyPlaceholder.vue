@@ -35,7 +35,7 @@ const openCreateProjectDlg = (type: NcProjectType) => {
 
 <template>
   <div class="flex items-center justify-center h-full">
-    <div v-if="!loading" class="flex flex-col gap-4 items-center">
+    <div v-if="!loading" class="flex flex-col gap-4 items-center text-gray-500">
       <NcIconsInbox />
       <div class="font-weight-medium">No Projects</div>
       <template v-if="props.buttons">

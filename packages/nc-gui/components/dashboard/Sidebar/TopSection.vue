@@ -99,10 +99,9 @@ const navigateToSettings = () => {
         type="text"
         class="nc-sidebar-top-button !hover:bg-gray-200"
         data-testid="nc-sidebar-create-project-btn"
-        :active-workspace-id="route.params.typeOrId"
       >
-        <div class="gap-x-2 flex flex-row w-full items-center">
-          <MdiPlus class="!h-4" />
+        <div class="gap-x-2.25 flex flex-row w-full items-center !font-normal pl-1">
+          <GeneralIcon icon="plus" />
 
           <div class="flex">{{ $t('title.newProj') }}</div>
         </div>

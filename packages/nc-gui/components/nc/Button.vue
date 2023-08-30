@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { ButtonType } from 'ant-design-vue/lib/button'
 import { useSlots } from 'vue'
+import type { NcButtonSize } from '~/lib'
 
 /**
  * @description
@@ -17,7 +18,7 @@ interface Props {
   loading?: boolean
   disabled?: boolean
   type?: ButtonType | 'danger' | undefined
-  size?: 'xsmall' | 'small' | 'medium'
+  size?: NcButtonSize
   centered?: boolean
 }
 
@@ -74,6 +75,7 @@ const onBlur = () => {
       small: size === 'small',
       medium: size === 'medium',
       xsmall: size === 'xsmall',
+      xxsmall: size === 'xxsmall',
       focused: isFocused,
     }"
     @focus="onFocus"
@@ -91,6 +93,7 @@ const onBlur = () => {
 
       <slot v-else name="icon" />
       <div
+        class="flex flex-row items-center"
         :class="{
           'font-medium': type === 'primary' || type === 'danger',
         }"
@@ -120,7 +123,7 @@ const onBlur = () => {
 }
 
 .nc-button.ant-btn {
-  @apply rounded-lg  font-medium;
+  @apply rounded-lg font-medium;
 }
 
 .nc-button.ant-btn.small {
@@ -133,6 +136,10 @@ const onBlur = () => {
 
 .nc-button.ant-btn.xsmall {
   @apply p-0.25 h-6.25 min-w-6.25 rounded-md;
+}
+
+.nc-button.ant-btn.xxsmall {
+  @apply p-0 h-6 min-w-6 rounded-md;
 }
 
 .nc-button.ant-btn[disabled] {

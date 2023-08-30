@@ -288,7 +288,7 @@ export const iconMap = {
   upload: h('span', { class: 'material-symbols' }, 'cloud_upload'),
   hook: Phishing,
   erd: h('span', { class: 'material-symbols' }, 'account_tree'),
-  plus: Plus,
+  plus: h('span', { class: 'material-symbols', style: '-webkit-text-stroke: 0.3px' }, 'add'),
   plusSquare: PlusSquare,
   minus: Minus,
   help: h('span', { class: 'material-symbols' }, 'help'),

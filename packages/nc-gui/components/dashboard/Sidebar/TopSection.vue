@@ -30,7 +30,7 @@ const navigateToSettings = () => {
 
 <template>
   <template v-if="isWorkspaceLoading">
-    <div class="flex flex-col w-full gap-y-3.75 ml-5.5 mt-3.75">
+    <div class="flex flex-col w-full gap-y-3.75 ml-3 mt-3.75">
       <div v-if="appInfo.ee" class="flex flex-row items-center w-full gap-x-3">
         <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />
         <a-skeleton-input :active="true" class="!w-40 !h-4 !rounded overflow-hidden" />

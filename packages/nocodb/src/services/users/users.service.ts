@@ -6,7 +6,6 @@ import { isEmail } from 'validator';
 import { T } from 'nc-help';
 import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
-import { genJwt, setTokenCookie } from './helpers';
 import type {
   PasswordChangeReqType,
   PasswordForgotReqType,
@@ -14,6 +13,7 @@ import type {
   SignUpReqType,
   UserType,
 } from 'nocodb-sdk';
+import { genJwt, setTokenCookie } from '~/services/users/helpers';
 import { NC_APP_SETTINGS } from '~/constants';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
@@ -491,7 +491,7 @@ export class UsersService {
     return { ...this.login(user), createdProject };
   }
 
-  login(user: UserType) {
+  login(user: UserType & { provider?: string }) {
     this.appHooksService.emit(AppEvents.USER_SIGNIN, {
       user,
     });

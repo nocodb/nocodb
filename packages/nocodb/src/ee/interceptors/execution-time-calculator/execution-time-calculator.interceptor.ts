@@ -53,8 +53,8 @@ export class ExecutionTimeCalculatorInterceptor implements NestInterceptor {
         const ip = req.clientIp;
 
         this.producer.sendMessage(
-          process.env.AWS_KINESIS_STREAM ||
-            process.env.NC_KAFKA_TOPIC ||
+          process.env.AWS_KAFKA_TOPIC ||
+            process.env.AWS_KINESIS_STREAM ||
             'nocohub-dev-input-stream',
           JSON.stringify({
             created_at: timestamp,

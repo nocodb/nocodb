@@ -1,8 +1,17 @@
 <script setup lang="ts">
 const { openedViewsTab } = storeToRefs(useViewsStore())
-const { onViewsTabChange } = useViewsStore()
+const { onViewsTabChange, isLockedView } = useViewsStore()
 
 const { isUIAllowed } = useUIPermission()
+
+const route = useRoute()
+
+onMounted(() => {
+  // preventing the webhook and field route in locked view
+  if (isLockedView && (route.params?.slugs[0] === 'webhook' || route.params?.slugs[0] === 'field')) {
+    onViewsTabChange('relation')
+  }
+})
 
 const openedSubTab = computed({
   get() {
@@ -19,6 +28,10 @@ watch(
     if (openedSubTab.value === 'field' && !isUIAllowed('viewColumnUpdate')) {
       onViewsTabChange('relation')
     }
+    // preventing the webhook route in locked view
+    if (isLockedView && openedSubTab.value === 'webhook') {
+      onViewsTabChange('relation')
+    }
 
     if (openedSubTab.value === 'webhook' && !isUIAllowed('hookList')) {
       onViewsTabChange('relation')
@@ -33,7 +46,7 @@ watch(
 <template>
   <div class="flex flex-col h-full w-full" data-testid="nc-details-wrapper">
     <NcTabs v-model="openedSubTab">
-      <a-tab-pane v-if="isUIAllowed('viewColumnUpdate')" key="field">
+      <a-tab-pane v-if="isUIAllowed('viewColumnUpdate') && !isLockedView" key="field">
         <template #tab>
           <div class="tab" data-testid="nc-fields-tab">
             <GeneralIcon icon="list" class="tab-icon" :class="{}" />
@@ -63,7 +76,7 @@ watch(
         <SmartsheetDetailsApi />
       </a-tab-pane>
 
-      <a-tab-pane v-if="isUIAllowed('hookList')" key="webhook">
+      <a-tab-pane v-if="isUIAllowed('hookList') && !isLockedView" key="webhook">
         <template #tab>
           <div class="tab" data-testid="nc-webhooks-tab">
             <GeneralIcon icon="webhook" class="tab-icon" :class="{}" />

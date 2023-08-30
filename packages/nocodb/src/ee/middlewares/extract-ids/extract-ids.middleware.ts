@@ -193,13 +193,25 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       }
     } else if (req.params.workspaceId) {
       req.ncWorkspaceId = req.params.workspaceId;
-    } else if (req.body.fk_workspace_id) {
+    }
+    // extract workspace id from body only if it's project create endpoint
+    else if (
+      ['/api/v1/db/meta/projects'].some(
+        (projectCreatePath) => req.route.path === projectCreatePath,
+      ) &&
+      req.method === 'POST' &&
+      req.body.fk_workspace_id
+    ) {
       req.ncWorkspaceId = req.body.fk_workspace_id;
     }
 
-    if (req.ncWorkspaceId && process.env.NC_WORKSPACE_ID) {
+    if (req.route.path === '/api/v1/workspaces/:workspaceId/status') {
+      // skip workspace id check for workspace status update endpoint which is used internally
+    } else if (req.ncWorkspaceId && process.env.NC_WORKSPACE_ID) {
       if (req.ncWorkspaceId !== process.env.NC_WORKSPACE_ID) {
-        NcError.badRequest('Invalid workspace id');
+        NcError.badRequest(
+          'Requested workspace id does not match with domain name, please use your custom domain',
+        );
       }
     } else if (req.ncWorkspaceId) {
       const workspace = await Workspace.get(req.ncWorkspaceId);
@@ -208,7 +220,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       }
 
       if (workspace.plan && workspace.plan !== WorkspacePlan.FREE) {
-        NcError.badRequest('invalid workspace id');
+        NcError.badRequest(
+          'Requested workspace id does not match with domain name, please use your custom domain',
+        );
       }
     }
     next();

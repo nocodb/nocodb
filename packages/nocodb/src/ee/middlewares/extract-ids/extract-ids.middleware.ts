@@ -209,7 +209,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       // skip workspace id check for workspace status update endpoint which is used internally
     } else if (req.ncWorkspaceId && process.env.NC_WORKSPACE_ID) {
       if (req.ncWorkspaceId !== process.env.NC_WORKSPACE_ID) {
-        NcError.badRequest('Invalid workspace id');
+        NcError.badRequest(
+          'Requested workspace id does not match with domain name, please use your custom domain',
+        );
       }
     } else if (req.ncWorkspaceId) {
       const workspace = await Workspace.get(req.ncWorkspaceId);
@@ -218,7 +220,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       }
 
       if (workspace.plan && workspace.plan !== WorkspacePlan.FREE) {
-        NcError.badRequest('invalid workspace id');
+        NcError.badRequest(
+          'Requested workspace id does not match with domain name, please use your custom domain',
+        );
       }
     }
     next();

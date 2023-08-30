@@ -92,6 +92,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       projectRoles: projectRoles
         ? extractRolesObj((projectRoles as any)?.split(',').filter(Boolean))
         : null,
+      provider: jwtPayload.provider ?? undefined,
     };
   }
 }

@@ -8,14 +8,14 @@ const route = router.currentRoute
 const { isLeftSidebarOpen, leftSidebarWidthPercent } = storeToRefs(useSidebarStore())
 const wrapperRef = ref<HTMLDivElement>()
 const sideBarSize = ref({
-  old: 17.5,
-  current: 17.5,
+  old: leftSidebarWidthPercent.value,
+  current: leftSidebarWidthPercent.value,
 })
 const contentSize = computed(() => 100 - sideBarSize.value.current)
 const animationDuration = 250
 const viewportWidth = ref(window.innerWidth)
 
-const leftSidebarState = ref<
+const sidebarState = ref<
   'openStart' | 'openEnd' | 'hiddenStart' | 'hiddenEnd' | 'peekOpenStart' | 'peekOpenEnd' | 'peekCloseOpen' | 'peekCloseEnd'
 >('openEnd')
 
@@ -36,37 +36,37 @@ watch(isLeftSidebarOpen, () => {
   sideBarSize.value.current = sideBarSize.value.old
 
   if (isLeftSidebarOpen.value) {
-    setTimeout(() => (leftSidebarState.value = 'openStart'), 0)
+    setTimeout(() => (sidebarState.value = 'openStart'), 0)
 
-    setTimeout(() => (leftSidebarState.value = 'openEnd'), animationDuration / 2)
+    setTimeout(() => (sidebarState.value = 'openEnd'), animationDuration)
   } else {
     sideBarSize.value.old = sideBarSize.value.current
 
-    leftSidebarState.value = 'hiddenStart'
+    sidebarState.value = 'hiddenStart'
 
     setTimeout(() => {
       sideBarSize.value.current = 0
 
-      leftSidebarState.value = 'hiddenEnd'
+      sidebarState.value = 'hiddenEnd'
     }, animationDuration)
   }
 })
 
 function handleMouseMove(e: MouseEvent) {
   if (!wrapperRef.value) return
-  if (leftSidebarState.value === 'openEnd') return
+  if (sidebarState.value === 'openEnd') return
 
-  if (e.clientX < 4 && ['hiddenEnd', 'peekCloseEnd'].includes(leftSidebarState.value)) {
-    leftSidebarState.value = 'peekOpenStart'
+  if (e.clientX < 4 && ['hiddenEnd', 'peekCloseEnd'].includes(sidebarState.value)) {
+    sidebarState.value = 'peekOpenStart'
 
     setTimeout(() => {
-      leftSidebarState.value = 'peekOpenEnd'
+      sidebarState.value = 'peekOpenEnd'
     }, animationDuration)
-  } else if (e.clientX > sidebarWidth.value + 10 && leftSidebarState.value === 'peekOpenEnd') {
-    leftSidebarState.value = 'peekCloseOpen'
+  } else if (e.clientX > sidebarWidth.value + 10 && sidebarState.value === 'peekOpenEnd') {
+    sidebarState.value = 'peekCloseOpen'
 
     setTimeout(() => {
-      leftSidebarState.value = 'peekCloseEnd'
+      sidebarState.value = 'peekCloseEnd'
     }, animationDuration)
   }
 }
@@ -106,7 +106,7 @@ export default {
       v-else
       class="nc-sidebar-content-resizable-wrapper w-full h-full"
       :class="{
-        'hide-resize-bar': !isLeftSidebarOpen || leftSidebarState === 'openStart',
+        'hide-resize-bar': !isLeftSidebarOpen || sidebarState === 'openStart',
       }"
       @resize="currentSidebarSize = $event[0].size"
     >
@@ -116,11 +116,10 @@ export default {
           class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !min-w-32 absolute overflow-visible"
           :class="{
             'minimized-height': !isLeftSidebarOpen,
-            'sidebar-show-animating': leftSidebarState === 'openEnd',
-            'hide-sidebar': ['hiddenStart', 'hiddenEnd', 'peekCloseEnd'].includes(leftSidebarState),
+            'hide-sidebar': ['hiddenStart', 'hiddenEnd', 'peekCloseEnd'].includes(sidebarState),
           }"
           :style="{
-            width: leftSidebarState === 'hiddenEnd' ? '0px' : `${sidebarWidth}px`,
+            width: sidebarState === 'hiddenEnd' ? '0px' : `${sidebarWidth}px`,
           }"
         >
           <slot name="sidebar" />
@@ -136,6 +135,7 @@ export default {
 <style lang="scss">
 .nc-sidebar-wrapper.minimized-height > * {
   @apply h-4/5 pb-2 !(rounded-r-lg border-1 border-gray-200 shadow-lg);
+  width: calc(100% + 4px);
 }
 
 .nc-sidebar-wrapper > * {
@@ -149,12 +149,6 @@ export default {
   > * {
     @apply opacity-0;
     transform: translateX(-100%);
-  }
-}
-
-.nc-sidebar-wrapper.sidebar-show-animating {
-  > * {
-    transition: all 0.2s ease-in-out;
   }
 }
 

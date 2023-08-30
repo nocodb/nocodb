@@ -17,8 +17,6 @@ import {
   watch,
 } from '#imports'
 
-const openedTab = ref<'views' | 'developer'>('views')
-
 const { refreshCommandPalette } = useCommandPalette()
 
 const meta = inject(MetaInj, ref())
@@ -49,11 +47,9 @@ const route = useRoute()
 
 const { $e } = useNuxtApp()
 
-const { rightSidebarSize, isRightSidebarOpen } = storeToRefs(useSidebarStore())
+const { isRightSidebarOpen } = storeToRefs(useSidebarStore())
 
 const tabBtnsContainerRef = ref<HTMLElement | null>(null)
-
-const minimalMode = ref(false)
 
 /** Watch route param and change active view based on `viewTitle` */
 watch(
@@ -141,40 +137,6 @@ function onOpenModal({
     close(1000)
   }
 }
-const onTabChange = (tab: 'views' | 'developer') => {
-  openedTab.value = tab
-}
-
-const onResize = () => {
-  if (!tabBtnsContainerRef?.value) return
-
-  const remToPx = parseFloat(getComputedStyle(document.documentElement).fontSize)
-
-  if (!tabBtnsContainerRef?.value?.offsetWidth) return
-
-  if (tabBtnsContainerRef?.value?.offsetWidth < 13 * remToPx) {
-    minimalMode.value = true
-  } else {
-    minimalMode.value = false
-  }
-}
-
-watch(
-  () => rightSidebarSize.value?.current,
-  () => {
-    onResize()
-  },
-)
-
-onMounted(() => {
-  window.addEventListener('resize', onResize)
-
-  onResize()
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', onResize)
-})
 </script>
 
 <template>
@@ -192,7 +154,7 @@ onUnmounted(() => {
         hide-on-click
         class="flex opacity-0 w-0 group-hover:(opacity-100 w-8) transition-all duration-50"
         :class="{
-          '!w-8 !opacity-100': !isRightSidebarOpen,
+          '!w-8 !opacity-100': !isRightSidebarOpen || true,
         }"
       >
         <template #title>

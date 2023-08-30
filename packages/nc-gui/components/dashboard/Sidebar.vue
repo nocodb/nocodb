@@ -22,7 +22,7 @@ const isCreateProjectOpen = ref(false)
       class="flex flex-col nc-scrollbar-sm-dark border-t-1 pt-1"
       style="height: calc(100% - var(--sidebar-top-height) - var(--sidebar-bottom-height))"
     >
-      <div class="flex flex-row w-full justify-between items-center my-1.5 pl-4.2 pr-1.75">
+      <div class="flex flex-row w-full justify-between items-center my-1.5 pl-4 pr-1.75">
         <div class="text-gray-500 font-medium">{{ $t('objects.projects') }}</div>
         <WorkspaceCreateProjectBtn
           v-model:is-open="isCreateProjectOpen"

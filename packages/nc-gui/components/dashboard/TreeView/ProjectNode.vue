@@ -385,7 +385,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
             @click="onProjectClick(project, true, true)"
           >
             <PhTriangleFill
-              class="absolute top-2.25 left-2 invisible group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.75 rotate-90"
+              class="absolute top-2.25 left-2 group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.75 rotate-90"
               :class="{ '!rotate-180': project.isExpanded, '!visible': isOptionsOpen }"
             />
           </div>

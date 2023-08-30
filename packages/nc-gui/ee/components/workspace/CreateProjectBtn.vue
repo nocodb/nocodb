@@ -16,7 +16,6 @@ const props = defineProps<{
 // const emits = defineEmits(['update:isOpen'])
 
 const router = useRouter()
-const route = router.currentRoute
 
 const { isUIAllowed } = useUIPermission()
 
@@ -31,11 +30,10 @@ const projectStore = useProject()
 const { isSharedBase } = storeToRefs(projectStore)
 
 const workspaceStore = useWorkspace()
-
-const { activeWorkspace } = storeToRefs(workspaceStore)
+const { activeWorkspace, activeWorkspaceId: _activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const size = computed(() => props.size || 'small')
-const activeWorkspaceId = computed(() => props.activeWorkspaceId || route.value.params.typeOrId)
+const activeWorkspaceId = computed(() => props.activeWorkspaceId || _activeWorkspaceId.value)
 const centered = computed(() => props.centered ?? true)
 const className = computed(() => props.class ?? '')
 

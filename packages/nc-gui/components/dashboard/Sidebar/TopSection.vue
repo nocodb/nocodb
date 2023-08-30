@@ -100,7 +100,7 @@ const navigateToSettings = () => {
         class="nc-sidebar-top-button !hover:bg-gray-200"
         data-testid="nc-sidebar-create-project-btn"
       >
-        <div class="gap-x-2.25 flex flex-row w-full items-center !font-normal pl-1">
+        <div class="gap-x-2 flex flex-row w-full items-center !font-normal pl-1.25">
           <GeneralIcon icon="plus" />
 
           <div class="flex">{{ $t('title.newProj') }}</div>

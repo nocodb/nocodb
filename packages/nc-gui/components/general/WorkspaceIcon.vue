@@ -2,12 +2,14 @@
 import type { WorkspaceType } from 'nocodb-sdk'
 
 const props = defineProps<{
-  workspace: WorkspaceType
+  workspace: WorkspaceType | undefined
   hideLabel?: boolean
   size?: 'small' | 'medium'
 }>()
 
-const workspaceColor = computed(() => props.workspace.meta?.color || stringToColour(props.workspace.id!))
+const workspaceColor = computed(() =>
+  props.workspace ? props.workspace.meta?.color || stringToColour(props.workspace.id!) : undefined,
+)
 
 const size = computed(() => props.size || 'medium')
 </script>

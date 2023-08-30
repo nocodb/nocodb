@@ -502,7 +502,7 @@ export class UsersService {
 
   async signOut(param: { res: any; req: any }) {
     try {
-      param.res.clearCookie('refresh_token');
+      this.clearCookie(param);
       const user = (param.req as any).user;
       if (user?.id) {
         await User.update(user.id, {
@@ -514,6 +514,10 @@ export class UsersService {
     } catch (e) {
       NcError.badRequest(e.message);
     }
+  }
+
+  protected clearCookie(param: { res: any; req: any }) {
+    param.res.clearCookie('refresh_token');
   }
 
   private async createDefaultProject(user: User) {

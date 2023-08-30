@@ -232,4 +232,11 @@ export class UsersService extends UsersServiceCE {
 
     return workspace;
   }
+
+  protected clearCookie(param: { res: any; req: any }) {
+    param.res.clearCookie('refresh_token', {
+      httpOnly: true,
+      domain: process.env.NC_BASE_HOST_NAME || undefined,
+    });
+  }
 }

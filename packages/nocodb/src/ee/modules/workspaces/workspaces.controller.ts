@@ -11,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { WorkspacePlan } from 'nocodb-sdk';
 import { WorkspacesService } from './workspaces.service';
 import type { WorkspaceType } from 'nocodb-sdk';
 import {
@@ -20,6 +21,7 @@ import {
 import { NcError } from '~/helpers/catchError';
 import { MetaTable } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
+import { Workspace } from '~/models';
 
 @Controller()
 export class WorkspacesController {
@@ -148,14 +150,23 @@ export class WorkspacesController {
 
     if (!workspace) NcError.notFound('Workspace not found');
 
+    const updateWorkspacePayload = {
+      status: body.status,
+      message: body.message,
+    };
+
+    if (body['plan']) {
+      if (Object.values(WorkspacePlan).includes(body['plan']) === false)
+        NcError.badRequest('Invalid plan type');
+
+      updateWorkspacePayload['plan'] = body['plan'];
+    }
+
     await this.metaService.metaUpdate(
       null,
       null,
       MetaTable.WORKSPACE,
-      {
-        status: body.status,
-        message: body.message,
-      },
+      updateWorkspacePayload,
       workspace.id,
     );
 

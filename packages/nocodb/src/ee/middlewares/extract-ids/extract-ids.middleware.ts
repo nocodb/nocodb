@@ -193,7 +193,15 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       }
     } else if (req.params.workspaceId) {
       req.ncWorkspaceId = req.params.workspaceId;
-    } else if (req.body.fk_workspace_id) {
+    }
+    // extract workspace id from body only if it's project create endpoint
+    else if (
+      ['/api/v1/db/meta/projects'].some(
+        (projectCreatePath) => req.route.path === projectCreatePath,
+      ) &&
+      req.method === 'POST' &&
+      req.body.fk_workspace_id
+    ) {
       req.ncWorkspaceId = req.body.fk_workspace_id;
     }
 

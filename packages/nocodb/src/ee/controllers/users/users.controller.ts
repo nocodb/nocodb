@@ -70,7 +70,8 @@ export class UsersController extends UsersControllerCE {
       res,
     });
 
-    if (req.user?.provider === 'openid' && process.env.NC_OIDC_LOGOUT_URL) {
+    // todo: check provider as well, if we have multiple ways of login mechanism
+    if (process.env.NC_OIDC_LOGOUT_URL) {
       let callbackURL = req.ncSiteUrl + Noco.getConfig().dashboardPath;
       if (process.env.NC_BASE_APP_URL) {
         const url = new URL(req.ncSiteUrl);

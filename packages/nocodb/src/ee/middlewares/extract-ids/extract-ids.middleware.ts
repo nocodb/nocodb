@@ -205,7 +205,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncWorkspaceId = req.body.fk_workspace_id;
     }
 
-    if (req.ncWorkspaceId && process.env.NC_WORKSPACE_ID) {
+    if (req.route.path === '/api/v1/workspaces/:workspaceId/status') {
+      // skip workspace id check for workspace status update endpoint which is used internally
+    } else if (req.ncWorkspaceId && process.env.NC_WORKSPACE_ID) {
       if (req.ncWorkspaceId !== process.env.NC_WORKSPACE_ID) {
         NcError.badRequest('Invalid workspace id');
       }

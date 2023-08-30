@@ -1,10 +1,9 @@
 <script lang="ts" setup>
-import { ActiveViewInj, inject, ref, storeToRefs, useViewsStore } from '#imports'
+import { storeToRefs, useViewsStore } from '#imports'
 
-const activeView = inject(ActiveViewInj, ref())
 const { openedViewsTab } = storeToRefs(useViewsStore())
 
-const { onViewsTabChange } = useViewsStore()
+const { onViewsTabChange, activeView } = useViewsStore()
 </script>
 
 <template>

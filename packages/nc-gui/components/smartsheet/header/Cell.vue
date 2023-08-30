@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
-import { ActiveViewInj, ColumnInj, IsFormInj, IsKanbanInj, inject, provide, ref, toRef, useUIPermission } from '#imports'
+import { IsFormInj, IsKanbanInj, IsLockedInj, inject, provide, ref, toRef, useUIPermission } from '#imports'
 
 interface Props {
   column: ColumnType
@@ -18,9 +18,7 @@ const isDropDownOpen = ref(false)
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
-const activeInj = inject(ActiveViewInj, ref())
-
-const isLockedView = computed(() => activeInj.value?.lock_type === 'locked')
+const isLocked = inject(IsLockedInj, ref(false))
 
 const column = toRef(props, 'column')
 
@@ -43,8 +41,7 @@ const closeAddColumnDropdown = () => {
 }
 
 const openHeaderMenu = () => {
-  if (isLockedView.value) return
-  if (!isForm.value && isUIAllowed('edit-column')) {
+  if (!isLocked.value && !isForm.value && isUIAllowed('edit-column')) {
     editColumnDropdown.value = true
   }
 }

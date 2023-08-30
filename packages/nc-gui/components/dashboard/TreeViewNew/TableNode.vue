@@ -101,7 +101,13 @@ const canUserEditEmote = computed(() => {
       <template #title>{{ table.table_name }}</template>
       <div class="table-context flex items-center gap-1 h-full" @contextmenu="setMenuContext('table', table)">
         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
-          <div class="flex items-center nc-table-icon" @click.stop>
+          <div
+            class="flex items-center nc-table-icon"
+            :class="{
+              'pointer-events-none': !canUserEditEmote,
+            }"
+            @click.stop
+          >
             <LazyGeneralEmojiPicker
               :key="table.meta?.icon"
               :emoji="table.meta?.icon"

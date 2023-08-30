@@ -7,25 +7,6 @@ const props = defineProps<{
 
 const projectCreateDlg = ref(false)
 const projectType = ref()
-const { projects, projectsList } = storeToRefs(useProjects())
-
-const router = useRouter()
-
-const loading = ref(false)
-
-// if at least one project exists, redirect to first project
-watch(
-  projects,
-  (projects) => {
-    if (projects.size) {
-      return router.replace({
-        path: `/${router.currentRoute.value.params.typeOrId}/${projectsList.value[0].id}`,
-      })
-    }
-    loading.value = false
-  },
-  { immediate: true },
-)
 
 const openCreateProjectDlg = (type: NcProjectType) => {
   projectType.value = type
@@ -35,7 +16,7 @@ const openCreateProjectDlg = (type: NcProjectType) => {
 
 <template>
   <div class="flex items-center justify-center h-full">
-    <div v-if="!loading" class="flex flex-col gap-4 items-center text-gray-500">
+    <div class="flex flex-col gap-4 items-center text-gray-500">
       <NcIconsInbox />
       <div class="font-weight-medium">No Projects</div>
       <template v-if="props.buttons">

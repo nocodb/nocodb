@@ -38,6 +38,8 @@ const router = useRouter()
 
 const route = router.currentRoute
 
+const { isWorkspaceLoading } = storeToRefs(useWorkspace())
+
 const projectsStore = useProjects()
 
 const { createProject: _createProject } = projectsStore
@@ -360,7 +362,7 @@ onUnmounted(() => {
         </ProjectWrapper>
       </template>
 
-      <WorkspaceEmptyPlaceholder v-else />
+      <WorkspaceEmptyPlaceholder v-else-if="!isWorkspaceLoading" />
     </div>
 
     <!-- <div class="flex flex-col border-t-1 border-gray-100">

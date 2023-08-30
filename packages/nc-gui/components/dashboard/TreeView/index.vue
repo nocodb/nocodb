@@ -47,6 +47,8 @@ const { createProject: _createProject } = projectsStore
 
 const { projects, projectsList, activeProjectId } = storeToRefs(projectsStore)
 
+const { isWorkspaceLoading } = storeToRefs(useWorkspace())
+
 const { openTable } = useTablesStore()
 
 const projectStore = useProject()
@@ -279,7 +281,7 @@ onUnmounted(() => {
         </ProjectWrapper>
       </template>
 
-      <WorkspaceEmptyPlaceholder v-else />
+      <WorkspaceEmptyPlaceholder v-else-if="!isWorkspaceLoading" />
     </div>
   </div>
 </template>

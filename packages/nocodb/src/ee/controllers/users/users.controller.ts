@@ -65,7 +65,7 @@ export class UsersController extends UsersControllerCE {
       NcError.forbidden('Not allowed');
     }
 
-    const result = await this.usersService.signOut({
+    const result: Record<string, string> = await this.usersService.signOut({
       req,
       res,
     });
@@ -91,7 +91,8 @@ export class UsersController extends UsersControllerCE {
       signoutUrl.searchParams.append('scope', 'openid profile email');
       signoutUrl.searchParams.append('response_type', 'code');
 
-      return res.redirect(process.env.NC_OIDC_LOGOUT_URL);
+      // return res.redirect(process.env.NC_OIDC_LOGOUT_URL);
+      result.redirect_url = signoutUrl.toString();
     }
 
     res.json(result);

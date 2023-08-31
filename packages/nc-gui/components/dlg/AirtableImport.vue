@@ -57,6 +57,7 @@ const syncSource = ref({
     syncDirection: 'Airtable to NocoDB',
     syncRetryCount: 1,
     apiKey: '',
+    appId: '',
     shareId: '',
     syncSourceUrlOrId: '',
     options: {
@@ -158,7 +159,8 @@ async function loadSyncSrc() {
   if (srcs && srcs[0]) {
     srcs[0].details = srcs[0].details || {}
     syncSource.value = migrateSync(srcs[0])
-    syncSource.value.details.syncSourceUrlOrId = srcs[0].details.shareId
+    syncSource.value.details.syncSourceUrlOrId =
+      srcs[0].details.appId && srcs[0].details.appId.length > 0 ? srcs[0].details.syncSourceUrlOrId : srcs[0].details.shareId
     $jobs.subscribe({ syncId: syncSource.value.id }, onSubscribe, onStatus, onLog)
   } else {
     syncSource.value = {
@@ -169,6 +171,7 @@ async function loadSyncSrc() {
         syncDirection: 'Airtable to NocoDB',
         syncRetryCount: 1,
         apiKey: '',
+        appId: '',
         shareId: '',
         syncSourceUrlOrId: '',
         options: {
@@ -242,6 +245,8 @@ watch(
     if (syncSource.value.details) {
       const m = v && v.match(/(exp|shr).{14}/g)
       syncSource.value.details.shareId = m ? m[0] : ''
+      const m2 = v && v.match(/(app).{14}/g)
+      syncSource.value.details.appId = m2 ? m2[0] : ''
     }
   },
 )
@@ -296,7 +301,7 @@ onMounted(async () => {
             <a-input
               v-model:value="syncSource.details.syncSourceUrlOrId"
               class="nc-input-shared-base"
-              :placeholder="`${$t('labels.sharedBase')} ID / URL`"
+              :placeholder="`${$t('labels.sharedBase')} URL`"
               size="large"
             />
           </a-form-item>

@@ -367,10 +367,6 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
       return;
     }
 
-    if (base.is_meta) {
-      return;
-    }
-
     const foundModelData: Record<string, any>[] = await this.ncMeta.metaList2(
       base.project_id,
       base.id,

@@ -231,7 +231,7 @@ export class AtImportProcessor {
         const template = await FetchAT.readTemplate(sDB.shareId);
         await FetchAT.initialize(template.template.exploreApplication.shareId);
       } else {
-        await FetchAT.initialize(sDB.shareId);
+        await FetchAT.initialize(sDB.shareId, sDB.appId);
       }
       const ft = await FetchAT.read();
       const duration = Date.now() - start;
@@ -2450,6 +2450,7 @@ export interface AirtableSyncConfig {
   projectId?: string;
   baseId?: string;
   apiKey: string;
+  appId?: string;
   shareId: string;
   user: UserType;
   options: {

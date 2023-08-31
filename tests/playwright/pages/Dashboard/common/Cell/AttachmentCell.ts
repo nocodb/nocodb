@@ -46,14 +46,14 @@ export class AttachmentCellPageObject extends BasePage {
   }
 
   async verifyFile({ index, columnHeader }: { index: number; columnHeader: string }) {
-    await expect(await this.get({ index, columnHeader }).locator('.nc-attachment')).toBeVisible();
+    await expect(this.get({ index, columnHeader }).locator('.nc-attachment')).toBeVisible();
   }
 
   async verifyFileCount({ index, columnHeader, count }: { index: number; columnHeader: string; count: number }) {
     // retry below logic for 5 times, with 1 second delay
     let retryCount = 0;
     while (retryCount < 5) {
-      const attachments = await this.get({ index, columnHeader }).locator('.nc-attachment');
+      const attachments = this.get({ index, columnHeader }).locator('.nc-attachment');
       // console.log(await attachments.count());
       if ((await attachments.count()) === count) {
         break;

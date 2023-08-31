@@ -30,6 +30,16 @@ export class LeftSidebarPage extends BasePage {
     return this.dashboard.get().locator('.nc-sidebar');
   }
 
+  async createProject({ title }: { title: string }) {
+    await this.btn_newProject.click();
+    await this.rootPage.locator('.ant-modal-content:has-text(" Create Database")').waitFor();
+    await this.rootPage.locator('.ant-modal-content:has-text(" Create Database")').locator('input').fill(title);
+    await this.rootPage
+      .locator('.ant-modal-content:has-text(" Create Database")')
+      .locator('button.ant-btn-primary')
+      .click();
+  }
+
   async clickTeamAndSettings() {
     await this.btn_teamAndSettings.click();
   }

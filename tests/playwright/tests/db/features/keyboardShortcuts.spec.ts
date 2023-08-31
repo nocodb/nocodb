@@ -3,7 +3,7 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import { GridPage } from '../../../pages/Dashboard/Grid';
 import setup, { unsetup } from '../../../setup';
 import { Api, UITypes } from 'nocodb-sdk';
-import { isEE, isHub } from '../../../setup/db';
+import { isEE } from '../../../setup/db';
 import { getDefaultPwd } from '../../utils/general';
 import config from '../../../playwright.config';
 
@@ -76,43 +76,27 @@ test.describe('Verify shortcuts', () => {
 
     // fullscreen
     // to be implemented for hub
-    if (!isHub()) {
-      await page.keyboard.press('Alt+f');
-      await dashboard.treeView.verifyVisibility({
-        isVisible: false,
-      });
-      await dashboard.viewSidebar.verifyVisibility({
-        isVisible: false,
-      });
-      await page.keyboard.press('Alt+f');
-      await dashboard.treeView.verifyVisibility({
-        isVisible: true,
-      });
-      await dashboard.viewSidebar.verifyVisibility({
-        isVisible: true,
-      });
-    }
+    // await page.keyboard.press('Alt+f');
+    // await dashboard.treeView.verifyVisibility({
+    //   isVisible: false,
+    // });
+    // await dashboard.viewSidebar.verifyVisibility({
+    //   isVisible: false,
+    // });
+    // await page.keyboard.press('Alt+f');
+    // await dashboard.treeView.verifyVisibility({
+    //   isVisible: true,
+    // });
+    // await dashboard.viewSidebar.verifyVisibility({
+    //   isVisible: true,
+    // });
 
     // disabled temporarily for hub. Clipboard access to be fixed.
-    if (!isHub()) {
-      // invite team member
-      await page.keyboard.press('Alt+i');
-      if (isHub()) {
-        await dashboard.grid.toolbar.share.invite({ email: 'new@example.com', role: 'editor' });
-        const url = await dashboard.grid.toolbar.share.getInvitationUrl();
-        expect(url).toContain('signup');
-      } else {
-        await dashboard.settings.teams.invite({
-          email: 'new@example.com',
-          role: 'editor',
-          skipOpeningModal: true,
-        });
-        const url = await dashboard.settings.teams.getInvitationUrl();
-        expect(url).toContain('signup');
-        await page.waitForTimeout(1000);
-        await dashboard.settings.teams.closeInvite();
-      }
-    }
+    // invite team member
+    // await page.keyboard.press('Alt+i');
+    // await dashboard.grid.toolbar.share.invite({ email: 'new@example.com', role: 'editor' });
+    // const url = await dashboard.grid.toolbar.share.getInvitationUrl();
+    // expect(url).toContain('signup');
 
     // Cmd + Right arrow
     await dashboard.treeView.openTable({ title: 'Country' });

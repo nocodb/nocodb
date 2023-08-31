@@ -12,6 +12,7 @@ import { BarcodeOverlay } from '../BarcodeOverlay';
 import { RowPageObject } from './Row';
 import { WorkspaceMenuObject } from '../common/WorkspaceMenu';
 import { GroupPageObject } from './Group';
+import { ColumnHeaderPageObject } from './columnHeader';
 
 export class GridPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -19,6 +20,7 @@ export class GridPage extends BasePage {
   readonly dashboardPage: DashboardPage;
   readonly qrCodeOverlay: QrCodeOverlay;
   readonly barcodeOverlay: BarcodeOverlay;
+  readonly columnHeader: ColumnHeaderPageObject;
   readonly column: ColumnPageObject;
   readonly cell: CellPageObject;
   readonly topbar: TopbarPage;
@@ -29,6 +31,8 @@ export class GridPage extends BasePage {
   readonly rowPage: RowPageObject;
   readonly groupPage: GroupPageObject;
 
+  readonly btn_addNewRow: Locator;
+
   constructor(dashboardPage: DashboardPage) {
     super(dashboardPage.rootPage);
     this.dashboard = dashboardPage;
@@ -36,6 +40,7 @@ export class GridPage extends BasePage {
     this.qrCodeOverlay = new QrCodeOverlay(this);
     this.barcodeOverlay = new BarcodeOverlay(this);
     this.column = new ColumnPageObject(this);
+    this.columnHeader = new ColumnHeaderPageObject(this);
     this.cell = new CellPageObject(this);
     this.topbar = new TopbarPage(this);
     this.toolbar = new ToolbarPage(this);
@@ -44,6 +49,26 @@ export class GridPage extends BasePage {
     this.workspaceMenu = new WorkspaceMenuObject(this);
     this.rowPage = new RowPageObject(this);
     this.groupPage = new GroupPageObject(this);
+
+    this.btn_addNewRow = this.get().locator('.nc-grid-add-new-cell');
+  }
+
+  async verifyLockMode() {
+    // add new row button
+    expect(await this.btn_addNewRow.count()).toBe(0);
+
+    await this.toolbar.verifyLockMode();
+    await this.footbar.verifyLockMode();
+    await this.columnHeader.verifyLockMode();
+  }
+
+  async verifyCollaborativeMode() {
+    // add new row button
+    expect(await this.btn_addNewRow.count()).toBe(1);
+
+    await this.toolbar.verifyCollaborativeMode();
+    await this.footbar.verifyCollaborativeMode();
+    await this.columnHeader.verifyCollaborativeMode();
   }
 
   get() {

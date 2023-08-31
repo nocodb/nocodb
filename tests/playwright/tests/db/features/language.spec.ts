@@ -41,6 +41,8 @@ const langMenu = [
   'zh-Hant.json',
 ];
 
+// i18n menu not enabled for EE
+//
 test.describe.skip('Common', () => {
   let context: any;
   let dashboard: DashboardPage;

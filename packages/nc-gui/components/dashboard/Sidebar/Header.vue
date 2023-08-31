@@ -11,6 +11,7 @@ const { activeWorkspace, isWorkspaceLoading } = storeToRefs(workspaceStore)
 <template>
   <div
     class="flex items-center px-2 nc-sidebar-header py-1.2 w-full border-b-1 border-gray-200 group"
+    :data-workspace-title="activeWorkspace?.title"
     style="height: var(--topbar-height)"
   >
     <div v-if="!isWorkspaceLoading" class="flex flex-row items-center w-full">

@@ -4,10 +4,6 @@ import type { WorkspaceType } from 'nocodb-sdk'
 import { useWorkspace } from '#imports'
 import { navigateTo } from '#app'
 
-const props = defineProps<{
-  isOpen: boolean
-}>()
-
 const workspaceStore = useWorkspace()
 
 const { activeWorkspace, workspacesList, collaborators } = storeToRefs(workspaceStore)

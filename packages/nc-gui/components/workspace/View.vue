@@ -37,7 +37,7 @@ watch(
 </script>
 
 <template>
-  <div v-if="activeWorkspace" class="flex flex-col nc-workspace-container">
+  <div v-if="activeWorkspace" class="flex flex-col nc-workspace-settings">
     <div class="flex gap-2 items-center min-w-0 p-6">
       <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
         {{ activeWorkspace?.title?.slice(0, 2) }}
@@ -74,7 +74,7 @@ watch(
       <template v-if="isWorkspaceOwner && isEeUI">
         <a-tab-pane key="settings" class="w-full">
           <template #tab>
-            <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
+            <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5" data-testid="nc-workspace-settings-tab-settings">
               <GeneralIcon icon="settings" />
               Settings
             </div>

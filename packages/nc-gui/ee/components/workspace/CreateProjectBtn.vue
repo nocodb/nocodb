@@ -91,6 +91,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     @click="navigateToCreateProject(NcProjectType.DB)"
   >
     <slot />
+
+    <WorkspaceCreateProjectDlg v-model="projectCreateDlg" :type="projectType" />
+    <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
   </NcButton>
   <!-- <a-dropdown v-model:visible="isOpen" class="w-full">
       <template #overlay>
@@ -122,8 +125,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         </a-menu>
       </template>
     </a-dropdown> -->
-  <WorkspaceCreateProjectDlg v-model="projectCreateDlg" :type="projectType" />
-  <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
 </template>
 
 <style scoped></style>

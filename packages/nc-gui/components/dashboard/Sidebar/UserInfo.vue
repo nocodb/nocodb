@@ -39,7 +39,7 @@ watch(isMenuOpen, () => {
 </script>
 
 <template>
-  <div class="flex w-full flex-col p-1 border-t-1 border-gray-200 gap-y-2">
+  <div class="nc-sidebar-userinfo flex w-full flex-col p-1 border-t-1 border-gray-200 gap-y-2">
     <NcDropdown v-model:visible="isMenuOpen" placement="top">
       <div class="flex flex-row py-2 px-3 gap-x-2 items-center hover:bg-gray-200 rounded-lg cursor-pointer h-10">
         <GeneralUserIcon />
@@ -50,7 +50,7 @@ watch(isMenuOpen, () => {
       </div>
       <template #overlay>
         <NcMenu class="" @click="isMenuOpen = false">
-          <NcMenuItem @click="logout">
+          <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
             <GeneralIcon icon="signout" class="menu-icon" />
             Log Out</NcMenuItem
           >

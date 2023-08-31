@@ -87,14 +87,19 @@ watch(
 </script>
 
 <template>
-  <div class="flex flex-col items-center">
+  <div class="flex flex-col items-center nc-workspace-settings-settings">
     <div class="item flex flex-col w-full">
       <div class="font-medium text-base">Change Workspace Name</div>
 
       <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="titleChange">
         <div class="text-gray-500 mt-6 mb-1.5">Workspace name</div>
         <a-form-item name="title" :rules="formRules.title">
-          <a-input v-model:value="form.title" class="w-full !rounded-md !py-1.5" placeholder="Workspace name" />
+          <a-input
+            v-model:value="form.title"
+            class="w-full !rounded-md !py-1.5"
+            placeholder="Workspace name"
+            data-testid="nc-workspace-settings-settings-rename-input"
+          />
         </a-form-item>
         <div class="flex flex-row w-full justify-end mt-8">
           <NcButton
@@ -102,6 +107,7 @@ watch(
             html-type="submit"
             :disabled="isErrored || (form.title && form.title === activeWorkspace.title)"
             :loading="isDeleting"
+            data-testid="nc-workspace-settings-settings-rename-submit"
           >
             <template #loading> Renaming Workspace </template>
             Rename Workspace

@@ -42,7 +42,7 @@ watch(
       <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
         {{ activeWorkspace?.title?.slice(0, 2) }}
       </span>
-      <h1 class="text-3xl font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title truncate min-w-10">
+      <h1 class="text-3xl font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title truncate min-w-10 capitalize">
         {{ activeWorkspace?.title }}
       </h1>
     </div>

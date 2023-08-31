@@ -132,7 +132,8 @@ watch(
 
 <style lang="scss">
 .nc-view-sidebar-wrapper.minimized-height > * {
-  @apply h-4/5 pb-1 !(rounded-l-lg border-1 border-gray-200 shadow-lg);
+  @apply pb-1 !(rounded-l-lg border-1 border-gray-200 shadow-lg);
+  height: 89.5%;
 }
 
 .nc-view-sidebar-wrapper > * {

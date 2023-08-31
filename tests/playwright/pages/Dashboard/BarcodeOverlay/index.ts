@@ -16,7 +16,7 @@ export class BarcodeOverlay extends BasePage {
 
   async verifyBarcodeSvgValue(expectedValue: string) {
     const foundBarcodeSvg = await this.get().getByTestId('barcode').innerHTML();
-    await expect(foundBarcodeSvg).toContain(expectedValue);
+    expect(foundBarcodeSvg).toContain(expectedValue);
   }
 
   async clickCloseButton() {

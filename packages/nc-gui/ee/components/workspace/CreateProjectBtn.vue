@@ -6,7 +6,6 @@ import type { NcButtonSize } from '~/lib'
 const props = defineProps<{
   activeWorkspaceId?: string
   modal?: boolean
-  class?: string
   type?: ButtonType
   size?: NcButtonSize
   centered?: boolean
@@ -86,7 +85,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     v-if="isUIAllowed('createProject', false, activeWorkspace?.roles) && !isSharedBase"
     type="text"
     :size="size"
-    :class="className"
     :centered="centered"
     @click="navigateToCreateProject(NcProjectType.DB)"
   >

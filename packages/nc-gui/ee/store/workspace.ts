@@ -35,6 +35,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { appInfo, ncNavigateTo } = useGlobal()
 
+  const { loadRoles } = useRoles()
+
+  const { isUIAllowed } = useUIPermission()
+
   const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
   const isWorkspaceSettingsPageOpened = computed(() => route.value.name === 'index-typeOrId-settings')
@@ -267,8 +271,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     if (force || !workspaces.value.get(workspaceId)) {
       await loadWorkspace(workspaceId)
     }
+
+    await loadRoles()
+
     if (activeWorkspace.value?.status === WorkspaceStatus.CREATED) {
-      await Promise.all([loadCollaborators(), projectsStore.loadProjects()])
+      await projectsStore.loadProjects()
     }
     isWorkspaceLoading.value = false
   }

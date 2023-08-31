@@ -183,6 +183,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const project = await Project.getByTitleOrId(params.projectName);
       if (project) {
         req.ncProjectId = project.id;
+        req.ncWorkspaceId = (project as Project).fk_workspace_id;
         res.locals.project = project;
       }
     } else if (req.ncProjectId) {
@@ -239,7 +240,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
 function getUserRoleForScope(user: any, scope: string) {
   if (scope === 'project' || scope === 'workspace') {
-    return user?.projectRoles || user?.workspaceRoles;
+    return user?.project_roles || user?.workspace_roles;
   } else if (scope === 'org') {
     return user?.roles;
   }

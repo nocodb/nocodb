@@ -37,9 +37,20 @@ export const useRoles = createSharedComposable(() => {
       }, {})
     }
 
+    let workspaceRoles = user.value?.workspace_roles ?? {}
+
+    // if string populate key-value paired object
+    if (isString(workspaceRoles)) {
+      workspaceRoles = workspaceRoles.split(',').reduce<Roles>((acc, role) => {
+        acc[role] = true
+        return acc
+      }, {})
+    }
+
     return {
       ...orgRoles,
       ...projectRoles,
+      ...workspaceRoles,
     }
   })
 
@@ -103,6 +114,7 @@ export const useRoles = createSharedComposable(() => {
         ...user.value,
         roles: res.roles,
         project_roles: res.project_roles,
+        workspace_roles: res.workspace_roles,
       }
     } else if (options?.isSharedErd) {
       const res = await api.auth.me(
@@ -120,6 +132,7 @@ export const useRoles = createSharedComposable(() => {
         ...user.value,
         roles: res.roles,
         project_roles: res.project_roles,
+        workspace_roles: res.workspace_roles,
       }
     } else if (projectId) {
       const res = await api.auth.me({ project_id: projectId })
@@ -128,6 +141,7 @@ export const useRoles = createSharedComposable(() => {
         ...user.value,
         roles: res.roles,
         project_roles: res.project_roles,
+        workspace_roles: res.workspace_roles,
       }
     }
   }

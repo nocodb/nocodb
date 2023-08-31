@@ -114,11 +114,9 @@ export class UsersController {
   async me(@Request() req) {
     const user = {
       ...req.user,
-      roles: {
-        ...extractRolesObj(req.user.roles),
-        ...extractRolesObj(req.user.projectRoles),
-        ...extractRolesObj(req.user.workspaceRoles),
-      },
+      roles: extractRolesObj(req.user.roles),
+      workspace_roles: extractRolesObj(req.user.workspace_roles),
+      project_roles: extractRolesObj(req.user.project_roles),
     };
     return user;
   }

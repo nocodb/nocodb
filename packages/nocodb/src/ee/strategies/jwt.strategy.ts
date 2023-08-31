@@ -94,8 +94,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       roles: user.roles
         ? extractRolesObj((user.roles as any)?.split(',').filter(Boolean))
         : null,
-      workspaceRoles: workspaceRoles ? extractRolesObj(workspaceRoles) : null,
-      projectRoles: projectRoles ? extractRolesObj(projectRoles) : null,
+      workspace_roles: workspaceRoles ? extractRolesObj(workspaceRoles) : null,
+      project_roles: projectRoles ? extractRolesObj(projectRoles) : null,
       provider: jwtPayload.provider ?? undefined,
     };
   }

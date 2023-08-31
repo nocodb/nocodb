@@ -27,7 +27,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { appInfo, ncNavigateTo } = useGlobal()
 
-  const { userRoles } = useRoles()
+  const { scopedRoles } = useRoles()
 
   const workspaces = ref<Map<string, any>>(new Map())
   const workspacesList = computed<any[]>(() => Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at))
@@ -66,17 +66,17 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   /** getters */
   const isWorkspaceCreator = computed(() => {
     // todo: type correction
-    return userRoles.value[Role.OrgLevelCreator]
+    return scopedRoles.value.orgRoles[Role.OrgLevelCreator]
   })
 
   const isWorkspaceOwner = computed(() => {
     // todo: type correction
-    return userRoles.value[Role.OrgLevelCreator]
+    return scopedRoles.value.orgRoles[Role.OrgLevelCreator]
   })
 
   const isWorkspaceOwnerOrCreator = computed(() => {
     // todo: type correction
-    return userRoles.value[Role.OrgLevelCreator]
+    return scopedRoles.value.orgRoles[Role.OrgLevelCreator]
   })
 
   /** actions */

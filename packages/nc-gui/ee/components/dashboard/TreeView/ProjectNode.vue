@@ -532,7 +532,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   <a-menu-item @click="enableEditMode">
                     <div class="nc-project-menu-item group">
                       <GeneralIcon icon="edit" class="group-hover:text-black" />
-                      {{ $t('general.edit') }}
+                      {{ $t('general.rename') }}
                     </div>
                   </a-menu-item>
                   <a-menu-item
@@ -544,7 +544,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   >
                     <div class="nc-menu-item-wrapper">
                       <GeneralIcon icon="duplicate" class="text-gray-700" />
-                      {{ $t('general.duplicate') }} {{ $t('objects.project') }}
+                      {{ $t('general.duplicate') }}
                     </div>
                   </a-menu-item>
                   <!-- Copy Project Info -->

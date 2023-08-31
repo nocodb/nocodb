@@ -21,25 +21,23 @@ jobs:
   build-executables:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
       - uses: actions/checkout@v3
         with:
           token: ${{ secrets.NC_GITHUB_TOKEN }}
           repository: 'nocodb/nocodb-timely'
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-      - uses: actions/cache@v3
-        name: Setup pnpm cache
+      - name: Cache node modules
+        id: cache-npm
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules
         with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
       - name: Cache pkg modules
         id: cache-pkg
         uses: actions/cache@v3
@@ -66,13 +64,13 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 16
 
       - name: Update nocodb-timely
         env:
           TAG: ${{ github.event.inputs.tag || inputs.tag }}
         run: |
-          pnpm i -E nocodb-daily@$TAG
+          npm i -E nocodb-daily@$TAG
 
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
@@ -83,8 +81,8 @@ jobs:
 
       - name : Install dependencies and build executables
         run: |
-          # install pnpm dependendencies
-          pnpm i
+          # install npm dependendencies
+          npm i
 
           # Copy sqlite binaries
           # rsync -rvzhP ./binaries/binding/ ./node_modules/sqlite3/lib/binding/
@@ -107,7 +105,7 @@ jobs:
           npx modclean --patterns="default:*" --ignore="nc-lib-gui-daily/**,nocodb-daily/**,dayjs/**,express-status-monitor/**,sqlite3/**" --run
 
           # build executables
-          pnpm run build
+          npm run build
 
           mkdir ./mac-dist
           mv ./dist/Noco-macos-arm64 ./mac-dist/

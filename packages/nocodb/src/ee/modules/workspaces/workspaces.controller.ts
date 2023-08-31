@@ -14,15 +14,11 @@ import { AuthGuard } from '@nestjs/passport';
 import { WorkspacePlan } from 'nocodb-sdk';
 import { WorkspacesService } from './workspaces.service';
 import type { WorkspaceType } from 'nocodb-sdk';
-import {
-  Acl,
-  UseAclMiddleware,
-} from '~/middlewares/extract-ids/extract-ids.middleware';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcError } from '~/helpers/catchError';
-import {CacheScope, MetaTable} from '~/utils/globals';
+import { CacheScope, MetaTable } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
-import { Workspace } from '~/models';
-import NocoCache from "~/cache/NocoCache";
+import NocoCache from '~/cache/NocoCache';
 
 @Controller()
 export class WorkspacesController {
@@ -33,10 +29,7 @@ export class WorkspacesController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get('/api/v1/workspaces/')
-  @UseAclMiddleware({
-    permissionName: 'workspaceList',
-    workspaceMode: true,
-  })
+  @Acl('workspaceList')
   async list(@Request() req) {
     return await this.workspacesService.list({
       user: req.user,

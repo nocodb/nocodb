@@ -256,27 +256,6 @@ export class AclMiddleware implements NestInterceptor {
   }
 }
 
-export const UseAclMiddleware =
-  ({
-    permissionName,
-    allowedRoles,
-    blockApiTokenAccess,
-  }: {
-    permissionName: string;
-    allowedRoles?: (OrgUserRoles | string)[];
-    blockApiTokenAccess?: boolean;
-  }) =>
-  (target: any, key?: string, descriptor?: PropertyDescriptor) => {
-    SetMetadata('permission', permissionName)(target, key, descriptor);
-    SetMetadata('allowedRoles', allowedRoles)(target, key, descriptor);
-    SetMetadata('blockApiTokenAccess', blockApiTokenAccess)(
-      target,
-      key,
-      descriptor,
-    );
-
-    UseInterceptors(AclMiddleware)(target, key, descriptor);
-  };
 export const Acl =
   (
     permissionName: string,

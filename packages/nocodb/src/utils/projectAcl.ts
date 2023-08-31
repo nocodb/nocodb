@@ -64,7 +64,6 @@ const viewerPermissions = {
     pageSearch: true,
     pageParents: true,
     pagePaginate: true,
-    trackEvents: true,
   },
 };
 const rolePermissions = {
@@ -245,7 +244,6 @@ const rolePermissions = {
       pagePaginate: true,
       pageDirectoryImport: true,
       docsMagicCreatePages: true,
-      trackEvents: true,
     },
   },
   commenter: {
@@ -309,7 +307,6 @@ const rolePermissions = {
       swaggerJson: true,
 
       commandPalette: true,
-      trackEvents: true,
     },
   },
   viewer: viewerPermissions,
@@ -321,7 +318,6 @@ const rolePermissions = {
       passwordChange: true,
       projectList: true,
       commandPalette: true,
-      trackEvents: true,
       // allow only in cloud
       testConnection: true,
     },
@@ -363,8 +359,6 @@ const rolePermissions = {
       docsMagicCreatePages: true,
       pagePaginate: true,
       pageDirectoryImport: true,
-
-      trackEvents: true,
     },
   },
 };

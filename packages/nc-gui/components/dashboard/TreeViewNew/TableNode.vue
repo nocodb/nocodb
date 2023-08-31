@@ -112,34 +112,32 @@ const canUserEditEmote = computed(() => {
               :key="table.meta?.icon"
               :emoji="table.meta?.icon"
               size="small"
-              :readonly="!isUIAllowed('tableIconCustomisation', false, projectRole) || canUserEditEmote"
+              :readonly="!isUIAllowed('tableIconCustomisation', false, projectRole) || !canUserEditEmote"
               @emoji-selected="setIcon($event, table)"
             >
               <template #default>
-                <div>
-                  <NcTooltip class="flex" placement="topLeft" hide-on-click :disabled="canUserEditEmote">
-                    <template #title>
-                      {{ 'Change icon' }}
-                    </template>
+                <NcTooltip class="flex" placement="topLeft" hide-on-click :disabled="!canUserEditEmote">
+                  <template #title>
+                    {{ 'Change icon' }}
+                  </template>
 
-                    <MdiTable
-                      v-if="table.type === 'table'"
-                      class="flex w-5 !text-gray-500 text-sm"
-                      :class="{
-                        'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole),
-                        '!text-black': openedTableId === table.id,
-                      }"
-                    />
-                    <MdiEye
-                      v-else
-                      class="flex w-5 !text-gray-500 text-sm"
-                      :class="{
-                        'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole),
-                        '!text-black': openedTableId === table.id,
-                      }"
-                    />
-                  </NcTooltip>
-                </div>
+                  <MdiTable
+                    v-if="table.type === 'table'"
+                    class="flex w-5 !text-gray-500 text-sm"
+                    :class="{
+                      'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole),
+                      '!text-black': openedTableId === table.id,
+                    }"
+                  />
+                  <MdiEye
+                    v-else
+                    class="flex w-5 !text-gray-500 text-sm"
+                    :class="{
+                      'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole),
+                      '!text-black': openedTableId === table.id,
+                    }"
+                  />
+                </NcTooltip>
               </template>
             </LazyGeneralEmojiPicker>
           </div>

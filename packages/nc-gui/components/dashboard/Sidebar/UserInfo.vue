@@ -64,17 +64,15 @@ watch(isMenuOpen, () => {
           <NcDivider />
           <a href="https://discord.gg/5RgZmkW" target="_blank" class="!underline-transparent">
             <NcMenuItem class="social-icon-wrapper"
-              ><GeneralIcon class="social-icon menu-icon" icon="discord" />Join our Discord</NcMenuItem
+              ><GeneralIcon class="social-icon" icon="discord" />Join our Discord</NcMenuItem
             >
           </a>
           <a href="https://www.reddit.com/r/NocoDB" target="_blank" class="!underline-transparent">
-            <NcMenuItem class="social-icon-wrapper"
-              ><GeneralIcon class="social-icon menu-icon" icon="reddit" />/r/NocoDB</NcMenuItem
-            >
+            <NcMenuItem class="social-icon-wrapper"><GeneralIcon class="social-icon" icon="reddit" />/r/NocoDB</NcMenuItem>
           </a>
           <a href="https://twitter.com/nocodb" target="_blank" class="!underline-transparent">
             <NcMenuItem class="group"
-              ><GeneralIcon class="text-gray-500 group-hover:text-gray-800 menu-icon" icon="twitter" />Twitter</NcMenuItem
+              ><GeneralIcon class="text-gray-500 group-hover:text-gray-800" icon="twitter" />Twitter</NcMenuItem
             >
           </a>
           <template v-if="!appInfo.ee">
@@ -102,6 +100,7 @@ watch(isMenuOpen, () => {
             ><GeneralIcon v-if="isAuthTokenCopied" icon="check" class="group-hover:text-black menu-icon" /><GeneralIcon
               v-else
               icon="copy"
+              class="menu-icon"
             />
             <template v-if="isAuthTokenCopied"> Copied Auth Token </template>
             <template v-else> Copy Auth Token </template>
@@ -129,6 +128,12 @@ watch(isMenuOpen, () => {
 </template>
 
 <style lang="scss" scoped>
+.menu-icon {
+  @apply !min-h-4.5;
+  line-height: 1rem;
+  font-size: 1.125rem;
+}
+
 :deep(.ant-popover-inner-content) {
   @apply !p-0 !rounded-md;
 }

@@ -2176,7 +2176,7 @@ class BaseModelSqlv2 {
     return res;
   }
 
-  async updateByPk(id, data, trx?, cookie?, disableOptimization = false) {
+  async updateByPk(id, data, trx?, cookie?, _disableOptimization = false) {
     try {
       const updateObj = await this.model.mapAliasToColumn(
         data,
@@ -2679,7 +2679,15 @@ class BaseModelSqlv2 {
           // pk not specified - bypass
           continue;
         }
-        if (!raw) prevData.push(await this.readByPk(pkValues));
+        if (!raw)
+          prevData.push(
+            await this.readByPk(
+              pkValues,
+              false,
+              {},
+              { ignoreView: true, getHiddenColumn: true },
+            ),
+          );
         const wherePk = await this._wherePk(pkValues);
         res.push(wherePk);
         toBeUpdated.push({ d, wherePk });
@@ -2696,7 +2704,12 @@ class BaseModelSqlv2 {
 
       if (!raw) {
         for (const pkValues of updatePkValues) {
-          const oldRecord = await this.readByPk(pkValues);
+          const oldRecord = await this.readByPk(
+            pkValues,
+            false,
+            {},
+            { ignoreView: true, getHiddenColumn: true },
+          );
           if (!oldRecord && throwExceptionIfNotExist)
             NcError.unprocessableEntity(
               `Record with pk ${JSON.stringify(pkValues)} not found`,
@@ -2800,7 +2813,12 @@ class BaseModelSqlv2 {
           continue;
         }
 
-        const oldRecord = await this.readByPk(pkValues);
+        const oldRecord = await this.readByPk(
+          pkValues,
+          false,
+          {},
+          { ignoreView: true, getHiddenColumn: true },
+        );
         if (!oldRecord && throwExceptionIfNotExist)
           NcError.unprocessableEntity(
             `Record with pk ${JSON.stringify(pkValues)} not found`,

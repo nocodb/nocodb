@@ -57,7 +57,7 @@ jobs:
             restore-keys: |
               ${{ runner.os }}-pnpm-store-
         - name: Install dependencies for packages
-          run: pnpm i
+          run: pnpm bootstrap
         - name: run unit tests
           working-directory: ./packages/nocodb
           run: pnpm run test:unit
@@ -97,7 +97,7 @@ jobs:
           working-directory: ./
           run: docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &
         - name: install dependencies
-          run: pnpm i
+          run: pnpm bootstrap
         - name: run unit tests
           working-directory: ./packages/nocodb
           run: pnpm run test:unit:pg

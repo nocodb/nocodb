@@ -23,7 +23,7 @@ jobs:
           fetch-depth: 0
         
       - run: |
-          pnpm i
+          pnpm bootstrap
 
       - name: Create Pull Request
         id: cpr

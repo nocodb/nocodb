@@ -3,6 +3,8 @@ const workspaceStore = useWorkspace()
 
 const { isWorkspaceLoading } = storeToRefs(workspaceStore)
 
+const { isSharedBase } = storeToRefs(useProject())
+
 const isCreateProjectOpen = ref(false)
 </script>
 
@@ -13,16 +15,29 @@ const isCreateProjectOpen = ref(false)
       outlineWidth: '1px',
     }"
   >
-    <div class="flex flex-col" style="height: var(--sidebar-top-height)">
+    <div
+      class="flex flex-col"
+      :style="{
+        height: isSharedBase ? 'var(--topbar-height)' : 'var(--sidebar-top-height)',
+      }"
+    >
       <DashboardSidebarHeader />
 
-      <DashboardSidebarTopSection />
+      <DashboardSidebarTopSection v-if="!isSharedBase" />
     </div>
     <div
-      class="flex flex-col nc-scrollbar-sm-dark border-t-1 pt-1"
-      style="height: calc(100% - var(--sidebar-top-height) - var(--sidebar-bottom-height))"
+      class="flex flex-col nc-scrollbar-sm-dark"
+      :class="{
+        'border-t-1 pt-1': !isSharedBase,
+        'pt-0.25': isSharedBase,
+      }"
+      :style="{
+        height: isSharedBase
+          ? 'calc(100% - var(--topbar-height))'
+          : 'calc(100% - var(--sidebar-top-height) - var(--sidebar-bottom-height))',
+      }"
     >
-      <div class="flex flex-row w-full justify-between items-center my-1.5 pl-4 pr-1.75">
+      <div v-if="!isSharedBase" class="flex flex-row w-full justify-between items-center my-1.5 pl-4 pr-1.75">
         <template v-if="!isWorkspaceLoading">
           <div class="text-gray-500 font-medium">{{ $t('objects.projects') }}</div>
           <WorkspaceCreateProjectBtn
@@ -42,7 +57,7 @@ const isCreateProjectOpen = ref(false)
 
       <LazyDashboardTreeView v-if="!isWorkspaceLoading" />
     </div>
-    <div style="height: var(--sidebar-bottom-height)">
+    <div v-if="!isSharedBase" style="height: var(--sidebar-bottom-height)">
       <DashboardSidebarUserInfo />
     </div>
   </div>

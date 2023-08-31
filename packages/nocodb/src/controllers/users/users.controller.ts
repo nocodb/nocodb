@@ -125,7 +125,9 @@ export class UsersController {
     '/api/v1/auth/password/change',
   ])
   @UseGuards(GlobalGuard)
-  @Acl('passwordChange')
+  @Acl('passwordChange', {
+    scope: 'org',
+  })
   @HttpCode(200)
   async passwordChange(@Request() req: any): Promise<any> {
     if (!(req as any).isAuthenticated()) {

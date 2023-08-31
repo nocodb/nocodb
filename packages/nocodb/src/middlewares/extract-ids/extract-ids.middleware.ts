@@ -260,15 +260,18 @@ export const Acl =
   (
     permissionName: string,
     {
+      scope = 'project',
       allowedRoles,
       blockApiTokenAccess,
     }: {
+      scope?: string;
       allowedRoles?: (OrgUserRoles | string)[];
       blockApiTokenAccess?: boolean;
     } = {},
   ) =>
   (target: any, key?: string, descriptor?: PropertyDescriptor) => {
     SetMetadata('permission', permissionName)(target, key, descriptor);
+    SetMetadata('scope', scope)(target, key, descriptor);
     SetMetadata('allowedRoles', allowedRoles)(target, key, descriptor);
     SetMetadata('blockApiTokenAccess', blockApiTokenAccess)(
       target,

@@ -26,7 +26,9 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 export class ProjectsController {
   constructor(protected readonly projectsService: ProjectsService) {}
 
-  @Acl('projectList')
+  @Acl('projectList', {
+    scope: 'org',
+  })
   @Get('/api/v1/db/meta/projects/')
   async list(@Query() queryParams: Record<string, any>, @Request() req) {
     const projects = await this.projectsService.projectList({

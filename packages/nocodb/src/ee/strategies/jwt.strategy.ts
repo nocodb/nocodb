@@ -22,7 +22,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!jwtPayload?.email) return jwtPayload;
 
     // todo: improve this, caching
-    if (
+    /* if (
       req.ncProjectId &&
       extractRolesObj(jwtPayload.roles)[OrgUserRoles.SUPER_ADMIN]
     ) {
@@ -32,7 +32,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         ...sanitiseUserObj(user),
         roles: `owner,creator,${OrgUserRoles.SUPER_ADMIN}`,
       };
-    }
+    } */
 
     const user = await User.getByEmail(jwtPayload?.email);
 
@@ -52,7 +52,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
           // extract workspace role
           WorkspaceUser.get(req.ncWorkspaceId, user.id)
             .then((workspaceUser) => {
-              resolve(workspaceUser?.roles);
+              if (workspaceUser?.roles) {
+                resolve(workspaceUser.roles.split(',').filter(Boolean));
+              } else {
+                resolve(null);
+              }
             })
             .catch(() => resolve(null));
         } else {
@@ -67,7 +71,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
               let roles = projectUser?.roles;
               roles = roles === 'owner' ? 'owner,creator' : roles;
               // + (user.roles ? `,${user.roles}` : '');
-              resolve(roles);
+              if (roles) {
+                resolve(roles.split(',').filter(Boolean));
+              } else {
+                resolve(null);
+              }
               // todo: cache
             },
           );
@@ -79,19 +87,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     // override workspace level role with project level role if exists
     // since project level role is more specific
-    const workspaceOrProjectRoles = projectRoles || workspaceRoles;
+    // const workspaceOrProjectRoles = projectRoles || workspaceRoles;
 
     return {
       ...sanitiseUserObj(user),
-      roles: extractRolesObj(
-        [user.roles, workspaceOrProjectRoles].filter(Boolean).join(','),
-      ),
-      workspaceRoles: workspaceRoles
-        ? extractRolesObj((workspaceRoles as any)?.split(',').filter(Boolean))
+      roles: user.roles
+        ? extractRolesObj((user.roles as any)?.split(',').filter(Boolean))
         : null,
-      projectRoles: projectRoles
-        ? extractRolesObj((projectRoles as any)?.split(',').filter(Boolean))
-        : null,
+      workspaceRoles: workspaceRoles ? extractRolesObj(workspaceRoles) : null,
+      projectRoles: projectRoles ? extractRolesObj(projectRoles) : null,
       provider: jwtPayload.provider ?? undefined,
     };
   }

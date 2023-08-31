@@ -19,7 +19,9 @@ export class WorkspaceUsersController {
   constructor(private readonly workspaceUsersService: WorkspaceUsersService) {}
 
   @Get('/api/v1/workspaces/:workspaceId/users')
-  @Acl('workspaceUserList')
+  @Acl('workspaceUserList', {
+    scope: 'workspace',
+  })
   async list(@Param('workspaceId') workspaceId: string) {
     return await this.workspaceUsersService.list({
       workspaceId,
@@ -27,7 +29,9 @@ export class WorkspaceUsersController {
   }
 
   @Get('/api/v1/workspaces/:workspaceId/users/:userId')
-  @Acl('workspaceUserGet')
+  @Acl('workspaceUserGet', {
+    scope: 'workspace',
+  })
   async get(
     @Param('workspaceId') workspaceId: string,
     @Param('userId') userId: string,
@@ -39,7 +43,9 @@ export class WorkspaceUsersController {
   }
 
   @Patch('/api/v1/workspaces/:workspaceId/users/:userId')
-  @Acl('workspaceUserUpdate')
+  @Acl('workspaceUserUpdate', {
+    scope: 'workspace',
+  })
   async update(
     @Param('workspaceId') workspaceId: string,
     @Param('userId') userId: string,
@@ -55,7 +61,9 @@ export class WorkspaceUsersController {
   }
 
   @Delete('/api/v1/workspaces/:workspaceId/users/:workspaceUserId')
-  @Acl('workspaceUserDelete')
+  @Acl('workspaceUserDelete', {
+    scope: 'workspace',
+  })
   async delete(
     @Param('workspaceId') workspaceId: string,
     @Param('workspaceUserId') workspaceUserId: string,
@@ -67,7 +75,9 @@ export class WorkspaceUsersController {
   }
 
   @Post('/api/v1/workspaces/:workspaceId/invitations')
-  @Acl('workspaceInvite')
+  @Acl('workspaceInvite', {
+    scope: 'workspace',
+  })
   async invite(
     @Param('workspaceId') workspaceId: string,
     @Body() body: any,
@@ -82,7 +92,9 @@ export class WorkspaceUsersController {
   }
 
   @Post('/api/v1/workspaces/:workspaceId/invitations/:invitationToken/accept')
-  @Acl('workspaceInvitationAccept')
+  @Acl('workspaceInvitationAccept', {
+    scope: 'workspace',
+  })
   async acceptInvite(
     @Param('invitationToken') invitationToken: string,
     @Param('userId') userId: string,
@@ -94,7 +106,9 @@ export class WorkspaceUsersController {
   }
 
   @Post('/api/v1/workspaces/:workspaceId/invitations/:invitationToken/reject')
-  @Acl('workspaceInvitationReject')
+  @Acl('workspaceInvitationReject', {
+    scope: 'workspace',
+  })
   async rejectInvite(
     @Param('invitationToken') invitationToken: string,
     @Param('userId') userId: string,

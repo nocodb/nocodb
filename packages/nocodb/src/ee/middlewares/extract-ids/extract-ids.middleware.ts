@@ -237,6 +237,14 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
   }
 }
 
+function getUserRoleForScope(user: any, scope: string) {
+  if (scope === 'project' || scope === 'workspace') {
+    return user?.projectRoles || user?.workspaceRoles;
+  } else if (scope === 'org') {
+    return user?.roles;
+  }
+}
+
 @Injectable()
 export class AclMiddleware implements NestInterceptor {
   constructor(private reflector: Reflector) {}
@@ -257,23 +265,23 @@ export class AclMiddleware implements NestInterceptor {
       'blockApiTokenAccess',
       context.getHandler(),
     );
-    const workspaceMode = this.reflector.get<boolean>(
-      'workspaceMode',
-      context.getHandler(),
-    );
+    const scope = this.reflector.get<string>('scope', context.getHandler());
 
     const req = context.switchToHttp().getRequest();
     const _res = context.switchToHttp().getResponse();
 
-    const roles: Record<string, boolean> = extractRolesObj(
-      workspaceMode
-        ? req.user?.workspaceRoles ?? req.user?.roles
-        : req.user?.roles,
-    );
+    const userScopeRole = getUserRoleForScope(req.user, scope);
+
+    if (!userScopeRole) {
+      NcError.forbidden('Unauthorized access');
+    }
+
+    const roles: Record<string, boolean> = extractRolesObj(userScopeRole);
 
     if (req?.user?.is_api_token && blockApiTokenAccess) {
       NcError.forbidden('Not allowed with API token');
     }
+
     if (
       (!allowedRoles || allowedRoles.some((role) => roles?.[role])) &&
       !(
@@ -282,6 +290,11 @@ export class AclMiddleware implements NestInterceptor {
         roles?.editor ||
         roles?.viewer ||
         roles?.commenter ||
+        roles?.[WorkspaceUserRoles.OWNER] ||
+        roles?.[WorkspaceUserRoles.CREATOR] ||
+        roles?.[WorkspaceUserRoles.EDITOR] ||
+        roles?.[WorkspaceUserRoles.VIEWER] ||
+        roles?.[WorkspaceUserRoles.COMMENTER] ||
         roles?.[OrgUserRoles.SUPER_ADMIN] ||
         roles?.[OrgUserRoles.CREATOR] ||
         roles?.[OrgUserRoles.VIEWER]
@@ -324,14 +337,17 @@ export const Acl =
   (
     permissionName: string,
     {
+      scope = 'project',
       allowedRoles,
       blockApiTokenAccess,
     }: {
+      scope?: string;
       allowedRoles?: (OrgUserRoles | string)[];
       blockApiTokenAccess?: boolean;
     } = {},
   ) =>
   (target: any, key?: string, descriptor?: PropertyDescriptor) => {
+    SetMetadata('scope', scope)(target, key, descriptor);
     SetMetadata('permission', permissionName)(target, key, descriptor);
     SetMetadata('allowedRoles', allowedRoles)(target, key, descriptor);
     SetMetadata('blockApiTokenAccess', blockApiTokenAccess)(

@@ -10,7 +10,6 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { WorkspacePlan } from 'nocodb-sdk';
 import { WorkspacesService } from './workspaces.service';
 import type { WorkspaceType } from 'nocodb-sdk';
@@ -19,6 +18,7 @@ import { NcError } from '~/helpers/catchError';
 import { CacheScope, MetaTable } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
 import NocoCache from '~/cache/NocoCache';
+import { GlobalGuard } from '~/guards/global/global.guard';
 
 @Controller()
 export class WorkspacesController {
@@ -27,18 +27,24 @@ export class WorkspacesController {
     private readonly metaService: MetaService,
   ) {}
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(GlobalGuard)
   @Get('/api/v1/workspaces/')
-  @Acl('workspaceList')
+  @Acl('workspaceList', {
+    scope: 'org',
+    blockApiTokenAccess: true,
+  })
   async list(@Request() req) {
     return await this.workspacesService.list({
       user: req.user,
     });
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(GlobalGuard)
   @Get('/api/v1/workspaces/:workspaceId')
-  @Acl('workspaceGet')
+  @Acl('workspaceGet', {
+    scope: 'workspace',
+    blockApiTokenAccess: true,
+  })
   async get(@Param('workspaceId') workspaceId: string, @Request() req) {
     const workspace: WorkspaceType & {
       roles?: any;
@@ -52,9 +58,12 @@ export class WorkspacesController {
     return workspace;
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(GlobalGuard)
   @Post('/api/v1/workspaces/')
-  @Acl('workspaceCreate')
+  @Acl('workspaceCreate', {
+    scope: 'org',
+    blockApiTokenAccess: true,
+  })
   async create(@Body() body: any, @Request() req) {
     return await this.workspacesService.create({
       workspaces: body,
@@ -62,9 +71,12 @@ export class WorkspacesController {
     });
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(GlobalGuard)
   @Patch('/api/v1/workspaces/:workspaceId')
-  @Acl('workspaceUpdate')
+  @Acl('workspaceUpdate', {
+    scope: 'workspace',
+    blockApiTokenAccess: true,
+  })
   async update(
     @Param('workspaceId') workspaceId: string,
     @Body() body: any,
@@ -77,9 +89,12 @@ export class WorkspacesController {
     });
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(GlobalGuard)
   @Post('/api/v1/workspaces/:workspaceId/upgrade')
-  @Acl('workspaceUpgrade')
+  @Acl('workspaceUpgrade', {
+    scope: 'workspace',
+    blockApiTokenAccess: true,
+  })
   async upgrade(@Param('workspaceId') workspaceId: string, @Request() req) {
     return await this.workspacesService.upgrade({
       workspaceId,
@@ -87,9 +102,12 @@ export class WorkspacesController {
     });
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(GlobalGuard)
   @Delete('/api/v1/workspaces/:workspaceId')
-  @Acl('workspaceDelete')
+  @Acl('workspaceDelete', {
+    scope: 'workspace',
+    blockApiTokenAccess: true,
+  })
   async delete(@Param('workspaceId') workspaceId: string, @Request() req) {
     return await this.workspacesService.delete({
       workspaceId,
@@ -97,9 +115,12 @@ export class WorkspacesController {
     });
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(GlobalGuard)
   @Post('/api/v1/workspaces/:workspaceId/projects/:projectId/move')
-  @Acl('moveProjectToWorkspace')
+  @Acl('moveProjectToWorkspace', {
+    scope: 'workspace',
+    blockApiTokenAccess: true,
+  })
   async moveProjectToWorkspace(
     @Param('workspaceId') workspaceId: string,
     @Param('projectId') projectId: string,
@@ -112,9 +133,12 @@ export class WorkspacesController {
     });
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(GlobalGuard)
   @Get('/api/v1/workspaces/:workspaceId/projects')
-  @Acl('workspaceProjectList')
+  @Acl('workspaceProjectList', {
+    scope: 'workspace',
+    blockApiTokenAccess: true,
+  })
   async listProjects(
     @Param('workspaceId') workspaceId: string,
     @Request() req,
@@ -127,7 +151,11 @@ export class WorkspacesController {
 
   // Todo: move logic to service
   @Patch('/api/v1/workspaces/:workspaceId/status')
-  @UseGuards(AuthGuard('basic'))
+  @UseGuards(GlobalGuard)
+  @Acl('updateWorkspaceStatus', {
+    scope: 'workspace',
+    blockApiTokenAccess: true,
+  })
   async updateStatus(
     @Req() req,
     @Body() body,

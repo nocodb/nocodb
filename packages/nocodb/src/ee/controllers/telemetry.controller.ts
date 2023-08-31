@@ -8,7 +8,7 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 export class TelemetryController {
   constructor(private readonly telemetryService: TelemetryService) {}
 
-  @Acl('trackEvents')
+  @Acl('trackEvents', { scope: 'org' })
   @Post('/api/v1/tele')
   async trackEvents(
     @Body() body: { clientId: string; events: any[] },

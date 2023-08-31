@@ -14,25 +14,8 @@ const { activeWorkspace, isWorkspaceLoading } = storeToRefs(workspaceStore)
     style="height: var(--topbar-height)"
   >
     <div v-if="!isWorkspaceLoading" class="flex flex-row items-center w-full">
-      <div
-        class="flex flex-row flex-grow hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md w-full"
-        style="max-width: calc(100% - 2.5rem)"
-      >
-        <a
-          v-if="isSharedBase"
-          class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
-          href="https://github.com/nocodb/nocodb"
-          target="_blank"
-        >
-          <img width="25" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
-        </a>
+      <WorkspaceMenu />
 
-        <WorkspaceMenu v-if="!isSharedBase" :workspace="activeWorkspace" :is-open="true">
-          <template #brandIcon>
-            <GeneralWorkspaceIcon :workspace="activeWorkspace" />
-          </template>
-        </WorkspaceMenu>
-      </div>
       <div class="flex flex-grow min-w-1"></div>
 
       <NcTooltip

@@ -51,33 +51,55 @@ watch(isMenuOpen, () => {
       <template #overlay>
         <NcMenu class="" @click="isMenuOpen = false">
           <NcMenuItem @click="logout">
-            <GeneralIcon icon="signout" />
+            <GeneralIcon icon="signout" class="menu-icon" />
             Log Out</NcMenuItem
           >
           <NcDivider />
           <a href="https://docs.nocodb.com" target="_blank" class="!underline-transparent">
             <NcMenuItem>
-              <GeneralIcon icon="help" />
+              <GeneralIcon icon="help" class="menu-icon" />
               Help Center</NcMenuItem
             >
           </a>
           <NcDivider />
           <a href="https://discord.gg/5RgZmkW" target="_blank" class="!underline-transparent">
             <NcMenuItem class="social-icon-wrapper"
-              ><GeneralIcon class="social-icon" icon="discord" />Join our Discord</NcMenuItem
+              ><GeneralIcon class="social-icon menu-icon" icon="discord" />Join our Discord</NcMenuItem
             >
           </a>
           <a href="https://www.reddit.com/r/NocoDB" target="_blank" class="!underline-transparent">
-            <NcMenuItem class="social-icon-wrapper"><GeneralIcon class="social-icon" icon="reddit" />/r/NocoDB</NcMenuItem>
+            <NcMenuItem class="social-icon-wrapper"
+              ><GeneralIcon class="social-icon menu-icon" icon="reddit" />/r/NocoDB</NcMenuItem
+            >
           </a>
           <a href="https://twitter.com/nocodb" target="_blank" class="!underline-transparent">
             <NcMenuItem class="group"
-              ><GeneralIcon class="text-gray-500 group-hover:text-gray-800" icon="twitter" />X Twitter</NcMenuItem
+              ><GeneralIcon class="text-gray-500 group-hover:text-gray-800 menu-icon" icon="twitter" />Twitter</NcMenuItem
             >
           </a>
+          <template v-if="!appInfo.ee">
+            <NcDivider />
+            <a-popover key="language" class="lang-menu !py-0" placement="rightBottom">
+              <NcMenuItem>
+                <GeneralIcon icon="translate" class="group-hover:text-black nc-language ml-0.25 menu-icon" />
+                {{ $t('labels.language') }}
+                <div class="flex items-center text-gray-400 text-xs">(Community Translated)</div>
+                <div class="flex-1" />
+
+                <MaterialSymbolsChevronRightRounded class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400" />
+              </NcMenuItem>
+
+              <template #content>
+                <div class="bg-white max-h-50vh scrollbar-thin-dull min-w-50 !overflow-auto">
+                  <LazyGeneralLanguageMenu />
+                </div>
+              </template>
+            </a-popover>
+          </template>
+
           <NcDivider />
           <NcMenuItem @click="onCopy"
-            ><GeneralIcon v-if="isAuthTokenCopied" icon="check" class="group-hover:text-black" /><GeneralIcon
+            ><GeneralIcon v-if="isAuthTokenCopied" icon="check" class="group-hover:text-black menu-icon" /><GeneralIcon
               v-else
               icon="copy"
             />
@@ -85,7 +107,7 @@ watch(isMenuOpen, () => {
             <template v-else> Copy Auth Token </template>
           </NcMenuItem>
           <nuxt-link v-e="['c:navbar:user:email']" class="!no-underline" to="/account/users">
-            <NcMenuItem><GeneralIcon icon="settings" /> Account Settings</NcMenuItem>
+            <NcMenuItem><GeneralIcon icon="settings" class="menu-icon" /> Account Settings</NcMenuItem>
           </nuxt-link>
         </NcMenu>
       </template>
@@ -107,6 +129,9 @@ watch(isMenuOpen, () => {
 </template>
 
 <style lang="scss" scoped>
+:deep(.ant-popover-inner-content) {
+  @apply !p-0 !rounded-md;
+}
 .social-icon {
   // Make icon black and white
   filter: grayscale(100%);

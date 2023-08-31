@@ -362,14 +362,12 @@ const rolePermissions = {
   viewer: viewerPermissions,
   [OrgUserRoles.VIEWER]: {
     include: {
-      workspaceProjectList: true,
       apiTokenList: true,
       apiTokenCreate: true,
       apiTokenDelete: true,
       passwordChange: true,
       projectList: true,
       workspaceList: true,
-      workspaceGet: true,
       workspaceCreate: true,
       commandPalette: true,
       // allow only in cloud
@@ -379,7 +377,6 @@ const rolePermissions = {
   [OrgUserRoles.SUPER_ADMIN]: '*',
   [OrgUserRoles.CREATOR]: {
     include: {
-      workspaceProjectList: true,
       apiTokenList: true,
       apiTokenCreate: true,
       apiTokenDelete: true,
@@ -399,9 +396,7 @@ const rolePermissions = {
       xcMetaTablesExportDbToZip: true,
       auditRowUpdate: true,
       workspaceList: true,
-      workspaceGet: true,
       workspaceCreate: true,
-      workspaceUserList: true,
       genericGPT: true,
       commandPalette: true,
       runSelectQuery: true,
@@ -454,7 +449,7 @@ const rolePermissions = {
   [WorkspaceUserRoles.VIEWER]: {
     include: {
       ...viewerPermissions.include,
-      workspaceList: true,
+      workspaceProjectList: true,
       projectUserMetaUpdate: true,
       workspaceGet: true,
       workspaceDelete: true,
@@ -463,7 +458,7 @@ const rolePermissions = {
   },
   [WorkspaceUserRoles.COMMENTER]: {
     include: {
-      workspaceList: true,
+      workspaceProjectList: true,
       projectUserMetaUpdate: true,
       workspaceGet: true,
       workspaceDelete: true,
@@ -472,7 +467,7 @@ const rolePermissions = {
   },
   [WorkspaceUserRoles.EDITOR]: {
     include: {
-      workspaceList: true,
+      workspaceProjectList: true,
       projectUserMetaUpdate: true,
       workspaceGet: true,
       workspaceDelete: true,

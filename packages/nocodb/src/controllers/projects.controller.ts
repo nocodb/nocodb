@@ -94,7 +94,9 @@ export class ProjectsController {
     return deleted;
   }
 
-  @Acl('projectCreate')
+  @Acl('projectCreate', {
+    scope: 'org',
+  })
   @Post('/api/v1/db/meta/projects')
   @HttpCode(200)
   @Acl('projectCreate')

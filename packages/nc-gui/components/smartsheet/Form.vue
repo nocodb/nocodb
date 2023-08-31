@@ -100,8 +100,6 @@ const submitted = ref(false)
 
 const activeRow = ref('')
 
-const editEnabled = ref<boolean[]>([])
-
 const { t } = useI18n()
 
 const { betaFeatureToggleState } = useBetaFeatureToggle()
@@ -732,10 +730,7 @@ watch(view, (nextView) => {
                         :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                         :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                         :column="element"
-                        :edit-enabled="editEnabled[index]"
-                        @click="editEnabled[index] = true"
-                        @cancel="editEnabled[index] = false"
-                        @update:edit-enabled="editEnabled[index] = $event"
+                        :edit-enabled="true"
                         @click.stop.prevent
                       />
                     </LazySmartsheetDivDataCell>

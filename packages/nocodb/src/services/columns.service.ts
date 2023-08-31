@@ -1087,7 +1087,7 @@ export class ColumnsService {
             // Handle default values
             if (colBody.cdf) {
               if (colBody.uidt === UITypes.SingleSelect) {
-                if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
+                if (!optionTitles.includes(colBody.cdf.replace(/'/g, ''))) {
                   NcError.badRequest(
                     `Default value '${colBody.cdf}' is not a select option.`,
                   );

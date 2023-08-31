@@ -21,8 +21,6 @@ RUN cp $GOPATH/bin/litestream /usr/src/lt
 FROM node:18.12.1-alpine as builder
 WORKDIR /usr/src/app
 
-ENV NODE_ENV production
-
 # install node-gyp dependencies
 RUN apk add --no-cache python3 make g++
 

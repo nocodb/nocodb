@@ -70,14 +70,6 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
   async use(req, res, next): Promise<any> {
     const { params } = req;
 
-    // extract project id based on request path params
-    if (params.projectName) {
-      const project = await Project.getByTitleOrId(params.projectName);
-      if (project) {
-        req.ncProjectId = project.id;
-        res.locals.project = project;
-      }
-    }
     if (params.projectId) {
       req.ncProjectId = params.projectId;
     } else if (params.dashboardId) {
@@ -185,8 +177,15 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     }
 
     // todo:  verify all scenarios
-    // extract workspace id based on request path params or projectId
-    if (req.ncProjectId) {
+    // extract workspace id based on request path params or
+    // extract project id based on request path params
+    if (params.projectName && !req.ncProjectId) {
+      const project = await Project.getByTitleOrId(params.projectName);
+      if (project) {
+        req.ncProjectId = project.id;
+        res.locals.project = project;
+      }
+    } else if (req.ncProjectId) {
       const project = await Project.get(req.ncProjectId);
       if (project) {
         req.ncWorkspaceId = (project as Project).fk_workspace_id;

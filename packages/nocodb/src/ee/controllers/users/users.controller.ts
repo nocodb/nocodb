@@ -102,7 +102,7 @@ export class UsersController extends UsersControllerCE {
       signoutUrl.searchParams.append('redirect_uri', callbackURL);
       signoutUrl.searchParams.append('scope', 'openid profile email');
       signoutUrl.searchParams.append('response_type', 'code');
-      signoutUrl.searchParams.append('stet', state);
+      signoutUrl.searchParams.append('state', state);
 
       // return res.redirect(process.env.NC_OIDC_LOGOUT_URL);
       result.redirect_url = signoutUrl.toString();

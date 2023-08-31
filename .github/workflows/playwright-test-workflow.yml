@@ -200,3 +200,19 @@ jobs:
         run: |
           service postgresql stop
           service mysql stop
+      - name: Copy Artifacts to Local Artifacts Dir
+        if: always()
+        working-directory: ./
+        run: |
+          # expects the variables to be available in runner context.
+          path="gh-artifacts/runs/${GITHUB_RUN_ID}/run-attempt/${GITHUB_RUN_ATTEMPT}/job_name/"${GITHUB_JOB}"-${{ inputs.shard }}/${RANDOM}-$(date +%s)"
+          target_dir="/mnt/${path}"
+          mkdir -p ${target_dir}
+          mkdir -p ${target_dir}/playwright-report
+          # start : add any artifacts to be copied here
+          cp -r ./tests/playwright/playwright-report ${target_dir}/  || echo "playwright reports directory does not exists" >>  ${target_dir}/playwright-report/index.html
+          cp ./packages/nocodb/*_test_backend.log ${target_dir}/ || echo "backend logs file does not exists" >> ${target_dir}/index.html
+          # end: artifacts copy
+          SUMMARY='[Artifacts](http://135.181.48.96/'${path}')
+          [playwright-report](http://135.181.48.96/'${path}'/playwright-report)'
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY            

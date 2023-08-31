@@ -49,7 +49,8 @@ test.describe('DashboardBasicTests', () => {
     await dashboard.rootPage.waitForTimeout(1000);
     expect(await dashboard.leftSidebar.getWorkspaceName()).toBe(ws2Title);
 
-    await dashboard.leftSidebar.renameWorkspace({ newTitle: ws2Title + '2' });
+    await dashboard.workspaceSettings.open();
+    await dashboard.workspaceSettings.renameWorkspace({ newTitle: ws2Title + '2' });
     await dashboard.rootPage.waitForTimeout(1000);
     expect(await dashboard.leftSidebar.getWorkspaceName()).toBe(ws2Title + '2');
 

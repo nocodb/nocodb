@@ -5,19 +5,17 @@ import 'splitpanes/dist/splitpanes.css'
 const router = useRouter()
 const route = router.currentRoute
 
-const { isLeftSidebarOpen, leftSidebarWidthPercent } = storeToRefs(useSidebarStore())
+const { isLeftSidebarOpen, leftSidebarWidthPercent, leftSideBarSize: sideBarSize } = storeToRefs(useSidebarStore())
+
 const wrapperRef = ref<HTMLDivElement>()
-const sideBarSize = ref({
-  old: leftSidebarWidthPercent.value,
-  current: leftSidebarWidthPercent.value,
-})
+
 const contentSize = computed(() => 100 - sideBarSize.value.current)
 const animationDuration = 250
 const viewportWidth = ref(window.innerWidth)
 
 const sidebarState = ref<
   'openStart' | 'openEnd' | 'hiddenStart' | 'hiddenEnd' | 'peekOpenStart' | 'peekOpenEnd' | 'peekCloseOpen' | 'peekCloseEnd'
->('openEnd')
+>(isLeftSidebarOpen.value ? 'openEnd' : 'hiddenEnd')
 
 const sidebarWidth = computed(() => (sideBarSize.value.old * viewportWidth.value) / 100)
 const currentSidebarSize = computed({

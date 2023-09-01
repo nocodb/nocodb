@@ -5,6 +5,11 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const isRightSidebarOpen = ref(true)
   const leftSidebarWidthPercent = ref(20)
 
+  const leftSideBarSize = ref({
+    old: leftSidebarWidthPercent.value,
+    current: leftSidebarWidthPercent.value,
+  })
+
   const rightSidebarSize = ref({
     old: 17.5,
     current: 17.5,
@@ -15,5 +20,6 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     isRightSidebarOpen,
     rightSidebarSize,
     leftSidebarWidthPercent,
+    leftSideBarSize,
   }
 })

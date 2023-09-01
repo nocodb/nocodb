@@ -795,7 +795,7 @@ function textBased() {
     // Invalid table ID
     await ncAxiosGet({
       url: `/api/v1/tables/123456789/rows`,
-      status: 404,
+      status: 403,
     });
 
     // Invalid view ID
@@ -922,7 +922,7 @@ function textBased() {
     // Invalid table ID
     await ncAxiosPost({
       url: `/api/v1/tables/123456789/rows`,
-      status: 404,
+      status: 403,
     });
 
     // Invalid data - create should not specify ID
@@ -956,7 +956,7 @@ function textBased() {
     // Invalid table ID
     await ncAxiosGet({
       url: `/api/v1/tables/123456789/rows/100`,
-      status: 404,
+      status: 403,
     });
     // Invalid row ID
     await ncAxiosGet({
@@ -1035,7 +1035,7 @@ function textBased() {
     await ncAxiosPatch({
       url: `/api/v1/tables/123456789/rows`,
       body: { Id: 100, SingleLineText: 'some text' },
-      status: 404,
+      status: 403,
     });
     // Invalid row ID
     await ncAxiosPatch({
@@ -1084,7 +1084,7 @@ function textBased() {
     await ncAxiosDelete({
       url: `/api/v1/tables/123456789/rows`,
       body: { Id: 100 },
-      status: 404,
+      status: 403,
     });
     // Invalid row ID
     await ncAxiosDelete({ body: { Id: '123456789' }, status: 422 });

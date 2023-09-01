@@ -36,16 +36,9 @@ export const useRoles = createSharedComposable(() => {
       projectRoles = extractRolesObj(projectRoles)
     }
 
-    let workspaceRoles = user.value?.workspace_roles ?? {}
-
-    if (isString(workspaceRoles)) {
-      workspaceRoles = extractRolesObj(workspaceRoles)
-    }
-
     return {
       ...orgRoles,
       ...projectRoles,
-      ...workspaceRoles,
     }
   })
 

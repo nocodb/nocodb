@@ -20,6 +20,7 @@ import Noco from '~/Noco';
 import { packageVersion } from '~/utils/packageVersion';
 import { ProjectsService } from '~/services/projects.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { Filter } from '~/models';
 
 @UseGuards(GlobalGuard)
 @Controller()
@@ -41,8 +42,8 @@ export class ProjectsController {
     });
   }
 
-  @Get('/api/v1/db/meta/projects/:projectId/info')
   @Acl('projectInfoGet')
+  @Get('/api/v1/db/meta/projects/:projectId/info')
   async projectInfoGet() {
     return {
       Node: process.version,
@@ -53,9 +54,9 @@ export class ProjectsController {
       PackageVersion: packageVersion,
     };
   }
+
   @Acl('projectGet')
   @Get('/api/v1/db/meta/projects/:projectId')
-  @Acl('projectGet')
   async projectGet(@Param('projectId') projectId: string) {
     const project = await this.projectsService.getProjectWithInfo({
       projectId: projectId,
@@ -65,9 +66,9 @@ export class ProjectsController {
 
     return project;
   }
+
   @Acl('projectUpdate')
   @Patch('/api/v1/db/meta/projects/:projectId')
-  @Acl('projectUpdate')
   async projectUpdate(
     @Param('projectId') projectId: string,
     @Body() body: Record<string, any>,
@@ -84,7 +85,6 @@ export class ProjectsController {
 
   @Acl('projectDelete')
   @Delete('/api/v1/db/meta/projects/:projectId')
-  @Acl('projectDelete')
   async projectDelete(@Param('projectId') projectId: string, @Request() req) {
     const deleted = await this.projectsService.projectSoftDelete({
       projectId,
@@ -99,7 +99,6 @@ export class ProjectsController {
   })
   @Post('/api/v1/db/meta/projects')
   @HttpCode(200)
-  @Acl('projectCreate')
   async projectCreate(@Body() projectBody: ProjectReqType, @Request() req) {
     const project = await this.projectsService.projectCreate({
       project: projectBody,
@@ -107,5 +106,11 @@ export class ProjectsController {
     });
 
     return project;
+  }
+
+  @Acl('hasEmptyOrNullFilters')
+  @Get('/api/v1/db/meta/projects/:projectId/has-empty-or-null-filters')
+  async hasEmptyOrNullFilters(@Param('projectId') projectId: string) {
+    return await Filter.hasEmptyOrNullFilters(projectId);
   }
 }

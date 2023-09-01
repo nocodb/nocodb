@@ -43,7 +43,6 @@ export class ProjectsController extends ProjectsControllerCE {
   })
   @Post('/api/v1/db/meta/projects')
   @HttpCode(200)
-  @Acl('projectCreate')
   async projectCreate(@Body() projectBody: ProjectReqType, @Request() req) {
     const project = await this.projectsService.projectCreate({
       project: projectBody,

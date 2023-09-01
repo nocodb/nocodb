@@ -58,6 +58,13 @@ const displayColumnLabel = computed(() => {
   return columns.value?.find((column) => column.primaryValue)?.label
 })
 
+watch(
+  () => search.value.field,
+  () => {
+    onPressEnter()
+  }
+)
+
 watchDebounced(
   () => search.value.query,
   () => {

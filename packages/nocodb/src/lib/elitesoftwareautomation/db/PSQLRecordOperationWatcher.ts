@@ -370,7 +370,12 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
     const foundModelData: Record<string, any>[] = await this.ncMeta.metaList2(
       base.project_id,
       base.id,
-      MetaTable.MODELS
+      MetaTable.MODELS,
+      {
+        condition: {
+          type: 'table',
+        },
+      }
     );
 
     const models = foundModelData.map(
@@ -443,7 +448,7 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
     this.log(
       `watching base : ${base.id} , ${
         (await base.getConnectionConfig()).database
-      } )`
+      }`
     );
     this.log(
       `watched models`,

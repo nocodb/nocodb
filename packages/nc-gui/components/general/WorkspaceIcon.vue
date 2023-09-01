@@ -4,7 +4,7 @@ import type { WorkspaceType } from 'nocodb-sdk'
 const props = defineProps<{
   workspace: WorkspaceType | undefined
   hideLabel?: boolean
-  size?: 'small' | 'medium'
+  size?: 'small' | 'medium' | 'large'
 }>()
 
 const workspaceColor = computed(() =>
@@ -18,8 +18,9 @@ const size = computed(() => props.size || 'medium')
   <div
     class="flex nc-workspace-avatar"
     :class="{
-      'min-w-4 w-4 h-4': size === 'small',
-      'min-w-6 w-6 h-6': size === 'medium',
+      'min-w-4 w-4 h-4 rounded': size === 'small',
+      'min-w-6 w-6 h-6 rounded-md': size === 'medium',
+      'min-w-10 w-10 h-10 rounded-lg !text-base': size === 'large',
     }"
     :style="{ backgroundColor: workspaceColor }"
   >
@@ -31,6 +32,6 @@ const size = computed(() => props.size || 'medium')
 
 <style lang="scss" scoped>
 .nc-workspace-avatar {
-  @apply rounded text-xs flex items-center justify-center text-white uppercase;
+  @apply text-xs flex items-center justify-center text-white uppercase;
 }
 </style>

@@ -101,24 +101,28 @@ const switchWorkspace = async (workspaceId: string) => {
       </div>
 
       <template #overlay>
-        <a-menu class="nc-workspace-dropdown-inner" style="min-width: calc(110% + 1rem)" @click="isWorkspaceDropdownOpen = false">
+        <NcMenu class="nc-workspace-dropdown-inner" style="min-width: calc(110% + 1rem)" @click="isWorkspaceDropdownOpen = false">
           <a-menu-item-group class="!border-t-0">
-            <div class="flex gap-2 min-w-0 p-4 items-start">
-              <GeneralWorkspaceIcon :workspace="activeWorkspace" />
-              <div class="flex flex-col gap-y-2.5">
-                <div class="mt-0.5 flex capitalize mb-0 nc-workspace-title truncate min-w-10 text-black font-medium">
+            <div class="flex gap-x-3 min-w-0 px-4 py-3 items-center">
+              <GeneralWorkspaceIcon :workspace="activeWorkspace" size="large" />
+              <div class="flex flex-col gap-y-0">
+                <div
+                  class="mt-0.5 flex capitalize mb-0 nc-workspace-title truncate min-w-10 text-sm text-black font-medium"
+                  style="line-height: 1.5rem"
+                >
                   {{ activeWorkspace?.title }}
                 </div>
-                <div class="flex flex-row items-center gap-x-2 -ml-0.1">
-                  <NcBadge class="flex text-gray-700">Free plan</NcBadge>
-                  <div class="flex text-xs text-gray-600">
+                <div class="flex flex-row items-center gap-x-2">
+                  <div class="nc-workspace-dropdown-active-workspace-info">Free Plan</div>
+                  <div class="nc-workspace-dropdown-active-workspace-info">.</div>
+                  <div class="nc-workspace-dropdown-active-workspace-info">
                     {{ collaborators?.length }} {{ Number(collaborators?.length) > 1 ? 'members' : 'member' }}
                   </div>
                 </div>
               </div>
             </div>
 
-            <a-menu-divider />
+            <NcDivider />
 
             <div class="max-h-300px nc-scrollbar-md !overflow-y-auto">
               <a-menu-item v-for="workspace of otherWorkspaces" :key="workspace.id!" @click="switchWorkspace(workspace.id!)">
@@ -163,7 +167,7 @@ const switchWorkspace = async (workspaceId: string) => {
               <LazyGeneralLanguageMenu />
             </a-sub-menu>
           </a-menu-item-group>
-        </a-menu>
+        </NcMenu>
       </template>
     </NcDropdown>
   </div>
@@ -173,6 +177,13 @@ const switchWorkspace = async (workspaceId: string) => {
 <style scoped lang="scss">
 .nc-workspace-menu-item {
   @apply flex items-center pl-1.5 !py-2.5 gap-2 text-sm hover:text-black;
+}
+
+.nc-workspace-dropdown-active-workspace-info {
+  @apply flex text-xs text-gray-500;
+  font-weight: 400;
+  line-height: 1.125rem; /* 150% */
+  letter-spacing: -0.015rem;
 }
 
 :deep(.ant-dropdown-menu-item-group-title) {

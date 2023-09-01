@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { storeToRefs, useViewsStore } from '#imports'
 
-const { openedViewsTab } = storeToRefs(useViewsStore())
+const { openedViewsTab, activeView } = storeToRefs(useViewsStore())
 
-const { onViewsTabChange, activeView } = useViewsStore()
+const { onViewsTabChange } = useViewsStore()
 </script>
 
 <template>

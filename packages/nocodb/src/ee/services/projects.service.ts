@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
 import { AppEvents, OrgUserRoles } from 'nocodb-sdk';
+import { extractRolesObj } from 'nocodb-sdk';
 import type { ProjectReqType } from 'nocodb-sdk';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -21,7 +22,6 @@ import { MetaService } from '~/meta/meta.service';
 import { MetaTable } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { TablesService } from '~/services/tables.service';
-import extractRolesObj from '~/utils/extractRolesObj';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 

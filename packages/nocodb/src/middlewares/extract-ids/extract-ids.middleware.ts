@@ -1,6 +1,6 @@
 import { Injectable, SetMetadata, UseInterceptors } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
+import { extractRolesObj, OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
 import { map } from 'rxjs';
 import type { Observable } from 'rxjs';
 import type {
@@ -23,7 +23,6 @@ import {
   SyncSource,
   View,
 } from '~/models';
-import extractRolesObj from '~/utils/extractRolesObj';
 import projectAcl from '~/utils/projectAcl';
 import { NcError } from '~/middlewares/catchError';
 

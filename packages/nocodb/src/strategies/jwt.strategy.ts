@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
-import { OrgUserRoles } from 'nocodb-sdk';
+import { extractRolesObj, OrgUserRoles } from 'nocodb-sdk';
 import { ProjectUser, User } from '~/models';
 import { UsersService } from '~/services/users/users.service';
-import extractRolesObj from '~/utils/extractRolesObj';
 import { sanitiseUserObj } from '~/utils';
 
 @Injectable()

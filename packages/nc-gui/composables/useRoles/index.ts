@@ -1,4 +1,5 @@
 import { isString } from '@vue/shared'
+import { extractRolesObj } from 'nocodb-sdk'
 import { computed, createSharedComposable, useApi, useGlobal } from '#imports'
 import type { ProjectRole, Role, Roles } from '#imports'
 
@@ -21,20 +22,14 @@ export const useRoles = createSharedComposable(() => {
 
     // if string populate key-value paired object
     if (isString(orgRoles)) {
-      orgRoles = orgRoles.split(',').reduce<Roles>((acc, role) => {
-        acc[role] = true
-        return acc
-      }, {})
+      orgRoles = extractRolesObj(orgRoles)
     }
 
     let projectRoles = user.value?.project_roles ?? {}
 
     // if string populate key-value paired object
     if (isString(projectRoles)) {
-      projectRoles = projectRoles.split(',').reduce<Roles>((acc, role) => {
-        acc[role] = true
-        return acc
-      }, {})
+      projectRoles = extractRolesObj(projectRoles)
     }
 
     return {
@@ -48,36 +43,19 @@ export const useRoles = createSharedComposable(() => {
 
     // if string populate key-value paired object
     if (isString(orgRoles)) {
-      orgRoles = orgRoles.split(',').reduce<Roles>((acc, role) => {
-        acc[role] = true
-        return acc
-      }, {})
+      orgRoles = extractRolesObj(orgRoles)
     }
 
     let projectRoles = user.value?.project_roles ?? {}
 
     // if string populate key-value paired object
     if (isString(projectRoles)) {
-      projectRoles = projectRoles.split(',').reduce<Roles>((acc, role) => {
-        acc[role] = true
-        return acc
-      }, {})
-    }
-
-    let workspaceRoles = user.value?.workspace_roles ?? {}
-
-    // if string populate key-value paired object
-    if (isString(workspaceRoles)) {
-      workspaceRoles = workspaceRoles.split(',').reduce<Roles>((acc, role) => {
-        acc[role] = true
-        return acc
-      }, {})
+      projectRoles = extractRolesObj(projectRoles)
     }
 
     return {
       orgRoles,
       projectRoles,
-      workspaceRoles,
     }
   })
 
@@ -85,8 +63,6 @@ export const useRoles = createSharedComposable(() => {
     projectId?: string,
     options: { isSharedBase?: boolean; sharedBaseId?: string; isSharedErd?: boolean; sharedErdId?: string } = {},
   ) {
-    if (!user.value) return
-
     if (options?.isSharedBase) {
       const res = await api.auth.me(
         {

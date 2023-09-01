@@ -7,6 +7,7 @@ import {
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { map } from 'rxjs';
+import { extractRolesObj } from 'nocodb-sdk';
 import type { Observable } from 'rxjs';
 import type {
   CallHandler,
@@ -31,7 +32,6 @@ import {
   Widget,
   Workspace,
 } from '~/models';
-import extractRolesObj from '~/utils/extractRolesObj';
 import projectAcl from '~/utils/projectAcl';
 import { NcError } from '~/middlewares/catchError';
 

@@ -22,6 +22,7 @@ export class BaseViewStrategy extends PassportStrategy(Strategy, 'base-view') {
 
         user = {
           roles: extractRolesObj(sharedProject?.roles),
+          project_roles: extractRolesObj(sharedProject?.roles),
         };
       }
 

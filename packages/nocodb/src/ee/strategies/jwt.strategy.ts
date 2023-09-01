@@ -52,7 +52,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
           WorkspaceUser.get(req.ncWorkspaceId, user.id)
             .then((workspaceUser) => {
               if (workspaceUser?.roles) {
-                resolve(workspaceUser.roles.split(',').filter(Boolean));
+                resolve(extractRolesObj(workspaceUser.roles));
               } else {
                 resolve(null);
               }
@@ -61,7 +61,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         } else {
           resolve(null);
         }
-      }),
+      }) as Promise<ReturnType<typeof extractRolesObj> | null>,
       // extract project level roles
       new Promise((resolve) => {
         if (req.ncProjectId) {
@@ -71,7 +71,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
               roles = roles === 'owner' ? 'owner,creator' : roles;
               // + (user.roles ? `,${user.roles}` : '');
               if (roles) {
-                resolve(roles.split(',').filter(Boolean));
+                resolve(extractRolesObj(roles));
               } else {
                 resolve(null);
               }
@@ -81,7 +81,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         } else {
           resolve(null);
         }
-      }),
+      }) as Promise<ReturnType<typeof extractRolesObj> | null>,
     ]);
 
     // override workspace level role with project level role if exists
@@ -90,11 +90,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     return {
       ...sanitiseUserObj(user),
-      roles: user.roles
-        ? extractRolesObj((user.roles as any)?.split(',').filter(Boolean))
-        : null,
-      workspace_roles: workspaceRoles ? extractRolesObj(workspaceRoles) : null,
-      project_roles: projectRoles ? extractRolesObj(projectRoles) : null,
+      roles: user.roles ? extractRolesObj(user.roles) : null,
+      workspace_roles: workspaceRoles ? workspaceRoles : null,
+      project_roles: projectRoles ? projectRoles : null,
       provider: jwtPayload.provider ?? undefined,
     };
   }

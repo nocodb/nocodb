@@ -61,7 +61,7 @@ export class DashboardPage extends BasePage {
     this.project = project;
     this.tablesSideBar = rootPage.locator('.nc-treeview-container');
     this.workspaceMenuLink = rootPage.getByTestId('nc-project-menu');
-    this.projectMenuLink = rootPage.locator('.project-title-node').locator('.nc-icon.ant-dropdown-trigger').first();
+    this.projectMenuLink = rootPage.locator(`.project-title-node:has-text("${project.title}")`).locator('.nc-icon.ant-dropdown-trigger').first();
     this.tabBar = rootPage.locator('.nc-tab-bar');
     this.treeView = new TreeViewPage(this, project);
     this.grid = new GridPage(this);

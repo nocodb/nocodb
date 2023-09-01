@@ -185,9 +185,11 @@ export class WorkspacesService {
       delete workspace.order;
     }
 
-    const roles = extractRolesObj(user.roles);
     // allow only owner and creator to update anything other that order
-    if (!roles[WorkspaceUserRoles.OWNER] && !roles[WorkspaceUserRoles.CREATOR])
+    if (
+      !(user as any).workspace_roles[WorkspaceUserRoles.OWNER] &&
+      !(user as any).workspace_roles[WorkspaceUserRoles.CREATOR]
+    )
       return;
 
     const updateObj = extractProps(workspace, ['title', 'description', 'meta']);

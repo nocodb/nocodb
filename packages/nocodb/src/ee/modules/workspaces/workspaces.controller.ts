@@ -11,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { WorkspacePlan } from 'nocodb-sdk';
+import { AuthGuard } from '@nestjs/passport';
 import { WorkspacesService } from './workspaces.service';
 import type { WorkspaceType } from 'nocodb-sdk';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -151,11 +152,7 @@ export class WorkspacesController {
 
   // Todo: move logic to service
   @Patch('/api/v1/workspaces/:workspaceId/status')
-  @UseGuards(GlobalGuard)
-  @Acl('updateWorkspaceStatus', {
-    scope: 'workspace',
-    blockApiTokenAccess: true,
-  })
+  @UseGuards(AuthGuard('basic'))
   async updateStatus(
     @Req() req,
     @Body() body,

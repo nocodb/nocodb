@@ -181,7 +181,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     // extract workspace id based on request path params or
     // extract project id based on request path params
     if (params.projectName && !req.ncProjectId) {
-      const project = await Project.getByTitleOrId(params.projectName);
+      // we expect project_name to be id for EE
+      const project = await Project.get(params.projectName);
       if (project) {
         req.ncProjectId = project.id;
         req.ncWorkspaceId = (project as Project).fk_workspace_id;

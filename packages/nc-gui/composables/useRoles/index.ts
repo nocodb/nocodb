@@ -140,5 +140,5 @@ export const useRoles = createSharedComposable(() => {
     return allRoles.value[role]
   }
 
-  return { allRoles, scopedRoles, projectRoles, loadRoles, hasRole }
+  return { allRoles, scopedRoles, loadRoles, hasRole }
 })

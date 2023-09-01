@@ -9,6 +9,8 @@ import { NcProjectType, useWorkspace } from '#imports'
 export const useProjects = defineStore('projectsStore', () => {
   const { $api } = useNuxtApp()
 
+  const { loadRoles } = useRoles()
+
   const projects = ref<Map<string, NcProject>>(new Map())
 
   const projectsList = computed<NcProject[]>(() =>
@@ -39,8 +41,6 @@ export const useProjects = defineStore('projectsStore', () => {
 
     return basesMap
   })
-
-  const roles = computed(() => openedProject.value?.project_role || openedProject.value?.workspace_role)
 
   const workspaceStore = useWorkspace()
   const tableStore = useTablesStore()
@@ -326,6 +326,7 @@ export const useProjects = defineStore('projectsStore', () => {
     if (!activeProjectId.value) return
     if (isProjectPopulated(activeProjectId.value)) return
     loadProject(activeProjectId.value)
+    loadRoles(activeProjectId.value)
   })
 
   const navigateToFirstProjectOrHome = async () => {
@@ -357,7 +358,6 @@ export const useProjects = defineStore('projectsStore', () => {
     activeProjectId,
     openedProject,
     openedProjectBasesMap,
-    roles,
     getProjectUsers,
     createProjectUser,
     updateProjectUser,

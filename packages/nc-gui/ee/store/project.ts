@@ -30,7 +30,7 @@ export const useProject = defineStore('projectStore', () => {
 
   const { setTheme, theme } = useTheme()
 
-  const { projectRoles, loadRoles } = useRoles()
+  const { loadRoles } = useRoles()
 
   const { refreshCommandPalette } = useCommandPalette()
 
@@ -224,7 +224,6 @@ export const useProject = defineStore('projectStore', () => {
     // project.value = {}
     // tables.value = []
     projectMetaInfo.value = undefined
-    projectRoles.value = {}
     setTheme()
   }
 

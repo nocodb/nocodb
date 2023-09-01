@@ -27,7 +27,7 @@ export const useRoles = createSharedComposable(() => {
       }, {})
     }
 
-    let projectRoles = user.value?.project_roles ?? {}
+    let projectRoles = user.value?.project_roles ?? user.value?.workspace_roles ?? {}
 
     // if string populate key-value paired object
     if (isString(projectRoles)) {
@@ -37,20 +37,9 @@ export const useRoles = createSharedComposable(() => {
       }, {})
     }
 
-    let workspaceRoles = user.value?.workspace_roles ?? {}
-
-    // if string populate key-value paired object
-    if (isString(workspaceRoles)) {
-      workspaceRoles = workspaceRoles.split(',').reduce<Roles>((acc, role) => {
-        acc[role] = true
-        return acc
-      }, {})
-    }
-
     return {
       ...orgRoles,
       ...projectRoles,
-      ...workspaceRoles,
     }
   })
 
@@ -65,7 +54,7 @@ export const useRoles = createSharedComposable(() => {
       }, {})
     }
 
-    let projectRoles = user.value?.project_roles ?? {}
+    let projectRoles = user.value?.project_roles ?? user.value?.workspace_roles ?? {}
 
     // if string populate key-value paired object
     if (isString(projectRoles)) {
@@ -75,20 +64,9 @@ export const useRoles = createSharedComposable(() => {
       }, {})
     }
 
-    let workspaceRoles = user.value?.workspace_roles ?? {}
-
-    // if string populate key-value paired object
-    if (isString(workspaceRoles)) {
-      workspaceRoles = workspaceRoles.split(',').reduce<Roles>((acc, role) => {
-        acc[role] = true
-        return acc
-      }, {})
-    }
-
     return {
       orgRoles,
       projectRoles,
-      workspaceRoles,
     }
   })
 
@@ -96,6 +74,8 @@ export const useRoles = createSharedComposable(() => {
     projectId?: string,
     options: { isSharedBase?: boolean; sharedBaseId?: string; isSharedErd?: boolean; sharedErdId?: string } = {},
   ) {
+    console.log('loadRoles', projectId)
+
     if (!user.value) return
 
     if (options?.isSharedBase) {
@@ -154,5 +134,5 @@ export const useRoles = createSharedComposable(() => {
     return allRoles.value[role]
   }
 
-  return { allRoles, scopedRoles, projectRoles, loadRoles, hasRole }
+  return { allRoles, scopedRoles, loadRoles, hasRole }
 })

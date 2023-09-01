@@ -1,4 +1,4 @@
-export default ({url}:{url:string}) => `<!DOCTYPE html>
+export default ({ url }: { url: string }) => `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -9,4 +9,4 @@ export default ({url}:{url:string}) => `<!DOCTYPE html>
    window.location.href = '${url}'
 </script>
 </body>
-</html>`
+</html>`;

@@ -62,8 +62,8 @@ export class UsersController extends UsersControllerCE {
     const host = req.query.state;
 
     const url = host
-      ? `https://${host}/dashboard/#/signin`
-      : '/dashboard/#/signin';
+      ? `https://${host}/dashboard/#/signin?logout=true`
+      : '/dashboard/#/signin?logout=true';
 
     res.send((await import('./templates/redirect')).default({ url }));
   }

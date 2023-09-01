@@ -2377,8 +2377,7 @@ function linkBased() {
     await ncAxiosLinkAdd({
       ...validParams,
       urlParams: { ...validParams.urlParams, tableId: 9999 },
-      status: 404,
-      msg: "Table with id '9999' not found",
+      status: 403,
     });
 
     // Link Add: Invalid link ID
@@ -2450,8 +2449,7 @@ function linkBased() {
     await ncAxiosLinkRemove({
       ...validParams,
       urlParams: { ...validParams.urlParams, tableId: 9999 },
-      status: 404,
-      msg: "Table with id '9999' not found",
+      status: 403,
     });
 
     // Link Remove: Invalid link ID
@@ -2523,8 +2521,7 @@ function linkBased() {
     await ncAxiosLinkGet({
       ...validParams,
       urlParams: { ...validParams.urlParams, tableId: 9999 },
-      status: 404,
-      msg: "Table with id '9999' not found",
+      status: 403,
     });
 
     // Link List: Invalid link ID

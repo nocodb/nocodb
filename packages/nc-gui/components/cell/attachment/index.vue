@@ -129,7 +129,6 @@ watch(
 
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
   if (e.key === 'Enter' && !isReadonly.value) {
-    console.log(ActiveCellInj)
     e.stopPropagation()
     if (!modalVisible.value) {
       modalVisible.value = true

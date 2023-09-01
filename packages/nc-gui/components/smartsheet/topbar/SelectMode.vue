@@ -15,7 +15,8 @@ const { onViewsTabChange } = useViewsStore()
       }"
       @click="onViewsTabChange('view')"
     >
-      <GeneralViewIcon class="tab-icon" :meta="{ type: activeView?.type }" ignore-color />
+      <GeneralViewIcon v-if="activeView?.type" class="tab-icon" :meta="{ type: activeView?.type }" ignore-color />
+      <GeneralLoader v-else class="tab-icon" />
       <div class="tab-title nc-tab">Data</div>
     </div>
     <div
@@ -45,6 +46,7 @@ const { onViewsTabChange } = useViewsStore()
 
 .tab-icon {
   font-size: 1.1rem !important;
+  @apply min-w-4.5;
 }
 .tab .tab-title {
   @apply min-w-0;

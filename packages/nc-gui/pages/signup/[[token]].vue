@@ -32,6 +32,8 @@ const { navigateToTable } = useTablesStore()
 
 const { loadScope } = useCommandPalette()
 
+const { clearWorkspaces } = useWorkspace()
+
 loadScope('disabled')
 
 const formValidator = ref()
@@ -111,6 +113,10 @@ async function signUp() {
 function resetError() {
   if (error.value) error.value = null
 }
+
+onMounted(async () => {
+  await clearWorkspaces()
+})
 </script>
 
 <template>

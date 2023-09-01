@@ -9,13 +9,14 @@ const { workspacesList, activeWorkspaceId } = storeToRefs(useWorkspace())
 const onDelete = async () => {
   isDeleting.value = true
   try {
-    await deleteWorkspace(activeWorkspaceId.value)
+    await deleteWorkspace(activeWorkspaceId.value, { skipStateUpdate: true })
 
     isConfirmed.value = false
     isDeleting.value = false
 
-    if (workspacesList.value.length > 0) {
-      await navigateToWorkspace(workspacesList.value[0].id)
+    // As signin page will clear the workspaces, we need to check if there are more than one workspace
+    if (workspacesList.value.length > 1) {
+      await navigateToWorkspace(workspacesList.value.filter((w) => w.id !== activeWorkspaceId.value)[0].id)
     } else {
       await signOut()
       setTimeout(() => {

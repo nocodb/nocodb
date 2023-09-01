@@ -84,7 +84,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const updateWorkspace = async (..._args: any) => {}
 
-  const deleteWorkspace = async (..._args: any) => {}
+  const deleteWorkspace = async (_: string, { skipStateUpdate: __ }: { skipStateUpdate?: boolean } = {}) => {}
 
   const loadCollaborators = async (..._args: any) => {}
 

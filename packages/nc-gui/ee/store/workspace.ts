@@ -153,13 +153,14 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  const deleteWorkspace = async (workspaceId: string) => {
+  const deleteWorkspace = async (workspaceId: string, { skipStateUpdate }: { skipStateUpdate?: boolean } = {}) => {
     // todo: pagination
     await $api.workspace.delete(workspaceId, {
       baseURL: appInfo.value.baseHostName ? `https://${workspaceId}.${appInfo.value.baseHostName}` : undefined,
     })
 
-    workspaces.value.delete(workspaceId)
+    if (!skipStateUpdate) workspaces.value.delete(workspaceId)
+
     refreshCommandPalette()
   }
 

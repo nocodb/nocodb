@@ -61,7 +61,7 @@ export interface Getters {
 }
 
 export interface Actions {
-  signOut: () => void
+  signOut: (skipRedirect?: boolean) => void
   signIn: (token: string) => void
   refreshToken: () => void
   loadAppInfo: () => void

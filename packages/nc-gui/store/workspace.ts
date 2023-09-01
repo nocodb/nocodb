@@ -199,10 +199,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     $e('c:themes:change')
   }
 
-  const clearWorkspaces = () => {
-    clearProjects()
+  const clearWorkspaces = async () => {
+    await clearProjects()
     workspaces.value.clear()
   }
+
   const upgradeActiveWorkspace = async () => {}
 
   const navigateToWorkspace = async (workspaceId?: string) => {

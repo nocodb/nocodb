@@ -16,9 +16,7 @@ const logout = async () => {
   await signOut()
   await navigateTo('/signin')
 
-  await new Promise((resolve) => setTimeout(resolve, 1000))
-
-  clearWorkspaces()
+  await clearWorkspaces()
 }
 
 const onCopy = async () => {

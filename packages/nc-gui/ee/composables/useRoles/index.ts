@@ -81,8 +81,6 @@ export const useRoles = createSharedComposable(() => {
     projectId?: string,
     options: { isSharedBase?: boolean; sharedBaseId?: string; isSharedErd?: boolean; sharedErdId?: string } = {},
   ) {
-    if (!user.value) return
-
     const wsId = {
       fk_workspace_id: route.value.params.typeOrId,
     }

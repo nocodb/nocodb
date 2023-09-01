@@ -323,7 +323,8 @@ function projectTest() {
       .send({})
       .expect(200)
       .then((res) => {
-        const createdProject = res.body.projects[1];
+        const createdProject =
+          res.body.projects[process.env.EE === 'true' ? 2 : 1];
 
         expect(res.body).to.have.all.keys(
           'userCount',
@@ -331,8 +332,10 @@ function projectTest() {
           'projectCount',
           'projects',
         );
-        // As there will be a default project created for a workspace
-        expect(res.body).to.have.property('projectCount').to.eq(2);
+        // As there will be a default project created for a workspace (EE tests create one extra)
+        expect(res.body)
+          .to.have.property('projectCount')
+          .to.eq(process.env.EE === 'true' ? 3 : 2);
         expect(res.body).to.have.property('projects').to.be.an('array');
 
         expect(createdProject.tableCount.table).to.be.eq(3);

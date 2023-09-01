@@ -83,7 +83,7 @@ export class UsersController extends UsersControllerCE {
 
     // todo: check provider as well, if we have multiple ways of login mechanism
     if (process.env.NC_OIDC_LOGOUT_URL) {
-      let callbackURL = req.ncSiteUrl + Noco.getConfig().dashboardPath;
+      let callbackURL = req.ncSiteUrl + '/auth/oidc/logout-redirect';
       if (process.env.NC_BASE_APP_URL) {
         const url = new URL(req.ncSiteUrl);
         const baseAppUrl = new URL(process.env.NC_BASE_APP_URL);

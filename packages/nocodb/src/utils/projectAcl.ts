@@ -135,6 +135,7 @@ const rolePermissions = {
       filterDelete: true,
       filterGet: true,
       filterChildrenRead: true,
+      filterChildrenList: true,
 
       mmList: true,
       hmList: true,

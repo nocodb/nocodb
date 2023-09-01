@@ -1124,7 +1124,7 @@ defineExpose({
 })
 
 // when expand is clicked the drawer should open
-// and cell should loose focs
+// and cell should loose focus
 const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
   if (expandForm) {
     expandForm(row, col)

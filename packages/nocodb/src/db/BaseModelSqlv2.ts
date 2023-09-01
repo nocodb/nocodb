@@ -2176,7 +2176,7 @@ class BaseModelSqlv2 {
     return res;
   }
 
-  async updateByPk(id, data, trx?, cookie?, disableOptimization = false) {
+  async updateByPk(id, data, trx?, cookie?, _disableOptimization = false) {
     try {
       const updateObj = await this.model.mapAliasToColumn(
         data,
@@ -2679,7 +2679,15 @@ class BaseModelSqlv2 {
           // pk not specified - bypass
           continue;
         }
-        if (!raw) prevData.push(await this.readByPk(pkValues));
+        if (!raw)
+          prevData.push(
+            await this.readByPk(
+              pkValues,
+              false,
+              {},
+              { ignoreView: true, getHiddenColumn: true },
+            ),
+          );
         const wherePk = await this._wherePk(pkValues);
         res.push(wherePk);
         toBeUpdated.push({ d, wherePk });
@@ -2696,7 +2704,12 @@ class BaseModelSqlv2 {
 
       if (!raw) {
         for (const pkValues of updatePkValues) {
-          const oldRecord = await this.readByPk(pkValues);
+          const oldRecord = await this.readByPk(
+            pkValues,
+            false,
+            {},
+            { ignoreView: true, getHiddenColumn: true },
+          );
           if (!oldRecord && throwExceptionIfNotExist)
             NcError.unprocessableEntity(
               `Record with pk ${JSON.stringify(pkValues)} not found`,
@@ -2800,7 +2813,12 @@ class BaseModelSqlv2 {
           continue;
         }
 
-        const oldRecord = await this.readByPk(pkValues);
+        const oldRecord = await this.readByPk(
+          pkValues,
+          false,
+          {},
+          { ignoreView: true, getHiddenColumn: true },
+        );
         if (!oldRecord && throwExceptionIfNotExist)
           NcError.unprocessableEntity(
             `Record with pk ${JSON.stringify(pkValues)} not found`,
@@ -3650,9 +3668,10 @@ class BaseModelSqlv2 {
       const proto = await this.getProto();
 
       const data = await groupedQb;
+
       const result = data?.map((d) => {
         d.__proto__ = proto;
-        return d;
+        return this.convertDateFormat(d);
       });
 
       const groupedResult = result.reduce<Map<string | number | null, any[]>>(
@@ -3660,9 +3679,7 @@ class BaseModelSqlv2 {
           if (!aggObj.has(row[column.title])) {
             aggObj.set(row[column.title], []);
           }
-
           aggObj.get(row[column.title]).push(row);
-
           return aggObj;
         },
         new Map(),
@@ -3915,10 +3932,7 @@ class BaseModelSqlv2 {
         }
       }
 
-      if (
-        this.isPg &&
-        (col.dt === 'timestamp with time zone' || col.dt === 'timestamptz')
-      ) {
+      if (this.isPg) {
         // postgres - timezone already attached to input
         // e.g. 2023-05-11 16:16:51+08:00
         keepLocalTime = false;

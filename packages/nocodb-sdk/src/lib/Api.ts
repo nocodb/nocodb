@@ -5906,13 +5906,7 @@ export class Api<
  * @summary Bulk create-update-delete columns
  * @request POST:/api/v1/db/meta/tables/{tableId}/columns/bulk
  * @response `200` `{
-  failedOps?: ({
-  op: "add" | "update" | "delete",
-  \** Model for Column *\
-  column: ColumnType,
-  error?: any,
-
-})[],
+  failedOps?: (any)[],
 
 }` OK
  * @response `400` `{
@@ -5932,12 +5926,7 @@ export class Api<
     ) =>
       this.request<
         {
-          failedOps?: {
-            op: 'add' | 'update' | 'delete';
-            /** Model for Column */
-            column: ColumnType;
-            error?: any;
-          }[];
+          failedOps?: any[];
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
@@ -9973,126 +9962,6 @@ export class Api<
         path: `/api/v1/db/meta/hooks/${hookId}`,
         method: 'DELETE',
         format: 'json',
-        ...params,
-      }),
-  };
-  cowriterTable = {
-    /**
-     * No description
-     *
-     * @tags Cowriter Table
-     * @name Create
-     * @summary Cowriter Create
-     * @request POST:/api/v1/cowriter/meta/tables/{tableId}
-     * @response `200` `any` OK
-     */
-    create: (tableId: string, data: object, params: RequestParams = {}) =>
-      this.request<any, any>({
-        path: `/api/v1/cowriter/meta/tables/${tableId}`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Cowriter Table
-     * @name List
-     * @summary Cowriter List
-     * @request GET:/api/v1/cowriter/meta/tables/{tableId}
-     * @response `200` `any` OK
-     */
-    list: (tableId: string, params: RequestParams = {}) =>
-      this.request<any, any>({
-        path: `/api/v1/cowriter/meta/tables/${tableId}`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Cowriter Table
-     * @name Get
-     * @summary Cowriter Get
-     * @request GET:/api/v1/cowriter/meta/tables/{tableId}/{cowriterId}
-     * @response `200` `any` OK
-     * @response `0` `any`
-     */
-    get: (tableId: string, cowriterId: string, params: RequestParams = {}) =>
-      this.request<any, any>({
-        path: `/api/v1/cowriter/meta/tables/${tableId}/${cowriterId}`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Cowriter Table
-     * @name Patch
-     * @summary Cowriter Patch
-     * @request PATCH:/api/v1/cowriter/meta/tables/{tableId}/{cowriterId}
-     * @response `200` `void` OK
-     */
-    patch: (
-      tableId: string,
-      cowriterId: string,
-      data: any,
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/cowriter/meta/tables/${tableId}/${cowriterId}`,
-        method: 'PATCH',
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * @description Generate Columns using AI
-     *
-     * @tags Cowriter Table
-     * @name GenerateColumns
-     * @summary Cowriter Generate Columns
-     * @request POST:/api/v1/cowriter/meta/tables/{tableId}/generate-columns
-     * @response `200` `void` OK
-     */
-    generateColumns: (
-      tableId: string,
-      data: {
-        title?: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/cowriter/meta/tables/${tableId}/generate-columns`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Cowriter Table
-     * @name CreateBulk
-     * @summary Cowriter Create Bulk
-     * @request POST:/api/v1/cowriter/meta/tables/{tableId}/bulk
-     * @response `200` `void` OK
-     */
-    createBulk: (tableId: string, data: any[], params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/api/v1/cowriter/meta/tables/${tableId}/bulk`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
         ...params,
       }),
   };

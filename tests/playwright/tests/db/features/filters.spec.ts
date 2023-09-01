@@ -98,6 +98,7 @@ async function verifyFilter(param: {
     locallySaved: false,
     dataType: param?.dataType,
     openModal: true,
+    skipWaitingResponse: true,
   });
 
   // verify filtered rows
@@ -257,7 +258,7 @@ test.describe('Filter Tests: Numerical', () => {
     await numBasedFilterTest('Rating', '3', '2');
   });
 
-  test.skip('Filter: Duration', async () => {
+  test('Filter: Duration', async () => {
     await numBasedFilterTest('Duration', '00:01', '01:03');
   });
 

@@ -17,10 +17,10 @@ export class AccessSettingsPage extends BasePage {
     await this.get().locator('.nc-collaborators-list-row').nth(0).waitFor({ state: 'visible' });
     const userCount = await this.get().locator('.nc-collaborators-list-row').count();
     for (let i = 0; i < userCount; i++) {
-      const user = await this.get().locator('.nc-collaborators-list-row').nth(i);
+      const user = this.get().locator('.nc-collaborators-list-row').nth(i);
       const userEmail = (await user.locator('.email').innerText()).split('\n')[1];
       if (userEmail === email) {
-        const roleDropdown = await user.locator('.nc-collaborator-role-select');
+        const roleDropdown = user.locator('.nc-collaborator-role-select');
 
         const selectedRole = await user.locator('.nc-collaborator-role-select').innerText();
 

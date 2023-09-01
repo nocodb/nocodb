@@ -34,10 +34,10 @@ export class KanbanPage extends BasePage {
 
   async dragDropCard(param: { from: { stack: number; card: number }; to: { stack: number; card: number } }) {
     const { from, to } = param;
-    const srcStack = await this.get().locator(`.nc-kanban-stack`).nth(from.stack);
-    const dstStack = await this.get().locator(`.nc-kanban-stack`).nth(to.stack);
-    const fromCard = await srcStack.locator(`.nc-kanban-item`).nth(from.card);
-    const toCard = await dstStack.locator(`.nc-kanban-item`).nth(to.card);
+    const srcStack = this.get().locator(`.nc-kanban-stack`).nth(from.stack);
+    const dstStack = this.get().locator(`.nc-kanban-stack`).nth(to.stack);
+    const fromCard = srcStack.locator(`.nc-kanban-item`).nth(from.card);
+    const toCard = dstStack.locator(`.nc-kanban-item`).nth(to.card);
 
     console.log(await fromCard.allTextContents());
     console.log(await toCard.allTextContents());
@@ -68,10 +68,10 @@ export class KanbanPage extends BasePage {
     const { order } = param;
     const stacks = await this.get().locator(`.nc-kanban-stack`).count();
     for (let i = 0; i < stacks; i++) {
-      const stack = await this.get().locator(`.nc-kanban-stack`).nth(i);
+      const stack = this.get().locator(`.nc-kanban-stack`).nth(i);
       await stack.scrollIntoViewIfNeeded();
       // Since otherwise stack title will be repeated as title is in two divs, with one having hidden class
-      const stackTitle = await stack.locator(`.nc-kanban-stack-head >> [data-testid="truncate-label"]`);
+      const stackTitle = stack.locator(`.nc-kanban-stack-head >> [data-testid="truncate-label"]`);
       await expect(stackTitle).toHaveText(order[i], { ignoreCase: true });
     }
   }
@@ -80,10 +80,10 @@ export class KanbanPage extends BasePage {
     const { count } = param;
     const stacks = await this.get().locator(`.nc-kanban-stack`).count();
     for (let i = 0; i < stacks; i++) {
-      const stack = await this.get().locator(`.nc-kanban-stack`).nth(i);
+      const stack = this.get().locator(`.nc-kanban-stack`).nth(i);
       await stack.scrollIntoViewIfNeeded();
       const stackFooter = await stack.locator(`.nc-kanban-data-count`).innerText();
-      await expect(stackFooter).toContain(`${count[i]} record${count[i] !== 1 ? 's' : ''}`);
+      expect(stackFooter).toContain(`${count[i]} record${count[i] !== 1 ? 's' : ''}`);
     }
   }
 
@@ -91,7 +91,7 @@ export class KanbanPage extends BasePage {
     const { count } = param;
     const stacks = await this.get().locator(`.nc-kanban-stack`).count();
     for (let i = 0; i < stacks; i++) {
-      const stack = await this.get().locator(`.nc-kanban-stack`).nth(i);
+      const stack = this.get().locator(`.nc-kanban-stack`).nth(i);
       await stack.scrollIntoViewIfNeeded();
       const stackCards = stack.locator(`.nc-kanban-item`);
       await expect(stackCards).toHaveCount(count[i]);
@@ -100,11 +100,11 @@ export class KanbanPage extends BasePage {
 
   async verifyCardOrder(param: { order: string[]; stackIndex: number }) {
     const { order, stackIndex } = param;
-    const stack = await this.get().locator(`.nc-kanban-stack`).nth(stackIndex);
+    const stack = this.get().locator(`.nc-kanban-stack`).nth(stackIndex);
     for (let i = 0; i < order.length; i++) {
-      const card = await stack.locator(`.nc-kanban-item`).nth(i);
+      const card = stack.locator(`.nc-kanban-item`).nth(i);
       await card.scrollIntoViewIfNeeded();
-      const cardTitle = await card.locator(`.nc-cell`);
+      const cardTitle = card.locator(`.nc-cell`);
       await expect(cardTitle).toHaveText(order[i]);
     }
   }
@@ -121,7 +121,7 @@ export class KanbanPage extends BasePage {
 
   async collapseStack(param: { index: number }) {
     await this.get().locator(`.nc-kanban-stack-head`).nth(param.index).click();
-    const modal = await this.rootPage.locator(`.nc-dropdown-kanban-stack-context-menu`);
+    const modal = this.rootPage.locator(`.nc-dropdown-kanban-stack-context-menu`);
     await modal.locator('.ant-dropdown-menu-item:has-text("Collapse Stack")').click();
   }
 
@@ -135,15 +135,15 @@ export class KanbanPage extends BasePage {
 
   async addCard(param: { stackIndex: number }) {
     await this.get().locator(`.nc-kanban-stack-head`).nth(param.stackIndex).click();
-    const modal = await this.rootPage.locator(`.nc-dropdown-kanban-stack-context-menu`);
+    const modal = this.rootPage.locator(`.nc-dropdown-kanban-stack-context-menu`);
     await modal.locator('.ant-dropdown-menu-item:has-text("Add new record")').click();
   }
 
   async deleteStack(param: { index: number }) {
     await this.get().locator(`.nc-kanban-stack-head`).nth(param.index).click();
-    const modal = await this.rootPage.locator(`.nc-dropdown-kanban-stack-context-menu`);
+    const modal = this.rootPage.locator(`.nc-dropdown-kanban-stack-context-menu`);
     await modal.locator('.ant-dropdown-menu-item:has-text("Delete Stack")').click();
-    const confirmationModal = await this.rootPage.locator(`div.ant-modal-content`);
+    const confirmationModal = this.rootPage.locator(`div.ant-modal-content`);
     await confirmationModal.locator(`button:has-text("Delete Stack")`).click();
   }
 }

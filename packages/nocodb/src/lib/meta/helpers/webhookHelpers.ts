@@ -197,9 +197,9 @@ export async function handleHttpWebHook(
               incidentTime: new Date(),
             },
             {
-              hookId: hook.id,
-              modelId: model.id,
-              viewId: view.id,
+              hookId: hook?.id,
+              modelId: model?.id,
+              viewId: view?.id,
             },
             (defaultTitle) => {
               if (error?.response?.status !== 300) {

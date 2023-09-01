@@ -121,7 +121,7 @@ export class ProjectsService {
       param.project,
     );
 
-    const projectId = this.metaService.genNanoid(MetaTable.PROJECT);
+    const projectId = await this.metaService.genNanoid(MetaTable.PROJECT);
 
     const projectBody: ProjectReqType & Record<string, any> = param.project;
     projectBody.id = projectId;

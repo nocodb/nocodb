@@ -264,16 +264,17 @@ onMounted(async () => {
         </template>
 
         <div class="flex flex-row space-x-4 justify-center mt-4">
-          <a-button
+          <NcButton
             v-for="(action, i) in plugin.formDetails.actions"
             :key="i"
+            class="!px-5"
             :loading="loadingAction === action.key"
             :type="action.key === Action.Save ? 'primary' : 'default'"
             :disabled="!!loadingAction"
             @click="doAction(action.key)"
           >
             {{ action.label }}
-          </a-button>
+          </NcButton>
         </div>
       </a-form>
     </div>

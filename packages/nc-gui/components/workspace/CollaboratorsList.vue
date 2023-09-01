@@ -41,7 +41,7 @@ const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
     <div class="w-full h-1 border-t-1 border-gray-100 opacity-50 mt-6"></div>
     <div class="w-full flex flex-row justify-between items-baseline mt-6.5 mb-2 pr-0.25 ml-2">
       <div class="text-xl">Collaborators</div>
-      <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md" placeholder="Search collaborators">
+      <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md mr-4" placeholder="Search collaborators">
         <template #prefix>
           <PhMagnifyingGlassBold class="!h-3.5 text-gray-500" />
         </template>

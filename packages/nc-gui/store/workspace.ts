@@ -25,7 +25,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { $e } = useNuxtApp()
 
-  const { appInfo } = useGlobal()
+  const { appInfo, ncNavigateTo } = useGlobal()
 
   const { userRoles } = useRoles()
 
@@ -199,7 +199,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       throw new Error('Workspace not selected')
     }
 
-    await navigateTo(`/ws/${workspaceId}`)
+    await ncNavigateTo({
+      workspaceId,
+    })
   }
 
   const navigateToWorkspaceSettings = async () => {

@@ -102,10 +102,9 @@ export class MetaService {
     data: any,
     ignoreIdGeneration?: boolean,
   ): Promise<any> {
-    const id = data?.id || this.genNanoid(target);
     const insertObj = {
       ...data,
-      ...(ignoreIdGeneration ? {} : { id }),
+      ...(ignoreIdGeneration ? {} : { id: data?.id || (await this.genNanoid(target)) }),
     };
     if (base_id !== null) insertObj.base_id = base_id;
     if (project_id !== null) insertObj.project_id = project_id;
@@ -128,7 +127,7 @@ export class MetaService {
     const insertObj = [];
     const at = this.now();
     for (const d of data) {
-      const id = d?.id || this.genNanoid(target);
+      const id = d?.id || (await this.genNanoid(target));
       const tempObj = {
         ...d,
         ...(ignoreIdGeneration ? {} : { id }),
@@ -145,7 +144,7 @@ export class MetaService {
     return insertObj;
   }
 
-  public genNanoid(target: string) {
+  public async genNanoid(target: string) {
     let prefix;
     switch (target) {
       case MetaTable.PROJECT:

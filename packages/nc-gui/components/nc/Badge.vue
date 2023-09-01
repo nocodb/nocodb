@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
-
 const props = defineProps<{
   color: string
 }>()
@@ -8,7 +6,7 @@ const props = defineProps<{
 
 <template>
   <div
-    class="badge-color"
+    class="mt-1 border w-23 h-6 rounded-lg"
     :class="{
       'border-purple-500': props.color === 'purple',
       'bg-purple-100': props.color === 'purple',
@@ -25,9 +23,3 @@ const props = defineProps<{
     <slot></slot>
   </div>
 </template>
-
-<style>
-.badge-color {
-  @apply mt-1 border w-23 h-6 rounded-lg;
-}
-</style>

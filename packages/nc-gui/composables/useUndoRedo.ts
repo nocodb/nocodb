@@ -25,12 +25,22 @@ export const useUndoRedo = createSharedComposable(() => {
     return tempScope
   })
 
-  const isSameScope = (sc: { key: string; param: string }[]) => {
+  const isSameScope = (sc: { key: string; param: string | string[] }[]) => {
     return sc.every((s) => {
       return scope.value.some(
         // viewTitle is optional for default view
-        (s2) =>
-          (s.key === 'viewTitle' && s2.key === 'viewTitle' && s2.param === '') || (s.key === s2.key && s.param === s2.param),
+        (s2) => {
+          if (Array.isArray(s.param)) {
+            return (
+              (s.key === 'viewTitle' && s2.key === 'viewTitle' && s2.param === '') ||
+              (s.key === s2.key && s.param.includes(s2.param))
+            )
+          } else {
+            return (
+              (s.key === 'viewTitle' && s2.key === 'viewTitle' && s2.param === '') || (s.key === s2.key && s.param === s2.param)
+            )
+          }
+        },
       )
     })
   }
@@ -130,18 +140,18 @@ export const useUndoRedo = createSharedComposable(() => {
     }
   }
 
-  const defineViewScope = (param: { view?: ViewType; project_id?: string; model_id?: string; title?: string }) => {
+  const defineViewScope = (param: { view?: ViewType; project_id?: string; model_id?: string; title?: string; id?: string }) => {
     if (param.view) {
       return [
         { key: 'projectId', param: param.view.project_id! },
         { key: 'viewId', param: param.view.fk_model_id! },
-        { key: 'viewTitle', param: param.view.title! },
+        { key: 'viewTitle', param: [param.view.title, param.view.id!] },
       ]
     } else {
       return [
         { key: 'projectId', param: param.project_id! },
         { key: 'viewId', param: param.model_id! },
-        { key: 'viewTitle', param: param.title! },
+        { key: 'viewTitle', param: [param.title!, param.id!] },
       ]
     }
   }

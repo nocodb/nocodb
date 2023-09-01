@@ -3,7 +3,7 @@ import type { TableType } from 'nocodb-sdk'
 import { useTitle } from '@vueuse/core'
 
 export const useTablesStore = defineStore('tablesStore', () => {
-  const { includeM2M } = useGlobal()
+  const { includeM2M, ncNavigateTo } = useGlobal()
   const { api } = useApi()
   const { $e, $api } = useNuxtApp()
   const { addUndo, defineProjectScope } = useUndoRedo()
@@ -104,8 +104,11 @@ export const useTablesStore = defineStore('tablesStore', () => {
     const workspaceIdOrType = workspaceId ?? workspaceStore.activeWorkspaceId
     const projectIdOrBaseId = projectId ?? projectsStore.activeProjectId
 
-    await navigateTo({
-      path: `/${workspaceIdOrType}/${projectIdOrBaseId}/table/${tableId}${viewTitle ? `/${viewTitle}` : ''}`,
+    await ncNavigateTo({
+      workspaceId: workspaceIdOrType,
+      projectId: projectIdOrBaseId,
+      tableId,
+      viewId: viewTitle,
       query: route.value.query,
     })
   }
@@ -143,9 +146,10 @@ export const useTablesStore = defineStore('tablesStore', () => {
       projectIdOrBaseId = route.value.params.projectId as string
     }
 
-    await navigateTo({
-      path: `/${workspaceIdOrType}/${projectIdOrBaseId}/table/${table?.id}`,
-      query: route.value.query,
+    ncNavigateTo({
+      workspaceId: workspaceIdOrType,
+      projectId: projectIdOrBaseId,
+      tableId: table?.id,
     })
   }
 

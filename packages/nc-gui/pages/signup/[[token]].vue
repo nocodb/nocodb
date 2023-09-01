@@ -149,8 +149,6 @@ function resetError() {
             <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
               <a-input
                 v-model:value="form.email"
-                autocomplete="email"
-                type="email"
                 size="large"
                 :placeholder="$t('msg.info.signUp.workEmail')"
                 @focus="resetError"
@@ -160,7 +158,6 @@ function resetError() {
             <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
               <a-input-password
                 v-model:value="form.password"
-                autocomplete="new-password"
                 size="large"
                 class="password"
                 :placeholder="$t('msg.info.signUp.enterPassword')"

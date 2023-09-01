@@ -13,7 +13,7 @@ const splitpaneWrapperRef = ref()
 
 const contentSize = computed(() => 100 - sideBarSize.value.current)
 const isSidebarShort = ref(!isRightSidebarOpen.value)
-const animationDuration = 300
+const animationDuration = 200
 const contentDomWidth = ref(window.innerWidth)
 const isMouseOverShowSidebarZone = ref(false)
 const isAnimationEndAfterSidebarHide = ref(!isRightSidebarOpen.value)
@@ -259,7 +259,7 @@ watch(
 
 .nc-smartsheet-sidebar-wrapper > * {
   width: 100%;
-  transition: all 0.3s ease-in-out;
+  transition: all 0.2s ease-in-out;
 }
 
 .nc-smartsheet-sidebar-wrapper.hide-sidebar > * {

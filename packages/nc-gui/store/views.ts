@@ -120,7 +120,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
     { immediate: true },
   )
 
+  const isLockedView = computed(() => activeView.value?.lock_type === 'locked')
+
   return {
+    isLockedView,
     isViewsLoading,
     isViewDataLoading,
     isPaginationLoading,

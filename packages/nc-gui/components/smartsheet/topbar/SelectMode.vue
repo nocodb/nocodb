@@ -1,11 +1,9 @@
 <script lang="ts" setup>
-import { ActiveViewInj, inject, ref, storeToRefs, useViewsStore } from '#imports'
-
-const activeView = inject(ActiveViewInj, ref())
+import { storeToRefs, useViewsStore } from '#imports'
 
 const { openedViewsTab } = storeToRefs(useViewsStore())
 
-const { onViewsTabChange } = useViewsStore()
+const { onViewsTabChange, activeView } = useViewsStore()
 </script>
 
 <template>
@@ -32,7 +30,7 @@ const { onViewsTabChange } = useViewsStore()
         class="tab-icon"
         :class="{}"
         :style="{
-          fontWeight: 600,
+          fontWeight: 500,
         }"
       />
       <div class="tab-title nc-tab">Details</div>
@@ -46,7 +44,7 @@ const { onViewsTabChange } = useViewsStore()
 }
 
 .tab-icon {
-  font-size: 1.1rem;
+  font-size: 1.1rem !important;
 }
 .tab .tab-title {
   @apply min-w-0;

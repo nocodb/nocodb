@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { isSystemColumn } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   CellClickHookInj,
@@ -236,11 +237,16 @@ const clickHandler = () => {
   }
   cellClickHandler()
 }
+
+const isColDisabled = computed(() => {
+  return isSystemColumn(column.value) || readOnly.value || (localState.value && isPk)
+})
 </script>
 
 <template>
   <a-date-picker
     v-model:value="localState"
+    :disabled="isColDisabled"
     :show-time="true"
     :bordered="false"
     class="!w-full !px-0 !border-none"
@@ -251,7 +257,6 @@ const clickHandler = () => {
     :input-read-only="true"
     :dropdown-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''}`"
     :open="readOnly || (localState && isPk) || isLockedMode ? false : open && (active || editable)"
-    :disabled="readOnly || (localState && isPk)"
     @click="clickHandler"
     @ok="open = !open"
   >

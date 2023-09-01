@@ -83,7 +83,7 @@ export default {
         </a-tooltip>
       </a-layout-header>
 
-      <div class="w-full overflow-scroll" style="height: calc(100vh)">
+      <div class="w-full overflow-hidden" style="height: calc(100vh)">
         <slot />
       </div>
     </a-layout>

@@ -12,12 +12,21 @@ const { isMobileMode } = useGlobal()
 const { isUIAllowed } = useUIPermission()
 
 const { allowCSVDownload } = useSharedView()
+
+const isViewSidebarAvailable = computed(
+  () => (isGrid.value || isGallery.value || isKanban.value || isMap.value) && !isPublic.value,
+)
 </script>
 
 <template>
   <div
-    class="nc-table-toolbar h-12 min-h-12 py-1 flex gap-2 items-center px-3 border-b border-gray-200 overflow-hidden"
-    :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
+    class="nc-table-toolbar h-12 min-h-12 py-1 flex gap-2 items-center border-b border-gray-200 overflow-hidden"
+    :class="{
+      'nc-table-toolbar-mobile': isMobileMode,
+      'h-[var(--topbar-height)]': !isMobileMode,
+      'pl-3 pr-0': isViewSidebarAvailable,
+      'px-3': !isViewSidebarAvailable,
+    }"
     style="z-index: 7"
   >
     <template v-if="isViewsLoading">
@@ -50,6 +59,7 @@ const { allowCSVDownload } = useSharedView()
         v-if="(isGrid || isGallery || isKanban || isMap) && !isPublic && isUIAllowed('dataInsert')"
         :show-system-fields="false"
       />
+      <LazySmartsheetToolbarOpenViewSidebarBtn v-if="isViewSidebarAvailable" />
     </template>
   </div>
 </template>

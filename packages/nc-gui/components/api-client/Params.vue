@@ -40,7 +40,7 @@ const deleteParamRow = (i: number) => {
 
       <tbody>
         <tr v-for="(paramRow, idx) in vModel" :key="idx" class="!h-2 overflow-hidden">
-          <td class="px-2 nc-hook-header-tab-checkbox">
+          <td class="px-2 nc-hook-params-tab-checkbox">
             <a-form-item class="form-item">
               <a-checkbox v-model:checked="paramRow.enabled" />
             </a-form-item>

@@ -270,6 +270,7 @@ export default class Noco {
     /* catch error */
     this.router.use(async (err, _req, res, next) => {
       if (err) {
+        console.log('Catch Error:', err);
         try {
           await createIncidentLog(
             {

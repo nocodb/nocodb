@@ -188,6 +188,7 @@ export async function handleHttpWebHook(
     return require('axios')(req)
       .then((response) => resolve(response))
       .catch(async (error: any) => {
+        console.log('WEBHOOK Error:', error);
         try {
           await createIncidentLog(
             {

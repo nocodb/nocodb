@@ -3,7 +3,6 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { LoginPage } from '../../../pages/LoginPage';
-import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { getDefaultPwd } from '../../../tests/utils/general';
 
 // To be enabled after shared base is implemented
@@ -12,7 +11,6 @@ test.describe('Shared base', () => {
   let toolbar: ToolbarPage;
   let context: any;
   let loginPage: LoginPage;
-  let projectPage: ProjectsPage;
 
   async function roleTest(role: string) {
     // todo: Wait till the page is loaded
@@ -52,7 +50,6 @@ test.describe('Shared base', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
-    projectPage = new ProjectsPage(page);
     toolbar = dashboard.grid.toolbar;
     loginPage = new LoginPage(page);
   });

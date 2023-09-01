@@ -38,7 +38,7 @@ export class TeamsPage extends BasePage {
 
     await this.inviteTeamModal.getByTestId('docs-share-dlg-share-project-collaborate-emails').fill(email);
     await this.inviteTeamModal.getByTestId('nc-share-invite-user-role-option-viewer').click();
-    const dropdown = await this.rootPage.locator('.nc-dropdown-user-role');
+    const dropdown = this.rootPage.locator('.nc-dropdown-user-role');
     await dropdown.locator(`.nc-role-option:has-text("${role}")`).click();
     await this.inviteTeamModal.getByTestId('docs-share-btn').click();
     await this.inviteTeamModal.getByTestId('docs-share-invitation-copy').waitFor({ state: 'visible', timeout: 2000 });
@@ -72,14 +72,14 @@ export class TeamsPage extends BasePage {
       if (toggle) {
         // if share base was disabled && request was to enable
         await toggleBtn.click();
-        const modal = await this.rootPage.locator(`.nc-dropdown-shared-base-toggle`);
+        const modal = this.rootPage.locator(`.nc-dropdown-shared-base-toggle`);
         await modal.locator(`.ant-dropdown-menu-title-content`).click();
       }
     } else {
       if (!toggle) {
         // if share base was enabled && request was to disable
         await toggleBtn.click();
-        const modal = await this.rootPage.locator(`.nc-dropdown-shared-base-toggle`);
+        const modal = this.rootPage.locator(`.nc-dropdown-shared-base-toggle`);
         await modal.locator(`.ant-dropdown-menu-title-content`).click();
       }
     }
@@ -106,7 +106,7 @@ export class TeamsPage extends BasePage {
     //   .locator(`.nc-shared-base-role`)
     //   .waitFor();
     await this.getSharedBaseSubModal().locator(`.nc-shared-base-role:visible`).click();
-    const userRoleModal = await this.rootPage.locator(`.nc-dropdown-share-base-role:visible`);
+    const userRoleModal = this.rootPage.locator(`.nc-dropdown-share-base-role:visible`);
     await userRoleModal.locator(`.ant-select-item-option-content:has-text("${role}"):visible`).click();
   }
 }

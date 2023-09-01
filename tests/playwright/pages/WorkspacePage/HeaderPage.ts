@@ -55,7 +55,7 @@ export class HeaderPage extends BasePage {
 
   // Menu : Workspaces, Explore, Help, Community
   async openMenu(param: { title: string }) {
-    await this.get().locator(`[data-testid="nc-dash-nav-${param.title.toLowerCase()}"]`);
+    this.get().locator(`[data-testid="nc-dash-nav-${param.title.toLowerCase()}"]`);
   }
 
   async navigateUsingCmdK({

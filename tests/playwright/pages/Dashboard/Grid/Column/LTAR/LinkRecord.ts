@@ -12,26 +12,26 @@ export class LinkRecord extends BasePage {
 
   async verify(cardTitle?: string[]) {
     await this.dashboard.get().locator('.nc-modal-link-record').waitFor();
-    const linkRecord = await this.get();
+    const linkRecord = this.get();
 
     // DOM element validation
     //    title: Link Record
     //    button: Add new record
     //    icon: reload
     await expect(this.get().locator(`.ant-modal-title`)).toHaveText(`Link record`);
-    await expect(await linkRecord.locator(`button:has-text("Add new record")`).isVisible()).toBeTruthy();
-    await expect(await linkRecord.locator(`.nc-reload`).isVisible()).toBeTruthy();
+    expect(await linkRecord.locator(`button:has-text("Add new record")`).isVisible()).toBeTruthy();
+    expect(await linkRecord.locator(`.nc-reload`).isVisible()).toBeTruthy();
     // placeholder: Filter query
-    await expect(await linkRecord.locator(`[placeholder="Filter query"]`).isVisible()).toBeTruthy();
+    expect(await linkRecord.locator(`[placeholder="Filter query"]`).isVisible()).toBeTruthy();
 
     {
       const childList = linkRecord.locator(`.ant-card`);
       const childCards = await childList.count();
-      await expect(childCards).toEqual(cardTitle.length);
+      expect(childCards).toEqual(cardTitle.length);
       for (let i = 0; i < cardTitle.length; i++) {
         await childList.nth(i).locator('.name').scrollIntoViewIfNeeded();
         await childList.nth(i).locator('.name').waitFor({ state: 'visible' });
-        await expect(await childList.nth(i).locator('.name').textContent()).toContain(cardTitle[i]);
+        expect(await childList.nth(i).locator('.name').textContent()).toContain(cardTitle[i]);
       }
     }
   }

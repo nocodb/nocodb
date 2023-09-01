@@ -3,8 +3,6 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
 import { FormPage } from '../../../pages/Dashboard/Form';
 import { SharedFormPage } from '../../../pages/SharedForm';
-import { AccountPage } from '../../../pages/Account';
-import { AccountAppStorePage } from '../../../pages/Account/AppStore';
 import { Api, UITypes } from 'nocodb-sdk';
 import { LoginPage } from '../../../pages/LoginPage';
 import { getDefaultPwd } from '../../../tests/utils/general';
@@ -15,16 +13,12 @@ import { isEE } from '../../../setup/db';
 test.describe('Form view', () => {
   let dashboard: DashboardPage;
   let form: FormPage;
-  let accountAppStorePage: AccountAppStorePage;
-  let accountPage: AccountPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     form = dashboard.form;
-    accountPage = new AccountPage(page);
-    accountAppStorePage = accountPage.appStore;
   });
 
   test.afterEach(async () => {

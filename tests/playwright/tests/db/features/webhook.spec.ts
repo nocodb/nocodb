@@ -16,11 +16,11 @@ async function clearServerData({ request }) {
 
   // ensure stored message count is 0
   const response = await request.get(hookPath + '/count');
-  await expect(await response.json()).toBe(0);
+  expect(await response.json()).toBe(0);
 }
 
 async function getWebhookResponses({ request, count = 1 }) {
-  let response;
+  let response: { json: () => any };
 
   // kludge- add delay to allow server to process webhook
   await new Promise(resolve => setTimeout(resolve, 1000));
@@ -33,7 +33,7 @@ async function getWebhookResponses({ request, count = 1 }) {
     }
     await new Promise(resolve => setTimeout(resolve, 100));
   }
-  await expect(await response.json()).toBe(count);
+  expect(await response.json()).toBe(count);
 
   response = await request.get(hookPath + '/all');
   return await response.json();
@@ -41,7 +41,7 @@ async function getWebhookResponses({ request, count = 1 }) {
 
 async function verifyHookTrigger(count: number, value: string, request, expectedData?: any) {
   // Retry since there can be lag between the time the hook is triggered and the time the server receives the request
-  let response;
+  let response: { json: () => any };
 
   // retry since there can be lag between the time the hook is triggered and the time the server receives the request
   for (let i = 0; i < 20; i++) {
@@ -70,7 +70,7 @@ async function verifyHookTrigger(count: number, value: string, request, expected
     const rspJson = await response.json();
     expect(rspJson?.data?.rows[0]?.Title).toBe(value);
     if (expectedData) {
-      await expect(isSubset(rspJson, expectedData)).toBe(true);
+      expect(isSubset(rspJson, expectedData)).toBe(true);
     }
   }
 }

@@ -24,7 +24,7 @@ export class DataSourcePage extends BasePage {
 
   async getDatabaseTypeList() {
     await this.databaseType.click();
-    const nodes = await this.rootPage.locator('.nc-dropdown-ext-db-type').locator('.ant-select-item');
+    const nodes = this.rootPage.locator('.nc-dropdown-ext-db-type').locator('.ant-select-item');
     const list = [];
     for (let i = 0; i < (await nodes.count()); i++) {
       const node = nodes.nth(i);

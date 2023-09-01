@@ -61,7 +61,7 @@ export class LeftSideBarPage extends BasePage {
   }
 
   async getWorkspaceCount() {
-    return (await this.workspaceItems).count();
+    return this.workspaceItems.count();
   }
 
   async verifyStaticElements() {
@@ -88,7 +88,7 @@ export class LeftSideBarPage extends BasePage {
   async workspaceGetLocator(title: string) {
     // get workspace id
     // return this.get().locator('[data-id="' + wsId + '"]');
-    const list = await this.get().locator(`.nc-workspace-list-item`);
+    const list = this.get().locator(`.nc-workspace-list-item`);
     for (let i = 0; i < (await list.count()); i++) {
       const ws = list.nth(i);
       const wsTitle = (await ws.innerText()).split('\n')[1];
@@ -100,7 +100,7 @@ export class LeftSideBarPage extends BasePage {
   }
 
   async workspaceList() {
-    const wsList = await this.workspaceItems;
+    const wsList = this.workspaceItems;
     // for each, extract title and add to array
     const titles = [];
     for (let i = 0; i < (await wsList.count()); i++) {
@@ -155,11 +155,12 @@ export class LeftSideBarPage extends BasePage {
 
     // GET will be triggered after DELETE
     await this.waitForResponse({
-      uiAction: () => {
+      uiAction: async () => {
         // Create a promise that resolves after 1 second
-        const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+        const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
         // Returning a promise that resolves with the result after the 1-second delay
-        return delay(500).then(() => this.rootPage.locator('button:has-text("Delete Workspace")').click());
+        await delay(500);
+        return await this.rootPage.locator('button:has-text("Delete Workspace")').click();
       },
       // uiAction: () => this.rootPage.locator('button:has-text("Delete Workspace")').click(),
       httpMethodsToMatch: ['GET'],

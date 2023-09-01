@@ -68,9 +68,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncProjectId = params.projectId;
     } else if (params.dashboardId) {
       req.ncProjectId = params.dashboardId;
-    } else if (params.tableId) {
+    } else if (params.tableId || params.modelId) {
       const model = await Model.getByIdOrName({
-        id: params.tableId,
+        id: params.tableId || params.modelId,
       });
       req.ncProjectId = model?.project_id;
     } else if (params.viewId) {
@@ -179,6 +179,14 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
   }
 }
 
+function getUserRoleForScope(user: any, scope: string) {
+  if (scope === 'project' || scope === 'workspace') {
+    return user?.project_roles || user?.workspace_roles;
+  } else if (scope === 'org') {
+    return user?.roles;
+  }
+}
+
 @Injectable()
 export class AclMiddleware implements NestInterceptor {
   constructor(private reflector: Reflector) {}
@@ -199,12 +207,17 @@ export class AclMiddleware implements NestInterceptor {
       'blockApiTokenAccess',
       context.getHandler(),
     );
+    const scope = this.reflector.get<string>('scope', context.getHandler());
 
     const req = context.switchToHttp().getRequest();
-    // const res = context.switchToHttp().getResponse();
-    req.customProperty = 'This is a custom property';
 
-    const roles: Record<string, boolean> = extractRolesObj(req.user?.roles);
+    const userScopeRole = getUserRoleForScope(req.user, scope);
+
+    if (!userScopeRole) {
+      NcError.forbidden('Unauthorized access');
+    }
+
+    const roles: Record<string, boolean> = extractRolesObj(userScopeRole);
 
     if (req?.user?.is_api_token && blockApiTokenAccess) {
       NcError.forbidden('Not allowed with API token');

@@ -22,7 +22,7 @@ export default class Project extends ProjectCE {
   public type?: 'database' | 'documentation' | 'dashboard';
   public fk_workspace_id?: string;
 
-  static castType(project: Project): Project {
+  public static castType(project: Project): Project {
     return project && new Project(project);
   }
 

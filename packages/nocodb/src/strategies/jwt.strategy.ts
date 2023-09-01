@@ -18,21 +18,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(req, jwtPayload) {
     if (!jwtPayload?.email) return jwtPayload;
 
-    // todo: improve this, caching
-    if (
-      req.ncProjectId &&
-      extractRolesObj(jwtPayload.roles)[OrgUserRoles.SUPER_ADMIN]
-    ) {
-      const user = await User.getByEmail(jwtPayload?.email);
-
-      // remove unnecessary data from user
-
-      return {
-        ...user,
-        roles: `owner,creator,${OrgUserRoles.SUPER_ADMIN}`,
-      };
-    }
-
     const user = await User.getByEmail(jwtPayload?.email);
 
     if (
@@ -49,7 +34,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
           let roles = projectUser?.roles;
           roles = roles === 'owner' ? 'owner,creator' : roles;
           // + (user.roles ? `,${user.roles}` : '');
-          resolve(roles);
+          if (roles) {
+            resolve(extractRolesObj(roles));
+          } else {
+            resolve(null);
+          }
           // todo: cache
         });
       } else {
@@ -59,12 +48,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     return {
       ...sanitiseUserObj(user),
-      roles: extractRolesObj(
-        [user.roles, projectRoles].filter(Boolean).join(','),
-      ),
-      projectRoles: projectRoles
-        ? extractRolesObj((projectRoles as any)?.split(',').filter(Boolean))
-        : null,
+      roles: user.roles ? extractRolesObj(user.roles) : null,
+      project_roles: projectRoles ? projectRoles : null,
     };
   }
 }

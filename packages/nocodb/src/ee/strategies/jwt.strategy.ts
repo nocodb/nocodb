@@ -20,19 +20,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(req, jwtPayload) {
     if (!jwtPayload?.email) return jwtPayload;
 
-    // todo: improve this, caching
-    /* if (
-      req.ncProjectId &&
-      extractRolesObj(jwtPayload.roles)[OrgUserRoles.SUPER_ADMIN]
-    ) {
-      const user = await User.getByEmail(jwtPayload?.email);
-
-      return {
-        ...sanitiseUserObj(user),
-        roles: `owner,creator,${OrgUserRoles.SUPER_ADMIN}`,
-      };
-    } */
-
     const user = await User.getByEmail(jwtPayload?.email);
 
     if (
@@ -83,10 +70,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         }
       }) as Promise<ReturnType<typeof extractRolesObj> | null>,
     ]);
-
-    // override workspace level role with project level role if exists
-    // since project level role is more specific
-    // const workspaceOrProjectRoles = projectRoles || workspaceRoles;
 
     return {
       ...sanitiseUserObj(user),

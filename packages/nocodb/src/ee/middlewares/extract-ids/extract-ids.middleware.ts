@@ -174,6 +174,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.query.project_id
     ) {
       req.ncProjectId = req.query.project_id;
+      req.ncWorkspaceId = req.query.workspace_id;
     }
 
     // todo:  verify all scenarios

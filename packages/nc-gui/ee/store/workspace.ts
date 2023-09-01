@@ -17,6 +17,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const projectsStore = useProjects()
   const { clearProjects } = projectsStore
 
+  const { loadRoles } = useRoles()
+
   const collaborators = ref<WorkspaceUserType[] | null>()
 
   const lastPopulatedWorkspaceId = ref<string | null>(null)
@@ -268,6 +270,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     if (force || !workspaces.value.get(workspaceId)) {
       await loadWorkspace(workspaceId)
+      await loadRoles()
     }
 
     if (activeWorkspace.value?.status === WorkspaceStatus.CREATED) {

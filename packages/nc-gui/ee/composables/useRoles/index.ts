@@ -16,6 +16,10 @@ export const useRoles = createSharedComposable(() => {
 
   const { api } = useApi()
 
+  const router = useRouter()
+
+  const route = router.currentRoute
+
   const allRoles = computed<Roles>(() => {
     let orgRoles = user.value?.roles ?? {}
 
@@ -74,9 +78,11 @@ export const useRoles = createSharedComposable(() => {
     projectId?: string,
     options: { isSharedBase?: boolean; sharedBaseId?: string; isSharedErd?: boolean; sharedErdId?: string } = {},
   ) {
-    console.log('loadRoles', projectId)
-
     if (!user.value) return
+
+    const wsId = {
+      fk_workspace_id: route.value.params.typeOrId,
+    }
 
     if (options?.isSharedBase) {
       const res = await api.auth.me(
@@ -115,7 +121,7 @@ export const useRoles = createSharedComposable(() => {
         workspace_roles: res.workspace_roles,
       }
     } else if (projectId) {
-      const res = await api.auth.me({ project_id: projectId })
+      const res = await api.auth.me({ project_id: projectId, ...wsId })
 
       user.value = {
         ...user.value,

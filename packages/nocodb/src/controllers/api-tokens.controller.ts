@@ -20,7 +20,7 @@ export class ApiTokensController {
   constructor(private readonly apiTokensService: ApiTokensService) {}
 
   @Get('/api/v1/db/meta/projects/:projectId/api-tokens')
-  @Acl('apiTokenList')
+  @Acl('projectApiTokenList')
   async apiTokenList(@Request() req) {
     return new PagedResponseImpl(
       await this.apiTokensService.apiTokenList({ userId: req['user'].id }),
@@ -29,7 +29,7 @@ export class ApiTokensController {
 
   @Post('/api/v1/db/meta/projects/:projectId/api-tokens')
   @HttpCode(200)
-  @Acl('apiTokenCreate')
+  @Acl('projectApiTokenCreate')
   async apiTokenCreate(@Request() req, @Body() body) {
     return await this.apiTokensService.apiTokenCreate({
       tokenBody: body,
@@ -38,7 +38,7 @@ export class ApiTokensController {
   }
 
   @Delete('/api/v1/db/meta/projects/:projectId/api-tokens/:token')
-  @Acl('apiTokenDelete')
+  @Acl('projectApiTokenDelete')
   async apiTokenDelete(@Request() req, @Param('token') token: string) {
     return await this.apiTokensService.apiTokenDelete({
       token,

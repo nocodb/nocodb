@@ -23,7 +23,7 @@ import {
   SyncSource,
   View,
 } from '~/models';
-import projectAcl from '~/utils/projectAcl';
+import rolePermissions from '~/utils/acl';
 import { NcError } from '~/middlewares/catchError';
 
 export const rolesLabel = {
@@ -231,12 +231,12 @@ export class AclMiddleware implements NestInterceptor {
       Object.entries(roles).some(([name, hasRole]) => {
         return (
           hasRole &&
-          projectAcl[name] &&
-          (projectAcl[name] === '*' ||
-            (projectAcl[name].exclude &&
-              !projectAcl[name].exclude[permissionName]) ||
-            (projectAcl[name].include &&
-              projectAcl[name].include[permissionName]))
+          rolePermissions[name] &&
+          (rolePermissions[name] === '*' ||
+            (rolePermissions[name].exclude &&
+              !rolePermissions[name].exclude[permissionName]) ||
+            (rolePermissions[name].include &&
+              rolePermissions[name].include[permissionName]))
         );
       });
     if (!isAllowed) {

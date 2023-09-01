@@ -35,7 +35,7 @@ export class AuthController {
     if (this.config.get('auth', { infer: true }).disableEmailAuth) {
       NcError.forbidden('Email authentication is disabled');
     }
-    return this.authService.login(req.user);
+    return await this.authService.login(req.user);
   }
 
   @Post('/api/v1/auth/user/signup')

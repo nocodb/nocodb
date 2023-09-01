@@ -8,13 +8,13 @@ import { T } from 'nc-help';
 import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
 import { setTokenCookie } from './helpers';
-import type { SignUpReqType } from 'nocodb-sdk';
+import type { SignUpReqType, UserType } from 'nocodb-sdk';
 import { NC_APP_SETTINGS } from '~/constants';
 import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { ProjectsService } from '~/services/projects.service';
-import { Store, User } from '~/models';
+import { Store, User, WorkspaceUser } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
@@ -217,7 +217,7 @@ export class UsersService extends UsersServiceCE {
       user,
     });
 
-    return { ...this.login(user), createdWorkspace };
+    return { ...(await this.login(user)), createdWorkspace };
   }
 
   private async createDefaultWorkspace(user: User) {
@@ -231,5 +231,17 @@ export class UsersService extends UsersServiceCE {
     });
 
     return workspace;
+  }
+
+  async login(user: UserType) {
+    const workspaces = await WorkspaceUser.workspaceList({
+      fk_user_id: user.id,
+    });
+
+    if (workspaces.length === 0) {
+      await this.createDefaultWorkspace(user);
+    }
+
+    return await super.login(user);
   }
 }

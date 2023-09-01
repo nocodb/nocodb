@@ -488,10 +488,10 @@ export class UsersService {
       user,
     });
 
-    return { ...this.login(user), createdProject };
+    return { ...(await this.login(user)), createdProject };
   }
 
-  login(user: UserType) {
+  async login(user: UserType) {
     this.appHooksService.emit(AppEvents.USER_SIGNIN, {
       user,
     });

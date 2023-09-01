@@ -17,7 +17,6 @@ import { NcError } from '~/helpers/catchError';
 import { UsersService } from '~/services/users/users.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
-import Noco from '~/Noco';
 
 @Controller()
 export class UsersController extends UsersControllerCE {
@@ -62,7 +61,9 @@ export class UsersController extends UsersControllerCE {
     const host = req.query.state;
 
     res.redirect(
-      host ? `https://${host}/dashboard#/signin` : '/dashboard#/signin',
+      host
+        ? `https://${host}/dashboard?redirect=%2Fsignin`
+        : '/dashboard?redirect=%2Fsignin',
     );
   }
 
@@ -85,11 +86,11 @@ export class UsersController extends UsersControllerCE {
       let state;
       if (process.env.NC_BASE_APP_URL) {
         const url = new URL(req.ncSiteUrl);
-        const baseAppUrl = new URL(process.env.NC_BASE_APP_URL);
+        // const baseAppUrl = new URL(process.env.NC_BASE_APP_URL);
 
-        if (baseAppUrl.host !== url.host) {
-          state = url.host;
-        }
+        // if (baseAppUrl.host !== url.host) {
+        state = url.host;
+        // }
       }
 
       const signoutUrl = new URL(process.env.NC_OIDC_LOGOUT_URL);

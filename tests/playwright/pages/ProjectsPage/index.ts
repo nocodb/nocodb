@@ -70,14 +70,14 @@ export class ProjectsPage extends BasePage {
     await this.rootPage.getByTestId('dupe-project-' + name).click();
 
     // Find the checkbox element with the label "Include data"
-    const includeDataCheckbox = await this.rootPage.getByText('Include data', { exact: true });
+    const includeDataCheckbox = this.rootPage.getByText('Include data', { exact: true });
     // Check the checkbox if it is not already checked
     if ((await includeDataCheckbox.isChecked()) && !includeData) {
       await includeDataCheckbox.click(); // click the checkbox to check it
     }
 
     // Find the checkbox element with the label "Include data"
-    const includeViewsCheckbox = await this.rootPage.getByText('Include views', { exact: true });
+    const includeViewsCheckbox = this.rootPage.getByText('Include views', { exact: true });
     // Check the checkbox if it is not already checked
     if ((await includeViewsCheckbox.isChecked()) && !includeViews) {
       await includeViewsCheckbox.click(); // click the checkbox to check it
@@ -112,7 +112,7 @@ export class ProjectsPage extends BasePage {
     await this.get().waitFor({
       state: 'visible',
     });
-    (await this.get().elementHandle())?.waitForElementState('stable');
+    await (await this.get().elementHandle())?.waitForElementState('stable');
 
     // Wait till the ant table is rendered
     await this.get().locator('thead.ant-table-thead >> th').nth(0).waitFor({ state: 'visible' });
@@ -135,7 +135,7 @@ export class ProjectsPage extends BasePage {
     if (!withoutPrefix) title = this.prefixTitle(title);
 
     let project: any;
-    
+
     const responsePromise = this.rootPage.waitForResponse(async res => {
       let json: any = {};
       try {
@@ -154,7 +154,7 @@ export class ProjectsPage extends BasePage {
       }
 
       return isRequiredResponse;
-    })
+    });
 
     await this.get()
       .locator(`.ant-table-cell`, {
@@ -162,7 +162,7 @@ export class ProjectsPage extends BasePage {
       })
       .click();
 
-    await responsePromise
+    await responsePromise;
 
     const dashboard = new DashboardPage(this.rootPage, project);
 
@@ -199,7 +199,7 @@ export class ProjectsPage extends BasePage {
     if (!withoutPrefix) newTitle = this.prefixTitle(newTitle);
 
     const project = this.rootPage;
-    const projRow = await project.locator(`tr`, {
+    const projRow = project.locator(`tr`, {
       has: project.locator(`td.ant-table-cell:has-text("${title}")`),
     });
     await projRow.locator('.nc-action-btn').nth(0).click();
@@ -222,7 +222,7 @@ export class ProjectsPage extends BasePage {
   }
 
   async selectLanguage({ index }: { index: number }) {
-    const modal = await this.rootPage.locator('.nc-dropdown-menu-translate');
+    const modal = this.rootPage.locator('.nc-dropdown-menu-translate');
     await modal.locator(`.ant-dropdown-menu-item`).nth(index).click();
   }
 
@@ -249,23 +249,23 @@ export class ProjectsPage extends BasePage {
 
   async validateRoleAccess(param: { role: string }) {
     // new user; by default org level permission is to viewer (can't create project)
-    await expect(await this.buttonNewProject).toBeVisible({ visible: false });
+    await expect(this.buttonNewProject).toBeVisible({ visible: false });
 
     // role specific permissions
     switch (param.role) {
       case 'creator':
-        await expect(await this.buttonColorSelector).toBeVisible();
-        await expect(await this.buttonEditProject).toBeVisible();
-        await expect(await this.buttonDeleteProject).toBeVisible();
-        await expect(await this.buttonMoreActions).toBeVisible();
+        await expect(this.buttonColorSelector).toBeVisible();
+        await expect(this.buttonEditProject).toBeVisible();
+        await expect(this.buttonDeleteProject).toBeVisible();
+        await expect(this.buttonMoreActions).toBeVisible();
         break;
       case 'editor':
       case 'commenter':
       case 'viewer':
-        await expect(await this.buttonColorSelector).toBeVisible({ visible: false });
-        await expect(await this.buttonEditProject).toBeVisible({ visible: false });
-        await expect(await this.buttonDeleteProject).toBeVisible({ visible: false });
-        await expect(await this.buttonMoreActions).toBeVisible({ visible: false });
+        await expect(this.buttonColorSelector).toBeVisible({ visible: false });
+        await expect(this.buttonEditProject).toBeVisible({ visible: false });
+        await expect(this.buttonDeleteProject).toBeVisible({ visible: false });
+        await expect(this.buttonMoreActions).toBeVisible({ visible: false });
         break;
     }
   }

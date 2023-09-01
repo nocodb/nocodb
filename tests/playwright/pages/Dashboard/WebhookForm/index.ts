@@ -68,17 +68,17 @@ export class WebhookFormPage extends BasePage {
     save: boolean;
   }) {
     await this.get().locator(`.nc-check-box-hook-condition`).click();
-    const modal = await this.get().locator(`.menu-filter-dropdown`).last();
+    const modal = this.get().locator(`.menu-filter-dropdown`).last();
 
     await modal.locator(`button:has-text("Add Filter")`).click();
 
     await modal.locator('.nc-filter-field-select').waitFor({ state: 'visible', timeout: 4000 });
     await modal.locator('.nc-filter-field-select').click();
-    const modalField = await this.dashboard.rootPage.locator('.nc-dropdown-toolbar-field-list:visible');
+    const modalField = this.dashboard.rootPage.locator('.nc-dropdown-toolbar-field-list:visible');
     await modalField.locator(`.ant-select-item:has-text("${column}")`).click();
 
     await modal.locator('.nc-filter-operation-select').click();
-    const modalOp = await this.dashboard.rootPage.locator('.nc-dropdown-filter-comp-op:visible');
+    const modalOp = this.dashboard.rootPage.locator('.nc-dropdown-filter-comp-op:visible');
     await modalOp.locator(`.ant-select-item:has-text("${operator}")`).click();
 
     if (operator != 'is null' && operator != 'is not null') {
@@ -203,7 +203,7 @@ export class WebhookFormPage extends BasePage {
 
     const locator = this.get().locator('.nc-select-hook-notification-type >> .ant-select-selection-item');
     const text = await getTextExcludeIconText(locator);
-    await expect(text).toBe(notificationType);
+    expect(text).toBe(notificationType);
 
     await expect(this.get().locator('.nc-select-hook-url-method >> .ant-select-selection-item')).toHaveText(urlMethod);
     await expect.poll(async () => await this.get().locator('input.nc-text-field-hook-url-path').inputValue()).toBe(url);

@@ -16,7 +16,7 @@ export class ToolbarGroupByPage extends BasePage {
   }
 
   async verify({ index, column, direction }: { index: number; column: string; direction: string }) {
-    const fieldLocator = await this.get().locator('.nc-sort-field-select').nth(index);
+    const fieldLocator = this.get().locator('.nc-sort-field-select').nth(index);
     const fieldText = await getTextExcludeIconText(fieldLocator);
     expect(fieldText).toBe(column);
 

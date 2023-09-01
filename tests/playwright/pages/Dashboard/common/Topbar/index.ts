@@ -56,9 +56,10 @@ export class TopbarPage extends BasePage {
 
   async getSharedBaseUrl({ role }: { role: string }) {
     await this.clickShare();
-    await this.share.clickShareBase();
-    await this.share.clickShareBasePublicAccess();
-    if (role === 'editor') {
+    if (!(await this.share.isSharedBasePublicAccessEnabled())) await this.share.clickShareBasePublicAccess();
+    if (role === 'editor' && !(await this.share.isSharedBaseEditorAccessEnabled())) {
+      await this.share.clickShareBaseEditorAccess();
+    } else if (role === 'viewer' && (await this.share.isSharedBaseEditorAccessEnabled())) {
       await this.share.clickShareBaseEditorAccess();
     }
     await this.share.clickCopyLink();

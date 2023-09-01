@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { NcContext, unsetup } from '../../../setup';
 import { Api, ProjectListType, UITypes } from 'nocodb-sdk';
-import { isEE, isHub, isMysql, isPg, isSqlite } from '../../../setup/db';
+import { isEE, isMysql, isPg, isSqlite } from '../../../setup/db';
 import { getKnexConfig } from '../../utils/config';
 import { getBrowserTimezoneOffset } from '../../utils/general';
 import config from '../../../playwright.config';
@@ -116,7 +116,7 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
-    if (!isSqlite(context) && !isHub()) return;
+    if (!isSqlite(context)) return;
 
     try {
       const { project, table, api } = await timezoneSuite(`xcdb${context.workerId}`, context);
@@ -153,7 +153,7 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
    *  Display value is converted to Asia/Tokyo
    */
   test('API insert, verify display value', async () => {
-    if (!isSqlite(context) && !isHub()) return;
+    if (!isSqlite(context)) return;
 
     await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
     await dashboard.treeView.openTable({ title: 'dateTimeTable' });
@@ -189,7 +189,7 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
    */
 
   test('API Insert, verify API read response', async () => {
-    if (!isSqlite(context) && !isHub()) return;
+    if (!isSqlite(context)) return;
 
     const dateInserted = new Date(`2021-01-01 00:00:00${getBrowserTimezoneOffset()}`);
     // translate dateInserted to UTC in YYYY-MM-DD HH:mm format

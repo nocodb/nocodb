@@ -63,7 +63,7 @@ export class TreeViewPage extends BasePage {
   }
 
   async openBase({ title }: { title: string }) {
-    const nodes = await this.get().locator(`[data-testid="nc-sidebar-project-${title.toLowerCase()}"]`);
+    const nodes = this.get().locator(`[data-testid="nc-sidebar-project-${title.toLowerCase()}"]`);
     await nodes.click();
     return;
   }
@@ -164,11 +164,12 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Delete"):visible').click();
 
     await this.waitForResponse({
-      uiAction: () => {
+      uiAction: async () => {
         // Create a promise that resolves after 1 second
-        const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+        const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
         // Returning a promise that resolves with the result after the 1-second delay
-        return delay(100).then(() => this.dashboard.get().locator('button:has-text("Delete Table")').click());
+        await delay(100);
+        return await this.dashboard.get().locator('button:has-text("Delete Table")').click();
       },
       httpMethodsToMatch: ['DELETE'],
       requestUrlPathToMatch: `/api/v1/db/meta/tables/`,
@@ -210,7 +211,7 @@ export class TreeViewPage extends BasePage {
     await settingsMenu.locator(`[data-menu-id="teamAndSettings"]`).click();
   }
 
-  async quickImport({ title, projectTitle }: { title: string; projectTitle }) {
+  async quickImport({ title, projectTitle }: { title: string; projectTitle: string }) {
     await this.getProjectContextMenu({ projectTitle }).hover();
     await this.getProjectContextMenu({ projectTitle }).click();
     const importMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md');
@@ -223,7 +224,7 @@ export class TreeViewPage extends BasePage {
     await this.get().locator(`.nc-project-tree-tbl-${title} .nc-table-icon`).click();
 
     await this.rootPage.locator('.emoji-mart-search').type(icon);
-    const emojiList = await this.rootPage.locator('[id="emoji-mart-list"]');
+    const emojiList = this.rootPage.locator('[id="emoji-mart-list"]');
     await emojiList.locator('button').first().click();
     await expect(
       this.get().locator(`.nc-project-tree-tbl-${title}`).locator(`.nc-table-icon:has-text("${iconDisplay}")`)
@@ -235,14 +236,14 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Duplicate")').click();
 
     // Find the checkbox element with the label "Include data"
-    const includeDataCheckbox = await this.dashboard.get().getByText('Include data', { exact: true });
+    const includeDataCheckbox = this.dashboard.get().getByText('Include data', { exact: true });
     // Check the checkbox if it is not already checked
     if ((await includeDataCheckbox.isChecked()) && !includeData) {
       await includeDataCheckbox.click(); // click the checkbox to check it
     }
 
     // Find the checkbox element with the label "Include data"
-    const includeViewsCheckbox = await this.dashboard.get().getByText('Include views', { exact: true });
+    const includeViewsCheckbox = this.dashboard.get().getByText('Include views', { exact: true });
     // Check the checkbox if it is not already checked
     if ((await includeViewsCheckbox.isChecked()) && !includeViews) {
       await includeViewsCheckbox.click(); // click the checkbox to check it
@@ -319,12 +320,36 @@ export class TreeViewPage extends BasePage {
     return this.get().locator(`.project-title-node`).nth(param.index);
   }
 
+  async renameProject(param: { newTitle: string; title: string }) {
+    await this.getProjectContextMenu({ projectTitle: param.title }).hover();
+    await this.getProjectContextMenu({ projectTitle: param.title }).click();
+    const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md:visible').last();
+    await contextMenu.waitFor();
+    await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Edit")`).click();
+
+    const projectNodeInput = (await this.getProject({ index: 0, title: param.title })).locator('input');
+    await projectNodeInput.clear();
+    await projectNodeInput.fill(param.newTitle);
+    await projectNodeInput.press('Enter');
+  }
+
   async deleteProject(param: { title: string }) {
     await this.getProjectContextMenu({ projectTitle: param.title }).hover();
     await this.getProjectContextMenu({ projectTitle: param.title }).click();
-    const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md');
+    const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md:visible').last();
+    await contextMenu.waitFor();
     await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Delete")`).click();
 
     await this.rootPage.locator('div.ant-modal-content').locator(`button.ant-btn:has-text("Delete Project")`).click();
+  }
+
+  async duplicateProject(param: { title: string }) {
+    await this.getProjectContextMenu({ projectTitle: param.title }).hover();
+    await this.getProjectContextMenu({ projectTitle: param.title }).click();
+    const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md:visible');
+    await contextMenu.waitFor();
+    await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Duplicate Project")`).click();
+
+    await this.rootPage.locator('div.ant-modal-content').locator(`button.ant-btn:has-text("Confirm")`).click();
   }
 }

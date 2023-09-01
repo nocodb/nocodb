@@ -327,18 +327,24 @@ test.describe('Undo Redo', () => {
     await verifyRowHeight({ height: '1.8rem' });
   });
 
-  // fix me! is flaky, and need to be validated
-  test.skip('Column width', async ({ page }) => {
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
+  test('Column width', async ({ page }) => {
     await dashboard.treeView.openTable({ title: 'numberBased' });
 
     const originalWidth = await dashboard.grid.column.getWidth({ title: 'Number' });
 
     await dashboard.grid.column.resize({ src: 'Number', dst: 'Decimal' });
-    await dashboard.rootPage.waitForTimeout(100);
+    let modifiedWidth = await dashboard.grid.column.getWidth({ title: 'Number' });
+    let retryCounter = 0;
+    while (modifiedWidth === originalWidth) {
+      retryCounter++;
+      await dashboard.rootPage.waitForTimeout(500 * retryCounter);
+      if (retryCounter > 5) {
+        break;
+      }
 
-    const modifiedWidth = await dashboard.grid.column.getWidth({ title: 'Number' });
+      modifiedWidth = await dashboard.grid.column.getWidth({ title: 'Number' });
+    }
+
     expect(modifiedWidth).toBeGreaterThan(originalWidth);
 
     await undo({ page, dashboard });

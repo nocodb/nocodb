@@ -13570,210 +13570,6 @@
         ]
       }
     },
-    "/api/v1/cowriter/meta/tables/{tableId}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "post": {
-        "summary": "Cowriter Create",
-        "operationId": "cowriter-table-create",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Cowriter"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Cowriter Table"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object"
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "summary": "Cowriter List",
-        "operationId": "cowriter-table-list",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CowriterList"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Cowriter Table"
-        ]
-      }
-    },
-    "/api/v1/cowriter/meta/tables/{tableId}/{cowriterId}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "cowriterId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "Cowriter Get",
-        "operationId": "cowriter-table-get",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CowriterList"
-                }
-              }
-            }
-          },
-          "": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Cowriter"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Cowriter Table"
-        ]
-      },
-      "patch": {
-        "summary": "Cowriter Patch",
-        "operationId": "cowriter-table-patch",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "Cowriter Table"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Cowriter"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/cowriter/meta/tables/{tableId}/generate-columns": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "post": {
-        "summary": "Cowriter Generate Columns",
-        "operationId": "cowriter-table-generate-columns",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "description": "Generate Columns using AI",
-        "tags": [
-          "Cowriter Table"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "title": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/cowriter/meta/tables/{tableId}/bulk": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "post": {
-        "summary": "Cowriter Create Bulk",
-        "operationId": "cowriter-table-create-bulk",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "description": "",
-        "tags": [
-          "Cowriter Table"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Cowriter"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/db/meta/plugins": {
       "parameters": [
         {
@@ -15444,22 +15240,24 @@
                     "failedOps": {
                       "type": "array",
                       "items": {
-                        "type": "object",
-                        "properties": {
-                          "op": {
-                            "type": "string",
-                            "enum": [
-                              "add",
-                              "update",
-                              "delete"
-                            ],
-                            "required": true
-                          },
-                          "column": {
-                            "$ref": "#/components/schemas/Column",
-                            "required": true
-                          },
-                          "error": {}
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "op": {
+                              "type": "string",
+                              "enum": [
+                                "add",
+                                "update",
+                                "delete"
+                              ],
+                              "required": true
+                            },
+                            "column": {
+                              "$ref": "#/components/schemas/Column",
+                              "required": true
+                            },
+                            "error": {}
+                          }
                         }
                       }
                     }
@@ -22834,9 +22632,6 @@
               },
               {
                 "$ref": "#/components/schemas/ProjectEvent"
-              },
-              {
-                "$ref": "#/components/schemas/WorkspaceInviteEvent"
               },
               {
                 "$ref": "#/components/schemas/TableEvent"

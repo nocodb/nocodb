@@ -177,7 +177,7 @@ export class ViewSidebarPage extends BasePage {
     await this.get().locator(`[data-testid="view-sidebar-view-${title}"] .nc-view-icon`).click();
 
     await this.rootPage.locator('.emoji-mart-search').type(icon);
-    const emojiList = await this.rootPage.locator('[id="emoji-mart-list"]');
+    const emojiList = this.rootPage.locator('[id="emoji-mart-list"]');
     await emojiList.locator('button').first().click();
     await expect(
       this.get()

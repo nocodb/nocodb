@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
-import { ColumnInj, IsFormInj, IsKanbanInj, inject, provide, ref, toRef, useUIPermission } from '#imports'
+import { ColumnInj, IsFormInj, IsKanbanInj, IsLockedInj, inject, provide, ref, toRef, useUIPermission } from '#imports'
 
 interface Props {
   column: ColumnType
@@ -17,6 +17,8 @@ const isForm = inject(IsFormInj, ref(false))
 const isDropDownOpen = ref(false)
 
 const isKanban = inject(IsKanbanInj, ref(false))
+
+const isLocked = inject(IsLockedInj, ref(false))
 
 const column = toRef(props, 'column')
 
@@ -39,7 +41,7 @@ const closeAddColumnDropdown = () => {
 }
 
 const openHeaderMenu = () => {
-  if (!isForm.value && isUIAllowed('edit-column')) {
+  if (!isLocked.value && !isForm.value && isUIAllowed('edit-column')) {
     editColumnDropdown.value = true
   }
 }
@@ -57,7 +59,7 @@ const openHeaderMenu = () => {
     <div
       v-if="column"
       class="name pl-1 !truncate"
-      :class="{ 'cursor-pointer pt-0.25': !isForm && isUIAllowed('edit-column') && !hideMenu }"
+      :class="{ 'cursor-pointer pt-0.25': !isForm && isUIAllowed('edit-column') && !hideMenu && !isLocked }"
       style="white-space: pre-line"
       :title="column.title"
     >

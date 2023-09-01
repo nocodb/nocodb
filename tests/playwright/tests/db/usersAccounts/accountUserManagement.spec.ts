@@ -1,7 +1,6 @@
 import { test } from '@playwright/test';
 import { AccountPage } from '../../../pages/Account';
 import { AccountUsersPage } from '../../../pages/Account/Users';
-import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { SignupPage } from '../../../pages/SignupPage';
 import setup, { unsetup } from '../../../setup';
 import { WorkspacePage } from '../../../pages/WorkspacePage';
@@ -17,7 +16,6 @@ test.describe.skip('User roles', () => {
   let accountUsersPage: AccountUsersPage;
   let accountPage: AccountPage;
   let signupPage: SignupPage;
-  let projectsPage: ProjectsPage;
   let workspacePage: WorkspacePage;
   // @ts-ignore
   let context: any;
@@ -28,7 +26,6 @@ test.describe.skip('User roles', () => {
     accountUsersPage = new AccountUsersPage(accountPage);
 
     signupPage = new SignupPage(accountPage.rootPage);
-    projectsPage = new ProjectsPage(accountPage.rootPage);
     workspacePage = new WorkspacePage(accountPage.rootPage);
   });
 

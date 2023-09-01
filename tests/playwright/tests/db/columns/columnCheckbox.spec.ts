@@ -4,7 +4,6 @@ import setup, { unsetup } from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { UITypes } from 'nocodb-sdk';
 import { Api } from 'nocodb-sdk';
-import { isPg } from '../../../setup/db';
 let api: Api<any>;
 
 test.describe('Checkbox - cell, filter, sort', () => {

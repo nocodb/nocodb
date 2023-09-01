@@ -91,7 +91,7 @@ export class SelectOptionCellPageObject extends BasePage {
       return await expect(this.cell.get({ index, columnHeader })).toContainText(option, { useInnerText: true });
     }
 
-    const locator = await this.cell.get({ index, columnHeader }).locator('.ant-tag');
+    const locator = this.cell.get({ index, columnHeader }).locator('.ant-tag');
     await locator.waitFor({ state: 'visible' });
     const text = await locator.allInnerTexts();
     return expect(text).toContain(option);

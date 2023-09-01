@@ -17,9 +17,9 @@ export class ToolbarFilterPage extends BasePage {
   }
 
   async verify({ index, column, operator, value }: { index: number; column: string; operator: string; value: string }) {
-    const fieldLocator = await this.get().locator('.nc-filter-field-select').nth(index);
+    const fieldLocator = this.get().locator('.nc-filter-field-select').nth(index);
     const fieldText = await getTextExcludeIconText(fieldLocator);
-    await expect(fieldText).toBe(column);
+    expect(fieldText).toBe(column);
 
     await expect(this.get().locator('.nc-filter-operation-select').nth(index)).toHaveText(operator);
     await expect
@@ -63,16 +63,16 @@ export class ToolbarFilterPage extends BasePage {
     filterLogicalOperator?: string;
   }) {
     await this.get().locator(`button:has-text("Add Filter Group")`).last().click();
-    const filterDropdown = await this.get().locator('.menu-filter-dropdown').nth(filterGroupIndex);
+    const filterDropdown = this.get().locator('.menu-filter-dropdown').nth(filterGroupIndex);
     await filterDropdown.waitFor({ state: 'visible' });
     await filterDropdown.locator(`button:has-text("Add Filter")`).first().click();
-    const selectField = await filterDropdown.locator('.nc-filter-field-select').last();
-    const selectOperation = await filterDropdown.locator('.nc-filter-operation-select').last();
-    const selectValue = await filterDropdown.locator('.nc-filter-value-select > input').last();
+    const selectField = filterDropdown.locator('.nc-filter-field-select').last();
+    const selectOperation = filterDropdown.locator('.nc-filter-operation-select').last();
+    const selectValue = filterDropdown.locator('.nc-filter-value-select > input').last();
 
     await selectField.waitFor({ state: 'visible' });
     await selectField.click();
-    const fieldDropdown = await this.rootPage
+    const fieldDropdown = this.rootPage
       .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
       .last()
       .locator(`div[label="${title}"]:visible`);
@@ -81,7 +81,7 @@ export class ToolbarFilterPage extends BasePage {
 
     await selectOperation.waitFor({ state: 'visible' });
     await selectOperation.click();
-    const operationDropdown = await this.rootPage
+    const operationDropdown = this.rootPage
       .locator('div.ant-select-dropdown.nc-dropdown-filter-comp-op')
       .last()
       .locator(`.ant-select-item:has-text("${operation}")`);
@@ -93,13 +93,11 @@ export class ToolbarFilterPage extends BasePage {
 
     if (filterGroupIndex) {
       if (filterLogicalOperator === 'OR') {
-        const logicalButton = await this.rootPage.locator('div.flex.nc-filter-logical-op').nth(filterGroupIndex - 1);
+        const logicalButton = this.rootPage.locator('div.flex.nc-filter-logical-op').nth(filterGroupIndex - 1);
         await logicalButton.waitFor({ state: 'visible' });
         await logicalButton.click();
 
-        const logicalDropdown = await this.rootPage.locator(
-          'div.ant-select-dropdown.nc-dropdown-filter-logical-op-group'
-        );
+        const logicalDropdown = this.rootPage.locator('div.ant-select-dropdown.nc-dropdown-filter-logical-op-group');
         await logicalDropdown.waitFor({ state: 'visible' });
         await logicalDropdown.locator(`.ant-select-item:has-text("${filterLogicalOperator}")`).click();
       }
@@ -133,7 +131,7 @@ export class ToolbarFilterPage extends BasePage {
     skipWaitingResponse = true;
 
     const selectedField = await getTextExcludeIconText(
-      await this.rootPage.locator('.nc-filter-field-select .ant-select-selection-item')
+      this.rootPage.locator('.nc-filter-field-select .ant-select-selection-item')
     );
     if (selectedField !== title) {
       await this.rootPage.locator('.nc-filter-field-select').last().click();
@@ -158,7 +156,7 @@ export class ToolbarFilterPage extends BasePage {
       }
     }
 
-    const selectedOpType = await getTextExcludeIconText(await this.rootPage.locator('.nc-filter-operation-select'));
+    const selectedOpType = await getTextExcludeIconText(this.rootPage.locator('.nc-filter-operation-select'));
     if (selectedOpType !== operation) {
       await this.rootPage.locator('.nc-filter-operation-select').click();
       // first() : filter list has >, >=
@@ -174,7 +172,7 @@ export class ToolbarFilterPage extends BasePage {
       } else {
         await this.waitForResponse({
           uiAction: async () =>
-           await this.rootPage
+            await this.rootPage
               .locator('.nc-dropdown-filter-comp-op')
               .locator(`.ant-select-item:has-text("${operation}")`)
               .first()
@@ -187,9 +185,7 @@ export class ToolbarFilterPage extends BasePage {
 
     // subtype for date
     if (dataType === UITypes.Date && subOperation) {
-      const selectedSubType = await getTextExcludeIconText(
-        await this.rootPage.locator('.nc-filter-sub_operation-select')
-      );
+      const selectedSubType = await getTextExcludeIconText(this.rootPage.locator('.nc-filter-sub_operation-select'));
       if (selectedSubType !== subOperation) {
         await this.rootPage.locator('.nc-filter-sub_operation-select').click();
         // first() : filter list has >, >=
@@ -222,14 +218,14 @@ export class ToolbarFilterPage extends BasePage {
       switch (dataType) {
         case UITypes.Year:
           await this.get().locator('.nc-filter-value-select').click();
-          await this.rootPage.locator(`.ant-picker-dropdown:visible`);
+          await this.rootPage.locator(`.ant-picker-dropdown:visible`).waitFor();
           await this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click();
           break;
         case UITypes.Time:
           // eslint-disable-next-line no-case-declarations
           const time = value.split(':');
           await this.get().locator('.nc-filter-value-select').click();
-          await this.rootPage.locator(`.ant-picker-dropdown:visible`);
+          await this.rootPage.locator(`.ant-picker-dropdown:visible`).waitFor();
           await this.rootPage
             .locator(`.ant-picker-time-panel-column:nth-child(1)`)
             .locator(`.ant-picker-time-panel-cell:has-text("${time[0]}")`)
@@ -243,14 +239,15 @@ export class ToolbarFilterPage extends BasePage {
         case UITypes.Date:
           if (subOperation === 'exact date') {
             await this.get().locator('.nc-filter-value-select').click();
-            await this.rootPage.locator(`.ant-picker-dropdown:visible`);
+            await this.rootPage.locator(`.ant-picker-dropdown:visible`).waitFor();
 
             if (skipWaitingResponse) {
               await this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click();
               await this.rootPage.waitForTimeout(350);
             } else {
               await this.waitForResponse({
-                uiAction: async () => await this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click(),
+                uiAction: async () =>
+                  await this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click(),
                 httpMethodsToMatch: ['GET'],
                 requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
               });
@@ -274,6 +271,7 @@ export class ToolbarFilterPage extends BasePage {
         case UITypes.Duration:
           if (skipWaitingResponse) {
             await this.get().locator('.nc-filter-value-select').locator('input').fill(value);
+            await this.get().locator('.nc-filter-value-select').locator('input').press('Enter');
             await this.rootPage.waitForTimeout(350);
           } else {
             await this.waitForResponse({
@@ -386,7 +384,7 @@ export class ToolbarFilterPage extends BasePage {
     }
 
     await this.rootPage.locator('.nc-filter-operation-select').click();
-    const opList = await this.rootPage
+    const opList = this.rootPage
       .locator('.nc-dropdown-filter-comp-op')
       .locator(`.ant-select-item > .ant-select-item-option-content`);
 

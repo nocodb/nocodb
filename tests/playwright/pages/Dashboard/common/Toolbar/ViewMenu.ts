@@ -1,6 +1,5 @@
 import { expect, Locator } from '@playwright/test';
 import BasePage from '../../../Base';
-import { GridPage } from '../../Grid';
 import { ToolbarPage } from './index';
 // @ts-ignore
 import fs from 'fs';
@@ -44,7 +43,7 @@ export class ToolbarViewMenuPage extends BasePage {
     // verify downloaded content against expected content
     const expectedData = fs.readFileSync(expectedDataFile, 'utf8').replace(/\r/g, '').split('\n');
     const file = fs.readFileSync('./output/test.txt', 'utf8').replace(/\r/g, '').split('\n');
-    await expect(file).toEqual(expectedData);
+    expect(file).toEqual(expectedData);
   }
 
   async verifyDownloadAsXLSX({
@@ -72,7 +71,7 @@ export class ToolbarViewMenuPage extends BasePage {
     const expectedData = fs.readFileSync(expectedDataFile, 'utf8');
     const file = fs.readFileSync('./output/test.txt', 'utf8');
     // XLSX writes file with UTF-8 BOM, adds '\ufeff' to cater it
-    await expect(file).toEqual('\ufeff' + expectedData);
+    expect(file).toEqual('\ufeff' + expectedData);
   }
 
   // menu items
@@ -92,16 +91,12 @@ export class ToolbarViewMenuPage extends BasePage {
       // for CSV download, pass locator instead of clicking it here
       if (subMenu === 'Download as CSV') {
         await this.verifyDownloadAsCSV({
-          downloadLocator: await this.rootPage
-            .locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`)
-            .last(),
+          downloadLocator: this.rootPage.locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`).last(),
           expectedDataFile: verificationInfo?.verificationFile ?? './fixtures/expectedBaseDownloadData.txt',
         });
       } else if (subMenu === 'Download as XLSX') {
         await this.verifyDownloadAsXLSX({
-          downloadLocator: await this.rootPage
-            .locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`)
-            .last(),
+          downloadLocator: this.rootPage.locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`).last(),
           expectedDataFile: verificationInfo?.verificationFile ?? './fixtures/expectedBaseDownloadData.txt',
         });
       } else {
@@ -134,39 +129,5 @@ export class ToolbarViewMenuPage extends BasePage {
       }
     }
     await this.toolbar.parent.waitLoading();
-  }
-
-  async verifyLockMode() {
-    await expect(await this.toolbar.get().locator(`.nc-fields-menu-btn.nc-toolbar-btn`)).toBeDisabled();
-    await expect(await this.toolbar.get().locator(`.nc-filter-menu-btn.nc-toolbar-btn`)).toBeDisabled();
-    await expect(await this.toolbar.get().locator(`.nc-sort-menu-btn.nc-toolbar-btn`)).toBeDisabled();
-    // await expect(
-    //   await this.toolbar.get().locator(`.nc-add-new-row-btn.nc-toolbar-btn > .material-symbols.disabled`)
-    // ).toBeVisible();
-    await expect(
-      await this.rootPage.locator('.nc-pagination-wrapper').locator('button.ant-btn:has-text(" New Record ")')
-    ).not.toBeVisible();
-
-    await (this.toolbar.parent as GridPage).verifyEditDisabled({
-      columnHeader: 'Country',
-    });
-  }
-
-  async verifyCollaborativeMode() {
-    await expect(await this.toolbar.get().locator(`.nc-fields-menu-btn.nc-toolbar-btn`)).toBeEnabled();
-    await expect(await this.toolbar.get().locator(`.nc-filter-menu-btn.nc-toolbar-btn`)).toBeEnabled();
-    await expect(await this.toolbar.get().locator(`.nc-sort-menu-btn.nc-toolbar-btn`)).toBeEnabled();
-
-    // Add button not in toolbar now
-    // await expect(
-    //   await this.toolbar.get().locator(`.nc-add-new-row-btn.nc-toolbar-btn > .material-symbols`)
-    // ).toBeVisible();
-    await expect(
-      await this.rootPage.locator('.nc-pagination-wrapper').locator('button.ant-btn:has-text(" New Record ")')
-    ).toBeVisible();
-
-    await (this.toolbar.parent as GridPage).verifyEditEnabled({
-      columnHeader: 'Country',
-    });
   }
 }

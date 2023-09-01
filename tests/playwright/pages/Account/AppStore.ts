@@ -1,4 +1,3 @@
-import { expect } from '@playwright/test';
 import BasePage from '../Base';
 import { AccountPage } from './index';
 
@@ -23,7 +22,7 @@ export class AccountAppStorePage extends BasePage {
   }
 
   async install({ name }: { name: string }) {
-    const card = await this.accountPage.get().locator(`.nc-app-store-card-${name}`);
+    const card = this.accountPage.get().locator(`.nc-app-store-card-${name}`);
     await card.click();
 
     // todo: Hack to solve the issue when if the test installing a plugin fails, the next test will fail because the plugin is already installed

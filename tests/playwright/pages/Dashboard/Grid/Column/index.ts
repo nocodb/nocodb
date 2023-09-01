@@ -336,7 +336,7 @@ export class ColumnPageObject extends BasePage {
     }
 
     await this.waitForResponse({
-      uiAction: async() => await this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field"):visible').click(),
+      uiAction: async () => await this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field"):visible').click(),
       requestUrlPathToMatch: 'api/v1/db/meta/views',
       httpMethodsToMatch: ['PATCH'],
     });
@@ -346,7 +346,7 @@ export class ColumnPageObject extends BasePage {
 
   async save({ isUpdated }: { isUpdated?: boolean } = {}) {
     await this.waitForResponse({
-      uiAction: async() => await this.get().locator('button:has-text("Save")').click(),
+      uiAction: async () => await this.get().locator('button:has-text("Save")').click(),
       requestUrlPathToMatch: 'api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
       responseJsonMatcher: json => json['pageInfo'],
@@ -401,7 +401,7 @@ export class ColumnPageObject extends BasePage {
 
   async sortColumn({ title, direction = 'asc' }: { title: string; direction: 'asc' | 'desc' }) {
     await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
-    let menuOption;
+    let menuOption: { (): Promise<void>; (): Promise<void> };
     if (direction === 'desc') {
       menuOption = () => this.rootPage.locator('li[role="menuitem"]:has-text("Sort Descending"):visible').click();
     } else {
@@ -444,7 +444,7 @@ export class ColumnPageObject extends BasePage {
 
   async getWidth(param: { title: string }) {
     const { title } = param;
-    const cell = await this.rootPage.locator(`th[data-title="${title}"]`);
+    const cell = this.rootPage.locator(`th[data-title="${title}"]`);
     return await cell.evaluate(el => el.getBoundingClientRect().width);
   }
 }

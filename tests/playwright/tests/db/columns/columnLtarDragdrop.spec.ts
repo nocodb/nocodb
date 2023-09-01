@@ -70,18 +70,16 @@ test.describe('Links', () => {
 
   test('drag drop for Link, lookup creation', async () => {
     await dashboard.treeView.openTable({ title: 'Table0' });
-    const src = await dashboard.rootPage.locator(`[data-testid="tree-view-table-draggable-handle-Table1"]`);
-    const dst = await dashboard.rootPage.locator(`[data-testid="grid-row-0"]`);
+    const src = dashboard.rootPage.locator(`[data-testid="tree-view-table-draggable-handle-Table1"]`);
+    const dst = dashboard.rootPage.locator(`[data-testid="grid-row-0"]`);
 
     // drag drop for LTAR column creation
     //
     await src.dragTo(dst);
-    const columnAddModal = await dashboard.rootPage.locator(`.nc-dropdown-grid-add-column`);
+    const columnAddModal = dashboard.rootPage.locator(`.nc-dropdown-grid-add-column`);
     {
-      const columnType = await getTextExcludeIconText(await columnAddModal.locator(`.nc-column-type-input`));
-      const linkTable = await getTextExcludeIconText(
-        await columnAddModal.locator(`.ant-form-item-control-input`).nth(3)
-      );
+      const columnType = await getTextExcludeIconText(columnAddModal.locator(`.nc-column-type-input`));
+      const linkTable = await getTextExcludeIconText(columnAddModal.locator(`.ant-form-item-control-input`).nth(3));
       expect(columnType).toContain('Links');
       expect(linkTable).toContain('Table1');
 
@@ -97,13 +95,9 @@ test.describe('Links', () => {
     await src.dragTo(dst);
     {
       // const columnAddModal = await dashboard.rootPage.locator(`.nc-dropdown-grid-add-column`);
-      const columnType = await getTextExcludeIconText(await columnAddModal.locator(`.nc-column-type-input`));
-      const linkField = await getTextExcludeIconText(
-        await columnAddModal.locator(`.ant-form-item-control-input`).nth(2)
-      );
-      const childColumn = await getTextExcludeIconText(
-        await columnAddModal.locator(`.ant-form-item-control-input`).nth(3)
-      );
+      const columnType = await getTextExcludeIconText(columnAddModal.locator(`.nc-column-type-input`));
+      const linkField = await getTextExcludeIconText(columnAddModal.locator(`.ant-form-item-control-input`).nth(2));
+      const childColumn = await getTextExcludeIconText(columnAddModal.locator(`.ant-form-item-control-input`).nth(3));
 
       // validate
       expect(columnType).toContain('Lookup');

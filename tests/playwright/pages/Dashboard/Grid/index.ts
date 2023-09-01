@@ -122,7 +122,7 @@ export class GridPage extends BasePage {
 
     // add delay for UI to render (can wait for count to stabilize by reading it multiple times)
     await this.rootPage.waitForTimeout(100);
-    await expect(await this.get().locator('.nc-grid-row').count()).toBe(rowCount + 1);
+    expect(await this.get().locator('.nc-grid-row').count()).toBe(rowCount + 1);
 
     await this._fillRow({ index, columnHeader, value: rowValue });
 
@@ -211,13 +211,13 @@ export class GridPage extends BasePage {
   async addRowRightClickMenu(index: number, columnHeader = 'Title') {
     const rowCount = await this.get().locator('.nc-grid-row').count();
 
-    const cell = await this.get().locator(`td[data-testid="cell-${columnHeader}-${index}"]`).last();
+    const cell = this.get().locator(`td[data-testid="cell-${columnHeader}-${index}"]`).last();
     await cell.click();
     await cell.click({ button: 'right' });
 
     // Click text=Insert New Row
     await this.rootPage.locator('text=Insert New Row').click();
-    await expect(await this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);
+    await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);
   }
 
   async openExpandedRow({ index }: { index: number }) {
@@ -227,7 +227,7 @@ export class GridPage extends BasePage {
   }
 
   async selectRow(index: number) {
-    const cell: Locator = await this.get().locator(`td[data-testid="cell-Id-${index}"]`);
+    const cell: Locator = this.get().locator(`td[data-testid="cell-Id-${index}"]`);
     await cell.hover();
     await cell.locator('input[type="checkbox"]').check({ force: true });
   }
@@ -357,24 +357,24 @@ export class GridPage extends BasePage {
       index: 0,
       columnHeader: columnHeader,
     });
-    await expect(await cell.locator('input')).not.toBeVisible();
+    await expect(cell.locator('input')).not.toBeVisible();
 
     // right click menu
     await this.get().locator(`td[data-testid="cell-${columnHeader}-0"]`).click({
       button: 'right',
     });
-    await expect(await this.rootPage.locator('text=Insert New Row')).not.toBeVisible();
+    await expect(this.rootPage.locator('text=Insert New Row')).not.toBeVisible();
 
     // in cell-add
     await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();
     await expect(
-      await this.cell.get({ index: 0, columnHeader: 'Cities' }).locator('.nc-action-icon.nc-plus')
+      this.cell.get({ index: 0, columnHeader: 'Cities' }).locator('.nc-action-icon.nc-plus')
     ).not.toBeVisible();
 
     // expand row
     await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();
     await expect(
-      await this.cell.get({ index: 0, columnHeader: 'Cities' }).locator('.nc-action-icon >> nth=0')
+      this.cell.get({ index: 0, columnHeader: 'Cities' }).locator('.nc-action-icon >> nth=0')
     ).not.toBeVisible();
   }
 
@@ -385,7 +385,7 @@ export class GridPage extends BasePage {
       index: 0,
       columnHeader: columnHeader,
     });
-    await expect(await cell.locator('input')).toBeVisible();
+    await expect(cell.locator('input')).toBeVisible();
 
     // press escape to exit edit mode
     await cell.press('Escape');
@@ -394,13 +394,11 @@ export class GridPage extends BasePage {
     await this.get().locator(`td[data-testid="cell-${columnHeader}-0"]`).click({
       button: 'right',
     });
-    await expect(await this.rootPage.locator('text=Insert New Row')).toBeVisible();
+    await expect(this.rootPage.locator('text=Insert New Row')).toBeVisible();
 
     // in cell-add
     await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();
-    await expect(
-      await this.cell.get({ index: 0, columnHeader: 'Cities' }).locator('.nc-action-icon.nc-plus')
-    ).toBeVisible();
+    await expect(this.cell.get({ index: 0, columnHeader: 'Cities' }).locator('.nc-action-icon.nc-plus')).toBeVisible();
   }
 
   async verifyRoleAccess(param: { role: string }) {
@@ -411,9 +409,9 @@ export class GridPage extends BasePage {
   }
 
   async selectRange({ start, end }: { start: CellProps; end: CellProps }) {
-    const startCell = await this.cell.get({ index: start.index, columnHeader: start.columnHeader });
-    const endCell = await this.cell.get({ index: end.index, columnHeader: end.columnHeader });
-    const page = await this.dashboard.get().page();
+    const startCell = this.cell.get({ index: start.index, columnHeader: start.columnHeader });
+    const endCell = this.cell.get({ index: end.index, columnHeader: end.columnHeader });
+    const page = this.dashboard.get().page();
     await startCell.hover();
     await page.mouse.down();
     await endCell.hover();

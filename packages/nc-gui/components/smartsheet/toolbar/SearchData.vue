@@ -58,14 +58,6 @@ const displayColumnLabel = computed(() => {
   return columns.value?.find((column) => column.primaryValue)?.label
 })
 
-watch(
-  () => (meta.value as TableType)?.columns,
-  () => {
-    if (columns.value && search.value) search.value.field = columns.value.find((column) => column.primaryValue)?.value
-  },
-  { immediate: true },
-)
-
 watchDebounced(
   () => search.value.query,
   () => {

@@ -74,9 +74,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncProjectId = params.projectId;
     } else if (params.dashboardId) {
       req.ncProjectId = params.dashboardId;
-    } else if (params.tableId) {
+    } else if (params.tableId || params.modelId) {
       const model = await Model.getByIdOrName({
-        id: params.tableId,
+        id: params.tableId || params.modelId,
       });
       req.ncProjectId = model?.project_id;
     } else if (params.viewId) {

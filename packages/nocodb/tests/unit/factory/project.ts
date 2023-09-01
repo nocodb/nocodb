@@ -68,19 +68,6 @@ const createSharedBase = async (app, token, project, sharedBaseArgs = {}) => {
 };
 
 const createSakilaProject = async (context) => {
-  if (process.env.EE) {
-    const ws = await request(context.app)
-      .post('/api/v1/workspaces/')
-      .set('xc-auth', context.token)
-      .send({
-        title: 'Workspace',
-        meta: {
-          color: '#146C8E',
-        },
-      });
-    context.fk_workspace_id = ws.body.id;
-  }
-
   const response = await request(context.app)
     .post('/api/v1/db/meta/projects/')
     .set('xc-auth', context.token)
@@ -93,23 +80,13 @@ const createProject = async (
   context,
   projectArgs: ProjectArgs = defaultProjectValue,
 ) => {
-  if (process.env.EE) {
-    const ws = await request(context.app)
-      .post('/api/v1/workspaces/')
-      .set('xc-auth', context.token)
-      .send({
-        title: 'Workspace',
-        meta: {
-          color: '#146C8E',
-        },
-      });
-    projectArgs.fk_workspace_id = ws.body.id;
-  }
-
   const response = await request(context.app)
     .post('/api/v1/db/meta/projects/')
     .set('xc-auth', context.token)
-    .send(projectArgs);
+    .send({
+      ...projectArgs,
+      ...(process.env.EE ? { fk_workspace_id: context.fk_workspace_id } : {}),
+    });
 
   return (await Project.getByTitleOrId(response.body.id)) as Project;
 };

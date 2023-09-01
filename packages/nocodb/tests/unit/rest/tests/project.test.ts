@@ -56,11 +56,20 @@ function projectTest() {
   // todo: Test creating visibility set
 
   it('List projects', async () => {
-    const response = await request(context.app)
-      .get('/api/v1/db/meta/projects/')
-      .set('xc-auth', context.token)
-      .send({})
-      .expect(200);
+    let response;
+    if (process.env.EE !== 'true') {
+      response = await request(context.app)
+        .get('/api/v1/db/meta/projects/')
+        .set('xc-auth', context.token)
+        .send({})
+        .expect(200);
+    } else {
+      response = await request(context.app)
+        .get(`/api/v1/workspaces/${context.fk_workspace_id}/projects`)
+        .set('xc-auth', context.token)
+        .send({})
+        .expect(200);
+    }
 
     if (response.body.list.length !== 1)
       new Error('Should list only 1 project');
@@ -73,6 +82,9 @@ function projectTest() {
       .set('xc-auth', context.token)
       .send({
         title: 'Title1',
+        ...(process.env.EE === 'true' && {
+          fk_workspace_id: context.fk_workspace_id,
+        }),
       })
       .expect(200);
 
@@ -86,6 +98,9 @@ function projectTest() {
       .set('xc-auth', context.token)
       .send({
         title: project.title,
+        ...(process.env.EE === 'true' && {
+          fk_workspace_id: context.fk_workspace_id,
+        }),
       })
       .expect(200);
   });

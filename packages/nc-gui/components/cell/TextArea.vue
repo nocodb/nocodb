@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, IsExpandedFormOpenInj, RowHeightInj, inject, useVModel } from '#imports'
+import { EditModeInj, IsExpandedFormOpenInj, RowHeightInj, inject, useVModel, iconMap, ActiveCellInj } from '#imports'
 
 const props = defineProps<{
   modelValue?: string | number
@@ -31,6 +31,8 @@ const height = computed(() => {
 const isVisible = ref(false)
 const inputWrapperRef = ref<HTMLElement | null>(null)
 const inputRef = ref<HTMLTextAreaElement | null>(null)
+
+const active = inject(ActiveCellInj, ref(false))
 
 watch(isVisible, () => {
   if (isVisible.value) {
@@ -86,21 +88,21 @@ onClickOutside(inputWrapperRef, (e) => {
 
       <span v-else>{{ vModel }}</span>
 
-      <NcButton
-        class="!absolute right-0 bottom-0 nc-long-text-toggle-expand !duration-0"
-        :class="{
-          'top-1': rowHeight !== 1,
-          'mt-2': editEnabled,
-          'top-0.15': rowHeight === 1,
-          '!hidden': isExpandedFormOpen,
-        }"
-        type="text"
-        size="xsmall"
+      <div
+        v-if="active"
+        class="!absolute right-0 h-5 w-5 group cursor-pointer py-1 flex justify-center gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+        :class="{'right-2 bottom-2':editEnabled}"
+        data-testid="attachment-cell-file-picker-button"
         @click.stop="isVisible = !isVisible"
       >
-        <GeneralIcon v-if="isVisible" icon="shrink" class="nc-long-text-toggle-expand h-3.75 w-3.75 !text-xs" />
-        <GeneralIcon v-else icon="expand" class="nc-long-text-toggle-expand h-3.75 w-3.75 !text-xs" />
-      </NcButton>
+        <a-tooltip placement="bottom">
+            <template #title>Expand</template>
+            <component
+              :is="iconMap.expand"
+              class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
+            />
+        </a-tooltip>
+      </div>
     </div>
     <template #overlay>
       <div ref="inputWrapperRef" class="flex flex-col min-w-120 min-h-70 py-3 pl-3 pr-1 expanded-cell-input">

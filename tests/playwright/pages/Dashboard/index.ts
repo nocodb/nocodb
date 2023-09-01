@@ -98,14 +98,14 @@ export class DashboardPage extends BasePage {
 
   async verifyTeamAndSettingsLinkIsVisible() {
     await this.projectMenuLink.click();
-    const teamAndSettingsLink = await this.getProjectMenuLink({ title: ' Team & Settings' });
+    const teamAndSettingsLink = this.getProjectMenuLink({ title: ' Team & Settings' });
     await expect(teamAndSettingsLink).toBeVisible();
     await this.projectMenuLink.click();
   }
 
   async verifyTeamAndSettingsLinkIsNotVisible() {
     await this.projectMenuLink.click();
-    const teamAndSettingsLink = await this.getProjectMenuLink({ title: ' Team & Settings' });
+    const teamAndSettingsLink = this.getProjectMenuLink({ title: ' Team & Settings' });
     await expect(teamAndSettingsLink).not.toBeVisible();
     await this.projectMenuLink.click();
   }
@@ -243,7 +243,7 @@ export class DashboardPage extends BasePage {
   }*/
 
   async closeAllTabs() {
-    const tab = await this.tabBar.locator(`.ant-tabs-tab`);
+    const tab = this.tabBar.locator(`.ant-tabs-tab`);
     const tabCount = await tab.count();
 
     for (let i = 0; i < tabCount; i++) {

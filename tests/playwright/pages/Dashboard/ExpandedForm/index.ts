@@ -38,7 +38,7 @@ export class ExpandedFormPage extends BasePage {
     // add delay; wait for the menu to appear
     await this.rootPage.waitForTimeout(500);
 
-    const popUpMenu = await this.rootPage.locator('.ant-dropdown');
+    const popUpMenu = this.rootPage.locator('.ant-dropdown');
     await popUpMenu.locator(`.ant-dropdown-menu-item:has-text("${menuItem}")`).click();
   }
 
@@ -55,12 +55,12 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async isDisabledDuplicateRow() {
-    const isDisabled = await this.duplicateRowButton;
+    const isDisabled = this.duplicateRowButton;
     return await isDisabled.count();
   }
 
   async isDisabledDeleteRow() {
-    const isDisabled = await this.deleteRowButton;
+    const isDisabled = this.deleteRowButton;
     return await isDisabled.count();
   }
 
@@ -71,7 +71,7 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async gotoUsingUrlAndRowId({ rowId }: { rowId: string }) {
-    const url = await this.dashboard.rootPage.url();
+    const url = this.dashboard.rootPage.url();
     const expandedFormUrl = '/' + url.split('/').slice(3).join('/').split('?')[0] + `?rowId=${rowId}`;
     await this.rootPage.goto(expandedFormUrl);
     await this.dashboard.waitForLoaderToDisappear();
@@ -157,7 +157,7 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async openChildCard(param: { column: string; title: string }) {
-    const childList = await this.get().locator(`[data-testid="nc-expand-col-${param.column}"]`);
+    const childList = this.get().locator(`[data-testid="nc-expand-col-${param.column}"]`);
     await childList.locator(`.ant-card:has-text("${param.title}")`).click();
   }
 
@@ -172,9 +172,9 @@ export class ExpandedFormPage extends BasePage {
 
     expect(await this.btn_moreActions.count()).toBe(1);
     await this.btn_moreActions.click();
-    const menu = await this.rootPage.locator('.ant-dropdown:visible');
+    const menu = this.rootPage.locator('.ant-dropdown:visible');
     await menu.waitFor({ state: 'visible' });
-    const menuItems = await menu.locator('.ant-dropdown-menu-item');
+    const menuItems = menu.locator('.ant-dropdown-menu-item');
     for (let i = 0; i < (await menuItems.count()); i++) {
       if (role === 'owner' || role === 'editor' || role === 'creator') {
         const menuText = ['Reload', 'Duplicate row', 'Delete row', 'Close'];

@@ -63,11 +63,12 @@ export default abstract class BasePage {
       return found;
     });
 
-    const uiActionWithDelay = () => {
+    const uiActionWithDelay = async () => {
       // Create a promise that resolves after a delay
-      const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+      const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
       // Returning a promise that resolves with the result after the a delay
-      return delay(100).then(() => uiAction());
+      await delay(100);
+      return await uiAction();
     };
     await Promise.all([waitForResponsePromise, uiActionWithDelay()]);
   }

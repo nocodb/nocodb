@@ -17,6 +17,7 @@ import { NcError } from '~/helpers/catchError';
 import { UsersService } from '~/services/users/users.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
+import Noco from '~/Noco';
 
 @Controller()
 export class UsersController extends UsersControllerCE {
@@ -82,15 +83,15 @@ export class UsersController extends UsersControllerCE {
 
     // todo: check provider as well, if we have multiple ways of login mechanism
     if (process.env.NC_OIDC_LOGOUT_URL) {
-      const callbackURL = req.ncSiteUrl + '/auth/oidc/logout-redirect';
-      let state;
+      let callbackURL = req.ncSiteUrl + Noco.getConfig().dashboardPath;
       if (process.env.NC_BASE_APP_URL) {
         const url = new URL(req.ncSiteUrl);
-        // const baseAppUrl = new URL(process.env.NC_BASE_APP_URL);
+        const baseAppUrl = new URL(process.env.NC_BASE_APP_URL);
 
-        // if (baseAppUrl.host !== url.host) {
-        state = url.host;
-        // }
+        if (baseAppUrl.host !== url.host) {
+          callbackURL =
+            process.env.NC_BASE_APP_URL + '/auth/oidc/logout-redirect';
+        }
       }
 
       const signoutUrl = new URL(process.env.NC_OIDC_LOGOUT_URL);
@@ -100,12 +101,7 @@ export class UsersController extends UsersControllerCE {
         process.env.NC_OIDC_CLIENT_ID,
       );
       signoutUrl.searchParams.append('logout_uri', callbackURL);
-      signoutUrl.searchParams.append('redirect_uri', callbackURL);
-      signoutUrl.searchParams.append('scope', 'openid profile email');
-      signoutUrl.searchParams.append('response_type', 'code');
-      signoutUrl.searchParams.append('state', state);
 
-      // return res.redirect(process.env.NC_OIDC_LOGOUT_URL);
       result.redirect_url = signoutUrl.toString();
     }
 

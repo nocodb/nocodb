@@ -60,11 +60,11 @@ export class UsersController extends UsersControllerCE {
   async logoutRedirect(@Request() req, @Response() res) {
     const host = req.query.state;
 
-    res.redirect(
-      host
-        ? `https://${host}/dashboard?redirect=%2Fsignin`
-        : '/dashboard?redirect=%2Fsignin',
-    );
+    const url = host
+      ? `https://${host}/dashboard/#/signin`
+      : '/dashboard/#/signin';
+
+    res.send((await import('./templates/redirect')).default({ url }));
   }
 
   @UseGuards(GlobalGuard)

@@ -6,7 +6,12 @@ export const createIncidentLog = async (
   extras?: Record<string, any>,
   createCustomTicketSubject?: (defaultTitle: string) => string
 ) => {
-  await incidentHandler.logIncident(data, extras, {
-    createCustomTicketSubject,
-  });
+  console.log('Creating incident logging....');
+  try {
+    await incidentHandler.logIncident(data, extras, {
+      createCustomTicketSubject,
+    });
+  } catch (error) {
+    console.log('Error when creating incident log:', error);
+  }
 };

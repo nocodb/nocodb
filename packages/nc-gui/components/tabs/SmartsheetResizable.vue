@@ -54,7 +54,7 @@ function handleMouseMove(e: MouseEvent) {
 
   const viewportWidth = window.innerWidth
 
-  if (e.clientX > viewportWidth - 14 && sidebarState.value !== 'peekOpenEnd') {
+  if (e.clientX > viewportWidth - 14 && ['hiddenEnd', 'peekCloseEnd'].includes(sidebarState.value)) {
     sidebarState.value = 'peekOpenStart'
 
     setTimeout(() => {

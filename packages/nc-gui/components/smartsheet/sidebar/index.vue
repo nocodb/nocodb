@@ -147,14 +147,15 @@ function onOpenModal({
     <div
       v-else
       ref="tabBtnsContainerRef"
-      class="flex flex-row group p-1 mx-1.25 mt-1.25 mb-2.75 rounded-md gap-x-2 nc-view-sidebar-tab items-center"
+      class="flex flex-row group py-1 mx-3.25 mt-1.25 mb-2.75 rounded-md gap-x-2 nc-view-sidebar-tab items-center justify-between"
     >
+      <div class="flex text-gray-600 ml-1.75">Views</div>
       <NcTooltip
-        placement="bottom"
+        placement="bottomLeft"
         hide-on-click
-        class="flex opacity-0 w-0 group-hover:(opacity-100 w-8) transition-all duration-50"
+        class="flex opacity-0 group-hover:(opacity-100) transition-all duration-50"
         :class="{
-          '!w-8 !opacity-100': !isRightSidebarOpen || true,
+          '!w-8 !opacity-100': !isRightSidebarOpen,
         }"
       >
         <template #title>
@@ -181,7 +182,6 @@ function onOpenModal({
           </div>
         </NcButton>
       </NcTooltip>
-      <div class="flex text-gray-600">Views</div>
     </div>
 
     <div class="flex-1 flex flex-col min-h-0">

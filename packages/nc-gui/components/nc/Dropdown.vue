@@ -38,6 +38,14 @@ onKeyStroke('Escape', () => {
     visible.value = false
   }
 })
+
+const overlayWrapperDomRef = ref<HTMLElement | null>(null)
+
+onClickOutside(overlayWrapperDomRef, () => {
+  if (!autoClose.value) return
+
+  visible.value = false
+})
 </script>
 
 <template>
@@ -50,7 +58,7 @@ onKeyStroke('Escape', () => {
     <slot />
 
     <template #overlay>
-      <slot name="overlay" />
+      <slot ref="overlayWrapperDomRef" name="overlay" />
     </template>
   </a-dropdown>
 </template>

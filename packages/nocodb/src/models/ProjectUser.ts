@@ -1,4 +1,5 @@
 import { ProjectRoles } from 'nocodb-sdk';
+import Project from './Project';
 import type { ProjectType } from 'nocodb-sdk';
 import User from '~/models/User';
 import {
@@ -374,7 +375,7 @@ export default class ProjectUser {
 
     const castedProjectList = projectList
       .filter((p) => !params?.type || p.type === params.type)
-      .map((m) => this.castType(m));
+      .map((m) => Project.castType(m));
 
     await Promise.all(
       castedProjectList.map((project) => project.getBases(ncMeta)),

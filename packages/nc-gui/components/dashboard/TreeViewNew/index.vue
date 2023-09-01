@@ -42,6 +42,8 @@ const router = useRouter()
 
 const route = router.currentRoute
 
+const { userRoles } = useRoles()
+
 const projectsStore = useProjects()
 
 const { createProject: _createProject } = projectsStore
@@ -273,7 +275,7 @@ onUnmounted(() => {
         <ProjectWrapper
           v-for="project of projectsList"
           :key="project.id"
-          :project-role="project.project_role || project.workspace_role"
+          :project-role="project.project_role || project.workspace_role || userRoles"
           :project="project"
         >
           <DashboardTreeViewNewProjectNode />

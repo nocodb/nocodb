@@ -353,9 +353,10 @@ onUnmounted(() => {
         <ProjectWrapper
           v-for="project of projectsList"
           :key="project.id"
-          :project-role="project.project_role || project.workspace_role"
+          :project-role="project.project_role || project.workspace_role || "
           :project="project"
         >
+          p {{ project.project_role }} {{ project.workspace_role }}
           <DashboardTreeViewNewProjectNode />
         </ProjectWrapper>
       </template>

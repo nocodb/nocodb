@@ -110,7 +110,7 @@ watch(isMenuOpen, () => {
       </template>
     </NcDropdown>
 
-    <div v-if="appInfo.ee" class="text-gray-500 text-xs ml-3.25">© 2023 NocoDB. Inc</div>
+    <div v-if="appInfo.ee" class="text-gray-500 text-xs pl-3">© 2023 NocoDB. Inc</div>
     <div v-else class="flex flex-col gap-y-1 pt-1">
       <div class="flex items-start flex-row justify-center px-2 gap-2">
         <GithubButton href="https://github.com/nocodb/nocodb" data-icon="octicon-star" data-show-count="true" data-size="large">

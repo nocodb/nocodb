@@ -14,58 +14,6 @@ useSidebar('nc-left-sidebar')
 <template>
   <div class="h-full w-full nc-container">
     <div class="h-full w-full flex flex-col">
-      <!-- <div class="flex items-end !min-h-[var(--sidebar-top-height)] !bg-white-500 nc-tab-bar">
-        <div
-          v-if="!isOpen"
-          class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3 mb-1"
-        >
-          <GeneralIcon
-            v-e="['c:grid:toggle-navdraw']"
-            icon="sidebarMinimise"
-            class="cursor-pointer transform transition-transform duration-500 text-gray-500/80 hover:text-gray-500"
-            :class="{ 'rotate-180': !isOpen }"
-            @click="toggle(!isOpen)"
-          />
-        </div>
-
-        <a-tabs v-model:activeKey="activeTabIndex" class="nc-root-tabs min-w-[500px]" type="editable-card" @edit="onEdit">
-          <a-tab-pane v-for="(tab, i) of tabs" :key="i">
-            <template #tab>
-              <div class="flex items-center gap-2" data-testid="nc-tab-title">
-                <div class="flex items-center">
-                  <Icon
-                    v-if="tab.meta?.icon"
-                    :icon="tab.meta?.icon"
-                    class="text-xl"
-                    :data-testid="`nc-tab-icon-${tab.meta?.icon}`"
-                  />
-                  <component :is="icon(tab)" v-else class="text-sm" />
-                </div>
-
-                <div :data-testid="`nc-root-tabs-${tab.title}`">
-                  <GeneralTruncateText :key="tab.title" :length="12">
-                    {{ tab.title }}
-                  </GeneralTruncateText>
-                </div>
-              </div>
-            </template>
-          </a-tab-pane>
-        </a-tabs>
-
-        <span class="flex-1" />
-
-        <div class="flex justify-center self-center mr-2 min-w-[115px]">
-          <div v-if="isLoading" class="flex items-center gap-2 ml-3 text-gray-200" data-testid="nc-loading">
-            {{ $t('general.loading') }}
-
-            <MdiLoading class="animate-infinite animate-spin" />
-          </div>
-        </div>
-
-        <LazyGeneralShareBaseButton class="mb-1px" />
-        <LazyGeneralFullScreen class="nc-fullscreen-icon mb-1px" />
-      </div>
-       -->
       <div class="w-full min-h-[300px] flex-auto">
         <NuxtPage />
       </div>

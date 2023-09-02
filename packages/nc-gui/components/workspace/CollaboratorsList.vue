@@ -232,4 +232,8 @@ tbody {
     background: rgb(203, 203, 203);
   }
 }
+
+:deep(.ant-select-selection-item) {
+  @apply mt-0.75;
+}
 </style>

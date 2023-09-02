@@ -3,22 +3,26 @@ import { ProjectTypes } from 'nocodb-sdk';
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { DocsSidebarPage } from './DocsSidebar';
+import { SidebarUserMenuObject } from './UserMenu';
 
 export class SidebarPage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly docsSidebar: DocsSidebarPage;
   readonly quickImportButton: Locator;
   readonly createProjectBtn: Locator;
+  readonly userMenu: SidebarUserMenuObject;
+
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.docsSidebar = new DocsSidebarPage(this);
+    this.userMenu = new SidebarUserMenuObject(this);
     this.quickImportButton = dashboard.get().locator('.nc-import-menu');
     this.createProjectBtn = dashboard.get().locator('.nc-create-project-btn');
   }
 
   get() {
-    return this.dashboard.get().locator('.nc-treeview-container');
+    return this.dashboard.get().locator('.nc-sidebar');
   }
 
   async isVisible() {

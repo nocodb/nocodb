@@ -444,7 +444,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 <template>
   <a-dropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
     <div
-      class="mx-1 nc-project-sub-menu rounded-md"
+      class="ml-1 mr-0.5 nc-project-sub-menu rounded-md"
       :class="{ active: project.isExpanded }"
       :data-testid="`nc-sidebar-project-${project.title}`"
       :data-project-id="project.id"
@@ -532,7 +532,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   <a-menu-item @click="enableEditMode">
                     <div class="nc-project-menu-item group">
                       <GeneralIcon icon="edit" class="group-hover:text-black" />
-                      {{ $t('general.edit') }}
+                      {{ $t('general.rename') }}
                     </div>
                   </a-menu-item>
                   <a-menu-item
@@ -544,7 +544,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   >
                     <div class="nc-menu-item-wrapper">
                       <GeneralIcon icon="duplicate" class="text-gray-700" />
-                      {{ $t('general.duplicate') }} {{ $t('objects.project') }}
+                      {{ $t('general.duplicate') }}
                     </div>
                   </a-menu-item>
                   <!-- Copy Project Info -->
@@ -591,7 +591,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   </div>
                 </a-menu-item>
                 <template v-if="project.bases && project.bases[0]">
-                  <DashboardTreeViewNewBaseOptions v-model:project="project" :base="project.bases[0]" />
+                  <DashboardTreeViewBaseOptions v-model:project="project" :base="project.bases[0]" />
 
                   <a-menu-divider />
                 </template>
@@ -642,7 +642,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
           <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
             <div v-if="project?.bases?.[0]?.enabled" class="flex-1">
               <div class="transition-height duration-200">
-                <DashboardTreeViewNewTableList :project="project" :base-index="0" />
+                <DashboardTreeViewTableList :project="project" :base-index="0" />
               </div>
             </div>
 
@@ -729,7 +729,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                                     </div>
                                   </a-menu-item>
 
-                                  <DashboardTreeViewNewBaseOptions v-model:project="project" :base="base" />
+                                  <DashboardTreeViewBaseOptions v-model:project="project" :base="base" />
                                 </a-menu>
                               </template>
                             </a-dropdown>
@@ -754,7 +754,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                         :key="`sortable-${base.id}-${base.id && base.id in keys ? keys[base.id] : '0'}`"
                         :nc-base="base.id"
                       >
-                        <DashboardTreeViewNewTableList :project="project" :base-index="baseIndex" />
+                        <DashboardTreeViewTableList :project="project" :base-index="baseIndex" />
                       </div>
                     </a-collapse-panel>
                   </a-collapse>

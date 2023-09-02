@@ -144,7 +144,8 @@ export default class ProjectUser extends ProjectUserCE {
         this.where(`${MetaTable.PROJECT}.deleted`, false).orWhereNull(
           `${MetaTable.PROJECT}.deleted`,
         );
-      });
+      })
+      .whereNot(`project_role`, ProjectRoles.NO_ACCESS);
 
     // filter starred projects
     if (params.starred) {

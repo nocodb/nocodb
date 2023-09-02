@@ -20162,6 +20162,7 @@
           },
           "roles": {
             "enum": [
+              "no-access",
               "commenter",
               "editor",
               "guest",

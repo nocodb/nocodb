@@ -1,6 +1,6 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { BaseType, OracleUi, ProjectType, ProjectUserReqType, RequestParams } from 'nocodb-sdk'
-import { SqlUiFactory } from 'nocodb-sdk'
+import { ProjectRoles, SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import type { NcProject, User } from '#imports'
 import { NcProjectType, useWorkspace } from '#imports'
@@ -84,6 +84,10 @@ export const useProjects = defineStore('projectsStore', () => {
 
   const updateProjectUser = async (projectId: string, user: User) => {
     await api.auth.projectUserUpdate(projectId, user.id, user as ProjectUserReqType)
+  }
+
+  const removeProjectUser = async (projectId: string, user: User) => {
+    await api.auth.projectUserUpdate(projectId, user.id, { ...user, roles: ProjectRoles.NO_ACCESS } as any)
   }
 
   const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace') => {
@@ -361,6 +365,7 @@ export const useProjects = defineStore('projectsStore', () => {
     getProjectUsers,
     createProjectUser,
     updateProjectUser,
+    removeProjectUser,
     navigateToProject,
     navigateToFirstProjectOrHome,
   }

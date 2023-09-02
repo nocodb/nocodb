@@ -1,5 +1,5 @@
 import ProjectCE from 'src/models/Project';
-import { ProjectTypes } from 'nocodb-sdk';
+import { ProjectRoles, ProjectTypes } from 'nocodb-sdk';
 import type { ProjectType } from 'nocodb-sdk';
 import DashboardProjectDBProject from '~/models/DashboardProjectDBProject';
 import Noco from '~/Noco';
@@ -286,7 +286,8 @@ export default class Project extends ProjectCE {
           ncMeta.knex.raw('?', [userId]),
         );
       })
-      .where(`${MetaTable.PROJECT}.deleted`, false);
+      .where(`${MetaTable.PROJECT}.deleted`, false)
+      .whereNot(`project_role`, ProjectRoles.NO_ACCESS);
 
     const projects = await projectListQb;
 

@@ -1,3 +1,4 @@
+import { ProjectRoles } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
@@ -137,7 +138,8 @@ export default class WorkspaceUser {
               '=',
               ncMeta.knex.raw('?', [fk_user_id]),
             );
-          }),
+          })
+          .whereNot(`${MetaTable.PROJECT_USERS}.roles`, ProjectRoles.NO_ACCESS),
       );
     });
 

@@ -48,7 +48,23 @@ const permissionScopes = {
     'upload',
     'uploadViaURL',
   ],
-  workspace: ['workspaceProjectList', 'workspaceGet'],
+  workspace: [
+    'workspaceProjectList',
+    'workspaceGet',
+    'workspaceUpdate',
+    'workspaceDelete',
+    'workspaceUserList',
+    'workspaceUserGet',
+    'workspaceUserUpdate',
+    'workspaceUserDelete',
+    'workspaceInvite',
+    'workspaceInvitationGet',
+    'workspaceInvitationUpdate',
+    'workspaceInvitationDelete',
+    'workspaceInvitationAccept',
+    'workspaceInvitationReject',
+    'workspaceInvitationTokenRead',
+  ],
   project: [
     'formViewGet',
     'projectGet',
@@ -119,6 +135,9 @@ const permissionScopes = {
     'projectApiTokenList',
     'projectApiTokenCreate',
     'projectApiTokenDelete',
+
+    'createBase',
+    'projectDelete',
 
     'pageGet',
     'pageList',
@@ -195,19 +214,11 @@ const rolePermissions:
   },
   [WorkspaceUserRoles.CREATOR]: {
     exclude: {
-      projectDelete: true,
-      createBase: true,
       workspaceDelete: true,
     },
   },
   [WorkspaceUserRoles.OWNER]: {
-    exclude: {
-      pluginList: true,
-      pluginTest: true,
-      pluginRead: true,
-      pluginUpdate: true,
-      isPluginActive: true,
-    },
+    exclude: {},
   },
 
   [ProjectRoles.VIEWER]: {
@@ -336,33 +347,11 @@ const rolePermissions:
   [ProjectRoles.CREATOR]: {
     exclude: {
       projectDelete: true,
+      createBase: true,
     },
   },
   [ProjectRoles.OWNER]: {
-    exclude: {
-      pluginList: true,
-      pluginTest: true,
-      pluginRead: true,
-      pluginUpdate: true,
-      isPluginActive: true,
-      workspaceCreate: true,
-      workspaceList: true,
-      workspaceGet: true,
-      workspaceUpdate: true,
-      workspaceDelete: true,
-      workspaceUserList: true,
-      workspaceUserGet: true,
-      workspaceUserUpdate: true,
-      workspaceUserDelete: true,
-      workspaceInvite: true,
-      workspaceInvitationGet: true,
-      workspaceInvitationUpdate: true,
-      workspaceInvitationDelete: true,
-      workspaceInvitationAccept: true,
-      workspaceInvitationReject: true,
-      workspaceInvitationTokenRead: true,
-      createBase: true,
-    },
+    exclude: {},
   },
 };
 
@@ -453,6 +442,12 @@ Object.entries(rolePermissions).forEach(([role, permissions]) => {
     }
   });
 
+  Object.keys(permissions.exclude || {}).forEach((perm) => {
+    if (!scopePermissions.includes(perm)) {
+      mismatchedPermissions.push(perm);
+    }
+  });
+
   if (mismatchedPermissions.length) {
     throw new Error(
       `Role ${role} has permissions that do not belong to its scope ${roleScope}. Please remove or add these permissions: ${mismatchedPermissions.join(
@@ -515,7 +510,44 @@ for (const [i, role] of Object.entries(roleScopes.project)) {
       rolePermissions[role].include,
     );
   }
+
+  if (rolePermissions[role].exclude) {
+    Object.assign(
+      rolePermissions[roleScopes.workspace[i]].exclude,
+      rolePermissions[role].exclude,
+    );
+  }
 }
+
+// exclude out of scope permissions
+// - org roles exclude project and workspace permissions
+// - workspace roles exclude org permissions (we don't exclude project permissions as we inherit project permissions to workspace)
+// - project roles exclude workspace and org permissions
+Object.entries(roleScopes).forEach(([scope, roles]) => {
+  const outOfScopePermissions = Object.keys(permissionScopes).reduce(
+    (acc, curr) => {
+      if (curr !== scope) {
+        // skip project on workspace as we inherit project permissions to workspace
+        if (scope === 'workspace' && curr === 'project') return acc;
+        Object.assign(
+          acc,
+          permissionScopes[curr].reduce((acc, val) => {
+            acc[val] = true;
+            return acc;
+          }, {}),
+        );
+      }
+      return acc;
+    },
+    {},
+  );
+
+  roles.forEach((role) => {
+    if (rolePermissions[role] === '*') return;
+    if (!rolePermissions[role].exclude) return;
+    Object.assign(rolePermissions[role].exclude, outOfScopePermissions);
+  });
+});
 
 // validate include and exclude can't exist at the same time
 Object.values(rolePermissions).forEach((role) => {

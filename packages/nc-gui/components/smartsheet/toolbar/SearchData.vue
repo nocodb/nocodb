@@ -94,7 +94,7 @@ watchDebounced(
       @click="isDropdownOpen = !isDropdownOpen"
     >
       <GeneralIcon icon="search" class="ml-1 mr-2 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
-        <NcBadge class="mb-1" color="blue">
+        <NcBadge class="mb-1 px-2" color="blue">
           <p class="pt-1 text-center text-xs text-blue-600 truncate"
           >
             in '{{ displayColumnLabel }}'

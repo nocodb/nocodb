@@ -81,6 +81,10 @@ function resetError() {
 onMounted(async () => {
   await clearWorkspaces()
 })
+
+// todo: move to utils
+// extract workspace id from url
+const subDomain = location.host?.split('.')[0]
 </script>
 
 <template>
@@ -163,7 +167,7 @@ onMounted(async () => {
               v-if="appInfo.oidcAuthEnabled"
               class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
             >
-              <a :href="`${appInfo.ncSiteUrl}/auth/oidc`" class="!text-primary !no-underline">
+              <a :href="`${appInfo.ncSiteUrl}/auth/oidc?workspaceId=${subDomain}`" class="!text-primary !no-underline">
                 <button type="button" class="scaling-btn bg-opacity-100">
                   <span class="flex items-center gap-2">
                     <MdiLogin />

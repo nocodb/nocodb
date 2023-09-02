@@ -126,39 +126,41 @@ function handleRemove(col: Record<string, any>) {
   }
 }
 
-const save = () => {
-  Modal.confirm({
-    title:
-      updateMode.value === BulkUpdateMode.SELECTED
-        ? `Do you want to update selected ${editCount.value} records?`
-        : h('div', {}, [
-            `Do you want to update all ${editCount.value} records in current view?`,
-            h('br'),
-            h('div', { class: 'text-gray-500 text-xs mt-2' }, `Note: Undo on bulk update ALL is not supported`),
-          ]),
-    type: 'warn',
-    onOk: async () => {
-      if (updateMode.value === BulkUpdateMode.SELECTED) {
-        if (props.rows && props.bulkUpdateRows) {
-          const propsToUpdate = Object.keys(formState)
-          for (const row of props.rows) {
-            for (const prop of Object.keys(row.row)) {
-              if (propsToUpdate.includes(prop)) {
-                row.row[prop] = formState[prop]
-                row.rowMeta.selected = false
-              }
+const modalQn = computed(() =>
+  updateMode.value === BulkUpdateMode.SELECTED
+    ? `Do you want to update selected ${editCount.value} records?`
+    : `Do you want to update all ${editCount.value} records in current view?`,
+)
+
+const isModalOpen = ref(false)
+
+const isDeleting = ref(false)
+
+const saveData = async () => {
+  try {
+    isDeleting.value = true
+    if (updateMode.value === BulkUpdateMode.SELECTED) {
+      if (props.rows && props.bulkUpdateRows) {
+        const propsToUpdate = Object.keys(formState)
+        for (const row of props.rows) {
+          for (const prop of Object.keys(row.row)) {
+            if (propsToUpdate.includes(prop)) {
+              row.row[prop] = formState[prop]
+              row.rowMeta.selected = false
             }
           }
-          await props.bulkUpdateRows(props.rows, propsToUpdate)
         }
-      } else {
-        if (props.bulkUpdateView) {
-          await props.bulkUpdateView(formState)
-        }
+        await props.bulkUpdateRows(props.rows, propsToUpdate)
       }
-      isExpanded.value = false
-    },
-  })
+    } else {
+      if (props.bulkUpdateView) {
+        await props.bulkUpdateView(formState)
+      }
+    }
+  } finally {
+    isExpanded.value = false
+    isDeleting.value = false
+  }
 }
 
 const addAllColumns = () => {
@@ -216,32 +218,32 @@ onMounted(() => {
       </h5>
 
       <div class="flex-1" />
-      <a-button
+      <NcButton
         v-if="updateMode === BulkUpdateMode.ALL"
         class="nc-bulk-update-save-btn"
         type="primary"
         :disabled="!editColumns.length"
-        @click="save"
+        @click="isModalOpen = true"
       >
         <div class="flex items-center">
           <component :is="iconMap.contentSaveExit" class="mr-1" />
           <!-- TODO i18n -->
           Bulk Update All
         </div>
-      </a-button>
-      <a-button
+      </NcButton>
+      <NcButton
         v-else-if="updateMode === BulkUpdateMode.SELECTED"
         class="nc-bulk-update-save-btn"
         type="primary"
         :disabled="!editColumns.length"
-        @click="save"
+        @click="isModalOpen = true"
       >
         <div class="flex items-center">
           <component :is="iconMap.contentSaveStay" class="mr-1" />
           <!-- TODO i18n -->
           Bulk Update Selected
         </div>
-      </a-button>
+      </NcButton>
       <a-dropdown>
         <component :is="iconMap.threeDotVertical" class="nc-icon-transition" />
         <template #overlay>
@@ -369,29 +371,27 @@ onMounted(() => {
           Select columns to Edit
         </div>
         <div class="flex flex-wrap gap-2 mb-4">
-          <button
+          <NcButton
             v-if="fields.length > editColumns.length"
             type="button"
-            class="nc-bulk-update-add-all color-transition bg-white transform hover:(text-primary ring-1 ring-primary ring-opacity-100) active:translate-y-[1px] px-2 py-1 shadow-md rounded"
             data-testid="nc-bulk-update-add-all"
             tabindex="-1"
             @click="addAllColumns"
           >
             <!-- Add all -->
             {{ $t('general.addAll') }}
-          </button>
+          </NcButton>
 
-          <button
+          <NcButton
             v-if="editColumns.length"
             type="button"
-            class="nc-bulk-update-remove-all color-transition bg-white transform hover:(text-primary ring-1 ring-primary ring-opacity-100) active:translate-y-[1px] px-2 py-1 shadow-md rounded"
             data-testid="nc-bulk-update-remove-all"
             tabindex="-1"
             @click="removeAllColumns"
           >
             <!-- Remove all -->
             {{ $t('general.removeAll') }}
-          </button>
+          </NcButton>
         </div>
 
         <Draggable
@@ -434,6 +434,19 @@ onMounted(() => {
         </Draggable>
       </div>
     </div>
+
+    <GeneralModal v-model:visible="isModalOpen" class="!w-[25rem]">
+      <div class="p-4">
+        <div class="prose-xl font-bold self-center">Bulk Update</div>
+
+        <div class="mt-4">{{ modalQn }}</div>
+        <a-divider class="!m-0 !p-0 !my-2" />
+      </div>
+      <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end p-4">
+        <NcButton type="secondary"  @click="isModalOpen = false">{{ $t('general.cancel') }}</NcButton>
+        <NcButton :loading="isDeleting" @click="saveData">{{ $t('general.confirm') }} </NcButton>
+      </div>
+    </GeneralModal>
   </a-drawer>
 </template>
 

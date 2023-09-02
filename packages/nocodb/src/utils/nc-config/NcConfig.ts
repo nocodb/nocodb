@@ -146,7 +146,7 @@ export class NcConfig {
       port: process.env.NC_PORT,
       tryMode: !!process.env.NC_TRY,
       worker: !!process.env.NC_WORKER,
-      dashboardPath: process.env.NC_DASHBOARD_URL ?? '/dashboard',
+      dashboardPath: process.env.NC_DASHBOARD_PATH ?? '/dashboard',
       publicUrl: process.env.NC_PUBLIC_URL,
     });
   }

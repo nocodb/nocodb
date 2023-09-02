@@ -131,7 +131,7 @@
     "ncp": "^2.0.0",
     "nestjs-kafka": "^1.0.6",
     "nestjs-throttler-storage-redis": "^0.3.0",
-    "nocodb-sdk": "file:../nocodb-sdk",
+    "nocodb-sdk": "0.111.1",
     "nodemailer": "^6.4.10",
     "object-hash": "^3.0.0",
     "object-sizeof": "^2.6.1",

@@ -38,7 +38,6 @@
   "dependencies": {
     "@braks/revue-draggable": "^0.4.3",
     "@ckpack/vue-color": "^1.2.0",
-    "@fingerprintjs/fingerprintjs": "^3.4.1",
     "@iconify/vue": "^4.1.1",
     "@pinia/nuxt": "^0.4.11",
     "@tiptap/extension-blockquote": "2.0.3",

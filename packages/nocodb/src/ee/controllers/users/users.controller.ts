@@ -64,13 +64,13 @@ export class UsersController extends UsersControllerCE {
   async logoutRedirect(@Request() req, @Response() res) {
     const host = req.query.state;
 
+    const dashboardPath = this.config.get('dashboardPath', {
+      infer: true,
+    });
+
     const url = host
-      ? `https://${host}${this.config.get('dashboardPath', {
-          infer: true,
-        })}?code=${req.query.code}#/signin?logout=true`
-      : `${this.config.get('dashboardPath', {
-          infer: true,
-        })}?code=${req.query.code}#/signin?logout=true`;
+      ? `https://${host}${dashboardPath}#/signin?logout=true`
+      : `${dashboardPath}#/signin?logout=true`;
 
     res.send((await import('./templates/redirect')).default({ url }));
   }

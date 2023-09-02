@@ -4,10 +4,16 @@ import express from 'express';
 
 import Noco from '~/Noco';
 
+// todo: move to env
+process.env.NC_DASHBOARD_URL = process.env.NC_DASHBOARD_URL ?? '/';
+
 const server = express();
 server.enable('trust proxy');
 server.use(cors());
-server.use('/dashboard', express.static(path.join(__dirname, 'nc-gui')));
+server.use(
+  process.env.NC_DASHBOARD_URL ?? '/dashboard',
+  express.static(path.join(__dirname, 'nc-gui')),
+);
 server.set('view engine', 'ejs');
 
 (async () => {

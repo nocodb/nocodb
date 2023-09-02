@@ -3,7 +3,9 @@ import validator from 'validator';
 import { v4 as uuidv4 } from 'uuid';
 import { AppEvents, WorkspaceUserRoles } from 'nocodb-sdk';
 import * as ejs from 'ejs';
+import { ConfigService } from '@nestjs/config';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
+import type { AppConfig } from '~/interface/config';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import validateParams from '~/helpers/validateParams';
@@ -17,7 +19,10 @@ import { rolesLabel } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Injectable()
 export class WorkspaceUsersService {
-  constructor(private appHooksService: AppHooksService) {}
+  constructor(
+    private appHooksService: AppHooksService,
+    private config: ConfigService<AppConfig>,
+  ) {}
 
   async list(param: { workspaceId }) {
     const users = await WorkspaceUser.userList({
@@ -283,9 +288,16 @@ export class WorkspaceUsersService {
             .mailSend({
               to: user.email,
               subject: "You've been invited to a Noco Cloud Workspace\n",
-              text: `Visit following link to access the workspace : ${siteUrl}/dashboard/#/${workspace.id}`,
+              text: `Visit following link to access the workspace : ${siteUrl}${this.config.get(
+                'dashboardPath',
+                {
+                  infer: true,
+                },
+              )}#/${workspace.id}`,
               html: ejs.render(template, {
-                workspaceLink: siteUrl + `/dashboard/#/${workspace.id}`,
+                workspaceLink: siteUrl + `${this.config.get('dashboardPath', {
+                  infer: true,
+                })}#/${workspace.id}`,
                 workspaceName: workspace.title,
                 roles: rolesLabel[roles],
               }),
@@ -330,7 +342,9 @@ export class WorkspaceUsersService {
               subject: 'Your workspace role has been updated',
               text: `Your role in workspace ${workspace.title} has been updated to ${rolesLabel[roles]}`,
               html: ejs.render(template, {
-                workspaceLink: siteUrl + `/dashboard/#/${workspace.id}`,
+                workspaceLink: siteUrl + `${this.config.get('dashboardPath', {
+                  infer: true,
+                })}#/${workspace.id}`,
                 workspaceName: workspace.title,
                 roles: rolesLabel[roles],
               }),

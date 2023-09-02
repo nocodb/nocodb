@@ -17,7 +17,6 @@ import { NcError } from '~/helpers/catchError';
 import { UsersService } from '~/services/users/users.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
-import Noco from '~/Noco';
 
 @Controller()
 export class UsersController extends UsersControllerCE {
@@ -55,7 +54,9 @@ export class UsersController extends UsersControllerCE {
     }
 
     res.redirect(
-      `https://${state.host}/dashboard?code=${req.query.code}&state=${req.query.state}`,
+      `https://${state.host}${this.config.get('dashboardPath', {
+        infer: true,
+      })}?code=${req.query.code}&state=${req.query.state}`,
     );
   }
 
@@ -64,8 +65,12 @@ export class UsersController extends UsersControllerCE {
     const host = req.query.state;
 
     const url = host
-      ? `https://${host}/dashboard/#/signin?logout=true`
-      : '/dashboard/#/signin?logout=true';
+      ? `https://${host}${this.config.get('dashboardPath', {
+          infer: true,
+        })}?code=${req.query.code}#/signin?logout=true`
+      : `${this.config.get('dashboardPath', {
+          infer: true,
+        })}?code=${req.query.code}#/signin?logout=true`;
 
     res.send((await import('./templates/redirect')).default({ url }));
   }

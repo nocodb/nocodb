@@ -179,10 +179,10 @@ export class WorkspaceUsersService {
 
     for (const email of emails) {
       // add user to project if user already exist
-      const user = await User.getByEmail(email);
+      let user = await User.getByEmail(email);
       if (!user) {
         const salt = await promisify(bcrypt.genSalt)(10);
-        await this.usersService.registerNewUserIfAllowed({
+        user = await this.usersService.registerNewUserIfAllowed({
           email,
           password: '',
           email_verification_token: null,

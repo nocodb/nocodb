@@ -87,7 +87,7 @@ export const useProjects = defineStore('projectsStore', () => {
   }
 
   const removeProjectUser = async (projectId: string, user: User) => {
-    await api.auth.projectUserUpdate(projectId, user.id, { ...user, roles: ProjectRoles.NO_ACCESS } as any)
+    await api.auth.projectUserRemove(projectId, user.id)
   }
 
   const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace') => {

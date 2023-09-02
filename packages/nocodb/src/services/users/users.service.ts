@@ -6,7 +6,6 @@ import { isEmail } from 'validator';
 import { T } from 'nc-help';
 import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
-import { genJwt, setTokenCookie } from './helpers';
 import type {
   PasswordChangeReqType,
   PasswordForgotReqType,
@@ -14,6 +13,7 @@ import type {
   SignUpReqType,
   UserType,
 } from 'nocodb-sdk';
+import { genJwt, setTokenCookie } from '~/services/users/helpers';
 import { NC_APP_SETTINGS } from '~/constants';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
@@ -491,7 +491,7 @@ export class UsersService {
     return { ...(await this.login(user)), createdProject };
   }
 
-  async login(user: UserType) {
+  async login(user: UserType & { provider?: string }) {
     this.appHooksService.emit(AppEvents.USER_SIGNIN, {
       user,
     });
@@ -502,7 +502,7 @@ export class UsersService {
 
   async signOut(param: { res: any; req: any }) {
     try {
-      param.res.clearCookie('refresh_token');
+      this.clearCookie(param);
       const user = (param.req as any).user;
       if (user?.id) {
         await User.update(user.id, {
@@ -514,6 +514,10 @@ export class UsersService {
     } catch (e) {
       NcError.badRequest(e.message);
     }
+  }
+
+  protected clearCookie(param: { res: any; req: any }) {
+    param.res.clearCookie('refresh_token');
   }
 
   private async createDefaultProject(user: User) {

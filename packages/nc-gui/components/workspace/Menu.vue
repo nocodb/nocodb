@@ -75,7 +75,7 @@ const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color?: s
 }
 
 const logout = async () => {
-  await signOut()
+  await signOut(false)
   navigateTo('/signin')
 }
 

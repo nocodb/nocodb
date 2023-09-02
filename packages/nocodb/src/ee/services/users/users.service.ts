@@ -244,4 +244,11 @@ export class UsersService extends UsersServiceCE {
 
     return await super.login(user);
   }
+
+  protected clearCookie(param: { res: any; req: any }) {
+    param.res.clearCookie('refresh_token', {
+      httpOnly: true,
+      domain: process.env.NC_BASE_HOST_NAME || undefined,
+    });
+  }
 }

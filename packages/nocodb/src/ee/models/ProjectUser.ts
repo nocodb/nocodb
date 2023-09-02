@@ -145,7 +145,12 @@ export default class ProjectUser extends ProjectUserCE {
           `${MetaTable.PROJECT}.deleted`,
         );
       })
-      .whereNot(`project_role`, ProjectRoles.NO_ACCESS);
+      .where(function () {
+        this.whereNull(`${MetaTable.PROJECT}.roles`).orWhereNot(
+          `${MetaTable.PROJECT}.roles`,
+          ProjectRoles.NO_ACCESS,
+        );
+      });
 
     // filter starred projects
     if (params.starred) {

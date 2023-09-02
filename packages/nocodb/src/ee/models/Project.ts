@@ -287,7 +287,12 @@ export default class Project extends ProjectCE {
         );
       })
       .where(`${MetaTable.PROJECT}.deleted`, false)
-      .whereNot(`project_role`, ProjectRoles.NO_ACCESS);
+      .where(function () {
+        this.whereNull(`${MetaTable.PROJECT}.roles`).orWhereNot(
+          `${MetaTable.PROJECT}.roles`,
+          ProjectRoles.NO_ACCESS,
+        );
+      });
 
     const projects = await projectListQb;
 

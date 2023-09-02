@@ -175,7 +175,7 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
     >
       <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
-      <a-tooltip placement="bottom">
+      <NcTooltip placement="bottom">
         <template #title> Click or drop a file into cell</template>
 
         <div v-if="active || !visibleItems.length" class="flex items-center gap-1">
@@ -189,7 +189,7 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
             Add file(s)
           </div>
         </div>
-      </a-tooltip>
+      </NcTooltip>
     </div>
 
     <div v-else class="flex" />
@@ -204,7 +204,7 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
         }"
       >
         <template v-for="(item, i) of visibleItems" :key="item.url || item.title">
-          <a-tooltip placement="bottom">
+          <NcTooltip placement="bottom">
             <template #title>
               <div class="text-center w-full">{{ item.title }}</div>
             </template>
@@ -222,7 +222,7 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
 
               <IcOutlineInsertDriveFile v-else />
             </div>
-          </a-tooltip>
+          </NcTooltip>
         </template>
       </div>
 
@@ -232,7 +232,7 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
       >
         <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
-        <a-tooltip v-else placement="bottom">
+        <NcTooltip v-else placement="bottom">
           <template #title> View attachments</template>
 
           <component
@@ -240,7 +240,7 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
             class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
             @click.stop="modalVisible = true"
           />
-        </a-tooltip>
+        </NcTooltip>
       </div>
     </template>
 

@@ -95,13 +95,13 @@ onClickOutside(inputWrapperRef, (e) => {
         data-testid="attachment-cell-file-picker-button"
         @click.stop="isVisible = !isVisible"
       >
-        <a-tooltip placement="bottom">
+        <NcTooltip placement="bottom">
             <template #title>Expand</template>
             <component
               :is="iconMap.expand"
-              class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
+              class="transform dark:(!text-white) group-hover:(!text-grey-800 scale-120) text-gray-500 text-xs"
             />
-        </a-tooltip>
+        </NcTooltip>
       </div>
     </div>
     <template #overlay>

@@ -39,10 +39,16 @@ const extractRolesObj = (roles: Roles | string[] | string): Roles => {
   }, {});
 }
 
+const stringifyRolesObj = (roles: Roles): string => {
+  const rolesArr = Object.keys(roles).filter((r) => roles[r]);
+  return rolesArr.join(',');
+}
+
 export {
   filterOutSystemColumns,
   getSystemColumnsIds,
   getSystemColumns,
   isSystemColumn,
   extractRolesObj,
+  stringifyRolesObj,
 };

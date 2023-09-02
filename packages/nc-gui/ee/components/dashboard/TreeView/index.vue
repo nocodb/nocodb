@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
+import { stringifyRolesObj } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import ProjectWrapper from './ProjectWrapper.vue'
 import type { TabType } from '#imports'
@@ -54,7 +55,7 @@ const { activeTable: _activeTable, projectTables } = storeToRefs(useTablesStore(
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { projectRoles } = useRoles()
+const { workspaceRoles } = useRoles()
 
 const keys = ref<Record<string, number>>({})
 
@@ -350,7 +351,7 @@ watch(
         <ProjectWrapper
           v-for="project of projectsList"
           :key="project.id"
-          :project-role="Object.keys(projectRoles)"
+          :project-role="project.project_role || stringifyRolesObj(workspaceRoles)"
           :project="project"
         >
           <DashboardTreeViewProjectNode />

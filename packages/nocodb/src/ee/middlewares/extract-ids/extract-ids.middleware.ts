@@ -7,6 +7,7 @@ import {
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { map } from 'rxjs';
+import { extractRolesObj } from 'nocodb-sdk';
 import type { Observable } from 'rxjs';
 import type {
   CallHandler,
@@ -31,8 +32,7 @@ import {
   Widget,
   Workspace,
 } from '~/models';
-import extractRolesObj from '~/utils/extractRolesObj';
-import projectAcl from '~/utils/projectAcl';
+import rolePermissions from '~/utils/acl';
 import { NcError } from '~/middlewares/catchError';
 
 export const rolesLabel = {
@@ -70,21 +70,13 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
   async use(req, res, next): Promise<any> {
     const { params } = req;
 
-    // extract project id based on request path params
-    if (params.projectName) {
-      const project = await Project.getByTitleOrId(params.projectName);
-      if (project) {
-        req.ncProjectId = project.id;
-        res.locals.project = project;
-      }
-    }
     if (params.projectId) {
       req.ncProjectId = params.projectId;
     } else if (params.dashboardId) {
       req.ncProjectId = params.dashboardId;
-    } else if (params.tableId) {
+    } else if (params.tableId || params.modelId) {
       const model = await Model.getByIdOrName({
-        id: params.tableId,
+        id: params.tableId || params.modelId,
       });
       req.ncProjectId = model?.project_id;
     } else if (params.viewId) {
@@ -182,11 +174,21 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.query.project_id
     ) {
       req.ncProjectId = req.query.project_id;
+      req.ncWorkspaceId = req.query.workspace_id;
     }
 
     // todo:  verify all scenarios
-    // extract workspace id based on request path params or projectId
-    if (req.ncProjectId) {
+    // extract workspace id based on request path params or
+    // extract project id based on request path params
+    if (params.projectName && !req.ncProjectId) {
+      // we expect project_name to be id for EE
+      const project = await Project.get(params.projectName);
+      if (project) {
+        req.ncProjectId = project.id;
+        req.ncWorkspaceId = (project as Project).fk_workspace_id;
+        res.locals.project = project;
+      }
+    } else if (req.ncProjectId) {
       const project = await Project.get(req.ncProjectId);
       if (project) {
         req.ncWorkspaceId = (project as Project).fk_workspace_id;
@@ -238,6 +240,14 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
   }
 }
 
+function getUserRoleForScope(user: any, scope: string) {
+  if (scope === 'project' || scope === 'workspace') {
+    return user?.project_roles || user?.workspace_roles;
+  } else if (scope === 'org') {
+    return user?.roles;
+  }
+}
+
 @Injectable()
 export class AclMiddleware implements NestInterceptor {
   constructor(private reflector: Reflector) {}
@@ -258,24 +268,23 @@ export class AclMiddleware implements NestInterceptor {
       'blockApiTokenAccess',
       context.getHandler(),
     );
-    const workspaceMode = this.reflector.get<boolean>(
-      'workspaceMode',
-      context.getHandler(),
-    );
+    const scope = this.reflector.get<string>('scope', context.getHandler());
 
     const req = context.switchToHttp().getRequest();
     const _res = context.switchToHttp().getResponse();
-    req.customProperty = 'This is a custom property';
 
-    const roles: Record<string, boolean> = extractRolesObj(
-      workspaceMode
-        ? req.user?.workspaceRoles ?? req.user?.roles
-        : req.user?.roles,
-    );
+    const userScopeRole = getUserRoleForScope(req.user, scope);
+
+    if (!userScopeRole) {
+      NcError.forbidden('Unauthorized access');
+    }
+
+    const roles: Record<string, boolean> = extractRolesObj(userScopeRole);
 
     if (req?.user?.is_api_token && blockApiTokenAccess) {
       NcError.forbidden('Not allowed with API token');
     }
+
     if (
       (!allowedRoles || allowedRoles.some((role) => roles?.[role])) &&
       !(
@@ -284,6 +293,11 @@ export class AclMiddleware implements NestInterceptor {
         roles?.editor ||
         roles?.viewer ||
         roles?.commenter ||
+        roles?.[WorkspaceUserRoles.OWNER] ||
+        roles?.[WorkspaceUserRoles.CREATOR] ||
+        roles?.[WorkspaceUserRoles.EDITOR] ||
+        roles?.[WorkspaceUserRoles.VIEWER] ||
+        roles?.[WorkspaceUserRoles.COMMENTER] ||
         roles?.[OrgUserRoles.SUPER_ADMIN] ||
         roles?.[OrgUserRoles.CREATOR] ||
         roles?.[OrgUserRoles.VIEWER]
@@ -298,12 +312,12 @@ export class AclMiddleware implements NestInterceptor {
       Object.entries(roles).some(([name, hasRole]) => {
         return (
           hasRole &&
-          projectAcl[name] &&
-          (projectAcl[name] === '*' ||
-            (projectAcl[name].exclude &&
-              !projectAcl[name].exclude[permissionName]) ||
-            (projectAcl[name].include &&
-              projectAcl[name].include[permissionName]))
+          rolePermissions[name] &&
+          (rolePermissions[name] === '*' ||
+            (rolePermissions[name].exclude &&
+              !rolePermissions[name].exclude[permissionName]) ||
+            (rolePermissions[name].include &&
+              rolePermissions[name].include[permissionName]))
         );
       });
     if (!isAllowed) {
@@ -322,48 +336,22 @@ export class AclMiddleware implements NestInterceptor {
   }
 }
 
-export const UseIdsMiddleware =
-  () => (target: any, key?: string, descriptor?: PropertyDescriptor) => {
-    UseInterceptors(ExtractIdsMiddleware)(target, key, descriptor);
-  };
-
-export const UseAclMiddleware =
-  ({
-    permissionName,
-    allowedRoles,
-    workspaceMode,
-    blockApiTokenAccess,
-  }: {
-    permissionName: string;
-    workspaceMode?: boolean;
-    allowedRoles?: (OrgUserRoles | string)[];
-    blockApiTokenAccess?: boolean;
-  }) =>
-  (target: any, key?: string, descriptor?: PropertyDescriptor) => {
-    SetMetadata('permission', permissionName)(target, key, descriptor);
-    SetMetadata('allowedRoles', allowedRoles)(target, key, descriptor);
-    SetMetadata('blockApiTokenAccess', blockApiTokenAccess)(
-      target,
-      key,
-      descriptor,
-    );
-    SetMetadata('workspaceMode', workspaceMode)(target, key, descriptor);
-
-    UseInterceptors(AclMiddleware)(target, key, descriptor);
-  };
 export const Acl =
   (
     permissionName: string,
     {
+      scope = 'project',
       allowedRoles,
       blockApiTokenAccess,
     }: {
+      scope?: string;
       allowedRoles?: (OrgUserRoles | string)[];
       blockApiTokenAccess?: boolean;
     } = {},
   ) =>
   (target: any, key?: string, descriptor?: PropertyDescriptor) => {
     SetMetadata('permission', permissionName)(target, key, descriptor);
+    SetMetadata('scope', scope)(target, key, descriptor);
     SetMetadata('allowedRoles', allowedRoles)(target, key, descriptor);
     SetMetadata('blockApiTokenAccess', blockApiTokenAccess)(
       target,

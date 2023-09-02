@@ -1,5 +1,5 @@
 import ProjectCE from 'src/models/Project';
-import { ProjectTypes } from 'nocodb-sdk';
+import { ProjectRoles, ProjectTypes } from 'nocodb-sdk';
 import type { ProjectType } from 'nocodb-sdk';
 import DashboardProjectDBProject from '~/models/DashboardProjectDBProject';
 import Noco from '~/Noco';
@@ -22,7 +22,7 @@ export default class Project extends ProjectCE {
   public type?: 'database' | 'documentation' | 'dashboard';
   public fk_workspace_id?: string;
 
-  static castType(project: Project): Project {
+  public static castType(project: Project): Project {
     return project && new Project(project);
   }
 
@@ -286,7 +286,13 @@ export default class Project extends ProjectCE {
           ncMeta.knex.raw('?', [userId]),
         );
       })
-      .where(`${MetaTable.PROJECT}.deleted`, false);
+      .where(`${MetaTable.PROJECT}.deleted`, false)
+      .where(function () {
+        this.whereNull(`${MetaTable.PROJECT_USERS}.roles`).orWhereNot(
+          `${MetaTable.PROJECT_USERS}.roles`,
+          ProjectRoles.NO_ACCESS,
+        );
+      });
 
     const projects = await projectListQb;
 

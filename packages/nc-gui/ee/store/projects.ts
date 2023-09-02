@@ -1,6 +1,6 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { BaseType, OracleUi, ProjectType, ProjectUserReqType, RequestParams } from 'nocodb-sdk'
-import { SqlUiFactory } from 'nocodb-sdk'
+import { ProjectRoles, SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import type { NcProject, User } from '#imports'
 import { NcProjectType, useWorkspace } from '#imports'
@@ -8,6 +8,8 @@ import { NcProjectType, useWorkspace } from '#imports'
 // todo: merge with project store
 export const useProjects = defineStore('projectsStore', () => {
   const { $api } = useNuxtApp()
+
+  const { loadRoles } = useRoles()
 
   const projects = ref<Map<string, NcProject>>(new Map())
 
@@ -39,8 +41,6 @@ export const useProjects = defineStore('projectsStore', () => {
 
     return basesMap
   })
-
-  const roles = computed(() => openedProject.value?.project_role || openedProject.value?.workspace_role)
 
   const workspaceStore = useWorkspace()
   const tableStore = useTablesStore()
@@ -84,6 +84,10 @@ export const useProjects = defineStore('projectsStore', () => {
 
   const updateProjectUser = async (projectId: string, user: User) => {
     await api.auth.projectUserUpdate(projectId, user.id, user as ProjectUserReqType)
+  }
+
+  const removeProjectUser = async (projectId: string, user: User) => {
+    await api.auth.projectUserRemove(projectId, user.id)
   }
 
   const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace') => {
@@ -326,6 +330,7 @@ export const useProjects = defineStore('projectsStore', () => {
     if (!activeProjectId.value) return
     if (isProjectPopulated(activeProjectId.value)) return
     loadProject(activeProjectId.value)
+    loadRoles(activeProjectId.value)
   })
 
   const navigateToFirstProjectOrHome = async () => {
@@ -357,10 +362,10 @@ export const useProjects = defineStore('projectsStore', () => {
     activeProjectId,
     openedProject,
     openedProjectBasesMap,
-    roles,
     getProjectUsers,
     createProjectUser,
     updateProjectUser,
+    removeProjectUser,
     navigateToProject,
     navigateToFirstProjectOrHome,
   }

@@ -1,12 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
-import { OrgUserRoles } from 'nocodb-sdk';
-import { ProjectUser, User } from '~/models';
+import { User } from '~/models';
 import { UsersService } from '~/services/users/users.service';
-import WorkspaceUser from '~/models/WorkspaceUser';
-import extractRolesObj from '~/utils/extractRolesObj';
-import { sanitiseUserObj } from '~/utils';
 import { NcError } from '~/helpers/catchError';
 
 @Injectable()
@@ -21,19 +17,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(req, jwtPayload) {
     if (!jwtPayload?.email) return jwtPayload;
 
-    // todo: improve this, caching
-    if (
-      req.ncProjectId &&
-      extractRolesObj(jwtPayload.roles)[OrgUserRoles.SUPER_ADMIN]
-    ) {
-      const user = await User.getByEmail(jwtPayload?.email);
-
-      return {
-        ...sanitiseUserObj(user),
-        roles: `owner,creator,${OrgUserRoles.SUPER_ADMIN}`,
-      };
-    }
-
     const user = await User.getByEmail(jwtPayload?.email);
 
     if (
@@ -43,55 +26,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     ) {
       NcError.unauthorized('Token Expired. Please login again.');
     }
-
-    const [workspaceRoles, projectRoles] = await Promise.all([
-      // extract workspace evel roles
-      new Promise((resolve) => {
-        if (req.ncWorkspaceId) {
-          // todo: cache
-          // extract workspace role
-          WorkspaceUser.get(req.ncWorkspaceId, user.id)
-            .then((workspaceUser) => {
-              resolve(workspaceUser?.roles);
-            })
-            .catch(() => resolve(null));
-        } else {
-          resolve(null);
-        }
-      }),
-      // extract project level roles
-      new Promise((resolve) => {
-        if (req.ncProjectId) {
-          ProjectUser.get(req.ncProjectId, user.id).then(
-            async (projectUser) => {
-              let roles = projectUser?.roles;
-              roles = roles === 'owner' ? 'owner,creator' : roles;
-              // + (user.roles ? `,${user.roles}` : '');
-              resolve(roles);
-              // todo: cache
-            },
-          );
-        } else {
-          resolve(null);
-        }
-      }),
-    ]);
-
-    // override workspace level role with project level role if exists
-    // since project level role is more specific
-    const workspaceOrProjectRoles = projectRoles || workspaceRoles;
-
     return {
-      ...sanitiseUserObj(user),
-      roles: extractRolesObj(
-        [user.roles, workspaceOrProjectRoles].filter(Boolean).join(','),
-      ),
-      workspaceRoles: workspaceRoles
-        ? extractRolesObj((workspaceRoles as any)?.split(',').filter(Boolean))
-        : null,
-      projectRoles: projectRoles
-        ? extractRolesObj((projectRoles as any)?.split(',').filter(Boolean))
-        : null,
+      ...(await User.getWithRoles(user.id, {
+        user,
+        projectId: req.ncProjectId,
+        workspaceId: req.ncWorkspaceId,
+      })),
       provider: jwtPayload.provider ?? undefined,
     };
   }

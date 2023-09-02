@@ -6,7 +6,9 @@ import { isEeUI } from '#imports'
 const router = useRouter()
 const route = router.currentRoute
 
-const { isWorkspaceOwnerOrCreator, isWorkspaceOwner, activeWorkspace } = storeToRefs(useWorkspace())
+const workspaceStore = useWorkspace()
+const { isWorkspaceOwnerOrCreator, isWorkspaceOwner, activeWorkspace, workspaces } = storeToRefs(workspaceStore)
+const { loadCollaborators } = workspaceStore
 
 const { appInfo } = useGlobal()
 
@@ -15,6 +17,7 @@ const tab = computed({
     return route.value.query?.tab ?? 'collaborators'
   },
   set(tab: string) {
+    if (tab === 'collaborators') loadCollaborators()
     router.push({ query: { ...route.value.query, tab } })
   },
 })
@@ -34,6 +37,18 @@ watch(
     immediate: true,
   },
 )
+
+onMounted(() => {
+  until(() => activeWorkspace.value?.id)
+    .toMatch((v) => !!v)
+    .then(() => {
+      until(() => workspaces.value)
+        .toMatch((v) => v.has(activeWorkspace.value.id))
+        .then(() => {
+          loadCollaborators()
+        })
+    })
+})
 </script>
 
 <template>

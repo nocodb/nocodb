@@ -12,6 +12,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import * as ejs from 'ejs';
 import { ConfigService } from '@nestjs/config';
+import { extractRolesObj } from 'nocodb-sdk';
 import type { AppConfig } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { NcError } from '~/helpers/catchError';
@@ -20,7 +21,6 @@ import { User } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { randomTokenString, setTokenCookie } from '~/services/users/helpers';
 import { UsersService } from '~/services/users/users.service';
-import extractRolesObj from '~/utils/extractRolesObj';
 
 @Controller()
 export class UsersController {
@@ -115,6 +115,8 @@ export class UsersController {
     const user = {
       ...req.user,
       roles: extractRolesObj(req.user.roles),
+      workspace_roles: extractRolesObj(req.user.workspace_roles),
+      project_roles: extractRolesObj(req.user.project_roles),
     };
     return user;
   }
@@ -125,7 +127,9 @@ export class UsersController {
     '/api/v1/auth/password/change',
   ])
   @UseGuards(GlobalGuard)
-  @Acl('passwordChange')
+  @Acl('passwordChange', {
+    scope: 'org',
+  })
   @HttpCode(200)
   async passwordChange(@Request() req: any): Promise<any> {
     if (!(req as any).isAuthenticated()) {

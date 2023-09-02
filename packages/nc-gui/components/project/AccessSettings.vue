@@ -2,7 +2,7 @@
 import { OrderedProjectRoles, RoleColors, RoleLabels } from 'nocodb-sdk'
 import type { ProjectRoles, WorkspaceUserType } from 'nocodb-sdk'
 import InfiniteLoading from 'v3-infinite-loading'
-import { storeToRefs, stringToColour, timeAgo, useGlobal } from '#imports'
+import { isEeUI, storeToRefs, stringToColour, timeAgo, useGlobal } from '#imports'
 
 const { user } = useGlobal()
 const projectsStore = useProjects()
@@ -74,7 +74,7 @@ onMounted(async () => {
 
 const updateCollaborator = async (collab, roles) => {
   try {
-    if (!roles) {
+    if (!roles || roles === 'inherit') {
       await removeProjectUser(activeProjectId.value!, collab)
       collab.projectRoles = null
     } else if (collab.projectRoles) {
@@ -188,7 +188,7 @@ const accessibleRoles = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles
                   :virtual="true"
                   :placeholder="$t('labels.noAccess')"
                   :disabled="collab.id === user?.id"
-                  allow-clear
+                  :allow-clear="!isEeUI"
                   @change="(value) => updateCollaborator(collab, value)"
                 >
                   <template #suffixIcon>
@@ -211,6 +211,11 @@ const accessibleRoles = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles
                       </NcBadge>
                     </a-select-option>
                   </template>
+                  <a-select-option v-if="isEeUI" value="inherit">
+                    <NcBadge color="white">
+                      <p class="badge-text">Inherit</p>
+                    </NcBadge>
+                  </a-select-option>
                 </NcSelect>
               </div>
             </div>

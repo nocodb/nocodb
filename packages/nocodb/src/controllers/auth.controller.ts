@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Get,
   HttpCode,
   Post,
   Request,
@@ -10,10 +9,8 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import type { AppConfig } from '~/interface/config';
-import { GlobalGuard } from '~/guards/global/global.guard';
 import { AuthService } from '~/services/auth.service';
 import { NcError } from '~/helpers/catchError';
-import extractRolesObj from '~/utils/extractRolesObj';
 
 export class CreateUserDto {
   readonly username: string;
@@ -45,15 +42,5 @@ export class AuthController {
       NcError.forbidden('Email authentication is disabled');
     }
     return await this.authService.signup(createUserDto);
-  }
-
-  @UseGuards(GlobalGuard)
-  @Get('/api/v1/auth/user/me')
-  async me(@Request() req) {
-    const user = {
-      ...req.user,
-      roles: extractRolesObj(req.user.roles),
-    };
-    return user;
   }
 }

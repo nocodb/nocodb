@@ -17,6 +17,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const projectsStore = useProjects()
   const { clearProjects } = projectsStore
 
+  const { loadRoles } = useRoles()
+
   const collaborators = ref<WorkspaceUserType[] | null>()
 
   const lastPopulatedWorkspaceId = ref<string | null>(null)
@@ -34,6 +36,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const { $e } = useNuxtApp()
 
   const { appInfo, ncNavigateTo } = useGlobal()
+
+  const { isUIAllowed } = useUIPermission()
 
   const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
@@ -266,9 +270,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     if (force || !workspaces.value.get(workspaceId)) {
       await loadWorkspace(workspaceId)
+      await loadRoles()
     }
+
     if (activeWorkspace.value?.status === WorkspaceStatus.CREATED) {
-      await Promise.all([loadCollaborators(), projectsStore.loadProjects()])
+      await projectsStore.loadProjects()
     }
     isWorkspaceLoading.value = false
   }

@@ -37,7 +37,7 @@ export default class Project implements ProjectType {
     Object.assign(this, project);
   }
 
-  static castType(project: Project): Project {
+  public static castType(project: Project): Project {
     return project && new Project(project);
   }
 

@@ -55,12 +55,17 @@ function onPressEnter() {
 }
 
 const displayColumnLabel = computed(() => {
-  return columns.value?.find((column) => column.primaryValue)?.label
+  const columnLabel = search.value.field.length === 0?columns.value?.find(column => column.primaryValue)?.label:
+  columns.value?.find(column => column.value === search.value.field)?.label
+  return (columnLabel && columnLabel.length > 10)
+    ? columnLabel.slice(0, 10) + '...'
+    : columnLabel;
 })
 
 watch(
   () => search.value.field,
   () => {
+    console.log(columns.value)
     onPressEnter()
   }
 )
@@ -89,7 +94,12 @@ watchDebounced(
       @click="isDropdownOpen = !isDropdownOpen"
     >
       <GeneralIcon icon="search" class="ml-1 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
-
+      <NcBadge color="purple">
+      <p class="pt-1 text-center text-xs font-regular text-gray-400"
+      >
+        in {{ displayColumnLabel }}
+      </p>
+    </NcBadge>
       <component :is="iconMap.arrowDown" class="ml-1 text-gray-400 !text-sm" />
 
       <a-select
@@ -116,14 +126,13 @@ watchDebounced(
       :style="{
         width: '12rem',
       }"
-      :placeholder="`${$t('general.search')} in ${displayColumnLabel}`"
+      :placeholder="`${$t('general.search')}`"
       :bordered="false"
       data-testid="search-data-input"
       @press-enter="onPressEnter"
       @focus="isFocused = true"
       @blur="isFocused = false"
     >
-      <template #addonBefore> </template>
     </a-input>
   </div>
 </template>

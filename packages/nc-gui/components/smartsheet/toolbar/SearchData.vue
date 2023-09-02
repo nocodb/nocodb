@@ -55,17 +55,17 @@ function onPressEnter() {
 }
 
 const displayColumnLabel = computed(() => {
-  const columnLabel = search.value.field.length === 0?columns.value?.find(column => column.primaryValue)?.label:
-  columns.value?.find(column => column.value === search.value.field)?.label
-  return (columnLabel && columnLabel.length > 10)
-    ? columnLabel.slice(0, 10) + '...'
-    : columnLabel;
+  if (search.value.field) {
+    // use search field label if specified
+    return columns.value?.find((column) => column.value === search.value.field)?.label
+  }
+  // use primary value label by default
+  return columns.value?.find((column) => column.primaryValue)?.label
 })
 
 watch(
   () => search.value.field,
   () => {
-    console.log(columns.value)
     onPressEnter()
   }
 )
@@ -95,7 +95,7 @@ watchDebounced(
     >
       <GeneralIcon icon="search" class="ml-1 mr-2 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
         <NcBadge class="mb-1" color="blue">
-          <p class="pt-1 text-center text-xs font-regular text-blue-600"
+          <p class="pt-1 text-center text-xs text-blue-600 truncate"
           >
             in '{{ displayColumnLabel }}'
           </p>
@@ -112,7 +112,7 @@ watchDebounced(
       >
         <a-select-option v-for="op of columns" :key="op.value" :value="op.value">
           <div class="flex items-center -ml-1 gap-2">
-            <SmartsheetHeaderIcon class="" :column="op.column" />
+            <SmartsheetHeaderIcon :column="op.column" />
             {{ op.label }}
           </div>
         </a-select-option>
@@ -126,7 +126,7 @@ watchDebounced(
       :style="{
         width: '12rem',
       }"
-      :placeholder="`${$t('general.search')}`"
+      :placeholder="$t('general.search')"
       :bordered="false"
       data-testid="search-data-input"
       @press-enter="onPressEnter"

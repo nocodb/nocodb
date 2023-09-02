@@ -140,8 +140,8 @@ export default class WorkspaceUser {
             );
           })
           .where(function () {
-            this.whereNull(`${MetaTable.PROJECT}.roles`).orWhereNot(
-              `${MetaTable.PROJECT}.roles`,
+            this.whereNull(`${MetaTable.PROJECT_USERS}.roles`).orWhereNot(
+              `${MetaTable.PROJECT_USERS}.roles`,
               ProjectRoles.NO_ACCESS,
             );
           }),

@@ -288,8 +288,8 @@ export default class Project extends ProjectCE {
       })
       .where(`${MetaTable.PROJECT}.deleted`, false)
       .where(function () {
-        this.whereNull(`${MetaTable.PROJECT}.roles`).orWhereNot(
-          `${MetaTable.PROJECT}.roles`,
+        this.whereNull(`${MetaTable.PROJECT_USERS}.roles`).orWhereNot(
+          `${MetaTable.PROJECT_USERS}.roles`,
           ProjectRoles.NO_ACCESS,
         );
       });

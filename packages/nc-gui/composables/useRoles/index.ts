@@ -38,7 +38,7 @@ export const useRoles = createSharedComposable(() => {
     }
   })
 
-  const scopedRoles = computed<Record<string, Roles>>(() => {
+  const orgRoles = computed<Roles>(() => {
     let orgRoles = user.value?.roles ?? {}
 
     // if string populate key-value paired object
@@ -46,17 +46,18 @@ export const useRoles = createSharedComposable(() => {
       orgRoles = extractRolesObj(orgRoles)
     }
 
-    let projectRoles = user.value?.project_roles ?? {}
+    return orgRoles
+  })
+
+  const projectRoles = computed<Roles>(() => {
+    let projectRoles = user.value?.project_roles ?? user.value?.roles ?? {}
 
     // if string populate key-value paired object
     if (isString(projectRoles)) {
       projectRoles = extractRolesObj(projectRoles)
     }
 
-    return {
-      orgRoles,
-      projectRoles,
-    }
+    return projectRoles
   })
 
   async function loadRoles(
@@ -116,5 +117,5 @@ export const useRoles = createSharedComposable(() => {
     return allRoles.value[role]
   }
 
-  return { allRoles, scopedRoles, loadRoles, hasRole }
+  return { allRoles, orgRoles, projectRoles, loadRoles, hasRole }
 })

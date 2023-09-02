@@ -37,7 +37,7 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { userRoles } = useRoles()
+const { projectRoles } = useRoles()
 
 const projectsStore = useProjects()
 
@@ -259,7 +259,7 @@ watch(
         <ProjectWrapper
           v-for="project of projectsList"
           :key="project.id"
-          :project-role="project.project_role || project.workspace_role || userRoles"
+          :project-role="Object.keys(projectRoles)"
           :project="project"
         >
           <DashboardTreeViewProjectNode />

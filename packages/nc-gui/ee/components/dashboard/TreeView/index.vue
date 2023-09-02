@@ -54,6 +54,8 @@ const { activeTable: _activeTable, projectTables } = storeToRefs(useTablesStore(
 
 const { refreshCommandPalette } = useCommandPalette()
 
+const { projectRoles } = useRoles()
+
 const keys = ref<Record<string, number>>({})
 
 const menuRefs = ref<HTMLElement[] | HTMLElement>()
@@ -348,7 +350,7 @@ watch(
         <ProjectWrapper
           v-for="project of projectsList"
           :key="project.id"
-          :project-role="project.project_role || project.workspace_role"
+          :project-role="Object.keys(projectRoles)"
           :project="project"
         >
           <DashboardTreeViewProjectNode />

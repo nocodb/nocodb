@@ -11,7 +11,7 @@ export const useDocStore = defineStore('docStore', () => {
 
   const { appInfo } = useGlobal()
 
-  const { scopedRoles } = useRoles()
+  const { projectRoles } = useRoles()
 
   const { setProject } = useProject()
 
@@ -51,9 +51,9 @@ export const useDocStore = defineStore('docStore', () => {
     return (
       !isPublic.value &&
       !!(
-        scopedRoles.value.projectRoles[ProjectRole.Creator] ||
-        scopedRoles.value.projectRoles[ProjectRole.Owner] ||
-        scopedRoles.value.projectRoles[ProjectRole.Editor]
+        projectRoles.value[ProjectRole.Creator] ||
+        projectRoles.value[ProjectRole.Owner] ||
+        projectRoles.value[ProjectRole.Editor]
       )
     )
   })

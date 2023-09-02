@@ -34,6 +34,8 @@ export function useSharedView() {
 
   const password = useState<string | undefined>('password', () => undefined)
 
+  provide(SharedViewPasswordInj, password)
+
   const allowCSVDownload = useState<boolean>('allowCSVDownload', () => false)
 
   const meta = useState<TableType | KanbanType | MapType | undefined>('meta', () => undefined)

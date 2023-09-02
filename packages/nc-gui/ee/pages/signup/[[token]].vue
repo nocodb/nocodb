@@ -112,6 +112,10 @@ async function signUp() {
 function resetError() {
   if (error.value) error.value = null
 }
+
+// todo: move to utils
+// extract workspace id from url
+const subDomain = location.host?.split('.')[0]
 </script>
 
 <template>
@@ -195,7 +199,7 @@ function resetError() {
               v-if="appInfo.oidcAuthEnabled"
               class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
             >
-              <a :href="`${appInfo.ncSiteUrl}/auth/oidc`" class="!text-primary !no-underline">
+              <a :href="`${appInfo.ncSiteUrl}/auth/oidc?workspaceId=${subDomain}`" class="!text-primary !no-underline">
                 <button type="button" class="scaling-btn bg-opacity-100">
                   <span class="flex items-center gap-2">
                     <MdiLogin />

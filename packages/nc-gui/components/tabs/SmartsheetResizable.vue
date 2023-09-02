@@ -11,9 +11,7 @@ const {
 const wrapperRef = ref<HTMLDivElement>()
 const splitpaneWrapperRef = ref()
 
-const sidebarState = ref<
-  'openStart' | 'openEnd' | 'hiddenStart' | 'hiddenEnd' | 'peekOpenStart' | 'peekOpenEnd' | 'peekCloseOpen' | 'peekCloseEnd'
->(isRightSidebarOpen.value ? 'openEnd' : 'hiddenEnd')
+const { rightSidebarState: sidebarState } = storeToRefs(useSidebarStore())
 
 const contentSize = computed(() => 100 - sideBarSize.value.current)
 const animationDuration = 250

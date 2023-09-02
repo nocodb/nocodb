@@ -9,6 +9,8 @@ const workspaceStore = useWorkspace()
 const { activeWorkspace, workspacesList, collaborators } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
+const { leftSidebarState } = storeToRefs(useSidebarStore())
+
 const { navigateToTable } = useTablesStore()
 
 const { appInfo, navigateToProject } = useGlobal()
@@ -49,6 +51,12 @@ const switchWorkspace = async (workspaceId: string) => {
     workspaceId,
   })
 }
+
+watch(leftSidebarState, () => {
+  if (leftSidebarState.value === 'peekCloseEnd') {
+    isWorkspaceDropdownOpen.value = false
+  }
+})
 </script>
 
 <template>

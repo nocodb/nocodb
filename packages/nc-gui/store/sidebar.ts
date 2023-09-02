@@ -15,11 +15,21 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     current: 17.5,
   })
 
+  const leftSidebarState = ref<
+    'openStart' | 'openEnd' | 'hiddenStart' | 'hiddenEnd' | 'peekOpenStart' | 'peekOpenEnd' | 'peekCloseOpen' | 'peekCloseEnd'
+  >(isLeftSidebarOpen.value ? 'openEnd' : 'hiddenEnd')
+
+  const rightSidebarState = ref<
+    'openStart' | 'openEnd' | 'hiddenStart' | 'hiddenEnd' | 'peekOpenStart' | 'peekOpenEnd' | 'peekCloseOpen' | 'peekCloseEnd'
+  >(isRightSidebarOpen.value ? 'openEnd' : 'hiddenEnd')
+
   return {
     isLeftSidebarOpen,
     isRightSidebarOpen,
     rightSidebarSize,
     leftSidebarWidthPercent,
     leftSideBarSize,
+    leftSidebarState,
+    rightSidebarState,
   }
 })

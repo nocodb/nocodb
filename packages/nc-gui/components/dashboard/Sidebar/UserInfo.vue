@@ -4,6 +4,8 @@ const { user, signOut, token, appInfo } = useGlobal()
 
 const { clearWorkspaces } = useWorkspace()
 
+const { leftSidebarState } = storeToRefs(useSidebarStore())
+
 const { copy } = useCopy(true)
 
 const name = computed(() => `${user.value?.firstname ?? ''} ${user.value?.lastname ?? ''}`.trim())
@@ -32,6 +34,12 @@ const onCopy = async () => {
 watch(isMenuOpen, () => {
   if (isAuthTokenCopied.value) {
     isAuthTokenCopied.value = false
+  }
+})
+
+watch(leftSidebarState, () => {
+  if (leftSidebarState.value === 'peekCloseEnd') {
+    isMenuOpen.value = false
   }
 })
 </script>

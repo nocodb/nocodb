@@ -1,36 +1,21 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia'
 import type { WorkspaceType } from 'nocodb-sdk'
-import { useDebounceFn } from '@vueuse/core'
-import tinycolor from 'tinycolor2'
-import { onMounted, projectThemeColors, ref, useWorkspace } from '#imports'
+import { useWorkspace } from '#imports'
 import { navigateTo } from '#app'
-
-const props = defineProps<{
-  isOpen: boolean
-}>()
 
 const workspaceStore = useWorkspace()
 
-const { saveTheme } = workspaceStore
-const { activeWorkspace, workspacesList, isWorkspaceOwner } = storeToRefs(workspaceStore)
-const { loadWorkspaces, clearWorkspaces } = workspaceStore
+const { activeWorkspace, workspacesList, collaborators } = storeToRefs(workspaceStore)
+const { loadWorkspaces } = workspaceStore
+
+const { leftSidebarState } = storeToRefs(useSidebarStore())
 
 const { navigateToTable } = useTablesStore()
 
-const { signOut, signedIn, user, token, navigateToProject } = useGlobal()
+const { appInfo, navigateToProject } = useGlobal()
 
-const { copy } = useCopy(true)
-
-const email = computed(() => user.value?.email ?? '---')
-
-const { isUIAllowed } = useUIPermission()
-
-const { theme, defaultTheme } = useTheme()
-
-const workspaceModalVisible = ref(false)
 const isWorkspaceDropdownOpen = ref(false)
-const isAuthTokenCopied = ref(false)
 
 const createDlg = ref(false)
 
@@ -57,290 +42,117 @@ const onWorkspaceCreate = async (workspace: WorkspaceType) => {
   navigateTo(`/${workspace.id}`)
 }
 
-const updateWorkspaceTitle = useDebounceFn(async () => {
-  if (!activeWorkspace.value || !activeWorkspace.value.id) return
-  await workspaceStore.updateWorkspace(activeWorkspace.value.id, {
-    title: activeWorkspace.value.title,
-  })
-}, 500)
-
-const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color?: string) => {
-  switch (mode) {
-    case 'swatch': {
-      if (color === defaultTheme.primaryColor) {
-        return await saveTheme(defaultTheme)
-      }
-
-      const tcolor = tinycolor(color)
-      if (tcolor.isValid()) {
-        const complement = tcolor.complement()
-
-        await saveTheme({
-          primaryColor: color,
-          accentColor: complement.toHex8String(),
-        })
-      }
-      break
-    }
-    case 'primary': {
-      const tcolor = tinycolor(color)
-
-      if (tcolor.isValid()) {
-        await saveTheme({
-          primaryColor: color,
-        })
-      }
-      break
-    }
-    case 'accent': {
-      const tcolor = tinycolor(color)
-
-      if (tcolor.isValid()) {
-        await saveTheme({
-          accentColor: color,
-        })
-      }
-      break
-    }
-  }
-}
-
-const logout = async () => {
-  clearWorkspaces()
-  await signOut(false)
-  navigateTo('/signin')
-}
-
 const projectStore = useProject()
 
 const { isSharedBase } = storeToRefs(projectStore)
-
-// todo: temp
-const modalVisible = false
-
-const copyAuthToken = async () => {
-  try {
-    await copy(token.value!)
-    isAuthTokenCopied.value = true
-  } catch (e: any) {
-    console.error(e)
-    message.error(e.message)
-  }
-}
-
-onKeyStroke('Escape', () => {
-  if (isWorkspaceDropdownOpen.value) {
-    isWorkspaceDropdownOpen.value = false
-  }
-})
 
 const switchWorkspace = async (workspaceId: string) => {
   navigateToProject({
     workspaceId,
   })
 }
+
+watch(leftSidebarState, () => {
+  if (leftSidebarState.value === 'peekCloseEnd') {
+    isWorkspaceDropdownOpen.value = false
+  }
+})
 </script>
 
 <template>
-  <div class="min-w-2 w-full">
-    <a-dropdown
+  <div
+    v-if="isSharedBase"
+    class="flex flex-row flex-grow pl-0.5 pr-1 py-0.5 rounded-md w-full"
+    style="max-width: calc(100% - 2.5rem)"
+  >
+    <div class="flex-grow min-w-20">
+      <div
+        data-testid="nc-workspace-menu"
+        class="flex items-center nc-workspace-menu overflow-hidden py-1.25 pr-0.25 justify-center w-full"
+      >
+        <a
+          class="w-10 min-w-10 transition-all duration-200 p-1 transform"
+          href="https://github.com/nocodb/nocodb"
+          target="_blank"
+        >
+          <img width="25" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
+        </a>
+
+        <div class="font-semibold text-base">Nocodb</div>
+        <div class="flex flex-grow"></div>
+      </div>
+    </div>
+  </div>
+  <div
+    v-else
+    class="flex flex-row flex-grow hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md w-full"
+    style="max-width: calc(100% - 2.5rem)"
+  >
+    <NcDropdown
       v-model:visible="isWorkspaceDropdownOpen"
-      class="h-full min-w-0"
+      class="h-full min-w-0 rounded-lg"
       :trigger="['click']"
       placement="bottom"
-      overlay-class-name="nc-dropdown-workspace-menu"
+      overlay-class-name="nc-dropdown-workspace-menu !overflow-hidden"
     >
       <div
-        :style="{ width: props.isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
-        :class="[props.isOpen ? '' : 'justify-center']"
         data-testid="nc-workspace-menu"
-        class="group cursor-pointer flex gap-1 items-center nc-workspace-menu overflow-hidden py-1.25 pr-0.25"
+        class="group cursor-pointer flex flex-grow w-full gap-x-2 items-center nc-workspace-menu overflow-hidden py-1.25 pr-0.25"
       >
-        <slot name="brandIcon" />
-        <template v-if="props.isOpen">
-          <div v-if="activeWorkspace" class="flex flex-grow w-full min-w-10 font-semibold text-base">
-            <div class="text-md truncate capitalize">{{ activeWorkspace.title }}</div>
-          </div>
+        <GeneralWorkspaceIcon :workspace="activeWorkspace" />
+        <div v-if="activeWorkspace" class="flex min-w-10 font-semibold text-base max-w-82/100">
+          <div class="text-md truncate capitalize">{{ activeWorkspace.title }}</div>
+        </div>
 
-          <GeneralIcon icon="arrowDown" class="min-w-6 text-lg !text-gray-700" />
-        </template>
-
-        <template v-else>
-          <MdiFolder class="text-primary cursor-pointer transform hover:scale-105 text-2xl" />
-        </template>
+        <GeneralIcon icon="arrowDown" class="min-w-6 text-lg !text-gray-700" />
+        <div class="flex flex-grow"></div>
       </div>
 
       <template #overlay>
-        <a-menu class="" @click="isWorkspaceDropdownOpen = false">
+        <NcMenu class="nc-workspace-dropdown-inner" style="min-width: calc(110% + 1rem)" @click="isWorkspaceDropdownOpen = false">
           <a-menu-item-group class="!border-t-0">
-            <!--  <div class="nc-menu-sub-head">Current Workspace</div> -->
-            <div class="group select-none flex items-center gap-4 p-2 pb-1 !border-t-0">
-              <input
-                v-if="activeWorkspace"
-                v-model="activeWorkspace.title"
-                :readonly="!isUIAllowed('workspaceUpdate', false, activeWorkspace?.roles)"
-                class="nc-workspace-title-input text-current capitalize group-hover:text-accent"
-                @input="updateWorkspaceTitle"
-              />
+            <div class="flex gap-x-3 min-w-0 px-4 py-3 items-center">
+              <GeneralWorkspaceIcon :workspace="activeWorkspace" size="large" />
+              <div class="flex flex-col gap-y-0">
+                <div
+                  class="mt-0.5 flex capitalize mb-0 nc-workspace-title truncate min-w-10 text-sm text-black font-medium"
+                  style="line-height: 1.5rem"
+                >
+                  {{ activeWorkspace?.title }}
+                </div>
+                <div class="flex flex-row items-center gap-x-2">
+                  <div class="nc-workspace-dropdown-active-workspace-info">Free Plan</div>
+                  <div class="nc-workspace-dropdown-active-workspace-info">.</div>
+                  <div class="nc-workspace-dropdown-active-workspace-info">
+                    {{ collaborators?.length }} {{ Number(collaborators?.length) > 1 ? 'members' : 'member' }}
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <!-- <a-menu-item @click="workspaceModalVisible = true">
-              <div class="nc-workspace-menu-item group">
-                <PhFadersThin />
-                Settings
-              </div>
-            </a-menu-item> -->
+            <NcDivider />
 
-            <a-menu-divider />
-
-            <div class="nc-menu-sub-head">Workspaces</div>
-
-            <div class="max-h-300px nc-scrollbar-md">
+            <div class="max-h-300px nc-scrollbar-md !overflow-y-auto">
               <a-menu-item v-for="workspace of otherWorkspaces" :key="workspace.id!" @click="switchWorkspace(workspace.id!)">
                 <div class="nc-workspace-menu-item group capitalize max-w-300px flex" data-testid="nc-workspace-list">
-                  <GeneralIcon icon="workspace" class="group-hover:text-accent" />
-                  <span class="truncate min-w-10 flex-shrink">
-                    {{ workspace.title }}
-                  </span>
+                  <GeneralWorkspaceIcon :workspace="workspace" hide-label size="small" />
+                  <div class="mt-0.5 flex capitalize mb-0 nc-workspace-title truncate min-w-10">
+                    {{ workspace?.title }}
+                  </div>
                 </div>
               </a-menu-item>
             </div>
             <a-menu-item @click="createDlg = true">
-              <div class="nc-workspace-menu-item group text-gray-700 group-hover:text-black">
-                <GeneralIcon icon="plus" class="mr-1" />
+              <div class="nc-workspace-menu-item group">
+                <GeneralIcon icon="plusSquare" class="!text-inherit" />
 
-                <div class="">Add new workspace</div>
+                <div class="">Create New Workspace</div>
               </div>
             </a-menu-item>
-            <a-menu-divider />
 
-            <!-- <a-menu-item @click="workspaceModalVisible = true">
-              <div class="nc-workspace-menu-item group">
-                <GeneralIcon icon="users" />
-                Collaborators
-              </div>
-            </a-menu-item> -->
-
-            <template v-if="!isSharedBase">
-              <!-- Copy Auth Token -->
-              <a-menu-item key="copy">
-                <div
-                  v-e="['a:navbar:user:copy-auth-token']"
-                  class="nc-workspace-menu-item group !gap-x-3"
-                  @click.stop="copyAuthToken"
-                >
-                  <GeneralIcon v-if="isAuthTokenCopied" icon="check" class="group-hover:text-black" />
-                  <GeneralIcon v-else icon="copy" class="group-hover:text-black" />
-                  <div v-if="isAuthTokenCopied">
-                    {{ $t('activity.account.authTokenCopied') }}
-                  </div>
-                  <div v-else>
-                    {{ $t('activity.account.authToken') }}
-                  </div>
-                </div>
-              </a-menu-item>
-
-              <a-menu-divider v-if="false" />
-
-              <!-- Theme -->
-              <template v-if="isUIAllowed('projectTheme') && false">
-                <a-sub-menu key="theme">
-                  <template #title>
-                    <div class="nc-workspace-menu-item group">
-                      <GeneralIcon icon="image" class="group-hover:text-accent" />
-                      {{ $t('activity.account.themes') }}
-
-                      <div class="flex-1" />
-
-                      <MaterialSymbolsChevronRightRounded
-                        class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                      />
-                    </div>
-                  </template>
-
-                  <template #expandIcon></template>
-
-                  <LazyGeneralColorPicker
-                    :model-value="theme.primaryColor"
-                    :colors="projectThemeColors"
-                    :row-size="9"
-                    :advanced="false"
-                    class="rounded-t"
-                    @input="handleThemeColor('swatch', $event)"
-                  />
-
-                  <!-- Custom Theme -->
-                  <a-sub-menu key="theme-2">
-                    <template #title>
-                      <div class="nc-workspace-menu-item group">
-                        {{ $t('labels.customTheme') }}
-
-                        <div class="flex-1" />
-
-                        <MaterialSymbolsChevronRightRounded
-                          class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                        />
-                      </div>
-                    </template>
-
-                    <!-- Primary Color -->
-                    <template #expandIcon></template>
-
-                    <a-sub-menu key="pick-primary">
-                      <template #title>
-                        <div class="nc-workspace-menu-item group">
-                          <ClarityColorPickerSolid class="group-hover:text-black" />
-                          {{ $t('labels.primaryColor') }}
-                        </div>
-                      </template>
-
-                      <template #expandIcon></template>
-
-                      <LazyGeneralChromeWrapper @input="handleThemeColor('primary', $event)" />
-                    </a-sub-menu>
-
-                    <!-- Accent Color -->
-                    <a-sub-menu key="pick-accent">
-                      <template #title>
-                        <div class="nc-workspace-menu-item group">
-                          <ClarityColorPickerSolid class="group-hover:text-black" />
-                          {{ $t('labels.accentColor') }}
-                        </div>
-                      </template>
-
-                      <template #expandIcon></template>
-
-                      <LazyGeneralChromeWrapper @input="handleThemeColor('accent', $event)" />
-                    </a-sub-menu>
-                  </a-sub-menu>
-                </a-sub-menu>
-              </template>
-
-              <a-menu-divider v-if="false" />
-
-              <!-- Preview As -->
-              <a-sub-menu v-if="isUIAllowed('previewAs') && false" key="preview-as">
-                <template #title>
-                  <div v-e="['c:navdraw:preview-as']" class="nc-workspace-menu-item group">
-                    <GeneralIcon icon="preview" class="group-hover:text-black" />
-                    {{ $t('activity.previewAs') }}
-
-                    <div class="flex-1" />
-
-                    <MaterialSymbolsChevronRightRounded
-                      class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                    />
-                  </div>
-                </template>
-
-                <template #expandIcon></template>
-
-                <LazyGeneralPreviewAs />
-              </a-sub-menu>
-            </template>
             <!-- Language -->
             <a-sub-menu
-              v-if="false"
+              v-if="!appInfo.ee"
               key="language"
               class="lang-menu !py-0"
               popup-class-name="scrollbar-thin-dull min-w-50 max-h-90vh !overflow-auto"
@@ -362,84 +174,24 @@ const switchWorkspace = async (workspaceId: string) => {
 
               <LazyGeneralLanguageMenu />
             </a-sub-menu>
-
-            <!-- Account -->
-            <template v-if="signedIn && !isSharedBase">
-              <a-sub-menu key="account">
-                <template #title>
-                  <div class="nc-workspace-menu-item group">
-                    <GeneralIcon icon="account" class="group-hover:text-accent" />
-                    {{ $t('labels.account') }}
-                    <div class="flex-1" />
-
-                    <MaterialSymbolsChevronRightRounded
-                      class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                    />
-                  </div>
-                </template>
-
-                <template #expandIcon></template>
-
-                <a-menu-item key="0" class="!rounded-t">
-                  <nuxt-link v-e="['c:navbar:user:email']" class="nc-workspace-menu-item group !no-underline" to="/account/users">
-                    <GeneralIcon icon="at" class="mt-1 group-hover:text-accent" />&nbsp;
-                    <div class="prose-sm group-hover:text-primary">
-                      <div>Account</div>
-                      <div class="text-xs text-gray-500">{{ email }}</div>
-                    </div>
-                  </nuxt-link>
-                </a-menu-item>
-
-                <a-menu-item key="1" class="!rounded-b">
-                  <div v-e="['a:navbar:user:sign-out']" class="nc-workspace-menu-item group" @click="logout">
-                    <GeneralIcon icon="signout" class="group-hover:(!text-accent)" />&nbsp;
-
-                    <span class="prose-sm nc-user-menu-signout">
-                      {{ $t('general.signOut') }}
-                    </span>
-                  </div>
-                </a-menu-item>
-              </a-sub-menu>
-            </template>
           </a-menu-item-group>
-        </a-menu>
+        </NcMenu>
       </template>
-    </a-dropdown>
-    <GeneralModal v-model:visible="workspaceModalVisible" :class="{ active: modalVisible }" width="80%" :footer="null">
-      <div class="relative flex flex-col px-6 py-2">
-        <div class="absolute right-4 top-4 z-20">
-          <a-button type="text" class="!p-1 !h-7 !rounded" @click="workspaceModalVisible = false">
-            <component :is="iconMap.close" />
-          </a-button>
-        </div>
-        <a-tabs v-model:activeKey="tab">
-          <template v-if="isWorkspaceOwner">
-            <a-tab-pane key="collab" tab="Collaborators" class="w-full">
-              <WorkspaceCollaboratorsList class="h-full" />
-            </a-tab-pane>
-            <!-- <a-tab-pane key="settings" tab="Settings" class="w-full">
-              <div class="min-h-50 flex items-center justify-center">Not available</div>
-            </a-tab-pane> -->
-          </template>
-        </a-tabs>
-      </div>
-    </GeneralModal>
-
-    <WorkspaceCreateDlg v-model="createDlg" @success="onWorkspaceCreate" />
+    </NcDropdown>
   </div>
+  <WorkspaceCreateDlg v-model="createDlg" @success="onWorkspaceCreate" />
 </template>
 
 <style scoped lang="scss">
-.nc-workspace-title-input {
-  @apply flex-grow py-2 px-3 outline-none hover:(bg-gray-50) focus:(bg-gray-50) font-medium rounded text-md text-defaault;
-}
-
-.nc-menu-sub-head {
-  @apply pt-2 pb-2 text-gray-500 text-sm px-5;
-}
-
 .nc-workspace-menu-item {
-  @apply flex items-center pl-2 py-2 gap-2 text-sm hover:text-black;
+  @apply flex items-center pl-1.5 !py-2.5 gap-2 text-sm hover:text-black;
+}
+
+.nc-workspace-dropdown-active-workspace-info {
+  @apply flex text-xs text-gray-500;
+  font-weight: 400;
+  line-height: 1.125rem; /* 150% */
+  letter-spacing: -0.015rem;
 }
 
 :deep(.ant-dropdown-menu-item-group-title) {
@@ -455,5 +207,15 @@ const switchWorkspace = async (workspaceId: string) => {
   .nc-icon {
     @apply !text-xs;
   }
+}
+
+:deep(.ant-menu-item-divider) {
+  @apply !border-gray-200;
+}
+</style>
+
+<style lang="scss">
+.ant-dropdown-menu.nc-workspace-dropdown-inner {
+  @apply !rounded-lg;
 }
 </style>

@@ -17,8 +17,6 @@ import {
   watch,
 } from '#imports'
 
-const openedTab = ref<'views' | 'developer'>('views')
-
 const { refreshCommandPalette } = useCommandPalette()
 
 const meta = inject(MetaInj, ref())
@@ -49,11 +47,9 @@ const route = useRoute()
 
 const { $e } = useNuxtApp()
 
-const { rightSidebarSize, isRightSidebarOpen } = storeToRefs(useSidebarStore())
+const { isRightSidebarOpen } = storeToRefs(useSidebarStore())
 
 const tabBtnsContainerRef = ref<HTMLElement | null>(null)
-
-const minimalMode = ref(false)
 
 /** Watch route param and change active view based on `viewTitle` */
 watch(
@@ -141,40 +137,6 @@ function onOpenModal({
     close(1000)
   }
 }
-const onTabChange = (tab: 'views' | 'developer') => {
-  openedTab.value = tab
-}
-
-const onResize = () => {
-  if (!tabBtnsContainerRef?.value) return
-
-  const remToPx = parseFloat(getComputedStyle(document.documentElement).fontSize)
-
-  if (!tabBtnsContainerRef?.value?.offsetWidth) return
-
-  if (tabBtnsContainerRef?.value?.offsetWidth < 13 * remToPx) {
-    minimalMode.value = true
-  } else {
-    minimalMode.value = false
-  }
-}
-
-watch(
-  () => rightSidebarSize.value?.current,
-  () => {
-    onResize()
-  },
-)
-
-onMounted(() => {
-  window.addEventListener('resize', onResize)
-
-  onResize()
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', onResize)
-})
 </script>
 
 <template>
@@ -185,9 +147,17 @@ onUnmounted(() => {
     <div
       v-else
       ref="tabBtnsContainerRef"
-      class="flex flex-row p-1 mx-1 mt-1 mb-2.75 rounded-md gap-x-2 nc-view-sidebar-tab items-center"
+      class="flex flex-row group py-1 mx-3.25 mt-1.25 mb-2.75 rounded-md gap-x-2 nc-view-sidebar-tab items-center justify-between"
     >
-      <NcTooltip placement="bottom" hide-on-click>
+      <div class="flex text-gray-600 ml-1.75">Views</div>
+      <NcTooltip
+        placement="bottomLeft"
+        hide-on-click
+        class="flex opacity-0 group-hover:(opacity-100) transition-all duration-50"
+        :class="{
+          '!w-8 !opacity-100': !isRightSidebarOpen,
+        }"
+      >
         <template #title>
           {{
             isRightSidebarOpen
@@ -212,7 +182,6 @@ onUnmounted(() => {
           </div>
         </NcButton>
       </NcTooltip>
-      <div class="flex text-gray-600">Views</div>
     </div>
 
     <div class="flex-1 flex flex-col min-h-0">

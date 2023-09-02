@@ -24,10 +24,6 @@ import {
 
 import { useRouter } from '#app'
 
-const emit = defineEmits<{
-  (event: 'onScrollTop', type: boolean): void
-}>()
-
 const { isUIAllowed } = useUIPermission()
 
 const { addTab } = useTabs()
@@ -37,6 +33,8 @@ const { $e, $jobs } = useNuxtApp()
 const router = useRouter()
 
 const route = router.currentRoute
+
+const { isWorkspaceLoading } = storeToRefs(useWorkspace())
 
 const projectsStore = useProjects()
 
@@ -52,13 +50,17 @@ const { loadTables } = projectStore
 
 const { tables } = storeToRefs(projectStore)
 
-const { activeTable: _activeTable } = storeToRefs(useTablesStore())
+const { activeTable: _activeTable, projectTables } = storeToRefs(useTablesStore())
 
 const { refreshCommandPalette } = useCommandPalette()
 
 const keys = ref<Record<string, number>>({})
 
 const menuRefs = ref<HTMLElement[] | HTMLElement>()
+
+const projectType = ref(NcProjectType.DB)
+const projectCreateDlg = ref(false)
+const dashboardProjectCreateDlg = ref(false)
 
 // const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
 
@@ -264,6 +266,20 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         }
         break
       }
+      // ALT + D
+      case 68: {
+        e.stopPropagation()
+        projectType.value = NcProjectType.DB
+        projectCreateDlg.value = true
+        break
+      }
+      // ALT + B
+      case 66: {
+        e.stopPropagation()
+        projectType.value = NcProjectType.DOCS
+        projectCreateDlg.value = true
+        break
+      }
     }
   }
 })
@@ -282,19 +298,6 @@ provide(TreeViewInj, {
 })
 
 useEventListener(document, 'contextmenu', handleContext, true)
-
-const treeViewDom = ref<HTMLElement>()
-
-const checkScrollTopMoreThanZero = () => {
-  if (treeViewDom.value) {
-    if (treeViewDom.value.scrollTop > 0) {
-      emit('onScrollTop', true)
-    } else {
-      emit('onScrollTop', false)
-    }
-  }
-  return false
-}
 
 const scrollTableNode = () => {
   const activeTableDom = document.querySelector(`.nc-treeview [data-table-id="${_activeTable.value?.id}"]`)
@@ -336,18 +339,10 @@ watch(
     immediate: true,
   },
 )
-
-onMounted(() => {
-  treeViewDom.value?.addEventListener('scroll', checkScrollTopMoreThanZero)
-})
-
-onUnmounted(() => {
-  treeViewDom.value?.removeEventListener('scroll', checkScrollTopMoreThanZero)
-})
 </script>
 
 <template>
-  <div class="nc-treeview-container flex flex-col justify-between select-none">
+  <div class="nc-treeview-container flex flex-col justify-between select-none px-0.5">
     <div ref="treeViewDom" mode="inline" class="nc-treeview pb-0.5 flex-grow min-h-50 overflow-x-hidden">
       <template v-if="projectsList?.length">
         <ProjectWrapper
@@ -356,14 +351,15 @@ onUnmounted(() => {
           :project-role="project.project_role || project.workspace_role"
           :project="project"
         >
-          p {{ project.project_role }} {{ project.workspace_role }}
-          <DashboardTreeViewNewProjectNode />
+          <DashboardTreeViewProjectNode />
         </ProjectWrapper>
       </template>
 
-      <WorkspaceEmptyPlaceholder v-else />
+      <WorkspaceEmptyPlaceholder v-else-if="!isWorkspaceLoading" />
     </div>
 
+    <WorkspaceCreateProjectDlg v-model="projectCreateDlg" :type="projectType" />
+    <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
     <!-- <div class="flex flex-col border-t-1 border-gray-100">
       <div class="flex items-center mt-3 justify-center mx-2">
         <WorkspaceCreateProjectBtn
@@ -386,10 +382,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped lang="scss">
-.nc-treeview-container {
-  height: calc(100% - var(--sidebar-top-height));
-}
-
 .nc-treeview-footer-item {
   @apply cursor-pointer px-4 py-2 flex items-center hover:bg-gray-200/20 text-xs text-current;
 }
@@ -495,22 +487,6 @@ onUnmounted(() => {
     & > div {
       @apply !justify-center;
     }
-  }
-}
-
-.nc-treeview {
-  overflow-y: overlay;
-  &::-webkit-scrollbar {
-    width: 3px;
-  }
-  &::-webkit-scrollbar-track {
-    @apply bg-inherit;
-  }
-  &::-webkit-scrollbar-thumb {
-    @apply bg-scrollbar;
-  }
-  &::-webkit-scrollbar-thumb:hover {
-    @apply bg-scrollbar-hover;
   }
 }
 </style>

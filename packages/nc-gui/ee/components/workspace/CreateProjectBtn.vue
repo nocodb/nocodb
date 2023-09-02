@@ -1,81 +1,51 @@
 <script setup lang="ts">
 import type { ButtonType } from 'ant-design-vue/lib/button'
 import { NcProjectType, useRouter } from '#imports'
+import type { NcButtonSize } from '~/lib'
 
 const props = defineProps<{
-  activeWorkspaceId: string
+  activeWorkspaceId?: string
   modal?: boolean
   type?: ButtonType
+  size?: NcButtonSize
+  centered?: boolean
   // isOpen: boolean
 }>()
 
-// const emits = defineEmits(['update:isOpen'])
+const { isUIAllowed } = useUIPermission()
 
-const router = useRouter()
+const projectStore = useProject()
+const { isSharedBase } = storeToRefs(projectStore)
 
-// v-model for isOpen
-// const isOpen = useVModel(props, 'isOpen', emits)
+const workspaceStore = useWorkspace()
+const { activeWorkspace, activeWorkspaceId: _activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const projectCreateDlg = ref(false)
-const dashboardProjectCreateDlg = ref(false)
 const projectType = ref(NcProjectType.DB)
+const dashboardProjectCreateDlg = ref(false)
 
-const navigateToCreateProject = (type: NcProjectType) => {
-  if (type === NcProjectType.AUTOMATION) {
-    return message.info('Automation is not available at the moment')
-  } else {
-    if (props.modal) {
-      projectType.value = type
-      projectCreateDlg.value = true
-    } else {
-      router.push({
-        path: '/create',
-        query: {
-          type,
-          workspaceId: props.activeWorkspaceId,
-        },
-      })
-    }
-  }
-}
+const size = computed(() => props.size || 'small')
+const centered = computed(() => props.centered ?? true)
 
 /* const openCreateDashboardProjectOverlay = () => {
   dashboardProjectCreateDlg.value = true
 } */
-
-useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
-  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
-  if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
-    switch (e.keyCode) {
-      // ALT + D
-      case 68: {
-        e.stopPropagation()
-        navigateToCreateProject(NcProjectType.DB)
-        break
-      }
-      // ALT + B
-      case 66: {
-        e.stopPropagation()
-        navigateToCreateProject(NcProjectType.DOCS)
-        break
-      }
-    }
-  }
-})
 </script>
 
 <template>
-  <div>
-    <a-button
-      class="!py-0 !px-0 !border-0 !h-full !rounded-md w-full hover:bg-gray-100 text-sm select-none cursor-pointer"
-      :type="props.type ?? 'primary'"
-      @click="navigateToCreateProject(NcProjectType.DB)"
-    >
-      <div class="flex w-full items-center gap-2">
-        <slot>{{ $t('title.newProj') }} <MdiMenuDown /></slot>
-      </div>
-    </a-button>
-    <!-- <a-dropdown v-model:visible="isOpen" class="w-full">
+  <NcButton
+    v-if="isUIAllowed('createProject', false, activeWorkspace?.roles) && !isSharedBase"
+    type="text"
+    :size="size"
+    :centered="centered"
+    @click="projectCreateDlg = true"
+  >
+    <slot />
+
+    <WorkspaceCreateProjectDlg v-model="projectCreateDlg" :type="projectType" />
+    <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
+  </NcButton>
+  <!-- <a-dropdown v-model:visible="isOpen" class="w-full">
       <template #overlay>
         <a-menu>
           <a-menu-item @click="navigateToCreateProject(NcProjectType.DB)">
@@ -105,9 +75,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         </a-menu>
       </template>
     </a-dropdown> -->
-    <WorkspaceCreateProjectDlg v-model="projectCreateDlg" :type="projectType" />
-    <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
-  </div>
 </template>
 
 <style scoped></style>

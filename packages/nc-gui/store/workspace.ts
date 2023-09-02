@@ -32,6 +32,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const workspaces = ref<Map<string, any>>(new Map())
   const workspacesList = computed<any[]>(() => Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at))
 
+  const isWorkspaceSettingsPageOpened = computed(() => route.value.name === 'index-typeOrId-settings')
+
   const isWorkspaceLoading = ref(true)
   const isCollaboratorsLoading = ref(true)
   const isInvitingCollaborators = ref(false)
@@ -96,7 +98,17 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const loadWorkspace = async (..._args: any) => {}
 
-  async function populateWorkspace(..._args: any) {}
+  async function populateWorkspace(..._args: any) {
+    isWorkspaceLoading.value = true
+
+    try {
+      await projectsStore.loadProjects()
+    } catch (e: any) {
+      console.error(e)
+    } finally {
+      isWorkspaceLoading.value = false
+    }
+  }
 
   watch(activePage, async (page) => {
     if (page === 'workspace') {
@@ -187,10 +199,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     $e('c:themes:change')
   }
 
-  const clearWorkspaces = () => {
-    clearProjects()
+  const clearWorkspaces = async () => {
+    await clearProjects()
     workspaces.value.clear()
   }
+
   const upgradeActiveWorkspace = async () => {}
 
   const navigateToWorkspace = async (workspaceId?: string) => {
@@ -247,6 +260,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     setLoadingState,
     navigateToWorkspaceSettings,
     lastPopulatedWorkspaceId,
+    isWorkspaceSettingsPageOpened,
   }
 })
 

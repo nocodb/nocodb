@@ -14,6 +14,8 @@ const projectId = ref<string>()
 
 const projectsStore = useProjects()
 
+const { populateWorkspace } = useWorkspace()
+
 const router = useRouter()
 
 const route = router.currentRoute
@@ -44,7 +46,8 @@ watch(
       return
     }
 
-    await projectsStore.loadProjects('recent')
+    // Load projects
+    await populateWorkspace()
 
     if (!route.value.params.projectId && projectsList.value.length > 0) {
       await autoNavigateToProject()

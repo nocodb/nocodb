@@ -5,7 +5,7 @@ import { Locator } from '@playwright/test';
 import { getTextExcludeIconText } from '../../tests/utils/general';
 
 /*
-  nc-workspace-container
+  nc-workspace-settings
     nc-workspace-avatar
     nc-workspace-title
     button:has-text("New Project")
@@ -64,7 +64,7 @@ export class ContainerPage extends BasePage {
   }
 
   get() {
-    return this.workspace.get().locator('.nc-workspace-container');
+    return this.workspace.get().locator('.nc-workspace-settings');
   }
 
   async waitFor({ state }) {

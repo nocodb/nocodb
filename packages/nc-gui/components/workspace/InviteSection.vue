@@ -79,4 +79,8 @@ const allowedRoles = computed<WorkspaceUserRoles[]>(() => {
 .badge-text {
   @apply text-[14px] pt-1 text-center;
 }
+
+:deep(.ant-select-selection-item) {
+  @apply mt-0.75;
+}
 </style>

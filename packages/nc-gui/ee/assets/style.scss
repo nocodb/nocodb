@@ -3,7 +3,8 @@
 @import '@vue-flow/core/dist/theme-default.css';
 
 :root {
-  --sidebar-top-height: 11.6rem;
+  --sidebar-top-height: 10rem;
+  --sidebar-bottom-height: 4.75rem;
   --topbar-height: 3.1rem;
   --new-header-height: 3.5rem;
   --tw-text-opacity: 1;
@@ -87,6 +88,29 @@ main {
   }
   &::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-300;
+  }
+}
+
+.nc-scrollbar-sm-dark {
+  overflow-y: scroll;
+  overflow-x: hidden;
+
+  &::-webkit-scrollbar {
+    width: 2px;
+    height: 2px;
+  }
+  &::-webkit-scrollbar-track-piece {
+    width: 0px;
+  }
+  &::-webkit-scrollbar {
+    @apply bg-transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    width: 4px;
+    @apply bg-gray-300 ;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
   }
 }
 
@@ -515,4 +539,8 @@ a {
 
 .ant-skeleton-input {
   @apply !h-full;
+}
+
+.nc-toolbar-dropdown {
+  @apply !rounded-2xl;
 }

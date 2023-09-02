@@ -182,6 +182,8 @@ interface Users {
 
 type ViewPageType = 'view' | 'webhook' | 'api' | 'field' | 'relation'
 
+type NcButtonSize = 'xxsmall' | 'xsmall' | 'small' | 'medium'
+
 export {
   User,
   ProjectMetaInfo,
@@ -207,4 +209,5 @@ export {
   AllRoles,
   Users,
   ViewPageType,
+  NcButtonSize,
 }

@@ -36,6 +36,7 @@ import NcCreditCard from '~icons/nc-icons/credit-card'
 import NcLayers from '~icons/nc-icons/layers'
 import NcUsers from '~icons/nc-icons/users'
 import NcCheck from '~icons/nc-icons/check'
+import PlusSquare from '~icons/nc-icons/plus-square'
 
 import PhLayout from '~icons/ph/layout'
 import Copy from '~icons/material-symbols/content-copy-outline'
@@ -58,9 +59,9 @@ import PhExcelThin from '~icons/ph/microsoft-excel-logo-light'
 import VscodeIconsExcelColored from '~icons/vscode-icons/file-type-excel'
 import PhCsvThin from '~icons/ph/file-csv'
 import PhSplitVerticalThin from '~icons/material-symbols/height-rounded'
-import PhDiscordLogoLight from '~icons/ph/discord-logo-light'
-import PhRedditLogoLight from '~icons/ph/reddit-logo-light'
-import PhTwitterLogoLight from '~icons/ph/twitter-logo-light'
+import LogosDiscordIcon from '~icons/logos/discord-icon'
+import LogosRedditIcon from '~icons/logos/reddit-icon'
+import RiTwitterXFill from '~icons/ri/twitter-x-line'
 import PhGithubLogoLight from '~icons/ph/github-logo-light'
 import NcIconsRowHeightMedium from '~icons/nc-icons/row-height-medium'
 import NcIconsRowHeightShort from '~icons/nc-icons/row-height-short'
@@ -117,10 +118,10 @@ import Down from '~icons/material-symbols/keyboard-arrow-down-rounded'
   keyboard: PhKeyboardLight,
   accountPlus: PhUserPlusLight,
   database: PhDatabaseLight,
-  discord: PhDiscordLogoLight,
-  reddit: PhRedditLogoLight,
+  discord: LogosDiscordIcon,
+  reddit: LogosRedditIcon,
   github: PhGithubLogoLight,
-  twitter: PhTwitterLogoLight,
+  twitter: RiTwitterXFill,
   at: PhAtLight,
   plusCircle: PhPlusCircleLight,
   minusCircle: PhMinusCircleLight,
@@ -268,10 +269,10 @@ export const iconMap = {
   keyboard: h('span', { class: 'material-symbols' }, 'keyboard'),
   accountPlus: h('span', { class: 'material-symbols' }, 'person_add'),
   database: MsDatabase,
-  discord: PhDiscordLogoLight,
-  reddit: PhRedditLogoLight,
+  discord: LogosDiscordIcon,
+  reddit: LogosRedditIcon,
   github: PhGithubLogoLight,
-  twitter: PhTwitterLogoLight,
+  twitter: RiTwitterXFill,
   at: h('span', { class: 'material-symbols' }, 'alternate_email'),
   plusCircle: h('span', { class: 'material-symbols' }, 'add_circle'),
   minusCircle: h('span', { class: 'material-symbols' }, 'remove_circle'),
@@ -287,12 +288,14 @@ export const iconMap = {
   upload: h('span', { class: 'material-symbols' }, 'cloud_upload'),
   hook: Phishing,
   erd: h('span', { class: 'material-symbols' }, 'account_tree'),
-  plus: Plus,
+  plus: h('span', { class: 'material-symbols', style: '-webkit-text-stroke: 0.3px' }, 'add'),
+  plusSquare: PlusSquare,
   minus: Minus,
+  help: h('span', { class: 'material-symbols' }, 'help'),
   copy: h('span', { class: 'material-symbols' }, 'content_copy'),
   duplicate: MaterialDuplicate,
   clipboard: h('span', { class: 'material-symbols' }, 'content_paste'),
-  settings: MdiSettings,
+  settings: h('span', { class: 'material-symbols' }, 'settings'),
   image: h('span', { class: 'material-symbols' }, 'image'),
   datasource: h('span', { class: 'material-symbols' }, 'hard_drive'),
   book: h('span', { class: 'material-symbols' }, 'menu_book'),

@@ -1,4 +1,3 @@
-import { isString } from '@vue/shared'
 import { extractRolesObj } from 'nocodb-sdk'
 import { computed, createSharedComposable, useApi, useGlobal } from '#imports'
 import type { ProjectRole, Role, Roles } from '#imports'
@@ -24,17 +23,11 @@ export const useRoles = createSharedComposable(() => {
   const allRoles = computed<Roles>(() => {
     let orgRoles = user.value?.roles ?? {}
 
-    // if string populate key-value paired object
-    if (isString(orgRoles)) {
-      orgRoles = extractRolesObj(orgRoles)
-    }
+    orgRoles = extractRolesObj(orgRoles)
 
     let projectRoles = user.value?.project_roles ?? user.value?.workspace_roles ?? {}
 
-    // if string populate key-value paired object
-    if (isString(projectRoles)) {
-      projectRoles = extractRolesObj(projectRoles)
-    }
+    projectRoles = extractRolesObj(projectRoles)
 
     return {
       ...orgRoles,
@@ -45,10 +38,7 @@ export const useRoles = createSharedComposable(() => {
   const orgRoles = computed<Roles>(() => {
     let orgRoles = user.value?.roles ?? {}
 
-    // if string populate key-value paired object
-    if (isString(orgRoles)) {
-      orgRoles = extractRolesObj(orgRoles)
-    }
+    orgRoles = extractRolesObj(orgRoles)
 
     return orgRoles
   })
@@ -56,10 +46,7 @@ export const useRoles = createSharedComposable(() => {
   const projectRoles = computed<Roles>(() => {
     let projectRoles = user.value?.project_roles ?? user.value?.workspace_roles ?? {}
 
-    // if string populate key-value paired object
-    if (isString(projectRoles)) {
-      projectRoles = extractRolesObj(projectRoles)
-    }
+    projectRoles = extractRolesObj(projectRoles)
 
     return projectRoles
   })
@@ -67,10 +54,7 @@ export const useRoles = createSharedComposable(() => {
   const workspaceRoles = computed<Roles>(() => {
     let workspaceRoles = user.value?.workspace_roles ?? {}
 
-    // if string populate key-value paired object
-    if (isString(workspaceRoles)) {
-      workspaceRoles = extractRolesObj(workspaceRoles)
-    }
+    workspaceRoles = extractRolesObj(workspaceRoles)
 
     return workspaceRoles
   })

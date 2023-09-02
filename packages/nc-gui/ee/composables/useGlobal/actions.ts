@@ -123,7 +123,7 @@ export function useGlobalActions(state: State): Actions {
     viewId?: string
     query?: string
   }) => {
-    const tablePath = tableId ? `/table/${tableId}${viewId ? `/${viewId}` : ''}` : ''
+    const tablePath = tableId ? `/${tableId}${viewId ? `/${viewId}` : ''}` : ''
     const queryParams = query ? `?${new URLSearchParams(query).toString()}` : ''
     const workspaceId = _workspaceId || 'app'
     let path: string

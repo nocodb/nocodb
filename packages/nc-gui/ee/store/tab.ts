@@ -58,7 +58,6 @@ export const useTabs = defineStore('tabStore', () => {
       ) {
         const tab: TabItem = {
           projectId: route.value.params.projectId as string,
-          type: route.value.params.type as TabType,
           title: route.value.params.title as string,
         }
 
@@ -238,12 +237,12 @@ export const useTabs = defineStore('tabStore', () => {
     switch (tab.type) {
       case TabType.TABLE:
         return navigateTo({
-          path: `/${workspaceId.value}/${tab.projectId}/table/${tab?.id}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`,
+          path: `/${workspaceId.value}/${tab.projectId}/${tab?.id}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`,
           query: route.value.query,
         })
       case TabType.VIEW:
         return navigateTo({
-          path: `/${workspaceId.value}/${tab.projectId}/view/${tab?.id}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`,
+          path: `/${workspaceId.value}/${tab.projectId}/${tab?.id}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`,
           query: route.value.query,
         })
       case TabType.AUTH:

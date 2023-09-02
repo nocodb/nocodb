@@ -125,10 +125,13 @@ export default class Noco {
 
     await nestApp.init();
 
-    const dashboardPath = process.env.NC_DASHBOARD_URL || '/dashboard';
+    const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
     server.use(NcToolGui.expressMiddleware(dashboardPath));
     server.use(express.static(path.join(__dirname, 'public')));
-    server.get('/', (_req, res) => res.redirect(dashboardPath));
+
+    if (dashboardPath !== '/' && dashboardPath !== '') {
+      server.get('/', (_req, res) => res.redirect(dashboardPath));
+    }
 
     this.initSentryErrorHandler(server);
 

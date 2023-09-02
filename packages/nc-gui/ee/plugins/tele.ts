@@ -2,18 +2,8 @@ import { useDebounceFn } from '@vueuse/core'
 import { defineNuxtPlugin, useRouter } from '#imports'
 import type { NuxtApp } from '#app'
 
-let clientId: string
-;(async () => {
-  const { default: FingerprintJS } = await import('@fingerprintjs/fingerprintjs')
-
-  // Initialize an agent at application startup.
-  const fpPromise = FingerprintJS.load()
-
-  // Get the visitor identifier when you need it.
-  const fp = await fpPromise
-  const result = await fp.get()
-  clientId = result.visitorId
-})().catch(() => {})
+// todo: generate client id and keep it in cookie(share across sub-domains)
+const clientId: string = '';
 
 // Usage example:
 const debounceTime = 3000 // Debounce time: 1000ms

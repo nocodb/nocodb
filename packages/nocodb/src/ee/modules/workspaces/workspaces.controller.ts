@@ -19,9 +19,10 @@ import {
   UseAclMiddleware,
 } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcError } from '~/helpers/catchError';
-import { MetaTable } from '~/utils/globals';
+import {CacheScope, MetaTable} from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
 import { Workspace } from '~/models';
+import NocoCache from "~/cache/NocoCache";
 
 @Controller()
 export class WorkspacesController {
@@ -169,6 +170,9 @@ export class WorkspacesController {
       updateWorkspacePayload,
       workspace.id,
     );
+
+    // clear cache
+    await NocoCache.del(`${CacheScope.WORKSPACE}:${workspace.id}`);
 
     return true;
   }

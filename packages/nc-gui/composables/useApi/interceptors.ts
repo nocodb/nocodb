@@ -3,13 +3,13 @@ import { navigateTo, useGlobal, useRouter } from '#imports'
 
 const DbNotFoundMsg = 'Database config not found'
 
+let refreshTokenPromise: Promise<string> | null = null
+
 export function addAxiosInterceptors(api: Api<any>) {
   const state = useGlobal()
   const router = useRouter()
   const route = router.currentRoute
   const optimisedQuery = useState('optimisedQuery', () => true)
-
-  let refreshTokenPromise: Promise<void> | null = null
 
   api.instance.interceptors.request.use((config) => {
     config.headers['xc-gui'] = 'true'
@@ -53,7 +53,7 @@ export function addAxiosInterceptors(api: Api<any>) {
         return Promise.reject(error)
       }
 
-      let refreshTokenPromiseRes: () => void
+      let refreshTokenPromiseRes: (token: string) => void
       let refreshTokenPromiseRej: (e: Error) => void
 
       // avoid multiple refresh token requests by multiple requests at the same time
@@ -61,11 +61,11 @@ export function addAxiosInterceptors(api: Api<any>) {
       if (refreshTokenPromise) {
         // if previous refresh token request succeeds use the token and retry request
         return refreshTokenPromise
-          .then(() => {
+          .then((token) => {
             // New request with new token
             return new Promise((resolve, reject) => {
               const config = error.config
-              config.headers['xc-auth'] = state.token.value
+              config.headers['xc-auth'] = token
               api.instance
                 .request(config)
                 .then((response) => {
@@ -81,7 +81,7 @@ export function addAxiosInterceptors(api: Api<any>) {
           })
       } else {
         // if
-        refreshTokenPromise = new Promise((resolve, reject) => {
+        refreshTokenPromise = new Promise<string>((resolve, reject) => {
           refreshTokenPromiseRes = resolve
           refreshTokenPromiseRej = reject
         })
@@ -99,7 +99,7 @@ export function addAxiosInterceptors(api: Api<any>) {
           state.signIn(token.data.token)
 
           // resolve the refresh token promise and reset
-          refreshTokenPromiseRes()
+          refreshTokenPromiseRes(token.data.token)
           refreshTokenPromise = null
 
           return new Promise((resolve, reject) => {

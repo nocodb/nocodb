@@ -24,10 +24,6 @@ import {
 
 import { useRouter } from '#app'
 
-const emit = defineEmits<{
-  (event: 'onScrollTop', type: boolean): void
-}>()
-
 const { isUIAllowed } = useUIPermission()
 
 const { addTab } = useTabs()
@@ -54,7 +50,7 @@ const { loadTables } = projectStore
 
 const { tables } = storeToRefs(projectStore)
 
-const { activeTable: _activeTable } = storeToRefs(useTablesStore())
+const { activeTable: _activeTable, projectTables } = storeToRefs(useTablesStore())
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -303,19 +299,6 @@ provide(TreeViewInj, {
 
 useEventListener(document, 'contextmenu', handleContext, true)
 
-const treeViewDom = ref<HTMLElement>()
-
-const checkScrollTopMoreThanZero = () => {
-  if (treeViewDom.value) {
-    if (treeViewDom.value.scrollTop > 0) {
-      emit('onScrollTop', true)
-    } else {
-      emit('onScrollTop', false)
-    }
-  }
-  return false
-}
-
 const scrollTableNode = () => {
   const activeTableDom = document.querySelector(`.nc-treeview [data-table-id="${_activeTable.value?.id}"]`)
   if (!activeTableDom) return
@@ -356,14 +339,6 @@ watch(
     immediate: true,
   },
 )
-
-onMounted(() => {
-  treeViewDom.value?.addEventListener('scroll', checkScrollTopMoreThanZero)
-})
-
-onUnmounted(() => {
-  treeViewDom.value?.removeEventListener('scroll', checkScrollTopMoreThanZero)
-})
 </script>
 
 <template>

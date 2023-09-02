@@ -6,6 +6,29 @@ const { isWorkspaceLoading } = storeToRefs(workspaceStore)
 const { isSharedBase } = storeToRefs(useProject())
 
 const isCreateProjectOpen = ref(false)
+
+const treeViewDom = ref<HTMLElement>()
+
+const isTreeViewOnScrollTop = ref(true)
+
+const checkScrollTopMoreThanZero = () => {
+  if (treeViewDom.value) {
+    if (treeViewDom.value.scrollTop > 0) {
+      isTreeViewOnScrollTop.value = true
+    } else {
+      isTreeViewOnScrollTop.value = false
+    }
+  }
+  return false
+}
+
+onMounted(() => {
+  treeViewDom.value?.addEventListener('scroll', checkScrollTopMoreThanZero)
+})
+
+onUnmounted(() => {
+  treeViewDom.value?.removeEventListener('scroll', checkScrollTopMoreThanZero)
+})
 </script>
 
 <template>
@@ -26,9 +49,11 @@ const isCreateProjectOpen = ref(false)
       <DashboardSidebarTopSection v-if="!isSharedBase" />
     </div>
     <div
+      ref="treeViewDom"
       class="flex flex-col nc-scrollbar-sm-dark"
       :class="{
         'border-t-1 pt-1': !isSharedBase,
+        'border-transparent': !isTreeViewOnScrollTop,
         'pt-0.25': isSharedBase,
       }"
       :style="{

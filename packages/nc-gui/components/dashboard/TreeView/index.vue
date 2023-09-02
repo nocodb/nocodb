@@ -27,10 +27,6 @@ import {
 
 import { useRouter } from '#app'
 
-const emit = defineEmits<{
-  (event: 'onScrollTop', type: boolean): void
-}>()
-
 const { isUIAllowed } = useUIPermission()
 
 const { addTab } = useTabs()
@@ -212,19 +208,6 @@ provide(TreeViewInj, {
 
 useEventListener(document, 'contextmenu', handleContext, true)
 
-const treeViewDom = ref<HTMLElement>()
-
-const checkScrollTopMoreThanZero = () => {
-  if (treeViewDom.value) {
-    if (treeViewDom.value.scrollTop > 0) {
-      emit('onScrollTop', true)
-    } else {
-      emit('onScrollTop', false)
-    }
-  }
-  return false
-}
-
 const scrollTableNode = () => {
   const activeTableDom = document.querySelector(`.nc-treeview [data-table-id="${_activeTable.value?.id}"]`)
   if (!activeTableDom) return
@@ -265,19 +248,11 @@ watch(
     immediate: true,
   },
 )
-
-onMounted(() => {
-  treeViewDom.value?.addEventListener('scroll', checkScrollTopMoreThanZero)
-})
-
-onUnmounted(() => {
-  treeViewDom.value?.removeEventListener('scroll', checkScrollTopMoreThanZero)
-})
 </script>
 
 <template>
   <div class="nc-treeview-container flex flex-col justify-between select-none">
-    <div ref="treeViewDom" mode="inline" class="nc-treeview pb-0.5 flex-grow min-h-50 overflow-x-hidden">
+    <div mode="inline" class="nc-treeview pb-0.5 flex-grow min-h-50 overflow-x-hidden">
       <template v-if="projectsList?.length">
         <ProjectWrapper
           v-for="project of projectsList"

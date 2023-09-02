@@ -93,13 +93,13 @@ watchDebounced(
       :class="{ '!bg-gray-50 ': isDropdownOpen }"
       @click="isDropdownOpen = !isDropdownOpen"
     >
-      <GeneralIcon icon="search" class="ml-1 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
-      <NcBadge color="purple">
-      <p class="pt-1 text-center text-xs font-regular text-gray-400"
-      >
-        in {{ displayColumnLabel }}
-      </p>
-    </NcBadge>
+      <GeneralIcon icon="search" class="ml-1 mr-2 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
+        <NcBadge class="mb-1" color="blue">
+          <p class="pt-1 text-center text-xs font-regular text-blue-600"
+          >
+            in '{{ displayColumnLabel }}'
+          </p>
+        </NcBadge>
       <component :is="iconMap.arrowDown" class="ml-1 text-gray-400 !text-sm" />
 
       <a-select

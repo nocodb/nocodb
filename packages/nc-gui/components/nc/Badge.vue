@@ -28,6 +28,6 @@ const props = defineProps<{
 
 <style>
 .badge-color {
-  @apply mt-1 border w-23 h-6 rounded-lg;
+  @apply mt-1 border px-2 h-6 rounded-lg;
 }
 </style>

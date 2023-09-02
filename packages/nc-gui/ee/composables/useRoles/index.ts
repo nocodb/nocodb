@@ -25,7 +25,11 @@ export const useRoles = createSharedComposable(() => {
 
     orgRoles = extractRolesObj(orgRoles)
 
-    let projectRoles = user.value?.project_roles ?? user.value?.workspace_roles ?? {}
+    let projectRoles = user.value?.project_roles ?? {}
+
+    if (Object.keys(projectRoles).length === 0) {
+      projectRoles = user.value?.workspace_roles ?? {}
+    }
 
     projectRoles = extractRolesObj(projectRoles)
 
@@ -44,7 +48,11 @@ export const useRoles = createSharedComposable(() => {
   })
 
   const projectRoles = computed<Roles>(() => {
-    let projectRoles = user.value?.project_roles ?? user.value?.workspace_roles ?? {}
+    let projectRoles = user.value?.project_roles ?? {}
+
+    if (Object.keys(projectRoles).length === 0) {
+      projectRoles = user.value?.workspace_roles ?? {}
+    }
 
     projectRoles = extractRolesObj(projectRoles)
 
@@ -119,6 +127,8 @@ export const useRoles = createSharedComposable(() => {
     if (previewAs.value && includePreviewRoles) {
       return previewAs.value === role
     }
+
+    console.log(allRoles.value)
 
     return allRoles.value[role]
   }

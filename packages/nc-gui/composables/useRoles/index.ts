@@ -40,7 +40,11 @@ export const useRoles = createSharedComposable(() => {
   })
 
   const projectRoles = computed<Roles>(() => {
-    let projectRoles = user.value?.project_roles ?? user.value?.roles ?? {}
+    let projectRoles = user.value?.project_roles ?? {}
+
+    if (Object.keys(projectRoles).length === 0) {
+      projectRoles = user.value?.roles ?? {}
+    }
 
     projectRoles = extractRolesObj(projectRoles)
 

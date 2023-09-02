@@ -20,9 +20,10 @@ const logout = async () => {
   isLoggingOut.value = true
   try {
     await signOut(false)
-    await navigateTo('/signin')
 
     await clearWorkspaces()
+
+    await navigateTo('/signin')
   } catch (e) {
     console.error(e)
   } finally {

@@ -199,11 +199,6 @@ const accessibleRoles = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles
                       <p class="badge-text">{{ RoleLabels[userProjectRole] }}</p>
                     </NcBadge>
                   </a-select-option>
-                  <a-select-option v-if="isEeUI" value="inherit">
-                    <NcBadge color="white">
-                      <p class="badge-text">Inherit</p>
-                    </NcBadge>
-                  </a-select-option>
                   <a-select-option v-if="collab.roles && !accessibleRoles.includes(collab.roles)" :value="collab.roles">
                     <NcBadge :color="RoleColors[collab.roles]">
                       <p class="badge-text">{{ RoleLabels[collab.roles] }}</p>
@@ -216,6 +211,11 @@ const accessibleRoles = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles
                       </NcBadge>
                     </a-select-option>
                   </template>
+                  <a-select-option v-if="isEeUI" value="inherit">
+                    <NcBadge color="white">
+                      <p class="badge-text">Inherit</p>
+                    </NcBadge>
+                  </a-select-option>
                 </NcSelect>
               </div>
             </div>

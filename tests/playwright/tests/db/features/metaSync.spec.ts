@@ -1,6 +1,5 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import { SettingsPage, SettingTab } from '../../../pages/Dashboard/Settings';
 import setup, { NcContext, unsetup } from '../../../setup';
 import { isMysql, isPg, isSqlite, mysqlExec, pgExec, sqliteExec } from '../../../setup/db';
 import { MetaDataPage } from '../../../pages/Dashboard/ProjectView/Metadata';

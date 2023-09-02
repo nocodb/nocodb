@@ -113,13 +113,13 @@ export function addAxiosInterceptors(api: Api<any>) {
               })
           })
         })
-        .catch(async (error) => {
+        .catch(async (refreshTokenError) => {
           await state.signOut()
 
           if (!route.value.meta.public) navigateTo('/signIn')
 
           // reject the refresh token promise and reset
-          refreshTokenPromiseRej(error)
+          refreshTokenPromiseRej(refreshTokenError)
           refreshTokenPromise = null
 
           return Promise.reject(error)

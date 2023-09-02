@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
-import { SettingsPage, SettingTab } from '../../../pages/Dashboard/Settings';
+import { SettingsPage } from '../../../pages/Dashboard/Settings';
 import { SignupPage } from '../../../pages/SignupPage';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { getDefaultPwd } from '../../../tests/utils/general';

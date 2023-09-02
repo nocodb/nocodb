@@ -401,7 +401,7 @@ export class ColumnPageObject extends BasePage {
 
   async sortColumn({ title, direction = 'asc' }: { title: string; direction: 'asc' | 'desc' }) {
     await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
-    let menuOption;
+    let menuOption: { (): Promise<void>; (): Promise<void> };
     if (direction === 'desc') {
       menuOption = () => this.rootPage.locator('li[role="menuitem"]:has-text("Sort Descending"):visible').click();
     } else {
@@ -444,7 +444,7 @@ export class ColumnPageObject extends BasePage {
 
   async getWidth(param: { title: string }) {
     const { title } = param;
-    const cell = await this.rootPage.locator(`th[data-title="${title}"]`);
+    const cell = this.rootPage.locator(`th[data-title="${title}"]`);
     return await cell.evaluate(el => el.getBoundingClientRect().width);
   }
 }

@@ -20,8 +20,8 @@ export class ChildList extends BasePage {
     //    button: Link to 'City'
     //    icon: reload
     await expect(this.get().locator(`.ant-modal-title`)).toHaveText(`Child list`);
-    await expect(await this.get().locator(`text=/Link to '.*${linkField}'/i`).isVisible()).toBeTruthy();
-    await expect(await this.get().locator(`[data-testid="nc-child-list-reload"]`).isVisible()).toBeTruthy();
+    expect(await this.get().locator(`text=/Link to '.*${linkField}'/i`).isVisible()).toBeTruthy();
+    expect(await this.get().locator(`[data-testid="nc-child-list-reload"]`).isVisible()).toBeTruthy();
 
     // child list body validation (card count, card title)
     const cardCount = cardTitle.length;
@@ -29,20 +29,16 @@ export class ChildList extends BasePage {
     {
       const childList = this.get().locator(`.ant-card`);
       const childCards = await childList.count();
-      await expect(childCards).toEqual(cardCount);
+      expect(childCards).toEqual(cardCount);
       for (let i = 0; i < cardCount; i++) {
         await childList.nth(i).locator('.name').waitFor({ state: 'visible' });
         await childList.nth(i).locator('.name').scrollIntoViewIfNeeded();
         await this.rootPage.waitForTimeout(100);
-        await expect(await childList.nth(i).locator('.name').textContent()).toContain(cardTitle[i]);
+        expect(await childList.nth(i).locator('.name').textContent()).toContain(cardTitle[i]);
         // icon: unlink
         // icon: delete
-        await expect(
-          await childList.nth(i).locator(`[data-testid="nc-child-list-icon-unlink"]`).isVisible()
-        ).toBeTruthy();
-        await expect(
-          await childList.nth(i).locator(`[data-testid="nc-child-list-icon-delete"]`).isVisible()
-        ).toBeTruthy();
+        expect(await childList.nth(i).locator(`[data-testid="nc-child-list-icon-unlink"]`).isVisible()).toBeTruthy();
+        expect(await childList.nth(i).locator(`[data-testid="nc-child-list-icon-delete"]`).isVisible()).toBeTruthy();
       }
     }
   }

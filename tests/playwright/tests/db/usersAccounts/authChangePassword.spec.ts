@@ -2,7 +2,6 @@ import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
 import { LoginPage } from '../../../pages/LoginPage';
-import { SettingsPage, SettingTab } from '../../../pages/Dashboard/Settings';
 import { SignupPage } from '../../../pages/SignupPage';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { AccountPage } from '../../../pages/Account';
@@ -13,9 +12,7 @@ import { WorkspacePage } from '../../../pages/WorkspacePage';
 test.describe.skip('Auth', () => {
   let context: any;
   let dashboard: DashboardPage;
-  let settings: SettingsPage;
   let signupPage: SignupPage;
-  let projectsPage: ProjectsPage;
   let accountPage: AccountPage;
   let workspacePage: WorkspacePage;
 
@@ -23,11 +20,8 @@ test.describe.skip('Auth', () => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     signupPage = new SignupPage(page);
-    projectsPage = new ProjectsPage(page);
     accountPage = new AccountPage(page);
     workspacePage = new WorkspacePage(page);
-
-    settings = dashboard.settings;
   });
 
   test.afterEach(async () => {

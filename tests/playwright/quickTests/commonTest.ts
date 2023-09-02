@@ -1,8 +1,6 @@
 import { DashboardPage } from '../pages/Dashboard';
-import { ProjectsPage } from '../pages/ProjectsPage';
 import { NcContext } from '../setup';
 import { isMysql, isPg } from '../setup/db';
-import { WorkspacePage } from '../pages/WorkspacePage';
 
 // normal fields
 const recordCells = {

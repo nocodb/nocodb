@@ -71,7 +71,7 @@ const { isSharedBase } = useProject()
 // const isMultiBase = computed(() => project.bases && project.bases.length > 1)
 
 const canUserEditEmote = computed(() => {
-  return projectRole?.value === 'owner' || projectRole?.value === 'creator'
+  return isUIAllowed('tableIconCustomisation', false, projectRole?.value)
 })
 </script>
 
@@ -112,7 +112,7 @@ const canUserEditEmote = computed(() => {
               :key="table.meta?.icon"
               :emoji="table.meta?.icon"
               size="small"
-              :readonly="!isUIAllowed('tableIconCustomisation', false, projectRole) || !canUserEditEmote"
+              :readonly="!canUserEditEmote"
               @emoji-selected="setIcon($event, table)"
             >
               <template #default>

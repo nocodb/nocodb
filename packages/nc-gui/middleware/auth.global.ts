@@ -67,6 +67,11 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     /** if user is still not signed in, redirect to signin page */
     if (!state.signedIn.value) return navigateTo('/signin')
   } else if (to.meta.requiresAuth === false && state.signedIn.value) {
+    if (to.query?.logout) {
+      await state.signOut(true)
+      return navigateTo('/signin')
+    }
+
     /**
      * if user was turned away from non-auth page but also came from a non-auth page (e.g. user went to /signin and reloaded the page)
      * redirect to home page

@@ -6,8 +6,8 @@ import { ProjectUser, User } from '~/models';
 import { UsersService } from '~/services/users/users.service';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import extractRolesObj from '~/utils/extractRolesObj';
-import {sanitiseUserObj} from "~/utils";
-import {NcError} from "~/helpers/catchError";
+import { sanitiseUserObj } from '~/utils';
+import { NcError } from '~/helpers/catchError';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -92,6 +92,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       projectRoles: projectRoles
         ? extractRolesObj((projectRoles as any)?.split(',').filter(Boolean))
         : null,
+      provider: jwtPayload.provider ?? undefined,
     };
   }
 }

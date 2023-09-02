@@ -69,7 +69,7 @@ watch(isMenuOpen, () => {
             <NcMenuItem class="social-icon-wrapper"><GeneralIcon class="social-icon" icon="reddit" />/r/NocoDB</NcMenuItem>
           </a>
           <a href="https://twitter.com/nocodb" target="_blank" class="!underline-transparent">
-            <NcMenuItem class="group"
+            <NcMenuItem class="social-icon-wrapper group"
               ><GeneralIcon class="text-gray-500 group-hover:text-gray-800" icon="twitter" />Twitter</NcMenuItem
             >
           </a>
@@ -146,7 +146,9 @@ watch(isMenuOpen, () => {
 }
 
 .social-icon-wrapper {
-  // Make icon red
+  .nc-icon {
+    @apply mr-0.15;
+  }
   &:hover {
     .social-icon {
       filter: none !important;

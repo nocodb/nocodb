@@ -1,11 +1,12 @@
+// todo: move to env
+// defining at the top to override the default value in app.config.ts
+process.env.NC_DASHBOARD_URL = process.env.NC_DASHBOARD_URL ?? '/';
+
 import path from 'path';
 import cors from 'cors';
 import express from 'express';
 
 import Noco from '~/Noco';
-
-// todo: move to env
-process.env.NC_DASHBOARD_URL = process.env.NC_DASHBOARD_URL ?? '/';
 
 const server = express();
 server.enable('trust proxy');

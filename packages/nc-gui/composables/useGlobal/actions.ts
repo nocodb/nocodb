@@ -118,7 +118,7 @@ export function useGlobalActions(state: State): Actions {
     tableId?: string
     viewId?: string
   }) => {
-    const tablePath = tableId ? `/table/${tableId}${viewId ? `/${viewId}` : ''}` : ''
+    const tablePath = tableId ? `/${tableId}${viewId ? `/${viewId}` : ''}` : ''
     const workspaceId = _workspaceId || 'nc'
     let path: string
 

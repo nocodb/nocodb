@@ -70,7 +70,7 @@ const createProject = async () => {
   }
 }
 
-const input: VNodeRef = ref<typeof Input>()
+const input = ref<typeof Input>()
 
 watch(dialogShow, async (n, o) => {
   if (n === o && !n) return
@@ -95,6 +95,22 @@ const typeLabel = computed(() => {
     default:
       return ''
   }
+})
+
+watch(dialogShow, () => {
+  // Clear errors
+  setTimeout(async () => {
+    form.value?.resetFields()
+
+    formState.value = {
+      title: 'Untitled Database',
+    }
+
+    await nextTick()
+
+    input.value?.$el?.focus()
+    input.value?.$el?.select()
+  }, 5)
 })
 </script>
 

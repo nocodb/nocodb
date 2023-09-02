@@ -62,6 +62,10 @@ const keys = ref<Record<string, number>>({})
 
 const menuRefs = ref<HTMLElement[] | HTMLElement>()
 
+const projectType = ref(NcProjectType.DB)
+const projectCreateDlg = ref(false)
+const dashboardProjectCreateDlg = ref(false)
+
 // const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
 
 const tablesById = computed(() =>
@@ -266,6 +270,20 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         }
         break
       }
+      // ALT + D
+      case 68: {
+        e.stopPropagation()
+        projectType.value = NcProjectType.DB
+        projectCreateDlg.value = true
+        break
+      }
+      // ALT + B
+      case 66: {
+        e.stopPropagation()
+        projectType.value = NcProjectType.DOCS
+        projectCreateDlg.value = true
+        break
+      }
     }
   }
 })
@@ -365,6 +383,8 @@ onUnmounted(() => {
       <WorkspaceEmptyPlaceholder v-else-if="!isWorkspaceLoading" />
     </div>
 
+    <WorkspaceCreateProjectDlg v-model="projectCreateDlg" :type="projectType" />
+    <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
     <!-- <div class="flex flex-col border-t-1 border-gray-100">
       <div class="flex items-center mt-3 justify-center mx-2">
         <WorkspaceCreateProjectBtn

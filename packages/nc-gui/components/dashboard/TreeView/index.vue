@@ -51,6 +51,8 @@ const { isWorkspaceLoading } = storeToRefs(useWorkspace())
 
 const { openTable } = useTablesStore()
 
+const projectCreateDlg = ref(false)
+
 const projectStore = useProject()
 
 const { loadTables } = projectStore
@@ -185,6 +187,12 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         }
         break
       }
+      // ALT + D
+      case 68: {
+        e.stopPropagation()
+        projectCreateDlg.value = true
+        break
+      }
     }
   }
 })
@@ -283,6 +291,7 @@ onUnmounted(() => {
 
       <WorkspaceEmptyPlaceholder v-else-if="!isWorkspaceLoading" />
     </div>
+    <WorkspaceCreateProjectDlg v-model="projectCreateDlg" />
   </div>
 </template>
 

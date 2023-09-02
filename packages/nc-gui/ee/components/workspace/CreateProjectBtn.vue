@@ -12,18 +12,7 @@ const props = defineProps<{
   // isOpen: boolean
 }>()
 
-// const emits = defineEmits(['update:isOpen'])
-
-const router = useRouter()
-
 const { isUIAllowed } = useUIPermission()
-
-// v-model for isOpen
-// const isOpen = useVModel(props, 'isOpen', emits)
-
-const projectCreateDlg = ref(false)
-const dashboardProjectCreateDlg = ref(false)
-const projectType = ref(NcProjectType.DB)
 
 const projectStore = useProject()
 const { isSharedBase } = storeToRefs(projectStore)
@@ -31,53 +20,16 @@ const { isSharedBase } = storeToRefs(projectStore)
 const workspaceStore = useWorkspace()
 const { activeWorkspace, activeWorkspaceId: _activeWorkspaceId } = storeToRefs(workspaceStore)
 
-const size = computed(() => props.size || 'small')
-const activeWorkspaceId = computed(() => props.activeWorkspaceId || _activeWorkspaceId.value)
-const centered = computed(() => props.centered ?? true)
-const className = computed(() => props.class ?? '')
+const projectCreateDlg = ref(false)
+const projectType = ref(NcProjectType.DB)
+const dashboardProjectCreateDlg = ref(false)
 
-const navigateToCreateProject = (type: NcProjectType) => {
-  if (type === NcProjectType.AUTOMATION) {
-    return message.info('Automation is not available at the moment')
-  } else {
-    if (props.modal) {
-      projectType.value = type
-      projectCreateDlg.value = true
-    } else {
-      router.push({
-        path: '/create',
-        query: {
-          type,
-          workspaceId: activeWorkspaceId.value,
-        },
-      })
-    }
-  }
-}
+const size = computed(() => props.size || 'small')
+const centered = computed(() => props.centered ?? true)
 
 /* const openCreateDashboardProjectOverlay = () => {
   dashboardProjectCreateDlg.value = true
 } */
-
-useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
-  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
-  if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
-    switch (e.keyCode) {
-      // ALT + D
-      case 68: {
-        e.stopPropagation()
-        navigateToCreateProject(NcProjectType.DB)
-        break
-      }
-      // ALT + B
-      case 66: {
-        e.stopPropagation()
-        navigateToCreateProject(NcProjectType.DOCS)
-        break
-      }
-    }
-  }
-})
 </script>
 
 <template>
@@ -86,7 +38,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     type="text"
     :size="size"
     :centered="centered"
-    @click="navigateToCreateProject(NcProjectType.DB)"
+    @click="projectCreateDlg = true"
   >
     <slot />
 

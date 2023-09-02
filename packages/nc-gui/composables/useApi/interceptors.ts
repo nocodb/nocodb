@@ -3,13 +3,13 @@ import { navigateTo, useGlobal, useRouter } from '#imports'
 
 const DbNotFoundMsg = 'Database config not found'
 
+let refreshTokenPromise: Promise<void> | null = null
+
 export function addAxiosInterceptors(api: Api<any>) {
   const state = useGlobal()
   const router = useRouter()
   const route = router.currentRoute
   const optimisedQuery = useState('optimisedQuery', () => true)
-
-  let refreshTokenPromise: Promise<void> | null = null
 
   api.instance.interceptors.request.use((config) => {
     config.headers['xc-gui'] = 'true'

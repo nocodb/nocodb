@@ -90,7 +90,7 @@ onClickOutside(inputWrapperRef, (e) => {
 
       <div
         v-if="active"
-        class="!absolute right-0 h-5 w-5 group cursor-pointer py-1 flex justify-center gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+        class="!absolute right-0 h-7 w-5 group cursor-pointer py-1 flex justify-center gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
         :class="{'right-2 bottom-2':editEnabled}"
         data-testid="attachment-cell-file-picker-button"
         @click.stop="isVisible = !isVisible"

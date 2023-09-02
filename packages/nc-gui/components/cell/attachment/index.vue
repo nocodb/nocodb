@@ -237,7 +237,7 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
 
           <component
             :is="iconMap.expand"
-            class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
+            class="transform dark:(!text-white) group-hover:(!text-grey-800 scale-120) text-gray-500 text-[0.75rem]"
             @click.stop="modalVisible = true"
           />
         </NcTooltip>

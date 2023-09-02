@@ -14,11 +14,20 @@ const isMenuOpen = ref(false)
 
 const isAuthTokenCopied = ref(false)
 
-const logout = async () => {
-  await signOut(false)
-  await navigateTo('/signin')
+const isLoggingOut = ref(false)
 
-  await clearWorkspaces()
+const logout = async () => {
+  isLoggingOut.value = true
+  try {
+    await signOut(false)
+    await navigateTo('/signin')
+
+    await clearWorkspaces()
+  } catch (e) {
+    console.error(e)
+  } finally {
+    isLoggingOut.value = false
+  }
 }
 
 const onCopy = async () => {
@@ -55,9 +64,10 @@ watch(leftSidebarState, () => {
         <GeneralIcon icon="arrowUp" class="!min-w-5" />
       </div>
       <template #overlay>
-        <NcMenu class="" @click="isMenuOpen = false">
+        <NcMenu>
           <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
-            <GeneralIcon icon="signout" class="menu-icon" />
+            <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
+            <GeneralIcon v-else icon="signout" class="menu-icon" />
             Log Out</NcMenuItem
           >
           <NcDivider />

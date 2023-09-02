@@ -35,7 +35,9 @@ export class UsersController extends UsersControllerCE {
   @UseGuards(AuthGuard('openid'))
   async oidcSignin(@Request() req, @Response() res) {
     await this.setRefreshToken({ req, res });
-    res.json(this.usersService.login({ ...req.user, provider: 'openid' }));
+    res.json(
+      await this.usersService.login({ ...req.user, provider: 'openid' }),
+    );
   }
 
   @Get('/auth/oidc')

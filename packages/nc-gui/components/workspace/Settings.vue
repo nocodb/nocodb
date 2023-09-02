@@ -2,7 +2,7 @@
 const { signOut } = useGlobal()
 
 const { deleteWorkspace, navigateToWorkspace, updateWorkspace } = useWorkspace()
-const { workspacesList, activeWorkspaceId, activeWorkspace } = storeToRefs(useWorkspace())
+const { workspacesList, activeWorkspaceId, activeWorkspace, workspaces } = storeToRefs(useWorkspace())
 
 const formValidator = ref()
 const isConfirmed = ref(false)
@@ -25,15 +25,19 @@ const formRules = {
 const onDelete = async () => {
   isDeleting.value = true
   try {
-    await deleteWorkspace(activeWorkspaceId.value)
+    await deleteWorkspace(activeWorkspaceId.value, { skipStateUpdate: true })
 
     isConfirmed.value = false
     isDeleting.value = false
 
-    if (workspacesList.value.length > 0) {
+    // We only remove the delete workspace from the list after the api call is successful
+    workspaces.value.delete(activeWorkspaceId.value)
+
+    if (workspacesList.value.length > 1) {
       await navigateToWorkspace(workspacesList.value[0].id)
     } else {
-      await signOut()
+      // As signin page will clear the workspaces, we need to check if there are more than one workspace
+      await signOut(false)
       setTimeout(() => {
         window.location.href = '/'
       }, 100)

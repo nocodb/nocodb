@@ -30,6 +30,8 @@ loadScope('disabled')
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
+const { clearWorkspaces } = useWorkspace()
+
 const formValidator = ref()
 
 const form = reactive({
@@ -75,6 +77,10 @@ async function signIn() {
 function resetError() {
   if (error.value) error.value = null
 }
+
+onMounted(async () => {
+  await clearWorkspaces()
+})
 </script>
 
 <template>

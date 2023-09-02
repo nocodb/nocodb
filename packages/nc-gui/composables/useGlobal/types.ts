@@ -28,6 +28,7 @@ export interface AppInfo {
   baseHostName?: string
   disableEmailAuth: boolean
   mainSubDomain?: string
+  dashboardPath: string
 }
 
 export interface StoredState {

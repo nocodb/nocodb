@@ -295,9 +295,11 @@ export class WorkspaceUsersService {
                 },
               )}#/${workspace.id}`,
               html: ejs.render(template, {
-                workspaceLink: siteUrl + `${this.config.get('dashboardPath', {
-                  infer: true,
-                })}#/${workspace.id}`,
+                workspaceLink:
+                  siteUrl +
+                  `${this.config.get('dashboardPath', {
+                    infer: true,
+                  })}#/${workspace.id}`,
                 workspaceName: workspace.title,
                 roles: rolesLabel[roles],
               }),
@@ -342,9 +344,11 @@ export class WorkspaceUsersService {
               subject: 'Your workspace role has been updated',
               text: `Your role in workspace ${workspace.title} has been updated to ${rolesLabel[roles]}`,
               html: ejs.render(template, {
-                workspaceLink: siteUrl + `${this.config.get('dashboardPath', {
-                  infer: true,
-                })}#/${workspace.id}`,
+                workspaceLink:
+                  siteUrl +
+                  `${this.config.get('dashboardPath', {
+                    infer: true,
+                  })}#/${workspace.id}`,
                 workspaceName: workspace.title,
                 roles: rolesLabel[roles],
               }),

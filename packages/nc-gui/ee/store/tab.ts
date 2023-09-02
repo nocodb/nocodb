@@ -58,7 +58,6 @@ export const useTabs = defineStore('tabStore', () => {
       ) {
         const tab: TabItem = {
           projectId: route.value.params.projectId as string,
-          type: route.value.params.type as TabType,
           title: route.value.params.title as string,
         }
 

@@ -1,11 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
-import { extractRolesObj } from 'nocodb-sdk';
-import { ProjectUser, User } from '~/models';
+import { User } from '~/models';
 import { UsersService } from '~/services/users/users.service';
-import WorkspaceUser from '~/models/WorkspaceUser';
-import { sanitiseUserObj } from '~/utils';
 import { NcError } from '~/helpers/catchError';
 
 @Injectable()
@@ -29,53 +26,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     ) {
       NcError.unauthorized('Token Expired. Please login again.');
     }
-
-    const [workspaceRoles, projectRoles] = await Promise.all([
-      // extract workspace evel roles
-      new Promise((resolve) => {
-        if (req.ncWorkspaceId) {
-          // todo: cache
-          // extract workspace role
-          WorkspaceUser.get(req.ncWorkspaceId, user.id)
-            .then((workspaceUser) => {
-              if (workspaceUser?.roles) {
-                resolve(extractRolesObj(workspaceUser.roles));
-              } else {
-                resolve(null);
-              }
-            })
-            .catch(() => resolve(null));
-        } else {
-          resolve(null);
-        }
-      }) as Promise<ReturnType<typeof extractRolesObj> | null>,
-      // extract project level roles
-      new Promise((resolve) => {
-        if (req.ncProjectId) {
-          ProjectUser.get(req.ncProjectId, user.id).then(
-            async (projectUser) => {
-              let roles = projectUser?.roles;
-              roles = roles === 'owner' ? 'owner,creator' : roles;
-              // + (user.roles ? `,${user.roles}` : '');
-              if (roles) {
-                resolve(extractRolesObj(roles));
-              } else {
-                resolve(null);
-              }
-              // todo: cache
-            },
-          );
-        } else {
-          resolve(null);
-        }
-      }) as Promise<ReturnType<typeof extractRolesObj> | null>,
-    ]);
-
     return {
-      ...sanitiseUserObj(user),
-      roles: user.roles ? extractRolesObj(user.roles) : null,
-      workspace_roles: workspaceRoles ? workspaceRoles : null,
-      project_roles: projectRoles ? projectRoles : null,
+      ...(await User.getWithRoles(user.id, {
+        user,
+        projectId: req.ncProjectId,
+        workspaceId: req.ncWorkspaceId,
+      })),
       provider: jwtPayload.provider ?? undefined,
     };
   }

@@ -1,10 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
-import { extractRolesObj, OrgUserRoles } from 'nocodb-sdk';
-import { ProjectUser, User } from '~/models';
+import { User } from '~/models';
 import { UsersService } from '~/services/users/users.service';
-import { sanitiseUserObj } from '~/utils';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -28,28 +26,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new Error('Token Expired. Please login again.');
     }
 
-    const projectRoles = await new Promise((resolve) => {
-      if (req.ncProjectId) {
-        ProjectUser.get(req.ncProjectId, user.id).then(async (projectUser) => {
-          let roles = projectUser?.roles;
-          roles = roles === 'owner' ? 'owner,creator' : roles;
-          // + (user.roles ? `,${user.roles}` : '');
-          if (roles) {
-            resolve(extractRolesObj(roles));
-          } else {
-            resolve(null);
-          }
-          // todo: cache
-        });
-      } else {
-        resolve(null);
-      }
+    return User.getWithRoles(user.id, {
+      user,
+      projectId: req.ncProjectId,
     });
-
-    return {
-      ...sanitiseUserObj(user),
-      roles: user.roles ? extractRolesObj(user.roles) : null,
-      project_roles: projectRoles ? projectRoles : null,
-    };
   }
 }

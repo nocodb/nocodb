@@ -31,8 +31,9 @@ const onDelete = async () => {
     isDeleting.value = false
 
     // We only remove the delete workspace from the list after the api call is successful
+    workspaces.value.delete(activeWorkspaceId.value)
+
     if (workspacesList.value.length > 1) {
-      workspaces.value.delete(activeWorkspaceId.value)
       await navigateToWorkspace(workspacesList.value[0].id)
     } else {
       // As signin page will clear the workspaces, we need to check if there are more than one workspace

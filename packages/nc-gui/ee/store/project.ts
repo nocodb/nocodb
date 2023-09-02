@@ -9,6 +9,7 @@ import {
   ref,
   useApi,
   useCommandPalette,
+  useGlobal,
   useNuxtApp,
   useProjects,
   useRoles,
@@ -17,7 +18,6 @@ import {
   useTheme,
 } from '#imports'
 import type { NcProject, ProjectMetaInfo, ThemeConfig } from '#imports'
-import { useGlobal } from '#imports'
 
 export const useProject = defineStore('projectStore', () => {
   const { $e } = useNuxtApp()

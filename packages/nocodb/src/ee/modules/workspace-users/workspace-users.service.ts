@@ -1,4 +1,7 @@
+import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
+import bcrypt from 'bcryptjs';
+
 import validator from 'validator';
 import { v4 as uuidv4 } from 'uuid';
 import { AppEvents, WorkspaceUserRoles } from 'nocodb-sdk';
@@ -16,11 +19,13 @@ import Workspace from '~/models/Workspace';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { getWorkspaceSiteUrl } from '~/utils';
 import { rolesLabel } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { UsersService } from '~/services/users/users.service';
 
 @Injectable()
 export class WorkspaceUsersService {
   constructor(
     private appHooksService: AppHooksService,
+    private usersService: UsersService,
     private config: ConfigService<AppConfig>,
   ) {}
 
@@ -174,48 +179,55 @@ export class WorkspaceUsersService {
 
     for (const email of emails) {
       // add user to project if user already exist
-      const user = await User.getByEmail(email);
-
-      if (user) {
-        // check if this user has been added to this project
-        const workspaceUser = await WorkspaceUser.get(workspaceId, user.id);
-        if (workspaceUser) {
-          NcError.badRequest(
-            `${user.email} with role ${workspaceUser.roles} already exists in this project`,
-          );
-        }
-
-        await WorkspaceUser.insert({
-          fk_workspace_id: workspaceId,
-          fk_user_id: user.id,
-          roles: roles || 'editor',
+      let user = await User.getByEmail(email);
+      if (!user) {
+        const salt = await promisify(bcrypt.genSalt)(10);
+        user = await this.usersService.registerNewUserIfAllowed({
+          email,
+          password: '',
+          email_verification_token: null,
+          avatar: null,
+          user_name: null,
+          display_name: '',
+          salt,
         });
-
-        this.sendInviteEmail({
-          workspace,
-          user,
-          roles: roles || 'viewer',
-          siteUrl: getWorkspaceSiteUrl({
-            siteUrl: param.siteUrl,
-            workspaceId: workspace.id,
-          }),
-        })
-          .then(() => {
-            /* ignore */
-          })
-          .catch((e) => {
-            console.error(e);
-          });
-
-        this.appHooksService.emit(AppEvents.WORKSPACE_INVITE, {
-          workspace,
-          user,
-          invitedBy: param.invitedBy,
-        });
-      } else {
-        // todo: send invite email
-        NcError.badRequest(`${email} is not registered in Noco`);
       }
+
+      // check if this user has been added to this project
+      const workspaceUser = await WorkspaceUser.get(workspaceId, user.id);
+      if (workspaceUser) {
+        NcError.badRequest(
+          `${user.email} with role ${workspaceUser.roles} already exists in this project`,
+        );
+      }
+
+      await WorkspaceUser.insert({
+        fk_workspace_id: workspaceId,
+        fk_user_id: user.id,
+        roles: roles || 'editor',
+      });
+
+      this.sendInviteEmail({
+        workspace,
+        user,
+        roles: roles || 'viewer',
+        siteUrl: getWorkspaceSiteUrl({
+          siteUrl: param.siteUrl,
+          workspaceId: workspace.id,
+        }),
+      })
+        .then(() => {
+          /* ignore */
+        })
+        .catch((e) => {
+          console.error(e);
+        });
+
+      this.appHooksService.emit(AppEvents.WORKSPACE_INVITE, {
+        workspace,
+        user,
+        invitedBy: param.invitedBy,
+      });
     }
 
     if (emails.length === 1) {

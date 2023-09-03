@@ -40,7 +40,11 @@ export class OpenidStrategy extends PassportStrategy(
     User.getByEmail(email)
       .then(async (user) => {
         if (user) {
-          return done(null, { ...sanitiseUserObj(user), provider: 'openid' });
+          return done(null, {
+            ...sanitiseUserObj(user),
+            provider: 'openid',
+            display_name: profile._json?.name,
+          });
         } else {
           // if user not found create new user
           const salt = await promisify(bcrypt.genSalt)(10);

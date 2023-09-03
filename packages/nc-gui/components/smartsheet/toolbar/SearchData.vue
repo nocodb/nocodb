@@ -27,6 +27,9 @@ const isFocused = ref(false)
 
 const searchDropdown = ref(null)
 
+const serachbarHover = ref(false)
+
+
 onClickOutside(searchDropdown, () => (isDropdownOpen.value = false))
 
 const columns = computed(() =>
@@ -91,16 +94,14 @@ watchDebounced(
       ref="searchDropdown"
       class="flex items-center group relative px-2 cursor-pointer border-r-1 border-gray-200 hover:bg-gray-100"
       :class="{ '!bg-gray-50 ': isDropdownOpen }"
+      @mouseover="serachbarHover = true" @mouseleave="serachbarHover = false"
       @click="isDropdownOpen = !isDropdownOpen"
     >
       <GeneralIcon icon="search" class="ml-1 mr-2 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
-        <NcBadge class="mb-1 px-2" color="blue">
-          <p class="pt-1 text-center text-xs text-blue-600 truncate"
-          >
-            in '{{ displayColumnLabel }}'
-          </p>
-        </NcBadge>
-      <component :is="iconMap.arrowDown" class="ml-1 text-gray-400 !text-sm" />
+      <div class="text-xs font-medium text-gray-400 truncate" :class="{'w-12':serachbarHover || isDropdownOpen,'w-16':!serachbarHover}">
+        {{ displayColumnLabel }}
+      </div>
+      <component v-if="serachbarHover || isDropdownOpen" :is="iconMap.arrowDown" class="ml-1 text-gray-400 !text-sm" />
 
       <a-select
         v-model:value="search.field"

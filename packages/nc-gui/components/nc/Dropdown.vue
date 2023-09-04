@@ -12,6 +12,7 @@ const props = withDefaults(
     trigger: () => ['click'],
     visible: undefined,
     overlayClassName: undefined,
+    autoClose: true,
   },
 )
 
@@ -21,7 +22,7 @@ const trigger = toRef(props, 'trigger')
 
 const overlayClassName = toRef(props, 'overlayClassName')
 
-const autoClose = computed(() => props.autoClose ?? true)
+const autoClose = computed(() => props.autoClose)
 
 const overlayClassNameComputed = computed(() => {
   let className = 'nc-dropdown bg-white rounded-lg border-1 border-gray-100 shadow-md overflow-hidden'

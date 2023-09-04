@@ -90,7 +90,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       eventBatcher.enqueueEvent({
         event: evt,
         ...(data || {}),
-        $current_url: route.value?.matched?.[route.value?.matched?.length - 1]?.path,
+        $current_url: sanitisePath(route.value?.matched?.[route.value?.matched?.length - 1]?.path),
         project_id: route.value?.params?.projectId,
         workspace_id: route.value?.params?.typeOrId ?? undefined,
         table_id: route.value?.params?.viewId ?? undefined,
@@ -99,6 +99,8 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     },
   }
 
+  /*
+  // skip page event tracking for now
   router.afterEach((to, from) => {
     if (to.path === from.path && (to.query && to.query.type) === (from.query && from.query.type)) return
 
@@ -110,7 +112,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       table_id: route.value?.params?.viewId ?? undefined,
       view_id: route.value?.params?.viewTitle ?? undefined,
     })
-  })
+  }) */
 
   nuxtApp.vueApp.directive('e', {
     created(el, binding, vnode) {
@@ -140,3 +142,8 @@ export default defineNuxtPlugin(async (nuxtApp) => {
   nuxtApp.provide('tele', tele)
   nuxtApp.provide('e', (e: string, data?: Record<string, any>) => tele.emit(e, { data }))
 })
+
+// remove () or ? from path
+function sanitisePath(path?: string) {
+  return path?.toString?.().replace(/(?:\?|\(\))(?=\/|$)/g, '')
+}

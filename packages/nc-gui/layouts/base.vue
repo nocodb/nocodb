@@ -38,22 +38,19 @@ hooks.hook('page:finish', () => {
 
     <a-layout class="!flex-col">
       <a-layout-header v-if="!route.meta.public && signedIn && !route.meta.hideHeader" class="nc-navbar">
-        <div
-          v-if="!route.params.projectType"
-          v-e="['c:navbar:home']"
-          data-testid="nc-noco-brand-icon"
-          class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
-          @click="navigateTo('/')"
-        >
-          <a-tooltip placement="bottom">
-            <template #title>
-              {{ currentVersion }}
-            </template>
-            <div class="flex items-center gap-2">
-              <img v-if="!isDashboard" width="120" alt="NocoDB" src="~/assets/img/brand/nocodb-full.png" />
-              <img v-else width="25" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
+        <div class="border-r-1 w-48 h-full">
+          <div
+            v-if="!route.params.projectType"
+            v-e="['c:navbar:home']"
+            data-testid="nc-noco-brand-icon"
+            class="transition-all duration-200 px-2 mr-2 mt-1.5 cursor-pointer transform hover:bg-gray-100 my-1 nc-noco-brand-icon h-8 rounded-md"
+            @click="navigateTo('/')"
+          >
+            <div class="flex flex-row gap-x-2 items-center h-8.5">
+              <GeneralIcon icon="arrowLeft" class="-mt-0.1" />
+              <div class="flex text-xs text-gray-800">Back</div>
             </div>
-          </a-tooltip>
+          </div>
         </div>
 
         <div class="!text-white flex justify-center">
@@ -161,6 +158,6 @@ hooks.hook('page:finish', () => {
 }
 
 .nc-navbar {
-  @apply flex !bg-white items-center !pl-2 !pr-5;
+  @apply flex !bg-white items-center !pl-2 !pr-5 h-11;
 }
 </style>

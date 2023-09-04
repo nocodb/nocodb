@@ -27,14 +27,14 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
       <!-- Side tabs -->
       <a-layout-sider>
         <div class="h-full bg-white nc-user-sidebar">
-          <a-menu
+          <NcMenu
             v-model:openKeys="openKeys"
             v-model:selectedKeys="selectedKeys"
             :inline-indent="16"
             class="tabs-menu h-full"
             mode="inline"
           >
-            <div class="text-xs text-gray-500 ml-4 pt-4 pb-2 font-weight-bold">{{ $t('title.accountSettings') }}</div>
+            <div class="text-xs text-gray-600 ml-4 py-1.5">{{ $t('labels.account') }}</div>
 
             <a-sub-menu v-if="false" key="users" class="!bg-white">
               <template #icon>
@@ -42,30 +42,33 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
               </template>
               <template #title>Users</template>
 
-              <a-menu-item
+              <NcMenuItem
                 v-if="isUIAllowed('superAdminUserManagement')"
                 key="list"
                 class="text-xs"
                 @click="navigateTo('/account/users/list')"
               >
                 <span class="ml-4">{{ $t('title.userManagement') }}</span>
-              </a-menu-item>
-              <a-menu-item key="password-reset" class="text-xs" @click="navigateTo('/account/users/password-reset')">
+              </NcMenuItem>
+              <NcMenuItem key="password-reset" class="text-xs" @click="navigateTo('/account/users/password-reset')">
                 <span class="ml-4">{{ $t('title.resetPasswordMenu') }}</span>
-              </a-menu-item>
-              <a-menu-item
+              </NcMenuItem>
+              <NcMenuItem
                 v-if="isUIAllowed('superAdminAppSettings')"
                 key="settings"
                 class="text-xs"
                 @click="navigateTo('/account/users/settings')"
               >
                 <span class="ml-4">{{ $t('activity.settings') }}</span>
-              </a-menu-item>
+              </NcMenuItem>
             </a-sub-menu>
 
-            <a-menu-item
+            <NcMenuItem
               key="tokens"
-              class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
+              class="group"
+              :class="{
+                active: $route.params.page === 'tokens',
+              }"
               @click="navigateTo('/account/tokens')"
             >
               <div class="flex items-center space-x-2">
@@ -73,23 +76,26 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
 
                 <div class="select-none">{{ $t('title.tokens') }}</div>
               </div>
-            </a-menu-item>
-            <a-menu-item
+            </NcMenuItem>
+            <NcMenuItem
               v-if="isUIAllowed('appStore') && !appInfo.isCloud"
               key="apps"
-              class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
+              class="group"
+              :class="{
+                active: $route.params.page === 'apps',
+              }"
               @click="navigateTo('/account/apps')"
             >
               <div class="flex items-center space-x-2">
                 <component :is="iconMap.appStore" />
 
-                <div class="select-none">{{ $t('title.appStore') }}</div>
+                <div class="select-none text-sm">{{ $t('title.appStore') }}</div>
               </div>
-            </a-menu-item>
-            <a-menu-item
+            </NcMenuItem>
+            <NcMenuItem
               v-if="false && isUIAllowed('license')"
               key="license"
-              class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
+              class="group"
               @click="navigateTo('/account/license')"
             >
               <div class="flex items-center space-x-2">
@@ -97,8 +103,8 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
 
                 <div class="select-none">{{ $t('title.licence') }}</div>
               </div>
-            </a-menu-item>
-          </a-menu>
+            </NcMenuItem>
+          </NcMenu>
         </div>
       </a-layout-sider>
 
@@ -128,5 +134,13 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
 
 :deep(.ant-menu-submenu-selected .ant-menu-submenu-arrow) {
   @apply !text-inherit;
+}
+
+:deep(.group) {
+  @apply mx-2 w-46 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
+}
+
+:deep(.active) {
+  @apply !bg-brand-50 !text-brand-500;
 }
 </style>

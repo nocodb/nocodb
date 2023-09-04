@@ -38,7 +38,7 @@ hooks.hook('page:finish', () => {
 
     <a-layout class="!flex-col">
       <a-layout-header v-if="!route.meta.public && signedIn && !route.meta.hideHeader" class="nc-navbar">
-        <div class="border-r-1 w-48 h-full">
+        <div class="border-r-1 border-gray-200 w-48 h-full">
           <div
             v-if="!route.params.projectType"
             v-e="['c:navbar:home']"

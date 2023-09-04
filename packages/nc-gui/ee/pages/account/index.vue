@@ -154,4 +154,8 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
 :deep(.ant-menu-submenu-title) {
   @apply select-none mx-2 w-46 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
 }
+
+:deep(.ant-menu) {
+  @apply !pt-0 !rounded-none !border-gray-200;
+}
 </style>

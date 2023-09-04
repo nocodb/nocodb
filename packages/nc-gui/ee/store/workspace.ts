@@ -104,7 +104,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   })
 
   /** actions */
-  const loadWorkspaces = async () => {
+  const loadWorkspaces = async (ignoreError = false) => {
     try {
       // todo: pagination
       const { list, pageInfo: _ } = await $api.workspace.list()
@@ -112,7 +112,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         workspaces.value.set(workspace.id!, workspace)
       }
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      if (!ignoreError) message.error(await (e))
     }
   }
 

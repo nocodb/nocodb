@@ -33,10 +33,10 @@ function loadWorkspacesWithInterval() {
   timerRef = setTimeout(async () => {
     if (
       activeWorkspace.value &&
-      activeWorkspace.value.plan === WorkspacePlan.FREE &&
+      activeWorkspace.value.plan === WorkspacePlan.PAID &&
       activeWorkspace.value.status !== WorkspaceStatus.CREATED
     ) {
-      await loadWorkspaces()
+      await loadWorkspaces(true)
       loadWorkspacesWithInterval()
     }
   }, 10000)

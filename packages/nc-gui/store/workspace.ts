@@ -80,7 +80,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   })
 
   /** actions */
-  const loadWorkspaces = async () => {}
+  const loadWorkspaces = async (_ignoreError = false) => {}
 
   const createWorkspace = async (..._args: any) => {}
 

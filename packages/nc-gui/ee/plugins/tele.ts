@@ -91,8 +91,12 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       eventBatcher.enqueueEvent({
         event: evt,
         ...(data || {}),
-        path: route.value?.matched?.[0]?.path,
-        pid: route.value?.params?.projectId,
+        $current_url: route.value?.matched?.[0]?.path,
+
+        project_id: route.value?.params?.projectId,
+        workspace_id: route.value?.params?.typeOrId ?? undefined,
+        table_id: route.value?.params?.viewId ?? undefined,
+        view_id: route.value?.params?.viewTitle ?? undefined,
       })
     },
   }
@@ -103,8 +107,12 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     const path = to.matched[0].path + (to.query && to.query.type ? `?type=${to.query.type}` : '')
     tele.emit('$pageview', {
       path,
-      pid: route.value?.params?.projectId,
       $current_url: path,
+
+      project_id: route.value?.params?.projectId,
+      workspace_id: route.value?.params?.typeOrId ?? undefined,
+      table_id: route.value?.params?.viewId ?? undefined,
+      view_id: route.value?.params?.viewTitle ?? undefined,
     })
   })
 

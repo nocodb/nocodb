@@ -60,9 +60,8 @@ export class TelemetryService {
         created_at: Date.now(),
         ...event,
         client_id: param.body.clientId,
-        project_id: event?.pid ?? undefined,
         ip: param.req.clientIp,
-        userId: param.req.user?.id,
+        user_id: param.req.user?.id,
         email: param.req.user?.email,
         user_agent: param.req.headers['user-agent'],
         ...this.defaultPayload,
@@ -71,7 +70,7 @@ export class TelemetryService {
       messages.push(JSON.stringify(payload));
 
       this.phClient?.capture({
-        distinctId: payload.userId,
+        distinctId: payload.client_id || payload.userId,
         event: payload.event,
         properties: {
           ...payload,

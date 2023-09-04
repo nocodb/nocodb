@@ -91,7 +91,6 @@ export default defineNuxtPlugin(async (nuxtApp) => {
         event: evt,
         ...(data || {}),
         $current_url: route.value?.matched?.[route.value?.matched?.length - 1]?.path,
-
         project_id: route.value?.params?.projectId,
         workspace_id: route.value?.params?.typeOrId ?? undefined,
         table_id: route.value?.params?.viewId ?? undefined,
@@ -105,9 +104,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
     const path = to.matched[to.matched.length - 1].path + (to.query && to.query.type ? `?type=${to.query.type}` : '')
     tele.emit('$pageview', {
-      path,
       $current_url: path,
-
       project_id: route.value?.params?.projectId,
       workspace_id: route.value?.params?.typeOrId ?? undefined,
       table_id: route.value?.params?.viewId ?? undefined,

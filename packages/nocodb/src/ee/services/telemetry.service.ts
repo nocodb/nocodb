@@ -14,7 +14,9 @@ export class TelemetryService {
       package_id: packageInfo.version,
     };
     if (process.env.NC_CLOUD_POSTHOG_API_KEY)
-      this.phClient = new PostHog(process.env.NC_CLOUD_POSTHOG_API_KEY);
+      this.phClient = new PostHog(process.env.NC_CLOUD_POSTHOG_API_KEY, {
+        host: 'https://app.posthog.com',
+      });
   }
 
   public sendEvent({
@@ -37,6 +39,14 @@ export class TelemetryService {
       .catch((err) => {
         this.logger.error(err);
       });
+
+    this.phClient?.capture({
+      distinctId: payload.userId,
+      event,
+      properties: {
+        ...payload,
+      },
+    });
   }
 
   async trackEvents(param: {

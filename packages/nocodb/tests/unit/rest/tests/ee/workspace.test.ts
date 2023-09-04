@@ -60,8 +60,8 @@ function workspaceTests() {
       .expect(200);
 
     if (
-      response.body.list[1].title !== 'Sakila01' ||
-      response.body.list[1].meta.color !== '#4351E8'
+      response.body.list[2].title !== 'Sakila01' ||
+      response.body.list[2].meta.color !== '#4351E8'
     ) {
       throw new Error('Workspace listing failed');
     }
@@ -113,7 +113,7 @@ function workspaceTests() {
       .set('xc-auth', context.token)
       .expect(200);
 
-    if (response.body.list[1].title !== 'Sakila02') {
+    if (response.body.list[2].title !== 'Sakila02') {
       throw new Error('Workspace update failed');
     }
   });

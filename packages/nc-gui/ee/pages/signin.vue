@@ -26,6 +26,8 @@ const { t } = useI18n()
 
 const { loadScope } = useCommandPalette()
 
+const { clearWorkspaces } = useWorkspace()
+
 loadScope('disabled')
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
@@ -75,6 +77,14 @@ async function signIn() {
 function resetError() {
   if (error.value) error.value = null
 }
+
+onMounted(async () => {
+  await clearWorkspaces()
+})
+
+// todo: move to utils
+// extract workspace id from url
+const subDomain = location.host?.split('.')[0]
 </script>
 
 <template>
@@ -104,6 +114,8 @@ function resetError() {
             <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
               <a-input
                 v-model:value="form.email"
+                type="email"
+                autocomplete="email"
                 data-testid="nc-form-signin__email"
                 size="large"
                 :placeholder="$t('msg.info.signUp.workEmail')"
@@ -114,6 +126,7 @@ function resetError() {
             <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
               <a-input-password
                 v-model:value="form.password"
+                autocomplete="current-password"
                 data-testid="nc-form-signin__password"
                 size="large"
                 class="password"
@@ -154,7 +167,7 @@ function resetError() {
               v-if="appInfo.oidcAuthEnabled"
               class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
             >
-              <a :href="`${appInfo.ncSiteUrl}/auth/oidc`" class="!text-primary !no-underline">
+              <a :href="`${appInfo.ncSiteUrl}/auth/oidc?workspaceId=${subDomain}`" class="!text-primary !no-underline">
                 <button type="button" class="scaling-btn bg-opacity-100">
                   <span class="flex items-center gap-2">
                     <MdiLogin />

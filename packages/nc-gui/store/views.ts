@@ -85,11 +85,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const onViewsTabChange = (page: ViewPageType) => {
     router.push({
-      name: 'index-typeOrId-projectId-index-index-type-viewId-viewTitle-slugs',
+      name: 'index-typeOrId-projectId-index-index-viewId-viewTitle-slugs',
       params: {
         typeOrId: route.value.params.typeOrId,
         projectId: route.value.params.projectId,
-        type: route.value.params.type,
         viewId: route.value.params.viewId,
         viewTitle: activeViewTitleOrId.value,
         slugs: [page],

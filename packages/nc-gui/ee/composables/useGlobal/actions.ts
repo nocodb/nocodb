@@ -8,14 +8,19 @@ export function useGlobalActions(state: State): Actions {
   }
 
   /** Sign out by deleting the token from localStorage */
-  const signOut: Actions['signOut'] = async () => {
+  const signOut: Actions['signOut'] = async (skipRedirect = true) => {
+    let signoutRes
     try {
       const nuxtApp = useNuxtApp()
-      await nuxtApp.$api.auth.signout()
+      signoutRes = await nuxtApp.$api.auth.signout()
     } catch {
     } finally {
       state.token.value = null
       state.user.value = null
+      // todo: update type in swagger.json
+      if (!skipRedirect && (signoutRes as any).redirect_url) {
+        location.href = (signoutRes as any).redirect_url
+      }
     }
   }
 
@@ -73,14 +78,14 @@ export function useGlobalActions(state: State): Actions {
     workspaceId: _workspaceId,
     type,
     projectId,
-    query
+    query,
   }: {
     workspaceId?: string
     projectId?: string
     type?: NcProjectType
-    query?:any
+    query?: any
   }) => {
-    const queryParams = query ? `?${new URLSearchParams(query).toString()}` : '';
+    const queryParams = query ? `?${new URLSearchParams(query).toString()}` : ''
     const workspaceId = _workspaceId || 'app'
     let path: string
     if (projectId) {
@@ -96,14 +101,12 @@ export function useGlobalActions(state: State): Actions {
       path = _workspaceId ? `/${workspaceId}${queryParams}` : `/${queryParams}`
     }
 
-
     if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
-      location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}/dashboard/#${path}`
+      location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}${state.appInfo.value.dashboardPath}#${path}`
     } else {
       navigateTo(path)
     }
   }
-
 
   const ncNavigateTo = ({
     workspaceId: _workspaceId,
@@ -111,18 +114,17 @@ export function useGlobalActions(state: State): Actions {
     projectId,
     tableId,
     viewId,
-    query
+    query,
   }: {
     workspaceId?: string
     projectId?: string
     type?: NcProjectType
-    tableId?:string
-    viewId?:string
-    query?:string
+    tableId?: string
+    viewId?: string
+    query?: string
   }) => {
-
-    const tablePath = tableId ? `/table/${tableId}${viewId ? `/${viewId}` : ''}` : ''
-    const queryParams = query ? `?${new URLSearchParams(query).toString()}` : '';
+    const tablePath = tableId ? `/${tableId}${viewId ? `/${viewId}` : ''}` : ''
+    const queryParams = query ? `?${new URLSearchParams(query).toString()}` : ''
     const workspaceId = _workspaceId || 'app'
     let path: string
     if (projectId)
@@ -139,7 +141,7 @@ export function useGlobalActions(state: State): Actions {
     }
 
     if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
-      location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}/dashboard/#${path}`
+      location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}${state.appInfo.value.dashboardPath}#${path}`
     } else {
       navigateTo(path)
     }
@@ -149,7 +151,7 @@ export function useGlobalActions(state: State): Actions {
     if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
       return `https://${workspaceId}.${state.appInfo.value.baseHostName}`
     }
-    return  undefined
+    return undefined
   }
 
   return { signIn, signOut, refreshToken, loadAppInfo, setIsMobileMode, navigateToProject, getBaseUrl, ncNavigateTo }

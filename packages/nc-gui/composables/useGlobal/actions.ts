@@ -1,5 +1,4 @@
 import { getActivePinia } from 'pinia'
-import { LocationQuery } from 'vue-router'
 import type { Actions, AppInfo, State } from './types'
 import { type NcProjectType, message, useNuxtApp } from '#imports'
 import { navigateTo } from '#app'
@@ -10,7 +9,7 @@ export function useGlobalActions(state: State): Actions {
   }
 
   /** Sign out by deleting the token from localStorage */
-  const signOut: Actions['signOut'] = async () => {
+  const signOut: Actions['signOut'] = async (_skipRedirect = false) => {
     try {
       const nuxtApp = useNuxtApp()
       await nuxtApp.$api.auth.signout()
@@ -119,7 +118,7 @@ export function useGlobalActions(state: State): Actions {
     tableId?: string
     viewId?: string
   }) => {
-    const tablePath = tableId ? `/table/${tableId}${viewId ? `/${viewId}` : ''}` : ''
+    const tablePath = tableId ? `/${tableId}${viewId ? `/${viewId}` : ''}` : ''
     const workspaceId = _workspaceId || 'nc'
     let path: string
 

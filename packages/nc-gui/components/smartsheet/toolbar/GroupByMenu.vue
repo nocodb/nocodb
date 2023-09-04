@@ -142,7 +142,13 @@ watch(open, () => {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="open" offset-y class="" :trigger="['click']" overlay-class-name="nc-dropdown-group-by-menu">
+  <NcDropdown
+    v-model:visible="open"
+    offset-y
+    class=""
+    :trigger="['click']"
+    overlay-class-name="nc-dropdown-group-by-menu nc-toolbar-dropdown"
+  >
     <div :class="{ 'nc-badge nc-active-btn': groupedByColumnIds?.length }">
       <a-button v-e="['c:group-by']" class="nc-group-by-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-2">

@@ -9,6 +9,7 @@ import {
 } from 'nocodb-sdk';
 import AWS from 'aws-sdk';
 import { ConfigService } from '@nestjs/config';
+import { extractRolesObj } from 'nocodb-sdk';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig } from '~/interface/config';
 import WorkspaceUser from '~/models/WorkspaceUser';
@@ -19,7 +20,6 @@ import { NcError } from '~/helpers/catchError';
 import { Project, ProjectUser } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { extractProps } from '~/helpers/extractProps';
-import extractRolesObj from '~/utils/extractRolesObj';
 import { ProjectsService } from '~/services/projects.service';
 import { TablesService } from '~/services/tables.service';
 
@@ -185,9 +185,11 @@ export class WorkspacesService {
       delete workspace.order;
     }
 
-    const roles = extractRolesObj(user.roles);
     // allow only owner and creator to update anything other that order
-    if (!roles[WorkspaceUserRoles.OWNER] && !roles[WorkspaceUserRoles.CREATOR])
+    if (
+      !(user as any).workspace_roles[WorkspaceUserRoles.OWNER] &&
+      !(user as any).workspace_roles[WorkspaceUserRoles.CREATOR]
+    )
       return;
 
     const updateObj = extractProps(workspace, ['title', 'description', 'meta']);

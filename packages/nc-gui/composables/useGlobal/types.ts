@@ -28,6 +28,7 @@ export interface AppInfo {
   baseHostName?: string
   disableEmailAuth: boolean
   mainSubDomain?: string
+  dashboardPath: string
 }
 
 export interface StoredState {
@@ -61,7 +62,7 @@ export interface Getters {
 }
 
 export interface Actions {
-  signOut: () => void
+  signOut: (skipRedirect?: boolean) => void
   signIn: (token: string) => void
   refreshToken: () => void
   loadAppInfo: () => void

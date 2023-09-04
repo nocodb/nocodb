@@ -1,9 +1,11 @@
-import type { UserType } from 'nocodb-sdk';
+import { extractRolesObj, type UserType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import { ProjectUser } from '~/models';
+import { sanitiseUserObj } from '~/utils';
 
 export default class User implements UserType {
   id: string;
@@ -239,5 +241,42 @@ export default class User implements UserType {
     await NocoCache.del(`${CacheScope.USER}:${user.email}`);
 
     return await ncMeta.metaDelete(null, null, MetaTable.USERS, userId);
+  }
+
+  static async getWithRoles(
+    userId: string,
+    args: {
+      user?: User;
+      projectId?: string;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const user = args.user ?? (await this.get(userId, ncMeta));
+
+    if (!user) NcError.badRequest('User not found');
+
+    const projectRoles = await new Promise((resolve) => {
+      if (args.projectId) {
+        ProjectUser.get(args.projectId, user.id).then(async (projectUser) => {
+          let roles = projectUser?.roles;
+          roles = roles === 'owner' ? 'owner,creator' : roles;
+          // + (user.roles ? `,${user.roles}` : '');
+          if (roles) {
+            resolve(extractRolesObj(roles));
+          } else {
+            resolve(null);
+          }
+          // todo: cache
+        });
+      } else {
+        resolve(null);
+      }
+    });
+
+    return {
+      ...sanitiseUserObj(user),
+      roles: user.roles ? extractRolesObj(user.roles) : null,
+      project_roles: projectRoles ? projectRoles : null,
+    } as any;
   }
 }

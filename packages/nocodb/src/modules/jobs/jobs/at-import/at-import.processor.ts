@@ -9,14 +9,13 @@ import utc from 'dayjs/plugin/utc';
 import tinycolor from 'tinycolor2';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
-import { isLinksOrLTAR } from 'nocodb-sdk';
+import { extractRolesObj, isLinksOrLTAR } from 'nocodb-sdk';
 import debug from 'debug';
 import { JobsLogService } from '../jobs-log.service';
 import FetchAT from './helpers/fetchAT';
 import { importData, importLTARData } from './helpers/readAndProcessData';
 import EntityMap from './helpers/EntityMap';
 import type { UserType } from 'nocodb-sdk';
-import extractRolesObj from '~/utils/extractRolesObj';
 import { AttachmentsService } from '~/services/attachments.service';
 import { ColumnsService } from '~/services/columns.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
@@ -231,7 +230,7 @@ export class AtImportProcessor {
         const template = await FetchAT.readTemplate(sDB.shareId);
         await FetchAT.initialize(template.template.exploreApplication.shareId);
       } else {
-        await FetchAT.initialize(sDB.shareId);
+        await FetchAT.initialize(sDB.shareId, sDB.appId);
       }
       const ft = await FetchAT.read();
       const duration = Date.now() - start;
@@ -2450,6 +2449,7 @@ export interface AirtableSyncConfig {
   projectId?: string;
   baseId?: string;
   apiKey: string;
+  appId?: string;
   shareId: string;
   user: UserType;
   options: {

@@ -1,4 +1,5 @@
 import express from 'express';
+import request from 'supertest';
 import nocobuild from '../../../src/nocobuild';
 // import { Noco } from '../../../src/lib';
 import { createUser } from '../factory/user';
@@ -34,16 +35,34 @@ export default async function (forceReset = false) {
   }
 
   // if (isSakila) {
-    await cleanUpSakila(forceReset);
+  await cleanUpSakila(forceReset);
   // }
   await cleanupMeta();
 
   const { token } = await createUser({ app: server }, { roles: 'editor' });
+
+  const extra: any = {};
+
+  // create ws for ee
+  if (process.env.EE) {
+    const ws = await request(server)
+      .post('/api/v1/workspaces/')
+      .set('xc-auth', token)
+      .send({
+        title: 'Workspace',
+        meta: {
+          color: '#146C8E',
+        },
+      });
+
+    extra.fk_workspace_id = ws.body.id;
+  }
 
   return {
     app: server,
     token,
     dbConfig: TestDbMngr.dbConfig,
     sakilaDbConfig: TestDbMngr.getSakilaDbConfig(),
+    ...extra,
   };
 }

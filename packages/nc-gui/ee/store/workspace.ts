@@ -17,6 +17,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const projectsStore = useProjects()
   const { clearProjects } = projectsStore
 
+  const { loadRoles } = useRoles()
+
   const collaborators = ref<WorkspaceUserType[] | null>()
 
   const lastPopulatedWorkspaceId = ref<string | null>(null)
@@ -35,7 +37,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { appInfo, ncNavigateTo } = useGlobal()
 
+  const { isUIAllowed } = useUIPermission()
+
   const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
+
+  const isWorkspaceSettingsPageOpened = computed(() => route.value.name === 'index-typeOrId-settings')
 
   const workspaces = ref<Map<string, NcWorkspace>>(new Map())
   const workspacesList = computed<NcWorkspace[]>(() =>
@@ -98,7 +104,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   })
 
   /** actions */
-  const loadWorkspaces = async () => {
+  const loadWorkspaces = async (ignoreError = false) => {
     try {
       // todo: pagination
       const { list, pageInfo: _ } = await $api.workspace.list()
@@ -106,7 +112,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         workspaces.value.set(workspace.id!, workspace)
       }
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      if (!ignoreError) message.error(await (e))
     }
   }
 
@@ -140,12 +146,20 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const updateWorkspace = async (
     workspaceId: string,
-    workspace: Pick<WorkspaceType, 'title' | 'order' | 'description' | 'meta'>,
+    workspaceData: Pick<WorkspaceType, 'title' | 'order' | 'description' | 'meta'>,
   ) => {
     try {
       // todo: pagination
-      await $api.workspace.update(workspaceId, workspace, {
+      await $api.workspace.update(workspaceId, workspaceData, {
         baseURL: appInfo.value.baseHostName ? `https://${workspaceId}.${appInfo.value.baseHostName}` : undefined,
+      })
+
+      const workspace = workspaces.value.get(workspaceId)
+      if (!workspace) return
+
+      workspaces.value.set(workspaceId, {
+        ...workspace,
+        ...workspaceData,
       })
       refreshCommandPalette()
     } catch (e: any) {
@@ -153,13 +167,14 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  const deleteWorkspace = async (workspaceId: string) => {
+  const deleteWorkspace = async (workspaceId: string, { skipStateUpdate }: { skipStateUpdate?: boolean } = {}) => {
     // todo: pagination
     await $api.workspace.delete(workspaceId, {
       baseURL: appInfo.value.baseHostName ? `https://${workspaceId}.${appInfo.value.baseHostName}` : undefined,
     })
 
-    workspaces.value.delete(workspaceId)
+    if (!skipStateUpdate) workspaces.value.delete(workspaceId)
+
     refreshCommandPalette()
   }
 
@@ -255,9 +270,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     if (force || !workspaces.value.get(workspaceId)) {
       await loadWorkspace(workspaceId)
+      await loadRoles()
     }
+
     if (activeWorkspace.value?.status === WorkspaceStatus.CREATED) {
-      await Promise.all([loadCollaborators(), projectsStore.loadProjects()])
+      await projectsStore.loadProjects()
     }
     isWorkspaceLoading.value = false
   }
@@ -355,8 +372,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     $e('c:themes:change')
   }
 
-  const clearWorkspaces = () => {
-    clearProjects()
+  const clearWorkspaces = async () => {
+    await clearProjects()
     workspaces.value.clear()
   }
   const upgradeActiveWorkspace = async () => {
@@ -431,6 +448,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     navigateToWorkspaceSettings,
     lastPopulatedWorkspaceId,
     workspaceRole,
+    isWorkspaceSettingsPageOpened,
   }
 })
 

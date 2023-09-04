@@ -10,6 +10,7 @@ export enum ProjectRoles {
   EDITOR = 'editor',
   COMMENTER = 'commenter',
   VIEWER = 'viewer',
+  NO_ACCESS = 'no-access',
 }
 
 export enum WorkspaceUserRoles {
@@ -18,6 +19,7 @@ export enum WorkspaceUserRoles {
   VIEWER = 'workspace-level-viewer',
   EDITOR = 'workspace-level-editor',
   COMMENTER = 'workspace-level-commenter',
+  NO_ACCESS = 'workspace-level-no-access',
 }
 
 export enum AppEvents {
@@ -165,11 +167,13 @@ export const RoleLabels = {
   [WorkspaceUserRoles.EDITOR]: 'Editor',
   [WorkspaceUserRoles.COMMENTER]: 'Commenter',
   [WorkspaceUserRoles.VIEWER]: 'Viewer',
+  [WorkspaceUserRoles.NO_ACCESS]: 'No Access',
   [ProjectRoles.OWNER]: 'Owner',
   [ProjectRoles.CREATOR]: 'Creator',
   [ProjectRoles.EDITOR]: 'Editor',
   [ProjectRoles.COMMENTER]: 'Commenter',
   [ProjectRoles.VIEWER]: 'Viewer',
+  [ProjectRoles.NO_ACCESS]: 'No Access',
   [OrgUserRoles.SUPER_ADMIN]: 'Super',
   [OrgUserRoles.CREATOR]: 'Creator',
   [OrgUserRoles.VIEWER]: 'Viewer',
@@ -181,12 +185,14 @@ export const RoleColors = {
   [WorkspaceUserRoles.EDITOR]: 'green',
   [WorkspaceUserRoles.COMMENTER]: 'orange',
   [WorkspaceUserRoles.VIEWER]: 'yellow',
+  [WorkspaceUserRoles.NO_ACCESS]: 'red',
   [ProjectRoles.OWNER]: 'purple',
   [ProjectRoles.CREATOR]: 'blue',
   [ProjectRoles.EDITOR]: 'green',
   [ProjectRoles.COMMENTER]: 'orange',
   [ProjectRoles.VIEWER]: 'yellow',
   [OrgUserRoles.SUPER_ADMIN]: 'purple',
+  [ProjectRoles.NO_ACCESS]: 'red',
   [OrgUserRoles.CREATOR]: 'blue',
   [OrgUserRoles.VIEWER]: 'yellow',
 }
@@ -197,6 +203,7 @@ export const OrderedWorkspaceRoles = [
   WorkspaceUserRoles.EDITOR,
   WorkspaceUserRoles.COMMENTER,
   WorkspaceUserRoles.VIEWER,
+  WorkspaceUserRoles.NO_ACCESS,
 ]
 
 export const OrderedProjectRoles = [
@@ -205,4 +212,5 @@ export const OrderedProjectRoles = [
   ProjectRoles.EDITOR,
   ProjectRoles.COMMENTER,
   ProjectRoles.VIEWER,
+  ProjectRoles.NO_ACCESS,
 ]

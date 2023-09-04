@@ -20,6 +20,8 @@ interface User {
   firstname: string | null
   lastname: string | null
   roles: Roles | string
+  project_roles: Roles | string
+  workspace_roles: Roles | string
   invite_token?: string
   project_id?: string
 }
@@ -182,6 +184,8 @@ interface Users {
 
 type ViewPageType = 'view' | 'webhook' | 'api' | 'field' | 'relation'
 
+type NcButtonSize = 'xxsmall' | 'xsmall' | 'small' | 'medium'
+
 export {
   User,
   ProjectMetaInfo,
@@ -207,4 +211,5 @@ export {
   AllRoles,
   Users,
   ViewPageType,
+  NcButtonSize,
 }

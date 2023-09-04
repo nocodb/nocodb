@@ -17,10 +17,13 @@ const openDialogKey = ref<string>('')
 
 const dataSourcesState = ref<string>('')
 
+const dialogProjectId = ref<string>('')
+
 function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: string) {
   dialogOpen.value = value ?? !dialogOpen.value
   openDialogKey.value = key || ''
   dataSourcesState.value = dsState || ''
+  dialogProjectId.value = pId || ''
 }
 
 provide(ToggleDialogInj, toggleDialog)
@@ -151,7 +154,7 @@ onMounted(async () => {
       v-model:model-value="dialogOpen"
       v-model:open-key="openDialogKey"
       v-model:data-sources-state="dataSourcesState"
-      :project-id="projectId"
+      :project-id="dialogProjectId"
     />
   </div>
 </template>

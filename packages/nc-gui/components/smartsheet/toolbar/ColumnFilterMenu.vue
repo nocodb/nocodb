@@ -60,7 +60,7 @@ useMenuCloseOnEsc(open)
 </script>
 
 <template>
-  <NcDropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-filter-menu">
+  <NcDropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown">
     <div :class="{ 'nc-active-btn': filtersLength }">
       <a-button v-e="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm" :disabled="isLocked">
         <div class="flex items-center gap-2">

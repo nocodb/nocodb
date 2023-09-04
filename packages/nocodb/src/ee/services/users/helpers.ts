@@ -4,7 +4,7 @@ import type User from '~/models/User';
 import type { NcConfig } from '~/interface/config';
 import type { Response } from 'express';
 
-export function genJwt(user: User, config: NcConfig) {
+export function genJwt(user: User & { provider?: string }, config: NcConfig) {
   return jwt.sign(
     {
       email: user.email,
@@ -14,6 +14,7 @@ export function genJwt(user: User, config: NcConfig) {
       id: user.id,
       roles: user.roles,
       token_version: user.token_version,
+      provider: user.provider ?? undefined,
     },
     config.auth.jwt.secret,
     // todo: better typing

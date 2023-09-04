@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, OrgUserRoles } from 'nocodb-sdk';
+import { AppEvents, extractRolesObj, OrgUserRoles } from 'nocodb-sdk';
 import type { User } from '~/models';
 import type { ApiTokenReqType } from 'nocodb-sdk';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import extractRolesObj from '~/utils/extractRolesObj';
 import { ApiToken } from '~/models';
 
 @Injectable()

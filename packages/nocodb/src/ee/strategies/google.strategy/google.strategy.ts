@@ -8,7 +8,7 @@ import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider
 import Noco from '~/Noco';
 import { UsersService } from '~/services/users/users.service';
 import { Plugin, ProjectUser, User } from '~/models';
-import {sanitiseUserObj} from "~/utils";
+import { sanitiseUserObj } from '~/utils';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {

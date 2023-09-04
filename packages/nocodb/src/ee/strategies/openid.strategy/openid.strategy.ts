@@ -5,14 +5,14 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy as OpenIDConnectStrategy } from '@techpass/passport-openidconnect';
 import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
-import type { AppConfig } from 'aws-sdk';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
+import type { AppConfig } from '~/interface/config';
 import { User } from '~/models';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';
 import { UsersService } from '~/services/users/users.service';
-import {sanitiseUserObj} from "~/utils";
+import { sanitiseUserObj } from '~/utils';
 
 @Injectable()
 export class OpenidStrategy extends PassportStrategy(
@@ -40,7 +40,11 @@ export class OpenidStrategy extends PassportStrategy(
     User.getByEmail(email)
       .then(async (user) => {
         if (user) {
-          return done(null, { ...sanitiseUserObj(user), provider: 'openid' });
+          return done(null, {
+            ...sanitiseUserObj(user),
+            provider: 'openid',
+            display_name: profile._json?.name,
+          });
         } else {
           // if user not found create new user
           const salt = await promisify(bcrypt.genSalt)(10);
@@ -71,7 +75,15 @@ export class OpenidStrategy extends PassportStrategy(
       const url = new URL(req.ncSiteUrl);
       const baseAppUrl = new URL(process.env.NC_BASE_APP_URL);
 
+      // use custom redirect url to redirect to corresponding workspace subdomain
+      // after hitting callback url with code
       if (baseAppUrl.host !== url.host) {
+        callbackURL = process.env.NC_BASE_APP_URL + '/auth/oidc/redirect';
+      } else if (
+        req.query.workspaceId &&
+        req.query.workspaceId !==
+          this.configService.get('mainSubDomain', { infer: true })
+      ) {
         callbackURL = process.env.NC_BASE_APP_URL + '/auth/oidc/redirect';
       }
     }
@@ -113,10 +125,22 @@ export const OpenidStrategyProvider: FactoryProvider = {
         store: {
           store: async (req, meta, callback) => {
             const handle = `oidc_${uuidv4()}`;
+            let host: string;
 
-            const url = new URL(req.ncSiteUrl);
-
-            const state = { handle, host: url.host };
+            // extract workspace id from query params if available
+            // and ignore if it's main sub-domain
+            if (
+              req.query.workspaceId &&
+              req.query.workspaceId !==
+                config.get('mainSubDomain', { infer: true })
+            ) {
+              host = `${req.query.workspaceId}.${process.env.NC_BASE_HOST_NAME}`;
+            } else {
+              // extract host from siteUrl but this approach only works with upgraded workspace
+              const url = new URL(req.ncSiteUrl);
+              host = url.host;
+            }
+            const state = { handle, host };
             for (const key in meta) {
               state[key] = meta[key];
             }

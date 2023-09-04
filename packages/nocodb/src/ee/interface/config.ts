@@ -26,6 +26,7 @@ export interface AppConfig {
     disableEmailAuth: boolean;
   };
   mainSubDomain: string;
+  dashboardPath: string;
 }
 
 export * from 'src/interface/config';

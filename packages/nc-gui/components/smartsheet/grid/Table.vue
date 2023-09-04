@@ -1218,7 +1218,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
                     >
                       <div class="h-full w-[60px] flex items-center justify-center">
                         <GeneralIcon v-if="isEeUI && (altModifier || persistMenu)" icon="magic" class="text-sm text-orange-400" />
-                        <component :is="iconMap.plus" class="text-sm nc-column-add text-gray-500 !group-hover:text-black" />
+                        <component :is="iconMap.plus" class="text-base nc-column-add text-gray-500 !group-hover:text-black" />
                       </div>
 
                       <template v-if="isEeUI && persistMenu" #overlay>
@@ -1469,7 +1469,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
               >
                 <td class="text-left pointer sticky left-0 !border-r-0">
                   <div class="px-2 w-full flex items-center text-gray-500">
-                    <component :is="iconMap.plus" class="text-pint-500 text-xs ml-2 text-gray-600 group-hover:text-black" />
+                    <component :is="iconMap.plus" class="text-pint-500 text-base ml-2 text-gray-600 group-hover:text-black" />
                   </div>
                 </td>
                 <td class="!border-gray-100" :colspan="visibleColLength"></td>

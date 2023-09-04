@@ -440,10 +440,19 @@ onMounted(() => {
         <div class="prose-xl font-bold self-center">Bulk Update</div>
 
         <div class="mt-4">{{ modalQn }}</div>
-        <a-divider class="!m-0 !p-0 !my-2" />
+        <a-alert
+          message="Note: This operation can't be undone!"
+          type="warning"
+          show-icon
+          class="!mt-4 !bg-[#fff] !rounded-[8px] !border-[#E7E7E9]"
+        >
+          <template #icon>
+            <component :is="iconMap.warning" />
+          </template>
+        </a-alert>
       </div>
-      <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end p-4">
-        <NcButton type="secondary"  @click="isModalOpen = false">{{ $t('general.cancel') }}</NcButton>
+      <div class="flex flex-row gap-x-2 mt-1 pt-1.5 justify-end p-4">
+        <NcButton type="secondary" @click="isModalOpen = false">{{ $t('general.cancel') }}</NcButton>
         <NcButton :loading="isDeleting" @click="saveData">{{ $t('general.confirm') }} </NcButton>
       </div>
     </GeneralModal>

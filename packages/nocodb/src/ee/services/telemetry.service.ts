@@ -72,7 +72,7 @@ export class TelemetryService {
 
       this.phClient?.capture({
         distinctId: payload.userId,
-        event: payload.evt_type,
+        event: payload.event,
         properties: {
           ...payload,
         },

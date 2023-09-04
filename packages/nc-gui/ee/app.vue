@@ -59,5 +59,5 @@ if (typeof window !== 'undefined') {
       <NuxtPage :key="key" :transition="false" />
     </NuxtLayout>
   </a-config-provider>
-  <CmdK ref="commandPalette" v-model:open="cmdK" :scope="activeScope" :data="cmdData" :placeholder="cmdPlaceholder" />
+  <CmdK ref="commandPalette" v-model:open="cmdK" :scope="activeScope.scope" :data="cmdData" :placeholder="cmdPlaceholder" />
 </template>

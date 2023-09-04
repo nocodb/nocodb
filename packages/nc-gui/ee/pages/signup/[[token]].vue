@@ -28,11 +28,7 @@ const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
 
-const { loadScope } = useCommandPalette()
-
 const { navigateToTable } = useTablesStore()
-
-loadScope('disabled')
 
 const formValidator = ref()
 

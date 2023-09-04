@@ -24,11 +24,7 @@ const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
 
-const { loadScope } = useCommandPalette()
-
 const { clearWorkspaces } = useWorkspace()
-
-loadScope('disabled')
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
@@ -65,7 +61,6 @@ async function signIn() {
   if (!formValidator.value.validate()) return
 
   resetError()
-  loadScope('disabled')
 
   api.auth.signin(form).then(async ({ token }) => {
     _signIn(token!)

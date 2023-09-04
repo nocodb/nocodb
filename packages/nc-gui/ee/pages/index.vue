@@ -118,8 +118,6 @@ onMounted(async () => {
   // skip loading workspace and command palette for shared base
   if (!['base'].includes(route.value.params.typeOrId as string)) {
     await loadWorkspaces()
-    const { loadScope } = useCommandPalette()
-    await loadScope('root')
   }
 
   if (!workspaceStore?.activeWorkspace?.value && !route.value.params.typeOrId) {

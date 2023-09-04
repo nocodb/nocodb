@@ -15,11 +15,15 @@ interface CmdAction {
 export const useCommandPalette = createSharedComposable(() => {
   const { $api } = useNuxtApp()
 
+  const router = useRouter()
+
+  const route = router.currentRoute
+
   const commandPalette = ref()
 
   const refreshCommandPalette = createEventHook<void>()
 
-  const lastScope: Ref<{ scope: string; data?: any }> = ref({ scope: 'root' })
+  const activeScope: Ref<{ scope: string; data: any }> = ref({ scope: 'disabled', data: {} })
 
   const cmdLoading = ref(false)
 
@@ -33,9 +37,9 @@ export const useCommandPalette = createSharedComposable(() => {
   const staticData = computed(() => {
     const rtData = commands.value.homeCommands
 
-    if (lastScope.value.scope === 'root') return rtData
+    if (activeScope.value.scope === 'root') return rtData
 
-    if (lastScope.value.scope === 'workspace') {
+    if (activeScope.value.scope === 'workspace') {
       rtData.push(...commands.value.projectCommands)
     }
 
@@ -61,20 +65,15 @@ export const useCommandPalette = createSharedComposable(() => {
     }
   }
 
-  const activeScope = computed(() => {
-    return lastScope.value.scope
-  })
-
-  async function loadScope(scope = 'root', data?: any) {
-    if (scope === 'disabled') {
-      lastScope.value = { scope, data }
+  async function loadScope() {
+    if (activeScope.value.scope === 'disabled') {
+      activeScope.value = { scope: activeScope.value.scope, data: activeScope.value.data }
       return
     }
     dynamicData.value = []
     cmdLoading.value = true
-    lastScope.value = { scope, data }
     $api.utils
-      .commandPalette(lastScope.value)
+      .commandPalette(activeScope.value)
       .then((res) => {
         dynamicData.value = res.map((item: any) => {
           if (item.handler) item.handler = processHandler(item.handler)
@@ -86,8 +85,40 @@ export const useCommandPalette = createSharedComposable(() => {
   }
 
   refreshCommandPalette.on(() => {
-    loadScope(lastScope.value.scope, lastScope.value?.data)
+    loadScope()
   })
+
+  watch(
+    () => route.value.params,
+    () => {
+      if (route.value.params.typeOrId && typeof route.value.params.typeOrId === 'string') {
+        if (route.value.params.typeOrId === 'base') {
+          if (activeScope.value.scope === 'disabled') return
+          activeScope.value = { scope: 'disabled', data: {} }
+          loadScope()
+        } else if (route.value.params.typeOrId.startsWith('ws')) {
+          if (activeScope.value.scope === 'workspace' && activeScope.value.data.workspace_id === route.value.params.typeOrId)
+            return
+          activeScope.value = {
+            scope: 'workspace',
+            data: { workspace_id: route.value.params.typeOrId },
+          }
+          loadScope()
+        }
+      } else {
+        if (route.value.path === '/account/users') {
+          if (activeScope.value.scope === 'account_settings') return
+          activeScope.value = { scope: 'account_settings', data: {} }
+          loadScope()
+        } else {
+          if (activeScope.value.scope === 'root') return
+          activeScope.value = { scope: 'root', data: {} }
+          loadScope()
+        }
+      }
+    },
+    { immediate: true, deep: true },
+  )
 
   return {
     commandPalette,

@@ -81,16 +81,17 @@ export const homeCommands = [
   Here is a list of all the available commands defined throughout the app.
   Commands prefixed with a '-' are static commands that are always available.
   Commands prefixed with a '+' are dynamic commands that are only available when the user is in a specific context. 
+  Commands prefixed with a '*' are scopes
 
   Commands:
-    - home (Navigate Home)
+    * home (Navigate Home)
     + workspaces (Workspaces)
     + projects (Projects)
-    - workspace (Workspace)
+    * workspace (Workspace)
       + tables (Tables)
       + views (Views)
-    - account_settings (Account Settings)
-      - account_settings-users (Users)
+    * account_settings (Account Settings)
+      * account_settings-users (Users)
         - account_settings-users-user_management (User Management)
         - account_settings-users-reset_password (Reset Password)
         - account_settings-users-settings (Settings)

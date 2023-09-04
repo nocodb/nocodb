@@ -30,11 +30,7 @@ const { t } = useI18n()
 
 const { navigateToTable } = useTablesStore()
 
-const { loadScope } = useCommandPalette()
-
 const { clearWorkspaces } = useWorkspace()
-
-loadScope('disabled')
 
 const formValidator = ref()
 

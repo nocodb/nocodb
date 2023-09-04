@@ -38,28 +38,18 @@ onUnmounted(() => {
       outlineWidth: '1px',
     }"
   >
-    <div
-      class="flex flex-col"
-      :style="{
-        height: isSharedBase ? 'var(--topbar-height)' : 'var(--sidebar-top-height)',
-      }"
-    >
+    <div class="flex flex-col">
       <DashboardSidebarHeader />
 
       <DashboardSidebarTopSection v-if="!isSharedBase" />
     </div>
     <div
       ref="treeViewDom"
-      class="flex flex-col nc-scrollbar-sm-dark"
+      class="flex flex-col nc-scrollbar-sm-dark flex-grow"
       :class="{
         'border-t-1': !isSharedBase,
         'border-transparent': !isTreeViewOnScrollTop,
         'pt-0.25': isSharedBase,
-      }"
-      :style="{
-        height: isSharedBase
-          ? 'calc(100% - var(--topbar-height))'
-          : 'calc(100% - var(--sidebar-top-height) - var(--sidebar-bottom-height))',
       }"
     >
       <div v-if="!isSharedBase" class="flex flex-row w-full justify-between items-center my-1.5 pl-4 pr-1.75">

@@ -11,13 +11,15 @@ const { loadScope } = useCommandPalette()
 
 loadScope('account_settings')
 
-const selectedKeys = computed(() => [
-  /^\/account\/users\/?$/.test($route.fullPath)
-    ? isUIAllowed('superAdminUserManagement')
-      ? 'list'
-      : 'settings'
-    : $route.params.nestedPage ?? $route.params.page,
-])
+const selectedKeys = computed(() => {
+  if (/^\/account\/users\/?$/.test($route.fullPath)) {
+    if (isUIAllowed('superAdminUserManagement')) return ['list']
+    if (!appInfo.value.disableEmailAuth) return ['settings']
+    return ['tokens']
+  }
+  return [$route.params.nestedPage ?? $route.params.page]
+})
+
 const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
 </script>
 
@@ -36,7 +38,11 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
           >
             <div class="text-xs text-gray-600 ml-4 py-1.5">{{ $t('labels.account') }}</div>
 
-            <a-sub-menu v-if="false" key="users" class="!bg-white">
+            <a-sub-menu
+              v-if="!appInfo.disableEmailAuth || isUIAllowed('superAdminAppSettings')"
+              key="users"
+              class="!bg-white !my-0"
+            >
               <template #icon>
                 <MdiAccountSupervisorOutline />
               </template>
@@ -45,18 +51,31 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
               <NcMenuItem
                 v-if="isUIAllowed('superAdminUserManagement')"
                 key="list"
-                class="text-xs"
+                class="text-xs group"
+                :class="{
+                  active: $route.params.nestedPage === 'list',
+                }"
                 @click="navigateTo('/account/users/list')"
               >
                 <span class="ml-4">{{ $t('title.userManagement') }}</span>
               </NcMenuItem>
-              <NcMenuItem key="password-reset" class="text-xs" @click="navigateTo('/account/users/password-reset')">
+              <NcMenuItem
+                key="password-reset"
+                class="text-xs group"
+                :class="{
+                  active: $route.params.nestedPage === 'password-reset',
+                }"
+                @click="navigateTo('/account/users/password-reset')"
+              >
                 <span class="ml-4">{{ $t('title.resetPasswordMenu') }}</span>
               </NcMenuItem>
               <NcMenuItem
                 v-if="isUIAllowed('superAdminAppSettings')"
                 key="settings"
-                class="text-xs"
+                class="text-xs group"
+                :class="{
+                  active: $route.params.nestedPage === 'settings',
+                }"
                 @click="navigateTo('/account/users/settings')"
               >
                 <span class="ml-4">{{ $t('activity.settings') }}</span>
@@ -92,18 +111,6 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
                 <div class="select-none text-sm">{{ $t('title.appStore') }}</div>
               </div>
             </NcMenuItem>
-            <NcMenuItem
-              v-if="false && isUIAllowed('license')"
-              key="license"
-              class="group"
-              @click="navigateTo('/account/license')"
-            >
-              <div class="flex items-center space-x-2">
-                <component :is="iconMap.key" />
-
-                <div class="select-none">{{ $t('title.licence') }}</div>
-              </div>
-            </NcMenuItem>
           </NcMenu>
         </div>
       </a-layout-sider>
@@ -137,10 +144,14 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
 }
 
 :deep(.group) {
-  @apply mx-2 w-46 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
+  @apply select-none mx-2 w-46 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
 }
 
 :deep(.active) {
   @apply !bg-brand-50 !text-brand-500;
+}
+
+:deep(.ant-menu-submenu-title) {
+  @apply select-none mx-2 w-46 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
 }
 </style>

@@ -132,10 +132,6 @@ const subDomain = location.host?.split('.')[0]
           {{ $route.query.redirect_to === '/pricing' ? '& BUY' : '' }}
         </h1>
 
-        <h2 v-if="appInfo.firstUser" class="prose !text-primary font-semibold self-center">
-          {{ $t('msg.info.signUp.superAdmin') }}
-        </h2>
-
         <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signUp">
           <template v-if="!appInfo.disableEmailAuth">
             <Transition name="layout">

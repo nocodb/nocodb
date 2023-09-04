@@ -51,25 +51,15 @@ export class UsersService extends UsersServiceCE {
 
     let roles: string = OrgUserRoles.CREATOR;
 
-    if ((await User.isFirst()) && process.env.NC_CLOUD !== 'true') {
-      roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
-      // todo: update in nc_store
-      // roles = 'owner,creator,editor'
-      T.emit('evt', {
-        evt_type: 'project:invite',
-        count: 1,
-      });
-    } else {
-      let settings: { invite_only_signup?: boolean } = {};
-      try {
-        settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
-      } catch {}
+    let settings: { invite_only_signup?: boolean } = {};
+    try {
+      settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
+    } catch {}
 
-      if (settings?.invite_only_signup) {
-        NcError.badRequest('Not allowed to signup, contact super admin.');
-      } else {
-        roles = OrgUserRoles.VIEWER;
-      }
+    if (settings?.invite_only_signup) {
+      NcError.badRequest('Not allowed to signup, contact super admin.');
+    } else {
+      roles = OrgUserRoles.VIEWER;
     }
 
     const token_version = randomTokenString();

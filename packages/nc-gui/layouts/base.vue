@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed, iconMap, navigateTo, ref, useGlobal, useNuxtApp, useRoute, useSidebar } from '#imports'
 
-const { signOut, signedIn, isLoading, user, currentVersion } = useGlobal()
+const { signOut, signedIn, isLoading, user, currentVersion, appInfo } = useGlobal()
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
@@ -68,7 +68,7 @@ hooks.hook('page:finish', () => {
 
         <LazyGeneralReleaseInfo />
 
-        <a-tooltip placement="bottom" :mouse-enter-delay="1">
+        <a-tooltip v-if="!appInfo.ee" placement="bottom" :mouse-enter-delay="1">
           <template #title> Switch language</template>
 
           <div class="flex pr-4 items-center">
@@ -128,7 +128,7 @@ hooks.hook('page:finish', () => {
         </template>
       </a-layout-header>
 
-      <a-tooltip placement="bottom">
+      <a-tooltip v-if="!appInfo.ee" placement="bottom">
         <template #title> Switch language</template>
 
         <LazyGeneralLanguage v-if="!signedIn && !route.params.projectId && !route.params.erdUuid" class="nc-lang-btn" />

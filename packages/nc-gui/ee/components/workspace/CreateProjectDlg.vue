@@ -28,6 +28,8 @@ const { activeWorkspace } = storeToRefs(workspaceStore)
 const projectsStore = useProjects()
 const { loadProjects, createProject: _createProject } = projectsStore
 
+const { refreshCommandPalette } = useCommandPalette()
+
 const { navigateToProject } = useGlobal()
 
 const nameValidationRules = [
@@ -60,6 +62,9 @@ const createProject = async () => {
       workspaceId: activeWorkspace.value!.id!,
       type: props.type,
     })
+
+    refreshCommandPalette()
+
     dialogShow.value = false
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

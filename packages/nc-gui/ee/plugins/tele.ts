@@ -15,20 +15,20 @@ iframe.setAttribute('src', 'https://nocodb.com/client.html')
 
 window.onmessage = function (e) {
   if (e.origin === 'https://nocodb.com' || e.origin === 'https://www.nocodb.com') {
-    clientId = e.data
     if (e.data) {
-      document.body.removeChild(iframe)
+      clientId = e.data
       window.localStorage.setItem('nc_id', e.data)
+      document.body.removeChild(iframe)
     }
   }
 }
 
 iframe.onloadeddata = function () {
-  iframe.contentWindow?.postMessage('client_id', 'http://localhost:8080')
+  iframe.contentWindow?.postMessage('client_id', 'https://nocodb.com')
 }
 
 iframe.onload = function () {
-  iframe.contentWindow?.postMessage('client_id', 'http://localhost:8080')
+  iframe.contentWindow?.postMessage('client_id', 'https://nocodb.com')
 }
 
 document.body.appendChild(iframe)

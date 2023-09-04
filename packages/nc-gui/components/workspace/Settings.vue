@@ -120,7 +120,7 @@ const onCancel = () => {
             v-if="isCancelButtonVisible"
             type="secondary"
             html-type="submit"
-            data-testid="nc-workspace-settings-settings-rename-submit"
+            data-testid="nc-workspace-settings-settings-rename-cancel"
             @click="onCancel"
           >
             <template #loading> Renaming Workspace </template>

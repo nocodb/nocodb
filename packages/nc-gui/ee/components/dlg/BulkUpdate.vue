@@ -453,7 +453,7 @@ onMounted(() => {
       </div>
       <div class="flex flex-row gap-x-2 mt-1 pt-1.5 justify-end p-4">
         <NcButton type="secondary" @click="isModalOpen = false">{{ $t('general.cancel') }}</NcButton>
-        <NcButton :loading="isDeleting" @click="saveData">{{ $t('general.confirm') }} </NcButton>
+        <NcButton :loading="isDeleting" class="nc-bulk-update-save-btn" @click="saveData">{{ $t('general.confirm') }} </NcButton>
       </div>
     </GeneralModal>
   </a-drawer>

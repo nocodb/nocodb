@@ -9,7 +9,7 @@ const isCreateProjectOpen = ref(false)
 
 const treeViewDom = ref<HTMLElement>()
 
-const isTreeViewOnScrollTop = ref(true)
+const isTreeViewOnScrollTop = ref(false)
 
 const checkScrollTopMoreThanZero = () => {
   if (treeViewDom.value) {
@@ -52,7 +52,7 @@ onUnmounted(() => {
       ref="treeViewDom"
       class="flex flex-col nc-scrollbar-sm-dark"
       :class="{
-        'border-t-1 pt-1': !isSharedBase,
+        'border-t-1': !isSharedBase,
         'border-transparent': !isTreeViewOnScrollTop,
         'pt-0.25': isSharedBase,
       }"

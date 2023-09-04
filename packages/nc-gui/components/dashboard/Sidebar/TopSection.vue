@@ -61,7 +61,7 @@ const navigateToSettings = () => {
         @click="navigateToSettings"
       >
         <div class="flex items-center gap-2">
-          <GeneralIcon icon="settings" class="!h-3.9" />
+          <GeneralIcon icon="settings" class="!h-4" />
           <div>Team & Settings</div>
         </div>
       </NcButton>

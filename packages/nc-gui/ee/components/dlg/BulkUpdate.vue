@@ -442,7 +442,7 @@ onMounted(() => {
         <div class="mt-4">{{ modalQn }}</div>
         <a-alert
           message="Note: This operation can't be undone!"
-          type="warning"
+          type="error"
           show-icon
           class="!mt-4 !bg-[#fff] !rounded-[8px] !border-[#E7E7E9]"
         >

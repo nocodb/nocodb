@@ -3,17 +3,22 @@ import { defineNuxtPlugin, useRouter } from '#imports'
 import type { NuxtApp } from '#app'
 
 // todo: generate client id and keep it in cookie(share across sub-domains)
-let clientId: string
+let clientId: string | null = window.localStorage.getItem('nc_id')
 
 const iframe = document.createElement('iframe')
 iframe.style.display = 'none'
-// iframe.style.height='0';
+iframe.style.height = '1px'
+iframe.style.width = '1px'
 
 iframe.setAttribute('src', 'https://nocodb.com/client.html')
 
 window.onmessage = function (e) {
   if (e.origin === 'https://nocodb.com' || e.origin === 'https://www.nocodb.com') {
     clientId = e.data
+    if(e.data){
+      document.body.removeChild(iframe)
+      window.localStorage.setItem('nc_id', e.data);
+    }
   }
 }
 
@@ -25,7 +30,8 @@ iframe.onload = function () {
   iframe.contentWindow?.postMessage('client_id', 'http://localhost:8080')
 }
 
-document.body.appendChild(iframe)
+document.body.appendChild(iframe);
+
 
 // Usage example:
 const debounceTime = 3000 // Debounce time: 1000ms

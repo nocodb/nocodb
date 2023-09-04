@@ -4,6 +4,27 @@ import MdiFileOutline from '~icons/mdi/file-outline'
 
 export const homeCommands = [
   {
+    id: 'account_settings',
+    title: 'Account Settings',
+    icon: 'account',
+    section: 'Account',
+  },
+  {
+    id: 'account_settings-users',
+    title: 'Users',
+    parent: 'account_settings',
+    icon: 'users',
+  },
+  {
+    id: 'account_settings-users-reset_password',
+    title: 'Reset Password',
+    parent: 'account_settings-users',
+    icon: 'key',
+    handler: () => {
+      navigateTo('/account/users/password-reset')
+    },
+  },
+  {
     id: 'account_settings-tokens',
     title: 'Tokens',
     parent: 'account_settings',
@@ -11,30 +32,6 @@ export const homeCommands = [
     handler: () => {
       navigateTo('/account/tokens')
     },
-  },
-  {
-    id: 'account_settings-app_store',
-    title: 'App Store',
-    parent: 'account_settings',
-    icon: 'appStore',
-    handler: () => {
-      navigateTo('/account/apps')
-    },
-  },
-  {
-    id: 'account_settings-license',
-    title: 'License',
-    parent: 'account_settings',
-    icon: 'key',
-    handler: () => {
-      navigateTo('/account/license')
-    },
-  },
-  {
-    id: 'account_settings',
-    title: 'Account Settings',
-    icon: 'account',
-    section: 'Account',
   },
   {
     id: 'home',
@@ -73,10 +70,6 @@ export const homeCommands = [
       + views (Views)
     * account_settings (Account Settings)
       * account_settings-users (Users)
-        - account_settings-users-user_management (User Management)
         - account_settings-users-reset_password (Reset Password)
-        - account_settings-users-settings (Settings)
       - account_settings-tokens (Tokens)
-      - account_settings-app_store (App Store)
-      - account_settings-license (License)
 */

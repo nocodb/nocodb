@@ -544,3 +544,11 @@ a {
 .nc-toolbar-dropdown {
   @apply !rounded-2xl;
 }
+
+.ant-message {
+  @apply !bottom-4 !top-auto px-4;
+}
+
+.ant-message-notice {
+  @apply !text-right;
+}

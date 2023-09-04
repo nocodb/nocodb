@@ -11,13 +11,15 @@ const { loadScope } = useCommandPalette()
 
 loadScope('account_settings')
 
-const selectedKeys = computed(() => [
-  /^\/account\/users\/?$/.test($route.fullPath)
-    ? isUIAllowed('superAdminUserManagement')
-      ? 'list'
-      : 'settings'
-    : $route.params.nestedPage ?? $route.params.page,
-])
+const selectedKeys = computed(() => {
+  if (/^\/account\/users\/?$/.test($route.fullPath)) {
+    if (isUIAllowed('superAdminUserManagement')) return ['list']
+    if (!appInfo.value.disableEmailAuth) return ['settings']
+    return ['tokens']
+  }
+  return [$route.params.nestedPage ?? $route.params.page]
+})
+
 const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
 </script>
 
@@ -36,7 +38,7 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
           >
             <div class="text-xs text-gray-500 ml-4 pt-4 pb-2 font-weight-bold">{{ $t('title.accountSettings') }}</div>
 
-            <a-sub-menu v-if="false" key="users" class="!bg-white">
+            <a-sub-menu v-if="!appInfo.disableEmailAuth || isUIAllowed('superAdminAppSettings')" key="users" class="!bg-white">
               <template #icon>
                 <MdiAccountSupervisorOutline />
               </template>
@@ -84,18 +86,6 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
                 <component :is="iconMap.appStore" />
 
                 <div class="select-none">{{ $t('title.appStore') }}</div>
-              </div>
-            </a-menu-item>
-            <a-menu-item
-              v-if="false && isUIAllowed('license')"
-              key="license"
-              class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
-              @click="navigateTo('/account/license')"
-            >
-              <div class="flex items-center space-x-2">
-                <component :is="iconMap.key" />
-
-                <div class="select-none">{{ $t('title.licence') }}</div>
               </div>
             </a-menu-item>
           </a-menu>

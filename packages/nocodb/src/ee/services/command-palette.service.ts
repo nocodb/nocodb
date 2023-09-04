@@ -38,7 +38,7 @@ export class CommandPaletteService {
                 icon: 'workspace',
                 handler: {
                   type: 'navigate',
-                  payload: `/?workspaceId=${workspace.id}&page=workspace`,
+                  payload: `/${workspace.id}`,
                 },
               });
 
@@ -102,7 +102,7 @@ export class CommandPaletteService {
                   section: projects.find((el) => el.id === v.project_id)?.title,
                   handler: {
                     type: 'navigate',
-                    payload: `/${data.workspace_id}/${v.project_id}/table/${v.fk_model_id}`,
+                    payload: `/${data.workspace_id}/${v.project_id}/${v.fk_model_id}`,
                   },
                 });
               }
@@ -116,9 +116,9 @@ export class CommandPaletteService {
                 } / ${v._ptn}`,
                 handler: {
                   type: 'navigate',
-                  payload: `/${data.workspace_id}/${v.project_id}/table/${
+                  payload: `/${data.workspace_id}/${v.project_id}/${
                     v.fk_model_id
-                  }/${encodeURIComponent(v.title)}`,
+                  }/${encodeURIComponent(v.id)}`,
                 },
               });
             }

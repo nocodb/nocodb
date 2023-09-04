@@ -170,7 +170,7 @@ export class UsersService extends UsersServiceCE {
 
     try {
       const template = (
-        await import('~/controllers/users/ui/emailTemplates/verify')
+        await import('~/controllers/auth/ui/emailTemplates/verify')
       ).default;
       await (
         await NcPluginMgrv2.emailAdapter()

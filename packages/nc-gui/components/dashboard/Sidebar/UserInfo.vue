@@ -122,7 +122,7 @@ watch(leftSidebarState, () => {
             <template v-if="isAuthTokenCopied"> Copied Auth Token </template>
             <template v-else> Copy Auth Token </template>
           </NcMenuItem>
-          <nuxt-link v-e="['c:navbar:user:email']" class="!no-underline" to="/account/users">
+          <nuxt-link v-e="['c:navbar:user:email']" class="!no-underline" to="/account/tokens">
             <NcMenuItem><GeneralIcon icon="settings" class="menu-icon" /> Account Settings</NcMenuItem>
           </nuxt-link>
         </NcMenu>

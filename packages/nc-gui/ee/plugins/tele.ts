@@ -3,7 +3,35 @@ import { defineNuxtPlugin, useRouter } from '#imports'
 import type { NuxtApp } from '#app'
 
 // todo: generate client id and keep it in cookie(share across sub-domains)
-const clientId: string = '';
+let clientId: string | null = window.localStorage.getItem('nc_id')
+
+// todo: move to a separate library to reuse in other packages
+const iframe = document.createElement('iframe')
+iframe.style.display = 'none'
+iframe.style.height = '1px'
+iframe.style.width = '1px'
+
+iframe.setAttribute('src', 'https://nocodb.com/client.html')
+
+window.onmessage = function (e) {
+  if (e.origin === 'https://nocodb.com' || e.origin === 'https://www.nocodb.com') {
+    if (e.data) {
+      clientId = e.data
+      window.localStorage.setItem('nc_id', e.data)
+      document.body.removeChild(iframe)
+    }
+  }
+}
+
+iframe.onloadeddata = function () {
+  iframe.contentWindow?.postMessage('client_id', 'https://nocodb.com')
+}
+
+iframe.onload = function () {
+  iframe.contentWindow?.postMessage('client_id', 'https://nocodb.com')
+}
+
+document.body.appendChild(iframe)
 
 // Usage example:
 const debounceTime = 3000 // Debounce time: 1000ms
@@ -57,17 +85,34 @@ export default defineNuxtPlugin(async (nuxtApp) => {
   const router = useRouter()
 
   const route = router.currentRoute
-
   const tele = {
     emit(evt: string, data: Record<string, any>) {
       eventBatcher.enqueueEvent({
         event: evt,
         ...(data || {}),
-        path: route.value?.matched?.[0]?.path,
-        pid: route.value?.params?.projectId,
+        $current_url: sanitisePath(route.value?.matched?.[route.value?.matched?.length - 1]?.path),
+        project_id: route.value?.params?.projectId,
+        workspace_id: route.value?.params?.typeOrId ?? undefined,
+        table_id: route.value?.params?.viewId ?? undefined,
+        view_id: route.value?.params?.viewTitle ?? undefined,
       })
     },
   }
+
+  /*
+  // skip page event tracking for now
+  router.afterEach((to, from) => {
+    if (to.path === from.path && (to.query && to.query.type) === (from.query && from.query.type)) return
+
+    const path = to.matched[to.matched.length - 1].path + (to.query && to.query.type ? `?type=${to.query.type}` : '')
+    tele.emit('$pageview', {
+      $current_url: path,
+      project_id: route.value?.params?.projectId,
+      workspace_id: route.value?.params?.typeOrId ?? undefined,
+      table_id: route.value?.params?.viewId ?? undefined,
+      view_id: route.value?.params?.viewTitle ?? undefined,
+    })
+  }) */
 
   nuxtApp.vueApp.directive('e', {
     created(el, binding, vnode) {
@@ -97,3 +142,8 @@ export default defineNuxtPlugin(async (nuxtApp) => {
   nuxtApp.provide('tele', tele)
   nuxtApp.provide('e', (e: string, data?: Record<string, any>) => tele.emit(e, { data }))
 })
+
+// remove () or ? from path
+function sanitisePath(path?: string) {
+  return path?.toString?.().replace(/(?:\?|\(\))(?=\/|$)/g, '')
+}

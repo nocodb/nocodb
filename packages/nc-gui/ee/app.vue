@@ -11,7 +11,7 @@ const disableBaseLayout = computed(() => route.value.path.startsWith('/nc/view')
 
 useTheme()
 
-const { commandPalette, cmdData, cmdPlaceholder, activeScope } = useCommandPalette()
+const { commandPalette, cmdData, cmdPlaceholder, activeScope, loadTemporaryScope } = useCommandPalette()
 
 applyNonSelectable()
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
@@ -51,6 +51,12 @@ if (typeof window !== 'undefined') {
   // @ts-expect-error using arbitrary window key
   window.__ncvue = true
 }
+
+function onScope(scope: string) {
+  if (scope === 'root') {
+    loadTemporaryScope({ scope: 'root', data: {} })
+  }
+}
 </script>
 
 <template>
@@ -59,5 +65,13 @@ if (typeof window !== 'undefined') {
       <NuxtPage :key="key" :transition="false" />
     </NuxtLayout>
   </a-config-provider>
-  <CmdK ref="commandPalette" v-model:open="cmdK" :scope="activeScope.scope" :data="cmdData" :placeholder="cmdPlaceholder" />
+  <CmdK
+    ref="commandPalette"
+    v-model:open="cmdK"
+    :scope="activeScope.scope"
+    :data="cmdData"
+    :placeholder="cmdPlaceholder"
+    :load-temporary-scope="loadTemporaryScope"
+    @scope="onScope"
+  />
 </template>

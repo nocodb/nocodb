@@ -4,11 +4,6 @@ import MdiFileOutline from '~icons/mdi/file-outline'
 
 export const homeCommands = [
   {
-    id: 'workspace',
-    title: 'Workspace',
-    icon: 'workspace',
-  },
-  {
     id: 'account_settings-tokens',
     title: 'Tokens',
     parent: 'account_settings',
@@ -60,20 +55,6 @@ export const homeCommands = [
     id: 'projects',
     title: 'Projects',
     icon: shallowRef(MdiFileOutline),
-  },
-  {
-    id: 'tables',
-    title: 'Tables',
-    parent: 'workspace',
-    section: 'Workspace',
-    icon: 'table',
-  },
-  {
-    id: 'views',
-    title: 'Views',
-    parent: 'workspace',
-    section: 'Workspace',
-    icon: 'view',
   },
 ]
 

@@ -11,6 +11,7 @@ interface CmdAction {
   hotkey?: string
   parent?: string
   handler?: Function
+  scopePayload?: any
   icon?: VNode | string
   keywords?: string[]
   section?: string
@@ -22,6 +23,7 @@ const props = defineProps<{
   scope?: string
   placeholder?: string
   hotkey?: string
+  loadTemporaryScope?: (scope: { scope: string; data: any }) => void
 }>()
 
 const emits = defineEmits(['update:open', 'scope'])
@@ -198,7 +200,16 @@ const hide = () => {
   vOpen.value = false
 }
 
-const fireAction = (action: CmdAction) => {
+const fireAction = (action: CmdAction, preview = false) => {
+  if (preview) {
+    if (action?.scopePayload) {
+      setScope(action.scopePayload.scope)
+      if (action.scopePayload.data) {
+        props.loadTemporaryScope?.(action.scopePayload)
+      }
+      return
+    }
+  }
   if (action?.handler) {
     action.handler()
     hide()
@@ -241,7 +252,7 @@ whenever(keys.Enter, () => {
   if (vOpen.value) {
     const selectedEl = formattedData.value.find((el) => el.id === selected.value)
     if (selectedEl) {
-      fireAction(selectedEl)
+      fireAction(selectedEl, keys.shift.value)
     }
   }
 })

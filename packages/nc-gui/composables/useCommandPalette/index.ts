@@ -9,11 +9,14 @@ export const useCommandPalette = createSharedComposable(() => {
 
   const activeScope = computed(() => ({} as any))
 
+  const loadTemporaryScope = (..._args: any) => {}
+
   return {
     commandPalette,
     cmdData,
     activeScope,
     cmdPlaceholder,
     refreshCommandPalette: refreshCommandPalette.trigger,
+    loadTemporaryScope,
   }
 })

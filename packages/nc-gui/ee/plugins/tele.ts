@@ -5,6 +5,7 @@ import type { NuxtApp } from '#app'
 // todo: generate client id and keep it in cookie(share across sub-domains)
 let clientId: string | null = window.localStorage.getItem('nc_id')
 
+// todo: move to a separate library to reuse in other packages
 const iframe = document.createElement('iframe')
 iframe.style.display = 'none'
 iframe.style.height = '1px'
@@ -15,9 +16,9 @@ iframe.setAttribute('src', 'https://nocodb.com/client.html')
 window.onmessage = function (e) {
   if (e.origin === 'https://nocodb.com' || e.origin === 'https://www.nocodb.com') {
     clientId = e.data
-    if(e.data){
+    if (e.data) {
       document.body.removeChild(iframe)
-      window.localStorage.setItem('nc_id', e.data);
+      window.localStorage.setItem('nc_id', e.data)
     }
   }
 }
@@ -30,8 +31,7 @@ iframe.onload = function () {
   iframe.contentWindow?.postMessage('client_id', 'http://localhost:8080')
 }
 
-document.body.appendChild(iframe);
-
+document.body.appendChild(iframe)
 
 // Usage example:
 const debounceTime = 3000 // Debounce time: 1000ms
@@ -96,6 +96,17 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       })
     },
   }
+
+  router.afterEach((to, from) => {
+    if (to.path === from.path && (to.query && to.query.type) === (from.query && from.query.type)) return
+
+    const path = to.matched[0].path + (to.query && to.query.type ? `?type=${to.query.type}` : '')
+    tele.emit('$pageview', {
+      path,
+      pid: route.value?.params?.projectId,
+      $current_url: path,
+    })
+  })
 
   nuxtApp.vueApp.directive('e', {
     created(el, binding, vnode) {

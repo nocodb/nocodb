@@ -169,7 +169,7 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
     <div
       v-if="!isReadonly"
       :class="{ 'mx-auto px-4': !visibleItems.length }"
-      class="group cursor-pointer py-1 flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+      class="group cursor-pointer py-1 flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-none shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
       data-testid="attachment-cell-file-picker-button"
       @click.stop="open"
     >
@@ -228,7 +228,7 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
 
       <div
         v-if="active"
-        class="group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+        class="h-6 w-5 group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-none p-1 hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
       >
         <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 

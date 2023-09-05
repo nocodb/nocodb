@@ -1,9 +1,15 @@
 import { useDebounceFn } from '@vueuse/core'
+import posthog from 'posthog-js'
+import type PostHog from 'posthog-js'
 import { defineNuxtPlugin, useRouter } from '#imports'
 import type { NuxtApp } from '#app'
 
 // todo: generate client id and keep it in cookie(share across sub-domains)
 let clientId: string | null = window.localStorage.getItem('nc_id')
+
+if (clientId) {
+  initPostHog(clientId)
+}
 
 // todo: move to a separate library to reuse in other packages
 const iframe = document.createElement('iframe')
@@ -19,6 +25,7 @@ window.onmessage = function (e) {
       clientId = e.data
       window.localStorage.setItem('nc_id', e.data)
       document.body.removeChild(iframe)
+      initPostHog(e.data)
     }
   }
 }
@@ -32,6 +39,14 @@ iframe.onload = function () {
 }
 
 document.body.appendChild(iframe)
+let phClient: PostHog = null
+
+function initPostHog(clientId: string) {
+  if (!phClient) {
+    phClient = posthog.init('phc_XIYhmt76mLGNt1iByEFoTEbsyuYeZ0o7Q5Ang4G7msr', { api_host: 'https://app.posthog.com' })
+  }
+  posthog.identify(clientId)
+}
 
 // Usage example:
 const debounceTime = 3000 // Debounce time: 1000ms

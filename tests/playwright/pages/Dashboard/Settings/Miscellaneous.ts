@@ -23,6 +23,10 @@ export class MiscSettingsPage extends BasePage {
   }
 
   async clickShowNullEmptyFilters() {
-    await this.get().locator('input[type="checkbox"]').last().click();
+    await this.waitForResponse({
+      uiAction: () => this.get().locator('input[type="checkbox"]').last().click(),
+      requestUrlPathToMatch: 'api/v1/db/meta/projects',
+      httpMethodsToMatch: ['PATCH'],
+    });
   }
 }

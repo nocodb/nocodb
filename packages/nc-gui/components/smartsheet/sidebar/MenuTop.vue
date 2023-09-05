@@ -303,7 +303,7 @@ const setIcon = async (icon: string, view: ViewType) => {
   <a-menu
     ref="menuRef"
     :class="{ dragging }"
-    class="nc-views-menu flex flex-col !px-3 w-full !border-r-0 !bg-inherit nc-scrollbar-md"
+    class="nc-views-menu flex flex-col !ml-3 !mr-2.5 w-full !border-r-0 !bg-inherit nc-scrollbar-md"
     :selected-keys="selected"
   >
     <!-- Lazy load breaks menu item active styles, i.e. styles never change even when active item changes -->

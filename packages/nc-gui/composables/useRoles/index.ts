@@ -1,5 +1,5 @@
-import { isString } from '@vue/shared'
-import { computed, createSharedComposable, ref, useApi, useGlobal } from '#imports'
+import { extractRolesObj } from 'nocodb-sdk'
+import { computed, createSharedComposable, useApi, useGlobal } from '#imports'
 import type { ProjectRole, Role, Roles } from '#imports'
 
 /**
@@ -9,40 +9,54 @@ import type { ProjectRole, Role, Roles } from '#imports'
  * * `projectRoles` - the roles a user has in the current project (if one was loaded)
  * * `allRoles` - all roles a user has (userRoles + projectRoles)
  * * `hasRole` - a function to check if a user has a specific role
- * * `loadProjectRoles` - a function to load the project roles for a specific project (by id)
+ * * `loadRoles` - a function to load reload user roles for scope
  */
 export const useRoles = createSharedComposable(() => {
   const { user, previewAs } = useGlobal()
 
   const { api } = useApi()
 
-  const projectRoles = ref<Roles<ProjectRole>>({})
+  const allRoles = computed<Roles>(() => {
+    let orgRoles = user.value?.roles ?? {}
 
-  const userRoles = computed<Roles<Role>>(() => {
-    let roles = user.value?.roles ?? {}
+    orgRoles = extractRolesObj(orgRoles)
 
-    // if string populate key-value paired object
-    if (isString(roles)) {
-      roles = roles.split(',').reduce<Roles>((acc, role) => {
-        acc[role] = true
-        return acc
-      }, {})
+    let projectRoles = user.value?.project_roles ?? {}
+
+    projectRoles = extractRolesObj(projectRoles)
+
+    return {
+      ...orgRoles,
+      ...projectRoles,
     }
-
-    return roles
   })
 
-  const allRoles = computed<Roles>(() => ({
-    ...userRoles.value,
-    ...projectRoles.value,
-  }))
+  const orgRoles = computed<Roles>(() => {
+    let orgRoles = user.value?.roles ?? {}
 
-  async function loadProjectRoles(
-    projectId: string,
+    orgRoles = extractRolesObj(orgRoles)
+
+    return orgRoles
+  })
+
+  const projectRoles = computed<Roles>(() => {
+    let projectRoles = user.value?.project_roles ?? {}
+
+    if (Object.keys(projectRoles).length === 0) {
+      projectRoles = user.value?.roles ?? {}
+    }
+
+    projectRoles = extractRolesObj(projectRoles)
+
+    return projectRoles
+  })
+
+  async function loadRoles(
+    projectId?: string,
     options: { isSharedBase?: boolean; sharedBaseId?: string; isSharedErd?: boolean; sharedErdId?: string } = {},
   ) {
     if (options?.isSharedBase) {
-      const user = await api.auth.me(
+      const res = await api.auth.me(
         {
           project_id: projectId,
         },
@@ -53,9 +67,13 @@ export const useRoles = createSharedComposable(() => {
         },
       )
 
-      projectRoles.value = user.roles
+      user.value = {
+        ...user.value,
+        roles: res.roles,
+        project_roles: res.project_roles,
+      }
     } else if (options?.isSharedErd) {
-      const user = await api.auth.me(
+      const res = await api.auth.me(
         {
           project_id: projectId,
         },
@@ -66,12 +84,19 @@ export const useRoles = createSharedComposable(() => {
         },
       )
 
-      projectRoles.value = user.roles
+      user.value = {
+        ...user.value,
+        roles: res.roles,
+        project_roles: res.project_roles,
+      }
     } else if (projectId) {
-      const user = await api.auth.me({ project_id: projectId })
-      projectRoles.value = user.roles
-    } else {
-      projectRoles.value = {}
+      const res = await api.auth.me({ project_id: projectId })
+
+      user.value = {
+        ...user.value,
+        roles: res.roles,
+        project_roles: res.project_roles,
+      }
     }
   }
 
@@ -83,5 +108,5 @@ export const useRoles = createSharedComposable(() => {
     return allRoles.value[role]
   }
 
-  return { allRoles, userRoles, projectRoles, loadProjectRoles, hasRole }
+  return { allRoles, orgRoles, projectRoles, loadRoles, hasRole }
 })

@@ -2,7 +2,6 @@
 import type { TableType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 
-import GithubButton from 'vue-github-button'
 import ProjectWrapper from './ProjectWrapper.vue'
 
 import type { TabType } from '#imports'
@@ -28,10 +27,6 @@ import {
 
 import { useRouter } from '#app'
 
-const emit = defineEmits<{
-  (event: 'onScrollTop', type: boolean): void
-}>()
-
 const { isUIAllowed } = useUIPermission()
 
 const { addTab } = useTabs()
@@ -48,7 +43,11 @@ const { createProject: _createProject } = projectsStore
 
 const { projects, projectsList, activeProjectId } = storeToRefs(projectsStore)
 
+const { isWorkspaceLoading } = storeToRefs(useWorkspace())
+
 const { openTable } = useTablesStore()
+
+const projectCreateDlg = ref(false)
 
 const projectStore = useProject()
 
@@ -184,6 +183,12 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         }
         break
       }
+      // ALT + D
+      case 68: {
+        e.stopPropagation()
+        projectCreateDlg.value = true
+        break
+      }
     }
   }
 })
@@ -202,19 +207,6 @@ provide(TreeViewInj, {
 })
 
 useEventListener(document, 'contextmenu', handleContext, true)
-
-const treeViewDom = ref<HTMLElement>()
-
-const checkScrollTopMoreThanZero = () => {
-  if (treeViewDom.value) {
-    if (treeViewDom.value.scrollTop > 0) {
-      emit('onScrollTop', true)
-    } else {
-      emit('onScrollTop', false)
-    }
-  }
-  return false
-}
 
 const scrollTableNode = () => {
   const activeTableDom = document.querySelector(`.nc-treeview [data-table-id="${_activeTable.value?.id}"]`)
@@ -256,56 +248,24 @@ watch(
     immediate: true,
   },
 )
-
-onMounted(() => {
-  treeViewDom.value?.addEventListener('scroll', checkScrollTopMoreThanZero)
-})
-
-onUnmounted(() => {
-  treeViewDom.value?.removeEventListener('scroll', checkScrollTopMoreThanZero)
-})
 </script>
 
 <template>
   <div class="nc-treeview-container flex flex-col justify-between select-none">
-    <div ref="treeViewDom" mode="inline" class="nc-treeview pb-0.5 flex-grow min-h-50 overflow-x-hidden">
+    <div mode="inline" class="nc-treeview pb-0.5 flex-grow min-h-50 overflow-x-hidden">
       <template v-if="projectsList?.length">
-        <ProjectWrapper
-          v-for="project of projectsList"
-          :key="project.id"
-          :project-role="project.project_role || project.workspace_role"
-          :project="project"
-        >
-          <DashboardTreeViewNewProjectNode />
+        <ProjectWrapper v-for="project of projectsList" :key="project.id" :project-role="project.project_role" :project="project">
+          <DashboardTreeViewProjectNode />
         </ProjectWrapper>
       </template>
 
-      <WorkspaceEmptyPlaceholder v-else />
+      <WorkspaceEmptyPlaceholder v-else-if="!isWorkspaceLoading" />
     </div>
-
-    <div class="flex items-start flex-row justify-center px-2 gap-2">
-      <GithubButton
-        class="ml-2"
-        href="https://github.com/nocodb/nocodb"
-        data-icon="octicon-star"
-        data-show-count="true"
-        data-size="large"
-      >
-        Star
-      </GithubButton>
-    </div>
-
-    <div class="flex items-start flex-row justify-center px-2 pt-1 pb-1.5 gap-2">
-      <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
-    </div>
+    <WorkspaceCreateProjectDlg v-model="projectCreateDlg" />
   </div>
 </template>
 
 <style scoped lang="scss">
-.nc-treeview-container {
-  height: calc(100% - var(--sidebar-top-height));
-}
-
 .nc-treeview-footer-item {
   @apply cursor-pointer px-4 py-2 flex items-center hover:bg-gray-200/20 text-xs text-current;
 }
@@ -411,22 +371,6 @@ onUnmounted(() => {
     & > div {
       @apply !justify-center;
     }
-  }
-}
-
-.nc-treeview {
-  overflow-y: overlay;
-  &::-webkit-scrollbar {
-    width: 3px;
-  }
-  &::-webkit-scrollbar-track {
-    @apply bg-inherit;
-  }
-  &::-webkit-scrollbar-thumb {
-    @apply bg-scrollbar;
-  }
-  &::-webkit-scrollbar-thumb:hover {
-    @apply bg-scrollbar-hover;
   }
 }
 </style>

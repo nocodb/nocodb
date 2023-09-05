@@ -12,7 +12,7 @@ const route = useRoute()
 const email = computed(() => user.value?.email ?? '---')
 
 const logout = async () => {
-  await signOut()
+  await signOut(false)
   navigateTo('/signin')
 }
 </script>

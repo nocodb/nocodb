@@ -16,9 +16,6 @@ import {
   useViewsStore,
   watch,
 } from '#imports'
-import FieldIcon from '~icons/nc-icons/eye'
-
-const openedTab = ref<'views' | 'developer'>('views')
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -50,11 +47,9 @@ const route = useRoute()
 
 const { $e } = useNuxtApp()
 
-const { rightSidebarSize } = storeToRefs(useSidebarStore())
+const { isRightSidebarOpen } = storeToRefs(useSidebarStore())
 
 const tabBtnsContainerRef = ref<HTMLElement | null>(null)
-
-const minimalMode = ref(false)
 
 /** Watch route param and change active view based on `viewTitle` */
 watch(
@@ -142,40 +137,6 @@ function onOpenModal({
     close(1000)
   }
 }
-const onTabChange = (tab: 'views' | 'developer') => {
-  openedTab.value = tab
-}
-
-const onResize = () => {
-  if (!tabBtnsContainerRef?.value) return
-
-  const remToPx = parseFloat(getComputedStyle(document.documentElement).fontSize)
-
-  if (!tabBtnsContainerRef?.value?.offsetWidth) return
-
-  if (tabBtnsContainerRef?.value?.offsetWidth < 13 * remToPx) {
-    minimalMode.value = true
-  } else {
-    minimalMode.value = false
-  }
-}
-
-watch(
-  () => rightSidebarSize.value?.current,
-  () => {
-    onResize()
-  },
-)
-
-onMounted(() => {
-  window.addEventListener('resize', onResize)
-
-  onResize()
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', onResize)
-})
 </script>
 
 <template>
@@ -186,9 +147,41 @@ onUnmounted(() => {
     <div
       v-else
       ref="tabBtnsContainerRef"
-      class="flex flex-row p-1 mx-3 mt-2.25 mb-2.75 rounded-md gap-x-2 nc-view-sidebar-tab text-gray-500"
+      class="flex flex-row group py-1 mx-3.25 mt-1.25 mb-2.75 rounded-md gap-x-2 nc-view-sidebar-tab items-center justify-between"
     >
-      Views
+      <div class="flex text-gray-600 ml-1.75">Views</div>
+      <NcTooltip
+        placement="bottomLeft"
+        hide-on-click
+        class="flex opacity-0 group-hover:(opacity-100) transition-all duration-50"
+        :class="{
+          '!w-8 !opacity-100': !isRightSidebarOpen,
+        }"
+      >
+        <template #title>
+          {{
+            isRightSidebarOpen
+              ? `${$t('general.hide')} ${$t('objects.sidebar').toLowerCase()}`
+              : `${$t('general.show')} ${$t('objects.sidebar').toLowerCase()}`
+          }}
+        </template>
+        <NcButton
+          type="text"
+          size="small"
+          class="nc-sidebar-left-toggle-icon !text-gray-600 !hover:text-gray-800"
+          @click="isRightSidebarOpen = !isRightSidebarOpen"
+        >
+          <div class="flex items-center text-inherit">
+            <GeneralIcon
+              icon="doubleRightArrow"
+              class="duration-150 transition-all"
+              :class="{
+                'transform rotate-180': !isRightSidebarOpen,
+              }"
+            />
+          </div>
+        </NcButton>
+      </NcTooltip>
     </div>
 
     <div class="flex-1 flex flex-col min-h-0">

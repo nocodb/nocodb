@@ -16018,7 +16018,7 @@
             "type": "string"
           },
           "cdf": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/StringOrNullOrBooleanOrNumber",
             "description": "Column Default"
           },
           "clen": {
@@ -19319,7 +19319,7 @@
             "description": "Column Comment"
           },
           "cdf": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/StringOrNullOrBooleanOrNumber",
             "description": "Column Default Value"
           },
           "column_name": {
@@ -20162,6 +20162,7 @@
           },
           "roles": {
             "enum": [
+              "no-access",
               "commenter",
               "editor",
               "guest",
@@ -20853,6 +20854,28 @@
         "x-stoplight": {
           "id": "p1g7xrgdsn540"
         }
+      },
+      "StringOrNullOrBooleanOrNumber": {
+        "description": "Model for StringOrNullOrBooleanOrNumber",
+        "examples": [
+          "string"
+        ],
+        "oneOf": [
+          {
+            "maxLength": 255,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "boolean"
+          }, 
+          {
+            "type": "number"
+          }
+        ],
+        "title": "StringOrNullOrBooleanOrNumber Model"
       },
       "Table": {
         "description": "Model for Table",
@@ -21676,6 +21699,12 @@
           },
           "roles": {
             "description": "The roles of the user"
+          },
+          "project_roles": {
+            "description": "The project roles of the user"
+          },
+          "workspace_roles": {
+            "description": "The workspace roles of the user"
           }
         },
         "title": "User Info Model",

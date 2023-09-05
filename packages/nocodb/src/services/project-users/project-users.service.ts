@@ -42,17 +42,15 @@ export class ProjectUsersService {
     projectUser: ProjectUserReqType;
     req: any;
   }): Promise<any> {
+    validatePayload(
+      'swagger.json#/components/schemas/ProjectUserReq',
+      param.projectUser,
+    );
+
     const emails = (param.projectUser.email || '')
       .toLowerCase()
       .split(/\s*,\s*/)
       .map((v) => v.trim());
-
-    emails.forEach((email) => {
-      validatePayload('swagger.json#/components/schemas/ProjectUserReq', {
-        ...param.projectUser,
-        email,
-      });
-    });
 
     // check for invalid emails
     const invalidEmails = emails.filter((v) => !validator.isEmail(v));

@@ -105,6 +105,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     isCloud: false,
     automationLogLevel: 'OFF',
     disableEmailAuth: false,
+    dashboardPath: '/dashboard',
   })
 
   /** reactive token payload */

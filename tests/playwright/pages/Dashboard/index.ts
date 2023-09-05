@@ -24,6 +24,7 @@ import { ShareProjectButtonPage } from './ShareProjectButton';
 import { ProjectTypes } from 'nocodb-sdk';
 import { WorkspacePage } from '../WorkspacePage';
 import { DetailsPage } from './Details';
+import { WorkspaceSettingsObject } from './WorkspaceSettings';
 
 export class DashboardPage extends BasePage {
   readonly project: any;
@@ -53,13 +54,17 @@ export class DashboardPage extends BasePage {
   readonly sidebar: SidebarPage;
   readonly shareProjectButton: ShareProjectButtonPage;
   readonly details: DetailsPage;
+  readonly workspaceSettings: WorkspaceSettingsObject;
 
   constructor(rootPage: Page, project: any) {
     super(rootPage);
     this.project = project;
     this.tablesSideBar = rootPage.locator('.nc-treeview-container');
     this.workspaceMenuLink = rootPage.getByTestId('nc-project-menu');
-    this.projectMenuLink = rootPage.locator('.project-title-node').locator('.nc-icon.ant-dropdown-trigger').first();
+    this.projectMenuLink = rootPage
+      .locator(`.project-title-node:has-text("${project.title}")`)
+      .locator('.nc-icon.ant-dropdown-trigger')
+      .first();
     this.tabBar = rootPage.locator('.nc-tab-bar');
     this.treeView = new TreeViewPage(this, project);
     this.grid = new GridPage(this);
@@ -82,6 +87,7 @@ export class DashboardPage extends BasePage {
     this.docs = new DocsPageGroup(this);
     this.shareProjectButton = new ShareProjectButtonPage(this);
     this.details = new DetailsPage(this);
+    this.workspaceSettings = new WorkspaceSettingsObject(this);
   }
 
   get() {
@@ -182,8 +188,8 @@ export class DashboardPage extends BasePage {
   }
 
   async signOut() {
-    await this.grid.workspaceMenu.toggle();
-    await this.grid.workspaceMenu.click({ menu: 'Account', subMenu: 'Sign Out' });
+    await this.sidebar.userMenu.click();
+    await this.sidebar.userMenu.clickLogout();
     await this.rootPage.locator('[data-testid="nc-form-signin"]:visible').waitFor();
     await new Promise(resolve => setTimeout(resolve, 150));
   }

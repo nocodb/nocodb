@@ -8,7 +8,8 @@ import {
   ReloadViewDataHookInj,
   computed,
   inject,
-  isEeUI,
+  isJSON,
+  isTextArea,
   message,
   onMounted,
   ref,
@@ -18,6 +19,7 @@ import {
   useI18n,
   useMetas,
   useNuxtApp,
+  useProject,
   watchEffect,
 } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
@@ -63,11 +65,11 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
+const { isMysql, isMssql } = useProject()
+
 const reloadDataTrigger = inject(ReloadViewDataHookInj)
 
 const advancedOptions = ref(false)
-
-const advancedDbOptions = ref(false)
 
 const mounted = ref(false)
 
@@ -262,7 +264,7 @@ if (props.fromTableExplorer) {
               </a-select-option>
             </a-select>
           </a-form-item>
-          <div v-if="isEeUI && !props.hideType" class="mt-2 cursor-pointer" @click="predictColumnType()">
+          <div v-if="!props.hideType" class="mt-2 cursor-pointer" @click="predictColumnType()">
             <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
           </div>
         </div>
@@ -290,12 +292,32 @@ if (props.fromTableExplorer) {
           v-model:value="formState"
         />
       </div>
+      <a-checkbox
+        v-if="formState.meta && columnToValidate.includes(formState.uidt)"
+        v-model:checked="formState.meta.validate"
+        class="ml-1 mb-1"
+      >
+        <span class="text-[10px] text-gray-600">
+          {{ `Accept only valid ${formState.uidt}` }}
+        </span>
+      </a-checkbox>
+      <!--
+        Default Value for JSON & LongText is not supported in MySQL 
+         Default Value is Disabled for MSSQL -->
+      <LazySmartsheetColumnDefaultValue
+        v-if="
+          !isVirtualCol(formState) &&
+          !isAttachment(formState) &&
+          !isMssql(meta!.base_id) &&
+          !(isMysql(meta!.base_id) && (isJSON(formState) || isTextArea(formState)))
+        "
+        v-model:value="formState"
+      />
 
       <div
         v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt)"
         class="text-xs cursor-pointer text-gray-400 nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
         @click="advancedOptions = !advancedOptions"
-        @dblclick="advancedDbOptions = !advancedDbOptions"
       >
         {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
         <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
@@ -303,25 +325,12 @@ if (props.fromTableExplorer) {
 
       <Transition name="layout" mode="out-in">
         <div v-if="advancedOptions" class="overflow-hidden">
-          <a-checkbox
-            v-if="formState.meta && columnToValidate.includes(formState.uidt)"
-            v-model:checked="formState.meta.validate"
-            class="ml-1 mb-1"
-          >
-            <span class="text-[10px] text-gray-600">
-              {{ `Accept only valid ${formState.uidt}` }}
-            </span>
-          </a-checkbox>
-
-          <LazySmartsheetColumnAttachmentOptions
-            v-if="appInfo.ee && formState.uidt === UITypes.Attachment"
-            v-model:value="formState"
-          />
+          <LazySmartsheetColumnAttachmentOptions v-if="appInfo.ee && isAttachment(formState)" v-model:value="formState" />
 
           <LazySmartsheetColumnAdvancedOptions
             v-if="formState.uidt !== UITypes.Attachment"
             v-model:value="formState"
-            :advanced-db-options="advancedDbOptions || formState.uidt === UITypes.SpecificDBType"
+            :advanced-db-options="advancedOptions || formState.uidt === UITypes.SpecificDBType"
           />
         </div>
       </Transition>

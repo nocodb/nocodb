@@ -4,6 +4,7 @@ import { ColumnInj, EditModeInj, IsExpandedFormOpenInj, computed, inject, parseP
 
 interface Props {
   modelValue: number | null | undefined
+  isFocus?: boolean
 }
 
 const props = defineProps<Props>()
@@ -55,7 +56,7 @@ const currency = computed(() => {
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && props.isFocus && (el as HTMLInputElement)?.focus()
 
 const submitCurrency = () => {
   if (lastSaved.value !== vModel.value) {

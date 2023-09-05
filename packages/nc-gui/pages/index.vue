@@ -14,6 +14,8 @@ const projectId = ref<string>()
 
 const projectsStore = useProjects()
 
+const { populateWorkspace } = useWorkspace()
+
 const router = useRouter()
 
 const route = router.currentRoute
@@ -35,12 +37,6 @@ const isSharedView = computed(() => {
   // check route is not project page by route name
   return !routeName.startsWith('index-typeOrId-projectId-') && !['index', 'index-typeOrId'].includes(routeName)
 })
-const isSharedFormView = computed(() => {
-  const routeName = (route.value.name as string) || ''
-
-  // check route is shared form view route
-  return routeName.startsWith('index-typeOrId-form-viewId')
-})
 
 watch(
   () => route.value.params.typeOrId,
@@ -50,7 +46,8 @@ watch(
       return
     }
 
-    await projectsStore.loadProjects('recent')
+    // Load projects
+    await populateWorkspace()
 
     if (!route.value.params.projectId && projectsList.value.length > 0) {
       await autoNavigateToProject()
@@ -73,10 +70,7 @@ provide(ToggleDialogInj, toggleDialog)
 
 <template>
   <div>
-    <NuxtLayout v-if="isSharedFormView">
-      <NuxtPage />
-    </NuxtLayout>
-    <NuxtLayout v-else-if="isSharedView" name="shared-view">
+    <NuxtLayout v-if="isSharedView" name="shared-view">
       <NuxtPage />
     </NuxtLayout>
     <NuxtLayout v-else name="dashboard">

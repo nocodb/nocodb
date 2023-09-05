@@ -4,6 +4,7 @@ import { EditModeInj, IsExpandedFormOpenInj, inject, useVModel } from '#imports'
 
 interface Props {
   modelValue?: number | string | null
+  isFocus?: boolean
 }
 
 const props = defineProps<Props>()
@@ -29,7 +30,7 @@ const vModel = computed({
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && props.isFocus && (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
@@ -37,7 +38,7 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputEle
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="w-full !border-none text-base"
+    class="w-full !border-none !outline-none focus:ring-0 text-base py-1"
     :class="{ '!px-2': editEnabled }"
     type="number"
     @blur="editEnabled = false"

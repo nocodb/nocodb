@@ -7,6 +7,7 @@ interface Props {
   // for sqlite, when we clear a cell or empty the cell, it returns ""
   // otherwise, it is null type
   modelValue?: number | null | string
+  isFocus?: boolean
 }
 
 interface Emits {
@@ -38,7 +39,7 @@ const vModel = computed({
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && props.isFocus && (el as HTMLInputElement)?.focus()
 </script>
 
 <template>

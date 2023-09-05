@@ -46,16 +46,61 @@ const logout = async () => {
               v-if="!$route.params.projectType"
               v-e="['c:navbar:home']"
               data-testid="nc-noco-brand-icon"
-              class="transition-all duration-200 px-2 mx-2 mt-1.5 cursor-pointer transform hover:bg-gray-100 my-1 nc-noco-brand-icon h-8 rounded-md"
+              class="transition-all duration-200 px-2 mx-2 mt-1.5 cursor-pointer transform hover:bg-gray-100 my-1 nc-noco-brand-icon h-8 rounded-md min-w-60"
               @click="navigateTo('/')"
             >
               <div class="flex flex-row gap-x-2 items-center h-8.5">
                 <GeneralIcon icon="arrowLeft" class="-mt-0.1" />
-                <div class="flex text-xs text-gray-800">Back</div>
+                <div class="flex text-xs text-gray-800">Back to Workspace</div>
               </div>
             </div>
 
-            <div class="text-xs text-gray-600 ml-4 py-1.5">{{ $t('labels.account') }}</div>
+            <div class="text-xs text-gray-600 ml-4 py-1.5 mt-3">{{ $t('labels.account') }}</div>
+
+            <NcMenuItem
+              key="profile"
+              class="item"
+              :class="{
+                active: $route.params.page === 'profile',
+              }"
+              @click="navigateTo('/account/profile')"
+            >
+              <div class="flex items-center space-x-2">
+                <GeneralIcon icon="account" />
+
+                <div class="select-none">{{ $t('labels.profile') }}</div>
+              </div>
+            </NcMenuItem>
+
+            <NcMenuItem
+              key="tokens"
+              class="item"
+              :class="{
+                active: $route.params.page === 'tokens',
+              }"
+              @click="navigateTo('/account/tokens')"
+            >
+              <div class="flex items-center space-x-2">
+                <MdiShieldKeyOutline />
+
+                <div class="select-none">{{ $t('title.tokens') }}</div>
+              </div>
+            </NcMenuItem>
+            <NcMenuItem
+              v-if="isUIAllowed('appStore') && !appInfo.isCloud"
+              key="apps"
+              class="item"
+              :class="{
+                active: $route.params.page === 'apps',
+              }"
+              @click="navigateTo('/account/apps')"
+            >
+              <div class="flex items-center space-x-2">
+                <component :is="iconMap.appStore" />
+
+                <div class="select-none text-sm">{{ $t('title.appStore') }}</div>
+              </div>
+            </NcMenuItem>
 
             <a-sub-menu
               v-if="!appInfo.disableEmailAuth || isUIAllowed('superAdminAppSettings')"
@@ -100,36 +145,6 @@ const logout = async () => {
                 <span class="ml-4">{{ $t('activity.settings') }}</span>
               </NcMenuItem>
             </a-sub-menu>
-
-            <NcMenuItem
-              key="tokens"
-              class="item"
-              :class="{
-                active: $route.params.page === 'tokens',
-              }"
-              @click="navigateTo('/account/tokens')"
-            >
-              <div class="flex items-center space-x-2">
-                <MdiShieldKeyOutline />
-
-                <div class="select-none">{{ $t('title.tokens') }}</div>
-              </div>
-            </NcMenuItem>
-            <NcMenuItem
-              v-if="isUIAllowed('appStore') && !appInfo.isCloud"
-              key="apps"
-              class="item"
-              :class="{
-                active: $route.params.page === 'apps',
-              }"
-              @click="navigateTo('/account/apps')"
-            >
-              <div class="flex items-center space-x-2">
-                <component :is="iconMap.appStore" />
-
-                <div class="select-none text-sm">{{ $t('title.appStore') }}</div>
-              </div>
-            </NcMenuItem>
           </NcMenu>
         </div>
 
@@ -204,7 +219,8 @@ const logout = async () => {
 }
 
 :deep(.item) {
-  @apply select-none mx-2 w-46 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
+  @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
+  width: calc(100% - 1rem);
 }
 
 :deep(.active) {
@@ -212,7 +228,8 @@ const logout = async () => {
 }
 
 :deep(.ant-menu-submenu-title) {
-  @apply select-none mx-2 w-46 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
+  @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
+  width: calc(100% - 1rem);
 }
 
 :deep(.ant-menu) {

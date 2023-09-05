@@ -38,6 +38,7 @@ export function useGlobalActions(state: State): Actions {
         firstname: state.jwtPayload.value.firstname,
         lastname: state.jwtPayload.value.lastname,
         roles: state.jwtPayload.value.roles,
+        display_name: state.jwtPayload.value.display_name,
       }
     }
   }

@@ -1,10 +1,11 @@
 import { useDebounceFn } from '@vueuse/core'
-import { PostHog } from 'posthog-js'
+import posthog, { PostHog } from 'posthog-js'
 import { defineNuxtPlugin, useRouter } from '#imports'
 import type { NuxtApp } from '#app'
 
 // todo: generate client id and keep it in cookie(share across sub-domains)
 let clientId: string | null = window.localStorage.getItem('nc_id')
+let phClient: PostHog = null
 
 if (clientId) {
   initPostHog(clientId)
@@ -38,12 +39,11 @@ iframe.onload = function () {
 }
 
 document.body.appendChild(iframe)
-let phClient: PostHog = null
 
 function initPostHog(clientId: string) {
   try {
     if (!phClient) {
-      phClient = PostHog.init('phc_XIYhmt76mLGNt1iByEFoTEbsyuYeZ0o7Q5Ang4G7msr', {
+      phClient = posthog.init('phc_XIYhmt76mLGNt1iByEFoTEbsyuYeZ0o7Q5Ang4G7msr', {
         api_host: 'https://app.posthog.com',
         session_recording: {
           enabled: true,
@@ -55,7 +55,7 @@ function initPostHog(clientId: string) {
       })
     }
     PostHog.identify(clientId)
-  } catch {
+  } catch (e) {
     // ignore error
   }
 }

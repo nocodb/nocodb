@@ -126,13 +126,13 @@ function handleRemove(col: Record<string, any>) {
   }
 }
 
-const modalQn = computed(() =>
-  updateMode.value === BulkUpdateMode.SELECTED
-    ? `Do you want to update selected ${editCount.value} records?`
-    : `Do you want to update ${editCount.value > 1 ? 'all' : ''} ${editCount.value} ${
-        editCount.value > 1 ? 'records' : 'record'
-      } in current view?`,
-)
+const modalQn = computed(() => {
+  const qnToAsk =
+    editCount.value === 1
+      ? 'Do you want to update 1 selected record ?'
+      : `Do you want to update all ${editCount.value} records in current view ? `
+  return updateMode.value === BulkUpdateMode.SELECTED ? qnToAsk : null
+})
 
 const isModalOpen = ref(false)
 

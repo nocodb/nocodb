@@ -90,7 +90,8 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       eventBatcher.enqueueEvent({
         event: evt,
         ...(data || {}),
-        $current_url: sanitisePath(route.value?.matched?.[route.value?.matched?.length - 1]?.path),
+        $current_url: route.value?.path,
+        path: sanitisePath(route.value?.matched?.[route.value?.matched?.length - 1]?.path),
         project_id: route.value?.params?.projectId,
         workspace_id: route.value?.params?.typeOrId ?? undefined,
         table_id: route.value?.params?.viewId ?? undefined,
@@ -145,5 +146,5 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
 // remove () or ? from path
 function sanitisePath(path?: string) {
-  return path?.toString?.().replace(/(?:\?|\(\))(?=\/|$)/g, '')
+  return path?.toString?.().replace(/(?:\?|\(\)|\(\.\*\)\*)(?=\/|$)/g, '')
 }

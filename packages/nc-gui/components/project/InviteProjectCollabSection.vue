@@ -152,7 +152,7 @@ const copyUrl = async () => {
             <div class="flex flex-row items-center gap-x-2 pr-1">
               <GeneralLoader v-if="isInvitingCollaborators" class="flex" />
               <MdiPlus v-else />
-              {{ isInvitingCollaborators ? 'Adding' : 'Add' }} User/s
+              {{ isInvitingCollaborators ? 'Adding' : 'Add' }} User(s)
             </div>
           </a-button>
         </div>

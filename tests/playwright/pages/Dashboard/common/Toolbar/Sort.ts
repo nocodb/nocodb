@@ -83,13 +83,13 @@ export class ToolbarSortPage extends BasePage {
     // Check if create sort modal is open or sort list is open
     let isSortListOpen = false;
     for (let i = 0; i < 3; i++) {
-      const sortList = await this.rootPage.locator('.nc-filter-list');
+      const sortList = this.rootPage.locator('.nc-filter-list');
       if (await sortList.isVisible()) {
         isSortListOpen = true;
         break;
       }
 
-      const searchInput = await this.rootPage.locator('.nc-sort-create-modal');
+      const searchInput = this.rootPage.locator('.nc-sort-create-modal');
       if (await searchInput.isVisible()) {
         isSortListOpen = false;
         break;

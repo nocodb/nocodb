@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
 
-test.describe.skip('Table Column Operations', () => {
+test.describe('Swagger', () => {
   let dashboard: DashboardPage;
   let context: any;
 
@@ -20,7 +20,7 @@ test.describe.skip('Table Column Operations', () => {
     const link = `http://localhost:8080/api/v1/db/meta/projects/${context.project.id}/swagger`;
     await dashboard.rootPage.goto(link, { waitUntil: 'networkidle' });
 
-    const swagger = await dashboard.rootPage;
+    const swagger = dashboard.rootPage;
 
     // authorize with token information
     await swagger.locator('.btn.authorize').click();

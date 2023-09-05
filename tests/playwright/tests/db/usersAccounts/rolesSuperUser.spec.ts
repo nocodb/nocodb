@@ -38,7 +38,7 @@ test.describe.skip('Super user', () => {
     // Modify configuration
     await card.click();
     await card.locator('.nc-app-store-card-edit').click();
-    slackModal = await appPage.locator('.nc-modal-plugin-install');
+    slackModal = appPage.locator('.nc-modal-plugin-install');
     await slackModal.locator('[placeholder="Channel Name"]').fill('Test Channel 2');
     await slackModal.locator('[placeholder="Webhook URL"]').fill('http://test2.com');
     await slackModal.locator('button:has-text("Save")').click();
@@ -47,7 +47,7 @@ test.describe.skip('Super user', () => {
     // Uninstall
     await card.click();
     await card.locator('.nc-app-store-card-reset').click();
-    slackModal = await appPage.locator('.nc-modal-plugin-uninstall');
+    slackModal = appPage.locator('.nc-modal-plugin-uninstall');
     await slackModal.locator('button:has-text("Confirm")').click();
     await dashboard.verifyToast({ message: 'Plugin uninstalled successfully' });
   });

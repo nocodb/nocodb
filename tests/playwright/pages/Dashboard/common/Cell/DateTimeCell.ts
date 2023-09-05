@@ -85,7 +85,7 @@ export class DateTimeCellPageObject extends BasePage {
 
   async setDateTime({ index, columnHeader, dateTime }: { index: number; columnHeader: string; dateTime: string }) {
     const [date, time] = dateTime.split(' ');
-    const [hour, minute, second] = time.split(':');
+    const [hour, minute, _second] = time.split(':');
     await this.open({ index, columnHeader });
     await this.selectDate({ date });
     await this.selectTime({ hour: +hour, minute: +minute });

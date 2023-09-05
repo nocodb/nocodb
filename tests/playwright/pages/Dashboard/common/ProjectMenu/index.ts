@@ -18,7 +18,7 @@ export class ProjectMenuObject extends BasePage {
   }
 
   async click({ menu, subMenu }: { menu: string; subMenu: string }) {
-    const pMenu = await this.rootPage.locator(`.nc-dropdown-project-menu:visible`);
+    const pMenu = this.rootPage.locator(`.nc-dropdown-project-menu:visible`);
     await pMenu.locator(`div.nc-project-menu-item:has-text("${menu}"):visible`).click();
     await this.rootPage.waitForTimeout(2000);
 

@@ -1,19 +1,15 @@
 import { expect } from '@playwright/test';
-import { SettingsPage } from '.';
 import BasePage from '../../Base';
+import { DataSourcePage } from './DataSourcePage';
 
-export class AuditSettingsPage extends BasePage {
-  private readonly settings: SettingsPage;
-
-  constructor(settings: SettingsPage) {
-    super(settings.rootPage);
-    this.settings = settings;
+export class AuditPage extends BasePage {
+  constructor(dataSource: DataSourcePage) {
+    super(dataSource.rootPage);
   }
 
   get() {
-    return this.settings.get().locator(`[data-testid="nc-settings-subtab-Audit"]`);
+    return this.rootPage.locator('div.ant-modal-content');
   }
-
   async verifyRow({
     index,
     opType,
@@ -29,7 +25,7 @@ export class AuditSettingsPage extends BasePage {
     user?: string;
     created?: string;
   }) {
-    const table = this.get();
+    const table = this.get().locator('[data-testid="audit-tab-table"]');
     const row = table.locator(`tr.ant-table-row`).nth(index);
 
     if (opType) {
@@ -71,5 +67,10 @@ export class AuditSettingsPage extends BasePage {
         .textContent()
         .then(async text => expect(text).toContain(created));
     }
+  }
+
+  async close() {
+    await this.get().click();
+    await this.rootPage.keyboard.press('Escape');
   }
 }

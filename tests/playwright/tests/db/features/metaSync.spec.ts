@@ -1,19 +1,19 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import { SettingsPage, SettingTab } from '../../../pages/Dashboard/Settings';
 import setup, { NcContext, unsetup } from '../../../setup';
 import { isMysql, isPg, isSqlite, mysqlExec, pgExec, sqliteExec } from '../../../setup/db';
+import { MetaDataPage } from '../../../pages/Dashboard/ProjectView/Metadata';
 
-test.describe.skip('Meta sync', () => {
+test.describe('Meta sync', () => {
   let dashboard: DashboardPage;
-  let settings: SettingsPage;
   let context: NcContext;
   let dbExec;
+  let metaData: MetaDataPage;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
-    settings = dashboard.settings;
+    metaData = dashboard.projectView.dataSources.metaData;
 
     switch (context.dbType) {
       case 'sqlite':
@@ -35,34 +35,33 @@ test.describe.skip('Meta sync', () => {
   test('Meta sync', async () => {
     test.setTimeout(process.env.CI ? 100000 : 70000);
 
-    await dashboard.gotoSettings();
-    await settings.selectTab({ tab: SettingTab.DataSources });
-    await settings.dataSources.openMetaSync();
+    await dashboard.projectView.tab_dataSources.click();
+    await dashboard.projectView.dataSources.openMetaSync({ rowIndex: 0 });
 
     await dbExec(`CREATE TABLE table1 (id INT NOT NULL, col1 INT NULL, PRIMARY KEY (id))`);
     await dbExec(`CREATE TABLE table2 (id INT NOT NULL, col1 INT NULL, PRIMARY KEY (id))`);
 
-    await settings.dataSources.metaData.clickReload();
+    await metaData.clickReload();
     await dashboard.rootPage.waitForTimeout(1000);
 
-    await settings.dataSources.metaData.verifyRow({
+    await metaData.verifyRow({
       index: isPg(context) ? 21 : 16,
       model: `table1`,
       state: 'New table',
     });
-    await settings.dataSources.metaData.verifyRow({
+    await metaData.verifyRow({
       index: isPg(context) ? 22 : 17,
       model: `table2`,
       state: 'New table',
     });
 
-    await settings.dataSources.metaData.sync();
-    await settings.dataSources.metaData.verifyRow({
+    await metaData.sync();
+    await metaData.verifyRow({
       index: isPg(context) ? 21 : 16,
       model: 'Table1',
       state: 'No change identified',
     });
-    await settings.dataSources.metaData.verifyRow({
+    await metaData.verifyRow({
       index: isPg(context) ? 22 : 17,
       model: 'Table2',
       state: 'No change identified',
@@ -78,16 +77,16 @@ test.describe.skip('Meta sync', () => {
           `ALTER TABLE table1 ADD CONSTRAINT fk1 FOREIGN KEY (col1) REFERENCES table2 (id) ON DELETE NO ACTION ON UPDATE NO ACTION`
         );
       }
-      await settings.dataSources.metaData.clickReload();
-      await settings.dataSources.metaData.verifyRow({
+      await metaData.clickReload();
+      await metaData.verifyRow({
         index: isPg(context) ? 21 : 16,
         model: 'Table1',
         state: 'New relation added',
       });
 
       //verify after sync
-      await settings.dataSources.metaData.sync();
-      await settings.dataSources.metaData.verifyRow({
+      await metaData.sync();
+      await metaData.verifyRow({
         index: isPg(context) ? 21 : 16,
         model: 'Table1',
         state: 'No change identified',
@@ -100,16 +99,16 @@ test.describe.skip('Meta sync', () => {
         await dbExec(`ALTER TABLE table1 DROP FOREIGN KEY fk1`);
         await dbExec(`ALTER TABLE table1 DROP INDEX fk1_idx`);
       }
-      await settings.dataSources.metaData.clickReload();
-      await settings.dataSources.metaData.verifyRow({
+      await metaData.clickReload();
+      await metaData.verifyRow({
         index: isPg(context) ? 21 : 16,
         model: 'Table1',
         state: 'Relation removed',
       });
 
       //verify after sync
-      await settings.dataSources.metaData.sync();
-      await settings.dataSources.metaData.verifyRow({
+      await metaData.sync();
+      await metaData.verifyRow({
         index: isPg(context) ? 21 : 16,
         model: 'Table1',
         state: 'No change identified',
@@ -125,16 +124,16 @@ test.describe.skip('Meta sync', () => {
       await dbExec(`ALTER TABLE table1 ADD COLUMN newCol INT`);
     }
 
-    await settings.dataSources.metaData.clickReload();
-    await settings.dataSources.metaData.verifyRow({
+    await metaData.clickReload();
+    await metaData.verifyRow({
       index: isPg(context) ? 21 : 16,
       model: `Table1`,
       state: 'New column(newCol)',
     });
 
     //verify after sync
-    await settings.dataSources.metaData.sync();
-    await settings.dataSources.metaData.verifyRow({
+    await metaData.sync();
+    await metaData.verifyRow({
       index: isPg(context) ? 21 : 16,
       model: 'Table1',
       state: 'No change identified',
@@ -149,16 +148,16 @@ test.describe.skip('Meta sync', () => {
       await dbExec(`ALTER TABLE table1 RENAME COLUMN newCol TO newColName`);
     }
 
-    await settings.dataSources.metaData.clickReload();
-    await settings.dataSources.metaData.verifyRow({
+    await metaData.clickReload();
+    await metaData.verifyRow({
       index: isPg(context) ? 21 : 16,
       model: `Table1`,
       state: 'New column(newColName), Column removed(newCol)',
     });
 
     //verify after sync
-    await settings.dataSources.metaData.sync();
-    await settings.dataSources.metaData.verifyRow({
+    await metaData.sync();
+    await metaData.verifyRow({
       index: isPg(context) ? 21 : 16,
       model: 'Table1',
       state: 'No change identified',
@@ -168,16 +167,16 @@ test.describe.skip('Meta sync', () => {
     // todo: Add for sqlite
     if (!isSqlite(context)) {
       await dbExec(`ALTER TABLE table1 DROP COLUMN newColName`);
-      await settings.dataSources.metaData.clickReload();
-      await settings.dataSources.metaData.verifyRow({
+      await metaData.clickReload();
+      await metaData.verifyRow({
         index: isPg(context) ? 21 : 16,
         model: `Table1`,
         state: 'Column removed(newColName)',
       });
 
       //verify after sync
-      await settings.dataSources.metaData.sync();
-      await settings.dataSources.metaData.verifyRow({
+      await metaData.sync();
+      await metaData.verifyRow({
         index: isPg(context) ? 21 : 16,
         model: 'Table1',
         state: 'No change identified',
@@ -187,51 +186,51 @@ test.describe.skip('Meta sync', () => {
     // Delete table
     await dbExec(`DROP TABLE table1`);
     await dbExec(`DROP TABLE table2`);
-    await settings.dataSources.metaData.clickReload();
-    await settings.dataSources.metaData.verifyRow({
+    await metaData.clickReload();
+    await metaData.verifyRow({
       index: isPg(context) ? 21 : 16,
       model: `table1`,
       state: 'Table removed',
     });
-    await settings.dataSources.metaData.verifyRow({
+    await metaData.verifyRow({
       index: isPg(context) ? 22 : 17,
       model: `table2`,
       state: 'Table removed',
     });
 
     //verify after sync
-    await settings.dataSources.metaData.sync();
+    await metaData.sync();
 
     if (isSqlite(context)) {
-      await settings.dataSources.metaData.verifyRow({
+      await metaData.verifyRow({
         index: 16,
         model: 'CustomerList',
         state: 'No change identified',
       });
-      await settings.dataSources.metaData.verifyRow({
+      await metaData.verifyRow({
         index: 17,
         model: 'FilmList',
         state: 'No change identified',
       });
     }
     if (isPg(context)) {
-      await settings.dataSources.metaData.verifyRow({
+      await metaData.verifyRow({
         index: 21,
         model: 'ActorInfo',
         state: 'No change identified',
       });
-      await settings.dataSources.metaData.verifyRow({
+      await metaData.verifyRow({
         index: 22,
         model: 'CustomerList',
         state: 'No change identified',
       });
     } else if (isMysql(context)) {
-      await settings.dataSources.metaData.verifyRow({
+      await metaData.verifyRow({
         index: 16,
         model: 'ActorInfo',
         state: 'No change identified',
       });
-      await settings.dataSources.metaData.verifyRow({
+      await metaData.verifyRow({
         index: 17,
         model: 'CustomerList',
         state: 'No change identified',
@@ -247,13 +246,12 @@ test.describe.skip('Meta sync', () => {
       `INSERT INTO table1 (id, col1, col2, col3, col4) VALUES (1,1,1,1,1), (2,2,2,2,2), (3,3,3,3,3), (4,4,4,4,4), (5,5,5,5,5), (6,6,6,6,6), (7,7,7,7,7), (8,8,8,8,8), (9,9,9,9,9);`
     );
 
-    await dashboard.gotoSettings();
-    await settings.selectTab({ tab: SettingTab.DataSources });
-    await settings.dataSources.openMetaSync();
+    await dashboard.projectView.tab_dataSources.click();
+    await dashboard.projectView.dataSources.openMetaSync({ rowIndex: 0 });
 
-    await settings.dataSources.metaData.clickReload();
-    await settings.dataSources.metaData.sync();
-    await settings.close();
+    await metaData.clickReload();
+    await metaData.sync();
+    await metaData.close();
 
     await dashboard.treeView.openTable({ title: 'Table1' });
 

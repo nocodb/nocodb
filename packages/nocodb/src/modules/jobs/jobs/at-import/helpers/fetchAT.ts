@@ -4,9 +4,14 @@ const info: any = {
   initialized: false,
 };
 
-async function initialize(shareId) {
+async function initialize(shareId, appId?: string) {
   info.cookie = '';
-  const url = `https://airtable.com/${shareId}`;
+
+  if (!appId || appId === '') {
+    appId = null;
+  }
+
+  const url = `https://airtable.com/${appId ? `${appId}/` : ''}${shareId}`;
 
   try {
     const hreq = await axios

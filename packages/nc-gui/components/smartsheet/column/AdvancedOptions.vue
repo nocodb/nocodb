@@ -50,7 +50,7 @@ vModel.value.au = !!vModel.value.au */
         <a-form-item label="NN">
           <a-checkbox
             v-model:checked="vModel.rqd"
-            :disabled="vModel.pk || !sqlUi.columnEditable(vModel)"
+            :disabled="vModel.pk"
             class="nc-column-checkbox-NN"
             @change="onAlter"
           />
@@ -59,7 +59,6 @@ vModel.value.au = !!vModel.value.au */
         <a-form-item label="PK">
           <a-checkbox
             v-model:checked="vModel.pk"
-            :disabled="!sqlUi.columnEditable(vModel)"
             class="nc-column-checkbox-PK"
             @change="onAlter"
           />
@@ -68,17 +67,17 @@ vModel.value.au = !!vModel.value.au */
         <a-form-item label="AI">
           <a-checkbox
             v-model:checked="vModel.ai"
-            :disabled="sqlUi.colPropUNDisabled(vModel) || !sqlUi.columnEditable(vModel)"
+            :disabled="sqlUi.colPropUNDisabled(vModel)"
             class="nc-column-checkbox-AI"
             @change="onAlter"
           />
         </a-form-item>
 
-        <a-form-item label="UN" :disabled="sqlUi.colPropUNDisabled(vModel) || !sqlUi.columnEditable(vModel)" @change="onAlter">
+        <a-form-item label="UN" :disabled="sqlUi.colPropUNDisabled(vModel)" @change="onAlter">
           <a-checkbox v-model:checked="vModel.un" class="nc-column-checkbox-UN" />
         </a-form-item>
 
-        <a-form-item label="AU" :disabled="sqlUi.colPropAuDisabled(vModel) || !sqlUi.columnEditable(vModel)" @change="onAlter">
+        <a-form-item label="AU" :disabled="sqlUi.colPropAuDisabled(vModel)" @change="onAlter">
           <a-checkbox v-model:checked="vModel.au" class="nc-column-checkbox-AU" />
         </a-form-item>
       </div>
@@ -96,13 +95,13 @@ vModel.value.au = !!vModel.value.au */
       <a-form-item v-if="!hideLength" :label="$t('labels.lengthValue')">
         <a-input
           v-model:value="vModel.dtxp"
-          :disabled="sqlUi.getDefaultLengthIsDisabled(vModel.dt) || !sqlUi.columnEditable(vModel)"
+          :disabled="sqlUi.getDefaultLengthIsDisabled(vModel.dt)"
           @input="onAlter"
         />
       </a-form-item>
 
       <a-form-item v-if="sqlUi.showScale(vModel)" label="Scale">
-        <a-input v-model:value="vModel.dtxs" :disabled="!sqlUi.columnEditable(vModel)" @input="onAlter" />
+        <a-input v-model:value="vModel.dtxs" @input="onAlter" />
       </a-form-item>
     </template>
 

@@ -9,6 +9,7 @@ const isConfirmed = ref(false)
 const isDeleting = ref(false)
 const isErrored = ref(false)
 const isTitleUpdating = ref(false)
+const isCancelButtonVisible = ref(false)
 
 const form = ref({
   title: '',
@@ -65,6 +66,7 @@ const titleChange = async () => {
     console.error(e)
   } finally {
     isTitleUpdating.value = false
+    isCancelButtonVisible.value = false
   }
 }
 
@@ -82,19 +84,27 @@ watch(
   () => form.value.title,
   async () => {
     try {
+      if (form.value.title !== activeWorkspace.value?.title) {
+        isCancelButtonVisible.value = true
+      } else {
+        isCancelButtonVisible.value = false
+      }
       isErrored.value = !(await formValidator.value.validate())
     } catch (e: any) {
       isErrored.value = true
     }
   },
 )
+
+const onCancel = () => {
+  form.value.title = activeWorkspace.value?.title
+}
 </script>
 
 <template>
   <div class="flex flex-col items-center nc-workspace-settings-settings">
     <div class="item flex flex-col w-full">
       <div class="font-medium text-base">Change Workspace Name</div>
-
       <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="titleChange">
         <div class="text-gray-500 mt-6 mb-1.5">Workspace name</div>
         <a-form-item name="title" :rules="formRules.title">
@@ -105,7 +115,17 @@ watch(
             data-testid="nc-workspace-settings-settings-rename-input"
           />
         </a-form-item>
-        <div class="flex flex-row w-full justify-end mt-8">
+        <div class="flex flex-row w-full justify-end mt-8 gap-4">
+          <NcButton
+            v-if="isCancelButtonVisible"
+            type="secondary"
+            html-type="submit"
+            data-testid="nc-workspace-settings-settings-rename-cancel"
+            @click="onCancel"
+          >
+            <template #loading> Renaming Workspace </template>
+            Cancel
+          </NcButton>
           <NcButton
             type="primary"
             html-type="submit"

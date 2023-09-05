@@ -43,12 +43,12 @@ onMounted(async () => await fetchReleaseInfo())
 <template>
   <div v-if="releaseAlert && !appInfo.ee" class="flex items-center">
     <a-dropdown :trigger="['click']" placement="bottom" overlay-class-name="nc-dropdown-upgrade-menu">
-      <a-button class="!bg-primary !border-none">
+      <NcButton class="!bg-primary !border-none !mr-3" size="small">
         <div class="flex gap-1 items-center text-white">
           <span class="text-sm font-weight-medium">{{ $t('activity.upgrade.available') }}</span>
           <mdi-menu-down />
         </div>
-      </a-button>
+      </NcButton>
 
       <template #overlay>
         <div class="mt-1 bg-white shadow-lg !border">

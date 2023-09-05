@@ -129,7 +129,9 @@ function handleRemove(col: Record<string, any>) {
 const modalQn = computed(() =>
   updateMode.value === BulkUpdateMode.SELECTED
     ? `Do you want to update selected ${editCount.value} records?`
-    : `Do you want to update all ${editCount.value} records in current view?`,
+    : `Do you want to update ${editCount.value > 1 ? 'all' : ''} ${editCount.value} ${
+        editCount.value > 1 ? 'records' : 'record'
+      } in current view?`,
 )
 
 const isModalOpen = ref(false)
@@ -440,16 +442,6 @@ onMounted(() => {
         <div class="prose-xl font-bold self-center">Bulk Update</div>
 
         <div class="mt-4">{{ modalQn }}</div>
-        <a-alert
-          message="Note: This operation can't be undone!"
-          type="error"
-          show-icon
-          class="!mt-4 !bg-[#fff] !rounded-[8px] !border-[#E7E7E9]"
-        >
-          <template #icon>
-            <component :is="iconMap.warning" />
-          </template>
-        </a-alert>
       </div>
       <div class="flex flex-row gap-x-2 mt-1 pt-1.5 justify-end p-4">
         <NcButton type="secondary" @click="isModalOpen = false">{{ $t('general.cancel') }}</NcButton>

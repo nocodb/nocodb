@@ -95,13 +95,13 @@ watch(showShareModal, (val) => {
     :width="formStatus === 'manageCollaborators' ? '60rem' : '40rem'"
   >
     <div v-if="formStatus === 'project-collaborateSaving'" class="flex flex-row w-full px-5 justify-between items-center py-1">
-      <div class="flex text-base" :style="{ fontWeight: 500 }">Adding Collaborators</div>
+      <div class="flex text-base" :style="{ fontWeight: 500 }">Adding Members</div>
       <a-spin :indicator="indicator" />
     </div>
     <template v-else-if="formStatus === 'project-collaborateSaved'">
       <div class="flex flex-col py-1.5">
         <div class="flex flex-row w-full px-5 justify-between items-center py-0.5">
-          <div class="flex text-base" :style="{ fontWeight: 500 }">Collaborators added</div>
+          <div class="flex text-base" :style="{ fontWeight: 500 }">Members added</div>
           <div class="flex">
             <MdiCheck />
           </div>

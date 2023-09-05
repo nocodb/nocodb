@@ -1,6 +1,5 @@
 import { useDebounceFn } from '@vueuse/core'
-import posthog from 'posthog-js'
-import type PostHog from 'posthog-js'
+import { PostHog } from 'posthog-js'
 import { defineNuxtPlugin, useRouter } from '#imports'
 import type { NuxtApp } from '#app'
 
@@ -42,10 +41,14 @@ document.body.appendChild(iframe)
 let phClient: PostHog = null
 
 function initPostHog(clientId: string) {
-  if (!phClient) {
-    phClient = posthog.init('phc_XIYhmt76mLGNt1iByEFoTEbsyuYeZ0o7Q5Ang4G7msr', { api_host: 'https://app.posthog.com' })
+  try {
+    if (!phClient) {
+      phClient = PostHog.init('phc_XIYhmt76mLGNt1iByEFoTEbsyuYeZ0o7Q5Ang4G7msr', {api_host: 'https://app.posthog.com'})
+    }
+    PostHog.identify(clientId)
+  } catch {
+    // ignore error
   }
-  posthog.identify(clientId)
 }
 
 // Usage example:

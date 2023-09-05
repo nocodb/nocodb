@@ -25,6 +25,7 @@ import { randomTokenString } from '~/helpers/stringHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { ProjectsService } from '~/services/projects.service';
+import { extractProps } from '~/helpers/extractProps';
 
 @Injectable()
 export class UsersService {
@@ -68,6 +69,21 @@ export class UsersService {
       ...param,
       email: param.email?.toLowerCase(),
     });
+  }
+
+  async profileUpdate({
+    id,
+    params,
+  }: {
+    id: number;
+    params: {
+      display_name?: string;
+      avatar?: string;
+    };
+  }) {
+    const updateObj = extractProps(params, ['display_name', 'avatar']);
+
+    return await User.update(id, updateObj);
   }
 
   async registerNewUserIfAllowed({

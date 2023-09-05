@@ -1,10 +1,8 @@
 import {
   Body,
   Controller,
-  Get,
   HttpCode,
-  Param,
-  Post,
+  Patch,
   Request,
   Response,
   UseGuards,
@@ -12,6 +10,7 @@ import {
 
 import { ConfigService } from '@nestjs/config';
 import type { AppConfig } from '~/interface/config';
+import { GlobalGuard } from '~/guards/global/global.guard';
 
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { UsersService } from '~/services/users/users.service';
@@ -23,4 +22,16 @@ export class UsersController {
     protected readonly appHooksService: AppHooksService,
     protected readonly config: ConfigService<AppConfig>,
   ) {}
+
+  @Patch(['/api/v1/user/profile'])
+  @UseGuards(GlobalGuard)
+  @HttpCode(200)
+  async update(@Body() body, @Request() req, @Response() res) {
+    res.json(
+      await this.usersService.profileUpdate({
+        id: req.user.id,
+        params: body,
+      }),
+    );
+  }
 }

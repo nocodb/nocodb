@@ -27,9 +27,6 @@ const isFocused = ref(false)
 
 const searchDropdown = ref(null)
 
-const serachbarHover = ref(false)
-
-
 onClickOutside(searchDropdown, () => (isDropdownOpen.value = false))
 
 const columns = computed(() =>
@@ -88,32 +85,32 @@ watchDebounced(
 <template>
   <div
     class="flex flex-row border-1 rounded-lg h-8 ml-1 border-gray-200 overflow-hidden"
-    :class="{ '!border-primary': search.query.length !== 0 || isFocused }"
+    :class="{ 'border-primary': search.query.length !== 0 || isFocused }"
   >
     <div
       ref="searchDropdown"
       class="flex items-center group relative px-2 cursor-pointer border-r-1 border-gray-200 hover:bg-gray-100"
-      :class="{ '!bg-gray-50 ': isDropdownOpen }"
-      @mouseover="serachbarHover = true" @mouseleave="serachbarHover = false"
+      :class="{ 'bg-gray-50 ': isDropdownOpen }"
       @click="isDropdownOpen = !isDropdownOpen"
     >
       <GeneralIcon icon="search" class="ml-1 mr-2 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
-      <div class="text-xs font-medium text-gray-400 truncate" :class="{'w-12':serachbarHover || isDropdownOpen,'w-16':!serachbarHover}">
+      <div class="w-16 group-hover:w-12 text-[0.75rem] font-medium text-gray-400 truncate">
         {{ displayColumnLabel }}
       </div>
-      <component v-if="serachbarHover || isDropdownOpen" :is="iconMap.arrowDown" class="ml-1 text-gray-400 !text-sm" />
-
+      <div class="hidden group-hover:block">
+      <component :is="iconMap.arrowDown" class="text-gray-400 text-sm" />
+      </div>
       <a-select
         v-model:value="search.field"
         :open="isDropdownOpen"
         size="small"
         :dropdown-match-select-width="false"
-        dropdown-class-name="!rounded-lg nc-dropdown-toolbar-search-field-option !w-48"
-        class="!py-1 !absolute top-0 left-0 w-full h-full z-10 !text-xs opacity-0"
+        dropdown-class-name="!rounded-lg nc-dropdown-toolbar-search-field-option w-48"
+        class="py-1 !absolute top-0 left-0 w-full h-full z-10 text-xs opacity-0"
       >
         <a-select-option v-for="op of columns" :key="op.value" :value="op.value">
-          <div class="flex items-center -ml-1 gap-2">
-            <SmartsheetHeaderIcon :column="op.column" />
+          <div class="text-[0.75rem] flex items-center -ml-1 gap-2">
+            <SmartsheetHeaderIcon class="text-sm" :column="op.column" />
             {{ op.label }}
           </div>
         </a-select-option>
@@ -123,9 +120,9 @@ watchDebounced(
     <a-input
       v-model:value="search.query"
       size="small"
-      class="!text-xs"
+      class="text-xs"
       :style="{
-        width: '12rem',
+        width: '10rem',
       }"
       :placeholder="$t('general.search')"
       :bordered="false"

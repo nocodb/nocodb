@@ -3816,6 +3816,8 @@ class BaseModelSqlv2 {
       query = sanitize(query);
     }
 
+    log(query);
+
     let data =
       this.isPg || this.isSnowflake
         ? (await this.dbDriver.raw(query))?.rows

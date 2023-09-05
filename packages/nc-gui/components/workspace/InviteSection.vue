@@ -46,7 +46,7 @@ const allowedRoles = computed<WorkspaceUserRoles[]>(() => {
             <MdiChevronDown />
           </template>
           <template v-for="role of allowedRoles" :key="`role-option-${role}`">
-            <a-select-option :value="role">
+            <a-select-option v-if="role" :value="role">
               <NcBadge :color="RoleColors[role]">
                 <p class="badge-text">{{ RoleLabels[role] }}</p>
               </NcBadge>

@@ -49,7 +49,7 @@ const projectStore = useProject()
 
 const { loadTables } = projectStore
 
-const { tables } = storeToRefs(projectStore)
+const { tables, isSharedBase } = storeToRefs(projectStore)
 
 const { activeTable: _activeTable, projectTables } = storeToRefs(useTablesStore())
 
@@ -76,6 +76,9 @@ const tablesById = computed(() =>
       return acc
     }, {}),
 )
+
+const nonStarredProjectList = computed(() => projectsList.value.filter((project) => !project.starred))
+const starredProjectList = computed(() => projectsList.value.filter((project) => project.starred))
 
 const sortables: Record<string, Sortable> = {}
 
@@ -346,10 +349,37 @@ watch(
 
 <template>
   <div class="nc-treeview-container flex flex-col justify-between select-none px-0.5">
-    <div ref="treeViewDom" mode="inline" class="nc-treeview pb-0.5 flex-grow min-h-50 overflow-x-hidden">
-      <template v-if="projectsList?.length">
+    <div ref="treeViewDom" mode="inline" class="nc-treeview pb-0.5 flex-grow h-full overflow-hidden h-full">
+      <template v-if="starredProjectList?.length">
+        <div v-if="!isSharedBase" class="nc-treeview-subheading mt-1">
+          <div class="text-gray-500 font-medium">Starred</div>
+        </div>
         <ProjectWrapper
-          v-for="project of projectsList"
+          v-for="project of starredProjectList"
+          :key="project.id"
+          :project-role="project.project_role || project.workspace_role"
+          :project="project"
+        >
+          <DashboardTreeViewProjectNode />
+        </ProjectWrapper>
+      </template>
+      <div v-if="!isSharedBase" class="nc-treeview-subheading mt-2.5">
+        <div class="text-gray-500 font-medium">{{ $t('objects.projects') }}</div>
+        <WorkspaceCreateProjectBtn
+          v-model:is-open="isCreateProjectOpen"
+          modal
+          type="text"
+          size="xxsmall"
+          class="!hover:bg-gray-200 !hover-text-gray-800 !text-gray-600"
+          :centered="true"
+          data-testid="nc-sidebar-create-project-btn-small"
+        >
+          <GeneralIcon icon="plus" class="text-lg leading-6" style="-webkit-text-stroke: 0.2px" />
+        </WorkspaceCreateProjectBtn>
+      </div>
+      <template v-if="nonStarredProjectList?.length">
+        <ProjectWrapper
+          v-for="project of nonStarredProjectList"
           :key="project.id"
           :project-role="project.project_role || stringifyRolesObj(workspaceRoles)"
           :project="project"
@@ -385,20 +415,8 @@ watch(
 </template>
 
 <style scoped lang="scss">
-.nc-treeview-footer-item {
-  @apply cursor-pointer px-4 py-2 flex items-center hover:bg-gray-200/20 text-xs text-current;
-}
-
-:deep(.nc-filter-input input::placeholder) {
-  @apply !text-xs;
-}
-
-:deep(.ant-dropdown-menu-title-content) {
-  @apply !p-2;
-}
-
-:deep(.ant-input-group-addon:last-child) {
-  @apply top-[-0.5px];
+.nc-treeview-subheading {
+  @apply flex flex-row w-full justify-between items-center mb-1.5 pl-3.5 pr-1.25;
 }
 
 .nc-treeview-container {
@@ -423,73 +441,6 @@ watch(
 
   .sortable-chosen {
     @apply !bg-primary bg-opacity-25 text-primary;
-  }
-}
-
-.nc-tree-item:hover {
-  @apply text-primary after:(!opacity-5);
-}
-
-:deep(.nc-filter-input) {
-  .ant-input {
-    @apply pr-6 !border-0;
-  }
-}
-
-:deep(.ant-dropdown-menu-item-group-title) {
-  @apply border-b-1;
-}
-
-:deep(.ant-dropdown-menu-item-group-list) {
-  @apply !mx-0;
-}
-
-:deep(.ant-dropdown-menu-item-group-title) {
-  @apply border-b-1;
-}
-
-:deep(.ant-dropdown-menu-item-group-list) {
-  @apply m-0;
-}
-
-:deep(.ant-dropdown-menu-item) {
-  @apply !py-0 active:(ring ring-accent ring-opacity-100);
-}
-
-:deep(.ant-dropdown-menu-title-content) {
-  @apply !p-0;
-}
-
-:deep(.ant-collapse-content-box) {
-  @apply !p-0;
-}
-
-:deep(.ant-collapse-header) {
-  @apply !border-0;
-}
-
-:deep(.ant-menu-sub.ant-menu-inline .ant-menu-item-group-title) {
-  @apply !py-0;
-}
-
-:deep(.nc-project-sub-menu .ant-menu-submenu-title) {
-  @apply !pr-1 !pl-3;
-}
-
-:deep(.ant-menu-inline .ant-menu-submenu-title) {
-  @apply !h-28px;
-}
-
-:deep(.nc-project-sub-menu.active) {
-}
-
-.nc-create-project-btn {
-  @apply px-2;
-  :deep(.ant-btn) {
-    @apply w-full !text-center justify-center h-auto rounded-lg py-2 px-4 border-gray-100 bg-white;
-    & > div {
-      @apply !justify-center;
-    }
   }
 }
 </style>

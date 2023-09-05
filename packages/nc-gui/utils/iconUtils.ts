@@ -25,6 +25,8 @@ import MsAddBoxOutline from '~icons/nc-icons/add-box'
 import MsDownloadRounded from '~icons/nc-icons/download'
 import LogosAirtable from '~icons/logos/airtable'
 import MsStar from '~icons/material-symbols/star-outline-rounded'
+import NcStar from '~icons/nc-icons/star'
+import NcUnStar from '~icons/nc-icons/star-remove'
 import MsSort from '~icons/material-symbols/sort'
 import MaterialSymbolsEdit from '~icons/material-symbols/edit-outline-rounded'
 import MaterialDuplicate from '~icons/material-symbols/file-copy-outline-rounded'
@@ -248,7 +250,8 @@ export const iconMap = {
   export: h('span', { class: 'material-symbols' }, 'get_app'),
   colInsertAfter: TablerColumnInsertRight,
   colInsertBefore: TablerColumnInsertLeft,
-  star: MsStar,
+  star: NcStar,
+  unStar: NcUnStar,
   sortDesc: MsSort,
   article: NcArticle,
   sortAsc: h('span', { class: 'material-symbols', style: { transform: 'scaleY(-1)' } }, 'sort'),

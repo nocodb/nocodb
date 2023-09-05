@@ -452,7 +452,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
               >
                 <template v-if="!isSharedBase">
                   <a-menu-item @click="enableEditMode">
-                    <div class="nc-project-menu-item group">
+                    <div class="nc-project-option-item group">
                       <GeneralIcon icon="edit" class="group-hover:text-black" />
                       {{ $t('general.rename') }}
                     </div>
@@ -460,7 +460,11 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 
                   <!-- Copy Project Info -->
                   <a-menu-item v-if="!isEeUI" key="copy">
-                    <div v-e="['c:navbar:user:copy-proj-info']" class="nc-project-menu-item group" @click.stop="copyProjectInfo">
+                    <div
+                      v-e="['c:navbar:user:copy-proj-info']"
+                      class="nc-project-option-item group"
+                      @click.stop="copyProjectInfo"
+                    >
                       <GeneralIcon icon="copy" class="group-hover:text-black" />
                       {{ $t('activity.account.projInfo') }}
                     </div>
@@ -476,7 +480,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 
                   <!-- ERD View -->
                   <a-menu-item key="erd" @click="openProjectErdView(project)">
-                    <div class="nc-project-menu-item group">
+                    <div class="nc-project-option-item group">
                       <GeneralIcon icon="erd" />
                       Relations
                     </div>
@@ -487,7 +491,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                     <div
                       v-if="isUIAllowed('apiDocs')"
                       v-e="['e:api-docs']"
-                      class="nc-project-menu-item group"
+                      class="nc-project-option-item group"
                       @click.stop="openLink(`/api/v1/db/meta/projects/${project.id}/swagger`, appInfo.ncSiteUrl)"
                     >
                       <GeneralIcon icon="snippet" class="group-hover:text-black" />
@@ -500,7 +504,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   <div
                     v-if="isUIAllowed('settings')"
                     v-e="['c:navdraw:project-settings']"
-                    class="nc-project-menu-item group"
+                    class="nc-project-option-item group"
                     @click="toggleDialog(true, 'teamAndAuth', undefined, project.id)"
                   >
                     <GeneralIcon icon="settings" class="group-hover:text-black" />
@@ -516,7 +520,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                 <a-menu-divider v-if="false" />
 
                 <a-menu-item v-if="isUIAllowed('projectDelete', false, projectRole)" @click="isProjectDeleteDialogVisible = true">
-                  <div class="nc-project-menu-item group text-red-500">
+                  <div class="nc-project-option-item group text-red-500">
                     <GeneralIcon icon="delete" />
                     {{ $t('general.delete') }}
                   </div>
@@ -631,7 +635,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                                 >
                                   <!-- ERD View -->
                                   <a-menu-item key="erd" @click="openErdView(base)">
-                                    <div class="nc-project-menu-item group">
+                                    <div class="nc-project-option-item group">
                                       <GeneralIcon icon="erd" />
                                       Relations
                                     </div>
@@ -681,7 +685,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 
         <template v-else-if="contextMenuTarget.type === 'table'">
           <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
-            <div class="nc-project-menu-item">
+            <div class="nc-project-option-item">
               <GeneralIcon icon="edit" class="text-gray-700" />
               {{ $t('general.rename') }}
             </div>
@@ -691,14 +695,14 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
             v-if="isUIAllowed('table-duplicate') && (contextMenuBase?.is_meta || contextMenuBase?.is_local)"
             @click="duplicateTable(contextMenuTarget.value)"
           >
-            <div class="nc-project-menu-item">
+            <div class="nc-project-option-item">
               <GeneralIcon icon="duplicate" class="text-gray-700" />
               {{ $t('general.duplicate') }}
             </div>
           </a-menu-item>
 
           <a-menu-item v-if="isUIAllowed('table-delete')" @click="isTableDeleteDialogVisible = true">
-            <div class="nc-project-menu-item text-red-600">
+            <div class="nc-project-option-item text-red-600">
               <GeneralIcon icon="delete" />
               {{ $t('general.delete') }}
             </div>
@@ -707,7 +711,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 
         <template v-else>
           <a-menu-item @click="reloadTables">
-            <div class="nc-project-menu-item">
+            <div class="nc-project-option-item">
               {{ $t('general.reload') }}
             </div>
           </a-menu-item>

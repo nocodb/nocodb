@@ -43,7 +43,16 @@ let phClient: PostHog = null
 function initPostHog(clientId: string) {
   try {
     if (!phClient) {
-      phClient = PostHog.init('phc_XIYhmt76mLGNt1iByEFoTEbsyuYeZ0o7Q5Ang4G7msr', {api_host: 'https://app.posthog.com'})
+      phClient = PostHog.init('phc_XIYhmt76mLGNt1iByEFoTEbsyuYeZ0o7Q5Ang4G7msr', {
+        api_host: 'https://app.posthog.com',
+        session_recording: {
+          enabled: true,
+        },
+        autocapture: false,
+        capture_pageview: false,
+        capture_links: false,
+        capture_form_submits: false,
+      })
     }
     PostHog.identify(clientId)
   } catch {

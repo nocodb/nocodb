@@ -1,3 +1,4 @@
+import debug from 'debug';
 import autoBind from 'auto-bind';
 import groupBy from 'lodash/groupBy';
 import DataLoader from 'dataloader';
@@ -52,6 +53,8 @@ import {
   IS_WITHIN_COMPARISON_SUB_OPS,
 } from '~/utils/globals';
 
+const log = debug('nc:db');
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -81,6 +84,32 @@ function checkColumnRequired(
   // check fields defined and if not, then select all
   // if defined check if it is in the fields
   return !fields || fields.includes(column.title);
+}
+
+function wrapObjectFunctions(obj, before, after) {
+  let key, value;
+
+  for (key in obj) {
+    value = obj[key];
+    if (typeof value === 'function' && key !== '_dbDriver') {
+      wrapFunction(obj, key, value);
+    }
+  }
+
+  function wrapFunction(obj, fname, f) {
+    const randid = `op_${nanoidv2()}`;
+
+    obj[fname] = function (...args) {
+      if (before) {
+        before(randid, fname, this, args);
+      }
+      const rv = f.apply(this, args);
+      if (after) {
+        after(randid, fname, this, args, rv);
+      }
+      return rv;
+    };
+  }
 }
 
 /**
@@ -118,6 +147,16 @@ class BaseModelSqlv2 {
     this.model = model;
     this.viewId = viewId;
     autoBind(this);
+
+    wrapObjectFunctions(
+      this,
+      (id, fnm, _self, args) => {
+        log(`${id} start ${fnm}, args: `, args);
+      },
+      (id, fnm, _self) => {
+        log(`${id} end ${fnm}`);
+      },
+    );
   }
 
   public async readByPk(

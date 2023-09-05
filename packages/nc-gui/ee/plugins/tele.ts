@@ -1,11 +1,12 @@
 import { useDebounceFn } from '@vueuse/core'
 import posthog, { PostHog } from 'posthog-js'
-import { defineNuxtPlugin, useRouter } from '#imports'
+import { defineNuxtPlugin, until, useGlobal, useRouter } from '#imports'
 import type { NuxtApp } from '#app'
 
 // todo: generate client id and keep it in cookie(share across sub-domains)
 let clientId: string | null = window.localStorage.getItem('nc_id')
 let phClient: PostHog = null
+let isTeleEnabled = false
 
 if (clientId) {
   initPostHog(clientId)
@@ -42,6 +43,8 @@ document.body.appendChild(iframe)
 
 function initPostHog(clientId: string) {
   try {
+    if (!isTeleEnabled) return
+
     if (!phClient) {
       phClient = posthog.init('phc_XIYhmt76mLGNt1iByEFoTEbsyuYeZ0o7Q5Ang4G7msr', {
         api_host: 'https://app.posthog.com',
@@ -169,6 +172,22 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
   nuxtApp.provide('tele', tele)
   nuxtApp.provide('e', (e: string, data?: Record<string, any>) => tele.emit(e, { data }))
+
+  // put inside app:created hook to ensure global state is available
+  nuxtApp.hooks.hook('app:created', () => {
+    const globalState = useGlobal()
+
+    // if tele enabled at some point, init Posthog
+    until(() => globalState?.appInfo?.value?.teleEnabled)
+      .toBeTruthy({ timeout: 300000 })
+      .then(() => {
+        isTeleEnabled = globalState?.appInfo?.value?.teleEnabled
+        if (clientId) initPostHog(clientId)
+      })
+      .catch(() => {
+        isTeleEnabled = false
+      })
+  })
 })
 
 // remove () or ? from path

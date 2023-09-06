@@ -50,7 +50,8 @@ async function upgradeModelRelationsIndex({
     }
 
     switch (colOptions.type) {
-      case RelationTypes.HAS_MANY:
+      // use belongs to since child column belongs to current table in that case
+      case RelationTypes.BELONGS_TO:
         {
           // const parentCol = await colOptions.getParentColumn(ncMeta);
           const childCol = await colOptions.getChildColumn(ncMeta);
@@ -60,10 +61,7 @@ async function upgradeModelRelationsIndex({
 
           // check index already exists or not
           const indexExists = indexes.find((index) => {
-            return (
-              index.cn === childCol.column_name &&
-              index.key_name === childCol.column_name
-            );
+            return index.cn === childCol.column_name;
           });
 
           if (indexExists) {
@@ -108,11 +106,21 @@ async function upgradeBaseRelations({
     const indexes = await sqlClient.indexList({
       tn: model.table_name,
     });
+    const indexList = indexes.data?.list ?? [];
+
+    // exclude composite indexes
+    const filteredIndexList = indexList.filter((indexObj, i) => {
+      return indexList.every((indexObj2, j) => {
+        if (i === j) return true;
+        return indexObj2.key_name !== indexObj.key_name;
+      });
+    });
+
     await upgradeModelRelationsIndex({
       ncMeta,
       model: new Model(model),
       sqlClient,
-      indexes: indexes.data.list,
+      indexes: filteredIndexList,
     });
     logger.log(`Upgraded model '${model.title}'`);
   }

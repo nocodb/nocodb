@@ -33,8 +33,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
   (updateModelValue: (data: string | Record<string, any>[]) => void) => {
     const isReadonly = inject(ReadonlyInj, ref(false))
 
-    // const isLockedMode = inject(IsLockedInj, ref(false))
-
     const isPublic = inject(IsPublicInj, ref(false))
 
     const isForm = inject(IsFormInj, ref(false))

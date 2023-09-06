@@ -139,13 +139,6 @@ const workspaceMoveProjectOnSuccess = async (workspaceId: string) => {
   })
 }
 
-/*
-const moveProject = (project: ProjectType) => {
-  selectedProjectToMove.value = project
-  isMoveDlgOpen.value = true
-}
-*/
-
 const isDuplicateDlgOpen = ref(false)
 const selectedProjectToDuplicate = ref()
 

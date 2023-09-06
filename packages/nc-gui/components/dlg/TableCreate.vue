@@ -152,27 +152,7 @@ onMounted(() => {
             :placeholder="$t('msg.info.enterTableName')"
           />
         </a-form-item>
-        <!--
-        <div v-if="false" class="flex justify-end items-center">
-          <div
-            class="pointer flex flex-row items-center gap-x-1 cursor-pointer"
-            @click="isAdvanceOptVisible = !isAdvanceOptVisible"
-          >
-            {{ isAdvanceOptVisible ? $t('general.hideAll') : $t('general.showMore') }}
-
-            <component :is="iconMap.minusCircle" v-if="isAdvanceOptVisible" class="text-gray-500" />
-            <component :is="iconMap.plusCircle" v-else class="text-gray-500" />
-          </div>
-        </div>
-        -->
         <div class="nc-table-advanced-options" :class="{ active: isAdvanceOptVisible }">
-          <!-- hint="Table name as saved in database" -->
-          <!-- <div v-if="!project.prefix" class="mb-2">{{ $t('msg.info.tableNameInDb') }}</div>
-
-          <a-form-item v-if="!project.prefix" v-bind="validateInfos.table_name">
-            <a-input v-model:value="table.table_name" size="large" hide-details :placeholder="$t('msg.info.tableNameInDb')" />
-          </a-form-item> -->
-
           <div>
             <div class="mb-1">
               <!-- Add Default Columns -->

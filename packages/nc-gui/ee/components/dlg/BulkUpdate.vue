@@ -129,9 +129,11 @@ function handleRemove(col: Record<string, any>) {
 const modalQn = computed(() => {
   const qnToAsk =
     editCount.value === 1
-      ? 'Do you want to update 1 selected record ?'
+      ? 'Do you want to update 1 selected record in current view?'
       : `Do you want to update all ${editCount.value} records in current view ? `
-  return updateMode.value === BulkUpdateMode.SELECTED ? qnToAsk : null
+  return updateMode.value === BulkUpdateMode.SELECTED
+    ? `Do you want to update ${editCount.value} selected ${editCount.value === 1 ? 'record' : 'records'}?`
+    : qnToAsk
 })
 
 const isModalOpen = ref(false)

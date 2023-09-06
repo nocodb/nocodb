@@ -22,11 +22,12 @@ const inviteCollaborator = async () => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
-
+// all user input emails are stored here
+const emailBadges = ref<Array<string>>([])
 watch(inviteData, (newVal) => {
-  console.log(newVal.email)
-  if (newVal.email[-1] === ',') {
-    console.log(newVal.email)
+  if (newVal.email.includes(',')) {
+    emailBadges.value.push(newVal.email.split(',')[0])
+    inviteData.email = ''
   }
 })
 
@@ -52,11 +53,20 @@ onMounted(async () => {
     <div class="text-xl mb-4">Invite</div>
     <a-form>
       <div class="flex gap-2">
+        <span
+          v-for="(email, index) in emailBadges"
+          :key="email"
+          class="p-1 border-1 border-grey rounded-2xl flex items-center justify-between"
+        >
+          {{ email }}
+          <component :is="iconMap.close" class="ml-1.5 hover:cursor-pointer" @click="emailBadges.splice(index, 1)" />
+        </span>
         <a-input
           id="email"
           v-model:value="inviteData.email"
           placeholder="Enter emails to send invitation"
           class="!max-w-130 !rounded"
+          @press-enter="inviteData.email += ','"
         />
 
         <RolesSelector

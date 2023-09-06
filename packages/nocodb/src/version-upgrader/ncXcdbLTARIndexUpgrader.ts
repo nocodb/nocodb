@@ -102,7 +102,9 @@ async function upgradeBaseRelations({
 
   // get all columns and filter out relations and create index if not exists
   for (const model of models) {
-    logger.log(`Upgrading model '${model.name}'`);
+    logger.log(`Upgrading model '${model.title}'`);
+
+    logger.log(`Fetching index list of model '${model.title}'`);
     const indexes = await sqlClient.indexList({
       tn: model.table_name,
     });
@@ -112,7 +114,7 @@ async function upgradeBaseRelations({
       sqlClient,
       indexes: indexes.data.list,
     });
-    logger.log(`Upgraded model '${model.name}'`);
+    logger.log(`Upgraded model '${model.title}'`);
   }
 }
 

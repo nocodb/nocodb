@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, extractRolesObj, OrgUserRoles, PluginCategory } from 'nocodb-sdk';
+import {
+  AppEvents,
+  extractRolesObj,
+  OrgUserRoles,
+  PluginCategory,
+} from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import type { UserType } from 'nocodb-sdk';

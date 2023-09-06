@@ -163,7 +163,7 @@ const onDrop = async (event: DragEvent) => {
 <template>
   <div class="nc-container flex flex-col h-full" @drop="onDrop" @dragover.prevent>
     <LazySmartsheetTopbar />
-    <TabsSmartsheetResizable style="height: calc(100% - var(--topbar-height));">
+    <TabsSmartsheetResizable style="height: calc(100% - var(--topbar-height))">
       <template #content>
         <div v-if="openedViewsTab === 'view'" class="flex flex-col h-full flex-1 min-w-0">
           <LazySmartsheetToolbar v-if="!isForm" />

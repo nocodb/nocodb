@@ -67,7 +67,7 @@ watch(
   () => search.value.field,
   () => {
     onPressEnter()
-  }
+  },
 )
 
 watchDebounced(
@@ -98,7 +98,7 @@ watchDebounced(
         {{ displayColumnLabel }}
       </div>
       <div class="hidden group-hover:block">
-      <component :is="iconMap.arrowDown" class="text-gray-400 text-sm" />
+        <component :is="iconMap.arrowDown" class="text-gray-400 text-sm" />
       </div>
       <a-select
         v-model:value="search.field"

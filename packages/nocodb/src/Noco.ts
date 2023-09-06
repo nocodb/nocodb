@@ -18,8 +18,6 @@ import type { Express } from 'express';
 
 import type http from 'http';
 import { MetaTable } from '~/utils/globals';
-import Store from '~/models/Store';
-import { NC_LICENSE_KEY } from '~/constants';
 import { AppModule } from '~/app.module';
 import { isEE } from '~/utils';
 

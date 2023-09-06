@@ -286,8 +286,6 @@ function setFormData() {
     .sort((a, b) => a.order - b.order)
     .map((c) => ({ ...c, required: !!c.required }))
 
-  editEnabled.value = new Array(localColumns.value.length).fill(false)
-
   systemFieldsIds.value = getSystemColumns(col).map((c) => c.fk_column_id)
 
   hiddenColumns.value = col.filter(

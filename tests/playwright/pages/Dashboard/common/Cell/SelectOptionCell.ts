@@ -28,13 +28,6 @@ export class SelectOptionCellPageObject extends BasePage {
     const selectCell = this.get({ index, columnHeader });
 
     // check if cell active
-    if (
-      !(await selectCell.getAttribute('class')).includes('active') &&
-      (await selectCell.locator('.nc-selected-option').count()) === 0
-    ) {
-      await selectCell.click();
-    }
-
     await selectCell.click();
 
     if (index === -1)

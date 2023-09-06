@@ -487,10 +487,9 @@ test.describe('Form view', () => {
 
     await sharedForm.submit();
     await dashboard.rootPage.goto(url);
+
+    await dashboard.rootPage.reload();
     await dashboard.viewSidebar.openView({ title: 'selectBased' });
-
-    await dashboard.rootPage.waitForTimeout(500);
-
     await dashboard.grid.cell.selectOption.verify({
       columnHeader: 'SingleSelect',
       option: 'jan',

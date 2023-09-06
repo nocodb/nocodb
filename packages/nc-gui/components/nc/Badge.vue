@@ -19,3 +19,9 @@ const props = defineProps<{
     <slot />
   </div>
 </template>
+
+<style>
+.badge-color {
+  @apply mt-1 w-23 border h-6 rounded-lg;
+}
+</style>

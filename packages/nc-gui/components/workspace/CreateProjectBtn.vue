@@ -12,11 +12,13 @@ const props = defineProps<{
 
 const { isUIAllowed } = useUIPermission()
 
+const { orgRoles, workspaceRoles } = useRoles()
+
 const projectStore = useProject()
 const { isSharedBase } = storeToRefs(projectStore)
 
 const workspaceStore = useWorkspace()
-const { activeWorkspace, activeWorkspaceId: _activeWorkspaceId } = storeToRefs(workspaceStore)
+const { activeWorkspaceId: _activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const projectCreateDlg = ref(false)
 
@@ -26,7 +28,7 @@ const centered = computed(() => props.centered ?? true)
 
 <template>
   <NcButton
-    v-if="isUIAllowed('createProject', false, activeWorkspace?.roles) && !isSharedBase"
+    v-if="isUIAllowed('createProject', false, workspaceRoles ?? orgRoles) && !isSharedBase"
     type="text"
     :size="size"
     :centered="centered"

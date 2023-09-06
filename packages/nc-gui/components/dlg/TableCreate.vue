@@ -3,7 +3,6 @@ import {
   Form,
   TabType,
   computed,
-  iconMap,
   nextTick,
   onMounted,
   ref,
@@ -153,6 +152,7 @@ onMounted(() => {
             :placeholder="$t('msg.info.enterTableName')"
           />
         </a-form-item>
+        <!--
         <div v-if="false" class="flex justify-end items-center">
           <div
             class="pointer flex flex-row items-center gap-x-1 cursor-pointer"
@@ -164,6 +164,7 @@ onMounted(() => {
             <component :is="iconMap.plusCircle" v-else class="text-gray-500" />
           </div>
         </div>
+        -->
         <div class="nc-table-advanced-options" :class="{ active: isAdvanceOptVisible }">
           <!-- hint="Table name as saved in database" -->
           <!-- <div v-if="!project.prefix" class="mb-2">{{ $t('msg.info.tableNameInDb') }}</div>

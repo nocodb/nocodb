@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { onKeyDown } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
-import { computed, iconMap, isImage, onClickOutside, ref, useAttachment, useEventListener } from '#imports'
+import { computed, iconMap, isImage, ref, useAttachment, useEventListener } from '#imports'
 
 const { selectedImage, visibleItems, downloadFile } = useAttachmentCell()!
 

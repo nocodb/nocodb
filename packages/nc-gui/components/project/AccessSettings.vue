@@ -111,8 +111,6 @@ watchDebounced(
   },
 )
 
-const modal = ref(true)
-
 const reloadCollabs = async () => {
   currentPage.value = 0
   collaborators.value = []

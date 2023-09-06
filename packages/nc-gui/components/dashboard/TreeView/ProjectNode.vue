@@ -472,8 +472,6 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                     </div>
                   </a-menu-item>
 
-                  <a-menu-divider v-if="false" />
-
                   <!-- ERD View -->
                   <a-menu-item key="erd" @click="openProjectErdView(project)">
                     <div class="nc-project-menu-item group">
@@ -512,8 +510,6 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 
                   <a-menu-divider />
                 </template>
-
-                <a-menu-divider v-if="false" />
 
                 <a-menu-item v-if="isUIAllowed('projectDelete', false, projectRole)" @click="isProjectDeleteDialogVisible = true">
                   <div class="nc-project-menu-item group text-red-500">

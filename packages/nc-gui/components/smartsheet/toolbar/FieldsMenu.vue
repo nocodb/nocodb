@@ -350,7 +350,7 @@ useMenuCloseOnEsc(open)
               No fields found
             </div>
             <Draggable v-model="fields" item-key="id" @change="onMove($event)">
-              <template #item="{ element: field, index: index }">
+              <template #item="{ element: field }">
                 <div
                   v-if="
                     filteredFieldList

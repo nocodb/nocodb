@@ -17,7 +17,6 @@ import {
   computed,
   createEventHook,
   extractPkFromRow,
-  iconMap,
   inject,
   isImage,
   isLTAR,

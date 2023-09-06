@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, useDashboard, useManageUsers, useProject, useWorkspace } from '#imports'
+import { ProjectRoles } from 'nocodb-sdk'
+import { extractSdkResponseErrorMsg, useDashboard, useManageUsers } from '#imports'
 
 const emit = defineEmits(['invited'])
 
@@ -8,8 +8,6 @@ const inviteData = reactive({
   email: '',
   roles: ProjectRoles.VIEWER,
 })
-
-const projectStore = useProject()
 
 const { dashboardUrl } = useDashboard()
 

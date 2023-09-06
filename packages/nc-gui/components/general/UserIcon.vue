@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import type { UserType } from 'nocodb-sdk'
-
 const props = defineProps<{
   hideLabel?: boolean
   size?: 'small' | 'medium'

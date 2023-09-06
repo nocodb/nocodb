@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { OrderedWorkspaceRoles, RoleColors, RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
-import { Empty } from 'ant-design-vue'
 import { storeToRefs, stringToColour, timeAgo, useWorkspace } from '#imports'
 
 const { user } = useGlobal()

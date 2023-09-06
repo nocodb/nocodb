@@ -115,10 +115,9 @@ function openQuickImportDialog(type: string) {
     </a-menu-item>
   </a-sub-menu>
 
-  <a-menu-divider v-if="false" class="my-0" />
-
   <!-- Connect to new datasource -->
-  <!-- <a-sub-menu>
+  <!-- <a-menu-divider v-if="false" class="my-0" />
+  <a-sub-menu>
     <template #title>
       <div class="nc-project-menu-item group">
         <GeneralIcon icon="datasource" class="group-hover:text-black" />

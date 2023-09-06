@@ -3,6 +3,8 @@ import { navigateTo, useGlobal, useRouter } from '#imports'
 
 const DbNotFoundMsg = 'Database config not found'
 
+let refreshTokenPromise: Promise<string> | null = null
+
 export function addAxiosInterceptors(api: Api<any>) {
   const state = useGlobal()
   const router = useRouter()
@@ -51,6 +53,40 @@ export function addAxiosInterceptors(api: Api<any>) {
         return Promise.reject(error)
       }
 
+      let refreshTokenPromiseRes: (token: string) => void
+      let refreshTokenPromiseRej: (e: Error) => void
+
+      // avoid multiple refresh token requests by multiple requests at the same time
+      // wait for the first request to finish and then retry the failed requests
+      if (refreshTokenPromise) {
+        // if previous refresh token request succeeds use the token and retry request
+        return refreshTokenPromise
+          .then((token) => {
+            // New request with new token
+            return new Promise((resolve, reject) => {
+              const config = error.config
+              config.headers['xc-auth'] = token
+              api.instance
+                .request(config)
+                .then((response) => {
+                  resolve(response)
+                })
+                .catch((error) => {
+                  reject(error)
+                })
+            })
+          })
+          .catch(() => {
+            // ignore since it could have already been handled and redirected to sign in
+          })
+      } else {
+        // if
+        refreshTokenPromise = new Promise<string>((resolve, reject) => {
+          refreshTokenPromiseRes = resolve
+          refreshTokenPromiseRej = reject
+        })
+      }
+
       // Try request again with new token
       return api.instance
         .post('/auth/token/refresh', null, {
@@ -61,6 +97,10 @@ export function addAxiosInterceptors(api: Api<any>) {
           const config = error.config
           config.headers['xc-auth'] = token.data.token
           state.signIn(token.data.token)
+
+          // resolve the refresh token promise and reset
+          refreshTokenPromiseRes(token.data.token)
+          refreshTokenPromise = null
 
           return new Promise((resolve, reject) => {
             api.instance
@@ -73,10 +113,14 @@ export function addAxiosInterceptors(api: Api<any>) {
               })
           })
         })
-        .catch(async (error) => {
+        .catch(async (refreshTokenError) => {
           await state.signOut()
 
           if (!route.value.meta.public) navigateTo('/signIn')
+
+          // reject the refresh token promise and reset
+          refreshTokenPromiseRej(refreshTokenError)
+          refreshTokenPromise = null
 
           return Promise.reject(error)
         })

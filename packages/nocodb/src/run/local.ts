@@ -10,7 +10,10 @@ dns.setDefaultResultOrder('ipv4first');
 const server = express();
 server.enable('trust proxy');
 server.use(cors());
-server.use('/dashboard', express.static(path.join(__dirname, 'nc-gui')));
+server.use(
+  process.env.NC_DASHBOARD_URL ?? '/dashboard',
+  express.static(path.join(__dirname, 'nc-gui')),
+);
 server.set('view engine', 'ejs');
 
 (async () => {

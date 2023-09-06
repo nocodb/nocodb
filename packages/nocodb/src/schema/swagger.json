@@ -20162,6 +20162,7 @@
           },
           "roles": {
             "enum": [
+              "no-access",
               "commenter",
               "editor",
               "guest",
@@ -21676,6 +21677,12 @@
           },
           "roles": {
             "description": "The roles of the user"
+          },
+          "project_roles": {
+            "description": "The project roles of the user"
+          },
+          "workspace_roles": {
+            "description": "The workspace roles of the user"
           }
         },
         "title": "User Info Model",

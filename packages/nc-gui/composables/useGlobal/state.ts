@@ -78,7 +78,9 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** current token ref, used by `useJwt` to reactively parse our token payload */
   const token = computed({
     get: () => storage.value.token || '',
-    set: (val) => (storage.value.token = val),
+    set: (val) => {
+      storage.value.token = val
+    },
   })
 
   const config = useRuntimeConfig()
@@ -105,6 +107,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     isCloud: false,
     automationLogLevel: 'OFF',
     disableEmailAuth: false,
+    dashboardPath: '/dashboard',
   })
 
   /** reactive token payload */

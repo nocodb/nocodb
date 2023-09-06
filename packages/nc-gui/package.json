@@ -81,7 +81,7 @@
     "vue-barcode-reader": "^1.0.3",
     "vue-chartjs": "^5.2.0",
     "vue-dompurify-html": "^3.0.0",
-    "vue-github-button": "^3.0.3",
+    "vue-github-button": "^3.1.0",
     "vue-i18n": "^9.2.2",
     "vue-qrcode-reader": "3.1.0-vue3-compatibility.2",
     "vue3-calendar-heatmap": "^2.0.0",

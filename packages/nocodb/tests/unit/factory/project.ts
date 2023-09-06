@@ -44,6 +44,7 @@ const sakilaProjectConfig = (context) => {
     title: 'sakila',
     bases: [base],
     external: true,
+    ...(process.env.EE ? { fk_workspace_id: context.fk_workspace_id } : {}),
   };
 };
 
@@ -82,7 +83,10 @@ const createProject = async (
   const response = await request(context.app)
     .post('/api/v1/db/meta/projects/')
     .set('xc-auth', context.token)
-    .send(projectArgs);
+    .send({
+      ...projectArgs,
+      ...(process.env.EE ? { fk_workspace_id: context.fk_workspace_id } : {}),
+    });
 
   return (await Project.getByTitleOrId(response.body.id)) as Project;
 };

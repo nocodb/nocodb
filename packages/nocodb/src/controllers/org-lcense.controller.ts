@@ -18,6 +18,7 @@ export class OrgLcenseController {
 
   @Get('/api/v1/license')
   @Acl('licenseGet', {
+    scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
@@ -28,6 +29,7 @@ export class OrgLcenseController {
   @Post('/api/v1/license')
   @HttpCode(200)
   @Acl('licenseSet', {
+    scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })

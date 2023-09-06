@@ -1,9 +1,16 @@
 import { useDebounceFn } from '@vueuse/core'
-import { defineNuxtPlugin, useRouter } from '#imports'
+import posthog, { PostHog } from 'posthog-js'
+import { defineNuxtPlugin, until, useGlobal, useRouter } from '#imports'
 import type { NuxtApp } from '#app'
 
 // todo: generate client id and keep it in cookie(share across sub-domains)
 let clientId: string | null = window.localStorage.getItem('nc_id')
+let phClient: PostHog = null
+let isTeleEnabled = false
+
+if (clientId) {
+  initPostHog(clientId)
+}
 
 // todo: move to a separate library to reuse in other packages
 const iframe = document.createElement('iframe')
@@ -19,6 +26,7 @@ window.onmessage = function (e) {
       clientId = e.data
       window.localStorage.setItem('nc_id', e.data)
       document.body.removeChild(iframe)
+      initPostHog(e.data)
     }
   }
 }
@@ -32,6 +40,28 @@ iframe.onload = function () {
 }
 
 document.body.appendChild(iframe)
+
+function initPostHog(clientId: string) {
+  try {
+    if (!isTeleEnabled) return
+
+    if (!phClient) {
+      phClient = posthog.init('phc_XIYhmt76mLGNt1iByEFoTEbsyuYeZ0o7Q5Ang4G7msr', {
+        api_host: 'https://app.posthog.com',
+        session_recording: {
+          enabled: true,
+        },
+        autocapture: false,
+        capture_pageview: false,
+        capture_links: false,
+        capture_form_submits: false,
+      })
+    }
+    PostHog.identify(clientId)
+  } catch (e) {
+    // ignore error
+  }
+}
 
 // Usage example:
 const debounceTime = 3000 // Debounce time: 1000ms
@@ -90,7 +120,8 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       eventBatcher.enqueueEvent({
         event: evt,
         ...(data || {}),
-        $current_url: sanitisePath(route.value?.matched?.[route.value?.matched?.length - 1]?.path),
+        $current_url: route.value?.path,
+        path: sanitisePath(route.value?.matched?.[route.value?.matched?.length - 1]?.path),
         project_id: route.value?.params?.projectId,
         workspace_id: route.value?.params?.typeOrId ?? undefined,
         table_id: route.value?.params?.viewId ?? undefined,
@@ -141,9 +172,25 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
   nuxtApp.provide('tele', tele)
   nuxtApp.provide('e', (e: string, data?: Record<string, any>) => tele.emit(e, { data }))
+
+  // put inside app:created hook to ensure global state is available
+  nuxtApp.hooks.hook('app:created', () => {
+    const globalState = useGlobal()
+
+    // if tele enabled at some point, init Posthog
+    until(() => globalState?.appInfo?.value?.teleEnabled)
+      .toBeTruthy({ timeout: 300000 })
+      .then(() => {
+        isTeleEnabled = globalState?.appInfo?.value?.teleEnabled
+        if (clientId) initPostHog(clientId)
+      })
+      .catch(() => {
+        isTeleEnabled = false
+      })
+  })
 })
 
 // remove () or ? from path
 function sanitisePath(path?: string) {
-  return path?.toString?.().replace(/(?:\?|\(\))(?=\/|$)/g, '')
+  return path?.toString?.().replace(/(?:\?|\(\)|\(\.\*\)\*)(?=\/|$)/g, '')
 }

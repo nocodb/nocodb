@@ -318,7 +318,9 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
       FOR EACH ROW EXECUTE PROCEDURE ${procedureName}('${modelId}');
       `;
       await baseData.knex.raw(dropTriggerQuery);
-      await baseData.knex.raw(createTriggerQuery);
+      await baseData.knex.raw(createTriggerQuery).catch((error: any) => {
+        this.log(`Warning - Trigger not created on "${tableName}" probably because it does not exist. Analysis the stacktrace: ${error?.message || error}`, error)
+      });
     }
   }
 

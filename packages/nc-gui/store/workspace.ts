@@ -65,17 +65,17 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   /** getters */
   const isWorkspaceCreator = computed(() => {
     // todo: type correction
-    return orgRoles.value[Role.OrgLevelCreator]
+    return orgRoles.value?.[Role.OrgLevelCreator]
   })
 
   const isWorkspaceOwner = computed(() => {
     // todo: type correction
-    return orgRoles.value[Role.OrgLevelCreator]
+    return orgRoles.value?.[Role.OrgLevelCreator]
   })
 
   const isWorkspaceOwnerOrCreator = computed(() => {
     // todo: type correction
-    return orgRoles.value[Role.OrgLevelCreator]
+    return orgRoles.value?.[Role.OrgLevelCreator]
   })
 
   /** actions */

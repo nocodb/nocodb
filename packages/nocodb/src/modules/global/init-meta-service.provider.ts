@@ -27,7 +27,7 @@ export const InitMetaServiceProvider: Provider = {
     const config = await NcConfig.createByEnv();
 
     // set version
-    process.env.NC_VERSION = '0108003';
+    process.env.NC_VERSION = '0111002';
 
     // init cache
     await NocoCache.init();

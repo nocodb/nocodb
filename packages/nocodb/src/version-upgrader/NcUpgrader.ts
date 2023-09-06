@@ -142,6 +142,7 @@ export default class NcUpgrader {
       { name: '0105004', handler: ncHookUpgrader },
       { name: '0107004', handler: ncProjectConfigUpgrader },
       { name: '0108002', handler: ncXcdbLTARUpgrader },
+      { name: '0111002', handler: ncXcdbLTARUpgrader },
     ];
   }
 }

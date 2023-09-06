@@ -13,15 +13,6 @@ const { inviteCollaborator: _inviteCollaborator } = workspaceStore
 const { isInvitingCollaborators } = storeToRefs(workspaceStore)
 const { workspaceRoles } = useRoles()
 
-const inviteCollaborator = async () => {
-  try {
-    await _inviteCollaborator(inviteData.email, inviteData.roles)
-    message.success('Invitation sent successfully')
-    inviteData.email = ''
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
 // all user input emails are stored here
 const emailBadges = ref<Array<string>>([])
 watch(inviteData, (newVal) => {
@@ -31,6 +22,22 @@ watch(inviteData, (newVal) => {
   }
 })
 
+const inviteCollaborator = async () => {
+  try {
+    let inviteEmails = ''
+    emailBadges.value.forEach((el) => {
+      inviteEmails += `${el},`
+    })
+
+    await _inviteCollaborator(inviteEmails, inviteData.roles)
+    message.success('Invitation sent successfully')
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    inviteData.email = ''
+    emailBadges.value = []
+  }
+}
 // allow only lower roles to be assigned
 const allowedRoles = ref<WorkspaceUserRoles[]>([])
 
@@ -53,6 +60,13 @@ onMounted(async () => {
     <div class="text-xl mb-4">Invite</div>
     <a-form>
       <div class="flex gap-2">
+        <a-input
+          id="email"
+          v-model:value="inviteData.email"
+          placeholder="Enter emails to send invitation"
+          class="!max-w-130 !rounded"
+          @press-enter="inviteData.email += ','"
+        />
         <span
           v-for="(email, index) in emailBadges"
           :key="email"
@@ -61,26 +75,23 @@ onMounted(async () => {
           {{ email }}
           <component :is="iconMap.close" class="ml-1.5 hover:cursor-pointer" @click="emailBadges.splice(index, 1)" />
         </span>
-        <a-input
-          id="email"
-          v-model:value="inviteData.email"
-          placeholder="Enter emails to send invitation"
-          class="!max-w-130 !rounded"
-          @press-enter="inviteData.email += ','"
-        />
+        <NcSelect v-model:value="inviteData.roles" class="min-w-30 !rounded px-1" data-testid="roles">
+          <template #suffixIcon>
+            <MdiChevronDown />
+          </template>
+          <template v-for="role of allowedRoles" :key="`role-option-${role}`">
+            <a-select-option v-if="role" :value="role">
+              <NcBadge :color="RoleColors[role]">
+                <p class="badge-text">{{ RoleLabels[role] }}</p>
+              </NcBadge>
+            </a-select-option>
+          </template>
+        </NcSelect>
 
-        <RolesSelector
-          class="px-1"
-          :role="inviteData.roles"
-          :roles="allowedRoles"
-          :on-role-change="(role: WorkspaceUserRoles) => (inviteData.roles = role)"
-          :description="true"
-        />
-
-        <a-button
+        <NcButton
           type="primary"
-          class="!rounded-md"
-          :disabled="!inviteData.email?.length || isInvitingCollaborators"
+          :disabled="!emailBadges.length || isInvitingCollaborators"
+          size="small"
           @click="inviteCollaborator"
         >
           <div class="flex flex-row items-center gap-x-2 pr-1">
@@ -88,7 +99,7 @@ onMounted(async () => {
             <MdiPlus v-else />
             {{ isInvitingCollaborators ? 'Adding' : 'Add' }} User(s)
           </div>
-        </a-button>
+        </NcButton>
       </div>
     </a-form>
   </div>

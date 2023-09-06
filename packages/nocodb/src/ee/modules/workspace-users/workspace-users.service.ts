@@ -20,6 +20,7 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { getWorkspaceSiteUrl } from '~/utils';
 import { rolesLabel } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { UsersService } from '~/services/users/users.service';
+import { getWorkspaceRolePower } from '~/utils/roleHelper';
 
 @Injectable()
 export class WorkspaceUsersService {
@@ -53,6 +54,7 @@ export class WorkspaceUsersService {
     userId: string;
     roles: WorkspaceUserRoles;
     siteUrl: string;
+    req: any;
   }) {
     const workspaceUser = await WorkspaceUser.get(
       param.workspaceId,
@@ -82,6 +84,23 @@ export class WorkspaceUsersService {
       ].includes(param.roles)
     ) {
       NcError.badRequest('Invalid role');
+    }
+
+    const targetUser = await User.getWithRoles(user.id, {
+      user,
+      workspaceId: workspace.id,
+    });
+
+    if (!targetUser) {
+      NcError.badRequest(
+        `User with id '${param.userId}' doesn't exist in this project`,
+      );
+    }
+
+    if (
+      getWorkspaceRolePower(targetUser) >= getWorkspaceRolePower(param.req.user)
+    ) {
+      NcError.badRequest(`Insufficient privilege to update user`);
     }
 
     await WorkspaceUser.update(param.workspaceId, param.userId, {

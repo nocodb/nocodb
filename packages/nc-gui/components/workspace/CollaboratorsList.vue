@@ -55,7 +55,7 @@ onMounted(async () => {
       </a-input>
     </div>
     <div v-if="!filterCollaborators?.length" class="w-full h-full flex flex-col items-center justify-center mt-36">
-      <Empty description="No Members found" />
+      <Empty description="No members found" />
     </div>
     <table v-else class="nc-collaborators-list-table !nc-scrollbar-md">
       <thead>

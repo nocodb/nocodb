@@ -460,6 +460,7 @@ defineExpose({
   .cmdk-input::placeholder {
     color: rgb(165, 165, 165);
     opacity: 1;
+    text-transform: capitalize;
   }
 
   .cmdk-input:-ms-input-placeholder {

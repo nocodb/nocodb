@@ -28,7 +28,7 @@ type Roles = Record<
 >;
 
 const extractRolesObj = (roles: Roles | string[] | string): Roles => {
-  if (!roles) return {};
+  if (!roles) return null;
 
   if (typeof roles === 'object' && !Array.isArray(roles)) return roles;
 

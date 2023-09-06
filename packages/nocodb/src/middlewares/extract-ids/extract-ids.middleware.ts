@@ -211,7 +211,10 @@ export class AclMiddleware implements NestInterceptor {
 
     const req = context.switchToHttp().getRequest();
 
-    const userScopeRole = getUserRoleForScope(req.user, scope);
+    const userScopeRole =
+      req.user.roles?.[OrgUserRoles.SUPER_ADMIN] === true
+        ? OrgUserRoles.SUPER_ADMIN
+        : getUserRoleForScope(req.user, scope);
 
     if (!userScopeRole) {
       NcError.forbidden('Unauthorized access');

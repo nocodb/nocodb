@@ -22,27 +22,32 @@ const isSystemColumn = (col): boolean =>
     (col.pk && col.meta && col.meta.ag) ||
     col.system);
 
-type Roles = Record<OrgUserRoles | ProjectRoles | WorkspaceUserRoles | string, boolean>
-
+type Roles = Record<
+  OrgUserRoles | ProjectRoles | WorkspaceUserRoles | string,
+  boolean
+>;
 
 const extractRolesObj = (roles: Roles | string[] | string): Roles => {
-  if (!roles) return {};
+  if (!roles) return null;
 
   if (typeof roles === 'object' && !Array.isArray(roles)) return roles;
 
   if (typeof roles === 'string') {
     roles = roles.split(',');
   }
+
+  if (roles.length === 0) return null;
+
   return roles.reduce((acc, role) => {
     acc[role] = true;
     return acc;
   }, {});
-}
+};
 
 const stringifyRolesObj = (roles: Roles): string => {
   const rolesArr = Object.keys(roles).filter((r) => roles[r]);
   return rolesArr.join(',');
-}
+};
 
 export {
   filterOutSystemColumns,

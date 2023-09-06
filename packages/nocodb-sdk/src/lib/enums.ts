@@ -175,7 +175,7 @@ export const RoleLabels = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super',
   [OrgUserRoles.CREATOR]: 'Creator',
   [OrgUserRoles.VIEWER]: 'Viewer',
-}
+};
 
 export const RoleColors = {
   [WorkspaceUserRoles.OWNER]: 'purple',
@@ -192,7 +192,7 @@ export const RoleColors = {
   [ProjectRoles.NO_ACCESS]: 'red',
   [OrgUserRoles.CREATOR]: 'blue',
   [OrgUserRoles.VIEWER]: 'yellow',
-}
+};
 
 export const OrderedWorkspaceRoles = [
   WorkspaceUserRoles.OWNER,
@@ -202,7 +202,7 @@ export const OrderedWorkspaceRoles = [
   WorkspaceUserRoles.VIEWER,
   // placeholder for no access
   null,
-]
+];
 
 export const OrderedProjectRoles = [
   ProjectRoles.OWNER,
@@ -211,4 +211,4 @@ export const OrderedProjectRoles = [
   ProjectRoles.COMMENTER,
   ProjectRoles.VIEWER,
   ProjectRoles.NO_ACCESS,
-]
+];

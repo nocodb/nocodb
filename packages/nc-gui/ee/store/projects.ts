@@ -327,19 +327,18 @@ export const useProjects = defineStore('projectsStore', () => {
     return await _navigateToProject({ workspaceId: project.fk_workspace_id, projectId })
   }
 
-  const addToFavourite = async (projectId: string) => {
+  const toggleStarred = async (projectId: string) => {
     try {
       const activeWorkspace = workspaceStore.activeWorkspace
       const project = projects.value.get(projectId)
       if (!project) return
 
-      // todo: update the type
-      project.starred = true
+      project.starred = !project.starred
 
       await $api.project.userMetaUpdate(
         projectId,
         {
-          starred: true,
+          starred: project.starred,
         },
         {
           baseURL: appInfo.value.baseHostName ? `https://${activeWorkspace?.id}.${appInfo.value.baseHostName}` : undefined,
@@ -392,7 +391,7 @@ export const useProjects = defineStore('projectsStore', () => {
     removeProjectUser,
     navigateToProject,
     navigateToFirstProjectOrHome,
-    addToFavourite,
+    toggleStarred,
   }
 })
 

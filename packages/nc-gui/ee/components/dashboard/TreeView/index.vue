@@ -41,7 +41,7 @@ const projectsStore = useProjects()
 
 const { createProject: _createProject } = projectsStore
 
-const { projects, projectsList, activeProjectId } = storeToRefs(projectsStore)
+const { projects, projectsList, activeProjectId, openedProject } = storeToRefs(projectsStore)
 
 const { openTable } = useTablesStore()
 
@@ -77,7 +77,6 @@ const tablesById = computed(() =>
     }, {}),
 )
 
-const nonStarredProjectList = computed(() => projectsList.value.filter((project) => !project.starred))
 const starredProjectList = computed(() => projectsList.value.filter((project) => project.starred))
 
 const sortables: Record<string, Sortable> = {}
@@ -311,7 +310,7 @@ const scrollTableNode = () => {
 
   if (isElementInvisible(activeTableDom)) {
     // Scroll to the table node
-    activeTableDom?.scrollIntoView({ behavior: 'smooth' })
+    activeTableDom?.scrollIntoView({ behavior: 'auto' })
   }
 }
 
@@ -331,14 +330,17 @@ watch(
 )
 
 watch(
-  activeProjectId,
-  () => {
+  () => openedProject.value?.id,
+  async () => {
+    // As sidebar nodes take time to render
+    await new Promise((resolve) => setTimeout(resolve, 750))
+
     const activeProjectDom = document.querySelector(`.nc-treeview [data-project-id="${activeProjectId.value}"]`)
     if (!activeProjectDom) return
 
     if (isElementInvisible(activeProjectDom)) {
       // Scroll to the table node
-      activeProjectDom?.scrollIntoView({ behavior: 'smooth' })
+      activeProjectDom?.scrollIntoView({ behavior: 'auto', inline: 'start' })
     }
   },
   {
@@ -359,11 +361,12 @@ watch(
           :key="project.id"
           :project-role="project.project_role || project.workspace_role"
           :project="project"
+          :starred-mode="true"
         >
           <DashboardTreeViewProjectNode />
         </ProjectWrapper>
       </template>
-      <div v-if="!isSharedBase" class="nc-treeview-subheading mt-2.5">
+      <div v-if="!isSharedBase" class="nc-treeview-subheading mt-1">
         <div class="text-gray-500 font-medium">{{ $t('objects.projects') }}</div>
         <WorkspaceCreateProjectBtn
           v-model:is-open="isCreateProjectOpen"
@@ -377,9 +380,9 @@ watch(
           <GeneralIcon icon="plus" class="text-lg leading-6" style="-webkit-text-stroke: 0.2px" />
         </WorkspaceCreateProjectBtn>
       </div>
-      <template v-if="nonStarredProjectList?.length">
+      <template v-if="projectsList?.length">
         <ProjectWrapper
-          v-for="project of nonStarredProjectList"
+          v-for="project of projectsList"
           :key="project.id"
           :project-role="project.project_role || stringifyRolesObj(workspaceRoles)"
           :project="project"

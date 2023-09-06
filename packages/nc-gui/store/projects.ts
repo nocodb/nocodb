@@ -40,7 +40,6 @@ export const useProjects = defineStore('projectsStore', () => {
     return basesMap
   })
 
-
   const workspaceStore = useWorkspace()
   const tableStore = useTablesStore()
 
@@ -292,6 +291,8 @@ export const useProjects = defineStore('projectsStore', () => {
     else navigateTo('/')
   }
 
+  const toggleStarred = async (..._args: any) => {}
+
   return {
     projects,
     projectsList,
@@ -317,6 +318,7 @@ export const useProjects = defineStore('projectsStore', () => {
     navigateToProject,
     removeProjectUser,
     navigateToFirstProjectOrHome,
+    toggleStarred,
   }
 })
 

@@ -9,6 +9,7 @@ import {
   NcProjectType,
   ProjectInj,
   ProjectRoleInj,
+  ProjectStarredModeInj,
   ToggleDialogInj,
   extractSdkResponseErrorMsg,
   isElementInvisible,
@@ -34,6 +35,26 @@ const { setMenuContext, openRenameTableDialog, duplicateTable, contextMenuTarget
 
 const project = inject(ProjectInj)!
 
+// For starred project we will have seperate isExpanded state
+const isStarredMode = inject(ProjectStarredModeInj)
+const _isExpanded = ref<boolean>(false)
+const isExpanded = computed<boolean>({
+  get: () => {
+    if (isStarredMode.value) {
+      return _isExpanded.value
+    } else {
+      return !!project.value.isExpanded
+    }
+  },
+  set: (val: boolean) => {
+    if (isStarredMode.value) {
+      _isExpanded.value = val
+    } else {
+      project.value.isExpanded = val
+    }
+  },
+})
+
 const projectsStore = useProjects()
 
 const workspaceStore = useWorkspace()
@@ -44,9 +65,9 @@ const {
   createProject: _createProject,
   updateProject,
   getProjectMetaInfo,
-  addToFavourite,
+  toggleStarred,
 } = projectsStore
-const { projects } = storeToRefs(projectsStore)
+const { projects, activeProjectId } = storeToRefs(projectsStore)
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
 
@@ -70,8 +91,6 @@ const { isUIAllowed } = useUIPermission()
 const projectRole = inject(ProjectRoleInj)
 
 const { projectUrl } = useProject()
-
-const { activeProjectId } = storeToRefs(useProjects())
 
 const toggleDialog = inject(ToggleDialogInj, () => {})
 
@@ -200,7 +219,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
 
     if (!table) return
 
-    project.value.isExpanded = true
+    isExpanded.value = true
 
     if (!activeKey.value || !activeKey.value.includes(`collapse-${baseId}`)) {
       activeKey.value.push(`collapse-${baseId}`)
@@ -251,8 +270,8 @@ const addNewProjectChildEntity = async () => {
         break
     }
 
-    if (!project.value.isExpanded && project.value.type !== NcProjectType.DB) {
-      project.value.isExpanded = true
+    if (!isExpanded.value && project.value.type !== NcProjectType.DB) {
+      isExpanded.value = true
     }
   } finally {
     isAddNewProjectChildEntityLoading.value = false
@@ -268,9 +287,9 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
   }
 
   if (toggleIsExpanded) {
-    project.isExpanded = !project.isExpanded
+    isExpanded.value = !isExpanded.value
   } else {
-    project.isExpanded = true
+    isExpanded.value = true
   }
 
   const isProjectPopulated = projectsStore.isProjectPopulated(project.id!)
@@ -446,13 +465,19 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 
   $e('a:project:duplicate')
 }
+
+onMounted(() => {
+  if (activeProjectId.value === project.value.id) {
+    _isExpanded.value = true
+  }
+})
 </script>
 
 <template>
   <a-dropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
     <div
       class="ml-1 mr-0.5 nc-project-sub-menu rounded-md"
-      :class="{ active: project.isExpanded }"
+      :class="{ active: isExpanded }"
       :data-testid="`nc-sidebar-project-${project.title}`"
       :data-project-id="project.id"
     >
@@ -472,7 +497,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
           >
             <PhTriangleFill
               class="absolute top-2.25 left-2 group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.75 rotate-90"
-              :class="{ '!rotate-180': project.isExpanded, '!visible': isOptionsOpen }"
+              :class="{ '!rotate-180': isExpanded, '!visible': isOptionsOpen }"
             />
           </div>
           <div class="flex items-center mr-1" @click="onProjectClick(project)">
@@ -541,7 +566,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                     {{ $t('general.rename') }}
                   </NcMenuItem>
 
-                  <NcMenuItem @click="() => addToFavourite(project.id)">
+                  <NcMenuItem @click="() => toggleStarred(project.id)">
                     <GeneralIcon v-if="project.starred" icon="unStar" class="group-hover:text-black" />
                     <GeneralIcon v-else icon="star" class="group-hover:text-black" />
                     <div class="ml-0.25">
@@ -633,13 +658,13 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
         v-if="project.id && !project.isLoading"
         key="g1"
         class="overflow-x-hidden transition-max-height"
-        :class="{ 'max-h-0': !project.isExpanded }"
+        :class="{ 'max-h-0': !isExpanded }"
       >
         <div v-if="project.type === 'documentation'">
-          <LazyDocsSideBar v-if="project.isExpanded" :project="project" />
+          <LazyDocsSideBar v-if="isExpanded" :project="project" />
         </div>
         <div v-else-if="project.type === 'dashboard'">
-          <LayoutsSideBar v-if="project.isExpanded" :project="project" />
+          <LayoutsSideBar v-if="isExpanded" :project="project" />
         </div>
         <template v-else-if="project && project?.bases">
           <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
@@ -854,5 +879,22 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 <style lang="scss" scoped>
 .nc-project-option-item {
   @apply flex flex-row gap-x-2 items-center;
+}
+
+.nc-sidebar-icon {
+  @apply ml-0.5 mr-1;
+}
+:deep(.ant-collapse-header) {
+  @apply !mx-0 !pl-8.75 !pr-1 !py-0.5 hover:bg-gray-200 !rounded-md;
+}
+:deep(.ant-collapse-header:hover .nc-sidebar-base-node-btns) {
+  @apply visible;
+}
+:deep(.ant-dropdown-menu-submenu-title) {
+  @apply !py-0;
+}
+
+:deep(.ant-collapse-content-box) {
+  @apply !px-0 !pb-0 !pt-0.25;
 }
 </style>

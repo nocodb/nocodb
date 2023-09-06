@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
 
 const props = defineProps<{
   color: string
@@ -28,6 +27,6 @@ const props = defineProps<{
 
 <style>
 .badge-color {
-  @apply mt-1 border w-23 h-6 rounded-lg;
+  @apply mt-1 w-23 border h-6 rounded-lg;
 }
 </style>

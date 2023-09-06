@@ -388,7 +388,7 @@ watch(
         </ProjectWrapper>
       </template>
 
-      <WorkspaceEmptyPlaceholder v-else-if="!isWorkspaceLoading" />
+      <WorkspaceEmptyPlaceholder v-else-if="!starredProjectList.length && !isWorkspaceLoading" />
     </div>
 
     <WorkspaceCreateProjectDlg v-model="projectCreateDlg" :type="projectType" />

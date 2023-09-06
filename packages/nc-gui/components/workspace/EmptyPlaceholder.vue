@@ -15,7 +15,7 @@ const openCreateProjectDlg = (type: NcProjectType) => {
 </script>
 
 <template>
-  <div class="flex items-center justify-center h-full">
+  <div class="flex items-center justify-center mt-8">
     <div class="flex flex-col gap-4 items-center text-gray-500">
       <NcIconsInbox />
       <div class="font-weight-medium">No Projects</div>

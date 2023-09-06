@@ -10,13 +10,13 @@ const {
   leftSidebarWidthPercent,
   leftSideBarSize: sideBarSize,
   leftSidebarState: sidebarState,
+  viewportWidth,
 } = storeToRefs(useSidebarStore())
 
 const wrapperRef = ref<HTMLDivElement>()
 
 const contentSize = computed(() => 100 - sideBarSize.value.current)
 const animationDuration = 250
-const viewportWidth = ref(window.innerWidth)
 
 const sidebarWidth = computed(() => (sideBarSize.value.old * viewportWidth.value) / 100)
 const currentSidebarSize = computed({
@@ -70,19 +70,12 @@ function handleMouseMove(e: MouseEvent) {
   }
 }
 
-function onWindowResize() {
-  viewportWidth.value = window.innerWidth
-}
-
 onMounted(() => {
   document.addEventListener('mousemove', handleMouseMove)
-
-  window.addEventListener('resize', onWindowResize)
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('mousemove', handleMouseMove)
-  window.removeEventListener('resize', onWindowResize)
 })
 
 watch(route, () => {

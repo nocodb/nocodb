@@ -11,7 +11,7 @@ export class SidebarUserMenuObject extends BasePage {
   }
 
   get() {
-    return this.sidebar.get().locator(`.nc-sidebar-userinfo`);
+    return this.rootPage.getByTestId('nc-sidebar-userinfo');
   }
 
   async click() {

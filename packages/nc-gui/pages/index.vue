@@ -16,6 +16,8 @@ const projectsStore = useProjects()
 
 const { populateWorkspace } = useWorkspace()
 
+const { signedIn } = useGlobal()
+
 const router = useRouter()
 
 const route = router.currentRoute
@@ -43,6 +45,17 @@ watch(
   async () => {
     // avoid loading projects for shared views
     if (isSharedView.value) {
+      return
+    }
+
+    // avoid loading projects for shared base
+    if (route.value.params.typeOrId === 'base') {
+      await populateWorkspace()
+      return
+    }
+
+    if (!signedIn.value) {
+      navigateTo('/signIn')
       return
     }
 

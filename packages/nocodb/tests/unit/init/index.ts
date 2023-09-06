@@ -44,7 +44,7 @@ export default async function (forceReset = false) {
   const extra: any = {};
 
   // create ws for ee
-  if (process.env.EE) {
+  if (process.env.EE === 'true') {
     const ws = await request(server)
       .post('/api/v1/workspaces/')
       .set('xc-auth', token)

@@ -57,6 +57,7 @@ export class WorkspaceUsersController {
       userId,
       roles: body.roles,
       siteUrl: req.ncSiteUrl,
+      req,
     });
   }
 

@@ -4,7 +4,7 @@ import dayjs from 'dayjs'
 
 const { activeTables } = storeToRefs(useTablesStore())
 const { openTable } = useTablesStore()
-const { openedProject, roles } = storeToRefs(useProjects())
+const { openedProject } = storeToRefs(useProjects())
 
 const { isUIAllowed } = useUIPermission()
 

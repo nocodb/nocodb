@@ -405,6 +405,7 @@ export class UtilsService {
         infer: true,
       }),
       mainSubDomain: this.configService.get('mainSubDomain', { infer: true }),
+      dashboardPath: this.configService.get('dashboardPath', { infer: true }),
     };
 
     return result;

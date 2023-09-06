@@ -175,6 +175,8 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
 
     if (!table) return
 
+    project.value.isExpanded = true
+
     if (!activeKey.value || !activeKey.value.includes(`collapse-${baseId}`)) {
       activeKey.value.push(`collapse-${baseId}`)
     }
@@ -200,10 +202,19 @@ const addNewProjectChildEntity = async () => {
   if (isAddNewProjectChildEntityLoading.value) return
 
   isAddNewProjectChildEntityLoading.value = true
+
+  const isProjectPopulated = projectsStore.isProjectPopulated(project.value.id!)
+  if (!isProjectPopulated && project.value.type === NcProjectType.DB) {
+    // We do not wait for tables api, so that add new table is seamless.
+    // Only con would be while saving table duplicate table name FE validation might not work
+    // If the table list api takes time to load before the table name validation
+    loadProjectTables(project.value.id!)
+  }
+
   try {
     openTableCreateDialog()
 
-    if (!project.value.isExpanded) {
+    if (!project.value.isExpanded && project.value.type !== NcProjectType.DB) {
       project.value.isExpanded = true
     }
   } finally {
@@ -246,7 +257,6 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
   }
 
   if (!isProjectPopulated) {
-    await loadProject(project.id!)
     await loadProjectTables(project.id!)
   }
 
@@ -375,7 +385,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
             @click="onProjectClick(project, true, true)"
           >
             <PhTriangleFill
-              class="absolute top-2.25 left-2 invisible group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.75 rotate-90"
+              class="absolute top-2.25 left-2 group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.75 rotate-90"
               :class="{ '!rotate-180': project.isExpanded, '!visible': isOptionsOpen }"
             />
           </div>
@@ -444,7 +454,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   <a-menu-item @click="enableEditMode">
                     <div class="nc-project-menu-item group">
                       <GeneralIcon icon="edit" class="group-hover:text-black" />
-                      {{ $t('general.edit') }}
+                      {{ $t('general.rename') }}
                     </div>
                   </a-menu-item>
 
@@ -458,7 +468,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   <a-menu-item v-if="isUIAllowed('duplicateProject', true, projectRole)" @click="duplicateProject(project)">
                     <div class="nc-menu-item-wrapper">
                       <GeneralIcon icon="duplicate" class="text-gray-700" />
-                      {{ $t('general.duplicate') }} {{ $t('objects.project') }}
+                      {{ $t('general.duplicate') }}
                     </div>
                   </a-menu-item>
 
@@ -498,7 +508,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   </div>
                 </a-menu-item>
                 <template v-if="project.bases && project.bases[0]">
-                  <DashboardTreeViewNewBaseOptions v-model:project="project" :base="project.bases[0]" />
+                  <DashboardTreeViewBaseOptions v-model:project="project" :base="project.bases[0]" />
 
                   <a-menu-divider />
                 </template>
@@ -540,7 +550,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
           <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
             <div v-if="project?.bases?.[0]?.enabled" class="flex-1">
               <div class="transition-height duration-200">
-                <DashboardTreeViewNewTableList :project="project" :base-index="0" />
+                <DashboardTreeViewTableList :project="project" :base-index="0" />
               </div>
             </div>
 
@@ -627,7 +637,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                                     </div>
                                   </a-menu-item>
 
-                                  <DashboardTreeViewNewBaseOptions v-model:project="project" :base="base" />
+                                  <DashboardTreeViewBaseOptions v-model:project="project" :base="base" />
                                 </a-menu>
                               </template>
                             </a-dropdown>
@@ -652,7 +662,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                         :key="`sortable-${base.id}-${base.id && base.id in keys ? keys[base.id] : '0'}`"
                         :nc-base="base.id"
                       >
-                        <DashboardTreeViewNewTableList :project="project" :base-index="baseIndex" />
+                        <DashboardTreeViewTableList :project="project" :base-index="baseIndex" />
                       </div>
                     </a-collapse-panel>
                   </a-collapse>
@@ -726,7 +736,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 }
 
 :deep(.ant-collapse-header) {
-  @apply !mx-0 !pl-8.75 !pr-1 !py-0.75 hover:bg-gray-100 !rounded-md;
+  @apply !mx-0 !pl-8.75 !pr-1 !py-0.75 hover:bg-gray-200 !rounded-md;
 }
 
 :deep(.ant-collapse-header:hover .nc-sidebar-base-node-btns) {

@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { OrderedProjectRoles, RoleColors, RoleLabels } from 'nocodb-sdk'
-import type { ProjectRoles, WorkspaceUserType } from 'nocodb-sdk'
+import type { WorkspaceUserType } from 'nocodb-sdk'
+import { OrderedProjectRoles, ProjectRoles, RoleColors, RoleLabels } from 'nocodb-sdk'
 import InfiniteLoading from 'v3-infinite-loading'
-import { storeToRefs, stringToColour, timeAgo, useGlobal } from '#imports'
+import { isEeUI, storeToRefs, stringToColour, timeAgo, useGlobal } from '#imports'
 
 const { user } = useGlobal()
 const projectsStore = useProjects()
@@ -35,7 +35,7 @@ const loadCollaborators = async () => {
         ...user,
         projectRoles: user.roles,
         // TODO: Remove this hack and make the values consistent with the backend
-        roles: user.roles ?? (RoleLabels[user.workspace_roles as string] as string)?.toLowerCase(),
+        roles: user.roles ?? (RoleLabels[user.workspace_roles as string] as string)?.toLowerCase() ?? ProjectRoles.NO_ACCESS,
       })),
     ]
   } catch (e: any) {
@@ -74,7 +74,7 @@ onMounted(async () => {
 
 const updateCollaborator = async (collab, roles) => {
   try {
-    if (!roles) {
+    if (!roles || roles === 'inherit' || (roles === ProjectRoles.NO_ACCESS && !isEeUI)) {
       await removeProjectUser(activeProjectId.value!, collab)
       collab.projectRoles = null
     } else if (collab.projectRoles) {
@@ -187,8 +187,7 @@ const accessibleRoles = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles
                   class="w-35 !rounded px-1"
                   :virtual="true"
                   :placeholder="$t('labels.noAccess')"
-                  :disabled="collab.id === user?.id"
-                  allow-clear
+                  :disabled="collab.id === user?.id || (collab.roles && !accessibleRoles.includes(collab.roles))"
                   @change="(value) => updateCollaborator(collab, value)"
                 >
                   <template #suffixIcon>
@@ -211,6 +210,11 @@ const accessibleRoles = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles
                       </NcBadge>
                     </a-select-option>
                   </template>
+                  <a-select-option v-if="isEeUI" value="inherit">
+                    <NcBadge color="white">
+                      <p class="badge-text">Inherit</p>
+                    </NcBadge>
+                  </a-select-option>
                 </NcSelect>
               </div>
             </div>
@@ -258,5 +262,9 @@ const accessibleRoles = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles
 
 :deep(.nc-collaborator-role-select .ant-select-selector) {
   @apply !rounded;
+}
+
+:deep(.ant-select-selection-item) {
+  @apply mt-0.75;
 }
 </style>

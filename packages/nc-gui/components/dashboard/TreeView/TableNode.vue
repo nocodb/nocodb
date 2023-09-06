@@ -154,7 +154,7 @@ const canUserEditEmote = computed(() => {
         </span>
         <div class="flex flex-grow h-full"></div>
 
-        <a-dropdown
+        <NcDropdown
           v-if="
             !isSharedBase && (isUIAllowed('table-rename', false, projectRole) || isUIAllowed('table-delete', false, projectRole))
           "
@@ -170,44 +170,41 @@ const canUserEditEmote = computed(() => {
           />
 
           <template #overlay>
-            <a-menu class="!py-0 rounded text-sm">
-              <a-menu-item
+            <NcMenu>
+              <NcMenuItem
                 v-if="isUIAllowed('table-rename', false, projectRole)"
+                :data-testid="`sidebar-table-rename-${table.title}`"
                 @click="openRenameTableDialog(table, project.bases[baseIndex].id)"
               >
-                <div class="nc-project-menu-item" :data-testid="`sidebar-table-rename-${table.title}`">
-                  <GeneralIcon icon="edit" class="text-gray-700" />
-                  {{ $t('general.rename') }}
-                </div>
-              </a-menu-item>
+                <GeneralIcon icon="edit" class="text-gray-700" />
+                {{ $t('general.rename') }}
+              </NcMenuItem>
 
-              <a-menu-item
+              <NcMenuItem
                 v-if="
                   isUIAllowed('table-duplicate') &&
                   project.bases?.[baseIndex] &&
                   (project.bases[baseIndex].is_meta || project.bases[baseIndex].is_local)
                 "
+                :data-testid="`sidebar-table-duplicate-${table.title}`"
                 @click="duplicateTable(table)"
               >
-                <div class="nc-project-menu-item" :data-testid="`sidebar-table-duplicate-${table.title}`">
-                  <GeneralIcon icon="duplicate" class="text-gray-700" />
-                  {{ $t('general.duplicate') }}
-                </div>
-              </a-menu-item>
+                <GeneralIcon icon="duplicate" class="text-gray-700" />
+                {{ $t('general.duplicate') }}
+              </NcMenuItem>
 
-              <a-menu-item
+              <NcMenuItem
                 v-if="isUIAllowed('table-delete', false, projectRole)"
                 :data-testid="`sidebar-table-delete-${table.title}`"
+                class="!text-red-500 !hover:bg-red-50"
                 @click="isTableDeleteDialogVisible = true"
               >
-                <div class="nc-project-menu-item text-red-600">
-                  <GeneralIcon icon="delete" />
-                  {{ $t('general.delete') }}
-                </div>
-              </a-menu-item>
-            </a-menu>
+                <GeneralIcon icon="delete" />
+                {{ $t('general.delete') }}
+              </NcMenuItem>
+            </NcMenu>
           </template>
-        </a-dropdown>
+        </NcDropdown>
       </div>
       <DlgTableDelete
         v-if="table.id && project?.id"

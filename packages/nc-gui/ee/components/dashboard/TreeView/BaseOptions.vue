@@ -132,65 +132,46 @@ function openQuickImportDialog(type: string) {
     </a-menu-item>
   </a-sub-menu>
 
-  <a-menu-divider class="my-0" />
-
   <!-- Quick Import From -->
-  <a-sub-menu class="py-0">
+  <NcSubMenu class="py-0">
     <template #title>
-      <div class="nc-project-menu-item group">
-        <GeneralIcon icon="download" class="-ml-0.25" />
-        <div class="-ml-0.5">
-          {{ $t('title.quickImportFrom') }}
-        </div>
+      <GeneralIcon icon="download" />
 
-        <MaterialSymbolsChevronRightRounded class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400" />
-      </div>
+      {{ $t('labels.importData') }}
     </template>
 
-    <template #expandIcon></template>
-
-    <a-menu-item
+    <NcMenuItem
       v-if="isUIAllowed('airtableImport', false, projectRole)"
       key="quick-import-airtable"
       @click="openAirtableImportDialog(base.id)"
     >
-      <div class="color-transition nc-project-menu-item group">
-        <GeneralIcon icon="airtable" class="group-hover:text-black" />
-        Airtable
-      </div>
-    </a-menu-item>
+      <GeneralIcon icon="airtable" class="group-hover:text-black" />
+      Airtable
+    </NcMenuItem>
 
-    <a-menu-item v-if="isUIAllowed('csvImport', false, projectRole)" key="quick-import-csv" @click="openQuickImportDialog('csv')">
-      <div class="color-transition nc-project-menu-item group">
-        <GeneralIcon icon="csv" class="group-hover:text-black" />
-        CSV file
-      </div>
-    </a-menu-item>
+    <NcMenuItem v-if="isUIAllowed('csvImport', false, projectRole)" key="quick-import-csv" @click="openQuickImportDialog('csv')">
+      <GeneralIcon icon="csv" class="group-hover:text-black" />
+      CSV file
+    </NcMenuItem>
 
-    <a-menu-item
+    <NcMenuItem
       v-if="isUIAllowed('jsonImport', false, projectRole)"
       key="quick-import-json"
       @click="openQuickImportDialog('json')"
     >
-      <div class="color-transition nc-project-menu-item group">
-        <GeneralIcon icon="code" class="group-hover:text-black" />
-        JSON file
-      </div>
-    </a-menu-item>
+      <GeneralIcon icon="code" class="group-hover:text-black" />
+      JSON file
+    </NcMenuItem>
 
-    <a-menu-item
+    <NcMenuItem
       v-if="isUIAllowed('excelImport', false, projectRole)"
       key="quick-import-excel"
       @click="openQuickImportDialog('excel')"
     >
-      <div class="color-transition nc-project-menu-item group">
-        <GeneralIcon icon="excel" class="group-hover:text-black" />
-        Microsoft Excel
-      </div>
-    </a-menu-item>
-  </a-sub-menu>
-
-  <a-menu-divider v-if="false" class="my-0" />
+      <GeneralIcon icon="excel" class="group-hover:text-black" />
+      Microsoft Excel
+    </NcMenuItem>
+  </NcSubMenu>
 
   <!-- Connect to new datasource -->
   <!-- <a-sub-menu>

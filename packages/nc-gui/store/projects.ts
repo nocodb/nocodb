@@ -40,7 +40,6 @@ export const useProjects = defineStore('projectsStore', () => {
     return basesMap
   })
 
-
   const workspaceStore = useWorkspace()
   const tableStore = useTablesStore()
 

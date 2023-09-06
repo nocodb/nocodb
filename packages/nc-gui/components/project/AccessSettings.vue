@@ -187,7 +187,7 @@ const accessibleRoles = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles
                   class="w-35 !rounded px-1"
                   :virtual="true"
                   :placeholder="$t('labels.noAccess')"
-                  :disabled="collab.id === user?.id"
+                  :disabled="collab.id === user?.id || (collab.roles && !accessibleRoles.includes(collab.roles))"
                   :allow-clear="!isEeUI"
                   @change="(value) => updateCollaborator(collab, value)"
                 >

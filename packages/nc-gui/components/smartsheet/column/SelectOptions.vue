@@ -185,14 +185,13 @@ watch(inputs, () => {
   }
 })
 
+// Removes the Select Option from cdf if the option is removed
 watch(vModel.value, (next) => {
-  if (vModel.value.uidt === UITypes.MultiSelect) {
-    const cdfs = next.cdf.split(',')
-    const values = next.colOptions.options.map((col) => {
-      return col.title
-    })
-    vModel.value.cdf = cdfs.filter((c: string) => values.includes(c)).join(',')
-  }
+  const cdfs = (next.cdf ?? '').replaceAll("'", '').split(',')
+  const values = (next.colOptions.options ?? []).map((col) => {
+    return col.title.replaceAll("'", '')
+  })
+  next.cdf = cdfs.filter((c: string) => values.includes(c)).join(',')
 })
 </script>
 

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { UITypes, isSystemColumn } from 'nocodb-sdk'
+import { isSystemColumn } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   ColumnInj,
+  EditColumnInj,
   EditModeInj,
   IsFormInj,
   IsLockedInj,
@@ -87,7 +88,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
-const isAdvancedOption = inject('isAdvancedOption', ref(false))
+const isEditColumnMenu = inject(EditColumnInj, ref(false))
 
 const { currentRow } = useSmartsheetRowStoreOrThrow()
 
@@ -111,7 +112,7 @@ const vModel = computed({
     return props.modelValue
   },
   set: (val) => {
-    if (isAdvancedOption.value) {
+    if (isEditColumnMenu.value) {
       column.value.cdf = val
       emit('update:value', val)
     } else if (val !== props.modelValue) {
@@ -179,7 +180,7 @@ function initIntersectionObserver() {
 }
 
 const numberInputAlignment = computed(() => {
-  return isAdvancedOption.value ? 'left' : 'right'
+  return isEditColumnMenu.value ? 'left' : 'right'
 })
 // observe the cell when it is mounted
 onMounted(() => {
@@ -209,20 +210,20 @@ onUnmounted(() => {
   >
     <template v-if="column">
       <template v-if="intersected">
-        <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" :is-focus="!isAdvancedOption" />
+        <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" :is-focus="!isEditColumnMenu" />
         <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" />
         <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />
         <LazyCellAttachment v-else-if="isAttachment(column)" v-model="vModel" :row-index="props.rowIndex" />
         <LazyCellSingleSelect
           v-else-if="isSingleSelect(column)"
           v-model="vModel"
-          :disable-option-creation="!!isAdvancedOption"
+          :disable-option-creation="!!isEditColumnMenu"
           :row-index="props.rowIndex"
         />
         <LazyCellMultiSelect
           v-else-if="isMultiSelect(column)"
           v-model="vModel"
-          :disable-option-creation="!!isAdvancedOption"
+          :disable-option-creation="!!isEditColumnMenu"
           :row-index="props.rowIndex"
         />
         <LazyCellDatePicker v-else-if="isDate(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
@@ -235,18 +236,18 @@ onUnmounted(() => {
         />
         <LazyCellTimePicker v-else-if="isTime(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
         <LazyCellRating v-else-if="isRating(column)" v-model="vModel" />
-        <LazyCellDuration v-else-if="isDuration(column)" v-model="vModel" :is-focus="!isAdvancedOption" />
-        <LazyCellEmail v-else-if="isEmail(column)" v-model="vModel" :is-focus="!isAdvancedOption" />
-        <LazyCellUrl v-else-if="isURL(column)" v-model="vModel" :is-focus="!isAdvancedOption" />
-        <LazyCellPhoneNumber v-else-if="isPhoneNumber(column)" v-model="vModel" :is-focus="!isAdvancedOption" />
-        <LazyCellPercent v-else-if="isPercent(column)" v-model="vModel" :is-focus="!isAdvancedOption" />
-        <LazyCellCurrency v-else-if="isCurrency(column)" v-model="vModel" :is-focus="!isAdvancedOption" @save="emit('save')" />
-        <LazyCellDecimal v-else-if="isDecimal(column)" v-model="vModel" :is-focus="!isAdvancedOption" />
-        <LazyCellInteger v-else-if="isInt(column, abstractType)" v-model="vModel" :is-focus="!isAdvancedOption" />
-        <LazyCellFloat v-else-if="isFloat(column, abstractType)" v-model="vModel" :is-focus="!isAdvancedOption" />
-        <LazyCellText v-else-if="isString(column, abstractType)" v-model="vModel" :is-focus="!isAdvancedOption" />
+        <LazyCellDuration v-else-if="isDuration(column)" v-model="vModel" :is-focus="!isEditColumnMenu" />
+        <LazyCellEmail v-else-if="isEmail(column)" v-model="vModel" :is-focus="!isEditColumnMenu" />
+        <LazyCellUrl v-else-if="isURL(column)" v-model="vModel" :is-focus="!isEditColumnMenu" />
+        <LazyCellPhoneNumber v-else-if="isPhoneNumber(column)" v-model="vModel" :is-focus="!isEditColumnMenu" />
+        <LazyCellPercent v-else-if="isPercent(column)" v-model="vModel" :is-focus="!isEditColumnMenu" />
+        <LazyCellCurrency v-else-if="isCurrency(column)" v-model="vModel" :is-focus="!isEditColumnMenu" @save="emit('save')" />
+        <LazyCellDecimal v-else-if="isDecimal(column)" v-model="vModel" :is-focus="!isEditColumnMenu" />
+        <LazyCellInteger v-else-if="isInt(column, abstractType)" v-model="vModel" :is-focus="!isEditColumnMenu" />
+        <LazyCellFloat v-else-if="isFloat(column, abstractType)" v-model="vModel" :is-focus="!isEditColumnMenu" />
+        <LazyCellText v-else-if="isString(column, abstractType)" v-model="vModel" :is-focus="!isEditColumnMenu" />
         <LazyCellJson v-else-if="isJSON(column)" v-model="vModel" />
-        <LazyCellText v-else v-model="vModel" :is-focus="!isAdvancedOption" />
+        <LazyCellText v-else v-model="vModel" :is-focus="!isEditColumnMenu" />
         <div
           v-if="(isLocked || (isPublic && readOnly && !isForm) || isSystemColumn(column)) && !isAttachment(column)"
           class="nc-locked-overlay"

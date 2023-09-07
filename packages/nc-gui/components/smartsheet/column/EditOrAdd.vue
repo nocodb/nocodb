@@ -22,7 +22,6 @@ import {
   useProject,
   watchEffect,
 } from '#imports'
-import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
 
@@ -301,18 +300,20 @@ if (props.fromTableExplorer) {
           {{ `Accept only valid ${formState.uidt}` }}
         </span>
       </a-checkbox>
-      <!--
+      <div class="mt-3">
+        <!--
         Default Value for JSON & LongText is not supported in MySQL 
          Default Value is Disabled for MSSQL -->
-      <LazySmartsheetColumnDefaultValue
-        v-if="
+        <LazySmartsheetColumnDefaultValue
+          v-if="
           !isVirtualCol(formState) &&
           !isAttachment(formState) &&
           !isMssql(meta!.base_id) &&
           !(isMysql(meta!.base_id) && (isJSON(formState) || isTextArea(formState)))
-        "
-        v-model:value="formState"
-      />
+          "
+          v-model:value="formState"
+        />
+      </div>
 
       <div
         v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt) && !appInfo.ee"

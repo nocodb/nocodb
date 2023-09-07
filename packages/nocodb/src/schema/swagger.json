@@ -20862,7 +20862,6 @@
         ],
         "oneOf": [
           {
-            "maxLength": 255,
             "type": "string"
           },
           {

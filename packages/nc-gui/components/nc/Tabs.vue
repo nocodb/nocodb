@@ -3,17 +3,10 @@ const props = defineProps<{
   modelValue?: string
   centered?: boolean
 }>()
-
-const emits = defineEmits<{
-  (event: 'update:modelValue', data: string): void
-}>()
-
-const vModel = useVModel(props, 'modelValue', emits)
 </script>
 
 <template>
   <a-tabs
-    v-model:activeKey="vModel"
     class="nc-tabs"
     :class="{
       centered: props.centered,

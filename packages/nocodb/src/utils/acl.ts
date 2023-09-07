@@ -37,6 +37,10 @@ const permissionScopes = {
     'testConnection',
     'genericGPT',
 
+    // Cache
+    'cacheGet',
+    'cacheDelete',
+
     // TODO: add ACL with project scope
     'upload',
     'uploadViaURL',

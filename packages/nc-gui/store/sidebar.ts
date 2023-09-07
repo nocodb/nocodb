@@ -25,17 +25,6 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const viewportWidth = ref(window.innerWidth)
 
-  const pxToRem = (px: number) => {
-    const base = parseFloat(getComputedStyle(document.documentElement).fontSize)
-    return px / base
-  }
-
-  const leftSidebarWidthRem = computed(() => {
-    const sidebarWidthPx = viewportWidth.value * (leftSidebarWidthPercent.value / 100)
-
-    return pxToRem(sidebarWidthPx)
-  })
-
   function onWindowResize() {
     viewportWidth.value = window.innerWidth
   }
@@ -57,6 +46,5 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     leftSidebarState,
     rightSidebarState,
     viewportWidth,
-    leftSidebarWidthRem,
   }
 })

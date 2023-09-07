@@ -9,7 +9,7 @@ const workspaceStore = useWorkspace()
 const { activeWorkspace, workspacesList, collaborators } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
-const { leftSidebarState, leftSidebarWidthRem } = storeToRefs(useSidebarStore())
+const { leftSidebarState } = storeToRefs(useSidebarStore())
 
 const { navigateToTable } = useTablesStore()
 
@@ -83,7 +83,13 @@ watch(leftSidebarState, () => {
       </div>
     </div>
   </div>
-  <div v-else class="flex flex-row flex-grow hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md">
+  <div
+    v-else
+    class="flex flex-row flex-grow w-full max-w-85/100 hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md"
+    :style="{
+      maxWidth: `calc(100% - 2.5rem)`,
+    }"
+  >
     <NcDropdown
       v-model:visible="isWorkspaceDropdownOpen"
       class="h-full min-w-0 rounded-lg"
@@ -94,15 +100,15 @@ watch(leftSidebarState, () => {
       <div
         data-testid="nc-workspace-menu"
         class="group cursor-pointer flex flex-grow w-full gap-x-2 items-center nc-workspace-menu overflow-hidden py-1.25 pr-0.25"
-        :style="{ width: `${leftSidebarWidthRem - 4}rem` }"
       >
         <GeneralWorkspaceIcon :workspace="activeWorkspace" />
-        <div v-if="activeWorkspace" class="flex min-w-10 font-semibold text-base max-w-82/100">
-          <div class="text-md truncate capitalize">{{ activeWorkspace.title }}</div>
+        <div v-if="activeWorkspace" class="flex min-w-10 w-full">
+          <div class="font-semibold text-base text-md truncate capitalize">
+            {{ activeWorkspace.title }}
+          </div>
         </div>
 
         <GeneralIcon icon="arrowDown" class="min-w-6 text-lg !text-gray-700" />
-        <div class="flex flex-grow"></div>
       </div>
 
       <template #overlay>

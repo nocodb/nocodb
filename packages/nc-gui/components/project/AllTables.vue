@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { stringifyRolesObj } from 'nocodb-sdk'
 import type { BaseType, TableType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
@@ -7,6 +8,8 @@ const { openTable } = useTablesStore()
 const { openedProject } = storeToRefs(useProjects())
 
 const { isUIAllowed } = useUIPermission()
+
+const { allRoles } = useRoles()
 
 const { $e } = useNuxtApp()
 
@@ -71,7 +74,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
 
 <template>
   <div class="nc-all-tables-view">
-    <div v-if="isUIAllowed('tableCreate', false, roles)" class="flex flex-row gap-x-6 pb-3 pt-6">
+    <div v-if="isUIAllowed('tableCreate', false, stringifyRolesObj(allRoles))" class="flex flex-row gap-x-6 pb-3 pt-6">
       <div class="nc-project-view-all-table-btn" data-testid="proj-view-btn__add-new-table" @click="openTableCreateDialog()">
         <GeneralIcon icon="addOutlineBox" />
         <div class="label">{{ $t('general.new') }} {{ $t('objects.table') }}</div>

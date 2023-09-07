@@ -299,12 +299,12 @@ const setIcon = async (icon: string, view: ViewType) => {
 }
 
 const scrollViewNode = () => {
-  const activeViewDom = document.querySelector(`.nc-views-menu [data-view-id="${activeView.value?.id}"]`)
+  const activeViewDom = document.querySelector(`.nc-views-menu [data-view-id="${activeView.value?.id}"]`) as HTMLElement
   if (!activeViewDom) return
 
   if (isElementInvisible(activeViewDom)) {
     // Scroll to the view node
-    activeViewDom?.scrollIntoView({ behavior: 'auto' })
+    activeViewDom?.scrollIntoView({ behavior: 'auto', inline: 'start' })
   }
 }
 
@@ -316,7 +316,7 @@ watch(
     // TODO: Find a better way to scroll to the view node
     setTimeout(() => {
       scrollViewNode()
-    }, 750)
+    }, 800)
   },
   {
     immediate: true,

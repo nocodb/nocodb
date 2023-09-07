@@ -1,6 +1,5 @@
-const isElementInvisible = (el: HTMLElement | Element) => {
-  const rect = el.getBoundingClientRect()
-  return rect.bottom < 0 || rect.right < 0 || rect.left > window.innerWidth || rect.top > window.innerHeight
+const isElementInvisible = (elem: HTMLElement) => {
+  return !!(elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length)
 }
 
 export { isElementInvisible }

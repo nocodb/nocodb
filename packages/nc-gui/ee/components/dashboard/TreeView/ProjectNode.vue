@@ -730,7 +730,7 @@ onMounted(() => {
                             v-if="isUIAllowed('tableCreate', false, projectRole)"
                             class="flex flex-row items-center gap-x-0.25 w-12.25"
                           >
-                            <a-dropdown
+                            <NcDropdown
                               :visible="isBasesOptionsOpen[base!.id!]"
                               trigger="click"
                               @update:visible="isBasesOptionsOpen[base!.id!] = $event"
@@ -741,7 +741,7 @@ onMounted(() => {
                                 @click.stop="isBasesOptionsOpen[base!.id!] = !isBasesOptionsOpen[base!.id!]"
                               />
                               <template #overlay>
-                                <a-menu
+                                <NcMenu
                                   class="nc-scrollbar-md"
                                   :style="{
                                     maxHeight: '70vh',
@@ -751,23 +751,21 @@ onMounted(() => {
                                 >
                                   <!-- ERD View -->
                                   <NcMenuItem key="erd" @click="openErdView(base)">
-                                    <div class="nc-project-option-item group">
-                                      <GeneralIcon icon="erd" />
-                                      Relations
-                                    </div>
+                                    <GeneralIcon icon="erd" />
+                                    Relations
                                   </NcMenuItem>
 
                                   <DashboardTreeViewBaseOptions v-model:project="project" :base="base" />
-                                </a-menu>
+                                </NcMenu>
                               </template>
-                            </a-dropdown>
+                            </NcDropdown>
 
                             <div
                               v-if="isUIAllowed('tableCreate', false, projectRole)"
                               class="flex invisible nc-sidebar-base-node-btns !focus:outline-0 text-gray-600 hover:text-black px-0.35 rounded-md hover:(bg-gray-500 bg-opacity-15) min-h-6 mt-0.15 min-w-6"
                               @click.stop="openTableCreateDialog(baseIndex)"
                             >
-                              <component :is="iconMap.plus" class="text-inherit mt-0.25 h-5.5 w-5.5 py-0.5 !focus:outline-0" />
+                              <MdiPlus class="min-w-5 min-h-5 mt-0.5 py-0.25" />
                             </div>
                           </div>
                         </div>
@@ -794,7 +792,7 @@ onMounted(() => {
       </div>
     </div>
     <template v-if="!isSharedBase" #overlay>
-      <a-menu class="!py-0 rounded text-sm">
+      <NcMenu class="!py-0 rounded text-sm">
         <template v-if="contextMenuTarget.type === 'project' && project.type === 'database'">
           <!--
           <NcMenuItem v-if="isUIAllowed('sqlEditor')" @click="openProjectSqlEditor(contextMenuTarget.value)">
@@ -857,7 +855,7 @@ onMounted(() => {
             </div>
           </NcMenuItem>
         </template>
-      </a-menu>
+      </NcMenu>
     </template>
   </a-dropdown>
   <DlgTableDelete

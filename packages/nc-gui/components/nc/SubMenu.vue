@@ -1,8 +1,8 @@
 <template>
   <a-sub-menu class="nc-sub-menu" popup-class-name="nc-submenu-popup">
     <template #title>
-      <div class="flex flex-row items-center gap-x-1.5 justify-between group hover:text-gray-800">
-        <div class="flex flex-row items-center gap-x-1.75">
+      <div class="flex flex-row items-center gap-x-1.5 py-1.75 justify-between group hover:text-gray-800">
+        <div class="flex flex-row items-center gap-x-1.5">
           <slot name="title" />
         </div>
 

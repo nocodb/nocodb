@@ -60,12 +60,9 @@ function openQuickImportDialog(type: string) {
   <!-- Quick Import From -->
   <NcSubMenu class="py-0">
     <template #title>
-      <div class="nc-project-menu-item group">
-        <GeneralIcon icon="download" />
-        <div class="-ml-0.5">
-          {{ $t('title.quickImportFrom') }}
-        </div>
-      </div>
+      <GeneralIcon icon="download" />
+
+      {{ $t('title.quickImportFrom') }}
     </template>
 
     <template #expandIcon></template>

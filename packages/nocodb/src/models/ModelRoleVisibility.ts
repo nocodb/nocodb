@@ -158,8 +158,6 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
 
     insertObj.id = result.id;
 
-    await NocoCache.set(key, insertObj);
-
     await NocoCache.appendToList(
       CacheScope.MODEL_ROLE_VISIBILITY,
       [insertObj.project_id],

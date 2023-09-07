@@ -1089,10 +1089,10 @@ export class ColumnsService {
               if (colBody.uidt === UITypes.SingleSelect) {
                 // pg payload is coming as cdf = "'a'::text"
                 if (driverType === 'pg') {
-                  colBody.cdf = colBody.cdf.split(':')[0];
+                  colBody.cdf = colBody.cdf.replace(/'::text$/, "'");
                 }
 
-                if (!optionTitles.includes(colBody.cdf.replace(/'/g, ''))) {
+                if (!optionTitles.includes(colBody.cdf.replace(/^'|'$/g, ''))) {
                   NcError.badRequest(
                     `Default value '${colBody.cdf}' is not a select option.`,
                   );
@@ -1101,7 +1101,7 @@ export class ColumnsService {
                 for (let cdf of colBody.cdf.split(',')) {
                   // pg payload is coming as cdf = "'a'::text"
                   if (driverType === 'pg') {
-                    cdf = cdf.split(':')[0];
+                    cdf = colBody.cdf.replace(/'::text$/, "'");
                   }
                   if (!optionTitles.includes(cdf.replace(/'/g, ''))) {
                     NcError.badRequest(
@@ -1114,7 +1114,7 @@ export class ColumnsService {
               if (driverType === 'mysql' || driverType === 'mysql2') {
                 colBody.cdf = colBody.cdf.replace(/'/g, "'");
               } else {
-                colBody.cdf = colBody.cdf.replace(/'/g, '');
+                colBody.cdf = colBody.cdf.replace(/^'|'$/g, '');
               }
             }
 

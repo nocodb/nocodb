@@ -1089,10 +1089,10 @@ export class ColumnsService {
               if (colBody.uidt === UITypes.SingleSelect) {
                 // pg payload is coming as cdf = "'a'::text"
                 if (driverType === 'pg') {
-                  colBody.cdf = colBody.cdf.split(':')[0];
+                  colBody.cdf = colBody.cdf.replace(/'::text$/, "'");
                 }
 
-                if (!optionTitles.includes(colBody.cdf.replace(/'/g, ''))) {
+                if (!optionTitles.includes(colBody.cdf.replace(/^'|'$/g, ''))) {
                   NcError.badRequest(
                     `Default value '${colBody.cdf}' is not a select option.`,
                   );

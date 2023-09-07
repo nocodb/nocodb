@@ -745,7 +745,7 @@ export class AtImportProcessor {
               const srcTbl: any =
                 await this.tablesService.getTableWithAccessibleViews({
                   tableId: srcTableId,
-                  user: syncDB.user,
+                  user: { ...syncDB.user, project_roles: { owner: true } },
                 });
               recordPerfStats(_perfStart, 'dbTable.read');
 
@@ -829,7 +829,7 @@ export class AtImportProcessor {
               const childTblSchema: any =
                 await this.tablesService.getTableWithAccessibleViews({
                   tableId: ncLinkMappingTable[x].nc.childId,
-                  user: syncDB.user,
+                  user: { ...syncDB.user, project_roles: { owner: true } }
                 });
               recordPerfStats(_perfStart, 'dbTable.read');
 
@@ -837,7 +837,7 @@ export class AtImportProcessor {
               const parentTblSchema: any =
                 await this.tablesService.getTableWithAccessibleViews({
                   tableId: ncLinkMappingTable[x].nc.parentId,
-                  user: syncDB.user,
+                  user: { ...syncDB.user, project_roles: { owner: true } },
                 });
               recordPerfStats(_perfStart, 'dbTable.read');
 
@@ -1854,7 +1854,7 @@ export class AtImportProcessor {
       const _perfStart = recordPerfStart();
       const ncTbl: any = await this.tablesService.getTableWithAccessibleViews({
         tableId: tblId,
-        user: syncDB.user,
+        user: { ...syncDB.user, project_roles: { owner: true } },
       });
       recordPerfStats(_perfStart, 'dbTable.read');
 
@@ -2348,7 +2348,7 @@ export class AtImportProcessor {
             const ncTbl: any =
               await this.tablesService.getTableWithAccessibleViews({
                 tableId: ncTblList.list[i].id,
-                user: syncDB.user,
+                user: { ...syncDB.user, project_roles: { owner: true } },
               });
             recordPerfStats(_perfStart, 'dbTable.read');
 
@@ -2383,7 +2383,7 @@ export class AtImportProcessor {
             const ncTbl: any =
               await this.tablesService.getTableWithAccessibleViews({
                 tableId: ncTblList.list[i].id,
-                user: syncDB.user,
+                user: { ...syncDB.user, project_roles: { owner: true } },
               });
 
             rtc.data.nestedLinks += await importLTARData({

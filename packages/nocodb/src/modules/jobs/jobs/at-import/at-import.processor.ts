@@ -113,7 +113,7 @@ export class AtImportProcessor {
     await sMapEM.init();
     const userRole = syncDB.user.roles
       .split(',')
-      .reduce((rolesObj, role) => ({ [role]: true, ...rolesObj }), {});
+      .reduce((rolesObj, role) => ({ [role]: true, ...rolesObj }));
 
     const sMap = {
       // static mapping records between aTblId && ncId
@@ -666,7 +666,12 @@ export class AtImportProcessor {
         const view = { list: [] };
         view['list'] = await this.viewsService.viewList({
           tableId: table.id,
-          user: { roles: userRole },
+          user: {
+            roles: userRole,
+            project_roles: {
+              owner: true,
+            },
+          },
         });
         recordPerfStats(_perfStart, 'dbView.list');
 
@@ -829,7 +834,7 @@ export class AtImportProcessor {
               const childTblSchema: any =
                 await this.tablesService.getTableWithAccessibleViews({
                   tableId: ncLinkMappingTable[x].nc.childId,
-                  user: { ...syncDB.user, project_roles: { owner: true } }
+                  user: { ...syncDB.user, project_roles: { owner: true } },
                 });
               recordPerfStats(_perfStart, 'dbTable.read');
 
@@ -1734,7 +1739,12 @@ export class AtImportProcessor {
           const viewList = { list: [] };
           viewList['list'] = await this.viewsService.viewList({
             tableId: tblId,
-            user: { roles: userRole },
+            user: {
+              roles: userRole,
+              project_roles: {
+                owner: true,
+              },
+            },
           });
           recordPerfStats(_perfStart, 'dbView.list');
 
@@ -2328,7 +2338,7 @@ export class AtImportProcessor {
           ncTblList['list'] = await this.tablesService.getAccessibleTables({
             projectId: ncCreatedProjectSchema.id,
             baseId: syncDB.baseId,
-            roles: userRole,
+            roles: { ...userRole, owner: true },
           });
           recordPerfStats(_perfStart, 'base.tableList');
 

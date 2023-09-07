@@ -154,7 +154,7 @@ const accessibleRoles = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles
         v-else-if="!collaborators?.length"
         class="nc-collaborators-list w-full h-full flex flex-col items-center justify-center mt-36"
       >
-        <Empty description="No collaborators found" />
+        <a-empty description="No collaborators found" />
       </div>
       <div v-else class="nc-collaborators-list nc-scrollbar-md">
         <div class="nc-collaborators-list-header">

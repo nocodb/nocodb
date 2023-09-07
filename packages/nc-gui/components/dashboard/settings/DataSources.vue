@@ -52,6 +52,7 @@ async function loadBases(changed?: boolean) {
   try {
     if (changed) refreshCommandPalette()
 
+    await until(() => !!project.value.id).toBeTruthy()
     isReloading.value = true
     vReload.value = true
     const baseList = await $api.base.list(project.value.id as string)
@@ -164,8 +165,7 @@ const forceAwaken = () => {
 
 onMounted(async () => {
   if (sources.value.length === 0) {
-    await loadBases()
-    await loadMetaDiff()
+    loadBases()
   }
 })
 
@@ -174,7 +174,6 @@ watch(
   async (reload) => {
     if (reload && !isReloading.value) {
       await loadBases()
-      await loadMetaDiff()
     }
   },
 )

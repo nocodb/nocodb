@@ -363,7 +363,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 </script>
 
 <template>
-  <a-dropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
+  <NcDropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
     <div
       class="mx-1 nc-project-sub-menu rounded-md"
       :class="{ active: project.isExpanded }"
@@ -434,7 +434,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
           </span>
           <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(project)"></div>
 
-          <a-dropdown v-if="isUIAllowed('tableCreate', false, projectRole)" v-model:visible="isOptionsOpen" trigger="click">
+          <NcDropdown v-if="isUIAllowed('tableCreate', false, projectRole)" v-model:visible="isOptionsOpen" trigger="click">
             <MdiDotsHorizontal
               class="min-w-5.75 min-h-5.75 px-0.5 py-0.5 mr-0.25 !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 opacity-0 group-hover:(opacity-100) hover:text-black text-gray-600 rounded-md hover:(bg-gray-500 bg-opacity-15)"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
@@ -442,7 +442,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
               @click.stop
             />
             <template #overlay>
-              <a-menu
+              <NcMenu
                 class="nc-scrollbar-md"
                 :style="{
                   maxHeight: '70vh',
@@ -451,83 +451,70 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                 @click="isOptionsOpen = false"
               >
                 <template v-if="!isSharedBase">
-                  <a-menu-item @click="enableEditMode">
-                    <div class="nc-project-option-item group">
-                      <GeneralIcon icon="edit" class="group-hover:text-black" />
-                      {{ $t('general.rename') }}
-                    </div>
-                  </a-menu-item>
+                  <NcMenuItem @click="enableEditMode">
+                    <GeneralIcon icon="edit" class="group-hover:text-black" />
+                    {{ $t('general.rename') }}
+                  </NcMenuItem>
 
                   <!-- Copy Project Info -->
-                  <a-menu-item v-if="!isEeUI" key="copy">
-                    <div
-                      v-e="['c:navbar:user:copy-proj-info']"
-                      class="nc-project-option-item group"
-                      @click.stop="copyProjectInfo"
-                    >
-                      <GeneralIcon icon="copy" class="group-hover:text-black" />
-                      {{ $t('activity.account.projInfo') }}
-                    </div>
-                  </a-menu-item>
-                  <a-menu-item v-if="isUIAllowed('duplicateProject', true, projectRole)" @click="duplicateProject(project)">
-                    <div class="nc-menu-item-wrapper">
-                      <GeneralIcon icon="duplicate" class="text-gray-700" />
-                      {{ $t('general.duplicate') }}
-                    </div>
-                  </a-menu-item>
+                  <NcMenuItem v-if="!isEeUI" key="copy" v-e="['c:navbar:user:copy-proj-info']" @click.stop="copyProjectInfo">
+                    <GeneralIcon icon="copy" class="group-hover:text-black" />
+                    {{ $t('activity.account.projInfo') }}
+                  </NcMenuItem>
+                  <NcMenuItem v-if="isUIAllowed('duplicateProject', true, projectRole)" @click="duplicateProject(project)">
+                    <GeneralIcon icon="duplicate" class="text-gray-700" />
+                    {{ $t('general.duplicate') }}
+                  </NcMenuItem>
 
-                  <a-menu-divider v-if="false" />
+                  <NcDivider v-if="false" />
 
                   <!-- ERD View -->
-                  <a-menu-item key="erd" @click="openProjectErdView(project)">
-                    <div class="nc-project-option-item group">
-                      <GeneralIcon icon="erd" />
-                      Relations
-                    </div>
-                  </a-menu-item>
+                  <NcMenuItem key="erd" @click="openProjectErdView(project)">
+                    <GeneralIcon icon="erd" />
+                    Relations
+                  </NcMenuItem>
 
                   <!-- Swagger: Rest APIs -->
-                  <a-menu-item key="api">
-                    <div
-                      v-if="isUIAllowed('apiDocs')"
-                      v-e="['e:api-docs']"
-                      class="nc-project-option-item group"
-                      @click.stop="openLink(`/api/v1/db/meta/projects/${project.id}/swagger`, appInfo.ncSiteUrl)"
-                    >
-                      <GeneralIcon icon="snippet" class="group-hover:text-black" />
-                      {{ $t('activity.account.swagger') }}
-                    </div>
-                  </a-menu-item>
+                  <NcMenuItem
+                    v-if="isUIAllowed('apiDocs')"
+                    key="api"
+                    v-e="['e:api-docs']"
+                    @click.stop="openLink(`/api/v1/db/meta/projects/${project.id}/swagger`, appInfo.ncSiteUrl)"
+                  >
+                    <GeneralIcon icon="snippet" class="group-hover:text-black" />
+                    {{ $t('activity.account.swagger') }}
+                  </NcMenuItem>
                 </template>
                 <!-- Team & Settings -->
-                <a-menu-item key="teamAndSettings">
-                  <div
-                    v-if="isUIAllowed('settings')"
-                    v-e="['c:navdraw:project-settings']"
-                    class="nc-project-option-item group"
-                    @click="toggleDialog(true, 'teamAndAuth', undefined, project.id)"
-                  >
-                    <GeneralIcon icon="settings" class="group-hover:text-black" />
-                    {{ $t('activity.settings') }}
-                  </div>
-                </a-menu-item>
+                <NcMenuItem
+                  v-if="isUIAllowed('settings')"
+                  key="teamAndSettings"
+                  v-e="['c:navdraw:project-settings']"
+                  @click="toggleDialog(true, 'teamAndAuth', undefined, project.id)"
+                >
+                  <GeneralIcon icon="settings" class="group-hover:text-black" />
+                  {{ $t('activity.settings') }}
+                </NcMenuItem>
                 <template v-if="project.bases && project.bases[0]">
+                  <NcDivider />
                   <DashboardTreeViewBaseOptions v-model:project="project" :base="project.bases[0]" />
 
-                  <a-menu-divider />
+                  <NcDivider />
                 </template>
 
-                <a-menu-divider v-if="false" />
+                <NcDivider v-if="false" />
 
-                <a-menu-item v-if="isUIAllowed('projectDelete', false, projectRole)" @click="isProjectDeleteDialogVisible = true">
-                  <div class="nc-project-option-item group text-red-500">
-                    <GeneralIcon icon="delete" />
-                    {{ $t('general.delete') }}
-                  </div>
-                </a-menu-item>
-              </a-menu>
+                <NcMenuItem
+                  v-if="isUIAllowed('projectDelete', false, projectRole)"
+                  class="!text-red-500 !hover:bg-red-50"
+                  @click="isProjectDeleteDialogVisible = true"
+                >
+                  <GeneralIcon icon="delete" />
+                  {{ $t('general.delete') }}
+                </NcMenuItem>
+              </NcMenu>
             </template>
-          </a-dropdown>
+          </NcDropdown>
 
           <div
             v-if="isUIAllowed('tableCreate', false, projectRole)"
@@ -614,7 +601,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                             v-if="isUIAllowed('tableCreate', false, projectRole)"
                             class="flex flex-row items-center gap-x-0.25 w-12.25"
                           >
-                            <a-dropdown
+                            <NcDropdown
                               :visible="isBasesOptionsOpen[base!.id!]"
                               trigger="click"
                               @update:visible="isBasesOptionsOpen[base!.id!] = $event"
@@ -625,7 +612,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                                 @click.stop="isBasesOptionsOpen[base!.id!] = !isBasesOptionsOpen[base!.id!]"
                               />
                               <template #overlay>
-                                <a-menu
+                                <NcMenu
                                   class="nc-scrollbar-md"
                                   :style="{
                                     maxHeight: '70vh',
@@ -634,24 +621,22 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                                   @click="isBasesOptionsOpen[base!.id!] = false"
                                 >
                                   <!-- ERD View -->
-                                  <a-menu-item key="erd" @click="openErdView(base)">
-                                    <div class="nc-project-option-item group">
-                                      <GeneralIcon icon="erd" />
-                                      Relations
-                                    </div>
-                                  </a-menu-item>
+                                  <NcMenuItem key="erd" @click="openErdView(base)">
+                                    <GeneralIcon icon="erd" />
+                                    Relations
+                                  </NcMenuItem>
 
                                   <DashboardTreeViewBaseOptions v-model:project="project" :base="base" />
-                                </a-menu>
+                                </NcMenu>
                               </template>
-                            </a-dropdown>
+                            </NcDropdown>
 
                             <div
                               v-if="isUIAllowed('tableCreate', false, projectRole)"
                               class="flex invisible nc-sidebar-base-node-btns !focus:outline-0 text-gray-600 hover:text-black px-0.35 rounded-md hover:(bg-gray-500 bg-opacity-15) min-h-6 mt-0.15 min-w-6"
                               @click.stop="openTableCreateDialog(baseIndex)"
                             >
-                              <component :is="iconMap.plus" class="text-inherit mt-0.25 h-5.5 w-5.5 py-0.5 !focus:outline-0" />
+                              <MdiPlus class="min-w-5 min-h-5 mt-0.5 py-0.25" />
                             </div>
                           </div>
                         </div>
@@ -678,20 +663,20 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
       </div>
     </div>
     <template v-if="!isSharedBase" #overlay>
-      <a-menu class="!py-0 rounded text-sm">
+      <NcMenu class="!py-0 rounded text-sm">
         <template v-if="contextMenuTarget.type === 'project' && project.type === 'database'"></template>
 
         <template v-else-if="contextMenuTarget.type === 'base'"></template>
 
         <template v-else-if="contextMenuTarget.type === 'table'">
-          <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
+          <NcMenuItem v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
             <div class="nc-project-option-item">
               <GeneralIcon icon="edit" class="text-gray-700" />
               {{ $t('general.rename') }}
             </div>
-          </a-menu-item>
+          </NcMenuItem>
 
-          <a-menu-item
+          <NcMenuItem
             v-if="isUIAllowed('table-duplicate') && (contextMenuBase?.is_meta || contextMenuBase?.is_local)"
             @click="duplicateTable(contextMenuTarget.value)"
           >
@@ -699,26 +684,26 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
               <GeneralIcon icon="duplicate" class="text-gray-700" />
               {{ $t('general.duplicate') }}
             </div>
-          </a-menu-item>
+          </NcMenuItem>
 
-          <a-menu-item v-if="isUIAllowed('table-delete')" @click="isTableDeleteDialogVisible = true">
+          <NcMenuItem v-if="isUIAllowed('table-delete')" @click="isTableDeleteDialogVisible = true">
             <div class="nc-project-option-item text-red-600">
               <GeneralIcon icon="delete" />
               {{ $t('general.delete') }}
             </div>
-          </a-menu-item>
+          </NcMenuItem>
         </template>
 
         <template v-else>
-          <a-menu-item @click="reloadTables">
+          <NcMenuItem @click="reloadTables">
             <div class="nc-project-option-item">
               {{ $t('general.reload') }}
             </div>
-          </a-menu-item>
+          </NcMenuItem>
         </template>
-      </a-menu>
+      </NcMenu>
     </template>
-  </a-dropdown>
+  </NcDropdown>
   <DlgTableDelete
     v-if="contextMenuTarget.value?.id && project?.id"
     v-model:visible="isTableDeleteDialogVisible"

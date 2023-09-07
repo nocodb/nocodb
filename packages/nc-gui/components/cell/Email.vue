@@ -4,9 +4,10 @@ import { EditModeInj, IsExpandedFormOpenInj, IsSurveyFormInj, computed, inject, 
 
 interface Props {
   modelValue: string | null | undefined
+  isFocus?: boolean
 }
 
-const { modelValue: value } = defineProps<Props>()
+const { modelValue: value, isFocus } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -39,7 +40,7 @@ const validEmail = computed(() => vModel.value && validateEmail(vModel.value))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && isFocus && (el as HTMLInputElement)?.focus()
 
 watch(
   () => editEnabled.value,
@@ -59,7 +60,7 @@ watch(
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="w-full outline-none text-sm px-2"
+    class="w-full outline-none text-sm py-2"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

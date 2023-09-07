@@ -7,6 +7,7 @@ interface Props {
   // for sqlite, when we clear a cell or empty the cell, it returns ""
   // otherwise, it is null type
   modelValue?: number | null | string
+  isFocus?: boolean
 }
 
 interface Emits {
@@ -46,7 +47,7 @@ const vModel = computed({
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && props.isFocus && (el as HTMLInputElement)?.focus()
 
 function onKeyDown(e: any) {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
@@ -83,7 +84,7 @@ function onKeyDown(e: any) {
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="outline-none p-0 border-none w-full h-full text-sm"
+    class="outline-none !py-2 px-0 border-none w-full h-full text-sm"
     type="number"
     style="letter-spacing: 0.06rem"
     @blur="editEnabled = false"

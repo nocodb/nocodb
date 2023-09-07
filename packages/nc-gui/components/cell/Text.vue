@@ -4,6 +4,7 @@ import { EditModeInj, IsExpandedFormOpenInj, ReadonlyInj, RowHeightInj, inject, 
 
 interface Props {
   modelValue?: string | null
+  isFocus?: boolean
 }
 
 const props = defineProps<Props>()
@@ -12,7 +13,7 @@ const emits = defineEmits(['update:modelValue'])
 
 const { showNull } = useGlobal()
 
-const editEnabled = inject(EditModeInj)
+const editEnabled = inject(EditModeInj, ref(false))
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
@@ -22,7 +23,7 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && props.isFocus && (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
@@ -30,8 +31,7 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputEle
     v-if="!readonly && editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="h-full w-full outline-none bg-transparent"
-    :class="{ '!px-2': editEnabled }"
+    class="h-full w-full outline-none p-2 bg-transparent"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

@@ -47,7 +47,7 @@ const checkboxMeta = computed(() => {
 })
 
 const vModel = computed<boolean | number>({
-  get: () => !!props.modelValue && props.modelValue !== '0' && props.modelValue !== 0,
+  get: () => !!props.modelValue && props.modelValue !== '0' && props.modelValue !== 0 && props.modelValue !== 'false',
   set: (val: any) => emits('update:modelValue', isMssql(column?.value?.base_id) ? +val : val),
 })
 
@@ -75,7 +75,7 @@ useSelectedCellKeyupListener(active, (e) => {
 
 <template>
   <div
-    class="flex cursor-pointer w-full h-full"
+    class="flex cursor-pointer w-full h-full py-1"
     :class="{
       'justify-center': !isForm,
       'w-full': isForm,

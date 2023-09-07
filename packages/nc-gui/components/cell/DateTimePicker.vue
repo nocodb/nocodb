@@ -249,7 +249,7 @@ const isColDisabled = computed(() => {
     :disabled="isColDisabled"
     :show-time="true"
     :bordered="false"
-    class="!w-full !px-0 !border-none"
+    class="!w-full !px-0 !py-1 !border-none"
     :class="{ 'nc-null': modelValue === null && showNull }"
     :format="dateTimeFormat"
     :placeholder="placeholder"

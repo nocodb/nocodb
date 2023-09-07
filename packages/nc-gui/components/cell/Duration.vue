@@ -16,9 +16,10 @@ import {
 interface Props {
   modelValue: number | string | null | undefined
   showValidationError?: boolean
+  isFocus?: boolean
 }
 
-const { modelValue, showValidationError = true } = defineProps<Props>()
+const { modelValue, showValidationError = true, isFocus } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -76,7 +77,7 @@ const submitDuration = () => {
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && isFocus && (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
@@ -85,8 +86,8 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputEle
       v-if="editEnabled"
       :ref="focus"
       v-model="localState"
-      class="w-full !border-none p-0"
-      :class="{ '!px-2': editEnabled }"
+      class="w-full !border-none !outline-none p-0"
+      :class="{ '!px-2 !py-1': editEnabled }"
       :placeholder="durationPlaceholder"
       @blur="submitDuration"
       @keypress="checkDurationFormat($event)"

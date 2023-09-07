@@ -184,6 +184,16 @@ watch(inputs, () => {
     inputs.value.$el.focus()
   }
 })
+
+watch(vModel.value, (next) => {
+  if (vModel.value.uidt === UITypes.MultiSelect) {
+    const cdfs = next.cdf.split(',')
+    const values = next.colOptions.options.map((col) => {
+      return col.title
+    })
+    vModel.value.cdf = cdfs.filter((c: string) => values.includes(c)).join(',')
+  }
+})
 </script>
 
 <template>

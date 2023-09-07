@@ -4,13 +4,14 @@ import { ActiveCellInj, EditModeInj, IsExpandedFormOpenInj, RowHeightInj, iconMa
 
 const props = defineProps<{
   modelValue?: string | number
+  isFocus?: boolean
 }>()
 
 const emits = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)
 
-const editEnabled = inject(EditModeInj)
+const editEnabled = inject(EditModeInj, ref(false))
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
@@ -20,7 +21,7 @@ const vModel = useVModel(props, 'modelValue', emits, { defaultValue: '' })
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLTextAreaElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && props.isFocus && (el as HTMLTextAreaElement)?.focus()
 
 const height = computed(() => {
   if (!rowHeight.value) return 60

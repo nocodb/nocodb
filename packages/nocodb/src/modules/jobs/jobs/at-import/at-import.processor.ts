@@ -1744,7 +1744,7 @@ export class AtImportProcessor {
               project_roles: {
                 owner: true,
               },
-            },
+            } as any,
           });
           recordPerfStats(_perfStart, 'dbView.list');
 

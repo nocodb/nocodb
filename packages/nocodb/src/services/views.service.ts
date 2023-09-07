@@ -70,6 +70,7 @@ export class ViewsService {
     tableId: string;
     user: {
       roles: Record<string, boolean>;
+      project_roles: Record<string, boolean>;
     };
   }) {
     const model = await Model.get(param.tableId);

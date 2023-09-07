@@ -23,7 +23,6 @@ const deleteParamRow = (i: number) => {
     <table class="w-full nc-webhooks-params">
       <thead class="h-8">
         <tr>
-          <th></th>
           <th>
             <div class="text-left font-normal ml-2">Parameter Name</div>
           </th>
@@ -40,11 +39,6 @@ const deleteParamRow = (i: number) => {
 
       <tbody>
         <tr v-for="(paramRow, idx) in vModel" :key="idx" class="!h-2 overflow-hidden">
-          <td class="px-2 nc-hook-params-tab-checkbox">
-            <a-form-item class="form-item">
-              <a-checkbox v-model:checked="paramRow.enabled" />
-            </a-form-item>
-          </td>
           <td class="px-2">
             <a-form-item class="form-item">
               <a-input v-model:value="paramRow.name" placeholder="Key" class="!rounded-lg" />

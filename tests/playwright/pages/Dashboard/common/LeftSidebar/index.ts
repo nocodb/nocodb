@@ -50,22 +50,14 @@ export class LeftSidebarPage extends BasePage {
 
   async clickHome() {}
 
-  async renameWorkspace({ newTitle }: { newTitle: string }) {
-    await this.clickWorkspace();
-    const inputBox = this.modal_workspace.locator('.nc-workspace-title-input');
-    await inputBox.clear();
-    await inputBox.fill(newTitle);
-    await this.rootPage.keyboard.press('Escape');
-  }
-
   async getWorkspaceName() {
-    return await getTextExcludeIconText(this.btn_workspace);
+    return await this.btn_workspace.getAttribute('data-workspace-title');
   }
 
   async createWorkspace({ title }: { title: string }) {
     await this.clickWorkspace();
-    await this.modal_workspace.locator('.ant-dropdown-menu-item:has-text("Add new workspace")').waitFor();
-    await this.modal_workspace.locator('.ant-dropdown-menu-item:has-text("Add new workspace")').click();
+    await this.modal_workspace.locator('.ant-dropdown-menu-item:has-text("Create New Workspace")').waitFor();
+    await this.modal_workspace.locator('.ant-dropdown-menu-item:has-text("Create New Workspace")').click();
 
     const inputModal = this.rootPage.locator('div.ant-modal.active');
     await inputModal.waitFor();

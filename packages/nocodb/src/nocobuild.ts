@@ -7,7 +7,7 @@ export default async function (app = express()) {
   const nestApp = await NestFactory.create(AppModule);
   await nestApp.init();
 
-  const dashboardPath = process.env.NC_DASHBOARD_URL || '/dashboard';
+  const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
   app.use(NcToolGui.expressMiddleware(dashboardPath));
   app.get('/', (_req, res) => res.redirect(dashboardPath));
   app.use(nestApp.getHttpAdapter().getInstance());

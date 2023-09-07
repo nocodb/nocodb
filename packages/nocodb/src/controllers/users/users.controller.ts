@@ -12,24 +12,22 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import * as ejs from 'ejs';
 import { ConfigService } from '@nestjs/config';
+import { extractRolesObj } from 'nocodb-sdk';
 import type { AppConfig } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
-import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/catchError';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { User } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { randomTokenString, setTokenCookie } from '~/services/users/helpers';
 import { UsersService } from '~/services/users/users.service';
-import extractRolesObj from '~/utils/extractRolesObj';
-import { CacheGetType } from '~/utils/globals';
 
 @Controller()
 export class UsersController {
   constructor(
-    private readonly usersService: UsersService,
-    private readonly appHooksService: AppHooksService,
-    private readonly config: ConfigService<AppConfig>,
+    protected readonly usersService: UsersService,
+    protected readonly appHooksService: AppHooksService,
+    protected readonly config: ConfigService<AppConfig>,
   ) {}
 
   @Post([
@@ -79,7 +77,7 @@ export class UsersController {
       NcError.forbidden('Email authentication is disabled');
     }
     await this.setRefreshToken({ req, res });
-    res.json(this.usersService.login(req.user));
+    res.json(await this.usersService.login(req.user));
   }
 
   @UseGuards(GlobalGuard)
@@ -102,7 +100,7 @@ export class UsersController {
   @UseGuards(AuthGuard('google'))
   async googleSignin(@Request() req, @Response() res) {
     await this.setRefreshToken({ req, res });
-    res.json(this.usersService.login(req.user));
+    res.json(await this.usersService.login(req.user));
   }
 
   @Get('/auth/google')
@@ -117,6 +115,8 @@ export class UsersController {
     const user = {
       ...req.user,
       roles: extractRolesObj(req.user.roles),
+      workspace_roles: extractRolesObj(req.user.workspace_roles),
+      project_roles: extractRolesObj(req.user.project_roles),
     };
     return user;
   }
@@ -127,7 +127,9 @@ export class UsersController {
     '/api/v1/auth/password/change',
   ])
   @UseGuards(GlobalGuard)
-  @Acl('passwordChange')
+  @Acl('passwordChange', {
+    scope: 'org',
+  })
   @HttpCode(200)
   async passwordChange(@Request() req: any): Promise<any> {
     if (!(req as any).isAuthenticated()) {
@@ -252,33 +254,5 @@ export class UsersController {
       token_version: user['token_version'],
     });
     setTokenCookie(res, refreshToken);
-  }
-
-  /* OpenID Connect auth apis */
-  /* OpenID Connect APIs */
-  @Post('/auth/oidc/genTokenByCode')
-  @UseGuards(AuthGuard('openid'))
-  async oidcSignin(@Request() req, @Response() res) {
-    await this.setRefreshToken({ req, res });
-    res.json(this.usersService.login(req.user));
-  }
-
-  @Get('/auth/oidc')
-  @UseGuards(AuthGuard('openid'))
-  openidAuth() {
-    // openid strategy will take care the request
-  }
-
-  @Get('/auth/oidc/redirect')
-  async redirect(@Request() req, @Response() res) {
-    const key = `oidc:${req.query.state}`;
-    const state = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (!state) {
-      NcError.forbidden('Unable to verify authorization request state.');
-    }
-
-    res.redirect(
-      `https://${state.host}/dashboard?code=${req.query.code}&state=${req.query.state}`,
-    );
   }
 }

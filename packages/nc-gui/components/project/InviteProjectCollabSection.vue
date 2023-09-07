@@ -23,7 +23,13 @@ const usersData = ref<{
   roles?: string
 }>()
 
+const isInvitingCollaborators = ref(false)
+
 const inviteCollaborator = async () => {
+  isInvitingCollaborators.value = true
+
+  if (isInvitingCollaborators.value) return
+
   try {
     usersData.value = await inviteUser(inviteData)
     usersData.roles = inviteData.roles
@@ -35,6 +41,8 @@ const inviteCollaborator = async () => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
+
+  isInvitingCollaborators.value = false
 }
 
 const inviteUrl = computed(() =>
@@ -111,7 +119,7 @@ const copyUrl = async () => {
             class="!max-w-130 !rounded"
           />
 
-          <a-select v-model:value="inviteData.roles" class="min-w-30 !rounded px-1" data-testid="roles">
+          <NcSelect v-model:value="inviteData.roles" class="min-w-30 !rounded px-1" data-testid="roles">
             <template #suffixIcon>
               <MdiChevronDown />
             </template>
@@ -140,7 +148,7 @@ const copyUrl = async () => {
                 <p class="badge-text">{{ role }}</p>
               </NcBadge>
             </a-select-option>
-          </a-select>
+          </NcSelect>
 
           <a-button
             type="primary"
@@ -162,10 +170,14 @@ const copyUrl = async () => {
 
 <style scoped>
 .badge-text {
-  @apply text-[14px] pt-1 text-center;
+  @apply text-[14px] pt-1 text-center font-medium first-letter:uppercase;
 }
 
 :deep(.ant-select .ant-select-selector) {
   @apply rounded;
+}
+
+:deep(.ant-select-selection-item) {
+  @apply mt-0.75;
 }
 </style>

@@ -46,7 +46,7 @@ const allowedRoles = computed<WorkspaceUserRoles[]>(() => {
             <MdiChevronDown />
           </template>
           <template v-for="role of allowedRoles" :key="`role-option-${role}`">
-            <a-select-option :value="role">
+            <a-select-option v-if="role" :value="role">
               <NcBadge :color="RoleColors[role]">
                 <p class="badge-text">{{ RoleLabels[role] }}</p>
               </NcBadge>
@@ -78,5 +78,9 @@ const allowedRoles = computed<WorkspaceUserRoles[]>(() => {
 
 .badge-text {
   @apply text-[14px] pt-1 text-center;
+}
+
+:deep(.ant-select-selection-item) {
+  @apply mt-0.75;
 }
 </style>

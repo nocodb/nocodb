@@ -28,7 +28,7 @@ export const useProject = defineStore('projectStore', () => {
 
   const { setTheme, theme } = useTheme()
 
-  const { projectRoles, loadProjectRoles } = useRoles()
+  const { loadRoles } = useRoles()
 
   const { refreshCommandPalette } = useCommandPalette()
 
@@ -157,17 +157,17 @@ export const useProject = defineStore('projectStore', () => {
     }
 
     if (isSharedBase.value) {
-      await loadProjectRoles(project.value.id || projectId.value, {
+      await loadRoles(project.value.id || projectId.value, {
         isSharedBase: isSharedBase.value,
         sharedBaseId: route.value.params.projectId as string,
       })
     } else if (isSharedErd.value) {
-      await loadProjectRoles(project.value.id || projectId.value, {
+      await loadRoles(project.value.id || projectId.value, {
         isSharedErd: isSharedErd.value,
         sharedErdId: route.value.params.erdUuid as string,
       })
     } else {
-      await loadProjectRoles(project.value.id || projectId.value)
+      await loadRoles(project.value.id || projectId.value)
     }
 
     await loadTables()
@@ -218,7 +218,6 @@ export const useProject = defineStore('projectStore', () => {
     // project.value = {}
     // tables.value = []
     projectMetaInfo.value = undefined
-    projectRoles.value = {}
     setTheme()
   }
 
@@ -273,7 +272,7 @@ export const useProject = defineStore('projectStore', () => {
     project,
     bases,
     tables,
-    loadProjectRoles,
+    loadRoles,
     loadProject,
     updateProject,
     loadTables,

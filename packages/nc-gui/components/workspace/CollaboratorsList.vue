@@ -41,14 +41,14 @@ const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
     <div class="w-full h-1 border-t-1 border-gray-100 opacity-50 mt-6"></div>
     <div class="w-full flex flex-row justify-between items-baseline mt-6.5 mb-2 pr-0.25 ml-2">
       <div class="text-xl">Collaborators</div>
-      <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md" placeholder="Search collaborators">
+      <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md mr-4" placeholder="Search collaborators">
         <template #prefix>
           <PhMagnifyingGlassBold class="!h-3.5 text-gray-500" />
         </template>
       </a-input>
     </div>
     <div v-if="!filterCollaborators?.length" class="w-full h-full flex flex-col items-center justify-center mt-36">
-      <Empty description="No collaborators found" />
+      <a-empty description="No collaborators found" />
     </div>
     <table v-else class="nc-collaborators-list-table !nc-scrollbar-md">
       <thead>
@@ -109,7 +109,7 @@ const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
                   </NcBadge>
                 </a-select-option>
                 <template v-for="role of accessibleRoles" :key="`role-option-${role}`">
-                  <a-select-option :value="role">
+                  <a-select-option v-if="role" :value="role">
                     <NcBadge :color="RoleColors[role]">
                       <p class="badge-text">{{ RoleLabels[role] }}</p>
                     </NcBadge>
@@ -231,5 +231,9 @@ tbody {
   &::-webkit-scrollbar-thumb:hover {
     background: rgb(203, 203, 203);
   }
+}
+
+:deep(.ant-select-selection-item) {
+  @apply mt-0.75;
 }
 </style>

@@ -350,8 +350,8 @@ onMounted(async () => {
     // todo: replace setTimeout and follow better approach
     setTimeout(() => {
       const input = form.value?.$el?.querySelector('input[type=text]')
-      input.setSelectionRange(0, formState.value.title.length)
-      input.focus()
+      input?.setSelectionRange(0, formState.value.title.length)
+      input?.focus()
     }, 500)
   })
 })
@@ -379,6 +379,7 @@ watch(
   <div class="create-base bg-white relative flex flex-col justify-center gap-2 w-full">
     <h1 class="prose-2xl font-bold self-start mb-4 flex items-center gap-2">
       New Base
+      <DashboardSettingsDataSourcesInfo />
       <span class="flex-grow"></span>
     </h1>
 

@@ -90,9 +90,6 @@ async function upgradeBaseRelations({
   ncMeta: MetaService;
   base: Base;
 }) {
-  // skip deleted projects
-  if ((await base.getProject(ncMeta)).deleted) return;
-
   const sqlClient = await NcConnectionMgrv2.getSqlClient(base, ncMeta.knex);
 
   // get models for the base
@@ -144,21 +141,25 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
 
   // iterate and upgrade each base
   for (const _base of bases) {
-    const base = new Base(_base)
+    const base = new Base(_base);
 
     // skip if not pg, since for other db we don't need to upgrade
     if (ncMeta.knex.clientType() !== 'pg') {
       continue;
     }
+    const project = await base.getProject(ncMeta);
 
-    logger.log(`Upgrading base '${base.alias}'`);
+    // skip deleted projects
+    if (!project || project.deleted) continue;
+
+    logger.log(`Upgrading base '${base.alias}'(${project.title})`);
 
     await upgradeBaseRelations({
       ncMeta,
       base,
     });
 
-    logger.log(`Upgraded base '${base.alias}'`);
+    logger.log(`Upgraded base '${base.alias}'(${project.title})`);
   }
 
   logger.log(

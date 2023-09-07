@@ -150,8 +150,8 @@ class BaseModelSqlv2 {
 
     wrapObjectFunctions(
       this,
-      (id, fnm, _self, args) => {
-        log(`${id} start ${fnm}, args: `, args);
+      (id, fnm, _self, _args) => {
+        log(`${id} start ${fnm}`);
       },
       (id, fnm, _self) => {
         log(`${id} end ${fnm}`);
@@ -3815,8 +3815,9 @@ class BaseModelSqlv2 {
     } else {
       query = sanitize(query);
     }
+    const randid = `op_${nanoidv2()}`;
 
-    log(query);
+    log(`${randid} query start`);
 
     let data =
       this.isPg || this.isSnowflake
@@ -3827,11 +3828,17 @@ class BaseModelSqlv2 {
           )
         : await this.dbDriver.raw(query);
 
+    log(`${randid} query end`);
+
+    log(`${randid} parse start`);
+
     // update attachment fields
     data = this.convertAttachmentType(data, childTable);
 
     // update date time fields
     data = this.convertDateFormat(data, childTable);
+
+    log(`${randid} parse end`);
 
     return data;
   }

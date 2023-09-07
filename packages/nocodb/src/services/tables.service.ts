@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
-import { isLinksOrLTAR, isVirtualCol, ModelTypes, UITypes } from 'nocodb-sdk';
+import { isLinksOrLTAR, isVirtualCol, ModelTypes, ProjectRoles, UITypes } from 'nocodb-sdk'
 import { AppEvents } from 'nocodb-sdk';
 import { MetaDiffsService } from './meta-diffs.service';
 import { ColumnsService } from './columns.service';
@@ -328,7 +328,7 @@ export class TablesService {
     const tableViewMapping = viewList.reduce((o, view: any) => {
       o[view.fk_model_id] = o[view.fk_model_id] || 0;
       if (
-        Object.keys(param.roles).some(
+        Object.values(ProjectRoles).some(
           (role) => param.roles[role] && !view.disabled[role],
         )
       ) {

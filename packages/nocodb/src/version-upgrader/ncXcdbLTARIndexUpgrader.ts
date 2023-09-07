@@ -143,20 +143,22 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   if (!bases.length) return;
 
   // iterate and upgrade each base
-  for (const base of bases) {
+  for (const _base of bases) {
+    const base = new Base(_base)
+
     // skip if not pg, since for other db we don't need to upgrade
     if (ncMeta.knex.clientType() !== 'pg') {
       continue;
     }
 
-    logger.log(`Upgrading base '${base.name}'`);
+    logger.log(`Upgrading base '${base.alias}'`);
 
     await upgradeBaseRelations({
       ncMeta,
-      base: new Base(base),
+      base,
     });
 
-    logger.log(`Upgraded base '${base.name}'`);
+    logger.log(`Upgraded base '${base.alias}'`);
   }
 
   logger.log(

@@ -297,6 +297,31 @@ const setIcon = async (icon: string, view: ViewType) => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+const scrollViewNode = () => {
+  const activeViewDom = document.querySelector(`.nc-views-menu [data-view-id="${activeView.value?.id}"]`)
+  if (!activeViewDom) return
+
+  if (isElementInvisible(activeViewDom)) {
+    // Scroll to the view node
+    activeViewDom?.scrollIntoView({ behavior: 'auto' })
+  }
+}
+
+watch(
+  () => activeView.value?.id,
+  () => {
+    if (!activeView.value?.id) return
+
+    // TODO: Find a better way to scroll to the view node
+    setTimeout(() => {
+      scrollViewNode()
+    }, 750)
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -319,6 +344,7 @@ const setIcon = async (icon: string, view: ViewType) => {
         'active': activeView?.id === view.id,
         [`nc-${view.type ? viewTypeAlias[view.type] : undefined || view.type}-view-item`]: true,
       }"
+      :data-view-id="view.id"
       @change-view="changeView"
       @open-modal="$emit('openModal', $event)"
       @delete="openDeleteDialog"

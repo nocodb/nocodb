@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, ProjectRoles } from 'nocodb-sdk';
 import type {
   SharedViewReqType,
   UserType,
@@ -82,8 +82,9 @@ export class ViewsService {
     // todo: user roles
     //await View.list(param.tableId)
     const filteredViewList = viewList.filter((view: any) => {
-      return Object.keys(param?.user?.roles).some(
-        (role) => param?.user?.roles[role] && !view.disabled[role],
+      return Object.values(ProjectRoles).some(
+        (role) =>
+          param?.user?.['project_roles']?.[role] && !view.disabled[role],
       );
     });
 

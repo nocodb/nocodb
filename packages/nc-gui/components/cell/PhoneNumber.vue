@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, IsExpandedFormOpenInj, IsSurveyFormInj, computed, inject, validatePhone } from '#imports'
+import isMobilePhone from 'validator/lib/isMobilePhone'
+import { EditModeInj, IsExpandedFormOpenInj, IsSurveyFormInj, computed, inject } from '#imports'
 
 interface Props {
   modelValue: string | null | number | undefined
@@ -28,13 +29,13 @@ const vModel = computed({
   get: () => value,
   set: (val) => {
     localState.value = val
-    if (!parseProp(column.value.meta)?.validate || (val && validatePhone(val)) || !val || isSurveyForm.value) {
+    if (!parseProp(column.value.meta)?.validate || (val && isMobilePhone(val)) || !val || isSurveyForm.value) {
       emit('update:modelValue', val)
     }
   },
 })
 
-const validEmail = computed(() => vModel.value && validatePhone(vModel.value))
+const validEmail = computed(() => vModel.value && isMobilePhone(vModel.value))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
@@ -43,7 +44,7 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && isFocus && (el as H
 watch(
   () => editEnabled.value,
   () => {
-    if (parseProp(column.value.meta)?.validate && !editEnabled.value && localState.value && !validatePhone(localState.value)) {
+    if (parseProp(column.value.meta)?.validate && !editEnabled.value && localState.value && !isMobilePhone(localState.value)) {
       message.error('Invalid Phone Number')
       localState.value = undefined
       return
@@ -58,7 +59,7 @@ watch(
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="w-full outline-none text-sm py-2"
+    class="w-full outline-none text-sm px-1 py-2"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

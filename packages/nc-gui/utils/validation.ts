@@ -3,8 +3,6 @@ import { getI18n } from '../plugins/a.i18n'
 export const validateEmail = (v: string) =>
   /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(v)
 
-export const validatePhone = (v: string) => /^[0-9+]{6,}$/.test(v)
-
 export const validateTableName = {
   validator: (_: unknown, value: string) => {
     return new Promise((resolve, reject) => {

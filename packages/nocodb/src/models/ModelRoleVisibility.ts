@@ -147,17 +147,23 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
       insertObj.base_id = view.base_id;
     }
 
-    await ncMeta.metaInsert2(
+    const result = await ncMeta.metaInsert2(
       null,
       null,
       MetaTable.MODEL_ROLE_VISIBILITY,
       insertObj,
     );
 
+    const key = `${CacheScope.MODEL_ROLE_VISIBILITY}:${body.fk_view_id}:${body.role}`;
+
+    insertObj.id = result.id;
+
+    await NocoCache.set(key, insertObj);
+
     await NocoCache.appendToList(
       CacheScope.MODEL_ROLE_VISIBILITY,
       [insertObj.project_id],
-      `${CacheScope.MODEL_ROLE_VISIBILITY}:${body.fk_view_id}:${body.role}`,
+      key,
     );
 
     return this.get(

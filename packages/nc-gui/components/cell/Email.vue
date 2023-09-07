@@ -60,7 +60,7 @@ watch(
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="w-full outline-none text-sm py-2"
+    class="w-full outline-none text-sm px-1 py-2"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

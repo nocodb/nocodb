@@ -38,7 +38,7 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && props.isFocus && (e
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="w-full !border-none !outline-none focus:ring-0 text-base py-1"
+    class="w-full !border-none !outline-none focus:ring-0 text-base p-1"
     :class="{ '!px-2': editEnabled }"
     type="number"
     @blur="editEnabled = false"

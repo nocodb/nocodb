@@ -201,7 +201,7 @@ const clickHandler = () => {
   <a-date-picker
     v-model:value="localState"
     :bordered="false"
-    class="!w-full !px-0 !border-none"
+    class="!w-full !px-1 !border-none"
     :class="{ 'nc-null': modelValue === null && showNull }"
     :format="dateFormat"
     :placeholder="placeholder"

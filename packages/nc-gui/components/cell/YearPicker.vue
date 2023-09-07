@@ -85,7 +85,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     v-model:value="localState"
     picker="year"
     :bordered="false"
-    class="!w-full !px-0 !border-none"
+    class="!w-full !px-1 !border-none"
     :class="{ 'nc-null': modelValue === null && showNull }"
     :placeholder="placeholder"
     :allow-clear="!readOnly && !localState && !isPk"

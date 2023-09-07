@@ -101,7 +101,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     :bordered="false"
     use12-hours
     format="HH:mm"
-    class="!w-full !px-0 !border-none"
+    class="!w-full !px-1 !border-none"
     :class="{ 'nc-null': modelValue === null && showNull }"
     :placeholder="placeholder"
     :allow-clear="!readOnly && !localState && !isPk"

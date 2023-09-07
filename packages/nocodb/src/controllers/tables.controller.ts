@@ -38,7 +38,7 @@ export class TablesController {
         projectId,
         baseId,
         includeM2M: includeM2M === 'true',
-        roles: extractRolesObj(req.user.roles),
+        roles: extractRolesObj(req.user.project_roles),
       }),
     );
   }

@@ -490,7 +490,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                     v-e="['e:api-docs']"
                     @click.stop="openLink(`/api/v1/db/meta/projects/${project.id}/swagger`, appInfo.ncSiteUrl)"
                   >
-                    <GeneralIcon icon="snippet" class="group-hover:text-black" />
+                    <GeneralIcon icon="snippet" class="group-hover:text-black !max-w-3.9" />
                     {{ $t('activity.account.swagger') }}
                   </NcMenuItem>
                 </template>

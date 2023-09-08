@@ -605,7 +605,7 @@ onMounted(() => {
                   class="group"
                   @click.stop="openLink(`/api/v1/db/meta/projects/${project.id}/swagger`, appInfo.ncSiteUrl)"
                 >
-                  <GeneralIcon icon="snippet" class="group-hover:text-black" />
+                  <GeneralIcon icon="snippet" class="group-hover:text-black !max-w-3.9" />
                   {{ $t('labels.restApis') }}
                 </NcMenuItem>
 

@@ -141,7 +141,7 @@ const onCancel = () => {
         </div>
       </a-form>
     </div>
-    <div class="item flex flex-col border-1 border-[#FF4A3F]">
+    <div class="item flex flex-col border-1 border-red-500">
       <div class="font-medium text-base">Delete Workspace</div>
       <div class="text-gray-500 mt-2">Delete this workspace and all it’s contents.</div>
       <!-- <div class="flex p-4 border-1 border-[#E7E7E9] rounded-lg mt-6">

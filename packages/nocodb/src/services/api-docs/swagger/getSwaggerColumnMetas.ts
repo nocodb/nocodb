@@ -36,6 +36,7 @@ export default async (
           field.type = 'object';
           break;
         case UITypes.Rollup:
+        case UITypes.Links:
           field.type = 'number';
           break;
         case UITypes.Attachment:

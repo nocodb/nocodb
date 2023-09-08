@@ -68,8 +68,11 @@ const setIcon = async (icon: string, table: TableType) => {
 // Todo: temp
 
 const { isSharedBase } = useProject()
-
 // const isMultiBase = computed(() => project.bases && project.bases.length > 1)
+
+const canUserEditEmote = computed(() => {
+  return isUIAllowed('tableIconCustomisation', false, projectRole?.value)
+})
 </script>
 
 <template>
@@ -98,16 +101,22 @@ const { isSharedBase } = useProject()
       <template #title>{{ table.table_name }}</template>
       <div class="table-context flex items-center gap-1 h-full" @contextmenu="setMenuContext('table', table)">
         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
-          <div class="flex items-center nc-table-icon" @click.stop>
+          <div
+            class="flex items-center nc-table-icon"
+            :class="{
+              'pointer-events-none': !canUserEditEmote,
+            }"
+            @click.stop
+          >
             <LazyGeneralEmojiPicker
               :key="table.meta?.icon"
               :emoji="table.meta?.icon"
               size="small"
-              :readonly="!isUIAllowed('tableIconCustomisation', false, projectRole)"
+              :readonly="!canUserEditEmote"
               @emoji-selected="setIcon($event, table)"
             >
               <template #default>
-                <NcTooltip class="flex" placement="topLeft" hide-on-click>
+                <NcTooltip class="flex" placement="topLeft" hide-on-click :disabled="!canUserEditEmote">
                   <template #title>
                     {{ 'Change icon' }}
                   </template>

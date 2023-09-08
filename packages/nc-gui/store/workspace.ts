@@ -2,12 +2,11 @@ import type { ProjectType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
-import { computed, navigateTo, ref, useCommandPalette, useNuxtApp, useRouter, useTheme } from '#imports'
+import { computed, navigateTo, ref, useCommandPalette, useNuxtApp, useProjects, useRouter, useTheme } from '#imports'
 import type { ThemeConfig } from '#imports'
 
 export const useWorkspace = defineStore('workspaceStore', () => {
   const projectsStore = useProjects()
-  const { clearProjects } = projectsStore
 
   const collaborators = ref<any[] | null>()
 
@@ -25,12 +24,14 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { $e } = useNuxtApp()
 
-  const { appInfo } = useGlobal()
+  const { appInfo, ncNavigateTo } = useGlobal()
 
-  const { userRoles } = useRoles()
+  const { orgRoles } = useRoles()
 
   const workspaces = ref<Map<string, any>>(new Map())
   const workspacesList = computed<any[]>(() => Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at))
+
+  const isWorkspaceSettingsPageOpened = computed(() => route.value.name === 'index-typeOrId-settings')
 
   const isWorkspaceLoading = ref(true)
   const isCollaboratorsLoading = ref(true)
@@ -64,27 +65,27 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   /** getters */
   const isWorkspaceCreator = computed(() => {
     // todo: type correction
-    return userRoles.value[Role.OrgLevelCreator]
+    return orgRoles.value?.[Role.OrgLevelCreator]
   })
 
   const isWorkspaceOwner = computed(() => {
     // todo: type correction
-    return userRoles.value[Role.OrgLevelCreator]
+    return orgRoles.value?.[Role.OrgLevelCreator]
   })
 
   const isWorkspaceOwnerOrCreator = computed(() => {
     // todo: type correction
-    return userRoles.value[Role.OrgLevelCreator]
+    return orgRoles.value?.[Role.OrgLevelCreator]
   })
 
   /** actions */
-  const loadWorkspaces = async () => {}
+  const loadWorkspaces = async (_ignoreError = false) => {}
 
   const createWorkspace = async (..._args: any) => {}
 
   const updateWorkspace = async (..._args: any) => {}
 
-  const deleteWorkspace = async (..._args: any) => {}
+  const deleteWorkspace = async (_: string, { skipStateUpdate: __ }: { skipStateUpdate?: boolean } = {}) => {}
 
   const loadCollaborators = async (..._args: any) => {}
 
@@ -96,7 +97,17 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const loadWorkspace = async (..._args: any) => {}
 
-  async function populateWorkspace(..._args: any) {}
+  async function populateWorkspace(..._args: any) {
+    isWorkspaceLoading.value = true
+
+    try {
+      await projectsStore.loadProjects()
+    } catch (e: any) {
+      console.error(e)
+    } finally {
+      isWorkspaceLoading.value = false
+    }
+  }
 
   watch(activePage, async (page) => {
     if (page === 'workspace') {
@@ -187,10 +198,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     $e('c:themes:change')
   }
 
-  const clearWorkspaces = () => {
-    clearProjects()
+  async function clearWorkspaces() {
+    await projectsStore.clearProjects()
     workspaces.value.clear()
   }
+
   const upgradeActiveWorkspace = async () => {}
 
   const navigateToWorkspace = async (workspaceId?: string) => {
@@ -199,7 +211,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       throw new Error('Workspace not selected')
     }
 
-    await navigateTo(`/ws/${workspaceId}`)
+    await ncNavigateTo({
+      workspaceId,
+    })
   }
 
   const navigateToWorkspaceSettings = async () => {
@@ -245,6 +259,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     setLoadingState,
     navigateToWorkspaceSettings,
     lastPopulatedWorkspaceId,
+    isWorkspaceSettingsPageOpened,
   }
 })
 

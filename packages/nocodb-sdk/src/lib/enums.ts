@@ -10,6 +10,7 @@ export enum ProjectRoles {
   EDITOR = 'editor',
   COMMENTER = 'commenter',
   VIEWER = 'viewer',
+  NO_ACCESS = 'no-access',
 }
 
 export enum WorkspaceUserRoles {
@@ -170,10 +171,11 @@ export const RoleLabels = {
   [ProjectRoles.EDITOR]: 'Editor',
   [ProjectRoles.COMMENTER]: 'Commenter',
   [ProjectRoles.VIEWER]: 'Viewer',
+  [ProjectRoles.NO_ACCESS]: 'No Access',
   [OrgUserRoles.SUPER_ADMIN]: 'Super',
   [OrgUserRoles.CREATOR]: 'Creator',
   [OrgUserRoles.VIEWER]: 'Viewer',
-}
+};
 
 export const RoleColors = {
   [WorkspaceUserRoles.OWNER]: 'purple',
@@ -187,9 +189,10 @@ export const RoleColors = {
   [ProjectRoles.COMMENTER]: 'orange',
   [ProjectRoles.VIEWER]: 'yellow',
   [OrgUserRoles.SUPER_ADMIN]: 'purple',
+  [ProjectRoles.NO_ACCESS]: 'red',
   [OrgUserRoles.CREATOR]: 'blue',
   [OrgUserRoles.VIEWER]: 'yellow',
-}
+};
 
 export const OrderedWorkspaceRoles = [
   WorkspaceUserRoles.OWNER,
@@ -197,7 +200,9 @@ export const OrderedWorkspaceRoles = [
   WorkspaceUserRoles.EDITOR,
   WorkspaceUserRoles.COMMENTER,
   WorkspaceUserRoles.VIEWER,
-]
+  // placeholder for no access
+  null,
+];
 
 export const OrderedProjectRoles = [
   ProjectRoles.OWNER,
@@ -205,4 +210,5 @@ export const OrderedProjectRoles = [
   ProjectRoles.EDITOR,
   ProjectRoles.COMMENTER,
   ProjectRoles.VIEWER,
-]
+  ProjectRoles.NO_ACCESS,
+];

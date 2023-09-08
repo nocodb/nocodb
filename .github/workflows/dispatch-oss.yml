@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: actions/github-script@v6
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ${{ secrets.OSS_DISPATCH }}
         script: |
           const result = await github.rest.repos.createDispatchEvent({
             owner: 'nocodb',

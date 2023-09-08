@@ -3,7 +3,7 @@ import { computed, extractSdkResponseErrorMsg, message, onMounted, useGlobal, us
 
 const { $api } = useNuxtApp()
 
-const { currentVersion, latestRelease, hiddenRelease } = useGlobal()
+const { currentVersion, latestRelease, hiddenRelease, appInfo } = useGlobal()
 
 const releaseAlert = computed({
   get() {
@@ -41,14 +41,14 @@ onMounted(async () => await fetchReleaseInfo())
 </script>
 
 <template>
-  <div v-if="releaseAlert" class="flex items-center">
+  <div v-if="releaseAlert && !appInfo.ee" class="flex items-center">
     <a-dropdown :trigger="['click']" placement="bottom" overlay-class-name="nc-dropdown-upgrade-menu">
-      <a-button class="!bg-primary !border-none">
+      <NcButton class="!bg-primary !border-none !mr-3" size="small">
         <div class="flex gap-1 items-center text-white">
           <span class="text-sm font-weight-medium">{{ $t('activity.upgrade.available') }}</span>
           <mdi-menu-down />
         </div>
-      </a-button>
+      </NcButton>
 
       <template #overlay>
         <div class="mt-1 bg-white shadow-lg !border">

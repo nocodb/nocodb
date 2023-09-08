@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { PaginatedType } from 'nocodb-sdk'
-import SidebarIcon from '~icons/nc-icons/sidebar'
 import { IsGroupByInj, computed, iconMap, inject, isRtlLang, useI18n } from '#imports'
 import type { Language } from '#imports'
 
@@ -66,24 +65,6 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
       isGroupBy ? 'margin-top:1px; border-radius: 0 0 12px 12px !important;' : ''
     }${extraStyle}`"
   >
-    <NcTooltip v-if="!isPublic && hideSidebars !== true" class="ml-2" placement="topLeft" hide-on-click>
-      <template #title>
-        {{
-          isLeftSidebarOpen
-            ? `${$t('general.hide')} ${$t('objects.sidebar').toLowerCase()}`
-            : `${$t('general.show')} ${$t('objects.sidebar').toLowerCase()}`
-        }}
-      </template>
-      <div
-        class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) hover:(bg-gray-100 border-gray-200) border-gray-200 group flex items-center justify-center rounded-md h-full px-1.75 h-7 cursor-pointer text-gray-500 hover:text-gray-700"
-        :class="{
-          'bg-gray-100': !isLeftSidebarOpen,
-        }"
-        @click="isLeftSidebarOpen = !isLeftSidebarOpen"
-      >
-        <SidebarIcon class="cursor-pointer transform transition-transform duration-500 rounded-md rotate-180" />
-      </div>
-    </NcTooltip>
     <slot name="add-record" />
     <div class="flex-1">
       <span
@@ -117,7 +98,7 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
       </div>
     </template>
 
-    <div class="flex-1 text-right pr-2">
+    <div class="flex-1 text-right">
       <span
         v-if="alignCountOnRight && count !== null && count !== Infinity"
         class="caption nc-grid-row-count mr-2.5 text-gray-500 text-xs"
@@ -126,28 +107,6 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
         {{ count }} {{ customLabel ? customLabel : count !== 1 ? $t('objects.records') : $t('objects.record') }}
       </span>
     </div>
-
-    <NcTooltip v-if="!isPublic && hideSidebars !== true" placement="topRight" hide-on-click>
-      <template #title>
-        {{
-          isRightSidebarOpen
-            ? `${$t('general.hide')} ${$t('objects.sidebar').toLowerCase()}`
-            : `${$t('general.show')} ${$t('objects.sidebar').toLowerCase()}`
-        }}
-      </template>
-
-      <div
-        class="flex flex-row items-center justify-center !rounded-md !p-1.75 border-gray-100 cursor-pointer bg-white hover:bg-gray-100 text-gray-500 hover:text-gray-700 nc-sidebar-right-toggle-icon"
-        :class="{
-          '!bg-gray-100': !isRightSidebarOpen,
-        }"
-        type="ghost"
-        @click="isRightSidebarOpen = !isRightSidebarOpen"
-      >
-        <SidebarIcon class="w-4 h-4" />
-      </div>
-    </NcTooltip>
-    <div class="w-2"></div>
   </div>
 </template>
 

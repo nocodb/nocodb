@@ -5,12 +5,6 @@ const { isUIAllowed } = useUIPermission()
 
 const $route = useRoute()
 
-const { appInfo } = useGlobal()
-
-const { loadScope } = useCommandPalette()
-
-loadScope('account_settings')
-
 const selectedKeys = computed(() => [
   /^\/account\/users\/?$/.test($route.fullPath)
     ? isUIAllowed('superAdminUserManagement')

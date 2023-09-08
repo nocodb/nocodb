@@ -1,6 +1,7 @@
 import { ProjectRoles } from 'nocodb-sdk';
 import type { ProjectType } from 'nocodb-sdk';
 import User from '~/models/User';
+import Project from '~/models/Project';
 import {
   // CacheDelDirection,
   CacheGetType,
@@ -336,6 +337,12 @@ export default class ProjectUser {
         this.where(`${MetaTable.PROJECT}.deleted`, false).orWhereNull(
           `${MetaTable.PROJECT}.deleted`,
         );
+      })
+      .where(function () {
+        this.whereNull(`${MetaTable.PROJECT_USERS}.roles`).orWhereNot(
+          `${MetaTable.PROJECT_USERS}.roles`,
+          ProjectRoles.NO_ACCESS,
+        );
       });
 
     // filter starred projects
@@ -372,7 +379,15 @@ export default class ProjectUser {
       await NocoCache.setList(CacheScope.USER_PROJECT, [userId], projectList);
     }
 
-    return projectList.filter((p) => !params?.type || p.type === params.type);
+    const castedProjectList = projectList
+      .filter((p) => !params?.type || p.type === params.type)
+      .map((m) => Project.castType(m));
+
+    await Promise.all(
+      castedProjectList.map((project) => project.getBases(ncMeta)),
+    );
+
+    return castedProjectList;
   }
 
   static async updateOrInsert(

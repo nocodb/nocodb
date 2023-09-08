@@ -23,7 +23,7 @@ export default async function getPaths(
     type: model.type,
     orgs: 'v1',
     columns,
-    projectName: project.title,
+    projectName: project.id,
   });
 
   for (const { view, columns: viewColumns } of views) {
@@ -38,7 +38,7 @@ export default async function getPaths(
         type: model.type,
         orgs: 'v1',
         columns: swaggerColumns,
-        projectName: project.title,
+        projectName: project.id,
       }),
     );
   }

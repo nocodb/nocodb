@@ -49,7 +49,7 @@ const { copy } = useCopy()
 const copyRecordUrl = () => {
   copy(
     encodeURI(
-      `${dashboardUrl?.value}#/${route.params.typeOrId}/${route.params.projectId}/${route.params.type}/${meta.value?.id}${
+      `${dashboardUrl?.value}#/${route.params.typeOrId}/${route.params.projectId}/${meta.value?.id}${
         props.view ? `/${props.view.title}` : ''
       }?rowId=${primaryKey.value}`,
     ),
@@ -127,12 +127,18 @@ const onConfirmDeleteRowClick = async () => {
       />
     </a-tooltip>
 
-    <a-button class="nc-expand-form-save-btn !rounded-md" type="primary" :disabled="!isUIAllowed('tableRowUpdate')" @click="save">
+    <NcButton
+      class="nc-expand-form-save-btn !w-[60px]"
+      type="primary"
+      size="small"
+      :disabled="!isUIAllowed('tableRowUpdate')"
+      @click="save"
+    >
       {{ $t('general.save') }}
-    </a-button>
+    </NcButton>
 
     <a-dropdown>
-      <component :is="iconMap.threeDotVertical" class="nc-icon-transition nc-expand-form-more-actions" />
+      <component :is="iconMap.threeDotVertical" class="nc-icon-transition nc-expand-form-more-actions hover:cursor-pointer" />
       <template #overlay>
         <a-menu>
           <a-menu-item v-if="!isNew" @click="loadRow()">
@@ -174,9 +180,17 @@ const onConfirmDeleteRowClick = async () => {
         </a-menu>
       </template>
     </a-dropdown>
-    <a-modal v-model:visible="showDeleteRowModal" title="Delete row?" @ok="onConfirmDeleteRowClick">
-      <p>Are you sure you want to delete this row?</p>
-    </a-modal>
+    <GeneralModal v-model:visible="showDeleteRowModal" class="!w-[25rem]">
+      <div class="p-4">
+        <div class="prose-xl font-bold self-center">Delete row ?</div>
+
+        <div class="mt-4">Are you sure you want to delete this row?</div>
+      </div>
+      <div class="flex flex-row gap-x-2 mt-1 pt-1.5 justify-end p-4">
+        <NcButton type="secondary" @click="showDeleteRowModal = false">{{ $t('general.cancel') }}</NcButton>
+        <NcButton @click="onConfirmDeleteRowClick">{{ $t('general.confirm') }} </NcButton>
+      </div>
+    </GeneralModal>
   </div>
 </template>
 

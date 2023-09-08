@@ -2038,7 +2038,14 @@ export interface ProjectUserReqType {
    */
   email: string;
   /** Project User Role */
-  roles: 'commenter' | 'editor' | 'guest' | 'owner' | 'viewer' | 'creator';
+  roles:
+    | 'no-access'
+    | 'commenter'
+    | 'editor'
+    | 'guest'
+    | 'owner'
+    | 'viewer'
+    | 'creator';
 }
 
 /**
@@ -2394,6 +2401,10 @@ export interface UserInfoType {
   lastname?: string;
   /** The roles of the user */
   roles?: any;
+  /** The project roles of the user */
+  project_roles?: any;
+  /** The workspace roles of the user */
+  workspace_roles?: any;
 }
 
 /**

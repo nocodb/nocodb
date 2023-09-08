@@ -325,7 +325,7 @@ export class TreeViewPage extends BasePage {
     await this.getProjectContextMenu({ projectTitle: param.title }).click();
     const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md:visible').last();
     await contextMenu.waitFor();
-    await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Edit")`).click();
+    await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Rename")`).click();
 
     const projectNodeInput = (await this.getProject({ index: 0, title: param.title })).locator('input');
     await projectNodeInput.clear();
@@ -348,7 +348,7 @@ export class TreeViewPage extends BasePage {
     await this.getProjectContextMenu({ projectTitle: param.title }).click();
     const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md:visible');
     await contextMenu.waitFor();
-    await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Duplicate Project")`).click();
+    await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Duplicate")`).click();
 
     await this.rootPage.locator('div.ant-modal-content').locator(`button.ant-btn:has-text("Confirm")`).click();
   }

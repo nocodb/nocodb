@@ -155,11 +155,8 @@ watch(showShareModal, (val) => {
       </div>
       <div class="share-base">
         <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
-          <component
-            :is="viewIcons[view?.type]?.icon"
-            class="nc-view-icon group-hover"
-            :style="{ color: viewIcons[view?.type]?.color }"
-          />
+          <GeneralProjectIcon :type="project.type" class="nc-view-icon group-hover" />
+
           <div>Share Base</div>
           <div
             class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-gray-100 capitalize text-ellipsis overflow-hidden"

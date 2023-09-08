@@ -64,22 +64,25 @@ watch(dialogShow, async (n, o) => {
   if (n === o && !n) return
 
   // Clear errors
-  form.value?.resetFields()
+  setTimeout(async () => {
+    form.value?.resetFields()
 
-  formState.value = {
-    title: 'Untitled Database',
-  }
-  await nextTick()
-  input.value?.$el?.focus()
-  input.value?.$el?.select()
+    formState.value = {
+      title: 'Untitled Database',
+    }
+
+    await nextTick()
+
+    input.value?.$el?.focus()
+    input.value?.$el?.select()
+  }, 5)
 })
 
 const typeLabel = computed(() => {
   switch (props.type) {
     case NcProjectType.DB:
-      return 'Database'
     default:
-      return ''
+      return 'Database'
   }
 })
 </script>

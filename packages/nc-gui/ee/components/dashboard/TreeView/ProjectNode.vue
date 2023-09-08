@@ -121,6 +121,12 @@ const projectViewOpen = computed(() => {
   return routeNameAfterProjectView.split('-').length === 2 || routeNameAfterProjectView.split('-').length === 1
 })
 
+const showBaseOption = computed(() => {
+  return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) =>
+    isUIAllowed(permission, false, projectRole!.value),
+  )
+})
+
 const enableEditMode = () => {
   editMode.value = true
   tempTitle.value = project.value.title!
@@ -476,7 +482,7 @@ onMounted(() => {
 <template>
   <a-dropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
     <div
-      class="ml-1 mr-0.5 nc-project-sub-menu rounded-md"
+      class="ml-1 nc-project-sub-menu rounded-md"
       :class="{ active: isExpanded }"
       :data-testid="`nc-sidebar-project-${project.title}`"
       :data-project-id="project.id"
@@ -489,7 +495,7 @@ onMounted(() => {
             'hover:bg-gray-200': !(activeProjectId === project.id && projectViewOpen),
           }"
           :data-testid="`nc-sidebar-project-title-${project.title}`"
-          class="project-title-node h-7.25 flex-grow rounded-md group flex items-center w-full"
+          class="project-title-node h-7.25 pr-0.75 flex-grow rounded-md group flex items-center w-full"
         >
           <div
             class="nc-sidebar-expand ml-0.75 min-h-5.75 min-w-5.75 px-1.5 text-gray-500 hover:(hover:bg-gray-500 hover:bg-opacity-15 !text-black) rounded-md relative"
@@ -544,7 +550,7 @@ onMounted(() => {
           </span>
           <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(project)"></div>
 
-          <NcDropdown v-if="isUIAllowed('tableCreate', false, projectRole)" v-model:visible="isOptionsOpen" trigger="click">
+          <NcDropdown v-model:visible="isOptionsOpen" trigger="click">
             <MdiDotsHorizontal
               class="min-w-5.75 min-h-5.75 px-0.5 py-0.5 mr-0.25 !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 opacity-0 group-hover:(opacity-100) hover:text-black text-gray-600 rounded-md hover:(bg-gray-500 bg-opacity-15)"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
@@ -561,7 +567,7 @@ onMounted(() => {
                 @click="isOptionsOpen = false"
               >
                 <template v-if="!isSharedBase">
-                  <NcMenuItem @click="enableEditMode">
+                  <NcMenuItem v-if="isUIAllowed('projectRename', false, projectRole)" @click="enableEditMode">
                     <GeneralIcon icon="edit" class="group-hover:text-black" />
                     {{ $t('general.rename') }}
                   </NcMenuItem>
@@ -575,10 +581,7 @@ onMounted(() => {
                   </NcMenuItem>
 
                   <NcMenuItem
-                    v-if="
-                      project.type === NcProjectType.DB &&
-                      isUIAllowed('duplicateProject', true, [project.workspace_role, project.project_role].join())
-                    "
+                    v-if="project.type === NcProjectType.DB && isUIAllowed('projectDuplicate', true, projectRole)"
                     @click="duplicateProject(project)"
                   >
                     <GeneralIcon icon="duplicate" class="text-gray-700" />
@@ -596,7 +599,7 @@ onMounted(() => {
 
                 <!-- Swagger: Rest APIs -->
                 <NcMenuItem
-                  v-if="isUIAllowed('apiDocs')"
+                  v-if="isUIAllowed('apiDocs', true, projectRoles)"
                   key="api"
                   v-e="['e:api-docs']"
                   class="group"
@@ -607,16 +610,17 @@ onMounted(() => {
                 </NcMenuItem>
 
                 <DashboardTreeViewBaseOptions
-                  v-if="project.bases && project.bases[0]"
+                  v-if="project.bases && project.bases[0] && showBaseOption"
                   v-model:project="project"
                   :base="project.bases[0]"
                 />
 
-                <NcDivider />
+                <NcDivider
+                  v-if="['settings', 'projectDelete'].some((permission) => isUIAllowed(permission, false, projectRole))"
+                />
 
-                <!-- Team & Settings -->
                 <NcMenuItem
-                  v-if="isUIAllowed('settings')"
+                  v-if="isUIAllowed('projectMiscSettings', false, projectRole)"
                   key="teamAndSettings"
                   v-e="['c:navdraw:project-settings']"
                   @click="toggleDialog(true, 'teamAndAuth', undefined, project.id)"
@@ -626,7 +630,7 @@ onMounted(() => {
                 </NcMenuItem>
 
                 <NcMenuItem
-                  v-if="isUIAllowed('projectDelete', false, [activeWorkspace.roles], true)"
+                  v-if="isUIAllowed('projectDelete', false, projectRole)"
                   class="!text-red-500 !hover:bg-red-50"
                   @click="isProjectDeleteDialogVisible = true"
                 >
@@ -641,7 +645,7 @@ onMounted(() => {
 
           <div
             v-if="isUIAllowed('tableCreate', false, projectRole)"
-            class="min-h-5.75 min-w-5.75 mr-1 flex flex-row items-center justify-center gap-x-2 cursor-pointer hover:(text-black) text-gray-600 text-sm invisible !group-hover:visible rounded-md hover:(bg-gray-500 bg-opacity-15)"
+            class="min-h-5.75 min-w-5.75 mr-0.25 flex flex-row items-center justify-center gap-x-2 cursor-pointer hover:(text-black) text-gray-600 text-sm invisible !group-hover:visible rounded-md hover:(bg-gray-500 bg-opacity-15)"
             data-testid="nc-sidebar-add-project-entity"
             :class="{ '!text-black !visible': isAddNewProjectChildEntityLoading, '!visible': isOptionsOpen }"
             @click.stop="addNewProjectChildEntity"
@@ -755,7 +759,7 @@ onMounted(() => {
                                     Relations
                                   </NcMenuItem>
 
-                                  <DashboardTreeViewBaseOptions v-model:project="project" :base="base" />
+                                  <DashboardTreeViewBaseOptions v-if="showBaseOption" v-model:project="project" :base="base" />
                                 </NcMenu>
                               </template>
                             </NcDropdown>

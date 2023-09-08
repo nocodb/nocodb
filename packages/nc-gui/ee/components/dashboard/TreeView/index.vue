@@ -419,7 +419,7 @@ watch(
 
 <style scoped lang="scss">
 .nc-treeview-subheading {
-  @apply flex flex-row w-full justify-between items-center mb-1.5 pl-3.5 pr-1.25;
+  @apply flex flex-row w-full justify-between items-center mb-1.5 pl-3.5 pr-0.5;
 }
 
 .nc-treeview-container {

@@ -84,6 +84,12 @@ const projectViewOpen = computed(() => {
   return routeNameAfterProjectView.split('-').length === 2 || routeNameAfterProjectView.split('-').length === 1
 })
 
+const showBaseOption = computed(() => {
+  return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) =>
+    isUIAllowed(permission, false, projectRole!.value),
+  )
+})
+
 const enableEditMode = () => {
   editMode.value = true
   tempTitle.value = project.value.title!
@@ -378,7 +384,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
             'hover:bg-gray-200': !(activeProjectId === project.id && projectViewOpen),
           }"
           :data-testid="`nc-sidebar-project-title-${project.title}`"
-          class="project-title-node h-7.25 flex-grow rounded-md group flex items-center w-full"
+          class="project-title-node h-7.25 pr-0.5 flex-grow rounded-md group flex items-center w-full"
         >
           <div
             class="nc-sidebar-expand ml-0.75 min-h-5.75 min-w-5.75 px-1.5 text-gray-500 hover:(hover:bg-gray-500 hover:bg-opacity-15 !text-black) rounded-md relative"
@@ -434,7 +440,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
           </span>
           <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(project)"></div>
 
-          <NcDropdown v-if="isUIAllowed('tableCreate', false, projectRole)" v-model:visible="isOptionsOpen" trigger="click">
+          <NcDropdown v-model:visible="isOptionsOpen" trigger="click">
             <MdiDotsHorizontal
               class="min-w-5.75 min-h-5.75 px-0.5 py-0.5 mr-0.25 !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 opacity-0 group-hover:(opacity-100) hover:text-black text-gray-600 rounded-md hover:(bg-gray-500 bg-opacity-15)"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
@@ -451,22 +457,25 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                 @click="isOptionsOpen = false"
               >
                 <template v-if="!isSharedBase">
-                  <NcMenuItem @click="enableEditMode">
+                  <NcMenuItem v-if="isUIAllowed('projectRename', false, projectRole)" @click="enableEditMode">
                     <GeneralIcon icon="edit" class="group-hover:text-black" />
                     {{ $t('general.rename') }}
                   </NcMenuItem>
+
+                  <NcMenuItem v-if="isUIAllowed('projectDuplicate', false, projectRole)" @click="duplicateProject(project)">
+                    <GeneralIcon icon="duplicate" class="text-gray-700" />
+                    {{ $t('general.duplicate') }}
+                  </NcMenuItem>
+
+                  <NcDivider
+                    v-if="['projectDuplicate', 'projectRename'].some((permission) => isUIAllowed(permission, false, projectRole))"
+                  />
 
                   <!-- Copy Project Info -->
                   <NcMenuItem v-if="!isEeUI" key="copy" v-e="['c:navbar:user:copy-proj-info']" @click.stop="copyProjectInfo">
                     <GeneralIcon icon="copy" class="group-hover:text-black" />
                     {{ $t('activity.account.projInfo') }}
                   </NcMenuItem>
-                  <NcMenuItem v-if="isUIAllowed('duplicateProject', true, projectRole)" @click="duplicateProject(project)">
-                    <GeneralIcon icon="duplicate" class="text-gray-700" />
-                    {{ $t('general.duplicate') }}
-                  </NcMenuItem>
-
-                  <NcDivider v-if="false" />
 
                   <!-- ERD View -->
                   <NcMenuItem key="erd" @click="openProjectErdView(project)">
@@ -476,7 +485,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 
                   <!-- Swagger: Rest APIs -->
                   <NcMenuItem
-                    v-if="isUIAllowed('apiDocs')"
+                    v-if="isUIAllowed('apiDocs', false, projectRole)"
                     key="api"
                     v-e="['e:api-docs']"
                     @click.stop="openLink(`/api/v1/db/meta/projects/${project.id}/swagger`, appInfo.ncSiteUrl)"
@@ -485,9 +494,20 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                     {{ $t('activity.account.swagger') }}
                   </NcMenuItem>
                 </template>
-                <!-- Team & Settings -->
+
+                <template v-if="project.bases && project.bases[0] && showBaseOption">
+                  <NcDivider />
+                  <DashboardTreeViewBaseOptions v-model:project="project" :base="project.bases[0]" />
+                </template>
+
+                <NcDivider
+                  v-if="
+                    ['projectMiscSettings', 'projectDelete'].some((permission) => isUIAllowed(permission, false, projectRole))
+                  "
+                />
+
                 <NcMenuItem
-                  v-if="isUIAllowed('settings')"
+                  v-if="isUIAllowed('projectMiscSettings', false, projectRole)"
                   key="teamAndSettings"
                   v-e="['c:navdraw:project-settings']"
                   @click="toggleDialog(true, 'teamAndAuth', undefined, project.id)"
@@ -495,14 +515,6 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   <GeneralIcon icon="settings" class="group-hover:text-black" />
                   {{ $t('activity.settings') }}
                 </NcMenuItem>
-                <template v-if="project.bases && project.bases[0]">
-                  <NcDivider />
-                  <DashboardTreeViewBaseOptions v-model:project="project" :base="project.bases[0]" />
-
-                  <NcDivider />
-                </template>
-
-                <NcDivider v-if="false" />
 
                 <NcMenuItem
                   v-if="isUIAllowed('projectDelete', false, projectRole)"
@@ -518,7 +530,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 
           <div
             v-if="isUIAllowed('tableCreate', false, projectRole)"
-            class="min-h-5.75 min-w-5.75 mr-1 flex flex-row items-center justify-center gap-x-2 cursor-pointer hover:(text-black) text-gray-600 text-sm invisible !group-hover:visible rounded-md hover:(bg-gray-500 bg-opacity-15)"
+            class="min-h-5.75 min-w-5.75 flex flex-row mr-0.25 items-center justify-center gap-x-2 cursor-pointer hover:(text-black) text-gray-600 text-sm invisible !group-hover:visible rounded-md hover:(bg-gray-500 bg-opacity-15)"
             data-testid="nc-sidebar-add-project-entity"
             :class="{ '!text-black !visible': isAddNewProjectChildEntityLoading, '!visible': isOptionsOpen }"
             @click.stop="addNewProjectChildEntity"
@@ -626,7 +638,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                                     Relations
                                   </NcMenuItem>
 
-                                  <DashboardTreeViewBaseOptions v-model:project="project" :base="base" />
+                                  <DashboardTreeViewBaseOptions v-if="showBaseOption" v-model:project="project" :base="base" />
                                 </NcMenu>
                               </template>
                             </NcDropdown>

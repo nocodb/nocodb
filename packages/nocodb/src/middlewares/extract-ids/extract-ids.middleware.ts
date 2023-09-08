@@ -180,8 +180,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 }
 
 function getUserRoleForScope(user: any, scope: string) {
-  if (scope === 'project' || scope === 'workspace') {
-    return user?.project_roles || user?.workspace_roles;
+  if (scope === 'project') {
+    return user?.project_roles;
   } else if (scope === 'org') {
     return user?.roles;
   }
@@ -218,6 +218,13 @@ export class AclMiddleware implements NestInterceptor {
 
     if (!userScopeRole) {
       NcError.forbidden('Unauthorized access');
+    }
+
+    // assign owner role to super admin for all projects
+    if (userScopeRole === OrgUserRoles.SUPER_ADMIN) {
+      req.user.project_roles = {
+        [ProjectRoles.OWNER]: true,
+      };
     }
 
     const roles: Record<string, boolean> = extractRolesObj(userScopeRole);

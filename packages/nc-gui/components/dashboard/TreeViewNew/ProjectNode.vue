@@ -318,12 +318,14 @@ onKeyStroke('Escape', () => {
 })
 
 const isDuplicateDlgOpen = ref(false)
+const showHiddenTables = ref(false)
 const selectedProjectToDuplicate = ref()
 
 const duplicateProject = (project: ProjectType) => {
   selectedProjectToDuplicate.value = project
   isDuplicateDlgOpen.value = true
 }
+const unHideTables = () => (showHiddenTables.value = true)
 const { $jobs } = useNuxtApp()
 
 const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string }) => {
@@ -464,6 +466,14 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 
                   <a-menu-divider v-if="false" />
 
+                  <!-- SHOW HIDDEN TABLES LIST -->
+                  <a-menu-item v-show="showHiddenTables" @click="unHideTables">
+                    <div class="nc-menu-item-wrapper">
+                      <GeneralIcon icon="eye" class="text-gray-700" />
+                      Show Hidden Tables
+                    </div>
+                  </a-menu-item>
+
                   <!-- ERD View -->
                   <a-menu-item key="erd" @click="openProjectErdView(project)">
                     <div class="nc-project-menu-item group">
@@ -540,7 +550,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
           <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
             <div v-if="project?.bases?.[0]?.enabled" class="flex-1">
               <div class="transition-height duration-200">
-                <DashboardTreeViewNewTableList :project="project" :base-index="0" />
+                <DashboardTreeViewNewTableList :project="project" :base-index="0" :show-hidden-tables="showHiddenTables" />
               </div>
             </div>
 

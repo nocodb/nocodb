@@ -10,6 +10,7 @@ const props = withDefaults(
   defineProps<{
     project: ProjectType
     baseIndex?: number
+    showHiddenTables?: boolean
   }>(),
   {
     baseIndex: 0,
@@ -18,6 +19,7 @@ const props = withDefaults(
 
 const project = toRef(props, 'project')
 const baseIndex = toRef(props, 'baseIndex')
+const showHiddenTables = toRef(props, 'showHiddenTables')
 
 const base = computed(() => project.value?.bases?.[baseIndex.value])
 
@@ -41,6 +43,8 @@ const tablesById = computed(() =>
 const keys = ref<Record<string, number>>({})
 
 const menuRefs = ref<HTMLElement[] | HTMLElement>()
+
+const hiddentables = ref<TableType[]>([])
 
 const sortables: Record<string, Sortable> = {}
 
@@ -125,8 +129,18 @@ watchEffect(() => {
   }
 })
 
+watch(showHiddenTables, () => {
+  if (showHiddenTables) {
+    hiddentables.value = []
+  }
+})
+
+const hideTable = (table: TableType) => hiddentables.value.push(table)
+
 const availableTables = computed(() => {
-  return tables.value.filter((table) => table.base_id === project.value?.bases?.[baseIndex.value].id)
+  return tables.value.filter(
+    (table) => table.base_id === project.value?.bases?.[baseIndex.value].id && !hiddentables.value.includes(table),
+  )
 })
 </script>
 
@@ -164,6 +178,7 @@ const availableTables = computed(() => {
           :data-base-id="base?.id"
           :data-type="table.type"
           @click="openTable(table)"
+          @hide-table="hideTable"
         >
         </TableNode>
       </div>

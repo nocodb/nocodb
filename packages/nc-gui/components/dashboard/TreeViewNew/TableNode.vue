@@ -16,6 +16,7 @@ const props = withDefaults(
   { baseIndex: 0 },
 )
 
+const emits = defineEmits(['hideTable'])
 const project = toRef(props, 'project')
 const table = toRef(props, 'table')
 const baseIndex = toRef(props, 'baseIndex')
@@ -183,6 +184,20 @@ const { isSharedBase } = useProject()
                 <div class="nc-project-menu-item" :data-testid="`sidebar-table-duplicate-${table.title}`">
                   <GeneralIcon icon="duplicate" class="text-gray-700" />
                   {{ $t('general.duplicate') }}
+                </div>
+              </a-menu-item>
+
+              <a-menu-item
+                v-if="
+                  isUIAllowed('table-duplicate') &&
+                  project.bases?.[baseIndex] &&
+                  (project.bases[baseIndex].is_meta || project.bases[baseIndex].is_local)
+                "
+                @click="emits('hideTable', table)"
+              >
+                <div class="nc-project-menu-item" :data-testid="`sidebar-table-duplicate-${table.title}`">
+                  <GeneralIcon icon="shrink" class="text-gray-700" />
+                  {{ $t('general.hide') }}
                 </div>
               </a-menu-item>
 

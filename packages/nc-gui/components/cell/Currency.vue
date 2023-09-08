@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { ColumnInj, EditModeInj, IsExpandedFormOpenInj, computed, inject, parseProp, useVModel } from '#imports'
+import { ColumnInj, EditColumnInj, EditModeInj, IsExpandedFormOpenInj, computed, inject, parseProp, useVModel } from '#imports'
 
 interface Props {
   modelValue: number | null | undefined
-  isFocus?: boolean
 }
 
 const props = defineProps<Props>()
@@ -16,6 +15,8 @@ const { showNull } = useGlobal()
 const column = inject(ColumnInj)!
 
 const editEnabled = inject(EditModeInj)!
+
+const isEditColumn = inject(EditColumnInj, ref(false))
 
 const _vModel = useVModel(props, 'modelValue', emit)
 
@@ -56,7 +57,7 @@ const currency = computed(() => {
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && props.isFocus && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
 
 const submitCurrency = () => {
   if (lastSaved.value !== vModel.value) {
@@ -77,7 +78,8 @@ onMounted(() => {
     :ref="focus"
     v-model="vModel"
     type="number"
-    class="w-full h-full border-none rounded-md outline-none"
+    class="w-full h-full text-sm border-none rounded-md outline-none"
+    :placeholder="isEditColumn ? '(Optional) Enter default value' : ''"
     @blur="submitCurrency"
     @keydown.down.stop
     @keydown.left.stop

@@ -19,6 +19,8 @@ const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
 
+const isEditColumn = inject(EditColumnInj, ref(false))
+
 const isYearInvalid = ref(false)
 
 const localState = computed({
@@ -62,7 +64,17 @@ watch(
   { flush: 'post' },
 )
 
-const placeholder = computed(() => (modelValue === null && showNull.value ? 'NULL' : isYearInvalid.value ? 'Invalid year' : ''))
+const placeholder = computed(() => {
+  if (isEditColumn.value && modelValue === null) {
+    return '(Optional) Select default year'
+  } else if (modelValue === null && showNull.value) {
+    return 'NULL'
+  } else if (isTimeInvalid.value) {
+    return 'Invalid year'
+  } else {
+    return ''
+  }
+})
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {

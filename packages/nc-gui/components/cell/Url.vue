@@ -3,6 +3,7 @@ import type { VNodeRef } from '@vue/runtime-core'
 import {
   CellUrlDisableOverlayInj,
   ColumnInj,
+  EditColumnInj,
   EditModeInj,
   IsExpandedFormOpenInj,
   IsSurveyFormInj,
@@ -19,10 +20,9 @@ import {
 
 interface Props {
   modelValue?: string | null
-  isFocus?: boolean
 }
 
-const { modelValue: value, isFocus } = defineProps<Props>()
+const { modelValue: value } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -33,6 +33,8 @@ const { showNull } = useGlobal()
 const column = inject(ColumnInj)!
 
 const editEnabled = inject(EditModeInj)!
+
+const isEditColumn = inject(EditColumnInj, ref(false))
 
 const disableOverlay = inject(CellUrlDisableOverlayInj, ref(false))
 
@@ -68,7 +70,7 @@ const { cellUrlOptions } = useCellUrlConfig(url)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && isFocus && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
 
 watch(
   () => editEnabled.value,
@@ -89,6 +91,7 @@ watch(
       v-if="editEnabled"
       :ref="focus"
       v-model="vModel"
+      :placeholder="isEditColumn ? '(Optional) Enter default URL' : ''"
       class="outline-none text-sm w-full px-2 py-2 bg-transparent h-full"
       @blur="editEnabled = false"
       @keydown.down.stop

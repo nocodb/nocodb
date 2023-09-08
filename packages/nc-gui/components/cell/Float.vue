@@ -1,13 +1,12 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, IsExpandedFormOpenInj, inject, useVModel } from '#imports'
+import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, inject, useVModel } from '#imports'
 
 interface Props {
   // when we set a number, then it is number type
   // for sqlite, when we clear a cell or empty the cell, it returns ""
   // otherwise, it is null type
   modelValue?: number | null | string
-  isFocus?: boolean
 }
 
 interface Emits {
@@ -21,6 +20,8 @@ const emits = defineEmits<Emits>()
 const { showNull } = useGlobal()
 
 const editEnabled = inject(EditModeInj)
+
+const isEditColumn = inject(EditColumnInj, ref(false))
 
 const _vModel = useVModel(props, 'modelValue', emits)
 
@@ -39,7 +40,7 @@ const vModel = computed({
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && props.isFocus && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
@@ -50,6 +51,7 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && props.isFocus && (e
     class="outline-none px-1 border-none w-full h-full text-sm"
     type="number"
     step="0.1"
+    :placeholder="isEditColumn ? '(Optional) Enter default value' : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

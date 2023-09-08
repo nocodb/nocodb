@@ -2,6 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import {
   ColumnInj,
+  EditColumnInj,
   EditModeInj,
   IsExpandedFormOpenInj,
   computed,
@@ -16,10 +17,9 @@ import {
 interface Props {
   modelValue: number | string | null | undefined
   showValidationError?: boolean
-  isFocus?: boolean
 }
 
-const { modelValue, showValidationError = true, isFocus } = defineProps<Props>()
+const { modelValue, showValidationError = true } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -35,9 +35,13 @@ const durationInMS = ref(0)
 
 const isEdited = ref(false)
 
+const isEditColumn = inject(EditColumnInj, ref(false))
+
 const durationType = computed(() => parseProp(column?.value?.meta)?.duration || 0)
 
-const durationPlaceholder = computed(() => durationOptions[durationType.value].title)
+const durationPlaceholder = computed(() =>
+  isEditColumn.value ? '(Optional) Enter default value' : durationOptions[durationType.value].title,
+)
 
 const localState = computed({
   get: () => convertMS2Duration(modelValue, durationType.value),
@@ -77,7 +81,7 @@ const submitDuration = () => {
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && isFocus && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
 </script>
 
 <template>

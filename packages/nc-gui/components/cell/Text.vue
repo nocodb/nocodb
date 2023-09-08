@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, IsExpandedFormOpenInj, ReadonlyInj, RowHeightInj, inject, ref, useVModel } from '#imports'
+import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, ReadonlyInj, RowHeightInj, inject, ref, useVModel } from '#imports'
 
 interface Props {
   modelValue?: string | null
-  isFocus?: boolean
 }
 
 const props = defineProps<Props>()
@@ -15,6 +14,8 @@ const { showNull } = useGlobal()
 
 const editEnabled = inject(EditModeInj, ref(false))
 
+const isEditColumn = inject(EditColumnInj, ref(false))
+
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const readonly = inject(ReadonlyInj, ref(false))
@@ -23,7 +24,7 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && props.isFocus && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
@@ -32,6 +33,7 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && props.isFocus && (e
     :ref="focus"
     v-model="vModel"
     class="h-full w-full outline-none p-2 bg-transparent"
+    :placeholder="isEditColumn ? '(Optional) Enter default value' : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

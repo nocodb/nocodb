@@ -300,7 +300,7 @@ if (props.fromTableExplorer) {
           {{ `Accept only valid ${formState.uidt}` }}
         </span>
       </a-checkbox>
-      <div class="mt-3">
+      <div class="!my-3">
         <!--
         Default Value for JSON & LongText is not supported in MySQL 
          Default Value is Disabled for MSSQL -->

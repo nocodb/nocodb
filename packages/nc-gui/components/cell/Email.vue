@@ -1,13 +1,21 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, IsExpandedFormOpenInj, IsSurveyFormInj, computed, inject, useI18n, validateEmail } from '#imports'
+import {
+  EditColumnInj,
+  EditModeInj,
+  IsExpandedFormOpenInj,
+  IsSurveyFormInj,
+  computed,
+  inject,
+  useI18n,
+  validateEmail,
+} from '#imports'
 
 interface Props {
   modelValue: string | null | undefined
-  isFocus?: boolean
 }
 
-const { modelValue: value, isFocus } = defineProps<Props>()
+const { modelValue: value } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -26,6 +34,8 @@ const localState = ref(value)
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
+const isEditColumn = inject(EditColumnInj, ref(false))
+
 const vModel = computed({
   get: () => value,
   set: (val) => {
@@ -40,7 +50,7 @@ const validEmail = computed(() => vModel.value && validateEmail(vModel.value))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && isFocus && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
 
 watch(
   () => editEnabled.value,
@@ -61,6 +71,7 @@ watch(
     :ref="focus"
     v-model="vModel"
     class="w-full outline-none text-sm px-1 py-2"
+    :placeholder="isEditColumn ? '(Optional) Enter default value' : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

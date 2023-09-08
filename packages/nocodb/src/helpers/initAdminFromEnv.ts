@@ -62,7 +62,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
         salt,
       );
       const email_verification_token = uuidv4();
-      const roles = 'user,super';
+      const roles = 'org-level-creator,super';
 
       // if super admin not present
       if (await User.isFirst(ncMeta)) {
@@ -92,8 +92,12 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
         // TODO improve this
         const superUsers = await ncMeta.metaList2(null, null, MetaTable.USERS);
 
+        let superUserPresent = false;
+
         for (const user of superUsers) {
           if (!user.roles?.includes('super')) continue;
+
+          superUserPresent = true;
 
           if (email !== user.email) {
             // update admin email and password and migrate projects
@@ -190,7 +194,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 ncMeta,
               );
             } else {
-              // if email's are not different update the password and hash
+              // if no user present with the new admin email update the email and password
               await User.update(
                 user.id,
                 {
@@ -225,6 +229,56 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 ncMeta,
               );
             }
+          }
+        }
+
+        if (!superUserPresent) {
+          // check user account already present with the new admin email
+          const existingUserWithNewEmail = await User.getByEmail(email, ncMeta);
+          if (existingUserWithNewEmail?.id) {
+            // clear cache
+            await NocoCache.delAll(
+              CacheScope.USER,
+              `${existingUserWithNewEmail.email}___*`,
+            );
+            await NocoCache.del(
+              `${CacheScope.USER}:${existingUserWithNewEmail.id}`,
+            );
+            await NocoCache.del(
+              `${CacheScope.USER}:${existingUserWithNewEmail.email}`,
+            );
+
+            // Update password and roles of existing user
+            await User.update(
+              existingUserWithNewEmail.id,
+              {
+                salt,
+                email,
+                password,
+                email_verification_token,
+                token_version: randomTokenString(),
+                refresh_token: null,
+                roles,
+              },
+              ncMeta,
+            );
+          } else {
+            // no super user present and no user present with the new admin email
+            T.emit('evt', {
+              evt_type: 'project:invite',
+              count: 1,
+            });
+
+            await User.insert(
+              {
+                email,
+                salt,
+                password,
+                email_verification_token,
+                roles,
+              },
+              ncMeta,
+            );
           }
         }
       }

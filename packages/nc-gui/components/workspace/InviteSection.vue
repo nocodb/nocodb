@@ -31,6 +31,16 @@ const { workspaceRoles } = useRoles()
 const emailBadges = ref<Array<string>>([])
 watch(inviteData, (newVal) => {
   if (newVal.email.includes(',')) {
+    if (inviteData.email.length < 1) {
+      emailValidation.isError = true
+      emailValidation.message = 'email should not be empty'
+      return
+    }
+    if (!validateEmail(inviteData.email)) {
+      emailValidation.isError = true
+      emailValidation.message = 'invalid emamil'
+      return
+    }
     emailBadges.value.push(newVal.email.split(',')[0])
     inviteData.email = ''
   }
@@ -106,7 +116,7 @@ onKeyStroke('Backspace', () => {
       <div class="flex flex-col">
         <div
           ref="divRef"
-          class="flex w-130 border-1 gap-1 items-center rounded-lg nc-scrollbar-x-md flex-wrap"
+          class="flex w-130 border-1 gap-1 items-center rounded-lg nc-scrollbar-x-md flex-wrap max-h-30 overflow-y-scroll"
           tabindex="0"
           :class="{
             'border-primary/100': isDivFocused,
@@ -123,10 +133,14 @@ onKeyStroke('Backspace', () => {
           <span
             v-for="(email, index) in emailBadges"
             :key="email"
-            class="text-[14px] border-1 text-primary/500 bg-primary/100 rounded-md ml-1 mt-1 p-0.5"
+            class="text-[14px] border-1 text-brand-500 bg-brand-50 rounded-md ml-1 mt-1 p-0.5"
           >
             {{ email }}
-            <component :is="iconMap.close" class="ml-0.5 hover:cursor-pointer w-4 h-4" @click="emailBadges.splice(index, 1)" />
+            <component
+              :is="iconMap.close"
+              class="ml-0.5 hover:cursor-pointer w-3.5 h-3.5"
+              @click="emailBadges.splice(index, 1)"
+            />
           </span>
           <input
             id="email"
@@ -138,7 +152,7 @@ onKeyStroke('Backspace', () => {
             @blur="isDivFocused = false"
           />
         </div>
-        <span v-if="emailValidation.isError" class="ml-2 text-red/100 text-[12px] mt-1">{{ emailValidation.message }}</span>
+        <span v-if="emailValidation.isError" class="ml-2 text-red-500 text-[12px] mt-1">{{ emailValidation.message }}</span>
       </div>
       <NcSelect v-model:value="inviteData.roles" class="min-w-30 !rounded px-1" data-testid="roles">
         <template #suffixIcon>

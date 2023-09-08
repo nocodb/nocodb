@@ -628,6 +628,17 @@ onMounted(async () => {
       <a-input v-model:value="importURL" />
     </a-modal>
   </div>
+  
+      <!-- connection succesfull modal -->
+  <GeneralModal v-model:visible="isConnSuccess" class="!w-[25rem]">
+      <div class="flex flex-col h-full p-8">
+        <div class="text-lg font-semibold self-start mb-4">{{ t('msg.info.dbConnected') }}</div>
+        <div class="flex gap-x-2 mt-5 ml-7 pt-2.5 justify-end">
+          <NcButton key="back" type="secondary" @click="isConnSuccess = false">{{ $t('general.cancel') }}</NcButton>
+          <NcButton key="submit" type="primary" @click="createBase">Ok & Add Base</NcButton>
+        </div>
+      </div>
+    </GeneralModal>
 </template>
 
 <style lang="scss" scoped>

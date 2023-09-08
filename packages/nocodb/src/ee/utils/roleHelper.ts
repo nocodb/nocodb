@@ -1,4 +1,8 @@
-import { OrderedProjectRoles, OrderedWorkspaceRoles } from 'nocodb-sdk';
+import {
+  extractRolesObj,
+  OrderedProjectRoles,
+  OrderedWorkspaceRoles,
+} from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
 import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 
@@ -61,4 +65,19 @@ export function getWorkspaceRolePower(user: any) {
   }
 
   return ind;
+}
+
+export function mapWorkspaceRolesObjToProjectRolesObj(wsRoles: any) {
+  wsRoles = extractRolesObj(wsRoles);
+  let projectRoles = null;
+  if (wsRoles) {
+    for (const r of Object.keys(wsRoles)) {
+      const roleIndex = OrderedWorkspaceRoles.indexOf(r as WorkspaceUserRoles);
+      if (roleIndex !== -1) {
+        if (!projectRoles) projectRoles = {};
+        projectRoles[OrderedProjectRoles[roleIndex]] = wsRoles[r];
+      }
+    }
+  }
+  return projectRoles;
 }

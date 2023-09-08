@@ -17,7 +17,10 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
           return callback({ msg: 'Invalid token' });
         }
 
-        user = {};
+        user = {
+          is_api_token: true,
+        };
+
         if (!apiToken.fk_user_id) {
           user.project_roles = extractRolesObj(ProjectRoles.EDITOR);
           return callback(null, user);
@@ -33,7 +36,6 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
           roles: extractRolesObj(dbUser.roles),
         });
 
-        dbUser.is_api_token = true;
         if (req['ncProjectId']) {
           const projectUser = await ProjectUser.get(
             req['ncProjectId'],

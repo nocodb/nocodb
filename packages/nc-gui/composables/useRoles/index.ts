@@ -6,6 +6,7 @@ import type { ProjectRole, Role, Roles } from '#imports'
  * Provides the roles a user currently has
  *
  * * `userRoles` - the roles a user has outside of projects
+ * * `workspaceRoles` - the roles a user has in the current workspace (if one was loaded)
  * * `projectRoles` - the roles a user has in the current project (if one was loaded)
  * * `allRoles` - all roles a user has (userRoles + projectRoles)
  * * `hasRole` - a function to check if a user has a specific role
@@ -14,7 +15,11 @@ import type { ProjectRole, Role, Roles } from '#imports'
 export const useRoles = createSharedComposable(() => {
   const { user, previewAs } = useGlobal()
 
+  const { activeWorkspace } = storeToRefs(useWorkspace())
+
   const { api } = useApi()
+
+  const workspaceRoles: ComputedRef<Roles> = computed<Roles>(() => extractRolesObj(activeWorkspace.value?.roles ?? ({} as Roles)))
 
   const allRoles = computed<Roles>(() => {
     let orgRoles = user.value?.roles ?? {}
@@ -28,6 +33,7 @@ export const useRoles = createSharedComposable(() => {
     return {
       ...orgRoles,
       ...projectRoles,
+      ...workspaceRoles.value,
     }
   })
 
@@ -108,5 +114,5 @@ export const useRoles = createSharedComposable(() => {
     return allRoles.value[role]
   }
 
-  return { allRoles, orgRoles, projectRoles, loadRoles, hasRole }
+  return { allRoles, orgRoles, projectRoles, loadRoles, hasRole, workspaceRoles }
 })

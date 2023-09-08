@@ -191,7 +191,8 @@ watch(vModel.value, (next) => {
   const values = (next.colOptions.options ?? []).map((col) => {
     return col.title.replaceAll("'", '')
   })
-  next.cdf = cdfs.filter((c: string) => values.includes(c)).join(',')
+  const newCdf = cdfs.filter((c: string) => values.includes(c)).join(',')
+  next.cdf = newCdf.length === 0 ? null : newCdf
 })
 </script>
 

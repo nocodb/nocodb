@@ -7,6 +7,7 @@ import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { ProjectUser, WorkspaceUser } from '~/models';
 import { sanitiseUserObj } from '~/utils';
+import { mapWorkspaceRolesObjToProjectRolesObj } from '~/utils/roleHelper';
 
 export default class User extends UserCE implements UserType {
   user_name?: string;
@@ -425,7 +426,9 @@ export default class User extends UserCE implements UserType {
       ...sanitiseUserObj(user),
       roles: user.roles ? extractRolesObj(user.roles) : null,
       workspace_roles: workspaceRoles ? workspaceRoles : null,
-      project_roles: projectRoles ? projectRoles : null,
+      project_roles: projectRoles
+        ? projectRoles
+        : mapWorkspaceRolesObjToProjectRolesObj(workspaceRoles),
     } as any;
   }
 }

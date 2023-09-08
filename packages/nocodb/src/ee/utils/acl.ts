@@ -501,24 +501,6 @@ Object.values(roleScopes).forEach((roles) => {
   }
 });
 
-// inherit project roles to workspace roles
-for (const [i, role] of Object.entries(roleScopes.project)) {
-  if (rolePermissions[role] === '*') continue;
-  if (rolePermissions[role].include) {
-    Object.assign(
-      rolePermissions[roleScopes.workspace[i]].include,
-      rolePermissions[role].include,
-    );
-  }
-
-  if (rolePermissions[role].exclude) {
-    Object.assign(
-      rolePermissions[roleScopes.workspace[i]].exclude,
-      rolePermissions[role].exclude,
-    );
-  }
-}
-
 // exclude out of scope permissions
 // - org roles exclude project and workspace permissions
 // - workspace roles exclude org permissions (we don't exclude project permissions as we inherit project permissions to workspace)
@@ -527,8 +509,6 @@ Object.entries(roleScopes).forEach(([scope, roles]) => {
   const outOfScopePermissions = Object.keys(permissionScopes).reduce(
     (acc, curr) => {
       if (curr !== scope) {
-        // skip project on workspace as we inherit project permissions to workspace
-        if (scope === 'workspace' && curr === 'project') return acc;
         Object.assign(
           acc,
           permissionScopes[curr].reduce((acc, val) => {

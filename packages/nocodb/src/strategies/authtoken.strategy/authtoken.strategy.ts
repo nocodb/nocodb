@@ -30,7 +30,7 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
 
         Object.assign(user, {
           id: dbUser.id,
-          roles: dbUser.roles,
+          roles: extractRolesObj(dbUser.roles),
         });
 
         dbUser.is_api_token = true;

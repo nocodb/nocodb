@@ -2,6 +2,7 @@
 import {
   ActiveCellInj,
   ColumnInj,
+  EditColumnInj,
   IsFormInj,
   ReadonlyInj,
   getMdiIcon,
@@ -32,6 +33,8 @@ const { isMssql } = useProject()
 const column = inject(ColumnInj)
 
 const isForm = inject(IsFormInj)
+
+const isEditColumnMenu = inject(EditColumnInj, ref(false))
 
 const readOnly = inject(ReadonlyInj)
 
@@ -84,17 +87,22 @@ useSelectedCellKeyupListener(active, (e) => {
     }"
     @click="onClick(false, $event)"
   >
-    <div class="p-1 rounded-full items-center" :class="{ 'bg-gray-100': !vModel, '!ml-[-8px]': readOnly }">
-      <Transition name="layout" mode="out-in" :duration="100">
-        <component
-          :is="getMdiIcon(vModel ? checkboxMeta.icon.checked : checkboxMeta.icon.unchecked)"
-          class="nc-checkbox"
-          :style="{
-            color: checkboxMeta.color,
-          }"
-          @click="onClick(true)"
-        />
-      </Transition>
+    <div
+      class="items-center"
+      :class="{ '!ml-[-8px]': readOnly, 'w-full justify-start': isEditColumnMenu }"
+      @click="onClick(true)"
+    >
+      <div class="p-1" :class="{ 'bg-gray-100 rounded-full ': !vModel }">
+        <Transition name="layout" mode="out-in" :duration="100">
+          <component
+            :is="getMdiIcon(vModel ? checkboxMeta.icon.checked : checkboxMeta.icon.unchecked)"
+            class="nc-checkbox"
+            :style="{
+              color: checkboxMeta.color,
+            }"
+          />
+        </Transition>
+      </div>
     </div>
   </div>
 </template>

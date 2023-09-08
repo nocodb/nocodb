@@ -1,6 +1,16 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ActiveCellInj, ReadonlyInj, computed, inject, onClickOutside, ref, useSelectedCellKeyupListener, watch } from '#imports'
+import {
+  ActiveCellInj,
+  EditColumnInj,
+  ReadonlyInj,
+  computed,
+  inject,
+  onClickOutside,
+  ref,
+  useSelectedCellKeyupListener,
+  watch,
+} from '#imports'
 
 interface Props {
   modelValue?: number | string | null
@@ -69,7 +79,7 @@ const placeholder = computed(() => {
     return '(Optional) Select default year'
   } else if (modelValue === null && showNull.value) {
     return 'NULL'
-  } else if (isTimeInvalid.value) {
+  } else if (isYearInvalid.value) {
     return 'Invalid year'
   } else {
     return ''

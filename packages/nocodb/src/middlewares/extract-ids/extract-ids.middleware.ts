@@ -220,6 +220,13 @@ export class AclMiddleware implements NestInterceptor {
       NcError.forbidden('Unauthorized access');
     }
 
+    // assign owner role to super admin for all projects
+    if (userScopeRole === OrgUserRoles.SUPER_ADMIN) {
+      req.user.project_roles = {
+        [ProjectRoles.OWNER]: true,
+      };
+    }
+
     const roles: Record<string, boolean> = extractRolesObj(userScopeRole);
 
     if (req?.user?.is_api_token && blockApiTokenAccess) {

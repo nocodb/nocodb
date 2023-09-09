@@ -17,7 +17,7 @@ import {
   watch,
 } from '#imports'
 
-import ListIcon from '~icons/nc-icons/list'
+import SortIcon from '~icons/nc-icons/sort'
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
@@ -109,15 +109,15 @@ watch(open, () => {
 
 <template>
   <NcDropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-sort-menu nc-toolbar-dropdown">
-    <div :class="{ 'nc-badge nc-active-btn': sorts?.length }">
+    <div :class="{ 'nc-active-btn': sorts?.length }">
       <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-2">
-          <ListIcon class="h-4 w-4" />
+          <SortIcon class="h-4 w-4" />
 
           <!-- Sort -->
           <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.sort') }}</span>
 
-          <span v-if="sorts?.length" class="nc-count-badge">{{ sorts.length }}</span>
+          <span v-if="sorts?.length" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{ sorts.length }}</span>
         </div>
       </a-button>
     </div>

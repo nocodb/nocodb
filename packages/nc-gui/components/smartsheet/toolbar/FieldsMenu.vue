@@ -3,6 +3,8 @@ import type { ColumnType, GalleryType, KanbanType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import type { SelectProps } from 'ant-design-vue'
+import FieldsIcon from '~icons/nc-icons/fields'
+
 import {
   ActiveViewInj,
   FieldsInj,
@@ -256,23 +258,29 @@ const getIcon = (c: ColumnType) =>
 
 const open = ref(false)
 
-const toggleSystemFields = (checked: boolean) => {
-  addUndo({
-    undo: {
-      fn: (v: boolean) => {
-        showSystemFields.value = !v
+const showSystemField = computed({
+  get: () => {
+    return showSystemFields.value
+  },
+  set: (val) => {
+    addUndo({
+      undo: {
+        fn: (v: boolean) => {
+          showSystemFields.value = !v
+        },
+        args: [val],
       },
-      args: [checked],
-    },
-    redo: {
-      fn: (v: boolean) => {
-        showSystemFields.value = v
+      redo: {
+        fn: (v: boolean) => {
+          showSystemFields.value = v
+        },
+        args: [val],
       },
-      args: [checked],
-    },
-    scope: defineViewScope({ view: activeView.value }),
-  })
-}
+      scope: defineViewScope({ view: activeView.value }),
+    })
+    showSystemFields.value = val
+  },
+})
 
 useMenuCloseOnEsc(open)
 </script>
@@ -287,7 +295,7 @@ useMenuCloseOnEsc(open)
             icon="creditCard"
             class="h-4 w-4"
           />
-          <GeneralIcon v-else icon="eye" class="h-4 w-4" />
+          <FieldsIcon v-else class="h-4 w-4" />
 
           <!-- Fields -->
           <span v-if="!isMobileMode" class="text-capitalize text-sm font-medium">
@@ -298,14 +306,15 @@ useMenuCloseOnEsc(open)
               {{ $t('objects.fields') }}
             </template>
           </span>
-
-          <span v-if="numberOfHiddenFields" class="nc-count-badge">{{ numberOfHiddenFields }}</span>
+          <span v-if="numberOfHiddenFields" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">
+            {{ numberOfHiddenFields }}
+          </span>
         </div>
       </a-button>
     </div>
 
     <template #overlay>
-      <div class="p-6 pr-0 bg-white w-90 rounded-2xl nc-table-toolbar-menu" data-testid="nc-fields-menu" @click.stop>
+      <div class="p-4 pr-0 bg-white w-90 rounded-2xl nc-table-toolbar-menu" data-testid="nc-fields-menu" @click.stop>
         <div
           v-if="!filterQuery && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
           class="flex flex-col gap-y-2 pr-6 mb-6"
@@ -328,49 +337,48 @@ useMenuCloseOnEsc(open)
           ></a-input>
         </div>
 
-        <div
-          v-if="!filterQuery"
-          class="pl-8 pr-2 mr-6 mt-3 py-2 justify-between flex flex-row items-center border-1 rounded-lg mb-2 border-gray-100 bg-gray-50"
-        >
-          <div class="ml-0.25 select-none">{{ $t('general.showAll') }} {{ $t('objects.fields').toLowerCase() }}</div>
-          <NcSwitch v-model:checked="showAllColumns" />
-        </div>
-
         <div v-if="!filterQuery" class="pr-6">
           <div class="pt-0.25 w-full bg-gray-50"></div>
         </div>
 
-        <div class="flex flex-col nc-scrollbar-md max-h-[35vh] pt-1 pr-5">
-          <div class="nc-fields-list py-1">
-            <div v-if="!fields?.filter((el) => el.title.includes(filterQuery)).length" class="px-0.5 py-2 text-gray-500">
-              Empty
+        <div class="flex flex-col py-1 nc-scrollbar-md max-h-[45vh] pr-5">
+          <div class="nc-fields-list">
+            <div
+              v-if="!fields?.filter((el) => el.title.toLowerCase().includes(filterQuery.toLowerCase())).length"
+              class="px-0.5 py-2 text-gray-500"
+            >
+              No fields found
             </div>
             <Draggable v-model="fields" item-key="id" @change="onMove($event)">
               <template #item="{ element: field, index: index }">
                 <div
                   v-if="
                     filteredFieldList
-                      .filter((el) => el !== gridDisplayValueField && el.title.includes(filterQuery))
+                      .filter((el) => el !== gridDisplayValueField && el.title.toLowerCase().includes(filterQuery.toLowerCase()))
                       .includes(field)
                   "
                   :key="field.id"
-                  class="px-2 py-2 flex flex-row items-center border-1 rounded-lg mb-2 border-gray-100"
+                  class="px-2 py-2 flex flex-row items-center first:border-t-1 border-b-1 border-x-1 first:rounded-t-md last:rounded-b-md border-gray-200"
                   :data-testid="`nc-fields-menu-${field.title}`"
                   @click.stop
                 >
                   <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
-                  <div class="flex flex-row items-center justify-between w-full ml-1">
+                  <div
+                    v-e="['a:fields:show-hide']"
+                    class="flex flex-row items-center justify-between w-full cursor-pointer ml-1"
+                    @click="
+                      () => {
+                        field.show = !field.show
+                        toggleFieldVisibility(field.show, field)
+                      }
+                    "
+                  >
                     <div class="flex items-center -ml-0.75">
                       <component :is="getIcon(metaColumnById[field.fk_column_id])" />
-                      <div>{{ field.title }}</div>
+                      <span class="mt-0.65">{{ field.title }}</span>
                     </div>
 
-                    <NcSwitch
-                      v-model:checked="field.show"
-                      v-e="['a:fields:show-hide']"
-                      :disabled="field.isViewEssentialField"
-                      @change="toggleFieldVisibility($event, field)"
-                    />
+                    <NcSwitch :checked="field.show" v-e="['a:fields:show-hide']" :disabled="field.isViewEssentialField" />
                   </div>
 
                   <div class="flex-1" />
@@ -380,12 +388,12 @@ useMenuCloseOnEsc(open)
                 <div
                   v-if="gridDisplayValueField && filteredFieldList[0].title.includes(filterQuery)"
                   :key="`pv-${gridDisplayValueField.id}`"
-                  class="pl-7.5 pr-2.1 py-2 flex flex-row items-center border-1 rounded-lg mb-2 border-gray-100"
+                  class="pl-7.5 pr-2.1 py-1.9 flex flex-row items-center border-1 rounded-t-lg border-gray-200"
                   :data-testid="`nc-fields-menu-${gridDisplayValueField.title}`"
                   @click.stop
                 >
                   <div class="flex flex-row items-center justify-between w-full">
-                    <div class="flex">
+                    <div class="flex items">
                       <a-tooltip placement="bottom">
                         <template #title>
                           <span class="text-sm">Display Value</span>
@@ -403,12 +411,27 @@ useMenuCloseOnEsc(open)
                 </div>
               </template>
             </Draggable>
-            <div v-if="!isPublic && !filterQuery" class="mt-4 p-2 py-1 flex nc-fields-show-system-fields !text-base" @click.stop>
-              <NcCheckbox v-model:checked="showSystemFields" @change="toggleSystemFields">
-                <span class="select-none"> {{ $t('activity.showSystemFields') }}</span>
-              </NcCheckbox>
-            </div>
           </div>
+        </div>
+        <div class="flex pr-6 mt-1 gap-2">
+          <NcButton
+            v-if="!filterQuery"
+            type="ghost"
+            size="sm"
+            class="nc-fields-show-all-fields !text-gray-500 !w-1/2"
+            @click="showAllColumns = !showAllColumns"
+          >
+            {{ showAllColumns ? 'Hide all' : $t('general.showAll') }} {{ $t('objects.fields').toLowerCase() }}
+          </NcButton>
+          <NcButton
+            v-if="!isPublic && !filterQuery"
+            type="ghost"
+            size="sm"
+            class="nc-fields-show-system-fields !text-gray-500 !w-1/2"
+            @click="showSystemField = !showSystemField"
+          >
+            {{ showSystemField ? 'Hide system fields' : $t('activity.showSystemFields') }}
+          </NcButton>
         </div>
       </div>
     </template>

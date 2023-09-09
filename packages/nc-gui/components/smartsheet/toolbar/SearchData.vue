@@ -124,7 +124,7 @@ watchDebounced(
       :style="{
         width: '10rem',
       }"
-      :placeholder="$t('general.search')"
+      :placeholder="`${$t('general.search')} in ${columns?.find((column) => column.value === search.field)?.label}`"
       :bordered="false"
       data-testid="search-data-input"
       @press-enter="onPressEnter"

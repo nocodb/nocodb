@@ -150,7 +150,7 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
       height: isForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
     }"
     class="nc-attachment-cell relative flex color-transition flex items-center"
-    :class="{'justify-center': !active, 'justify-between': active}"
+    :class="{ 'justify-center': !active, 'justify-between': active }"
   >
     <LazyCellAttachmentCarousel />
 
@@ -209,15 +209,29 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
               <div class="text-center w-full">{{ item.title }}</div>
             </template>
             <div v-if="isImage(item.title, item.mimetype ?? item.type)">
-              <div class="nc-attachment flex items-center justify-center" :class="{'ml-2':active}" @click.stop="selectedImage = item">
+              <div
+                class="nc-attachment flex items-center justify-center"
+                :class="{ 'ml-2': active }"
+                @click.stop="selectedImage = item"
+              >
                 <LazyCellAttachmentImage
-                  class="max-h-[1.8rem] max-w-[1.8rem]"
+                  class="h-[1.8rem] w-[1.8rem]"
                   :alt="item.title || `#${i}`"
+                  :class="{
+                    'h-[2.8rem] w-[3.8rem]': rowHeight === 2,
+                    'h-[4.8rem] w-[5.8rem]': rowHeight === 4,
+                    'h-[5.8rem] w-[6rem]': rowHeight === 6,
+                  }"
                   :srcs="getPossibleAttachmentSrc(item)"
                 />
               </div>
             </div>
-            <div v-else class="nc-attachment flex items-center justify-center" :class="{'ml-2':active}" @click="openAttachment(item)">
+            <div
+              v-else
+              class="nc-attachment flex items-center justify-center"
+              :class="{ 'ml-2': active }"
+              @click="openAttachment(item)"
+            >
               <component :is="FileIcon(item.icon)" v-if="item.icon" />
 
               <IcOutlineInsertDriveFile v-else />
@@ -252,7 +266,7 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
 .nc-cell {
   .nc-attachment-cell {
     .nc-attachment {
-      @apply w-[1.8rem] h-[1.8rem] min-h-[1.8rem] min-w-[1.8rem] ring-1 ring-gray-300 rounded;
+      // @apply w-[1.8rem] h-[1.8rem] min-h-[1.8rem] min-w-[1.8rem] ring-1 ring-gray-300 rounded;
     }
 
     .ghost,

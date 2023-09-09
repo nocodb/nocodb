@@ -160,7 +160,7 @@ useMenuCloseOnEsc(open)
               <LazySmartsheetToolbarExportSubActions />
             </a-sub-menu>
 
-            <template v-if="isUIAllowed('csvImport') && !isView && !isPublicView && !isSqlView">
+            <template v-if="isUIAllowed('csvTableImport') && !isView && !isPublicView && !isSqlView">
               <a-sub-menu key="upload">
                 <!--                Upload -->
                 <template #title>
@@ -175,7 +175,7 @@ useMenuCloseOnEsc(open)
 
                 <template #expandIcon></template>
                 <template v-for="(dialog, type) in quickImportDialogs">
-                  <a-menu-item v-if="isUIAllowed(`${type}Import`) && !isView && !isPublicView" :key="type">
+                  <a-menu-item v-if="isUIAllowed(`${type}TableImport`) && !isView && !isPublicView" :key="type">
                     <div
                       v-e="[`a:actions:upload-${type}`]"
                       class="nc-project-menu-item"

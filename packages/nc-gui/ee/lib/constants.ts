@@ -64,6 +64,7 @@ const rolePermissions = {
       commentEditable: true,
       commentList: true,
       commentsCount: true,
+      csvTableImport: true,
     },
   },
   [ProjectRole.Commenter]: {

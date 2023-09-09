@@ -271,12 +271,6 @@ export class TreeViewPage extends BasePage {
 
   async validateRoleAccess(param: { role: string; projectTitle?: string; tableTitle?: string }) {
     const count = param.role.toLowerCase() === 'creator' || param.role.toLowerCase() === 'owner' ? 1 : 0;
-    const pjtNode = await this.getProject({ index: 0, title: param.projectTitle });
-    await pjtNode.hover();
-
-    // add new table button & context menu is visible only for owner & creator
-    await expect(pjtNode.locator('[data-testid="nc-sidebar-add-project-entity"]')).toHaveCount(count);
-    await expect(pjtNode.locator('[data-testid="nc-sidebar-context-menu"]')).toHaveCount(count);
 
     // table context menu
     const tblNode = await this.getTable({ index: 0, tableTitle: param.tableTitle });

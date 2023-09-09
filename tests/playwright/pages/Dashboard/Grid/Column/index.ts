@@ -385,9 +385,9 @@ export class ColumnPageObject extends BasePage {
     }
 
     // select all menu access
-    expect(
-      await this.grid.get().locator('[data-testid="nc-check-all"]').locator('input[type="checkbox"]').count()
-    ).toBe(role === 'creator' || role === 'owner' || role === 'editor' ? 1 : 0);
+    await expect(
+      await this.grid.get().locator('[data-testid="nc-check-all"]').locator('input[type="checkbox"]')
+    ).toHaveCount(role === 'creator' || role === 'owner' || role === 'editor' ? 1 : 0);
 
     if (role === 'creator' || role === 'owner' || role === 'editor') {
       await this.grid.selectAll();

@@ -266,7 +266,7 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
 .nc-cell {
   .nc-attachment-cell {
     .nc-attachment {
-      // @apply w-[1.8rem] h-[1.8rem] min-h-[1.8rem] min-w-[1.8rem] ring-1 ring-gray-300 rounded;
+      @apply min-h-[1.8rem] min-w-[1.8rem] ring-1 ring-gray-300 rounded;
     }
 
     .ghost,

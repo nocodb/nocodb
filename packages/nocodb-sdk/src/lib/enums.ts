@@ -194,6 +194,14 @@ export const RoleColors = {
   [OrgUserRoles.VIEWER]: 'yellow',
 };
 
+export const WorkspaceRolesToProjectRoles = {
+  [WorkspaceUserRoles.OWNER]: ProjectRoles.OWNER,
+  [WorkspaceUserRoles.CREATOR]: ProjectRoles.CREATOR,
+  [WorkspaceUserRoles.EDITOR]: ProjectRoles.EDITOR,
+  [WorkspaceUserRoles.COMMENTER]: ProjectRoles.COMMENTER,
+  [WorkspaceUserRoles.VIEWER]: ProjectRoles.VIEWER,
+};
+
 export const OrderedWorkspaceRoles = [
   WorkspaceUserRoles.OWNER,
   WorkspaceUserRoles.CREATOR,

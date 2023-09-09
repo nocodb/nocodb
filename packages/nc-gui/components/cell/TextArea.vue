@@ -81,7 +81,7 @@ onClickOutside(inputWrapperRef, (e) => {
         :style="{
           minHeight: `${height}px`,
         }"
-        :placeholder="isEditColumn ? 'Enter default value (Optional)' : ''"
+        :placeholder="isEditColumn ? '(Optional)' : ''"
         @blur="editEnabled = false"
         @keydown.alt.enter.stop
         @keydown.shift.enter.stop

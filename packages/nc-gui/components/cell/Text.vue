@@ -33,7 +33,7 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value
     :ref="focus"
     v-model="vModel"
     class="h-full w-full outline-none p-2 bg-transparent"
-    :placeholder="isEditColumn ? 'Enter default value (Optional)' : ''"
+    :placeholder="isEditColumn ? '(Optional)' : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

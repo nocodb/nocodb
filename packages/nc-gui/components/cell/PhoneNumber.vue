@@ -61,7 +61,7 @@ watch(
     :ref="focus"
     v-model="vModel"
     class="w-full outline-none text-sm px-1 py-2"
-    :placeholder="isEditColumn ? 'Enter default value (Optional)' : ''"
+    :placeholder="isEditColumn ? '(Optional)' : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

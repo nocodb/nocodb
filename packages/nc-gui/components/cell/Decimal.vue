@@ -97,7 +97,7 @@ watch(isExpandedFormOpen, () => {
     class="outline-none !py-2 !px-1 border-none rounded-md w-full h-full !text-sm"
     type="number"
     :step="precision"
-    :placeholder="isEditColumn ? 'Enter default value (Optional)' : ''"
+    :placeholder="isEditColumn ? '(Optional)' : ''"
     style="letter-spacing: 0.06rem"
     @blur="editEnabled = false"
     @keydown.down.stop="onKeyDown"

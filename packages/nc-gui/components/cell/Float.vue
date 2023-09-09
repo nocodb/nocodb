@@ -51,7 +51,7 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value
     class="outline-none px-1 border-none w-full h-full text-sm"
     type="number"
     step="0.1"
-    :placeholder="isEditColumn ? 'Enter default value (Optional)' : ''"
+    :placeholder="isEditColumn ? '(Optional)' : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

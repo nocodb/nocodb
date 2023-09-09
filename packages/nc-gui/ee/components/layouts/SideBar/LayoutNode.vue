@@ -78,7 +78,7 @@ const { isSharedBase } = useProject()
             '!text-black !font-semibold': openeLayoutId === layout.id,
           }"
         />
-        <div class="nc-tbl-title flex-1">
+        <div class="nc-tbl-title flex-1" :data-testid="`nc-tbl-title${layout.title}`">
           <GeneralTruncateText :key="layout.title" :length="openeLayoutId === layout.id ? 18 : 20"
             >{{ layout.title }}
           </GeneralTruncateText>

@@ -32,7 +32,7 @@ RUN echo "node-linker=hoisted" > .npmrc
 # reduce node_module size with modclean & removing sqlite deps,
 # package built code into app.tar.gz & add execute permission to start.sh
 RUN pnpm install --prod --shamefully-hoist --reporter=silent
-RUN npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**" --run
+RUN pnpm dlx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**" --run
 RUN rm -rf ./node_modules/sqlite3/deps
 RUN tar -czf ../appEntry/app.tar.gz ./*
 RUN chmod +x /usr/src/appEntry/start.sh

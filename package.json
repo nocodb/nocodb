@@ -23,7 +23,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npx lint-staged"
+      "pre-commit": "pnpm dlx lint-staged"
     }
   },
   "lint-staged": {
@@ -35,7 +35,7 @@
     "bootstrap": "pnpm --filter=nocodb-sdk install && pnpm --filter=nocodb-sdk run build && pnpm --filter=nocodb --filter=nc-gui --filter=playwright install",
     "start:frontend": "pnpm --filter=nc-gui run dev",
     "start:backend": "pnpm --filter=nocodb run start",
-    "lint:staged:playwright": "cd ./tests/playwright; npx lint-staged; cd -",
+    "lint:staged:playwright": "cd ./tests/playwright; pnpm dlx lint-staged; cd -",
     "start:mysql": "docker-compose -f ./tests/playwright/scripts/docker-compose-mysql-playwright.yml up -d",
     "stop:mysql": "docker-compose -f ./tests/playwright/scripts/docker-compose-mysql-playwright.yml down",
     "start:pg": "docker-compose -f ./tests/playwright/scripts/docker-compose-pg.yml up -d",

@@ -140,6 +140,7 @@ function openQuickImportDialog(type: string) {
       )
     "
     class="py-0"
+    data-testid="nc-sidebar-project-import"
   >
     <template #title>
       <GeneralIcon icon="download" />

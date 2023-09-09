@@ -156,6 +156,8 @@ export interface NcContext {
   workerId?: string;
   rootUser: UserType & { password: string };
   workspace: WorkspaceType;
+  defaultProjectTitle: string;
+  defaultTableTitle: string;
 }
 
 selectors.setTestIdAttribute('data-testid');
@@ -442,11 +444,20 @@ const setup = async ({
   }
 
   await page.goto(projectUrl, { waitUntil: 'networkidle' });
-  return { project, token, dbType, workerId, rootUser, workspace } as NcContext;
+  return {
+    project,
+    token,
+    dbType,
+    workerId,
+    rootUser,
+    workspace,
+    defaultProjectTitle: 'Getting Started',
+    defaultTableTitle: 'Features',
+  } as NcContext;
 };
 
 export const unsetup = async (context: NcContext): Promise<void> => {
-  if (context.token && context.project) {
+  if (context.token && context.project && !enableLocalInit) {
     // try to delete the project
     try {
       // Init SDK using token

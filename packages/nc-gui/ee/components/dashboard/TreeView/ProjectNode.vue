@@ -564,15 +564,20 @@ onMounted(() => {
                   maxHeight: '70vh',
                   overflow: 'overlay',
                 }"
+                :data-testid="`nc-sidebar-project-${project.title}-options`"
                 @click="isOptionsOpen = false"
               >
                 <template v-if="!isSharedBase">
-                  <NcMenuItem v-if="isUIAllowed('projectRename', false, projectRole)" @click="enableEditMode">
+                  <NcMenuItem
+                    v-if="isUIAllowed('projectRename', false, projectRole)"
+                    data-testid="nc-sidebar-project-rename"
+                    @click="enableEditMode"
+                  >
                     <GeneralIcon icon="edit" class="group-hover:text-black" />
                     {{ $t('general.rename') }}
                   </NcMenuItem>
 
-                  <NcMenuItem @click="() => toggleStarred(project.id)">
+                  <NcMenuItem data-testid="nc-sidebar-project-starred" @click="() => toggleStarred(project.id)">
                     <GeneralIcon v-if="project.starred" icon="unStar" class="group-hover:text-black" />
                     <GeneralIcon v-else icon="star" class="group-hover:text-black" />
                     <div class="ml-0.25">
@@ -582,6 +587,7 @@ onMounted(() => {
 
                   <NcMenuItem
                     v-if="project.type === NcProjectType.DB && isUIAllowed('projectDuplicate', true, projectRole)"
+                    data-testid="nc-sidebar-project-duplicate"
                     @click="duplicateProject(project)"
                   >
                     <GeneralIcon icon="duplicate" class="text-gray-700" />
@@ -591,7 +597,7 @@ onMounted(() => {
                   <NcDivider />
 
                   <!-- ERD View -->
-                  <NcMenuItem key="erd" @click="openProjectErdView(project)">
+                  <NcMenuItem key="erd" data-testid="nc-sidebar-project-relations" @click="openProjectErdView(project)">
                     <GeneralIcon icon="erd" />
                     Relations
                   </NcMenuItem>
@@ -603,6 +609,7 @@ onMounted(() => {
                   key="api"
                   v-e="['e:api-docs']"
                   class="group"
+                  data-testid="nc-sidebar-project-rest-apis"
                   @click.stop="openLink(`/api/v1/db/meta/projects/${project.id}/swagger`, appInfo.ncSiteUrl)"
                 >
                   <GeneralIcon icon="snippet" class="group-hover:text-black !max-w-3.9" />
@@ -623,6 +630,7 @@ onMounted(() => {
                   v-if="isUIAllowed('projectMiscSettings', false, projectRole)"
                   key="teamAndSettings"
                   v-e="['c:navdraw:project-settings']"
+                  data-testid="nc-sidebar-project-settings"
                   @click="toggleDialog(true, 'teamAndAuth', undefined, project.id)"
                 >
                   <GeneralIcon icon="settings" class="group-hover:text-black" />
@@ -632,6 +640,7 @@ onMounted(() => {
                 <NcMenuItem
                   v-if="isUIAllowed('projectDelete', false, projectRole)"
                   class="!text-red-500 !hover:bg-red-50"
+                  data-testid="nc-sidebar-project-delete"
                   @click="isProjectDeleteDialogVisible = true"
                 >
                   <GeneralIcon icon="delete" />

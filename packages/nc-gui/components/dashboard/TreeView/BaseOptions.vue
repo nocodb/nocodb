@@ -58,7 +58,7 @@ function openQuickImportDialog(type: string) {
 
 <template>
   <!-- Quick Import From -->
-  <NcSubMenu class="py-0">
+  <NcSubMenu class="py-0" data-testid="nc-sidebar-project-import">
     <template #title>
       <GeneralIcon icon="download" />
 

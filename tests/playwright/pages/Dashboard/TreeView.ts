@@ -160,8 +160,8 @@ export class TreeViewPage extends BasePage {
     await this.get().locator(`.nc-project-tree-tbl-${title}`).waitFor({ state: 'visible' });
 
     await this.get().locator(`.nc-project-tree-tbl-${title}`).scrollIntoViewIfNeeded();
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).locator('.nc-icon.ant-dropdown-trigger').click();
-    await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Delete"):visible').click();
+    await this.get().locator(`.nc-project-tree-tbl-${title}`).locator('.nc-tbl-context-menu').click();
+    await this.rootPage.locator('.ant-dropdown').locator('.nc-menu-item:has-text("Delete")').click();
 
     await this.waitForResponse({
       uiAction: async () => {
@@ -190,8 +190,11 @@ export class TreeViewPage extends BasePage {
   }
 
   async renameTable({ title, newTitle }: { title: string; newTitle: string }) {
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).locator('.nc-icon.ant-dropdown-trigger').click();
-    await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Rename")').click();
+    await this.get().locator(`.nc-project-tree-tbl-${title}`).waitFor({ state: 'visible' });
+    await this.get().locator(`.nc-project-tree-tbl-${title}`).scrollIntoViewIfNeeded();
+    await this.get().locator(`.nc-project-tree-tbl-${title}`).locator('.nc-tbl-context-menu').click();
+    await this.rootPage.locator('.ant-dropdown').locator('.nc-menu-item:has-text("Rename")').click();
+
     await this.dashboard.get().locator('[placeholder="Enter table name"]').fill(newTitle);
     await this.dashboard.get().locator('button:has-text("Rename Table")').click();
     await this.verifyToast({ message: 'Table renamed successfully' });
@@ -340,7 +343,7 @@ export class TreeViewPage extends BasePage {
     await contextMenu.waitFor();
     await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Delete")`).click();
 
-    await this.rootPage.locator('div.ant-modal-content').locator(`button.ant-btn:has-text("Delete Project")`).click();
+    await this.rootPage.locator('div.ant-modal-content').locator(`button.ant-btn:has-text("Delete")`).click();
   }
 
   async duplicateProject(param: { title: string }) {

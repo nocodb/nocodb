@@ -148,6 +148,7 @@ const canUserEditEmote = computed(() => {
           :class="{
             'text-black !font-semibold': openedTableId === table.id,
           }"
+          :data-testid="`nc-tbl-title-${table.title}`"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
         >
           {{ table.title }}

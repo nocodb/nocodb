@@ -82,7 +82,7 @@ vModel.value.au = !!vModel.value.au */
 
       <a-form-item v-if="!hideLength" :label="$t('labels.lengthValue')">
         <a-input
-          class="rounded-md"
+          class="!rounded-md"
           v-model:value="vModel.dtxp"
           :disabled="sqlUi.getDefaultLengthIsDisabled(vModel.dt) || !sqlUi.columnEditable(vModel)"
           @input="onAlter"
@@ -90,7 +90,7 @@ vModel.value.au = !!vModel.value.au */
       </a-form-item>
 
       <a-form-item v-if="sqlUi.showScale(vModel)" label="Scale">
-        <a-input v-model:value="vModel.dtxs" class="rounded-md" :disabled="!sqlUi.columnEditable(vModel)" @input="onAlter" />
+        <a-input v-model:value="vModel.dtxs" class="!rounded-md" :disabled="!sqlUi.columnEditable(vModel)" @input="onAlter" />
       </a-form-item>
 
       <LazySmartsheetColumnPgBinaryOptions v-if="isPg(meta?.base_id) && vModel.dt === 'bytea'" v-model:value="vModel" />

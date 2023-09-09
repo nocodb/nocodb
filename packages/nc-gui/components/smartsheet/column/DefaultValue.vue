@@ -41,7 +41,7 @@ useProvideSmartsheetRowStore(vModel, rowRef)
 </script>
 
 <template>
-  <p class="mt-3 text-gray-900">Default Value</p>
+  <div class="!my-3 text-xs">Default Value</div>
   <div class="flex flex-row gap-2">
     <div class="border-1 w-full px-1 my-[-4px] border-gray-300 rounded-md">
       <LazySmartsheetCell :column="vModel" :model-value="cdfValue" :edit-enabled="true" />

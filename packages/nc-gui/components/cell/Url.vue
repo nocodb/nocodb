@@ -91,7 +91,7 @@ watch(
       v-if="editEnabled"
       :ref="focus"
       v-model="vModel"
-      :placeholder="isEditColumn ? '(Optional) Enter default URL' : ''"
+      :placeholder="isEditColumn ? 'Enter default URL (Optional)' : ''"
       class="outline-none text-sm w-full px-2 py-2 bg-transparent h-full"
       @blur="editEnabled = false"
       @keydown.down.stop

@@ -89,7 +89,7 @@ watch(
 
 const placeholder = computed(() => {
   if (isEditColumn.value && modelValue === null) {
-    return '(Optional) Select Default time'
+    return 'Select default time (Optional)'
   } else if (modelValue === null && showNull.value) {
     return 'NULL'
   } else if (isTimeInvalid.value) {

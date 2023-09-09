@@ -79,7 +79,7 @@ onMounted(() => {
     v-model="vModel"
     type="number"
     class="w-full h-full text-sm border-none rounded-md outline-none"
-    :placeholder="isEditColumn ? '(Optional) Enter default value' : ''"
+    :placeholder="isEditColumn ? 'Enter default value (Optional)' : ''"
     @blur="submitCurrency"
     @keydown.down.stop
     @keydown.left.stop

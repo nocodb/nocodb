@@ -303,7 +303,7 @@ const selectedOpt = computed(() => {
       v-model:value="vModel"
       class="w-full overflow-hidden"
       :class="{ 'caret-transparent': !hasEditRoles }"
-      :placeholder="isEditColumn ? '(Optional) Select default option' : ''"
+      :placeholder="isEditColumn ? 'Select default option (Optional)' : ''"
       :allow-clear="!column.rqd && editAllowed"
       :bordered="false"
       :open="isOpen && editAllowed"

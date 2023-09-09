@@ -88,7 +88,7 @@ function onKeyDown(e: any) {
     class="outline-none py-2 px-1 border-none w-full h-full text-sm"
     type="number"
     style="letter-spacing: 0.06rem"
-    :placeholder="isEditColumn ? '(Optional) Enter default value' : ''"
+    :placeholder="isEditColumn ? 'Enter default value (Optional)' : ''"
     @blur="editEnabled = false"
     @keydown="onKeyDown"
     @keydown.down.stop

@@ -137,7 +137,7 @@ watch(
 
 const placeholder = computed(() => {
   if (isEditColumn.value && modelValue === null) {
-    return '(Optional) Select Default Date'
+    return 'Select default date (Optional)'
   } else if (modelValue === null && showNull.value) {
     return 'NULL'
   } else if (isDateInvalid.value) {

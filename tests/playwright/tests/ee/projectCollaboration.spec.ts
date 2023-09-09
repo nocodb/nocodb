@@ -49,9 +49,9 @@ test.describe('Project Collaboration', () => {
     }
   });
 
-  // test.afterEach(async () => {
-  //   await unsetup(context);
-  // });
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
 
   const projectCollabVerify = async (
     page: Page,

@@ -101,11 +101,6 @@ onMounted(() => {
   }
 
   if (vModel.value.cdf) {
-    // Postgres returns default value wrapped with single quotes & casted with type so we have to get value between single quotes to keep it unified for all databases
-    if (isPg.value) {
-      vModel.value.cdf = vModel.value.cdf.substring(vModel.value.cdf.indexOf(`'`) + 1, vModel.value.cdf.lastIndexOf(`'`))
-    }
-
     // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
     if (!isMysql.value) {
       vModel.value.cdf = vModel.value.cdf.replace(/''/g, "'")
@@ -187,7 +182,7 @@ watch(inputs, () => {
 
 // Removes the Select Option from cdf if the option is removed
 watch(vModel.value, (next) => {
-  const cdfs = (next.cdf ?? '').replaceAll("'", '').split(',')
+  const cdfs = (next.cdf ?? '').split(',')
   const values = (next.colOptions.options ?? []).map((col) => {
     return col.title.replaceAll("'", '')
   })

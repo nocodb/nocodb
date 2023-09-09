@@ -51,7 +51,7 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
         return this.authenticate(req, {
           ...req.user,
           isAuthorized: true,
-          roles: req.user.roles === 'owner' ? 'owner,creator' : req.user.roles,
+          roles: req.user.roles,
         });
       }
     } else if (req.headers['xc-shared-base-id']) {

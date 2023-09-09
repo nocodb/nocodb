@@ -10,6 +10,8 @@ const isErrored = ref(false)
 const isTitleUpdating = ref(false)
 const isCancelButtonVisible = ref(false)
 const isModalVisible = ref(false)
+// if activeworkspace.title is used it will show new workspace name in loading state
+const workspaceToDelete = ref('')
 
 const form = reactive({
   title: '',
@@ -27,14 +29,11 @@ const formRules = {
 const onDelete = async () => {
   isDeleting.value = true
   try {
+    const shouldSignOut = workspacesList.value.length < 2
     await deleteWorkspace(activeWorkspaceId.value, { skipStateUpdate: true })
-
-    isDeleting.value = false
-
     // We only remove the delete workspace from the list after the api call is successful
     workspaces.value.delete(activeWorkspaceId.value)
-
-    if (workspacesList.value.length > 1) {
+    if (!shouldSignOut) {
       await navigateToWorkspace(workspacesList.value[0].id)
     } else {
       // As signin page will clear the workspaces, we need to check if there are more than one workspace
@@ -45,6 +44,7 @@ const onDelete = async () => {
     }
   } finally {
     isDeleting.value = false
+    workspaceToDelete.value = activeWorkspace.value?.title
   }
 }
 
@@ -156,7 +156,17 @@ const onCancel = () => {
         </div>
       </div> -->
       <div class="flex flex-row w-full justify-end mt-8">
-        <NcButton type="danger" @click="isModalVisible = true"> Delete Workspace </NcButton>
+        <NcButton
+          type="danger"
+          @click="
+            () => {
+              workspaceToDelete = activeWorkspace?.title
+              isModalVisible = true
+            }
+          "
+        >
+          Delete Workspace
+        </NcButton>
       </div>
     </div>
   </div>
@@ -165,7 +175,7 @@ const onCancel = () => {
     <div class="flex flex-col items-center justify-center h-full !p-6">
       <div class="text-lg font-semibold self-start mb-4">Delete Workspace</div>
       <span class="self-start mb-2"
-        >Enter workspace name to delete - <b class="select-none"> ‘{{ activeWorkspace.title }}’ </b>
+        >Enter workspace name to delete - <b class="select-none"> ‘{{ workspaceToDelete }}’ </b>
       </span>
       <a-form class="w-full h-full" no-style :model="form" @finish="onDelete">
         <a-form-item class="w-full" name="title" :rules="rules.modalInput">
@@ -177,7 +187,7 @@ const onCancel = () => {
           />
         </a-form-item>
         <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
-          <NcButton html-type="back" type="secondary" @click="isModalVisible = false">{{ $t('general.cancel') }}</NcButton>
+          <NcButton html-type="back" type="secondary" @click="isModalVisible = false">{{ $t('general.cancel') }} </NcButton>
           <NcButton
             key="submit"
             html-type="submit"

@@ -61,7 +61,10 @@ export class DashboardPage extends BasePage {
     this.project = project;
     this.tablesSideBar = rootPage.locator('.nc-treeview-container');
     this.workspaceMenuLink = rootPage.getByTestId('nc-project-menu');
-    this.projectMenuLink = rootPage.locator(`.project-title-node:has-text("${project.title}")`).locator('.nc-icon.ant-dropdown-trigger').first();
+    this.projectMenuLink = rootPage
+      .locator(`.project-title-node:has-text("${project.title}")`)
+      .locator('[data-testid="nc-sidebar-context-menu"]')
+      .first();
     this.tabBar = rootPage.locator('.nc-tab-bar');
     this.treeView = new TreeViewPage(this, project);
     this.grid = new GridPage(this);
@@ -115,7 +118,7 @@ export class DashboardPage extends BasePage {
 
   async gotoSettings() {
     await this.projectMenuLink.click();
-    await this.rootPage.locator('div.nc-project-menu-item:has-text("Settings")').click();
+    await this.rootPage.locator('.ant-dropdown').locator(`.nc-menu-item:has-text("Settings")`).click();
   }
 
   async gotoProjectSubMenu({ title }: { title: string }) {

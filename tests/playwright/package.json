@@ -26,7 +26,7 @@
     "test:shard:1": "TRACE=true pnpm exec playwright test --workers=4 --shard=1/2",
     "test:shard:2": "TRACE=true pnpm exec playwright test --workers=4 --shard=2/2",
     "test:repeat": "TRACE=true pnpm exec playwright test --workers=4 --repeat-each=12",
-    "test:quick": "TRACE=true PW_QUICK_TEST=1 pnpm dlx playwright test --workers=4",
+    "test:quick": "TRACE=true PW_QUICK_TEST=1 pnpm exec playwright test --workers=4",
     "test:debug": "./startPlayWrightServer.sh; PW_TEST_REUSE_CONTEXT=1 PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:31000/ PWDEBUG=console pnpm exec playwright test -c playwright.config.ts --headed --project=chromium --retries 0 --timeout 0 --workers 1 --max-failures=1",
     "test:debug:intelliJ": "TRACE=true PWDEBUG=console pnpm exec playwright test --trace on -c playwright.config.ts --headed --project=chromium --retries 0 --workers 1 --max-failures=1",
     "test:debug:watch": "pnpm dlx nodemon -e ts -w ./ -x \"pnpm run test:debug\"",

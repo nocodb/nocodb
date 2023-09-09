@@ -171,10 +171,14 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       ['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'].some(
         (userMePath) => req.route.path === userMePath,
       ) &&
-      req.query.project_id
+      (req.query.project_id || req.query.workspace_id)
     ) {
-      req.ncProjectId = req.query.project_id;
-      req.ncWorkspaceId = req.query.workspace_id;
+      // use project to get workspace id if project id is provided
+      if (req.query.project_id) {
+        req.ncProjectId = req.query.project_id;
+      } else {
+        req.ncWorkspaceId = req.query.workspace_id;
+      }
     }
 
     // todo:  verify all scenarios

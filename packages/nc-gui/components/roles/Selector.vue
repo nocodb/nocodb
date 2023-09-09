@@ -17,9 +17,9 @@ const inheritRef = toRef(props, 'inherit')
   <NcDropdown>
     <RolesBadge class="border-1" :role="roleRef" clickable :inherit="inheritRef === role" />
     <template #overlay>
-      <div class="flex flex-col gap-[4px] p-1">
+      <div class="nc-role-select-dropdown flex flex-col gap-[4px] p-1">
         <div class="flex flex-col gap-[4px]">
-          <NcDropdownItem
+          <div
             v-for="rl in props.roles"
             :key="rl"
             class="cursor-pointer"
@@ -27,8 +27,13 @@ const inheritRef = toRef(props, 'inherit')
             :selected="rl === roleRef"
             @click="props.onRoleChange(rl)"
           >
-            <RolesBadge class="!bg-white hover:!bg-gray-100" :role="rl" :inherit="inheritRef === rl" />
-          </NcDropdownItem>
+            <RolesBadge
+              class="!bg-white hover:!bg-gray-100"
+              :class="`nc-role-select-${rl}`"
+              :role="rl"
+              :inherit="inheritRef === rl"
+            />
+          </div>
         </div>
       </div>
     </template>

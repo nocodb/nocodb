@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { TableType } from 'nocodb-sdk'
-import { stringifyRolesObj } from 'nocodb-sdk'
+import { type TableType, stringifyRolesObj } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import ProjectWrapper from './ProjectWrapper.vue'
 import type { TabType } from '#imports'
@@ -54,6 +53,8 @@ const { tables, isSharedBase } = storeToRefs(projectStore)
 const { activeTable: _activeTable } = storeToRefs(useTablesStore())
 
 const { refreshCommandPalette } = useCommandPalette()
+
+const { workspaceRoles } = useRoles()
 
 const projectType = ref(NcProjectType.DB)
 const projectCreateDlg = ref(false)

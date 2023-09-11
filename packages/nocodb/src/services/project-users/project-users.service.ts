@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
+  extractRolesObj,
   OrgUserRoles,
   PluginCategory,
   ProjectRoles,
@@ -52,6 +53,26 @@ export class ProjectUsersService {
       'swagger.json#/components/schemas/ProjectUserReq',
       param.projectUser,
     );
+
+    if (
+      getProjectRolePower({
+        project_roles: extractRolesObj(param.projectUser.roles),
+      }) > getProjectRolePower(param.req.user)
+    ) {
+      NcError.badRequest(`Insufficient privilege to invite with this role`);
+    }
+
+    if (
+      ![
+        ProjectRoles.CREATOR,
+        ProjectRoles.EDITOR,
+        ProjectRoles.COMMENTER,
+        ProjectRoles.VIEWER,
+        ProjectRoles.NO_ACCESS,
+      ].includes(param.projectUser.roles as ProjectRoles)
+    ) {
+      NcError.badRequest('Invalid role');
+    }
 
     const emails = (param.projectUser.email || '')
       .toLowerCase()

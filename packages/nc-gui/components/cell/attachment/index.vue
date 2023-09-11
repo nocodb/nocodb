@@ -2,6 +2,7 @@
 import { onKeyDown } from '@vueuse/core'
 import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
+import { isDrawerExist } from '~/utils/browserUtils'
 import {
   ActiveCellInj,
   CurrentCellInj,
@@ -139,7 +140,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
   }
 })
 
-const rowHeight = inject(RowHeightInj, ref(1.8))
+const rowHeight = inject(RowHeightInj, ref())
 </script>
 
 <template>
@@ -220,7 +221,7 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
                   :class="{
                     'h-[2.8rem] w-[3.8rem]': rowHeight === 2,
                     'h-[4.8rem] w-[5.8rem]': rowHeight === 4,
-                    'h-[5.8rem] w-[6rem]': rowHeight === 6,
+                    'h-[5.8rem] w-[6rem]': rowHeight === 6 || isDrawerExist(),
                   }"
                   :srcs="getPossibleAttachmentSrc(item)"
                 />
@@ -266,7 +267,7 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
 .nc-cell {
   .nc-attachment-cell {
     .nc-attachment {
-      @apply min-h-[1.8rem] min-w-[1.8rem] ring-1 ring-gray-300 rounded;
+      @apply min-h-[1.8rem] min-w-[1.8rem] !ring-1 !ring-gray-300 !rounded;
     }
 
     .ghost,

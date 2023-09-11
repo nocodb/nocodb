@@ -102,8 +102,6 @@ function openQuickImportDialog(type: string) {
 </script>
 
 <template>
-  <a-menu-divider v-if="false" class="my-0" />
-
   <!-- NocoAI -->
   <a-sub-menu v-if="false">
     <template #title>

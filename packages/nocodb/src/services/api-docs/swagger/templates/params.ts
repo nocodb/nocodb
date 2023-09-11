@@ -100,7 +100,7 @@ export const columnNameQueryParam = {
 export const columnNameParam = (columns: SwaggerColumn[]) => {
   const columnNames = [];
   for (const { column } of columns) {
-    if (isLinksOrLTAR(column) || column.system) continue;
+    if (!isLinksOrLTAR(column) || column.system) continue;
     columnNames.push(column.title);
   }
 

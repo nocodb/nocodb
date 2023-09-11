@@ -36,7 +36,7 @@ process.env[`DEBUG`] = 'xc*';
       console.log(admin_response.data);
     }
 
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 4; i++) {
       if (!(await User.getByEmail(`user-${i}@nocodb.com`))) {
         const response = await axios.post(
           `http://localhost:${

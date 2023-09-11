@@ -4,6 +4,6 @@
 
 <style lang="scss">
 .nc-divider.ant-divider {
-  @apply !my-1.25;
+  @apply my-1.25;
 }
 </style>

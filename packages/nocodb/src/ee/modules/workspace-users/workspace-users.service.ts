@@ -41,6 +41,12 @@ export class WorkspaceUsersService {
     });
   }
 
+  async count(param: { workspaceId }) {
+    return await WorkspaceUser.count({
+      workspaceId: param.workspaceId,
+    });
+  }
+
   async get({ workspaceId, userId }) {
     const user = await WorkspaceUser.get(workspaceId, userId);
 

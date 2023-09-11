@@ -2,7 +2,9 @@ import {
   Body,
   Controller,
   Delete,
+  forwardRef,
   Get,
+  Inject,
   Param,
   Patch,
   Post,
@@ -20,11 +22,13 @@ import { CacheScope, MetaTable } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
 import NocoCache from '~/cache/NocoCache';
 import { GlobalGuard } from '~/guards/global/global.guard';
+import { WorkspaceUsersService } from '~/modules/workspace-users/workspace-users.service';
 
 @Controller()
 export class WorkspacesController {
   constructor(
     private readonly workspacesService: WorkspacesService,
+    private readonly workspaceUserService: WorkspaceUsersService,
     private readonly metaService: MetaService,
   ) {}
 
@@ -56,7 +60,11 @@ export class WorkspacesController {
 
     workspace.roles = req.user?.roles;
 
-    return workspace;
+    const workspaceUserCount = await this.workspaceUserService.count({
+      workspaceId,
+    });
+
+    return { workspace, workspaceUserCount };
   }
 
   @UseGuards(GlobalGuard)

@@ -1,4 +1,5 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
+
 import { UsersModule } from '../users/users.module';
 import { WorkspaceUsersService } from './workspace-users.service';
 import { WorkspaceUsersController } from './workspace-users.controller';
@@ -6,6 +7,7 @@ import { WorkspaceUsersController } from './workspace-users.controller';
 @Module({
   controllers: [WorkspaceUsersController],
   providers: [WorkspaceUsersService],
-  imports: [UsersModule],
+  imports: [forwardRef(() => UsersModule)],
+  exports: [WorkspaceUsersService],
 })
 export class WorkspaceUsersModule {}

@@ -5,7 +5,7 @@ import { ProjectInj, ProjectRoleInj, ProjectStarredModeInj } from '#imports'
 const props = defineProps<{
   projectRole: string | string[]
   project: ProjectType
-  starredMode: boolean
+  starredMode?: boolean
 }>()
 
 const projectRole = toRef(props, 'projectRole')

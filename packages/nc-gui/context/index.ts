@@ -39,7 +39,7 @@ export const CurrentCellInj: InjectionKey<Ref<Element | undefined>> = Symbol('cu
 export const IsUnderLookupInj: InjectionKey<Ref<boolean>> = Symbol('is-under-lookup-injection')
 export const DocsLocalPageInj: InjectionKey<Ref<PageSidebarNode | undefined>> = Symbol('docs-local-page-injection')
 export const ProjectRoleInj: InjectionKey<Ref<string | string[]>> = Symbol('project-roles-injection')
-export const ProjectStarredModeInj: InjectionKey<Ref<string | string[]>> = Symbol('project-starred-injection')
+export const ProjectStarredModeInj: InjectionKey<Ref<boolean>> = Symbol('project-starred-injection')
 export const ProjectInj: InjectionKey<Ref<NcProject>> = Symbol('project-injection')
 export const ProjectIdInj: InjectionKey<Ref<string>> = Symbol('project-id-injection')
 export const TreeViewInj: InjectionKey<{

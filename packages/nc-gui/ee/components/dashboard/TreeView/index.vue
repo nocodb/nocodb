@@ -275,7 +275,7 @@ watch(
           :key="project.id"
           :project-role="project.project_role || project.workspace_role"
           :project="project"
-          :starred-mode="true"
+          starred-mode
         >
           <DashboardTreeViewProjectNode />
         </ProjectWrapper>

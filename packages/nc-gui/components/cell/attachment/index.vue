@@ -2,11 +2,11 @@
 import { onKeyDown } from '@vueuse/core'
 import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
-import { isDrawerExist } from '~/utils/browserUtils'
 import {
   ActiveCellInj,
   CurrentCellInj,
   DropZoneRef,
+  IsExpandedFormOpenInj,
   RowHeightInj,
   iconMap,
   inject,
@@ -42,6 +42,8 @@ const sortableRef = ref<HTMLDivElement>()
 const currentCellRef = inject(CurrentCellInj, dropZoneInjection.value)
 
 const isLockedMode = inject(IsLockedInj, ref(false))
+
+const isDrawerExist = inject(IsExpandedFormOpenInj, ref())
 
 const { isSharedForm } = useSmartsheetStoreOrThrow()!
 
@@ -219,9 +221,9 @@ const rowHeight = inject(RowHeightInj, ref())
                   class="h-[1.8rem] w-[1.8rem]"
                   :alt="item.title || `#${i}`"
                   :class="{
-                    'h-[2.8rem] w-[3.8rem]': rowHeight === 2,
+                    'h-11.5 w-[3.8rem]': rowHeight === 2,
                     'h-[4.8rem] w-[5.8rem]': rowHeight === 4,
-                    'h-[5.8rem] w-[6rem]': rowHeight === 6 || isDrawerExist(),
+                    'h-[5.8rem] w-[6rem]': rowHeight === 6 || isDrawerExist,
                   }"
                   :srcs="getPossibleAttachmentSrc(item)"
                 />

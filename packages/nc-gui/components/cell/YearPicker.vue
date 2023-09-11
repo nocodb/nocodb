@@ -76,7 +76,7 @@ watch(
 
 const placeholder = computed(() => {
   if (isEditColumn.value && modelValue === null) {
-    return 'Select default year (Optional)'
+    return '(Optional)'
   } else if (modelValue === null && showNull.value) {
     return 'NULL'
   } else if (isYearInvalid.value) {

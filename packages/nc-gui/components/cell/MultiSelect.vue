@@ -387,7 +387,7 @@ const selectedOpts = computed(() => {
       v-model:value="vModel"
       mode="multiple"
       class="w-full overflow-hidden"
-      :placeholder="isEditColumn ? 'Select default value (Optional)' : ''"
+      :placeholder="isEditColumn ? '(Optional)' : ''"
       :bordered="false"
       clear-icon
       show-search

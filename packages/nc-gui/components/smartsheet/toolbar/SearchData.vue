@@ -80,6 +80,12 @@ watchDebounced(
     maxWait: 600,
   },
 )
+
+watch(columns, () => {
+  if (columns.value?.length) {
+    search.value.field = columns.value[0].value as string
+  }
+})
 </script>
 
 <template>

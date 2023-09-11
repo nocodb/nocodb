@@ -341,7 +341,7 @@ useMenuCloseOnEsc(open)
           <div class="pt-0.25 w-full bg-gray-50"></div>
         </div>
 
-        <div class="flex flex-col py-1 nc-scrollbar-md max-h-[45vh] pr-5">
+        <div class="flex flex-col py-1 nc-scrollbar-md max-h-[47.5vh] pr-5">
           <div class="nc-fields-list">
             <div
               v-if="!fields?.filter((el) => el.title.toLowerCase().includes(filterQuery.toLowerCase())).length"

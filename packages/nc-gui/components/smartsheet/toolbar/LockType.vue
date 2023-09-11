@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ActiveViewInj, LockType, iconMap, inject } from '#imports'
 import UsersIcon from '~icons/nc-icons/users'
+import LockIcon from '~icons/nc-icons/lock'
 
 const { type, hideTick } = defineProps<{ hideTick?: boolean; type: LockType }>()
 
@@ -19,7 +20,7 @@ const types = {
   },
   [LockType.Locked]: {
     title: 'title.lockedView',
-    icon: iconMap.lock,
+    icon: LockIcon,
     subtitle: 'msg.info.lockedView',
   },
 }
@@ -34,7 +35,7 @@ const selectedView = inject(ActiveViewInj)
         <component :is="types[type].icon" class="text-gray-800 !w-4 !h-4" />
         <div class="flex flex-col">
           {{ $t(types[type].title) }}
-          <div v-if="!hideTick" class="nc-subtitle max-w-108 text-sm text-gray-600 whitespace-normal">
+          <div v-if="!hideTick" class="nc-subtitle max-w-120 text-sm text-gray-500 whitespace-normal">
             {{ $t(types[type].subtitle) }}
           </div>
         </div>

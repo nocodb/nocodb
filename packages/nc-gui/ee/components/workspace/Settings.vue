@@ -74,6 +74,11 @@ const titleChange = async () => {
   }
 }
 
+const handleDelete = () => {
+  workspaceToDelete.value = activeWorkspace.value?.title
+  isModalVisible.value = true
+}
+
 watch(
   () => activeWorkspace.value.title,
   () => {
@@ -144,29 +149,8 @@ const onCancel = () => {
     <div class="item flex flex-col border-1 border-red-500">
       <div class="font-medium text-base">Delete Workspace</div>
       <div class="text-gray-500 mt-2">Delete this workspace and all it’s contents.</div>
-      <!-- <div class="flex p-4 border-1 border-[#E7E7E9] rounded-lg mt-6">
-        <div class="flex">
-          <component :is="iconMap.warning" class="w-6 h-6 text-[#FA8231]" />
-          <div class="ml-4 flex flex-col">
-            <h4 class="font-medium text-base">This action is irreversible</h4>
-            <div class="text-gray-500 mt-1">
-              You have 31 days to undo this action by following the steps provided in recover workspace mail sent to your email.
-            </div>
-          </div>
-        </div>
-      </div> -->
       <div class="flex flex-row w-full justify-end mt-8">
-        <NcButton
-          type="danger"
-          @click="
-            () => {
-              workspaceToDelete = activeWorkspace?.title
-              isModalVisible = true
-            }
-          "
-        >
-          Delete Workspace
-        </NcButton>
+        <NcButton type="danger" @click="handleDelete"> Delete Workspace </NcButton>
       </div>
     </div>
   </div>

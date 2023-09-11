@@ -92,7 +92,7 @@ watch(
               v-model:value="email"
               class="w-full !rounded-md !py-1.5"
               placeholder="Email"
-              :disabled="true"
+              disabled
               data-testid="nc-account-settings-email-input"
             />
             <div class="flex flex-row w-full justify-end mt-8">

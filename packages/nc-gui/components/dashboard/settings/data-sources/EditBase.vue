@@ -489,9 +489,9 @@ onMounted(async () => {
                       <span>{{ $t('tooltip.clientCert') }}</span>
                     </template>
 
-                    <a-button :disabled="!sslFilesRequired" class="shadow" @click="certFileInput?.click()">
+                    <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="certFileInput?.click()">
                       {{ $t('labels.clientCert') }}
-                    </a-button>
+                    </NcButton>
                   </a-tooltip>
 
                   <a-tooltip placement="top">
@@ -499,9 +499,9 @@ onMounted(async () => {
                     <template #title>
                       <span>{{ $t('tooltip.clientKey') }}</span>
                     </template>
-                    <a-button :disabled="!sslFilesRequired" class="shadow" @click="keyFileInput?.click()">
+                    <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="keyFileInput?.click()">
                       {{ $t('labels.clientKey') }}
-                    </a-button>
+                    </NcButton>
                   </a-tooltip>
 
                   <a-tooltip placement="top">
@@ -510,9 +510,9 @@ onMounted(async () => {
                       <span>{{ $t('tooltip.clientCA') }}</span>
                     </template>
 
-                    <a-button :disabled="!sslFilesRequired" class="shadow" @click="caFileInput?.click()">
+                    <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="caFileInput?.click()">
                       {{ $t('labels.serverCA') }}
-                    </a-button>
+                    </NcButton>
                   </a-tooltip>
                 </div>
               </a-form-item>
@@ -543,9 +543,9 @@ onMounted(async () => {
                       />
                     </div>
                   </div>
-                  <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">
+                  <NcButton size="small" type="dashed" class="w-full caption mt-2" @click="addNewParam">
                     <div class="flex items-center justify-center"><component :is="iconMap.plus" /></div>
-                  </a-button>
+                  </NcButton>
                 </a-card>
               </a-form-item>
 

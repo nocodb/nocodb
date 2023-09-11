@@ -58,7 +58,7 @@ export class SidebarProjectNodeObject extends BasePage {
       .getByTestId('nc-sidebar-project-rename');
 
     if (renameVisible) await renameLocator.isVisible();
-    else await renameLocator.isHidden();
+    else await expect(renameLocator).toHaveCount(0);
 
     const starredLocator = await this.rootPage
       .getByTestId(`nc-sidebar-project-${projectTitle}-options`)

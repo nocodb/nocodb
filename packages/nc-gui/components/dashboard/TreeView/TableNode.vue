@@ -162,16 +162,18 @@ const canUserEditEmote = computed(() => {
           :trigger="['click']"
           @click.stop
         >
-          <MdiDotsHorizontal
-            class="min-w-5.75 min-h-5.75 mt-0.2 px-0.5 transition-opacity opacity-0 group-hover:opacity-100 nc-tbl-context-menu outline-0 rounded-md hover:(bg-gray-500 bg-opacity-15 !text-black)"
-            :class="{
-              '!text-gray-600': openedTableId !== table.id,
-              '!text-black': openedTableId === table.id,
-            }"
-          />
+          <NcButton
+            class="nc-sidebar-node-btn"
+            data-testid="nc-sidebar-table-context-menu"
+            type="text"
+            size="xxsmall"
+            @click.stop
+          >
+            <GeneralIcon icon="threeDotHorizontal" class="text-xl w-4.75" />
+          </NcButton>
 
           <template #overlay>
-            <NcMenu>
+            <NcMenu :data-testid="`nc-sidebar-table-${table.title}-options`">
               <NcMenuItem
                 v-if="isUIAllowed('table-rename', false, projectRole)"
                 :data-testid="`sidebar-table-rename-${table.title}`"
@@ -220,10 +222,6 @@ const canUserEditEmote = computed(() => {
 <style scoped lang="scss">
 .nc-tree-item {
   @apply relative cursor-pointer after:(pointer-events-none content-[''] rounded absolute top-0 left-0  w-full h-full right-0 !bg-current transition transition-opactity duration-100 opacity-0);
-}
-
-.nc-tree-item svg {
-  @apply text-primary text-opacity-60;
 }
 
 .nc-tree-item.active {

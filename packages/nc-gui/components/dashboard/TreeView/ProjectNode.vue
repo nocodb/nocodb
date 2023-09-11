@@ -758,10 +758,6 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
   @apply !mx-0 !pl-8.75 !pr-0.5 !py-0.75 hover:bg-gray-200 !rounded-md;
 }
 
-:deep(.nc-button.ant-btn.nc-sidebar-node-btn) {
-  @apply opacity-0 group-hover:(opacity-100) text-gray-600 hover:(bg-gray-400 bg-opacity-20 text-gray-900) duration-100;
-}
-
 :deep(.ant-collapse-content-box) {
   @apply !px-0 !pb-0 !pt-0.25;
 }

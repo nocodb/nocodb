@@ -125,6 +125,15 @@ test.describe('Collaborators', () => {
     await dashboard.sidebar.verifyQuickActions({ isVisible: true });
     await dashboard.sidebar.verifyTeamAndSettings({ isVisible: true });
     await dashboard.sidebar.verifyCreateProjectBtn({ isVisible: true });
+
+    await dashboard.sidebar.tableNode.clickOptions({ tableTitle: 'Features' });
+    await dashboard.sidebar.tableNode.verifyTableOptions({
+      tableTitle: 'Features',
+      isVisible: true,
+      deleteVisible: true,
+      duplicateVisible: true,
+      renameVisible: true,
+    });
   });
 
   test('WS role access validation: editor', async ({ page }) => {
@@ -149,6 +158,11 @@ test.describe('Collaborators', () => {
     await dashboard.sidebar.verifyQuickActions({ isVisible: true });
     await dashboard.sidebar.verifyTeamAndSettings({ isVisible: false });
     await dashboard.sidebar.verifyCreateProjectBtn({ isVisible: false });
+
+    await dashboard.sidebar.tableNode.verifyTableOptions({
+      tableTitle: 'Features',
+      isVisible: false,
+    });
   });
 
   test('WS role access validation: commenter', async ({ page }) => {
@@ -173,6 +187,11 @@ test.describe('Collaborators', () => {
     await dashboard.sidebar.verifyQuickActions({ isVisible: true });
     await dashboard.sidebar.verifyTeamAndSettings({ isVisible: false });
     await dashboard.sidebar.verifyCreateProjectBtn({ isVisible: false });
+
+    await dashboard.sidebar.tableNode.verifyTableOptions({
+      tableTitle: 'Features',
+      isVisible: false,
+    });
   });
 
   test('WS role access validation: viewer', async ({ page }) => {
@@ -197,5 +216,10 @@ test.describe('Collaborators', () => {
     await dashboard.sidebar.verifyQuickActions({ isVisible: true });
     await dashboard.sidebar.verifyTeamAndSettings({ isVisible: false });
     await dashboard.sidebar.verifyCreateProjectBtn({ isVisible: false });
+
+    await dashboard.sidebar.tableNode.verifyTableOptions({
+      tableTitle: 'Features',
+      isVisible: false,
+    });
   });
 });

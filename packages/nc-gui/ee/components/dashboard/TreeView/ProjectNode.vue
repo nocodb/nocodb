@@ -902,10 +902,6 @@ onMounted(() => {
   @apply flex flex-row gap-x-2 items-center;
 }
 
-:deep(.nc-button.ant-btn.nc-sidebar-node-btn) {
-  @apply opacity-0 group-hover:(opacity-100) text-gray-600 hover:(bg-gray-400 bg-opacity-20 text-gray-900) duration-100;
-}
-
 .nc-sidebar-icon {
   @apply ml-0.5 mr-1;
 }

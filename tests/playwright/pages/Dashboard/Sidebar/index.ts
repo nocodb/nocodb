@@ -5,6 +5,7 @@ import BasePage from '../../Base';
 import { DocsSidebarPage } from './DocsSidebar';
 import { SidebarUserMenuObject } from './UserMenu';
 import { SidebarProjectNodeObject } from './ProjectNode';
+import { SidebarTableNodeObject } from './TableNode';
 
 export class SidebarPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -12,6 +13,7 @@ export class SidebarPage extends BasePage {
   readonly createProjectBtn: Locator;
   readonly userMenu: SidebarUserMenuObject;
   readonly projectNode: SidebarProjectNodeObject;
+  readonly tableNode: SidebarTableNodeObject;
 
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
@@ -20,6 +22,7 @@ export class SidebarPage extends BasePage {
     this.userMenu = new SidebarUserMenuObject(this);
     this.createProjectBtn = dashboard.get().getByTestId('nc-sidebar-create-project-btn');
     this.projectNode = new SidebarProjectNodeObject(this);
+    this.tableNode = new SidebarTableNodeObject(this);
   }
 
   get() {

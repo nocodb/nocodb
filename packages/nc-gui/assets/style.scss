@@ -543,3 +543,7 @@ a {
 .nc-toolbar-dropdown {
   @apply !rounded-2xl;
 }
+
+.nc-button.ant-btn.nc-sidebar-node-btn {
+  @apply opacity-0 group-hover:(opacity-100) text-gray-600 hover:(bg-gray-400 bg-opacity-20 text-gray-900) duration-100;
+}

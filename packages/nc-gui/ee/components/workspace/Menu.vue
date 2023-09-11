@@ -1,19 +1,16 @@
 <script lang="ts" setup>
-import { storeToRefs } from 'pinia'
 import type { WorkspaceType } from 'nocodb-sdk'
-import { useWorkspace } from '#imports'
-import { navigateTo } from '#app'
 
 const workspaceStore = useWorkspace()
 
 const { activeWorkspace, workspacesList, collaborators } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
-const { leftSidebarState } = storeToRefs(useSidebarStore())
+const { leftSidebarState, viewportWidth, leftSidebarWidthPercent } = storeToRefs(useSidebarStore())
 
 const { navigateToTable } = useTablesStore()
 
-const { appInfo, navigateToProject } = useGlobal()
+const { navigateToProject } = useGlobal()
 
 const isWorkspaceDropdownOpen = ref(false)
 
@@ -56,6 +53,15 @@ watch(leftSidebarState, () => {
   if (leftSidebarState.value === 'peekCloseEnd') {
     isWorkspaceDropdownOpen.value = false
   }
+})
+
+// TODO: Improve this
+// As ant-dropdown only sets min width, so to have dropdown content same as dropdown trigger button
+// We need to manually calculate width of dropdown content, as otherwise ant-dropdown will be width of content
+const sidebarWidthRem = computed(() => {
+  const pxInRem = parseFloat(getComputedStyle(document.documentElement).fontSize)
+
+  return (viewportWidth.value * leftSidebarWidthPercent.value) / 100 / pxInRem
 })
 </script>
 
@@ -112,68 +118,54 @@ watch(leftSidebarState, () => {
       </div>
 
       <template #overlay>
-        <NcMenu @click="isWorkspaceDropdownOpen = false">
-          <div class="flex gap-x-3 min-w-0 px-4 py-3 items-center">
-            <GeneralWorkspaceIcon :workspace="activeWorkspace" size="large" />
-            <div class="flex flex-col gap-y-0">
-              <div
-                class="mt-0.5 flex capitalize mb-0 nc-workspace-title truncate min-w-10 text-sm text-black font-medium"
-                style="line-height: 1.5rem"
-              >
-                {{ activeWorkspace?.title }}
-              </div>
-              <div class="flex flex-row items-center gap-x-2">
-                <div class="nc-workspace-dropdown-active-workspace-info">Free Plan</div>
-                <div class="nc-workspace-dropdown-active-workspace-info">.</div>
-                <div class="nc-workspace-dropdown-active-workspace-info">
-                  {{ collaborators?.length }} {{ Number(collaborators?.length) > 1 ? 'members' : 'member' }}
+        <NcMenu
+          :style="{
+            width: `${sidebarWidthRem - 3.5}rem`,
+          }"
+          @click="isWorkspaceDropdownOpen = false"
+        >
+          <a-menu-item-group>
+            <div class="flex min-w-0">
+              <div class="flex gap-x-3 w-full px-4 py-3 items-center">
+                <GeneralWorkspaceIcon :workspace="activeWorkspace" size="large" />
+                <div class="flex flex-col gap-y-0" style="width: calc(100% - 3.25rem)">
+                  <div class="mt-0.5 flex capitalize mb-0 nc-workspace-title w-full">
+                    <div class="min-w-10 text-sm text-black font-medium truncate capitalize" style="line-height: 1.5rem">
+                      {{ activeWorkspace?.title }}
+                    </div>
+                  </div>
+                  <div class="flex flex-row items-center gap-x-2">
+                    <div class="nc-workspace-dropdown-active-workspace-info">Free Plan</div>
+                    <div class="nc-workspace-dropdown-active-workspace-info">.</div>
+                    <div class="nc-workspace-dropdown-active-workspace-info">
+                      {{ collaborators?.length }} {{ Number(collaborators?.length) > 1 ? 'members' : 'member' }}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <NcDivider />
+            <NcDivider class="!mb-0" />
 
-          <div class="max-h-300px nc-scrollbar-md !overflow-y-auto">
-            <NcMenuItem v-for="workspace of otherWorkspaces" :key="workspace.id!" @click="switchWorkspace(workspace.id!)">
-              <div class="nc-workspace-menu-item group capitalize max-w-300px flex" data-testid="nc-workspace-list">
-                <GeneralWorkspaceIcon :workspace="workspace" hide-label size="small" />
-                <div class="mt-0.5 flex capitalize mb-0 nc-workspace-title truncate min-w-10">
-                  {{ workspace?.title }}
+            <div class="max-h-300px nc-scrollbar-md !overflow-y-auto py-1">
+              <NcMenuItem v-for="workspace of otherWorkspaces" :key="workspace.id!" @click="switchWorkspace(workspace.id!)">
+                <div class="nc-workspace-menu-item group capitalize max-w-300px flex" data-testid="nc-workspace-list">
+                  <GeneralWorkspaceIcon :workspace="workspace" hide-label size="small" />
+                  <div class="mt-0.5 flex capitalize mb-0 nc-workspace-title truncate min-w-10">
+                    {{ workspace?.title }}
+                  </div>
                 </div>
+              </NcMenuItem>
+            </div>
+            <NcDivider v-if="otherWorkspaces.length" class="!mt-0" />
+            <NcMenuItem @click="createDlg = true">
+              <div class="nc-workspace-menu-item group">
+                <GeneralIcon icon="plusSquare" class="!text-inherit" />
+
+                <div class="">Create New Workspace</div>
               </div>
             </NcMenuItem>
-          </div>
-          <NcMenuItem @click="createDlg = true">
-            <div class="nc-workspace-menu-item group">
-              <GeneralIcon icon="plusSquare" class="!text-inherit" />
-
-              <div class="">Create New Workspace</div>
-            </div>
-          </NcMenuItem>
-
-          <!-- Language -->
-          <a-sub-menu
-            v-if="!appInfo.ee"
-            key="language"
-            class="lang-menu !py-0"
-            popup-class-name="scrollbar-thin-dull min-w-50 max-h-90vh !overflow-auto"
-          >
-            <template #title>
-              <div class="nc-workspace-menu-item group">
-                <GeneralIcon icon="translate" class="group-hover:text-black nc-language" />
-                {{ $t('labels.language') }}
-                <div class="flex items-center text-gray-400 text-xs">(Community Translated)</div>
-                <div class="flex-1" />
-
-                <MaterialSymbolsChevronRightRounded class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400" />
-              </div>
-            </template>
-
-            <template #expandIcon></template>
-
-            <LazyGeneralLanguageMenu />
-          </a-sub-menu>
+          </a-menu-item-group>
         </NcMenu>
       </template>
     </NcDropdown>
@@ -195,9 +187,5 @@ watch(leftSidebarState, () => {
 
 :deep(.ant-dropdown-menu-item-group-title) {
   @apply hidden;
-}
-
-:deep(.ant-tabs-nav) {
-  @apply !mb-0;
 }
 </style>

@@ -51,101 +51,15 @@ const { loadTables } = projectStore
 
 const { tables, isSharedBase } = storeToRefs(projectStore)
 
-const { activeTable: _activeTable, projectTables } = storeToRefs(useTablesStore())
+const { activeTable: _activeTable } = storeToRefs(useTablesStore())
 
 const { refreshCommandPalette } = useCommandPalette()
-
-const { workspaceRoles } = useRoles()
-
-const keys = ref<Record<string, number>>({})
-
-const menuRefs = ref<HTMLElement[] | HTMLElement>()
 
 const projectType = ref(NcProjectType.DB)
 const projectCreateDlg = ref(false)
 const dashboardProjectCreateDlg = ref(false)
 
-// const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
-
-const tablesById = computed(() =>
-  Object.values(projectTables.value.get(activeProjectId.value!) || {})
-    .flat()
-    ?.reduce<Record<string, TableType>>((acc, table) => {
-      acc[table.id!] = table
-
-      return acc
-    }, {}),
-)
-
 const starredProjectList = computed(() => projectsList.value.filter((project) => project.starred))
-
-const sortables: Record<string, Sortable> = {}
-
-// todo: replace with vuedraggable
-const initSortable = (el: Element) => {
-  const base_id = el.getAttribute('nc-base')
-  if (!base_id) return
-  if (sortables[base_id]) sortables[base_id].destroy()
-  Sortable.create(el as HTMLLIElement, {
-    onEnd: async (evt) => {
-      const offset = tables.value.findIndex((table) => table.base_id === base_id)
-
-      const { newIndex = 0, oldIndex = 0 } = evt
-
-      const itemEl = evt.item as HTMLLIElement
-      const item = tablesById.value[itemEl.dataset.id as string]
-
-      // get the html collection of all list items
-      const children: HTMLCollection = evt.to.children
-
-      // skip if children count is 1
-      if (children.length < 2) return
-
-      // get items before and after the moved item
-      const itemBeforeEl = children[newIndex - 1] as HTMLLIElement
-      const itemAfterEl = children[newIndex + 1] as HTMLLIElement
-
-      // get items meta of before and after the moved item
-      const itemBefore = itemBeforeEl && tablesById.value[itemBeforeEl.dataset.id as string]
-      const itemAfter = itemAfterEl && tablesById.value[itemAfterEl.dataset.id as string]
-
-      // set new order value based on the new order of the items
-      if (children.length - 1 === evt.newIndex) {
-        item.order = (itemBefore.order as number) + 1
-      } else if (newIndex === 0) {
-        item.order = (itemAfter.order as number) / 2
-      } else {
-        item.order = ((itemBefore.order as number) + (itemAfter.order as number)) / 2
-      }
-
-      // update the order of the moved item
-      tables.value?.splice(newIndex + offset, 0, ...tables.value?.splice(oldIndex + offset, 1))
-
-      // force re-render the list
-      if (keys.value[base_id]) {
-        keys.value[base_id] = keys.value[base_id] + 1
-      } else {
-        keys.value[base_id] = 1
-      }
-
-      // update the item order
-      await $api.dbTable.reorder(item.id as string, {
-        order: item.order,
-      })
-    },
-    animation: 150,
-  })
-}
-
-watchEffect(() => {
-  if (menuRefs.value) {
-    if (menuRefs.value instanceof HTMLElement) {
-      initSortable(menuRefs.value)
-    } else {
-      menuRefs.value.forEach((el) => initSortable(el))
-    }
-  }
-})
 
 const contextMenuTarget = reactive<{ type?: 'project' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
 
@@ -361,7 +275,7 @@ watch(
           :key="project.id"
           :project-role="project.project_role || project.workspace_role"
           :project="project"
-          :starred-mode="true"
+          starred-mode
         >
           <DashboardTreeViewProjectNode />
         </ProjectWrapper>
@@ -372,11 +286,11 @@ watch(
           modal
           type="text"
           size="xxsmall"
-          class="!hover:bg-gray-200 !hover-text-gray-800 !text-gray-600"
+          class="!hover:bg-gray-200"
           :centered="true"
           data-testid="nc-sidebar-create-project-btn-small"
         >
-          <GeneralIcon icon="plus" class="text-lg leading-6" style="-webkit-text-stroke: 0.2px" />
+          <GeneralIcon icon="plus" class="text-lg leading-6 !text-inherit" style="-webkit-text-stroke: 0.2px" />
         </WorkspaceCreateProjectBtn>
       </div>
       <template v-if="projectsList?.length">
@@ -401,30 +315,5 @@ watch(
 <style scoped lang="scss">
 .nc-treeview-subheading {
   @apply flex flex-row w-full justify-between items-center mb-1.5 pl-3.5 pr-0.5;
-}
-
-.nc-treeview-container {
-  .ghost,
-  .ghost > * {
-    @apply !pointer-events-none;
-  }
-
-  & .dragging {
-    .nc-icon {
-      @apply !hidden;
-    }
-
-    .nc-view-icon {
-      @apply !block;
-    }
-  }
-
-  .ant-menu-item:not(.sortable-chosen) {
-    @apply color-transition hover:!bg-transparent;
-  }
-
-  .sortable-chosen {
-    @apply !bg-primary bg-opacity-25 text-primary;
-  }
 }
 </style>

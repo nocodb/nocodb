@@ -82,6 +82,7 @@ import Right from '~icons/material-symbols/chevron-right-rounded'
 import Left from '~icons/material-symbols/chevron-left-rounded'
 import Up from '~icons/material-symbols/keyboard-arrow-up-rounded'
 import Down from '~icons/material-symbols/keyboard-arrow-down-rounded'
+import PhTriangleFill from '~icons/ph/triangle-fill'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -254,6 +255,7 @@ export const iconMap = {
   unStar: NcUnStar,
   sortDesc: MsSort,
   article: NcArticle,
+  triangleFill: PhTriangleFill,
   sortAsc: h('span', { class: 'material-symbols', style: { transform: 'scaleY(-1)' } }, 'sort'),
   contentSaveExit: h('span', { class: 'material-symbols' }, 'save'),
   contentSaveStay: h('span', { class: 'material-symbols' }, 'save_as'),

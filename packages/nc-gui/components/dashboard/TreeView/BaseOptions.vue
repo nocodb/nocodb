@@ -100,8 +100,6 @@ function openQuickImportDialog(type: string) {
     </NcMenuItem>
   </NcSubMenu>
 
-  <a-menu-divider v-if="false" class="my-0" />
-
   <!-- Connect to new datasource -->
   <!-- <NcSubMenu>
     <template #title>

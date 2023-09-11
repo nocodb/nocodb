@@ -89,10 +89,19 @@ const onBlur = () => {
         'justify-start': !props.centered,
       }"
     >
-      <GeneralLoader v-if="loading" size="medium" class="flex !text-white" loader-class="!text-white" />
+      <GeneralLoader
+        v-if="loading"
+        size="medium"
+        class="flex !bg-inherit"
+        :class="{
+          '!text-white': type === 'primary' || type === 'danger',
+          '!text-gray-800': type !== 'primary' && type !== 'danger',
+        }"
+      />
 
       <slot v-else name="icon" />
       <div
+        v-if="!(size === 'xxsmall' && loading)"
         class="flex flex-row items-center"
         :class="{
           'font-medium': type === 'primary' || type === 'danger',
@@ -107,6 +116,10 @@ const onBlur = () => {
 </template>
 
 <style lang="scss">
+.ant-btn:before {
+  display: none !important;
+}
+
 .nc-button {
   > .ant-btn-loading-icon {
     display: none !important;
@@ -139,7 +152,7 @@ const onBlur = () => {
 }
 
 .nc-button.ant-btn.xxsmall {
-  @apply p-0 h-6 min-w-6 rounded-md;
+  @apply p-0 h-5.75 min-w-5.75 rounded-md;
 }
 
 .nc-button.ant-btn[disabled] {
@@ -182,7 +195,7 @@ const onBlur = () => {
 .nc-button.ant-btn-text {
   box-shadow: none;
 
-  @apply bg-transparent border-0 text-gray-700 hover:bg-gray-100;
+  @apply bg-transparent border-0 text-gray-700 hover:text-gray-900 hover:bg-gray-100;
 
   &:focus {
     box-shadow: none;

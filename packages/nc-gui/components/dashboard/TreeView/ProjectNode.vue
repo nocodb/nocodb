@@ -384,27 +384,31 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
             'hover:bg-gray-200': !(activeProjectId === project.id && projectViewOpen),
           }"
           :data-testid="`nc-sidebar-project-title-${project.title}`"
-          class="project-title-node h-7.25 pr-0.5 flex-grow rounded-md group flex items-center w-full"
+          class="project-title-node h-7.25 flex-grow rounded-md group flex items-center w-full pr-1"
         >
-          <div
-            class="nc-sidebar-expand ml-0.75 min-h-5.75 min-w-5.75 px-1.5 text-gray-500 hover:(hover:bg-gray-500 hover:bg-opacity-15 !text-black) rounded-md relative"
+          <NcButton
+            type="text"
+            size="xxsmall"
+            class="nc-sidebar-node-btn nc-sidebar-expand ml-0.75"
             @click="onProjectClick(project, true, true)"
           >
-            <PhTriangleFill
+            <GeneralIcon
+              icon="triangleFill"
               class="absolute top-2.25 left-2 group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.75 rotate-90"
               :class="{ '!rotate-180': project.isExpanded, '!visible': isOptionsOpen }"
             />
-          </div>
+          </NcButton>
 
           <div class="flex items-center mr-1" @click="onProjectClick(project)">
             <div class="flex items-center select-none w-6 h-full">
               <a-spin
                 v-if="project.isLoading"
-                class="nc-sidebar-icon !flex !flex-row !items-center !my-0.5 !mx-1.5 w-8"
+                class="!ml-1.25 !flex !flex-row !items-center !my-0.5 w-8"
                 :indicator="indicator"
               />
 
               <LazyGeneralEmojiPicker
+                v-else
                 :key="project.meta?.icon"
                 :emoji="project.meta?.icon"
                 :readonly="true"
@@ -441,12 +445,16 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
           <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(project)"></div>
 
           <NcDropdown v-model:visible="isOptionsOpen" trigger="click">
-            <MdiDotsHorizontal
-              class="min-w-5.75 min-h-5.75 px-0.5 py-0.5 mr-0.25 !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 opacity-0 group-hover:(opacity-100) hover:text-black text-gray-600 rounded-md hover:(bg-gray-500 bg-opacity-15)"
+            <NcButton
+              class="nc-sidebar-node-btn"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
               data-testid="nc-sidebar-context-menu"
+              type="text"
+              size="xxsmall"
               @click.stop
-            />
+            >
+              <GeneralIcon icon="threeDotHorizontal" class="text-xl w-4.75" />
+            </NcButton>
             <template #overlay>
               <NcMenu
                 class="nc-scrollbar-md"
@@ -540,18 +548,18 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
             </template>
           </NcDropdown>
 
-          <div
+          <NcButton
             v-if="isUIAllowed('tableCreate', false, projectRole)"
-            class="min-h-5.75 min-w-5.75 flex flex-row mr-0.25 items-center justify-center gap-x-2 cursor-pointer hover:(text-black) text-gray-600 text-sm invisible !group-hover:visible rounded-md hover:(bg-gray-500 bg-opacity-15)"
+            class="nc-sidebar-node-btn"
+            size="xxsmall"
+            type="text"
             data-testid="nc-sidebar-add-project-entity"
             :class="{ '!text-black !visible': isAddNewProjectChildEntityLoading, '!visible': isOptionsOpen }"
+            :loading="isAddNewProjectChildEntityLoading"
             @click.stop="addNewProjectChildEntity"
           >
-            <div v-if="isAddNewProjectChildEntityLoading" class="flex flex-row items-center">
-              <a-spin class="!flex !flex-row !items-center !my-0.5" :indicator="indicator" />
-            </div>
-            <MdiPlus v-else class="min-w-5 min-h-5 py-0.25" />
-          </div>
+            <GeneralIcon icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
+          </NcButton>
         </div>
       </div>
 
@@ -584,7 +592,8 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   >
                     <template #expandIcon="{ isActive }">
                       <div class="flex flex-row items-center -mt-2">
-                        <PhTriangleFill
+                        <GeneralIcon
+                          icon="triangleFill"
                           class="nc-sidebar-base-node-btns -mt-0.75 invisible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.5 text-gray-500 rotate-90"
                           :class="{ '!rotate-180': isActive }"
                         />
@@ -592,7 +601,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                     </template>
                     <a-collapse-panel :key="`collapse-${base.id}`">
                       <template #header>
-                        <div class="min-w-20 w-full flex flex-row">
+                        <div class="min-w-20 w-full flex flex-row group">
                           <div
                             v-if="baseIndex === 0"
                             class="base-context flex items-center gap-2 text-gray-800"
@@ -630,11 +639,15 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                               trigger="click"
                               @update:visible="isBasesOptionsOpen[base!.id!] = $event"
                             >
-                              <MdiDotsHorizontal
-                                class="min-w-6 min-h-6 mt-0.15 invisible nc-sidebar-base-node-btns !ring-0 focus:!ring-0 !focus:border-0 !focus:outline-0 hover:text-black py-0.25 px-0.5 rounded-md text-gray-600 hover:(bg-gray-400 bg-opacity-20)"
+                              <NcButton
+                                class="nc-sidebar-node-btn"
                                 :class="{ '!text-black !opacity-100': isBasesOptionsOpen[base!.id!] }"
+                                type="text"
+                                size="xxsmall"
                                 @click.stop="isBasesOptionsOpen[base!.id!] = !isBasesOptionsOpen[base!.id!]"
-                              />
+                              >
+                                <GeneralIcon icon="threeDotHorizontal" class="text-xl w-4.75" />
+                              </NcButton>
                               <template #overlay>
                                 <NcMenu
                                   class="nc-scrollbar-md"
@@ -655,21 +668,18 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                               </template>
                             </NcDropdown>
 
-                            <div
+                            <NcButton
                               v-if="isUIAllowed('tableCreate', false, projectRole)"
-                              class="flex invisible nc-sidebar-base-node-btns !focus:outline-0 text-gray-600 hover:text-black px-0.35 rounded-md hover:(bg-gray-500 bg-opacity-15) min-h-6 mt-0.15 min-w-6"
+                              type="text"
+                              size="xxsmall"
+                              class="nc-sidebar-node-btn"
                               @click.stop="openTableCreateDialog(baseIndex)"
                             >
-                              <MdiPlus class="min-w-5 min-h-5 mt-0.5 py-0.25" />
-                            </div>
+                              <GeneralIcon icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
+                            </NcButton>
                           </div>
                         </div>
                       </template>
-                      <!-- <AddNewTableNode
-                        :project="project"
-                        :base-index="baseIndex"
-                        @open-table-create-dialog="openTableCreateDialog()"
-                      /> -->
                       <div
                         ref="menuRefs"
                         :key="`sortable-${base.id}-${base.id && base.id in keys ? keys[base.id] : '0'}`"
@@ -744,12 +754,16 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 </template>
 
 <style lang="scss" scoped>
-.nc-sidebar-icon {
-  @apply ml-0.5 mr-1;
+:deep(.ant-collapse-header) {
+  @apply !mx-0 !pl-8.75 !pr-0.5 !py-0.75 hover:bg-gray-200 !rounded-md;
 }
 
-:deep(.ant-collapse-header) {
-  @apply !mx-0 !pl-8.75 !pr-1 !py-0.75 hover:bg-gray-200 !rounded-md;
+:deep(.nc-button.ant-btn.nc-sidebar-node-btn) {
+  @apply opacity-0 group-hover:(opacity-100) text-gray-600 hover:(bg-gray-400 bg-opacity-20 text-gray-900) duration-100;
+}
+
+:deep(.ant-collapse-content-box) {
+  @apply !px-0 !pb-0 !pt-0.25;
 }
 
 :deep(.ant-collapse-header:hover .nc-sidebar-base-node-btns) {

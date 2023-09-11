@@ -26,9 +26,9 @@ const usersData = ref<{
 const isInvitingCollaborators = ref(false)
 
 const inviteCollaborator = async () => {
-  isInvitingCollaborators.value = true
-
   if (isInvitingCollaborators.value) return
+
+  isInvitingCollaborators.value = true
 
   try {
     usersData.value = await inviteUser(inviteData)

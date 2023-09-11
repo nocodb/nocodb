@@ -649,7 +649,7 @@ onMounted(() => {
             <div v-if="isAddNewProjectChildEntityLoading" class="flex flex-row items-center">
               <a-spin class="!flex !flex-row !items-center !my-0.5" :indicator="indicator" />
             </div>
-            <MdiPlus v-else class="min-w-5 min-h-5 py-0.25" />
+            <GeneralIcon v-else icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
           </div>
         </div>
       </div>

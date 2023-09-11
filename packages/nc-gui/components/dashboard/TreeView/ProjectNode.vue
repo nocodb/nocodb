@@ -466,8 +466,6 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                     {{ $t('general.duplicate') }}
                   </NcMenuItem>
 
-                  <NcDivider v-if="false" />
-
                   <!-- ERD View -->
                   <NcMenuItem key="erd" @click="openProjectErdView(project)">
                     <GeneralIcon icon="erd" />
@@ -502,8 +500,6 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   <NcDivider />
                 </template>
 
-                <NcDivider v-if="false" />
-
                 <NcMenuItem
                   v-if="isUIAllowed('projectDelete', false, projectRole)"
                   class="!text-red-500 !hover:bg-red-50"
@@ -526,7 +522,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
             <div v-if="isAddNewProjectChildEntityLoading" class="flex flex-row items-center">
               <a-spin class="!flex !flex-row !items-center !my-0.5" :indicator="indicator" />
             </div>
-            <MdiPlus v-else class="min-w-5 min-h-5 py-0.25" />
+            <GeneralIcon v-else icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
           </div>
         </div>
       </div>

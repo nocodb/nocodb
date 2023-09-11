@@ -37,7 +37,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { appInfo, ncNavigateTo } = useGlobal()
 
-  const { isUIAllowed } = useUIPermission()
+  const workspaceUserCount = ref<number | undefined>(undefined)
 
   const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
@@ -112,7 +112,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         workspaces.value.set(workspace.id!, workspace)
       }
     } catch (e: any) {
-      if (!ignoreError) message.error(await (e))
+      if (!ignoreError) message.error(await e)
     }
   }
 
@@ -193,6 +193,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       })
 
       collaborators.value = list
+      workspaceUserCount.value = Number(collaborators.value?.length)
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
@@ -256,10 +257,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   const loadWorkspace = async (workspaceId: string) => {
-    const workspace = await $api.workspace.read(workspaceId, {
+    const res = await $api.workspace.read(workspaceId, {
       baseURL: appInfo.value.baseHostName ? `https://${workspaceId}.${appInfo.value.baseHostName}` : undefined,
     })
-    workspaces.value.set(workspace.id!, workspace)
+
+    workspaces.value.set(res.workspace.id!, res.workspace)
+
+    workspaceUserCount.value = Number(res.workspaceUserCount)
   }
 
   async function populateWorkspace({ force, workspaceId: _workspaceId }: { force?: boolean; workspaceId?: string } = {}) {
@@ -449,6 +453,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     lastPopulatedWorkspaceId,
     workspaceRole,
     isWorkspaceSettingsPageOpened,
+    workspaceUserCount,
   }
 })
 

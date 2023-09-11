@@ -81,6 +81,7 @@ const rolePermissions = {
       commentEditable: true,
       commentList: true,
       commentsCount: true,
+      csvTableImport: true,
     },
   },
   [ProjectRole.Commenter]: {
@@ -92,6 +93,7 @@ const rolePermissions = {
       commentEditable: true,
       commentList: true,
       commentsCount: true,
+      apiDocs: true,
     },
   },
   [ProjectRole.Viewer]: {
@@ -99,6 +101,7 @@ const rolePermissions = {
       smartSheet: true,
       column: true,
       projectSettings: true,
+      apiDocs: true,
     },
   },
 } as const

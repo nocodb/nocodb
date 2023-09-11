@@ -75,6 +75,7 @@ const rolePermissions = {
       projectSettings: true,
       commentEditable: true,
       commentList: true,
+      apiDocs: true,
       commentsCount: true,
     },
   },
@@ -82,6 +83,7 @@ const rolePermissions = {
     include: {
       smartSheet: true,
       column: true,
+      apiDocs: true,
       projectSettings: true,
     },
   },

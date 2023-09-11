@@ -15,7 +15,7 @@ export class SidebarUserMenuObject extends BasePage {
   }
 
   async click() {
-    await this.get().click();
+    await this.rootPage.getByTestId('nc-sidebar-user-info-btn').click();
   }
 
   async clickLogout() {

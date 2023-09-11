@@ -52,6 +52,18 @@ export class SidebarProjectNodeObject extends BasePage {
     importVisible,
     settingsVisible,
     deleteVisible,
+    copyProjectInfoVisible,
+  }: {
+    projectTitle: string;
+    renameVisible?: boolean;
+    starredVisible?: boolean;
+    duplicateVisible?: boolean;
+    relationsVisible?: boolean;
+    restApisVisible?: boolean;
+    importVisible?: boolean;
+    settingsVisible?: boolean;
+    deleteVisible?: boolean;
+    copyProjectInfoVisible?: boolean;
   }) {
     const renameLocator = await this.rootPage
       .getByTestId(`nc-sidebar-project-${projectTitle}-options`)
@@ -108,5 +120,12 @@ export class SidebarProjectNodeObject extends BasePage {
 
     if (deleteVisible) await expect(deleteLocator).toBeVisible();
     else await expect(deleteLocator).toHaveCount(0);
+
+    const copyProjectInfoLocator = await this.rootPage
+      .getByTestId(`nc-sidebar-project-${projectTitle}-options`)
+      .getByTestId('nc-sidebar-project-copy-project-info');
+
+    if (copyProjectInfoVisible) await expect(copyProjectInfoLocator).toBeVisible();
+    else await expect(copyProjectInfoLocator).toHaveCount(0);
   }
 }

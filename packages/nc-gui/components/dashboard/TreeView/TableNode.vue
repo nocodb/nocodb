@@ -163,7 +163,7 @@ const canUserEditEmote = computed(() => {
           @click.stop
         >
           <NcButton
-            class="nc-sidebar-node-btn"
+            class="nc-sidebar-node-btn nc-tbl-context-menu"
             data-testid="nc-sidebar-table-context-menu"
             type="text"
             size="xxsmall"

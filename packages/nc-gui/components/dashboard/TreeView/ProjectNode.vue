@@ -489,7 +489,13 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   />
 
                   <!-- Copy Project Info -->
-                  <NcMenuItem v-if="!isEeUI" key="copy" v-e="['c:navbar:user:copy-proj-info']" @click.stop="copyProjectInfo">
+                  <NcMenuItem
+                    v-if="!isEeUI"
+                    key="copy"
+                    v-e="['c:navbar:user:copy-proj-info']"
+                    data-testid="nc-sidebar-project-copy-project-info"
+                    @click.stop="copyProjectInfo"
+                  >
                     <GeneralIcon icon="copy" class="group-hover:text-black" />
                     {{ $t('activity.account.projInfo') }}
                   </NcMenuItem>

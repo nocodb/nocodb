@@ -167,7 +167,8 @@ function onExpandClick(id: string, expanded: boolean) {
             }"
             @click="() => onExpandClick(key, !expanded)"
           >
-            <PhTriangleFill
+            <GeneralIcon
+              icon="triangleFill"
               class="cursor-pointer transform transition-transform duration-500 h-1.25 text-gray-500"
               :class="{ 'rotate-180': expanded, 'rotate-90': !expanded }"
             />

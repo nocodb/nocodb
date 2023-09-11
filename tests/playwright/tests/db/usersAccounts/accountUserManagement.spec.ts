@@ -1,31 +1,55 @@
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { AccountPage } from '../../../pages/Account';
 import { AccountUsersPage } from '../../../pages/Account/Users';
 import { SignupPage } from '../../../pages/SignupPage';
 import setup, { unsetup } from '../../../setup';
-import { WorkspacePage } from '../../../pages/WorkspacePage';
 import { getDefaultPwd } from '../../../tests/utils/general';
+import { Api } from 'nocodb-sdk';
+import { DashboardPage } from '../../../pages/Dashboard';
+import { LoginPage } from '../../../pages/LoginPage';
+let api: Api<any>;
 
 const roleDb = [
-  { email: 'creator@nocodb.com', role: 'Organization Level Creator', url: '' },
-  { email: 'viewer@nocodb.com', role: 'Organization Level Viewer', url: '' },
+  { email: 'org_creator@nocodb.com', role: 'Organization Level Creator', url: '' },
+  { email: 'org_viewer@nocodb.com', role: 'Organization Level Viewer', url: '' },
 ];
 
-test.describe.skip('User roles', () => {
+test.describe('User roles', () => {
   let accountUsersPage: AccountUsersPage;
   let accountPage: AccountPage;
   let signupPage: SignupPage;
-  let workspacePage: WorkspacePage;
+  let loginPage: LoginPage;
+  let dashboard: DashboardPage;
   // @ts-ignore
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
+    context = await setup({ page, isEmptyProject: true, isSuperUser: true });
+    dashboard = new DashboardPage(page, context.project);
     accountPage = new AccountPage(page);
     accountUsersPage = new AccountUsersPage(accountPage);
-
     signupPage = new SignupPage(accountPage.rootPage);
-    workspacePage = new WorkspacePage(accountPage.rootPage);
+    loginPage = new LoginPage(accountPage.rootPage);
+
+    try {
+      api = new Api({
+        baseURL: `http://localhost:8080/`,
+        headers: {
+          'xc-auth': context.token,
+        },
+      });
+    } catch (e) {
+      console.log(e);
+    }
+
+    // check if user already exists; if so- remove them
+    for (let i = 0; i < roleDb.length; i++) {
+      const user = await api.orgUsers.list();
+      if (user.list.length > 0) {
+        const u = user.list.find((u: any) => u.email === roleDb[i].email);
+        if (u) await api.orgUsers.delete(u.id);
+      }
+    }
   });
 
   test.afterEach(async () => {
@@ -44,12 +68,21 @@ test.describe.skip('User roles', () => {
         role: roleDb[i].role,
       });
       await accountUsersPage.closeInvite();
-      await signupAndVerify(i);
-      await accountPage.rootPage.reload({ waitUntil: 'networkidle' });
-      await accountUsersPage.goto();
     }
 
-    // update role
+    await signupAndVerify(0);
+    await accountUsersPage.goto();
+    await signupAndVerify(1);
+
+    await dashboard.signOut();
+    await loginPage.signIn({
+      email: 'user@nocodb.com',
+      password: getDefaultPwd(),
+      withoutPrefix: true,
+    });
+
+    await accountUsersPage.goto();
+    // change role
     for (let i = 0; i < roleDb.length; i++) {
       await accountUsersPage.updateRole({
         email: roleDb[i].email,
@@ -74,10 +107,16 @@ test.describe.skip('User roles', () => {
     await signupPage.signUp({
       email: roleDb[roleIdx].email,
       password: getDefaultPwd(),
+      withoutPrefix: true,
     });
 
-    await workspacePage.checkWorkspaceCreateButton({
-      exists: roleDb[roleIdx].role === 'Organization Level Creator',
-    });
+    // wait for page rendering to complete after sign up
+    await dashboard.rootPage.waitForTimeout(1000);
+
+    if (roleDb[roleIdx].role === 'Organization Level Creator') {
+      expect(await dashboard.leftSidebar.btn_newProject.isVisible()).toBeTruthy();
+    } else {
+      expect(await dashboard.leftSidebar.btn_newProject.isVisible()).toBeFalsy();
+    }
   }
 });

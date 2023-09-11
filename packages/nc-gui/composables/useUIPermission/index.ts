@@ -81,7 +81,8 @@ export const useUIPermission = createSharedComposable(() => {
 
     // Roles is workspace roles or org roles (if not wsRoles undefined ce)
     if (maxScope === 'workspace') {
-      if (currentWorkspaceRoles.value) roles = currentWorkspaceRoles.value
+      if (currentWorkspaceRoles.value && Object.keys(currentWorkspaceRoles.value).length !== 0)
+        roles = currentWorkspaceRoles.value
       else roles = orgRoles.value
     }
 
@@ -89,11 +90,21 @@ export const useUIPermission = createSharedComposable(() => {
     if (maxScope === 'project') {
       const _projectRoles = projectRoles ? extractRolesObj(projectRoles) : currentProjectRoles.value
 
-      if (_projectRoles.value) roles = _projectRoles
+      if (_projectRoles.value && Object.keys(_projectRoles.value).length !== 0) roles = _projectRoles
       else roles = currentWorkspaceRoles.value
     }
 
-    if (log) console.log('isUIAllowedAcl', roles, permission, rolePermissions)
+    if (log) {
+      console.log('isUIAllowedAcl', {
+        wsRoles: currentWorkspaceRoles.value,
+        orgRoles: orgRoles.value,
+        currProjRoles: currentProjectRoles.value,
+        projRoles: projectRoles,
+        roles,
+        permission,
+        rolePermissions,
+      })
+    }
 
     return Object.entries(roles).some(([role, hasRole]) => hasPermission(role as Role | ProjectRole, hasRole, permission))
   }

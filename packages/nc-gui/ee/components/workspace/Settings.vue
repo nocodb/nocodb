@@ -155,7 +155,7 @@ const onCancel = () => {
     </div>
   </div>
 
-  <GeneralModal v-model:visible="isModalVisible" class="nc-attachment-rename-modal !w-[448px]">
+  <GeneralModal v-model:visible="isModalVisible" class="nc-attachment-rename-modal !w-112">
     <div class="flex flex-col items-center justify-center h-full !p-6">
       <div class="text-lg font-semibold self-start mb-4">Delete Workspace</div>
       <span class="self-start mb-2"

@@ -250,7 +250,7 @@ export class TreeViewPage extends BasePage {
     }
 
     await this.waitForResponse({
-      uiAction: () => this.rootPage.getByRole('button', { name: 'Confirm' }).click(),
+      uiAction: async () => await this.rootPage.getByRole('button', { name: 'Confirm' }).click(),
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: `/api/v1/db/meta/duplicate/`,
     });

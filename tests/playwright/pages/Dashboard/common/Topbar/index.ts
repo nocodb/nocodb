@@ -69,6 +69,7 @@ export class TopbarPage extends BasePage {
 
   async openDetailedTab() {
     await this.btn_details.click();
+    await this.rootPage.waitForTimeout(500);
   }
 
   async openDataTab() {

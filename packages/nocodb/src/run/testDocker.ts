@@ -1,3 +1,4 @@
+import dns from 'node:dns';
 import axios from 'axios';
 import cors from 'cors';
 import express from 'express';
@@ -5,6 +6,9 @@ import Noco from '~/Noco';
 import { User } from '~/models';
 
 process.env.NC_VERSION = '0009044';
+
+// ref: https://github.com/nodejs/node/issues/40702#issuecomment-1103623246
+dns.setDefaultResultOrder('ipv4first');
 
 const server = express();
 server.enable('trust proxy');

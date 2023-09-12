@@ -9,21 +9,21 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-            node-version: 16.15.0
+            node-version: 18.14.0
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
         
       - run: |
-          cd packages/nocodb
-          npm install --save --save-exact nocodb-sdk@file:../nocodb-sdk
-          cd ../..
-          cd packages/nc-gui
-          npm install --save --save-exact nocodb-sdk@file:../nocodb-sdk
+          pnpm bootstrap
 
       - name: Create Pull Request
         id: cpr

@@ -18,16 +18,26 @@ const replacePackageName = (filePath) => {
     })
 }
 
+const replacePackageVersion = (filePath) => {
+    return new Promise((resolve, reject) => {
+        return fs.readFile(filePath, 'utf8', function (err, data) {
+            if (err) return reject(err)
+            var result = data.replace(/workspace:\^/g, nocodbSdkPackage.version);
+            return fs.writeFile(filePath, result, 'utf8', function (err) {
+                if (err) return reject(err)
+                return resolve()
+            });
+        });
+    })
+}
+
 const bumbVersionAndSave = () => {
-    try {
-        // upgrade nocodb-sdk version in nocodb
-        execSync(`cd packages/nocodb && npm install --save --save-exact ${nocodbSdkPackage.name}@${nocodbSdkPackage.version}`, {});
-        // upgrade nocodb-sdk version in nc-gui
-        execSync(`cd packages/nc-gui && npm install --save --save-exact ${nocodbSdkPackage.name}@${nocodbSdkPackage.version}`, {});
-    } catch (e) {
-        console.log(e.message);
-        console.log(e.stdout.toString());
-    }
+    // upgrade nocodb-sdk version in nocodb & nc-gui
+    return Promise.all([
+        replacePackageVersion(path.join(__dirname, '..', 'packages', 'nocodb', 'package.json')),
+        replacePackageVersion(path.join(__dirname, '..', 'packages', 'nc-gui', 'package.json')),
+        replacePackageVersion(path.join(__dirname, '..', 'tests', 'playwright', 'package.json')),
+    ])
 }
 
 const dfs = function(dir) {
@@ -53,8 +63,10 @@ const searchAndReplace = (target) => {
     let list = [
         ...dfs(path.resolve(path.join(__dirname, '..', 'packages', 'nc-gui'))),
         ...dfs(path.resolve(path.join(__dirname, '..', 'packages', 'nocodb'))),
+        ...dfs(path.resolve(path.join(__dirname, '..', 'tests', 'playwright'))),
         path.join(__dirname, '..', 'packages', 'nc-gui', 'package.json'),
-        path.join(__dirname, '..', 'packages', 'nocodb', 'package.json')
+        path.join(__dirname, '..', 'packages', 'nocodb', 'package.json'),
+        path.join(__dirname, '..', 'tests', 'playwright', 'package.json'),
     ]
     return Promise.all(list.map(d => {
         return new Promise((resolve, reject) => {

@@ -136,34 +136,33 @@ export class ProjectsPage extends BasePage {
 
     let project: any;
 
-    const openProjectUiAction = this.get()
+    const responsePromise = this.rootPage.waitForResponse(async res => {
+      let json: any = {};
+      try {
+        json = await res.json();
+      } catch (e) {
+        return false;
+      }
+
+      const isRequiredResponse =
+        res.request().url().includes('/api/v1/db/meta/projects') &&
+        ['GET'].includes(res.request().method()) &&
+        json?.title === title;
+
+      if (isRequiredResponse) {
+        project = json;
+      }
+
+      return isRequiredResponse;
+    });
+
+    await this.get()
       .locator(`.ant-table-cell`, {
         hasText: title,
       })
       .click();
 
-    await Promise.all([
-      this.rootPage.waitForResponse(async res => {
-        let json: any = {};
-        try {
-          json = await res.json();
-        } catch (e) {
-          return false;
-        }
-
-        const isRequiredResponse =
-          res.request().url().includes('/api/v1/db/meta/projects') &&
-          ['GET'].includes(res.request().method()) &&
-          json?.title === title;
-
-        if (isRequiredResponse) {
-          project = json;
-        }
-
-        return isRequiredResponse;
-      }),
-      openProjectUiAction,
-    ]);
+    await responsePromise;
 
     const dashboard = new DashboardPage(this.rootPage, project);
 

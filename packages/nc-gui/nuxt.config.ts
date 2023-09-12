@@ -1,5 +1,5 @@
 import { dirname, resolve } from 'node:path'
-import vueI18n from '@intlify/unplugin-vue-i18n/vite'
+import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 import Icons from 'unplugin-icons/vite'
 import IconsResolver from 'unplugin-icons/resolver'
 import Components from 'unplugin-vue-components/vite'
@@ -10,7 +10,7 @@ import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 
 import PurgeIcons from 'vite-plugin-purge-icons'
 
-// https://v3.nuxtjs.org/api/configuration/nuxt.config
+// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image-edge', '@pinia/nuxt'],
 
@@ -103,7 +103,7 @@ export default defineNuxtConfig({
       rollupOptions: {},
     },
     plugins: [
-      vueI18n({
+      VueI18nPlugin({
         include: [resolve(dirname('./lang/*.json'))],
         runtimeOnly: false,
       }),

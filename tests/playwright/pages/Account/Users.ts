@@ -17,8 +17,21 @@ export class AccountUsersPage extends BasePage {
     this.changePasswordPage = new ChangePasswordPage(this.rootPage);
   }
 
-  async goto() {
-    await this.rootPage.goto('/#/account/users/list', { waitUntil: 'networkidle' });
+  async goto({ waitForResponse = true }: { waitForResponse?: boolean }) {
+    if (waitForResponse) {
+      return this.waitForResponse({
+        uiAction: async () => await this.rootPage.goto('/#/account/users'),
+        httpMethodsToMatch: ['GET'],
+        requestUrlPathToMatch: `api/v1/users`,
+      });
+    } else {
+      await this.rootPage.waitForTimeout(1000);
+      return this.rootPage.goto('/#/account/users');
+    }
+  }
+
+  async waitUntilContentLoads() {
+    return this.rootPage.waitForResponse(resp => resp.url().includes('api/v1/users') && resp.status() === 200);
   }
 
   get() {
@@ -35,7 +48,7 @@ export class AccountUsersPage extends BasePage {
     await this.verifyToast({ message: 'Successfully added user' });
 
     // http://localhost:3000/#/signup/a5e7bf3a-cbb0-46bc-87f7-c2ae21796707
-    return (await this.inviteUserModal.locator(`.ant-alert-message`).innerText()).slice(0, 67);
+    return (await this.inviteUserModal.locator(`.ant-alert-message`).innerText()).split('\n')[0];
   }
 
   prefixEmail(email: string) {

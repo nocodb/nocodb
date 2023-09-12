@@ -26,7 +26,7 @@ test.describe.skip('App settings', () => {
   test('Toggle invite only signup', async () => {
     test.slow();
 
-    await accountSettingsPage.goto();
+    await accountSettingsPage.goto({ networkValidation: false });
 
     // enable invite only signup
     if (!(await accountSettingsPage.getInviteOnlyCheckboxValue())) {
@@ -45,9 +45,9 @@ test.describe.skip('App settings', () => {
       expectedError: 'Not allowed to signup, contact super admin.',
     });
 
-    await signupPage.rootPage.reload({ waitUntil: 'networkidle' });
+    await signupPage.rootPage.reload({ waitUntil: 'load' });
 
-    await accountSettingsPage.goto();
+    await accountSettingsPage.goto({ networkValidation: false });
 
     await accountSettingsPage.checkInviteOnlySignupCheckbox(true);
     await accountSettingsPage.toggleInviteOnlyCheckbox();

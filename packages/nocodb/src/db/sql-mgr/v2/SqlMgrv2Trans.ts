@@ -1,8 +1,8 @@
 import KnexMigratorv2Tans from '../../sql-migrator/lib/KnexMigratorv2Tans';
 import SqlMgrv2 from './SqlMgrv2';
-import type Base from '~/models/Base';
 import type { Knex } from 'knex';
 import type { XKnex } from '../../CustomKnex';
+import Base from '~/models/Base';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 export default class SqlMgrv2Trans extends SqlMgrv2 {

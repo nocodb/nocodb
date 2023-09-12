@@ -11,7 +11,7 @@
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "types": [
-      "@intlify/vite-plugin-vue-i18n/client",
+      "@intlify/unplugin-vue-i18n/messages",
       "vue-i18n",
       "unplugin-icons/types/vue",
       "nuxt-windicss",

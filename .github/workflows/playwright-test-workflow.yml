@@ -16,25 +16,27 @@ jobs:
     runs-on: [self-hosted, v2]
     timeout-minutes: 100
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.15.0
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Cache node modules
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules
-
+          node-version: 18.14.0
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
         with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
-          path: ~/.npm
-          key: ${{ runner.os }}-v2-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          version: 8
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-v2-build-${{ env.cache-name }}-
-            ${{ runner.os }}-v2-build-
-            ${{ runner.os }}-v2
+            ${{ runner.os }}-pnpm-store-
       - name: setup pg
         if: ${{ inputs.db == 'pg' || ( inputs.db == 'sqlite' && inputs.shard == '1' ) }}
         working-directory: ./
@@ -55,12 +57,8 @@ jobs:
         run: export CI=true
       - name: Set NC Edition
         run: export EE=true
-      - name: install dependencies nocodb-sdk
-        working-directory: ./packages/nocodb-sdk
-        run: npm install
-      - name: Build nocodb-sdk
-        working-directory: ./packages/nocodb-sdk
-        run: npm run build
+      - name: install dependencies
+        run: pnpm bootstrap
       - name: Setup mysql
         if: ${{ inputs.db == 'mysql' }}
         working-directory: ./packages/nocodb/tests/mysql-sakila-db
@@ -82,42 +80,26 @@ jobs:
           sudo -u postgres psql -U postgres -f 01-cy-quick.sql
       - name: run frontend
         working-directory: ./packages/nc-gui
-        run: npm run ci:run
+        run: pnpm run ci:run
         timeout-minutes: 20
       - name: Run backend
         if: ${{ inputs.db == 'sqlite' }}
         working-directory: ./packages/nocodb
         run: |
-          npm install
-          npm run watch:run:playwright &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+          pnpm run watch:run:playwright &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
       - name: Run backend:mysql
         if: ${{ inputs.db == 'mysql' }}
         working-directory: ./packages/nocodb
         run: |
-          npm install
-          npm run watch:run:playwright:mysql &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+          pnpm run watch:run:playwright:mysql &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
       - name: Run backend:pg
         if: ${{ inputs.db == 'pg' }}
         working-directory: ./packages/nocodb
         run: |
-          npm install
-          npm run watch:run:playwright:pg &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
-      - name: Cache playwright npm modules
-        uses: actions/cache@v3
-        id: playwright-cache
-        with:
-          path: |
-            **/tests/playwright/node_modules
-          key: cache-v2-nc-playwright-${{ hashFiles('**/tests/playwright/package-lock.json') }}
-          restore-keys: |
-            cache-v2-nc-playwright-
-      - name: Install dependencies
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        working-directory: ./tests/playwright
-        run: npm install
+          pnpm run watch:run:playwright:pg &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
       - name: Install Playwright Browsers
         working-directory: ./tests/playwright
-        run: npx playwright install chromium --with-deps
+        run: pnpm exec playwright install --with-deps chromium
       - name: Wait for backend
         run: |
           while ! curl --output /dev/null --silent --head --fail http://localhost:8080; do

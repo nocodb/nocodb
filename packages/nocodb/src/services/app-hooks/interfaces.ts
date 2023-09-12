@@ -179,9 +179,8 @@ export interface AttachmentEvent {
   type: 'url' | 'file';
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface FormColumnEvent {}
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+
 export interface GridColumnEvent {}
 
 export interface MetaDiffEvent {

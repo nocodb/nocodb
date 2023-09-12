@@ -16,6 +16,7 @@ test.describe('Grid pagination', () => {
   });
 
   test('Access next page, prev page & offset page', async () => {
+    test.slow();
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
 

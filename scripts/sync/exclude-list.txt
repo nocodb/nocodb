@@ -36,3 +36,4 @@ packages/nocodb/tsconfig.ee.json
 /packages/nocodb/docker
 ee
 /tests/playwright/tests/ee
+components.d.ts

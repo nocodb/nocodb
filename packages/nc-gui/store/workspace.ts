@@ -2,12 +2,11 @@ import type { ProjectType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
-import { computed, navigateTo, ref, useCommandPalette, useNuxtApp, useRouter, useTheme } from '#imports'
+import { computed, navigateTo, ref, useCommandPalette, useNuxtApp, useProjects, useRouter, useTheme } from '#imports'
 import type { ThemeConfig } from '#imports'
 
 export const useWorkspace = defineStore('workspaceStore', () => {
   const projectsStore = useProjects()
-  const { clearProjects } = projectsStore
 
   const collaborators = ref<any[] | null>()
 
@@ -66,17 +65,17 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   /** getters */
   const isWorkspaceCreator = computed(() => {
     // todo: type correction
-    return orgRoles.value[Role.OrgLevelCreator]
+    return orgRoles.value?.[Role.OrgLevelCreator]
   })
 
   const isWorkspaceOwner = computed(() => {
     // todo: type correction
-    return orgRoles.value[Role.OrgLevelCreator]
+    return orgRoles.value?.[Role.OrgLevelCreator]
   })
 
   const isWorkspaceOwnerOrCreator = computed(() => {
     // todo: type correction
-    return orgRoles.value[Role.OrgLevelCreator]
+    return orgRoles.value?.[Role.OrgLevelCreator]
   })
 
   /** actions */
@@ -199,8 +198,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     $e('c:themes:change')
   }
 
-  const clearWorkspaces = async () => {
-    await clearProjects()
+  async function clearWorkspaces() {
+    await projectsStore.clearProjects()
     workspaces.value.clear()
   }
 

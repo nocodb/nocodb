@@ -350,8 +350,8 @@ onMounted(async () => {
     // todo: replace setTimeout and follow better approach
     setTimeout(() => {
       const input = form.value?.$el?.querySelector('input[type=text]')
-      input.setSelectionRange(0, formState.value.title.length)
-      input.focus()
+      input?.setSelectionRange(0, formState.value.title.length)
+      input?.focus()
     }, 500)
   })
 })
@@ -507,9 +507,9 @@ watch(
           </a-form-item>
           <div class="flex items-right justify-end gap-2">
             <!--                Use Connection URL -->
-            <a-button class="nc-extdb-btn-import-url !rounded-md" @click.stop="importURLDlg = true">
+            <NcButton size="small" class="nc-extdb-btn-import-url !rounded-md" @click.stop="importURLDlg = true">
               {{ $t('activity.useConnectionUrl') }}
-            </a-button>
+            </NcButton>
           </div>
 
           <a-collapse ghost expand-icon-position="right" class="!mt-6">
@@ -531,9 +531,9 @@ watch(
                       <span>{{ $t('tooltip.clientCert') }}</span>
                     </template>
 
-                    <a-button :disabled="!sslFilesRequired" class="shadow" @click="certFileInput?.click()">
+                    <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="certFileInput?.click()">
                       {{ $t('labels.clientCert') }}
-                    </a-button>
+                    </NcButton>
                   </a-tooltip>
 
                   <a-tooltip placement="top">
@@ -541,9 +541,9 @@ watch(
                     <template #title>
                       <span>{{ $t('tooltip.clientKey') }}</span>
                     </template>
-                    <a-button :disabled="!sslFilesRequired" class="shadow" @click="keyFileInput?.click()">
+                    <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="keyFileInput?.click()">
                       {{ $t('labels.clientKey') }}
-                    </a-button>
+                    </NcButton>
                   </a-tooltip>
 
                   <a-tooltip placement="top">
@@ -552,9 +552,9 @@ watch(
                       <span>{{ $t('tooltip.clientCA') }}</span>
                     </template>
 
-                    <a-button :disabled="!sslFilesRequired" class="shadow" @click="caFileInput?.click()">
+                    <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="caFileInput?.click()">
                       {{ $t('labels.serverCA') }}
-                    </a-button>
+                    </NcButton>
                   </a-tooltip>
                 </div>
               </a-form-item>
@@ -585,11 +585,11 @@ watch(
                       />
                     </div>
                   </div>
-                  <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">
+                  <NcButton size="small" type="dashed" class="w-full caption mt-2" @click="addNewParam">
                     <div class="flex items-center justify-center">
                       <component :is="iconMap.plus" />
                     </div>
-                  </a-button>
+                  </NcButton>
                 </a-card>
               </a-form-item>
 
@@ -614,10 +614,10 @@ watch(
               </a-form-item>
 
               <div class="flex justify-end">
-                <a-button type="primary" class="!rounded-md" @click="handleEditJSON()">
+                <NcButton type="primary" size="small" class="!rounded-md" @click="handleEditJSON()">
                   <!-- Edit connection JSON -->
                   {{ $t('activity.editConnJson') }}
-                </a-button>
+                </NcButton>
               </div>
             </a-collapse-panel>
           </a-collapse>
@@ -626,13 +626,19 @@ watch(
 
       <a-form-item class="flex justify-end !mt-5">
         <div class="flex justify-end gap-2">
-          <a-button type="primary" class="nc-extdb-btn-test-connection !rounded-md" @click="testConnection">
+          <NcButton type="primary" size="small" class="nc-extdb-btn-test-connection !rounded-md" @click="testConnection">
             {{ $t('activity.testDbConn') }}
-          </a-button>
+          </NcButton>
 
-          <a-button type="primary" :disabled="!testSuccess" class="nc-extdb-btn-submit !rounded-md" @click="createBase">
+          <NcButton
+            size="small"
+            type="primary"
+            :disabled="!testSuccess"
+            class="nc-extdb-btn-submit !rounded-md"
+            @click="createBase"
+          >
             {{ $t('general.submit') }}
-          </a-button>
+          </NcButton>
         </div>
       </a-form-item>
     </a-form>

@@ -5,14 +5,17 @@ const { deleteWorkspace, navigateToWorkspace, updateWorkspace } = useWorkspace()
 const { workspacesList, activeWorkspaceId, activeWorkspace, workspaces } = storeToRefs(useWorkspace())
 
 const formValidator = ref()
-const isConfirmed = ref(false)
 const isDeleting = ref(false)
 const isErrored = ref(false)
 const isTitleUpdating = ref(false)
 const isCancelButtonVisible = ref(false)
+const isDeleteModalVisible = ref(false)
+// if activeworkspace.title is used it will show new workspace name in loading state
+const toBeDeletedWorkspaceTitle = ref('')
 
-const form = ref({
+const form = reactive({
   title: '',
+  modalInput: '',
 })
 
 const formRules = {
@@ -26,15 +29,11 @@ const formRules = {
 const onDelete = async () => {
   isDeleting.value = true
   try {
+    const shouldSignOut = workspacesList.value.length < 2
     await deleteWorkspace(activeWorkspaceId.value, { skipStateUpdate: true })
-
-    isConfirmed.value = false
-    isDeleting.value = false
-
     // We only remove the delete workspace from the list after the api call is successful
     workspaces.value.delete(activeWorkspaceId.value)
-
-    if (workspacesList.value.length > 1) {
+    if (!shouldSignOut) {
       await navigateToWorkspace(workspacesList.value[0].id)
     } else {
       // As signin page will clear the workspaces, we need to check if there are more than one workspace
@@ -45,7 +44,12 @@ const onDelete = async () => {
     }
   } finally {
     isDeleting.value = false
+    toBeDeletedWorkspaceTitle.value = ''
   }
+}
+
+const rules = {
+  modalInput: [{ required: true, message: 'input is required.' }],
 }
 
 const titleChange = async () => {
@@ -60,7 +64,7 @@ const titleChange = async () => {
 
   try {
     await updateWorkspace(activeWorkspaceId.value, {
-      title: form.value.title,
+      title: form.title,
     })
   } catch (e: any) {
     console.error(e)
@@ -70,10 +74,15 @@ const titleChange = async () => {
   }
 }
 
+const handleDelete = () => {
+  toBeDeletedWorkspaceTitle.value = activeWorkspace.value?.title
+  isDeleteModalVisible.value = true
+}
+
 watch(
   () => activeWorkspace.value.title,
   () => {
-    form.value.title = activeWorkspace.value.title
+    form.title = activeWorkspace.value.title
   },
   {
     immediate: true,
@@ -81,10 +90,10 @@ watch(
 )
 
 watch(
-  () => form.value.title,
+  () => form.title,
   async () => {
     try {
-      if (form.value.title !== activeWorkspace.value?.title) {
+      if (form.title !== activeWorkspace.value?.title) {
         isCancelButtonVisible.value = true
       } else {
         isCancelButtonVisible.value = false
@@ -97,7 +106,7 @@ watch(
 )
 
 const onCancel = () => {
-  form.value.title = activeWorkspace.value?.title
+  form.title = activeWorkspace.value?.title
 }
 </script>
 
@@ -119,11 +128,9 @@ const onCancel = () => {
           <NcButton
             v-if="isCancelButtonVisible"
             type="secondary"
-            html-type="submit"
             data-testid="nc-workspace-settings-settings-rename-cancel"
             @click="onCancel"
           >
-            <template #loading> Renaming Workspace </template>
             Cancel
           </NcButton>
           <NcButton
@@ -139,22 +146,48 @@ const onCancel = () => {
         </div>
       </a-form>
     </div>
-    <div class="item flex flex-col">
+    <div class="item flex flex-col border-1 border-red-500">
       <div class="font-medium text-base">Delete Workspace</div>
       <div class="text-gray-500 mt-2">Delete this workspace and all it’s contents.</div>
-      <div class="flex flex-row mt-8 gap-x-2">
-        <a-checkbox v-model:checked="isConfirmed" />
-        <div class="flex">I understand that this action is irreversible</div>
+      <div class="flex p-4 border-1 rounded-lg mt-6 items-center">
+        <component :is="iconMap.error" class="text-red-500 text-xl" />
+        <div class="font-sm text-normal font-medium ml-3">This action is irreversible</div>
       </div>
-
       <div class="flex flex-row w-full justify-end mt-8">
-        <NcButton type="danger" :disabled="!isConfirmed" :loading="isDeleting" @click="onDelete">
-          <template #loading> Deleting Workspace </template>
-          Delete Workspace
-        </NcButton>
+        <NcButton type="danger" @click="handleDelete"> Delete Workspace </NcButton>
       </div>
     </div>
   </div>
+
+  <GeneralModal v-model:visible="isDeleteModalVisible" class="nc-attachment-rename-modal !w-112">
+    <div class="flex flex-col items-center justify-center h-full !p-6">
+      <div class="text-lg font-semibold self-start mb-4">Delete Workspace</div>
+      <span class="self-start mb-2"
+        >Enter workspace name to delete - <b class="select-none"> ‘{{ toBeDeletedWorkspaceTitle }}’ </b>
+      </span>
+      <a-form class="w-full h-full" no-style :model="form" @finish="onDelete">
+        <a-form-item class="w-full" name="title" :rules="rules.modalInput">
+          <a-input
+            ref="inputEl"
+            v-model:value="form.modalInput"
+            class="w-full !rounded-lg !h-4 !px-2 !py-4"
+            placeholder="Workspace Name"
+          />
+        </a-form-item>
+        <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
+          <NcButton html-type="back" type="secondary" @click="isDeleteModalVisible = false">{{ $t('general.cancel') }} </NcButton>
+          <NcButton
+            key="submit"
+            html-type="submit"
+            type="danger"
+            :disabled="form.modalInput !== activeWorkspace.title"
+            :loading="isDeleting"
+            >Delete Workspace</NcButton
+          >
+        </div>
+      </a-form>
+    </div>
+  </GeneralModal>
 </template>
 
 <style lang="scss" scoped>

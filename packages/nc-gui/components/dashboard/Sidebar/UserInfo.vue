@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import GithubButton from 'vue-github-button'
+
 const { user, signOut, token, appInfo } = useGlobal()
 
 const { clearWorkspaces } = useWorkspace()
@@ -52,12 +53,22 @@ watch(leftSidebarState, () => {
     isMenuOpen.value = false
   }
 })
+
+// This is a hack to prevent github button error (prevents navigateTo if user is not signed in)
+const isMounted = ref(false)
+
+onMounted(() => {
+  isMounted.value = true
+})
 </script>
 
 <template>
-  <div class="nc-sidebar-userinfo flex w-full flex-col p-1 border-t-1 border-gray-200 gap-y-2">
+  <div class="flex w-full flex-col p-1 border-t-1 border-gray-200 gap-y-2">
     <NcDropdown v-model:visible="isMenuOpen" placement="topLeft" overlay-class-name="!min-w-64">
-      <div class="flex flex-row py-2 px-3 gap-x-2 items-center hover:bg-gray-200 rounded-lg cursor-pointer h-10">
+      <div
+        class="flex flex-row py-2 px-3 gap-x-2 items-center hover:bg-gray-200 rounded-lg cursor-pointer h-10"
+        data-testid="nc-sidebar-userinfo"
+      >
         <GeneralUserIcon />
         <div class="flex truncate">
           {{ name ? name : user?.email }}
@@ -130,7 +141,7 @@ watch(leftSidebarState, () => {
     </NcDropdown>
 
     <div v-if="appInfo.ee" class="text-gray-500 text-xs pl-3">© 2023 NocoDB. Inc</div>
-    <div v-else class="flex flex-col gap-y-1 pt-1">
+    <div v-else-if="isMounted" class="flex flex-col gap-y-1 pt-1">
       <div class="flex items-start flex-row justify-center px-2 gap-2">
         <GithubButton href="https://github.com/nocodb/nocodb" data-icon="octicon-star" data-show-count="true" data-size="large">
           Star

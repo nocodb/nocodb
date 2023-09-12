@@ -35,9 +35,9 @@ const isViewSidebarAvailable = computed(
     <template v-else>
       <LazySmartsheetToolbarMappedBy v-if="isMap" />
 
-      <LazySmartsheetToolbarStackedBy v-if="isKanban" />
-
       <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
+
+      <LazySmartsheetToolbarStackedBy v-if="isKanban" />
 
       <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
 

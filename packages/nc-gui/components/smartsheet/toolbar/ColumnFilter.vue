@@ -296,7 +296,7 @@ onMounted(() => {
     class="menu-filter-dropdown"
     :class="{
       'max-h-[max(80vh,500px)] min-w-112 py-6 pl-6': !nested,
-      'w-full': nested,
+      'w-full ': nested,
     }"
   >
     <div
@@ -340,8 +340,7 @@ onMounted(() => {
                   <component :is="iconMap.deleteListItem" />
                 </NcButton>
               </div>
-
-              <div class="flex border-1 rounded-lg p-2 w-full">
+              <div class="flex border-1 rounded-lg p-2 w-full" :class="nestedLevel % 2 !== 0 ? 'bg-white' : 'bg-gray-100'">
                 <LazySmartsheetToolbarColumnFilter
                   v-if="filter.id || filter.children"
                   :key="filter.id ?? i"

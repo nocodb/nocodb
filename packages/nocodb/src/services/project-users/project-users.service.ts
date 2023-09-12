@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, OrgUserRoles, PluginCategory } from 'nocodb-sdk';
+import {
+  AppEvents,
+  extractRolesObj,
+  OrgUserRoles,
+  PluginCategory,
+  ProjectRoles,
+} from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import * as ejs from 'ejs';
 import validator from 'validator';
@@ -16,6 +22,7 @@ import { Project, ProjectUser, User } from '~/models';
 
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
+import { getProjectRolePower } from '~/utils/roleHelper';
 
 @Injectable()
 export class ProjectUsersService {
@@ -46,6 +53,26 @@ export class ProjectUsersService {
       'swagger.json#/components/schemas/ProjectUserReq',
       param.projectUser,
     );
+
+    if (
+      getProjectRolePower({
+        project_roles: extractRolesObj(param.projectUser.roles),
+      }) > getProjectRolePower(param.req.user)
+    ) {
+      NcError.badRequest(`Insufficient privilege to invite with this role`);
+    }
+
+    if (
+      ![
+        ProjectRoles.CREATOR,
+        ProjectRoles.EDITOR,
+        ProjectRoles.COMMENTER,
+        ProjectRoles.VIEWER,
+        ProjectRoles.NO_ACCESS,
+      ].includes(param.projectUser.roles as ProjectRoles)
+    ) {
+      NcError.badRequest('Invalid role');
+    }
 
     const emails = (param.projectUser.email || '')
       .toLowerCase()
@@ -193,25 +220,43 @@ export class ProjectUsersService {
       return NcError.badRequest('Invalid project id');
     }
 
-    if (
-      param.req.session?.passport?.user?.roles?.owner &&
-      param.req.session?.passport?.user?.id === param.userId &&
-      param.projectUser.roles.indexOf('owner') === -1
-    ) {
-      NcError.badRequest("Super admin can't remove Super role themselves");
+    if (param.projectUser.roles.includes(ProjectRoles.OWNER)) {
+      NcError.badRequest('Owner cannot be updated');
     }
+
+    if (
+      ![
+        ProjectRoles.CREATOR,
+        ProjectRoles.EDITOR,
+        ProjectRoles.COMMENTER,
+        ProjectRoles.VIEWER,
+        ProjectRoles.NO_ACCESS,
+      ].includes(param.projectUser.roles as ProjectRoles)
+    ) {
+      NcError.badRequest('Invalid role');
+    }
+
     const user = await User.get(param.userId);
 
     if (!user) {
       NcError.badRequest(`User with id '${param.userId}' doesn't exist`);
     }
 
-    // todo: handle roles which contains super
+    const targetUser = await User.getWithRoles(param.userId, {
+      user,
+      projectId: param.projectId,
+    });
+
+    if (!targetUser) {
+      NcError.badRequest(
+        `User with id '${param.userId}' doesn't exist in this project`,
+      );
+    }
+
     if (
-      !param.req.session?.passport?.user?.roles?.owner &&
-      param.projectUser.roles.indexOf('owner') > -1
+      getProjectRolePower(targetUser) >= getProjectRolePower(param.req.user)
     ) {
-      NcError.forbidden('Insufficient privilege to add super admin role.');
+      NcError.badRequest(`Insufficient privilege to update user`);
     }
 
     await ProjectUser.updateRoles(
@@ -241,11 +286,11 @@ export class ProjectUsersService {
   }): Promise<any> {
     const project_id = param.projectId;
 
-    if (param.req.session?.passport?.user?.id === param.userId) {
+    if (param.req.user?.id === param.userId) {
       NcError.badRequest("Admin can't delete themselves!");
     }
 
-    if (!param.req.session?.passport?.user?.roles?.owner) {
+    if (!param.req.user?.roles?.owner) {
       const user = await User.get(param.userId);
       if (user.roles?.split(',').includes('super'))
         NcError.forbidden(
@@ -336,7 +381,7 @@ export class ProjectUsersService {
               .split(',')
               .map((r) => r.replace(/^./, (m) => m.toUpperCase()))
               .join(', '),
-            adminEmail: req.session?.passport?.user?.email,
+            adminEmail: req.user?.email,
           }),
         });
         return true;

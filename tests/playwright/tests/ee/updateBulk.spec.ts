@@ -7,7 +7,7 @@ import { BulkUpdatePage } from '../../pages/Dashboard/BulkUpdate';
 // import { AccountLicensePage } from '../../pages/Account/License';
 // import { AccountPage } from '../../pages/Account';
 
-async function updateBulkFields(bulkUpdateForm, fields) {
+async function updateBulkFields(bulkUpdateForm: BulkUpdatePage, fields) {
   // move all fields to active
   for (let i = 0; i < fields.length; i++) {
     await bulkUpdateForm.addField(0);

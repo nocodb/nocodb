@@ -25,9 +25,7 @@ export class AccountUsersPage extends BasePage {
     return this.accountPage.get().locator(`[data-testid="nc-super-user-list"]`);
   }
 
-  async invite({ email: _email, role }: { email: string; role: string }) {
-    const email = this.prefixEmail(_email);
-
+  async invite({ email, role }: { email: string; role: string }) {
     await this.inviteUserBtn.click();
     await this.inviteUserModal.locator(`input[placeholder="E-mail"]`).fill(email);
     await this.inviteUserModal.locator(`.nc-user-roles`).click();
@@ -50,21 +48,18 @@ export class AccountUsersPage extends BasePage {
     await this.inviteUserModal.locator(`button.ant-btn-icon-only:visible`).first().click();
   }
 
-  getUserRow({ email: _email }: { email: string }) {
-    const email = this.prefixEmail(_email);
+  async getUserRow({ email }: { email: string }) {
+    // ensure page is loaded
+    await this.get().waitFor();
     return this.get().locator(`tr:has-text("${email}")`);
   }
 
   async updateRole({ email, role }: { email: string; role: string }) {
-    const userRow = this.getUserRow({ email });
-
+    const userRow = await this.getUserRow({ email });
     await userRow.locator(`.nc-user-roles`).click();
-
-    // todo: replace delay with waitForSelector
-    await new Promise(resolve => setTimeout(resolve, 400));
-
-    await this.rootPage.locator(`.nc-users-list-role-option:visible:has-text("${role}")`).click();
-    await this.verifyToast({ message: 'Successfully updated the user details' });
+    await this.rootPage.locator(`.nc-users-list-role-option:visible:has-text("${role}")`).waitFor();
+    await this.rootPage.locator(`.nc-users-list-role-option:visible:has-text("${role}")`).last().click();
+    await this.rootPage.locator(`.nc-users-list-role-option`).last().waitFor({ state: 'hidden' });
   }
 
   async inviteMore() {
@@ -72,7 +67,7 @@ export class AccountUsersPage extends BasePage {
   }
 
   async openRowActionMenu({ email }: { email: string }) {
-    const userRow = this.getUserRow({ email });
+    const userRow = await this.getUserRow({ email });
     return userRow.locator(`.nc-user-row-action`).click();
   }
 

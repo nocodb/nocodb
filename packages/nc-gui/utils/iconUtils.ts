@@ -236,6 +236,7 @@ export const iconMap = {
   search: NcSearch,
   info: h(MsInfo, {}, () => 'info'),
   inbox: h('span', { class: 'material-symbols' }, 'inbox'),
+  error: h('span', { class: 'material-symbols' }, 'error'),
   addOutlineBox: MsAddBoxOutline,
   loading: h('span', { class: 'material-symbols' }, 'autorenew'),
   arrowCollapse: Up,

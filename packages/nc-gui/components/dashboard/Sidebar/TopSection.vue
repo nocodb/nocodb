@@ -4,14 +4,11 @@ const projectStore = useProject()
 
 const { appInfo } = useGlobal()
 
-const { activeWorkspace, isWorkspaceLoading, isWorkspaceOwnerOrCreator, isWorkspaceSettingsPageOpened } =
-  storeToRefs(workspaceStore)
+const { isWorkspaceLoading, isWorkspaceOwnerOrCreator, isWorkspaceSettingsPageOpened } = storeToRefs(workspaceStore)
 
 const { navigateToWorkspaceSettings } = workspaceStore
 
 const { isSharedBase } = storeToRefs(projectStore)
-
-const { isUIAllowed } = useUIPermission()
 
 const isCreateProjectOpen = ref(false)
 
@@ -66,7 +63,6 @@ const navigateToSettings = () => {
         </div>
       </NcButton>
       <WorkspaceCreateProjectBtn
-        v-if="isUIAllowed('createProject', false, activeWorkspace?.roles) && !isSharedBase"
         v-model:is-open="isCreateProjectOpen"
         modal
         type="text"

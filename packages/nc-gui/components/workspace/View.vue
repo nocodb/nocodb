@@ -10,8 +10,6 @@ const workspaceStore = useWorkspace()
 const { isWorkspaceOwnerOrCreator, isWorkspaceOwner, activeWorkspace, workspaces } = storeToRefs(workspaceStore)
 const { loadCollaborators } = workspaceStore
 
-const { appInfo } = useGlobal()
-
 const tab = computed({
   get() {
     return route.value.query?.tab ?? 'collaborators'

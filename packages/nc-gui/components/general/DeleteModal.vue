@@ -52,11 +52,6 @@ onKeyStroke('Enter', () => {
 
       <slot name="entity-preview"></slot>
 
-      <div v-if="false" class="flex flex-row items-center py-2 px-3 border-1 border-gray-100 rounded-lg text-gray-700">
-        <GeneralIcon icon="warning" class="text-orange-500"></GeneralIcon>
-        <div class="pl-2.5 text-gray-500">This action cannot be undone</div>
-      </div>
-
       <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
         <NcButton type="secondary" @click="visible = false">
           {{ $t('general.cancel') }}

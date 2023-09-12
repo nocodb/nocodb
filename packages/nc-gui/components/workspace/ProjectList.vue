@@ -139,11 +139,6 @@ const workspaceMoveProjectOnSuccess = async (workspaceId: string) => {
   })
 }
 
-const moveProject = (project: ProjectType) => {
-  selectedProjectToMove.value = project
-  isMoveDlgOpen.value = true
-}
-
 const isDuplicateDlgOpen = ref(false)
 const selectedProjectToDuplicate = ref()
 
@@ -360,6 +355,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                     {{ $t('general.duplicate') }} {{ $t('objects.project') }}
                   </div>
                 </a-menu-item>
+                <!--
                 <a-menu-item
                   v-if="false && isUIAllowed('moveProject', true, [record.workspace_role, record.project_role].join())"
                   @click="moveProject(record)"
@@ -369,6 +365,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                     {{ $t('general.move') }} {{ $t('objects.project') }}
                   </div>
                 </a-menu-item>
+                -->
                 <a-menu-item
                   v-if="isUIAllowed('projectDelete', true, [record.workspace_role, record.project_role].join())"
                   @click="deleteProject(record)"

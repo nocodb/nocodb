@@ -768,7 +768,7 @@ async function _formulaQueryBuilder(
     } else if (pt.type === 'Literal') {
       return { builder: knex.raw(`?${colAlias}`, [pt.value]) };
     } else if (pt.type === 'Identifier') {
-      const { builder } = await aliasToColumn?.[pt.name]?.();
+      const { builder } = (await aliasToColumn?.[pt.name]?.()) || {};
       if (typeof builder === 'function') {
         return { builder: knex.raw(`??${colAlias}`, builder(pt.fnName)) };
       }

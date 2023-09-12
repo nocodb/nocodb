@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, IsExpandedFormOpenInj, RowHeightInj, inject, useVModel, iconMap, ActiveCellInj } from '#imports'
+import { ActiveCellInj, EditModeInj, IsExpandedFormOpenInj, RowHeightInj, iconMap, inject, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue?: string | number
@@ -91,16 +91,16 @@ onClickOutside(inputWrapperRef, (e) => {
       <div
         v-if="active"
         class="!absolute right-0 bottom-0 h-6 w-5 group cursor-pointer flex justify-end gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-none p-1 hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
-        :class="{'right-2 bottom-2':editEnabled}"
+        :class="{ 'right-2 bottom-2': editEnabled }"
         data-testid="attachment-cell-file-picker-button"
         @click.stop="isVisible = !isVisible"
       >
         <NcTooltip placement="bottom">
-            <template #title>Expand</template>
-            <component
-              :is="iconMap.expand"
-              class="transform dark:(!text-white) group-hover:(!text-grey-800 scale-120) text-gray-500 text-xs"
-            />
+          <template #title>Expand</template>
+          <component
+            :is="iconMap.expand"
+            class="transform dark:(!text-white) group-hover:(!text-grey-800 scale-120) text-gray-500 text-xs"
+          />
         </NcTooltip>
       </div>
     </div>

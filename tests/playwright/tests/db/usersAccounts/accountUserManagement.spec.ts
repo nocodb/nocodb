@@ -7,6 +7,7 @@ import { getDefaultPwd } from '../../../tests/utils/general';
 import { Api } from 'nocodb-sdk';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { LoginPage } from '../../../pages/LoginPage';
+import { isEE } from '../../../setup/db';
 let api: Api<any>;
 
 const roleDb = [
@@ -24,6 +25,11 @@ test.describe('User roles', () => {
   let context: any;
 
   test.beforeEach(async ({ page }) => {
+    // Org level roles are not available in EE
+    if (isEE()) {
+      test.skip();
+    }
+
     context = await setup({ page, isEmptyProject: true, isSuperUser: true });
     dashboard = new DashboardPage(page, context.project);
     accountPage = new AccountPage(page);

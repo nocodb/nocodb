@@ -211,7 +211,7 @@ export class TreeViewPage extends BasePage {
     await this.getProjectContextMenu({ projectTitle: title }).hover();
     await this.getProjectContextMenu({ projectTitle: title }).click();
     const settingsMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md');
-    await settingsMenu.locator(`[data-menu-id="teamAndSettings"]`).click();
+    await settingsMenu.locator(`.nc-sidebar-project-project-settings`).click();
   }
 
   async quickImport({ title, projectTitle }: { title: string; projectTitle: string }) {

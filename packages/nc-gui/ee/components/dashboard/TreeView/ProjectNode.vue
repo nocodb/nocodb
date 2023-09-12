@@ -627,6 +627,7 @@ onMounted(() => {
                   v-if="isUIAllowed('settings')"
                   key="teamAndSettings"
                   v-e="['c:navdraw:project-settings']"
+                  class="nc-sidebar-project-project-settings"
                   @click="toggleDialog(true, 'teamAndAuth', undefined, project.id)"
                 >
                   <GeneralIcon icon="settings" class="group-hover:text-black" />
@@ -901,9 +902,6 @@ onMounted(() => {
 }
 :deep(.ant-collapse-header:hover .nc-sidebar-base-node-btns) {
   @apply visible;
-}
-:deep(.ant-dropdown-menu-submenu-title) {
-  @apply !py-0;
 }
 
 :deep(.ant-collapse-content-box) {

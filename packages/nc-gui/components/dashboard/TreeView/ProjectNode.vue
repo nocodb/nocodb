@@ -535,6 +535,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   key="teamAndSettings"
                   v-e="['c:navdraw:project-settings']"
                   data-testid="nc-sidebar-project-settings"
+                  class="nc-sidebar-project-project-settings"
                   @click="toggleDialog(true, 'teamAndAuth', undefined, project.id)"
                 >
                   <GeneralIcon icon="settings" class="group-hover:text-black" />
@@ -770,9 +771,5 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 
 :deep(.ant-collapse-header:hover .nc-sidebar-base-node-btns) {
   @apply visible;
-}
-
-:deep(.ant-dropdown-menu-submenu-title) {
-  @apply !py-0;
 }
 </style>

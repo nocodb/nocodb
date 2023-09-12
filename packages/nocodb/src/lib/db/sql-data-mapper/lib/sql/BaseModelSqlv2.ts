@@ -2466,7 +2466,11 @@ class BaseModelSqlv2 {
 
   private async handleHooks(hookName, prevData, newData, req): Promise<void> {
     const view = await View.get(this.viewId);
-
+    const project = await Project.get(this.model.project_id);
+    const bases = await project.getBases();
+    const  currentBase = bases.find(base => base.id === this.model.base_id);
+    const shouldProceed = currentBase.is_meta || process.env.ESA_SKIP_DB_RECORD_ACTION_EVENT_WATCHER_FOR_WEBHOOK === 'true';
+    if (!shouldProceed) return;
     // handle form view data submission
     if (
       (hookName === 'after.insert' || hookName === 'after.bulkInsert') &&

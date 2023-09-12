@@ -68,7 +68,7 @@ export class ToolbarFieldsPage extends BasePage {
   async toggleShowAllFields({ isLocallySaved }: { isLocallySaved?: boolean } = {}) {
     await this.toolbar.clickFields();
     await this.waitForResponse({
-      uiAction: () => this.get().locator(`button.nc-switch`).first().click(),
+      uiAction: () => this.get().locator(`.nc-fields-show-all-fields`).click(),
       requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
     });

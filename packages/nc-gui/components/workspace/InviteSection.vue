@@ -101,6 +101,11 @@ onMounted(async () => {
   }
 })
 
+const focusOnDiv = () => {
+  focusRef.value?.focus()
+  isDivFocused.value = true
+}
+
 // remove one email per backspace
 onKeyStroke('Backspace', () => {
   if (isDivFocused.value && inviteData.email.length < 1) {
@@ -122,12 +127,7 @@ onKeyStroke('Backspace', () => {
             'border-primary/100': isDivFocused,
             'p-1': emailBadges.length > 1,
           }"
-          @click="
-            () => {
-              focusRef?.focus
-              isDivFocused = true
-            }
-          "
+          @click="focusOnDiv"
           @blur="isDivFocused = false"
         >
           <span
@@ -148,6 +148,7 @@ onKeyStroke('Backspace', () => {
             v-model="inviteData.email"
             :placeholder="emailBadges.length < 1 ? 'Enter emails to send invitation' : ''"
             class="min-w-50 !outline-0 !focus:outline-0 ml-2 mr-3 mt-1"
+            data-testid="email-input"
             @keyup.enter="handleEnter"
             @blur="isDivFocused = false"
           />

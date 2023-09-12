@@ -2,8 +2,7 @@ import { NcContext } from '.';
 const mysql = require('mysql2');
 const { Client } = require('pg');
 
-import { PromisedDatabase } from 'promised-sqlite3';
-const sqliteDb = new PromisedDatabase();
+import { AsyncDatabase } from 'promised-sqlite3';
 
 const isMysql = (context: NcContext) => context.dbType === 'mysql';
 
@@ -55,12 +54,15 @@ const mysqlExec = async query => {
 };
 
 async function sqliteExec(query) {
-  const parallelIndex = process.env.TEST_PARALLEL_INDEX;
-  const rootProjectDir = __dirname.replace('/tests/playwright/setup', '');
-  await sqliteDb.open(`${rootProjectDir}/packages/nocodb/test_sakila_${parallelIndex}.db`);
-
-  await sqliteDb.run(query);
-  await sqliteDb.close();
+  try {
+    const parallelIndex = process.env.TEST_PARALLEL_INDEX;
+    const rootProjectDir = __dirname.replace('/tests/playwright/setup', '');
+    const sqliteDb = await AsyncDatabase.open(`${rootProjectDir}/packages/nocodb/test_sakila_${parallelIndex}.db`);
+    await sqliteDb.run(query);
+    await sqliteDb.close();
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 export { sqliteExec, mysqlExec, isMysql, isSqlite, isPg, pgExec, isEE };

@@ -16,8 +16,8 @@ export class SignupPage extends BasePage {
     return `nc_test_${parallelId}_${email}`;
   }
 
-  goto() {
-    return this.rootPage.goto('/#/signup/', { waitUntil: 'networkidle' });
+  async goto() {
+    await this.rootPage.locator('[href="#/signup"]').click();
   }
 
   get() {

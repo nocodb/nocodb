@@ -16,6 +16,11 @@ const roleDb = [
 ];
 
 test.describe('User roles', () => {
+  // Org level roles are not available in EE
+  if (isEE()) {
+    test.skip();
+  }
+
   let accountUsersPage: AccountUsersPage;
   let accountPage: AccountPage;
   let signupPage: SignupPage;
@@ -25,11 +30,6 @@ test.describe('User roles', () => {
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    // Org level roles are not available in EE
-    if (isEE()) {
-      test.skip();
-    }
-
     context = await setup({ page, isEmptyProject: true, isSuperUser: true });
     dashboard = new DashboardPage(page, context.project);
     accountPage = new AccountPage(page);

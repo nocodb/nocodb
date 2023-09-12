@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { BaseType } from 'nocodb-sdk'
-import { Form, Modal, message } from 'ant-design-vue'
+import { Form, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import type { DefaultConnection, ProjectCreateForm, SQLiteConnection } from '#imports'
 import {
@@ -628,7 +628,7 @@ onMounted(async () => {
   </div>
 
   <!-- connection succesfull modal -->
-  <GeneralModal v-model:visible="isConnSuccess" class="!w-[25rem]">
+  <GeneralModal v-model:visible="isConnSuccess" class="!w-97">
     <div class="flex flex-col h-full p-8">
       <div class="text-lg font-semibold self-start mb-4">{{ t('msg.info.dbConnected') }}</div>
       <div class="flex gap-x-2 mt-5 ml-7 pt-2.5 justify-end">

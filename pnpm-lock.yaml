@@ -751,6 +751,9 @@ importers:
       object-sizeof:
         specifier: ^2.6.1
         version: 2.6.1
+      openai:
+        specifier: ^3.2.1
+        version: 3.3.0(debug@4.2.0)
       os-locale:
         specifier: ^6.0.2
         version: 6.0.2
@@ -9818,6 +9821,14 @@ packages:
 
   /axios@0.24.0(debug@4.2.0):
     resolution: {integrity: sha512-Q6cWsys88HoPgAaFAVUb0WpPk0O8iTeisR9IMqy9G8AbO4NlpVknrnQS03zzF9PGAWgO3cgletO3VjV/P7VztA==}
+    dependencies:
+      follow-redirects: 1.15.2(debug@4.2.0)
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
+  /axios@0.26.1(debug@4.2.0):
+    resolution: {integrity: sha512-fPwcX4EvnSHuInCMItEhAGnaSEXRBjtzh9fOtsE6E1G6p7vl7edEeZe11QHf18+6+9gR5PbKV/sGKNaD8YaMeA==}
     dependencies:
       follow-redirects: 1.15.2(debug@4.2.0)
     transitivePeerDependencies:
@@ -19060,6 +19071,15 @@ packages:
       define-lazy-prop: 2.0.0
       is-docker: 2.2.1
       is-wsl: 2.2.0
+
+  /openai@3.3.0(debug@4.2.0):
+    resolution: {integrity: sha512-uqxI/Au+aPRnsaQRe8CojU0eCR7I0mBiKjD3sNMzY6DaC1ZVrc85u98mtJW6voDug8fgGN+DIZmTDxTthxb7dQ==}
+    dependencies:
+      axios: 0.26.1(debug@4.2.0)
+      form-data: 4.0.0
+    transitivePeerDependencies:
+      - debug
+    dev: false
 
   /openapi-typescript@6.5.3:
     resolution: {integrity: sha512-iVOgf1wf/6R73Cg9wcxMAD/P3+/TJ8HQruLyv3WRDu29Pwnmp7ZUJ897Kb401jW7Ao/L4JjisropHQJW62BXtA==}

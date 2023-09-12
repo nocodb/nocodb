@@ -143,6 +143,7 @@
     "nodemailer": "^6.4.10",
     "object-hash": "^3.0.0",
     "object-sizeof": "^2.6.1",
+    "openai": "^3.2.1",
     "os-locale": "^6.0.2",
     "p-queue": "^6.6.2",
     "papaparse": "^5.4.0",

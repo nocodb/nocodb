@@ -3,7 +3,7 @@ import { UsersService as UsersServiceCE } from 'src/services/users/users.service
 import { Injectable } from '@nestjs/common';
 import { AppEvents, OrgUserRoles, validatePassword } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import { isEmail } from 'validator';
+import isEmail from 'validator/lib/isEmail';
 import { T } from 'nc-help';
 import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';

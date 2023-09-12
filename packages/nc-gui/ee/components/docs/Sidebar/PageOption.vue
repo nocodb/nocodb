@@ -43,7 +43,7 @@ const addNewPage = () => {
 
 <template>
   <div v-if="isEditAllowed" class="flex flex-row justify-start items-center gap-x-1 h-3">
-    <a-dropdown v-model:visible="isOptionOpen" placement="bottom" trigger="click">
+    <a-dropdown v-model:visible="isOptionOpen" placement="bottom" :trigger="['click']">
       <div
         class="nc-docs-sidebar-page-options px-0.5 hover:(!bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none"
         data-testid="docs-sidebar-page-options"

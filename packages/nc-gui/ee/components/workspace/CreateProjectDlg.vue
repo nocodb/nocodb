@@ -15,7 +15,7 @@ import {
 
 const props = defineProps<{
   modelValue: boolean
-  type: NcProjectType
+  type?: NcProjectType
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -26,7 +26,9 @@ const workspaceStore = useWorkspace()
 const { activeWorkspace } = storeToRefs(workspaceStore)
 
 const projectsStore = useProjects()
-const { loadProjects, createProject: _createProject } = projectsStore
+const { createProject: _createProject } = projectsStore
+
+const projectType = computed(() => props.type ?? NcProjectType.DB)
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -52,7 +54,7 @@ const createProject = async () => {
   creating.value = true
   try {
     const project = await _createProject({
-      type: props.type,
+      type: projectType.value,
       title: formState.value.title,
       workspaceId: activeWorkspace.value!.id!,
     })
@@ -60,7 +62,7 @@ const createProject = async () => {
     navigateToProject({
       projectId: project.id!,
       workspaceId: activeWorkspace.value!.id!,
-      type: props.type,
+      type: projectType.value,
     })
 
     refreshCommandPalette()
@@ -92,7 +94,7 @@ watch(dialogShow, async (n, o) => {
 })
 
 const typeLabel = computed(() => {
-  switch (props.type) {
+  switch (projectType.value) {
     case NcProjectType.DOCS:
       return 'Book'
     case NcProjectType.DB:
@@ -124,7 +126,7 @@ watch(dialogShow, () => {
     <template #header>
       <!-- Create A New Table -->
       <div class="flex flex-row items-center">
-        <GeneralProjectIcon :type="props.type" class="mr-2.5 !text-lg !h-4" />
+        <GeneralProjectIcon :type="projectType" class="mr-2.5 !text-lg !h-4" />
         Create {{ typeLabel }}
       </div>
     </template>

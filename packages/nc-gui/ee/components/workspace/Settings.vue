@@ -9,9 +9,9 @@ const isDeleting = ref(false)
 const isErrored = ref(false)
 const isTitleUpdating = ref(false)
 const isCancelButtonVisible = ref(false)
-const isModalVisible = ref(false)
+const isDeleteModalVisible = ref(false)
 // if activeworkspace.title is used it will show new workspace name in loading state
-const workspaceToDelete = ref('')
+const toBeDeletedWorkspaceTitle = ref('')
 
 const form = reactive({
   title: '',
@@ -44,7 +44,7 @@ const onDelete = async () => {
     }
   } finally {
     isDeleting.value = false
-    workspaceToDelete.value = activeWorkspace.value?.title
+    toBeDeletedWorkspaceTitle.value = ''
   }
 }
 
@@ -75,8 +75,8 @@ const titleChange = async () => {
 }
 
 const handleDelete = () => {
-  workspaceToDelete.value = activeWorkspace.value?.title
-  isModalVisible.value = true
+  toBeDeletedWorkspaceTitle.value = activeWorkspace.value?.title
+  isDeleteModalVisible.value = true
 }
 
 watch(
@@ -149,17 +149,21 @@ const onCancel = () => {
     <div class="item flex flex-col border-1 border-red-500">
       <div class="font-medium text-base">Delete Workspace</div>
       <div class="text-gray-500 mt-2">Delete this workspace and all it’s contents.</div>
+      <div class="flex p-4 border-1 rounded-lg mt-6 items-center">
+        <component :is="iconMap.error" class="text-red-500 text-xl" />
+        <div class="font-sm text-normal font-medium ml-3">This action is irreversible</div>
+      </div>
       <div class="flex flex-row w-full justify-end mt-8">
         <NcButton type="danger" @click="handleDelete"> Delete Workspace </NcButton>
       </div>
     </div>
   </div>
 
-  <GeneralModal v-model:visible="isModalVisible" class="nc-attachment-rename-modal !w-112">
+  <GeneralModal v-model:visible="isDeleteModalVisible" class="nc-attachment-rename-modal !w-112">
     <div class="flex flex-col items-center justify-center h-full !p-6">
       <div class="text-lg font-semibold self-start mb-4">Delete Workspace</div>
       <span class="self-start mb-2"
-        >Enter workspace name to delete - <b class="select-none"> ‘{{ workspaceToDelete }}’ </b>
+        >Enter workspace name to delete - <b class="select-none"> ‘{{ toBeDeletedWorkspaceTitle }}’ </b>
       </span>
       <a-form class="w-full h-full" no-style :model="form" @finish="onDelete">
         <a-form-item class="w-full" name="title" :rules="rules.modalInput">
@@ -167,11 +171,11 @@ const onCancel = () => {
             ref="inputEl"
             v-model:value="form.modalInput"
             class="w-full !rounded-lg !h-4 !px-2 !py-4"
-            placeholder="Type.."
+            placeholder="Workspace Name"
           />
         </a-form-item>
         <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
-          <NcButton html-type="back" type="secondary" @click="isModalVisible = false">{{ $t('general.cancel') }} </NcButton>
+          <NcButton html-type="back" type="secondary" @click="isDeleteModalVisible = false">{{ $t('general.cancel') }} </NcButton>
           <NcButton
             key="submit"
             html-type="submit"

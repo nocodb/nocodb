@@ -25,13 +25,31 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: us-east-2
     steps:
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.15.0
+          node-version: 18.14.0
       - name: Checkout
         uses: actions/checkout@v3
-
+        with:
+          fetch-depth: 0
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - name: install dependencies
+        run: pnpm bootstrap
       - name: Set outputs
         id: vars
         run: echo "release_version=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
@@ -39,9 +57,8 @@ jobs:
       - name: build nocodb-sdk
         run: |
           # build nocodb-sdk
-
-          cd packages/nocodb-sdk &&
-          npm ci && npm run build:ee
+          cd packages/nocodb-sdk
+          pnpm run build:ee
       - name: build nc-gui and copy to nocodb
         env:
           NC_CDN_URL: "${{ secrets.CDN_URL }}/${{ steps.vars.outputs.release_version }}"
@@ -49,8 +66,7 @@ jobs:
           export NODE_OPTIONS="--max_old_space_size=16384"
           # generate static build of nc-gui
           cd packages/nc-gui &&
-          npm ci &&
-          npm run generate:ee &&
+          pnpm run generate:ee &&
 
           # copy build to nocodb
           rsync -rvzh ./ee/dist/ ../nocodb/docker/nc-gui/
@@ -60,9 +76,9 @@ jobs:
         run: |
           # build nocodb ( pack nocodb-sdk and nc-gui )
           cd packages/nocodb && npm install &&
-          EE=true ./node_modules/.bin/webpack --config webpack.cloud.config.js &&
+          EE=true pnpm exec webpack --config webpack.cloud.config.js &&
           # remove nocodb-sdk since it's packed with the build
-          npm uninstall --save nocodb-sdk
+          pnpm uninstall --save nocodb-sdk
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1

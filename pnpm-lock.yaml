@@ -632,8 +632,8 @@ importers:
         specifier: ^3.1.20
         version: 3.1.20
       nc-help:
-        specifier: 0.2.88
-        version: 0.2.88(asn1.js@5.4.1)(debug@4.2.0)(knex@2.4.2)
+        specifier: 0.3.0
+        version: 0.3.0(asn1.js@5.4.1)(debug@4.2.0)(knex@2.4.2)
       nc-lib-gui:
         specifier: 0.111.4
         version: 0.111.4
@@ -6137,34 +6137,6 @@ packages:
       picomatch: 2.3.1
       rollup: 3.28.1
 
-  /@rudderstack/rudder-sdk-node@1.1.5(debug@4.2.0):
-    resolution: {integrity: sha512-grr1lj3Du3FMCrnYreMKmRiuP7mvxftC+04MDD+S4QV1uOeVnFArcEbMUm9LfzfAx5bnhAhfT5DghuXSisKa+w==}
-    engines: {node: '>=4'}
-    dependencies:
-      '@segment/loosely-validate-event': 2.0.0
-      axios: 0.26.0(debug@4.2.0)
-      axios-retry: 3.6.1
-      bull: 4.10.4
-      lodash.clonedeep: 4.5.0
-      lodash.isstring: 4.0.1
-      md5: 2.3.0
-      ms: 2.1.3
-      remove-trailing-slash: 0.1.1
-      serialize-javascript: 6.0.1
-      uuid: 8.3.2
-      winston: 3.10.0
-    transitivePeerDependencies:
-      - debug
-      - supports-color
-    dev: false
-
-  /@segment/loosely-validate-event@2.0.0:
-    resolution: {integrity: sha512-ZMCSfztDBqwotkl848ODgVcAmN4OItEWDCkshcKz0/W6gGSQayuuCtWV/MlodFivAZD793d6UgANd6wCXUfrIw==}
-    dependencies:
-      component-type: 1.2.1
-      join-component: 1.1.0
-    dev: false
-
   /@sentry/core@6.3.5:
     resolution: {integrity: sha512-VR2ibDy33mryD0mT6d9fGhKjdNzS2FSwwZPe9GvmNOjkyjly/oV91BKVoYJneCqOeq8fyj2lvkJGKuupdJNDqg==}
     engines: {node: '>=6'}
@@ -9225,7 +9197,7 @@ packages:
   /axios@0.21.1:
     resolution: {integrity: sha512-dKQiRHxGD9PPRIUNIWvZhPTPpl1rf/OxTYKsqKUDjBwYylTvV7SjSHJb9ratfyzM6wCdLCOYLzs73qpg5c4iGA==}
     dependencies:
-      follow-redirects: 1.15.2(debug@3.2.7)
+      follow-redirects: 1.15.2(debug@4.3.4)
     transitivePeerDependencies:
       - debug
     dev: false
@@ -9241,13 +9213,13 @@ packages:
   /axios@0.24.0:
     resolution: {integrity: sha512-Q6cWsys88HoPgAaFAVUb0WpPk0O8iTeisR9IMqy9G8AbO4NlpVknrnQS03zzF9PGAWgO3cgletO3VjV/P7VztA==}
     dependencies:
-      follow-redirects: 1.15.2(debug@3.2.7)
+      follow-redirects: 1.15.2(debug@4.3.4)
     transitivePeerDependencies:
       - debug
     dev: true
 
-  /axios@0.26.0(debug@4.2.0):
-    resolution: {integrity: sha512-lKoGLMYtHvFrPVt3r+RBMp9nh34N0M8zEfCWqdWZx6phynIEhQqAdydpyBAAG211zlhX9Rgu08cOamy6XjE5Og==}
+  /axios@0.24.0(debug@4.2.0):
+    resolution: {integrity: sha512-Q6cWsys88HoPgAaFAVUb0WpPk0O8iTeisR9IMqy9G8AbO4NlpVknrnQS03zzF9PGAWgO3cgletO3VjV/P7VztA==}
     dependencies:
       follow-redirects: 1.15.2(debug@4.2.0)
     transitivePeerDependencies:
@@ -9283,7 +9255,7 @@ packages:
   /axios@1.5.0:
     resolution: {integrity: sha512-D4DdjDo5CY50Qms0qGQTTw6Q44jl7zRwY7bthds06pUGfChBCTcQs+N743eFWGEd6pRTMd6A+I87aWyFV5wiZQ==}
     dependencies:
-      follow-redirects: 1.15.2(debug@3.2.7)
+      follow-redirects: 1.15.2(debug@4.3.4)
       form-data: 4.0.0
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
@@ -9746,7 +9718,7 @@ packages:
       '@npmcli/move-file': 1.1.2
       chownr: 2.0.0
       fs-minipass: 2.1.0
-      glob: 7.1.6
+      glob: 7.2.3
       infer-owner: 1.0.4
       lru-cache: 6.0.0
       minipass: 3.3.6
@@ -13012,6 +12984,7 @@ packages:
         optional: true
     dependencies:
       debug: 3.2.7(supports-color@5.5.0)
+    dev: false
 
   /follow-redirects@1.15.2(debug@4.2.0):
     resolution: {integrity: sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==}
@@ -13035,7 +13008,6 @@ packages:
         optional: true
     dependencies:
       debug: 4.3.4(supports-color@8.1.1)
-    dev: true
 
   /for-each@0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
@@ -16186,10 +16158,6 @@ packages:
     resolution: {integrity: sha512-xYHt68QRoYGjeeM/XOE1uJtvXQAgvszfBhjV4yvsQH0u2i9I6cI6c6/eG4Hh3UAOVn0y/xAXwmTzEay49Q//HA==}
     dev: true
 
-  /lodash.clonedeep@4.5.0:
-    resolution: {integrity: sha512-H5ZhCF25riFd9uB5UCkVKo61m3S/xZk1x4wA6yp/L3RFP6Z/eHH1ymQcGLo7J3GMPfm0V/7m1tryHuGVxpqEBQ==}
-    dev: false
-
   /lodash.debounce@4.0.8:
     resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}
     dev: true
@@ -17156,18 +17124,18 @@ packages:
     engines: {node: '>=10'}
     dev: false
 
-  /nc-help@0.2.88(asn1.js@5.4.1)(debug@4.2.0)(knex@2.4.2):
-    resolution: {integrity: sha512-56YHE+CWfBbpaKKVfyV368ne9yHM1xBxDyUDYWaweCoSwiglFLoC0ihNonueHZlG4PL4v6Kb85EKbGGr9YFQlA==}
-    engines: {node: '>=v8.17.0'}
+  /nc-help@0.3.0(asn1.js@5.4.1)(debug@4.2.0)(knex@2.4.2):
+    resolution: {integrity: sha512-2bNJkB5ivIDAxDAgwsqxTX7PYkStC4hXsVEpBAXdrgfZ2oNVP96CnQ7La3LjAB779JzB3xtgJWtwQiq/rXKAGQ==}
+    engines: {node: '>=18'}
     peerDependencies:
       knex: 2.4.2
     dependencies:
-      '@rudderstack/rudder-sdk-node': 1.1.5(debug@4.2.0)
       axios: 0.27.2(debug@4.2.0)
       emittery: 0.13.1
       is-docker: 2.2.1
       knex: 2.4.2(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6)(tedious@16.1.0)
       lodash: 4.17.21
+      posthog-node: 1.3.0(debug@4.2.0)
       snowflake-sdk: 1.7.0(asn1.js@5.4.1)
     transitivePeerDependencies:
       - asn1.js
@@ -19070,6 +19038,23 @@ packages:
     dependencies:
       xtend: 4.0.2
 
+  /posthog-node@1.3.0(debug@4.2.0):
+    resolution: {integrity: sha512-2+VhqiY/rKIqKIXyvemBFHbeijHE25sP7eKltnqcFqAssUE6+sX6vusN9A4luzToOqHQkUZexiCKxvuGagh7JA==}
+    engines: {node: '>=4'}
+    hasBin: true
+    dependencies:
+      axios: 0.24.0(debug@4.2.0)
+      axios-retry: 3.6.1
+      component-type: 1.2.1
+      join-component: 1.1.0
+      md5: 2.3.0
+      ms: 2.1.3
+      remove-trailing-slash: 0.1.1
+      uuid: 8.3.2
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
   /prebuild-install@7.1.1:
     resolution: {integrity: sha512-jAXscXWMcCK8GgCoHOfIr0ODh5ai8mj63L2nWrjuAgXE6tDyYGnx4/8o/rCgU+B4JSyZBKbeZqzhtwtC3ovxjw==}
     engines: {node: '>=10'}
@@ -19344,6 +19329,7 @@ packages:
     resolution: {integrity: sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==}
     dependencies:
       safe-buffer: 5.2.1
+    dev: true
 
   /range-parser@1.2.1:
     resolution: {integrity: sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==}
@@ -20042,6 +20028,7 @@ packages:
     resolution: {integrity: sha512-owoXEFjWRllis8/M1Q+Cw5k8ZH40e3zhp/ovX+Xr/vi1qj6QesbyXXViFbpNvWvPNAD62SutwEXavefrLJWj7w==}
     dependencies:
       randombytes: 2.1.0
+    dev: true
 
   /serve-placeholder@2.0.1:
     resolution: {integrity: sha512-rUzLlXk4uPFnbEaIz3SW8VISTxMuONas88nYWjAWaM2W9VDbt9tyFOr3lq8RhVOFrT3XISoBw8vni5una8qMnQ==}
@@ -21223,7 +21210,7 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       '@istanbuljs/schema': 0.1.3
-      glob: 7.1.6
+      glob: 7.2.3
       minimatch: 3.1.2
     dev: true
 
@@ -21488,7 +21475,7 @@ packages:
       micromatch: 4.0.5
       semver: 7.5.4
       typescript: 5.2.2
-      webpack: 5.88.2(esbuild@0.19.2)
+      webpack: 5.88.2(webpack-cli@5.1.4)
     dev: true
 
   /ts-morph@4.3.3:

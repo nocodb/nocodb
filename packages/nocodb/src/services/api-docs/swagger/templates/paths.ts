@@ -1,4 +1,4 @@
-import { isLinksOrLTAR, ModelTypes, UITypes } from 'nocodb-sdk';
+import { isLinksOrLTAR, ModelTypes } from 'nocodb-sdk';
 import {
   columnNameParam,
   columnNameQueryParam,

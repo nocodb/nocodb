@@ -378,7 +378,7 @@ useMenuCloseOnEsc(open)
                       <span class="mt-0.65">{{ field.title }}</span>
                     </div>
 
-                    <NcSwitch :checked="field.show" v-e="['a:fields:show-hide']" :disabled="field.isViewEssentialField" />
+                    <NcSwitch v-e="['a:fields:show-hide']" :checked="field.show" :disabled="field.isViewEssentialField" />
                   </div>
 
                   <div class="flex-1" />

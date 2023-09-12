@@ -465,7 +465,7 @@ importers:
         version: 2.1419.0
       axios:
         specifier: ^0.21.1
-        version: 0.21.1(debug@4.2.0)
+        version: 0.21.1(debug@4.3.4)
       bcryptjs:
         specifier: ^2.4.3
         version: 2.4.3
@@ -515,8 +515,8 @@ importers:
         specifier: ^1.11.9
         version: 1.11.9
       debug:
-        specifier: ^4.2.0
-        version: 4.2.0
+        specifier: ^4.3.1
+        version: 4.3.4(supports-color@8.1.1)
       dotenv:
         specifier: ^8.2.0
         version: 8.2.0
@@ -633,7 +633,7 @@ importers:
         version: 3.1.20
       nc-help:
         specifier: 0.3.0
-        version: 0.3.0(asn1.js@5.4.1)(debug@4.2.0)(knex@2.4.2)
+        version: 0.3.0(asn1.js@5.4.1)(debug@4.3.4)(knex@2.4.2)
       nc-lib-gui:
         specifier: 0.111.4
         version: 0.111.4
@@ -645,7 +645,7 @@ importers:
         version: 2.0.0
       nestjs-kafka:
         specifier: ^1.0.6
-        version: 1.0.6(debug@4.2.0)(kafkajs@2.2.4)(reflect-metadata@0.1.13)
+        version: 1.0.6(debug@4.3.4)(kafkajs@2.2.4)(reflect-metadata@0.1.13)
       nestjs-throttler-storage-redis:
         specifier: ^0.3.0
         version: 0.3.0(@nestjs/common@10.2.1)(@nestjs/core@10.2.1)(@nestjs/throttler@4.2.1)(ioredis@5.3.2)(reflect-metadata@0.1.13)
@@ -741,7 +741,7 @@ importers:
         version: 1.4.2
       twilio:
         specifier: ^3.55.1
-        version: 3.55.1(@types/express@4.17.17)(@types/qs@6.9.4)(debug@4.2.0)
+        version: 3.55.1(@types/express@4.17.17)(@types/qs@6.9.4)(debug@4.3.4)
       unique-names-generator:
         specifier: ^4.3.1
         version: 4.7.1
@@ -2578,12 +2578,12 @@ packages:
       - encoding
     dev: false
 
-  /@azure/ms-rest-nodeauth@3.1.1(debug@4.2.0):
+  /@azure/ms-rest-nodeauth@3.1.1(debug@4.3.4):
     resolution: {integrity: sha512-UA/8dgLy3+ZiwJjAZHxL4MUB14fFQPkaAOZ94jsTW/Z6WmoOeny2+cLk0+dyIX/iH6qSrEWKwbStEeB970B9pA==}
     dependencies:
       '@azure/ms-rest-azure-env': 2.0.0
       '@azure/ms-rest-js': 2.7.0
-      adal-node: 0.2.4(debug@4.2.0)
+      adal-node: 0.2.4(debug@4.3.4)
     transitivePeerDependencies:
       - debug
       - encoding
@@ -4894,7 +4894,7 @@ packages:
       tslib: 2.6.1
       uid: 2.0.2
 
-  /@nestjs/common@8.4.7(debug@4.2.0)(reflect-metadata@0.1.13)(rxjs@7.8.1):
+  /@nestjs/common@8.4.7(debug@4.3.4)(reflect-metadata@0.1.13)(rxjs@7.8.1):
     resolution: {integrity: sha512-m/YsbcBal+gA5CFrDpqXqsSfylo+DIQrkFY3qhVIltsYRfu8ct8J9pqsTO6OPf3mvqdOpFGrV5sBjoyAzOBvsw==}
     peerDependencies:
       cache-manager: '*'
@@ -4910,7 +4910,7 @@ packages:
       class-validator:
         optional: true
     dependencies:
-      axios: 0.27.2(debug@4.2.0)
+      axios: 0.27.2(debug@4.3.4)
       iterare: 1.2.1
       reflect-metadata: 0.1.13
       rxjs: 7.8.1
@@ -8730,13 +8730,13 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
-  /adal-node@0.2.4(debug@4.2.0):
+  /adal-node@0.2.4(debug@4.3.4):
     resolution: {integrity: sha512-zIcvbwQFKMUtKxxj8YMHeTT1o/TPXfVNsTXVgXD8sxwV6h4AFQgK77dRciGhuEF9/Sdm3UQPJVPc/6XxrccSeA==}
     engines: {node: '>= 0.6.15'}
     dependencies:
       '@xmldom/xmldom': 0.8.10
       async: 2.6.4
-      axios: 0.21.1(debug@4.2.0)
+      axios: 0.21.1(debug@4.3.4)
       date-utils: 1.2.21
       jws: 3.2.2
       underscore: 1.13.6
@@ -9333,10 +9333,10 @@ packages:
       - debug
     dev: false
 
-  /axios@0.21.1(debug@4.2.0):
+  /axios@0.21.1(debug@4.3.4):
     resolution: {integrity: sha512-dKQiRHxGD9PPRIUNIWvZhPTPpl1rf/OxTYKsqKUDjBwYylTvV7SjSHJb9ratfyzM6wCdLCOYLzs73qpg5c4iGA==}
     dependencies:
-      follow-redirects: 1.15.2(debug@4.2.0)
+      follow-redirects: 1.15.2(debug@4.3.4)
     transitivePeerDependencies:
       - debug
     dev: false
@@ -9349,10 +9349,10 @@ packages:
       - debug
     dev: true
 
-  /axios@0.24.0(debug@4.2.0):
+  /axios@0.24.0(debug@4.3.4):
     resolution: {integrity: sha512-Q6cWsys88HoPgAaFAVUb0WpPk0O8iTeisR9IMqy9G8AbO4NlpVknrnQS03zzF9PGAWgO3cgletO3VjV/P7VztA==}
     dependencies:
-      follow-redirects: 1.15.2(debug@4.2.0)
+      follow-redirects: 1.15.2(debug@4.3.4)
     transitivePeerDependencies:
       - debug
     dev: false
@@ -9374,10 +9374,10 @@ packages:
       - debug
     dev: false
 
-  /axios@0.27.2(debug@4.2.0):
+  /axios@0.27.2(debug@4.3.4):
     resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
     dependencies:
-      follow-redirects: 1.15.2(debug@4.2.0)
+      follow-redirects: 1.15.2(debug@4.3.4)
       form-data: 4.0.0
     transitivePeerDependencies:
       - debug
@@ -11202,19 +11202,6 @@ packages:
       ms: 2.1.3
       supports-color: 5.5.0
 
-  /debug@4.2.0:
-    resolution: {integrity: sha512-IX2ncY78vDTjZMFUdmsvIRFY2Cf4FnD0wRs+nQwJU8Lu99/tPFdb0VybiiMTPe3I6rQmwsqQqRBvxU+bZ/I8sg==}
-    engines: {node: '>=6.0'}
-    deprecated: Debug versions >=3.2.0 <3.2.7 || >=4 <4.3.1 have a low-severity ReDos regression when used in a Node.js environment. It is recommended you upgrade to 3.2.7 or 4.3.1. (https://github.com/visionmedia/debug/issues/797)
-    peerDependencies:
-      supports-color: '*'
-    peerDependenciesMeta:
-      supports-color:
-        optional: true
-    dependencies:
-      ms: 2.1.2
-    dev: false
-
   /debug@4.3.4(supports-color@8.1.1):
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
     engines: {node: '>=6.0'}
@@ -12915,7 +12902,7 @@ packages:
     engines: {node: '>= 10.17.0'}
     hasBin: true
     dependencies:
-      debug: 4.2.0
+      debug: 4.3.4(supports-color@8.1.1)
       get-stream: 5.2.0
       yauzl: 2.10.0
     optionalDependencies:
@@ -13178,18 +13165,6 @@ packages:
     dependencies:
       debug: 3.2.7(supports-color@5.5.0)
 
-  /follow-redirects@1.15.2(debug@4.2.0):
-    resolution: {integrity: sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==}
-    engines: {node: '>=4.0'}
-    peerDependencies:
-      debug: '*'
-    peerDependenciesMeta:
-      debug:
-        optional: true
-    dependencies:
-      debug: 4.2.0
-    dev: false
-
   /follow-redirects@1.15.2(debug@4.3.4):
     resolution: {integrity: sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==}
     engines: {node: '>=4.0'}
@@ -13200,7 +13175,6 @@ packages:
         optional: true
     dependencies:
       debug: 4.3.4(supports-color@8.1.1)
-    dev: true
 
   /for-each@0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
@@ -17167,9 +17141,9 @@ packages:
     engines: {node: '>=6'}
     hasBin: true
     dependencies:
-      debug: 4.2.0
+      debug: 4.3.4(supports-color@8.1.1)
       tarn: 1.1.5
-      tedious: 6.7.1(debug@4.2.0)
+      tedious: 6.7.1(debug@4.3.4)
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -17317,18 +17291,18 @@ packages:
     engines: {node: '>=10'}
     dev: false
 
-  /nc-help@0.3.0(asn1.js@5.4.1)(debug@4.2.0)(knex@2.4.2):
+  /nc-help@0.3.0(asn1.js@5.4.1)(debug@4.3.4)(knex@2.4.2):
     resolution: {integrity: sha512-2bNJkB5ivIDAxDAgwsqxTX7PYkStC4hXsVEpBAXdrgfZ2oNVP96CnQ7La3LjAB779JzB3xtgJWtwQiq/rXKAGQ==}
     engines: {node: '>=18'}
     peerDependencies:
       knex: 2.4.2
     dependencies:
-      axios: 0.27.2(debug@4.2.0)
+      axios: 0.27.2(debug@4.3.4)
       emittery: 0.13.1
       is-docker: 2.2.1
       knex: 2.4.2(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6)(tedious@16.1.0)
       lodash: 4.17.21
-      posthog-node: 1.3.0(debug@4.2.0)
+      posthog-node: 1.3.0(debug@4.3.4)
       snowflake-sdk: 1.7.0(asn1.js@5.4.1)
     transitivePeerDependencies:
       - asn1.js
@@ -17366,13 +17340,13 @@ packages:
   /neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
 
-  /nestjs-kafka@1.0.6(debug@4.2.0)(kafkajs@2.2.4)(reflect-metadata@0.1.13):
+  /nestjs-kafka@1.0.6(debug@4.3.4)(kafkajs@2.2.4)(reflect-metadata@0.1.13):
     resolution: {integrity: sha512-mHIyTZljt5Zz4cUUjwXu7lW873TDmOBN1114pZl8DHAUXRLtxNo0AcXg6QCEZgrPRJoTy2JChVrSC/1aGxzFPA==}
     engines: {node: '>= 10', npm: '>= 5'}
     peerDependencies:
       kafkajs: latest
     dependencies:
-      '@nestjs/common': 8.4.7(debug@4.2.0)(reflect-metadata@0.1.13)(rxjs@7.8.1)
+      '@nestjs/common': 8.4.7(debug@4.3.4)(reflect-metadata@0.1.13)(rxjs@7.8.1)
       kafkajs: 2.2.4
       rxjs: 7.8.1
     transitivePeerDependencies:
@@ -19231,12 +19205,12 @@ packages:
     dependencies:
       xtend: 4.0.2
 
-  /posthog-node@1.3.0(debug@4.2.0):
+  /posthog-node@1.3.0(debug@4.3.4):
     resolution: {integrity: sha512-2+VhqiY/rKIqKIXyvemBFHbeijHE25sP7eKltnqcFqAssUE6+sX6vusN9A4luzToOqHQkUZexiCKxvuGagh7JA==}
     engines: {node: '>=4'}
     hasBin: true
     dependencies:
-      axios: 0.24.0(debug@4.2.0)
+      axios: 0.24.0(debug@4.3.4)
       axios-retry: 3.6.1
       component-type: 1.2.1
       join-component: 1.1.0
@@ -21261,11 +21235,11 @@ packages:
       - supports-color
     dev: false
 
-  /tedious@6.7.1(debug@4.2.0):
+  /tedious@6.7.1(debug@4.3.4):
     resolution: {integrity: sha512-61eg/mvUa5vIqZcRizcqw/82dY65kR2uTll1TaUFh0aJ45XOrgbc8axiVR48dva8BahIAlJByaHNfAJ/KmPV0g==}
     engines: {node: '>= 6'}
     dependencies:
-      '@azure/ms-rest-nodeauth': 3.1.1(debug@4.2.0)
+      '@azure/ms-rest-nodeauth': 3.1.1(debug@4.3.4)
       '@types/node': 12.20.55
       '@types/readable-stream': 2.3.15
       bl: 3.0.1
@@ -21668,7 +21642,7 @@ packages:
       micromatch: 4.0.5
       semver: 7.5.4
       typescript: 5.2.2
-      webpack: 5.88.2(esbuild@0.19.2)
+      webpack: 5.88.2(webpack-cli@5.1.4)
     dev: true
 
   /ts-morph@4.3.3:
@@ -21817,7 +21791,7 @@ packages:
     resolution: {integrity: sha512-KXXFFdAbFXY4geFIwoyNK+f5Z1b7swfXABfL7HXCmoIWMKU3dmS26672A4EeQtDzLKy7SXmfBu51JolvEKwtGA==}
     dev: false
 
-  /twilio@3.55.1(@types/express@4.17.17)(@types/qs@6.9.4)(debug@4.2.0):
+  /twilio@3.55.1(@types/express@4.17.17)(@types/qs@6.9.4)(debug@4.3.4):
     resolution: {integrity: sha512-7S8658CaMKArxRgYr+UvZQTxbp7n3WzurjuQdNX2GwVO34vZzmiuAuYvldaJrZ2mSBgsXUSNVcofQT6tGHGRSg==}
     engines: {node: '>=6.0'}
     peerDependencies:
@@ -21826,7 +21800,7 @@ packages:
     dependencies:
       '@types/express': 4.17.17
       '@types/qs': 6.9.4
-      axios: 0.21.1(debug@4.2.0)
+      axios: 0.21.1(debug@4.3.4)
       dayjs: 1.11.9
       jsonwebtoken: 8.5.1
       lodash: 4.17.19

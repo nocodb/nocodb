@@ -277,6 +277,9 @@ export default class WorkspaceUser {
   }
 
   static async delete(workspaceId: any, userId: any) {
+    await NocoCache.del(
+      `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
+    );
     await NocoCache.del(`${CacheScope.WORKSPACE}:${workspaceId}:userCount`);
 
     return await Noco.ncMeta.metaDelete(null, null, MetaTable.WORKSPACE_USER, {

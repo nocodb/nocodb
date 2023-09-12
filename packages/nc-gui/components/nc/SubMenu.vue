@@ -23,7 +23,7 @@
 }
 
 .nc-sub-menu > .ant-dropdown-menu-submenu-title {
-  @apply pl-1.5 py-1.75 w-full;
+  @apply pl-1.5 py-0 w-full;
 }
 
 .ant-dropdown-menu-submenu .ant-dropdown-menu-submenu-title:hover {

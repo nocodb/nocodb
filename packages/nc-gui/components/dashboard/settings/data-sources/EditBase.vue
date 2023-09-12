@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { BaseType } from 'nocodb-sdk'
-import { Form, Modal, message } from 'ant-design-vue'
+import { Form, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import type { DefaultConnection, ProjectCreateForm, SQLiteConnection } from '#imports'
 import {
@@ -234,6 +234,8 @@ const editBase = async () => {
   }
 }
 
+const isConnSuccess = ref(false)
+
 const testConnection = async () => {
   try {
     await validate()
@@ -261,17 +263,7 @@ const testConnection = async () => {
 
       if (result.code === 0) {
         testSuccess.value = true
-
-        Modal.confirm({
-          title: t('msg.info.dbConnected'),
-          icon: null,
-          type: 'success',
-          okText: 'Ok & Edit Base',
-          okType: 'primary',
-          cancelText: t('general.cancel'),
-          onOk: editBase,
-          style: 'top: 30%!important',
-        })
+        isConnSuccess.value = true
       } else {
         testSuccess.value = false
 
@@ -472,9 +464,9 @@ onMounted(async () => {
           </a-form-item>
           <!--                Use Connection URL -->
           <div class="flex justify-end gap-2">
-            <a-button type="primary" class="nc-extdb-btn-import-url !rounded-md" @click.stop="importURLDlg = true">
+            <NcButton size="small" type="primary" class="nc-extdb-btn-import-url !rounded-md" @click.stop="importURLDlg = true">
               {{ $t('activity.useConnectionUrl') }}
-            </a-button>
+            </NcButton>
           </div>
           <a-collapse ghost expand-icon-position="right" class="!mt-6">
             <a-collapse-panel key="1">
@@ -497,9 +489,9 @@ onMounted(async () => {
                       <span>{{ $t('tooltip.clientCert') }}</span>
                     </template>
 
-                    <a-button :disabled="!sslFilesRequired" class="shadow" @click="certFileInput?.click()">
+                    <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="certFileInput?.click()">
                       {{ $t('labels.clientCert') }}
-                    </a-button>
+                    </NcButton>
                   </a-tooltip>
 
                   <a-tooltip placement="top">
@@ -507,9 +499,9 @@ onMounted(async () => {
                     <template #title>
                       <span>{{ $t('tooltip.clientKey') }}</span>
                     </template>
-                    <a-button :disabled="!sslFilesRequired" class="shadow" @click="keyFileInput?.click()">
+                    <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="keyFileInput?.click()">
                       {{ $t('labels.clientKey') }}
-                    </a-button>
+                    </NcButton>
                   </a-tooltip>
 
                   <a-tooltip placement="top">
@@ -518,9 +510,9 @@ onMounted(async () => {
                       <span>{{ $t('tooltip.clientCA') }}</span>
                     </template>
 
-                    <a-button :disabled="!sslFilesRequired" class="shadow" @click="caFileInput?.click()">
+                    <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="caFileInput?.click()">
                       {{ $t('labels.serverCA') }}
-                    </a-button>
+                    </NcButton>
                   </a-tooltip>
                 </div>
               </a-form-item>
@@ -551,9 +543,9 @@ onMounted(async () => {
                       />
                     </div>
                   </div>
-                  <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">
+                  <NcButton size="small" type="dashed" class="w-full caption mt-2" @click="addNewParam">
                     <div class="flex items-center justify-center"><component :is="iconMap.plus" /></div>
-                  </a-button>
+                  </NcButton>
                 </a-card>
               </a-form-item>
 
@@ -578,10 +570,10 @@ onMounted(async () => {
               </a-form-item>
 
               <div class="flex justify-end">
-                <a-button type="primary" class="!rounded-md" @click="handleEditJSON()">
+                <NcButton size="small" type="primary" class="!rounded-md" @click="handleEditJSON()">
                   <!-- Edit connection JSON -->
                   {{ $t('activity.editConnJson') }}
-                </a-button>
+                </NcButton>
               </div>
             </a-collapse-panel>
           </a-collapse>
@@ -590,13 +582,19 @@ onMounted(async () => {
 
       <a-form-item class="flex justify-end !mt-5">
         <div class="flex justify-end gap-2">
-          <a-button type="secondary" class="nc-extdb-btn-test-connection !rounded-md" @click="testConnection">
+          <NcButton type="secondary" size="small" class="nc-extdb-btn-test-connection !rounded-md" @click="testConnection">
             {{ $t('activity.testDbConn') }}
-          </a-button>
+          </NcButton>
 
-          <a-button type="primary" :disabled="!testSuccess" class="nc-extdb-btn-submit !rounded-md" @click="editBase">
+          <NcButton
+            size="small"
+            type="primary"
+            :disabled="!testSuccess"
+            class="nc-extdb-btn-submit !rounded-md"
+            @click="editBase"
+          >
             {{ $t('general.submit') }}
-          </a-button>
+          </NcButton>
         </div>
       </a-form-item>
       <div class="w-full flex items-center mt-2 text-[#e65100]">
@@ -628,6 +626,17 @@ onMounted(async () => {
       <a-input v-model:value="importURL" />
     </a-modal>
   </div>
+
+  <!-- connection succesfull modal -->
+  <GeneralModal v-model:visible="isConnSuccess" class="!w-97">
+    <div class="flex flex-col h-full p-8">
+      <div class="text-lg font-semibold self-start mb-4">{{ t('msg.info.dbConnected') }}</div>
+      <div class="flex gap-x-2 mt-5 ml-7 pt-2.5 justify-end">
+        <NcButton key="back" type="secondary" @click="isConnSuccess = false">{{ $t('general.cancel') }}</NcButton>
+        <NcButton key="submit" type="primary" @click="editBase">Ok & Edit Base</NcButton>
+      </div>
+    </div>
+  </GeneralModal>
 </template>
 
 <style lang="scss" scoped>

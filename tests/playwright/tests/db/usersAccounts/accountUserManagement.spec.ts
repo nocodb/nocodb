@@ -20,7 +20,7 @@ test.describe('User roles', () => {
   if (isEE()) {
     test.skip();
   }
-  
+
   let accountUsersPage: AccountUsersPage;
   let accountPage: AccountPage;
   let signupPage: SignupPage;

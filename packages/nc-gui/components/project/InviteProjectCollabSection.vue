@@ -23,7 +23,13 @@ const usersData = ref<{
   roles?: string
 }>()
 
+const isInvitingCollaborators = ref(false)
+
 const inviteCollaborator = async () => {
+  if (isInvitingCollaborators.value) return
+
+  isInvitingCollaborators.value = true
+
   try {
     usersData.value = await inviteUser(inviteData)
     usersData.roles = inviteData.roles
@@ -35,6 +41,8 @@ const inviteCollaborator = async () => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
+
+  isInvitingCollaborators.value = false
 }
 
 const inviteUrl = computed(() =>

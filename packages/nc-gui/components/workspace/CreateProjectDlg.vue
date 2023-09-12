@@ -81,9 +81,8 @@ watch(dialogShow, async (n, o) => {
 const typeLabel = computed(() => {
   switch (props.type) {
     case NcProjectType.DB:
-      return 'Database'
     default:
-      return ''
+      return 'Database'
   }
 })
 </script>

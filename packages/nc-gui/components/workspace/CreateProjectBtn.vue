@@ -12,6 +12,8 @@ const props = defineProps<{
 
 const { isUIAllowedAcl } = useUIPermission()
 
+const { orgRoles, workspaceRoles } = useRoles()
+
 const projectStore = useProject()
 const { isSharedBase } = storeToRefs(projectStore)
 

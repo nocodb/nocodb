@@ -186,7 +186,7 @@ function onOpenModal({
 
     <div class="flex-1 flex flex-col min-h-0">
       <div class="flex flex-col h-full justify-between w-full">
-        <div class="flex flex-grow w-full">
+        <div class="flex flex-grow nc-scrollbar-md pr-1.75 mr-0.5">
           <div v-if="isViewsLoading" class="flex flex-col w-full">
             <div class="flex flex-row items-center w-full mt-1.5 ml-5 gap-x-3">
               <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden" />

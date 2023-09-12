@@ -27,7 +27,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const { $api } = useNuxtApp()
 
-const baseURL = $api.instance.defaults.baseURL;
+const baseURL = $api.instance.defaults.baseURL
 
 const { $state, $jobs } = useNuxtApp()
 

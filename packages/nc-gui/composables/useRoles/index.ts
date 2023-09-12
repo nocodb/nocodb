@@ -21,7 +21,7 @@ export const useRoles = createSharedComposable(() => {
 
   const workspaceRoles: ComputedRef<Roles> = computed<Roles>(() => extractRolesObj(activeWorkspace.value?.roles ?? ({} as Roles)))
 
-  const allRoles = computed<Roles>(() => {
+  const allRoles = computed<Roles | null>(() => {
     let orgRoles = user.value?.roles ?? {}
 
     orgRoles = extractRolesObj(orgRoles)
@@ -37,7 +37,7 @@ export const useRoles = createSharedComposable(() => {
     }
   })
 
-  const orgRoles = computed<Roles>(() => {
+  const orgRoles = computed<Roles | null>(() => {
     let orgRoles = user.value?.roles ?? {}
 
     orgRoles = extractRolesObj(orgRoles)
@@ -45,7 +45,7 @@ export const useRoles = createSharedComposable(() => {
     return orgRoles
   })
 
-  const projectRoles = computed<Roles>(() => {
+  const projectRoles = computed<Roles | null>(() => {
     let projectRoles = user.value?.project_roles ?? {}
 
     if (Object.keys(projectRoles).length === 0) {
@@ -111,8 +111,8 @@ export const useRoles = createSharedComposable(() => {
       return previewAs.value === role
     }
 
-    return allRoles.value[role]
+    return allRoles.value?.[role]
   }
 
-  return { allRoles, orgRoles, projectRoles, loadRoles, hasRole, workspaceRoles }
+  return { allRoles, orgRoles, workspaceRoles, projectRoles, loadRoles, hasRole }
 })

@@ -297,13 +297,38 @@ const setIcon = async (icon: string, view: ViewType) => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+const scrollViewNode = () => {
+  const activeViewDom = document.querySelector(`.nc-views-menu [data-view-id="${activeView.value?.id}"]`) as HTMLElement
+  if (!activeViewDom) return
+
+  if (isElementInvisible(activeViewDom)) {
+    // Scroll to the view node
+    activeViewDom?.scrollIntoView({ behavior: 'auto', inline: 'start' })
+  }
+}
+
+watch(
+  () => activeView.value?.id,
+  () => {
+    if (!activeView.value?.id) return
+
+    // TODO: Find a better way to scroll to the view node
+    setTimeout(() => {
+      scrollViewNode()
+    }, 800)
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
   <a-menu
     ref="menuRef"
     :class="{ dragging }"
-    class="nc-views-menu flex flex-col !ml-3 !mr-2.5 w-full !border-r-0 !bg-inherit nc-scrollbar-md"
+    class="nc-views-menu flex flex-col !ml-3 w-full !border-r-0 !bg-inherit"
     :selected-keys="selected"
   >
     <!-- Lazy load breaks menu item active styles, i.e. styles never change even when active item changes -->
@@ -319,6 +344,7 @@ const setIcon = async (icon: string, view: ViewType) => {
         'active': activeView?.id === view.id,
         [`nc-${view.type ? viewTypeAlias[view.type] : undefined || view.type}-view-item`]: true,
       }"
+      :data-view-id="view.id"
       @change-view="changeView"
       @open-modal="$emit('openModal', $event)"
       @delete="openDeleteDialog"

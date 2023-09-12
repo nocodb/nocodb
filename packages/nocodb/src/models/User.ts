@@ -87,7 +87,7 @@ export default class User implements UserType {
 
       // check if the target email addr is in use or not
       const targetUser = await this.getByEmail(updateObj.email, ncMeta);
-      if (targetUser.id !== id) {
+      if (targetUser && targetUser.id !== id) {
         NcError.badRequest('email is in use');
       }
     } else {

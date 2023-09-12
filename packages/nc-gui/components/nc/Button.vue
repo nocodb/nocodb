@@ -33,6 +33,8 @@ const emits = defineEmits(['update:loading'])
 
 const slots = useSlots()
 
+const NcButton = ref<HTMLElement | null>(null)
+
 const size = computed(() => props.size)
 
 const type = computed(() => props.type)
@@ -63,10 +65,15 @@ const onBlur = () => {
   isFocused.value = false
   isClicked.value = false
 }
+
+useEventListener(NcButton, 'mousedown', () => {
+  isClicked.value = true
+})
 </script>
 
 <template>
   <a-button
+    ref="NcButton"
     :disabled="props.disabled"
     :loading="loading"
     :type="type"
@@ -80,7 +87,6 @@ const onBlur = () => {
     }"
     @focus="onFocus"
     @blur="onBlur"
-    @mousedown="isClicked = true"
   >
     <div
       class="flex flex-row gap-x-2.5 w-full"

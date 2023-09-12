@@ -20,7 +20,7 @@ export const useRoles = createSharedComposable(() => {
 
   const route = router.currentRoute
 
-  const allRoles = computed<Roles>(() => {
+  const allRoles = computed<Roles | null>(() => {
     let orgRoles = user.value?.roles ?? {}
 
     orgRoles = extractRolesObj(orgRoles)
@@ -39,7 +39,7 @@ export const useRoles = createSharedComposable(() => {
     }
   })
 
-  const orgRoles = computed<Roles>(() => {
+  const orgRoles = computed<Roles | null>(() => {
     let orgRoles = user.value?.roles ?? {}
 
     orgRoles = extractRolesObj(orgRoles)
@@ -47,7 +47,7 @@ export const useRoles = createSharedComposable(() => {
     return orgRoles
   })
 
-  const projectRoles = computed<Roles>(() => {
+  const projectRoles = computed<Roles | null>(() => {
     let projectRoles = user.value?.project_roles ?? {}
 
     if (Object.keys(projectRoles).length === 0) {
@@ -59,7 +59,7 @@ export const useRoles = createSharedComposable(() => {
     return projectRoles
   })
 
-  const workspaceRoles = computed<Roles>(() => {
+  const workspaceRoles = computed<Roles | null>(() => {
     let workspaceRoles = user.value?.workspace_roles ?? {}
 
     workspaceRoles = extractRolesObj(workspaceRoles)

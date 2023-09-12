@@ -145,7 +145,6 @@ watch(open, () => {
   <NcDropdown
     v-model:visible="open"
     offset-y
-    class=""
     :trigger="['click']"
     overlay-class-name="nc-dropdown-group-by-menu nc-toolbar-dropdown"
   >

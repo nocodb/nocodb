@@ -473,4 +473,13 @@ export class UtilsService extends UtilsServiceCE {
       return NcError.internalServerError(e.message);
     }
   }
+
+  async appInfo(param: { req: { ncSiteUrl: string } }) {
+    const result = await super.appInfo(param);
+
+    // in cloud decide telemetry enabled or not based on PostHog API key presence
+    result.teleEnabled = !!process.env.NC_CLOUD_POSTHOG_API_KEY;
+
+    return result;
+  }
 }

@@ -439,7 +439,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <GeneralModal v-model:visible="isModalOpen" class="!w-[25rem]">
+    <GeneralModal v-model:visible="isModalOpen" class="!w-100">
       <div class="p-4">
         <div class="prose-xl font-bold self-center">Bulk Update</div>
 

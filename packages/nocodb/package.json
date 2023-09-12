@@ -76,7 +76,7 @@
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.1",
     "boxen": "^5.1.0",
-    "bull": "^4.10.4",
+    "bull": "^4.11.3",
     "bullmq": "^1.81.1",
     "clear": "^0.1.0",
     "clickhouse": "^2.6.0",

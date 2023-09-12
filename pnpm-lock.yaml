@@ -396,7 +396,7 @@ importers:
         version: 3.1.2
       '@nestjs/bull':
         specifier: ^10.0.1
-        version: 10.0.1(@nestjs/common@10.2.1)(@nestjs/core@10.2.1)(bull@4.10.4)
+        version: 10.0.1(@nestjs/common@10.2.1)(@nestjs/core@10.2.1)(bull@4.11.3)
       '@nestjs/common':
         specifier: ^10.2.1
         version: 10.2.1(reflect-metadata@0.1.13)(rxjs@7.2.0)
@@ -476,8 +476,8 @@ importers:
         specifier: ^5.1.0
         version: 5.1.0
       bull:
-        specifier: ^4.10.4
-        version: 4.10.4
+        specifier: ^4.11.3
+        version: 4.11.3
       bullmq:
         specifier: ^1.81.1
         version: 1.81.1
@@ -4804,7 +4804,7 @@ packages:
       tslib: 2.6.0
     dev: false
 
-  /@nestjs/bull@10.0.1(@nestjs/common@10.2.1)(@nestjs/core@10.2.1)(bull@4.10.4):
+  /@nestjs/bull@10.0.1(@nestjs/common@10.2.1)(@nestjs/core@10.2.1)(bull@4.11.3):
     resolution: {integrity: sha512-1GcJ8BkHDgQdBMZ7SqAqgUHiFnISXmpGvewFeTc8wf87JLk2PweiKv9j9/KQKU+NI237pCe82XB0bXzTnsdxSw==}
     peerDependencies:
       '@nestjs/common': ^8.0.0 || ^9.0.0 || ^10.0.0
@@ -4814,7 +4814,7 @@ packages:
       '@nestjs/bull-shared': 10.0.1(@nestjs/common@10.2.1)(@nestjs/core@10.2.1)
       '@nestjs/common': 10.2.1(reflect-metadata@0.1.13)(rxjs@7.2.0)
       '@nestjs/core': 10.2.1(@nestjs/common@10.2.1)(@nestjs/platform-express@10.2.1)(@nestjs/websockets@10.2.1)(reflect-metadata@0.1.13)(rxjs@7.2.0)
-      bull: 4.10.4
+      bull: 4.11.3
       tslib: 2.6.0
     dev: false
 
@@ -9749,12 +9749,11 @@ packages:
       semver: 7.5.4
     dev: true
 
-  /bull@4.10.4:
-    resolution: {integrity: sha512-o9m/7HjS/Or3vqRd59evBlWCXd9Lp+ALppKseoSKHaykK46SmRjAilX98PgmOz1yeVaurt8D5UtvEt4bUjM3eA==}
+  /bull@4.11.3:
+    resolution: {integrity: sha512-DhS0XtiAuejkAY08iGOdDK35eex/yGNoezlWqGJTu9FqWFF/oBjUhpsusE9SXiI4culyDbOoFs+l3ar0VXhFqQ==}
     engines: {node: '>=12'}
     dependencies:
       cron-parser: 4.9.0
-      debuglog: 1.0.1
       get-port: 5.1.1
       ioredis: 5.3.2
       lodash: 4.17.21
@@ -11181,11 +11180,6 @@ packages:
     dependencies:
       ms: 2.1.2
       supports-color: 8.1.1
-
-  /debuglog@1.0.1:
-    resolution: {integrity: sha512-syBZ+rnAK3EgMsH2aYEOLUW7mZSY9Gb+0wUMCFsZvcmiz+HigA0LOcq/HoQqVuGG+EKykunc7QG2bzrponfaSw==}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
-    dev: false
 
   /decamelize-keys@1.1.1:
     resolution: {integrity: sha512-WiPxgEirIV0/eIOMcnFBA3/IJZAZqKnwAwWyvvdi4lsr1WCN22nhdf/3db3DoZcUjTV2SqfzIwNyp6y2xs3nmg==}
@@ -21545,7 +21539,7 @@ packages:
       micromatch: 4.0.5
       semver: 7.5.4
       typescript: 5.2.2
-      webpack: 5.88.2(esbuild@0.19.2)
+      webpack: 5.88.2(webpack-cli@5.1.4)
     dev: true
 
   /ts-morph@4.3.3:

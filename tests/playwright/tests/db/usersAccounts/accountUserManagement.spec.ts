@@ -15,6 +15,11 @@ const roleDb = [
 ];
 
 test.describe('User roles', () => {
+  // Org level roles are not available in EE
+  if (isEE()) {
+    test.skip();
+  }
+  
   let accountUsersPage: AccountUsersPage;
   let accountPage: AccountPage;
   let signupPage: SignupPage;

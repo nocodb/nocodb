@@ -101,7 +101,7 @@ const exportFile = async (exportType: ExportTypes) => {
 <template>
   <a-menu-item>
     <div v-e="['a:actions:download-csv']" class="nc-project-menu-item" @click="exportFile(ExportTypes.CSV)">
-      <component :is="iconMap.csv" class="text-gray-500" />
+      <component :is="iconMap.csv" />
       <!-- Download as CSV -->
       {{ $t('activity.downloadCSV') }}
     </div>
@@ -109,7 +109,7 @@ const exportFile = async (exportType: ExportTypes) => {
 
   <a-menu-item>
     <div v-e="['a:actions:download-excel']" class="nc-project-menu-item" @click="exportFile(ExportTypes.EXCEL)">
-      <component :is="iconMap.excel" class="text-gray-500" />
+      <component :is="iconMap.excel" />
       <!-- Download as XLSX -->
       {{ $t('activity.downloadExcel') }}
     </div>

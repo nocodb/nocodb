@@ -43,7 +43,7 @@ const currentCellRef = inject(CurrentCellInj, dropZoneInjection.value)
 
 const isLockedMode = inject(IsLockedInj, ref(false))
 
-const isExpandedForm = inject(IsExpandedFormOpenInj, ref())
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const { isSharedForm } = useSmartsheetStoreOrThrow()!
 
@@ -200,8 +200,8 @@ const rowHeight = inject(RowHeightInj, ref())
     <template v-if="visibleItems.length">
       <div
         ref="sortableRef"
-        :class="{ dragging }"
-        class="flex cursor-pointer justify-center items-center flex-wrap gap-2 py-1.5 scrollbar-thin-dull overflow-hidden mt-0 items-start"
+        :class="{ dragging, 'justify-center': !isExpandedForm }"
+        class="flex cursor-pointer items-center flex-wrap gap-2 py-1.5 scrollbar-thin-dull overflow-hidden mt-0 items-start"
         :style="{
           maxHeight: isForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
         }"
@@ -213,17 +213,17 @@ const rowHeight = inject(RowHeightInj, ref())
             </template>
             <div v-if="isImage(item.title, item.mimetype ?? item.type)">
               <div
-                class="nc-attachment flex items-center justify-center"
+                class="nc-attachment flex items-center flex-col flex-wrap justify-center"
                 :class="{ 'ml-2': active }"
                 @click.stop="selectedImage = item"
               >
                 <LazyCellAttachmentImage
-                  class="h-7 w-7"
                   :alt="item.title || `#${i}`"
                   :class="{
+                    'h-7.5 w-8.8': rowHeight === 1,
                     'h-11.5 w-12.8': rowHeight === 2,
                     'h-16.8 w-20.8': rowHeight === 4,
-                    'h-20.8 w-30': rowHeight === 6 || isExpandedForm,
+                    'h-20.8 !w-30': isExpandedForm || rowHeight === 6,
                   }"
                   :srcs="getPossibleAttachmentSrc(item)"
                 />

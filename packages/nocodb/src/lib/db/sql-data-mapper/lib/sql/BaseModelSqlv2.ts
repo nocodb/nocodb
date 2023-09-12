@@ -2545,7 +2545,6 @@ class BaseModelSqlv2 {
     }
 
     // only execute if webhook call wont be handled
-    if(process.env.ESA_SKIP_DB_RECORD_ACTION_EVENT_WATCHER_FOR_WEBHOOK === 'true' ) {
       try {
         const [event, operation] = hookName.split('.');
         const hooks = await Hook.list({
@@ -2561,7 +2560,6 @@ class BaseModelSqlv2 {
       } catch (e) {
         console.log('hooks :: error', hookName, e);
       }
-    }
   }
 
   // @ts-ignore

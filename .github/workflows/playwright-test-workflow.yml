@@ -74,7 +74,7 @@ jobs:
         if: ${{ inputs.db == 'pg' }}
         working-directory: ./packages/nocodb
         run: |
-          pnpm run watch:run:playwright:pg &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+          pnpm run watch:run:playwright:pg:ee &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
       - name: Install Playwright Browsers
         working-directory: ./tests/playwright
         run: pnpm exec playwright install --with-deps chromium

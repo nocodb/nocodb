@@ -43,7 +43,7 @@ const currentCellRef = inject(CurrentCellInj, dropZoneInjection.value)
 
 const isLockedMode = inject(IsLockedInj, ref(false))
 
-const isDrawerExist = inject(IsExpandedFormOpenInj, ref())
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref())
 
 const { isSharedForm } = useSmartsheetStoreOrThrow()!
 
@@ -218,12 +218,12 @@ const rowHeight = inject(RowHeightInj, ref())
                 @click.stop="selectedImage = item"
               >
                 <LazyCellAttachmentImage
-                  class="h-[1.8rem] w-[1.8rem]"
+                  class="h-7 w-7"
                   :alt="item.title || `#${i}`"
                   :class="{
-                    'h-11.5 w-[3.8rem]': rowHeight === 2,
-                    'h-[4.8rem] w-[5.8rem]': rowHeight === 4,
-                    'h-[5.8rem] w-[6rem]': rowHeight === 6 || isDrawerExist,
+                    'h-11.5 w-12.8': rowHeight === 2,
+                    'h-16.8 w-20.8': rowHeight === 4,
+                    'h-20.8 w-30': rowHeight === 6 || isExpandedForm,
                   }"
                   :srcs="getPossibleAttachmentSrc(item)"
                 />

@@ -173,7 +173,7 @@ export class BulkUpdatePage extends BasePage {
     awaitResponse?: boolean;
   } = {}) {
     await this.bulkUpdateButton.click();
-    const confirmModal = this.rootPage.locator('.nc-modal-wrapper');
+    const confirmModal = this.rootPage.locator('.ant-modal-confirm');
 
     const saveRowAction = () => confirmModal.locator('.ant-btn-primary').click();
     if (!awaitResponse) {

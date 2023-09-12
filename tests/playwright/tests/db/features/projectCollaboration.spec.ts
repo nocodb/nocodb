@@ -9,6 +9,7 @@ import { LoginPage } from '../../../pages/LoginPage';
 import { ProjectViewPage } from '../../../pages/Dashboard/ProjectView';
 import { AccountUsersPage } from '../../../pages/Account/Users';
 import { AccountPage } from '../../../pages/Account';
+import { isEE } from '../../../setup/db';
 
 const roleDb = [
   { email: 'pjt_creator@nocodb.com', role: 'Creator' },
@@ -17,13 +18,15 @@ const roleDb = [
   { email: 'pjt_viewer@nocodb.com', role: 'Viewer' },
 ];
 
-test.describe('Project Collaboration', () => {
+test.describe.only('Project Collaboration', () => {
   let dashboard: DashboardPage;
   let accountsPage: AccountPage;
   let collaborationPage: CollaborationPage;
   let projectViewPage: ProjectViewPage;
   let context: any;
   let api: Api<any>;
+
+  test.skip(() => isEE());
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });

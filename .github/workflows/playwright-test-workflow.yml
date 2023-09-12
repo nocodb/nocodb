@@ -38,8 +38,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - name: setup pg
-          working-directory: ./
-          run: cd /var/lib/postgresql/ && sudo -u postgres psql -c "SELECT 'dropdb '||datname||'' FROM pg_database WHERE datistemplate = false AND datallowconn = true And datname NOT IN ('postgres')" |grep ' dropdb ' |  sudo -u postgres /bin/bash ; cd; service postgresql restart
+        working-directory: ./
+        run: cd /var/lib/postgresql/ && sudo -u postgres psql -c "SELECT 'dropdb '||datname||'' FROM pg_database WHERE datistemplate = false AND datallowconn = true And datname NOT IN ('postgres')" |grep ' dropdb ' |  sudo -u postgres /bin/bash ; cd; service postgresql restart
       - name: Set CI env
         run: export CI=true
       - name: Kill stale servers

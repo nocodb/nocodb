@@ -17,12 +17,17 @@ export class AccountUsersPage extends BasePage {
     this.changePasswordPage = new ChangePasswordPage(this.rootPage);
   }
 
-  async goto() {
-    return this.waitForResponse({
-      uiAction: async () => await this.rootPage.goto('/#/account/users/list'),
-      httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: `api/v1/users`,
-    });
+  async goto({ waitForResponse = true }: { waitForResponse?: boolean }) {
+    if (waitForResponse) {
+      return this.waitForResponse({
+        uiAction: async () => await this.rootPage.goto('/#/account/users'),
+        httpMethodsToMatch: ['GET'],
+        requestUrlPathToMatch: `api/v1/users`,
+      });
+    } else {
+      await this.rootPage.waitForTimeout(1000);
+      return this.rootPage.goto('/#/account/users');
+    }
   }
 
   async waitUntilContentLoads() {

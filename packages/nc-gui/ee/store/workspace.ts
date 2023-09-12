@@ -187,13 +187,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     try {
       // todo: pagination
-      const { list, pageInfo: _ } = await $api.workspaceUser.list(activeWorkspace.value.id!, {
+      const { list, pageInfo } = await $api.workspaceUser.list(activeWorkspace.value.id!, {
         query: params,
         baseURL: appInfo.value.baseHostName ? `https://${activeWorkspace.value.id!}.${appInfo.value.baseHostName}` : undefined,
       })
 
       collaborators.value = list
-      workspaceUserCount.value = Number(collaborators.value?.length)
+      workspaceUserCount.value = pageInfo.totalRows
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {

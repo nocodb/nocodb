@@ -23,20 +23,6 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     'openStart' | 'openEnd' | 'hiddenStart' | 'hiddenEnd' | 'peekOpenStart' | 'peekOpenEnd' | 'peekCloseOpen' | 'peekCloseEnd'
   >(isRightSidebarOpen.value ? 'openEnd' : 'hiddenEnd')
 
-  const viewportWidth = ref(window.innerWidth)
-
-  function onWindowResize() {
-    viewportWidth.value = window.innerWidth
-  }
-
-  onMounted(() => {
-    window.addEventListener('resize', onWindowResize)
-  })
-
-  onBeforeUnmount(() => {
-    window.removeEventListener('resize', onWindowResize)
-  })
-
   return {
     isLeftSidebarOpen,
     isRightSidebarOpen,
@@ -45,6 +31,5 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     leftSideBarSize,
     leftSidebarState,
     rightSidebarState,
-    viewportWidth,
   }
 })

@@ -6,7 +6,8 @@ const workspaceStore = useWorkspace()
 const { activeWorkspace, workspacesList, collaborators } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
-const { leftSidebarState, viewportWidth, leftSidebarWidthPercent } = storeToRefs(useSidebarStore())
+const { leftSidebarState, leftSidebarWidthPercent } = storeToRefs(useSidebarStore())
+const viewportWidth = ref(window.innerWidth)
 
 const { navigateToTable } = useTablesStore()
 
@@ -62,6 +63,18 @@ const sidebarWidthRem = computed(() => {
   const pxInRem = parseFloat(getComputedStyle(document.documentElement).fontSize)
 
   return (viewportWidth.value * leftSidebarWidthPercent.value) / 100 / pxInRem
+})
+
+function onWindowResize() {
+  viewportWidth.value = window.innerWidth
+}
+
+onMounted(() => {
+  window.addEventListener('resize', onWindowResize)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', onWindowResize)
 })
 </script>
 

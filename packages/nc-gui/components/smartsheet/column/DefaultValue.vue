@@ -21,7 +21,7 @@ const rowRef = ref({
 const cdfValue = computed({
   get: () => {
     if (vModel.value.uidt === UITypes.MultiSelect || vModel.value.uidt === UITypes.SingleSelect) {
-      return (vModel.value.cdf ?? '').replaceAll("'", '')
+      return (vModel.value.cdf ?? '').replace(/^'|'$/g, '')
     } else if (
       vModel.value.uidt === UITypes.SingleLineText ||
       vModel.value.uidt === UITypes.LongText ||
@@ -33,7 +33,7 @@ const cdfValue = computed({
       vModel.value.uidt === UITypes.Year ||
       vModel.value.uidt === UITypes.Date
     ) {
-      return (vModel.value.cdf ?? '').replace(/^'/, '').replace(/'$/, '')
+      return (vModel.value.cdf ?? '').replace(/^'|'$/g, '')
     }
     return vModel.value.cdf
   },

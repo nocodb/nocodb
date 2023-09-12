@@ -265,9 +265,6 @@ importers:
       '@nuxt/image-edge':
         specifier: ^1.0.0-rc.1-28217290.de85e17
         version: 1.0.0-rc.1-28217290.de85e17
-      '@types/axios':
-        specifier: ^0.14.0
-        version: 0.14.0
       '@types/d3-scale':
         specifier: ^4.0.3
         version: 4.0.3
@@ -6640,15 +6637,6 @@ packages:
     dependencies:
       '@tufjs/canonical-json': 1.0.0
       minimatch: 9.0.3
-    dev: true
-
-  /@types/axios@0.14.0:
-    resolution: {integrity: sha512-KqQnQbdYE54D7oa/UmYVMZKq7CO4l8DEENzOKc4aBRwxCXSlJXGz83flFx5L7AWrOQnmuN3kVsRdt+GZPPjiVQ==}
-    deprecated: This is a stub types definition for axios (https://github.com/mzabriskie/axios). axios provides its own type definitions, so you don't need @types/axios installed!
-    dependencies:
-      axios: 0.24.0
-    transitivePeerDependencies:
-      - debug
     dev: true
 
   /@types/babel__core@7.20.1:

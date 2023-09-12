@@ -64,6 +64,16 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       size: 10,
     })
 
+    const isChildrenListLoading = ref<Array<boolean>>([])
+
+    const isChildrenListLinked = ref<Array<boolean>>([])
+
+    const isChildrenExcludedListLoading = ref<Array<boolean>>([])
+
+    const isChildrenExcludedListLinked = ref<Array<boolean>>([])
+
+    const childrenListCount = ref(0)
+
     const { t } = useI18n()
 
     const isPublic: Ref<boolean> = inject(IsPublicInj, ref(false))
@@ -169,6 +179,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             } as any,
           )
         }
+        childrenExcludedList.value?.list.forEach((row: Record<string, any>, index: number) => {
+          isChildrenExcludedListLinked.value[index] = false
+          isChildrenExcludedListLoading.value[index] = false
+        })
       } catch (e: any) {
         message.error(`${t('msg.error.failedToLoadList')}: ${await extractSdkResponseErrorMsg(e)}`)
       }
@@ -212,6 +226,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             } as any,
           )
         }
+        childrenList.value?.list.forEach((row: Record<string, any>, index: number) => {
+          isChildrenListLinked.value[index] = true
+          isChildrenListLoading.value[index] = false
+        })
+        childrenListCount.value = childrenList.value?.pageInfo.totalRows ?? 0
       } catch (e: any) {
         message.error(`${t('msg.error.failedToLoadChildrenList')}: ${await extractSdkResponseErrorMsg(e)}`)
       }
@@ -254,7 +273,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       })
     }
 
-    const unlink = async (row: Record<string, any>, { metaValue = meta.value }: { metaValue?: TableType } = {}, undo = false) => {
+    const unlink = async (
+      row: Record<string, any>,
+      { metaValue = meta.value }: { metaValue?: TableType } = {},
+      undo = false,
+      index: number, // Index is For Loading and Linked State of Row
+    ) => {
       // const column = meta.columns.find(c => c.id === this.column.colOptions.fk_child_column_id);
       // todo: handle if new record
       // if (this.isNew) {
@@ -270,6 +294,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       // }
       try {
         // todo: audit
+        isChildrenExcludedListLoading.value[index] = true
+        isChildrenListLoading.value[index] = true
         await $api.dbTableRow.nestedRemove(
           NOCO,
           project.value.id as string,
@@ -283,25 +309,38 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         if (!undo) {
           addUndo({
             redo: {
-              fn: (row: Record<string, any>) => unlink(row, {}, true),
+              fn: (row: Record<string, any>) => unlink(row, {}, true, index),
               args: [clone(row)],
             },
             undo: {
               // eslint-disable-next-line @typescript-eslint/no-use-before-define
-              fn: (row: Record<string, any>) => link(row, {}, true),
+              fn: (row: Record<string, any>) => link(row, {}, true, index),
               args: [clone(row)],
             },
             scope: defineViewScope({ view: activeView.value }),
           })
         }
+        isChildrenExcludedListLinked.value[index] = false
+        isChildrenListLinked.value[index] = false
+        if (colOptions.value.type !== 'bt') {
+          childrenListCount.value = childrenListCount.value - 1
+        }
       } catch (e: any) {
         message.error(`${t('msg.error.unlinkFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
+      } finally {
+        isChildrenExcludedListLoading.value[index] = false
+        isChildrenListLoading.value[index] = false
       }
 
       reloadData?.(false)
     }
 
-    const link = async (row: Record<string, any>, { metaValue = meta.value }: { metaValue?: TableType } = {}, undo = false) => {
+    const link = async (
+      row: Record<string, any>,
+      { metaValue = meta.value }: { metaValue?: TableType } = {},
+      undo = false,
+      index: number,
+    ) => {
       // todo: handle new record
       //   const pid = this._extractRowId(parent, this.parentMeta);
       // const id = this._extractRowId(this.row, this.meta);
@@ -316,6 +355,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       //   return;
       // }
       try {
+        isChildrenExcludedListLoading.value[index] = true
+        isChildrenListLoading.value[index] = true
+
         await $api.dbTableRow.nestedAdd(
           NOCO,
           project.value.id as string,
@@ -325,23 +367,34 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           column?.value?.id,
           encodeURIComponent(getRelatedTableRowId(row) as string) as string,
         )
-        await loadChildrenList()
+        // await loadChildrenList()
 
         if (!undo) {
           addUndo({
             redo: {
-              fn: (row: Record<string, any>) => link(row, {}, true),
+              fn: (row: Record<string, any>) => link(row, {}, true, index),
               args: [clone(row)],
             },
             undo: {
-              fn: (row: Record<string, any>) => unlink(row, {}, true),
+              fn: (row: Record<string, any>) => unlink(row, {}, true, index),
               args: [clone(row)],
             },
             scope: defineViewScope({ view: activeView.value }),
           })
         }
+        isChildrenExcludedListLinked.value[index] = true
+        isChildrenListLinked.value[index] = true
+        if (colOptions.value.type !== 'bt') {
+          childrenListCount.value = childrenListCount.value + 1
+        } else {
+          isChildrenExcludedListLinked.value = Array(childrenExcludedList.value?.list.length).fill(false)
+          isChildrenExcludedListLinked.value[index] = true
+        }
       } catch (e: any) {
         message.error(`Linking failed: ${await extractSdkResponseErrorMsg(e)}`)
+      } finally {
+        isChildrenExcludedListLoading.value[index] = false
+        isChildrenListLoading.value[index] = false
       }
 
       reloadData?.(false)
@@ -356,12 +409,27 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       await loadChildrenList()
     })
 
+    watch(childrenExcludedList, async () => {
+      childrenExcludedList.value?.list.forEach((row: Record<string, any>, index: number) => {
+        isChildrenExcludedListLinked.value[index] = false
+        isChildrenExcludedListLoading.value[index] = false
+      })
+    })
+
+    watch(childrenList, async () => {
+      childrenList.value?.list.forEach((row: Record<string, any>, index: number) => {
+        isChildrenListLinked.value[index] = true
+        isChildrenListLoading.value[index] = false
+      })
+    })
+
     return {
       relatedTableMeta,
       loadRelatedTableMeta,
       relatedTableDisplayValueProp,
       childrenExcludedList,
       childrenList,
+      childrenListCount,
       rowId,
       childrenExcludedListPagination,
       childrenListPagination,
@@ -371,6 +439,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       link,
       loadChildrenExcludedList,
       loadChildrenList,
+      isChildrenExcludedListLinked,
+      isChildrenListLinked,
+      isChildrenListLoading,
+      isChildrenExcludedListLoading,
       row,
       deleteRelatedRow,
       getRelatedTableRowId,

@@ -184,7 +184,6 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
             operation: operation as PSQLRecordOperationEvent['operation'],
             model,
           };
-
           this.emit(this.recordOperationEventType, eventData);
         }
       )
@@ -319,7 +318,12 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
       `;
       await baseData.knex.raw(dropTriggerQuery);
       await baseData.knex.raw(createTriggerQuery).catch((error: any) => {
-        this.log(`Warning - Trigger not created on "${tableName}" probably because it does not exist. Analysis the stacktrace: ${error?.message || error}`, error)
+        this.log(
+          `Warning - Trigger not created on "${tableName}" probably because it does not exist. Analysis the stacktrace: ${
+            error?.message || error
+          }`,
+          error
+        );
       });
     }
   }
@@ -368,6 +372,8 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
       // TODO: Log this error and report as incident
       return;
     }
+
+    if (base.is_meta) return;
 
     const foundModelData: Record<string, any>[] = await this.ncMeta.metaList2(
       base.project_id,
@@ -558,7 +564,14 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
           newData = oldData;
           oldData = null;
         }
-
+        const project = await Project.get(model.project_id);
+        const bases = await project.getBases();
+        const currentBase = bases.find((base) => base.id === model.base_id);
+        const shouldNotProceed =
+          currentBase.is_meta ||
+          process.env.ESA_SKIP_DB_RECORD_ACTION_EVENT_WATCHER_FOR_WEBHOOK ===
+            'true';
+        if (shouldNotProceed) return;
         try {
           const hooks = await Hook.list({
             fk_model_id: model.id,

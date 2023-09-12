@@ -68,7 +68,7 @@ export default class NcUpgrader {
                 '',
                 'nc_store',
                 {
-                  value: JSON.stringify(config),
+                  value: JSON.stringify({ version: config.version }),
                 },
                 {
                   key: NcUpgrader.STORE_KEY,

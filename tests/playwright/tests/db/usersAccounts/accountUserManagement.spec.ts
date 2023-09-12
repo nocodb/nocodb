@@ -7,6 +7,7 @@ import { getDefaultPwd } from '../../../tests/utils/general';
 import { Api } from 'nocodb-sdk';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { LoginPage } from '../../../pages/LoginPage';
+import { isEE } from '../../../setup/db';
 let api: Api<any>;
 
 const roleDb = [

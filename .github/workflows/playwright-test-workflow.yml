@@ -58,7 +58,7 @@ jobs:
           sudo -u postgres psql -U postgres -f 01-cy-quick.sql
       - name: run frontend
         working-directory: ./packages/nc-gui
-        run: pnpm run ci:run
+        run: pnpm run ci:run:ee
         timeout-minutes: 20
       - name: Run backend
         if: ${{ inputs.db == 'sqlite' }}

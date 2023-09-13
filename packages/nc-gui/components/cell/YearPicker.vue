@@ -54,7 +54,7 @@ const localState = computed({
     }
 
     if (val?.isValid()) {
-      emit('update:modelValue', Number(val.format('YYYY')))
+      emit('update:modelValue', val.format('YYYY'))
     }
   },
 })
@@ -76,7 +76,7 @@ watch(
 
 const placeholder = computed(() => {
   if (isEditColumn.value && modelValue === null) {
-    return '(Optional)'
+    return 'Select default year (Optional)'
   } else if (modelValue === null && showNull.value) {
     return 'NULL'
   } else if (isYearInvalid.value) {
@@ -110,12 +110,13 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     class="!w-full !px-1 !border-none"
     :class="{ 'nc-null': modelValue === null && showNull }"
     :placeholder="placeholder"
-    :allow-clear="!readOnly && !localState && !isPk"
+    :allow-clear="(!readOnly && !localState && !isPk) || isEditColumn"
     :input-read-only="true"
     :open="(readOnly || (localState && isPk)) && !active && !editable ? false : open"
     :dropdown-class-name="`${randomClass} nc-picker-year ${open ? 'active' : ''}`"
     @click="open = (active || editable) && !open"
     @change="open = (active || editable) && !open"
+    @ok="open = !open"
   >
     <template #suffixIcon></template>
   </a-date-picker>

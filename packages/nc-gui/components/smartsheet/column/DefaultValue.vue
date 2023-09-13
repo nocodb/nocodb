@@ -21,7 +21,7 @@ const rowRef = ref({
 const cdfValue = computed({
   get: () => {
     if (vModel.value.uidt === UITypes.MultiSelect || vModel.value.uidt === UITypes.SingleSelect) {
-      return (vModel.value.cdf ?? '').replace(/^'|'$/g, '')
+      return (vModel.value.cdf ?? '').replaceAll("'", '')
     } else if (
       vModel.value.uidt === UITypes.SingleLineText ||
       vModel.value.uidt === UITypes.LongText ||
@@ -33,7 +33,7 @@ const cdfValue = computed({
       vModel.value.uidt === UITypes.Year ||
       vModel.value.uidt === UITypes.Date
     ) {
-      return (vModel.value.cdf ?? '').replace(/^'|'$/g, '')
+      return (vModel.value.cdf ?? '').replace(/^'/, '').replace(/'$/, '')
     }
     return vModel.value.cdf
   },
@@ -52,6 +52,7 @@ useProvideSmartsheetRowStore(vModel, rowRef)
       <LazySmartsheetCell :column="vModel" :model-value="cdfValue" :edit-enabled="true" />
       <component
         :is="iconMap.close"
+        v-if="vModel.uidt !== UITypes.Year"
         class="w-4 h-4 cursor-pointer rounded-full !text-black-500 text-gray-500 cursor-pointer hover:bg-gray-50"
         @click="cdfValue = null"
       />

@@ -700,9 +700,6 @@ importers:
       reflect-metadata:
         specifier: ^0.1.13
         version: 0.1.13
-      request:
-        specifier: ^2.88.2
-        version: 2.88.2
       request-ip:
         specifier: ^2.1.3
         version: 2.1.3

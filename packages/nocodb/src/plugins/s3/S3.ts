@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { promisify } from 'util';
 import AWS from 'aws-sdk';
-import request from 'request';
+import axios from 'axios';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import type { Readable } from 'stream';
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
@@ -47,31 +47,27 @@ export default class S3 implements IStorageAdapterV2 {
       ACL: 'public-read',
     };
     return new Promise((resolve, reject) => {
-      // Configure the file stream and obtain the upload parameters
-      request(
-        {
-          url: url,
-          encoding: null,
-        },
-        (err, httpResponse, body) => {
-          if (err) return reject(err);
-
-          uploadParams.Body = body;
+      axios
+        .get(url)
+        .then((response) => {
+          uploadParams.Body = response.data;
           uploadParams.Key = key;
-          uploadParams.ContentType = httpResponse.headers['content-type'];
+          uploadParams.ContentType = response.headers['content-type'];
 
           // call S3 to retrieve upload file to specified bucket
           this.s3Client.upload(uploadParams, (err1, data) => {
-            if (err) {
-              console.log('Error', err);
+            if (err1) {
+              console.log('Error', err1);
               reject(err1);
             }
             if (data) {
               resolve(data.Location);
             }
           });
-        },
-      );
+        })
+        .catch((error) => {
+          reject(error);
+        });
     });
   }
 

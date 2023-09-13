@@ -83,7 +83,7 @@ watch(
 )
 
 const placeholder = computed(() => {
-  if (isEditColumn.value && ( modelValue === '' || modelValue === null )) {
+  if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
     return '(Optional)'
   } else if (modelValue === null && showNull.value) {
     return 'NULL'

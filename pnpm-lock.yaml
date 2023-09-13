@@ -33,9 +33,6 @@ importers:
       '@ckpack/vue-color':
         specifier: ^1.2.0
         version: 1.2.0(vue@3.3.4)
-      '@fingerprintjs/fingerprintjs':
-        specifier: ^3.4.1
-        version: 3.4.1
       '@iconify/vue':
         specifier: ^4.1.1
         version: 4.1.1(vue@3.3.4)
@@ -3550,12 +3547,6 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
-
-  /@fingerprintjs/fingerprintjs@3.4.1:
-    resolution: {integrity: sha512-i3TqlaIdF+4qDHP6OStMtLXCnvnoo2C156rNPm9/kIglUtnLAF45+sGkZZmVQB+58dDF0mNpaiqvKHNSR8J1Hg==}
-    dependencies:
-      tslib: 2.6.2
-    dev: false
 
   /@gar/promisify@1.1.3:
     resolution: {integrity: sha512-k2Ty1JcVojjJFwrg/ThKi2ujJ7XNLYaFGNB/bWT9wGR+oSMJHMa5w+CUq6p/pVrKeNNgA7pCqEcjSnHVoqJQFw==}

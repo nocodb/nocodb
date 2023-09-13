@@ -65,7 +65,7 @@ test.describe('User roles', () => {
   test('Invite user, update role and delete user', async () => {
     test.slow();
 
-    await accountUsersPage.goto();
+    await accountUsersPage.goto({ waitForResponse: false });
 
     // invite user
     for (let i = 0; i < roleDb.length; i++) {
@@ -77,7 +77,7 @@ test.describe('User roles', () => {
     }
 
     await signupAndVerify(0);
-    await accountUsersPage.goto();
+    await accountUsersPage.goto({ waitForResponse: false });
     await signupAndVerify(1);
 
     await dashboard.signOut();
@@ -87,7 +87,7 @@ test.describe('User roles', () => {
       withoutPrefix: true,
     });
 
-    await accountUsersPage.goto();
+    await accountUsersPage.goto({ waitForResponse: false });
     // change role
     for (let i = 0; i < roleDb.length; i++) {
       await accountUsersPage.updateRole({

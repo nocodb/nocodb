@@ -29,7 +29,7 @@ void (async () => {
 
   // run all the tests by title using regex with exact match
   const { stdout: pwStdout } = await exec(
-    `PLAYWRIGHT_HTML_REPORT=playwright-report-stress E2E_DB_TYPE=${dbType} npx playwright test --repeat-each=2 --workers=2 -g "${testNames.join(
+    `PLAYWRIGHT_HTML_REPORT=playwright-report-stress E2E_DB_TYPE=${dbType} pnpm exec playwright test --repeat-each=2 --workers=2 -g "${testNames.join(
       '|'
     )}"`
   );

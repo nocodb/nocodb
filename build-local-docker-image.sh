@@ -2,7 +2,7 @@
 # script to build local docker image.
 # highlevel steps involved
 # 1. Stop and remove existing container and image
-# 2. Build nocodb-sdk
+# 2. Install dependencies
 # 3. Build nc-gui
 #   3a. static build of nc-gui
 #   3b. copy nc-gui build to nocodb dir
@@ -23,41 +23,37 @@ function remove_image() {
     docker rmi nocodb-local >/dev/null 2>&1
 }
 
-function build_sdk(){
-    # build nocodb-sdk
-    cd ${SCRIPT_DIR}/packages/nocodb-sdk
-    npm ci || ERROR="sdk build failed"
-    npm run build || ERROR="sdk build failed"
+function install_dependencies() {
+    # Install all dependencies
+    cd ${SCRIPT_DIR}
+    pnpm i || ERROR="install_dependencies failed"
 }
 
-function build_gui(){
+function build_gui() {
     # build nc-gui
     export NODE_OPTIONS="--max_old_space_size=16384"
     # generate static build of nc-gui
     cd ${SCRIPT_DIR}/packages/nc-gui
-    npm ci || ERROR="gui build failed"
-    npm run generate || ERROR="gui build failed"
+    pnpm run generate || ERROR="gui build failed"
 }
 
-function copy_gui_artifacts(){
+function copy_gui_artifacts() {
      # copy nc-gui build to nocodb dir
     rsync -rvzh --delete ./dist/ ${SCRIPT_DIR}/packages/nocodb/docker/nc-gui/ || ERROR="copy_gui_artifacts failed"
 }
 
-function package_nocodb(){
-    #build nocodb
+function package_nocodb() {
     # build nocodb ( pack nocodb-sdk and nc-gui )
     cd ${SCRIPT_DIR}/packages/nocodb
-    npm install || ERROR="package_nocodb failed"
-    EE=true ./node_modules/.bin/webpack --config webpack.local.config.js || ERROR="package_nocodb failed"
+    EE=true ${SCRIPT_DIR}/node_modules/.bin/webpack --config ${SCRIPT_DIR}/packages/nocodb/webpack.local.config.js || ERROR="package_nocodb failed"
 }
 
-function build_image(){
+function build_image() {
     # build docker
     docker build . -f Dockerfile.local -t nocodb-local || ERROR="build_image failed"
 }
 
-function log_message(){
+function log_message() {
     if [[ ${ERROR} != "" ]];
     then
         >&2 echo "build failed, Please check build-local-docker-image.log for more details"
@@ -73,11 +69,11 @@ echo "Info: Stopping and removing existing container and image" | tee ${LOG_FILE
 stop_and_remove_container
 remove_image
 
-echo "Info: Building nocodb-sdk" | tee -a ${LOG_FILE}
-build_sdk 1>> ${LOG_FILE} 2>> ${LOG_FILE}
+echo "Info: Installing dependencies" | tee -a ${LOG_FILE}
+install_dependencies 1>> ${LOG_FILE} 2>> ${LOG_FILE}
 
 echo "Info: Building nc-gui" | tee -a ${LOG_FILE}
-build_gui  1>> ${LOG_FILE} 2>> ${LOG_FILE}
+build_gui 1>> ${LOG_FILE} 2>> ${LOG_FILE}
 
 echo "Info: Copy nc-gui build to nocodb dir" | tee -a ${LOG_FILE}
 copy_gui_artifacts 1>> ${LOG_FILE} 2>> ${LOG_FILE}
@@ -90,4 +86,4 @@ if [[ ${ERROR} == "" ]]; then
     build_image 1>> ${LOG_FILE} 2>> ${LOG_FILE}
 fi
 
-log_message  | tee -a ${LOG_FILE}
+log_message | tee -a ${LOG_FILE}

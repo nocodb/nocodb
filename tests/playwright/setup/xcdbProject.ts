@@ -29,9 +29,11 @@ async function createXcdb(context: NcContext) {
   const project = await api.project.create({
     title: 'xcdb',
     type: 'database',
-    ...(isEE() ? {
-      fk_workspace_id: context?.workspace?.id,
-    } : {}),
+    ...(isEE()
+      ? {
+          fk_workspace_id: context?.workspace?.id,
+        }
+      : {}),
   });
   return project;
 }

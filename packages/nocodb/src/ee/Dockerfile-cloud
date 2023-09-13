@@ -11,9 +11,7 @@ RUN apk add --no-cache python3 make g++
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Copy application dependency manifests to the container image.
-# A wildcard is used to ensure both package.json AND package-lock.json are copied.
-# Copying this separately prevents re-running npm ci on every code change.
-COPY ./package*.json ./
+COPY ./package.json ./package.json
 COPY ./docker/nc-gui/ ./docker/nc-gui/
 COPY ./src/ee/services/clickhouse/migrations/ ./docker/migrations/
 COPY ./docker/main.js ./docker/index.js
@@ -33,7 +31,7 @@ RUN pnpm install --prod --shamefully-hoist \
     && pnpm dlx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**" --run  \
     && rm -rf ./node_modules/sqlite3/deps \
     && tar -czf ../appEntry/app.tar.gz ./* \
-    && chmod +x /usr/src/appEntry/start.sh \
+    && chmod +x /usr/src/appEntry/start.sh
 
 
 ##########

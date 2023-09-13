@@ -54,11 +54,6 @@ jobs:
         id: vars
         run: echo "release_version=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
 
-      - name: build nocodb-sdk
-        run: |
-          # build nocodb-sdk
-          cd packages/nocodb-sdk
-          pnpm run build:ee
       - name: build nc-gui and copy to nocodb
         env:
           NC_CDN_URL: "${{ secrets.CDN_URL }}/${{ steps.vars.outputs.release_version }}"

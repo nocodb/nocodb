@@ -30,7 +30,7 @@ async function undo({ page, dashboard }: { page: Page; dashboard: DashboardPage 
 
   if (validateResponse) {
     await dashboard.grid.waitForResponse({
-      uiAction: () => page.keyboard.press(isMac ? 'Meta+z' : 'Control+z'),
+      uiAction: async () => await page.keyboard.press(isMac ? 'Meta+z' : 'Control+z'),
       httpMethodsToMatch: ['GET'],
       requestUrlPathToMatch: `/api/v1/db/data/noco/`,
       responseJsonMatcher: json => json.pageInfo,
@@ -595,7 +595,7 @@ test.describe('Undo Redo - LTAR', () => {
   async function undo({ page, values }: { page: Page; values: string[] }) {
     const isMac = await grid.isMacOs();
     await dashboard.grid.waitForResponse({
-      uiAction: () => page.keyboard.press(isMac ? 'Meta+z' : 'Control+z'),
+      uiAction: async () => await page.keyboard.press(isMac ? 'Meta+z' : 'Control+z'),
       httpMethodsToMatch: ['GET'],
       requestUrlPathToMatch: `/api/v1/db/data/noco/`,
       responseJsonMatcher: json => json.pageInfo,

@@ -157,7 +157,7 @@ watch(expandedFormDlg, () => {
           ref="filterQueryRef"
           v-model:value="childrenExcludedListPagination.query"
           :placeholder="`Search in ${relatedTableMeta?.title}`"
-          class="w-full !rounded-md"
+          class="w-full !rounded-md nc-excluded-search"
           size="small"
           :bordered="false"
           @focus="isFocused = true"
@@ -191,6 +191,7 @@ watch(expandedFormDlg, () => {
       <div class="pb-2 pt-1">
         <div class="h-[420px] overflow-scroll nc-scrollbar-md pr-1 cursor-pointer">
           <LazyVirtualCellComponentsListItem
+            data-testid="nc-excluded-list-item"
             v-for="(refRow, id) in childrenExcludedList?.list ?? []"
             :key="id"
             :row="refRow"

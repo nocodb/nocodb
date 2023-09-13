@@ -7,16 +7,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { GlobalGuard } from '~/guards/global/global.guard';
-import {
-  Acl,
-  ExtractIdsMiddleware,
-} from '~/middlewares/extract-ids/extract-ids.middleware';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { SyncSource } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { JobTypes } from '~/interface/Jobs';
 
 @Controller()
-@UseGuards(ExtractIdsMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 export class AtImportController {
   constructor(@Inject('JobsService') private readonly jobsService) {}
 

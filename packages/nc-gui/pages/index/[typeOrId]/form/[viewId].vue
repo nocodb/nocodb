@@ -59,7 +59,7 @@ watch(
 </script>
 
 <template>
-  <div class="h-[100vh]">
+  <NuxtLayout>
     <NuxtPage v-if="!passwordDlg" />
 
     <a-modal
@@ -91,7 +91,7 @@ watch(
         </a-form>
       </div>
     </a-modal>
-  </div>
+  </NuxtLayout>
 </template>
 
 <style lang="scss" scoped>

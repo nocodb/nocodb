@@ -37,6 +37,8 @@ const activeView = inject(ActiveViewInj, ref())
 
 const isLocked = inject(IsLockedInj, ref(false))
 
+const { rightSidebarState } = storeToRefs(useSidebarStore())
+
 const isDropdownOpen = ref(false)
 
 const isEditing = ref(false)
@@ -167,6 +169,12 @@ function onStopEdit() {
     isStopped.value = false
   }, 250)
 }
+
+watch(rightSidebarState, () => {
+  if (rightSidebarState.value === 'peekCloseEnd') {
+    isDropdownOpen.value = false
+  }
+})
 </script>
 
 <template>

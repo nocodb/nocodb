@@ -208,7 +208,6 @@ export function useData(args: {
           },
           undo: {
             fn: async function undo(toUpdate: Row, property: string, pg: { page: number; pageSize: number }) {
-              console.log('undo', toUpdate, property, pg)
               const updatedData = await updateRowProperty(
                 { row: toUpdate.oldRow, oldRow: toUpdate.row, rowMeta: toUpdate.rowMeta },
                 property,
@@ -218,12 +217,10 @@ export function useData(args: {
               if (pg.page === paginationData.value.page && pg.pageSize === paginationData.value.pageSize) {
                 const rowIndex = findIndexByPk(rowPkData(toUpdate.row, meta?.value?.columns as ColumnType[]), formattedData.value)
                 if (rowIndex !== -1) {
-                  console.log('manual')
                   const row = formattedData.value[rowIndex]
                   Object.assign(row.row, updatedData)
                   Object.assign(row.oldRow, updatedData)
                 } else {
-                  console.log('fallback')
                   await callbacks?.loadData?.()
                 }
               } else {
@@ -246,6 +243,7 @@ export function useData(args: {
               col.uidt === UITypes.QrCode ||
               col.uidt === UITypes.Barcode ||
               col.uidt === UITypes.Rollup ||
+              col.uidt === UITypes.Checkbox ||
               col.au ||
               col.cdf?.includes(' on update ')
             )

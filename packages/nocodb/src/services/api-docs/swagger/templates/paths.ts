@@ -1,4 +1,4 @@
-import { ModelTypes, UITypes } from 'nocodb-sdk';
+import { isLinksOrLTAR, ModelTypes } from 'nocodb-sdk';
 import {
   columnNameParam,
   columnNameQueryParam,
@@ -670,7 +670,5 @@ function getPaginatedResponseType(type: string) {
   };
 }
 function isRelationExist(columns: SwaggerColumn[]) {
-  return columns.some(
-    (c) => c.column.uidt === UITypes.LinkToAnotherRecord && !c.column.system,
-  );
+  return columns.some((c) => isLinksOrLTAR(c.column) && !c.column.system);
 }

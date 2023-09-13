@@ -2,7 +2,12 @@ import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
-import { AppEvents, OrgUserRoles, SqlUiFactory } from 'nocodb-sdk';
+import {
+  AppEvents,
+  extractRolesObj,
+  OrgUserRoles,
+  SqlUiFactory,
+} from 'nocodb-sdk';
 import type {
   ProjectReqType,
   ProjectUpdateReqType,
@@ -15,7 +20,6 @@ import { extractPropsAndSanitize } from '~/helpers/extractProps';
 import syncMigration from '~/helpers/syncMigration';
 import { Project, ProjectUser } from '~/models';
 import Noco from '~/Noco';
-import extractRolesObj from '~/utils/extractRolesObj';
 import { getToolDir } from '~/utils/nc-config';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable } from '~/utils/globals';
@@ -121,7 +125,7 @@ export class ProjectsService {
       param.project,
     );
 
-    const projectId = this.metaService.genNanoid(MetaTable.PROJECT);
+    const projectId = await this.metaService.genNanoid(MetaTable.PROJECT);
 
     const projectBody: ProjectReqType & Record<string, any> = param.project;
     projectBody.id = projectId;

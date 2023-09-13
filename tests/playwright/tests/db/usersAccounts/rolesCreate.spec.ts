@@ -1,11 +1,10 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
-import { SettingsPage } from '../../../pages/Dashboard/Settings';
 import { SignupPage } from '../../../pages/SignupPage';
 import { ProjectsPage } from '../../../pages/ProjectsPage';
 import { getDefaultPwd } from '../../../tests/utils/general';
-import { WorkspacePage } from '../../../pages/WorkspacePage';
+import { isEE } from '../../../setup/db';
 
 const roleDb = [
   { email: 'creator@nocodb.com', role: 'creator', url: '' },
@@ -15,27 +14,26 @@ const roleDb = [
 ];
 
 test.describe.skip('User roles', () => {
+  if (isEE()) {
+    test.skip();
+  }
   let dashboard: DashboardPage;
-  let settings: SettingsPage;
   let signupPage: SignupPage;
   let projectsPage: ProjectsPage;
-  let workspacePage: WorkspacePage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
-    settings = dashboard.settings;
     signupPage = new SignupPage(page);
     projectsPage = new ProjectsPage(page);
-    workspacePage = new WorkspacePage(page);
   });
 
   test.afterEach(async () => {
     await unsetup(context);
   });
 
-  test.skip('Create role', async () => {
+  test('Create role', async () => {
     test.slow();
 
     for (let i = 0; i < roleDb.length; i++) {

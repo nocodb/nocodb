@@ -34,7 +34,7 @@ export class PagedResponseImpl<T> {
 
     if (additionalProps) Object.assign(this, additionalProps);
 
-    if (offset && offset >= count) {
+    if (offset && offset >= +count) {
       this.errors = [
         {
           message: 'Offset is beyond the total number of rows',

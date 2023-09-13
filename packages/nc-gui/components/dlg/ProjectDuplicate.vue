@@ -33,8 +33,8 @@ const optionsToExclude = computed(() => {
 const isLoading = ref(false)
 
 const _duplicate = async () => {
-  isLoading.value = true
   try {
+    isLoading.value = true
     // pick a random color from array and assign to project
     const color = projectThemeColors[Math.floor(Math.random() * 1000) % projectThemeColors.length]
     const tcolor = tinycolor(color)
@@ -58,10 +58,18 @@ const _duplicate = async () => {
     props.onOk(jobData as any)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isLoading.value = false
+    dialogShow.value = false
   }
-  isLoading.value = false
-  dialogShow.value = false
 }
+
+onKeyStroke('Enter', () => {
+  // should only trigger this when our modal is open
+  if (dialogShow.value) {
+    _duplicate()
+  }
+})
 
 const isEaster = ref(false)
 </script>
@@ -69,7 +77,9 @@ const isEaster = ref(false)
 <template>
   <GeneralModal v-if="project" v-model:visible="dialogShow" class="!w-[30rem]" wrap-class-name="nc-modal-project-duplicate">
     <div>
-      <div class="prose-xl font-bold self-center" @dblclick="isEaster = !isEaster">{{ $t('general.duplicate') }}</div>
+      <div class="prose-xl font-bold self-center" @dblclick="isEaster = !isEaster">
+        {{ $t('general.duplicate') }} {{ $t('objects.project') }}
+      </div>
 
       <div class="mt-4">Are you sure you want to duplicate the `{{ project.title }}` project?</div>
 
@@ -85,9 +95,7 @@ const isEaster = ref(false)
     </div>
     <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
       <NcButton key="back" type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
-      <NcButton key="submit" type="primary" :loading="isLoading" @click="_duplicate">{{ $t('general.confirm') }} </NcButton>
+      <NcButton key="submit" :loading="isLoading" @click="_duplicate">{{ $t('general.confirm') }} </NcButton>
     </div>
   </GeneralModal>
 </template>
-
-<style scoped lang="scss"></style>

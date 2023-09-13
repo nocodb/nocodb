@@ -37,7 +37,7 @@ export default class Project implements ProjectType {
     Object.assign(this, project);
   }
 
-  protected static castType(project: Project): Project {
+  public static castType(project: Project): Project {
     return project && new Project(project);
   }
 
@@ -115,7 +115,13 @@ export default class Project implements ProjectType {
     projectList = projectList.filter(
       (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
     );
-    return projectList.map((m) => this.castType(m));
+    const castedProjectList = projectList.map((m) => this.castType(m));
+
+    await Promise.all(
+      castedProjectList.map((project) => project.getBases(ncMeta)),
+    );
+
+    return castedProjectList;
   }
 
   // @ts-ignore

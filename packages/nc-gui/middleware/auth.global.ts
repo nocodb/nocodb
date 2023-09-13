@@ -67,6 +67,11 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     /** if user is still not signed in, redirect to signin page */
     if (!state.signedIn.value) return navigateTo('/signin')
   } else if (to.meta.requiresAuth === false && state.signedIn.value) {
+    if (to.query?.logout) {
+      await state.signOut(true)
+      return navigateTo('/signin')
+    }
+
     /**
      * if user was turned away from non-auth page but also came from a non-auth page (e.g. user went to /signin and reloaded the page)
      * redirect to home page
@@ -80,7 +85,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     }
   } else {
     /** If page is limited to certain users verify the user have the roles */
-    if (to.meta.allowedRoles && to.meta.allowedRoles.every((role) => !allRoles.value[role])) {
+    if (to.meta.allowedRoles && to.meta.allowedRoles.every((role) => !allRoles.value?.[role])) {
       message.error("You don't have enough permission to access the page.")
       return navigateTo('/')
     }
@@ -89,7 +94,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     if (to.params.projectId && from.params.projectId !== to.params.projectId) {
       const user = await api.auth.me({ project_id: to.params.projectId as string })
 
-      if (user?.roles?.user) {
+      if (user?.roles?.guest) {
         message.error("You don't have enough permission to access the project.")
 
         return navigateTo('/')

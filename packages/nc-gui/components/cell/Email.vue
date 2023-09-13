@@ -1,6 +1,15 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, IsExpandedFormOpenInj, IsSurveyFormInj, computed, inject, useI18n, validateEmail } from '#imports'
+import {
+  EditColumnInj,
+  EditModeInj,
+  IsExpandedFormOpenInj,
+  IsSurveyFormInj,
+  computed,
+  inject,
+  useI18n,
+  validateEmail,
+} from '#imports'
 
 interface Props {
   modelValue: string | null | undefined
@@ -25,6 +34,8 @@ const localState = ref(value)
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
+const isEditColumn = inject(EditColumnInj, ref(false))
+
 const vModel = computed({
   get: () => value,
   set: (val) => {
@@ -39,7 +50,7 @@ const validEmail = computed(() => vModel.value && validateEmail(vModel.value))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
 
 watch(
   () => editEnabled.value,
@@ -59,7 +70,8 @@ watch(
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="w-full outline-none text-sm px-2"
+    class="w-full outline-none text-sm px-1 py-2"
+    :placeholder="isEditColumn ? '(Optional)' : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

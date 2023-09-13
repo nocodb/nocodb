@@ -141,7 +141,7 @@ export class AuthService {
     //
     // user = (param.req as any).user;
 
-    return this.login(user);
+    return await this.login(user);
   }
 
   async registerNewUserIfAllowed({

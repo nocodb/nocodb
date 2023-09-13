@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Form, Modal, message } from 'ant-design-vue'
+import { Form, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import type { DefaultConnection, ProjectCreateForm, SQLiteConnection } from '#imports'
 import {
@@ -350,8 +350,8 @@ onMounted(async () => {
     // todo: replace setTimeout and follow better approach
     setTimeout(() => {
       const input = form.value?.$el?.querySelector('input[type=text]')
-      input.setSelectionRange(0, formState.value.title.length)
-      input.focus()
+      input?.setSelectionRange(0, formState.value.title.length)
+      input?.focus()
     }, 500)
   })
 })
@@ -379,6 +379,7 @@ watch(
   <div class="create-base bg-white relative flex flex-col justify-center gap-2 w-full">
     <h1 class="prose-2xl font-bold self-start mb-4 flex items-center gap-2">
       New Base
+      <DashboardSettingsDataSourcesInfo />
       <span class="flex-grow"></span>
     </h1>
 
@@ -421,43 +422,6 @@ watch(
         >
           <a-input v-model:value="(formState.dataSource.connection as SQLiteConnection).connection.filename" />
         </a-form-item>
-
-        <template v-else-if="formState.dataSource.client === ClientType.SNOWFLAKE && false">
-          <!-- Account -->
-          <a-form-item label="Account" v-bind="validateInfos['dataSource.connection.account']">
-            <a-input v-model:value="formState.dataSource.connection.account" class="nc-extdb-account" />
-          </a-form-item>
-
-          <!-- Username -->
-          <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.username']">
-            <a-input v-model:value="formState.dataSource.connection.username" class="nc-extdb-host-user" />
-          </a-form-item>
-
-          <!-- Password -->
-          <a-form-item :label="$t('labels.password')" v-bind="validateInfos['dataSource.connection.password']">
-            <a-input-password v-model:value="formState.dataSource.connection.password" class="nc-extdb-host-password" />
-          </a-form-item>
-
-          <!-- Warehouse -->
-          <a-form-item label="Warehouse" v-bind="validateInfos['dataSource.connection.warehouse']">
-            <a-input v-model:value="formState.dataSource.connection.warehouse" />
-          </a-form-item>
-
-          <!-- Database -->
-          <a-form-item :label="$t('labels.database')" v-bind="validateInfos['dataSource.connection.database']">
-            <!-- Database : create if not exists -->
-            <a-input
-              v-model:value="formState.dataSource.connection.database"
-              :placeholder="$t('labels.dbCreateIfNotExists')"
-              class="nc-extdb-host-database"
-            />
-          </a-form-item>
-
-          <!-- Schema name -->
-          <a-form-item :label="$t('labels.schemaName')" v-bind="validateInfos['dataSource.connection.schema']">
-            <a-input v-model:value="formState.dataSource.connection.schema" />
-          </a-form-item>
-        </template>
 
         <template v-else>
           <!-- Host Address -->
@@ -506,9 +470,9 @@ watch(
           </a-form-item>
           <div class="flex items-right justify-end gap-2">
             <!--                Use Connection URL -->
-            <a-button class="nc-extdb-btn-import-url !rounded-md" @click.stop="importURLDlg = true">
+            <NcButton size="small" class="nc-extdb-btn-import-url !rounded-md" @click.stop="importURLDlg = true">
               {{ $t('activity.useConnectionUrl') }}
-            </a-button>
+            </NcButton>
           </div>
 
           <a-collapse ghost expand-icon-position="right" class="!mt-6">
@@ -530,9 +494,9 @@ watch(
                       <span>{{ $t('tooltip.clientCert') }}</span>
                     </template>
 
-                    <a-button :disabled="!sslFilesRequired" class="shadow" @click="certFileInput?.click()">
+                    <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="certFileInput?.click()">
                       {{ $t('labels.clientCert') }}
-                    </a-button>
+                    </NcButton>
                   </a-tooltip>
 
                   <a-tooltip placement="top">
@@ -540,9 +504,9 @@ watch(
                     <template #title>
                       <span>{{ $t('tooltip.clientKey') }}</span>
                     </template>
-                    <a-button :disabled="!sslFilesRequired" class="shadow" @click="keyFileInput?.click()">
+                    <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="keyFileInput?.click()">
                       {{ $t('labels.clientKey') }}
-                    </a-button>
+                    </NcButton>
                   </a-tooltip>
 
                   <a-tooltip placement="top">
@@ -551,9 +515,9 @@ watch(
                       <span>{{ $t('tooltip.clientCA') }}</span>
                     </template>
 
-                    <a-button :disabled="!sslFilesRequired" class="shadow" @click="caFileInput?.click()">
+                    <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="caFileInput?.click()">
                       {{ $t('labels.serverCA') }}
-                    </a-button>
+                    </NcButton>
                   </a-tooltip>
                 </div>
               </a-form-item>
@@ -584,11 +548,11 @@ watch(
                       />
                     </div>
                   </div>
-                  <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">
+                  <NcButton size="small" type="dashed" class="w-full caption mt-2" @click="addNewParam">
                     <div class="flex items-center justify-center">
                       <component :is="iconMap.plus" />
                     </div>
-                  </a-button>
+                  </NcButton>
                 </a-card>
               </a-form-item>
 
@@ -613,10 +577,10 @@ watch(
               </a-form-item>
 
               <div class="flex justify-end">
-                <a-button type="primary" class="!rounded-md" @click="handleEditJSON()">
+                <NcButton type="primary" size="small" class="!rounded-md" @click="handleEditJSON()">
                   <!-- Edit connection JSON -->
                   {{ $t('activity.editConnJson') }}
-                </a-button>
+                </NcButton>
               </div>
             </a-collapse-panel>
           </a-collapse>
@@ -625,13 +589,19 @@ watch(
 
       <a-form-item class="flex justify-end !mt-5">
         <div class="flex justify-end gap-2">
-          <a-button type="primary" class="nc-extdb-btn-test-connection !rounded-md" @click="testConnection">
+          <NcButton type="primary" size="small" class="nc-extdb-btn-test-connection !rounded-md" @click="testConnection">
             {{ $t('activity.testDbConn') }}
-          </a-button>
+          </NcButton>
 
-          <a-button type="primary" :disabled="!testSuccess" class="nc-extdb-btn-submit !rounded-md" @click="createBase">
+          <NcButton
+            size="small"
+            type="primary"
+            :disabled="!testSuccess"
+            class="nc-extdb-btn-submit !rounded-md"
+            @click="createBase"
+          >
             {{ $t('general.submit') }}
-          </a-button>
+          </NcButton>
         </div>
       </a-form-item>
     </a-form>

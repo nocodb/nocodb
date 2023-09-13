@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { type ColumnType, UITypes } from 'nocodb-sdk'
-import MdiFormatListGroup from '~icons/mdi/format-list-group'
+import GroupIcon from '~icons/nc-icons/group'
 import {
   ActiveViewInj,
   IsLockedInj,
@@ -10,6 +10,7 @@ import {
   inject,
   ref,
   useMenuCloseOnEsc,
+  useNuxtApp,
   useSmartsheetStoreOrThrow,
 } from '#imports'
 
@@ -27,6 +28,8 @@ const view = inject(ActiveViewInj, ref())
 const isLocked = inject(IsLockedInj, ref(false))
 
 const { gridViewCols, updateGridViewColumn } = useGridViewColumnOrThrow()
+
+const { $e } = useNuxtApp()
 
 const _groupBy = ref<{ fk_column_id?: string; sort: string; order: number }[]>([])
 
@@ -106,6 +109,8 @@ const saveGroupBy = async () => {
         }
       }
 
+      $e('a:group-by:update', { groupBy: groupBy.value })
+
       eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
     } catch (e) {
       message.error('There was an error while updating view!')
@@ -142,16 +147,23 @@ watch(open, () => {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="open" offset-y class="" :trigger="['click']" overlay-class-name="nc-dropdown-group-by-menu">
-    <div :class="{ 'nc-badge nc-active-btn': groupedByColumnIds?.length }">
+  <NcDropdown
+    v-model:visible="open"
+    offset-y
+    :trigger="['click']"
+    overlay-class-name="nc-dropdown-group-by-menu nc-toolbar-dropdown"
+  >
+    <div :class="{ 'nc-active-btn': groupedByColumnIds?.length }">
       <a-button v-e="['c:group-by']" class="nc-group-by-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-2">
-          <MdiFormatListGroup class="h-4 w-4" />
+          <GroupIcon class="h-4 w-4" />
 
           <!-- Group By -->
           <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.groupBy') }}</span>
 
-          <span v-if="groupedByColumnIds?.length" class="nc-count-badge">{{ groupedByColumnIds.length }}</span>
+          <span v-if="groupedByColumnIds?.length" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{
+            groupedByColumnIds.length
+          }}</span>
         </div>
       </a-button>
     </div>
@@ -162,11 +174,7 @@ watch(open, () => {
         data-testid="nc-group-by-menu"
       >
         <div class="group-by-grid pb-1 mb-2 max-h-100 nc-scrollbar-md pr-5" @click.stop>
-          <template
-            v-for="[i, group] of Object.entries(_groupBy)"
-            :key="`grouped-by-${group.fk_column_id}`"
-            class="nc-group-menu"
-          >
+          <template v-for="[i, group] of Object.entries(_groupBy)" :key="`grouped-by-${group.fk_column_id}`">
             <LazySmartsheetToolbarFieldListAutoCompleteDropdown
               v-model="group.fk_column_id"
               class="caption nc-sort-field-select"
@@ -197,7 +205,13 @@ watch(open, () => {
             </NcSelect>
 
             <a-tooltip placement="right" title="Remove">
-              <NcButton class="nc-group-by-item-remove-btn" size="small" type="text" @click.stop="removeFieldFromGroupBy(i)">
+              <NcButton
+                v-e="['c:group-by:remove']"
+                class="nc-group-by-item-remove-btn"
+                size="small"
+                type="text"
+                @click.stop="removeFieldFromGroupBy(i)"
+              >
                 <GeneralIcon icon="delete" class="" />
               </NcButton>
             </a-tooltip>
@@ -205,6 +219,7 @@ watch(open, () => {
         </div>
         <NcButton
           v-if="fieldsToGroupBy.length > _groupBy.length && _groupBy.length < 3"
+          v-e="['c:group-by:add']"
           class="nc-add-group-btn"
           style="width: fit-content"
           size="small"

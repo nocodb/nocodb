@@ -32,55 +32,59 @@ const optionsToExclude = computed(() => {
 const isLoading = ref(false)
 
 const _duplicate = async () => {
-  isLoading.value = true
   try {
+    isLoading.value = true
     const jobData = await api.dbTable.duplicate(props.table.project_id!, props.table.id!, { options: optionsToExclude.value })
     props.onOk(jobData as any)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isLoading.value = false
+    dialogShow.value = false
   }
-  isLoading.value = false
-  dialogShow.value = false
 }
+
+onKeyStroke('Enter', () => {
+  // should only trigger this when our modal is open
+  if (dialogShow.value) {
+    _duplicate()
+  }
+})
 
 const isEaster = ref(false)
 </script>
 
 <template>
-  <a-modal
+  <GeneralModal
     v-model:visible="dialogShow"
     :class="{ active: dialogShow }"
     centered
     wrap-class-name="nc-modal-table-duplicate"
     :footer="null"
     :closable="false"
+    class="!w-[30rem]"
     @keydown.esc="dialogShow = false"
   >
     <div>
-      <div class="text-base font-medium self-center mb-4" @dblclick="isEaster = !isEaster">
-        {{ $t('general.duplicate') }} {{ table.title }}
+      <div class="prose-xl font-bold self-center" @dblclick="isEaster = !isEaster">
+        {{ $t('general.duplicate') }} {{ $t('objects.table') }}
       </div>
 
-      <div class="flex flex-col gap-y-2">
-        <div class="flex flex-row gap-x-2 items-center">
-          <a-switch v-model:checked="options.includeData" />
-          Include Data
-        </div>
-        <div class="flex flex-row gap-x-2 items-center">
-          <a-switch v-model:checked="options.includeViews" />
-          Include Views
-        </div>
-        <a-checkbox v-show="isEaster" v-model:checked="options.includeHooks">Include hooks</a-checkbox>
+      <div class="mt-4">Are you sure you want to duplicate the `{{ table.title }}` table?</div>
+
+      <div class="prose-md self-center text-gray-500 mt-4">{{ $t('title.advancedSettings') }}</div>
+
+      <a-divider class="!m-0 !p-0 !my-2" />
+
+      <div class="text-xs p-2">
+        <a-checkbox v-model:checked="options.includeData">Include data</a-checkbox>
+        <a-checkbox v-model:checked="options.includeViews">Include views</a-checkbox>
+        <a-checkbox v-show="isEaster" v-model:checked="options.includeHooks">Include webhooks</a-checkbox>
       </div>
     </div>
-    <div class="flex flex-row justify-end gap-x-2 mt-8">
-      <a-button key="back" size="middle" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
-
-      <a-button key="submit" size="middle" type="primary" class="!rounded-md" :loading="isLoading" @click="_duplicate"
-        >{{ $t('general.duplicate') }}
-      </a-button>
+    <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
+      <NcButton key="back" type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
+      <NcButton key="submit" type="primary" :loading="isLoading" @click="_duplicate">{{ $t('general.confirm') }} </NcButton>
     </div>
-  </a-modal>
+  </GeneralModal>
 </template>
-
-<style scoped lang="scss"></style>

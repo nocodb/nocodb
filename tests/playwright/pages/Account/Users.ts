@@ -17,17 +17,28 @@ export class AccountUsersPage extends BasePage {
     this.changePasswordPage = new ChangePasswordPage(this.rootPage);
   }
 
-  async goto() {
-    await this.rootPage.goto('/#/account/users/list', { waitUntil: 'networkidle' });
+  async goto({ waitForResponse = true }: { waitForResponse?: boolean }) {
+    if (waitForResponse) {
+      return this.waitForResponse({
+        uiAction: async () => await this.rootPage.goto('/#/account/users'),
+        httpMethodsToMatch: ['GET'],
+        requestUrlPathToMatch: `api/v1/users`,
+      });
+    } else {
+      await this.rootPage.waitForTimeout(1000);
+      return this.rootPage.goto('/#/account/users');
+    }
+  }
+
+  async waitUntilContentLoads() {
+    return this.rootPage.waitForResponse(resp => resp.url().includes('api/v1/users') && resp.status() === 200);
   }
 
   get() {
     return this.accountPage.get().locator(`[data-testid="nc-super-user-list"]`);
   }
 
-  async invite({ email: _email, role }: { email: string; role: string }) {
-    const email = this.prefixEmail(_email);
-
+  async invite({ email, role }: { email: string; role: string }) {
     await this.inviteUserBtn.click();
     await this.inviteUserModal.locator(`input[placeholder="E-mail"]`).fill(email);
     await this.inviteUserModal.locator(`.nc-user-roles`).click();
@@ -37,7 +48,7 @@ export class AccountUsersPage extends BasePage {
     await this.verifyToast({ message: 'Successfully added user' });
 
     // http://localhost:3000/#/signup/a5e7bf3a-cbb0-46bc-87f7-c2ae21796707
-    return (await this.inviteUserModal.locator(`.ant-alert-message`).innerText()).slice(0, 67);
+    return (await this.inviteUserModal.locator(`.ant-alert-message`).innerText()).split('\n')[0];
   }
 
   prefixEmail(email: string) {
@@ -50,21 +61,18 @@ export class AccountUsersPage extends BasePage {
     await this.inviteUserModal.locator(`button.ant-btn-icon-only:visible`).first().click();
   }
 
-  getUserRow({ email: _email }: { email: string }) {
-    const email = this.prefixEmail(_email);
+  async getUserRow({ email }: { email: string }) {
+    // ensure page is loaded
+    await this.get().waitFor();
     return this.get().locator(`tr:has-text("${email}")`);
   }
 
   async updateRole({ email, role }: { email: string; role: string }) {
-    const userRow = this.getUserRow({ email });
-
+    const userRow = await this.getUserRow({ email });
     await userRow.locator(`.nc-user-roles`).click();
-
-    // todo: replace delay with waitForSelector
-    await new Promise(resolve => setTimeout(resolve, 400));
-
-    await this.rootPage.locator(`.nc-users-list-role-option:visible:has-text("${role}")`).click();
-    await this.verifyToast({ message: 'Successfully updated the user details' });
+    await this.rootPage.locator(`.nc-users-list-role-option:visible:has-text("${role}")`).waitFor();
+    await this.rootPage.locator(`.nc-users-list-role-option:visible:has-text("${role}")`).last().click();
+    await this.rootPage.locator(`.nc-users-list-role-option`).last().waitFor({ state: 'hidden' });
   }
 
   async inviteMore() {
@@ -72,7 +80,7 @@ export class AccountUsersPage extends BasePage {
   }
 
   async openRowActionMenu({ email }: { email: string }) {
-    const userRow = this.getUserRow({ email });
+    const userRow = await this.getUserRow({ email });
     return userRow.locator(`.nc-user-row-action`).click();
   }
 

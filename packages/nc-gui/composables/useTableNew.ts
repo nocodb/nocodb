@@ -79,7 +79,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
     }
 
     await navigateTo({
-      path: `/${workspaceIdOrType}/${projectIdOrBaseId}/table/${table?.id}`,
+      path: `/${workspaceIdOrType}/${projectIdOrBaseId}/${table?.id}`,
       query: route.value.query,
     })
 

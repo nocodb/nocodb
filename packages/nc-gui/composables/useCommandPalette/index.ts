@@ -7,16 +7,16 @@ export const useCommandPalette = createSharedComposable(() => {
 
   const cmdData = computed(() => {})
 
-  const activeScope = computed(() => {})
+  const activeScope = computed(() => ({} as any))
 
-  async function loadScope(_scope = 'root', _data?: any) {}
+  const loadTemporaryScope = (..._args: any) => {}
 
   return {
     commandPalette,
     cmdData,
     activeScope,
-    loadScope,
     cmdPlaceholder,
     refreshCommandPalette: refreshCommandPalette.trigger,
+    loadTemporaryScope,
   }
 })

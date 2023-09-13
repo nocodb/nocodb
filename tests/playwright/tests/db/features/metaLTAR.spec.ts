@@ -25,7 +25,7 @@ import { Api, UITypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { GridPage } from '../../../pages/Dashboard/Grid';
 import { createXcdb, deleteXcdb } from '../../../setup/xcdbProject';
-import { WorkspacePage } from '../../../pages/WorkspacePage';
+
 let api: Api<any>;
 const recordCount = 10;
 
@@ -40,7 +40,7 @@ test.describe.serial('Test table', () => {
   test.afterEach(async () => {
     try {
       if (context) {
-        await deleteXcdb(context.token);
+        await deleteXcdb(context);
       }
     } catch (e) {
       console.log(e);

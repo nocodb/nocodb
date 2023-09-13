@@ -6,6 +6,7 @@ import {
   ActiveCellInj,
   CurrentCellInj,
   DropZoneRef,
+  IsExpandedFormOpenInj,
   RowHeightInj,
   iconMap,
   inject,
@@ -42,6 +43,8 @@ const currentCellRef = inject(CurrentCellInj, dropZoneInjection.value)
 
 const isLockedMode = inject(IsLockedInj, ref(false))
 
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
+
 const { isSharedForm } = useSmartsheetStoreOrThrow()!
 
 const { getPossibleAttachmentSrc, openAttachment } = useAttachment()
@@ -63,6 +66,8 @@ const {
 } = useProvideAttachmentCell(updateModelValue)
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, _isReadonly)
+
+const active = inject(ActiveCellInj, ref(false))
 
 const isReadonly = computed(() => {
   return isLockedMode.value || _isReadonly.value
@@ -137,7 +142,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
   }
 })
 
-const rowHeight = inject(RowHeightInj, ref(1.8))
+const rowHeight = inject(RowHeightInj, ref())
 </script>
 
 <template>
@@ -147,7 +152,8 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
     :style="{
       height: isForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
     }"
-    class="nc-attachment-cell relative flex-1 color-transition flex items-center justify-between gap-1"
+    class="nc-attachment-cell relative flex color-transition flex items-center"
+    :class="{ 'justify-center': !active, 'justify-between': active }"
   >
     <LazyCellAttachmentCarousel />
 
@@ -166,20 +172,19 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
     <div
       v-if="!isReadonly"
       :class="{ 'mx-auto px-4': !visibleItems.length }"
-      class="group cursor-pointer py-1 flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+      class="group cursor-pointer py-1 flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-none shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
       data-testid="attachment-cell-file-picker-button"
       @click.stop="open"
     >
       <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
-      <a-tooltip v-else placement="bottom">
+      <NcTooltip placement="bottom">
         <template #title> Click or drop a file into cell</template>
 
-        <div class="flex items-center gap-1">
+        <div v-if="active || !visibleItems.length" class="flex items-center gap-1">
           <MaterialSymbolsAttachFile
             class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
           />
-
           <div
             v-if="!visibleItems.length"
             class="group-hover:text-primary text-gray-500 dark:text-gray-200 dark:group-hover:!text-white text-xs"
@@ -187,7 +192,7 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
             Add file(s)
           </div>
         </div>
-      </a-tooltip>
+      </NcTooltip>
     </div>
 
     <div v-else class="flex" />
@@ -195,49 +200,64 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
     <template v-if="visibleItems.length">
       <div
         ref="sortableRef"
-        :class="{ dragging }"
-        class="flex cursor-pointer justify-center items-center flex-wrap gap-2 py-1.5 scrollbar-thin-dull overflow-hidden mt-0 items-start"
+        :class="{ dragging, 'justify-center': !isExpandedForm }"
+        class="flex cursor-pointer items-center flex-wrap gap-2 py-1.5 scrollbar-thin-dull overflow-hidden mt-0 items-start"
         :style="{
           maxHeight: isForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
         }"
       >
         <template v-for="(item, i) of visibleItems" :key="item.url || item.title">
-          <a-tooltip placement="bottom">
+          <NcTooltip placement="bottom">
             <template #title>
               <div class="text-center w-full">{{ item.title }}</div>
             </template>
             <div v-if="isImage(item.title, item.mimetype ?? item.type)">
-              <div class="nc-attachment flex items-center justify-center" @click.stop="selectedImage = item">
+              <div
+                class="nc-attachment flex items-center flex-col flex-wrap justify-center"
+                :class="{ 'ml-2': active }"
+                @click.stop="selectedImage = item"
+              >
                 <LazyCellAttachmentImage
-                  class="max-h-[1.8rem] max-w-[1.8rem]"
                   :alt="item.title || `#${i}`"
+                  :class="{
+                    'h-7.5 w-8.8': rowHeight === 1,
+                    'h-11.5 w-12.8': rowHeight === 2,
+                    'h-16.8 w-20.8': rowHeight === 4,
+                    'h-20.8 !w-30': isExpandedForm || rowHeight === 6,
+                  }"
                   :srcs="getPossibleAttachmentSrc(item)"
                 />
               </div>
             </div>
-            <div v-else class="nc-attachment flex items-center justify-center" @click="openAttachment(item)">
+            <div
+              v-else
+              class="nc-attachment flex items-center justify-center"
+              :class="{ 'ml-2': active }"
+              @click="openAttachment(item)"
+            >
               <component :is="FileIcon(item.icon)" v-if="item.icon" />
 
               <IcOutlineInsertDriveFile v-else />
             </div>
-          </a-tooltip>
+          </NcTooltip>
         </template>
       </div>
 
       <div
-        class="group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+        v-if="active"
+        class="h-6 w-5 group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-none p-1 hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
       >
         <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
-        <a-tooltip v-else placement="bottom">
+        <NcTooltip v-else placement="bottom">
           <template #title> View attachments</template>
 
           <component
             :is="iconMap.expand"
-            class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
+            class="transform dark:(!text-white) group-hover:(!text-grey-800 scale-120) text-gray-500 text-[0.75rem]"
             @click.stop="modalVisible = true"
           />
-        </a-tooltip>
+        </NcTooltip>
       </div>
     </template>
 
@@ -249,7 +269,7 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
 .nc-cell {
   .nc-attachment-cell {
     .nc-attachment {
-      @apply w-[1.8rem] h-[1.8rem] min-h-[1.8rem] min-w-[1.8rem] ring-1 ring-gray-300 rounded;
+      @apply min-h-[1.8rem] min-w-[1.8rem] !ring-1 !ring-gray-300 !rounded;
     }
 
     .ghost,

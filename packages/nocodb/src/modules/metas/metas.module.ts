@@ -34,7 +34,6 @@ import { TablesController } from '~/controllers/tables.controller';
 import { UtilsController } from '~/controllers/utils.controller';
 import { ViewColumnsController } from '~/controllers/view-columns.controller';
 import { ViewsController } from '~/controllers/views.controller';
-import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { ApiTokensService } from '~/services/api-tokens.service';
 import { AttachmentsService } from '~/services/attachments.service';
 import { AuditsService } from '~/services/audits.service';
@@ -151,7 +150,6 @@ export const metaModuleMetadata = {
     PluginsService,
     ProjectUsersService,
     ProjectsService,
-    ExtractIdsMiddleware,
     PublicMetasService,
     ViewsService,
     ViewColumnsService,

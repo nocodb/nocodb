@@ -10,17 +10,14 @@ import {
 } from '@nestjs/common';
 import { ProjectStatus } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
-import {
-  Acl,
-  ExtractIdsMiddleware,
-} from '~/middlewares/extract-ids/extract-ids.middleware';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { ProjectsService } from '~/services/projects.service';
 import { Base, Model, Project } from '~/models';
 import { generateUniqueName } from '~/helpers/exportImportHelpers';
 import { JobTypes } from '~/interface/Jobs';
 
 @Controller()
-@UseGuards(ExtractIdsMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 export class DuplicateController {
   constructor(
     @Inject('JobsService') private readonly jobsService,

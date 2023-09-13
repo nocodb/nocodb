@@ -26,6 +26,7 @@ export class OrgTokensController {
 
   @Get('/api/v1/tokens')
   @Acl('apiTokenList', {
+    scope: 'org',
     blockApiTokenAccess: true,
   })
   async apiTokenList(@Request() req) {
@@ -41,6 +42,7 @@ export class OrgTokensController {
   @Post('/api/v1/tokens')
   @HttpCode(200)
   @Acl('apiTokenCreate', {
+    scope: 'org',
     blockApiTokenAccess: true,
   })
   async apiTokenCreate(@Request() req, @Body() body: ApiTokenReqType) {
@@ -52,6 +54,7 @@ export class OrgTokensController {
 
   @Delete('/api/v1/tokens/:token')
   @Acl('apiTokenDelete', {
+    scope: 'org',
     // allowedRoles: [OrgUserRoles.SUPER],
     blockApiTokenAccess: true,
   })

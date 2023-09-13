@@ -56,11 +56,20 @@ function projectTest() {
   // todo: Test creating visibility set
 
   it('List projects', async () => {
-    const response = await request(context.app)
-      .get('/api/v1/db/meta/projects/')
-      .set('xc-auth', context.token)
-      .send({})
-      .expect(200);
+    let response;
+    if (process.env.EE !== 'true') {
+      response = await request(context.app)
+        .get('/api/v1/db/meta/projects/')
+        .set('xc-auth', context.token)
+        .send({})
+        .expect(200);
+    } else {
+      response = await request(context.app)
+        .get(`/api/v1/workspaces/${context.fk_workspace_id}/projects`)
+        .set('xc-auth', context.token)
+        .send({})
+        .expect(200);
+    }
 
     if (response.body.list.length !== 1)
       new Error('Should list only 1 project');
@@ -73,6 +82,9 @@ function projectTest() {
       .set('xc-auth', context.token)
       .send({
         title: 'Title1',
+        ...(process.env.EE === 'true' && {
+          fk_workspace_id: context.fk_workspace_id,
+        }),
       })
       .expect(200);
 
@@ -86,6 +98,9 @@ function projectTest() {
       .set('xc-auth', context.token)
       .send({
         title: project.title,
+        ...(process.env.EE === 'true' && {
+          fk_workspace_id: context.fk_workspace_id,
+        }),
       })
       .expect(200);
   });
@@ -308,7 +323,8 @@ function projectTest() {
       .send({})
       .expect(200)
       .then((res) => {
-        const createdProject = res.body.projects[1];
+        const createdProject =
+          res.body.projects[process.env.EE === 'true' ? 2 : 1];
 
         expect(res.body).to.have.all.keys(
           'userCount',
@@ -316,8 +332,10 @@ function projectTest() {
           'projectCount',
           'projects',
         );
-        // As there will be a default project created for a workspace
-        expect(res.body).to.have.property('projectCount').to.eq(2);
+        // As there will be a default project created for a workspace (EE tests create one extra)
+        expect(res.body)
+          .to.have.property('projectCount')
+          .to.eq(process.env.EE === 'true' ? 3 : 2);
         expect(res.body).to.have.property('projects').to.be.an('array');
 
         expect(createdProject.tableCount.table).to.be.eq(3);

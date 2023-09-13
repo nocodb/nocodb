@@ -17,7 +17,6 @@ import {
   computed,
   createEventHook,
   extractPkFromRow,
-  iconMap,
   inject,
   isImage,
   isLTAR,
@@ -39,7 +38,6 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj)
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
 const { isViewDataLoading } = storeToRefs(useViewsStore())
-const { isSqlView, xWhere } = useSmartsheetStoreOrThrow()
 
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
@@ -55,7 +53,7 @@ const {
   addEmptyRow,
   deleteRow,
   navigateToSiblingRow,
-} = useViewData(meta, view, xWhere)
+} = useViewData(meta, view)
 
 provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(true))
@@ -85,6 +83,8 @@ const isRowEmpty = (record: any, col: any) => {
 
   return Array.isArray(val) && val.length === 0
 }
+
+const { isSqlView } = useSmartsheetStoreOrThrow()
 
 const { isUIAllowed } = useUIPermission()
 const hasEditPermission = computed(() => isUIAllowed('xcDatatableEditable'))

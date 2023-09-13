@@ -4,6 +4,7 @@ import { isSystemColumn } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   ColumnInj,
+  EditColumnInj,
   EditModeInj,
   IsFormInj,
   IsLockedInj,
@@ -61,7 +62,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'update:editEnabled'])
+const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'update:editEnabled', 'update:value'])
 
 const column = toRef(props, 'column')
 
@@ -87,6 +88,8 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
+const isEditColumnMenu = inject(EditColumnInj, ref(false))
+
 const { currentRow } = useSmartsheetRowStoreOrThrow()
 
 const { sqlUis } = storeToRefs(useProject())
@@ -109,7 +112,10 @@ const vModel = computed({
     return props.modelValue
   },
   set: (val) => {
-    if (val !== props.modelValue) {
+    if (isEditColumnMenu.value) {
+      column.value.cdf = val
+      emit('update:value', val)
+    } else if (val !== props.modelValue) {
       currentRow.value.rowMeta.changed = true
       emit('update:modelValue', val)
       if (isAutoSaved(column.value)) {
@@ -173,6 +179,9 @@ function initIntersectionObserver() {
   })
 }
 
+const numberInputAlignment = computed(() => {
+  return isEditColumnMenu.value ? 'left' : 'right'
+})
 // observe the cell when it is mounted
 onMounted(() => {
   initIntersectionObserver()
@@ -205,8 +214,18 @@ onUnmounted(() => {
         <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" />
         <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />
         <LazyCellAttachment v-else-if="isAttachment(column)" v-model="vModel" :row-index="props.rowIndex" />
-        <LazyCellSingleSelect v-else-if="isSingleSelect(column)" v-model="vModel" :row-index="props.rowIndex" />
-        <LazyCellMultiSelect v-else-if="isMultiSelect(column)" v-model="vModel" :row-index="props.rowIndex" />
+        <LazyCellSingleSelect
+          v-else-if="isSingleSelect(column)"
+          v-model="vModel"
+          :disable-option-creation="!!isEditColumnMenu"
+          :row-index="props.rowIndex"
+        />
+        <LazyCellMultiSelect
+          v-else-if="isMultiSelect(column)"
+          v-model="vModel"
+          :disable-option-creation="!!isEditColumnMenu"
+          :row-index="props.rowIndex"
+        />
         <LazyCellDatePicker v-else-if="isDate(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
         <LazyCellYearPicker v-else-if="isYear(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
         <LazyCellDateTimePicker
@@ -224,9 +243,9 @@ onUnmounted(() => {
         <LazyCellPercent v-else-if="isPercent(column)" v-model="vModel" />
         <LazyCellCurrency v-else-if="isCurrency(column)" v-model="vModel" @save="emit('save')" />
         <LazyCellDecimal v-else-if="isDecimal(column)" v-model="vModel" />
-        <LazyCellInteger v-else-if="isInt(column, abstractType)" v-model="vModel" />
         <LazyCellFloat v-else-if="isFloat(column, abstractType)" v-model="vModel" />
         <LazyCellText v-else-if="isString(column, abstractType)" v-model="vModel" />
+        <LazyCellInteger v-else-if="isInt(column, abstractType)" v-model="vModel" />
         <LazyCellJson v-else-if="isJSON(column)" v-model="vModel" />
         <LazyCellText v-else v-model="vModel" />
         <div
@@ -240,9 +259,9 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .nc-grid-numeric-cell {
-  @apply text-right;
+  text-align: v-bind(numberInputAlignment);
   :deep(input) {
-    @apply text-right;
+    text-align: v-bind(numberInputAlignment);
   }
 }
 </style>

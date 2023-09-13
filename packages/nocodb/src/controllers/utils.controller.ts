@@ -37,7 +37,9 @@ export class UtilsController {
 
   @UseGuards(GlobalGuard)
   @Post('/api/v1/db/meta/connection/test')
-  @Acl('testConnection')
+  @Acl('testConnection', {
+    scope: 'org',
+  })
   @HttpCode(200)
   async testConnection(@Body() body: any) {
     return await this.utilsService.testConnection({ body });

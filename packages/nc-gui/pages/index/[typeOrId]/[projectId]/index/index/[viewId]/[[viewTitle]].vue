@@ -13,10 +13,6 @@ const activeTab = inject(
   computed(() => ({} as TabItem)),
 )
 
-const viewType = computed(() => {
-  return route.params.type as string
-})
-
 watch(
   () => route.params.viewId,
   (viewId) => {
@@ -33,6 +29,6 @@ watch(
 
 <template>
   <div class="w-full h-full relative">
-    <LazyTabsSmartsheet :key="viewType" :active-tab="activeTab" />
+    <LazyTabsSmartsheet :active-tab="activeTab" />
   </div>
 </template>

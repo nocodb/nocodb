@@ -30,6 +30,14 @@ const uiTypes = [
     icon: iconMap.longText,
   },
   {
+    name: UITypes.Number,
+    icon: iconMap.number,
+  },
+  {
+    name: UITypes.Decimal,
+    icon: iconMap.decimal,
+  },
+  {
     name: UITypes.Attachment,
     icon: iconMap.image,
   },
@@ -68,14 +76,6 @@ const uiTypes = [
   {
     name: UITypes.URL,
     icon: iconMap.web,
-  },
-  {
-    name: UITypes.Number,
-    icon: iconMap.number,
-  },
-  {
-    name: UITypes.Decimal,
-    icon: iconMap.decimal,
   },
   {
     name: UITypes.Currency,

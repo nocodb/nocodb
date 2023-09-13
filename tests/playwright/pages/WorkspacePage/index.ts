@@ -12,7 +12,7 @@ import { CollaborationPage } from './CollaborationPage';
     nc-header-content
     nc-root
       nc-left-sidebar
-      nc-workspace-container
+      nc-workspace-settings
 
 */
 

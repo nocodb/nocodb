@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { ButtonType } from 'ant-design-vue/lib/button'
 import { useSlots } from 'vue'
+import type { NcButtonSize } from '~/lib'
 
 /**
  * @description
@@ -17,7 +18,7 @@ interface Props {
   loading?: boolean
   disabled?: boolean
   type?: ButtonType | 'danger' | undefined
-  size?: 'xsmall' | 'small' | 'medium'
+  size?: NcButtonSize
   centered?: boolean
 }
 
@@ -31,6 +32,8 @@ const props = withDefaults(defineProps<Props>(), {
 const emits = defineEmits(['update:loading'])
 
 const slots = useSlots()
+
+const NcButton = ref<HTMLElement | null>(null)
 
 const size = computed(() => props.size)
 
@@ -62,10 +65,15 @@ const onBlur = () => {
   isFocused.value = false
   isClicked.value = false
 }
+
+useEventListener(NcButton, 'mousedown', () => {
+  isClicked.value = true
+})
 </script>
 
 <template>
   <a-button
+    ref="NcButton"
     :disabled="props.disabled"
     :loading="loading"
     :type="type"
@@ -74,11 +82,11 @@ const onBlur = () => {
       small: size === 'small',
       medium: size === 'medium',
       xsmall: size === 'xsmall',
+      xxsmall: size === 'xxsmall',
       focused: isFocused,
     }"
     @focus="onFocus"
     @blur="onBlur"
-    @mousedown="isClicked = true"
   >
     <div
       class="flex flex-row gap-x-2.5 w-full"
@@ -91,6 +99,7 @@ const onBlur = () => {
 
       <slot v-else name="icon" />
       <div
+        class="flex flex-row items-center"
         :class="{
           'font-medium': type === 'primary' || type === 'danger',
         }"
@@ -120,7 +129,7 @@ const onBlur = () => {
 }
 
 .nc-button.ant-btn {
-  @apply rounded-lg  font-medium;
+  @apply rounded-lg font-medium;
 }
 
 .nc-button.ant-btn.small {
@@ -132,7 +141,11 @@ const onBlur = () => {
 }
 
 .nc-button.ant-btn.xsmall {
-  @apply p-0.25 h-6.25 w-6.25;
+  @apply p-0.25 h-6.25 min-w-6.25 rounded-md;
+}
+
+.nc-button.ant-btn.xxsmall {
+  @apply p-0 h-6 min-w-6 rounded-md;
 }
 
 .nc-button.ant-btn[disabled] {
@@ -160,7 +173,7 @@ const onBlur = () => {
   @apply bg-white border-1 border-gray-200 text-gray-700;
 
   &:hover {
-    @apply bg-gray-50;
+    @apply bg-gray-100;
   }
 }
 
@@ -175,7 +188,7 @@ const onBlur = () => {
 .nc-button.ant-btn-text {
   box-shadow: none;
 
-  @apply bg-transparent border-0 text-gray-700 hover:bg-gray-50;
+  @apply bg-transparent border-0 text-gray-700 hover:bg-gray-100;
 
   &:focus {
     box-shadow: none;

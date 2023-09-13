@@ -66,7 +66,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { t } = useI18n()
 
-    const isPublic: boolean = inject(IsPublicInj, ref(false))
+    const isPublic: Ref<boolean> = inject(IsPublicInj, ref(false))
 
     const colOptions = computed(() => column.value?.colOptions as LinkToAnotherRecordType)
 
@@ -190,6 +190,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               where:
                 childrenListPagination.query && `(${relatedTableDisplayValueProp.value},like,${childrenListPagination.query})`,
             } as any,
+            {
+              headers: {
+                'xc-password': sharedViewPassword.value,
+              },
+            },
           )
         } else {
           childrenList.value = await $api.dbTableRow.nestedList(

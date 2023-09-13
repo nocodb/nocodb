@@ -24,6 +24,7 @@ export class OrgUsersController {
 
   @Get('/api/v1/users')
   @Acl('userList', {
+    scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
@@ -42,6 +43,7 @@ export class OrgUsersController {
 
   @Patch('/api/v1/users/:userId')
   @Acl('userUpdate', {
+    scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
@@ -54,6 +56,7 @@ export class OrgUsersController {
 
   @Delete('/api/v1/users/:userId')
   @Acl('userDelete', {
+    scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
@@ -67,6 +70,7 @@ export class OrgUsersController {
   @Post('/api/v1/users')
   @HttpCode(200)
   @Acl('userAdd', {
+    scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
@@ -82,6 +86,7 @@ export class OrgUsersController {
   @Post('/api/v1/users/settings')
   @HttpCode(200)
   @Acl('userSettings', {
+    scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
@@ -93,6 +98,7 @@ export class OrgUsersController {
   @Post('/api/v1/users/:userId/resend-invite')
   @HttpCode(200)
   @Acl('userInviteResend', {
+    scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
@@ -111,6 +117,7 @@ export class OrgUsersController {
   @Post('/api/v1/users/:userId/generate-reset-url')
   @HttpCode(200)
   @Acl('generateResetUrl', {
+    scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
@@ -125,6 +132,7 @@ export class OrgUsersController {
 
   @Get('/api/v1/app-settings')
   @Acl('appSettingsGet', {
+    scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
@@ -136,6 +144,7 @@ export class OrgUsersController {
   @Post('/api/v1/app-settings')
   @HttpCode(200)
   @Acl('appSettingsSet', {
+    scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })

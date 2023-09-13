@@ -57,10 +57,11 @@ watch(
 <template>
   <div class="h-full nc-project-view">
     <div
-      class="flex flex-row pl-5 pr-3 border-b-1 border-gray-200 justify-between w-full"
+      class="flex flex-row pl-2 pr-2 border-b-1 border-gray-200 justify-between w-full"
       :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
     >
       <div class="flex flex-row items-center gap-x-4">
+        <GeneralOpenLeftSidebarBtn />
         <GeneralProjectIcon :type="openedProject?.type" />
         <div class="flex font-medium text-base capitalize">
           {{ openedProject?.title }}
@@ -113,15 +114,6 @@ watch(
             </div>
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" />
-        </a-tab-pane>
-        <a-tab-pane v-if="false && isUIAllowed('acl')" key="ui-acl">
-          <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__ui-acl">
-              <GeneralIcon icon="acl" />
-              <div>{{ $t('title.uiACL') }}</div>
-            </div>
-          </template>
-          <DashboardSettingsUIAclTabs class="mt-6" />
         </a-tab-pane>
       </a-tabs>
     </div>

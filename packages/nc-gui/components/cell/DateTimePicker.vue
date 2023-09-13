@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { isSystemColumn } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   CellClickHookInj,
   ColumnInj,
+  EditColumnInj,
   ReadonlyInj,
   dateFormats,
   inject,
@@ -37,6 +39,8 @@ const active = inject(ActiveCellInj, ref(false))
 const editable = inject(EditModeInj, ref(false))
 
 const isLockedMode = inject(IsLockedInj, ref(false))
+
+const isEditColumn = inject(EditColumnInj, ref(false))
 
 const column = inject(ColumnInj)!
 
@@ -131,7 +135,17 @@ watch(
   { flush: 'post' },
 )
 
-const placeholder = computed(() => (modelValue === null && showNull.value ? 'NULL' : isDateInvalid.value ? 'Invalid date' : ''))
+const placeholder = computed(() => {
+  if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
+    return '(Optional)'
+  } else if (modelValue === null && showNull.value) {
+    return 'NULL'
+  } else if (isDateInvalid.value) {
+    return 'Invalid date'
+  } else {
+    return ''
+  }
+})
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
@@ -236,14 +250,19 @@ const clickHandler = () => {
   }
   cellClickHandler()
 }
+
+const isColDisabled = computed(() => {
+  return isSystemColumn(column.value) || readOnly.value || (localState.value && isPk)
+})
 </script>
 
 <template>
   <a-date-picker
     v-model:value="localState"
+    :disabled="isColDisabled"
     :show-time="true"
     :bordered="false"
-    class="!w-full !px-0 !border-none"
+    class="!w-full !px-0 !py-1 !border-none"
     :class="{ 'nc-null': modelValue === null && showNull }"
     :format="dateTimeFormat"
     :placeholder="placeholder"
@@ -251,7 +270,6 @@ const clickHandler = () => {
     :input-read-only="true"
     :dropdown-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''}`"
     :open="readOnly || (localState && isPk) || isLockedMode ? false : open && (active || editable)"
-    :disabled="readOnly || (localState && isPk)"
     @click="clickHandler"
     @ok="open = !open"
   >

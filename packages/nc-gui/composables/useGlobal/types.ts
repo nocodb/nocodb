@@ -28,6 +28,7 @@ export interface AppInfo {
   baseHostName?: string
   disableEmailAuth: boolean
   mainSubDomain?: string
+  dashboardPath: string
 }
 
 export interface StoredState {
@@ -61,12 +62,20 @@ export interface Getters {
 }
 
 export interface Actions {
-  signOut: () => void
+  signOut: (skipRedirect?: boolean) => void
   signIn: (token: string) => void
   refreshToken: () => void
   loadAppInfo: () => void
   setIsMobileMode: (isMobileMode: boolean) => void
-  navigateToProject: (params: { workspaceId?: string; projectId?: string; type?: NcProjectType }) => void
+  navigateToProject: (params: { workspaceId?: string; projectId?: string; type?: NcProjectType; query?: any }) => void
+  ncNavigateTo: (params: {
+    workspaceId?: string
+    projectId?: string
+    type?: NcProjectType
+    query?: any
+    tableId?: string
+    viewId?: string
+  }) => void
   getBaseUrl: (workspaceId: string) => string | undefined
 }
 

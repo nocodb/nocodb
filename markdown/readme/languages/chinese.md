@@ -215,15 +215,15 @@ cd nocodb
 
 ```shell
 cd packages/nocodb-sdk
-npm install
-npm run build
+pnpm install
+pnpm run build
 ```
 ## 本地运行后端
 
 ```shell
 cd packages/nocodb
-npm install
-npm run watch:run
+pnpm install
+pnpm run watch:run
 # 在浏览器中打开 localhost:8080/dashboard
 ```
 
@@ -231,14 +231,14 @@ npm run watch:run
 
 ```shell
 cd packages/nc-gui
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 # 在浏览器中打开 localhost:3000/dashboard
 ```
 
 修改代码后会自动重新启动。
 
-> nocodb/packages/nocodb 包括 nc-lib-gui，它是 npm 源中托管的 nc-gui 的预构建版本。如果您只想修改后端，则可以在本地启动后端后在浏览器中访问 localhost:8000/dashboard
+> nocodb/packages/nocodb 包括 nc-lib-gui，它是 pnpm 源中托管的 nc-gui 的预构建版本。如果您只想修改后端，则可以在本地启动后端后在浏览器中访问 localhost:8000/dashboard
 
 # 贡献
 

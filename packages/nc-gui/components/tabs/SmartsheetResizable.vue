@@ -11,14 +11,11 @@ const {
 const wrapperRef = ref<HTMLDivElement>()
 const splitpaneWrapperRef = ref()
 
+const { rightSidebarState: sidebarState } = storeToRefs(useSidebarStore())
+
 const contentSize = computed(() => 100 - sideBarSize.value.current)
-const isSidebarShort = ref(!isRightSidebarOpen.value)
-const animationDuration = 300
+const animationDuration = 250
 const contentDomWidth = ref(window.innerWidth)
-const isMouseOverShowSidebarZone = ref(false)
-const isAnimationEndAfterSidebarHide = ref(!isRightSidebarOpen.value)
-const isStartHideSidebarAnimation = ref(false)
-const isLeftSidebarAnimating = ref(false)
 
 const sidebarWidth = computed(() => (sideBarSize.value.old * contentDomWidth.value) / 100)
 const currentSidebarSize = computed({
@@ -29,58 +26,44 @@ const currentSidebarSize = computed({
   },
 })
 
-const isSidebarHidden = ref(!isRightSidebarOpen.value)
-
 watch(isRightSidebarOpen, () => {
   sideBarSize.value.current = sideBarSize.value.old
 
   if (isRightSidebarOpen.value) {
-    setTimeout(() => {
-      isSidebarShort.value = true
+    setTimeout(() => (sidebarState.value = 'openStart'), 0)
 
-      isSidebarHidden.value = false
-    }, 0)
-
-    setTimeout(() => {
-      isSidebarShort.value = false
-    }, animationDuration / 2)
+    setTimeout(() => (sidebarState.value = 'openEnd'), animationDuration)
   } else {
     sideBarSize.value.old = sideBarSize.value.current
 
-    isSidebarShort.value = true
-    isAnimationEndAfterSidebarHide.value = false
+    sidebarState.value = 'hiddenStart'
 
     setTimeout(() => {
       sideBarSize.value.current = 0
-      isSidebarHidden.value = true
-      isAnimationEndAfterSidebarHide.value = true
-    }, animationDuration * 1.75)
+
+      sidebarState.value = 'hiddenEnd'
+    }, animationDuration)
   }
 })
 
 function handleMouseMove(e: MouseEvent) {
   if (!wrapperRef.value) return
-
-  if (isRightSidebarOpen.value && !isSidebarHidden.value && !isMouseOverShowSidebarZone.value) return
-  if (isRightSidebarOpen.value) {
-    isSidebarHidden.value = false
-    isMouseOverShowSidebarZone.value = false
-    return
-  }
+  if (sidebarState.value === 'openEnd') return
 
   const viewportWidth = window.innerWidth
 
-  if (e.clientX > viewportWidth - 14) {
-    isSidebarHidden.value = false
-    isMouseOverShowSidebarZone.value = true
-  } else if (e.clientX < viewportWidth - (sidebarWidth.value + 10) && !isSidebarHidden.value) {
-    isSidebarHidden.value = true
-    isMouseOverShowSidebarZone.value = false
-    isAnimationEndAfterSidebarHide.value = false
+  if (e.clientX > viewportWidth - 14 && ['hiddenEnd', 'peekCloseEnd'].includes(sidebarState.value)) {
+    sidebarState.value = 'peekOpenStart'
 
     setTimeout(() => {
-      isAnimationEndAfterSidebarHide.value = true
-    }, animationDuration * 1.75)
+      sidebarState.value = 'peekOpenEnd'
+    }, animationDuration)
+  } else if (e.clientX < viewportWidth - (sidebarWidth.value + 10) && sidebarState.value === 'peekOpenEnd') {
+    sidebarState.value = 'peekCloseOpen'
+
+    setTimeout(() => {
+      sidebarState.value = 'peekCloseEnd'
+    }, animationDuration)
   }
 }
 
@@ -89,7 +72,6 @@ function onWindowResize() {
 }
 
 onMounted(() => {
-  contentDomWidth.value = ((100 - leftSidebarWidthPercent.value) / 100) * window.innerWidth
   document.addEventListener('mousemove', handleMouseMove)
 
   window.addEventListener('resize', onWindowResize)
@@ -100,33 +82,17 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', onWindowResize)
 })
 
-watch(leftSidebarWidthPercent, () => {
-  contentDomWidth.value = ((100 - leftSidebarWidthPercent.value) / 100) * window.innerWidth
-})
-
-watch(isLeftSidebarOpen, () => {
-  if (isLeftSidebarOpen.value) {
-    contentDomWidth.value = ((100 - leftSidebarWidthPercent.value) / 100) * window.innerWidth
-  } else {
-    contentDomWidth.value = window.innerWidth
-  }
-
-  isLeftSidebarAnimating.value = true
-  setTimeout(() => {
-    isLeftSidebarAnimating.value = false
-  }, 700)
-})
-
 watch(
-  () => !isRightSidebarOpen.value && isSidebarShort.value,
-  (value) => {
-    if (value) {
-      setTimeout(() => {
-        isStartHideSidebarAnimation.value = true
-      }, animationDuration / 2)
+  [isLeftSidebarOpen, leftSidebarWidthPercent],
+  () => {
+    if (isLeftSidebarOpen.value) {
+      contentDomWidth.value = ((100 - leftSidebarWidthPercent.value) / 100) * window.innerWidth
     } else {
-      isStartHideSidebarAnimation.value = false
+      contentDomWidth.value = window.innerWidth
     }
+  },
+  {
+    immediate: true,
   },
 )
 </script>
@@ -134,42 +100,26 @@ watch(
 <template>
   <Splitpanes
     ref="splitpaneWrapperRef"
-    style="height: calc(100vh - var(--topbar-height))"
-    class="smartsheet-resizable-wrapper w-full"
+    class="nc-view-sidebar-content-resizable-wrapper w-full h-full"
     :class="{
-      'smartsheet-sidebar-short': isSidebarShort,
+      'hide-resize-bar': !isRightSidebarOpen || sidebarState === 'openStart',
     }"
     @resize="currentSidebarSize = $event[1].size"
   >
     <Pane :size="contentSize">
       <slot name="content" />
     </Pane>
-    <Pane
-      min-size="15%"
-      :size="currentSidebarSize"
-      max-size="40%"
-      class="nc-smartsheet-sidebar-splitpane !bg-transparent relative !overflow-visible !-ml-0.5"
-    >
+    <Pane min-size="15%" :size="currentSidebarSize" max-size="40%" class="nc-view-sidebar-splitpane relative !overflow-visible">
       <div
         ref="wrapperRef"
-        class="nc-smartsheet-sidebar-wrapper relative z-10 !bg-transparent"
+        class="nc-view-sidebar-wrapper relative flex flex-col h-full justify-center !min-w-32 absolute overflow-visible"
         :class="{
-          'open': isRightSidebarOpen,
-          'close': !isRightSidebarOpen,
-          'absolute': isMouseOverShowSidebarZone,
-          'smartsheet-sidebar-short': isSidebarShort,
-          'hide-sidebar': isStartHideSidebarAnimation && !isMouseOverShowSidebarZone,
-          'mouseover-show-sidebar-zone':
-            isSidebarShort && !isRightSidebarOpen && isMouseOverShowSidebarZone && isAnimationEndAfterSidebarHide,
+          'minimized-height': !isRightSidebarOpen,
+          'peek-sidebar': ['peekOpenEnd', 'peekCloseOpen'].includes(sidebarState),
+          'hide-sidebar': ['hiddenStart', 'hiddenEnd', 'peekCloseEnd'].includes(sidebarState),
         }"
         :style="{
-          width: isLeftSidebarAnimating
-            ? '100%'
-            : isAnimationEndAfterSidebarHide && isSidebarHidden
-            ? '0px'
-            : `${sidebarWidth}px`,
-          overflow: isMouseOverShowSidebarZone ? 'visible' : undefined,
-          translate: isMouseOverShowSidebarZone ? 'translateX(-100%)' : undefined,
+          width: sidebarState === 'hiddenEnd' ? '0px' : `${sidebarWidth}px`,
         }"
       >
         <slot name="sidebar" />
@@ -179,7 +129,35 @@ watch(
 </template>
 
 <style lang="scss">
-.smartsheet-resizable-wrapper > {
+.nc-view-sidebar-wrapper.minimized-height > * {
+  @apply pb-1 !(rounded-l-lg border-1 border-gray-200 shadow-lg);
+  height: 89.5%;
+}
+
+.nc-view-sidebar-wrapper > * {
+  transition: all 0.15s ease-in-out;
+  @apply z-10 absolute;
+}
+
+.nc-view-sidebar-wrapper.peek-sidebar {
+  > * {
+    @apply !opacity-100;
+    transform: translateX(-100%);
+  }
+}
+
+.nc-view-sidebar-wrapper.hide-sidebar {
+  @apply !min-w-0;
+
+  > * {
+    @apply opacity-0;
+    transform: translateX(100%);
+  }
+}
+
+/** Split pane CSS */
+
+.nc-view-sidebar-content-resizable-wrapper > {
   .splitpanes__splitter {
     width: 0 !important;
     position: relative;
@@ -200,14 +178,14 @@ watch(
     @apply bg-scrollbar;
     z-index: 40;
     width: 4px !important;
-    left: -4px;
+    left: -2px;
   }
 
   .splitpanes--dragging .splitpanes__splitter:before {
     @apply bg-scrollbar;
     z-index: 40;
     width: 10px !important;
-    left: -6px;
+    left: -2px;
   }
 }
 
@@ -215,62 +193,17 @@ watch(
   @apply w-1 mr-0 bg-scrollbar;
   z-index: 40;
   width: 4px !important;
-  left: -4px;
+  left: -2px;
 }
 
 .splitpanes--dragging {
   cursor: col-resize;
 }
 
-.smartsheet-sidebar-short > .splitpanes__splitter {
-  display: none !important;
-  background-color: transparent !important;
-}
-
-.nc-smartsheet-sidebar-wrapper {
-  @apply flex flex-col h-full justify-center min-w-36;
-}
-
-.nc-smartsheet-sidebar-wrapper.close {
-  > * {
-    height: 80vh;
+.nc-view-sidebar-content-resizable-wrapper.hide-resize-bar > {
+  .splitpanes__splitter {
+    display: none !important;
+    background-color: transparent !important;
   }
-}
-
-.nc-smartsheet-sidebar-wrapper.smartsheet-sidebar-short {
-  > * {
-    height: 80h !important;
-    padding-bottom: 0.35rem;
-    margin-top: -3.25rem;
-    margin-left: 0.25rem;
-  }
-}
-
-.nc-smartsheet-sidebar-wrapper.open {
-  height: calc(100vh - var(--topbar-height));
-  > * {
-    height: calc(100vh - var(--topbar-height));
-  }
-}
-
-.nc-smartsheet-sidebar-wrapper > * {
-  height: calc(100% - var(--topbar-height));
-}
-
-.nc-smartsheet-sidebar-wrapper > * {
-  width: 100%;
-  transition: all 0.3s ease-in-out;
-}
-
-.nc-smartsheet-sidebar-wrapper.hide-sidebar > * {
-  position: absolute;
-  opacity: 0;
-  transform: translateX(100%);
-}
-.mouseover-show-sidebar-zone > * {
-  transform: translateX(-100%);
-}
-.nc-smartsheet-sidebar-wrapper.smartsheet-sidebar-short > * {
-  @apply !(rounded-l-lg border-1 border-gray-200 shadow-lg);
 }
 </style>

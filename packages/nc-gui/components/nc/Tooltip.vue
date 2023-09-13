@@ -14,13 +14,19 @@ interface Props {
   hideOnClick?: boolean
 }
 
-const { modifierKey, tooltipStyle, disabled, hideOnClick } = defineProps<Props>()
+const props = defineProps<Props>()
+
+const modifierKey = computed(() => props.modifierKey)
+const tooltipStyle = computed(() => props.tooltipStyle)
+const disabled = computed(() => props.disabled)
+const hideOnClick = computed(() => props.hideOnClick)
+const placement = computed(() => props.placement ?? 'top')
 
 const el = ref()
 
 const showTooltip = controlledRef(false, {
   onBeforeChange: (shouldShow) => {
-    if (shouldShow && disabled) return false
+    if (shouldShow && disabled.value) return false
   },
 })
 
@@ -31,7 +37,7 @@ const attrs = useAttrs()
 const isKeyPressed = ref(false)
 
 onKeyStroke(
-  (e) => e.key === modifierKey,
+  (e) => e.key === modifierKey.value,
   (e) => {
     e.preventDefault()
 
@@ -45,7 +51,7 @@ onKeyStroke(
 )
 
 onKeyStroke(
-  (e) => e.key === modifierKey,
+  (e) => e.key === modifierKey.value,
   (e) => {
     e.preventDefault()
 
@@ -55,7 +61,7 @@ onKeyStroke(
   { eventName: 'keyup' },
 )
 
-watch([isHovering, () => modifierKey, () => disabled], ([hovering, key, isDisabled]) => {
+watch([isHovering, () => modifierKey.value, () => disabled.value], ([hovering, key, isDisabled]) => {
   if (!hovering || isDisabled) {
     showTooltip.value = false
     return
@@ -85,7 +91,7 @@ const divStyles = computed(() => ({
 }))
 
 const onClick = () => {
-  if (hideOnClick && showTooltip.value) {
+  if (hideOnClick.value && showTooltip.value) {
     showTooltip.value = false
   }
 }

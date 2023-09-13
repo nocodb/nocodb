@@ -1,4 +1,5 @@
 import { Controller, Delete, Get, UseGuards } from '@nestjs/common';
+import { OrgUserRoles } from 'nocodb-sdk';
 import { CachesService } from '~/services/caches.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -9,7 +10,11 @@ export class CachesController {
   constructor(private readonly cachesService: CachesService) {}
 
   @Get('/api/v1/db/meta/cache')
-  @Acl('cacheGet')
+  @Acl('cacheGet', {
+    scope: 'org',
+    allowedRoles: [OrgUserRoles.SUPER_ADMIN],
+    blockApiTokenAccess: true,
+  })
   async cacheGet(_, res) {
     const data = await this.cachesService.cacheGet();
     res.set({
@@ -20,7 +25,11 @@ export class CachesController {
   }
 
   @Delete('/api/v1/db/meta/cache')
-  @Acl('cacheDelete')
+  @Acl('cacheDelete', {
+    scope: 'org',
+    allowedRoles: [OrgUserRoles.SUPER_ADMIN],
+    blockApiTokenAccess: true,
+  })
   async cacheDelete() {
     return await this.cachesService.cacheDelete();
   }

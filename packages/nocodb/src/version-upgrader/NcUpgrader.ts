@@ -15,6 +15,7 @@ import ncProjectEnvUpgrader from './ncProjectEnvUpgrader';
 import ncHookUpgrader from './ncHookUpgrader';
 import ncProjectConfigUpgrader from './ncProjectConfigUpgrader';
 import ncXcdbLTARUpgrader from './ncXcdbLTARUpgrader';
+import ncXcdbLTARIndexUpgrader from './ncXcdbLTARIndexUpgrader';
 import type { MetaService } from '~/meta/meta.service';
 import type { NcConfig } from '~/interface/config';
 
@@ -67,7 +68,7 @@ export default class NcUpgrader {
                 '',
                 'nc_store',
                 {
-                  value: JSON.stringify(config),
+                  value: JSON.stringify({ version: config.version }),
                 },
                 {
                   key: NcUpgrader.STORE_KEY,
@@ -142,6 +143,7 @@ export default class NcUpgrader {
       { name: '0105004', handler: ncHookUpgrader },
       { name: '0107004', handler: ncProjectConfigUpgrader },
       { name: '0108002', handler: ncXcdbLTARUpgrader },
+      { name: '0111002', handler: ncXcdbLTARIndexUpgrader },
     ];
   }
 }

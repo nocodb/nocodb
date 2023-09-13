@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, OrgUserRoles, PluginCategory } from 'nocodb-sdk';
+import {
+  AppEvents,
+  extractRolesObj,
+  OrgUserRoles,
+  PluginCategory,
+} from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import type { UserType } from 'nocodb-sdk';
@@ -13,7 +18,6 @@ import { randomTokenString } from '~/helpers/stringHelpers';
 import { ProjectUser, Store, SyncSource, User } from '~/models';
 
 import Noco from '~/Noco';
-import extractRolesObj from '~/utils/extractRolesObj';
 import { MetaTable } from '~/utils/globals';
 
 @Injectable()

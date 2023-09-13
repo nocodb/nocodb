@@ -1,7 +1,7 @@
 /// <reference types="vitest" />
 
 import path from 'path'
-import vueI18n from '@intlify/vite-plugin-vue-i18n'
+import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 import Icons from 'unplugin-icons/vite'
 import { defineConfig } from 'vite'
 import Vue from '@vitejs/plugin-vue'
@@ -9,7 +9,7 @@ import Vue from '@vitejs/plugin-vue'
 export default defineConfig({
   plugins: [
     Vue(),
-    vueI18n({
+    VueI18nPlugin({
       include: path.resolve(__dirname, '../lang'),
     }),
     Icons({

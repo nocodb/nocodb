@@ -55,6 +55,8 @@ const height = computed(() => {
 })
 
 const visible = useVModel(props, 'visible', emits)
+
+const slots = useSlots()
 </script>
 
 <template>
@@ -76,7 +78,7 @@ const visible = useVModel(props, 'visible', emits)
         maxHeight: height,
       }"
     >
-      <div class="flex pb-2 mb-2 text-lg font-medium border-b-1 border-gray-100">
+      <div v-if="slots.header" class="flex pb-2 mb-2 text-lg font-medium border-b-1 border-gray-100">
         <slot name="header" />
       </div>
 

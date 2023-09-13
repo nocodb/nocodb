@@ -13,15 +13,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { GlobalGuard } from '~/guards/global/global.guard';
-import {
-  Acl,
-  ExtractIdsMiddleware,
-} from '~/middlewares/extract-ids/extract-ids.middleware';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DataTableService } from '~/services/data-table.service';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
 
 @Controller()
-@UseGuards(ExtractIdsMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 export class DataTableController {
   constructor(private readonly dataTableService: DataTableService) {}
 

@@ -321,7 +321,7 @@ export interface ColumnType {
   /** Column Comment */
   cc?: string;
   /** Column Default */
-  cdf?: StringOrNullType;
+  cdf?: StringOrNullOrBooleanOrNumberType;
   /** Character Maximum Length */
   clen?: number | null | string;
   /** Column Options */
@@ -1690,7 +1690,7 @@ export interface NormalColumnRequestType {
   /** Column Comment */
   cc?: StringOrNullType;
   /** Column Default Value */
-  cdf?: StringOrNullType;
+  cdf?: StringOrNullOrBooleanOrNumberType;
   /** Column Name */
   column_name: string;
   /** Model for StringOrNull */
@@ -2038,7 +2038,14 @@ export interface ProjectUserReqType {
    */
   email: string;
   /** Project User Role */
-  roles: 'commenter' | 'editor' | 'guest' | 'owner' | 'viewer' | 'creator';
+  roles:
+    | 'no-access'
+    | 'commenter'
+    | 'editor'
+    | 'guest'
+    | 'owner'
+    | 'viewer'
+    | 'creator';
 }
 
 /**
@@ -2274,6 +2281,15 @@ export interface SortReqType {
 export type StringOrNullType = string | null;
 
 /**
+ * Model for StringOrNullOrBooleanOrNumber
+ */
+export type StringOrNullOrBooleanOrNumberType =
+  | string
+  | null
+  | boolean
+  | number;
+
+/**
  * Model for Table
  */
 export interface TableType {
@@ -2394,6 +2410,10 @@ export interface UserInfoType {
   lastname?: string;
   /** The roles of the user */
   roles?: any;
+  /** The project roles of the user */
+  project_roles?: any;
+  /** The workspace roles of the user */
+  workspace_roles?: any;
 }
 
 /**

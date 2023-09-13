@@ -24,11 +24,9 @@ const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
 
-const { loadScope } = useCommandPalette()
-
-loadScope('disabled')
-
 useSidebar('nc-left-sidebar', { hasSidebar: false })
+
+const { clearWorkspaces } = useWorkspace()
 
 const formValidator = ref()
 
@@ -63,7 +61,6 @@ async function signIn() {
   if (!formValidator.value.validate()) return
 
   resetError()
-  loadScope('disabled')
 
   api.auth.signin(form).then(async ({ token }) => {
     _signIn(token!)
@@ -75,6 +72,10 @@ async function signIn() {
 function resetError() {
   if (error.value) error.value = null
 }
+
+onMounted(async () => {
+  await clearWorkspaces()
+})
 </script>
 
 <template>
@@ -104,8 +105,6 @@ function resetError() {
             <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
               <a-input
                 v-model:value="form.email"
-                type="email"
-                autocomplete="email"
                 data-testid="nc-form-signin__email"
                 size="large"
                 :placeholder="$t('msg.info.signUp.workEmail')"
@@ -116,7 +115,6 @@ function resetError() {
             <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
               <a-input-password
                 v-model:value="form.password"
-                autocomplete="current-password"
                 data-testid="nc-form-signin__password"
                 size="large"
                 class="password"

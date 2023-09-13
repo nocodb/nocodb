@@ -3,7 +3,7 @@ import { WorkspacePage } from './';
 import { Locator } from '@playwright/test';
 
 /*
-  nc-workspace-container
+  nc-workspace-settings
     nc-collaborator-table-container
  */
 
@@ -24,7 +24,7 @@ export class CollaborationPage extends BasePage {
   }
 
   get() {
-    return this.workspace.get().locator('.nc-workspace-container').locator('.nc-collaborator-table-container');
+    return this.workspace.get().locator('.nc-workspace-settings').locator('.nc-collaborator-table-container');
   }
 
   async waitFor({ state }) {

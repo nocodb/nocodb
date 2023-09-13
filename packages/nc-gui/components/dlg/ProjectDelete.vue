@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { navigateTo } from '#app'
-
 const props = defineProps<{
   visible: boolean
   projectId: string
@@ -21,8 +19,6 @@ const { refreshCommandPalette } = useCommandPalette()
 const project = computed(() => projects.value.get(props.projectId))
 
 const isLoading = ref(false)
-
-const { projectsList } = storeToRefs(projectsStore)
 
 const onDelete = async () => {
   if (!project.value) return

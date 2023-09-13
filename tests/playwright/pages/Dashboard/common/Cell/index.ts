@@ -358,13 +358,18 @@ export class CellPageObject extends BasePage {
     if (!isLink) {
       await cell.click();
       await cell.locator('.nc-icon.unlink-icon').click();
+      // await cell.click();
     }
 
     // For HM/MM columns
     else {
       await cell.locator('.nc-datatype-link').click();
       await this.waitForResponse({
-        uiAction: () => this.rootPage.locator(`[data-testid="nc-child-list-icon-unlink"]`).first().click(),
+        uiAction: async () =>
+          this.rootPage
+            .locator(`[data-testid="nc-child-list-item"]`)
+            .nth((await this.rootPage.locator(`[data-testid="nc-child-list-item"]`).count()) - 1)
+            .click(),
         requestUrlPathToMatch: '/api/v1/db/data/noco/',
         httpMethodsToMatch: ['GET'],
       });

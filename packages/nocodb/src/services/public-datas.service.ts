@@ -473,10 +473,13 @@ export class PublicDatasService {
       )
     )?.[key];
 
-    const count: any = await baseModel.mmListCount({
-      colId: param.columnId,
-      parentId: param.rowId,
-    });
+    const count: any = await baseModel.mmListCount(
+      {
+        colId: param.columnId,
+        parentId: param.rowId,
+      },
+      param.query,
+    );
 
     return new PagedResponseImpl(data, { ...param.query, count });
   }

@@ -321,7 +321,7 @@ export interface ColumnType {
   /** Column Comment */
   cc?: string;
   /** Column Default */
-  cdf?: StringOrNullType;
+  cdf?: StringOrNullOrBooleanOrNumberType;
   /** Character Maximum Length */
   clen?: number | null | string;
   /** Column Options */
@@ -1690,7 +1690,7 @@ export interface NormalColumnRequestType {
   /** Column Comment */
   cc?: StringOrNullType;
   /** Column Default Value */
-  cdf?: StringOrNullType;
+  cdf?: StringOrNullOrBooleanOrNumberType;
   /** Column Name */
   column_name: string;
   /** Model for StringOrNull */
@@ -2279,6 +2279,15 @@ export interface SortReqType {
  * Model for StringOrNull
  */
 export type StringOrNullType = string | null;
+
+/**
+ * Model for StringOrNullOrBooleanOrNumber
+ */
+export type StringOrNullOrBooleanOrNumberType =
+  | string
+  | null
+  | boolean
+  | number;
 
 /**
  * Model for Table

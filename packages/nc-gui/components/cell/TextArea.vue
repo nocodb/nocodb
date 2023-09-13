@@ -1,16 +1,29 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { ActiveCellInj, EditModeInj, IsExpandedFormOpenInj, RowHeightInj, iconMap, inject, useVModel } from '#imports'
+
+import {
+  ActiveCellInj,
+  EditColumnInj,
+  EditModeInj,
+  IsExpandedFormOpenInj,
+  RowHeightInj,
+  iconMap,
+  inject,
+  useVModel,
+} from '#imports'
 
 const props = defineProps<{
   modelValue?: string | number
+  isFocus?: boolean
 }>()
 
 const emits = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)
 
-const editEnabled = inject(EditModeInj)
+const editEnabled = inject(EditModeInj, ref(false))
+
+const isEditColumn = inject(EditColumnInj, ref(false))
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
@@ -20,7 +33,7 @@ const vModel = useVModel(props, 'modelValue', emits, { defaultValue: '' })
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLTextAreaElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLTextAreaElement)?.focus()
 
 const height = computed(() => {
   if (!rowHeight.value) return 60
@@ -68,6 +81,7 @@ onClickOutside(inputWrapperRef, (e) => {
         :style="{
           minHeight: `${height}px`,
         }"
+        :placeholder="isEditColumn ? '(Optional)' : ''"
         @blur="editEnabled = false"
         @keydown.alt.enter.stop
         @keydown.shift.enter.stop

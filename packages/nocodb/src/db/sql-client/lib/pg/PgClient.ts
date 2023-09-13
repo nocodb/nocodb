@@ -876,9 +876,9 @@ class PGClient extends KnexClient {
         // todo : need to find if column is unique or not
         // column['unique'] = response.rows[i]['cst'].indexOf('UNIQUE') === -1 ? false : true;
 
-        column.cdf = response.rows[i].cdf;
-        // ? response.rows[i].cdf.split("::")[0].replace(/'/g, "")
-        // : response.rows[i].cdf;
+        column.cdf = response.rows[i].cdf
+          ? response.rows[i].cdf.replace(/::\w+$/, '').replace(/^'|'$/g, '')
+          : response.rows[i].cdf;
 
         // todo : need to find column comment
         column.cc = response.rows[i].cc;

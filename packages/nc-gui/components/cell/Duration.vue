@@ -2,6 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import {
   ColumnInj,
+  EditColumnInj,
   EditModeInj,
   IsExpandedFormOpenInj,
   computed,
@@ -34,9 +35,11 @@ const durationInMS = ref(0)
 
 const isEdited = ref(false)
 
+const isEditColumn = inject(EditColumnInj, ref(false))
+
 const durationType = computed(() => parseProp(column?.value?.meta)?.duration || 0)
 
-const durationPlaceholder = computed(() => durationOptions[durationType.value].title)
+const durationPlaceholder = computed(() => (isEditColumn.value ? '(Optional)' : durationOptions[durationType.value].title))
 
 const localState = computed({
   get: () => convertMS2Duration(modelValue, durationType.value),
@@ -76,7 +79,7 @@ const submitDuration = () => {
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
@@ -85,8 +88,8 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputEle
       v-if="editEnabled"
       :ref="focus"
       v-model="localState"
-      class="w-full !border-none p-0"
-      :class="{ '!px-2': editEnabled }"
+      class="w-full !border-none !outline-none p-0"
+      :class="{ '!px-2 !py-1': editEnabled }"
       :placeholder="durationPlaceholder"
       @blur="submitDuration"
       @keypress="checkDurationFormat($event)"

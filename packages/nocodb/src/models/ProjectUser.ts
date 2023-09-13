@@ -100,6 +100,7 @@ export default class ProjectUser {
         `${MetaTable.USERS}.roles as main_roles`,
         `${MetaTable.PROJECT_USERS}.project_id`,
         `${MetaTable.PROJECT_USERS}.roles as roles`,
+        `${MetaTable.PROJECT_USERS}.created_at as created_at`,
       )
       .offset(offset)
       .limit(limit);

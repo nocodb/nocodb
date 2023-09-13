@@ -7,6 +7,9 @@ WORKDIR /usr/src/app
 # install node-gyp dependencies
 RUN apk add --no-cache python3 make g++
 
+# install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 # Copy application dependency manifests to the container image.
 # A wildcard is used to ensure both package.json AND package-lock.json are copied.
 # Copying this separately prevents re-running npm ci on every code change.
@@ -22,11 +25,12 @@ COPY ./src/public/ ./docker/public/
 # install production dependencies,
 # reduce node_module size with modclean & removing sqlite deps,
 # package built code into app.tar.gz & add execute permission to start.sh
-RUN npm ci --omit=dev --quiet \
-    && npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**" --run  \
+RUN pnpm install --prod --shamefully-hoist \
+    && pnpm dlx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**" --run  \
     && rm -rf ./node_modules/sqlite3/deps \
     && tar -czf ../appEntry/app.tar.gz ./* \
-    && chmod +x /usr/src/appEntry/start.sh
+    && chmod +x /usr/src/appEntry/start.sh \
+
 
 ##########
 # Runner

@@ -70,7 +70,7 @@ jobs:
       - name: build nocodb
         run: |
           # build nocodb ( pack nocodb-sdk and nc-gui )
-          cd packages/nocodb && npm install &&
+          cd packages/nocodb &&
           EE=true pnpm exec webpack --config webpack.cloud.config.js &&
           # remove nocodb-sdk since it's packed with the build
           pnpm uninstall --save-prod nocodb-sdk
